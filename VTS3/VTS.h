@@ -22,6 +22,8 @@
 #define	DEVICE_LOOPBACK		1		// set to zero to disable "looped" messages
 
 #define MAX_FAIL_TIMES      7        //		add by GJB, 29/12/2003
+#define MAX_BIBBS           100      //  msd 9/1/04 - provide a little growing room
+#define MAX_DATALINK_OPTIONS  30     //  msd 9/1/04 - provide a little growing room
 
 //
 //	VTSApp
