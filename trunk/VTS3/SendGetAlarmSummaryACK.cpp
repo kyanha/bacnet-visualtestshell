@@ -150,9 +150,9 @@ BOOL CSendGetAlarmSummaryACK::OnInitDialog()
 	m_AlarmSumListCtrl.m_nFlags &= ~LBS_SORT;
 
 	// set up the property list columns
-	m_AlarmSumListCtrl.InsertColumn( 0, "Object ID", LVCFMT_LEFT, 96 );
-	m_AlarmSumListCtrl.InsertColumn( 1, "Event State", LVCFMT_RIGHT, 48 );
-	m_AlarmSumListCtrl.InsertColumn( 2, "Acked Transitions", LVCFMT_LEFT, 96 );
+	m_AlarmSumListCtrl.InsertColumn( 0, "Object ID", LVCFMT_LEFT, 126 );
+	m_AlarmSumListCtrl.InsertColumn( 1, "Event State", LVCFMT_LEFT, 82 );
+	m_AlarmSumListCtrl.InsertColumn( 2, "Acked Transitions", LVCFMT_LEFT, 116 );
 
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_EVENTSTATECOMBO );
@@ -220,7 +220,12 @@ AlarmSummaryElem::AlarmSummaryElem( CSendPagePtr wp )
 {
 	// controls start out disabled
 	aseObjectID.ctrlEnabled = false;
+	aseObjectID.ctrlNull = false;
+	aseObjectID.objID = 0;
 	aseEventStateCombo.ctrlEnabled = false;
+	aseToOffnormal.ctrlEnabled = false;
+	aseToFault.ctrlEnabled = false;
+	aseToNormal.ctrlEnabled = false;
 }
 
 //
@@ -250,13 +255,16 @@ void AlarmSummaryElem::Bind( void )
 void AlarmSummaryElem::Unbind( void )
 {
 	// clear out the contents of the controls
-	aseObjectID.ctrlWindow->GetDlgItem( IDC_PROPCOMBO )->SetWindowText( "" );
+	aseObjectID.ctrlWindow->GetDlgItem( IDC_OBJECTID )->SetWindowText( "" );
 	aseObjectID.Disable();
 	aseObjectID.ctrlWindow->GetDlgItem( IDC_OBJECTIDBTN )->EnableWindow( false );
-	aseEventStateCombo.ctrlWindow->GetDlgItem( IDC_ARRAYINDEX )->SetWindowText( "" );
+	aseEventStateCombo.ctrlWindow->GetDlgItem( IDC_EVENTSTATECOMBO )->SetWindowText( "" );
 	aseEventStateCombo.Disable();
+	aseToOffnormal.SetCheck(false);
 	aseToOffnormal.Disable();
+	aseToFault.SetCheck(false);
 	aseToFault.Disable();
+	aseToNormal.SetCheck(false);
 	aseToNormal.Disable();
 }
 
@@ -342,6 +350,10 @@ void AlarmSummaryList::AddButtonClick( void )
 	// update the encoding
 	aslAddInProgress = false;
 	aslPagePtr->UpdateEncoded();
+
+	OnSelchangeEventStateCombo();		// madanner 9/4/02, throws state into list as well
+	aslPagePtr->m_AlarmSumListCtrl.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
+
 }
 
 //
@@ -369,6 +381,10 @@ void AlarmSummaryList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// madanner 9/4/02
+	// reselect a new row... just before the deleted one if any.
+	aslPagePtr->m_AlarmSumListCtrl.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
 
 	// update the encoding
 	aslPagePtr->UpdateEncoded();
@@ -538,14 +554,15 @@ void AlarmSummaryList::OnItemChanging( NMHDR *pNMHDR, LRESULT *pResult )
 	;
 
 	// forget messages that don't change the selection state
-	if (pNMListView->uOldState == pNMListView->uNewState)
+	// madanner 9/5/02, proper masking check?
+	if ((pNMListView->uOldState && LVIS_SELECTED)  == (pNMListView->uNewState && LVIS_SELECTED) )
 		return;
 
 	// skip messages during new item creation
 	if (aslAddInProgress)
 		return;
 
-	if ((pNMListView->uNewState * LVIS_SELECTED) != 0) {
+	if ((pNMListView->uNewState && LVIS_SELECTED) != 0) {		// madanner 9/5/02, proper mask ??
 		// item becoming selected
 		aslCurElemIndx = pNMListView->iItem;
 		aslCurElem = GetAt( FindIndex( aslCurElemIndx ) );
