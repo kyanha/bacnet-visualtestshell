@@ -163,6 +163,7 @@ protected:
 	afx_msg void OnObjectIDButton();
 	afx_msg void OnDestroy();
 	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
+	afx_msg void OnDropdownPropcombo();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

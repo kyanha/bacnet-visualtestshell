@@ -84,6 +84,7 @@ BEGIN_MESSAGE_MAP(CSendReadPropMult, CPropertyPage)
 	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectIDButton)
 	ON_WM_DESTROY()
 	ON_WM_SHOWWINDOW()
+	ON_CBN_DROPDOWN(IDC_PROPCOMBO, OnDropdownPropcombo)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -1074,4 +1075,15 @@ void CSendReadPropMult::OnShowWindow(BOOL bShow, UINT nStatus)
 		pageParent->SetHistoryComboBox(glWPMRPMHistoryCount);
 		pageParent->curPagePtr = this;
 	}	
+}
+
+void CSendReadPropMult::OnDropdownPropcombo() 
+{
+	//Added by Zhu Zhenhua , 2003-7-22 
+	//	to Load Standard property list for certain ObjectType
+	if(m_PropListList.rpllCurElem->rplCurElem)
+	{
+		m_PropListList.rpllCurElem->rplCurElem->rpePropCombo.m_nObjType = m_PropListList.rpllCurElem->rplObjID.GetObjectType();
+		m_PropListList.rpllCurElem->rplCurElem->rpePropCombo.LoadCombo();
+	}
 }

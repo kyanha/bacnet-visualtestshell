@@ -60,6 +60,7 @@ protected:
 	afx_msg void OnSelchangePropCombo();
 	afx_msg void OnChangeArrayIndex();
 	afx_msg void OnValue();
+	afx_msg void OnDropdownPropcombo();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

@@ -77,6 +77,7 @@ protected:
 	afx_msg void OnChangeEndtime();
 	afx_msg void OnChangePosRef();
 	afx_msg void OnChangeCount();
+	afx_msg void OnDropdownPropcombo();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
