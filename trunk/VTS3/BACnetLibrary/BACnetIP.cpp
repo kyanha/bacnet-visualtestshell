@@ -100,10 +100,10 @@ void BACnetIPAddr::Unpack( unsigned long *hostp, unsigned short *portp )
 void BACnetIPAddr::Pack( BACnetOctet *rsltp, unsigned long host, unsigned short port )
 {
 #if ENDIAN_SWAP
-	rsltp[3] = (host & 0xFF);	host >>= 8;
-	rsltp[2] = (host & 0xFF);	host >>= 8;
-	rsltp[1] = (host & 0xFF);	host >>= 8;
-	rsltp[0] = (host & 0xFF);
+	rsltp[3] = (unsigned char)(host & 0xFF);	host >>= 8;
+	rsltp[2] = (unsigned char)(host & 0xFF);	host >>= 8;
+	rsltp[1] = (unsigned char)(host & 0xFF);	host >>= 8;
+	rsltp[0] = (unsigned char)(host & 0xFF);
 	rsltp[5] = (port & 0xFF);	port >>= 8;
 	rsltp[4] = (port & 0xFF);
 #else
