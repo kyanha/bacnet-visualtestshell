@@ -667,7 +667,8 @@ void VTSDoc::DoSendWindow( int iGroup, int iItem )
 	// create the window and show it
 	// madanner 6/03, changed back to be child of main window, not the desktop.  This was originally an attempt
 	// to satisfy feature request 444238. 
-    sendp->Create( AfxGetApp()->m_pMainWnd );
+	// Added minimize/maximize controls, Mike Danner 2004-Jul-23
+    sendp->Create( AfxGetApp()->m_pMainWnd, WS_SYSMENU | WS_POPUP | WS_CAPTION | DS_MODALFRAME | WS_VISIBLE | WS_MINIMIZEBOX );
 //	sendp->Create(); //Make send window a client window, Xiao Shiyuan 2002-10-24
 	sendp->ShowWindow( SW_SHOW );
 	
