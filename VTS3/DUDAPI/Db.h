@@ -566,7 +566,7 @@ enum BACnetAbortReason
 typedef struct
 {
    BACnetObjectIdentifier     Objid;
-   word                       wPropertyid;
+   dword                       wPropertyid;
    word                      ulIndex;
    BACnetObjectIdentifier     DeviceObj;
 } BACnetDeviceObjectPropertyReference;      // Added Sep 18 2001
