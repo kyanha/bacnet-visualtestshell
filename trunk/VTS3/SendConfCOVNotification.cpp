@@ -434,6 +434,14 @@ void COVNotificationList::AddButtonClick( void )
 	// create a new item, add to the end of the list
 	cnlCurElem = new COVNotificationElem( cnlPagePtr );
 	cnlCurElemIndx = listLen;
+
+	// madanner, 9/3/02
+	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
+	// if list is altered.
+
+	cnlCurElem->cnePropCombo.enumValue = 85;
+
 	AddTail( cnlCurElem );
 
 	// bind the element to the controls
@@ -441,7 +449,11 @@ void COVNotificationList::AddButtonClick( void )
 
 	// update the encoding
 	cnlAddInProgress = false;
-	cnlPagePtr->UpdateEncoded();
+
+	// madanner, 9/3/02.
+	OnSelchangePropCombo();				// Insert new list text for Present_Value
+	cnlPagePtr->m_PropListCtrl.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
+//	cnlPagePtr->UpdateEncoded();
 }
 
 //
@@ -469,6 +481,10 @@ void COVNotificationList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// madanner 9/4/02
+	// reselect a new row... just before the deleted one if any.
+	cnlPagePtr->m_PropListCtrl.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
 
 	// update the encoding
 	cnlPagePtr->UpdateEncoded();

@@ -402,6 +402,14 @@ void CreateObjectList::AddButtonClick( void )
 	// create a new item, add to the end of the list
 	colCurElem = new CreateObjectElem( colPagePtr );
 	colCurElemIndx = listLen;
+
+	// madanner, 9/3/02
+	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
+	// if list is altered.
+
+	colCurElem->coePropCombo.enumValue = 85;
+
 	AddTail( colCurElem );
 
 	// bind the element to the controls
@@ -409,7 +417,11 @@ void CreateObjectList::AddButtonClick( void )
 
 	// update the encoding
 	colAddInProgress = false;
-	colPagePtr->UpdateEncoded();
+
+	// madanner, 9/3/02.
+	OnSelchangePropCombo();				// Insert new list text for Present_Value
+	colPagePtr->m_PropListCtrl.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
+//	colPagePtr->UpdateEncoded();
 }
 
 //
@@ -437,6 +449,10 @@ void CreateObjectList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// madanner 9/4/02
+	// reselect a new row... just before the deleted one if any.
+	colPagePtr->m_PropListCtrl.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
 
 	// update the encoding
 	colPagePtr->UpdateEncoded();
