@@ -18,7 +18,7 @@ h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: 
 
 <body bgcolor="#FFFFFF" text="#000000">
 
-<h1><a name="start">VTS 3.4.2 </a><i>Quick Start Guide</i></h1>
+<h1><a name="start">VTS 3.4.3 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
 functionality of various devices used in building automation systems.&nbsp;
 BACnet is a Data Communication Protocol for Building Automation and Control
@@ -1451,7 +1451,7 @@ specified.
 </ul>
 
 
-<h2><a name="whatsnew">3.4.2</a></h2>
+<h2>3.4.2</h2>
 <ul>
 
 <p><li>681223: Changed the default delay in EXPECT and SEND packets to 3 seconds and changed the maximum
@@ -1602,6 +1602,99 @@ These are located in the <b>scripts</b> folder.
 </li></p>
 
 </ul>
+
+<!-- 3.4.3 release notes -->
+<h2><a name="whatsnew">3.4.3</a></h2>
+
+<ul>
+
+<p><li>Feature request 444244: <b>Added capture and display filters.</b>
+<p>The capture and display filters are a list of ACCEPT or REJECT filter
+elements, each of which can specify a variety of source 
+and destination addresses, as well as "function groups"
+that match the function groups in the Send menu. </p>
+
+<p>Addresses are "deep parsed", so you can filter on anything
+to and/or from a remote network because the filter will look into
+the NPCI for routing information.  Ack's to a confirmed 
+service (both simple acks and complex acks) are paired up 
+with the function group. </p>
+
+<p>Note that this does not change the behavior of the
+application, only what is saved in the packet database and/or 
+shown in the window.  For this version, script 
+generated "packets" are not subject to filtering. </p>
+
+<p>(The up and down arrow buttons to change the
+order of the filter elements are not working). </p>
+</li></p>
+
+<p><li>Bug 567046: <b>Reworked the Detail View</b> to collapse tag
+details and
+expand the application data by default.  This should make it easier to
+use the Detail View to spot the most important data quickly. 
+</li></p>
+
+<p><li>Feature request 444130: The <b>Property Identifier selection list
+is
+now context sensitive</b> to the Object Type selected.  The Properties
+at
+the	top of the list are the standard Properties for the associated
+Object. These are followed by a string of dashes (---------) to serve as
+a
+visual separator, and then the remaining BACnet Properties are listed.
+At the end of the list is a Property named "<proprietary>", which allows
+the user to enter a numerical Property Identifier for proprietary
+Properties.</p>
+
+<p>Proprietary Property Identifiers are now encoded and decoded
+correctly and shown as numerical Property Identifiers, but the value of
+the proprietary Property will not be decoded correctly if it is a
+constructed data type.</p>
+
+<p>Property Identifiers are no longer restricted to the first 123
+enumerations.  Property Identifiers up to enumeration 168 (profile-name)
+are now decoded.  Property Identifiers can now be up to
+enumeration 4194303.  (This was limited to two octets in prior
+versions). Enumerations higher than 168 are shown as numerical Property
+Identifiers.</p>
+</li></p>
+
+<li><p>Feature request 544511: More information was added to each row of
+the summary view in the sniffer.  This feature needs to be reviewed to
+see if the most useful data was added for each message type.</li></p>
+
+<li><p>Fixed the following bugs:</p>
+<ul>
+  <li>727597: Commas needed in bacfuncs.h.   The strings "SCHEDULE" and
+  "AVERAGING" are now separated.</li>
+  <li>787626: EPICS parser does not know about new properties.  The
+  following Properties were added: <ul>
+     <li>ProfileName (all objects)</li>
+     <li>Device.database-revision</li>
+	 <li>Device.configuration-files</li>
+	 <li>Device.last-restore-time</li>
+	 <li>Device.backup-failure-timeout</li>
+	 <li>Device.active-cov-subscriptions</li>
+     <li>Device.max-segments-accepted</li>
+	 </ul>
+  </li>
+  <li>779139: Send Dialog missing vertical scroll bar </li>
+  <li>788953: Send UTCTimeSynchronization service is bad</li>
+  <li>767301: UTCTimeSynchronization has extra fields</li>
+  <li>759946: Object_Property_Reference property mislabelled</li>
+  <li>767311: Signed values displayed as unsigned in Detail view</li>
+  <li>787629: EPICS parser requires optional properties.  The EPICS
+  parser was generating an error when a) the device supports Event
+  Notification services and	b) any object that COULD support intrinsic
+  alarming doesn't have the properties to do so (time-delay,
+  notification-class, etc).	 Now the EPICS parser checks to see if ANY
+  of the intrinsic reporting properties exist in each Object, and if so,
+  they all must exist. </li>
+</ul>
+
+</ul>
+
 
  
 <p>&nbsp;</p>
