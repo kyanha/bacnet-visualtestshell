@@ -383,6 +383,7 @@ protected:
 protected:
 	//{{AFX_MSG(VTSDoc)
 	afx_msg void OnViewStatistics();
+	afx_msg void OnFileSave();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
