@@ -64,6 +64,14 @@ void VTSPreferences::SView_SetColumnWidth(int nColumn, int nWidth)
 }
 
 
+void VTSPreferences::Setting_SetLastEPICS(LPCSTR lpszEPICSFile)
+{
+	if ( lpszEPICSFile == NULL )
+		m_strLastEPICS.Empty();
+	else
+		m_strLastEPICS = lpszEPICSFile;
+}
+
 //
 //	VTSPreferences::Load
 //
@@ -91,6 +99,11 @@ void VTSPreferences::Load( void )
 
 	nRelative = pApp->GetProfileInt( "Settings", "VerifyDelete", m_fVerifyDelete ? 1 : 0);
 	m_fVerifyDelete = nRelative != 0;
+
+	nRelative = pApp->GetProfileInt( "Settings", "LoadEPICS", m_fLoadEPICS ? 1 : 0);
+	m_fLoadEPICS = nRelative != 0;
+
+	m_strLastEPICS = pApp->GetProfileString("Settings", "LastEPICS", NULL);
 }
 
 //
@@ -117,6 +130,8 @@ void VTSPreferences::Save( void )
 	pApp->WriteProfileInt( "Settings", "AutoscrollTimeout", m_nAutoscrollTimeout);
 	pApp->WriteProfileInt( "Settings", "RelativePacketFile", m_fRelativePacketFile ? 1 : 0);
 	pApp->WriteProfileInt( "Settings", "VerifyDelete", m_fVerifyDelete ? 1 : 0);
+	pApp->WriteProfileInt( "Settings", "LoadEPICS", m_fLoadEPICS ? 1 : 0);
+	pApp->WriteProfileString( "Settings", "LastEPICS", m_strLastEPICS);
 }
 
 
@@ -128,6 +143,7 @@ void VTSPreferences::DoPrefsDlg()
 	dlg.m_nPacketCount = Setting_GetCachePacketCount();
 	dlg.m_nRelative = Setting_IsPacketFileRelative() ? 0 : 1;
 	dlg.m_fVerify = Setting_IsVerifyDelete() ? TRUE : FALSE;
+	dlg.m_fLoadEPICS = Setting_IsLoadEPICS() ? TRUE : FALSE;
 
 	if ( dlg.DoModal() == IDOK )
 	{
@@ -141,6 +157,7 @@ void VTSPreferences::DoPrefsDlg()
 		}
 
 		Setting_SetVerifyDelete(dlg.m_fVerify ? true : false);		// account for MS BOOL junk
+		Setting_SetLoadEPICS(dlg.m_fLoadEPICS ? true : false);		// account for MS BOOL junk
 	}
 }
 

@@ -24,6 +24,7 @@ VTSPreferencesDlg::VTSPreferencesDlg(CWnd* pParent /*=NULL*/)
 	m_nPacketCount = 0;
 	m_nRelative = -1;
 	m_fVerify = FALSE;
+	m_fLoadEPICS = FALSE;
 	//}}AFX_DATA_INIT
 }
 
@@ -38,6 +39,7 @@ void VTSPreferencesDlg::DoDataExchange(CDataExchange* pDX)
 	DDV_MinMaxInt(pDX, m_nPacketCount, 1, 32000);
 	DDX_Radio(pDX, IDC_PREF_RELATIVE, m_nRelative);
 	DDX_Check(pDX, IDC_PREF_DELETEVERIFY, m_fVerify);
+	DDX_Check(pDX, IDC_PREF_LOADEPICS, m_fLoadEPICS);
 	//}}AFX_DATA_MAP
 }
 

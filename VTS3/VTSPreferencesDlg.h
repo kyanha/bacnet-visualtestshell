@@ -23,6 +23,7 @@ public:
 	int		m_nPacketCount;
 	int		m_nRelative;
 	BOOL	m_fVerify;
+	BOOL	m_fLoadEPICS;
 	//}}AFX_DATA
 
 

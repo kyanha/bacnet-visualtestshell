@@ -29,6 +29,9 @@ class VTSPreferences : public CObject
 		int		m_nAutoscrollTimeout;			// seconds of inactivity for going back to autoscroll
 		bool	m_fRelativePacketFile;			// true if packet file should be relative
 		bool	m_fVerifyDelete;				// should we ask 'are you sure' when deleting packets?
+		bool	m_fLoadEPICS;					// should we load the EPICS file upon startup?
+
+		CString m_strLastEPICS;					// filename of last EPICS file loaded
 
 	public:
 		VTSPreferences();
@@ -50,6 +53,10 @@ class VTSPreferences : public CObject
 		void Setting_SetPacketFileRelative(bool fRelative) { m_fRelativePacketFile = fRelative; }
 		bool Setting_IsVerifyDelete() { return m_fVerifyDelete; }
 		void Setting_SetVerifyDelete(bool fVerify) { m_fVerifyDelete = fVerify; }
+		bool Setting_IsLoadEPICS() { return m_fLoadEPICS; }
+		void Setting_SetLoadEPICS(bool fLoad) { m_fLoadEPICS = fLoad; }
+		LPCSTR Setting_GetLastEPICS() { return m_strLastEPICS; };
+		void Setting_SetLastEPICS(LPCSTR lpszEPICSFile);
 
 		void Load( void );
 		void Save( void );
