@@ -43,10 +43,7 @@ void BACnetBIPForeign::Register( unsigned long ipAddr, unsigned short port, int 
 	foreignTimeToLive = ttl;
 	
 	// set up the BBMD address
-	foreignBBMDAddr.addrType = localStationAddr;
-	foreignBBMDAddr.addrLen = 6;
-	memcpy( foreignBBMDAddr.addrAddr, &ipAddr, 4 );
-	memcpy( foreignBBMDAddr.addrAddr + 4, &port, 2 );
+	foreignBBMDAddr.Pack( ipAddr, port );
 	
 	// while we're alive, send registration requests at this interval
 	taskInterval = foreignTimeToLive * 1000;

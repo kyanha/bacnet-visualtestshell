@@ -12,7 +12,7 @@ class BACnetBIPForeign : public BACnetNetClient, public BACnetNetServer, public 
 	public:
 		int				foreignStatus;		// 0=dead, 1=alive
 		int				foreignTimeToLive;	// time to live interval in seconds
-		BACnetAddress	foreignBBMDAddr;	// address of BBMD to register with
+		BACnetIPAddr	foreignBBMDAddr;	// address of BBMD to register with
 		
 		BACnetBIPForeign( void );
 		virtual ~BACnetBIPForeign( void );
