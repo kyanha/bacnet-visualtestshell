@@ -225,7 +225,7 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 		*mptr++ = 0;										// DLEN
 		*mptr++ = (srcAddr.addrNet >> 8) & 0xFF;			// SNET
 		*mptr++ = (srcAddr.addrNet & 0xFF);
-		*mptr++ = srcAddr.addrLen;							// SLEN
+		*mptr++ = (unsigned char)srcAddr.addrLen;			// SLEN
 		memcpy( mptr, srcAddr.addrAddr, srcAddr.addrLen );	// SADR
 		mptr += srcAddr.addrLen;
 		*mptr++ = hopCount;									// hop count
@@ -271,7 +271,7 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 		*mptr++ = (netLayerMessage) + 0x08 + (dataExpectingReply << 2) + (networkPriority);
 		*mptr++ = (srcAddr.addrNet >> 8) & 0xFF;			// SNET
 		*mptr++ = (srcAddr.addrNet & 0xFF);
-		*mptr++ = srcAddr.addrLen;							// SLEN
+		*mptr++ = (unsigned char)srcAddr.addrLen;			// SLEN
 		memcpy( mptr, srcAddr.addrAddr, srcAddr.addrLen );	// SADR
 		mptr += srcAddr.addrLen;
 		if (netLayerMessage) {
@@ -315,14 +315,14 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 		*mptr++ = (netLayerMessage) + 0x28 + (dataExpectingReply << 2) + (networkPriority);
 		*mptr++ = (destAddr.addrNet >> 8);							// DNET
 		*mptr++ = (destAddr.addrNet & 0x00FF);
-		*mptr++ = destAddr.addrLen;									// DLEN
+		*mptr++ = (unsigned char)destAddr.addrLen;					// DLEN
 		if (destAddr.addrLen != 0) {
 			memcpy( mptr, destAddr.addrAddr, destAddr.addrLen );	// DADR
 			mptr += destAddr.addrLen;
 		}
 		*mptr++ = (srcAddr.addrNet >> 8) & 0xFF;					// SNET
 		*mptr++ = (srcAddr.addrNet & 0xFF);
-		*mptr++ = srcAddr.addrLen;									// SLEN
+		*mptr++ = (unsigned char)srcAddr.addrLen;					// SLEN
 		memcpy( mptr, srcAddr.addrAddr, srcAddr.addrLen );			// SADR
 		mptr += srcAddr.addrLen;
 		*mptr++ = hopCount;											// hop count
@@ -364,7 +364,7 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 		*mptr++ = 0xA0 + (networkPriority);
 		*mptr++ = (srcAddr.addrNet >> 8);							// DNET
 		*mptr++ = (srcAddr.addrNet & 0x00FF);
-		*mptr++ = srcAddr.addrLen;									// DLEN
+		*mptr++ = (unsigned char)srcAddr.addrLen;					// DLEN
 		if (srcAddr.addrLen != 0) {
 			memcpy( mptr, srcAddr.addrAddr, srcAddr.addrLen );		// DADR
 			mptr += srcAddr.addrLen;
@@ -460,7 +460,7 @@ void BACnetRouter::ProcessNetMessage(
 				*mptr++ = 0x88;										// network + SNET/SADR present
 				*mptr++ = (srcAddr.addrNet >> 8) & 0xFF;			// SNET
 				*mptr++ = (srcAddr.addrNet & 0xFF);
-				*mptr++ = srcAddr.addrLen;							// SLEN
+				*mptr++ = (unsigned char)srcAddr.addrLen;			// SLEN
 				memcpy( mptr, srcAddr.addrAddr, srcAddr.addrLen );	// SADR
 				mptr += srcAddr.addrLen;
 				
@@ -678,7 +678,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 				*mptr++ = 0x20 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
 				*mptr++ = (pdu.pduAddr.addrNet >> 8);							// DNET
 				*mptr++ = (pdu.pduAddr.addrNet & 0x00FF);
-				*mptr++ = pdu.pduAddr.addrLen;									// DLEN
+				*mptr++ = (unsigned char)pdu.pduAddr.addrLen;					// DLEN
 				memcpy( mptr, pdu.pduAddr.addrAddr, pdu.pduAddr.addrLen );		// DADR
 				mptr += pdu.pduAddr.addrLen;
 				*mptr++ = 0xFF;													// hopcount
