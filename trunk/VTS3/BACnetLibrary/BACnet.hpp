@@ -288,13 +288,34 @@ class BACnetTime : public BACnetEncodeable {
 		void Decode( const char *dec );
 	};
 
+enum BACnetObjectType {
+		analogInput						= 0,
+		analogOutput					= 1,
+		analogValue						= 2,
+		binaryInput						= 3,
+		binaryOutput					= 4,
+		binaryValue						= 5,
+		calendar						= 6,
+		command							= 7,
+		device							= 8,
+		eventEnrollment					= 9,
+		file							= 10,
+		group							= 11,
+		loop							= 12,
+		multistateInput					= 13,
+		multistateOutput				= 14,
+		notificationClass				= 15,
+		program							= 16,
+		schedule						= 17
+		};
+
 class BACnetObjectIdentifier : public BACnetEncodeable {
 	public:
 		unsigned int	objID;
 		
 		BACnetObjectIdentifier( int objType = 0, int instanceNum = 0 );
 
-		void SetValue( int objType, int instanceNum );
+		void SetValue( BACnetObjectType objType, int instanceNum );
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
