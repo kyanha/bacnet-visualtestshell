@@ -323,6 +323,86 @@ void VTSPreferences::Save( void )
 //				user visible indicators should also be renamed, but I don't expect the code to 
 //				be renamed.
 //
+//          The following SourceForge items were addressed:
+//			444144: Add line numbers to script window
+//			
+//			A control has been added in the left of the edit view to display line numbers.
+//			A status area has been added in the status bar to display the current line number, 
+//			and current line will be highlighted.
+//			A menu item "Go to Line" has been added. 
+//			The problem " two consecutive dashes look like one long dash" has been solved now.
+//			
+//			444147: Export session contents
+//			
+//			A menu item "Export" has been added for exporting session contents to an ASCII file, 
+//			the contents include the summary and detail information.
+//			
+//			531519: RPM error parsing acked-transitions
+//			
+//			Parsing the "ack-required" bit string is also incorrect, and error is same as 
+//			parsing the "acked_transitions" bit string. These bugs have been solved now.
+//			
+//			544513: Allow sniffer panes to be arranged
+//			
+//			In former VTS3, there were 3 panes each contains information of packet summary, 
+//			packet details, and packet hex codes.	Now VTS3 will create 2 docking bar each 
+//			contains a view in it, one displays the packet details, and the other one displays 
+//			the packet hex codes. Either of these two docking bars can be dragged, resized and 
+//			visible/invisible. So VTS3 allows all three windows view to be viewed full width - 
+//			one over the other and select which combination of the three is displayed.
+//			The docking views are implemented using a free library, CSizingControlBar library, 
+//			which is a framework for creating resizable docking windows. 
+//			This is a free code library whose functionality is to realize Microsoft DevStudio 
+//			like docking bars. This code is free for personal and commercial use, providing 
+//			the copyright notice remains intact in the source files and all eventual changes 
+//			are clearly marked with comments. One must obtain the author's consent before he 
+//			can include this code in a software library. For more information, 
+//			please visit http://www.datamekanix.com/.
+//			
+//			544516: Sniffer statistics view
+//			
+//			Now VTS3 has the capability to provide statistics information in real time when 
+//			the operator chooses to view the statistics. The statistics include:
+//			1.	The overall traffic load;
+//			2.	The packet number of one or several kinds of messages; for example, 
+//			    how many Who-Is packets are received/send, How many Alarm&Events packets 
+//			    are received/send etc;
+//			3.	The packet number of certain size or of certain size range; for example, 
+//			    how many packets whose size ranges from 100 to 1000 are received/send etc.
+//			
+//			444231: Associate script outline with editor
+//			
+//			Now when operator double click a section item in the tree/outline overview of a 
+//			script (the lower left pane of a script window), VTS3 can auto-scroll to the 
+//			relative position and highlight the first line of the section.
+//			
+//			562488: B/IP 'BDT Entry' UI needs easier format 
+//			
+//			Now BDT entry has been broken into three fields from single field. 
+//			4 Octet B/IP address (IP Address:Port) field, 2Octet UDP port field and 4 Octet 
+//			Broadcast Distribution Mask field.
+//			
+//			558884:Active_COV_Subscriptions not selectable
+//			
+//			Now property "Active_COV_Subscriptions" is selectable in the device object for 
+//			read-property requests. In order to parse this property, some data structures and 
+//			decoding methods have been added in VTS3, All these works were done according 
+//			to Addendum C to ANSI/ASHRAE Standard 135-1995.
+//			
+//			561641:Cat,Sched 'profile' prop not selectable
+//			
+//			Now property "Profile_Name" is selectable in all standard objects for 
+//			read-property requests. All these works were done according to Addendum E 
+//			to ANSI/ASHRAE Standard 135-1995.
+//			
+//			In Addendum E, the sequence number of property "Profile_Name" is 168, in order to 
+//			add this property, we must add it into data structure "BACnetPropertyIdentifier[]". 
+//			So we have added other properties whose sequence numbers are in 152 to 168 into 
+//			"BACnetPropertyIdentifier[]", but we haven't parsed them at present. These 
+//			properties have been given in Addendum c and e, but we don't know if they have 
+//			been included in ANSI/ASHRAE Standard 135-2001 as they have been described in 
+//			Addendum C and E .
+
 
 const int kReleaseVersion = 8;
 
