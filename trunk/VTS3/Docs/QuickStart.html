@@ -17,7 +17,7 @@ h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: 
   </style>
 </head>
 <body style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);">
-<h1><a name="start">VTS 3.4.6 </a><i>Quick Start Guide</i></h1>
+<h1><a name="start">VTS 3.4.7 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
 functionality of various devices used in building automation
 systems.&nbsp;
@@ -2068,7 +2068,7 @@ functional. </p>
   </li>
 </ul>
 <!-- 3.4.6 release notes -->
-<h2><a name="whatsnew">3.4.6</a></h2>
+<h2>3.4.6</h2>
 <ul>
   <li>The interface to the NB-Link MS/TP device was modified to improve
 performance. <br>
@@ -2203,6 +2203,84 @@ Send window) for entering the following complex datatypes:<br>
     </li>
   </ol>
 </ul>
+<!-- 3.4.7 release notes -->
+<h2><a name="whatsnew">3.4.7</a></h2>
+&nbsp;
+This release enhances the EPICS functionality of VTS.<br>
+<ul>
+  <li>An "EPICS View" was added that displays a <span
+ style="font-weight: bold;">visual representation of the loaded EPICS</span>
+file that is presented as a tree view.&nbsp; There is a node for each
+major section of the EPICS file, and an expandable node for the Objects
+in the EPICS database that when expanded shows each Object instance
+defined in the database as a separate node.&nbsp;&nbsp; As each node is
+selected, the details of the selected node are shown in an adjacent
+list view.&nbsp; If an Object instance node is selected, the list view
+displays each Property that exists in the selected Object instance,
+along with its value and whether or not it is writeable.&nbsp; There
+are buttons in the EPICS view for the following functions:</li>
+  <ul>
+    <li>Load - To select and load an EPICS file.</li>
+    <li>Reset - Reload the same EPICS file, rescanning for syntax
+errors and re-running the EPICS consistency tests.</li>
+    <li>Edit - Launches Notepad with the currently loaded EPICS file so
+that quick edits can be made to the file without leaving
+VTS.&nbsp;&nbsp; <br>
+    </li>
+    <li>Read All Props - Generates a script to read all of the Objects
+and all of their properties defined in the EPICS database.&nbsp; The
+user is prompted for the destination address information.</li>
+    <li>Read Object Props - A script is generated to read only the
+properties of the selected Object node.</li>
+  </ul>
+</ul>
+<ul>
+  <li><span style="font-weight: bold;">Services can be invoked from the
+EPICS view.</span>&nbsp; ReadProperty, WriteProperty,
+ReadPropertyMultiple, and WritePropertyMultiple can be invoked on
+properties displayed in the EPICS view.&nbsp; This is done by
+right-clicking on a property to display a context menu and selecting
+the desired function to perform on the selected property (or
+properties).&nbsp; A Send window will appear already populated with the
+correct information to perform the selected function.&nbsp; The user
+can then Send the service immediately by clicking the Send button, or
+make modifications to the Send window and then click the Send button.
+To invoke a ReadPropertMultiple or WritePropertMultiple service, select
+multiple properties in the EPICS view by holding down the Ctrl key
+while selecting properties.&nbsp; Double-clicking a property is the
+same as selecting ReadProperty from the context meu.<br>
+  </li>
+  <li>Two columns of values are shown in the properties list of the
+EPICS view: <span style="font-weight: bold;">EPICS Value</span>, and <span
+ style="font-weight: bold;">Device Value</span>.&nbsp; The EPICS Value
+is the
+value that was parsed from the loaded EPICS file.&nbsp; The Device
+Values are updated from any ReadProperty-Ack, or
+ReadPropertyMultiple-Ack messages that are received from the selected
+Device.&nbsp; These values are updated regardless of how the
+communication was initiated - so the Device Values will be updated
+as&nbsp; the Read All Properties script is running.&nbsp; The
+properties do not need to be currently displayed on the screen for the
+value to be updated.&nbsp; For these values in the Device Column to
+update, the user must select the name of the remote device that should
+be the source of these values in a drop list inside the EPICS
+View.&nbsp; <br>
+  </li>
+  <li>The <span style="font-weight: bold;">EPICS Consistency tests</span>
+have been updated to incorporate BIBB consistency checks and all of the
+consistency tests described in section 5 of the 135.1-2003
+standard.&nbsp; The old functional groups and conformance class code
+are no longer considered during the EPICS consistency test. <br>
+  </li>
+</ul>
+<br>
+<br>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
 <p>&nbsp;</p>
 <p><a href="#Links">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
