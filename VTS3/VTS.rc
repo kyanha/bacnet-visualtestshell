@@ -306,7 +306,7 @@ CAPTION "About VTS"
 FONT 8, "MS Sans Serif"
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,10,10,20,20
-    LTEXT           "Visual Test Shell 3.0b2",IDC_STATIC,40,15,119,8,
+    LTEXT           "Visual Test Shell 3.0b2",IDC_VERSION,40,9,130,20,
                     SS_NOPREFIX
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
 END

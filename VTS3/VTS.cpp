@@ -232,6 +232,15 @@ void VTSPreferences::Save( void )
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
 
+//
+//	VTS Release Version
+//
+//	Every released version of VTS gets this number bumped up by one.  If the major 
+//	or minor database version changes, this can be reset back down to one.
+//
+
+const int kReleaseVersion = 2;
+
 class CAboutDlg : public CDialog
 {
 public:
@@ -240,6 +249,7 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CAboutDlg)
 	enum { IDD = IDD_ABOUTBOX };
+	CString	m_Version;
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
@@ -259,13 +269,21 @@ protected:
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {
 	//{{AFX_DATA_INIT(CAboutDlg)
+	m_Version = _T("");
 	//}}AFX_DATA_INIT
+
+	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d"
+		, kVTSDBMajorVersion
+		, kVTSDBMinorVersion
+		, kReleaseVersion		// defined above
+		);
 }
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CAboutDlg)
+	DDX_Text(pDX, IDC_VERSION, m_Version);
 	//}}AFX_DATA_MAP
 }
 
