@@ -20,6 +20,18 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+namespace PICS {
+	
+#include "db.h" 
+#include "service.h"
+#include "vtsapi.h"
+#include "props.h"
+#include "bacprim.h"
+#include "dudapi.h"
+#include "dudtool.h"
+#include "propid.h"
+}
+extern PICS::PICSdb *gPICSdb;
 
 /////////////////////////////////////////////////////////////////////////////
 // ScriptDocument
@@ -43,6 +55,7 @@ END_MESSAGE_MAP()
 ScriptDocument::ScriptDocument()
 	: m_editData(0)
 	, m_pSelectedTest(0)
+	, m_pSelectedSection(0) // Added by Zhu Zhenhua, 2003-12-18, to run select section
 	, m_bExecBound(false)
 {
 	// TODO: add one-time construction code here
@@ -177,8 +190,18 @@ BOOL ScriptDocument::CheckSyntax( void )
 //madanner 6/03
 			if (tok.tokenType == scriptEOF)
 			{
-				delete scannerStack[scannerStack.GetSize()-1];
-				scannerStack.RemoveAt(scannerStack.GetSize()-1);
+				
+//				delete scannerStack[scannerStack.GetSize()-1];
+//				scannerStack.RemoveAt(scannerStack.GetSize()-1);
+//GJB  12/12/2003
+				// see if they've left a hanging IF...
+				if ( ifdefHandler.IsIfBlock() )
+					throw "EOF encountered without closing IF";
+				ScriptScannerPtr pScan = scannerStack.GetAt( scannerStack.GetSize()-1 );
+				if ( pScan != NULL ) {
+					scannerStack.RemoveAt( scannerStack.GetSize()-1 );
+					delete pScan;
+				}
 
 				if ( scannerStack.GetSize() <= 0 )
 					break;
@@ -195,7 +218,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 			// we have to deal with conditional compilation.  We want to take care of it here
 			// so we don't have to specially deal with any token if we're not collection.  Dig?
-
+			
 			if ( ifdefHandler.IsIfdefExpression(tok, scannerStack[scannerStack.GetSize()-1])  ||  ifdefHandler.IsSkipping() )
 				continue;
 
@@ -343,7 +366,38 @@ BOOL ScriptDocument::CheckSyntax( void )
 					}
 					break;
 
+				//Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
+				case kwASSIGN:
 
+					if (!curTest)
+						throw "Test required before ASSIGN statement";
+					if (expectRequired)
+						throw "EXPECT required after CASE statement";
+
+					prevGroup = NULL;
+					{
+					ScriptAssignCommand	* passignCommand = new ScriptAssignCommand(ifdefHandler, *(scannerStack[scannerStack.GetSize()-1]), tok, &curTest->baseLabel, AfxGetMainWnd()->GetActiveWindow() );
+					passignCommand->m_nCaseLevel = curCaseLevel;
+					curCase->Append(passignCommand, scannerStack[scannerStack.GetSize()-1]);
+					prevCommand = (ScriptCommandPtr) passignCommand;
+					}
+					break;
+				//Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
+				case kwWAIT:
+
+					if (!curTest)
+						throw "Test required before WAIT statement";
+					if (expectRequired)
+						throw "EXPECT required after CASE statement";
+
+					prevGroup = NULL;
+					{
+					ScriptWaitCommand	* pwaitCommand = new ScriptWaitCommand(ifdefHandler, *(scannerStack[scannerStack.GetSize()-1]), tok, &curTest->baseLabel, this, AfxGetMainWnd()->GetActiveWindow() );
+					pwaitCommand->m_nCaseLevel = curCaseLevel;
+					curCase->Append(pwaitCommand, scannerStack[scannerStack.GetSize()-1]);
+					prevCommand = (ScriptCommandPtr) pwaitCommand;
+					}
+					break;
 				case kwMAKE:
 
 					if (!curTest)
@@ -426,7 +480,30 @@ BOOL ScriptDocument::CheckSyntax( void )
 					if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwAFTER)) {
 						// look for value
 						scannerStack[scannerStack.GetSize()-1]->Next( tok );
-						if (!tok.IsInteger(newPacket->packetDelay))
+						if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '{')){
+							//get value from EPICS
+							CString strTime = "";
+							scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							while ( !(tok.tokenType == scriptSymbol  &&  tok.tokenSymbol == '}') ) {
+								strTime += tok.tokenValue;
+								scannerStack[scannerStack.GetSize()-1]->Next( tok );
+								if (tok.tokenType == scriptEOL) {
+									throw "Close brace '}' expected";
+								}
+							}
+							int nCode = ScriptToken::HashCode(strTime);
+							int nIndex = ScriptToken::Lookup( nCode, scriptFailTimesMap );
+							if (nIndex == -1) {
+								throw "unknown Fail Time";
+							}
+							if (!gPICSdb)
+								throw "No EPICS information loaded";
+							int nTime = gPICSdb->BACnetFailTimes[nIndex];
+							if (nTime == ftNotSupported) {
+								throw "This Fail Time is not support in EPICS database";
+							}
+							newPacket->packetDelay = nTime;
+						}else if (!tok.IsInteger(newPacket->packetDelay))
 							throw "Packet delay expected";
 						if (newPacket->packetDelay < 0)
 							throw "Delay must be a non-negative value";
@@ -472,8 +549,19 @@ BOOL ScriptDocument::CheckSyntax( void )
 					// look for BEFORE or (
 					scannerStack[scannerStack.GetSize()-1]->Next( tok );
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
-//						newPacket->packetDelay = kMaxPacketDelay;		changed to default timer
-						newPacket->packetDelay = kDefaultPacketDelay;
+					{//Modified by Zhu Zhenhua, 2003-12-31, to load default time from EPICS database.
+						if (!gPICSdb)
+							newPacket->packetDelay = kDefaultPacketDelay;
+						else
+						{
+							int nTime = gPICSdb->BACnetFailTimes[1];
+							if (nTime != ftNotSupported)
+								newPacket->packetDelay = nTime;
+							else
+								newPacket->packetDelay = kDefaultPacketDelay;
+						} 						
+
+					}
 					else
 					{	
 						//Modified by Zhu Zhenhua, 2003-11-25
@@ -487,7 +575,30 @@ BOOL ScriptDocument::CheckSyntax( void )
 						else if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwBEFORE)) {
 							// look for value
 							scannerStack[scannerStack.GetSize()-1]->Next( tok );
-							if (!tok.IsInteger(newPacket->packetDelay))
+							if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '{')){
+								//get value from EPICS
+								CString strTime = "";
+								scannerStack[scannerStack.GetSize()-1]->Next( tok );
+								while ( !(tok.tokenType == scriptSymbol  &&  tok.tokenSymbol == '}') ) {
+									strTime += tok.tokenValue;
+									scannerStack[scannerStack.GetSize()-1]->Next( tok );
+									if (tok.tokenType == scriptEOL) {
+										throw "Close brace '}' expected";
+									}
+								}
+								int nCode = ScriptToken::HashCode(strTime);
+								int nIndex = ScriptToken::Lookup( nCode, scriptFailTimesMap );
+								if (nIndex == -1) {
+									throw "unknown Fail Time";
+								}
+								if (!gPICSdb)
+									throw "No EPICS information loaded";
+								int nTime = gPICSdb->BACnetFailTimes[nIndex];
+								if (nTime == ftNotSupported) {
+									throw "This Fail Time is not support in EPICS database";
+								}
+								newPacket->packetDelay = nTime;
+							}else if (!tok.IsInteger(newPacket->packetDelay))
 								throw "Packet delay expected";
 							if (newPacket->packetDelay < 0)
 								throw "Delay must be a non-negative value";
@@ -794,10 +905,6 @@ BOOL ScriptDocument::CheckSyntax( void )
 			}
 		}
 
-		// see if they've left a hanging IF...
-		if ( ifdefHandler.IsIfBlock() )
-			throw "EOF encountered without closing IF";
-
 		// sequence the last test
 		if (curTest)
 			SequenceTest( curTest );
@@ -821,8 +928,16 @@ BOOL ScriptDocument::CheckSyntax( void )
 	m_pParmList->Release();
 
 	// now delete all of the scanners, which might close some include files...
-	for ( int n = 0; n < scannerStack.GetSize(); n++ )
-		delete scannerStack[n];
+//	for ( int n = 0; n < scannerStack.GetSize(); n++ )
+//		delete scannerStack[n];
+//GJB 12/12/2003
+	while ( scannerStack.GetSize() > 0 ) {
+		ScriptScannerPtr pScan = scannerStack.GetAt(0);	
+		if ( pScan != NULL ) {
+			scannerStack.RemoveAt(0);
+			delete pScan;
+		}
+	}
 
 	// if this is the current environment, tell everyone else to match
 	if (isEnv) {
@@ -1026,6 +1141,12 @@ void ScriptDocument::ParsePacket( ScriptIfdefHandler &ifdefHandler, ScriptScanne
 			}
 		}
 
+		//GJB 12/12/1003,  to check this packet expression value to see if it's the DON'T CARE value,
+		//If it is, change the packet expression operator to '?=' which indicates 'don't care'.
+		if (spep->exprValue[0] == '?') {
+			spep->exprOp = '?=';
+		}
+		
 		// all set, add the expression to the packet expression list
 		spp->packetExprList.Append( spep );
 	}
@@ -1149,7 +1270,9 @@ ScriptCommandPtr ScriptDocument::SequenceLevel( ScriptBasePtr sbp, ScriptCommand
 			nextCase = curCase;
 			nextCaseStart = pStart;
 		} else
-		if ( cur->baseType == ScriptBase::scriptCheck || cur->baseType == ScriptBase::scriptMake ) {
+		//Modified by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
+		//Modified by Zhu Zhenhua, 2003-12-31, to WAIT statement
+		if ( cur->baseType == ScriptBase::scriptCheck || cur->baseType == ScriptBase::scriptMake ||cur->baseType == ScriptBase::scriptAssign||cur->baseType == ScriptBase::scriptWait) {
 			ScriptCommandPtr pCommand = (ScriptCommandPtr) cur;
 			if (nextCaseStart) {
 				pPass = nextCaseStart;

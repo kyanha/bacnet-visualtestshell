@@ -26,7 +26,6 @@ class ScriptMessage : public ScriptCommand
 		CString * m_pstrTestTitle;
 		CString	m_strText;
 		CWnd * m_pParent;
-
 	private:
 		void Parse( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok );
 
@@ -45,7 +44,31 @@ class ScriptCHECKCommand : public ScriptMessage
 };
 
 
+//Class ScriptAssignCommand Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
 
+class ScriptAssignCommand : public ScriptCommand
+{
+	public:
+		CString  m_assigntext;
+		ScriptAssignCommand(ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTest, CWnd * pparent);
+		virtual ~ScriptAssignCommand();
+		bool Execute(CString * pstrError);
+	private:
+		void Parse( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok );
+};
+
+//Class ScriptWaitCommand Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
+class ScriptWaitCommand : public ScriptCommand
+{
+	public:
+		int m_nwaittime;
+		ScriptWaitCommand(ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTest, ScriptDocument * pdoc,CWnd * pparent);
+		virtual ~ScriptWaitCommand();
+		bool Execute(CString * pstrError);
+	private:
+		void StringToValue( const char *dec );
+		void Parse( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok );
+};
 class ScriptMAKECommand : public ScriptMessage
 {
 	private:

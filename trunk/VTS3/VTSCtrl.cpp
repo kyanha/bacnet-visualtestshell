@@ -775,11 +775,28 @@ VTSIPAddrCtrl::VTSIPAddrCtrl( const CWnd* wp, int cid, int tid )
 
 void VTSIPAddrCtrl::AssignAddress(VTSName * pname)
 {
-	unsigned char	broadcastAddr[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xBA, 0xC0 };
+
+	unsigned char	localbroadcastAddr[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xBA, 0xC0 };
+	char szHostName[128];
+	if( gethostname(szHostName, 128) == 0 )
+	{
+		// Get host adresses
+		struct hostent * pHost;
+		pHost = gethostbyname(szHostName);
+		LPSTR lpAddr = pHost->h_addr_list[0];
+		if (lpAddr) 
+			memcpy (&localbroadcastAddr, lpAddr, 3);
+	}	//To get localbroadcast address
+		//Modified by Zhu Zhenhua, 2003-12-12
+		
+
+	unsigned char	globalbroadcastAddr[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xBA, 0xC0 };
 
 	addrLen = 6;
 	if (pname->m_bacnetaddr.addrType == localBroadcastAddr)
-		memcpy( addrAddr, broadcastAddr, 6 );
+		memcpy( addrAddr, localbroadcastAddr, 6 );
+	else if(pname->m_bacnetaddr.addrType == globalBroadcastAddr)
+		memcpy( addrAddr, globalbroadcastAddr, 6 );
 	else
 		memcpy( addrAddr, pname->m_bacnetaddr.addrAddr, 6 );
 }

@@ -280,7 +280,17 @@ afx_msg void ScriptFrame::OnUpdateScriptRun(CCmdUI* pCmdUI)
 	if (gExecutor.IsIdle() && m_pDoc->m_pContentTree) {
 		pCmdUI->Enable( m_bSyntaxOK );
 
-		if (m_pDoc->m_pSelectedTest) {
+// Modified by Zhu Zhenhua, 2003-12-18, to run select section
+if (m_pDoc->m_pSelectedSection) {
+			CString	str( "&Run " );
+
+			str += m_pDoc->m_pSelectedSection->baseLabel;
+			str += "\tF5";
+
+			pCmdUI->SetText( str );
+		}
+
+	else if (m_pDoc->m_pSelectedTest) {
 			CString	str( "&Run " );
 
 			str += m_pDoc->m_pSelectedTest->baseLabel;

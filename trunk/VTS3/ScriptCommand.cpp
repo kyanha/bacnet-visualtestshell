@@ -11,6 +11,19 @@
 #include "ScriptMakeDlg.h"
 #include "ScriptMsgMake.h"
 
+//Added by Zhu Zhenhua, 2003-12-31, to load PICS fail time
+namespace PICS {
+	
+#include "db.h" 
+#include "service.h"
+#include "vtsapi.h"
+#include "props.h"
+#include "bacprim.h"
+#include "dudapi.h"
+#include "dudtool.h"
+#include "propid.h"
+}
+extern PICS::PICSdb *gPICSdb;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -19,19 +32,17 @@
 ScriptMessage::ScriptMessage( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle, CWnd * pparent /* = NULL */ )
 			  : ScriptCommand(ScriptBase::scriptCheck)
 			  , m_pstrTestTitle(pstrTestTitle)
-{
+{	
 	baseStatus = 0;
 	m_pParent = pparent;
 
 	baseLineStart = tok.tokenLine;
-
 	scan.Next( tok );
 	if ( tok.tokenType != scriptValue || tok.tokenEnc != scriptASCIIEnc )
 		throw "CHECK/MAKE statement requires \"Title Text\" following keyword";
-
+	
 	baseLabel = tok.RemoveQuotes();
 	Parse(ifdefHandler, scan, tok);
-
 	baseLineCount = baseLineStart - tok.tokenLine;
 }
 
@@ -124,17 +135,282 @@ bool ScriptCHECKCommand::Execute(CString * pstrError)
 	return true;
 }
 
+//Class ScriptAssignCommand Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
+
+ScriptAssignCommand::ScriptAssignCommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle, CWnd * pparent /* = NULL */ )
+			  : ScriptCommand(ScriptBase::scriptAssign)
+{	
+	baseStatus = 0;
+	baseLineStart = tok.tokenLine;
+	scan.Next( tok );
+	if ( tok.tokenType != scriptValue || tok.tokenEnc != scriptASCIIEnc )
+		throw "ASSIGEN statement requires \"Title Text\" following keyword";
+	
+	baseLabel = tok.RemoveQuotes();
+	Parse(ifdefHandler, scan, tok);
+	baseLineCount = baseLineStart - tok.tokenLine;
+
+	CString str = "Need 'PASSED' or 'FAILED' follow ASSIGN !";
+	m_assigntext = baseLabel;
+	if(m_assigntext != "PASSED" && m_assigntext != "FAILED")
+		AfxMessageBox(str);
+	// set the image list offset and status
+	baseImage = 22;
+
+}
+ScriptAssignCommand::~ScriptAssignCommand()
+{
+}
+void ScriptAssignCommand::Parse( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok )
+{
+	bool fOpen = false;
+
+	// start looking first for ')'... it might be where we left off or the next line.
+	// either way... look for it first.
+
+	scan.Next(tok);
+
+	for(;;)
+	{
+
+		if (tok.tokenType != scriptEOL)
+		 throw "End of line After ASSIGN text";
+		 else
+		 break;
+		do
+			scan.NextLine(tok);
+		while ( ifdefHandler.IsIfdefExpression(tok, &scan) || ifdefHandler.IsSkipping() );
+	}
+}
+
+
+bool ScriptAssignCommand::Execute(CString * pstrError)
+{
+	CString strFullText = "ASSIGN must meet 'FAILED' or 'PASSED' ";
+	if(m_assigntext == "PASSED")
+		return true;
+	else
+		if(m_assigntext == "PASSED")
+		{
+			return false;
+		}
+		else
+		{
+			*pstrError = strFullText;
+			return false;
+		}
+}
+
+//Class ScriptWaitCommand Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
+
+ScriptWaitCommand::ScriptWaitCommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle, ScriptDocument * pdoc,CWnd * pparent /* = NULL */ )
+			  : ScriptCommand(ScriptBase::scriptWait)
+{	
+	baseStatus = 0;
+	baseLineStart = tok.tokenLine;
+	baseLabel = "WAIT";
+	scan.Next( tok );
+	if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '{'))
+	{
+		//get value from EPICS
+		CString strTime = "";
+		scan.Next( tok );
+		while ( !(tok.tokenType == scriptSymbol  &&  tok.tokenSymbol == '}') )
+		{
+			strTime += tok.tokenValue;
+			scan.Next( tok );
+			if (tok.tokenType == scriptEOL) 
+			{
+				throw "Close brace '}' expected";
+			}
+		}
+		int nCode = ScriptToken::HashCode(strTime);
+		int nIndex = ScriptToken::Lookup( nCode, scriptFailTimesMap );
+		if (nIndex == -1) 
+		{
+			throw "unknown Fail Time";
+		}
+		if (!gPICSdb)
+			throw "No EPICS information loaded";
+		int nTime = gPICSdb->BACnetFailTimes[nIndex];
+		if (nTime == ftNotSupported) {
+			throw "This Fail Time is not support in EPICS database";
+		}
+		m_nwaittime = nTime;
+	}
+	else if(tok.tokenType == scriptKeyword)
+	{	
+			ScriptParmPtr pParm;
+			// resolve the keyword as a parameter?
+			if ((pParm = pdoc->m_pParmList->LookupParm( tok.tokenSymbol )) != 0)
+			{	
+				char* pNum = pParm->parmValue.GetBuffer(0);
+				StringToValue(pNum);
+			}
+			else
+			throw "Can not find the wait value parm";
+	}
+	else
+		if(!tok.IsInteger(m_nwaittime))
+		throw "Packet Wait expected";
+
+	Parse(ifdefHandler, scan, tok);
+	baseLineCount = baseLineStart - tok.tokenLine;
+	CString str = "wait time can not be negative";
+	if(m_nwaittime < 0)
+		AfxMessageBox(str);
+	// set the image list offset and status
+	baseImage = 23;
+
+}
+void ScriptWaitCommand::StringToValue( const char *dec )
+{
+	BOOL				negValue = FALSE
+	;
+	int					t
+	;
+
+	// look for a sign
+	if (*dec == '-') {
+		negValue = TRUE;
+		dec += 1;
+	} else
+	if (*dec == '+')
+		dec += 1;
+
+	// figure out what encoding to use
+	if ( ((dec[0] == 'D') && (dec[1] == '\''))					// D'nnn'
+		|| ((dec[0] == 'd') && (dec[1] == '\''))
+		) {
+		// decimal encoding
+		dec += 2;
+		if (((strlen(dec) - 1) % 3) != 0)			// must be triplet
+			throw "The string for wait time value must be triplet.";
+		for (m_nwaittime = 0; *dec != '\''; ) {
+			if (!isdigit(*dec))
+				throw "There's a invalid character for wait time value parm.";
+			t = (*dec++ - '0');
+
+			if (!isdigit(*dec))
+				throw "There's a invalid character for wait time value parm.";
+			t = (t * 10) + (*dec++ - '0');
+
+			if (!isdigit(*dec))
+				throw "There's a invalid character for wait time value parm.";
+			t = (t * 10) + (*dec++ - '0');
+
+			m_nwaittime = (m_nwaittime * 256) + t;
+		}
+	} else
+	if ( ((dec[0] == '0') && (dec[1] == 'x'))					// 0xFF, X'FF', &xFF
+		|| ((dec[0] == 'X') && (dec[1] == '\''))
+		|| ((dec[0] == 'x') && (dec[1] == '\''))
+		|| ((dec[0] == '&') && (dec[1] == 'x'))
+		|| ((dec[0] == '&') && (dec[1] == 'X'))
+		) {
+		// hex encoding
+		dec += 2;
+		for (m_nwaittime = 0; *dec && (*dec != '\''); dec++) {
+			if (!isxdigit(*dec))
+				throw "There's a invalid character for wait time value parm.";
+			m_nwaittime = (m_nwaittime * 16) + (isdigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
+		}
+	} else
+	if ( ((dec[0] == '0') && (dec[1] == 'o'))					// 0o377, O'377', &O377
+		|| ((dec[0] == 'O') && (dec[1] == '\''))
+		|| ((dec[0] == 'o') && (dec[1] == '\''))
+		|| ((dec[0] == '&') && (dec[1] == 'O'))
+		|| ((dec[0] == '&') && (dec[1] == 'o'))
+		) {
+		// octal encoding
+		dec += 2;
+		for (m_nwaittime = 0; *dec && (*dec != '\''); dec++) {
+			if ((*dec < '0') || (*dec > '7'))
+				throw "There's a invalid character for wait time value parm.";
+	
+			m_nwaittime = (m_nwaittime * 8) + (*dec - '0');
+		}
+	} else
+	if ( ((dec[0] == '0') && (dec[1] == 'b'))					// 0b11111111, B'11111111', &B11111111
+		|| ((dec[0] == 'B') && (dec[1] == '\''))
+		|| ((dec[0] == 'b') && (dec[1] == '\''))
+		|| ((dec[0] == '&') && (dec[1] == 'B'))
+		|| ((dec[0] == '&') && (dec[1] == 'b'))
+		) {
+		// binary encoding
+		dec += 2;
+		for (m_nwaittime = 0; *dec && (*dec != '\''); dec++) {
+			if ((*dec < '0') || (*dec > '1'))
+				throw "There's a invalid character for wait time value parm.";
+			m_nwaittime = (m_nwaittime * 2) + (*dec - '0');
+		}
+	} else
+	if (isdigit(*dec)) {										// nnn
+		// integer encoding
+		for (m_nwaittime = 0; *dec; dec++)
+			if (!isdigit(*dec))
+				throw "There's a invalid character for wait time value parm.";
+			else
+				m_nwaittime = (m_nwaittime * 10) + (*dec - '0');
+	} else
+		throw "There's a invalid character for wait time value parm.";
+		//throw_(33) /* unknown or invalid encoding */;
+
+	// update for sign
+	if (negValue)
+		m_nwaittime = (m_nwaittime * -1);
+}
+ScriptWaitCommand::~ScriptWaitCommand()
+{
+}
+void ScriptWaitCommand::Parse( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok )
+{
+	bool fOpen = false;
+
+	// start looking first for ')'... it might be where we left off or the next line.
+	// either way... look for it first.
+
+	scan.Next(tok);
+
+	for(;;)
+	{
+
+		if (tok.tokenType != scriptEOL)
+		 throw "End of line After WAIT text";
+		 else
+		 break;
+		do
+			scan.NextLine(tok);
+		while ( ifdefHandler.IsIfdefExpression(tok, &scan) || ifdefHandler.IsSkipping() );
+	}
+}
+
+
+bool ScriptWaitCommand::Execute(CString * pstrError)
+{
+	if(m_nwaittime >= 0)
+	{
+		Sleep(m_nwaittime);
+		return true;
+	}
+	else
+	{
+		CString strFullText = "Wait time can't be negative ";
+		*pstrError = strFullText;
+		return false;
+	}
+}
 
 ScriptMAKECommand::ScriptMAKECommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle, CWnd * pparent /* = NULL */ )
 				   :ScriptMessage(ifdefHandler, scan, tok, pstrTestTitle, pparent )
 {
 	baseType = scriptMake;
-
 	// set the image list offset and status
 	baseImage = 25;
 	m_pdlg = NULL;
 	m_fHanging = false;
 	m_nDestroyCode = 0;
+
 }
 
 

@@ -4,7 +4,8 @@
 module:		VTSAPI32.C
 desc:		BACnet Standard Objects DLL v2.15
 authors:	David M. Fisher, Jack R. Neyer
-last edit:	08-SEP-03 [018] GJB modified propFlags's index number in DV_CheckOptionalProperty function
+last edit:	29-DEC-03 [019] GJB parse the sectiion: Fails Times
+        	08-SEP-03 [018] GJB modified propFlags's index number in DV_CheckOptionalProperty function
 			01-SEP-03 [018] GJB enable parser to parse several new properties
 			10-Nov-02 [017] xyp added for parsing the value of property whose parse type is none.
 			13-Aug-01 [016] JJB added namespace
@@ -99,6 +100,7 @@ BACnetRecipient *ParseRecipient(BACnetRecipient *);
 BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference	*);
 BOOL ParseCOVSubList(BACnetCOVSubscription **);												//*****018
 BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *);						//*****018
+BOOL ReadFailTimes(PICSdb *);																//*****019							
 
 //************added by Liangping Xu,2002*****************//
 BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference *);
@@ -216,7 +218,8 @@ static char *SectionNames[]={
 			"Data Link Layer Option",							//8
 			"Special Functionality",							//9
 			"List of Objects in test device",					//10
-			"Character Sets Supported"							//11				***006
+			"Character Sets Supported",							//11				***006
+			"Fail Times"										//12				***019
 			};
 static namedw FunctionalGroups[]={
 			"HHWS",							fgHHWS,
@@ -330,6 +333,15 @@ static nameoctet Charsets[]={						//								***006 Begin
 			"ISO 10646 (UCS-4)",					csUCS4,
 			"ISO 10646 (UCS-2)",					csUCS2
 			};										//								***006 End
+static char *FailTimes[]={						//								***019 Begin
+			"Notification Fail Time",	
+			"Internal Processing Fail Time",		
+			"Minimum ON/OFF Time",						
+			"Schedule Evaluation Fail Time",		
+			"External Command Fail Time",				
+			"Program Object State Change Fail Time",		
+			"Acknowledgement Fail Time",				
+			};										//								***019 End
 static char *MonthNames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 static char *DOWNames[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
 
@@ -993,6 +1005,10 @@ bool APIENTRY ReadTextPICS(
 						break;					//									***006 Begin
 					case 11:
 						if (ReadCharsets(pd)) goto rtpclose;	//					***006 End
+						break;
+					case 12:
+						if (ReadFailTimes(pd)) goto rtpclose;	//					***019
+						break;
 					}
 					i=0;						//remember that we found one
 					break;
@@ -1352,6 +1368,55 @@ rsfwin:			lp=p;							//point to argument(s)
 	return false;		
 }
 
+///////////////////////////////////////////////////////////////////////
+//	Read Special Functionality Options section of a TPI file
+//in:	ifile		file stream
+//		pd			database structure to be filled in from PICS
+//out:	true		if cancel selected
+
+BOOL ReadFailTimes(PICSdb *pd)
+{	
+	int			i;
+	char		*p;
+	dword		d;
+	BOOL        flag;
+
+	ReadNext();									//point to next token		
+	if (lp==NULL||*lp++!='{')					//no open token
+		return tperror("Expected { here",true);
+
+	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported
+	while (lp!=NULL) {
+		ReadNext();
+		if (*lp=='}'||lp==NULL) break;
+		if ((p=strchr(lp,':'))==NULL){			//colon in this one
+			return tperror("Expected { here",true);
+		}
+		*p++=0;	
+		flag = FALSE;
+		for (i=0;i<(sizeof(FailTimes)/sizeof(FailTimes[0]));i++)
+		{
+			if (stricmp(lp,FailTimes[i])==0)	//found Fail Time
+			{
+				lp=p;							//point to argument(s)
+				p[-1]=':';
+				d=ReadDW();						//parse a argument
+				pd->BACnetFailTimes[i] = d;
+				flag = TRUE;
+				break;
+			}
+		}
+		if (flag == FALSE) {
+			if (tperror("Unknown Fail Time Option",true))
+				return true;
+		}
+	}
+
+	return FALSE;
+}
+
+
+	
 ///////////////////////////////////////////////////////////////////////
 //	Read Object Database section of a TPI file
 //in:	ifile		file stream

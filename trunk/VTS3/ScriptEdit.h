@@ -36,7 +36,11 @@ public:
 	int GetCurLineIndex();
 	void GotoLine(int nLineIndex);
 	void SetDefaultFont();
-	void SetFrame( ScriptFrame * pframe ) { m_pframe = pframe; }  
+	void SetFrame( ScriptFrame * pframe ) { m_pframe = pframe; }
+  
+//Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
+	bool AddInputHelpString( CString sString );
+	void OnHelpInput(UINT nChar, UINT nRepCnt, UINT nFlags);
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -96,6 +100,7 @@ private:
 	int m_nFirstVisibleLn;
 	int m_nVisibleLnCount;
 	int m_nLineCount;
+	CStringList m_strList; //the help string list, Added by Zhu Zhenhua, 2003-12-25
 };
 
 /////////////////////////////////////////////////////////////////////////////

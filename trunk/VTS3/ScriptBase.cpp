@@ -767,6 +767,8 @@ void ScriptScanner::Next( ScriptToken& tok )
 		case ':':
 		case '(':
 		case ')':
+		case '}':				//add by GJB  12/21/2003
+		case '|':				//add by GJB  12/21/2003
 			tok.tokenType = scriptSymbol;
 			tok.tokenSymbol = c;
 			break;
@@ -935,6 +937,10 @@ FORMAT1:	if (*scanSrc == 'D') {
 
 			// get the name
 			scanValueBuffer[1] = 0;
+			const char* pTemp;			//in case rollback	GJB, 12/21/2003
+			char* pTempBuff;
+			pTemp = scanSrc;
+			pTempBuff = dst;
 			while (isalpha(*scanSrc) || isdigit(*scanSrc) || (*scanSrc == '-') || (*scanSrc == '_')) {
 				if ((*scanSrc == '-') && (*(scanSrc+1) == '-'))
 					break;
@@ -955,9 +961,18 @@ FORMAT1:	if (*scanSrc == 'D') {
 
 			ScanIndexTokens(tok);
 			Deblank();
-
+		
 			if ((*dst++ = *scanSrc++) != '}')
-				FormatError( tok, "Missing close brace" );
+			//	FormatError( tok, "Missing close brace" );
+			//  GJB, 12/21/2003 in such condition like: {BINARY-OUTPUT, 123, OUT-OF-SERVICE}, rollback, output '{' only
+			{
+				scanSrc = pTemp;
+				dst = pTempBuff;
+				*dst = 0;
+				tok.tokenType = scriptSymbol;
+				tok.tokenSymbol = '{';
+				break;
+			}
 
 			*dst = 0;
 			break;

@@ -52,6 +52,7 @@ typedef	struct {
 	dword	PTP232BaudRates[16];
 	dword	PTPmodemBaudRates[16];
 	dword	PTPAutoBaud[2];
+	dword	BACnetFailTimes[MAX_FAIL_TIMES];                    //array of Fail Times           29/12/2003  GJB
 	generic_object far *Database;
 	} PICSdb;
 
@@ -109,6 +110,9 @@ typedef	struct {
 #define		csJIS					0x04		//JIS C 6226
 #define		csUCS4					0x08		//ISO 10646 (UCS-4)
 #define		csUCS2					0x10		//ISO 10646 (UCS-2)
+
+//bits in Fail Times
+#define		ftNotSupported			0           //29/12/2003        GJB
 
 #ifdef __cplusplus					//so this header can be used with C++
 extern "C" {

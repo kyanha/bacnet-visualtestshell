@@ -48,10 +48,12 @@ class ScriptIfdefHandler : public CObject
 class ScriptIfdefExpr : public CObject
 {
 	private:
+		void GetEPICSProperty(LPCTSTR lpszValue, BACnetAnyValue * pbacnetAny);        			//GJB, 12/21/2003
 		ScriptDocument * m_pdocument;
 
 		void ParseForValue(ScriptToken &tok );
 		void ResolveToValue( ScriptToken & tok );
+		void ResolveToValue( LPCTSTR lpszValue, ScriptTokenList & tokenList );				//GJB, 12/21/2003
 		BACnetEncodeable * CreateOperand( ScriptToken & token );
 
 	public:

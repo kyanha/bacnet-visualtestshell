@@ -481,6 +481,76 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	};
 
 
+	ScriptTranslateTable scriptStandardServicesMap[] =
+	{
+	/* Alarm and Event Services */
+	{ 0xAB6D1E6A,		 0 }			//AcknowledgeAlarm
+	, { 0x3CB39A42,		 1 }			//ConfirmedCOVNotification
+	, { 0xA3199D6D,		 2 }				//ConfirmedEventNotification
+	, { 0x82EF96F3,		 3 }				//GetAlarmSummary
+	, { 0x215F7C25,		 4 }				//GetEnrollmentSummary
+	, { 0xBC29635E,		 39 }				//GetEventInformation
+	, { 0xAC01F937,		 5 }				//SubscribeCOV
+	, { 0x971D2E9,		 38 }				//SubscribeCOVProperty
+	, { 0xE7BDE28D,		 37 }				//LifesafetyOperation
+	/* File Access Services */
+	, { 0x83874B40,		 6 }				//AtomicReadFile
+	, { 0xCED53372,		 7 }				//AtomicWriteFile
+	/* Object Access Services */
+	, { 0x14A62359,		 8 }				//AddListElement
+	, { 0x3781FF05,		 9 }				//RemoveListElement
+	, { 0x9F0F989E,		 10 }				//CreateObject
+	, { 0x130BE39E,		 11 }				//DeleteObject
+	, { 0xC562EB57,		 12 }				//ReadProperty
+	, { 0x207267B4,		 13 }				//ReadPropertyConditional	
+	, { 0xF1B6C57,		 14 }				//ReadPropertyMultiple
+	, { 0x5F156F1A,		 35 }				//ReadRange	
+	, { 0xB988389A,		 15 }				//WriteProperty	
+	, { 0xEAF680CA,		 16 }				//WritePropertyMultiple
+	/* Remote Device Management Services */
+	, { 0x3264DB4B,		 17   }				//DeviceCommunicationControl
+	, { 0x71E49612,		 18   }				//ConfirmedPrivateTransfer	
+	, { 0x4F9F9DAF,		 19   }				//ConfirmedTextMessage	
+	, { 0xB72CAF4,		 20   }				//ReinitializeDevice
+	/* Virtual Terminal Services */
+	, { 0xA95C324B,		 21   }				//VT-Open
+	, { 0xDFFA0FA8,		 22   }				//VT-Close	
+	, { 0x559A40DF,		 23   }				//VT-Data
+	/*  Security Services */
+	, { 0xD08D352B,		 24   }				//Authenticate	
+	, { 0x9C38B663,		 25   }				//RequestKey
+	/*  Unconfirmed Services */
+	, { 0xAC8AB1D2,		 26   }				//I-Am
+	, { 0x9E0420F5,		 27   }				//I-Have
+	, { 0x1C25F7CD,		 28   }				//UnConfirmedCOVNotification
+	, { 0x2C0A8678,		 29   }				//UnConfirmedEventNotification	
+	, { 0x38121A2F,		 30   }				//UnConfirmedPrivateTransfer
+	, { 0x6CB62A04,		 31   }				//UnconfirmedTextMessage	
+	, { 0x64A09D6A,		 32   }				//TimeSynchronization	
+	, { 0xF908F2F1,		 36   }				//UtcTimeSynchronization	
+	, { 0x474218F1,		 33   }				//Who-Has	
+	, { 0xB0E1C86D,		 34   }				//Who-Is	
+	, { 0, 0 }
+	};
+	
+	
+	ScriptTranslateTable scriptStandardServicesRequirementMap[] =
+	{ { 0xED940AA5,		 1 }			//	INITIATE
+	, { 0x9A18FBF4,		 2 }			//	EXECUTE
+	, { 0, 0 }
+	};
+
+	ScriptTranslateTable scriptFailTimesMap[] =
+	{ {0xCEE49250,	 0 }		 // NotificationFailTime
+	,{0x97AC3FDB,	 1 }		 // InternalProcessingFailTime
+	,{0xE6E9C002,	 2 }		 // MinimumON/OFFTime
+	,{0x95DAF86D,	 3 }		 // ScheduleEvaluationFailTime
+	,{0x43ED7A24,	 4 }		 // ExternalCommandFailTime
+	,{0xAA4790D0,	 5 }		 // ProgramObjectStateChangeFailTime
+	,{0x3D824098,	 6 }		 // AcknowledgementFailTime
+	};
+	
+
 	ScriptTranslateTable scriptGenKeywordMap[] =
 	{ { kwNET,			 1 }
 	, { kwNETWORK,		 2 }
@@ -540,6 +610,7 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { kwERRORCHOICE,		     14 }
 	, { kwREJECTREASON,		 	 15 }
 	, { kwABORTREASON,		     16 }
+	, { kwMAXSEGS,		         17 }
 	, { 0, 0 }
 	};
 

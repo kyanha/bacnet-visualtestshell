@@ -21,6 +21,8 @@
 
 #define	DEVICE_LOOPBACK		1		// set to zero to disable "looped" messages
 
+#define MAX_FAIL_TIMES      7        //		add by GJB, 29/12/2003
+
 //
 //	VTSApp
 //
