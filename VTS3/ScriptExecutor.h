@@ -364,6 +364,8 @@ class ScriptExecutor : public BACnetTask {
 
 		// madanner 9/25/02
 		void GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny, int nIndex = -1 );
+		// GJB 24/12/2003
+		void GetEPICSDeviceProperty( int prop, BACnetAnyValue * pbacnetAny, int nIndex = -1 );
 		void CompareAndThrowError( BACnetEncodeable & rbacnet1, BACnetEncodeable & rbacnet2, int iOperator, unsigned int nError );
 		// madanner 11/9/02
 		void ExpectALTag( BACnetAPDUDecoder &dec, ScriptToken * ptok, BACnetApplicationTag tagNumber, const char * pszDataType );

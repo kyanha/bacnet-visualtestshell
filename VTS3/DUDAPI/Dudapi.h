@@ -118,6 +118,7 @@ void APIENTRY MyDeletePICSObject(generic_object far* root);
 
 generic_object far* APIENTRY FindGenObj(generic_object far* root, int index);
 generic_object far* APIENTRY GetpObj(generic_object far* root, dword ObjectId);  
+generic_object far* APIENTRY GetpDeviceObj(generic_object far* root);  
 void APIENTRY CpyGenObj(generic_object far*, generic_object far*);
 short APIENTRY GetNextGenObj(generic_object far* obj);								//***002
 short APIENTRY GetObjType(word objtype, char far* Buffer);							//***002  

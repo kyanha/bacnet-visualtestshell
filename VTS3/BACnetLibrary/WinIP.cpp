@@ -200,6 +200,20 @@ WinIP::~WinIP()
 
 void WinIP::Indication( const BACnetNPDU &pdu )
 {
+
+	unsigned char	localbroadcastAddr[4] = { 0xFF, 0xFF, 0xFF, 0xFF};
+	char szHostName[128];
+	if( gethostname(szHostName, 128) == 0 )
+	{
+		// Get host adresses
+		struct hostent * pHost;
+		pHost = gethostbyname(szHostName);
+		LPSTR lpAddr = pHost->h_addr_list[0];
+		if (lpAddr) 
+			memcpy (&localbroadcastAddr, lpAddr, 3);
+	}	//To get localbroadcast address
+		//Modified by Zhu Zhenhua, 2003-12-12
+
 	BACnetOctet	*msg
 	;
 
@@ -212,7 +226,11 @@ void WinIP::Indication( const BACnetNPDU &pdu )
 
 	// set up the socket address for sending
 	if (pdu.pduAddr.addrType == localBroadcastAddr) {
-		*(unsigned long *)msg = htonl( INADDR_BROADCAST );
+		*(unsigned long *)msg = localbroadcastAddr[0]+localbroadcastAddr[1]*0x100+localbroadcastAddr[2]*0x10000+localbroadcastAddr[3]*0x1000000;
+		*(unsigned short *)(msg+4) = m_Port;
+	} else
+	if (pdu.pduAddr.addrType == globalBroadcastAddr) {
+		*(unsigned long *)msg = 0xFF+0xFF*0x100+0xFF*0x10000+0xFF*0x1000000;
 		*(unsigned short *)(msg+4) = m_Port;
 	} else
 	if (pdu.pduAddr.addrType == localStationAddr) {

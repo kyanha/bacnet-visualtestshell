@@ -163,7 +163,21 @@ generic_object far* APIENTRY GetpObj(generic_object far* root, dword ObjectId)
   return root;
 }
 
-
+// This function is used to find a generic_object identified by its object id.
+// in:		root		root of object list
+//			ObjectId	object being sought
+// returns: pointer to matching object, or NULL
+extern "C"
+generic_object far* APIENTRY GetpDeviceObj(generic_object far* root)  
+{ 
+  while (root!=NULL)
+    { 
+      if (root->object_type == DEVICE) 
+        break;
+      root= (generic_object far*) root->next;
+    }
+  return root;
+}
 
 /* no longer used
    mandanner 10/02   

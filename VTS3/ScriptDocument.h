@@ -47,6 +47,7 @@ public:
 	ScriptParmList*		m_pParmList;
 	ScriptContentTree*	m_pContentTree;
 	ScriptTestPtr		m_pSelectedTest;
+	ScriptSectionPtr	m_pSelectedSection;  // Added by Zhu Zhenhua, 2003-12-18, to run select section
 	unsigned char		m_digest[16];			// checksum calculated during CheckSyntax
 
 	virtual ~ScriptDocument();

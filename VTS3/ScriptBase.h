@@ -37,6 +37,8 @@ class ScriptBase : public CList<ScriptBasePtr,ScriptBasePtr> {
 				, scriptCase
 				, scriptCheck
 				, scriptMake
+				, scriptAssign  //Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
+				, scriptWait    //Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
 				};
 
 		ScriptBase();

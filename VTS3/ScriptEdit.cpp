@@ -62,9 +62,15 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+namespace NetworkSniffer {
+	extern char *BACnetPropertyIdentifier[];
+}
+//Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
+
 #define MARGIN_3			25
 #define CHAR_HEIGHT			16
 #define LIMITTEXT			0x000FFFFF
+#define MAX_PROPID			168  //Added by Zhu Zhenhua, 2003-12-25
 /////////////////////////////////////////////////////////////////////////////
 // ScriptEdit
 
@@ -208,6 +214,41 @@ void ScriptEdit::OnInitialUpdate()
 	m_nCurrentLine = 0;
 	m_nTempDigit = 3;
 	m_nLineCount = m_pEdit->GetLineCount();
+
+//Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
+	
+	for(int i = 0; i <= MAX_PROPID; i ++)
+	{	
+		CString strprop;
+		strprop = NetworkSniffer::BACnetPropertyIdentifier[i];
+		AddInputHelpString(strprop);
+	}
+	{
+		AddInputHelpString("analog-INPUT");
+		AddInputHelpString("analog-OUTPUT");
+		AddInputHelpString("analog-VALUE");
+		AddInputHelpString("binary-INPUT");
+		AddInputHelpString("binary-OUTPUT");
+		AddInputHelpString("binary-VALUE");
+		AddInputHelpString("Calendar");
+		AddInputHelpString("Command");
+		AddInputHelpString("Device");					
+		AddInputHelpString("event-ENROLLMENT");
+		AddInputHelpString("File");
+		AddInputHelpString("Group");
+		AddInputHelpString("Loop");
+		AddInputHelpString("multistate-INPUT");
+		AddInputHelpString("multistate-OUTPUT");
+		AddInputHelpString("notification-CLASS");
+		AddInputHelpString("Program");
+		AddInputHelpString("Schedule");
+		AddInputHelpString("Averaging");
+		AddInputHelpString("multistate-VALUE");
+		AddInputHelpString("Trendlog");
+		AddInputHelpString("Lifesafety-POINT");
+		AddInputHelpString("Lifesafety-ZONE");								
+	}
+
 }
 
 void ScriptEdit::OnPaint() 
@@ -302,12 +343,18 @@ void ScriptEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 void ScriptEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
 	CEditView::OnChar(nChar, nRepCnt, nFlags);
-
+	if((nChar >= 65 && nChar <= 90) || (nChar>= 97 && nChar <= 122) || (nChar == 95 || nChar == 45))
+	{
+		OnHelpInput(nChar, nRepCnt, nFlags);
+//Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
+	}
+		
 	if(nChar == VK_RETURN)
 	{
 		UpdateEditArea();
 		GetCurLineIndex();
 	}
+
 }
 
 void ScriptEdit::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
@@ -603,4 +650,94 @@ void ScriptEdit::SetLine(int nLineIndex, LPTSTR lpszString)
 		m_pEdit->SetSel(nChar, nChar);
 		m_pEdit->ReplaceSel(lpszString);
 	}		
+}
+
+//Added by Zhu Zhenhua, 2003-12-25
+// Add help string in stringList 
+bool ScriptEdit::AddInputHelpString(CString sString)
+{
+	bool bRet;		
+	if( m_strList.IsEmpty() ) {
+		// if list is empty add first string
+		try {
+			m_strList.AddHead( sString );
+			bRet = true;
+		} catch( CMemoryException *e ) {
+			e->Delete();
+			bRet = false;
+		}
+	} else {
+		if( !m_strList.Find( sString ) ) {
+			// insert into sorted list searching for a valid position
+			int nCount = m_strList.GetCount();
+			POSITION pos = m_strList.GetHeadPosition();
+			for( int f=0; f<nCount; f++ ) {
+				// ascending order
+				if( sString < m_strList.GetAt( pos ) ) {
+					break;
+				} else {
+					m_strList.GetNext( pos );
+				}
+			}
+			try {
+				if( f == nCount )
+					m_strList.AddTail( sString );
+				else
+					m_strList.InsertBefore( pos, sString );
+				bRet = true;
+			} catch( CMemoryException *e ) {
+				e->Delete();
+				bRet = false;
+			}
+		} else
+			bRet = true;
+	}
+
+	return bRet;
+}
+
+
+//Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
+void ScriptEdit::OnHelpInput(UINT nChar, UINT nRepCnt, UINT nFlags) 
+{
+	POSITION pos;
+	CString sBuffer,sWord, sBufferLine;
+	char pBuffer[1024];
+	int nLen, nBegin, nstar, nOver, nEnd,nLastSpace, nWordLen;
+	int nCurlin = GetCurLineIndex(); 
+	int ncount = m_pEdit->LineLength(nCurlin);
+	nBegin=m_pEdit->LineIndex(nCurlin);
+	nEnd = nBegin + m_pEdit->LineLength(nCurlin);
+	int len = m_pEdit->GetLine(nCurlin, pBuffer, 1024);
+	pBuffer[len] = 0;
+	sBufferLine = pBuffer;
+//	delete pBuffer;
+	
+	m_pEdit->GetSel(nstar,nOver);
+	sBuffer = sBufferLine.Left((nstar - nBegin));
+	nLen = sBuffer.GetLength();
+	for( int x=sBuffer.GetLength(); x>0; x-- )
+		if( isspace( sBuffer.GetAt(x-1)))
+			break;
+	nLastSpace = x-1;
+	if( nLastSpace >= 0 )
+		sWord = sBuffer.Right( nLen - nLastSpace - 1 );
+	else
+		sWord = sBuffer;
+	nWordLen = sWord.GetLength();
+	if( !sWord.IsEmpty() ) 
+	{
+		for( int f=0; f<m_strList.GetCount(); f++ ) 
+		{
+			pos = m_strList.FindIndex( f );
+			if( sWord == m_strList.GetAt( pos ).Left( nWordLen )) 
+			{
+				sWord = m_strList.GetAt( pos ).Right( m_strList.GetAt( pos ).GetLength() - nWordLen );
+				m_pEdit->SetSel(nstar, nstar);
+				m_pEdit->ReplaceSel(sWord.GetBuffer(0));
+				m_pEdit->SetSel(nstar, (nstar+sWord.GetLength()) );
+				break;
+			}
+		}
+	}
 }

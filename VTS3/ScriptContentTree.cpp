@@ -118,7 +118,7 @@ void ScriptContentTree::Bind( ScriptBasePtr sbp )
 
 	// make sure the document doesn't have a test selected
 	m_pDoc->m_pSelectedTest = 0;
-
+	m_pDoc->m_pSelectedSection = 0; // Added by Zhu Zhenhua, 2003-12-18, to run select section
 	// delete the items from the tree
 	m_pTreeCtrl->DeleteAllItems();
 
@@ -171,6 +171,7 @@ void ScriptContentTree::OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult)
 	ScriptBasePtr	pElem = (ScriptBasePtr)m_pTreeCtrl->GetItemData( hNewItem );
 
 	m_pDoc->m_pSelectedTest = 0;
+	m_pDoc->m_pSelectedSection = 0; // Added by Zhu Zhenhua, 2003-12-18, to run select section
 	*pResult = 0;
 
 	// Sometimes this method is called and it contains bogus data... IsKindOf didn't work (when I 
@@ -195,6 +196,10 @@ void ScriptContentTree::OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult)
 	// if a test selected
 	if (pElem->baseType == ScriptBase::scriptTest)
 		m_pDoc->m_pSelectedTest = (ScriptTestPtr)pElem;
+
+// Added by Zhu Zhenhua, 2003-12-18, to run select section
+	if (pElem->baseType == ScriptBase::scriptSection)
+		m_pDoc->m_pSelectedSection = (ScriptSectionPtr)pElem;
 }
 
 //

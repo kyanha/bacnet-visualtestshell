@@ -520,25 +520,54 @@ void ScriptExecutor::Cleanup( void )
 		taskType = oneShotTask;
 		taskInterval = 0;
 		InstallTask();
-	} else {
-		// release from the document
-		execDoc->UnbindExecutor();
+	}  else 
+	{	
 
-		if ( execCommand && execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket &&
-			((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL  && ((ScriptPacketPtr) execCommand)->m_pcmdMake->IsUp() )
+	// Added by Zhu Zhenhua, 2003-12-18, to run all sections
+		bool bOtherSectionTest = false;
+		if(execAllTests&&(!execDoc->m_pSelectedSection))
 		{
-			// It's still up... Kill it with a success regardless of whether or not this one failed...
-			((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
-			SetPacketStatus(((ScriptPacketPtr) execCommand)->m_pcmdMake, 1);
+			ScriptBasePtr sbp = execDoc->m_pContentTree->m_pScriptContent;
+			for (int i = 0; i < sbp->Length(); i++)
+			{
+				ScriptSectionPtr ssp = (ScriptSectionPtr)sbp->Child( i );
+				if(execTest == (ScriptTestPtr)( ssp->Child( ssp->Length() -1)) &&( i < sbp->Length()-1) )
+					if (sbp->Child( i+1 )->Length() != 0)
+					{	
+						bOtherSectionTest = true;
+						execTest = (ScriptTestPtr)(sbp->Child( i+1 )->Child(0));
+						execPacket = 0;
+						execCommand = NULL;						
+						// install the task
+						taskType = oneShotTask;
+						taskInterval = 0;
+						InstallTask();
+						break;					
+					}
+			}	
 		}
-
-		// clear all the rest of the execution vars
-		execState = execIdle;
-		execDB = 0;
-		execDoc = 0;
-		execTest = 0;
-		execPacket = 0;
-		execCommand = NULL;
+		
+		if(!bOtherSectionTest)
+		{
+			// release from the document
+			execDoc->UnbindExecutor();
+			
+			if ( execCommand && execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket &&
+				((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL  && ((ScriptPacketPtr) execCommand)->m_pcmdMake->IsUp() )
+			{
+				// It's still up... Kill it with a success regardless of whether or not this one failed...
+				((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
+				SetPacketStatus(((ScriptPacketPtr) execCommand)->m_pcmdMake, 1);
+			}
+			
+			// clear all the rest of the execution vars
+			execState = execIdle;
+			execDB = 0;
+			execDoc = 0;
+			execTest = 0;
+			execPacket = 0;
+			execCommand = NULL;
+		}
 	}
 }
 
@@ -883,7 +912,6 @@ void ScriptExecutor::ProcessTask( void )
 	;
 	CSingleLock		lock( &execCS )
 	;
-
 	// lock to prevent multiple thread access
 	lock.Lock();
 
@@ -908,10 +936,21 @@ void ScriptExecutor::ProcessTask( void )
 
 		// find the first test of section that has one
 		ScriptBasePtr sbp = execDoc->m_pContentTree->m_pScriptContent;
+
+// Added by Zhu Zhenhua, 2003-12-18, to run select section
+		if(execDoc->m_pSelectedSection)
+		{	
+			ScriptSectionPtr ssp = execDoc->m_pSelectedSection;
+			if (ssp->Length() != 0)
+			{
+				execTest = (ScriptTestPtr)ssp->Child( 0 );
+			}			
+		}
+		else
 		for (int i = 0; i < sbp->Length(); i++) {
 			ScriptSectionPtr ssp = (ScriptSectionPtr)sbp->Child( i );
-
-			if (ssp->Length() != 0) {
+			if (ssp->Length() != 0)
+			{
 				execTest = (ScriptTestPtr)ssp->Child( 0 );
 				break;
 			}
@@ -1162,8 +1201,28 @@ keepGoing:
 
 		NextPacket(fCmdResult);
 	}
+ else
+	if (execCommand->baseType == ScriptBase::scriptAssign ) { //Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
+		execPending = false;
+		SetPacketStatus( execCommand, 2 );		
+		CString strError;
+		bool fCmdResult = execCommand->Execute(&strError);
+		if ( !fCmdResult )
+			Msg( 3, execCommand->baseLineStart, strError);
 
+		NextPacket(fCmdResult);
+	}
+else
+	if (execCommand->baseType == ScriptBase::scriptWait ) { //Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
+		execPending = false;
+		SetPacketStatus( execCommand, 2 );		
+		CString strError;
+		bool fCmdResult = execCommand->Execute(&strError);
+		if ( !fCmdResult )
+			Msg( 3, execCommand->baseLineStart, strError);
 
+		NextPacket(fCmdResult);
+	}
 	// unlock
 	lock.Unlock();
 }
@@ -1383,6 +1442,26 @@ void ScriptExecutor::GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny, in
 	}
 }
 
+// GJB 24/12/2003
+// get a device object's property value from EPICS database
+void ScriptExecutor::GetEPICSDeviceProperty( int prop, BACnetAnyValue * pbacnetAny, int nIndex /* = -1 */ )
+{
+	//get device object ID, and execObjID is temporarily set to this deivceId, after Get the property, rollback
+	unsigned long			objID;
+	PICS::generic_object	*pobj;
+	
+	objID = execObjID;
+	// make sure there's something to search
+	if (!gPICSdb)
+		throw "No EPICS information loaded";
+	pobj = PICS::GetpDeviceObj( gPICSdb->Database );
+	if (!pobj)
+		throw "Device Object not defined in EPICS";
+	execObjID = pobj->object_id;
+	GetEPICSProperty(prop, pbacnetAny, nIndex);
+	execObjID = objID;
+	
+}
 
 //
 //	ScriptExecutor::SendPacket
@@ -1497,6 +1576,8 @@ bool ScriptExecutor::SendPacket( void )
 			if (t.tokenType == scriptKeyword) {
 				if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
 					nlDestAddr.LocalBroadcast();
+				else if( t.tokenSymbol == kwGLOBALBROADCAST)  //Modified by Zhu Zhenhua , 2003-12-12
+					nlDestAddr.GlobalBroadcast();
 				else
 					throw ExecError( "Unrecognized keyword", nlDA->exprLine );
 			} else
@@ -4730,6 +4811,8 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				if (t.tokenType == scriptKeyword) {
 					if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
 						nlSrcAddr.LocalBroadcast();
+					else if(t.tokenSymbol == kwGLOBALBROADCAST) //Modified by Zhu Zhenhua , 2003-12-12
+						nlSrcAddr.GlobalBroadcast();
 					else
 						throw ExecError( "Unrecognized keyword supplied for SA", nlSA->exprLine );
 				} else
@@ -8240,7 +8323,26 @@ ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( ScriptParmPtr * ppScriptPar
 	const ScriptToken &t = tlist[0];
 
 	// if it is a keyword, lookup the value
-	if ((t.tokenType == scriptKeyword) && tp) {
+	// if it is a EPICS property reference
+	if (t.tokenType == scriptReference) {
+		BACnetAnyValue		bacnetEPICSProperty;
+		switch(keyword) {
+		case kwMAXRESP:
+		case kwMAXRESPONSE:
+		case kwMAXSIZE:
+			GetEPICSDeviceProperty(t.tokenSymbol, &bacnetEPICSProperty);
+			break;
+		default:
+			;
+		}
+		if (bacnetEPICSProperty.GetType() == 0) {
+			throw ExecError( "Invalid EPICS reference", pep->exprLine );
+		}
+		char value[1024];		//large enough to avoid overflow
+		(bacnetEPICSProperty.GetObject())->Encode(value);
+		enc.Decode(value);
+	}else if ((t.tokenType == scriptKeyword) && tp) {		
+		// if it is a keyword, lookup the value
 		int rslt = t.Lookup( t.tokenSymbol, tp );
 		if (rslt < 0)
 			throw ExecError( "Invalid keyword", pep->exprLine );

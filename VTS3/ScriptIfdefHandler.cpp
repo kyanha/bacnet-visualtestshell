@@ -5,6 +5,24 @@
 #include "stdafx.h"
 #include "ScriptIfdefHandler.h"
 
+namespace PICS {
+	
+#include "db.h" 
+#include "service.h"
+#include "vtsapi.h"
+#include "props.h"
+#include "bacprim.h"
+#include "dudapi.h"
+#include "dudtool.h"
+#include "propid.h"
+	
+	//extern struct generic_object;
+	//class BACnetAnyValue;
+	extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue );
+	
+}
+extern PICS::PICSdb *gPICSdb;
+
 
 // Flags for testing IFDEF stuff
 
@@ -268,11 +286,84 @@ BACnetEncodeable * ScriptIfdefExpr::CreateOperand( ScriptToken & token )
 		if ( token.tokenType == scriptValue && token.IsInteger(nValue) )
 			return new BACnetInteger(nValue);
 //	}
+		//GJB, 12/21/2003, in case of using an EPICS reference in an IF expression 
+		if ( token.tokenType = scriptReference ) {
+			BACnetAnyValue		bacnetEPICSProperty;
+			GetEPICSProperty( token.tokenValue, &bacnetEPICSProperty);
+			int nType = bacnetEPICSProperty.GetType();
+			switch( nType ) {
+				case u127:		// 1..127 ---------------------------------
+				case u16:		// 1..16 ----------------------------------
+				case ud:		// unsigned dword -------------------------
+				case uw:		// unsigned word --------------------------
+					return new BACnetUnsigned( ((BACnetUnsigned *) bacnetEPICSProperty.GetObject())->uintValue );
+					break;
+				case ssint:		// short signed int -----------------------		// actually the same type
+				case sw:		// signed word ----------------------------
+					return new BACnetInteger( ((BACnetInteger *) bacnetEPICSProperty.GetObject())->intValue );
+					break;
+				case ebool:
+					return new BACnetBoolean( ((BACnetBoolean *) bacnetEPICSProperty.GetObject())->boolValue );
+				case s10:		// char [10] --------------------------------------------
+				case s32:		// char [32]
+				case s64:		// char [64]
+				case s132:		// char [132]
+					return new BACnetCharacterString( *((BACnetCharacterString *) bacnetEPICSProperty.GetObject()) );
+				case 0:
+					break;		// not EPICS property reference
+				default:
+					strError.Format("Unsupported EPICS property reference for conditional expression", token.tokenValue );
+					throw CString(strError);
+			}
+			
+			//if this reference is not a EPICS property reference, then maybe it is a EPICS service support reference
+			// make sure there's something to search
+			if (!gPICSdb)
+				throw "No EPICS information loaded";
+			CString strValue(token.tokenValue);
+			ScriptTokenList tokenList;
+			ResolveToValue(strValue, tokenList);
+			int nLength = tokenList.Length();
+			if ( (nLength!=2) && (nLength!=3) ) {
+				throw "BACnetStandardServices requirement: \'INITIATE| EXECUTE\' expected";
+			}
+			
+			// get BACnet Standard Service type
+			int nServiceType = ScriptToken::Lookup( tokenList[0].tokenSymbol, scriptStandardServicesMap);
+			if ( nServiceType > 0 ) {
+				unsigned char  service = ssNotSupported;
+				// so, it is a EPICS BACnetStandardServices reference
+				int nLoop = (nLength==2) ? 1 : 2;
+				for( int i=0; i<nLoop; i++){
+					// get requirement of BACnetStandardServices
+					int nRequirement = ScriptToken::Lookup( tokenList[i+1].tokenSymbol, scriptStandardServicesRequirementMap);
+					if ( nRequirement < 0 ) {
+						throw "requirement: \'INITIATE| EXECUTE\' expected";
+					}
+					switch(nRequirement) {
+					case 1:
+						service |= ssInitiate;
+						break;
+					case 2:
+						service |= ssExecute;
+						break;
+					default:
+						;
+					}
+				}
+				BOOL bFlag = FALSE;
+				if ( gPICSdb->BACnetStandardServices[nServiceType] == service ) {
+					bFlag = TRUE;
+				}
+			return new BACnetBoolean(bFlag);
+			}
+		}
 
 	strError.Format("Unsupported operand type (%s) for conditional expression", token.tokenValue );
 	throw CString(strError);
 	return NULL;
 }
+
 
 
 void ScriptIfdefExpr::ResolveToValue( ScriptToken & tok )
@@ -293,6 +384,62 @@ void ScriptIfdefExpr::ResolveToValue( ScriptToken & tok )
 	}
 }
 
+void ScriptIfdefExpr::ResolveToValue( LPCTSTR lpszValue, ScriptTokenList & tokenList )
+{
+	ScriptScanner	scan( lpszValue );
+	ScriptToken		tok;
+	ScriptParmPtr	pParm;
+
+	// start at the beginning
+	scan.Next( tok );
+	if (tok.tokenType == scriptEOL)
+		return;
+	
+	for (;;) {
+		// check the value
+		switch (tok.tokenType) {
+		case scriptKeyword:
+			// resolve the keyword as a parameter?
+			if ((pParm = m_pdocument->m_pParmList->LookupParm( tok.tokenSymbol )) != 0) {
+				ResolveToValue(pParm->parmValue, tokenList);
+				break;
+			}
+			
+		case scriptValue:
+			tokenList.Append( tok );
+			break;
+			
+		case scriptReference:
+			tokenList.Append( tok );
+			break;
+			
+		default:;
+			throw "Object Type, instance number or property type should be here";
+		}
+		
+		// check for EOL
+		scan.Next( tok );
+		if (tok.tokenType == scriptEOL)
+			break;
+		
+		// check for more
+		if ( ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != ','))
+		  && ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '|')) )
+			throw  "End-of-line or comma expected in value list";
+		
+		// get ready for next value
+		scan.Next( tok );
+	}
+
+/*
+	// allow cases of {property[int]}, {property[var]}, {property[{property}]}, {property[{property[int]}]}, etc.
+	// Don't allow cases (yet) of var[var], var[int], var[etc.]
+	for ( int i = 0; i < tokenList.GetCount(); i++ )
+		tokenList[i].ResolveIndex(m_pdocument->m_pParmList);
+*/
+
+}
+
 
 
 void ScriptIfdefExpr::ParseForValue(ScriptToken &tok )
@@ -301,7 +448,9 @@ void ScriptIfdefExpr::ParseForValue(ScriptToken &tok )
 		throw "Unexpected end of line, IF expression expected";
 
 	// should be a keyword (var yet to be resolved) or an actual value
-	if ( tok.tokenType != scriptKeyword && tok.tokenType != scriptValue )
+//	if ( tok.tokenType != scriptKeyword && tok.tokenType != scriptValue )
+	if ( tok.tokenType != scriptKeyword && tok.tokenType != scriptValue 
+		  && tok.tokenType != scriptReference )
 		throw "Keyword, script variable or literal value expected";
 }
 
@@ -312,7 +461,23 @@ void ScriptIfdefExpr::Parse( ScriptScanner & scan, ScriptToken & tok )
 	// We're scanning ' VALUE = VALUE ' so first parse the first VAR/Keyword/Value
 	scan.Next(tok);
 
-	m_tokLValue = tok;
+	//GJB, 12/21/2003  if the tok is '{', then combine the whole words in the braces to a single token.
+	if ( tok.tokenType == scriptSymbol  &&  tok.tokenSymbol == '{' ) {
+		//must be EPICS property reference
+		m_tokLValue.tokenType = scriptReference;
+		scan.Next(tok);
+		while ( !(tok.tokenType == scriptSymbol  &&  tok.tokenSymbol == '}') ) {
+			m_tokLValue.tokenValue += tok.tokenValue;
+			scan.Next(tok);
+			if (tok.tokenType == scriptEOL) {
+				throw "Close brace '}' expected";
+			}
+		}
+	}else{
+		m_tokLValue = tok;
+	}
+
+	//	m_tokLValue = tok;
 	ParseForValue(m_tokLValue);
 
 	// OK.. got the first value, next check for operator...
@@ -338,3 +503,54 @@ void ScriptIfdefExpr::Parse( ScriptScanner & scan, ScriptToken & tok )
 	ParseForValue(m_tokRValue);
 }
 
+//GJB, 12/21/2003, in case of using an EPICS reference in an IF expression 
+void ScriptIfdefExpr::GetEPICSProperty(LPCTSTR lpszValue, BACnetAnyValue * pbacnetAny)
+{
+	
+	const int whitespace = 0x20;
+	CString strValue(lpszValue);
+	strValue.Remove( whitespace );
+	ScriptTokenList tokenList;
+	ResolveToValue(strValue, tokenList);
+
+	if ( tokenList.Length() != 3 ) {
+		return;			//not EPICS property reference
+//		throw "Object Type, instance number and property type should be here";
+	}
+	// get object ID
+	int nObjType = ScriptToken::Lookup( tokenList[0].tokenSymbol, ScriptObjectTypeMap);
+	if ( nObjType < 0 ) {
+		return;			//not EPICS property reference
+//		throw "Object identifier type expected";
+	}
+	CString strObjInstanceNum(tokenList[1].tokenValue);
+	int nInstanceNum = atoi(strObjInstanceNum.GetBuffer(0));
+	int nObjID = (nObjType << 22) + nInstanceNum;
+	// get the property ID
+	int nPropID = ScriptToken::Lookup( tokenList[2].tokenSymbol, ScriptPropertyMap );
+	if (nPropID < 0)
+		throw "No such property";
+	// verify the context
+	if (nObjID == 0xFFFFFFFF)
+		throw "No object reference";
+	
+	// make sure there's something to search
+	if (!gPICSdb)
+		throw "No EPICS information loaded";
+	
+	// get a pointer to the object database record
+	PICS::generic_object	*pobj;
+	pobj = PICS::GetpObj( gPICSdb->Database, nObjID );
+	if (!pobj)
+		throw "Object not defined in EPICS";
+	
+	// get the index of the property flags
+	int nPropIndex = PICS::GetPropIndex( pobj->object_type, nPropID );
+	if (nPropIndex < 0)
+		throw "Property not defined for this object type";
+
+	PICS::CreatePropertyFromEPICS( pobj, nPropID, pbacnetAny );
+
+	// deal with the array property
+
+}

@@ -38,8 +38,9 @@
 #define		kwCHECK					0x7EF5647B
 #define		kwINCLUDE				0x30143b56
 
-#define     kwNOT					0x7765b124	//Added by Zhu Zhenhua, 2003-11-25
-
+#define     kwNOT					0x7765B124	//Added by Zhu Zhenhua, 2003-11-25
+#define     kwASSIGN				0x36B93DC9 //Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
+#define     kwWAIT					0x3918D2C0 //Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
 //
 //	General Keywords
 //
@@ -110,6 +111,8 @@
 #define		kwERRORCHOICE			0xF59843C2		// ERROR-CHOICE
 #define		kwREJECTREASON			0x7BBAF9E6		// REJECT-REASON
 #define		kwABORTREASON			0x07930C3A		// ABORT-REASON
+#define		kwMAXSEGS				0x5812D5D		// Max_Segments_Accepted    GJB 12/16/2003 
+
 
 //#define		kwDEST					0x7E44E545
 //#define		kwDESTINATION			0xE1A73108
@@ -191,6 +194,9 @@ extern ScriptTranslateTable ScriptWeekdayMap[];
 extern ScriptTranslateTable ScriptMonthMap[];
 extern ScriptTranslateTable ScriptPropertyMap[];
 extern ScriptTranslateTable ScriptNONEMap[];
+extern ScriptTranslateTable scriptStandardServicesMap[];
+extern ScriptTranslateTable scriptStandardServicesRequirementMap[];
+extern ScriptTranslateTable scriptFailTimesMap[];
 
 
 extern ScriptTranslateTable scriptGenKeywordMap[];
