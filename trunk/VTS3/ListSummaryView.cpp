@@ -141,7 +141,8 @@ int CListSummaryView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_ElemList.InsertColumn( 4, _T("Service Type"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(4) );
 
 	// Start timer for auto-scroll mode... 5 seconds to start
-	SetTimer(2, 1000 * gVTSPreferences.Setting_GetAutoscrollTimeout(), NULL);
+	if ( gVTSPreferences.Setting_GetAutoscrollTimeout() != 0 )
+		SetTimer(2, 1000 * gVTSPreferences.Setting_GetAutoscrollTimeout(), NULL);
 	return 0;
 }
 

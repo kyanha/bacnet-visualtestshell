@@ -996,23 +996,37 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //
 //			Trapped corrupted and inconsistent database opens, report the problem and control document close.
 //
-//	3.4		Removed internal DB and replaced with .cfg serialized configuration files.
-//			Packets are stored in separate file whose name is changeable and stored with configuration.
-//			Configuration file save upon changes.
-//			Added seperate menu for 'workspace' configuration files.
-//			Cleaned up and seperated menus for each frame (also removed window management items).
-//			
-//			Modified layout of script windows:
-//			Detached script windows to their own frame window.
-//			Added separate button bar and menus to frame window instead of in-place activations on main frame.
-//			Modified some threading problems with scripts and main window interaction (parent wnds and such).
-//
-//			Reworked all configuration dialogs for cancel, post configuration activiation and organization.
-//
-//			Merged changes for new ethernet traffic via WinPCap (Joel).
-//
-//			Replaced BACMACNT driver with WinPcap library calls.  No changes to the database format, just the
-//			format of the adapter/interface configuration strings.
+//	3.4		- Removed internal database and replaced with workspace files (.cfg).
+//			- Replaced BACMACNT driver with WinPcap library calls.  No changes to the database format, just the
+//			- Workspaces menu added to main menu.
+//			- VTS can switch workspaces without shutting down.
+//			- Only one workspace can be loaded at once.
+//			- VTS will open the most recently used workspace file upon VTS start.
+//			- Menu items have been changed to reflect workspace handling (on separate menu) and document handling (on main File menu).
+//			- VTS will not associate .VDB files with VTS upon startup anymore.
+//			- Scripts are opened in a separate frame window with a menu and button bar appropriate for script handling.
+//			- VTS main window remembers packet view column sizes.
+//			- Packet summary window now has timestamp and port name columns. 
+//			- Button bar has been expanded on main VTS packet view and menu as been trimmed to commands relative to main VTS (not scripts).
+//			- Port names on Send menu are grayed if inactive and show port type.
+//			- Refresh added to reload packet view.  This is useful if you have changed name/address mappings.
+//			- Revamped 'Export' function.
+//			- Added progress bar on status bar that shows during lengthy operations (loading large packet files, exporting, etc.).
+//			- Changed main list view to handle virtually unlimited number of packets.
+//			- Delete all packets reduces packet file to zero and does not affect configuration file.
+//			- VTS can switch packet files via Change Packet file menu item.
+//			- Changed port configuration for usability. 
+//			- Changed device configuration for usability.
+//			- Added ability to edit object, property and values to devices.
+//			- Added ReadProperty and WriteProperty support to devices.
+//			- Added automatic RP and WP to parameters of configured devices.
+//			- Changed names configuration for usability.
+//			- VTS had a registry problem confusing an INI path with key names.
+//			- Added preferences dialog.  Preferences are stored in "Setting" subkey inside registry.
+//			- Added preference setting for specification of number of slots used for main packet view cache.
+//			- Added timeout for autoscroll.
+//			- Added preference setting for number of seconds auto-scroll is to remain inactive.
+//			- Added preference for relative vs. absolute packet file path association in workspace.
 //
 
 const int kReleaseVersion = 0;
