@@ -68,7 +68,6 @@ BEGIN_MESSAGE_MAP(CEPICSTreeView, CFormView)
 	ON_WM_SIZE()
 	ON_BN_CLICKED(IDC_EPICSV_RESET, OnEpicsReset)
 	ON_BN_CLICKED(IDC_EPICSV_LOAD, OnEpicsLoad)
-	ON_BN_CLICKED(IDC_EPICSV_INFO, OnEpicsInfoPanel)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_EPICSV_TREE, OnSelchangedEpicsTree)
 	ON_BN_CLICKED(IDC_EPICSV_EDIT, OnEpicsEdit)
 	ON_WM_DESTROY()
@@ -170,9 +169,6 @@ void CEPICSTreeView::OnEpicsEdit()
 }
 
 
-void CEPICSTreeView::OnEpicsInfoPanel() 
-{
-}
 
 
 void CEPICSTreeView::SetSplitter( CDockingEPICSViewBar * pbar, CSplitterWnd * pwndSplit, CCreateContext * pContext )
@@ -211,6 +207,7 @@ CView * CEPICSTreeView::CreateInfoView( CRuntimeClass * pviewclass, BOOL fDelete
 	}
 
 	m_pnodeview = (CView *) m_pwndSplit->GetPane(nRow, nCol);
+	m_pwndSplit->RecalcLayout();
 	return m_pnodeview;
 }
 
@@ -222,8 +219,8 @@ void CEPICSTreeView::DeleteDB()
 		PICS::MyDeletePICSObject( gPICSdb->Database );
 		delete gPICSdb;
 		gPICSdb = NULL;
-		m_pbar->m_nSyntaxE = 0;
-		m_pbar->m_nConE = 0;
+//		m_pbar->m_nSyntaxE = 0;
+//		m_pbar->m_nConE = 0;
 	}
 }
 
@@ -245,6 +242,9 @@ BOOL CEPICSTreeView::EPICSLoad( LPCSTR lpszFileName )
 
 	// make a new database
 	gPICSdb = new PICS::PICSdb;
+
+	m_pbar->m_nSyntaxE = 0;
+	m_pbar->m_nConE = 0;
 
 	// read in the EPICS
 	// madanner 6/03: ReadTextPICS now returns false if canceled by user
@@ -298,25 +298,43 @@ void CEPICSTreeView::Refresh()
 	HTREEITEM htreeitemRoot = ptree->InsertItem(TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE, lpsz, 0, 0, 0, 0, (LPARAM) new CEPICSViewNodeRoot(this, m_pbar->m_nSyntaxE, m_pbar->m_nConE), NULL, htreeitemLast );
 
 	// Create BIBB node
-	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("BIBBs"), 1, 1, 0, 0, (LPARAM) NULL, htreeitemRoot, NULL );
+	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("BIBBs"), 1, 1, 0, 0, (LPARAM) new CEPICSViewNodeBIBB(this), htreeitemRoot, NULL );
 
 	// Create Application Services
-	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Application Services"), 2, 2, 0, 0, (LPARAM) NULL, htreeitemRoot, htreeitemLast );
+	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Application Services"), 2, 2, 0, 0, (LPARAM) new CEPICSViewNodeAppService(this), htreeitemRoot, htreeitemLast );
 
 	// Create Object Types
-	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Object Types"), 3, 3, 0, 0, (LPARAM) NULL, htreeitemRoot, htreeitemLast );
+	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Object List"), 3, 3, 0, 0, (LPARAM) new CEPICSViewNodeObjTypes(this), htreeitemRoot, htreeitemLast );
+
+	if ( gPICSdb != NULL )
+		LoadObjectNodes(htreeitemLast);
 
 	// Create Data Link Options
-	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Data Link Options"), 4, 4, 0, 0, (LPARAM) NULL, htreeitemRoot, htreeitemLast );
+	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Data Link Layer Options"), 4, 4, 0, 0, (LPARAM) new CEPICSViewNodeDataLink(this), htreeitemRoot, htreeitemLast );
 
 	// Create Character Sets
-	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Character Sets"), 5, 5, 0, 0, (LPARAM) NULL, htreeitemRoot, htreeitemLast );
+	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Character Sets Supported"), 5, 5, 0, 0, (LPARAM) new CEPICSViewNodeCharsets(this), htreeitemRoot, htreeitemLast );
 
 	// Create Special Functionality
-	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Special Functionality"), 6, 6, 0, 0, (LPARAM) NULL, htreeitemRoot, htreeitemLast );
+	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Special Functionality"), 6, 6, 0, 0, (LPARAM) new CEPICSViewNodeSpecialFunctionality(this), htreeitemRoot, htreeitemLast );
 
 	// select the first item in the tree
 	ptree->SelectItem(ptree->GetFirstVisibleItem());
+}
+
+
+void CEPICSTreeView::LoadObjectNodes( HTREEITEM htreeitemParent )
+{
+	HTREEITEM htreeitemLast = NULL;
+	PICS::generic_object * pObj = gPICSdb->Database;
+
+	CTreeCtrl * ptree = (CTreeCtrl *) GetDlgItem(IDC_EPICSV_TREE);
+
+	while ( pObj != NULL )
+	{
+		htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T(pObj->object_name), 7+(pObj->object_type), 7+(pObj->object_type), 0, 0, (LPARAM) new CEPICSViewNodeObject(this, pObj), htreeitemParent, htreeitemLast );
+		pObj = (PICS::generic_object *) pObj->next;
+	}
 }
 
 
@@ -380,3 +398,6 @@ void CEPICSTreeView::OnDestroy()
 
 	CFormView::OnDestroy();
 }
+
+
+

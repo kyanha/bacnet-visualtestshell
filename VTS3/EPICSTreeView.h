@@ -48,6 +48,7 @@ protected:
 	void Refresh();
 	void DeleteDB();
 	void CreateRichTextView();
+	void LoadObjectNodes( HTREEITEM htreeitemParent );
 	void WipeOut( CTreeCtrl * ptree, HTREEITEM htreeitem );
 	void SetTreeImageList();
 
@@ -96,7 +97,6 @@ protected:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnEpicsReset();
 	afx_msg void OnEpicsLoad();
-	afx_msg void OnEpicsInfoPanel();
 	afx_msg void OnSelchangedEpicsTree(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnEpicsEdit();
 	afx_msg void OnDestroy();
