@@ -568,7 +568,7 @@ word  APIENTRY VTSAPIgetpropertystates(word pschoice,HWND plist)
 		else
 			AddCBListText(plist,"");
 	print_debug("GPS: return value %d\n",pet->nes);
-	
+
 	return pet->nes;
 }														//							***004 End
 
@@ -890,12 +890,12 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 //	Open and Read a TPI file (i.e. EPICS text file)
 ///////////////////////////////////////////////////////////////////////
 bool APIENTRY ReadTextPICS(
-	char *tp, // filename string
-	PICSdb *pd, // EPICS database
-	int *errc, // error counter
-	int *errPICS) // returns the error
+        char *tp, // filename string
+        PICSdb *pd, // EPICS database
+        int *errc, // error counter
+        int *errPICS) // returns the error
 {	
-	int			i,j;
+  int			i,j;
 	generic_object *pd2;  // line added by MAG for debug only
 	lPICSErr=0;
 	
@@ -921,11 +921,11 @@ bool APIENTRY ReadTextPICS(
 		goto rtpclose;
 	}
 	print_debug("RTP: Read line '%s'\n",lb);		// MAG
-	
+
 	readline(lb,sizeof(lb));					//read a line from the file				***008
 	lp=&lb[0];
 	print_debug("RTP: rl1: Read line '%s'\n",lb);		// MAG
-	
+
 	if (stricmp(lb,BeginPics))				//invalid signature
 	{	tperror("Invalid Text PICS signature.",false);
 		goto rtpclose;
@@ -934,7 +934,7 @@ bool APIENTRY ReadTextPICS(
 	while (feof(ifile)==0&&!cancel)				//										***008
 	{	readline(lb,sizeof(lb));				//read a line from the file 			***008
 		print_debug("RTP: rl2: Read line '%s'\n",lb);		// MAG
-		
+
 		if (lb[0])								//not a blank line
 		{	if (stricmp(lb,EndPics)==0)		//found the end
 				break;							//we're done
@@ -1588,7 +1588,7 @@ void CheckPICSPropCons(PICSdb *pd)
 			CheckObjRequiredProp(0,0x000000ef,obj,8);
 			break;
         case DEVICE:
-			CheckObjRequiredProp(0,0x8603f9ff,obj,32);
+			CheckObjRequiredProp(0,0x8603e9ff,obj,32);  // Flags changed by W Fowlie Aug 2003:protocol-conformance-class no longer required
 			DV_CheckOptionalProperty(pd->BACnetStandardServices,obj->propflags);
 			break;
         case EVENT_ENROLLMENT:
@@ -1654,16 +1654,25 @@ void CheckPICSPropCons(PICSdb *pd)
 //Check properties of AI from EPICS ,added by xlp,2002-11
 //=====================================================================//
 void AI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
-{    char checkMsg[150];
-	//Check if properties of AI objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-	   {if(!((propFlags[16]&propFlags[17]&propFlags[18])&&(propFlags[19]&propFlags[20]&propFlags[21])
-			   &&(propFlags[22]&propFlags[23]&propFlags[24]))){
-					sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by AI objects!\n");
-					PrintToFile(checkMsg);
-					tperror(checkMsg,false);		
-			      }
-			}
+{
+  char checkMsg[150];
+
+  // Check if any AI properties for intrinsic reporting exist
+  if (propFlags[16] || propFlags[17] || propFlags[18] || propFlags[19] || 
+      propFlags[20] || propFlags[21] || propFlags[22] || propFlags[23] || 
+      propFlags[24])
+  {
+    // If any do, they all must
+    if (!(propFlags[16] && propFlags[17] && propFlags[18] && propFlags[19] && 
+          propFlags[20] && propFlags[21] && propFlags[22] && propFlags[23] && 
+          propFlags[24]))
+    {
+      sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by AI objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);    
+    }
+  }
+
 	//Check if properties of AI objects support cov reporting.
 	if((servs[asSubscribeCOV])||(servs[asConfirmedCOVNotification])
 				||(servs[asUnconfirmedCOVNotification])){
@@ -1690,16 +1699,24 @@ void AO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 				 tperror(checkMsg,false);		
 				}
 		}
-	//Check if properties of AO objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-		if(!((propFlags[17]&propFlags[18]&propFlags[19])&&(propFlags[20]&propFlags[21]&propFlags[22])
-			 &&(propFlags[25]&propFlags[23]&propFlags[24]))){
-				sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by AO objects!\n");
-				PrintToFile(checkMsg);
-				tperror(checkMsg,false);		
-		}
 
-     return;
+  // Check if any AO properties for intrinsic reporting exist
+  if (propFlags[17] || propFlags[18] || propFlags[19] || propFlags[20] || 
+      propFlags[21] || propFlags[22] || propFlags[25] || propFlags[23] || 
+      propFlags[24])
+    {
+    // If any do, they all must
+      if (!(propFlags[17] && propFlags[18] && propFlags[19] && propFlags[20] && 
+            propFlags[21] && propFlags[22] && propFlags[25] && propFlags[23] && 
+            propFlags[24]))
+      {
+          sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by AO objects!\n");
+          PrintToFile(checkMsg);
+          tperror(checkMsg,false);    
+      }
+    }
+
+  return;
 }
 
 //=====================================================================//
@@ -1722,16 +1739,24 @@ void AV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 					tperror(checkMsg,false);		
 				}
 			}
-			//Check if properties of AV objects support intrinsic reporting.
-	  if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-			{if(!((propFlags[13]&propFlags[14]&propFlags[15])&&(propFlags[16]&propFlags[17]&propFlags[18])
-			     &&(propFlags[19]&propFlags[20]&propFlags[21]))){
-					sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by AV objects!\n");
-					PrintToFile(checkMsg);
-					tperror(checkMsg,false);		
-			      }
-			}
-		return;
+
+  // Check if any AV properties for intrinsic reporting exist
+  if (propFlags[13] || propFlags[14] || propFlags[15] || propFlags[16] || 
+      propFlags[17] || propFlags[18] || propFlags[19] || propFlags[20] || 
+      propFlags[21])
+  {
+    // If any do, they all must
+    if (!(propFlags[13] && propFlags[14] && propFlags[15] && propFlags[16] && 
+          propFlags[17] && propFlags[18] && propFlags[19] && propFlags[20] && 
+          propFlags[21]))
+    {
+      sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by AV objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);    
+    }
+  }
+
+  return;
 }
 //=====================================================================//
 //Check properties of BI from EPICS ,added by xlp,2002-11
@@ -1757,15 +1782,22 @@ void BI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 		PrintToFile(checkMsg);
 		tperror(checkMsg,false);		
 	}
-	//Check if properties of BI objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-		{if(!((propFlags[18]&propFlags[19]&propFlags[20])&&(propFlags[21]&propFlags[22]&propFlags[23]))){
-			sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by BI objects!\n");
-			PrintToFile(checkMsg);
-			tperror(checkMsg,false);		
-		}
-	}
-    return;
+
+  // Check if any BI properties for intrinsic reporting exist
+  if (propFlags[18] || propFlags[19] || propFlags[20] || 
+      propFlags[21] || propFlags[22] || propFlags[23])
+  {
+    // If any do, they all must
+    if (!(propFlags[18] && propFlags[19] && propFlags[20] && 
+          propFlags[21] && propFlags[22] && propFlags[23]))
+    {
+      sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by BI objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);    
+    }
+  }
+
+  return;
 }
 
 //=====================================================================//
@@ -1792,14 +1824,19 @@ void BO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 		PrintToFile(checkMsg);
 		tperror(checkMsg,false);		
 	}
-	//Check if properties of BO objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-		{if(!((propFlags[22]&propFlags[23]&propFlags[24])&&(propFlags[25]&propFlags[26]&propFlags[27]))){
-				sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by BO objects!\n");
-				PrintToFile(checkMsg);
-				tperror(checkMsg,false);		
-		 }
-	}
+
+  // Check if any BO properties for intrinsic reporting exist
+  if (propFlags[22] || propFlags[23] || propFlags[24] || 
+      propFlags[25] || propFlags[26] || propFlags[27])
+  {
+    if(!(propFlags[22] && propFlags[23] && propFlags[24] && 
+         propFlags[25] && propFlags[26] && propFlags[27]))
+    {
+      sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by BO objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);    
+    }
+  }
 
       return;
 }
@@ -1833,16 +1870,22 @@ void BV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 			PrintToFile(checkMsg);
 			tperror(checkMsg,false);		
 	}
-	//Check if properties of BV objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-		{if(!((propFlags[20]&propFlags[21]&propFlags[22])&&(propFlags[23]&propFlags[24]&propFlags[25]))){
-				sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by BV objects!\n");
-				PrintToFile(checkMsg);
-				tperror(checkMsg,false);		
-	    }
-	}
 
-    return;
+  // Check if any BV properties for intrinsic reporting exist
+  if (propFlags[20] || propFlags[21] || propFlags[22] || 
+      propFlags[23] || propFlags[24] || propFlags[25])
+  {
+    // If any do, they all must
+    if (!(propFlags[20] && propFlags[21] && propFlags[22] && 
+          propFlags[23] && propFlags[24] && propFlags[25]))
+    {
+      sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by BV objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);    
+    }
+  }
+
+  return;
 }
 //=====================================================================//
 //Check properties of DV from EPICS ,added by xlp,2002-11
@@ -1927,15 +1970,22 @@ void LO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 				tperror(checkMsg,false);		
 			}
 	}
-	//Check if properties of Loop objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-		{if(!((propFlags[29]&propFlags[30]&propFlags[31])&&(propFlags[32]&propFlags[33]&propFlags[34]))){
-			sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by Loop objects!\n");
-			PrintToFile(checkMsg);
-			tperror(checkMsg,false);		
-	     }	
-	}
-    return;
+
+  // Check if any Loop properties for intrinsic reporting exist
+  if (propFlags[29] || propFlags[30] || propFlags[31] || 
+      propFlags[32] || propFlags[33] || propFlags[34])
+  {
+    // If any do, they all must
+    if (!(propFlags[29] && propFlags[30] && propFlags[31] && 
+          propFlags[32] && propFlags[33] && propFlags[34]))
+    {
+      sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by Loop objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);    
+    }  
+  }
+
+  return;
 }
 
 //=====================================================================//
@@ -1943,14 +1993,19 @@ void LO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 //=====================================================================//
 void MI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 {    char checkMsg[150];
-	//Check if properties of MI objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-	     {if(!((propFlags[12]&propFlags[13]&propFlags[14])&&(propFlags[15]&propFlags[16]&propFlags[17]&propFlags[18]))){
-				sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MI objects!\n");
-				PrintToFile(checkMsg);
-				tperror(checkMsg,false);		
-	     }
-	}
+  // Check if any MI properties for intrinsic reporting exist
+  if (propFlags[12] || propFlags[13] || propFlags[14] || propFlags[15] || 
+      propFlags[16] || propFlags[17] || propFlags[18])
+  {
+    // If any do, they all must
+    if (!(propFlags[12] && propFlags[13] && propFlags[14] && propFlags[15] && 
+          propFlags[16] && propFlags[17] && propFlags[18]))
+    {
+      sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MI objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);    
+    }
+  }
 
   return;
 }
@@ -1959,15 +2014,21 @@ void MI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 //Check properties of Multi-State-Output from EPICS ,added by xlp,2002-11
 //=====================================================================//
 void MO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
-{   char checkMsg[150];
-	//Check if properties of MO objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-		{if(!((propFlags[14]&propFlags[15]&propFlags[16])&&(propFlags[17]&propFlags[18]&propFlags[19]))){
-			sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MO objects!\n");
-			PrintToFile(checkMsg);
-			tperror(checkMsg,false);		
-	     }
-	}
+{
+  char checkMsg[150];
+
+  // Check if any MO properties for intrinsic reporting exist
+  if (propFlags[14] || propFlags[15] || propFlags[16] || 
+      propFlags[17] || propFlags[18] || propFlags[19])
+  {
+    if (!(propFlags[14] && propFlags[15] && propFlags[16] && 
+          propFlags[17] && propFlags[18] && propFlags[19]))
+    {
+      sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MO objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);		
+    }
+  }
 
   return;
 }
@@ -1977,29 +2038,35 @@ void MO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 //=====================================================================//
 void MV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 {   char checkMsg[150];
-	//check Reliability property
-	if((propFlags[16])&&!(propFlags[7])){
-		sprintf(checkMsg,"Mv object type:Reliability shall be required if Fault_Values is present!\n");
-		PrintToFile(checkMsg);
-		tperror(checkMsg,false);		
-	}
+  //check Reliability property
+  if((propFlags[16])&&!(propFlags[7])){
+    sprintf(checkMsg,"Mv object type:Reliability shall be required if Fault_Values is present!\n");
+    PrintToFile(checkMsg);
+    tperror(checkMsg,false);		
+  }
+
 	//PropGroup 1 Cons check for Priority_Array and Relinquish_Default
 	if(((propFlags[11])|(propFlags[12]))&&!((propFlags[11])&(propFlags[12]))){
 		sprintf(checkMsg,"Priority_Array and Relinquish_Default must exist simultaneously for MV objects!\n");
 		PrintToFile(checkMsg);
 		tperror(checkMsg,false);		
 	}
-	//Check if properties of MV objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-		{if(!((propFlags[13]&propFlags[14]&propFlags[15]&propFlags[16])
-			   &&(propFlags[17]&propFlags[18]&propFlags[19]&propFlags[20]))){
-				 sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MV objects!\n");
-				 PrintToFile(checkMsg);
-				 tperror(checkMsg,false);		
-		}
-	}
 
-    return;
+  // Check if any MV properties for intrinsic reporting exist
+  if (propFlags[13] || propFlags[14] || propFlags[15] || propFlags[16] || 
+      propFlags[17] || propFlags[18] || propFlags[19] || propFlags[20])
+  {
+    // If any do, they all must
+    if (!(propFlags[13] && propFlags[14] && propFlags[15] && propFlags[16] && 
+          propFlags[17] && propFlags[18] && propFlags[19] && propFlags[20]))
+    {
+      sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MV objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);
+    }
+  }
+
+  return;
 }
 
 //=====================================================================//
@@ -2035,24 +2102,34 @@ void SC_CheckOptionalProperty(octet propFlags[64])
 //Check properties of Trend Log from EPICS ,added by xlp,2002-11
 //=====================================================================//
 void TR_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
-{   char checkMsg[150];
-	//Check if properties of Trend Log objects support intrinsic reporting.
-	if((servs[asConfirmedEventNotification])||(servs[asUnconfirmedEventNotification]))  
-		{if(!((propFlags[16]&propFlags[17]&propFlags[18])&&(propFlags[19]&propFlags[21]&propFlags[22])
-			   &&(propFlags[23]&propFlags[24]&propFlags[25]))){
-				sprintf(checkMsg,"PropGroup(notification_threshold,notify_type...) are required because of intrinsic reporting supported by Trend Log objects!\n");
-				PrintToFile(checkMsg);
-				tperror(checkMsg,false);		
-		 }
-	}
-    return;
+{
+  char checkMsg[150];
+
+  // Check if any TL properties for intrinsic reporting exist
+  if (propFlags[16] || propFlags[17] || propFlags[18] || propFlags[19] || 
+      propFlags[21] || propFlags[22] || propFlags[23] || propFlags[24] || 
+      propFlags[25])
+  {
+    // If any do, they all must
+    if (!(propFlags[16] && propFlags[17] && propFlags[18] && propFlags[19] && 
+          propFlags[21] && propFlags[22] && propFlags[23] && propFlags[24] && 
+          propFlags[25]))
+    {
+      sprintf(checkMsg,"PropGroup(notification_threshold,notify_type...) are required because of intrinsic reporting supported by Trend Log objects!\n");
+      PrintToFile(checkMsg);
+      tperror(checkMsg,false);    
+    }
+  }
+
+  return;
 }
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Object types check  added by xlp,2002-11
 //in:
 //out:
 void CheckObjRequiredProp(dword hi_propFlag,dword lo_propFlag,generic_object *obj,octet Num)
-{   int i;
+{
+  int i;
 	octet  pIndex=0;
 	char   *objName;
 	char   *propName;
@@ -2380,97 +2457,98 @@ void CheckObjConsA(PICSdb *pd)
   switch(nClassNum){
   case 6: 
       //check obj type for clock FG supported by Cons Class 6 
-	  if(nFG&fgClock){   
-		 if (pd->BACnetStandardObjects[DEVICE]==soNotSupported)  {
-			 sprintf(opj,"EPICS Object Consistency check error: "
-				 "The Device Object type should be included to support the Clock Functional Group!\n");
-			 PrintToFile(opj);
-		     tperror(opj,false);
-		  }
-	  }
-	  else{
-			 sprintf(opj,"EPICS Object Consistency check error: "
-				 "Conformance Class 6 claims that Clock Functional Group must be supported!\n");
-			 PrintToFile(opj);
-		     tperror(opj,false);
-	  }
-	  //check obj type for EventInitiation and EventResponse Functional Group
-      if((nFG&fgEventInitiation)||(nFG&fgEventResponse))     //Event Initiation/Response FG Obj Cons Check
-	  {  if(pd->BACnetStandardServices[asConfirmedCOVNotification]||pd->BACnetStandardServices[asUnconfirmedCOVNotification]) //FG support COV Notification Services
-  	     if(pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported){
-		    sprintf(opj,"EPICS Object Consistency check error: "
-				"Event Enrollment Object type should be included to support the Event Initiation|Response Functional Group!\n");
-			PrintToFile(opj);
-			tperror(opj,false);
-		 }
-		 if(pd->BACnetStandardServices[asConfirmedEventNotification]||pd->BACnetStandardServices[asUnconfirmedEventNotification]){
-		  if(pd->BACnetStandardObjects[NOTIFICATIONCLASS])
-		  {   if(pd->BACnetStandardObjects[ANALOG_INPUT]||pd->BACnetStandardObjects[ANALOG_OUTPUT]||pd->BACnetStandardObjects[ANALOG_VALUE])
-		          flag = true;
-		      else if(pd->BACnetStandardObjects[BINARY_OUTPUT]||pd->BACnetStandardObjects[BINARY_VALUE])
-			      flag = true;
-		      else if(pd->BACnetStandardObjects[MULTI_STATE_OUTPUT])
-			      flag = true;
-		      else if(pd->BACnetStandardObjects[LOOP])
-		 	      flag = true;
-              else
-				  if(!flag){
-					  sprintf(opj,"EPICS Object Consistency check error: "
-						  "at least one of Std Obj types listed by Table 13-2 should be included "
-						  "to support the Event Initiation|Response Functional Group! \n");
-					  PrintToFile(opj);
-					  tperror(opj,false);
-				  }
-		  }
-		  else{
-			  sprintf(opj,"EPICS Object Consistency check error: "
-				  "Notification Class Object type should be included to support "
-				  "the Event Initiation|Response Functional Group! \n");
-		      PrintToFile(opj);
-			  tperror(opj,false);
-		  }
-		 }
-	  }
-	  else{
-			 sprintf(opj,"EPICS Object Consistency check error: "
-				 "Conformance Class 6 claims that EventInitiation and EventResponse FGs must be supported! \n");
-			 PrintToFile(opj);
-		     tperror(opj,false);
-	  }
+    if (nFG&fgClock) {
+      if (pd->BACnetStandardObjects[DEVICE]==soNotSupported) {
+        sprintf(opj,"EPICS Object Consistency check error: "
+          "The Device Object type should be included to support the Clock Functional Group!\n");
+        PrintToFile(opj);
+        tperror(opj,false);
+      }
+    }
+    else{
+       sprintf(opj,"EPICS Object Consistency check error: "
+          "Conformance Class 6 claims that Clock Functional Group must be supported!\n");
+       PrintToFile(opj);
+         tperror(opj,false);
+    }
+    //check obj type for EventInitiation and EventResponse Functional Group
+    if((nFG&fgEventInitiation)||(nFG&fgEventResponse))     //Event Initiation/Response FG Obj Cons Check
+    {
+      if(pd->BACnetStandardServices[asConfirmedCOVNotification]||pd->BACnetStandardServices[asUnconfirmedCOVNotification]) //FG support COV Notification Services
+        if(pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported) {
+          sprintf(opj,"EPICS Object Consistency check error: "
+            "Event Enrollment Object type should be included to support the Event Initiation|Response Functional Group!\n");
+          PrintToFile(opj);
+          tperror(opj,false);
+        }
+      if(pd->BACnetStandardServices[asConfirmedEventNotification]||pd->BACnetStandardServices[asUnconfirmedEventNotification]) {
+        if(pd->BACnetStandardObjects[NOTIFICATIONCLASS])
+        {
+          if(pd->BACnetStandardObjects[ANALOG_INPUT]||pd->BACnetStandardObjects[ANALOG_OUTPUT]||pd->BACnetStandardObjects[ANALOG_VALUE])
+            flag = true;
+          else if(pd->BACnetStandardObjects[BINARY_OUTPUT]||pd->BACnetStandardObjects[BINARY_VALUE])
+            flag = true;
+          else if(pd->BACnetStandardObjects[MULTI_STATE_OUTPUT])
+            flag = true;
+          else if(pd->BACnetStandardObjects[LOOP])
+            flag = true;
+          else if(!flag){
+            sprintf(opj,"EPICS Object Consistency check error: "
+              "at least one of Std Obj types listed by Table 13-2 should be included "
+              "to support the Event Initiation|Response Functional Group! \n");
+            PrintToFile(opj);
+            tperror(opj,false);
+          }
+        }
+        else{
+          sprintf(opj,"EPICS Object Consistency check error: "
+            "Notification Class Object type should be included to support "
+            "the Event Initiation|Response Functional Group! \n");
+          PrintToFile(opj);
+          tperror(opj,false);
+        }
+      }
+    }
+    else{
+      sprintf(opj,"EPICS Object Consistency check error: "
+        "Conformance Class 6 claims that EventInitiation and EventResponse FGs must be supported! \n");
+      PrintToFile(opj);
+      tperror(opj,false);
+    }
 
       if(nFG&fgFiles){
-		  if(pd->BACnetStandardObjects[FILE_O]==soNotSupported){
-			  sprintf(opj,"EPICS Object Consistency check error: "
-				  "File Object type should be included to support the File Functional Group! \n");
-			  PrintToFile(opj);
-		      tperror(opj,false);			  
-		  }
-	  }
-	  else{
-			 sprintf(opj,"EPICS Object Consistency check error: "
-				 "Conformance Class 6 claims that File Functional Group must be supported! \n");
-			 PrintToFile(opj);
-		     tperror(opj,false);
-	  }
-	  if(!(nFG&fgPCWS)){
-			 sprintf(opj,"EPICS Object Consistency check error: "
-				 "Conformance Class 6 claims that PCWorkStation Functional Group must be supported! \n");
-			 PrintToFile(opj);
-		     tperror(opj,false);
-	  }
-	  
+      if(pd->BACnetStandardObjects[FILE_O]==soNotSupported){
+        sprintf(opj,"EPICS Object Consistency check error: "
+          "File Object type should be included to support the File Functional Group! \n");
+        PrintToFile(opj);
+          tperror(opj,false);       
+      }
+    }
+    else{
+      sprintf(opj,"EPICS Object Consistency check error: "
+        "Conformance Class 6 claims that File Functional Group must be supported! \n");
+      PrintToFile(opj);
+      tperror(opj,false);
+    }
+    if(!(nFG&fgPCWS)){
+      sprintf(opj,"EPICS Object Consistency check error: "
+        "Conformance Class 6 claims that PCWorkStation Functional Group must be supported! \n");
+      PrintToFile(opj);
+      tperror(opj,false);
+    }
+    
   case 5: 
   case 4: 
   case 3: 
   case 2: 
   default:                 //Conformance Class 1 must be supported;
-	  if(pd->BACnetStandardObjects[DEVICE]==soNotSupported){
-		  sprintf(opj,"EPICS Object Consistency check error: "
-			  "The Device Object type must be included to meet the requirement by Conformance Class 1!\n");
-		  PrintToFile(opj);
-		  tperror(opj,false);
-	  }
-	  break;
+    if(pd->BACnetStandardObjects[DEVICE]==soNotSupported){
+      sprintf(opj,"EPICS Object Consistency check error: "
+        "The Device Object type must be included to meet the requirement by Conformance Class 1!\n");
+      PrintToFile(opj);
+      tperror(opj,false);
+    }
+    break;
   }
   return;
 }
@@ -2479,64 +2557,65 @@ void CheckObjConsA(PICSdb *pd)
 //EPICS Object Types consistency check  added by xlp,2002-11
 //Test F: for Object types supported by Functional Group 
 void CheckObjConsF(PICSdb *pd)
-{  dword nFG;
-   BOOL flag=false; 
-   char opj[200];
-   nFG=pd->BACnetFunctionalGroups;
+{ dword nFG;
+  BOOL flag=false; 
+  char opj[200];
+  nFG=pd->BACnetFunctionalGroups;
 
-   if((nFG&fgClock)||(nFG&fgTimeMaster))   
-	   if (pd->BACnetStandardObjects[DEVICE]==soNotSupported){  
-           sprintf(opj,"EPICS Object Consistency check error: "
-			   "The Device Object type should be included to support the Clock|TimeMaster Functional Group!\n");
-           PrintToFile(opj);
-		   tperror(opj,false);
-	   }
+  if((nFG&fgClock)||(nFG&fgTimeMaster))   
+    if (pd->BACnetStandardObjects[DEVICE]==soNotSupported){  
+      sprintf(opj,"EPICS Object Consistency check error: "
+        "The Device Object type should be included to support the Clock|TimeMaster Functional Group!\n");
+      PrintToFile(opj);
+      tperror(opj,false);
+    }
 
-   if((nFG&fgEventInitiation)||(nFG&fgEventResponse))     //Event Initiation/Response FG Obj Cons Check
-   {  if(pd->BACnetStandardServices[asConfirmedCOVNotification]||pd->BACnetStandardServices[asUnconfirmedCOVNotification]) //FG support COV Notification Services
-         if(pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported){
-             sprintf(opj,"EPICS Object Consistency check error: "
-				 "Event Enrollment Object type should be included to support the Event Initiation|Response Functional Group!\n");
-			 PrintToFile(opj);
-			 tperror(opj,false);
-		 }
+  if((nFG&fgEventInitiation)||(nFG&fgEventResponse))     //Event Initiation/Response FG Obj Cons Check
+  {
+    if(pd->BACnetStandardServices[asConfirmedCOVNotification]||pd->BACnetStandardServices[asUnconfirmedCOVNotification]) //FG support COV Notification Services
+      if(pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported){
+        sprintf(opj,"EPICS Object Consistency check error: "
+          "Event Enrollment Object type should be included to support the Event Initiation|Response Functional Group!\n");
+        PrintToFile(opj);
+        tperror(opj,false);
+      }
        //check if the FGs support intrinsic report
-	  if(pd->BACnetStandardServices[asConfirmedEventNotification]||pd->BACnetStandardServices[asUnconfirmedEventNotification])
-		  if(pd->BACnetStandardObjects[NOTIFICATIONCLASS])
-		  {if(pd->BACnetStandardObjects[ANALOG_INPUT]||pd->BACnetStandardObjects[ANALOG_OUTPUT]||pd->BACnetStandardObjects[ANALOG_VALUE])
-		       flag = true;
-		   else if(pd->BACnetStandardObjects[BINARY_OUTPUT]||pd->BACnetStandardObjects[BINARY_VALUE])
-			   flag = true;
-		   else if(pd->BACnetStandardObjects[MULTI_STATE_OUTPUT])
-			   flag = true;
-		   else if(pd->BACnetStandardObjects[LOOP])
-		 	   flag = true;
-           else
-			   if(!flag) {
-				   sprintf(opj,"EPICS Object Consistency check error: "
-					   "at least one of Std Obj types listed by Table 13-2 should be included "
-					   "to support the Event Initiation|Response Functional Group! \n");
-				   PrintToFile(opj);
-				   tperror(opj,false);
-			   }
-		  }
-		  else{
-		      sprintf(opj,"EPICS Object Consistency check error: "
-				  "Notification Class Object type should be included "
-				  "to support the Event Initiation|Response Functional Group! \n");
-              PrintToFile(opj); 
-			  tperror(opj,false);
-		  }
-   }
+    if(pd->BACnetStandardServices[asConfirmedEventNotification]||pd->BACnetStandardServices[asUnconfirmedEventNotification])
+      if(pd->BACnetStandardObjects[NOTIFICATIONCLASS])
+      {
+        if(pd->BACnetStandardObjects[ANALOG_INPUT]||pd->BACnetStandardObjects[ANALOG_OUTPUT]||pd->BACnetStandardObjects[ANALOG_VALUE])
+          flag = true;
+        else if(pd->BACnetStandardObjects[BINARY_OUTPUT]||pd->BACnetStandardObjects[BINARY_VALUE])
+          flag = true;
+        else if(pd->BACnetStandardObjects[MULTI_STATE_OUTPUT])
+          flag = true;
+        else if(pd->BACnetStandardObjects[LOOP])
+          flag = true;
+        else if(!flag) {
+          sprintf(opj,"EPICS Object Consistency check error: "
+            "at least one of Std Obj types listed by Table 13-2 should be included "
+            "to support the Event Initiation|Response Functional Group! \n");
+          PrintToFile(opj);
+          tperror(opj,false);
+        }
+      }
+      else{
+        sprintf(opj,"EPICS Object Consistency check error: "
+          "Notification Class Object type should be included "
+          "to support the Event Initiation|Response Functional Group! \n");
+        PrintToFile(opj); 
+        tperror(opj,false);
+      }
+  }
 
-   if(nFG&fgFiles){
-	   if(pd->BACnetStandardObjects[FILE_O]==soNotSupported){
-		   sprintf(opj,"EPICS Object Consistency check error: "
-			   "File Object type should be included to support the File Functional Group! \n");
-            PrintToFile(opj);
-		   tperror(opj,false);
-	   }
-   }
+  if(nFG&fgFiles){
+    if(pd->BACnetStandardObjects[FILE_O]==soNotSupported){
+      sprintf(opj,"EPICS Object Consistency check error: "
+        "File Object type should be included to support the File Functional Group! \n");
+      PrintToFile(opj);
+      tperror(opj,false);
+    }
+  }
 }
 
 
@@ -2545,49 +2624,49 @@ void CheckObjConsF(PICSdb *pd)
 //Test K: Consistency check between Standard Object Types Supported Section
 //and Object Types listed by Protocos_Object_types_Supported property
 void CheckObjConsK(PICSdb *pd)
-{   char errMsg[300];
-    char *objName;
-	octet *p;
-	BOOL  i;
-    octet BACnetStandardObjChk[MAX_DEFINED_OBJ];
-	octet ProtocolObjectSup[MAX_DEFINED_OBJ];
-    
-    p=ProtocolObjSup.PropSupValue;
-    memset(ProtocolObjectSup,0,MAX_DEFINED_OBJ);
-    BitToArray(ProtocolObjectSup,&ProtocolObjSup);
-	for(i=0;i<MAX_DEFINED_OBJ;i++)	{
-			BACnetStandardObjChk[i]=pd->BACnetStandardObjects[i];
-		    if(((BACnetStandardObjChk[i]|ProtocolObjectSup[i])!=0)&&
-	        	((BACnetStandardObjChk[i]&ProtocolObjectSup[i])==0)){
-		         objName=StandardObjects[i];
-                 sprintf(errMsg,"EPICS Object Consistency check error: "
-					 "%s object type listed by protocol-object-types-supported property does not have a "
-					 "one-to-one correspondence with that supported by the "
-					 "Standard Object Types Supported section !\n",objName);
-				 PrintToFile(errMsg);
-		         tperror(errMsg,false);
-			}
-		}
+{ char errMsg[300];
+  char *objName;
+  octet *p;
+  BOOL  i;
+  octet BACnetStandardObjChk[MAX_DEFINED_OBJ];
+  octet ProtocolObjectSup[MAX_DEFINED_OBJ];
 
+  p=ProtocolObjSup.PropSupValue;
+  memset(ProtocolObjectSup,0,MAX_DEFINED_OBJ);
+  BitToArray(ProtocolObjectSup,&ProtocolObjSup);
+  for(i=0;i<MAX_DEFINED_OBJ;i++) {
+    BACnetStandardObjChk[i]=pd->BACnetStandardObjects[i];
+    if(((BACnetStandardObjChk[i]|ProtocolObjectSup[i])!=0) &&
+       ((BACnetStandardObjChk[i]&ProtocolObjectSup[i])==0)) {
+      objName=StandardObjects[i];
+      sprintf(errMsg,"EPICS Object Consistency check error: "
+        "%s object type listed by protocol-object-types-supported property "
+        "does not have a one-to-one correspondence with that supported by the "
+        "Standard Object Types Supported section!\n",objName);
+      PrintToFile(errMsg);
+      tperror(errMsg,false);
+    }
+  }
 }
+
 ////////////////////////////////////////////////////////////////////////
 //EPICS Object Types consistency check  added by xlp,2002-11
 //Test L: Consistency check between Standard Object Types Supported Section
 //and Test Database Section
 void CheckObjConsL(PICSdb *pd)
-{   char errMsg[100];
-    char *objName;
-    octet	BACnetStandardObjChk[MAX_DEFINED_OBJ];
-	for(int i=0;i<MAX_DEFINED_OBJ;i++){
-	 BACnetStandardObjChk[i]= pd->BACnetStandardObjects[i]; 
-	 if((BACnetStandardObjChk[i])&&!(ObjInTestDB[i].ObjIDSupported)){
-		objName=StandardObjects[i];
-        sprintf(errMsg,"EPICS Object Consistency check error: "
-			"%s Object missing in the test database!\n",objName);
-		PrintToFile(errMsg);
-		tperror(errMsg,false);
-	 }
-	}
+{ char errMsg[100];
+  char *objName;
+  octet BACnetStandardObjChk[MAX_DEFINED_OBJ];
+  for(int i=0;i<MAX_DEFINED_OBJ;i++) {
+    BACnetStandardObjChk[i]= pd->BACnetStandardObjects[i]; 
+    if((BACnetStandardObjChk[i])&&!(ObjInTestDB[i].ObjIDSupported)) {
+      objName=StandardObjects[i];
+      sprintf(errMsg,"EPICS Object Consistency check error: "
+        "%s Object missing in the test database!\n",objName);
+      PrintToFile(errMsg);
+      tperror(errMsg,false);
+    }
+  }
 }
 ///////////////////////////////////////////////////////////////////////
 //PICS Consistency Check m:
@@ -2602,36 +2681,36 @@ void CheckObjConsM()
   dword *p1,*p2;
   dword  instance1,instance2;
 
-  for(i=0;i<MAX_DEFINED_OBJ;i++){
+  for(i=0;i<MAX_DEFINED_OBJ;i++) {
     num1=ObjInTestDB[i].ObjInstanceNum;
     num2=DevObjList[i].ObjInstanceNum;
-    if(num1!=num2){  
-	  objName=StandardObjects[i];
+    if(num1!=num2) {
+      objName=StandardObjects[i];
       sprintf(errMsg,"EPICS Object Consistency check error: "
-		  "An %s object is mismatched or missing between the device object-list and the List of Objects!\n",objName);
-	  PrintToFile(errMsg);
-	  tperror(errMsg,false);
-	}
+        "A(n) %s object is mismatched or missing between "
+        "the device object-list and the List of Objects!\n",objName);
+      PrintToFile(errMsg);
+      tperror(errMsg,false);
+    }
     else{
       p1=ObjInTestDB[i].ObjInstance;
-	  p2=DevObjList[i].ObjInstance;
-	  GetSequence(p1,p2,num1);
-	  for(j=0;j<num1;j++){
-		  instance1=ObjInTestDB[i].ObjInstance[j];
-		  instance2=DevObjList[i].ObjInstance[j];
-		  if(instance1!=instance2){
-      	     objName=StandardObjects[i];
-             sprintf(errMsg,"EPICS Object Consistency check error: "
-				 "%s %u in the device object-list does not match "
-				 "%s %u in the List of Objects!\n",objName,instance2,objName,instance1);
-             PrintToFile(errMsg);
-	         tperror(errMsg,false);
-			 break;
-		  }
-	  }
-	}
+      p2=DevObjList[i].ObjInstance;
+      GetSequence(p1,p2,num1);
+      for(j=0;j<num1;j++) {
+        instance1=ObjInTestDB[i].ObjInstance[j];
+        instance2=DevObjList[i].ObjInstance[j];
+        if(instance1!=instance2) {
+          objName=StandardObjects[i];
+          sprintf(errMsg,"EPICS Object Consistency check error: "
+            "%s %u in the device object-list does not match "
+            "%s %u in the List of Objects!\n",objName,instance2,objName,instance1);
+          PrintToFile(errMsg);
+          tperror(errMsg,false);
+          break;
+        }
+      }
+    }
   }
-
   return;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -3487,7 +3566,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 
         xp->size++;
 		print_debug("PES: ReadW returns %d\n",q->event_priority);
-		
+
 		q->next=NULL;							//link onto the list
 		if (fp==NULL)
 			fp=q;								//remember first guy we made
@@ -3933,9 +4012,8 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 		//	date
 		//
 		//where date is in one of two formats:
-		//	month/day/year dow			i.e. month is numeric
-		//	day-mon-year dow			i.e. month is text like Jan
-		//in either case dow must be separated from year by a space, or not be there at all
+		//	month/day/year dow			- month is numeric, is optional (if present, separated by a space)
+    //  dow, day-month-year     - month is full name (e.g. January)
 		//The .. between dates in a daterange is significant and must be literally 2 dots in a row
 		
 		if ((q=(tagCalendarEntry *)malloc(sizeof(BACnetCalendarEntry)))==NULL)
@@ -4222,7 +4300,7 @@ BOOL ParseDate(BACnetDate *dtp)
     	}
     } else print_debug("PD: first value not specified\n");
 	print_debug("PD: About to read second set, db = %d lp = '%s' lp[-1] = '%c' \n",db,lp,&lp[-1]);
-	if (lp[-1]=='/')							//was it month/day/year?
+    if (lp[-1]=='/')      //was it month/day/year?
     {	print_debug("PD: second set slash case\n");
 		if ((db=ReadB(1,31))!=dontcare)			//we'll check for valid days later
     		dtp->day_of_month=db;
@@ -4813,7 +4891,6 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 	word	i;
 	char found_day;  // MAG
 
-			
 	*dalp=NULL;									//initially there is no list
 	
 	print_debug("PDL: Enter ParseDestinationList\n");
@@ -5163,7 +5240,7 @@ word ReadEnum(etable *etp)
 {	char	c,e[33];
 	word	i;
 	int j;  // MAG
-	
+
 	print_debug("RE: Enter ReadEnum lp = '%s'\n",lp);
 	skipwhitespace();
 	i=0;
@@ -5224,7 +5301,7 @@ word ReadEnum(etable *etp)
 dword ReadObjID()
 {	word	objtype;
 	dword	id;
-	
+
 	print_debug("ROI: Enter ReadObjID\n");
 	skipwhitespace();
 	if (*lp++!='(')
