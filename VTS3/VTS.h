@@ -16,8 +16,8 @@
 
 #define MAX_DEFINED_OBJ	  21  // This is one more than defined BACnetObjectType
 #define MAX_PROP_ID	      169		// BACnetPropertyIdentifier
-#define MAX_SERVS_SUPP     40 
-
+//#define MAX_SERVS_SUPP     40     //Modified by xlp
+#define MAX_SERVS_SUPP     50        
 //
 //	VTSApp
 //
