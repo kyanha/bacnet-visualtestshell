@@ -310,7 +310,14 @@ unsigned long CEPICSViewNodeObject::GetPropertyIDAndValue( int nLocalIndex, BACn
 		if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID, NULL) > 0 )
 			if ( x++ == nLocalIndex )
 			{
-				PICS::CreatePropertyFromEPICS( pObj, (PICS::BACnetPropertyIdentifier) dwPropID, pany );
+				try
+				{
+					PICS::CreatePropertyFromEPICS( pObj, (PICS::BACnetPropertyIdentifier) dwPropID, pany );
+				}
+				catch(...)
+				{
+					pany->SetObject(NULL);
+				}
 				return (unsigned long) dwPropID;
 			}
 
@@ -363,7 +370,14 @@ void CEPICSViewNodeObject::LoadInfoPanel()
 					listCtrl.SetItemText(x, 2, "?");
 				else
 				{
-					PICS::CreatePropertyFromEPICS( pObj, (PICS::BACnetPropertyIdentifier) dwPropID, &bacnetAnyValue );
+					try
+					{
+						PICS::CreatePropertyFromEPICS( pObj, (PICS::BACnetPropertyIdentifier) dwPropID, &bacnetAnyValue );
+					}
+					catch(...)
+					{
+						bacnetAnyValue.SetObject(NULL);
+					}
 					listCtrl.SetItemText(x, 2, bacnetAnyValue.ToString());
 				}
 
