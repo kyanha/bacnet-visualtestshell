@@ -23,6 +23,7 @@
 
 class ScriptBase;
 typedef ScriptBase *ScriptBasePtr;
+class ScriptScanner;
 
 class ScriptBase : public CList<ScriptBasePtr,ScriptBasePtr> {
 	public:
@@ -50,8 +51,10 @@ class ScriptBase : public CList<ScriptBasePtr,ScriptBasePtr> {
 
 		ScriptBasePtr	baseParent;							// pointer to parent
 
+		CString			m_strFile;							// full path to file element resides ("" if base)
+
 		// list operations
-		void Append( ScriptBasePtr sbp );					// add a child at the end
+		void Append( ScriptBasePtr sbp, ScriptScanner * pscan = NULL );					// add a child at the end
 		void Remove( int indx );							// remove a child
 
 		int Length( void );									// number of children
@@ -196,6 +199,7 @@ class ScriptToken {
 		int					m_nIndex;						// index into value when resolved (-1=all, 0=size, 1>= index)
 
 		CString				tokenValue;						// token value
+		bool m_fIgnoreEscape;								// madanner 6/03, true if quotes should ignore '\'
 
 		ScriptToken *		pTokenIndex;					// madanner 10/24/02, pointer to token for possible index
 
@@ -240,10 +244,16 @@ const int kScriptTokenListSize = sizeof( ScriptTokenList );
 //	ScriptScanner
 //
 
+class ScriptDocument;
+
 class ScriptScanner {
 	protected:
-		CEdit*			scanSource;							// where this token came from (?)
+
+//madanner 6/03 for #include support
+//		CEdit*			scanSource;							// where this token came from (?)
+
 		int				scanLine;							// line number of source
+		int				m_nLineOffset;						// # of chars in file to current line start
 
 		char			scanLineBuffer[kTokenBufferSize];	// current line being parsed
 		char			scanValueBuffer[kTokenBufferSize];	// current token being built
@@ -251,11 +261,16 @@ class ScriptScanner {
 		void FormatError( ScriptToken &tok, char *msg );	// sets up the token and throws the message
 		void Deblank(void);									// madanner 10/24/02, frequently called
 		void ScanIndexTokens( ScriptToken & tok );			// madanner 10/24/02, scan for [] tokens
+		void Initialize(void);
 
 	public:
 		const char		*scanSrc;							// ptr to current/next token
 
-		ScriptScanner( CEdit* ep );							// source of parsing
+		ScriptDocument * m_pdocSource;						// token comes from VTS document
+		CStdioFile *	m_fileSource;						// from include files
+
+		ScriptScanner( ScriptDocument * pdoc );				// source of parsing
+		ScriptScanner( CStdioFile * fileSource );			// source of parsing for include files
 		ScriptScanner( const char *src );					// source of parsing
 		~ScriptScanner( void );
 
@@ -263,9 +278,14 @@ class ScriptScanner {
 		void Peek( ScriptToken& tok );						// non-destructive look into stream
 		void NextTitle( ScriptToken& tok );					// the rest of the line is a title
 		void NextLine( ScriptToken& tok );					// move to the next line in the source
-	};
+
+		void ReportSyntaxError( ScriptToken * ptok, LPCSTR lpszErrorMsg );
+		CString GetPathName(void);
+};
 
 typedef ScriptScanner *ScriptScannerPtr;
 const int kScriptScannerSize = sizeof( ScriptScanner );
+
+typedef CTypedPtrArray<CPtrArray, ScriptScanner *> ScriptScanners;
 
 #endif // !defined(AFX_SCRIPTBASE_H__18DBD511_B069_11D4_BEEA_00A0C95A9812__INCLUDED_)
