@@ -442,6 +442,10 @@ SOURCE=.\SendDeleteObject.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SendDevice.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SendDeviceCommCtrl.cpp
 # End Source File
 # Begin Source File
@@ -1156,6 +1160,10 @@ SOURCE=.\SendDeleteFDTEntry.h
 # Begin Source File
 
 SOURCE=.\SendDeleteObject.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendDevice.h
 # End Source File
 # Begin Source File
 

@@ -495,6 +495,20 @@ void VTSDoc::NewPacketCount( void )
 	}
 }
 
+//
+//	VTSDoc::OnViewStatistics
+//
+
+void VTSDoc::OnViewStatistics() 
+{
+	m_bStatisticsDlgInUse=true;
+	VTSStatisticsDlg dlg;
+	m_pStatitiscsDlg=&dlg;
+	m_pStatitiscsDlg->m_pDoc=this;
+	dlg.DoModal();
+	m_bStatisticsDlgInUse=false;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSDocList
 
@@ -588,14 +602,17 @@ VTSPort::VTSPort( VTSDocPtr dp, objId id )
 	, portBTR(0), portBBMD(0), portBIPSimple(0), portBIPForeign(0), portBindPoint(0)
 	, portDevice(0)
 {
-	// read in the descriptor
-	ReadDesc();
-
 	// add this to the master list
 	AddToMasterList();
 
-	// see if it can be turned on
-	Refresh();
+	// most ports are bound to a document and have a descriptor
+	if (dp && id) {
+		// read in the descriptor
+		ReadDesc();
+
+		// see if it can be turned on
+		Refresh();
+	}
 }
 
 //
@@ -950,7 +967,6 @@ void VTSPort::Configure( CString *cp )
 				dlg.DoModal();
 				break;
 			}
-
 
 		case arcnetPort:
 			TRACE0( "ARCNET config request\n" );
@@ -1548,6 +1564,15 @@ VTSDevice::VTSDevice( VTSDocPtr dp, objId id )
 
 	// add this to the master list
 	AddToMasterList();
+
+	// create a dummy port
+	devPort = new VTSPort( 0, 0 );
+
+	// the port name matches the device name
+	strcpy( devPort->portDesc.portName, devDesc.deviceName );
+
+	// create a funny endpoint that redirects requests back to this device
+	devPortEndpoint = new VTSDevicePort( devPort, this );
 }
 #pragma warning( default : 4355 )
 
@@ -1559,6 +1584,9 @@ VTSDevice::~VTSDevice( void )
 {
 	// remove this from the master list
 	RemoveFromMasterList();
+
+	// delete the dummy port which will also delete the endpoint
+	delete devPort;
 }
 
 //
@@ -1628,6 +1656,9 @@ void VTSDevice::WriteDesc( void )
 	devDevice.deviceAPDUTimeout = devDesc.deviceAPDUTimeout;
 	devDevice.deviceAPDUSegmentTimeout = devDesc.deviceAPDUSegmentTimeout;
 	devDevice.deviceAPDURetries = devDesc.deviceAPDURetries;
+
+	// make sure the dummy port has the correct name
+	strcpy( devPort->portDesc.portName, devDesc.deviceName );
 }
 
 //
@@ -2054,7 +2085,6 @@ VTSWinIPPort::~VTSWinIPPort( void )
 //	VTSWinIPPort::FilterData
 //
 
-
 void VTSWinIPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection dir )
 {
 	VTSPacket	pkt
@@ -2086,8 +2116,6 @@ void VTSWinIPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection d
 		::PostThreadMessage( AfxGetApp()->m_nThreadID
 			, WM_VTS_RCOUNT, (WPARAM)0, (LPARAM)m_pPort->portDoc
 			);
-	
-
 }
 
 //
@@ -2111,14 +2139,75 @@ void VTSWinIPPort::PortStatusChange( void )
 		);
 }
 
-void VTSDoc::OnViewStatistics() 
+/////////////////////////////////////////////////////////////////////////////
+// VTSDevicePort
+
+//
+//	VTSDevicePort::VTSDevicePort
+//
+
+VTSDevicePort::VTSDevicePort( VTSPortPtr pp, VTSDevicePtr dp )
+	: m_pPort(pp), m_pDevice(dp)
 {
-	// TODO: Add your command handler code here
-	m_bStatisticsDlgInUse=true;
-	VTSStatisticsDlg dlg;
-	m_pStatitiscsDlg=&dlg;
-	m_pStatitiscsDlg->m_pDoc=this;
-	dlg.DoModal();
-	m_bStatisticsDlgInUse=false;
-	
+	// the port should think this is its endpoint
+	pp->portEndpoint = this;
+
+	// let the port know which send group to use
+	pp->portSendGroup = gDeviceGroupList;
+}
+
+//
+//	VTSDevicePort::~VTSDevicePort
+//
+
+VTSDevicePort::~VTSDevicePort( void )
+{
+	// reset the send group
+	m_pPort->portSendGroup = 0;
+}
+
+//
+//	VTSDevicePort::Indication
+//
+//	This function is required because a VTSDevicePort derives from BACnetNetServer.
+//	It should never be called, these objects aren't bound to anything.
+//
+
+void VTSDevicePort::Indication( const BACnetNPDU &pdu )
+{
+	ASSERT( 0 );
+}
+
+//
+//	VTSDevicePort::SendData
+//
+
+void VTSDevicePort::SendData( BACnetOctet *data, int len )
+{
+	int			net, addrLen
+	;
+	BACnetAPDU	apdu
+	;
+
+	// rip apart the address that was so carefully encoded by CSendDevice::EncodePage
+	apdu.apduAddr.addrType = (BACnetAddressType)(len--,*data++);
+
+	net = (len--,*data++);
+	net = (net << 8) + (len--,*data++);
+	apdu.apduAddr.addrNet = net;
+
+	addrLen = (len--,*data++);
+	apdu.apduAddr.addrLen = addrLen;
+	for (int i = 0; i < addrLen; i++)
+		apdu.apduAddr.addrAddr[i] = (len--,*data++);
+
+	// build a temporary decoder out of the rest
+	BACnetAPDUDecoder dec( data, len )
+	;
+
+	// turn it into an APDU
+	apdu.Decode( dec );
+
+	// pass it along to the device to process
+	m_pDevice->SendAPDU( apdu );
 }

@@ -123,6 +123,7 @@
 #define IDD_GOTOLINE                    242
 #define IDD_STATISTICS                  243
 #define IDD_STATISTICS_OPTIONS          244
+#define IDD_SENDDEVICE                  245
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001

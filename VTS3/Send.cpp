@@ -112,6 +112,25 @@ CSendGroupPtr gPTPGroupList[] = { &gPTPGroup, 0 };
 
 /////////////////////////////////////////////////////////////////////////////
 
+CSendGroupItem gDeviceItemList[] =
+	{ { "Raw Data", (CSendPageMPtr)&CSend::RawPage, 0 }
+	, { 0, 0, 0 }
+	};
+
+CSendGroup gDeviceGroup = { "Device", gDeviceItemList, (CSendPageMPtr)&CSend::DevicePage, (CSendPageMPtr)&CSend::DevicePage };
+
+CSendGroupPtr gDeviceGroupList[] =
+	{ &gDeviceGroup
+	, &gAlarmEventAccessGroup
+	, &gFileAccessGroup
+	, &gObjectAccessGroup
+	, &gRemoteDevMgmtGroup
+	, &gVirtualTerminalGroup
+	, 0
+	};
+
+/////////////////////////////////////////////////////////////////////////////
+
 CSendGroupItem gNetworkItemList[] =
 	{ { "Raw Data", (CSendPageMPtr)&CSend::RawPage, 0 }
 	, { "Vendor NPDU", (CSendPageMPtr)&CSend::VendorNPDUPage, 0 }
@@ -284,6 +303,8 @@ void CSend::InitPages( void )
 	DeleteFDTEntryPage.pageParent = this;
 
 	EnetPage.pageParent = this;
+
+	DevicePage.pageParent = this;
 
 	NPCIPage.pageParent = this;
 	VendorNPDUPage.pageParent = this;
