@@ -296,6 +296,9 @@ void CSendWriteFile::OnChangeStartRecord()
 void CSendWriteFile::OnAddRecord() 
 {
 	m_RecordCtrl.AddButtonClick();
+
+	// madanner 9/3/02, added default record data
+	m_RecordCtrl.SetCtrlText(IDC_RECORDDATA, "(record data)");
 }
 
 void CSendWriteFile::OnRemoveRecord() 
