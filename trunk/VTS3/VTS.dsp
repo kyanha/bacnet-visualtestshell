@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 version.lib /nologo /subsystem:windows /machine:I386
+# ADD LINK32 version.lib macdll/ptp.lib /nologo /subsystem:windows /machine:I386
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "VTS - Win32 Debug"
@@ -347,6 +347,15 @@ SOURCE=.\ScriptExecMsg.cpp
 # Begin Source File
 
 SOURCE=.\ScriptExecutor.cpp
+
+!IF  "$(CFG)" == "VTS - Win32 Release"
+
+# ADD CPP /Ob0
+
+!ELSEIF  "$(CFG)" == "VTS - Win32 Debug"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
