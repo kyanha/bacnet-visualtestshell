@@ -2935,10 +2935,10 @@ BEGIN
     LTEXT           "MAC Address",IDC_STATIC,18,95,45,8
 END
 
-IDD_MSTPIMP_NBLINK DIALOGEX 0, 0, 377, 182
+IDD_MSTPIMP_NBLINK DIALOGEX 0, 0, 377, 199
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "MS/TP NB-Link Implementation Parameters"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     EDITTEXT        IDC_NBLINKSOCKET,207,10,38,12,ES_AUTOHSCROLL | WS_GROUP
     CONTROL         "IPAddress1",IDC_NBLINKADDR,"SysIPAddress32",WS_TABSTOP,
@@ -2953,12 +2953,12 @@ BEGIN
                     207,93,139,10
     CONTROL         "Use this address to set locate NB-Link when setting parameters",
                     IDC_NBLINKRESET,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,148,142,215,12
+                    WS_TABSTOP,147,156,215,12
     CONTROL         "IPAddress1",IDC_NBLINKRESETADDR,"SysIPAddress32",
-                    WS_GROUP | WS_TABSTOP,147,156,100,12
+                    WS_GROUP | WS_TABSTOP,146,170,100,12
     DEFPUSHBUTTON   "OK",IDOK,320,7,50,14,WS_GROUP
     PUSHBUTTON      "Cancel",IDCANCEL,320,24,50,14,NOT WS_TABSTOP
-    PUSHBUTTON      "Apply && Reset",ID_APPLY,295,155,67,14,NOT WS_TABSTOP
+    PUSHBUTTON      "Apply && Reset",ID_APPLY,288,170,67,14,NOT WS_TABSTOP
     LTEXT           "Listen Port:",IDC_STATIC,141,12,60,10,0,WS_EX_RIGHT
     LTEXT           "17284 = default",IDC_STATIC,251,12,53,10
     LTEXT           "NB-Link Address:",IDC_STATIC,141,29,60,10,0,WS_EX_RIGHT
@@ -2966,11 +2966,13 @@ BEGIN
     LTEXT           "Local Port:",IDC_STATIC,141,80,60,10,0,WS_EX_RIGHT
     LTEXT           "10001 = default",IDC_STATIC,251,80,53,10
     GROUPBOX        "Adjustments to any parameters require an NB-Link reset",
-                    IDC_STATIC,141,107,229,68
+                    IDC_STATIC,141,124,229,68
     LTEXT           "These parameters can be set in the NB-Link device now by using the reset button instead of VTS performing the configuration on startup.",
-                    IDC_STATIC,147,121,218,21
-    CONTROL         284,IDC_STATIC,"Static",SS_BITMAP,7,7,126,168
+                    IDC_STATIC,146,135,218,21
+    CONTROL         284,IDC_STATIC,"Static",SS_BITMAP,22,55,95,137
     LTEXT           "Gateway Address:",IDC_STATIC,141,63,60,10,0,WS_EX_RIGHT
+    LTEXT           "The BACnet Testing Laboratories (BTL) has not tested the American Auto-Matrix NB-Link for conformance to the BACnet standard, nor does the BTL endorse the NB-Link as a product.",
+                    IDC_STATIC,7,7,137,42
 END
 
 IDD_EPICSVIEW DIALOGEX 0, 0, 138, 192
@@ -5326,7 +5328,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 370
         TOPMARGIN, 7
-        BOTTOMMARGIN, 175
+        BOTTOMMARGIN, 192
     END
 
     IDD_EPICSVIEW, DIALOG
