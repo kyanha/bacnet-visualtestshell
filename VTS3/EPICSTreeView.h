@@ -100,6 +100,8 @@ protected:
 	afx_msg void OnSelchangedEpicsTree(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnEpicsEdit();
 	afx_msg void OnDestroy();
+	afx_msg void OnEpicsReadSingleProps();
+	afx_msg void OnEpicsReadAllProps();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
