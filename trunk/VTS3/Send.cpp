@@ -825,6 +825,12 @@ void CSend::SetPageList( CSendPageMList lp )
 		SetActivePage( p );
 	}
 
+	TRACE0( "---------- Check for a confirmed request\n" );
+	m_isConfirmedRequest = false;
+	for (int q = 0; m_pages[q]; q++ )
+		if (m_pages[q] == &ConfirmedRequestPage)
+			m_isConfirmedRequest = true;
+
 	TRACE0( "---------- Away we go...\n" );
 #endif
 
@@ -888,5 +894,19 @@ void CSend::OnSend()
 
 	// forward it along to the port
 	m_pPort->SendData( msg.strBuff, msg.strLen );
-}
 
+	// if it's a confirmed request, bump up the invoke ID
+	if (m_isConfirmedRequest) {
+		// bump the invoke ID
+		gVTSPreferences.sendInvokeID = (gVTSPreferences.sendInvokeID + 1) % 256;
+
+		// pass the new value to the background value in the control
+		ConfirmedRequestPage.m_InvokeID.intValue = gVTSPreferences.sendInvokeID;
+
+		// let the control reflect the new value
+		ConfirmedRequestPage.m_InvokeID.ObjToCtrl();
+
+		// update the encoding
+		UpdateEncoded();
+	}
+}

@@ -214,6 +214,8 @@ void VTSPreferences::Load( void )
 	summaryFields = pApp->GetProfileInt( "Summary", "Fields", 0);
 	summaryNameWidth = pApp->GetProfileInt( "Summary", "NameWidth", 0);
 	summaryTimeFormat = pApp->GetProfileInt( "Summary", "TimeFormat", 0);
+
+	sendInvokeID = pApp->GetProfileInt( "Send", "InvokeID", 0);
 }
 
 //
@@ -227,6 +229,8 @@ void VTSPreferences::Save( void )
 	pApp->WriteProfileInt( "Summary", "Fields", summaryFields );
 	pApp->WriteProfileInt( "Summary", "NameWidth", summaryNameWidth );
 	pApp->WriteProfileInt( "Summary", "TimeFormat", summaryTimeFormat );
+
+	pApp->WriteProfileInt( "Send", "InvokeID", sendInvokeID );
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -285,6 +289,20 @@ void VTSPreferences::Save( void )
 //
 //  3.1.7   Added SendUTCTimeSync to the send window.
 //          Fixed minor problems in the Send ReadRange dialog.
+//
+//	3.1.8	Session data is now cleared, so it doesn't grow continuously, but is not compressed
+//				That will be a future enhancement.
+//			The Send windows have been sized up to make room for more buttons and clearer indicators.
+//			The IDD_SENDREADPROPMULT, IDD_SENDREADPROPMULTACK and IDD_SENDWRITEPROPMULT dialog
+//				boxes now have shuffle-up and shuffle-down buttons.  With all the focus and 
+//				selection change messages flying around I'm sure the interface doesn't quite do 
+//				what is expected.
+//			All of the Send dialog boxes that have lists now have 'Show selection always' turned
+//				on, which doesn't always seem to do what it's supposed to.
+//			There is now an automatic invoke ID for the send window.  It is incremented when the
+//				Send button is clicked.  The value is saved in the preferences (registry), so it 
+//				comes back for the next VTS launch.  Note that this is NOT the same invoke ID that 
+//				will be used by a built-in device object, and I think that is a good thing.
 //
 
 const int kReleaseVersion = 8;

@@ -242,6 +242,7 @@ public:
 	CSendGroupList	m_groupList;				// current list of page groups
 	CSendPagePtr	m_pages[kCSendMaxPages];	// list of installed pages
 	HTREEITEM		m_currentItem;				// current selected item
+	bool			m_isConfirmedRequest;		// true iff ConfirmedRequestPage loaded
 
 	CButton			m_send;						// send button
 

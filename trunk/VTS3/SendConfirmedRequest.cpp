@@ -133,7 +133,8 @@ void CSendConfirmedRequest::InitPage( void )
 	m_WindowSize.ctrlNull = true;
 	m_MaxAPDULen.ctrlNull = false;
 	m_MaxAPDULen.enumValue = 0;
-	m_InvokeID.ctrlNull = true;
+	m_InvokeID.ctrlNull = false;
+	m_InvokeID.intValue = gVTSPreferences.sendInvokeID;
 
 	// tell the NPCI this is expecting a reply
 	pageParent->NPCIPage.m_ExpectingReply = true;
@@ -364,6 +365,10 @@ void CSendConfirmedRequest::OnChangeInvokeID()
 {
 	TRACE0( "CSendConfirmedRequest::OnChangeInvokeID()\n" );
 	m_InvokeID.UpdateData();
+
+	// save the new invoke ID in the preferences
+	gVTSPreferences.sendInvokeID = m_InvokeID.intValue;
+
 	SavePage();
 	UpdateEncoded();
 }
