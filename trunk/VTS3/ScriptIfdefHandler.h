@@ -1,0 +1,65 @@
+// ScriptIfdefHandler.h: interface for the ScriptIfdefHandler class.
+//
+//////////////////////////////////////////////////////////////////////
+
+#if !defined(AFX_SCRIPTIFDEFHANDLER_H__2423F5E1_196D_4954_9BAA_A60777FD9F9C__INCLUDED_)
+#define AFX_SCRIPTIFDEFHANDLER_H__2423F5E1_196D_4954_9BAA_A60777FD9F9C__INCLUDED_
+
+#if _MSC_VER > 1000
+#pragma once
+#endif // _MSC_VER > 1000
+
+#include "ScriptDocument.h"
+#include "ScriptPacket.h"
+#include "ScriptKeywords.h"
+
+
+// Define maximum left for ifdef nesting...
+#define IFDEF_LEVEL_MAX			20
+
+
+class ScriptIfdefHandler : public CObject
+{
+	private:
+		int				 m_curIfdefLevel;
+		unsigned char	 m_bIfdefFlags[IFDEF_LEVEL_MAX];
+		ScriptScanner  & m_scanner;
+		ScriptDocument * m_pDoc;
+
+		bool EvaluateConditional(ScriptToken & tok );
+
+	public:
+		ScriptIfdefHandler( ScriptDocument * pDoc, ScriptScanner & scan );
+		virtual ~ScriptIfdefHandler();
+
+		bool IsIfdefExpression(ScriptToken &tok);
+		bool IsSkipping(void);
+		bool IsIfBlock(void);
+};
+
+
+class ScriptIfdefExpr : public CObject
+{
+	private:
+		ScriptDocument * m_pdocument;
+
+		void ParseForValue(ScriptToken &tok );
+		void ResolveToValue( ScriptToken & tok );
+		BACnetEncodeable * CreateOperand( ScriptToken & token );
+
+	public:
+		ScriptIfdefExpr( ScriptDocument * pdoc );
+		ScriptIfdefExpr( ScriptDocument * pdoc, ScriptScanner &scan, ScriptToken & tok );
+
+		bool Evaluate( ScriptToken & tok);
+		void Parse( ScriptScanner &scan, ScriptToken &tok );
+
+		ScriptToken		m_tokLValue; 					// value on left of operator
+		ScriptToken		m_tokRValue;					// value on right of operator
+		int				m_nOp;							// operator
+		int				m_nLine;						// line number in script
+};
+
+
+
+#endif // !defined(AFX_SCRIPTIFDEFHANDLER_H__2423F5E1_196D_4954_9BAA_A60777FD9F9C__INCLUDED_)
