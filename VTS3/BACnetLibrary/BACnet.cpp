@@ -33,8 +33,8 @@ namespace NetworkSniffer {
 	extern char *BACnetObjectType[];
 }
 
-#include "E:\VTS\ScriptBase.h"
-#include "E:\VTS\ScriptKeywords.h"
+#include "ScriptBase.h"
+#include "ScriptKeywords.h"
 
 #endif
 
