@@ -108,7 +108,7 @@ void BACnetAPDUEncoder::CheckSpace( int len )
 	
 	// figure out how much more space we need
 	int newSize = pktBuffSize + kDefaultBufferSize;
-	while ((pktLength + len) <= newSize)
+	while ((pktLength + len) > newSize)						// madanner 10/22/02, was backward test as '<=', blowing buffer size
 		newSize += kDefaultBufferSize;
 	
 	// make a new bigger buffer
