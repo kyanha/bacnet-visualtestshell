@@ -269,8 +269,18 @@ void VTSPreferences::Save( void )
 //             MAX_PROP_ID
 //             MAX_SERVS_SUPP
 //
+//
+//	3.1.5
+//			Built in support for BACnet/IP endpoints to be managed automatically (the peer list 
+//			for BTR's and BBMD's have not been finished yet).  Added a new set of functions 
+//			to support scripting at the device object level.  If a script does not specify a 
+//			network, or BVLCI or network layer message then the SEND and EXPECT packet are 
+//			assumed to operate from the context of the device object.  Only one device object 
+//			may be defined, until there is a new keyword that describes which device object 
+//			should be used.
+//
 
-const int kReleaseVersion = 4;
+const int kReleaseVersion = 5;
 
 class CAboutDlg : public CDialog
 {
