@@ -241,6 +241,12 @@ typedef struct {
 
 //Device Object
 //-------------------------------------------------------
+// msdanner 9/2004: Define maximum possible lengths
+// for protocol_services_supported and object_types_supported.
+// Still some work to do to prevent breakage if these bitstrings
+// are longer than expected.
+#define MAX_BITSTRING   80    
+
 typedef struct {
     generic_object			go;
 enum BACnetDeviceStatus		system_status;
@@ -253,8 +259,10 @@ enum BACnetDeviceStatus		system_status;
     word					protocol_ver;
     word					protocol_rev;                     // msdanner 9/2004 - added
     word					protocol_conf_class;
-    octet					protocol_services_supported[5]; //bit string, one bit per service
-    octet					object_types_supported[3];		//bit string, one bit per object type
+    // msdanner 9/2004 - Lengthened these bitstrings (and these only) so we could
+    // handle unexpectedly long bitstrings for these.
+    octet            protocol_services_supported[MAX_BITSTRING/8]; //bit string, one bit per service
+    octet            object_types_supported[MAX_BITSTRING/8];    	//bit string, one bit per object type
     word					num_objects;
     BACnetObjectIdentifier	far	*object_list;				//points to our object list
     word					max_apdu_length_accepted;

@@ -152,6 +152,7 @@ void AVG_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 void TR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 
 // msdanner 9/04:  135.1-2003 EPICS consistency checks added 
+void ExpandBitstring(octet *pExpandedResult, octet *pBitstring, int nBits);
 void CheckPICSConsistency2003(PICSdb *); // runs all checks
 void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDependentBIBB);
 void CheckPICSConsProperties(PICSdb *pd, generic_object *obj);
@@ -162,6 +163,8 @@ void CheckPICSCons2003F(PICSdb *pd);
 void CheckPICSCons2003G(PICSdb *pd);
 void CheckPICSCons2003H(PICSdb *pd);
 void CheckPICSCons2003I(PICSdb *pd);
+void CheckPICSCons2003K(PICSdb *pd);
+void CheckPICSCons2003L(PICSdb *pd);
 
 
 void GetSequence(dword *,dword *,octet);
@@ -226,6 +229,31 @@ static char		NoneTypeValue[256],NoneTypePropName[20];	 // for store temp address
 
 // msdanner 9/2004: added global consistency error counter
 static unsigned int cConsistencyErrors;
+static octet LengthProtocolServicesSupportedBitstring;    //msdanner 9/2004 - used by test 135.1-2003 (k)
+static octet LengthProtocolObjectTypesSupportedBitstring; //msdanner 9/2004 - used by test 135.1-2003 (l)
+
+// Array of expected bitstring lengths for ProtocolServicesSupported
+// based on the Protocol_Revision property as the index.
+static octet aCorrectLengthProtocolServicesSupportedBitstring[] = 
+{
+   35, /* Protocol_Revision = 0 */
+   37, /* Protocol_Revision = 1 */
+   40, /* Protocol_Revision = 2 */
+   40, /* Protocol_Revision = 3 */
+   40  /* Protocol_Revision = 4 */
+};
+
+// Array of expected bitstring lengths for ProtocolObjectTypesSupported
+// based on the Protocol_Revision property as the index.
+static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] = 
+{
+   18, /* Protocol_Revision = 0 */
+   21, /* Protocol_Revision = 1 */
+   23, /* Protocol_Revision = 2 */
+   23, /* Protocol_Revision = 3 */
+   23  /* Protocol_Revision = 4 */
+};
+
 //---------------------------------------------------------------------
 //  Large Static Tables
 static char	picshdr[]="PICS 0\x0D\x0A";
@@ -3358,13 +3386,25 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					if (ParseVTClassList((BACnetVTClassList **)pstruc)) return true;
 					break;
 				case pss:						//protocol services supported bitstring
-					if (ParseBitstring((octet *)pstruc,(sizeof(StandardServices)/sizeof(StandardServices[0])),NULL)) return true;
+               // msdanner 9/2004 - now handles bitstrings up to MAX_BITSTRING,
+               // regardless of the number of defined protocol services
+					if (ParseBitstring((octet *)pstruc,
+					    MAX_BITSTRING,                                  /* max bits to parse */
+					    &LengthProtocolServicesSupportedBitstring)) /* how many bits were parsed? */
+					    return true;
+               LengthProtocolServicesSupportedBitstring++;  // zero-based correction
 					ProtocolServSup.ObjServNum=sizeof(StandardServices)/sizeof(StandardServices[0]);   
 					ProtocolServSup.PropSupValue=(octet *)pstruc; 
 					
 					break;
 				case pos:						//protocol objects supported bitstring
-					if (ParseBitstring((octet *)pstruc,(sizeof(StandardObjects)/sizeof(StandardObjects[0])),NULL)) return true;
+               // msdanner 9/2004 - now handles bitstrings up to MAX_BITSTRING,
+               // regardless of the number of defined protocol object types
+					if (ParseBitstring((octet *)pstruc,
+					    MAX_BITSTRING,                                  /* max bits to parse */
+					    &LengthProtocolObjectTypesSupportedBitstring)) /* how many bits were parsed? */
+					    return true;
+               LengthProtocolObjectTypesSupportedBitstring++;  // zero-based correction
 					ProtocolObjSup.PropSupValue=(octet *)pstruc;       
 					ProtocolObjSup.ObjServNum=sizeof(StandardObjects)/sizeof(StandardObjects[0]);   
 					break;
@@ -6376,6 +6416,21 @@ char *GetCharsetName(octet csTag)
 		
 }
 
+// msdanner 9/2004 - function to expand a packed bitstring into an array
+// of ocetes, with each octet being a 0 or 1 depending on the bitstring
+void ExpandBitstring(octet *pExpandedResult, octet *pBitstring, int nBits)
+{
+   octet mask;
+   while (nBits)
+   {
+      for (mask = 0x80; mask && nBits; mask>>=1, nBits--)
+      {
+         *pExpandedResult++ = ((*pBitstring & mask) != 0);
+      }
+      pBitstring++;  // next 8 bits
+   }
+}
+
 
 // msdanner 9/04 added:  
 // Returns the maximum number of Special Functionality choices
@@ -6510,7 +6565,10 @@ void CheckPICSConsistency2003(PICSdb *pd)
    CheckPICSCons2003I(pd);
 
 	// 135.1-2003, section 5.(k) 
+   CheckPICSCons2003K(pd);
+
 	// 135.1-2003, section 5.(l) 
+   CheckPICSCons2003L(pd);
 
 }
 
@@ -6749,18 +6807,22 @@ void CheckPICSCons2003E(PICSdb *pd)
 {   
     int i;
     char opj[300];
-    octet Application_Services_Supported[MAX_SERVS_SUPP];
+    octet Application_Services_Supported[MAX_BITSTRING]; // one byte per bit
     octet InStandardAppSection;
-	 memset(Application_Services_Supported,0,MAX_SERVS_SUPP);
+    int  iNumStandardServices;
+	 memset(Application_Services_Supported,0,MAX_BITSTRING);
 
- 	 BitToArray(Application_Services_Supported,&ProtocolServSup);
+    iNumStandardServices = GetStandardServicesSize(); 
+    if (!pd->pDeviceObject)
+       return;
+ 	 ExpandBitstring(Application_Services_Supported,pd->pDeviceObject->protocol_services_supported, iNumStandardServices);
 
-    for (i=0; i<MAX_SERVS_SUPP; i++)
+    for (i=0; i<iNumStandardServices; i++)
     {
        InStandardAppSection = ((pd->BACnetStandardServices[i] & ssExecute) != 0);
        // Exclusive OR test between the property and the EPICS section.
        // If either is set and not the other, this is an error.
-       if( (InStandardAppSection ^ !!Application_Services_Supported[i]) )  // XOR
+       if( (InStandardAppSection ^ Application_Services_Supported[i]) )  // XOR
        {
          sprintf(opj,"135.1-2003 5.(e): "
            "Support for execution of the %s application service is not consistent "
@@ -6796,17 +6858,21 @@ void CheckPICSCons2003E(PICSdb *pd)
 // 
 void CheckPICSCons2003F(PICSdb *pd)
 { char errMsg[300];
-  int  i;
+  int  i, iNumStandardObjects;
   octet InStandardObjectSection;
-  octet ProtocolObjectSup[MAX_DEFINED_OBJ];
+  octet ProtocolObjectSup[MAX_BITSTRING];
 
-  memset(ProtocolObjectSup,0,MAX_DEFINED_OBJ);
-  BitToArray(ProtocolObjectSup,&ProtocolObjSup);
+  memset(ProtocolObjectSup,0,MAX_BITSTRING);
+  iNumStandardObjects = GetObjectTypeSize();
+  if (!pd->pDeviceObject)
+     return;
+  ExpandBitstring(ProtocolObjectSup,pd->pDeviceObject->object_types_supported, iNumStandardObjects);
+
   for(i=0;i<MAX_DEFINED_OBJ;i++) {
-    InStandardObjectSection = !!pd->BACnetStandardObjects[i]; // convert to boolean
+    InStandardObjectSection = (pd->BACnetStandardObjects[i] != 0); // convert to boolean
     // Exclusive OR test between the property and the EPICS section.
     // If either is set and not the other, this is an error.
-    if( (InStandardObjectSection ^ !!ProtocolObjectSup[i]) )  // XOR
+    if( (InStandardObjectSection ^ ProtocolObjectSup[i]) )  // XOR
     {
       sprintf(errMsg,"135.1-2003 5.(f): "
         "Object type %s is not consistent between the \"Standard Object Types Supported\" "
@@ -7195,6 +7261,7 @@ void CheckPICSCons2003I(PICSdb *pd)
 {  
    generic_object *obj;
 	obj=pd->Database;
+   // Loop through the entire database ...
 	while(obj){
       // check for required, conditionally required, and mandatory writable properties
       CheckPICSConsProperties(pd, obj); 
@@ -7202,5 +7269,79 @@ void CheckPICSCons2003I(PICSdb *pd)
    }
 	return;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// EPICS Consistency test specified by 135.1-2003, section 5(k)
+// 
+// (k) The length of the Protocol_Services_Supported bitstring shall have
+// the number of bits defined for BACnetProtocolServicesSupported for the
+// IUT's declared protocol revision.  (New test.)
+// 
+void CheckPICSCons2003K(PICSdb *pd)
+{  
+	char   errMsg[300]; 
+   octet ExpectedLength;
+   device_obj_type *pDevice = pd->pDeviceObject;
+   // Make sure we have a pointer to the Device Object.
+   if (!pDevice)
+      return;
+
+   // Bounds check.  If protocol_revision is a higher number than what we know about,
+   // skip this test.
+   if (pDevice->protocol_rev >= (sizeof(aCorrectLengthProtocolServicesSupportedBitstring)/
+                                sizeof(aCorrectLengthProtocolServicesSupportedBitstring[0])) )
+      return;
+
+   ExpectedLength = aCorrectLengthProtocolServicesSupportedBitstring[pDevice->protocol_rev];
+   if (LengthProtocolServicesSupportedBitstring != ExpectedLength)
+   {
+	   sprintf(errMsg,"135.1-2003 5.(k): "
+		   "For Protocol_Revision of %d, the length of Protocol_Services_Supported "
+		   "must be %d bits, but it is %d bits.\n",
+		   pDevice->protocol_rev,
+		   ExpectedLength,
+		   LengthProtocolServicesSupportedBitstring);
+	   tperror(errMsg,false);
+   }
+	return;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// EPICS Consistency test specified by 135.1-2003, section 5(l)
+// 
+// (l) The length of the Protocol_Object_Types_Supported bitstring shall
+// have the number of bits defined for BACnetObjectTypesSupported for the
+// IUT's declared protocol revision. (New test.)
+// 
+void CheckPICSCons2003L(PICSdb *pd)
+{  
+	char   errMsg[300]; 
+   octet ExpectedLength;
+   device_obj_type *pDevice = pd->pDeviceObject;
+   // Make sure we have a pointer to the Device Object.
+   if (!pDevice)
+      return;
+
+   // Bounds check.  If protocol_revision is a higher number than what we know about,
+   // skip this test.
+   if (pDevice->protocol_rev >= (sizeof(aCorrectLengthProtocolObjectTypesSupportedBitstring)/
+                                sizeof(aCorrectLengthProtocolObjectTypesSupportedBitstring[0])) )
+      return;
+
+   ExpectedLength = aCorrectLengthProtocolObjectTypesSupportedBitstring[pDevice->protocol_rev];
+   if (LengthProtocolObjectTypesSupportedBitstring != ExpectedLength)
+   {
+	   sprintf(errMsg,"135.1-2003 5.(l): "
+		   "For Protocol_Revision of %d, the length of Protocol_Object_Types_Supported "
+		   "must be %d bits, but it is %d bits.\n",
+		   pDevice->protocol_rev,
+		   ExpectedLength,
+		   LengthProtocolObjectTypesSupportedBitstring);
+	   tperror(errMsg,false);
+   }
+	return;
+}
+
+
 
 }
