@@ -198,6 +198,14 @@ SOURCE=.\DetailView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\DockingDetailViewBar.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DockingHexViewbar.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\DUDAPI\dudapi32.cpp
 # End Source File
 # Begin Source File
@@ -211,6 +219,10 @@ SOURCE=.\FileVersionInfo\file_ver.cpp
 # Begin Source File
 
 SOURCE=.\FrameContext.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\GoToLineDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -266,6 +278,10 @@ SOURCE=.\JLib\JTextFile.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\LineNumCtrl.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MainFrm.cpp
 # End Source File
 # Begin Source File
@@ -275,6 +291,14 @@ SOURCE=.\md5.cpp
 # Begin Source File
 
 SOURCE=.\Sniffer\PI.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\scbarcf.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\scbarg.cpp
 # End Source File
 # Begin Source File
 
@@ -295,6 +319,10 @@ SOURCE=.\ScriptDependency.cpp
 # Begin Source File
 
 SOURCE=.\ScriptDocument.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptEdit.cpp
 # End Source File
 # Begin Source File
 
@@ -666,12 +694,24 @@ SOURCE=.\SendWritePropMultError.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\sizecbar.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
 # End Source File
 # Begin Source File
 
 SOURCE=.\SummaryView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Statistics\supergridctrl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Statistics\TreeListCtrl.cpp
 # End Source File
 # Begin Source File
 
@@ -767,6 +807,18 @@ SOURCE=.\VTSRecipientProcess.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Statistics\VTSStatisticsCollector.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Statistics\VTSStatisticsDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Statistics\VTSStatisticsOptionsDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSTimeStamp.cpp
 # End Source File
 # Begin Source File
@@ -851,6 +903,14 @@ SOURCE=.\DetailView.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DockingDetailViewBar.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DockingHexViewbar.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\DUDAPI\Dudapi.h
 # End Source File
 # Begin Source File
@@ -868,6 +928,10 @@ SOURCE=.\FileVersionInfo\file_ver.inl
 # Begin Source File
 
 SOURCE=.\FrameContext.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\GoToLineDlg.h
 # End Source File
 # Begin Source File
 
@@ -931,6 +995,10 @@ SOURCE=.\JLib\JTextFile.hpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\LineNumCtrl.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\MainFrm.h
 # End Source File
 # Begin Source File
@@ -963,6 +1031,14 @@ SOURCE=.\Resource.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\scbarcf.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\scbarg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ScriptBase.h
 # End Source File
 # Begin Source File
@@ -972,6 +1048,10 @@ SOURCE=.\ScriptContentTree.h
 # Begin Source File
 
 SOURCE=.\ScriptDocument.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptEdit.h
 # End Source File
 # Begin Source File
 
@@ -1335,6 +1415,14 @@ SOURCE=.\DUDAPI\Service.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Statistics\ServiceList.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\sizecbar.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.h
 # End Source File
 # Begin Source File
@@ -1348,6 +1436,14 @@ SOURCE=.\DUDAPI\Stdobjpr.h
 # Begin Source File
 
 SOURCE=.\SummaryView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Statistics\supergridctrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Statistics\TreeListCtrl.h
 # End Source File
 # Begin Source File
 
@@ -1440,6 +1536,18 @@ SOURCE=.\VTSQueue.h
 # Begin Source File
 
 SOURCE=.\VTSRecipientProcess.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Statistics\VTSStatisticsCollector.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Statistics\VTSStatisticsDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Statistics\VTSStatisticsOptionsDlg.h
 # End Source File
 # Begin Source File
 

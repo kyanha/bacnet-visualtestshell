@@ -10,11 +10,15 @@
 #endif // _MSC_VER > 1000
 
 #include "FrameContext.h"
-
+/////////////////////////////////
+#include "DockingDetailViewBar.h"
+#include "DockingHexViewBar.h"
+/////////////////////////////////
 // forward definitions
 class CSummaryView;
 class CDetailView;
 class CHexView;
+
 
 class CChildFrame : public CMDIChildWnd
 {
@@ -31,7 +35,8 @@ public:
 	CSummaryView*	m_pSummaryView;
 	CDetailView*	m_pDetailView;
 	CHexView*		m_pHexView;
-
+	CDockingDetailViewBar* m_pwndDetailViewBar;
+	CDockingHexViewBar* m_pwndHexViewBar;
 // Operations
 public:
 
@@ -78,6 +83,15 @@ protected:
 	afx_msg void OnSendNewPacket();
 	afx_msg void OnSendSelectPort(UINT uID);
 	afx_msg void OnSendSelectPacket(UINT uID);
+	//add by Hu Meng responding to new menu items
+	afx_msg void OnViewDetail();
+	afx_msg void OnViewHex();
+	afx_msg void OnUpdateViewDetail(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewHex(CCmdUI* pCmdUI);
+	//end 6.24
+	// Added by Yajun Zhou, 2002-7-24
+	afx_msg void OnFileExport();
+	/////////////////////////////////
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

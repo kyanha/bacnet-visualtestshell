@@ -7,8 +7,13 @@
 #include "ChildFrm.h"
 
 #include "SummaryView.h"
+
+
 #include "DetailView.h"
 #include "HexView.h"
+#include "VTSStatisticsCollector.h"
+
+//
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -44,11 +49,19 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_COMMAND(ID_SEND_NEWPACKET, OnSendNewPacket)
 	ON_COMMAND_RANGE( 0x8100, 0x81FF, OnSendSelectPort)
 	ON_COMMAND_RANGE( 0x8200, 0x82FF, OnSendSelectPacket)
+	ON_COMMAND(ID_VIEW_DETAIL, OnViewDetail)
+	ON_COMMAND(ID_VIEW_HEX, OnViewHex)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_DETAIL, OnUpdateViewDetail)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_HEX, OnUpdateViewHex)
+	// Added by Yajun Zhou, 2002-7-24
+	ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
+	///////////////////////////////////////////
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CChildFrame construction/destruction
+extern VTSStatisticsCollector* gStatisticsCollector;
 
 CChildFrame::CChildFrame()
 {
@@ -99,78 +112,71 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	// Let the clients know which context to use
 	gNewFrameContext = m_frameContext;
 
+	
 	// Tell the frame context which document, and get frame count.  Be careful
 	// because the frame count in the document might not be fully initialized 
 	// if this is a new frame for a new document, VTSDoc::OnNewDocument() has
 	// not been called yet.
 	((VTSDoc*)pContext->m_pCurrentDoc)->BindFrameContext( m_frameContext );
-	
-	// create a splitter with 1 row, 2 columns
-	if (!m_wndSplit1.CreateStatic(this, 1, 2))
-	{
-		TRACE0("Failed to CreateStaticSplitter\n");
-		return FALSE;
-	}
 
-	// add the first splitter pane - the summary view in column 0
-	if (!m_wndSplit1.CreateView(0, 0,
-		RUNTIME_CLASS(CSummaryView), CSize(200, 50), pContext))
-	{
-		TRACE0("Failed to create summary pane\n");
-		return FALSE;
-	}
-	
-	// nice to have around
-	m_pSummaryView = (CSummaryView*)m_wndSplit1.GetPane( 0, 0 );
 
-	// add the second splitter pane - which is a nested splitter with 2 rows
-	if (!m_wndSplit2.CreateStatic(
-		&m_wndSplit1,     // our parent window is the first splitter
-		2, 1,               // the new splitter is 2 rows, 1 column
-		WS_CHILD | WS_VISIBLE | WS_BORDER,  // style, WS_BORDER is needed
-		m_wndSplit1.IdFromRowCol(0, 1)
-			// new splitter is in the first row, 2nd column of first splitter
-	   ))
-	{
-		TRACE0("Failed to create nested splitter\n");
-		return FALSE;
-	}
-	
-	// now create the two views inside the nested splitter
-	int cyHalf = max(lpcs->cy / 2, 20);
-	
-	// detail view gets top half
-	if (!m_wndSplit2.CreateView(0, 0,
-		RUNTIME_CLASS(CDetailView), CSize(0, cyHalf), pContext))
-	{
-		TRACE0("Failed to create detail pane\n");
-		return FALSE;
-	}
-	
-	// nice to have around
-	m_pDetailView = (CDetailView*)m_wndSplit2.GetPane( 0, 0 );
+	// it all worked, we now have two splitter windows which contain
+	//  three different views
+	m_pwndHexViewBar=new CDockingHexViewBar(pContext);
+	m_pwndDetailViewBar=new CDockingDetailViewBar(pContext);
 
-	// hex view gets bottom half
-	if (!m_wndSplit2.CreateView(1, 0,
-		RUNTIME_CLASS(CHexView), CSize(0, 0), pContext))
+	if (!m_pwndHexViewBar->Create(_T("Hex View"), this, 123))
 	{
-		TRACE0("Failed to create hex pane\n");
-		return FALSE;
+    TRACE0("Failed to create mybar\n");
+    return -1;
+    // fail to create
 	}
-
-	// nice to have around
-	m_pHexView = (CHexView*)m_wndSplit2.GetPane( 1, 0 );
+	m_pwndHexViewBar->SetBarStyle(m_pwndHexViewBar->GetBarStyle() |
+    CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
+	m_pwndHexViewBar->SetSCBStyle(SCBS_SIZECHILD);
+	m_pwndHexViewBar->EnableDocking(CBRS_ALIGN_ANY);
+	EnableDocking(CBRS_ALIGN_ANY);
+	#ifdef _SCB_REPLACE_MINIFRAME
+    m_pFloatingFrameClass = RUNTIME_CLASS(CSCBMiniDockFrameWnd);
+	#endif //_SCB_REPLACE_MINIFRAME
 	
-	// make sure this isn't used
-	gNewFrameContext = NULL;
+	
+	if (!m_pwndDetailViewBar->Create(_T("Detail View"), this, 123))
+	{
+    TRACE0("Failed to create mybar\n");
+    return -1;
+    // fail to create
+	}
+	m_pwndDetailViewBar->SetBarStyle(m_pwndDetailViewBar->GetBarStyle() |
+    CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
+	m_pwndDetailViewBar->SetSCBStyle(SCBS_SIZECHILD);
+
+	m_pwndDetailViewBar->EnableDocking(CBRS_ALIGN_ANY);
+
+	EnableDocking(CBRS_ALIGN_ANY);
+	#ifdef _SCB_REPLACE_MINIFRAME
+    m_pFloatingFrameClass = RUNTIME_CLASS(CSCBMiniDockFrameWnd);
+	#endif //_SCB_REPLACE_MINIFRAME
+	
+	DockControlBar(m_pwndDetailViewBar,AFX_IDW_DOCKBAR_RIGHT);
+	DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_BOTTOM);
+//	DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_RIGHT);
+	CMDIChildWnd::OnCreateClient(lpcs,pContext);
+	
+
+	m_pDetailView = m_pwndDetailViewBar->m_pDetailView;
+	m_pHexView = m_pwndHexViewBar->m_pHexView;
+	m_pSummaryView=(CSummaryView *)GetDlgItem(AFX_IDW_PANE_FIRST);
+	
 
 	// set up the tab ring
 	m_pSummaryView->m_pTabRing = m_pDetailView;
 	m_pDetailView->m_pTabRing = m_pHexView;
 	m_pHexView->m_pTabRing = m_pSummaryView;
-
-	// it all worked, we now have two splitter windows which contain
-	//  three different views
+	
+	// make sure this isn't used
+	gNewFrameContext = NULL;
+	
 	return TRUE;
 }
 
@@ -238,6 +244,8 @@ void CChildFrame::OnUpdateViewSend(CCmdUI* pCmdUI)
 void CChildFrame::OnEditDelete() 
 {
 	m_frameContext->m_pDoc->DeletePackets();
+	delete gStatisticsCollector;
+	gStatisticsCollector=new VTSStatisticsCollector();
 }
 
 void CChildFrame::OnEditPorts() 
@@ -330,3 +338,163 @@ void CChildFrame::ActivateFrame(int nCmdShow)
 	else
 		CMDIChildWnd::ActivateFrame(SW_SHOWMAXIMIZED); // else open maximized
 }
+
+void CChildFrame::OnViewDetail() 
+{
+	ShowControlBar(m_pwndDetailViewBar, !m_pwndDetailViewBar->IsVisible(), FALSE);
+}
+
+void CChildFrame::OnViewHex() 
+{	
+	ShowControlBar(m_pwndHexViewBar, !m_pwndHexViewBar->IsVisible(), FALSE);
+}
+
+void CChildFrame::OnUpdateViewDetail(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable();
+	pCmdUI->SetCheck(m_pwndDetailViewBar->IsVisible());
+}
+
+void CChildFrame::OnUpdateViewHex(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable();
+	pCmdUI->SetCheck(m_pwndHexViewBar->IsVisible());
+}
+
+// Added by Yajun Zhou, 2002-7-24
+void CChildFrame::OnFileExport()
+{
+	static char BASED_CODE pchFilter[]="TXT Files(*.txt)|*.txt||";
+	CFileDialog exportFileDlg(FALSE,NULL,NULL,NULL,pchFilter,NULL);
+	
+	if(exportFileDlg.DoModal() == IDOK)
+	{
+		CString strPathName = exportFileDlg.GetPathName();
+		CString strFileFullName;
+		if(exportFileDlg.GetFileExt() != "txt")
+			strFileFullName = strPathName + ".txt";
+		else
+			strFileFullName = strPathName;
+		
+		int nNameLength = strFileFullName.GetLength();
+
+		int nPacketCount = m_frameContext->m_PacketCount;
+		int nCurrentPacket = m_frameContext->m_CurrentPacket;
+		
+		CFile exportFile;
+		try
+		{
+			exportFile.Open(strFileFullName.GetBuffer(nNameLength), 
+				CFile::modeCreate|CFile::modeWrite);//|CFile::typeText
+		
+			CString* pszLine;
+			char cLineEnd[2];
+			cLineEnd[0] = 0x0d;
+			cLineEnd[1] = 0x0a;
+
+			CString strStartSeparator;
+			CString strEndSeparator;
+
+			CString strSummarySeparator	= "[ Summary Information ]";
+			CString strDetailSeparator	= "[ Detail Information ]";
+
+			CString strTagTime			= "Time:        ";
+			CString strTagSource		= "Source:      ";
+			CString strTagDestination	= "Destination: ";
+			CString strTagSummary		= "Summary:     ";
+			
+			CString strTime;
+			CString strSource;
+			CString strDestination;
+			CString strSummary;
+
+			int i, j, nDetailCount;
+
+			for(i = 0; i < nPacketCount; i++)
+			{
+				strStartSeparator.Format("%s%d%s",
+					"*************************** [ Packet ",
+					i,
+					" Start ] ***************************");
+				
+				exportFile.Write(strStartSeparator.GetBuffer(1), strStartSeparator.GetLength());
+				exportFile.Write(cLineEnd, 2);
+				exportFile.Write(cLineEnd, 2);
+
+				exportFile.Write(strSummarySeparator.GetBuffer(1), strSummarySeparator.GetLength());
+				exportFile.Write(cLineEnd, 2);
+				exportFile.Write(cLineEnd, 2);
+
+				pszLine = m_pSummaryView->GetLineData(i);
+				{
+					pszLine->Delete(0,6);
+					
+					exportFile.Write(strTagTime.GetBuffer(1), strTagTime.GetLength());
+					strTime = pszLine->Left(12);
+					exportFile.Write(strTime.GetBuffer(1), strTime.GetLength());
+					exportFile.Write(cLineEnd, 2);
+					pszLine->Delete(0,13);
+
+					exportFile.Write(strTagSource.GetBuffer(1), strTagSource.GetLength());
+					strSource = pszLine->Left(9);
+					strSource.TrimLeft();
+					exportFile.Write(strSource.GetBuffer(1), strSource.GetLength());
+					exportFile.Write(cLineEnd, 2);
+					pszLine->Delete(0,10);
+
+					exportFile.Write(strTagDestination.GetBuffer(1), strTagDestination.GetLength());
+					strDestination = pszLine->Left(9);
+					strDestination.TrimLeft();
+					exportFile.Write(strDestination.GetBuffer(1), strDestination.GetLength());
+					exportFile.Write(cLineEnd, 2);
+					pszLine->Delete(0,10);
+					
+					exportFile.Write(strTagSummary.GetBuffer(1), strTagSummary.GetLength());
+					exportFile.Write(pszLine->GetBuffer(1), pszLine->GetLength());
+					exportFile.Write(cLineEnd, 2);
+				}
+				
+				exportFile.Write(cLineEnd, 2);
+				exportFile.Write(strDetailSeparator.GetBuffer(1), strDetailSeparator.GetLength());
+				exportFile.Write(cLineEnd, 2);
+				exportFile.Write(cLineEnd, 2);
+
+				m_frameContext->SetCurrentPacket(i);
+
+				nDetailCount = m_frameContext->m_PacketInfo.detailCount;
+				for(j = 0; j < nDetailCount; j++)
+				{
+					pszLine = m_pDetailView->GetLineData(j);
+					exportFile.Write(pszLine->GetBuffer(1), pszLine->GetLength());
+					exportFile.Write(cLineEnd, 2);
+				}
+
+				strEndSeparator.Format("%s%d%s",
+					"*************************** [ Packet ",
+					i,
+					" End ] ***************************");
+				
+				exportFile.Write(strEndSeparator.GetBuffer(1), strEndSeparator.GetLength());
+				exportFile.Write(cLineEnd, 2);
+
+				exportFile.Write(cLineEnd, 2);
+				exportFile.Write(cLineEnd, 2);
+			}
+			exportFile.Close();
+
+		}
+		catch(CFileException e)
+		{
+			CString str;
+			e.GetErrorMessage(str.GetBuffer(1), 1);
+			AfxMessageBox(str);
+			return;
+		}
+
+		if(nCurrentPacket != -1)
+			m_frameContext->SetCurrentPacket(nCurrentPacket);
+	}
+
+	
+}
+///////////////////////////////////////////////////////////

@@ -21,7 +21,11 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <afxsock.h>		// MFC socket extensions
-
+#define _SCB_REPLACE_MINIFRAME
+#include "sizecbar.h"
+#include "scbarg.h"
+#include "scbarcf.h"
+#define baseCMyBar CSizingControlBarCF
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 

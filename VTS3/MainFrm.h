@@ -29,6 +29,9 @@ public:
 
 // Implementation
 public:
+	//	Added by Yajun Zhou, 2002-4-22
+	void SetLnPaneText(CString str);
+	////////////////////////////////////
 	virtual ~CMainFrame();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
