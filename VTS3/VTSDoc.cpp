@@ -1550,9 +1550,12 @@ VTSServer::VTSServer( VTSDevicePtr dp )
 
 void VTSServer::Indication( const BACnetAPDU &apdu )
 {
+	// ### log the message
+
 	// pass it along to the executor for a match
 	gExecutor.ReceiveAPDU( apdu );
 
+	// process it
 	if (apdu.apduType == unconfirmedRequestPDU) {
 		switch ((BACnetUnconfirmedServiceChoice)apdu.apduService) {
 			case whoIs:
@@ -1581,12 +1584,20 @@ void VTSServer::Indication( const BACnetAPDU &apdu )
 //
 //	VTSServer::Response
 //
+//	DEVICE_LOOPBACK is used to allow the developer to send requests directly to the
+//	internal device object.  There is currently no way to log messages that the device 
+//	object sends and receives, so responses are tossed.
+//
 
 void VTSServer::Response( const BACnetAPDU &pdu )
 {
+	// ### log the message
+
 	// filter out null addresses
-	if (pdu.apduAddr.addrType != nullAddr)
-		BACnetAppServer::Response( pdu );
+	if (pdu.apduAddr.addrType == nullAddr)
+		return;
+
+	BACnetAppServer::Response( pdu );
 }
 
 //
@@ -1646,15 +1657,15 @@ void VTSServer::IAm( const BACnetAPDU &apdu )
 
 void VTSServer::ReadProperty( const BACnetAPDU &apdu )
 {
-	BACnetAPDUDecoder	dec( apdu )
+	BACnetAPDUDecoder		dec( apdu )
 	;
 	BACnetObjectIdentifier	objId
 	;
-	BACnetEnumerated	propId
+	BACnetEnumerated		propId
 	;
-	BACnetUnsigned		arryIndx
+	BACnetUnsigned			arryIndx
 	;
-	bool				gotIndex = false
+	bool					gotIndex = false
 	;
 
 	try {
@@ -1727,7 +1738,104 @@ void VTSServer::ReadProperty( const BACnetAPDU &apdu )
 
 void VTSServer::WriteProperty( const BACnetAPDU &apdu )
 {
-	TRACE1( "WriteProperty! %d\n", apdu.apduService );
+	BACnetAPDUTag			t
+	;
+	BACnetAPDUDecoder		dec( apdu )
+	;
+	BACnetObjectIdentifier	objId
+	;
+	BACnetEnumerated		propId
+	;
+	BACnetUnsigned			arryIndx
+	;
+	bool					gotIndex = false
+	;
+
+	try {
+		objId.Decode( dec );
+		propId.Decode( dec );
+
+		// look at the next tag
+		dec.ExamineTag( t );
+
+		if ((t.tagClass == contextTagClass) && (t.tagNumber == 2)) {
+			gotIndex = true;
+			arryIndx.Decode( dec );
+
+			// look at the next tag
+			dec.ExamineTag( t );
+		}
+
+		TRACE3( "WriteProperty %d, %d, %d\n", objId.objID, propId.enumValue, arryIndx.uintValue );
+
+		// build an ack
+		BACnetSimpleAckAPDU	ack( readProperty, apdu.apduInvokeID );
+
+		// send the response back to where the request came from
+		ack.apduAddr = apdu.apduAddr;
+
+		// make sure we have an opening tag
+		if ((t.tagClass == openingTagClass) && (t.tagNumber == 3)) {
+			// remove it from the decoder
+			BACnetOpeningTag().Decode( dec );
+		} else
+			throw (invalidTagReject);
+
+		// decode the contents
+		serverDev->devObjPropValueList->Decode( objId.objID, propId.enumValue
+			, (gotIndex ? arryIndx.uintValue : -1)
+			, dec
+			);
+
+		// look at the next tag
+		dec.ExamineTag( t );
+
+		// make sure it's a closing tag
+		if ((t.tagClass == closingTagClass) && (t.tagNumber == 3)) {
+			// remove it from the decoder
+			BACnetClosingTag().Decode( dec );
+		} else
+			throw (invalidTagReject);
+
+		// send it
+		Response( ack );
+	}
+	catch (int errCode) {
+		TRACE1( "WriteProperty execution error - %d\n", errCode );
+
+		BACnetErrorAPDU error( readProperty, apdu.apduInvokeID );
+		error.apduAddr = apdu.apduAddr;
+
+		// encode the Error Class
+		if ((errCode == 2) || (errCode == 25)) // configuration-in-progress, operational-problem
+			BACnetEnumerated( 0 ).Encode( error );		// DEVICE
+		else
+		if (errCode == 42) // invalid-array-index
+			BACnetEnumerated( 2 ).Encode( error );		// PROPERTY
+		else
+			BACnetEnumerated( 1 ).Encode( error );		// OBJECT
+
+		// encode the Error Code
+		BACnetEnumerated( errCode ).Encode( error );
+
+		Response( error );
+	}
+	catch (BACnetRejectReason rr) {
+		TRACE0( "WriteProperty execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, rr );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+	catch (...) {
+		TRACE0( "WriteProperty execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, otherReject );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -305,13 +305,13 @@ void VTSDevicesDlg::OnNew()
 		m_DeviceList.SetItemState( nItem, 0, LVIS_SELECTED );
 	}
 	
-	// tell the list to add a new port
+	// tell the list to add a new device
 	m_pDeviceList->Add();
 
 	// get its index, it will always be the last one
 	indx = m_pDeviceList->Length() - 1;
 
-	// get a pointer to the new port
+	// get a pointer to the new device
 	curDevice = (*m_pDeviceList)[indx];
 
 	m_DeviceList.InsertItem( indx, _T("") );

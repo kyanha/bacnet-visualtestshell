@@ -116,6 +116,7 @@ void VTSObjPropValueDialog::SetSelection( int indx )
 		sprintf( m_Context.GetBuffer(16), "%d", desc.descValue.valueContext );
 	else
 		m_Context = _T("");
+	m_Context.ReleaseBuffer();
 
 	// let the CDialog sync the controls with the local vars
 	UpdateData( false );
