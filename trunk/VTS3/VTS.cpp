@@ -731,8 +731,22 @@ void VTSPreferences::Save( void )
 //				pairs in the script.  The test for whether or not these pairs were present in the received
 //				packet was being determined by whether or not the DNET/DADR keywords were supplied in the
 //				script.
+//
+//  3.1.10		Date / Time handling correction for '*'
+//
+//				Added support in recent changes for Date/Time handling to make a distinction between the
+//				'?' value (matches to anything for equality) and the '*' value (MUST match the anything value).   
+//				Comparisons were affected in the following ways:
+//
+//					'?' appearing in any field means that field (m/d/y, dow) or (h:m:s.h) will match with
+//					any other value in a comparison.  <, > tests will result in failure for that piece of
+//					the date/time - which will effect the entire comparison.
+//
+//					'*' appearing in any field means that the field it's matching to MUST be either '*' or '?'.
+//					
 
-const int kReleaseVersion = 9;
+
+const int kReleaseVersion = 10;
 
 class CAboutDlg : public CDialog
 {
