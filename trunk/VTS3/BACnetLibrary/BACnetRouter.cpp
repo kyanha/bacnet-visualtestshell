@@ -732,7 +732,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 			mptr += pdu.pduLen;
 			
 			// send the packet along to the local endpoint
-			adapterList[0]->
+			adapterList[i]->
 				Request(
 					BACnetNPDU( pdu.pduAddr, msg, (mptr - msg)
 						, pdu.pduExpectingReply, pdu.pduNetworkPriority
@@ -759,7 +759,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 						);
 				
 				// send it along
-				adapterList[0]->Request( npdu );
+				adapterList[i]->Request( npdu );
 			} else {
 				// build a message to be routed
 				*mptr++ = 0x20 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
@@ -819,7 +819,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 						);
 				
 				// send it along
-				adapterList[0]->Request( npdu );
+				adapterList[i]->Request( npdu );
 			} else {
 				// build a message to be broadcast by the real router
 				*mptr++ = 0x20 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
@@ -859,25 +859,56 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 			break;
 			
 		case globalBroadcastAddr:
-			// build a message to be broadcast on all endpoints
+			// build a message to be broadcast
 			*mptr++ = 0x20 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
 			*mptr++ = 0xFF;		// DNET
 			*mptr++ = 0xFF;
-			*mptr++ = 0;			// DLEN
+			*mptr++ = 0;		// DLEN
 			*mptr++ = 0xFF;		// hop count
 			memcpy( mptr, pdu.pduData, pdu.pduLen );
 			mptr += pdu.pduLen;
 			
 			// build a PDU, using a local broadcast address
 			BACnetNPDU
-				npdu( BACnetAddress( localBroadcastAddr )
+				npdu1( BACnetAddress( localBroadcastAddr )
 					, msg, (mptr - msg)
 					, pdu.pduExpectingReply, pdu.pduNetworkPriority
 					);
 			
-			// send it to all adapters
+			// send it to all local adapters (should only be one!)
 			for (i = 0; i < adapterListLen; i++)
-				adapterList[i]->Request( npdu );
+				if (adapterList[i]->adapterNet == deviceLocalNetwork)
+					adapterList[i]->Request( npdu1 );
+			
+			if (deviceLocalNetwork != kBACnetRouterLocalNetwork) {
+				// build another one that has been 'routed'
+				mptr = msg;
+				*mptr++ = 0x01;										// version
+				*mptr++ = 0x28 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
+				*mptr++ = 0xFF;		// DNET
+				*mptr++ = 0xFF;
+				*mptr++ = 0;		// DLEN
+				*mptr++ = (deviceLocalNetwork >> 8) & 0xFF;			// SNET
+				*mptr++ = (deviceLocalNetwork & 0xFF);
+				*mptr++ = (unsigned char)deviceLocalAddress.addrLen;						// SLEN
+				memcpy( mptr, deviceLocalAddress.addrAddr, deviceLocalAddress.addrLen );	// SADR
+				mptr += deviceLocalAddress.addrLen;
+				*mptr++ = 0xFF;		// hop count
+				memcpy( mptr, pdu.pduData, pdu.pduLen );
+				mptr += pdu.pduLen;
+				
+				// build another PDU, also using a local broadcast address
+				BACnetNPDU
+					npdu2( BACnetAddress( localBroadcastAddr )
+						, msg, (mptr - msg)
+						, pdu.pduExpectingReply, pdu.pduNetworkPriority
+						);
+				
+				// send it to all non-local adapters
+				for (i = 0; i < adapterListLen; i++)
+					if (adapterList[i]->adapterNet != deviceLocalNetwork)
+						adapterList[i]->Request( npdu2 );
+			}
 			break;
 	}
 	
