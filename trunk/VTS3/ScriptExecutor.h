@@ -246,6 +246,16 @@ class ScriptExecutor : public BACnetTask {
 		void SendEstablishConnectionToNetwork( ScriptTokenList &tlist, CByteArray &packet );
 		void SendDisconnectConnectionToNetwork( ScriptTokenList &tlist, CByteArray &packet );
 
+		void SendDevPacket( void );
+		void SendDevConfirmedRequest( BACnetAPDU &apdu );
+		void SendDevUnconfirmedRequest( BACnetAPDU &apdu );
+		void SendDevSimpleACK( BACnetAPDU &apdu );
+		void SendDevComplexACK( BACnetAPDU &apdu );
+		void SendDevSegmentACK( BACnetAPDU &apdu );
+		void SendDevError( BACnetAPDU &apdu );
+		void SendDevReject( BACnetAPDU &apdu );
+		void SendDevAbort( BACnetAPDU &apdu );
+
 		void SendConfirmedRequest( CByteArray &packet );
 		void SendUnconfirmedRequest( CByteArray &packet );
 		void SendSimpleACK( CByteArray &packet );
@@ -294,6 +304,16 @@ class ScriptExecutor : public BACnetTask {
 		void ExpectInitializeRoutingTable( ScriptTokenList &tlist, BACnetAPDUDecoder &dec );
 		void ExpectEstablishConnectionToNetwork( ScriptTokenList &tlist, BACnetAPDUDecoder &dec );
 		void ExpectDisconnectConnectionToNetwork( ScriptTokenList &tlist, BACnetAPDUDecoder &dec );
+
+		bool ExpectDevPacket( const BACnetAPDU &apdu );
+		void ExpectDevConfirmedRequest( const BACnetAPDU &apdu );
+		void ExpectDevUnconfirmedRequest( const BACnetAPDU &apdu );
+		void ExpectDevSimpleACK( const BACnetAPDU &apdu );
+		void ExpectDevComplexACK( const BACnetAPDU &apdu );
+		void ExpectDevSegmentACK( const BACnetAPDU &apdu );
+		void ExpectDevError( const BACnetAPDU &apdu );
+		void ExpectDevReject( const BACnetAPDU &apdu );
+		void ExpectDevAbort( const BACnetAPDU &apdu );
 
 		void ExpectConfirmedRequest( BACnetAPDUDecoder &dec );
 		void ExpectUnconfirmedRequest( BACnetAPDUDecoder &dec );
@@ -366,9 +386,7 @@ class ScriptExecutor : public BACnetTask {
 
 		void SendNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu );
 		void ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu );
-
-		void SendAPDU( ScriptAppFilterPtr fp, const BACnetAPDU &npdu );
-		void ReceiveAPDU( ScriptAppFilterPtr fp, const BACnetAPDU &npdu );
+		void ReceiveAPDU( const BACnetAPDU &apdu );
 	};
 
 typedef ScriptExecutor *ScriptExecutorPtr;

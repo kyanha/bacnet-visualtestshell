@@ -1192,7 +1192,7 @@ BEGIN
     PUSHBUTTON      "Add",IDC_ADDPROP,175,75,50,15
     PUSHBUTTON      "Remove",IDC_REMOVEPROP,175,95,50,15
     LTEXT           "Property",-1,10,127,28,10
-    COMBOBOX        IDC_PROPCOMBO,45,125,100,12,CBS_DROPDOWNLIST | 
+    COMBOBOX        IDC_PROPCOMBO,45,125,100,38,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "Index",-1,20,146,18,8
     EDITTEXT        IDC_ARRAYINDEX,45,145,25,12,ES_AUTOHSCROLL
@@ -1935,17 +1935,35 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,70,75,50,14
 END
 
-IDD_PORT_IP DIALOG DISCARDABLE  0, 0, 187, 90
+IDD_PORT_IP DIALOG DISCARDABLE  0, 0, 217, 221
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "IP Configuration"
 FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Enter the UDP socket number for the port.  The value 0xBAC0 (47808) is reserved for BACnet.  Enter zero (0) for a dynamically assigned socket.",
                     IDC_STATIC,10,10,165,30
-    LTEXT           "Socket",IDC_STATIC,45,47,25,10
-    EDITTEXT        IDC_SOCKET,80,45,65,12,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,130,70,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,70,70,50,14
+    LTEXT           "Socket",IDC_STATIC,35,47,25,10
+    EDITTEXT        IDC_SOCKET,70,45,65,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,160,200,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,100,200,50,14
+    PUSHBUTTON      "BTR Peers...",ID_BTRPEERS,125,80,65,14,WS_DISABLED | 
+                    NOT WS_TABSTOP
+    PUSHBUTTON      "BBMD Peers...",ID_BBMDPEERS,125,100,65,14,WS_DISABLED | 
+                    NOT WS_TABSTOP
+    CONTROL         "Raw",IDC_RAW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,20,
+                    65,100,8
+    CONTROL         "BTR (Annex-H)",IDC_BTR,"Button",BS_AUTORADIOBUTTON,20,
+                    80,100,8
+    CONTROL         "BBMD (Annex-J)",IDC_BBMD,"Button",BS_AUTORADIOBUTTON,20,
+                    100,100,8
+    CONTROL         "B/IP (Annex-J)",IDC_BIP,"Button",BS_AUTORADIOBUTTON,20,
+                    120,100,8
+    CONTROL         "Foreign Device (Annex-J)",IDC_FOREIGN,"Button",
+                    BS_AUTORADIOBUTTON,20,140,100,8
+    LTEXT           "Host address",IDC_STATIC,45,157,50,10
+    EDITTEXT        IDC_HOSTADDR,101,155,89,12,ES_AUTOHSCROLL
+    LTEXT           "Time-to-live",IDC_STATIC,45,177,50,10
+    EDITTEXT        IDC_TTL,101,175,89,12,ES_AUTOHSCROLL
 END
 
 IDD_PORT_ARCNET DIALOG DISCARDABLE  0, 0, 186, 95
@@ -2087,18 +2105,18 @@ BEGIN
     LTEXT           "APDU Retries",IDC_STATIC,100,177,65,10
     EDITTEXT        IDC_APDURETRIES,170,175,30,12,ES_AUTOHSCROLL | 
                     WS_DISABLED
-    GROUPBOX        "Segmentation",IDC_SEGTYPE,210,115,70,70
+    GROUPBOX        "Segmentation",IDC_SEGTYPE,210,115,70,80
     CONTROL         "Both",IDC_SEGBOTH,"Button",BS_AUTORADIOBUTTON | 
-                    WS_DISABLED | WS_GROUP,220,130,50,10
+                    WS_DISABLED | WS_GROUP | WS_TABSTOP,220,130,50,10
     CONTROL         "Transmit",IDC_SEGTRANSMIT,"Button",BS_AUTORADIOBUTTON | 
-                    WS_DISABLED,220,143,55,10
+                    WS_DISABLED | WS_TABSTOP,220,145,55,10
     CONTROL         "Receive",IDC_SEGRECEIVE,"Button",BS_AUTORADIOBUTTON | 
-                    WS_DISABLED,220,156,55,10
+                    WS_DISABLED | WS_TABSTOP,220,160,55,10
     CONTROL         "None",IDC_SEGNONE,"Button",BS_AUTORADIOBUTTON | 
-                    WS_DISABLED,220,169,55,10
+                    WS_DISABLED | WS_TABSTOP,220,175,55,10
     CONTROL         "Router",IDC_ROUTER,"Button",BS_AUTOCHECKBOX | 
-                    WS_DISABLED | WS_TABSTOP,110,195,70,10
-    PUSHBUTTON      "I-Am",IDC_IAM,220,190,50,15
+                    WS_DISABLED | WS_TABSTOP,115,195,70,10
+    PUSHBUTTON      "I-Am",IDC_IAM,290,115,50,15
     DEFPUSHBUTTON   "OK",IDOK,290,190,50,14
 END
 
@@ -2880,9 +2898,9 @@ BEGIN
     IDD_PORT_IP, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 180
+        RIGHTMARGIN, 210
         TOPMARGIN, 7
-        BOTTOMMARGIN, 83
+        BOTTOMMARGIN, 214
     END
 
     IDD_PORT_ARCNET, DIALOG

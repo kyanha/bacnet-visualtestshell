@@ -19,7 +19,7 @@ VTSDevicesDlg::VTSDevicesDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSDevicesDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(VTSDevicesDlg)
-		// NOTE: the ClassWizard will add member initialization here
+	m_Segmentation = -1;
 	//}}AFX_DATA_INIT
 }
 
@@ -40,6 +40,8 @@ VTSDevicesDlg::VTSDevicesDlg( VTSDeviceListPtr dlp )
 	m_APDUSegTimeout = _T("");
 	m_APDURetries = _T("");
 	m_VendorID = _T("");
+
+	m_Segmentation = -1;
 }
 
 void VTSDevicesDlg::DoDataExchange(CDataExchange* pDX)
@@ -57,6 +59,7 @@ void VTSDevicesDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_APDUSEGTIMEOUT, m_APDUSegTimeout);
 	DDX_Text(pDX, IDC_APDURETRIES, m_APDURetries);
 	DDX_Text(pDX, IDC_VENDORID, m_VendorID);
+	DDX_Radio(pDX, IDC_SEGBOTH, m_Segmentation);
 	//}}AFX_DATA_MAP
 }
 
@@ -75,6 +78,10 @@ BEGIN_MESSAGE_MAP(VTSDevicesDlg, CDialog)
 	ON_EN_CHANGE(IDC_APDUSEGTIMEOUT, SaveChanges)
 	ON_EN_CHANGE(IDC_APDURETRIES, SaveChanges)
 	ON_EN_CHANGE(IDC_VENDORID, SaveChanges)
+	ON_BN_CLICKED(IDC_SEGBOTH, SaveChanges)
+	ON_BN_CLICKED(IDC_SEGTRANSMIT, SaveChanges)
+	ON_BN_CLICKED(IDC_SEGRECEIVE, SaveChanges)
+	ON_BN_CLICKED(IDC_SEGNONE, SaveChanges)
 	ON_NOTIFY(NM_DBLCLK, IDC_DEVICELIST, OnDblclkDevicelist)
 	ON_BN_CLICKED(IDC_IAM, OnIAm)
 	//}}AFX_MSG_MAP
@@ -170,6 +177,8 @@ void VTSDevicesDlg::ResetSelection()
 	m_APDURetries = _T("");
 	m_VendorID = _T("");
 
+	m_Segmentation = -1;
+
 	// make sure the control values reflect the empty settings
 	UpdateData( false );
 
@@ -191,6 +200,11 @@ void VTSDevicesDlg::SynchronizeControls()
 	GetDlgItem( IDC_APDUSEGTIMEOUT )->EnableWindow( m_iSelectedDevice != -1 );
 	GetDlgItem( IDC_APDURETRIES )->EnableWindow( m_iSelectedDevice != -1 );
 	GetDlgItem( IDC_VENDORID )->EnableWindow( m_iSelectedDevice != -1 );
+
+	GetDlgItem( IDC_SEGBOTH )->EnableWindow( m_iSelectedDevice != -1 );
+	GetDlgItem( IDC_SEGTRANSMIT )->EnableWindow( m_iSelectedDevice != -1 );
+	GetDlgItem( IDC_SEGRECEIVE )->EnableWindow( m_iSelectedDevice != -1 );
+	GetDlgItem( IDC_SEGNONE )->EnableWindow( m_iSelectedDevice != -1 );
 
 	GetDlgItem( IDC_IAM )->EnableWindow( m_iSelectedDevice != -1 );
 }
@@ -230,6 +244,8 @@ void VTSDevicesDlg::DeviceToCtrl( VTSDevicePtr dp )
 	m_APDURetries.Format( "%d", dp->devDesc.deviceAPDURetries );
 	m_VendorID.Format( "%d", dp->devDesc.deviceVendorID );
 
+	m_Segmentation = dp->devDesc.deviceSegmentation;
+
 	// sync the controls
 	SynchronizeControls();
 
@@ -262,6 +278,8 @@ void VTSDevicesDlg::CtrlToDevice( VTSDevicePtr dp )
 	sscanf( m_APDUSegTimeout, "%d", &dp->devDesc.deviceAPDUSegmentTimeout );
 	sscanf( m_APDURetries, "%d", &dp->devDesc.deviceAPDURetries );
 	sscanf( m_VendorID, "%d", &dp->devDesc.deviceVendorID );
+
+	dp->devDesc.deviceSegmentation = (BACnetSegmentation)m_Segmentation;
 }
 
 //
@@ -296,19 +314,9 @@ void VTSDevicesDlg::OnNew()
 	// copy the contents to the list
 	DeviceToList( curDevice, indx );
 
-#if 1
 	// make sure the record is visible and selected
 	m_DeviceList.EnsureVisible( indx, false );
 	m_DeviceList.SetItemState( indx, LVIS_SELECTED, LVIS_SELECTED );
-#else
-	// make sure it is visible and selected, this also transfers the info to the ctrls
-	m_DeviceList.EnsureVisible( indx, false );
-	m_DeviceList.SetItemState( indx, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED );
-
-	// set the focus to the name for editing, select all of the text
-	GetDlgItem( IDC_NAME )->SetFocus();
-	((CEdit*)GetDlgItem( IDC_NAME ))->SetSel( 0, -1 );
-#endif
 }
 
 //
@@ -320,14 +328,6 @@ void VTSDevicesDlg::OnItemchangingDevicelist(NMHDR* pNMHDR, LRESULT* pResult)
 	NM_LISTVIEW*	pNMListView = (NM_LISTVIEW*)pNMHDR
 	;
 	
-#if 0
-	TRACE3( "Item %d from %d to %d\n"
-		, pNMListView->iItem
-		, pNMListView->uOldState
-		, pNMListView->uNewState
-		);
-#endif
-
 	// forget messages that dont change anything
 	if (pNMListView->uOldState == pNMListView->uNewState)
 		return;

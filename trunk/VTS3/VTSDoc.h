@@ -15,6 +15,11 @@
 #include "BACnet.hpp"
 #include "BACnetRouter.hpp"
 
+#include "BACnetBTR.hpp"
+#include "BACnetBBMD.hpp"
+#include "BACnetBIPSimple.hpp"
+#include "BACnetBIPForeign.hpp"
+
 #include "WinIP.hpp"
 #include "WinPacket32.hpp"
 
@@ -84,8 +89,16 @@ class VTSPort {
 
 		VTSDocPtr			portDoc;					// doc for packets
 		CSendGroupList		portSendGroup;				// send group to form packets
+
 		BACnetPortPtr		portEndpoint;				// endpoint to get them
 		ScriptNetFilterPtr	portFilter;					// way to process them in scripts
+
+		BACnetBTRPtr		portBTR;					// BTR object in stream
+		BACnetBBMDPtr		portBBMD;					// BBMD obj
+		BACnetBIPSimplePtr	portBIPSimple;				// BIP Simple endpoint
+		BACnetBIPForeignPtr	portBIPForeign;				// BIP Foreign
+		BACnetNetServerPtr	portBindPoint;				// points to one of the above
+
 		VTSDevicePtr		portDevice;					// pointer to bound device
 
 		VTSPort( VTSDocPtr dp, objId id );
@@ -240,6 +253,8 @@ class VTSDevice {
 
 		void Bind( VTSPortPtr pp, int net );			// associate with a port and network
 		void Unbind( VTSPortPtr pp );					// disassociate
+
+		void SendAPDU( const BACnetAPDU &apdu );		// message from a script
 
 		void IAm( void );								// ask the client to send out an I-Am
 	};

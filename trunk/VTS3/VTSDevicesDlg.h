@@ -45,6 +45,7 @@ public:
 	CString		m_APDUSegTimeout;
 	CString		m_APDURetries;
 	CString		m_VendorID;
+	int			m_Segmentation;
 	//}}AFX_DATA
 
 

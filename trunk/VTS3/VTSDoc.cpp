@@ -512,16 +512,15 @@ VTSPortList gMasterPortList;
 VTSPort::VTSPort( VTSDocPtr dp, objId id )
 	: portDoc(dp), portSendGroup(0), portDescID(id)
 	, portStatus(1), portStatusDesc(0)
-	, portEndpoint(0), portFilter(0), portDevice(0)
+	, portEndpoint(0), portFilter(0)
+	, portBTR(0), portBBMD(0), portBIPSimple(0), portBIPForeign(0), portBindPoint(0)
+	, portDevice(0)
 {
 	// read in the descriptor
 	ReadDesc();
 
 	// add this to the master list
 	AddToMasterList();
-
-	// create a script filter
-	portFilter = new ScriptNetFilter( portDesc.portName );
 
 	// see if it can be turned on
 	Refresh();
@@ -547,6 +546,22 @@ VTSPort::~VTSPort( void )
 	// if there is a filter, delete it
 	if (portFilter)
 		delete portFilter;
+
+	// if there is a BTR, delete it
+	if (portBTR)
+		delete portBTR;
+
+	// if there is a BBMD, delete it
+	if (portBBMD)
+		delete portBBMD;
+
+	// if there is a simple BIP object, delete it
+	if (portBIPSimple)
+		delete portBIPSimple;
+
+	// if there is a foreign BIP object, delete it
+	if (portBIPForeign)
+		delete portBIPForeign;
 }
 
 //
@@ -638,6 +653,36 @@ void VTSPort::Refresh( void )
 		portStatus = 3;
 		portStatusDesc = "Port shut down";
 		portEndpoint = 0;
+	}
+
+	// if there is a filter, delete it
+	if (portFilter) {
+		delete portFilter;
+		portFilter = 0;
+	}
+
+	// if there is a BTR, delete it
+	if (portBTR) {
+		delete portBTR;
+		portBTR = 0;
+	}
+
+	// if there is a BBMD, delete it
+	if (portBBMD) {
+		delete portBBMD;
+		portBBMD = 0;
+	}
+
+	// if there is a simple BIP object, delete it
+	if (portBIPSimple) {
+		delete portBIPSimple;
+		portBIPSimple = 0;
+	}
+
+	// if there is a foreign BIP object, delete it
+	if (portBIPForeign) {
+		delete portBIPForeign;
+		portBIPForeign = 0;
 	}
 
 	// see if the port should be enabled
@@ -733,8 +778,74 @@ void VTSPort::Refresh( void )
 
 	// see if a filter should be set up
 	if (portEndpoint) {
-		// and in the darkness bind them
+		// create a script filter and in the darkness bind them
+		portFilter = new ScriptNetFilter( portDesc.portName );
 		Bind( portFilter, portEndpoint );
+
+		// default bind point is the filter
+		portBindPoint = portFilter;
+
+		// if this is an IP port, we have more work to do
+		if (portDesc.portType == ipPort) {
+			int		argc = 0
+			;
+			char	config[kVTSPortConfigLength], *src
+			,		*argv[16]
+			;
+
+			// copy the configuration, split it up
+			strcpy( config, portDesc.portConfig );
+			for (src = config; *src; ) {
+				argv[argc++] = src;
+				while (*src && (*src != ','))
+					src++;
+				if (*src == ',')
+					*src++ = 0;
+			}
+			for (int i = argc; i < 16; i++)
+				argv[i] = src;
+
+			if (argc == 1) {
+			} else {
+				int option = atoi( argv[1] );
+				switch (option) {
+					case 0:
+						break;
+					case 1:
+						portBTR = new BACnetBTR();
+						Bind( portBTR, portFilter );
+						portBindPoint = portBTR;
+						break;
+					case 2:
+						portBBMD = new BACnetBBMD( portEndpoint->portLocalAddr );
+						Bind( portBBMD, portFilter );
+						portBindPoint = portBBMD;
+						break;
+					case 3:
+						portBIPSimple = new BACnetBIPSimple();
+						Bind( portBIPSimple, portFilter );
+						portBindPoint = portBIPSimple;
+						break;
+					case 4: {
+							unsigned long	host
+							;
+							unsigned short	port
+							;
+							int				ttl
+							;
+
+							portBIPForeign = new BACnetBIPForeign();
+							Bind( portBIPForeign, portFilter );
+							portBindPoint = portBIPForeign;
+
+							BACnetIPAddr::StringToHostPort( argv[2], &host, 0, &port );
+							ttl = atoi( argv[3] );
+							portBIPForeign->Register( host, port, ttl );
+							break;
+						}
+				}
+			}
+		}
 	}
 
 	// see if we can bind to a device
@@ -1299,6 +1410,8 @@ VTSClient::VTSClient( VTSDevicePtr dp )
 
 void VTSClient::Confirmation( const BACnetAPDU &apdu )
 {
+	// pass it along to the executor for a match
+	gExecutor.ReceiveAPDU( apdu );
 }
 
 //
@@ -1337,22 +1450,12 @@ VTSServer::VTSServer( VTSDevicePtr dp )
 
 void VTSServer::Indication( const BACnetAPDU &apdu )
 {
+	// pass it along to the executor for a match
+	gExecutor.ReceiveAPDU( apdu );
 }
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSDevice
-
-/*
-		BACnetDevice		devDevice;
-		BACnetRouter		devRouter;
-		
-		VTSClient			devClient;
-		VTSServer			devServer;
-
-		objId				devDescID;					// ID of descriptor
-		VTSDeviceDesc		devDesc;					// device configuration info
-		VTSDocPtr			devDoc;						// doc for packets
-*/
 
 VTSDeviceList gMasterDeviceList;
 
@@ -1462,7 +1565,8 @@ void VTSDevice::WriteDesc( void )
 
 void VTSDevice::Bind( VTSPortPtr pp, int net )
 {
-	devRouter.BindToEndpoint( pp->portFilter, net );
+	devRouter.BindToEndpoint( pp->portBindPoint, net );
+//	devRouter.SetLocalAddress( net, pp->portEndpoint->portLocalAddr );
 }
 
 //
@@ -1471,7 +1575,7 @@ void VTSDevice::Bind( VTSPortPtr pp, int net )
 
 void VTSDevice::Unbind( VTSPortPtr pp )
 {
-	devRouter.UnbindFromEndpoint( pp->portFilter );
+	devRouter.UnbindFromEndpoint( pp->portBindPoint );
 }
 
 //
@@ -1481,6 +1585,52 @@ void VTSDevice::Unbind( VTSPortPtr pp )
 void VTSDevice::IAm( void )
 {
 	devClient.IAm();
+}
+
+//
+//	VTSDevice::SendAPDU
+//
+
+void VTSDevice::SendAPDU( const BACnetAPDU &apdu )
+{
+	bool	asClient
+	;
+
+	switch (apdu.apduType) {
+		case confirmedRequestPDU:
+		case unconfirmedRequestPDU:
+			asClient = true;
+			break;
+
+		case simpleAckPDU:
+		case complexAckPDU:
+			asClient = false;
+			break;
+
+		case segmentAckPDU:
+			asClient = (apdu.apduSrv == 0);
+			break;
+
+		case errorPDU:
+		case rejectPDU:
+			asClient = false;
+			break;
+
+		case abortPDU:
+			asClient = (apdu.apduSrv == 0);
+			break;
+
+	}
+
+	try {
+		if (asClient)
+			devClient.Request( apdu );
+		else
+			devServer.Response( apdu );
+	}
+	catch (...) {
+		TRACE0( "---------- Something went wrong ----------\n" );
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1847,10 +1997,6 @@ void VTSWinIPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection d
 	else
 	if (dir == portReceiving) {
 		pkt.packetHdr.packetSource.LocalStation( data, 6 );
-
-		// skip processing packets from myself
-		if (pkt.packetHdr.packetSource == portLocalAddr)
-			return;
 	} else
 		;
 
