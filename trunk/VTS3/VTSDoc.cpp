@@ -3,16 +3,23 @@
 
 #include "stdafx.h"
 #include <afxmt.h>
+#include <direct.h>
 
 #include "VTS.h"
+#include "VTSPreferences.h"
+#include "Mainfrm.h"
 
 #include "VTSDoc.h"
-#include "VTSValue.h"
+// MAD_DB #include "VTSValue.h"
+
 #include "VTSPortDlg.h"
-#include "VTSPortIPDialog.h"
-#include "VTSPortEthernetDialog.h"
+//#include "VTSPortIPDialog.h"
+//#include "VTSPortEthernetDialog.h"
 #include "VTSNamesDlg.h"
-#include "VTSDevicesDlg.h"
+//#include "VTSDevicesDlg.h"
+#include "VTSDevicesTreeDlg.h"
+
+#include "PacketFileDlg.h"
 #include "FrameContext.h"
 
 #include "Send.h"
@@ -25,7 +32,8 @@
 
 //Xiao Shiyuan 2002-9-23
 #include "VTSWinPTPPort.h"
-#include "VTSPortPTPDialog.h"
+//#include "VTSPortPTPDialog.h"
+#include "PropID.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -39,12 +47,14 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSDoc
 
+LPCSTR VTSDoc::m_pszDefaultFilename = "vts3.cfg";
+
+
 IMPLEMENT_DYNCREATE(VTSDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(VTSDoc, CDocument)
 	//{{AFX_MSG_MAP(VTSDoc)
 	ON_COMMAND(ID_VIEW_STATISTICS, OnViewStatistics)
-	ON_COMMAND(ID_FILE_SAVE, OnFileSave)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -59,14 +69,21 @@ _CrtMemState		s1, s2, s3;
 //VTSStatisticsDlg	dlg(NULL);
 
 VTSDoc::VTSDoc()
-	: m_PacketCount(0), m_pDB(0), m_FrameContexts(0)
-	, m_pPortDlg(0), m_postMessages(false),m_pStatitiscsDlg(0)
+//MAD_DB	: m_PacketCount(0), m_pDB(0), m_FrameContexts(0)
+	: m_FrameContexts(0)
+	, m_pPortDlg(0), m_postMessages(false), m_pStatitiscsDlg(0)
+	, m_nPacketCount(0)				// MAD_DB
+	, m_strLogFilename("vts3.vpk")
 {
 #if NT_DebugMemState
 	_CrtMemCheckpoint( &s1 );
 #endif
 	m_bStatisticsDlgInUse=false;
 	m_pStatisticsCollector=NULL;
+
+	m_apPackets.SetSize(0, 400);		// reallocate in 1600 byte chunks (for DWORD size pointer)
+	m_fLoadPackets = true;
+
 //	m_pStatitiscsDlg=&dlg;
 //	m_pStatitiscsDlg->m_pDoc=this;
 }
@@ -84,6 +101,8 @@ VTSDoc::~VTSDoc()
 	while (m_FrameContexts)
 		UnbindFrameContext( m_FrameContexts );
 
+	DestroyPacketArray();
+
 #if NT_DebugMemState
 	_CrtMemCheckpoint( &s2 );
 	_CrtMemDumpAllObjectsSince( &s1 );
@@ -91,6 +110,47 @@ VTSDoc::~VTSDoc()
 	_CrtMemDumpStatistics( &s3 );
 #endif
 }
+
+
+// switch CWD to path supplied by relative...  Even if we're not doing relative paths
+// the CWD doesn't matter...
+
+void VTSDoc::ChangeCWDToWorkspace( LPCSTR lpszWksFile /* = NULL */ )
+{
+	CString strPath = lpszWksFile;
+	
+	StripToPath(&strPath);
+
+	// now change directories if there is any left
+	if ( !strPath.IsEmpty() )
+		_chdir(strPath);
+}
+
+
+
+
+
+LPCSTR VTSDoc::StripToPath( CString * pstr )
+{
+	if ( pstr == NULL )
+		return NULL;
+
+	// if no path supplied, get it from the document... might be null if in document open
+	// hence the supplied path
+
+	if ( pstr->IsEmpty() )
+		*pstr = GetPathName();
+
+	// reduce string to path only
+	int n = pstr->GetLength();
+	for ( char * p = pstr->GetBuffer(1); p != NULL && n > 0 && p[n-1] != '\\'; n-- )
+		p[n-1] = 0;
+
+	pstr->ReleaseBuffer();
+	return *pstr;
+}
+
+
 
 //
 //	VTSDoc::OnNewDocument
@@ -102,28 +162,48 @@ BOOL VTSDoc::OnNewDocument()
 	if (!CDocument::OnNewDocument())
 		return FALSE;
 
-	CFileDialog	fd( FALSE, "vdb", "Untitled", OFN_OVERWRITEPROMPT, "VTS Session Database (*.vdb)|*.vdb||" );
-	if (fd.DoModal() != IDOK)
+	// must have this here to add to recent workspace list and
+	// tell document what name we're using...
+
+	SetPathName(m_pszDefaultFilename);
+
+	// Initialize default data for vts3.cfg
+	SetTitle(m_pszDefaultFilename);
+
+	// Always make sure we're in the workspace directory before attempting to open the 
+	// logfile... this way the logfile name, if relative, will open correctly.  If not relative,
+	// then, CWD doesn't matter.
+
+	ChangeCWDToWorkspace();
+	if ( !m_PacketDB.Open(m_strLogFilename) )
 		return FALSE;
 
 	// create a new database object and initialize it
-	m_pDB = new VTSDB();
-	m_pDB->NewFile( fd.GetPathName().GetBuffer(0) );
+//	m_pDB = new VTSDB();   MAD_DB
+//	m_pDB->NewFile( fd.GetPathName().GetBuffer(0) );
+//	m_pDB->NewFile( "..\\danner.vdb" );
 	
+	// MAD_DB
+	DestroyPacketArray();
+
 	// it should be empty!
-	SetPacketCount( m_pDB->GetPacketCount() );
+//MAD_DB	SetPacketCount( pDB->GetPacketCount() );
 	
 	// bind to the (empty) device list
-	m_Devices.Load( this );
+//MAD_DB	m_Devices.Load( this );
 
 	// bind to the name list
-	m_Names.Load( this );
+//MAD_DB	m_Names.Load( this );
 
 	// bind to the (empty) port list
-	m_Ports.Load( this );
+//	m_Ports.Load( this );
+
+	// We've got to save the file with the defaults in there...
+	if ( !OnSaveDocument(m_pszDefaultFilename) )
+		return FALSE;
 
 	// associate with the global list of documents
-	gDocList.Append( this );
+// MAD_DB	gDocList.Append( this );
 
 	// ready for messages
 	m_postMessages = true;
@@ -131,6 +211,11 @@ BOOL VTSDoc::OnNewDocument()
 	// create a new statistics collector
 	m_pStatisticsCollector=new VTSStatisticsCollector();
 	//gStatisticsCollector=new VTSStatisticsCollector();
+
+	// it should be empty!
+	m_nPacketCount = 0;
+
+	ScheduleForProcessing();
 	
 	return TRUE;
 }
@@ -141,20 +226,38 @@ BOOL VTSDoc::OnNewDocument()
 
 BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName) 
 {
-	// be nice to the base class, but it is not used
+	// We need to check to see if the file exists... if not, or there was an error opening the file,
+	// then open the default.  
+
+	CFileStatus	fs;
+	if ( CFile::GetStatus(lpszPathName, fs) == FALSE )
+		return FALSE;
+
+	// Calls serialization mechanisms...  After complete, all data will be loaded (except packets)
 	if (!CDocument::OnOpenDocument(lpszPathName))
+		return FALSE;
+
+	// Always make sure we're in the workspace directory before attempting to open the 
+	// logfile... this way the logfile name, if relative, will open correctly.  If not relative,
+	// then, CWD doesn't matter.
+
+	// Try to open packet file... create if not exist and report if problem...
+	ChangeCWDToWorkspace(lpszPathName);
+	if ( !m_PacketDB.Open(m_strLogFilename)  &&  !DoPacketFileNameDialog(false) )
 		return FALSE;
 
 	// create a new statistics collector
 	m_pStatisticsCollector=new VTSStatisticsCollector();
 //	gStatisticsCollector=new VTSStatisticsCollector();
 
-	m_pDB = new VTSDB();
+//	m_pDB = new VTSDB();  MAD_DB
 
-	try
-	{
-		m_pDB->OpenFile( (char *)lpszPathName );
-//	}
+	DestroyPacketArray();
+
+//	try
+//	{
+//		m_pDB->OpenFile( (char *)lpszPathName );
+//		m_pDB->OpenFile( "..\\danner.vdb"	);
 //	catch (char *errMsg) {
 //		AfxMessageBox( errMsg );
 //		delete m_pDB;
@@ -164,24 +267,46 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 //	try
 //	{
 
+		// MAD_DB load previous packets
+//		m_nPacketCount = LoadPacketArray();
+	LoadPacketArray();
+
 		// bind to the port list and open the ports
-		m_Devices.Load( this );
+//MAD_DB		m_Devices.Load( this );
 
 		// bind to the name list
-		m_Names.Load( this );
+//MAD_DB		m_Names.Load( this );
 
 		// bind to the port list and open the ports
-		m_Ports.Load( this );
+//		m_Ports.Load( this );
+
+		// link all in memory structures together
+	FixupPortToDeviceLinks();
+	FixupNameToPortLinks();
+
+	try
+	{
+		for ( int n = 0; n < m_devices.GetSize(); n++ )
+			m_devices[n]->Activate();
+
+		for ( int i = 0; i < m_ports.GetSize(); i++ )
+			m_ports[i]->Refresh();
+	}
+	catch (...)
+	{
+		AfxMessageBox("An unexpected exception ocurred initializing ports and devices.");
+	}
+
 
 		// associate with the global list of documents
-		gDocList.Append( this );
+//MAD_DB		gDocList.Append( this );
 
 		// ready for messages
-		m_postMessages = true;
+	m_postMessages = true;
 
-		// get the packet count
-		SetPacketCount( m_pDB->GetPacketCount() );
+	ScheduleForProcessing();
 
+/* MAD_DB
 		//get the statistics from the loading db file
 		for(int i=0;i<m_pDB->GetPacketCount();i++)
 		{
@@ -194,21 +319,24 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 			m_pStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
 		//	gStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
 		}
+*/
 
-		return TRUE;
-	}
-	catch (char *errMsg)
-	{
-		AfxMessageBox( errMsg );
-	}
-	catch (...)
-	{
-		AfxMessageBox("An unexpected exception ocurred loading the database.  The database is most likely corrupted and cannot be opened due to port initialization problems.  The document will be closed and removed from the recently used list.");
+		// get the packet count
+//		SetPacketCount( m_pDB->GetPacketCount() );		MAD_DB
 
-		// OnDocumentClose will automatically be called by MFC after a FALSE is returned here...
-	}
-
-	return FALSE;
+	return TRUE;
+//	}
+//	catch (char *errMsg)
+//	{
+//		AfxMessageBox( errMsg );
+//	}
+//	catch (...)
+//	{
+//		AfxMessageBox("An unexpected exception ocurred loading the database.  The database is most likely corrupted and cannot be opened due to port initialization problems.  The document will be closed and removed from the recently used list.");
+//
+//		// OnDocumentClose will automatically be called by MFC after a FALSE is returned here...
+//	}
+//	return FALSE;
 }
 
 //
@@ -229,26 +357,52 @@ void VTSDoc::OnCloseDocument()
 		gExecutor.Kill();
 
 	// unload the port list
-	m_Ports.Unload();
+//	m_Ports.Unload();
 
 	// unload the device list
-	m_Devices.Unload();
+//MAD_DB	m_Devices.Unload();
 
 	// disassociate with the global list of documents
-	gDocList.Remove( this );
+//MAD_DB	gDocList.Remove( this );
+
+	for ( int i = 0; i < m_ports.GetSize(); i++ )
+		m_ports[i]->Deactivate();
+
+	for ( int n = 0; n < m_devices.GetSize(); n++ )
+		m_devices[n]->Deactivate();
 
 	// close the database
-	if (m_pDB) {
-		m_pDB->CloseFile();
-		delete m_pDB;
-	}
+//	if (m_pDB) {
+//		m_pDB->Close();
+//		delete m_pDB;
+//	}
+	m_PacketDB.Close();
+
+	// MAD_DB
+	DestroyPacketArray();
 
 	// pass along to the framework
 	CDocument::OnCloseDocument();
 
-
 //	delete gStatisticsCollector;
 }
+
+
+// This method is called by the framework during an open...
+// We need to override it so we call it telling it NOT to add this document
+// to the standard document MRU list...
+// Add it to our own for workspaces...
+
+void VTSDoc::SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU)
+{
+	CDocument::SetPathName(lpszPathName, FALSE);
+	
+	// Path has been made full and stored in document...
+	// Now add this document to recent workspaces...
+
+	((VTSApp *) AfxGetApp())->AddToRecentWorkspaceList(GetPathName());
+}
+
 
 //
 //	VTSDoc::DoPortsDialog
@@ -256,12 +410,15 @@ void VTSDoc::OnCloseDocument()
 
 void VTSDoc::DoPortsDialog( void )
 {
-	VTSPortDlg		dlg( &m_Ports, &m_Devices )
-	;
+//MAD_DB	VTSPortDlg		dlg( &m_Ports, &m_Devices );
+	VTSPortDlg		dlg(this);
 
 	m_pPortDlg = &dlg;
-	dlg.DoModal();
-	m_pPortDlg = 0;
+
+	if ( dlg.DoModal() == IDOK )
+		SaveConfiguration();
+
+	m_pPortDlg = NULL;
 }
 
 //
@@ -270,11 +427,46 @@ void VTSDoc::DoPortsDialog( void )
 
 void VTSDoc::DoNamesDialog( void )
 {
-	VTSNamesDlg		dlg( &m_Names, &m_Ports )
-	;
+	VTSNamesDlg		dlg(GetNames(), GetPorts() );
 
-	dlg.DoModal();
+	if ( dlg.DoModal() == IDOK )
+		SaveConfiguration();
 }
+
+
+void VTSDoc::ReActivateAllPorts()
+{
+	for ( int i = 0; i < m_ports.GetSize(); i++ )
+		if ( m_ports[i]->IsDirty() )
+			m_ports[i]->Refresh();
+}
+
+
+void VTSDoc::SetNewCacheSize(void)
+{
+	// make sure nobody else is using the list
+	m_FrameContextsCS.Lock();
+
+	for (CFrameContext* cur = m_FrameContexts; cur; cur = cur->m_NextFrame)
+		cur->UpdatePrefs();
+
+	// release the list back to other threads
+	m_FrameContextsCS.Unlock();
+}
+
+
+// Called by the list view in driving what ought to be cached...
+// This allows us to prep our virtual list of VTSPackets with a caching scheme if we're going
+// virtual...
+// nFrom is the item number (lo) to start loading cache for and nTo is the high.
+
+void VTSDoc::CacheHint(int nFrom, int nTo)
+{
+	// for now do nothing since our m_apPacket pointer array holds pointers to all of our packets
+	// when we go virtual we'll do something else about this...
+}
+
+
 
 //
 //	VTSDoc::DoDevicesDialog
@@ -282,19 +474,134 @@ void VTSDoc::DoNamesDialog( void )
 
 void VTSDoc::DoDevicesDialog( void )
 {
-	VTSDevicesDlg		dlg( &m_Devices )
-	;
+//	VTSDevicesDlg		dlg( &m_Devices, &m_devices );
+	VTSDevicesTreeDlg	dlg( &m_devices );
 
-	dlg.DoModal();
+	if ( dlg.DoModal() == IDOK )
+		SaveConfiguration();
 }
 
-//
-//	VTSDoc::DoPreferencesDialog
-//
 
-void VTSDoc::DoPreferencesDialog( void )
+void VTSDoc::SaveConfiguration()
 {
+	OnSaveDocument(GetPathName());
 }
+
+
+bool VTSDoc::DoPacketFileNameDialog( bool fReload /* = true */ )
+{
+	CString newName =  _T("NewPacketFile.vpk");
+	CString strPath;
+
+	CFileDialog dlgFile(TRUE);
+
+	dlgFile.m_ofn.Flags |= OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
+
+	CString strFilter(_T("VTS Packet Files (*.vpk)"));
+	strFilter += (TCHAR)'\0';
+	strFilter += _T("*.vpk");
+	strFilter += (TCHAR)'\0';
+	strFilter += _T("All Files (*.*)");
+	strFilter += (TCHAR)'\0';
+	strFilter += _T("*.*");
+	strFilter += (TCHAR)'\0';
+	dlgFile.m_ofn.nMaxCustFilter = 2;
+
+	dlgFile.m_ofn.lpstrFilter = strFilter;
+	dlgFile.m_ofn.lpstrTitle = "Specify Packet File";
+	dlgFile.m_ofn.lpstrFile = newName.GetBuffer(_MAX_PATH);
+	dlgFile.m_ofn.lpstrInitialDir = StripToPath(&strPath);
+
+	CString strStatusText;
+	strStatusText.Format("Current logfile: %s", m_strLogFilename );
+	((CFrameWnd *) AfxGetApp()->m_pMainWnd)->SetMessageText(strStatusText);
+
+	// Change CWD and also specify lpstrInitialDir for 2000 and XP...
+	// This always starts the search for a new logfile from the workspace directory
+
+	ChangeCWDToWorkspace();					// for W98 ??
+	int nResult = dlgFile.DoModal();
+	newName.ReleaseBuffer();
+	ChangeCWDToWorkspace();					// for W98 ??
+
+	// packet file open auto closes old packet file if it was opened... it leaves everything as it was
+	// if the open failed and it even reports an error upon fail.
+
+	if ( nResult != IDOK  )
+		return false;
+
+	if ( gVTSPreferences.Setting_IsPacketFileRelative() )
+		ConvertPathToRelative(&newName);
+
+	// AFter path name conversion... only attempt open if the new file is diff from old
+	// This is a problem if they specify the same file and they've switched between relative and absolute
+
+	if ( !m_strLogFilename.CompareNoCase(newName) ||  !m_PacketDB.Open(newName) )
+		return false;
+
+	m_strLogFilename = newName;
+	SaveConfiguration();
+
+	// Some usage of this function is only to re-specify loading of lost packet file linkage
+	// during loading...  Don't bother reloading list because that's our calling context
+
+	if ( !fReload )
+		return true;
+
+	strStatusText.Format(IDS_NEWPACKETFILENAME, m_strLogFilename);
+	ReloadPacketStore();
+	AfxMessageBox(strStatusText);
+
+	// Must call this here.. for some reason we won't see the main list view update until we let this
+	// message box go, at which time the message in the queue will have been lost (why?)
+
+	ScheduleForProcessing();
+
+	strStatusText.Format("Loaded logfile: %s", m_strLogFilename );
+	((CFrameWnd *) AfxGetApp()->m_pMainWnd)->SetMessageText(strStatusText);
+
+	return true;
+}
+
+void VTSDoc::ConvertPathToRelative( CString * pstr )
+{
+	CString strPathRelative;
+	CString strOld = *pstr;
+
+	// Loads the workspace directory.. which is what we want to make the supplied filename relative to
+	StripToPath(&strPathRelative);
+
+	int nLen1 = strPathRelative.GetLength();
+	int nLen2 = strOld.GetLength();
+	int nStart = 0;	
+
+	// scan start of both strings and compare... continue while equal
+	// or length runs out and increment position where directories start...
+
+	for ( int n = 0; n < nLen1 && n < nLen2 && strPathRelative[n] == strOld[n]; n++ )
+		if ( strPathRelative[n] == '\\' )
+			nStart = n+1;
+
+	// if we can't replace anything... no sense in making relative because the drive letters
+	// must be different...
+
+	if ( nStart == 0 )
+		return;
+
+	// now count how many directories in the base path we have to substitute
+	int nBack = 0;
+	for ( int nDir = nStart; nDir < nLen1; nDir++ )
+		if ( strPathRelative[nDir] == '\\' )
+			nBack++;
+
+	// now build a new path by substituting different paths and appending remaining
+	pstr->Empty();
+
+	for ( int i = 0; i < nBack; i++ )
+		*pstr += "..\\";
+	*pstr += strOld.Right(nLen2 - nStart);
+}
+
 
 //
 //	VTSDoc::PortStatusChange
@@ -338,12 +645,16 @@ void VTSDoc::Serialize(CArchive& ar)
 {
 	if (ar.IsStoring())
 	{
-		// TODO: add storing code here
+		ar << m_strLogFilename;
 	}
 	else
 	{
-		// TODO: add loading code here
+		ar >> m_strLogFilename;
 	}
+
+	m_ports.Serialize(ar);
+	m_names.Serialize(ar);
+	m_devices.Serialize(ar);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -386,7 +697,7 @@ void VTSDoc::BindFrameContext( CFrameContext *pfc )
 	// initialize the frame count, such as it is.  Note that this bind function
 	// might be called before the document is properly initialized because the 
 	// clients are created before OnNewDocument() or OnOpenDocument() is called.
-	pfc->m_PacketCount = m_PacketCount;
+	pfc->m_PacketCount = m_nPacketCount;
 
 	// release the list back to other threads
 	m_FrameContextsCS.Unlock();
@@ -432,20 +743,86 @@ void VTSDoc::SetPacketCount( int count )
 	m_FrameContextsCS.Lock();
 	
 	// make sure there is really a change
-	if (m_PacketCount != count) {
+	if (m_nPacketCount != count)
+	{
 		// change the local copy
-		m_PacketCount = count;
+		m_nPacketCount = count;
 
 		// tell the frame contexts that the frame count has changed
 		for (CFrameContext* cur = m_FrameContexts; cur; cur = cur->m_NextFrame)
-		{
 			cur->SetPacketCount( count );
-		}
 	}
 
 	// release the list back to other threads
 	m_FrameContextsCS.Unlock();
 }
+
+
+// returns index of newly added packet
+// Usually called from another thread... don't do more here than write to the database
+// and wake up the main thread for this document to continue processing
+
+int VTSDoc::WritePacket( VTSPacket & pkt )
+{
+	int nIndex = -1;
+
+	m_FrameContextsCS.Lock();
+	m_PacketDB.WritePacket(pkt);
+
+	// have we halted packet loads?
+	VTSPacketPtr ppkt = NULL;
+	try
+	{
+		ppkt = m_fLoadPackets ? new VTSPacket() : NULL;
+
+		if ( ppkt != NULL )
+		{
+			*ppkt = pkt;
+			nIndex = m_apPackets.Add(ppkt);
+		}
+	}
+	catch(CMemoryException e)
+	{
+		if ( ppkt != NULL )
+			delete ppkt;
+
+		if ( m_fLoadPackets )
+			::PostThreadMessage( AfxGetApp()->m_nThreadID, WM_VTS_MAXPACKETS, (WPARAM) 0, (LPARAM) this );
+		m_fLoadPackets = false;
+	}
+
+	// release the list back to other threads
+	m_FrameContextsCS.Unlock();
+
+	ScheduleForProcessing();
+	return nIndex;
+}
+
+
+void VTSDoc::ScheduleForProcessing()
+{
+	// tell the application
+	if ( m_postMessages )
+		::PostThreadMessage( AfxGetApp()->m_nThreadID, WM_VTS_RCOUNT, (WPARAM) 0, (LPARAM) this );
+}
+
+
+
+int VTSDoc::GetPacketCount()
+{
+	return m_apPackets.GetSize();
+}
+
+
+VTSPacketPtr VTSDoc::GetPacket( int nIndex )
+{
+	if ( nIndex >= m_apPackets.GetSize() || nIndex < 0 )
+		return NULL;
+
+	return m_apPackets[nIndex];
+}
+
+
 
 //
 //	VTSDoc::DeletePackets
@@ -453,15 +830,18 @@ void VTSDoc::SetPacketCount( int count )
 
 void VTSDoc::DeletePackets( void )
 {
-	m_pDB->DeletePackets();
+	m_PacketDB.DeletePackets();
 
 	// make sure nobody else is using the list
 	m_FrameContextsCS.Lock();
-	
+
+	DestroyPacketArray();
+
 	// make sure there is really a change
-	if (m_PacketCount != 0) {
+	if (m_nPacketCount != 0)
+	{
 		// change the local copy
-		m_PacketCount = 0;
+		m_nPacketCount = 0;
 
 		// tell the frame contexts that the frame count has changed
 		for (CFrameContext* cur = m_FrameContexts; cur; cur = cur->m_NextFrame) {
@@ -474,6 +854,169 @@ void VTSDoc::DeletePackets( void )
 	m_FrameContextsCS.Unlock();
 }
 
+
+void VTSDoc::ReloadPacketStore( void )
+{
+	// make sure nobody else is using the list
+	m_FrameContextsCS.Lock();
+
+	DestroyPacketArray();
+	m_nPacketCount = 0;
+
+	for (CFrameContext* cur = m_FrameContexts; cur; cur = cur->m_NextFrame)
+	{
+		cur->SetPacketCount( 0 );
+		cur->SetCurrentPacket( -1 );
+	}
+
+	LoadPacketArray();
+	ScheduleForProcessing();
+
+	// release the list back to other threads
+	m_FrameContextsCS.Unlock();
+}
+
+
+
+int VTSDoc::LoadPacketArray( void )
+{
+	try
+	{
+		VTSPacketPtr ppkt = new VTSPacket();
+
+		for ( long lNextPosition = 0; ppkt != NULL && (lNextPosition = m_PacketDB.ReadNextPacket(*ppkt, lNextPosition)) != -1;  ppkt = new VTSPacket() )
+			m_apPackets.Add(ppkt);
+
+		// Always allocated one more than we needed... so kill it
+		if ( ppkt != NULL )
+			delete ppkt;
+	}
+	catch(CMemoryException e)
+	{
+		AfxMessageBox(IDS_ERR_MAXPACKETS, MB_ICONSTOP | MB_OK);
+		m_fLoadPackets = false;
+	}
+
+	return m_apPackets.GetSize();
+}
+
+
+void VTSDoc::DestroyPacketArray( void )
+{
+	// MAD_DB
+	// Kill all packets stored in memory
+
+	for ( int i = 0; i < m_apPackets.GetSize(); i++ )
+		delete m_apPackets[i];
+
+	m_apPackets.RemoveAll();
+	m_fLoadPackets = true;			// start again if there was an error
+}
+
+
+//	This func is called as a result of a message on this application queue... The message
+//  was placed there by IO threads performing a packet write through this document.
+//  This function performs any processing necessary when new packets come in beyond
+//  writing them to the database and updating this doc's packet array.
+//  The idea is that the main window thread takes care of this processing because of
+//  PreTranslateMessage... then we'll tell all the UI type CFrameContextListeners to
+//  deal with the addition as well.
+
+void VTSDoc::ProcessPacketStoreChange( void )
+{
+	// This was called because the packets in the store have changed.  See if we need to 
+	// read the rest of these things...
+
+	VTSPacketPtr ppkt = NULL;
+	int nNewIndex;
+
+	// update stats for the unread packets
+
+	// See if this update operation (catching up the views from their current packet size to 
+	// the new packet size) will take a long time...  If so (arbitrary > 200), then 
+	// invoke the progress bar in the status bar
+
+	int nPacketCountBehind = GetPacketCount() - m_nPacketCount;
+	CProgressCtrl * pprogress = nPacketCountBehind > 200 ? ((CMainFrame *) AfxGetApp()->m_pMainWnd)->InitializeProgress() : NULL;
+
+	if ( pprogress != NULL )
+		pprogress->SetRange(0, nPacketCountBehind);
+
+	for( nNewIndex = m_nPacketCount;  nNewIndex < GetPacketCount() && (ppkt = GetPacket(nNewIndex)) != NULL; nNewIndex++ )
+	{
+		if ( pprogress != NULL )
+			pprogress->StepIt();
+
+		BACnetPIInfo	summary( true, false );
+		summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen );
+
+		m_pStatisticsCollector->Update(summary.summaryLine, ppkt->packetLen, ppkt->packetHdr.packetType, ppkt->packetHdr.packetProtocolID );
+
+		if ( m_bStatisticsDlgInUse )
+			m_pStatitiscsDlg->Update(summary.summaryLine);
+	}
+
+	//OK... this doc has finished processing... now tell listening frame contexts to process as well
+	SetPacketCount( nNewIndex );		// index now represents count
+
+	if ( pprogress != NULL )
+		((CMainFrame *) AfxGetApp()->m_pMainWnd)->ReleaseProgress();
+}
+
+
+//This is called after all objects have loaded...  We'll fixup stored names with active pointers
+
+void VTSDoc::FixupNameToPortLinks( bool fCheckForExistingLink /* = true */ )
+{
+	// resolve port links in name list
+	int i;
+	for ( i = 0; i < m_names.GetSize(); i++ )
+	{
+		// May have already been munged, possibly by TD redefine
+		// pportLink will be NULL if fixup needed, so check name for value
+
+		if ( !fCheckForExistingLink || m_names[i]->m_pportLink == NULL )
+			m_names[i]->m_pportLink = m_ports.Find(m_names[i]->GetPortName());
+	}
+}
+
+
+void VTSDoc::FixupPortToDeviceLinks( bool fCheckForExistingLink /* = true */ )
+{
+	for ( int i = 0; i < m_ports.GetSize(); i++ )
+	{
+		if ( !fCheckForExistingLink || m_ports[i]->m_pdevice == NULL )
+			m_ports[i]->m_pdevice = m_devices.Find(m_ports[i]->GetDeviceName());
+	}
+}
+
+
+void VTSDoc::UnbindPortsToDevices()
+{
+	for ( int i = 0; i < m_ports.GetSize(); i++ )
+		m_ports[i]->UnbindDevice();
+}
+
+
+void VTSDoc::BindPortsToDevices()
+{
+	for ( int i = 0; i < m_ports.GetSize(); i++ )
+		m_ports[i]->BindDevice();
+}
+
+
+bool VTSDoc::LoadNamedAddress( BACnetAddress * pbacnetaddr, LPCSTR lpszNameLookup )
+{
+	int i = m_names.FindIndex(lpszNameLookup);
+
+	if ( i == -1 )
+		return false;
+
+	*pbacnetaddr = ((VTSName *) m_names[i])->m_bacnetaddr;
+	return true;
+}
+
+
 //
 //	VTSDoc::NewPacketCount
 //
@@ -483,6 +1026,7 @@ void VTSDoc::DeletePackets( void )
 //	all of the frame contexts.
 //
 
+/* MAD_DB
 void VTSDoc::NewPacketCount( void )
 {
 
@@ -521,6 +1065,21 @@ void VTSDoc::NewPacketCount( void )
 		
 	}
 }
+*/
+
+
+//LPCSTR VTSDoc::AddrToName( const BACnetAddress &addr, objId portID /* = 0 */ )
+LPCSTR VTSDoc::AddrToName( const BACnetAddress &addr, const char * pszPortName /* = NULL */ )
+{
+	return m_names.AddrToName(addr, m_ports.Find(pszPortName));
+}
+
+
+void VTSDoc::DefineTD( VTSPort * pport, const BACnetOctet *addr, int len )
+{
+	m_names.InitializeTD(pport, addr, len);
+}
+
 
 //
 //	VTSDoc::OnViewStatistics
@@ -539,6 +1098,8 @@ void VTSDoc::OnViewStatistics()
 /////////////////////////////////////////////////////////////////////////////
 // VTSDocList
 
+// MAD_DB No longer needed
+/*
 VTSDocList	gDocList;
 
 //
@@ -612,30 +1173,59 @@ VTSDocPtr VTSDocList::Child( int indx )
 	else
 		return 0;
 }
+*/
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSPort
 
-VTSPortList gMasterPortList;
+//MAD_DB VTSPortList gMasterPortList;
+
+
+const char * VTSPort::m_pszPortTypes[] = { "Null", "IP", "Ethernet", "ARCNET", "MS/TP", "PTP" };
 
 //
 //	VTSPort::VTSPort
 //
 
-VTSPort::VTSPort( VTSDocPtr dp, objId id )
-	: portDoc(dp), portSendGroup(0), portDescID(id)
-	, portStatus(1), portStatusDesc(0)
-	, portEndpoint(0), portFilter(0)
-	, portBTR(0), portBBMD(0), portBIPSimple(0), portBIPForeign(0), portBindPoint(0)
-	, portDevice(0)
+//MAD_DB VTSPort::VTSPort( VTSDocPtr dp, objId id )
+//MAD_DB	: portDoc(dp), portSendGroup(0), portDescID(id)
+VTSPort::VTSPort(void)
+	: portSendGroup(0)
+//	, portStatus(1), portStatusDesc(0)
+//	, portEndpoint(0), portFilter(0)
+//	, portBTR(0), portBBMD(0), portBIPSimple(0), portBIPForeign(0), portBindPoint(0)
+//	, portDevice(0)
 {
+	portDoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+	m_fDirty = true;
+
+	portStatus = 0;
+	portStatusDesc = "New";
+	portEndpoint = NULL;
+	portFilter = NULL;
+	portBTR = NULL;
+	portBBMD = NULL;
+	portBIPSimple = NULL;
+	portBIPForeign = NULL;
+	portBindPoint = NULL;
+	m_pdevice = NULL;
+
 	// add this to the master list
-	AddToMasterList();
+//MAD_DB	AddToMasterList();
+
+	m_nPortType = nullPort;
+	m_fEnabled = FALSE;
+	m_strConfigParms = _T("");
+	m_strName = _T("Untitled");
+	m_nNet = -1;
+
+	// don't worry about device... it will reattach bound by name at load and save
+	// not new...
 
 	// most ports are bound to a document and have a descriptor
-	if (dp && id) {
+//MAD_DB	if (dp && id) {
 		// read in the descriptor
-		ReadDesc();
+//MAD_DB		ReadDesc();
 
 		// see if it can be turned on
 		//Refresh();
@@ -644,7 +1234,7 @@ VTSPort::VTSPort( VTSDocPtr dp, objId id )
 		// shouldn't call Refresh here... it throws and that aborts the new assignment, even though
 		// the object was actually created, which results in no reference and no destroy.
 		// Call refresh from caller
-	}
+//MAD_DB	}
 }
 
 //
@@ -654,11 +1244,17 @@ VTSPort::VTSPort( VTSDocPtr dp, objId id )
 VTSPort::~VTSPort( void )
 {
 	// remove this from the master list
-	RemoveFromMasterList();
+//MAD_DB	RemoveFromMasterList();
 
-	// if it is bound to a device, unbind it
-	if (portDevice)
-		portDevice->Unbind( this );
+	Deactivate();
+}
+
+
+void VTSPort::Deactivate(void)
+{
+	UnbindDevice();
+//	if (m_pdevice)
+//		m_pdevice->Unbind( this );
 
 	// if there is an endpoint, delete it
 	if (portEndpoint)
@@ -683,12 +1279,22 @@ VTSPort::~VTSPort( void )
 	// if there is a foreign BIP object, delete it
 	if (portBIPForeign)
 		delete portBIPForeign;
+
+//	m_pdevice = NULL;
+	portEndpoint = NULL;
+	portFilter = NULL;
+	portBTR = NULL;
+	portBBMD = NULL;
+	portBIPSimple = NULL;
+	portBIPForeign = NULL;
 }
+
 
 //
 //	VTSPort::ReadDesc
 //
 
+/* MAD_DB
 void VTSPort::ReadDesc( void )
 {
 	int		stat
@@ -744,12 +1350,14 @@ void VTSPort::AddToMasterList( void )
 
 void VTSPort::RemoveFromMasterList( void )
 {
-	POSITION pos = gMasterPortList.Find( this )
-	;
+	POSITION pos = gMasterPortList.Find( this );
 
-	ASSERT( pos != NULL );
-	gMasterPortList.RemoveAt( pos );
+//MAD_DB	ASSERT( pos != NULL );
+
+	if ( pos != NULL )
+		gMasterPortList.RemoveAt( pos );
 }
+*/
 
 //
 //	VTSPort::Refresh
@@ -758,10 +1366,12 @@ void VTSPort::RemoveFromMasterList( void )
 void VTSPort::Refresh( void )
 {
 	// unbind from the device, if bound
-	if (portDevice) {
-		portDevice->Unbind( this );
-		portDevice = 0;
-	}
+	UnbindDevice();
+
+//	if ( m_pdevice ) {
+//		m_pdevice->Unbind( this );
+//		m_pdevice = 0;
+//	}
 
 	// shutdown the existing endpoint, if any
 	if (portEndpoint) {
@@ -807,34 +1417,40 @@ void VTSPort::Refresh( void )
 	}
 
 	// see if the port should be enabled
-	if (!portDesc.portEnabled) {
+//	if (!portDesc.portEnabled) {
+	if ( !m_fEnabled ) {
 		portStatus = 0;
-		portStatusDesc = 0;
+		portStatusDesc = "Disabled";
 		return;
 	}
 
 	// null ports cannot be enabled
-	if (portDesc.portType == nullPort) {
+//	if (portDesc.portType == nullPort) {
+	if ( m_nPortType == nullPort) {
 		portStatus = 3;
 		portStatusDesc = "Null ports cannot be enabled";
 		return;
 	}
 
 	// see if a port is already active that matches this configuration
-	for (POSITION pos = gMasterPortList.GetHeadPosition(); pos; ) {
-		VTSPortPtr	cur = gMasterPortList.GetNext( pos )
-		;
+//	for (POSITION pos = gMasterPortList.GetHeadPosition(); pos; ) {
+//		VTSPortPtr	cur = gMasterPortList.GetNext( pos );
+	for ( int i = 0; portDoc != NULL && i < portDoc->GetPorts()->GetSize(); i++ )
+	{
+		VTSPortPtr cur = (*portDoc->GetPorts())[i];
 
 		// skip this port if it's not loaded
 		if ((cur->portStatus != 1) || (!cur->portEndpoint))
 			continue;
 
 		// skip if port types don't match
-		if (cur->portDesc.portType != portDesc.portType)
+//MAD_DB if (cur->portDesc.portType != portDesc.portType)
+		if (cur->m_nPortType != m_nPortType )
 			continue;
 		
 		// if config strings match, flag this one
-		if (strcmp(portDesc.portConfig,cur->portDesc.portConfig) == 0) {
+//MAD_DB		if (strcmp(portDesc.portConfig,cur->portDesc.portConfig) == 0) {
+		if ( cur->m_strConfigParms.CompareNoCase(m_strConfigParms) == 0 ) {
 			portStatus = 2;
 			portStatusDesc = "Existing port with this configuration";
 			return;
@@ -846,17 +1462,19 @@ void VTSPort::Refresh( void )
 	portStatusDesc = "Unknown port type";
 
 	// enable the port
-	switch (portDesc.portType) {
+//	switch (portDesc.portType) {
+	switch (m_nPortType) {
 		case ipPort: {
 				VTSWinIPPortPtr		pp
 				;
 
 				portStatus = 1;
-				portStatusDesc = 0;
+				portStatusDesc = "IP started";
 				portEndpoint = pp = new VTSWinIPPort( this );
 				
 				// define the TD name
-				portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
+//				portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
+				portDoc->DefineTD( this, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
 				break;
 			}
 
@@ -865,33 +1483,33 @@ void VTSPort::Refresh( void )
 				;
 				
 				portStatus = 1;
-				portStatusDesc = 0;
+				portStatusDesc = "Ethernet started";
+//				portEndpoint = pp = new VTSWinPacket32Port( this );
 				portEndpoint = pp = new VTSWinWinPcapPort( this );
 				
 				// define the TD name
-				portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
+//				portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
+				portDoc->DefineTD( this, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
 				break;
 			}
 
 		case arcnetPort: {
-				portStatusDesc = "ARCNET unsupported";
-
-//				VTSWinPacket32PortPtr	pp
-//				;
-//				
+//				VTSWinPacket32PortPtr	pp;
+				
 //				portStatus = 2;		// good luck
-//				portStatusDesc = "ARCNET untested";
+				portStatusDesc = "ARCNET unsupported";
 //				portEndpoint = pp = new VTSWinPacket32Port( this );
-//				
-//				// define the TD name
-//				portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
-//				break;
+				
+				// define the TD name
+//MAD_DB			portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
+//				portDoc->DefineTD( this, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
+				break;
 			}		
 
 		case ptpPort: {
 			VTSWinPTPPortPtr pp;
 			portStatus = 1;		// supported by Xiao Shiyuan 2002-4-22
-			portStatusDesc = 0;
+			portStatusDesc = "PTP started";
 			portEndpoint = pp = new VTSWinPTPPort( this );
 			break;
 		}
@@ -900,22 +1518,22 @@ void VTSPort::Refresh( void )
 	// see if a filter should be set up
 	if (portEndpoint) {
 		// create a script filter and in the darkness bind them
-		portFilter = new ScriptNetFilter( portDesc.portName );
+//MAD_DB		portFilter = new ScriptNetFilter( portDesc.portName );
+		portFilter = new ScriptNetFilter( GetName() );
 		Bind( portFilter, portEndpoint );
 
 		// default bind point is the filter
 		portBindPoint = portFilter;
 
 		// if this is an IP port, we have more work to do
-		if (portDesc.portType == ipPort) {
-			int		argc = 0
-			;
-			char	config[kVTSPortConfigLength], *src
-			,		*argv[16]
-			;
+//		if (portDesc.portType == ipPort) {
+		if ( m_nPortType == ipPort ) {
+			int		argc = 0;
+			char	config[kVTSPortConfigLength], *src,	*argv[16];
 
 			// copy the configuration, split it up
-			strcpy( config, portDesc.portConfig );
+//MAD_DB			strcpy( config, portDesc.portConfig );
+			strcpy( config, m_strConfigParms );
 			for (src = config; *src; ) {
 				argv[argc++] = src;
 				while (*src && (*src != ','))
@@ -970,51 +1588,32 @@ void VTSPort::Refresh( void )
 	}
 
 	// see if we can bind to a device
+
+	BindDevice();
+	SetDirty(false);
+
+/*MAD_DB
 	if (portDesc.portDeviceObjID != 0) {
 		portDevice = portDoc->m_Devices.FindDevice( portDesc.portDeviceObjID );
 		if (portDevice)
 			portDevice->Bind( this, portDesc.portNet );
 	}
+*/
 }
 
-//
-//	VTSPort::Configure
-//
-
-void VTSPort::Configure( CString *cp )
+void VTSPort::BindDevice()
 {
-	switch (portDesc.portType) {
-		case ipPort: {
-				TRACE0( "IP config request\n" );
-
-				VTSPortIPDialog	dlg( cp );
-				dlg.DoModal();
-				break;
-			}
-
-		case ethernetPort: {
-				TRACE0( "Ethernet config request\n" );
-
-				VTSPortEthernetDialog	dlg( cp );
-				dlg.DoModal();
-				break;
-			}
-
-		case arcnetPort:
-			TRACE0( "ARCNET config request\n" );
-			break;
-
-		case mstpPort:
-			TRACE0( "MS/TP config request\n" );
-			break;
-
-		case ptpPort:
-			//supported by Xiao Shiyuan 2002-4-22
-            VTSPortPTPDialog	dlg( cp );
-			dlg.DoModal(); 
-			break;
-	}
+	if ( m_pdevice != NULL )
+		m_pdevice->Bind(this, m_nNet);
 }
+
+
+void VTSPort::UnbindDevice()
+{
+	if ( m_pdevice != NULL )			// already fixed up but not activated yet
+		m_pdevice->Unbind(this);
+}
+
 
 //
 //	VTSPort::SendData
@@ -1030,8 +1629,141 @@ void VTSPort::SendData( BACnetOctet *data, int len )
 		portEndpoint->SendData( data, len );
 }
 
+
+
+const VTSPort& VTSPort::operator=(const VTSPort& rportSrc)
+{
+	// Set dirty to false... this will only be the case if we're copying from another port
+	SetDirty(false);
+
+	portDoc = rportSrc.portDoc;
+	portStatus = rportSrc.portStatus;
+	portStatusDesc = rportSrc.portStatusDesc;
+
+	// don't copy the owned devices
+	portEndpoint = NULL;			// we'll refresh all this stuff later
+	portFilter = NULL;
+	portBTR = NULL;
+	portBBMD = NULL;
+	portBIPSimple = NULL;
+	portBIPForeign = NULL;
+	portBindPoint = NULL;
+
+	m_pdevice = rportSrc.m_pdevice;
+
+	m_nPortType = rportSrc.m_nPortType;
+	m_fEnabled = rportSrc.m_fEnabled;
+	m_strConfigParms = rportSrc.m_strConfigParms;
+	m_strName = rportSrc.m_strName;
+	m_nNet = rportSrc.m_nNet;
+	
+	return *this;
+}
+
+
+
+void VTSPort::SetName( LPCSTR lpszName )
+{
+	if ( m_strName.Compare(lpszName) != 0 )
+	{
+		SetDirty();
+		m_strName = lpszName;
+	}
+}
+
+
+void VTSPort::SetEnabled( BOOL fEnabled /* = true */ )
+{
+	if ( m_fEnabled != fEnabled)
+	{
+		SetDirty();
+		m_fEnabled = fEnabled;
+	}
+}
+
+
+void VTSPort::SetConfig( LPCSTR lpszConfig )
+{
+	if ( m_strConfigParms.CompareNoCase(lpszConfig) != 0 )
+	{
+		SetDirty();
+		m_strConfigParms = lpszConfig;
+	}
+}
+
+
+void VTSPort::SetPortType( VTSPortType nType )
+{
+	if ( m_nPortType != nType )
+	{
+		SetDirty();
+		m_nPortType = nType;
+	}
+}
+
+
+void VTSPort::SetNetwork( int nNetwork )
+{
+	if ( m_nNet != nNetwork )
+	{
+		SetDirty();
+		m_nNet = nNetwork;
+	}
+}
+
+
+void VTSPort::SetDevice( VTSDevice * pdevice )
+{
+	if ( m_pdevice != pdevice )
+	{
+		SetDirty();
+		m_pdevice = pdevice;
+	}
+}
+
+
+void VTSPort::Serialize(CArchive& ar)
+{
+	if (ar.IsStoring())
+	{
+		ar << m_strName;
+		ar << m_nPortType;
+		ar << m_fEnabled;
+		ar << m_nNet;
+
+		if ( m_pdevice == NULL )
+			m_strDevice.Empty();
+		else
+			m_strDevice = m_pdevice->GetName();
+
+		ar << m_strDevice;
+		ar << m_strConfigParms;
+	}
+	else
+	{
+		ar >> m_strName;
+		ar >> (int &) m_nPortType;
+		ar >> m_fEnabled;
+		ar >> m_nNet;
+
+		// just unlink (or leave unlinked) the device here... since we're loading the fixups will be done later
+		m_pdevice = NULL;
+		ar >> m_strDevice;
+		ar >> m_strConfigParms;
+	}
+
+	SetDirty(false);
+}
+
+IMPLEMENT_SERIAL(VTSPort, CObject, 1);
+
+IMPLEMENT_VTSPTRARRAY(VTSPorts, VTSPort);
+
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortList
+
+/*MAD_DB PortList not needed anymore
 
 //
 //	VTSPortList::VTSPortList
@@ -1184,15 +1916,12 @@ void VTSPortList::Add( void )
 
 void VTSPortList::Remove( int i )
 {
-	ASSERT( 0 );
-/*
 	POSITION	pos = FindIndex( i )
 	;
 
 	ASSERT( pos != NULL );
 	delete GetAt( pos );
 	RemoveAt( pos );
-*/
 }
 
 //
@@ -1215,6 +1944,25 @@ VTSPortPtr VTSPortList::FindPort( const char *name )
 	// failed to find it
 	return 0;
 }
+
+
+VTSPortPtr VTSPortList::FindPort( objId portID )
+{
+	if ( portID == 0 )		// MAD_DB
+		return NULL;
+
+	for (POSITION pos = GetHeadPosition(); pos; )
+	{
+		VTSPortPtr cur = (VTSPortPtr)GetNext( pos );
+
+		if ( cur->portDescID == portID )
+			return cur;
+	}
+
+	// failed to find it
+	return NULL;
+}
+
 
 //
 //	VTSPortList::Length
@@ -1325,6 +2073,9 @@ void VTSNameList::Remove( int i )
 
 int VTSNameList::Length( void )
 {
+	//MAD_DB
+	ASSERT(0);
+
 	return m_pDoc->m_pDB->dbNameList.Length();
 }
 
@@ -1339,6 +2090,8 @@ int VTSNameList::Length( void )
 
 const char* VTSNameList::AddrToName( const BACnetAddress &addr, objId portID )
 {
+	//MAD_DB
+	ASSERT(0);
 	int					len = Length()
 	;
 	static VTSNameDesc	addrRec
@@ -1370,6 +2123,9 @@ const char* VTSNameList::AddrToName( const BACnetAddress &addr, objId portID )
 
 void VTSNameList::ReadName( int i, VTSNameDescPtr ndp )
 {
+	//MAD_DB
+	ASSERT(0);
+
 	int		stat
 	;
 
@@ -1382,6 +2138,9 @@ void VTSNameList::ReadName( int i, VTSNameDescPtr ndp )
 
 void VTSNameList::WriteName( int i, VTSNameDescPtr ndp )
 {
+	//MAD_DB
+	ASSERT(0);
+
 	int		stat
 	;
 
@@ -1424,6 +2183,8 @@ void VTSNameList::DefineTD( objId port, const BACnetOctet *addr, int len )
 
 const BACnetAddress *VTSNameList::FindTD( objId port )
 {
+	//MAD_DB
+	ASSERT(0);
 	int		stat, elemLoc
 	;
 
@@ -1456,11 +2217,162 @@ VTSNameDesc VTSNameList::searchName;
 
 int VTSNameList::TDSearch( const VTSNameDescPtr, const VTSNameDescPtr ndp )
 {
+	//MAD_DB
+	ASSERT(0);
 	if ((ndp->namePort == searchName.namePort) && (strcmp(ndp->nameName,"TD") == 0))
 		return 0;
 	else
 		return 1;
 }
+*/
+
+
+IMPLEMENT_SERIAL(VTSName, CObject, 1);
+
+VTSName::VTSName( void )
+{
+	m_strName = "Untitled";
+
+	m_bacnetaddr.addrType = nullAddr;
+	m_bacnetaddr.addrNet = 0;
+	m_bacnetaddr.addrLen = 0;
+	memset( m_bacnetaddr.addrAddr, 0, kMaxAddressLen );
+
+	m_pportLink = NULL;
+}
+
+
+VTSName::VTSName( LPCSTR pszname )
+		:m_strName(pszname)
+{
+	m_bacnetaddr.addrType = nullAddr;
+	m_bacnetaddr.addrNet = 0;
+	m_bacnetaddr.addrLen = 0;
+	memset( m_bacnetaddr.addrAddr, 0, kMaxAddressLen );
+
+	m_pportLink = NULL;
+}
+
+
+VTSName::~VTSName( void )
+{
+}
+
+
+const VTSName& VTSName::operator=(const VTSName& rnameSrc)
+{
+	m_strName = rnameSrc.m_strName;
+	memcpy( &m_bacnetaddr, &rnameSrc.m_bacnetaddr, sizeof(m_bacnetaddr) );
+	m_pportLink = rnameSrc.m_pportLink;
+	
+	return *this;
+}
+
+
+void VTSName::Serialize(CArchive& ar)
+{
+	if (ar.IsStoring())
+	{
+		// Switch on schema for differnent implementations during load
+		ar << m_strName;
+		try
+		{
+			ar.Write(&m_bacnetaddr, sizeof(m_bacnetaddr));
+		}
+		catch( CFileException e )
+		{
+		}
+
+		if ( m_pportLink != NULL )
+			m_strPortNameTemp = m_pportLink->GetName();
+
+		ar << m_strPortNameTemp;
+	}
+	else
+	{
+		ar >> m_strName;
+		ar.Read(&m_bacnetaddr, sizeof(m_bacnetaddr));
+		ar >> m_strPortNameTemp;
+
+		// This will be fixed up later...
+		m_pportLink = NULL;
+	}
+}
+
+
+
+bool VTSName::IsAddressMatch( const BACnetAddress &addr, VTSPort * pport )
+{
+	return (m_pportLink ==  NULL || m_pportLink == pport) &&  m_bacnetaddr == addr;
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+// VTSNames
+
+
+IMPLEMENT_VTSPTRARRAY(VTSNames, VTSName);
+
+
+void VTSNames::Remove( int i )
+{
+	ASSERT(i >= 0 && i < GetSize());
+
+	if ( i >= 0 && i < GetSize() )
+	{
+		delete (VTSName *) GetAt(i);
+		RemoveAt(i);
+	}
+}
+
+
+
+LPCSTR VTSNames::AddrToName( const BACnetAddress &addr, VTSPort * pport )
+{
+	for (int i = 0; i < GetSize(); i++)
+		if ( ((VTSName *) GetAt(i))->IsAddressMatch(addr, pport) )
+			return ((VTSName *) GetAt(i))->m_strName;
+
+	return NULL;
+}
+
+
+int VTSNames::FindIndex( LPCSTR lpszName )
+{
+	for ( int i = 0; i < GetSize(); i++ )
+		if ( ((VTSName *) GetAt(i))->m_strName.CompareNoCase(lpszName) == 0 )
+			return i;
+		
+	return -1;
+}
+
+
+void VTSNames::InitializeTD( VTSPort * pport, const BACnetOctet *addr, int len )
+{
+	VTSName * pnameNew = new VTSName("TD");
+
+	if ( pnameNew == NULL )
+		return;
+
+	pnameNew->m_pportLink = pport;
+	pnameNew->m_bacnetaddr.addrType = localStationAddr;
+	memcpy( pnameNew->m_bacnetaddr.addrAddr, addr, len );
+	pnameNew->m_bacnetaddr.addrLen = len;
+
+	int i = FindIndex(pnameNew->m_strName);
+	
+	if ( i == -1 )
+		Add(pnameNew);
+	else
+	{
+		delete (VTSName *) GetAt(i);
+		SetAt(i, pnameNew);
+	}
+}
+
+
+
 
 //
 //	SetLookupContext
@@ -1468,14 +2380,25 @@ int VTSNameList::TDSearch( const VTSNameDescPtr, const VTSNameDescPtr ndp )
 
 namespace NetworkSniffer {
 
-JDBListPtr	gNameListSearchList;
-VTSNameDesc	gNameListSearchName;
+const char * g_pszPortName = NULL;
 
-void SetLookupContext( objId port, JDBListPtr list )
+// MAD_DB JDBListPtr	gNameListSearchList;
+// MAD_DB VTSNameDesc	gNameListSearchName;
+
+void SetLookupContext( const char * pszPortName )
 {
-	gNameListSearchName.namePort = port;
-	gNameListSearchList = list;
+	// Sadly, this is a two part call.  This function is called to set the name of the port 
+	// that received a packet that is about to be picked apart by the sniffer window... it will
+	// call the LookupName many time.  Why not just change the sniffer window?  Dunno.
+
+	g_pszPortName = pszPortName;
 }
+
+//void SetLookupContext( objId port, JDBListPtr list )
+//{
+//	gNameListSearchName.namePort = port;
+//	gNameListSearchList = list;
+//}
 
 //
 //	LookupName
@@ -1487,10 +2410,25 @@ void SetLookupContext( objId port, JDBListPtr list )
 
 const char* LookupName( int net, const BACnetOctet *addr, int len )
 {
-	int					stat, elemLoc
-	;
-	static VTSNameDesc	searchRslts
-	;
+	const char * pszName = NULL;
+
+	BACnetAddress	bacnetAddrSearch(net, addr, len);
+
+	if ( net == 65535 )
+		bacnetAddrSearch.addrType = globalBroadcastAddr;
+
+	VTSDoc * pdoc = (VTSDoc * ) ((VTSApp *) AfxGetApp())->GetWorkspace();
+	if ( pdoc != NULL )
+		pszName = pdoc->AddrToName(bacnetAddrSearch, g_pszPortName);
+
+	return pszName;
+}
+
+/* MAD_DB
+const char* LookupName( int net, const BACnetOctet *addr, int len )
+{
+	int					stat, elemLoc;
+	static VTSNameDesc	searchRslts;
 
 	// set up the search block
 	gNameListSearchName.nameAddr.addrNet = net;
@@ -1539,6 +2477,7 @@ int NameSearch( const VTSNameDescPtr, const VTSNameDescPtr ndp )
 	// address must match
 	return memcmp( gNameListSearchName.nameAddr.addrAddr, ndp->nameAddr.addrAddr, ndp->nameAddr.addrLen );
 }
+*/
 
 }
 
@@ -1573,10 +2512,16 @@ void VTSClient::IAm( void )
 	BACnetUnconfirmedServiceAPDU	hereIAm( iAm )
 	;
 
+/*MAD_DB
 	BACnetObjectIdentifier( 8, clientDev->devDesc.deviceInstance ).Encode( hereIAm );
 	BACnetUnsigned( clientDev->devDesc.deviceMaxAPDUSize ).Encode( hereIAm );
 	BACnetEnumerated( clientDev->devDesc.deviceSegmentation ).Encode( hereIAm );
 	BACnetUnsigned( clientDev->devDesc.deviceVendorID ).Encode( hereIAm );
+*/
+	BACnetObjectIdentifier( 8, clientDev->m_nInstance ).Encode( hereIAm );
+	BACnetUnsigned( clientDev->m_nMaxAPDUSize ).Encode( hereIAm );
+	BACnetEnumerated( clientDev->m_segmentation ).Encode( hereIAm );
+	BACnetUnsigned( clientDev->m_nVendorID ).Encode( hereIAm );
 
 	hereIAm.apduAddr.GlobalBroadcast();
 	Request( hereIAm );
@@ -1625,7 +2570,14 @@ void VTSServer::Indication( const BACnetAPDU &apdu )
 				WriteProperty( apdu );
 				break;
 			default:
-				Response( BACnetRejectAPDU( apdu.apduInvokeID, unrecognizedService ) );
+				// madanner 5/03, needs address for return
+				{
+				BACnetRejectAPDU	rejectNoService(apdu.apduInvokeID, unrecognizedService);
+				rejectNoService.apduAddr = apdu.apduAddr;
+
+				Response(rejectNoService);
+//				Response( BACnetRejectAPDU( apdu.apduInvokeID, unrecognizedService ) );
+				}
 		}
 	} else
 		;
@@ -1656,12 +2608,10 @@ void VTSServer::Response( const BACnetAPDU &pdu )
 
 void VTSServer::WhoIs( const BACnetAPDU &apdu )
 {
-	BACnetAPDUDecoder	dec( apdu )
-	;
-	BACnetUnsigned		loLimit, hiLimit
-	;
-	unsigned int		myInst = serverDev->devDesc.deviceInstance
-	;
+	BACnetAPDUDecoder	dec( apdu );
+	BACnetUnsigned		loLimit, hiLimit;
+//	unsigned int		myInst = serverDev->devDesc.deviceInstance;
+	unsigned int		myInst = serverDev->m_nInstance;
 
 	try {
 		if (dec.pktLength != 0) {
@@ -1680,10 +2630,16 @@ void VTSServer::WhoIs( const BACnetAPDU &apdu )
 		hello.apduAddr.GlobalBroadcast();
 
 		// encode the parameters
+/*MAD_DB
 		BACnetObjectIdentifier( 8, serverDev->devDesc.deviceInstance ).Encode( hello );
 		BACnetUnsigned( serverDev->devDesc.deviceMaxAPDUSize ).Encode( hello );
 		BACnetEnumerated( serverDev->devDesc.deviceSegmentation ).Encode( hello );
 		BACnetUnsigned( serverDev->devDesc.deviceVendorID ).Encode( hello );
+*/
+		BACnetObjectIdentifier( 8, serverDev->m_nInstance ).Encode( hello );
+		BACnetUnsigned( serverDev->m_nMaxAPDUSize ).Encode( hello );
+		BACnetEnumerated( serverDev->m_segmentation ).Encode( hello );
+		BACnetUnsigned( serverDev->m_nVendorID ).Encode( hello );
 
 		Response( hello );
 	}
@@ -1743,11 +2699,20 @@ void VTSServer::ReadProperty( const BACnetAPDU &apdu )
 
 		// encode the result
 	    BACnetOpeningTag().Encode( ack, 3 );
+
+		/* MAD_DB  Find proper object/property/value
 		serverDev->devObjPropValueList->Encode( objId.objID, propId.enumValue
 			, (gotIndex ? arryIndx.uintValue : -1)
 			, ack
 			);
-	    BACnetClosingTag().Encode( ack, 3 );
+		*/
+
+		// I'm not sure how this hooks up to the device...  Just go with it.
+		int nErr = serverDev->ReadProperty(&objId, &propId, gotIndex ? arryIndx.uintValue : -1, &ack );
+		if ( nErr != 0 )
+			throw(nErr);
+			
+		BACnetClosingTag().Encode( ack, 3 );
 
 		// send it
 		Response( ack );
@@ -1819,7 +2784,7 @@ void VTSServer::WriteProperty( const BACnetAPDU &apdu )
 		TRACE3( "WriteProperty %d, %d, %d\n", objId.objID, propId.enumValue, arryIndx.uintValue );
 
 		// build an ack
-		BACnetSimpleAckAPDU	ack( readProperty, apdu.apduInvokeID );
+		BACnetSimpleAckAPDU	ack( writeProperty, apdu.apduInvokeID );
 
 		// send the response back to where the request came from
 		ack.apduAddr = apdu.apduAddr;
@@ -1832,10 +2797,16 @@ void VTSServer::WriteProperty( const BACnetAPDU &apdu )
 			throw (invalidTagReject);
 
 		// decode the contents
+		/* MAD_DB 
 		serverDev->devObjPropValueList->Decode( objId.objID, propId.enumValue
 			, (gotIndex ? arryIndx.uintValue : -1)
 			, dec
 			);
+		*/
+
+		int nErr = serverDev->WriteProperty( &objId, &propId, gotIndex ? arryIndx.uintValue : -1, &dec );
+		if ( nErr != 0 )
+			throw(nErr);
 
 		// look at the next tag
 		dec.ExamineTag( t );
@@ -1853,7 +2824,7 @@ void VTSServer::WriteProperty( const BACnetAPDU &apdu )
 	catch (int errCode) {
 		TRACE1( "WriteProperty execution error - %d\n", errCode );
 
-		BACnetErrorAPDU error( readProperty, apdu.apduInvokeID );
+		BACnetErrorAPDU error( writeProperty, apdu.apduInvokeID );
 		error.apduAddr = apdu.apduAddr;
 
 		// encode the Error Class
@@ -1891,13 +2862,79 @@ void VTSServer::WriteProperty( const BACnetAPDU &apdu )
 /////////////////////////////////////////////////////////////////////////////
 // VTSDevice
 
-VTSDeviceList gMasterDeviceList;
+//MAD_DB no need to create a global list because multiple documents for config are history...
+//VTSDeviceList gMasterDeviceList;
 
 //
 //	VTSDevice::VTSDevice
 //
 
+IMPLEMENT_SERIAL(VTSDevice, CObject, 1);
+
+
 #pragma warning( disable : 4355 )
+
+VTSDevice::VTSDevice()
+	: devClient(this), devServer(this)
+{
+	m_strName = "Untitled";
+	m_nInstance = 0;
+	m_fRouter = FALSE;
+	m_segmentation = noSegmentation;
+	m_nSegmentSize = 1024;
+	m_nWindowSize = 1;
+	m_nMaxAPDUSize = 1024;
+	m_nNextInvokeID = 0;
+	m_nAPDUTimeout = 5000;
+	m_nAPDUSegmentTimeout = 1000;
+	m_nAPDURetries = 3;
+	m_nVendorID = 15;				// default to Cornell
+
+	devPort = NULL;
+	devPortEndpoint = NULL;
+//MAD_DB	devObjPropValueList = NULL;
+}
+
+
+void VTSDevice::Activate()
+{
+	// bind the device to the router (global Bind(), not our local one)
+	::Bind( &devDevice, &devRouter );
+
+// Not sure what all this is about !!
+//ASSERT(0);
+	// create a dummy port
+//	devPort = new VTSPort( 0, 0 );
+	devPort = new VTSPort();
+
+	// the port name matches the device name
+//	strcpy( devPort->portDesc.portName, devDesc.deviceName );
+	devPort->SetName(GetName());
+
+	// create a funny endpoint that redirects requests back to this device
+	devPortEndpoint = new VTSDevicePort( devPort, this );
+}
+
+
+
+void VTSDevice::Deactivate()
+{
+	// Don't need to kill this object, the created port object will destroy
+	// the endpoint...
+
+//	if ( devPortEndpoint != NULL )
+//		delete devPortEndpoint;
+
+	devPortEndpoint = NULL;
+
+	if ( devPort != NULL )
+		delete devPort;
+
+	devPort = NULL;
+}
+
+
+/* MAD_DB
 VTSDevice::VTSDevice( VTSDocPtr dp, objId id )
 	: devDoc(dp), devDescID(id)
 	, devClient(this), devServer(this)
@@ -1923,6 +2960,8 @@ VTSDevice::VTSDevice( VTSDocPtr dp, objId id )
 	// read in the defined objects, properties and values
 	devObjPropValueList = new VTSObjPropValueList( dp, devDesc.deviceObjPropValueListID );
 }
+*/
+
 #pragma warning( default : 4355 )
 
 //
@@ -1932,19 +2971,25 @@ VTSDevice::VTSDevice( VTSDocPtr dp, objId id )
 VTSDevice::~VTSDevice( void )
 {
 	// remove this from the master list
-	RemoveFromMasterList();
+//MAD_DB	RemoveFromMasterList();
+
+	Deactivate();
 
 	// delete the dummy port which will also delete the endpoint
-	delete devPort;
+	if ( devPort != NULL )
+		delete devPort;
 
 	// toss the object, properties and values manager
-	delete devObjPropValueList;
+// Already handled by destructor for propery values arrays
+//	if ( devObjPropValueList != NULL )
+//		delete devObjPropValueList;
 }
 
 //
 //	VTSDevice::AddToMasterList
 //
 
+/* MAD_DB
 void VTSDevice::AddToMasterList( void )
 {
 	// add this to the end, regardless of its status
@@ -1960,8 +3005,9 @@ void VTSDevice::RemoveFromMasterList( void )
 	POSITION pos = gMasterDeviceList.Find( this )
 	;
 
-	ASSERT( pos != NULL );
-	gMasterDeviceList.RemoveAt( pos );
+//MAD_DB	ASSERT( pos != NULL );
+	if ( pos != NULL )
+		gMasterDeviceList.RemoveAt( pos );
 }
 
 //
@@ -2012,6 +3058,8 @@ void VTSDevice::WriteDesc( void )
 	// make sure the dummy port has the correct name
 	strcpy( devPort->portDesc.portName, devDesc.deviceName );
 }
+*/
+
 
 //
 //	VTSDevice::Bind
@@ -2023,7 +3071,9 @@ void VTSDevice::WriteDesc( void )
 void VTSDevice::Bind( VTSPortPtr pp, int net )
 {
 	devRouter.BindToEndpoint( pp->portBindPoint, net );
-//	devRouter.SetLocalAddress( net, pp->portEndpoint->portLocalAddr );
+
+	//madanner 5/03, uncommented SetLocaAddress to enable device RP/WP system
+	devRouter.SetLocalAddress( net, pp->portEndpoint->portLocalAddr );
 }
 
 //
@@ -2098,6 +3148,492 @@ void VTSDevice::SendAPDU( const BACnetAPDU &apdu )
 		TRACE0( "---------- Something went wrong ----------\n" );
 	}
 }
+
+
+void VTSDevice::Serialize(CArchive& ar)
+{
+	if (ar.IsStoring())
+	{
+		// Switch on schema when loading for 
+		// Schema 1
+
+		ar << m_strName;
+		ar << m_nInstance;
+		int n = m_fRouter ? 1 : 0;
+		ar << m_fRouter;
+		ar << m_segmentation;
+		ar << m_nSegmentSize;
+		ar << m_nWindowSize;
+		ar << m_nMaxAPDUSize;
+		ar << m_nNextInvokeID;
+		ar << m_nAPDUTimeout;
+		ar << m_nAPDUSegmentTimeout;
+		ar << m_nAPDURetries;
+		ar << m_nVendorID;
+	}
+	else
+	{
+		ar >> m_strName;
+		ar >> m_nInstance;
+		ar >> m_fRouter;
+		int n;
+		ar >> n;
+		m_segmentation = (BACnetSegmentation) n;
+		ar >> m_nSegmentSize;
+		ar >> m_nWindowSize;
+		ar >> m_nMaxAPDUSize;
+		ar >> m_nNextInvokeID;
+		ar >> m_nAPDUTimeout;
+		ar >> m_nAPDUSegmentTimeout;
+		ar >> m_nAPDURetries;
+		ar >> m_nVendorID;
+	}
+
+	m_devobjects.Serialize(ar);
+}
+
+
+CString VTSDevice::GetDescription(void)
+{
+	CString strInstance;
+	strInstance.Format("%s, %d", GetName(), m_nInstance);
+	return strInstance;
+}
+
+
+// First look for supported object in our array
+
+VTSDevObject * VTSDevice::FindObject( unsigned int nObjID )
+{
+	for (int i = 0; i < m_devobjects.GetSize(); i++ )
+		if ( m_devobjects[i]->GetID() == nObjID )
+			return m_devobjects[i];
+
+	return NULL;
+}
+
+
+
+VTSDevProperty * VTSDevice::FindProperty( VTSDevObject * pobject, int nPropID )
+{
+	for ( int i = 0; pobject != NULL && i < pobject->GetProperties()->GetSize(); i++ )
+		if ( (*pobject->GetProperties())[i]->GetID() == nPropID )
+			return (*pobject->GetProperties())[i];
+
+	return NULL;
+}
+
+
+int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUEncoder * pAPDUEncoder )
+{
+	BACnetObjectIdentifier	bacnetobjidThis(8, m_nInstance);
+
+	if ( pbacnetobjectid->objID != bacnetobjidThis.objID )
+		return 31;												// object not found
+
+	switch( pbacnetpropid->enumValue )
+	{
+		case OBJECT_NAME:
+						{
+						BACnetCharacterString(m_strName).Encode(*pAPDUEncoder);
+						}
+						break;
+
+		case VENDOR_IDENTIFIER:
+						{
+						BACnetUnsigned(m_nVendorID).Encode( *pAPDUEncoder );
+						}
+						break;
+
+		case MAX_APDU_LENGTH_ACCEPTED:
+						{
+						BACnetUnsigned(m_nMaxAPDUSize).Encode( *pAPDUEncoder );
+						}
+						break;
+
+		case APDU_TIMEOUT:
+						{
+						BACnetUnsigned(m_nAPDUTimeout).Encode( *pAPDUEncoder );
+						}
+						break;
+
+		case APDU_SEGMENT_TIMEOUT:
+						{
+						BACnetUnsigned(m_nAPDUSegmentTimeout).Encode( *pAPDUEncoder );
+						}
+						break;
+
+		case NUMBER_OF_APDU_RETRIES:
+						{
+						BACnetUnsigned(m_nAPDURetries).Encode( *pAPDUEncoder );
+						}
+						break;
+
+		case SEGMENTATION_SUPPORTED:
+						{
+						BACnetUnsigned((int) m_segmentation).Encode( *pAPDUEncoder );
+						}
+						break;
+
+		case LOCAL_DATE:
+						{
+						BACnetDate().Encode( *pAPDUEncoder );
+						}
+						break;
+
+		case LOCAL_TIME:
+						{
+						BACnetTime().Encode( *pAPDUEncoder );
+						}
+						break;
+
+		// might be nice to support others implicitly with device declaration... 
+
+		default:
+						return 32;			// property not found
+	}
+
+	return 0;		// no errors
+}
+
+
+
+int VTSDevice :: InternalWriteProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUDecoder * pdec )
+{
+	BACnetObjectIdentifier	bacnetobjidThis(8, m_nInstance);
+
+	if ( pbacnetobjectid->objID != bacnetobjidThis.objID )
+		return 31;												// object not found
+
+	try
+	{
+		BACnetUnsigned	bacnetunsigned;
+
+		switch( pbacnetpropid->enumValue )
+		{
+			case OBJECT_NAME:
+							{
+							BACnetCharacterString str(*pdec);
+							strncpy(m_strName.GetBuffer(str.strLen+1), (const char *) str.strBuff, str.strLen);
+							m_strName.SetAt(str.strLen, 0);
+							m_strName.ReleaseBuffer();
+							}
+							break;
+
+			case VENDOR_IDENTIFIER:
+
+							bacnetunsigned.Decode(*pdec);
+							m_nVendorID = bacnetunsigned.uintValue;
+							break;
+
+			case MAX_APDU_LENGTH_ACCEPTED:
+
+							bacnetunsigned.Decode(*pdec);
+							m_nMaxAPDUSize = bacnetunsigned.uintValue;
+							break;
+
+			case APDU_TIMEOUT:
+
+							bacnetunsigned.Decode(*pdec);
+							m_nAPDUTimeout = bacnetunsigned.uintValue;
+							break;
+
+			case APDU_SEGMENT_TIMEOUT:
+
+							bacnetunsigned.Decode(*pdec);
+							m_nAPDUSegmentTimeout = bacnetunsigned.uintValue;
+							break;
+
+			case NUMBER_OF_APDU_RETRIES:
+
+							bacnetunsigned.Decode(*pdec);
+							m_nAPDURetries = bacnetunsigned.uintValue;
+							break;
+
+			case SEGMENTATION_SUPPORTED:
+
+							bacnetunsigned.Decode(*pdec);
+
+							if ( bacnetunsigned.uintValue > (unsigned int) noSegmentation )
+								return 37;			// value out of range
+
+							m_segmentation = (BACnetSegmentation) bacnetunsigned.uintValue;
+							break;
+
+			// might be nice to support others implicitly with device declaration... 
+			default:
+							return 32;			// property not found
+		}
+	}
+	catch(...)
+	{
+		return 9;			// invalid data type
+	}
+
+	return 0;		// no errors
+}
+
+
+// Possible errors:
+// 2  = device configuration in progress
+// 7  = value is not an array but array indexing requested
+// 25 = internal problems...
+// 31 = object not found
+// 32 = property not found
+// 42 = array index out of bounds
+
+int VTSDevice :: ReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, int nIndex, BACnetAPDUEncoder * pAPDUEncoder )
+{
+	VTSDevObject *		pobject = NULL;
+	VTSDevProperty *	pprop = NULL;
+
+	// First attempt to locate property in question from list... if property is for this device this will 
+	// allow for overrides in device object property configuration
+
+	if ( (pobject = FindObject(pbacnetobjectid->objID)) == NULL )
+		return InternalReadProperty(pbacnetobjectid, pbacnetpropid, pAPDUEncoder);
+
+	if ( (pprop = FindProperty(pobject, pbacnetpropid->enumValue)) == NULL )
+		return InternalReadProperty(pbacnetobjectid, pbacnetpropid, pAPDUEncoder);
+
+	// IF they've requested either the length of the array or a specific element and this isn't
+	// an array, we need to tell them
+
+	if ( !pprop->IsArray() && nIndex != -1 )
+		return 7;											// property is not an array
+
+	if ( nIndex == 0 )
+	{
+		BACnetUnsigned( pprop->GetValues()->GetSize() ).Encode( *pAPDUEncoder );
+		return 0;
+	}
+
+	int nStart;
+
+	// get all values, array or not
+	if ( nIndex == -1 )
+	{
+		nStart = 0;
+		nIndex = pprop->GetValues()->GetSize();
+	}
+	else
+	{
+		// we might be trying to check for out of bounds array...
+		// Remember that the request is base 1
+		if ( nIndex > pprop->GetValues()->GetSize() )
+			return 42;										// array index out of bounds
+		nStart = nIndex-1;
+	}
+
+	for ( ; nStart < nIndex; nStart++ )
+	{
+		VTSDevValue * pvalue = (*pprop->GetValues())[nStart];
+
+		// There may be some problems simply encoding value after value here..
+		// It seems like there needs to be a distinction between sets and arrays (I know there is,
+		// just can't think of it).  Outer loop is for arrays, inner is for set values.
+
+		try
+		{
+			pAPDUEncoder->Append(pvalue->m_abContent, pvalue->m_nLength);
+			VTSDevValues * pvaluesComponents = pvalue->GetValueList();
+			
+			for ( int i = 0; pvaluesComponents != NULL && i < pvaluesComponents->GetSize(); i++ )
+				pAPDUEncoder->Append((*pvaluesComponents)[i]->m_abContent, (*pvaluesComponents)[i]->m_nLength);
+		}
+		catch(...)
+		{
+			return 25;		// database problem...  Append has issues.
+		}
+	}
+
+	return 0;
+}
+
+
+// Possible errors:
+// 2  = device configuration in progress
+// 7  = value is not an array but array indexing requested
+// 25 = internal problems...
+// 31 = object not found
+// 32 = property not found
+// 42 = array index out of bounds
+
+int VTSDevice :: WriteProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, int nIndex, BACnetAPDUDecoder * pdec )
+{
+	VTSDevObject *		pobject = NULL;
+	VTSDevProperty *	pprop = NULL;
+
+	// First attempt to locate property in question from list... if property is for this device this will 
+	// allow for overrides in device object property configuration
+
+	if ( (pobject = FindObject(pbacnetobjectid->objID)) == NULL )
+		return InternalWriteProperty(pbacnetobjectid, pbacnetpropid, pdec);
+
+	if ( (pprop = FindProperty(pobject, pbacnetpropid->enumValue)) == NULL )
+		return InternalWriteProperty(pbacnetobjectid, pbacnetpropid, pdec);
+
+	// IF they've requested to change either the length of the array or a specific element and this isn't
+	// an array, we need to tell them.  This is not physically necessary, but the property must have been 
+	// marked as an array before we should be allowed to make it so by adding elements
+
+	if ( !pprop->IsArray() && nIndex != -1 )
+		return 7;											// property is not an array
+
+	// They want to change the length of the array... We'll just fill it with null values or cut off
+	// others...
+
+	VTSDevValues * pvalues = pprop->GetValues();
+
+	if ( nIndex == 0 )
+	{
+		BACnetUnsigned	bacnetunsignedLength(*pdec);			// auto decodes
+
+		if ( bacnetunsignedLength.uintValue < 0 )
+			return 42;	 // invalid-array-index
+
+		// Now we'll go through all the elements and add some or remove some...
+		unsigned long nExistingCount = pvalues->GetSize();
+
+		if ( bacnetunsignedLength.uintValue < nExistingCount )
+		{
+			// need to kill a few existing values... start at the end and work backwards
+			for ( ; nExistingCount > bacnetunsignedLength.uintValue; nExistingCount-- )
+			{
+				delete (*pvalues)[nExistingCount-1];
+				pvalues->RemoveAt(nExistingCount-1);
+			}
+		}
+		else if ( bacnetunsignedLength.uintValue > nExistingCount )
+		{
+			// need to add some null elements... they'll be changed later (I guess in another bacnet message)
+			for ( ; nExistingCount < bacnetunsignedLength.uintValue; nExistingCount++ )
+				pvalues->Add(new VTSDevValue());
+		}
+
+		return 0;
+	}
+
+	// OK... they want to change either an existing element or the whole thing...
+	// all of the nodes have been added so it's just a matter of changing the contents of each node
+
+	int nStart;
+
+	// replace all values, array or not
+	if ( nIndex == -1 )
+	{
+		nStart = 0;
+		nIndex = pvalues->GetSize();
+	}
+	else
+	{
+		// we might be trying to check for out of bounds array...
+		// Remember that the request is base 1
+
+		if ( nIndex > pvalues->GetSize() )
+			return 42;										// array index out of bounds
+		nStart = nIndex-1;
+	}
+
+	// This really doesn't work too well... Something about arrays, sets and whatnot is going
+	// to change this code.  For now, just go through what you find in the encoded stream and stuff
+	// each value in the array
+
+	BACnetAPDUTag	t;
+	int nNestCount = 0;
+	bool fFinish = false;
+
+	while ( nStart < nIndex  &&  !fFinish && pdec->pktLength > 0 )
+	{
+		VTSDevValue * pvalue = (*pvalues)[nStart];
+
+		// There may be some problems simply encoding value after value here..
+		// It seems like there needs to be a distinction between sets and arrays (I know there is,
+		// just can't think of it).  Outer loop is for arrays, inner is for set values.
+
+		try
+		{
+			pdec->ExamineTag(t);
+
+			switch (t.tagClass)
+			{
+				case contextTagClass:
+					// set this as an octet string.  Because it is context tagged, the datatype connot
+					// be determined, the context isn't maintained.  It could be, because we know the 
+					// object type and property, and we could even validate the datatype along the 
+					// way, but that will be saved for future work.
+					pvalue->m_nType = octetStringAppTag;
+					pvalue->m_nContext = (int) t.tagNumber;
+					break;
+					
+				case openingTagClass:
+
+					nNestCount++;
+					pvalue->m_nType = 13;	// opening tag
+					pvalue->m_nContext = (int) t.tagNumber;
+					break;
+					
+				case closingTagClass:
+
+					if ( !nNestCount--)
+					{
+						fFinish = true;
+						break;
+					}
+
+					pvalue->m_nType = 14;	// closing tag
+					pvalue->m_nContext = (int) t.tagNumber;
+					break;
+				
+				case applicationTagClass:
+
+					pvalue->m_nType = t.tagNumber;	// tag number matches type
+					pvalue->m_nContext = -1;
+					break;
+			}
+		}
+		catch (...)
+		{
+			return 25;			// decoding error
+		}
+
+		// done yet?
+		if ( !fFinish )
+			pvalue->m_nLength = pdec->ExtractTagData(pvalue->m_abContent);
+
+		nStart++;
+	}
+
+	return 0;
+}
+
+
+const VTSDevice& VTSDevice::operator=(const VTSDevice& rdeviceSrc)
+{
+	m_strName = rdeviceSrc.m_strName;
+	m_nInstance = rdeviceSrc.m_nInstance;
+	m_fRouter = rdeviceSrc.m_fRouter;
+	m_segmentation = rdeviceSrc.m_segmentation;
+	m_nSegmentSize = rdeviceSrc.m_nSegmentSize;
+	m_nWindowSize = rdeviceSrc.m_nWindowSize;
+	m_nMaxAPDUSize = rdeviceSrc.m_nMaxAPDUSize;
+	m_nNextInvokeID = rdeviceSrc.m_nNextInvokeID;
+	m_nAPDUTimeout = rdeviceSrc.m_nAPDUTimeout;
+	m_nAPDUSegmentTimeout = rdeviceSrc.m_nAPDUSegmentTimeout;
+	m_nAPDURetries = rdeviceSrc.m_nAPDURetries;
+	m_nVendorID = rdeviceSrc.m_nVendorID;
+
+	m_devobjects.DeepCopy(&rdeviceSrc.m_devobjects);
+	
+	return *this;
+}
+
+
+IMPLEMENT_VTSPTRARRAY(VTSDevices, VTSDevice);
+
+
+
+/* MAD_DB
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSDeviceList
@@ -2228,8 +3764,7 @@ void VTSDeviceList::Add( void )
 
 void VTSDeviceList::Remove( int i )
 {
-	ASSERT( 0 );
-/*
+//	ASSERT( 0 );
 	int			stat
 	;
 	POSITION	pos = FindIndex( i )
@@ -2240,7 +3775,6 @@ void VTSDeviceList::Remove( int i )
 	RemoveAt( pos );
 
 	stat = m_pDoc->m_pDB->dbDeviceList.DeleteElem( i );
-*/
 }
 
 //
@@ -2308,6 +3842,9 @@ VTSDevicePtr VTSDeviceList::operator []( int i )
 	return GetAt( pos );
 }
 
+*/  
+
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSWinWinPcapPort
 
@@ -2318,8 +3855,11 @@ VTSDevicePtr VTSDeviceList::operator []( int i )
 extern CSendGroupPtr gEthernetGroupList[];
 extern CSendGroupPtr gARCNETGroupList[];
 
+//VTSWinPacket32Port::VTSWinPacket32Port( VTSPortPtr pp )
+//	: WinPacket32( pp->m_strConfigParms )
 VTSWinWinPcapPort::VTSWinWinPcapPort( VTSPortPtr pp )
-	: WinWinPcap( pp->portDesc.portConfig )
+	: WinWinPcap( pp->m_strConfigParms )
+//	: WinWinPcap( pp->portDesc.portConfig )
 	, m_pPort( pp )
 {
 	// let the port know which send group to use
@@ -2346,7 +3886,9 @@ void VTSWinWinPcapPort::FilterData( BACnetOctet *data, int len, BACnetPortDirect
 	;
 	
 	// fill in the packet header
-	pkt.packetHdr.packetPortID = m_pPort->portDescID;
+//	pkt.packetHdr.packetPortID = m_pPort->portDescID;
+	strncpy(pkt.packetHdr.m_szPortName, m_pPort->GetName(), sizeof(pkt.packetHdr.m_szPortName)-1);
+
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = (dir == portSending) ? txData : rxData;
 
@@ -2371,13 +3913,17 @@ void VTSWinWinPcapPort::FilterData( BACnetOctet *data, int len, BACnetPortDirect
 	pkt.NewDataRef( data, len );
 
 	// save it in the database;
-	m_pPort->portDoc->m_pDB->WritePacket( -1, pkt );
+//	m_pPort->portDoc->m_pDB->WritePacket( -1, pkt );			// MAD_DB
+	m_pPort->portDoc->WritePacket( pkt );
 
+//MAD_DB  This is now called from the Doc's WritePacket
+/*
 	// tell the application
 	if (m_pPort->portDoc->m_postMessages)
 		::PostThreadMessage( AfxGetApp()->m_nThreadID
 			, WM_VTS_RCOUNT, (WPARAM)0, (LPARAM)m_pPort->portDoc
 			);
+*/
 }
 
 //
@@ -2411,7 +3957,7 @@ void VTSWinWinPcapPort::PortStatusChange( void )
 extern CSendGroupPtr gIPGroupList[];
 
 VTSWinIPPort::VTSWinIPPort( VTSPortPtr pp )
-	: WinIP( pp->portDesc.portConfig )
+	: WinIP( pp->m_strConfigParms )
 	, m_pPort( pp )
 {
 	// let the port know which send group to use
@@ -2438,7 +3984,9 @@ void VTSWinIPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection d
 	;
 
 	// fill in the packet header
-	pkt.packetHdr.packetPortID = m_pPort->portDescID;
+//	pkt.packetHdr.packetPortID = m_pPort->portDescID;
+	strncpy(pkt.packetHdr.m_szPortName, m_pPort->GetName(), sizeof(pkt.packetHdr.m_szPortName)-1);
+
 	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::ipProtocol;
 	pkt.packetHdr.packetFlags = 0 /* (pdu.pduExpectingReply << 8) + pdu.pduNetworkPriority */;
 	pkt.packetHdr.packetType = (dir == portSending) ? txData : rxData;
@@ -2456,13 +4004,17 @@ void VTSWinIPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection d
 	pkt.NewDataRef( data, len );
 	
 	// save it in the database;
-	m_pPort->portDoc->m_pDB->WritePacket( -1, pkt );
+//	m_pPort->portDoc->m_pDB->WritePacket( -1, pkt );			// MAD_DB
+	m_pPort->portDoc->WritePacket( pkt );
 	
+//MAD_DB  This is now called from the Doc's WritePacket
+/*
 	// tell the application there is a new packet count
 	if (m_pPort->portDoc->m_postMessages)
 		::PostThreadMessage( AfxGetApp()->m_nThreadID
 			, WM_VTS_RCOUNT, (WPARAM)0, (LPARAM)m_pPort->portDoc
 			);
+*/
 }
 
 //
@@ -2559,8 +4111,3 @@ void VTSDevicePort::SendData( BACnetOctet *data, int len )
 	m_pDevice->SendAPDU( apdu );
 }
 
-void VTSDoc::OnFileSave() 
-{
-	// TODO: Add your command handler code here
-	
-}

@@ -62,10 +62,17 @@ BOOL CSendEnet::OnInitDialog()
 
 	CPropertyPage::OnInitDialog();
 	
+	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+
 	// load the combos
-	m_SADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID );
+//MAD_DB	m_SADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID );
+	if ( pdoc )
+		m_SADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
 	m_SADR.FindName( "TD" );
-	m_DADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID );
+
+//MAD_DB	m_DADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID );
+	if ( pdoc )
+		m_DADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
 	m_DADR.FindName( "IUT" );
 
 	return TRUE;

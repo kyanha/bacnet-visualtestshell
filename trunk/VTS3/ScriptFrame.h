@@ -23,7 +23,9 @@
 // Added by Liangping Xu,2002-11
 #include "CheckEPICSCons.h"
 //////////////////////////
-class ScriptFrame : public CMDIChildWnd
+//madanner, 5/03
+//class ScriptFrame : public CMDIChildWnd
+class ScriptFrame : public CMDIFrameWnd
 {
 	DECLARE_DYNCREATE(ScriptFrame)
 public:
@@ -45,6 +47,9 @@ public:
 
 // Attributes
 public:
+
+	void SetLnPaneText(LPCSTR lpszText);
+	void OnUpdateFrameTitle(BOOL bAddToTitle);		// override from CFrameWnd
 
 // Operations
 public:
@@ -69,9 +74,13 @@ public:
 
 // Generated message map functions
 protected:
+	CStatusBar  m_wndStatusBar;
+	CToolBar    m_wndToolBar;
+
 	CFile m_readAllPropFile;
 	CString m_strFileFullName;
 	BOOL CreateScriptFile();
+
 	//{{AFX_MSG(ScriptFrame)
 	afx_msg void OnUpdateScriptCheckSyntax(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptLoadEPICS(CCmdUI* pCmdUI);

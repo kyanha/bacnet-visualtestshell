@@ -48,6 +48,12 @@ public:
 	int				m_iSelectedElem;
 	CImageList		m_ilStatus;							// status images
 
+	// madanner 5/03, We have to maintain a copy of the list control so we can safely
+	// search the array of parameters from another thread (the script thread managed by
+	// the task manager).  Don't delete memory from this list... all handled elsewhere.
+
+	CTypedPtrArray<CPtrArray, ScriptParm *>	m_apParms;
+
 	CListCtrl		*m_pListCtrl;						// handy pointer to list control
 
 // Operations

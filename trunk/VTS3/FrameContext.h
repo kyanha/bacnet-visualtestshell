@@ -31,7 +31,8 @@ class CFrameContext {
 
 		int				m_PacketCount;		// tracks pDoc->m_PacketCount
 		int				m_CurrentPacket;	// 0..m_PacketCount, or -1
-		VTSPacket		m_Packet;			// packet contents
+
+//MAD_DB	VTSPacket		m_Packet;			// packet contents
 		BACnetPIInfo	m_PacketInfo;		// decoded packet details
 
 		int				m_DetailCount;		// number of detail lines in current packet
@@ -46,6 +47,7 @@ class CFrameContext {
 			, eNewDetailCount = 3
 			, eNewCurrentDetail = 4
 			, eNewCurrentRange = 5
+			, eUpdatePrefs = 6
 			};
 		
 		void SetPacketCount( int packetCnt );
@@ -53,6 +55,10 @@ class CFrameContext {
 		void SetDetailCount( int detailCnt );
 		void SetCurrentDetail( int detailNum );
 		void SetCurrentRange( int start, int len );
+		void UpdatePrefs();
+
+		// MAD_DB
+		VTSPacketPtr GetCurrentPacket(void);
 
 		void AddListener( CFrameContextListener* pListener );
 

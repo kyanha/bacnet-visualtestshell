@@ -7,29 +7,36 @@
 // VTSPortEthernetDialog.h : header file
 //
 
+#include "VTSPropertyPage.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortEthernetDialog dialog
 
-class VTSPortEthernetDialog : public CDialog
+class VTSPortEthernetDialog : public VTSPropertyPage
 {
-// Construction
+	DECLARE_DYNCREATE(VTSPortEthernetDialog)
+
+	CString		* m_pstrConfigParms;
+
+	// Construction
 public:
-	VTSPortEthernetDialog(CString *cp, CWnd* pParent = NULL);   // standard constructor
-
-	CString		*m_Config;
-
-	virtual void OnOK();
+	VTSPortEthernetDialog( VTSPageCallbackInterface * pparent );
+	VTSPortEthernetDialog();
+	~VTSPortEthernetDialog();
 
 // Dialog Data
 	//{{AFX_DATA(VTSPortEthernetDialog)
-	enum { IDD = IDD_PORT_ENET };
-	CComboBox	m_AdapterCombo;
-	CButton		m_Promiscuous;
+	enum { IDD = IDD_PORTPAGE_ENET };
+	CString		m_strAdapter;
+	BOOL		m_fPromiscuous;
 	//}}AFX_DATA
 
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(VTSPortEthernetDialog)
+	public:
+	virtual BOOL OnSetActive();
+	virtual BOOL OnKillActive();
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
@@ -39,8 +46,12 @@ protected:
 
 	// Generated message map functions
 	//{{AFX_MSG(VTSPortEthernetDialog)
-	virtual BOOL OnInitDialog();
+	afx_msg void OnDataChange();
 	//}}AFX_MSG
+
+	void ObjToCtrl(void);
+	void CtrlToObj(void);
+
 	DECLARE_MESSAGE_MAP()
 };
 

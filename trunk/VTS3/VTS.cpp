@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "VTS.h"
 
+#include "VTSPreferences.h"
 #include "MainFrm.h"
 #include "ChildFrm.h"
 
@@ -52,12 +53,22 @@ ScriptDebugNetFilter	gDebug1( "_1" );
 ScriptDebugNetFilter	gDebug2( "_2" );
 #endif
 
+
+// Defined in VTSPacketDB.h
+extern const int kVTSDBMajorVersion = 3;			// current version
+extern const int kVTSDBMinorVersion = 4;
+
+extern CWinThread	*gBACnetWinTaskThread;
+
+
 //
 //	VTSApp
 //
 
 VTSApp theApp;
-extern CWinThread	*gBACnetWinTaskThread;
+
+VTSPreferences	gVTSPreferences;
+
 
 BEGIN_MESSAGE_MAP(VTSApp, CWinApp)
 	//{{AFX_MSG_MAP(VTSApp)
@@ -66,8 +77,12 @@ BEGIN_MESSAGE_MAP(VTSApp, CWinApp)
 		//    DO NOT EDIT what you see in these blocks of generated code!
 	//}}AFX_MSG_MAP
 	// Standard file based document commands
+	ON_UPDATE_COMMAND_UI(ID_FILE_MRU_WKS1, OnUpdateRecentWorkspaceMenu)
+	ON_COMMAND_EX_RANGE(ID_FILE_MRU_WKS1, ID_FILE_MRU_WKS15, OnOpenRecentWorkspace)
 	ON_COMMAND(ID_FILE_NEW, CWinApp::OnFileNew)
 	ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
+	ON_COMMAND(ID_FILE_WKS_NEW, OnFileWksNew)
+	ON_COMMAND(ID_FILE_WKS_SWITCH, OnFileWksSwitch)
 	// Standard print setup command
 	ON_COMMAND(ID_FILE_PRINT_SETUP, CWinApp::OnFilePrintSetup)
 END_MESSAGE_MAP()
@@ -76,11 +91,49 @@ END_MESSAGE_MAP()
 //	VTSApp::VTSApp
 //
 
-VTSApp::VTSApp()
+VTSApp::VTSApp(void)
 {
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
+
+
+VTSApp::~VTSApp(void)
+{
+	if ( m_pdoctempConfig != NULL )		// kill saved workspace template
+		delete m_pdoctempConfig;
+
+	if (m_pRecentWorkspaceList != NULL)
+		delete m_pRecentWorkspaceList;
+}
+
+
+void VTSApp::AddToRecentWorkspaceList(LPCTSTR lpszPathName)
+{
+	ASSERT_VALID(this);
+	ASSERT(lpszPathName != NULL);
+	ASSERT(AfxIsValidString(lpszPathName));
+
+	if (m_pRecentWorkspaceList != NULL)
+		m_pRecentWorkspaceList->Add(lpszPathName);
+}
+
+
+void VTSApp::LoadWorkspaceMRU(UINT nMaxMRU)
+{
+	ASSERT_VALID(this);
+	ASSERT(m_pRecentWorkspaceList == NULL);
+
+	if (nMaxMRU != 0)
+	{
+		// create file MRU since nMaxMRU not zero
+		m_pRecentWorkspaceList = new CRecentFileList(0, _T("Recent Workspace List"), _T("File%d"),	nMaxMRU);
+		m_pRecentWorkspaceList->ReadList();
+	}
+
+//	m_nNumPreviewPages = GetProfileInt(_afxPreviewSection, _afxPreviewEntry, 0);
+}
+
 
 //
 //	VTSApp::InitInstance
@@ -108,41 +161,32 @@ BOOL VTSApp::InitInstance()
 #endif
 
 	// Change the registry key under which our settings are stored.
-	// TODO: You should modify this string to be something appropriate
-	// such as the name of your company or organization.
-	SetRegistryKey(_T("Visual Test Shell 3"));
+//	SetRegistryKey(_T("Visual Test Shell 3"));
+	SetRegistryKey(IDS_REGISTRYKEY);
 
 	//First free the string allocated by MFC at CWinApp startup.
 	//The string is allocated before InitInstance is called.
-	free((void*)m_pszProfileName);
+//	free((void*)m_pszProfileName);
 	
 	//Change the name of the .INI file.
 	//The CWinApp destructor will free the memory.
 
-	CString temp;
-	GetCurrentDirectory(200,temp.GetBuffer(200));
-	temp.Format("%s%s",temp.GetBuffer(0),"\\vts.ini");
-	m_pszProfileName=_tcsdup(temp.GetBuffer(0));
+// What in the world is this for?  madanner
 
+//	CString temp;
+//	GetCurrentDirectory(200,temp.GetBuffer(200));
+//	temp.Format("%s%s",temp.GetBuffer(0),"\\vts.ini");
+//	m_pszProfileName=_tcsdup(temp.GetBuffer(0));
 
 	LoadStdProfileSettings(5);  // Load standard INI file options (including MRU)
+	LoadWorkspaceMRU(5);
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views.
 
-	AddDocTemplate(new CMultiDocTemplate(
-		IDR_VDBTYPE,
-		RUNTIME_CLASS(VTSDoc),
-		RUNTIME_CLASS(CChildFrame),
-		RUNTIME_CLASS(CListSummaryView))
-		);
-
-	AddDocTemplate(new CMultiDocTemplate(
-		IDR_VTSTYPE,
-		RUNTIME_CLASS(ScriptDocument),
-		RUNTIME_CLASS(ScriptFrame),
-		RUNTIME_CLASS(CEditView))
-		);
+	m_pdoctempConfig = new CMultiDocTemplate(IDR_VDBTYPE, RUNTIME_CLASS(VTSDoc), RUNTIME_CLASS(CChildFrame), RUNTIME_CLASS(CListSummaryView));
+//	AddDocTemplate(pdoctempConfig);
+	AddDocTemplate(new CMultiDocTemplate(IDR_VTSTYPE, RUNTIME_CLASS(ScriptDocument), RUNTIME_CLASS(ScriptFrame), RUNTIME_CLASS(CEditView)));
 
 	// create main MDI Frame window
 	CMainFrame* pMainFrame = new CMainFrame;
@@ -180,12 +224,6 @@ BOOL VTSApp::InitInstance()
 	// make sure the adapter list is intialized
 //	InitAdapterList();
 
-	// initialize the BACnet task manager
-	gTaskManager = new WinBACnetTaskManager();
-
-	// Move and add it from WinBACnetTaskManager::WinBACnetTaskManager ,Modified by xuyiping-hust
-	gBACnetWinTaskThread->ResumeThread();
-
 #if NT_DebugMemState
 	_CrtSetAllocHook( VTSAllocHook );
 #endif
@@ -203,6 +241,44 @@ BOOL VTSApp::InitInstance()
 	// check WinPcap
 	CheckWinPcapVersion();
 
+	// Get the last opened workspace....  Will be empty if none.
+	CString strLast = (*m_pRecentWorkspaceList)[0];
+
+	// initialize the BACnet task manager
+	gTaskManager = new WinBACnetTaskManager();
+
+	// attempt to open the last document if they've had one... 
+	if ( !strLast.IsEmpty() )
+	{
+		if ( !m_pdoctempConfig->OpenDocumentFile(strLast) )
+		{
+			// Open failed, ask if they want to open default config
+			CString strErr;
+			strErr.Format(IDS_ERR_FILEMOVEON, strLast, VTSDoc::m_pszDefaultFilename);
+			switch ( AfxMessageBox(strErr, MB_ICONQUESTION | MB_YESNOCANCEL) )
+			{
+				case IDYES:		strLast = VTSDoc::m_pszDefaultFilename; break;
+				case IDNO:		strLast.Empty();	break;
+				default:		return FALSE;
+			}
+		}
+		else
+			strLast.Empty();
+	}
+	else
+		strLast = VTSDoc::m_pszDefaultFilename;
+
+	// when we get here strLast is empty if the file has already been opened...
+
+	if ( !strLast.IsEmpty() )
+		if ( !m_pdoctempConfig->OpenDocumentFile(VTSDoc::m_pszDefaultFilename) )
+			m_pdoctempConfig->OpenDocumentFile(NULL);
+
+	// move on from here... if we haven't opened a document file... we're just going to have to allow
+	// the user to attempt one
+
+	// Move and add it from WinBACnetTaskManager::WinBACnetTaskManager ,Modified by xuyiping-hust
+	gBACnetWinTaskThread->ResumeThread();
 	return TRUE;
 }
 
@@ -222,44 +298,141 @@ int VTSApp::ExitInstance()
 	if (gAdapterList)
 		delete[] gAdapterList;
 
+	if (m_pRecentWorkspaceList != NULL)
+		m_pRecentWorkspaceList->WriteList();
+
 	// continue with normal egress
 	return CWinApp::ExitInstance();
 }
 
-//
-//	VTSPreferences
-//
 
-VTSPreferences	gVTSPreferences;
-
-//
-//	VTSPreferences::Load
-//
-
-void VTSPreferences::Load( void )
+void VTSApp::OnFileWksNew()
 {
-	CWinApp* pApp = AfxGetApp();
+	CFileStatus	fs;
+	LPCSTR lpszFile = NULL;
 
-	summaryFields = pApp->GetProfileInt( "Summary", "Fields", 0);
-	summaryNameWidth = pApp->GetProfileInt( "Summary", "NameWidth", 0);
-	summaryTimeFormat = pApp->GetProfileInt( "Summary", "TimeFormat", 0);
+	// test to see if the default config file already exists... if it does it will get overwritten so
+	// we need to make sure the user wants to do this...
 
-	sendInvokeID = pApp->GetProfileInt( "Send", "InvokeID", 0);
+	if ( CFile::GetStatus(VTSDoc::m_pszDefaultFilename, fs) )
+	{
+		// config file we're about to overwrite already exists...
+		// Get the full path of the default file we're trying to create
+
+		CString strmsg;
+		TCHAR szFullPathNew[_MAX_PATH];
+
+		LPTSTR lpszFilePart;
+		GetFullPathName(VTSDoc::m_pszDefaultFilename, _MAX_PATH, szFullPathNew, &lpszFilePart);
+
+		// Test to see if the full file is really the same as the one currently loaded
+		CDocument * pdocCurrent = GetWorkspace();
+
+		if ( pdocCurrent != NULL && pdocCurrent->GetPathName().CompareNoCase(szFullPathNew) == 0 )
+		{
+			// default file exists already...  and it happens to be the same one that is currently
+			// loaded.  Going ahead will rewrite the currently loaded workspace with defaults
+			// loosing what we've got.  Ask user if he wants to go ahead. 
+			// If yes, just drop through and overwrite this file
+
+			strmsg.Format(IDS_WKS_OVERWRITESAVE, VTSDoc::m_pszDefaultFilename);
+
+			switch( AfxMessageBox(strmsg, MB_YESNOCANCEL | MB_ICONQUESTION) )
+			{
+				case IDNO:		// user wants to save currently workspace to different name... 
+								// if he goes through with this, close down and drop through
+								// to reopen file and recreate.
+					
+								if ( !GetWorkspace()->DoSave(NULL) )
+									return;
+								break;
+
+				case IDCANCEL:	return;				// abort all
+			}
+		}
+		else
+		{
+			// OK... file to be recreated is NOT the same as the one we've got loaded
+			// so ask user if he wants to proceed.
+			// If yes, just drop through and overwrite the new file... the current one is already saved
+
+			strmsg.Format(IDS_WKS_OVERWRITE, VTSDoc::m_pszDefaultFilename);
+
+			switch( AfxMessageBox(strmsg, MB_YESNOCANCEL | MB_ICONQUESTION) )
+			{
+				case IDNO:		// User wants to switch to default file and NOT overwrite...
+								// so perform same as Workspace Switch...
+								lpszFile = VTSDoc::m_pszDefaultFilename;	break;
+
+				case IDCANCEL:	return;				// abort all
+			}
+		}
+	}
+
+	m_pdoctempConfig->CloseAllDocuments(TRUE);
+	m_pdoctempConfig->OpenDocumentFile(lpszFile);
 }
 
-//
-//	VTSPreferences::Save
-//
 
-void VTSPreferences::Save( void )
+void VTSApp::OnFileWksSwitch()
 {
-	CWinApp* pApp = AfxGetApp();
+	CString newName;
+	if ( !DoPromptFileName(newName,IDS_WKS_SWITCH, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST, TRUE, m_pdoctempConfig))
+		return;
 
-	pApp->WriteProfileInt( "Summary", "Fields", summaryFields );
-	pApp->WriteProfileInt( "Summary", "NameWidth", summaryNameWidth );
-	pApp->WriteProfileInt( "Summary", "TimeFormat", summaryTimeFormat );
+	m_pdoctempConfig->CloseAllDocuments(TRUE);
+	m_pdoctempConfig->OpenDocumentFile(newName);
+}
 
-	pApp->WriteProfileInt( "Send", "InvokeID", sendInvokeID );
+
+CDocument * VTSApp::GetWorkspace(void)
+{
+	ASSERT(m_pdoctempConfig != NULL);
+	if ( m_pdoctempConfig == NULL )
+		return NULL;
+
+	POSITION pos = m_pdoctempConfig->GetFirstDocPosition();
+	return m_pdoctempConfig->GetNextDoc(pos);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// MRU workspace list default implementation
+
+void VTSApp::OnUpdateRecentWorkspaceMenu(CCmdUI* pCmdUI)
+{
+	ASSERT_VALID(this);
+
+	if (m_pRecentWorkspaceList == NULL) // no MRU files
+		pCmdUI->Enable(FALSE);
+	else
+		m_pRecentWorkspaceList->UpdateMenu(pCmdUI);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// MRU workspace list default implementation
+
+BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
+{
+	ASSERT(m_pRecentFileList != NULL);
+
+	ASSERT(nID >= ID_FILE_MRU_WKS1);
+	ASSERT(nID < ID_FILE_MRU_WKS1 + (UINT)m_pRecentWorkspaceList->GetSize());
+	int nIndex = nID - ID_FILE_MRU_WKS1;
+	ASSERT((*m_pRecentWorkspaceList)[nIndex].GetLength() != 0);
+
+	m_pdoctempConfig->CloseAllDocuments(TRUE);
+	if ( m_pdoctempConfig->OpenDocumentFile((*m_pRecentWorkspaceList)[nIndex]) == NULL )
+	{
+		CString strErr;
+		strErr.Format(IDS_ERR_FILEOPENRCT, (*m_pRecentWorkspaceList)[nIndex] );
+		AfxMessageBox(strErr, MB_OK);
+
+		m_pRecentWorkspaceList->Remove(nIndex);
+	}
+
+	return TRUE;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -823,6 +996,21 @@ void VTSPreferences::Save( void )
 //
 //			Trapped corrupted and inconsistent database opens, report the problem and control document close.
 //
+//	3.4		Removed internal DB and replaced with .cfg serialized configuration files.
+//			Packets are stored in separate file whose name is changeable and stored with configuration.
+//			Configuration file save upon changes.
+//			Added seperate menu for 'workspace' configuration files.
+//			Cleaned up and seperated menus for each frame (also removed window management items).
+//			
+//			Modified layout of script windows:
+//			Detached script windows to their own frame window.
+//			Added separate button bar and menus to frame window instead of in-place activations on main frame.
+//			Modified some threading problems with scripts and main window interaction (parent wnds and such).
+//
+//			Reworked all configuration dialogs for cancel, post configuration activiation and organization.
+//
+//			Merged changes for new ethernet traffic via WinPCap (Joel).
+//
 //			Replaced BACMACNT driver with WinPcap library calls.  No changes to the database format, just the
 //			format of the adapter/interface configuration strings.
 //
@@ -857,7 +1045,7 @@ protected:
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {
 	//{{AFX_DATA_INIT(CAboutDlg)
-	m_Version = _T("");
+//	m_Version = _T("");
 	//}}AFX_DATA_INIT
 
 	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d"
@@ -887,6 +1075,7 @@ void VTSApp::OnAppAbout()
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
 }
+
 
 //
 //	VTSApp::CheckWinPcapVersion
@@ -964,9 +1153,19 @@ BOOL VTSApp::PreTranslateMessage(MSG* pMsg)
 		// ### we really need a mechanism to make sure that the lParam
 		// is a VTSDocPtr without dereferencing it.
 
-		switch (pMsg->message) {
+		switch (pMsg->message)
+		{
 			case WM_VTS_RCOUNT:
-				((VTSDocPtr)(pMsg->lParam))->NewPacketCount();
+//MAD_DB		((VTSDocPtr)(pMsg->lParam))->NewPacketCount();
+				((VTSDocPtr)(pMsg->lParam))->ProcessPacketStoreChange();
+				break;
+
+			case WM_VTS_MAXPACKETS:
+
+				// maximum packets have been reached... we're here because the main app thread
+				// has to tell us about it...
+
+				AfxMessageBox(IDS_ERR_MAXPACKETS, MB_ICONSTOP | MB_OK);
 				break;
 
 			case WM_VTS_PORTSTATUS:

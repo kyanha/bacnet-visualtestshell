@@ -23,10 +23,11 @@
 #include "WinIP.hpp"
 #include "WinWinPcap.hpp"
 
-#include "JConfig.hpp"
-#include "JDB.hpp"
+//MAD_DB #include "JConfig.hpp"
+//MAD_DB #include "JDB.hpp"
+#include "VTSPropValue.h"
 
-#include "VTSDB.h"
+#include "VTSPacketDB.h"
 
 class VTSStatisticsCollector;
 typedef VTSStatisticsCollector *VTSStatisticsCollectorPtr;
@@ -68,8 +69,10 @@ typedef VTSDevicePort *VTSDevicePortPtr;
 class VTSDeviceDlg;
 typedef VTSDeviceDlg *VTSDeviceDlgPtr;
 
+/* MAD_DB
 class VTSObjPropValueList;
 typedef VTSObjPropValueList *VTSObjPropValueListPtr;
+*/
 
 struct CSendGroup;
 typedef CSendGroup *CSendGroupPtr;
@@ -86,17 +89,35 @@ typedef ScriptNetFilter *ScriptNetFilterPtr;
 //	the descriptor.
 //
 
-class VTSPort {
+//MAD_DB class VTSPort {
+
+enum VTSPortType
+	{ nullPort
+	, ipPort
+	, ethernetPort
+	, arcnetPort
+	, mstpPort
+	, ptpPort
+	};
+
+class VTSPort : public CObject
+{
+	private:
+		static const char *m_pszPortTypes[6];
+
+		bool m_fDirty;									// set if modifications (or new) have been made
+
 	protected:
-		void AddToMasterList( void );
-		void RemoveFromMasterList( void );
+
+//		void AddToMasterList( void );
+//		void RemoveFromMasterList( void );
 
 	public:
 		int					portStatus;					// non-zero iff error
 		char				*portStatusDesc;			// status description
 
-		objId				portDescID;					// ID of descriptor
-		VTSPortDesc			portDesc;					// port configuration info
+//MAD_DB		objId				portDescID;					// ID of descriptor
+//MAD_DB		VTSPortDesc			portDesc;					// port configuration info
 
 		VTSDocPtr			portDoc;					// doc for packets
 		CSendGroupList		portSendGroup;				// send group to form packets
@@ -110,19 +131,57 @@ class VTSPort {
 		BACnetBIPForeignPtr	portBIPForeign;				// BIP Foreign
 		BACnetNetServerPtr	portBindPoint;				// points to one of the above
 
-		VTSDevicePtr		portDevice;					// pointer to bound device
+		VTSDevicePtr		m_pdevice;					// pointer to bound device
 
-		VTSPort( VTSDocPtr dp, objId id );
+		// Begin persistent data
+		CString				m_strName;
+		VTSPortType			m_nPortType;				// port type
+		BOOL				m_fEnabled;					// true iff IO should be enabled
+		int					m_nNet;						// network associated with device
+		CString				m_strDevice;				// Name of bound device, fixed-up at load and save
+		CString				m_strConfigParms;			// configuration string
+		// End persistent data
+
+//MAD_DB		VTSPort( VTSDocPtr dp, objId id );
+		VTSPort( void );
 		~VTSPort( void );
 
-		void ReadDesc( void );							// read descriptor from database
-		void WriteDesc( void );							// save changes to descriptor
-		void Configure( CString *cp );					// request a configuration dialog
+//		void ReadDesc( void );							// read descriptor from database
+//		void WriteDesc( void );							// save changes to descriptor
+// Moved to dialog 		void Configure( CString *cp );					// request a configuration dialog
 
 		void Refresh( void );							// reconnect to port
+		void Deactivate( void );
 
 		void SendData( BACnetOctet *data, int len );	// pass data to endpoint
-	};
+
+		LPCSTR GetName(void) { return m_strName; }
+		LPCSTR GetTypeDesc(int n) { return m_pszPortTypes[n]; }
+		LPCSTR GetTypeDesc(void) { return GetTypeDesc(m_nPortType); }
+		LPCSTR GetDeviceName(void) { return m_strDevice; }
+
+		void SetName( LPCSTR lpszName );
+		void SetEnabled( BOOL fEnabled = true );
+		void SetConfig( LPCSTR lpszConfig );
+		void SetPortType( VTSPortType nType );
+		void SetNetwork( int nNetwork );
+		void SetDevice( VTSDevice * pdevice );
+
+		bool IsDirty() { return m_fDirty; }
+		bool IsEnabled() { return m_fEnabled == TRUE; }
+		void SetDirty( bool fDirty = true ) { m_fDirty = fDirty; }
+		void BindDevice(void);
+		void UnbindDevice(void);
+
+		const VTSPort& operator=(const VTSPort& rportSrc);
+		void Serialize( CArchive& archive );
+
+		DECLARE_SERIAL(VTSPort)
+};
+
+
+DECLARE_VTSPTRARRAY(VTSPorts, VTSPort)
+
 
 typedef VTSPort *VTSPortPtr;
 
@@ -130,6 +189,7 @@ typedef VTSPort *VTSPortPtr;
 //	VTSPortList
 //
 
+/* MAD_DB
 class VTSPortList : public CList<VTSPortPtr,VTSPortPtr> {
 		friend class VTSPort;
 
@@ -146,19 +206,23 @@ class VTSPortList : public CList<VTSPortPtr,VTSPortPtr> {
 		void Add( void );								// add a new port
 		void Remove( int i );							// remove a port
 		VTSPortPtr FindPort( const char *name );		// find a port with a given name
+		VTSPortPtr FindPort( objId portID );			// find a port with a given port ID
 
 		int Length( void );								// number of defined ports
 		VTSPortPtr operator []( int i );				// index into port list
 	};
 
+
 typedef VTSPortList *VTSPortListPtr;
 
 extern VTSPortList	gMasterPortList;					// global list of all ports
+*/
 
 //
 //	VTSNameList
 //
 
+/* MAD_DB
 class VTSNameList {
 	protected:
 		VTSDocPtr	m_pDoc;
@@ -185,17 +249,65 @@ class VTSNameList {
 		const BACnetAddress *FindTD( objId port );		// what is the TD address for a port
 	};
 
+
 typedef VTSNameList *VTSNameListPtr;
+*/
+
+
+// Moved from VTSDB.h madanner 5/03
+
+class VTSName : public CObject							// serializable name element
+{
+	private:
+
+	public:
+
+		// Begin persistent data
+		CString			m_strName;
+		BACnetAddress	m_bacnetaddr;
+		CString			m_strPortNameTemp;
+		// End persistend data
+
+		VTSPort *		m_pportLink;
+
+	public:
+		VTSName( void );
+		VTSName( LPCSTR pszname );
+		virtual ~VTSName( void );
+
+		const VTSName& operator=(const VTSName& rnameSrc);
+
+		void Serialize( CArchive& archive );
+		LPCSTR GetPortName(void) {	return m_strPortNameTemp; }
+		LPCSTR GetName(void) { return m_strName; }
+		bool IsAddressMatch( const BACnetAddress &addr, VTSPort * pport );
+
+		DECLARE_SERIAL(VTSName)
+};
+
+
+class VTSNames : public CTypedPtrArray<CPtrArray, VTSName *>
+{
+		DECLARE_VTSPTRARRAY_GUTS(VTSNames, VTSName)
+
+	public:
+		void Remove( int i );							// remove a name
+
+		int FindIndex( LPCSTR lpszName );
+		void InitializeTD( VTSPort * pport, const BACnetOctet *addr, int len );
+
+		LPCSTR AddrToName( const BACnetAddress &addr, VTSPort * pport );
+};
+
+
 
 namespace NetworkSniffer {
 
-extern JDBListPtr	gNameListSearchList;
-extern VTSNameDesc	gNameListSearchName;
+//extern JDBListPtr	gNameListSearchList;
+//extern VTSNameDesc	gNameListSearchName;
 
-void SetLookupContext( objId port, JDBListPtr list );
+void SetLookupContext( const char * pszPortName );
 const char* LookupName( int net, const BACnetOctet *addr, int len );
-int NameSearch( const VTSNameDescPtr, const VTSNameDescPtr );
-
 }
 
 //
@@ -244,13 +356,18 @@ typedef VTSServer *VTSServerPtr;
 //	VTSClient.
 //
 
-class VTSDevice {
+//MAD_DB
+//class VTSObjPropertyValues;
+
+class VTSDevice : public CObject
+{
 		friend class VTSClient;
 		friend class VTSServer;
 
 	protected:
-		void AddToMasterList( void );
-		void RemoveFromMasterList( void );
+//MAD_DB
+//		void AddToMasterList( void );
+//		void RemoveFromMasterList( void );
 
 		BACnetDevice		devDevice;
 		BACnetRouter		devRouter;
@@ -262,16 +379,34 @@ class VTSDevice {
 		VTSDevicePortPtr	devPortEndpoint;
 
 	public:
-		objId				devDescID;					// ID of descriptor
-		VTSDeviceDesc		devDesc;					// device configuration info
+//		objId				devDescID;					// ID of descriptor
+//		VTSDeviceDesc		devDesc;					// device configuration info
 		VTSDocPtr			devDoc;						// doc for packets
-		VTSObjPropValueListPtr	devObjPropValueList;	// list of objects, properties and values
+//		VTSObjPropValueListPtr	devObjPropValueList;	// list of objects, properties and values
 
-		VTSDevice( VTSDocPtr dp, objId id );
+		// Begin persistent data
+		CString		m_strName;							// name
+		int			m_nInstance;						// instance number
+		BOOL		m_fRouter;							// true iff device should act like a router
+		BACnetSegmentation	m_segmentation;				// supports segments requests
+		int			m_nSegmentSize;						// how to divide up chunks
+		int			m_nWindowSize;						// how many to send
+		int			m_nMaxAPDUSize;						// maximum APDU size
+		int			m_nNextInvokeID;					// next invoke ID for client
+		int			m_nAPDUTimeout;						// how long to wait for ack
+		int			m_nAPDUSegmentTimeout;				// how long to wait between segments
+		int			m_nAPDURetries;						// how many retries are acceptable
+		int			m_nVendorID;						// which vendor is this?
+
+		VTSDevObjects m_devobjects;
+		// End persistent data
+
+//		VTSDevice( VTSDocPtr dp, objId id );
+		VTSDevice( void );
 		~VTSDevice( void );
 
-		void ReadDesc( void );							// read descriptor from database
-		void WriteDesc( void );							// save changes to descriptor
+//		void ReadDesc( void );							// read descriptor from database
+//		void WriteDesc( void );							// save changes to descriptor
 
 		void Bind( VTSPortPtr pp, int net );			// associate with a port and network
 		void Unbind( VTSPortPtr pp );					// disassociate
@@ -279,14 +414,37 @@ class VTSDevice {
 		void SendAPDU( const BACnetAPDU &apdu );		// message from a script
 
 		void IAm( void );								// ask the client to send out an I-Am
+		void Activate( void );
+		void Deactivate( void );
+
+		LPCSTR GetName(void) { return m_strName; }
+		CString GetDescription(void);
+		VTSDevObjects * GetObjects(void) { return &m_devobjects; }
+
+		int ReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, int nIndex, BACnetAPDUEncoder * pAPDUEncoder );
+		int InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUEncoder * pAPDUEncoder );
+		int WriteProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, int nIndex, BACnetAPDUDecoder * pdec );
+		int InternalWriteProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUDecoder * pdec );
+
+		VTSDevObject * FindObject( unsigned int nObjID );
+		VTSDevProperty * FindProperty( VTSDevObject * pobject, int nPropID );
+
+		const VTSDevice& operator=(const VTSDevice& rdeviceSrc);
+		void Serialize( CArchive& archive );
+
+		DECLARE_SERIAL(VTSDevice)
 	};
 
 typedef VTSDevice *VTSDevicePtr;
 
+
+DECLARE_VTSPTRARRAY(VTSDevices, VTSDevice)
+
+
 //
 //	VTSDeviceList
 //
-
+/* MAD_DB
 class VTSDeviceList : public CList<VTSDevicePtr,VTSDevicePtr> {
 	protected:
 		VTSDocPtr	m_pDoc;
@@ -313,6 +471,7 @@ class VTSDeviceList : public CList<VTSDevicePtr,VTSDevicePtr> {
 typedef VTSDeviceList *VTSDeviceListPtr;
 
 extern VTSDeviceList gMasterDeviceList;					// global list of all devices
+*/
 
 //
 //	VTSDoc
@@ -320,8 +479,32 @@ extern VTSDeviceList gMasterDeviceList;					// global list of all devices
 
 class VTSDoc : public CDocument
 {
-protected: // create from serialization only
+private:
+	int		m_n1stPktFilePos;					// holds file position of first packet in list
+												// useful for backward scrolling virtual window
+	int		m_nPacketCount;						// Current packets in document... may be different from
+												// size of packet array
+
+	int		m_fLoadPackets;						// false if max packet load has been reached
+
+	// ======== Persistent data start
+	CString					m_strLogFilename;
+	VTSNames				m_names;
+	VTSDevices				m_devices;			// list of persistent devices defined for this doc
+	VTSPorts				m_ports;			// list of persistent ports
+	// ======== Persistent data end (preserve order)
+
+	CTypedPtrArray <CPtrArray, VTSPacketPtr> m_apPackets;		// array of ptrs to packets
+
+	void DestroyPacketArray(void);
+	int LoadPacketArray( void );
+	void ScheduleForProcessing(void);
+	LPCSTR StripToPath( CString * pstr );
+
+public: // create from serialization only
 	VTSDoc();
+	virtual ~VTSDoc();
+
 	DECLARE_DYNCREATE(VTSDoc)
 
 // Attributes
@@ -331,12 +514,14 @@ public:
 		, eNewFrameCount = 1
 		};
 
-	VTSDBPtr				m_pDB;
-	int						m_PacketCount;		// packets in document
+	static LPCSTR m_pszDefaultFilename;
 
-	VTSPortList				m_Ports;
-	VTSNameList				m_Names;
-	VTSDeviceList			m_Devices;
+	VTSPacketDB				m_PacketDB;
+//MAD_DB	int						m_PacketCount;		// packets in document
+
+//MAD_DB	VTSPortList				m_Ports;
+//MAD_DB	VTSNameList				m_Names;
+//MAD_DB	VTSDeviceList			m_Devices;
 
 	bool					m_postMessages;		// OK to post messages about new packets
 	
@@ -352,7 +537,25 @@ public:
 	void UnbindFrameContext( CFrameContext *pfc );
 
 	void SetPacketCount( int count );
-	
+
+	int WritePacket( VTSPacket & pkt );			// MAD_DB
+	int GetPacketCount();
+	VTSPacketPtr GetPacket( int nIndex );
+
+	void ProcessPacketStoreChange(void);
+	LPCSTR AddrToName( const BACnetAddress &addr, const char * pszPortName = NULL );
+	void DefineTD( VTSPort * pport, const BACnetOctet *addr, int len );
+
+	bool LoadNamedAddress( BACnetAddress * pbacnetaddr, LPCSTR lpszNameLookup );
+	void ReActivateAllPorts(void);
+	void FixupPortToDeviceLinks( bool fCheckForExistingLink = true );
+	void FixupNameToPortLinks( bool fCheckForExistingLink = true );
+	void BindPortsToDevices(void);
+	void UnbindPortsToDevices(void);
+	void ChangeCWDToWorkspace( LPCSTR lpszWksFile = NULL );
+	void SetNewCacheSize(void);
+	void CacheHint(int nFrom, int nTo);
+
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(VTSDoc)
@@ -370,14 +573,20 @@ public:
 	void DoPortsDialog( void );
 	void PortStatusChange( void );
 	void DoNamesDialog( void );
-	void DoPreferencesDialog( void );
 	void DoDevicesDialog( void );
+	bool DoPacketFileNameDialog( bool fReload = true );
+	void SaveConfiguration(void);
+	void ReloadPacketStore(void);
 
 	void DoSendWindow( int iGroup, int iItem );
+	VTSDevices * GetDevices( void ) { return &m_devices; }
+	VTSPorts * GetPorts( void ) { return &m_ports; }
+	VTSNames * GetNames(void) { return &m_names; }
 
-	void NewPacketCount(void);
+//MAD_DB	void NewPacketCount(void);
 
-	virtual ~VTSDoc();
+	virtual void SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU = TRUE);
+	void ConvertPathToRelative( CString * pstr );
 
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -388,13 +597,10 @@ protected:
 	CCriticalSection		m_FrameContextsCS;
 	CFrameContextPtr		m_FrameContexts;
 
-
-
 // Generated message map functions
 protected:
 	//{{AFX_MSG(VTSDoc)
 	afx_msg void OnViewStatistics();
-	afx_msg void OnFileSave();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
@@ -405,6 +611,7 @@ typedef VTSDoc *VTSDocPtr;
 //	VTSDocList
 //
 
+/* MAD_DB no longer needed, single config doc
 class VTSDocList : public CList<VTSDocPtr,VTSDocPtr> {
 	public:
 		VTSDocList( void );
@@ -422,6 +629,7 @@ typedef VTSDocList *VTSDocListPtr;
 const int kVTSDocListSize = sizeof( VTSDocList );
 
 extern VTSDocList gDocList;							// list of all documents
+*/
 
 //
 //	VTSWinWinPcapPort

@@ -25,6 +25,7 @@ class CChildFrame : public CMDIChildWnd
 	DECLARE_DYNCREATE(CChildFrame)
 public:
 	CChildFrame();
+	void SaveBarStates(void);
 
 // Attributes
 public:
@@ -63,19 +64,26 @@ public:
 protected:
 	//{{AFX_MSG(CChildFrame)
 	afx_msg void OnCancelMode();
+	afx_msg void OnUpdateFileWksNew(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateFileWksSwitch(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateFileWksSaveAs(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEditDelete(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateEditRefresh(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEditPorts(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEditNames(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEditDevices(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateEditLogfile(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewFirstFrame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewLastFrame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewNextFrame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewPrevFrame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewSend(CCmdUI* pCmdUI);
 	afx_msg void OnEditDelete();
+	afx_msg void OnEditRefresh();
 	afx_msg void OnEditPorts();
 	afx_msg void OnEditNames();
 	afx_msg void OnEditDevices();
+	afx_msg void OnEditLogfile();
 	afx_msg void OnEditPreferences();
 	afx_msg void OnViewFirstFrame();
 	afx_msg void OnViewPrevFrame();
@@ -92,7 +100,7 @@ protected:
 	//end 6.24
 	// Added by Yajun Zhou, 2002-7-24
 	afx_msg void OnFileExport();
-	/////////////////////////////////
+	afx_msg void OnDestroy();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

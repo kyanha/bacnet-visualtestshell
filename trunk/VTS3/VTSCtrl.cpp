@@ -241,16 +241,275 @@ void VTSAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 	}
 }
 
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+VTSAddrComboCtrl::VTSAddrComboCtrl( const CWnd* wp, int cid, int tid )
+	: VTSCtrl( wp, tid ), m_ctrlComboID(cid), m_pnamesCtrl(0)
+{
+}
+
+
+void VTSAddrComboCtrl::LoadCombo( VTSNames *pnames, VTSPort * pport, bool okBroadcast /* = false */ )
+{
+	CComboBox		*cbp = (CComboBox *)ctrlWindow->GetDlgItem( m_ctrlComboID );
+	int				indx;
+
+	VTSName * pname;
+
+	if (m_pnamesCtrl)			// already initialized?
+		return;
+
+	// save a pointer to the name list
+	m_pnamesCtrl = pnames;
+
+	// scan through the names
+	for (int i = 0; i < m_pnamesCtrl->GetSize(); i++)
+	{
+		pname = (VTSName *) (*m_pnamesCtrl)[i];
+
+		// if it matches our port, save the name and index
+		if ( pname->m_pportLink == pport || pname->m_pportLink == NULL  &&  IsNameMatch(pname, okBroadcast) )
+		{
+			indx = cbp->AddString( pname->m_strName );
+			if ( indx == CB_ERR || indx == CB_ERRSPACE )
+				break;
+
+			cbp->SetItemData( indx, i );
+		}
+	}
+}
+
+
+bool VTSAddrComboCtrl::IsNameMatch( VTSName * pname, bool okBroadcast )
+{
+	return ( (pname->m_bacnetaddr.addrType == localStationAddr && pname->m_bacnetaddr.addrLen == 6)
+				|| pname->m_bacnetaddr.addrType == localBroadcastAddr );
+}
+
+
+void VTSAddrComboCtrl::Selchange( void )
+{
+	CComboBox	  * cbp = (CComboBox *)ctrlWindow->GetDlgItem( m_ctrlComboID );
+	int				i = cbp->GetItemData(cbp->GetCurSel());
+
+	AssignAddress( (VTSName *) (*m_pnamesCtrl)[i] );
+	ctrlNull = false;
+	ObjToCtrl();
+}
+
+
+
+void VTSAddrComboCtrl::FindName( LPCSTR lpszName )
+{
+	CComboBox		*cbp = (CComboBox *)ctrlWindow->GetDlgItem( m_ctrlComboID );
+	VTSName			*pname;
+
+	// scan through the names
+	for (int i = 0; i < cbp->GetCount(); i++)
+	{
+		pname = (VTSName *) (*m_pnamesCtrl)[cbp->GetItemData(i)];
+
+		// if it matches the name, set the selection
+		if ( pname->m_strName.Compare(lpszName) == 0 )
+		{
+			cbp->SetCurSel( i );
+			Selchange();
+			break;
+		}
+	}
+}
+
+
+
+void VTSAddrComboCtrl::Enable( void )
+{
+	VTSCtrl::Enable();
+	ctrlWindow->GetDlgItem( m_ctrlComboID )->EnableWindow( true );
+}
+
+
+void VTSAddrComboCtrl::Disable( void )
+{
+	VTSCtrl::Disable();
+	ctrlWindow->GetDlgItem( m_ctrlComboID )->EnableWindow( false );
+}
+
+//
+//	VTSEnetAddrCtrl::CtrlToObj
+//
+
+void VTSAddrComboCtrl::CtrlToObj( void )
+{
+	CString		str;
+
+	// get the text from the control
+	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
+
+	CtrlToAddress((LPCTSTR) str);
+
+	if ( ctrlNull )
+		return;
+
+	// get the combo box
+	CComboBox		*cbp = (CComboBox *)ctrlWindow->GetDlgItem( m_ctrlComboID );
+
+	for (int i = 0; i < cbp->GetCount(); i++)
+	{
+		VTSName * pname = (VTSName *) (*m_pnamesCtrl)[cbp->GetItemData(i)];
+
+		// if it matches our port, save the name and index
+		if ( IsAddressMatch(&pname->m_bacnetaddr) )
+		{
+			cbp->SetCurSel( i );
+			return;
+		}
+	}
+
+	// clear if no matching name found
+	cbp->SetWindowText( _T("") );
+}
+
+
+void VTSAddrComboCtrl::CtrlToAddress( LPCTSTR s )
+{
+	int			upperNibble, lowerNibble;
+	char		c;
+
+	// remove contents
+	addrLen = 0;
+
+	// translate the text into octets
+	for (;;) {
+		// look for a hex digit
+		while ((c = toupper(*s++)) && !isxdigit(c));
+
+		if (!c)
+			break;
+
+		upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+
+		// look for another hex digit
+		while ((c = toupper(*s++)) && !isxdigit(c));
+
+		if (!c)
+			break;
+
+		lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+
+		// add the byte
+		if (addrLen < sizeof(addrAddr))
+			addrAddr[ addrLen++ ] = (upperNibble << 4) + lowerNibble;
+	}
+
+	// if nothing specified, set value to null
+	ctrlNull = (addrLen == 0);
+}
+
+
+bool VTSAddrComboCtrl::IsAddressMatch( BACnetAddress * pbacnetaddr )
+{
+	return pbacnetaddr->addrLen == addrLen  &&  memcmp(pbacnetaddr->addrAddr, addrAddr, addrLen) == 0;
+}
+
+
+//
+//	VTSEnetAddrCtrl::ObjToCtrl
+//
+
+void VTSAddrComboCtrl::ObjToCtrl( void )
+{
+	char	buff[kMaxAddressLen * 3], *s = buff;
+
+	// clear the buffer
+	buff[0] = 0;
+
+	// encode the address
+	if (!ctrlNull)
+		for (int i = 0; i < addrLen; i++)
+		{
+			if (s != buff)
+				*s++ = '-';
+			sprintf( s, "%02X", addrAddr[i] );
+			s += 2;
+		}
+
+	// set the text
+	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( buff );
+}
+
+
+void VTSAddrComboCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
+{
+	if (ctrlNull)
+		BACnetNull().Encode( enc );
+	else {
+		BACnetInteger( addrType ).Encode( enc );
+		BACnetInteger( addrNet ).Encode( enc );
+		BACnetOctetString( addrAddr, addrLen ).Encode( enc );
+	}
+}
+
+
+void VTSAddrComboCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
+{
+	BACnetAPDUTag	tag;
+
+	dec.ExamineTag( tag );
+	if (tag.tagNumber == nullAppTag)
+	{
+		ctrlNull = true;
+		BACnetNull().Decode( dec );
+	}
+	else
+	{
+		BACnetInteger	type, net;
+		BACnetOctetString	addr( 6 );
+
+		ctrlNull = false;
+
+		type.Decode( dec );
+		addrType = (BACnetAddressType)type.intValue;
+		net.Decode( dec );
+		addrNet = net.intValue;
+		addr.Decode( dec );
+		addrLen = addr.strLen;
+		memcpy( addrAddr, addr.strBuff, addrLen );
+	}
+}
+
+
 /////////////////////////////////////////////////////////////////////////////
 
 //
 //	VTSEnetAddrCtrl
 //
 
+// MAD_DB
 VTSEnetAddrCtrl::VTSEnetAddrCtrl( const CWnd* wp, int cid, int tid )
-	: VTSCtrl( wp, tid ), ctrlComboID(cid), ctrlNameList(0)
+//	: VTSCtrl( wp, tid ), ctrlComboID(cid), ctrlNameList(0)
+	: VTSAddrComboCtrl( wp, cid, tid )
 {
 }
+
+
+void VTSEnetAddrCtrl::AssignAddress(VTSName * pname)
+{
+	unsigned char	broadcastAddr[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+
+	addrLen = 6;
+	if (pname->m_bacnetaddr.addrType == localBroadcastAddr)
+		memcpy( addrAddr, broadcastAddr, 6 );
+	else
+		memcpy( addrAddr, pname->m_bacnetaddr.addrAddr, 6 );
+}
+
+
+
+
+/* MAD_DB  Now in baseclass
 
 void VTSEnetAddrCtrl::LoadCombo( VTSNameList *nameList, unsigned int portID )
 {
@@ -258,15 +517,15 @@ void VTSEnetAddrCtrl::LoadCombo( VTSNameList *nameList, unsigned int portID )
 	;
 	int				indx
 	;
-	VTSNameDesc		name
-	;
+//MAD_DB	VTSNameDesc		name;
+	VTSName * pname;
 
 	// already initialized?
-	if (ctrlNameList)
+	if (m_pnamesCtrl)
 		return;
 
 	// save a pointer to the name list
-	ctrlNameList = nameList;
+	m_pnamesCtrl = pnames;
 
 	// scan through the names
 	for (int i = 0; i < nameList->Length(); i++) {
@@ -284,6 +543,7 @@ void VTSEnetAddrCtrl::LoadCombo( VTSNameList *nameList, unsigned int portID )
 				}
 	}
 }
+
 
 void VTSEnetAddrCtrl::Selchange( void )
 {
@@ -308,7 +568,6 @@ void VTSEnetAddrCtrl::Selchange( void )
 
 	ObjToCtrl();
 }
-
 //
 //	VTSEnetAddrCtrl::FindName
 //
@@ -333,7 +592,6 @@ void VTSEnetAddrCtrl::FindName( const char *name )
 		}
 	}
 }
-
 
 //
 //	VTSEnetAddrCtrl::Enable
@@ -426,9 +684,6 @@ void VTSEnetAddrCtrl::CtrlToObj( void )
 		cbp->SetWindowText( _T("") );
 }
 
-//
-//	VTSEnetAddrCtrl::ObjToCtrl
-//
 
 void VTSEnetAddrCtrl::ObjToCtrl( void )
 {
@@ -467,7 +722,6 @@ void VTSEnetAddrCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 		BACnetOctetString( addrAddr, addrLen ).Encode( enc );
 	}
 }
-
 //
 //	VTSEnetAddrCtrl::RestoreCtrl
 //
@@ -500,6 +754,9 @@ void VTSEnetAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 		memcpy( addrAddr, addr.strBuff, addrLen );
 	}
 }
+*/
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -508,26 +765,72 @@ void VTSEnetAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //
 
 VTSIPAddrCtrl::VTSIPAddrCtrl( const CWnd* wp, int cid, int tid )
-	: VTSCtrl( wp, tid ), ctrlComboID(cid), ctrlNameList(0)
+//	: VTSCtrl( wp, tid ), ctrlComboID(cid), ctrlNameList(0)
+	: VTSAddrComboCtrl( wp, cid, tid )
 {
 }
 
 
+void VTSIPAddrCtrl::AssignAddress(VTSName * pname)
+{
+	unsigned char	broadcastAddr[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xBA, 0xC0 };
+
+	addrLen = 6;
+	if (pname->m_bacnetaddr.addrType == localBroadcastAddr)
+		memcpy( addrAddr, broadcastAddr, 6 );
+	else
+		memcpy( addrAddr, pname->m_bacnetaddr.addrAddr, 6 );
+}
+
+
+void VTSIPAddrCtrl::CtrlToAddress( LPCTSTR s )
+{
+	unsigned long	host;
+	unsigned short	port;
+
+	ctrlNull = (s == NULL || *s == 0);
+
+	if ( !ctrlNull )
+	{
+		BACnetIPAddr::StringToHostPort( s, &host, 0, &port );
+
+		// Can't call BACnetIPAddr's Pack method because we don't inherit 
+		// from BACnetIPAddr anymore...  Duplicate Pach method and call the static
+
+		addrType = localStationAddr;
+		addrLen = sizeof(unsigned long) + sizeof(unsigned short);
+		BACnetIPAddr::Pack( addrAddr, host, port );
+	}
+}
+
+//
+//	VTSIPAddrCtrl::ObjToCtrl
+//
+
+void VTSIPAddrCtrl::ObjToCtrl( void )
+{
+	char	*txt = (ctrlNull ? "" : BACnetIPAddr::AddressToString(addrAddr));
+
+	// set the text
+	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( txt );
+}
+
+
+/* MAD_DB Now in base class
 void VTSIPAddrCtrl::LoadCombo( VTSNameList *nameList, unsigned int portID )
 {
 	CComboBox		*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlComboID )
 	;
 	int				indx
 	;
-	VTSNameDesc		name
-	;
+	VTSNameDesc		name;
 
 	// already initialized?
 	if (ctrlNameList)
 		return;
 
 	// save a pointer to the name list
-	ctrlNameList = nameList;
+	m_pnamesCtrl = pnames;
 
 	// scan through the names
 	for (int i = 0; i < nameList->Length(); i++) {
@@ -569,7 +872,6 @@ void VTSIPAddrCtrl::Selchange( void )
 
 	ObjToCtrl();
 }
-
 //
 //	VTSIPAddrCtrl::FindName
 //
@@ -665,19 +967,6 @@ void VTSIPAddrCtrl::CtrlToObj( void )
 }
 
 //
-//	VTSIPAddrCtrl::ObjToCtrl
-//
-
-void VTSIPAddrCtrl::ObjToCtrl( void )
-{
-	char	*txt = (ctrlNull ? "" : AddressToString())
-	;
-
-	// set the text
-	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( txt );
-}
-
-//
 //	VTSIPAddrCtrl::SaveCtrl
 //
 
@@ -726,6 +1015,8 @@ void VTSIPAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 		memcpy( addrAddr, addr.strBuff, addrLen );
 	}
 }
+*/
+
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -734,14 +1025,111 @@ void VTSIPAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //
 
 VTSRemoteAddrCtrl::VTSRemoteAddrCtrl( const CWnd* wp, VTSIntegerCtrl *icp, int cid, int tid )
-	: VTSCtrl( wp, tid ), ctrlNet(icp), ctrlComboID(cid), ctrlNameList(0)
+//	: VTSCtrl( wp, tid ), ctrlNet(icp), ctrlComboID(cid), ctrlNameList(0)
+	: VTSAddrComboCtrl( wp, cid, tid ), ctrlNet(icp)
 {
+}
+
+
+bool VTSRemoteAddrCtrl::IsNameMatch( VTSName * pname, bool okBroadcast )
+{
+	return (   pname->m_bacnetaddr.addrType == remoteStationAddr 
+		    || (okBroadcast && pname->m_bacnetaddr.addrType == remoteBroadcastAddr)
+			|| (okBroadcast && pname->m_bacnetaddr.addrType == globalBroadcastAddr) );
+}
+
+
+void VTSRemoteAddrCtrl::AssignAddress(VTSName * pname)
+{
+	if (pname->m_bacnetaddr.addrType == remoteBroadcastAddr)
+	{
+		ctrlNet->ctrlNull = false;
+		ctrlNet->intValue = pname->m_bacnetaddr.addrNet;
+		ctrlNet->ObjToCtrl();
+		addrLen = 0;
+	}
+	else
+	{
+		if (pname->m_bacnetaddr.addrType == globalBroadcastAddr)
+		{
+			ctrlNet->ctrlNull = false;
+			ctrlNet->intValue = 65535;
+			ctrlNet->ObjToCtrl();
+			addrLen = 0;
+		}
+		else
+		{
+			ctrlNet->ctrlNull = false;
+			ctrlNet->intValue = pname->m_bacnetaddr.addrNet;
+			ctrlNet->ObjToCtrl();
+
+			addrLen = pname->m_bacnetaddr.addrLen;
+			memcpy( addrAddr, pname->m_bacnetaddr.addrAddr, addrLen );
+		}
+	}
+}
+
+
+bool VTSRemoteAddrCtrl::IsAddressMatch( BACnetAddress * pbacnetaddr )
+{
+	if (   pbacnetaddr->addrType == remoteStationAddr 
+		&& pbacnetaddr->addrNet == ctrlNet->intValue
+		&& pbacnetaddr->addrLen == addrLen
+		&& memcmp(pbacnetaddr->addrAddr,addrAddr,addrLen) == 0 )
+		return true;
+
+	if (   pbacnetaddr->addrType == remoteBroadcastAddr
+		&& pbacnetaddr->addrNet == ctrlNet->intValue
+		&& addrLen == 0 )
+		return true;
+
+	if (   pbacnetaddr->addrType == globalBroadcastAddr 
+		&& ctrlNet->intValue == 65535
+		&& addrLen == 0 )
+		return true;
+
+	return false;
+}
+
+
+//
+//	VTSRemoteAddrCtrl::RestoreCtrl
+//
+
+void VTSRemoteAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
+{
+	BACnetAPDUTag	tag
+	;
+
+//	TRACE0( "VTSRemoteAddrCtrl::RestoreCtrl\n" );
+
+	dec.ExamineTag( tag );
+	if (tag.tagNumber == nullAppTag) {
+		ctrlNull = true;
+		BACnetNull().Decode( dec );
+	} else {
+		BACnetInteger	type, net
+		;
+		BACnetOctetString	addr( 8 )			// only difference in base class is 8 instead of 6...
+		;
+
+		ctrlNull = false;
+
+		type.Decode( dec );
+		addrType = (BACnetAddressType)type.intValue;
+		net.Decode( dec );
+		addrNet = net.intValue;
+		addr.Decode( dec );
+		addrLen = addr.strLen;
+		memcpy( addrAddr, addr.strBuff, addrLen );
+	}
 }
 
 //
 //	VTSRemoteAddrCtrl::LoadCombo
 //
 
+/* MAD_DB now in base class
 void VTSRemoteAddrCtrl::LoadCombo( VTSNameList *nameList, unsigned int portID, bool okBroadcast )
 {
 	CComboBox		*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlComboID )
@@ -775,6 +1163,7 @@ void VTSRemoteAddrCtrl::LoadCombo( VTSNameList *nameList, unsigned int portID, b
 				}
 	}
 }
+
 
 //
 //	VTSRemoteAddrCtrl::Selchange
@@ -947,7 +1336,6 @@ void VTSRemoteAddrCtrl::CtrlToObj( void )
 	if (!found)
 		cbp->SetWindowText( _T("") );
 }
-
 //
 //	VTSRemoteAddrCtrl::ObjToCtrl
 //
@@ -989,39 +1377,8 @@ void VTSRemoteAddrCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 		BACnetOctetString( addrAddr, addrLen ).Encode( enc );
 	}
 }
+*/
 
-//
-//	VTSRemoteAddrCtrl::RestoreCtrl
-//
-
-void VTSRemoteAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
-{
-	BACnetAPDUTag	tag
-	;
-
-//	TRACE0( "VTSRemoteAddrCtrl::RestoreCtrl\n" );
-
-	dec.ExamineTag( tag );
-	if (tag.tagNumber == nullAppTag) {
-		ctrlNull = true;
-		BACnetNull().Decode( dec );
-	} else {
-		BACnetInteger	type, net
-		;
-		BACnetOctetString	addr( 8 )
-		;
-
-		ctrlNull = false;
-
-		type.Decode( dec );
-		addrType = (BACnetAddressType)type.intValue;
-		net.Decode( dec );
-		addrNet = net.intValue;
-		addr.Decode( dec );
-		addrLen = addr.strLen;
-		memcpy( addrAddr, addr.strBuff, addrLen );
-	}
-}
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1758,6 +2115,16 @@ VTSCharacterStringCtrl::VTSCharacterStringCtrl( const CWnd* wp, int id )
 {
 }
 
+
+VTSCharacterStringCtrl::~VTSCharacterStringCtrl()
+{
+	// must call this from here.. multiple inheritence messes the BACnetCharacterString
+	// virtual destructor up big time...
+
+	KillBuffer();
+}
+
+
 //
 //	VTSCharacterStringCtrl::CtrlToObj
 //
@@ -1782,10 +2149,13 @@ void VTSCharacterStringCtrl::CtrlToObj( void )
 	// We'll just put this directly into the buffer.  If we decide to allow encoding of escapes here... then we'll
 	// either need to add quotes just before we call Decode or alter Decode to not deal with quotes.
 
-	delete[] strBuff;
+	KillBuffer();
 	strLen = str.GetLength();
-	strBuff = new BACnetOctet[strLen];
-	memcpy(strBuff, str, strLen);
+	if ( strLen )
+		strBuff = new BACnetOctet[strLen];
+
+	if ( strBuff != NULL )
+		memcpy(strBuff, str, strLen);
 
 //	try {
 //		Decode( s );
@@ -1861,6 +2231,15 @@ VTSOctetStringCtrl::VTSOctetStringCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 	, emptyIsNull( true )
 {
+}
+
+
+VTSOctetStringCtrl::~VTSOctetStringCtrl()
+{
+	// must call this from here because multiple inheritence messes with the virtual destructor mechanism
+	// in an unhealthy way. :)
+
+	Flush();
 }
 
 //
@@ -1953,6 +2332,13 @@ VTSBitStringCtrl::VTSBitStringCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 	, emptyIsNull( true )
 {
+}
+
+
+VTSBitStringCtrl::~VTSBitStringCtrl()
+{
+	// have to call this here because virtual destructors get in trouble with multiple inheritence
+	KillBuffer();
 }
 
 //

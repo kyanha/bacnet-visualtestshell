@@ -26,9 +26,14 @@
 //
 
 class VTSApp : public CWinApp {
+
+	private:
+		CDocTemplate * m_pdoctempConfig;
+		CRecentFileList* m_pRecentWorkspaceList;
+
 	public:
-		CRecentFileList* GetRecentFileList();
-		VTSApp();
+		VTSApp(void);
+		virtual ~VTSApp(void);
 
 	// Overrides
 		// ClassWizard generated virtual function overrides
@@ -39,11 +44,22 @@ class VTSApp : public CWinApp {
 		virtual BOOL PreTranslateMessage(MSG* pMsg);
 		//}}AFX_VIRTUAL
 
+//		void CheckBACMACNTVersion( void );
+		void LoadWorkspaceMRU(UINT nMaxMRU);
+		void AddToRecentWorkspaceList(LPCTSTR lpszPathName);
+		CRecentFileList* GetRecentFileList();
+
+		CDocument * GetWorkspace(void);
 		void CheckWinPcapVersion( void );
 
 	// Implementation
 		//{{AFX_MSG(VTSApp)
 		afx_msg void OnAppAbout();
+		afx_msg void OnFileWksNew();
+		afx_msg void OnFileWksSwitch();
+		afx_msg void OnUpdateRecentWorkspaceMenu(CCmdUI* pCmdUI);
+		afx_msg BOOL OnOpenRecentWorkspace(UINT nID);
+
 			// NOTE - the ClassWizard will add and remove member functions here.
 			//    DO NOT EDIT what you see in these blocks of generated code !
 		//}}AFX_MSG
@@ -59,30 +75,8 @@ typedef VTSApp *VTSAppPtr;
 #define WM_VTS_RCOUNT		(WM_APP+1)			// new record count
 #define WM_VTS_PORTSTATUS	(WM_APP+2)			// new port status
 #define WM_VTS_EXECMSG		(WM_APP+3)			// new executor message
+#define WM_VTS_MAXPACKETS	(WM_APP+4)			// reached max packets
 
-//
-//	VTSPreferences
-//
-
-class VTSPreferences {
-	public:
-		int		summaryFields;					// bit mask of display options
-				//	0		packet number
-				//	1		time
-				//	2		source
-				//	3		destination
-		int		summaryNameWidth;				// summary view name width
-		int		summaryTimeFormat;				// 0=local time, 1=UTC
-
-		int		sendInvokeID;					// next invoke ID for Send
-
-		void Load( void );
-		void Save( void );
-	};
-
-typedef VTSPreferences *VTSPreferencesPtr;
-
-extern VTSPreferences	gVTSPreferences;
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

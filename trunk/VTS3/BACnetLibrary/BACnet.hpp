@@ -116,17 +116,19 @@ class BACnetAddr : public BACnetEncodeable
 
 	public:
 		BACnetAddr();
+		BACnetAddr( BACnetAddress * paddr );
 		BACnetAddr( BACnetOctet * paMAC, unsigned int nMACLen );
 		BACnetAddr( unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen );
 		BACnetAddr( BACnetAPDUDecoder & dec );
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
 		void Decode( BACnetAPDUDecoder& dec );
+		void Encode( char * enc ) const;
 
 		virtual BACnetEncodeable * clone(void);
 
 		BACnetAddr &operator =( const BACnetAddr & arg );
-		virtual const char * ToString() const;
+//		virtual const char * ToString() const;
 
 		DECLARE_DYNAMIC(BACnetAddr)
 };
@@ -270,6 +272,7 @@ class BACnetDouble : public BACnetEncodeable {
 		double			doubleValue;
 		
 		BACnetDouble( double dvalu = 0.0 );
+		BACnetDouble( BACnetAPDUDecoder & dec );
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
@@ -286,14 +289,16 @@ class BACnetDouble : public BACnetEncodeable {
 class BACnetCharacterString : public BACnetEncodeable
 {
 	private:
-		void Initialize( char * svalu );
+//		void Initialize( char * svalu );
+		void Initialize( LPCSTR svalu );
 
 	public:
 		int				strEncoding;	// encoding
 		unsigned		strLen;			// number of octets
 		BACnetOctet		*strBuff;		// pointer to data
 				
-		BACnetCharacterString( char *svalu = 0 );
+//		BACnetCharacterString( char *svalu = 0 );
+		BACnetCharacterString( LPCSTR svalu = NULL );
 		BACnetCharacterString( CString & rstr );
 		BACnetCharacterString( BACnetCharacterString & cpy);
 		BACnetCharacterString( BACnetAPDUDecoder& dec );
@@ -314,6 +319,7 @@ class BACnetCharacterString : public BACnetEncodeable
 		void Decode( BACnetAPDUDecoder& dec );								// decode
 		void Encode( char *enc ) const;
 		void Decode( const char *dec );
+		void KillBuffer(void);
 
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
@@ -422,6 +428,7 @@ class BACnetBitString : public BACnetEncodeable {
 		void Decode( BACnetAPDUDecoder& dec );								// decode
 		void Encode( char *enc ) const;
 		void Decode( const char *dec );
+		void KillBuffer(void);
 
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);

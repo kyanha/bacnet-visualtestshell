@@ -455,6 +455,11 @@ BACnetAddr::BACnetAddr()
 {
 }
 
+BACnetAddr::BACnetAddr( BACnetAddress * paddr )
+{
+	m_bacnetAddress = *paddr;
+}
+
 
 BACnetAddr::BACnetAddr( BACnetOctet * paMAC, unsigned int nMACLen )
 {
@@ -493,6 +498,18 @@ void BACnetAddr::Decode( BACnetAPDUDecoder& dec )
 }
 
 
+void BACnetAddr::Encode( char *enc ) const
+{
+	char * addr = enc;
+	for (int i = 0; i < m_bacnetAddress.addrLen; i++)
+	{
+		sprintf( addr, "%02X", m_bacnetAddress.addrAddr[i] );
+		addr += 2;
+	}
+}
+
+
+
 void BACnetAddr::AssignAddress(unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen )
 {
 	if ( nMACLen == 0 )
@@ -526,12 +543,13 @@ BACnetAddr & BACnetAddr::operator =( const BACnetAddr & arg )
 	return *this;
 }
 
-const char * BACnetAddr::ToString() const
-{
-	TRACE0("ToString() for BACnetAddr not implemented");
-	ASSERT(0);
-	return NULL;
-}
+
+//const char * BACnetAddr::ToString() const
+//{
+//	TRACE0("ToString() for BACnetAddr not implemented");
+//	ASSERT(0);
+//	return NULL;
+//}
 
 
 IMPLEMENT_DYNAMIC(BACnetBoolean, BACnetEncodeable)
@@ -1416,6 +1434,12 @@ BACnetDouble::BACnetDouble( double dvalu )
 {
 }
 
+BACnetDouble::BACnetDouble( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 void BACnetDouble::Encode( BACnetAPDUEncoder& enc, int context )
 {
 	// encode the tag
@@ -1544,19 +1568,26 @@ IMPLEMENT_DYNAMIC(BACnetCharacterString, BACnetEncodeable)
 //	BACnetCharacterString
 //
 
-BACnetCharacterString::BACnetCharacterString( char *svalu )
+//BACnetCharacterString::BACnetCharacterString( char *svalu )
+BACnetCharacterString::BACnetCharacterString( LPCSTR svalu )
 	: strEncoding(0)
 {
+	strBuff = NULL;
 	Initialize(svalu);
 }
 
 
 
-void BACnetCharacterString::Initialize( char * svalu )
+//void BACnetCharacterString::Initialize( char * svalu )
+void BACnetCharacterString::Initialize( LPCSTR svalu )
 {
 	strLen = (svalu ? strlen(svalu) : 0);
-	strBuff = new BACnetOctet[strLen];
-	if (svalu)
+	if ( strLen )
+		strBuff = new BACnetOctet[strLen];
+	else
+		strBuff = NULL;
+
+	if (svalu && strBuff)
 		memcpy( strBuff, svalu, (size_t)strLen );
 }
 
@@ -1564,6 +1595,7 @@ void BACnetCharacterString::Initialize( char * svalu )
 BACnetCharacterString::BACnetCharacterString( BACnetAPDUDecoder & dec )
 					  :strEncoding(0)
 {
+	strBuff = NULL;
 	Initialize(NULL);
 	Decode(dec);
 }
@@ -1572,6 +1604,7 @@ BACnetCharacterString::BACnetCharacterString( BACnetAPDUDecoder & dec )
 BACnetCharacterString::BACnetCharacterString( BACnetCharacterString & cpy )
 					  :strEncoding(cpy.strEncoding)
 {
+	strBuff = NULL;
 	Initialize((char *) cpy.strBuff);
 }
 
@@ -1579,6 +1612,7 @@ BACnetCharacterString::BACnetCharacterString( BACnetCharacterString & cpy )
 BACnetCharacterString::BACnetCharacterString( CString & rstr )
 					  :strEncoding(0)
 {
+	strBuff = NULL;
 	Initialize(rstr.GetBuffer(1));
 }
 
@@ -1586,20 +1620,31 @@ BACnetCharacterString::BACnetCharacterString( CString & rstr )
 
 BACnetCharacterString::~BACnetCharacterString( void )
 {
-	delete[] strBuff;
+	KillBuffer();
 }
+
+
+void BACnetCharacterString::KillBuffer(void)
+{
+	if ( strBuff != NULL )
+		delete[] strBuff;
+	strBuff = NULL;
+}
+
 
 void BACnetCharacterString::SetValue( char *svalu, int enc )
 {
 	// toss the old stuff
-	delete[] strBuff;
+	KillBuffer();
 
 	// copy in the new
 	strEncoding = enc;
-	strLen = (svalu ? strlen(svalu) : 0);
-	strBuff = new BACnetOctet[strLen];
-	if (svalu)
-		memcpy( strBuff, svalu, (size_t)strLen );
+	Initialize(svalu);
+
+//	strLen = (svalu ? strlen(svalu) : 0);
+//	strBuff = new BACnetOctet[strLen];
+//	if (svalu)
+//		memcpy( strBuff, svalu, (size_t)strLen );
 }
 
 bool BACnetCharacterString::Equals( const char *valu )
@@ -1614,7 +1659,7 @@ bool BACnetCharacterString::Equals( const char *valu )
 
 	// case insensitive, strBuff is not null-terminated
 	for (unsigned i = 0; i < strLen; i++)
-		if (tolower(strBuff[i]) != tolower(valu[i]))
+		if (strBuff == NULL || tolower(strBuff[i]) != tolower(valu[i]))
 			return false;
 
 	// success
@@ -1635,7 +1680,10 @@ void BACnetCharacterString::Encode( BACnetAPDUEncoder& enc, int context )
 	// fill in the data
 	enc.pktBuffer[enc.pktLength++] = strEncoding;
 	len -= 1;
-	memcpy( enc.pktBuffer+enc.pktLength, strBuff, (size_t)len );
+
+	if ( strBuff != NULL )
+		memcpy( enc.pktBuffer+enc.pktLength, strBuff, (size_t)len );
+
 	enc.pktLength += len;
 }
 
@@ -1659,11 +1707,14 @@ void BACnetCharacterString::Decode( BACnetAPDUDecoder& dec )
 	strLen = tag.tagLVT;
 
 	// allocate a new buffer
-	delete[] strBuff;
-	strBuff = new BACnetOctet[ strLen ];
+	KillBuffer();
+	if ( strLen )
+		strBuff = new BACnetOctet[strLen];
 
 	// copy out the data, null terminated
-	memcpy( strBuff, dec.pktBuffer, (size_t)strLen );
+	if ( strBuff != NULL )
+		memcpy( strBuff, dec.pktBuffer, (size_t)strLen );
+
 	dec.pktBuffer += strLen;
 	dec.pktLength -= strLen;
 }
@@ -1679,7 +1730,7 @@ void BACnetCharacterString::Encode( char *enc ) const
 
 		// simple contents
 		const char *src = (char *)strBuff;
-		for (unsigned i = 0; i < strLen; i++, src++)
+		for (unsigned i = 0; i < strLen && src != NULL; i++, src++)
 			if (*src < ' ') {
 				*enc++ = '\\';
 				*enc++ = 'x';
@@ -1718,7 +1769,7 @@ void BACnetCharacterString::Encode( char *enc ) const
 		while (*enc) enc++;
 
 		// encode the content
-		for (unsigned i = 0; i < strLen; i++) {
+		for (unsigned i = 0; i < strLen && strBuff != NULL; i++) {
 			*enc++ = hex[ strBuff[i] >> 4 ];
 			*enc++ = hex[ strBuff[i] & 0x0F ];
 		}
@@ -1730,11 +1781,11 @@ void BACnetCharacterString::Encode( char *enc ) const
 
 void BACnetCharacterString::Decode( const char *dec )
 {
-	char		c = 0
-	,			*dst
-	;
-	const char	*src
-	;
+	char		c = 0,	*dst;
+	const char	*src;
+
+	if ( dec == NULL )
+		return;
 
 	// check for explicit ASCII string
 	if ((*dec == 'A') && (*(dec+1) == '\''))
@@ -1760,13 +1811,14 @@ void BACnetCharacterString::Decode( const char *dec )
 		}
 
 		// allocate a new buffer
-		delete[] strBuff;
-		strBuff = new BACnetOctet[ strLen ];
+		KillBuffer();
+		if ( strLen )
+			strBuff = new BACnetOctet[ strLen ];
 
 		// copy the data
 		src = dec;
 		dst = (char *)strBuff;
-		while (*src && (*src != c))
+		while (*src && (*src != c) && dst != NULL)
 			if (*src == '\\') {
 				if (tolower(*(src+1)) == 'x') {
 					src += 2;
@@ -1822,10 +1874,13 @@ void BACnetCharacterString::Decode( const char *dec )
 			ostr.Decode( tok.tokenValue );
 
 			// build a new buffer
-			delete[] strBuff;
+			KillBuffer();
+			if ( strLen )
+				strBuff = new BACnetOctet[ strLen ];
+
 			strLen = ostr.strLen;
-			strBuff = new BACnetOctet[ strLen ];
-			memcpy( strBuff, ostr.strBuff, (size_t)strLen );
+			if ( strBuff != NULL )
+				memcpy( strBuff, ostr.strBuff, (size_t)strLen );
 		} else
 			throw_(43) /* ASCII or hex string expected */;
 #else
@@ -1896,37 +1951,37 @@ bool BACnetCharacterString::Match( BACnetCharacterString & rstring, int iOperato
 
 bool BACnetCharacterString::operator ==( const BACnetCharacterString & arg )
 {
-	return (CString(strBuff) == CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+	return (CString((LPCTSTR)strBuff, strLen) == CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator !=( const BACnetCharacterString & arg )
 {
-	return (CString(strBuff) != CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+	return (CString((LPCTSTR)strBuff, strLen) != CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator <=( const BACnetCharacterString & arg )
 {
-	return (CString(strBuff) <= CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+	return (CString((LPCTSTR)strBuff, strLen) <= CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator <( const BACnetCharacterString & arg )
 {
-	return (CString(strBuff) < CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+	return (CString((LPCTSTR)strBuff, strLen) < CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator >=( const BACnetCharacterString & arg )
 {
-	return (CString(strBuff) >= CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+	return (CString((LPCTSTR)strBuff, strLen) >= CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator >( const BACnetCharacterString & arg )
 {
-	return (CString(strBuff) > CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+	return (CString((LPCTSTR)strBuff, strLen) > CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
 }
 
 
@@ -1998,6 +2053,7 @@ BACnetOctetString::BACnetOctetString( void )
 
 BACnetOctetString::BACnetOctetString( BACnetAPDUDecoder & dec )
 {
+	strBuff = NULL;
 	Decode(dec);
 }
 
@@ -2026,7 +2082,12 @@ BACnetOctetString::BACnetOctetString( int len )
 BACnetOctetString::BACnetOctetString( const BACnetOctetString &cpy )
 {
 	strLen = strBuffLen = cpy.strLen;
-	strBuff = new BACnetOctet[ cpy.strLen ];
+
+	if ( strLen )
+		strBuff = new BACnetOctet[ cpy.strLen ];
+	else
+		strBuff = NULL;
+
 	if (strBuff)
 		memcpy( strBuff, cpy.strBuff, (size_t)cpy.strLen );
 }
@@ -2048,7 +2109,12 @@ BACnetOctetString::BACnetOctetString( BACnetOctet *bytes, int len )
 BACnetOctetString::BACnetOctetString( const BACnetOctet *bytes, int len)
 {
 	strLen = strBuffLen = len;
-	strBuff = new BACnetOctet[len];
+
+	if ( strLen )
+		strBuff = new BACnetOctet[len];
+	else
+		strBuff = NULL;
+
 	if (strBuff)
 		memcpy( strBuff, bytes, len );
 }
@@ -2084,7 +2150,8 @@ void BACnetOctetString::PrepBuffer( int size )
 		memcpy( newBuff, strBuff, strLen );
 
 	// if current buffer owned, delete it
-	if (strBuff && strBuffLen)
+//	if (strBuff && strBuffLen)
+	if (strBuff)
 		delete[] strBuff;
 
 	// point to the new buffer
@@ -2098,6 +2165,9 @@ void BACnetOctetString::PrepBuffer( int size )
 
 void BACnetOctetString::Flush( void )
 {
+	// strBuffLen is also used to determine ownership of this buffer...
+	// So even if strBuff is allocated, if strBuffLen = 0 we shouldn't delete it (trust me).
+
 	if (strBuff && strBuffLen)
 		delete[] strBuff;
 
@@ -2162,7 +2232,8 @@ BACnetOctet &BACnetOctetString::operator [](const int indx)
 
 void BACnetOctetString::Reference( BACnetOctet *bytes, int len )
 {
-	if (strBuff && strBuffLen)
+//	if (strBuff && strBuffLen)
+	if (strBuff)
 		delete[] strBuff;
 
 	strBuff = bytes;
@@ -2184,7 +2255,8 @@ void BACnetOctetString::Encode( BACnetAPDUEncoder& enc, int context )
 		BACnetAPDUTag( octetStringAppTag, strLen ).Encode( enc );
 	
 	// fill in the data
-	memcpy( enc.pktBuffer+enc.pktLength, strBuff, (size_t)strLen );
+	if ( strBuff )
+		memcpy( enc.pktBuffer+enc.pktLength, strBuff, (size_t)strLen );
 	enc.pktLength += strLen;
 }
 
@@ -2202,18 +2274,26 @@ void BACnetOctetString::Decode( BACnetAPDUDecoder& dec )
 	
 	// check for space
 	if ((strBuffLen != 0) && (strBuffLen != tag.tagLVT)) {
-		delete[] strBuff;
+		if ( strBuff )
+			delete[] strBuff;
 		strLen = strBuffLen = tag.tagLVT;
-		strBuff = new BACnetOctet[ tag.tagLVT ];
+		if ( strLen )
+			strBuff = new BACnetOctet[ tag.tagLVT ];
+		else
+			strBuff = NULL;
 	} else
 	if (!strBuff) {
 		strLen = strBuffLen = tag.tagLVT;
-		strBuff = new BACnetOctet[ tag.tagLVT ];
+		if ( strLen )
+			strBuff = new BACnetOctet[ tag.tagLVT ];
 	}
 	
 	// copy the data
 	strLen = tag.tagLVT;
-	memcpy( strBuff, dec.pktBuffer, (size_t)strLen );
+
+	if ( strBuff )
+		memcpy( strBuff, dec.pktBuffer, (size_t)strLen );
+
 	dec.pktBuffer += tag.tagLVT;
 	dec.pktLength -= tag.tagLVT;
 }
@@ -2222,6 +2302,9 @@ void BACnetOctetString::Encode( char *enc ) const
 {
 	static char hex[] = "0123456789ABCDEF"
 	;
+
+	if ( !strBuff )
+		return;
 
 	*enc++ = 'X';
 	*enc++ = '\'';
@@ -2432,7 +2515,9 @@ BACnetBitString::BACnetBitString( BACnetAPDUDecoder & dec )
 BACnetBitString::BACnetBitString( int siz )
 	: bitLen(siz), bitBuffLen((siz + 31) / 32), bitBuff(0)
 {
-	bitBuff = new unsigned long[ bitBuffLen ];
+	if ( bitBuffLen )
+		bitBuff = new unsigned long[ bitBuffLen ];
+
 	if (bitBuff)
 		for (int i = 0; i < bitBuffLen; i++)
 			bitBuff[i] = 0;
@@ -2442,7 +2527,9 @@ BACnetBitString::BACnetBitString( int siz )
 BACnetBitString::BACnetBitString( int siz, unsigned char * pbits )
 	: bitLen(siz), bitBuffLen((siz + 31) / 32), bitBuff(0)
 {
-	bitBuff = new unsigned long[ bitBuffLen ];
+	if ( bitBuffLen )
+		bitBuff = new unsigned long[ bitBuffLen ];
+
 	if (bitBuff)
 		LoadBitsFromByteArray(pbits);
 }
@@ -2454,12 +2541,13 @@ BACnetBitString::BACnetBitString( int siz, unsigned char * pbits )
 BACnetBitString::BACnetBitString( const BACnetBitString &cpy )
 	: bitLen( cpy.bitLen ), bitBuffLen( cpy.bitBuffLen )
 {
-	unsigned long	*src, *dst
-	;
+	unsigned long	*src, *dst = NULL;
 	
 	src = cpy.bitBuff;
-	dst = bitBuff = new unsigned long[ bitBuffLen ];
-	for (int i = 0; i < bitBuffLen; i++)
+	if ( bitBuffLen )
+		dst = bitBuff = new unsigned long[ bitBuffLen ];
+
+	for (int i = 0; i < bitBuffLen && dst != NULL; i++)
 		*src++ = *dst++;
 }
 
@@ -2469,7 +2557,15 @@ BACnetBitString::BACnetBitString( const BACnetBitString &cpy )
 
 BACnetBitString::~BACnetBitString( void )
 {
-	delete[] bitBuff;
+	KillBuffer();
+}
+
+
+void BACnetBitString::KillBuffer(void)
+{
+	if ( bitBuff )
+		delete[] bitBuff;
+	bitBuff = NULL;
 }
 
 //
@@ -2495,20 +2591,21 @@ void BACnetBitString::SetSize( int siz )
 	;
 	
 	if (newBuffLen != bitBuffLen) {
-		int				i
-		;
-		unsigned long	*src = bitBuff
-		,				*dst
-		,				*rslt = new unsigned long[newBuffLen]
-		;
+		int				i;
+		unsigned long	*src = bitBuff,	*dst, *rslt = NULL;
+		
+		if ( newBuffLen )
+			rslt = new unsigned long[newBuffLen];
 		
 		dst = rslt;
-		for (i = 0; (i < bitBuffLen) && (i++ < newBuffLen); i++)
+		for (i = 0; (i < bitBuffLen) && (i++ < newBuffLen) && dst != NULL; i++)
 			*dst++ = *src++;
 		while (i++ < newBuffLen)
 			*dst++ = 0;
-		
-		delete[] bitBuff;
+
+		if ( bitBuff )
+			delete[] bitBuff;
+
 		bitBuff = rslt;
 		bitBuffLen = newBuffLen;
 	}
@@ -2624,14 +2721,14 @@ BACnetBitString &BACnetBitString::operator =( const BACnetBitString &arg )
 	if (bitLen < arg.bitLen)
 		SetSize( arg.bitLen );
 	
-	unsigned long	*src = arg.bitBuff
-	,				*dst = bitBuff
-	;
+	unsigned long	*src = arg.bitBuff,	*dst = bitBuff;
 	
-	for (i = 0; i < arg.bitBuffLen; i++)
+	for (i = 0; i < arg.bitBuffLen && dst != NULL; i++)
 		*dst++ = *src++;
-	while (i++ < bitBuffLen)
+
+	while (i++ < bitBuffLen && dst != NULL )
 		*dst++ = 0;
+
 	bitLen = arg.bitLen;
 	
 	return *this;
@@ -2646,11 +2743,9 @@ BACnetBitString &BACnetBitString::operator |=( const BACnetBitString &arg )
 	if (bitLen < arg.bitLen)
 		SetSize( arg.bitLen );
 	
-	unsigned long	*src = arg.bitBuff
-	,				*dst = bitBuff
-	;
+	unsigned long	*src = arg.bitBuff,	*dst = bitBuff;
 	
-	for (int i = 0; i < arg.bitBuffLen; i++)
+	for (int i = 0; i < arg.bitBuffLen && dst != NULL; i++)
 		*dst++ |= *src++;
 	
 	return *this;
@@ -2665,13 +2760,12 @@ BACnetBitString &BACnetBitString::operator &=( const BACnetBitString &arg )
 	int				i
 	,				siz = (bitBuffLen < arg.bitBuffLen ? bitBuffLen : arg.bitBuffLen)
 	;
-	unsigned long	*src = arg.bitBuff
-	,				*dst = bitBuff
-	;
+	unsigned long	*src = arg.bitBuff,	*dst = bitBuff;
 		
-	for (i = 0; i < siz; i++)
+	for (i = 0; i < siz && dst != NULL; i++)
 		*dst++ &= *src++;
-	while (i++ < bitBuffLen)
+
+	while (i++ < bitBuffLen && dst != NULL)
 		*dst++ = 0;
 	
 	return *this;
@@ -2719,13 +2813,15 @@ void BACnetBitString::Encode( BACnetAPDUEncoder& enc, int context )
 
 #ifdef ENDIAN_SWAP
 	int i = 0;
-	while (len) {
+	while (len && bitBuff) {
 		int cpy = bitBuff[i++];
 		for (int j = 3; len && j >= 0; j--, len--)
 			enc.pktBuffer[enc.pktLength++] = (cpy >> (j * 8)) & 0xFF;
 	}
 #else
-	memcpy( enc.pktBuffer+enc.pktLength, bitBuff, (size_t)len );
+	if ( bitBuff )
+		memcpy( enc.pktBuffer+enc.pktLength, bitBuff, (size_t)len );
+
 	enc.pktLength += len;
 #endif
 }
@@ -2760,7 +2856,8 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 	// don't copy more than copyLen octets
 	while (dec.pktLength && copyLen) {
 		bitBuff[i] = 0;
-		for (int j = 3; (dec.pktLength - 1) > 0 && j >= 0; j--) {
+//		for (int j = 3; (dec.pktLength - 1) > 0 && j >= 0; j--) {			// madanner 5/03, added equality... infinite loop
+		for (int j = 3; (dec.pktLength - 1) >= 0 && j >= 0; j--) {
 			bitBuff[i] |= (dec.pktLength--,*dec.pktBuffer++) << (j * 8);
 			if (!--copyLen)
 				break;
@@ -2768,7 +2865,8 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 		i += 1;
 	}
 #else
-	memcpy( bitBuff, dec.pktBuffer, (size_t)tag.tagLVT );
+	if ( bitBuff )
+		memcpy( bitBuff, dec.pktBuffer, (size_t)tag.tagLVT );
 
 	bitLen = bLen;
 	dec.pktBuffer += tag.tagLVT;

@@ -96,8 +96,15 @@ BOOL CSendNPCI::OnInitDialog()
 	
 	m_Version.ObjToCtrl();
 
-	m_DADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID, true );
-	m_SADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID, false );
+	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+
+//MAD_DB	m_DADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID, true );
+//MAD_DB	m_SADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID, false );
+	if ( pdoc )
+	{
+		m_DADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
+		m_SADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
+	}
 
 	if (m_DestPresent) {
 		m_DNET.ObjToCtrl();

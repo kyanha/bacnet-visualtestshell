@@ -63,7 +63,7 @@ enum ScriptFilterType
 
 class ScriptFilter {
 	public:
-		ScriptFilter( ScriptFilterType typ, char *name );
+		ScriptFilter( ScriptFilterType typ, const char *name );
 		virtual ~ScriptFilter( void );
 
 		ScriptFilterType	filterType;
@@ -105,7 +105,7 @@ extern ScriptFilterList	gMasterFilterList;						// global list of all filters
 
 class ScriptNetFilter : public ScriptFilter, public BACnetNetClient, public BACnetNetServer {
 	public:
-		ScriptNetFilter( char *name );
+		ScriptNetFilter( const char *name );
 		virtual ~ScriptNetFilter( void );
 
 		virtual void Indication( const BACnetNPDU &npdu );

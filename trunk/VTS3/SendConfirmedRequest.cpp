@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
+#include "VTSPreferences.h"
 
 #include "Send.h"
 #include "SendConfirmedRequest.h"
@@ -35,6 +36,10 @@ char *MaxAPDULen[] =
 		};
 
 BACnetAPDUEncoder CSendConfirmedRequest::pageContents;
+
+/////////////////////////////////////////////////////////////////////////////
+
+extern VTSPreferences	gVTSPreferences;
 
 /////////////////////////////////////////////////////////////////////////////
 // CSendConfirmedRequest dialog
@@ -134,7 +139,7 @@ void CSendConfirmedRequest::InitPage( void )
 	m_MaxAPDULen.ctrlNull = false;
 	m_MaxAPDULen.enumValue = 0;
 	m_InvokeID.ctrlNull = false;
-	m_InvokeID.intValue = gVTSPreferences.sendInvokeID;
+	m_InvokeID.intValue = gVTSPreferences.Send_GetInvokeID();
 
 	// tell the NPCI this is expecting a reply
 	pageParent->NPCIPage.m_ExpectingReply = true;
@@ -367,7 +372,7 @@ void CSendConfirmedRequest::OnChangeInvokeID()
 	m_InvokeID.UpdateData();
 
 	// save the new invoke ID in the preferences
-	gVTSPreferences.sendInvokeID = m_InvokeID.intValue;
+	gVTSPreferences.Send_SetInvokeID(m_InvokeID.intValue);
 
 	SavePage();
 	UpdateEncoded();

@@ -16,8 +16,8 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // ScriptParmUpdate dialog
 
-ScriptParmUpdate::ScriptParmUpdate( ScriptParmPtr pp )
-	: CDialog(ScriptParmUpdate::IDD, NULL)
+ScriptParmUpdate::ScriptParmUpdate( ScriptParmPtr pp, CWnd * pparent /* = NULL */ )
+	: CDialog(ScriptParmUpdate::IDD, pparent)	//madanner 5/03, needed for proper frame parent , NULL)
 	, m_ParmValueOK(true)
 {
 	m_ParmDesc = pp->parmDesc;

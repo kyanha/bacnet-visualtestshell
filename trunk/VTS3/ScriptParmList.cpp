@@ -145,6 +145,9 @@ void ScriptParmList::Add( CString &name, CString &valu, CString &desc, int line,
 			, (pp->parmEnv ? 2 : 0) + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
 			, 0, 0, 0
 			);
+
+		//Now add the item to the shadow array
+		m_apParms.Add(pp);
 	}
 }
 
@@ -182,6 +185,9 @@ void ScriptParmList::Release( void )
 			// remove from list
 			m_pListCtrl->DeleteItem( i );
 
+			//now kill from shadow array
+			m_apParms.RemoveAt(i);
+
 			// delete the parameter
 			delete pp;
 
@@ -197,7 +203,11 @@ void ScriptParmList::Release( void )
 
 int ScriptParmList::Length( void )
 {
-	return m_pListCtrl->GetItemCount();
+// Changed to shadow array for thread safety...
+// madanner 5/03
+//	return m_pListCtrl->GetItemCount();
+
+	return m_apParms.GetSize();
 }
 
 //
@@ -207,7 +217,12 @@ int ScriptParmList::Length( void )
 ScriptParmPtr ScriptParmList::operator []( int indx )
 {
 	ASSERT( (indx >= 0) && (indx < Length()) );
-	return (ScriptParmPtr)m_pListCtrl->GetItemData( indx );
+
+// Changed to shadow array for thread safety...
+// madanner 5/03
+//	return (ScriptParmPtr)m_pListCtrl->GetItemData( indx );
+
+	return (ScriptParmPtr) m_apParms[indx];
 }
 
 //
@@ -254,8 +269,13 @@ void ScriptParmList::Reset( void )
 
 int ScriptParmList::LookupIndex( int code )
 {
-	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++) {
-		ScriptParmPtr pp = (ScriptParmPtr)m_pListCtrl->GetItemData( i );
+// Changed to shadow array for thread safety
+// madanner 5/03
+
+//	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++) {
+//		ScriptParmPtr pp = (ScriptParmPtr)m_pListCtrl->GetItemData( i );
+	for (int i = 0; i < m_apParms.GetSize(); i++) {
+		ScriptParmPtr pp = (ScriptParmPtr) m_apParms[i];
 		if (pp->parmSymbol == code)
 			return i;
 	}
@@ -270,8 +290,13 @@ int ScriptParmList::LookupIndex( int code )
 
 ScriptParmPtr ScriptParmList::LookupParm( int code )
 {
-	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++) {
-		ScriptParmPtr pp = (ScriptParmPtr)m_pListCtrl->GetItemData( i );
+// Changed to shadow array for thread safety
+// madanner 5/03
+//	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++) {
+//		ScriptParmPtr pp = (ScriptParmPtr)m_pListCtrl->GetItemData( i );
+
+	for (int i = 0; i < m_apParms.GetSize(); i++) {
+		ScriptParmPtr pp = (ScriptParmPtr) m_apParms[i];
 		if (pp->parmSymbol == code)
 			return pp;
 	}
@@ -374,6 +399,10 @@ void ScriptParmList::LoadEnv( void )
 			, 2 + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
 			, 0, 0, 0
 			);
+
+		//madanner 5/03
+		//Now add to shadow array
+		m_apParms.Add(pp);
 	}
 }
 
@@ -390,6 +419,9 @@ void ScriptParmList::UnloadEnv( void )
 		if (pp->parmEnv) {
 			// remove from list
 			m_pListCtrl->DeleteItem( i );
+
+			// Now kill from shadow array
+			m_apParms.RemoveAt(i);
 
 			// delete the parameter
 			delete pp;
@@ -489,6 +521,10 @@ void ScriptParmList::MatchEnvParm( ScriptParmPtr envpp )
 			, 2 + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
 			, 0, 0, 0
 			);
+
+		//madanner 5/03
+		//Now add to shadow array
+		m_apParms.Add(pp);
 	}
 }
 
@@ -599,8 +635,8 @@ void ScriptParmList::OnDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
 	ASSERT( pp );
 
 	// construct the dialog box
-	ScriptParmUpdate	dlg( pp )
-	;
+	// madanner, 5/03 necessary for new frame window parent
+	ScriptParmUpdate	dlg( pp, AfxGetMainWnd()->GetActiveWindow());
 
 	// execute the modal
 	if (dlg.DoModal() && dlg.m_ParmValueOK) {
@@ -631,6 +667,8 @@ void ScriptParmList::OnDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
 
 void ScriptParmList::UpdateItemVisual( int nIndex, ScriptParmPtr pp )
 {
+//	change to thread safe posts...
+
 	if ( nIndex >= 0 )
 	{
 		m_pListCtrl->SetItemText( nIndex, 1, (LPCTSTR)pp->parmValue );
@@ -638,6 +676,9 @@ void ScriptParmList::UpdateItemVisual( int nIndex, ScriptParmPtr pp )
 	}
 }
 
+// This method differs from the UpdateItemVisual only in that it POSTS update messages instead of 
+// sends them.  This is necessary because this is called only from the executor thread...
+// Window access in another thread hangs the system
 
 void ScriptParmList::UpdateParameterVisual( ScriptParmPtr pp )
 {
@@ -647,8 +688,22 @@ void ScriptParmList::UpdateParameterVisual( ScriptParmPtr pp )
 		return;
 
 	// look for the var
+//	m_pListCtrl->LockWindowUpdate();
 	UpdateItemVisual(LookupIndex( pp->parmSymbol ), pp);
+//	m_pListCtrl->UnlockWindowUpdate();
 }
+
+/*
+BOOL CListCtrl::SetItemText(int nItem, int nSubItem, LPCTSTR lpszText)
+{
+	ASSERT(::IsWindow(m_hWnd));
+	ASSERT((GetStyle() & LVS_OWNERDATA)==0);
+	LVITEM lvi;
+	lvi.iSubItem = nSubItem;
+	lvi.pszText = (LPTSTR) lpszText;
+	return (BOOL) ::SendMessage(m_hWnd, LVM_SETITEMTEXT, nItem, (LPARAM)&lvi);
+}
+*/
 
 
 //
@@ -673,6 +728,9 @@ void ScriptParmList::OnDestroy()
 	// delete the parameters
 	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++)
 		delete (ScriptParmPtr)m_pListCtrl->GetItemData( i );
+
+	// kill values in shadow array
+	m_apParms.RemoveAll();
 
 	// continue with destruction
 	CListView::OnDestroy();

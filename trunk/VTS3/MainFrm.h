@@ -12,6 +12,9 @@
 class CMainFrame : public CMDIFrameWnd
 {
 	DECLARE_DYNAMIC(CMainFrame)
+
+	CProgressCtrl	m_progress;
+
 public:
 	CMainFrame();
 
@@ -30,8 +33,13 @@ public:
 // Implementation
 public:
 	//	Added by Yajun Zhou, 2002-4-22
-	void SetLnPaneText(CString str);
-	////////////////////////////////////
+// madanner, 5/03 moved to frame of edit
+//	void SetLnPaneText(CString str);
+
+	// Code for progress bar inside help text area of status bar
+	CProgressCtrl * InitializeProgress( void );
+	void ReleaseProgress( void );
+
 	virtual ~CMainFrame();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -48,6 +56,8 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnWindowNew();
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg void OnClose();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

@@ -18,7 +18,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSObjPropValueDialog dialog
 
 
-VTSObjPropValueDialog::VTSObjPropValueDialog(VTSObjPropValueListPtr lp)
+VTSObjPropValueDialog::VTSObjPropValueDialog(VTSObjPropValueListPtr lp )
 	: CDialog(VTSObjPropValueDialog::IDD, NULL)
 	, m_dValue(lp)
 {
@@ -26,6 +26,9 @@ VTSObjPropValueDialog::VTSObjPropValueDialog(VTSObjPropValueListPtr lp)
 	m_Value = _T("");
 	m_Context = _T("");
 	//}}AFX_DATA_INIT
+
+//	m_pobjpropertyvalues = pobjpropertyvalues;
+//	m_objpropertyvaluesLocal.DeepCopy(m_pobjpropertyvalues);
 }
 
 
@@ -78,6 +81,11 @@ BOOL VTSObjPropValueDialog::OnInitDialog()
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 }
+
+
+
+
+
 
 //
 //	VTSObjPropValueDialog::SetSelection

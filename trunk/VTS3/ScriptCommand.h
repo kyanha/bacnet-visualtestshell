@@ -25,19 +25,20 @@ class ScriptMessage : public ScriptCommand
 	protected:
 		CString * m_pstrTestTitle;
 		CString	m_strText;
+		CWnd * m_pParent;
 
 	private:
 		void Parse( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok );
 
 	public:
-		ScriptMessage( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTest );
+		ScriptMessage( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTest, CWnd * pparent = NULL );
 };
 
 
 class ScriptCHECKCommand : public ScriptMessage
 {
 	public:
-		ScriptCHECKCommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTest );
+		ScriptCHECKCommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTest, CWnd * pparent = NULL );
 		virtual ~ScriptCHECKCommand();
 
 		bool Execute(CString * pstrError);
@@ -56,7 +57,7 @@ class ScriptMAKECommand : public ScriptMessage
 
 		bool m_fHanging;			// true if this should be modeless... 
 
-		ScriptMAKECommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTest );
+		ScriptMAKECommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTest, CWnd * pparent );
 		virtual ~ScriptMAKECommand();
 
 		void SetQueue(ScriptExecMsgQueue * pqueue);
