@@ -529,6 +529,8 @@ extern VTSDeviceList gMasterDeviceList;					// global list of all devices
 //	VTSDoc
 //
 
+class CSend;
+
 class VTSDoc : public CDocument
 {
 private:
@@ -635,7 +637,9 @@ public:
 	void SaveConfiguration(void);
 	void ReloadPacketStore(void);
 
-	void DoSendWindow( int iGroup, int iItem );
+	// madanner 9/04, changed to return type from void
+	CSend * DoSendWindow( int iGroup, int iItem );
+
 	VTSDevices * GetDevices( void ) { return &m_devices; }
 	VTSPorts * GetPorts( void ) { return &m_ports; }
 	VTSNames * GetNames(void) { return &m_names; }
