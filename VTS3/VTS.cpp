@@ -1029,7 +1029,7 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //			- Added preference for relative vs. absolute packet file path association in workspace.
 //
 //
-//  3.5 ?
+//  3.4.1
 //			[ 747747 ] EPICS loading problems:
 //			Fixed this problem loading bitstrings larger than one byte. 
 //			Additional EPICS loading problems have been fixed:
@@ -1058,7 +1058,7 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //
 //
 
-const int kReleaseVersion = 0;
+const int kReleaseVersion = 1;
 
 class CAboutDlg : public CDialog
 {
