@@ -10,6 +10,9 @@
 #include <afxcview.h>
 
 #include "ScriptBase.h"
+//Added by Yajun Zhou, 2002-6-20
+#include "ScriptEdit.h"
+////////////////////////////////
 
 class ScriptDocument;
 typedef ScriptDocument *ScriptDocumentPtr;
@@ -28,6 +31,9 @@ protected:
 public:
 	CTreeCtrl		*m_pTreeCtrl;
 	CImageList		m_ilStatus;
+	//Added by Yajun Zhou, 2002-6-20
+	ScriptEdit*		m_pEditView;
+	////////////////////////////////
 
 // Operations
 public:
@@ -59,6 +65,7 @@ protected:
 	int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnDblclk(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

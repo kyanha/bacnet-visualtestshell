@@ -116,15 +116,22 @@ BOOL ScriptFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	}
 
 	// add the first splitter pane - the edit view in row 0
+//	Changed by Yajun Zhou, 2002-4-22
+//	if (!m_wndSplit1.CreateView(0, 0,
+//		RUNTIME_CLASS(CEditView), CSize(0, 300), pContext))
 	if (!m_wndSplit1.CreateView(0, 0,
-		RUNTIME_CLASS(CEditView), CSize(0, 300), pContext))
+		RUNTIME_CLASS(ScriptEdit), CSize(0, 300), pContext))
+////////////////////////////////////////////////////////////
 	{
 		TRACE0("Failed to create edit pane\n");
 		return FALSE;
 	}
 	
 	// nice to have around
-	m_pEditView = (CEditView*)m_wndSplit1.GetPane( 0, 0 );
+//	Changed by Yajun Zhou, 2002-4-22
+//	m_pEditView = (CEditView*)m_wndSplit1.GetPane( 0, 0 );
+	m_pEditView = (ScriptEdit*)m_wndSplit1.GetPane( 0, 0 );
+//////////////////////////////////////////////////////////
 
 	// pass it along to the document
 	m_pDoc->m_editData = &m_pEditView->GetEditCtrl();
@@ -157,6 +164,9 @@ BOOL ScriptFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	m_pContentTree = (ScriptContentTree*)m_wndSplit2.GetPane( 0, 0 );
 	m_pContentTree->m_pDoc = m_pDoc;
 	m_pDoc->m_pContentTree = m_pContentTree;
+//	Added by Yajun Zhou, 2002-6-20
+	m_pContentTree->m_pEditView = m_pEditView;
+//////////////////////////////////////////////////////////
 
 	// list view gets right half
 	if (!m_wndSplit2.CreateView(0, 1,
