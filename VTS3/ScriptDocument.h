@@ -13,8 +13,11 @@
 #include "ScriptParmList.h"
 #include "ScriptContentTree.h"
 #include "ScriptPacket.h"
+#include "ScriptIfdefHandler.h"
 
 class ScriptExecutor;
+class ScriptIfdefHandler;
+
 typedef ScriptExecutor *ScriptExecutorPtr;
 
 class ScriptDocument : public CDocument
@@ -49,10 +52,12 @@ public:
 	virtual ~ScriptDocument();
 
 	void CheckSyntax( void );
-	void ParsePacket( ScriptScanner& scan, ScriptToken& tok, ScriptPacketPtr spp, bool isSend );
+	void ParsePacket( ScriptIfdefHandler &ifdefHandler, ScriptScanner& scan, ScriptToken& tok, ScriptPacketPtr spp, bool isSend );
 	void SequenceTest( ScriptTestPtr stp );
-	ScriptPacketPtr SequenceLevel( ScriptBasePtr sbp, ScriptPacketPtr pPass, ScriptPacketPtr &pChain );
-	ScriptPacketPtr SequencePacket( ScriptPacketPtr spp, ScriptPacketPtr pPass );
+//	ScriptPacketPtr SequenceLevel( ScriptBasePtr sbp, ScriptPacketPtr pPass, ScriptPacketPtr &pChain );
+//	ScriptPacketPtr SequencePacket( ScriptPacketPtr spp, ScriptPacketPtr pPass );
+	ScriptCommandPtr SequenceLevel( ScriptBasePtr sbp, ScriptCommandPtr pPass, ScriptCommandPtr &pChain );
+	ScriptCommandPtr SequencePacket( ScriptCommandPtr spp, ScriptCommandPtr pPass );
 	void CalcDigest( void );
 
 	bool				m_bExecBound;
