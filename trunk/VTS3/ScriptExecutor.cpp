@@ -5049,7 +5049,8 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			// get a reference to the first parameter
 			const ScriptToken &t = alList[0];
 
-			if ( nlMsg->IsAssignment() )
+			//if(
+			if (nlMsg != NULL && nlMsg->IsAssignment() )
 			{
 				if ( pScriptParm == NULL )
 					throw ExecError( "Undefined script variable for AL message assignment", alMsg->exprLine );
@@ -5059,7 +5060,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				BACnetEnumerated  bacnetMsg(alMsgID, (const char **) NetworkSniffer::PDU_typesENUM, PDUTYPE_MAX);
 				StuffScriptParameter( bacnetMsg, pScriptParm, alMsg->exprValue);
 			}
-			else if ( nlMsg->IsDontCare() )
+			else if ( nlMsg != NULL && nlMsg->IsDontCare() )
 				alMsgID = *dec.pktBuffer >> 4;
 			else
 			{
@@ -8077,6 +8078,7 @@ ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( ScriptParmPtr * ppScriptPar
 	if ( ppScriptParm != NULL )			// just initialize for left overs
 		*ppScriptParm = NULL;
 
+		
 	// translate the expression, resolve parameter names into values
 	ResolveExpr( pep->exprValue, pep->exprLine, tlist, pep->IsAssignment() ? ppScriptParm : NULL );
 	if (tlist.Length() < 1)
