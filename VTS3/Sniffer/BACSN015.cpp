@@ -6142,4 +6142,55 @@ void show_bac_weeknday( void )
    show_str_eq_str("Day of Week",outstr,1);
    pif_offset++;
 }
+
+//Xiso Shiyuan 2002-7-23
+void show_bac_COV_Subscription( void )
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int len;
+   unsigned int val = 0;
+
+   tagbuff = pif_get_byte(0);
+   while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
+      tagval = (tagbuff&0xf0)>>4;
+      if (tagbuff & 0x08) {  /* context tag */
+        if(tagval > 4) {
+          pif_show_space();
+          bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 4)!");
+          goto exit;
+          }
+        len = show_context_tag(BACnetCOVSubscription[tagval]);
+        switch (tagval) {
+          case 0:  show_bac_recipient_process();
+			       show_context_tag(BACnetCOVSubscription[0]);/* closing tag */
+			       tagbuff = pif_get_byte(0);
+				   tagval = (tagbuff&0xF0)>>4;
+                   break;
+          case 1:  show_bac_obj_prop_ref();  
+			       show_context_tag(BACnetCOVSubscription[1]);/* closing tag */
+			       tagbuff = pif_get_byte(0);
+				   tagval = (tagbuff&0xF0)>>4;
+                   break;
+          case 2:  if(val == 0)
+					 bac_show_nbytes(len,"FALSE");
+				   else
+					 bac_show_nbytes(len, "TRUE");
+                   break;
+          case 3:  show_bac_unsigned(len);
+				   break;
+          case 4:  show_bac_real();
+				   break;
+          }
+        }
+      else {  /* application tag */
+        pif_show_space();
+        bac_show_nbytes(1,"Error: Context Tag expected!");
+        }
+      tagbuff = pif_get_byte(0);
+      }  /* end of while loop */
+   exit:;
 }
+}
+
+
+

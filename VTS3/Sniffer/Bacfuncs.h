@@ -648,7 +648,7 @@ char *BACnetPropertyIdentifier[] = {
    "Vendor_Identifier ",                /* 120 */
    "Vendor_Name ",                      /* 121 */
    "Vt_Classes_Supported ",             /* 122 */
-   "Weekly_Schedule ",                  /* 123 */
+   "Weekly_Schedule ",                  /* 123 */   
    "Attempted_Samples ",                /* 124 */
    "Average_Value ",                    /* 125 */
    "Buffer_Size ",                      /* 126 */
@@ -657,13 +657,13 @@ char *BACnetPropertyIdentifier[] = {
    "Current_Notify_Time ",              /* 129 */
    "Event_Time_Stamps ",                /* 130 */
    "Log_Buffer ",                       /* 131 */
-   "Log_Device_Object_ ",       /* 132 */
+   "Log_Device_Object_ ",               /* 132 */
    "Log_Enable ",                       /* 133 */
    "Log_Interval ",                     /* 134 */
    "Maximum_Value ",                    /* 135 */
    "Minimum_Value ",                    /* 136 */
    "Notification_Threshold ",           /* 137 */
-   "Previous_Notify_Time ",             /* 138 */
+   "Previous_Notify_Time ",             /* 138 */   
    "Protocol_Revision ",                /* 139 */
    "Records_Since_Notification ",       /* 140 */
    "Record_Count ",                     /* 141 */
@@ -677,6 +677,23 @@ char *BACnetPropertyIdentifier[] = {
    "Maximum_Value_Timestamp ",          /* 149 */
    "Minimum_value_Timestamp ",          /* 150 */
    "Variance_Value ",                   /* 151 */
+   "Active_Cov_Subscription",           /* 152 Xiao Shiyuan 2002-7-18 */
+   "backup-failure-timeout",            /* 153 Xiao Shiyuan 2002-7-18 */		
+   "configuration-files",               /* 154 Xiao Shiyuan 2002-7-18 */
+   "database-revision",                 /* 155 Xiao Shiyuan 2002-7-18 */
+   "direct-reading",                    /* 156 Xiao Shiyuan 2002-7-18 */
+   "last-restore-time",					/* 157 Xiao Shiyuan 2002-7-18 */
+   "maintenance-required",				/* 158 Xiao Shiyuan 2002-7-18 */
+   "member-of",							/* 159 Xiao Shiyuan 2002-7-18 */
+   "mode",								/* 160 Xiao Shiyuan 2002-7-18 */
+   "operation-expected",				/* 161 Xiao Shiyuan 2002-7-18 */
+   "setting",							/* 162 Xiao Shiyuan 2002-7-18 */
+   "silenced",							/* 163 Xiao Shiyuan 2002-7-18 */
+   "tracking-value",					/* 164 Xiao Shiyuan 2002-7-18 */
+   "zone-members",						/* 165 Xiao Shiyuan 2002-7-18 */
+   "life-safety-alarm-values",			/* 166 Xiao Shiyuan 2002-7-18 */
+   "max-segments-accepted",				/* 167 Xiao Shiyuan 2002-7-18 */
+   "Profile_Name"                       /* 168 Xiao Shiyuan 2002-7-18 */
    };
 
 char *BACnetPropertyReference[] = {
@@ -876,6 +893,15 @@ char *BACnetVTSession[] = {
    "Remote VT-Session ID",
    "Remote VT-Address"
    };
+
+//Xiao Shiyuan 2002-7-23
+char *BACnetCOVSubscription[] = {
+	"Recipient",
+    "Monitored Property Reference",
+	"Issue Confirmed Notifications",
+	"Time remaining",
+	"COV increment"
+};
 
 char *BACnetWeekNDay[] = {
    "Month",
@@ -1327,9 +1353,15 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
    x = pif_get_byte(0);
    switch (prop_id) {
       case ACKED_TRANSITIONS:  /* bit string */
+		   //added by wkh on 2002-7-19
+		   show_application_tag(x);
+		   //----------------------------
            show_bac_event_transitions_ackd();
            break;
       case ACK_REQUIRED:  /* bit string */
+		  //added by wkh on 2002-7-19
+		   show_application_tag(x);
+		   //----------------------------
            show_bac_event_transitions_ackd();
            break;
       case ACTION: switch (obj_type) {
@@ -1999,6 +2031,16 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case VARIANCE_VALUE:                 // Real
            show_application_data(x);
            break;
+
+	  case ACTIVE_COV_SUBSCRIPTION:       //Xiao Shiyuanc 2002-7-23  
+		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
+             show_bac_COV_Subscription();
+		   break;
+
+	  case PROFILE_NAME:                 //Xiao Shiyuanc 2002-7-23
+		   show_application_data(x);
+		   break;
+
       default:
            bac_show_byte("Error: Unknown Property Identifier","%u");
 
