@@ -1603,10 +1603,15 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              x <<= 1;
              }
            break;
-      case LIST_OF_GROUP_MEMBERS:
-      case LIST_OF_OBJ_PROP_REFERENCES: /* List of ReadAccessSpecs  */
+      case LIST_OF_GROUP_MEMBERS:	/* list of read_access_specification */
+		    //Add handle code by Xu Yiping, 2002-9-28 
+			while ((pif_get_byte(0) & 0x0f) != 0x0f)
+				show_bac_read_access_spec();
+			break;
+      case LIST_OF_OBJ_PROP_REFERENCES: /* List of object_property_references  */
            while ((pif_get_byte(0) & 0x0f) != 0x0f)
-               show_bac_read_access_spec();
+			    //show_bac_read_access_spec();
+				show_bac_obj_prop_ref();    //modified by Xu Yiping, 2002-9-28
            break;
 /***/      case LIST_OF_SESSION_KEYS:
            break;
@@ -1858,7 +1863,9 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case RECIPIENT:
            show_bac_recipient();
            break;
-      case RECIPIENT_LIST:
+      case RECIPIENT_LIST: // Added handle codes by xuyiping, 2002-9-28
+		  while((pif_get_byte(0)&0x0f)!=0x0f)
+			show_bac_destination();
            break;
       case RELIABILITY:
            show_application_tag(x);
@@ -1955,9 +1962,13 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            if (prop_idx == 0) {
              bac_show_unsigned("Array Size",show_application_tag(x));
              };
-           while ((pif_get_byte(0) & 0x0f) != 0x0f) {
+		   while ((pif_get_byte(0) & 0x0f) != 0x0f) {
+			 
+			 show_context_tag("BACnetDailySchedule");  //added by xuyiping. 2002-9-24
              show_bac_time_value();
+			 show_context_tag("BACnetDailySchedule");  //added by xuyiping. 2002-9-24
              };
+		   
            break;
       case ATTEMPTED_SAMPLES:             // Unsigned 32       
            show_application_data(x);
