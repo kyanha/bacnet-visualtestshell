@@ -186,7 +186,7 @@ static char		*lp;								//pointer into lb
 static word		lc;									//current 1-based line in file
 static int			lerrc;								//count of errors
 static FILE		*ifile;								//current input file				***008
-static int      lPICSErr;                           //added by xlp  
+static int      lPICSErr;                           //added by xlp - but what do I do, and why?
 
 //*****017 begin
 static octet	newParseType;						
@@ -500,20 +500,28 @@ TApplServ gFgTimeMaster[nFgTimeMaster]=
       { asTimeSynchronization, ssExecute, DEVICE, TIME_SYNCHRONIZATION_RECIPIENTS } 
   };        
 
-// begin by MAG
-void mprintf(char *ipl){
-#ifdef MDEBUG	
-	FILE *op;  // comment out for release versions
+//#define MDEBUG
+static void print_debug(char *fmt, ...)
+{
+	#ifdef MDEBUG	// comment out for release versions
+	FILE *pFile;
+	va_list ap;
+	va_start(ap,fmt);
 
-	if(ipl == NULL) return;
-	op = fopen("d:\\vtsapiout.txt","a");
-	if(op == NULL) return;
-	fprintf(op,"%s",ipl);
-	fclose(op);
-#endif
-	return;
+	if (fmt)
+	{
+		// puts it in the same directory as the EPICS it is parsing
+		pFile = fopen("vtsepics.txt","a");
+		if (pFile)
+		{
+			vfprintf(pFile,fmt,ap);
+			fclose(pFile);
+		}
+	}
+	#else
+	(void)fmt;
+	#endif   
 }
-// end by MAG
 
 ///////////////////////////////////////////////////////////////////////				***007 Begin
 //	Get Enumeration string for a given choice of BACnetPropertyStates
@@ -548,22 +556,19 @@ word  APIENTRY VTSAPIgetpropertystates(word pschoice,HWND plist)
 {	etable *pet;
 	word i;
 
-	char junk[300];
-
-	sprintf(junk,"GPS: Enter gps pschoice = %d hwnd = %d\n",pschoice,plist);
-	mprintf(junk);
+	print_debug("GPS: Enter gps pschoice = %d hwnd = %d\n",pschoice,plist);
 	if (pschoice>=(sizeof(PropertyStates)/sizeof(PropertyStates[0])))
 		return 0;
 	pet=PropertyStates[pschoice];
-	mprintf("GPS: about to ClearCBList\n");
+	print_debug("GPS: about to ClearCBList\n");
 	ClearCBList(plist);
 	for (i=0;i<pet->nes;i++)
 		if (pet->estrings[i])
 			AddCBListText(plist,pet->estrings[i]);
 		else
 			AddCBListText(plist,"");
-	sprintf(junk,"GPS: return value %d\n",pet->nes);
-	mprintf(junk);
+	print_debug("GPS: return value %d\n",pet->nes);
+	
 	return pet->nes;
 }														//							***004 End
 
@@ -882,14 +887,15 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 }
 
 ///////////////////////////////////////////////////////////////////////
-//	Open and Read a TPI file
-//in:	tp		points to file name string
-//		errc	pointer to an error counter
-//out:	ptr to the created list of database objects
-
-bool APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc,int *errPICS)
-{	int			i,j;
-	char opj[300]; //line added by MAG
+//	Open and Read a TPI file (i.e. EPICS text file)
+///////////////////////////////////////////////////////////////////////
+bool APIENTRY ReadTextPICS(
+	char *tp, // filename string
+	PICSdb *pd, // EPICS database
+	int *errc, // error counter
+	int *errPICS) // returns the error
+{	
+	int			i,j;
 	generic_object *pd2;  // line added by MAG for debug only
 	lPICSErr=0;
 	
@@ -901,10 +907,7 @@ bool APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc,int *errPICS)
 	memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));	//added by xlp,2002-11
 	pd->BACnetFunctionalGroups=0;				//default is none
 
-	if(strlen(tp) < 275){
-		sprintf(opj,"RTP: open file '%s'\n",tp);
-		mprintf(opj);
-	} else mprintf("RTP: open file <name too long>\n");
+	print_debug("RTP: open file '%.275s'\n",tp);
 	lerrc=0;									//no errors yet
 	if ((ifile=fopen(tp,"r"))==NULL)			//open input file						***008
 	{	tperror(_strerror(tp),false);
@@ -917,14 +920,12 @@ bool APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc,int *errPICS)
 	{	tperror("This file does not contain a supported form of Text PICS!",false);
 		goto rtpclose;
 	}
-	sprintf(opj,"RTP: Read line '%s'\n",lb);		// MAG
-	mprintf(opj);							// MAG
-
+	print_debug("RTP: Read line '%s'\n",lb);		// MAG
+	
 	readline(lb,sizeof(lb));					//read a line from the file				***008
 	lp=&lb[0];
-	sprintf(opj,"RTP: rl1: Read line '%s'\n",lb);		// MAG
-	mprintf(opj);							// MAG
-
+	print_debug("RTP: rl1: Read line '%s'\n",lb);		// MAG
+	
 	if (stricmp(lb,BeginPics))				//invalid signature
 	{	tperror("Invalid Text PICS signature.",false);
 		goto rtpclose;
@@ -932,9 +933,8 @@ bool APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc,int *errPICS)
 
 	while (feof(ifile)==0&&!cancel)				//										***008
 	{	readline(lb,sizeof(lb));				//read a line from the file 			***008
-		sprintf(opj,"RTP: rl2: Read line '%s'\n",lb);		// MAG
-		mprintf(opj);							// MAG
-
+		print_debug("RTP: rl2: Read line '%s'\n",lb);		// MAG
+		
 		if (lb[0])								//not a blank line
 		{	if (stricmp(lb,EndPics)==0)		//found the end
 				break;							//we're done
@@ -1028,13 +1028,12 @@ rtpexit:
 	*errc=lerrc;
 
 	pd2 = pd->Database;
-	mprintf("Begin database printout.\n");
+	print_debug("Begin database printout.\n");
 	while(pd2 != NULL){
-		sprintf(opj,"object id %d (%d) object name = '%s' desc = '%s'\n",pd2->object_id,(pd2->object_id)>>22,pd2->object_name,pd2->description);
-		mprintf(opj);
+		print_debug("object id %d (%d) object name = '%s' desc = '%s'\n",pd2->object_id,(pd2->object_id)>>22,pd2->object_name,pd2->description);
 		pd2 = (generic_object *)pd2->next;
 	}
-	mprintf("End database printout.\n");
+	print_debug("End database printout.\n");
 
 	return !cancel;
 }
@@ -1443,14 +1442,14 @@ nextobject:										//										***012
 									pobj->propflags[idProp]|=PropIsWritable; //								***014 End
 								continue;
 							}
-							mprintf("RO: About to PP\n");
+							print_debug("RO: About to PP\n");
 							if (ParseProperty(pn,pobj,objtype)) return true;
 							
 							//Added for resetting the value, *********017
 							if(bNeedReset & bHasNoneType)
 								if(ParseProperty(NoneTypePropName,pobj,objtype)) return true;		
 							
-							mprintf("RO: Done PP'ing\n");
+							print_debug("RO: Done PP'ing\n");
 						}
 						else							//don't know what kind of object this is yet
 						{	if (stricmp(pn,"object-type")==0)
@@ -2383,13 +2382,15 @@ void CheckObjConsA(PICSdb *pd)
       //check obj type for clock FG supported by Cons Class 6 
 	  if(nFG&fgClock){   
 		 if (pd->BACnetStandardObjects[DEVICE]==soNotSupported)  {
-			 sprintf(opj,"EPICS Object Cons check error:The Device Object type should be included to support the Clock Functional Group!\n");
+			 sprintf(opj,"EPICS Object Consistency check error: "
+				 "The Device Object type should be included to support the Clock Functional Group!\n");
 			 PrintToFile(opj);
 		     tperror(opj,false);
 		  }
 	  }
 	  else{
-			 sprintf(opj,"EPICS Object Cons check error: Cons Class 6 claims that Clock FG must be supported by BACnet device!\n");
+			 sprintf(opj,"EPICS Object Consistency check error: "
+				 "Conformance Class 6 claims that Clock Functional Group must be supported!\n");
 			 PrintToFile(opj);
 		     tperror(opj,false);
 	  }
@@ -2397,7 +2398,8 @@ void CheckObjConsA(PICSdb *pd)
       if((nFG&fgEventInitiation)||(nFG&fgEventResponse))     //Event Initiation/Response FG Obj Cons Check
 	  {  if(pd->BACnetStandardServices[asConfirmedCOVNotification]||pd->BACnetStandardServices[asUnconfirmedCOVNotification]) //FG support COV Notification Services
   	     if(pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported){
-		    sprintf(opj,"EPICS Object Cons check error: Event Enrollment Object type should be included to support the Event Initiation|Response Functional Group!\n");
+		    sprintf(opj,"EPICS Object Consistency check error: "
+				"Event Enrollment Object type should be included to support the Event Initiation|Response Functional Group!\n");
 			PrintToFile(opj);
 			tperror(opj,false);
 		 }
@@ -2413,38 +2415,46 @@ void CheckObjConsA(PICSdb *pd)
 		 	      flag = true;
               else
 				  if(!flag){
-					  sprintf(opj,"EPICS Object Cons check error: at least one of Std Obj types listed by Table 13-2 should be included to support the Event Initiation|Response Functional Group! \n");
+					  sprintf(opj,"EPICS Object Consistency check error: "
+						  "at least one of Std Obj types listed by Table 13-2 should be included "
+						  "to support the Event Initiation|Response Functional Group! \n");
 					  PrintToFile(opj);
 					  tperror(opj,false);
 				  }
 		  }
 		  else{
-			  sprintf(opj,"EPICS Object Cons check error: Notification Class Object type should be included to support the Event Initiation|Response Functional Group! \n");
+			  sprintf(opj,"EPICS Object Consistency check error: "
+				  "Notification Class Object type should be included to support "
+				  "the Event Initiation|Response Functional Group! \n");
 		      PrintToFile(opj);
 			  tperror(opj,false);
 		  }
 		 }
 	  }
 	  else{
-			 sprintf(opj,"EPICS Object Cons check error: Cons Class 6 claims that EventInitiation and EventResponse FGs must be supported! \n");
+			 sprintf(opj,"EPICS Object Consistency check error: "
+				 "Conformance Class 6 claims that EventInitiation and EventResponse FGs must be supported! \n");
 			 PrintToFile(opj);
 		     tperror(opj,false);
 	  }
 
       if(nFG&fgFiles){
 		  if(pd->BACnetStandardObjects[FILE_O]==soNotSupported){
-			  sprintf(opj,"EPICS Object Cons check error: File Object type should be included to support the File Functional Group! \n");
+			  sprintf(opj,"EPICS Object Consistency check error: "
+				  "File Object type should be included to support the File Functional Group! \n");
 			  PrintToFile(opj);
 		      tperror(opj,false);			  
 		  }
 	  }
 	  else{
-			 sprintf(opj,"EPICS Object Cons check error: Cons Class 6 claims that File FG must be supported! \n");
+			 sprintf(opj,"EPICS Object Consistency check error: "
+				 "Conformance Class 6 claims that File Functional Group must be supported! \n");
 			 PrintToFile(opj);
 		     tperror(opj,false);
 	  }
 	  if(!(nFG&fgPCWS)){
-			 sprintf(opj,"EPICS Object Cons check error: Cons Class 6 claims that  PCWS FG must be supported! \n");
+			 sprintf(opj,"EPICS Object Consistency check error: "
+				 "Conformance Class 6 claims that PCWorkStation Functional Group must be supported! \n");
 			 PrintToFile(opj);
 		     tperror(opj,false);
 	  }
@@ -2453,9 +2463,10 @@ void CheckObjConsA(PICSdb *pd)
   case 4: 
   case 3: 
   case 2: 
-  default:                 //Cons Class 1 must be supported;
+  default:                 //Conformance Class 1 must be supported;
 	  if(pd->BACnetStandardObjects[DEVICE]==soNotSupported){
-		  sprintf(opj,"EPICS Object Cons check error: The Device Object type should be included to  meet the requiredment by Conformance Class 1!\n");
+		  sprintf(opj,"EPICS Object Consistency check error: "
+			  "The Device Object type must be included to meet the requirement by Conformance Class 1!\n");
 		  PrintToFile(opj);
 		  tperror(opj,false);
 	  }
@@ -2475,7 +2486,8 @@ void CheckObjConsF(PICSdb *pd)
 
    if((nFG&fgClock)||(nFG&fgTimeMaster))   
 	   if (pd->BACnetStandardObjects[DEVICE]==soNotSupported){  
-           sprintf(opj,"EPICS Object Cons check error:The Device Object type should be included to support the Clock|TimeMaster Functional Group!\n");
+           sprintf(opj,"EPICS Object Consistency check error: "
+			   "The Device Object type should be included to support the Clock|TimeMaster Functional Group!\n");
            PrintToFile(opj);
 		   tperror(opj,false);
 	   }
@@ -2483,7 +2495,8 @@ void CheckObjConsF(PICSdb *pd)
    if((nFG&fgEventInitiation)||(nFG&fgEventResponse))     //Event Initiation/Response FG Obj Cons Check
    {  if(pd->BACnetStandardServices[asConfirmedCOVNotification]||pd->BACnetStandardServices[asUnconfirmedCOVNotification]) //FG support COV Notification Services
          if(pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported){
-             sprintf(opj,"EPICS Object Cons check error:Event Enrollment Object type should be included to support the Event Initiation|Response Functional Group!\n");
+             sprintf(opj,"EPICS Object Consistency check error: "
+				 "Event Enrollment Object type should be included to support the Event Initiation|Response Functional Group!\n");
 			 PrintToFile(opj);
 			 tperror(opj,false);
 		 }
@@ -2500,13 +2513,17 @@ void CheckObjConsF(PICSdb *pd)
 		 	   flag = true;
            else
 			   if(!flag) {
-				   sprintf(opj,"EPICS Object Cons check error: at least one of Std Obj types listed by Table 13-2 should be included to support the Event Initiation|Response Functional Group! \n");
+				   sprintf(opj,"EPICS Object Consistency check error: "
+					   "at least one of Std Obj types listed by Table 13-2 should be included "
+					   "to support the Event Initiation|Response Functional Group! \n");
 				   PrintToFile(opj);
 				   tperror(opj,false);
 			   }
 		  }
 		  else{
-		      sprintf(opj,"EPICS Object Cons check error: Notification Class Object type should be included to support the Event Initiation|Response Functional Group! \n");
+		      sprintf(opj,"EPICS Object Consistency check error: "
+				  "Notification Class Object type should be included "
+				  "to support the Event Initiation|Response Functional Group! \n");
               PrintToFile(opj); 
 			  tperror(opj,false);
 		  }
@@ -2514,7 +2531,8 @@ void CheckObjConsF(PICSdb *pd)
 
    if(nFG&fgFiles){
 	   if(pd->BACnetStandardObjects[FILE_O]==soNotSupported){
-		   sprintf(opj,"EPICS Object Cons check error: File Object type should be included to support the File Functional Group! \n");
+		   sprintf(opj,"EPICS Object Consistency check error: "
+			   "File Object type should be included to support the File Functional Group! \n");
             PrintToFile(opj);
 		   tperror(opj,false);
 	   }
@@ -2533,8 +2551,7 @@ void CheckObjConsK(PICSdb *pd)
 	BOOL  i;
     octet BACnetStandardObjChk[MAX_DEFINED_OBJ];
 	octet ProtocolObjectSup[MAX_DEFINED_OBJ];
-    char *Message="one-to-one correspondence with that supported by the Standard Object Types Supported section !\n";
-
+    
     p=ProtocolObjSup.PropSupValue;
     memset(ProtocolObjectSup,0,MAX_DEFINED_OBJ);
     BitToArray(ProtocolObjectSup,&ProtocolObjSup);
@@ -2543,7 +2560,10 @@ void CheckObjConsK(PICSdb *pd)
 		    if(((BACnetStandardObjChk[i]|ProtocolObjectSup[i])!=0)&&
 	        	((BACnetStandardObjChk[i]&ProtocolObjectSup[i])==0)){
 		         objName=StandardObjects[i];
-                 sprintf(errMsg,"EPICS Object Cons check error:%s object type listed by protocol-object-types-supported property has a %s",objName,Message);
+                 sprintf(errMsg,"EPICS Object Consistency check error: "
+					 "%s object type listed by protocol-object-types-supported property does not have a "
+					 "one-to-one correspondence with that supported by the "
+					 "Standard Object Types Supported section !\n",objName);
 				 PrintToFile(errMsg);
 		         tperror(errMsg,false);
 			}
@@ -2562,14 +2582,15 @@ void CheckObjConsL(PICSdb *pd)
 	 BACnetStandardObjChk[i]= pd->BACnetStandardObjects[i]; 
 	 if((BACnetStandardObjChk[i])&&!(ObjInTestDB[i].ObjIDSupported)){
 		objName=StandardObjects[i];
-        sprintf(errMsg,"EPICS Object Cons check error:%s Object missing in the test database!\n",objName);
+        sprintf(errMsg,"EPICS Object Consistency check error: "
+			"%s Object missing in the test database!\n",objName);
 		PrintToFile(errMsg);
 		tperror(errMsg,false);
 	 }
 	}
 }
 ///////////////////////////////////////////////////////////////////////
-//PICS Cons Check m:
+//PICS Consistency Check m:
 //Consistency check between the objects listed in the Object_List
 //property of the Device object and objects included in the test
 //database,both including proprietary objects.
@@ -2580,13 +2601,14 @@ void CheckObjConsM()
   char *objName;
   dword *p1,*p2;
   dword  instance1,instance2;
-  char *Message="one-to-one correspondence with that included in the test database!\n";
+
   for(i=0;i<MAX_DEFINED_OBJ;i++){
     num1=ObjInTestDB[i].ObjInstanceNum;
     num2=DevObjList[i].ObjInstanceNum;
     if(num1!=num2){  
 	  objName=StandardObjects[i];
-      sprintf(errMsg,"EPICS Object Cons check error:%s Object listed by Object_List property of device object has a %s",objName,Message);
+      sprintf(errMsg,"EPICS Object Consistency check error: "
+		  "An %s object is mismatched or missing between the device object-list and the List of Objects!\n",objName);
 	  PrintToFile(errMsg);
 	  tperror(errMsg,false);
 	}
@@ -2599,7 +2621,9 @@ void CheckObjConsM()
 		  instance2=DevObjList[i].ObjInstance[j];
 		  if(instance1!=instance2){
       	     objName=StandardObjects[i];
-             sprintf(errMsg,"EPICS Object Cons check error:%s Object listed by Object_List property of device object has a %s",objName,Message);
+             sprintf(errMsg,"EPICS Object Consistency check error: "
+				 "%s %u in the device object-list does not match "
+				 "%s %u in the List of Objects!\n",objName,instance2,objName,instance1);
              PrintToFile(errMsg);
 	         tperror(errMsg,false);
 			 break;
@@ -2607,6 +2631,7 @@ void CheckObjConsM()
 	  }
 	}
   }
+
   return;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -2648,12 +2673,10 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 	octet		*op,oParseType;
 	BACnetActionCommand **acp;
 	BACnetDateRange		*dtp;
-	char opj[300];	// MAG
 
 	void 		far	*pvalue_type;
 
-	sprintf(opj,"PP: Enter ParseProperty, search for '%s' objtype %d\n",pn,objtype);	//MAG
-	mprintf(opj);	//MAG
+	print_debug("PP: Enter ParseProperty, search for '%s' objtype %d\n",pn,objtype);	//MAG
 	pd=StdObjects[objtype].sotProps;			//point to property descriptor table for this object type
 	pindex=0;
     do
@@ -2674,9 +2697,8 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 			}
 
 			skipwhitespace();					//point to where the value should be					***013 Begin
-			sprintf(opj,"PP: pd->ParseType == %d\n",pd->ParseType); //MAG
-			mprintf(opj); //MAG
-//Modified by Liangping Xu,2002-9
+			print_debug("PP: pd->ParseType == %d\n",pd->ParseType); //MAG
+			//Modified by Liangping Xu,2002-9
             p=lp;
 			if(strchr(p,42)||strchr(p,63))
 			//if (*lp=='?'||*lp=='*')						//property value is unspecified
@@ -2797,9 +2819,9 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 				case dtrange:					//daterange
 					skipwhitespace();
 					if (MustBe('(')) return true;
-	                 mprintf("PD:  ParseDateRange starts now\n");	
+	                 print_debug("PD:  ParseDateRange starts now\n");	
                 	if (MustBe('(')) return true; 
-	                 mprintf("PD: about to read first date\n");     
+	                 print_debug("PD: about to read first date\n");     
 					dtp=(BACnetDateRange *)pstruc;
 					if (ParseDate(&dtp->start_date)) return true;
                     if(*lp=='.'&&*(lp+1)=='.')     
@@ -2807,7 +2829,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                     else                           
 						lp=strstr(lp,"-")+1;
                 	if (MustBe('(')) return true;  
-	                 mprintf("PD: about to second first date\n");                        
+	                 print_debug("PD: about to second first date\n");                        
 					if (ParseDate(&dtp->end_date)) return true;
 					if (MustBe(')')) return true;
 					break;
@@ -3081,7 +3103,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 			while (*lp==space||*lp==',') lp++;		//skip any more whitespace or commas ***014
 			if (*lp=='W'||*lp=='w')				//prop is writeable
 				pobj->propflags[pindex]|=PropIsWritable;	//						***013 End
-			mprintf("PP: RETURN\n");
+			print_debug("PP: RETURN\n");
 			return false;						//we're done parsing
 		}
 		if (pd->PropGroup&Last)
@@ -3351,8 +3373,6 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 	char				*ep;
 	word				i;
 
-	char junk[300]; // MAG
-
 	xp->special_event=NULL;						//initially there are no lists
 	xp->size=0;
 	
@@ -3453,26 +3473,21 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 			lp=ep;
 			*lp++=')';
 		}
-		sprintf(junk,"PES: About to strdelim lp = '%s'\n",lp);
-		mprintf(junk);
+		print_debug("PES: About to strdelim lp = '%s'\n",lp);
 		if (strdelim(",")==NULL) goto xx;
 
-		sprintf(junk,"PES: About to PTVL lp = '%s'\n",lp);
-		mprintf(junk);
+		print_debug("PES: About to PTVL lp = '%s'\n",lp);
 		if (ParseTVList(&q->list_of_time_values)) goto xx;
 		
-		sprintf(junk,"PES: About to strdelim2 lp = '%s'\n",lp);
-		mprintf(junk);
+		print_debug("PES: About to strdelim2 lp = '%s'\n",lp);
 		if (strdelim(",")==NULL) goto xx;
 
-		sprintf(junk,"PES: about to ReadW lp = '%s'\n",lp);
-		mprintf(junk);
+		print_debug("PES: about to ReadW lp = '%s'\n",lp);
 		q->event_priority=ReadW();
 
         xp->size++;
-		sprintf(junk,"PES: ReadW returns %d\n",q->event_priority);
-		mprintf(junk);
-
+		print_debug("PES: ReadW returns %d\n",q->event_priority);
+		
 		q->next=NULL;							//link onto the list
 		if (fp==NULL)
 			fp=q;								//remember first guy we made
@@ -3481,9 +3496,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 		p=q;									//remember new guy is now the last guy
 		q=NULL;
 		if(( *(lp-1) == '(')&&(*lp == '(')) lp--;  // MAG
-		sprintf(junk,"PES: end while loop, lp = '%s'\n",lp);
-		mprintf(junk);
-
+		print_debug("PES: end while loop, lp = '%s'\n",lp);
 	}
 	xfail=false;
 xx:
@@ -3615,8 +3628,7 @@ BOOL ParseTVList(BACnetTimeValue **tvp)
 
 		// MAG 25 JAN 01 added as bugfix for schedule:exception-schedule property
 		if((lp[0] == ',') && (lp[1] != '(')){
-			//sprintf(junk,"PTVL: Exit PTVL at repeat check lp = '%s'\n",lp);
-			//mprintf(junk);
+			//print_debug("PTVL: Exit PTVL at repeat check lp = '%s'\n",lp);
 			if(*lp != ',') lp++;  // MAG 14 FEB 2001 fix parse error-add 'if()' part to line
 			break;								//close this list out
 		}
@@ -4182,20 +4194,18 @@ BOOL ParseDateTime(BACnetDateTime *dtp)
 BOOL ParseDate(BACnetDate *dtp)
 {	octet	db;
 	word	i;
-	char opj[300]; // MAG
     char c;
-	sprintf(opj,"PD: Enter ParseDate, lp = '%s'\n",lp);	//MAG
-	mprintf(opj);									//MAG
 	
+	print_debug("PD: Enter ParseDate, lp = '%s'\n",lp);	//MAG
 	dtp->year=dontcare;
 	dtp->month=dontcare;
 	dtp->day_of_month=dontcare;
 	dtp->day_of_week=dontcare;
 	skipwhitespace();
-	mprintf("PD: about to read first set\n");
+	print_debug("PD: about to read first set\n");
     if ((db=ReadB(1,31))!=dontcare)				//not wild
     {	if (lp[-1]=='/')						//was it month/day/year?
-    	{	mprintf("PD: find month first\n");
+    	{	print_debug("PD: find month first\n");
 			if (db>12)							//yes
     		{	tperror("Month must be 1-12!",true);
 				return true;
@@ -4203,23 +4213,22 @@ BOOL ParseDate(BACnetDate *dtp)
 			dtp->month=db;
     	}
     	else									//must be day-month-year
-    	{	mprintf("PD: find day of month first\n");
+    	{	print_debug("PD: find day of month first\n");
 			if (db>31)
     		{	tperror("Day of month must be 1-31!",true);
     			return true;
     		}
     		dtp->day_of_month=db;
     	}
-    } else mprintf("PD: first value not specified\n");
-	sprintf(opj,"PD: About to read second set, db = %d lp = '%s' lp[-1] = '%c' \n",db,lp,&lp[-1]);
-	mprintf(opj);
-    if (lp[-1]=='/')							//was it month/day/year?
-    {	mprintf("PD: second set slash case\n");
+    } else print_debug("PD: first value not specified\n");
+	print_debug("PD: About to read second set, db = %d lp = '%s' lp[-1] = '%c' \n",db,lp,&lp[-1]);
+	if (lp[-1]=='/')							//was it month/day/year?
+    {	print_debug("PD: second set slash case\n");
 		if ((db=ReadB(1,31))!=dontcare)			//we'll check for valid days later
     		dtp->day_of_month=db;
     }
     else if (lp[-1]=='-')						//day-month-year
-    {	mprintf("PD: second set dash case\n");
+    {	print_debug("PD: second set dash case\n");
 		for (i=0;i<12;i++)
     		if (strnicmp(lp,MonthNames[i],3)==0)
     		{	dtp->month=(octet)i+1;			//months are 1-12
@@ -4236,7 +4245,7 @@ BOOL ParseDate(BACnetDate *dtp)
 		return true;
 	}
     
-	mprintf("PD: About to read third set\n");
+	print_debug("PD: About to read third set\n");
     if (i=ReadW())								//not wild
     {	if (i>2154)								//can't represent this date
     	{	tperror("Can't represent dates beyond 2154!",true);
@@ -4266,13 +4275,13 @@ BOOL ParseDate(BACnetDate *dtp)
 	}
 
 	else if(lp[-1]==')') {                    //added by Liangping Xu,2002-9
-	mprintf("PD: Exit ParseDate normal\n");	
+	print_debug("PD: Exit ParseDate normal\n");	
 	return false;        
 	}
 	
 	else
     	lp--;									//point back to delimiter
-	mprintf("PD: Exit ParseDate normal\n");
+	print_debug("PD: Exit ParseDate normal\n");
 	return false;
 }
 
@@ -4804,11 +4813,10 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 	word	i;
 	char found_day;  // MAG
 
-	char lpj[400];
-				
+			
 	*dalp=NULL;									//initially there is no list
 	
-	mprintf("PDL: Enter ParseDestinationList\n");
+	print_debug("PDL: Enter ParseDestinationList\n");
 	skipwhitespace();
 	if (MustBe('(')) return true;
 	while(feof(ifile)==0)
@@ -4818,8 +4826,7 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 		//   but (...),,(...) is treated the same as (...),(...)
 		//2. (			i.e. the beginning of a new BACnetDestination in the list
 		//3. )			i.e. the closing part of the list
-		sprintf(lpj,"PDL: start loop lp = '%s'\n",lp);
-		mprintf(lpj);
+		print_debug("PDL: start loop lp = '%s'\n",lp);
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
 		if (*lp==0)
 			if (ReadNext()==NULL) break;		//									***008
@@ -4838,15 +4845,14 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 		}
 		//look for (days of week),
 		skipwhitespace();						//									***013
-		mprintf("PDL: About to check weekdays\n");
+		print_debug("PDL: About to check weekdays\n");
 		if (MustBe('(')) break;
 		q->valid_days=0;
-		mprintf("PDL: pre while 1\n");
+		print_debug("PDL: pre while 1\n");
         while(*lp&&*lp!=')')
         {   while (*lp==space||*lp==',') lp++;	//skip separation between list elements
-			sprintf(lpj,"PDL: post while 2 lp = '%s'\n",lp);
-			mprintf(lpj);
-	    	if (*lp==')') break;				//done								***013
+			print_debug("PDL: post while 2 lp = '%s'\n",lp);
+			if (*lp==')') break;				//done								***013
 			found_day = 0;  // MAG
 	    	for(i=0;i<7;i++)
 	    		if (strnicmp(lp,DOWNames[i],3)==0)
@@ -4855,13 +4861,12 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 					found_day = 1;
 	    			break;
 	    		}
-			sprintf(lpj,"PDL: post while 3 lp = '%s'\n",lp);
-			mprintf(lpj);
+			print_debug("PDL: post while 3 lp = '%s'\n",lp);
 			if(!found_day)
 				return tperror("Expected Day of Week Here",true);
 
 		}
-		mprintf("PDL: Past check weekdays\n");
+		print_debug("PDL: Past check weekdays\n");
 		if (MustBe(')')) break;
 		if (strdelim(",")==NULL) break;
     	q->from_time.hour=ReadB(0,23);
@@ -4876,7 +4881,7 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
     				q->from_time.hundredths=ReadB(0,99);
     		}
     	}
-		mprintf("PDL: Past min-sec-hsec\n");
+		print_debug("PDL: Past min-sec-hsec\n");
 		lp--;
 		if (strdelim(",")==NULL) break;
     	q->to_time.hour=ReadB(0,23);
@@ -4891,7 +4896,7 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
     				q->to_time.hundredths=ReadB(0,99);
     		}
     	}
-		mprintf("PDL: Past min-sec-hsec 2\n");
+		print_debug("PDL: Past min-sec-hsec 2\n");
 		lp--;
 		if (strdelim(",")==NULL) break;
 		if (ParseRecipient(&q->recipient)==NULL) break;
@@ -4912,11 +4917,11 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 		q->next=p;								//link onto the list
 		p=q;
 		q=NULL;
-		mprintf("PDL: End of loop\n");
+		print_debug("PDL: End of loop\n");
 	}
 	if (q!=NULL) free(q);						//don't lose this block!
 	*dalp=p;
-	mprintf("PDL: Return\n");
+	print_debug("PDL: Return\n");
 	return false;
 }
 
@@ -5102,9 +5107,7 @@ octet ReadB(octet lb,octet ub)
 {	octet d=0;
 	char b[64],c;
 
-	mprintf("RB: Enter ReadB lp = '");
-	mprintf(lp);
-	mprintf("'\n");
+	print_debug("RB: Enter ReadB lp = '%s'\n",lp);
 	skipwhitespace();
 	while (isdigit(c=*lp++))
 		d=(d*10)+(c-'0');
@@ -5160,11 +5163,8 @@ word ReadEnum(etable *etp)
 {	char	c,e[33];
 	word	i;
 	int j;  // MAG
-	char opj[200];
-
-	mprintf("RE: Enter ReadEnum lp = '");
-	mprintf(lp);
-	mprintf("'\n");
+	
+	print_debug("RE: Enter ReadEnum lp = '%s'\n",lp);
 	skipwhitespace();
 	i=0;
 	while (c=*lp)								//until the end of the buffer
@@ -5176,21 +5176,15 @@ word ReadEnum(etable *etp)
 			break;
 	}
     e[i]=0;  //add by Liangping Xu,2002-8
-	mprintf("RE: find enum '");
-	mprintf(e);
-	mprintf("'\n");
+	print_debug("RE: find enum '%s'\n",e);
 	
 	j = strlen(e);
-	sprintf(opj,"RE: spot j-2 = %d spot j-1 = %d\n",e[j-2],e[j-1]);
-	mprintf(opj);
+	print_debug("RE: spot j-2 = %d spot j-1 = %d\n",e[j-2],e[j-1]);
 	if((j > 3)&&(e[j-2] == '-')&&((e[j-1] = 'w')||(e[j-1] = 'W'))){ // MAG 3 MAR 2001 fix for string ending in '-w' (writeable)
-		mprintf("RE: fix end string: was '");
-		mprintf(e);
-		mprintf("' now '");
+		print_debug("RE: fix end string: was '%s'",e);
 		lp -=2;
 		e[j-2] = 0;
-		mprintf(e);
-		mprintf("'\n");
+		print_debug(" now '%s'\n",e);
 	}
 
 	if (i)
@@ -5199,8 +5193,7 @@ word ReadEnum(etable *etp)
 		for (i=0;i<etp->nes;i++)
 		{	if (etp->estrings[i])				//make sure it's not null			***006
 				if (stricmp(e,etp->estrings[i])==0){	//matching enumeration
-					sprintf(opj,"RE: find match (%d)- return\n",i);
-					mprintf(opj);
+					print_debug("RE: find match (%d)- return\n",i);
 					return i;
 				}
 		}
@@ -5215,7 +5208,7 @@ word ReadEnum(etable *etp)
 			return 0xFFFF;
 		}
 	}	
-	mprintf("RE: Return w/o enumeration\n");
+	print_debug("RE: Return w/o enumeration\n");
 	tperror("Expected an Enumeration Name here!",true);
 	return 0xFFFF;
 }
@@ -5231,9 +5224,8 @@ word ReadEnum(etable *etp)
 dword ReadObjID()
 {	word	objtype;
 	dword	id;
-	char	junk[100];
-
-	mprintf("ROI: Enter ReadObjID\n");
+	
+	print_debug("ROI: Enter ReadObjID\n");
 	skipwhitespace();
 	if (*lp++!='(')
 	{	tperror("Expected ( before (objecttype,instance) here!",true);
@@ -5241,14 +5233,12 @@ dword ReadObjID()
 	}
 	if ((objtype=ReadEnum(&etObjectTypes))==0xFFFF)
 		goto roidx;
-	sprintf(junk,"ROI: object type %s %d\n",etObjectTypes.estrings[objtype], objtype);
-	mprintf(junk);
+	print_debug("ROI: object type %s %d\n",etObjectTypes.estrings[objtype], objtype);
 	skipwhitespace();						//									***006 Begin
 	if (strnicmp(lp,"instance ",9)==0)		//ignore instance here
 		lp+=9;									//									***006 End
 	id=ReadDW();
-	sprintf(junk,"ROI: object instance %d\n",id);
-	mprintf(junk);
+	print_debug("ROI: object instance %d\n",id);
 	if (lp[-1]==')')							//it ended with a closing paren, it's ok
 	{	if (id<(1L<<22))						//valid instance number
 			return (((dword)objtype)<<22)+id;	//save the object identifier as a dword
@@ -5335,7 +5325,7 @@ int CreateTextPICS(char *tp)
 //out:	lp		filled with the line, ends in 0
 //		lc		updated
 
-void readline(char *lp,int lps)
+static void readline(char *lp,int lps)
 {	char	*dp,*sp,c;
 	BOOL	HaveNonWS=FALSE;
 
