@@ -38,7 +38,7 @@ typedef struct tagDevProtocolSup{
 
 DevProtocolSup  ProtocolObjSup;
 DevProtocolSup  ProtocolServSup;
-DevProtocolSup  DevProp;
+
 
 
 
