@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "VTS.h"
 #include "VTSDoc.h"
+#include "VTSQueue.h"
 
 #include "PI.h"
 
@@ -48,18 +49,21 @@ bool Match( int op, unsigned a, unsigned b );
 bool Match( int op, float a, float b );
 bool Match( int op, double a, double b );
 
-//
+
 //	VTSQueue<ScriptExecMsg>
-//
+
+// Why is this CPP file here?  Should be able to do all from header file. - STK
+//#include "VTSQueue.cpp"
+// I moved all the code from VTSQueue.CPP to VTSQueue.H (okay for templates). - STK
+ 
 //	This declaration below instantiates a version of the VTSQueue that contains
 //	executor messages.  This will generate a warning that the template has already 
 //	been instantiated, but don't believe it.  I wouldn't be suprised if the 
-//	template code is defined someplace but not accessable to the linker.
-//
+//	template code is defined someplace but not accessable to the linker. - Joel?
 
-#include "VTSQueue.cpp"
-
-template class VTSQueue<ScriptExecMsg>;
+// This is instantiated in the class ScriptExecutor as execMsgQueue - STK
+// I wouldn't have typedef'd it - that really confuses the programmer. - STK
+//template class VTSQueue<ScriptExecMsg>;
 
 //
 //	ScriptFilter::ScriptFilter

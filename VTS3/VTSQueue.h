@@ -6,10 +6,12 @@
 #define AFX_VTSQUEUE_H__AC6F4361_C02A_11D4_BEFB_00A0C95A9812__INCLUDED_
 
 #if _MSC_VER > 1000
-#pragma once
+  #pragma once
 #endif // _MSC_VER > 1000
 
 #include <afxmt.h>
+#include "stdafx.h"
+#include "VTS.h"
 
 //
 //	VTSQueue
@@ -43,5 +45,98 @@ template<class T>
 			T* Read( void );					// nil if empty
 			void Write( T* t );					// add a pointer to an element
 		};
+
+
+
+//
+//	VTSQueue<T>::VTSQueue
+//
+
+template<class T>
+	VTSQueue<T>::VTSQueue()
+		: qFirst(0), qLast(0)
+	{
+	}
+
+//
+//	VTSQueue<T>::~VTSQueue
+//
+
+template<class T>
+	VTSQueue<T>::~VTSQueue()
+	{
+		if (qFirst)
+			TRACE0( "Warning: queue not empty\n" );
+	}
+
+//
+//	VTSQueue<T>::Read
+//
+//	This function returns a pointer to the first (oldest) element that was
+//	added to the queue.  If the queue is empty it returns nil.
+//
+
+template<class T>
+	T* VTSQueue<T>::Read( void )
+	{
+		// lock the queue
+		qCS.Lock();
+
+		VTSQueueElem	*cur = qFirst
+		;
+		T				*rslt = 0
+		;
+
+		// if the queue not is empty, extract the first element
+		if (cur) {
+			// set result
+			rslt = cur->qElem;
+
+			// remove from list
+			qFirst = cur->qNext;
+			if (!qFirst)
+				qLast = 0;
+
+			// delete wrapper element
+			delete cur;
+		}
+
+		// unlock the queue
+		qCS.Unlock();
+
+		// fini
+		return rslt;
+	}
+
+//
+//	VTSQueue<T>::Write
+//
+//	This function adds a pointer to an element to the end of the queue.
+//
+
+template<class T>
+	void VTSQueue<T>::Write( T* tp )
+	{
+		// lock the queue
+		qCS.Lock();
+
+		VTSQueueElem	*cur = new VTSQueueElem()
+		;
+
+		cur->qElem = tp;
+		cur->qNext = 0;
+
+		if (qFirst)
+			qLast->qNext = cur;
+		else
+			qFirst = cur;
+
+		qLast = cur;
+
+		// unlock the queue
+		qCS.Unlock();
+	}
+
+
 
 #endif // !defined(AFX_VTSQUEUE_H__AC6F4361_C02A_11D4_BEFB_00A0C95A9812__INCLUDED_)
