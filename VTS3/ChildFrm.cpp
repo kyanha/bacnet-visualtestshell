@@ -976,7 +976,8 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 							 "  SETUP ReadProperty Tests\n" \
 							 " ;-------------------------------------------------------------------------------------\n\n");
 
-		str.Format("  IUT_IP = %s\n\n", pdlg->m_strIUTIP);
+		str.Format("  IUT_IP = \"%s\"\n" \
+				   "  ACTIVENET = \"%s\"\n\n", pdlg->m_strIUTIP, pdlg->m_strNetwork );
 		pscript->WriteString(str);
 
 		// Generate list of all parameters for each object found in DB
@@ -1012,7 +1013,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 					pscript->WriteString(str);
 
 					str.Format( "    SEND (\n" \
-								"\tNETWORK = \"%s\"\n" \
+								"\tNETWORK = ACTIVENET\n" \
 								"\tDA = IUT_IP\n" \
 								"\tDER = TRUE\n" \
 								"\tBVLCI = ORIGINAL-UNICAST-NPDU\n" \
@@ -1024,11 +1025,11 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 								"\tMaxResp = 1470\n" \
 								"\tObject = 0, OBJECT%d\n" \
 								"\tProperty = 1, %s\n" \
-								"    )\n\n", pdlg->m_strNetwork, nObjNum, szTemp );
+								"    )\n\n", nObjNum, szTemp );
 					pscript->WriteString(str);
 
 					str.Format( "    EXPECT (\n" \
-								"\tNETWORK = \"%s\"\n" \
+								"\tNETWORK = ACTIVENET\n" \
 								"\tSA = IUT_IP\n" \
 								"\tDER = FALSE\n" \
 								"\tBVLCI = ORIGINAL-UNICAST-NPDU\n" \
@@ -1039,7 +1040,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 								"\tOpenTag 3\n" \
 								"\t\tAL = {%s}\n" \
 								"\tCloseTag 3\n" \
-								"    )\n\n", pdlg->m_strNetwork, nObjNum, szTemp, szTemp );
+								"    )\n\n", nObjNum, szTemp, szTemp );
 					pscript->WriteString(str);
 				}
 			}
