@@ -494,6 +494,7 @@
 #define ID_VIEW_DETAIL                  32808
 #define ID_VIEW_STATISTICS              32809
 #define ID_FILE_EXPORT                  32810
+#define ID_SCRIPT_ENV                   32811
 
 // Next default values for new objects
 // 
@@ -501,7 +502,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        245
-#define _APS_NEXT_COMMAND_VALUE         32811
+#define _APS_NEXT_COMMAND_VALUE         32812
 #define _APS_NEXT_CONTROL_VALUE         1248
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

@@ -69,6 +69,7 @@ protected:
 	//{{AFX_MSG(ScriptFrame)
 	afx_msg void OnUpdateScriptCheckSyntax(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptLoadEPICS(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateScriptEnvironment(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptRun(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptHalt(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptStep(CCmdUI* pCmdUI);
@@ -78,6 +79,7 @@ protected:
 	afx_msg void OnUpdateScriptReset(CCmdUI* pCmdUI);
 	afx_msg void OnScriptCheckSyntax();
 	afx_msg void OnScriptLoadEPICS();
+	afx_msg void OnScriptEnvironment();
 	afx_msg void OnScriptRun();
 	afx_msg void OnScriptHalt();
 	afx_msg void OnScriptStep();

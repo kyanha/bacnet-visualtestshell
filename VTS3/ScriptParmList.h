@@ -24,6 +24,7 @@ class ScriptParm {
 		CString		parmScriptValue;						// value as defined in the script
 		CString		parmDesc;								// description
 		int			parmLine;								// where parm is defined in script
+		bool		parmEnv;								// parm is from the environment
 
 		ScriptParm( const char *name );
 		~ScriptParm( void );
@@ -52,9 +53,9 @@ public:
 // Operations
 public:
 	// list operations
-	void Add( CString &name, CString &valu, CString &desc, int line );		// add a child at the end
+	void Add( CString &name, CString &valu, CString &desc, int line, bool env );	// add a child at the end
 
-	void Mark( void );									// set up for cleanup
+	void Mark( bool env );								// set up for cleanup
 	void Release( void );								// delete those still marked
 
 	int Length( void );									// number of children
@@ -64,6 +65,15 @@ public:
 
 	int LookupIndex( int code );						// find by code, return index in list
 	ScriptParmPtr LookupParm( int code );				// find by code, return pointer to parm
+
+	void SetCurrentEnv( void );							// set this list as the current environment
+	void ResetCurrentEnv( void );						// reset
+
+	void LoadEnv( void );								// load environment parameters into this list
+	void UnloadEnv( void );								// unload environment parameters
+
+	void MatchEnv( void );								// match loaded parameters with current environment
+	void MatchEnvParm( ScriptParmPtr envpp );			// match a parameter
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -92,6 +102,33 @@ protected:
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
+
+typedef ScriptParmList *ScriptParmListPtr;
+const int kScriptParmListSize = sizeof( ScriptParmList );
+
+//
+//	ScriptParmListList
+//
+
+class ScriptParmListList : public CList<ScriptParmListPtr,ScriptParmListPtr> {
+	public:
+		ScriptParmListList( void );
+		~ScriptParmListList( void );
+
+		void Add( ScriptParmListPtr slp );				// add a list
+		void Remove( ScriptParmListPtr slp );			// remove a list
+
+		int Length( void );								// number of tokens
+		ScriptParmListPtr operator []( int i );			// index operator
+	};
+
+typedef ScriptParmListList *ScriptParmListListPtr;
+const int kScriptParmListListSize = sizeof( ScriptParmListList );
+
+//
+
+extern ScriptParmList		*gCurrentEnv;					// points to current environment
+extern ScriptParmListList	gScriptParmLists;				// list of parameter lists
 
 /////////////////////////////////////////////////////////////////////////////
 

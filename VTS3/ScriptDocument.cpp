@@ -123,6 +123,7 @@ void ScriptDocument::CheckSyntax( void )
 	int					curCaseLevel = 0
 	;
 	bool				setupMode = false, isSend = false, expectRequired = false
+	,					isEnv
 	;
 	ScriptScanner		scan( m_editData )
 	;
@@ -146,8 +147,11 @@ void ScriptDocument::CheckSyntax( void )
 	// calculate the digest
 	CalcDigest();
 
+	// remember if this is the current environment
+	isEnv = (m_pParmList == gCurrentEnv);
+
 	// set up the parameter list for cleaning later
-	m_pParmList->Mark();
+	m_pParmList->Mark( isEnv );
 
 	try {
 		for (;;) {
@@ -630,7 +634,7 @@ void ScriptDocument::CheckSyntax( void )
 					}
 
 					// add it to the parameter list
-					m_pParmList->Add( name, valu, tok.tokenValue, tok.tokenLine );
+					m_pParmList->Add( name, valu, tok.tokenValue, tok.tokenLine, isEnv );
 					break;
 			}
 		}
@@ -648,6 +652,19 @@ void ScriptDocument::CheckSyntax( void )
 
 	// delete those vars not found during this parsing phase
 	m_pParmList->Release();
+
+	// if this is the current environment, tell everyone else to match
+	if (isEnv) {
+		for (int i = 0; i < gScriptParmLists.Length(); i++) {
+			ScriptParmListPtr splp = gScriptParmLists[i];
+
+			if (splp != gCurrentEnv)
+				splp->MatchEnv();
+		}
+	} else
+	// if there is a current environment, match to it 
+	if (gCurrentEnv)
+		m_pParmList->MatchEnv();
 
 	// bind to the new content (if there is any)
 	m_pContentTree->Bind( curBase );
