@@ -18,6 +18,7 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNCREATE(VTSNotifyBitstring, CPropertyPage)
 
+#pragma warning( disable : 4355 )
 VTSNotifyBitstring::VTSNotifyBitstring()
 	: CPropertyPage(VTSNotifyBitstring::IDD)
 	, m_RefBitString( this, IDC_REFBITSTRING )
@@ -27,6 +28,7 @@ VTSNotifyBitstring::VTSNotifyBitstring()
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 VTSNotifyBitstring::~VTSNotifyBitstring()
 {

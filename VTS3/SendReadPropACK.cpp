@@ -26,6 +26,7 @@ BACnetAPDUEncoder CSendReadPropACK::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendReadPropACK, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendReadPropACK::CSendReadPropACK( void )
 	: CSendPage( CSendReadPropACK::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
@@ -35,6 +36,7 @@ CSendReadPropACK::CSendReadPropACK( void )
 	//{{AFX_DATA_INIT(CSendReadPropACK)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendReadPropACK::DoDataExchange(CDataExchange* pDX)
 {

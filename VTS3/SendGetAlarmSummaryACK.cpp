@@ -29,6 +29,7 @@ BACnetAPDUEncoder CSendGetAlarmSummaryACK::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendGetAlarmSummaryACK, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendGetAlarmSummaryACK::CSendGetAlarmSummaryACK( void )
 	: CSendPage( CSendGetAlarmSummaryACK::IDD )
 	, m_AlarmSumList( this )
@@ -36,6 +37,7 @@ CSendGetAlarmSummaryACK::CSendGetAlarmSummaryACK( void )
 	//{{AFX_DATA_INIT(CSendGetAlarmSummaryACK)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendGetAlarmSummaryACK::DoDataExchange(CDataExchange* pDX)
 {

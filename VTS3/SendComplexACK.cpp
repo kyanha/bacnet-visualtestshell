@@ -18,6 +18,7 @@ BACnetAPDUEncoder CSendComplexACK::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendComplexACK, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendComplexACK::CSendComplexACK( void )
 	: CSendPage( CSendComplexACK::IDD )
 	, m_SegmentSize( this, IDC_SEGMENTSIZE )
@@ -30,6 +31,7 @@ CSendComplexACK::CSendComplexACK( void )
 	m_MoreFollows = FALSE;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendComplexACK::DoDataExchange(CDataExchange* pDX)
 {

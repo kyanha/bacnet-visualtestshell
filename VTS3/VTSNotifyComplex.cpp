@@ -24,6 +24,7 @@ void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 
 IMPLEMENT_DYNCREATE(VTSNotifyComplex, CPropertyPage)
 
+#pragma warning( disable : 4355 )
 VTSNotifyComplex::VTSNotifyComplex()
 	: CPropertyPage(VTSNotifyComplex::IDD)
 	, m_PropList( this )
@@ -32,6 +33,7 @@ VTSNotifyComplex::VTSNotifyComplex()
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 VTSNotifyComplex::~VTSNotifyComplex()
 {

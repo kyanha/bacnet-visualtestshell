@@ -26,6 +26,7 @@ BACnetAPDUEncoder CSendIAm::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendIAm, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendIAm::CSendIAm( void )
 	: CSendPage( CSendIAm::IDD )
 	, m_DeviceID( this, IDC_DEVICEID )
@@ -36,6 +37,7 @@ CSendIAm::CSendIAm( void )
 	//{{AFX_DATA_INIT(CSendIAm)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendIAm::DoDataExchange(CDataExchange* pDX)
 {

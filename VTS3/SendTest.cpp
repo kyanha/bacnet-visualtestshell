@@ -22,6 +22,7 @@ namespace NetworkSniffer {
 
 IMPLEMENT_DYNCREATE( CSendTest, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendTest::CSendTest( void )
 	: CSendPage( CSendTest::IDD )
 	, m_Boolean( this, IDC_BOOLEAN )
@@ -42,6 +43,7 @@ CSendTest::CSendTest( void )
 	//{{AFX_DATA_INIT(CSendTest)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendTest::DoDataExchange(CDataExchange* pDX)
 {

@@ -22,6 +22,7 @@ BACnetAPDUEncoder CSendSimpleACK::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendSimpleACK, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendSimpleACK::CSendSimpleACK( void )
 	: CSendPage( CSendSimpleACK::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
@@ -30,6 +31,7 @@ CSendSimpleACK::CSendSimpleACK( void )
 	//{{AFX_DATA_INIT(CSendSimpleACK)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendSimpleACK::DoDataExchange(CDataExchange* pDX)
 {

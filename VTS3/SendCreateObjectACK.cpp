@@ -22,6 +22,7 @@ BACnetAPDUEncoder CSendCreateObjectACK::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendCreateObjectACK, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendCreateObjectACK::CSendCreateObjectACK( void )
 	: CSendPage( CSendCreateObjectACK::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
@@ -29,6 +30,7 @@ CSendCreateObjectACK::CSendCreateObjectACK( void )
 	//{{AFX_DATA_INIT(CSendCreateObjectACK)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendCreateObjectACK::DoDataExchange(CDataExchange* pDX)
 {

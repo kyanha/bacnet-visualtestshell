@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendWhoIsRTN::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendWhoIsRTN, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendWhoIsRTN::CSendWhoIsRTN( void )
 	: CSendPage( CSendWhoIsRTN::IDD )
 	, m_DNET( this, IDC_DNET )
@@ -27,6 +28,7 @@ CSendWhoIsRTN::CSendWhoIsRTN( void )
 	//{{AFX_DATA_INIT(CSendRaw)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendWhoIsRTN::DoDataExchange(CDataExchange* pDX)
 {

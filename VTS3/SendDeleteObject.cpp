@@ -22,6 +22,7 @@ BACnetAPDUEncoder CSendDeleteObject::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendDeleteObject, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendDeleteObject::CSendDeleteObject( void )
 	: CSendPage( CSendDeleteObject::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
@@ -29,6 +30,7 @@ CSendDeleteObject::CSendDeleteObject( void )
 	//{{AFX_DATA_INIT(CSendDeleteObject)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendDeleteObject::DoDataExchange(CDataExchange* pDX)
 {

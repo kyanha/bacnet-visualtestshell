@@ -1463,6 +1463,7 @@ VTSDeviceList gMasterDeviceList;
 //	VTSDevice::VTSDevice
 //
 
+#pragma warning( disable : 4355 )
 VTSDevice::VTSDevice( VTSDocPtr dp, objId id )
 	: devDoc(dp), devDescID(id)
 	, devClient(this), devServer(this)
@@ -1476,6 +1477,7 @@ VTSDevice::VTSDevice( VTSDocPtr dp, objId id )
 	// add this to the master list
 	AddToMasterList();
 }
+#pragma warning( default : 4355 )
 
 //
 //	VTSDevice::~VTSDevice

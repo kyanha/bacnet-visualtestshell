@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendWriteFileACK::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendWriteFileACK, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendWriteFileACK::CSendWriteFileACK( void )
 	: CSendPage( CSendWriteFileACK::IDD )
 	, m_StartPosition( this, IDC_STARTPOSITION )
@@ -28,6 +29,7 @@ CSendWriteFileACK::CSendWriteFileACK( void )
 	//{{AFX_DATA_INIT(CSendWriteFileACK)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendWriteFileACK::DoDataExchange(CDataExchange* pDX)
 {

@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendDeleteFDTEntry::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendDeleteFDTEntry, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendDeleteFDTEntry::CSendDeleteFDTEntry( void )
 	: CSendPage( CSendDeleteFDTEntry::IDD )
 	, m_ADDR( this, IDC_ADDRCOMBO, IDC_ADDR )
@@ -27,6 +28,7 @@ CSendDeleteFDTEntry::CSendDeleteFDTEntry( void )
 	//{{AFX_DATA_INIT(CSendDeleteFDTEntry)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendDeleteFDTEntry::DoDataExchange(CDataExchange* pDX)
 {

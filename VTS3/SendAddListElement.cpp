@@ -26,6 +26,7 @@ namespace NetworkSniffer {
 
 IMPLEMENT_DYNCREATE( CSendAddListElement, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendAddListElement::CSendAddListElement( void )
 	: CSendPage( CSendAddListElement::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
@@ -35,6 +36,7 @@ CSendAddListElement::CSendAddListElement( void )
 	//{{AFX_DATA_INIT(CSendAddListElement)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendAddListElement::DoDataExchange(CDataExchange* pDX)
 {

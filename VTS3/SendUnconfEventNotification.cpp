@@ -27,6 +27,7 @@ BACnetAPDUEncoder CSendUnconfEventNotification::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendUnconfEventNotification, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendUnconfEventNotification::CSendUnconfEventNotification( void )
 	: CSendPage( CSendUnconfEventNotification::IDD )
 	, m_ProcessID( this, IDC_PROCESSID )
@@ -44,6 +45,7 @@ CSendUnconfEventNotification::CSendUnconfEventNotification( void )
 	//{{AFX_DATA_INIT(CSendUnconfEventNotification)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendUnconfEventNotification::DoDataExchange(CDataExchange* pDX)
 {

@@ -18,6 +18,7 @@ BACnetAPDUEncoder CSendBVLCResult::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendBVLCResult, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendBVLCResult::CSendBVLCResult( void )
 	: CSendPage( CSendBVLCResult::IDD )
 	, m_Result( this, IDC_RESULT )
@@ -25,6 +26,7 @@ CSendBVLCResult::CSendBVLCResult( void )
 	//{{AFX_DATA_INIT(CSendBVLCResult)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendBVLCResult::DoDataExchange(CDataExchange* pDX)
 {

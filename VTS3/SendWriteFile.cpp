@@ -22,6 +22,7 @@ BACnetAPDUEncoder CSendWriteFile::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendWriteFile, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendWriteFile::CSendWriteFile( void )
 	: CSendPage( CSendWriteFile::IDD )
 	, m_FileID( this, IDC_FILEID )
@@ -32,6 +33,7 @@ CSendWriteFile::CSendWriteFile( void )
 	//{{AFX_DATA_INIT(CSendWriteFile)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void CSendWriteFile::DoDataExchange(CDataExchange* pDX)

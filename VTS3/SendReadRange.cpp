@@ -28,6 +28,7 @@ BACnetAPDUEncoder SendReadRange::pageContents;
 
 IMPLEMENT_DYNCREATE(SendReadRange, CPropertyPage)
 
+#pragma warning( disable : 4355 )
 SendReadRange::SendReadRange(void)
  : CSendPage(SendReadRange::IDD)
 	, m_ObjectID( this, IDC_OBJECTID )
@@ -45,6 +46,7 @@ SendReadRange::SendReadRange(void)
 //	m_RadioChoice = -1;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void SendReadRange::DoDataExchange(CDataExchange* pDX)
 {

@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendNPCI::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendNPCI, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendNPCI::CSendNPCI( void )
 	: CSendPage( CSendNPCI::IDD )
 	, m_Version( this, IDC_VERSION )
@@ -36,6 +37,7 @@ CSendNPCI::CSendNPCI( void )
 	m_ExpectingReply = FALSE;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendNPCI::DoDataExchange(CDataExchange* pDX)
 {

@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendReadFileACK::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendReadFileACK, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendReadFileACK::CSendReadFileACK( void )
 	: CSendPage( CSendReadFileACK::IDD )
 	, m_EOF( this, IDC_EOF, true )
@@ -30,6 +31,7 @@ CSendReadFileACK::CSendReadFileACK( void )
 	//{{AFX_DATA_INIT(CSendReadFileACK)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void CSendReadFileACK::DoDataExchange(CDataExchange* pDX)

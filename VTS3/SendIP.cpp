@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendIP::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendIP, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendIP::CSendIP( void )
 	: CSendPage( CSendIP::IDD )
 	, m_DADR( this, IDC_DADRCOMBO, IDC_DADR )
@@ -27,6 +28,7 @@ CSendIP::CSendIP( void )
 	//{{AFX_DATA_INIT(CSendIP)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendIP::DoDataExchange(CDataExchange* pDX)
 {

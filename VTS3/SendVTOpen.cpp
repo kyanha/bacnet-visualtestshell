@@ -24,6 +24,7 @@ BACnetAPDUEncoder CSendVTOpen::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendVTOpen, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendVTOpen::CSendVTOpen( void )
 	: CSendPage( CSendVTOpen::IDD )
 	, m_VTClassCombo( this, IDC_VTCLASSCOMBO, NetworkSniffer::BACnetVTClass, 7, true )
@@ -32,6 +33,7 @@ CSendVTOpen::CSendVTOpen( void )
 	//{{AFX_DATA_INIT(CSendVTOpen)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendVTOpen::DoDataExchange(CDataExchange* pDX)
 {
