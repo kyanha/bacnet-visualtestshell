@@ -14,6 +14,8 @@
 #include "DockingDetailViewBar.h"
 #include "DockingHexViewBar.h"
 /////////////////////////////////
+#include "VdbPrint.h"
+/////////////////////////////////
 // forward definitions
 class CSummaryView;
 class CDetailView;
@@ -38,6 +40,12 @@ public:
 	CHexView*		m_pHexView;
 	CDockingDetailViewBar* m_pwndDetailViewBar;
 	CDockingHexViewBar* m_pwndHexViewBar;
+	/////////////////////////////////
+	//Added by Zhenhua Zhu, 2003-6-2
+	CVdbPrint m_printer;
+	BOOL	  m_bPrintSetup;
+	BOOL	  m_bInPrinting;
+	/////////////////////////////////
 // Operations
 public:
 
@@ -101,6 +109,10 @@ protected:
 	// Added by Yajun Zhou, 2002-7-24
 	afx_msg void OnFileExport();
 	afx_msg void OnDestroy();
+	//Added by Zhenhua Zhu, 2003-6-2
+	afx_msg void OnFilePrint();
+	afx_msg void OnFilePrintSetup();
+	afx_msg void OnUpdateFilePrint(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
