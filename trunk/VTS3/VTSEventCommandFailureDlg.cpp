@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSEventCommandFailureDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSEventCommandFailureDlg::VTSEventCommandFailureDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEventCommandFailureDlg::IDD, pParent)
 	, m_timeDelay(this, IDC_TIMEDELAY)
@@ -29,6 +30,7 @@ VTSEventCommandFailureDlg::VTSEventCommandFailureDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEventCommandFailureDlg::DoDataExchange(CDataExchange* pDX)

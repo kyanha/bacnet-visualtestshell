@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 //////////////////////////////////////////////////////////////////////////
 // VTSListOfLifeSafetyStateDlg dialog
 
+#pragma warning( disable : 4355 )
 VTSListOfLifeSafetyStateDlg::VTSListOfLifeSafetyStateDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSListOfLifeSafetyStateDlg::IDD, pParent)
 	, m_EnumList(this)
@@ -24,6 +25,7 @@ VTSListOfLifeSafetyStateDlg::VTSListOfLifeSafetyStateDlg(CWnd* pParent /*=NULL*/
 	//{{AFX_DATA_INIT(VTSListOfLifeSafetyStateDlg)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void VTSListOfLifeSafetyStateDlg::DoDataExchange(CDataExchange* pDX)
 {

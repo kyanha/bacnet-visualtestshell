@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSLifeSafetyStateDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSLifeSafetyStateDlg::VTSLifeSafetyStateDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSLifeSafetyStateDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetLifeSafetyState, 24, true )
@@ -25,6 +26,7 @@ VTSLifeSafetyStateDlg::VTSLifeSafetyStateDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSLifeSafetyStateDlg::DoDataExchange(CDataExchange* pDX)

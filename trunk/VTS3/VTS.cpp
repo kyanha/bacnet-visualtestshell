@@ -1456,10 +1456,19 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //			until VTS receives the connection when its port opens.  The port status will indicate proper
 //			connection status and serious port error messages will be written during script execution if the 
 //			MS/TP port encounters errors.
+//
+//	3.4.6  	July, 2004 ====================
+//
+//          Bug 996723: Crashes if long Ethernet adapter name.  
+//          Bug 444179: Close send window when send button hit.  Now there are
+//                      two send buttons on the Send dialog:  One button sends the packet
+//                      and leaves the dialog open, and the other button sends the packet
+//                      and immediately closes the Send dialog.
+
 			 
 			
 			
-const int kReleaseVersion = 5;
+const int kReleaseVersion = 6;
 			
 			class CAboutDlg : public CDialog
 			{

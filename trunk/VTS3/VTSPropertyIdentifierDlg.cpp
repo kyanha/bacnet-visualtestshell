@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSPropertyIdentifierDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSPropertyIdentifierDlg::VTSPropertyIdentifierDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSPropertyIdentifierDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetPropertyIdentifier, 174, true )
@@ -25,6 +26,7 @@ VTSPropertyIdentifierDlg::VTSPropertyIdentifierDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSPropertyIdentifierDlg::DoDataExchange(CDataExchange* pDX)

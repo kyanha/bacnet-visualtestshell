@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSEventFloatLimitDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSEventFloatLimitDlg::VTSEventFloatLimitDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEventFloatLimitDlg::IDD, pParent)
 	, m_timeDelay(this, IDC_TIMEDELAY)
@@ -32,6 +33,7 @@ VTSEventFloatLimitDlg::VTSEventFloatLimitDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEventFloatLimitDlg::DoDataExchange(CDataExchange* pDX)

@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSVTSessionDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSVTSessionDlg::VTSVTSessionDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSVTSessionDlg::IDD, pParent)
 	, m_localSessionID(this, IDC_LOCALSESSIONID)
@@ -26,6 +27,7 @@ VTSVTSessionDlg::VTSVTSessionDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void VTSVTSessionDlg::DoDataExchange(CDataExchange* pDX)
 {

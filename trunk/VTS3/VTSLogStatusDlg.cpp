@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSLogStatusDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSLogStatusDlg::VTSLogStatusDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSLogStatusDlg::IDD, pParent)
 	, m_logdisabled(this, IDC_LOGDISABLED, true)
@@ -24,6 +25,7 @@ VTSLogStatusDlg::VTSLogStatusDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSLogStatusDlg::DoDataExchange(CDataExchange* pDX)

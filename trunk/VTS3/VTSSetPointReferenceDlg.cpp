@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSSetPointReferenceDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSSetPointReferenceDlg::VTSSetPointReferenceDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSSetPointReferenceDlg::IDD, pParent)
 	, m_ObjectID( this, IDC_OBJECTID )
@@ -27,6 +28,7 @@ VTSSetPointReferenceDlg::VTSSetPointReferenceDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSSetPointReferenceDlg::DoDataExchange(CDataExchange* pDX)

@@ -14,6 +14,7 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSEventTransitionBitsDlg dialog
 
+#pragma warning( disable : 4355 )
 VTSEventTransitionBitsDlg::VTSEventTransitionBitsDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEventTransitionBitsDlg::IDD, pParent)
 	, m_offNormal(this, IDC_OFFNORMAL, true)
@@ -24,6 +25,7 @@ VTSEventTransitionBitsDlg::VTSEventTransitionBitsDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEventTransitionBitsDlg::DoDataExchange(CDataExchange* pDX)

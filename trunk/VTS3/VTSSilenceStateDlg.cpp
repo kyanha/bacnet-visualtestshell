@@ -18,6 +18,7 @@ namespace NetworkSniffer {
 // VTSSilenceStateDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSSilenceStateDlg::VTSSilenceStateDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSSilenceStateDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetSilencedState, 4, true )
@@ -26,6 +27,7 @@ VTSSilenceStateDlg::VTSSilenceStateDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSSilenceStateDlg::DoDataExchange(CDataExchange* pDX)

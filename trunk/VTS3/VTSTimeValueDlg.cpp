@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSTimeValueDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSTimeValueDlg::VTSTimeValueDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSTimeValueDlg::IDD, pParent)
 	, m_TimeCtrl( this, IDC_TIME )
@@ -23,6 +24,7 @@ VTSTimeValueDlg::VTSTimeValueDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSTimeValueDlg::DoDataExchange(CDataExchange* pDX)

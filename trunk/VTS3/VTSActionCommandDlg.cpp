@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSActionCommandDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSActionCommandDlg::VTSActionCommandDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSActionCommandDlg::IDD, pParent)
 	, m_DeviceID( this, IDC_DEVICEID )
@@ -32,6 +33,7 @@ VTSActionCommandDlg::VTSActionCommandDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSActionCommandDlg::DoDataExchange(CDataExchange* pDX)

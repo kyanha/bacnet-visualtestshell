@@ -14,6 +14,7 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSEventBufferReadyDlg dialog
 
+#pragma warning( disable : 4355 )
 VTSEventBufferReadyDlg::VTSEventBufferReadyDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEventBufferReadyDlg::IDD, pParent)
 	, m_ntfthreshold(this, IDC_NTFTHRESH)
@@ -23,6 +24,7 @@ VTSEventBufferReadyDlg::VTSEventBufferReadyDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEventBufferReadyDlg::DoDataExchange(CDataExchange* pDX)

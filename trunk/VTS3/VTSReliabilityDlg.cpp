@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSReliabilityDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSReliabilityDlg::VTSReliabilityDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSReliabilityDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetReliability, 10, true )
@@ -25,6 +26,7 @@ VTSReliabilityDlg::VTSReliabilityDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSReliabilityDlg::DoDataExchange(CDataExchange* pDX)

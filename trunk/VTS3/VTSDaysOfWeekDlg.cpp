@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSDaysOfWeekDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSDaysOfWeekDlg::VTSDaysOfWeekDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSDaysOfWeekDlg::IDD, pParent)
 	,m_MondayCtrl(this, IDC_DOFWEEK_MONDAY, true)
@@ -29,6 +30,7 @@ VTSDaysOfWeekDlg::VTSDaysOfWeekDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSDaysOfWeekDlg::DoDataExchange(CDataExchange* pDX)

@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSDeviceStatusDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSDeviceStatusDlg::VTSDeviceStatusDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSDeviceStatusDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetDeviceStatus, 6, true )
@@ -25,6 +26,7 @@ VTSDeviceStatusDlg::VTSDeviceStatusDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSDeviceStatusDlg::DoDataExchange(CDataExchange* pDX)

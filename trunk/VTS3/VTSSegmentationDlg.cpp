@@ -18,6 +18,7 @@ namespace NetworkSniffer {
 // VTSSegmentationDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSSegmentationDlg::VTSSegmentationDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSSegmentationDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetSegmentation, 4, true )
@@ -26,6 +27,7 @@ VTSSegmentationDlg::VTSSegmentationDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSSegmentationDlg::DoDataExchange(CDataExchange* pDX)

@@ -19,6 +19,7 @@ namespace NetworkSniffer {
 // VTSCOVSubscriptionDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSCOVSubscriptionDlg::VTSCOVSubscriptionDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSCOVSubscriptionDlg::IDD, pParent)
 	, m_DeviceID( this, IDC_DEVICEID )
@@ -36,6 +37,7 @@ VTSCOVSubscriptionDlg::VTSCOVSubscriptionDlg(CWnd* pParent /*=NULL*/)
 	m_choice = 0;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSCOVSubscriptionDlg::DoDataExchange(CDataExchange* pDX)

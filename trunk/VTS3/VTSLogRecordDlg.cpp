@@ -19,6 +19,7 @@ namespace NetworkSniffer {
 // VTSLogRecordDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSLogRecordDlg::VTSLogRecordDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSLogRecordDlg::IDD, pParent)
 	, m_DateCtrl(this,IDC_DATETIME_DATE)
@@ -40,6 +41,7 @@ VTSLogRecordDlg::VTSLogRecordDlg(CWnd* pParent /*=NULL*/)
 	m_hasstatusflags = FALSE;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSLogRecordDlg::DoDataExchange(CDataExchange* pDX)

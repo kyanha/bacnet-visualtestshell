@@ -17,6 +17,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSRecipientDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSRecipientDlg::VTSRecipientDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSRecipientDlg::IDD, pParent)
 	, m_DeviceID( this, IDC_DEVICEID )
@@ -27,6 +28,7 @@ VTSRecipientDlg::VTSRecipientDlg(CWnd* pParent /*=NULL*/)
 	m_choice = 0;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSRecipientDlg::DoDataExchange(CDataExchange* pDX)

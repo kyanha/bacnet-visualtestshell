@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSClientCOVDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSClientCOVDlg::VTSClientCOVDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSClientCOVDlg::IDD, pParent)
 	, m_realCtrl(this, IDC_REALINCR)
@@ -23,6 +24,7 @@ VTSClientCOVDlg::VTSClientCOVDlg(CWnd* pParent /*=NULL*/)
 	m_covchoice = 1;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSClientCOVDlg::DoDataExchange(CDataExchange* pDX)
