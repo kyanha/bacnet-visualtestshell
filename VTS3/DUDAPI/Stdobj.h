@@ -31,7 +31,7 @@
 typedef struct {
     void far				*next;
     dword					object_id;
-    char					object_name[32];
+    char					object_name[32];    
     word					object_type;
 //enum BACnetObjectType		object_type;
     char 					description[132];
