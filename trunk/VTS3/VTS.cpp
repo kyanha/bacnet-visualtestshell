@@ -638,8 +638,99 @@ void VTSPreferences::Save( void )
 //				expressions where both the ?= operator AND the ? don't care data case both be used (although
 //				redundant):  Bitstring ?= ?.  An advantage to using the operator is in keywords.  Object IDs can
 //				be ignored (Object ?= 0, OBJECTVAR), and the like.
-		
-
+//
+//				Date / Time improvements
+//
+//				Several changes have taken place in the handling of the primitive Date and Time data types.
+//				Unless noted, both the Date and Time data type 	handling were affected equally by
+//				these corrections and enhancements.
+//
+//				- The Date and Time data types were not accepting a script variable substitution when used
+//				  in Send and Expect statements.  Full support for receiving Date and Time values from
+//				  variables has been added.
+//				- The Date and Time data types now compare don't care ('?', '*') values properly.
+//				- Added support for the don't care value that other data types recently support.
+//				- Date and Time values specified in EPICS that had don't care values would not be
+//				  allowed in references. This restriction has been removed and now supports all
+//				  combinations of don't care specifications (?/?/?).
+//				- Full comparison support has been added to the Date and Time primitive types. 
+//				- Various parsing problems in Date/Time have been fixed.
+//
+//				Text representations of complex data types now require the use of brackets '[]' to separate
+//				their data from other parameters.  The brackets are required even if no other parameters
+//				in an expression are present.  The Date and Time text representations now take the following
+//				form:
+//						Date = [dow, mm/dd/yy]		( '-' can also be used to separate date values)
+//						Time = [hh:mm:ss.HH]
+//						Where:
+//								dow = 3 characters (case insensitive) for MON, TUE, WED, THU, FRI, SAT, SUN.
+//									  This value must be present and can be substituted with ? as in
+//									  [?, mm/dd/yy].  A comma separates this value and leading and trailing
+//									  spaces between each atomic type are ignored 
+//									  (i.e. [?   ,   mm  /  dd  / yy] is the same as [?,mm/dd/yy]).
+//								mm, dd, yy, hh, mm, ss, HH = numeric values with leading or no zeros.
+//							          Values are checked for validity in every case except invalid dates as
+//									  a whole (Feb 31st).
+//								yy = Year specification given as either the full year (2002) or a partial
+//									  year (02).  Values interpreted as partial years range from 1941 to 2040.
+//								HH =  hundredth value in the range 0 - 99.  This value is optional in the text
+//									  representation.  If the period is present in the text, the value MUST follow
+//									  or a parsing error is generated and the Time is invalid.
+//
+//				Any and all values can be substituted with the don't care value ?.   [12:?:44.?]
+//				Enclosing these complex representations inside brackets gives clarity to expressions with
+//				multiple parameters as in the case of tag specifications:  Date = tag, [TUE, 11/4/02]
+//				-or-  Date = tag, VAR  where VAR = [TUE, 11/4/02].   Bracketing this compound data can be
+//				nested as in the case of the text representation for a DateTime and DateRange:
+//						DateTime = [DATE, TIME] = [[dow, mm/dd/yy], [hh:mm:ss]]
+//						DateRange = [DATE1, DATE2] = [[dow, mm/dd/yy], [dow, mm/dd/yy]]
+//
+//				DateTime and DateRange are not considered primitive types and currently can only be used
+//				when referencing EPICS data and so a text representation for these types has not been needed
+//				as yet.  Like quotes for strings, the brackets are only necessary in situations where other
+//				types of data may be read as well.  Brackets are not necessary when date and time values
+//				are specified inside edit fields within the VTS user interface. 
+//				They are, however, necessary in scripts and subsequently, like quotes, necessary inside
+//				script parameter data, since this data is partially parsed.
+//
+//				[444200] Extract data from incoming packets
+//
+//				Support for stuffing incoming data elements into script variables has been added throughout
+//				the EXPECT statement, except where noted.  Syntax for the new operator '>>' in assignments
+//				take the following form:
+//						Keyword >> VAR
+//						Keyword >> tag, VAR
+//				This will place a text representation of the incoming data given by the keyword into the
+//				script parameter VAR.  The VAR parameter MUST be previously created in the SETUP section
+//				of the script or an error will be reported.
+//
+//				Existing support for other keywords is as follows:
+//					Object >> tag, VAR	Assigns:  OBJECT-TYPE, Number
+//					Object >> VAR
+// 				  This assignment will place the object type keyword AND the object instance number
+//				  inside the script parameter value. 
+//					Device >> VAR		Assigns:  DEVICE, Number
+//				  This assignment will also place the keyword 'DEVICE', followed by a comma, and the
+//				  instance number inside the script variable.  Brackets will not accompany the data.
+//					Property >> tag, VAR	Assigns:  Number or PropertyKeyword
+//				  The property keyword (i.e. PRESENT_VALUE) will be placed inside the variable. 
+//				  This will be properly decoded and compared in other equality expressions in the current
+//				  or future EXPECT statements.
+//
+//				Special notes about other keywords:
+//				MAXSIZE >> VAR		Assigns: Enumeration of ("50", "128", "206", "480", "1024", "1476")  or Number if < 16.
+//						 Variable supplied as number, converts to code before SEND.
+//				NETWORK >> VAR		Assigns: CharacterString for currently defined port (in quotes).
+//				BVLCI >> VAR
+//					where type BVLCI type is: READ-BROADCAST-DISTRIBUTION-TABLE-ACK {,host/net:port}*
+//				MESSAGE >> VAR, ?, ?, ?
+//					These keywords have parameters that follow which dictate how the values are extracted
+//					from the received packet.   The parameters that follows must still accompany the expression.
+//
+//				An error was discovered and corrected concerning the specification of DNET/DADR and SNET/SADR
+//				pairs in the script.  The test for whether or not these pairs were present in the received
+//				packet was being determined by whether or not the DNET/DADR keywords were supplied in the
+//				script.
 
 const int kReleaseVersion = 9;
 
