@@ -55,6 +55,11 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /dll /machine:I386
 # ADD LINK32 ../sjack/Release/sjack32.lib /nologo /subsystem:windows /dll /machine:I386
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Desc=Copy PTP.DLL to VTS3 root
+PostBuild_Cmds=attrib -r ..\..\ptp.dll	copy release\ptp.dll ..\..
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "PTP - Win32 Debug"
 
@@ -81,6 +86,11 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 ../sjack/Debug/sjack32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Desc=Copy ptp.dll to VTS3 root
+PostBuild_Cmds=attrib -r ..\..\ptp.dll	copy debug\ptp.dll ..\..
+# End Special Build Tool
 
 !ENDIF 
 
