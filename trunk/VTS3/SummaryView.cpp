@@ -263,21 +263,41 @@ CString* CSummaryView::GetLineData(int lineNo)
 	*pString += theTime;
 
 #if 1
-	int			len = 6
+	int			i, len = 9
 	;
-	char		nameBuff[32]
+	char		nameBuff[32], addrBuff[32], *addr
 	;
 	const char	*name
 	;
 
 	// look up the source
 	name = m_FrameContext->m_pDoc->m_Names.AddrToName( pkt.packetHdr.packetSource, pkt.packetHdr.packetPortID );
-	sprintf( nameBuff, "%-*.*s", len+1, len, (name ? name : " ") );
+	if (name)
+		sprintf( nameBuff, "%-*.*s", len+1, len, name );
+	else {
+		addrBuff[0] = 0;
+		addr = addrBuff;
+		for (i = 0; i < pkt.packetHdr.packetSource.addrLen; i++) {
+			sprintf( addr, "%02X", pkt.packetHdr.packetSource.addrAddr[i] );
+			addr += 2;
+		}
+		sprintf( nameBuff, "%-*.*s", len+1, len, addrBuff );
+	}
 	*pString += nameBuff;
 
 	// look up the destination
 	name = m_FrameContext->m_pDoc->m_Names.AddrToName( pkt.packetHdr.packetDestination, pkt.packetHdr.packetPortID );
-	sprintf( nameBuff, "%-*.*s", len+1, len, (name ? name : " ") );
+	if (name)
+		sprintf( nameBuff, "%-*.*s", len+1, len, name );
+	else {
+		addrBuff[0] = 0;
+		addr = addrBuff;
+		for (i = 0; i < pkt.packetHdr.packetDestination.addrLen; i++) {
+			sprintf( addr, "%02X", pkt.packetHdr.packetDestination.addrAddr[i] );
+			addr += 2;
+		}
+		sprintf( nameBuff, "%-*.*s", len+1, len, addrBuff );
+	}
 	*pString += nameBuff;
 #endif
 

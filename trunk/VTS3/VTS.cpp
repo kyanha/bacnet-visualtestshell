@@ -279,8 +279,12 @@ void VTSPreferences::Save( void )
 //			may be defined, until there is a new keyword that describes which device object 
 //			should be used.
 //
+//	3.1.6
+//			Increased the size of the source and destination in the summary pane, and if the 
+//			name lookup fails, show the address in hex.
+//
 
-const int kReleaseVersion = 5;
+const int kReleaseVersion = 6;
 
 class CAboutDlg : public CDialog
 {

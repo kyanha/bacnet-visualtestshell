@@ -209,7 +209,7 @@ Change log
 #define MAX_SUM_LINE    143             /* maximum width of a summary line */
 #define MAX_SUM_LINES    12             /* maximum summary lines per packet */
 #define MAX_INT_LINE    100             /* maximum width of a detail line */
-#define MAX_INT_LINES   1200            /* maximum detail lines per packet */
+#define MAX_INT_LINES   5000            /* maximum detail lines per packet */
 
 struct BACnetPIDetail {
 	int			piOffset;
@@ -1058,6 +1058,9 @@ typedef struct {
 
 /*
 $Log$
+Revision 1.2  2001/08/14 19:59:47  joelbender
+C9 bug fixes
+
 Revision 1.1.1.1  2001/05/30 15:13:02  joelbender
 Initial release
 
