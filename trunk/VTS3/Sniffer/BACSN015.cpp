@@ -3569,8 +3569,9 @@ void show_subscribeCOV( void )
         pif_offset = pif_end_offset;
         }
 
-   if (pif_offset < pif_end_offset) { /* both Issue Confirmed Notifications
-                                         and Lifetime should be present */
+   //Xiao Shiyuan 2005-1-19
+   //If Lifetime is present, Issue Confirmed Notifications should be present                                        
+   if (pif_offset < pif_end_offset) { 
       tagbuff = pif_get_byte(0);
       tagval = (tagbuff&0xF0)>>4;
       if (tagbuff & 0x08) { /* context tag found */
@@ -3604,8 +3605,9 @@ void show_subscribeCOV( void )
 //	    pif_show_ascii(0, "Error: Context Tag Expected!");
 		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
         pif_offset = pif_end_offset;
-        }
+        }	  
 
+	  if (pif_offset < pif_end_offset) {
       tagbuff = pif_get_byte(0);
       tagval = (tagbuff&0xF0)>>4;
       if (tagbuff & 0x08) { /* context tag found */
@@ -3634,6 +3636,7 @@ void show_subscribeCOV( void )
 		   show_head_ascii("Error: Context Tag Expected!");										   //  ***002
            pif_offset = pif_end_offset;
            }
+		}
       }
    else { /* this is a cancellation */
       pif_show_space();
