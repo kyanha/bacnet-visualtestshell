@@ -70,6 +70,8 @@ public:
 
 protected:
 
+	bool EvaluateConditional( ScriptScanner & scan, ScriptToken & tok );
+
 // Generated message map functions
 protected:
 	//{{AFX_MSG(ScriptDocument)

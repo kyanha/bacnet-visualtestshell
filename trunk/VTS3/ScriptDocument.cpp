@@ -16,6 +16,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+
 /////////////////////////////////////////////////////////////////////////////
 // ScriptDocument
 
@@ -29,6 +30,16 @@ BEGIN_MESSAGE_MAP(ScriptDocument, CDocument)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
+
+
+// Define maximum left for ifdef nesting...
+#define IFDEF_LEVEL_MAX			20
+
+// Flags for testing IFDEF stuff
+
+#define IFDEF_INCLUDING		0x01			// we're currently including the stuff
+#define IFDEF_SPENT			0x02			// we've already taken the true condition
+#define IFDEF_ELSE			0x04			// we've encountered the final else (to prevent elseif following)
 
 //
 //	ScriptDocument::ScriptDocument
@@ -114,16 +125,66 @@ void ScriptDocument::Dump(CDumpContext& dc) const
 }
 #endif
 
+
+bool ScriptDocument::EvaluateConditional( ScriptScanner & scan, ScriptToken & tok )
+{
+	scan.Next( tok );
+	if ( tok.tokenType != scriptSymbol  &&  tok.tokenSymbol != '(' )
+		throw "'(' expected for IF conditional expression";
+
+	bool fResult;
+	bool fFinished = false;
+
+	do
+	{
+		// suck expression into parts and evalute.  will throw exception if problem
+		ScriptIfdefExpr		expression(this, scan, tok);
+
+		if ( !fFinished )
+			fResult = expression.Evaluate(tok);
+
+		// expression is finished... now look for either AND OR or )
+		scan.Next( tok );
+
+		// we could just bail here if final condition is known... but continue on so we look for closing parens
+		// this is to add some measure of completeness here...
+
+		if ( tok.tokenType == scriptKeyword &&  tok.tokenSymbol == kwAND )
+		{
+			// we've just read the AND...  if the previous expression is false, they want to AND that with the
+			// coming expression... but it will be flase because of the last expresson... just kill it.
+
+			if ( !fResult )
+				fFinished = true;
+		}
+		else if ( tok.tokenType == scriptKeyword  && tok.tokenSymbol == kwOR )
+		{
+			// next thing is an OR.  We can stop if the expression just evaluated to true
+
+			if ( fResult )
+				fFinished = true;
+		}
+
+		// keep going if we've hit the AND or OR... all others will stop this
+	}
+	while ( tok.tokenType == scriptKeyword && (tok.tokenSymbol == kwAND || tok.tokenSymbol == kwOR) );
+
+	if ( tok.tokenType != scriptSymbol  &&  tok.tokenSymbol != ')' )
+		throw "Closing parenthesis ')', OR or AND expected";
+
+	return fResult;
+}
+
+
 //
 //	ScriptDocument::CheckSyntax
 //
 
 void ScriptDocument::CheckSyntax( void )
 {
-	int					curCaseLevel = 0
+	int					curCaseLevel = 0, curIfdefLevel = 0
 	;
-	bool				setupMode = false, isSend = false, expectRequired = false
-	,					isEnv
+	bool				setupMode = false, isSend = false, expectRequired = false,	isEnv
 	;
 	ScriptScanner		scan( m_editData )
 	;
@@ -143,6 +204,12 @@ void ScriptDocument::CheckSyntax( void )
 	;
 	ScriptPacketPtr		prevPacket = 0, prevGroup = 0, newPacket
 	;
+
+	// Set array of bit flags for nested ifdef stuff.  For simplicity, waste index 0 act like base 1
+	unsigned char		bIfdefFlags[IFDEF_LEVEL_MAX];
+
+	// setup first condition for other ifdefs to build from...
+	bIfdefFlags[0] = IFDEF_SPENT | IFDEF_INCLUDING;
 
 	// calculate the digest
 	CalcDigest();
@@ -165,6 +232,87 @@ void ScriptDocument::CheckSyntax( void )
 				continue;
 			}
 
+			// we have to deal with conditional compilation.  We want to take care of it here
+			// so we don't have to specially deal with any token if we're not collection.  Dig?
+
+			switch (tok.tokenSymbol)
+			{
+				case kwELSEDEF:
+
+					// see if we should skip or do this section...
+					if ( curIfdefLevel <= 0  ||  (bIfdefFlags[curIfdefLevel] & IFDEF_ELSE)  )
+						throw "ELSE encountered without matching IF";
+
+					// set flag telling us we've just encounted the valid else
+					bIfdefFlags[curIfdefLevel] |= IFDEF_ELSE;
+					// drop through....
+
+				case kwELSEIFDEF:
+
+					if ( tok.tokenSymbol == kwELSEIFDEF  )
+					{
+						if ( curIfdefLevel <= 0 )
+							throw "ELSEIF encountered without matching IF";
+						if ( bIfdefFlags[curIfdefLevel] & IFDEF_ELSE )
+							throw "ELSEIF encountered following ELSE clause";
+					}
+
+					// if we haven't had a valid true condition yet, make this on go...
+					// otherwise... keep skipping until end
+
+					if ( bIfdefFlags[curIfdefLevel] & IFDEF_SPENT )
+						bIfdefFlags[curIfdefLevel] &= ~IFDEF_INCLUDING;
+					else
+					{
+						// see if we should include this next section...
+						if ( tok.tokenSymbol == kwELSEDEF || EvaluateConditional(scan, tok) )
+							bIfdefFlags[curIfdefLevel] |= (IFDEF_SPENT | IFDEF_INCLUDING);
+						else
+							// shut off including code
+							bIfdefFlags[curIfdefLevel] &= ~IFDEF_INCLUDING;
+					}
+					continue;
+
+
+				case kwENDIF:
+
+					if ( curIfdefLevel <= 0 )
+						throw "ENDIF encountered without matching IF";
+
+					curIfdefLevel--;
+					continue;
+
+
+				case kwIFDEF:
+
+					// they want to conditional compile this section...  test expression result
+					// throw if an error
+
+					if ( curIfdefLevel+1 >= IFDEF_LEVEL_MAX )
+						throw "Exceeded maximum number of nested IFs";
+
+					// check current level to see if we're including... if so.. just make this one.
+					// otherwise, test this condition
+
+					if ( (bIfdefFlags[curIfdefLevel++] & IFDEF_INCLUDING) == 0 )
+						bIfdefFlags[curIfdefLevel] = IFDEF_SPENT;
+					else
+					{
+						if ( EvaluateConditional(scan, tok) )
+							bIfdefFlags[curIfdefLevel] = (IFDEF_SPENT | IFDEF_INCLUDING);
+						else
+							bIfdefFlags[curIfdefLevel] = 0;		// not spent and not including, start fresh
+					}
+					continue;
+			}
+
+
+			// OK... if we made it this far then what we have at least isn't an IFDEF type deal...
+			// just toss it if we're not including, eh?
+
+			if ( curIfdefLevel  &&  (bIfdefFlags[curIfdefLevel] & IFDEF_INCLUDING) == 0 )
+				continue;
+
 			// look for the variable name
 			if (tok.tokenType != scriptKeyword) {
 				if (!curSection)
@@ -181,6 +329,7 @@ void ScriptDocument::CheckSyntax( void )
 				case kwSETUP:
 					setupMode = true;
 					break;
+
 
 				case kwSECTION:
 					// get the section title
@@ -641,6 +790,10 @@ void ScriptDocument::CheckSyntax( void )
 			}
 		}
 
+		// see if they've left a hanging IF...
+		if ( curIfdefLevel )
+			throw "EOF encountered without closing IF";
+
 		// sequence the last test
 		if (curTest)
 			SequenceTest( curTest );
@@ -648,6 +801,13 @@ void ScriptDocument::CheckSyntax( void )
 	catch (char *errMsg) {
 		m_editData->SetSel( tok.tokenOffset, tok.tokenOffset+tok.tokenLength );
 		AfxMessageBox( errMsg );
+		delete curBase;
+		curBase = 0;
+	}
+	catch (CString strThrowMessage) 
+	{
+		m_editData->SetSel( tok.tokenOffset, tok.tokenOffset+tok.tokenLength );
+		AfxMessageBox( strThrowMessage );
 		delete curBase;
 		curBase = 0;
 	}
