@@ -45,7 +45,7 @@ typedef BACnetVLANMsg *BACnetVLANMsgPtr;
 //	BACnetVLANNode
 //
 
-class BACnetVLANNode : public BACnetNetServer {
+class BACnetVLANNode : public BACnetPort {
 		friend class BACnetVLAN;
 		
 	public:
@@ -55,11 +55,13 @@ class BACnetVLANNode : public BACnetNetServer {
 		BACnetVLANPtr	nodeLAN;
 		
 		BACnetVLANNode( BACnetAddress addr, BACnetVLANPtr lan )
-			: nodeAddr(addr), nodeLAN(lan)
+			: nodeLAN(lan)
 		{
+			portLocalAddr = addr;
 		}
 		
 		virtual void Indication( const BACnetNPDU &pdu );
+		virtual void SendData( BACnetOctet *, int len );
 	};
 
 //
@@ -79,7 +81,7 @@ class BACnetVLAN {
 		void ProcessMessage( BACnetVLANMsgPtr msg );
 		
 	public:
-		BACnetVLAN( int id );
+		BACnetVLAN( void );
 		
 		BACnetVLANNodePtr	NewNode( void );
 		void DeleteNode( BACnetVLANNodePtr np );
