@@ -37,8 +37,8 @@ SendReadRange::SendReadRange(void)
 	, m_ReadRangeEndDate( this, IDC_ENDDATUM )
     , m_ReadRangeStartTime( this, IDC_TIMESTART )
 	, m_ReadRangeEndTime( this, IDC_ENDTIME )
-    , m_ReadRangeCount( this, IDC_ENDDATUM )
-  	, m_ReadRangePosRef( this, IDC_STARTDATUM )
+    , m_ReadRangeCount( this, IDC_COUNT )
+  	, m_ReadRangePosRef( this, IDC_REFINDEX )
 	, m_RadioChoice(0)
 {
 	//{{AFX_DATA_INIT(SendReadRange)
@@ -77,6 +77,8 @@ BEGIN_MESSAGE_MAP(SendReadRange, CPropertyPage)
 	ON_EN_SETFOCUS(IDC_STARTDATUM, OnSetfocusStartdatum)
 	ON_EN_CHANGE(IDC_TIMESTART, OnChangeTimestart)
 	ON_EN_CHANGE(IDC_ENDTIME, OnChangeEndtime)
+	ON_EN_CHANGE(IDC_REFINDEX, OnChangePosRef)
+	ON_EN_CHANGE(IDC_COUNT, OnChangeCount)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -94,6 +96,8 @@ BOOL SendReadRange::OnInitDialog()
 	m_ReadRangeEndDate.Disable();
     m_ReadRangeStartTime.Disable();
 	m_ReadRangeEndTime.Disable();
+	m_ReadRangeCount.Disable();
+	m_ReadRangePosRef.Disable();
 
 	
 	UpdateData();
@@ -120,6 +124,8 @@ void SendReadRange::SynchronizeControls()
 	GetDlgItem( IDC_ENDDATUM )->EnableWindow( !m_RadioChoice );
 	GetDlgItem( IDC_TIMESTART )->EnableWindow( !m_RadioChoice );
 	GetDlgItem( IDC_ENDTIME )->EnableWindow( !m_RadioChoice );
+	GetDlgItem( IDC_COUNT )->EnableWindow( !m_RadioChoice );
+	GetDlgItem( IDC_REFINDEX )->EnableWindow( !m_RadioChoice );
 }
 //
 //	SendReadRange::EncodePage
@@ -152,7 +158,7 @@ void SendReadRange::EncodePage( CByteArray* contents )
 		
 	switch (m_RadioChoice)  // The current selection of the radio button
 	{
-	case 0:  // notheng selected
+	case 0:  // nothing selected
 		break;
 
 	case 1:
@@ -288,20 +294,7 @@ void SendReadRange::OnObjectidbtn()
 //
 void SendReadRange::OnChangeStartdatum() 
 {
-	switch (m_RadioChoice)
-	{
-	case 0:  // notheng selected
-		break;
-	case 1:
-  	    m_ReadRangePosRef.UpdateData();
-        break;
-	case 2:
-	case 3:
-        m_ReadRangeStartDate.UpdateData();
-        m_ReadRangeStartTime.UpdateData();
-		break;
-	}
-
+    m_ReadRangeStartDate.UpdateData();
 	SavePage();
 	UpdateEncoded();
 }
@@ -311,26 +304,9 @@ void SendReadRange::OnChangeStartdatum()
 
 void SendReadRange::OnChangeEnddatum() 
 {
-
-	switch (m_RadioChoice)
-	{
-	case 0:  // notheng selected
-
-		break;
-	case 1:   // By Position
-	case 2:   // BY time
-        m_ReadRangeCount.UpdateData();
-		break;
-	case 3:   // TimeRange
-	    m_ReadRangeEndTime.UpdateData();
-	    m_ReadRangeEndDate.UpdateData();
-		break;
-	}
-
-	
+    m_ReadRangeEndDate.UpdateData();
 	SavePage();
 	UpdateEncoded();
-	
 }
 ////////////////////////////////////////////////////////////////////////
 // SendReadRange::OnRadionone
@@ -343,6 +319,8 @@ void SendReadRange::OnRadionone()
 	m_ReadRangeEndDate.Disable();
     m_ReadRangeStartTime.Disable();
 	m_ReadRangeEndTime.Disable();
+	m_ReadRangePosRef.Disable();
+	m_ReadRangeCount.Disable();
 	SavePage();
 	UpdateEncoded();
 	
@@ -354,10 +332,12 @@ void SendReadRange::OnRadioposition()
 {
 	UpdateData();
 
-	m_ReadRangeStartDate.Enable();
-	m_ReadRangeEndDate.Enable();
+	m_ReadRangeStartDate.Disable();
+	m_ReadRangeEndDate.Disable();
     m_ReadRangeStartTime.Disable();
 	m_ReadRangeEndTime.Disable();
+	m_ReadRangePosRef.Enable();
+	m_ReadRangeCount.Enable();
 	SavePage();
 	UpdateEncoded();
 	
@@ -369,10 +349,13 @@ void SendReadRange::OnRadiotime()
 {
 	UpdateData();
 
-	m_ReadRangeStartDate.Disable();
-	m_ReadRangeEndDate.Enable();
+	m_ReadRangeStartDate.Enable();
+	m_ReadRangeEndDate.Disable();
     m_ReadRangeStartTime.Enable();
 	m_ReadRangeEndTime.Disable();
+	m_ReadRangePosRef.Disable();
+	m_ReadRangeCount.Enable();
+	SetDlgItemText( IDC_BEGDATECAPTION, "Reference Date and Time");
 	SavePage();
 	UpdateEncoded();
 	
@@ -384,10 +367,13 @@ void SendReadRange::OnRadiotimerange()
 {
 	UpdateData();
 
-	m_ReadRangeStartDate.Disable();
-	m_ReadRangeEndDate.Disable();
+	m_ReadRangeStartDate.Enable();
+	m_ReadRangeEndDate.Enable();
     m_ReadRangeStartTime.Enable();
 	m_ReadRangeEndTime.Enable();
+	m_ReadRangePosRef.Disable();
+	m_ReadRangeCount.Disable();
+	SetDlgItemText( IDC_BEGDATECAPTION, "Beginning Date and Time");
 	SavePage();
 	UpdateEncoded();
 }
@@ -432,6 +418,26 @@ void SendReadRange::OnChangeTimestart()
 void SendReadRange::OnChangeEndtime() 
 {
     m_ReadRangeEndTime.UpdateData();
+	SavePage();
+	UpdateEncoded();
+	
+}
+////////////////////////////////////////////////////////////////////////
+// SendReadRange::OnChangePosRef
+//
+void SendReadRange::OnChangePosRef() 
+{
+    m_ReadRangePosRef.UpdateData();
+	SavePage();
+	UpdateEncoded();
+	
+}
+////////////////////////////////////////////////////////////////////////
+// SendReadRange::OnChangeCount
+//
+void SendReadRange::OnChangeCount() 
+{
+    m_ReadRangeCount.UpdateData();
 	SavePage();
 	UpdateEncoded();
 	
