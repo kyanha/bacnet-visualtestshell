@@ -152,9 +152,9 @@ BOOL CSendGetEnrollmentSummaryACK::OnInitDialog()
 	m_EnrollmentSumListCtrl.m_nFlags &= ~LBS_SORT;
 
 	// set up the property list columns
-	m_EnrollmentSumListCtrl.InsertColumn( 0, "Object ID", LVCFMT_LEFT, 96 );
-	m_EnrollmentSumListCtrl.InsertColumn( 1, "Event Type", LVCFMT_RIGHT, 48 );
-	m_EnrollmentSumListCtrl.InsertColumn( 2, "Event State", LVCFMT_RIGHT, 48 );
+	m_EnrollmentSumListCtrl.InsertColumn( 0, "Object ID", LVCFMT_LEFT, 126);
+	m_EnrollmentSumListCtrl.InsertColumn( 1, "Event Type", LVCFMT_LEFT, 82 );
+	m_EnrollmentSumListCtrl.InsertColumn( 2, "Event State", LVCFMT_LEFT, 82 );
 
 	// load the enumeration tables
 	cbp = (CComboBox *)GetDlgItem( IDC_EVENTTYPECOMBO );
@@ -226,9 +226,13 @@ EnrollmentSummaryElem::EnrollmentSummaryElem( CSendPagePtr wp )
 {
 	// controls start out disabled
 	eseObjectID.ctrlEnabled = false;
+	eseObjectID.ctrlNull = false;					// madanner 9/5/02, required for default 
+	eseObjectID.objID = 0;
 	eseEventTypeCombo.ctrlEnabled = false;
 	eseEventStateCombo.ctrlEnabled = false;
 	esePriority.ctrlEnabled = false;
+	esePriority.ctrlNull = false;
+	esePriority.uintValue = 1;
 	eseNotificationClass.ctrlEnabled = false;
 }
 
@@ -359,6 +363,10 @@ void EnrollmentSummaryList::AddButtonClick( void )
 	// update the encoding
 	eslAddInProgress = false;
 	eslPagePtr->UpdateEncoded();
+
+	OnSelchangeEventStateCombo();		// madanner 9/4/02, throws state into list as well
+	OnSelchangeEventTypeCombo();
+	eslPagePtr->m_EnrollmentSumListCtrl.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
 }
 
 //
@@ -386,6 +394,10 @@ void EnrollmentSummaryList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// madanner 9/4/02
+	// reselect a new row... just before the deleted one if any.
+	eslPagePtr->m_EnrollmentSumListCtrl.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
 
 	// update the encoding
 	eslPagePtr->UpdateEncoded();
@@ -527,14 +539,15 @@ void EnrollmentSummaryList::OnItemChanging( NMHDR *pNMHDR, LRESULT *pResult )
 	;
 
 	// forget messages that don't change the selection state
-	if (pNMListView->uOldState == pNMListView->uNewState)
+	// madanner 9/5/02, proper masking check?
+	if ((pNMListView->uOldState && LVIS_SELECTED) == (pNMListView->uNewState && LVIS_SELECTED))
 		return;
 
 	// skip messages during new item creation
 	if (eslAddInProgress)
 		return;
 
-	if ((pNMListView->uNewState * LVIS_SELECTED) != 0) {
+	if ((pNMListView->uNewState && LVIS_SELECTED) != 0) {		// madanner 9/5/02, proper mask ??
 		// item becoming selected
 		eslCurElemIndx = pNMListView->iItem;
 		eslCurElem = GetAt( FindIndex( eslCurElemIndx ) );
