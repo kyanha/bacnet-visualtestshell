@@ -601,8 +601,6 @@ void VTSPreferences::Save( void )
 //
 
 
-There may still be a problem with a rpm request that must be segmented.  This can be verified by testing this MAX script on a device that supports segmentation.
-
 const int kReleaseVersion = 9;
 
 class CAboutDlg : public CDialog
