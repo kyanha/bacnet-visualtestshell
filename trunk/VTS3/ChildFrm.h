@@ -21,14 +21,12 @@ class CSummaryView;
 class CDetailView;
 class CHexView;
 class CListSummaryView;
+class CReadAllPropSettingsDlg;
+
 
 class CChildFrame : public CMDIChildWnd
 {
 	DECLARE_DYNCREATE(CChildFrame)
-public:
-	CChildFrame();
-	void SaveBarStates(void);
-	void EPICSLoad( LPCSTR lpszFileName );
 
 // Attributes
 public:
@@ -41,11 +39,13 @@ public:
 	CHexView*		m_pHexView;
 	CDockingDetailViewBar* m_pwndDetailViewBar;
 	CDockingHexViewBar* m_pwndHexViewBar;
+
 	/////////////////////////////////
 	//Added by Zhenhua Zhu, 2003-6-2
 	CVdbPrint m_printer;
 	BOOL	  m_bPrintSetup;
 	BOOL	  m_bInPrinting;
+
 	/////////////////////////////////
 // Operations
 public:
@@ -63,11 +63,20 @@ public:
 
 // Implementation
 public:
+	CChildFrame();
 	virtual ~CChildFrame();
+
+	void SaveBarStates(void);
+	void EPICSLoad( LPCSTR lpszFileName );
+
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
+
+
+private:
+	BOOL CreateScriptFile( CString * pstrFileName, CReadAllPropSettingsDlg * pdlg );
 
 // Generated message map functions
 protected:
@@ -90,6 +99,7 @@ protected:
 	afx_msg void OnUpdateViewDetail(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewHex(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEPICSLoad(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateEPICSReadallproperty(CCmdUI* pCmdUI);
 	afx_msg void OnEditDelete();
 	afx_msg void OnEditRefresh();
 	afx_msg void OnEditPorts();
@@ -117,6 +127,7 @@ protected:
 	afx_msg void OnFilePrint();
 	afx_msg void OnFilePrintSetup();
 	afx_msg void OnUpdateFilePrint(CCmdUI* pCmdUI);
+	afx_msg void OnReadAllProperty();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
