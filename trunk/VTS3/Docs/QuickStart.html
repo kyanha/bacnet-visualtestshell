@@ -18,7 +18,7 @@ h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: 
 
 <body bgcolor="#FFFFFF" text="#000000">
 
-<h1><a name="start">VTS 3.3.0 </a><i>Quick Start Guide</i></h1>
+<h1><a name="start">VTS 3.4.0 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
 functionality of various devices used in building automation systems.&nbsp;
 BACnet is a Data Communication Protocol for Building Automation and Control
@@ -43,13 +43,14 @@ has not been tested). </p>
     <li><a href="#1">Install WinPcap 3.0 (if required)</a></li>
     <li><a href="#2">Install VTS</a></li>
     <li><a href="#3">Run VTS</a></li>
-    <li><a href="#4">Create a database</a></li>
-    <li><a href="#5">Create a port</a></li>
-    <li><a href="#6">Send a packet</a></li>
-    <li><a href="#7">Analyze a packet</a></li>
-    <li><a href="#8">Create a name</a></li>
-    <li><a href="#9">Send a more complicated packet</a></li>
-    <li><a href="#10">Analyze the response</a></li>
+    <li><a href="#4">Configure VTS</a></li>
+    <li><a href="#5">Create a Device</a></li>
+    <li><a href="#6">Create a Port</a></li>
+    <li><a href="#7">Create a Name</a></li>
+    <li><a href="#8">Send a packet</a></li>
+    <li><a href="#9">Analyze a packet</a></li>
+    <li><a href="#10">Send a more complicated packet</a></li>
+    <li><a href="#11">Analyze the response</a></li>
   </ol>
     <p><a href="#History">VTS Release History</a></p>
     <p><a href="#Links">VTS Web Links</a></p>
@@ -128,7 +129,30 @@ to the same directory.</p>
 <h2><a name="3">Step 3</a> : Run VTS</h2>
 <p>Running VTS is as simple as double clicking on the application (VTS.EXE) or
 selecting Run from the Start menu and entering <a href="file:///C:/VTS/VTS">C:\VTS\VTS</a>
-(assuming that you moved VTS.EXE to the directory C:\VTS).</p>
+(assuming that you moved VTS.EXE to the directory C:\VTS). </p>
+<h3>Workspaces (.cfg) and Logfiles (.vpk)</h3>
+<p>When you run VTS for the first time, a default <b>workspace</b> file named <b>vts3.cfg</b> will be
+created automatically, as well as a default <b>logfile</b> named <b>vts3.vpk</b>.  The <b>workspace</b> 
+file contains all of the VTS configuration data, such as Devices, Ports, Names, etc.  The 
+<b>logfile</b> contains the packet data that is captured while running VTS.</p>
+<p>Workspace files are updated automatically as the configuration is changed - there is no need to save
+the workspace.  However, there is a selection under the File menu to save the workspace
+under a new filename for the purpose of creating multiple workspaces. A workspace saved
+in this manner can be loaded via the <b>File/Workspace/Switch Workspace</b> menu selection. Only one
+workspace can be loaded at a time.  The name of the current workspace is shown in the title bar.  
+When VTS is run, the last workspace that was in use is always reloaded.
+</p>
+
+<p>Each workspace (.cfg) references one logfile (.vpk), which contains packet data captured during a VTS session. 
+Like workspaces, logfiles are also saved automatically as packet data is generated.  A different logfile can be started 
+without creating or loading a new workspace by selecting <b>Edit/Change logfile</b>.  This causes the current
+logfile to be closed, and the user has a choice of creating a new logfile or loading an existing logfile.  Once
+the logfile has been changed in this manner, any new packet data will be appended to the new logfile, and
+the current workspace will reference the new logfile.
+Switching workspaces will switch to whatever logfile was last viewed using that workspace.  </p>
+
+<p><b>To send a VTS session to a friend, both the workspace (.cfg) and logfile (.vpk) must be sent.</b></p>
+
 <p><a href="#4">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -142,26 +166,16 @@ selecting Run from the Start menu and entering <a href="file:///C:/VTS/VTS">C:\V
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<h2><a name="4">Step 4</a> : Create a database</h2>
-<p><b>4.1</b> Select New from the File menu. You will be presented with the
-follow dialog box:</p>
-<p><center><img src="Images/Image02.gif" width="281" height="139"></center></p>
-<p>Select VDB, you will be creating a session database. The session database
-contains a description of the ports, names bound to addresses, and packets that
-were sent or received on each port. VTS allows more than one session database
-open at the same time, so it is possible to configure one database for Ethernet
-traffic and one for IP and have them both capturing packets at the same time.</p>
-<p>The VTS selection is for creating scripts which is not covered in this quick
-start guide.</p>
-<p><b>4.2</b> Give the session a file name.</p>
-<p><center><img src="Images/Image03.gif" width="426" height="285"></center></p>
-<p><b>4.3</b> Identify the split pane view of the session.</p>
-<p>You will be presented with a split-pane window with three components:</p>
-<p><center><img src="Images/Image04.gif" width="719" height="521"></center></p>
-<p>A description of the three panes is found in <a href="#7">Step 7</a>. This
-session window works as you would expect, the Windows menu allows you to manage
-multiple views of the same database and tile or stack them. A large monitor is
-recommended for multiple windows.</p>
+<h2><a name="4">Step 4</a> : Configure VTS</h2>
+<p>Configuring VTS involves three steps:</p>
+<ol>
+	<li>Create one or more Devices, and optionally, Objects within those Devices</li>
+	<li>Create one or more Ports</li>
+	<li>Create Names as shortcuts for BACnet Addresses</li>
+</ol>
+<p>Each of these steps is performed by selecting the appropriate menu item from the <b>Edit</b> menu as shown below.</p>
+<p><img src="Images/EditMenu.png" ></p>
+<p>Each of the individual configuration steps is described in the following sections.</p>
 <p><a href="#5">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -175,23 +189,28 @@ recommended for multiple windows.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<h2><a name="5">Step 5</a> : Create a port</h2>
-<p>A port is a communications endpoint that sends and receives packets. Some
-ports are associated with a physical interface such as an Ethernet
-communications card, and others such as IP ports are associated with a UDP port.</p>
-<p><b>5.1</b> Select Ports from the Edit menu. Click on New and give the port a
-name. Click on IP and you will see the following dialog box:</p>
-<p><center><img src="Images/Image05.gif" width="399" height="366"></center></p>
-<p><b>5.2</b> Click on the Configuration button, you will be presented with a
-dialog box for configuring the port. Each port type has its own configuration
-options.</p>
-<p><center><img src="Images/Image06.gif" width="287" height="171"></center></p>
-<p>For BACnet/IP ports, the socket 0xBAC0 (or 47808) is the typical socket
-number. Click OK, then click on the Enable check box.</p>
-<p><center><img src="Images/Image07.gif" width="399" height="366"></center></p>
-<p>When a port is enabled it is available for sending and receiving packets. If
-the status indicator is red, there is some problem enabling the port and a
-description will appear in the status area.</p>
+<h2><a name="5">Step 6</a> : Create a Device and Objects</h2>
+<p>This section is for creating Devices and Objects that are <b>hosted within the VTS program</b>.
+In other words, Devices and Objects created here will exist inside the VTS workstation for the
+purpose of providing test Devices and Objects that can be accessed from an external BACnet client
+application that is being tested.  If an external client sends ReadProprty or WriteProperty requests
+directed at the Devices and Objects created here, VTS will automatically respond to
+those requests.</p>
+<p>Note that this section is <b>not</b> for configuring Devices and Objects that reside in the 
+implementation being tested by VTS. That is done by loading an EPICS file while a script
+window is open.
+</p>
+<p>Right click in the tree area to display a menu for adding Devices or Objects.
+Select each Device or Object to present some basic properties that can be edited 
+for each Object.</p>
+<p>There is no need to click the <b>OK</b> button after each Object is added.  Simply keep right clicking 
+within the tree to add more Objects, and then click <b>OK</b> when finished.  Clicking the
+<b>Cancel</b> button will cancel <b>all</b> of the changes that were made since the dialog box
+was first displayed.</p>
+<p><img src="Images/DeviceConfiguration.png" ></p>
+<p>Here is an example showing two Devices with some Objects within each Device.  
+(The standard Properties of each standard Object type are not yet supported.)</p>
+<p><img src="Images/DeviceConfiguration2.png" ></p>
 <p><a href="#6">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -205,41 +224,24 @@ description will appear in the status area.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<h2><a name="6">Step 6</a> : Send a packet</h2>
-<p>The most basic function of VTS is to send and receive packets and decode
-them. Click on the Send menu and you will see a menu that looks like this:</p>
-<p><center><img src="Images/Image08.gif" width="719" height="521"></center></p>
-<p>The BAC0 name that is selected is the port created in Step 5. There is only
-one enabled port, so it is selected by default, and below the port is a
-hierarchical menu of families of types of packets. The BVLL menu has BACnet/IP
-specific packets such as Register-Foreign-Device. The Network menu contains
-BACnet networking packets such as Who-Is-Router-To-Network. The other menus are
-common groups of application layer messages.</p>
-<p><b>6.1</b> Select Register-Foreign-Device from the BVLL menu. You will be
-presented with the following dialog box:</p>
-<p><center><img src="Images/Image09.gif" width="607" height="397"></center></p>
-<p>The central feature of the dialog box is a set of tabbed panels, one tab for
-each layer in the packet. The Register-Foreign-Device message has only one
-parameter, the Time-To-Live. This is a required parameter, as indicated by the
-error message in the text area below the panels.</p>
-<p><b>6.2</b> Enter a time-to-live in seconds.</p>
-<p>When a parameter in the packet contains valid information, other parameters
-in other panels are verified to contain correct content.</p>
-<p><center><img src="Images/Image10.gif" width="607" height="397"></center></p>
-<p><b>6.3</b> Enter the destination address for the packet by selecting the IP
-tab. The destination address may be provided by entering an IP address in the
-text area, or selecting a name from the drop down menu.</p>
-<p><center><img src="Images/Image11.gif" width="607" height="397"></center></p>
-<p>By selecting TD, a predefined name for each port, the BACnet/IP address of
-the PC will be entered into the text area.</p>
-<p><b>6.4</b> Click on the Send button.</p>
-<p>When the packet is well formed, the encoded content will appear in the text
-area below the panels. This may be edited before sending to test how a device
-responds to malformed packets. In the session window you will see an indication
-of a packet that has been transmitted.</p>
-<p><b>6.5</b> Close the Send dialog box.</p>
-<p>The Send dialog box is designed to be non-modal, so it is not closed
-automatically. The packet contents can be modified and sent again.</p>
+<h2><a name="6">Step 6</a> : Create a Port</h2>
+<p>A port is a communications endpoint that sends and receives packets. Some
+ports are associated with a physical interface such as an Ethernet
+communications card, and others such as IP ports are associated with a UDP port.</p>
+<p><img src="Images/PortConfiguration.png" ></p>
+<p>For BACnet/IP ports, the socket 0xBAC0 (or 47808) is the typical socket
+number. </p>
+<p><img src="Images/PortConfiguration2.png" ></p>
+<p>When a port is enabled, it is available for sending and receiving packets,
+and the status indicator will be green.  If
+the status indicator is red, there is some problem enabling the port and a
+description will appear in the status column.</p>
+<p>Ports are not actually created or enabled until the <b>OK</b> or <b>Apply</b>
+button is clicked.  (This is different than previous releases of VTS, which
+created the port while it was being configured).</p>
+<p>Note: Associating more than one port to the same Device will cause VTS to
+function as a BACnet Router between those ports, which is usually unexpected
+behavior and might cause some scripts to malfunction.</p>
 <p><a href="#7">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -253,17 +255,27 @@ automatically. The packet contents can be modified and sent again.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<h2><a name="7">Step 7</a> : Analyze a packet</h2>
-<p>The session window contains three panes. The <b>summary view</b> on the left
-has one line per packet and provides general information such as the packet
-number, time it arrived, source and destination addresses, and a brief
-description of the packet. The <b>detail view</b> in the upper right contains a
-complete decoding of the packet contents. The <b>hex view</b> in the lower right
-displays the binary content of the packet.</p>
-<p><center><img src="Images/Image13.gif" width="719" height="521"></center></p>
-<p><b>7.1</b> Select a row in the detail view.</p>
-<p>The three views are synchronized so selecting a detail row will highlight the
-hex encoding of that specific portion of the packet.</p>
+<h2><a name="7">Step 7</a> : Create a Name</h2>
+<p>A <b>name</b> is a shortcut for an address. Names are used in the source and
+destination address areas of ports, as well as the SNET and DNET portion of the
+BACnet network layer. Select Names from the Edit menu and you will be presented
+with the following dialog box:</p>
+<p><img src="Images/Names.png" ></p>
+<p>Notice that there is already a name TD (common abbreviation for Test Device)
+defined and given the address of the port. If this was an Ethernet port, TD
+would be the Ethernet address of the port.</p>
+<p>Click New, change the name to IUT, and then enter the address  
+of the implementation under test. The IUT name has special meaning
+in VTS because scripts will automatically SEND and EXPECT messages from 
+whatever address is associated with the IUT name as long as an explicit
+destination address is <b>not</b> specified in the script.</p>
+<p><img src="Images/Names2.png" ></p>
+<p>Click New, change the name to LB, and click on the Local Broadcast
+radio button.</p>
+<p><img src="Images/Names3.png" ></p>
+<p>The LB name will now represent a local broadcast address for any port. For an
+Ethernet port, this is the address FF:FF:FF:FF:FF:FF, for an IP port it is the
+address 255.255.255.255:47808. Click on the OK button to close the dialog box.</p>
 <p><a href="#8">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -277,21 +289,41 @@ hex encoding of that specific portion of the packet.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<h2><a name="8">Step 8</a> : Create a name</h2>
-<p>A <b>name</b> is a shortcut for an address. Names are used in the source and
-destination address areas of ports, as well as the SNET and DNET portion of the
-BACnet network layer. Select Names from the Edit menu and you will be presented
-with the following dialog box:</p>
-<p><center><img src="Images/Image14.gif" width="486" height="360"></center></p>
-<p>Notice that there is already a name TD (common abbreviation for Test Device)
-defined and given the address of the port. If this was an Ethernet port, TD
-would be the Ethernet address of the port.</p>
-<p><b>8.1</b> Click New, change the name to LB, and click on the Local Broadcast
-radio button.</p>
-<p><center><img src="Images/Image15.gif" width="486" height="360"></center></p>
-<p>This name will now represent a local broadcast address for any port. For an
-Ethernet port, this is the address FF:FF:FF:FF:FF:FF, for an IP port it is the
-address 255.255.255.255:47808. Click on the OK button to close the dialog box.</p>
+<h2><a name="8">Step 8</a> : Send a packet</h2>
+<p>The most basic function of VTS is to send and receive packets and decode
+them. Click on the Send menu and you will see a menu that looks like this:</p>
+<p><img src="Images/SendMenu.png" ></p>
+<p>The MyIP name that is selected is the port created in Step 6. There is only
+one enabled port, so it is selected by default, and below the port is a
+hierarchical menu of families of types of packets. The BVLL menu has BACnet/IP
+specific packets such as Register-Foreign-Device. The Network menu contains
+BACnet networking packets such as Who-Is-Router-To-Network. The other menus are
+common groups of application layer messages.</p>
+<p>Select Register-Foreign-Device from the BVLL menu. You will be
+presented with the following dialog box:</p>
+<p><img src="Images/SendRegisterForeign.png" ></p>
+<p>The central feature of the dialog box is a set of tabbed panels, one tab for
+each layer in the packet. The Register-Foreign-Device message has only one
+parameter, the Time-To-Live. This is a required parameter, as indicated by the
+error message in the text area below the panels.</p>
+<p>Enter a time-to-live in seconds.</p>
+<p>When a parameter in the packet contains valid information, other parameters
+in other panels are verified to contain correct content.</p>
+<p><img src="Images/SendRegisterForeign2.png" ></p>
+<p>Enter the destination address for the packet by selecting the IP
+tab. The destination address may be provided by entering an IP address in the
+text area, or selecting a name from the drop down menu.  In this case,
+a default address was selected automatically because the 'IUT' name
+was defined in step 7.</p>
+<p><img src="Images/SendRegisterForeign3.png" ></p>
+<p>Click on the Send button.</p>
+<p>When the packet is well formed, the encoded content will appear in the text
+area below the panels. This may be edited before sending to test how a device
+responds to malformed packets. In the session window you will see an indication
+of a packet that has been transmitted.</p>
+<p>Close the Send dialog box.</p>
+<p>The Send dialog box is designed to be non-modal, so it is not closed
+automatically. The packet contents can be modified and sent again.</p>
 <p><a href="#9">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -305,27 +337,19 @@ address 255.255.255.255:47808. Click on the OK button to close the dialog box.</
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<h2><a name="9">Step 9</a> : Send a more complicated packet</h2>
-<p>For the next example, send out a global broadcast Who-Is packet.</p>
-<p><b>9.1</b> Select Who-Is from the Remote Device Management submenu. You will
-be presented with the following dialog box.</p>
-<p><center><img src="Images/Image16.gif" width="607" height="397"></center></p>
-<p>The device instance low limit and high limit are optional parameters in the
-message. By leaving both fields empty, the request will indicate that all
-devices must respond.</p>
-<p><b>9.2</b> Select the NPCI tab.</p>
-<p><center><img src="Images/Image17.gif" width="607" height="397"></center></p>
-<p>A Who-Is request is usually sent out as a global broadcast, so the DNET is
-present and has the value 65535.</p>
-<p><b>9.3</b> Select the BVLCI tab.</p>
-<p><center><img src="Images/Image18.gif" width="607" height="397"></center></p>
-<p>Assuming the PC is connected to a BACnet/IP network, this message should be
-sent out as an original broadcast message.</p>
-<p><b>9.4</b> Select the IP tab.</p>
-<p><center><img src="Images/Image19.gif" width="607" height="397"></center></p>
-<p>The destination address uses the name LB which has the local broadcast
-address for the port filled into the edit box.</p>
-<p><b>9.5</b> Click Send, then close the dialog box.</p>
+<h2><a name="9">Step 9</a> : Analyze a packet</h2>
+<p>The session window contains three panes. The <b>summary view</b> on the left
+has one line per packet and provides general information such as the packet
+number, time it arrived, source and destination addresses, and a brief
+description of the packet. The <b>detail view</b> in the upper right contains a
+complete decoding of the packet contents. The <b>hex view</b> in the lower window
+displays the binary content of the packet using hexadecimal notation.</p>
+<p><img src="Images/Analyze.png" ></p>
+<p>The three views are synchronized so selecting a detail row will highlight the
+hex encoding of that specific portion of the packet with a red box.</p>
+<p>The Detail and Hex views can be rearranged within the VTS window by dragging 
+their title bars to the desired new location.  The dividers between the views can
+also be moved to resize the adjacent views at the same time.</p>
 <p><a href="#10">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -339,11 +363,46 @@ address for the port filled into the edit box.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<h2><a name="10">Step 10</a> : Analyze the response</h2>
-<p>Here is a sample captured from a test network. Note that there seems to be a
-problem with many devices sending their I-Am responses multiple times, or that
-some intermediate network component is repeating the message.</p>
-<p><center><img src="Images/Image20.gif" width="777" height="520"></center></p>
+<h2><a name="10">Step 10</a> : Send a more complicated packet</h2>
+<p>For the next example, send out a global broadcast Who-Is packet.</p>
+<p>Select Who-Is from the Remote Device Management submenu. You will
+be presented with the following dialog box.</p>
+<p><img src="Images/WhoIs.png" </p>
+<p>The device instance low limit and high limit are optional parameters in the
+message. By leaving both fields empty, the request will indicate that all
+devices must respond.</p>
+<p>Select the NPCI tab.</p>
+<p><img src="Images/WhoIs2.png"</p>
+<p>A Who-Is request is usually sent out as a global broadcast, so the DNET is
+present and has the value 65535.</p>
+<p>Select the BVLCI tab.</p>
+<p><img src="Images/WhoIs3.png" </p>
+<p>Assuming the PC is connected to a BACnet/IP network, this message should be
+sent out as an original broadcast message.</p>
+<p>Select the IP tab.</p>
+<p><img src="Images/WhoIs4.png" </p>
+<p>Select the LB name for the destination address so that 
+the WhoIs request is sent as a local broadcast.  Notice that the 
+correct broadcast address is filled in in teh numerical 
+address edit box.</p>
+<p>Click Send, then close the dialog box.</p>
+<p><a href="#11">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="11">Step 11</a> : Analyze the response</h2>
+<p>Here is a sample captured from a test network. Note that two Devices answered
+the Who-Is request with the I-Am service.</p>
+<p><img src="Images/Analyze2.png" </p>
 <p>&nbsp;</p>
 <p><a href="#History">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
@@ -1257,7 +1316,7 @@ Note: when the selected packet isn't the last packet, VTS3 will not make a chang
 </ul>
 
 
-<h2><a name="whatsnew">3.3.0</a></h2>
+<h2>3.3.0</h2>
 <ul>
 <p><li>567046: Now the Detail pane is a treelist pane, with most of the tree nodes collapsed by 
 default to reduce the amount of information shown.  The tree nodes containing the information
@@ -1276,6 +1335,98 @@ to the modeless Send dialog.  Multiple Send dialogs can now be used simultaneous
 
 <p><li><b>Replaced the BACMACNT driver with WinPcap library calls.</b>  No change was made to the database format, just the
 format of the adapter/interface configuration strings has changed.  BACMACNT is no longer required and is no longer distributed with VTS 3.x</li></p>
+</ul>
+
+<h2><a name="whatsnew">3.4.0</a></h2>
+<p>The primary goal of this release was to increase the stability of VTS.</p>
+<ul>
+<li>Removed the internal database and replaced with workspace files (.cfg)
+that are loaded upon startup and saved when VTS configuration changes.
+Packets are not stored in the .CFG file, rather in an associated .VPK file.
+The usage of these two files will cut down on VTS instability due to
+database corruptions.  
+</li><li>	<b>VTS can no longer load .vdb files!</b>  VTS will not associate .VDB files with VTS upon startup anymore.
+</li><li>	Workspaces menu added to main menu.  VTS will handle script
+documents in a typical manner (load, save, save as, most recently used,
+etc.) but will use workspace files to store configuration.
+</li><li>	VTS can switch workspaces without shutting down.
+</li><li>	Only one workspace can be loaded at once.   The VTS main window will
+always show the packet window.
+</li><li>	VTS will open the most recently used workspace file upon VTS start.
+If no workspace was found (or VTS is being run for the first time), the
+standard file 'vts3.cfg' file will be opened.  If this file is not present
+it will be created in the current working directory.
+</li><li>	Menu items have been changed to reflect workspace handling (on
+separate menu) and document handling (on main File menu).
+</li><li>	Scripts are opened in a separate frame window with a menu and button
+bar appropriate for script handling.  These windows will no longer be bound
+inside of the main VTS window.
+</li><li>	VTS main window remembers packet view column sizes.  This even
+allows column sizes to be zero effectively removing columns from the view.
+</li><li>	Packet summary window now has timestamp and port name columns. 
+</li><li>	Button bar has been expanded on main VTS packet view and menu as
+been trimmed to commands relative to main VTS (not scripts).
+</li><li>	Port names on Send menu are grayed if inactive and show port type.
+</li><li>	Refresh added to reload packet view.  This is useful if you have
+changed name/address mappings.
+</li><li>	Revamped 'Export' function.
+</li><li>	Added progress bar on status bar that shows during lengthy
+operations (loading large packet files, exporting, etc.).
+</li><li>	Changed main list view to handle virtually unlimited number of
+packets.
+</li><li>	Delete all packets reduces packet file to zero and does not affect
+configuration file.
+</li><li>	VTS can switch packet files via Change Packet file menu item.  The
+user is presented with a file dialog asking for a new packet file.  If a
+packet file is specified that does not exist it is created.  If the packet
+file exists it will be opened, shown in the view and incoming packets will
+be appended.  The currently opened packet file will be closed.  Each time a
+different packet file is chosen it is associated with the current workspace
+and will be reloaded upon workspace reload.
+</li><li>	Changed port configuration for usability.  Port changed will not
+take effect until OK or Apply is pressed.  This allows changes to be
+cancelled.
+</li><li>	Changed device configuration for usability.  Device changes will not
+take effect until OK is pressed, which also allows changes to be cancelled.
+</li><li>	Added ability to edit object, property and values to devices.
+</li><li>	Added ReadProperty and WriteProperty support to devices.  Arrays and
+array index operations are also supported for RP and WP.
+</li><li>	Added automatic RP and WP to parameters of configured devices:  Name
+(care should be taken when writing this value), Vendor ID, Max APDU, APDU
+Timeout, APDU Seg Timeout, APDU Retries, Segmentation, Local Date (RP only)
+and Local Time (RP only).  These properties can be overridden by defining
+similar properties from a device object.
+</li><li>	Changed names configuration for usability.  Names changes will not
+take effect until OK is pressed, allowing changes to be cancelled. 
+</li><li>	VTS had a registry problem confusing an INI path with key names.  An
+attempt to use INI files is no longer present in VTS and the registry main
+key in SOFTWARE has been moved to "BACnet Manufacturers Association" instead
+of "Visual Test Shell 3".
+</li><li>	Added preferences dialog.  Preferences are stored in "Setting"
+subkey inside registry.
+</li><li>	Added preference setting for specification of number of slots used
+for main packet view cache.  This defaults to 5000 which allocates slightly
+less than one meg or memory.  The setting allows adjustments to try to tweak
+performance when packet counts reach very high numbers.  This setting does
+not actually limit the number of packets that can be received, it is just
+a performance tuning parameter.
+</li><li>	Added timeout for auto-scroll.  If the user selects a packet other
+than the last one, auto-scroll is disabled until the timeout occurs.
+</li><li>	Added preference setting for number of seconds auto-scroll is to
+remain inactive.  0 = disable automatic selection of auto-scroll.
+</li><li>	Added preference for relative vs. absolute packet file path
+association in workspace.  If this value is relative (default), the path to
+an associated packet file will be stored relative to whatever path the
+workspace file is loaded from.  If the workspace file is moved, the packet
+file must also be moved to a location relative to the workspace file.  If
+this value is absolute, the fully qualified path to the packet file will be
+saved with the workspace file.  If the workspace file is moved and reloaded,
+the associated packet file must remain in its current location.  Changes to
+this preference setting only take effect when a new packet file is
+specified.
+</li>
+</ul>
+
 
  
 <p>&nbsp;</p>
