@@ -3058,10 +3058,10 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->protocol_conf_class));
 			break;
 		case PROTOCOL_SERVICES_SUPPORTED:
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(35, pObj->protocol_services_supported));
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(EPICSLengthProtocolServicesSupportedBitstring, pObj->protocol_services_supported));
 			break;
 		case PROTOCOL_OBJECT_TYPES_SUPPORTED:
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(18, pObj->object_types_supported));
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(EPICSLengthProtocolObjectTypesSupportedBitstring, pObj->object_types_supported));
 			break;
 		case OBJECT_LIST:
 			pbacnetAnyValue->SetObject(lobj, CreateObjectList(pObj->object_list));
@@ -3070,7 +3070,7 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->max_apdu_length_accepted));
 			break;
 		case SEGMENTATION_SUPPORTED:
-         petable = (etable *)PICS::GetEnumTable(eiDS);  
+         petable = (etable *)PICS::GetEnumTable(eiSegOpt);  
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->segmentation_supported,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
