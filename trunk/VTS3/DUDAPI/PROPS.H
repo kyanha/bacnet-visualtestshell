@@ -54,6 +54,9 @@
 
 #define	devobjpropref	    45					//dev obj property reference
 
+#define calent				46					//single calendar entry, madanner 11/1/02
+#define prival				47					//single priority value (could be b, flt, null, r), madanner 11/1/02
+
 
 #define ptDate 200  // parsetype BACnetDate
 #define ptTime 201  // parsetype BACnetTime
