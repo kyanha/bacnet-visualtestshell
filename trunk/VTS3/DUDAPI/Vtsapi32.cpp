@@ -154,12 +154,14 @@ void TR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 // msdanner 9/04:  135.1-2003 EPICS consistency checks added 
 void CheckPICSConsistency2003(PICSdb *); // runs all checks
 void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDependentBIBB);
+void CheckPICSConsProperties(PICSdb *pd, generic_object *obj);
 void CheckPICSCons2003A(PICSdb *pd);
 void CheckPICSCons2003D(PICSdb *pd);
 void CheckPICSCons2003E(PICSdb *pd);
 void CheckPICSCons2003F(PICSdb *pd);
 void CheckPICSCons2003G(PICSdb *pd);
 void CheckPICSCons2003H(PICSdb *pd);
+void CheckPICSCons2003I(PICSdb *pd);
 
 
 void GetSequence(dword *,dword *,octet);
@@ -6497,9 +6499,9 @@ void CheckPICSConsistency2003(PICSdb *pd)
    CheckPICSCons2003H(pd);
 
 	// 135.1-2003, section 5.(i) 
-   CheckPICSPropCons(pd);
-
 	// 135.1-2003, section 5.(j) 
+   CheckPICSCons2003I(pd);
+
 	// 135.1-2003, section 5.(k) 
 	// 135.1-2003, section 5.(l) 
 
@@ -6898,7 +6900,8 @@ void CheckPICSCons2003H(PICSdb *pd)
    char errMsg[300];
    generic_object *po;
    BACnetObjectIdentifier *pObjectID; 
-   dword id, objtype, objinstance; // temps
+   dword id, objinstance; // temps
+   word  objtype;
 
    dword dwMaxStdObj = sizeof(StandardObjects)/sizeof(StandardObjects[0]);
 
@@ -6922,8 +6925,7 @@ void CheckPICSCons2003H(PICSdb *pd)
       id = pObjectID->object_id;
       if (FindObjectInDatabase(pd, id) == NULL)
       {
-         objtype = id>>22;
-         objinstance = id & 0x003fffff;
+         SplitObjectId(id, &objtype, &objinstance);
          if (objtype < dwMaxStdObj)
          {
             sprintf(errMsg,"135.1-2003 5.(h): "
@@ -6948,8 +6950,7 @@ void CheckPICSCons2003H(PICSdb *pd)
       id=po->object_id;
       if (!FindObjectInObjectList(pd, id))
       {
-         objtype = id>>22;
-         objinstance = id & 0x003fffff;
+         SplitObjectId(id, &objtype, &objinstance);
          if (objtype < dwMaxStdObj)
          {
             sprintf(errMsg,"135.1-2003 5.(h): "
@@ -6969,5 +6970,230 @@ void CheckPICSCons2003H(PICSdb *pd)
    return;
 }
 
+// Helper function for CheckPICSCons2003I.
+// This function is called for each object in the test database
+// to check if required (and writable) properties are present.
+// This function also handles the special case of the Device Object,
+// which applies conditions that are outside the scope of 
+// the Device Object itself.
+void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
+{
+	char   errMsg[300]; 
+	word   objtype;
+	dword  objInstance;
+	propdescriptor *propdesc;
+   octet  GroupRequired[128]; // flags corresponding to PropGroup
+   int    i = 0;
+   octet  group = 0;
+
+   // Clear group detection flags
+   memset(GroupRequired, 0, sizeof(GroupRequired));
+
+   // derive object type and object instance number from object ID
+   SplitObjectId(obj->object_id, &objtype, &objInstance);
+
+   // set property descriptor to point to property descriptors for this object type
+	propdesc=StdObjects[objtype].sotProps;
+
+   // loop through the standard properties for this object type
+	while (1) 
+	{
+      // If property is required, and it was not parsed in EPICS, log an error.
+      if ( (propdesc->PropFlags & R) && !(obj->propflags[i] & PropIsPresent) )
+      {
+			sprintf(errMsg,"135.1-2003 5.(i): "
+				"(%s,%u) must contain required property \"%s\".\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+			tperror(errMsg,false);
+      }
+      // If the property is present, and the property is required to be writable, 
+      // but is not marked with a 'W' in EPICS, log an error.
+      // We exclude Commandable properties from this check and properties that
+      // are only writable when Out_Of_Service is set.
+      else if (  (propdesc->PropFlags & W) && 
+                !(propdesc->PropFlags & (IsCommandable | Woutofservice)) &&
+                !(obj->propflags[i] & PropIsWritable) )
+      {
+			sprintf(errMsg,"135.1-2003 5.(j): "
+				"(%s,%u) must have property \"%s\" marked writable.\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+			tperror(errMsg,false);
+      }
+
+      // Test for the presence of properties that are marked with 'footnotes' 
+      // that cause other properties to be present if this property is present.
+      // These are remembered for a second pass through the properties to
+      // check for missing properties.
+      group = propdesc->PropGroup & ~Last; // mask off the "Last" indicator bit
+      // If this property is in a "group" (footnote), and it is present in the database, 
+      // mark this whole group as required.
+      if (group && (obj->propflags[i] & PropIsPresent))
+         GroupRequired[group] = 1;
+
+
+      if (propdesc->PropGroup & Last)
+         break;  // if this is the last property definition, exit loop
+      propdesc++; // next propertydefinition for this object
+      i++;  // next index into propflags
+	} 
+
+   ///////////////////
+   // !! 2nd pass !!
+   //////////////////
+
+   // reset property descriptor to point to property descriptors for this object type
+	propdesc=StdObjects[objtype].sotProps;
+   i = 0; 
+
+   // Make a second pass through the standard properties, looking for
+   // missing "footnoted" properties that belong to groups that
+   // were detected during the first pass.
+   if (objtype != DEVICE)  // don't do these checks on the Device Object (see else below)
+   {
+	   while (1) 
+	   {
+         group = propdesc->PropGroup & ~Last;
+         // If property belongs to a group, and another property was detected
+         // in this same group in the first pass, and this property
+         // is not present in the database,log an error.
+         if ( group && GroupRequired[group] && !(obj->propflags[i] & PropIsPresent) )
+         {
+			   sprintf(errMsg,"135.1-2003 5.(i): "
+				   "(%s,%u) must contain conditionally required property \"%s\".\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+			   tperror(errMsg,false);
+         }
+
+         // Are we done?
+         if (propdesc->PropGroup & Last)
+            break;  // if this is the last property definition, exit loop
+         propdesc++; // next propertydefinition for this object
+         i++;  // next index into propflags
+	   } 
+   }
+   else // objtype == DEVICE
+   {
+      // These are special tests run on the Device Object to check for properties that
+      // are conditionally required based on support for certain *services* or
+      // data link options.
+	   while (1) 
+	   {
+         int required;
+         required = 0;
+         switch (propdesc->PropID)
+         {
+            case MAX_SEGMENTS_ACCEPTED:
+            case APDU_SEGMENT_TIMEOUT:
+               // If segmentation is supported, these are required.
+               if ( pd->SegmentedRequestWindow || pd->SegmentedResponseWindow )
+                  required = R;
+               break;
+
+            case VT_CLASSES_SUPPORTED:
+            case ACTIVE_VT_SESSIONS:
+               // If VT services are supported, these are required.
+               if  ( (pd->BACnetStandardServices[asVT_Open] & ssExecute) ||
+                     (pd->BACnetStandardServices[asVT_Close] & ssExecute) ||
+                     (pd->BACnetStandardServices[asVT_Data] & ssExecute) )
+                   required = R;
+               break;
+
+            case LOCAL_TIME:
+            case LOCAL_DATE:
+               // If the device supports the execution of TimeSynchronization
+               // or UTCTimeSynchronization, these are required.
+               if  ( pd->BACnetStandardServices[asTimeSynchronization] & ssExecute )
+                   required = R;
+               // !!! WARNING !!! - deliberate fall-through to the next case - no break!
+            case UTC_OFFSET:
+            case DAYLIGHT_SAVINGS_STATUS:
+                // If the device supports the execution of UTCTimeSynchronization, these are required.
+               if  ( pd->BACnetStandardServices[asUTCTimeSynchronization] & ssExecute )
+                   required = R;
+               break;
+
+            case TIME_SYNCHRONIZATION_RECIPIENTS:
+               // If supports DM-TS-A or DM-UTC-A, this must be present & WRITABLE!
+               if ( pd->BIBBSupported[bibbDM_TS_A] || pd->BIBBSupported[bibbDM_UTC_A] )
+                  required = W;
+               break;
+
+            case MAX_MASTER:
+            case MAX_INFO_FRAMES:
+               // If MS/TP Master, these are required
+               if ( pd->DataLinkLayerOptions[9] )  // ugly hard-coded 9
+                  required = R;
+               break;
+
+            case CONFIGURATION_FILES:
+            case LAST_RESTORE_TIME:
+               // If Backup and restore is supported, these must be present.
+               if ( pd->BIBBSupported[bibbDM_BR_B] )
+                  required = R;
+               break;
+
+            case BACKUP_FAILURE_TIMEOUT:
+               // If Backup and restore is supported, this must be present & WRITABLE!
+               if ( pd->BIBBSupported[bibbDM_BR_B] )
+                  required = W;
+               break;
+
+            case ACTIVE_COV_SUBSCRIPTIONS:
+                // If the device supports the execution of SubscribeCOV or SubscribeCOVProperty,
+                // this property is required.
+               if  ( (pd->BACnetStandardServices[asSubscribeCOV]         & ssExecute) ||
+                     (pd->BACnetStandardServices[asSubscribeCOVProperty] & ssExecute) )
+                   required = R;
+               break;
+         }
+
+
+         // If property is required, and it was not parsed in EPICS, log an error.
+         if (required && !(obj->propflags[i] & PropIsPresent) )
+         {
+			   sprintf(errMsg,"135.1-2003 5.(i): "
+				   "(%s,%u) must contain conditionally required property \"%s\".\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+			   tperror(errMsg,false);
+         }
+         // If property must be writable and is not, log an error.
+         else if ( (required & W) && !(obj->propflags[i] & PropIsWritable) )
+         {
+			   sprintf(errMsg,"135.1-2003 5.(i): "
+				   "(%s,%u) must have property \"%s\" marked writable.\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+			   tperror(errMsg,false);
+         }
+
+         // Are we done?
+         if (propdesc->PropGroup & Last)
+            break;  // if this is the last property definition, exit loop
+         propdesc++; // next propertydefinition for this object
+         i++;  // next index into propflags
+	   } 
+   }
+
+   return;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// EPICS Consistency test specified by 135.1-2003, section 5(i) & (j)
+// 
+// (i) For each object included in the test database, all required
+// properties for that object as defined in Clause 12 of BACnet shall be
+// present. In addition, if any of the properties supported for an object
+// require the conditional presence of other properties, their presence
+// shall be verified. (Identical to the old test "N".)
+// 
+// (j) For each property that is required to be writable, that property
+// shall be marked as writable in the EPICS. (New test.)
+// 
+void CheckPICSCons2003I(PICSdb *pd)
+{  
+   generic_object *obj;
+	obj=pd->Database;
+	while(obj){
+      // check for required, conditionally required, and mandatory writable properties
+      CheckPICSConsProperties(pd, obj); 
+		obj=(generic_object *)obj->next;
+   }
+	return;
+}
 
 }
