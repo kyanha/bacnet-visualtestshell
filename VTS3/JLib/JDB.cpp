@@ -21,8 +21,6 @@ static char THIS_FILE[] = __FILE__;
 #endif
 #endif
 
-#pragma mark ---------- Constructor
-
 //
 //	JDB::JDB
 //
@@ -53,8 +51,6 @@ JDB::~JDB( void )
 	JDisposeHandle( (JHandle)fileFree );
 	JDisposeHandle( (JHandle)fileReserved );
 }
-
-#pragma mark ---------- Basic File Management
 
 //
 //	JDB::Init
@@ -190,8 +186,6 @@ void JDB::Flush( void )
 	JFile::Flush();
 }
 
-#pragma mark ---------- Block Management
-
 //
 //	JDB::GetFreeDataCacheSlot
 //
@@ -276,7 +270,7 @@ int JDB::ReadBlockData( blockNumber id, const JDBSpaceRec sr, int bytes, void *d
 #if _JDBDebugDataCache
 	cout << "JDB::ReadBlockData(" << id << ',' << sr.loc << ',' << bytes << ",...)" << endl;
 #else
-#pragma unused (id)
+  (void)id;
 #endif
 	
 	return Read( sr.loc * kBlockSize, bytes, data );
@@ -291,7 +285,7 @@ int JDB::WriteBlockData( blockNumber id, const JDBSpaceRec sr, int bytes, void *
 #if _JDBDebugDataCache
 	cout << "JDB::WriteBlockData(" << id << ',' << sr.loc << ',' << bytes << ",...)" << endl;
 #else
-#pragma unused (id)
+  (void)id;
 #endif
 	
 	return Write( sr.loc * kBlockSize, bytes, data );
@@ -368,8 +362,6 @@ void JDB::DeleteBlock( const blockNumber id )
 	// this becomes first free block
 	fileDesc->nextBlock = id;
 }
-
-#pragma mark ---------- Space Management
 
 //
 //	JDB::LoadFreeSpace
@@ -689,8 +681,6 @@ void JDB::SaveFreeSpace( int complete )
 	ThrowIfError_( stat );
 }
 
-#pragma mark ---------- Cache Management
-
 //
 //	JDB::AllocStructCache
 //
@@ -768,8 +758,6 @@ void JDB::FlushDataCache( void )
 			dcsp->dataModified = false;
 		}
 }
-
-#pragma mark ---------- Transaction Management
 
 //
 //	JDB::StartTransaction
@@ -875,8 +863,6 @@ void JDB::CompleteTransaction( void )
 	
 	JFile::Flush();									// tell file system to flush buffers
 }
-
-#pragma mark ---------- Descriptor Maintenance
 
 //
 //	JDB::GetDesc
@@ -1012,7 +998,7 @@ int JDB::DeleteDesc( short sig )
 	return 0;
 }
 
-#pragma mark ---------- Debug
+
 #if _JDBDebug
 //
 //	DebugSpace
@@ -1136,7 +1122,6 @@ void JDB::Debug( void )
 
 #endif
 
-#pragma mark ---------- Data Cache
 
 //
 //	JDBDataCacheSlot::JDBDataCacheSlot
@@ -1170,8 +1155,6 @@ JDBDataCacheSlot::~JDBDataCacheSlot( void )
 	// toss the handle
 	JDisposeHandle( (JHandle)dataData );
 }
-
-#pragma mark ---------- Virtual Blocks
 
 //
 //	JVBlock::JVBlock
@@ -1477,8 +1460,6 @@ void JVBlock::SetSize( int newSize )
 		*bp->blockUserPtr = *blockCache->dataData;
 }
 
-#pragma mark ---------- Structure Management
-
 //
 //	JDBStructMgmt::JDBStructMgmt
 //
@@ -1560,8 +1541,6 @@ void JDBStructMgmt::InitBATRec( blockNumber start )
 		cacheBAT.table[i].transID = 0;
 	}
 }
-
-#pragma mark ---------- Structure Cache
 
 //
 //	JDBStructCache::JDBStructCache
@@ -1655,8 +1634,6 @@ void JDBStructCache::Flush( void )
 		if (cacheData[i].elem)
 			cacheData[i].elem->Flush();
 }
-
-#pragma mark ---------- Block Management
 
 //
 //	JDBBlockMgmt::JDBBlockMgmt
