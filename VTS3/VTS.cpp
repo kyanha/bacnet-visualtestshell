@@ -403,7 +403,13 @@ void VTSPreferences::Save( void )
 //			been included in ANSI/ASHRAE Standard 135-2001 as they have been described in 
 //			Addendum C and E .
 //
-//	3.1.9	<add 3.1.9 changes here>
+//	3.1.9	472392: ReadPropertyMultiple error (UI fix)
+//			
+//			Init new properties with Present_Value, now shows in list.  Increased the Property
+//			column length as well as the property drop-down list.  Performed same mods to
+//			ReadPropertyMultipleAck and WritePropertyMultiple dialog.  Previously the combos
+//			in the Ack dialog were not large enough to drop-down.
+//
 //
 //
 
