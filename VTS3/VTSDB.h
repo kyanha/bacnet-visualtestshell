@@ -176,6 +176,7 @@ struct VTSDeviceDesc : JDBObj {
 	int					deviceAPDUSegmentTimeout;		// how long to wait between segments
 	int					deviceAPDURetries;				// how many retries are acceptable
 	int					deviceVendorID;					// which vendor is this?
+	objId				deviceObjPropValueListID;		// list of objects, properties and values
 	};
 
 typedef VTSDeviceDesc *VTSDeviceDescPtr;

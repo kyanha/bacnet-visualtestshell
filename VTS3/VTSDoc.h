@@ -68,6 +68,9 @@ typedef VTSDevicePort *VTSDevicePortPtr;
 class VTSDeviceDlg;
 typedef VTSDeviceDlg *VTSDeviceDlgPtr;
 
+class VTSObjPropValueList;
+typedef VTSObjPropValueList *VTSObjPropValueListPtr;
+
 struct CSendGroup;
 typedef CSendGroup *CSendGroupPtr;
 typedef CSendGroupPtr *CSendGroupList;
@@ -223,6 +226,13 @@ class VTSServer : public BACnetServer {
 		VTSServer( VTSDevicePtr dp );
 
 		void Indication( const BACnetAPDU &apdu );
+		void Response( const BACnetAPDU &pdu );
+
+		void WhoIs( const BACnetAPDU &apdu );
+		void IAm( const BACnetAPDU &apdu );
+
+		void ReadProperty( const BACnetAPDU &apdu );
+		void WriteProperty( const BACnetAPDU &apdu );
 	};
 
 typedef VTSServer *VTSServerPtr;
@@ -255,6 +265,7 @@ class VTSDevice {
 		objId				devDescID;					// ID of descriptor
 		VTSDeviceDesc		devDesc;					// device configuration info
 		VTSDocPtr			devDoc;						// doc for packets
+		VTSObjPropValueListPtr	devObjPropValueList;	// list of objects, properties and values
 
 		VTSDevice( VTSDocPtr dp, objId id );
 		~VTSDevice( void );

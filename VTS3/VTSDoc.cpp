@@ -7,6 +7,7 @@
 #include "VTS.h"
 
 #include "VTSDoc.h"
+#include "VTSValue.h"
 #include "VTSPortDlg.h"
 #include "VTSPortIPDialog.h"
 #include "VTSPortEthernetDialog.h"
@@ -159,6 +160,8 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		return FALSE;
 	}
 
+	// get the packet count
+	SetPacketCount( m_pDB->GetPacketCount() );
 
 	// bind to the port list and open the ports
 	m_Devices.Load( this );
@@ -174,9 +177,6 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 	// ready for messages
 	m_postMessages = true;
-
-	// get the packet count
-	SetPacketCount( m_pDB->GetPacketCount() );
 
 	//get the statistics from the loading db file
 	for(int i=0;i<m_pDB->GetPacketCount();i++)
@@ -1550,6 +1550,182 @@ void VTSServer::Indication( const BACnetAPDU &apdu )
 {
 	// pass it along to the executor for a match
 	gExecutor.ReceiveAPDU( apdu );
+
+	if (apdu.apduType == unconfirmedRequestPDU) {
+		switch ((BACnetUnconfirmedServiceChoice)apdu.apduService) {
+			case whoIs:
+				WhoIs( apdu );
+				break;
+			case iAm:
+				IAm( apdu );
+				break;
+		}
+	} else
+	if (apdu.apduType == confirmedRequestPDU) {
+		switch ((BACnetConfirmedServiceChoice)apdu.apduService) {
+			case readProperty:
+				ReadProperty( apdu );
+				break;
+			case writeProperty:
+				WriteProperty( apdu );
+				break;
+			default:
+				Response( BACnetRejectAPDU( apdu.apduInvokeID, unrecognizedService ) );
+		}
+	} else
+		;
+}
+
+//
+//	VTSServer::Response
+//
+
+void VTSServer::Response( const BACnetAPDU &pdu )
+{
+	// filter out null addresses
+	if (pdu.apduAddr.addrType != nullAddr)
+		BACnetAppServer::Response( pdu );
+}
+
+//
+//	VTSServer::WhoIs
+//
+
+void VTSServer::WhoIs( const BACnetAPDU &apdu )
+{
+	BACnetAPDUDecoder	dec( apdu )
+	;
+	BACnetUnsigned		loLimit, hiLimit
+	;
+	unsigned int		myInst = serverDev->devDesc.deviceInstance
+	;
+
+	try {
+		if (dec.pktLength != 0) {
+			loLimit.Decode( dec );
+			hiLimit.Decode( dec );
+
+			TRACE2( "WhoIs %d..%d\n", loLimit.uintValue, hiLimit.uintValue );
+
+			if ((myInst < loLimit.uintValue) || (myInst > hiLimit.uintValue))
+				return;
+		}
+
+		BACnetUnconfirmedServiceAPDU hello( iAm );
+
+		// send it to everyone
+		hello.apduAddr.GlobalBroadcast();
+
+		// encode the parameters
+		BACnetObjectIdentifier( 8, serverDev->devDesc.deviceInstance ).Encode( hello );
+		BACnetUnsigned( serverDev->devDesc.deviceMaxAPDUSize ).Encode( hello );
+		BACnetEnumerated( serverDev->devDesc.deviceSegmentation ).Encode( hello );
+		BACnetUnsigned( serverDev->devDesc.deviceVendorID ).Encode( hello );
+
+		Response( hello );
+	}
+	catch (...) {
+		TRACE0( "WhoIs decoding error\n" );
+	}
+}
+
+//
+//	VTSServer::IAm
+//
+
+void VTSServer::IAm( const BACnetAPDU &apdu )
+{
+	// reserved (add to device address binding list?)
+}
+
+//
+//	VTSServer::ReadProperty
+//
+
+void VTSServer::ReadProperty( const BACnetAPDU &apdu )
+{
+	BACnetAPDUDecoder	dec( apdu )
+	;
+	BACnetObjectIdentifier	objId
+	;
+	BACnetEnumerated	propId
+	;
+	BACnetUnsigned		arryIndx
+	;
+	bool				gotIndex = false
+	;
+
+	try {
+		objId.Decode( dec );
+		propId.Decode( dec );
+
+		if (dec.pktLength != 0) {
+			gotIndex = true;
+			arryIndx.Decode( dec );
+		}
+
+		TRACE3( "ReadProperty %d, %d, %d\n", objId.objID, propId.enumValue, arryIndx.uintValue );
+
+		// build an ack
+		BACnetComplexAckAPDU	ack( readProperty, apdu.apduInvokeID );
+
+		// send the response back to where the request came from
+		ack.apduAddr = apdu.apduAddr;
+
+		// encode the properties from the request
+		objId.Encode( ack, 0 );
+		propId.Encode( ack, 1 );
+		if (gotIndex)
+			arryIndx.Encode( ack, 2 );
+
+		// encode the result
+	    BACnetOpeningTag().Encode( ack, 3 );
+		serverDev->devObjPropValueList->Encode( objId.objID, propId.enumValue
+			, (gotIndex ? arryIndx.uintValue : -1)
+			, ack
+			);
+	    BACnetClosingTag().Encode( ack, 3 );
+
+		// send it
+		Response( ack );
+	}
+	catch (int errCode) {
+		TRACE1( "ReadProperty execution error - %d\n", errCode );
+
+		BACnetErrorAPDU error( readProperty, apdu.apduInvokeID );
+		error.apduAddr = apdu.apduAddr;
+
+		// encode the Error Class
+		if ((errCode == 2) || (errCode == 25)) // configuration-in-progress, operational-problem
+			BACnetEnumerated( 0 ).Encode( error );		// DEVICE
+		else
+		if (errCode == 42) // invalid-array-index
+			BACnetEnumerated( 2 ).Encode( error );		// PROPERTY
+		else
+			BACnetEnumerated( 1 ).Encode( error );		// OBJECT
+
+		// encode the Error Code
+		BACnetEnumerated( errCode ).Encode( error );
+
+		Response( error );
+	}
+	catch (...) {
+		TRACE0( "ReadProperty execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, otherReject );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+}
+
+//
+//	VTSServer::WriteProperty
+//
+
+void VTSServer::WriteProperty( const BACnetAPDU &apdu )
+{
+	TRACE1( "WriteProperty! %d\n", apdu.apduService );
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1583,6 +1759,9 @@ VTSDevice::VTSDevice( VTSDocPtr dp, objId id )
 
 	// create a funny endpoint that redirects requests back to this device
 	devPortEndpoint = new VTSDevicePort( devPort, this );
+
+	// read in the defined objects, properties and values
+	devObjPropValueList = new VTSObjPropValueList( dp, devDesc.deviceObjPropValueListID );
 }
 #pragma warning( default : 4355 )
 
@@ -1597,6 +1776,9 @@ VTSDevice::~VTSDevice( void )
 
 	// delete the dummy port which will also delete the endpoint
 	delete devPort;
+
+	// toss the object, properties and values manager
+	delete devObjPropValueList;
 }
 
 //
@@ -1738,6 +1920,15 @@ void VTSDevice::SendAPDU( const BACnetAPDU &apdu )
 	}
 
 	try {
+#if DEVICE_LOOPBACK
+		// null address is like a loopback
+		if (apdu.apduAddr.addrType == nullAddr) {
+			if (asClient)
+				devServer.Indication( apdu );
+			else
+				devClient.Confirmation( apdu );
+		} else
+#endif
 		if (asClient)
 			devClient.Request( apdu );
 		else
@@ -1827,6 +2018,8 @@ void VTSDeviceList::Add( void )
 	;
 	VTSDeviceDesc		newDesc
 	;
+	JDBListPtr			lp
+	;
 
 	// create a new descriptor
 	stat = m_pDoc->m_pDB->pObjMgr->NewObject( &newDescID, &newDesc, kVTSDeviceDescSize );
@@ -1836,7 +2029,7 @@ void VTSDeviceList::Add( void )
 	newDesc.deviceInstance = 0;
 	newDesc.deviceRouter = 0;
 	newDesc.deviceSegmentation = noSegmentation;
-	newDesc.deviceSegmentSize = 1;
+	newDesc.deviceSegmentSize = 1024;
 	newDesc.deviceWindowSize = 1;
 	newDesc.deviceMaxAPDUSize = 1024;
 	newDesc.deviceNextInvokeID = 0;
@@ -1844,6 +2037,12 @@ void VTSDeviceList::Add( void )
 	newDesc.deviceAPDUSegmentTimeout = 1000;
 	newDesc.deviceAPDURetries = 3;
 	newDesc.deviceVendorID = 15;				// default to Cornell
+
+	// create a new object and property list
+	lp = new JDBList();
+	stat = m_pDoc->m_pDB->pListMgr->NewList( *lp, kVTSObjPropValueSize );
+	newDesc.deviceObjPropValueListID = lp->objID;
+	delete lp;
 
 	// save it
 	stat = m_pDoc->m_pDB->pObjMgr->WriteObject( newDescID, &newDesc );

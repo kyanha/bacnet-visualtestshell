@@ -97,6 +97,10 @@ void BACnetServerTSM::Confirmation( const BACnetAPDU &apdu )
 			throw_(1); // ###
 		
 		case complexAckPDU:
+			// initialize the segmentation support and size from the device
+			tsmSegmentation = tsmDevice->deviceSegmentation;
+			tsmSegmentSize = tsmDevice->deviceSegmentSize;
+
 			// compute the segment count
 			tsmSegmentCount = (apdu.pktLength + tsmSegmentSize - 4) / tsmSegmentSize;
 			

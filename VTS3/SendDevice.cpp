@@ -28,7 +28,11 @@ CSendDevice::CSendDevice( void )
 	, m_Address( this, IDC_ADDRESS )
 {
 	//{{AFX_DATA_INIT(CSendDevice)
+#if DEVICE_LOOPBACK
 	m_AddrType = 0;
+#else
+	m_AddrType = 1;
+#endif
 	//}}AFX_DATA_INIT
 }
 #pragma warning( default : 4355 )
@@ -85,6 +89,10 @@ BOOL CSendDevice::OnInitDialog()
 void CSendDevice::InitPage( void )
 {
 	TRACE0( "CSendDevice::InitPage()\n" );
+
+#if DEVICE_LOOPBACK
+	GetDlgItem( IDC_NULLADDR )->EnableWindow( true );
+#endif
 }
 
 //
@@ -100,8 +108,14 @@ void CSendDevice::EncodePage( CByteArray* contents )
 
 	switch (m_AddrType) {
 		case -1:	// no selection
+			throw "Select an address type";
+			break;
+
 		case 0:		// null address
+#if !DEVICE_LOOPBACK
 			throw "Invalid null address";
+#endif
+			break;
 
 		case 1:		// local broadcast
 		case 5:		// global broadcast

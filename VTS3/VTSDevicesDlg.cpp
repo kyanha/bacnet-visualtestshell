@@ -4,6 +4,9 @@
 #include "stdafx.h"
 #include "vts.h"
 #include "VTSDevicesDlg.h"
+#include "VTSObjPropDialog.h"
+
+#include "VTSValue.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -68,6 +71,8 @@ BEGIN_MESSAGE_MAP(VTSDevicesDlg, CDialog)
 	//{{AFX_MSG_MAP(VTSDevicesDlg)
 	ON_BN_CLICKED(IDC_NEWDEVICE, OnNew)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_DEVICELIST, OnItemchangingDevicelist)
+	ON_NOTIFY(NM_DBLCLK, IDC_DEVICELIST, OnDblclkDevicelist)
+	ON_BN_CLICKED(IDC_IAM, OnIAm)
 	ON_EN_CHANGE(IDC_NAME, SaveChanges)
 	ON_EN_CHANGE(IDC_INSTANCE, SaveChanges)
 	ON_EN_CHANGE(IDC_SEGSIZE, SaveChanges)
@@ -82,8 +87,7 @@ BEGIN_MESSAGE_MAP(VTSDevicesDlg, CDialog)
 	ON_BN_CLICKED(IDC_SEGTRANSMIT, SaveChanges)
 	ON_BN_CLICKED(IDC_SEGRECEIVE, SaveChanges)
 	ON_BN_CLICKED(IDC_SEGNONE, SaveChanges)
-	ON_NOTIFY(NM_DBLCLK, IDC_DEVICELIST, OnDblclkDevicelist)
-	ON_BN_CLICKED(IDC_IAM, OnIAm)
+	ON_BN_CLICKED(IDC_OBJPROP, OnObjProp)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -207,6 +211,7 @@ void VTSDevicesDlg::SynchronizeControls()
 	GetDlgItem( IDC_SEGNONE )->EnableWindow( m_iSelectedDevice != -1 );
 
 	GetDlgItem( IDC_IAM )->EnableWindow( m_iSelectedDevice != -1 );
+	GetDlgItem( IDC_OBJPROP )->EnableWindow( m_iSelectedDevice != -1 );
 }
 
 //
@@ -390,4 +395,32 @@ void VTSDevicesDlg::OnIAm()
 
 	// tell it to send an I-Am
 	curDevice->IAm();
+}
+
+//
+//	VTSDevicesDlg::OnObjProp
+//
+//	Access to the built-in objects, properties and values.
+//
+
+void VTSDevicesDlg::OnObjProp() 
+{
+	VTSDevicePtr	curDevice
+	;
+
+	// get a pointer to the device
+	curDevice = (*m_pDeviceList)[m_iSelectedDevice];
+
+	// set the list busy while the user is editing
+	curDevice->devObjPropValueList->SetBusy();
+
+	// create a dialog for editing content
+	VTSObjPropDialog	opd( curDevice->devObjPropValueList )
+	;
+
+	// let it run
+	opd.DoModal();
+
+	// all done with the list
+	curDevice->devObjPropValueList->ResetBusy();
 }
