@@ -38,6 +38,8 @@
 #define		kwCHECK					0x7EF5647B
 #define		kwINCLUDE				0x30143b56
 
+#define     kwNOT					0x7765b124	//Added by Zhu Zhenhua, 2003-11-25
+
 //
 //	General Keywords
 //
@@ -189,3 +191,11 @@ extern ScriptTranslateTable ScriptWeekdayMap[];
 extern ScriptTranslateTable ScriptMonthMap[];
 extern ScriptTranslateTable ScriptPropertyMap[];
 extern ScriptTranslateTable ScriptNONEMap[];
+
+
+extern ScriptTranslateTable scriptGenKeywordMap[];
+extern ScriptTranslateTable scriptDLCKeywordMap[];
+extern ScriptTranslateTable scriptNLKeywordMap[];
+extern ScriptTranslateTable scriptALKeywordMap[];
+extern ScriptTranslateTable scriptDataKeywordMap[];
+

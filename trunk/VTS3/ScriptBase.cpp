@@ -645,6 +645,10 @@ void ScriptScanner::ReportSyntaxError( ScriptToken * ptok, LPCSTR lpszErrorMsg )
 {
 	if ( m_pdocSource != NULL )
 	{
+		int nLineIndex = ptok->tokenLine + 1;
+		POSITION pos = m_pdocSource->GetFirstViewPosition();
+		ScriptEdit* pFirstView = (ScriptEdit*)(m_pdocSource->GetNextView( pos ));
+		pFirstView->GotoLine( nLineIndex );
 		m_pdocSource->m_editData->SetSel( ptok->tokenOffset, ptok->tokenOffset + ptok->tokenLength );
 		AfxMessageBox( lpszErrorMsg );
 	}

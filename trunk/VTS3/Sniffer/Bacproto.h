@@ -171,6 +171,21 @@
 #define MINIMUM_VALUE_TIMESTAMP               150
 #define VARIANCE_VALUE 			              151
 #define ACTIVE_COV_SUBSCRIPTION	              152  //Xiao Shiyuan 2002-7-23
+#define	BACKUP_FAILURE_TIMEOUT				  153 // Zhu Zhenhua  2003-11-21 
+#define	CONFIGURATION_FILES                   154 // Zhu Zhenhua  2003-11-21 
+#define	DATABASE_REVISION                     155 // Zhu Zhenhua  2003-11-21 
+#define	DIRECT_READING                        156 // Zhu Zhenhua  2003-11-21 
+#define	LAST_RESTORE_TIME  				      157 // Zhu Zhenhua  2003-11-21 
+#define	MAINTENANCE_REQUIRED 			      158 // Zhu Zhenhua  2003-11-21 
+#define	MEMBER_OF 						      159 // Zhu Zhenhua  2003-11-21 
+#define	MODE 							      160 // Zhu Zhenhua  2003-11-21 
+#define	OPERATION_EXPECTED  				  161 // Zhu Zhenhua  2003-11-21 
+#define	SETTING 						      162 // Zhu Zhenhua  2003-11-21 
+#define	SILENCED    					      163 // Zhu Zhenhua  2003-11-21 
+#define	TRACKING_VALUE  				      164 // Zhu Zhenhua  2003-11-21 
+#define	ZONE_MEMBERS 					      165 // Zhu Zhenhua  2003-11-21 
+#define	LIFE_SAFETY_ALARM_VALUES 		      166 // Zhu Zhenhua  2003-11-21 
+#define	MAX_SEGMENTS_ACCEPTED 			      167 // Zhu Zhenhua  2003-11-21 
 #define PROFILE_NAME                          168  //Xiao Shiyuan 2002-7-23
 /* ----- prototypes for interpreter functions ----- */
 

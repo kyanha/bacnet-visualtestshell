@@ -122,7 +122,9 @@ class ScriptPacket : public ScriptCommand {
 		ScriptPacketType			packetType;			// type
 		ScriptPacketSubtype			packetSubtype;		// could be root!
 		ScriptPacketExprList		packetExprList;		// list of expressions
-
+		
+		bool						bpacketNotExpect;	//Added by Zhu Zhenhua, 2003-11-25
+														//when check not get a message
 //		int							packetLevel;		// case level
 		int							packetDelay;		// BEFORE/AFTER time value (in ms)
 //		ScriptPacketPtr				packetNext;			// next packet in test sequence

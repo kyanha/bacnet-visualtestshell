@@ -3905,7 +3905,11 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 						BACnetUnsigned((int) m_segmentation).Encode( *pAPDUEncoder );
 						}
 						break;
-
+		case MAX_SEGMENTS_ACCEPTED: //Added by Zhu Zhenhua, 2003-11-21
+						{
+						BACnetUnsigned(m_nSegmentSize).Encode( *pAPDUEncoder );
+						}
+						break;
 		case LOCAL_DATE:
 						{
 						BACnetDate().Encode( *pAPDUEncoder );

@@ -479,3 +479,106 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0X537D4DF1, 152 }					//ACTIVE_COV_SUBSCRIPTION
 	, { 0, 0 }
 	};
+
+
+	ScriptTranslateTable scriptGenKeywordMap[] =
+	{ { kwNET,			 1 }
+	, { kwNETWORK,		 2 }
+	, { kwRESERVED,		 3 }
+	, { kwVENDOR,		 4 }
+	, { 0, 0 }
+	};
+
+
+	ScriptTranslateTable scriptDLCKeywordMap[] =
+	{ { kwDA,			 1 }
+	, { kwSA,			 2 }
+	, { kwLSAP,			 3 }
+	, { kwBVLCI,		 4 }
+	, { 0, 0 }
+	};
+	
+	ScriptTranslateTable scriptNLKeywordMap[] =
+	{ { kwVERSION,			 1 }
+	, { kwDNET,				 2 }
+	, { kwDADR,				 3 }
+	, { kwSNET,				 4 }
+	, { kwSADR,				 5 }
+	, { kwHOPCNT,			 6 }
+	, { kwHOPCOUNT,			 6 }
+	, { kwMSG,				 7 }
+	, { kwMESSAGE,			 7 }
+	, { kwPRIO,				 8 }
+	, { kwPRIORITY,			 8 }
+	, { kwDER,				 9 }
+	, { kwVENDORID,			 10 }
+	, { kwNL,				 11 }
+	, { kwNLDATA,			 11 }
+	, { 0, 0 }
+	};
+
+	ScriptTranslateTable scriptALKeywordMap[] =
+	{ { kwPDU ,					 1 }
+	, { kwPDUTYPE,				 1 }
+	, { kwSEGMSG,				 2 }
+	, { kwSEGMENTEDMESSAGE,		 3 }
+	, { kwMOREFOLLOWS,			 4 }
+	, { kwSEGRESP,				 5 }
+	, { kwSEGRESPACCEPTED,		 5 }
+	, { kwMAXRESP,				 6 }
+	, { kwMAXRESPONSE,			 6 }
+	, { kwMAXSIZE,				 7 }
+	, { kwNEGATIVEACK,			 8 }
+	, { kwSERVER,				 9 }
+	, { kwINVOKEID,			     10 }
+	, { kwSEQUENCENR,			 11 }
+	, { kwWINDOWSIZE,			 12 }
+	, { kwAL,				     13 }
+	, { kwALDATA,			     13 }
+	, { kwSERVICE,				 14 }
+	, { kwERROR,				 14 }
+	, { kwERRORCHOICE,		     14 }
+	, { kwREJECTREASON,		 	 15 }
+	, { kwABORTREASON,		     16 }
+	, { 0, 0 }
+	};
+
+	
+	ScriptTranslateTable scriptDataKeywordMap[] =
+	{ { kwOBJECT,					 1 }
+	, { kwOBJECTIDENTIFIER,			 2 }
+	, { kwDEVICE,					 4 }
+	, { kwDEVICEIDENTIFIER,		     4 }
+	, { kwPROPERTY,			         5 }
+	, { kwPROPERTYIDENTIFIER,	 	 5 }
+	, { kwOPEN,						 6 }
+	, { kwOPENTAG,					 6 }
+	, { kwOPENINGTAG,				 6 }
+	, { kwCLOSE,					 7 }
+	, { kwCLOSETAG,					 7 }
+	, { kwCLOSINGTAG,				 7 }
+	, { kwNULL,						 8 }
+	, { kwBOOL,						 9 }
+	, { kwBOOLEAN,					 9 }
+	, { kwUNSIGNED,					 10 }
+	, { kwUNSIGNED8,				 10 }
+	, { kwUNSIGNED16,				 10 }
+	, { kwUNSIGNED32,				 10 }
+	, { kwINTEGER,					 11 }
+	, { kwREAL,						 12 }
+	, { kwSINGLE,					 12 }
+	, { kwDOUBLE,					 12 }
+	, { kwOCTETSTRING,				 13 }
+	, { kwCHARSTRING,				 14 }
+	, { kwCHARACTERSTRING,			 14 }
+	, { kwBITSTRING,				 15 }
+	, { kwENUM,						 16 }
+	, { kwENUMERATED,				 16 }
+	, { kwDATE,						 17 }
+	, { kwTIME,						 18 }
+	, { 0, 0 }
+	};	
+
+
+
+	
