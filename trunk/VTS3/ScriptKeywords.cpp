@@ -300,6 +300,15 @@ ScriptTranslateTable ScriptWeekdayMap[] =
 	};
 
 //
+//	For optional values
+//
+
+ScriptTranslateTable ScriptNONEMap[] =
+	{ { 0x7926167A, 9999 }					// NONE
+	, { 0, 0 }
+	};
+
+//
 //	Month Keywords
 //
 
