@@ -2359,9 +2359,9 @@ void BACnetObjectIdentifier::Encode( char *enc )
 	sprintf( enc, "%s, %d", s, instanceNum );
 }
 
-#if VTSScanner
 void BACnetObjectIdentifier::Decode( const char *dec )
 {
+#if VTSScanner
 	int		objType, instanceNum
 	;
 
@@ -2410,11 +2410,9 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 	// everything checks out
 	objID = (objType << 22) + instanceNum;
 #else
-void BACnetObjectIdentifier::Decode( const char * )
-{
 	throw (-1) /* not implemented */;
-}
 #endif
+}
 
 //
 //	BACnetOpeningTag
