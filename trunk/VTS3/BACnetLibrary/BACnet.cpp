@@ -5559,10 +5559,27 @@ void BACnetGenericArray::Decode( const char *dec )
 }
 
 
+// Not very thread safe... but necessary to avoid changing all ToString defs to non 'const'
+CString g_strToStringBuffer;
+
 const char * BACnetGenericArray::ToString() const
 {
-	ASSERT(0); // not implemented yet
-	return NULL;
+	// Allocate internal buffer to assemble element ToString()s...  
+	// Must keep this buffer past this call and destroy in destructor.
+
+	g_strToStringBuffer.Empty();
+
+	g_strToStringBuffer = "{";
+	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++ )
+	{
+		if ( i > 0 )
+			g_strToStringBuffer += ", ";
+
+		g_strToStringBuffer += m_apBACnetObjects[i]->ToString();
+	}
+	g_strToStringBuffer += "}";
+
+	return (LPCSTR) g_strToStringBuffer;
 }
 
 
