@@ -7,6 +7,8 @@
 #include "ScriptPacket.h"
 #include "ScriptKeywords.h"
 #include "ScriptExecutor.h"
+#include "ScriptCommand.h"
+#include "ScriptIfdefHandler.h"
 
 #include "md5.h"
 
@@ -31,15 +33,6 @@ END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 
-
-// Define maximum left for ifdef nesting...
-#define IFDEF_LEVEL_MAX			20
-
-// Flags for testing IFDEF stuff
-
-#define IFDEF_INCLUDING		0x01			// we're currently including the stuff
-#define IFDEF_SPENT			0x02			// we've already taken the true condition
-#define IFDEF_ELSE			0x04			// we've encountered the final else (to prevent elseif following)
 
 //
 //	ScriptDocument::ScriptDocument
@@ -126,55 +119,6 @@ void ScriptDocument::Dump(CDumpContext& dc) const
 #endif
 
 
-bool ScriptDocument::EvaluateConditional( ScriptScanner & scan, ScriptToken & tok )
-{
-	scan.Next( tok );
-	if ( tok.tokenType != scriptSymbol  &&  tok.tokenSymbol != '(' )
-		throw "'(' expected for IF conditional expression";
-
-	bool fResult;
-	bool fFinished = false;
-
-	do
-	{
-		// suck expression into parts and evalute.  will throw exception if problem
-		ScriptIfdefExpr		expression(this, scan, tok);
-
-		if ( !fFinished )
-			fResult = expression.Evaluate(tok);
-
-		// expression is finished... now look for either AND OR or )
-		scan.Next( tok );
-
-		// we could just bail here if final condition is known... but continue on so we look for closing parens
-		// this is to add some measure of completeness here...
-
-		if ( tok.tokenType == scriptKeyword &&  tok.tokenSymbol == kwAND )
-		{
-			// we've just read the AND...  if the previous expression is false, they want to AND that with the
-			// coming expression... but it will be flase because of the last expresson... just kill it.
-
-			if ( !fResult )
-				fFinished = true;
-		}
-		else if ( tok.tokenType == scriptKeyword  && tok.tokenSymbol == kwOR )
-		{
-			// next thing is an OR.  We can stop if the expression just evaluated to true
-
-			if ( fResult )
-				fFinished = true;
-		}
-
-		// keep going if we've hit the AND or OR... all others will stop this
-	}
-	while ( tok.tokenType == scriptKeyword && (tok.tokenSymbol == kwAND || tok.tokenSymbol == kwOR) );
-
-	if ( tok.tokenType != scriptSymbol  &&  tok.tokenSymbol != ')' )
-		throw "Closing parenthesis ')', OR or AND expected";
-
-	return fResult;
-}
-
 
 //
 //	ScriptDocument::CheckSyntax
@@ -182,7 +126,7 @@ bool ScriptDocument::EvaluateConditional( ScriptScanner & scan, ScriptToken & to
 
 void ScriptDocument::CheckSyntax( void )
 {
-	int					curCaseLevel = 0, curIfdefLevel = 0
+	int					curCaseLevel = 0
 	;
 	bool				setupMode = false, isSend = false, expectRequired = false,	isEnv
 	;
@@ -202,14 +146,13 @@ void ScriptDocument::CheckSyntax( void )
 	;
 	ScriptTestPtr		curTest = 0, newTest
 	;
-	ScriptPacketPtr		prevPacket = 0, prevGroup = 0, newPacket
+//	ScriptPacketPtr		prevPacket = 0, prevGroup = 0, newPacket
+//	;
+	ScriptPacketPtr		newPacket
 	;
-
-	// Set array of bit flags for nested ifdef stuff.  For simplicity, waste index 0 act like base 1
-	unsigned char		bIfdefFlags[IFDEF_LEVEL_MAX];
-
-	// setup first condition for other ifdefs to build from...
-	bIfdefFlags[0] = IFDEF_SPENT | IFDEF_INCLUDING;
+	ScriptCommandPtr	prevCommand = NULL, prevGroup = NULL
+	;
+	ScriptIfdefHandler	ifdefHandler(this, scan);
 
 	// calculate the digest
 	CalcDigest();
@@ -235,82 +178,7 @@ void ScriptDocument::CheckSyntax( void )
 			// we have to deal with conditional compilation.  We want to take care of it here
 			// so we don't have to specially deal with any token if we're not collection.  Dig?
 
-			switch (tok.tokenSymbol)
-			{
-				case kwELSEDEF:
-
-					// see if we should skip or do this section...
-					if ( curIfdefLevel <= 0  ||  (bIfdefFlags[curIfdefLevel] & IFDEF_ELSE)  )
-						throw "ELSE encountered without matching IF";
-
-					// set flag telling us we've just encounted the valid else
-					bIfdefFlags[curIfdefLevel] |= IFDEF_ELSE;
-					// drop through....
-
-				case kwELSEIFDEF:
-
-					if ( tok.tokenSymbol == kwELSEIFDEF  )
-					{
-						if ( curIfdefLevel <= 0 )
-							throw "ELSEIF encountered without matching IF";
-						if ( bIfdefFlags[curIfdefLevel] & IFDEF_ELSE )
-							throw "ELSEIF encountered following ELSE clause";
-					}
-
-					// if we haven't had a valid true condition yet, make this on go...
-					// otherwise... keep skipping until end
-
-					if ( bIfdefFlags[curIfdefLevel] & IFDEF_SPENT )
-						bIfdefFlags[curIfdefLevel] &= ~IFDEF_INCLUDING;
-					else
-					{
-						// see if we should include this next section...
-						if ( tok.tokenSymbol == kwELSEDEF || EvaluateConditional(scan, tok) )
-							bIfdefFlags[curIfdefLevel] |= (IFDEF_SPENT | IFDEF_INCLUDING);
-						else
-							// shut off including code
-							bIfdefFlags[curIfdefLevel] &= ~IFDEF_INCLUDING;
-					}
-					continue;
-
-
-				case kwENDIF:
-
-					if ( curIfdefLevel <= 0 )
-						throw "ENDIF encountered without matching IF";
-
-					curIfdefLevel--;
-					continue;
-
-
-				case kwIFDEF:
-
-					// they want to conditional compile this section...  test expression result
-					// throw if an error
-
-					if ( curIfdefLevel+1 >= IFDEF_LEVEL_MAX )
-						throw "Exceeded maximum number of nested IFs";
-
-					// check current level to see if we're including... if so.. just make this one.
-					// otherwise, test this condition
-
-					if ( (bIfdefFlags[curIfdefLevel++] & IFDEF_INCLUDING) == 0 )
-						bIfdefFlags[curIfdefLevel] = IFDEF_SPENT;
-					else
-					{
-						if ( EvaluateConditional(scan, tok) )
-							bIfdefFlags[curIfdefLevel] = (IFDEF_SPENT | IFDEF_INCLUDING);
-						else
-							bIfdefFlags[curIfdefLevel] = 0;		// not spent and not including, start fresh
-					}
-					continue;
-			}
-
-
-			// OK... if we made it this far then what we have at least isn't an IFDEF type deal...
-			// just toss it if we're not including, eh?
-
-			if ( curIfdefLevel  &&  (bIfdefFlags[curIfdefLevel] & IFDEF_INCLUDING) == 0 )
+			if ( ifdefHandler.IsIfdefExpression(tok)  ||  ifdefHandler.IsSkipping() )
 				continue;
 
 			// look for the variable name
@@ -381,7 +249,8 @@ void ScriptDocument::CheckSyntax( void )
 
 					// switch context to new test, no previous packet
 					curTest = newTest;
-					prevPacket = 0;
+//					prevPacket = 0;
+					prevCommand = NULL;
 
 					// the level zero case group is the test
 					curCase = curTest;
@@ -440,6 +309,42 @@ void ScriptDocument::CheckSyntax( void )
 					
 					break;
 
+				case kwCHECK:
+
+					if (!curTest)
+						throw "Test required before CHECK statement";
+					if (expectRequired)
+						throw "EXPECT required after CASE statement";
+
+					prevGroup = NULL;
+					{
+					ScriptCHECKCommand	* pcheckCommand = new ScriptCHECKCommand(ifdefHandler, scan, tok, &curTest->baseLabel);
+					pcheckCommand->m_nCaseLevel = curCaseLevel;
+					curCase->Append(pcheckCommand);
+					prevCommand = (ScriptCommandPtr) pcheckCommand;
+					}
+					break;
+
+
+				case kwMAKE:
+
+					if (!curTest)
+						throw "Test required before MAKE statement";
+					if (expectRequired)
+						throw "EXPECT required after CASE statement";
+
+					prevGroup = NULL;			// for AND/OR stuff
+					{
+					ScriptMAKECommand	* pmakeCommand = new ScriptMAKECommand(ifdefHandler, scan, tok, &curTest->baseLabel);
+					pmakeCommand->m_nCaseLevel = curCaseLevel;
+					curCase->Append(pmakeCommand);
+					prevCommand = (ScriptCommandPtr) pmakeCommand;
+					}
+
+					TRACE1( "Make %08X\n", prevCommand );
+					break;
+
+
 				case kwSEND:
 				case kwTRANSMIT:
 					// make sure a test is defined
@@ -454,8 +359,8 @@ void ScriptDocument::CheckSyntax( void )
 								, ScriptPacket::rootPacket
 								, 0
 								);
-					prevGroup = newPacket;
-					newPacket->packetLevel = curCaseLevel;
+					prevGroup = (ScriptCommandPtr) newPacket;
+					newPacket->m_nCaseLevel = curCaseLevel;
 					curCase->Append( newPacket );
 
 					// look for AFTER or (
@@ -481,7 +386,7 @@ void ScriptDocument::CheckSyntax( void )
 
 					// now parse the contents
 					isSend = true;
-					ParsePacket( scan, tok, newPacket, isSend );
+					ParsePacket( ifdefHandler, scan, tok, newPacket, isSend );
 
 #if 0
 					// chain together
@@ -489,7 +394,7 @@ void ScriptDocument::CheckSyntax( void )
 						prevPacket->packetNext = newPacket;
 #endif
 					// start a new chain
-					prevPacket = newPacket;
+					prevCommand = (ScriptCommandPtr) newPacket;
 					break;
 
 				case kwEXPECT:
@@ -504,8 +409,9 @@ void ScriptDocument::CheckSyntax( void )
 								, ScriptPacket::rootPacket
 								, 0
 								);
-					prevGroup = newPacket;
-					newPacket->packetLevel = curCaseLevel;
+					prevGroup = (ScriptCommandPtr) newPacket;
+//					newPacket->packetLevel = curCaseLevel;
+					newPacket->m_nCaseLevel = curCaseLevel;
 					curCase->Append( newPacket );
 
 					// look for BEFORE or (
@@ -531,7 +437,7 @@ void ScriptDocument::CheckSyntax( void )
 
 					// now parse the contents
 					isSend = false;
-					ParsePacket( scan, tok, newPacket, isSend );
+					ParsePacket( ifdefHandler, scan, tok, newPacket, isSend );
 
 					// other statements available now
 					expectRequired = false;
@@ -541,8 +447,9 @@ void ScriptDocument::CheckSyntax( void )
 					if (prevPacket)
 						prevPacket->packetNext = newPacket;
 #endif
+
 					// start a new chain
-					prevPacket = newPacket;
+					prevCommand = (ScriptCommandPtr) newPacket;
 					break;
 
 				case kwAND:
@@ -552,26 +459,28 @@ void ScriptDocument::CheckSyntax( void )
 					if (expectRequired)
 						throw "EXPECT required after CASE statement";
 					if (!prevGroup)
-						throw "SEND or EXPECT required";
+//						throw "SEND or EXPECT required";
+						throw "Cannot chain AND/OR condition without preceeding SEND or EXPECT";
 
 					// create a new test and add it to the section
 					newPacket =
-						new ScriptPacket( prevPacket->packetType
+						new ScriptPacket( ((ScriptPacketPtr)prevCommand)->packetType
 								, ScriptPacket::andPacket
-								, prevGroup
+								, (ScriptPacketPtr) prevGroup
 								);
-					prevGroup = newPacket;
-					newPacket->packetLevel = curCaseLevel;
+					prevGroup = (ScriptCommandPtr) newPacket;
+//					newPacket->packetLevel = curCaseLevel;
+					newPacket->m_nCaseLevel = curCaseLevel;
 					curCase->Append( newPacket );
 
 					// look for AFTER/BEFORE or (
 					scan.Next( tok );
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
-						newPacket->packetDelay = prevPacket->packetDelay;
+						newPacket->packetDelay = ((ScriptPacketPtr)prevCommand)->packetDelay;
 					else
 					if ((tok.tokenType == scriptKeyword) &&
-							(  ((prevGroup->packetType == ScriptPacket::sendPacket) && (tok.tokenSymbol == kwAFTER))
-							|| ((prevGroup->packetType == ScriptPacket::expectPacket) && (tok.tokenSymbol == kwBEFORE))
+						    (  ((prevGroup->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)prevGroup)->packetType == ScriptPacket::sendPacket) && (tok.tokenSymbol == kwAFTER))
+							|| ((prevGroup->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)prevGroup)->packetType == ScriptPacket::expectPacket) && (tok.tokenSymbol == kwBEFORE))
 							))
 						{
 						// look for value
@@ -590,11 +499,12 @@ void ScriptDocument::CheckSyntax( void )
 					TRACE2( "Packet %08X (And, %d)\n", newPacket, newPacket->packetDelay );
 
 					// now parse the contents
-					ParsePacket( scan, tok, newPacket, isSend );
+					ParsePacket( ifdefHandler, scan, tok, newPacket, isSend );
 
 					// chain from previous packet
-					prevPacket->packetNext = newPacket;
-					prevPacket = newPacket;
+//					prevPacket->packetNext = newPacket;
+					prevCommand->m_pcmdNext = (ScriptCommandPtr) newPacket;
+					prevCommand = newPacket;
 					break;
 
 				case kwOR:
@@ -607,22 +517,23 @@ void ScriptDocument::CheckSyntax( void )
 						throw "SEND or EXPECT required";
 
 					// create a new test and add it to the section
-					newPacket = new ScriptPacket( prevPacket->packetType
+					newPacket = new ScriptPacket( ((ScriptPacketPtr)prevCommand)->packetType
 								, ScriptPacket::orPacket
-								, prevGroup
+								, (ScriptPacketPtr) prevGroup
 								);
 					prevGroup = newPacket;
-					newPacket->packetLevel = curCaseLevel;
+//					newPacket->packetLevel = curCaseLevel;
+					newPacket->m_nCaseLevel = curCaseLevel;
 					curCase->Append( newPacket );
 
 					// look for AFTER/BEFORE or (
 					scan.Next( tok );
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
-						newPacket->packetDelay = prevPacket->packetDelay;
+						newPacket->packetDelay = ((ScriptPacketPtr)prevCommand)->packetDelay;
 					else
 					if ((tok.tokenType == scriptKeyword) &&
-							(  ((prevGroup->packetType == ScriptPacket::sendPacket) && (tok.tokenSymbol == kwAFTER))
-							|| ((prevGroup->packetType == ScriptPacket::expectPacket) && (tok.tokenSymbol == kwBEFORE))
+							(  ((prevGroup->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)prevGroup)->packetType == ScriptPacket::sendPacket) && (tok.tokenSymbol == kwAFTER))
+							|| ((prevGroup->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)prevGroup)->packetType == ScriptPacket::expectPacket) && (tok.tokenSymbol == kwBEFORE))
 							))
 						{
 						// look for value
@@ -641,11 +552,12 @@ void ScriptDocument::CheckSyntax( void )
 					TRACE2( "Packet %08X (Or, %d)\n", newPacket, newPacket->packetDelay );
 
 					// now parse the contents
-					ParsePacket( scan, tok, newPacket, isSend );
+					ParsePacket( ifdefHandler, scan, tok, newPacket, isSend );
 
 					// chain from previous packet
-					prevPacket->packetNext = newPacket;
-					prevPacket = newPacket;
+//					prevPacket->packetNext = newPacket;
+					prevCommand->m_pcmdNext = newPacket;
+					prevCommand = newPacket;
 					break;
 
 				case kwCASE:
@@ -791,7 +703,7 @@ void ScriptDocument::CheckSyntax( void )
 		}
 
 		// see if they've left a hanging IF...
-		if ( curIfdefLevel )
+		if ( ifdefHandler.IsIfBlock() )
 			throw "EOF encountered without closing IF";
 
 		// sequence the last test
@@ -836,7 +748,7 @@ void ScriptDocument::CheckSyntax( void )
 //	ScriptDocument::ParsePacket
 //
 
-void ScriptDocument::ParsePacket( ScriptScanner& scan, ScriptToken& tok, ScriptPacketPtr spp, bool isSend )
+void ScriptDocument::ParsePacket( ScriptIfdefHandler &ifdefHandler, ScriptScanner& scan, ScriptToken& tok, ScriptPacketPtr spp, bool isSend )
 {
 	int					eKeyword
 	;
@@ -853,6 +765,9 @@ void ScriptDocument::ParsePacket( ScriptScanner& scan, ScriptToken& tok, ScriptP
 		if (tok.tokenType == scriptEOF)
 			throw "Unexpected end of file";
 		if (tok.tokenType == scriptEOL)
+			continue;
+
+		if ( ifdefHandler.IsIfdefExpression(tok)  ||  ifdefHandler.IsSkipping() )
 			continue;
 
 		// if we get ')' we're done
@@ -991,10 +906,12 @@ void ScriptDocument::CalcDigest( void )
 
 void ScriptDocument::SequenceTest( ScriptTestPtr stp )
 {
-	ScriptPacketPtr		pChain
+//	ScriptPacketPtr		pChain
+	ScriptCommandPtr	pChain
 	;
 
-	stp->testFirstPacket = SequenceLevel( stp, 0, pChain );
+//	stp->testFirstPacket = SequenceLevel( stp, 0, pChain );
+	stp->testFirstCommand = SequenceLevel( stp, 0, pChain );
 }
 
 //
@@ -1009,16 +926,19 @@ void ScriptDocument::SequenceTest( ScriptTestPtr stp )
 //	then the chain pointer will be important to the next level up.
 //
 
-ScriptPacketPtr ScriptDocument::SequenceLevel( ScriptBasePtr sbp, ScriptPacketPtr pPass, ScriptPacketPtr &pChain )
+//ScriptPacketPtr ScriptDocument::SequenceLevel( ScriptBasePtr sbp, ScriptPacketPtr pPass, ScriptPacketPtr &pChain )
+ScriptCommandPtr ScriptDocument::SequenceLevel( ScriptBasePtr sbp, ScriptCommandPtr pPass, ScriptCommandPtr &pChain )
 {
 	int				len = sbp->Length()
 	;
 	ScriptCasePtr	curCase
 	,				nextCase = 0
 	;
-	ScriptPacketPtr	curPacket, pStart
-	,				nextCaseStart = 0
-	;
+//	ScriptPacketPtr	curPacket, pStart
+//	,				nextCaseStart = 0
+//	;
+	ScriptPacketPtr	curPacket;
+	ScriptCommandPtr pStart, nextCaseStart = NULL;
 
 	for (int i = len - 1; i >= 0; i--) {
 		ScriptBasePtr cur = sbp->Child( i );
@@ -1033,8 +953,10 @@ ScriptPacketPtr ScriptDocument::SequenceLevel( ScriptBasePtr sbp, ScriptPacketPt
 					nextCaseStart = 0;
 				}
 
-				pChain = SequencePacket( curPacket, pPass );
-				pPass = curPacket;
+//				pChain = SequencePacket( curPacket, pPass );
+				pChain = SequencePacket( (ScriptCommandPtr) curPacket, pPass );
+//				pPass = curPacket;
+				pPass = (ScriptCommandPtr) curPacket;
 			}
 		} else
 		if (cur->baseType == ScriptBase::scriptCase) {
@@ -1051,13 +973,46 @@ ScriptPacketPtr ScriptDocument::SequenceLevel( ScriptBasePtr sbp, ScriptPacketPt
 
 			// fix the chain to point to the next case
 			TRACE2( "%08X->fail = %08X\n", pChain, nextCaseStart );
-			pChain->packetFail = nextCaseStart;
+//			pChain->packetFail = nextCaseStart;
+			pChain->m_pcmdFail = nextCaseStart;
 
 			// get ready for another case
 			nextCase = curCase;
 			nextCaseStart = pStart;
 		} else
-			;
+		if ( cur->baseType == ScriptBase::scriptCheck || cur->baseType == ScriptBase::scriptMake ) {
+			ScriptCommandPtr pCommand = (ScriptCommandPtr) cur;
+			if (nextCaseStart) {
+				pPass = nextCaseStart;
+				nextCase = NULL;
+				nextCaseStart = NULL;
+			}
+
+			pCommand->m_pcmdPass = pPass;
+
+			// hook the things together if MAKE preceeds and EXPECT
+			// Don't worry about hooking AND/OR EXPECTS packets to root packet's hook... the root
+			// packet's hook will be used in calculating the timeouts during execution...
+
+			if ( cur->baseType == ScriptBase::scriptMake &&  
+				pPass != NULL && pPass->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) pPass)->packetType == ScriptPacket::expectPacket )
+			{
+				// link first packet to this guy...
+				ScriptPacketPtr pnext;
+
+				for ( pnext = (ScriptPacket *) pPass; pnext != NULL; pnext = (ScriptPacket *) pnext->m_pcmdNext )
+					pnext->m_pcmdMake = (ScriptMAKECommand *) pCommand;
+
+				// Now follow the fail chain...  This handles cases...
+				for ( pnext = (ScriptPacket *) pPass; pnext != NULL; pnext = (ScriptPacket *) pnext->m_pcmdFail )
+					pnext->m_pcmdMake = (ScriptMAKECommand *) pCommand;
+
+				((ScriptMAKECommand *) pCommand)->m_fHanging = true;
+			}
+
+			pCommand->m_pcmdFail = NULL;
+			pChain = pPass = pCommand;
+		}
 	}
 
 	// first thing we found was an expect inside a case
@@ -1074,40 +1029,66 @@ ScriptPacketPtr ScriptDocument::SequenceLevel( ScriptBasePtr sbp, ScriptPacketPt
 //	return a pointer to the "chain" packet, the first packet in the last OR group.
 //
 
-ScriptPacketPtr ScriptDocument::SequencePacket( ScriptPacketPtr spp, ScriptPacketPtr pPass )
+//ScriptPacketPtr ScriptDocument::SequencePacket( ScriptPacketPtr spp, ScriptPacketPtr pPass )
+ScriptCommandPtr ScriptDocument::SequencePacket( ScriptCommandPtr spp, ScriptCommandPtr pPass )
 {
-	ScriptPacketPtr		chain = spp, prev
+//	ScriptPacketPtr		chain = spp, prev
+	ScriptCommandPtr	chain = spp, prev
 	;
 
 	// begin a conjunction
 	for (;;) {
 		// init the basics
 		TRACE2( "%08X->pass = %08X\n", spp, pPass );
-		spp->packetPass = pPass;
+//		spp->packetPass = pPass;
+		spp->m_pcmdPass = pPass;
 		TRACE2( "%08X->fail = %08X\n", spp, 0 );
-		spp->packetFail = 0;
+//		spp->packetFail = 0;
+		spp->m_pcmdFail = NULL;
 
 		// link the AND's together
 		for (;;) {
 			prev = spp;
-			spp = spp->packetNext;
+//			spp = spp->packetNext;
+			spp = spp->m_pcmdNext;
+
+			// Make sure chain elements point to same make, if any...
+			if ( spp )
+			{
+				TRACE2( "%08X->m_pcmdMake = %08X\n", spp, ((ScriptPacketPtr) prev)->m_pcmdMake );
+				((ScriptPacketPtr) spp)->m_pcmdMake = ((ScriptPacketPtr) prev)->m_pcmdMake;
+			}
 
 			// chain the success path
-			if (spp && (spp->packetSubtype == ScriptPacket::andPacket)) {
+//			if (spp && (spp->packetSubtype == ScriptPacket::andPacket)) {
+//				TRACE2( "%08X->pass = %08X\n", prev, spp );
+//				prev->packetPass = spp;
+//				TRACE2( "%08X->pass = %08X\n", spp, pPass );
+//				spp->packetPass = pPass;
+//				TRACE2( "%08X->fail = %08X\n", spp, 0 );
+//				spp->packetFail = 0;
+//			} else
+			if (spp && spp->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)spp)->packetSubtype == ScriptPacket::andPacket ) {
 				TRACE2( "%08X->pass = %08X\n", prev, spp );
-				prev->packetPass = spp;
+				prev->m_pcmdPass = spp;
 				TRACE2( "%08X->pass = %08X\n", spp, pPass );
-				spp->packetPass = pPass;
+				spp->m_pcmdPass = pPass;
 				TRACE2( "%08X->fail = %08X\n", spp, 0 );
-				spp->packetFail = 0;
+				spp->m_pcmdFail = NULL;
+
 			} else
 				break;
 		}
 
 		// got an OR?
-		if (spp && (spp->packetSubtype == ScriptPacket::orPacket)) {
+//		if (spp && (spp->packetSubtype == ScriptPacket::orPacket)) {
+//			TRACE2( "%08X->fail = %08X\n", chain, spp );
+//			chain->packetFail = spp;
+//			chain = spp;
+//		} else
+		if (spp && spp->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)spp)->packetSubtype == ScriptPacket::orPacket ) {
 			TRACE2( "%08X->fail = %08X\n", chain, spp );
-			chain->packetFail = spp;
+			chain->m_pcmdFail = spp;
 			chain = spp;
 		} else
 			break;
