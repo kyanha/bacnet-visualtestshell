@@ -55,13 +55,13 @@ void BACnetClientTSM::Indication( const BACnetAPDU &apdu )
 	
 	// unless aborting, client must be idle
 	if ((apdu.apduType != abortPDU) && (tsmState != tsmIdle))
-		throw -1;
+		throw_(1);
 	
 	switch (apdu.apduType) {
 		case confirmedRequestPDU:
 			// make sure it's to someplace specific
 			if ((apdu.apduAddr.addrType != localStationAddr) && (apdu.apduAddr.addrType != remoteStationAddr))
-				throw -1;
+				throw_(2);
 			tsmAddr = apdu.apduAddr;
 			
 			// make a copy of this to modify (and keep in case we need to rexmt)
@@ -125,7 +125,7 @@ void BACnetClientTSM::Indication( const BACnetAPDU &apdu )
 		case unconfirmedRequestPDU:
 			// make sure it's to someplace specific
 			if (apdu.apduAddr.addrType == nullAddr)
-				throw -1;
+				throw_(3);
 			
 			// verify the device can send a message this big.  It would be nice if 
 			// there was a way to send a message back to the client, but an unconfirmed 
@@ -148,7 +148,7 @@ void BACnetClientTSM::Indication( const BACnetAPDU &apdu )
 		case abortPDU:
 			// if we are idle, there is no context to abort
 			if (tsmState == tsmIdle)
-				throw -1;
+				throw_(4);
 			
 			// cancel timer
 			StopTimer();
@@ -209,8 +209,10 @@ void BACnetClientTSM::ProcessTask( void )
 		case tsmSegmentedConfirmation:
 			SegmentedConfirmationTimeout();
 			break;
-        default:
-            throw -1; // no other state is valid
+		case tsmIdle:
+			break;	// should never be idle
+	        default:
+	            throw_(5); // no other state is valid
 	}
 }
 

@@ -2794,7 +2794,7 @@ void ScriptExecutor::SendDevAbort( BACnetAPDU &apdu )
 	if (!pServer) throw "Server keyword required";
 
 	// encode it
-	apdu.apduSrv = (bool)alServer.boolValue;
+	apdu.apduSrv = (alServer.boolValue != 0);
 
 	// get the invoke ID
 	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );

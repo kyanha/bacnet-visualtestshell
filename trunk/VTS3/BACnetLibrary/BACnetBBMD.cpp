@@ -80,14 +80,6 @@ void BACnetBBMD::Indication( const BACnetNPDU &npdu )
 			// send it to the local network
 			Request( BACnetNPDU( BACnetAddress(localBroadcastAddr), msg, len ) );
 			
-			// send it to all of the foreign devices
-			for (i = 0; i < bbmdFDTSize; i++)
-				Request(
-					BACnetNPDU( bbmdFDT[i].fdAddress
-						, msg, len
-						)
-					);
-			
 			// done with this message
 			delete[] msg;
 			
@@ -103,6 +95,14 @@ void BACnetBBMD::Indication( const BACnetNPDU &npdu )
 			msgPtr+= 6;
 			memcpy( msgPtr, npdu.pduData, npdu.pduLen );
 			
+			// send it to all of the foreign devices
+			for (i = 0; i < bbmdFDTSize; i++)
+				Request(
+					BACnetNPDU( bbmdFDT[i].fdAddress
+						, msg, len
+						)
+					);
+			
 			// send to all of the BBMD peers
 			for (i = 0; i < bbmdBDTSize; i++)
 				Request(
@@ -117,7 +117,7 @@ void BACnetBBMD::Indication( const BACnetNPDU &npdu )
 			break;
             
         default:
-            throw -1; // should never get any other kind of address
+            throw_(1); // should never get any other kind of address
 	}
 }
 
@@ -325,7 +325,7 @@ void BACnetBBMD::AddForeignDevice( char *spec, int ttl )
 	;
 	
 	if (bbmdFDTSize >= kBACnetBBMDMaxFDTSize)
-		throw (-1); // no more space
+		throw_(2); // no more space
 	
 	// Parse the spec
 	BACnetIPAddr::StringToHostPort( spec, &ipAddr, &ipMask, &ipPort );
@@ -377,7 +377,7 @@ void BACnetBBMD::AddPeer( char *spec )
 	;
 	
 	if (bbmdBDTSize >= kBACnetBBMDMaxBDTSize)
-		throw (-1);		// peer table overflow
+		throw_(3);		// peer table overflow
 	
 	// parse the addess string
 	BACnetIPAddr::StringToHostPort( spec, &ipAddr, &subnetMask, &port );
@@ -410,7 +410,7 @@ void BACnetBBMD::DeletePeer( char *spec )
 	;
 	
 	if (bbmdBDTSize >= kBACnetBBMDMaxBDTSize)
-		throw (-1);		// peer table overflow
+		throw_(4);		// peer table overflow
 	
 	// parse the addess string
 	BACnetIPAddr::StringToHostPort( spec, &ipAddr, &subnetMask, &port );
@@ -434,7 +434,7 @@ void BACnetBBMD::DeletePeer( char *spec )
 		}
 	
 	// not found
-	throw (-1);
+	throw_(5);
 }
 
 //

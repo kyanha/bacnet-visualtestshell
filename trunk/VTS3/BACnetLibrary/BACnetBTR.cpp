@@ -61,7 +61,7 @@ void BACnetBTR::Indication( const BACnetNPDU &npdu )
 			break;
         
         default:
-            throw -1; // should never get any other kind of address
+            throw_(1); // should never get any other kind of address
 	}
 }
 

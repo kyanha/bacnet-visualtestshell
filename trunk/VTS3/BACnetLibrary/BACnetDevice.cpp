@@ -98,14 +98,14 @@ void BACnetDevice::Unbind( BACnetServerPtr sp )
 //	BACnetDevice::GetInfo
 //
 
-BACnetDeviceInfoPtr BACnetDevice::GetInfo( const BACnetObjectIdentifier &id )
+BACnetDeviceInfoPtr BACnetDevice::GetInfo( unsigned int inst )
 {
 	BACnetDeviceInfoPtr		cur = this
 	;
 	
 	// find it
 	while (cur)
-		if (cur->deviceID.objID == id.objID)
+		if (cur->deviceInst == inst)
 			return cur;
 		else
 			cur = cur->deviceNext;
