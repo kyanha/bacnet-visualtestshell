@@ -61,7 +61,6 @@ END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CChildFrame construction/destruction
-extern VTSStatisticsCollector* gStatisticsCollector;
 
 CChildFrame::CChildFrame()
 {
@@ -244,8 +243,8 @@ void CChildFrame::OnUpdateViewSend(CCmdUI* pCmdUI)
 void CChildFrame::OnEditDelete() 
 {
 	m_frameContext->m_pDoc->DeletePackets();
-	delete gStatisticsCollector;
-	gStatisticsCollector=new VTSStatisticsCollector();
+	delete m_frameContext->m_pDoc->m_pStatisticsCollector;
+	m_frameContext->m_pDoc->m_pStatisticsCollector=new VTSStatisticsCollector();
 }
 
 void CChildFrame::OnEditPorts() 

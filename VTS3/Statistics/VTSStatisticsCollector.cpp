@@ -65,6 +65,11 @@ called to update the statistics when one packet is coming
 ******************************************************************************/
 bool VTSStatisticsCollector::Update(char* summary,int length,int dir,int protocol)
 {	
+
+    if (dir==2)
+		return false;
+	//if it is a vts generated msg.
+
 	char pServiceName[100];
 	GetServiceName(summary,pServiceName);
 

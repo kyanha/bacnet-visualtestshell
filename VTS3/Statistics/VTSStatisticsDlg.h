@@ -7,6 +7,11 @@
 // VTSStatisticsDlg.h : header file
 //
 
+class VTSDoc;
+typedef VTSDoc* VTSDocPtr;
+
+//#include "VTSDoc.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSStatisticsDlg dialog
 #include "TreeListCtrl.h"
@@ -18,6 +23,9 @@ public:
 	void UpdateStatisticsView(CString type,int data[12]);
 	void Update(char* service);
 	VTSStatisticsDlg(CWnd* pParent = NULL);   // standard constructor
+
+	VTSDocPtr m_pDoc;
+
 // Dialog Data
 	//{{AFX_DATA(VTSStatisticsDlg)
 	enum { IDD = IDD_STATISTICS };

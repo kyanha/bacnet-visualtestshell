@@ -14,9 +14,10 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+#include "VTSDOc.h"
 /////////////////////////////////////////////////////////////////////////////
 // VTSStatisticsDlg dialog
-extern VTSStatisticsCollector* gStatisticsCollector;
+VTSStatisticsCollector* gStatisticsCollector;
 
 VTSStatisticsDlg::VTSStatisticsDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSStatisticsDlg::IDD, pParent)
@@ -36,6 +37,7 @@ VTSStatisticsDlg::VTSStatisticsDlg(CWnd* pParent /*=NULL*/)
 	m_nTotalR = 0;
 	m_nTotalS = 0;
 	//}}AFX_DATA_INIT
+
 }
 
 
@@ -76,6 +78,8 @@ BOOL VTSStatisticsDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 	
+//	m_pDoc->m_pStatisticsCollector=m_pDoc->m_pStatisticsCollector;
+	gStatisticsCollector=m_pDoc->m_pStatisticsCollector;
 	// TODO: Add extra initialization here
 
 	//create tree list and initialize
@@ -136,23 +140,23 @@ void VTSStatisticsDlg::OnOptions()
 	//get the new option parameters and re-build the statistics tree
 	if(dlg.DoModal()==IDOK)
 	{
-		gStatisticsCollector->m_bColumnStatus[0]=dlg.m_bIPSend;
-		gStatisticsCollector->m_bColumnStatus[1]=dlg.m_bIPRecive;
-		gStatisticsCollector->m_bColumnStatus[2]=dlg.m_bEthernetReceive;
-		gStatisticsCollector->m_bColumnStatus[3]=dlg.m_bEthernetSend;
-		gStatisticsCollector->m_bColumnStatus[4]=dlg.m_bArcnetSend;
-		gStatisticsCollector->m_bColumnStatus[5]=dlg.m_bArcnetReceive;
-		gStatisticsCollector->m_bColumnStatus[6]=dlg.m_bMSTPSend;
-		gStatisticsCollector->m_bColumnStatus[7]=dlg.m_bMSTPReceive;
-		gStatisticsCollector->m_bColumnStatus[8]=dlg.m_bPTPSend;
-		gStatisticsCollector->m_bColumnStatus[9]=dlg.m_bPTPReceive;
-		gStatisticsCollector->m_bColumnStatus[10]=dlg.m_bOverallSend;
-		gStatisticsCollector->m_bColumnStatus[11]=dlg.m_bOverallReceive;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[0]=dlg.m_bIPSend;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[1]=dlg.m_bIPRecive;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[2]=dlg.m_bEthernetReceive;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[3]=dlg.m_bEthernetSend;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[4]=dlg.m_bArcnetSend;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[5]=dlg.m_bArcnetReceive;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[6]=dlg.m_bMSTPSend;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[7]=dlg.m_bMSTPReceive;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[8]=dlg.m_bPTPSend;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[9]=dlg.m_bPTPReceive;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[10]=dlg.m_bOverallSend;
+		m_pDoc->m_pStatisticsCollector->m_bColumnStatus[11]=dlg.m_bOverallReceive;
 
-		gStatisticsCollector->m_nDistributionArray[1]=dlg.m_nSizeArray2;
-		gStatisticsCollector->m_nDistributionArray[2]=dlg.m_nSizeArray3;
-		gStatisticsCollector->m_nDistributionArray[3]=dlg.m_nSizeArray4;
-		gStatisticsCollector->m_nDistributionArray[4]=dlg.m_nSizeArray5;
+		m_pDoc->m_pStatisticsCollector->m_nDistributionArray[1]=dlg.m_nSizeArray2;
+		m_pDoc->m_pStatisticsCollector->m_nDistributionArray[2]=dlg.m_nSizeArray3;
+		m_pDoc->m_pStatisticsCollector->m_nDistributionArray[3]=dlg.m_nSizeArray4;
+		m_pDoc->m_pStatisticsCollector->m_nDistributionArray[4]=dlg.m_nSizeArray5;
 	
 		delete m_pList;
 		
