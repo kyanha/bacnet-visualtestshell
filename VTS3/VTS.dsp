@@ -258,10 +258,6 @@ SOURCE=.\md5.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\PacketFileDlg.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\Sniffer\PI.cpp
 # End Source File
 # Begin Source File
@@ -1053,10 +1049,6 @@ SOURCE=.\md5.h
 # Begin Source File
 
 SOURCE=.\BACnetLibrary\NTDDNDIS.H
-# End Source File
-# Begin Source File
-
-SOURCE=.\PacketFileDlg.h
 # End Source File
 # Begin Source File
 
