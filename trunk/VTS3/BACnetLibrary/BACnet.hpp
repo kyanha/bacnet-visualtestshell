@@ -489,7 +489,8 @@ typedef BACnetNetServer *BACnetNetServerPtr;
 class BACnetNetClient {
 		friend void Bind( BACnetNetClientPtr, BACnetNetServerPtr );
 		friend void Unbind( BACnetNetClientPtr, BACnetNetServerPtr );
-		
+		friend bool IsBound( BACnetNetClientPtr cp, BACnetNetServerPtr sp );
+
 	protected:
 		BACnetNetServerPtr		clientPeer;
 		
@@ -504,6 +505,7 @@ class BACnetNetClient {
 class BACnetNetServer {
 		friend void Bind( BACnetNetClientPtr, BACnetNetServerPtr );
 		friend void Unbind( BACnetNetClientPtr, BACnetNetServerPtr );
+		friend bool IsBound( BACnetNetClientPtr cp, BACnetNetServerPtr sp );
 		
 	protected:
 		BACnetNetClientPtr		serverPeer;
@@ -837,6 +839,7 @@ typedef BACnetAppServer *BACnetAppServerPtr;
 class BACnetAppClient {
 		friend void Bind( BACnetAppClientPtr, BACnetAppServerPtr );
 		friend void Unbind( BACnetAppClientPtr, BACnetAppServerPtr );
+		friend bool IsBound( BACnetAppClientPtr, BACnetAppServerPtr );
 		
 	protected:
 		BACnetAppServerPtr		clientPeer;
@@ -852,6 +855,7 @@ class BACnetAppClient {
 class BACnetAppServer {
 		friend void Bind( BACnetAppClientPtr, BACnetAppServerPtr );
 		friend void Unbind( BACnetAppClientPtr, BACnetAppServerPtr );
+		friend bool IsBound( BACnetAppClientPtr, BACnetAppServerPtr );
 		
 	protected:
 		BACnetAppClientPtr		serverPeer;
@@ -884,6 +888,7 @@ class BACnetDeviceInfo {
 		int						deviceWindowSize;			// how many to send
 		int						deviceMaxAPDUSize;			// maximum APDU size
 		int						deviceNextInvokeID;			// next invoke ID for client
+		int						deviceVendorID;				// which vendor is this
 		
 		BACnetDeviceInfo		*deviceNext;				// list of information blocks
 	};

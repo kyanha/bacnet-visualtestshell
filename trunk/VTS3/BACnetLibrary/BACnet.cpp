@@ -2763,6 +2763,15 @@ void Unbind( BACnetNetClientPtr cp, BACnetNetServerPtr sp )
 	sp->serverPeer = 0;
 }
 
+//
+//	IsBound
+//
+
+bool IsBound( BACnetNetClientPtr cp, BACnetNetServerPtr sp )
+{
+	return ((cp->clientPeer == sp) && (sp->serverPeer == cp));
+}
+
 #if _TSMDebug
 
 //
@@ -2950,4 +2959,13 @@ void Unbind( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
 {
 	cp->clientPeer = 0;
 	sp->serverPeer = 0;
+}
+
+//
+//	IsBound
+//
+
+bool IsBound( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
+{
+	return ((cp->clientPeer == sp) && (sp->serverPeer = cp));
 }
