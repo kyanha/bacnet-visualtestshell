@@ -18,7 +18,7 @@ h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: 
 
 <body bgcolor="#FFFFFF" text="#000000">
 
-<h1><a name="start">VTS 3.4.1 </a><i>Quick Start Guide</i></h1>
+<h1><a name="start">VTS 3.4.2 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
 functionality of various devices used in building automation systems.&nbsp;
 BACnet is a Data Communication Protocol for Building Automation and Control
@@ -1427,7 +1427,7 @@ specified.
 </li>
 </ul>
 
-<h2><a name="whatsnew">3.4.1</a></h2>
+<h2>3.4.1</h2>
 <ul>
 <li>747747: Fixed EPICS loading problems:
    <ul><li>VTS was not parsing bitstrings larger than one byte. </li>
@@ -1450,6 +1450,154 @@ specified.
 <li>Added option in preferences for verification on delete packets.  Defaults to true.</li>
 </ul>
 
+
+<h2><a name="whatsnew">3.4.2</a></h2>
+<ul>
+
+<p><li>681223: Changed the default delay in EXPECT and SEND packets to 3 seconds and changed the maximum
+delay to 2 minutes.  The default and max were previously set to 1.8 seconds, which was a bug.
+</li></p>
+
+<p><li>Added support to parse "Event-Time-Stamps" property.  Unfortunately this is not yet a property
+that can be handled inside a script... It only parses EPICS correctly for these objects:
+<pre>
+	- MSI, MSO, MSV, AI, AO, AV, BI, BO, EE, LOOP, BV, BV
+	- TR object support already existed, but it was the only one.
+</pre></li>
+</p>
+
+<p><li>618217: INCLUDE directive added to scripts.  
+<p>
+Syntax for including files:
+</p>
+<pre>
+		INCLUDE "filename.vts"
+</pre>
+	<p>
+	Usage of the INCLUDE directive follows these rules:
+		<ol>
+		<li> The INCLUDE keyword must be the first item on a line (excluding whitespace) and is 
+		  followed by a filename to include in quotes.
+		</li><li> The extension for included files is the same as script files.
+		</li><li> Any number of files can be included.
+		</li><li> Included files can contain nested includes.
+		</li><li> The file name should include a relative path that is always relative to the location
+		  of the file that contains the include statement.  This is also true for each included
+		  file.  This means that file specifications included from the base file will be
+		  relative to the base file but files that are included from an include file will be
+		  relative to the location of the include file.  For example:  If included files are
+		  in a subdirectory called 'inc', only the base file, which is located one directory up
+		  from 'inc' will have the statement:  INCLUDE "inc\file1.vts".
+		  If file1.vts contains include statements that pull in files from the inc directory as
+		  well, the statement will be:  INCLUDE "file2.vts".
+		</li><li> Absolute paths may be used as well if specified properly (C:\, \, etc.)
+		</li><li> INCLUDE statements can occur anywhere within the script file with the exception of 
+		  inside statements.  This means that they cannot appear within SEND or EXPECT
+		  statements even though these statements may span several lines.  CHECK, MAKE and
+		  other multi-line statements are part of this restriction.
+		</li><li> Circular includes are not allowed.
+		</li><li> If variables are defined and initialized in included files that are already
+		  defined in the base file, the values will be overridden with the last encountered declaration.
+		</li>
+		</ol>
+	 </p>
+
+	<p>There are a few things to note when files are included:
+		<ol><li> Include files are opened and parsed during the "Check Syntax" command.
+		</li><li> When errors are encountered within an included file during parsing, an error message 
+		  will present (as usual) and the line and text that produced the error will be 
+		  highlighted in a separate editing window that allows the imediate editing and 
+		  saving of the included file.  This window is modal and parsing execution halts.
+		  A quick correction followed by another Syntax Check will have you on your way.
+		</li><li> Nodes created on the tree (following a successful syntax check) from include files
+		  will appear in blue text.  Clicking once on these nodes will display the fully
+		  qualified path to the containing include file in the editor's status bar.  Double
+		  clicking on these nodes will open a modal editing window and the statement's line
+		  will be highlighted.  This editing window will allow the file to be saved (no SaveAs).
+		</li></ol>
+	 </p>
+</li>
+</p>
+
+<p><li>A bug was fixed in the script editor that would not initially place the caret on the 
+line if goto was used.
+</li></p>
+
+<p><li>Moved Load EPICS command from Script frame to main frame under "EPICS" menu.  This menu will be populated
+with other EPICS type functions in future versions.
+</li></p>
+
+<p><li>Altered EPICS load results dialog to use static windows (instead of read only edit boxes) to do automatic
+word wrap.
+</li></p>
+
+<p><li>Added "Load last EPICS on startup" to preferences section.
+</li></p>
+
+<p><li>Fixed a bug in the specification of the EPICS file to load.  It was using the filename only, even if
+the file specified from the file dialog found the file in other directories.
+</li></p>
+
+<p><li>Moved "Read All Properties" command to main window menu.  Revamped generation of script file for reading
+all properties (bug not generating last object RP).
+	<ol>
+	<li>The filename "ReadAllProperties.vts" will be generated when this command is given.  The file will reside
+		  in the current working directory and will not be deleted.
+	</li>
+	<li>This file will be overriden when the command is performed a second time.
+	</li>
+	<li>The user may edit the vts file as any other script and perform SaveAs to retain the generated file.
+	</li>
+	</ol>
+</li></p>
+
+<p><li>Fixed a GPF when recompiling script after prior compile.
+</li></p>
+
+<p><li>608821: Very important error in EXPECT
+<ol>
+<li>Fixed an error in the script executor to throw an error, halting execution, if neither a network layer
+message (MESSAGE = ) was defined in EXPECT or an application layer message (PDU =) was defined.  Scripts now
+force one of these statements within an EXPECT clause.
+</li>
+
+<li>Fixed an error that prevented the ability to stuff a received value into the PDU field with the assignment
+operator.  PDU >> VAR now works just fine.  Before the fix, the MESSAGE statement had to be an assignment as
+well as the PDU statement, which was impossible because both statements cannot occur at once.
+</li>
+
+<li>Fixed an error that never evaluated DER statement against incoming packet.  The DER = TRUE statement ALWAYS
+failed and the DER = FALSE statement ALWAYS passed.  Now the DER statement is evaluated properly.
+</li>
+
+<li>Fixed an error that never evaluated the PRIORITY statement properly.  Priority was always tested again zero.
+Now the test is performed by examining the statements value against the incomming PRIORITY.
+</li>
+
+<li>Fixed an error that prematurely passed an address evaluation with the minimum of the address lengths
+(between the incoming SADR and the script SADR) used in the comparison.  Now the two addresses must match
+exactly.
+</li>
+
+<li>Added the ability to specify SNET/SADR and DNET/DADR pairs in an EXPECT statement with a NONE value that
+indicates the received packet must not have SNET/SADR or DNET/DADR values.  In addition, if these statements
+are present in an EXPECT clause the received packet MUST contain the values.  Previously the test was
+only evaluated if the received message had the values.  Usage is as follows:
+<pre>
+	SNET = NONE, SADR = NONE, DNET = NONE, DADR = NONE.
+</pre>
+So now if the SNET/SADR or DNET/DADR values are specified in the script, the values must exist in the 
+received message.  Conversely, if they are specified in the script with the NONE value, the src/dst addresses
+must NOT be present in the received packet.
+</li>
+
+<li>New tests have been added in the script executor that force the reserved bits in each PDU control octet to 
+be zero.  An error is reported if they are not.  Bits 6 and 4 are tested for network layer messages and application
+layer messages have different reserved bits for each PDU type.
+</li>
+</ol></p>
+
+</ul>
 
  
 <p>&nbsp;</p>
