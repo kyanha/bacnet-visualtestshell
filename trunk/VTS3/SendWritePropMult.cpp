@@ -499,6 +499,7 @@ void WritePropList::AddButtonClick( void )
 
 	// madanner, 8/26/02.  Sourceforge bug #472392
 	OnSelchangePropCombo();				// Insert new list text for Present_Value
+	wplPagePtr->m_PropList.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
 //	wplPagePtr->UpdateEncoded();
 }
 
@@ -527,6 +528,10 @@ void WritePropList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// madanner 9/4/02
+	// reselect a new row... just before the deleted one if any.
+	wplPagePtr->m_PropList.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
 
 	// update the encoding
 	wplPagePtr->UpdateEncoded();
@@ -833,6 +838,7 @@ void WritePropListList::AddButtonClick( void )
 
 	// update the encoding
 	wpllAddInProgress = false;
+	wpllPagePtr->m_ObjList.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
 	wpllPagePtr->UpdateEncoded();
 }
 
@@ -861,6 +867,10 @@ void WritePropListList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// madanner 9/4/02
+	// reselect a new row... just before the deleted one if any.
+	wpllPagePtr->m_ObjList.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
 
 	// update the encoding
 	wpllPagePtr->UpdateEncoded();
