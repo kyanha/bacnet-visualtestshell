@@ -23,7 +23,8 @@ const unsigned short	kVendorID = 15;					// Cornell vendor ID
 const int				kMaxAddressLen = 8;				// longest address supported
 
 
-#define DATE_DONT_CARE	0xFF
+#define DATE_DONT_CARE	    0xFF				// indicates any value is OK
+#define DATE_SHOULDNT_CARE	0xFE				// should only be don't care value.  Get it?
 
 //
 //	BACnet Address
@@ -464,6 +465,8 @@ class BACnetDate : public BACnetEncodeable {
 		bool Match( BACnetDate & rdate, int iOperator );
 		bool IsValid(void);
 
+		static void TestDateComps(void);
+
 		DECLARE_DYNAMIC(BACnetDate)
 	};
 
@@ -496,6 +499,8 @@ class BACnetTime : public BACnetEncodeable {
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 		bool Match( BACnetTime & rtime, int iOperator );
 		bool IsValid(void);
+
+		static void TestTimeComps(void);
 
 		DECLARE_DYNAMIC(BACnetTime)
 	};

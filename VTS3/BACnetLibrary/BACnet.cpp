@@ -89,6 +89,12 @@ bool Match( int op, double a, double b );
 bool Match( int op, CTime &timeThis, CTime &timeThat );
 LPCSTR OperatorToString(int iOperator);
 
+
+bool ValuesEqual( int v1, int v2 );
+bool ValuesGreater( int v1, int v2 );
+bool ValuesLess( int v1, int v2 );
+
+
 //
 //	BACnetAddress
 //
@@ -2901,16 +2907,16 @@ BACnetDate::BACnetDate( BACnetAPDUDecoder & dec )
 
 bool BACnetDate::IsValid()
 {
-	if ( dayOfWeek != DATE_DONT_CARE && (dayOfWeek < 1 || dayOfWeek > 7) )
+	if ( dayOfWeek != DATE_DONT_CARE && dayOfWeek != DATE_SHOULDNT_CARE && (dayOfWeek < 1 || dayOfWeek > 7) )
 		return false;
 
-	if ( day != DATE_DONT_CARE && (day < 1 || day > 31) )
+	if ( day != DATE_DONT_CARE && day != DATE_SHOULDNT_CARE && (day < 1 || day > 31) )
 		return false;
 
-	if ( month != DATE_DONT_CARE && (month < 1 || month > 12 ))
+	if ( month != DATE_DONT_CARE && month != DATE_SHOULDNT_CARE && (month < 1 || month > 12 ))
 		return false;
 
-	if ( year != DATE_DONT_CARE && (year < 0 || year > 255))
+	if ( year != DATE_DONT_CARE && year != DATE_SHOULDNT_CARE && (year < 0 || year > 255))
 		return false;
 
 	return true;
@@ -2925,7 +2931,8 @@ void BACnetDate::CalcDayOfWeek( void )
 //	int		a, b, c, y, m;
 	
 	// dont even try with "unspecified" or "don't care" values
-	if ((year == DATE_DONT_CARE) || (month == DATE_DONT_CARE) || (day == DATE_DONT_CARE)) {
+	if ((year == DATE_DONT_CARE) || (month == DATE_DONT_CARE) || (day == DATE_DONT_CARE) ||
+	    (year == DATE_SHOULDNT_CARE) || (month == DATE_SHOULDNT_CARE) || (day == DATE_SHOULDNT_CARE)) {
 		dayOfWeek = DATE_DONT_CARE;
 		return;
 	}
@@ -2997,35 +3004,47 @@ void BACnetDate::Encode( char *enc ) const
 	// day of week
 	if (dayOfWeek == DATE_DONT_CARE)
 		*enc++ = '?';
-	else
-	if ((dayOfWeek > 0) && (dayOfWeek < 8)) {
+	else if (dayOfWeek == DATE_SHOULDNT_CARE)
+		*enc++ = '*';
+	else if ((dayOfWeek > 0) && (dayOfWeek < 8)) {
 		strcpy( enc, dow[dayOfWeek] );
 		enc += 3;
 	} else
 		*enc++ = '?';
+
 	*enc++ = ' ';
 
 	// month
 	if (month == DATE_DONT_CARE)
 		*enc++ = '?';
-	else {
+	else if (month == DATE_SHOULDNT_CARE)
+		*enc++ = '*';
+	else
+	{
 		sprintf( enc, "%d", month );
 		while (*enc) enc++;
 	}
+
 	*enc++ = '/';
 
 	// day
 	if (day == DATE_DONT_CARE)
 		*enc++ = '?';
+	else if (day == DATE_SHOULDNT_CARE)
+		*enc++ = '*';
 	else {
 		sprintf( enc, "%d", day );
 		while (*enc) enc++;
 	}
+
 	*enc++ = '/';
 
 	// year
 	if (year == DATE_DONT_CARE) {
 		*enc++ = '?';
+		*enc = 0;
+	} else if (year == DATE_SHOULDNT_CARE) {
+		*enc++ = '*';
 		*enc = 0;
 	} else
 		sprintf( enc, "%d", year + 1900 );
@@ -3053,7 +3072,12 @@ void BACnetDate::Decode( const char *dec )
 		throw_(110);			// missing start bracket for complex data structures
 
 	// check for dow
-	if ((*dec == '*') || (*dec == '?'))
+	if ( *dec == '*' )
+	{
+		dayOfWeek = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
 		dec += 1;
 	else if (isalpha(*dec)) {
 		// They've provided a 3 char day...  read it and test for validity
@@ -3081,7 +3105,12 @@ void BACnetDate::Decode( const char *dec )
 	}
 
 	// check for month
-	if ((*dec == '*') || (*dec == '?'))
+	if ( *dec == '*' )
+	{
+		month = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
 		dec += 1;
 	else {
 		for (month = 0; isdigit(*dec); dec++)
@@ -3103,7 +3132,12 @@ void BACnetDate::Decode( const char *dec )
 		throw_(93);									// code for bad date separator, interpreted in caller's context
 
 	// check for day
-	if ((*dec == '*') || (*dec == '?'))
+	if ( *dec == '*' )
+	{
+		day = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
 		dec += 1;
 	else {
 		for (day = 0; isdigit(*dec); dec++)
@@ -3124,7 +3158,12 @@ void BACnetDate::Decode( const char *dec )
 		throw_(93);									// code for bad date separator, interpreted in caller's context
 
 	// check for year
-	if ((*dec == '*') || (*dec == '?'))
+	if ( *dec == '*' )
+	{
+		year = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
 		dec += 1;
 	else {
 		int	yr = -1;			// start with no supplied year
@@ -3162,6 +3201,7 @@ void BACnetDate::Decode( const char *dec )
 CTime BACnetDate::Convert() const
 {
 	ASSERT( year != DATE_DONT_CARE  && month != DATE_DONT_CARE && day != DATE_DONT_CARE);
+	ASSERT( year != DATE_SHOULDNT_CARE  && month != DATE_SHOULDNT_CARE && day != DATE_SHOULDNT_CARE);
 	return CTime(year + 1900, month, day, 0, 0, 0);
 }
 
@@ -3231,161 +3271,232 @@ bool BACnetDate::Match( BACnetDate & rdate, int iOperator )
 
 
 
-bool BACnetDate::operator ==( const BACnetDate & arg )
+
+bool ValuesEqual( int v1, int v2 )
 {
-	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE &&  year != arg.year )
+	// if neither of them are don't cares, then we should check their value... even if one of them
+	// is shouldn't care. 
+
+	if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&  v1 != v2 )
 		return false;
 
-	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE &&  month != arg.month )
-		return false;
+	// OK... Now test for equality when one is don't care and other is shouldn't care
 
-	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE  &&  day != arg.day )
-		return false;
-
-	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek != arg.dayOfWeek )
+	if ( (v1 == DATE_SHOULDNT_CARE && v2 != DATE_DONT_CARE && v2 != DATE_SHOULDNT_CARE ) || 
+		 (v2 == DATE_SHOULDNT_CARE && v1 != DATE_DONT_CARE && v1 != DATE_SHOULDNT_CARE ) )
 		return false;
 
 	return true;
 }
 
 
+bool ValuesGreater( int v1, int v2 )
+{
+	if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&
+		 v1 != DATE_SHOULDNT_CARE  &&  v2 != DATE_SHOULDNT_CARE  &&  v1 > v2 )
+		return true;
+
+	// we've weeded out the don't care case and already tested for greather than...  if it failed...
+	// the next best we can do is equal or less than... in either case, the greater than test failed
+	// so we should just return false
+
+	return false;
+}
+
+
+bool ValuesLess( int v1, int v2 )
+{
+	if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&
+		 v1 != DATE_SHOULDNT_CARE  &&  v2 != DATE_SHOULDNT_CARE  &&  v1 < v2 )
+		return true;
+
+	// we've weeded out the don't care case and already tested for less than...  if it failed...
+	// the next best we can do is equal or greater... in either case, the less than test failed
+	// so we should just return false
+
+	return false;
+}
+
+
+bool BACnetDate::operator ==( const BACnetDate & arg )
+{
+	// test all of the values... if one is out of sorts... then the whole thing isn't equal
+
+	if ( !ValuesEqual(year, arg.year) )
+		return false;
+
+	if ( !ValuesEqual(month, arg.month) )
+		return false;
+
+	if ( !ValuesEqual(day, arg.day) )
+		return false;
+
+	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+		return false;
+
+	return true;
+}
+
+
+
+
 bool BACnetDate::operator !=( const BACnetDate & arg )
 {
-	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE &&  year != arg.year )
+	// test all values for equality... if one is not equal... then the whole thing is not equal
+	// and we don't have to keep testing...
+	// We could probably just invert the == operator, but my brain is hurting
+
+	if ( !ValuesEqual(year, arg.year) )
 		return true;
 
-	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE &&  month != arg.month )
+	if ( !ValuesEqual(month, arg.month) )
 		return true;
 
-	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE  &&  day != arg.day )
+	if ( !ValuesEqual(day, arg.day) )
 		return true;
 
-	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE &&  dayOfWeek != arg.dayOfWeek )
+	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
 		return true;
 
 	return false;
 }
 
 
+
 bool BACnetDate::operator <=( const BACnetDate & arg )
 {
-	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE )
-		if ( year > arg.year )
-			return false;
-		else if ( year < arg.year )
-			return true;				// don't need to mess with this anymore... year is less
+	if ( !ValuesEqual(year, arg.year) )
+		return ValuesLess(year, arg.year);
 
 	// years are now equal or we don't care...
-	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE )
-		if ( month > arg.month )
-			return false;
-		else if ( month < arg.month )
-			return true;
+	if ( !ValuesEqual(month, arg.month) )
+		return ValuesLess(month, arg.month);
 
 	// years and months are equal or don't care... check day
-	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE )
-		if (  day > arg.day )
-			return false;
-		else if ( day < arg.day )
-			return true;
+	if ( !ValuesEqual(day, arg.day) )
+		return ValuesLess(day, arg.day);
 
 	// all important values are either equal or don't care... check final day of week
-	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek > arg.dayOfWeek )
-		return false;
+	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+		return ValuesLess(dayOfWeek, arg.dayOfWeek);
 
+	// values must be equal
 	return true;
 }
 
 
 bool BACnetDate::operator <( const BACnetDate & arg )
 {
-	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE  )
-		if ( year < arg.year )
-			return true;
-		else if ( year > arg.year )
-			return false;				// don't need to mess with this anymore... year is more
+	if ( !ValuesEqual(year, arg.year) )
+		return ValuesLess(year, arg.year);
 
 	// years are now equal or we don't care...
-	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE )
-		if ( month < arg.month )
-			return true;
-		else if ( month > arg.month )
-			return false;
+	if ( !ValuesEqual(month, arg.month) )
+		return ValuesLess(month, arg.month);
 
 	// years and months are equal or don't care... check day
-	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE )
-		if (  day < arg.day )
-			return true;
-		else if ( day > arg.day )
-			return false;
+	if ( !ValuesEqual(day, arg.day) )
+		return ValuesLess(day, arg.day);
 
 	// all important values are either equal or don't care... check final day of week
-	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek < arg.dayOfWeek )
-		return true;
+	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+		return ValuesLess(dayOfWeek, arg.dayOfWeek);
 
+	// values must be equal so return false
 	return false;
 }
 
 
 bool BACnetDate::operator >=( const BACnetDate & arg )
 {
-	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE )
-		if ( year < arg.year )
-			return false;
-		else if ( year > arg.year )
-			return true;				// don't need to mess with this anymore... year is less
+	if ( !ValuesEqual(year, arg.year) )
+		return ValuesGreater(year, arg.year);
 
 	// years are now equal or we don't care...
-	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE )
-		if ( month < arg.month )
-			return false;
-		else if ( month > arg.month )
-			return true;
+	if ( !ValuesEqual(month, arg.month) )
+		return ValuesGreater(month, arg.month);
 
 	// years and months are equal or don't care... check day
-	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE )
-		if (  day < arg.day )
-			return false;
-		else if ( day > arg.day )
-			return true;
+	if ( !ValuesEqual(day, arg.day) )
+		return ValuesGreater(day, arg.day);
 
 	// all important values are either equal or don't care... check final day of week
-	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek < arg.dayOfWeek )
-		return false;
+	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+		return ValuesGreater(dayOfWeek, arg.dayOfWeek);
 
+	// values must be equal now
 	return true;
 }
 
 
 bool BACnetDate::operator >( const BACnetDate & arg )
 {
-	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE  )
-		if ( year > arg.year )
-			return true;
-		else if ( year < arg.year )
-			return false;
+	if ( !ValuesEqual(year, arg.year) )
+		return ValuesGreater(year, arg.year);
 
 	// years are now equal or we don't care...
-	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE )
-		if ( month > arg.month )
-			return true;
-		else if ( month < arg.month )
-			return false;
+	if ( !ValuesEqual(month, arg.month) )
+		return ValuesGreater(month, arg.month);
 
 	// years and months are equal or don't care... check day
-	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE )
-		if (  day > arg.day )
-			return true;
-		else if ( day < arg.day )
-			return false;
+	if ( !ValuesEqual(day, arg.day) )
+		return ValuesGreater(day, arg.day);
 
 	// all important values are either equal or don't care... check final day of week
-	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek > arg.dayOfWeek )
-		return true;
+	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+		return ValuesGreater(dayOfWeek, arg.dayOfWeek);
 
+	// values must be equal so return false
 	return false;
 }
 
+
+
+void BACnetDate::TestDateComps()
+{
+	bool f;
+	int max = 22;
+	BACnetDate date1, date2;
+	char * t[] = {  "[WED, 11/20/02]", "[WED, 11/20/02]",			// test years
+					"[WED, 11/20/02]", "[WED, 11/20/03]",
+					"[WED, 11/20/03]", "[WED, 11/20/00]",
+					"[WED, 11/20/?]", "[WED, 11/20/?]",
+					"[WED, 11/20/03]", "[WED, 11/20/?]",
+					"[WED, 11/20/*]", "[WED, 11/20/*]",
+					"[WED, 11/20/03]", "[WED, 11/20/*]",
+					"[WED, 11/20/*]", "[WED, 11/20/?]",
+
+					"[WED, 11/20/02]", "[WED, 11/21/02]",			// test months
+					"[WED, 11/21/02]", "[WED, 11/20/02]",
+					"[WED, 11/?/02]", "[WED, 11/?/02]",
+					"[WED, 11/?/02]", "[WED, 11/20/02]",
+					"[WED, 11/?/02]", "[WED, 11/*/02]",
+					"[WED, 11/*/02]", "[WED, 11/20/02]",
+					"[WED, 11/*/02]", "[WED, 11/*/02]",
+
+					"[WED, 11/20/02]", "[WED, 12/21/02]",			// test days
+					"[WED, 12/20/02]", "[WED, 11/20/02]",
+					"[WED, ?/20/02]", "[WED, ?/20/02]",
+					"[WED, ?/20/02]", "[WED, 11/20/02]",
+					"[WED, ?/20/02]", "[WED, */20/02]",
+					"[WED, */20/02]", "[WED, 11/20/02]",
+					"[WED, */20/02]", "[WED, */20/02]"
+				};
+
+
+	for ( int i = 0; i < max; i++ )
+	{
+		date1.Decode( (const char *) t[i*2] );
+		date2.Decode( (const char *) t[(i*2)+1] );
+
+		f = date1 == date2;
+		f = date1 != date2;
+		f = date1 <  date2;
+		f = date1 <= date2;
+		f = date1 >  date2;
+		f = date1 >= date2;
+	}
+}
 
 
 IMPLEMENT_DYNAMIC(BACnetTime, BACnetEncodeable)
@@ -3429,16 +3540,16 @@ BACnetTime::BACnetTime( BACnetAPDUDecoder & dec )
 
 bool BACnetTime::IsValid()
 {
-	if ( hour != DATE_DONT_CARE && (hour < 0 || hour > 23) )
+	if ( hour != DATE_DONT_CARE && hour != DATE_SHOULDNT_CARE && (hour < 0 || hour > 23) )
 		return false;
 
-	if ( minute != DATE_DONT_CARE && (minute < 0 || minute > 59) )
+	if ( minute != DATE_DONT_CARE &&  minute != DATE_SHOULDNT_CARE  &&  (minute < 0 || minute > 59) )
 		return false;
 
-	if ( second != DATE_DONT_CARE && (second < 0 || second > 59 ))
+	if ( second != DATE_DONT_CARE &&  second != DATE_SHOULDNT_CARE &&  (second < 0 || second > 59 ))
 		return false;
 
-	if ( hundredths != DATE_DONT_CARE && (hundredths < 0 ||  hundredths > 99))
+	if ( hundredths != DATE_DONT_CARE &&  hundredths != DATE_SHOULDNT_CARE &&  (hundredths < 0 ||  hundredths > 99))
 		return false;
 
 	return true;
@@ -3493,6 +3604,8 @@ void BACnetTime::Encode( char *enc ) const
 	// hour
 	if (hour == DATE_DONT_CARE)
 		*enc++ = '?';
+	else if (hour == DATE_SHOULDNT_CARE)
+		*enc++ = '*';
 	else {
 		sprintf( enc, "%02d", hour );
 		enc += 2;
@@ -3502,6 +3615,8 @@ void BACnetTime::Encode( char *enc ) const
 	// minute
 	if (minute == DATE_DONT_CARE)
 		*enc++ = '?';
+	else if (minute == DATE_SHOULDNT_CARE)
+		*enc++ = '*';
 	else {
 		sprintf( enc, "%02d", minute );
 		enc += 2;
@@ -3511,6 +3626,8 @@ void BACnetTime::Encode( char *enc ) const
 	// second
 	if (second == DATE_DONT_CARE)
 		*enc++ = '?';
+	else if (second == DATE_SHOULDNT_CARE)
+		*enc++ = '*';
 	else {
 		sprintf( enc, "%02d", second );
 		enc += 2;
@@ -3521,7 +3638,11 @@ void BACnetTime::Encode( char *enc ) const
 	if (hundredths == DATE_DONT_CARE) {
 		*enc++ = '?';
 		*enc = 0;
-	} else
+	} else if (hundredths == DATE_SHOULDNT_CARE) {
+		*enc++ = '*';
+		*enc = 0;
+	}
+	else 
 		sprintf( enc, "%02d", hundredths );
 
 	// Time is complex data type so must enclose in brackets for proper parsing
@@ -3542,7 +3663,12 @@ void BACnetTime::Decode( const char *dec )
 		throw_(110);			// missing start bracket for complex data structures
 
 	// check for hour
-	if ((*dec == '*') || (*dec == '?'))
+	if ( *dec == '*' )
+	{
+		hour = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
 		dec += 1;
 	else {
 		// dont' care not specified, they MUST specify hours...
@@ -3568,7 +3694,12 @@ void BACnetTime::Decode( const char *dec )
 	while (*dec && isspace(*dec)) dec++;
 
 	// check for minute
-	if ((*dec == '*') || (*dec == '?'))
+	if ( *dec == '*' ) 
+	{
+		minute = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
 		dec += 1;
 	else {
 		// MUST now supply minute value
@@ -3594,7 +3725,12 @@ void BACnetTime::Decode( const char *dec )
 	while (*dec && isspace(*dec)) dec++;
 
 	// check for second
-	if ((*dec == '*') || (*dec == '?'))
+	if ( *dec == '*' )
+	{
+		second = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
 		dec += 1;
 	else {
 		// MUST now supply the second value
@@ -3619,7 +3755,12 @@ void BACnetTime::Decode( const char *dec )
 		// so we're now scanning for a valid hundredth number
 		while (*dec && isspace(*dec)) dec++;
 
-		if ((*dec == '*') || (*dec == '?'))
+		if ( *dec == '*' )
+		{
+			hundredths = DATE_SHOULDNT_CARE;
+			dec += 1;
+		}
+		else if ( *dec == '?' )
 			dec += 1;
 		else {
 			// MUST now supply the hundredth value
@@ -3712,16 +3853,18 @@ bool BACnetTime::Match( BACnetTime & rtime, int iOperator )
 
 bool BACnetTime::operator ==( const BACnetTime & arg )
 {
-	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE &&  hour != arg.hour )
+	// test all of the values... if one is out of sorts... then the whole thing isn't equal
+
+	if ( !ValuesEqual(hour, arg.hour) )
 		return false;
 
-	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE &&  minute != arg.minute )
+	if ( !ValuesEqual(minute, arg.minute) )
 		return false;
 
-	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE  &&  second != arg.second )
+	if ( !ValuesEqual(second, arg.second) )
 		return false;
 
-	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths != arg.hundredths )
+	if ( !ValuesEqual(hundredths, arg.hundredths) )
 		return false;
 
 	return true;
@@ -3730,16 +3873,19 @@ bool BACnetTime::operator ==( const BACnetTime & arg )
 
 bool BACnetTime::operator !=( const BACnetTime & arg )
 {
-	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE &&  hour != arg.hour )
+	// test all values for equality... if one is not equal... then the whole thing is not equal
+	// and we don't have to keep testing...
+
+	if ( !ValuesEqual(hour, arg.hour) )
 		return true;
 
-	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE &&  minute != arg.minute )
+	if ( !ValuesEqual(minute, arg.minute) )
 		return true;
 
-	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE  &&  second != arg.second )
+	if ( !ValuesEqual(second, arg.second) )
 		return true;
 
-	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE &&  hundredths != arg.hundredths )
+	if ( !ValuesEqual(hundredths, arg.hundredths) )
 		return true;
 
 	return false;
@@ -3748,121 +3894,119 @@ bool BACnetTime::operator !=( const BACnetTime & arg )
 
 bool BACnetTime::operator <=( const BACnetTime & arg )
 {
-	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE )
-		if ( hour > arg.hour )
-			return false;
-		else if ( hour < arg.hour )
-			return true;				// don't need to mess with this anymore... hour is less
+	if ( !ValuesEqual(hour, arg.hour) )
+		return ValuesLess(hour, arg.hour);
 
-	// hours are now equal or we don't care...
-	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE )
-		if ( minute > arg.minute )
-			return false;
-		else if ( minute < arg.minute )
-			return true;
+	// years are now equal or we don't care...
+	if ( !ValuesEqual(minute, arg.minute) )
+		return ValuesLess(minute, arg.minute);
 
-	// hours and minutes are equal or don't care... check second
-	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE )
-		if (  second > arg.second )
-			return false;
-		else if ( second < arg.second )
-			return true;
+	// years and months are equal or don't care... check day
+	if ( !ValuesEqual(second, arg.second) )
+		return ValuesLess(second, arg.second);
 
-	// all important values are either equal or don't care... check final second of week
-	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths > arg.hundredths )
-		return false;
+	// all important values are either equal or don't care... check final day of week
+	if ( !ValuesEqual(hundredths, arg.hundredths) )
+		return ValuesLess(hundredths, arg.hundredths);
 
+	// values must be equal
 	return true;
 }
 
 
 bool BACnetTime::operator <( const BACnetTime & arg )
 {
-	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE  )
-		if ( hour < arg.hour )
-			return true;
-		else if ( hour > arg.hour )
-			return false;				// don't need to mess with this anymore... hour is more
+	if ( !ValuesEqual(hour, arg.hour) )
+		return ValuesLess(hour, arg.hour);
 
 	// hours are now equal or we don't care...
-	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE )
-		if ( minute < arg.minute )
-			return true;
-		else if ( minute > arg.minute )
-			return false;
+	if ( !ValuesEqual(minute, arg.minute) )
+		return ValuesLess(minute, arg.minute);
 
 	// hours and minutes are equal or don't care... check second
-	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE )
-		if (  second < arg.second )
-			return true;
-		else if ( second > arg.second )
-			return false;
+	if ( !ValuesEqual(second, arg.second) )
+		return ValuesLess(second, arg.second);
 
 	// all important values are either equal or don't care... check final second of week
-	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths < arg.hundredths )
-		return true;
+	if ( !ValuesEqual(hundredths, arg.hundredths) )
+		return ValuesLess(hundredths, arg.hundredths);
 
+	// values must be equal so return false
 	return false;
 }
 
 
 bool BACnetTime::operator >=( const BACnetTime & arg )
 {
-	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE )
-		if ( hour < arg.hour )
-			return false;
-		else if ( hour > arg.hour )
-			return true;				// don't need to mess with this anymore... hour is less
+	if ( !ValuesEqual(hour, arg.hour) )
+		return ValuesGreater(hour, arg.hour);
 
 	// hours are now equal or we don't care...
-	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE )
-		if ( minute < arg.minute )
-			return false;
-		else if ( minute > arg.minute )
-			return true;
+	if ( !ValuesEqual(minute, arg.minute) )
+		return ValuesGreater(minute, arg.minute);
 
 	// hours and minutes are equal or don't care... check second
-	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE )
-		if (  second < arg.second )
-			return false;
-		else if ( second > arg.second )
-			return true;
+	if ( !ValuesEqual(second, arg.second) )
+		return ValuesGreater(second, arg.second);
 
 	// all important values are either equal or don't care... check final second of week
-	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths < arg.hundredths )
-		return false;
+	if ( !ValuesEqual(hundredths, arg.hundredths) )
+		return ValuesGreater(hundredths, arg.hundredths);
 
+	// values must be equal now
 	return true;
 }
 
 
 bool BACnetTime::operator >( const BACnetTime & arg )
 {
-	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE  )
-		if ( hour > arg.hour )
-			return true;
-		else if ( hour < arg.hour )
-			return false;
+	if ( !ValuesEqual(hour, arg.hour) )
+		return ValuesGreater(hour, arg.hour);
 
 	// hours are now equal or we don't care...
-	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE )
-		if ( minute > arg.minute )
-			return true;
-		else if ( minute < arg.minute )
-			return false;
+	if ( !ValuesEqual(minute, arg.minute) )
+		return ValuesGreater(minute, arg.minute);
 
 	// hours and minutes are equal or don't care... check second
-	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE )
-		if (  second > arg.second )
-			return true;
-		else if ( second < arg.second )
-			return false;
+	if ( !ValuesEqual(second, arg.second) )
+		return ValuesGreater(second, arg.second);
 
 	// all important values are either equal or don't care... check final second of week
-	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths > arg.hundredths )
-		return true;
+	if ( !ValuesEqual(hundredths, arg.hundredths) )
+		return ValuesGreater(hundredths, arg.hundredths);
 
+	// values must be equal so return false
 	return false;
+}
+
+
+void BACnetTime::TestTimeComps()
+{
+	bool f;
+	int max = 7;
+	BACnetTime t1, t2;
+	char * t[] = {  "[10:11:12.99]", "[10:11:12.99]",
+					"[10:11:12.99]", "[10:11:12.50]",
+					"[10:11:12.99]", "[10:11:12.*]",
+					"[10:11:12.99]", "[10:*:12.50]",
+					"[10:?:12.99]", "[10:11:12.50]",
+					"[10:*:12.99]", "[10:?:12.50]",
+					"[?:11:12.99]", "[12:?:15.50]"
+				};
+
+
+	for ( int i = 0; i < max; i++ )
+	{
+		t1.Decode( (const char *) t[i*2] );
+		t2.Decode( (const char *) t[(i*2)+1] );
+
+		f = t1 == t2;
+		f = t1 != t2;
+		f = t1 <  t2;
+		f = t1 <= t2;
+		f = t1 >  t2;
+		f = t1 >= t2;
+	}
 }
 
 
