@@ -8,6 +8,7 @@
 #include "EPICSTreeView.h"
 #include "EPICSViewNode.h"
 #include "EPICSViewInfoPanel.h"
+#include "EPICSViewPropPanel.h"
 
 ///////////////////////////////
 namespace PICS {
@@ -227,12 +228,14 @@ void CEPICSViewNodeDataLink::LoadInfoPanel()
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+IMPLEMENT_DYNCREATE(CEPICSViewNodeObject, CEPICSViewNode)
 
 
 CEPICSViewNodeObject::CEPICSViewNodeObject( CEPICSTreeView * ptreeview, void far * pObj )
 				   :CEPICSViewNode(ptreeview)
 {
 	m_pObj = pObj;
+	m_astrDevValues.SetSize(0);
 }
 
 
@@ -241,15 +244,66 @@ CEPICSViewNodeObject::~CEPICSViewNodeObject()
 }
 
 
+unsigned long CEPICSViewNodeObject::GetObjectID()
+{
+	PICS::generic_object * pObj = (PICS::generic_object *) m_pObj;
+
+	return ( gPICSdb && pObj  ? pObj->object_id : 0);
+}
+
+
+// Local index here is the nth SUPPORTED property... not just a blind index into the array
+// of propflags
+
+unsigned long CEPICSViewNodeObject::GetPropertyID( int nLocalIndex )
+{
+	PICS::generic_object * pObj = (PICS::generic_object *) m_pObj;
+
+	DWORD dwPropID = 0;
+	char szPropName[100];
+	int x = 0;
+
+	for (int i = 0; i < sizeof(pObj->propflags); i++ )
+		if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID) > 0 )
+			if ( x++ == nLocalIndex )
+				return (unsigned long) dwPropID;
+
+	return 0;
+}
+
+
+
+// Local index here is the nth SUPPORTED property... not just a blind index into the array
+// of propflags
+
+unsigned long CEPICSViewNodeObject::GetPropertyIDAndValue( int nLocalIndex, BACnetAnyValue * pany )
+{
+	PICS::generic_object * pObj = (PICS::generic_object *) m_pObj;
+
+	DWORD dwPropID = 0;
+	char szPropName[100];
+	int x = 0;
+
+	for (int i = 0; i < sizeof(pObj->propflags); i++ )
+		if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID) > 0 )
+			if ( x++ == nLocalIndex )
+			{
+				PICS::CreatePropertyFromEPICS( pObj, (PICS::BACnetPropertyIdentifier) dwPropID, pany );
+				return (unsigned long) dwPropID;
+			}
+
+	return 0;
+}
+
+
+
+
 void CEPICSViewNodeObject::LoadInfoPanel()
 {
-	CEPICSViewListPanel * ppanel = (CEPICSViewListPanel *) m_ptreeview->GetInfoPanel();
+	CEPICSViewPropPanel * ppanel = (CEPICSViewPropPanel *) m_ptreeview->GetInfoPanel();
 
-	if (  ppanel == NULL || !m_ptreeview->GetInfoPanel()->IsKindOf(RUNTIME_CLASS(CEPICSViewListPanel)) )
-		ppanel = (CEPICSViewListPanel *) m_ptreeview->CreateInfoView(RUNTIME_CLASS(CEPICSViewListPanel), TRUE);
-
-	ppanel->Reset();
-	CListCtrl & listCtrl = ppanel->GetListCtrl();
+	if (  ppanel == NULL || !m_ptreeview->GetInfoPanel()->IsKindOf(RUNTIME_CLASS(CEPICSViewPropPanel)) )
+		ppanel = (CEPICSViewPropPanel *) m_ptreeview->CreateInfoView(RUNTIME_CLASS(CEPICSViewPropPanel), TRUE);
 
 	char szPropHeader[120];
 	PICS::generic_object * pObj = (PICS::generic_object *) m_pObj;
@@ -262,9 +316,9 @@ void CEPICSViewNodeObject::LoadInfoPanel()
 		strcat(szPropHeader, PICS::GetObjectTypeName(pObj->object_type));
 	}
 
-	listCtrl.InsertColumn( 0, _T(szPropHeader), LVCFMT_LEFT, 150 );
-	listCtrl.InsertColumn( 1, _T("Writeable"), LVCFMT_LEFT, 70 );
-	listCtrl.InsertColumn( 2, _T("Value"), LVCFMT_LEFT, 100 );
+	ppanel->Reset(this, szPropHeader);
+	CListCtrl & listCtrl = ppanel->GetListCtrl();
+
 
 	if ( gPICSdb )
 	{
@@ -293,9 +347,48 @@ void CEPICSViewNodeObject::LoadInfoPanel()
 
 				x++;
 			}
+
+		// Now that all the properties are loaded into the list we can add our stored device values
+		// if we have some... Size of array must match our property list... so we can count on the list size
+
+		for (int j = 0; j < m_astrDevValues.GetSize(); j++ )
+			listCtrl.SetItemText(j, 3, m_astrDevValues[j]);
 	}
 }
 
+
+// Call this guy to set a new device value and turn the text red...
+// If the text equals the value, turn it green, otherwise, turn it red
+
+void CEPICSViewNodeObject::SetDeviceValue( int iIndex, LPCSTR lpszValue )
+{
+	CEPICSViewPropPanel * ppanel = (CEPICSViewPropPanel *) m_ptreeview->GetInfoPanel();
+
+	if ( m_astrDevValues.GetSize() != ppanel->GetListCtrl().GetItemCount() )
+		m_astrDevValues.SetSize(ppanel->GetListCtrl().GetItemCount());
+
+	m_astrDevValues[iIndex] = lpszValue;
+	ppanel->GetListCtrl().SetItemText(iIndex, 3, lpszValue);
+}
+
+
+void CEPICSViewNodeObject::ClearDeviceValues()
+{
+	CEPICSViewPropPanel * ppanel = (CEPICSViewPropPanel *) m_ptreeview->GetInfoPanel();
+
+	for ( int i = 0; i < ppanel->GetListCtrl().GetItemCount(); i++ )
+		ppanel->GetListCtrl().SetItemText(i, 3, "");
+
+	m_astrDevValues.RemoveAll();
+	m_astrDevValues.SetSize(0);
+}
+
+
+BOOL CEPICSViewNodeObject::HasDeviceValues()
+{
+	CEPICSViewPropPanel * ppanel = (CEPICSViewPropPanel *) m_ptreeview->GetInfoPanel();
+	return m_astrDevValues.GetSize() != 0;
+}
 
 
 //////////////////////////////////////////////////////////////////////

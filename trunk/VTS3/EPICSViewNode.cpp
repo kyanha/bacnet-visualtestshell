@@ -33,6 +33,10 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+
+IMPLEMENT_DYNCREATE(CEPICSViewNode, CObject)
+
+
 CEPICSViewNode::CEPICSViewNode( CEPICSTreeView * ptreeview )
 {
 	m_ptreeview = ptreeview;

@@ -17,11 +17,15 @@ class CEPICSViewNode : public CObject
 protected:
 	CEPICSTreeView * m_ptreeview;
 
+	CEPICSViewNode(){};
+	DECLARE_DYNCREATE(CEPICSViewNode)
+
+
 public:
 	CEPICSViewNode( CEPICSTreeView * ptreeview );
 	virtual ~CEPICSViewNode();
 
-	virtual void LoadInfoPanel() = 0;
+	virtual void LoadInfoPanel();
 };
 
 
@@ -33,6 +37,7 @@ private:
 	int m_nConE;
 
 	void LoadErrorFile( CEPICSViewInfoPanel * ppanel );
+
 
 public:
 	CEPICSViewNodeRoot( CEPICSTreeView * ptreeview, int nSyntaxErrors, int nConErrors );
@@ -101,13 +106,24 @@ class CEPICSViewNodeObject : public CEPICSViewNode
 {
 private:
 	void far * m_pObj;
+	CStringArray m_astrDevValues;
 
+
+protected:
+	CEPICSViewNodeObject() {};
+	DECLARE_DYNCREATE(CEPICSViewNodeObject)
 
 public:
 	CEPICSViewNodeObject( CEPICSTreeView * ptreeview, void far * pObj );
 	virtual ~CEPICSViewNodeObject();
 
 	virtual void LoadInfoPanel();
+	void SetDeviceValue( int iIndex, LPCSTR lpszValue );
+	void ClearDeviceValues(void);
+	unsigned long GetObjectID(void);
+	unsigned long GetPropertyID( int nLocalIndex );
+	unsigned long GetPropertyIDAndValue( int nLocalIndex, BACnetAnyValue * pany );
+	BOOL HasDeviceValues(void);
 };
 
 

@@ -4,7 +4,10 @@
 #include "stdafx.h"
 #include <afxrich.h>
 #include <process.h>
-#include "vts.h"
+
+#include "stdafx.h"
+#include "VTS.h"
+#include "ChildFrm.h"
 
 
 #include "DockingEPICSViewBar.h"
@@ -71,6 +74,8 @@ BEGIN_MESSAGE_MAP(CEPICSTreeView, CFormView)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_EPICSV_TREE, OnSelchangedEpicsTree)
 	ON_BN_CLICKED(IDC_EPICSV_EDIT, OnEpicsEdit)
 	ON_WM_DESTROY()
+	ON_BN_CLICKED(IDC_EPICSV_GEN, OnEpicsReadSingleProps)
+	ON_BN_CLICKED(IDC_EPICSV_GENALL, OnEpicsReadAllProps)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -166,6 +171,27 @@ void CEPICSTreeView::OnEpicsEdit()
 		str2.Format("notepad.exe \"%s\"", str);
 		_spawnlp(_P_NOWAIT, "notepad.exe", str2, NULL);
 	}
+}
+
+
+void CEPICSTreeView::OnEpicsReadSingleProps() 
+{
+	CChildFrame * p = (CChildFrame *) GetParentFrame();
+
+	// Get selected Object node
+	CTreeCtrl * ptree = (CTreeCtrl *) GetDlgItem(IDC_EPICSV_TREE);
+	HTREEITEM htreeitem = ptree->GetSelectedItem();
+	CEPICSViewNodeObject * pnode = htreeitem != NULL ? (CEPICSViewNodeObject *) ptree->GetItemData(htreeitem) : NULL;
+
+	if ( pnode != NULL && pnode->IsKindOf(RUNTIME_CLASS(CEPICSViewNodeObject)) )
+		p->DoReadSingleProperties("ReadObjectProperties.vts", pnode->GetObjectID());
+}
+
+
+void CEPICSTreeView::OnEpicsReadAllProps() 
+{
+	CChildFrame * p = (CChildFrame *) GetParentFrame();
+	p->DoReadAllProperties();
 }
 
 
@@ -277,6 +303,9 @@ void CEPICSTreeView::Refresh()
 	WipeOut(ptree, ptree->GetRootItem());
 	ptree->DeleteAllItems();
 
+	GetDlgItem(IDC_EPICSV_GEN)->EnableWindow(FALSE);
+	GetDlgItem(IDC_EPICSV_GENALL)->EnableWindow(gPICSdb != NULL);
+
 	// Build tree nodes...  
 	HTREEITEM htreeitemLast = NULL;
 
@@ -369,6 +398,9 @@ void CEPICSTreeView::SetTreeImageList()
 void CEPICSTreeView::OnInitialUpdate() 
 {
 	CFormView::OnInitialUpdate();
+
+	GetDlgItem(IDC_EPICSV_GEN)->EnableWindow(FALSE);
+	GetDlgItem(IDC_EPICSV_GENALL)->EnableWindow(FALSE);
 }
 
 
@@ -381,6 +413,8 @@ void CEPICSTreeView::OnSelchangedEpicsTree(NMHDR* pNMHDR, LRESULT* pResult)
 
 	HTREEITEM htreeitem = pNMTreeView == NULL ? NULL : ptree->GetSelectedItem();
 	CEPICSViewNode * pnode = htreeitem != NULL ? (CEPICSViewNode *) ptree->GetItemData(htreeitem) : NULL;
+
+	GetDlgItem(IDC_EPICSV_GEN)->EnableWindow(pnode->IsKindOf(RUNTIME_CLASS(CEPICSViewNodeObject)));
 
 	if ( pnode != NULL )
 		pnode->LoadInfoPanel();
@@ -398,6 +432,3 @@ void CEPICSTreeView::OnDestroy()
 
 	CFormView::OnDestroy();
 }
-
-
-
