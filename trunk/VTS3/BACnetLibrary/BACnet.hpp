@@ -281,6 +281,8 @@ class BACnetObjectIdentifier : public BACnetEncodeable {
 		unsigned int	objID;
 		
 		BACnetObjectIdentifier( int objType = 0, int instanceNum = 0 );
+
+		void SetValue( int objType, int instanceNum );
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
@@ -412,7 +414,7 @@ class BACnetAPDUDecoder {
 		const BACnetOctet	*pktBuffer;				// pointer to buffer
 		int					pktLength;				// number of encoded octets
 		
-		BACnetAPDUDecoder( const BACnetOctet *buffer, int len );
+		BACnetAPDUDecoder( const BACnetOctet *buffer = 0, int len = 0 );
 		BACnetAPDUDecoder( const BACnetAPDUEncoder &enc );
 		
 		void SetBuffer( const BACnetOctet *buffer, int len );
