@@ -132,6 +132,23 @@ void VTSPacket::NewDataRef( BACnetOctetPtr data, int len )
 }
 
 //
+//	VTSDB::VTSDB
+//
+
+VTSDB::VTSDB( void )
+	: pObjMgr(0), pArrayMgr(0), pListMgr(0)
+{
+}
+
+//
+//	VTSDB::~VTSDB
+//
+
+VTSDB::~VTSDB( void )
+{
+}
+
+//
 //	VTSDB::Init
 //
 
@@ -142,6 +159,10 @@ void VTSDB::Init( void )
 	
 	// let the database set itself up
 	JDB::Init();
+
+	// set the version
+	fileDesc->majorVersion = kVTSDBMajorVersion;
+	fileDesc->minorVersion = kVTSDBMinorVersion;
 
 	// build some managers for objects and arrays
 	pObjMgr = new JDBObjMgr( this );
@@ -184,9 +205,28 @@ void VTSDB::Open( void )
 {
 	int		stat
 	;
-	
+	char	errMsg[80]
+	;
+
 	// open the database
 	JDB::Open();
+
+	// make sure the versions are compatible
+	if ((fileDesc->majorVersion != kVTSDBMajorVersion) || (fileDesc->minorVersion > kVTSDBMinorVersion)) {
+		sprintf( errMsg, "Version %d.%d incompatible with this release (Version %d.%d expected)"
+			, fileDesc->majorVersion, fileDesc->minorVersion
+			, kVTSDBMajorVersion, kVTSDBMinorVersion
+			);
+
+		// it opened, so close it
+		CloseFile();
+
+		throw errMsg;
+	}
+
+	// update if we need to
+	if (fileDesc->minorVersion < kVTSDBMinorVersion) {
+	}
 
 	// build some managers for objects and arrays
 	pObjMgr = new JDBObjMgr( this );
@@ -216,9 +256,12 @@ void VTSDB::Open( void )
 void VTSDB::Close( void )
 {
 	// all done with the managers
-	delete pObjMgr;
-	delete pArrayMgr;
-	delete pListMgr;
+	if (pObjMgr)
+		delete pObjMgr;
+	if (pArrayMgr)
+		delete pArrayMgr;
+	if (pListMgr)
+		delete pListMgr;
 
 	// pass it along
 	JDB::Close();

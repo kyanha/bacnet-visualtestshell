@@ -72,8 +72,8 @@ void JDB::Init( void )
 	fileDesc->transID = 1;						// last successful transaction
 	fileDesc->structCacheSize = kJDBDefaultStructCacheSize;	// struct cache records maintained
 	fileDesc->dataCacheSize = fileDataSize;		// data cache records maintained
-	fileDesc->fileType = 0;						// this is a Macintosh file
-	fileDesc->fileVersion = 1;					// start with version one
+	fileDesc->majorVersion = 1;					// start with version one
+	fileDesc->minorVersion = 0;					//
 	
 	// free bytes for other header information
 	fileDesc->freeBytes = (fileDescSize * kBlockSize) - kJDBDescRecSize;

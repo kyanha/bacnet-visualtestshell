@@ -173,8 +173,14 @@ const short kVTSDescSig = 0x0001;
 //	VTSDB
 //
 
+const int kVTSDBMajorVersion = 3;			// current version
+const int kVTSDBMinorVersion = 0;
+
 class VTSDB : public JDB {
 	public:
+		VTSDB( void );
+		virtual ~VTSDB( void );
+
 		virtual void Init( void );				// newly created database
 		virtual void Open( void );				// existing database
 		virtual void Close( void );				// clean up operations
