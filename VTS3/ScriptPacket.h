@@ -75,7 +75,11 @@ class ScriptPacketExprList : public CList<ScriptPacketExprPtr,ScriptPacketExprPt
 const int kScriptPacketExprListSize = sizeof( ScriptPacketExprList );
 
 
-const int kMaxPacketDelay = 1800;						// in ms, 1 minute
+// madanner 6/03: Extended to two minutes for calendar objects, as per feature request 681223.
+// Also, value is in microseconds so 1800 was only 1.8 seconds anyway, not one minute.
+//const int kMaxPacketDelay = 1800;						// in ms, 1 minute
+const int kMaxPacketDelay = 120000;						// in ms, 2 minutes
+const int kDefaultPacketDelay = 3000;					// in ms, 3 seconds
 
 class ScriptCommand : public ScriptBase {
 	public:
