@@ -1031,9 +1031,30 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //
 //  3.5 ?
 //			[ 747747 ] EPICS loading problems:
-//			Fixed this problem loading bitstrings larger than one byte.
+//			Fixed this problem loading bitstrings larger than one byte. 
+//			Additional EPICS loading problems have been fixed:
+//			
+//				- VTS would cause an exception when property names were not found in AVG, Trend-Log and
+//				  Multistate Value objects.
+//				- VTS would not properly recognize property names if comments followed on the same line.
+//				- EPICS parser was incorrectly looking for the following in Supported Services and Objects: 
+//						"Read Range"  -> now changed to "ReadRange"
+//						"UTC-Time-Synchronization"  -> now changed to "UTCTimeSynchronization"
+//						"Trend-Log"  -> now changed to "Trend Log"
+//						"trendlog"  -> now changed to "Trend-Log" for object type specification
+//				- Fixed VTS to skip consistency check (and subsequent dialog box) if user cancels at
+//				  any encountered parsing error.
+//				- Fixed EPICS parsing error notifications to parent script window properly.
+//				- Fixed problem where EPICS wouldn't load again if user canceled a prior EPICS load attempt
+//				  without without restarting VTS.
+//				- Fixed EPICS parser to barf on malformed object property reference in list-of-object-property-reference.
+//				  If delimeter is not present, parsing notifies with an error instead of continuing and
+//				  subsequently attempts to recognize extraneous garbage as property names.
+//				- Fixed whitespace trim from right function - which never worked correctly.  This may fix
+//				  spurrious recognition problems throughout parsing.
 //
 //			Added option in preferences for verification on delete packets.  Defaults to true.
+//
 //
 //
 
