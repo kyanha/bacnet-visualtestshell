@@ -4,7 +4,8 @@
 module:		VTSAPI32.C
 desc:		BACnet Standard Objects DLL v2.15
 authors:	David M. Fisher, Jack R. Neyer
-last edit:	01-SEP-03 [018] GJB enable parser to parse several new properties
+last edit:	08-SEP-03 [018] GJB modified propFlags's index number in DV_CheckOptionalProperty function
+			01-SEP-03 [018] GJB enable parser to parse several new properties
 			10-Nov-02 [017] xyp added for parsing the value of property whose parse type is none.
 			13-Aug-01 [016] JJB added namespace
 			09-Dec-97 [015] DMF revise for 32 bit from v0.14
@@ -1897,14 +1898,19 @@ void DV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 {   char checkMsg[150];
     //PropGroup 1 check for VT_Classes_Supported and Active_VT_Sessions
 	if((servs[asVT_Open])&(servs[asVT_Data])&(servs[asVT_Close])){
-         if(!((propFlags[18])&(propFlags[19]))){
+//         if(!((propFlags[18])&(propFlags[19]))){
+			// since new property -Max_segmentation_accepted has been added,
+			// the index number corresponding to the property VT_Classes_Supported is 19 
+			// the index number corresponding to the property Active_VT_Sessions is 20 
+		   if(!((propFlags[19])&(propFlags[20]))){								// *****018 
  		     sprintf(checkMsg,"VT_Classes_Supported and Active_VT_Sessions should be required when Device object support VT services!\n");
 			 PrintToFile(checkMsg);
 		     tperror(checkMsg,false);		
 		}
 	}
 	else{
-		if(((propFlags[18])|(propFlags[19]))&&!((propFlags[18])&(propFlags[19]))){
+//		if(((propFlags[18])|(propFlags[19]))&&!((propFlags[18])&(propFlags[19]))){
+		if(((propFlags[19])|(propFlags[20]))&&!((propFlags[19])&(propFlags[20]))){		// *****018 
 			sprintf(checkMsg,"VT_Classes_Supported and Active_VT_Sessions must exist simultaneously for Device object!\n");
 			PrintToFile(checkMsg);
 			tperror(checkMsg,false);		

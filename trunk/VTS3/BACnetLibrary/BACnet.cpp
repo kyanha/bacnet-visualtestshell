@@ -119,7 +119,6 @@ BACnetAddress::BACnetAddress( const BACnetAddressType typ, const unsigned short 
 	if (len && addr)
 		memcpy( addrAddr, addr, addrLen );
 }
-
 void BACnetAddress::LocalStation( const unsigned char *addr, const unsigned short len )
 {
 	addrType = localStationAddr;
@@ -4817,10 +4816,274 @@ void BACnetOpeningTag::Decode( BACnetAPDUDecoder& dec )
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////
+//
+// BACnetDaysOfWeek
+//Added by Zhu Zhenhua 2003-9-4
+
+IMPLEMENT_DYNAMIC(BACnetDaysOfWeek, BACnetBitString)
+
+BACnetDaysOfWeek::BACnetDaysOfWeek(void)
+: BACnetBitString(7)
+{
+	
+}
+
+BACnetDaysOfWeek::BACnetDaysOfWeek(
+		bool bMon, bool bTue, bool bWed,
+		bool bThu, bool bFri, bool bSat, 
+		bool bSun
+		)
+: BACnetBitString(7)
+{
+	SetBit(0, bMon);
+	SetBit(1, bTue);
+	SetBit(2, bWed);
+	SetBit(3, bThu);
+	SetBit(4, bFri);
+	SetBit(5, bSat);
+	SetBit(6, bSun);
+}
+
+void BACnetDaysOfWeek::StringToValue( const char *dec )
+{
+	static char *DaysNames[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
+	//	char* dec = "Monday, Tuesday, Wednesday, Thursday, Friday, Sunday";
+	int i = 0;
+	int count = 1;
+	for( i = 0; i < 7; i++ )
+	{
+		SetBit( i, 0 );
+	}
+	bool bFound = false;
+	while ( *dec != '\0' )
+	{
+		if ( count > 7 ) {
+			break;
+		}
+		count++;
+		while ( *dec == ' ' || *dec == ',' )	{
+			dec++;
+		}
+		for( i = 0; i < 7; i++ )
+		{
+			if ( _strnicmp( dec, DaysNames[ i ], 3 ) == 0 )
+			{
+				SetBit( i, 1 );
+				bFound = true;
+				while ( *dec != '\0' && *dec != ' ' && *dec != ',' ) {
+					dec++;
+				}
+				break;
+			}
+		}
+		if ( bFound == false ) {
+			throw "There's a invalid character for BACnetDaysOfWeek's decoding.";
+		}
+	}
+}
+int BACnetDaysOfWeek::DataType()
+{
+	return dsofweek;
+}
+//end of class BACnetDaysOfWeek
+
+///////////////////////////////////////////////////////////////////////////////////
+//
+// BACnetEventTransitionBits
+//Added by Zhu Zhenhua 2003-9-4
+
+IMPLEMENT_DYNAMIC(BACnetEventTransitionBits, BACnetBitString)
+
+BACnetEventTransitionBits::BACnetEventTransitionBits(void)
+: BACnetBitString(3)
+{
+}
+
+BACnetEventTransitionBits::BACnetEventTransitionBits(bool bOffnormal, bool bFault, bool bNormal)
+: BACnetBitString(3)
+{
+	SetBit(0, bOffnormal);
+	SetBit(1, bFault);
+	SetBit(2, bNormal);
+}
+int BACnetEventTransitionBits::DataType()
+{
+	return eventransbits;
+}
+//end of class BACnetEventTransitionBits
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+//    BACnetRecipient
+//Added by Zhu Zhenhua 2003-9-4
+
+IMPLEMENT_DYNAMIC(BACnetRecipient, BACnetObjectContainer)
+
+BACnetRecipient::BACnetRecipient(void)
+{
+
+}
+BACnetRecipient::BACnetRecipient(const BACnetRecipient &src)
+{	
+	*this = src;
+}
+BACnetRecipient::BACnetRecipient( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+BACnetRecipient::BACnetRecipient( BACnetEncodeable * pbacnetEncodeable )
+					:BACnetObjectContainer(pbacnetEncodeable)
+{
+	
+}
+BACnetRecipient & BACnetRecipient::operator =( const BACnetRecipient & arg )
+{
+	BACnetRecipient* newrecipent = new BACnetRecipient();
+	this->SetObject(arg.pbacnetTypedValue->clone());
+	return *this;
+}
+void BACnetRecipient::Encode(BACnetAPDUEncoder& enc, int context)
+{
+	if(pbacnetTypedValue == NULL)
+		return;	
+	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
+		pbacnetTypedValue->Encode(enc, 0);
+	else
+	{
+		BACnetOpeningTag().Encode(enc,1);
+		pbacnetTypedValue->Encode(enc);
+		BACnetClosingTag().Encode(enc,1);
+	}
+
+}
+
+void BACnetRecipient::Decode(BACnetAPDUDecoder& dec)
+{
+	BACnetAPDUTag		tagTestType;	
+	dec.ExamineTag(tagTestType);
+	
+		if (tagTestType.tagClass == openingTagClass)
+				{
+					BACnetOpeningTag().Decode(dec);
+					SetObject( new BACnetAddr(dec) ); 
+					BACnetClosingTag().Decode(dec);
+				}	
+	else
+	{
+	//	if(tagTestType.tagNumber == 0)
+			SetObject( new BACnetObjectIdentifier(dec) );	
+/*
+		else
+		{	TRACE0("INVALID type in encoded stream for BACnetRecipient");
+		ASSERT(0);
+		}*/
+
+	}
+
+}
+
+int BACnetRecipient::DataType()
+{
+	return recipt;
+}
+
+BACnetEncodeable * BACnetRecipient::clone()
+{
+	return new BACnetRecipient( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
+}
+
+
+bool BACnetRecipient::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	if ( PreMatch(iOperator) )
+		return true;
+
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipient)));
+	ASSERT(pbacnetTypedValue != NULL);
+
+	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipient))  &&
+		    pbacnetTypedValue->Match(*((BACnetRecipient &)rbacnet).GetObject(), iOperator, pstrError);
+}
+//end of class BacnetRecipient
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+//
+//	BACnetDestination
+//Added by Zhu Zhenhua, 2003-9-4
+IMPLEMENT_DYNAMIC(BACnetDestination, BACnetEncodeable)
+BACnetDestination::BACnetDestination(
+	BACnetDaysOfWeek &validDays,
+	BACnetTime &fromTime,
+	BACnetTime &toTime,
+	BACnetRecipient &recipient,
+	BACnetUnsigned &processID,
+	BACnetBoolean &issueConfirmedNotifications,
+	BACnetEventTransitionBits &transitions
+	)
+: m_validDays(validDays), m_recipient(recipient),
+m_transitions(transitions)
+{
+	m_fromTime = fromTime;
+	m_toTime = toTime;
+	m_processID = processID;
+	m_issueConfirmedNotifications = issueConfirmedNotifications;
+}
+BACnetDestination::BACnetDestination(const BACnetDestination  &src)
+{
+	*this = src;
+}
+BACnetDestination::BACnetDestination(void)
+{	
+
+}
+BACnetDestination & BACnetDestination::operator =( const BACnetDestination & arg )
+{
+	m_validDays = arg.m_validDays;
+	m_recipient = arg.m_recipient;
+	m_transitions = arg.m_transitions;
+	m_fromTime = arg.m_fromTime;
+	m_toTime = arg.m_toTime;
+	m_processID = arg.m_processID;
+	m_issueConfirmedNotifications = arg.m_issueConfirmedNotifications;
+	return *this;
+	
+}
+void BACnetDestination::Encode(BACnetAPDUEncoder &enc, int nContext)
+{
+
+	m_validDays.Encode(enc);
+	m_fromTime.Encode(enc);
+	m_toTime.Encode(enc);
+	m_recipient.Encode(enc);
+	m_processID.Encode(enc);
+	m_issueConfirmedNotifications.Encode(enc);
+	m_transitions.Encode(enc);
+
+}
+
+void BACnetDestination::Decode(BACnetAPDUDecoder &dec)
+{
+
+	m_validDays.Decode(dec);
+	m_fromTime.Decode(dec);
+	m_toTime.Decode(dec);
+	m_recipient.Decode(dec);
+	m_processID.Decode(dec);
+	m_issueConfirmedNotifications.Decode(dec);
+	m_transitions.Decode(dec);
+
+}
+int BACnetDestination::DataType()
+{
+	return destination;
+}
+
 //
 //	BACnetClosingTag
 //
-
 void BACnetClosingTag::Encode( BACnetAPDUEncoder& enc, int context )
 {
 	if (context < 15) {
@@ -6411,4 +6674,11 @@ void Unbind( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
 bool IsBound( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
 {
 	return ((cp->clientPeer == sp) && (sp->serverPeer == cp));
+}
+
+int BACnetRecipient::GetChoice()
+{
+	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
+		return 0;
+	else return 1;
 }

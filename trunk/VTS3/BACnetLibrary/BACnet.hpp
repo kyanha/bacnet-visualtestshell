@@ -51,7 +51,6 @@ struct BACnetAddress {
 	BACnetAddress( const unsigned char *addr, const unsigned short len );
 	BACnetAddress( const unsigned short net, const unsigned char *addr, const unsigned short len );
 	BACnetAddress( const BACnetAddressType typ = nullAddr, const unsigned short net = 0, const unsigned char *addr = 0, const unsigned short len = 0 );
-
 	BACnetAddress &operator =( const BACnetAddress &arg );
 
 	// initializers (when constructor can't be used)
@@ -224,7 +223,11 @@ class BACnetUnsigned : public BACnetEncodeable {
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
+		BACnetUnsigned &operator = ( const BACnetUnsigned &arg )	//Added by Zhu Zhenhua, 2003-9-4
+		{
+			this->uintValue=arg.uintValue;
+			return *this;	
+		}
 		DECLARE_DYNAMIC(BACnetUnsigned)
 	};
 
@@ -698,11 +701,10 @@ class BACnetBinaryPriV : public BACnetEnumerated
 		DECLARE_DYNAMIC(BACnetBinaryPriV)
 };
 
-
 class BACnetObjectContainer : public BACnetEncodeable
 {
-	protected:
-		BACnetEncodeable * pbacnetTypedValue;
+	public:
+		BACnetEncodeable * pbacnetTypedValue; //Modified By Zhu Zhenhua 2003-9-10
 
 
 	public:
@@ -749,7 +751,43 @@ class BACnetPriorityValue : public BACnetObjectContainer
 		DECLARE_DYNAMIC(BACnetPriorityValue)
 };
 
+///////////////////////////////////////////////////////////////////////////////////
+//
+// BACnetDaysOfWeek
+////Added by Zhu Zhenhua 2003-9-4
+class BACnetDaysOfWeek : public BACnetBitString
+{
+public:
+	BACnetDaysOfWeek(
+		bool bMon, bool bTue, bool bWed,
+		bool bThu, bool bFri, bool bSat, 
+		bool bSun
+		);
 
+	BACnetDaysOfWeek(void);
+	
+	void StringToValue( const char *dec );
+	virtual int DataType(void);
+		DECLARE_DYNAMIC(BACnetDaysOfWeek)
+};
+
+///////////////////////////////////////////////////////////////////////////////////
+//
+// BACnetEventTransitionBits
+////Added by Zhu Zhenhua 2003-9-4
+class BACnetEventTransitionBits : public BACnetBitString
+{
+public:
+	BACnetEventTransitionBits(
+		bool bOffnormal, 
+		bool bFault, 
+		bool bNormal
+		);
+
+	BACnetEventTransitionBits(void);
+	virtual int DataType(void);
+		DECLARE_DYNAMIC(BACnetEventTransitionBits)
+};
 
 class BACnetCalendarEntry : public BACnetObjectContainer
 {
@@ -771,7 +809,294 @@ class BACnetCalendarEntry : public BACnetObjectContainer
 		DECLARE_DYNAMIC(BACnetCalendarEntry)
 };
 
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+//    BACnetRecipient
+//Added by Zhu Zhenhua 2003-9-4
+class BACnetRecipient : public BACnetObjectContainer
+{
+public:
+	int GetChoice();
+	BACnetRecipient(void);
+	BACnetRecipient(const BACnetRecipient &src);
+	BACnetRecipient( BACnetAPDUDecoder & dec );
+	BACnetRecipient( BACnetEncodeable * pbacnetEncodeable );	
+	void Encode(BACnetAPDUEncoder &enc, int Context = kAppContext);
+	void Decode(BACnetAPDUDecoder &dec);
+	BACnetRecipient &operator = ( const BACnetRecipient &arg );
+	virtual int DataType(void);
+	virtual BACnetEncodeable * clone(void);
+	virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+	
+	DECLARE_DYNAMIC(BACnetRecipient)
+};
+///////////////////////////////////////////////////////////////////////////////////
+//
+//	BACnetDestination
+//Added by Zhu Zhenhua, 2003-9-4
+class  BACnetDestination : public BACnetEncodeable
+{
+public:
+	BACnetDaysOfWeek			m_validDays;
+	BACnetTime					m_fromTime;
+	BACnetTime					m_toTime;
+	BACnetRecipient				m_recipient;
+	BACnetUnsigned 				m_processID;
+	BACnetBoolean				m_issueConfirmedNotifications;
+	BACnetEventTransitionBits	m_transitions;
+	
+	
+	BACnetDestination(
+		BACnetDaysOfWeek &validDays,
+		BACnetTime &fromTime,
+		BACnetTime &toTime,
+		BACnetRecipient &recipient,
+		BACnetUnsigned &processID,
+		BACnetBoolean &issueConfirmedNotifications,
+		BACnetEventTransitionBits &transitions
+		);
+	BACnetDestination(void);
+	BACnetDestination(const BACnetDestination &src);
+	BACnetDestination &operator = ( const BACnetDestination &arg );
+	void Decode(BACnetAPDUDecoder &dec);
+	void Encode(BACnetAPDUEncoder &enc,int nContext = kAppContext);
+	virtual int DataType(void);
+		DECLARE_DYNAMIC(BACnetDestination)
+};
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+//Added by Zhu Zhenhua  2003-8-27
+//	BACnetSequenceOf
+#define sequenceof			52			//BACnetSequenceOf
+#define listof				53			//BACnetListOf
+#define arrayof				54			//BACnetArrayOf
 
+class BACnetUnsigned;
+
+template<class MyDataType> 
+class BACnetSequenceOf:  public BACnetEncodeable{
+protected:
+	CList<MyDataType*,MyDataType*> listSequenceOf;
+	int					m_typeID;
+	int					m_itemTypeID;	
+public:
+	int					m_nObjID;	
+public:
+	BACnetSequenceOf(int typeID = sequenceof)
+		:m_typeID(typeID)
+	{
+
+	}
+
+	BACnetSequenceOf(const BACnetSequenceOf<MyDataType> &src)
+		:m_typeID(src.m_typeID), 
+		m_itemTypeID(src.m_itemTypeID), m_nObjID(src.m_nObjID)
+	{
+		for(int i=0; i < src.listSequenceOf.GetCount(); i++)
+		{	
+			POSITION pos = src.listSequenceOf.FindIndex(i);
+			MyDataType* pElem = new MyDataType(*(src.listSequenceOf.GetAt(pos)));
+			listSequenceOf.AddTail(pElem);
+		}
+	}
+	
+	~BACnetSequenceOf()
+	{
+		for(int i=0; i < listSequenceOf.GetCount(); i++)
+		{	
+			POSITION pos = listSequenceOf.FindIndex(i);
+			delete listSequenceOf.GetAt(pos);	
+		}
+	}
+	
+	void AddElement(MyDataType* pSrc)
+	{
+		MyDataType* pNewElem = new MyDataType(*pSrc);
+		if(pNewElem != NULL)
+		listSequenceOf.AddTail(pNewElem);
+	}
+	
+	void DeleteElement(unsigned int index)
+	{
+		if(index >=(unsigned int) listSequenceOf.GetCount())
+		{
+			throw "The specified index is beyond the scope of the sequenceof.";
+		}
+		POSITION pos = listSequenceOf.FindIndex(index);
+		MyDataType* pDeleteElem=listSequenceOf.GetAt(pos);
+		
+		if(pDeleteElem != NULL)
+		{
+			delete pDeleteElem;
+			pDeleteElem = NULL;
+		}
+		
+		listSequenceOf.RemoveAt(pos);
+	}
+	
+	void DeleteAllElements()
+	{
+		for(int i=0; i < listSequenceOf.GetCount(); i++)
+		{
+			POSITION pos = listSequenceOf.FindIndex(i);
+			delete listSequenceOf.GetAt(pos);
+		}
+		listSequenceOf.RemoveAll();
+	}
+	void SetElement(unsigned int index, MyDataType* src)
+	{
+		if(index >= listSequenceOf.GetCount())
+			throw "The specified index is beyond the scope of the sequenceof.";
+		POSITION pos = listSequenceOf.FindIndex(index);		
+		MyDataType* elem=listSequenceOf.GetAt(pos);
+		*elem = *src;
+	}
+	
+	MyDataType* GetElement(unsigned int index) const
+	{
+		if(index>=(unsigned int)listSequenceOf.GetCount())
+			throw "The specified index is beyond the scope of the sequenceof.";
+		POSITION pos = listSequenceOf.FindIndex(index);			
+		return listSequenceOf.GetAt(pos);
+	}
+	
+	int GetItemCount() const
+	{ 
+		return listSequenceOf.GetCount();
+	}
+	
+	const int GetItemType() const
+	{
+		MyDataType item;
+		return item.DataType();
+	}
+	
+	void SetItemType(int typeID)
+	{
+		m_itemTypeID = typeID;			
+	}
+	
+	void SetType(int typeID)
+	{
+		if(typeID == sequenceof || typeID == arrayof || typeID == listof)
+			m_typeID = typeID;	
+		else
+			throw "Bad typeID!";
+	}
+	
+	MyDataType* operator[](const unsigned int index)
+	{
+		if(m_typeID != arrayof)
+			throw "It's not an array.";
+		
+		if(index>=listSequenceOf.GetCount())
+			throw "The specified index is beyond the scope of the sequenceof.";		
+		POSITION pos = listSequenceOf.FindIndex(index);			
+		return listSequenceOf.GetAt(pos);
+	}
+	
+	BACnetSequenceOf<MyDataType>& operator=(const BACnetSequenceOf<MyDataType> &src)
+	{
+		if(this != &src)
+		{
+			this->DeleteAllElements();
+			for(int i = 0; i < src.listSequenceOf.GetCount(); i++)
+			{	
+				POSITION pos = src.listSequenceOf.FindIndex(i);	
+				MyDataType* pElem = new MyDataType(*(src.listSequenceOf.GetAt(pos)));
+				listSequenceOf.AddTail(pElem);
+			}
+			
+			m_typeID = src.m_typeID; 
+			m_itemTypeID = src.m_itemTypeID;
+			m_nObjID = src.m_nObjID;
+		}
+		return *this;
+	}
+	
+	bool operator == ( const BACnetSequenceOf<MyDataType> &arg )
+	{
+		if ( listSequenceOf.GetCount() != arg.GetItemCount() ) {
+			return false;
+		}
+		for( int index = 0; index < listSequenceOf.GetCount(); index++ )
+		{
+			POSITION pos = listSequenceOf.FindIndex(index);		
+			if ( !( *(listSequenceOf.GetAt(pos)) == *(arg.GetElement(index)) ) )  {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext )
+	{
+		for(int i = 0; i < listSequenceOf.GetCount(); i++)
+		{
+			POSITION pos = listSequenceOf.FindIndex(i);	
+			listSequenceOf.GetAt(pos)->Encode(enc);
+		}
+	}
+	
+	virtual void Decode( BACnetAPDUDecoder& dec )
+	{
+		DeleteAllElements();
+		while(dec.pktLength != 0)
+		{
+			//if the code is closing tag then break
+			BACnetAPDUTag tag;
+			dec.ExamineTag(tag);
+			if(tag.tagClass == closingTagClass)
+				break;
+			
+			MyDataType* temp = new MyDataType();
+//			switch(temp->DataType()) 
+//			{
+//			case BACNET_READACCESSRESULT_LISTOFRESULT:
+//			//	((ReadAccessResult::ListOfResults*)temp)->SetObjectID(m_nObjID);
+//				break;
+//			case BACNET_WRITEACCESSSPECIFICATION:
+//			//	((BACnetPropertyValue*)temp)->SetObjectID(m_nObjID);
+//				break;
+//			default:
+//				break;
+//			}
+			
+			temp->Decode(dec);
+			listSequenceOf.AddTail(temp);
+		}
+	}	
+	
+	virtual const int DataType(void) const 
+	{
+		return m_typeID;
+	}			
+//	DECLARE_DYNAMIC(BACnetSequenceOf)
+};
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+//
+//	BACnetListOf
+//
+template<class MyDataType >
+class BACnetListOf : public BACnetSequenceOf<MyDataType>
+{
+public:
+	BACnetListOf(void):BACnetSequenceOf<MyDataType>()
+	{
+		m_typeID = listof;		
+	}
+	
+};
+template<class MyDataType >
+class BACnetArrayOf : public BACnetSequenceOf<MyDataType>
+{
+public:
+	BACnetArrayOf(void):BACnetSequenceOf<MyDataType>()
+	{
+		m_typeID = arrayof;	
+	}	
+};
 class BACnetTimeStamp : public BACnetObjectContainer
 {
 	public:
@@ -790,6 +1115,7 @@ class BACnetTimeStamp : public BACnetObjectContainer
 
 		DECLARE_DYNAMIC(BACnetTimeStamp)
 };
+
 
 
 class BACnetGenericArray : public BACnetEncodeable
@@ -854,7 +1180,6 @@ class BACnetCalendarArray : public BACnetGenericArray
 
 		DECLARE_DYNAMIC(BACnetCalendarArray)
 };
-
 
 class BACnetTextArray : public BACnetGenericArray
 {

@@ -1344,11 +1344,23 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						int pID = pif_get_byte(10+x*2);
 						
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+						if(pif_get_byte(9+x*2)&0x07 != 1)
+						{
+							if(obj_type > 63){ /* proprietary object type */
+								sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+							}
+							else{ /* standard object type */
+								sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+							}
 						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+						else
+						{
+							if(obj_type > 63){ /* proprietary object type */
+								sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
+							}
+							else{ /* standard object type */
+								sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
+							}
 						}
 					}
 					break;
@@ -1366,11 +1378,23 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						int pID = pif_get_byte(10+x*2);
 						
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+						if(pif_get_byte(9+x*2)&0x07 != 1)
+						{
+							if(obj_type > 63){ /* proprietary object type */
+								sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+							}
+							else{ /* standard object type */
+								sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+							}
 						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+						else
+						{
+							if(obj_type > 63){ /* proprietary object type */
+								sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
+							}
+							else{ /* standard object type */
+								sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
+							}
 						}
 					}
 					break;
@@ -1450,11 +1474,23 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						int pID = pif_get_byte(10+x*2);
 						
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+						if(pif_get_byte(9+x*2)&0x07 != 1)
+						{
+							if(obj_type > 63){ /* proprietary object type */
+								sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+							}
+							else{ /* standard object type */
+								sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+							}
 						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+						else
+						{
+							if(obj_type > 63){ /* proprietary object type */
+								sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
+							}
+							else{ /* standard object type */
+								sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
+							}
 						}
 					}
 					break;
@@ -1472,11 +1508,23 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						int pID = pif_get_byte(10+x*2);
 						
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+						if(pif_get_byte(9+x*2)&0x07 != 1)
+						{
+							if(obj_type > 63){ /* proprietary object type */
+								sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+							}
+							else{ /* standard object type */
+								sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+							}
 						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+						else
+						{
+							if(obj_type > 63){ /* proprietary object type */
+								sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
+							}
+							else{ /* standard object type */
+								sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
+							}
 						}
 					}
 					break;
