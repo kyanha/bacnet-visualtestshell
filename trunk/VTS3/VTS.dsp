@@ -96,11 +96,19 @@ SOURCE=.\BACnetLibrary\BACnet.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\BACnetLibrary\BACnetAPDU.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\BACnetLibrary\BACnetAPDUDecoder.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\BACnetLibrary\BACnetAPDUEncoder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetAPDUSegment.cpp
 # End Source File
 # Begin Source File
 
@@ -120,6 +128,18 @@ SOURCE=.\BACnetLibrary\BACnetBTR.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\BACnetLibrary\BACnetClient.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetClientTSM.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetDevice.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\BACnetLibrary\BACnetIP.cpp
 # End Source File
 # Begin Source File
@@ -132,11 +152,23 @@ SOURCE=.\BACnetLibrary\BACnetRouter.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\BACnetLibrary\BACnetServer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetServerTSM.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\BACnetLibrary\BACnetTask.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\BACnetLibrary\BACnetTimer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetTSM.cpp
 # End Source File
 # Begin Source File
 
@@ -770,10 +802,6 @@ SOURCE=.\BACnetLibrary\BACnetIP.hpp
 # Begin Source File
 
 SOURCE=.\BACnetLibrary\BACnetRouter.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\BACnetLibrary\BACnetTask.hpp
 # End Source File
 # Begin Source File
 
