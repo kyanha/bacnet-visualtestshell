@@ -2327,6 +2327,9 @@ void AI_CreateProperty( ai_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in AI_CreateProperty");
 			ASSERT(0);
@@ -2438,6 +2441,9 @@ void AO_CreateProperty( ao_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in AO_CreateProperty");
 			ASSERT(0);
@@ -2536,6 +2542,9 @@ void AV_CreateProperty( av_obj_type far * pObj, BACnetPropertyIdentifier propert
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->units,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in AV_CreateProperty");
@@ -2653,6 +2662,9 @@ void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propert
 			break;
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in BI_CreateProperty");
@@ -2776,6 +2788,9 @@ void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in BO_CreateProperty");
 			ASSERT(0);
@@ -2889,6 +2904,9 @@ void BV_CreateProperty( bv_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in BV_CreateProperty");
 			ASSERT(0);
@@ -2924,6 +2942,9 @@ void CA_CreateProperty( calendar_obj_type far * pObj, BACnetPropertyIdentifier p
 			break;
 		case DATE_LIST:
 			pbacnetAnyValue->SetObject(calist, CreateCalendarList(pObj->date_list));
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in CA_CreateProperty");
@@ -2973,6 +2994,9 @@ void CO_CreateProperty( command_obj_type far * pObj, BACnetPropertyIdentifier pr
 			break;
 		case ACTION_TEXT:
 			pbacnetAnyValue->SetObject(actext, new BACnetTextArray(pObj->action_text, 32));
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in CO_CreateProperty");
@@ -3112,6 +3136,29 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
       case MAX_SEGMENTS_ACCEPTED:
          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->max_segments_accepted));
          break;
+      case DATABASE_REVISION:
+         pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->database_revision));
+         break;
+      case CONFIGURATION_FILES:
+			pbacnetAnyValue->SetObject(lobj, CreateObjectList(pObj->configuration_files));
+			break;
+      case LAST_RESTORE_TIME:
+			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->last_restore_time.date.year, pObj->last_restore_time.date.month, 
+													pObj->last_restore_time.date.day_of_month, pObj->last_restore_time.time.hour, 
+													pObj->last_restore_time.time.minute, pObj->last_restore_time.time.second, 0));
+			break;
+      case BACKUP_FAILURE_TIMEOUT:
+         pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->backup_failure_timeout));
+         break;
+		case ACTIVE_COV_SUBSCRIPTIONS:
+			//pbacnetAnyValue->SetObject(lCOVSub, CreateActiveCOVSubscriptions(pObj->active_cov_subscriptions));
+         //break;
+			TRACE0("ACTIVE_COV_SUBSCRIPTIONS (lCOVSub) type creation not implemented yet");
+			ASSERT(0);
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in DE_CreateProperty");
 			ASSERT(0);
@@ -3198,6 +3245,9 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in EE_CreateProperty");
 			ASSERT(0);
@@ -3249,6 +3299,9 @@ void FI_CreateProperty( file_obj_type far * pObj, BACnetPropertyIdentifier prope
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in FI_CreateProperty");
 			ASSERT(0);
@@ -3282,6 +3335,9 @@ void GR_CreateProperty( group_obj_type far * pObj, BACnetPropertyIdentifier prop
 			ASSERT(0);
 			//msg->pv= Obj->list_of_group_members;
 			//msg->pt= raslist;
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in FI_CreateProperty");
@@ -3444,6 +3500,9 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in LO_CreateProperty");
 			ASSERT(0);
@@ -3529,6 +3588,9 @@ void MSI_CreateProperty( mi_obj_type far * pObj, BACnetPropertyIdentifier proper
 			break;
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in MSI_CreateProperty");
@@ -3618,6 +3680,9 @@ void MSO_CreateProperty( mo_obj_type far * pObj, BACnetPropertyIdentifier proper
 			break;
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in MSO_CreateProperty");
@@ -3711,6 +3776,9 @@ void MSV_CreateProperty( msv_obj_type far * pObj, BACnetPropertyIdentifier prope
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in MSV_CreateProperty");
 			ASSERT(0);
@@ -3755,6 +3823,9 @@ void NC_CreateProperty( nc_obj_type far * pObj, BACnetPropertyIdentifier propert
 			ASSERT(0);
 			//msg->pv= Obj->recipient_list;
 			//msg->pt= reciplist;
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in NC_CreateProperty");
@@ -3825,6 +3896,9 @@ void PR_CreateProperty( program_obj_type far * pObj, BACnetPropertyIdentifier pr
 		case OUT_OF_SERVICE:
 			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in PR_CreateProperty");
 			ASSERT(0);
@@ -3891,6 +3965,9 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
 			break;
 		case PRIORITY_FOR_WRITING:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->priority_for_writing));
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in SC_CreateProperty");
@@ -3960,6 +4037,9 @@ void AVG_CreateProperty( avg_obj_type far * pObj, BACnetPropertyIdentifier prope
 			break;
 		case WINDOW_SAMPLES:		   
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->window_samples));
+			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
 			TRACE("INVALID TYPE in AVG_CreateProperty");
@@ -4083,6 +4163,9 @@ void TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
 		case LAST_NOTIFY_RECORD:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
 			break;
+      case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 		default:
 			TRACE("INVALID TYPE in TR_CreateProperty");
 			ASSERT(0);
@@ -4153,7 +4236,6 @@ BACnetObjectIDList * CreateObjectList( PICS::BACnetObjectIdentifier * pobjidlist
 }
 
 
-
 BACnetGenericArray * CreateAddressBindingList( PICS::BACnetAddressBinding * pAddrBinding )
 {
 	BACnetGenericArray * pbacnetArray = new BACnetGenericArray();
@@ -4178,6 +4260,28 @@ BACnetGenericArray * CreateVTClassesSupported( PICS::BACnetVTClassList * pVTClas
 	return pbacnetArray;
 }
 
+/* UNFINISHED!!! 
+BACnetGenericArray * CreateActiveCOVSubscriptions( PICS::BACnetCOVSubscription * pActiveCOVSubscriptions)
+{
+	BACnetGenericArray * pbacnetArray = new BACnetGenericArray();
+
+//typedef struct tagCOVSubscription {
+//struct tagCOVSubscription		*next;
+//	BACnetRecipientProcess		recipient;
+//	BACnetObjectPropertyReference		monitoredPropertyReference;
+//	boolean		notification;
+//	word        timeRemaining;
+//	float       covIncrement;
+//	} BACnetCOVSubscription;
+
+   // get pointer to the table describing the VTClasses enumeration
+   etable *petable = (etable *)PICS::GetEnumTable(eiVTCls);
+	for ( ; pVTClassList != NULL; pVTClassList = pVTClassList->next )
+		pbacnetArray->Add(new ::BACnetEnumerated((int)pVTClassList->vtclass , (const char **)petable->estrings , petable->nes ));
+
+	return pbacnetArray;
+}
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Added by Zhu Zhenhua 2003-7-22
