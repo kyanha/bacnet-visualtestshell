@@ -1,6 +1,5 @@
 
 #include "stdafx.h"
-#include "VTS.h"
 #include <iostream>
 
 #include <stdio.h>
@@ -48,7 +47,7 @@ int stricmp( const char *a, const char *b )
 
 #endif
 
-#define	VTSScanner		0
+#define	VTSScanner		1
 
 #if VTSScanner
 
@@ -56,6 +55,7 @@ namespace NetworkSniffer {
 	extern char *BACnetObjectType[];
 }
 
+#include "VTS.h"
 #include "ScriptBase.h"
 #include "ScriptKeywords.h"
 
