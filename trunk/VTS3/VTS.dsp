@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I ".\JLib" /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I ".\JLib" /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "." /I ".\JLib" /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "." /I ".\JLib" /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -904,11 +904,11 @@ SOURCE=.\BACnetLibrary\WinIP.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\BACnetLibrary\WinPacket32.cpp
+SOURCE=.\ptp\WinPTP.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\ptp\WinPTP.cpp
+SOURCE=.\BACnetLibrary\WinWinPcap.cpp
 # End Source File
 # Begin Source File
 
@@ -1032,6 +1032,18 @@ SOURCE=.\HexView.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\GetMACAddress\IPExport.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\GetMACAddress\IPHlpApi.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\GetMACAddress\IPTypes.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\JLib\JConfig.hpp
 # End Source File
 # Begin Source File
@@ -1108,7 +1120,7 @@ SOURCE=.\BACnetLibrary\NTDDNDIS.H
 # End Source File
 # Begin Source File
 
-SOURCE=.\BACnetLibrary\Packet32.h
+SOURCE=.\WinPcap\PCAP.H
 # End Source File
 # Begin Source File
 
@@ -1716,11 +1728,11 @@ SOURCE=.\BACnetLibrary\WinIP.hpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\BACnetLibrary\WinPacket32.hpp
+SOURCE=.\ptp\WinPTP.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\ptp\WinPTP.h
+SOURCE=.\BACnetLibrary\WinWinPcap.hpp
 # End Source File
 # Begin Source File
 
@@ -1805,11 +1817,15 @@ SOURCE=.\VTS.reg
 # End Source File
 # Begin Source File
 
-SOURCE=.\BACnetLibrary\packet32_NT.lib
+SOURCE=.\macdll\ptp\release\ptp.lib
 # End Source File
 # Begin Source File
 
-SOURCE=.\macdll\ptp\release\ptp.lib
+SOURCE=.\WinPcap\wpcap.lib
+# End Source File
+# Begin Source File
+
+SOURCE=.\WinPcap\IPHlpApi.Lib
 # End Source File
 # End Target
 # End Project

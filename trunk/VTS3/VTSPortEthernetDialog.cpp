@@ -5,7 +5,7 @@
 #include "VTS.h"
 #include "VTSPortEthernetDialog.h"
 
-#include "WinPacket32.hpp"
+#include "WinWinPcap.hpp"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -72,9 +72,7 @@ void VTSPortEthernetDialog::OnOK()
 
 BOOL VTSPortEthernetDialog::OnInitDialog() 
 {
-	int		i, len
-	;
-	char	nameBuff[64]
+	int		len
 	;
 
 	// let the base class do its work
@@ -86,18 +84,14 @@ BOOL VTSPortEthernetDialog::OnInitDialog()
 
 	// look for ethernet ports
 	len = 0;
-	for (i = 0; i < gAdapterListLen; i++)
-		if (gAdapterList[i].AdapterType == ETH_802_3_ADAPTER) {
-			// convert the name
-			UnicodeToAscii( nameBuff, gAdapterList[i].MacDriverName, sizeof(nameBuff) );
-
+	for (int i = 0; i < gAdapterListLen; i++) {
 			// add it to the combo
-			m_AdapterCombo.AddString( nameBuff );
+			m_AdapterCombo.AddString( gAdapterList[i].AdapterDescription );
 			m_AdapterCombo.SetItemData( len, i );
 
 			// count it
 			len++;
-		}
+	}
 	
 	// if there's no adapters, toss up a message box and exit
 	if (len == 0) {
@@ -110,7 +104,7 @@ BOOL VTSPortEthernetDialog::OnInitDialog()
 	// through all of the ports and picked one that wasn't already picked.
 	// That will make a nice enhancement.
 	if (m_Config->GetLength() != 0) {
-		char config[64], *src, *dst;
+		char config[256], *src, *dst;
 
 		// copy the name over
 		src = m_Config->GetBuffer(0);

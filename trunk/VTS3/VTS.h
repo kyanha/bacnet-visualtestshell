@@ -39,7 +39,7 @@ class VTSApp : public CWinApp {
 		virtual BOOL PreTranslateMessage(MSG* pMsg);
 		//}}AFX_VIRTUAL
 
-		void CheckBACMACNTVersion( void );
+		void CheckWinPcapVersion( void );
 
 	// Implementation
 		//{{AFX_MSG(VTSApp)
