@@ -231,7 +231,13 @@ void VTSAny::SynchronizeControls( void )
 	// disable if nothing selected
 	GetDlgItem( IDC_TYPECOMBO )->EnableWindow( m_iSelectedElem >= 0 );
 	GetDlgItem( IDC_CONTEXT )->EnableWindow( m_iSelectedElem >= 0 );
-	GetDlgItem( IDC_VALUE )->EnableWindow( m_iSelectedElem >= 0 );
+	if (m_iSelectedElem < 0)
+		GetDlgItem( IDC_VALUE )->EnableWindow( false );
+	else {
+		int elemType = m_anyList[m_iSelectedElem]->elemType;
+		GetDlgItem( IDC_VALUE )->EnableWindow( (elemType != 0) && (elemType != 13) && (elemType != 14) );
+		m_ValueIDButton.EnableWindow( elemType == 12 );
+	}
 }
 
 void VTSAny::OnAddElem() 
@@ -275,15 +281,22 @@ void VTSAny::OnRemoveElem()
 
 void VTSAny::OnSelchangeTypeCombo() 
 {
+	int		elemType = m_TypeCombo.GetCurSel()
+	;
+
 	// skip changes when there is no selection
 	if (m_iSelectedElem < 0)
 		return;
 
 	// set the list type
-	m_anyList[m_iSelectedElem]->elemType = m_TypeCombo.GetCurSel();
+	m_anyList[m_iSelectedElem]->elemType = elemType;
 
-	// enable the value ID button
-	m_ValueIDButton.EnableWindow( m_anyList[m_iSelectedElem]->elemType == 12 );
+	// synchronize the enable/disable state of the value and id button
+	SynchronizeControls();
+
+	// if the element type doesn't have a value, clear the field
+	if ((elemType == 0) || (elemType == 13) || (elemType == 15))
+		m_Value.SetWindowText( _T("") );
 
 	// update the encoding of m_Value in the new context
 	EncodeValue();
@@ -604,7 +617,7 @@ void VTSAny::DecodeValue( int indx )
 	// depending on the type, decode the value
 	switch (curElem->elemType) {
 		case 0: {
-					m_Value.SetWindowText( _T("(unused)") );
+					m_Value.SetWindowText( _T("") );
 					break;
 				}
 		case 1: {
@@ -716,11 +729,11 @@ void VTSAny::DecodeValue( int indx )
 					break;
 				}
 		case 13: {
-					m_Value.SetWindowText( _T("(unused)") );
+					m_Value.SetWindowText( _T("") );
 					break;
 				}
 		case 14: {
-					m_Value.SetWindowText( _T("(unused)") );
+					m_Value.SetWindowText( _T("") );
 					break;
 				}
 	}
