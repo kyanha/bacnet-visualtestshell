@@ -374,10 +374,12 @@ void VTSAny::OnValueIDButton()
 		m_ObjID.ctrlNull = false;
 		m_ObjID.objID = dlg.objID;
 		m_ObjID.ObjToCtrl();
-
-		m_ObjID.Encode( m_anyList[m_iSelectedElem]->elemEncoder
-			, m_anyList[m_iSelectedElem]->elemContext
-			);
+		
+		//Deleted by Yajun Zhou, 2002-9-3
+		//m_ObjID.Encode( m_anyList[m_iSelectedElem]->elemEncoder
+		//	, m_anyList[m_iSelectedElem]->elemContext
+		//	);
+		////////////////////////////////////
 	}
 }
 
