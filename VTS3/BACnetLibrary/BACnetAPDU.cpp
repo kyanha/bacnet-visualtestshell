@@ -17,7 +17,11 @@ static char THIS_FILE[] = __FILE__;
 
 BACnetAPDU::BACnetAPDU( int initBuffSize )
 	: BACnetAPDUEncoder( initBuffSize )
-	, apduType(abortPDU), apduService(0), apduInvokeID(0), apduAbortRejectReason(0)
+	, apduType(abortPDU)
+	, apduSeg(0), apduMor(0), apduSA(0), apduSrv(0), apduNak(0)
+	, apduSeq(0), apduWin(0)
+	, apduService(0)
+	, apduInvokeID(0), apduAbortRejectReason(0)
 	, apduExpectingReply(0), apduNetworkPriority(0)
 {
 }
@@ -28,9 +32,175 @@ BACnetAPDU::BACnetAPDU( int initBuffSize )
 
 BACnetAPDU::BACnetAPDU( BACnetOctet *buffPtr, int buffLen )
 	: BACnetAPDUEncoder( buffPtr, buffLen )
-	, apduType(abortPDU), apduService(0), apduInvokeID(0), apduAbortRejectReason(0)
+	, apduType(abortPDU)
+	, apduSeg(0), apduMor(0), apduSA(0), apduSrv(0), apduNak(0)
+	, apduSeq(0), apduWin(0)
+	, apduService(0)
+	, apduInvokeID(0), apduAbortRejectReason(0)
 	, apduExpectingReply(0), apduNetworkPriority(0)
 {
+}
+
+//
+//	BACnetAPDU::Encode
+//
+
+void BACnetAPDU::Encode( BACnetAPDUEncoder& enc ) const
+{
+	// transform the APDU
+	switch (apduType) {
+		case confirmedRequestPDU:
+			enc.Append( (((int)apduType) << 4)
+					+ (apduSeg ? 0x08 : 0)
+					+ (apduMor ? 0x04 : 0)
+					+ (apduSA ? 0x02 : 0)
+				);
+			enc.Append( MaxAPDUEncode(apduMaxResp) );
+			enc.Append( apduInvokeID );
+			if (apduSeg) {
+				enc.Append( apduSeq );
+				enc.Append( apduWin );
+			}
+			enc.Append( apduService );
+			enc.Append( pktBuffer, pktLength );
+			break;
+			
+		case unconfirmedRequestPDU:
+			enc.Append( ((int)apduType) << 4 );
+			enc.Append( apduService );
+			enc.Append( pktBuffer, pktLength );
+			break;
+			
+		case simpleAckPDU:
+			enc.Append( ((int)apduType) << 4 );
+			enc.Append( apduInvokeID );
+			enc.Append( apduService );
+			break;
+			
+		case complexAckPDU:
+			enc.Append( (((int)apduType) << 4)
+					+ (apduSeg ? 0x08 : 0)
+					+ (apduMor ? 0x04 : 0)
+				);
+			enc.Append( apduInvokeID );
+			if (apduSeg) {
+				enc.Append( apduSeq );
+				enc.Append( apduWin );
+			}
+			enc.Append( apduService );
+			enc.Append( pktBuffer, pktLength );
+			break;
+			
+		case segmentAckPDU:
+			enc.Append( (((int)apduType) << 4)
+					+ (apduNak ? 0x02 : 0)
+					+ (apduSrv ? 0x01 : 0)
+				);
+			enc.Append( apduInvokeID );
+			enc.Append( apduSeq );
+			enc.Append( apduWin );
+			break;
+			
+		case errorPDU:
+			enc.Append( ((int)apduType) << 4 );
+			enc.Append( apduInvokeID );
+			enc.Append( apduService );
+			enc.Append( pktBuffer, pktLength );
+			break;
+			
+		case rejectPDU:
+			enc.Append( ((int)apduType) << 4 );
+			enc.Append( apduInvokeID );
+			enc.Append( apduAbortRejectReason );
+			break;
+			
+		case abortPDU:
+			enc.Append( (((int)apduType) << 4)
+					+ (apduSrv ? 0x01 : 0)
+				);
+			enc.Append( apduInvokeID );
+			enc.Append( apduAbortRejectReason );
+			break;
+	}
+}
+
+//
+//	BACnetAPDU::Decode
+//
+
+void BACnetAPDU::Decode( BACnetAPDUDecoder& dec )
+{
+	// transform the NPDU into an APDU
+	apduType = (BACnetAPDUType)((dec.pktBuffer[0] & 0xF0) >> 4);
+	
+	switch (apduType) {
+		case confirmedRequestPDU:
+			apduSeg = ((dec.pktBuffer[0] & 0x08) != 0);
+			apduMor = ((dec.pktBuffer[0] & 0x04) != 0);
+			apduSA = ((dec.pktBuffer[0] & 0x02) != 0);
+			apduMaxResp = MaxAPDUDecode( dec.pktBuffer[1] );
+			apduInvokeID = dec.pktBuffer[2];
+			if (apduSeg) {
+				apduSeq = dec.pktBuffer[3];
+				apduWin = dec.pktBuffer[4];
+				apduService = dec.pktBuffer[5];
+				SetBuffer( dec.pktBuffer + 6, dec.pktLength - 6 );
+			} else {
+				apduService = dec.pktBuffer[3];
+				SetBuffer( dec.pktBuffer + 4, dec.pktLength - 4 );
+			}
+			break;
+			
+		case unconfirmedRequestPDU:
+			apduService = dec.pktBuffer[1];
+			SetBuffer( dec.pktBuffer + 2, dec.pktLength - 2 );
+			break;
+			
+		case simpleAckPDU:
+			apduInvokeID = dec.pktBuffer[1];
+			apduService = dec.pktBuffer[2];
+			break;
+			
+		case complexAckPDU:
+			apduSeg = ((dec.pktBuffer[0] & 0x08) != 0);
+			apduMor = ((dec.pktBuffer[0] & 0x04) != 0);
+			apduInvokeID = dec.pktBuffer[1];
+			if (apduSeg) {
+				apduSeq = dec.pktBuffer[2];
+				apduWin = dec.pktBuffer[3];
+				apduService = dec.pktBuffer[4];
+				SetBuffer( dec.pktBuffer + 5, dec.pktLength - 5 );
+			} else {
+				apduService = dec.pktBuffer[2];
+				SetBuffer( dec.pktBuffer + 3, dec.pktLength - 3 );
+			}
+			break;
+			
+		case segmentAckPDU:
+			apduNak = ((dec.pktBuffer[0] & 0x02) != 0);
+			apduSrv = ((dec.pktBuffer[0] & 0x01) != 0);
+			apduInvokeID = dec.pktBuffer[1];
+			apduSeq = dec.pktBuffer[2];
+			apduWin = dec.pktBuffer[3];
+			break;
+			
+		case errorPDU:
+			apduInvokeID = dec.pktBuffer[1];
+			apduService = dec.pktBuffer[2];
+			SetBuffer( dec.pktBuffer + 3, dec.pktLength - 3 );
+			break;
+			
+		case rejectPDU:
+			apduInvokeID = dec.pktBuffer[1];
+			apduAbortRejectReason = dec.pktBuffer[2];
+			break;
+			
+		case abortPDU:
+			apduSrv = ((dec.pktBuffer[0] & 0x01) != 0);
+			apduInvokeID = dec.pktBuffer[1];
+			apduAbortRejectReason = dec.pktBuffer[2]; // meaningless for segAck
+			break;
+	}
 }
 
 //
@@ -50,11 +220,6 @@ BACnetConfirmedServiceAPDU::BACnetConfirmedServiceAPDU( BACnetConfirmedServiceCh
 	apduType = confirmedRequestPDU;
 	apduService = (int)ch;
 	apduExpectingReply = 1;
-	
-	Append( ((int)apduType) << 4 );			// no segmentation by default
-	Append( 0 );							// maximum length
-	Append( 0 );							// invoke ID
-	Append( apduService );
 }
 
 //
@@ -65,9 +230,6 @@ BACnetUnconfirmedServiceAPDU::BACnetUnconfirmedServiceAPDU( BACnetUnconfirmedSer
 {
 	apduType = unconfirmedRequestPDU;
 	apduService = (int)ch;
-	
-	Append( ((int)apduType) << 4 );
-	Append( apduService );
 }
 
 //
@@ -75,15 +237,11 @@ BACnetUnconfirmedServiceAPDU::BACnetUnconfirmedServiceAPDU( BACnetUnconfirmedSer
 //
 
 BACnetSimpleAckAPDU::BACnetSimpleAckAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID )
-	: BACnetAPDU( simpleAckBuff, 3 )
+	: BACnetAPDU( 0 )
 {
 	apduType = simpleAckPDU;
 	apduService = (int)ch;
 	apduInvokeID = invID;
-	
-	simpleAckBuff[0] = ((int)apduType) << 4;
-	simpleAckBuff[1] = invID;
-	simpleAckBuff[2] = (BACnetOctet)ch;
 }
 
 //
@@ -99,10 +257,6 @@ BACnetComplexAckAPDU::BACnetComplexAckAPDU( BACnetConfirmedServiceChoice ch, BAC
 	apduType = complexAckPDU;
 	apduService = (int)ch;
 	apduInvokeID = invID;
-	
-	Append( ((int)apduType) << 4 );			// no segmentation by default
-	Append( invID );
-	Append( apduService );
 }
 
 //
@@ -120,16 +274,15 @@ void BACnetComplexAckAPDU::SetInvokeID( BACnetOctet invID )
 //
 
 BACnetSegmentAckAPDU::BACnetSegmentAckAPDU( const BACnetAddress &dest, BACnetOctet invID, int nak, int srv, BACnetOctet seq, BACnetOctet win )
-	: BACnetAPDU( segmentAckBuff, 4 )
+	: BACnetAPDU( 0 )
 {
 	apduType = segmentAckPDU;
 	apduAddr = dest;
+	apduNak = (nak != 0);
+	apduSrv = (srv != 0);
+	apduSeq = seq;
+	apduWin = win;
 	apduInvokeID = invID;
-	
-	segmentAckBuff[0] = (((int)apduType) << 4) + (nak << 1) + srv;
-	segmentAckBuff[1] = invID;
-	segmentAckBuff[2] = seq;
-	segmentAckBuff[3] = win;
 }
 
 //
@@ -141,10 +294,6 @@ BACnetErrorAPDU::BACnetErrorAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet i
 	apduType = errorPDU;
 	apduService = (int)ch;
 	apduInvokeID = invID;
-	
-	Append( ((int)apduType) << 4 );
-	Append( invID );
-	Append( apduService );
 }
 
 //
@@ -152,15 +301,11 @@ BACnetErrorAPDU::BACnetErrorAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet i
 //
 
 BACnetRejectAPDU::BACnetRejectAPDU( BACnetOctet invID, BACnetRejectReason reason )
-	: BACnetAPDU( rejectBuff, 3 )
+	: BACnetAPDU( 0 )
 {
 	apduType = rejectPDU;
 	apduInvokeID = invID;
 	apduAbortRejectReason = (int)reason;
-	
-	rejectBuff[0] = ((int)apduType) << 4;
-	rejectBuff[1] = invID;
-	rejectBuff[2] = apduAbortRejectReason;
 }
 
 //
@@ -168,14 +313,11 @@ BACnetRejectAPDU::BACnetRejectAPDU( BACnetOctet invID, BACnetRejectReason reason
 //
 
 BACnetAbortAPDU::BACnetAbortAPDU( const BACnetAddress &dest, int srv, BACnetOctet invID, BACnetAbortReason reason )
-	: BACnetAPDU( abortBuff, 3 )
+	: BACnetAPDU( 0 )
 {
 	apduType = abortPDU;
 	apduAddr = dest;
+	apduSrv = (srv != 0);
 	apduInvokeID = invID;
 	apduAbortRejectReason = (int)reason;
-	
-	abortBuff[0] = (((int)apduType) << 4) + srv;
-	abortBuff[1] = invID;
-	abortBuff[2] = apduAbortRejectReason;
 }

@@ -91,7 +91,7 @@ void CSendReadBDTAck::EncodePage( CByteArray* contents )
 
 		// encode the host
 		for (int j = 3; j >= 0; j--)
-			header.Add( (host >> (j * 8)) & 0xFF );
+			header.Add( (unsigned char)((host >> (j * 8)) & 0xFF) );
 
 		// encode the port
 		header.Add( port >> 8 );
@@ -99,7 +99,7 @@ void CSendReadBDTAck::EncodePage( CByteArray* contents )
 
 		// encode the mask
 		for (int k = 3; k >= 0; k--)
-			header.Add( (mask >> (k * 8)) & 0xFF );
+			header.Add( (unsigned char)((mask >> (k * 8)) & 0xFF) );
 	}
 
 	// stuff the header on the front

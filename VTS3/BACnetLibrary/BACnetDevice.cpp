@@ -145,8 +145,15 @@ BACnetDeviceInfoPtr BACnetDevice::GetInfo( const BACnetAddress &addr )
 
 void BACnetDevice::Indication( const BACnetAPDU &apdu )
 {
+	BACnetAPDUEncoder	enc( apdu.pktLength + 6 )
+	;
+	
+	// encode the apdu
+	apdu.Encode( enc );
+
+	// build an NPDU out of the results and send it down
 	Request(
-		BACnetNPDU( apdu.apduAddr, apdu.pktBuffer, apdu.pktLength
+		BACnetNPDU( apdu.apduAddr, enc.pktBuffer, enc.pktLength
 			, apdu.apduExpectingReply, apdu.apduNetworkPriority
 			)
 		);
@@ -164,24 +171,19 @@ void BACnetDevice::Indication( const BACnetAPDU &apdu )
 
 void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 {
-	BACnetAPDU				apdu( (BACnetOctetPtr)npdu.pduData, npdu.pduLen )
+	BACnetAPDU				apdu( 0 )
 	;
 	BACnetClientPtr			cp = deviceClients
 	;
 	BACnetServerPtr			sp = deviceServers
 	;
 	
-	// suck out the APDU type
-	apdu.apduAddr = npdu.pduAddr;
-	apdu.apduType = (BACnetAPDUType)((npdu.pduData[0] & 0xF0) >> 4);
-	
+	// decode the contents
+	apdu.Decode( BACnetAPDUDecoder( npdu ) );
+
+	// now do something with it
 	switch (apdu.apduType) {
 		case confirmedRequestPDU:
-			apdu.apduInvokeID = npdu.pduData[2];
-			if ((npdu.pduData[0] & 0x08) == 0)
-				apdu.apduService = npdu.pduData[3];
-			else
-				apdu.apduService = npdu.pduData[5];
 #if _TSMDebug
 			cout << "[BACnetDevice::confirmedRequestPDU: invokeID " << apdu.apduInvokeID << "]" << endl;
 #endif
@@ -220,7 +222,6 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 			break;
 			
 		case unconfirmedRequestPDU:
-			apdu.apduService = npdu.pduData[1];
 #if _TSMDebug
 			cout << "[BACnetDevice::unconfirmedRequestPDU]" << endl;
 #endif
@@ -243,8 +244,6 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 			break;
 			
 		case simpleAckPDU:
-			apdu.apduInvokeID = npdu.pduData[1];
-			apdu.apduService = npdu.pduData[2];
 #if _TSMDebug
 			cout << "[BACnetDevice::simpleAckPDU: invokeID " << apdu.apduInvokeID << "]" << endl;
 #endif
@@ -263,11 +262,6 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 			break;
 			
 		case complexAckPDU:
-			apdu.apduInvokeID = npdu.pduData[1];
-			if ((npdu.pduData[0] & 0x08) == 0)
-				apdu.apduService = npdu.pduData[2];
-			else
-				apdu.apduService = npdu.pduData[4];
 #if _TSMDebug
 			cout << "[BACnetDevice::complexAckPDU: invokeID " << apdu.apduInvokeID << "]" << endl;
 #endif
@@ -286,8 +280,6 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 			break;
 			
 		case errorPDU:
-			apdu.apduInvokeID = npdu.pduData[1];
-			apdu.apduService = npdu.pduData[2];
 #if _TSMDebug
 			cout << "[BACnetDevice::errorPDU: invokeID " << apdu.apduInvokeID << "]" << endl;
 #endif
@@ -306,8 +298,6 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 			break;
 			
 		case rejectPDU:
-			apdu.apduInvokeID = npdu.pduData[1];
-			apdu.apduAbortRejectReason = npdu.pduData[2];
 #if _TSMDebug
 			cout << "[BACnetDevice::rejectPDU: invokeID " << apdu.apduInvokeID << "]" << endl;
 #endif
@@ -327,8 +317,6 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 			
 		case segmentAckPDU:
 		case abortPDU:
-			apdu.apduInvokeID = npdu.pduData[1];
-			apdu.apduAbortRejectReason = npdu.pduData[2]; // meaningless for segAck
 #if _TSMDebug
 			if (apdu.apduType == segmentAckPDU)
 				cout << "[BACnetDevice::segmentAckPDU: invokeID " << apdu.apduInvokeID << "]" << endl;
@@ -338,19 +326,7 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 					<< "]" << endl;
 #endif
 			
-			if ((npdu.pduData[0] & 0x01) == 0) {
-				// client sent the abort, look for the server
-				while (sp)
-					if ((sp->serverTSM.tsmInvokeID == apdu.apduInvokeID) && (sp->serverTSM.tsmAddr == npdu.pduAddr)) {
-						sp->serverTSM.Indication( apdu );
-						break;
-					} else
-						sp = sp->serverNext;
-#if _TSMDebug
-				if (!sp)
-					cout << "[BACnetDevice::segmentAck/abortPDU: no server matching invokeID " << apdu.apduInvokeID << " found]" << endl;
-#endif
-			} else {
+			if (apdu.apduSrv) {
 				// server sent the abort, find the client
 				while (cp)
 					if ((cp->clientTSM.tsmInvokeID == apdu.apduInvokeID) && (cp->clientTSM.tsmInvokeID != tsmIdle)) {
@@ -361,6 +337,18 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 #if _TSMDebug
 				if (!cp)
 					cout << "[BACnetDevice::segmentAck/abortPDU: no client matching invokeID " << apdu.apduInvokeID << " found]" << endl;
+#endif
+			} else {
+				// client sent the abort, look for the server
+				while (sp)
+					if ((sp->serverTSM.tsmInvokeID == apdu.apduInvokeID) && (sp->serverTSM.tsmAddr == npdu.pduAddr)) {
+						sp->serverTSM.Indication( apdu );
+						break;
+					} else
+						sp = sp->serverNext;
+#if _TSMDebug
+				if (!sp)
+					cout << "[BACnetDevice::segmentAck/abortPDU: no server matching invokeID " << apdu.apduInvokeID << " found]" << endl;
 #endif
 			}
 			break;

@@ -110,7 +110,7 @@ void VTSCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSCtrl::UpdateData
 //
 
-void VTSCtrl::UpdateData( bool bCtrlToObj )
+void VTSCtrl::UpdateData( BOOL bCtrlToObj )
 {
 	if (bCtrlToObj)
 		CtrlToObj();
@@ -2596,7 +2596,7 @@ void VTSStatusFlags::ObjToCtrl( void )
 //	VTSStatusFlags::UpdateData
 //
 
-void VTSStatusFlags::UpdateData( bool bCtrlToObj )
+void VTSStatusFlags::UpdateData( BOOL bCtrlToObj )
 {
 	if (bCtrlToObj)
 		CtrlToObj();

@@ -92,7 +92,7 @@ void CSendWriteBDT::EncodePage( CByteArray* contents )
 
 		// encode the host
 		for (int i = 3; i >= 0; i--)
-			header.Add( (host >> (i * 8)) & 0xFF );
+			header.Add( (unsigned char)((host >> (i * 8)) & 0xFF) );
 
 		// encode the port
 		header.Add( port >> 8 );
@@ -100,7 +100,7 @@ void CSendWriteBDT::EncodePage( CByteArray* contents )
 
 		// encode the mask
 		for (int j = 3; j >= 0; j--)
-			header.Add( (mask >> (j * 8)) & 0xFF );
+			header.Add( (unsigned char)((mask >> (j * 8)) & 0xFF) );
 	}
 
 	// stuff the header on the front

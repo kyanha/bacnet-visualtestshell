@@ -4486,7 +4486,7 @@ void ScriptExecutor::ExpectForwardedNPDU( ScriptTokenList &tlist, BACnetAPDUDeco
 			throw "IP address required";
 		case 2:
 			{
-				unsigned long		host1, host2, mask1
+				unsigned long		host1, host2 = 0, mask1
 				;
 				unsigned short		port1, port2
 				;
@@ -4685,7 +4685,7 @@ void ScriptExecutor::ExpectDeleteFDTEntry( ScriptTokenList &tlist, BACnetAPDUDec
 			throw "IP address required";
 		case 2:
 			{
-				unsigned long		host1, host2, mask1
+				unsigned long		host1, host2 = 0, mask1
 				;
 				unsigned short		port1, port2
 				;
