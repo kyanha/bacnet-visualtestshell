@@ -23,6 +23,7 @@ VTSPreferencesDlg::VTSPreferencesDlg(CWnd* pParent /*=NULL*/)
 	m_nAutoscrollTimeout = 0;
 	m_nPacketCount = 0;
 	m_nRelative = -1;
+	m_fVerify = FALSE;
 	//}}AFX_DATA_INIT
 }
 
@@ -36,6 +37,7 @@ void VTSPreferencesDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_PREF_PACKETCOUNT, m_nPacketCount);
 	DDV_MinMaxInt(pDX, m_nPacketCount, 1, 32000);
 	DDX_Radio(pDX, IDC_PREF_RELATIVE, m_nRelative);
+	DDX_Check(pDX, IDC_PREF_DELETEVERIFY, m_fVerify);
 	//}}AFX_DATA_MAP
 }
 

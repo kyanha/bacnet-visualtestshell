@@ -553,6 +553,7 @@
 #define IDC_PREF_ASTIMEOUT              1284
 #define IDC_PREF_RELATIVE               1285
 #define IDC_PREF_ABSOLUTE               1286
+#define IDC_PREF_DELETEVERIFY           1288
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -693,7 +694,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        275
 #define _APS_NEXT_COMMAND_VALUE         32831
-#define _APS_NEXT_CONTROL_VALUE         1288
+#define _APS_NEXT_CONTROL_VALUE         1289
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

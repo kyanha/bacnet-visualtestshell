@@ -28,6 +28,7 @@ class VTSPreferences : public CObject
 		int		m_nCachePacketCount;			// number of packet slots allocated for list cache
 		int		m_nAutoscrollTimeout;			// seconds of inactivity for going back to autoscroll
 		bool	m_fRelativePacketFile;			// true if packet file should be relative
+		bool	m_fVerifyDelete;				// should we ask 'are you sure' when deleting packets?
 
 	public:
 		VTSPreferences();
@@ -47,6 +48,8 @@ class VTSPreferences : public CObject
 		void Setting_SetAutoscrollTimeout(int nTimeout) { m_nAutoscrollTimeout = nTimeout; }
 		bool Setting_IsPacketFileRelative() { return m_fRelativePacketFile; }
 		void Setting_SetPacketFileRelative(bool fRelative) { m_fRelativePacketFile = fRelative; }
+		bool Setting_IsVerifyDelete() { return m_fVerifyDelete; }
+		void Setting_SetVerifyDelete(bool fVerify) { m_fVerifyDelete = fVerify; }
 
 		void Load( void );
 		void Save( void );

@@ -22,6 +22,7 @@ public:
 	int		m_nAutoscrollTimeout;
 	int		m_nPacketCount;
 	int		m_nRelative;
+	BOOL	m_fVerify;
 	//}}AFX_DATA
 
 
