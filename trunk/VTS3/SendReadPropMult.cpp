@@ -972,7 +972,7 @@ void ReadPropListList::OnObjectIDButton( void )
 	if (!rpllCurElem)
 		return;
 
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(rpllPagePtr)			// for proper parent control
 	;
 
 	dlg.objID = rpllCurElem->rplObjID.objID;

@@ -175,7 +175,7 @@ void CSendIHave::OnChangeDeviceID()
 
 void CSendIHave::OnDeviceIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_DeviceID.objID;
@@ -198,7 +198,7 @@ void CSendIHave::OnChangeObjectID()
 
 void CSendIHave::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_ObjectID.objID;

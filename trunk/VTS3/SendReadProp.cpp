@@ -193,7 +193,7 @@ void CSendReadProp::OnChangeObjectID()
 
 void CSendReadProp::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)		// added parent wnd to bind to modeless Send dialog
 	;
 
 	dlg.objID = m_ObjectID.objID;

@@ -227,7 +227,7 @@ void CSendIAm::OnChangeVendorID()
 
 void CSendIAm::OnDeviceIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_DeviceID.objID;

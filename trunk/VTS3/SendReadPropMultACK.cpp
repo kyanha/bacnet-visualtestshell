@@ -405,6 +405,7 @@ ReadPropACKElem::ReadPropACKElem( CSendPagePtr wp )
 	, rpaeArrayIndex( wp, IDC_ARRAYINDEX )
 	, rpaeClassCombo( wp, IDC_ERRORCLASSCOMBO, NetworkSniffer::BACnetErrorClass, 7, true )
 	, rpaeCodeCombo( wp, IDC_ERRORCODECOMBO, NetworkSniffer::BACnetErrorCode, 43, true )
+	, rpaeValue(wp)
 {
 	// controls start out disabled
 	rpaePropCombo.ctrlEnabled = false;
@@ -1135,7 +1136,7 @@ void ReadPropACKListList::OnObjectIDButton( void )
 	if (!rpallCurElem)
 		return;
 
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(rpallPagePtr)			// for proper parent control
 	;
 
 	dlg.objID = rpallCurElem->rpalObjID.objID;

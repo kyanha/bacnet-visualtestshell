@@ -224,7 +224,7 @@ void CSendUnconfCOVNotification::OnChangeDeviceID()
 
 void CSendUnconfCOVNotification::OnDeviceIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// added parent for proper send dlg function
 	;
 
 	dlg.objID = m_DeviceID.objID;
@@ -247,7 +247,7 @@ void CSendUnconfCOVNotification::OnChangeObjectID()
 
 void CSendUnconfCOVNotification::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// added parent for proper send dlg function
 	;
 
 	dlg.objID = m_ObjectID.objID;
@@ -311,6 +311,7 @@ UnconfCOVNotificationElem::UnconfCOVNotificationElem( CSendPagePtr wp )
 	: unePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, uneArrayIndex( wp, IDC_ARRAYINDEX )
 	, unePriority( wp, IDC_PRIORITYX )
+	, uneValue(wp)				// added parent for proper send dlg function
 {
 	// controls start out disabled
 	unePropCombo.ctrlEnabled = false;

@@ -223,7 +223,7 @@ void CSendConfCOVNotification::OnChangeDeviceID()
 
 void CSendConfCOVNotification::OnDeviceIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)		// added parent for send dialog
 	;
 
 	dlg.objID = m_DeviceID.objID;
@@ -246,7 +246,7 @@ void CSendConfCOVNotification::OnChangeObjectID()
 
 void CSendConfCOVNotification::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)		// added parent for send dialog
 	;
 
 	dlg.objID = m_ObjectID.objID;
@@ -317,6 +317,7 @@ COVNotificationElem::COVNotificationElem( CSendPagePtr wp )
 	: cnePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, cneArrayIndex( wp, IDC_ARRAYINDEX )
 	, cnePriority( wp, IDC_PRIORITYX )
+	, cneValue(wp)		// added parent for send page
 {
 	// controls start out disabled
 	cnePropCombo.ctrlEnabled = false;

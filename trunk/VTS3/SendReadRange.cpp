@@ -275,7 +275,7 @@ void SendReadRange::OnSelchangePropcombo()
 //
 void SendReadRange::OnObjectidbtn() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_ObjectID.objID;

@@ -32,6 +32,7 @@ CSendRemoveListElement::CSendRemoveListElement( void )
 	, m_ObjectID( this, IDC_OBJECTID )
 	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
+	, m_Value(this)			// for proper parent control
 {
 	//{{AFX_DATA_INIT(CSendRemoveListElement)
 	//}}AFX_DATA_INIT
@@ -180,7 +181,7 @@ void CSendRemoveListElement::OnChangeObjectID()
 
 void CSendRemoveListElement::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_ObjectID.objID;

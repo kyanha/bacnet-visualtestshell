@@ -203,6 +203,7 @@ ComplexObjectElem::ComplexObjectElem( VTSNotifyComplexPtr wp )
 	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, coeArrayIndex( wp, IDC_ARRAYINDEX )
 	, coePriority( wp, IDC_PRIORITYX )
+	, coeValue(wp)		// added for proper parent dialog chain
 {
 	// controls start out disabled
 	coePropCombo.ctrlEnabled = false;

@@ -412,7 +412,7 @@ void VTSAny::OnValueIDButton()
 	// translate the current contents
 	m_ObjID.CtrlToObj();
 
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)		// added parent for send dialog
 	;
 
 	dlg.objID = m_ObjID.objID;

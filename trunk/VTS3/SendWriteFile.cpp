@@ -258,7 +258,7 @@ void CSendWriteFile::OnChangeFileID()
 
 void CSendWriteFile::OnFileIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_FileID.objID;

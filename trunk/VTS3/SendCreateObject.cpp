@@ -219,7 +219,7 @@ void CSendCreateObject::OnChangeObjectID()
 
 void CSendCreateObject::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_ObjectID.objID;
@@ -285,6 +285,7 @@ CreateObjectElem::CreateObjectElem( CSendPagePtr wp )
 	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, coeArrayIndex( wp, IDC_ARRAYINDEX )
 	, coePriority( wp, IDC_PRIORITYX )
+	, coeValue(wp)			// for proper parent control
 {
 	// controls start out disabled
 	coePropCombo.ctrlEnabled = false;
