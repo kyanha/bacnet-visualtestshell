@@ -164,6 +164,7 @@ int   GetCharsetSize(void);
 char *GetCharsetName(octet csTag);
 int   GetSpecialFunctionalitySize(void);
 char *GetSpecialFunctionalityName(int i);
+void *GetEnumTable(int iTableIndex);
 
 
 #ifdef __cplusplus					//end of extern "C" declarations
