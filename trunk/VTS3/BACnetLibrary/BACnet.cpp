@@ -58,7 +58,7 @@ int stricmp( const char *a, const char *b )
 
 #endif
 
-#define	VTSScanner		0
+#define	VTSScanner		1
 
 #if VTSScanner
 
@@ -146,6 +146,9 @@ int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 	// remote broadcast and remote station have a network, localStation and remote
 	// station have an address.
 	switch (addr1.addrType) {
+		case localBroadcastAddr:
+			break;
+
 		case remoteBroadcastAddr:
 			if (addr1.addrNet != addr1.addrNet) return 0;
 			break;
@@ -2096,8 +2099,13 @@ void BACnetDate::Decode( const char *dec )
 		for (month = 0; isdigit(*dec); dec++)
 			month = (month * 10) + (*dec - '0');
 	}
-	if (*dec == '/')
+	while (*dec && isspace(*dec)) dec++;
+
+	// skip over slash and more space
+	if (*dec == '/') {
 		dec += 1;
+		while (*dec && isspace(*dec)) dec++;
+	}
 
 	// check for day
 	if ((*dec == '*') || (*dec == '?'))
@@ -2106,8 +2114,13 @@ void BACnetDate::Decode( const char *dec )
 		for (day = 0; isdigit(*dec); dec++)
 			day = (day * 10) + (*dec - '0');
 	}
-	if (*dec == '/')
+	while (*dec && isspace(*dec)) dec++;
+
+	// skip over slash and more space
+	if (*dec == '/') {
 		dec += 1;
+		while (*dec && isspace(*dec)) dec++;
+	}
 
 	// check for year
 	if ((*dec == '*') || (*dec == '?'))
@@ -2377,9 +2390,9 @@ void BACnetObjectIdentifier::Encode( char *enc )
 	sprintf( enc, "%s, %d", s, instanceNum );
 }
 
-#if VTSScanner
 void BACnetObjectIdentifier::Decode( const char *dec )
 {
+#if VTSScanner
 	int		objType, instanceNum
 	;
 
@@ -2428,11 +2441,9 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 	// everything checks out
 	objID = (objType << 22) + instanceNum;
 #else
-void BACnetObjectIdentifier::Decode( const char * )
-{
 	throw (-1) /* not implemented */;
-}
 #endif
+}
 
 //
 //	BACnetOpeningTag
