@@ -553,8 +553,10 @@ void MSTPImp_NBLink::SendData( BACnetOctet *data, int len )
 					str.Format("MS/TP Send Error: WSAE Error = %d", e);
 					m_pmstpPort->Msg(str);
 
-//					str.Format("MS/TP Send Error:\n%s", GetSocketErrorMsg(e));
-//					AfxMessageBox(str);
+#ifdef _DEBUG
+					str.Format("MS/TP Send Error:\n%s", GetSocketErrorMsg(e));
+					AfxMessageBox(str);
+#endif
 					break;
 				}
 			}
@@ -650,34 +652,70 @@ UINT MSTP_NBLink_ThreadFunc( LPVOID pParam )
 			dwBlocking = 1;
 			pNBLink->m_psocket->IOCtl(FIONBIO, &dwBlocking);
 			
+			//Get some information about the client
+			CString peeraddr,rcvaddr;
+			UINT peerport, rcvport;
+			pNBLink->m_psocket->GetPeerName(peeraddr,peerport);
+
 			// Set connected status
-			pServer->SetPortStatus(1, "NB-Link connection ready");
+			CString strConn;
+			strConn.Format("NB-Link (%s) connection ready",peeraddr);
+			pServer->SetPortStatus(1, strConn.GetBuffer(0));
+			strConn.ReleaseBuffer();
+			//pServer->SetPortStatus(1, "NB-Link connection ready");
+
+			//need to open a UDP socket to receive data from NB-Link
+			CAsyncSocket socketData;
+			if ( !socketData.Create(pNBLink->m_nListenPort, SOCK_DGRAM) ||
+				!socketData.AsyncSelect(0)  ||
+				!socketData.IOCtl(FIONBIO, &dwBlocking) )
+			{
+				CString str;
+				str.Format("MSTP NB-Link UDP error:\n%s", GetSocketErrorMsg(socketSvr.GetLastError()));
+				pServer->SetPortStatus(1, "NB-Link Data Socket Failure");
+				AfxMessageBox(str);
+				pNBLink->m_Continue = false;
+				break;
+			}
+			//End UDP
 
 			while ( pNBLink->m_Continue && pNBLink->m_psocket != NULL  &&  pNBLink->m_psocket->m_hSocket != NULL )
 			{
-				int nError = pNBLink->m_psocket->Receive(buf, sizeof(buf));
+				//Receive data on our UDP socket
+				//The use of UDP introduced a new problem, what if someone other then our peer (connected client)
+				//sends UDP data?
+				//So, here, we need to make sure the address we received data from is the same as our connected client
+				//if the data comes from where we expect, then it's good -- pass it on
+							
+				int nError = socketData.ReceiveFrom(buf,sizeof(buf),rcvaddr,rcvport,0);
+				//int nError = pNBLink->m_psocket->Receive(buf, sizeof(buf));
 				
-				if ( nError > 0 )
+				if ( (nError > 0)  && (rcvaddr == peeraddr))
 				{
-					// OK, the NB-Link returns all data in ASCII... we must convert to binary
-					unsigned char * pbuf = new unsigned char[nError/2];
+					//NB-Link no-longer sends data in ASCII
+					//unsigned char * pbuf = new unsigned char[nError/2];
+					unsigned char * pbuf = new unsigned char[nError+1];
 					if ( pbuf != NULL )
 					{
-						memset(pbuf, 0, nError/2);
-						for ( int i=0; i < nError; i+=2 )
-							pbuf[i/2] = (BFROMA(buf[i]) << 4) | BFROMA(buf[i+1]);
+						memset(pbuf, 0, nError+1);		//clear the buffer
+						memcpy(pbuf,buf,nError+1);		//copy the buffer
+						//for ( int i=0; i < nError; i+=2 )
+						//	pbuf[i/2] = (BFROMA(buf[i]) << 4) | BFROMA(buf[i+1]);
 
 						// Have to recalc CRC because NB-Link screws with it...
 						// Assume that if we get a message at all from the NB-Link, the CRC was correct
 						// Calculation of CRC is for sniffer only...
 
-						*(unsigned short *)(pbuf + nError/2 - sizeof(unsigned short)) = ~MSTPCalcDataCRC(pbuf+8, nError/2 - 10);
+						//*(unsigned short *)(pbuf + nError/2 - sizeof(unsigned short)) = ~MSTPCalcDataCRC(pbuf+8, nError/2 - 10);
+						*(unsigned short *)(pbuf + nError - sizeof(unsigned short)+1) = ~MSTPCalcDataCRC(pbuf+8, nError - 9);
 
 						// let the application filter it
-						pServer->FilterData( pbuf, nError/2, BACnetPort::portReceiving );
+						//pServer->FilterData( pbuf, nError/2, BACnetPort::portReceiving );
+						pServer->FilterData( pbuf, nError+1, BACnetPort::portReceiving );
 
 						// Now de-frame the data
-						pServer->Response( BACnetNPDU(BACnetAddress(pbuf+4, 1), pbuf+8, nError/2 - 10));
+						//pServer->Response( BACnetNPDU(BACnetAddress(pbuf+4, 1), pbuf+8, nError/2 - 10));
+						pServer->Response( BACnetNPDU(BACnetAddress(pbuf+4, 1), pbuf+8, nError - 9));
 						delete pbuf;
 					}
 				}
@@ -691,7 +729,10 @@ UINT MSTP_NBLink_ThreadFunc( LPVOID pParam )
 						CString str;
 						str.Format("MS/TP Receive Error: WSAE Error = %d, Port status waiting on connection re-establish from NB-Link", nkill);
 						pServer->Msg(str);
-
+#if _DEBUG
+						str.Format("MS/TP Receive Error:\n%s", GetSocketErrorMsg(nkill));
+						OutputDebugString(str);
+#endif
 						pNBLink->m_psocket->Close();
 						delete pNBLink->m_psocket;
 						pNBLink->m_psocket = NULL;
@@ -703,6 +744,8 @@ UINT MSTP_NBLink_ThreadFunc( LPVOID pParam )
 
 	pNBLink->CloseConnection();
 	pServer->SetPortStatus(3, "NB-Link connection dead");
+	delete pNBLink->m_psocket;
+	pNBLink->m_psocket = NULL;
 	return 0;
 }
 
