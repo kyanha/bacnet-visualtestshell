@@ -52,7 +52,12 @@ octet far* eCALIST(octet far* p, const BACnetCalendarEntry far* pv, int TagNr= -
 // encode array properties:
 octet far* eLOBJ(octet far* p, const BACnetObjectIdentifier far* pv, int ArrayIndex= -1, int TagNr= -1);
 octet far* ePAF(octet far* p, const float far* pv, int ArrayIndex= -1, int TagNr= -1);
-octet far* ePAB(octet far* p, const enum BACnetBinaryPV far* pv, int ArrayIndex= -1, int TagNr= -1);
+
+//*****MOdified by Liangping Xu, 2002-8-5*****//
+//octet far* ePAB(octet far* p, const enum BACnetBinaryPV far* pv, int ArrayIndex= -1, int TagNr= -1);
+octet far* ePAB(octet far* p, const word far* pv, int ArrayIndex= -1, int TagNr= -1);
+//*****Ended by Liangping Xu, 2002-8-5*****//
+
 octet far* ePAU(octet far* p, const word far* pv, int ArrayIndex= -1, int TagNr= -1);
 octet far* eUWARR(octet far* p, const word far* pv, int num, int ArrayIndex= -1, int TagNr= -1);
 octet far* eACTEXT(octet far* p, char far** pv, int num, int ArrayIndex= -1, int TagNr= -1);
