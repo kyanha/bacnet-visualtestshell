@@ -323,7 +323,19 @@ void     show_bac_result_flags( unsigned int);
 void     show_bac_COV_Subscription(); //Xiao Shiyuan 2002-7-23
 void     show_bac_destination(void); //Xu yiping 2002-9-28
 void	 show_bac_bitstring_value(char**c);	//Xu yiping 2002-9-28
-/*  ----- prototypes extracting information from object identifiers ----- */
 
+void	 show_head_obj_id( unsigned int , char* , int );		// Lei Chengxin 2003-7-25		
+void	 show_head_unsigned( unsigned int , char* , int );		// Lei Chengxin 2003-7-30
+void	 show_head_ascii( char* );								// Lei Chengxin 2003-7-31
+void	 show_head_char_string( unsigned int , char* , int );	// Lei Chengxin 2003-7-31
+void	 show_head_time( unsigned int , char* , int );			// Lei Chengxin 2003-7-31
+void	 show_head_property_ID( unsigned int , char* , int );	// Lei Chengxin 2003-7-31
+void     show_head_app_data( void );							// Lei Chengxin 2003-8-23
+void	 show_head_octet_string( unsigned int , char* , int );	// Lei Chengxin 2003-8-23
+void	 show_head_signed( unsigned int , char* , int );		// Lei Chengxin 2003-8-23
+void	 show_head_real( unsigned int , char* , int );			// Lei Chengxin 2003-8-23
+void     show_head_bit_string( unsigned int , char* , int );	// Lei Chengxin 2003-8-23
+
+/*  ----- prototypes extracting information from object identifiers ----- */
 int      bac_extract_obj_type(void);
 

@@ -490,7 +490,7 @@ char *BACnetObjectTypesSupported[] = {
    "NOTIFICATION-CLASS",    /* 15 */
    "PROGRAM",               /* 16 */
    "SCHEDULE",               /* 17 */
-   "AVERAGING",             /* 18 */
+   "AVERAGING",          /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
    "TRENDLOG"           /* 20 */
    };
@@ -1384,13 +1384,17 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
    x = pif_get_byte(0);
    switch (prop_id) {
       case ACKED_TRANSITIONS:  /* bit string */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1 
+		  
 		   //added by wkh on 2002-7-19
 		   show_application_tag(x);
 		   //----------------------------
            show_bac_event_transitions_ackd();
            break;
       case ACK_REQUIRED:  /* bit string */
-		  //added by wkh on 2002-7-19
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
+		   //added by wkh on 2002-7-19
 		   show_application_tag(x);
 		   //----------------------------
            show_bac_event_transitions_ackd();
@@ -1426,16 +1430,22 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                };
            break;
       case ACTIVE_TEXT:  /* Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case ACTIVE_VT_SESSIONS:
            while ((pif_get_byte(0) & 0x0f) != 0x0f) show_bac_VT_session();
            break;
       case ALARM_VALUE:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case ALARM_VALUES:
            while(x != 0x3f){
+			 show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
              show_application_data(x);
              x = pif_get_byte(0);
              };
@@ -1443,28 +1453,47 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case ALL:  /* No Data */
            break;
       case ALL_WRITES_SUCCESSFUL:   /* Boolean  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case APDU_SEGMENT_TIMEOUT:  /* Unsigned */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case APDU_TIMEOUT:  /* Unsigned */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case APPLICATION_SOFTWARE_VERSION:  /* Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case ARCHIVE:  /* Boolean */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+		   
            show_application_data(x);
            break;
       case BIAS:   /*  Real  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case CHANGE_OF_STATE_COUNT:  /*  Unsigned  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case CHANGE_OF_STATE_TIME:   /*  BACnet DateTime  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
+
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(pif_get_byte(0));
            break;
       case CONTROLLED_VARIABLE_REFERENCE: /*  BACnetObjectPropertyReference  */
@@ -1475,21 +1504,31 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
            break;
       case CONTROLLED_VARIABLE_VALUE:  /*  Real  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+		   
            show_application_data(x);
            break;
       case COV_INCREMENT:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+		   
            show_application_data(x);
            break;
       case DATELIST:  /* List of BACnetCalendarEntry  */
            while ((pif_get_byte(0) & 0x0f) != 0x0f) show_bac_calendar_entry();
            break;
       case DAYLIGHT_SAVINGS_STATUS:  /* Boolean  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1 
+
            show_application_data(x);
            break;
       case DEADBAND:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case DERIVATIVE_CONSTANT: /* Real  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+		   
            show_application_data(x);
            break;
       case DERIVATIVE_CONSTANT_UNITS: /* Enumeration  */
@@ -1497,38 +1536,58 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
            break;
       case DESCRIPTION: /* Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case DESCRIPTION_OF_HALT: /* Character String */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case DEVICE_TYPE: /*  Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case DEVICE_ADDRESS_BINDING:  /* sequence of BACnetAddressBinding */
            while ((x & 0x0f) != 0x0f){
+			show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
             show_application_tag(x);
             show_bac_object_identifier();
             pif_show_space();
-            pif_show_ascii(0, "Device Address");
+//	        pif_show_ascii(0, "Device Address");    /*modified by Lei Chengxin 2003-9-1*/
+			show_head_ascii("Device Address");
+
             show_bac_address();
             x = pif_get_byte(0);
             };
            break;
       case EFFECTIVE_PERIOD: /*  BACnetDateRAnge  */
-           pif_show_ascii(0,"Start Date");
+//	       pif_show_ascii(0,"Start Date");			/*modified by Lei Chengxin 2003-9-1*/
+		   show_head_ascii("Start Date");
+
            show_application_data(x);
            pif_show_space();
-           pif_show_ascii(0,"End Date");
+//	       pif_show_ascii(0,"End Date");			/*modified by Lei Chengxin 2003-9-1*/
+		   show_head_ascii("End Date");
+
            show_application_data(pif_get_byte(0));
            break;
       case ELAPSED_ACTIVE_TIME: /* Unsigned  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case ERROR_LIMIT:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case EVENT_ENABLE: /* Bitstring  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            len1 = show_application_tag(x);
            unused = pif_get_byte(0);
            bac_show_byte("Unused Bits in Last Octet","%u");
@@ -1571,6 +1630,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            break;
       case FAULT_VALUES:
           while(x != 0x3f){
+    	     show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
              show_application_data(x);
              x = pif_get_byte(0);
              };
@@ -1580,30 +1641,48 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
            break;
       case FILE_ACCESS_METHOD:  /* Enumerated  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case FILE_SIZE: /*  Unsigned  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case FILE_TYPE: /*  Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case FIRMWARE_REVISION: /* Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case HIGH_LIMIT:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case INACTIVE_TEXT: /*  Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case IN_PROCESS: /* Boolean  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case INSTANCE_OF: /* Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case INTEGRAL_CONSTANT: /* Real  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case INTEGRAL_CONSTANT_UNITS: /* Enumerated  */
@@ -1611,9 +1690,13 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
            break;
       case ISSUE_CONFIRMED_NOTIFICATIONS:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case LIMIT_ENABLE:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            len1 = show_application_tag(x);
            unused = pif_get_byte(0);
            bac_show_byte("Unused Bits in Last Octet","%u");
@@ -1647,49 +1730,80 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 /***/      case LIST_OF_SESSION_KEYS:
            break;
       case LOCAL_DATE: /* Date */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case LOCAL_TIME: /*  Time  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case LOCATION: /* Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case LOW_LIMIT:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MANIPULATED_VARIABLE_REFERENCE:
            show_bac_obj_prop_ref();
            break;
       case MAXIMUM_OUTPUT: /* Real  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MAX_APDU_LENGTH_ACCEPTED:  /* Unsigned  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MAX_PRES_VALUE:  /* Real  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MINIMUM_OFF_TIME: /* Unsigned 32 */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MINIMUM_ON_TIME: /* Unsigned 32 */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MINIMUM_OUTPUT: /* Real  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MIN_PRES_VALUE: /*  Real  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MODEL_NAME:  /* Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MODIFICATION_DATE:  /*  BACnetDateTime  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
+
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(pif_get_byte(0));
            break;
       case NOTIFICATION_CLASS:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case NOTIFY_TYPE:
@@ -1697,12 +1811,18 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetNotifyType[pif_get_byte(0)],"%u");
            break;
       case NUMBER_OF_APDU_RETRIES:  /*  Unsigned  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case NUMBER_OF_STATES: /*  Unsigned  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case OBJECT_ID: /*  BACnetObjectIdentifier  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_tag(x);
            show_bac_object_identifier();
            break;
@@ -1715,13 +1835,16 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              len = show_application_tag(x);
              if(x != 0xc4){ /* invalid tag */
                pif_show_space();
-               pif_show_ascii(0, "Error: Invalid Tag!");
+//	           pif_show_ascii(0, "Error: Invalid Tag!");	/*modified by Lei Chengxin 2003-9-1*/
+			   show_head_ascii("Error: Invalid Tag!");
                };
              show_bac_object_identifier();
              x = pif_get_byte(0);
              };
            break;
       case OBJECT_NAME:  /* Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case OBJECT_PROPERTY_REFERENCE: /*  BACnetObjectPropertyReference  */
@@ -1733,6 +1856,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            break;
       case xOPTIONAL : break;  /* No data!  */
       case OUT_OF_SERVICE: /* Boolean  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case OUTPUT_UNITS: /* BACnetEngineeringUnits  */
@@ -1760,7 +1885,9 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 			   /////////////////////////////////////
                case 17: /* Schedule - ANY Primitive Type */
                case 19: /* Multistate_Value - Unsigned */
-                        show_application_data(x);
+                        show_head_app_data();	//added by Lei Chengxin 2003-9-1
+						
+						show_application_data(x);
                         break;
                case 3:  /* Binary_Input - BACnetBinaryPV */
                case 4:  /* Binary_Output - BACnetBinaryPV */
@@ -1813,9 +1940,13 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              };
            break;
       case PRIORITY_FOR_WRITING: /* Unsigned  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case PROCESS_IDENTIFIER:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case PROGRAM_CHANGE: /*  BACnetProgramRequest  */
@@ -1823,6 +1954,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetProgramRequest[pif_get_byte(0)],"%u");
            break;
       case PROGRAM_LOCATION: /* Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case PROGRAM_STATE: /*  BACnetProgramState  */
@@ -1830,6 +1963,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetProgramState[pif_get_byte(0)],"%u");
            break;
       case PROPORTIONAL_CONSTANT: /*  Real  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case PROPORTIONAL_CONSTANT_UNITS: /* BACnetEngineeringUnits  */
@@ -1837,9 +1972,13 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
            break;
       case PROTOCOL_CONFORMANCE_CLASS: /*  Unsigned  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case PROTOCOL_OBJECT_TYPES_SUPPORTED: /* BACnetObjectTypesSupported  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            len1 = show_application_tag(x);
            unused = pif_get_byte(0);
            bac_show_byte("Unused Bits in Last Octet","%u");
@@ -1861,6 +2000,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              }
            break;
       case PROTOCOL_SERVICES_SUPPORTED: /* BACnetServicesSupported  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            len1 = show_application_tag(x);
            unused = pif_get_byte(0);
            bac_show_byte("Unused Bits in Last Octet","%u");
@@ -1882,9 +2023,13 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              }
            break;
       case PROTOCOL_VERSION: /*  Character String  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case READ_ONLY: /*  Boolean  */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case REASON_FOR_HALT: /*  BACnetProgramError  */
@@ -1907,6 +2052,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
               case 1:  /* Analog_Out */
               case 2:  /* Analog_Value */
               case 14: /* Multistate_Output */
+					   show_head_app_data();	 //added by Lei Chengxin 2003-9-1
+
                        show_application_data(x);
                        break;
               case 4:  /* Binary_Output */
@@ -1914,12 +2061,17 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                        show_application_tag(x);
                        bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
                        break;
-              default: pif_show_ascii(0,
+/*              default: pif_show_ascii(0,
                 "Unknown Data - Object Type has no Standard Commandable Properties!");
+*/
+			  default:		//modified by Lei Chengxin 2003-9-1
+				  show_head_ascii("Unknown Data - Object Type has no Standard Commandable Properties!");
               }
            break;
       case REQUIRED:  break;  /*  No data! */
       case RESOLUTION:  /* Real */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case SEGMENTATION_SUPPORTED:  /* BACnetSegmentation */
@@ -1927,6 +2079,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetSegmentation[pif_get_byte(0)],"%u");
            break;
       case SETPOINT:  /* Real */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case SETPOINT_REFERENCE:  /*  BACnetObjectPropertyReference */
@@ -1955,14 +2109,26 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetDeviceStatus[pif_get_byte(0)],"%u");
            break;
       case TIME_DELAY:
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case TIME_OF_ACTIVE_TIME_RESET:  /* BACnetDateTime   */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
+		   
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(pif_get_byte(0));
            break;
       case TIME_OF_STATE_COUNT_RESET:  /* BACnetDateTime   */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
+		   
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(pif_get_byte(0));
            break;
 	  case TIME_SYNCHRONIZATION_RECIPIENTS:  //Added by xuyiping 2002-8-29
@@ -1974,20 +2140,32 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
            break;
       case UPDATE_INTERVAL:  /*  Unsigned */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case UTC_OFFSET:  /*  Real  */
            show_application_data(x);
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            break;
       case VENDOR_IDENTIFIER:
            show_application_data(x);
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            break;
       case VENDOR_NAME:  /* Character String   */
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case VT_CLASSES_SUPPORTED:  /*  List of BACnet VT Classes */
            while ((pif_get_byte(0) & 0x0f) != 0x0f)
-             show_application_data(pif_get_byte(0));
+		   {	   
+			   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+			   
+			   show_application_data(pif_get_byte(0));
+		   }
            break;
       case WEEKLY_SCHEDULE:  /* ARRAY of BACnetTimeValue */
            if (prop_idx == 0) {
@@ -2001,24 +2179,37 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              };
 		   
            break;
-      case ATTEMPTED_SAMPLES:             // Unsigned 32       
+      case ATTEMPTED_SAMPLES:             // Unsigned 32     
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+  
            show_application_data(x);
            break;
       case AVERAGE_VALUE:                // Real         
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
-      case BUFFER_SIZE:                   // Unsigned 32        
+      case BUFFER_SIZE:                   // Unsigned 32   
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+     
            show_application_data(x);
            break;
       case CLIENT_COV_INCREMENT:          // BACnetClientCOV     
            //break;
       case COV_RESUBSCRIPTION_INTERVAL:     // Unsigned 32
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case PREVIOUS_NOTIFY_TIME:            // BACnetDateTime
            //break;
       case CURRENT_NOTIFY_TIME:             // BACnetDateTime
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
+		   
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(pif_get_byte(0));
            break;
       case EVENT_TIME_STAMPS:               // Array of BACnetTimeStamp
@@ -2032,62 +2223,108 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case LOG_DEVICE_OBJECT_PROPERTY:      // BACnetDeviceObjectReferenceProperty
            show_bac_obj_prop_ref();
            break;
-      case LOG_ENABLE:                    // Boolean             
+      case LOG_ENABLE:                    // Boolean    
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+         
            show_application_data(x);
            break;
-      case LOG_INTERVAL:                  // Unsigned            
+      case LOG_INTERVAL:                  // Unsigned    
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+        
            show_application_data(x);
            break;
-      case MAXIMUM_VALUE:                 // Real           
+      case MAXIMUM_VALUE:                 // Real       
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+    
            show_application_data(x);
            break;
       case MINIMUM_VALUE:                // Real
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case NOTIFICATION_THRESHOLD:          // Unsigned 32
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case PROTOCOL_REVISION:            // Unsigned 32
 
            //break;
       case RECORDS_SINCE_NOTIFICATION:      // Unsigned 32
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
-      case RECORD_COUNT:                  // Unsigned 32            
+      case RECORD_COUNT:                  // Unsigned 32       
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+     
            show_application_data(x);
            break;
-      case START_TIME:                   // BACnetDateTime            
+      case START_TIME:                   // BACnetDateTime     
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+       
            show_application_data(x);
+		   
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(pif_get_byte(0));
            break;
-      case STOP_TIME:                    //BACnetDateTime             
+      case STOP_TIME:                    //BACnetDateTime   
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+          
            show_application_data(x);
+		   
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(pif_get_byte(0));
            break;
-      case STOP_WHEN_FULL:               // Boolean         
+      case STOP_WHEN_FULL:               // Boolean        
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+ 
            show_application_data(x);
            break;
-      case TOTAL_RECORD_COUNT:           // Unsigned 32      
+      case TOTAL_RECORD_COUNT:           // Unsigned 32    
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+  
            show_application_data(x);
            break;
       case VALID_SAMPLES:               // Unsigned 32
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case WINDOW_INTERVAL:             // Unsigned 32
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case WINDOW_SAMPLES:                 // Unsigned 32
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
       case MAXIMUM_VALUE_TIMESTAMP:        // BACnetDateTime
-           show_application_data(x);
+           show_head_app_data();		 //added by Lei Chengxin 2003-9-1 
+		  
+		   show_application_data(x);
+
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+		   
            show_application_data(pif_get_byte(0));
            break;
       case MINIMUM_VALUE_TIMESTAMP:        // BACnetDateTime
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1	
+
            show_application_data(x);
+
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+		   
            show_application_data(pif_get_byte(0));
            break;
       case VARIANCE_VALUE:                 // Real
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+
            show_application_data(x);
            break;
 
@@ -2097,6 +2334,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 		   break;
 
 	  case PROFILE_NAME:                 //Xiao Shiyuanc 2002-7-23
+		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+		  
 		   show_application_data(x);
 		   break;
 

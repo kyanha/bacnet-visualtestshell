@@ -1,5 +1,3 @@
-// $Header$
-/* file: pi.h; Fformat: tabs 4 */
 /*****************************************************************************
 
 
@@ -215,6 +213,12 @@ struct BACnetPIDetail {
 	int			piOffset;
 	int			piLen;
 	char		piLine[MAX_INT_LINE];
+
+	int			piNodeType;				/*	the AL Detail Node Type, added by Lei Chengxin, 2003-7-22
+											value 0 means the normal tree node; 
+											1 means the new tree node with less tag information;
+											2 means the sub new tree node;
+											3 means the detail line not related to any byte in the HexView. */
 	};
 
 typedef BACnetPIDetail *BACnetPIDetailPtr;
@@ -404,7 +408,9 @@ char	*make_dos_timestr(int ,char *);
 char	*make_c_str(char *,char *,int ,int );
 char	*format_date (unsigned long, struct date *, char []);
 
-char	*get_int_line (struct pi_data *, int, int);
+char	*get_int_line (struct pi_data *, int, int, int nodeType = 0);	/*	modified by Lei Chengxin 2003-7-22, add a new 
+																			parameter to classify the tree node type. */
+
 char	*get_sum_line (struct pi_data *);
 char	*get_cur_int_line( void ); /* JJB */
 
@@ -1058,6 +1064,16 @@ typedef struct {
 
 /*
 $Log$
+Revision 1.3.2.2  2003/09/03 07:00:15  lcx
+no message
+
+Revision 1.3.2.1  2003/06/11 10:05:55  xyp
+from bma
+
+Revision 1.4  2002/10/04 03:33:02  xuyiping-hust
+modified MAX_INT_LINE, because if the length of a detail line
+is bigger than MAX_INT_LINE, VTS always crashed
+
 Revision 1.3  2002/09/25 02:47:10  xyp
 modified  MAX_INT_LINE    500
 

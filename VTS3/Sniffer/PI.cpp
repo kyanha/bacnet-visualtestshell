@@ -191,7 +191,7 @@ char *get_sum_line( struct pi_data * )
 	return gCurrentInfo->summaryLine;
 }
 
-char *get_int_line( struct pi_data *, int offset, int length )
+char *get_int_line( struct pi_data *, int offset, int length, int nodeType )
 {
 	BACnetPIDetailPtr	dp
 	;
@@ -205,6 +205,8 @@ char *get_int_line( struct pi_data *, int offset, int length )
 	dp->piOffset = gCurrentInfo->piOffset + offset;
 	dp->piLen = length;
 	dp->piLine[0] = 0;
+
+	dp->piNodeType = nodeType;		// added by Lei Chengxin 2003-7-22
 	
 	// return a pointer to the character buffer
 	return dp->piLine;
