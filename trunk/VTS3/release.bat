@@ -13,7 +13,7 @@ pkzip25 -add %1-win32.zip release\VTS.exe release\ptp.dll winpcap\*.exe
 cd docs
 pkzip25 -add -path ..\%1-win32.zip *.html images\*.png *.doc
 cd ..
-pkzip25 -add -path %1-win32.zip scripts\*.vts
+pkzip25 -add -dir %1-win32.zip *.vts
 REM --- Then make the source distribution ---
 del %1-source.zip
 pkzip25 -add -dir %1-source.zip *.cpp *.hpp *.c *.h *.inl 
