@@ -466,7 +466,9 @@ char *BACnetObjectType[] = {
    "SCHEDULE",               /* 17 */
    "AVERAGING",            /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
-   "TRENDLOG"           /* 20 */
+   "TRENDLOG" ,          /* 20 */
+   "LIFESAFETYPOINT",	/*21 Zhu Zhenhua 2003-7-24 */
+   "LIFESAFETYZONE"	    /*21 Zhu Zhenhua 2003-7-24 */
    };
 
 char *BACnetObjectTypesSupported[] = {
@@ -579,7 +581,7 @@ char *BACnetPropertyIdentifier[] = {
    "Issue_Confirmed_Notifications ",    /* 51 */
    "Limit_Enable ",                     /* 52 */
    "List_Of_Group_Members ",            /* 53 */
-   "List_Of_Object__References ",  /* 54 */
+   "List_Of_Object_Property_References ",  /* 54 Zhu Zhenhua 2003-7-24 */
    "List_Of_Session_Keys ",             /* 55 */
    "Local_Date ",                       /* 56 */
    "Local_Time ",                       /* 57 */
@@ -603,7 +605,7 @@ char *BACnetPropertyIdentifier[] = {
    "Object_Identifier ",                /* 75 */
    "Object_List ",                      /* 76 */
    "Object_Name ",                      /* 77 */
-   "Object__Reference ",        /* 78 */
+   "Object_Property_Reference ",        /* 78 Zhu Zhenhua 2003-7-24 */
    "Object_Type ",                      /* 79 */
    "Optional ",                         /* 80 */
    "Out_Of_Service ",                   /* 81 */
@@ -657,7 +659,7 @@ char *BACnetPropertyIdentifier[] = {
    "Current_Notify_Time ",              /* 129 */
    "Event_Time_Stamps ",                /* 130 */
    "Log_Buffer ",                       /* 131 */
-   "Log_Device_Object_ ",               /* 132 */
+   "Log_Device_Object_Property ",       /* 132 Zhu Zhenhua 2003-7-24 */
    "Log_Enable ",                       /* 133 */
    "Log_Interval ",                     /* 134 */
    "Maximum_Value ",                    /* 135 */
@@ -1078,10 +1080,25 @@ void bac_show_byte ( char *label, char *format_str )
 /*************************************************************************/
 /* Advantage: Allows FW alignment */
 {
-   sprintf(outstr,"%"FW"s = ",label); /* Set up alignment of output */
-   strcat(outstr,format_str);
-   sprintf(get_int_line(pi_data_current,pif_offset,1),outstr,(unsigned char)pif_get_byte(0));
-   pif_offset += 1;
+	//Modifyed by Zhu Zhenhua 2003-7-22, the code to add "-" before the number if it is signed and negative
+	//else do as before
+	CString str = label;
+	unsigned char necValue = (0x80 & (unsigned char)pif_get_byte(0));
+	if(str == "Value (1-octet signed)")	
+		if(necValue)
+		{
+			sprintf(outstr,"%"FW"s = -",label); 
+			strcat(outstr,format_str);
+			unsigned char nValue = (unsigned char)(0x100-(unsigned char)pif_get_byte(0));
+			sprintf(get_int_line(pi_data_current,pif_offset,1),outstr,nValue);
+			pif_offset += 1;
+			return;
+		}
+		
+		sprintf(outstr,"%"FW"s = ",label); /* Set up alignment of output */
+		strcat(outstr,format_str);
+		sprintf(get_int_line(pi_data_current,pif_offset,1),outstr,(unsigned char)pif_get_byte(0));
+		pif_offset += 1;
 }
 
 /**************************************************************************/

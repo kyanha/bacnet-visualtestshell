@@ -404,6 +404,11 @@ void pif_show_nbytes_hex( char *prstr, int byte_count )
 
 long pif_show_long_hl( char *prstr )
 {
+	//Modifyed by Zhu Zhenhua 2003-7-22, the code to add "-" before the number if it is signed and negative
+	//else do as before	
+	CString str = prstr;
+	CString str1 = "Value (4-octet signed)";
+	unsigned char necValue = (0x80 & (unsigned char)pif_get_byte(0));
 	char			*s
 	;
 	unsigned long	arg
@@ -414,11 +419,21 @@ long pif_show_long_hl( char *prstr )
 	
 	// get the long data and format it in the buffer
 	arg = pif_get_long_hl(0);
-	sprintf( s, prstr, arg );
-	
+	if(str.Find(str1)!= -1)
+		if(necValue)
+		{
+			int nIndex = str.Find("=")+2;
+			str.Insert(nIndex,'-');
+			unsigned long nValue = (unsigned short)(0x100000000 - arg);
+			strcpy(prstr,str);
+			sprintf(s,prstr,nValue);
+			pif_offset += 4;
+			return arg;
+		}
+	sprintf( s, prstr, arg );	
+
 	// update the offset
-	pif_offset += 4;
-	
+	pif_offset += 4;	
 	return arg;
 }
 
@@ -428,22 +443,38 @@ long pif_show_long_hl( char *prstr )
 
 int pif_show_word_hl( char *prstr )
 {
+	//Modifyed by Zhu Zhenhua 2003-7-22, the code to add "-" before the number if it is signed and negative
+	//else do as before	
+	CString str = prstr;
+	CString str1 = "Value (2-octet signed)";
+	unsigned char necValue = (0x80 & (unsigned char)pif_get_byte(0));
 	char			*s
-	;
+		;
 	unsigned short	arg
-	;
+		;
 	
 	// get a detail line
 	s = get_int_line( pif_pi, pif_offset, 2 );
 	
 	// get the short data and format it in the buffer
 	arg = pif_get_word_hl(0);
-	sprintf( s, prstr, arg );
-	
-	// update the offset
-	pif_offset += 2;
-	
-	return arg;
+	if(str.Find(str1)!= -1)
+		if(necValue)
+		{	
+			int nIndex = str.Find("=")+2;
+			str.Insert(nIndex,'-');
+			unsigned short nValue = (unsigned short)(0x10000 - arg);
+			strcpy(prstr,str);
+			sprintf(s,prstr,nValue);
+			pif_offset += 2;
+			return arg;
+		}
+			
+		sprintf( s, prstr, arg );		
+		// update the offset
+		pif_offset += 2;	
+		return arg;
+
 }
 
 //

@@ -3914,20 +3914,23 @@ void show_timeSynchronization( void )
 
 void show_UTCtimeSynchronization( void )
 {
-   unsigned int len,x;
+ //  unsigned int len,x;
 
    bac_show_byte("UTC Time Synchronization Request","%u");
    show_application_data(pif_get_byte(0)); /*Date*/
    show_application_data(pif_get_byte(0)); /*Time*/
-   len = show_context_tag("UTC_Offset");   /*UTC _Offst*/
-   show_bac_signed(len);
 
-   len = show_context_tag("DaylightSavingsStatus");   /*DaylightSavingsStatus*/
-   x = pif_get_byte(-1);
-   if(x & 0x0F)
-      bac_show_nbytes(len, "TRUE");
-   else
-      bac_show_nbytes(len,"FALSE");
+
+ //Modifyed by Zhu Zhenhua 2003-7-22, Remove the extra fileds from UTCtimeSynchronization 
+ /*
+   len = show_context_tag("UTC_Offset");   UTC _Offst   show_bac_signed(len);
+  
+     len = show_context_tag("DaylightSavingsStatus");   DaylightSavingsStatus   x = pif_get_byte(-1);
+     if(x & 0x0F)
+        bac_show_nbytes(len, "TRUE");
+     else
+        bac_show_nbytes(len,"FALSE");*/
+ 
 }
 /*************************************************************************/
 void show_whoHas( void )
