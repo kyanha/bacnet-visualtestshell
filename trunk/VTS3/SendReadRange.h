@@ -12,7 +12,8 @@
 
 //class BACnetDateTime : public
 
-
+//Modified by Zhu Zhenhua, 2004-5-22, remove timeRange choice, change the context
+// of byTime, Add bySequenceNumber of context 6
 /////////////////////////////////////////////////////////////////////////////
 // SendReadRange dialog
 
@@ -28,8 +29,8 @@ public:
 	VTSEnumeratedCtrl			m_PropCombo;
 	VTSUnsignedCtrl				m_ArrayIndex, m_ReadRangePosRef;
 
-    VTSDateCtrl	                m_ReadRangeStartDate, m_ReadRangeEndDate;
-    VTSTimeCtrl	                m_ReadRangeStartTime, m_ReadRangeEndTime;
+    VTSDateCtrl	                m_ReadRangeRefDate;
+    VTSTimeCtrl	                m_ReadRangeRefTime;
     VTSIntegerCtrl              m_ReadRangeCount;  		
 	void SynchronizeControls( void );
 	void InitPage( void );						// give it a chance to init
@@ -68,13 +69,12 @@ protected:
 	afx_msg void OnRadionone();
 	afx_msg void OnRadioposition();
 	afx_msg void OnRadiotime();
-	afx_msg void OnRadiotimerange();
+	afx_msg void OnRadioSequenceNum();
 	afx_msg void OnChangeObjectid();
 	afx_msg void OnSetfocusEnddatum();
 	afx_msg void OnChangeStartdatum();
 	afx_msg void OnSetfocusStartdatum();
 	afx_msg void OnChangeTimestart();
-	afx_msg void OnChangeEndtime();
 	afx_msg void OnChangePosRef();
 	afx_msg void OnChangeCount();
 	afx_msg void OnDropdownPropcombo();

@@ -27,6 +27,10 @@ public:
 
 	void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
 
+	//Added by Zhu Zhenhua, 2004-6-14
+	void EncodeValue( BACnetAPDUEncoder& enc, int context = kAppContext );
+	void DecodeValue( BACnetAPDUDecoder& dec ); 
+
 	void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
 	void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
 

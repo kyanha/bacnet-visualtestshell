@@ -58,6 +58,7 @@ void VTSNotificationParameters::AddPages( void )
 	AddPage( &FloatLimitPage );
 	AddPage( &OutOfRangePage );
 	AddPage( &ComplexPage );
+	AddPage( &BufferReadyPage );       	//Added by Zhu Zhenhua, 2004-5-17
 
 	// tell them who their parent is
 	BitstringPage.pageParent = this;
@@ -67,6 +68,7 @@ void VTSNotificationParameters::AddPages( void )
 	FloatLimitPage.pageParent = this;
 	OutOfRangePage.pageParent = this;
 	ComplexPage.pageParent = this;
+	BufferReadyPage.pageParent = this;
 }
 
 BEGIN_MESSAGE_MAP(VTSNotificationParameters, CPropertySheet)
@@ -94,6 +96,7 @@ void VTSNotificationParameters::Encode( BACnetAPDUEncoder& enc, int context )
 		case 4:		FloatLimitPage.Encode( enc, context );	break;
 		case 5:		OutOfRangePage.Encode( enc, context );	break;
 		case 6:		ComplexPage.Encode( enc, context );		break;
+		case 10:    BufferReadyPage.Encode(enc, context);	break; 	//Added by Zhu Zhenhua, 2004-5-17
 	}
 
 	// finished with this context
@@ -119,8 +122,7 @@ BOOL VTSNotificationParameters::OnInitDialog()
 	int		curPage
 	;
 	BOOL	bResult
-	;
-	
+	;		
 	// save the current page
 	curPage = m_EventType;
 
