@@ -180,7 +180,7 @@ void rtrim(char *);							//										***006
 
 ///////////////////////////////////////////////////////////////////////
 // local variables
-static BOOL		cancel=false;						//global cancel flag
+static bool		cancel=false;						//global cancel flag
 static char		lb[256];							//line buffer (current line of input file)
 static char		*lp;								//pointer into lb
 static word		lc;									//current 1-based line in file
@@ -256,7 +256,7 @@ static char *StandardServices[]={
 			"VT-Data",
 			"Authenticate",
 			"RequestKey",
-			"I-AM",
+			"I-Am",									// madanner 6/03: "I-AM"
 			"I-Have",
 			"UnConfirmedCOVNotification",     
 			"UnConfirmedEventNotification",   
@@ -264,12 +264,12 @@ static char *StandardServices[]={
 			"UnconfirmedTextMessage",
 			"TimeSynchronization",
 			"Who-Has",
-         "Who-Is",
-         "Read-Range",
-         "UTC-Time-Synchronization",
-         "LifeSafetyOperation",		    
-         "SubscribeCOVProperty",		     
-         "GetEventInformation"
+			"Who-Is",
+			"ReadRange",							// madanner 6/03: "Read-Range"
+			"UTCTimeSynchronization",				// madanner 6/03: "UTC-Time-Synchronization"
+			"LifeSafetyOperation",		    
+			"SubscribeCOVProperty",		     
+			"GetEventInformation"
 			};
 
 static char *StandardObjects[]={
@@ -290,10 +290,10 @@ static char *StandardObjects[]={
 			"Multi-state Output",
 			"Notification Class",
 			"Program",
-         "Schedule",
-         "Averaging",
-         "Multi-state Value",
-         "TrendLog"
+			"Schedule",
+			"Averaging",
+			"Multi-state Value",
+			"Trend Log"								// madanner 6/03: "Trend-Log"
 			};
 static namedw StandardDataLinks[]={
 			"ISO 8802-3, 10BASE5",					dlISO88023_10BASE5,
@@ -887,12 +887,15 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 //		errc	pointer to an error counter
 //out:	ptr to the created list of database objects
 
-void APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc,int *errPICS)
+bool APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc,int *errPICS)
 {	int			i,j;
 	char opj[300]; //line added by MAG
 	generic_object *pd2;  // line added by MAG for debug only
 	lPICSErr=0;
 	
+	//madanner 6/03: wasn't initializing cancel
+	cancel = false;
+
 	pd->Database=NULL;
 	memset(pd->BACnetStandardObjects,soNotSupported,sizeof(pd->BACnetStandardObjects));	     //added by xlp,2002-11
 	memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));	//added by xlp,2002-11
@@ -1002,11 +1005,17 @@ rtpclose:
 	fclose(ifile);							 //									***008
 //////////////////////////////////////////////////////////////
 // add EPICS consistency Check ,xlp,2002-11
-    ::DeleteFile("c:\\EPICSConsChk.txt");
-	CheckPICSObjCons(pd);                  
-    CheckPICSServCons(pd);               
-    CheckPICSPropCons(pd);      
-	*errPICS=lPICSErr;	
+
+	// madanner 6/03:  skip consistency tests if user canceled parse due to problems
+	if ( !cancel )
+	{
+		::DeleteFile("c:\\EPICSConsChk.txt");
+		CheckPICSObjCons(pd);                  
+		CheckPICSServCons(pd);               
+		CheckPICSPropCons(pd);      
+		*errPICS=lPICSErr;	
+	}
+
     //clear the global variables
 	ProtocolServSup.PropSupValue=NULL;
 	ProtocolServSup.ObjServNum=0;
@@ -1027,7 +1036,7 @@ rtpexit:
 	}
 	mprintf("End database printout.\n");
 
-	return;
+	return !cancel;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -3706,8 +3715,12 @@ BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference	*inq
 		goto oprfail;
 	}
 	q->object_id=dw;
-	
-	if ((strdelim(","))==NULL) goto oprfail;
+
+	// madanner 6/03: Can't just skip to next delimeter... we must barf on non-white space
+	skipwhitespace();
+	if ( MustBe(',')) return NULL;
+//	if ((strdelim(","))==NULL) goto oprfail;
+
 	skipwhitespace();						//										***006
 	i=0;
 	while(*lp&&*lp!=','&&*lp!=')'&&*lp!='['&&i<39)
@@ -5358,6 +5371,11 @@ rlquote:	*dp++=c;
 	}
 rlexit:
 	*dp=0;										//mark the end with asciz
+
+	// madanner 6/03:  Problem leaving an extra space on the valid line if 
+	// a comment exists further down the line... so just trim it off
+	rtrim(lp);
+
 	lc++;										//bump line count
 //	printf("%.3u:%s\n",lc,lp);					//*** DEBUG ***
 }
@@ -5403,14 +5421,21 @@ char *strdelim(char *d)
 //in:	p	points to the beginning of the string to look in
 
 void rtrim(char *p)
-{	char *q;									//temp pointer
-	q=strchr(p,0);								//find the asciz
-	while (p!=q)
-	{	if(*q==' '||*q==0x09)
-			*q--=0;
-		else
-		  return;
-	}
+{	
+	//madanner 6/03: This function never actually worked... 
+	//so, let's do it again.
+
+	for ( char * q = p + strlen(p) - 1; q >= p && (*q == ' ' || *q == 0x09); q-- )
+		*q = 0;
+
+//	char *q;									//temp pointer
+//	q=strchr(p,0);								//find the asciz
+//	while (p!=q)
+//	{	if(*q==' '||*q==0x09)
+//			*q--=0;
+//		else
+//		  return;
+//	}
 }												//								***006 End
 
 /////////////////////////////////////////////////////////////////////// 
@@ -5465,9 +5490,16 @@ BOOL tperror(char *mp,BOOL showline)
 	
 	m[0]=0;
 	lerrc++;
+
+	// madanner 6/03: add error title to account for usage of afx (no title beyond VTS)
+	strcpy(m, "Read Text PICS Error:\n\n");
+	p=strchr(m,0);
+
 	if (showline)
-		sprintf(m,"Line %u: ",lc);				//add line number first
-	p=strchr(m,0);								//find asciz
+	{
+		sprintf(p,"Line %u: ",lc);				//add line number first
+		p=strchr(m,0);								//find asciz
+	}
 
 	sprintf(p,"%s\n",mp);
 	if (showline)
@@ -5477,10 +5509,14 @@ BOOL tperror(char *mp,BOOL showline)
 		*lp++=0;								//make it asciz there temporarily
 		sprintf(p,"%s<%c>%s\n",lb,c,lp);
 	}
-	MessageBeep(MB_ICONEXCLAMATION);
-	cancel=(MessageBox(NULL,m,"Read Text PICS Error",
-					   MB_ICONEXCLAMATION|(showline?MB_OKCANCEL:MB_OK))==IDCANCEL)?TRUE:FALSE;
-	return cancel;
+
+//	MessageBeep(MB_ICONEXCLAMATION);
+//	cancel=(MessageBox(NULL,m,"Read Text PICS Error",  MB_ICONEXCLAMATION|(showline?MB_OKCANCEL:MB_OK))==IDCANCEL)?TRUE:FALSE;
+
+	cancel = AfxMessageBox(m,  MB_ICONEXCLAMATION | (showline ? MB_OKCANCEL : MB_OK)) == IDCANCEL;
+
+	// deal with silly MS BOOL vs. bool
+	return cancel ? TRUE : FALSE;
 }
 
 
