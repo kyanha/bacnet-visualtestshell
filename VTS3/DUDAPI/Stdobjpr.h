@@ -788,7 +788,7 @@ propdescriptor	DVprops[]={
 													last_restore_time),		dt,		0,		   0,	O,
 	"backup-failure-timeout",	BACKUP_FAILURE_TIMEOUT,		oo(device,
 													backup_failure_timeout), uw, 0,     0,   O,
-	"active-cov-subscriptions", ACTIVE_COV_SUBSCRIPTION,  oo(device, 
+	"active-cov-subscriptions", ACTIVE_COV_SUBSCRIPTIONS,  oo(device, 
 													active_cov_subscriptions), lCOVSub, 0,		0,    O|IsArray,
 	"profile-name",			PROFILE_NAME,       oo(device,go.profile_name), s132,	Last,		0,	 O 
 };

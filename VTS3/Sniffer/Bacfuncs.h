@@ -2466,7 +2466,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            show_application_data(x);
            break;
 
-	  case ACTIVE_COV_SUBSCRIPTION:       //Xiao Shiyuanc 2002-7-23  
+	  case ACTIVE_COV_SUBSCRIPTIONS:       //Xiao Shiyuanc 2002-7-23  
 		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
              show_bac_COV_Subscription();
 		   break;

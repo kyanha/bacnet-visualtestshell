@@ -156,7 +156,7 @@ enum BACnetPropertyIdentifier
         MAXIMUM_VALUE_TIMESTAMP,                 //149
         MINIMUM_VALUE_TIMESTAMP,                 //150
         VARIANCE_VALUE, 			                //151
-		ACTIVE_COV_SUBSCRIPTION,           // 152 Zhu Zhenhua  2003-7-21 
+		ACTIVE_COV_SUBSCRIPTIONS,           // 152 Zhu Zhenhua  2003-7-21 
 		BACKUP_FAILURE_TIMEOUT,            // 153 Zhu Zhenhua  2003-7-21 
 		CONFIGURATION_FILES,               // 154 Zhu Zhenhua  2003-7-21 
 		DATABASE_REVISION,                 // 155 Zhu Zhenhua  2003-7-21 
