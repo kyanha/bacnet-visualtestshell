@@ -18,7 +18,7 @@ h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: 
 
 <body bgcolor="#FFFFFF" text="#000000">
 
-<h1><a name="start">VTS 3.1.7 </a><i>Quick Start Guide</i></h1>
+<h1><a name="start">VTS 3.1.8 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
 functionality of various devices used in building automation systems.&nbsp;
 BACnet is a Data Communication Protocol for Building Automation and Control
@@ -362,6 +362,22 @@ Fixed a TimeSynch encoding bug.
   <tr>
      <td align="center">3.1.7</td>
      <td align="left">Added the Send UTCTimeSynch service.  Minor improvements in the Send ReadRange interface.  Added a document to the release that provides instruction on how to use VTS 3 for testing BACnet devices.</td>
+  </tr>
+  <tr>
+     <td align="center">3.1.8</td>
+     <td align="left">Session data is now cleared, so it doesn't grow continuously, but is not compressed.
+			The Send windows have been sized up to make room for more buttons and clearer indicators.
+			The IDD_SENDREADPROPMULT, IDD_SENDREADPROPMULTACK and IDD_SENDWRITEPROPMULT dialog
+				boxes now have shuffle-up and shuffle-down buttons.  May still need some work.
+			All of the Send dialog boxes that have lists now have 'Show selection always' turned
+				on, which doesn't always seem to do what it's supposed to.
+			There is now an automatic invoke ID for the send window.  It is incremented when the
+				Send button is clicked.  The value is saved in the preferences (registry), so it 
+				comes back for the next VTS launch.  Note that this is NOT the same invoke ID that 
+				will be used by a built-in device object, and I think that is a good thing.
+			Now checks the version of BACMACNT.SYS it can find.  Only version 3.0 works.
+       Added decoding of UTCOffset and DayLightSavingStatus to the UTCTimeSynch service.
+       Changed the UTCOffset range from +/- 720 to +/-780. </td>
   </tr>
 </table>
 <p>&nbsp;</p>
