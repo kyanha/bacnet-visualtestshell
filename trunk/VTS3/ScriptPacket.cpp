@@ -183,7 +183,8 @@ ScriptPacket::ScriptPacket( ScriptPacketType type, ScriptPacketSubtype subtype, 
 	, packetType(type)
 	, packetSubtype(subtype)
 	, packetExprList( prev ? &prev->packetExprList : 0 )
-	, packetDelay( kMaxPacketDelay )
+//	, packetDelay( kMaxPacketDelay )    madanner 6/03
+	, packetDelay( kDefaultPacketDelay )
 {
 	// tell the base class this is a packet
 //	baseType = scriptPacket;

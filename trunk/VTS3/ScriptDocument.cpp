@@ -417,7 +417,8 @@ BOOL ScriptDocument::CheckSyntax( void )
 					// look for BEFORE or (
 					scan.Next( tok );
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
-						newPacket->packetDelay = kMaxPacketDelay;
+//						newPacket->packetDelay = kMaxPacketDelay;		changed to default timer
+						newPacket->packetDelay = kDefaultPacketDelay;
 					else
 					if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwBEFORE)) {
 						// look for value
