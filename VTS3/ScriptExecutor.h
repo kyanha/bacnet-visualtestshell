@@ -237,8 +237,9 @@ class ScriptExecutor : public BACnetTask {
 		void ProcessTask( void );				// timer went off
 		void NextPacket( bool okPacket );		// move to next in sequence
 
-		void ResolveExpr( const char *expr, int exprLine, ScriptTokenList &lst );
+		void ResolveExpr( const char *expr, int exprLine, ScriptTokenList &lst, ScriptParmPtr * ppScriptParm = NULL );
 //		void* GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *dp = 0 );
+		void StuffScriptParameter(BACnetEncodeable &rbacnet, ScriptParmPtr pp, LPCSTR lpstrValue );
 
 		bool SendPacket( void );				// send execPacket, return true iff success
 
@@ -362,8 +363,16 @@ class ScriptExecutor : public BACnetTask {
 		// madanner 9/25/02
 		void GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny, int nIndex = -1 );
 		void CompareAndThrowError( BACnetEncodeable & rbacnet1, BACnetEncodeable & rbacnet2, int iOperator, unsigned int nError );
+		// madanner 11/9/02
+		void ExpectALTag( BACnetAPDUDecoder &dec, ScriptToken * ptok, BACnetApplicationTag tagNumber, const char * pszDataType );
+		int CheckExpressionParams( int nMinParms, int nMaxParms, int nSuppliedParms, const char * pszDataType );
 
-		ScriptPacketExprPtr GetKeywordValue( int keyword, BACnetEncodeable &enc, ScriptTranslateTablePtr tp = 0 );
+		ScriptPacketExprPtr GetKeywordValue( ScriptParmPtr * ppScriptParm, int keyword, BACnetEncodeable &enc, ScriptTranslateTablePtr tp = 0 );
+		void TestOrAssign( ScriptPacketExprPtr pScriptExpr, BACnetEncodeable & rbacnetData, BACnetEncodeable & rbacnetScript, ScriptParmPtr pScriptParm, const char * pszErrorPrefix );
+		void TestOrAssignOptionValue( int kw, const char * pszErrorPrefix, BACnetAPDUDecoder * pdec = NULL );
+		void MatchEnumExpression( int nKeyword, BACnetEnumerated &rbacnetData, ScriptTranslateTablePtr pMap, const char * pszErrorPrefix );
+		void MatchBoolExpression( int nKeyword, BACnetBoolean &rbacnetData, const char * pszErrorPrefix );
+		void ExpectNoMore( BACnetAPDUDecoder & dec );
 
 		void ResetFamily( ScriptBasePtr sbp );
 		void ResetTest( ScriptTestPtr stp );
