@@ -118,3 +118,77 @@ void CEPICSViewInfoPanel::SetParagraphStyle(WORD wNumbering, LONG lIndent, LONG 
 
 //pmyRichEditCtrl->GetSel(nStartChar, nEndChar); 
 //pmyRichEditCtrl->SetSel(nEndChar, -1);
+
+
+/////////////////////////////////////////////////////////////////////////////
+// CEPICSViewListPanel
+
+IMPLEMENT_DYNCREATE(CEPICSViewListPanel, CListView)
+
+CEPICSViewListPanel::CEPICSViewListPanel()
+{
+}
+
+CEPICSViewListPanel::~CEPICSViewListPanel()
+{
+}
+
+
+BEGIN_MESSAGE_MAP(CEPICSViewListPanel, CListView)
+	//{{AFX_MSG_MAP(CEPICSViewListPanel)
+	ON_WM_CREATE()
+	//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CEPICSViewListPanel drawing
+
+void CEPICSViewListPanel::OnDraw(CDC* pDC)
+{
+	CDocument* pDoc = GetDocument();
+	// TODO: add draw code here
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CEPICSViewListPanel diagnostics
+
+#ifdef _DEBUG
+void CEPICSViewListPanel::AssertValid() const
+{
+	CListView::AssertValid();
+}
+
+void CEPICSViewListPanel::Dump(CDumpContext& dc) const
+{
+	CListView::Dump(dc);
+}
+#endif //_DEBUG
+
+/////////////////////////////////////////////////////////////////////////////
+// CEPICSViewListPanel message handlers
+
+int CEPICSViewListPanel::OnCreate(LPCREATESTRUCT lpCreateStruct) 
+{
+	lpCreateStruct->style |= LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS;
+	if (CListView::OnCreate(lpCreateStruct) == -1)
+		return -1;
+	
+	CListCtrl& m_ElemList=GetListCtrl();
+	m_ElemList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
+
+	// column hiding not available yet...
+	m_ElemList.m_nFlags |= LVS_REPORT;
+	return 0;
+}
+
+
+void CEPICSViewListPanel::Reset(void)
+{
+	GetListCtrl().DeleteAllItems();
+
+	int nColumnCount = GetListCtrl().GetHeaderCtrl()->GetItemCount();
+
+	// Delete all of the columns.
+	for (int i=0;i < nColumnCount;i++)
+		GetListCtrl().DeleteColumn(0);
+}

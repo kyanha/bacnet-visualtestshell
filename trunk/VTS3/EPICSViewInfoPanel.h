@@ -8,6 +8,7 @@
 //
 
 #include <afxrich.h>
+#include <afxcview.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // CEPICSViewInfoPanel window
@@ -47,6 +48,47 @@ protected:
 		// NOTE - the ClassWizard will add and remove member functions here.
 	//}}AFX_MSG
 
+	DECLARE_MESSAGE_MAP()
+};
+
+
+/////////////////////////////////////////////////////////////////////////////
+// CEPICSViewListPanel view
+
+class CEPICSViewListPanel : public CListView
+{
+protected:
+	CEPICSViewListPanel();           // protected constructor used by dynamic creation
+	DECLARE_DYNCREATE(CEPICSViewListPanel)
+
+// Attributes
+public:
+	void Reset(void);
+
+// Operations
+public:
+
+// Overrides
+	// ClassWizard generated virtual function overrides
+	//{{AFX_VIRTUAL(CEPICSViewListPanel)
+	protected:
+	virtual void OnDraw(CDC* pDC);      // overridden to draw this view
+	//}}AFX_VIRTUAL
+
+// Implementation
+protected:
+	virtual ~CEPICSViewListPanel();
+#ifdef _DEBUG
+	virtual void AssertValid() const;
+	virtual void Dump(CDumpContext& dc) const;
+#endif
+
+	// Generated message map functions
+protected:
+	//{{AFX_MSG(CEPICSViewListPanel)
+		// NOTE - the ClassWizard will add and remove member functions here.
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
 
