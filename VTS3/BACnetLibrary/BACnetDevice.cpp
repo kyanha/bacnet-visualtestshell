@@ -179,6 +179,7 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 	;
 	
 	// decode the contents
+	apdu.apduAddr = npdu.pduAddr;
 	apdu.Decode( BACnetAPDUDecoder( npdu ) );
 
 	// now do something with it
