@@ -2374,7 +2374,11 @@ bool BACnetOctetString::Match( BACnetEncodeable &rbacnet, int iOperator, CString
 
 	bool fMatch = memcmp(strBuff, ((BACnetOctetString &) rbacnet).strBuff, min(((BACnetOctetString &) rbacnet).strBuffLen, strBuffLen)) == 0;
 
-	if ( (fMatch && iOperator == '=') || (!fMatch && iOperator == '!=') )
+	//madanner 6/03, check length too if testing for equality.  Use strlen not bufflen.  Above bufflen test performed
+	//to avoid gpf, but not here.
+
+	if (   (fMatch && iOperator == '=' &&  ((BACnetOctetString &) rbacnet).strLen == strLen)
+	    || (!fMatch && iOperator == '!=') )
 		return true;
 
 	return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
