@@ -365,19 +365,33 @@ Fixed a TimeSynch encoding bug.
   </tr>
   <tr>
      <td align="center">3.1.8</td>
-     <td align="left">Session data is now cleared, so it doesn't grow continuously, but is not compressed.
-			The Send windows have been sized up to make room for more buttons and clearer indicators.
-			The IDD_SENDREADPROPMULT, IDD_SENDREADPROPMULTACK and IDD_SENDWRITEPROPMULT dialog
-				boxes now have shuffle-up and shuffle-down buttons.  May still need some work.
-			All of the Send dialog boxes that have lists now have 'Show selection always' turned
-				on, which doesn't always seem to do what it's supposed to.
-			There is now an automatic invoke ID for the send window.  It is incremented when the
-				Send button is clicked.  The value is saved in the preferences (registry), so it 
-				comes back for the next VTS launch.  Note that this is NOT the same invoke ID that 
-				will be used by a built-in device object, and I think that is a good thing.
-			Now checks the version of BACMACNT.SYS it can find.  Only version 3.0 works.
-       Added decoding of UTCOffset and DayLightSavingStatus to the UTCTimeSynch service.
-       Changed the UTCOffset range from +/- 720 to +/-780. </td>
+     <td align="left">
+       <ul>
+	    <li>Session data is now cleared, so it doesn't grow continuously, but is not compressed.</li>
+	    <li>The Send windows have been sized up to make room for more buttons and clearer indicators.</li>
+	    <li>The IDD_SENDREADPROPMULT, IDD_SENDREADPROPMULTACK and IDD_SENDWRITEPROPMULT dialog boxes now have shuffle-up and shuffle-down buttons.  (May still need some work.)</li>
+	    <li>All of the Send dialog boxes that have lists now have 'Show selection always' turned on, which doesn't always seem to do what it's supposed to.</li>
+	    <li>There is now an automatic invoke ID for the send window.  It is incremented when the Send button is clicked.  The value is saved in the preferences (registry), so it comes back for the next VTS launch.  Note that this is NOT the same invoke ID that will be used by a built-in device object, and that is by design.</li>
+		<li>Now checks the version of BACMACNT.SYS it can find.  Only version 3.0 works.</li>
+		<li>Added decoding of UTCOffset and DayLightSavingStatus to the UTCTimeSynch service.</li>
+		<li>Changed the UTCOffset range from +/- 720 to +/-780.</li> 
+		<li>Line numbers have been added to script windows, with a way to "Go to" a line number via a new menu option.</li>
+		<li>The font was changed in script windows so that consecutive dashes would not appear as one long dash.</li>
+		<li>A menu item "Export" has been added for exporting the session contents to an ASCII file.  The ASCII file includes the summary and detail information.</li>
+        <li>Fixed a bug in decoding the BACnetEventTransitionBits datatype.</li>
+        <li>The 3 panes of the main view (summary, detail, and hex view) can each be sized, rearranged, and selectively hidden. </li>
+		<li>A statistics view has been added that shows statistics in real time. The statistics include:
+		   <ol>
+		      <li>The overall traffic load</li>
+			  <li>The packet count of one or several kinds of messages. For example, how many Who-Is packets are received/sent, how many Alarm & Event packets are received/sent etc. </li>
+			  <li>The packet count of packets that fall into 3 different user-specified size categories. </li>
+		   </ol>
+		</li>
+		<li>When the user double-clicks on a line in the outline view of a script, the script view will jump to the corresponding line. </li>
+		<li>Support was added for the Active_COV_Subscriptions Property of the Device Object. </li>
+		<li>Support was added for the Profile_Name Property.</li>
+       </ul>
+     </td>
   </tr>
 </table>
 <p>&nbsp;</p>
