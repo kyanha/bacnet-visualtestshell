@@ -18,11 +18,20 @@ void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 //	VTSAnyElement
 //
 
-struct VTSAnyElement {
+//struct VTSAnyElement {
+//	int					elemType;
+//	int					elemContext;
+//	BACnetAPDUEncoder	elemEncoder;
+//	};
+
+//madanner 9/04, changed to class for proper destructors
+class VTSAnyElement
+{
+public:
 	int					elemType;
 	int					elemContext;
 	BACnetAPDUEncoder	elemEncoder;
-	};
+};
 
 typedef VTSAnyElement *VTSAnyElementPtr;
 
@@ -37,6 +46,7 @@ class VTSAnyList : public CList<VTSAnyElementPtr,VTSAnyElementPtr> {
 
 		void Add( void );								// add a new element on the end
 		void Remove( int i );							// remove an element
+		void KillAll(void);
 
 		int Length( void );								// number of defined elements
 		VTSAnyElementPtr operator []( int i );			// index into element list
@@ -72,6 +82,11 @@ public:
 
 	void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
 	void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
+
+	//madanner 9/04
+	int GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType );
+	void AddValue( BACnetEncodeable * pbacnetValue );
+
 
 // Dialog Data
 	//{{AFX_DATA(VTSAny)
