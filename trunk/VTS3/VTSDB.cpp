@@ -323,12 +323,28 @@ int VTSDB::GetPacketCount( void )
 
 void VTSDB::DeletePackets( void )
 {
-	int					stat
+	int					stat, i
 	;
 	VTSDBTransaction	trans( this )				// build a transaction wrapper
 	;
+	VTSPacketHeader		hdr
+	;
 
-	// sure would be nice to delete the old ones...
+	// delete all of the packet data objects
+	for (i = 0; i < dbPacketList.Count(); i++) {
+		// read the header
+		if ((stat = dbPacketList.ReadElem( i, &hdr )) != 0)
+			throw stat;
+
+		// if there is a JDBOctetStringObj there, delete it
+		if (hdr.packetDataID != 0)
+			pObjMgr->DeleteObject( hdr.packetDataID );
+	}
+
+	// now delete the array
+	if ((stat = pArrayMgr->DeleteArray( dbPacketList.objID )) != 0) {
+		return;
+	}
 
 	// create a new packet list
 	if ((stat = pArrayMgr->NewArray( dbPacketList, kVTSPacketHeaderSize, 4096 / kVTSPacketHeaderSize )) != 0) {
