@@ -1149,6 +1149,15 @@ void* ScriptExecutor::GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *d
 	static BACnetOctet		valueBuff[2048]
 	;
 
+	//madanner 9/20/02, on very few occasions the value is KNOWN (not marked in EPICS as '?') but the value is empty ().
+	//If empty, pv will = null and the caller will mistake this for unknown data.  So we need to provide a way to 
+	//test the difference between a null return value with bad data, and a null return value with empty data.  Only 
+	//callers that use the optional parameter are even remotely concerned with this... in addition, it will not alter
+	//the usage of the return value so no existing code will break :)
+
+	if ( dp )
+		dp->pktLength = -1;			// will be set (possibly to zero) after data is gathered.  -1 = no data
+
 	// find the property
 	pid = ScriptToken::Lookup( prop, ScriptPropertyMap );
 	if (pid < 0)
@@ -1196,7 +1205,7 @@ void* ScriptExecutor::GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *d
 
 	// success
 	*typ = pvm.pt;
-	return pvm.pv;
+	return pvm.pv;			// this value may be null assume this could be valid data (emtpy).  If null, pktLenth should be 0.
 }
 
 //
@@ -6719,16 +6728,22 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 				BACnetAPDUDecoder	refData
 				;
 
+				//madanner 9/20/02, this is the only call to GetReferenceData where we might care if the returned
+				//value buffer is null BUT that represents an empty value () and not '?' from EPICS.  Throw the
+				//no data condition if the length of the returned data is -1 AND the buffer is null.  On empty
+				//data, the buffer will point to null but the data length will be zero... this condition must
+				//be processed as usual...  empty == empty is a valid test.
+
 				// get the encoded value
 				pValue = GetReferenceData( tlist[0].tokenSymbol, &typ, &refData );
-				if (!pValue)
+				if (!pValue && refData.pktLength == -1)
+//				if (!pValue)
 					throw "Property value not known";
 
 				// check the length
 				if (dec.pktLength < refData.pktLength)
 					throw "Not enough data to match";
 
-				
 				// match the contents
 				//Modified by Yajun Zhou, 2002-8-29
 				//for (int i = 0; i < refData.pktLength; i++) {
