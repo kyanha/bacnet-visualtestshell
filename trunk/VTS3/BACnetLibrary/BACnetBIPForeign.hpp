@@ -3,7 +3,6 @@
 
 #include "BACnet.hpp"
 #include "BACnetIP.hpp"
-#include "BACnetTask.hpp"
 
 //
 //	BACnetBIPForeign

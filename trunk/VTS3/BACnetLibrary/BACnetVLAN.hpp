@@ -2,7 +2,6 @@
 #define _BACnetVLAN
 
 #include "BACnet.hpp"
-#include "BACnetTask.hpp"
 
 //
 //	BACnetVLAN

@@ -3,15 +3,18 @@
 
 #include <iostream>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
 
 #if (__DECCXX)
-#include cvtdef
+#include "cvtdef.h"
+#include <ssdef.h>
+
 extern "C" {
-int cvt$convert_float( void *, int, void *, int, int );
+int cvt$convert_float( const void *, int, void *, int, int );
 }
 #endif
 
@@ -23,9 +26,29 @@ int cvt$convert_float( void *, int, void *, int, int );
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+#else
+
+int stricmp( const char *, const char * );
+
+int stricmp( const char *a, const char *b )
+{
+	while (*a && *b) {
+		int cmp = (tolower(*b++) - tolower(*a++));
+		if (cmp != 0)
+			return (cmp < 0 ? -1 : 1);
+	}
+	if (*a)
+		return 1;
+	else
+	if (*b)
+		return -1;
+	else
+		return 0;
+}
+
 #endif
 
-#define	VTSScanner		1
+#define	VTSScanner		0
 
 #if VTSScanner
 
@@ -126,16 +149,63 @@ int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 	return 1;
 }
 
+#if _TSMDebug
+//
+//	operator <<(ostream &strm,const BACnetAddress &addr)
+//
+
+ostream &operator <<(ostream &strm,const BACnetAddress &addr)
+{
+	const static char hex[] = "0123456789ABCDEF"
+	;
+	int		i
+	;
+	
+	strm << '[';
+	
+	switch (addr.addrType) {
+		case nullAddr:
+			break;
+			
+		case remoteStationAddr:
+			strm << addr.addrNet << ':';
+		case localStationAddr:
+			strm << "0x";
+			for (i = 0; i < addr.addrLen; i++) {
+				strm << hex[ addr.addrAddr[i] >> 4 ];
+				strm << hex[ addr.addrAddr[i] & 0x0F ];
+			}
+			break;
+			
+		case localBroadcastAddr:
+			strm << '*';
+			break;
+			
+		case remoteBroadcastAddr:
+			strm << addr.addrNet << ":*";
+			break;
+			
+		case globalBroadcastAddr:
+			strm << "*:*";
+			break;
+	}
+	
+	strm << ']';
+	
+	return strm;
+}
+#endif
+
 //
 //	BACnetEncodeable
 //
 
-void BACnetEncodeable::Encode( char *enc )
+void BACnetEncodeable::Encode( char * )
 {
 	throw (-1) /*not implemented */;
 }
 
-void BACnetEncodeable::Decode( const char *dec )
+void BACnetEncodeable::Decode( const char * )
 {
 	throw (-1) /*not implemented */;
 }
@@ -350,6 +420,11 @@ void BACnetEnumerated::Decode( BACnetAPDUDecoder& dec )
 	enumValue = rslt;
 }
 
+void BACnetEnumerated::Encode( char *enc )
+{
+	Encode( enc, 0, 0 );
+}
+
 void BACnetEnumerated::Encode( char *enc, const char **table, int tsize )
 {
 	int		valu = enumValue
@@ -359,6 +434,11 @@ void BACnetEnumerated::Encode( char *enc, const char **table, int tsize )
 		sprintf( enc, "%d", valu );
 	else
 		strcpy( enc, table[enumValue] );
+}
+
+void BACnetEnumerated::Decode( const char *dec )
+{
+	Decode( dec, 0, 0 );
 }
 
 void BACnetEnumerated::Decode( const char *dec, const char **table, int tsize )
@@ -378,7 +458,7 @@ void BACnetEnumerated::Decode( const char *dec, const char **table, int tsize )
 		while (enumValue < tsize) {
 			if (strncmp(dec,*table,strlen(dec)) == 0)
 				break;
-			if (_stricmp(dec,*table) == 0)
+			if (stricmp(dec,*table) == 0)
 				break;
 			table += 1;
 			enumValue += 1;
@@ -948,9 +1028,6 @@ bool BACnetCharacterString::Equals( const char *valu )
 
 	// success
 	return true;
-
-	// compare (case insensitive)
-	return (stricmp( (char *)strBuff, valu ) == 0);
 }
 
 void BACnetCharacterString::Encode( BACnetAPDUEncoder& enc, int context )
@@ -2282,9 +2359,9 @@ void BACnetObjectIdentifier::Encode( char *enc )
 	sprintf( enc, "%s, %d", s, instanceNum );
 }
 
+#if VTSScanner
 void BACnetObjectIdentifier::Decode( const char *dec )
 {
-#if VTSScanner
 	int		objType, instanceNum
 	;
 
@@ -2333,9 +2410,11 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 	// everything checks out
 	objID = (objType << 22) + instanceNum;
 #else
+void BACnetObjectIdentifier::Decode( const char * )
+{
 	throw (-1) /* not implemented */;
-#endif
 }
+#endif
 
 //
 //	BACnetOpeningTag
@@ -2684,7 +2763,66 @@ void Unbind( BACnetNetClientPtr cp, BACnetNetServerPtr sp )
 	sp->serverPeer = 0;
 }
 
-//----------
+#if _TSMDebug
+
+//
+//	BACnetDebugNPDU::BACnetDebugNPDU
+//
+
+const char debugHex[] = "0123456789ABCDEF";
+
+BACnetDebugNPDU::BACnetDebugNPDU( const char *lbl )
+	: label(lbl)
+{
+}
+
+//
+//	BACnetDebugNPDU::BACnetDebugNPDU
+//
+
+BACnetDebugNPDU::BACnetDebugNPDU( BACnetNetServerPtr sp, const char *lbl )
+	: label(lbl)
+{
+	Bind( this, sp );
+}
+
+//
+//	BACnetDebugNPDU::Indication
+//
+
+void BACnetDebugNPDU::Indication( const BACnetNPDU &pdu )
+{
+	cout << '(' << label << " '";
+	for (int i = 0; i < pdu.pduLen; i++) {
+		cout << debugHex[ (pdu.pduData[i] >> 4) & 0x0F ];
+		cout << debugHex[ pdu.pduData[i] & 0x0F ];
+		cout << '.';
+	}
+	cout << "' to " << pdu.pduAddr << ')';
+	cout << endl;
+	
+	Request( pdu );
+}
+
+//
+//	BACnetDebugNPDU::Confirmation
+//
+
+void BACnetDebugNPDU::Confirmation( const BACnetNPDU &pdu )
+{
+	cout << '(' << label << " '";
+	for (int i = 0; i < pdu.pduLen; i++) {
+		cout << debugHex[ (pdu.pduData[i] >> 4) & 0x0F ];
+		cout << debugHex[ pdu.pduData[i] & 0x0F ];
+		cout << '.';
+	}
+	cout << "' from " << pdu.pduAddr << ')';
+	cout << endl;
+	
+	Response( pdu );
+}
+
+#endif
 
 //
 //	BACnetPort::BACnetPort
@@ -2735,37 +2873,6 @@ void BACnetPort::PortStatusChange( void )
 }
 
 //----------
-
-//
-//	BACnetAPDU::BACnetAPDU
-//
-
-BACnetAPDU::BACnetAPDU( const BACnetAddress &addr, const BACnetAPDUType type
-		, const int invokeID, const int abortRejectReason
-		, const BACnetOctet *data, const int len
-		, const int priority
-		)
-	: apduAddr(addr), apduType(type), apduInvokeID(invokeID)
-	, apduAbortRejectReason(abortRejectReason)
-	, apduData( data, len )
-	, apduPriority( priority )
-{
-}
-
-//
-//	BACnetAPDU::BACnetAPDU
-//
-
-BACnetAPDU::BACnetAPDU( const BACnetAddress &addr, const BACnetAPDUType type
-		, const int invokeID, const BACnetAPDUDecoder &data
-		, const int priority
-		)
-	: apduAddr(addr), apduType(type), apduInvokeID(invokeID)
-	, apduAbortRejectReason(0)
-	, apduData( data )
-	, apduPriority( priority )
-{
-}
 
 //
 //	BACnetAppClient::BACnetAppClient

@@ -31,7 +31,7 @@ BACnetVIPLANMsg::BACnetVIPLANMsg( BACnetVIPLANPtr lan, BACnetVIPLANNodePtr sourc
 	, msgLAN(lan), msgSource(source), msgDestination(pdu.pduAddr)
 {
 #if _BACnetVIPLANMsgDebug
-	std::cout << "(new msg " << (int)this << ")" << std::endl;
+	cout << "(new msg " << (int)this << ")" << endl;
 #endif
 	// copy the message data
 	msgLen = pdu.pduLen;
@@ -52,7 +52,7 @@ BACnetVIPLANMsg::BACnetVIPLANMsg( BACnetVIPLANPtr lan, BACnetVIPLANNodePtr sourc
 BACnetVIPLANMsg::~BACnetVIPLANMsg( void )
 {
 #if _BACnetVIPLANMsgDebug
-	std::cout << "(delete msg " << (int)this << ")" << std::endl;
+	cout << "(delete msg " << (int)this << ")" << endl;
 #endif
 	// dispose of the copy of the data
 	delete[] msgData;
@@ -119,16 +119,16 @@ void BACnetVIPLAN::ProcessMessage( BACnetVIPLANMsgPtr msg )
 	
 #if _BACnetVIPLANDebug
 	const static char hex[] = "0123456789ABCDEF";
-	std::cout << "VIPLAN " << vlanID << ": ";
-	std::cout << "src = " << msg->msgSource->ipAddress;
-	std::cout << ", dst = " << msg->msgDestination;
-	std::cout << ", msg = ";
+	cout << "VIPLAN " << vlanID << ": ";
+	cout << "src = " << msg->msgSource->ipAddress;
+	cout << ", dst = " << msg->msgDestination;
+	cout << ", msg = ";
 	for (int i = 0; i < msg->msgLen; i++) {
-		std::cout << hex[ (msg->msgData[i] >> 4) & 0x0F ];
-		std::cout << hex[ msg->msgData[i] & 0x0F ];
-		std::cout << '.';
+		cout << hex[ (msg->msgData[i] >> 4) & 0x0F ];
+		cout << hex[ msg->msgData[i] & 0x0F ];
+		cout << '.';
 	}
-	std::cout << endl;
+	cout << endl;
 #endif
 	
 	// extract the destination address
@@ -181,7 +181,7 @@ void BACnetVIPLAN::ProcessMessage( BACnetVIPLANMsgPtr msg )
 			
 		default:
 #if _BACnetVIPLANDebug
-			std::cout << "VIPLAN Addressing error" << std::endl;
+			cout << "VIPLAN Addressing error" << endl;
 #endif
 			break;
 	}

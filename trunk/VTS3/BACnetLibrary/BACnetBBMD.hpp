@@ -3,7 +3,6 @@
 
 #include "BACnet.hpp"
 #include "BACnetIP.hpp"
-#include "BACnetTask.hpp"
 
 //
 //	BACnet Broadcast Distribution Table Entry
@@ -56,7 +55,7 @@ class BACnetBBMD : public BACnetNetClient, public BACnetNetServer, BACnetTask {
 		BACnetFDTEntry	bbmdFDT[kBACnetBBMDMaxFDTSize];
 		int				bbmdFDTSize;
 		
-		int RegisterForeignDevice( const BACnetAddress &addr, int ttl );
+		int RegisterForeignDevice( const BACnetIPAddr &addr, int ttl );
 		
 		virtual void Indication( const BACnetNPDU &ndpu );
 		virtual void Confirmation( const BACnetNPDU &npdu );

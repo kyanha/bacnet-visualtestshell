@@ -112,16 +112,16 @@ void BACnetVLAN::ProcessMessage( BACnetVLANMsgPtr msg )
 	
 #if _BACnetVLANDebug
 	const static char hex[] = "0123456789ABCDEF";
-	std::cout << "VLAN " << vlanID << ": ";
-	std::cout << "src = " << msg->msgSource;
-	std::cout << ", dst = " << msg->msgDestination;
-	std::cout << ", msg = ";
+	cout << "VLAN " << vlanID << ": ";
+	cout << "src = " << msg->msgSource;
+	cout << ", dst = " << msg->msgDestination;
+	cout << ", msg = ";
 	for (int i = 0; i < msg->msgLen; i++) {
-		std::cout << hex[ (msg->msgData[i] >> 4) & 0x0F ];
-		std::cout << hex[ msg->msgData[i] & 0x0F ];
-		std::cout << '.';
+		cout << hex[ (msg->msgData[i] >> 4) & 0x0F ];
+		cout << hex[ msg->msgData[i] & 0x0F ];
+		cout << '.';
 	}
-	std::cout << endl;
+	cout << endl;
 #endif
 	
 	switch (msg->msgDestination.addrType) {
@@ -141,7 +141,7 @@ void BACnetVLAN::ProcessMessage( BACnetVLANMsgPtr msg )
 			
 		default:
 #if _BACnetVLANDebug
-			std::cout << "VLAN Addressing error" << std::endl;
+			cout << "VLAN Addressing error" << endl;
 #endif
 			break;
 	}

@@ -2,8 +2,6 @@
 #define _BACnetVIPLAN
 
 #include "BACnet.hpp"
-#include "BACnetTask.hpp"
-
 #include "BACnetIP.hpp"
 
 //

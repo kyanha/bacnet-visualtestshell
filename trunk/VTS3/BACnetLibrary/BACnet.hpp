@@ -1,6 +1,12 @@
 #ifndef _BACnet
 #define _BACnet
 
+#define _TSMDebug	1
+
+#if _TSMDebug
+#include <iostream.h>
+#endif
+
 //
 //	General Typedefs
 //
@@ -51,6 +57,9 @@ typedef BACnetAddress *BACnetAddressPtr;
 const int kBACnetAddressSize = sizeof( BACnetAddress );
 
 int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 );
+#if _TSMDebug
+ostream &operator <<(ostream &strm,const BACnetAddress &addr);
+#endif
 
 //
 //	BACnetContext
@@ -108,8 +117,11 @@ class BACnetEnumerated : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc, const char **table = 0, int tsize = 0 );
-		void Decode( const char *dec, const char **table = 0, int tsize = 0 );
+		void Encode( char *enc );
+		void Decode( const char *dec );
+
+		void Encode( char *enc, const char **table, int tsize );
+		void Decode( const char *dec, const char **table, int tsize );
 	};
 
 class BACnetUnsigned : public BACnetEncodeable {
@@ -373,11 +385,7 @@ class BACnetAPDUTag : public BACnetEncodeable {
 //	BACnetAPDUEncoder
 //
 //	An encoder is an object passed to the various types to store the encoded version 
-//	of themselves.  The correct way to handle encoding is to build a buffer of data 
-//	in your routine and pass it to a method that will copy it into the correct place 
-//	in the buffer and update the length.  With a nod to speed, it's faster to stuff 
-//	the data right in the buffer (after checking to make sure there's enough space 
-//	of course!).
+//	of themselves.
 //
 
 const int kDefaultBufferSize = 1024;
@@ -387,16 +395,17 @@ class BACnetAPDUEncoder {
 		int					pktBuffSize;			// allocated size
 		
 	public:
-		BACnetAPDUEncoder( BACnetOctet *buffPtr );
 		BACnetAPDUEncoder( int initBuffSize = kDefaultBufferSize );
+		BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
 		~BACnetAPDUEncoder( void );
 		
 		BACnetOctet			*pktBuffer;				// pointer to start of buffer
 		int					pktLength;				// number of encoded octets
 		
-		void CheckSpace( int len );						// resize iff necessary
-		void CopyOctets( BACnetOctet *buff, int len );	// raw copy into buffer
-		void Flush( void );								// remove all contents
+		void CheckSpace( int len );					// resize iff necessary
+		void Append( BACnetOctet ch );				// simple copy, should be inline!
+		void Append( BACnetOctet *buff, int len );	// raw copy into buffer
+		void Flush( void );							// remove all contents
 	};
 
 typedef BACnetAPDUEncoder *BACnetAPDUEncoderPtr;
@@ -419,7 +428,7 @@ class BACnetAPDUDecoder {
 		
 		void SetBuffer( const BACnetOctet *buffer, int len );
 
-		void ExamineTag(BACnetAPDUTag &t);			// just peek at the next tag
+		void ExamineTag( BACnetAPDUTag &t );			// just peek at the next tag
 		
 		void CopyOctets( BACnetOctet *buff, int len );	// raw copy into buffer
 		int ExtractData( BACnetOctet *buffer );		// skip the tag and extract the data
@@ -507,6 +516,91 @@ class BACnetNetServer {
 		void Response( const BACnetNPDU &pdu );
 	};
 
+#if _TSMDebug
+class BACnetDebugNPDU : public BACnetNetClient, public BACnetNetServer {
+	protected:
+		const char			*label;
+		
+	public:
+		BACnetDebugNPDU( const char *lbl );
+		BACnetDebugNPDU( BACnetNetServerPtr sp, const char *lbl );
+		
+		virtual void Indication( const BACnetNPDU &pdu );
+		virtual void Confirmation( const BACnetNPDU &pdu );
+	};
+#endif
+
+//
+//	BACnetTask
+//
+//	A task is something that needs to be done.  There is a global list of all
+//	of the tasks that need to be processed, the task manager takes care of making
+//	sure all of the tasks get processed.
+//
+//	The taskTime is the time in clock ticks that the task should be processed.  If 
+//	it's less than the current time (including zero) the task will fire.  An active
+//	task is one that has been installed and will fire, NOT that a task is currently
+//	running.
+//
+//	The taskType describes one three types of tasks: one-shot, one-shot and deleted, 
+//	and recurring.  The taskInterval specifies how often a recurring task should 
+//	execute.  If the taskInterval is zero for these recurring tasks, the task will 
+//	be processed once each time the TaskManager function is called.
+//
+//	The suspend and resume methods are virtual so other functions can be tied to them
+//	(like activating/deactivating a text field).  The ProcessTask function is pure 
+//	virtual so useful objects must supply a method.
+//
+//	The TaskManager function is called by the main event loop.  It could be called 
+//	by anybody that might tie up the machine for a while, like inside a TrackControl
+//	loop.  The TaskControlProc is a glue routine that should be assigned to controls
+//	where no other function would normally be provided.
+//
+
+class BACnetTask {
+	public:
+		enum BACnetTaskType
+				{ oneShotTask		= 0
+				, oneShotDeleteTask	= 1
+				, recurringTask		= 2
+				};
+
+		BACnetTaskType	taskType;				// how to process
+		long			taskInterval;			// how often to reschedule (ms)
+		int				isActive;				// task is in queue to fire
+		
+		BACnetTask( BACnetTaskType typ = oneShotTask, long delay = 0 );
+		virtual ~BACnetTask(void);
+		
+		void InstallTask(void);			 		// install into queue
+		void SuspendTask(void);					// remove from execution queue
+		void ResumeTask(void);					// put back in
+		
+		virtual void ProcessTask(void) = 0;		// do something
+	};
+
+typedef BACnetTask *BACnetTaskPtr;
+
+//
+//	BACnetTaskManager
+//
+
+class BACnetTaskManager {
+	public:
+		BACnetTaskManager( void ) {};
+		virtual ~BACnetTaskManager( void ) {};
+
+		virtual void InstallTask( BACnetTaskPtr tp ) = 0;
+		virtual void SuspendTask( BACnetTaskPtr tp ) = 0;
+		virtual void ResumeTask( BACnetTaskPtr tp ) = 0;
+		
+		virtual void ProcessTasks( void ) = 0;
+	};
+
+typedef BACnetTaskManager *BACnetTaskManagerPtr;
+
+extern BACnetTaskManagerPtr gTaskManager;
+
 //
 //	BACnetPort
 //
@@ -539,11 +633,6 @@ typedef BACnetPort *BACnetPortPtr;
 //
 //	BACnetAPDU
 //
-//	A BACnetAPDU is an object that gets passed between the 'top' of a router and an application 
-//	client.  The apduExpectingReply and apduNetworkPriority are passed down to the network layer 
-//	for proper processing.  The first octet of the service data will contain the pduType in the 
-//	upper nibble, it is available in the header to make processing easier.
-//
 
 enum BACnetAPDUType
 	{ confirmedRequestPDU		= 0x00
@@ -556,26 +645,183 @@ enum BACnetAPDUType
 	, abortPDU					= 0x07
 	};
 
-struct BACnetAPDU {
-	BACnetAddress		apduAddr;
-	BACnetAPDUType		apduType;
-	int					apduInvokeID;
-	int					apduAbortRejectReason;
-	BACnetAPDUDecoder	apduData;
-	int					apduPriority;
+class BACnetAPDU : public BACnetAPDUEncoder  {
+	public:
+		BACnetAddress		apduAddr;
+		BACnetAPDUType		apduType;
+		int					apduService;
+		int					apduInvokeID;
+		int					apduAbortRejectReason;
+		int					apduExpectingReply;		// see 6.2.2 (1 or 0)
+		int					apduNetworkPriority;	// see 6.2.2 (0, 1, 2, or 3)
 
-	BACnetAPDU( const BACnetAddress &addr, const BACnetAPDUType type
-		, const int invokeID = 0, const int abortRejectReason = 0
-		, const BACnetOctet *data = 0, const int len = 0
-		, const int priority = 0
-		);
-	BACnetAPDU( const BACnetAddress &addr, const BACnetAPDUType type
-		, const int invokeID, const BACnetAPDUDecoder &data
-		, const int priority = 0
-		);
+		BACnetAPDU( int initBuffSize = kDefaultBufferSize );
+		BACnetAPDU( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
 	};
 
 typedef BACnetAPDU *BACnetAPDUPtr;
+
+//
+//	BACnetConfirmedServiceAPDU
+//
+
+enum BACnetConfirmedServiceChoice {
+// Alarm and Event Services
+		acknowledgeAlarm				= 0,
+		confirmedCOVNotification		= 1,
+		confirmedEventNotification		= 2,
+		getAlarmSummary					= 3,
+		getEnrollmentSummary			= 4,
+		subscribeCOV					= 5,
+
+// File Access Services
+		atomicReadFile					= 6,
+		atomicWriteFile					= 7,
+
+// Object Access Services
+		addListElement					= 8,
+		removeListElement				= 9,
+		createObject					= 10,
+		deleteObject					= 11,
+		readProperty					= 12,
+		readPropertyConditional			= 13,
+		readPropertyMultiple			= 14,
+		writeProperty					= 15,
+		writePropertyMultiple			= 16,
+
+// Remote Device Management Services
+		deviceCommunicationControl		= 17,
+		confirmedPrivateTransfer		= 18,
+		confirmedTextMessage			= 19,
+		reinitializeDevice				= 20,
+
+// Virtual Terminal Services
+		vtOpen							= 21,
+		vtClose							= 22,
+		vtData							= 23,
+
+// Security Services
+		authenticate					= 24,
+		requestKey						= 25
+		};
+
+class BACnetConfirmedServiceAPDU : public BACnetAPDU {
+	public:
+		BACnetConfirmedServiceAPDU( BACnetConfirmedServiceChoice ch );
+	};
+
+//
+//	BACnetUnconfirmedServiceAPDU
+//
+
+enum BACnetUnconfirmedServiceChoice {
+		iAm								= 0,
+		iHave							= 1,
+		unconfirmedCOVNotification		= 2,
+		unconfirmedEventNotification	= 3,
+		unconfirmedPrivateTransfer		= 4,
+		unconfirmedTextMessage			= 5,
+		timeSynchronization				= 6,
+		whoHas							= 7,
+		whoIs							= 8
+		};
+
+class BACnetUnconfirmedServiceAPDU : public BACnetAPDU {
+	public:
+		BACnetUnconfirmedServiceAPDU( BACnetUnconfirmedServiceChoice ch );
+	};
+
+//
+//	BACnetSimpleAckAPDU
+//
+
+class BACnetSimpleAckAPDU : public BACnetAPDU {
+	protected:
+		BACnetOctet		simpleAckBuff[3];
+		
+	public:
+		BACnetSimpleAckAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID );
+	};
+
+//
+//	BACnetComplexAckAPDU
+//
+
+class BACnetComplexAckAPDU : public BACnetAPDU {
+	public:
+		BACnetComplexAckAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID = 0 );
+		
+		void SetInvokeID( BACnetOctet id );
+	};
+
+//
+//	BACnetSegmentAckAPDU
+//
+
+class BACnetSegmentAckAPDU : public BACnetAPDU {
+	protected:
+		BACnetOctet		segmentAckBuff[4];
+		
+	public:
+		BACnetSegmentAckAPDU( const BACnetAddress &dest, BACnetOctet invID, int nak, int srv, BACnetOctet seg, BACnetOctet win );
+	};
+
+//
+//	BACnetErrorAPDU
+//
+
+class BACnetErrorAPDU : public BACnetAPDU {
+	public:
+		BACnetErrorAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID );
+	};
+
+//
+//	BACnetRejectAPDU
+//
+
+enum BACnetRejectReason {
+		otherReject						= 0,
+		bufferOverflowReject			= 1,
+		inconsistentParamtersReject		= 2,
+		invalidParameterDataTypeReject	= 3,
+		invalidTagReject				= 4,
+		missingRequiredParameterReject	= 5,
+		parameterOutOfRangeReject		= 6,
+		tooManyArgumentsReject			= 7,
+		undefinedEnumerationReject		= 8,
+		unrecognizedService				= 9
+		};
+
+class BACnetRejectAPDU : public BACnetAPDU {
+	protected:
+		BACnetOctet		rejectBuff[3];
+		
+	public:
+		BACnetRejectAPDU( BACnetOctet invID, BACnetRejectReason reason );
+	};
+
+//
+//	BACnetAbortAPDU
+//
+
+enum BACnetAbortReason {
+		otherAbort							= 0,
+		bufferOverflowAbort					= 1,
+		invalidAPDUInThisStateAbort			= 2,
+		preemptedByHigherPriorityTaskAbort	= 3,
+		segmentationNotSupportedAbort		= 4,
+		
+		// custom abort codes
+		apduTimeoutAbort					= 63
+		};
+
+class BACnetAbortAPDU : public BACnetAPDU {
+	protected:
+		BACnetOctet		abortBuff[3];
+		
+	public:
+		BACnetAbortAPDU( const BACnetAddress &dest, int srv, BACnetOctet invID, BACnetAbortReason reason );
+	};
 
 //
 //	BACnetAppClient
@@ -618,4 +864,249 @@ class BACnetAppServer {
 		void Response( const BACnetAPDU &pdu );
 	};
 
+//
+//	BACnetDeviceInfo
+//
+
+enum BACnetSegmentation {
+		segmentedBoth		= 0,
+		segmentedTransmit	= 1,
+		segmentedReceive	= 2,
+		noSegmentation		= 3
+		};
+
+class BACnetDeviceInfo {
+	public:
+		BACnetObjectIdentifier	deviceID;
+		BACnetAddress			deviceAddr;
+		BACnetSegmentation		deviceSegmentation;			// supports segments requests
+		int						deviceSegmentSize;			// how to divide up chunks
+		int						deviceWindowSize;			// how many to send
+		int						deviceMaxAPDUSize;			// maximum APDU size
+		int						deviceNextInvokeID;			// next invoke ID for client
+		
+		BACnetDeviceInfo		*deviceNext;				// list of information blocks
+	};
+
+typedef BACnetDeviceInfo *BACnetDeviceInfoPtr;
+
+//
+//	BACnetDevice
+//
+
+class BACnetClient;
+typedef BACnetClient *BACnetClientPtr;
+
+class BACnetServer;
+typedef BACnetServer *BACnetServerPtr;
+
+class BACnetDevice : public BACnetNetClient, public BACnetDeviceInfo {
+	public:
+		int						deviceAPDUTimeout;			// how long to wait for ack
+		int						deviceAPDUSegmentTimeout;	// how long to wait between segments
+		int						deviceAPDURetries;			// how many retries are acceptable
+		
+		BACnetDevice( void );
+		
+		BACnetClientPtr			deviceClients;
+		BACnetServerPtr			deviceServers;
+		
+		void Bind( BACnetClientPtr cp );
+		void Unbind( BACnetClientPtr cp );
+		void Bind( BACnetServerPtr sp );
+		void Unbind( BACnetServerPtr sp );
+		
+		BACnetDeviceInfoPtr GetInfo( const BACnetObjectIdentifier &id );
+		BACnetDeviceInfoPtr GetInfo( const BACnetAddress &addr );
+		
+		void Indication( const BACnetAPDU &pdu );		// outgoing packet
+		void Confirmation( const BACnetNPDU &pdu );		// incoming packet
+		
+		int GetInvokeID( void );						// new invoke ID
+	};
+
+typedef BACnetDevice *BACnetDevicePtr;
+
+BACnetOctet MaxAPDUEncode( int siz );
+int MaxAPDUDecode( BACnetOctet siz );
+
+//
+//	BACnetAPDUSegment
+//
+
+class BACnetTSM;
+typedef BACnetTSM *BACnetTSMPtr;
+
+class BACnetAPDUSegment {
+	public:
+		BACnetTSMPtr			segTSMPtr;				// invoke ID, seg size, window stuff
+		
+		BACnetAPDU				segAPDU;				// returned PDU
+		BACnetOctet				*segBuff;				// pointer to buffer
+		int						segBuffSize;			// allocated size
+		int						segLen;					// current length
+		
+		BACnetAPDUSegment( const BACnetAPDU &apdu, BACnetTSMPtr tp );
+		BACnetAPDUSegment( int ssize, BACnetTSMPtr tp );
+		~BACnetAPDUSegment( void );
+		
+		const BACnetAPDU &operator[](const int indx);	// get a segment
+		int AddSegment( const BACnetAPDU &apdu );		// add on end
+		
+		const BACnetAPDU &ResultAPDU( void );			// return complete message
+	};
+
+typedef BACnetAPDUSegment *BACnetAPDUSegmentPtr;
+
+//
+//	BACnetTSM
+//
+
+enum BACnetTSMState
+		{ tsmIdle
+		, tsmSegmentedRequest
+		, tsmAwaitConfirmation
+		, tsmSegmentedConfirmation
+		, tsmAwaitResponse
+		, tsmSegmentedResponse
+		, tsmBusy
+		};
+
+class BACnetTSM : public BACnetTask {
+		friend class BACnetDevice;
+		friend class BACnetAPDUSegment;
+		
+	protected:
+		BACnetTSMState			tsmState;
+		BACnetAPDUSegmentPtr	tsmSeg;
+		
+		BACnetAddress			tsmAddr;
+		int						tsmInvokeID;
+		
+		int						tsmRetryCount;
+		
+		BACnetSegmentation		tsmSegmentation;
+		int						tsmSegmentSize;				// how big are chunks
+		int						tsmSegmentRetryCount;
+		int						tsmSegmentCount;
+		int						tsmSegmentsSent;
+		
+		int						tsmInitialSequenceNumber;	// first sequence number
+		int						tsmLastSequenceNumber;		// last valid seq number received
+		
+		int						tsmActualWindowSize;
+		int						tsmProposedWindowSize;
+		
+	public:
+		BACnetDevicePtr			tsmDevice;					// bound device
+		
+		BACnetTSM( BACnetDevicePtr dp );
+		virtual ~BACnetTSM( void );
+		
+		void StartTimer( int msecs );
+		void StopTimer( void );
+		void RestartTimer( int msecs );
+		
+		void FillWindow( int seqNum );
+		int InWindow( int seqNum, int initSeqNum );
+		
+#if _TSMDebug
+	protected:
+		inline void SetState( BACnetTSMState newState )
+		{
+			cout << (unsigned long)this
+				<< " from " << tsmState << " to " << newState
+				<< endl;
+			tsmState = newState;
+		}
+#else
+	protected:
+		inline void SetState( BACnetTSMState newState )
+		{
+			tsmState = newState;
+		}
 #endif
+	};
+
+//
+//	BACnetClientTSM
+//
+
+class BACnetClientTSM : public BACnetTSM, public BACnetAppServer {
+	public:
+		BACnetClientTSM( BACnetDevicePtr dp );
+		virtual ~BACnetClientTSM( void );
+		
+		void Request( const BACnetAPDU &pdu );			// msg to device
+		
+		void Indication( const BACnetAPDU &pdu );		// msg from client
+		void Confirmation( const BACnetAPDU &pdu );		// msg from device
+		
+		void ProcessTask( void );
+		
+		void SegmentedRequest( const BACnetAPDU &apdu );
+		void SegmentedRequestTimeout( void );
+		void AwaitConfirmation( const BACnetAPDU &apdu );
+		void AwaitConfirmationTimeout( void );
+		void SegmentedConfirmation( const BACnetAPDU &apdu );
+		void SegmentedConfirmationTimeout( void );
+	};
+
+//
+//	BACnetServerTSM
+//
+
+class BACnetServerTSM : public BACnetTSM, public BACnetAppClient {
+	public:
+		BACnetServerTSM( BACnetDevicePtr dp );
+		virtual ~BACnetServerTSM( void );
+		
+		void Response( const BACnetAPDU &apdu );		// msg to device
+		
+		void Indication( const BACnetAPDU &apdu );		// msg from device
+		void Confirmation( const BACnetAPDU &apdu );	// msg from server
+		
+		void ProcessTask( void );
+		
+		void Idle( const BACnetAPDU &apdu );
+		void SegmentedRequest( const BACnetAPDU &apdu );
+		void SegmentedRequestTimeout( void );
+		void AwaitResponse( const BACnetAPDU &apdu );
+		void SegmentedResponse( const BACnetAPDU &apdu );
+		void SegmentedResponseTimeout( void );
+	};
+
+//
+//	BACnetClient
+//
+
+class BACnetClient : public BACnetAppClient {
+		friend class BACnetDevice;
+		
+	private:
+		BACnetClientTSM		clientTSM;
+		BACnetClientPtr		clientNext;
+		
+	public:
+		BACnetClient( BACnetDevicePtr dp );
+		virtual ~BACnetClient( void );
+	};
+
+//
+//	BACnetServer
+//
+
+class BACnetServer : public BACnetAppServer {
+		friend class BACnetDevice;
+		
+	private:
+		BACnetServerTSM		serverTSM;
+		BACnetServerPtr		serverNext;
+		
+	public:
+		BACnetServer( BACnetDevicePtr dp );
+		virtual ~BACnetServer( void );
+	};
+
+#endif
+// vinculum - a unifying bond, link, or tie

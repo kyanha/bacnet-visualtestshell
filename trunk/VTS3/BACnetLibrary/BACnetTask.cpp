@@ -7,7 +7,7 @@
 #include <iostream>
 #endif
 
-#include "BACnetTask.hpp"
+#include "BACnet.hpp"
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -29,7 +29,7 @@ BACnetTaskManagerPtr gTaskManager;
 BACnetTask::BACnetTask(BACnetTaskType typ, long delay)
 {
 #if _BACnetTaskDebug
-	std::cout << "(new task " << (int)this << ")" << std::endl;
+	cout << "(new task " << (int)this << ")" << endl;
 #endif
 	taskType = typ;
 	taskInterval = delay;
@@ -43,7 +43,7 @@ BACnetTask::BACnetTask(BACnetTaskType typ, long delay)
 BACnetTask::~BACnetTask(void)
 {
 #if _BACnetTaskDebug
-	std::cout << "(delete task " << (int)this << ")" << std::endl;
+	cout << "(delete task " << (int)this << ")" << endl;
 #endif
 	if (isActive)
 		gTaskManager->SuspendTask( this );
