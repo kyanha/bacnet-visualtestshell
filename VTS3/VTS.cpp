@@ -21,6 +21,8 @@
 #include "WinPacket32.hpp"
 #include "WinBACnetTaskManager.hpp"
 
+#include "file_ver.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -174,6 +176,9 @@ BOOL VTSApp::InitInstance()
 	// load the preferences
 	gVTSPreferences.Load();
 
+	// check BACMACNT.SYS
+	CheckBACMACNTVersion();
+
 	return TRUE;
 }
 
@@ -303,6 +308,8 @@ void VTSPreferences::Save( void )
 //				Send button is clicked.  The value is saved in the preferences (registry), so it 
 //				comes back for the next VTS launch.  Note that this is NOT the same invoke ID that 
 //				will be used by a built-in device object, and I think that is a good thing.
+//			Now checks the version of BACMACNT.SYS it can find.  Only version 3.0 works, but I
+//				don't know why.
 //
 
 const int kReleaseVersion = 8;
@@ -365,6 +372,42 @@ void VTSApp::OnAppAbout()
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
 }
+
+//
+//	VTSApp::CheckBACMACNTVersion
+//
+//	Thanks to Thomas Weller and www.codeguru.com, this function checks to see if 
+//	BACMACNT.SYS is installed and checks the version.  As written this will not work 
+//	if the driver is installed someplace else, like perhaps C: isn't the boot 
+//	volume.
+//
+//	There is no warning if the file can't be found, so the user of strictly IP traffic
+//	isn't bothered by an annoying message.
+//
+
+void VTSApp::CheckBACMACNTVersion( void )
+{
+	CFileVersionInfo	m_info
+	;
+
+	// get the information
+	m_info.ReadVersionInfo( "C:\\WINNT\\system32\\drivers\\bacmacnt.sys" );
+
+	if (m_info.IsValid())
+	{
+		CString version = m_info.GetFileVersionString()
+		;
+		int		ver = atoi(version)
+		;
+
+		if (ver < 3)
+			AfxMessageBox( _T("WARNING: Installed version of BACMACNT.SYS must be 3.0 or later.") );
+	}
+}
+
+//
+//	VTSAllocHook
+//
 
 #if NT_Platform
 int __cdecl VTSAllocHook(
