@@ -116,6 +116,7 @@ enum BACnetEngineeringUnits units;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
+     BACnetTimeStamp	    event_time_stamps[3];  //Added by xuyiping 2002-8-29
    } av_obj_type;
 
 //Binary Input Object
@@ -200,6 +201,7 @@ enum BACnetBinaryPV			alarm_value;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
+	BACnetTimeStamp	    event_time_stamps[3];  //Added by xuyiping 2002-8-29
    } bv_obj_type;
 
 //Calendar Object
@@ -255,7 +257,9 @@ enum BACnetSegmentation		segmentation_supported;
     BACnetVTSession		far	*active_vt_sessions;
     BACnetDate				local_date;
     BACnetTime				local_time;						//time and date are read from system clock
-    float					utc_offset;
+    //float					utc_offset;
+	int 					utc_offset;				//modified by xlp 2002-9-4
+
     boolean					day_savings_status;
     dword					apdu_segment_timeout;
     dword					apdu_timeout;
