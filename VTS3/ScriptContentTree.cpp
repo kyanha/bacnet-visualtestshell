@@ -170,6 +170,19 @@ void ScriptContentTree::OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult)
 	HTREEITEM		hNewItem = m_pTreeCtrl->GetSelectedItem();
 	ScriptBasePtr	pElem = (ScriptBasePtr)m_pTreeCtrl->GetItemData( hNewItem );
 
+	m_pDoc->m_pSelectedTest = 0;
+	*pResult = 0;
+
+	// Sometimes this method is called and it contains bogus data... IsKindOf didn't work (when I 
+	// declared/implemented DYNAMIC, so let's just trap the problem before we go further...
+	// This case covers NULL and something pointed to that is not a ScriptBase
+
+	try {
+		pElem->m_strFile.IsEmpty();
+	} catch(...) {
+		return;
+	}
+
 	//madanner 6/03, change status text for include filename if selected...
 	if ( m_pframe != NULL )
 	{
@@ -182,11 +195,6 @@ void ScriptContentTree::OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult)
 	// if a test selected
 	if (pElem->baseType == ScriptBase::scriptTest)
 		m_pDoc->m_pSelectedTest = (ScriptTestPtr)pElem;
-	else
-		m_pDoc->m_pSelectedTest = 0;
-
-	*pResult = 0;
-
 }
 
 //
