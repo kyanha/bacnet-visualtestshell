@@ -3669,7 +3669,7 @@ void ScriptExecutor::SendALObjectIdentifier( ScriptPacketExprPtr spep, CByteArra
 		if (!tlist[indx+1].IsInteger( inst ))
 			throw "Object identifier instance expected";
 
-		id.SetValue( typ, inst );
+		id.SetValue( (BACnetObjectType)typ, inst );
 	}
 
 	// encode it
