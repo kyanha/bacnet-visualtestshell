@@ -2120,6 +2120,40 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,290,190,50,14
 END
 
+IDD_SENDREADRANGE DIALOG DISCARDABLE  0, 0, 238, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "SendReadRange"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,194,15,24,14
+    EDITTEXT        IDC_OBJECTID,87,15,102,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_PROPCOMBO,87,39,131,16,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    EDITTEXT        IDC_ARRAYINDEX,87,60,98,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_STARTDATUM,99,100,51,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ENDDATUM,99,137,52,14,ES_AUTOHSCROLL
+    LTEXT           "Array Index",IDC_STATIC,42,65,36,14
+    LTEXT           "Property",IDC_STATIC,42,42,27,14
+    LTEXT           "Object ID",IDC_STATIC,42,18,31,14
+    GROUPBOX        "Range",IDC_STATIC,13,92,64,70
+    CONTROL         "All",IDC_RADIONONE,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,19,105,24,10
+    CONTROL         "By Position",IDC_RADIOPOSITION,"Button",
+                    BS_AUTORADIOBUTTON,19,119,51,10
+    CONTROL         "By Time",IDC_RADIOTIME,"Button",BS_AUTORADIOBUTTON,19,
+                    133,41,10
+    CONTROL         "TimeRange",IDC_RADIOTIMERANGE,"Button",
+                    BS_AUTORADIOBUTTON,19,147,53,10
+    EDITTEXT        IDC_TIMESTART,163,100,54,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ENDTIME,163,137,55,14,ES_AUTOHSCROLL
+    LTEXT           "Ref./Beginning Time",IDC_STATIC,163,92,68,8
+    LTEXT           "Ending Time",IDC_STATIC,162,128,41,8
+    LTEXT           "Reference Index",IDC_STATIC,99,91,53,9
+    LTEXT           "Count",IDC_STATIC,99,128,51,8
+    LTEXT           "(HH:MM:SS.hh)",IDC_STATIC,167,114,45,9
+    LTEXT           "(HH:MM:SS.hh)",IDC_STATIC,169,151,45,9
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -2128,8 +2162,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,1,4,0
- PRODUCTVERSION 3,1,4,0
+ FILEVERSION 3,1,6,0
+ PRODUCTVERSION 3,1,6,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2147,14 +2181,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "Visual Test Shell\0"
-            VALUE "FileVersion", "3, 1, 4, 0\0"
+            VALUE "FileVersion", "3, 1, 6, 0\0"
             VALUE "InternalName", "VTS\0"
-            VALUE "LegalCopyright", "Copyright (C) 2001\0"
+            VALUE "LegalCopyright", "Copyright (C) 2001-2002\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "VTS.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Visual Test Shell\0"
-            VALUE "ProductVersion", "3, 1, 4, 0\0"
+            VALUE "ProductVersion", "3, 1, 6, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -2965,6 +2999,14 @@ BEGIN
         RIGHTMARGIN, 340
         TOPMARGIN, 7
         BOTTOMMARGIN, 208
+    END
+
+    IDD_SENDREADRANGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 231
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
     END
 END
 #endif    // APSTUDIO_INVOKED

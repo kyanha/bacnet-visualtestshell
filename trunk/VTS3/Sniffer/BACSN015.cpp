@@ -28,7 +28,7 @@ namespace NetworkSniffer {
 
 #include "bacproto.h"
 
-#define max_confirmed_services 26
+#define max_confirmed_services 27
 #define max_unconfirmed_services 9
 #define max_property_id 123
 #define FW "-27"
@@ -58,16 +58,16 @@ int interp_bacnet_IP( char *header, int length)  /* IP interpreter */
 {
    /* Summary line? */
    if (pi_data_bacnet_IP->do_sum)
-	  interp_bacnet_BVLL( header + 6, length - 6 );
+     interp_bacnet_BVLL( header + 6, length - 6 );
 
    /* Detail line? */
    if (pi_data_bacnet_IP->do_int) {
       pif_init (pi_data_bacnet_IP, header, length);
       pif_header (length, "IP Frame Detail");
       bac_show_bipaddr( "Source/Destination" );
-	  pif_show_space();
+     pif_show_space();
 
-	  interp_bacnet_BVLL( header + 6, length - 6 );
+     interp_bacnet_BVLL( header + 6, length - 6 );
    }
 
    return length;
@@ -82,10 +82,10 @@ int interp_bacnet_ETHERNET( char *header, int length)  /* Ethernet interpreter *
 
    /* Summary line? */
    if (pi_data_bacnet_ETHERNET->do_sum) {
-	  if (pif_get_byte(17) == 0x01)
-		  interp_bacnet_NL( header + 17, len );
-	  else
-		  interp_bacnet_BVLL( header + 17, len );
+     if (pif_get_byte(17) == 0x01)
+        interp_bacnet_NL( header + 17, len );
+     else
+        interp_bacnet_BVLL( header + 17, len );
    } 
 
    /* Detail line? */
@@ -96,16 +96,16 @@ int interp_bacnet_ETHERNET( char *header, int length)  /* Ethernet interpreter *
 
       bac_show_word_hl( "Length", "%u" );
 
-	  bac_show_byte( "DSAP", "X'%02X'" );
-	  bac_show_byte( "SSAP", "X'%02X'" );
-	  bac_show_byte( "LLC Control", "X'%02X'" );
+     bac_show_byte( "DSAP", "X'%02X'" );
+     bac_show_byte( "SSAP", "X'%02X'" );
+     bac_show_byte( "LLC Control", "X'%02X'" );
 
-	  pif_show_space();
+     pif_show_space();
 
-	  if (pif_get_byte(0) == 0x01)
-		  interp_bacnet_NL( header + 17, len );
-	  else
-		  interp_bacnet_BVLL( header + 17, len );
+     if (pif_get_byte(0) == 0x01)
+        interp_bacnet_NL( header + 17, len );
+     else
+        interp_bacnet_BVLL( header + 17, len );
    }
 
    return length;
@@ -126,18 +126,18 @@ int interp_bacnet_ARCNET( char *header, int length)  /* ARCNET interpreter */
       bac_show_byte( "Source", "%u" );
       bac_show_byte( "Destination", "%u" );
 
-	  bac_show_byte( "BACnet SC", "X'%02X'" );
-	  bac_show_byte( "DSAP", "X'%02X'" );
-	  bac_show_byte( "SSAP", "X'%02X'" );
+     bac_show_byte( "BACnet SC", "X'%02X'" );
+     bac_show_byte( "DSAP", "X'%02X'" );
+     bac_show_byte( "SSAP", "X'%02X'" );
 
-	  bac_show_byte( "LLC Control", "X'%02X'" );
+     bac_show_byte( "LLC Control", "X'%02X'" );
 
-	  pif_show_space();
+     pif_show_space();
 
-	  if (pif_get_byte(0) == 0x01)
-		  interp_bacnet_NL( header + 6, length - 6 );
-	  else
-		  interp_bacnet_BVLL( header + 6, length - 6 );
+     if (pif_get_byte(0) == 0x01)
+        interp_bacnet_NL( header + 6, length - 6 );
+     else
+        interp_bacnet_BVLL( header + 6, length - 6 );
    }
 
    return length;
@@ -651,16 +651,16 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
             break;
          case 0x81:
             switch (pif_get_byte(1)) {
-               case 0x04:		// Forwarded-NPDU
+               case 0x04:     // Forwarded-NPDU
                   interp_bacnet_NL( header + 10, length - 10 );
                   break;
-               case 0x0A:		// Original-Unicast-NPDU
-               case 0x0B:		// Original-Broadcast-NPDU
+               case 0x0A:     // Original-Unicast-NPDU
+               case 0x0B:     // Original-Broadcast-NPDU
                   interp_bacnet_NL( header + 4, length - 4 );
                   break;
                default:
                   strcpy( get_sum_line(pi_data_bacnet_BVLL), BVLL_Function[pif_get_byte(1)] );
-			}
+         }
             break;
       }
    }
@@ -669,7 +669,7 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
       pif_init( pi_data_bacnet_BVLL, header, length );
       pif_header( length, "BACnet Virtual Link Layer Detail" );
 
-	  switch (pif_get_byte(0)) {
+     switch (pif_get_byte(0)) {
          case 0x01:
             pif_show_ascii( 0, "Empty BVLL" );
             pif_show_space();
@@ -791,8 +791,8 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
    int npdu_length;         /* NPDU length in octets */
    int port_id;             /* port ID field */
    int port_info_length;    /* port information length in octets */
-   const char *name;		/* translated name */
-   char namebuff[80];		/* buffer to print translated name */
+   const char *name;    /* translated name */
+   char namebuff[80];      /* buffer to print translated name */
 
    pi_data_current = pi_data_bacnet_NL;
    npdu_length = 2;
@@ -823,11 +823,11 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          else
             pif_skip(1);
 
-		 int	nlMsgID = pif_get_byte(0);
-		 if ((nlMsgID < 0) || (nlMsgID > (sizeof(NL_msgs)/sizeof(char*))))
-		    strcpy( get_sum_line(pi_data_bacnet_NL), "Proprietary Network Layer Message" );
-	     else
-		    strcpy( get_sum_line(pi_data_bacnet_NL), NL_msgs[pif_get_byte(0)] );
+       int  nlMsgID = pif_get_byte(0);
+       if ((nlMsgID < 0) || (nlMsgID > (sizeof(NL_msgs)/sizeof(char*))))
+          strcpy( get_sum_line(pi_data_bacnet_NL), "Proprietary Network Layer Message" );
+        else
+          strcpy( get_sum_line(pi_data_bacnet_NL), NL_msgs[pif_get_byte(0)] );
 /*
          sprintf (get_sum_line (pi_data_bacnet_NL),
             "BACnet NL (%s)",NL_msgs[pif_get_byte(0)]);
@@ -876,10 +876,10 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
       if (DESTmask == 1) {
          wbuff = pif_get_word_hl(0);
          if(wbuff == 65535) {
-		   if ((name = LookupName( 65535, 0, 0 )) != 0) {
-			  sprintf( namebuff, "Global Broadcast DNET          = X'%%04X', %s", name );
+         if ((name = LookupName( 65535, 0, 0 )) != 0) {
+           sprintf( namebuff, "Global Broadcast DNET          = X'%%04X', %s", name );
               pif_show_word_hl(namebuff);
-		   } else
+         } else
               pif_show_word_hl("Global Broadcast DNET          = X'%04X'");
          } else
            pif_show_word_hl("Destination Network Number     = %u");
@@ -900,7 +900,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
              pif_show_ascii(0,"Broadcast MAC address implied");
              }
 
-		 if (name) pif_append_ascii( ", %s", name );
+       if (name) pif_append_ascii( ", %s", name );
          }
 
       /*  ----- show SNET, SLEN and SADR if present ----- */
@@ -918,7 +918,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          if(mac_length <= 0)
             pif_show_ascii(0,"Invalid MAC address length!");
 
-		 if (name) pif_append_ascii( ", %s", name );
+       if (name) pif_append_ascii( ", %s", name );
          }
 
       /*  ----- show Hop Count if DNET present ----- */
@@ -1054,7 +1054,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
           } /* End of if proprietary message type else branch */
           
           pif_show_space();
-		}  /* End of else network control message*/
+      }  /* End of else network control message*/
       }   /* End of Detail Lines */
    return length;
 }
@@ -1085,31 +1085,31 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
                   SA  = (pif_get_byte(0)&0x02)>>1;
                   SEQ = pif_get_byte(3);
                   sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SA=%u, SEQ=%U",
-                          BACnetServicesSupported[service_choice],
+                          BACnetConfirmedServiceChoice[service_choice],
                           ID, SEG, MOR, SA, SEQ);
                   }
                 else
                   sprintf(outstr,"%s, ID=%u",
-                          BACnetServicesSupported[service_choice],
+                          BACnetConfirmedServiceChoice[service_choice],
                           ID);
                 break;
         case 1: /* Unconfirmed service request */
                 service_choice = pif_get_byte(1);
                 switch (service_choice) {
                   case 0: /* I-Am */
-                    sprintf(outstr,"%s, %lu",BACnetServicesSupported[service_choice+26],
+                    sprintf(outstr,"%s, %lu",BACnetUnconfirmedServiceChoice[service_choice], 
                            pif_get_long_hl(3)&0x003FFFFF);
                     break;
                   case 8: /* Who-Is */
                     if (pif_offset+2>=pif_end_offset)
-                      sprintf(outstr,"%s, All Devices",BACnetServicesSupported[service_choice+26]);
+                      sprintf(outstr,"%s, All Devices",BACnetUnconfirmedServiceChoice[service_choice]);
                     else {
-                      sprintf(outstr,"%s, %lu-%lu",BACnetServicesSupported[service_choice+26],
+                      sprintf(outstr,"%s, %lu-%lu",BACnetUnconfirmedServiceChoice[service_choice],
                       get_bac_unsigned(3,pif_get_byte(2)&0x07),
                       get_bac_unsigned(3+(pif_get_byte(2)&0x07)+1,pif_get_byte(3+(pif_get_byte(2)&0x07))&0x07));
                     }
                     break;  
-                  default: sprintf(outstr,"%s",BACnetServicesSupported[service_choice+26]);
+                  default: sprintf(outstr,"%s",BACnetUnconfirmedServiceChoice[service_choice]);
                 }
                 break;
         case 2: /* Simple ACK */
@@ -1151,7 +1151,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
                 sprintf(outstr,"%s, ID=%u",PDU_types[pdu_type], ID);
                 break;
       }
-	  strcpy( get_sum_line(pi_data_bacnet_AL), outstr );
+     strcpy( get_sum_line(pi_data_bacnet_AL), outstr );
 /*
       sprintf (get_sum_line (pi_data_bacnet_AL),
          "BACnet AL (%s)",outstr);
@@ -1216,11 +1216,11 @@ int interp_Message( char *header, int length)  /* message interpreter */
    if (pi_data_bacnet_IP->do_int) {
       pif_init (pi_data_Message, header, length);
       pif_header (length, "Message Detail");
-	  bac_show_byte("Severity Code","%u");
-	  bac_show_long_hl("Script Line","%u");
-	  pif_show_nbytes_hex( "Digest                      = %s", 16 );
+     bac_show_byte("Severity Code","%u");
+     bac_show_long_hl("Script Line","%u");
+     pif_show_nbytes_hex( "Digest                      = %s", 16 );
       pif_show_space();
-	  pif_show_ascii( strlen(pif_get_addr()), "%s" );
+     pif_show_ascii( strlen(pif_get_addr()), "%s" );
       pif_show_space();
    }
 
@@ -1262,7 +1262,9 @@ void show_confirmed( unsigned char x )
       show_vtClose,                     /* 22 */
       show_vtData,                      /* 23 */
       show_authenticate,                /* 24 */
-      show_requestKey                   /* 25 */
+      show_requestKey,                  /* 25 */
+      show_ReadRange                    /* 26 */
+
    };
 
    /* --- display the confirmed service header detail --- */
@@ -1335,7 +1337,6 @@ void show_simple_ack( unsigned char )
 
 /*************************************************************************/
 void show_complex_ack( unsigned char x )
-/*************************************************************************/
 {
    void (*show_confirmed_service_ACK[max_confirmed_services])(void) = {
       0,0,0,
@@ -1356,7 +1357,9 @@ void show_complex_ack( unsigned char x )
       show_vtOpenACK,                  /* 21 */
       0,
       show_vtDataACK,                  /* 23 */
-      show_authenticateACK             /* 24 */
+      show_authenticateACK,            /* 24 */
+      0,
+      show_ReadRangeACK                /* 26 */
    };
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
@@ -3970,8 +3973,8 @@ void show_getEnrollmentSummaryACK( void )
             pif_show_ascii(0,"Notification Class");
             len = show_application_tag(pif_get_byte(0));
             show_bac_unsigned(len);
-		 }
-	  }
+       }
+     }
    }
 }
 
@@ -4233,7 +4236,130 @@ void show_authenticateACK( void )
    pif_show_ascii(0,"Modified Random Number");
    show_application_data(pif_get_byte(0));
 }
+/*************************************************************************/
+// This function displays the ReadRange Request
+//
+void show_ReadRange ( void )
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int len;
+   int prop_idx;
 
+   prop_idx = -1;  /* initialize to indicate no array index present */
+
+   bac_show_byte("Read Range Request","%u");
+   tagbuff = pif_get_byte(0);
+   while(pif_offset < pif_end_offset) 
+   {
+      tagval = (tagbuff&0xf0)>>4;
+      if (tagbuff & 0x08) 
+      {  /* context tag */
+        if(tagval > 5)
+      {
+         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 5)!");
+          goto exit;
+      }
+        pif_show_space();
+        switch (tagval)
+          {
+          case 0:  
+                   len = show_context_tag("Object Identifier");
+                show_bac_object_identifier();
+          break;
+          case 1:  
+                   len = show_context_tag("Property Identifier");
+                show_bac_property_identifier(len);
+          break;
+          case 2:  
+                   len = show_context_tag("Array Index ");
+                show_bac_unsigned(len);                       /* array index */
+          break;
+          case 3:  
+                   show_context_tag("Reference Index");
+                show_bac_unsigned(len);                     /* ByPosition */
+                   len = show_context_tag("Count");
+                   show_bac_signed(len);
+        break;
+          case 4:
+                show_context_tag("Reference Time");    // Opening Tag
+                   tagbuff = pif_get_byte(0);
+                   while ((tagbuff & 0x0f) != 0x0f)
+               {
+                     show_application_data(tagbuff);
+                     tagbuff = pif_get_byte(0);
+               };
+                   //show_context_tag("Reference Time");      // Closing Tag
+
+               len = show_context_tag("Count");
+                   show_bac_signed(len);  /* ItemCount */
+        break;
+          case 5:  
+                show_context_tag("TimeRange");           // Opening Tag
+                   tagbuff = pif_get_byte(0);
+                   while ((tagbuff & 0x0f) != 0x0f)
+               {
+                     show_application_data(tagbuff);
+                     tagbuff = pif_get_byte(0);
+               };
+                   show_context_tag("TimeRange");           // Closing Tag
+          break;
+        }   // end switch
+      }   // end if closing tag
+     tagbuff = pif_get_byte(0);
+   }  /* end of while loop */
+
+exit:;
+}
+
+/*************************************************************************/
+// This function displays the data returned by a readRange ACK
+//
+void show_ReadRangeACK ( void )
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int len;
+   int prop_idx;
+
+   prop_idx = -1;  /* initialize to indicate no array index present */
+
+   bac_show_byte("Read Range Acknowledgement","%u");
+   tagbuff = pif_get_byte(0);
+   while(pif_offset < pif_end_offset) 
+   {
+      tagval = (tagbuff&0xf0)>>4;
+      if (tagbuff & 0x08) 
+      {  /* context tag */
+        if(tagval > 5)
+      {
+         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 5)!");
+          goto exit;
+      }
+        pif_show_space();
+        len = show_context_tag(BACnetReadRangeACK[tagval]);
+        switch (tagval)
+          {
+          case 0:  show_bac_object_identifier();
+                   break;
+          case 1:  show_bac_property_identifier(len);
+                   break;
+          case 2:  show_bac_unsigned(len);  /* array index */
+                   break;
+          case 3:  show_bac_result_flags(len );  /* BacnetResultsFlag */
+                   break;
+          case 4:  show_bac_unsigned(len);  /* ItemCount */
+                   break;
+          case 5:  
+               show_log_buffer();
+              goto exit;
+                   break;
+        }
+      }
+        tagbuff = pif_get_byte(0);
+  }  /* end of while loop */
+
+exit:;
+
+}
 
 /*************************************************************************/
 void show_createObjectError( void )
@@ -4243,9 +4369,9 @@ void show_createObjectError( void )
 {
   unsigned int len;
 
-  show_context_tag("Error");	/* opening tag */
+  show_context_tag("Error");  /* opening tag */
   show_error_codes();
-  show_context_tag("Error");	/* closing tag */
+  show_context_tag("Error");  /* closing tag */
 
   len = show_context_tag("First Failed Element Number");
   show_bac_unsigned(len);
@@ -4292,12 +4418,12 @@ void show_vtCloseError( void )
    show_error_codes();
    show_context_tag("Error Type"); /* closing tag */
 
-   show_context_tag("List of VT Session IDs");	/* opening tag */
+   show_context_tag("List of VT Session IDs");  /* opening tag */
    while (pif_offset<pif_end_offset-1) {
       show_application_tag(pif_get_byte(0));
       bac_show_byte("Unclosable VT Session ID","%u");
    }
-   show_context_tag("List of VT Session IDs");	/* closing tag */
+   show_context_tag("List of VT Session IDs");  /* closing tag */
 }
 
 /**************************************************************************/
@@ -4497,7 +4623,7 @@ void show_bac_unsigned( unsigned int len )
         "Value (3-octet unsigned)");
         sprintf(get_int_line(pi_data_current,pif_offset,3),outstr,
                 (pif_get_long_hl(-1)&0x00FFFFFF));
-		pif_offset += 3;
+      pif_offset += 3;
         break;
      case 4: sprintf(outstr,"%"FW"s = %%lu",
         "Value (4-octet unsigned)");
@@ -4862,16 +4988,16 @@ void show_bac_action_command( unsigned int len )
 void show_bac_address( void )
 /**************************************************************************/
 {
-   unsigned int			net = 0, len;
-   const char			*name;
-   unsigned int			i;
+   unsigned int         net = 0, len;
+   const char        *name;
+   unsigned int         i;
 
    pif_show_ascii(0,"Network Number");
    len = show_application_tag(pif_get_byte(0));
 
    /* extract the network number and save it */
    for (i = 0; i < len; i++)
-	   net = (net << 8) + pif_get_byte(i);
+      net = (net << 8) + pif_get_byte(i);
    show_bac_unsigned(len);
 
    pif_show_ascii(0,"MAC Address");
@@ -5260,33 +5386,33 @@ void show_bac_object_identifier( void )
          "               Instance Number = %lu",instance.lword);
       };
 #else
-	long	obj_id;
-	int		obj_type;
-	long	obj_instance;
-	
-	for (int i = 0; i < 4; i++)
-		obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i );
-	
-	obj_type = (obj_id >> 22) & 0x000003FF;
-	obj_instance = (obj_id & 0x003FFFFF);
-	
-	bac_show_nbytes( 4, "BACnet Object Identifier" );
-	
-	if(obj_type > 63) { /* proprietary object type */
-		sprintf(get_int_line(pi_data_current, pif_offset, 0),
-			"               Proprietary Object Type");
-		sprintf(get_int_line(pi_data_current, pif_offset, 0),
-			"               Object Type = %u", obj_type );
-		sprintf(get_int_line(pi_data_current, pif_offset, 0),
-			"               Instance Number = %lu", obj_instance );
-	} else { /* standard object type */
-		sprintf(get_int_line(pi_data_current, pif_offset, 0),
-			"               Standard Object Type");
-		sprintf(get_int_line(pi_data_current, pif_offset, 0),
-			"               Object Type = %s",BACnetObjectType[obj_type]);
-		sprintf(get_int_line(pi_data_current, pif_offset, 0),
-			"               Instance Number = %lu", obj_instance );
-	}
+   long  obj_id;
+   int      obj_type;
+   long  obj_instance;
+   
+   for (int i = 0; i < 4; i++)
+      obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i );
+   
+   obj_type = (obj_id >> 22) & 0x000003FF;
+   obj_instance = (obj_id & 0x003FFFFF);
+   
+   bac_show_nbytes( 4, "BACnet Object Identifier" );
+   
+   if(obj_type > 63) { /* proprietary object type */
+      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+         "               Proprietary Object Type");
+      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+         "               Object Type = %u", obj_type );
+      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+         "               Instance Number = %lu", obj_instance );
+   } else { /* standard object type */
+      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+         "               Standard Object Type");
+      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+         "               Object Type = %s",BACnetObjectType[obj_type]);
+      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+         "               Instance Number = %lu", obj_instance );
+   }
 #endif
 
 }
@@ -5665,6 +5791,100 @@ void  show_bac_recipient( void )
      pif_offset = pif_end_offset;
      }  
 }
+/****************************************************************************************
+This function is used to decode and display the results of a read range or read property
+result that is constructed similarly.
+*****************************************************************************************/ 
+void show_log_buffer( void )
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int ui_count,x,len;
+   ui_count = 0;
+   tagbuff = pif_get_byte(0);
+   tagval = (tagbuff&0xF0)>>4;
+   do
+   {
+     show_context_tag("TimeStamp");  // Opening Tag
+     x = pif_get_byte(0);
+     while ((x & 0x0f) != 0x0f)
+      {
+        show_application_data(x);
+        x = pif_get_byte(0);
+      };
+     show_context_tag("TimeStamp");  // Closing Tag
+     show_context_tag("ItemData");  /* Opening Tag */
+     show_logDatum_choice();                    
+     show_context_tag("ItemData");  /* Closing Tag */
+     tagbuff = pif_get_byte(0);
+     if (((tagbuff&0xF0)>>4)==2) // The Status Flag are optional
+     {
+       len = show_context_tag("StatusFlag");
+       show_bac_status_flags(len);
+     }
+     tagbuff = pif_get_byte(0);
+   }while((tagbuff!=0x3F) && (tagbuff!=0x4F) && (tagbuff!=0x5F)&& (++ui_count<100));
+   show_context_tag("ItemData");  /* Opening Tag */
+
+}
+/**************************************************************************/
+void show_logDatum_choice( void )
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int x,len;
+   
+   tagbuff = pif_get_byte(0);
+   tagval = (tagbuff&0xF0)>>4;
+   x = pif_get_byte(0);
+     switch (tagval) 
+     {
+      case 0:  //BACnet LogSatus
+          len = show_context_tag("Log-Satus");
+          show_bac_bitstring(len);
+       break;
+      case 1:  //Boolean
+          len = show_context_tag("Boolean-Value");
+        show_application_data(x);
+       break;
+      case 2:  //Real-Value
+          len = show_context_tag("Real-Value");
+        show_bac_real();
+       break;
+      case 3:  //Enumerated
+          len = show_context_tag("Enumerated-Value");
+          bac_show_byte("Emumeration","%u");
+       break;
+      case 4:  //Unsigned
+          len = show_context_tag("Unsigned-Value");
+        show_bac_unsigned(len);
+       break;
+      case 5:  //Intiger
+          len = show_context_tag("Signed-Value");
+        show_bac_signed(len);
+       break;
+      case 6:  //Bit String
+          len = show_context_tag("BitString-Value");
+          show_bac_bitstring(len);
+       break;
+      case 7:  //NULL
+          len = show_context_tag("NULL-Value");
+        bac_show_byte("NULL:","%u");
+       break;
+      case 8:  //Error 
+          len = show_context_tag("Failure");
+        bac_show_byte("Error:","%u");
+       break;
+      case 9:  //Time-Change
+           len = show_context_tag("Time-Change");
+         show_bac_real();
+       break;
+      case 10:  //Any-Value
+           len = show_context_tag("Any-Value");
+         show_application_data(x);  // I don't know how to handle this
+       break;
+       default: 
+            bac_show_nbytes(1,"Error:[logDatum_choice] Context Tag 0 to 10 expected!");
+    }
+}
 
 /**************************************************************************/
 void  show_bac_recipient_process( void )
@@ -5765,7 +5985,6 @@ void show_bac_special_event( void )
      }
    exit:;
 }
-
 /**************************************************************************/
 void show_bac_status_flags( unsigned int len )
 /**************************************************************************/
@@ -5784,6 +6003,34 @@ void show_bac_status_flags( unsigned int len )
                bac_show_byte(outstr,"X'%02X'");
                }
              sprintf(outstr,"   %s",BACnetStatusFlags[i]);
+             pif_offset--;
+             if(x&0x80)
+               show_str_eq_str(outstr,"TRUE",1);
+             else
+               show_str_eq_str(outstr,"FALSE",1);
+             pif_offset++;
+             x <<= 1;
+             }
+}
+
+/**************************************************************************/
+void show_bac_result_flags( unsigned int len )
+/**************************************************************************/
+{
+   unsigned char x;
+   unsigned int i,j, unused;
+
+           /* len = show_application_tag(x); */
+           unused = pif_get_byte(0);
+           bac_show_byte("Unused Bits in Last Octet","%u");
+           j=0;
+           for(i=0;i<((len-1)*8-unused);i++) {
+             if(!(i%8)) {
+               x = pif_get_byte(0);
+               sprintf(outstr,"Bit String Octet [%u]",j++);
+               bac_show_byte(outstr,"X'%02X'");
+               }
+             sprintf(outstr,"   %s",BACnetResultFlags[i]);
              pif_offset--;
              if(x&0x80)
                show_str_eq_str(outstr,"TRUE",1);
@@ -5827,7 +6074,6 @@ void show_bac_timestamp( void )
    }
 exit:;
 }
-
 /**************************************************************************/
 void show_bac_time_value( void )
 /**************************************************************************/
@@ -5876,5 +6122,4 @@ void show_bac_weeknday( void )
    show_str_eq_str("Day of Week",outstr,1);
    pif_offset++;
 }
-
 }

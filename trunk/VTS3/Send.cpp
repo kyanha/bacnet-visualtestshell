@@ -173,6 +173,7 @@ CSendGroupItem gObjectAccessItemList[] =
 	, { "ReadProperty-ACK", (CSendPageMPtr)&CSend::ReadPropACKPage, (CSendPageMPtr)&CSend::ComplexACKPage }
 	, { "ReadPropertyMultiple", (CSendPageMPtr)&CSend::ReadPropMultPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { "ReadPropertyMultiple-ACK", (CSendPageMPtr)&CSend::ReadPropMultACKPage, (CSendPageMPtr)&CSend::ComplexACKPage }
+	, { "ReadRange", (CSendPageMPtr)&CSend::ReadRangePage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { "RemoveListElement", (CSendPageMPtr)&CSend::RemoveListElementPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { "WriteProperty", (CSendPageMPtr)&CSend::WritePropPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { "WritePropertyMultiple", (CSendPageMPtr)&CSend::WritePropMultPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
@@ -324,6 +325,7 @@ void CSend::InitPages( void )
 	ReadPropACKPage.pageParent = this;
 	ReadPropMultPage.pageParent = this;
 	ReadPropMultACKPage.pageParent = this;
+	ReadRangePage.pageParent = this;
 	RemoveListElementPage.pageParent = this;
 	WritePropPage.pageParent = this;
 	WritePropMultPage.pageParent = this;

@@ -86,6 +86,7 @@
 #include "SendWriteProp.h"
 #include "SendWritePropMult.h"
 #include "SendWritePropMultError.h"
+#include "SendReadRange.h"
 
 // APDU Pages
 #include "SendSimpleACK.h"
@@ -198,6 +199,7 @@ public:
 	CSendReadPropACK		ReadPropACKPage;		// ReadProperty-ACK
 	CSendReadPropMult		ReadPropMultPage;		// ReadPropertyMultiple
 	CSendReadPropMultACK	ReadPropMultACKPage;	// ReadPropertyMultiple-ACK
+	SendReadRange			ReadRangePage;		    // ReadRange
 	CSendRemoveListElement	RemoveListElementPage;	// RemoveListElement
 	CSendWriteProp			WritePropPage;			// WriteProperty
 	CSendWritePropMult		WritePropMultPage;		// WritePropertyMultiple
