@@ -258,6 +258,7 @@ public:
 	bool			m_isConfirmedRequest;		// true iff ConfirmedRequestPage loaded
 
 	CButton			m_send;						// send button
+		 CButton		 		 		 m_transmit_close;		 		 		 // transmit and close window button  MAG 27 OCT 03
 	CComboBox       m_history;                  //choose history data. Xiao Shiyuan 2002-12-5  
 	CSendPagePtr    curPagePtr;                 //current shown page. Xiao Shiyuan 2002-12-5 
 
@@ -296,6 +297,7 @@ protected:
 	void OnSelchangePacketTree( NMHDR* pNotifyStruct, LRESULT* result );
 	void OnItemExpandedPacketTree( NMHDR* pNotifyStruct, LRESULT* result );
 	void OnSend();
+		 void OnTransmitClose();
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()
