@@ -13,6 +13,8 @@
 #include "VTSAddressBindingDlg.h"
 #include "VTSCalendarEntryDlg.h"
 #include "VTSTimeStampDlg.h"
+#include "VTSListOfDlg.h"
+#include "VTSDestinationDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -146,11 +148,12 @@ void VTSAny::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(VTSAny)
-	DDX_Control(pDX, IDC_VALUEIDBTN, m_ValueIDButton);
+	DDX_Control(pDX, IDC_COMBO_ITEMTYPE, m_ComboItemType);
 	DDX_Control(pDX, IDC_ELEMLIST, m_ElemList);
 	DDX_Control(pDX, IDC_TYPECOMBO, m_TypeCombo);
 	DDX_Control(pDX, IDC_CONTEXT, m_Context);
 	DDX_Control(pDX, IDC_VALUE, m_Value);
+	DDX_Control(pDX, IDC_VALUEIDBTN, m_ValueIDButton);
 	//}}AFX_DATA_MAP
 }
 
@@ -172,6 +175,15 @@ END_MESSAGE_MAP()
 BOOL VTSAny::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
+
+	int		elemType = m_TypeCombo.GetCurSel();
+
+//Set the item type combo when the elem type is list of
+//Added By Zhu Zhenhua, 2003-9-10 
+	if(elemType != 20)
+		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(false);
+	else
+		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(true);
 	
 	// initialize the port list
 	m_ElemList.m_nFlags |= LVS_SINGLESEL;
@@ -212,6 +224,16 @@ void VTSAny::SetSelection( int indx )
 
 	// set the type
 	m_TypeCombo.SetCurSel( curElem->elemType );
+
+//if the type is list of, set the item type 
+//Added By Zhu Zhenhua, 2003-9-10 
+	if(curElem->elemType == 20)
+	{	
+		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(true);
+		m_ComboItemType.SetCurSel(curElem->elemitemType);
+	}
+	else
+		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(false);
 
 	// enable/disable the ID button
 	m_ValueIDButton.EnableWindow( curElem->elemType == 12 );
@@ -254,6 +276,10 @@ void VTSAny::ResetSelection( void )
 
 	// disable the ID button
 	m_ValueIDButton.EnableWindow( false );
+	
+	//disable the itemtype combo for listof
+	//Added by Zhu Zhenhua, 2003-9-10
+	this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(false);
 
 	// let the CDialog sync the controls with the local vars
 	UpdateData( false );
@@ -317,7 +343,6 @@ void VTSAny::OnRemoveElem()
 
 	// remove it from the control
 	m_ElemList.DeleteItem( m_iSelectedElem );
-
 	// reset the selection
 	m_ElemList.SetItemState( m_iSelectedElem - 1 < 0 ? 0 : m_iSelectedElem - 1, LVIS_SELECTED, LVIS_SELECTED );
 }
@@ -330,7 +355,13 @@ void VTSAny::OnSelchangeTypeCombo()
 	// skip changes when there is no selection
 	if (m_iSelectedElem < 0)
 		return;
-
+	if(elemType != 20)
+		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(false);
+	else
+	{
+		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(true);
+		m_ComboItemType.SetCurSel(-1);
+	}
 	// set the list type
 	m_anyList[m_iSelectedElem]->elemType = elemType;
 
@@ -532,6 +563,29 @@ void VTSAny::OnValueIDButton()
 			}
 			break;
 		}
+		case 20://list of
+		{	
+			m_ComboItemType.GetCurSel();
+			if(m_ComboItemType.GetCurSel() < 0)
+			{
+				AfxMessageBox("Choose item type first!");
+				return;
+			}
+			VTSListOfDlg dlg(m_ComboItemType.GetCurSel(), this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+				curElem->elemitemType = m_ComboItemType.GetCurSel();
+			}
+			break;
+		}
 		default:
 			break;
 	}
@@ -547,7 +601,7 @@ void VTSAny::OnItemchangingElemList(NMHDR* pNMHDR, LRESULT* pResult)
 		return;
 
 	if ((pNMListView->uNewState & LVIS_SELECTED) != 0)
-		SetSelection( pNMListView->iItem );
+		SetSelection( pNMListView->iItem );	
 	else
 	if (pNMListView->iItem == m_iSelectedElem)
 		ResetSelection();
@@ -906,3 +960,4 @@ void VTSAny::RestoreCtrl( BACnetAPDUDecoder& dec )
 
 	BACnetNull().Decode( dec );
 }
+
