@@ -4,6 +4,7 @@
 //
 #define ID_NEWNAME                      3
 #define IDC_DEVIMPORT                   3
+#define ID_APPLY                        3
 #define ID_DELETENAME                   4
 #define IDC_DEVEXPORT                   4
 #define ID_IMPORTNAMES                  5
@@ -165,6 +166,9 @@
 #define IDD_FILTERS                     278
 #define IDD_LISTOF                      279
 #define IDD_DESTINATION                 280
+#define IDD_SENDMSTP                    281
+#define IDD_MSTPIMP_NBLINK              282
+#define IDB_NBLINK                      284
 #define IDB_BMALOGO                     300
 #define IDB_WINPCAPLOGO                 301
 #define IDC_PORTLIST                    1000
@@ -571,9 +575,12 @@
 #define IDC_INCLUDEICON                 1292
 #define IDC_EDIT1                       1293
 #define IDC_DESTINATION_NETWORK         1293
+#define IDC_MSTPMAC                     1293
 #define IDC_RPALL_DA                    1294
+#define IDC_MSTPMAXMASTER               1294
 #define ID_NEWFILTER                    1295
 #define IDC_RPALL_DNET_DADR             1295
+#define IDC_MSTPMAXINFO                 1295
 #define ID_DELETEFILTER                 1296
 #define ID_IMPORTFILTERS                1297
 #define ID_EXPORTFILTERS                1298
@@ -604,6 +611,20 @@
 #define IDC_COMBO_ITEMTYPE              1330
 #define IDC_DESTINATION_FROMTIME        1332
 #define IDC_DESTINATION_TOTIME          1333
+#define IDC_NBLINKSOCKET                1335
+#define ID_NBLINKPARMS                  1336
+#define ID_MSTPCONFIGIMP                1336
+#define IDC_NBLINKLOCALPORT             1336
+#define IDC_MSTPFRTYPECOMBO             1337
+#define IDC_NBLINKRESETLOCALPORT        1337
+#define IDC_MSTPBAUD                    1338
+#define IDC_MSTPIMP                     1339
+#define IDC_NBLINKADDR                  1340
+#define IDC_NBLINKSUBNETMASK            1341
+#define IDC_NBLINKRESETADDR             1342
+#define IDC_NBLINKRESET                 1343
+#define IDC_NBLINKSTARTUP               1344
+#define IDC_NBLINKGATEWAY               1345
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -744,9 +765,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        282
+#define _APS_NEXT_RESOURCE_VALUE        285
 #define _APS_NEXT_COMMAND_VALUE         32831
-#define _APS_NEXT_CONTROL_VALUE         1335
+#define _APS_NEXT_CONTROL_VALUE         1345
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

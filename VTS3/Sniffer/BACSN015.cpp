@@ -164,14 +164,16 @@ int interp_bacnet_MSTP( char *header, int length)  /* MS/TP interpreter */
    unsigned char dataValue;   /* used in data CRC check */
    unsigned char headerCRC;   /* used in header CRC check */
    unsigned int crc;          /* used in header CRC check */
-   unsigned int crcValue;     /* used in data CRC check */
-   unsigned int crcLow;       /* used in data CRC check */
+//   unsigned int crcValue;     /* used in data CRC check */
+   unsigned short crcValue;     /* used in data CRC check */
+//   unsigned int crcLow;       /* used in data CRC check */
+   unsigned short crcLow;       /* used in data CRC check */
    char *mstp_header;         /* points to beginning of MS/TP preamble */
 
    /* Summary line? */
    if (pi_data_bacnet_MSTP->do_sum) {
-      sprintf (get_sum_line (pi_data_bacnet_MSTP),
-         "BACnet MS/TP Frame");
+        interp_bacnet_NL( header + 8, length-10 );
+//      sprintf (get_sum_line (pi_data_bacnet_MSTP), "BACnet MS/TP Frame");
    }   /* End of Summary Line */
 
    /* Detail line? */
