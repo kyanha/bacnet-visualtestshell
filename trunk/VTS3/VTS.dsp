@@ -242,6 +242,10 @@ SOURCE=.\EPICSViewNodeAppService.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\EPICSViewPropPanel.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileVersionInfo\file_ver.cpp
 # End Source File
 # Begin Source File
@@ -1377,6 +1381,10 @@ SOURCE=.\EPICSViewInfoPanel.h
 # Begin Source File
 
 SOURCE=.\EPICSViewNode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\EPICSViewPropPanel.h
 # End Source File
 # Begin Source File
 
@@ -2558,7 +2566,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                        $(InputPath)                                        $(OutDir)\ 
+	copy                                         $(InputPath)                                         $(OutDir)\ 
 
 # End Custom Build
 
@@ -2569,7 +2577,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                        $(InputPath)                                        $(OutDir)\ 
+	copy                                         $(InputPath)                                         $(OutDir)\ 
 
 # End Custom Build
 

@@ -314,6 +314,17 @@ BEGIN
     MENUITEM "Delete",                      ID_DELETE
 END
 
+IDR_EPICS_PROP MENU DISCARDABLE 
+BEGIN
+    MENUITEM "Read Property",               ID_EPICS_PROP_RP
+    MENUITEM "Write Property",              ID_EPICS_PROP_WP
+    MENUITEM "Read Property Multiple",      ID_EPICS_PROP_RPM
+    MENUITEM "Write Property Multiple",     ID_EPICS_PROP_WPM
+    MENUITEM SEPARATOR
+    MENUITEM "Generate Read All Properties Script", ID_EPICS_PROP_GEN
+    MENUITEM "Clear Device Values",         ID_EPICS_PROP_CLEAR
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2975,7 +2986,7 @@ BEGIN
                     ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER
 END
 
-IDD_EPICSVIEW DIALOGEX 0, 0, 139, 192
+IDD_EPICSVIEW DIALOGEX 0, 0, 196, 192
 STYLE WS_CHILD
 EXSTYLE WS_EX_STATICEDGE
 FONT 8, "MS Sans Serif"
@@ -2985,10 +2996,12 @@ BEGIN
     CONTROL         "Tree1",IDC_EPICSV_TREE,"SysTreeView32",TVS_HASBUTTONS | 
                     TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
                     TVS_SHOWSELALWAYS | TVS_TRACKSELECT | WS_TABSTOP,2,33,
-                    134,157,WS_EX_STATICEDGE
-    EDITTEXT        IDC_EPICSV_FILENAME,36,2,100,12,ES_AUTOHSCROLL | 
+                    191,157,WS_EX_STATICEDGE
+    EDITTEXT        IDC_EPICSV_FILENAME,35,2,158,12,ES_AUTOHSCROLL | 
                     WS_DISABLED
     PUSHBUTTON      "Edit",IDC_EPICSV_EDIT,35,16,29,12
+    PUSHBUTTON      "Read Object Props",IDC_EPICSV_GEN,124,16,68,12
+    PUSHBUTTON      "Read All Props",IDC_EPICSV_GENALL,67,16,53,12
 END
 
 IDD_NOTIFY_BUFFERREADY DIALOG DISCARDABLE  0, 0, 227, 113
@@ -5341,7 +5354,7 @@ BEGIN
     IDD_EPICSVIEW, DIALOG
     BEGIN
         LEFTMARGIN, 2
-        RIGHTMARGIN, 136
+        RIGHTMARGIN, 193
         TOPMARGIN, 2
         BOTTOMMARGIN, 190
     END
