@@ -1606,7 +1606,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 			else
 				cbp->AddString( m_Table[i] );
 		}
-		if(m_nObjType != -1 || m_nObjType < 23)
+		if(m_nObjType != -1 && m_nObjType < 23)
 		{
 			CString str = "------------------------------";
 			cbp->AddString(str);

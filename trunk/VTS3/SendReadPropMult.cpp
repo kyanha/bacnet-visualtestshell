@@ -192,9 +192,10 @@ void CSendReadPropMult::RestorePage( int index )
 
 		BACnetObjectIdentifier *p = &(rplistPtr->rplObjID);		
 		*p = wpmrplistPtr->m_ObjID;
-
+		
 		if(isShown)
-		  rplistPtr->rplObjID.ObjToCtrl();
+		rplistPtr->rplObjID.ctrlNull = FALSE; //Modifed to change history correct by Zhu Zhenhua, 2004-4-20
+	//	rplistPtr->rplObjID.ObjToCtrl();
 
 		if(isShown)
 		  m_ObjList.InsertItem(i, wpmrplistPtr->m_ObjIDStr);         
@@ -213,17 +214,15 @@ void CSendReadPropMult::RestorePage( int index )
 
 			if(isShown)
 			{	
-				elemPtr->rpePropCombo.ctrlNull = false; //Added by Zhu Zhenhua, 2004-4-19,To init the propID
-				elemPtr->rpePropCombo.ObjToCtrl();
-				elemPtr->rpeArrayIndex.ObjToCtrl();
+			elemPtr->rpePropCombo.ctrlNull = FALSE; //Modifed to change history correct by Zhu Zhenhua, 2004-4-20
+			//	elemPtr->rpePropCombo.ObjToCtrl();
+			//	elemPtr->rpeArrayIndex.ObjToCtrl();
 			}
 			
 			rplistPtr->AddTail( elemPtr);
 		}
-
         m_PropListList.AddTail(rplistPtr);
 	}
-
 }
 
 //

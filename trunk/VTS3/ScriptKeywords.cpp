@@ -108,6 +108,7 @@ ScriptTranslateTable ScriptALConfirmedServiceMap[] =
 	, { 0xd08d352b, 24 }					// AUTHENTICATE
 	, { 0x9c38b663, 25 }					// REQUESTKEY
 	, { 0x5F156F1A, 26 }					//READRANGE			added by xuyiping 2002-8-29
+	, { 0xBC29635E, 29 }					//GETEVENTINFORMATION  Added by Zhu Zhenhua, 2004-5-25
 	, { 0, 0 }
 	};
 

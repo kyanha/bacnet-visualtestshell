@@ -503,6 +503,14 @@ SOURCE=.\SendGetEnrollmentSummaryACK.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SendGetEventInfo.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetEventInfoACK.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SendIAm.cpp
 # End Source File
 # Begin Source File
@@ -756,6 +764,18 @@ SOURCE=.\VTS.rc
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSActionCommandDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSActionDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSActionListDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSAddressBindingDlg.cpp
 # End Source File
 # Begin Source File
@@ -772,11 +792,27 @@ SOURCE=.\VTSBACnetTypeGenericPage.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSBinaryPVDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSCalendarEntryDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSClientCOVDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSCOVSubscriptionDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSCtrl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDailyScheduleDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -788,7 +824,23 @@ SOURCE=.\VTSDateTimeDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSDaysOfWeekDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSDestinationDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDeviceObjectPropertyReferenceDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDeviceObjectReferenceDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDeviceStatusDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -816,11 +868,127 @@ SOURCE=.\VTSDoc.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSEngineeringUnitsDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventBitstringDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventBufferReadyDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventChangeOfStateDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventChangeOfValueDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventCommandFailureDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventFloatLimitDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventLifeSafetyDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventOutOfRangeDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventParameterDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventStateDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventTransitionBitsDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventTypeDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSFileAccessMethodDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSFiltersDlg.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSListOfDlg.cpp
+SOURCE=.\VTSLifeSafetyModeDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLifeSafetyOperationDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLifeSafetyStateDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLimitEnable.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLimitEnableDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfBitstringDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfDestinationDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfLifeSafetyStateDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfPropertyStatesDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfReadAccessResultDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfReadAccessSpecDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfTimeStampDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfUnsignedDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLogRecordDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLogStatusDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSMaintenanceDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -833,6 +1001,10 @@ SOURCE=.\VTSNotificationParameters.cpp
 # Begin Source File
 
 SOURCE=.\VTSNotifyBitstring.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyBufferReady.cpp
 # End Source File
 # Begin Source File
 
@@ -860,6 +1032,10 @@ SOURCE=.\VTSNotifyState.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSNotifyTypeDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSNotifyValue.cpp
 # End Source File
 # Begin Source File
@@ -868,11 +1044,31 @@ SOURCE=.\VTSObjectIdentifierDialog.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSObjectPropertyReferenceDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjectPropertyValueDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjectTypeDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjectTypesSupportedDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSPacket.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\VTSPacketDB.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPolarityDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -908,7 +1104,43 @@ SOURCE=.\VTSPreferencesDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSPriorityArrayDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPriorityValueDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSProgramErrorDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSProgramRequestDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSProgramStateDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyIdentifierDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSPropertyPage.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyReferenceDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyStatesDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyValueDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -916,7 +1148,43 @@ SOURCE=.\VTSPropValue.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSRecipientDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSRecipientProcess.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSReliabilityDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSResultFlasDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSegmentationDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSServicesSupportedDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSessionKeyDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSetPointReferenceDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSilenceStateDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSpecialEventDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -932,6 +1200,10 @@ SOURCE=.\Statistics\VTSStatisticsOptionsDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSStatusFlagsDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSTimeStamp.cpp
 # End Source File
 # Begin Source File
@@ -940,7 +1212,23 @@ SOURCE=.\VTSTimeStampDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSTimeValueDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSVendorPropIDDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSVTClassDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSVTSessionDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSWeekNDayDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -1368,6 +1656,14 @@ SOURCE=.\SendGetEnrollmentSummaryACK.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SendGetEventInfo.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetEventInfoACK.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SendIAm.h
 # End Source File
 # Begin Source File
@@ -1632,6 +1928,18 @@ SOURCE=.\VTS.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSActionCommandDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSActionDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSActionListDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSAddressBindingDlg.h
 # End Source File
 # Begin Source File
@@ -1648,11 +1956,27 @@ SOURCE=.\VTSBACnetTypeGenericPage.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSBinaryPVDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSCalendarEntryDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSClientCOVDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSCOVSubscriptionDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSCtrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDailyScheduleDlg.h
 # End Source File
 # Begin Source File
 
@@ -1664,7 +1988,23 @@ SOURCE=.\VTSDateTimeDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSDaysOfWeekDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSDestinationDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDeviceObjectPropertyReferenceDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDeviceObjectReferenceDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDeviceStatusDlg.h
 # End Source File
 # Begin Source File
 
@@ -1692,11 +2032,127 @@ SOURCE=.\VTSDoc.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSEngineeringUnitsDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventBitstringDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventBufferReadyDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventChangeOfStateDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventChangeOfValueDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventCommandFailureDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventFloatLimitDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventLifeSafetyDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventOutOfRangeDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventParameterDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventStateDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventTransitionBitsDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSEventTypeDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSFileAccessMethodDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSFiltersDlg.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSListOfDlg.h
+SOURCE=.\VTSLifeSafetyModeDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLifeSafetyOperationDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLifeSafetyStateDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLimitEnable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLimitEnableDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfBitstringDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfDestinationDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfLifeSafetyStateDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfPropertyStatesDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfReadAccessResultDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfReadAccessSpecDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfTimeStampDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfUnsignedDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLogRecordDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSLogStatusDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\vtsmaintenancedlg.h
 # End Source File
 # Begin Source File
 
@@ -1709,6 +2165,10 @@ SOURCE=.\VTSNotificationParameters.h
 # Begin Source File
 
 SOURCE=.\VTSNotifyBitstring.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyBufferReady.h
 # End Source File
 # Begin Source File
 
@@ -1736,6 +2196,10 @@ SOURCE=.\VTSNotifyState.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSNotifyTypeDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSNotifyValue.h
 # End Source File
 # Begin Source File
@@ -1744,11 +2208,31 @@ SOURCE=.\VTSObjectIdentifierDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSObjectPropertyReferenceDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjectPropertyValueDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjectTypeDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjectTypesSupportedDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSPacket.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\VTSPacketDB.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPolarityDlg.h
 # End Source File
 # Begin Source File
 
@@ -1784,7 +2268,43 @@ SOURCE=.\VTSPreferencesDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSPriorityArrayDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPriorityValueDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSProgramErrorDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSProgramRequestDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSProgramStateDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyIdentifierDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSPropertyPage.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyReferenceDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyStatesDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyValueDlg.h
 # End Source File
 # Begin Source File
 
@@ -1796,7 +2316,43 @@ SOURCE=.\VTSQueue.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSRecipientDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSRecipientProcess.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSReliabilityDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSResultFlasDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSegmentationDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSServicesSupportedDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSessionKeyDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSetPointReferenceDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSilenceStateDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSSpecialEventDlg.h
 # End Source File
 # Begin Source File
 
@@ -1812,6 +2368,10 @@ SOURCE=.\Statistics\VTSStatisticsOptionsDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSStatusFlagsDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSTimeStamp.h
 # End Source File
 # Begin Source File
@@ -1820,7 +2380,23 @@ SOURCE=.\VTSTimeStampDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSTimeValueDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSVendorPropIDDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSVTClassDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSVTSessionDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSWeekNDayDlg.h
 # End Source File
 # Begin Source File
 
@@ -1978,7 +2554,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy         $(InputPath)         $(OutDir)\ 
+	copy                                      $(InputPath)                                      $(OutDir)\ 
 
 # End Custom Build
 
@@ -1989,7 +2565,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy         $(InputPath)         $(OutDir)\ 
+	copy                                      $(InputPath)                                      $(OutDir)\ 
 
 # End Custom Build
 

@@ -12,9 +12,67 @@
 #include "VTSDateRangeDlg.h"
 #include "VTSAddressBindingDlg.h"
 #include "VTSCalendarEntryDlg.h"
-#include "VTSTimeStampDlg.h"
-#include "VTSListOfDlg.h"
+
+#include "VTSActionDlg.h"
+#include "VTSActionCommandDlg.h"
+#include "VTSActionListDlg.h"
+#include "VTSBinaryPVDlg.h"
+#include "VTSClientCOVDlg.h"
+#include "VTSCOVSubscriptionDlg.h"
+#include "VTSDailyScheduleDlg.h"
+#include "VTSDaysOfWeekDlg.h"
 #include "VTSDestinationDlg.h"
+#include "VTSDeviceStatusDlg.h"
+#include "VTSDeviceObjectPropertyReferenceDlg.h"
+#include "VTSDeviceObjectReferenceDlg.h"
+#include "VTSEngineeringUnitsDlg.h"
+#include "VTSEventParameterDlg.h"
+#include "VTSEventStateDlg.h"
+#include "VTSEventTransitionBitsDlg.h"
+#include "VTSEventTypeDlg.h"
+#include "VTSFileAccessMethodDlg.h"
+#include "VTSLifeSafetyModeDlg.h"
+#include "VTSLifeSafetyOperationDlg.h"
+#include "VTSLifeSafetyStateDlg.h"
+#include "VTSLimitEnableDlg.h"
+#include "VTSLogRecordDlg.h"
+#include "VTSLogStatusDlg.h"
+#include "vtsmaintenancedlg.h"
+#include "VTSNotifyTypeDlg.h"
+#include "VTSObjectPropertyReferenceDlg.h"
+#include "VTSObjectPropertyValueDlg.h"
+#include "VTSObjectTypeDlg.h"
+#include "VTSObjectTypesSupportedDlg.h"
+#include "VTSPropertyValueDlg.h"
+#include "VTSPolarityDlg.h"
+#include "VTSPriorityArrayDlg.h"
+#include "VTSPriorityValueDlg.h"
+#include "VTSProgramErrorDlg.h"
+#include "VTSProgramRequestDlg.h"
+#include "VTSProgramStateDlg.h"
+#include "VTSPropertyIdentifierDlg.h"
+#include "VTSPropertyReferenceDlg.h"
+#include "VTSPropertyStatesDlg.h"
+#include "VTSRecipientDlg.h"
+#include "VTSRecipientProcess.h"
+#include "VTSReliabilityDlg.h"
+#include "VTSResultFlasDlg.h"
+#include "VTSSegmentationDlg.h"
+#include "VTSServicesSupportedDlg.h"
+#include "VTSSessionKeyDlg.h"
+#include "VTSSetPointReferenceDlg.h"
+#include "VTSSilenceStateDlg.h"
+#include "VTSSpecialEventDlg.h"
+#include "VTSStatusFlagsDlg.h"
+#include "VTSTimeStampDlg.h"
+#include "VTSTimeValueDlg.h"
+#include "VTSVTClassDlg.h"
+#include "VTSVTSessionDlg.h"
+#include "VTSWeekNDayDlg.h"
+
+#include "VTSListOfDestinationDlg.h"
+#include "VTSListOfReadAccessResultDlg.h"
+#include "VTSListOfReadAccessSpecDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -106,7 +164,6 @@ VTSAny::VTSAny(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSAny::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(VTSAny)
-		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
 
@@ -148,7 +205,6 @@ void VTSAny::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(VTSAny)
-	DDX_Control(pDX, IDC_COMBO_ITEMTYPE, m_ComboItemType);
 	DDX_Control(pDX, IDC_ELEMLIST, m_ElemList);
 	DDX_Control(pDX, IDC_TYPECOMBO, m_TypeCombo);
 	DDX_Control(pDX, IDC_CONTEXT, m_Context);
@@ -176,15 +232,7 @@ BOOL VTSAny::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	int		elemType = m_TypeCombo.GetCurSel();
-
-//Set the item type combo when the elem type is list of
-//Added By Zhu Zhenhua, 2003-9-10 
-	if(elemType != 20)
-		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(false);
-	else
-		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(true);
-	
+	int		elemType = m_TypeCombo.GetCurSel();	
 	// initialize the port list
 	m_ElemList.m_nFlags |= LVS_SINGLESEL;
 	m_ElemList.InsertColumn( 0, _T("Type"), LVCFMT_LEFT, 96 );
@@ -224,17 +272,6 @@ void VTSAny::SetSelection( int indx )
 
 	// set the type
 	m_TypeCombo.SetCurSel( curElem->elemType );
-
-//if the type is list of, set the item type 
-//Added By Zhu Zhenhua, 2003-9-10 
-	if(curElem->elemType == 20)
-	{	
-		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(true);
-		m_ComboItemType.SetCurSel(curElem->elemitemType);
-	}
-	else
-		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(false);
-
 	// enable/disable the ID button
 	m_ValueIDButton.EnableWindow( curElem->elemType == 12 );
 
@@ -277,9 +314,6 @@ void VTSAny::ResetSelection( void )
 	// disable the ID button
 	m_ValueIDButton.EnableWindow( false );
 	
-	//disable the itemtype combo for listof
-	//Added by Zhu Zhenhua, 2003-9-10
-	this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(false);
 
 	// let the CDialog sync the controls with the local vars
 	UpdateData( false );
@@ -355,13 +389,6 @@ void VTSAny::OnSelchangeTypeCombo()
 	// skip changes when there is no selection
 	if (m_iSelectedElem < 0)
 		return;
-	if(elemType != 20)
-		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(false);
-	else
-	{
-		this->GetDlgItem(IDC_COMBO_ITEMTYPE)->EnableWindow(true);
-		m_ComboItemType.SetCurSel(-1);
-	}
 	// set the list type
 	m_anyList[m_iSelectedElem]->elemType = elemType;
 
@@ -546,7 +573,842 @@ void VTSAny::OnValueIDButton()
 			}
 			break;
 		}
-		case 19: //time stamp
+	//MOdified by Zhu Zhenhua , 2004-6-14
+case 19: //action
+		{
+			VTSActionDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+case 20: //actionCommand
+		{
+			VTSActionCommandDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+case 21: //actionList
+		{
+			VTSActionListDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+case 22: //BinaryPV
+		{
+			VTSBinaryPVDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+		case 23: //Client COV
+		{
+			VTSClientCOVDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+		case 24: //COVSubscription
+		{
+			VTSCOVSubscriptionDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+case 25: //dailySchedule
+		{
+			VTSDailyScheduleDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+case 26: //daysofWeek
+		{
+			VTSDaysOfWeekDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+case 27: //destination
+		{
+			VTSDestinationDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 28://Device Status
+		{	
+			VTSDeviceStatusDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 29://DeviceObjectPropertyReference
+		{	
+			VTSDeviceObjectPropertyReferenceDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+		case 30://DeviceObjectReference
+		{	
+			VTSDeviceObjectReferenceDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}	
+	case 31://EngineeringUnits
+		{	
+			VTSEngineeringUnitsDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 32://EventParameter
+		{	
+
+			VTSEventParameterDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			
+			break;
+		}
+	case 33://EventState
+		{	
+			VTSEventStateDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 34://EventTransitionBits
+		{	
+			VTSEventTransitionBitsDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 35://EventType
+		{	
+			VTSEventTypeDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 36://FileAccessMethod
+		{	
+			VTSFileAccessMethodDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 37://LifeSafetyMode
+		{	
+			VTSLifeSafetyModeDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 38://LifeSafetyOperation
+		{	
+			VTSLifeSafetyOperationDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 39://LifeSafetyState
+		{	
+			VTSLifeSafetyStateDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 40://LimitEnable
+		{	
+			VTSLimitEnableDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 41://LogRecord
+		{	
+			VTSLogRecordDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+		case 42://LogStatus
+		{	
+			VTSLogStatusDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}	
+	case 43://Maintenance
+		{	
+			VTSMaintenanceDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 44://NotifyType
+		{	
+			VTSNotifyTypeDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 45://ObjectPropertyReference
+		{	
+			VTSObjectPropertyReferenceDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}	
+	case 46://ObjectPropertyValue
+		{	
+			VTSObjectPropertyValueDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 47://ObjecTtype
+		{	
+			VTSObjectTypeDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 48://ObectTypesSupported
+		{	
+			VTSObjectTypesSupportedDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+				}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+				}
+			if(dlg.DoModal())
+				{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+				}		
+			break;
+		}
+	case 49://Polarity 
+		{	
+			VTSPolarityDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 50://PriorityArray
+		{	
+			VTSPriorityArrayDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 51://PriorityValue
+		{	
+			VTSPriorityValueDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 52://ProgramError   
+		{	
+			VTSProgramErrorDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 53://ProgramRequest 
+		{	
+			VTSProgramRequestDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 54://ProgramState
+		{	
+			VTSProgramStateDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 55://PropertyIdentifier  
+		{	
+			VTSPropertyIdentifierDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 56://PropertyReference
+		{	
+			VTSPropertyReferenceDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 57://PropertyStates 
+		{	
+			VTSPropertyStatesDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 58://PropertyValue
+		{	
+			VTSPropertyValueDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 59://Recipient
+		{	
+			VTSRecipientDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}	
+	case 60://RecipientProcess
+		{	
+			VTSRecipientProcess dlg(this);
+			try{
+				dlg.DecodeValue(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				try{
+					dlg.EncodeValue( curElem->elemEncoder, curElem->elemContext );
+				}
+				catch(...){
+					MessageBox("Encode Error!");
+					break;
+				}	
+			}
+			break;
+		}
+		case 61://Reliability 
+		{	
+			VTSReliabilityDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}	
+	case 62://ResultFlags
+		{	
+			VTSResultFlasDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}	
+		case 63://Segmentation 
+		{	
+			VTSSegmentationDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+		case 64://ServicesSupported 
+		{	
+			VTSServicesSupportedDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			
+			break;
+		}
+	case 65://SessionKey
+		{	
+			VTSSessionKeyDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}	
+		case 66://SetPointReference
+		{	
+			VTSSetPointReferenceDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}		
+		case 67://SilenceState  
+		{	
+			VTSSilenceStateDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+		case 68://SpecialEvent   
+		{				
+			VTSSpecialEventDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}			
+			break;
+		}
+		case 69://StatusFlags
+		{	
+			VTSStatusFlagsDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}		
+		case 70: //time stamp
 		{
 			VTSTimeStampDlg dlg(this);
 			
@@ -563,15 +1425,26 @@ void VTSAny::OnValueIDButton()
 			}
 			break;
 		}
-		case 20://list of
-		{	
-			m_ComboItemType.GetCurSel();
-			if(m_ComboItemType.GetCurSel() < 0)
-			{
-				AfxMessageBox("Choose item type first!");
-				return;
+		case 71: //time Value
+		{
+			VTSTimeValueDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
 			}
-			VTSListOfDlg dlg(m_ComboItemType.GetCurSel(), this);
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder,  curElem->elemContext);
+			}
+			break;
+		}
+	case 72://VTClass 
+		{	
+			VTSVTClassDlg dlg(this);
 			try{
 				dlg.Decode(dec);
 			}
@@ -582,10 +1455,89 @@ void VTSAny::OnValueIDButton()
 			if(dlg.DoModal())
 			{
 				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
-				curElem->elemitemType = m_ComboItemType.GetCurSel();
+			}
+			break;
+		}	
+	case 73://VTSession
+		{	
+			VTSVTSessionDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
 			}
 			break;
 		}
+	case 74://WeekNDay
+		{	
+			VTSWeekNDayDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+	case 75://list of Destination
+		{	
+			VTSListOfDestinationDlg dlg(0, this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+		case 76://List Of ReadAccessResult
+			{	
+			VTSListOfReadAccessResultDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}	
+		case 77://List Of ReadAccessSpecification
+			{	
+			VTSListOfReadAccessSpecDlg dlg(this);
+			try{
+				dlg.Decode(dec);
+			}
+			catch(...){
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}						
 		default:
 			break;
 	}

@@ -796,7 +796,7 @@ class BACnetCalendarEntry : public BACnetObjectContainer
 		BACnetCalendarEntry();
 		BACnetCalendarEntry( BACnetAPDUDecoder & dec );
 		BACnetCalendarEntry( BACnetEncodeable * pbacnetEncodeable );
-
+		int		m_nChoice;
 		// override decode for special construction from stream
 		void Decode( BACnetAPDUDecoder& dec );								// decode
 
@@ -1389,6 +1389,7 @@ class BACnetAPDUDecoder {
 		void SetBuffer( const BACnetOctet *buffer, int len );
 
 		void ExamineTag( BACnetAPDUTag &t );			// just peek at the next tag
+		bool ExamineOption(int nContext);	//Added by Zhu Zhenhua, 2004-6-14
 		void Skip( void );				// skip the tag
 		
 		void CopyOctets( BACnetOctet *buff, int len );	// raw copy into buffer
@@ -1660,7 +1661,10 @@ enum BACnetConfirmedServiceChoice {
 
 // Security Services
 		authenticate					= 24,
-		requestKey						= 25
+		requestKey						= 25,
+
+//services after 1995			//Added by Zhu Zhenhua, 2004-5-25
+		getEventInformation				= 29
 		};
 
 class BACnetConfirmedServiceAPDU : public BACnetAPDU {

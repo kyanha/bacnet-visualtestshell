@@ -177,7 +177,7 @@ CSendGroupItem gNetworkItemList[] =
 CSendGroup gNetworkGroup = { "Network", gNetworkItemList, (CSendPageMPtr)&CSend::NPCIPage, (CSendPageMPtr)&CSend::NPCIPage };
 
 /////////////////////////////////////////////////////////////////////////////
-
+//Modified by Zhu Zhenhua, 2004-5-25
 CSendGroupItem gAlarmEventItemList[] =
 	{ { "AcknowledgeAlarm", (CSendPageMPtr)&CSend::AckAlarmPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { "ConfirmedCOVNotification", (CSendPageMPtr)&CSend::ConfCOVNotificationPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
@@ -188,6 +188,8 @@ CSendGroupItem gAlarmEventItemList[] =
 	, { "UnconfirmedEventNotification", (CSendPageMPtr)&CSend::UnconfEventNotificationPage, 0 }
 	, { "GetEnrollmentSummary", (CSendPageMPtr)&CSend::GetEnrollmentSummaryPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { "GetEnrollmentSummary-ACK", (CSendPageMPtr)&CSend::GetEnrollmentSummaryACKPage, (CSendPageMPtr)&CSend::ComplexACKPage }
+	, { "GetEventInformation", (CSendPageMPtr)&CSend::GetEventInformationPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
+	, { "GetEventInformation-ACK", (CSendPageMPtr)&CSend::GetEventInformationACKPage, (CSendPageMPtr)&CSend::ComplexACKPage }
 	, { "SubscribeCOV", (CSendPageMPtr)&CSend::SubscribeCOVPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { 0, 0, 0 }
 	};
@@ -359,6 +361,8 @@ void CSend::InitPages( void )
 	UnconfEventNotificationPage.pageParent = this;
 	GetEnrollmentSummaryPage.pageParent = this;
 	GetEnrollmentSummaryACKPage.pageParent = this;
+	GetEventInformationPage.pageParent =  this;    //Added by Zhu Zhenhua, 2004-5-25
+	GetEventInformationACKPage.pageParent =  this;   //Added by Zhu Zhenhua, 2004-5-25
 	SubscribeCOVPage.pageParent = this;
 
 	ReadFilePage.pageParent = this;
@@ -1012,6 +1016,8 @@ void CSend::OnSelchangeHistory()
 		return;
 
 	int sel = m_history.GetCurSel();
-
+	
+	curPagePtr->InitPage();
 	curPagePtr->RestorePage(sel);
+	curPagePtr->UpdateEncoded();   //Modifed to change history correct by Zhu Zhenhua, 2004-4-20
 }

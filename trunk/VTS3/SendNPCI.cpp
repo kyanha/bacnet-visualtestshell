@@ -94,7 +94,7 @@ BOOL CSendNPCI::OnInitDialog()
 
 	CDialog::OnInitDialog();
 	
-	m_Version.ObjToCtrl();
+//	m_Version.ObjToCtrl();
 
 	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 
@@ -116,7 +116,7 @@ BOOL CSendNPCI::OnInitDialog()
 		m_SADR.ObjToCtrl();
 	}
 
-	m_Priority.ObjToCtrl();
+//	m_Priority.ObjToCtrl();
 
 	// let the contorls show correct status
 	SynchronizeControls();
