@@ -245,6 +245,7 @@
 #define IDD_EVENTPARAMETER              357
 #define IDD_LISTOFREADACCESSRESULT      358
 #define IDD_LISTOFREADACCESSSPECIFICATION 359
+#define IDD_EPICSVIEW_PROP              360
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -855,6 +856,7 @@
 #define IDC_LISTOFLSFAV                 1515
 #define IDC_LISTOFPROPSTATES            1516
 #define IDC_RADIOBITSTR                 1517
+#define IDC_EPICSV_PROP_LIST            1521
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -996,9 +998,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        345
+#define _APS_NEXT_RESOURCE_VALUE        361
 #define _APS_NEXT_COMMAND_VALUE         32832
-#define _APS_NEXT_CONTROL_VALUE         1521
+#define _APS_NEXT_CONTROL_VALUE         1522
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif
