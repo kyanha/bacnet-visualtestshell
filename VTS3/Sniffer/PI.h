@@ -209,7 +209,7 @@ Change log
 #define MAX_SUM_LINE    143             /* maximum width of a summary line */
 #define MAX_SUM_LINES    12             /* maximum summary lines per packet */
 #define MAX_INT_LINE    100             /* maximum width of a detail line */
-#define MAX_INT_LINES   600             /* maximum detail lines per packet */
+#define MAX_INT_LINES   1200            /* maximum detail lines per packet */
 
 struct BACnetPIDetail {
 	int			piOffset;
@@ -504,10 +504,12 @@ int sprintf (char *, const char *, ...);
 #endif
 
 
+#if 0
 #define MAX_SUM_LINE    143             /* maximum width of a summary line */
 #define MAX_SUM_LINES    12             /* maximum summary lines per packet */
 #define MAX_INT_LINE    100             /* maximum width of a detail line */
 #define MAX_INT_LINES   600             /* maximum detail lines per packet */
+#endif
 
 
 #ifndef min
@@ -1056,6 +1058,9 @@ typedef struct {
 
 /*
 $Log$
+Revision 1.1.1.1  2001/05/30 15:13:02  joelbender
+Initial release
+
  * 
  *    Rev 3.67   26 Aug 1996 19:15:34   ANDYB
  * Added ASYNC_PPP, SY_ASYNC and AS_FRAME_PPP for async mode.

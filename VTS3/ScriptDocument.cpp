@@ -8,6 +8,8 @@
 #include "ScriptKeywords.h"
 #include "ScriptExecutor.h"
 
+#include "md5.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -141,6 +143,9 @@ void ScriptDocument::CheckSyntax( void )
 	ScriptPacketPtr		prevPacket = 0, prevGroup = 0, newPacket
 	;
 
+	// calculate the digest
+	CalcDigest();
+
 	// set up the parameter list for cleaning later
 	m_pParmList->Mark();
 
@@ -183,6 +188,10 @@ void ScriptDocument::CheckSyntax( void )
 					curSection = new ScriptSection( tok.tokenValue );
 					curBase->Append( curSection );
 
+					// save the line number
+					curSection->baseLineStart = tok.tokenLine;
+					curSection->baseLineCount = 1;
+					
 					// clean up previous test iff there was one
 					if (curTest)
 						SequenceTest( curTest );
@@ -206,6 +215,10 @@ void ScriptDocument::CheckSyntax( void )
 					newTest = new ScriptTest( tok.tokenValue );
 					curSection->Append( newTest );
 					TRACE1( "Test %08X\n", newTest );
+
+					// save the line number
+					newTest->baseLineStart = tok.tokenLine;
+					newTest->baseLineCount = 1;
 					
 					// clean up and chain from the previous test
 					if (curTest) {
@@ -245,6 +258,11 @@ void ScriptDocument::CheckSyntax( void )
 					newDep = new ScriptDependency( tok.tokenValue );
 					curTest->Append( newDep );
 					TRACE1( "Deps %08X\n", newDep );
+
+					// save the line number
+					newDep->baseLineStart = tok.tokenLine;
+					newDep->baseLineCount = 1;
+					
 					break;
 
 				case kwREF:
@@ -262,6 +280,11 @@ void ScriptDocument::CheckSyntax( void )
 					newRef = new ScriptReference( tok.tokenValue );
 					curTest->Append( newRef );
 					TRACE1( "Ref %08X\n", newRef );
+
+					// save the line number
+					newRef->baseLineStart = tok.tokenLine;
+					newRef->baseLineCount = 1;
+					
 					break;
 
 				case kwSEND:
@@ -744,6 +767,38 @@ void ScriptDocument::ParsePacket( ScriptScanner& scan, ScriptToken& tok, ScriptP
 
 	// compute line count
 	spp->baseLineCount = (tok.tokenLine - spp->baseLineStart) + 1;
+}
+
+//
+//	ScriptDocument::CalcDigest
+//
+
+void ScriptDocument::CalcDigest( void )
+{
+	int				lineCount
+	;
+	unsigned short	lineLen
+	;
+	MD5_CTX			md
+	;
+	char			lineBuffer[ 256 ]
+	;
+
+	TRACE1( "Doc: %s\n", this->GetPathName() );
+
+	MD5Init( &md );
+
+	lineCount = m_editData->GetLineCount();
+	for (int i = 0; i < lineCount; i++) {
+		// suck the line into a private buffer
+		lineLen = m_editData->GetLine( i, lineBuffer, sizeof(lineBuffer) );
+		MD5Update( &md, (unsigned char *)lineBuffer, lineLen );
+	}
+
+	MD5Final( &md );
+
+	// save the digest
+	memcpy( m_digest, md.digest, sizeof(md.digest) );
 }
 
 //

@@ -338,6 +338,24 @@ bool ScriptToken::IsEncodeable( BACnetEncodeable &enc ) const
 }
 
 //
+//	ScriptToken::RemoveQuotes
+//
+//	Remove the single or double quotes around strings.
+//
+
+CString ScriptToken::RemoveQuotes( void ) const
+{
+	CString	rslt
+	;
+
+	rslt = tokenValue;
+	rslt.Delete( 0, 1 );
+	rslt.Delete( rslt.GetLength() - 1, 1 );
+
+	return rslt;
+}
+
+//
 //	ScriptToken::HashCode
 //
 //	This hash function is used to encode a keyword into some unique value 

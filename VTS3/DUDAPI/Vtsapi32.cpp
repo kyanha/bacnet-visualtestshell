@@ -4,8 +4,8 @@
 module:		VTSAPI32.C
 desc:		BACnet Standard Objects DLL v2.15
 authors:	David M. Fisher, Jack R. Neyer
-last edit:	09-Dec-97 [015] DMF revise for 32 bit from v0.14
-----------------------------------------------------------------------------------			
+last edit:	13-Aug-01 [016] JJB added namespace
+			09-Dec-97 [015] DMF revise for 32 bit from v0.14
 			27-Aug-96 [014] DMF fix 0.13 item 3.
 			20-Aug-96 [013] DMF 
 				1. add support for propflags in generic_object handling
@@ -35,7 +35,7 @@ last edit:	09-Dec-97 [015] DMF revise for 32 bit from v0.14
 			18-Aug-95 [001] DMF First Cut
 -----------------------------------------------------------------------------*/ 
 
-#include "stdafx.h"	// jjb
+#include "stdafx.h"
 
 #include <windows.h>
 #include <malloc.h>
@@ -57,7 +57,6 @@ namespace PICS {									//									***016
 #include "stdobj.h"
 #include "stdobjpr.h"
 #include "vtsapi.h"
-
 ///////////////////////////////////////////////////////////////////////
 //	function prototypes
 BOOL ReadFunctionalGroups(PICSdb *);	//										***008 Begin
@@ -636,6 +635,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 void APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc)
 {	int			i,j;
 	char opj[300]; //line added by MAG
+	generic_object *pd2;  // line added by MAG for debug only
 	
 	pd->Database=NULL;
 
@@ -667,7 +667,7 @@ void APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc)
 	{	tperror("Invalid Text PICS signature.",false);
 		goto rtpclose;
 	}
-	
+
 	while (feof(ifile)==0&&!cancel)				//										***008
 	{	readline(lb,sizeof(lb));				//read a line from the file 			***008
 		sprintf(opj,"RTP: rl2: Read line '%s'\n",lb);		// MAG
@@ -740,10 +740,20 @@ void APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc)
 		}
 	};
 rtpclose:
-	fclose(ifile);								//									***008
+	fclose(ifile);							 //									***008
 
 rtpexit:
 	*errc=lerrc;
+
+	pd2 = pd->Database;
+	mprintf("Begin database printout.\n");
+	while(pd2 != NULL){
+		sprintf(opj,"object id %d (%d) object name = '%s' desc = '%s'\n",pd2->object_id,(pd2->object_id)>>22,pd2->object_name,pd2->description);
+		mprintf(opj);
+		pd2 = (generic_object *)pd2->next;
+	}
+	mprintf("End database printout.\n");
+
 	return;
 }
 
@@ -1131,7 +1141,9 @@ nextobject:										//										***012
 									pobj->propflags[idProp]|=PropIsWritable; //								***014 End
 								continue;
 							}
+							mprintf("RO: About to PP\n");
 							if (ParseProperty(pn,pobj,objtype)) return true;
+							mprintf("RO: Done PP'ing\n");
 						}
 						else							//don't know what kind of object this is yet
 						{	if (stricmp(pn,"object-type")==0)
@@ -1571,10 +1583,11 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 			while (*lp==space||*lp==',') lp++;		//skip any more whitespace or commas ***014
 			if (*lp=='W'||*lp=='w')				//prop is writeable
 				pobj->propflags[pindex]|=PropIsWritable;	//						***013 End
+			mprintf("PP: RETURN\n");
 			return false;						//we're done parsing
 		}
 		if (pd->PropGroup&Last)
-			return tperror("Invalid Property Name",true); 
+			return tperror("Invalid Property Name- Check Spelling",true); 
 		pd++;									//advance to next table entry
 		pindex++;
 	}
@@ -2389,28 +2402,35 @@ BOOL ParseDate(BACnetDate *dtp)
 	dtp->day_of_month=dontcare;
 	dtp->day_of_week=dontcare;
 	skipwhitespace();
+	mprintf("PD: about to read first set\n");
     if ((db=ReadB(1,31))!=dontcare)				//not wild
     {	if (lp[-1]=='/')						//was it month/day/year?
-    	{	if (db>12)							//yes
+    	{	mprintf("PD: find month first\n");
+			if (db>12)							//yes
     		{	tperror("Month must be 1-12!",true);
 				return true;
 			}
 			dtp->month=db;
     	}
     	else									//must be day-month-year
-    	{	if (db>31)
+    	{	mprintf("PD: find day of month first\n");
+			if (db>31)
     		{	tperror("Day of month must be 1-31!",true);
     			return true;
     		}
     		dtp->day_of_month=db;
     	}
-    }
+    } else mprintf("PD: first value not specified\n");
+	sprintf(opj,"PD: About to read second set, db = %d lp = '%s' lp[-1] = '%c' \n",db,lp,&lp[-1]);
+	mprintf(opj);
     if (lp[-1]=='/')							//was it month/day/year?
-    {	if ((db=ReadB(1,31))!=dontcare)			//we'll check for valid days later
+    {	mprintf("PD: second set slash case\n");
+		if ((db=ReadB(1,31))!=dontcare)			//we'll check for valid days later
     		dtp->day_of_month=db;
     }
     else if (lp[-1]=='-')						//day-month-year
-    {	for (i=0;i<12;i++)
+    {	mprintf("PD: second set dash case\n");
+		for (i=0;i<12;i++)
     		if (strnicmp(lp,MonthNames[i],3)==0)
     		{	dtp->month=(octet)i+1;			//months are 1-12
     			break;
@@ -2425,6 +2445,7 @@ BOOL ParseDate(BACnetDate *dtp)
 		return true;
 	}
     
+	mprintf("PD: About to read third set\n");
     if (i=ReadW())								//not wild
     {	if (i>2154)								//can't represent this date
     	{	tperror("Can't represent dates beyond 2154!",true);
@@ -2434,7 +2455,7 @@ BOOL ParseDate(BACnetDate *dtp)
     	{	tperror("Can't represent this year!",true);
     		return true;
     	}
-    	if (i>1900) i-=1900;
+    	if (i>=1900) i-=1900;// MAG fix bug here when date==1900 by change > to >= 08 FEB 2001
     	dtp->year=(octet)i;
     }
     if (lp[-1]==space)							//must have a day of week
@@ -2959,9 +2980,13 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 	char	c;
 	octet	dm;
 	word	i;
+	char found_day;  // MAG
+
+	char lpj[400];
 				
 	*dalp=NULL;									//initially there is no list
 	
+	mprintf("PDL: Enter ParseDestinationList\n");
 	skipwhitespace();
 	if (MustBe('(')) return true;
 	while(feof(ifile)==0)
@@ -2971,6 +2996,8 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 		//   but (...),,(...) is treated the same as (...),(...)
 		//2. (			i.e. the beginning of a new BACnetDestination in the list
 		//3. )			i.e. the closing part of the list
+		sprintf(lpj,"PDL: start loop lp = '%s'\n",lp);
+		mprintf(lpj);
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
 		if (*lp==0)
 			if (ReadNext()==NULL) break;		//									***008
@@ -2989,18 +3016,30 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 		}
 		//look for (days of week),
 		skipwhitespace();						//									***013
+		mprintf("PDL: About to check weekdays\n");
 		if (MustBe('(')) break;
 		q->valid_days=0;
+		mprintf("PDL: pre while 1\n");
         while(*lp&&*lp!=')')
         {   while (*lp==space||*lp==',') lp++;	//skip separation between list elements
+			sprintf(lpj,"PDL: post while 2 lp = '%s'\n",lp);
+			mprintf(lpj);
 	    	if (*lp==')') break;				//done								***013
+			found_day = 0;  // MAG
 	    	for(i=0;i<7;i++)
 	    		if (strnicmp(lp,DOWNames[i],3)==0)
 	    		{	q->valid_days|=(octet)(0x80>>i);	//Monday is 80, Sunday is 2
 					while (*lp&&*lp!=' '&&*lp!=','&&*lp!=')') lp++;	//find delim	***014
+					found_day = 1;
 	    			break;
 	    		}
+			sprintf(lpj,"PDL: post while 3 lp = '%s'\n",lp);
+			mprintf(lpj);
+			if(!found_day)
+				return tperror("Expected Day of Week Here",true);
+
 		}
+		mprintf("PDL: Past check weekdays\n");
 		if (MustBe(')')) break;
 		if (strdelim(",")==NULL) break;
     	q->from_time.hour=ReadB(0,23);
@@ -3015,6 +3054,7 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
     				q->from_time.hundredths=ReadB(0,99);
     		}
     	}
+		mprintf("PDL: Past min-sec-hsec\n");
 		lp--;
 		if (strdelim(",")==NULL) break;
     	q->to_time.hour=ReadB(0,23);
@@ -3029,6 +3069,7 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
     				q->to_time.hundredths=ReadB(0,99);
     		}
     	}
+		mprintf("PDL: Past min-sec-hsec 2\n");
 		lp--;
 		if (strdelim(",")==NULL) break;
 		if (ParseRecipient(&q->recipient)==NULL) break;
@@ -3049,9 +3090,11 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 		q->next=p;								//link onto the list
 		p=q;
 		q=NULL;
+		mprintf("PDL: End of loop\n");
 	}
 	if (q!=NULL) free(q);						//don't lose this block!
 	*dalp=p;
+	mprintf("PDL: Return\n");
 	return false;
 }
 
@@ -3237,6 +3280,9 @@ octet ReadB(octet lb,octet ub)
 {	octet d=0;
 	char b[64],c;
 
+	mprintf("RB: Enter ReadB lp = '");
+	mprintf(lp);
+	mprintf("'\n");
 	skipwhitespace();
 	while (isdigit(c=*lp++))
 		d=(d*10)+(c-'0');
@@ -3286,8 +3332,12 @@ octet ReadBool()
 word ReadEnum(etable *etp)
 {	char	c,e[33];
 	word	i;
+	int j;  // MAG
+	char opj[200];
 
-	mprintf("RE: Enter ReadEnum\n");
+	mprintf("RE: Enter ReadEnum lp = '");
+	mprintf(lp);
+	mprintf("'\n");
 	skipwhitespace();
 	i=0;
 	while (c=*lp)								//until the end of the buffer
@@ -3298,13 +3348,31 @@ word ReadEnum(etable *etp)
 		else									//found the delimiter
 			break;
 	}
+	mprintf("RE: find enum '");
+	mprintf(e);
+	mprintf("'\n");
+	
+	j = strlen(e);
+	sprintf(opj,"RE: spot j-2 = %d spot j-1 = %d\n",e[j-2],e[j-1]);
+	mprintf(opj);
+	if((j > 3)&&(e[j-2] == '-')&&((e[j-1] = 'w')||(e[j-1] = 'W'))){ // MAG 3 MAR 2001 fix for string ending in '-w' (writeable)
+		mprintf("RE: fix end string: was '");
+		mprintf(e);
+		mprintf("' now '");
+		lp -=2;
+		e[j-2] = 0;
+		mprintf(e);
+		mprintf("'\n");
+	}
+
 	if (i)
 	{	e[i]=0;									//always leave asciz in buffer
 		if (e[0]=='?') return 0;				//? defaults to enumeration 0
 		for (i=0;i<etp->nes;i++)
 		{	if (etp->estrings[i])				//make sure it's not null			***006
 				if (stricmp(e,etp->estrings[i])==0){	//matching enumeration
-					mprintf("RE: find match- return\n");
+					sprintf(opj,"RE: find match (%d)- return\n",i);
+					mprintf(opj);
 					return i;
 				}
 		}
@@ -3335,6 +3403,7 @@ word ReadEnum(etable *etp)
 dword ReadObjID()
 {	word	objtype;
 	dword	id;
+	char	junk[100];
 
 	mprintf("ROI: Enter ReadObjID\n");
 	skipwhitespace();
@@ -3344,10 +3413,14 @@ dword ReadObjID()
 	}
 	if ((objtype=ReadEnum(&etObjectTypes))==0xFFFF)
 		goto roidx;
+	sprintf(junk,"ROI: object type %s %d\n",etObjectTypes.estrings[objtype], objtype);
+	mprintf(junk);
 	skipwhitespace();						//									***006 Begin
 	if (strnicmp(lp,"instance ",9)==0)		//ignore instance here
 		lp+=9;									//									***006 End
 	id=ReadDW();
+	sprintf(junk,"ROI: object instance %d\n",id);
+	mprintf(junk);
 	if (lp[-1]==')')							//it ended with a closing paren, it's ok
 	{	if (id<(1L<<22))						//valid instance number
 			return (((dword)objtype)<<22)+id;	//save the object identifier as a dword
@@ -3597,7 +3670,7 @@ BOOL tperror(char *mp,BOOL showline)
 //		lp--;									//back up by one
 		c=*lp;									//save the character we "broke" on
 		*lp++=0;								//make it asciz there temporarily
-		sprintf(p,"%s <%c> %s\n",lb,c,lp);		// changed funny << and >> to < and > -- JJB
+		sprintf(p,"%s<%c>%s\n",lb,c,lp);
 	}
 	MessageBeep(MB_ICONEXCLAMATION);
 	cancel=(MessageBox(NULL,m,"Read Text PICS Error",
