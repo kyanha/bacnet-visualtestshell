@@ -3,7 +3,37 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
+Project: "PTP"=.\macdll\PTP\PTP.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name sjack
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "VTS"=.\VTS.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name PTP
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "sjack"=.\macdll\sjack\sjack.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

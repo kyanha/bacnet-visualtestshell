@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 version.lib macdll/ptp.lib /nologo /subsystem:windows /machine:I386
+# ADD LINK32 version.lib macdll/ptp/release/ptp.lib /nologo /subsystem:windows /machine:I386
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "VTS - Win32 Debug"
@@ -80,8 +80,8 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 version.lib macdll/ptp.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"LIBCMT" /pdbtype:sept
-# SUBTRACT LINK32 /pdb:none
+# ADD LINK32 version.lib macdll/ptp/debug/ptp.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"LIBCMT" /pdbtype:sept
+# SUBTRACT LINK32 /pdb:none /debug
 
 !ENDIF 
 
@@ -1769,7 +1769,7 @@ SOURCE=.\BACnetLibrary\packet32_NT.lib
 # End Source File
 # Begin Source File
 
-SOURCE=.\macdll\ptp.lib
+SOURCE=.\macdll\ptp\release\ptp.lib
 # End Source File
 # End Target
 # End Project
