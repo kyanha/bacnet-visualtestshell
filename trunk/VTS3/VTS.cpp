@@ -1028,6 +1028,12 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //			- Added preference setting for number of seconds auto-scroll is to remain inactive.
 //			- Added preference for relative vs. absolute packet file path association in workspace.
 //
+//
+//  3.5 ?
+//			[ 747747 ] EPICS loading problems:
+//			Fixed this problem loading bitstrings larger than one byte.
+//
+//
 
 const int kReleaseVersion = 0;
 
