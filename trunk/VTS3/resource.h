@@ -581,7 +581,7 @@
 #define ID_SEND_SENDAGAIN               32798
 #define ID_BUTTON32799                  32799
 #define ID_BUTTON32800                  32800
-#define ID_SCRIPT_LOADEPICS             32801
+#define ID_EPICS_LOAD		            32801
 #define ID_EDIT_DEVICES                 32803
 #define IDC_EDIT_GOTOLINE               32804
 #define ID_MENUITEM32806                32806
