@@ -160,7 +160,6 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		return FALSE;
 	}
 
-
 	// bind to the port list and open the ports
 	m_Devices.Load( this );
 

@@ -214,7 +214,7 @@ const short kVTSDescSig = 0x0001;
 //
 
 const int kVTSDBMajorVersion = 3;			// current version
-const int kVTSDBMinorVersion = 2;
+const int kVTSDBMinorVersion = 3;
 
 class VTSDB : public JDB {
 	public:

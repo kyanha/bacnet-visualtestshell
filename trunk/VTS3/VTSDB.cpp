@@ -8,6 +8,7 @@
 #include "JConfig.hpp"
 
 #include "VTSDB.h"
+#include "VTSValue.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -270,6 +271,37 @@ void VTSDB::Open( void )
 		// load the device list
 		if ((stat = pListMgr->GetList( dbDeviceList, dbDesc->deviceListID )) != 0)
 			return;
+	}
+
+	if (fileDesc->minorVersion < kVTSDBMinorVersion) {
+		objId			devDescID
+		;
+		VTSDeviceDesc	devDesc
+		;
+
+		// loop through the device list
+		for (int i = 0; i < dbDeviceList.Length(); i++) {
+			// get the port descriptor ID's
+			stat = dbDeviceList.ReadElem( i, &devDescID );
+
+			// read the current descriptor
+			stat = pObjMgr->ReadObject( devDescID, &devDesc );
+
+			// make sure there is an initialized object list
+			if (devDesc.objSize < kVTSDeviceDescSize) {
+				// create a new object and property list
+				JDBListPtr lp = new JDBList();
+				stat = pListMgr->NewList( *lp, kVTSObjPropValueSize );
+				devDesc.deviceObjPropValueListID = lp->objID;
+				delete lp;
+
+				// update the object size
+				devDesc.objSize = kVTSDeviceDescSize;
+
+				// save the updated descriptor
+				stat = pObjMgr->WriteObject( devDescID, &devDesc );
+			}
+		}
 	}
 
 	// updated to current version
