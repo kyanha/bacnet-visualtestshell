@@ -306,7 +306,7 @@ BACnetEncodeable * BACnetEncodeable::clone()
 
 bool BACnetEncodeable::PreMatch(int iOperator )
 {
-	return iOperator == '?=';
+	return iOperator == '?=' || iOperator == '>>';
 }
 
 
@@ -321,7 +321,7 @@ bool BACnetEncodeable::Match( BACnetEncodeable &rbacnet, int iOperator, CString 
 	{
 		CString str1(ToString());	// have to do this because ToString uses a static buff... call it twice and you're hosed
 
-		strError.Format(IDS_SCREX_COMPFAILTYPE, rbacnet.ToString(), OperatorToString(iOperator), str1);
+		strError.Format(IDS_SCREX_COMPFAILTYPE, str1, OperatorToString(iOperator), rbacnet.ToString() );
 		*pstrError += strError;
 	}
 
@@ -649,6 +649,13 @@ BACnetEncodeable * BACnetBoolean::clone()
 }
 
 
+BACnetBoolean & BACnetBoolean::operator =( const BACnetBoolean & arg )
+{
+	boolValue = arg.boolValue;
+	return *this;
+}
+
+
 bool BACnetBoolean::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
 	if ( PreMatch(iOperator) )
@@ -660,7 +667,7 @@ bool BACnetBoolean::Match( BACnetEncodeable &rbacnet, int iOperator, CString * p
 		return false;
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean))  || 
-		 !::Match(iOperator, ((BACnetBoolean &) rbacnet).boolValue, boolValue) )
+		 !::Match(iOperator, boolValue, ((BACnetBoolean &) rbacnet).boolValue ) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
 	return true;
@@ -674,13 +681,14 @@ IMPLEMENT_DYNAMIC(BACnetEnumerated, BACnetEncodeable)
 //	BACnetEnumerated
 //
 
-BACnetEnumerated::BACnetEnumerated( int evalu )
-	: enumValue( evalu )
+BACnetEnumerated::BACnetEnumerated( int evalu /* = 0*/, const char ** papNameList /* = NULL */, int nListSize /* = 0 */ )
+	: enumValue( evalu ), m_papNameList(papNameList), m_nListSize(nListSize)
 {
 }
 
 
 BACnetEnumerated::BACnetEnumerated( BACnetAPDUDecoder & dec )
+				 :m_papNameList(NULL), m_nListSize(0)
 {
 	Decode(dec);
 }
@@ -742,7 +750,7 @@ void BACnetEnumerated::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetEnumerated::Encode( char *enc ) const
 {
-	Encode( enc, 0, 0 );
+	Encode( enc, m_papNameList, m_nListSize );
 }
 
 void BACnetEnumerated::Encode( char *enc, const char **table, int tsize ) const
@@ -758,7 +766,7 @@ void BACnetEnumerated::Encode( char *enc, const char **table, int tsize ) const
 
 void BACnetEnumerated::Decode( const char *dec )
 {
-	Decode( dec, 0, 0 );
+	Decode( dec, m_papNameList, m_nListSize );
 }
 
 void BACnetEnumerated::Decode( const char *dec, const char **table, int tsize )
@@ -796,7 +804,16 @@ int BACnetEnumerated::DataType()
 
 BACnetEncodeable * BACnetEnumerated::clone()
 {
-	return new BACnetEnumerated(enumValue);
+	return new BACnetEnumerated(enumValue, m_papNameList, m_nListSize);
+}
+
+
+BACnetEnumerated & BACnetEnumerated::operator =( const BACnetEnumerated & arg )
+{
+	enumValue = arg.enumValue;
+	m_nListSize = arg.m_nListSize;
+	m_papNameList = arg.m_papNameList;
+	return *this;
 }
 
 
@@ -808,7 +825,7 @@ bool BACnetEnumerated::Match( BACnetEncodeable &rbacnet, int iOperator, CString 
 //	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated))  || 
-		 !::Match(iOperator, ((BACnetEnumerated &) rbacnet).enumValue, enumValue) )
+		 !::Match(iOperator, enumValue, ((BACnetEnumerated &) rbacnet).enumValue) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
 	return true;
@@ -1018,7 +1035,7 @@ bool BACnetUnsigned::Match( BACnetEncodeable &rbacnet, int iOperator, CString * 
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned))  ||  
-		 !::Match(iOperator, ((BACnetUnsigned &) rbacnet).uintValue, uintValue) )
+		 !::Match(iOperator, uintValue, ((BACnetUnsigned &) rbacnet).uintValue) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
 	return true;
@@ -1246,7 +1263,7 @@ bool BACnetInteger::Match( BACnetEncodeable &rbacnet, int iOperator, CString * p
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)) ||
-		 !::Match(iOperator, ((BACnetInteger &) rbacnet).intValue, intValue) )
+		 !::Match(iOperator, intValue, ((BACnetInteger &) rbacnet).intValue) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
 	return true;
@@ -1373,7 +1390,7 @@ bool BACnetReal::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 //	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)) || 
-		 !::Match(iOperator, ((BACnetReal &) rbacnet).realValue, realValue ) )
+		 !::Match(iOperator, realValue, ((BACnetReal &) rbacnet).realValue ) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
 	return true;
@@ -1507,7 +1524,7 @@ bool BACnetDouble::Match( BACnetEncodeable &rbacnet, int iOperator, CString * ps
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)) ||
-		 !::Match(iOperator, ((BACnetDouble &) rbacnet).doubleValue, doubleValue ) )
+		 !::Match(iOperator, doubleValue, ((BACnetDouble &) rbacnet).doubleValue ) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
 	return true;
@@ -1828,7 +1845,7 @@ bool BACnetCharacterString::Match( BACnetEncodeable &rbacnet, int iOperator, CSt
 	// check encoding
 	if ( strEncoding != ((BACnetCharacterString &) rbacnet).strEncoding )
 	{
-		pstrError->Format(IDS_SCREX_COMPFAILSTRENCODING, strEncoding, ((BACnetCharacterString &) rbacnet).strEncoding );
+		pstrError->Format(IDS_SCREX_COMPFAILSTRENCODING, ((BACnetCharacterString &) rbacnet).strEncoding, strEncoding );
 		return false;
 	}
 
@@ -2009,6 +2026,17 @@ BACnetOctetString::BACnetOctetString( BACnetOctet *bytes, int len )
 	strLen = len;
 	strBuff = bytes;
 	strBuffLen = 0;
+}
+
+
+// this one copies the data... 
+
+BACnetOctetString::BACnetOctetString( const BACnetOctet *bytes, int len)
+{
+	strLen = strBuffLen = len;
+	strBuff = new BACnetOctet[len];
+	if (strBuff)
+		memcpy( strBuff, bytes, len );
 }
 
 
@@ -2871,6 +2899,22 @@ BACnetDate::BACnetDate( BACnetAPDUDecoder & dec )
 }
 
 
+bool BACnetDate::IsValid()
+{
+	if ( dayOfWeek != DATE_DONT_CARE && (dayOfWeek < 1 || dayOfWeek > 7) )
+		return false;
+
+	if ( day != DATE_DONT_CARE && (day < 1 || day > 31) )
+		return false;
+
+	if ( month != DATE_DONT_CARE && (month < 1 || month > 12 ))
+		return false;
+
+	if ( year != DATE_DONT_CARE && (year < 0 || year > 255))
+		return false;
+
+	return true;
+}
 
 //
 //	BACnetDate::CalcDayOfWeek
@@ -2937,12 +2981,18 @@ void BACnetDate::Decode( BACnetAPDUDecoder& dec )
 	day			= *dec.pktBuffer++;
 	dayOfWeek	= *dec.pktBuffer++;
 	dec.pktLength -= 4;
+
+	if ( !IsValid() )
+		throw_(90);		// invalid values in date
 }
 
 void BACnetDate::Encode( char *enc ) const
 {
 	static char *dow[] = { "", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }
 	;
+
+	// Date is complex data structure... must use brackets to enclose data
+	*enc++ = '[';
 
 	// day of week
 	if (dayOfWeek == DATE_DONT_CARE)
@@ -2979,7 +3029,11 @@ void BACnetDate::Encode( char *enc ) const
 		*enc = 0;
 	} else
 		sprintf( enc, "%d", year + 1900 );
+
+	// Date is complex data type so must enclose in brackets for proper parsing
+	strcat(enc, "]");
 }
+
 
 void BACnetDate::Decode( const char *dec )
 {
@@ -2994,20 +3048,28 @@ void BACnetDate::Decode( const char *dec )
 	// skip blank on front
 	while (*dec && isspace(*dec)) dec++;
 
+	// Date is complex data type so must enclose in brackets
+	if ( *dec++ != '[' )
+		throw_(110);			// missing start bracket for complex data structures
+
 	// check for dow
 	if ((*dec == '*') || (*dec == '?'))
 		dec += 1;
-	else 
-	if (isalpha(*dec)) {
+	else if (isalpha(*dec)) {
+		// They've provided a 3 char day...  read it and test for validity
+
 		for (int j = 0; (j < 3) && isalpha(*dec); j++)
 			dowBuff[j] = toupper(*dec++);
 		dowBuff[3] = 0;
 
-		for (int i = 1; i < 8; i++)
-			if (strcmp(dowBuff,dow[i]) == 0) {
+		for (int i = 1; i < 8 && dayOfWeek == DATE_DONT_CARE; i++)
+			if (strcmp(dowBuff,dow[i]) == 0)
 				dayOfWeek = i;
-				break;
-			}
+
+		// scanned through... test for validity
+		if ( dayOfWeek == DATE_DONT_CARE )
+			throw_(91);									// code for bad supplied day (interpreted in caller's context)
+
 		while (*dec!=',' && !isspace(*dec)) dec++;    //Modified by Liangping Xu
 	}
 	while (*dec && isspace(*dec)) dec++;
@@ -3024,14 +3086,21 @@ void BACnetDate::Decode( const char *dec )
 	else {
 		for (month = 0; isdigit(*dec); dec++)
 			month = (month * 10) + (*dec - '0');
+
+		// they've supplied a month (I think)
+		if ( month < 1 || month > 12)
+			throw_(92);								// code for bad month, , interpreted in caller's context
 	}
 	while (*dec && isspace(*dec)) dec++;
 	
 	// skip over slash and more space
-	if (*dec == '/') {
+	// make sure slash is there... or (-)
+	if (*dec == '/' || *dec == '-') {
 		dec += 1;
 		while (*dec && isspace(*dec)) dec++;
 	}
+	else
+		throw_(93);									// code for bad date separator, interpreted in caller's context
 
 	// check for day
 	if ((*dec == '*') || (*dec == '?'))
@@ -3039,36 +3108,53 @@ void BACnetDate::Decode( const char *dec )
 	else {
 		for (day = 0; isdigit(*dec); dec++)
 			day = (day * 10) + (*dec - '0');
+
+		// they've supplied a day (I think)
+		if ( day < 1 || day > 31)					// doesn't account for month/day invalids (feb 30)
+			throw_(94);								// code for bad day, interpreted in caller's context
 	}
 	while (*dec && isspace(*dec)) dec++;
 	
 	// skip over slash and more space
-	if (*dec == '/') {
+	if (*dec == '/' || *dec == '-') {
 		dec += 1;
 		while (*dec && isspace(*dec)) dec++;
 	}
+	else
+		throw_(93);									// code for bad date separator, interpreted in caller's context
 
 	// check for year
 	if ((*dec == '*') || (*dec == '?'))
 		dec += 1;
-	else
-	if (isdigit(*dec)) {
-		int	yr;
-		for (yr = 0; isdigit(*dec); dec++)
-			yr = (yr * 10) + (*dec - '0');
+	else {
+		int	yr = -1;			// start with no supplied year
+
+		// if they've supplied any number we'll go through this once at least...
+		if ( isdigit(*dec) )
+			for (yr = 0; isdigit(*dec); dec++)
+				yr = (yr * 10) + (*dec - '0');
 
 		// 0..40 -> 2000..2040, 41.. -> 1941..
+		// negative = error
+
+		if ( yr < 0 )
+			throw_(94);									// code for no supplied year, interpreted in caller's context
 		if (yr < 40)
 			year = yr + 100;
-		else
-		if (yr < 100)
+		else if (yr < 100)
 			year = yr;
-		else
-		if ((yr >= 1900) && (yr <= (1900 + 254)))
+		else if ((yr >= 1900) && (yr <= (1900 + 254)))
 			year = (yr - 1900);
 		else
-			year = 0;
+			throw_(95);									// code for bad year, interpreted in caller's context
 	}
+
+	// clear white space and look for close bracket
+	while (*dec && isspace(*dec)) dec++;
+	if ( *dec++ != ']' )
+		throw_(111);									// missing close bracket code
+
+	// if we've gotten this far, all values have been read in and are correct
 }
 
 
@@ -3341,6 +3427,23 @@ BACnetTime::BACnetTime( BACnetAPDUDecoder & dec )
 }
 
 
+bool BACnetTime::IsValid()
+{
+	if ( hour != DATE_DONT_CARE && (hour < 0 || hour > 23) )
+		return false;
+
+	if ( minute != DATE_DONT_CARE && (minute < 0 || minute > 59) )
+		return false;
+
+	if ( second != DATE_DONT_CARE && (second < 0 || second > 59 ))
+		return false;
+
+	if ( hundredths != DATE_DONT_CARE && (hundredths < 0 ||  hundredths > 99))
+		return false;
+
+	return true;
+}
+
 
 void BACnetTime::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -3377,10 +3480,16 @@ void BACnetTime::Decode( BACnetAPDUDecoder& dec )
 	second		= *dec.pktBuffer++;
 	hundredths	= *dec.pktBuffer++;
 	dec.pktLength -= 4;
+
+	if ( !IsValid() )
+		throw_(100);					// code meaning invalid time values, interpreted by caller's context
 }
 
 void BACnetTime::Encode( char *enc ) const
 {
+	// Time is complex data structure... must use brackets to enclose data
+	*enc++ = '[';
+
 	// hour
 	if (hour == DATE_DONT_CARE)
 		*enc++ = '?';
@@ -3414,7 +3523,11 @@ void BACnetTime::Encode( char *enc ) const
 		*enc = 0;
 	} else
 		sprintf( enc, "%02d", hundredths );
+
+	// Time is complex data type so must enclose in brackets for proper parsing
+	strcat(enc, "]");
 }
+
 
 void BACnetTime::Decode( const char *dec )
 {
@@ -3424,13 +3537,24 @@ void BACnetTime::Decode( const char *dec )
 	// skip blank on front
 	while (*dec && isspace(*dec)) dec++;   //add by xlp
 
+	// Time is complex data type so must enclose in brackets
+	if ( *dec++ != '[' )
+		throw_(110);			// missing start bracket for complex data structures
+
 	// check for hour
 	if ((*dec == '*') || (*dec == '?'))
 		dec += 1;
-	else
-	if (isdigit(*dec)) {
-		for (hour = 0; isdigit(*dec); dec++)
-			hour = (hour * 10) + (*dec - '0');
+	else {
+		// dont' care not specified, they MUST specify hours...
+		hour = -1;
+		
+		if ( isdigit(*dec) )
+			for (hour = 0; isdigit(*dec); dec++)
+				hour = (hour * 10) + (*dec - '0');
+
+		// test validity and report
+		if ( hour < 0 || hour > 23 )
+			throw_(101);									// invalid hour specification, interpreted by caller's context
 	}
 	// add by xlp
 	while (*dec && isspace(*dec)) dec++;
@@ -3438,17 +3562,25 @@ void BACnetTime::Decode( const char *dec )
 	if (*dec == ':')
 		dec += 1;
 	else
-		throw_(55) /* invalid character */;
+		throw_(102);										// bad time separator, (used to be 55 invalid character)
+
 	// add by xlp
 	while (*dec && isspace(*dec)) dec++;
 
 	// check for minute
 	if ((*dec == '*') || (*dec == '?'))
 		dec += 1;
-	else
-	if (isdigit(*dec)) {
-		for (minute = 0; isdigit(*dec); dec++)
-			minute = (minute * 10) + (*dec - '0');
+	else {
+		// MUST now supply minute value
+		minute = -1;
+		
+		if ( isdigit(*dec) )
+			for (minute = 0; isdigit(*dec); dec++)
+				minute = (minute * 10) + (*dec - '0');
+
+		// test validity and report
+		if ( minute < 0 || minute > 59 )
+			throw_(103);									// invalid minute specification, interpreted by caller's context
 	}
 	// add by xlp
 	while (*dec && isspace(*dec)) dec++;
@@ -3456,42 +3588,57 @@ void BACnetTime::Decode( const char *dec )
 	if (*dec == ':')
 		dec += 1;
 	else
-		throw_(56) /* invalid character */;
+		throw_(102);										// bad time separator, (used to be 56 invalid character)
+
 	// add by xlp
 	while (*dec && isspace(*dec)) dec++;
 
 	// check for second
 	if ((*dec == '*') || (*dec == '?'))
 		dec += 1;
-	else
-	if (isdigit(*dec)) {
-		for (second = 0; isdigit(*dec); dec++)
-			second = (second * 10) + (*dec - '0');
+	else {
+		// MUST now supply the second value
+		second = -1;
+		
+		if ( isdigit(*dec) )
+			for (second = 0; isdigit(*dec); dec++)
+				second = (second * 10) + (*dec - '0');
+
+		// test validity and report
+		if ( second < 0 || second > 59 )
+			throw_(104);									// invalid second specification, interpreted by caller's context
 	}
 	// add by xlp
 	while (*dec && isspace(*dec)) dec++;
 
+	// hundredths specification is optional...
 	if (*dec == '.')
+	{
 		dec += 1;
-	else
-		throw_(57) /* invalid character */;
-	// add by xlp
-	while (*dec && isspace(*dec)) dec++;
 
-	// check for hundredths
-	if ((*dec == '*') || (*dec == '?'))
-		dec += 1;
-	else
-	if (isdigit(*dec)) {
-		hundredths = (*dec++ - '0') * 10;
-		if (isdigit(*dec))
-			hundredths += (*dec++ - '0');
-		while (isdigit(*dec))
-			dec++;
-		if (*dec)
-			throw_(58) /* invalid character */;
-	} else
-		throw_(59) /* invalid character */;
+		// so we're now scanning for a valid hundredth number
+		while (*dec && isspace(*dec)) dec++;
+
+		if ((*dec == '*') || (*dec == '?'))
+			dec += 1;
+		else {
+			// MUST now supply the hundredth value
+			hundredths = -1;
+		
+			if ( isdigit(*dec) )
+				for (hundredths = 0; isdigit(*dec); dec++)
+					hundredths = (hundredths * 10) + (*dec - '0');
+
+			// test validity and report
+			if ( hundredths < 0 || hundredths > 99 )
+				throw_(105);									// invalid hundredth specification, interpreted by caller's context
+		}
+	}
+
+	// clear white space and look for close bracket
+	while (*dec && isspace(*dec)) dec++;
+	if ( *dec++ != ']' )
+		throw_(111);									// missing close bracket code
 }
 
 
@@ -3773,18 +3920,41 @@ void BACnetDateTime::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetDateTime::Encode( char *enc ) const
 {
+	// DateTime is complex data structure... must use brackets to enclose data
+	*enc++ = '[';
+
 	bacnetDate.Encode(enc);
-	strcpy(enc + strlen(enc), " ");
+	strcat(enc, ", ");
 	bacnetTime.Encode(enc + strlen(enc));
+
+	strcat(enc, "]");
 }
 
 
 void BACnetDateTime::Decode( const char *dec )
 {
-	ASSERT(0); // this won't really work... do we need it?
+	// skip blank on front
+	while (*dec && isspace(*dec)) dec++;
+
+	// Whole thing  is complex data type so must enclose in brackets
+	if ( *dec++ != '[' )
+		throw_(110);			// missing start bracket for complex data structures
 
 	bacnetDate.Decode(dec);
+
+	// skip blank on front
+	while (*dec && isspace(*dec)) dec++;
+
+	// skip over comma and more space
+	if (*dec++ != ',')
+		throw_(120);			// missing comma
+
 	bacnetTime.Decode(dec);
+
+	// clear white space and look for close bracket
+	while (*dec && isspace(*dec)) dec++;
+	if ( *dec++ != ']' )
+		throw_(111);									// missing close bracket code
 }
 
 
@@ -3941,15 +4111,41 @@ void BACnetDateRange::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetDateRange::Encode( char *enc ) const
 {
+	// DateRange is complex data structure... must use brackets to enclose data
+	*enc++ = '[';
+
 	bacnetDateStart.Encode(enc);
-	strcpy(enc + strlen(enc), " ");
+	strcat(enc, ", ");
 	bacnetDateEnd.Encode(enc + strlen(enc));
+
+	strcat(enc, "]");
 }
 
 
 void BACnetDateRange::Decode( const char *dec )
 {
-	ASSERT(0); // this won't really work... do we need it?
+	// skip blank on front
+	while (*dec && isspace(*dec)) dec++;
+
+	// Whole thing  is complex data type so must enclose in brackets
+	if ( *dec++ != '[' )
+		throw_(110);			// missing start bracket for complex data structures
+
+	bacnetDateStart.Decode(dec);
+
+	// skip blank on front
+	while (*dec && isspace(*dec)) dec++;
+
+	// skip over comma and more space
+	if (*dec++ != ',')
+		throw_(120);			// missing comma
+
+	bacnetDateEnd.Decode(dec);
+
+	// clear white space and look for close bracket
+	while (*dec && isspace(*dec)) dec++;
+	if ( *dec++ != ']' )
+		throw_(111);									// missing close bracket code
 }
 
 
@@ -4232,7 +4428,7 @@ bool BACnetObjectIdentifier::Match( BACnetEncodeable &rbacnet, int iOperator, CS
 
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier))  ||  !::Match(iOperator, (unsigned long) ((BACnetObjectIdentifier &) rbacnet).objID, (unsigned long) objID) )
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier))  ||  !::Match(iOperator, (unsigned long) objID, (unsigned long) ((BACnetObjectIdentifier &) rbacnet).objID ) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
 	return true;
@@ -4858,7 +5054,7 @@ bool BACnetGenericArray::Match( BACnetEncodeable &rbacnet, int iOperator, CStrin
 	if ( GetSize() != ((BACnetGenericArray &) rbacnet).GetSize() )
 	{
 		if ( pstrError != NULL )
-			pstrError->Format(IDS_SCREX_COMPARRAYSIZE, ((BACnetGenericArray &) rbacnet).GetSize(), GetSize()  );
+			pstrError->Format(IDS_SCREX_COMPARRAYSIZE, GetSize(), ((BACnetGenericArray &) rbacnet).GetSize() );
 
 		return false;
 	}
@@ -5246,40 +5442,40 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 			case ud:		// unsigned dword -------------------------
 			case uw:		// unsigned word --------------------------
 
-				GetObject()->Match(BACnetUnsigned(dec), iOperator, &strThrowMessage );
+				BACnetUnsigned(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case ssint:		// short signed int -----------------------		// actually the same type
 			case sw:		// signed word ----------------------------
 
-				GetObject()->Match(BACnetInteger(dec), iOperator, &strThrowMessage );
+				BACnetInteger(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case flt:		// float ----------------------------------------
 
-				GetObject()->Match(BACnetReal(dec), iOperator, &strThrowMessage );
+				BACnetReal(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case pab:		// priority array bpv ---------------------		deal with index cases (-1=all, 0=element count, base 1=index
 			case paf:		// priority array flt ---------------------
 			case pau:		// priority array unsigned ----------------
 
-				GetObject()->Match(BACnetPriorityArray(dec), iOperator, &strThrowMessage );
+				BACnetPriorityArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case ebool:		// boolean enumeration ---------------------------------
 
-				GetObject()->Match(BACnetBoolean(dec), iOperator, &strThrowMessage );
+				BACnetBoolean(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case bits:		// octet of 1 or 0 flags
 
-				GetObject()->Match(BACnetBitString(dec), iOperator, &strThrowMessage );
+				BACnetBitString(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case ob_id:		// object identifier
 
-				GetObject()->Match(BACnetObjectIdentifier(dec), iOperator, &strThrowMessage );
+				BACnetObjectIdentifier(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case s10:		// char [10] --------------------------------------------
@@ -5287,79 +5483,79 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 			case s64:		// char [64]
 			case s132:		// char [132]
 
-				GetObject()->Match(BACnetCharacterString(dec), iOperator, &strThrowMessage );
+				BACnetCharacterString(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
        
 			case enull:		// null enumeration ------------------------------------
 
-				GetObject()->Match(BACnetNull(dec), iOperator, &strThrowMessage);
+				BACnetNull(dec).Match(*GetObject(), iOperator, &strThrowMessage);
 				break;
 
 			case et:		// generic enumation ----------------------------------
 
-				GetObject()->Match(BACnetEnumerated(dec), iOperator, &strThrowMessage);
+				BACnetEnumerated(dec).Match(*GetObject(), iOperator, &strThrowMessage);
 				break;
 
 			case ptDate:	// date ------------------------------------------------
 
-				GetObject()->Match(BACnetDate(dec), iOperator, &strThrowMessage);
+				BACnetDate(dec).Match(*GetObject(), iOperator, &strThrowMessage);
 				break;
 
 			case ptTime:	// time -------------------------------------------------
 
-				GetObject()->Match(BACnetTime(dec), iOperator, &strThrowMessage);
+				BACnetTime(dec).Match(*GetObject(), iOperator, &strThrowMessage);
 				break;
 
 			case dt:		// date/time stamp -------------------------------------
 
-				GetObject()->Match(BACnetDateTime(dec), iOperator, &strThrowMessage);
+				BACnetDateTime(dec).Match(*GetObject(), iOperator, &strThrowMessage);
 				break;
 
 			case dtrange:	// range of dates ---------------------------------------
 
-				GetObject()->Match(BACnetDateRange(dec), iOperator, &strThrowMessage);
+				BACnetDateRange(dec).Match(*GetObject(), iOperator, &strThrowMessage);
 				break;
 
 			case calist:	// array of calendar entries -----------------------------
 
-				GetObject()->Match(BACnetCalendarArray(dec), iOperator, &strThrowMessage );
+				BACnetCalendarArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case dabind:	// device address binding --------------------------------
 
-				GetObject()->Match(BACnetAddressBinding(dec), iOperator, &strThrowMessage );
+				BACnetAddressBinding(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case lobj:		// array of object identifiers ----------------------------
 
-				GetObject()->Match(BACnetObjectIDList(dec), iOperator, &strThrowMessage );
+				BACnetObjectIDList(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case uwarr:		// unsigned array ------------------------------------------
 			case stavals:	// list of unsigned ----------------------------------------
 
-				GetObject()->Match(BACnetUnsignedArray(dec), iOperator, &strThrowMessage );
+				BACnetUnsignedArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case statext:
 			case actext:	// character string array ----------------------------------
 
-				GetObject()->Match(BACnetTextArray(dec), iOperator, &strThrowMessage );
+				BACnetTextArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case prival:	// single priority value----------------------------------
 
-				GetObject()->Match(BACnetPriorityValue(dec), iOperator, &strThrowMessage );
+				BACnetPriorityValue(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case calent:	// single calendar entry ----------------------------------
 
-				GetObject()->Match(BACnetCalendarEntry(dec), iOperator, &strThrowMessage );
+				BACnetCalendarEntry(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case TSTMP:		// time stamp, could be multiple type---------------------
 
-				GetObject()->Match(BACnetTimeStamp(dec), iOperator, &strThrowMessage );
+				BACnetTimeStamp(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			default:
