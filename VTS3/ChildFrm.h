@@ -18,6 +18,7 @@
 class CSummaryView;
 class CDetailView;
 class CHexView;
+class CListSummaryView;
 
 
 class CChildFrame : public CMDIChildWnd
@@ -32,7 +33,7 @@ public:
 	CSplitterWnd	m_wndSplit2;        // embedded in the first
 	CFrameContext*	m_frameContext;		// frame context
 
-	CSummaryView*	m_pSummaryView;
+	CListSummaryView*	m_pSummaryView;
 	CDetailView*	m_pDetailView;
 	CHexView*		m_pHexView;
 	CDockingDetailViewBar* m_pwndDetailViewBar;

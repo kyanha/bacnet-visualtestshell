@@ -107,6 +107,13 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 	// set the PI mode to match the settings for this
 	SetPIMode( doSummary, doDetail );
 
+	if(doDetail)//only create space for timestamp, do not print any information here
+	{
+		gCurrentInfo->detailCount=1;
+		gCurrentInfo->detailLine[0]=0;
+		NetworkSniffer::pif_show_space();
+	}
+	
 	try {
 		// call one of the known interpreters
 		switch (proto) {
