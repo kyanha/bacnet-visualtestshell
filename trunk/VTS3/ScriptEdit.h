@@ -11,7 +11,7 @@
 // ScriptEdit.h : header file
 //
 
-class ScriptFrame;
+class ScriptFrame;  
 
 /////////////////////////////////////////////////////////////////////////////
 // ScriptEdit view
@@ -19,8 +19,8 @@ class ScriptFrame;
 
 class ScriptEdit : public CEditView
 {
-private:
-	ScriptFrame * m_pframe;
+private:			
+	ScriptFrame * m_pframe; 
 
 protected:
 	ScriptEdit();           // protected constructor used by dynamic creation
@@ -35,7 +35,7 @@ public:
 	int GetCurLineIndex();
 	void GotoLine(int nLineIndex);
 	void SetDefaultFont();
-	void SetFrame( ScriptFrame * pframe ) { m_pframe = pframe; }
+	void SetFrame( ScriptFrame * pframe ) { m_pframe = pframe; }  
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -59,10 +59,7 @@ protected:
 	int m_nTempDigit;
 	void ScrollCurLnVisible(UINT nChar);
 	BOOL IsCurLnVisible();
-	void UpdateRect(int nCurrentY);
-	void UpdateTwoLine();
-	void UpdateOneLine(int nCurrentY);
-	void UpdateWholeEdit();
+	void UpdateEditArea();
 	void DisplayLnNum();
 	//{{AFX_MSG(ScriptEdit)
 	afx_msg void OnSetfocus();
@@ -70,18 +67,20 @@ protected:
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	afx_msg void OnChange();
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg HBRUSH CtlColor(CDC* pDC, UINT nCtlColor);
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg void OnPaint();
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnHscroll();
 	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg void OnVscroll();
+	afx_msg void OnEditCut();
+	afx_msg void OnEditPaste();
+	afx_msg void OnEditUndo();
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
@@ -96,9 +95,6 @@ private:
 	int m_nFirstVisibleLn;
 	int m_nVisibleLnCount;
 	int m_nLineCount;
-	
-	bool m_bDelete;
-	bool m_bInput;
 };
 
 /////////////////////////////////////////////////////////////////////////////

@@ -90,7 +90,7 @@ END_MESSAGE_MAP()
 // ScriptFrame construction/destruction
 
 ScriptFrame::ScriptFrame()
-	: m_pDoc(0)
+	: m_pDoc(0), m_bSyntaxOK(FALSE)
 {
 }
 
@@ -325,7 +325,7 @@ afx_msg void ScriptFrame::OnUpdateScriptEnvironment(CCmdUI* pCmdUI)
 afx_msg void ScriptFrame::OnUpdateScriptRun(CCmdUI* pCmdUI)
 {
 	if (gExecutor.IsIdle() && m_pDoc->m_pContentTree) {
-		pCmdUI->Enable( true );
+		pCmdUI->Enable( m_bSyntaxOK );
 
 		if (m_pDoc->m_pSelectedTest) {
 			CString	str( "&Run " );
@@ -342,7 +342,7 @@ afx_msg void ScriptFrame::OnUpdateScriptRun(CCmdUI* pCmdUI)
 		pCmdUI->Enable( !gExecutor.IsRunning() );
 	} else {
 		pCmdUI->SetText( "Run\tF5" );
-		pCmdUI->Enable( false );
+		pCmdUI->Enable( m_bSyntaxOK );
 	}
 }
 
@@ -441,7 +441,7 @@ afx_msg void ScriptFrame::OnUpdateScriptReset(CCmdUI* pCmdUI)
 
 void ScriptFrame::OnScriptCheckSyntax() 
 {
-	m_pDoc->CheckSyntax();
+	m_bSyntaxOK = m_pDoc->CheckSyntax();
 }
 
 //

@@ -51,7 +51,7 @@ public:
 
 	virtual ~ScriptDocument();
 
-	void CheckSyntax( void );
+	BOOL CheckSyntax( void );
 	void ParsePacket( ScriptIfdefHandler &ifdefHandler, ScriptScanner& scan, ScriptToken& tok, ScriptPacketPtr spp, bool isSend );
 	void SequenceTest( ScriptTestPtr stp );
 //	ScriptPacketPtr SequenceLevel( ScriptBasePtr sbp, ScriptPacketPtr pPass, ScriptPacketPtr &pChain );
