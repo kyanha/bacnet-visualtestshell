@@ -172,7 +172,7 @@ void VTSPortEthernetDialog::ObjToCtrl()
 
 	if ( m_pstrConfigParms->GetLength() != 0 )
 	{
-		char  * dst = m_strAdapter.GetBuffer(64);
+        char  * dst = m_strAdapter.GetBuffer(m_pstrConfigParms->GetLength());  // MAG 16JUN04 
 		LPCSTR src = *m_pstrConfigParms;
 
 		// copy the name over
