@@ -91,7 +91,7 @@ typedef VTSPacket *VTSPacketPtr;
 #endif
 
 const int kVTSPortNameLength = 32;
-const int kVTSPortConfigLength = 64;
+const int kVTSPortConfigLength = 512;
 
 enum VTSPortType
 	{ nullPort
@@ -108,9 +108,9 @@ struct VTSPortDesc : JDBObj {
 	VTSPortType		portType;							// port type
 	int				portEnabled;						// true iff IO should be enabled
 	char			portName[kVTSPortNameLength];		// port name
-	char			portConfig[kVTSPortConfigLength];	// configuration string
 	int				portNet;							// network associated with device
 	objId			portDeviceObjID;					// ID of bound device
+	char			portConfig[kVTSPortConfigLength];	// configuration string
 	};
 
 typedef VTSPortDesc *VTSPortDescPtr;

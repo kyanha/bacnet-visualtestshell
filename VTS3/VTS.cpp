@@ -238,8 +238,19 @@ void VTSPreferences::Save( void )
 //	Every released version of VTS gets this number bumped up by one.  If the major 
 //	or minor database version changes, this can be reset back down to one.
 //
+//	Release History
+//
+//	3.1.2
+//
+//			New release versioning mechanism installed.
+//
+//	3.1.3
+//			Changed the configuration character string field in the port descriptor
+//			from 64 to 512 bytes to make room for BTR and BBMD configuration info.
+//			The old value of 64 bytes is way to short for a list of peer IP addresses.
+//
 
-const int kReleaseVersion = 2;
+const int kReleaseVersion = 3;
 
 class CAboutDlg : public CDialog
 {
