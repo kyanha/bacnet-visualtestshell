@@ -109,7 +109,7 @@ typedef BACnetEncodeable *BACnetEncodeablePtr;
 
 class BACnetAddr : public BACnetEncodeable
 {
-	private:
+	public://modified by HUMENG
 		BACnetAddress	m_bacnetAddress;
 
 		void AssignAddress(unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen );
@@ -634,7 +634,8 @@ class BACnetObjectIdentifier : public BACnetEncodeable {
 
 class BACnetAddressBinding : public BACnetEncodeable
 {
-	private:
+//	private:
+	public: //modified by HUMENG
 		BACnetObjectIdentifier		m_bacnetObjectID;
 		BACnetAddr					m_bacnetAddr;
 
@@ -698,9 +699,10 @@ class BACnetObjectContainer : public BACnetEncodeable
 	protected:
 		BACnetEncodeable * pbacnetTypedValue;
 
-		virtual void SetObject( BACnetEncodeable * pbacnetEncodeable );
 
 	public:
+		//changed to public by HUMENG
+		virtual void SetObject( BACnetEncodeable * pbacnetEncodeable );
 
 		BACnetObjectContainer();
 		BACnetObjectContainer( BACnetEncodeable * pbacnetEncodeable );
@@ -755,6 +757,8 @@ class BACnetCalendarEntry : public BACnetObjectContainer
 		// override decode for special construction from stream
 		void Decode( BACnetAPDUDecoder& dec );								// decode
 
+		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
@@ -772,6 +776,8 @@ class BACnetTimeStamp : public BACnetObjectContainer
 
 		// override decode for special construction from stream
 		void Decode( BACnetAPDUDecoder& dec );								// decode
+
+		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);

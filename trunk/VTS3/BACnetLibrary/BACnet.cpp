@@ -5074,19 +5074,42 @@ BACnetCalendarEntry::BACnetCalendarEntry( BACnetEncodeable * pbacnetEncodeable )
 {
 }
 
+void BACnetCalendarEntry::Encode( BACnetAPDUEncoder& enc, int context)
+{
+	if(pbacnetTypedValue == NULL)
+		return;
+	if(context == 1)	//daterange
+	{
+		BACnetOpeningTag().Encode(enc,1);
+		pbacnetTypedValue->Encode(enc);
+		BACnetClosingTag().Encode(enc,1);
+	}
+	else
+		pbacnetTypedValue->Encode(enc, context);
+
+}
+
 
 void BACnetCalendarEntry::Decode( BACnetAPDUDecoder& dec )
 {
 	BACnetAPDUTag		tagTestType;
 
-	tagTestType.Decode(dec);
+	//Modified by HUMENG
+	dec.ExamineTag(tagTestType);
 
 	// Tag has 0, 1, 2 for date, range, weeknday
 
+	if (tagTestType.tagClass == openingTagClass)
+	{
+		BACnetOpeningTag().Decode(dec);
+		SetObject( new BACnetDateRange(dec) ); 
+		BACnetClosingTag().Decode(dec);
+	}
+	else
     switch (tagTestType.tagNumber)
 	{
 		case 0:					SetObject( new BACnetDate(dec) );	break;
-		case 1:					SetObject( new BACnetDateRange(dec) ); break;
+		//case 1:					SetObject( new BACnetDateRange(dec) ); break;
 		case 2:					SetObject( new BACnetWeekNDay(dec) ); break;
 		default:				TRACE0("INVALID type in encoded stream for CalendarEntry");
 								ASSERT(0);
@@ -5142,20 +5165,42 @@ BACnetTimeStamp::BACnetTimeStamp( BACnetEncodeable * pbacnetEncodeable )
 {
 }
 
+void BACnetTimeStamp::Encode( BACnetAPDUEncoder& enc, int context)
+{
+	if(pbacnetTypedValue == NULL)
+		return;
+	if(context == 2)	//datetime
+	{
+		BACnetOpeningTag().Encode(enc,2);
+		pbacnetTypedValue->Encode(enc);
+		BACnetClosingTag().Encode(enc,2);
+	}
+	else
+		pbacnetTypedValue->Encode(enc, context);
+
+}
 
 void BACnetTimeStamp::Decode( BACnetAPDUDecoder& dec )
 {
 	BACnetAPDUTag		tagTestType;
 
-	tagTestType.Decode(dec);
+	//Modified by HUMENG
+	dec.ExamineTag(tagTestType);
 
-	// Tag has 0, 1, 2 for date, range, weeknday
+	// Tag has 0, 1, 2 for time, unsigned, datetime
 
+	if (tagTestType.tagClass == openingTagClass)
+	{
+		BACnetOpeningTag().Decode(dec);
+		SetObject( new BACnetDateTime(dec) ); 
+		BACnetClosingTag().Decode(dec);
+	}
+	else
     switch (tagTestType.tagNumber)
 	{
 		case 0:					SetObject( new BACnetTime(dec) );	break;
 		case 1:					SetObject( new BACnetUnsigned(dec) ); break;
-		case 2:					SetObject( new BACnetDateTime(dec) ); break;
+//		case 2:					SetObject( new BACnetDateTime(dec) ); break;
 		default:				TRACE0("INVALID type in encoded stream for TimeStamp");
 								ASSERT(0);
 	}
