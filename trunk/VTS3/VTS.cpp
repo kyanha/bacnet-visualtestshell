@@ -498,6 +498,12 @@ void VTSPreferences::Save( void )
 //			by reading one byte passed the encoded PDU for the bitstring.  The comparison failed 
 //			because the tag was being interpreted as part of the incoming bitstring.
 //
+//			508646:  rp to UTC_Offset fails in a script
+//
+//			Comparing the returned UTC_Offset value in a script to EPICS failed because the data type
+//			used in VTS's internal structures for UTC_Offset was a float instead of int.  This has been
+//			corrected by changing it's internal type to 'ssint' and processing accordingly.
+//
 
 const int kReleaseVersion = 9;
 
