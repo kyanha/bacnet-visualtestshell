@@ -38,6 +38,10 @@
 //					10)	Modified by Yajun Zhou, 2002-8-5
 //						Modified the function, DisplayLnNum(), so that it 
 //						could display numbers larger than 9999 correctly.
+//					11)	Modified by Yajun Zhou, 2002-9-1
+//						Fixed a bug that the LineNumCtrl's background is 
+//						white and could not work when horizontally scrolling
+//						under windows98.
 //******************************************************************
 // ScriptEdit.cpp : implementation file
 //
@@ -54,8 +58,8 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 #define MARGIN_3			25
-#define MARGIN_4			30
 #define CHAR_HEIGHT			16
+#define LIMITTEXT			0x000FFFFF
 /////////////////////////////////////////////////////////////////////////////
 // ScriptEdit
 
@@ -148,6 +152,8 @@ int ScriptEdit::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_LineNumCtrl.SetDefaultFont();
 	m_LineNumCtrl.SetReadOnly(true);
 	m_LineNumCtrl.EnableWindow(false);
+
+	m_pEdit->SetLimitText(LIMITTEXT);
 
 	return 0;
 }
@@ -458,6 +464,7 @@ void ScriptEdit::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	CEditView::OnHScroll(nSBCode, nPos, pScrollBar);
 
 	UpdateWholeEdit();
+	DisplayLnNum();
 }
 
 void ScriptEdit::OnHscroll() 
@@ -549,7 +556,7 @@ void ScriptEdit::DisplayLnNum()
 	if(nDigit > 3 && nDigit != m_nTempDigit)
 	{
 		m_nTempDigit = nDigit;
-		m_nMargin = MARGIN_3 + (nDigit - 3) * 6;
+		m_nMargin = MARGIN_3 + (nDigit - 3) * 7;
 		m_pEdit->SetMargins(m_nMargin+1, 0);
 		if (::IsWindow(m_LineNumCtrl.m_hWnd))
 			m_LineNumCtrl.MoveWindow(1, 1, m_nMargin, m_nClientY, TRUE);
