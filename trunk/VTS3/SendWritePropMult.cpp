@@ -482,6 +482,13 @@ void WritePropList::AddButtonClick( void )
 	// create a new item, add to the end of the list
 	wplCurElem = new WritePropElem( wplPagePtr );
 	wplCurElemIndx = listLen;
+
+	// madanner, 8/26/02.  Sourceforge bug #472392
+	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
+	// if list is altered.
+
+	wplCurElem->wpePropCombo.enumValue = 85;
 	AddTail( wplCurElem );
 
 	// bind the element to the controls
@@ -489,7 +496,10 @@ void WritePropList::AddButtonClick( void )
 
 	// update the encoding
 	wplAddInProgress = false;
-	wplPagePtr->UpdateEncoded();
+
+	// madanner, 8/26/02.  Sourceforge bug #472392
+	OnSelchangePropCombo();				// Insert new list text for Present_Value
+//	wplPagePtr->UpdateEncoded();
 }
 
 //

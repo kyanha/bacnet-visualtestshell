@@ -522,6 +522,14 @@ void ReadPropACKList::AddButtonClick( void )
 	// create a new item, add to the end of the list
 	rpalCurElem = new ReadPropACKElem( rpalPagePtr );
 	rpalCurElemIndx = listLen;
+
+	// madanner, 8/26/02.  Sourceforge bug #472392
+	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
+	// if list is altered.
+
+	rpalCurElem->rpaePropCombo.enumValue = 85;
+
 	AddTail( rpalCurElem );
 
 	// bind the element to the controls
@@ -529,7 +537,10 @@ void ReadPropACKList::AddButtonClick( void )
 
 	// update the encoding
 	rpalAddInProgress = false;
-	rpalPagePtr->UpdateEncoded();
+
+	// madanner, 8/26/02.  Sourceforge bug #472392
+	OnSelchangePropCombo();				// Insert new list text for Present_Value
+//	rpalPagePtr->UpdateEncoded();		Commented because prior call to selchange updates.
 }
 
 //
