@@ -1263,6 +1263,11 @@ bool ScriptExecutor::SendPacket( void )
 				if (i >= execDB->m_Names.Length())
 					throw ExecError( "Destination address name not found", nlDA->exprLine );
 			} else
+			// it might be an IP address
+			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
+				BACnetIPAddr nlIPAddr( t.tokenValue );
+				nlDestAddr = nlIPAddr;
+			} else
 			// it might be an explicit octet string
 			if (t.IsEncodeable( nlDest )) {
 				nlDestAddr.LocalStation( nlDest.strBuff, nlDest.strLen );
@@ -1408,8 +1413,8 @@ bool ScriptExecutor::SendPacket( void )
 				throw ExecError( "Destination network required (65535 = global broadcast)", pDADR->exprLine );
 			if ((nlDNET.intValue < 0) || (nlDNET.intValue > 65535))
 				throw ExecError( "Destination network out of range 0..65535", pDNET->exprLine );
-			if ((nlDNET.intValue != 65535) && ((!pDADR) || (nlDADR.strLen == 0)))
-				throw ExecError( "DADR required when DNET is not global broadcast", pDNET->exprLine );
+//			if ((nlDNET.intValue != 65535) && ((!pDADR) || (nlDADR.strLen == 0)))
+//				throw ExecError( "DADR required when DNET is not global broadcast", pDNET->exprLine );
 			if (!pHopCount) {
 				Msg( 3, execPacket->baseLineStart, "Hopcount defaulting to 255" );
 				nlHopCount.intValue = 255;
