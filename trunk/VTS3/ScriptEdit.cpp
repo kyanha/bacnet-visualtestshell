@@ -229,7 +229,7 @@ void ScriptEdit::OnEditGotoline()
 	if(dlg.DoModal()==IDOK)
 	{
 		nLine = dlg.m_nLineIndex;
-		SetLine(nLine);
+		GotoLine(nLine);
 	}	
 }
 
@@ -519,7 +519,7 @@ int ScriptEdit::GetCurLineIndex()
 //	In:			int nLineIndex: The specified line index
 //	Out:		void
 //******************************************************************
-void ScriptEdit::SetLine(int nLineIndex)
+void ScriptEdit::GotoLine(int nLineIndex)
 {
 	if(nLineIndex > m_nLineCount)
 			nLineIndex = m_nLineCount;
@@ -700,4 +700,41 @@ void ScriptEdit::SetDefaultFont()
     
 	// set the window's font, and force a repaint
     SetFont(pFont, TRUE); 
+}
+
+//******************************************************************
+//	Author:		Yajun Zhou
+//	Date:		2002-11-1
+//	Purpose:	Set the text of the specified line.
+//	In:			int nLineIndex: The specified line index
+//				LPTSTR lpszString: The text of new line
+//	Out:		void
+//******************************************************************
+void ScriptEdit::SetLine(int nLineIndex, LPTSTR lpszString)
+{
+	int nChar;
+
+	ASSERT(nLineIndex <= m_pEdit->GetLineCount() && nLineIndex >= 0);
+
+	if(nLineIndex < m_pEdit->GetLineCount())
+	{
+		nChar = m_pEdit->LineIndex(nLineIndex);
+		m_pEdit->SetSel(nChar, nChar);
+		m_pEdit->ReplaceSel(lpszString);
+	}
+	else if(nLineIndex == m_pEdit->GetLineCount())
+	{
+		CString strBuffer;
+		m_pEdit->GetLine(nLineIndex-1, strBuffer.GetBuffer(0));
+		nChar = m_pEdit->LineIndex(nLineIndex-1) + strBuffer.GetLength();
+		
+		CString strLineFeed = "\r\n";
+		m_pEdit->SetSel(nChar, nChar);
+		m_pEdit->ReplaceSel(strLineFeed.GetBuffer(3));
+
+		nChar = m_pEdit->LineIndex(nLineIndex);
+		m_pEdit->SetSel(nChar, nChar);
+		m_pEdit->ReplaceSel(lpszString);
+	}
+		
 }

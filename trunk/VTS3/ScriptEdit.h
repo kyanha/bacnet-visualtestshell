@@ -25,8 +25,9 @@ public:
 	
 // Operations
 public:
+	void SetLine(int nLineIndex,LPTSTR lpszString);
 	int GetCurLineIndex();
-	void SetLine(int nLineIndex);
+	void GotoLine(int nLineIndex);
 	void SetDefaultFont();
 
 // Overrides
