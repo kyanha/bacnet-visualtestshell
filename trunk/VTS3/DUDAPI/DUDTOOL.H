@@ -4,34 +4,15 @@
 #ifndef __DUDTOOL_H_INCLUDED
 #define __DUDTOOL_H_INCLUDED
 
+/*
 #define ptDate 200  // parsetype BACnetDate
 #define ptTime 201  // parsetype BACnetTime
 #define lobj   202  // array of objects, (parse type)
 #define vtse   203  // list of active  vt sessions (parse type)
 #define uwarr  204  // array of uw
+*/
 
 // property access functions 
-int  ai(char far* Buffer, PVMessage far* msg);
-int  ao(char far* Buffer, PVMessage far* msg);
-int  av(char far* Buffer, PVMessage far* msg);
-int  bi(char far* Buffer, PVMessage far* msg);
-int  bo(char far* Buffer, PVMessage far* msg);
-int  bv(char far* Buffer, PVMessage far* msg);
-int  cal(char far* Buffer, PVMessage far* msg);
-int  com(char far* Buffer, PVMessage far* msg);
-int  dev(char far* Buffer, PVMessage far* msg);
-int  eve(char far* Buffer, PVMessage far* msg);
-int  flo(char far* Buffer, PVMessage far* msg);
-int  gru(char far* Buffer, PVMessage far* msg);
-int  loo(char far* Buffer, PVMessage far* msg);
-int  msi(char far* Buffer, PVMessage far* msg);
-int  mso(char far* Buffer, PVMessage far* msg);
-int  nofy(char far* Buffer, PVMessage far* msg);
-int  prg(char far* Buffer, PVMessage far* msg);
-int  sced(char far* Buffer, PVMessage far* msg);
-int  avrg(char far* Buffer, PVMessage far* msg);
-int  msval(char far* Buffer, PVMessage far* msg);
-int  trnd(char far* Buffer, PVMessage far* msg);
 
 // encode simple properties:
 octet far* ecBOOL(octet far* p, octet tag, boolean bval);
