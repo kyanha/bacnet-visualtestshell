@@ -81,6 +81,8 @@ IDB_PACKETTREE          BITMAP  DISCARDABLE     "res\\bitmap1.bmp"
 IDB_PORTSTATUS          BITMAP  DISCARDABLE     "res\\packettr.bmp"
 IDB_PARMSTATUS          BITMAP  DISCARDABLE     "res\\bmp00001.bmp"
 IDB_CONTENTSTATUS       BITMAP  DISCARDABLE     "res\\contents.bmp"
+IDB_SCRIPTMAKE          BITMAP  DISCARDABLE     "res\\BACnetMake.bmp"
+IDB_SCRIPTCHECK         BITMAP  DISCARDABLE     "res\\BACnetCheck.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2425,6 +2427,32 @@ BEGIN
                     IDC_STATIC,17,83,173,38
 END
 
+IDD_SCRIPTMAKE DIALOGEX 0, 0, 204, 46
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION
+CAPTION "MAKE"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,49,27,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,105,27,50,14
+    LTEXT           "This is the default text... It's the minimum.",
+                    IDC_SCRIPTMAKETEXT1,49,7,132,12
+    CONTROL         IDB_SCRIPTMAKE,IDC_STATIC,"Static",SS_BITMAP | SS_REALSIZEIMAGE,7,7,
+                    63,34,WS_EX_TRANSPARENT
+END
+
+IDD_SCRIPTCHECK DIALOGEX 0, 0, 204, 46
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION
+CAPTION "CHECK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Pass",IDOK,49,27,50,14,WS_GROUP
+    PUSHBUTTON      "Fail",IDCANCEL,105,27,50,14
+    LTEXT           "This is the default text... It's the minimum.",
+                    IDC_SCRIPTMAKETEXT1,49,7,132,12
+    CONTROL         IDB_SCRIPTCHECK,IDC_STATIC,"Static",SS_BITMAP | SS_REALSIZEIMAGE,7,7,
+                    63,34,WS_EX_TRANSPARENT
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -3185,6 +3213,14 @@ BEGIN
         RIGHTMARGIN, 201
         TOPMARGIN, 7
         BOTTOMMARGIN, 162
+    END
+
+    IDD_SCRIPTMAKE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 196
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -21,6 +21,9 @@
 #include "WinPacket32.hpp"
 #include "WinBACnetTaskManager.hpp"
 
+#include "ScriptMsgMake.h"
+#include "ScriptMakeDlg.h"
+
 #include "file_ver.h"
 
 #ifdef _DEBUG
@@ -766,6 +769,30 @@ void VTSPreferences::Save( void )
 //
 //				See Sourceforge item 618172 for details regarding usage of the IF statement.
 //
+//				[44152] New CHECK statement
+//
+//				Added CHECK statement to script commands that will popup a modal dialog box and allow the user
+//				to PASS or FAIL the script test.  Script execution is halted while the dialog is up.  Syntax
+//				for the CHECK statement is as follows:
+//
+//				CHECK "Title" (
+//					"Text line"
+//					...
+//					"Text line"
+//					)
+//
+//				Usage details can be found in a usage document attached to the sourceforge item 44153 for MAKE.
+//
+//				[44153] New non-modal MAKE statement
+//
+//				Added MAKE statement to script commands.  It will pop up a dialog with a supplied message and
+//				allow the user to alter a condition that generates a receive packet.  When followed by an
+//				EXPECT statement, script execution continues with indefinately extended EXPECT timers.  Syntax
+//				is exactly like the CHECK statement with the exception of the keyword MAKE.  Usage details can
+//				be found in the document attached to the sourceforge item.
+//
+//				
+
 
 const int kReleaseVersion = 0;
 
@@ -917,15 +944,49 @@ BOOL VTSApp::PreTranslateMessage(MSG* pMsg)
 				break;
 
 			case WM_VTS_EXECMSG:
-				ScriptExecMsgPtr msg;
-				while ((msg = gExecutor.ReadMsg()) != 0) {
-					// pass along to document
-					msg->msgDoc->SetImageStatus( msg->msgBase, msg->msgStatus );
+				{
+				ScriptExecMsg * pexecmsg;
 
-					// all done with it
-					delete msg;
+				while ((pexecmsg = gExecutor.ReadMsg()) != NULL)
+				{
+					switch( pexecmsg->GetType() )
+					{
+						case ScriptExecMsg::msgStatus:
+
+							{
+							ScriptMsgStatus * pmsgstatus = (ScriptMsgStatus *) pexecmsg;
+							pmsgstatus->m_pdoc->SetImageStatus( pmsgstatus->m_pbase, pmsgstatus->m_nStatus );
+							}
+							break;
+
+						case ScriptExecMsg::msgMakeDlg:
+
+							{
+							ScriptMsgMake * pmsgmake = (ScriptMsgMake *) pexecmsg;
+
+							switch( pmsgmake->m_maketype )
+							{
+								case ScriptMsgMake::msgmakeCreate:
+
+									pmsgmake->m_pdlg->DoModeless();
+									break;
+
+								case ScriptMsgMake::msgmakeDestroy:
+
+									pmsgmake->m_pdlg->DestroyWindow();
+									delete pmsgmake->m_pdlg;
+							}
+							}
+							break;
+
+						default:
+							TRACE("UNKOWN Exec Msg type");
+							ASSERT(0);
+					}
+
+					delete pexecmsg;
 				}
-				break;
+				}
 		}
 
 		// we completely processed this message

@@ -8,7 +8,8 @@
 //
 
 ScriptTest::ScriptTest( const CString &number )
-	: ScriptCase( "" ), testFirstPacket(0), testNext(0)
+//	: ScriptCase( "" ), testFirstPacket(0), testNext(0)
+	: ScriptCase( "" ), testFirstCommand(0), testNext(0)
 {
 	baseType = scriptTest;
 	baseLabel = number;
