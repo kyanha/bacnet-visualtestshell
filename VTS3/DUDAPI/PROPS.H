@@ -60,7 +60,7 @@
 //Added by Zhu Zhen hua, 2003-9-4
 #define dsofweek            48			//BACnetDaysofWeek
 #define eventransbits		49			//BACnetEventTansitionBits
-#define recipt				50			//BACnetRecipient
+//#define recipt				50			//BACnetRecipient  //madanner 9/04 should be recip
 #define destination         51			//BACnetDestination
 #define sequenceof			52			//BACnetSequenceOf
 #define listof				53			//BACnetListOf
@@ -73,6 +73,8 @@
 #define uwarr  204  // array of uw
 
 #define lCOVSub 205		// List of BACnetCOVSubcription,   added Gingbo Gao, 2003-9-1
+#define TSTMParr 206	// array of BACnetTimeStamp  madanner 9/04
+#define dabindelem 207	// single BACnetDeviceAddressBinding madanner 9/04
 
 
 

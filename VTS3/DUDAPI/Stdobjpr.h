@@ -507,7 +507,7 @@ propdescriptor	AIprops[]={
 //madanner 6/03: Added for supporting event-time-stamps
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 //modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(ai,go.profile_name),  s132,	Last,	    	0,	 O     
 };
@@ -543,7 +543,7 @@ propdescriptor	AOprops[]={
 //madanner 6/03: Added for supporting event-time-stamps
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ao,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 //modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ao,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ao,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(ao,go.profile_name), s132,	Last,	  0,	 O      
 };
@@ -575,7 +575,7 @@ propdescriptor	AVprops[]={
 //Added for supporting event-time-stamps, by xuyiping 2002-8-29
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(av,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 //modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(av,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(av,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(av,go.profile_name), s132,	Last,     0,	 O  
 };
@@ -611,7 +611,7 @@ propdescriptor	BIprops[]={
 //madanner 6/03: Added for supporting event-time-stamps
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 //modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bi,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bi,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(bi,go.profile_name), s132,	Last,	  0,	 O     
 };
@@ -651,7 +651,7 @@ propdescriptor	BOprops[]={
 //madanner 6/03: Added for supporting event-time-stamps
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 //modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bo,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bo,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(bo,go.profile_name), s132,	Last,	  0,	 O  
 };
@@ -689,7 +689,7 @@ propdescriptor	BVprops[]={
 //Added for supporting event-time-stamps, by xuyiping 2002-8-29
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bv,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 //modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bv,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bv,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(bv,go.profile_name), s132,	Last,		0,	 O      
 };
@@ -817,7 +817,7 @@ propdescriptor	EEprops[]={
 //madanner 6/03: Added for supporting event-time-stamps
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMP, Last|2,   0, O|IsArray|NotWithGroup1
 //Modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMP, 2,   0, O|IsArray|NotWithGroup1,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMParr, 2,   0, O|IsArray|NotWithGroup1,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(ee,go.profile_name), s132,	Last,	  0,	 O  
 };
@@ -906,7 +906,7 @@ propdescriptor	LPprops[]={
 //madanner 6/03: Added for supporting event-time-stamps
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(loop,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 // modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(loop,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(loop,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(loop,go.profile_name), s132,	Last,		0,	 O  
 };
@@ -935,7 +935,7 @@ propdescriptor	MIprops[]={
 //madanner 6/03: Added for supporting event-time-stamps
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 // modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(mi,go.profile_name), s132,	Last,		0,	 O 
 };
@@ -966,7 +966,7 @@ propdescriptor	MOprops[]={
 //madanner 6/03: Added for supporting event-time-stamps
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 // modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mo,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mo,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(mo,go.profile_name), s132,	Last,		0,	 O
 };
@@ -978,7 +978,7 @@ propdescriptor	NCprops[]={
     "object-type",			OBJECT_TYPE,		oo(nc,go.object_type),	et,		0,eiObjectTypes,R,
     "description",			DESCRIPTION,		oo(nc,go.description),	s132,	0,	       0,	O,
     "notification-class",	NOTIFICATION_CLASS,	oo(nc,notification_class), uw,	0,	       0,	R,
-    "priority",				PRIORITY,			oo(nc,priority),		uw,		0,	       0,	R|IsArray,
+    "priority",				PRIORITY,			oo(nc,priority),		uwarr,	0,	       0,	R|IsArray,
     "ack-required",			ACK_REQUIRED,		oo(nc,ack_required),	bits,	0,	  eiEvTr,	R,
 //    "recipient-list",		RECIPIENT_LIST,		oo(nc,recipient_list),reciplist,Last,	   0,	R	
 // modified by Jingbo Gao, 2003-9-1
@@ -1088,7 +1088,7 @@ propdescriptor	MVprops[]={
 //madanner 6/03: Added 'Last' code for prop search
 //     "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Last|Intr,      0,       O|IsArray|WithService
 //modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Intr,    0,       O|IsArray|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMParr,     Intr,    0,       O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",		    PROFILE_NAME,       oo(msv,go.profile_name),		s132,	Last,	0,		O  
 };
@@ -1129,7 +1129,7 @@ propdescriptor	TRprops[]={
 //madanner 6/03: Added 'Last' code for prop search
 //     "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    Last,      0,       O|IsArray|WithService
 //modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    0,      0,       O|IsArray|WithService,
+	"event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMParr,    0,      0,       O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",				    PROFILE_NAME,				  oo(trend,go.profile_name),			   s132,	Last,			0,	 O
 };

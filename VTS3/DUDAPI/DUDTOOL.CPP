@@ -55,9 +55,9 @@ BACnetVTSession far* gTestVtse[nTESTLIST];
 
 BACnetGenericArray * CreateAddressBindingList( PICS::BACnetAddressBinding * pAddrBinding );
 BACnetObjectIDList * CreateObjectList( PICS::BACnetObjectIdentifier * pobjidlist );
-BACnetGenericArray * CreateTimeStampArray( PICS::BACnetTimeStamp  * ptimestamp, int nMax );
-BACnetCalendarArray * CreateCalendarList( PICS::BACnetCalendarEntry * pcalentry );
-BACnetGenericArray * CreateVTClassesSupported( PICS::BACnetVTClassList * pVTClassList );
+BACnetTimeStampArray * CreateTimeStampArray( PICS::BACnetTimeStamp  * ptimestamp, int nMax );
+BACnetListOfCalendarEntry * CreateCalendarList( PICS::BACnetCalendarEntry * pcalentry );
+BACnetListOfVTClass * CreateVTClassesSupported( PICS::BACnetVTClassList * pVTClassList );
 
 //void CreatePropertyFromEPICS( generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue );
 
@@ -3078,7 +3078,7 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 			break;
 		case VT_CLASSES_SUPPORTED:
          // msdanner 9/2004 - added support for this
-         pbacnetAnyValue->SetObject(et, CreateVTClassesSupported(pObj->vt_classes_supported));
+         pbacnetAnyValue->SetObject(vtcl, CreateVTClassesSupported(pObj->vt_classes_supported));
          break;
 			break;
 		case ACTIVE_VT_SESSIONS:
@@ -3207,10 +3207,9 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 			//msg->pt= evparm;
 			break;
 		case OBJECT_PROPERTY_REFERENCE:
-			TRACE0("OBJECT_PROPERTY_REFERENCE (lopref) type creation not implemented yet");
-			ASSERT(0);
-			//msg->pv= &Obj->obj_prop_ref;
-			//msg->pt= lopref;
+			pbacnetAnyValue->SetObject(propref, new ::BACnetObjectPropertyReference(pObj->obj_prop_ref.object_id,
+																					pObj->obj_prop_ref.property_id, 
+																					pObj->obj_prop_ref.pa_index));
 			break;
 		case EVENT_STATE:
          petable = (etable *)PICS::GetEnumTable(eiEvState);  
@@ -3228,10 +3227,13 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
 			break;
 		case RECIPIENT:     
-			TRACE0("RECIPIENT (recip) type creation not implemented yet");
-			ASSERT(0);
-			//msg->pv= &Obj->recipient;
-			//msg->pt= recip;
+			if ( pObj->recipient.choice == 0 )
+				pbacnetAnyValue->SetObject(recip, new ::BACnetRecipient(
+										new ::BACnetAddr( (int) pObj->recipient.u.address.network_number, (octet *) pObj->recipient.u.address.mac_address,
+										(int) pObj->recipient.u.address.address_size)));
+			else
+				pbacnetAnyValue->SetObject(recip, new ::BACnetRecipient(
+										new ::BACnetObjectIdentifier((unsigned int) pObj->recipient.u.device)));
 			break;
 		case PROCESS_IDENTIFIER:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->process_id));
@@ -3399,16 +3401,14 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
                                                                petable->nes) );
 			break;
 		case MANIPULATED_VARIABLE_REFERENCE:
-			TRACE0("MANIPULATED_VARIABLE_REFERENCE (lopref) type creation not implemented yet");
-			ASSERT(0);
-			//msg->pv= &Obj->man_var_ref;
-			//msg->pt= lopref;
+			pbacnetAnyValue->SetObject(propref, new ::BACnetObjectPropertyReference(pObj->man_var_ref.object_id,
+																					pObj->man_var_ref.property_id, 
+																					pObj->man_var_ref.pa_index));
 		    break;
 		case CONTROLLED_VARIABLE_REFERENCE:
-			TRACE0("CONTROLLED_VARIABLE_REFERENCE (lopref) type creation not implemented yet");
-			ASSERT(0);
-			//msg->pv= &Obj->cont_var_ref;
-			//msg->pt= lopref;
+			pbacnetAnyValue->SetObject(propref, new ::BACnetObjectPropertyReference(pObj->cont_var_ref.object_id,
+																					pObj->cont_var_ref.property_id, 
+																					pObj->cont_var_ref.pa_index));
 			break;
 		case CONTROLLED_VARIABLE_VALUE:  
 			pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->cont_var_value));
@@ -3958,10 +3958,7 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
 			//msg->pt= xsched;                    
 			break;
 		case LIST_OF_OBJECT_PROPERTY_REFERENCES:
-			TRACE0("LIST_OF_OBJECT_PROPERTY_REFERENCES (reciplist) type creation not implemented yet");
-			ASSERT(0);
-			//msg->pv= Obj->list_obj_prop_ref;
-			//msg->pt= lopref;
+			pbacnetAnyValue->SetObject(lopref, new ::BACnetListOfObjectPropertyReference(pObj->list_obj_prop_ref));
 			break;
 		case PRIORITY_FOR_WRITING:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->priority_for_writing));
@@ -4027,10 +4024,9 @@ void AVG_CreateProperty( avg_obj_type far * pObj, BACnetPropertyIdentifier prope
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->valid_samples));
 			break;
 		case OBJECT_PROPERTY_REFERENCE:
-			TRACE0("OBJECT_PROPERTY_REFERENCE (propref) type creation not implemented yet");
-			ASSERT(0);
-			//msg->pv = &Obj->obj_prop_ref;       
-			//msg->pt = propref;       
+			pbacnetAnyValue->SetObject(propref, new ::BACnetObjectPropertyReference(pObj->obj_prop_ref.Objid.object_id,
+																					pObj->obj_prop_ref.wPropertyid, 
+																					pObj->obj_prop_ref.ulIndex));
 			break;         	       
 		case WINDOW_INTERVAL:		   
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->window_interval));
@@ -4085,10 +4081,9 @@ void TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
 													pObj->stop_time.time.minute, pObj->stop_time.time.second));
 			break;         	       
 		case LOG_DEVICE_OBJECT_PROPERTY:  
-			TRACE0("LOG_DEVICE_OBJECT_PROPERTY (propref) type creation not implemented yet");
-			ASSERT(0);
-			//msg->pv = &Obj->log_device_object_property;       
-			//msg->pt = propref;      
+			pbacnetAnyValue->SetObject(propref, new ::BACnetObjectPropertyReference(pObj->log_device_object_property.Objid.object_id,
+																					pObj->log_device_object_property.wPropertyid, 
+																					pObj->log_device_object_property.ulIndex));
 			break;         	       
 		case LOG_INTERVAL:  			     
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->log_interval));
@@ -4178,9 +4173,9 @@ void TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
 // Create separate function to hide the nasty internal EPICS structures until we can 
 // replace them with BACnet objects
 
-BACnetCalendarArray * CreateCalendarList( PICS::BACnetCalendarEntry * pcalentry )
+BACnetListOfCalendarEntry * CreateCalendarList( PICS::BACnetCalendarEntry * pcalentry )
 {
-	BACnetCalendarArray * pbacnetCalList = new BACnetCalendarArray();
+	BACnetListOfCalendarEntry * pbacnetCalList = new BACnetListOfCalendarEntry();
 
 	for ( ; pcalentry != NULL; pcalentry = pcalentry->next )
 	{
@@ -4204,9 +4199,9 @@ BACnetCalendarArray * CreateCalendarList( PICS::BACnetCalendarEntry * pcalentry 
 
 
 
-BACnetGenericArray * CreateTimeStampArray( PICS::BACnetTimeStamp  * ptimestamp, int nMax )
+BACnetTimeStampArray * CreateTimeStampArray( PICS::BACnetTimeStamp  * ptimestamp, int nMax )
 {
-	BACnetGenericArray * pbacnetArray = new BACnetGenericArray(nMax);
+	BACnetTimeStampArray * pbacnetArray = new BACnetTimeStampArray(nMax);
 
 	for ( int i = 0; i < nMax; i++ )
 		switch(ptimestamp[i].choice)
@@ -4238,7 +4233,7 @@ BACnetObjectIDList * CreateObjectList( PICS::BACnetObjectIdentifier * pobjidlist
 
 BACnetGenericArray * CreateAddressBindingList( PICS::BACnetAddressBinding * pAddrBinding )
 {
-	BACnetGenericArray * pbacnetArray = new BACnetGenericArray();
+	BACnetGenericArray * pbacnetArray = new BACnetGenericArray(dabindelem);
 
 	for ( ; pAddrBinding != NULL; pAddrBinding = pAddrBinding->next )
 		pbacnetArray->Add(new ::BACnetAddressBinding(pAddrBinding->device_object_id, pAddrBinding->device_address.network_number, 
@@ -4248,9 +4243,10 @@ BACnetGenericArray * CreateAddressBindingList( PICS::BACnetAddressBinding * pAdd
 }
 
 
-BACnetGenericArray * CreateVTClassesSupported( PICS::BACnetVTClassList * pVTClassList )
+
+BACnetListOfVTClass * CreateVTClassesSupported( PICS::BACnetVTClassList * pVTClassList )
 {
-	BACnetGenericArray * pbacnetArray = new BACnetGenericArray();
+	BACnetListOfVTClass * pbacnetArray = new BACnetListOfVTClass();
 
    // get pointer to the table describing the VTClasses enumeration
    etable *petable = (etable *)PICS::GetEnumTable(eiVTCls);
