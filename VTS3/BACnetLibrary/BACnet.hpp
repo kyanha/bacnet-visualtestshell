@@ -166,6 +166,8 @@ class BACnetBoolean : public BACnetEncodeable {
 		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 
+		BACnetBoolean & operator =( const BACnetBoolean & arg );
+
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
 		virtual const char * ToString() const;
@@ -175,10 +177,14 @@ class BACnetBoolean : public BACnetEncodeable {
 	};
 
 class BACnetEnumerated : public BACnetEncodeable {
+	private:
+		const char **	m_papNameList;
+		int				m_nListSize;
+
 	public:
 		int		enumValue;
 		
-		BACnetEnumerated( int evalu = 0 );
+		BACnetEnumerated( int evalu = 0, const char ** papNameList = NULL, int nListSize = 0 );
 		BACnetEnumerated( BACnetAPDUDecoder& dec );
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
@@ -188,6 +194,8 @@ class BACnetEnumerated : public BACnetEncodeable {
 
 		void Encode( char *enc, const char **table, int tsize ) const;
 		void Decode( const char *dec, const char **table, int tsize );
+
+		BACnetEnumerated & operator =( const BACnetEnumerated & arg );
 
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
@@ -324,6 +332,7 @@ class BACnetOctetString : public BACnetEncodeable {
 		BACnetOctetString( void );
 		BACnetOctetString( int len );
 		BACnetOctetString( BACnetOctet *bytes, int len );
+		BACnetOctetString( const BACnetOctet *bytes, int len );
 		BACnetOctetString( const BACnetOctetString &cpy );
 		BACnetOctetString( BACnetAPDUDecoder& dec );
 		virtual ~BACnetOctetString( void );
@@ -453,6 +462,7 @@ class BACnetDate : public BACnetEncodeable {
 		virtual BACnetEncodeable * clone(void);
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 		bool Match( BACnetDate & rdate, int iOperator );
+		bool IsValid(void);
 
 		DECLARE_DYNAMIC(BACnetDate)
 	};
@@ -485,6 +495,7 @@ class BACnetTime : public BACnetEncodeable {
 		virtual BACnetEncodeable * clone(void);
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 		bool Match( BACnetTime & rtime, int iOperator );
+		bool IsValid(void);
 
 		DECLARE_DYNAMIC(BACnetTime)
 	};
