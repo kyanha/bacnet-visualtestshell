@@ -299,7 +299,7 @@ void CSendWritePropMultError::OnChangeObjectID()
 
 void CSendWritePropMultError::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_ObjectID.objID;

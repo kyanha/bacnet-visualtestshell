@@ -182,7 +182,7 @@ void CSendSubscribeCOV::OnChangeObjectID()
 
 void CSendSubscribeCOV::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// added parent for proper dialog chain
 	;
 
 	dlg.objID = m_ObjectID.objID;

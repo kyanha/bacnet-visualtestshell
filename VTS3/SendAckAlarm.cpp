@@ -33,6 +33,8 @@ CSendAckAlarm::CSendAckAlarm( void )
 	, m_ObjectID( this, IDC_OBJECTID )
 	, m_EventStateCombo( this, IDC_EVENTSTATECOMBO, NetworkSniffer::BACnetEventState, 5, true )
 	, m_AckSource( this, IDC_ACKSOURCE )
+	, m_TimeStamp(this)			// added parent wnd for modeless send dlg
+	, m_TimeOfAck(this)			// added parent wnd for modeless send dlg
 {
 	//{{AFX_DATA_INIT(CSendAckAlarm)
 	//}}AFX_DATA_INIT
@@ -202,7 +204,7 @@ afx_msg void CSendAckAlarm::OnChangeObjectID()
 
 void CSendAckAlarm::OnObjIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)	// added parent wnd for modeless send dlg
 	;
 
 	dlg.objID = m_ObjectID.objID;

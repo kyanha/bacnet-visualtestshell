@@ -34,6 +34,7 @@ CSendWriteProp::CSendWriteProp( void )
 	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 	, m_Priority( this, IDC_PRIORITYX )
+	, m_Value(this)			// for proper parent control
 {
 	//{{AFX_DATA_INIT(CSendWriteProp)
 	//}}AFX_DATA_INIT
@@ -213,7 +214,7 @@ void CSendWriteProp::OnChangeObjectID()
 
 void CSendWriteProp::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_ObjectID.objID;

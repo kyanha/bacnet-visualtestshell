@@ -40,7 +40,8 @@ CSendUnconfEventNotification::CSendUnconfEventNotification( void )
 	, m_AckRequired( this, IDC_ACKREQUIRED, true )
 	, m_FromStateCombo( this, IDC_FROMSTATECOMBO, NetworkSniffer::BACnetEventState, 5, true )
 	, m_ToStateCombo( this, IDC_TOSTATECOMBO, NetworkSniffer::BACnetEventState, 5, true )
-	, m_EventValues( "Notification Parameters" )
+	, m_EventValues( "Notification Parameters", this )
+	, m_TimeStamp(this)			// added parent for proper send dlg function
 {
 	//{{AFX_DATA_INIT(CSendUnconfEventNotification)
 	//}}AFX_DATA_INIT
@@ -269,7 +270,7 @@ afx_msg void CSendUnconfEventNotification::OnChangeDeviceID()
 
 void CSendUnconfEventNotification::OnDeviceIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// added parent for proper send dlg function
 	;
 
 	dlg.objID = m_DeviceID.objID;
@@ -292,7 +293,7 @@ afx_msg void CSendUnconfEventNotification::OnChangeObjectID()
 
 void CSendUnconfEventNotification::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// added parent for proper send dlg function
 	;
 
 	dlg.objID = m_ObjectID.objID;

@@ -444,7 +444,7 @@ void EnrollmentSummaryList::OnChangeObjectID( void )
 void EnrollmentSummaryList::OnObjectIDButton() 
 {
 	if (eslCurElem) {
-		VTSObjectIdentifierDialog	dlg
+		VTSObjectIdentifierDialog	dlg(eslPagePtr)			// for proper parent control
 		;
 
 		dlg.objID = eslCurElem->eseObjectID.objID;

@@ -32,6 +32,7 @@ CSendReadPropACK::CSendReadPropACK( void )
 	, m_ObjectID( this, IDC_OBJECTID )
 	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
+	, m_Value(this)			// for proper parent control
 {
 	//{{AFX_DATA_INIT(CSendReadPropACK)
 	//}}AFX_DATA_INIT
@@ -180,7 +181,7 @@ void CSendReadPropACK::OnChangeObjectID()
 
 void CSendReadPropACK::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_ObjectID.objID;

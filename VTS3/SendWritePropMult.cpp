@@ -379,6 +379,7 @@ WritePropElem::WritePropElem( CSendPagePtr wp )
 	: wpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, wpeArrayIndex( wp, IDC_ARRAYINDEX )
 	, wpePriority( wp, IDC_PRIORITYX )
+	, wpeValue(wp)			// for proper parent control
 {
 	// controls start out disabled
 	wpePropCombo.ctrlEnabled = false;
@@ -1083,7 +1084,7 @@ void WritePropListList::OnObjectIDButton( void )
 	if (!wpllCurElem)
 		return;
 
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(wpllPagePtr)			// for proper parent control
 	;
 
 	dlg.objID = wpllCurElem->wplObjID.objID;

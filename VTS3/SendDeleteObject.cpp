@@ -143,7 +143,7 @@ void CSendDeleteObject::OnChangeObjectID()
 
 void CSendDeleteObject::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_ObjectID.objID;

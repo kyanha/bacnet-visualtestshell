@@ -200,7 +200,7 @@ void CSendConfTextMsg::OnChangeSourceDevice()
 
 void CSendConfTextMsg::OnSourceDeviceButton() 
 {
-	VTSObjectIdentifierDialog	dlg
+	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
 	;
 
 	dlg.objID = m_SourceDevice.objID;
