@@ -3572,11 +3572,11 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
 		case PRESENT_VALUE:
 			switch(pObj->value_type)
 			{
-				case 0:		pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV(pObj->pv.bproperty_value));
+				case et:		pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV(pObj->pv.bproperty_value));
 							break;
-				case 1:		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->pv.uproperty_value));
+				case uw:		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->pv.uproperty_value));
 							break;
-				case 2:		pbacnetAnyValue->SetObject(et, new BACnetReal(pObj->pv.fproperty_value));
+				case flt:		pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->pv.fproperty_value));
 							break;
 				default:	TRACE0("INVALID TYPE in SC_CreateProperty for PV");  ASSERT(0);
 			}
