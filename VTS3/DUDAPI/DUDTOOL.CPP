@@ -2989,8 +2989,7 @@ void CO_CreateProperty( command_obj_type far * pObj, BACnetPropertyIdentifier pr
 			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->all_writes_successful));
 			break;
 		case ACTION:
-			TRACE0("ACTION (act) type creation not implemented yet");
-			ASSERT(0);
+			pbacnetAnyValue->SetObject(act, new ::BACnetActionCommand());
 	        //msg->pv= Obj->action;
 			//msg->pt= act;  
 			//msg->Num= Obj->num_actions;
@@ -3085,8 +3084,7 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
          break;
 			break;
 		case ACTIVE_VT_SESSIONS:
-			TRACE0("ACTIVE_VT_SESSIONS (vtse) type creation not implemented yet");
-			ASSERT(0);
+			pbacnetAnyValue->SetObject(vtse, new ::BACnetVTSession());
 			//msg->pv= Obj->active_vt_sessions;
 			//msg->pt= vtse;
 			break;
@@ -3112,8 +3110,7 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->number_apdu_retries));
 			break;
 		case LIST_OF_SESSION_KEYS:
-			TRACE0("LIST_OF_SESSION_KEYS (skeys) type creation not implemented yet");
-			ASSERT(0);
+			pbacnetAnyValue->SetObject(skeys, new ::BACnetSessionKey());
 			//msg->pv= Obj->list_session_keys;
 			//msg->pt= skeys;
 			break;
@@ -3199,8 +3196,7 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
                                                                petable->nes) );
 			break;
 		case EVENT_PARAMETERS:
-			TRACE0("EVENT_PARAMETERS (evparm) type creation not implemented yet");
-			ASSERT(0);
+			pbacnetAnyValue->SetObject(evparm, new ::BACnetEventParameter());
 			//msg->pv= &Obj->parameter_list;
 			//msg->pt= evparm;
 			break;
@@ -3945,14 +3941,12 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
 																	pObj->effective_period.end_date.year, pObj->effective_period.end_date.month, pObj->effective_period.end_date.day_of_month));
 			break;
 		case WEEKLY_SCHEDULE:
-			TRACE0("WEEKLY_SCHEDULE (wsched) type creation not implemented yet");
-			ASSERT(0);
+			pbacnetAnyValue->SetObject(wsched, new ::BACnetTimeValue());
 			//msg->pv= Obj->weekly_schedule;
 			//msg->pt= wsched;
 			break;
 		case EXCEPTION_SCHEDULE:
-			TRACE0("EXCEPTION_SCHEDULE (xsched) type creation not implemented yet");
-			ASSERT(0);
+			pbacnetAnyValue->SetObject(xsched, new ::BACnetExceptionSchedule());
 			//msg->pv= &Obj->exception_schedule;
 			//msg->pt= xsched;                    
 			break;
@@ -4100,8 +4094,7 @@ void TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->buffer_size));
 			break;
 		case LOG_BUFFER:  			     
-			TRACE0("LOG_BUFFER (LOGREC) type creation not implemented yet");
-			ASSERT(0);
+            // Cannot read this with ReadProperty!
 			//msg->pv = &Obj->log_buffer;       
 			//msg->pt = LOGREC;       
 			break;         	       
