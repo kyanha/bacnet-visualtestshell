@@ -25,6 +25,9 @@ BACnetAPDUEncoder SendReadRange::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
 // SendReadRange property page
+//Modified by Zhu Zhenhua, 2004-5-22, remove timeRange choice, change the context
+// of byTime, Add bySequenceNumber of context 6
+
 
 IMPLEMENT_DYNCREATE(SendReadRange, CPropertyPage)
 
@@ -34,10 +37,8 @@ SendReadRange::SendReadRange(void)
 	, m_ObjectID( this, IDC_OBJECTID )
 	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
-    , m_ReadRangeStartDate( this, IDC_STARTDATUM )
-	, m_ReadRangeEndDate( this, IDC_ENDDATUM )
-    , m_ReadRangeStartTime( this, IDC_TIMESTART )
-	, m_ReadRangeEndTime( this, IDC_ENDTIME )
+    , m_ReadRangeRefDate( this, IDC_STARTDATUM )
+    , m_ReadRangeRefTime( this, IDC_TIMESTART )
     , m_ReadRangeCount( this, IDC_COUNT )
   	, m_ReadRangePosRef( this, IDC_REFINDEX )
 	, m_RadioChoice(0)
@@ -65,19 +66,16 @@ void SendReadRange::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(SendReadRange, CPropertyPage)
 	//{{AFX_MSG_MAP(SendReadRange)
 	ON_EN_CHANGE(IDC_ARRAYINDEX, OnChangeArrayindex)
-	ON_EN_CHANGE(IDC_ENDDATUM, OnChangeEnddatum)
 	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectidbtn)
 	ON_CBN_SELCHANGE(IDC_PROPCOMBO, OnSelchangePropcombo)
 	ON_BN_CLICKED(IDC_RADIONONE, OnRadionone)
 	ON_BN_CLICKED(IDC_RADIOPOSITION, OnRadioposition)
 	ON_BN_CLICKED(IDC_RADIOTIME, OnRadiotime)
-	ON_BN_CLICKED(IDC_RADIOTIMERANGE, OnRadiotimerange)
+	ON_BN_CLICKED(IDC_RADIOSEQUENCE, OnRadioSequenceNum)
 	ON_EN_CHANGE(IDC_OBJECTID, OnChangeObjectid)
-	ON_EN_SETFOCUS(IDC_ENDDATUM, OnSetfocusEnddatum)
 	ON_EN_CHANGE(IDC_STARTDATUM, OnChangeStartdatum)
 	ON_EN_SETFOCUS(IDC_STARTDATUM, OnSetfocusStartdatum)
 	ON_EN_CHANGE(IDC_TIMESTART, OnChangeTimestart)
-	ON_EN_CHANGE(IDC_ENDTIME, OnChangeEndtime)
 	ON_EN_CHANGE(IDC_REFINDEX, OnChangePosRef)
 	ON_EN_CHANGE(IDC_COUNT, OnChangeCount)
 	ON_CBN_DROPDOWN(IDC_PROPCOMBO, OnDropdownPropcombo)
@@ -94,10 +92,8 @@ BOOL SendReadRange::OnInitDialog()
 	// load the enumeration table
 	m_PropCombo.LoadCombo();
 
-    m_ReadRangeStartDate.Disable();
-	m_ReadRangeEndDate.Disable();
-    m_ReadRangeStartTime.Disable();
-	m_ReadRangeEndTime.Disable();
+    m_ReadRangeRefDate.Disable();
+    m_ReadRangeRefTime.Disable();
 	m_ReadRangeCount.Disable();
 	m_ReadRangePosRef.Disable();
 
@@ -173,24 +169,20 @@ void SendReadRange::EncodePage( CByteArray* contents )
         break;
 
 	case 2:
-		BACnetOpeningTag().Encode( enc, 4 );
+		BACnetOpeningTag().Encode( enc, 7 );
+		m_ReadRangeRefDate.Encode( enc);
+		m_ReadRangeRefTime.Encode( enc);
+        m_ReadRangeCount.Encode( enc );
+		BACnetClosingTag().Encode( enc, 7 );
+		break;
+//Modified by Zhu Zhenhua, 2004-5-22
+	case 3:
+		BACnetOpeningTag().Encode( enc, 6 );
 
-        m_ReadRangeStartDate.Encode( enc );
-        m_ReadRangeStartTime.Encode( enc );
+		m_ReadRangePosRef.Encode( enc);
         m_ReadRangeCount.Encode( enc );
 
-		BACnetClosingTag().Encode( enc, 4 );
-		break;
-
-	case 3:
-		BACnetOpeningTag().Encode( enc, 5 );
-
-        m_ReadRangeStartDate.Encode( enc );
-        m_ReadRangeStartTime.Encode( enc );
-	    m_ReadRangeEndDate.Encode( enc );
-	    m_ReadRangeEndTime.Encode( enc );
-
-		BACnetClosingTag().Encode( enc, 5 );
+		BACnetClosingTag().Encode( enc, 6 );
 		break;
 	}
 
@@ -215,10 +207,8 @@ void SendReadRange::SavePage( void )
 	m_ObjectID.SaveCtrl( pageContents );
 	m_PropCombo.SaveCtrl( pageContents );
 	m_ArrayIndex.SaveCtrl( pageContents );
-    m_ReadRangeStartDate.SaveCtrl( pageContents );
-	m_ReadRangeEndDate.SaveCtrl( pageContents );
-    m_ReadRangeStartTime.SaveCtrl( pageContents );
-	m_ReadRangeEndTime.SaveCtrl( pageContents );
+    m_ReadRangeRefDate.SaveCtrl( pageContents );
+    m_ReadRangeRefTime.SaveCtrl( pageContents );
     m_ReadRangeCount.SaveCtrl( pageContents );
   	m_ReadRangePosRef.SaveCtrl( pageContents );
 }
@@ -242,9 +232,9 @@ void SendReadRange::RestorePage( int index )
 	m_PropCombo.RestoreCtrl( dec );
 	m_ArrayIndex.RestoreCtrl( dec );
 /*
-	m_ReadRangeStartDate.SaveCtrl( dec );
+	m_ReadRangeRefDate.SaveCtrl( dec );
 	m_ReadRangeEndDate.SaveCtrl( dec );
-    m_ReadRangeStartTime.SaveCtrl( dec );
+    m_ReadRangeRefTime.SaveCtrl( dec );
 	m_ReadRangeEndTime.SaveCtrl( dec );
     m_ReadRangeCount.SaveCtrl( dec );
   	m_ReadRangePosRef.SaveCtrl( dec );
@@ -296,17 +286,7 @@ void SendReadRange::OnObjectidbtn()
 //
 void SendReadRange::OnChangeStartdatum() 
 {
-    m_ReadRangeStartDate.UpdateData();
-	SavePage();
-	UpdateEncoded();
-}
-////////////////////////////////////////////////////////////
-// SendReadRange::OnChangeEnddatum
-//
-
-void SendReadRange::OnChangeEnddatum() 
-{
-    m_ReadRangeEndDate.UpdateData();
+    m_ReadRangeRefDate.UpdateData();
 	SavePage();
 	UpdateEncoded();
 }
@@ -317,10 +297,8 @@ void SendReadRange::OnRadionone()
 {
 	UpdateData();
 
-    m_ReadRangeStartDate.Disable();
-	m_ReadRangeEndDate.Disable();
-    m_ReadRangeStartTime.Disable();
-	m_ReadRangeEndTime.Disable();
+    m_ReadRangeRefDate.Disable();
+    m_ReadRangeRefTime.Disable();
 	m_ReadRangePosRef.Disable();
 	m_ReadRangeCount.Disable();
 	SavePage();
@@ -334,10 +312,8 @@ void SendReadRange::OnRadioposition()
 {
 	UpdateData();
 
-	m_ReadRangeStartDate.Disable();
-	m_ReadRangeEndDate.Disable();
-    m_ReadRangeStartTime.Disable();
-	m_ReadRangeEndTime.Disable();
+	m_ReadRangeRefDate.Disable();
+    m_ReadRangeRefTime.Disable();
 	m_ReadRangePosRef.Enable();
 	m_ReadRangeCount.Enable();
 	SavePage();
@@ -351,10 +327,8 @@ void SendReadRange::OnRadiotime()
 {
 	UpdateData();
 
-	m_ReadRangeStartDate.Enable();
-	m_ReadRangeEndDate.Disable();
-    m_ReadRangeStartTime.Enable();
-	m_ReadRangeEndTime.Disable();
+	m_ReadRangeRefDate.Enable();
+    m_ReadRangeRefTime.Enable();
 	m_ReadRangePosRef.Disable();
 	m_ReadRangeCount.Enable();
 	SetDlgItemText( IDC_BEGDATECAPTION, "Reference Date and Time");
@@ -362,20 +336,19 @@ void SendReadRange::OnRadiotime()
 	UpdateEncoded();
 	
 }
+//Added by Zhu Zhenhua, 2004-5-22
 ////////////////////////////////////////////////////////////////////////
-// SendReadRange::OnRadiotimerange
+// SendReadRange::OnRadioSequenceNum
 //
-void SendReadRange::OnRadiotimerange() 
+void SendReadRange::OnRadioSequenceNum() 
 {
 	UpdateData();
 
-	m_ReadRangeStartDate.Enable();
-	m_ReadRangeEndDate.Enable();
-    m_ReadRangeStartTime.Enable();
-	m_ReadRangeEndTime.Enable();
-	m_ReadRangePosRef.Disable();
-	m_ReadRangeCount.Disable();
-	SetDlgItemText( IDC_BEGDATECAPTION, "Beginning Date and Time");
+	m_ReadRangeRefDate.Disable();
+    m_ReadRangeRefTime.Disable();
+	m_ReadRangePosRef.Enable();
+	m_ReadRangeCount.Enable();
+	SetDlgItemText( IDC_BEGDATECAPTION, "Reference Date and Time");
 	SavePage();
 	UpdateEncoded();
 }
@@ -391,14 +364,6 @@ void SendReadRange::OnChangeObjectid()
 	UpdateEncoded();
 	
 }
-////////////////////////////////////////////////////////////////////////
-//
-//
-void SendReadRange::OnSetfocusEnddatum() 
-{
-	// TODO: Add your control notification handler code here
-	
-}
 
 void SendReadRange::OnSetfocusStartdatum() 
 {
@@ -410,19 +375,9 @@ void SendReadRange::OnSetfocusStartdatum()
 //
 void SendReadRange::OnChangeTimestart() 
 {
-    m_ReadRangeStartTime.UpdateData();
+    m_ReadRangeRefTime.UpdateData();
 	SavePage();
 	UpdateEncoded();
-}
-////////////////////////////////////////////////////////////////////////
-// SendReadRange::OnChangeEndtime
-//
-void SendReadRange::OnChangeEndtime() 
-{
-    m_ReadRangeEndTime.UpdateData();
-	SavePage();
-	UpdateEncoded();
-	
 }
 ////////////////////////////////////////////////////////////////////////
 // SendReadRange::OnChangePosRef

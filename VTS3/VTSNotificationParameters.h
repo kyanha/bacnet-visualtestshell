@@ -18,6 +18,7 @@
 #include "VTSNotifyFloatLimit.h"
 #include "VTSNotifyOutOfRange.h"
 #include "VTSNotifyComplex.h"
+#include "VTSNotifyBufferReady.h"		//Added by Zhu Zhenhua, 2004-5-17
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSNotificationParameters
@@ -43,6 +44,7 @@ public:
 	VTSNotifyFloatLimit	FloatLimitPage;
 	VTSNotifyOutOfRange	OutOfRangePage;
 	VTSNotifyComplex	ComplexPage;
+	VTSNotifyBufferReady BufferReadyPage;      	//Added by Zhu Zhenhua, 2004-5-17
 
 	void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 

@@ -166,7 +166,8 @@ void CSendUnconfEventNotification::EncodePage( CByteArray* contents )
 	// the event type and values are specified together
 	if (m_EventValues.ctrlNull)
 		throw "Event type and values required";
-	BACnetEnumerated( m_EventValues.m_EventType ).Encode( enc, 6 );
+
+	BACnetEnumerated( m_EventValues.m_EventType).Encode( enc, 6 );
 
 	if (!m_MessageText.ctrlNull)
 		m_MessageText.Encode( enc, 7 );
