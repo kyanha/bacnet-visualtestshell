@@ -141,7 +141,11 @@
 #define IDD_OBJPROPLIST                 253
 #define IDD_OBJPROPARRAY                254
 #define IDD_PACKETFILE                  255
+#define IDD_DATERANGE                   255
 #define IDD_OBJPROPERTYLIST             256
+#define IDD_ADDRESSBINDING              256
+#define IDD_CALENDARENTTRY              257
+#define IDD_TIMESTAMP_CHOICE            258
 #define IDD_DEVTREENULL                 259
 #define IDD_DEVTREEDEV                  260
 #define IDD_DEVTREEOBJ                  261
@@ -154,6 +158,8 @@
 #define IDD_PORTPAGE_ARCNET             271
 #define IDD_PORTPAGE_MSTP               272
 #define IDD_PREFERENCES                 273
+#define IDD_DATETIME                    274
+#define IDD_TIMESTAMP1                  275
 #define IDB_BMALOGO                     300
 #define IDB_WINPCAPLOGO                 301
 #define IDC_PORTLIST                    1000
@@ -511,14 +517,36 @@
 #define IDC_COMBO_NETWORK               1251
 #define IDC_EPICSCONSRESULT             1252
 #define IDC_SCRIPTMAKETEXT1             1253
+#define IDC_DATETIME_DATE               1255
 #define IDC_PACKETFILE                  1256
+#define IDC_DATETIME_TIME               1256
+#define IDC_DATERANGE_STARTDATE         1257
 #define IDC_DEVICETREE                  1258
+#define IDC_DATERANGE_ENDDATE           1258
+#define IDC_CALENDARENTRY_STARTDATE     1259
+#define IDC_ADDRESSBINDING_NETWORKNUMBER 1259
+#define IDC_CALENDARENTRY_ENDDATE       1260
+#define IDC_ADDRESSBINDING_OBJECTID     1260
+#define IDC_CALENDARENTRY_WEEKNDAY      1261
+#define IDC_ADDRESSBINDING_MACADDRESS   1261
+#define IDC_ADDRESSBINDING_OIDBUTTON    1263
+#define IDC_CALENDARENTRY_DATERADIO     1264
+#define IDC_CALENDARENTRY_DATERANGERADIO 1265
 #define IDC_DEVTREEHOLDER               1266
+#define IDC_CALENDARENTRY_WEEKNDAYRADIO 1266
+#define IDC_CALENDARENTRY_DATE          1267
 #define IDC_PROPISARRAY                 1268
+#define IDC_TIMESTAMP_TIMERADIO         1268
 #define IDC_TYPESHEETHOLDER             1269
+#define IDC_TIMESTAMP_UNSIGNEDRADIO     1269
 #define IDC_TAB1                        1270
+#define IDC_TIMESTAMP_DATETIMERADIO     1270
 #define IDC_BTYPEDESCRIPTOR             1271
+#define IDC_TIMESTAMP_TIME              1271
 #define IDC_VALUEBOOL                   1272
+#define IDC_TIMESTAMP_UNSIGNED          1272
+#define IDC_TIMESTAMP_DATETIME_DATE     1273
+#define IDC_TIMESTAMP_DATETIME_TIME     1274
 #define IDC_PORTPAGE_HOLDER             1275
 #define IDC_NOETHERNET                  1279
 #define IDC_PREF_PACKETCOUNT            1283
@@ -568,6 +596,8 @@
 #define ID_DELETE                       32826
 #define ID_NEWCOMPONENT                 32827
 #define ID_EDIT_REFRESH                 32828
+#define ID_SCRIPT_RUN1                  32829
+#define ID_SCRIPT_CHECK_SYNTAX1         32830
 #define ID_FILE_MRU_WKSFIRST            32850
 #define ID_FILE_MRU_WKS1                32850
 #define ID_FILE_MRU_WKS2                32851
@@ -662,7 +692,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        275
-#define _APS_NEXT_COMMAND_VALUE         32829
+#define _APS_NEXT_COMMAND_VALUE         32831
 #define _APS_NEXT_CONTROL_VALUE         1288
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

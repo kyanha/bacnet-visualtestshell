@@ -716,11 +716,19 @@ SOURCE=.\Statistics\TreeListCtrl.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VdbPrint.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTS.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\VTS.rc
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSAddressBindingDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -736,7 +744,19 @@ SOURCE=.\VTSBACnetTypeGenericPage.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSCalendarEntryDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSCtrl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDateRangeDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDateTimeDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -873,6 +893,10 @@ SOURCE=.\Statistics\VTSStatisticsOptionsDlg.cpp
 # Begin Source File
 
 SOURCE=.\VTSTimeStamp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSTimeStampDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -1516,7 +1540,15 @@ SOURCE=.\Statistics\TreeListCtrl.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VdbPrint.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTS.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSAddressBindingDlg.h
 # End Source File
 # Begin Source File
 
@@ -1532,7 +1564,19 @@ SOURCE=.\VTSBACnetTypeGenericPage.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSCalendarEntryDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSCtrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDateRangeDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDateTimeDlg.h
 # End Source File
 # Begin Source File
 
@@ -1673,6 +1717,10 @@ SOURCE=.\Statistics\VTSStatisticsOptionsDlg.h
 # Begin Source File
 
 SOURCE=.\VTSTimeStamp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSTimeStampDlg.h
 # End Source File
 # Begin Source File
 
