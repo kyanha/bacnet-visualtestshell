@@ -18,6 +18,7 @@
 #include "VTSNamesDlg.h"
 //#include "VTSDevicesDlg.h"
 #include "VTSDevicesTreeDlg.h"
+#include "VTSFiltersDlg.h"
 
 //#include "PacketFileDlg.h"
 #include "FrameContext.h"
@@ -283,6 +284,7 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		// link all in memory structures together
 	FixupPortToDeviceLinks();
 	FixupNameToPortLinks();
+	FixupFiltersToPortLinks();
 
 	try
 	{
@@ -427,10 +429,41 @@ void VTSDoc::DoPortsDialog( void )
 
 void VTSDoc::DoNamesDialog( void )
 {
-	VTSNamesDlg		dlg(GetNames(), GetPorts() );
+	VTSNamesDlg		dlg( GetNames(), GetPorts() );
 
 	if ( dlg.DoModal() == IDOK )
 		SaveConfiguration();
+}
+
+//
+//	VTSDoc::DoCaptureFiltersDialog
+//
+
+void VTSDoc::DoCaptureFiltersDialog( void )
+{
+	VTSFiltersDlg		dlg( GetCaptureFilters(), GetPorts() );
+
+	if ( dlg.DoModal() == IDOK )
+		SaveConfiguration();
+}
+
+//
+//	VTSDoc::DoDisplayFiltersDialog
+//
+
+void VTSDoc::DoDisplayFiltersDialog( void )
+{
+	VTSFiltersDlg		dlg( GetDisplayFilters(), GetPorts() );
+
+	if ( dlg.DoModal() == IDOK ) {
+		SaveConfiguration();
+
+		// reload all the packets, applying the (new) filter
+		ReloadPacketStore();
+
+		// tell the application the list has changed
+		ScheduleForProcessing();
+	}
 }
 
 
@@ -657,6 +690,8 @@ void VTSDoc::Serialize(CArchive& ar)
 	m_ports.Serialize(ar);
 	m_names.Serialize(ar);
 	m_devices.Serialize(ar);
+	m_captureFilters.Serialize(ar);
+	m_displayFilters.Serialize(ar);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -766,37 +801,51 @@ void VTSDoc::SetPacketCount( int count )
 
 int VTSDoc::WritePacket( VTSPacket & pkt )
 {
-	int nIndex = -1;
+	int		nIndex = -1;
+	bool	schedule = false;
 
 	m_FrameContextsCS.Lock();
-	m_PacketDB.WritePacket(pkt);
 
-	// have we halted packet loads?
-	VTSPacketPtr ppkt = NULL;
-	try
-	{
-		ppkt = m_fLoadPackets ? new VTSPacket() : NULL;
+	// make sure packet passes
+	if (m_captureFilters.TestPacket( pkt )) {
+		// save it in the database
+		m_PacketDB.WritePacket(pkt);
 
-		if ( ppkt != NULL )
-		{
-			*ppkt = pkt;
-			nIndex = m_apPackets.Add(ppkt);
+		// see if we should display the packet
+		if (m_displayFilters.TestPacket( pkt )) {
+			// have we halted packet loads?
+			VTSPacketPtr ppkt = NULL;
+			try
+			{
+				ppkt = m_fLoadPackets ? new VTSPacket() : NULL;
+
+				if ( ppkt != NULL )
+				{
+					*ppkt = pkt;
+					nIndex = m_apPackets.Add(ppkt);
+				}
+			}
+			catch(CMemoryException e)
+			{
+				if ( ppkt != NULL )
+					delete ppkt;
+
+				if ( m_fLoadPackets )
+					::PostThreadMessage( AfxGetApp()->m_nThreadID, WM_VTS_MAXPACKETS, (WPARAM) 0, (LPARAM) this );
+				m_fLoadPackets = false;
+			}
+
+			schedule = true;
 		}
-	}
-	catch(CMemoryException e)
-	{
-		if ( ppkt != NULL )
-			delete ppkt;
-
-		if ( m_fLoadPackets )
-			::PostThreadMessage( AfxGetApp()->m_nThreadID, WM_VTS_MAXPACKETS, (WPARAM) 0, (LPARAM) this );
-		m_fLoadPackets = false;
 	}
 
 	// release the list back to other threads
 	m_FrameContextsCS.Unlock();
 
-	ScheduleForProcessing();
+	// if we saved the packet, tell the main thread to update
+	if (schedule)
+		ScheduleForProcessing();
+
 	return nIndex;
 }
 
@@ -886,8 +935,12 @@ int VTSDoc::LoadPacketArray( void )
 	{
 		VTSPacketPtr ppkt = new VTSPacket();
 
-		for ( long lNextPosition = 0; ppkt != NULL && (lNextPosition = m_PacketDB.ReadNextPacket(*ppkt, lNextPosition)) != -1;  ppkt = new VTSPacket() )
-			m_apPackets.Add(ppkt);
+		// put everything into the packet list that matches the display filter
+		for ( long lNextPosition = 0; ppkt != NULL && (lNextPosition = m_PacketDB.ReadNextPacket(*ppkt, lNextPosition)) != -1; )
+			if (m_displayFilters.TestPacket(*ppkt)) {
+				m_apPackets.Add(ppkt);
+				ppkt = new VTSPacket();
+			}
 
 		// Always allocated one more than we needed... so kill it
 		if ( ppkt != NULL )
@@ -989,6 +1042,25 @@ void VTSDoc::FixupPortToDeviceLinks( bool fCheckForExistingLink /* = true */ )
 	{
 		if ( !fCheckForExistingLink || m_ports[i]->m_pdevice == NULL )
 			m_ports[i]->m_pdevice = m_devices.Find(m_ports[i]->GetDeviceName());
+	}
+}
+
+
+void VTSDoc::FixupFiltersToPortLinks( bool fCheckForExistingLink /* = true */ )
+{
+	// resolve port links in name list
+	int i;
+
+	for ( i = 0; i < m_captureFilters.GetSize(); i++ )
+	{
+		if ( !fCheckForExistingLink || m_captureFilters[i]->m_pportLink == NULL )
+			m_captureFilters[i]->m_pportLink = m_ports.Find(m_captureFilters[i]->GetPortName());
+	}
+
+	for ( i = 0; i < m_displayFilters.GetSize(); i++ )
+	{
+		if ( !fCheckForExistingLink || m_displayFilters[i]->m_pportLink == NULL )
+			m_displayFilters[i]->m_pportLink = m_ports.Find(m_displayFilters[i]->GetPortName());
 	}
 }
 
@@ -2481,6 +2553,563 @@ int NameSearch( const VTSNameDescPtr, const VTSNameDescPtr ndp )
 }
 */
 
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// VTSFilter
+
+IMPLEMENT_SERIAL(VTSFilter, CObject, 1);
+
+VTSFilter::VTSFilter( void )
+{
+	m_type = 0;
+	m_addr = 0;
+	m_addrType = 0;
+
+	m_filteraddr.addrType = nullAddr;
+	m_filteraddr.addrNet = 0;
+	m_filteraddr.addrLen = 0;
+	memset( m_filteraddr.addrAddr, 0, kMaxAddressLen );
+
+	m_fnGroup = 0;
+
+	m_pportLink = NULL;
+}
+
+VTSFilter::~VTSFilter( void )
+{
+}
+
+const VTSFilter& VTSFilter::operator=(const VTSFilter& rfilterSrc)
+{
+	m_type = rfilterSrc.m_type;
+	m_addr = rfilterSrc.m_addr;
+	m_addrType = rfilterSrc.m_addrType;
+	memcpy( &m_filteraddr, &rfilterSrc.m_filteraddr, sizeof(m_filteraddr) );
+	m_fnGroup = rfilterSrc.m_fnGroup;
+
+	m_pportLink = rfilterSrc.m_pportLink;
+
+	return *this;
+}
+
+void VTSFilter::Serialize(CArchive& ar)
+{
+	if (ar.IsStoring())
+	{
+		ar << m_type;
+
+		if ( m_pportLink != NULL )
+			m_strPortNameTemp = m_pportLink->GetName();
+
+		ar << m_strPortNameTemp;
+
+		ar << m_addr;
+		ar << m_addrType;
+
+		try
+		{
+			ar.Write(&m_filteraddr, sizeof(m_filteraddr));
+		}
+		catch( CFileException e )
+		{
+		}
+
+		ar << m_fnGroup;
+	}
+	else
+	{
+		ar >> m_type;
+		ar >> m_strPortNameTemp;
+		ar >> m_addr;
+		ar >> m_addrType;
+		ar.Read(&m_filteraddr, sizeof(m_filteraddr));
+		ar >> m_fnGroup;
+
+		// This will be fixed up later...
+		m_pportLink = NULL;
+	}
+}
+
+//
+//	VTSFilter::TestAddress
+//
+
+bool VTSFilter::TestAddress( const BACnetAddress &addr )
+{
+	switch (m_addrType) {
+		case 0:
+			return true;
+
+		case 1:		// local station
+			return ((addr == m_filteraddr) ? true : false);
+
+		case 2:		// local network
+			return (addr.addrType == localStationAddr);
+
+		case 3:		// local broadcast
+			return (addr.addrType == localBroadcastAddr);
+
+		case 4:		// remote station
+			return ((addr == m_filteraddr) ? true : false);
+
+		case 5:		// remote network
+			return ((addr.addrType == remoteStationAddr) && (addr.addrNet == m_filteraddr.addrNet));
+
+		case 6:		// remote broadcast
+			return ((addr.addrType == remoteBroadcastAddr) && (addr.addrNet == m_filteraddr.addrNet));
+
+		case 7:		// global broadcast
+			return (addr.addrType == globalBroadcastAddr);
+	}
+
+	// should never get here
+	return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// VTSFilters
+
+IMPLEMENT_SERIAL(VTSFilters, CPtrArray, 1);
+
+VTSFilters::VTSFilters( void )
+{
+}
+
+//
+//	VTSFilters::~VTSFilters
+//
+
+VTSFilters::~VTSFilters( void )
+{
+	KillContents();
+}
+
+//
+//	VTSFilters::KillContents
+//
+
+void VTSFilters::KillContents( void )
+{
+	for ( int i = 0; i < GetSize(); i++ )
+		if ( GetAt(i) != NULL )
+			delete GetAt(i);
+	RemoveAll();
+}
+
+//
+//	VTSFilters::DeepCopy
+//
+
+void VTSFilters::DeepCopy( const VTSFilters * psrc )
+{
+	KillContents();
+
+	for ( int i = 0; i < psrc->GetSize(); i++ )	{
+		VTSFilter * pelement = new VTSFilter();
+		*pelement = *(*psrc)[i];
+		Add(pelement);
+	}
+}
+
+//
+//	VTSFilters::Serialize
+//
+
+void VTSFilters::Serialize( CArchive& ar )
+{
+	if (ar.IsStoring())	{
+		ar << GetSize();
+		for ( int i = 0; i < GetSize(); i++ )
+			GetAt(i)->Serialize(ar);
+	} else {
+		KillContents();
+
+		if (ar.IsBufferEmpty())
+			return;
+
+		int iSize;
+		for ( ar >> iSize; iSize > 0; iSize-- ) {
+			VTSFilter * p = new VTSFilter();
+			p->Serialize(ar);
+			Add(p);
+		}
+	}
+}
+
+//
+//	VTSFilters::Remove
+//
+
+void VTSFilters::Remove( int i )
+{
+	ASSERT(i >= 0 && i < GetSize());
+
+	if ( i >= 0 && i < GetSize() )
+	{
+		delete (VTSFilter *) GetAt(i);
+		RemoveAt(i);
+	}
+}
+
+//
+//	VTSFilters::TestPacket
+//
+//	Return true iff packet should be accepted.
+//
+
+bool VTSFilters::TestPacket( const VTSPacket& packet )
+{
+	// accept the packet if there are no filters
+	if (GetSize() == 0)
+		return true;
+
+	// always accept script messages
+	if (packet.packetHdr.packetType == msgData)
+		return true;
+
+	// get ready to dig into packet
+	int				pktLen = packet.packetLen
+	,				pktFnGroup = 0
+	;
+	BACnetOctet		*pktData = packet.packetData
+	;
+	BACnetAddress	pktSrcAddr = packet.packetHdr.packetSource
+	,				pktDestAddr = packet.packetHdr.packetDestination
+	;
+
+	// find the first octet in the packet
+	switch ((BACnetPIInfo::ProtocolType)packet.packetHdr.packetProtocolID) {
+		case BACnetPIInfo::ipProtocol:
+			// skip the fake ip header, address (4), and port (2)
+			pktData += 6;
+			pktLen -= 6;
+
+			// check for a BVLL header
+			if (*pktData == 0x81) {
+				pktLen--,pktData++;
+
+				// extract the function
+				int bipFn = (pktLen--,*pktData++);
+
+				// extract the length
+				int len = (pktLen--,*pktData++);
+				len = (len << 8) + (pktLen--,*pktData++);
+
+				// set the function group
+				switch ((BVLCFunction)bipFn) {
+					case bvlcResult:
+					case blvcWriteBroadcastDistributionTable:
+					case blvcReadBroadcastDistributionTable:
+					case blvcReadBroadcastDistributionTableAck:
+					case bvlcRegisterForeignDevice:
+					case bvlcReadForeignDeviceTable:
+					case bvlcReadForeignDeviceTableAck:
+					case bvlcDeleteForeignDeviceTableEntry:
+						pktFnGroup = 1;
+						break;
+
+					case blvcForwardedNPDU:
+						// extract the original source
+						pktSrcAddr.addrType = localStationAddr;
+						memcpy( pktSrcAddr.addrAddr, pktData, 6 );
+						pktSrcAddr.addrLen = 6;
+
+						pktData += 6;
+						pktLen -= 6;
+						break;
+
+						// dig deeper into these
+					case bvlcDistributeBroadcastToNetwork:
+					case bvlcOriginalUnicastNPDU:
+					case bvlcOriginalBroadcastNPDU:
+						break;
+				}
+			}
+			break;
+
+		case BACnetPIInfo::ethernetProtocol:
+			// skip over source (6), destination (6), length (2), and SAP (3)
+			pktData += 17;
+			pktLen -= 17;
+			break;
+
+		case BACnetPIInfo::arcnetProtocol:
+			// skip over source (1), destination (1), SAP (3), LLC (1)
+			pktData += 6;
+			pktLen -= 6;
+			break;
+
+		case BACnetPIInfo::mstpProtocol:
+			// skip over preamble
+			pktData += 2;
+			pktLen -= 2;
+
+			// look at the frame type
+			switch (pktLen--,*pktData++) {
+				case 0x00:		// Token Frame
+				case 0x01:		// Poll For Master Frame
+				case 0x02:		// Reply To Poll For Master Frame
+				case 0x03:		// Test Request Frame
+				case 0x04:		// Test Response Frame
+				case 0x07:		// Reply Postponed Frame
+					pktFnGroup = 2;
+					break;
+
+				case 0x05:		// Data Expecting Reply Frame
+				case 0x06:		// Data Not Expecting Reply Frame
+					break;
+			};
+
+			// skip over destination (1), source (1), length (2) and CRC (1)
+			pktData += 5;
+			pktLen -= 5;
+			break;
+
+		case BACnetPIInfo::ptpProtocol:
+			// ### interpreter is painful
+			pktFnGroup = 3;
+			break;
+
+		default:
+			return true;
+	}
+
+	// if the function group hasn't been set, dig into the NPCI header
+	if (pktFnGroup == 0) {
+		int					netLayerMessage, dnetPresent, snetPresent
+		;
+
+		// check the length
+		if (pktLen < 2)
+			return true;	// invalid length
+		
+		// only version 1 messages supported
+		if (*pktData++ != 0x01)
+			return true;	// version 1 only
+		
+		// extract the flags
+		netLayerMessage = (*pktData & 0x80);
+		dnetPresent = (*pktData & 0x20);
+		snetPresent = (*pktData & 0x08);
+//		expectingReply = (*pktData & 0x04);			// might be nice to check these someday
+//		networkPriority = (*pktData & 0x03);		// perhaps filter all critical messages?
+		pktData += 1;
+		pktLen -= 1;
+		
+		// extract the destination address
+		if (dnetPresent) {
+			int		dnet, dlen
+			;
+			
+			dnet = (pktLen--,*pktData++);
+			dnet = (dnet << 8) + (pktLen--,*pktData++);
+			dlen = (pktLen--,*pktData++);
+			
+			if (dnet == 0xFFFF)
+				pktDestAddr.GlobalBroadcast();
+			else {
+				if (dlen == 0)
+					pktDestAddr.RemoteBroadcast( dnet );
+				else {
+					pktDestAddr.RemoteStation( dnet, pktData, dlen );
+					pktData += dlen;
+				}
+			}
+		}
+		
+		// extract the source address, or copy the one from the endpoint
+		if (snetPresent) {
+			int		snet, slen
+			;
+			
+			snet = (pktLen--,*pktData++);
+			snet = (snet << 8) + (pktLen--,*pktData++);
+			slen = (pktLen--,*pktData++);
+			
+			pktSrcAddr.RemoteStation( snet, pktData, slen );
+			pktData += slen;
+		}
+		
+		// skip the hop count
+		if (dnetPresent)
+			pktLen--, pktData++;
+		
+		// all done for network layer messages
+		if (netLayerMessage)
+			pktFnGroup = 4;
+	}
+
+	// if the function group hasn't been set, dig into the application layer
+	if (pktFnGroup == 0) {
+		switch ((BACnetAPDUType)((*pktData) >> 4)) {
+			case confirmedRequestPDU:
+				pktFnGroup = ConfirmedServiceFnGroup( (pktData[0] & 0x08) ? pktData[5] : pktData[3] );
+				break;
+			case unconfirmedRequestPDU:
+				pktFnGroup = UnconfirmedServiceFnGroup( pktData[1] );
+				break;
+			case simpleAckPDU:
+				pktFnGroup = ConfirmedServiceFnGroup( pktData[2] );
+				break;
+			case complexAckPDU:
+				pktFnGroup = ConfirmedServiceFnGroup( (pktData[0] & 0x08) ? pktData[4] : pktData[2] );
+				break;
+
+			case segmentAckPDU:
+				// not a part of a function group
+				break;
+
+			case errorPDU:
+				pktFnGroup = ConfirmedServiceFnGroup( pktData[2] );
+				break;
+
+			case rejectPDU:
+			case abortPDU:
+				pktFnGroup = 10;
+				break;
+		}
+	}
+
+
+	// look through the filters
+	for ( int i = 0; i < GetSize(); i++ ) {
+		VTSFilter	*fp = (VTSFilter *)GetAt(i)
+		;
+
+		// check the port
+		if ((strlen(fp->m_strPortNameTemp) != 0) && (strcmp(fp->m_strPortNameTemp,packet.packetHdr.m_szPortName) != 0))
+			continue;
+
+		// check address
+		if (fp->m_addr != 0) {
+			if (fp->m_addr == 1) {
+				if (!fp->TestAddress(pktSrcAddr))	// if source doesn't match, try next filter
+					continue;
+			} else
+			if (fp->m_addr == 2) {
+				if (!fp->TestAddress(pktDestAddr))	// if destination doesn't match, try next filter
+					continue;
+			} else
+			if (fp->m_addr == 3) {
+				if (fp->TestAddress(pktSrcAddr))	// if source matches, ok
+					;
+				else
+				if (fp->TestAddress(pktDestAddr))	// if destination matches, ok
+					;
+				else
+					continue;						// try next filter
+			} else
+				;
+		}
+
+		// check function group
+		if (fp->m_fnGroup && (fp->m_fnGroup != pktFnGroup))
+			continue;
+
+		// everything matched, accept or reject it
+		return ((fp->m_type == 0) ? true : false);
+	}
+
+	// none of the filters matched, default is accept
+	return true;
+}
+
+//
+//	VTSFilters::ConfirmedServiceFnGroup
+//
+
+int VTSFilters::ConfirmedServiceFnGroup( int service )
+{
+	int		pktFnGroup = 0
+	;
+
+	switch ((BACnetConfirmedServiceChoice)service) {
+		// Alarm and Event Services
+		case acknowledgeAlarm:
+		case confirmedCOVNotification:
+		case confirmedEventNotification:
+		case getAlarmSummary:
+		case getEnrollmentSummary:
+		case subscribeCOV:
+			pktFnGroup = 5;
+			break;
+
+		// File Access Services
+		case atomicReadFile:
+		case atomicWriteFile:
+			pktFnGroup = 6;
+			break;
+
+		// Object Access Services
+		case addListElement:
+		case removeListElement:
+		case createObject:
+		case deleteObject:
+		case readProperty:
+		case readPropertyConditional:
+		case readPropertyMultiple:
+		case writeProperty:
+		case writePropertyMultiple:
+			pktFnGroup = 7;
+			break;
+
+		// Remote Device Management Services
+		case deviceCommunicationControl:
+		case confirmedTextMessage:
+		case reinitializeDevice:
+			pktFnGroup = 8;
+			break;
+
+		// Virtual Terminal Services
+		case vtOpen:
+		case vtClose:
+		case vtData:
+			pktFnGroup = 9;
+			break;
+
+		case confirmedPrivateTransfer:
+		case authenticate:
+		case requestKey:
+			// no function group for now
+			break;
+	}
+
+	return pktFnGroup;
+}
+
+//
+//	VTSFilters::UnconfirmedServiceFnGroup
+//
+
+int VTSFilters::UnconfirmedServiceFnGroup( int service )
+{
+	int		pktFnGroup = 0
+	;
+
+	switch ((BACnetUnconfirmedServiceChoice)service) {
+		// Alarm and Event Services
+		case unconfirmedCOVNotification:
+		case unconfirmedEventNotification:
+			pktFnGroup = 5;
+			break;
+
+		// Remote Device Management Services
+		case iAm:
+		case iHave:
+		case unconfirmedTextMessage:
+		case timeSynchronization:
+		case whoHas:
+		case whoIs:
+			pktFnGroup = 8;
+			break;
+
+		case unconfirmedPrivateTransfer:
+			// no function group for now
+			break;
+	}
+
+	return pktFnGroup;
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -263,9 +263,7 @@ BEGIN
         MENUITEM "Names...",                    ID_EDIT_NAMES
         MENUITEM "Change &Logfile...",          ID_EDIT_LOGFILE
         MENUITEM "Capture Filter...",           ID_EDIT_CAPTUREFILTER
-        , GRAYED
         MENUITEM "Display Filter...",           ID_EDIT_DISPLAYFILTER
-        , GRAYED
         MENUITEM SEPARATOR
         MENUITEM "Preferences...",              ID_EDIT_PREFERENCES
     END
@@ -2806,6 +2804,48 @@ BEGIN
     ICON            "",IDC_INCLUDEICON,6,1,20,20
 END
 
+IDD_FILTERS DIALOGEX 0, 0, 312, 262
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "Filters"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_FILTERLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_GROUP | 
+                    WS_TABSTOP,7,7,240,90
+    CONTROL         "Accept",IDC_ACCEPT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,15,105,75,8
+    CONTROL         "Reject",IDC_REJECT,"Button",BS_AUTORADIOBUTTON,15,120,
+                    80,8
+    LTEXT           "Port",IDC_STATIC,20,138,50,10
+    COMBOBOX        IDC_PORTCOMBO,75,135,85,65,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Address",IDC_STATIC,20,158,50,10
+    COMBOBOX        IDC_ADDRCOMBO,75,155,85,65,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Address Type",IDC_STATIC,20,178,50,10,NOT WS_GROUP
+    COMBOBOX        IDC_ADDRTYPECOMBO,75,175,85,65,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Network",IDC_STATIC,45,198,30,10
+    EDITTEXT        IDC_NETWORK,77,195,30,12,ES_AUTOHSCROLL
+    LTEXT           "Address",IDC_STATIC,45,214,30,10
+    EDITTEXT        IDC_ADDRESS,77,212,85,12,ES_AUTOHSCROLL
+    LTEXT           "Hex  (C0-AB-01-02-BA-C0)",IDC_STATIC,77,227,85,8
+    LTEXT           "Function Group",IDC_STATIC,15,242,55,10,NOT WS_GROUP
+    COMBOBOX        IDC_FNGROUPCOMBO,75,240,85,65,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "New",ID_NEWFILTER,255,7,50,14,WS_GROUP
+    PUSHBUTTON      "Delete",ID_DELETEFILTER,255,27,50,14,NOT WS_TABSTOP
+    PUSHBUTTON      "Import...",ID_IMPORTFILTERS,255,159,50,14,NOT 
+                    WS_TABSTOP
+    PUSHBUTTON      "Export...",ID_EXPORTFILTERS,255,179,50,14,NOT 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,255,220,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,255,241,50,14,NOT WS_TABSTOP
+    PUSHBUTTON      "/\\",IDC_FILTERUP,255,48,15,15,NOT WS_TABSTOP
+    PUSHBUTTON      "\\/",IDC_FILTERDOWN,255,64,15,15,NOT WS_TABSTOP
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -2814,8 +2854,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,4,0,0
- PRODUCTVERSION 3,4,0,0
+ FILEVERSION 3,4,3,0
+ PRODUCTVERSION 3,4,3,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2833,14 +2873,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "Visual Test Shell\0"
-            VALUE "FileVersion", "3, 4, 0, 0\0"
+            VALUE "FileVersion", "3, 4, 3, 0\0"
             VALUE "InternalName", "VTS\0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2003\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "VTS.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Visual Test Shell\0"
-            VALUE "ProductVersion", "3, 4, 0, 0\0"
+            VALUE "ProductVersion", "3, 4, 3, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -3709,6 +3749,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 206
     END
+
+    IDD_FILTERS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 305
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 255
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -4062,6 +4110,7 @@ BEGIN
     ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
     ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
     IDS_NAME_ADDRERROR      "Address length should be 1 or 6 bytes!\nMSTP Address length is 1 byte, B/IP and Ethernet MAC Address length are both 6 bytes."
+    IDS_FILTER_ADDRERROR    "Address length should be 1 or 6 bytes!\nMSTP Address length is 1 byte, B/IP and Ethernet MAC Address length are both 6 bytes."
 END
 
 STRINGTABLE DISCARDABLE 

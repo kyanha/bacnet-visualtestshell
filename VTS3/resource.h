@@ -161,6 +161,7 @@
 #define IDD_DATETIME                    274
 #define IDD_TIMESTAMP1                  275
 #define IDD_SCRIPTINCLUDE               276
+#define IDD_FILTERS                     277
 #define IDB_BMALOGO                     300
 #define IDB_WINPCAPLOGO                 301
 #define IDC_PORTLIST                    1000
@@ -184,7 +185,9 @@
 #define IDC_ARCNETPORT                  1009
 #define IDC_ADDRESS                     1009
 #define IDC_MSTPPORT                    1010
+#define IDC_ACCEPT                      1010
 #define IDC_PTPPORT                     1011
+#define IDC_REJECT                      1011
 #define IDC_ENABLEPORT                  1012
 #define IDC_DADR                        1013
 #define IDC_NETWORK2                    1013
@@ -334,8 +337,10 @@
 #define IDC_EOF                         1107
 #define IDC_PORTCOMBO                   1108
 #define IDC_VTCLASSCOMBO                1109
+#define IDC_FNGROUPCOMBO                1109
 #define IDC_SESSIONID                   1110
 #define IDC_DATAFLAG                    1111
+#define IDC_ADDRTYPECOMBO               1111
 #define IDC_ALLDATAFLAG                 1112
 #define IDC_ACCEPTEDCOUNT               1113
 #define IDC_ACKPROCESSID                1114
@@ -562,6 +567,13 @@
 #define IDC_INCLUDEICON                 1292
 #define IDC_EDIT1                       1293
 #define IDC_RPALL_DA                    1294
+#define ID_NEWFILTER                    1295
+#define ID_DELETEFILTER                 1296
+#define ID_IMPORTFILTERS                1297
+#define ID_EXPORTFILTERS                1298
+#define IDC_FILTERLIST                  1299
+#define IDC_FILTERUP                    1300
+#define IDC_FILTERDOWN                  1301
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -695,6 +707,7 @@
 #define IDS_DELETEAREYOUSURE            57349
 #define IDS_REGISTRYKEY                 57350
 #define IDS_NAME_ADDRERROR              57682
+#define IDS_FILTER_ADDRERROR            57683
 
 // Next default values for new objects
 // 
@@ -703,7 +716,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        277
 #define _APS_NEXT_COMMAND_VALUE         32831
-#define _APS_NEXT_CONTROL_VALUE         1295
+#define _APS_NEXT_CONTROL_VALUE         1302
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

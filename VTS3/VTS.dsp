@@ -788,6 +788,10 @@ SOURCE=.\VTSDoc.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSFiltersDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSNamesDlg.cpp
 # End Source File
 # Begin Source File
@@ -1609,6 +1613,10 @@ SOURCE=.\VTSDevicesTreeValuePage.h
 # Begin Source File
 
 SOURCE=.\VTSDoc.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSFiltersDlg.h
 # End Source File
 # Begin Source File
 

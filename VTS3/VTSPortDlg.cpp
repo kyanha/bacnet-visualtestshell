@@ -581,6 +581,7 @@ void VTSPortDlg::OnOK()
 	DeactivateChangedPorts();
 	MoveLocalPortsToMain();
 	m_pdoc->FixupNameToPortLinks(false);			// must refixup while ports are inactive...
+	m_pdoc->FixupFiltersToPortLinks(false);
 	m_pdoc->ReActivateAllPorts();
 
 	CDialog::OnOK();
@@ -593,6 +594,7 @@ void VTSPortDlg::OnApplyNow()
 	DeactivateChangedPorts();
 	MoveLocalPortsToMain();
 	m_pdoc->FixupNameToPortLinks(false);
+	m_pdoc->FixupFiltersToPortLinks(false);
 
 	// Now copy these ports back to local storage.. Local array needs to be here first
 	// so we can properly respond to status changes calls produced by activating all ports

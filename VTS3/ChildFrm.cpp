@@ -84,6 +84,8 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_NAMES, OnUpdateEditNames)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_DEVICES, OnUpdateEditDevices)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_LOGFILE, OnUpdateEditLogfile)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_CAPTUREFILTER, OnUpdateEditCaptureFilters)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_DISPLAYFILTER, OnUpdateEditDisplayFilters)
 //	ON_UPDATE_COMMAND_UI(ID_FILE_WKS_SAVEAS, OnUpdateFileWksSaveAs)
 //	ON_UPDATE_COMMAND_UI(AFX_IDS_FILESAVEAS, OnUpdateFileWksSaveAs)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_FIRSTFRAME, OnUpdateViewFirstFrame)
@@ -98,6 +100,8 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_COMMAND(ID_EDIT_NAMES, OnEditNames)
 	ON_COMMAND(ID_EDIT_DEVICES, OnEditDevices)
 	ON_COMMAND(ID_EDIT_LOGFILE, OnEditLogfile)
+	ON_COMMAND(ID_EDIT_CAPTUREFILTER, OnEditCaptureFilters)
+	ON_COMMAND(ID_EDIT_DISPLAYFILTER, OnEditDisplayFilters)
 	ON_COMMAND(ID_EDIT_PREFERENCES, OnEditPreferences)
 	ON_COMMAND_RANGE( 0x8100, 0x81FF, OnSendSelectPort)
 	ON_COMMAND_RANGE( 0x8200, 0x82FF, OnSendSelectPacket)
@@ -332,6 +336,18 @@ void CChildFrame::OnUpdateEditLogfile(CCmdUI* pCmdUI)
 	pCmdUI->Enable( true );
 }
 
+void CChildFrame::OnUpdateEditCaptureFilters(CCmdUI* pCmdUI) 
+{
+//	TRACE0( "VTSDoc::OnUpdateEditCaptureFilters()\n" );
+	pCmdUI->Enable( true );
+}
+
+void CChildFrame::OnUpdateEditDisplayFilters(CCmdUI* pCmdUI) 
+{
+//	TRACE0( "VTSDoc::OnUpdateEditDisplayFilters()\n" );
+	pCmdUI->Enable( true );
+}
+
 void CChildFrame::OnUpdateViewFirstFrame(CCmdUI* pCmdUI) 
 {
 //	TRACE0( "VTSDoc::OnUpdateViewFirstFrame()\n" );
@@ -410,6 +426,16 @@ void CChildFrame::OnEditDevices()
 void CChildFrame::OnEditLogfile() 
 {
 	m_frameContext->m_pDoc->DoPacketFileNameDialog();
+}
+
+void CChildFrame::OnEditCaptureFilters() 
+{
+	m_frameContext->m_pDoc->DoCaptureFiltersDialog();
+}
+
+void CChildFrame::OnEditDisplayFilters() 
+{
+	m_frameContext->m_pDoc->DoDisplayFiltersDialog();
 }
 
 void CChildFrame::OnEditPreferences()
