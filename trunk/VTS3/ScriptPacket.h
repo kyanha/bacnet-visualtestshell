@@ -33,6 +33,9 @@ class ScriptPacketExpr {
 		ScriptPacketExpr( void );
 		~ScriptPacketExpr( void );
 
+		bool IsAssignment(void);						// madanner 11/5/02, is this expression an assignment?
+		bool IsDontCare(void);							// is this a don't care assignment?
+
 		int				exprKeyword;					// keyword
 		bool			exprIsData;						// true if data keyword
 		int				exprOp;							// operator
