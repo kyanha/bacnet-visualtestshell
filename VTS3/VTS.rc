@@ -2399,6 +2399,15 @@ BEGIN
                     IDC_STATIC,73,176,120,20
 END
 
+IDD_DIALOG1 DIALOG DISCARDABLE  0, 0, 186, 90
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -3144,6 +3153,14 @@ BEGIN
         LEFTMARGIN, 7
         TOPMARGIN, 7
     END
+
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -3400,6 +3417,39 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_SCREX_COMPREAL      "Comparison failure: %s (%f) %s EPICS (%f)"
+    IDS_SCREX_COMPEPICSNULL "Comparison failure:  %s value in EPICS is NULL"
+    IDS_SCREX_COMPREALDATALEN 
+                            "Comparison failure: Encoded %s value must contain 4 octets"
+    IDS_SCREX_COMPDATANULL  "Comparison failure: ALDATA for %s comparison is NULL"
+    IDS_SCREX_COMPINT       "Comparison failure: %s (%d) %s EPICS (%d)"
+    IDS_SCREX_COMPUINT      "Comparison failure: %s (%lu) %s EPICS (%lu)"
+    IDS_SCREX_COMPARRAY     "Comparison failure: %s[%d] (%s) %s EPICS (%s)"
+    IDS_SCREX_COMPSHORTDATA "Comparison failure:  Not enough encoded ALDATA (%d) to compare with EPICS %s (%d)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SCREX_COMPSTREAMFAIL_NE 
+                            "Comparison failure: Encoded ALDATA != EPICS %s"
+    IDS_SCREX_COMPSTREAM_E  "Comparison failure: Encoded ALDATA == EPICS %s"
+    IDS_SCREX_COMPEQREQ     "Script error:  = or != condition required %s %s %s"
+    IDS_SCREX_COMPSTRING    "Comparison failure: %s (%s) %s EPICS (%s)"
+    IDS_SCREX_COMPFAILTYPE  "(%s) %s (%s)"
+    IDS_SCREX_COMPARRAYSIZE "Array comparison with mismatched sizes (%d) EPICS (%d)"
+    IDS_SCREX_COMPARRAYINXBOUNDS "Array index (%d) out of bounds [%d]"
+    IDS_SCREX_COMPUNSUPPORTED "Typed comparison for type (%d) not implemented"
+    IDS_SCREX_COMPFAIL      "Comparison failure: %s %s EPICS"
+    IDS_SCREX_COMPFAILBITSTRING "BitString comparison failure: "
+    IDS_SCREX_COMPFAILENUM  "Enumeration comparison failure: "
+    IDS_SCREX_COMPFAILPROP  "Property Identifier comparision failure: "
+    IDS_SCREX_COMPFAILDEVID "Device Identifier comparison failure: "
+    IDS_SCREX_COMPFAILOBJID "Object Identifier comparison failure: "
+    IDS_SCREX_COMPFAILSTRING "String comparison failure: "
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     ID_VIEW_FIRSTFRAME      "View first frame in session\nFirst"
     ID_VIEW_PREVFRAME       "View previous frame in session\nPrevious"
     ID_VIEW_NEXTFRAME       "View next frame in session\nNext"
@@ -3422,6 +3472,20 @@ BEGIN
     ID_SCRIPT_KILL          "Force the running or halted test to fail"
     ID_SCRIPT_STEPPASS      "Pass the current SEND/EXPECT and continue"
     ID_SCRIPT_STEPFAIL      "Fail the current SEND/EXPECT and continue"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SCREX_COMPFAILOCTSTRING "Octet string comparison failure: "
+    IDS_SCREX_COMPFAILDOUBLE "Double precision comparison failure: "
+    IDS_SCREX_COMPFAILREAL  "Real comparison failure: "
+    IDS_SCREX_COMPFAILINT   "Integer comparison failure: "
+    IDS_SCREX_COMPFAILUNSIGNED "Unsigned Integer comparison failure: "
+    IDS_SCREX_COMPFAILBOOL  "Boolean comparison failure: "
+    IDS_SCREX_COMPFAILSTRENCODING 
+                            "Character String encoding mismatch: %d != %d"
+    IDS_SCREX_COMPFAILDATE  "Date comparison failure: "
+    IDS_SCREX_COMPFAILTIME  "Time comparison failure: "
 END
 
 #endif    // English (U.S.) resources
