@@ -908,177 +908,182 @@ ScriptExecMsg * ScriptExecutor::ReadMsg( void )
 
 void ScriptExecutor::ProcessTask( void )
 {
-	int				now = ::GetTickCount()
-	;
-	CSingleLock		lock( &execCS )
-	;
-	// lock to prevent multiple thread access
-	lock.Lock();
+  int now = ::GetTickCount();
+  CSingleLock lock(&execCS);
 
-	// if no test, get the first one
-	if (!execTest) {
-		// must be bound to a document
-		if (!execDoc) {
-			// alert the user
-			TRACE0( "***** No document bound" );
-			return;
-		}
+  // lock to prevent multiple thread access
+  lock.Lock();
 
-		// make sure the document has content
-		if (!execDoc->m_pContentTree || !execDoc->m_pContentTree->m_pScriptContent) {
-			// alert the user
-			Msg( 2, 0, "No test to run, check syntax" );
+  // if no test, get the first one
+  if (!execTest) {
+    // must be bound to a document
+    if (!execDoc) {
+      // alert the user
+      TRACE0( "***** No document bound" );
+      return;
+    }
 
-			// go back to idle
-			Cleanup();
-			return;
-		}
+    // make sure the document has content
+    if (!execDoc->m_pContentTree || !execDoc->m_pContentTree->m_pScriptContent) {
+      // alert the user
+      Msg( 2, 0, "No test to run, check syntax" );
 
-		// find the first test of section that has one
-		ScriptBasePtr sbp = execDoc->m_pContentTree->m_pScriptContent;
+      // go back to idle
+      Cleanup();
+      return;
+    }
+
+    // find the first test of section that has one
+    ScriptBasePtr sbp = execDoc->m_pContentTree->m_pScriptContent;
 
 // Added by Zhu Zhenhua, 2003-12-18, to run select section
-		if(execDoc->m_pSelectedSection)
-		{	
-			ScriptSectionPtr ssp = execDoc->m_pSelectedSection;
-			if (ssp->Length() != 0)
-			{
-				execTest = (ScriptTestPtr)ssp->Child( 0 );
-			}			
-		}
-		else
-		for (int i = 0; i < sbp->Length(); i++) {
-			ScriptSectionPtr ssp = (ScriptSectionPtr)sbp->Child( i );
-			if (ssp->Length() != 0)
-			{
-				execTest = (ScriptTestPtr)ssp->Child( 0 );
-				break;
-			}
-		}
-		if (!execTest) {
-//		if (!execCommand) {
-			// alert the user
-			Msg( 2, 0, "No test to run, check syntax" );
+    if(execDoc->m_pSelectedSection)
+    { 
+      ScriptSectionPtr ssp = execDoc->m_pSelectedSection;
+      if (ssp->Length() != 0)
+      {
+        execTest = (ScriptTestPtr)ssp->Child( 0 );
+      }     
+    }
+    else
+    for (int i = 0; i < sbp->Length(); i++) {
+      ScriptSectionPtr ssp = (ScriptSectionPtr)sbp->Child( i );
+      if (ssp->Length() != 0) 
+      {
+        execTest = (ScriptTestPtr)ssp->Child( 0 );
+        break;
+      }
+    }
+    if (!execTest) {
+//    if (!execCommand) {
+      // alert the user
+      Msg( 2, 0, "No test to run, check syntax" );
 
-			// go back to idle
-			Cleanup();
-			return;
-		}
-	}
+      // go back to idle
+      Cleanup();
+      return;
+    }
+  }
 
-	// if no packet, get first one
-//	if (!execPacket) {
-	if (!execCommand) {
-		// reset the test
-		ResetTest( execTest );
+  // if no packet, get first one
+//  if (!execPacket) {
+  if (!execCommand) {
+    // reset the test
+    ResetTest( execTest );
 
-		// calculate the new status
-		int newStatus = CalcTestStatus( execTest );
-		if (newStatus) {
-			// alert the user
-			Msg( 1, execTest->baseLineStart, "failed, check dependencies" );
+    // calculate the new status
+    int newStatus = CalcTestStatus( execTest );
+    if (newStatus) {
+      // alert the user
+      Msg( 1, execTest->baseLineStart, "failed, check dependencies" );
 
-			// set the status
-			SetTestStatus( execTest, newStatus );
+      // set the status
+      SetTestStatus( execTest, newStatus );
 
-			// go back to idle
-			Cleanup();
-			return;
-		}
+      // go back to idle
+      Cleanup();
+      return;
+    }
 
-		// extract the first packet
-//		execPacket = execTest->testFirstPacket;
-		execCommand = execTest->testFirstCommand;
+    // extract the first packet
+//    execPacket = execTest->testFirstPacket;
+    execCommand = execTest->testFirstCommand;
 
-		// if no packets in test, it succeeds easily
-//		if (!execPacket) {
-		if (!execCommand) {
-			// alert the user
-			Msg( 1, execTest->baseLineStart, "trivial test successful" );
+    // if no packets in test, it succeeds easily
+//    if (!execPacket) {
+    if (!execCommand) {
+      // alert the user
+      Msg( 1, execTest->baseLineStart, "trivial test successful" );
 
-			// set the status
-			SetTestStatus( execTest, 1 );
+      // set the status
+      SetTestStatus( execTest, 1 );
 
-			// go back to idle
-			Cleanup();
-			return;
-		}
+      // go back to idle
+      Cleanup();
+      return;
+    }
 
-		// message to the database
-		Msg( 1, execTest->baseLineStart, "started" );
-		Msg( 3, execTest->baseLineStart, execDoc->GetPathName() );
+    // message to the database
+    Msg( 1, execTest->baseLineStart, "started" );
+    Msg( 3, execTest->baseLineStart, execDoc->GetPathName() );
 
-		// set the test status to running
-		SetTestStatus( execTest, 2 );
+    // set the test status to running
+    SetTestStatus( execTest, 2 );
 
-		// if single stepping, go to stopped
-		if (execSingleStep) {
-			// set the packet status to running
-//			SetPacketStatus( execPacket, 2 );
-			SetPacketStatus( execCommand, 2 );
+    // if single stepping, go to stopped
+    if (execSingleStep) {
+      // set the packet status to running
+//      SetPacketStatus( execPacket, 2 );
+      SetPacketStatus( execCommand, 2 );
 
-			execState = execStopped;
-			return;
-		}
-	}
+      execState = execStopped;
+      return;
+    }
+  }
 
-	// executor running
-	execState = execRunning;
+  // executor running
+  execState = execRunning;
 
 keepGoing:
-	// execute the current packet
-	if (execStepForced == 1) {
-		execStepForced = 0;
-		NextPacket( true );
-	} else
-	if (execStepForced == 2) {
-		execStepForced = 0;
-		NextPacket( false );
-	} else
-//	if (execPacket->packetType == ScriptPacket::sendPacket) {
-	if (execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::sendPacket) {
-		execPacket = (ScriptPacketPtr) execCommand;
-		if (execPending || (execPacket->packetDelay == 0)) {
-			execPending = false;
+  // execute the current packet
+  if (execStepForced == 1) {
+    execStepForced = 0;
+    NextPacket( true );
+  }
+  else if (execStepForced == 2) {
+    execStepForced = 0;
+    NextPacket( false );
+  } 
+//  else if (execPacket->packetType == ScriptPacket::sendPacket) {
+  else if (execCommand->baseType == ScriptBase::scriptPacket && 
+           ((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::sendPacket)
+  {
+    execPacket = (ScriptPacketPtr) execCommand;
+    if (execPending || (execPacket->packetDelay == 0)) {
+      execPending = false;
 
-			// do the packet
-			NextPacket( SendPacket() );
+      // do the packet
+      NextPacket( SendPacket() );
 
-			// might be more to do.  The goto sucks, but rather than reschedule with 
-			// a zero delay, keep the executor locked down until the transition to 
-			// the next packet can be completed.  This prevents packets that come in 
-			// faster than the reschedule from being processed by ReceiveNPDU.
-//			if (execPacket)
-			if (execCommand)
-				goto keepGoing;
-		} else {
-			if (execPacket->packetSubtype == ScriptPacket::rootPacket) {
-				TRACE2( "Send %08X root time %d\n", execPacket, now );
-				execRootTime = now;
-			}
+      // might be more to do.  The goto sucks, but rather than reschedule with 
+      // a zero delay, keep the executor locked down until the transition to 
+      // the next packet can be completed.  This prevents packets that come in 
+      // faster than the reschedule from being processed by ReceiveNPDU.
+//      if (execPacket)
+      if (execCommand)
+        goto keepGoing;
+    } 
+    else {
+      if (execPacket->packetSubtype == ScriptPacket::rootPacket) {
+        TRACE2( "Send %08X root time %d\n", execPacket, now );
+        execRootTime = now;
+      }
 
-			int delay = execPacket->packetDelay - (now - execRootTime);
+      int delay = execPacket->packetDelay - (now - execRootTime);
 
-			// proposed delay may have expired
-			if (delay < 0) {
-				TRACE1( "Send delay expired %d (2)\n", delay );
-				Msg( 3, execPacket->baseLineStart, "Delay expired" );
-				NextPacket( false );
-			} else {
-				// set the status pending
-				SetPacketStatus( execPacket, 2 );
+      // proposed delay may have expired
+      if (delay < 0) {
+        TRACE1( "Send delay expired %d (2)\n", delay );
+        Msg( 3, execPacket->baseLineStart, "Delay expired" );
+        NextPacket( false );
+      }
+      else {
+        // set the status pending
+        SetPacketStatus( execPacket, 2 );
 
-				// come back later
-				TRACE1( "Send delay %d (2)\n", delay );
-				execPending = true;
-				taskType = oneShotTask;
-				taskInterval = delay;
-				InstallTask();
-			}
-		}
-	} else
-//	if (execPacket->packetType == ScriptPacket::expectPacket) {
-	if (execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket) {
+        // come back later
+        TRACE1( "Send delay %d (2)\n", delay );
+        execPending = true;
+        taskType = oneShotTask;
+        taskInterval = delay;
+        InstallTask();
+      }
+    }
+  } 
+//  else if (execPacket->packetType == ScriptPacket::expectPacket)
+  else if (execCommand->baseType == ScriptBase::scriptPacket && 
+      ((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::expectPacket)
+  {
 		execPacket = (ScriptPacketPtr) execCommand;
 		if (execPending) 
 		if ( execPacket->packetType == ScriptPacket::expectPacket && execPacket->bpacketNotExpect)	//Modified by Zhu Zhenhua, 2003-11-25
@@ -4068,80 +4073,110 @@ void ScriptExecutor::SendALOctetString( ScriptPacketExprPtr spep, CByteArray &pa
 //		CHARACTERSTRING	[ op ] tag ',' char-set ',' ( cstring | ostring )
 //		CHARACTERSTRING	[ op ] tag ',' { ref }
 //
-//	Most of ugly cases involves putting the last two tokens back together and passing the 
-//	whole thing off to Decode().  What a hack!  I don't want to allow the script to 
-//	specify a different encoding than what might be in the EPICS without (a) supporting 
-//	translation from one encoding to another or (b) requiring that the EPICS content 
-//	match the encoding specified in the script.  (A) is a pain if it's even possible, and 
-//	(b) doesn't seem to have much point.
-//
+//	Most of ugly cases involves putting the last two tokens back together and 
+//	passing the whole thing off to Decode().  What a hack!  
+//	I don't want to allow the script to specify a different encoding than what 
+//	might be in the EPICS without 
+//	  (a) supporting translation from one encoding to another or 
+//	  (b) requiring that the EPICS content match the encoding specified in the 
+//        script.
+//  Option (a) is a pain (if it's even possible), and (b) doesn't seem to have 
+//  much point.
 
 void ScriptExecutor::SendALCharacterString( ScriptPacketExprPtr spep, CByteArray &packet )
 {
-	int						indx = -1, context = kAppContext
-	;
-	BACnetCharacterString	cstrData
-	;
-	BACnetAPDUEncoder		enc
-	;
-	ScriptTokenList			tlist
-	;
+  int                   indx,  // Used for retrieving property from EPICS
+                        context = kAppContext;  // assume application data
+  BACnetCharacterString cstrData;
+  BACnetAPDUEncoder     enc;
+  ScriptTokenList       tlist;
 
-	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+  // Tokenize the expression and resolve parameter names into values
+  ResolveExpr( spep->exprValue, spep->exprLine, tlist );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		if (tlist[0].tokenType == scriptReference)
-			indx = 0;
-		else
-		if (!tlist[0].IsEncodeable( cstrData ))
-			throw "ASCII string value expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (tlist[1].tokenType == scriptReference) {
-			if (!tlist[0].IsInteger( context ))
-				throw "Tag number expected";
-			indx = 1;
-		} else {
-			if (ScriptToken::Lookup( tlist[0].tokenSymbol, ScriptCharacterTypeMap ) < 0)
-				throw "Unknown encoding";
+  // Tag and CharSet are optional
+  if (tlist.Length() == 1)
+  {
+    // Tag and CharSet omitted
+    indx = 0; // the token is the first item in the list
 
-			CString buff;
-			buff.Format( "%s, %s", tlist[0].tokenValue, tlist[1].tokenValue );
-			cstrData.Decode( buff );
-		}
-	} else
-	if (tlist.Length() == 3) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		if (ScriptToken::Lookup( tlist[1].tokenSymbol, ScriptCharacterTypeMap ) < 0)
-			throw "Unknown encoding";
+    if (tlist[0].tokenType == scriptReference)
+      indx = 0;
+    else 
+    if (!tlist[0].IsEncodeable(cstrData))
+      throw "ASCII (ANSI X3.4) string value expected";
+  }
+  else if (tlist.Length() == 2)
+  {
+    indx = 1; // the token is the second item in the list
 
-		CString buff;
-		buff.Format( "%s, %s", tlist[1].tokenValue, tlist[2].tokenValue );
-		cstrData.Decode( buff );
-	} else
-		throw "Missing requred parameters";
+    // Tag or CharSet included
+    if (tlist[0].IsInteger(context))
+    {
+      // It's the tag
+      if (!tlist[1].IsEncodeable(cstrData))
+        throw "ASCII (ANSI X3.4) string value expected";
+    }
+    else if (ScriptToken::Lookup(tlist[0].tokenSymbol, 
+                                 ScriptCharacterTypeMap) >= 0)
+    {
+      // It's a character set; decode the combined CharSet and string
+      CString buff;
+      buff.Format("%s, %s", tlist[0].tokenValue, tlist[1].tokenValue);
+      cstrData.Decode(buff);
+    }
+    else
+    {
+      // Neither Tag nor CharSet included
+      throw "Tag number or Character Set expected";
+    }
+  }
+  else if (tlist.Length() == 3)
+  {
+    indx = 2; // the token is the third item in the list
 
-	// see if a reference was used
-	if (indx >= 0) {
-		BACnetAnyValue bacnetAny;
+    // Tag AND CharSet included!
+    if (!tlist[0].IsInteger(context))
+      throw "Tag number expected";
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
+    if (ScriptToken::Lookup( tlist[1].tokenSymbol, ScriptCharacterTypeMap ) < 0)
+      throw "Unknown character set";
 
-		// verify the type
-		if ( !bacnetAny.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
-			throw "Character string property value expected in EPICS";
+    // Decode the combined CharSet and string
+    CString buff;
+    buff.Format("%s, %s", tlist[1].tokenValue, tlist[2].tokenValue);
+    cstrData.Decode(buff);
+  }
+  else
+    if (tlist.Length() < 1)
+      throw "Missing required parameters";
+    else
+      throw "Too many parameters";
 
-		bacnetAny.Encode(enc, context);
-	}
-	else
-		cstrData.Encode( enc, context );
+  if (tlist[indx].tokenType != scriptReference)
+    {
+      indx = -1;  // A reference to an EPICS property was NOT used
+    }
 
-	// copy the encoding into the byte array
-	for (int i = 0; i < enc.pktLength; i++)
-		packet.Add( enc.pktBuffer[i] );
+  // see if a reference was used
+  if (indx >= 0)
+  {
+    BACnetAnyValue bacnetAny;
+
+    GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
+
+    // verify the type
+    if (!bacnetAny.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetCharacterString)))
+      throw "Character string property value expected in EPICS";
+
+    bacnetAny.Encode(enc, context);
+  }
+  else
+    cstrData.Encode(enc, context);
+
+  // copy the encoding into the byte array
+  for (int i = 0; i < enc.pktLength; i++)
+    packet.Add( enc.pktBuffer[i] );
 }
 
 //
