@@ -9,13 +9,13 @@ REM This should be invoked from the VTS3 root.
 REM
 REM --- First make the executable distribution ---
 del %1-win32.zip
-pkzip25 -add %1-win32.zip release\VTS.exe
+pkzip25 -add %1-win32.zip release\VTS.exe ptp.dll
 cd docs
-pkzip25 -add -path ..\%1-win32.zip *.html	images\*.gif *.doc
+pkzip25 -add -path ..\%1-win32.zip *.html images\*.gif *.doc
 cd ..
-pkzip25 -add -path %1-win32.zip scripts\*.vts
+pkzip25 -add -path %1-win32.zip scripts\*.vts bacmacNT\*.*
 REM --- Then make the source distribution ---
 del %1-source.zip
-pkzip25 -add -dir %1-source.zip *.cpp *.hpp *.c *.h *.inl
-pkzip25 -add -dir %1-source.zip *.bmp *.cur *.ico *.rc *.rc2 *.dsp *.dsw *.lib *.vts
+pkzip25 -add -dir %1-source.zip *.cpp *.hpp *.c *.h *.inl 
+pkzip25 -add -dir %1-source.zip *.bmp *.cur *.ico *.rc *.rc2 *.dsp *.dsw *.lib *.vts ptp.dll bacmacNT\*.*
 
