@@ -211,10 +211,13 @@ typedef VTSBooleanCtrl *VTSBooleanCtrlPtr;
 
 class VTSEnumeratedCtrl : public VTSCtrl, public BACnetEnumerated {
 	public:
+		bool	m_bHaveDropDown;				//true is user have dropdown before updatedata,  Added by Zhu Zhenhua 2003-22
 		char	**m_Table;						// ptr to list of char*
 		int		m_TableSize;					// number of enumeration values
 		bool	m_bCombo;						// true iff ctrl is a combo
-
+		int  	m_nObjType;						//the Object Type when propCombo			 	 Added by Zhu Zhenhua 2003-22
+		int		m_SelectValue;					//the Selecct Indext of PropList				 Added by Zhu Zhenhua 2003-22
+		int		m_VendorPropID;					// the ID of Vendor Property when propCombo		 Added by Zhu Zhenhua 2003-22	    
 		VTSEnumeratedCtrl( const CWnd* wp, int id, char **table, int tableSize, bool isCombo = false );	// bind to window and control
 
 		void LoadCombo( void );					// initialize combo list
@@ -225,6 +228,9 @@ class VTSEnumeratedCtrl : public VTSCtrl, public BACnetEnumerated {
 
 		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
 		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
+private:
+	void EnumToSelect();
+	void SelectToEnum();
 	};
 
 typedef VTSEnumeratedCtrl *VTSEnumeratedCtrlPtr;

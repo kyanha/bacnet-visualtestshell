@@ -59,6 +59,7 @@ BEGIN_MESSAGE_MAP(CSendReadPropACK, CPropertyPage)
 	ON_EN_CHANGE(IDC_ARRAYINDEX, OnChangeArrayIndex)
 	ON_BN_CLICKED(IDC_VALUE, OnValue)
 	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectIDButton)
+	ON_CBN_DROPDOWN(IDC_PROPCOMBO, OnDropdownPropcombo)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -214,4 +215,12 @@ void CSendReadPropACK::OnValue()
 	m_Value.DoModal();
 	SavePage();
 	UpdateEncoded();
+}
+
+void CSendReadPropACK::OnDropdownPropcombo() 
+{	
+//Added by Zhu Zhenhua , 2003-7-22 
+//	to Load Standard property list for certain ObjectType
+	m_PropCombo.m_nObjType = m_ObjectID.GetObjectType();
+	m_PropCombo.LoadCombo();	
 }

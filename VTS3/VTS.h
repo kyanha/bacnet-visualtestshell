@@ -14,7 +14,7 @@
 
 #include "resource.h"       // main symbols
 
-#define MAX_DEFINED_OBJ	  21  // This is one more than defined BACnetObjectType
+#define MAX_DEFINED_OBJ	  23  // This is one more than defined BACnetObjectType :Modifyed Zhu Zhenhua 2003-7-24
 #define MAX_PROP_ID	      169		// BACnetPropertyIdentifier
 //#define MAX_SERVS_SUPP     40     //Modified by xlp
 #define MAX_SERVS_SUPP     50        

@@ -15,6 +15,8 @@
 #include "ScriptKeywords.h"
 
 #include "SendPage.h"
+#include"VTS.h"
+#include "VTSVendorPropIDDlg.h"
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -1503,31 +1505,77 @@ VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, char **table, int 
 	: VTSCtrl( wp, id )
 	, m_Table(table), m_TableSize(tableSize), m_bCombo(isCombo)
 {
+	m_nObjType = -1;
+	m_VendorPropID = -1;
+	m_bHaveDropDown = false;
 }
 
 //
 //	VTSEnumeratedCtrl::LoadCombo
 //
-
+extern bool Check_Obj_Prop(int ObjType, unsigned int propertyID);
 void VTSEnumeratedCtrl::LoadCombo( void )
 {
+	//Modifyed by Zhu Zhenhua 2003-7-22
+	//Load Standard Property List for propCombo(when m_nObjectType != -1 )
+	//And add Other select after standard properties for propCombo,which can set Vendor Property 
 	if (!m_bCombo)
-		return;
-	
-	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID )
-	;
-
-	if (cbp->GetCount() == 0) {
+		return;	
+	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
+	if(cbp->GetCount != 0 && m_nObjType != -1 && m_nObjType < 23)
+	{	
+		cbp->Clear();
+		cbp->ResetContent();
+		m_bHaveDropDown = true;
+	}									
+	if (cbp->GetCount() == 0) 
+	{
 		for (int i = 0; i < m_TableSize; i++)
-			cbp->AddString( m_Table[i] );
-
+		{
+			if(m_nObjType != -1 && m_nObjType < 23)
+			{
+				if(Check_Obj_Prop(m_nObjType, (unsigned int) i))
+					cbp->AddString( m_Table[i] );
+			}
+			else
+				cbp->AddString( m_Table[i] );
+		}
+		if(m_nObjType != -1 || m_nObjType < 23)
+		{
+			CString str = "------------------------------";
+			cbp->AddString(str);
+			for (i = 0; i < m_TableSize; i++)
+			{		
+				CString str;
+				str = m_Table[i];
+				if(cbp->FindString(-1, str) < 0)
+					cbp->AddString( m_Table[i] );;
+			}
+		}
+		if(m_nObjType != -1)
+		{
+			CString str = "Vendor";
+			cbp->AddString(str);
+		}
 		// make sure at least eight lines are visible
 		SetDropDownSize( 8 );
 	}
 
 	// set up the first value
 	if (!ctrlNull)
-		cbp->SetCurSel( enumValue );
+	{
+		EnumToSelect();
+		if(enumValue > 511 && m_nObjType != -1)
+		{
+			CString text;
+			cbp->DeleteString(cbp->GetCount()-1);
+			text.Format("Vendor %d", enumValue);
+			cbp->AddString(text);
+			cbp->SetCurSel(cbp->GetCount() -1);
+		}
+		else
+			cbp->SetCurSel( m_SelectValue );
+	}
 }
 
 //
@@ -1588,7 +1636,23 @@ void VTSEnumeratedCtrl::CtrlToObj( void )
 		;
 
 		ctrlNull = false;
-		enumValue = cbp->GetCurSel();
+
+		//Modifyed by Zhu Zhenhua 2003-7-22
+		//do some special works for propCommbo(when m_nObjectType != -1 )
+		int OldSelectValue = m_SelectValue;
+		m_SelectValue = cbp->GetCurSel();
+		if(m_nObjType == -1)
+		{
+			enumValue = m_SelectValue;
+			return;
+		}
+		CString str;
+		CString strtemp = "------------------------------";
+		cbp->GetLBText(m_SelectValue,str);
+		if(!str.Compare(strtemp))
+			return;
+		if(OldSelectValue != m_SelectValue || m_bHaveDropDown)
+		SelectToEnum();
 
 		return;
 	}
@@ -1659,7 +1723,11 @@ void VTSEnumeratedCtrl::ObjToCtrl( void )
 		CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID )
 		;
 
-		cbp->SetCurSel( enumValue );
+//Modified by Zhu Zhenhua 2003-7-22
+//To get the slectItem Index from enumValue(when m_nObjectType == -1)
+// if not PropComb, it will do as before
+		EnumToSelect();
+		cbp->SetCurSel( m_SelectValue );
 
 		return;
 	}
@@ -3180,4 +3248,78 @@ void VTSStatusFlags::UpdateData( BOOL bCtrlToObj )
 		CtrlToObj();
 	else
 		ObjToCtrl();
+}
+
+//Added by Zhu Zhenhua 2003-7-22
+//To get the enumValue for the SelectItem Index
+void VTSEnumeratedCtrl::SelectToEnum()
+{			
+	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
+	m_bHaveDropDown = false;
+	if(m_SelectValue == (cbp->GetCount() -1))
+	{	
+		VTSVendorPropIDDlg dlg;
+		if(m_VendorPropID != -1)
+			dlg.m_PropID = m_VendorPropID;
+		int res = dlg.DoModal();
+		if(res == IDOK)
+		{	
+			m_VendorPropID = dlg.m_PropID;
+			enumValue = m_VendorPropID;
+		}
+		if(enumValue > 511)
+		{
+			CString text;
+			cbp->DeleteString(cbp->GetCount()-1);
+			text.Format("Vendor %d", enumValue);
+			cbp->AddString(text);
+			cbp->SetCurSel(cbp->GetCount() -1);
+			return;
+		}
+		else 
+		{	
+			EnumToSelect();
+			cbp->SetCurSel(m_SelectValue);
+		}
+	}				
+	if(m_nObjType > 23)
+	{
+		enumValue = m_SelectValue;
+		return;
+	}
+	if (cbp->GetCount() != 0) 
+	{
+		for (int i = 0; i < m_TableSize; i++)
+		{
+			CString str;
+			cbp->GetWindowText(str);
+			CString strtemp = m_Table[i];
+			if(!str.Compare(strtemp))
+				enumValue = i;
+		}
+	}
+
+}
+
+//Added by Zhu Zhenhua 2003-7-22
+//To get the slectItem Index from enumValue
+void VTSEnumeratedCtrl::EnumToSelect()
+{	
+	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
+	if(enumValue > 511 && m_nObjType != -1)
+	{	
+		m_SelectValue = cbp->GetCount() - 1;
+		m_VendorPropID = enumValue;
+		return;
+	}
+	if(m_nObjType == -1 || m_nObjType > 23)
+	{
+		m_SelectValue = enumValue;
+		return;
+	}
+	if (cbp->GetCount() != 0) 
+	{
+			CString str = m_Table[enumValue];
+			m_SelectValue = cbp->FindString(-1, str);
+	}
 }

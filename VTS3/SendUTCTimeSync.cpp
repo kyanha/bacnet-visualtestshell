@@ -25,14 +25,10 @@ IMPLEMENT_DYNCREATE(CSendUTCTimeSync, CPropertyPage)
 CSendUTCTimeSync::CSendUTCTimeSync() : CSendPage(CSendUTCTimeSync::IDD)
 	, m_Date( this, IDC_UTCDATE )
 	, m_Time( this, IDC_UTCTIME )
-	, m_UTC_offset(this,IDC_UTCOFFSET)
-	, m_DaylightSavingsStatus(this, IDC_DAYLIGHTSAVINGS)
-
 
 {
 	//{{AFX_DATA_INIT(CSendUTCTimeSync)
 	m_AutoSync = FALSE;
-	m_DaylightSavingsStatus = FALSE;
 	//}}AFX_DATA_INIT
 }
 #pragma warning( default : 4355 )
@@ -46,7 +42,6 @@ void CSendUTCTimeSync::DoDataExchange(CDataExchange* pDX)
 	CPropertyPage::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CSendUTCTimeSync)
 	DDX_Check(pDX, IDC_AUTOSYNCTIME, m_AutoSync);
-	DDX_Check(pDX, IDC_DAYLIGHTSAVINGS, m_DaylightSavingsStatus);
 	//}}AFX_DATA_MAP
 	m_Date.UpdateData( pDX->m_bSaveAndValidate );
 	m_Time.UpdateData( pDX->m_bSaveAndValidate );
@@ -56,14 +51,18 @@ void CSendUTCTimeSync::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CSendUTCTimeSync, CPropertyPage)
 	//{{AFX_MSG_MAP(CSendUTCTimeSync)
 	ON_BN_CLICKED(IDC_AUTOSYNCTIME, OnAutosynctime)
-	ON_BN_CLICKED(IDC_DAYLIGHTSAVINGS, OnDaylightsavings)
 	ON_EN_CHANGE(IDC_UTCDATE, OnChangeUtcdate)
-	ON_EN_CHANGE(IDC_UTCOFFSET, OnChangeUtcoffset)
 	ON_EN_CHANGE(IDC_UTCTIME, OnChangeUtctime)
 	ON_WM_TIMER()
 	ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//Modifyed by Zhu Zhenhua 2003-7-22 
+//Remove the UTC offset and Daylight Savings status for UTCTimeSynchronization
+//Remove the Value, the implementation Function and the Encode&Decode 
 
 /////////////////////////////////////////////////////////////////////////////
 // CSendUTCTimeSync message handlers
@@ -91,14 +90,6 @@ void CSendUTCTimeSync::OnAutosynctime( void )
 	
 }
 
-void CSendUTCTimeSync::OnDaylightsavings() 
-{
-	TRACE0( "CSendUTCTimeSync::OnDaylightsavings()\n" );
-	UpdateData();
-	SavePage();
-	UpdateEncoded();
-	
-}
 
 void CSendUTCTimeSync::OnChangeUtcdate() 
 {
@@ -118,16 +109,6 @@ void CSendUTCTimeSync::InitPage( void )
 	m_Time.ctrlNull = false;
 
 }
-
-void CSendUTCTimeSync::OnChangeUtcoffset() 
-{
-	TRACE0( "CSendUTCTimeSync::OnChangeUtcoffset()\n" );
-	m_UTC_offset.UpdateData();
-	SavePage();
-	UpdateEncoded();
-	
-}
-
 
 void CSendUTCTimeSync::OnChangeUtctime() 
 {
@@ -149,8 +130,6 @@ void CSendUTCTimeSync::SavePage( void )
 
 	m_Date.SaveCtrl( pageContents );
 	m_Time.SaveCtrl( pageContents );
-//	m_fDaylightSavingsStatus.SaveCtrl( pageContents );
-	m_UTC_offset.SaveCtrl(pageContents );
 }
 
 //
@@ -166,7 +145,6 @@ void CSendUTCTimeSync::RestorePage( int index )
 		return;
 	m_Date.RestoreCtrl( dec );
 	m_Time.RestoreCtrl( dec );
-	m_UTC_offset.RestoreCtrl(dec );
 
 }
 
@@ -208,16 +186,6 @@ void CSendUTCTimeSync::EncodePage( CByteArray* contents )
 	if (m_Time.ctrlNull)
 		throw "Time required";
 	m_Time.Encode( enc );
-
-    if (m_UTC_offset.ctrlNull)
-	   throw "UTC Offset required";
-	if ((m_UTC_offset.intValue < -780) || (m_UTC_offset.intValue > 780))
-	   throw "UTC Offset out of range -780..780 minutes";
-	m_UTC_offset.Encode(enc);
-
-//	m_fDaylightSavingsStatus.Encode(enc);
-	BACnetBoolean( m_DaylightSavingsStatus ).Encode( enc );
-
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
 		header.Add( enc.pktBuffer[i] );		 // new

@@ -908,6 +908,10 @@ SOURCE=.\VTSTimeStampDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSVendorPropIDDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ptp\VTSWinPTPPort.cpp
 # End Source File
 # Begin Source File
@@ -1737,6 +1741,10 @@ SOURCE=.\VTSTimeStamp.h
 # Begin Source File
 
 SOURCE=.\VTSTimeStampDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSVendorPropIDDlg.h
 # End Source File
 # Begin Source File
 

@@ -55,10 +55,11 @@ void CSendAddListElement::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CSendAddListElement, CPropertyPage)
 	//{{AFX_MSG_MAP(CSendAddListElement)
 	ON_EN_CHANGE(IDC_OBJECTID, OnChangeObjectID)
+	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectIDButton)
 	ON_CBN_SELCHANGE(IDC_PROPCOMBO, OnSelchangePropCombo)
 	ON_EN_CHANGE(IDC_ARRAYINDEX, OnChangeArrayIndex)
 	ON_BN_CLICKED(IDC_VALUE, OnValue)
-	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectIDButton)
+	ON_CBN_DROPDOWN(IDC_PROPCOMBO, OnDropdownPropcombo)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -218,4 +219,12 @@ void CSendAddListElement::OnValue()
 	m_Value.DoModal();
 	SavePage();
 	UpdateEncoded();
+}
+
+void CSendAddListElement::OnDropdownPropcombo() 
+{
+//Added by Zhu Zhenhua , 2003-7-22 
+//	to Load Standard property list for certain ObjectType
+	m_PropCombo.m_nObjType = m_ObjectID.GetObjectType();
+	m_PropCombo.LoadCombo();
 }

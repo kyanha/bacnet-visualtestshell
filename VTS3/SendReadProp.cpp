@@ -60,6 +60,7 @@ BEGIN_MESSAGE_MAP(CSendReadProp, CPropertyPage)
 	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectIDButton)
 	ON_WM_SHOWWINDOW()
 	ON_WM_DESTROY()
+	ON_CBN_DROPDOWN(IDC_PROPCOMBO, OnDropdownPropcombo)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -247,4 +248,12 @@ void CSendReadProp::OnDestroy()
 	
 	if(curHistoryIndex > glMaxHistoryCount - 1)
 		curHistoryIndex = 0;			
+}
+
+void CSendReadProp::OnDropdownPropcombo() 
+{
+//Added by Zhu Zhenhua , 2003-7-22 
+//	to Load Standard property list for certain ObjectType
+	m_PropCombo.m_nObjType = m_ObjectID.GetObjectType();
+	m_PropCombo.LoadCombo();
 }

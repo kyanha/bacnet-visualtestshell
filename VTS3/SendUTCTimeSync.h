@@ -16,12 +16,16 @@ class CSendUTCTimeSync : public CSendPage
 {
 	DECLARE_DYNCREATE(CSendUTCTimeSync)
 
+////////////////////////////////////////////////////////////////////////////////////
+//Modifyed by Zhu Zhenhua 2003-7-22 
+//Remove the UTC offset and Daylight Savings status for UTCTimeSynchronization
+//Remove the Value, the implementation Function
+
 // Construction
 public:
 	CSendUTCTimeSync(void);
 	VTSDateCtrl				m_Date;
 	VTSTimeCtrl				m_Time;
-	VTSIntegerCtrl			m_UTC_offset;
 
 	void SynchronizeControls( void );
 
@@ -36,7 +40,6 @@ public:
 	//{{AFX_DATA(CSendUTCTimeSync)
 	enum { IDD = IDD_SENDUTCTIMESYNC };
 	BOOL	m_AutoSync;
-	BOOL	m_DaylightSavingsStatus;
 	//}}AFX_DATA
 
 
@@ -52,9 +55,7 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(CSendUTCTimeSync)
 	afx_msg void OnAutosynctime();
-	afx_msg void OnDaylightsavings();
 	afx_msg void OnChangeUtcdate();
-	afx_msg void OnChangeUtcoffset();
 	afx_msg void OnChangeUtctime();
 	afx_msg void OnTimer(UINT nIDEvent);
 	virtual BOOL OnInitDialog();
