@@ -793,9 +793,12 @@ void VTSPreferences::Save( void )
 //				be found in the document attached to the sourceforge item.
 //
 //				
+//  3.2.1   [567046] 
+//          Now Detail pane has been changed into treelist pane, we expanded some nodes by 
+//          default to display the informations that we think they are very important.
 
 
-const int kReleaseVersion = 0;
+const int kReleaseVersion = 1;
 
 class CAboutDlg : public CDialog
 {
