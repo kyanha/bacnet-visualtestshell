@@ -106,3 +106,217 @@ int BACnetAPDUDecoder::ExtractData( BACnetOctet *buffer )
 	// return the length
 	return tag.tagLVT;
 }
+
+//
+//	ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec )
+//
+//	A handy debugging function.
+//
+
+ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec )
+{
+	int					i, len
+	;
+	const static char	hex[] = "0123456789ABCDEF"
+	;
+	BACnetAPDUDecoder	decCopy = dec
+	;
+	BACnetAPDUTag		t
+	;
+	BACnetOctet			buff[1024]
+	;
+	char				msg[1024]
+	;
+	
+	while (decCopy.pktLength != 0) {
+		try {
+			decCopy.ExamineTag( t );
+//			strm << "tagNumber : " << (int)t.tagNumber << endl;
+//			strm << "tagClass : " << (int)t.tagClass << endl;
+//			strm << "tagLVT : " << t.tagLVT << endl;
+			
+			switch (t.tagClass) {
+				case contextTagClass:
+					strm << "Context specific data (tag " << (int)t.tagNumber << "): ";
+					len = decCopy.ExtractData( buff );
+					for (i = 0; i < len; i++) {
+						strm << hex[(buff[i] >> 4) & 0x0F];
+						strm << hex[buff[i] & 0x0F];
+						strm << '.';
+					}
+					strm << endl;
+					break;
+					
+				case openingTagClass: {
+					BACnetOpeningTag	openingTag
+					;
+					
+					openingTag.Decode( decCopy );
+					strm << "Opening tag : " << (int)t.tagNumber << endl;
+					break;
+					}
+					
+				case closingTagClass: {
+					BACnetClosingTag	closingTag
+					;
+					
+					closingTag.Decode( decCopy );
+					strm << "Closing tag : " << (int)t.tagNumber << endl;
+					break;
+					}
+				
+				case applicationTagClass:
+					switch (t.tagNumber) {
+						case unusedAppTag:
+							throw -1; // should never get here
+						
+						case nullAppTag: {
+							BACnetNull		nullValue
+							;
+							
+							nullValue.Decode( decCopy );
+							strm << "Null" << endl;
+							break;
+							}
+							
+						case booleanAppTag: {
+							BACnetBoolean	boolValue
+							;
+							
+							boolValue.Decode( decCopy );
+							strm << "Boolean : " << (int)boolValue.boolValue << endl;
+							break;
+							}
+							
+						case unsignedIntAppTag: {
+							BACnetUnsigned	uintValue
+							;
+							
+							uintValue.Decode( decCopy );
+							strm << "Unsigned integer : " << uintValue.uintValue << endl;
+							break;
+							}
+							
+						case integerAppTag: {
+							BACnetInteger	intValue
+							;
+							
+							intValue.Decode( decCopy );
+							strm << "Integer : " << intValue.intValue << endl;
+							break;
+							}
+							
+						case realAppTag: {
+							BACnetReal	realValue
+							;
+							
+							realValue.Decode( decCopy );
+							strm << "Real : " << realValue.realValue << endl;
+							break;
+							}
+							
+						case doubleAppTag: {
+							BACnetDouble	doubleValue
+							;
+							
+							doubleValue.Decode( decCopy );
+							strm << "Double : " << doubleValue.doubleValue << endl;
+							break;
+							}
+							
+						case octetStringAppTag:
+							strm << "Octet string : ";
+							goto suckData;
+							
+						case characterStringAppTag:
+							strm << "Character string : ";
+							goto suckData;
+							
+						case bitStringAppTag:
+							strm << "Bit string : ";
+							
+						suckData:
+							len = decCopy.ExtractData( buff );
+							for (i = 0; i < len; i++)
+								if ((buff[i] > ' ') && (buff[i] <= '~'))
+									strm << (char)buff[i] << '.';
+								else {
+									strm << hex[(buff[i] >> 4) & 0x0F];
+									strm << hex[buff[i] & 0x0F];
+									strm << '.';
+								}
+							strm << endl;
+							break;
+							
+						case enumeratedAppTag: {
+							BACnetEnumerated	enumValue
+							;
+							
+							enumValue.Decode( decCopy );
+							strm << "Enumerated : " << enumValue.enumValue << endl;
+							break;
+							}
+							
+						case dateAppTag: {
+							BACnetDate			dateValue
+							;
+							
+							dateValue.Decode( decCopy );
+							strm << "Date : "
+								<< "year = " << dateValue.year << " (" << dateValue.year + 1900 << ")"
+								<< ", month = " << dateValue.month
+								<< ", day = " << dateValue.day
+								<< ", dayOfWeek = " << dateValue.dayOfWeek
+								<< endl;
+							break;
+							}
+							
+						case timeAppTag: {
+							BACnetTime			timeValue
+							;
+							
+							timeValue.Decode( decCopy );
+							strm << "Time : "
+								<< "hour = " << timeValue.hour
+								<< ", minute = " << timeValue.minute
+								<< ", second = " << timeValue.second
+								<< ", hundredths = " << timeValue.hundredths
+								<< endl;
+							break;
+							}
+							
+						case objectIdentifierAppTag: {
+							BACnetObjectIdentifier	objId
+							;
+							
+							objId.Decode( decCopy );
+							objId.Encode( msg );
+							strm << "Object Identifier : " << msg << endl;
+							break;
+							}
+                                                        
+						case reservedAppTag13:
+							strm << "Reserved (13) : ";
+							goto suckData;
+                                                        
+						case reservedAppTag14:
+							strm << "Reserved (14) : ";
+							goto suckData;
+                                                        
+						case reservedAppTag15:
+							strm << "Reserved (15) : ";
+							goto suckData;
+					}
+				}
+		}
+		catch (...) {
+			strm << "Decoding error" << endl;
+			break;
+		}
+	}
+	
+	// final blank line
+	strm << endl;
+	
+	return strm;
+}

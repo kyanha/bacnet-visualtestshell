@@ -22,8 +22,8 @@ static char THIS_FILE[] = __FILE__;
 //
 
 BACnetBBMD::BACnetBBMD( const BACnetAddress &addr )
-	: bbmdAddress(addr), bbmdLocalIndex(-1), bbmdBDTSize(0), bbmdFDTSize(0)
-	, BACnetTask( recurringTask, 1000 )
+	: BACnetTask( recurringTask, 1000 )
+	, bbmdAddress(addr), bbmdLocalIndex(-1), bbmdBDTSize(0), bbmdFDTSize(0)
 {
 	InstallTask();
 }
@@ -115,6 +115,9 @@ void BACnetBBMD::Indication( const BACnetNPDU &npdu )
 			// done with this message as well
 			delete[] msg;
 			break;
+            
+        default:
+            throw -1; // should never get any other kind of address
 	}
 }
 

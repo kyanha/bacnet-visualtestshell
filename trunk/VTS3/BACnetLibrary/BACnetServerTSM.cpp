@@ -178,6 +178,16 @@ void BACnetServerTSM::Idle( const BACnetAPDU &apdu )
 #if _TSMDebug
 			cout << "[BACnetServerTSM::confirmedRequestPDU: invokeID " << apdu.apduInvokeID << "]" << endl;
 #endif
+			// set the segmented reply accepted based on the request
+			tsmSegmentation = (apdu.apduSA ? segmentedReceive : noSegmentation);
+			
+			// set the segment size going back to what the device gave us in this request
+			tsmSegmentSize = apdu.apduMaxResp;
+			
+			// clip it to what can be sent
+			if (tsmSegmentSize > tsmDevice->deviceMaxAPDUSize)
+				tsmSegmentSize = tsmDevice->deviceMaxAPDUSize;
+			
 			// is this an unsegmented request?
 			if (!apdu.apduSeg) {
 				SetState( tsmAwaitResponse );
@@ -197,16 +207,6 @@ void BACnetServerTSM::Idle( const BACnetAPDU &apdu )
 				Response( BACnetAbortAPDU( apdu.apduAddr, 1, tsmInvokeID, invalidAPDUInThisStateAbort ) );
 				break;
 			}
-			
-			// set the segmented reply accepted based on the request
-			tsmSegmentation = (apdu.apduSA ? segmentedReceive : noSegmentation);
-			
-			// set the segment size going back to what the device gave us in this request
-			tsmSegmentSize = apdu.apduMaxResp;
-			
-			// clip it to what can be sent
-			if (tsmSegmentSize > tsmDevice->deviceMaxAPDUSize)
-				tsmSegmentSize = tsmDevice->deviceMaxAPDUSize;
 			
 			tsmSeg = new BACnetAPDUSegment( 2560, this );
 			tsmSeg->AddSegment( apdu );

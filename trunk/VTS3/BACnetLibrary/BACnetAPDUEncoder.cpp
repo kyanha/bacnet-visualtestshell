@@ -27,7 +27,7 @@ static char THIS_FILE[] = __FILE__;
 //
 
 BACnetAPDUEncoder::BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen )
-	: pktBuffer(buffPtr), pktBuffSize(0), pktLength(buffLen)
+	: pktBuffSize(0), pktBuffer(buffPtr), pktLength(buffLen)
 {
 }
 

@@ -144,6 +144,8 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 	;
 	BACnetAddress		srcAddr, destAddr, *addrPtr
 	;
+    BACnetAddress		localBroadcast( localBroadcastAddr )
+    ;
 	const BACnetOctet	*npci = npdu.pduData, *apduData
 	;
 	BACnetOctet			*msg, *mptr
@@ -326,8 +328,8 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 		memcpy( mptr, apduData, apduLen );
 		mptr += apduLen;
 		
-		// build a local broadcast NPDU
-		BACnetNPDU	npdu( BACnetAddress( localBroadcastAddr ), msg, (mptr - msg), dataExpectingReply, networkPriority );
+        // build a local broadcast NPDU
+		BACnetNPDU	npdu( localBroadcast, msg, (mptr - msg), dataExpectingReply, networkPriority );
 		
 		// send it to all adapters, except the one it came from
 		for (i = 0; i < adapterListLen; i++)
@@ -508,6 +510,8 @@ void BACnetRouter::ProcessNetMessage(
 	;
 	BACnetOctet		*msg, *mptr
 	;
+    BACnetAddress	localBroadcast( localBroadcastAddr )
+    ;
 	
 	// interpret type
 	switch ((BACnetNetworkMessageType)msgType) {
@@ -555,7 +559,7 @@ void BACnetRouter::ProcessNetMessage(
 				*mptr++ = (net >> 8) & 0xFF;
 				*mptr++ = (net & 0xFF);
 				
-				BACnetNPDU	npdu( BACnetAddress( localBroadcastAddr ), msg, (mptr - msg) );
+				BACnetNPDU	npdu( localBroadcast, msg, (mptr - msg) );
 				
 				for (i = 0; i < adapterListLen; i++)
 					if (adapterList[i] != adapter)
@@ -704,6 +708,8 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 	;
 	BACnetOctet				*msg, *mptr
 	;
+    BACnetAddress			localBroadcast( localBroadcastAddr )
+    ;
 	
 	// build a buffer as big as the longest header plus the pdu
 	msg = new BACnetOctet[ 10 + pdu.pduAddr.addrLen + pdu.pduLen ];
@@ -790,7 +796,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 					// build a PDU, using a broadcast address and send it to everybody
 					// in the hope that somebody will pick it up and carry it along
 					BACnetNPDU
-						npdu( BACnetAddress( localBroadcastAddr ), msg, (mptr - msg)
+						npdu( localBroadcast, msg, (mptr - msg)
 							, pdu.pduExpectingReply, pdu.pduNetworkPriority
 							);
 			
@@ -814,7 +820,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 				
 				// build a PDU, making a new localBroadcastAddr
 				BACnetNPDU
-					npdu( BACnetAddress( localBroadcastAddr ), msg, (mptr - msg)
+					npdu( localBroadcast, msg, (mptr - msg)
 						, pdu.pduExpectingReply, pdu.pduNetworkPriority
 						);
 				
@@ -847,7 +853,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 					// build a PDU, using a broadcast address and send it to everybody
 					// in the hope that somebody will pick it up and carry it along
 					BACnetNPDU
-						npdu( BACnetAddress( localBroadcastAddr ), msg, (mptr - msg)
+						npdu( localBroadcast, msg, (mptr - msg)
 							, pdu.pduExpectingReply, pdu.pduNetworkPriority
 							);
 			
@@ -870,8 +876,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 			
 			// build a PDU, using a local broadcast address
 			BACnetNPDU
-				npdu1( BACnetAddress( localBroadcastAddr )
-					, msg, (mptr - msg)
+				npdu1( localBroadcast, msg, (mptr - msg)
 					, pdu.pduExpectingReply, pdu.pduNetworkPriority
 					);
 			
@@ -899,8 +904,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 				
 				// build another PDU, also using a local broadcast address
 				BACnetNPDU
-					npdu2( BACnetAddress( localBroadcastAddr )
-						, msg, (mptr - msg)
+					npdu2( localBroadcast, msg, (mptr - msg)
 						, pdu.pduExpectingReply, pdu.pduNetworkPriority
 						);
 				

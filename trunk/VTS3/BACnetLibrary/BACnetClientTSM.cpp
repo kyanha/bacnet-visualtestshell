@@ -209,6 +209,8 @@ void BACnetClientTSM::ProcessTask( void )
 		case tsmSegmentedConfirmation:
 			SegmentedConfirmationTimeout();
 			break;
+        default:
+            throw -1; // no other state is valid
 	}
 }
 

@@ -1,12 +1,6 @@
 
 #include "stdafx.h"
 
-#define _BACnetVLANDebug		0
-
-#if _BACnetVLANDebug
-#include <iostream>
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -68,7 +62,7 @@ void BACnetVLANMsg::ProcessTask( void )
 void BACnetVLANNode::Indication( const BACnetNPDU &pdu )
 {
 	// create a new VLAN message, it will get queued behind all of the other BACnetTask objects
-	new BACnetVLANMsg( nodeLAN, nodeAddr, pdu );
+	new BACnetVLANMsg( nodeLAN, portLocalAddr, pdu );
 }
 
 //
@@ -93,19 +87,53 @@ BACnetVLAN::BACnetVLAN( void )
 //	BACnetVLAN::NewNode
 //
 
-BACnetVLANNodePtr BACnetVLAN::NewNode( void )
+void BACnetVLAN::NewNode( BACnetVLANNodePtr np )
 {
-	BACnetOctet			addrByte = nodeListSize
+	int					i
+	;
+	
+	// find an empty slot
+	for (i = 0; i < nodeListSize; i++)
+		if (!nodeList[i])
+			break;
+	
+	// no slot found
+	if (i >= nodeListSize) {
+		if (nodeListSize == kBACnetVLANNodeListSize)
+			throw (-1); // no more node slots available
+		
+		i = nodeListSize++;
+	}
+	
+	// set up the node
+	nodeList[i] = np;
+	
+	// give it a default address
+	BACnetOctet			addrByte = i
 	;
 	BACnetAddress		addr( &addrByte, 1 )
 	;
-	BACnetVLANNodePtr	rslt
+	
+	np->portLocalAddr = addr;
+}
+
+//
+//	BACnetVLAN::DeleteNode
+//
+
+void BACnetVLAN::DeleteNode( BACnetVLANNodePtr np )
+{
+	int		i
 	;
 	
-	rslt = new BACnetVLANNode( addr, this );
-	nodeList[nodeListSize++] = rslt;
+	// find the slot
+	for (i = 0; i < nodeListSize; i++)
+		if (nodeList[i] == np)
+			break;
 	
-	return rslt;
+	// found it?
+	if (i < nodeListSize)
+		nodeList[i] = 0;
 }
 
 //
@@ -119,24 +147,10 @@ void BACnetVLAN::ProcessMessage( BACnetVLANMsgPtr msg )
 	BACnetNPDU	resp( msg->msgSource, msg->msgData, msg->msgLen )
 	;
 	
-#if _BACnetVLANDebug
-	const static char hex[] = "0123456789ABCDEF";
-	cout << "VLAN: ";
-	cout << "src = " << msg->msgSource;
-	cout << ", dst = " << msg->msgDestination;
-	cout << ", msg = ";
-	for (int i = 0; i < msg->msgLen; i++) {
-		cout << hex[ (msg->msgData[i] >> 4) & 0x0F ];
-		cout << hex[ msg->msgData[i] & 0x0F ];
-		cout << '.';
-	}
-	cout << endl;
-#endif
-	
 	switch (msg->msgDestination.addrType) {
 		case localStationAddr:
 			for (i = 0; i < nodeListSize; i++)
-				if (nodeList[i]->nodeAddr == msg->msgDestination) {
+				if (nodeList[i]->portLocalAddr == msg->msgDestination) {
 					nodeList[i]->Response( resp );
 					break;
 				}
@@ -144,14 +158,11 @@ void BACnetVLAN::ProcessMessage( BACnetVLANMsgPtr msg )
 			
 		case localBroadcastAddr:
 			for (i = 0; i < nodeListSize; i++)
-				if (!(msg->msgSource == nodeList[i]->nodeAddr))
+				if (!(msg->msgSource == nodeList[i]->portLocalAddr))
 					nodeList[i]->Response( resp );
 			break;
 			
 		default:
-#if _BACnetVLANDebug
-			cout << "VLAN Addressing error" << endl;
-#endif
 			break;
 	}
 }
