@@ -540,6 +540,7 @@ void ReadPropACKList::AddButtonClick( void )
 
 	// madanner, 8/26/02.  Sourceforge bug #472392
 	OnSelchangePropCombo();				// Insert new list text for Present_Value
+	rpalPagePtr->m_PropList.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
 //	rpalPagePtr->UpdateEncoded();		Commented because prior call to selchange updates.
 }
 
@@ -568,6 +569,10 @@ void ReadPropACKList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// madanner 9/4/02
+	// reselect a new row... just before the deleted one if any.
+	rpalPagePtr->m_PropList.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
 
 	// update the encoding
 	rpalPagePtr->UpdateEncoded();
@@ -886,6 +891,8 @@ void ReadPropACKListList::AddButtonClick( void )
 
 	// update the encoding
 	rpallAddInProgress = false;
+
+	rpallPagePtr->m_ObjList.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
 	rpallPagePtr->UpdateEncoded();
 }
 
@@ -914,6 +921,10 @@ void ReadPropACKListList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// madanner 9/4/02
+	// reselect a new row... just before the deleted one if any.
+	rpallPagePtr->m_ObjList.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
 
 	// update the encoding
 	rpallPagePtr->UpdateEncoded();
