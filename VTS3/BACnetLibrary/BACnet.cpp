@@ -304,6 +304,13 @@ BACnetEncodeable * BACnetEncodeable::clone()
 }
 
 
+bool BACnetEncodeable::PreMatch(int iOperator )
+{
+	return iOperator == '?=';
+}
+
+
+
 // Match is called by default from most all of the classes.  It really just fails and formats the error
 
 bool BACnetEncodeable::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
@@ -415,6 +422,9 @@ BACnetEncodeable * BACnetNull::clone()
 
 bool BACnetNull::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetNull)));
 
 	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
@@ -641,6 +651,9 @@ BACnetEncodeable * BACnetBoolean::clone()
 
 bool BACnetBoolean::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean)));
 
 	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
@@ -789,6 +802,9 @@ BACnetEncodeable * BACnetEnumerated::clone()
 
 bool BACnetEnumerated::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 //	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated))  || 
@@ -996,6 +1012,9 @@ BACnetEncodeable * BACnetUnsigned::clone()
 
 bool BACnetUnsigned::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned))  ||  
@@ -1221,6 +1240,9 @@ BACnetEncodeable * BACnetInteger::clone()
 
 bool BACnetInteger::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)) ||
@@ -1342,6 +1364,9 @@ BACnetEncodeable * BACnetReal::clone()
 
 bool BACnetReal::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	// Don't assert here because we might be comparing Real value with Null value from priority array
 	// This is normal and assert is getting in the way.
 
@@ -1476,6 +1501,9 @@ BACnetEncodeable * BACnetDouble::clone()
 
 bool BACnetDouble::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)) ||
@@ -1789,6 +1817,9 @@ BACnetEncodeable * BACnetCharacterString::clone()
 
 bool BACnetCharacterString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
@@ -1813,6 +1844,9 @@ bool BACnetCharacterString::Match( BACnetEncodeable &rbacnet, int iOperator, CSt
 
 bool BACnetCharacterString::Match( BACnetCharacterString & rstring, int iOperator )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	switch(iOperator)
 	{
 		case '=':	return *this == rstring;
@@ -2205,6 +2239,9 @@ BACnetEncodeable * BACnetOctetString::clone()
 
 bool BACnetOctetString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetOctetString)));
 
 	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
@@ -2305,6 +2342,9 @@ BACnetEncodeable * BACnetWeekNDay::clone()
 
 bool BACnetWeekNDay::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetWeekNDay)));
 
 	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
@@ -2769,6 +2809,9 @@ BACnetEncodeable * BACnetBitString::clone()
 
 bool BACnetBitString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBitString)));
 
 	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
@@ -3063,6 +3106,9 @@ BACnetEncodeable * BACnetDate::clone()
 
 bool BACnetDate::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)));
 
 //  Won't work due to don't care cases
@@ -3080,6 +3126,9 @@ bool BACnetDate::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 
 bool BACnetDate::Match( BACnetDate & rdate, int iOperator )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	switch(iOperator)
 	{
 		case '=':	return *this == rdate;
@@ -3472,6 +3521,9 @@ BACnetEncodeable * BACnetTime::clone()
 
 bool BACnetTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)));
 
 	// must use computed value because CTime doesn't deal with hundredths...
@@ -3492,6 +3544,9 @@ bool BACnetTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 
 bool BACnetTime::Match( BACnetTime & rtime, int iOperator )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	switch(iOperator)
 	{
 		case '=':	return *this == rtime;
@@ -3757,6 +3812,9 @@ BACnetEncodeable * BACnetDateTime::clone()
 
 bool BACnetDateTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)));
 
 	// CTimes don't work due to DONT_CARE value.  Too bad too.  CTime would work quite well
@@ -3784,6 +3842,9 @@ CTime BACnetDateTime::Convert()
 
 bool BACnetDateTime::Match( BACnetDateTime & rdatetime, int iOperator )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	switch(iOperator)
 	{
 		case '=':	return *this == rdatetime;
@@ -3907,6 +3968,9 @@ BACnetEncodeable * BACnetDateRange::clone()
 
 bool BACnetDateRange::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)) ||
@@ -3936,6 +4000,9 @@ CTimeSpan BACnetDateRange::GetSpan() const
 
 bool BACnetDateRange::Match( BACnetDateRange & rdaterange, int iOperator )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	switch(iOperator)
 	{
 		case '=':	return *this == rdaterange;
@@ -4160,6 +4227,9 @@ BACnetEncodeable * BACnetObjectIdentifier::clone()
 
 bool BACnetObjectIdentifier::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier))  ||  !::Match(iOperator, (unsigned long) ((BACnetObjectIdentifier &) rbacnet).objID, (unsigned long) objID) )
@@ -4238,6 +4308,9 @@ BACnetEncodeable * BACnetAddressBinding::clone()
 
 bool BACnetAddressBinding::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)));
 
 	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
@@ -4520,6 +4593,9 @@ BACnetEncodeable * BACnetPriorityValue::clone()
 
 bool BACnetPriorityValue::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)));
 	ASSERT(pbacnetTypedValue != NULL);
 
@@ -4586,6 +4662,9 @@ BACnetEncodeable * BACnetCalendarEntry::clone()
 
 bool BACnetCalendarEntry::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCalendarEntry)));
 	ASSERT(pbacnetTypedValue != NULL);
 
@@ -4652,6 +4731,9 @@ BACnetEncodeable * BACnetTimeStamp::clone()
 
 bool BACnetTimeStamp::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp)));
 	ASSERT(pbacnetTypedValue != NULL);
 
@@ -4765,6 +4847,9 @@ void BACnetGenericArray::ClearArray()
 
 bool BACnetGenericArray::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	if ( PreMatch(iOperator) )
+		return true;
+
 //	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetGenericArray)));
 
 	CString strError;

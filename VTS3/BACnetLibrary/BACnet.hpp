@@ -98,6 +98,7 @@ class BACnetEncodeable : public CObject {
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
 		bool EqualityRequiredFailure( BACnetEncodeable & rbacnet, int iOperator, CString * pstrError );
+		bool PreMatch( int iOperator );
 
 		DECLARE_DYNAMIC(BACnetEncodeable)
 	};
