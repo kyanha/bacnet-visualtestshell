@@ -30,6 +30,10 @@
 #define		kwCASE					0x688ED7CA
 #define		kwENDCASE				0x011E6F49
 #define		kwCOMMENT				0xCDAB06AF
+#define     kwIFDEF					0xD8D27EFB
+#define		kwELSEDEF				0x7C1B022E
+#define     kwELSEIFDEF				0x7BC955DD
+#define     kwENDIF					0x6CD21759
 
 //
 //	General Keywords
