@@ -4,7 +4,12 @@
 module:		VTSAPI32.C
 desc:		BACnet Standard Objects DLL v2.15
 authors:	David M. Fisher, Jack R. Neyer
-last edit:	29-DEC-03 [019] GJB parse the sectiion: Fails Times
+last edit:	01-MAR-04 [020] GJB
+				1. add a function: preprocstr
+				2. modify the string array SectionNames
+				3. modify a function: whatischoice
+				
+	    	29-DEC-03 [019] GJB parse the section: Fails Times
         	08-SEP-03 [018] GJB modified propFlags's index number in DV_CheckOptionalProperty function
 			01-SEP-03 [018] GJB enable parser to parse several new properties
 			10-Nov-02 [017] xyp added for parsing the value of property whose parse type is none.
@@ -172,6 +177,7 @@ int ClearCBList(HWND);						//										***003 Begin
 int AddCBListText(HWND,char *);
 int SelectCBListItem(HWND,int);				//										***003 End
 void rtrim(char *);							//										***006
+void preprocstr(char *str);					//                                      ***020
 ///////////////////////////////////////////////////////////////////////
 //	Module Constants
 #define	tab							0x09
@@ -214,7 +220,8 @@ static char *SectionNames[]={
 			"BACnet Conformance Class Supported",				//4
 			"BACnet Functional Groups Supported",				//5
 			"BACnet Standard Application Services Supported",	//6
-			"Standard Object-Types Supported",					//7
+//			"Standard Object-Types Supported",					//7
+			"Standard Object Types Supported",					//7                 ***020
 			"Data Link Layer Option",							//8
 			"Special Functionality",							//9
 			"List of Objects in test device",					//10
@@ -969,7 +976,9 @@ bool APIENTRY ReadTextPICS(
 			}
 			else
 			{	*lp++=0;						//make asciz section name and lp points to args
-				for (i=0;i<(sizeof(SectionNames)/sizeof(SectionNames[0]));i++)
+			for (i=0;i<(sizeof(SectionNames)/sizeof(SectionNames[0]));i++) {
+				  // preprocessing, replace score and underscore with whitespace
+				  preprocstr(lb);				// remove score and underscore		***020
 				  if (stricmp(lb,SectionNames[i])==0)	//we found a matching section name
 				  {	switch(i)
 					{
@@ -1021,11 +1030,12 @@ bool APIENTRY ReadTextPICS(
 					i=0;						//remember that we found one
 					break;
 				  };
-				if (i)							//couldn't find this one
-				{	lp[-1]=':';
-					if (tperror("Unknown section name",true))
-						goto rtpclose;
-				}
+			}																		
+			if (i)							//couldn't find this one
+			{	lp[-1]=':';
+				if (tperror("Unknown section name",true))
+					goto rtpclose;
+			}
 			}
 		}
 	};
@@ -4195,8 +4205,9 @@ octet whatIsChoice(char str[])
   skipwhitespace();
 	 
   // Start checking 
-  while(*lp != '/' && *lp != ':' && *lp != ')' && ucindex < 7)
-  {
+//   while(*lp != '/' && *lp != ':' && *lp != ')' && ucindex < 7)
+ while(*lp != '/' && *lp != '-' && *lp != ':' && *lp != ')' && ucindex < 7)     // ***020
+ {
     lp++;
     ucindex++;
   }
@@ -4212,7 +4223,8 @@ octet whatIsChoice(char str[])
         status = 0;	 
         break;
 	  // Found the date-time delimiter.
-      case '/':			 
+      case '/':	
+	  case '-':									// ***020
         lp -= ucindex;
         status = 20;	  
         break;
@@ -4241,7 +4253,8 @@ octet whatIsChoice(char str[])
 
 ///////////////////////////////////////////////////////////////////
 //  This function parses the Time Stamp data presented in the PICS
-//  Format: DateTime ,Time & Sequence number -> {(6/21/2001,11:32:43.0),(12:14:01.05),(65535)}     
+//  Format: DateTime ,Time & Sequence number -> {(6/21/2001,11:32:43.0),(12:14:01.05),(65535)}  
+//  DatetTime can also be writed out in such way: (23-MAR-95, 18:50:21.2)              
 //  The sequence number may be assigned any value from 0 - 65535 or the default "?".  
 //	in:	lp		points to current position in buffer lb
 //			inq		points to a BACnetObjectPropertyReference to be filled in (or NULL)
@@ -5730,6 +5743,24 @@ void rtrim(char *p)
 //		  return;
 //	}
 }												//								***006 End
+
+///////////////////////////////////////////////////////////////////////			***020 Begin
+//	Preprocess a string before parsing, 
+//  for example: replace score or underscore with space.
+//  other processes can be added if necessary
+//in:	str		points to the beginning of the string to be modified
+
+void preprocstr(char *str)
+{	
+	char* p;
+	while (p = strchr(str, '-')) {
+		*p = ' ';
+	}
+	while (p = strchr(str, '_')) {
+		*p = ' ';
+	}
+	
+}																			// ***020 End
 
 /////////////////////////////////////////////////////////////////////// 
 //	Convert HEX chars to binary octet
