@@ -860,6 +860,7 @@
 #define IDC_LISTOFPROPSTATES            1516
 #define IDC_RADIOBITSTR                 1517
 #define IDC_EPICSV_PROP_LIST            1521
+#define IDC_EPICSV_DA                   1522
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -1010,7 +1011,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        362
 #define _APS_NEXT_COMMAND_VALUE         32839
-#define _APS_NEXT_CONTROL_VALUE         1522
+#define _APS_NEXT_CONTROL_VALUE         1523
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif
