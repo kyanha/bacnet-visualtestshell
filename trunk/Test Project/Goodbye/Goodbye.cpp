@@ -36,6 +36,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	cout << endl;
 	cout << "Assuming that this works, amazing!" << endl;
 	cout << "And it gets even better..." << endl;
+        cout << "Until it gets worse." << endl;
 	cout << endl;
 
 	return 0;
