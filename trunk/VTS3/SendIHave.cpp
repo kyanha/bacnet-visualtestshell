@@ -22,6 +22,7 @@ BACnetAPDUEncoder CSendIHave::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendIHave, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendIHave::CSendIHave( void )
 	: CSendPage( CSendIHave::IDD )
 	, m_DeviceID( this, IDC_DEVICEID )
@@ -31,6 +32,7 @@ CSendIHave::CSendIHave( void )
 	//{{AFX_DATA_INIT(CSendIHave)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendIHave::DoDataExchange(CDataExchange* pDX)
 {

@@ -27,6 +27,7 @@ namespace NetworkSniffer {
 
 IMPLEMENT_DYNCREATE( CSendConfEventNotification, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendConfEventNotification::CSendConfEventNotification( void )
 	: CSendPage( CSendConfEventNotification::IDD )
 	, m_ProcessID( this, IDC_PROCESSID )
@@ -44,6 +45,7 @@ CSendConfEventNotification::CSendConfEventNotification( void )
 	//{{AFX_DATA_INIT(CSendConfEventNotification)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendConfEventNotification::DoDataExchange(CDataExchange* pDX)
 {

@@ -41,6 +41,7 @@ BACnetAPDUEncoder CSendConfirmedRequest::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendConfirmedRequest, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendConfirmedRequest::CSendConfirmedRequest( void )
 	: CSendPage( CSendConfirmedRequest::IDD )
 	, m_SegmentSize( this, IDC_SEGMENTSIZE )
@@ -55,6 +56,7 @@ CSendConfirmedRequest::CSendConfirmedRequest( void )
 	m_SegResponse = FALSE;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendConfirmedRequest::DoDataExchange(CDataExchange* pDX)
 {

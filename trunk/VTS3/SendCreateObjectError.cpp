@@ -24,6 +24,7 @@ BACnetAPDUEncoder CSendCreateObjectError::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendCreateObjectError, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendCreateObjectError::CSendCreateObjectError( void )
 	: CSendPage( CSendCreateObjectError::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
@@ -35,6 +36,7 @@ CSendCreateObjectError::CSendCreateObjectError( void )
 	//{{AFX_DATA_INIT(CSendCreateObjectError)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendCreateObjectError::DoDataExchange(CDataExchange* pDX)
 {

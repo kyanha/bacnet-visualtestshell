@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendVTData::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendVTData, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendVTData::CSendVTData( void )
 	: CSendPage( CSendVTData::IDD )
 	, m_ID( this, IDC_ID )
@@ -29,6 +30,7 @@ CSendVTData::CSendVTData( void )
 	//{{AFX_DATA_INIT(CSendVTData)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendVTData::DoDataExchange(CDataExchange* pDX)
 {

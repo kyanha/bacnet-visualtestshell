@@ -52,6 +52,7 @@ VTSPropertyState gPropertyState[] =
 
 IMPLEMENT_DYNCREATE(VTSNotifyState, CPropertyPage)
 
+#pragma warning( disable : 4355 )
 VTSNotifyState::VTSNotifyState()
 	: CPropertyPage(VTSNotifyState::IDD)
 	, m_StatusFlags( this )
@@ -64,6 +65,7 @@ VTSNotifyState::VTSNotifyState()
 	m_Type = 0;
 	m_Value = 0;
 }
+#pragma warning( default : 4355 )
 
 VTSNotifyState::~VTSNotifyState()
 {

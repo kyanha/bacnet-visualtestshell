@@ -20,6 +20,7 @@ BACnetAPDUEncoder  CSendWhoIs::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendWhoIs, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendWhoIs::CSendWhoIs( void )
 	: CSendPage( CSendWhoIs::IDD )
 	, m_LowLimit( this, IDC_LOWLIMIT )
@@ -28,6 +29,7 @@ CSendWhoIs::CSendWhoIs( void )
 	//{{AFX_DATA_INIT(CSendWhoIs)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendWhoIs::DoDataExchange(CDataExchange* pDX)
 {

@@ -26,6 +26,7 @@ namespace NetworkSniffer {
 
 IMPLEMENT_DYNCREATE( CSendAckAlarm, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendAckAlarm::CSendAckAlarm( void )
 	: CSendPage( CSendAckAlarm::IDD )
 	, m_AckProcessID( this, IDC_ACKPROCESSID )
@@ -36,6 +37,7 @@ CSendAckAlarm::CSendAckAlarm( void )
 	//{{AFX_DATA_INIT(CSendAckAlarm)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendAckAlarm::DoDataExchange(CDataExchange* pDX)
 {

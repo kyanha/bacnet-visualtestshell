@@ -18,6 +18,7 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNCREATE(VTSNotifyCmdFailure, CPropertyPage)
 
+#pragma warning( disable : 4355 )
 VTSNotifyCmdFailure::VTSNotifyCmdFailure()
 	: CPropertyPage(VTSNotifyCmdFailure::IDD)
 	, m_CommandValue( this )
@@ -28,6 +29,7 @@ VTSNotifyCmdFailure::VTSNotifyCmdFailure()
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 VTSNotifyCmdFailure::~VTSNotifyCmdFailure()
 {

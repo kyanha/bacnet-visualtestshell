@@ -26,6 +26,7 @@ BACnetAPDUEncoder CSendRemoveListElement::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendRemoveListElement, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendRemoveListElement::CSendRemoveListElement( void )
 	: CSendPage( CSendRemoveListElement::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
@@ -35,6 +36,7 @@ CSendRemoveListElement::CSendRemoveListElement( void )
 	//{{AFX_DATA_INIT(CSendRemoveListElement)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendRemoveListElement::DoDataExchange(CDataExchange* pDX)
 {

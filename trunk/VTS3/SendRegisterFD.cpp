@@ -18,6 +18,7 @@ BACnetAPDUEncoder CSendRegisterFD::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendRegisterFD, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendRegisterFD::CSendRegisterFD( void )
 	: CSendPage( CSendRegisterFD::IDD )
 	, m_TTL( this, IDC_TTL )
@@ -25,6 +26,7 @@ CSendRegisterFD::CSendRegisterFD( void )
 	//{{AFX_DATA_INIT(CSendRegisterFD)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendRegisterFD::DoDataExchange(CDataExchange* pDX)
 {

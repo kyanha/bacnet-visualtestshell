@@ -27,6 +27,7 @@ BACnetAPDUEncoder CSendWritePropMultError::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendWritePropMultError, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendWritePropMultError::CSendWritePropMultError( void )
 	: CSendPage( CSendWritePropMultError::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
@@ -40,6 +41,7 @@ CSendWritePropMultError::CSendWritePropMultError( void )
 	//{{AFX_DATA_INIT(CSendWritePropMultError)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendWritePropMultError::DoDataExchange(CDataExchange* pDX)
 {

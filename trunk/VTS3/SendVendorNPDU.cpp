@@ -18,6 +18,7 @@ BACnetAPDUEncoder CSendVendorNPDU::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendVendorNPDU, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendVendorNPDU::CSendVendorNPDU( void )
 	: CSendPage( CSendVendorNPDU::IDD )
 	, m_MsgType( this, IDC_MSGTYPE )
@@ -27,6 +28,7 @@ CSendVendorNPDU::CSendVendorNPDU( void )
 	//{{AFX_DATA_INIT(CSendVendorNPDU)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void CSendVendorNPDU::DoDataExchange(CDataExchange* pDX)

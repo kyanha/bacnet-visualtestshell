@@ -28,6 +28,7 @@ void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 
 IMPLEMENT_DYNCREATE( CSendConfCOVNotification, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendConfCOVNotification::CSendConfCOVNotification( void )
 	: CSendPage( CSendConfCOVNotification::IDD )
 	, m_ProcessID( this, IDC_PROCESSID )
@@ -39,6 +40,7 @@ CSendConfCOVNotification::CSendConfCOVNotification( void )
 	//{{AFX_DATA_INIT(CSendConfCOVNotification)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendConfCOVNotification::DoDataExchange(CDataExchange* pDX)
 {

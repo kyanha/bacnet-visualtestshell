@@ -17,6 +17,7 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSRecipientProcess dialog
 
+#pragma warning( disable : 4355 )
 VTSRecipientProcess::VTSRecipientProcess(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSRecipientProcess::IDD, pParent)
 	, m_DeviceID( this, IDC_DEVICEID )
@@ -31,6 +32,7 @@ VTSRecipientProcess::VTSRecipientProcess(CWnd* pParent /*=NULL*/)
 	// everything starts out empty
 	ctrlNull = true;
 }
+#pragma warning( default : 4355 )
 
 void VTSRecipientProcess::DoDataExchange(CDataExchange* pDX)
 {

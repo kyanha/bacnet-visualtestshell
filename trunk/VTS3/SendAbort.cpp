@@ -22,6 +22,7 @@ namespace NetworkSniffer {
 
 IMPLEMENT_DYNCREATE( CSendAbort, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendAbort::CSendAbort( void )
 	: CSendPage( CSendAbort::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
@@ -30,6 +31,7 @@ CSendAbort::CSendAbort( void )
 	//{{AFX_DATA_INIT(CSendAbort)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendAbort::DoDataExchange(CDataExchange* pDX)
 {

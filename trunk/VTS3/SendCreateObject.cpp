@@ -29,6 +29,7 @@ void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 
 IMPLEMENT_DYNCREATE( CSendCreateObject, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendCreateObject::CSendCreateObject( void )
 	: CSendPage( CSendCreateObject::IDD )
 	, m_ObjectTypeCombo( this, IDC_OBJECTTYPECOMBO, NetworkSniffer::BACnetObjectType, MAX_DEFINED_OBJ, true )
@@ -38,6 +39,7 @@ CSendCreateObject::CSendCreateObject( void )
 	//{{AFX_DATA_INIT(CSendCreateObject)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendCreateObject::DoDataExchange(CDataExchange* pDX)
 {

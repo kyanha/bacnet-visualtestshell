@@ -18,6 +18,7 @@ BACnetAPDUEncoder CSendDeviceCommCtrl::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendDeviceCommCtrl, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendDeviceCommCtrl::CSendDeviceCommCtrl( void )
 	: CSendPage( CSendDeviceCommCtrl::IDD )
 	, m_TimeDuration( this, IDC_TIMEDURATION )
@@ -27,6 +28,7 @@ CSendDeviceCommCtrl::CSendDeviceCommCtrl( void )
 	m_EnableDisable = 0;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendDeviceCommCtrl::DoDataExchange(CDataExchange* pDX)
 {

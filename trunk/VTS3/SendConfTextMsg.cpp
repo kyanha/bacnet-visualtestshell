@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendConfTextMsg::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendConfTextMsg, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendConfTextMsg::CSendConfTextMsg( void )
 	: CSendPage( CSendConfTextMsg::IDD )
 	, m_SourceDevice( this, IDC_SOURCEDEVICE )
@@ -31,6 +32,7 @@ CSendConfTextMsg::CSendConfTextMsg( void )
 	m_Priority = 0;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendConfTextMsg::DoDataExchange(CDataExchange* pDX)
 {

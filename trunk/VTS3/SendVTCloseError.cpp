@@ -24,6 +24,7 @@ BACnetAPDUEncoder CSendVTCloseError::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendVTCloseError, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendVTCloseError::CSendVTCloseError( void )
 	: CSendPage( CSendVTCloseError::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
@@ -34,6 +35,7 @@ CSendVTCloseError::CSendVTCloseError( void )
 	//{{AFX_DATA_INIT(CSendVTCloseError)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendVTCloseError::DoDataExchange(CDataExchange* pDX)
 {

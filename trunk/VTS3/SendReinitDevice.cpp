@@ -18,6 +18,7 @@ BACnetAPDUEncoder CSendReinitDevice::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendReinitDevice, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendReinitDevice::CSendReinitDevice( void )
 	: CSendPage( CSendReinitDevice::IDD )
 	, m_Password( this, IDC_PASSWORD )
@@ -26,6 +27,7 @@ CSendReinitDevice::CSendReinitDevice( void )
 	m_State = 0;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendReinitDevice::DoDataExchange(CDataExchange* pDX)
 {

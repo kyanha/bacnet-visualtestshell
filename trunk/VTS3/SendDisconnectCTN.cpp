@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendDisconnectCTN::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendDisconnectCTN, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendDisconnectCTN::CSendDisconnectCTN( void )
 	: CSendPage( CSendDisconnectCTN::IDD )
 	, m_DNET( this, IDC_DNET )
@@ -27,6 +28,7 @@ CSendDisconnectCTN::CSendDisconnectCTN( void )
 	//{{AFX_DATA_INIT(CSendDisconnectCTN)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendDisconnectCTN::DoDataExchange(CDataExchange* pDX)
 {

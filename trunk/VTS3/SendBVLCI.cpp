@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendBVLCI::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendBVLCI, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendBVLCI::CSendBVLCI( void )
 	: CSendPage( CSendBVLCI::IDD )
 	, m_HeaderType(0)
@@ -28,6 +29,7 @@ CSendBVLCI::CSendBVLCI( void )
 	//{{AFX_DATA_INIT(CSendBVLCI)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendBVLCI::DoDataExchange(CDataExchange* pDX)
 {

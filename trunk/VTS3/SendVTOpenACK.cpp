@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendVTOpenACK::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendVTOpenACK, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendVTOpenACK::CSendVTOpenACK( void )
 	: CSendPage( CSendVTOpenACK::IDD )
 	, m_SessionID( this, IDC_SESSIONID )
@@ -27,6 +28,7 @@ CSendVTOpenACK::CSendVTOpenACK( void )
 	//{{AFX_DATA_INIT(CSendVTOpenACK)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendVTOpenACK::DoDataExchange(CDataExchange* pDX)
 {

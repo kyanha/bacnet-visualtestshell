@@ -22,6 +22,7 @@ BACnetAPDUEncoder CSendReject::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendReject, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendReject::CSendReject( void )
 	: CSendPage( CSendReject::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
@@ -30,6 +31,7 @@ CSendReject::CSendReject( void )
 	//{{AFX_DATA_INIT(CSendReject)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendReject::DoDataExchange(CDataExchange* pDX)
 {

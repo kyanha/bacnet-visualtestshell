@@ -28,6 +28,7 @@ BACnetAPDUEncoder CSendGetEnrollmentSummaryACK::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendGetEnrollmentSummaryACK, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendGetEnrollmentSummaryACK::CSendGetEnrollmentSummaryACK( void )
 	: CSendPage( CSendGetEnrollmentSummaryACK::IDD )
 	, m_EnrollmentSumList( this )
@@ -35,6 +36,7 @@ CSendGetEnrollmentSummaryACK::CSendGetEnrollmentSummaryACK( void )
 	//{{AFX_DATA_INIT(CSendGetEnrollmentSummaryACK)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendGetEnrollmentSummaryACK::DoDataExchange(CDataExchange* pDX)
 {

@@ -18,6 +18,7 @@ BACnetAPDUEncoder CSendSegmentACK::pageContents;
 
 IMPLEMENT_DYNCREATE(CSendSegmentACK, CPropertyPage)
 
+#pragma warning( disable : 4355 )
 CSendSegmentACK::CSendSegmentACK( void )
 	: CSendPage( CSendSegmentACK::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
@@ -29,6 +30,7 @@ CSendSegmentACK::CSendSegmentACK( void )
 	m_SRV = 0;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendSegmentACK::DoDataExchange(CDataExchange* pDX)
 {

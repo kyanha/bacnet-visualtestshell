@@ -14,6 +14,7 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSTimeStamp dialog
 
+#pragma warning( disable : 4355 )
 VTSTimeStamp::VTSTimeStamp(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSTimeStamp::IDD, pParent)
 	, m_Time( this, IDC_TIME )
@@ -25,6 +26,7 @@ VTSTimeStamp::VTSTimeStamp(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void VTSTimeStamp::DoDataExchange(CDataExchange* pDX)
 {

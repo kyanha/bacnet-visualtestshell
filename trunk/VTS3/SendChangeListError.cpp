@@ -24,6 +24,7 @@ namespace NetworkSniffer {
 
 IMPLEMENT_DYNCREATE( CSendChangeListError, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendChangeListError::CSendChangeListError( void )
 	: CSendPage( CSendChangeListError::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
@@ -35,6 +36,7 @@ CSendChangeListError::CSendChangeListError( void )
 	//{{AFX_DATA_INIT(CSendChangeListError)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendChangeListError::DoDataExchange(CDataExchange* pDX)
 {

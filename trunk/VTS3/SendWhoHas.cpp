@@ -22,6 +22,7 @@ BACnetAPDUEncoder CSendWhoHas::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendWhoHas, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendWhoHas::CSendWhoHas( void )
 	: CSendPage( CSendWhoHas::IDD )
 	, m_LowLimit( this, IDC_LOWLIMIT )
@@ -32,6 +33,7 @@ CSendWhoHas::CSendWhoHas( void )
 	//{{AFX_DATA_INIT(CSendWhoHas)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendWhoHas::DoDataExchange(CDataExchange* pDX)
 {

@@ -20,6 +20,7 @@ BACnetAPDUEncoder CSendICouldBeRTN::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendICouldBeRTN, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendICouldBeRTN::CSendICouldBeRTN( void )
 	: CSendPage( CSendICouldBeRTN::IDD )
 	, m_DNET( this, IDC_DNET )
@@ -28,6 +29,7 @@ CSendICouldBeRTN::CSendICouldBeRTN( void )
 	//{{AFX_DATA_INIT(CSendICouldBeRTN)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendICouldBeRTN::DoDataExchange(CDataExchange* pDX)
 {

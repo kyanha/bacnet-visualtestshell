@@ -18,6 +18,7 @@ BACnetAPDUEncoder CSendRaw::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendRaw, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendRaw::CSendRaw( void )
 	: CSendPage( CSendRaw::IDD )
 	, m_data( this, IDC_DATA )
@@ -25,6 +26,7 @@ CSendRaw::CSendRaw( void )
 	//{{AFX_DATA_INIT(CSendRaw)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void CSendRaw::DoDataExchange(CDataExchange* pDX)

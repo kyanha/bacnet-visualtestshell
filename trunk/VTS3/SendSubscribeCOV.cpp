@@ -22,6 +22,7 @@ BACnetAPDUEncoder CSendSubscribeCOV::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendSubscribeCOV, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendSubscribeCOV::CSendSubscribeCOV( void )
 	: CSendPage( CSendSubscribeCOV::IDD )
 	, m_ProcessID( this, IDC_PROCESSID )
@@ -32,6 +33,7 @@ CSendSubscribeCOV::CSendSubscribeCOV( void )
 	//{{AFX_DATA_INIT(CSendSubscribeCOV)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendSubscribeCOV::DoDataExchange(CDataExchange* pDX)
 {

@@ -18,6 +18,7 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNCREATE(VTSNotifyFloatLimit, CPropertyPage)
 
+#pragma warning( disable : 4355 )
 VTSNotifyFloatLimit::VTSNotifyFloatLimit()
 	: CPropertyPage(VTSNotifyFloatLimit::IDD)
 	, m_RefValue( this, IDC_REFVALUE )
@@ -29,6 +30,7 @@ VTSNotifyFloatLimit::VTSNotifyFloatLimit()
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 VTSNotifyFloatLimit::~VTSNotifyFloatLimit()
 {

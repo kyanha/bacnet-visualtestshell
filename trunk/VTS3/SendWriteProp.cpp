@@ -26,6 +26,7 @@ BACnetAPDUEncoder CSendWriteProp::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendWriteProp, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendWriteProp::CSendWriteProp( void )
 	: CSendPage( CSendWriteProp::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
@@ -36,6 +37,7 @@ CSendWriteProp::CSendWriteProp( void )
 	//{{AFX_DATA_INIT(CSendWriteProp)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendWriteProp::DoDataExchange(CDataExchange* pDX)
 {

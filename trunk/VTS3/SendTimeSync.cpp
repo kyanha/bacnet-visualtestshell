@@ -18,6 +18,7 @@ BACnetAPDUEncoder CSendTimeSync::pageContents;
 
 IMPLEMENT_DYNCREATE(CSendTimeSync, CPropertyPage)
 
+#pragma warning( disable : 4355 )
 CSendTimeSync::CSendTimeSync()
 	: CSendPage( CSendTimeSync::IDD )
 	, m_Date( this, IDC_DATE )
@@ -27,6 +28,7 @@ CSendTimeSync::CSendTimeSync()
 	m_AutoSync = FALSE;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendTimeSync::DoDataExchange(CDataExchange* pDX)
 {

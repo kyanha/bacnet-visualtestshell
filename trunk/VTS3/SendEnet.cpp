@@ -22,6 +22,7 @@ BACnetAPDUEncoder CSendEnet::pageContents;
 
 IMPLEMENT_DYNCREATE( CSendEnet, CPropertyPage )
 
+#pragma warning( disable : 4355 )
 CSendEnet::CSendEnet( void )
 	: CSendPage( CSendEnet::IDD )
 	, m_SADR( this, IDC_SADRCOMBO, IDC_SADR )
@@ -30,6 +31,7 @@ CSendEnet::CSendEnet( void )
 	//{{AFX_DATA_INIT(CSendEnet)
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 void CSendEnet::DoDataExchange(CDataExchange* pDX)
 {
