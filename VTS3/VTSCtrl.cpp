@@ -197,7 +197,10 @@ void VTSAddrCtrl::ObjToCtrl( void )
 	;
 
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( strLen * 2 + 4 ) );
+		str.ReleaseBuffer();
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -1079,7 +1082,10 @@ void VTSBooleanCtrl::ObjToCtrl( void )
 	else {
 		// values are normalized
 		if (!ctrlNull)
+		{
 			Encode( str.GetBuffer( 16 ) );
+			str.ReleaseBuffer();
+		}
 
 		// set the text
 		((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -1306,7 +1312,10 @@ void VTSEnumeratedCtrl::ObjToCtrl( void )
 
 	// values are normalized to decimal
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( 256 ), (const char **)m_Table, m_TableSize );
+		str.ReleaseBuffer();
+	}
 
 #if 0
 	// values are from the table
@@ -1409,7 +1418,10 @@ void VTSUnsignedCtrl::ObjToCtrl( void )
 
 	// values are normalized to decimal
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( 16 ) );
+		str.ReleaseBuffer();
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -1502,7 +1514,10 @@ void VTSIntegerCtrl::ObjToCtrl( void )
 
 	// values are normalized to decimal
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( 16 ) );
+		str.ReleaseBuffer();
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -1593,7 +1608,10 @@ void VTSRealCtrl::ObjToCtrl( void )
 
 	// values are normalized to decimal
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( 16 ) );
+		str.ReleaseBuffer();
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -1684,7 +1702,10 @@ void VTSDoubleCtrl::ObjToCtrl( void )
 
 	// values are normalized to decimal
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( 16 ) );
+		str.ReleaseBuffer();
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -1878,7 +1899,10 @@ void VTSOctetStringCtrl::ObjToCtrl( void )
 	;
 
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( strLen * 2 + 4 ) );
+		str.ReleaseBuffer();
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -1970,7 +1994,10 @@ void VTSBitStringCtrl::ObjToCtrl( void )
 
 	// loop through the bits
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( bitLen + 4 ) );
+		str.ReleaseBuffer();
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -2028,23 +2055,24 @@ VTSDateCtrl::VTSDateCtrl( const CWnd* wp, int id )
 
 void VTSDateCtrl::CtrlToObj( void )
 {
-	CString		str
-	;
-	LPCTSTR		s
-	;
+	CString		str;
 
 	// get the text from the control
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
-	s = str.operator LPCTSTR();
 
 	// if no data available, set ctrlNull and return
-	ctrlNull = (!*s);
+	ctrlNull = str.IsEmpty();
 	if (ctrlNull)
 		return;
 
+	// madanner 11/7/02, We're pulling data from an edit field so we don't need to scan for brackets
+	// We'll just put this directly into the buffer after we add brackets.
+
+	str = "[" + str + "]";
+
 	try {
 		// use the built-in decoder
-		Decode( s );
+		Decode( (LPCTSTR) str );
 	}
 	catch (...) {
 	}
@@ -2060,7 +2088,16 @@ void VTSDateCtrl::ObjToCtrl( void )
 	;
 
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( 32 ) );
+		str.ReleaseBuffer();
+
+		// Encoding for complex types have brackets [] on the ends.  Encoding does not throw
+		// so we're pretty sure the brackets are there.
+
+		str.Delete( 0, 1 );
+		str.Delete( str.GetLength() - 1, 1 );
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -2118,22 +2155,24 @@ VTSTimeCtrl::VTSTimeCtrl( const CWnd* wp, int id )
 
 void VTSTimeCtrl::CtrlToObj( void )
 {
-	CString		str
-	;
-	LPCTSTR		s
-	;
+	CString		str;
 
 	// get the text from the control
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
-	s = str.operator LPCTSTR();
 
 	// if no data available, set ctrlNull and return
-	ctrlNull = (!*s);
+	ctrlNull = str.IsEmpty();
 	if (ctrlNull)
 		return;
 
+	// madanner 11/7/02, We're pulling data from an edit field so we don't need to scan for brackets.
+	// We do, however, have to put them in there for the decode to work correctly for complex data types.
+
+	str = "[" + str + "]";
+
 	try {
-		Decode( s );
+		// use the built-in decoder
+		Decode( (LPCTSTR) str );
 	}
 	catch (...) {
 	}
@@ -2145,11 +2184,19 @@ void VTSTimeCtrl::CtrlToObj( void )
 
 void VTSTimeCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString		str;
 
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( 32 ) );
+		str.ReleaseBuffer();
+
+		// Encoding for complex types have brackets [] on the ends.  Encoding does not throw
+		// so we're pretty sure the brackets are there.
+
+		str.Delete( 0, 1 );
+		str.Delete( str.GetLength() - 1, 1 );
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
@@ -2238,7 +2285,10 @@ void VTSObjectIdentifierCtrl::ObjToCtrl( void )
 	;
 
 	if (!ctrlNull)
+	{
 		Encode( str.GetBuffer( 32 ) );
+		str.ReleaseBuffer();
+	}
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
