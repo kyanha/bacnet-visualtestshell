@@ -4,7 +4,9 @@
 module:		VTSAPI32.C
 desc:		BACnet Standard Objects DLL v2.15
 authors:	David M. Fisher, Jack R. Neyer
-last edit:	01-MAR-04 [020] GJB
+last edit: 07-SEP-2004 MSD implemented BIBBs section,
+               135.1-2003 consistency tests.
+         01-MAR-04 [020] GJB
 				1. add a function: preprocstr
 				2. modify the string array SectionNames
 				3. modify a function: whatischoice
@@ -220,6 +222,8 @@ static boolean bNeedReset=false, bHasReset = false,bHasNoneType=false;
 static char		NoneTypeValue[256],NoneTypePropName[20];	 // for store temp address of lp
 //******017 end
 
+// msdanner 9/2004: added global consistency error counter
+static unsigned int cConsistencyErrors;
 //---------------------------------------------------------------------
 //  Large Static Tables
 static char	picshdr[]="PICS 0\x0D\x0A";
@@ -265,12 +269,12 @@ typedef struct {
     enum                  BACnetApplServ ApplServ;       // number of application service
 } bibb_service;
 
-#define MAX_BIBB_SERVICES	8  // maximum number of services required per BIBB    
+#define MAX_SERVICES_PER_BIBB	8  // maximum number of services required per BIBB    
 
 // Structure to define each BIBB - msdanner 9/5/04
 typedef struct {
 	char	*name;	 // BIBB name
-   bibb_service  aBIBB_Service[MAX_BIBB_SERVICES];  // array of services required for each BIBB
+   bibb_service  aBIBB_Service[MAX_SERVICES_PER_BIBB];  // array of services required for each BIBB
 } bibbdef;
 
 
@@ -1360,14 +1364,18 @@ rtpclose:
 	if ( !cancel )
 	{
 //		::DeleteFile("c:\\EPICSConsChk.txt");
-		lPICSErr=0;
 		// msdanner 9/04: Old consistency checks based on conformance class are no longer applicable
 		//CheckPICSObjCons(pd);                  
 		//CheckPICSServCons(pd);               
 		//CheckPICSPropCons(pd);      
-		CheckPICSConsistency2003(pd);  // msdanner 9/04: EPICS consistency checks specified by 135.1-2003
-		*errPICS=lPICSErr;	
-	}
+      // New 135.1-2003 checks
+      if (lerrc == 0)  // if no syntax errors, proceed with EPICS consistency tests
+      {
+		   lPICSErr=0;  // enables counting of consistency errors
+		   CheckPICSConsistency2003(pd);  // msdanner 9/04: EPICS consistency checks specified by 135.1-2003
+		   *errPICS=lPICSErr;	// return count of consistency errors
+      }
+   }
 
     //clear the global variables
 	ProtocolServSup.PropSupValue=NULL;
@@ -6193,6 +6201,13 @@ BOOL tperror(char *mp,BOOL showline)
 
 	p=strchr(m,0);
 
+   // msdanner 9/2004: if logging consistency errors, include the error number
+   // on each line.
+   if ( lPICSErr > -1)
+   {
+      p += sprintf(p, "%d) ", lPICSErr+1); // plus 1 because it has not been incremented yet
+   }
+
 	if (showline)
 	{
 		sprintf(p,"Line %u: ",lc);				//add line number first
@@ -6442,6 +6457,8 @@ char *GetSpecialFunctionalityName(int i)
 // 
 void CheckPICSConsistency2003(PICSdb *pd)
 {
+   cConsistencyErrors=0;  // Reset global PICS error count. 
+
    // Make sure that each Object Type required by a BIBB
    // exists in the Standard Object Types Supported section, 
    // as well as cross dependencies between BIBBs.
