@@ -741,6 +741,7 @@ propdescriptor	DVprops[]={
     "location",				LOCATION,			oo(device,location),	s64,	0,	       0,	O,
     "description",			DESCRIPTION,		oo(device,go.description),s132,	0,	       0,	O,
     "protocol-version",		PROTOCOL_VERSION,	oo(device,protocol_ver),uw,		0,	       0,	R,
+    "protocol-revision",		PROTOCOL_REVISION,	oo(device,protocol_rev),uw,		0,	       0,	O,
     "protocol-conformance-class",PROTOCOL_CONFORMANCE_CLASS,oo(device,
                                                 protocol_conf_class),	uw,		0,	       0,	O,  // changed by Wilson Fowlie Aug 2003:protocol-conformance-class no longer required
     "protocol-services-supported",PROTOCOL_SERVICES_SUPPORTED,oo(device,
@@ -1072,8 +1073,11 @@ propdescriptor	MVprops[]={
     "out-of-service",		OUT_OF_SERVICE,		oo(msv,out_of_service),	    ebool,   0,		eiTF,	    R,
     "number-of-states",		NUMBER_OF_STATES,	oo(msv,number_of_states),   uw,		 0,	       0,	    R,
     "state-text",			STATE_TEXT,			oo(msv,state_text),		    statext, 0,	       0,	    O|IsArray,
-    "priority-array",		PRIORITY_ARRAY,		oo(msv,priority_array),	    pau,	 0,	       0,	    R|IsArray,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(msv,relinquish_default),  uw,	 0,	       0,	    R,
+// msdanner 9/2004 - these properties are not required for multi-state values.
+//    "priority-array",		PRIORITY_ARRAY,		oo(msv,priority_array),	    pau,	 0,	       0,	    R|IsArray,
+//    "relinquish-default",	RELINQUISH_DEFAULT,	oo(msv,relinquish_default),  uw,	 0,	       0,	    R,
+    "priority-array",		PRIORITY_ARRAY,		oo(msv,priority_array),	    pau,	 3,	       0,	    O|IsArray|WithGroup,
+    "relinquish-default",	RELINQUISH_DEFAULT,	oo(msv,relinquish_default),  uw,	 3,	       0,	    O|WithGroup,
     "time-delay",			TIME_DELAY,			oo(msv,time_delay),		    uw,		 Intr,	   0,	    O|WithService,
     "notification-class",	NOTIFICATION_CLASS,	oo(msv,notification_class), uw,	     Intr,	   0,	    O|WithService,
     "alarm-values",			ALARM_VALUES,		oo(msv,alarm_values),	    stavals, Intr,	   0,	    O|WithService,
@@ -1114,7 +1118,9 @@ propdescriptor	TRprops[]={
   //   "previous-notify-time",  		PREVIOUS_NOTIFY_TIME,  	      oo(trend,previous_notify_time),  	      dt,       0,      0,       O|WithService,
 //     "current-notify-time",  		CURRENT_NOTIFY_TIME,  	      oo(trend,current_notify_time),  	      dt,       0,      0,       O|WithService,
 //Added by Zhu Zhenhua, 2004-5-11
-	"last_notify_record",			LAST_NOTIFY_RECORD,	          oo(trend, last_notify_record),			uw,		0,		0,		O|WithService,
+// msdanner 9/2004 - fixed spelling error
+//	"last_notify_record",			LAST_NOTIFY_RECORD,	          oo(trend, last_notify_record),			uw,		0,		0,		O|WithService,
+	  "last-notify-record",			LAST_NOTIFY_RECORD,	          oo(trend, last_notify_record),			uw,		0,		0,		O|WithService,
      "event-state",  				EVENT_STATE,  			      oo(trend,event_state),  			      et,       0,  eiEvState,   R,
      "notification-class",  		NOTIFICATION_CLASS,  	      oo(trend,notification_class),  	      uw,       0,      0,       O|WithService,
      "event-enable",  				EVENT_ENABLE,  			      oo(trend,event_enable),  			      bits,     0,      0,       O|WithService,
