@@ -161,7 +161,7 @@ void CSendAckAlarm::SavePage( void )
 //	CSendAckAlarm::RestorePage
 //
 
-void CSendAckAlarm::RestorePage( void )
+void CSendAckAlarm::RestorePage(  int index  )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

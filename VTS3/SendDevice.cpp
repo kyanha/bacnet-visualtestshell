@@ -164,7 +164,7 @@ void CSendDevice::SavePage( void )
 //	CSendDevice::RestorePage
 //
 
-void CSendDevice::RestorePage( void )
+void CSendDevice::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

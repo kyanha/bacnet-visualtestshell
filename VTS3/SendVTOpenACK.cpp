@@ -113,7 +113,7 @@ void CSendVTOpenACK::SavePage( void )
 //	CSendVTOpenACK::RestorePage
 //
 
-void CSendVTOpenACK::RestorePage( void )
+void CSendVTOpenACK::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

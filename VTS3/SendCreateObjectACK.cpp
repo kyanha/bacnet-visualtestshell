@@ -114,7 +114,7 @@ void CSendCreateObjectACK::SavePage( void )
 //	CSendCreateObjectACK::RestorePage
 //
 
-void CSendCreateObjectACK::RestorePage( void )
+void CSendCreateObjectACK::RestorePage(  int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

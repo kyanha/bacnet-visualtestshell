@@ -113,7 +113,7 @@ void CSendRouterBusy::SavePage( void )
 //	CSendRouterBusy::RestorePage
 //
 
-void CSendRouterBusy::RestorePage( void )
+void CSendRouterBusy::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

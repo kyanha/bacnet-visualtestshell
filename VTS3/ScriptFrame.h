@@ -20,6 +20,9 @@
 #include "ScriptEdit.h"
 ///////////////////////////
 
+// Added by Liangping Xu,2002-11
+#include "CheckEPICSCons.h"
+//////////////////////////
 class ScriptFrame : public CMDIChildWnd
 {
 	DECLARE_DYNCREATE(ScriptFrame)

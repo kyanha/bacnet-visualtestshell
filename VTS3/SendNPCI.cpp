@@ -13,8 +13,10 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-BACnetAPDUEncoder CSendNPCI::pageContents;
-
+//Xiao Shiyuan 2002-12-5
+BACnetAPDUEncoder CSendNPCI::pageContents[glMaxHistoryCount];
+int CSendNPCI::curHistoryIndex = 0;
+int CSendNPCI::historyCount = 0;
 /////////////////////////////////////////////////////////////////////////////
 // CSendNPCI dialog
 
@@ -29,7 +31,7 @@ CSendNPCI::CSendNPCI( void )
 	, m_HopCount( this, IDC_HOPCOUNT )
 	, m_SNET( this, IDC_SNET )
 	, m_SADR( this, &m_SNET, IDC_SADRCOMBO, IDC_SADR )
-	, m_Priority( this, IDC_PRIORITY )
+	, m_Priority( this, IDC_PRIORITY )	
 {
 	//{{AFX_DATA_INIT(CSendNPCI)
 	m_DestPresent = FALSE;
@@ -70,13 +72,15 @@ BEGIN_MESSAGE_MAP(CSendNPCI, CPropertyPage)
 	ON_EN_CHANGE(IDC_VERSION, OnChangeVersion)
 	ON_EN_CHANGE(IDC_DNET, OnChangeDNET)
 	ON_EN_CHANGE(IDC_DADR, OnChangeDADR)
-	ON_CBN_SELCHANGE(IDC_DADRCOMBO, OnSelchangeDADRCombo)
 	ON_EN_CHANGE(IDC_HOPCOUNT, OnChangeHopCount)
 	ON_EN_CHANGE(IDC_SNET, OnChangeSNET)
 	ON_EN_CHANGE(IDC_SADR, OnChangeSADR)
-	ON_CBN_SELCHANGE(IDC_SADRCOMBO, OnSelchangeSADRCombo)
 	ON_BN_CLICKED(IDC_EXPECTINGREPLY, OnExpectingReply)
 	ON_EN_CHANGE(IDC_PRIORITY, OnChangePriority)
+	ON_CBN_SELCHANGE(IDC_DADRCOMBO, OnSelchangeDADRCombo)
+	ON_CBN_SELCHANGE(IDC_SADRCOMBO, OnSelchangeSADRCombo)
+	ON_WM_SHOWWINDOW()
+	ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -292,38 +296,60 @@ void CSendNPCI::SavePage( void )
 {
 	TRACE0( "CSendNPCI::SavePage\n" );
 
-	pageContents.Flush();
+	pageContents[curHistoryIndex].Flush();
 
-	m_Version.SaveCtrl( pageContents );
-	m_DNET.SaveCtrl( pageContents );
-	m_DADR.SaveCtrl( pageContents );
-	m_HopCount.SaveCtrl( pageContents );
-	m_SNET.SaveCtrl( pageContents );
-	m_SADR.SaveCtrl( pageContents );
-	m_Priority.SaveCtrl( pageContents );
+	m_Version.SaveCtrl( pageContents[curHistoryIndex] );
+	m_DNET.SaveCtrl( pageContents[curHistoryIndex] );
+	m_DADR.SaveCtrl( pageContents[curHistoryIndex] );
+	m_HopCount.SaveCtrl( pageContents[curHistoryIndex] );
+	m_SNET.SaveCtrl( pageContents[curHistoryIndex] );
+	m_SADR.SaveCtrl( pageContents[curHistoryIndex] );
+	m_Priority.SaveCtrl( pageContents[curHistoryIndex] );
 }
 
 //
 //	CSendNPCI::RestorePage
 //
 
-void CSendNPCI::RestorePage( void )
+void CSendNPCI::RestorePage( int index )
 {
-	BACnetAPDUDecoder	dec( pageContents )
-	;
-
 	TRACE0( "CSendNPCI::RestorePage\n" );
+
+	if(historyCount < 1)
+		return;
+	
+	if(index > historyCount)
+		return;
+
+	index = curHistoryIndex - index - 1;
+	if(index < 0)
+		index = index + glMaxHistoryCount;
+
+	BACnetAPDUDecoder	dec( pageContents[index] );
+
+	
 
 	if (dec.pktLength == 0)
 		return;
 
-	m_Version.RestoreCtrl( dec );
+	m_Version.RestoreCtrl( dec );		
 	m_DNET.RestoreCtrl( dec );
 	m_DADR.RestoreCtrl( dec );
 	m_HopCount.RestoreCtrl( dec );
 	m_SNET.RestoreCtrl( dec );
 	m_SADR.RestoreCtrl( dec );
 	m_Priority.RestoreCtrl( dec );
+
+	if(isShown)
+	{
+		m_Version.ObjToCtrl();
+		m_DNET.ObjToCtrl();
+		m_DADR.ObjToCtrl();
+		m_HopCount.ObjToCtrl();
+		m_SNET.ObjToCtrl();
+		m_SADR.ObjToCtrl();
+		m_Priority.ObjToCtrl();
+	}	 
 }
 
 void CSendNPCI::OnChangeVersion() 
@@ -401,4 +427,32 @@ void CSendNPCI::OnChangePriority()
 	m_Priority.UpdateData();
 	SavePage();
 	UpdateEncoded();
+}
+
+void CSendNPCI::OnShowWindow(BOOL bShow, UINT nStatus) 
+{
+	CPropertyPage::OnShowWindow(bShow, nStatus);
+	
+	// TODO: Add your message handler code here
+	isShown = bShow;
+
+	if(bShow)
+	{
+		pageParent->SetHistoryComboBox(historyCount);
+		pageParent->curPagePtr = this;
+	}
+}
+
+void CSendNPCI::OnDestroy() 
+{
+	CPropertyPage::OnDestroy();		
+
+	// TODO: Add your message handler code here
+	if(historyCount < glMaxHistoryCount)
+		historyCount++;
+
+	curHistoryIndex++;	
+
+	if(curHistoryIndex > glMaxHistoryCount - 1)
+		curHistoryIndex = 0;					
 }

@@ -163,7 +163,7 @@ void CSendUnconfCOVNotification::SavePage( void )
 //	CSendUnconfCOVNotification::RestorePage
 //
 
-void CSendUnconfCOVNotification::RestorePage( void )
+void CSendUnconfCOVNotification::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

@@ -115,7 +115,7 @@ void CSendVTDataACK::SavePage( void )
 //	CSendVTDataACK::RestorePage
 //
 
-void CSendVTDataACK::RestorePage( void )
+void CSendVTDataACK::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

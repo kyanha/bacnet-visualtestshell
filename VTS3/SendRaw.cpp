@@ -89,7 +89,7 @@ void CSendRaw::SavePage( void )
 //	CSendRaw::RestorePage
 //
 
-void CSendRaw::RestorePage( void )
+void CSendRaw::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

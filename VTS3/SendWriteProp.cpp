@@ -19,8 +19,9 @@ namespace NetworkSniffer {
 	extern char *BACnetPropertyIdentifier[];
 }
 
-BACnetAPDUEncoder CSendWriteProp::pageContents;
-
+BACnetAPDUEncoder CSendWriteProp::pageContents[glMaxHistoryCount];
+int CSendWriteProp::historyCount = 0;           //Xiao Shiyuan 2002-12-5
+int CSendWriteProp::curHistoryIndex = 0;        //Xiao Shiyuan 2002-12-5
 /////////////////////////////////////////////////////////////////////////////
 // CSendWriteProp dialog
 
@@ -61,6 +62,8 @@ BEGIN_MESSAGE_MAP(CSendWriteProp, CPropertyPage)
 	ON_BN_CLICKED(IDC_VALUE, OnValue)
 	ON_EN_CHANGE(IDC_PRIORITYX, OnChangePriority)
 	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectIDButton)
+	ON_WM_DESTROY()
+	ON_WM_SHOWWINDOW()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -146,25 +149,35 @@ void CSendWriteProp::SavePage( void )
 {
 	TRACE0( "CSendWriteProp::SavePage\n" );
 
-	pageContents.Flush();
+	pageContents[curHistoryIndex].Flush();
 
-	m_ObjectID.SaveCtrl( pageContents );
-	m_PropCombo.SaveCtrl( pageContents );
-	m_ArrayIndex.SaveCtrl( pageContents );
-	m_Value.SaveCtrl( pageContents );
-	m_Priority.SaveCtrl( pageContents );
+	m_ObjectID.SaveCtrl( pageContents[curHistoryIndex] );
+	m_PropCombo.SaveCtrl( pageContents[curHistoryIndex] );
+	m_ArrayIndex.SaveCtrl( pageContents[curHistoryIndex] );
+	m_Value.SaveCtrl( pageContents[curHistoryIndex] );
+	m_Priority.SaveCtrl( pageContents[curHistoryIndex] );
 }
 
 //
 //	CSendWriteProp::RestorePage
 //
 
-void CSendWriteProp::RestorePage( void )
+void CSendWriteProp::RestorePage( int index )
 {
-	BACnetAPDUDecoder	dec( pageContents )
-	;
-
 	TRACE0( "CSendWriteProp::RestorePage\n" );
+
+	if(historyCount < 1)
+		return;
+	
+	if(index > historyCount)
+		return;
+
+	index = curHistoryIndex - index - 1;
+	if(index < 0)
+		index = index + glMaxHistoryCount;
+
+	BACnetAPDUDecoder	dec( pageContents[index] );
+	
 
 	if (dec.pktLength == 0)
 		return;
@@ -174,6 +187,14 @@ void CSendWriteProp::RestorePage( void )
 	m_ArrayIndex.RestoreCtrl( dec );
 	m_Value.RestoreCtrl( dec );
 	m_Priority.RestoreCtrl( dec );
+
+	if(isShown)
+	{
+		m_ObjectID.ObjToCtrl();
+		m_PropCombo.ObjToCtrl();
+		m_ArrayIndex.ObjToCtrl();		
+		m_Priority.ObjToCtrl();
+	}
 }
 
 //
@@ -232,4 +253,32 @@ void CSendWriteProp::OnChangePriority()
 	m_Priority.UpdateData();
 	SavePage();
 	UpdateEncoded();
+}
+
+void CSendWriteProp::OnDestroy() 
+{
+	CPropertyPage::OnDestroy();
+	
+	// TODO: Add your message handler code here
+	if(historyCount < glMaxHistoryCount)
+		historyCount++;
+
+	curHistoryIndex++;	
+
+	if(curHistoryIndex > glMaxHistoryCount - 1)
+		curHistoryIndex = 0;			
+}
+
+void CSendWriteProp::OnShowWindow(BOOL bShow, UINT nStatus) 
+{
+	CPropertyPage::OnShowWindow(bShow, nStatus);
+	
+	// TODO: Add your message handler code here
+    isShown = bShow;
+
+	if(bShow)
+	{
+		pageParent->SetHistoryComboBox(historyCount);
+		pageParent->curPagePtr = this;
+	}
 }

@@ -121,7 +121,7 @@ void CSendGetEnrollmentSummaryACK::SavePage( void )
 //	CSendGetEnrollmentSummaryACK::RestorePage
 //
 
-void CSendGetEnrollmentSummaryACK::RestorePage( void )
+void CSendGetEnrollmentSummaryACK::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

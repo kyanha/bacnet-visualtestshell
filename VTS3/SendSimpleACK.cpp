@@ -130,7 +130,7 @@ void CSendSimpleACK::SavePage( void )
 //	CSendSimpleACK::RestorePage
 //
 
-void CSendSimpleACK::RestorePage( void )
+void CSendSimpleACK::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

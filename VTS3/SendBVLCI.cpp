@@ -13,7 +13,9 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-BACnetAPDUEncoder CSendBVLCI::pageContents;
+BACnetAPDUEncoder CSendBVLCI::pageContents[glMaxHistoryCount];
+int CSendBVLCI::historyCount = 0;           //Xiao Shiyuan 2002-12-5
+int CSendBVLCI::curHistoryIndex = 0;        //Xiao Shiyuan 2002-12-5
 
 /////////////////////////////////////////////////////////////////////////////
 // CSendBVLCI dialog
@@ -50,6 +52,8 @@ BEGIN_MESSAGE_MAP(CSendBVLCI, CPropertyPage)
 	ON_EN_CHANGE(IDC_OADR, OnChangeOADR)
 	ON_BN_CLICKED(IDC_FORWARD, OnForwardedNPDU)
 	ON_CBN_SELCHANGE(IDC_OADRCOMBO, OnSelchangeOADRCombo)
+	ON_WM_SHOWWINDOW()
+	ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -144,24 +148,32 @@ void CSendBVLCI::SavePage( void )
 {
 	TRACE0( "CSendBVLCI::SavePage\n" );
 
-	pageContents.Flush();
+	pageContents[curHistoryIndex].Flush();
 
-	m_OADR.SaveCtrl( pageContents );
-	BACnetInteger( m_HeaderType ).Encode( pageContents );
+	m_OADR.SaveCtrl( pageContents[curHistoryIndex] );
+	BACnetInteger( m_HeaderType ).Encode( pageContents[curHistoryIndex] );
 }
 
 //
 //	CSendBVLCI::RestorePage
 //
 
-void CSendBVLCI::RestorePage( void )
+void CSendBVLCI::RestorePage( int index )
 {
-	BACnetAPDUDecoder	dec( pageContents )
-	;
-	BACnetInteger		hdrType
-	;
-
 	TRACE0( "CSendBVLCI::RestorePage\n" );
+
+	if(historyCount < 1)
+		return;
+	
+	if(index > historyCount)
+		return;
+
+	index = curHistoryIndex - index - 1;
+	if(index < 0)
+		index = index + glMaxHistoryCount;
+	
+	BACnetAPDUDecoder	dec( pageContents[index] );
+	BACnetInteger		hdrType;	
 
 	if (dec.pktLength == 0)
 		return;
@@ -169,6 +181,12 @@ void CSendBVLCI::RestorePage( void )
 	m_OADR.RestoreCtrl( dec );
 	hdrType.Decode( dec );
 	m_HeaderType = hdrType.intValue;
+
+	if(isShown)
+	{
+		m_OADR.ObjToCtrl();
+		UpdateData(FALSE);
+	}		
 }
 
 void CSendBVLCI::OnNone() 
@@ -228,4 +246,34 @@ void CSendBVLCI::OnSelchangeOADRCombo()
 	m_OADR.Selchange();
 	SavePage();
 	UpdateEncoded();
+}
+
+//Xiao Shiyuan 2002-12-5
+void CSendBVLCI::OnShowWindow(BOOL bShow, UINT nStatus) 
+{
+	CPropertyPage::OnShowWindow(bShow, nStatus);
+	
+	// TODO: Add your message handler code here
+	isShown = bShow;
+
+	if(bShow)
+	{
+		pageParent->SetHistoryComboBox(historyCount);
+		pageParent->curPagePtr = this;
+	}
+}
+
+//Xiao Shiyuan 2002-12-5
+void CSendBVLCI::OnDestroy() 
+{
+	CPropertyPage::OnDestroy();
+	
+	// TODO: Add your message handler code here
+	if(historyCount < glMaxHistoryCount)
+		historyCount++;
+
+	curHistoryIndex++;
+
+	if(curHistoryIndex > glMaxHistoryCount - 1)
+		curHistoryIndex = 0;	
 }

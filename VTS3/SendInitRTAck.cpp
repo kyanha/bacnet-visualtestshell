@@ -145,7 +145,7 @@ void CSendInitRTAck::SavePage( void )
 //	CSendInitRTAck::RestorePage
 //
 
-void CSendInitRTAck::RestorePage( void )
+void CSendInitRTAck::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

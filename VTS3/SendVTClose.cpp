@@ -139,7 +139,7 @@ void CSendVTClose::SavePage( void )
 //	CSendVTClose::RestorePage
 //
 
-void CSendVTClose::RestorePage( void )
+void CSendVTClose::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

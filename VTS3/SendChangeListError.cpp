@@ -181,7 +181,7 @@ void CSendChangeListError::SavePage( void )
 //	CSendChangeListError::RestorePage
 //
 
-void CSendChangeListError::RestorePage( void )
+void CSendChangeListError::RestorePage(  int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

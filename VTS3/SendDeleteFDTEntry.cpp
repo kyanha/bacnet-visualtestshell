@@ -118,7 +118,7 @@ void CSendDeleteFDTEntry::SavePage( void )
 //	CSendDeleteFDTEntry::RestorePage
 //
 
-void CSendDeleteFDTEntry::RestorePage( void )
+void CSendDeleteFDTEntry::RestorePage(  int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

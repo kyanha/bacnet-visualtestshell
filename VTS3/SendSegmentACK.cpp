@@ -145,7 +145,7 @@ void CSendSegmentACK::SavePage( void )
 //	CSendSegmentACK::RestorePage
 //
 
-void CSendSegmentACK::RestorePage( void )
+void CSendSegmentACK::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

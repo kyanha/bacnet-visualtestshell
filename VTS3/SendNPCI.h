@@ -32,15 +32,18 @@ public:
 	VTSRemoteAddrCtrl	m_SADR;					// SADR
 	VTSIntegerCtrl		m_Priority;				// Network priority
 
+	static  int historyCount;           //Xiao Shiyuan 2002-12-5
+	static  int curHistoryIndex;        //Xiao Shiyuan 2002-12-5
+
 	void SynchronizeControls( void );
 
 	void InitPage( void );						// get read for input
 	void EncodePage( CByteArray* contents );	// encode the page into contents
 
-	static BACnetAPDUEncoder	pageContents;
+	static BACnetAPDUEncoder	pageContents[glMaxHistoryCount];
 
 	void SavePage( void );						// save contents
-	void RestorePage( void );					// restore contents to last saved values
+	void RestorePage( int index = 0 );					// restore contents to last saved values
 
 // Dialog Data
 	//{{AFX_DATA(CSendNPCI)
@@ -76,6 +79,8 @@ protected:
 	afx_msg void OnChangePriority();
 	afx_msg void OnSelchangeDADRCombo();
 	afx_msg void OnSelchangeSADRCombo();
+	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
+	afx_msg void OnDestroy();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

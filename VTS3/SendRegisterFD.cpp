@@ -107,7 +107,7 @@ void CSendRegisterFD::SavePage( void )
 //	CSendRegisterFD::RestorePage
 //
 
-void CSendRegisterFD::RestorePage( void )
+void CSendRegisterFD::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

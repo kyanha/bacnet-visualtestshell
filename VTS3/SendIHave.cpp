@@ -144,7 +144,7 @@ void CSendIHave::SavePage( void )
 //	CSendIHave::RestorePage
 //
 
-void CSendIHave::RestorePage( void )
+void CSendIHave::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

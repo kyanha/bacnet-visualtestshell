@@ -142,7 +142,7 @@ void CSendIAmRTN::SavePage( void )
 //	CSendIAmRTN::RestorePage
 //
 
-void CSendIAmRTN::RestorePage( void )
+void CSendIAmRTN::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

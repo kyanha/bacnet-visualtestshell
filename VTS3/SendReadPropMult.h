@@ -106,7 +106,7 @@ class CSendReadPropMult : public CSendPage
 public:
 	CSendReadPropMult( void );   // non-standard constructor
 
-	ReadPropListList		m_PropListList;		// list of lists
+	ReadPropListList		m_PropListList;		// list of lists. Xiao Shiyuan 2002-12-2
 
 	void InitPage( void );						// give it a chance to init
 	void EncodePage( CByteArray* contents );	// encode the page
@@ -114,7 +114,9 @@ public:
 	static BACnetAPDUEncoder	pageContents;
 
 	void SavePage( void );						// save contents
-	void RestorePage( void );					// restore contents to last saved values
+	void RestorePage( int index = 0 );			// restore contents to last saved values
+
+	CList<CString, CString> m_strList;
 
 // Dialog Data
 	//{{AFX_DATA(CSendReadPropMult)
@@ -150,6 +152,8 @@ protected:
 	afx_msg void OnSelchangePropCombo();
 	afx_msg void OnChangeArrayIndex();
 	afx_msg void OnObjectIDButton();
+	afx_msg void OnDestroy();
+	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

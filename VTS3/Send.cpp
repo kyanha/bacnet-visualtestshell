@@ -16,7 +16,7 @@ static char THIS_FILE[] = __FILE__;
 #define IDC_PACKETTREE	0x1002
 #define IDC_PACKETDATA	0x1003
 #define IDC_SEND		0x1004
-
+#define IDC_HISTORY     0x1005 //Xiao Shiyuan 2002-12-5
 /////////////////////////////////////////////////////////////////////////////
 
 CSendGroupItem gIPItemList[] =
@@ -411,6 +411,7 @@ void CSend::InitPages( void )
 BEGIN_MESSAGE_MAP(CSend, CPropertySheet)
 	//{{AFX_MSG_MAP(CSend)
 	ON_CBN_SELCHANGE( IDC_PORT, OnSelchangePort )
+	ON_CBN_SELCHANGE( IDC_HISTORY, OnSelchangeHistory )
 	ON_NOTIFY( TVN_SELCHANGEDA, IDC_PACKETTREE, OnSelchangePacketTree )
 	ON_NOTIFY( TVN_SELCHANGEDW, IDC_PACKETTREE, OnSelchangePacketTree )
 	ON_NOTIFY( TVN_ITEMEXPANDEDA, IDC_PACKETTREE, OnItemExpandedPacketTree)
@@ -550,14 +551,26 @@ BOOL CSend::OnInitDialog()
 	// create the send button
 	GetWindowRect( rectWnd );
 	ScreenToClient( &rectWnd );
-	int hmiddle = rectWnd.right - (kTreeWidth / 2);
-	CRect rectSend( hmiddle - 60, rectWnd.bottom - 50
-		, hmiddle + 60, rectWnd.bottom - 19
+	//int hmiddle = rectWnd.right - (kTreeWidth / 2);
+	CRect rectSend( rectWnd.right - 120, rectWnd.bottom - 50
+		, rectWnd.right - 10, rectWnd.bottom - 19
 		);
 	m_send.Create( "Send", BS_PUSHBUTTON
 		| WS_CHILD | WS_VISIBLE | WS_TABSTOP
 		, rectSend, this, IDC_SEND
 		);
+
+	// create the history combo box. Xiao Shiyuan
+	GetWindowRect( rectWnd );
+	ScreenToClient( &rectWnd );
+	CRect rectHistory( rectWnd.right - kTreeWidth, rectWnd.bottom - 50
+		, rectWnd.right - kTreeWidth + 90, rectWnd.bottom + 50);
+	m_history.Create( CBS_DROPDOWNLIST
+		| WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | WS_VSCROLL
+		, rectHistory, this, IDC_HISTORY
+		);
+	
+	//m_history.EnableWindow( FALSE);
 
 	// disable it until a port is selected
 	m_send.EnableWindow( false );
@@ -941,4 +954,32 @@ void CSend::OnSend()
 		// update the encoding
 		UpdateEncoded();
 	}
+}
+
+//Xiao Shiyuan 2002-12-5
+void CSend::SetHistoryComboBox(int count)
+{
+	m_history.ResetContent();
+    CString indexStr;
+
+	for(int index = 0; index < count ; index++)
+	{
+		indexStr.Format("%d", index);
+		m_history.AddString("History:" + indexStr);	
+	}
+	  
+
+	if(count > 0)
+     m_history.SetCurSel(0);
+}
+
+//Xiao Shiyuan 2002-12-5
+void CSend::OnSelchangeHistory()
+{
+	if(curPagePtr == NULL)
+		return;
+
+	int sel = m_history.GetCurSel();
+
+	curPagePtr->RestorePage(sel);
 }

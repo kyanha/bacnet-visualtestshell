@@ -11,11 +11,17 @@
 
 #include "VTSObjectIdentifierDialog.h"
 
+#include "WPRPList.h" //Xiao Shiyuan 2002-12-2
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+extern WPMRPMListList glWPMRPMListList[5]; //Xiao Shiyuan 2002-12-2
+extern int glWPMRPMHistoryCount;
+extern int glCurWPMRPMHistory;
 
 namespace NetworkSniffer {
 	extern char *BACnetPropertyIdentifier[];
@@ -85,6 +91,8 @@ BEGIN_MESSAGE_MAP(CSendReadPropMultACK, CPropertyPage)
 	ON_CBN_SELCHANGE(IDC_ERRORCLASSCOMBO, OnSelchangeClassCombo)
 	ON_CBN_SELCHANGE(IDC_ERRORCODECOMBO, OnSelchangeCodeCombo)
 	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectIDButton)
+	ON_WM_DESTROY()
+	ON_WM_SHOWWINDOW()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -130,26 +138,103 @@ void CSendReadPropMultACK::SavePage( void )
 {
 	TRACE0( "CSendReadPropMultACK::SavePage\n" );
 
-	pageContents.Flush();
+	glWPMRPMListList[glCurWPMRPMHistory].RemoveAll(); //clear all data first
+	
+	for( int i = 0; i < m_PropListList.GetCount(); i++)
+	{	
+		WPMRPMListPtr wpmrplistPtr = new WPMRPMList();
+        ReadPropACKListPtr rplistPtr = m_PropListList.GetAt( m_PropListList.FindIndex(i) );
 
-	// ### save the list
+		wpmrplistPtr->m_ObjID = rplistPtr->rpalObjID;        
+		wpmrplistPtr->m_ObjIDStr = m_ObjList.GetItemText(i, 0);
+
+		for(int j = 0; j < rplistPtr->GetCount(); j++)
+		{
+			ReadPropACKElemPtr elemPtr = rplistPtr->GetAt(rplistPtr->FindIndex(j));
+            WPMRPMElemPtr wpmrpmelemPtr = new WPMRPMElem();
+			
+			wpmrpmelemPtr->m_prop.enumValue = elemPtr->rpaePropCombo.enumValue;
+			wpmrpmelemPtr->m_array.uintValue = elemPtr->rpaeArrayIndex.uintValue;
+            wpmrpmelemPtr->m_class.enumValue = elemPtr->rpaeClassCombo.enumValue;
+			wpmrpmelemPtr->m_code.enumValue = elemPtr->rpaeCodeCombo.enumValue;
+			wpmrpmelemPtr->m_value = elemPtr->rpaeValue;
+			wpmrplistPtr->AddTail(wpmrpmelemPtr);
+		}
+
+        glWPMRPMListList[glCurWPMRPMHistory].AddTail(wpmrplistPtr);
+	}
 }
 
 //
 //	CSendReadPropMultACK::RestorePage
 //
 
-void CSendReadPropMultACK::RestorePage( void )
-{
-	BACnetAPDUDecoder	dec( pageContents )
-	;
-
+void CSendReadPropMultACK::RestorePage( int index )
+{	
 	TRACE0( "CSendReadPropMultACK::RestorePage\n" );
-
-	if (dec.pktLength == 0)
+	if(glWPMRPMHistoryCount < 1)
+		return;
+	
+	if(index > glWPMRPMHistoryCount)
 		return;
 
-	// ### restore the list
+	index = glCurWPMRPMHistory - index - 1;
+	if(index < 0)
+		index = index + glMaxHistoryCount;
+
+	if(isShown)
+	{
+		m_ObjList.DeleteAllItems();
+		m_PropList.DeleteAllItems();
+
+		for (POSITION pos = m_PropListList.GetHeadPosition(); pos != NULL; )
+		  delete m_PropListList.GetNext( pos );		
+
+		m_PropListList.RemoveAll();
+	}	  
+
+	//restore data. Xiao Shiyuan 2002-12-3	
+	for(int i = 0; i < glWPMRPMListList[index].GetCount(); i++)
+	{	
+		ReadPropACKListPtr rplistPtr = new ReadPropACKList(this);
+		WPMRPMListPtr wpmrplistPtr = glWPMRPMListList[index].GetAt(glWPMRPMListList[index].FindIndex(i));
+
+		BACnetObjectIdentifier *p = &(rplistPtr->rpalObjID);		
+		*p = wpmrplistPtr->m_ObjID;
+
+		if(isShown)
+		  rplistPtr->rpalObjID.ObjToCtrl();
+
+		if(isShown)
+		  m_ObjList.InsertItem(i, wpmrplistPtr->m_ObjIDStr); 
+		else
+          m_strList.AddTail(wpmrplistPtr->m_ObjIDStr);
+        
+
+		for(int j = 0; j < wpmrplistPtr->GetCount(); j++)
+		{
+			ReadPropACKElemPtr elemPtr = new ReadPropACKElem(this);
+            WPMRPMElemPtr wpmrpmelemPtr = wpmrplistPtr->GetAt(wpmrplistPtr->FindIndex(j));
+			
+			elemPtr->rpaePropCombo.enumValue = wpmrpmelemPtr->m_prop.enumValue;
+			elemPtr->rpaeArrayIndex.uintValue = wpmrpmelemPtr->m_array.uintValue;
+			elemPtr->rpaeClassCombo.enumValue = wpmrpmelemPtr->m_class.enumValue;
+			elemPtr->rpaeCodeCombo.enumValue = wpmrpmelemPtr->m_code.enumValue;
+			elemPtr->rpaeValue = wpmrpmelemPtr->m_value;
+
+			elemPtr->rpaeArrayIndex.ctrlNull = FALSE; //value specified
+
+			if(isShown)
+			{
+				elemPtr->rpaePropCombo.ObjToCtrl();
+				elemPtr->rpaeArrayIndex.ObjToCtrl();
+			}			
+			
+			rplistPtr->AddTail(elemPtr);
+		}
+
+        m_PropListList.AddTail(rplistPtr);
+	}
 }
 
 //
@@ -209,6 +294,10 @@ BOOL CSendReadPropMultACK::OnInitDialog()
 	for (int k = 0; k < 43; k++)
 		cbp->AddString( NetworkSniffer::BACnetErrorCode[k] );
 
+	//Xiao Shiyuan 2002-12-5
+	for(i = 0; i < m_strList.GetCount(); i++)    
+		m_ObjList.InsertItem(i, m_strList.GetAt(m_strList.FindIndex(i))); 
+	
 	return TRUE;
 }
 
@@ -413,6 +502,8 @@ ReadPropACKList::ReadPropACKList( CSendReadPropMultACKPtr pp )
 	rpalObjID.ctrlEnabled = false;
 	rpalObjID.ctrlNull = false;
 	rpalObjID.objID = 0;
+
+	rpalAddInProgress = FALSE;
 }
 
 //
@@ -842,6 +933,7 @@ ReadPropACKListList::ReadPropACKListList( CSendReadPropMultACKPtr pp )
 	: rpallPagePtr( pp )
 	, rpallCurElem(0), rpallCurElemIndx(-1)
 {
+	rpallAddInProgress = FALSE;
 }
 
 //
@@ -1113,4 +1205,34 @@ void ReadPropACKListList::Encode( BACnetAPDUEncoder& enc )
 {
 	for (POSITION pos = GetHeadPosition(); pos != NULL; )
 		GetNext( pos )->Encode( enc );
+}
+
+void CSendReadPropMultACK::OnDestroy() 
+{
+	CPropertyPage::OnDestroy();
+	
+	// TODO: Add your message handler code here	
+	SavePage(); //save data first
+	
+	if(glWPMRPMHistoryCount < glMaxHistoryCount)
+		glWPMRPMHistoryCount++;
+
+	glCurWPMRPMHistory++;
+
+	if(glCurWPMRPMHistory > glMaxHistoryCount - 1)
+		glCurWPMRPMHistory = 0;		
+}
+
+void CSendReadPropMultACK::OnShowWindow(BOOL bShow, UINT nStatus) 
+{
+	CPropertyPage::OnShowWindow(bShow, nStatus);
+	
+	// TODO: Add your message handler code here
+	isShown = bShow;
+
+	if(bShow)
+	{
+		pageParent->SetHistoryComboBox(glWPMRPMHistoryCount);
+		pageParent->curPagePtr = this;
+	}	
 }

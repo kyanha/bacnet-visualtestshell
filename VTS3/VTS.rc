@@ -1361,7 +1361,7 @@ BEGIN
     PUSHBUTTON      "\\/",IDC_PROPDOWN,240,156,15,15,NOT WS_TABSTOP
 END
 
-IDD_SENDREADPROPMULTACK DIALOG DISCARDABLE  0, 0, 300, 234
+IDD_SENDREADPROPMULTACK DIALOG DISCARDABLE  0, 0, 300, 243
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ReadPropertyMultiple-ACK"
 FONT 8, "MS Sans Serif"
@@ -1380,17 +1380,17 @@ BEGIN
                     WS_TABSTOP,10,95,220,75
     PUSHBUTTON      "Add",IDC_ADDPROP,240,95,50,15
     PUSHBUTTON      "Remove",IDC_REMOVEPROP,240,115,50,15
-    LTEXT           "Property",-1,15,177,28,10
+    LTEXT           "Property",-1,15,177,34,10
     COMBOBOX        IDC_PROPCOMBO,50,175,100,108,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "Index",-1,160,176,18,8
     EDITTEXT        IDC_ARRAYINDEX,185,175,25,12,ES_AUTOHSCROLL
     LTEXT           "Value",-1,25,198,19,8
     PUSHBUTTON      "Any...",IDC_VALUE,50,195,55,15
-    LTEXT           "Error Class",-1,10,217,35,10
-    COMBOBOX        IDC_ERRORCLASSCOMBO,50,215,75,62,CBS_DROPDOWNLIST | 
+    LTEXT           "Error Class",-1,10,217,38,20
+    COMBOBOX        IDC_ERRORCLASSCOMBO,52,215,75,62,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Error Code",-1,145,218,35,10
+    LTEXT           "Error Code",-1,145,218,35,22
     COMBOBOX        IDC_ERRORCODECOMBO,185,215,105,62,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "/\\",IDC_OBJUP,240,45,15,15
@@ -2433,8 +2433,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,1,10,0
- PRODUCTVERSION 3,1,10,0
+ FILEVERSION 3,1,8,0
+ PRODUCTVERSION 3,1,8,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2452,14 +2452,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "Visual Test Shell\0"
-            VALUE "FileVersion", "3, 1, 10, 0\0"
+            VALUE "FileVersion", "3, 1, 8, 0\0"
             VALUE "InternalName", "VTS\0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2002\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "VTS.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Visual Test Shell\0"
-            VALUE "ProductVersion", "3, 1, 10, 0\0"
+            VALUE "ProductVersion", "3, 1, 8, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END

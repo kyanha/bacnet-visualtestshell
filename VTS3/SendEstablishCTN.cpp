@@ -118,7 +118,7 @@ void CSendEstablishCTN::SavePage( void )
 //	CSendEstablishCTN::RestorePage
 //
 
-void CSendEstablishCTN::RestorePage( void )
+void CSendEstablishCTN::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

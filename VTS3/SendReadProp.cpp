@@ -19,8 +19,9 @@ namespace NetworkSniffer {
 	extern char *BACnetPropertyIdentifier[];
 }
 
-BACnetAPDUEncoder CSendReadProp::pageContents;
-
+BACnetAPDUEncoder CSendReadProp::pageContents[glMaxHistoryCount];
+int CSendReadProp::curHistoryIndex = 0;
+int CSendReadProp::historyCount = 0;
 /////////////////////////////////////////////////////////////////////////////
 // CSendReadProp dialog
 
@@ -57,6 +58,8 @@ BEGIN_MESSAGE_MAP(CSendReadProp, CPropertyPage)
 	ON_CBN_SELCHANGE(IDC_PROPCOMBO, OnSelchangePropCombo)
 	ON_EN_CHANGE(IDC_ARRAYINDEX, OnChangeArrayIndex)
 	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectIDButton)
+	ON_WM_SHOWWINDOW()
+	ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -130,23 +133,33 @@ void CSendReadProp::SavePage( void )
 {
 	TRACE0( "CSendReadProp::SavePage\n" );
 
-	pageContents.Flush();
+	pageContents[curHistoryIndex].Flush();
 
-	m_ObjectID.SaveCtrl( pageContents );
-	m_PropCombo.SaveCtrl( pageContents );
-	m_ArrayIndex.SaveCtrl( pageContents );
+	m_ObjectID.SaveCtrl( pageContents[curHistoryIndex] );
+	m_PropCombo.SaveCtrl( pageContents[curHistoryIndex] );
+	m_ArrayIndex.SaveCtrl( pageContents[curHistoryIndex] );
 }
 
 //
 //	CSendReadProp::RestorePage
 //
 
-void CSendReadProp::RestorePage( void )
+void CSendReadProp::RestorePage( int index )
 {
-	BACnetAPDUDecoder	dec( pageContents )
-	;
-
 	TRACE0( "CSendReadProp::RestorePage\n" );
+
+	if(historyCount < 1)
+		return;
+	
+	if(index > historyCount)
+		return;
+
+	index = curHistoryIndex - index - 1;
+	if(index < 0)
+		index = index + glMaxHistoryCount;
+
+	BACnetAPDUDecoder	dec( pageContents[index] );
+	
 
 	if (dec.pktLength == 0)
 		return;
@@ -154,6 +167,14 @@ void CSendReadProp::RestorePage( void )
 	m_ObjectID.RestoreCtrl( dec );
 	m_PropCombo.RestoreCtrl( dec );
 	m_ArrayIndex.RestoreCtrl( dec );
+
+	if(isShown)
+	{
+		m_ObjectID.ObjToCtrl();
+		m_PropCombo.ObjToCtrl();
+		m_ArrayIndex.ObjToCtrl();		
+	}	 
+
 }
 
 //
@@ -198,4 +219,32 @@ void CSendReadProp::OnChangeArrayIndex()
 	m_ArrayIndex.UpdateData();
 	SavePage();
 	UpdateEncoded();
+}
+
+void CSendReadProp::OnShowWindow(BOOL bShow, UINT nStatus) 
+{
+	CPropertyPage::OnShowWindow(bShow, nStatus);
+	
+	// TODO: Add your message handler code here
+	isShown = bShow;
+
+	if(bShow)
+	{
+		pageParent->SetHistoryComboBox(historyCount);
+		pageParent->curPagePtr = this;
+	}
+}
+
+void CSendReadProp::OnDestroy() 
+{
+	CPropertyPage::OnDestroy();
+	
+	// TODO: Add your message handler code here
+	if(historyCount < glMaxHistoryCount)
+		historyCount++;
+
+	curHistoryIndex++;
+	
+	if(curHistoryIndex > glMaxHistoryCount - 1)
+		curHistoryIndex = 0;			
 }

@@ -152,7 +152,7 @@ void CSendAddListElement::SavePage( void )
 //	CSendAddListElement::RestorePage
 //
 
-void CSendAddListElement::RestorePage( void )
+void CSendAddListElement::RestorePage(  int index  )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

@@ -13,10 +13,13 @@
 class CSend;
 typedef CSend *CSendPtr;
 
+const int glMaxHistoryCount = 5;
+
 class CSendPage : public CPropertyPage
 {
 public:
-	CSendPtr	pageParent;				// pointer to parent CSend box
+	CSendPtr	pageParent;				// pointer to parent CSend box  
+	BOOL        isShown;                //if the page is shown now. Xiao Shiyuan 2002-12-5
 
 	CSendPage( UINT id );
 	virtual ~CSendPage( void );
@@ -27,7 +30,7 @@ public:
 	virtual void EncodePage( CByteArray* contents );	// encode the page into contents
 
 	virtual void SavePage( void );						// save contents
-	virtual void RestorePage( void );					// restore contents to last saved values
+	virtual void RestorePage( int index = 0 );			// restore contents to last saved values	
 };
 
 typedef CSendPage *CSendPagePtr, **CSendPageList;

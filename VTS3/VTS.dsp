@@ -190,6 +190,10 @@ SOURCE=.\Sniffer\BACSN015.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CheckEPICSCons.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ChildFrm.cpp
 # End Source File
 # Begin Source File
@@ -853,6 +857,10 @@ SOURCE=.\BACnetLibrary\WinPacket32.cpp
 
 SOURCE=.\ptp\WinPTP.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\WPRPList.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -908,6 +916,10 @@ SOURCE=.\DUDAPI\Bacprim.h
 # Begin Source File
 
 SOURCE=.\Sniffer\Bacproto.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CheckEPICSCons.h
 # End Source File
 # Begin Source File
 
@@ -1612,6 +1624,10 @@ SOURCE=.\BACnetLibrary\WinPacket32.hpp
 # Begin Source File
 
 SOURCE=.\ptp\WinPTP.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\WPRPList.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

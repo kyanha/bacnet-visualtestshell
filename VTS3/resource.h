@@ -126,6 +126,7 @@
 #define IDD_SENDDEVICE                  245
 #define IDD_DIALOG1                     246
 #define IDD_READALLPROPSETTING          247
+#define IDD_LOADEPICSCONSCHK            248
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -470,6 +471,7 @@
 #define IDC_BAUDRATE                    1249
 #define IDC_EDIT_IUTIP                  1249
 #define IDC_COMBO_NETWORK               1251
+#define IDC_EPICSCONSRESULT             1252
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -546,9 +548,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        248
+#define _APS_NEXT_RESOURCE_VALUE        249
 #define _APS_NEXT_COMMAND_VALUE         32813
-#define _APS_NEXT_CONTROL_VALUE         1252
+#define _APS_NEXT_CONTROL_VALUE         1253
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -119,7 +119,7 @@ void CSendRejectMTN::SavePage( void )
 //	CSendRejectMTN::RestorePage
 //
 
-void CSendRejectMTN::RestorePage( void )
+void CSendRejectMTN::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

@@ -226,7 +226,7 @@ void SendReadRange::SavePage( void )
 //	CSendReadProp::RestorePage
 //
 
-void SendReadRange::RestorePage( void )
+void SendReadRange::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

@@ -143,7 +143,7 @@ void CSendSubscribeCOV::SavePage( void )
 //	CSendSubscribeCOV::RestorePage
 //
 
-void CSendSubscribeCOV::RestorePage( void )
+void CSendSubscribeCOV::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

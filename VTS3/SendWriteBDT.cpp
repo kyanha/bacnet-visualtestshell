@@ -143,7 +143,7 @@ void CSendWriteBDT::SavePage( void )
 //	CSendWriteBDT::RestorePage
 //
 
-void CSendWriteBDT::RestorePage( void )
+void CSendWriteBDT::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

@@ -130,7 +130,7 @@ void CSendReject::SavePage( void )
 //	CSendReject::RestorePage
 //
 
-void CSendReject::RestorePage( void )
+void CSendReject::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

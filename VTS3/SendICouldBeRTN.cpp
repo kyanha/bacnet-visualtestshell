@@ -118,7 +118,7 @@ void CSendICouldBeRTN::SavePage( void )
 //	CSendICouldBeRTN::RestorePage
 //
 
-void CSendICouldBeRTN::RestorePage( void )
+void CSendICouldBeRTN::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

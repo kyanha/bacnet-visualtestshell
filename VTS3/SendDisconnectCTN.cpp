@@ -106,7 +106,7 @@ void CSendDisconnectCTN::SavePage( void )
 //	CSendDisconnectCTN::RestorePage
 //
 
-void CSendDisconnectCTN::RestorePage( void )
+void CSendDisconnectCTN::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

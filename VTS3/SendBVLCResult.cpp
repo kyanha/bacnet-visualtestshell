@@ -126,7 +126,7 @@ void CSendBVLCResult::SavePage( void )
 //	CSendBVLCResult::RestorePage
 //
 
-void CSendBVLCResult::RestorePage( void )
+void CSendBVLCResult::RestorePage(  int index  )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;
