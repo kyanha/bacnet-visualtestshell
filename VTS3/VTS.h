@@ -14,6 +14,10 @@
 
 #include "resource.h"       // main symbols
 
+#define MAX_DEFINED_OBJ	  21  // This is one more than defined BACnetObjectType
+#define MAX_PROP_ID	      152		// BACnetPropertyIdentifier
+#define MAX_SERVS_SUPP     40 
+
 //
 //	VTSApp
 //
