@@ -93,6 +93,7 @@ BEGIN
     BUTTON      ID_FILE_OPEN
     BUTTON      ID_FILE_SAVE
     SEPARATOR
+    BUTTON      ID_EDIT_DELETE
     BUTTON      ID_EDIT_CUT
     BUTTON      ID_EDIT_COPY
     BUTTON      ID_EDIT_PASTE
@@ -100,8 +101,6 @@ BEGIN
     BUTTON      ID_FILE_PRINT
     SEPARATOR
     BUTTON      ID_APP_ABOUT
-    BUTTON      ID_BUTTON32799
-    BUTTON      ID_BUTTON32800
 END
 
 
@@ -214,7 +213,7 @@ BEGIN
         MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
-        MENUITEM "&Delete",                     ID_EDIT_DELETE
+        MENUITEM "&Delete\tCtrl+D",             ID_EDIT_DELETE
         MENUITEM SEPARATOR
         MENUITEM "Devices...",                  ID_EDIT_DEVICES
         MENUITEM "Ports...",                    ID_EDIT_PORTS
@@ -598,7 +597,8 @@ CAPTION "Wrte-Broadcast-Distribution-Table"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "List1",IDC_BDTLIST,"SysListView32",LVS_REPORT | 
-                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,10,10,194,118
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,10,10,194,118
     PUSHBUTTON      "Add",IDC_ADDBDT,228,12,50,15
     PUSHBUTTON      "Remove",IDC_REMOVEBDT,228,32,50,15
     GROUPBOX        "BDT Entry",IDC_STATIC,10,139,195,69
@@ -1230,7 +1230,8 @@ CAPTION "ABSTRACT-SYNTAX.&Type"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "List1",IDC_ELEMLIST,"SysListView32",LVS_REPORT | 
-                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,10,10,155,90
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,10,10,155,90
     PUSHBUTTON      "Add",IDC_ADDELEM,175,10,50,15
     PUSHBUTTON      "Remove",IDC_REMOVEELEM,175,30,50,15
     LTEXT           "Type",IDC_STATIC,10,107,25,10
@@ -1486,7 +1487,8 @@ CAPTION "Names"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_NAMELIST,"SysListView32",LVS_REPORT | 
-                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,5,5,245,90
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,5,5,245,90
     PUSHBUTTON      "New",ID_NEWNAME,260,5,50,14
     PUSHBUTTON      "Delete",ID_DELETENAME,260,25,50,14
     PUSHBUTTON      "Import...",ID_IMPORTNAMES,260,45,50,14
@@ -2160,13 +2162,27 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
 END
 
-IDD_PORT_PTP DIALOG DISCARDABLE  0, 0, 186, 95
+IDD_PORT_PTP DIALOG DISCARDABLE  0, 0, 232, 223
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "PTP Configuration"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+    DEFPUSHBUTTON   "OK",IDOK,133,202,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,60,202,50,14
+    LTEXT           "The drop-down list below contains the names of the Serial ports that are available through the BACMAC driver.",
+                    IDC_STATIC,17,16,201,37
+    LTEXT           "Serial Port:",IDC_STATIC,17,60,50,11
+    LTEXT           "Parity:",IDC_STATIC,17,110,45,11
+    LTEXT           "Baud Rate:",IDC_STATIC,17,85,45,11
+    LTEXT           "Data Bits:",IDC_STATIC,17,135,45,11
+    LTEXT           "Stop Bits:",IDC_STATIC,17,160,45,11
+    COMBOBOX        IDC_PORTCOMBO,72,60,48,35,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_BAUDRATE,72,85,48,39,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "N",IDC_STATIC,72,110,8,8
+    LTEXT           "8",IDC_STATIC,72,135,8,8
+    LTEXT           "1",IDC_STATIC,72,160,8,8
 END
 
 IDD_SCRIPTPARMUPDATE DIALOGEX 0, 0, 242, 106
@@ -2253,8 +2269,8 @@ CAPTION "Devices"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "List1",IDC_DEVICELIST,"SysListView32",LVS_REPORT | 
-                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
-                    WS_TABSTOP,5,5,275,80
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,5,5,275,80
     PUSHBUTTON      "New",IDC_NEWDEVICE,290,5,50,15
     LTEXT           "Name:",IDC_STATIC,5,97,25,10
     EDITTEXT        IDC_NAME,35,95,245,12,ES_AUTOHSCROLL | WS_DISABLED
@@ -3059,9 +3075,9 @@ BEGIN
     IDD_PORT_PTP, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 179
+        RIGHTMARGIN, 225
         TOPMARGIN, 7
-        BOTTOMMARGIN, 88
+        BOTTOMMARGIN, 216
     END
 
     IDD_SCRIPTPARMUPDATE, DIALOG
@@ -3231,6 +3247,19 @@ BEGIN
 0x6552, 0x6573, 0x7672, 0x6465, "\000" 
     IDC_OBJTYPECOMBO, 0x403, 7, 0
 0x6556, 0x646e, 0x726f, "\000" 
+    0
+END
+
+IDD_PORT_PTP DLGINIT
+BEGIN
+    IDC_PORTCOMBO, 0x403, 5, 0
+0x4f43, 0x314d, "\000" 
+    IDC_PORTCOMBO, 0x403, 5, 0
+0x4f43, 0x324d, "\000" 
+    IDC_PORTCOMBO, 0x403, 5, 0
+0x4f43, 0x334d, "\000" 
+    IDC_PORTCOMBO, 0x403, 5, 0
+0x4f43, 0x344d, "\000" 
     0
 END
 
