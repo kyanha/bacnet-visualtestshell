@@ -1,0 +1,334 @@
+<html>
+
+<head>
+<title>Untitled Document</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<style type="text/css">
+<!--
+body         { font-family: Verdana, Arial, Helvetica, sans-serif }
+p, td, blockquote { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12pt }
+h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: nowrap; 
+               color: #0066CC }
+-->
+</style>
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+
+<h1>VTS 3.0 <i>Quick Start Guide</i></h1>
+<p>Visual Test Shell (VTS) is an application for testing the BACnet
+functionality of various devices used in building automation systems.&nbsp;
+BACnet is a Data Communication Protocol for Building Automation and Control
+Networks developed under the auspices of the American Society of Heating,
+Refrigerating and Air-Conditioning Engineers (ASHRAE).&nbsp;&nbsp; For
+information on BACnet, see <a href="http://www.bacnet.org">http://www.bacnet.org</a>&nbsp;</p>
+<p>VTS 3.0 is the third generation of VTS.&nbsp; It is a complete redesign and
+rewrite of VTS and there are still some features missing and perhaps even a bug
+or two.&nbsp; VTS 3.0 has been turned into an open source project in the hopes
+that the users of this program will assist in making it a robust and full
+featured BACnet test tool.&nbsp; The home of the VTS 3.0 open source project
+is&nbsp; <a href="http://sourceforge.net/projects/vts/">http://sourceforge.net/projects/vts/</a>
+. </p>
+<h2>Platform Requirements</h2>
+<p>VTS 3.0 runs on Windows98, Windows NT 4.0 (Service Pack 4), or
+Windows2000.&nbsp; It may also work on Windows95 systems, but there may be some
+compatibility problems with several system DLLs on Windows95.&nbsp; (WindowsME
+has not been tested).</p>
+<h3>Quick Start Guide Contents</h3>
+<blockquote>
+  <ol>
+    <li><a href="#1">Install BACMACNT (if required)</a></li>
+    <li><a href="#2">Install VTS</a></li>
+    <li><a href="#3">Run VTS</a></li>
+    <li><a href="#4">Create a database</a></li>
+    <li><a href="#5">Create a port</a></li>
+    <li><a href="#6">Send a packet</a></li>
+    <li><a href="#7">Analyze a packet</a></li>
+    <li><a href="#8">Create a name</a></li>
+    <li><a href="#9">Send a more complicated packet</a></li>
+    <li><a href="#10">Analyze the response</a></li>
+  </ol>
+</blockquote>
+<h2><a name="1">Step 1</a> : Install BACMACNT (if required)</h2>
+<p>If you are interested in Ethernet or ARCnet traffic, and you plan to run VTS
+on Windows NT (or Windows2000), you need to install BACMACNT - otherwise, you
+can skip this step.&nbsp;</p>
+<p><b>1.1</b> Copy the BACMACNT.SYS file into the \WinNT\System32\Drivers
+directory</p>
+<p><b>1.2</b> Reboot to load the new driver.</p>
+<p><b>1.3</b> Run BACREGNT.EXE.</p>
+<p><b>1.4</b> Make sure the adapters are properly bound (check mark in front of
+adapter name).</p>
+<p><b>1.5</b> Reboot if necessary.</p>
+<p><a href="#2">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="2">Step 2</a> : Install VTS</h2>
+<p>VTS requires no installation. You may copy VTS.EXE to a directory of your
+choice, or run it from the same directory where it was originally extracted from
+the zip archive.</p>
+<p><a href="#3">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="3">Step 3</a> : Run VTS</h2>
+<p>Running VTS is as simple as double clicking on the application (VTS.EXE) or
+selecting Run from the Start menu and entering <a href="file:///C:/VTS/VTS">C:\VTS\VTS</a>
+(assuming that you moved VTS.EXE to the directory C:\VTS).</p>
+<p><a href="#4">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="4">Step 4</a> : Create a database</h2>
+<p><b>4.1</b> Select New from the File menu. You will be presented with the
+follow dialog box:</p>
+<p><center><img src="Images/Image02.gif" width="281" height="139"></center></p>
+<p>Select VDB, you will be creating a session database. The session database
+contains a description of the ports, names bound to addresses, and packets that
+were sent or received on each port. VTS allows more than one session database
+open at the same time, so it is possible to configure one database for Ethernet
+traffic and one for IP and have them both capturing packets at the same time.</p>
+<p>The VTS selection is for creating scripts which is not covered in this quick
+start guide.</p>
+<p><b>4.2</b> Give the session a file name.</p>
+<p><center><img src="Images/Image03.gif" width="426" height="285"></center></p>
+<p><b>4.3</b> Identify the split pane view of the session.</p>
+<p>You will be presented with a split-pane window with three components:</p>
+<p><center><img src="Images/Image04.gif" width="719" height="521"></center></p>
+<p>A description of the three panes is found in <a href="#7">Step 7</a>. This
+session window works as you would expect, the Windows menu allows you to manage
+multiple views of the same database and tile or stack them. A large monitor is
+recommended for multiple windows.</p>
+<p><a href="#5">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="5">Step 5</a> : Create a port</h2>
+<p>A port is a communications endpoint that sends and receives packets. Some
+ports are associated with a physical interface such as an Ethernet
+communications card, and others such as IP ports are associated with a UDP port.</p>
+<p><b>5.1</b> Select Ports from the Edit menu. Click on New and give the port a
+name. Click on IP and you will see the following dialog box:</p>
+<p><center><img src="Images/Image05.gif" width="399" height="366"></center></p>
+<p><b>5.2</b> Click on the Configuration button, you will be presented with a
+dialog box for configuring the port. Each port type has its own configuration
+options.</p>
+<p><center><img src="Images/Image06.gif" width="287" height="171"></center></p>
+<p>For BACnet/IP ports, the socket 0xBAC0 (or 47808) is the typical socket
+number. Click OK, then click on the Enable check box.</p>
+<p><center><img src="Images/Image07.gif" width="399" height="366"></center></p>
+<p>When a port is enabled it is available for sending and receiving packets. If
+the status indicator is red, there is some problem enabling the port and a
+description will appear in the status area.</p>
+<p><a href="#6">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="6">Step 6</a> : Send a packet</h2>
+<p>The most basic function of VTS is to send and receive packets and decode
+them. Click on the Send menu and you will see a menu that looks like this:</p>
+<p><center><img src="Images/Image08.gif" width="719" height="521"></center></p>
+<p>The BAC0 name that is selected is the port created in Step 5. There is only
+one enabled port, so it is selected by default, and below the port is a
+hierarchical menu of families of types of packets. The BVLL menu has BACnet/IP
+specific packets such as Register-Foreign-Device. The Network menu contains
+BACnet networking packets such as Who-Is-Router-To-Network. The other menus are
+common groups of application layer messages.</p>
+<p><b>6.1</b> Select Register-Foreign-Device from the BVLL menu. You will be
+presented with the following dialog box:</p>
+<p><center><img src="Images/Image09.gif" width="607" height="397"></center></p>
+<p>The central feature of the dialog box is a set of tabbed panels, one tab for
+each layer in the packet. The Register-Foreign-Device message has only one
+parameter, the Time-To-Live. This is a required parameter, as indicated by the
+error message in the text area below the panels.</p>
+<p><b>6.2</b> Enter a time-to-live in seconds.</p>
+<p>When a parameter in the packet contains valid information, other parameters
+in other panels are verified to contain correct content.</p>
+<p><center><img src="Images/Image10.gif" width="607" height="397"></center></p>
+<p><b>6.3</b> Enter the destination address for the packet by selecting the IP
+tab. The destination address may be provided by entering an IP address in the
+text area, or selecting a name from the drop down menu.</p>
+<p><center><img src="Images/Image11.gif" width="607" height="397"></center></p>
+<p>By selecting TD, a predefined name for each port, the BACnet/IP address of
+the PC will be entered into the text area.</p>
+<p><b>6.4</b> Click on the Send button.</p>
+<p>When the packet is well formed, the encoded content will appear in the text
+area below the panels. This may be edited before sending to test how a device
+responds to malformed packets. In the session window you will see an indication
+of a packet that has been transmitted.</p>
+<p><b>6.5</b> Close the Send dialog box.</p>
+<p>The Send dialog box is designed to be non-modal, so it is not closed
+automatically. The packet contents can be modified and sent again.</p>
+<p><a href="#7">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="7">Step 7</a> : Analyze a packet</h2>
+<p>The session window contains three panes. The <b>summary view</b> on the left
+has one line per packet and provides general information such as the packet
+number, time it arrived, source and destination addresses, and a brief
+description of the packet. The <b>detail view</b> in the upper right contains a
+complete decoding of the packet contents. The <b>hex view</b> in the lower right
+displays the binary content of the packet.</p>
+<p><center><img src="Images/Image13.gif" width="719" height="521"></center></p>
+<p><b>7.1</b> Select a row in the detail view.</p>
+<p>The three views are synchronized so selecting a detail row will highlight the
+hex encoding of that specific portion of the packet.</p>
+<p><a href="#8">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="8">Step 8</a> : Create a name</h2>
+<p>A <b>name</b> is a shortcut for an address. Names are used in the source and
+destination address areas of ports, as well as the SNET and DNET portion of the
+BACnet network layer. Select Names from the Edit menu and you will be presented
+with the following dialog box:</p>
+<p><center><img src="Images/Image14.gif" width="486" height="360"></center></p>
+<p>Notice that there is already a name TD (common abbreviation for Test Device)
+defined and given the address of the port. If this was an Ethernet port, TD
+would be the Ethernet address of the port.</p>
+<p><b>8.1</b> Click New, change the name to LB, and click on the Local Broadcast
+radio button.</p>
+<p><center><img src="Images/Image15.gif" width="486" height="360"></center></p>
+<p>This name will now represent a local broadcast address for any port. For an
+Ethernet port, this is the address FF:FF:FF:FF:FF:FF, for an IP port it is the
+address 255.255.255.255:47808. Click on the OK button to close the dialog box.</p>
+<p><a href="#9">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="9">Step 9</a> : Send a more complicated packet</h2>
+<p>For the next example, send out a global broadcast Who-Is packet.</p>
+<p><b>9.1</b> Select Who-Is from the Remote Device Management submenu. You will
+be presented with the following dialog box.</p>
+<p><center><img src="Images/Image16.gif" width="607" height="397"></center></p>
+<p>The device instance low limit and high limit are optional parameters in the
+message. By leaving both fields empty, the request will indicate that all
+devices must respond.</p>
+<p><b>9.2</b> Select the NPCI tab.</p>
+<p><center><img src="Images/Image17.gif" width="607" height="397"></center></p>
+<p>A Who-Is request is usually sent out as a global broadcast, so the DNET is
+present and has the value 65535.</p>
+<p><b>9.3</b> Select the BVLCI tab.</p>
+<p><center><img src="Images/Image18.gif" width="607" height="397"></center></p>
+<p>Assuming the PC is connected to a BACnet/IP network, this message should be
+sent out as an original broadcast message.</p>
+<p><b>9.4</b> Select the IP tab.</p>
+<p><center><img src="Images/Image19.gif" width="607" height="397"></center></p>
+<p>The destination address uses the name LB which has the local broadcast
+address for the port filled into the edit box.</p>
+<p><b>9.5</b> Click Send, then close the dialog box.</p>
+<p><a href="#10">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="10">Step 10</a> : Analyze the response</h2>
+<p>Here is a sample captured from a test network. Note that there seems to be a
+problem with many devices sending their I-Am responses multiple times, or that
+some intermediate network component is repeating the message.</p>
+<p><center><img src="Images/Image20.gif" width="777" height="520"></center></p>
+<p>&nbsp;</p>
+<p><a href="#10">[&nbsp;Next&nbsp;]</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><a name="11">Step 11</a> : Have Fun!</h2>
+<p>Watch for new releases and report bugs at <a href="http://sourceforge.net/projects/vts/">http://sourceforge.net/projects/vts/</a></p>
+<p>&nbsp;</p>
+
+</body>
+
+</html>
