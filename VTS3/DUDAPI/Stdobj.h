@@ -499,7 +499,8 @@ typedef struct
      word							        buffer_size;
      BACnetLogRecord					    log_buffer;
      word						    	    record_count;
-     word						    	    total_record_count;
+//     word						    	    total_record_count;
+     dword						    	    total_record_count;			//should be Unsigned32, GJB 01-MAR-2004
      word						    	    notification_threshold;
      word						    	    records_since_notification;
      BACnetDateTime				    		previous_notify_time;
