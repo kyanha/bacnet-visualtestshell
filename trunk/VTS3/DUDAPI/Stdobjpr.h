@@ -1040,22 +1040,24 @@ propdescriptor	AVGprops[]={
     "object-identifier",	     OBJECT_IDENTIFIER,	        oo(avg,go.object_id),	           ob_id,	0,	       0,	R,
     "object-name",			     OBJECT_NAME,		        oo(avg,go.object_name),	           s32,	    0,	       0,	R,
     "object-type",			     OBJECT_TYPE,		        oo(avg,go.object_type),	           et,		0,eiObjectTypes,R,
-    "minimum-value",		     MINIMUM_VALUE,		        oo(avg,minimum_value),			   flt,		0,	       0,	W|IsCommandable,
+// msdanner 9/2004, minimum-value was marked 'W' + commandable
+    "minimum-value",		     MINIMUM_VALUE,		        oo(avg,minimum_value),			   flt,		0,	       0,	R,
     "minimum-value-timestamp",   MINIMUM_VALUE_TIMESTAMP,   oo(avg,minimum_value_timestamp),   dt,      0,	       0,	O,
     "average-value",		     AVERAGE_VALUE,		        oo(avg,average_value),	           flt,	    0,	       0,	R,
-    "variance-value",	         VARIANCE_VALUE,	        oo(avg,variance_value),            flt,	    0,	       0,	R,
+    "variance-value",	         VARIANCE_VALUE,	        oo(avg,variance_value),            flt,	    0,	       0,	O,
     "maximum-value",		     MAXIMUM_VALUE,		        oo(avg,maximum_value),		       flt,     0,	       0,	O,
     "maximum-value-timestamp",   MAXIMUM_VALUE_TIMESTAMP,   oo(avg,maximum_value_timestamp),   dt,     0,	       0,	O,
     "description",			     DESCRIPTION,		        oo(avg,go.description),	           s132,	0,	       0,	O,
-    "attempted-samples",	     ATTEMPTED_SAMPLES,		    oo(avg,attempted_samples),		   uw,		Intr,	   0,	O|WithService,
-    "valid-samples",	         VALID_SAMPLES,	            oo(avg,valid_samples),             uw,	    Intr,	   0,	O|WithService,
-    "object-property-reference", OBJECT_PROPERTY_REFERENCE, oo(avg,obj_prop_ref),              devobjpropref,	0,         0,	O|WithService,
-    "window-interval",		     WINDOW_INTERVAL,		    oo(avg,window_interval),	       uw,	    Intr,	   0,	O|WithService,
+    "attempted-samples",	     ATTEMPTED_SAMPLES,		    oo(avg,attempted_samples),		   uw,		0,	       0,	W,
+    "valid-samples",	         VALID_SAMPLES,	            oo(avg,valid_samples),             uw,	    0,	       0,	R,
+    "object-property-reference", OBJECT_PROPERTY_REFERENCE, oo(avg,obj_prop_ref),              devobjpropref,	0,         0,	R,
+// msdanner 9/2004 - window-interval & window-samples changed to 'must be writable'
+    "window-interval",		     WINDOW_INTERVAL,		    oo(avg,window_interval),	       uw,	    0,	   0,	W,
 //madanner 6/03: Added 'Last' code for prop search
 //  "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Intr,      0,    O|WithService,
 //    "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Last|Intr,      0,    O|WithService,
 //modified by Jingbo Gao, 2003-9-1
-	"window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Intr,      0,    O|WithService,
+	"window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    0,      0,    W,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",				 PROFILE_NAME,				oo(avg,go.profile_name),		   s132,	Last,	   0,	 O  
 };
