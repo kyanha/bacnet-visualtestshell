@@ -1,4 +1,5 @@
 <!-- saved from url=(0022)http://internet.e-mail -->
+<!-- saved from url=(0022)http://internet.e-mail -->
 <html>
 
 <head>
@@ -18,7 +19,7 @@ h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: 
 
 <body bgcolor="#FFFFFF" text="#000000">
 
-<h1><a name="start">VTS 3.4.4 </a><i>Quick Start Guide</i></h1>
+<h1><a name="start">VTS 3.4.5 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
 functionality of various devices used in building automation systems.&nbsp;
 BACnet is a Data Communication Protocol for Building Automation and Control
@@ -64,7 +65,7 @@ If you later want to remove WinPcap from the system, go to the control-panel, cl
 For details on WinPcap, check the <a href="http://winpcap.polito.it">WinPcap 
 home page</a>. </p>
 <blockquote>
-  <p>WinPcap is Copyright (c) 1999 - 2003 NetGroup, Politecnico di Torino 
+  <p>WinPcap is Copyright (c) 1999 - 2004 NetGroup, Politecnico di Torino 
   (Italy). All rights reserved. </p>
   <p>Redistribution and use in source and binary forms, with or without 
   modification, are permitted provided that the following conditions are met:
@@ -90,7 +91,6 @@ home page</a>. </p>
   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 </blockquote>
-
 
 
 <p><a href="#2">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
@@ -1693,7 +1693,7 @@ see if the most useful data was added for each message type.</li></p>
 </ul>
 
 <!-- 3.4.4 release notes -->
-<h2><a name="whatsnew">3.4.4</a></h2>
+<h2>3.4.4</h2>
 <ul>
 
 <p><li>Feature Request 837460: Provide a method for failing a test script if a particular message is received. 
@@ -1897,7 +1897,67 @@ since other statements must be changed if the CHECK statement was changed, there
 
 </ul>
 
+<!-- 3.4.5 release notes -->
+<h2><a name="whatsnew">3.4.5</a></h2>
+<ul>
+<li>
+<p>Added MS/TP datalink support through the American Auto-Matrix NB-Link device.
+This is a device that connects to a TCP/IP network and provides an MS/TP connection
+for VTS.  In other words, VTS maintains a TCP/IP connection to the NB-Link, 
+which allows VTS to send and receive MS/TP data frames to the MS/TP network
+connected to the NB-Link.  The NB-Link functions as a master node on the
+MS/TP network, handling the MS/TP token passing independently of VTS. 
+</p>
+<p>
+VTS supports multiple NB-Link devices, once for each MS/TP network.  The MS/TP network
+can be located remotely, perhaps even across the Internet.  If there is not a TCP/IP
+network available, the NB-Link can be connected to the PC running VTS by using
+an Ethernet crossover cable between the PC and the NB-Link.  An inexpensive 
+Ethernet hub or switch will also work.
+</p>
+<p>
+The NB-Link is configured from within VTS by adding an MS/TP port in the ports dialog.
+The first step is to add an MS/TP Port by selecting Edit/Ports... from the menu,
+clicking the "New" button, and selecting the MSTP tab and entering the MS/TP parameters
+for this port.  These parameters determine the MS/TP characteristics of the NB-Link.  For example:
+</p>
+<p><img src="Images/mstp_port.png" ></p>
+<p>
+The next step is to click the "Configure Implementation" button to
+set the parameters that determine how the NB-Link communicates with VTS.  Most
+of these parameters are related to the TCP/IP communication employed between VTS
+and the NB-Link, such as the IP address parameters of the NB-Link.  This dialog is
+used to actually <b>set</b> these parameters in the NB-Link, not to match parameters
+that have already previously been set by some other configuration tool.  In
+other words, VTS knows how to configure the NB-Link, even prior to setting
+the NB-Link's IP address - and in fact, this dialog is how the NB-Link's IP
+address is set. (How this functions with multiple NB-Link devices attached has not been tested.)
+</p>
+<p><img src="Images/nblink.png" ></p>
 
+<p>
+Here is the purchasing information for the American Auto-Matrix NB-Link:
+<pre>
+  The part number is NB-LINK-HW-KT.  
+  The price is $1078.50 (US) each.
+  Purchase by credit card by contacting
+  Carla Beiter, American Auto-Matrix inside sales.
+  InsideSales@aamatrix.com 
+  877-226-4822  
+</pre>
+</p>
+</li>
+
+
+<li>
+<p>
+There is a new window visible on the main screen that will become a visual
+representation of the loaded EPICS, but this feature is not yet functional.
+</p>
+</li>
+			
+
+</ul>
 
 
  
@@ -1934,4 +1994,4 @@ since other statements must be changed if the CHECK statement was changed, there
 
 </body>
 
-</html>
+</html>=
