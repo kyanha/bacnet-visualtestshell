@@ -39,9 +39,33 @@ class ScriptPacketExpr {
 		int				exprKeyword;					// keyword
 		bool			exprIsData;						// true if data keyword
 		int				exprOp;							// operator
-		CString			exprValue;						// list of values
+		CString	 		exprValue;						// list of values
 		int				exprLine;						// line number in script
 	};
+
+
+class ScriptIfdefExpr
+{
+	private:
+		ScriptDocument * m_pdocument;
+
+		void ParseForValue(ScriptToken &tok );
+		void ResolveToValue( ScriptToken & tok );
+		BACnetEncodeable * CreateOperand( ScriptToken & token );
+
+	public:
+		ScriptIfdefExpr( ScriptDocument * pdoc );
+		ScriptIfdefExpr( ScriptDocument * pdoc, ScriptScanner &scan, ScriptToken & tok );
+
+		bool Evaluate( ScriptToken & tok);
+		void Parse( ScriptScanner &scan, ScriptToken &tok );
+
+		ScriptToken		m_tokLValue; 					// value on left of operator
+		ScriptToken		m_tokRValue;					// value on right of operator
+		int				m_nOp;							// operator
+		int				m_nLine;						// line number in script
+};
+
 
 const int kScriptPacketExprSize = sizeof( ScriptPacketExpr );
 
