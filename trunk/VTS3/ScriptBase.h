@@ -191,6 +191,8 @@ class ScriptToken {
 		bool IsPropertyReference( int &prop ) const;				// with keyword lookup
 		bool IsEncodeable( BACnetEncodeable &enc ) const;			// can this be interpreted?
 
+		CString RemoveQuotes( void ) const;							// remove quotes from strings
+
 		static int HashCode( const char *key );						// return a hash code
 		static int Lookup( int code, ScriptTranslateTablePtr tp );	// find keyword in a table, -1 if not found
 	};

@@ -1205,7 +1205,7 @@ int interp_Message( char *header, int length)  /* message interpreter */
 {
    /* Summary line? */
    if (pi_data_Message->do_sum)
-      strcpy( get_sum_line(pi_data_Message), header + 5 );
+      strcpy( get_sum_line(pi_data_Message), header + 21 );
 
    /* Detail line? */
    if (pi_data_bacnet_IP->do_int) {
@@ -1213,6 +1213,9 @@ int interp_Message( char *header, int length)  /* message interpreter */
       pif_header (length, "Message Detail");
 	  bac_show_byte("Severity Code","%u");
 	  bac_show_long_hl("Script Line","%u");
+	  pif_show_nbytes_hex( "Digest                      = %s", 16 );
+      pif_show_space();
+	  pif_show_ascii( strlen(pif_get_addr()), "%s" );
       pif_show_space();
    }
 

@@ -67,14 +67,13 @@ last edit:	29-Jan-01 [238] JJB revise for C++, added PICS namespace and typecast
 #include <stdlib.h>
 #include <ctype.h>
 
-namespace PICS {									//									***016
+namespace PICS {									//									***238
 
 #include "db.h" 
 #include "service.h"
 #include "vtsapi.h"
 #include "props.h"
 #include "bacprim.h"
-
 /////////////////////////////////////////////////////////////////////// 
 //	Local Function Prototypes
 
@@ -100,6 +99,8 @@ int     GetListCount(HWND);
 word    GetListData(HWND,octet *,word,BOOL);			//								***014
 int     GetListText(HWND,int,char *);					//								***012 End
 word	safestrlen(char *);								//								***236
+octet * APIENTRY eWORD (octet *, word ,octet );
+
 
 ///////////////////////////////////////////////////////////////////////					***236 Begin
 //	get the length of a string without croaking on NULL
@@ -138,7 +139,7 @@ int GetListText(HWND hWnd,int nIndex,char *p)
 word GetListData(HWND hWnd,octet *os,word nIndex,BOOL hd)
 {	char	b[128];
 	word	lb;
-	
+
 	GetListText(hWnd,(int)nIndex,b);			//first get the text
 	lb=safestrlen(b);							//										***236
 	if (hd)										//hex pairs
@@ -173,7 +174,7 @@ octet *eCONFREQ(octet *op,octet sc)
 //				or 0 meaning too complex
 word APIENTRY eSimpleAckPDU (octet *op,octet id,octet service)
 {	octet	*iop;
-	
+
 	iop=op;
 	*op++=SIMPLE_ACK_PDU<<4;
 	*op++=id;
@@ -191,7 +192,7 @@ word APIENTRY eSimpleAckPDU (octet *op,octet id,octet service)
 //				or 0 meaning too complex
 word APIENTRY eErrorPDU (octet *op,octet id,dword errorclass,dword errorcode,dword service)	//***235
 {	octet	*iop;
-	
+
 	iop=op;
 	*op++=ERROR_PDU<<4;
 	*op++=id;
@@ -431,7 +432,7 @@ word  APIENTRY eListElementService(octet *op,word opmax,word svc,dword objid,dwo
 	nv=(word)GetListCount(arlist);					//how many properties?
 	*op++=0x3E;										//open tag 3
 	for (i=0;i<nv;i++)
-	{	GetListText(arlist,i,(char *)p);			//get the text value to encode		***238
+	{	GetListText(arlist,i,(char *)p);			//get the text value to encode
 		if ((op=eAny(op,(word)(opmax-(op-iop)),ptype,pflags,ep,(char *)p))==0)
 			return 0;								//can't encode it		
 	}
@@ -464,33 +465,51 @@ word  APIENTRY eDeleteObjectService(octet *op,dword objid)
 //		dlist	the handle of a list box containing records to send 
 //out:	return	the number of octets encoded
 //				or 0 meaning too complex
-
+#include<stdio.h> //MAG
 word  APIENTRY eCreateObjectService(octet *op,word opmax,dword objid,BOOL useinst,HWND dlist)
 {	octet *iop;
 	octet	p[128];
 	word	c,nv,i,objtype;
+	//FILE *op2;  // MAG
 
+	//op2 = fopen("c:\\temp\\bacprim32out.txt","a"); //MAG
+	//if(op2 == NULL) return(42);
+	//fprintf(op2,"enter eCreateObjectService\n"); //MAG
+	//fflush(op2);  //MAG
 	iop=op;											//remember starting point
 	op=eCONFREQ(op,createObject);
+	//fprintf(op2,"after eCONFREQ\nuseinst is %d",useinst); //MAG
+	//fflush(op2);  //MAG
 	*op++=0x0E;										//open tag 0
 	objtype=(word)(objid>>22);
 	if (useinst)
 		op=etagOBJECTID(op,0x18,objid);
 	else
 		op=eDWORD(op,(dword)objtype,0x08,FALSE);
+	//fprintf(op2,"after if else\n"); //MAG
+	//fflush(op2);  //MAG
 	*op++=0x0F;										//close tag 0
 	nv=(word)GetListCount(dlist);					//how many properties?
+	//fprintf(op2,"after GetListCount, nv = %d\n",nv); //MAG
+	//fflush(op2);  //MAG
 	if (nv)											//got some
 	{	*op++=0x1E;									//open tag 1
-		for (i=0;i<nv;i++)
-		{	GetListText(dlist,i,(char *)p);			//get the text value to encode		***238
+		for (i=0;i<nv;i++){
+			//fprintf(op2,"about to GetListText %d\n",nv); //MAG
+			//fflush(op2);  //MAG
+			GetListText(dlist,i,(char *)p);					//get the text value to encode
 			if (c=ePropVal(op,(word)(opmax-(op-iop)),objtype,0x08,(char *)p))
 				op+=c;
-			else
+			else{
+				//fprintf(op2,"exit at else\n"); //MAG
+				//fclose(op2);				//MAG
 				return 0;							//can't encode it		
+			}
 		}
 		*op++=0x1F;									//close tag 1
 	}
+	//fprintf(op2,"exit normal\n"); //MAG
+	//fclose(op2);				//MAG
 	return (op-iop);
 }													//									***014 End
 
@@ -665,6 +684,14 @@ word ePropVal(octet *op,word opmax,word objtype,octet btag,char *pstr)
 	octet	priority=0;
 	BOOL	ha=FALSE;								//have array...
 
+	//FILE *op2;//MAG
+	//octet *iop2; // MAG
+	//word j;
+    
+	//op2 = fopen("c:\\temp\\bacprim32outvbo.txt","a");
+	//fprintf(op2,"ePropVal receive values %d %d '%s'\n",opmax,objtype,pstr);
+	//fclose(op2);
+
 	iop=op;											//remember starting point
 	if (cp=strchr(pstr,'@'))						//priority was specified
 	{	priority=atoi(cp+1);						//parse out priority
@@ -681,24 +708,56 @@ word ePropVal(octet *op,word opmax,word objtype,octet btag,char *pstr)
     if (n==0) return 0;													//should never happen
     for (i=0;i<n;i++)
 	{	pid=VTSAPIgetpropinfo(objtype,i,pn,&ptype,NULL,&pflags,&ep);	//get next property
+		//fprintf(op2,"ePV: check property %d '%s'\n",i,pn);
 		if(stricmp(pn,pstr)==0)
-		{	if ((word)(op-iop+2)>=opmax) return 0;			
+		{	//fprintf(op2,"ePV: find matching property ptype = %d.\n",ptype);
+			if ((word)(op-iop+2)>=opmax){ 
+				//fprintf(op2,"ePV: opmax size violation- return\n"); fclose(op2); 
+				return 0;}
 			op=eDWORD(op,pid,btag,FALSE);
+			//fprintf(op2,"ePV: after eDWORD length %d encoded sequence: ",op-iop);
+			//for(j=0;j<op-iop;j++) fprintf(op2,"%02X ",iop[j]);
+			//fprintf(op2,"\n");
+
 			if (ha&&(pflags&IsArray))	
-			{	if ((word)(op-iop+5)>=opmax) return 0;
+			{	//fprintf(op2,"ePV: find IsArray\n");
+				if ((word)(op-iop+5)>=opmax) return 0;
 				op=eDWORD(op,aryindex,(octet)(btag+0x10),FALSE);
-			}			
-			if ((word)(op-iop+2)>=opmax) return 0;						//account for outer tags			
+			}
+			//fprintf(op2,"ePV: pre opmax test 2\n");
+			if ((word)(op-iop+2)>=opmax) { 
+				//fprintf(op2,"ePV: fail opmax test 2- return\n"); fclose(op2); 
+				return 0;}	//account for outer tags			
 			*op++=(btag+0x20)|0x0E;
-			if (stricmp(vp,nullstring)==0) ptype=enull;
+			//fprintf(op2,"ePV: after op++ length %d encoded sequence: ",op-iop);
+			//for(j=0;j<op-iop;j++) fprintf(op2,"%02X ",iop[j]);
+			//fprintf(op2,"\n");
+
+			if (stricmp(vp,nullstring)==0){ ptype=enull; /*fprintf(op2,"ePV: ptype = null\n");*/ }
 			op=eAny(op,(word)(opmax-(op-iop)),ptype,pflags,ep,vp);
-			if (op==0) return 0;
+			
+			//fprintf(op2,"ePV: after op=eAny length %d encoded sequence: ",op-iop);
+			//for(j=0;j<op-iop;j++) fprintf(op2,"%02X ",iop[j]);
+			//fprintf(op2,"\n");
+
+			if (op==0) { 
+				//fprintf(op2,"ePV: fail op test- return\n"); fclose(op2); 
+				return 0;}
 			*op++=(btag+0x20)|0x0F;
+			//fprintf(op2,"ePV: after op++=btag length %d encoded sequence: ",op-iop);
+			//for(j=0;j<op-iop;j++) fprintf(op2,"%02X ",iop[j]);
+			//fprintf(op2,"\n");
+
 			if ((word)(op-iop)>=opmax) return 0;
 			if (priority)
-			{	if ((word)(op-iop+5)>=opmax) return 0;			
+			{	//fprintf(op2,"ePV: find priority\n");
+				if ((word)(op-iop+5)>=opmax) return 0;			
  				op=eDWORD(op,priority,(octet)(btag+0x30),FALSE);
 			}
+			//fprintf(op2,"ePV: Normal exit, return %d\nencoded sequence: ",op-iop);
+			//for(j=0;j<op-iop;j++) fprintf(op2,"%02X ",iop[j]);
+			//fprintf(op2,"\n");
+			//fclose(op2);
 			return (op-iop);
 		}
 	}   
@@ -821,6 +880,7 @@ getvp:	vp=strchr(pstr,fc);						//find first char of relation
 octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 {	octet		tag,os[3];
 	long		max,min,val;
+
 	dword		dmax,dmin,dval,dmask,pid;
 	word		i,j,k,n,nc,msize,objtype;
 	word		eitbl[3]={eiMon,eiWOM,eiAnyDOW};
@@ -833,6 +893,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 	
 	switch(ptype)
 	{
+//																						***019 Begin
 	case ssint:
 		if((atoi(pstr) < 127)&&(atoi(pstr) >= 0)){
 			*op++= 0x31;
@@ -847,7 +908,6 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 			*op++=u2.b[0];
 		}
 		break;
-//																						***019 Begin
 	case ob_id:									//an object identifier "(OBJECT_ID,instance)"
 		if (opmax<5) return 0;
 		op=eObjId(op,pstr,&objtype);
@@ -984,23 +1044,23 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 			cp++;									//cp points to validDays
 			np=strchr(cp,')');
 			*np++=0;
-			tp=(char *)atoeBITSTRING(op,cp,eiDOW);	//encode valid days					***026 Begin
+			tp=(char *)atoeBITSTRING(op,cp,eiDOW);			//encode valid days					***026 Begin
 			if (tp==0) return 0;
-			opmax -= tp - (char *)op;				//									***238
+			opmax-=tp-(char *)op;
 			op=(unsigned char *)tp;
 			if (opmax<10) return 0;					//can't fit fromTime and toTime		***026 End
 			cp=strchr(np,'(');					
 			cp++;									//cp points to fromTime  
-			tp=(char *)atoeTIMESTRING(op,cp);		//encode fromTime					***026 Begin
+			tp=(char *)atoeTIMESTRING(op,cp);				//encode fromTime					***026 Begin
 			if (tp==0) return 0;
 			opmax-=tp-(char *)op;
-			op=(unsigned char *)tp;					//									***026 End
+			op=(unsigned char *)tp;									//									***026 End
 			cp=strchr(cp,',');					
 			cp++;									//cp points to toTime  
-			tp=(char *)atoeTIMESTRING(op,cp);		//encode toTime		     			***026 Begin
+			tp=(char *)atoeTIMESTRING(op,cp);				//encode toTime		     			***026 Begin
 			if (tp==0) return 0;
 			opmax-=tp-(char *)op;
-			op=(unsigned char *)tp;					//									***026 End
+			op=(unsigned char *)tp;									//									***026 End
 			cp=strchr(cp,',');
 			cp++;									//cp points to recipient ("Device,inst,etc." or "Address,net,macaddr,etc.")
 			np=strchr(cp,',');
@@ -1015,10 +1075,10 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 				np=strchr(np,',');
 			}
 			*np++=0;								//make recipient asciiz
-			tp=(char *)eRECIPIENT (op,cp);			//									***026 Begin
+			tp=(char *)eRECIPIENT (op,cp);					//									***026 Begin
 			if (tp==0) return 0; 
 			opmax-=tp-(char *)op;
-			op=(unsigned char *)tp;					//									***026 End
+			op=(unsigned char *)tp;									//									***026 End
 			if (opmax<12) return 0;					//can't fit processIdentifier,issueConfirmedNotifications and transitions
 			cp=np;									//cp points to processIdentifier
 			np=strchr(cp,',');
@@ -1750,7 +1810,7 @@ dolims:		if (opmax<15) return 0;				//can't fit 3 floats
 		goto svals;
 	case u16:									//1..16
 		max=16;
-		min=0;									// JJB - was min==0;
+		min=0;
 		msize=2;
 		tag=0x20;
 		goto svals;
@@ -3397,7 +3457,12 @@ double APIENTRY vbDOUBLE (octet *np)
 
 dword APIENTRY vbOBJECTID(word otype,dword oinst)
 {	union { dword dw; word w[2];} u;
+	//FILE *op2;//MAG
     
+	//op2 = fopen("c:\\temp\\bacprim32outvbo.txt","a");
+	//fprintf(op2,"vbOBJECTID receive values %d %d\n",otype,oinst);
+	//fclose(op2);
+
 	u.w[0]=0;
 	u.w[1]=(otype<<6)&0xFFC0;						//we need only 10 bits of the type
 	u.dw|=(oinst&0x3FFFFF);							//so we can get at individual bytes
@@ -3413,7 +3478,7 @@ dword APIENTRY vbOBJECTID(word otype,dword oinst)
 //
 //	This function is also defined in Vtsapi32, and the two are almost 
 //	identical, and only one can be defined when the two files are part 
-//	of the same project, so I picked this one to go.
+//	of the same project, so I picked this one to go.    - JJB
 //
 char *cvhex(char *src,byte *dst)		//									***019
 {	if (!isxdigit(*src))
@@ -3476,4 +3541,4 @@ void APIENTRY vbeDOUBLE(octet *op,double dv)
 	return;
 }													//								***023 End
 
-}													//								***016
+}

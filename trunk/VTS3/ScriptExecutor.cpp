@@ -488,6 +488,12 @@ bool ScriptExecutor::IsBound( VTSDocPtr vdp )
 //
 //	ScriptExecutor::Msg
 //
+//	Save a messsage related to script execution.  There are three "severity code" levels:
+//
+//		1	- test start/halt/pass/fail
+//		2	- operator action (step, step/pass/fail)
+//		3	- script info (delay expired, parm mismatch)
+//
 
 void ScriptExecutor::Msg( int sc, int line, const char *msg )
 {
@@ -496,7 +502,7 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 	VTSPacket		pkt
 	;
 	
-	TRACE3( "[%d] %s, line %d\n", sc, msg, line );
+	TRACE3( "[%d:%d] %s\n", sc, line, msg );
 
 	// save the severity code
 	buff[0] = sc;
@@ -507,8 +513,11 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 	buff[3] = (line >> 8) & 0xFF;
 	buff[4] = (line & 0xFF);
 
+	// save the digest
+	memcpy( buff+5, execDoc->m_digest, 16 );
+
 	// for test level messages start with test name
-	dst = buff + 5;
+	dst = buff + 21;
 	if (sc == 1) {
 		strcpy( (char *)dst, "Test " );
 		dst += 5;
@@ -593,7 +602,7 @@ void ScriptExecutor::Halt( void )
 		return;
 	}
 
-	Msg( 1, -1, "Halt" );
+	Msg( 1, execTest->baseLineStart, "Halt" );
 
 	// change the state to stopped
 	execState = execStopped;
@@ -624,7 +633,7 @@ void ScriptExecutor::Step( void )
 		return;
 	}
 
-	Msg( 2, -1, "Step" );
+	Msg( 2, execTest->baseLineStart, "Step" );
 
 	// set the single step flag
 	execSingleStep = true;
@@ -658,9 +667,9 @@ void ScriptExecutor::Step( bool pass )
 	}
 
 	if (pass)
-		Msg( 2, -1, "Step Pass" );
+		Msg( 2, execTest->baseLineStart, "Step Pass" );
 	else
-		Msg( 2, -1, "Step Fail" );
+		Msg( 2, execTest->baseLineStart, "Step Fail" );
 
 	// set the single step flag
 	execSingleStep = true;
@@ -694,7 +703,7 @@ void ScriptExecutor::Resume( void )
 		return;
 	}
 
-	Msg( 2, -1, "Resume" );
+	Msg( 2, execTest->baseLineStart, "Resume" );
 
 	// clear the single step flag
 	execSingleStep = false;
@@ -728,7 +737,7 @@ void ScriptExecutor::Kill( void )
 	}
 
 	// tell the database the test was killed
-	Msg( 1, -1, "Kill" );
+	Msg( 1, execTest->baseLineStart, "Kill" );
 
 	// pull the task from the installed list (effecively canceling a timer)
 	SuspendTask();
@@ -787,7 +796,7 @@ void ScriptExecutor::ProcessTask( void )
 		// make sure the document has content
 		if (!execDoc->m_pContentTree || !execDoc->m_pContentTree->m_pScriptContent) {
 			// alert the user
-			Msg( 0, -1, "No test to run, check syntax" );
+			Msg( 2, 0, "No test to run, check syntax" );
 
 			// go back to idle
 			Cleanup();
@@ -806,7 +815,7 @@ void ScriptExecutor::ProcessTask( void )
 		}
 		if (!execTest) {
 			// alert the user
-			Msg( 0, -1, "No test to run, check syntax" );
+			Msg( 2, 0, "No test to run, check syntax" );
 
 			// go back to idle
 			Cleanup();
@@ -851,6 +860,7 @@ void ScriptExecutor::ProcessTask( void )
 
 		// message to the database
 		Msg( 1, execTest->baseLineStart, "started" );
+		Msg( 3, execTest->baseLineStart, execDoc->GetPathName() );
 
 		// set the test status to running
 		SetTestStatus( execTest, 2 );
@@ -902,7 +912,7 @@ keepGoing:
 			// proposed delay may have expired
 			if (delay < 0) {
 				TRACE1( "Send delay expired %d (2)\n", delay );
-				Msg( 2, execPacket->baseLineStart, "Delay expired" );
+				Msg( 3, execPacket->baseLineStart, "Delay expired" );
 				NextPacket( false );
 			} else {
 				// set the status pending
@@ -1241,11 +1251,12 @@ bool ScriptExecutor::SendPacket( void )
 			} else
 			// it might be a name
 			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+				CString tvalu = t.RemoveQuotes();
 				for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 					VTSNameDesc		nameDesc;
 
 					execDB->m_Names.ReadName( i, &nameDesc );
-					if (stricmp(nameDesc.nameName,t.tokenValue) == 0) {
+					if (stricmp(nameDesc.nameName,tvalu) == 0) {
 						nlDestAddr = nameDesc.nameAddr;
 						break;
 					}
@@ -1401,7 +1412,7 @@ bool ScriptExecutor::SendPacket( void )
 			if ((nlDNET.intValue != 65535) && ((!pDADR) || (nlDADR.strLen == 0)))
 				throw ExecError( "DADR required when DNET is not global broadcast", pDNET->exprLine );
 			if (!pHopCount) {
-				Msg( 2, execPacket->baseLineStart, "Hopcount defaulting to 255" );
+				Msg( 3, execPacket->baseLineStart, "Hopcount defaulting to 255" );
 				nlHopCount.intValue = 255;
 			} else
 			if ((nlHopCount.intValue < 0) || (nlHopCount.intValue > 255))
@@ -1609,12 +1620,12 @@ bool ScriptExecutor::SendPacket( void )
 	}
 	catch (const ExecError &err) {
 		// failed
-		Msg( 2, err.errLineNo, err.errMsg );
+		Msg( 3, err.errLineNo, err.errMsg );
 		return false;
 	}
 	catch (const char *errMsg) {
 		// failed
-		Msg( 2, -1, errMsg );
+		Msg( 3, -1, errMsg );
 		return false;
 	}
 
@@ -4175,12 +4186,12 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 	}
 	catch (const ExecError &err) {
 		// failed
-		Msg( 2, err.errLineNo, err.errMsg );
+		Msg( 3, err.errLineNo, err.errMsg );
 		return false;
 	}
 	catch (const char *errMsg) {
 		// failed
-		Msg( 2, execPacket->baseLineStart, errMsg );
+		Msg( 3, execPacket->baseLineStart, errMsg );
 		return false;
 	}
 
@@ -7051,12 +7062,12 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 	// if we're not expecting something, toss it
 	if (!execPending) {
 		TRACE0( "(not expecting a packet)\n" );
-		Msg( 3, -1, "Exector not expecting a packet" );
+		Msg( 3, 0, "Exector not expecting a packet" );
 		return;
 	}
 	if (execPacket->packetType != ScriptPacket::expectPacket) {
 		TRACE0( "(not pointing to an expect packet)\n" );
-		Msg( 3, -1, "Exector not pointing to an EXPECT packet" );
+		Msg( 3, 0, "Exector not pointing to an EXPECT packet" );
 		return;
 	}
 

@@ -44,6 +44,7 @@ public:
 	ScriptParmList*		m_pParmList;
 	ScriptContentTree*	m_pContentTree;
 	ScriptTestPtr		m_pSelectedTest;
+	unsigned char		m_digest[16];			// checksum calculated during CheckSyntax
 
 	virtual ~ScriptDocument();
 
@@ -52,6 +53,7 @@ public:
 	void SequenceTest( ScriptTestPtr stp );
 	ScriptPacketPtr SequenceLevel( ScriptBasePtr sbp, ScriptPacketPtr pPass, ScriptPacketPtr &pChain );
 	ScriptPacketPtr SequencePacket( ScriptPacketPtr spp, ScriptPacketPtr pPass );
+	void CalcDigest( void );
 
 	bool				m_bExecBound;
 	void BindExecutor( void );
