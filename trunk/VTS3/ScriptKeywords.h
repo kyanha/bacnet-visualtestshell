@@ -34,6 +34,8 @@
 #define		kwELSEDEF				0x7C1B022E
 #define     kwELSEIFDEF				0x7BC955DD
 #define     kwENDIF					0x6CD21759
+#define		kwMAKE					0x06313E48
+#define		kwCHECK					0x7EF5647B
 
 //
 //	General Keywords
