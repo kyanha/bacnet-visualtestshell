@@ -272,9 +272,13 @@
 #define IDC_MACADDRESS                  1098
 #define IDC_REMOVEOBJ                   1099
 #define IDC_FILEID                      1100
+#define IDC_OBJUP                       1100
 #define IDC_STARTPOSITION               1101
+#define IDC_OBJDOWN                     1101
 #define IDC_OCTETCOUNT                  1102
+#define IDC_PROPUP                      1102
 #define IDC_ADDRECORD                   1103
+#define IDC_PROPDOWN                    1103
 #define IDC_REMOVERECORD                1104
 #define IDC_RECORDLIST                  1105
 #define IDC_RECORDDATA                  1106

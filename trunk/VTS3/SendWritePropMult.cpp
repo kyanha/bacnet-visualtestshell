@@ -65,10 +65,14 @@ BEGIN_MESSAGE_MAP(CSendWritePropMult, CPropertyPage)
 	//{{AFX_MSG_MAP(CSendWritePropMult)
 	ON_BN_CLICKED(IDC_ADDOBJ, OnAddObj)
 	ON_BN_CLICKED(IDC_REMOVEOBJ, OnRemoveObj)
+	ON_BN_CLICKED(IDC_OBJUP, OnObjUp)
+	ON_BN_CLICKED(IDC_OBJDOWN, OnObjDown)
 	ON_EN_CHANGE(IDC_OBJID, OnChangeObjID)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_OBJLIST, OnItemchangingObjList)
 	ON_BN_CLICKED(IDC_ADDPROP, OnAddProp)
 	ON_BN_CLICKED(IDC_REMOVEPROP, OnRemoveProp)
+	ON_BN_CLICKED(IDC_PROPUP, OnPropUp)
+	ON_BN_CLICKED(IDC_PROPDOWN, OnPropDown)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_PROPLIST, OnItemchangingPropList)
 	ON_CBN_SELCHANGE(IDC_PROPCOMBO, OnSelchangePropCombo)
 	ON_EN_CHANGE(IDC_ARRAYINDEX, OnChangeArrayIndex)
@@ -197,6 +201,16 @@ void CSendWritePropMult::OnRemoveObj()
 	m_PropListList.RemoveButtonClick();
 }
 
+void CSendWritePropMult::OnObjUp() 
+{
+	m_PropListList.UpButtonClick();
+}
+
+void CSendWritePropMult::OnObjDown() 
+{
+	m_PropListList.DownButtonClick();
+}
+
 void CSendWritePropMult::OnChangeObjID() 
 {
 	m_PropListList.OnChangeObjID();
@@ -222,6 +236,18 @@ void CSendWritePropMult::OnRemoveProp()
 {
 	if (m_PropListList.wpllCurElem)
 		m_PropListList.wpllCurElem->RemoveButtonClick();
+}
+
+void CSendWritePropMult::OnPropUp() 
+{
+	if (m_PropListList.wpllCurElem)
+		m_PropListList.wpllCurElem->UpButtonClick();
+}
+
+void CSendWritePropMult::OnPropDown() 
+{
+	if (m_PropListList.wpllCurElem)
+		m_PropListList.wpllCurElem->DownButtonClick();
 }
 
 void CSendWritePropMult::OnItemchangingPropList(NMHDR* pNMHDR, LRESULT* pResult) 
@@ -377,6 +403,9 @@ void WritePropList::Bind( void )
 	wplObjID.Enable();
 	wplPagePtr->GetDlgItem( IDC_OBJECTIDBTN )->EnableWindow( true );
 
+	// make sure the table is cleaned out
+	wplPagePtr->m_PropList.DeleteAllItems();
+
 	// fill out the table with the current list of elements
 	i = 0;
 	for (POSITION pos = GetHeadPosition(); pos != NULL; i++ ) {
@@ -488,6 +517,110 @@ void WritePropList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// update the encoding
+	wplPagePtr->UpdateEncoded();
+}
+
+//
+//	WritePropList::UpButtonClick
+//
+
+void WritePropList::UpButtonClick( void )
+{
+	int					curRow = wplCurElemIndx
+	,					prevRow = curRow - 1
+	;
+	WritePropElemPtr	curElem = wplCurElem
+	;
+
+	// must have a selected row and a previous row
+	if (curRow < 1)
+		return;
+
+	// move the row in the list
+	wplPagePtr->m_PropList.SetItemState( curRow, 0, LVIS_SELECTED );
+	wplPagePtr->m_PropList.DeleteItem( curRow );
+	wplPagePtr->m_PropList.InsertItem( prevRow, "?placeholder?" );
+
+	// delete the element
+	POSITION curPos = FindIndex( curRow );
+	RemoveAt( curPos );
+	POSITION prevPos = FindIndex( prevRow );
+	InsertBefore( prevPos, curElem );
+
+	// current element moved up
+	wplCurElemIndx -= 1;
+
+	// select the row in its new position
+	wplPagePtr->m_PropList.SetItemState( prevRow, LVIS_SELECTED, LVIS_SELECTED );
+
+	// make believe we have update events (dont ask why we dont!)
+	OnSelchangePropCombo();
+	OnChangeArrayIndex();
+	if (wplCurElem) {
+		CString				someText
+		;
+		BACnetAPDUEncoder	enc
+		;
+
+		wplCurElem->wpeValue.Encode( enc );
+		EncoderToHex( enc, someText );
+		wplPagePtr->m_PropList.SetItemText( wplCurElemIndx, 2, someText );
+	}
+	OnChangePriority();
+
+	// update the encoding
+	wplPagePtr->UpdateEncoded();
+}
+
+//
+//	WritePropList::DownButtonClick
+//
+
+void WritePropList::DownButtonClick( void )
+{
+	int					curRow = wplCurElemIndx
+	,					nextRow = curRow + 1
+	;
+	WritePropElemPtr	curElem = wplCurElem
+	;
+
+	// must have a selected row and a following row
+	if ((curRow < 0) || (curRow >= GetCount()-1))
+		return;
+
+	// move the row in the list
+	wplPagePtr->m_PropList.SetItemState( curRow, 0, LVIS_SELECTED );
+	wplPagePtr->m_PropList.DeleteItem( curRow );
+	wplPagePtr->m_PropList.InsertItem( nextRow, "?placeholder?" );
+
+	// delete the element
+	POSITION curPos = FindIndex( curRow );
+	RemoveAt( curPos );
+	POSITION nextPos = FindIndex( curRow );
+	InsertAfter( nextPos, curElem );
+
+	// current element moved down
+	wplCurElemIndx += 1;
+
+	// select the row in its new position
+	wplPagePtr->m_PropList.SetItemState( nextRow, LVIS_SELECTED, LVIS_SELECTED );
+
+	// make believe we have update events (dont ask why we dont!)
+	OnSelchangePropCombo();
+	OnChangeArrayIndex();
+	if (wplCurElem) {
+		CString				someText
+		;
+		BACnetAPDUEncoder	enc
+		;
+
+		wplCurElem->wpeValue.Encode( enc );
+		EncoderToHex( enc, someText );
+		wplPagePtr->m_PropList.SetItemText( wplCurElemIndx, 2, someText );
+	}
+	OnChangePriority();
 
 	// update the encoding
 	wplPagePtr->UpdateEncoded();
@@ -718,6 +851,86 @@ void WritePropListList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// update the encoding
+	wpllPagePtr->UpdateEncoded();
+}
+
+//
+//	WritePropListList::UpButtonClick
+//
+
+void WritePropListList::UpButtonClick( void )
+{
+	int				curRow = wpllCurElemIndx
+	,				prevRow = curRow - 1
+	;
+	WritePropListPtr	curElem = wpllCurElem
+	;
+
+	// must have a selected row and a previous row
+	if (curRow < 1)
+		return;
+
+	// move the row in the list
+	wpllPagePtr->m_ObjList.SetItemState( curRow, 0, LVIS_SELECTED );
+	wpllPagePtr->m_ObjList.DeleteItem( curRow );
+	wpllPagePtr->m_ObjList.InsertItem( prevRow, "?placeholder?" );
+
+	// delete the element
+	POSITION curPos = FindIndex( curRow );
+	RemoveAt( curPos );
+	POSITION prevPos = FindIndex( prevRow );
+	InsertBefore( prevPos, curElem );
+
+	// current element moved up
+	wpllCurElemIndx -= 1;
+
+	// select the row in its new position
+	wpllPagePtr->m_ObjList.SetItemState( prevRow, LVIS_SELECTED, LVIS_SELECTED );
+
+	// make believe we have update events
+	OnChangeObjID();
+
+	// update the encoding
+	wpllPagePtr->UpdateEncoded();
+}
+
+//
+//	WritePropListList::DownButtonClick
+//
+
+void WritePropListList::DownButtonClick( void )
+{
+	int					curRow = wpllCurElemIndx
+	,					nextRow = curRow + 1
+	;
+	WritePropListPtr	curElem = wpllCurElem
+	;
+
+	// must have a selected row and a following row
+	if ((curRow < 0) || (curRow >= GetCount()-1))
+		return;
+
+	// move the row in the list
+	wpllPagePtr->m_ObjList.SetItemState( curRow, 0, LVIS_SELECTED );
+	wpllPagePtr->m_ObjList.DeleteItem( curRow );
+	wpllPagePtr->m_ObjList.InsertItem( nextRow, "?placeholder?" );
+
+	// delete the element
+	POSITION curPos = FindIndex( curRow );
+	RemoveAt( curPos );
+	POSITION nextPos = FindIndex( curRow );
+	InsertAfter( nextPos, curElem );
+
+	// current element moved down
+	wpllCurElemIndx += 1;
+
+	// select the row in its new position
+	wpllPagePtr->m_ObjList.SetItemState( nextRow, LVIS_SELECTED, LVIS_SELECTED );
+
+	// make believe we have update events (dont ask why we dont!)
+	OnChangeObjID();
 
 	// update the encoding
 	wpllPagePtr->UpdateEncoded();

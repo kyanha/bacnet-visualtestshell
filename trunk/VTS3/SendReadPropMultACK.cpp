@@ -70,10 +70,14 @@ BEGIN_MESSAGE_MAP(CSendReadPropMultACK, CPropertyPage)
 	//{{AFX_MSG_MAP(CSendReadPropMultACK)
 	ON_BN_CLICKED(IDC_ADDOBJ, OnAddObj)
 	ON_BN_CLICKED(IDC_REMOVEOBJ, OnRemoveObj)
+	ON_BN_CLICKED(IDC_OBJUP, OnObjUp)
+	ON_BN_CLICKED(IDC_OBJDOWN, OnObjDown)
 	ON_EN_CHANGE(IDC_OBJID, OnChangeObjID)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_OBJLIST, OnItemchangingObjList)
 	ON_BN_CLICKED(IDC_ADDPROP, OnAddProp)
 	ON_BN_CLICKED(IDC_REMOVEPROP, OnRemoveProp)
+	ON_BN_CLICKED(IDC_PROPUP, OnPropUp)
+	ON_BN_CLICKED(IDC_PROPDOWN, OnPropDown)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_PROPLIST, OnItemchangingPropList)
 	ON_CBN_SELCHANGE(IDC_PROPCOMBO, OnSelchangePropCombo)
 	ON_EN_CHANGE(IDC_ARRAYINDEX, OnChangeArrayIndex)
@@ -218,6 +222,16 @@ void CSendReadPropMultACK::OnRemoveObj()
 	m_PropListList.RemoveButtonClick();
 }
 
+void CSendReadPropMultACK::OnObjUp() 
+{
+	m_PropListList.UpButtonClick();
+}
+
+void CSendReadPropMultACK::OnObjDown() 
+{
+	m_PropListList.DownButtonClick();
+}
+
 void CSendReadPropMultACK::OnChangeObjID() 
 {
 	m_PropListList.OnChangeObjID();
@@ -243,6 +257,18 @@ void CSendReadPropMultACK::OnRemoveProp()
 {
 	if (m_PropListList.rpallCurElem)
 		m_PropListList.rpallCurElem->RemoveButtonClick();
+}
+
+void CSendReadPropMultACK::OnPropUp() 
+{
+	if (m_PropListList.rpallCurElem)
+		m_PropListList.rpallCurElem->UpButtonClick();
+}
+
+void CSendReadPropMultACK::OnPropDown() 
+{
+	if (m_PropListList.rpallCurElem)
+		m_PropListList.rpallCurElem->DownButtonClick();
 }
 
 void CSendReadPropMultACK::OnItemchangingPropList(NMHDR* pNMHDR, LRESULT* pResult) 
@@ -418,6 +444,9 @@ void ReadPropACKList::Bind( void )
 	rpalObjID.Enable();
 	rpalPagePtr->GetDlgItem( IDC_OBJECTIDBTN )->EnableWindow( true );
 
+	// clear out the current table contents
+	rpalPagePtr->m_PropList.DeleteAllItems();
+
 	// fill out the table with the current list of elements
 	i = 0;
 	for (POSITION pos = GetHeadPosition(); pos != NULL; i++ ) {
@@ -445,6 +474,8 @@ void ReadPropACKList::Bind( void )
 	// enable the other controls
 	rpalPagePtr->GetDlgItem( IDC_ADDPROP )->EnableWindow( true );
 	rpalPagePtr->GetDlgItem( IDC_REMOVEPROP )->EnableWindow( true );
+	rpalPagePtr->GetDlgItem( IDC_PROPUP )->EnableWindow( true );
+	rpalPagePtr->GetDlgItem( IDC_PROPDOWN )->EnableWindow( true );
 }
 
 //
@@ -464,6 +495,8 @@ void ReadPropACKList::Unbind( void )
 	// disable the other controls
 	rpalPagePtr->GetDlgItem( IDC_ADDPROP )->EnableWindow( false );
 	rpalPagePtr->GetDlgItem( IDC_REMOVEPROP )->EnableWindow( false );
+	rpalPagePtr->GetDlgItem( IDC_PROPUP )->EnableWindow( false );
+	rpalPagePtr->GetDlgItem( IDC_PROPDOWN )->EnableWindow( false );
 }
 
 //
@@ -524,6 +557,112 @@ void ReadPropACKList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// update the encoding
+	rpalPagePtr->UpdateEncoded();
+}
+
+//
+//	ReadPropACKList::UpButtonClick
+//
+
+void ReadPropACKList::UpButtonClick( void )
+{
+	int					curRow = rpalCurElemIndx
+	,					prevRow = curRow - 1
+	;
+	ReadPropACKElemPtr	curElem = rpalCurElem
+	;
+
+	// must have a selected row and a previous row
+	if (curRow < 1)
+		return;
+
+	// move the row in the list
+	rpalPagePtr->m_PropList.SetItemState( curRow, 0, LVIS_SELECTED );
+	rpalPagePtr->m_PropList.DeleteItem( curRow );
+	rpalPagePtr->m_PropList.InsertItem( prevRow, "?placeholder?" );
+
+	// delete the element
+	POSITION curPos = FindIndex( curRow );
+	RemoveAt( curPos );
+	POSITION prevPos = FindIndex( prevRow );
+	InsertBefore( prevPos, curElem );
+
+	// current element moved up
+	rpalCurElemIndx -= 1;
+
+	// select the row in its new position
+	rpalPagePtr->m_PropList.SetItemState( prevRow, LVIS_SELECTED, LVIS_SELECTED );
+
+	// make believe we have update events (dont ask why we dont!)
+	OnSelchangePropCombo();
+	OnChangeArrayIndex();
+	if (rpalCurElem) {
+		CString				someText
+		;
+		BACnetAPDUEncoder	enc
+		;
+
+		rpalCurElem->rpaeValue.Encode( enc );
+		EncoderToHex( enc, someText );
+		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 2, someText );
+	}
+	OnSelchangeClassCombo();
+	OnSelchangeCodeCombo();
+
+	// update the encoding
+	rpalPagePtr->UpdateEncoded();
+}
+
+//
+//	ReadPropACKList::DownButtonClick
+//
+
+void ReadPropACKList::DownButtonClick( void )
+{
+	int					curRow = rpalCurElemIndx
+	,					nextRow = curRow + 1
+	;
+	ReadPropACKElemPtr	curElem = rpalCurElem
+	;
+
+	// must have a selected row and a following row
+	if ((curRow < 0) || (curRow >= GetCount()-1))
+		return;
+
+	// move the row in the list
+	rpalPagePtr->m_PropList.SetItemState( curRow, 0, LVIS_SELECTED );
+	rpalPagePtr->m_PropList.DeleteItem( curRow );
+	rpalPagePtr->m_PropList.InsertItem( nextRow, "?placeholder?" );
+
+	// delete the element
+	POSITION curPos = FindIndex( curRow );
+	RemoveAt( curPos );
+	POSITION nextPos = FindIndex( curRow );
+	InsertAfter( nextPos, curElem );
+
+	// current element moved down
+	rpalCurElemIndx += 1;
+
+	// select the row in its new position
+	rpalPagePtr->m_PropList.SetItemState( nextRow, LVIS_SELECTED, LVIS_SELECTED );
+
+	// make believe we have update events (dont ask why we dont!)
+	OnSelchangePropCombo();
+	OnChangeArrayIndex();
+	if (rpalCurElem) {
+		CString				someText
+		;
+		BACnetAPDUEncoder	enc
+		;
+
+		rpalCurElem->rpaeValue.Encode( enc );
+		EncoderToHex( enc, someText );
+		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 2, someText );
+	}
+	OnSelchangeClassCombo();
+	OnSelchangeCodeCombo();
 
 	// update the encoding
 	rpalPagePtr->UpdateEncoded();
@@ -764,6 +903,86 @@ void ReadPropACKListList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// update the encoding
+	rpallPagePtr->UpdateEncoded();
+}
+
+//
+//	ReadPropACKListList::UpButtonClick
+//
+
+void ReadPropACKListList::UpButtonClick( void )
+{
+	int					curRow = rpallCurElemIndx
+	,					prevRow = curRow - 1
+	;
+	ReadPropACKListPtr	curElem = rpallCurElem
+	;
+
+	// must have a selected row and a previous row
+	if (curRow < 1)
+		return;
+
+	// move the row in the list
+	rpallPagePtr->m_ObjList.SetItemState( curRow, 0, LVIS_SELECTED );
+	rpallPagePtr->m_ObjList.DeleteItem( curRow );
+	rpallPagePtr->m_ObjList.InsertItem( prevRow, "?placeholder?" );
+
+	// delete the element
+	POSITION curPos = FindIndex( curRow );
+	RemoveAt( curPos );
+	POSITION prevPos = FindIndex( prevRow );
+	InsertBefore( prevPos, curElem );
+
+	// current element moved up
+	rpallCurElemIndx -= 1;
+
+	// select the row in its new position
+	rpallPagePtr->m_ObjList.SetItemState( prevRow, LVIS_SELECTED, LVIS_SELECTED );
+
+	// make believe we have update events
+	OnChangeObjID();
+
+	// update the encoding
+	rpallPagePtr->UpdateEncoded();
+}
+
+//
+//	ReadPropACKListList::DownButtonClick
+//
+
+void ReadPropACKListList::DownButtonClick( void )
+{
+	int					curRow = rpallCurElemIndx
+	,					nextRow = curRow + 1
+	;
+	ReadPropACKListPtr	curElem = rpallCurElem
+	;
+
+	// must have a selected row and a following row
+	if ((curRow < 0) || (curRow >= GetCount()-1))
+		return;
+
+	// move the row in the list
+	rpallPagePtr->m_ObjList.SetItemState( curRow, 0, LVIS_SELECTED );
+	rpallPagePtr->m_ObjList.DeleteItem( curRow );
+	rpallPagePtr->m_ObjList.InsertItem( nextRow, "?placeholder?" );
+
+	// delete the element
+	POSITION curPos = FindIndex( curRow );
+	RemoveAt( curPos );
+	POSITION nextPos = FindIndex( curRow );
+	InsertAfter( nextPos, curElem );
+
+	// current element moved down
+	rpallCurElemIndx += 1;
+
+	// select the row in its new position
+	rpallPagePtr->m_ObjList.SetItemState( nextRow, LVIS_SELECTED, LVIS_SELECTED );
+
+	// make believe we have update events (dont ask why we dont!)
+	OnChangeObjID();
 
 	// update the encoding
 	rpallPagePtr->UpdateEncoded();
