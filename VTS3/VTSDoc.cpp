@@ -150,49 +150,65 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 //	gStatisticsCollector=new VTSStatisticsCollector();
 
 	m_pDB = new VTSDB();
-	try {
-		m_pDB->OpenFile( (char *)lpszPathName );
-	}
-	catch (char *errMsg) {
-		AfxMessageBox( errMsg );
-		delete m_pDB;
-		m_pDB = 0;
-		return FALSE;
-	}
 
-	// bind to the port list and open the ports
-	m_Devices.Load( this );
-
-	// bind to the name list
-	m_Names.Load( this );
-
-	// bind to the port list and open the ports
-	m_Ports.Load( this );
-
-	// associate with the global list of documents
-	gDocList.Append( this );
-
-	// ready for messages
-	m_postMessages = true;
-
-	// get the packet count
-	SetPacketCount( m_pDB->GetPacketCount() );
-
-	//get the statistics from the loading db file
-	for(int i=0;i<m_pDB->GetPacketCount();i++)
+	try
 	{
-		VTSPacket	pkt;
-		m_pDB->ReadPacket(i,pkt);
-		BACnetPIInfo	summary( true, false );
-		summary.Interpret( (BACnetPIInfo::ProtocolType)pkt.packetHdr.packetProtocolID
-			, (char *)pkt.packetData
-			, pkt.packetLen);
-		m_pStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
-	//	gStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
-	}
-	
+		m_pDB->OpenFile( (char *)lpszPathName );
+//	}
+//	catch (char *errMsg) {
+//		AfxMessageBox( errMsg );
+//		delete m_pDB;
+//		m_pDB = 0;
+//		return FALSE;
 
-	return TRUE;
+//	try
+//	{
+
+		// bind to the port list and open the ports
+		m_Devices.Load( this );
+
+		// bind to the name list
+		m_Names.Load( this );
+
+		// bind to the port list and open the ports
+		m_Ports.Load( this );
+
+		// associate with the global list of documents
+		gDocList.Append( this );
+
+		// ready for messages
+		m_postMessages = true;
+
+		// get the packet count
+		SetPacketCount( m_pDB->GetPacketCount() );
+
+		//get the statistics from the loading db file
+		for(int i=0;i<m_pDB->GetPacketCount();i++)
+		{
+			VTSPacket	pkt;
+			m_pDB->ReadPacket(i,pkt);
+			BACnetPIInfo	summary( true, false );
+			summary.Interpret( (BACnetPIInfo::ProtocolType)pkt.packetHdr.packetProtocolID
+				, (char *)pkt.packetData
+				, pkt.packetLen);
+			m_pStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
+		//	gStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
+		}
+
+		return TRUE;
+	}
+	catch (char *errMsg)
+	{
+		AfxMessageBox( errMsg );
+	}
+	catch (...)
+	{
+		AfxMessageBox("An unexpected exception ocurred loading the database.  The database is most likely corrupted and cannot be opened due to port initialization problems.  The document will be closed and removed from the recently used list.");
+
+		// OnDocumentClose will automatically be called by MFC after a FALSE is returned here...
+	}
+
+	return FALSE;
 }
 
 //
@@ -622,7 +638,12 @@ VTSPort::VTSPort( VTSDocPtr dp, objId id )
 		ReadDesc();
 
 		// see if it can be turned on
-		Refresh();
+		//Refresh();
+
+		// madanner 3/03
+		// shouldn't call Refresh here... it throws and that aborts the new assignment, even though
+		// the object was actually created, which results in no reference and no destroy.
+		// Call refresh from caller
 	}
 }
 
@@ -1061,8 +1082,22 @@ void VTSPortList::Load( VTSDocPtr docp )
 		// create a new port object to match
 		cur = new VTSPort( m_pDoc, curID );
 
-		// add it to our list of ports
-		AddTail( cur );
+		try
+		{
+			if ( cur )
+				cur->Refresh();
+
+			// add it to our list of ports
+			AddTail( cur );
+		}
+		catch(...)
+		{
+			// Who knows what nasty throws this gives off... it does too much to tell.
+			// Just clean up the memory and move on...
+			if ( cur )
+				delete cur;
+			throw;
+		}
 	}
 }
 
@@ -1118,8 +1153,22 @@ void VTSPortList::Add( void )
 	// create a new port object to match
 	cur = new VTSPort( m_pDoc, newDescID );
 
-	// add it to our list of ports
-	AddTail( cur );
+	try
+	{
+		if ( cur )
+			cur->Refresh();
+
+		// add it to our list of ports
+		AddTail( cur );
+	}
+	catch(...)
+	{
+		// Who knows what nasty throws this gives off... it does too much to tell.
+		// Just clean up the memory and move on...
+		if ( cur )
+			delete cur;
+		throw;
+	}
 }
 
 //
