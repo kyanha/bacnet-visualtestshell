@@ -603,7 +603,12 @@ enum BACnetObjectType {
 		multistateOutput				= 14,
 		notificationClass				= 15,
 		program							= 16,
-		schedule						= 17
+		schedule						= 17,
+		averaging						= 18,	/* Zhu Zhenhua 2003-7-22*/
+		multistateValue					= 19,   /* Zhu Zhenhua 2003-7-22*/
+		trendlog						= 20,   /* Zhu Zhenhua 2003-7-22*/
+		lifesafetypoint					= 21,   /* Zhu Zhenhua 2003-7-22*/
+		lifesafetyzone					= 22    /* Zhu Zhenhua 2003-7-22*/
 		};
 
 class BACnetObjectIdentifier : public BACnetEncodeable {
@@ -622,7 +627,7 @@ class BACnetObjectIdentifier : public BACnetEncodeable {
 		void Decode( BACnetAPDUDecoder& dec );								// decode
 		void Encode( char *enc ) const;
 		void Decode( const char *dec );
-
+		unsigned int GetObjectType() const{ return (objID>> 22)&0x000003ff;} //Added by Zhu Zhenhua 2003-7-22, to Get Object Type
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
