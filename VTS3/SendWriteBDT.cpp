@@ -22,7 +22,9 @@ CSendWriteBDT::CSendWriteBDT( void )
 	: CSendPage( CSendWriteBDT::IDD )
 {
 	//{{AFX_DATA_INIT(CSendWriteBDT)
-		// NOTE: the ClassWizard will add member initialization here
+	// NOTE: the ClassWizard will add member initialization here
+	m_portInt = 0;
+	m_maskInt = 0;
 	//}}AFX_DATA_INIT
 }
 
@@ -31,16 +33,28 @@ void CSendWriteBDT::DoDataExchange(CDataExchange* pDX)
 {
 	CPropertyPage::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CSendWriteBDT)
-	DDX_Control(pDX, IDC_BDTLIST, m_BDTList);
+	DDX_Control(pDX, IDC_MASK, m_mask);
+	DDX_Control(pDX, IDC_BDTPORT, m_port);
+	DDX_Control(pDX, IDC_IP, m_IP);
+	DDX_Control(pDX, IDC_BDTLIST, m_BDTList);	
+	DDX_Text(pDX, IDC_BDTPORT, m_portInt);
+	DDX_Text(pDX, IDC_MASK, m_maskInt);
 	//}}AFX_DATA_MAP
+	
+	if(m_port.IsWindowEnabled())
+		DDV_MinMaxInt(pDX, m_portInt, 0, 0xFFFF);
+	if(m_mask.IsWindowEnabled())
+		DDV_MinMaxInt(pDX, m_maskInt, 1, 32);
 }
 
 BEGIN_MESSAGE_MAP(CSendWriteBDT, CPropertyPage)
 	//{{AFX_MSG_MAP(CSendWriteBDT)
 	ON_BN_CLICKED(IDC_ADDBDT, OnAddBDT)
 	ON_BN_CLICKED(IDC_REMOVEBDT, OnRemoveBDT)
-	ON_EN_CHANGE(IDC_BDTENTRY, OnChangeBDTEntry)
+	ON_EN_CHANGE(IDC_IP, OnChangeIP)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_BDTLIST, OnItemchangingBDTList)
+	ON_EN_CHANGE(IDC_MASK, OnChangeMask)
+	ON_EN_CHANGE(IDC_BDTPORT, OnChangePort)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -67,7 +81,7 @@ void CSendWriteBDT::EncodePage( CByteArray* contents )
 	unsigned short	port
 	;
 	CByteArray	header
-	;
+	;	
 
 	TRACE0( "CSendWriteBDT::EncodePage()\n" );
 
@@ -81,14 +95,19 @@ void CSendWriteBDT::EncodePage( CByteArray* contents )
 
 	// validate and encode the BDT entries
 	for (int i = 0; i < len; i++) {
-		const char *txt = m_BDTCtrl.GetItemText( i, 0 );
+		//Xiao Shiyuan 2002-6-18
+		//format:192.168.1.88/24:47808
+        CString str = m_BDTCtrl.GetItemText( i, 0 ); 
+		str	= str + "/" + m_BDTCtrl.GetItemText(i, 2); 
+		str	= str + ":" + m_BDTCtrl.GetItemText(i, 1);
+		const char *txt = (LPCTSTR)str;
 
 		// make sure something was provided
 		if (!txt || !*txt)
 			throw "Invalid BDT entry";
 
 		// convert to host, port and network mask
-		BACnetIPAddr::StringToHostPort( txt, &host, &mask, &port );
+		BACnetIPAddr::StringToHostPort( txt, &host, &mask, &port );		
 
 		// encode the host
 		for (int i = 3; i >= 0; i--)
@@ -143,28 +162,39 @@ void CSendWriteBDT::RestorePage( void )
 
 BOOL CSendWriteBDT::OnInitDialog() 
 {
+	//Xiao Shiyuan 2002-6-18
 	static VTSListColDesc colDesc[] =
-		{ { "BDT Entry", LVCFMT_RIGHT, 128, IDC_BDTENTRY }
+		{ { "IP Address", LVCFMT_RIGHT, 128, IDC_IP }
+	    , { "UDP Port", LVCFMT_RIGHT, 84, IDC_BDTPORT }
+		, { "Mask", LVCFMT_RIGHT, 60, IDC_MASK }
 		, { 0, 0, 0, 0 }
 		};
 
-	TRACE0( "CSendWriteBDT::OnInitDialog()\n" );
+	TRACE0( "CSendWriteBDT::OnInitDialog()\n" );	
 
-	CDialog::OnInitDialog();
+	CDialog::OnInitDialog();			
 	
 	// only allow one selection at a time, no sorting
 	m_BDTList.m_nFlags |= LVS_SINGLESEL;
 	m_BDTList.m_nFlags &= ~LBS_SORT;
 
 	// initialize the list
-	m_BDTCtrl.Init( this, &m_BDTList, colDesc );
+	m_BDTCtrl.Init( this, &m_BDTList, colDesc );	
+
+	//Xiao Shiyuan 2002-6-18 default UDP port
+	m_port.SetWindowText("47808"); 
+	m_mask.SetWindowText("0"); 
 
 	return TRUE;
 }
 
 void CSendWriteBDT::OnAddBDT() 
 {
-	m_BDTCtrl.AddButtonClick();
+	m_BDTCtrl.AddButtonClick();	
+
+	//Xiao Shiyuan 2002-6-18 default UDP port
+	m_port.SetWindowText("47808"); 
+	m_mask.SetWindowText("0");
 }
 
 void CSendWriteBDT::OnRemoveBDT() 
@@ -172,12 +202,24 @@ void CSendWriteBDT::OnRemoveBDT()
 	m_BDTCtrl.RemoveButtonClick();
 }
 
-void CSendWriteBDT::OnChangeBDTEntry() 
+void CSendWriteBDT::OnChangeIP() 
 {
-	m_BDTCtrl.OnChangeItem( IDC_BDTENTRY );
+	m_BDTCtrl.OnChangeItem( IDC_IP );
 }
 
 void CSendWriteBDT::OnItemchangingBDTList(NMHDR* pNMHDR, LRESULT* pResult) 
 {
 	m_BDTCtrl.OnItemChanging( pNMHDR, pResult );
+}
+
+//Xiao Shiyuan 2002-6-18
+void CSendWriteBDT::OnChangeMask() 
+{
+    m_BDTCtrl.OnChangeItem( IDC_MASK );	
+}
+
+//Xiao Shiyuan 2002-6-18
+void CSendWriteBDT::OnChangePort() 
+{	
+	m_BDTCtrl.OnChangeItem( IDC_BDTPORT );	
 }
