@@ -1129,6 +1129,43 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //				  in the current working directory and will not be deleted.
 //				- This file will be overriden when the command is performed a second time.
 //				- The user may edit the vts file as any other script and perform SaveAs to retain the generated file.
+//
+//			Fixed a GPF when recompiling script after prior compile.
+//
+//			[608821] - Very important error in EXPECT
+//			Finally got a handle on all of the issues surrounding errors herein:
+//
+//			Fixed an error in the script executor to throw an error, halting execution, if neither a network layer
+//			message (MESSAGE = ) was defined in EXPECT or an application layer message (PDU =) was defined.  Scripts now
+//			force one of these statements within an EXPECT clause.
+//
+//			Fixed an error that prevented the ability to stuff a received value into the PDU field with the assignment
+//			operator.  PDU >> VAR now works just fine.  Before the fix, the MESSAGE statement had to be an assignment as
+//			well as the PDU statement, which was impossible because both statements cannot occur at once.
+//
+//			Fixed an error that never evaluated DER statement against incoming packet.  The DER = TRUE statement ALWAYS
+//			failed and the DER = FALSE statement ALWAYS passed.  Now the DER statement is evaluated properly.
+//
+//			Fixed an error that never evaluated the PRIORITY statement properly.  Priority was always tested again zero.
+//			Now the test is performed by examining the statements value against the incomming PRIORITY.
+//
+//			Fixed an error that prematurely passed an address evaluation with the minimum of the address lengths
+//			(between the incoming SADR and the script SADR) used in the comparison.  Now the two addresses must match
+//			exactly.
+//
+//			Added the ability to specify SNET/SADR and DNET/DADR pairs in an EXPECT statement with a NONE value that
+//			indicates the received packet must not have SNET/SADR or DNET/DADR values.  In addition, if these statements
+//			are present in an EXPECT clause the received packet MUST contain the values.  Previously the test was
+//			only evaluated if the received message had the values.  Usage is as follows:
+//				SNET = NONE, SADR = NONE, DNET = NONE, DADR = NONE.
+//			So now if the SNET/SADR or DNET/DADR values are specified in the script, the values must exist in the 
+//			received message.  Conversely, if they are specified in the script with the NONE value, the src/dst addresses
+//			must NOT be present in the received packet.
+//
+//			New tests have been added in the script executor that force the reserved bits in each PDU control octet to 
+//			be zero.  An error is reported if they are not.  Bits 6 and 4 are tested for network layer messages and application
+//			layer messages have different reserved bits for each PDU type.
+//
 
 
 const int kReleaseVersion = 2;
