@@ -238,7 +238,7 @@ class ScriptExecutor : public BACnetTask {
 		void NextPacket( bool okPacket );		// move to next in sequence
 
 		void ResolveExpr( const char *expr, int exprLine, ScriptTokenList &lst );
-		void* GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *dp = 0 );
+//		void* GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *dp = 0 );
 
 		bool SendPacket( void );				// send execPacket, return true iff success
 
@@ -360,7 +360,7 @@ class ScriptExecutor : public BACnetTask {
 		void ExpectALClosingTag( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec );
 
 		// madanner 9/25/02
-		void GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny );
+		void GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny, int nIndex = -1 );
 		void CompareAndThrowError( BACnetEncodeable & rbacnet1, BACnetEncodeable & rbacnet2, int iOperator, unsigned int nError );
 
 		ScriptPacketExprPtr GetKeywordValue( int keyword, BACnetEncodeable &enc, ScriptTranslateTablePtr tp = 0 );
