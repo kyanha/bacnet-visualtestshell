@@ -292,6 +292,7 @@ void ScriptDocument::CheckSyntax( void )
 					break;
 
 				case kwSEND:
+				case kwTRANSMIT:
 					// make sure a test is defined
 					if (!curTest)
 						throw "Test required before packets";
@@ -343,6 +344,7 @@ void ScriptDocument::CheckSyntax( void )
 					break;
 
 				case kwEXPECT:
+				case kwRECEIVE:
 					// make sure a test is defined
 					if (!curTest)
 						throw "Test required before packets";
