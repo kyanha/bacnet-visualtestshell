@@ -575,7 +575,7 @@ typedef struct
 typedef struct tagCOVSubscription {
 struct tagCOVSubscription		*next;
 	BACnetRecipientProcess		recipient;
-	BACnetObjectIdentifier		monitoredPropertyReference;
+	BACnetObjectPropertyReference		monitoredPropertyReference;
 	boolean		notification;
 	word        timeRemaining;
 	float       covIncrement;

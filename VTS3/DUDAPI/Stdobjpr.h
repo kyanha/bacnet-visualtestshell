@@ -505,8 +505,12 @@ propdescriptor	AIprops[]={
     "acked-transitions",	ACKED_TRANSITIONS,	oo(ai,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(ai,notify_type),		et,     Intr,  eiNT,	O|WithService,
 //madanner 6/03: Added for supporting event-time-stamps
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-    };
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
+//modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(ai,go.profile_name),  s132,	Last,	    	0,	 O     
+};
 
 propdescriptor	AOprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -537,8 +541,12 @@ propdescriptor	AOprops[]={
     "acked-transitions",	ACKED_TRANSITIONS,	oo(ao,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(ao,notify_type),		et,     Intr,	eiNT,	O|WithService,
 //madanner 6/03: Added for supporting event-time-stamps
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ao,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-    };
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ao,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
+//modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ao,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(ao,go.profile_name), s132,	Last,	  0,	 O      
+};
 
 propdescriptor	AVprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -565,8 +573,12 @@ propdescriptor	AVprops[]={
     "acked-transitions",	ACKED_TRANSITIONS,	oo(av,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(av,notify_type),		et,		Intr,	eiNT,	O|WithService,
 //Added for supporting event-time-stamps, by xuyiping 2002-8-29
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(av,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-    };
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(av,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
+//modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(av,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(av,go.profile_name), s132,	Last,     0,	 O  
+};
 
 propdescriptor	BIprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -597,8 +609,12 @@ propdescriptor	BIprops[]={
     "acked-transitions",	ACKED_TRANSITIONS,	oo(bi,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(bi,notify_type),		et,     Intr,	eiNT,	O|WithService,
 //madanner 6/03: Added for supporting event-time-stamps
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-    };
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
+//modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bi,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(bi,go.profile_name), s132,	Last,	  0,	 O     
+};
 
 propdescriptor	BOprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -633,8 +649,12 @@ propdescriptor	BOprops[]={
     "acked-transitions",	ACKED_TRANSITIONS,	oo(bo,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(bo,notify_type),		et,     Intr,	eiNT,	O|WithService,
 //madanner 6/03: Added for supporting event-time-stamps
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-    };
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
+//modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bo,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(bo,go.profile_name), s132,	Last,	  0,	 O  
+};
 
 propdescriptor	BVprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -666,9 +686,13 @@ propdescriptor	BVprops[]={
     "event-enable",			EVENT_ENABLE,		oo(bv,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(bv,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(bv,notify_type),		et,		Intr,	eiNT,	O|WithService,
-	//Added for supporting event-time-stamps, by xuyiping 2002-8-29
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bv,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-    };
+//Added for supporting event-time-stamps, by xuyiping 2002-8-29
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bv,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
+//modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bv,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(bv,go.profile_name), s132,	Last,		0,	 O      
+};
 
 propdescriptor	CLprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -677,8 +701,12 @@ propdescriptor	CLprops[]={
     "object-type",			OBJECT_TYPE,		oo(calendar,go.object_type),et,	0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(calendar,pv),		ebool,  0,    	eiTF,	R,
     "description",			DESCRIPTION,		oo(calendar,go.description),s132,0,	       0,	O,
-    "date-list",			DATE_LIST,			oo(calendar,date_list),	calist,	Last,	   0,	R
-    };
+//    "date-list",			DATE_LIST,			oo(calendar,date_list),	calist,	Last,	   0,	R
+//modified by Jingbo Gao, 2003-9-1
+    "date-list",			DATE_LIST,			oo(calendar,date_list),	calist,	0,	   0,	R,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(calendar,go.profile_name), s132,	Last,	0,	 O  
+};
 
 propdescriptor	CMprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -691,8 +719,12 @@ propdescriptor	CMprops[]={
     "all-writes-successful",ALL_WRITES_SUCCESSFUL,oo(command,
     											all_writes_successful),	ebool,  0,    	eiTF,	R,
     "action",				ACTION,				oo(command,action),		act,	0,	       0,	R|IsArray,
-    "action-text",			ACTION_TEXT,		oo(command,action_text),actext,	Last,	   0,	O|IsArray
-    };
+//    "action-text",			ACTION_TEXT,		oo(command,action_text),actext,	Last,	   0,	O|IsArray
+//modified by Jingbo Gao, 2003-9-1
+    "action-text",			ACTION_TEXT,		oo(command,action_text),actext,	0,	   0,	O|IsArray,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(command,go.profile_name), s132,	Last,	0,	 O  
+};
 
 propdescriptor	DVprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -720,7 +752,10 @@ propdescriptor	DVprops[]={
     											max_apdu_length_accepted),uw,	0,	       0,	R,
     "segmentation-supported", SEGMENTATION_SUPPORTED,oo(device,
     											segmentation_supported),et,		0,	eiSegOpt,	R,
-    "vt-classes-supported",	VT_CLASSES_SUPPORTED,oo(device,
+//Added by Jingbo Gao, 2003-9-1
+	"max-segments-accepted",  MAX_SEGMENTS_ACCEPTED,  oo(device,
+												max_segments_accepted), uw,	    0,			0,	 O,  
+	"vt-classes-supported",	VT_CLASSES_SUPPORTED,oo(device,
     											vt_classes_supported),	vtcl,	VT,		   0,	O|WithService|WithGroup,
     "active-vt-sessions",	ACTIVE_VT_SESSIONS,	0,						none,	VT,		   0,	O|WithService|WithGroup,
     "local-time",			LOCAL_TIME,			oo(device,local_time),	ttime,	0,	       0,	O,
@@ -739,9 +774,24 @@ propdescriptor	DVprops[]={
     											time_synch_recipients),	tsrecip,TMASTER,   0,	O|WithService,
     "max-master",			MAX_MASTER,			oo(device,max_master),	u127,MSTPMASTER,   0,	O|WithService,
     "max-info-frames",		MAX_INFO_FRAMES,	oo(device,max_info_frames),uw,MSTPMASTER,  0,	O|WithService,
-    "device-address-binding",	DEVICE_ADDRESS_BINDING,oo(device,
-                                                device_add_binding),	dabind,	Last,	   0,	R
-    };
+//    "device-address-binding",	DEVICE_ADDRESS_BINDING,oo(device,
+//                                                device_add_binding),	dabind,	Last,	   0,	R
+// modofied by Jingbo Gao, 2003-9-1
+	"device-address-binding",	DEVICE_ADDRESS_BINDING,oo(device,
+													device_add_binding),	dabind,	0,	   0,	R,
+//Added by Jingbo Gao, 2003-9-1
+	"database-revision",	DATABASE_REVISION,  oo(device, 
+													database_revision),     uw,     0,			0,   R,
+    "configuration-files",	CONFIGURATION_FILES, oo(device,	
+													configuration_files),   looref, 0,	       0,   O|IsArray,
+	"last-restore-time",		LAST_RESTORE_TIME,   oo(device,
+													last_restore_time),		dt,		0,		   0,	O,
+	"backup-failure-timeout",	BACKUP_FAILURE_TIMEOUT,		oo(device,
+													backup_failure_timeout), uw, 0,     0,   O,
+	"active-cov-subscriptions", ACTIVE_COV_SUBSCRIPTION,  oo(device, 
+													active_cov_subscriptions), lCOVSub, 0,		0,    O|IsArray,
+	"profile-name",			PROFILE_NAME,       oo(device,go.profile_name), s132,	Last,		0,	 O 
+};
 
 propdescriptor	EEprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -764,8 +814,12 @@ propdescriptor	EEprops[]={
 "issue-confirmed-notifications",ISSUE_CONFIRMED_NOTIFICATIONS,oo(ee,
                                                 issue_conf_notifications),ebool,2,	eiTF,	O|NotWithGroup1,
 //madanner 6/03: Added for supporting event-time-stamps
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMP, Last|2,   0, O|IsArray|NotWithGroup1
-    };
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMP, Last|2,   0, O|IsArray|NotWithGroup1
+//Modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMP, 2,   0, O|IsArray|NotWithGroup1,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(ee,go.profile_name), s132,	Last,	  0,	 O  
+};
 
 propdescriptor	FLprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -778,8 +832,12 @@ propdescriptor	FLprops[]={
     "modification-date",	MODIFICATION_DATE,	oo(file,mod_date),		dt,		0,	       0,	R,
     "archive",				ARCHIVE,			oo(file,archive),		ebool,  0,		eiTF,	W,
     "read-only",			READ_ONLY,			oo(file,read_only),		ebool,  0,		eiTF,	R,
-    "file-access-method",	FILE_ACCESS_METHOD,	oo(file,access_method),	et,		Last,   eiFAM,	R
-    };
+//    "file-access-method",	FILE_ACCESS_METHOD,	oo(file,access_method),	et,		Last,   eiFAM,	R
+//modified by Jingbo Gao
+    "file-access-method",	FILE_ACCESS_METHOD,	oo(file,access_method),	et,		0,   eiFAM,	R,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(file,go.profile_name), s132,	Last,		0,	 O  
+};
 
 propdescriptor	GRprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -789,8 +847,12 @@ propdescriptor	GRprops[]={
     "description",			DESCRIPTION,		oo(group,go.description),s132,	0,	       0,	O,
     "list-of-group-members",LIST_OF_GROUP_MEMBERS,oo(group,
     											list_of_group_members),	raslist,0,	       0,	R,
-    "present-value",		PRESENT_VALUE,		0,						none,	Last,	   0,	R
-    };
+//    "present-value",		PRESENT_VALUE,		0,						none,	Last,	   0,	R
+// modified by Jingbo Gao
+	"present-value",		PRESENT_VALUE,		0,						none,	0,	       0,	R,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(group,go.profile_name), s132, Last,	   0,	 O  
+};
 
 propdescriptor	LPprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -841,8 +903,12 @@ propdescriptor	LPprops[]={
     "acked-transitions",	ACKED_TRANSITIONS,	oo(loop,acked_transitions),bits,Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(loop,notify_type),	et,     Intr,	eiNT,	O|WithService,
 //madanner 6/03: Added for supporting event-time-stamps
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(loop,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-    };
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(loop,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
+// modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(loop,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(loop,go.profile_name), s132,	Last,		0,	 O  
+};
 
 propdescriptor	MIprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -866,8 +932,12 @@ propdescriptor	MIprops[]={
     "acked-transitions",	ACKED_TRANSITIONS,	oo(mi,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(mi,notify_type),		et,     Intr,	eiNT,	O|WithService,
 //madanner 6/03: Added for supporting event-time-stamps
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-    };
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
+// modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(mi,go.profile_name), s132,	Last,		0,	 O 
+};
 
   
 propdescriptor	MOprops[]={
@@ -893,8 +963,12 @@ propdescriptor	MOprops[]={
     "acked-transitions",	ACKED_TRANSITIONS,	oo(mo,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(mo,notify_type),		et,     Intr,	eiNT,	O|WithService,
 //madanner 6/03: Added for supporting event-time-stamps
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-    };
+//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
+// modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mo,event_time_stamps),  TSTMP, Intr,   0, O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(mo,go.profile_name), s132,	Last,		0,	 O
+};
 
 propdescriptor	NCprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -905,8 +979,12 @@ propdescriptor	NCprops[]={
     "notification-class",	NOTIFICATION_CLASS,	oo(nc,notification_class), uw,	0,	       0,	R,
     "priority",				PRIORITY,			oo(nc,priority),		uw,		0,	       0,	R|IsArray,
     "ack-required",			ACK_REQUIRED,		oo(nc,ack_required),	bits,	0,	  eiEvTr,	R,
-    "recipient-list",		RECIPIENT_LIST,		oo(nc,recipient_list),reciplist,Last,	   0,	R	
-  	};
+//    "recipient-list",		RECIPIENT_LIST,		oo(nc,recipient_list),reciplist,Last,	   0,	R	
+// modified by Jingbo Gao, 2003-9-1
+	"recipient-list",		RECIPIENT_LIST,		oo(nc,recipient_list),reciplist,0,	   0,	R,	
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(nc,go.profile_name), s132,	Last,		0,	 O  
+};
 
 propdescriptor	PRprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -924,8 +1002,12 @@ propdescriptor	PRprops[]={
     "instance-of",			INSTANCE_OF,		oo(program,instance_of),s64,	0,	       0,	O,
     "status-flags",			STATUS_FLAGS,		oo(program,status_flags),bits,	0,	   eiStF,	R,
     "reliability",			RELIABILITY,		oo(program,reliability),et,		0,	  eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(program,out_of_service),ebool,Last,	eiTF,	R
-  	};
+//    "out-of-service",		OUT_OF_SERVICE,		oo(program,out_of_service),ebool,Last,	eiTF,	R
+// modified by Jingbo Gao, 2003-9-1
+	"out-of-service",		OUT_OF_SERVICE,		oo(program,out_of_service),ebool,0,	eiTF,	R,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(program,go.profile_name), s132,	Last,  	0,	 O  
+};
 
 propdescriptor	SCprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
@@ -943,9 +1025,14 @@ propdescriptor	SCprops[]={
 "list-of-object-property-references",
             LIST_OF_OBJECT_PROPERTY_REFERENCES,	oo(schedule,
                                                 list_obj_prop_ref),		lopref,	0,		   0,	R,
-    "priority-for-writing",	PRIORITY_FOR_WRITING,oo(schedule,
-    											priority_for_writing),	u16,	Last,	   0,	R
-  };
+//    "priority-for-writing",	PRIORITY_FOR_WRITING,oo(schedule,
+//    											priority_for_writing),	u16,	Last,	   0,	R
+// modified by Jingbo Gao, 2003-9-1
+	"priority-for-writing",	PRIORITY_FOR_WRITING,oo(schedule,
+												priority_for_writing),	u16,	0,	   0,	R,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",			PROFILE_NAME,       oo(schedule,go.profile_name), s132,	Last,  0,	 O  
+};
 
 propdescriptor	AVGprops[]={
 //	"property name",		     property identifier,    	struc offset,		              parse,	group,	table,	qualifiers
@@ -965,8 +1052,12 @@ propdescriptor	AVGprops[]={
     "window-interval",		     WINDOW_INTERVAL,		    oo(avg,window_interval),	       uw,	    Intr,	   0,	O|WithService,
 //madanner 6/03: Added 'Last' code for prop search
 //  "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Intr,      0,    O|WithService,
-    "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Last|Intr,      0,    O|WithService,
-    };
+//    "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Last|Intr,      0,    O|WithService,
+//modified by Jingbo Gao, 2003-9-1
+	"window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Intr,      0,    O|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",				 PROFILE_NAME,				oo(avg,go.profile_name),		   s132,	Last,	   0,	 O  
+};
 
 propdescriptor	MVprops[]={
 //	"property name",		property identifier,	struc offset,		    parse,	group,	table,	    qualifiers
@@ -991,8 +1082,12 @@ propdescriptor	MVprops[]={
      "acked-transitions",  	ACKED_TRANSITIONS,  oo(msv,acked_transitions),  bits,      Intr,      eiEvTr,  O|WithService,
      "notify-type",  		NOTIFY_TYPE,  		oo(msv,notify_type),  	    et,        Intr,      eiNT,    O|WithService,
 //madanner 6/03: Added 'Last' code for prop search
-     "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Last|Intr,      0,       O|IsArray|WithService
-    };
+//     "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Last|Intr,      0,       O|IsArray|WithService
+//modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Intr,    0,       O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",		    PROFILE_NAME,       oo(msv,go.profile_name),		s132,	Last,	0,		O  
+};
 
 
 propdescriptor	TRprops[]={
@@ -1023,8 +1118,12 @@ propdescriptor	TRprops[]={
      "acked-transitions",  			ACKED_TRANSITIONS,  		  oo(trend,acked_transitions),  		  bits,     0,      eiEvTr,  O|WithService,
      "notify-type",  				NOTIFY_TYPE,  			      oo(trend,notify_type),  			      et,       0,      eiNT,    O|WithService,
 //madanner 6/03: Added 'Last' code for prop search
-     "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    Last,      0,       O|IsArray|WithService
-  };
+//     "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    Last,      0,       O|IsArray|WithService
+//modified by Jingbo Gao, 2003-9-1
+	"event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    0,      0,       O|IsArray|WithService,
+//Added by Jingbo Gao, 2003-9-1
+	"profile-name",				    PROFILE_NAME,				  oo(trend,go.profile_name),			   s132,	Last,			0,	 O  
+};
 
 stdobjtype	StdObjects[]={
     sizeof(ai_obj_type),					AIprops,

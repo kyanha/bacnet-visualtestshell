@@ -37,6 +37,7 @@ typedef struct {
     char 					description[132];
 //	octet					std_props[8];		//bitmap of std properties present in this instance, 1=present
     octet					propflags[64];		//up to 64 properties of parser flags
+	char					profile_name[132];  //Added by Jingbo Gao, 2003-9-1
     } generic_object;
 
 //Analog Input Object
@@ -257,6 +258,7 @@ enum BACnetDeviceStatus		system_status;
     BACnetObjectIdentifier	far	*object_list;				//points to our object list
     word					max_apdu_length_accepted;
 enum BACnetSegmentation		segmentation_supported;
+	dword					max_segments_accepted;         //added by Jingbo Gao, 2003-9-1
     BACnetVTClassList	far	*vt_classes_supported;
     BACnetVTSession		far	*active_vt_sessions;
     BACnetDate				local_date;
@@ -273,6 +275,13 @@ enum BACnetSegmentation		segmentation_supported;
     word					max_master;
     word					max_info_frames;
     BACnetAddressBinding far *device_add_binding;
+	// added by Jingbo Gao, 2003-9-1
+	dword					database_revision;
+	BACnetObjectIdentifier	far	*configuration_files;		// points to configuration files
+	BACnetDateTime			last_restore_time;
+	word					backup_failure_timeout;
+	BACnetCOVSubscription   far	*active_cov_subscriptions;
+
    } device_obj_type;
 
 //Event Enrollment Object

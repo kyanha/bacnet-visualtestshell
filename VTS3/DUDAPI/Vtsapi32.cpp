@@ -4,7 +4,8 @@
 module:		VTSAPI32.C
 desc:		BACnet Standard Objects DLL v2.15
 authors:	David M. Fisher, Jack R. Neyer
-last edit:	10-Nov-02 [017] xyp added for parsing the value of property whose parse type is none.
+last edit:	01-SEP-03 [018] GJB enable parser to parse several new properties
+			10-Nov-02 [017] xyp added for parsing the value of property whose parse type is none.
 			13-Aug-01 [016] JJB added namespace
 			09-Dec-97 [015] DMF revise for 32 bit from v0.14
 			27-Aug-96 [014] DMF fix 0.13 item 3.
@@ -95,6 +96,8 @@ BOOL ParseSessionKeyList(BACnetSessionKey **);
 BOOL ParseRefList(BACnetObjectPropertyReference	**);
 BACnetRecipient *ParseRecipient(BACnetRecipient *);
 BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference	*);
+BOOL ParseCOVSubList(BACnetCOVSubscription **);												//*****018
+BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *);						//*****018
 
 //************added by Liangping Xu,2002*****************//
 BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference *);
@@ -1995,11 +1998,13 @@ void MI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 {    char checkMsg[150];
   // Check if any MI properties for intrinsic reporting exist
   if (propFlags[12] || propFlags[13] || propFlags[14] || propFlags[15] || 
-      propFlags[16] || propFlags[17] || propFlags[18])
+//      propFlags[16] || propFlags[17] || propFlags[18])
+      propFlags[16] || propFlags[17] || propFlags[18] || propFlags[19]) //modified by Jingbo Gao, the Event_Time_stamps is required if intrinsic reporting is supportedby this oject
   {
     // If any do, they all must
     if (!(propFlags[12] && propFlags[13] && propFlags[14] && propFlags[15] && 
-          propFlags[16] && propFlags[17] && propFlags[18]))
+//          propFlags[16] && propFlags[17] && propFlags[18]))
+          propFlags[16] && propFlags[17] && propFlags[18] && propFlags[19])) //modified by Jingbo Gao
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MI objects!\n");
       PrintToFile(checkMsg);
@@ -3147,8 +3152,12 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                  	break;
                 case TSTMP:
                     if (ParseTimeStamp((BACnetTimeStamp *)pstruc)) return true;
-                    
 					break;
+				// *****018  begin
+				case lCOVSub:		//List of BACnetCOVSubcription
+					if (ParseCOVSubList((BACnetCOVSubscription **)pstruc)) return true;
+					break;
+				//*****018  end
 				case none:
 					// reset the datatype of present value according to EPICS,  by Yiping XU, 2002/11/2
 						bHasNoneType = true;
@@ -5098,6 +5107,125 @@ brfail:
 	if (inq==NULL) free(q);				//don't release unless we malloc'd it
 	return NULL;
 }
+
+
+//*****018 begin
+///////////////////////////////////////////////////////////////////////
+//	read a list of BACnetCOVSubscription from the buffer lp 
+//in:	lp		points to current position in buffer lb
+//		dalp	points to a BACnetCOVSubscription pointer variable to be
+//				initialized to point to the created list of BACnetCOVSubscription
+//out:	true	if an error occurred
+//		lp		points past the delimiter ) unless it was the end of the buffer
+BOOL ParseCOVSubList(BACnetCOVSubscription **covsub)
+{
+	BACnetCOVSubscription	*p=NULL,*q=NULL;
+				
+	*covsub=NULL;									//initially there is no list
+	
+	skipwhitespace();
+	if (MustBe('(')) return true;
+	while(feof(ifile)==0)
+	{   //here lp must point to:
+		//1. a comma or whitespace which we ignore as a separator between list elements.
+		//   Note that we require "empty" list elements to use proper syntax (...),(),(...)
+		//   but (...),,(...) is treated the same as (...),(...)
+		//2. (			i.e. the beginning of a new BACnetRecipient in the list
+		//3. )			i.e. the closing part of the list
+		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
+		if (*lp==0)
+			if (ReadNext()==NULL) break;		//									***008
+
+		if (*lp==')') 
+		{	lp++;
+			break;								//close this list out
+		}
+			
+		if ((q=ParseCOVSubscription(NULL))!=NULL)
+		{	q->next=p;							//link onto the list
+			p=q;
+			q=NULL;
+		}
+	}
+	if (q!=NULL) free(q);						//don't lose this block!
+	*covsub=p;
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////
+//	read a BACnetCOVSubscription from the buffer lp points to
+//	(RecipientProcess, ObjectPropertyReference, Boolean, Unsigned) 
+//in:	lp		points to current position in buffer lb
+//out:	NULL	if an error occurred
+//		else	pointer to newly created BACnetCOVSubscription
+//		lp		points past the delimiter ) unless it was the end of the buffer
+BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *inq)
+{
+	BACnetCOVSubscription	*q=NULL;
+//	(((0, (Device, Instance 12)), 300),	((Analog Input, 1), Present-Value), TRUE, 100, 1.0)
+	skipwhitespace();
+	//here we have (RecipientProcess, ObjectPropertyReference, Boolean, Unsigned) ...
+	if (MustBe('(')) return NULL;
+	
+	if (inq==NULL)
+	{   
+		if ((q=(tagCOVSubscription *)malloc(sizeof(BACnetCOVSubscription)))==NULL)
+		{	
+			tperror("Can't Get Object Space!",true);
+			return NULL;
+		}
+	}
+	else{
+		q=inq;
+	}
+		
+	q->next=NULL;
+	skipwhitespace();
+
+	//parse RecipientProcess
+	//here we have (Recipient, Unsigned) ...
+	//	(((0, (Device, Instance 12)), 300)
+	if (MustBe('(')) return NULL;
+	skipwhitespace();
+	if ( ParseRecipient(&(q->recipient.recipient)) == NULL ) {
+		goto brfail;
+	}
+
+	if ((strdelim(","))==NULL) goto brfail;
+	skipwhitespace();
+	q->recipient.process_id = ReadW();
+
+	if ((strdelim(","))==NULL) goto brfail;
+	skipwhitespace();
+	// parse ObjectPropertyReference
+	//	((Analog Input, 1), Present-Value)
+	if ((ParseReference(&(q->monitoredPropertyReference)))==NULL)	goto brfail;
+		
+	// parse boolean
+	if ((strdelim(","))==NULL) goto brfail;
+	skipwhitespace();
+	q->notification = ReadBool();
+	lp--;
+
+	// parse unsigned
+	if ((strdelim(","))==NULL) goto brfail;
+	skipwhitespace();
+	q->timeRemaining = ReadW();	
+	lp--;
+
+	// parse real
+	if ((strdelim(","))==NULL) goto brfail;
+	skipwhitespace();
+	q->covIncrement = (float)atof(lp);
+	if ((strdelim(")"))==NULL) goto brfail;
+	return q;
+	
+brfail:
+	if (inq==NULL) free(q);				//don't release unless we malloc'd it
+	return NULL;
+}
+//*****018 end
+
 
 ///////////////////////////////////////////////////////////////////////
 //	parse a string parameter
