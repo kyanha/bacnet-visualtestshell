@@ -179,7 +179,16 @@ void JFile::OpenFile( char *name )
 	OpenFile( &tempSpec, false );
 #endif
 #if UNIX_Platform
-	ThrowIfNil_( filePtr = fopen( name, "r+b" ) );
+	// madanner 2/7/03
+	// Only caller is OnDocumentOpen and it's expecting a char* exception, not the error code given
+	// by the Throw macro.  UNIX_Platform is defined here as a hack even though NT_Platform may be 
+	// defined...  Sorry for the lame error message... more could be done, but, why?
+
+//	ThrowIfNil_( filePtr = fopen( name, "r+b" ) );
+
+	filePtr = fopen( name, "r+b" );
+	if ( !filePtr )
+		throw ( "Database file cannot be opened.  The filename must be valid and the file must not be read only.");
 	
 	Open();
 #endif
