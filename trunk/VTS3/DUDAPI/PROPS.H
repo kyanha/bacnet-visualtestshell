@@ -49,7 +49,13 @@
 #define looref				41					//list of objectid references
 #define ssint				42					//short (2-byte) signed integer  MAG 13 FEB 2001
 #define LOGREC				43					//LogRecord
-#define TSTMP           44             // BACnetTimeStamp
+#define TSTMP               44             // BACnetTimeStamp
+//Added  Parse Time by Liangping Xu,2002-9
+
+#define	devobjpropref	    45					//dev obj property reference
+
+////
+//////////////////////////////////////////////
 #define enull				254					//null enumeration
 #define	none				255					//no parsing required, runtime generated value
 
