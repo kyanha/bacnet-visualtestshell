@@ -504,6 +504,13 @@ void VTSPreferences::Save( void )
 //			used in VTS's internal structures for UTC_Offset was a float instead of int.  This has been
 //			corrected by changing it's internal type to 'ssint' and processing accordingly.
 //
+//			508643:  VTS3 unable to read device-address-binding(RP, RPM)
+//
+//			'Property value not known' was returned correctly when comparing device-address-binding to EPICS when
+//			the value was '?'.  It returned this error incorrectly when the EPICS value was defined as empty ().
+//			It now compares the valid empty condition.  This error would also show up on other non-primitive data types
+//			whose value could be empty ().
+//
 
 const int kReleaseVersion = 9;
 
