@@ -63,6 +63,7 @@ IMPLEMENT_DYNCREATE(VTSDoc, CDocument)
 BEGIN_MESSAGE_MAP(VTSDoc, CDocument)
 	//{{AFX_MSG_MAP(VTSDoc)
 	ON_COMMAND(ID_VIEW_STATISTICS, OnViewStatistics)
+	ON_COMMAND(ID_EDIT_QUICKSAVE, OnEditQuickSave)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -562,6 +563,7 @@ bool VTSDoc::DoPacketFileNameDialog( bool fReload /* = true */ )
 	ChangeCWDToWorkspace();					// for W98 ??
 	int nResult = dlgFile.DoModal();
 	newName.ReleaseBuffer();
+	CString pathname = newName;
 	ChangeCWDToWorkspace();					// for W98 ??
 
 	// packet file open auto closes old packet file if it was opened... it leaves everything as it was
@@ -581,6 +583,10 @@ bool VTSDoc::DoPacketFileNameDialog( bool fReload /* = true */ )
 
 	m_strLogFilename = newName;
 	SaveConfiguration();
+
+	//added: 2004/12/06 author:Xiao Shiyuan	purpose:save log file history
+	CMainFrame* pMainFrame = (CMainFrame*)AfxGetApp()->GetMainWnd();	
+	pMainFrame->SaveLogFileHistory((LPCTSTR)pathname);
 
 	// Some usage of this function is only to re-specify loading of lost packet file linkage
 	// during loading...  Don't bother reloading list because that's our calling context
@@ -811,6 +817,16 @@ void VTSDoc::SetPacketCount( int count )
 
 int VTSDoc::WritePacket( VTSPacket & pkt )
 {
+	//If receive packets
+	if( (!gVTSPreferences.Setting_IsRecvPkt()) 
+		&& pkt.packetHdr.packetType == rxData)
+		return -1;
+
+	//If save sent packet
+	if( (!gVTSPreferences.Setting_IsSaveSentPkt()) 
+		&& pkt.packetHdr.packetType == txData )
+		return -1;
+
 	int		nIndex = -1;
 	bool	schedule = false;
 
@@ -4781,3 +4797,62 @@ void VTSDoc::DoBackupRestore( void )
 	
 }
 
+void VTSDoc::OnEditQuickSave() 
+{
+	// TODO: Add your command handler code here
+	CMainFrame* pMainFrame = (CMainFrame*)AfxGetApp()->GetMainWnd();
+	CString newName;
+	CString pathname;
+	pMainFrame->m_wndFileCombo.GetWindowText(pathname);
+	newName = pathname;
+
+	if ( gVTSPreferences.Setting_IsPacketFileRelative() )
+		ConvertPathToRelative(&newName);
+
+	// AFter path name conversion... only attempt open if the new file is diff from old
+	// This is a problem if they specify the same file and they've switched between relative and absolute
+
+	if ( !m_strLogFilename.CompareNoCase(newName) ||  !m_PacketDB.Open(newName) )
+		return;
+
+	m_strLogFilename = newName;
+	SaveConfiguration();
+	
+	pMainFrame->SaveLogFileHistory((LPCTSTR)pathname);
+
+	// Some usage of this function is only to re-specify loading of lost packet file linkage
+	// during loading...  Don't bother reloading list because that's our calling context
+	CString strStatusText;
+	strStatusText.Format(IDS_NEWPACKETFILENAME, m_strLogFilename);
+	ReloadPacketStore();
+	AfxMessageBox(strStatusText);
+
+	// Must call this here.. for some reason we won't see the main list view update until we let this
+	// message box go, at which time the message in the queue will have been lost (why?)
+
+	ScheduleForProcessing();
+
+	strStatusText.Format("Loaded logfile: %s", m_strLogFilename );
+	((CFrameWnd *) AfxGetApp()->m_pMainWnd)->SetMessageText(strStatusText);
+
+}
+
+void VTSDoc::DeleteSelPacket(int index)
+{
+	m_FrameContextsCS.Lock();
+	
+	if(index < 0 || index > m_apPackets.GetSize() - 1)
+		return;
+
+	delete m_apPackets[index];
+	m_apPackets.RemoveAt(index);
+
+	m_PacketDB.DeletePackets();
+
+	for(int i = 0; i < m_apPackets.GetSize(); i++)
+	{
+		m_PacketDB.WritePacket(*m_apPackets[i]);
+	}
+
+	m_FrameContextsCS.Unlock();
+}

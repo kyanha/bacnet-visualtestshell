@@ -23,17 +23,28 @@ VTSPreferences::VTSPreferences()
 {
 	// Initialize all fields on
 	m_nSummaryFields = 0xFF;				// bit mask of display options
-	m_nSummaryColumnWidth[0] = 30;			// Number
-	m_nSummaryColumnWidth[1] = 85;			// timestamp
-	m_nSummaryColumnWidth[2] = 60;			// port
-	m_nSummaryColumnWidth[3] = 120;			//dest/source
-	m_nSummaryColumnWidth[4] = 150;			// service type
+	m_nSummaryColumnWidth[0] = 25;			// Number
+	m_nSummaryColumnWidth[1] = 50;			// timestamp
+	m_nSummaryColumnWidth[2] = 30;			// port
+	//Xiao Shiyuan 2004-Sep-17
+	m_nSummaryColumnWidth[3] = 50;			// source
+	m_nSummaryColumnWidth[4] = 50;			// destination
+	m_nSummaryColumnWidth[5] = 50;			// snet
+	m_nSummaryColumnWidth[6] = 60;			// saddr
+	m_nSummaryColumnWidth[7] = 50;			// dnet
+	m_nSummaryColumnWidth[8] = 50;	        // daddr
+	m_nSummaryColumnWidth[9] = 150;			// service type
+	//Xiao Shiyuan 2004-Sep-17
 	m_nInvokeID = 0;
 	m_nTimeFormat = 0;
 	m_nCachePacketCount = 5000;				// start with about 1M of memory
 	m_nAutoscrollTimeout = 300;	// seconds
 	m_fRelativePacketFile = true;
 	m_fVerifyDelete = true;
+	m_bAutoScroll = true;
+	m_bRecvPkt = true;
+	m_bSaveSentPkt = true;
+	m_resendInterval = 0;
 }
 
 
@@ -104,6 +115,17 @@ void VTSPreferences::Load( void )
 	m_fLoadEPICS = nRelative != 0;
 
 	m_strLastEPICS = pApp->GetProfileString("Settings", "LastEPICS", NULL);
+
+	nRelative = pApp->GetProfileInt( "Settings", "AutoScroll", m_bAutoScroll ? 1 : 0);
+	m_bAutoScroll = nRelative != 0;
+
+	nRelative = pApp->GetProfileInt( "Settings", "RecvPkt", m_bRecvPkt ? 1 : 0);
+	m_bRecvPkt = nRelative != 0;
+
+	nRelative = pApp->GetProfileInt( "Settings", "SaveSentPkt", m_bSaveSentPkt ? 1 : 0);
+	m_bSaveSentPkt = nRelative != 0;
+
+	m_resendInterval = pApp->GetProfileInt( "Settings", "ResendInterval", m_resendInterval);
 }
 
 //
@@ -132,6 +154,11 @@ void VTSPreferences::Save( void )
 	pApp->WriteProfileInt( "Settings", "VerifyDelete", m_fVerifyDelete ? 1 : 0);
 	pApp->WriteProfileInt( "Settings", "LoadEPICS", m_fLoadEPICS ? 1 : 0);
 	pApp->WriteProfileString( "Settings", "LastEPICS", m_strLastEPICS);
+
+	pApp->WriteProfileInt( "Settings", "AutoScroll", m_bAutoScroll ? 1 : 0);
+	pApp->WriteProfileInt( "Settings", "RecvPkt", m_bRecvPkt ? 1 : 0);
+	pApp->WriteProfileInt( "Settings", "SaveSentPkt", m_bSaveSentPkt ? 1 : 0);
+	pApp->WriteProfileInt( "Settings", "ResendInterval", m_resendInterval);
 }
 
 
@@ -144,6 +171,10 @@ void VTSPreferences::DoPrefsDlg()
 	dlg.m_nRelative = Setting_IsPacketFileRelative() ? 0 : 1;
 	dlg.m_fVerify = Setting_IsVerifyDelete() ? TRUE : FALSE;
 	dlg.m_fLoadEPICS = Setting_IsLoadEPICS() ? TRUE : FALSE;
+	dlg.m_bAutoScroll = Setting_IsAutoScroll() ? TRUE : FALSE;
+	dlg.m_bRecvPkt = Setting_IsRecvPkt() ? TRUE : FALSE;
+	dlg.m_bSaveSentPkt = Setting_IsSaveSentPkt() ? TRUE : FALSE;
+	dlg.m_resendInterval = Setting_GetResendInterval();
 
 	if ( dlg.DoModal() == IDOK )
 	{
@@ -158,6 +189,11 @@ void VTSPreferences::DoPrefsDlg()
 
 		Setting_SetVerifyDelete(dlg.m_fVerify ? true : false);		// account for MS BOOL junk
 		Setting_SetLoadEPICS(dlg.m_fLoadEPICS ? true : false);		// account for MS BOOL junk
+
+		Setting_SetAutoScroll(dlg.m_bAutoScroll ? true : false);
+		Setting_SetRecvPkt(dlg.m_bRecvPkt ? true : false);
+		Setting_SetSaveSentPkt(dlg.m_bSaveSentPkt ? true : false);
+		Setting_SetResendInterval(dlg.m_resendInterval);
 	}
 }
 

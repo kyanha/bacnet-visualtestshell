@@ -57,27 +57,49 @@ class VTSDoc;
 
 class VTSPacket : public CObject
 {
-	protected:
-		bool			ownData;				// object owns the data
+protected:
+	bool			ownData;				// object owns the data
+	
+public:
+	// Begin persistent data
+	VTSPacketHeader	packetHdr;				// header contents
+	int				packetLen;				// number of octets in data
+	BACnetOctetPtr	packetData;				// pointer to data
+	
+	CString keyParameters; //add: 2004/11/10 author:Xiao Shiyuan purpose:
+	BOOL    bErrorDecode;  //add: 2004/11/10 author:Xiao Shiyuan purpose:
+	
+	VTSPacket( int len = 0, BACnetOctetPtr data = 0 );
+	//VTSPacket(); //add: 3/2/2005 author:Xiao Shiyuan purpose:
+	~VTSPacket( void );
+	
+	void NewData( BACnetOctetPtr data, int len );		// flush old, copy new (owned)
+	void NewDataRef( BACnetOctetPtr data, int len, bool fOwned = false );	// flush old, reference new (not owned)
+	
+	LPCSTR GetTimeStampString(void);
+	
+	//modified: 2004/11/01 author:Xiao Shiyuan			
+	LPCSTR GetAddressString( VTSDoc * pdoc, BOOL bSource=TRUE, int nLen = -1 );	
+	BOOL GetSNET(unsigned short& snet);              //2004/11/01 author:Xiao Shiyuan return value: FALSE SNET doesn't exist	
+	CString VTSPacket::GetSADRString(VTSDoc * pdoc, BOOL bAlias=TRUE); //2004/11/01 author:Xiao Shiyuan return value: FALSE SNET doesn't exist		
+	
+	BOOL GetDNET(unsigned short& dnet);              //2004/11/02 author:Xiao Shiyuan return value: FALSE SNET doesn't exist	
+	CString VTSPacket::GetDADRString(VTSDoc * pdoc, BOOL bAlias=TRUE); //2004/11/02 author:Xiao Shiyuan return value: FALSE SNET doesn't exist		
+	
+	VTSPacket( const VTSPacket& );				// disable copy constructor
+	void operator =( const VTSPacket& pkt);		// disable assignment operator
+	
+	BOOL SetDesAddress(BACnetAddress& addr);
+	BOOL SetSNET(unsigned short snet, BOOL bReserveSnet=TRUE);
+	BOOL SetDNET(unsigned short dnet, BOOL bReserveDnet=TRUE);
+	
+	BOOL SetDADR(unsigned char *dadr, unsigned char len);
+	BOOL SetSADR(unsigned char *sadr, unsigned char len);	
 
-	public:
-		// Begin persistent data
-		VTSPacketHeader	packetHdr;				// header contents
-		int				packetLen;				// number of octets in data
-		BACnetOctetPtr	packetData;				// pointer to data
-
-		VTSPacket( int len = 0, BACnetOctetPtr data = 0 );
-		~VTSPacket( void );
-
-		void NewData( BACnetOctetPtr data, int len );		// flush old, copy new (owned)
-		void NewDataRef( BACnetOctetPtr data, int len, bool fOwned = false );	// flush old, reference new (not owned)
-
-		LPCSTR GetTimeStampString(void);
-		LPCSTR GetAddressString( VTSDoc * pdoc, VTSPacketType vtspkttype, int nLen = -1 );
-
-		VTSPacket( const VTSPacket& );				// disable copy constructor
-		void operator =( const VTSPacket& pkt);				// disable assignment operator
-	};
+private:
+	//modified: 2004/12/02 author:Xiao Shiyuan	purpose:
+	void FindNPDUStartPos(int& npduindex);
+};
 
 typedef VTSPacket *VTSPacketPtr;
 

@@ -70,6 +70,8 @@ END
 IDR_MAINFRAME           ICON    DISCARDABLE     "res\\VTS.ico"
 IDR_VTSTYPE             ICON    DISCARDABLE     "res\\VTSDoc.ico"
 IDR_VDBTYPE             ICON    DISCARDABLE     "res\\idr_vtst.ico"
+IDI_RECVPKT             ICON    DISCARDABLE     "res\\RECVPKT.ico"
+IDI_SENDPKT             ICON    DISCARDABLE     "res\\SENDPKT.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -89,6 +91,7 @@ IDB_BMALOGO             BITMAP  DISCARDABLE     "res\\AboutBox.bmp"
 IDB_NBLINK              BITMAP  DISCARDABLE     "res\\nblink.bmp"
 IDB_EPICSTREE           BITMAP  DISCARDABLE     "res\\epicstree.bmp"
 IDR_GLOBALBAR           BITMAP  DISCARDABLE     "res\\globalbal.bmp"
+IDB_COLOR               BITMAP  DISCARDABLE     "res\\colors.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -113,6 +116,9 @@ BEGIN
     BUTTON      ID_VIEW_STATISTICS
     SEPARATOR
     BUTTON      ID_APP_ABOUT
+    SEPARATOR
+    BUTTON      ID_EDIT_QUICKSAVE
+    BUTTON      ID_COMBOBOX_SEPARATOR
     SEPARATOR
     BUTTON      ID_SCRIPT_RUN1
     BUTTON      ID_SCRIPT_CHECK_SYNTAX1
@@ -298,6 +304,8 @@ BEGIN
         MENUITEM "&Next Frame\tCtrl+3",         ID_VIEW_NEXTFRAME
         MENUITEM "&Last Frame (Auto-scroll)\tCtrl+4", ID_VIEW_LASTFRAME
         MENUITEM SEPARATOR
+        MENUITEM "C&olor Setting...",           ID_VIEW_COLOR
+        MENUITEM SEPARATOR
         MENUITEM "Detail View",                 ID_VIEW_DETAIL
         MENUITEM "Hex View",                    ID_VIEW_HEX
         MENUITEM "EPICS View",                  ID_VIEW_EPICS
@@ -345,6 +353,38 @@ BEGIN
     MENUITEM SEPARATOR
     MENUITEM "Generate Read All Properties Script", ID_EPICS_PROP_GEN
     MENUITEM "Clear Device Values",         ID_EPICS_PROP_CLEAR
+END
+
+IDR_SUMMARYWIN MENU DISCARDABLE 
+BEGIN
+    POPUP "SummaryWindow"
+    BEGIN
+        MENUITEM "&Send selected packet",       ID_EDIT_SENDPACKET
+        MENUITEM "&Edit and send packet",       ID_EDIT_COLUMNVALUE
+        MENUITEM "Send all packets",            ID_EDIT_SENDALLPACKET
+        MENUITEM "Edit and send all packets",   ID_EDIT_EDITSENDALLPKT
+        MENUITEM SEPARATOR
+        POPUP "Customize &Columns"
+        BEGIN
+            MENUITEM "N&o.",                        ID_SW_NO
+            MENUITEM "T&imestamp",                  ID_SW_TIMESTAMP
+            MENUITEM "&Port",                       ID_SW_PORT
+            MENUITEM "So&urce",                     ID_SW_SOURCE
+            MENUITEM "D&estination",                ID_SW_DES
+            MENUITEM "S&NET",                       ID_SW_SNET
+            MENUITEM "S&ADDR",                      ID_SW_SADDR
+            MENUITEM "&DNET",                       ID_SW_DNET
+            MENUITEM "DADD&R",                      ID_SW_DADDR
+            MENUITEM "Ser&vice",                    ID_SW_SERVICE
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Receive packets",            ID_EDIT_RECEIVEPKT
+        MENUITEM "Sa&ve sent packet",           ID_EDIT_SAVESENTPKT
+        MENUITEM "A&uto Scroll",                ID_EDIT_AUTOSCROLL
+        MENUITEM SEPARATOR
+        MENUITEM "Delete &All Packets",         ID_EDIT_DELETE
+        MENUITEM "&Delete selected packet",     ID_EDIT_DELETESEL
+    END
 END
 
 
@@ -2710,7 +2750,7 @@ BEGIN
     LTEXT           "Implementation:",IDC_STATIC,4,78,58,10,0,WS_EX_RIGHT
 END
 
-IDD_PREFERENCES DIALOG DISCARDABLE  0, 0, 280, 97
+IDD_PREFERENCES DIALOG DISCARDABLE  0, 0, 280, 162
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "VTS Preferences"
 FONT 8, "MS Sans Serif"
@@ -2736,6 +2776,15 @@ BEGIN
                     BS_LEFTTEXT | WS_GROUP | WS_TABSTOP,25,80,156,10
     DEFPUSHBUTTON   "OK",IDOK,223,7,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,223,24,50,14
+    CONTROL         "Summary window auto scroll?",IDC_AUTOSCROLL,"Button",
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,74,95,107,10
+    CONTROL         "Receive packets?",IDC_RECVPKT,"Button",BS_AUTOCHECKBOX | 
+                    BS_LEFTTEXT | BS_RIGHT | WS_TABSTOP,74,110,107,10
+    CONTROL         "Save sent packets?",IDC_SAVESENTPKT,"Button",
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,102,125,79,10
+    RTEXT           "Resending interval:",IDC_STATIC,75,141,94,8
+    EDITTEXT        IDC_RESENDINTERVAL,172,141,40,12,ES_AUTOHSCROLL
+    LTEXT           "ms",IDC_STATIC,215,142,10,8
 END
 
 IDD_DATETIME DIALOG DISCARDABLE  0, 0, 186, 73
@@ -4482,6 +4531,61 @@ BEGIN
                     LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,1,15,181,72
 END
 
+IDD_COLOR DIALOG DISCARDABLE  0, 0, 237, 215
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Color Setting Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Ok",IDOK,132,195,42,13,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,188,195,42,13
+    LTEXT           "ReadProperty(Ack)",IDC_STATIC,17,31,74,12
+    LTEXT           "WriteProperty(Ack)",IDC_STATIC,17,58,63,12
+    GROUPBOX        "Correct PDU",IDC_STATIC,7,13,223,146
+    LTEXT           "Error encoding PDU",IDC_STATIC,17,169,79,8
+    CONTROL         "",IDC_COLORCOMBO1,"ComboBoxEx32",CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP,113,31,27,54
+    LTEXT           "ReadPropertyMultiple(Ack)",IDC_STATIC,17,85,91,12
+    LTEXT           "WritePropertyMultiple(Ack)",IDC_STATIC,17,112,92,12
+    CONTROL         "",IDC_COLORCOMBO2,"ComboBoxEx32",CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP,113,57,27,54
+    CONTROL         "",IDC_COLORCOMBO3,"ComboBoxEx32",CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP,113,82,27,54
+    CONTROL         "",IDC_COLORCOMBO4,"ComboBoxEx32",CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP,113,110,27,54
+    CONTROL         "",IDC_COLORCOMBO6,"ComboBoxEx32",CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP,113,169,27,54
+    PUSHBUTTON      "Reset",IDC_RESET,17,195,42,13,WS_GROUP
+    LTEXT           "Error",IDC_STATIC,18,139,92,12
+    CONTROL         "",IDC_COLORCOMBO5,"ComboBoxEx32",CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP,114,137,27,54
+END
+
+IDD_EDITRESENTPKT DIALOG DISCARDABLE  0, 0, 204, 223
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Edit and send packet"
+FONT 8, "Microsoft Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Send",IDOK,7,202,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,202,50,14
+    COMBOBOX        IDC_DESCOMBO,77,11,104,58,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Destination:",IDC_STATIC,13,11,38,8
+    LTEXT           "DNET:",IDC_STATIC,13,146,43,8
+    LTEXT           "DADR(hex):",IDC_STATIC,13,174,39,8
+    LTEXT           "SNET:",IDC_STATIC,13,55,22,8
+    LTEXT           "SADR(hex):",IDC_STATIC,13,83,38,8
+    EDITTEXT        IDC_SNET,77,55,104,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SADR,77,83,104,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_DNET,77,146,104,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_DADR,77,174,104,12,ES_AUTOHSCROLL
+    GROUPBOX        "",IDC_STATIC,7,28,190,76
+    CONTROL         "SNET and SADR present",IDC_SNETCHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,38,97,10
+    GROUPBOX        "",IDC_STATIC,7,112,190,83
+    CONTROL         "DNET and DADR present",IDC_DNETCHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,127,98,10
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -5320,7 +5424,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 273
         TOPMARGIN, 7
-        BOTTOMMARGIN, 90
+        BOTTOMMARGIN, 155
     END
 
     IDD_DATETIME, DIALOG
@@ -5991,20 +6095,28 @@ BEGIN
         TOPMARGIN, 7
     END
 
-    IDD_BACKUP_RESTORE, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 322
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 143
-    END
-
     IDD_EPICSVIEW_PROP, DIALOG
     BEGIN
         LEFTMARGIN, 1
         RIGHTMARGIN, 182
         TOPMARGIN, 7
         BOTTOMMARGIN, 87
+    END
+
+    IDD_COLOR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 208
+    END
+
+    IDD_EDITRESENTPKT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 197
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 216
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -6498,6 +6610,93 @@ BEGIN
     0
 END
 
+IDD_COLOR DLGINIT
+BEGIN
+    IDC_COLORCOMBO1, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO1, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO1, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO1, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO1, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO1, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO2, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO2, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO2, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO2, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO2, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO2, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO3, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO3, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO3, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO3, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO3, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO3, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO4, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO4, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO4, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO4, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO4, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO4, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO6, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO6, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO6, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO6, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO6, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO6, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    IDC_COLORCOMBO5, 0x1234, 1, 0
+"\000" 
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -6761,6 +6960,13 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_EDIT_SENDPACKET      "Send selected packet in the current log\nSend selected packet"
+    ID_EDIT_QUICKSAVE       "Closes the current logfile and opens another packet logfile quickly\nChange logfile quickly"
+    ID_EDIT_AUTOSCROLL      "Enable auto scroll"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     IDS_BTYPE2              "Enter an unsigned integer."
     IDS_BTYPE3              "Enter a signed integer."
     IDS_BTYPE4              "Input format:  00.00000"
@@ -6775,6 +6981,11 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_BTYPE10             "Date format: DOW  M/D/Y  where:\n    DOW =  'mon', 'tue'...\n    M = 01..12\n    D = 01..31\n    Y = 03 or 2003\n    '?' indicates DON'T CARE\n    '*' indicates 'ANY VALUE'"
     IDS_BTYPE11             "Time format: H:M:S.s   where:\n    H = 00..23\n    M = 00..59\n    S = 00..59\n    s = 00..99\n    '?' indicates DON'T CARE\n    '*' indicates 'ANY VALUE'"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_SAVEPKT              "Save packets file"
 END
 
 STRINGTABLE DISCARDABLE 

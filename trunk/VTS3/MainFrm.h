@@ -9,6 +9,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#define HISTORY_LOGFILE_COUNT 5
+
 class CMainFrame : public CMDIFrameWnd
 {
 	DECLARE_DYNAMIC(CMainFrame)
@@ -20,9 +22,12 @@ public:
 
 // Attributes
 public:
+	CComboBox   m_wndFileCombo;
 
 // Operations
 public:
+	//Added: 2004/12/06 author:Xiao Shiyuan	purpose:save log file history	
+	void SaveLogFileHistory(LPCTSTR filepath);
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -59,6 +64,13 @@ public:
 protected:  // control bar embedded members
 	CStatusBar  m_wndStatusBar;
 	CToolBar    m_wndToolBar;
+	CList<CString, CString>m_historyLogList;
+
+	//modified: 2004/12/06 author:Xiao Shiyuan	purpose: read register table	
+	void ReadReg();
+	void SaveReg();
+
+
 
 	//Added by Zhenhua Zhu, 2003-5-26
 //////////////////////////////////

@@ -120,6 +120,13 @@ bool CListSummaryCache::GetCachedItem( DWORD dwIndex, LVCachedItem * pcacheditem
 	pcacheditem->pszColumnData[3] = m_aslots[i].data.szColumn3;
 	pcacheditem->pszColumnData[4] = m_aslots[i].data.szColumn4;
 
+	//Xiao Shiyuan 2004-sep-20. For more columns in summary view 
+	pcacheditem->pszColumnData[5] = m_aslots[i].data.szColumn5;
+	pcacheditem->pszColumnData[6] = m_aslots[i].data.szColumn6;
+	pcacheditem->pszColumnData[7] = m_aslots[i].data.szColumn7;
+	pcacheditem->pszColumnData[8] = m_aslots[i].data.szColumn8;
+	pcacheditem->pszColumnData[9] = m_aslots[i].data.szColumn9;
+
 	return fAlreadyCached;
 }
 
@@ -154,3 +161,14 @@ int CListSummaryCache::FindCachedIndex( DWORD dwIndex )
 	return -1;
 }
 
+void CListSummaryCache::DeleteCachedItem( DWORD dwIndex )
+{
+	for(int i = 0; i < m_nCacheSize; i++)
+	{
+		if( dwIndex == m_aslots[i].dwIndex )
+			m_aslots[i].dwIndex = 0xFFFF;
+		else
+		if( m_aslots[i].dwIndex > dwIndex && m_aslots[i].dwIndex != 0xFFFF)
+			m_aslots[i].dwIndex--;
+	}
+}

@@ -202,6 +202,10 @@ SOURCE=.\ChildFrm.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ColorSettingDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\DetailTreeCtrl.cpp
 # End Source File
 # Begin Source File
@@ -227,6 +231,10 @@ SOURCE=.\DUDAPI\dudapi32.cpp
 # Begin Source File
 
 SOURCE=.\DUDAPI\DUDTOOL.CPP
+# End Source File
+# Begin Source File
+
+SOURCE=.\EditResentPktDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -1348,6 +1356,10 @@ SOURCE=.\ChildFrm.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ColorSettingDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\DUDAPI\Db.h
 # End Source File
 # Begin Source File
@@ -1377,6 +1389,10 @@ SOURCE=.\DUDAPI\Dudapi.h
 # Begin Source File
 
 SOURCE=.\DUDAPI\DUDTOOL.H
+# End Source File
+# Begin Source File
+
+SOURCE=.\EditResentPktDlg.h
 # End Source File
 # Begin Source File
 
@@ -2548,7 +2564,15 @@ SOURCE=.\res\packettr.bmp
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\RECVPKT.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\Scripttool.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\SENDPKT.ico
 # End Source File
 # Begin Source File
 
@@ -2590,7 +2614,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                           $(InputPath)                                           $(OutDir)\ 
+	copy                                             $(InputPath)                                             $(OutDir)\ 
 
 # End Custom Build
 
@@ -2601,7 +2625,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                           $(InputPath)                                           $(OutDir)\ 
+	copy                                             $(InputPath)                                             $(OutDir)\ 
 
 # End Custom Build
 

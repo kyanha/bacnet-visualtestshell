@@ -24,6 +24,10 @@ public:
 	int		m_nRelative;
 	BOOL	m_fVerify;
 	BOOL	m_fLoadEPICS;
+	BOOL	m_bAutoScroll;
+	BOOL	m_bRecvPkt;
+	BOOL	m_bSaveSentPkt;
+	UINT	m_resendInterval;
 	//}}AFX_DATA
 
 
@@ -39,7 +43,6 @@ protected:
 
 	// Generated message map functions
 	//{{AFX_MSG(VTSPreferencesDlg)
-		// NOTE: the ClassWizard will add member functions here
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
