@@ -286,6 +286,10 @@ SOURCE=.\LineNumCtrl.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ListSummaryView.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MainFrm.cpp
 # End Source File
 # Begin Source File
@@ -1052,6 +1056,10 @@ SOURCE=.\JLib\JTextFile.hpp
 # Begin Source File
 
 SOURCE=.\LineNumCtrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ListSummaryView.h
 # End Source File
 # Begin Source File
 

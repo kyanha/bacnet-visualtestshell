@@ -159,8 +159,6 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		return FALSE;
 	}
 
-	// get the packet count
-	SetPacketCount( m_pDB->GetPacketCount() );
 
 	// bind to the port list and open the ports
 	m_Devices.Load( this );
@@ -176,6 +174,9 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 	// ready for messages
 	m_postMessages = true;
+
+	// get the packet count
+	SetPacketCount( m_pDB->GetPacketCount() );
 
 	//get the statistics from the loading db file
 	for(int i=0;i<m_pDB->GetPacketCount();i++)
@@ -420,7 +421,9 @@ void VTSDoc::SetPacketCount( int count )
 
 		// tell the frame contexts that the frame count has changed
 		for (CFrameContext* cur = m_FrameContexts; cur; cur = cur->m_NextFrame)
+		{
 			cur->SetPacketCount( count );
+		}
 	}
 
 	// release the list back to other threads

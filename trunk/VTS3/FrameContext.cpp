@@ -123,6 +123,19 @@ void CFrameContext::SetCurrentPacket( int packetNum )
 		m_PacketInfo.Interpret( (BACnetPIInfo::ProtocolType)m_Packet.packetHdr.packetProtocolID
 			, (char *)m_Packet.packetData, m_Packet.packetLen
 			);
+		
+		// add timestamp info in detail view
+		FILETIME	locFileTime;
+		SYSTEMTIME	st;
+		char		theTime[16];
+		::FileTimeToLocalFileTime( &m_Packet.packetHdr.packetTime, &locFileTime );
+		::FileTimeToSystemTime( &locFileTime, &st );
+
+		sprintf( theTime, "%02d:%02d:%02d.%03d "
+			, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+
+		gCurrentInfo->detailLine[0]=new BACnetPIDetail;
+		sprintf(gCurrentInfo->detailLine[0]->piLine,"%s : %s","Timestamp",theTime);
 	}
 
 	// tell the listeners that the packet changed, come and get the new contents

@@ -7,13 +7,13 @@
 #include "ChildFrm.h"
 
 #include "SummaryView.h"
-
+#include "ListSummaryView.h"
 
 #include "DetailView.h"
 #include "HexView.h"
 #include "VTSStatisticsCollector.h"
 
-//
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -165,7 +165,7 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 
 	m_pDetailView = m_pwndDetailViewBar->m_pDetailView;
 	m_pHexView = m_pwndHexViewBar->m_pHexView;
-	m_pSummaryView=(CSummaryView *)GetDlgItem(AFX_IDW_PANE_FIRST);
+	m_pSummaryView=(CListSummaryView *)GetDlgItem(AFX_IDW_PANE_FIRST);
 	
 
 	// set up the tab ring

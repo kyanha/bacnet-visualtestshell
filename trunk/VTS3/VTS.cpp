@@ -13,6 +13,7 @@
 #include "SummaryView.h"
 #include "DetailView.h"
 #include "HexView.h"
+#include "ListSummaryView.h"
 
 #include "ScriptDocument.h"
 #include "ScriptFrame.h"
@@ -120,7 +121,7 @@ BOOL VTSApp::InitInstance()
 		IDR_VDBTYPE,
 		RUNTIME_CLASS(VTSDoc),
 		RUNTIME_CLASS(CChildFrame),
-		RUNTIME_CLASS(CSummaryView))
+		RUNTIME_CLASS(CListSummaryView))
 		);
 
 	AddDocTemplate(new CMultiDocTemplate(
