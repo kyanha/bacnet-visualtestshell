@@ -302,6 +302,25 @@ void VTSNamesDlg::NameToCtrl( const VTSNameDesc &name )
 	} else
 		m_Address = _T("");
 
+	//fixed bug 598977, by xuyiping, 2002-9-24
+	if (name.namePort == 0)
+		m_PortCombo.SetCurSel(0);
+	else
+	{
+		VTSPortPtr	curPort	;
+
+		// look for the matching ID
+		for (int i = 0; i < m_pPortList->Length(); i++) {
+			// get a pointer to the ith port
+			curPort = (*m_pPortList)[i];
+			if (name.namePort == curPort->portDescID) {
+				m_PortCombo.SetCurSel(i+1);
+				break;
+			}
+		}
+	}
+	//End fixed
+
 	// sync the controls
 	SynchronizeControls();
 
