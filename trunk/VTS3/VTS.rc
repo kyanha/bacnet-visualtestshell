@@ -3437,7 +3437,6 @@ BEGIN
     IDS_SCREX_COMPSTRING    "Comparison failure: %s (%s) %s EPICS (%s)"
     IDS_SCREX_COMPFAILTYPE  "(%s) %s (%s)"
     IDS_SCREX_COMPARRAYSIZE "Array comparison with mismatched sizes (%d) EPICS (%d)"
-    IDS_SCREX_COMPARRAYINXBOUNDS "Array index (%d) out of bounds [%d]"
     IDS_SCREX_COMPUNSUPPORTED "Typed comparison for type (%d) not implemented"
     IDS_SCREX_COMPFAIL      "Comparison failure: %s %s EPICS"
     IDS_SCREX_COMPFAILBITSTRING "BitString comparison failure: "
@@ -3486,6 +3485,9 @@ BEGIN
                             "Character String encoding mismatch: %d != %d"
     IDS_SCREX_COMPFAILDATE  "Date comparison failure: "
     IDS_SCREX_COMPFAILTIME  "Time comparison failure: "
+    IDS_SCREX_INDEXUNSEXP   "Syntax Error:  Index into %s is invalid (%s)"
+    IDS_SCREX_INDEXBOUNDS   "Specified element index %d out of bounds on array of size %d"
+    IDS_SCREX_INDEXUNSVAR   "Syntax Error:  Parameter used as index into %s not found or does not resolve to integer (%s)"
 END
 
 #endif    // English (U.S.) resources

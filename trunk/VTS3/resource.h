@@ -530,6 +530,9 @@
 #define IDS_SCREX_COMPFAILSTRENCODING   33030
 #define IDS_SCREX_COMPFAILDATE          33031
 #define IDS_SCREX_COMPFAILTIME          33032
+#define IDS_SCREX_INDEXUNSEXP           33033
+#define IDS_SCREX_INDEXBOUNDS           33034
+#define IDS_SCREX_INDEXUNSVAR           33035
 
 // Next default values for new objects
 // 
