@@ -11,7 +11,7 @@ REM --- First make the executable distribution ---
 del %1-win32.zip
 pkzip25 -add %1-win32.zip release\VTS.exe release\ptp.dll winpcap\*.exe
 cd docs
-pkzip25 -add -path ..\%1-win32.zip *.html images\*.gif *.doc
+pkzip25 -add -path ..\%1-win32.zip *.html images\*.png *.doc
 cd ..
 pkzip25 -add -path %1-win32.zip scripts\*.vts
 REM --- Then make the source distribution ---
