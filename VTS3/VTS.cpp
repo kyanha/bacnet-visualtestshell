@@ -611,6 +611,33 @@ void VTSPreferences::Save( void )
 //					{property[{property}]}, {property[{property[int]}]}, etc.
 //			are not supported.
 //
+//			618176: EXPECT needs "Don't Care" arguments
+//
+//			Expressions within an EXPECT statement now support the don't care operation.  Equations and values
+//			can be specified as don't care in one of the following ways:
+//
+//				Method 1: Replace data in expression with '?',  Keyword = ?
+//				EX:   Unsigned = ?, Bitstring = ?, PrimitiveType = ?
+//
+//				Data does not have to be valid for the given type.  '?' is also useful for replacing addresses
+//				returned for EXPECT statements when applied to:  WriteBDT, BVLLResult, ReadBDTAck, ForwardedNPDU,
+//				RegisterFD, ReadFDTAck, DeleteFDTEntry, WhoIsRouterToNetwork, IAmRouterToNetwork,
+//				ICouldBeRouterToNetwork, RejectMsgToNetwork, RouterBusyToNetwork, RouterAvailToNetwork,
+//				InitializeRoutingTable, EstablishConnectionToNetwork, DisconnectConnectionToNetwork.  
+//				This format for don't care is not valid for Device responses and is also not valid for AL type data
+//				where the datatype is determined by the EPICS reference on the right of the expression.
+//
+//				Method 2: Use of the don't care operator:  ?=,   Keyword ?= data
+//				EX:  Unsigned ?= 20, Bitstring ?= F, T, AL ?= {EPICSReference}
+//
+//				Use of the don't care operator within an EXPECT statement will cause the data stream to be
+//				parsed correctly according to the data type but the value will not be tested.  This operator
+//				works on primitive types (Unsigned ?= 20) as well as the AL data.  The difference here is that
+//				the value on the right of the operator must be valid for the datatype.  EPICS references for AL
+//				expressions must be valid in order to determine the data stream type.  Exeptions to this are 
+//				expressions where both the ?= operator AND the ? don't care data case both be used (although
+//				redundant):  Bitstring ?= ?.  An advantage to using the operator is in keywords.  Object IDs can
+//				be ignored (Object ?= 0, OBJECTVAR), and the like.
 		
 
 
