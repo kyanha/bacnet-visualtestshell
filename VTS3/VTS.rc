@@ -205,7 +205,6 @@ BEGIN
     POPUP "&Script"
     BEGIN
         MENUITEM "&Check Syntax",               ID_SCRIPT_CHECK_SYNTAX
-        MENUITEM "&Load EPICS",                 ID_SCRIPT_LOADEPICS
         MENUITEM "&Environment",                ID_SCRIPT_ENV
         MENUITEM SEPARATOR
         MENUITEM "&Run\tF5",                    ID_SCRIPT_RUN
@@ -291,6 +290,10 @@ BEGIN
         MENUITEM "&New Packet...",              ID_SEND_NEWPACKET
         MENUITEM "Send &Again",                 ID_SEND_SENDAGAIN, GRAYED
         MENUITEM SEPARATOR
+    END
+    POPUP "E&PICS"
+    BEGIN
+        MENUITEM "&Load EPICS...",              ID_EPICS_LOAD
     END
     POPUP "&Help"
     BEGIN
@@ -2216,23 +2219,24 @@ BEGIN
     PUSHBUTTON      "OK",IDOK,175,140,50,15
 END
 
-IDD_SCRIPTLOADRESULTS DIALOG DISCARDABLE  0, 0, 252, 161
+IDD_SCRIPTLOADRESULTS DIALOG DISCARDABLE  0, 0, 301, 118
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "EPICS Load Results"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,190,135,50,14
-    LTEXT           "Vendor Name",IDC_STATIC,10,12,80,10
-    LTEXT           "Product Name",IDC_STATIC,10,32,80,10
-    LTEXT           "Product Model Number",IDC_STATIC,10,52,80,10
-    LTEXT           "Product Description",IDC_STATIC,10,72,80,10
-    EDITTEXT        IDC_VENDORNAME,95,10,145,12,ES_AUTOHSCROLL | ES_READONLY
-    EDITTEXT        IDC_PRODUCTNAME,95,30,145,12,ES_AUTOHSCROLL | 
-                    ES_READONLY
-    EDITTEXT        IDC_PRODUCTMODELNUMBER,95,50,145,12,ES_AUTOHSCROLL | 
-                    ES_READONLY
-    EDITTEXT        IDC_PRODUCTDESCRIPTION,95,70,145,55,ES_AUTOHSCROLL | 
-                    ES_READONLY
+    RTEXT           "Vendor Name:",IDC_STATIC,7,7,77,10
+    RTEXT           "Product Name:",IDC_STATIC,7,18,77,10,NOT WS_GROUP
+    RTEXT           "Product Model Number:",IDC_STATIC,7,29,77,10,NOT 
+                    WS_GROUP
+    RTEXT           "Product Description:",IDC_STATIC,7,40,77,10,NOT 
+                    WS_GROUP
+    LTEXT           "Vendor Name",IDC_VENDORNAME,90,7,204,9
+    LTEXT           "Product Name",IDC_PRODUCTNAME,90,18,204,8,NOT WS_GROUP
+    LTEXT           "Model Number",IDC_PRODUCTMODELNUMBER,90,29,204,8,NOT 
+                    WS_GROUP
+    LTEXT           "Product Description",IDC_PRODUCTDESCRIPTION,90,40,204,
+                    48,NOT WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,127,97,50,14
 END
 
 IDD_DEVICES DIALOG DISCARDABLE  0, 0, 282, 241
@@ -3474,9 +3478,9 @@ BEGIN
     IDD_SCRIPTLOADRESULTS, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 245
+        RIGHTMARGIN, 294
         TOPMARGIN, 7
-        BOTTOMMARGIN, 154
+        BOTTOMMARGIN, 111
     END
 
     IDD_DEVICES, DIALOG
