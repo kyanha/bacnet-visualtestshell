@@ -565,14 +565,17 @@ void BACnetUnsigned::Decode( const char *dec )
 	;
 
 	// figure out what encoding to use
-	if (isdigit(*dec)) {										// nnn
-		// integer encoding
-		for (uintValue = 0; *dec; dec++)
-			if (!isdigit(*dec))
-				throw_(16) /* invalid character */;
-			else
-				uintValue = (uintValue * 10) + (*dec - '0');
-	} else
+	//Moved by Yajun Zhou, 2002-8-16
+	//Moved to line 647
+	//	if (isdigit(*dec)) {										// nnn
+	//		// integer encoding
+	//		for (uintValue = 0; *dec; dec++)
+	//			if (!isdigit(*dec))
+	//				throw_(16) /* invalid character */;
+	//			else
+	//				uintValue = (uintValue * 10) + (*dec - '0');
+	//	} else
+	////////////////////////////////////////
 	if ( ((dec[0] == 'D') && (dec[1] == '\''))					// D'nnn'
 		|| ((dec[0] == 'd') && (dec[1] == '\''))
 		) {
@@ -596,7 +599,7 @@ void BACnetUnsigned::Decode( const char *dec )
 			uintValue = (uintValue * 256) + t;
 		}
 	} else
-	if ( ((dec[0] == '0') && (dec[1] == 'x'))					// 0xFF, X'FF', &xFF
+	if ( ((dec[0] == '0') && (dec[1] == 'x'))
 		|| ((dec[0] == 'X') && (dec[1] == '\''))
 		|| ((dec[0] == 'x') && (dec[1] == '\''))
 		|| ((dec[0] == '&') && (dec[1] == 'x'))
@@ -610,7 +613,7 @@ void BACnetUnsigned::Decode( const char *dec )
 			uintValue = (uintValue * 16) + (isdigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
 		}
 	} else
-	if ( ((dec[0] == '0') && (dec[1] == 'o'))					// 0o377, O'377', &O377
+	if ( ((dec[0] == '0') && (dec[1] == 'o'))
 		|| ((dec[0] == 'O') && (dec[1] == '\''))
 		|| ((dec[0] == 'o') && (dec[1] == '\''))
 		|| ((dec[0] == '&') && (dec[1] == 'O'))
@@ -621,10 +624,13 @@ void BACnetUnsigned::Decode( const char *dec )
 		for (uintValue = 0; *dec && (*dec != '\''); dec++) {
 			if ((*dec < '0') || (*dec > '7'))
 				throw_(21) /* invalid character */;
-			uintValue = (uintValue * 16) + (*dec - '0');
+			//Modified by Yajun Zhou, 2002-8-16
+			//uintValue = (uintValue * 16) + (*dec - '0');
+			uintValue = (uintValue * 8) + (*dec - '0');
+			///////////////////////////////////
 		}
 	} else
-	if ( ((dec[0] == '0') && (dec[1] == 'b'))					// 0b11111111, B'11111111', &B11111111
+	if ( ((dec[0] == '0') && (dec[1] == 'b'))
 		|| ((dec[0] == 'B') && (dec[1] == '\''))
 		|| ((dec[0] == 'b') && (dec[1] == '\''))
 		|| ((dec[0] == '&') && (dec[1] == 'B'))
@@ -638,6 +644,16 @@ void BACnetUnsigned::Decode( const char *dec )
 			uintValue = (uintValue * 2) + (*dec - '0');
 		}
 	} else
+	//Moved by Yajun Zhou, 2002-8-16
+	if (isdigit(*dec)) {										// nnn
+		// integer encoding
+		for (uintValue = 0; *dec; dec++)
+			if (!isdigit(*dec))
+				throw_(16) /* invalid character */;
+			else
+				uintValue = (uintValue * 10) + (*dec - '0');
+	} else
+	//////////////////////////////////
 		throw_(23) /* unknown or invalid encoding */;
 }
 
@@ -735,14 +751,17 @@ void BACnetInteger::Decode( const char *dec )
 		dec += 1;
 
 	// figure out what encoding to use
-	if (isdigit(*dec)) {										// nnn
-		// integer encoding
-		for (intValue = 0; *dec; dec++)
-			if (!isdigit(*dec))
-				throw_(25) /* invalid character */;
-			else
-				intValue = (intValue * 10) + (*dec - '0');
-	} else
+	//Moved by Yajun Zhou, 2002-8-17
+	//Moved to line 834
+	//	if (isdigit(*dec)) {										// nnn
+	//		// integer encoding
+	//		for (intValue = 0; *dec; dec++)
+	//			if (!isdigit(*dec))
+	//				throw_(25) /* invalid character */;
+	//			else
+	//				intValue = (intValue * 10) + (*dec - '0');
+	//	} else
+	////////////////////////////////////////////
 	if ( ((dec[0] == 'D') && (dec[1] == '\''))					// D'nnn'
 		|| ((dec[0] == 'd') && (dec[1] == '\''))
 		) {
@@ -791,7 +810,10 @@ void BACnetInteger::Decode( const char *dec )
 		for (intValue = 0; *dec && (*dec != '\''); dec++) {
 			if ((*dec < '0') || (*dec > '7'))
 				throw_(31) /* invalid character */;
-			intValue = (intValue * 16) + (*dec - '0');
+			//Modified by Yajun Zhou, 2002-8-17
+			//intValue = (intValue * 16) + (*dec - '0');
+			intValue = (intValue * 8) + (*dec - '0');
+			/////////////////////////////////////////
 		}
 	} else
 	if ( ((dec[0] == '0') && (dec[1] == 'b'))					// 0b11111111, B'11111111', &B11111111
@@ -808,6 +830,16 @@ void BACnetInteger::Decode( const char *dec )
 			intValue = (intValue * 2) + (*dec - '0');
 		}
 	} else
+	//Moved by Yajun Zhou, 2002-8-17
+	if (isdigit(*dec)) {										// nnn
+		// integer encoding
+		for (intValue = 0; *dec; dec++)
+			if (!isdigit(*dec))
+				throw_(25) /* invalid character */;
+			else
+				intValue = (intValue * 10) + (*dec - '0');
+	} else
+	//////////////////////////////////////////////////
 		throw_(33) /* unknown or invalid encoding */;
 
 	// update for sign
@@ -1839,7 +1871,7 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 	
 	// make sure the destination has enough space
 	bLen = ((tag.tagLVT - 1) * 8 - (dec.pktLength--,*dec.pktBuffer++));
-	if (bLen > bitLen)
+ 	if (bLen > bitLen)
 		SetSize( bLen );
 	tag.tagLVT -= 1;
 	
@@ -2089,7 +2121,7 @@ void BACnetDate::Decode( const char *dec )
 				dayOfWeek = i;
 				break;
 			}
-		while (*dec && !isspace(*dec)) dec++;
+		while (*dec!=',' && !isspace(*dec)) dec++;    //Modified by Liangping Xu
 	}
 	while (*dec && isspace(*dec)) dec++;
 
@@ -2260,6 +2292,9 @@ void BACnetTime::Decode( const char *dec )
 	// defaults
 	hour = minute = second = hundredths = 255;
 
+	// skip blank on front
+	while (*dec && isspace(*dec)) dec++;   //add by xlp
+
 	// check for hour
 	if ((*dec == '*') || (*dec == '?'))
 		dec += 1;
@@ -2268,10 +2303,15 @@ void BACnetTime::Decode( const char *dec )
 		for (hour = 0; isdigit(*dec); dec++)
 			hour = (hour * 10) + (*dec - '0');
 	}
+	// add by xlp
+	while (*dec && isspace(*dec)) dec++;
+
 	if (*dec == ':')
 		dec += 1;
 	else
 		throw_(55) /* invalid character */;
+	// add by xlp
+	while (*dec && isspace(*dec)) dec++;
 
 	// check for minute
 	if ((*dec == '*') || (*dec == '?'))
@@ -2281,10 +2321,15 @@ void BACnetTime::Decode( const char *dec )
 		for (minute = 0; isdigit(*dec); dec++)
 			minute = (minute * 10) + (*dec - '0');
 	}
+	// add by xlp
+	while (*dec && isspace(*dec)) dec++;
+
 	if (*dec == ':')
 		dec += 1;
 	else
 		throw_(56) /* invalid character */;
+	// add by xlp
+	while (*dec && isspace(*dec)) dec++;
 
 	// check for second
 	if ((*dec == '*') || (*dec == '?'))
@@ -2294,10 +2339,15 @@ void BACnetTime::Decode( const char *dec )
 		for (second = 0; isdigit(*dec); dec++)
 			second = (second * 10) + (*dec - '0');
 	}
+	// add by xlp
+	while (*dec && isspace(*dec)) dec++;
+
 	if (*dec == '.')
 		dec += 1;
 	else
 		throw_(57) /* invalid character */;
+	// add by xlp
+	while (*dec && isspace(*dec)) dec++;
 
 	// check for hundredths
 	if ((*dec == '*') || (*dec == '?'))
