@@ -14,9 +14,9 @@ class VTSCtrl {
 		bool		ctrlEnabled;			// control enabled on page
 
 		int			ctrlID;					// dialog control ID
-		CWnd*		ctrlWindow;				// owner window
+		const CWnd*	ctrlWindow;				// owner window
 
-		VTSCtrl( CWnd* wp, int id );		// bind to window and control
+		VTSCtrl( const CWnd* wp, int id );	// bind to window and control
 		virtual ~VTSCtrl( void );
 
 		virtual void Enable( void );		// enable object and control
@@ -44,7 +44,7 @@ class VTSEnetAddrCtrl : public VTSCtrl, public BACnetAddress {
 		int				ctrlComboID;
 		VTSNameList		*ctrlNameList;
 
-		VTSEnetAddrCtrl( CWnd* wp, int cid, int tid );	// bind to window and control
+		VTSEnetAddrCtrl( const CWnd* wp, int cid, int tid );	// bind to window and control
 
 		void LoadCombo( VTSNameList *nameList, unsigned int portID );		// load the names
 		void Selchange( void );							// combo selection changed
@@ -71,7 +71,7 @@ class VTSIPAddrCtrl : public VTSCtrl, public BACnetIPAddr {
 		int				ctrlComboID;
 		VTSNameList		*ctrlNameList;
 
-		VTSIPAddrCtrl( CWnd* wp, int cid, int tid );	// bind to window and controls
+		VTSIPAddrCtrl( const CWnd* wp, int cid, int tid );	// bind to window and controls
 
 		void LoadCombo( VTSNameList *nameList, unsigned int portID );		// load the names
 		void Selchange( void );							// combo selection changed
@@ -101,7 +101,7 @@ class VTSRemoteAddrCtrl : public VTSCtrl, public BACnetAddress {
 		VTSNameList		*ctrlNameList;
 		VTSIntegerCtrl	*ctrlNet;
 
-		VTSRemoteAddrCtrl( CWnd* wp, VTSIntegerCtrl *icp, int cid, int tid );	// bind to window and controls
+		VTSRemoteAddrCtrl( const CWnd* wp, VTSIntegerCtrl *icp, int cid, int tid );	// bind to window and controls
 
 		void LoadCombo( VTSNameList *nameList, unsigned int portID, bool okBroadcast );	// load the names
 
@@ -128,7 +128,7 @@ class VTSBooleanCtrl : public VTSCtrl, public BACnetBoolean {
 	public:
 		bool	m_bCheckBox;					// true iff ctrl is a check box
 
-		VTSBooleanCtrl( CWnd* wp, int id, bool isCheckBox = false );	// bind to window and control
+		VTSBooleanCtrl( const CWnd* wp, int id, bool isCheckBox = false );	// bind to window and control
 
 		void CtrlToObj( void );					// interpret control contents, save in object
 		void ObjToCtrl( void );					// object value reflected in control
@@ -149,7 +149,7 @@ class VTSEnumeratedCtrl : public VTSCtrl, public BACnetEnumerated {
 		int		m_TableSize;					// number of enumeration values
 		bool	m_bCombo;						// true iff ctrl is a combo
 
-		VTSEnumeratedCtrl( CWnd* wp, int id, char **table, int tableSize, bool isCombo = false );	// bind to window and control
+		VTSEnumeratedCtrl( const CWnd* wp, int id, char **table, int tableSize, bool isCombo = false );	// bind to window and control
 
 		void LoadCombo( void );					// initialize combo list
 		void SetDropDownSize( UINT lines );		// change the number of lines to display
@@ -171,10 +171,10 @@ void SetDropDownSize( CComboBox& box, UINT lines );
 
 class VTSUnsignedCtrl : public VTSCtrl, public BACnetUnsigned {
 	public:
-		VTSUnsignedCtrl( CWnd* wp, int id );	// bind to window and control
+		VTSUnsignedCtrl( const CWnd* wp, int id );		// bind to window and control
 
-		void CtrlToObj( void );					// interpret control contents, save in object
-		void ObjToCtrl( void );					// object value reflected in control
+		void CtrlToObj( void );							// interpret control contents, save in object
+		void ObjToCtrl( void );							// object value reflected in control
 
 		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
 		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
@@ -188,7 +188,7 @@ typedef VTSUnsignedCtrl *VTSUnsignedCtrlPtr;
 
 class VTSIntegerCtrl : public VTSCtrl, public BACnetInteger {
 	public:
-		VTSIntegerCtrl( CWnd* wp, int id );		// bind to window and control
+		VTSIntegerCtrl( const CWnd* wp, int id );		// bind to window and control
 
 		void CtrlToObj( void );					// interpret control contents, save in object
 		void ObjToCtrl( void );					// object value reflected in control
@@ -205,7 +205,7 @@ typedef VTSIntegerCtrl *VTSIntegerCtrlPtr;
 
 class VTSRealCtrl : public VTSCtrl, public BACnetReal {
 	public:
-		VTSRealCtrl( CWnd* wp, int id );		// bind to window and control
+		VTSRealCtrl( const CWnd* wp, int id );		// bind to window and control
 
 		void CtrlToObj( void );					// interpret control contents, save in object
 		void ObjToCtrl( void );					// object value reflected in control
@@ -222,7 +222,7 @@ typedef VTSRealCtrl *VTSRealCtrlPtr;
 
 class VTSDoubleCtrl : public VTSCtrl, public BACnetDouble {
 	public:
-		VTSDoubleCtrl( CWnd* wp, int id );		// bind to window and control
+		VTSDoubleCtrl( const CWnd* wp, int id );		// bind to window and control
 
 		void CtrlToObj( void );					// interpret control contents, save in object
 		void ObjToCtrl( void );					// object value reflected in control
@@ -241,7 +241,7 @@ class VTSCharacterStringCtrl : public VTSCtrl, public BACnetCharacterString {
 	public:
 		bool	emptyIsNull;						// empty control value is null
 
-		VTSCharacterStringCtrl( CWnd* wp, int id );	// bind to window and control
+		VTSCharacterStringCtrl( const CWnd* wp, int id );	// bind to window and control
 
 		void CtrlToObj( void );						// interpret control contents, save in object
 		void ObjToCtrl( void );						// object value reflected in control
@@ -260,7 +260,7 @@ class VTSOctetStringCtrl : public VTSCtrl, public BACnetOctetString {
 	public:
 		bool	emptyIsNull;						// empty control value is null
 
-		VTSOctetStringCtrl( CWnd* wp, int id );		// bind to window and control
+		VTSOctetStringCtrl( const CWnd* wp, int id );		// bind to window and control
 
 		void CtrlToObj( void );						// interpret control contents, save in object
 		void ObjToCtrl( void );						// object value reflected in control
@@ -279,7 +279,7 @@ class VTSBitStringCtrl : public VTSCtrl, public BACnetBitString {
 	public:
 		bool	emptyIsNull;						// empty control value is null
 
-		VTSBitStringCtrl( CWnd* wp, int id );		// bind to window and control
+		VTSBitStringCtrl( const CWnd* wp, int id );		// bind to window and control
 
 		void CtrlToObj( void );						// interpret control contents, save in object
 		void ObjToCtrl( void );						// object value reflected in control
@@ -296,7 +296,7 @@ typedef VTSBitStringCtrl *VTSBitStringCtrlPtr;
 
 class VTSDateCtrl : public VTSCtrl, public BACnetDate {
 	public:
-		VTSDateCtrl( CWnd* wp, int id );		// bind to window and control
+		VTSDateCtrl( const CWnd* wp, int id );		// bind to window and control
 
 		void CtrlToObj( void );					// interpret control contents, save in object
 		void ObjToCtrl( void );					// object value reflected in control
@@ -313,7 +313,7 @@ typedef VTSDateCtrl *VTSDateCtrlPtr;
 
 class VTSTimeCtrl : public VTSCtrl, public BACnetTime {
 	public:
-		VTSTimeCtrl( CWnd* wp, int id );		// bind to window and control
+		VTSTimeCtrl( const CWnd* wp, int id );		// bind to window and control
 
 		void CtrlToObj( void );					// interpret control contents, save in object
 		void ObjToCtrl( void );					// object value reflected in control
@@ -330,7 +330,7 @@ typedef VTSTimeCtrl *VTSTimeCtrlPtr;
 
 class VTSObjectIdentifierCtrl : public VTSCtrl, public BACnetObjectIdentifier {
 	public:
-		VTSObjectIdentifierCtrl( CWnd* wp, int id );	// bind to window and control
+		VTSObjectIdentifierCtrl( const CWnd* wp, int id );	// bind to window and control
 
 		void CtrlToObj( void );					// interpret control contents, save in object
 		void ObjToCtrl( void );					// object value reflected in control
@@ -395,11 +395,11 @@ typedef VTSListCtrl *VTSListCtrlPtr;
 
 class VTSStatusFlags : public BACnetBitString {
 	public:
-		VTSStatusFlags( CWnd* wp );					// bind to window and control
+		VTSStatusFlags( const CWnd* wp );			// bind to window and control
 
 		bool		ctrlEnabled;					// controls enabled on page
 
-		CWnd*		ctrlWindow;						// owner window
+		const CWnd*	ctrlWindow;						// owner window
 
 		void Enable( void );						// enable object and controls
 		void Disable( void );						// disable both

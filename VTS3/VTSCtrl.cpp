@@ -30,7 +30,7 @@ static char THIS_FILE[] = __FILE__;
 //	VTSCtrl::VTSCtrl
 //
 
-VTSCtrl::VTSCtrl( CWnd* wp, int id )
+VTSCtrl::VTSCtrl( const CWnd* wp, int id )
 	: ctrlNull(true), ctrlEnabled(true)
 	, ctrlWindow(wp), ctrlID(id)
 {
@@ -124,7 +124,7 @@ void VTSCtrl::UpdateData( BOOL bCtrlToObj )
 //	VTSEnetAddrCtrl
 //
 
-VTSEnetAddrCtrl::VTSEnetAddrCtrl( CWnd* wp, int cid, int tid )
+VTSEnetAddrCtrl::VTSEnetAddrCtrl( const CWnd* wp, int cid, int tid )
 	: VTSCtrl( wp, tid ), ctrlComboID(cid), ctrlNameList(0)
 {
 }
@@ -384,7 +384,7 @@ void VTSEnetAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSIPAddrCtrl
 //
 
-VTSIPAddrCtrl::VTSIPAddrCtrl( CWnd* wp, int cid, int tid )
+VTSIPAddrCtrl::VTSIPAddrCtrl( const CWnd* wp, int cid, int tid )
 	: VTSCtrl( wp, tid ), ctrlComboID(cid), ctrlNameList(0)
 {
 }
@@ -610,7 +610,7 @@ void VTSIPAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSRemoteAddrCtrl
 //
 
-VTSRemoteAddrCtrl::VTSRemoteAddrCtrl( CWnd* wp, VTSIntegerCtrl *icp, int cid, int tid )
+VTSRemoteAddrCtrl::VTSRemoteAddrCtrl( const CWnd* wp, VTSIntegerCtrl *icp, int cid, int tid )
 	: VTSCtrl( wp, tid ), ctrlNet(icp), ctrlComboID(cid), ctrlNameList(0)
 {
 }
@@ -906,7 +906,7 @@ void VTSRemoteAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSBooleanCtrl
 //
 
-VTSBooleanCtrl::VTSBooleanCtrl( CWnd* wp, int id, bool isCheckBox )
+VTSBooleanCtrl::VTSBooleanCtrl( const CWnd* wp, int id, bool isCheckBox )
 	: VTSCtrl( wp, id )
 	, m_bCheckBox(isCheckBox)
 {
@@ -1007,7 +1007,7 @@ void VTSBooleanCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSEnumeratedCtrl
 //
 
-VTSEnumeratedCtrl::VTSEnumeratedCtrl( CWnd* wp, int id, char **table, int tableSize, bool isCombo )
+VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, char **table, int tableSize, bool isCombo )
 	: VTSCtrl( wp, id )
 	, m_Table(table), m_TableSize(tableSize), m_bCombo(isCombo)
 {
@@ -1236,7 +1236,7 @@ void VTSEnumeratedCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSUnsignedCtrl
 //
 
-VTSUnsignedCtrl::VTSUnsignedCtrl( CWnd* wp, int id )
+VTSUnsignedCtrl::VTSUnsignedCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 {
 }
@@ -1327,7 +1327,7 @@ void VTSUnsignedCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSIntegerCtrl
 //
 
-VTSIntegerCtrl::VTSIntegerCtrl( CWnd* wp, int id )
+VTSIntegerCtrl::VTSIntegerCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 {
 }
@@ -1420,7 +1420,7 @@ void VTSIntegerCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSRealCtrl
 //
 
-VTSRealCtrl::VTSRealCtrl( CWnd* wp, int id )
+VTSRealCtrl::VTSRealCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 {
 }
@@ -1511,7 +1511,7 @@ void VTSRealCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSDoubleCtrl
 //
 
-VTSDoubleCtrl::VTSDoubleCtrl( CWnd* wp, int id )
+VTSDoubleCtrl::VTSDoubleCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 {
 }
@@ -1602,7 +1602,7 @@ void VTSDoubleCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSCharacterStringCtrl
 //
 
-VTSCharacterStringCtrl::VTSCharacterStringCtrl( CWnd* wp, int id )
+VTSCharacterStringCtrl::VTSCharacterStringCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 	, emptyIsNull( true )
 {
@@ -1694,7 +1694,7 @@ void VTSCharacterStringCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSOctetStringCtrl
 //
 
-VTSOctetStringCtrl::VTSOctetStringCtrl( CWnd* wp, int id )
+VTSOctetStringCtrl::VTSOctetStringCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 	, emptyIsNull( true )
 {
@@ -1783,7 +1783,7 @@ void VTSOctetStringCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSBitStringCtrl
 //
 
-VTSBitStringCtrl::VTSBitStringCtrl( CWnd* wp, int id )
+VTSBitStringCtrl::VTSBitStringCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 	, emptyIsNull( true )
 {
@@ -1875,7 +1875,7 @@ void VTSBitStringCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSDateCtrl
 //
 
-VTSDateCtrl::VTSDateCtrl( CWnd* wp, int id )
+VTSDateCtrl::VTSDateCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 {
 }
@@ -1965,7 +1965,7 @@ void VTSDateCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSTimeCtrl
 //
 
-VTSTimeCtrl::VTSTimeCtrl( CWnd* wp, int id )
+VTSTimeCtrl::VTSTimeCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 {
 }
@@ -2054,7 +2054,7 @@ void VTSTimeCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSObjectIdentifierCtrl
 //
 
-VTSObjectIdentifierCtrl::VTSObjectIdentifierCtrl( CWnd* wp, int id )
+VTSObjectIdentifierCtrl::VTSObjectIdentifierCtrl( const CWnd* wp, int id )
 	: VTSCtrl( wp, id )
 {
 }
@@ -2440,7 +2440,7 @@ void VTSListCtrl::OnChangeItem( int ctrlID )
 #define XIDC_OVERRIDDEN		1132
 #define XIDC_OUTOFSERVICE	1133
 
-VTSStatusFlags::VTSStatusFlags( CWnd* wp )
+VTSStatusFlags::VTSStatusFlags( const CWnd* wp )
 	: BACnetBitString( 4 )
 	, ctrlEnabled(true)
 	, ctrlWindow(wp)
