@@ -24,6 +24,19 @@ ScriptPacketExpr::ScriptPacketExpr( void )
 {
 }
 
+
+bool ScriptPacketExpr::IsAssignment()
+{
+	return exprOp == '>>';
+}
+
+
+bool ScriptPacketExpr::IsDontCare()
+{
+	return exprOp == '?=';
+}
+
+
 //
 //	ScriptPacketExpr::~ScriptPacketExpr
 //
