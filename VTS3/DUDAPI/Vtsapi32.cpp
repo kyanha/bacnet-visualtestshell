@@ -149,6 +149,17 @@ void SC_CheckOptionalProperty(octet propFlags[]);
 void AVG_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 void TR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 
+// msdanner 9/04:  135.1-2003 EPICS consistency checks added 
+void CheckPICSConsistency2003(PICSdb *); // runs all checks
+void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDependentBIBB);
+void CheckPICSCons2003A(PICSdb *pd);
+void CheckPICSCons2003D(PICSdb *pd);
+void CheckPICSCons2003E(PICSdb *pd);
+void CheckPICSCons2003F(PICSdb *pd);
+void CheckPICSCons2003G(PICSdb *pd);
+void CheckPICSCons2003H(PICSdb *pd);
+
+
 void GetSequence(dword *,dword *,octet);
 void BitToArray(octet ObjServ[],DevProtocolSup *);
 void PrintToFile(char *);
@@ -214,22 +225,22 @@ static char		NoneTypeValue[256],NoneTypePropName[20];	 // for store temp address
 static char	picshdr[]="PICS 0\x0D\x0A";
 static char	EndPics[]="End of BACnet Protocol Implementation Conformance Statement";
 static char *SectionNames[]={
-			"Vendor Name",										//0
-			"Product Name",										//1
-			"Product Model Number",								//2
-			"Product Description",								//3
-			"BACnet Conformance Class Supported",				//4
-			"BACnet Functional Groups Supported",				//5
-			"BACnet Standard Application Services Supported",	//6
-//			"Standard Object-Types Supported",					//7
-			"Standard Object Types Supported",					//7                 ***020
-			"Data Link Layer Option",							//8
-			"Special Functionality",							//9
-			"List of Objects in test device",					//10
-			"Character Sets Supported",							//11				***006
-			"Fail Times",										//12				***019
-            "BIBBs Supported",                                  //13                msd 8/31/04
-			"Default Property Value Restrictions"               //14                msd 8/31/04
+			"Vendor Name",                                        //0
+			"Product Name",                                       //1
+			"Product Model Number",                               //2
+			"Product Description",                                //3
+			"BACnet Conformance Class Supported",                 //4
+			"BACnet Functional Groups Supported",                 //5
+			"BACnet Standard Application Services Supported",     //6
+//			"Standard Object-Types Supported",                    //7
+			"Standard Object Types Supported",                    //7                 ***020
+			"Data Link Layer Option",                             //8
+			"Special Functionality",                              //9
+			"List of Objects in test device",                     //10
+			"Character Sets Supported",                           //11				***006
+			"Fail Times",                                         //12				***019
+         "BIBBs Supported",                                    //13  msdanner 8/31/04: added
+			"Default Property Value Restrictions"                 //14  msdanner 8/31/04: added
 			};
 static namedw FunctionalGroups[]={
 			"HHWS",							fgHHWS,
@@ -247,143 +258,340 @@ static namedw FunctionalGroups[]={
 			"Virtual Terminal",				fgVirtualTerminal
 			};
 
-// msd 8/31/04 - added BIBBs
-static namedw BIBBs[]={
-	        "DS-RP-A",						bibbDS_RP_A,		
-			"DS-RP-B",						bibbDS_RP_B,
-			"DS-RPM-A",						bibbDS_RPM_A,
-			"DS-RPM-B",						bibbDS_RPM_B,
-			"DS-RPC-A",						bibbDS_RPC_A,
-			"DS-RPC-B",						bibbDS_RPC_B,
-			"DS-WP-A",						bibbDS_WP_A,
-			"DS-WP-B",						bibbDS_WP_B,
-			"DS-WPM-A",						bibbDS_WPM_A,
-			"DS-WPM-B",						bibbDS_WPM_B,
-			"DS-COV-A",						bibbDS_COV_A,
-			"DS-COV-B",						bibbDS_COV_B,
-			"DS-COVP-A",					bibbDS_COVP_A,
-			"DS-COVP-B",					bibbDS_COVP_B,
-			"DS-COVU-A",					bibbDS_COVU_A,
-			"DS-COVU-B",					bibbDS_COVU_B,
-			"AE-N-A",						bibbAE_N_A,
-			"AE-N-I-B",						bibbAE_N_I_B,
-			"AE-N-E-B",						bibbAE_N_E_B,
-			"AE-ACK-A",						bibbAE_ACK_A,
-			"AE-ACK-B",						bibbAE_ACK_B,
-			"AE-ASUM-A",					bibbAE_ASUM_A,
-			"AE-ASUM-B",					bibbAE_ASUM_B,
-			"AE-ESUM-A",					bibbAE_ESUM_A,
-			"AE-ESUM-B",					bibbAE_ESUM_B,
-			"AE-INFO-A",					bibbAE_INFO_A,
-			"AE-INFO-B",					bibbAE_INFO_B,
-			"AE-LS-A",						bibbAE_LS_A,
-			"AE-LS-B",						bibbAE_LS_B,
-			"SCHED-A",						bibbSCHED_A,
-			"SCHED-I-B",					bibbSCHED_I_B,
-			"SCHED-E-B",					bibbSCHED_E_B,
-			"T-VMT-A",						bibbT_VMT_A,
-			"T-VMT-I-B",					bibbT_VMT_I_B,
-			"T-VMT-E-B",					bibbT_VMT_E_B,
-			"T-ATR-A",						bibbbibb_ATR_A,
-			"T-ATR-B",						bibbT_ATR_B,
-			"DM-DDB-A",						bibbDM_DDB_A,
-			"DM-DDB-B",						bibbDM_DDB_B,
-			"DM-DOB-A",						bibbDM_DOB_A,
-			"DM-DOB-B",						bibbDM_DOB_B,
-			"DM-DCC-A",						bibbDM_DCC_A,
-			"DM-DCC-B",						bibbDM_DCC_B,
-            "DM-PT-A",						bibbDM_PT_A,
-			"DM-PT-B",						bibbDM_PT_B,
-			"DM-TM-A",						bibbDM_TM_A,
-			"DM-TM-B",						bibbDM_TM_B,
-			"DM-TS-A",						bibbDM_TS_A,
-			"DM-TS-B",						bibbDM_TS_B,
-			"DM-UTC-A",						bibbDM_UTC_A,
-			"DM-UTC-B",						bibbDM_UTC_B,
-			"DM-RD-A",						bibbDM_RD_A,
-			"DM-RD-B",						bibbDM_RD_B,
-			"DM-BR-A",						bibbDM_BR_A,
-			"DM-BR-B",						bibbDM_BR_B,
-			"DM-R-A",						bibbDM_R_A,
-			"DM-R-B",						bibbDM_R_B,
-			"DM-LM-A",						bibbDM_LM_A,
-			"DM-LM-B",						bibbDM_LM_B,
-			"DM-OCD-A",						bibbDM_OCD_A,
-			"DM-OCD-B",						bibbDM_OCD_B,
-			"DM-VT-A",						bibbDM_VT_A,
-			"DM-VT-B",						bibbDM_VT_B,
-			"NM-CE-A",						bibbNM_CE_A,
-			"NM-CE-B",						bibbNM_CE_B,
-			"NM-RC-A",						bibbNM_RC_A,
-			"NM-RC-B",						bibbNM_RC_B
+
+// msdanner 09/2004 - added BIBBs
+typedef struct {
+    char                  InitExec;                      // flag.  If zero, marks end of list.
+    enum                  BACnetApplServ ApplServ;       // number of application service
+} bibb_service;
+
+#define MAX_BIBB_SERVICES	8  // maximum number of services required per BIBB    
+
+// Structure to define each BIBB - msdanner 9/5/04
+typedef struct {
+	char	*name;	 // BIBB name
+   bibb_service  aBIBB_Service[MAX_BIBB_SERVICES];  // array of services required for each BIBB
+} bibbdef;
+
+
+// msdanner 8/31/04: added BIBBs definitions.
+// These are used by the parsing routines as well as the BIBB consistency checks.
+// The structure of these is similar to the old Functional Group definitions
+static bibbdef BIBBs[]={
+	      "DS-RP-A",
+             { { ssInitiate, asReadProperty,  } 
+             },  // (An InitExec value of zero marks the end of each list)
+			"DS-RP-B",						
+             { { ssExecute, asReadProperty    } 
+             }, 
+			"DS-RPM-A",						
+             { { ssInitiate, asReadPropertyMultiple } 
+             }, 
+			"DS-RPM-B",						
+             { { ssExecute, asReadPropertyMultiple  } 
+             }, 
+			"DS-RPC-A",						
+             { { ssInitiate, asReadPropertyConditional  } 
+             }, 
+			"DS-RPC-B",						
+             { { ssExecute, asReadPropertyConditional  } 
+             }, 
+			"DS-WP-A",						
+             { { ssInitiate, asWriteProperty  } 
+             }, 
+			"DS-WP-B",						
+             { { ssExecute, asWriteProperty  } 
+             }, 
+			"DS-WPM-A",						
+             { { ssInitiate, asWritePropertyMultiple } 
+             }, 
+			"DS-WPM-B",						
+             { { ssExecute, asWritePropertyMultiple  } 
+             }, 
+			"DS-COV-A",						
+             { { ssInitiate, asSubscribeCOV                }, 
+               { ssExecute,  asConfirmedCOVNotification    }, 
+               { ssExecute,  asUnconfirmedCOVNotification  } 
+             }, 
+         "DS-COV-B",						
+             { { ssExecute,  asSubscribeCOV               }, 
+               { ssInitiate, asConfirmedCOVNotification   }, 
+               { ssInitiate, asUnconfirmedCOVNotification } 
+             }, 
+			"DS-COVP-A",					
+             { { ssInitiate, asSubscribeCOVProperty       }, 
+               { ssExecute,  asConfirmedCOVNotification   }, 
+               { ssExecute,  asUnconfirmedCOVNotification } 
+             }, 
+			"DS-COVP-B",					
+             { { ssExecute,  asSubscribeCOVProperty       }, 
+               { ssInitiate, asConfirmedCOVNotification   }, 
+               { ssInitiate, asUnconfirmedCOVNotification } 
+             }, 
+			"DS-COVU-A",					
+             { { ssExecute,  asUnconfirmedCOVNotification } 
+             }, 
+			"DS-COVU-B",					
+             { { ssInitiate, asUnconfirmedCOVNotification } 
+             }, 
+			"AE-N-A",						
+             { { ssExecute,  asConfirmedEventNotification   }, 
+               { ssExecute,  asUnconfirmedEventNotification } 
+             }, 
+			"AE-N-I-B",						
+             { { ssInitiate, asConfirmedEventNotification    }, 
+               { ssInitiate, asUnconfirmedEventNotification  } 
+             }, 
+			"AE-N-E-B",						
+             { { ssInitiate, asConfirmedEventNotification    }, 
+               { ssInitiate, asUnconfirmedEventNotification  } 
+             }, 
+			"AE-ACK-A",						
+             { { ssInitiate, asAcknowledgeAlarm } 
+             }, 
+			"AE-ACK-B",						
+             { { ssExecute,  asAcknowledgeAlarm } 
+             }, 
+			"AE-ASUM-A",					
+             { { ssInitiate, asGetAlarmSummary  } 
+             }, 
+			"AE-ASUM-B",					
+             { { ssExecute,  asGetAlarmSummary  } 
+             }, 
+			"AE-ESUM-A",					
+             { { ssInitiate, asGetEnrollmentSummary } 
+             }, 
+			"AE-ESUM-B",					
+             { { ssExecute,  asGetEnrollmentSummary } 
+             }, 
+			"AE-INFO-A",					
+             { { ssInitiate, asGetEventInformation } 
+             }, 
+			"AE-INFO-B",					
+             { { ssExecute,  asGetEventInformation } 
+             }, 
+			"AE-LS-A",						
+             { { ssInitiate, asLifeSafetyOperation } 
+             }, 
+			"AE-LS-B",						
+             { { ssExecute,  asLifeSafetyOperation } 
+             }, 
+			"SCHED-A",   /* no specific services required, other requirements are in the code */	
+             { { 0 }
+             }, 
+			"SCHED-I-B", // no specific services required, other requirements are in the code											
+             { { 0 }
+             }, 
+			"SCHED-E-B", // no specific services required, other requirements are in the code																
+             { { 0 }
+             }, 
+			"T-VMT-A",						
+             { { ssInitiate, asReadRange } 
+             }, 
+			"T-VMT-I-B",					
+             { { ssExecute,  asReadRange } 
+             }, 
+			"T-VMT-E-B",  // no specific services required, other requirements are in the code
+             { { 0 }
+             }, 
+			"T-ATR-A",	
+			    { { ssExecute,  asConfirmedEventNotification },
+			      { ssInitiate, asReadRange                  }
+			    },  					
+			"T-ATR-B",						
+			    { { ssInitiate, asConfirmedEventNotification },
+			      { ssExecute,  asReadRange                  }
+			    },  					
+			"DM-DDB-A",						
+			    { { ssInitiate, asWho_Is },
+			      { ssExecute,  asI_Am   }
+			    },  					
+			"DM-DDB-B",						
+			    { { ssExecute,  asWho_Is },
+			      { ssInitiate, asI_Am   }
+			    },  					
+			"DM-DOB-A",						
+			    { { ssInitiate, asWho_Has  },
+			      { ssExecute,  asI_Have   }
+			    },  					
+			"DM-DOB-B",						
+			    { { ssExecute,  asWho_Has },
+			      { ssInitiate, asI_Have  }
+			    },  					
+			"DM-DCC-A",						
+             { { ssInitiate, asDeviceCommunicationControl } 
+             }, 
+			"DM-DCC-B",						
+             { { ssExecute,  asDeviceCommunicationControl } 
+             }, 
+         "DM-PT-A",					
+			    { { ssInitiate, asConfirmedPrivateTransfer     },
+			      { ssInitiate, asUnconfirmedPrivateTransfer   }
+			    },  					
+			"DM-PT-B",						
+			    { { ssExecute, asConfirmedPrivateTransfer     },
+			      { ssExecute, asUnconfirmedPrivateTransfer   }
+			    },  					
+			"DM-TM-A",						
+			    { { ssInitiate, asConfirmedTextMessage      },
+			      { ssInitiate, asUnconfirmedTextMessage    }
+			    },  					
+			"DM-TM-B",						
+			    { { ssExecute, asConfirmedTextMessage       },
+			      { ssExecute, asUnconfirmedTextMessage     }
+			    },  					
+			"DM-TS-A",						
+             { { ssInitiate, asTimeSynchronization } 
+             }, 
+			"DM-TS-B",						
+             { { ssExecute,  asTimeSynchronization } 
+             }, 
+			"DM-UTC-A",						
+             { { ssInitiate, asUTCTimeSynchronization } 
+             }, 
+			"DM-UTC-B",						
+             { { ssExecute,  asUTCTimeSynchronization } 
+             }, 
+			"DM-RD-A",						
+             { { ssInitiate, asReinitializeDevice } 
+             }, 
+			"DM-RD-B",						
+             { { ssExecute,  asReinitializeDevice } 
+             }, 
+			"DM-BR-A",						
+			    { { ssInitiate, asAtomicReadFile      },
+			      { ssInitiate, asAtomicWriteFile     },
+			      { ssInitiate, asCreateObject        },
+			      { ssInitiate, asReinitializeDevice  }
+			    },  					
+			"DM-BR-B",						
+			    { { ssExecute,  asAtomicReadFile      },
+			      { ssExecute,  asAtomicWriteFile     },
+			      { ssExecute,  asReinitializeDevice  }
+			    },  					
+			"DM-R-A",						
+             { { ssExecute,  asUnconfirmedCOVNotification } 
+             }, 
+			"DM-R-B",						
+             { { ssInitiate, asUnconfirmedCOVNotification } 
+             }, 
+			"DM-LM-A",						
+			    { { ssInitiate, asAddListElement       },
+			      { ssInitiate, asRemoveListElement    }
+			    },  					
+			"DM-LM-B",						
+			    { { ssExecute,  asAddListElement       },
+			      { ssExecute,  asRemoveListElement    }
+			    },  					
+			"DM-OCD-A",						
+			    { { ssInitiate, asCreateObject       },
+			      { ssInitiate, asDeleteObject       }
+			    },  					
+			"DM-OCD-B",						
+			    { { ssExecute,  asCreateObject       },
+			      { ssExecute,  asDeleteObject       }
+			    },  					
+			"DM-VT-A",						
+			    { { ssInitiate, asVT_Open             },
+			      { ssInitiate, asVT_Close            },
+			      { ssInitiate, asVT_Data             },
+			      { ssExecute,  asVT_Close            },
+			      { ssExecute,  asVT_Data             }
+			    },  					
+			"DM-VT-B",						
+			    { { ssExecute,  asVT_Open             },
+			      { ssInitiate, asVT_Close            },
+			      { ssInitiate, asVT_Data             },
+			      { ssExecute,  asVT_Close            },
+			      { ssExecute,  asVT_Data             }
+			    },  					
+			"NM-CE-A",  // network services are not specified in EPICS
+             { { 0 }
+             },						
+			"NM-CE-B",  // network services are not specified in EPICS
+             { { 0 }
+             },							
+			"NM-RC-A",  // network services are not specified in EPICS
+             { { 0 }
+             },								
+			"NM-RC-B",  // network services are not specified in EPICS
+             { { 0 }
+             },								
 			};  
 
-
+// The order and position of elements in this array is important!
+// It must correspond with the bit positions defined by BACnetServicesSupported
+// in section 21 of the BACnet standard.  
 static char *StandardServices[]={
-			"AcknowledgeAlarm",
-			"ConfirmedCOVNotification",       
-			"ConfirmedEventNotification",     
-			"GetAlarmSummary",
-			"GetEnrollmentSummary",
-			"SubscribeCOV",
-			"AtomicReadFile",
-			"AtomicWriteFile",
-			"AddListElement",
-			"RemoveListElement",
-			"CreateObject",
-			"DeleteObject",
-			"ReadProperty",
-			"ReadPropertyConditional",
-			"ReadPropertyMultiple",
-			"WriteProperty",
-			"WritePropertyMultiple",
-			"DeviceCommunicationControl",
-			"ConfirmedPrivateTransfer",
-			"ConfirmedTextMessage",
-			"ReinitializeDevice",
-			"VT-Open",
-			"VT-Close",
-			"VT-Data",
-			"Authenticate",
-			"RequestKey",
-			"I-Am",									// madanner 6/03: "I-AM"
-			"I-Have",
-			"UnConfirmedCOVNotification",     
-			"UnConfirmedEventNotification",   
-			"UnConfirmedPrivateTransfer",
-			"UnconfirmedTextMessage",
-			"TimeSynchronization",
-			"Who-Has",
-			"Who-Is",
-			"ReadRange",							// madanner 6/03: "Read-Range"
-			"UTCTimeSynchronization",				// madanner 6/03: "UTC-Time-Synchronization"
-			"LifeSafetyOperation",		    
-			"SubscribeCOVProperty",		     
-			"GetEventInformation"
+			"AcknowledgeAlarm",                       //0
+			"ConfirmedCOVNotification",               //1
+			"ConfirmedEventNotification",             //2
+			"GetAlarmSummary",                        //3
+			"GetEnrollmentSummary",                   //4
+			"SubscribeCOV",                           //5
+			"AtomicReadFile",                         //6
+			"AtomicWriteFile",                        //7
+			"AddListElement",                         //8
+			"RemoveListElement",                      //9
+			"CreateObject",                           //10
+			"DeleteObject",                           //11
+			"ReadProperty",                           //12
+			"ReadPropertyConditional",                //13
+			"ReadPropertyMultiple",                   //14
+			"WriteProperty",                          //15
+			"WritePropertyMultiple",                  //16
+			"DeviceCommunicationControl",             //17
+			"ConfirmedPrivateTransfer",               //18
+			"ConfirmedTextMessage",                   //19
+			"ReinitializeDevice",                     //20
+			"VT-Open",                                //21
+			"VT-Close",                               //22
+			"VT-Data",                                //23
+			"Authenticate",                           //24
+			"RequestKey",                             //25
+			"I-Am",									         //26   madanner 6/03: "I-AM"
+			"I-Have",                                 //27
+			"UnconfirmedCOVNotification",             //28   msdanner 9/04: was "UnConfirmed..."
+			"UnconfirmedEventNotification",           //29   msdanner 9/04: was "UnConfirmed..."
+			"UnconfirmedPrivateTransfer",             //30   msdanner 9/04: was "UnConfirmed..."
+			"UnconfirmedTextMessage",                 //31   msdanner 9/04: was "UnConfirmed..."
+			"TimeSynchronization",                    //32
+			"Who-Has",                                //33
+			"Who-Is",                                 //34
+			"ReadRange",							         //35   madanner 6/03: "Read-Range"
+			"UTCTimeSynchronization",				      //36   madanner 6/03: "UTC-Time-Synchronization"
+			"LifeSafetyOperation",		               //37
+			"SubscribeCOVProperty",		               //38
+			"GetEventInformation"                     //39
 			};
 
+// The order and position of elements in this array is important!
+// It must correspond with the definition of BACnetObjectType in section 21 
+// of the BACnet standard.  
 static char *StandardObjects[]={
-			"Analog Input",
-			"Analog Output",       
-			"Analog Value",     
-			"Binary Input",     
-			"Binary Output",   
-			"Binary Value",
-			"Calendar",
-			"Command",
-			"Device",
-			"Event Enrollment",
-			"File",
-			"Group",
-			"Loop",
-			"Multi-state Input",
-			"Multi-state Output",
-			"Notification Class",
-			"Program",
-			"Schedule",
-			"Averaging",
-			"Multi-state Value",
-			"Trend Log"								// madanner 6/03: "Trend-Log"
+			"Analog Input",                //0
+			"Analog Output",               //1 
+			"Analog Value",                //2  
+			"Binary Input",                //3    
+			"Binary Output",               //4   
+			"Binary Value",                //5
+			"Calendar",                    //6
+			"Command",                     //7
+			"Device",                      //8
+			"Event Enrollment",            //9
+			"File",                        //10
+			"Group",                       //11
+			"Loop",                        //12
+			"Multi-state Input",           //13
+			"Multi-state Output",          //14
+			"Notification Class",          //15
+			"Program",                     //16
+			"Schedule",                    //17
+			"Averaging",                   //18
+			"Multi-state Value",           //19
+			"Trend Log",                   //20  madanner 6/03: "Trend-Log"
+			"Life Safety Point",           //21  msdanner 9/04: added
+			"Life Safety Zone"             //22  msdanner 9/04: added
 			};
 
 
@@ -391,24 +599,24 @@ static char *StandardObjects[]={
 // at least inserted after the last "Point-To-Point" entry.
 // Maximum is specified by MAX_DATALINK_OPTIONS in vts.h
 static char *StandardDataLinks[]={
-			"ISO 8802-3, 10BASE5",				    //0
-			"ISO 8802-3, 10BASE2",					//1
-			"ISO 8802-3, 10BASET",					//2
-			"ISO 8802-3, fiber",  					//3
-			"ARCNET, coax star",  					//4
-			"ARCNET, coax bus",   					//5
-			"ARCNET, twisted pair star",			//6
-			"ARCNET, twisted pair bus",				//7
-			"ARCNET, fiber star",					//8
-			"MS/TP master. Baud rate(s)",			//9
-			"MS/TP slave. Baud rate(s)",			//10
-			"Point-To-Point. EIA232, Baud rate(s)",	//11
-			"Point-To-Point. Modem, Baud rate(s)",	//12
-			"Point-To-Point. Modem, Autobaud range",//13
-			"LonTalk",								//14
-			"BACnet/IP, 'DIX' Ethernet",            //15
-			"BACnet/IP, PPP",                       //16
-			"Other",								//17
+			"ISO 8802-3, 10BASE5",                          //0
+			"ISO 8802-3, 10BASE2",                          //1
+			"ISO 8802-3, 10BASET",                          //2
+			"ISO 8802-3, fiber",                            //3
+			"ARCNET, coax star",                            //4
+			"ARCNET, coax bus",                             //5
+			"ARCNET, twisted pair star",                    //6
+			"ARCNET, twisted pair bus",                     //7
+			"ARCNET, fiber star",                           //8
+			"MS/TP master. Baud rate(s)",                   //9
+			"MS/TP slave. Baud rate(s)",                    //10
+			"Point-To-Point. EIA232, Baud rate(s)",         //11
+			"Point-To-Point. Modem, Baud rate(s)",          //12
+			"Point-To-Point. Modem, Autobaud range",        //13
+			"LonTalk",                                      //14
+			"BACnet/IP, 'DIX' Ethernet",                    //15
+			"BACnet/IP, PPP",                               //16
+			"Other",                                        //17
 			};
 
 // Position is important.  Must preserve index numbers.
@@ -995,7 +1203,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
         break;   
       case MULTI_STATE_VALUE:    // Dennis reminder to add code later
         break;   
-      case TRENDLOG:
+      case TREND_LOG:
         break;
          
 	}
@@ -1124,12 +1332,12 @@ bool APIENTRY ReadTextPICS(
 					case 12:
 						if (ReadFailTimes(pd)) goto rtpclose;	//					***019
 						break;
-                    case 13: // BIBBs supported
+               case 13: // BIBBs supported
 						if (ReadBIBBSupported(pd)) goto rtpclose;
 						break;
-					case 14: // Default Property Value Restrictions
+					//case 14: // TODO:  Default Property Value Restrictions
 						//if (ReadDefaultPropertyValueRestrictions(pd)) goto rtpclose;
-						break;
+					//	break;
 					}
 					i=0;						//remember that we found one
 					break;
@@ -1153,9 +1361,11 @@ rtpclose:
 	{
 //		::DeleteFile("c:\\EPICSConsChk.txt");
 		lPICSErr=0;
-		CheckPICSObjCons(pd);                  
-		CheckPICSServCons(pd);               
-		CheckPICSPropCons(pd);      
+		// msdanner 9/04: Old consistency checks based on conformance class are no longer applicable
+		//CheckPICSObjCons(pd);                  
+		//CheckPICSServCons(pd);               
+		//CheckPICSPropCons(pd);      
+		CheckPICSConsistency2003(pd);  // msdanner 9/04: EPICS consistency checks specified by 135.1-2003
 		*errPICS=lPICSErr;	
 	}
 
@@ -1268,7 +1478,7 @@ BOOL ReadBIBBSupported(PICSdb *pd)
 		if (*lp=='}'||lp==NULL) break;			//return, we're done with these
  		for (i=0;i<(sizeof(BIBBs)/sizeof(BIBBs[0]));i++)
 		  if (stricmp(lp,BIBBs[i].name)==0) //found it
-		  {	pd->BIBBSupported[BIBBs[i].dwcons] = 1;	// Mark this BIBB supported
+		  {	pd->BIBBSupported[i] = 1;    	// Mark this BIBB supported
 			i=0;
 			break;
 		  }
@@ -1743,6 +1953,9 @@ nextobject:										//										***012
 								pobj->propflags[typeProp]|=fType;	//found type	***014 Begin
 								pobj->propflags[idProp]|=fID;		//found id
 								pobj->propflags[nameProp]|=fName;	//found name	***014 End
+                        // msdanner 9/2004: remember pointer to Device Object for consistency checks
+                        if (objtype == DEVICE)
+                           pd->pDeviceObject = (device_obj_type *)pobj;
 							}
 						}
 					}
@@ -1867,7 +2080,7 @@ void CheckPICSPropCons(PICSdb *pd)
 			CheckObjRequiredProp(0,0x00007caf,obj,16);
 			//
 			break;
-        case TRENDLOG:
+        case TREND_LOG:
 			CheckObjRequiredProp(0,0x0010f817,obj,22);
 			TR_CheckOptionalProperty(pd->BACnetStandardServices,obj->propflags);
 			break;
@@ -2391,7 +2604,8 @@ void CheckObjRequiredProp(dword hi_propFlag,dword lo_propFlag,generic_object *ob
 		if(i<32){ 
 		  if(lo_propFlag&flag1){
 				if(!((obj->propflags[pIndex])&1)){
-					sprintf(errMsg,"Object (%s,%u)must contain required property named %s!\n",objName,objInstance,propName);
+					sprintf(errMsg,"135.1-2003 5.(i): "
+					   "Object (%s,%u) must contain required property %s.\n",objName,objInstance,propName);
 					//PrintToFile(errMsg);
 					tperror(errMsg,false);
 				}
@@ -2401,7 +2615,8 @@ void CheckObjRequiredProp(dword hi_propFlag,dword lo_propFlag,generic_object *ob
 		 else{
   		   if(hi_propFlag&flag2){
 				if(!((obj->propflags[pIndex])&1)){
-					sprintf(errMsg,"Object (%s,%u)must contain required property named %s!\n",objName,objInstance,propName);
+					sprintf(errMsg,"135.1-2003 5.(i): "
+					   "Object (%s,%u) must contain required property %s.\n",objName,objInstance,propName);
 					//PrintToFile(errMsg);
 					tperror(errMsg,false);
 				}
@@ -6009,54 +6224,56 @@ BOOL tperror(char *mp,BOOL showline)
 	return cancel ? TRUE : FALSE;
 }
 
+// msdanner 9/04 added:  
 // Returns the maximum number of standard services
 int GetStandardServicesSize()
 {
    return sizeof(StandardServices)/sizeof(StandardServices[0]);
 }
 
+// msdanner 9/04 added:  
 // Returns a string representing the standard service indexed by i 
 char *GetStandardServicesName(int i)
 {
 	return StandardServices[i];
 }
 
+// msdanner 9/04 added:  
 // Returns the maximum number of potential BIBBs
 int GetBIBBSize()
 {
 	return MAX_BIBBS;
 }
 
-// Returns a string representing the BIBB corresponding to i 
+// msdanner 9/04 added:  
+// Returns a string representing the BIBB corresponding to index i 
 char *GetBIBBName(int i)
 {
-	int j;
-	for (j=0;j<(sizeof(BIBBs)/sizeof(BIBBs[0]));j++)
-	{
-		if ((int)(BIBBs[j].dwcons) == i)
-			return BIBBs[j].name;
-	}
-	return NULL;
+	return BIBBs[i].name;
 }
 
+// msdanner 9/04 added:  
 // Returns the maximum number of potential Object Types
 int GetObjectTypeSize()
 {
    return sizeof(StandardObjects)/sizeof(StandardObjects[0]);
 }
 
+// msdanner 9/04 added:  
 // Returns a string representing the Object Type indexed by i 
 char *GetObjectTypeName(int i)
 {
 	return StandardObjects[i];
 }
 
+// msdanner 9/04 added:  
 // Returns the maximum number of potential Data Link Options
 int GetDataLinkSize()
 {
 	return  sizeof(StandardDataLinks)/sizeof(StandardDataLinks[0]);
 }
 
+// msdanner 9/04 added:  
 // Returns a string representing the Data Link Option indexed by i 
 // and any baud rate options.
 // Caller must allocate the memory to hold the resulting string
@@ -6114,12 +6331,14 @@ void GetDataLinkString(int i, PICSdb *pd, char *pstrResult)
 
 }
 
+// msdanner 9/04 added:  
 // Returns the maximum number of potential Character Sets
 int GetCharsetSize()
 {
 	return  sizeof(Charsets)/sizeof(Charsets[0]);
 }
 
+// msdanner 9/04 added:  
 // Returns a string representing the Charset matching csTag 
 char *GetCharsetName(octet csTag)
 {
@@ -6134,16 +6353,603 @@ char *GetCharsetName(octet csTag)
 }
 
 
+// msdanner 9/04 added:  
 // Returns the maximum number of Special Functionality choices
 int GetSpecialFunctionalitySize()
 {
 	return  sizeof(SpecialFunctionality)/sizeof(SpecialFunctionality[0]);
 }
 
+// msdanner 9/04 added:  
 // Returns a Special Functionality string at index i 
 char *GetSpecialFunctionalityName(int i)
 {
 	return SpecialFunctionality[i];
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// msdanner 9/04 added:  
+// Run all EPICS Consistency checls specified by standard 135.1-2003.
+//
+// The older EPICS consistency checks based on conformance class
+// and functional groups have been replaced by checks that are based on BIBBs.
+// Some of the older tests are still relevant and are launched from this 
+// new function.
+//
+// 5.  EPICS CONSISTENCY TESTS
+// 
+// Each implementation shall be tested to ensure consistency among
+// interrelated data elements. These tests shall include:
+// 
+// (a)	All object types required by the specified BIBBs shall be indicated
+// as supported in the Standard Object Types Supported section of the
+// EPICS. (Similar to the old test "A", but using BIBBs instead of
+// conformance class.)
+// 
+// (b)	A minimum of one instance of each object type required by the
+// specified BIBBs shall be included in the test database. (Similar to the
+// old test "B", but using BIBBs instead of conformance class.)
+// 
+// (c) The Object_Types_Supported property of the Device object in the test
+// database shall indicate support for each object type required by the
+// supported BIBBs.  (Similar to the old test "C", but using BIBBs instead
+// of conformance class.)
+// 
+// (d) All application services required by the supported BIBBs shall be
+// indicated as supported in the BACnet Standard Application Services
+// Supported section of the EPICS with Initiate and Execute indicated as
+// required by the supported BIBBs. (Similar to the old test "D", but using
+// BIBBs instead of conformance class.)
+// 
+// (e) The Application_Services_Supported property of the Device object in
+// the test database shall indicate support for each application service
+// for which the supported BIBBs requires support for execution of the
+// service. (Similar to the old test "E", but using BIBBs instead of
+// conformance class.)
+// 
+// (f) The object types listed in the Standard Object Types Supported
+// section of the EPICS shall have a one-to-one correspondence with object
+// types listed in the Object_Types_Supported property of the Device object
+// contained in the test database.	(Identical to the old test "K".)
+// 
+// (g) For each object type listed in the Standard Object Types Supported
+// section of the EPICS there shall be at least one object of that type in
+// the test database. (Identical to the old test "L".)
+// 
+// (h) There shall be a one-to-one correspondence between the objects
+// listed in the Object_List property of the Device object and the objects
+// included in the test database. The Object_List property and the test
+// database shall both include all proprietary objects. Properties of
+// proprietary objects that are not required by BACnet Clause 23.4.3 need
+// not be included in the test database. (Identical to the old test "M".)
+// 
+// (i) For each object included in the test database, all required
+// properties for that object as defined in Clause 12 of BACnet shall be
+// present. In addition, if any of the properties supported for an object
+// require the conditional presence of other properties, their presence
+// shall be verified. (Identical to the old test "N".)
+// 
+// (j) For each property that is required to be writable, that property
+// shall be marked as writable in the EPICS. (New test.)
+// 
+// (k) The length of the Protocol_Services_Supported bitstring shall have
+// the number of bits defined for BACnetProtocolServicesSupported for the
+// IUT's declared protocol revision.  (New test.)
+// 
+// (l) The length of the Protocol_Object_Types_Supported bitstring shall
+// have the number of bits defined for BACnetObjectTypesSupported for the
+// IUT's declared protocol revision. (New test.)
+// 
+void CheckPICSConsistency2003(PICSdb *pd)
+{
+   // Make sure that each Object Type required by a BIBB
+   // exists in the Standard Object Types Supported section, 
+   // as well as cross dependencies between BIBBs.
+   // 135.1-2003, section 5.(a)
+   CheckPICSCons2003A(pd);
+
+   // 135.1-2003, section 5.(b) is covered by test (g) below
+
+   // 135.1-2003, section 5.(c) is covered by test (f) below
+
+   // 135.1-2003, section 5.(d) test
+   // Make sure application services required by each BIBB are
+   // listed in the Standard Application Services Supported section. 
+   CheckPICSCons2003D(pd);
+
+   // 135.1-2003, section 5.(e) test
+   // Make sure the services marked "Execute" in the 
+   // 'BACnet Standard Application Services Supported' section match
+   // the services marked supported in the Application_Services_Supported
+   // Property of the Device Object. 
+   // This is a two-way check.
+   CheckPICSCons2003E(pd);
+
+	// 135.1-2003, section 5.(f) 
+   // Make sure the Objects listed in the Standard Object Types section
+   // match the bits in the Objects_Types_Supported property of the Device.
+   CheckPICSCons2003F(pd);
+
+
+	// Make sure each Object type in the Standard Object Types Supported section
+   // is represented in the test database.
+	// 135.1-2003, section 5.(b) & 5.(g) 
+   CheckPICSCons2003G(pd);
+
+	// 135.1-2003, section 5.(h) 
+   CheckPICSCons2003H(pd);
+
+	// 135.1-2003, section 5.(i) 
+   CheckPICSPropCons(pd);
+
+	// 135.1-2003, section 5.(j) 
+	// 135.1-2003, section 5.(k) 
+	// 135.1-2003, section 5.(l) 
+
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Some BIBBs require support for other BIBBs.
+// This is a helper function to perform that cross check.
+// iSupportedBIBB = the BIBB that requires another BIBB.
+// iDependentBIBB = the BIBB that iSupportedBIBB requires.
+//
+void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDependentBIBB)
+{
+   char opj[200];
+   if ( !pd->BIBBSupported[iDependentBIBB] )
+   {
+     sprintf(opj,"BIBB %s requires support for BIBB %s.\n", 
+          BIBBs[iSupportedBIBB].name, 
+          BIBBs[iDependentBIBB].name );
+     tperror(opj,false);
+   }
+   return;
+} 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// EPICS Consistency test specified by 135.1-2003, section 5(a)
+//
+// (a)	All object types required by the specified BIBBs shall be indicated
+// as supported in the Standard Object Types Supported section of the
+// EPICS. (Similar to the old test "A", but using BIBBs instead of
+// conformance class.)
+// 
+// This function also runs checks for cross-BIBB dependencies,
+// which is not a test that is specified in 135.1-2003 section 5, 
+// but is clearly stated in the BIBB definition section of the BACnet standard.
+// 
+// In addition, this function also checks for specific properties
+// that must be present for certain BIBBs. 
+//  
+void CheckPICSCons2003A(PICSdb *pd)
+{ 
+   int i;
+   char opj[300];
+   for (i = 0; i < MAX_BIBBS; i++ )
+   {
+      // scan for supported BIBBs
+      if (pd->BIBBSupported[i])
+      {
+         switch (i)
+         {
+            case bibbAE_N_I_B:  // requires support for either NC or EE Objects
+               if ( (pd->BACnetStandardObjects[NOTIFICATION_CLASS]==soNotSupported) &&
+                    (pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported) )
+               {
+                 sprintf(opj,"135.1-2003 5.(a): "
+                   "BIBB AE-N-I-B requires support for Intrinsic or Algorithmic reporting, "
+                   "which implies support for the Event Enrollment or Notification Class object "
+                   "in the \"Standard Object Types Supported\" section.\n");
+                 tperror(opj,false);
+               }  
+               break;
+
+            case bibbAE_N_E_B: // requires support for AE-N-I-B & DS-RP-A & EE Object
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbAE_N_I_B); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A); 
+               if ( pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported )
+               {
+                 sprintf(opj,"135.1-2003 5.(a): "
+                   "BIBB AE-N-E-B requires support for the Event Enrollment object "
+                   "in the \"Standard Object Types Supported\" section.\n");
+                 tperror(opj,false);
+               }  
+               break;
+
+            case bibbAE_LS_B: // requires support for Life Safety Point or Life Safety Zone object
+               if ( (pd->BACnetStandardObjects[LIFE_SAFETY_POINT]==soNotSupported) &&
+                    (pd->BACnetStandardObjects[LIFE_SAFETY_ZONE]==soNotSupported) )
+               {
+                 sprintf(opj,"135.1-2003 5.(a): "
+                   "BIBB AE-LS-B requires support for the Life Safety Point or Life Safety Zone object "
+                   "in the \"Standard Object Types Supported\" section.\n");
+                 tperror(opj,false);
+               }  
+               break;
+
+            case bibbSCHED_A:  // requires support for DS-RP-A and DS-WP-A
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A);
+               break; 
+
+            case bibbSCHED_I_B:  // requires DS-RP-B, DS-WP-B, Calendar & Schedule objects
+                                 // and either DM-TS-B or DM-UTC-B
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_B); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_B);
+               if ( pd->BACnetStandardObjects[CALENDAR]==soNotSupported )
+               {
+                 sprintf(opj,"135.1-2003 5.(a): "
+                   "BIBB SCHED-I-B requires support for the Calendar object "
+                   "in the \"Standard Object Types Supported\" section.\n");
+                 tperror(opj,false);
+               }  
+               if ( pd->BACnetStandardObjects[SCHEDULE]==soNotSupported )
+               {
+                 sprintf(opj,"135.1-2003 5.(a): "
+                   "BIBB SCHED-I-B requires support for the Schedule object "
+                   "in the \"Standard Object Types Supported\" section.\n");
+                 tperror(opj,false);
+               }  
+               if ( !pd->BIBBSupported[bibbDM_TS_B] &&
+                    !pd->BIBBSupported[bibbDM_UTC_B] )
+               {
+                 sprintf(opj,"BIBB SCHED-I-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
+                 tperror(opj,false);
+               }
+               break;
+
+            case bibbSCHED_E_B:  // requires support for SCHED-I-B and DS-WP-A
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbSCHED_I_B); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A);
+               break;
+
+            case bibbT_VMT_I_B:  // both require support for TREND_LOG object
+            case bibbT_ATR_B:
+               if ( pd->BACnetStandardObjects[TREND_LOG]==soNotSupported )
+               {
+                 sprintf(opj,"135.1-2003 5.(a): "
+                   "BIBB %s requires support for the Trend Log object "
+                   "in the \"Standard Object Types Supported\" section.\n",
+                   BIBBs[i].name );
+                 tperror(opj,false);
+               }  
+               break;
+
+            case bibbT_VMT_E_B:  // requires support for T-VMT-I-B and DS-RP-A 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbT_VMT_I_B); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A);
+               break;
+
+            case bibbDM_TS_A:
+            case bibbDM_UTC_A:
+                               // requires presence of Time_Synchronization_Recipients 
+                               // property in the Device Object.
+                               // TODO
+               break;
+
+            case bibbDM_UTC_B: // Same requirements as DM_TS_B, but adds
+                               // the requirement for the presence of UTC_Offset 
+                               // and Daylight_Saving_Status in the Device Object.
+                               // (deliberate fall-through to next case)
+            case bibbDM_TS_B:  // requires the presence of the Local_Time and Local_Date
+                               // properties of the Device Object.
+                               // TODO
+               break;
+
+
+            case bibbDM_R_B:   // requires the presence of the Time_Of_Device_Restart
+                               // and Last_Restart_Reason properties 
+                               // in the Device Object.
+                               // TODO
+               break;
+
+         }
+      }
+   }
+
+  return;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// EPICS Consistency test specified by 135.1-2003, section 5(d)
+//
+// (d) All application services required by the supported BIBBs shall be
+// indicated as supported in the BACnet Standard Application Services
+// Supported section of the EPICS with Initiate and Execute indicated as
+// required by the supported BIBBs. (Similar to the old test "D", but using
+// BIBBs instead of conformance class.)
+// 
+void CheckPICSCons2003D(PICSdb *pd)
+{
+   int i;
+   char opj[300];
+   char *errmsg;
+   bibb_service *pBibb_rule;  // pointer to each bibb_service rule in the BIBB definition
+   for (i = 0; i < MAX_BIBBS; i++ )
+   {
+      // Scan for supported BIBBs, cross checking the services supported section
+      // when support id found for a BIBB
+      if (pd->BIBBSupported[i])
+      {
+         pBibb_rule = BIBBs[i].aBIBB_Service;  // point to first BIBB rule
+         while (pBibb_rule->InitExec) // while not at end of this BIBB's rules
+         {
+            // If the BIBB rule requires a service that has not been
+            // defined in the StandardServices section, this is an error.
+            if ((pd->BACnetStandardServices[pBibb_rule->ApplServ] & pBibb_rule->InitExec)==0)
+            {
+               if (pBibb_rule->InitExec == ssInitiate) 
+                  errmsg = "Initiate";
+               else
+                  errmsg = "Execute";
+                     
+               sprintf(opj,"135.1-2003 5.(d): "
+                 "BIBB %s requires the Device to %s the %s application service,"
+                 " and support for this service has not been included in the "
+                 "\"BACnet Standard Application Services Supported\" section.\n",
+                 BIBBs[i].name,
+                 errmsg,
+                 StandardServices[pBibb_rule->ApplServ] );
+               tperror(opj,false);
+               
+            }
+            pBibb_rule++;  // next rule please
+         }
+      }
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// EPICS Consistency test specified by 135.1-2003, section 5(e)
+//
+// (e) The Application_Services_Supported property of the Device object in
+// the test database shall indicate support for each application service
+// for which the supported BIBBs requires support for execution of the
+// service. (Similar to the old test "E", but using BIBBs instead of
+// conformance class.)
+// 
+// This function does not actually use the BIBBs for reference since
+// the consistency check between the BIBBS and the Application Services Supported
+// section has already been done. It runs a consistency check between the 
+// Application Services Supported section and the Application_Serices_Supported
+// property of the Device Object, but only for the "Execute" services.
+// 
+void CheckPICSCons2003E(PICSdb *pd)
+{   
+    int i;
+    char opj[300];
+    octet Application_Services_Supported[MAX_SERVS_SUPP];
+    octet InStandardAppSection;
+	 memset(Application_Services_Supported,0,MAX_SERVS_SUPP);
+
+ 	 BitToArray(Application_Services_Supported,&ProtocolServSup);
+
+    for (i=0; i<MAX_SERVS_SUPP; i++)
+    {
+       InStandardAppSection = ((pd->BACnetStandardServices[i] & ssExecute) != 0);
+       // Exclusive OR test between the property and the EPICS section.
+       // If either is set and not the other, this is an error.
+       if( (InStandardAppSection ^ !!Application_Services_Supported[i]) )  // XOR
+       {
+         sprintf(opj,"135.1-2003 5.(e): "
+           "Support for execution of the %s application service is not consistent "
+           "between the \"BACnet Standard Application Services Supported\" "
+           "section and the Application_Services_Supported Property of the Device Object.\n", 
+           StandardServices[i]);
+         tperror(opj,false);
+       }
+    }
+
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// EPICS Consistency test specified by 135.1-2003, section 5(c) & 5(f)
+//
+// Since the 2003A test covers which Objects should be in the 
+// Standard Object Types Supported section for each BIBB,
+// this function just needs to check that each object listed in that
+// section is indeed defined in the Object_Types_Supported property
+// of the Device Object in the database.  This covers both of the
+// following consistency checks in 135.1-2003:
+//         
+// (c) The Object_Types_Supported property of the Device object in the test
+// database shall indicate support for each object type required by the
+// supported BIBBs.  (Similar to the old test "C", but using BIBBs instead
+// of conformance class.)
+// 
+// (f) The object types listed in the Standard Object Types Supported
+// section of the EPICS shall have a one-to-one correspondence with object
+// types listed in the Object_Types_Supported property of the Device object
+// contained in the test database.	(Identical to the old test "K".)
+// 
+void CheckPICSCons2003F(PICSdb *pd)
+{ char errMsg[300];
+  int  i;
+  octet InStandardObjectSection;
+  octet ProtocolObjectSup[MAX_DEFINED_OBJ];
+
+  memset(ProtocolObjectSup,0,MAX_DEFINED_OBJ);
+  BitToArray(ProtocolObjectSup,&ProtocolObjSup);
+  for(i=0;i<MAX_DEFINED_OBJ;i++) {
+    InStandardObjectSection = !!pd->BACnetStandardObjects[i]; // convert to boolean
+    // Exclusive OR test between the property and the EPICS section.
+    // If either is set and not the other, this is an error.
+    if( (InStandardObjectSection ^ !!ProtocolObjectSup[i]) )  // XOR
+    {
+      sprintf(errMsg,"135.1-2003 5.(f): "
+        "Object type %s is not consistent between the \"Standard Object Types Supported\" "
+        "section and the Object_Types_Supported Property of the Device Object.\n", StandardObjects[i]);
+      tperror(errMsg,false);
+    }
+  }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// EPICS Consistency test specified by 135.1-2003, section 5(b) & 5(g)
+//
+// Since the 2003A test covers which Objects should be in the 
+// Standard Object Types Supported section for each BIBB,
+// this function just needs to check that each object listed in that
+// section is indeed in the database.  This covers both of the
+// following consistency checks in 135.1-2003:
+//         
+// (b)	A minimum of one instance of each object type required by the
+// specified BIBBs shall be included in the test database. (Similar to the
+// old test "B", but using BIBBs instead of conformance class.)
+// 
+// (g) For each object type listed in the Standard Object Types Supported
+// section of the EPICS there shall be at least one object of that type in
+// the test database. (Identical to the old test "L".)
+// 
+void CheckPICSCons2003G(PICSdb *pd)
+{ 
+  char errMsg[300];
+  for(int i=0;i<MAX_DEFINED_OBJ;i++) {
+    if( (pd->BACnetStandardObjects[i]) && !(ObjInTestDB[i].ObjIDSupported)) {
+      sprintf(errMsg,"135.1-2003 5.(g): "
+        "Object type %s is listed in the \"Standard Object Types Supported\" section "
+        "but no Objects of that type are defined in the test database.\n",StandardObjects[i]);
+      tperror(errMsg,false);
+    }
+  }
+}
+
+// Scans the test database looking for an object with
+// a matching ObjectID.  If found, returns a pointer to the Object.
+// If not found, returns NULL.
+generic_object *FindObjectInDatabase(PICSdb *pd, dword ObjectID)
+{
+   generic_object *po;
+   // pointer to the start of objects in the test database
+   po = pd->Database;
+   while (po)
+   {
+      if (po->object_id == ObjectID)
+         return po;
+      po=(generic_object *)po->next;
+   }
+   return NULL;
+}
+
+// Finds an Object matching the ObjectID in the Object_List
+// propery of the Device Object defined in the test database.
+// If found, returns TRUE.
+// If not found, returns FALSE.
+bool FindObjectInObjectList(PICSdb *pd, dword ObjectID)
+{
+   BACnetObjectIdentifier *pObjectID; 
+   if (pd->pDeviceObject == NULL)
+      return FALSE; // Device Object not parsed yet
+
+   // Pointer to the parsed Object_List property of the Device Object
+   pObjectID = pd->pDeviceObject->object_list;
+
+   while (pObjectID) 
+   {
+      if (pObjectID->object_id == ObjectID)
+         return TRUE;
+      pObjectID = pObjectID->next;
+   }
+   return FALSE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// EPICS Consistency test specified by 135.1-2003, section 5(h)
+// 
+// (h) There shall be a one-to-one correspondence between the objects
+// listed in the Object_List property of the Device object and the objects
+// included in the test database. The Object_List property and the test
+// database shall both include all proprietary objects. Properties of
+// proprietary objects that are not required by BACnet Clause 23.4.3 need
+// not be included in the test database. (Identical to the old test "M".)
+// 
+// This test first steps through the Object_List and verifies that
+// every Object found in the Object_List has been defined in the test database.
+// Then it does a reverse lookup by stepping through the test database
+// and making sure that every Object found is also in the Object_List.
+// This strategy should uncover any and all mismatches.
+//
+void CheckPICSCons2003H(PICSdb *pd)
+{
+   char errMsg[300];
+   generic_object *po;
+   BACnetObjectIdentifier *pObjectID; 
+   dword id, objtype, objinstance; // temps
+
+   dword dwMaxStdObj = sizeof(StandardObjects)/sizeof(StandardObjects[0]);
+
+
+   // pointer to the start of objects in the test database
+   po = pd->Database;
+   if (po == NULL)
+      return;
+   // Pointer to the parsed Object_List property of the Device Object
+   if (pd->pDeviceObject == NULL)
+      return; 
+   pObjectID = pd->pDeviceObject->object_list;
+
+   // If Object_List has not been parsed, we cannot do this test.
+   if (!pObjectID)
+      return;
+
+   // Step through the Object_List
+   while (pObjectID)
+   {
+      id = pObjectID->object_id;
+      if (FindObjectInDatabase(pd, id) == NULL)
+      {
+         objtype = id>>22;
+         objinstance = id & 0x003fffff;
+         if (objtype < dwMaxStdObj)
+         {
+            sprintf(errMsg,"135.1-2003 5.(h): "
+              "(%s,%u) is defined in the Object_List but does not appear in the test database.\n",
+              StandardObjects[objtype], objinstance );
+         }
+         else 
+         {
+            sprintf(errMsg,"135.1-2003 5.(h): "
+              "(proprietary %u,%u) is defined in the Object_List but does not appear in the test database.\n",
+              objtype, objinstance );
+         }
+         tperror(errMsg,false);
+      }
+      pObjectID = pObjectID->next; // next in the Object_List
+   }
+
+   // Now step through the test database and verify that every object in the database
+   // is also in the Object_List.
+   while (po)
+   {
+      id=po->object_id;
+      if (!FindObjectInObjectList(pd, id))
+      {
+         objtype = id>>22;
+         objinstance = id & 0x003fffff;
+         if (objtype < dwMaxStdObj)
+         {
+            sprintf(errMsg,"135.1-2003 5.(h): "
+              "(%s,%u) is defined in the test database but does not appear in the Object_List.\n",
+              StandardObjects[objtype], objinstance );
+         }
+         else 
+         {
+            sprintf(errMsg,"135.1-2003 5.(h): "
+              "(proprietary %u,%u) is defined in the test database but does not appear in the Object_List.\n",
+              objtype, objinstance );
+         }
+         tperror(errMsg,false);
+      }
+      po=(generic_object *)po->next;
+   }
+   return;
 }
 
 

@@ -32,6 +32,7 @@ typedef struct {
 	octet	octetcons;
 	} nameoctet;
 
+// msdanner 9/04 added:  
 // structure to hold default property value restrictions defined in EPICS
 typedef struct {
 	double long dlUnsignedMinimum;
@@ -74,10 +75,11 @@ typedef	struct {
 	dword	PTPmodemBaudRates[16];
 	dword	PTPAutoBaud[2];
 	dword	BACnetFailTimes[MAX_FAIL_TIMES];                    //array of Fail Times           29/12/2003  GJB
-	octet   BIBBSupported[MAX_BIBBS];  	//array of booleans indicating support for each BIBB
-    defaultrangelimits defaultlimits;
+	octet   BIBBSupported[MAX_BIBBS];  	//msdanner 9/2004: array of booleans indicating support for each BIBB,    
+    defaultrangelimits defaultlimits;	//msdanner 9/2004: default limits section,  
 	generic_object far *Database;
-	octet   BBMD;                                 //indicates support for BBMD functionality
+	octet   BBMD;                       //msdanner 9/2004: indicates support for BBMD functionality
+   device_obj_type *pDeviceObject;     //msdanner 9/2004: points to parsed Device Object.  Only valid after parsing database.
 	} PICSdb;
 
 //bits in RouterFunctions
@@ -135,77 +137,6 @@ typedef	struct {
 #define		csUCS4					0x08		//ISO 10646 (UCS-4)
 #define		csUCS2					0x10		//ISO 10646 (UCS-2)
 #define     cs8859                  0x20        //ISO 8859-1
-
-// enumerated BIBBs
-enum {
-	bibbDS_RP_A = 0,	
-	bibbDS_RP_B,
-	bibbDS_RPM_A,
-	bibbDS_RPM_B,
-	bibbDS_RPC_A,
-	bibbDS_RPC_B,
-	bibbDS_WP_A,
-	bibbDS_WP_B,
-	bibbDS_WPM_A,
-	bibbDS_WPM_B,
-	bibbDS_COV_A,
-	bibbDS_COV_B,
-	bibbDS_COVP_A,
-	bibbDS_COVP_B,
-	bibbDS_COVU_A,
-	bibbDS_COVU_B,
-	bibbAE_N_A,
-	bibbAE_N_I_B,
-	bibbAE_N_E_B,
-	bibbAE_ACK_A,
-	bibbAE_ACK_B,
-	bibbAE_ASUM_A,
-	bibbAE_ASUM_B,
-	bibbAE_ESUM_A,
-	bibbAE_ESUM_B,
-	bibbAE_INFO_A,
-	bibbAE_INFO_B,
-	bibbAE_LS_A,
-	bibbAE_LS_B,
-	bibbSCHED_A,
-	bibbSCHED_I_B,
-	bibbSCHED_E_B,
-	bibbT_VMT_A,
-	bibbT_VMT_I_B,
-	bibbT_VMT_E_B,
-	bibbbibb_ATR_A,
-	bibbT_ATR_B,
-	bibbDM_DDB_A,
-	bibbDM_DDB_B,
-	bibbDM_DOB_A,
-	bibbDM_DOB_B,
-	bibbDM_DCC_A,
-	bibbDM_DCC_B,
-	bibbDM_PT_A,
-	bibbDM_PT_B,
-	bibbDM_TM_A,
-	bibbDM_TM_B,
-	bibbDM_TS_A,
-	bibbDM_TS_B,
-	bibbDM_UTC_A,
-	bibbDM_UTC_B,
-	bibbDM_RD_A,
-	bibbDM_RD_B,
-	bibbDM_BR_A,
-	bibbDM_BR_B,
-	bibbDM_R_A,
-	bibbDM_R_B,
-	bibbDM_LM_A,
-	bibbDM_LM_B,
-	bibbDM_OCD_A,
-	bibbDM_OCD_B,
-	bibbDM_VT_A,
-	bibbDM_VT_B,
-	bibbNM_CE_A,
-	bibbNM_CE_B,
-	bibbNM_RC_A,
-	bibbNM_RC_B
-};
 
 //bits in Fail Times
 #define		ftNotSupported			0           //29/12/2003        GJB
