@@ -442,10 +442,12 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 			}
 
 		case ptDate:	// date ------------------------------------------------
+        case ddate:
 
 			return new BACnetDate(dec);
 
 		case ptTime:	// time -------------------------------------------------
+        case ttime:
 
 			return new BACnetTime(dec);
 
