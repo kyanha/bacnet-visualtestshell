@@ -8,6 +8,12 @@
 
 #include "VTSObjectIdentifierDialog.h"
 
+#include "VTSDateTimeDlg.h"
+#include "VTSDateRangeDlg.h"
+#include "VTSAddressBindingDlg.h"
+#include "VTSCalendarEntryDlg.h"
+#include "VTSTimeStampDlg.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -263,14 +269,17 @@ void VTSAny::ResetSelection( void )
 void VTSAny::SynchronizeControls( void )
 {
 	// disable if nothing selected
+	int elemType ;
+	if(m_iSelectedElem >= 0)
+		elemType= m_anyList[m_iSelectedElem]->elemType;
 	GetDlgItem( IDC_TYPECOMBO )->EnableWindow( m_iSelectedElem >= 0 );
-	GetDlgItem( IDC_CONTEXT )->EnableWindow( m_iSelectedElem >= 0 );
+	GetDlgItem( IDC_CONTEXT )->EnableWindow( m_iSelectedElem >= 0 && elemType<15);
 	if (m_iSelectedElem < 0)
 		GetDlgItem( IDC_VALUE )->EnableWindow( false );
 	else {
-		int elemType = m_anyList[m_iSelectedElem]->elemType;
-		GetDlgItem( IDC_VALUE )->EnableWindow( (elemType != 0) && (elemType != 13) && (elemType != 14) );
-		m_ValueIDButton.EnableWindow( elemType == 12 );
+		GetDlgItem( IDC_VALUE )->EnableWindow( (elemType != 0) && (elemType != 13) && (elemType != 14)&&(elemType<15));
+		m_ValueIDButton.EnableWindow( elemType == 12 
+									  ||elemType>=15);
 	}
 }
 
@@ -405,29 +414,128 @@ void VTSAny::OnValueIDButton()
 	if (m_iSelectedElem < 0)
 		return;
 
-	// bind an object identifier to the value
-	VTSObjectIdentifierCtrl m_ObjID( this, IDC_VALUE )
-	;
+		VTSAnyElementPtr	curElem = m_anyList[m_iSelectedElem];
 
-	// translate the current contents
-	m_ObjID.CtrlToObj();
+	BACnetAPDUDecoder	dec( curElem->elemEncoder.pktBuffer, curElem->elemEncoder.pktLength );
+	curElem->elemEncoder.Flush();
+	
+	// depending on the type, encode the value
+	switch (curElem->elemType) 
+	{
+		case 12:
+		{
+			// bind an object identifier to the value
+			VTSObjectIdentifierCtrl m_ObjID( this, IDC_VALUE );
 
-	VTSObjectIdentifierDialog	dlg(this)		// added parent for send dialog
-	;
+			// translate the current contents
+			m_ObjID.CtrlToObj();
 
-	dlg.objID = m_ObjID.objID;
-	if (dlg.DoModal() && dlg.validObjID) {
-		// value change successful
-		m_ObjID.ctrlNull = false;
-		m_ObjID.objID = dlg.objID;
-		m_ObjID.ObjToCtrl();
+			VTSObjectIdentifierDialog	dlg;
+
+			dlg.objID = m_ObjID.objID;
+			if (dlg.DoModal() && dlg.validObjID) {
+				// value change successful
+				m_ObjID.ctrlNull = false;
+				m_ObjID.objID = dlg.objID;
+				m_ObjID.ObjToCtrl();
+				
+				//Deleted by Yajun Zhou, 2002-9-3
+				//m_ObjID.Encode( m_anyList[m_iSelectedElem]->elemEncoder
+				//	, m_anyList[m_iSelectedElem]->elemContext
+				//	);
+				////////////////////////////////////
+			}	
+			break;
+		}
+		case 15://date time
+		{
+			VTSDateTimeDlg dlg(this);
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
 		
-		//Deleted by Yajun Zhou, 2002-9-3
-		//m_ObjID.Encode( m_anyList[m_iSelectedElem]->elemEncoder
-		//	, m_anyList[m_iSelectedElem]->elemContext
-		//	);
-		////////////////////////////////////
+			break;
+		}
+		case 16://date range
+		{
+			VTSDateRangeDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+		case 17://address binding
+		{
+			VTSAddressBindingDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, curElem->elemContext );
+			}
+			break;
+		}
+		case 18: //calendar entry
+		{
+			VTSCalendarEntryDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, dlg.m_nChoice );
+			}
+			break;
+		}
+		case 19: //time stamp
+		{
+			VTSTimeStampDlg dlg(this);
+			
+			try{
+			dlg.Decode(dec);
+			}
+			catch (...) {
+				MessageBox("Decode Error!");
+				break;
+			}
+			if(dlg.DoModal())
+			{
+				dlg.Encode( curElem->elemEncoder, dlg.m_nChoice );
+			}
+			break;
+		}
+		default:
+			break;
 	}
+	ElemToList( m_iSelectedElem );
 }
 
 void VTSAny::OnItemchangingElemList(NMHDR* pNMHDR, LRESULT* pResult) 
