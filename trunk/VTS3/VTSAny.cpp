@@ -270,7 +270,7 @@ void VTSAny::OnRemoveElem()
 	m_ElemList.DeleteItem( m_iSelectedElem );
 
 	// reset the selection
-	ResetSelection();
+	m_ElemList.SetItemState( m_iSelectedElem - 1 < 0 ? 0 : m_iSelectedElem - 1, LVIS_SELECTED, LVIS_SELECTED );
 }
 
 void VTSAny::OnSelchangeTypeCombo() 
