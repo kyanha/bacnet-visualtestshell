@@ -410,7 +410,8 @@ enum BACnetReliability		reliability;
 //-------------------------------------------------------
 typedef struct {
     generic_object			go;
-enum ActionValueType		value_type;
+//enum ActionValueType		value_type;
+	dword					value_type;   //modified by xyp
     union {
         enum BACnetBinaryPV	bproperty_value; 	//binary value
         word				uproperty_value;	//unsigned word
