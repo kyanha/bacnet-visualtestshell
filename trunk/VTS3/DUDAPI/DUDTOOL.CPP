@@ -19,7 +19,10 @@
 #include <sys/timeb.h>		// jjb
 
 #include "BACnet.hpp"
-
+#include "propid.h" 
+namespace NetworkSniffer {
+	extern char *BACnetPropertyIdentifier[];
+}
 namespace PICS {															// ***002
 
 #include "db.h"       // contains BACnet datatypes
@@ -32,8 +35,6 @@ namespace PICS {															// ***002
 #include "dudtool.h"  // tool functions
 
 #include "props.h"    
-#include "propid.h"                  
-
 
 #define nPRIO 16    // size of priority arrays
 #define nTEST 3     // number of test values
@@ -2478,8 +2479,6 @@ void AV_CreateProperty( av_obj_type far * pObj, BACnetPropertyIdentifier propert
 	}
 }
 
-
-
 void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
 	ASSERT(pbacnetAnyValue != NULL);
@@ -2572,7 +2571,6 @@ void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propert
 			ASSERT(0);
 	}
 }
-
 
 void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
@@ -2678,8 +2676,6 @@ void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
 			ASSERT(0);
 	}
 }
-
-
 
 void BV_CreateProperty( bv_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
@@ -2812,7 +2808,6 @@ void CA_CreateProperty( calendar_obj_type far * pObj, BACnetPropertyIdentifier p
 }
 
 
-
 void CO_CreateProperty( command_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
 	ASSERT(pbacnetAnyValue != NULL);
@@ -2855,7 +2850,6 @@ void CO_CreateProperty( command_obj_type far * pObj, BACnetPropertyIdentifier pr
 			ASSERT(0);
 	}
 }
-
 
 void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
@@ -2977,8 +2971,6 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 	}
 }
 
-
-
 void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
 	ASSERT(pbacnetAnyValue != NULL);
@@ -3051,8 +3043,6 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 	}
 }
 
-
-
 void FI_CreateProperty( file_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
 	ASSERT(pbacnetAnyValue != NULL);
@@ -3097,8 +3087,6 @@ void FI_CreateProperty( file_obj_type far * pObj, BACnetPropertyIdentifier prope
 	}
 }
 
-
-
 void GR_CreateProperty( group_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
 	ASSERT(pbacnetAnyValue != NULL);
@@ -3128,7 +3116,6 @@ void GR_CreateProperty( group_obj_type far * pObj, BACnetPropertyIdentifier prop
 			ASSERT(0);
 	}
 }
-
 
 
 void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
@@ -3643,7 +3630,6 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
 }
 
 
-
 void AVG_CreateProperty( avg_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
 	ASSERT(pbacnetAnyValue != NULL);
@@ -3890,8 +3876,854 @@ BACnetGenericArray * CreateAddressBindingList( PICS::BACnetAddressBinding * pAdd
 	return pbacnetArray;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
 
+bool AI_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case DEVICE_TYPE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case UPDATE_INTERVAL:
+		case UNITS:
+		case MIN_PRES_VALUE:
+		case MAX_PRES_VALUE:
+		case RESOLUTION:
+		case COV_INCREMENT:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case HIGH_LIMIT:
+		case LOW_LIMIT:
+		case DEADBAND:	
+		case LIMIT_ENABLE:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
 
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool AO_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case DEVICE_TYPE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case UNITS:
+		case MIN_PRES_VALUE:
+		case MAX_PRES_VALUE:
+		case RESOLUTION:
+		case PRIORITY_ARRAY:    
+		case RELINQUISH_DEFAULT:
+		case COV_INCREMENT:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case HIGH_LIMIT:
+		case LOW_LIMIT:
+		case DEADBAND:	
+		case LIMIT_ENABLE:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
 
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool AV_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case UNITS:
+		case PRIORITY_ARRAY:    
+		case RELINQUISH_DEFAULT:
+		case COV_INCREMENT:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case HIGH_LIMIT:
+		case LOW_LIMIT:
+		case DEADBAND:	
+		case LIMIT_ENABLE:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool BI_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case DEVICE_TYPE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case POLARITY:
+		case INACTIVE_TEXT:
+		case ACTIVE_TEXT:
+		case CHANGE_OF_STATE_TIME:
+		case CHANGE_OF_STATE_COUNT:
+		case TIME_OF_STATE_COUNT_RESET:
+		case ELAPSED_ACTIVE_TIME:
+		case TIME_OF_ACTIVE_TIME_RESET:
+		case TIME_DELAY:
+		case ALARM_VALUE:
+		case NOTIFICATION_CLASS:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:	
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool BO_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case DEVICE_TYPE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case POLARITY:
+		case INACTIVE_TEXT:
+		case ACTIVE_TEXT:
+		case CHANGE_OF_STATE_TIME:             
+		case CHANGE_OF_STATE_COUNT:
+		case TIME_OF_STATE_COUNT_RESET:
+		case ELAPSED_ACTIVE_TIME:
+		case TIME_OF_ACTIVE_TIME_RESET:
+		case MINIMUM_OFF_TIME:
+		case MINIMUM_ON_TIME:
+		case PRIORITY_ARRAY:    
+		case RELINQUISH_DEFAULT:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case FEEDBACK_VALUE:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:	
+				return true;
+		default:
+				return false;
+	}	
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool BV_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case INACTIVE_TEXT:
+		case ACTIVE_TEXT:
+		case CHANGE_OF_STATE_TIME:             
+		case CHANGE_OF_STATE_COUNT:
+		case TIME_OF_STATE_COUNT_RESET:
+		case ELAPSED_ACTIVE_TIME:
+		case TIME_OF_ACTIVE_TIME_RESET:
+		case MINIMUM_OFF_TIME:
+		case MINIMUM_ON_TIME:
+		case PRIORITY_ARRAY:    
+		case RELINQUISH_DEFAULT:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case ALARM_VALUE:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:			
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool CA_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case DATE_LIST:
+		case PROFILE_NAME:
+				return true;
+		default:
+				return false;
+	}
+
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool CO_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case IN_PROCESS:
+		case ALL_WRITES_SUCCESSFUL:
+		case ACTION:
+		case ACTION_TEXT:
+		case PROFILE_NAME:
+				return true;
+		default:
+               return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool DE_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case SYSTEM_STATUS:
+		case VENDOR_NAME:
+		case VENDOR_IDENTIFIER:
+		case MODEL_NAME:
+		case FIRMWARE_REVISION:
+		case APPLICATION_SOFTWARE_VERSION:
+		case LOCATION:
+		case PROTOCOL_VERSION:
+		case PROTOCOL_REVISION:
+		case PROTOCOL_SERVICES_SUPPORTED:
+		case PROTOCOL_OBJECT_TYPES_SUPPORTED:
+		case OBJECT_LIST:
+		case MAX_APDU_LENGTH_ACCEPTED:
+		case SEGMENTATION_SUPPORTED:
+		case VT_CLASSES_SUPPORTED:
+		case ACTIVE_VT_SESSIONS:
+		case LOCAL_TIME:      
+		case LOCAL_DATE:      
+		case UTC_OFFSET:              
+		case DAYLIGHT_SAVINGS_STATUS:
+		case APDU_SEGMENT_TIMEOUT:
+		case APDU_TIMEOUT:
+		case NUMBER_OF_APDU_RETRIES:
+		case LIST_OF_SESSION_KEYS:
+		case TIME_SYNCHRONIZATION_RECIPIENTS:
+		case MAX_MASTER:
+		case MAX_INFO_FRAMES:
+		case DEVICE_ADDRESS_BINDING:
+		case DATABASE_REVISION:
+		case CONFIGURATION_FILES:
+		case LAST_RESTORE_TIME:
+		case BACKUP_FAILURE_TIMEOUT:
+		case ACTIVE_COV_SUBSCRIPTION:
+		case PROFILE_NAME:
+				return true;
+		default:
+				return false;
+		}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool EV_CheckProperty(unsigned int propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case EVENT_TYPE:
+		case NOTIFY_TYPE:
+		case EVENT_PARAMETERS:
+		case OBJECT_PROPERTY_REFERENCE:
+		case EVENT_STATE:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFICATION_CLASS:
+		case RECIPIENT:     
+		case PROCESS_IDENTIFIER:
+		case PRIORITY:
+		case ISSUE_CONFIRMED_NOTIFICATIONS:	
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:
+			return true;
+		default:
+            return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool FI_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case FILE_TYPE:
+		case FILE_SIZE:
+		case MODIFICATION_DATE: 
+		case ARCHIVE:
+		case READ_ONLY:
+		case FILE_ACCESS_METHOD: 
+		case RECORD_COUNT:
+		case PROFILE_NAME:
+			return true;
+		default:
+            return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool GR_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case LIST_OF_GROUP_MEMBERS: 
+		case PRESENT_VALUE:
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool LO_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case PRESENT_VALUE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case UPDATE_INTERVAL:
+		case OUTPUT_UNITS: 
+		case MANIPULATED_VARIABLE_REFERENCE:
+		case CONTROLLED_VARIABLE_REFERENCE:
+		case CONTROLLED_VARIABLE_VALUE:  
+		case CONTROLLED_VARIABLE_UNITS:
+		case SETPOINT_REFERENCE:
+		case SETPOINT:     
+		case ACTION:
+		case PROPORTIONAL_CONSTANT:
+		case PROPORTIONAL_CONSTANT_UNITS:
+		case INTEGRAL_CONSTANT:
+		case INTEGRAL_CONSTANT_UNITS:  
+		case DERIVATIVE_CONSTANT:  
+		case DERIVATIVE_CONSTANT_UNITS:  
+		case BIAS:
+		case MAXIMUM_OUTPUT:
+		case MINIMUM_OUTPUT:
+		case PRIORITY_FOR_WRITING:
+		case COV_INCREMENT:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case ERROR_LIMIT:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:			
+				return true;
+		default:
+				return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool MSI_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case PRESENT_VALUE:
+		case DEVICE_TYPE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case NUMBER_OF_STATES:
+		case STATE_TEXT:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case ALARM_VALUES:
+		case FAULT_VALUES:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:	
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool MSO_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case PRESENT_VALUE:
+		case DEVICE_TYPE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case NUMBER_OF_STATES:
+		case STATE_TEXT:
+		case PRIORITY_ARRAY:    
+		case RELINQUISH_DEFAULT:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case FEEDBACK_VALUE:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:			
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool MSV_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case NUMBER_OF_STATES:
+		case STATE_TEXT:
+		case PRIORITY_ARRAY:    
+		case RELINQUISH_DEFAULT:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case ALARM_VALUES:					// array of 10 words...  was 'uw' type (I think by mistake)
+		case FAULT_VALUES:					// array of 10 words   was 'uw' type (I think by mistake)      	       
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:
+		case PROFILE_NAME:			
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool NC_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case NOTIFICATION_CLASS:
+		case PRIORITY:
+		case ACK_REQUIRED:
+		case RECIPIENT_LIST:
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool PR_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case PROGRAM_STATE:
+		case PROGRAM_CHANGE:
+		case REASON_FOR_HALT:
+		case DESCRIPTION_OF_HALT:
+		case PROGRAM_LOCATION:
+		case INSTANCE_OF:
+		case STATUS_FLAGS:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool SC_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case PRESENT_VALUE:
+		case EFFECTIVE_PERIOD:
+		case WEEKLY_SCHEDULE:
+		case EXCEPTION_SCHEDULE:
+		case LIST_OF_OBJECT_PROPERTY_REFERENCES:
+		case PRIORITY_FOR_WRITING:
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool AVG_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case MINIMUM_VALUE:		       
+		case MINIMUM_VALUE_TIMESTAMP:         	       
+		case AVERAGE_VALUE:		       
+		case VARIANCE_VALUE:	       
+		case MAXIMUM_VALUE:		       
+		case MAXIMUM_VALUE_TIMESTAMP:          	       
+		case ATTEMPTED_SAMPLES:		   
+		case VALID_SAMPLES:	           
+		case OBJECT_PROPERTY_REFERENCE:      	       
+		case WINDOW_INTERVAL:		   
+		case WINDOW_SAMPLES:
+		case PROFILE_NAME:	
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool TR_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case LOG_ENABLE:  			     
+		case START_TIME:  	 		            	       
+		case STOP_TIME:  				          	       
+		case LOG_DEVICE_OBJECT_PROPERTY:          	       
+		case LOG_INTERVAL:  			     
+		case COV_RESUBSCRIPTION_INTERVAL: 
+		case CLIENT_COV_INCREMENT:  	     
+		case STOP_WHEN_FULL:  		     
+		case BUFFER_SIZE:  			     
+		case LOG_BUFFER:  			             	       
+		case RECORD_COUNT:  			     
+		case TOTAL_RECORD_COUNT:  	     
+		case NOTIFICATION_THRESHOLD:      
+		case RECORDS_SINCE_NOTIFICATION:  
+		case PREVIOUS_NOTIFY_TIME:  	             	       
+		case CURRENT_NOTIFY_TIME:  	             	       
+		case EVENT_STATE:  			     
+		case NOTIFICATION_CLASS:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:	
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool LSP_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case TRACKING_VALUE:
+		case DESCRIPTION:
+		case DEVICE_TYPE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case MODE:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case LIFE_SAFETY_ALARM_VALUES:
+		case ALARM_VALUES:
+		case FAULT_VALUES:	
+		case EVENT_ENABLE:  			     
+		case ACKED_TRANSITIONS:  	 		            	       
+		case NOTIFY_TYPE:  				          	       
+		case EVENT_TIME_STAMPS:          	       
+		case SILENCED:  			     
+		case OPERATION_EXPECTED: 
+		case MAINTENANCE_REQUIRED:  	     
+		case SETTING:  		     
+		case DIRECT_READING:  			     
+		case UNITS:  			             	       
+		case MEMBER_OF:  			     
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool LSZ_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case TRACKING_VALUE:
+		case DESCRIPTION:
+		case DEVICE_TYPE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case MODE:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case LIFE_SAFETY_ALARM_VALUES:
+		case ALARM_VALUES:
+		case FAULT_VALUES:	
+		case EVENT_ENABLE:  			     
+		case ACKED_TRANSITIONS:  	 		            	       
+		case NOTIFY_TYPE:  				          	       
+		case EVENT_TIME_STAMPS:          	       
+		case SILENCED:  			     
+		case OPERATION_EXPECTED: 
+		case MAINTENANCE_REQUIRED:  	     
+		case ZONE_MEMBERS:  		     
+		case MEMBER_OF:  			      			     
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool SC_CheckPropery(BACnetPropertyIdentifier propertyID)
+{
+		switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case PRESENT_VALUE:
+		case EFFECTIVE_PERIOD:
+		case WEEKLY_SCHEDULE:
+		case EXCEPTION_SCHEDULE:
+		case LIST_OF_OBJECT_PROPERTY_REFERENCES:
+		case PRIORITY_FOR_WRITING:
+			return true;
+		default:
+			return false;
+	}
+}
 
 } // end of PICS namespace
+
+
+// Added by Zhu Zhenhua 2003-7-22
+// To check whether the propertyID is one of the Object's standard properties 
+bool Check_Obj_Prop(int ObjType, unsigned int propertyID)
+{	
+	BACnetPropertyIdentifier propID = (BACnetPropertyIdentifier) propertyID;
+	switch(ObjType)
+	{
+	case analogInput:
+		return PICS::AI_CheckProperty(propID);
+	case analogOutput:
+		return PICS::AO_CheckProperty(propID);
+	case analogValue:
+		return PICS::AV_CheckProperty(propID);
+	case binaryInput:
+		return PICS::BI_CheckProperty(propID);
+	case binaryOutput:
+		return PICS::BO_CheckProperty(propID);
+	case binaryValue:
+		return PICS::BV_CheckProperty(propID);
+	case calendar:
+		return PICS::CA_CheckProperty(propID);
+	case command:
+		return PICS::CO_CheckProperty(propID);
+	case device:
+		return PICS::DE_CheckProperty(propID);
+	case eventEnrollment:
+		return PICS::EV_CheckProperty(propID);
+	case file:
+		return PICS::FI_CheckProperty(propID);					
+	case group:
+		return PICS::GR_CheckProperty(propID);						
+	case loop:
+		return PICS::LO_CheckProperty(propID);						
+	case multistateInput:
+		return PICS::MSI_CheckProperty(propID);				
+	case multistateOutput:
+		return PICS::MSO_CheckProperty(propID);		
+	case notificationClass:
+		return PICS::NC_CheckProperty(propID);				
+	case program:
+		return PICS::PR_CheckProperty(propID);					
+	case schedule:
+		return PICS::SC_CheckProperty(propID);
+	case averaging:
+		return PICS::AVG_CheckProperty(propID);
+	case multistateValue:
+		return PICS::MSV_CheckProperty(propID);
+	case trendlog:
+		return PICS::TR_CheckProperty(propID);
+	case lifesafetypoint:
+		return PICS::LSP_CheckProperty(propID);
+	case lifesafetyzone:
+		return PICS::LSZ_CheckProperty(propID);
+
+	default:
+		return false;
+	}
+}
+
+
+
