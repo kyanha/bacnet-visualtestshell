@@ -503,7 +503,9 @@ propdescriptor	AIprops[]={
     "limit-enable",			LIMIT_ENABLE,		oo(ai,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
     "event-enable",			EVENT_ENABLE,		oo(ai,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(ai,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(ai,notify_type),		et,Last|Intr,  eiNT,	O|WithService
+    "notify-type",			NOTIFY_TYPE,		oo(ai,notify_type),		et,     Intr,  eiNT,	O|WithService,
+//madanner 6/03: Added for supporting event-time-stamps
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
     };
 
 propdescriptor	AOprops[]={
@@ -533,7 +535,9 @@ propdescriptor	AOprops[]={
     "limit-enable",			LIMIT_ENABLE,		oo(ao,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
     "event-enable",			EVENT_ENABLE,		oo(ao,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(ao,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(ao,notify_type),		et,Last|Intr,	eiNT,	O|WithService
+    "notify-type",			NOTIFY_TYPE,		oo(ao,notify_type),		et,     Intr,	eiNT,	O|WithService,
+//madanner 6/03: Added for supporting event-time-stamps
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ao,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
     };
 
 propdescriptor	AVprops[]={
@@ -591,7 +595,9 @@ propdescriptor	BIprops[]={
     "alarm-value",			ALARM_VALUE,		oo(bi,alarm_value),		et,		Intr,  eiBPV,	O|WithService,
     "event-enable",			EVENT_ENABLE,		oo(bi,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(bi,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(bi,notify_type),		et,Last|Intr,	eiNT,	O|WithService
+    "notify-type",			NOTIFY_TYPE,		oo(bi,notify_type),		et,     Intr,	eiNT,	O|WithService,
+//madanner 6/03: Added for supporting event-time-stamps
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
     };
 
 propdescriptor	BOprops[]={
@@ -625,7 +631,9 @@ propdescriptor	BOprops[]={
     "feedback-value",		FEEDBACK_VALUE,		oo(bo,feedback_value),	et,		Intr,  eiBPV,	O|WithService,
     "event-enable",			EVENT_ENABLE,		oo(bo,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(bo,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(bo,notify_type),		et,Last|Intr,	eiNT,	O|WithService
+    "notify-type",			NOTIFY_TYPE,		oo(bo,notify_type),		et,     Intr,	eiNT,	O|WithService,
+//madanner 6/03: Added for supporting event-time-stamps
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
     };
 
 propdescriptor	BVprops[]={
@@ -754,7 +762,9 @@ propdescriptor	EEprops[]={
     "process-identifier",	PROCESS_IDENTIFIER,	oo(ee,process_id),		uw,		2,		   0,	O|NotWithGroup1,
     "priority",				PRIORITY,			oo(ee,priority),		uw,		2,		   0,	O|NotWithGroup1,
 "issue-confirmed-notifications",ISSUE_CONFIRMED_NOTIFICATIONS,oo(ee,
-                                                issue_conf_notifications),ebool,Last|2,	eiTF,	O|NotWithGroup1
+                                                issue_conf_notifications),ebool,2,	eiTF,	O|NotWithGroup1,
+//madanner 6/03: Added for supporting event-time-stamps
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMP, Last|2,   0, O|IsArray|NotWithGroup1
     };
 
 propdescriptor	FLprops[]={
@@ -829,7 +839,9 @@ propdescriptor	LPprops[]={
     "error-limit",			ERROR_LIMIT,		oo(loop,error_limit),	flt,	Intr,	   0,	O|WithService,
     "event-enable",			EVENT_ENABLE,		oo(loop,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(loop,acked_transitions),bits,Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(loop,notify_type),	et,Last|Intr,	eiNT,	O|WithService
+    "notify-type",			NOTIFY_TYPE,		oo(loop,notify_type),	et,     Intr,	eiNT,	O|WithService,
+//madanner 6/03: Added for supporting event-time-stamps
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(loop,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
     };
 
 propdescriptor	MIprops[]={
@@ -852,7 +864,9 @@ propdescriptor	MIprops[]={
     "fault-values",			FAULT_VALUES,		oo(mi,fault_values),	stavals,Intr,	   0,	O|WithService,
     "event-enable",			EVENT_ENABLE,		oo(mi,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(mi,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(mi,notify_type),		et,Last|Intr,	eiNT,	O|WithService
+    "notify-type",			NOTIFY_TYPE,		oo(mi,notify_type),		et,     Intr,	eiNT,	O|WithService,
+//madanner 6/03: Added for supporting event-time-stamps
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
     };
 
   
@@ -877,7 +891,9 @@ propdescriptor	MOprops[]={
     "feedback-value",		FEEDBACK_VALUE,		oo(mo,feedback_value),	uw,		Intr,	   0,	O|WithService,
     "event-enable",			EVENT_ENABLE,		oo(mo,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(mo,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(mo,notify_type),		et,Last|Intr,	eiNT,	O|WithService
+    "notify-type",			NOTIFY_TYPE,		oo(mo,notify_type),		et,     Intr,	eiNT,	O|WithService,
+//madanner 6/03: Added for supporting event-time-stamps
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
     };
 
 propdescriptor	NCprops[]={
@@ -975,8 +991,7 @@ propdescriptor	MVprops[]={
      "acked-transitions",  	ACKED_TRANSITIONS,  oo(msv,acked_transitions),  bits,      Intr,      eiEvTr,  O|WithService,
      "notify-type",  		NOTIFY_TYPE,  		oo(msv,notify_type),  	    et,        Intr,      eiNT,    O|WithService,
 //madanner 6/03: Added 'Last' code for prop search
-//   "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Intr,      0,       O|IsArray|WithService,
-     "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Last|Intr,      0,       O|IsArray|WithService,
+     "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Last|Intr,      0,       O|IsArray|WithService
     };
 
 
@@ -1008,8 +1023,7 @@ propdescriptor	TRprops[]={
      "acked-transitions",  			ACKED_TRANSITIONS,  		  oo(trend,acked_transitions),  		  bits,     0,      eiEvTr,  O|WithService,
      "notify-type",  				NOTIFY_TYPE,  			      oo(trend,notify_type),  			      et,       0,      eiNT,    O|WithService,
 //madanner 6/03: Added 'Last' code for prop search
-//   "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    0,      0,       O|IsArray|WithService,
-     "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    Last,      0,       O|IsArray|WithService,
+     "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    Last,      0,       O|IsArray|WithService
   };
 
 stdobjtype	StdObjects[]={

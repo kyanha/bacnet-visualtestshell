@@ -64,6 +64,7 @@ enum BACnetEngineeringUnits	units;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
+    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
    } ai_obj_type;
 
 //Analog Output Object
@@ -92,6 +93,7 @@ enum BACnetEngineeringUnits units;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
+    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
    } ao_obj_type;
 
 //Analog Value Object
@@ -143,6 +145,7 @@ enum BACnetBinaryPV			alarm_value;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
+    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
    } bi_obj_type;
 
 //Binary Output Object
@@ -173,6 +176,7 @@ enum BACnetBinaryPV			feedback_value;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
+    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
    } bo_obj_type;
 
 //Binary Value Object
@@ -201,7 +205,7 @@ enum BACnetBinaryPV			alarm_value;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-	BACnetTimeStamp	    event_time_stamps[3];  //Added by xuyiping 2002-8-29
+	BACnetTimeStamp	        event_time_stamps[3];  //Added by xuyiping 2002-8-29
    } bv_obj_type;
 
 //Calendar Object
@@ -287,6 +291,7 @@ enum BACnetEventState 		state;
     word					process_id;
     word					priority;
     boolean					issue_conf_notifications;
+    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
    } ee_obj_type;
 
 //File Object
@@ -345,6 +350,7 @@ enum BACnetEngineeringUnits derivative_const_units;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
+    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
    } loop_obj_type;
 
 //Multi-state Input Object
@@ -366,6 +372,7 @@ enum BACnetReliability		reliability;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
+    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
    } mi_obj_type;
 
 //Multi-state Output Object
@@ -388,6 +395,7 @@ enum BACnetReliability		reliability;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
+    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
    } mo_obj_type;
 
 //Program Object
