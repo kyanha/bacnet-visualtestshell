@@ -166,6 +166,7 @@ BEGIN
     BEGIN
         MENUITEM "&Check Syntax",               ID_SCRIPT_CHECK_SYNTAX
         MENUITEM "&Load EPICS",                 ID_SCRIPT_LOADEPICS
+        MENUITEM "&Environment",                ID_SCRIPT_ENV
         MENUITEM SEPARATOR
         MENUITEM "&Run\tF5",                    ID_SCRIPT_RUN
         MENUITEM "&Halt",                       ID_SCRIPT_HALT

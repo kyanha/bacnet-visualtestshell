@@ -177,6 +177,9 @@ BOOL VTSApp::InitInstance()
 	Bind( &gDebug1, &gDebug2 );
 #endif
 
+	// no initial environment
+	gCurrentEnv = 0;
+
 	// load the preferences
 	gVTSPreferences.Load();
 
@@ -314,6 +317,8 @@ void VTSPreferences::Save( void )
 //				will be used by a built-in device object, and I think that is a good thing.
 //			Now checks the version of BACMACNT.SYS it can find.  Only version 3.0 works, but I
 //				don't know why.
+//			Support environment parameters.  One open script can be selected as the 'environment'
+//				and all other open scripts will inherit the defined parameters.
 //
 
 const int kReleaseVersion = 8;

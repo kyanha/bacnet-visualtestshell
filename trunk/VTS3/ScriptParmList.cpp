@@ -14,6 +14,9 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+ScriptParmList		*gCurrentEnv;
+ScriptParmListList	gScriptParmLists;
+
 /////////////////////////////////////////////////////////////////////////////
 // ScriptParmList
 
@@ -26,6 +29,7 @@ IMPLEMENT_DYNCREATE(ScriptParmList, CListView)
 ScriptParmList::ScriptParmList()
 	: m_iSelectedElem(-1)
 {
+	gScriptParmLists.Add( this );
 }
 
 //
@@ -34,6 +38,15 @@ ScriptParmList::ScriptParmList()
 
 ScriptParmList::~ScriptParmList()
 {
+	// remove this from the list of parameter lists
+	gScriptParmLists.Remove( this );
+
+	// if this was the current environment, tell everyone (else) to unload
+	if (this == gCurrentEnv) {
+		for (int i = 0; i < gScriptParmLists.Length(); i++)
+			gScriptParmLists[i]->UnloadEnv();
+		gCurrentEnv = 0;
+	}
 }
 
 BEGIN_MESSAGE_MAP(ScriptParmList, CListView)
@@ -69,7 +82,7 @@ ScriptParm::~ScriptParm( void )
 //	ScriptParmList::Add
 //
 
-void ScriptParmList::Add( CString &name, CString &valu, CString &desc, int line )
+void ScriptParmList::Add( CString &name, CString &valu, CString &desc, int line, bool env )
 {
 	int				indx
 	,				code = ScriptToken::HashCode( name )
@@ -91,10 +104,11 @@ void ScriptParmList::Add( CString &name, CString &valu, CString &desc, int line 
 			m_pListCtrl->SetItemText( indx, 1, (LPCTSTR)pp->parmValue );
 		}
 
-		// set the script value, line, and description
+		// set the script value, line, and description, leave the current value alone
 		pp->parmScriptValue = valu;
 		pp->parmLine = line;
 		pp->parmDesc = desc;
+		pp->parmEnv = env;
 
 		// reset the mark
 		pp->parmMark = false;
@@ -104,43 +118,53 @@ void ScriptParmList::Add( CString &name, CString &valu, CString &desc, int line 
 
 		// set the image status
 		m_pListCtrl->SetItem( indx, 0, TVIF_IMAGE, 0
-			, ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
+			, (pp->parmEnv ? 2 : 0) + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
 			, 0, 0, 0
 			);
+	} else {
+		// create a new parameter record
+		pp = new ScriptParm( name );
 
-		return;
+		// save the values and line number
+		pp->parmValue = pp->parmScriptValue = valu;
+		pp->parmLine = line;
+		pp->parmDesc = desc;
+		pp->parmEnv = env;
+
+		// reset the mark
+		pp->parmMark = false;
+
+		// add the item to the list
+		indx = m_pListCtrl->InsertItem( 0x7FFFFFFF, (LPCTSTR)pp->parmName );
+		m_pListCtrl->SetItemText( indx, 1, (LPCTSTR)pp->parmValue );
+		m_pListCtrl->SetItemText( indx, 2, (LPCTSTR)pp->parmDesc );
+		m_pListCtrl->SetItemData( indx, (DWORD)pp );
+
+		// set the image for the list to match the status of the parm
+		m_pListCtrl->SetItem( indx, 0, TVIF_IMAGE, 0
+			, (pp->parmEnv ? 2 : 0) + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
+			, 0, 0, 0
+			);
 	}
-
-	// create a new parameter record
-	pp = new ScriptParm( name );
-
-	// save the values and line number
-	pp->parmValue = pp->parmScriptValue = valu;
-	pp->parmLine = line;
-	pp->parmDesc = desc;
-
-	// reset the mark
-	pp->parmMark = false;
-
-	// add the item to the list
-	indx = m_pListCtrl->InsertItem( 0x7FFFFFFF, (LPCTSTR)pp->parmName );
-	m_pListCtrl->SetItemText( indx, 1, (LPCTSTR)pp->parmValue );
-	m_pListCtrl->SetItemText( indx, 2, (LPCTSTR)pp->parmDesc );
-	m_pListCtrl->SetItemData( indx, (DWORD)pp );
-
-	// set the image for the list to match the status of the parm
-	m_pListCtrl->SetItem( indx, 0, TVIF_IMAGE, 0, ((pp->parmValue != pp->parmScriptValue) ? 1 : 0), 0, 0, 0 );
 }
 
 //
 //	ScriptParmList::Mark
 //
+//	First part of a mark/sweep method for cleaning up parameters.  The idea is to leave as 
+//	many untouched as possible between versions of a script, so if a parameter is still 
+//	"marked" after re-parsing the script then it's OK to delete the variable.
+//
+//	When env is true, this is being used during the process of synchronizing the environment
+//	parameters, see ScriptParmList::MatchEnv().
+//
 
-void ScriptParmList::Mark( void )
+void ScriptParmList::Mark( bool env )
 {
 	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++) {
 		ScriptParmPtr pp = (ScriptParmPtr)m_pListCtrl->GetItemData( i );
-		pp->parmMark = true;
+		if (pp->parmEnv == env)
+			pp->parmMark = true;
 	}
 }
 
@@ -192,8 +216,15 @@ ScriptParmPtr ScriptParmList::operator []( int indx )
 
 void ScriptParmList::Reset( void )
 {
+	bool	isEnv = (this == gCurrentEnv)
+	;
+
 	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++) {
 		ScriptParmPtr pp = (ScriptParmPtr)m_pListCtrl->GetItemData( i );
+
+		// if this is an env parm and we are not resetting the current env, skip it
+		if (pp->parmEnv && !isEnv)
+			continue;
 
 		// if they're the same, skip it
 		if (pp->parmValue == pp->parmScriptValue)
@@ -204,8 +235,17 @@ void ScriptParmList::Reset( void )
 
 		// clean up the display
 		m_pListCtrl->SetItemText( i, 1, (LPCTSTR)pp->parmValue );
-		m_pListCtrl->SetItem( i, 0, TVIF_IMAGE, 0, 0, 0, 0, 0 );
+		m_pListCtrl->SetItem( i, 0, TVIF_IMAGE, 0, (pp->parmEnv ? 2 : 0), 0, 0, 0 );
 	}
+
+	// if this is the current environment, tell everyone else to match
+	if (isEnv)
+		for (int i = 0; i < gScriptParmLists.Length(); i++) {
+			ScriptParmListPtr splp = gScriptParmLists[i];
+
+			if (splp != gCurrentEnv)
+				splp->MatchEnv();
+		}
 }
 
 //
@@ -238,6 +278,218 @@ ScriptParmPtr ScriptParmList::LookupParm( int code )
 
 	// no success
 	return 0;
+}
+
+//
+//	ScriptParmList::SetCurrentEnv
+//
+
+void ScriptParmList::SetCurrentEnv( void )
+{
+	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++) {
+		ScriptParmPtr pp = (ScriptParmPtr)m_pListCtrl->GetItemData( i );
+
+		// tell it its an environment parameter
+		pp->parmEnv = true;
+
+		// set the image status
+		m_pListCtrl->SetItem( i, 0, TVIF_IMAGE, 0
+			, 2 + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
+			, 0, 0, 0
+			);
+	}
+}
+
+//
+//	ScriptParmList::ResetCurrentEnv
+//
+
+void ScriptParmList::ResetCurrentEnv( void )
+{
+	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++) {
+		ScriptParmPtr pp = (ScriptParmPtr)m_pListCtrl->GetItemData( i );
+
+		// tell it its not an environment parameter
+		pp->parmEnv = false;
+
+		// set the image status
+		m_pListCtrl->SetItem( i, 0, TVIF_IMAGE, 0
+			, ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
+			, 0, 0, 0
+			);
+	}
+}
+
+//
+//	ScriptParmList::LoadEnv
+//
+
+void ScriptParmList::LoadEnv( void )
+{
+	int				indx
+	;
+	ScriptParmPtr	pp
+	;
+
+	for (int i = 0; i < gCurrentEnv->Length(); i++) {
+		ScriptParmPtr envpp = (*gCurrentEnv)[ i ];
+
+		// look for the var
+		indx = LookupIndex( envpp->parmSymbol );
+
+		// if found, make sure it's locally defined.  If it is, leave it alone.
+		if (indx >= 0) {
+			// the data is tucked behind the item element
+			pp = (ScriptParmPtr)m_pListCtrl->GetItemData( indx );
+
+			// if it's a non-env parm, leave it alone
+			if (!pp->parmEnv)
+				continue;
+
+			// should never get here, this wasn't properly unloaded
+			ASSERT( 0 );
+		}
+
+		// create a new parameter record
+		pp = new ScriptParm( envpp->parmName );
+
+		// save the values and line number
+		pp->parmValue = envpp->parmValue;
+		pp->parmScriptValue = envpp->parmScriptValue;
+		pp->parmLine = -1;
+		pp->parmDesc = envpp->parmDesc;
+		pp->parmEnv = true;
+
+		// reset the mark
+		pp->parmMark = false;
+
+		// add the item to the list
+		indx = m_pListCtrl->InsertItem( 0x7FFFFFFF, (LPCTSTR)pp->parmName );
+		m_pListCtrl->SetItemText( indx, 1, (LPCTSTR)pp->parmValue );
+		m_pListCtrl->SetItemText( indx, 2, (LPCTSTR)pp->parmDesc );
+		m_pListCtrl->SetItemData( indx, (DWORD)pp );
+
+		// set the image for the list to match the status of the parm
+		m_pListCtrl->SetItem( indx, 0, TVIF_IMAGE, 0
+			, 2 + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
+			, 0, 0, 0
+			);
+	}
+}
+
+//
+//	ScriptParmList::UnloadEnv
+//
+
+void ScriptParmList::UnloadEnv( void )
+{
+	for (int i = 0; i < m_pListCtrl->GetItemCount(); i++) {
+		ScriptParmPtr pp = (ScriptParmPtr)m_pListCtrl->GetItemData( i );
+
+		// if it's an env parm, delete it
+		if (pp->parmEnv) {
+			// remove from list
+			m_pListCtrl->DeleteItem( i );
+
+			// delete the parameter
+			delete pp;
+
+			// reset to check this spot again
+			i -= 1;
+		}
+	}
+}
+
+//
+//	ScriptParmList::MatchEnv
+//
+
+void ScriptParmList::MatchEnv( void )
+{
+	ASSERT( gCurrentEnv );
+
+	// mark current env parms
+	Mark( true );
+
+	// go through the parms in the current env
+	for (int i = 0; i < gCurrentEnv->Length(); i++) {
+		ScriptParmPtr envpp = (*gCurrentEnv)[ i ];
+
+		// match it
+		MatchEnvParm( envpp );
+	}
+
+	// delete obsolete env parms
+	Release();
+}
+
+//
+//	ScriptParmList::MatchEnvParm
+//
+
+void ScriptParmList::MatchEnvParm( ScriptParmPtr envpp )
+{
+	int				indx
+	;
+	ScriptParmPtr	pp
+	;
+
+	// look for the var
+	indx = LookupIndex( envpp->parmSymbol );
+
+	// if found, update the script value and line
+	if (indx >= 0) {
+		// the data is tucked behind the item element
+		pp = (ScriptParmPtr)m_pListCtrl->GetItemData( indx );
+
+		// if there's already a non-env parm defined, leave it alone
+		if (pp->parmEnv) {
+			// update all of the information
+			pp->parmValue = envpp->parmValue;
+			pp->parmScriptValue = envpp->parmScriptValue;
+			pp->parmLine = -1;
+			pp->parmDesc = envpp->parmDesc;
+			pp->parmEnv = true;
+
+			// reset the mark
+			pp->parmMark = false;
+
+			// make sure the list gets the new information
+			m_pListCtrl->SetItemText( indx, 1, (LPCTSTR)pp->parmValue );
+			m_pListCtrl->SetItemText( indx, 2, (LPCTSTR)pp->parmDesc );
+
+			// set the image status
+			m_pListCtrl->SetItem( indx, 0, TVIF_IMAGE, 0
+				, 2 + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
+				, 0, 0, 0
+				);
+		}
+	} else {
+		// create a new parameter record
+		pp = new ScriptParm( envpp->parmName );
+
+		// save the values and line number
+		pp->parmValue = envpp->parmValue;
+		pp->parmScriptValue = envpp->parmScriptValue;
+		pp->parmLine = -1;
+		pp->parmDesc = envpp->parmDesc;
+		pp->parmEnv = true;
+
+		// reset the mark
+		pp->parmMark = false;
+
+		// add the item to the list
+		indx = m_pListCtrl->InsertItem( 0x7FFFFFFF, (LPCTSTR)pp->parmName );
+		m_pListCtrl->SetItemText( indx, 1, (LPCTSTR)pp->parmValue );
+		m_pListCtrl->SetItemText( indx, 2, (LPCTSTR)pp->parmDesc );
+		m_pListCtrl->SetItemData( indx, (DWORD)pp );
+
+		// set the image for the list to match the status of the parm
+		m_pListCtrl->SetItem( indx, 0, TVIF_IMAGE, 0
+			, 2 + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
+			, 0, 0, 0
+			);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -358,9 +610,18 @@ void ScriptParmList::OnDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
 		// update the list to the new value and status
 		m_pListCtrl->SetItemText( m_iSelectedElem, 1, (LPCTSTR)pp->parmValue );
 		m_pListCtrl->SetItem( m_iSelectedElem, 0, TVIF_IMAGE, 0
-			, ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
+			, (pp->parmEnv ? 2 : 0) + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
 			, 0, 0, 0
 			);
+
+		// if this is an env parm, update everybody else
+		if (pp->parmEnv)
+			for (int i = 0; i < gScriptParmLists.Length(); i++) {
+				ScriptParmListPtr splp = gScriptParmLists[i];
+
+				if (splp != this)
+					splp->MatchEnvParm( pp );
+			}
 	}
 }
 
@@ -389,4 +650,69 @@ void ScriptParmList::OnDestroy()
 
 	// continue with destruction
 	CListView::OnDestroy();
+}
+
+//
+//	ScriptParmListList::ScriptParmListList
+//
+
+ScriptParmListList::ScriptParmListList( void )
+{
+}
+
+//
+//	ScriptParmListList::~ScriptParmListList
+//
+
+ScriptParmListList::~ScriptParmListList( void )
+{
+}
+
+//
+//	ScriptParmListList::Add
+//
+
+void ScriptParmListList::Add( ScriptParmListPtr splp )
+{
+	// add it to our list of parameter lists
+	AddTail( splp );
+}
+
+//
+//	ScriptParmListList::Remove
+//
+
+void ScriptParmListList::Remove( ScriptParmListPtr splp )
+{
+	for (POSITION xpos = GetHeadPosition(); xpos; ) {
+		POSITION		cur = xpos;
+		ScriptParmListPtr cursplp = (ScriptParmListPtr)GetNext( xpos );
+
+		if (cursplp == splp) {
+			RemoveAt( cur );
+			return;
+		}
+	}
+}
+
+//
+//	ScriptParmListList::Length
+//
+
+int ScriptParmListList::Length( void )
+{
+	return CList<ScriptParmListPtr,ScriptParmListPtr>::GetCount();
+}
+
+//
+//	ScriptParmListList::operator []
+//
+
+ScriptParmListPtr ScriptParmListList::operator []( int i )
+{
+	POSITION	pos = FindIndex( i )
+	;
+
+	ASSERT( pos != NULL );
+	return GetAt( pos );
 }

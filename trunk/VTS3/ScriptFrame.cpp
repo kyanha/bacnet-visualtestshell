@@ -40,6 +40,7 @@ BEGIN_MESSAGE_MAP(ScriptFrame, CMDIChildWnd)
 	//{{AFX_MSG_MAP(ScriptFrame)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_CHECK_SYNTAX, OnUpdateScriptCheckSyntax)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_LOADEPICS, OnUpdateScriptLoadEPICS)
+	ON_UPDATE_COMMAND_UI(ID_SCRIPT_ENV, OnUpdateScriptEnvironment)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_RUN, OnUpdateScriptRun)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_HALT, OnUpdateScriptHalt)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_STEP, OnUpdateScriptStep)
@@ -49,6 +50,7 @@ BEGIN_MESSAGE_MAP(ScriptFrame, CMDIChildWnd)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_RESET, OnUpdateScriptReset)
 	ON_COMMAND(ID_SCRIPT_CHECK_SYNTAX, OnScriptCheckSyntax)
 	ON_COMMAND(ID_SCRIPT_LOADEPICS, OnScriptLoadEPICS)
+	ON_COMMAND(ID_SCRIPT_ENV, OnScriptEnvironment)
 	ON_COMMAND(ID_SCRIPT_RUN, OnScriptRun)
 	ON_COMMAND(ID_SCRIPT_HALT, OnScriptHalt)
 	ON_COMMAND(ID_SCRIPT_STEP, OnScriptStep)
@@ -207,6 +209,19 @@ afx_msg void ScriptFrame::OnUpdateScriptLoadEPICS(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable( true );
 	pCmdUI->SetCheck( gPICSdb != 0 );
+}
+
+//
+//	ScriptFrame::OnUpdateScriptEnvironment
+//
+//	The menu is checked when the parameter list in this frame is the 
+//	current environment.
+//
+
+afx_msg void ScriptFrame::OnUpdateScriptEnvironment(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable( true );
+	pCmdUI->SetCheck( m_pParmList == gCurrentEnv );
 }
 
 //
@@ -385,6 +400,47 @@ void ScriptFrame::OnScriptLoadEPICS()
 		// toss the rest
 		delete gPICSdb;
 		gPICSdb = 0;
+	}
+}
+
+//
+//	ScriptFrame::OnScriptEnvironment
+//
+
+void ScriptFrame::OnScriptEnvironment()
+{
+	ScriptParmListPtr	oldEnv
+	;
+
+	// remember the current environment
+	oldEnv = gCurrentEnv;
+
+	// reset the current environment and unload everyone else
+	if (gCurrentEnv) {
+		gCurrentEnv->ResetCurrentEnv();
+
+		for (int i = 0; i < gScriptParmLists.Length(); i++) {
+			ScriptParmListPtr splp = gScriptParmLists[i];
+
+			if (splp != gCurrentEnv)
+				splp->UnloadEnv();
+		}
+
+		gCurrentEnv = 0;
+	}
+
+	// if this becomes the new environment, set it and load everyone else
+	if (m_pParmList != oldEnv) {
+		gCurrentEnv = m_pParmList;
+
+		gCurrentEnv->SetCurrentEnv();
+
+		for (int j = 0; j < gScriptParmLists.Length(); j++) {
+			ScriptParmListPtr splp = gScriptParmLists[j];
+
+			if (splp != gCurrentEnv)
+				splp->LoadEnv();
+		}
 	}
 }
 
