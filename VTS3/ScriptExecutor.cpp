@@ -30,6 +30,11 @@ namespace PICS {
 #include "dudapi.h"
 #include "dudtool.h"
 #include "propid.h"
+
+//extern struct generic_object;
+//class BACnetAnyValue;
+extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue );
+
 }
 
 extern PICS::PICSdb *gPICSdb;
@@ -39,6 +44,7 @@ extern PICS::PICSdb *gPICSdb;
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
+
 
 // global defines
 
@@ -67,10 +73,16 @@ const float FLOAT_EPSINON = 1e-005;
 const double DOUBLE_EPSINON = 1e-010;
 /////////////////////////////
 
+
 bool Match( int op, int a, int b );
-bool Match( int op, unsigned a, unsigned b );
+//madanner 9/24/02, needed for expanded BACnetUsigned internal value
+//bool Match( int op, unsigned long a, unsigned long b );
+bool Match( int op, unsigned long a, unsigned long b );
 bool Match( int op, float a, float b );
 bool Match( int op, double a, double b );
+bool Match( int op, CTime &timeThis, CTime &timeThat );
+LPCSTR OperatorToString(int iOperator);
+
 
 
 //	VTSQueue<ScriptExecMsg>
@@ -391,6 +403,14 @@ void ScriptAppFilter::Confirmation( const BACnetAPDU &apdu )
 ScriptExecutor::ExecError::ExecError( const char *msg, int lineNo )
 	: errMsg(msg), errLineNo(lineNo)
 {
+}
+
+
+ScriptExecutor::ExecError::ExecError( CString &str, int lineNo )
+	: errLineNo(lineNo)
+{
+	lstrcpy(szBuf, (LPCSTR)str);
+	errMsg = szBuf;
 }
 
 //
@@ -1128,35 +1148,18 @@ void ScriptExecutor::ResolveExpr( const char *expr, int exprLine, ScriptTokenLis
 	}
 }
 
+
 //
-//	ScriptExecutor::GetReferenceData
+//	ScriptExecutor::GetEPICSProperty
 //
 //	Given a property keyword, this function will attempt to get the value of the 
-//	property from the EPICS database.  It will return a pointer to the value, and 
-//	if the EPICS specified '?', it will return null.
-//
+//	property from the EPICS database.
+//  Throw a string exception if there is a problem
 
-void* ScriptExecutor::GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *dp )
+void ScriptExecutor::GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny )
 {
-	int						pid, pindx
-	;
-	short					err
-	;
-	PICS::generic_object	*pobj
-	;
-	PICS::PVMessage			pvm
-	;
-	static BACnetOctet		valueBuff[2048]
-	;
-
-	//madanner 9/20/02, on very few occasions the value is KNOWN (not marked in EPICS as '?') but the value is empty ().
-	//If empty, pv will = null and the caller will mistake this for unknown data.  So we need to provide a way to 
-	//test the difference between a null return value with bad data, and a null return value with empty data.  Only 
-	//callers that use the optional parameter are even remotely concerned with this... in addition, it will not alter
-	//the usage of the return value so no existing code will break :)
-
-	if ( dp )
-		dp->pktLength = -1;			// will be set (possibly to zero) after data is gathered.  -1 = no data
+	int						pid, pindx;
+	PICS::generic_object	*pobj;
 
 	// find the property
 	pid = ScriptToken::Lookup( prop, ScriptPropertyMap );
@@ -1176,15 +1179,6 @@ void* ScriptExecutor::GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *d
 	if (!pobj)
 		throw "Object not defined in EPICS";
 
-	// set the parameter values
-	pvm.Obj = pobj;
-	pvm.PropId = pid;
-	pvm.Action = ASN_1_ANY_PROP;
-    
-	//***Added by Liangping Xu, 2002-8-5***//
-	 pvm.ArrayIndex = nArrayIndx;
- 	 nArrayIndx = -1;
-    //***Ended by Liangping Xu, 2002-8-5***//
 	// get the index of the property flags
 	pindx = PICS::GetPropIndex( pobj->object_type, pid );
 	if (pindx < 0)
@@ -1192,21 +1186,17 @@ void* ScriptExecutor::GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *d
 
 	// see if the value is not available
 	if (pobj->propflags[pindx] & ValueUnknown)
-		return 0;
+		throw "EPICS property is not specified";
 
-	// get some information
-	err = PICS::GetPropValue( (char *)valueBuff, &pvm );
-	if (err != 0)
-		throw "Error getting property value from EPICS";
+	// Access DUDAPI call to point to yucky part of EPICS internal data structures
+	// The PVM object will be loaded with info on how to construct a BACnet object
 
-	// save a reference to the encoded content
-	if (dp)
-		dp->SetBuffer( valueBuff, pvm.BufferLen );
+	PICS::CreatePropertyFromEPICS( pobj, pid, pbacnetAny );
 
-	// success
-	*typ = pvm.pt;
-	return pvm.pv;			// this value may be null assume this could be valid data (emtpy).  If null, pktLenth should be 0.
+	if ( pbacnetAny->GetObject() == NULL )
+		throw "Property value not known or comparison for this type not implemented";
 }
+
 
 //
 //	ScriptExecutor::SendPacket
@@ -3309,21 +3299,16 @@ void ScriptExecutor::SendALData( CByteArray &packet )
 
 			// reference or data?
 			if (tlist[0].tokenType == scriptReference) {
-				int					typ
-				;
-				void				*pValue
-				;
-				BACnetAPDUDecoder	dec
-				;
+				BACnetAnyValue		bacnetEPICSProperty;
 
-				// get the encoded value
-				pValue = GetReferenceData( tlist[0].tokenSymbol, &typ, &dec );
-				if (!pValue)
-					throw "Property value not known";
+				GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+
+				BACnetAPDUEncoder	enc(2048);		// big buffer size
+				bacnetEPICSProperty.Encode(enc);
 
 				// copy the contents into the byte array
-				for (int i = 0; i < dec.pktLength; i++)
-					packet.Add( dec.pktBuffer[i] );
+				for (int i = 0; i < enc.pktLength; i++)
+					packet.Add( enc.pktBuffer[i] );
 			} else {
 				if (!tlist[0].IsEncodeable( ostr ))
 					throw "Octet string expected";
@@ -3472,28 +3457,24 @@ void ScriptExecutor::SendALBoolean( ScriptPacketExprPtr spep, CByteArray &packet
 		throw "Boolean keyword requires 1 or 2 parameters";
 
 	// reference or real data?
-	if (tlist[indx].tokenType == scriptReference) {
-		int				typ
-		;
-		PICS::boolean	*pValue
-		;
+	if (tlist[indx].tokenType == scriptReference)
+	{
+		BACnetAnyValue bacnetAny;
 
-		// get a pointer to the value
-		pValue = (PICS::boolean *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
 
 		// verify the type
-		if (typ != ebool)
+		if (bacnetAny.GetType() != ebool)
 			throw "Boolean property value expected in EPICS";
-		else
-			boolData.boolValue = (BACnetBoolean::eBACnetBoolean)*pValue;
-	} else
-	if (!tlist[indx].IsEncodeable( boolData ))
-		throw "Boolean value expected";
 
-	// encode it
-	boolData.Encode( enc, context );
+		bacnetAny.Encode(enc, context);
+	} else
+	{
+		if (!tlist[indx].IsEncodeable( boolData ))
+			throw "Boolean value expected";
+
+		boolData.Encode( enc, context );
+	}
 
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
@@ -3534,22 +3515,17 @@ void ScriptExecutor::SendALUnsigned( ScriptPacketExprPtr spep, CByteArray &packe
 		throw "Unsigned keyword requires 1 or 2 parameters";
 
 	// reference or real data?
-	if (tlist[indx].tokenType == scriptReference) {
-		int			typ
-		;
-		PICS::word	*pValue
-		;
+	if (tlist[indx].tokenType == scriptReference)
+	{
+		BACnetAnyValue bacnetAny;
 
-		// get a pointer to the value
-		pValue = (PICS::word *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
 
 		// verify the type
-		if (typ != uw)
+		if (bacnetAny.GetType() != uw )
 			throw "Unsigned property value expected in EPICS";
-		else
-			uintData.uintValue = *pValue;
+
+		uintData.uintValue = ((BACnetUnsigned *) bacnetAny.GetObject())->uintValue;
 	} else
 	if (!tlist[indx].IsEncodeable( uintData ))
 		throw "Unsigned value expected";
@@ -3560,23 +3536,23 @@ void ScriptExecutor::SendALUnsigned( ScriptPacketExprPtr spep, CByteArray &packe
 			throw "Unsigned8 value out of range (0..255)";
 		if (tlist.Length() == 2)
 			throw "Unsigned8 keyword cannot be context encoded";
-		packet.Add( uintData.uintValue );
+		packet.Add( (unsigned char) uintData.uintValue );
 	} else
 	if (spep->exprKeyword == kwUNSIGNED16) {
 		if ((uintData.uintValue < 0) || (uintData.uintValue > 65535))
 			throw "Unsigned16 value out of range (0..65535)";
 		if (tlist.Length() == 2)
 			throw "Unsigned16 keyword cannot be context encoded";
-		packet.Add( (uintData.uintValue >> 8) & 0xFF );
-		packet.Add( uintData.uintValue & 0xFF );
+		packet.Add( (unsigned char) ((uintData.uintValue >> 8) & 0xFF) );
+		packet.Add( (unsigned char) (uintData.uintValue & 0xFF) );
 	} else
 	if (spep->exprKeyword == kwUNSIGNED32) {
 		if (tlist.Length() == 2)
 			throw "Unsigned32 keyword cannot be context encoded";
-		packet.Add( (uintData.uintValue >> 24) & 0xFF );
-		packet.Add( (uintData.uintValue >> 16) & 0xFF );
-		packet.Add( (uintData.uintValue >>  8) & 0xFF );
-		packet.Add( uintData.uintValue & 0xFF );
+		packet.Add( (unsigned char) ((uintData.uintValue >> 24) & 0xFF) );
+		packet.Add( (unsigned char) ((uintData.uintValue >> 16) & 0xFF) );
+		packet.Add( (unsigned char) ((uintData.uintValue >>  8) & 0xFF) );
+		packet.Add( (unsigned char) (uintData.uintValue & 0xFF) );
 	} else {
 		// encode it
 		uintData.Encode( enc, context );
@@ -3594,8 +3570,6 @@ void ScriptExecutor::SendALUnsigned( ScriptPacketExprPtr spep, CByteArray &packe
 void ScriptExecutor::SendALInteger( ScriptPacketExprPtr spep, CByteArray &packet )
 {
 	int					indx, context = kAppContext
-	;
-	BACnetInteger		intData
 	;
 	BACnetAPDUEncoder	enc
 	;
@@ -3622,39 +3596,24 @@ void ScriptExecutor::SendALInteger( ScriptPacketExprPtr spep, CByteArray &packet
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int						typ
-		;
-		void					*pValue
-		;
+		BACnetAnyValue bacnetAny;
 
-		// get a pointer to the value
-		pValue = GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
 
 		// verify the type
-		switch (typ) {
-			case uw:
-				intData.intValue = *(PICS::word *)pValue;
-				break;
-			case ud:
-				intData.intValue = *(PICS::dword *)pValue;
-				break;
-			case sw:
-				intData.intValue = *(PICS::word *)pValue;
-				break;
-			case ssint:
-				intData.intValue = *(int *)pValue;
-				break;
-			default:
-				throw "Integer property value expected in EPICS";
-		}
-	} else
-	if (!tlist[indx].IsEncodeable( intData ))
-		throw "Integer value expected";
+		if (!bacnetAny.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)) && !bacnetAny.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetInteger)) )
+			throw "Integer property value expected in EPICS";
 
-	// encode it
-	intData.Encode( enc, context );
+		bacnetAny.Encode(enc, context);
+	} else
+	{
+		BACnetInteger intData;
+		if (!tlist[indx].IsEncodeable( intData ))
+			throw "Integer value expected";
+
+		// encode it
+		intData.Encode( enc, context );
+	}
 
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
@@ -3668,8 +3627,6 @@ void ScriptExecutor::SendALInteger( ScriptPacketExprPtr spep, CByteArray &packet
 void ScriptExecutor::SendALReal( ScriptPacketExprPtr spep, CByteArray &packet )
 {
 	int					indx, context = kAppContext
-	;
-	BACnetReal			realData
 	;
 	BACnetAPDUEncoder	enc
 	;
@@ -3691,28 +3648,26 @@ void ScriptExecutor::SendALReal( ScriptPacketExprPtr spep, CByteArray &packet )
 		throw "Real keyword requires 1 or 2 parameters";
 
 	// reference or real data?
-	if (tlist[indx].tokenType == scriptReference) {
-		int						typ
-		;
-		float					*pValue
-		;
+	if (tlist[indx].tokenType == scriptReference)
+	{
+		BACnetAnyValue bacnetAny;
 
-		// get a pointer to the value
-		pValue = (float *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
 
 		// verify the type
-		if (typ == flt)
-			realData.realValue = *pValue;
-		else
+		if ( bacnetAny.GetType() != flt )
 			throw "Real property value expected in EPICS";
-	} else
-	if (!tlist[indx].IsEncodeable( realData ))
-		throw "Real value expected";
 
-	// encode it
-	realData.Encode( enc, context );
+		bacnetAny.Encode(enc, context);
+	} else
+	{
+		BACnetReal realData;
+
+		if (!tlist[indx].IsEncodeable( realData ))
+			throw "Real value expected";
+		
+		realData.Encode( enc, context );
+	}
 
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
@@ -3726,8 +3681,6 @@ void ScriptExecutor::SendALReal( ScriptPacketExprPtr spep, CByteArray &packet )
 void ScriptExecutor::SendALDouble( ScriptPacketExprPtr spep, CByteArray &packet )
 {
 	int					indx, context = kAppContext
-	;
-	BACnetDouble		doubleData
 	;
 	BACnetAPDUEncoder	enc
 	;
@@ -3750,27 +3703,24 @@ void ScriptExecutor::SendALDouble( ScriptPacketExprPtr spep, CByteArray &packet 
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int						typ
-		;
-		float					*pValue
-		;
+		BACnetAnyValue bacnetAny;
 
-		// get a pointer to the value
-		pValue = (float *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
 
 		// verify the type
-		if (typ == flt)
-			doubleData.doubleValue = *pValue;
-		else
+		if (bacnetAny.GetType() != flt )
 			throw "Floating point property value expected in EPICS";
-	} else
-	if (!tlist[indx].IsEncodeable( doubleData ))
-		throw "Floating point value expected";
 
-	// encode it
-	doubleData.Encode( enc, context );
+		bacnetAny.Encode(enc, context);
+	} else
+	{
+		BACnetDouble		doubleData;
+
+		if (!tlist[indx].IsEncodeable( doubleData ))
+			throw "Floating point value expected";
+
+		doubleData.Encode( enc, context );
+	}
 
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
@@ -3891,25 +3841,18 @@ void ScriptExecutor::SendALCharacterString( ScriptPacketExprPtr spep, CByteArray
 
 	// see if a reference was used
 	if (indx >= 0) {
-		int			typ
-		;
-		char		*pValue
-		;
+		BACnetAnyValue bacnetAny;
 
-		// get a pointer to the value
-		pValue = (char *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
 
 		// verify the type
-		if ((typ == s10) || (typ == s32) || (typ == s64) || (typ == s132)) {
-			cstrData.SetValue( pValue );
-		} else
+		if ( !bacnetAny.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
 			throw "Character string property value expected in EPICS";
-	}
 
-	// encode it
-	cstrData.Encode( enc, context );
+		bacnetAny.Encode(enc, context);
+	}
+	else
+		cstrData.Encode( enc, context );
 
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
@@ -3925,13 +3868,10 @@ void ScriptExecutor::SendALCharacterString( ScriptPacketExprPtr spep, CByteArray
 
 void ScriptExecutor::SendALBitString( ScriptPacketExprPtr spep, CByteArray &packet )
 {
-	int					context = kAppContext, bit, i, typ
-	;
+	int					context = kAppContext, bit, i;
 	BACnetBitString		bstrData
 	;
 	BACnetAPDUEncoder	enc
-	;
-	BACnetAPDUDecoder	dec(0,0)
 	;
 	ScriptTokenList		tlist
 	;
@@ -3948,16 +3888,15 @@ void ScriptExecutor::SendALBitString( ScriptPacketExprPtr spep, CByteArray &pack
 	// must only be one bit or a bit string
 	if (tlist.Length() == 1) {
 		if (data.tokenType == scriptReference) {
-			// see if data was provided
-			if (!GetReferenceData( data.tokenSymbol, &typ, &dec ))
-				throw "Property value not known";
+			BACnetAnyValue		bacnetEPICSProperty;
+
+			GetEPICSProperty( data.tokenSymbol, &bacnetEPICSProperty);
 
 			// verify the type
-			if (typ != bits)
+			if ( bacnetEPICSProperty.GetType() != bits)
 				throw "Bit string property value expected in EPICS";
 
-			// suck out the content
-			bstrData.Decode( dec );
+			bstrData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
 		} else
 		if (data.tokenEnc == scriptBinaryEnc) {
 			if (!data.IsEncodeable( bstrData ))
@@ -3976,16 +3915,15 @@ void ScriptExecutor::SendALBitString( ScriptPacketExprPtr spep, CByteArray &pack
 				i += 1;
 
 		if (tlist[i].tokenType == scriptReference) {
-			// see if data was provided
-			if (!GetReferenceData( tlist[i].tokenSymbol, &typ, &dec ))
-				throw "Property value not known";
+			BACnetAnyValue		bacnetEPICSProperty;
+
+			GetEPICSProperty( tlist[i].tokenSymbol, &bacnetEPICSProperty);
 
 			// verify the type
-			if (typ != bits)
+			if ( bacnetEPICSProperty.GetType() != bits)
 				throw "Bit string property value expected in EPICS";
 
-			// suck out the content
-			bstrData.Decode( dec );
+			bstrData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
 		} else
 		if (tlist[i].IsEncodeable( bstrData ))
 			;
@@ -4015,8 +3953,6 @@ void ScriptExecutor::SendALEnumerated( ScriptPacketExprPtr spep, CByteArray &pac
 {
 	int					indx, context = kAppContext
 	;
-	BACnetEnumerated	enumData
-	;
 	BACnetAPDUEncoder	enc
 	;
 	ScriptTokenList		tlist
@@ -4038,32 +3974,28 @@ void ScriptExecutor::SendALEnumerated( ScriptPacketExprPtr spep, CByteArray &pac
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int			typ
-		;
-		PICS::word	*pValue
-		;
+		BACnetAnyValue bacnetAny;
 
-		// get a pointer to the value
-		pValue = (PICS::word *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
 
 		// verify the type
-		if (typ == et)
-			enumData.enumValue = *pValue;
-		else
+		if ( bacnetAny.GetType() != et )
 			throw "Enumerated property value expected in EPICS";
+
+		bacnetAny.Encode(enc, context);
 	} else {
+		BACnetEnumerated	enumData;
+
 		try {
 			enumData.Decode( tlist[indx].tokenValue );
 		}
 		catch (...) {
 			throw "Integer value expected";
 		}
+
+		enumData.Encode( enc, context );
 	}
 
-	// encode it
-	enumData.Encode( enc, context );
 
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
@@ -4103,6 +4035,9 @@ void ScriptExecutor::SendALDate( ScriptPacketExprPtr spep, CByteArray &packet )
 	// get something from the front
 	scan.Next( tok );
 
+	// encode it
+	BACnetAPDUEncoder enc;
+
 	// if it is a number, it must be a tag
 	if ((tok.tokenType == scriptValue) && (tok.IsInteger( context ))) {
 		scan.Peek( tok );
@@ -4110,37 +4045,33 @@ void ScriptExecutor::SendALDate( ScriptPacketExprPtr spep, CByteArray &packet )
 			scan.Next( tok );
 
 		if (tok.tokenType == scriptReference) {
-			int					typ
-			;
-			PICS::BACnetDate	*pValue
-			;
+			BACnetAnyValue bacnetAny;
 
-			// get a pointer to the value
-			pValue = (PICS::BACnetDate *)GetReferenceData( tok.tokenSymbol, &typ );
-			if (!pValue)
-				throw "Property value not known";
+			GetEPICSProperty( tok.tokenSymbol, &bacnetAny);
 
 			// verify the type
-			if (typ == ptDate) {
-				dateData.year = pValue->year;
-				dateData.month = pValue->month;
-				dateData.day = pValue->day_of_month;
-				dateData.dayOfWeek = pValue->day_of_week;
-			} else
+			if ( bacnetAny.GetType() != ptDate )
 				throw "Date property value expected in EPICS";
-		} else
-			dateData.Decode( scan.scanSrc );
-	} else
-		dateData.Decode( spep->exprValue );
 
-	// encode it
-	BACnetAPDUEncoder enc;
-	dateData.Encode( enc, context );
+			bacnetAny.Encode(enc, context);
+		} else
+		{
+			dateData.Decode( scan.scanSrc );
+			dateData.Encode( enc, context );
+		}
+	} else
+	{
+		dateData.Decode( spep->exprValue );
+		dateData.Encode( enc, context );
+	}
 
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
 		packet.Add( enc.pktBuffer[i] );
 }
+
+
+
 
 //
 //	ScriptExecutor::SendALTime
@@ -4166,6 +4097,9 @@ void ScriptExecutor::SendALTime( ScriptPacketExprPtr spep, CByteArray &packet )
 	// get something from the front
 	scan.Next( tok );
 
+	// encode it
+	BACnetAPDUEncoder enc;
+
 	try {
 		// if it is a number
 		if ((tok.tokenType == scriptValue) && (tok.IsInteger( holdContext ))) {
@@ -4175,38 +4109,27 @@ void ScriptExecutor::SendALTime( ScriptPacketExprPtr spep, CByteArray &packet )
 				scan.Next( tok );
 
 				if (tok.tokenType == scriptReference) {
-					int					typ
-					;
-					PICS::BACnetTime	*pValue
-					;
+					BACnetAnyValue bacnetAny;
 
-					// get a pointer to the value
-					pValue = (PICS::BACnetTime *)GetReferenceData( tok.tokenSymbol, &typ );
-					if (!pValue)
-						throw "Property value not known";
+					GetEPICSProperty( tok.tokenSymbol, &bacnetAny);
 
 					// verify the type
-					if (typ == ptTime) {
-						timeData.hour = pValue->hour;
-						timeData.minute = pValue->minute;
-						timeData.second = pValue->second;
-						timeData.hundredths = pValue->hundredths;
-					} else
+					if ( bacnetAny.GetType() != ptTime )
 						throw "Time property value expected in EPICS";
+
+					bacnetAny.Encode(enc, context);
 				} else
 					timeData.Decode( scan.scanSrc );	// do the rest as a time
+					timeData.Encode( enc, context );
 			} else
 				timeData.Decode( spep->exprValue );	// do whole thing
+				timeData.Encode( enc, context );
 		} else
 			throw "Time keyword parameter format invalid";
 	}
 	catch (...) {
 		throw "Time keyword parameter format invalid";
 	}
-
-	// encode it
-	BACnetAPDUEncoder enc;
-	timeData.Encode( enc, context );
 
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
@@ -4249,21 +4172,14 @@ void ScriptExecutor::SendALObjectIdentifier( ScriptPacketExprPtr spep, CByteArra
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int				typ
-		;
-		unsigned long	*pValue
-		;
+		BACnetAnyValue bacnetAny;
 
-		// get a pointer to the value
-		pValue = (unsigned long *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
 
-		// verify the type
-		if (typ == ob_id) {
-			id.objID = *pValue;
-		} else
+		if ( bacnetAny.GetType() != ob_id )
 			throw "Object identifier property value expected in EPICS";
+
+		id.objID = ((BACnetObjectIdentifier *) bacnetAny.GetObject())->objID;
 	} else {
 		if (!tlist[indx].IsInteger( typ, ScriptObjectTypeMap ))
 			throw "Object identifier type expected";
@@ -4889,6 +4805,10 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			catch (const char *errMsg) {
 				// one of the functions had an error
 				throw ExecError( errMsg, alMsg->exprLine );
+			}
+			catch (CString strThrowMessage) 
+			{
+				throw ExecError( strThrowMessage, alMsg->exprLine );
 			}
 		}
 	}
@@ -5983,6 +5903,10 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 			// one of the functions had an error
 			throw ExecError( errMsg, alMsg->exprLine );
 		}
+		catch ( CString & strThrow )
+		{
+			throw ExecError( strThrow, alMsg->exprLine );
+		}
 
 		// get some interesting keywords that might match
 		pDER = GetKeywordValue( kwDER, nlDER );
@@ -6682,10 +6606,15 @@ void ScriptExecutor::ExpectAbort( BACnetAPDUDecoder &dec )
 //	hex string.
 //
 
+// madanner 9/25/02 Method drastically altered
+// see prior versions for comparision (sorry)
+
 void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 {
 	int						indx, len;
 	BACnetOctetString		ostr;
+	CString strThrowMessage;
+
    //***Added by Liangping Xu, 2002-8-5***//
 	nArrayIndx = -1;
    //***Ended by Liangping Xu, 2002-8-5***//
@@ -6697,6 +6626,8 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 
 	// get the length
 	len = execPacket->packetExprList.Length();
+
+	// loop through each of the packet expressions in the packet expression list
 
 	for (; indx < len; indx++) {
 		ScriptPacketExprPtr spep = execPacket->packetExprList.Child( indx );
@@ -6712,85 +6643,25 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 			// just a little error checking
 			if (tlist.Length() != 1)
 				throw "ALDATA requires an octet string";
-			//Modified by Yajun Zhou, 2002-8-29
-			//if (spep->exprOp != '=')
-			//	throw "Equality match required";
-			if (spep->exprOp != '=' && spep->exprOp != '!=')
-				throw "Equality or inequality match required";
-			///////////////////////////////////
 
 			// reference or data?
-			if (tlist[0].tokenType == scriptReference) {
-				int					typ
-				;
-				void				*pValue
-				;
-				BACnetAPDUDecoder	refData
-				;
+			if (tlist[0].tokenType == scriptReference)
+			{
+				BACnetAnyValue		bacnetEPICSProperty;
 
-				//madanner 9/20/02, this is the only call to GetReferenceData where we might care if the returned
-				//value buffer is null BUT that represents an empty value () and not '?' from EPICS.  Throw the
-				//no data condition if the length of the returned data is -1 AND the buffer is null.  On empty
-				//data, the buffer will point to null but the data length will be zero... this condition must
-				//be processed as usual...  empty == empty is a valid test.
+				GetEPICSProperty( tlist[0].tokenSymbol, &bacnetEPICSProperty);
 
-				// get the encoded value
-				pValue = GetReferenceData( tlist[0].tokenSymbol, &typ, &refData );
-				if (!pValue && refData.pktLength == -1)
-//				if (!pValue)
-					throw "Property value not known";
-
-				// check the length
-				if (dec.pktLength < refData.pktLength)
-					throw "Not enough data to match";
-
-				// match the contents
-				//Modified by Yajun Zhou, 2002-8-29
-				//for (int i = 0; i < refData.pktLength; i++) {
-				//	BACnetOctet valu = (dec.pktLength--,*dec.pktBuffer++);
-				//	if (valu != refData.pktBuffer[i])
-				//		throw "Data mismatch";
-				//}
-				CString strGet = "";
-				CString strExpect = "";
-				for (int i = 0; i < refData.pktLength; i++) {
-					BACnetOctet valu = (dec.pktLength--,*dec.pktBuffer++);
-					strGet += valu;
-					strExpect += refData.pktBuffer[i];
-				}
-				if (spep->exprOp == '=' && strGet != strExpect)
-					throw "Data mismatch";
-				if (spep->exprOp == '!=' && strGet == strExpect)
-					throw "Data mismatch";
-				/////////////////////////////////////////
-			} else {
+				// Will throw errors
+				bacnetEPICSProperty.CompareToEncodedStream( dec, spep->exprOp, nArrayIndx, spep->exprValue );
+			}
+			else
+			{
 				// extract octet string
 				if (!tlist[0].IsEncodeable( ostr ))
 					throw "Octet string expected";
 
-				// check the length
-				if (dec.pktLength < ostr.strLen)
-					throw "Not enough data to match";
-
-				// match the contents
-				//Modified by Yajun Zhou, 2002-8-29
-				//for (int i = 0; i < ostr.strLen; i++) {
-				//	BACnetOctet valu = (dec.pktLength--,*dec.pktBuffer++);
-				//	if (valu != ostr.strBuff[i])
-				//		throw "Data mismatch";
-				//}
-				CString strGet = "";
-				CString strExpect = "";
-				for (int i = 0; i < ostr.strLen; i++) {
-					BACnetOctet valu = (dec.pktLength--,*dec.pktBuffer++);
-					strGet += valu;
-					strExpect += ostr.strBuff[i];
-				}
-				if (spep->exprOp == '=' && strGet != strExpect)
-					throw "Data mismatch";
-				if (spep->exprOp == '!=' && strGet == strExpect)
-					throw "Data mismatch";
-				/////////////////////////////////////////
+				ASSERT(0);		// not implemented...  
+				//CompareStreamData(dec, spep->exprOp, ostr.strBuff, ostr.strLen, spep->exprValue ); 
 			}
 
 			continue;
@@ -6867,10 +6738,9 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 
 	// make sure all the data was matched
 	if (dec.pktLength != 0)
-		throw ExecError( "Additional application data not matched"
-		, execPacket->baseLineStart
-		);
+		throw ExecError( "Additional application data not matched", execPacket->baseLineStart );
 }
+
 
 //
 //	ScriptExecutor::ExpectALNull
@@ -6959,31 +6829,28 @@ void ScriptExecutor::ExpectALBoolean( ScriptPacketExprPtr spep, BACnetAPDUDecode
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int				typ
-		;
-		PICS::boolean	*pValue
-		;
+		BACnetAnyValue		bacnetEPICSProperty;
 
-		// get a pointer to the value
-		pValue = (PICS::boolean *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
 
 		// verify the type
-		if (typ != ebool)
+		if (bacnetEPICSProperty.GetType() != ebool)
 			throw "Boolean property value expected in EPICS";
-		else
-			scriptData.boolValue = (BACnetBoolean::eBACnetBoolean)*pValue;
+
+		scriptData.boolValue = ((BACnetBoolean *) bacnetEPICSProperty.GetObject())->boolValue;
 	} else
 	if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Boolean value expected";
 
 	// decode it
 	boolData.Decode( dec );
+	CompareAndThrowError(boolData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILBOOL);
 
+/*
 	// verify the value
 	if (!Match(spep->exprOp,boolData.boolValue,scriptData.boolValue))
 		throw "Boolean value mismatch";
+*/
 }
 
 //
@@ -7028,21 +6895,15 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int				typ
-		;
-		PICS::word		*pValue
-		;
+		BACnetAnyValue		bacnetEPICSProperty;
 
-		// get a pointer to the value
-		pValue = (PICS::word *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
 
 		// verify the type
-		if (typ != uw)
+		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)) )
 			throw "Unsigned property value expected in EPICS";
-		else
-			scriptData.uintValue = *pValue;
+
+		scriptData.uintValue = ((BACnetUnsigned *) bacnetEPICSProperty.GetObject())->uintValue;
 	} else
 	if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Unsigned value expected";
@@ -7081,9 +6942,12 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 		uintData.Decode( dec );
 	}
 
+	CompareAndThrowError(uintData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILUNSIGNED);
+/*
 	// verify the value
 	if (!Match(spep->exprOp,uintData.uintValue,scriptData.uintValue))
 		throw "Unsigned value mismatch";
+*/
 }
 
 //
@@ -7130,43 +6994,29 @@ void ScriptExecutor::ExpectALInteger( ScriptPacketExprPtr spep, BACnetAPDUDecode
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int						typ
-		;
-		void					*pValue
-		;
+		BACnetAnyValue		bacnetEPICSProperty;
 
-		// get a pointer to the value
-		pValue = GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
 
 		// verify the type
-		switch (typ) {
-			case uw:
-				scriptData.intValue = *(PICS::word *)pValue;
-				break;
-			case ud:
-				scriptData.intValue = *(PICS::dword *)pValue;
-				break;
-			case sw:
-				scriptData.intValue = *(PICS::word *)pValue;
-				break;
-			case ssint:
-				scriptData.intValue = *(int *)pValue;
-				break;
-			default:
-				throw "Integer property value expected in EPICS";
-		}
+		if ( bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)) )
+			scriptData.intValue = ((BACnetUnsigned *) bacnetEPICSProperty.GetObject())->uintValue;
+		else if ( bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetInteger)) )
+			scriptData.intValue = ((BACnetInteger *) bacnetEPICSProperty.GetObject())->intValue;
+		else
+			throw "Integer property value expected in EPICS";
 	} else
 	if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Integer value expected";
 
 	// decode it
 	intData.Decode( dec );
-
+	CompareAndThrowError(intData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILINT);
+/*
 	// verify the value
 	if (!Match(spep->exprOp,intData.intValue,scriptData.intValue))
 		throw "Integer value mismatch";
+*/
 }
 
 //
@@ -7211,31 +7061,26 @@ void ScriptExecutor::ExpectALReal( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int						typ
-		;
-		float					*pValue
-		;
+		BACnetAnyValue		bacnetEPICSProperty;
 
-		// get a pointer to the value
-		pValue = (float *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
 
-		// verify the type
-		if (typ == flt)
-			scriptData.realValue = *pValue;
-		else
+		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetReal)) )
 			throw "Real property value expected in EPICS";
+
+		scriptData.realValue = ((BACnetReal *) bacnetEPICSProperty.GetObject())->realValue;
 	} else
 	if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Single precision floating point value expected";
 
 	// decode it
 	realData.Decode( dec );
-
+	CompareAndThrowError(realData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILREAL);
+/*
 	// verify the value
 	if (!Match(spep->exprOp,realData.realValue,scriptData.realValue))
 		throw "Real value mismatch";
+*/
 }
 
 //
@@ -7282,31 +7127,27 @@ void ScriptExecutor::ExpectALDouble( ScriptPacketExprPtr spep, BACnetAPDUDecoder
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int						typ
-		;
-		float					*pValue
-		;
+		BACnetAnyValue		bacnetEPICSProperty;
 
-		// get a pointer to the value
-		pValue = (float *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
 
-		// verify the type
-		if (typ == flt)
-			scriptData.doubleValue = *pValue;
-		else
+		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetReal)) )
 			throw "Floating point property value expected in EPICS";
+
+		scriptData.doubleValue = ((BACnetReal *) bacnetEPICSProperty.GetObject())->realValue;
 	} else
 	if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Double precision floating point expected";
 
 	// decode it
 	doubleData.Decode( dec );
+	CompareAndThrowError(doubleData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILDOUBLE);
 
+/*
 	// verify the value
 	if (!Match(spep->exprOp,doubleData.doubleValue,scriptData.doubleValue))
 		throw "Real value mismatch";
+*/
 }
 
 //
@@ -7315,7 +7156,7 @@ void ScriptExecutor::ExpectALDouble( ScriptPacketExprPtr spep, BACnetAPDUDecoder
 
 void ScriptExecutor::ExpectALOctetString( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int					indx, context = kAppContext, i
+	int					indx, context = kAppContext
 	;
 	BACnetOctetString	ostrData, scriptData
 	;
@@ -7358,7 +7199,9 @@ void ScriptExecutor::ExpectALOctetString( ScriptPacketExprPtr spep, BACnetAPDUDe
 
 	// decode it
 	ostrData.Decode( dec );
+	CompareAndThrowError(ostrData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILOCTSTRING);
 
+/*
 	// verify the value
 	switch (spep->exprOp) {
 		case '=':
@@ -7380,6 +7223,7 @@ void ScriptExecutor::ExpectALOctetString( ScriptPacketExprPtr spep, BACnetAPDUDe
 		default:
 			throw "Equality and inequality comparisons only";
 	}
+*/
 }
 
 //
@@ -7391,8 +7235,8 @@ void ScriptExecutor::ExpectALOctetString( ScriptPacketExprPtr spep, BACnetAPDUDe
 void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
 	int						indx = -1, context = kAppContext;
-	unsigned int minLen; // for string len
-	unsigned int i; // counter 
+//	unsigned int minLen; // for string len
+//	unsigned int i; // counter 
 	BACnetCharacterString	cstrData, scriptData
 	;
 	ScriptTokenList			tlist
@@ -7457,75 +7301,19 @@ void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAP
 
 	// see if a reference was used
 	if (indx >= 0) {
-		int			typ
-		;
-		char		*pValue
-		;
+		BACnetAnyValue		bacnetEPICSProperty;
 
-		// get a pointer to the value
-		pValue = (char *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
 
-		// verify the type
-		if ((typ == s10) || (typ == s32) || (typ == s64) || (typ == s132)) {
-			scriptData.SetValue( pValue );
-		} else
+		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
 			throw "Character string property value expected in EPICS";
+
+		scriptData.SetValue( (char *) ((BACnetCharacterString *) bacnetEPICSProperty.GetObject())->strBuff );
 	}
 
 	// decode it
 	cstrData.Decode( dec );
-
-	// verify the encoding
-	if (cstrData.strEncoding != scriptData.strEncoding)
-		throw "Character string encoding mismatch";
-
-	// verify the value
-	minLen = (cstrData.strLen < scriptData.strLen ? cstrData.strLen : scriptData.strLen);
-
-	switch (spep->exprOp) {
-		case '<':
-			for (i = 0; i < minLen; i++)
-				if (cstrData.strBuff[i] >= scriptData.strBuff[i])
-					throw "Character string mismatch";
-			// ### what about the rest?
-			break;
-		case '>':
-			for (i = 0; i < minLen; i++)
-				if (cstrData.strBuff[i] <= scriptData.strBuff[i])
-					throw "Character string mismatch";
-			// ### what about the rest?
-			break;
-		case '<=':
-			for (i = 0; i < minLen; i++)
-				if (cstrData.strBuff[i] < scriptData.strBuff[i])
-					throw "Character string mismatch";
-			// ### what about the rest?
-			break;
-		case '>=':
-			for (i = 0; i < minLen; i++)
-				if (cstrData.strBuff[i] > scriptData.strBuff[i])
-					throw "Character string mismatch";
-			// ### what about the rest?
-			break;
-		case '=':
-			if (cstrData.strLen != scriptData.strLen)
-				throw "Character string mismatch";
-			for (i = 0; i < cstrData.strLen; i++)
-				if (cstrData.strBuff[i] != scriptData.strBuff[i])
-					throw "Character string mismatch";
-			break;
-		case '!=':
-			if (cstrData.strLen != scriptData.strLen)
-				break;
-			for (i = 0; i < cstrData.strLen; i++)
-				if (cstrData.strBuff[i] != scriptData.strBuff[i])
-					break;
-			if (i >= cstrData.strLen)
-				throw "Character string mismatch";
-			break;
-	}
+	CompareAndThrowError(cstrData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILSTRING);
 }
 
 //
@@ -7537,7 +7325,7 @@ void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAP
 
 void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int					context = kAppContext, bit, i, typ
+	int					context = kAppContext, bit, i
 	;
 	BACnetBitString		bstrData, scriptData
 	;
@@ -7561,16 +7349,15 @@ void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDeco
 	// must only be one bit or a bit string
 	if (tlist.Length() == 1) {
 		if (data.tokenType == scriptReference) {
-			// see if data was provided
-			if (!GetReferenceData( data.tokenSymbol, &typ, &dec ))
-				throw "Property value not known";
+			BACnetAnyValue		bacnetEPICSProperty;
+
+			GetEPICSProperty( data.tokenSymbol, &bacnetEPICSProperty);
 
 			// verify the type
-			if (typ != bits)
+			if ( bacnetEPICSProperty.GetType() != bits)
 				throw "Bit string property value expected in EPICS";
 
-			// suck out the content
-			scriptData.Decode( dec );
+			scriptData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
 		} else
 		if (data.tokenEnc == scriptBinaryEnc) {
 			if (!data.IsEncodeable( scriptData ))
@@ -7599,16 +7386,15 @@ void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDeco
 			}
 
 		if (tlist[i].tokenType == scriptReference) {
-			// see if data was provided
-			if (!GetReferenceData( tlist[i].tokenSymbol, &typ, &dec ))
-				throw "Property value not known";
+			BACnetAnyValue		bacnetEPICSProperty;
+
+			GetEPICSProperty( tlist[i].tokenSymbol, &bacnetEPICSProperty);
 
 			// verify the type
-			if (typ != bits)
+			if ( bacnetEPICSProperty.GetType() != bits)
 				throw "Bit string property value expected in EPICS";
 
-			// suck out the content
-			scriptData.Decode( dec );
+			scriptData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
 		} else
 		if (tlist[i].IsEncodeable( scriptData ))
 			;
@@ -7624,8 +7410,9 @@ void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDeco
 
 	// decode it
 	bstrData.Decode( dec );
+	CompareAndThrowError(bstrData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILBITSTRING);
 
-	// verify the value
+/*	// verify the value
 	switch (spep->exprOp) {
 		case '=':
 			if (!(bstrData == scriptData))
@@ -7638,7 +7425,22 @@ void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDeco
 		default:
 			throw "Equality and inequality comparisons only";
 	}
+*/
 }
+
+
+void ScriptExecutor::CompareAndThrowError( BACnetEncodeable & rbacnet1, BACnetEncodeable & rbacnet2, int iOperator, unsigned int nError )
+{
+	CString strError;
+
+	if ( !rbacnet2.Match(rbacnet1, iOperator, &strError) )
+	{
+		CString strErrorPrefix;
+		strErrorPrefix.LoadString(nError);
+		throw CString(strErrorPrefix + strError);
+	}
+}
+
 
 //
 //	ScriptExecutor::ExpectALEnumerated
@@ -7682,21 +7484,14 @@ void ScriptExecutor::ExpectALEnumerated( ScriptPacketExprPtr spep, BACnetAPDUDec
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int			typ
-		;
-		PICS::word	*pValue
-		;
+		BACnetAnyValue		bacnetEPICSProperty;
 
-		// get a pointer to the value
-		pValue = (PICS::word *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
 
-		// verify the type
-		if (typ == et)
-			scriptData.enumValue = *pValue;
-		else
+		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetEnumerated)) )
 			throw "Enumerated property value expected in EPICS";
+
+		scriptData.enumValue = ((BACnetEnumerated *) bacnetEPICSProperty.GetObject())->enumValue;
 	} else {
 		try {
 			scriptData.Decode( tlist[indx].tokenValue );
@@ -7708,10 +7503,13 @@ void ScriptExecutor::ExpectALEnumerated( ScriptPacketExprPtr spep, BACnetAPDUDec
 
 	// decode it
 	enumData.Decode( dec );
+	CompareAndThrowError(enumData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILENUM);
 
+/*
 	// verify the value
 	if (!Match(spep->exprOp,enumData.enumValue,scriptData.enumValue))
 		throw "Enumeration value mismatch";
+*/
 }
 
 //
@@ -7744,24 +7542,14 @@ void ScriptExecutor::ExpectALDate( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 			scan.Next( tok );
 
 		if (tok.tokenType == scriptReference) {
-			int					typ
-			;
-			PICS::BACnetDate	*pValue
-			;
+			BACnetAnyValue		bacnetEPICSProperty;
 
-			// get a pointer to the value
-			pValue = (PICS::BACnetDate *)GetReferenceData( tok.tokenSymbol, &typ );
-			if (!pValue)
-				throw "Property value not known";
+			GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty);
 
-			// verify the type
-			if (typ == ptDate) {
-				scriptData.year = pValue->year;
-				scriptData.month = pValue->month;
-				scriptData.day = pValue->day_of_month;
-				scriptData.dayOfWeek = pValue->day_of_week;
-			} else
+			if ( bacnetEPICSProperty.GetType() != ptDate )
 				throw "Date property value expected in EPICS";
+
+			scriptData = *((BACnetDate *) bacnetEPICSProperty.GetObject());
 		} else
 			scriptData.Decode( scan.scanSrc );
 
@@ -7779,119 +7567,8 @@ void ScriptExecutor::ExpectALDate( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 
 	// decode it
 	dateData.Decode( dec );
+	CompareAndThrowError(dateData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILDATE);
 
-	// verify the value (### the logic wrt 'any' might need some help)
-	switch (spep->exprOp) {
-		case '<':
-			if ((dateData.dayOfWeek != 255) && (scriptData.dayOfWeek != 255))
-				if (dateData.dayOfWeek >= scriptData.dayOfWeek)
-					throw "Date (day of week) mismatch";
-			if ((dateData.year != 255) && (scriptData.year != 255))
-				if (dateData.year > scriptData.year)
-					throw "Date (year) mismatch";
-				else
-				if (dateData.year < scriptData.year)
-					break;
-			if ((dateData.month != 255) && (scriptData.month != 255))
-				if (dateData.month > scriptData.month)
-					throw "Date (month) mismatch";
-				else
-				if (dateData.month < scriptData.month)
-					break;
-			if ((dateData.day != 255) && (scriptData.day != 255))
-				if (dateData.day >= scriptData.day)
-					throw "Date (day) mismatch";
-			break;
-		case '>':
-			if ((dateData.dayOfWeek != 255) && (scriptData.dayOfWeek != 255))
-				if (dateData.dayOfWeek <= scriptData.dayOfWeek)
-					throw "Date (day of week) mismatch";
-			if ((dateData.year != 255) && (scriptData.year != 255))
-				if (dateData.year < scriptData.year)
-					throw "Date (year) mismatch";
-				else
-				if (dateData.year > scriptData.year)
-					break;
-			if ((dateData.month != 255) && (scriptData.month != 255))
-				if (dateData.month < scriptData.month)
-					throw "Date (month) mismatch";
-				else
-				if (dateData.month > scriptData.month)
-					break;
-			if ((dateData.day != 255) && (scriptData.day != 255))
-				if (dateData.day <= scriptData.day)
-					throw "Date (day) mismatch";
-			break;
-		case '<=':
-			if ((dateData.dayOfWeek != 255) && (scriptData.dayOfWeek != 255))
-				if (dateData.dayOfWeek > scriptData.dayOfWeek)
-					throw "Date (day of week) mismatch";
-			if ((dateData.year != 255) && (scriptData.year != 255))
-				if (dateData.year > scriptData.year)
-					throw "Date (year) mismatch";
-				else
-				if (dateData.year < scriptData.year)
-					break;
-			if ((dateData.month != 255) && (scriptData.month != 255))
-				if (dateData.month > scriptData.month)
-					throw "Date (month) mismatch";
-				else
-				if (dateData.month < scriptData.month)
-					break;
-			if ((dateData.day != 255) && (scriptData.day != 255))
-				if (dateData.day > scriptData.day)
-					throw "Date (day) mismatch";
-			break;
-		case '>=':
-			if ((dateData.dayOfWeek != 255) && (scriptData.dayOfWeek != 255))
-				if (dateData.dayOfWeek < scriptData.dayOfWeek)
-					throw "Date (day of week) mismatch";
-			if ((dateData.year != 255) && (scriptData.year != 255))
-				if (dateData.year < scriptData.year)
-					throw "Date (year) mismatch";
-				else
-				if (dateData.year > scriptData.year)
-					break;
-			if ((dateData.month != 255) && (scriptData.month != 255))
-				if (dateData.month < scriptData.month)
-					throw "Date (month) mismatch";
-				else
-				if (dateData.month > scriptData.month)
-					break;
-			if ((dateData.day != 255) && (scriptData.day != 255))
-				if (dateData.day < scriptData.day)
-					throw "Date (day) mismatch";
-			break;
-		case '=':
-			if ((dateData.dayOfWeek != 255) && (scriptData.dayOfWeek != 255))
-				if (dateData.dayOfWeek != scriptData.dayOfWeek)
-					throw "Date (day of week) mismatch";
-			if ((dateData.year != 255) && (scriptData.year != 255))
-				if (dateData.year != scriptData.year)
-					throw "Date (year) mismatch";
-			if ((dateData.month != 255) && (scriptData.month != 255))
-				if (dateData.month != scriptData.month)
-					throw "Date (month) mismatch";
-			if ((dateData.day != 255) && (scriptData.day != 255))
-				if (dateData.day != scriptData.day)
-					throw "Date (day) mismatch";
-			break;
-		case '!=':
-			if ((dateData.dayOfWeek != 255) && (scriptData.dayOfWeek != 255))
-				if (dateData.dayOfWeek == scriptData.dayOfWeek)
-					throw "Date (day of week) mismatch";
-			if ((dateData.year != 255) && (scriptData.year != 255))
-				if (dateData.year != scriptData.year)
-					break;
-			if ((dateData.month != 255) && (scriptData.month != 255))
-				if (dateData.month != scriptData.month)
-					break;
-			if ((dateData.day != 255) && (scriptData.day != 255))
-				if (dateData.day != scriptData.day)
-					break;
-			throw "Date mismatch";
-			break;
-	}
 }
 
 //
@@ -7926,24 +7603,14 @@ void ScriptExecutor::ExpectALTime( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 				scan.Next( tok );
 			   }                          //added by Liangping Xu  
 				if (tok.tokenType == scriptReference) {
-					int					typ
-					;
-					PICS::BACnetTime	*pValue
-					;
+					BACnetAnyValue		bacnetEPICSProperty;
 
-					// get a pointer to the value
-					pValue = (PICS::BACnetTime *)GetReferenceData( tok.tokenSymbol, &typ );
-					if (!pValue)
-						throw "Property value not known";
+					GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty);
 
-					// verify the type
-					if (typ == ptTime) {
-						scriptData.hour = pValue->hour;
-						scriptData.minute = pValue->minute;
-						scriptData.second = pValue->second;
-						scriptData.hundredths = pValue->hundredths;
-					} else
+					if ( bacnetEPICSProperty.GetType() != ptTime )
 						throw "Time property value expected in EPICS";
+
+					scriptData = *((BACnetTime *) bacnetEPICSProperty.GetObject());
 				} else
 					scriptData.Decode( scan.scanSrc );	// do the rest as a time
 
@@ -7968,131 +7635,7 @@ void ScriptExecutor::ExpectALTime( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 
 	// decode it
 	timeData.Decode( dec );
-
-	// verify the value (### the logic wrt 'any' might need some help)
-	switch (spep->exprOp) {
-		case '<':
-			if ((timeData.hour != 255) && (scriptData.hour != 255))
-				if (timeData.hour > scriptData.hour)
-					throw "Time (hour) mismatch";
-				else
-				if (timeData.hour < scriptData.hour)
-					break;
-			if ((timeData.minute != 255) && (scriptData.minute != 255))
-				if (timeData.minute > scriptData.minute)
-					throw "Time (minute) mismatch";
-				else
-				if (timeData.minute < scriptData.minute)
-					break;
-			if ((timeData.second != 255) && (scriptData.second != 255))
-				if (timeData.second > scriptData.second)
-					throw "Time (second) mismatch";
-				else
-				if (timeData.second < scriptData.second)
-					break;
-			if ((timeData.hundredths != 255) && (scriptData.hundredths != 255))
-				if (timeData.hundredths >= scriptData.hundredths)
-					throw "Time (hundredths) mismatch";
-			break;
-		case '>':
-			if ((timeData.hour != 255) && (scriptData.hour != 255))
-				if (timeData.hour < scriptData.hour)
-					throw "Time (hour) mismatch";
-				else
-				if (timeData.hour > scriptData.hour)
-					break;
-			if ((timeData.minute != 255) && (scriptData.minute != 255))
-				if (timeData.minute < scriptData.minute)
-					throw "Time (minute) mismatch";
-				else
-				if (timeData.minute > scriptData.minute)
-					break;
-			if ((timeData.second != 255) && (scriptData.second != 255))
-				if (timeData.second < scriptData.second)
-					throw "Time (second) mismatch";
-				else
-				if (timeData.second > scriptData.second)
-					break;
-			if ((timeData.hundredths != 255) && (scriptData.hundredths != 255))
-				if (timeData.hundredths <= scriptData.hundredths)
-					throw "Time (hundredths) mismatch";
-			break;
-		case '<=':
-			if ((timeData.hour != 255) && (scriptData.hour != 255))
-				if (timeData.hour > scriptData.hour)
-					throw "Time (hour) mismatch";
-				else
-				if (timeData.hour < scriptData.hour)
-					break;
-			if ((timeData.minute != 255) && (scriptData.minute != 255))
-				if (timeData.minute > scriptData.minute)
-					throw "Time (minute) mismatch";
-				else
-				if (timeData.minute < scriptData.minute)
-					break;
-			if ((timeData.second != 255) && (scriptData.second != 255))
-				if (timeData.second > scriptData.second)
-					throw "Time (second) mismatch";
-				else
-				if (timeData.second < scriptData.second)
-					break;
-			if ((timeData.hundredths != 255) && (scriptData.hundredths != 255))
-				if (timeData.hundredths > scriptData.hundredths)
-					throw "Time (hundredths) mismatch";
-			break;
-		case '>=':
-			if ((timeData.hour != 255) && (scriptData.hour != 255))
-				if (timeData.hour < scriptData.hour)
-					throw "Time (hour) mismatch";
-				else
-				if (timeData.hour > scriptData.hour)
-					break;
-			if ((timeData.minute != 255) && (scriptData.minute != 255))
-				if (timeData.minute < scriptData.minute)
-					throw "Time (minute) mismatch";
-				else
-				if (timeData.minute > scriptData.minute)
-					break;
-			if ((timeData.second != 255) && (scriptData.second != 255))
-				if (timeData.second < scriptData.second)
-					throw "Time (second) mismatch";
-				else
-				if (timeData.second > scriptData.second)
-					break;
-			if ((timeData.hundredths != 255) && (scriptData.hundredths != 255))
-				if (timeData.hundredths < scriptData.hundredths)
-					throw "Time (hundredths) mismatch";
-			break;
-		case '=':
-			if ((timeData.hour != 255) && (scriptData.hour != 255))
-				if (timeData.hour != scriptData.hour)
-					throw "Time (hour) mismatch";
-			if ((timeData.minute != 255) && (scriptData.minute != 255))
-				if (timeData.minute != scriptData.minute)
-					throw "Time (minute) mismatch";
-			if ((timeData.second != 255) && (scriptData.second != 255))
-				if (timeData.second != scriptData.second)
-					throw "Time (second) mismatch";
-			if ((timeData.hundredths != 255) && (scriptData.hundredths != 255))
-				if (timeData.hundredths != scriptData.hundredths)
-					throw "Time (hundredths) mismatch";
-			break;
-		case '!=':
-			if ((timeData.hour != 255) && (scriptData.hour != 255))
-				if (timeData.hour == scriptData.hour)
-					throw "Date (hundredths of week) mismatch";
-			if ((timeData.minute != 255) && (scriptData.minute != 255))
-				if (timeData.minute != scriptData.minute)
-					break;
-			if ((timeData.second != 255) && (scriptData.second != 255))
-				if (timeData.second != scriptData.second)
-					break;
-			if ((timeData.hundredths != 255) && (scriptData.hundredths != 255))
-				if (timeData.hundredths != scriptData.hundredths)
-					break;
-			throw "Time mismatch";
-			break;
-	}
+	CompareAndThrowError(timeData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILTIME);
 }
 
 //
@@ -8103,9 +7646,7 @@ void ScriptExecutor::ExpectALObjectIdentifier( ScriptPacketExprPtr spep, BACnetA
 {
 	int						indx, context = kAppContext, objType, instanceNum
 	;
-	BACnetObjectIdentifier	objData
-	;
-	unsigned long			scriptData
+	BACnetObjectIdentifier	objData, scriptData
 	;
 	ScriptTokenList			tlist
 	;
@@ -8144,37 +7685,32 @@ void ScriptExecutor::ExpectALObjectIdentifier( ScriptPacketExprPtr spep, BACnetA
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
-		int				typ
-		;
-		unsigned long	*pValue
-		;
+		BACnetAnyValue		bacnetEPICSProperty;
 
-		// get a pointer to the value
-		pValue = (unsigned long *)GetReferenceData( tlist[indx].tokenSymbol, &typ );
-		if (!pValue)
-			throw "Property value not known";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
 
-		// verify the type
-		if (typ == ob_id) {
-			scriptData = *pValue;
-		} else
+		if ( bacnetEPICSProperty.GetType() != ob_id )
 			throw "Object identifier property value expected in EPICS";
+
+		scriptData = *((BACnetObjectIdentifier *) bacnetEPICSProperty.GetObject());
 	} else {
 		if (!tlist[indx].IsInteger( objType, ScriptObjectTypeMap ))
 			throw "Object identifier type expected";
 		if (!tlist[indx+1].IsInteger( instanceNum ))
 			throw "Object identifier instance expected";
 
-		scriptData = (objType << 22) + instanceNum;
+//		scriptData = (objType << 22) + instanceNum;
+		scriptData.SetValue((BACnetObjectType) objType, instanceNum);
 	}
 	
 	// decode it
 	objData.Decode( dec );
+	CompareAndThrowError(objData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILOBJID);
 
-	// verify the value
+/*	// verify the value
 	if (!Match(spep->exprOp,objData.objID,scriptData))
 		throw "Object identifier mismatch";
-
+*/
 	// store the context for property references that may appear later
 	execObjID = objData.objID;
 }
@@ -8223,10 +7759,12 @@ void ScriptExecutor::ExpectALDeviceIdentifier( ScriptPacketExprPtr spep, BACnetA
 
 	// decode it
 	objData.Decode( dec );
-
+	CompareAndThrowError(objData, BACnetObjectIdentifier(8, instanceNum), spep->exprOp, IDS_SCREX_COMPFAILDEVID);
+/*
 	// verify the value
-	if (!Match(spep->exprOp,objData.objID,(unsigned)((8 << 22) + instanceNum)))
+	if (!Match(spep->exprOp,(unsigned long) objData.objID,(unsigned long)((8 << 22) + instanceNum)))
 		throw "Device identifier mismatch";
+*/
 }
 
 //
@@ -8273,10 +7811,12 @@ void ScriptExecutor::ExpectALPropertyIdentifier( ScriptPacketExprPtr spep, BACne
 
 	// decode it
 	enumData.Decode( dec );
-
+	CompareAndThrowError(enumData, BACnetEnumerated(valu), spep->exprOp, IDS_SCREX_COMPFAILPROP);
+/*
 	// verify the value
 	if (!Match(spep->exprOp,enumData.enumValue,valu))
 		throw "Enumeration value mismatch";
+*/
 }
 
 //
@@ -8768,9 +8308,32 @@ void ScriptExecutor::SetImageStatus( ScriptBasePtr sbp, int stat )
 		);
 }
 
+
+LPCSTR OperatorToString(int iOperator)
+{
+	switch( iOperator )
+	{
+		case '=': return "=";
+		case '<': return "<";
+		case '>': return ">";
+		case '<=': return "<=";
+		case '>=': return ">=";
+		case '!=': return "!=";
+	}
+
+	ASSERT(0);
+	return NULL;
+}
+
+
+
+
+
+
 //
 //	Matching Functions
 //
+
 
 bool Match( int op, int a, int b )
 {
@@ -8786,7 +8349,7 @@ bool Match( int op, int a, int b )
 	return false;
 }
 
-bool Match( int op, unsigned a, unsigned b )
+bool Match( int op, unsigned long a, unsigned long b )
 {
 	switch (op) {
 		case '=': return (a == b);
@@ -8843,3 +8406,67 @@ bool Match( int op, double a, double b )
 
 	return false;
 }
+
+
+bool Match( int op, CTime &timeThis, CTime &timeThat )
+{
+	switch(op)
+	{
+		case '=':	return (timeThis == timeThat) != 0;		// stop crazy Microsoft BOOL warning
+		case '<':	return (timeThis < timeThat) != 0;
+		case '>':	return (timeThis > timeThat) != 0;
+		case '<=':	return (timeThis <= timeThat) != 0;
+		case '>=':	return (timeThis >= timeThat) != 0;
+		case '!=':	return (timeThis != timeThat) != 0;
+		default:
+			ASSERT(0);
+	}
+	return false;
+}
+
+
+
+
+/*
+void ScriptExecutor::CompareStreamData( BACnetAPDUDecoder & dec, int iOperator, const BACnetOctet * pData, int nLen, LPCSTR lpstrValueName )
+{
+	// Let's just compare byte by byte
+	// If the comparison failed, we won't even get here due to throw condition
+
+	CString strThrowMessage;
+
+	// check the length
+	if (dec.pktLength < nLen)
+		strThrowMessage.Format(IDS_SCREX_COMPSHORTDATA, dec.pktLength, lpstrValueName, nLen );
+	else
+	{
+		// Good ol' memcmp will do for this but we need to check to see if we're supposed to equal or not equal...
+
+		int iCompResult = memcmp(dec.pktBuffer, (void *) pData, nLen);
+		switch( iOperator )
+		{
+			case '=':
+
+				if ( iCompResult != 0 )
+					strThrowMessage.Format(IDS_SCREX_COMPSTREAMFAIL_NE, lpstrValueName );
+				break;
+
+			case '!=':
+
+				if ( iCompResult == 0 )
+					strThrowMessage.Format(IDS_SCREX_COMPSTREAM_E, lpstrValueName );
+				break;
+
+			default:		// just give up, eh?
+
+				strThrowMessage.Format(IDS_SCREX_COMPEQREQ, lpstrValueName );
+		}
+	}
+
+	if ( !strThrowMessage.IsEmpty() )
+		throw CString(strThrowMessage);
+
+	dec.pktLength -= nLen;
+	dec.pktBuffer += nLen;
+}
+*/
