@@ -18,6 +18,9 @@
 #define MAX_PROP_ID	      169		// BACnetPropertyIdentifier
 //#define MAX_SERVS_SUPP     40     //Modified by xlp
 #define MAX_SERVS_SUPP     50        
+
+#define	DEVICE_LOOPBACK		1		// set to zero to disable "looped" messages
+
 //
 //	VTSApp
 //

@@ -16,10 +16,11 @@
 // Chinese (P.R.C.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
-#ifdef _WIN32
-LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
-#pragma code_page(936)
-#endif //_WIN32
+//#ifdef _WIN32
+//LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+//#pragma code_page(936)
+//#endif //_WIN32
+//MAG chinese stuff commented out 03JAN03
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -194,10 +195,11 @@ END
 #define _AFX_NO_PROPERTY_RESOURCES
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
-#ifdef _WIN32
-LANGUAGE 4, 2
-#pragma code_page(936)
-#endif //_WIN32
+//#ifdef _WIN32
+//LANGUAGE 4, 2
+//#pragma code_page(936)
+//#endif //_WIN32
+//MAG chinese stuff commented out 03JAN03
 #include "res\PTP.rc2"  // non-Microsoft Visual C++ edited resources
 #include "l.chs\afxres.rc"          // Standard components
 #endif

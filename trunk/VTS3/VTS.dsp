@@ -80,8 +80,8 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 version.lib macdll/ptp/debug/ptp.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"LIBCMT" /pdbtype:sept
-# SUBTRACT LINK32 /pdb:none /debug
+# ADD LINK32 version.lib macdll/ptp/debug/ptp.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"LIBCMT" /pdbtype:sept
+# SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
 
@@ -840,6 +840,18 @@ SOURCE=.\VTSObjectIdentifierDialog.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSObjPropArrayDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjPropDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjPropValueDialog.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSPortDlg.cpp
 # End Source File
 # Begin Source File
@@ -873,6 +885,10 @@ SOURCE=.\Statistics\VTSStatisticsOptionsDlg.cpp
 # Begin Source File
 
 SOURCE=.\VTSTimeStamp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSValue.cpp
 # End Source File
 # Begin Source File
 
@@ -1632,6 +1648,18 @@ SOURCE=.\VTSObjectIdentifierDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSObjPropArrayDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjPropDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjPropValueDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSPortDlg.h
 # End Source File
 # Begin Source File
@@ -1669,6 +1697,10 @@ SOURCE=.\Statistics\VTSStatisticsOptionsDlg.h
 # Begin Source File
 
 SOURCE=.\VTSTimeStamp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSValue.h
 # End Source File
 # Begin Source File
 

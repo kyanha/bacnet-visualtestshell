@@ -68,6 +68,7 @@ protected:
 	afx_msg void OnItemchangingDevicelist(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnDblclkDevicelist(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnIAm();
+	afx_msg void OnObjProp();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
