@@ -358,11 +358,19 @@
 #define IDC_SEGBOTH                     1176
 #define IDC_SEGTRANSMIT                 1177
 #define IDC_SEGRECEIVE                  1178
+#define IDC_RAW                         1178
 #define IDC_SEGNONE                     1179
+#define IDC_BTR                         1179
 #define IDC_DEVICELIST                  1180
+#define IDC_BBMD                        1180
 #define IDC_NEWDEVICE                   1181
+#define IDC_BIP                         1181
 #define IDC_IAM                         1182
+#define IDC_FOREIGN                     1182
 #define IDC_SEGSIZE                     1183
+#define ID_BBMDPEERS                    1183
+#define ID_BTRPEERS                     1184
+#define IDC_HOSTADDR                    1185
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -395,7 +403,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        239
 #define _APS_NEXT_COMMAND_VALUE         32804
-#define _APS_NEXT_CONTROL_VALUE         1178
+#define _APS_NEXT_CONTROL_VALUE         1186
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
