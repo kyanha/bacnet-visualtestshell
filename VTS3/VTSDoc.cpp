@@ -22,6 +22,10 @@
 #include "VTSStatisticsCollector.h"
 #include "VTSStatisticsDlg.h"
 
+//Xiao Shiyuan 2002-9-23
+#include "VTSWinPTPPort.h"
+#include "VTSPortPTPDialog.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -60,6 +64,7 @@ VTSDoc::VTSDoc()
 	_CrtMemCheckpoint( &s1 );
 #endif
 	m_bStatisticsDlgInUse=false;
+	m_pStatisticsCollector=NULL;
 //	m_pStatitiscsDlg=&dlg;
 //	m_pStatitiscsDlg->m_pDoc=this;
 }
@@ -195,7 +200,8 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 void VTSDoc::OnCloseDocument() 
 {
 	// delete the statistics collector
-	delete m_pStatisticsCollector;
+	if (m_pStatisticsCollector)
+		delete m_pStatisticsCollector;
 
 	// no more messages please
 	m_postMessages = false;
@@ -852,17 +858,15 @@ void VTSPort::Refresh( void )
 				// define the TD name
 				portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
 				break;
-			}
+			}		
 
-		case mstpPort:
-			portStatus = 3;		// unsupported
-			portStatusDesc = "MS/TP unsupported";
+		case ptpPort: {
+			VTSWinPTPPortPtr pp;
+			portStatus = 1;		// supported by Xiao Shiyuan 2002-4-22
+			portStatusDesc = 0;
+			portEndpoint = pp = new VTSWinPTPPort( this );
 			break;
-
-		case ptpPort:
-			portStatus = 3;		// unsupported
-			portStatusDesc = "PTP unsupported";
-			break;
+		}
 	}
 
 	// see if a filter should be set up
@@ -977,7 +981,9 @@ void VTSPort::Configure( CString *cp )
 			break;
 
 		case ptpPort:
-			TRACE0( "PTP config request\n" );
+			//supported by Xiao Shiyuan 2002-4-22
+            VTSPortPTPDialog	dlg( cp );
+			dlg.DoModal(); 
 			break;
 	}
 }
