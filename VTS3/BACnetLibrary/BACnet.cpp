@@ -1551,6 +1551,7 @@ BACnetCharacterString::BACnetCharacterString( char *svalu )
 }
 
 
+
 void BACnetCharacterString::Initialize( char * svalu )
 {
 	strLen = (svalu ? strlen(svalu) : 0);
@@ -1572,6 +1573,13 @@ BACnetCharacterString::BACnetCharacterString( BACnetCharacterString & cpy )
 					  :strEncoding(cpy.strEncoding)
 {
 	Initialize((char *) cpy.strBuff);
+}
+
+
+BACnetCharacterString::BACnetCharacterString( CString & rstr )
+					  :strEncoding(0)
+{
+	Initialize(rstr.GetBuffer(1));
 }
 
 
