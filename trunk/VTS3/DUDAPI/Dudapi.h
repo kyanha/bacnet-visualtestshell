@@ -133,8 +133,8 @@ short APIENTRY GetPropIndex(word object_type, dword PropId);
 
 short APIENTRY CheckObjTypeDevPics(char far* StdObj, generic_object far* pdbRoot,
 									octet far resObjDev[MAX_DEFINED_OBJ], octet far resObjPICS[MAX_DEFINED_OBJ]); //***002
-short APIENTRY CheckConfClass(word ConfClass, char far ApplServ[35], char far Result[35], 
-								generic_object far* root, TObjProp far resObj[64], short far* eol); //***002
+//short APIENTRY CheckConfClass(word ConfClass, char far ApplServ[35], char far Result[35], 
+//								generic_object far* root, TObjProp far resObj[64], short far* eol); //***002
 short APIENTRY CheckFunctionalGroup(dword FuncGroup, char far ApplServ[35], char far Result[35], 
 									generic_object far* root, TObjProp far resObj[64], short far* eol); //***002
 short APIENTRY DevApplServCheck(char far ApplServ[35], generic_object far* root, 
