@@ -24,6 +24,9 @@ public:
 	//{{AFX_DATA(VTSPortIPDialog)
 	enum { IDD = IDD_PORT_IP };
 	CString	m_Socket;
+	CString	m_HostAddr;
+	CString	m_TTL;
+	int		m_PortType;
 	//}}AFX_DATA
 
 
@@ -40,6 +43,7 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(VTSPortIPDialog)
 	virtual BOOL OnInitDialog();
+	afx_msg void OnPortType();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
