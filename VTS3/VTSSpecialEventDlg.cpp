@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSSpecialEventDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSSpecialEventDlg::VTSSpecialEventDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSSpecialEventDlg::IDD, pParent)
     , m_calendarRef(this,IDC_OBJECTID)
@@ -25,6 +26,7 @@ VTSSpecialEventDlg::VTSSpecialEventDlg(CWnd* pParent /*=NULL*/)
 	m_nChoice = -1;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSSpecialEventDlg::DoDataExchange(CDataExchange* pDX)

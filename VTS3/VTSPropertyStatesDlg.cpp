@@ -26,6 +26,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSPropertyStatesDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSPropertyStatesDlg::VTSPropertyStatesDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSPropertyStatesDlg::IDD, pParent)
 	, m_nSelItem(-1)
@@ -36,6 +37,7 @@ VTSPropertyStatesDlg::VTSPropertyStatesDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSPropertyStatesDlg::DoDataExchange(CDataExchange* pDX)

@@ -30,6 +30,7 @@ char *DAY_OF_WEEK[] =
 /////////////////////////////////////////////////////////////////////////////
 // VTSWeekNDayDlg dialog
 
+#pragma warning( disable : 4355 )
 VTSWeekNDayDlg::VTSWeekNDayDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSWeekNDayDlg::IDD, pParent)
 	, m_month( this, IDC_MONTH, MONTH, 13, true )
@@ -40,6 +41,7 @@ VTSWeekNDayDlg::VTSWeekNDayDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSWeekNDayDlg::DoDataExchange(CDataExchange* pDX)

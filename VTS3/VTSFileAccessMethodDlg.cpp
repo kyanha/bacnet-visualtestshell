@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSFileAccessMethodDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSFileAccessMethodDlg::VTSFileAccessMethodDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSFileAccessMethodDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetFileAccessMethod, 2, true )	
@@ -25,6 +26,7 @@ VTSFileAccessMethodDlg::VTSFileAccessMethodDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSFileAccessMethodDlg::DoDataExchange(CDataExchange* pDX)

@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSPriorityValueDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSPriorityValueDlg::VTSPriorityValueDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSPriorityValueDlg::IDD, pParent)
 	, m_BinaryPV( this, IDC_BINARYPV, NetworkSniffer::BACnetBinaryPV, 2, true )
@@ -27,6 +28,7 @@ VTSPriorityValueDlg::VTSPriorityValueDlg(CWnd* pParent /*=NULL*/)
 	m_nChoice = -1;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSPriorityValueDlg::DoDataExchange(CDataExchange* pDX)

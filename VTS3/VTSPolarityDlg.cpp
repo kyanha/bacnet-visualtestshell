@@ -18,6 +18,7 @@ namespace NetworkSniffer {
 // VTSPolarityDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSPolarityDlg::VTSPolarityDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSPolarityDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetPolarity, 2, true )
@@ -26,6 +27,7 @@ VTSPolarityDlg::VTSPolarityDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSPolarityDlg::DoDataExchange(CDataExchange* pDX)

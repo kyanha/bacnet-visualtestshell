@@ -367,7 +367,7 @@ void CSizingControlBar::OnLButtonDown(UINT nFlags, CPoint point)
         ASSERT(m_pDockContext != NULL);
         ClientToScreen(&point);
 
-		int n = m_nDockBarID;
+		unsigned int n = m_nDockBarID;
         m_pDockContext->StartDrag(point);
 		if ( n != m_nDockBarID )
 			OnDockPositionChanged();

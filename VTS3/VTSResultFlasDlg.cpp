@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSResultFlasDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSResultFlasDlg::VTSResultFlasDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSResultFlasDlg::IDD, pParent)
 	,m_firstItem(this, IDC_FIRSTITEM, true)
@@ -25,6 +26,7 @@ VTSResultFlasDlg::VTSResultFlasDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSResultFlasDlg::DoDataExchange(CDataExchange* pDX)

@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSEventLifeSafetyDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSEventLifeSafetyDlg::VTSEventLifeSafetyDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEventLifeSafetyDlg::IDD, pParent)
 	, m_timeDelay(this, IDC_TIMEDELAY)
@@ -29,6 +30,7 @@ VTSEventLifeSafetyDlg::VTSEventLifeSafetyDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEventLifeSafetyDlg::DoDataExchange(CDataExchange* pDX)

@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSListOfBitstringDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSListOfBitstringDlg::VTSListOfBitstringDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSListOfBitstringDlg::IDD, pParent)
 	, m_BitstringList(this)
@@ -23,6 +24,7 @@ VTSListOfBitstringDlg::VTSListOfBitstringDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSListOfBitstringDlg::DoDataExchange(CDataExchange* pDX)

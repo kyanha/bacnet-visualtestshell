@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSSessionKeyDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSSessionKeyDlg::VTSSessionKeyDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSSessionKeyDlg::IDD, pParent)
 	, m_sessionKey( this, IDC_SESSIONKEY )
@@ -25,6 +26,7 @@ VTSSessionKeyDlg::VTSSessionKeyDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSSessionKeyDlg::DoDataExchange(CDataExchange* pDX)

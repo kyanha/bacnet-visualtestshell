@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSLimitEnableDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSLimitEnableDlg::VTSLimitEnableDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSLimitEnableDlg::IDD, pParent)
 	, m_lowLimit(this, IDC_LOWLIMIT, true)
@@ -24,6 +25,7 @@ VTSLimitEnableDlg::VTSLimitEnableDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSLimitEnableDlg::DoDataExchange(CDataExchange* pDX)

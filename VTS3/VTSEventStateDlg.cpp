@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSEventStateDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSEventStateDlg::VTSEventStateDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEventStateDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetEventState, 6, true )
@@ -25,6 +26,7 @@ VTSEventStateDlg::VTSEventStateDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEventStateDlg::DoDataExchange(CDataExchange* pDX)

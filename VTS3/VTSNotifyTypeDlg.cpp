@@ -18,6 +18,7 @@ namespace NetworkSniffer {
 // VTSNotifyTypeDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSNotifyTypeDlg::VTSNotifyTypeDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSNotifyTypeDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetNotifyType, 3, true )
@@ -26,6 +27,7 @@ VTSNotifyTypeDlg::VTSNotifyTypeDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSNotifyTypeDlg::DoDataExchange(CDataExchange* pDX)

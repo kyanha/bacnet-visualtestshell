@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSProgramRequestDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSProgramRequestDlg::VTSProgramRequestDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSProgramRequestDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetProgramRequest, 6, true )
@@ -25,6 +26,7 @@ VTSProgramRequestDlg::VTSProgramRequestDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSProgramRequestDlg::DoDataExchange(CDataExchange* pDX)

@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSDeviceObjectReferenceDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSDeviceObjectReferenceDlg::VTSDeviceObjectReferenceDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSDeviceObjectReferenceDlg::IDD, pParent)
 	, m_DeviceID( this, IDC_DEVICEID )
@@ -24,6 +25,7 @@ VTSDeviceObjectReferenceDlg::VTSDeviceObjectReferenceDlg(CWnd* pParent /*=NULL*/
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSDeviceObjectReferenceDlg::DoDataExchange(CDataExchange* pDX)

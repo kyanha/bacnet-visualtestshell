@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSObjectTypeDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSObjectTypeDlg::VTSObjectTypeDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSObjectTypeDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetObjectType, 23, true )
@@ -25,6 +26,7 @@ VTSObjectTypeDlg::VTSObjectTypeDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSObjectTypeDlg::DoDataExchange(CDataExchange* pDX)

@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSEventChangeOfStateDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSEventChangeOfStateDlg::VTSEventChangeOfStateDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEventChangeOfStateDlg::IDD, pParent)
 	,m_timeDelay(this, IDC_TIMEDELAY)
@@ -23,6 +24,7 @@ VTSEventChangeOfStateDlg::VTSEventChangeOfStateDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEventChangeOfStateDlg::DoDataExchange(CDataExchange* pDX)

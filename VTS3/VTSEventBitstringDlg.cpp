@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSEventBitstringDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSEventBitstringDlg::VTSEventBitstringDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEventBitstringDlg::IDD, pParent)
 	,m_timeDelay(this, IDC_TIMEDELAY)
@@ -24,6 +25,7 @@ VTSEventBitstringDlg::VTSEventBitstringDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEventBitstringDlg::DoDataExchange(CDataExchange* pDX)

@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSObjectPropertyReferenceDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSObjectPropertyReferenceDlg::VTSObjectPropertyReferenceDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSObjectPropertyReferenceDlg::IDD, pParent)
 	, m_ObjectID( this, IDC_OBJECTID )
@@ -27,6 +28,7 @@ VTSObjectPropertyReferenceDlg::VTSObjectPropertyReferenceDlg(CWnd* pParent /*=NU
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSObjectPropertyReferenceDlg::DoDataExchange(CDataExchange* pDX)

@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 // VTSEngineeringUnitsDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSEngineeringUnitsDlg::VTSEngineeringUnitsDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEngineeringUnitsDlg::IDD, pParent)
 	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetEngineeringUnits, 143, true )
@@ -25,6 +26,7 @@ VTSEngineeringUnitsDlg::VTSEngineeringUnitsDlg(CWnd* pParent /*=NULL*/)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEngineeringUnitsDlg::DoDataExchange(CDataExchange* pDX)

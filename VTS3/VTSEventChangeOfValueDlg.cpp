@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 // VTSEventChangeOfValueDlg dialog
 
 
+#pragma warning( disable : 4355 )
 VTSEventChangeOfValueDlg::VTSEventChangeOfValueDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSEventChangeOfValueDlg::IDD, pParent)
 	,m_timeDelay(this, IDC_TIMEDELAY)
@@ -25,6 +26,7 @@ VTSEventChangeOfValueDlg::VTSEventChangeOfValueDlg(CWnd* pParent /*=NULL*/)
 	m_nChoice = -1;
 	//}}AFX_DATA_INIT
 }
+#pragma warning( default : 4355 )
 
 
 void VTSEventChangeOfValueDlg::DoDataExchange(CDataExchange* pDX)

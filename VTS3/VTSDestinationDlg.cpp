@@ -196,6 +196,7 @@ void VTSDestinationDlg::OnOK()
 {	
 	UpdateData(TRUE);
 	m_Value.m_issueConfirmedNotifications = *(new BACnetBoolean(m_bDestinationConfirm));
+#pragma warning( disable : 4800 )
 	m_Value.m_transitions = *(new BACnetEventTransitionBits(m_bDestinationOffNormal,m_bDestinationFault,m_bDestinationNormal));
 	m_Value.m_validDays = *(new BACnetDaysOfWeek(m_bDestinationMonday,
 												 m_bDestinationTuesday,
@@ -204,6 +205,7 @@ void VTSDestinationDlg::OnOK()
 												 m_bDestinationFriday,
 												 m_bDestinationSaturday,
 												 m_bDestinationSunday));								
+#pragma warning( default : 4800 )
 	m_FromTimeCtrl.CtrlToObj();
 	m_Value.m_fromTime = m_FromTimeCtrl;
 	m_ToTimeCtrl.CtrlToObj();
