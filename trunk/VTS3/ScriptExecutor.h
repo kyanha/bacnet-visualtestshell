@@ -256,6 +256,8 @@ class ScriptExecutor : public BACnetTask {
 		void SendReject( CByteArray &packet );
 		void SendAbort( CByteArray &packet );
 
+		void SendALData( CByteArray &packet );
+
 		void SendALNull( ScriptPacketExprPtr spep, CByteArray &packet );
 		void SendALBoolean( ScriptPacketExprPtr spep, CByteArray &packet );
 		void SendALUnsigned( ScriptPacketExprPtr spep, CByteArray &packet );
@@ -273,8 +275,6 @@ class ScriptExecutor : public BACnetTask {
 		void SendALPropertyIdentifier( ScriptPacketExprPtr spep, CByteArray &packet );
 		void SendALOpeningTag( ScriptPacketExprPtr spep, CByteArray &packet );
 		void SendALClosingTag( ScriptPacketExprPtr spep, CByteArray &packet );
-
-		void SendALData( CByteArray &packet );
 
 		bool ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu );	// match execPacket, return true iff success
 
