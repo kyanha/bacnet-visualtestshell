@@ -12,6 +12,7 @@ static char THIS_FILE[]=__FILE__;
 
 UINT WinIPThreadFunc( LPVOID pParam );
 void CheckSocketError( char *func );
+const char * GetSocketErrorMsg( int nSocketError );
 
 //
 //	WinIP::WinIP
@@ -345,14 +346,26 @@ UINT WinIPThreadFunc( LPVOID pParam )
 
 void CheckSocketError( char *func )
 {
-	char	errMsg[2048], *msg
-	;
+	char	errMsg[2048];
+	const char * msg;
 
 	int stat = GetLastError();
 	if (stat == 0)
 		return;
-	
-	switch (stat) {
+
+	msg = GetSocketErrorMsg(stat);
+
+	sprintf( errMsg, "%s() error %d, %s", func, stat, msg );
+	AfxMessageBox( errMsg );
+}
+
+
+
+const char * GetSocketErrorMsg( int nSocketError )
+{
+	const char * msg = NULL;
+
+	switch (nSocketError) {
 		case WSAEINTR:
 			msg = "Interrupted function call.\n"
 					"A blocking operation was interrupted by a call to WSACancelBlockingCall.";
@@ -699,6 +712,5 @@ void CheckSocketError( char *func )
 			break;
 	}
 
-	sprintf( errMsg, "%s() error %d, %s", func, stat, msg );
-	AfxMessageBox( errMsg );
+	return msg;
 }
