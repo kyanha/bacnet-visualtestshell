@@ -590,7 +590,10 @@ void ScriptScanner::Initialize()
 	m_fileSource = NULL;
 	scanLineBuffer[0] = 0;
 	scanValueBuffer[0] = 0;
-	scanLine = -1;
+// DDO 11/04
+// 799851 assign scanLine with 0 rather than -1 here, 
+// so that the line numbers match what is in the script editor.
+	scanLine = 0;
 	scanSrc = scanLineBuffer;
 	m_nLineOffset = 0;
 }
@@ -1488,9 +1491,6 @@ void ScriptScanner::NextLine( ScriptToken& tok )
 	if ( m_pdocSource == NULL  &&  m_fileSource == NULL )			// madanner 6/03
 		throw (-1);
 
-	// get the next line
-	scanLine += 1;
-
 //madanner 6/03
 //	if (scanLine >= scanSource->GetLineCount()) {
 //		tok.tokenType = scriptEOF;
@@ -1513,6 +1513,12 @@ void ScriptScanner::NextLine( ScriptToken& tok )
 		len = m_pdocSource->m_editData->GetLine( scanLine, scanLineBuffer, kTokenBufferSize );
 		scanLineBuffer[len] = 0;
 	}
+
+// DDO 11/04
+// 799851 increment scanLine down here rather than above, so the uses don't
+// have to be revised, since we now Initialize scanLine with 0 rather than -1
+	// get the next line
+	scanLine += 1;
 	
 	if ( m_fileSource != NULL )
 	{
