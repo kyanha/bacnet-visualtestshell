@@ -1122,6 +1122,13 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //
 //			Fixed a bug in the specification of the EPICS file to load.  It was using the filename only, even if
 //			the file specified from the file dialog found the file in other directories.
+//
+//			Moved "Read All Properties" command to main window menu.  Revamped generation of script file for reading
+//			all properties (bug not generating last object RP).
+//				- The filename "ReadAllProperties.vts" will be generated when this command is given.  The file will reside
+//				  in the current working directory and will not be deleted.
+//				- This file will be overriden when the command is performed a second time.
+//				- The user may edit the vts file as any other script and perform SaveAs to retain the generated file.
 
 
 const int kReleaseVersion = 2;
