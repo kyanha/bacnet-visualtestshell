@@ -160,8 +160,6 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		return FALSE;
 	}
 
-	// get the packet count
-	SetPacketCount( m_pDB->GetPacketCount() );
 
 	// bind to the port list and open the ports
 	m_Devices.Load( this );
@@ -177,6 +175,9 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 	// ready for messages
 	m_postMessages = true;
+
+	// get the packet count
+	SetPacketCount( m_pDB->GetPacketCount() );
 
 	//get the statistics from the loading db file
 	for(int i=0;i<m_pDB->GetPacketCount();i++)
@@ -306,7 +307,8 @@ void VTSDoc::DoSendWindow( int iGroup, int iItem )
 	gSelectedItem = iItem;
 
 	// create the window and show it
-	sendp->Create( AfxGetApp()->m_pMainWnd );
+	//sendp->Create( AfxGetApp()->m_pMainWnd );
+	sendp->Create(); //Make send window a client window, Xiao Shiyuan 2002-10-24
 	sendp->ShowWindow( SW_SHOW );
 	
 	// reset the selection

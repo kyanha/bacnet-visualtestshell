@@ -48,6 +48,7 @@ public:
 	virtual void ActivateFrame(int nCmdShow = -1);
 	protected:
 	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
+	virtual BOOL DestroyWindow();
 	//}}AFX_VIRTUAL
 
 // Implementation

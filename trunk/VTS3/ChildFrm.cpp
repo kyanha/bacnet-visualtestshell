@@ -113,13 +113,11 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	// Let the clients know which context to use
 	gNewFrameContext = m_frameContext;
 
-	
 	// Tell the frame context which document, and get frame count.  Be careful
 	// because the frame count in the document might not be fully initialized 
 	// if this is a new frame for a new document, VTSDoc::OnNewDocument() has
 	// not been called yet.
 	((VTSDoc*)pContext->m_pCurrentDoc)->BindFrameContext( m_frameContext );
-
 
 	// it all worked, we now have two splitter windows which contain
 	//  three different views
@@ -132,6 +130,7 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
     return -1;
     // fail to create
 	}
+
 	m_pwndHexViewBar->SetBarStyle(m_pwndHexViewBar->GetBarStyle() |
     CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
 	m_pwndHexViewBar->SetSCBStyle(SCBS_SIZECHILD);
@@ -141,8 +140,7 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
     m_pFloatingFrameClass = RUNTIME_CLASS(CSCBMiniDockFrameWnd);
 	#endif //_SCB_REPLACE_MINIFRAME
 	
-	
-	if (!m_pwndDetailViewBar->Create(_T("Detail View"), this, 123))
+	if (!m_pwndDetailViewBar->Create(_T("Detail View"), this, 124))
 	{
     TRACE0("Failed to create mybar\n");
     return -1;
@@ -160,16 +158,14 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	#endif //_SCB_REPLACE_MINIFRAME
 	
 	DockControlBar(m_pwndDetailViewBar,AFX_IDW_DOCKBAR_RIGHT);
-	DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_BOTTOM);
-//	DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_RIGHT);
-	CMDIChildWnd::OnCreateClient(lpcs,pContext);
+	DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_RIGHT);
 	
+	CMDIChildWnd::OnCreateClient(lpcs,pContext);
 
 	m_pDetailView = m_pwndDetailViewBar->m_pList;
 	m_pHexView = m_pwndHexViewBar->m_pHexView;
 	m_pSummaryView=(CListSummaryView *)GetDlgItem(AFX_IDW_PANE_FIRST);
 	
-
 	// set up the tab ring
 	m_pSummaryView->m_pTabRing = m_pDetailView;
 	m_pDetailView->m_pTabRing = m_pHexView;
@@ -177,9 +173,24 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	
 	// make sure this isn't used
 	gNewFrameContext = NULL;
-
-
+	m_pwndDetailViewBar->LoadState(_T("Detail Bar Status"));
+	m_pwndHexViewBar->LoadState(_T("Hex Bar Status"));
+	LoadBarState("Bar Status");
+	
 	return TRUE;
+}
+
+BOOL CChildFrame::DestroyWindow() 
+{
+	// TODO: Add your specialized code here and/or call the base class
+	if(!m_pwndDetailViewBar->IsFloating()&&!m_pwndHexViewBar->IsFloating())
+		SaveBarState("Bar Status");
+	if(!m_pwndDetailViewBar->IsFloating())
+		m_pwndDetailViewBar->SaveState(_T("Detail Bar Status"));
+	if(!m_pwndHexViewBar->IsFloating())
+		m_pwndHexViewBar->SaveState(_T("Hex Bar Status"));
+
+	return CMDIChildWnd::DestroyWindow();
 }
 
 void CChildFrame::OnCancelMode() 
