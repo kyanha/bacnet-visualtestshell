@@ -2193,7 +2193,7 @@ void ScriptExecutor::SendInitializeRoutingTable( ScriptTokenList &tlist, CByteAr
 			throw "Port information must be ASCII encoded";
 
 		packet.Add( cstr.strLen );
-		for (int j = 0; j < cstr.strLen; j++)
+		for (unsigned int j = 0; j < cstr.strLen; j++)
 			packet.Add( cstr.strBuff[j] );
 	}
 }
@@ -5095,7 +5095,7 @@ void ScriptExecutor::ExpectInitializeRoutingTable( ScriptTokenList &tlist, BACne
 		// check the port information content
 		if (cstr.strLen != (dec.pktLength--,*dec.pktBuffer++))
 			throw "Port information mismatch";
-		for (int j = 0; j < cstr.strLen; j++)
+		for (unsigned int j = 0; j < cstr.strLen; j++)
 			if (cstr.strBuff[j] != (dec.pktLength--,*dec.pktBuffer++))
 				throw "Port information mismatch";
 	}
@@ -6179,8 +6179,9 @@ void ScriptExecutor::ExpectALOctetString( ScriptPacketExprPtr spep, BACnetAPDUDe
 
 void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int						indx = -1, context = kAppContext, i, minLen
-	;
+	int						indx = -1, context = kAppContext;
+	unsigned int minLen; // for string len
+	unsigned int i; // counter 
 	BACnetCharacterString	cstrData, scriptData
 	;
 	ScriptTokenList			tlist
