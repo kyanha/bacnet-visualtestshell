@@ -24,6 +24,7 @@
 
 class VTSApp : public CWinApp {
 	public:
+		CRecentFileList* GetRecentFileList();
 		VTSApp();
 
 	// Overrides

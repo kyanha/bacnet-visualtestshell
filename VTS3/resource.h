@@ -125,6 +125,7 @@
 #define IDD_STATISTICS_OPTIONS          244
 #define IDD_SENDDEVICE                  245
 #define IDD_DIALOG1                     246
+#define IDD_READALLPROPSETTING          247
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -467,6 +468,8 @@
 #define IDC_RANGE_5                     1246
 #define IDC_OPTIONS                     1247
 #define IDC_BAUDRATE                    1249
+#define IDC_EDIT_IUTIP                  1249
+#define IDC_COMBO_NETWORK               1251
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -498,6 +501,7 @@
 #define ID_VIEW_STATISTICS              32809
 #define ID_FILE_EXPORT                  32810
 #define ID_SCRIPT_ENV                   32811
+#define ID_SCRIPT_READALLPROPERTY       32812
 #define IDS_SCREX_COMPREAL              33000
 #define IDS_SCREX_COMPEPICSNULL         33001
 #define IDS_SCREX_COMPREALDATALEN       33002
@@ -542,9 +546,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        247
-#define _APS_NEXT_COMMAND_VALUE         32812
-#define _APS_NEXT_CONTROL_VALUE         1249
+#define _APS_NEXT_RESOURCE_VALUE        248
+#define _APS_NEXT_COMMAND_VALUE         32813
+#define _APS_NEXT_CONTROL_VALUE         1252
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
