@@ -7,30 +7,36 @@
 // VTSPortPTPDialog.h : header file
 //
 
+#include "VTSPropertyPage.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortPTPDialog dialog
-class VTSPortPTPDialog : public CDialog
+
+class VTSPortPTPDialog : public VTSPropertyPage
 {
-// Construction
+	DECLARE_DYNCREATE(VTSPortPTPDialog)
+
+	CString		* m_pstrConfigParms;
+
 public:
-	VTSPortPTPDialog(CString *cp, CWnd* pParent = NULL);   // standard constructor
-
-	CString		*m_Config;
+	VTSPortPTPDialog( VTSPageCallbackInterface * pparent );
+	VTSPortPTPDialog();
+	~VTSPortPTPDialog();
 	
-	CString m_portStr; 
-	CString m_baudrateStr; 
-
 // Dialog Data
 	//{{AFX_DATA(VTSPortPTPDialog)
-	enum { IDD = IDD_PORT_PTP };
-	CComboBox	m_port;
-	CComboBox	m_baudrate;
+	enum { IDD = IDD_PORTPAGE_PTP };
+	CString		m_strCOM;
+	CString		m_strBaud;
 	//}}AFX_DATA
 
 
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(VTSPortPTPDialog)
+	public:
+	virtual BOOL OnSetActive();
+	virtual BOOL OnKillActive();
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
@@ -40,9 +46,12 @@ protected:
 
 	// Generated message map functions
 	//{{AFX_MSG(VTSPortPTPDialog)
-	virtual BOOL OnInitDialog();
-	virtual void OnOK();
+	afx_msg void OnDataChange();
 	//}}AFX_MSG
+
+	void ObjToCtrl(void);
+	void CtrlToObj(void);
+
 	DECLARE_MESSAGE_MAP()
 };
 
