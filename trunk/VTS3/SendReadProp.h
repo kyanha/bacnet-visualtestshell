@@ -36,6 +36,8 @@ public:
 	void SavePage( void );						// save contents
 	void RestorePage( int index = 0 );					// restore contents to last saved values
 
+	void ForceValues(BACnetObjectIdentifier * pObjectID, BACnetEnumerated * pPropID );
+
 // Dialog Data
 	//{{AFX_DATA(CSendReadProp)
 	enum { IDD = IDD_SENDREADPROP };

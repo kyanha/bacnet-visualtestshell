@@ -93,6 +93,9 @@ class ReadPropListList : public CList<ReadPropListPtr,ReadPropListPtr> {
 		void OnItemChanging( NMHDR *pNMHDR, LRESULT *pResult ); // selected object changing
 
 		void Encode( BACnetAPDUEncoder& enc );
+
+		// madanner 9/04
+		void ForceValues(BACnetObjectIdentifier * pObjectID, int apPropID[], int nSize );
 	};
 
 /////////////////////////////////////////////////////////////////////////////
@@ -115,8 +118,13 @@ public:
 
 	void SavePage( void );						// save contents
 	void RestorePage( int index = 0 );			// restore contents to last saved values
+	void ClearAll(void);
 
-	CList<CString, CString> m_strList;
+	void ForceValues(BACnetObjectIdentifier * pObjectID, int apPropID[], int nSize );
+
+	// madanner, 9/04
+	CStringArray m_strList;
+//	CList<CString, CString> m_strList;
 
 // Dialog Data
 	//{{AFX_DATA(CSendReadPropMult)

@@ -292,3 +292,25 @@ void CSendWriteProp::OnDropdownPropcombo()
 	m_PropCombo.m_nObjType = m_ObjectID.GetObjectType();
 	m_PropCombo.LoadCombo();	
 }
+
+
+// madanner 9/04, added from EPICS view
+
+void CSendWriteProp::ForceValues(BACnetObjectIdentifier * pObjectID, BACnetEnumerated * pPropID, BACnetEncodeable * pbacnetEncodeable )
+{
+	m_ObjectID.objID = pObjectID->objID;
+	m_ObjectID.ctrlNull = FALSE;
+	m_PropCombo.enumValue = pPropID->enumValue;
+	m_PropCombo.ctrlNull = FALSE;
+	m_ArrayIndex.ctrlNull = true;
+	m_Priority.ctrlNull = true;
+
+	m_ObjectID.ObjToCtrl();
+	m_PropCombo.ObjToCtrl();
+
+	m_Value.m_anyList.KillAll();
+	m_Value.AddValue(pbacnetEncodeable);
+
+	SavePage();
+	UpdateEncoded();
+}

@@ -97,6 +97,8 @@ class WritePropListList : public CList<WritePropListPtr,WritePropListPtr> {
 		void OnItemChanging( NMHDR *pNMHDR, LRESULT *pResult ); // selected object changing
 
 		void Encode( BACnetAPDUEncoder& enc );
+
+		void ForceValues(BACnetObjectIdentifier * pObjectID, int apPropID[], CPtrArray * apbacnetValues, int nSize );
 	};
 
 /////////////////////////////////////////////////////////////////////////////
@@ -120,6 +122,9 @@ public:
 
 	void SavePage( void );						// save contents
 	void RestorePage( int index = 0 );					// restore contents to last saved values
+
+	void ClearAll(void);
+	void ForceValues(BACnetObjectIdentifier * pObjectID, int apPropID[], CPtrArray * apbacnetValues, int nSize );
 
 // Dialog Data
 	//{{AFX_DATA(CSendWritePropMult)

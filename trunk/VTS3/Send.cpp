@@ -1044,3 +1044,35 @@ void CSend::OnSelchangeHistory()
 	curPagePtr->RestorePage(sel);
 	curPagePtr->UpdateEncoded();   //Modifed to change history correct by Zhu Zhenhua, 2004-4-20
 }
+
+
+// static method to find appropriate indicies into group and item for
+// This helps us not make all the structures above accessible outside of this module
+// gSelectedPort must be defined...
+
+void CSend::FindActionIndicies( LPCSTR lpszCommand, int * pIndexGroup, int * pIndexItem )
+{
+	*pIndexGroup = *pIndexItem = -1;
+
+	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+	VTSPorts * pports = pdoc == NULL ? NULL : pdoc->GetPorts();
+
+	if ( pports == NULL )
+		return;
+
+	CSendGroupList	curGroupList = (*pports)[gSelectedPort]->portSendGroup;
+
+
+	// Now we have to find the right index into this port's send group list that indicates the ObjectAccess group
+
+	for ( int i = 0; curGroupList[i] && *pIndexGroup == -1; i++)
+		if ( curGroupList[i] == &gObjectAccessGroup )
+		{
+			if ( curGroupList[i]->groupItemList )
+				for ( int j = 0;  curGroupList[i]->groupItemList[j].itemName  &&  *pIndexItem == -1; j++ )
+					if ( strcmp(curGroupList[i]->groupItemList[j].itemName, lpszCommand) == 0 )
+						*pIndexItem = j;
+
+			*pIndexGroup = i;
+		}
+}

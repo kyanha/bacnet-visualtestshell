@@ -130,7 +130,7 @@ void CSendReadPropMult::SavePage( void )
 {
 	TRACE0( "CSendReadPropMult::SavePage\n" );
 
-	glWPMRPMListList[glCurWPMRPMHistory].RemoveAll(); //clear all data first
+	glWPMRPMListList[glCurWPMRPMHistory].KillAll(); //clear all data first... madanner 9/04, fixed memory leaks
 	
 	for( int i = 0; i < m_PropListList.GetCount(); i++)
 	{	
@@ -176,13 +176,8 @@ void CSendReadPropMult::RestorePage( int index )
 	//restore data. Xiao Shiyuan 2002-12-3	
 	if(isShown)
 	{
-		m_ObjList.DeleteAllItems();
-		m_PropList.DeleteAllItems();
-
-		for (POSITION pos = m_PropListList.GetHeadPosition(); pos != NULL; )
-		  delete m_PropListList.GetNext( pos );		
-
-		m_PropListList.RemoveAll();
+		//madanner 9/04
+		ClearAll();
 	}	  
 
 	for(int i = 0; i < glWPMRPMListList[index].GetCount(); i++)
@@ -200,7 +195,8 @@ void CSendReadPropMult::RestorePage( int index )
 		if(isShown)
 		  m_ObjList.InsertItem(i, wpmrplistPtr->m_ObjIDStr);         
 		else
-          m_strList.AddTail(wpmrplistPtr->m_ObjIDStr);
+			m_strList.Add(wpmrplistPtr->m_ObjIDStr);		//madanner, 9/04          m_strList.AddTail(wpmrplistPtr->m_ObjIDStr);
+
 
 		for(int j = 0; j < wpmrplistPtr->GetCount(); j++)
 		{
@@ -223,6 +219,18 @@ void CSendReadPropMult::RestorePage( int index )
 		}
         m_PropListList.AddTail(rplistPtr);
 	}
+}
+
+
+void CSendReadPropMult::ClearAll()
+{
+	m_ObjList.DeleteAllItems();
+	m_PropList.DeleteAllItems();
+
+	for (POSITION pos = m_PropListList.GetHeadPosition(); pos != NULL; )
+	  delete m_PropListList.GetNext( pos );		
+
+	m_PropListList.RemoveAll();
 }
 
 //
@@ -264,8 +272,12 @@ BOOL CSendReadPropMult::OnInitDialog()
 		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	//Xiao Shiyuan 2002-12-5
-	for(i = 0; i < m_strList.GetCount(); i++)    
-		m_ObjList.InsertItem(i, m_strList.GetAt(m_strList.FindIndex(i)));    
+	//madanner 9/04 - converted to StringArray
+//	for(i = 0; i < m_strList.GetCount(); i++)    
+//		m_ObjList.InsertItem(i, m_strList.GetAt(m_strList.FindIndex(i)));    
+
+	for(i = 0; i < m_strList.GetSize(); i++)    
+		m_ObjList.InsertItem(i, m_strList.GetAt(i));    
 
 	return TRUE;
 }
@@ -346,6 +358,28 @@ void CSendReadPropMult::OnChangeArrayIndex()
 	if (m_PropListList.rpllCurElem)
 		m_PropListList.rpllCurElem->OnChangeArrayIndex();
 }
+
+
+
+
+// madanner 9/04, added from EPICS view
+
+void CSendReadPropMult::ForceValues(BACnetObjectIdentifier * pObjectID, int apPropID[], int nSize )
+{
+	ClearAll();
+
+	m_PropListList.ForceValues(pObjectID, apPropID, nSize);
+
+	// copy the text from the control to the list
+//	CString text;
+//	GetDlgItem( IDC_OBJID )->GetWindowText( text );
+//	m_ObjList.InsertItem(0, text);
+
+	SavePage();
+	UpdateEncoded();
+}
+
+
 
 //
 //	ReadPropElem::ReadPropElem
@@ -826,6 +860,41 @@ void ReadPropListList::AddButtonClick( void )
 	rpllPagePtr->UpdateEncoded();
 }
 
+
+void ReadPropListList::ForceValues(BACnetObjectIdentifier * pObjectID, int apPropID[], int nSize )
+{
+	// create a new list item
+	rpllAddInProgress = true;
+	rpllPagePtr->m_ObjList.InsertItem( 0, "" );
+	rpllCurElemIndx = 0;
+
+	ReadPropListPtr rplistPtr = new ReadPropList(rpllPagePtr);
+		
+	rplistPtr->rplObjID.ctrlNull = FALSE;
+	rplistPtr->rplObjID.objID = pObjectID->objID;
+
+//      m_strList.AddTail(wpmrplistPtr->m_ObjIDStr);
+
+	for ( int j = 0; j < nSize; j++)
+	{
+		ReadPropElemPtr elemPtr = new ReadPropElem(rpllPagePtr);
+			
+		elemPtr->rpePropCombo.enumValue = apPropID[j];
+		elemPtr->rpePropCombo.ctrlNull = FALSE;
+		elemPtr->rpeArrayIndex.uintValue = 0;
+		elemPtr->rpeArrayIndex.ctrlNull = TRUE;
+			
+		rplistPtr->AddTail( elemPtr);
+	}
+
+	AddTail(rplistPtr);
+	rplistPtr->Bind();
+
+	// update the encoding
+	rpllAddInProgress = false;
+	rpllPagePtr->m_ObjList.SetItemState( 0, LVIS_SELECTED, LVIS_SELECTED);
+}
+
 //
 //	ReadPropListList::RemoveButtonClick
 //
@@ -1087,3 +1156,4 @@ void CSendReadPropMult::OnDropdownPropcombo()
 		m_PropListList.rpllCurElem->rplCurElem->rpePropCombo.LoadCombo();
 	}
 }
+
