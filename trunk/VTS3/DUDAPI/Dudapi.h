@@ -52,12 +52,12 @@ enum BACnetApplServ
    asUnconfirmedTextMessage,        //31
    asTimeSynchronization,           //32
    asWho_Has,                       //33
-   asWho_Is, 						//34
-   asRead_Range,					//35
-   asUTC_Time_Synchronization,		//36
-   asLifeSafetyOperation,		    //37 
-   asSubscribeCOVProperty,		    //38  
-   asGetEventInformation,			//39
+   asWho_Is,                        //34
+   asReadRange,                     //35
+   asUTCTimeSynchronization,        //36
+   asLifeSafetyOperation,           //37 
+   asSubscribeCOVProperty,          //38  
+   asGetEventInformation,           //39
  };
 
 
