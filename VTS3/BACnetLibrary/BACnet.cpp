@@ -2209,6 +2209,15 @@ BACnetObjectIdentifier::BACnetObjectIdentifier( int objType, int instanceNum )
 {
 }
 
+//
+//	BACnetObjectIdentifier::SetValue
+//
+
+void BACnetObjectIdentifier::SetValue( int objType, int instanceNum )
+{
+	objID = (objType << 22) + instanceNum;
+}
+
 void BACnetObjectIdentifier::Encode( BACnetAPDUEncoder& enc, int context )
 {
 	// encode the tag
