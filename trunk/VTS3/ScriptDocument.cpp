@@ -615,7 +615,7 @@ void ScriptDocument::CheckSyntax( void )
 					for (;;) {
 						// get the value and save it
 						if ((tok.tokenType != scriptValue) && (tok.tokenType != scriptKeyword)
-								 && (tok.tokenType != scriptReference))
+								 && (tok.tokenType != scriptReference) )
 							throw "Parameter value expected";
 
 						// save the value
@@ -739,6 +739,7 @@ void ScriptDocument::ParsePacket( ScriptScanner& scan, ScriptToken& tok, ScriptP
 				||	(tok.tokenSymbol == '=')
 				||	(tok.tokenSymbol == '!=')
 				||	(tok.tokenSymbol == '?=')
+				||	(tok.tokenSymbol == '>>')
 				) {
 				if (isSend && (tok.tokenSymbol != '='))
 					throw "Equals operator '=' required";
