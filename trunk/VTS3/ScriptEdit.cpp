@@ -232,9 +232,12 @@ void ScriptEdit::OnPaint()
 	
 	if(nCurrentY+CHAR_HEIGHT-1 < m_nClientY)
 	{
-		CRect *pRLine = new CRect(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
-		memDC.FillSolidRect( pRLine, RGB(255,255,0) );
-		delete pRLine;
+		//madanner 6/03, heap allocation not necessary
+		CRect RLine(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
+		memDC.FillSolidRect( &RLine, RGB(255,255,0) );
+//		CRect *pRLine = new CRect(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
+//		memDC.FillSolidRect( pRLine, RGB(255,255,0) );
+//		delete pRLine;
 	}
 	
     CWnd::DefWindowProc(WM_PAINT,(WPARAM)memDC.m_hDC, 0 );
@@ -411,8 +414,14 @@ void ScriptEdit::GotoLine(int nLineIndex)
 
 	int nCharIndex = m_pEdit->LineIndex(nLineIndex-1);
 
-	m_pEdit->LineScroll(m_nLineCount-m_nCurrentLine);
+	//madanner 6/03, make goto line visible... wouldn't do this if goto was upward
+	m_pEdit->LineScroll((nLineIndex-1) - m_pEdit->GetFirstVisibleLine());
+//	m_pEdit->LineScroll(m_nLineCount-m_nCurrentLine);
 	m_pEdit->SetSel(nCharIndex,nCharIndex,false);
+	
+	//madanner 6/03, Calling GetCurLineIndex() without setting the caret highlights the wrong
+	//line... must set caret too
+	m_pEdit->SetCaretPos(m_pEdit->PosFromChar(nCharIndex));
 
 	UpdateEditArea();
 	GetCurLineIndex();
@@ -471,9 +480,13 @@ void ScriptEdit::DisplayLnNum()
 //******************************************************************
 void ScriptEdit::UpdateEditArea()
 {
-	CRect* pRect = new CRect(m_nMargin, 0, m_nClientX, m_nClientY);
-	InvalidateRect(pRect);
-	delete pRect;
+	//madanner 6/03, heap allocation not necessary
+	CRect Rect(m_nMargin, 0, m_nClientX, m_nClientY);
+	InvalidateRect(&Rect);
+
+//	CRect* pRect = new CRect(m_nMargin, 0, m_nClientX, m_nClientY);
+//	InvalidateRect(pRect);
+//	delete pRect;
 }
 
 //******************************************************************
