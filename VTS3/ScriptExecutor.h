@@ -369,6 +369,8 @@ class ScriptExecutor : public BACnetTask {
 		void ExpectALTag( BACnetAPDUDecoder &dec, ScriptToken * ptok, BACnetApplicationTag tagNumber, const char * pszDataType );
 		int CheckExpressionParams( int nMinParms, int nMaxParms, int nSuppliedParms, const char * pszDataType );
 
+		void ThrowPDUBitsError( unsigned char b, char * pszPDUType, ScriptPacketExprPtr pep );
+
 		ScriptPacketExprPtr GetKeywordValue( ScriptParmPtr * ppScriptParm, int keyword, BACnetEncodeable &enc, ScriptTranslateTablePtr tp = 0 );
 		void TestOrAssign( ScriptPacketExprPtr pScriptExpr, BACnetEncodeable & rbacnetData, BACnetEncodeable & rbacnetScript, ScriptParmPtr pScriptParm, const char * pszErrorPrefix );
 		void TestOrAssignOptionValue( int kw, const char * pszErrorPrefix, BACnetAPDUDecoder * pdec = NULL );

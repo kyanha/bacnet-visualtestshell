@@ -4768,11 +4768,15 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 		if (!(npdu.pduAddr == nlSrcAddr))
 			throw "Source address mismatch";
 
+//madanner 6/03, can't do these tests here...  npdu.pduExpectingReply can't be examined because it hasn't
+//been set when this function is called... neither is pduNetworkPriority.  We'll have to suck these
+//values right out of the control octet...  Seen later.
+
 		// match the DER
-		MatchBoolExpression( kwDER, BACnetBoolean(npdu.pduExpectingReply), "Data expecting reply mismatch: " );
+//		MatchBoolExpression( kwDER, BACnetBoolean(npdu.pduExpectingReply), "Data expecting reply mismatch: " );
 
 		// match the priority
-		MatchEnumExpression( kwPRIORITY, BACnetEnumerated(npdu.pduNetworkPriority), NULL, "Priority mismatch: " );
+//		MatchEnumExpression( kwPRIORITY, BACnetEnumerated(npdu.pduNetworkPriority), NULL, "Priority mismatch: " );
 
 		// the rest of this code will need a decoder
 		BACnetAPDUDecoder	dec( npdu.pduData, npdu.pduLen );
@@ -4894,7 +4898,9 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
 		// there should be a network or application layer message
 		if (!nlMsg && !alMsg)
-			return true;
+//			return true;		// madanner 6/03 shouldn't we abort here if nothing defined?
+			throw "Either Network (MESSAGE) or Application (PDU) layer message must be defined";
+
 		if (nlMsg && alMsg)
 			throw "Specify network or application message but not both";
 
@@ -4911,6 +4917,9 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 		if (alMsg && ((ctrl & 0x80) != 0))
 			throw ExecError( "Not an application message", alMsg->exprLine );
 
+		//bits 6 and 4 of NPCI must be zero
+		ThrowPDUBitsError( ctrl & 0x50, "Network", alMsg ? alMsg : (nlMsg ? nlMsg : NULL) );
+
 		// if we have a DNET/DADR, check it
 		if ((ctrl & 0x20) != 0) {
 			// suck out the DNET
@@ -4918,13 +4927,13 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			valu = (valu << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// are we looking for a specific DNET?
-			MatchEnumExpression( kwDNET, BACnetEnumerated(valu), NULL, "DNET mismatch: " );
+			MatchEnumExpression( kwDNET, BACnetEnumerated(valu), ScriptNONEMap, "DNET mismatch: " );
 
 			// suck out the length
 			int len = (dec.pktLength--,*dec.pktBuffer++);
 
 			// looking for a specific address?
-			pDADR = GetKeywordValue( &pScriptParm, kwDADR, nlDADR );
+			pDADR = GetKeywordValue( &pScriptParm, kwDADR, nlDADR, ScriptNONEMap );
 
 			if (len == 0)
 				throw ExecError( "No DADR in packet", pDADR->exprLine );
@@ -4939,6 +4948,25 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
 			TestOrAssign(pDADR, bacnetDADRData, nlDADR, pScriptParm, "DADR mismatch: " );
 		}
+		else
+		{
+			//OK... DNET/DADR is not present in packet... this will be fine if the script also
+			//has nothing specified or NONE specified... but if there is something there it is implied
+			//that DNET/DADR should be present in the packet
+
+			// First check for DNET
+			BACnetEnumerated bacnetEnum;
+			pDADR = GetKeywordValue( &pScriptParm, kwDNET, bacnetEnum, ScriptNONEMap );
+
+			if ( pDADR != NULL && !pDADR->IsNoneValue() )
+				throw ExecError( "DNET expected in packet but not provided.", pDADR->exprLine );
+
+			// now check for DADR
+			pDADR = GetKeywordValue( &pScriptParm, kwDADR, nlDADR, ScriptNONEMap );
+
+			if ( pDADR != NULL && !pDADR->IsNoneValue() )
+				throw ExecError( "DADR expected in packet but not provided.", pDADR->exprLine );
+		}
 
 		// if we have an SNET/SADR, check it
 		if ((ctrl & 0x08) != 0) {
@@ -4947,13 +4975,13 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			valu = (valu << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// are we looking for a specific SNET?
-			MatchEnumExpression( kwSNET, BACnetEnumerated(valu), NULL, "SNET mismatch: " );
+			MatchEnumExpression( kwSNET, BACnetEnumerated(valu), ScriptNONEMap, "SNET mismatch: " );
 
 			// suck out the length
 			int len = (dec.pktLength--,*dec.pktBuffer++);
 
 			// looking for a specific address?
-			pSADR = GetKeywordValue( &pScriptParm, kwSADR, nlSADR );
+			pSADR = GetKeywordValue( &pScriptParm, kwSADR, nlSADR, ScriptNONEMap );
 
 			if (len == 0)
 				throw ExecError( "No SADR in packet", pSADR->exprLine );
@@ -4968,6 +4996,25 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
 			TestOrAssign(pSADR, bacnetSADRData, nlSADR, pScriptParm, "SADR mismatch: " );
 		}
+		else
+		{
+			//OK... SNET/SADR is not present in packet... this will be fine if the script also
+			//has nothing specified or NONE specified... but if there is something there it is implied
+			//that SNET/SADR should be present in the packet
+
+			// First check for SNET
+			BACnetEnumerated bacnetEnum;
+			pSADR = GetKeywordValue( &pScriptParm, kwSNET, bacnetEnum, ScriptNONEMap );
+
+			if ( pSADR != NULL && !pSADR->IsNoneValue() )
+				throw ExecError( "SNET expected in packet but not provided.", pSADR->exprLine );
+
+			// now check for SADR
+			pSADR = GetKeywordValue( &pScriptParm, kwSADR, nlSADR, ScriptNONEMap );
+
+			if ( pSADR != NULL && !pSADR->IsNoneValue() )
+				throw ExecError( "SADR expected in packet but not provided.", pSADR->exprLine );
+		}
 
 		// if we have a DNET/DADR, check the hop count
 		if ((ctrl & 0x20) != 0) {
@@ -4976,6 +5023,14 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
 			MatchEnumExpression( kwHOPCOUNT, BACnetEnumerated(valu), NULL, "Hop count mismatch: " );
 		}
+
+		// match the DER
+		// can't rely on value in npdu.pduExpectingReply so suck it out of the control octet
+		MatchBoolExpression( kwDER, BACnetBoolean((ctrl & 0x04) ? 1 : 0), "Data expecting reply mismatch: " );
+
+		// match the priority
+		// can't rely on value in npdu.pduNetworkPriority so suck it out of control octet
+		MatchEnumExpression( kwPRIORITY, BACnetEnumerated(ctrl & 0x03), NULL, "Priority mismatch: " );
 
 		// if this is a network layer message, check it
 		if (nlMsg) {
@@ -5076,18 +5131,20 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			// get a reference to the first parameter
 			const ScriptToken &t = alList[0];
 
-			//if(
-			if (nlMsg != NULL && nlMsg->IsAssignment() )
+
+//			if (nlMsg != NULL && nlMsg->IsAssignment() )		madanner 6/03, shouldn't this be alMsg?
+			if ( alMsg->IsAssignment() )
 			{
 				if ( pScriptParm == NULL )
-					throw ExecError( "Undefined script variable for AL message assignment", alMsg->exprLine );
+					throw ExecError( "Undefined script variable for PDU assignment", alMsg->exprLine );
 
 				// get the stream's version of what msg ID this is...
 				alMsgID = *dec.pktBuffer >> 4;
 				BACnetEnumerated  bacnetMsg(alMsgID, (const char **) NetworkSniffer::PDU_typesENUM, PDUTYPE_MAX);
 				StuffScriptParameter( bacnetMsg, pScriptParm, alMsg->exprValue);
 			}
-			else if ( nlMsg != NULL && nlMsg->IsDontCare() )
+//			else if ( nlMsg != NULL && nlMsg->IsDontCare() )	madanner 6/03, shouldn't this be alMsg?
+			else if ( alMsg->IsDontCare() )
 				alMsgID = *dec.pktBuffer >> 4;
 			else
 			{
@@ -5104,27 +5161,35 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			try {
 				switch (alMsgID) {
 					case 0:						// CONFIRMED-REQUEST
+						ThrowPDUBitsError( *dec.pktBuffer & 0x01, "Confirmed-Request", alMsg );	// section 20.1.2.11
 						ExpectConfirmedRequest( dec );
 						break;
 					case 1:						// UNCONFIRMED-REQUEST
+						ThrowPDUBitsError( *dec.pktBuffer & 0x0F, "Unconfirmed-Request", alMsg );	// section 20.1.3.3
 						ExpectUnconfirmedRequest( dec );
 						break;
 					case 2:						// SIMPLEACK
+						ThrowPDUBitsError( *dec.pktBuffer & 0x0F, "Simple-Ack", alMsg );			// section 20.1.4.3
 						ExpectSimpleACK( dec );
 						break;
 					case 3:						// COMPLEXACK
+						ThrowPDUBitsError( *dec.pktBuffer & 0x03, "Complex-Ack", alMsg );			// section 20.1.5.8
 						ExpectComplexACK( dec );
 						break;
 					case 4:						// SEGMENTACK
+						ThrowPDUBitsError( *dec.pktBuffer & 0x0C, "Segment-Ack", alMsg );			// section 20.1.6.6
 						ExpectSegmentACK( dec );
 						break;
 					case 5:						// ERROR
+						ThrowPDUBitsError( *dec.pktBuffer & 0x0F, "Error", alMsg );				// section 20.1.7.4
 						ExpectError( dec );
 						break;
 					case 6:						// REJECT
+						ThrowPDUBitsError( *dec.pktBuffer & 0x0F, "Reject", alMsg );				// section 20.1.8.3
 						ExpectReject( dec );
 						break;
 					case 7:						// ABORT
+						ThrowPDUBitsError( *dec.pktBuffer & 0x0E, "Abort", alMsg );				// section 20.1.9.4
 						ExpectAbort( dec );
 						break;
 				}
@@ -5153,6 +5218,21 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 	// we made it!
 	return true;
 }
+
+
+//madanner 6/03, check for reserved zero bits in PDU
+
+void ScriptExecutor::ThrowPDUBitsError( unsigned char b, char * pszPDUType, ScriptPacketExprPtr pep )
+{
+	if ( b != 0 )
+	{
+		BACnetBitString bacnetBits(8, &b);
+		CString strError;
+		strError.Format("Reserved bits of %s PDU control octet must be zero (%s).", pszPDUType, bacnetBits.ToString());
+		throw ExecError(strError, pep != NULL ? pep->exprLine : 0);
+	}
+}
+
 
 //
 //	ScriptExecutor::ExpectBVLCResult
@@ -6454,11 +6534,21 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 
 void ScriptExecutor::TestOrAssign( ScriptPacketExprPtr pScriptExpr, BACnetEncodeable & rbacnetData, BACnetEncodeable & rbacnetScript, ScriptParmPtr pScriptParm, const char * pszErrorPrefix )
 {
+	// Return OK because the script expression doesn't actually exist in the script...
 	if ( pScriptExpr == NULL )
 		return;
 
 	CString strError;
 	
+	// If the none value is set then we can't be assigning things, we shouldn't even be here to perform a test so
+	// let's just get out with a failure
+
+	if ( pScriptExpr->IsNoneValue() )
+	{
+		strError.Format("%s : Packet value (%s) must not be present.", pszErrorPrefix, rbacnetData.ToString());
+		throw ExecError(strError, pScriptExpr->exprLine);
+	}
+
 	// if script parm is not null, then we must want to assign this value instead of test it
 	if ( pScriptParm != NULL )
 		StuffScriptParameter( rbacnetData, pScriptParm, pScriptExpr->exprValue);
@@ -6630,6 +6720,8 @@ void ScriptExecutor::ExpectDevAbort( const BACnetAPDU &apdu )
 	BACnetEnumerated  bacnetAbortData(apdu.apduAbortRejectReason, (const char **) NetworkSniffer::BACnetAbort, ABORT_MAX);
 	MatchEnumExpression( kwABORTREASON, bacnetAbortData, ScriptALAbortReasonMap, "Abort Reason mismatch: " );
 }
+
+
 
 //
 //	ScriptExecutor::ExpectConfirmedRequest
@@ -8153,15 +8245,23 @@ ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( ScriptParmPtr * ppScriptPar
 		if (rslt < 0)
 			throw ExecError( "Invalid keyword", pep->exprLine );
 
-		char buff[16];
-		sprintf( buff, "%d", rslt );
+		//madanner 6/03, allow for possiblity of NONE type in keyword list...
+		//we'll have to cheat.
 
-		try {
-			enc.Decode( buff );
+		if ( tp != ScriptNONEMap )
+		{
+			char buff[16];
+			sprintf( buff, "%d", rslt );
+
+			try {
+				enc.Decode( buff );
+			}
+			catch (...) {
+				throw ExecError( "Keyword translation format error", pep->exprLine );
+			}
 		}
-		catch (...) {
-			throw ExecError( "Keyword translation format error", pep->exprLine );
-		}
+		else
+			pep->SetNoneValue(true);
 	}
 	else if (!t.IsEncodeable( enc ))
 	{
