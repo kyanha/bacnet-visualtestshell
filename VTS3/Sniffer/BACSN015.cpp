@@ -8263,6 +8263,7 @@ void show_bac_read_access_result( void )
 {
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
    unsigned int len;
+   long obj_id;
    int obj_type, prop_idx, prop_id;
 
    prop_idx = -1;    /* initialize to indicate no array index present */
@@ -8276,7 +8277,15 @@ void show_bac_read_access_result( void )
 		 show_head_obj_id(1, "Object Identifier", tagval);										   //  ***002
 
          show_context_tag("Object Identifier");
-         obj_type = bac_extract_obj_type();
+
+		 obj_id = 0;
+		 //madanner 9/04, global hack for intercepting RP in EPICS view
+		 {
+			for (int j = 0; j < 4; j++)
+				obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j );
+		 }
+
+		 obj_type = bac_extract_obj_type();
          show_bac_object_identifier();
          }
       else{
@@ -8322,6 +8331,12 @@ void show_bac_read_access_result( void )
 
             switch(tagval){
                case 4 : show_context_tag("Property Value");
+
+					   //madanner 9/04 add calls to EPICS read property tracker
+					   //can't support indexes at this time
+					   if ( prop_idx == -1 )
+						   ::EPICS_AddRPValue(obj_id, prop_id, pif_get_addr(), pif_end_offset - pif_offset);
+
                         show_bac_ANY(obj_type, prop_id, prop_idx);
                         show_context_tag("Property Value");
                         break;
