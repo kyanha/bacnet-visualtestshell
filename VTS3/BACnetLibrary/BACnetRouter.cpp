@@ -752,8 +752,17 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 				if (adapterList[i]->adapterNet == pdu.pduAddr.addrNet)
 					break;
 			if (i < adapterListLen) {
-				// this is really a local network, but application layer doesn't know it
-				*mptr++ = 0x00 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
+				if (adapterList[i]->adapterNet == deviceLocalNetwork) {
+					// this is really a local network
+					*mptr++ = 0x00 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
+				} else {
+					*mptr++ = 0x08 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
+					*mptr++ = (deviceLocalNetwork >> 8) & 0xFF;			// SNET
+					*mptr++ = (deviceLocalNetwork & 0xFF);
+					*mptr++ = (unsigned char)deviceLocalAddress.addrLen;						// SLEN
+					memcpy( mptr, deviceLocalAddress.addrAddr, deviceLocalAddress.addrLen );	// SADR
+					mptr += deviceLocalAddress.addrLen;
+				}
 				memcpy( mptr, pdu.pduData, pdu.pduLen );
 				mptr += pdu.pduLen;
 				
