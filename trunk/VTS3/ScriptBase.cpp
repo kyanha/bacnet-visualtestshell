@@ -152,6 +152,8 @@ ScriptToken::operator =( const ScriptToken& cpy )
 	tokenValue = cpy.tokenValue;
 	tokenSymbol = cpy.tokenSymbol;
 	SetIndex(cpy.pTokenIndex);
+	m_nIndex = cpy.m_nIndex;
+	tokenEnc = cpy.tokenEnc;
 }
 
 
