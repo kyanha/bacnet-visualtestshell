@@ -3810,7 +3810,11 @@ BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObject
 		 objId_Ref=dw;
 		 goto propcheck;
 	}
-	if ((strdelim(","))==NULL) goto oprfail;
+
+	// madanner 6/03: Can't just skip to next delimeter... we must barf on non-white space
+	skipwhitespace();
+	if ( MustBe(',')) goto oprfail;
+//	if ((strdelim(","))==NULL) goto oprfail;
 	skipwhitespace();						//										***006
 
     //Read Obj_id that's referred
@@ -3820,8 +3824,14 @@ BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObject
 		goto oprfail;
 	}
     q->Objid.object_id=objId_Ref;
+
 propcheck:
-	if ((strdelim(","))==NULL) goto oprfail;
+	// madanner 6/03: Can't just skip to next delimeter... we must barf on non-white space
+	skipwhitespace();
+	if ( MustBe(',')) goto oprfail;
+//	if ((strdelim(","))==NULL) goto oprfail;
+
+	skipwhitespace();
 
 //*****check out the Property referred	
 	i=0;
