@@ -294,6 +294,7 @@ class BACnetCharacterString : public BACnetEncodeable
 		BACnetOctet		*strBuff;		// pointer to data
 				
 		BACnetCharacterString( char *svalu = 0 );
+		BACnetCharacterString( CString & rstr );
 		BACnetCharacterString( BACnetCharacterString & cpy);
 		BACnetCharacterString( BACnetAPDUDecoder& dec );
 		virtual ~BACnetCharacterString( void );
