@@ -457,6 +457,7 @@ void ScriptEdit::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 void ScriptEdit::OnVscroll() 
 {
 	UpdateWholeEdit();
+	DisplayLnNum();
 }
 
 void ScriptEdit::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
@@ -470,6 +471,7 @@ void ScriptEdit::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 void ScriptEdit::OnHscroll() 
 {
 	UpdateWholeEdit();
+	DisplayLnNum();
 }
 
 //******************************************************************
