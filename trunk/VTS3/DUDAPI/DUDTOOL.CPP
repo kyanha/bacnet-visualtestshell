@@ -2293,6 +2293,9 @@ void AI_CreateProperty( ai_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case NOTIFY_TYPE:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type));
 			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
 		default:
 			TRACE("INVALID TYPE in AI_CreateProperty");
 			ASSERT(0);
@@ -2384,6 +2387,9 @@ void AO_CreateProperty( ao_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case NOTIFY_TYPE:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type));
 			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
 		default:
 			TRACE("INVALID TYPE in AO_CreateProperty");
 			ASSERT(0);
@@ -2462,6 +2468,9 @@ void AV_CreateProperty( av_obj_type far * pObj, BACnetPropertyIdentifier propert
 			break;
 		case NOTIFY_TYPE:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type));
+			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 		default:
 			TRACE("INVALID TYPE in AV_CreateProperty");
@@ -2554,6 +2563,9 @@ void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propert
 			break;
 		case NOTIFY_TYPE:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type));
+			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 		default:
 			TRACE("INVALID TYPE in BI_CreateProperty");
@@ -2658,6 +2670,9 @@ void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case NOTIFY_TYPE:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type));
 			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
 		default:
 			TRACE("INVALID TYPE in BO_CreateProperty");
 			ASSERT(0);
@@ -2755,6 +2770,9 @@ void BV_CreateProperty( bv_obj_type far * pObj, BACnetPropertyIdentifier propert
 			break;
 		case NOTIFY_TYPE:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type));
+			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 		default:
 			TRACE("INVALID TYPE in BV_CreateProperty");
@@ -3024,6 +3042,9 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case ISSUE_CONFIRMED_NOTIFICATIONS:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->issue_conf_notifications));
 			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
 		default:
 			TRACE("INVALID TYPE in EE_CreateProperty");
 			ASSERT(0);
@@ -3230,6 +3251,9 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
 		case NOTIFY_TYPE:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type));
 			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
 		default:
 			TRACE("INVALID TYPE in LO_CreateProperty");
 			ASSERT(0);
@@ -3299,6 +3323,9 @@ void MSI_CreateProperty( mi_obj_type far * pObj, BACnetPropertyIdentifier proper
 			break;
 		case NOTIFY_TYPE:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type));
+			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 		default:
 			TRACE("INVALID TYPE in MSI_CreateProperty");
@@ -3372,6 +3399,9 @@ void MSO_CreateProperty( mo_obj_type far * pObj, BACnetPropertyIdentifier proper
 			break;
 		case NOTIFY_TYPE:
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type));
+			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 		default:
 			TRACE("INVALID TYPE in MSO_CreateProperty");
