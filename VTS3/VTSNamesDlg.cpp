@@ -44,6 +44,7 @@ void VTSNamesDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_NAMELIST, m_NameList);
 	DDX_Text(pDX, IDC_NAME, m_Name);
 	DDX_Control(pDX, IDC_PORTCOMBO, m_PortCombo);
+	DDX_Control(pDX, IDC_ADDRESS, m_AddressCtrl);	
 	DDX_Text(pDX, IDC_ADDRESS, m_Address);
 	DDX_Text(pDX, IDC_NETWORK, m_Network);
 	DDX_Radio(pDX, IDC_NULLADDR, m_AddrType);
@@ -57,6 +58,7 @@ BEGIN_MESSAGE_MAP(VTSNamesDlg, CDialog)
 	ON_BN_CLICKED(ID_IMPORTNAMES, OnImportNames)
 	ON_BN_CLICKED(ID_EXPORTNAMES, OnExportNames)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_NAMELIST, OnItemchangingNamelist)
+	ON_NOTIFY(NM_DBLCLK, IDC_NAMELIST, OnDblclkNamelist)
 	ON_EN_CHANGE(IDC_NAME, SaveChanges)
 	ON_BN_CLICKED(IDC_NULLADDR, SaveChanges)
 	ON_BN_CLICKED(IDC_LOCALBROADCAST, SaveChanges)
@@ -67,7 +69,7 @@ BEGIN_MESSAGE_MAP(VTSNamesDlg, CDialog)
 	ON_CBN_SELCHANGE(IDC_PORTCOMBO, SaveChanges)
 	ON_EN_CHANGE(IDC_NETWORK, SaveChanges)
 	ON_EN_CHANGE(IDC_ADDRESS, SaveChanges)
-	ON_NOTIFY(NM_DBLCLK, IDC_NAMELIST, OnDblclkNamelist)
+	ON_EN_KILLFOCUS(IDC_ADDRESS, OnKillfocusAddress)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -559,4 +561,21 @@ void VTSNamesDlg::SaveChanges()
 
 	// bring the list up-to-date
 	NameToList( name, m_iSelectedName );
+}
+
+//Xiao Shiyuan 2002-12-25
+void VTSNamesDlg::OnKillfocusAddress() 
+{
+	// TODO: Add your control notification handler code here
+	VTSNameDesc		name;
+
+	// read the name from the database
+	m_pNameList->ReadName( m_iSelectedName, &name );
+
+	if(name.nameAddr.addrLen != 1 && name.nameAddr.addrLen != 6)
+	{
+		this->MessageBox("Address length should be 1 or 6 bytes!\nMSTP Address length is 1 byte, B/IP and Ethernet MAC Address length are both 6 bytes.", "Error", MB_ICONERROR);
+		m_AddressCtrl.SetFocus();
+	}
+	
 }

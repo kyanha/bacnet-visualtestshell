@@ -34,6 +34,7 @@ public:
 	//{{AFX_DATA(VTSNamesDlg)
 	enum { IDD = IDD_NAMES };
 	CListCtrl	m_NameList;
+    CEdit       m_AddressCtrl;  
 	CString		m_Name;
 	CString		m_Address;
 	CComboBox	m_PortCombo;
@@ -63,6 +64,7 @@ protected:
 	afx_msg void OnExportNames();
 	afx_msg void OnItemchangingNamelist(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnDblclkNamelist(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnKillfocusAddress();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

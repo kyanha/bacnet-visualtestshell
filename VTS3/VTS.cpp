@@ -112,6 +112,19 @@ BOOL VTSApp::InitInstance()
 	// such as the name of your company or organization.
 	SetRegistryKey(_T("Visual Test Shell 3"));
 
+	//First free the string allocated by MFC at CWinApp startup.
+	//The string is allocated before InitInstance is called.
+	free((void*)m_pszProfileName);
+	
+	//Change the name of the .INI file.
+	//The CWinApp destructor will free the memory.
+
+	CString temp;
+	GetCurrentDirectory(200,temp.GetBuffer(200));
+	temp.Format("%s%s",temp.GetBuffer(0),"\\vts.ini");
+	m_pszProfileName=_tcsdup(temp.GetBuffer(0));
+
+
 	LoadStdProfileSettings(5);  // Load standard INI file options (including MRU)
 
 	// Register the application's document templates.  Document templates
