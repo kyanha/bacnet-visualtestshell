@@ -18,7 +18,7 @@ h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: 
 
 <body bgcolor="#FFFFFF" text="#000000">
 
-<h1><a name="start">VTS 3.4.0 </a><i>Quick Start Guide</i></h1>
+<h1><a name="start">VTS 3.4.1 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
 functionality of various devices used in building automation systems.&nbsp;
 BACnet is a Data Communication Protocol for Building Automation and Control
@@ -1337,7 +1337,7 @@ to the modeless Send dialog.  Multiple Send dialogs can now be used simultaneous
 format of the adapter/interface configuration strings has changed.  BACMACNT is no longer required and is no longer distributed with VTS 3.x</li></p>
 </ul>
 
-<h2><a name="whatsnew">3.4.0</a></h2>
+<h2>3.4.0</h2>
 <p>The primary goal of this release was to increase the stability of VTS.</p>
 <ul>
 <li>Removed the internal database and replaced with workspace files (.cfg)
@@ -1425,6 +1425,29 @@ the associated packet file must remain in its current location.  Changes to
 this preference setting only take effect when a new packet file is
 specified.
 </li>
+</ul>
+
+<h2><a name="whatsnew">3.4.1</a></h2>
+<ul>
+<li>747747: Fixed EPICS loading problems:
+   <ul><li>VTS was not parsing bitstrings larger than one byte. </li>
+       <li>VTS would cause an exception when property names were not found in AVG, Trend-Log and Multistate Value objects.</li>
+	   <li>VTS would not properly recognize property names if comments followed on the same line.</li>
+	   <li>EPICS parser was incorrectly looking for the following in Supported Services and Objects:
+	       <ul><li>"Read Range"  -> now changed to "ReadRange"></li>
+		       <li>"UTC-Time-Synchronization"  -> now changed to "UTCTimeSynchronization"</li>
+			   <li>"Trend-Log"  -> now changed to "Trend Log"</li>
+			   <li>"trendlog"  -> now changed to "Trend-Log" for object type specification</li>
+		   </ul>
+	   </li>
+	   <li>Fixed VTS to skip consistency check (and subsequent dialog box) if user cancels at any encountered parsing error.</li>
+	   <li>Fixed EPICS parsing error notifications to parent script window properly.</li>
+	   <li>Fixed problem where EPICS wouldn't load again if user canceled a prior EPICS load attempt without without restarting VTS.</li>
+	   <li>Fixed EPICS parser to barf on malformed object property reference in list-of-object-property-reference. If delimeter is not present, parsing notifies with an error instead of continuing and subsequently attempts to recognize extraneous garbage as property names. </li>
+	   <li>Fixed whitespace trim from right function - which never worked correctly.  This may fix spurrious recognition problems throughout parsing.</li>
+	</ul>
+</li>
+<li>Added option in preferences for verification on delete packets.  Defaults to true.</li>
 </ul>
 
 
