@@ -38,7 +38,10 @@ WinBACnetTaskManager::WinBACnetTaskManager( void )
 	gBACnetWinTaskThread->m_bAutoDelete = FALSE;
 
 	// now let it run
-	gBACnetWinTaskThread->ResumeThread();
+//	Move it to VTSAPP->InitInstance(), Because gTaskManager hasn't been initialized 
+//	Modified by xuyiping-hust
+//	gBACnetWinTaskThread->ResumeThread();  
+
 }
 
 //
