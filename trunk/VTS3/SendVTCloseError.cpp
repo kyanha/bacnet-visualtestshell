@@ -274,6 +274,9 @@ void CSendVTCloseError::OnSelchangeErrorCodeCombo()
 void CSendVTCloseError::OnAddID() 
 {
 	m_IDCtrl.AddButtonClick();
+
+	// madanner 9/3/02, added default ID of 1
+	m_IDCtrl.SetCtrlText(IDC_ID, "1");
 }
 
 void CSendVTCloseError::OnRemoveID() 
