@@ -61,6 +61,8 @@ void CLineNumCtrl::SetDefaultFont()
 	SetFont(&font,TRUE);
 	
 	font.DeleteObject();
+
+	SetBackgroundColor( FALSE, GetSysColor( COLOR_BTNFACE));
 }
 
 void CLineNumCtrl::Display(int nFirstVisibleLn, int nLastVisibleLn)
