@@ -411,6 +411,8 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 			break;
 
 		case bits:		// octet of 1 or 0 flags
+        case pss:       // protocol_services_supported
+		case pos:       // protocol_objects_supported
 
 			return new BACnetBitString(dec);
 			break;
