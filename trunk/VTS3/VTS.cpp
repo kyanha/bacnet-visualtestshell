@@ -1438,7 +1438,7 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //			work-around is simple, and since other statements must be changed if the CHECK statement
 //			was changed, there are no plans to fix this bug.
 //
-//		====================
+//	3.4.5  	April, 2004 ====================
 //		
 //			Added MS/TP support through American Automatrix NB-Link IP device.
 //			VTS supports multiple NB-Link devices, once for each MS/TP network VTS is connected to.
@@ -1459,7 +1459,7 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 			 
 			
 			
-const int kReleaseVersion = 4;
+const int kReleaseVersion = 5;
 			
 			class CAboutDlg : public CDialog
 			{
