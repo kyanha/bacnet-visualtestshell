@@ -34,7 +34,12 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CSendWriteBDT)
 	enum { IDD = IDD_SENDWRITEBDT };
+	CEdit	m_mask;
+	CEdit	m_port;
+	CIPAddressCtrl	m_IP;
 	CListCtrl	m_BDTList;
+	int		m_portInt;
+	int		m_maskInt;
 	//}}AFX_DATA
 
 
@@ -52,8 +57,10 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnAddBDT();
 	afx_msg void OnRemoveBDT();
-	afx_msg void OnChangeBDTEntry();
+	afx_msg void OnChangeIP();
 	afx_msg void OnItemchangingBDTList(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnChangeMask();
+	afx_msg void OnChangePort();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
