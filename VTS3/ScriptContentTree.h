@@ -34,6 +34,7 @@ public:
 	//Added by Yajun Zhou, 2002-6-20
 	ScriptEdit*		m_pEditView;
 	////////////////////////////////
+	CFrameWnd *		m_pframe;
 
 // Operations
 public:
@@ -42,10 +43,13 @@ public:
 
 	void Bind( ScriptBasePtr sbp );
 	void Load( HTREEITEM parent, ScriptBasePtr sbp );
+	void SetFrame( CFrameWnd * pframe ) { m_pframe = pframe; }  
 
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(ScriptContentTree)
+	public:
+	virtual BOOL OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult);
 	protected:
 	virtual void OnDraw(CDC* pDC);      // overridden to draw this view
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
@@ -62,7 +66,7 @@ protected:
 	// Generated message map functions
 protected:
 	//{{AFX_MSG(ScriptContentTree)
-	int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnDblclk(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
