@@ -87,6 +87,7 @@ IDB_SCRIPTCHECK         BITMAP  DISCARDABLE     "res\\BACnetCheck.bmp"
 IDB_DEVTREE             BITMAP  DISCARDABLE     "res\\devtree.bmp"
 IDB_BMALOGO             BITMAP  DISCARDABLE     "res\\AboutBox.bmp"
 IDB_NBLINK              BITMAP  DISCARDABLE     "res\\nblink.bmp"
+IDB_EPICSTREE           BITMAP  DISCARDABLE     "res\\epicstree.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -107,6 +108,7 @@ BEGIN
     SEPARATOR
     BUTTON      ID_VIEW_DETAIL
     BUTTON      ID_VIEW_HEX
+    BUTTON      ID_VIEW_EPICS
     BUTTON      ID_VIEW_STATISTICS
     SEPARATOR
     BUTTON      ID_APP_ABOUT
@@ -280,6 +282,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Detail View",                 ID_VIEW_DETAIL
         MENUITEM "Hex View",                    ID_VIEW_HEX
+        MENUITEM "EPICS View",                  ID_VIEW_EPICS
         MENUITEM SEPARATOR
         MENUITEM "Statistics",                  ID_VIEW_STATISTICS
     END
@@ -2961,7 +2964,7 @@ END
 IDD_MSTPIMP_NBLINK DIALOGEX 0, 0, 377, 182
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "MS/TP NB-Link Implementation Parameters"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     EDITTEXT        IDC_NBLINKSOCKET,207,10,38,12,ES_AUTOHSCROLL | WS_GROUP
     CONTROL         "IPAddress1",IDC_NBLINKADDR,"SysIPAddress32",WS_TABSTOP,
@@ -2994,6 +2997,24 @@ BEGIN
                     IDC_STATIC,147,121,218,21
     CONTROL         284,IDC_STATIC,"Static",SS_BITMAP,7,7,126,168
     LTEXT           "Gateway Address:",IDC_STATIC,141,63,60,10,0,WS_EX_RIGHT
+END
+
+IDD_EPICSVIEW DIALOGEX 0, 0, 138, 192
+STYLE WS_CHILD
+EXSTYLE WS_EX_STATICEDGE
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Load...",IDC_EPICSV_LOAD,2,2,30,12
+    PUSHBUTTON      "Reset",IDC_EPICSV_RESET,2,16,29,12
+    CONTROL         "Info Panel",IDC_EPICSV_INFO,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,68,18,48,10
+    CONTROL         "Tree1",IDC_EPICSV_TREE,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
+                    TVS_SHOWSELALWAYS | TVS_TRACKSELECT | WS_TABSTOP,2,33,
+                    133,157,WS_EX_STATICEDGE
+    EDITTEXT        IDC_EPICSV_FILENAME,35,2,100,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED
+    PUSHBUTTON      "Edit",IDC_EPICSV_EDIT,35,16,29,12
 END
 
 
@@ -3939,6 +3960,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 175
     END
+
+    IDD_EPICSVIEW, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 135
+        TOPMARGIN, 2
+        BOTTOMMARGIN, 190
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -4468,6 +4497,7 @@ BEGIN
     ID_FILE_WKS_SWITCH      "Open an existing workspace"
     ID_FILE_WKS_SAVEAS      "Save the current workspace as a different filename."
     ID_EDIT_REFRESH         "Reload all of the packets from the current packet file.\nRefresh Packets"
+    ID_VIEW_EPICS           "Show the EPICS data view for loaded EPICS file..\nShow EPICS"
 END
 
 STRINGTABLE DISCARDABLE 

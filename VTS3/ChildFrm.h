@@ -13,6 +13,7 @@
 /////////////////////////////////
 #include "DockingDetailViewBar.h"
 #include "DockingHexViewBar.h"
+#include "DockingEPICSViewBar.h"
 /////////////////////////////////
 #include "VdbPrint.h"
 /////////////////////////////////
@@ -37,8 +38,10 @@ public:
 	CListSummaryView*	m_pSummaryView;
 	CDetailTreeCtrl*  m_pDetailView;
 	CHexView*		m_pHexView;
+//	CEPICSView *	m_pEPICSView;
 	CDockingDetailViewBar* m_pwndDetailViewBar;
 	CDockingHexViewBar* m_pwndHexViewBar;
+	CDockingEPICSViewBar * m_pwndEPICSViewBar;
 
 	/////////////////////////////////
 	//Added by Zhenhua Zhu, 2003-6-2
@@ -100,6 +103,7 @@ protected:
 	afx_msg void OnUpdateViewSend(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewDetail(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewHex(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewEPICS(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEPICSLoad(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEPICSReadallproperty(CCmdUI* pCmdUI);
 	afx_msg void OnEditDelete();
@@ -121,6 +125,7 @@ protected:
 	//add by Hu Meng responding to new menu items
 	afx_msg void OnViewDetail();
 	afx_msg void OnViewHex();
+	afx_msg void OnViewEPICS();
 	afx_msg void OnEPICSLoad();
 	afx_msg void OnEPICSLoadAuto();
 	//end 6.24

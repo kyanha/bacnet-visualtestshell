@@ -141,6 +141,7 @@ void VTSApp::LoadWorkspaceMRU(UINT nMaxMRU)
 
 BOOL VTSApp::InitInstance()
 {
+
 	if (!AfxSocketInit())
 	{
 		AfxMessageBox(IDP_SOCKETS_INIT_FAILED);
