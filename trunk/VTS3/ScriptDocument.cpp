@@ -738,6 +738,7 @@ void ScriptDocument::ParsePacket( ScriptScanner& scan, ScriptToken& tok, ScriptP
 				||	(tok.tokenSymbol == '>=')
 				||	(tok.tokenSymbol == '=')
 				||	(tok.tokenSymbol == '!=')
+				||	(tok.tokenSymbol == '?=')
 				) {
 				if (isSend && (tok.tokenSymbol != '='))
 					throw "Equals operator '=' required";
