@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include <direct.h>
 
 #include "ScriptDocument.h"
 #include "ScriptPacket.h"
@@ -10,6 +11,7 @@
 #include "ScriptCommand.h"
 #include "ScriptIfdefHandler.h"
 
+#include "ScriptEditIncludeDlg.h"
 #include "md5.h"
 
 #ifdef _DEBUG
@@ -130,8 +132,8 @@ BOOL ScriptDocument::CheckSyntax( void )
 	;
 	bool				setupMode = false, isSend = false, expectRequired = false,	isEnv, checkok =true;
 	;
-	ScriptScanner		scan( m_editData )
-	;
+//madanner 6/03 for #include support
+//	ScriptScanner		scan( m_editData );
 	ScriptToken			tok
 	;
 	ScriptBasePtr		curBase = new ScriptBase()
@@ -152,7 +154,12 @@ BOOL ScriptDocument::CheckSyntax( void )
 	;
 	ScriptCommandPtr	prevCommand = NULL, prevGroup = NULL
 	;
-	ScriptIfdefHandler	ifdefHandler(this, scan);
+
+//madanner 6/03 	ScriptIfdefHandler	ifdefHandler(this, scan);
+	ScriptIfdefHandler	ifdefHandler(this);
+	ScriptScanners		scannerStack;
+
+	scannerStack.Add(new ScriptScanner(this));
 
 	// calculate the digest
 	CalcDigest();
@@ -165,9 +172,20 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 	try {
 		for (;;) {
-			scan.NextLine( tok );
+			scannerStack[scannerStack.GetSize()-1]->NextLine( tok );
+
+//madanner 6/03
 			if (tok.tokenType == scriptEOF)
-				break;
+			{
+				delete scannerStack[scannerStack.GetSize()-1];
+				scannerStack.RemoveAt(scannerStack.GetSize()-1);
+
+				if ( scannerStack.GetSize() <= 0 )
+					break;
+
+				continue;
+			}
+
 			if (tok.tokenType == scriptEOL) {
 				if (curTest) {
 					// add description to test
@@ -178,7 +196,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 			// we have to deal with conditional compilation.  We want to take care of it here
 			// so we don't have to specially deal with any token if we're not collection.  Dig?
 
-			if ( ifdefHandler.IsIfdefExpression(tok)  ||  ifdefHandler.IsSkipping() )
+			if ( ifdefHandler.IsIfdefExpression(tok, scannerStack[scannerStack.GetSize()-1])  ||  ifdefHandler.IsSkipping() )
 				continue;
 
 			// look for the variable name
@@ -201,13 +219,13 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 				case kwSECTION:
 					// get the section title
-					scan.NextTitle( tok );
+					scannerStack[scannerStack.GetSize()-1]->NextTitle( tok );
 					if (tok.tokenValue.IsEmpty())
 						throw "Section title expected";
 
 					// create a new section and add it
 					curSection = new ScriptSection( tok.tokenValue );
-					curBase->Append( curSection );
+					curBase->Append( curSection, scannerStack[scannerStack.GetSize()-1] );
 
 					// save the line number
 					curSection->baseLineStart = tok.tokenLine;
@@ -228,13 +246,13 @@ BOOL ScriptDocument::CheckSyntax( void )
 						throw "Section required before test definition";
 
 					// get the test number
-					scan.NextTitle( tok );
+					scannerStack[scannerStack.GetSize()-1]->NextTitle( tok );
 					if (tok.tokenValue.IsEmpty())
 						throw "Test number expected";
 
 					// create a new test and add it to the section
 					newTest = new ScriptTest( tok.tokenValue );
-					curSection->Append( newTest );
+					curSection->Append( newTest, scannerStack[scannerStack.GetSize()-1] );
 					TRACE1( "Test %08X\n", newTest );
 
 					// save the line number
@@ -272,13 +290,13 @@ BOOL ScriptDocument::CheckSyntax( void )
 						throw "Test required before dependencies";
 
 					// get the test number
-					scan.NextTitle( tok );
+					scannerStack[scannerStack.GetSize()-1]->NextTitle( tok );
 					if (tok.tokenValue.IsEmpty())
 						throw "Test number expected";
 
 					// create a new test and add it to the section
 					newDep = new ScriptDependency( tok.tokenValue );
-					curTest->Append( newDep );
+					curTest->Append( newDep, scannerStack[scannerStack.GetSize()-1] );
 					TRACE1( "Deps %08X\n", newDep );
 
 					// save the line number
@@ -294,13 +312,13 @@ BOOL ScriptDocument::CheckSyntax( void )
 						throw "Test required before references";
 
 					// get the clause
-					scan.NextTitle( tok );
+					scannerStack[scannerStack.GetSize()-1]->NextTitle( tok );
 					if (tok.tokenValue.IsEmpty())
 						throw "Clause expected";
 
 					// create a new reference and add it to the test
 					newRef = new ScriptReference( tok.tokenValue );
-					curTest->Append( newRef );
+					curTest->Append( newRef, scannerStack[scannerStack.GetSize()-1] );
 					TRACE1( "Ref %08X\n", newRef );
 
 					// save the line number
@@ -318,9 +336,9 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 					prevGroup = NULL;
 					{
-					ScriptCHECKCommand	* pcheckCommand = new ScriptCHECKCommand(ifdefHandler, scan, tok, &curTest->baseLabel, AfxGetMainWnd()->GetActiveWindow() );
+					ScriptCHECKCommand	* pcheckCommand = new ScriptCHECKCommand(ifdefHandler, *(scannerStack[scannerStack.GetSize()-1]), tok, &curTest->baseLabel, AfxGetMainWnd()->GetActiveWindow() );
 					pcheckCommand->m_nCaseLevel = curCaseLevel;
-					curCase->Append(pcheckCommand);
+					curCase->Append(pcheckCommand, scannerStack[scannerStack.GetSize()-1]);
 					prevCommand = (ScriptCommandPtr) pcheckCommand;
 					}
 					break;
@@ -335,13 +353,50 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 					prevGroup = NULL;			// for AND/OR stuff
 					{
-					ScriptMAKECommand	* pmakeCommand = new ScriptMAKECommand(ifdefHandler, scan, tok, &curTest->baseLabel, AfxGetMainWnd()->GetActiveWindow() );
+					ScriptMAKECommand	* pmakeCommand = new ScriptMAKECommand(ifdefHandler, *(scannerStack[scannerStack.GetSize()-1]), tok, &curTest->baseLabel, AfxGetMainWnd()->GetActiveWindow() );
 					pmakeCommand->m_nCaseLevel = curCaseLevel;
-					curCase->Append(pmakeCommand);
+					curCase->Append(pmakeCommand, scannerStack[scannerStack.GetSize()-1]);
 					prevCommand = (ScriptCommandPtr) pmakeCommand;
 					}
 
 					TRACE1( "Make %08X\n", prevCommand );
+					break;
+
+
+				case kwINCLUDE:
+
+					// make sure we allow the slash '\'...
+					tok.m_fIgnoreEscape = true;
+					scannerStack[scannerStack.GetSize()-1]->Next( tok );
+
+					if ( tok.tokenType != scriptValue || tok.tokenEnc != scriptASCIIEnc )
+						throw "INCLUDE statement requires \"include_filename.vts\" following keyword";
+
+					{
+					CString strFile = tok.RemoveQuotes();
+					TRACE1( "RELATIVE INCLUDE [%s]\n", (LPCSTR) strFile );
+
+					// make specified path/file fully qualified as relative to location of 
+					// script where include reference exists
+					// this method throws and error if the file could not be opened
+
+					CStdioFile * pfileInclude = OpenIncludeFile(scannerStack[scannerStack.GetSize()-1]->GetPathName(), &strFile);
+					TRACE1( "FULL INCLUDE [%s]\n", (LPCSTR) strFile );
+
+					//check to make sure we haven't already opened this file...
+					for ( int y = 0; y < scannerStack.GetSize(); y++ )
+						if ( scannerStack[y]->GetPathName().CompareNoCase(strFile) == 0 )
+						{
+							delete pfileInclude;
+							throw "INCLUDE file already included.  Circular references not allowed";
+						}
+
+					// throws if error
+					scannerStack.Add(new ScriptScanner(pfileInclude));
+
+					//put ignore escape condition back (because I'm not sure what's coming next)
+					tok.m_fIgnoreEscape = false;
+					}
 					break;
 
 
@@ -361,23 +416,23 @@ BOOL ScriptDocument::CheckSyntax( void )
 								);
 					prevGroup = (ScriptCommandPtr) newPacket;
 					newPacket->m_nCaseLevel = curCaseLevel;
-					curCase->Append( newPacket );
+					curCase->Append( newPacket, scannerStack[scannerStack.GetSize()-1] );
 
 					// look for AFTER or (
-					scan.Next( tok );
+					scannerStack[scannerStack.GetSize()-1]->Next( tok );
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
 						newPacket->packetDelay = 0;
 					else
 					if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwAFTER)) {
 						// look for value
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 						if (!tok.IsInteger(newPacket->packetDelay))
 							throw "Packet delay expected";
 						if (newPacket->packetDelay < 0)
 							throw "Delay must be a non-negative value";
 						if (newPacket->packetDelay > kMaxPacketDelay)
 							throw "Maximum delay exceeded";
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 						if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
 							throw "Open parenthesis '(' expected";
 					} else
@@ -386,7 +441,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 					// now parse the contents
 					isSend = true;
-					ParsePacket( ifdefHandler, scan, tok, newPacket, isSend );
+					ParsePacket( ifdefHandler, *(scannerStack[scannerStack.GetSize()-1]), tok, newPacket, isSend );
 
 #if 0
 					// chain together
@@ -412,24 +467,24 @@ BOOL ScriptDocument::CheckSyntax( void )
 					prevGroup = (ScriptCommandPtr) newPacket;
 //					newPacket->packetLevel = curCaseLevel;
 					newPacket->m_nCaseLevel = curCaseLevel;
-					curCase->Append( newPacket );
+					curCase->Append( newPacket, scannerStack[scannerStack.GetSize()-1] );
 
 					// look for BEFORE or (
-					scan.Next( tok );
+					scannerStack[scannerStack.GetSize()-1]->Next( tok );
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
 //						newPacket->packetDelay = kMaxPacketDelay;		changed to default timer
 						newPacket->packetDelay = kDefaultPacketDelay;
 					else
 					if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwBEFORE)) {
 						// look for value
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 						if (!tok.IsInteger(newPacket->packetDelay))
 							throw "Packet delay expected";
 						if (newPacket->packetDelay < 0)
 							throw "Delay must be a non-negative value";
 						if (newPacket->packetDelay > kMaxPacketDelay)
 							throw "Maximum delay exceeded";
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 						if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
 							throw "Open parenthesis '(' expected";
 					} else
@@ -438,7 +493,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 					// now parse the contents
 					isSend = false;
-					ParsePacket( ifdefHandler, scan, tok, newPacket, isSend );
+					ParsePacket( ifdefHandler, *(scannerStack[scannerStack.GetSize()-1]), tok, newPacket, isSend );
 
 					// other statements available now
 					expectRequired = false;
@@ -472,10 +527,10 @@ BOOL ScriptDocument::CheckSyntax( void )
 					prevGroup = (ScriptCommandPtr) newPacket;
 //					newPacket->packetLevel = curCaseLevel;
 					newPacket->m_nCaseLevel = curCaseLevel;
-					curCase->Append( newPacket );
+					curCase->Append( newPacket, scannerStack[scannerStack.GetSize()-1] );
 
 					// look for AFTER/BEFORE or (
-					scan.Next( tok );
+					scannerStack[scannerStack.GetSize()-1]->Next( tok );
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
 						newPacket->packetDelay = ((ScriptPacketPtr)prevCommand)->packetDelay;
 					else
@@ -485,14 +540,14 @@ BOOL ScriptDocument::CheckSyntax( void )
 							))
 						{
 						// look for value
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 						if (!tok.IsInteger(newPacket->packetDelay))
 							throw "Packet delay expected";
 						if (newPacket->packetDelay < 0)
 							throw "Delay must be a non-negative value";
 						if (newPacket->packetDelay > kMaxPacketDelay)
 							throw "Maximum delay exceeded";
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 						if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
 							throw "Open parenthesis '(' expected";
 					} else
@@ -500,7 +555,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 					TRACE2( "Packet %08X (And, %d)\n", newPacket, newPacket->packetDelay );
 
 					// now parse the contents
-					ParsePacket( ifdefHandler, scan, tok, newPacket, isSend );
+					ParsePacket( ifdefHandler, *(scannerStack[scannerStack.GetSize()-1]), tok, newPacket, isSend );
 
 					// chain from previous packet
 //					prevPacket->packetNext = newPacket;
@@ -525,10 +580,10 @@ BOOL ScriptDocument::CheckSyntax( void )
 					prevGroup = newPacket;
 //					newPacket->packetLevel = curCaseLevel;
 					newPacket->m_nCaseLevel = curCaseLevel;
-					curCase->Append( newPacket );
+					curCase->Append( newPacket, scannerStack[scannerStack.GetSize()-1] );
 
 					// look for AFTER/BEFORE or (
-					scan.Next( tok );
+					scannerStack[scannerStack.GetSize()-1]->Next( tok );
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
 						newPacket->packetDelay = ((ScriptPacketPtr)prevCommand)->packetDelay;
 					else
@@ -538,14 +593,14 @@ BOOL ScriptDocument::CheckSyntax( void )
 							))
 						{
 						// look for value
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 						if (!tok.IsInteger(newPacket->packetDelay))
 							throw "Packet delay expected";
 						if (newPacket->packetDelay < 0)
 							throw "Delay must be a non-negative value";
 						if (newPacket->packetDelay > kMaxPacketDelay)
 							throw "Maximum delay exceeded";
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 						if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
 							throw "Open parenthesis '(' expected";
 					} else
@@ -553,7 +608,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 					TRACE2( "Packet %08X (Or, %d)\n", newPacket, newPacket->packetDelay );
 
 					// now parse the contents
-					ParsePacket( ifdefHandler, scan, tok, newPacket, isSend );
+					ParsePacket( ifdefHandler, *(scannerStack[scannerStack.GetSize()-1]), tok, newPacket, isSend );
 
 					// chain from previous packet
 //					prevPacket->packetNext = newPacket;
@@ -566,7 +621,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 						throw "Test required";
 
 					// get the case number
-					scan.NextTitle( tok );
+					scannerStack[scannerStack.GetSize()-1]->NextTitle( tok );
 					if (tok.tokenValue.IsEmpty())
 						throw "Case title expected";
 
@@ -632,7 +687,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 						throw "Invalid case level";
 					}
 
-					newCase->baseParent->Append( newCase );
+					newCase->baseParent->Append( newCase, scannerStack[scannerStack.GetSize()-1] );
 					TRACE2( "Case %08X, group %08X\n", newCase, newCase->caseGroup );
 					curCase = newCase;
 					curCase->caseSubgroup = 0;
@@ -665,13 +720,13 @@ BOOL ScriptDocument::CheckSyntax( void )
 					// save it and get the next token
 					CString name = tok.tokenValue;
 					CString valu = "";
-					scan.Next( tok );
+					scannerStack[scannerStack.GetSize()-1]->Next( tok );
 
 					// check for optional '='
 					if (tok.tokenType == scriptSymbol) {
 						if (tok.tokenSymbol != '=')
 							throw "Assignment operator '=' expected";
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 					}
 
 					for (;;) {
@@ -682,7 +737,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 						// save the value
 						valu += tok.tokenValue;
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 
 						// check for EOL
 						if (tok.tokenType == scriptEOL)
@@ -694,7 +749,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 						valu += ", ";
 
 						// get ready for next value
-						scan.Next( tok );
+						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 					}
 
 					// add it to the parameter list
@@ -711,24 +766,27 @@ BOOL ScriptDocument::CheckSyntax( void )
 		if (curTest)
 			SequenceTest( curTest );
 	}
-	catch (char *errMsg) {
-		m_editData->SetSel( tok.tokenOffset, tok.tokenOffset+tok.tokenLength );
-		AfxMessageBox( errMsg );
+	catch (char *errMsg)
+	{
+		scannerStack[scannerStack.GetSize()-1]->ReportSyntaxError( &tok, errMsg);
 		delete curBase;
-		curBase = 0;
+		curBase = NULL;
 		checkok = false;
 	}
 	catch (CString strThrowMessage) 
 	{
-		m_editData->SetSel( tok.tokenOffset, tok.tokenOffset+tok.tokenLength );
-		AfxMessageBox( strThrowMessage );
+		scannerStack[scannerStack.GetSize()-1]->ReportSyntaxError( &tok, strThrowMessage);
 		delete curBase;
-		curBase = 0;
-		checkok =  false;
+		curBase = NULL;
+		checkok = false;
 	}
 
 	// delete those vars not found during this parsing phase
 	m_pParmList->Release();
+
+	// now delete all of the scanners, which might close some include files...
+	for ( int n = 0; n < scannerStack.GetSize(); n++ )
+		delete scannerStack[n];
 
 	// if this is the current environment, tell everyone else to match
 	if (isEnv) {
@@ -748,6 +806,58 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 	return checkok;
 }
+
+
+// convert filename from relative to base path file to absolute
+// base path file is assumed to be fully qualified.
+// returned filename will be full qualified as well
+
+CStdioFile * ScriptDocument::OpenIncludeFile(LPCSTR lpszBasePath, CString * pstrFile)
+{
+	// exceptions aren't actually thrown in constructure, despite the documentation
+	CStdioFile * pfile = new CStdioFile();
+	CFileException e;
+	CString strError;
+
+	// First get the path part of the relative base
+	CString strBasePath(lpszBasePath);
+
+	int n = strBasePath.GetLength();
+	for ( char * p = strBasePath.GetBuffer(1); p != NULL && n > 0 && p[n-1] != '\\'; n-- )
+		p[n-1] = 0;
+
+	strBasePath.ReleaseBuffer();
+
+	// Now store the CWD and then switch to the base path...
+
+	char szCWD[_MAX_PATH];
+	_getcwd(szCWD, sizeof(szCWD)-1 );
+	_chdir(strBasePath);
+
+	// Now try to open the passed filename... the system will compute the relative deals
+	// and, if opened, give us back a full name
+
+	if ( pfile->Open(*pstrFile, CFile::modeRead | CFile::shareDenyNone | CFile::typeText, &e) == 0 )
+	{
+		char	szError[255];
+
+		e.GetErrorMessage(szError, 255);
+		strError.Format("Error opening INCLUDE file \"%s\": %s", *pstrFile, szError);
+		delete pfile;
+	}
+	else
+		*pstrFile = pfile->GetFilePath();
+
+	// change back to saved directory and throw if error
+
+	_chdir(szCWD);
+	if ( !strError.IsEmpty() )
+		throw CString(strError);
+
+	return pfile;
+}
+
+
 
 //
 //	ScriptDocument::ParsePacket
@@ -772,7 +882,7 @@ void ScriptDocument::ParsePacket( ScriptIfdefHandler &ifdefHandler, ScriptScanne
 		if (tok.tokenType == scriptEOL)
 			continue;
 
-		if ( ifdefHandler.IsIfdefExpression(tok)  ||  ifdefHandler.IsSkipping() )
+		if ( ifdefHandler.IsIfdefExpression(tok, &scan)  ||  ifdefHandler.IsSkipping() )
 			continue;
 
 		// if we get ')' we're done

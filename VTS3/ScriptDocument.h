@@ -76,6 +76,7 @@ public:
 protected:
 
 	bool EvaluateConditional( ScriptScanner & scan, ScriptToken & tok );
+	CStdioFile * OpenIncludeFile(LPCSTR lpszBasePath, CString * pstrFile);
 
 // Generated message map functions
 protected:
