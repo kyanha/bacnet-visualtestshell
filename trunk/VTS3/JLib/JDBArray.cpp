@@ -102,12 +102,47 @@ int JDBArrayMgr::GetArray(JDBArray &ary, objId id)
 
 int JDBArrayMgr::DeleteArray(objId id)
 {
-	// delete the block tree
+	JDBArrayDesc	arrDesc
+	;
+
+	// get the array descriptor
+	ReturnIfError_( mgrObjMgr->ReadObject( id, &arrDesc ) );
+	
+	// recursively delete the block tree
+	DeleteArrayHelper( arrDesc.arryDepth, arrDesc.arryRootID, arrDesc.arryL1BF );
 	
 	// delete the array descriptor
 	ReturnIfError_( mgrObjMgr->DeleteObject( id ) );
 	
 	return 0;
+}
+
+//
+//	JDBArrayMgr::DeleteArrayHelper
+//
+
+void JDBArrayMgr::DeleteArrayHelper( int depth, blockNumber blckID, int bf )
+{
+	JVBlockPtr		bp
+	;
+	blockNumber		*blckList
+	;
+	
+	if (depth > 1) {
+		// get the block
+		bp = new JVBlock( mgrFile, (JHandle)&blckList, blckID );
+		
+		// delete all of the blocks listed
+		for (int i = 0; i < bf; i++)
+			if (blckList[i] != 0)
+				DeleteArrayHelper( depth-1, blckList[i], bf );
+
+		// release the block back
+		delete bp;
+	}
+
+	// now delete the block
+	mgrFile->DeleteBlock( blckID );
 }
 
 //
