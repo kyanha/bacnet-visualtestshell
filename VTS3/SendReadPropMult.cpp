@@ -212,7 +212,8 @@ void CSendReadPropMult::RestorePage( int index )
 			elemPtr->rpeArrayIndex.ctrlNull = FALSE; //value specified
 
 			if(isShown)
-			{
+			{	
+				elemPtr->rpePropCombo.ctrlNull = false; //Added by Zhu Zhenhua, 2004-4-19,To init the propID
 				elemPtr->rpePropCombo.ObjToCtrl();
 				elemPtr->rpeArrayIndex.ObjToCtrl();
 			}
