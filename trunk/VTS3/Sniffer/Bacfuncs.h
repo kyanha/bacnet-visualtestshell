@@ -963,7 +963,7 @@ char *BACnetTimeStamp[] = {
    "McQuay",
    "PolarSoft",
    "Johnson Controls",
-   "Auto-Matrix",
+   "American Auto-Matrix",
    "Staefa",
    "Delta Controls",
    "Landis & Gyr",
