@@ -147,7 +147,6 @@ const BACnetAPDU& BACnetAPDUSegment::operator[](const int indx)
 			break;
 	}
 	
-fini:
 	return segAPDU;
 }
 
