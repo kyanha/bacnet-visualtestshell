@@ -455,9 +455,12 @@ short APIENTRY GetEnumName(char far* Name, word objtype, dword PropId, word Enum
 extern "C"
 short APIENTRY GetPropName(dword PropId, char far* PropName)	//	***002
 { 
+  dword count = 0;
+
+  while (stPropIDs[count]){count++;}
   PropName[0]= 0;
-  if ((PropId>=0)&&(PropId<stPropIDs.nes)) 
-    { strcpy(PropName,stPropIDs.estrings[PropId]);		//			***001
+  if ((PropId>=0)&&(PropId<count)) 
+    { strcpy(PropName,stPropIDs[PropId]);		//			***001
       return(strlen(PropName));							//			***001
     }
   else return(0);  
