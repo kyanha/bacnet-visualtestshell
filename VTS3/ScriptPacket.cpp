@@ -25,6 +25,7 @@ ScriptPacketExpr::ScriptPacketExpr( void )
 	, exprOp(0)
 	, exprValue("")
 {
+	m_fNoneValue = false;
 }
 
 
