@@ -14,6 +14,8 @@
 #include "ScriptKeywords.h"
 
 
+class ScriptScanner;
+
 // Define maximum left for ifdef nesting...
 #define IFDEF_LEVEL_MAX			20
 
@@ -23,16 +25,21 @@ class ScriptIfdefHandler : public CObject
 	private:
 		int				 m_curIfdefLevel;
 		unsigned char	 m_bIfdefFlags[IFDEF_LEVEL_MAX];
-		ScriptScanner  & m_scanner;
+
+//madanner 6/03
+//		ScriptScanner  & m_scanner;
+
 		ScriptDocument * m_pDoc;
 
-		bool EvaluateConditional(ScriptToken & tok );
+//madanner 6/03		bool EvaluateConditional(ScriptToken & tok );
+		bool EvaluateConditional(ScriptToken & tok, ScriptScanner * pscan );
 
 	public:
-		ScriptIfdefHandler( ScriptDocument * pDoc, ScriptScanner & scan );
+//madanner 6/03		ScriptIfdefHandler( ScriptDocument * pDoc, ScriptScanner & scan );
+		ScriptIfdefHandler( ScriptDocument * pDoc );
 		virtual ~ScriptIfdefHandler();
 
-		bool IsIfdefExpression(ScriptToken &tok);
+		bool IsIfdefExpression(ScriptToken &tok, ScriptScanner * pscan);
 		bool IsSkipping(void);
 		bool IsIfBlock(void);
 };
