@@ -348,9 +348,11 @@ void ScriptAppFilter::Indication( const BACnetAPDU &adpu )
 
 void ScriptAppFilter::Confirmation( const BACnetAPDU &apdu )
 {
+#if 0
 	// give it to the executor
 	if (gExecutor.IsRunning())
 		gExecutor.ReceiveAPDU( this, apdu );
+#endif
 
 	// pass up to client
 	Response( apdu );
@@ -441,15 +443,27 @@ void ScriptExecutor::Cleanup( void )
 	// make sure we don't get rescheduled
 	SuspendTask();
 
-	// release from the document
-	execDoc->UnbindExecutor();
+	// check to run the next test
+	if (execAllTests && execTest->testNext) {
+		// move to the next test
+		execTest = execTest->testNext;
+		execPacket = 0;
 
-	// clear all the rest of the execution vars
-	execState = execIdle;
-	execDB = 0;
-	execDoc = 0;
-	execTest = 0;
-	execPacket = 0;
+		// install the task
+		taskType = oneShotTask;
+		taskInterval = 0;
+		InstallTask();
+	} else {
+		// release from the document
+		execDoc->UnbindExecutor();
+
+		// clear all the rest of the execution vars
+		execState = execIdle;
+		execDB = 0;
+		execDoc = 0;
+		execTest = 0;
+		execPacket = 0;
+	}
 }
 
 //
@@ -1178,7 +1192,7 @@ bool ScriptExecutor::SendPacket( void )
 	;
 	ScriptNetFilterPtr		nfp
 	;
-	ScriptPacketExprPtr		bipMsg, nlMsg, nlDA, alMsg
+	ScriptPacketExprPtr		pNet, bipMsg, nlMsg, nlDA, alMsg
 	,						pVersion, pDNET, pDADR, pHopCount, pSNET, pSADR
 	,						pDER, pPriority
 	;
@@ -1195,8 +1209,27 @@ bool ScriptExecutor::SendPacket( void )
 	;
 
 	try {
+		// see if the network is provided
+		pNet = GetKeywordValue( kwNETWORK, nlNetwork );
+
+		// see if this has a BVLCI header
+		bipMsg = execPacket->packetExprList.Find( kwBVLCI );
+
+		// see if this is a network layer message
+		nlMsg = execPacket->packetExprList.Find( kwMESSAGE );
+		if (!nlMsg)
+			nlMsg = execPacket->packetExprList.Find( kwMSG );
+
+		// see if this is an application layer message
+		alMsg = execPacket->packetExprList.Find( kwPDU );
+
+		// see if this should be sent in the context of a device
+		if (!pNet && !bipMsg && !nlMsg && alMsg) {
+			SendDevPacket();
+			return true;
+		}
+
 		// look for the network (actually the filter name)
-		ScriptPacketExprPtr	pNet = GetKeywordValue( kwNETWORK, nlNetwork );
 		if (gMasterFilterList.Length() == 1) {
 			sfp = gMasterFilterList[0];
 			if (pNet && !nlNetwork.Equals(sfp->filterName))
@@ -1290,9 +1323,6 @@ bool ScriptExecutor::SendPacket( void )
 		if ((nlPriority.intValue < 0) || (nlPriority.intValue > 3))
 			throw ExecError( "Priority out of range 0..3", pPriority->exprLine );
 
-		// see if this has a BVLCI header
-		bipMsg = execPacket->packetExprList.Find( kwBVLCI );
-
 		// if this is a BVLL specific message, encode and send it
 		if (bipMsg) {
 			ScriptTokenList	bvllList;
@@ -1385,14 +1415,6 @@ bool ScriptExecutor::SendPacket( void )
 				return true;
 			}
 		}
-
-		// see if this is a network layer message
-		nlMsg = execPacket->packetExprList.Find( kwMESSAGE );
-		if (!nlMsg)
-			nlMsg = execPacket->packetExprList.Find( kwMSG );
-
-		// see if this is an application layer message
-		alMsg = execPacket->packetExprList.Find( kwPDU );
 
 		// there must be a network or application layer message
 		if (!nlMsg && !alMsg)
@@ -2262,6 +2284,537 @@ void ScriptExecutor::SendDisconnectConnectionToNetwork( ScriptTokenList &tlist, 
 	TRACE1( "    Network %d\n", valu );
 	packet.Add( valu >> 8 );
 	packet.Add( valu & 0x0FF );
+}
+
+//
+//	ScriptExecutor::SendDevPacket
+//
+
+void ScriptExecutor::SendDevPacket( void )
+{
+	int						alMsgID, valu
+	;
+	BACnetAPDU				apdu
+	;
+	BACnetOctetString		nlDest
+	;
+	BACnetAddress			nlDestAddr
+	;
+	BACnetBoolean			nlDER
+	;
+	BACnetInteger			nlPriority, nlDNET
+	;
+	ScriptPacketExprPtr		nlDA, alMsg
+	,						pDER, pPriority
+	;
+	ScriptTokenList			alList
+	;
+
+	// we already know this is an application layer message
+	alMsg = execPacket->packetExprList.Find( kwPDU );
+
+	// make sure we have a device
+	if (gMasterDeviceList.Length() == 0)
+		throw ExecError( "No defined devices", alMsg->exprLine );
+
+	// make it an error to have more than one for now
+	if (gMasterDeviceList.Length() > 1)
+		throw ExecError( "Too many defined devices, there can be only one", alMsg->exprLine );
+
+	// get the destination.  The IUT will be the default for all outbound
+	// messages, regardless of the message type (for example, a message that 
+	// would normally be sent as a global broadcast will be sent directly to
+	// the IUT).
+	nlDA = execPacket->packetExprList.Find( kwDA );
+	if (!nlDA) {
+		for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
+			VTSNameDesc		nameDesc;
+
+			execDB->m_Names.ReadName( i, &nameDesc );
+			if (stricmp(nameDesc.nameName,"IUT") == 0) {
+				nlDestAddr = nameDesc.nameAddr;
+				break;
+			}
+		}
+		if (i >= execDB->m_Names.Length())
+			throw ExecError( "Default destination address IUT not found", execPacket->baseLineStart );
+	} else {
+		ScriptTokenList			daList
+		;
+
+		// resolve the expressions
+		ResolveExpr( nlDA->exprValue, nlDA->exprLine, daList );
+		if (daList.Length() < 1)
+			throw ExecError( "Address, name or keyword expected", nlDA->exprLine );
+
+		// get a reference to the first parameter
+		const ScriptToken &t = daList[0];
+
+		// check to see if this is a keyword
+		if (t.tokenType == scriptKeyword) {
+			if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
+				nlDestAddr.LocalBroadcast();
+			else
+			if (t.tokenSymbol == kwREMOTEBROADCAST) {
+				if (daList.Length() == 1)
+					throw ExecError( "DNET expected", nlDA->exprLine );
+
+				const ScriptToken &dnet = daList[1];
+
+				if (dnet.tokenType != scriptValue)
+					throw "DNET expected";
+				if (!dnet.IsInteger(valu))
+					throw "DNET invalid format, integer required";
+				if ((valu < 0) || (valu > 65534))
+					throw "DNET out of range (0..65534)";
+
+				nlDestAddr.RemoteBroadcast( valu );
+			} else
+			if (t.tokenSymbol == kwGLOBALBROADCAST)
+				nlDestAddr.GlobalBroadcast();
+			else
+				throw ExecError( "Unrecognized keyword", nlDA->exprLine );
+		} else
+		if (daList.Length() == 1) {
+			// it might be a name
+			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+				CString tvalu = t.RemoveQuotes();
+				for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
+					VTSNameDesc		nameDesc;
+
+					execDB->m_Names.ReadName( i, &nameDesc );
+					if (stricmp(nameDesc.nameName,tvalu) == 0) {
+						nlDestAddr = nameDesc.nameAddr;
+						break;
+					}
+				}
+				if (i >= execDB->m_Names.Length())
+					throw ExecError( "Destination address name not found", nlDA->exprLine );
+			} else
+			// it might be an IP address
+			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
+				BACnetIPAddr nlIPAddr( t.tokenValue );
+				nlDestAddr = nlIPAddr;
+			} else
+			// it might be an explicit octet string
+			if (t.IsEncodeable( nlDest )) {
+				nlDestAddr.LocalStation( nlDest.strBuff, nlDest.strLen );
+			} else
+				throw ExecError( "Destination address expected", nlDA->exprLine );
+		} else
+		if (daList.Length() == 2) {
+			if (t.tokenType != scriptValue)
+				throw "DNET expected";
+			if (!t.IsInteger(valu))
+				throw "DNET invalid format, integer required";
+			if ((valu < 0) || (valu > 65534))
+				throw "DNET out of range (0..65534)";
+
+			const ScriptToken &dadr = daList[1];
+
+			// it might be an IP address
+			if ((dadr.tokenType == scriptValue) && (dadr.tokenEnc == scriptIPEnc)) {
+				BACnetIPAddr nlIPAddr( dadr.tokenValue );
+				nlDestAddr = nlIPAddr;
+			} else
+			// it might be an explicit octet string
+			if (dadr.IsEncodeable( nlDest )) {
+				nlDestAddr.LocalStation( nlDest.strBuff, nlDest.strLen );
+			} else
+				throw ExecError( "Destination address expected", nlDA->exprLine );
+
+			nlDestAddr.addrType = remoteStationAddr;
+			nlDestAddr.addrNet = valu;
+		} else
+			throw ExecError( "Destination address expected", nlDA->exprLine );
+	}
+
+	// copy the destination address into the apdu
+	apdu.apduAddr = nlDestAddr;
+
+	// force property references to fail until context established
+	execObjID = 0xFFFFFFFF;
+
+	// resolve the expressions
+	ResolveExpr( alMsg->exprValue, alMsg->exprLine, alList );
+	if (alList.Length() < 1)
+		throw ExecError( "AL message keyword expected", alMsg->exprLine );
+
+	// get a reference to the first parameter
+	const ScriptToken &t = alList[0];
+
+	// check to see if this is a keyword
+	if (t.tokenType == scriptKeyword) {
+		alMsgID = t.Lookup( t.tokenSymbol, ScriptALMsgTypeMap );
+		if (alMsgID < 0)
+			throw ExecError( "Unrecognized keyword", alMsg->exprLine );
+	} else
+		throw ExecError( "Keyword expected", alMsg->exprLine );
+
+	// based on the number, check for other parameters
+	try {
+		switch (alMsgID) {
+			case 0:						// CONFIRMED-REQUEST
+				SendDevConfirmedRequest( apdu );
+				break;
+			case 1:						// UNCONFIRMED-REQUEST
+				SendDevUnconfirmedRequest( apdu );
+				break;
+			case 2:						// SIMPLEACK
+				SendDevSimpleACK( apdu );
+				break;
+			case 3:						// COMPLEXACK
+				SendDevComplexACK( apdu );
+				break;
+			case 4:						// SEGMENTACK
+				SendDevSegmentACK( apdu );
+				break;
+			case 5:						// ERROR
+				SendDevError( apdu );
+				break;
+			case 6:						// REJECT
+				SendDevReject( apdu );
+				break;
+			case 7:						// ABORT
+				SendDevAbort( apdu );
+				break;
+		}
+	}
+	catch (const char *errMsg) {
+		// one of the functions had an error
+		throw ExecError( errMsg, alMsg->exprLine );
+	}
+
+	// get some interesting keywords that can override the default
+	pDER = GetKeywordValue( kwDER, nlDER );
+	if (pDER)
+		apdu.apduExpectingReply = nlDER.boolValue;
+
+	pPriority	= GetKeywordValue( kwPRIORITY, nlPriority );
+	if (!pPriority)
+		pPriority = GetKeywordValue( kwPRIO, nlPriority );
+	if (pPriority) {
+		if ((nlPriority.intValue < 0) || (nlPriority.intValue > 3))
+			throw ExecError( "Priority out of range 0..3", pPriority->exprLine );
+		apdu.apduNetworkPriority = nlPriority.intValue;
+	}
+
+	// pass along to the device object
+	gMasterDeviceList[0]->SendAPDU( apdu );
+}
+
+//
+//	ScriptExecutor::SendDevConfirmedRequest
+//
+
+void ScriptExecutor::SendDevConfirmedRequest( BACnetAPDU &apdu )
+{
+	CByteArray				packet
+	;
+	ScriptPacketExprPtr		pService
+	;
+	BACnetInteger			alService
+	;
+
+	// set the packet type
+	apdu.apduType = confirmedRequestPDU;
+	apdu.apduExpectingReply = true;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (!pService)
+		throw "Service choice (SERVICE) keyword required";
+
+	// encode it
+	apdu.apduService = alService.intValue;
+
+	// encode the rest
+	SendALData( packet );
+
+	// set the apdu contents
+	apdu.Append( packet.GetData(), packet.GetSize() );
+}
+
+//
+//	ScriptExecutor::SendDevUnconfirmedRequest
+//
+
+void ScriptExecutor::SendDevUnconfirmedRequest( BACnetAPDU &apdu )
+{
+	CByteArray				packet
+	;
+	ScriptPacketExprPtr		pService
+	;
+	BACnetInteger			alService
+	;
+
+	// set the packet type
+	apdu.apduType = unconfirmedRequestPDU;
+	apdu.apduExpectingReply = false;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALUnconfirmedServiceMap );
+	if (!pService)
+		throw "Service choice (SERVICE) keyword required";
+
+	// encode it
+	apdu.apduService = alService.intValue;
+
+	// encode the rest
+	SendALData( packet );
+
+	// set the apdu contents
+	apdu.Append( packet.GetData(), packet.GetSize() );
+}
+
+//
+//	ScriptExecutor::SendDevSimpleACK
+//
+
+void ScriptExecutor::SendDevSimpleACK( BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pInvokeID, pService
+	;
+	BACnetInteger			alInvokeID, alService
+	;
+
+	// set the packet type
+	apdu.apduType = simpleAckPDU;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (!pService)
+		throw "Service-ACK-choice (SERVICE) keyword required";
+
+	// encode it
+	apdu.apduService = alService.intValue;
+
+	// get the invoke ID
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (!pInvokeID)
+		throw "Invoke ID keyword required";
+	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
+		throw "Invoke ID out of range (0..255)";
+
+	// encode it
+	apdu.apduInvokeID = alInvokeID.intValue;
+}
+
+//
+//	ScriptExecutor::SendDevComplexACK
+//
+
+void ScriptExecutor::SendDevComplexACK( BACnetAPDU &apdu )
+{
+	CByteArray				packet
+	;
+	ScriptPacketExprPtr		pInvokeID, pService
+	;
+	BACnetInteger			alInvokeID, alService
+	;
+
+	// set the packet type
+	apdu.apduType = complexAckPDU;
+	apdu.apduExpectingReply = false;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (!pService)
+		throw "Service-ACK-choice (SERVICE) keyword required";
+
+	// encode it
+	apdu.apduService = alService.intValue;
+
+	// get the invoke ID
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (!pInvokeID)
+		throw "Invoke ID keyword required";
+	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
+		throw "Invoke ID out of range (0..255)";
+
+	// encode it
+	apdu.apduInvokeID = alInvokeID.intValue;
+
+	// encode the rest
+	SendALData( packet );
+
+	// set the apdu contents
+	apdu.Append( packet.GetData(), packet.GetSize() );
+}
+
+//
+//	ScriptExecutor::SendDevSegmentACK
+//
+
+void ScriptExecutor::SendDevSegmentACK( BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pNegativeACK, pServer, pInvokeID, pSeqNumber, pWindowSize
+	;
+	BACnetBoolean			alNegativeACK, alServer
+	;
+	BACnetInteger			alInvokeID, alSeqNumber, alWindowSize
+	;
+
+	// set the packet type
+	apdu.apduType = segmentAckPDU;
+	apdu.apduExpectingReply = false;
+
+	// get the ACK
+	pNegativeACK = GetKeywordValue( kwNEGATIVEACK, alNegativeACK );
+	if (!pNegativeACK) throw "Negative-ACK keyword required";
+	apdu.apduNak = (bool)alNegativeACK.boolValue;
+
+	// get the SERVER
+	pServer = GetKeywordValue( kwSERVER, alServer );
+	if (!pServer) throw "Server keyword required";
+	apdu.apduSrv = (bool)alServer.boolValue;
+
+	// get the invoke ID
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (!pInvokeID)
+		throw "Invoke ID keyword required";
+	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
+		throw "Invoke ID out of range (0..255)";
+	apdu.apduInvokeID = alInvokeID.intValue;
+
+	// get the sequence number
+	pSeqNumber = GetKeywordValue( kwSEQUENCENR, alSeqNumber );
+	if (!pSeqNumber)
+		throw "Sequence number (SEQUENCENR) keyword required";
+	if ((alSeqNumber.intValue < 0) || (alSeqNumber.intValue > 255))
+		throw "Sequence number out of range (0..255)";
+	apdu.apduSeq = alSeqNumber.intValue;
+
+	// get the actual window size
+	pWindowSize = GetKeywordValue( kwWINDOWSIZE, alWindowSize );
+	if (!pWindowSize)
+		throw "Actual window size (WINDOWSIZE) keyword required";
+	if ((alWindowSize.intValue < 0) || (alWindowSize.intValue > 255))
+		throw "Actual window size out of range (0..255)";
+	apdu.apduWin = alWindowSize.intValue;
+}
+
+//
+//	ScriptExecutor::SendDevError
+//
+
+void ScriptExecutor::SendDevError( BACnetAPDU &apdu )
+{
+	CByteArray				packet
+	;
+	ScriptPacketExprPtr		pInvokeID, pService
+	;
+	BACnetInteger			alInvokeID, alService
+	;
+
+	// set the packet type
+	apdu.apduType = errorPDU;
+	apdu.apduExpectingReply = false;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (!pService)
+		throw "Service choice (SERVICE) keyword required";
+
+	// encode it
+	apdu.apduService = alService.intValue;
+
+	// get the invoke ID
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (!pInvokeID)
+		throw "Invoke ID keyword required";
+	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
+		throw "Invoke ID out of range (0..255)";
+
+	// encode it
+	apdu.apduInvokeID = alInvokeID.intValue;
+
+	// encode the rest
+	SendALData( packet );
+
+	// set the apdu contents
+	apdu.Append( packet.GetData(), packet.GetSize() );
+}
+
+//
+//	ScriptExecutor::SendDevReject
+//
+
+void ScriptExecutor::SendDevReject( BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pInvokeID, pReason
+	;
+	BACnetInteger			alInvokeID, alReason
+	;
+
+	// set the packet type
+	apdu.apduType = rejectPDU;
+	apdu.apduExpectingReply = false;
+
+	// get the invoke ID
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (!pInvokeID)
+		throw "Invoke ID keyword required";
+	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
+		throw "Invoke ID out of range (0..255)";
+
+	// encode it
+	apdu.apduInvokeID = alInvokeID.intValue;
+
+	// get the reject reason
+	pReason = GetKeywordValue( kwREJECTREASON, alReason, ScriptALRejectReasonMap );
+	if (!pReason)
+		throw "Reject reason keyword required";
+	if ((alReason.intValue < 0) || (alReason.intValue > 255))
+		throw "Reject reason out of range (0..255)";
+
+	// encode it
+	apdu.apduAbortRejectReason = alReason.intValue;
+}
+
+//
+//	ScriptExecutor::SendDevAbort
+//
+
+void ScriptExecutor::SendDevAbort( BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pServer, pInvokeID, pReason
+	;
+	BACnetBoolean			alServer
+	;
+	BACnetInteger			alInvokeID, alReason
+	;
+
+	// set the packet type
+	apdu.apduType = abortPDU;
+	apdu.apduExpectingReply = false;
+
+	// see if this is being sent as a server
+	pServer = GetKeywordValue( kwSERVER, alServer );
+	if (!pServer) throw "Server keyword required";
+
+	// encode it
+	apdu.apduSrv = (bool)alServer.boolValue;
+
+	// get the invoke ID
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (!pInvokeID)
+		throw "Invoke ID keyword required";
+	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
+		throw "Invoke ID out of range (0..255)";
+
+	// encode it
+	apdu.apduInvokeID = alInvokeID.intValue;
+
+	// get the reject reason
+	pReason = GetKeywordValue( kwABORTREASON, alReason, ScriptALAbortReasonMap );
+	if (!pReason)
+		throw "Abort reason keyword required";
+	if ((alReason.intValue < 0) || (alReason.intValue > 255))
+		throw "Abort reason out of range (0..255)";
+
+	// encode it
+	apdu.apduAbortRejectReason = alReason.intValue;
 }
 
 //
@@ -3847,7 +4400,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 	;
 	ScriptNetFilterPtr		nfp
 	;
-	ScriptPacketExprPtr		bipMsg, nlMsg, nlSA, alMsg
+	ScriptPacketExprPtr		pNet, bipMsg, nlMsg, nlSA, alMsg
 	,						pVersion, pDNET, pDADR, pHopCount, pSNET, pSADR
 	,						pDER, pPriority
 	;
@@ -3864,8 +4417,28 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 	;
 
 	try {
+		// see if the netework is provided
+		pNet = GetKeywordValue( kwNETWORK, nlNetwork );
+
+		// see if this should have a BVLCI header
+		bipMsg = execPacket->packetExprList.Find( kwBVLCI );
+
+		// see if we're looking for a network layer message
+		nlMsg = execPacket->packetExprList.Find( kwMESSAGE );
+		if (!nlMsg)
+			nlMsg = execPacket->packetExprList.Find( kwMSG );
+
+		// see if we're looking for an application layer message
+		alMsg = execPacket->packetExprList.Find( kwPDU );
+
+		// See if matching should come from device layer.  This is a quiet fail,
+		// no message is going to be saved saying that this combination was 
+		// skipped.  At some point the packet is going to be passed up through 
+		// to a VTSServer or VTSClient and that will call ReceiveAPDU().
+		if (!pNet && !bipMsg && !nlMsg && alMsg)
+			return false;
+
 		// look for the network (actually the filter name)
-		ScriptPacketExprPtr	pNet = GetKeywordValue( kwNETWORK, nlNetwork );
 		if (gMasterFilterList.Length() == 1) {
 			sfp = gMasterFilterList[0];
 			if (pNet && !nlNetwork.Equals(sfp->filterName))
@@ -3975,9 +4548,6 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 		// the rest of this code will need a decoder
 		BACnetAPDUDecoder	dec( npdu.pduData, npdu.pduLen );
 
-		// see if this should have a BVLCI header
-		bipMsg = execPacket->packetExprList.Find( kwBVLCI );
-
 		// if this is a BVLL specific message, match it
 		if (bipMsg) {
 			ScriptTokenList	bvllList;
@@ -4065,14 +4635,6 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				return true;
 			}
 		}
-
-		// see if we're looking for a network layer message
-		nlMsg = execPacket->packetExprList.Find( kwMESSAGE );
-		if (!nlMsg)
-			nlMsg = execPacket->packetExprList.Find( kwMSG );
-
-		// see if we're looking for an application layer message
-		alMsg = execPacket->packetExprList.Find( kwPDU );
 
 		// there should be a network or application layer message
 		if (!nlMsg && !alMsg)
@@ -5095,7 +5657,7 @@ void ScriptExecutor::ExpectInitializeRoutingTable( ScriptTokenList &tlist, BACne
 		// check the port information content
 		if (cstr.strLen != (dec.pktLength--,*dec.pktBuffer++))
 			throw "Port information mismatch";
-		for (unsigned int j = 0; j < cstr.strLen; j++)
+		for (unsigned j = 0; j < cstr.strLen; j++)
 			if (cstr.strBuff[j] != (dec.pktLength--,*dec.pktBuffer++))
 				throw "Port information mismatch";
 	}
@@ -5183,6 +5745,450 @@ void ScriptExecutor::ExpectDisconnectConnectionToNetwork( ScriptTokenList &tlist
 	// see if they match
 	if (valu1 != valu2)
 		throw "Network mismatch";
+}
+
+//
+//	ScriptExecutor::ExpectDevPacket
+//
+
+bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
+{
+	int						alMsgID, valu
+	;
+	BACnetOctetString		nlSource
+	;
+	BACnetAddress			nlSourceAddr
+	;
+	BACnetBoolean			nlDER
+	;
+	BACnetInteger			nlPriority, nlDNET
+	;
+	ScriptPacketExprPtr		pNet, bipMsg, nlMsg, alMsg
+	,						nlSA, pDER, pPriority
+	;
+	ScriptTokenList			alList
+	;
+
+	try {
+		// see if the netework is provided
+		pNet = execPacket->packetExprList.Find( kwNETWORK );
+
+		// see if this should have a BVLCI header
+		bipMsg = execPacket->packetExprList.Find( kwBVLCI );
+
+		// see if we're looking for a network layer message
+		nlMsg = execPacket->packetExprList.Find( kwMESSAGE );
+		if (!nlMsg)
+			nlMsg = execPacket->packetExprList.Find( kwMSG );
+
+		// see if we're looking for an application layer message
+		alMsg = execPacket->packetExprList.Find( kwPDU );
+
+		// see if we should be matching, it should only be an application
+		// layer packet.  No need to throw anything.
+		if (!(!pNet && !bipMsg && !nlMsg && alMsg))
+			return false;
+
+		// If the code supports multiple device objects in the future there 
+		// needs to be a parameter that decribes which device object this 
+		// packet should match.  Hunt through the gMasterDevice list for the 
+		// one specified.
+
+		// Get the source.  The IUT will be the default for all inbound messages.
+		nlSA = execPacket->packetExprList.Find( kwDA );
+		if (!nlSA) {
+			for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
+				VTSNameDesc		nameDesc;
+
+				execDB->m_Names.ReadName( i, &nameDesc );
+				if (stricmp(nameDesc.nameName,"IUT") == 0) {
+					nlSourceAddr = nameDesc.nameAddr;
+					break;
+				}
+			}
+			if (i >= execDB->m_Names.Length())
+				throw ExecError( "Default source address IUT not found", execPacket->baseLineStart );
+		} else {
+			if (nlSA->exprOp != '=')
+				throw ExecError( "Equality operator required for source address", nlSA->exprLine );
+			
+			ScriptTokenList			saList
+			;
+
+			// resolve the expressions
+			ResolveExpr( nlSA->exprValue, nlSA->exprLine, saList );
+			if (saList.Length() < 1)
+				throw ExecError( "Address, or name expected", nlSA->exprLine );
+
+			// get a reference to the first parameter
+			const ScriptToken &t = saList[0];
+
+			// check for name or octet string
+			if (saList.Length() == 1) {
+				// it might be a name
+				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+					CString tvalu = t.RemoveQuotes();
+					for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
+						VTSNameDesc		nameDesc;
+
+						execDB->m_Names.ReadName( i, &nameDesc );
+						if (stricmp(nameDesc.nameName,tvalu) == 0) {
+							nlSourceAddr = nameDesc.nameAddr;
+							break;
+						}
+					}
+					if (i >= execDB->m_Names.Length())
+						throw ExecError( "Destination address name not found", nlSA->exprLine );
+				} else
+				// it might be an IP address
+				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
+					BACnetIPAddr nlIPAddr( t.tokenValue );
+					nlSourceAddr = nlIPAddr;
+				} else
+				// it might be an explicit octet string
+				if (t.IsEncodeable( nlSource )) {
+					nlSourceAddr.LocalStation( nlSource.strBuff, nlSource.strLen );
+				} else
+					throw ExecError( "Source address expected", nlSA->exprLine );
+			} else
+			if (saList.Length() == 2) {
+				if (t.tokenType != scriptValue)
+					throw "SNET expected";
+				if (!t.IsInteger(valu))
+					throw "SNET invalid format, integer required";
+				if ((valu < 0) || (valu > 65534))
+					throw "DNET out of range (0..65534)";
+
+				const ScriptToken &sadr = saList[1];
+
+				// it might be an IP address
+				if ((sadr.tokenType == scriptValue) && (sadr.tokenEnc == scriptIPEnc)) {
+					BACnetIPAddr nlIPAddr( sadr.tokenValue );
+					nlSourceAddr = nlIPAddr;
+				} else
+				// it might be an explicit octet string
+				if (sadr.IsEncodeable( nlSource )) {
+					nlSourceAddr.LocalStation( nlSource.strBuff, nlSource.strLen );
+				} else
+					throw ExecError( "Source address expected", nlSA->exprLine );
+
+				nlSourceAddr.addrType = remoteStationAddr;
+				nlSourceAddr.addrNet = valu;
+			} else
+				throw ExecError( "Source address expected", nlSA->exprLine );
+		}
+
+		// make sure the addresses match
+		if (!(apdu.apduAddr == nlSourceAddr))
+			throw ExecError( "Source address mismatch"
+					, (nlSA ? nlSA->exprLine : execPacket->baseLineStart)
+					);
+
+		// force property references to fail until context established
+		execObjID = 0xFFFFFFFF;
+
+		// resolve the expressions
+		ResolveExpr( alMsg->exprValue, alMsg->exprLine, alList );
+		if (alList.Length() < 1)
+			throw ExecError( "AL message keyword expected", alMsg->exprLine );
+
+		// get a reference to the first parameter
+		const ScriptToken &t = alList[0];
+
+		// check to see if this is a keyword
+		if (t.tokenType == scriptKeyword) {
+			alMsgID = t.Lookup( t.tokenSymbol, ScriptALMsgTypeMap );
+			if (alMsgID < 0)
+				throw ExecError( "Unrecognized keyword", alMsg->exprLine );
+		} else
+			throw ExecError( "Keyword expected", alMsg->exprLine );
+
+		if (alMsgID != apdu.apduType)
+			throw ExecError( "PDU type mismatch", alMsg->exprLine );
+
+		// based on the number, check for other parameters
+		try {
+			switch (alMsgID) {
+				case 0:						// CONFIRMED-REQUEST
+					ExpectDevConfirmedRequest( apdu );
+					break;
+				case 1:						// UNCONFIRMED-REQUEST
+					ExpectDevUnconfirmedRequest( apdu );
+					break;
+				case 2:						// SIMPLEACK
+					ExpectDevSimpleACK( apdu );
+					break;
+				case 3:						// COMPLEXACK
+					ExpectDevComplexACK( apdu );
+					break;
+				case 4:						// SEGMENTACK
+					ExpectDevSegmentACK( apdu );
+					break;
+				case 5:						// ERROR
+					ExpectDevError( apdu );
+					break;
+				case 6:						// REJECT
+					ExpectDevReject( apdu );
+					break;
+				case 7:						// ABORT
+					ExpectDevAbort( apdu );
+					break;
+			}
+		}
+		catch (const char *errMsg) {
+			// one of the functions had an error
+			throw ExecError( errMsg, alMsg->exprLine );
+		}
+
+		// get some interesting keywords that might match
+		pDER = GetKeywordValue( kwDER, nlDER );
+		if (pDER && !Match(pDER->exprOp,nlDER.boolValue,apdu.apduExpectingReply))
+			throw ExecError( "Network priority mismatch", pDER->exprLine );
+
+		pPriority	= GetKeywordValue( kwPRIORITY, nlPriority );
+		if (!pPriority)
+			pPriority = GetKeywordValue( kwPRIO, nlPriority );
+		if (pPriority && !Match(pPriority->exprOp,nlPriority.intValue,apdu.apduNetworkPriority))
+			throw ExecError( "Network priority mismatch", pPriority->exprLine );
+	}
+	catch (const ExecError &err) {
+		// failed
+		Msg( 3, err.errLineNo, err.errMsg );
+		return false;
+	}
+	catch (const char *errMsg) {
+		// failed
+		Msg( 3, execPacket->baseLineStart, errMsg );
+		return false;
+	}
+
+	// we made it!
+	return true;
+}
+
+//
+//	ScriptExecutor::ExpectDevConfirmedRequest
+//
+
+void ScriptExecutor::ExpectDevConfirmedRequest( const BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pService
+	;
+	BACnetInteger			alService
+	;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// expect the rest
+	BACnetAPDUDecoder dec( apdu );
+	ExpectALData( dec );
+
+	// make sure all the data was matched
+	if (dec.pktLength != 0)
+		throw ExecError( "Additional application data not matched"
+		, execPacket->baseLineStart
+		);
+}
+
+//
+//	ScriptExecutor::ExpectDevUnconfirmedRequest
+//
+
+void ScriptExecutor::ExpectDevUnconfirmedRequest( const BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pService
+	;
+	BACnetInteger			alService
+	;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALUnconfirmedServiceMap );
+	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// expect the rest
+	BACnetAPDUDecoder dec( apdu );
+	ExpectALData( dec );
+
+	// make sure all the data was matched
+	if (dec.pktLength != 0)
+		throw ExecError( "Additional application data not matched"
+		, execPacket->baseLineStart
+		);
+}
+
+//
+//	ScriptExecutor::ExpectDevSimpleACK
+//
+
+void ScriptExecutor::ExpectDevSimpleACK( const BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pService, pInvokeID
+	;
+	BACnetInteger			alService, alInvokeID
+	;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// get the service choice
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+}
+
+//
+//	ScriptExecutor::ExpectDevComplexACK
+//
+
+void ScriptExecutor::ExpectDevComplexACK( const BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pService, pInvokeID
+	;
+	BACnetInteger			alService, alInvokeID
+	;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// get the service choice
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// expect the rest
+	BACnetAPDUDecoder dec( apdu );
+	ExpectALData( dec );
+
+	// make sure all the data was matched
+	if (dec.pktLength != 0)
+		throw ExecError( "Additional application data not matched"
+		, execPacket->baseLineStart
+		);
+}
+
+//
+//	ScriptExecutor::ExpectDevSegmentACK
+//
+
+void ScriptExecutor::ExpectDevSegmentACK( const BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pNegativeACK, pServer, pInvokeID, pSeqNumber, pWindowSize
+	;
+	BACnetBoolean			alNegativeACK, alServer
+	;
+	BACnetInteger			alInvokeID, alSeqNumber, alWindowSize
+	;
+
+	pNegativeACK = GetKeywordValue( kwNEGATIVEACK, alNegativeACK );
+	if (pNegativeACK && !Match(pNegativeACK->exprOp,apdu.apduNak,alNegativeACK.boolValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	pServer = GetKeywordValue( kwSERVER, alServer );
+	if (pServer && !Match(pServer->exprOp,apdu.apduSrv,alServer.boolValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	pSeqNumber = GetKeywordValue( kwSEQUENCENR, alSeqNumber );
+	if (pSeqNumber && !Match(pSeqNumber->exprOp,apdu.apduSeq,alSeqNumber.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	pWindowSize = GetKeywordValue( kwWINDOWSIZE, alWindowSize );
+	if (pWindowSize && !Match(pWindowSize->exprOp,apdu.apduWin,alWindowSize.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+}
+
+//
+//	ScriptExecutor::ExpectDevError
+//
+
+void ScriptExecutor::ExpectDevError( const BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pService, pInvokeID
+	;
+	BACnetInteger			alService, alInvokeID
+	;
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// get the service choice
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// expect the rest
+	BACnetAPDUDecoder dec( apdu );
+	ExpectALData( dec );
+
+	// make sure all the data was matched
+	if (dec.pktLength != 0)
+		throw ExecError( "Additional application data not matched"
+		, execPacket->baseLineStart
+		);
+}
+
+//
+//	ScriptExecutor::ExpectDevReject
+//
+
+void ScriptExecutor::ExpectDevReject( const BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pInvokeID, pReason
+	;
+	BACnetInteger			alInvokeID, alReason
+	;
+
+	// get the service choice
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID, ScriptALConfirmedServiceMap );
+	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// get the service choice
+	pReason = GetKeywordValue( kwREJECTREASON, alReason, ScriptALRejectReasonMap );
+	if (pReason && !Match(pReason->exprOp,apdu.apduAbortRejectReason,alReason.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+}
+
+//
+//	ScriptExecutor::ExpectDevAbort
+//
+
+void ScriptExecutor::ExpectDevAbort( const BACnetAPDU &apdu )
+{
+	ScriptPacketExprPtr		pServer, pInvokeID, pReason
+	;
+	BACnetBoolean			alServer
+	;
+	BACnetInteger			alInvokeID, alReason
+	;
+
+	// get the service choice
+	pServer = GetKeywordValue( kwSERVER, alServer );
+	if (pServer && !Match(pServer->exprOp,apdu.apduInvokeID,alServer.boolValue))
+		throw "Service-choice (SERVER) mismatch";
+
+	// get the service choice
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// get the service choice
+	pReason = GetKeywordValue( kwABORTREASON, alReason, ScriptALAbortReasonMap );
+	if (pReason && !Match(pReason->exprOp,apdu.apduAbortRejectReason,alReason.intValue))
+		throw "Service-choice (SERVICE) mismatch";
 }
 
 //
@@ -5299,7 +6305,7 @@ void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
 	// get the service choice
 	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (pService && !Match(pService->exprOp,valu,alService.intValue))
-		throw "Service-ACK-choice (SERVICE) mismatch";
+		throw "Service-choice (SERVICE) mismatch";
 
 	// expect the rest
 	ExpectALData( dec );
@@ -5311,6 +6317,28 @@ void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectUnconfirmedRequest( BACnetAPDUDecoder &dec )
 {
+	int						valu
+	;
+	ScriptPacketExprPtr		pService
+	;
+	BACnetInteger			alService
+	;
+
+	// check the header
+	valu = (dec.pktLength--,*dec.pktBuffer++);
+	if ((valu >> 4) != 1)
+		throw "UnconfirmedRequest expected";
+
+	// extract the service choice
+	valu = (dec.pktLength--,*dec.pktBuffer++);
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (pService && !Match(pService->exprOp,valu,alService.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// expect the rest
+	ExpectALData( dec );
 }
 
 //
@@ -5345,7 +6373,7 @@ void ScriptExecutor::ExpectSimpleACK( BACnetAPDUDecoder &dec )
 	// get the service choice
 	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (pService && !Match(pService->exprOp,valu,alService.intValue))
-		throw "Service-ACK-choice (SERVICE) mismatch";
+		throw "Service-choice (SERVICE) mismatch";
 }
 
 //
@@ -5354,6 +6382,72 @@ void ScriptExecutor::ExpectSimpleACK( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectComplexACK( BACnetAPDUDecoder &dec )
 {
+	int						header, valu
+	;
+	ScriptPacketExprPtr		pSegMsg, pMOR, pInvokeID, pSeq, pWindow, pService
+	;
+	BACnetBoolean			alSegMsg, alMOR
+	;
+	BACnetInteger			alInvokeID, alSeq, alWindow, alService
+	;
+
+	// check the header
+	header = (dec.pktLength--,*dec.pktBuffer++);
+	if ((header >> 4) != 3)
+		throw "ComplexACK expected";
+
+	// check segmented message
+	pSegMsg = GetKeywordValue( kwSEGMSG, alSegMsg );
+	if (!pSegMsg)
+		pSegMsg = GetKeywordValue( kwSEGMENTEDMESSAGE, alSegMsg );
+	if (pSegMsg && !Match(pSegMsg->exprOp,(header >> 3) & 0x01,alSegMsg.boolValue))
+		throw "Segmented message mismatch";
+
+	// check more follows
+	pMOR = GetKeywordValue( kwMOREFOLLOWS, alMOR );
+	if (pMOR && !Match(pMOR->exprOp,(header >> 2) & 0x01,alMOR.boolValue))
+		throw "More-follows mismatch";
+
+	// extract the invoke ID
+	valu = (dec.pktLength--,*dec.pktBuffer++);
+
+	// get the invoke ID
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (pInvokeID && !Match(pInvokeID->exprOp,valu,alInvokeID.intValue))
+		throw ExecError( "Invoke ID mismatch", pInvokeID->exprLine );
+
+	// might check these
+	pSeq = GetKeywordValue( kwSEQUENCENR, alSeq );
+	pWindow = GetKeywordValue( kwWINDOWSIZE, alWindow );
+
+	// check segmented message stuff
+	if ((header & 0x80) != 0) {
+		// extract the sequence number and check it
+		valu = (dec.pktLength--,*dec.pktBuffer++);
+		if (pSeq && !Match(pSeq->exprOp,valu,alSeq.intValue))
+			throw ExecError( "Invoke ID mismatch", pSeq->exprLine );
+
+		// extract the proposed window size and check it
+		valu = (dec.pktLength--,*dec.pktBuffer++);
+		if (pWindow && !Match(pWindow->exprOp,valu,alWindow.intValue))
+			throw ExecError( "Proposed window size mismatch", pWindow->exprLine );
+	} else
+	if (pSeq)
+		throw "Sequence number not matched, message is not segmented";
+	else
+	if (pWindow)
+		throw "Window size not matched, message is not segmented";
+
+	// extract the service choice
+	valu = (dec.pktLength--,*dec.pktBuffer++);
+
+	// get the service choice
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	if (pService && !Match(pService->exprOp,valu,alService.intValue))
+		throw "Service-choice (SERVICE) mismatch";
+
+	// expect the rest
+	ExpectALData( dec );
 }
 
 //
@@ -5400,7 +6494,7 @@ void ScriptExecutor::ExpectSegmentACK( BACnetAPDUDecoder &dec )
 	// get the service choice
 	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (pService && !Match(pService->exprOp,valu,alService.intValue))
-		throw "Service-ACK-choice (SERVICE) mismatch";
+		throw "Service-choice (SERVICE) mismatch";
 
 	// extract the sequence number
 	valu = (dec.pktLength--,*dec.pktBuffer++);
@@ -5522,7 +6616,7 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 	// get the index of the first data
 	indx = execPacket->packetExprList.FirstData();
 	if (indx < 0)
-		throw "Application variable encoding expected";
+		return;
 
 	// get the length
 	len = execPacket->packetExprList.Length();
@@ -7478,26 +8572,13 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 }
 
 //
-//	ScriptExecutor::SendAPDU
-//
-//	Similar to SendNPDU, when the executor builds an application layer message
-//	it will send it to an internal device to handle.  It may seem strange to 
-//	have more than "application" object, but there could be a different presense 
-//	on each of multiple interfaces, or lots of them on a virtual LAN.
-//
-
-void ScriptExecutor::SendAPDU( ScriptAppFilterPtr fp, const BACnetAPDU &apdu )
-{
-	fp->Indication( apdu );
-}
-
-//
 //	ScriptExecutor::ReceiveAPDU
 //
-//	This function is called when a complete APDU is received.
+//	This function is called when a complete APDU is received from the device
+//	object.
 //
 
-void ScriptExecutor::ReceiveAPDU( ScriptAppFilterPtr fp, const BACnetAPDU &apdu )
+void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 {
 	CSingleLock		lock( &execCS )
 	;
@@ -7509,7 +8590,38 @@ void ScriptExecutor::ReceiveAPDU( ScriptAppFilterPtr fp, const BACnetAPDU &apdu 
 	if (execState != execRunning)
 		return;
 
-	TRACE1( "Got some APDU from %s!\n", fp->filterName );
+	TRACE0( "Got some APDU!\n" );
+
+	// if we're not expecting something, toss it
+	if (!execPending) {
+		TRACE0( "(not expecting a packet)\n" );
+		Msg( 3, 0, "Exector not expecting a packet" );
+		return;
+	}
+	if (execPacket->packetType != ScriptPacket::expectPacket) {
+		TRACE0( "(not pointing to an expect packet)\n" );
+		Msg( 3, 0, "Exector not pointing to an EXPECT packet" );
+		return;
+	}
+
+	// match against the pending tests
+	for (ScriptPacketPtr pp = execPacket; pp; pp = pp->packetFail)
+		if (pp->baseStatus == 2) {
+			// this test is still pending, stash the execPacket
+			ScriptPacketPtr savePacket = execPacket;
+			execPacket = pp;
+			if (ExpectDevPacket(apdu)) {
+				// test was successful, reset all pending packets to unprocessed
+				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = pp1->packetFail)
+					if ((pp1->baseStatus == 2) && (pp1 != pp))
+						SetPacketStatus( pp1, 0 );
+
+				// move on to next statement
+				NextPacket( true );
+				break;
+			}
+			execPacket = savePacket;
+		}
 
 	// unlock
 	lock.Unlock();
