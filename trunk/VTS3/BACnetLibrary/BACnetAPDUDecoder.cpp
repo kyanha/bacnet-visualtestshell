@@ -129,6 +129,39 @@ int BACnetAPDUDecoder::ExtractData( BACnetOctet *buffer )
 }
 
 //
+//	BACnetAPDUDecoder::ExtractTagData
+//
+
+int BACnetAPDUDecoder::ExtractTagData( BACnetOctet *buffer )
+{
+	int					taglen = 0
+	;
+	const BACnetOctet	*start = pktBuffer
+	;
+	BACnetAPDUTag		tag
+	;
+	
+	// extract the tag
+	tag.Decode( *this );
+	
+	// copy the tag that was just decoded
+	while (start != pktBuffer) {
+		*buffer++ = *start++;
+		taglen += 1;
+	}
+
+	// don't copy data for an application tagged boolean (there isn't any)
+	if (!tag.tagClass && (tag.tagNumber == booleanAppTag))
+		return taglen;
+	
+	// copy the data, which eats content
+	CopyOctets( buffer, tag.tagLVT );
+	
+	// return the length, including the tag
+	return (taglen + tag.tagLVT);
+}
+
+//
 //	BACnetAPDUDecoder::FindContext
 //
 

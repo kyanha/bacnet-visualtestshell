@@ -42,6 +42,24 @@ BACnetAPDU::BACnetAPDU( BACnetOctet *buffPtr, int buffLen )
 }
 
 //
+//	BACnetAPDU::BACnetAPDU
+//
+
+BACnetAPDU::BACnetAPDU( const BACnetAPDU &pdu )
+	: BACnetAPDUEncoder( pdu.pktBuffer, pdu.pktLength )
+	, apduType(pdu.apduType)
+	, apduSeg(pdu.apduSeg), apduMor(pdu.apduMor), apduSA(pdu.apduSA)
+	, apduSrv(pdu.apduSrv), apduNak(pdu.apduNak)
+	, apduSeq(pdu.apduSeq), apduWin(pdu.apduWin)
+	, apduService(pdu.apduService)
+	, apduInvokeID(pdu.apduInvokeID)
+	, apduAbortRejectReason(pdu.apduAbortRejectReason)
+	, apduExpectingReply(pdu.apduExpectingReply)
+	, apduNetworkPriority(pdu.apduNetworkPriority)
+{
+}
+
+//
 //	BACnetAPDU::Encode
 //
 

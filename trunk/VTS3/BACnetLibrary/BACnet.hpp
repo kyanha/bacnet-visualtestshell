@@ -1050,7 +1050,8 @@ class BACnetAPDUDecoder {
 		
 		void CopyOctets( BACnetOctet *buff, int len );	// raw copy into buffer
 
-		int ExtractData( BACnetOctet *buffer );		// skip the tag and extract the data
+		int ExtractData( BACnetOctet *buffer );			// skip the tag and extract the data
+		int	ExtractTagData( BACnetOctet *buffer );		// copy the tag and the data
 
 		bool FindContext( int context, BACnetAPDUDecoder &dec );	// return a decoder for a specific context
 	};
@@ -1265,8 +1266,9 @@ class BACnetAPDU : public BACnetAPDUEncoder  {
 		int					apduExpectingReply;		// see 6.2.2 (1 or 0)
 		int					apduNetworkPriority;	// see 6.2.2 (0, 1, 2, or 3)
 
-		BACnetAPDU( int initBuffSize = kDefaultBufferSize );
+		BACnetAPDU( int initBuffSize = kDefaultBufferSize );		// new buffer
 		BACnetAPDU( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
+		BACnetAPDU( const BACnetAPDU &pdu );						// copy constructor
 
 		void Encode( BACnetAPDUEncoder& enc ) const;				// encode
 		void Decode( const BACnetAPDUDecoder& dec );				// decode
