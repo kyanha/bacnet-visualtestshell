@@ -363,6 +363,16 @@ bool ScriptToken::IsEncodeable( BACnetEncodeable &enc ) const
 	return true;
 }
 
+
+// madanner 11/4/02, This method tests the value of this token to see if it's the DON'T CARE value
+
+bool ScriptToken::IsDontCare() const
+{
+	return tokenValue[0] == '?';
+}
+
+
+
 //
 //	ScriptToken::RemoveQuotes
 //
@@ -678,7 +688,7 @@ void ScriptScanner::Next( ScriptToken& tok )
 	// special chars are the next easiest
 	switch (c) {
 		case '=':
-		case '?':
+//		case '?':				// madanner 11/4/02, now used as don't care value (don't know what was previously)
         case '*':              //add by Liangping Xu
 		case ',':
 		case '/':
@@ -797,6 +807,17 @@ FORMAT1:	if (*scanSrc == 'D') {
 				FormatError( tok, "Missing close quote" );
 			*dst++ = *scanSrc++;
 			*dst = 0;
+			break;
+
+		case '?':								// for don't care values
+			if (*scanSrc == '=') {
+				scanSrc += 1;
+				tok.tokenType = scriptSymbol;
+				tok.tokenSymbol = '?=';
+			} else {
+				tok.tokenType = scriptValue;
+				tok.tokenEnc = scriptASCIIEnc;
+			}
 			break;
 
 		case '{':

@@ -199,6 +199,7 @@ class ScriptToken {
 		bool IsInteger( int &valu, ScriptTranslateTablePtr tp ) const;	// with keyword lookup
 		bool IsPropertyReference( int &prop ) const;				// with keyword lookup
 		bool IsEncodeable( BACnetEncodeable &enc ) const;			// can this be interpreted?
+		bool IsDontCare(void) const;										// madanner 11/4/02, is this the '?' value?
 
 		CString RemoveQuotes( void ) const;							// remove quotes from strings
 
