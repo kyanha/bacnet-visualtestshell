@@ -66,6 +66,9 @@ public:
 
 // Generated message map functions
 protected:
+	CFile m_readAllPropFile;
+	CString m_strFileFullName;
+	BOOL CreateScriptFile();
 	//{{AFX_MSG(ScriptFrame)
 	afx_msg void OnUpdateScriptCheckSyntax(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptLoadEPICS(CCmdUI* pCmdUI);
@@ -87,8 +90,12 @@ protected:
 	afx_msg void OnScriptStepFail();
 	afx_msg void OnScriptKill();
 	afx_msg void OnScriptReset();
+	afx_msg void OnReadAllProperty();
+	afx_msg void OnUpdateScriptReadallproperty(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+private:
+	void SetLine(CString strNewLine);
 };
 
 /////////////////////////////////////////////////////////////////////////////
