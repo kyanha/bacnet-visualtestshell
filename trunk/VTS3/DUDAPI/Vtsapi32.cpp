@@ -433,7 +433,7 @@ word APIENTRY VTSAPIgetdefaultparsetype(dword propid,HWND hWnd)
 	{	if (propid==dParseTypes.dpt[i].dptpropid)
 		{   pt=dParseTypes.dpt[i].dptparsetype;
 			if (pt==none) strcpy(pstr,"none");
-			else strcpy(pstr,stParseTypes.estrings[pt]);	//"parse type"
+			else strcpy(pstr,stParseTypes[pt]);	//"parse type"
 			strcat(pstr,"\t"); 							//tab
 			_itoa(pt,t,10);
 			strcat(pstr,t);								//parse type
