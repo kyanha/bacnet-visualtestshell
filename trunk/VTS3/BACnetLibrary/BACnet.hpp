@@ -731,6 +731,7 @@ class BACnetAddressBinding : public BACnetEncodeable
 		DECLARE_DYNAMIC(BACnetAddressBinding)
 };
 
+// msdanner 9/2004 - These are not implemented yet.
 
 class BACnetReadAccessSpecification : public BACnetEncodeable
 {
@@ -748,24 +749,103 @@ class BACnetReadAccessSpecification : public BACnetEncodeable
 		DECLARE_DYNAMIC(BACnetReadAccessSpecification)
 };
 
+class BACnetActionCommand : public BACnetEncodeable
+{
+	public:
+		
+		BACnetActionCommand();
+		BACnetActionCommand( BACnetAPDUDecoder& dec );
+
+//		BACnetActionCommand &operator =( const BACnetActionCommand &arg );
+
+		virtual int DataType(void);
+//		virtual BACnetEncodeable * clone(void);
+//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetActionCommand)
+};
 
 
-/*
-		case raslist:	// list of readaccessspecs
-			return new BACnetReadAccessSpecification(dec);
-		case act:		// action array
-			return new BACnetActionCommand(dec);
-		case evparm:	// event parameter
-			return new BACnetEventParameter(dec);
-		case skeys:		// session keys
-			return new BACnetSessionKey(dec);
-		case xsched:    // exception schedule: array[] of specialevent
-			return new BACnetExceptionSchedule(dec);
-		case wsched:	// weekly schedule: array[7] of list of timevalue
-			return new BACnetTimeValue(dec);
-		case vtse:		// list of active  vt sessions (parse type) 
-			return new BACnetVTSession(dec);
-*/
+class BACnetEventParameter : public BACnetEncodeable
+{
+	public:
+		
+		BACnetEventParameter();
+		BACnetEventParameter( BACnetAPDUDecoder& dec );
+
+//		BACnetEventParameter &operator =( const BACnetEventParameter &arg );
+
+		virtual int DataType(void);
+//		virtual BACnetEncodeable * clone(void);
+//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetEventParameter)
+};
+
+class BACnetSessionKey : public BACnetEncodeable
+{
+	public:
+		
+		BACnetSessionKey();
+		BACnetSessionKey( BACnetAPDUDecoder& dec );
+
+//		BACnetSessionKey &operator =( const BACnetSessionKey &arg );
+
+		virtual int DataType(void);
+//		virtual BACnetEncodeable * clone(void);
+//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetSessionKey)
+};
+
+class BACnetExceptionSchedule : public BACnetEncodeable
+{
+	public:
+		
+		BACnetExceptionSchedule();
+		BACnetExceptionSchedule( BACnetAPDUDecoder& dec );
+
+//		BACnetExceptionSchedule &operator =( const BACnetExceptionSchedule &arg );
+
+		virtual int DataType(void);
+//		virtual BACnetEncodeable * clone(void);
+//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetExceptionSchedule)
+};
+
+class BACnetTimeValue : public BACnetEncodeable
+{
+	public:
+		
+		BACnetTimeValue();
+		BACnetTimeValue( BACnetAPDUDecoder& dec );
+
+//		BACnetTimeValue &operator =( const BACnetTimeValue &arg );
+
+		virtual int DataType(void);
+//		virtual BACnetEncodeable * clone(void);
+//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetTimeValue)
+};
+
+class BACnetVTSession : public BACnetEncodeable
+{
+	public:
+		
+		BACnetVTSession();
+		BACnetVTSession( BACnetAPDUDecoder& dec );
+
+//		BACnetVTSession &operator =( const BACnetVTSession &arg );
+
+		virtual int DataType(void);
+//		virtual BACnetEncodeable * clone(void);
+//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetVTSession)
+};
+
 
 
 enum BACnetApplicationTag {
