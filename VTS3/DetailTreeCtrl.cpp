@@ -59,6 +59,10 @@ void CDetailTreeCtrl::ContextChange( CFrameContext::Signal s )
 	}
 }
 
+/*
+	Modified by Lei Chengxin   2003-7-21
+	  to hide the tagging information and display more decoded information
+*/
 void CDetailTreeCtrl::ShowDetail()
 {
 	SetRedraw(FALSE);
@@ -67,10 +71,16 @@ void CDetailTreeCtrl::ShowDetail()
 	int currentToken=0;
 	bool inParsing=false;
 
-	int lastOffset=0,lastLen=0;
+	bool ALdetail = false;		// added by Lei Chengxin, true if it has AL detail
+
+	int lastOffset=0,lastLen=0,endOffset=0;
 	TVINSERTSTRUCT tvInsert;
 	HTREEITEM hLastRoot=NULL;
 	HTREEITEM hLastALRoot=NULL;
+
+	HTREEITEM hLastParentRoot=NULL;
+	HTREEITEM hLastChildRoot=NULL;
+	HTREEITEM hLastNode=NULL;
 
 	int index=0;
 	HTREEITEM hDLItem,hALItem;
@@ -144,6 +154,8 @@ void CDetailTreeCtrl::ShowDetail()
 			SetItemData(hLastRoot,index++);
 			inParsing=true;
 			hALItem=hLastRoot;
+			ALdetail = true;
+			hLastNode = hLastRoot;
 			continue;
 		}
 
@@ -151,26 +163,79 @@ void CDetailTreeCtrl::ShowDetail()
 		{
 			if(inParsing)
 			{
-				if(m_FrameContext->m_PacketInfo.detailLine[i]->piOffset==lastOffset)
+				if(ALdetail)
 				{
-					tvInsert.hParent=hLastALRoot;
-					HTREEITEM temp=InsertItem(&tvInsert);
-					SetItemData(temp,index++);
-					lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
-				}
-				else 
-					if(m_FrameContext->m_PacketInfo.detailLine[i]->piLen!=0)
+					if(m_FrameContext->m_PacketInfo.detailLine[i]->piNodeType == 1)
 					{
-						tvInsert.hParent=hLastRoot;
-						hLastALRoot=InsertItem(&tvInsert);
-						SetItemData(hLastALRoot,index++);
-						lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
-					}	
-					else{
-						tvInsert.hParent=hLastRoot;
+						tvInsert.hParent = hLastRoot;
+						hLastParentRoot = InsertItem(&tvInsert);
+						SetItemData( hLastParentRoot , index++ );
+						hLastNode = hLastParentRoot;
+						endOffset = m_FrameContext->m_PacketInfo.detailLine[i]->piOffset
+							+m_FrameContext->m_PacketInfo.detailLine[i]->piLen;
+					}
+					else if(m_FrameContext->m_PacketInfo.detailLine[i]->piNodeType == 2)
+					{
+						tvInsert.hParent = hLastParentRoot;
+						hLastChildRoot = InsertItem(&tvInsert);
+						SetItemData( hLastChildRoot , index++ );
+						hLastNode = hLastChildRoot;
+						endOffset = m_FrameContext->m_PacketInfo.detailLine[i]->piOffset
+							+m_FrameContext->m_PacketInfo.detailLine[i]->piLen;
+					}
+					else
+					{
+						if(m_FrameContext->m_PacketInfo.detailLine[i]->piOffset==lastOffset)
+						{
+							tvInsert.hParent=hLastALRoot;
+							HTREEITEM temp=InsertItem(&tvInsert);
+							SetItemData(temp,index++);
+							lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
+						}
+						else 
+							if(m_FrameContext->m_PacketInfo.detailLine[i]->piLen!=0)
+							{
+								if(m_FrameContext->m_PacketInfo.detailLine[i]->piOffset < endOffset)
+									tvInsert.hParent=hLastNode;
+								else
+									tvInsert.hParent=hLastRoot;
+								hLastALRoot=InsertItem(&tvInsert);
+								SetItemData(hLastALRoot,index++);
+								lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
+							}	
+							else{
+								if(m_FrameContext->m_PacketInfo.detailLine[i]->piNodeType == 3)
+									tvInsert.hParent=hLastRoot;
+								else
+									tvInsert.hParent=hLastNode;
+								HTREEITEM temp=InsertItem(&tvInsert);
+								SetItemData(temp,index++);
+							}
+					}
+				}
+				else
+				{
+					if(m_FrameContext->m_PacketInfo.detailLine[i]->piOffset==lastOffset)
+					{
+						tvInsert.hParent=hLastALRoot;
 						HTREEITEM temp=InsertItem(&tvInsert);
 						SetItemData(temp,index++);
-					}			
+						lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
+					}
+					else 
+						if(m_FrameContext->m_PacketInfo.detailLine[i]->piLen!=0)
+						{
+							tvInsert.hParent=hLastRoot;
+							hLastALRoot=InsertItem(&tvInsert);
+							SetItemData(hLastALRoot,index++);
+							lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
+						}	
+						else{
+							tvInsert.hParent=hLastRoot;
+							HTREEITEM temp=InsertItem(&tvInsert);
+							SetItemData(temp,index++);
+						}
+				}
 			}
 			else
 			{
@@ -186,6 +251,9 @@ void CDetailTreeCtrl::ShowDetail()
 		}
 	}
 	
+	if(!ALdetail){
+		Expand(hLastRoot,TVE_EXPAND);
+	}
 	Expand(hDLItem,TVE_EXPAND);
 	Expand(hALItem,TVE_EXPAND);
 	SetRedraw(TRUE);
