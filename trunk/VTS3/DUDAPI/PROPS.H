@@ -64,6 +64,9 @@
 #define vtse   203  // list of active  vt sessions (parse type)
 #define uwarr  204  // array of uw
 
+#define lCOVSub 205		// List of BACnetCOVSubcription,   added Gingbo Gao, 2003-9-1
+
+
 
 ////
 //////////////////////////////////////////////
