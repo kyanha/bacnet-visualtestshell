@@ -107,6 +107,7 @@ ScriptTranslateTable ScriptALConfirmedServiceMap[] =
 	, { 0x0fa4f51c, 23 }					// VTDATA
 	, { 0xd08d352b, 24 }					// AUTHENTICATE
 	, { 0x9c38b663, 25 }					// REQUESTKEY
+	, { 0x5F156F1A, 26 }					//READRANGE			added by xuyiping 2002-8-29
 	, { 0, 0 }
 	};
 
@@ -120,6 +121,9 @@ ScriptTranslateTable ScriptALUnconfirmedServiceMap[] =
 	, { 0x64a09d6a, 6 }						// TIMESYNCHRONIZATION
 	, { 0x474218f1, 7 }						// WHO-HAS
 	, { 0xb0e1c86d, 8 }						// WHO-IS
+// Added by Yajun Zhou, 2002-7-11
+	, { 0xf908f2f1, 9 }						//UTCTIMESYNCHRONIZATION
+/////////////////////////////
 	, { 0, 0 }
 	};
 
@@ -182,7 +186,8 @@ ScriptTranslateTable ScriptObjectTypeMap[] =
 	, { 0x53D01EBD, 13 }					// MI
 	, { 0x0FE88C80, 14 }					// MULTISTATE-OUTPUT
 	, { 0x46CB1489, 14 }					// MO
-	, { 0xA22F2639, 15 }					// NOTIFICATION-CLASS
+	//, { 0xA22F2639, 15 }					// NOTIFICATION-CLASS
+	, { 0xC4C5900C, 15 }					//ADD BY Liangping Xu,2002-8
 	, { 0x61353228, 15 }					// NC
 	, { 0x3A980404, 16 }					// PROGRAM
 	, { 0x71D084EF, 16 }					// PRO
@@ -354,7 +359,10 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0x5D8F717B,  21 }					// CONTROLLED-VARIABLE-VALUE
 	, { 0x533D4619,  22 }					// COV-INCREMENT
 	, { 0x7836ADF3,  23 }					// DATELIST
-	, { 0x549D27C7,  24 }					// DAYLIGHT-SAVINGS-TIME
+// Modified by Yajun Zhou, 2002-7-10
+//	, { 0x549D27C7,  24 }					// DAYLIGHT-SAVINGS-TIME
+	, { 0x16B1C6EA,  24 }					// DAYLIGHT-SAVINGS-STATUS
+/////////////////////////////////////////////////////////
 	, { 0xFC57BCA5,  25 }					// DEADBAND
 	, { 0x50E4A6CC,  26 }					// DERIVATIVE-CONSTANT
 	, { 0x53A94439,  27 }					// DERIVATIVE-CONSTANT-UNITS
@@ -375,7 +383,8 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0xFFB2BF6A,  41 }					// FILE-ACCESS-METHOD
 	, { 0xBBA878C9,  42 }					// FILE-SIZE
 	, { 0x75ACD62F,  43 }					// FILE-TYPE
-	, { 0x994F7B6D,  44 }					// FIRMWARE-VERSION
+//	, { 0x994F7B6D,  44 }					// FIRMWARE-VERSION
+	, { 0x9BB4850F,  44 }					// FIRMWARE-REVISION
 	, { 0x33D5FACC,  45 }					// HIGH-LIMIT
 	, { 0x7BF647A4,  46 }					// INACTIVE-TEXT
 	, { 0x35640442,  47 }					// IN-PROCESS
@@ -428,7 +437,8 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0x4264B4A4,  93 }					// PROPORTIONAL-CONSTANT
 	, { 0x0121A66D,  94 }					// PROPORTIONAL-CONSTANT-UNITS
 	, { 0x24FD3E1D,  95 }					// PROTOCOL-CONFORMANCE-CLASS
-	, { 0x72D66985,  96 }					// PROTOCOL-TYPES-SUPPORTED
+	//, { 0x72D66985,  96 }					// PROTOCOL-TYPES-SUPPORTED
+	, { 0x1858a772,  96 }					// PROTOCOL-OBJECT-TYPES-SUPPORTED
 	, { 0xB4C9E525,  97 }					// PROTOCOL-SERVICES-SUPPORTED
 	, { 0x8187E6DB,  98 }					// PROTOCOL-VERSION
 	, { 0xD023E3E3,  99 }					// READ-ONLY
@@ -456,5 +466,7 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0x47700E02, 121 }					// VENDOR-NAME
 	, { 0x70A3D8F0, 122 }					// VT-CLASSES-SUPPORTED
 	, { 0x85001409, 123 }					// WEEKLY-SCHEDULE
+	, { 0x83ECF07D, 139 }					//PROTOCOL-REVISION
+	, { 0X537D4DF1, 152 }					//ACTIVE_COV_SUBSCRIPTION
 	, { 0, 0 }
 	};
