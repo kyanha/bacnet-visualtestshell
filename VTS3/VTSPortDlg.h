@@ -17,7 +17,7 @@ class VTSPortDlg : public CDialog
 // Construction
 public:
 	VTSPortDlg(CWnd* pParent = NULL);   // standard constructor (not used)
-	VTSPortDlg( VTSPortListPtr plp );	// ctor
+	VTSPortDlg( VTSPortListPtr plp, VTSDeviceListPtr dlp );		// ctor
 
 	CString		m_Config;				// transfer config string
 
@@ -30,8 +30,9 @@ public:
 	CString		m_Name;
 	BOOL		m_Enabled;
 	int			m_Type;
+	CString		m_Network;
+	CComboBox	m_DeviceCombo;
 	//}}AFX_DATA
-
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -42,9 +43,10 @@ public:
 
 // Implementation
 protected:
-	VTSPortListPtr	m_pPortList;						// pointer to list of ports
-	int				m_iSelectedPort;					// index of selected port
-	CImageList		m_ilStatus;							// status images
+	VTSPortListPtr		m_pPortList;					// pointer to list of ports
+	VTSDeviceListPtr	m_pDeviceList;					// pointer to list of devices
+	int					m_iSelectedPort;				// index of selected port
+	CImageList			m_ilStatus;						// status images
 
 	void SetSelection( int indx );
 	void ResetSelection( void );

@@ -686,6 +686,10 @@ SOURCE=.\VTSDB.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSDevicesDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSDoc.cpp
 # End Source File
 # Begin Source File
@@ -1339,6 +1343,10 @@ SOURCE=.\VTSCtrl.h
 # Begin Source File
 
 SOURCE=.\VTSDB.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDevicesDlg.h
 # End Source File
 # Begin Source File
 

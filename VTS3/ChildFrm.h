@@ -60,6 +60,7 @@ protected:
 	afx_msg void OnUpdateEditDelete(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEditPorts(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEditNames(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateEditDevices(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewFirstFrame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewLastFrame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewNextFrame(CCmdUI* pCmdUI);
@@ -68,6 +69,7 @@ protected:
 	afx_msg void OnEditDelete();
 	afx_msg void OnEditPorts();
 	afx_msg void OnEditNames();
+	afx_msg void OnEditDevices();
 	afx_msg void OnEditPreferences();
 	afx_msg void OnViewFirstFrame();
 	afx_msg void OnViewPrevFrame();

@@ -27,6 +27,7 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_DELETE, OnUpdateEditDelete)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PORTS, OnUpdateEditPorts)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_NAMES, OnUpdateEditNames)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_DEVICES, OnUpdateEditDevices)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_FIRSTFRAME, OnUpdateViewFirstFrame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_LASTFRAME, OnUpdateViewLastFrame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_NEXTFRAME, OnUpdateViewNextFrame)
@@ -34,6 +35,7 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_COMMAND(ID_EDIT_DELETE, OnEditDelete)
 	ON_COMMAND(ID_EDIT_PORTS, OnEditPorts)
 	ON_COMMAND(ID_EDIT_NAMES, OnEditNames)
+	ON_COMMAND(ID_EDIT_DEVICES, OnEditDevices)
 	ON_COMMAND(ID_EDIT_PREFERENCES, OnEditPreferences)
 	ON_COMMAND(ID_VIEW_FIRSTFRAME, OnViewFirstFrame)
 	ON_COMMAND(ID_VIEW_PREVFRAME, OnViewPrevFrame)
@@ -197,6 +199,12 @@ void CChildFrame::OnUpdateEditNames(CCmdUI* pCmdUI)
 	pCmdUI->Enable( true );
 }
 
+void CChildFrame::OnUpdateEditDevices(CCmdUI* pCmdUI) 
+{
+//	TRACE0( "VTSDoc::OnUpdateEditDevices()\n" );
+	pCmdUI->Enable( true );
+}
+
 void CChildFrame::OnUpdateViewFirstFrame(CCmdUI* pCmdUI) 
 {
 //	TRACE0( "VTSDoc::OnUpdateViewFirstFrame()\n" );
@@ -240,6 +248,11 @@ void CChildFrame::OnEditPorts()
 void CChildFrame::OnEditNames() 
 {
 	m_frameContext->m_pDoc->DoNamesDialog();
+}
+
+void CChildFrame::OnEditDevices() 
+{
+	m_frameContext->m_pDoc->DoDevicesDialog();
 }
 
 void CChildFrame::OnEditPreferences()

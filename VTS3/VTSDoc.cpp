@@ -11,6 +11,7 @@
 #include "VTSPortIPDialog.h"
 #include "VTSPortEthernetDialog.h"
 #include "VTSNamesDlg.h"
+#include "VTSDevicesDlg.h"
 #include "FrameContext.h"
 
 #include "Send.h"
@@ -94,11 +95,14 @@ BOOL VTSDoc::OnNewDocument()
 	// it should be empty!
 	SetPacketCount( m_pDB->GetPacketCount() );
 	
-	// bind to the (empty) port list
-	m_Ports.Load( this );
+	// bind to the (empty) device list
+	m_Devices.Load( this );
 
 	// bind to the name list
 	m_Names.Load( this );
+
+	// bind to the (empty) port list
+	m_Ports.Load( this );
 
 	// associate with the global list of documents
 	gDocList.Append( this );
@@ -133,6 +137,9 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	// get the packet count
 	SetPacketCount( m_pDB->GetPacketCount() );
 
+	// bind to the port list and open the ports
+	m_Devices.Load( this );
+
 	// bind to the name list
 	m_Names.Load( this );
 
@@ -164,6 +171,9 @@ void VTSDoc::OnCloseDocument()
 	// unload the port list
 	m_Ports.Unload();
 
+	// unload the device list
+	m_Devices.Unload();
+
 	// disassociate with the global list of documents
 	gDocList.Remove( this );
 
@@ -183,7 +193,7 @@ void VTSDoc::OnCloseDocument()
 
 void VTSDoc::DoPortsDialog( void )
 {
-	VTSPortDlg		dlg( &m_Ports )
+	VTSPortDlg		dlg( &m_Ports, &m_Devices )
 	;
 
 	m_pPortDlg = &dlg;
@@ -198,6 +208,18 @@ void VTSDoc::DoPortsDialog( void )
 void VTSDoc::DoNamesDialog( void )
 {
 	VTSNamesDlg		dlg( &m_Names, &m_Ports )
+	;
+
+	dlg.DoModal();
+}
+
+//
+//	VTSDoc::DoDevicesDialog
+//
+
+void VTSDoc::DoDevicesDialog( void )
+{
+	VTSDevicesDlg		dlg( &m_Devices )
 	;
 
 	dlg.DoModal();
@@ -490,7 +512,7 @@ VTSPortList gMasterPortList;
 VTSPort::VTSPort( VTSDocPtr dp, objId id )
 	: portDoc(dp), portSendGroup(0), portDescID(id)
 	, portStatus(1), portStatusDesc(0)
-	, portEndpoint(0), portFilter(0)
+	, portEndpoint(0), portFilter(0), portDevice(0)
 {
 	// read in the descriptor
 	ReadDesc();
@@ -514,6 +536,10 @@ VTSPort::~VTSPort( void )
 	// remove this from the master list
 	RemoveFromMasterList();
 
+	// if it is bound to a device, unbind it
+	if (portDevice)
+		portDevice->Unbind( this );
+
 	// if there is an endpoint, delete it
 	if (portEndpoint)
 		delete portEndpoint;
@@ -534,6 +560,19 @@ void VTSPort::ReadDesc( void )
 
 	// ask the database for the descriptor
 	stat = portDoc->m_pDB->pObjMgr->ReadObject( portDescID, &portDesc );
+
+	// make sure it's the correct version
+	if (portDesc.objSize != kVTSPortDescSize) {
+		// initialize the new variables
+		portDesc.portNet = -1;
+		portDesc.portDeviceObjID = 0;
+
+		// update the size
+		portDesc.objSize = kVTSPortDescSize;
+
+		// write it back
+		stat = portDoc->m_pDB->pObjMgr->WriteObject( portDescID, &portDesc );
+	}
 }
 
 //
@@ -582,6 +621,12 @@ void VTSPort::RemoveFromMasterList( void )
 
 void VTSPort::Refresh( void )
 {
+	// unbind from the device, if bound
+	if (portDevice) {
+		portDevice->Unbind( this );
+		portDevice = 0;
+	}
+
 	// shutdown the existing endpoint, if any
 	if (portEndpoint) {
 		// unbind from the filter
@@ -690,6 +735,13 @@ void VTSPort::Refresh( void )
 	if (portEndpoint) {
 		// and in the darkness bind them
 		Bind( portFilter, portEndpoint );
+	}
+
+	// see if we can bind to a device
+	if (portDesc.portDeviceObjID != 0) {
+		portDevice = portDoc->m_Devices.FindDevice( portDesc.portDeviceObjID );
+		if (portDevice)
+			portDevice->Bind( this, portDesc.portNet );
 	}
 }
 
@@ -841,6 +893,8 @@ void VTSPortList::Add( void )
 	newDesc.portEnabled = 0;
 	newDesc.portConfig[0] = 0;
 	strcpy( newDesc.portName, "Untitled" );
+	newDesc.portNet = -1;			// no network, or local
+	newDesc.portDeviceObjID = 0;	// no bound device/router object
 
 	// save it
 	stat = m_pDoc->m_pDB->pObjMgr->WriteObject( newDescID, &newDesc );
@@ -1225,6 +1279,409 @@ int NameSearch( const VTSNameDescPtr, const VTSNameDescPtr ndp )
 	return memcmp( gNameListSearchName.nameAddr.addrAddr, ndp->nameAddr.addrAddr, ndp->nameAddr.addrLen );
 }
 
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// VTSClient
+
+//
+//	VTSClient::VTSClient
+//
+
+VTSClient::VTSClient( VTSDevicePtr dp )
+: clientDev(dp), BACnetClient( &dp->devDevice )
+{
+}
+
+//
+//	VTSClient::Confirmation
+//
+
+void VTSClient::Confirmation( const BACnetAPDU &apdu )
+{
+}
+
+//
+//	VTSDevice::IAm
+//
+
+void VTSClient::IAm( void )
+{
+	BACnetUnconfirmedServiceAPDU	hereIAm( iAm )
+	;
+
+	BACnetObjectIdentifier( 8, clientDev->devDesc.deviceInstance ).Encode( hereIAm );
+	BACnetUnsigned( clientDev->devDesc.deviceMaxAPDUSize ).Encode( hereIAm );
+	BACnetEnumerated( clientDev->devDesc.deviceSegmentation ).Encode( hereIAm );
+	BACnetUnsigned( clientDev->devDesc.deviceVendorID ).Encode( hereIAm );
+
+	hereIAm.apduAddr.GlobalBroadcast();
+	Request( hereIAm );
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// VTSServer
+
+//
+//	VTSServer::VTSServer
+//
+
+VTSServer::VTSServer( VTSDevicePtr dp )
+: serverDev(dp), BACnetServer( &dp->devDevice )
+{
+}
+
+//
+//	VTSServer::Indication
+//
+
+void VTSServer::Indication( const BACnetAPDU &apdu )
+{
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// VTSDevice
+
+/*
+		BACnetDevice		devDevice;
+		BACnetRouter		devRouter;
+		
+		VTSClient			devClient;
+		VTSServer			devServer;
+
+		objId				devDescID;					// ID of descriptor
+		VTSDeviceDesc		devDesc;					// device configuration info
+		VTSDocPtr			devDoc;						// doc for packets
+*/
+
+VTSDeviceList gMasterDeviceList;
+
+//
+//	VTSDevice::VTSDevice
+//
+
+VTSDevice::VTSDevice( VTSDocPtr dp, objId id )
+	: devDoc(dp), devDescID(id)
+	, devClient(this), devServer(this)
+{
+	// read in the descriptor
+	ReadDesc();
+
+	// bind the device to the router (global Bind(), not our local one)
+	::Bind( &devDevice, &devRouter );
+
+	// add this to the master list
+	AddToMasterList();
+}
+
+//
+//	VTSDevice::~VTSDevice
+//
+
+VTSDevice::~VTSDevice( void )
+{
+	// remove this from the master list
+	RemoveFromMasterList();
+}
+
+//
+//	VTSDevice::AddToMasterList
+//
+
+void VTSDevice::AddToMasterList( void )
+{
+	// add this to the end, regardless of its status
+	gMasterDeviceList.AddTail( this );
+}
+
+//
+//	VTSDevice::RemoveFromMasterList
+//
+
+void VTSDevice::RemoveFromMasterList( void )
+{
+	POSITION pos = gMasterDeviceList.Find( this )
+	;
+
+	ASSERT( pos != NULL );
+	gMasterDeviceList.RemoveAt( pos );
+}
+
+//
+//	VTSDevice::ReadDesc
+//
+
+void VTSDevice::ReadDesc( void )
+{
+	int		stat
+	;
+
+	// ask the database for the descriptor
+	stat = devDoc->m_pDB->pObjMgr->ReadObject( devDescID, &devDesc );
+
+	// make sure the device matches the descriptor contents
+	devDevice.deviceID = (8 << 22) + devDesc.deviceInstance;
+	devDevice.deviceSegmentSize = devDesc.deviceSegmentSize;
+	devDevice.deviceWindowSize = devDesc.deviceWindowSize;
+	devDevice.deviceNextInvokeID = devDesc.deviceNextInvokeID;
+	devDevice.deviceMaxAPDUSize = devDesc.deviceMaxAPDUSize;
+	devDevice.deviceAPDUTimeout = devDesc.deviceAPDUTimeout;
+	devDevice.deviceAPDUSegmentTimeout = devDesc.deviceAPDUSegmentTimeout;
+	devDevice.deviceAPDURetries = devDesc.deviceAPDURetries;
+}
+
+//
+//	VTSDevice::WriteDesc
+//
+
+void VTSDevice::WriteDesc( void )
+{
+	int		stat
+	;
+
+	// save the descriptor in the database
+	stat = devDoc->m_pDB->pObjMgr->WriteObject( devDescID, &devDesc );
+
+	// make sure the device matches the descriptor contents
+	devDevice.deviceID = (8 << 22) + devDesc.deviceInstance;
+	devDevice.deviceSegmentSize = devDesc.deviceSegmentSize;
+	devDevice.deviceWindowSize = devDesc.deviceWindowSize;
+	devDevice.deviceNextInvokeID = devDesc.deviceNextInvokeID;
+	devDevice.deviceMaxAPDUSize = devDesc.deviceMaxAPDUSize;
+	devDevice.deviceAPDUTimeout = devDesc.deviceAPDUTimeout;
+	devDevice.deviceAPDUSegmentTimeout = devDesc.deviceAPDUSegmentTimeout;
+	devDevice.deviceAPDURetries = devDesc.deviceAPDURetries;
+}
+
+//
+//	VTSDevice::Bind
+//
+//	A binding operation is pretty simple, just pass the request along 
+//	to the built-in router.
+//
+
+void VTSDevice::Bind( VTSPortPtr pp, int net )
+{
+	devRouter.BindToEndpoint( pp->portFilter, net );
+}
+
+//
+//	VTSDevice::Unbind
+//
+
+void VTSDevice::Unbind( VTSPortPtr pp )
+{
+	devRouter.UnbindFromEndpoint( pp->portFilter );
+}
+
+//
+//	VTSDevice::IAm
+//
+
+void VTSDevice::IAm( void )
+{
+	devClient.IAm();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// VTSDeviceList
+
+//
+//	VTSDeviceList::VTSDeviceList
+//
+
+VTSDeviceList::VTSDeviceList( void )
+	: m_pDoc(0)
+{
+}
+
+//
+//	VTSDeviceList::~VTSDeviceList
+//
+
+VTSDeviceList::~VTSDeviceList( void )
+{
+}
+
+//
+//	VTSDeviceList::Load
+//
+
+void VTSDeviceList::Load( VTSDocPtr docp )
+{
+	int				stat
+	;
+	objId			curID
+	;
+	JDBListPtr		plist
+	;
+	VTSDevicePtr	cur
+	;
+
+	// keep track of the database
+	m_pDoc = docp;
+
+	// get a pointer to the list
+	plist = &m_pDoc->m_pDB->dbDeviceList;
+
+	// intialize the port list
+	for (int i = 0; i < plist->Length(); i++) {
+		// get the port descriptor ID's
+		stat = plist->ReadElem( i, &curID );
+		ASSERT( stat == 0 );
+
+		// create a new device object to match
+		cur = new VTSDevice( m_pDoc, curID );
+
+		// add it to our list of ports
+		AddTail( cur );
+	}
+}
+
+//
+//	VTSDeviceList::Unload
+//
+
+void VTSDeviceList::Unload( void )
+{
+	for (POSITION pos = GetHeadPosition(); pos; )
+		delete GetNext( pos );
+}
+
+//
+//	VTSDeviceList::Add
+//
+
+void VTSDeviceList::Add( void )
+{
+	int					stat, elemLoc
+	;
+	objId				newDescID
+	;
+	VTSDevicePtr		cur
+	;
+	VTSDeviceDesc		newDesc
+	;
+
+	// create a new descriptor
+	stat = m_pDoc->m_pDB->pObjMgr->NewObject( &newDescID, &newDesc, kVTSDeviceDescSize );
+
+	// initalize it
+	strcpy( newDesc.deviceName, "Untitled" );
+	newDesc.deviceInstance = 0;
+	newDesc.deviceRouter = 0;
+	newDesc.deviceSegmentation = noSegmentation;
+	newDesc.deviceSegmentSize = 1;
+	newDesc.deviceWindowSize = 1;
+	newDesc.deviceMaxAPDUSize = 1024;
+	newDesc.deviceNextInvokeID = 0;
+	newDesc.deviceAPDUTimeout = 5000;
+	newDesc.deviceAPDUSegmentTimeout = 1000;
+	newDesc.deviceAPDURetries = 3;
+	newDesc.deviceVendorID = 15;				// default to Cornell
+
+	// save it
+	stat = m_pDoc->m_pDB->pObjMgr->WriteObject( newDescID, &newDesc );
+	ASSERT( stat == 0 );
+
+	// add it on the end of the device list
+	elemLoc = 0x7FFFFFFF;
+	stat = m_pDoc->m_pDB->dbDeviceList.NewElem( &elemLoc, &newDescID );
+
+	// create a new device object to match
+	cur = new VTSDevice( m_pDoc, newDescID );
+
+	// add it to our list of ports
+	AddTail( cur );
+}
+
+//
+//	VTSDeviceList::Remove
+//
+//	This function is currently not called.  Note there is no delete button in 
+//	the device dialog box.
+//
+
+void VTSDeviceList::Remove( int i )
+{
+	ASSERT( 0 );
+/*
+	int			stat
+	;
+	POSITION	pos = FindIndex( i )
+	;
+
+	ASSERT( pos != NULL );
+	delete GetAt( pos );
+	RemoveAt( pos );
+
+	stat = m_pDoc->m_pDB->dbDeviceList.DeleteElem( i );
+*/
+}
+
+//
+//	VTSPortList::FindPort
+//
+//	This function is called by the scripting engine to find a port with a given 
+//	name as described in the packet description in the script.  Used for sending 
+//	low level messages directly to a port.
+//
+
+VTSDevicePtr VTSDeviceList::FindDevice( const char *name )
+{
+	for (POSITION pos = GetHeadPosition(); pos; ) {
+		VTSDevicePtr cur = (VTSDevicePtr)GetNext( pos );
+
+		if (strcmp(name,cur->devDesc.deviceName) == 0)
+			return cur;
+	}
+
+	// failed to find it
+	return 0;
+}
+
+//
+//	VTSDeviceList::FindDevice
+//
+//	This function is used by a port to bind itself properly to a device object.
+//
+
+VTSDevicePtr VTSDeviceList::FindDevice( objId id )
+{
+	for (POSITION pos = GetHeadPosition(); pos; ) {
+		VTSDevicePtr cur = (VTSDevicePtr)GetNext( pos );
+
+		if (cur->devDescID == id)
+			return cur;
+	}
+
+	// failed to find it
+	return 0;
+}
+
+//
+//	VTSDeviceList::Length
+//
+
+int VTSDeviceList::Length( void )
+{
+	return CList<VTSDevicePtr,VTSDevicePtr>::GetCount();
+}
+
+//
+//	VTSDeviceList::operator []
+//
+//	When the user selects a port from the list of defined ports in the VTSPortDlg, this 
+//	function is called to return a pointer to the VTSPort object.  
+//
+
+VTSDevicePtr VTSDeviceList::operator []( int i )
+{
+	POSITION	pos = FindIndex( i )
+	;
+
+	ASSERT( pos != NULL );
+	return GetAt( pos );
 }
 
 /////////////////////////////////////////////////////////////////////////////
