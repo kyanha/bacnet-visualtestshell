@@ -11,7 +11,7 @@ REM --- First make the executable distribution ---
 del %1-win32.zip
 pkzip25 -add %1-win32.zip release\VTS.exe
 cd docs
-pkzip25 -add -path ..\%1-win32.zip *.html	images\*.gif
+pkzip25 -add -path ..\%1-win32.zip *.html	images\*.gif *.doc
 cd ..
 pkzip25 -add -path %1-win32.zip scripts\*.vts
 REM --- Then make the source distribution ---
