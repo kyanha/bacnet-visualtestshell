@@ -43,7 +43,7 @@ static etable etObjectTypes={
             "schedule",
             "averaging",			// Sep 18 2001
             "multi-state-value",
-            "trendlog"
+            "trend-log"				//madanner 6/03: was "trendlog"
             };
 static etable etTF={0,0,2,"False","True"};
 static etable etYN={0,0,2,"No","Yes"};
@@ -947,7 +947,9 @@ propdescriptor	AVGprops[]={
     "valid-samples",	         VALID_SAMPLES,	            oo(avg,valid_samples),             uw,	    Intr,	   0,	O|WithService,
     "object-property-reference", OBJECT_PROPERTY_REFERENCE, oo(avg,obj_prop_ref),              devobjpropref,	0,         0,	O|WithService,
     "window-interval",		     WINDOW_INTERVAL,		    oo(avg,window_interval),	       uw,	    Intr,	   0,	O|WithService,
-    "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Intr,      0,    O|WithService,
+//madanner 6/03: Added 'Last' code for prop search
+//  "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Intr,      0,    O|WithService,
+    "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Last|Intr,      0,    O|WithService,
     };
 
 propdescriptor	MVprops[]={
@@ -972,7 +974,9 @@ propdescriptor	MVprops[]={
      "event-enable",  		EVENT_ENABLE,  		oo(msv,event_enable),  	    bits,      Intr,      0,       O|WithService,
      "acked-transitions",  	ACKED_TRANSITIONS,  oo(msv,acked_transitions),  bits,      Intr,      eiEvTr,  O|WithService,
      "notify-type",  		NOTIFY_TYPE,  		oo(msv,notify_type),  	    et,        Intr,      eiNT,    O|WithService,
-     "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Intr,      0,       O|IsArray|WithService,
+//madanner 6/03: Added 'Last' code for prop search
+//   "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Intr,      0,       O|IsArray|WithService,
+     "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Last|Intr,      0,       O|IsArray|WithService,
     };
 
 
@@ -1003,7 +1007,9 @@ propdescriptor	TRprops[]={
      "event-enable",  				EVENT_ENABLE,  			      oo(trend,event_enable),  			      bits,     0,      0,       O|WithService,
      "acked-transitions",  			ACKED_TRANSITIONS,  		  oo(trend,acked_transitions),  		  bits,     0,      eiEvTr,  O|WithService,
      "notify-type",  				NOTIFY_TYPE,  			      oo(trend,notify_type),  			      et,       0,      eiNT,    O|WithService,
-     "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    0,      0,       O|IsArray|WithService,
+//madanner 6/03: Added 'Last' code for prop search
+//   "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    0,      0,       O|IsArray|WithService,
+     "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    Last,      0,       O|IsArray|WithService,
   };
 
 stdobjtype	StdObjects[]={
