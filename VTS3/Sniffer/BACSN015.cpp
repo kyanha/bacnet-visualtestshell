@@ -32,6 +32,10 @@ last edit:	03-Sep-03 [002] LCX add new lines in the Detail View to display less 
 
 #include "pi.h"
 
+//madanner 9/04, added hack to build RP and RPM obj/prop/values for EPICS panel
+extern void EPICS_AddRPValue(long obj_id, int prop_id, char * pbuffer, int nLen );
+
+
 namespace NetworkSniffer {
 
 #include "bacproto.h"
@@ -59,6 +63,9 @@ extern struct pi_data *pi_data_Message;         /* Pointer to PI data structure 
 struct pi_data *pi_data_current;     /* Current ptr for BAC_SHOW functions */
 
 #include "bacfuncs.h"
+
+// madanner 9/04, added global flag for RPAck hack
+bool gfRPAck = false;
 
 /**************************************************************************/
 int interp_bacnet_IP( char *header, int length)  /* IP interpreter */
@@ -6067,6 +6074,7 @@ void show_readPropertyACK( void )
 {
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
    unsigned int len;
+   long  obj_id = 0;
    int obj_type,prop_idx,prop_id;
 
    prop_idx = -1;  /* initialize to indicate no array index present */
@@ -6087,6 +6095,13 @@ void show_readPropertyACK( void )
 		   show_head_obj_id(1, "Object Identifier", tagval);									   //  ***002
 		   
 		   show_context_tag("Object Identifier");
+
+		   //madanner 9/04, global hack for intercepting RP in EPICS view
+		   {
+			for (int j = 0; j < 4; j++)
+				obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j );
+		   }
+
            obj_type = bac_extract_obj_type();
            show_bac_object_identifier();
            break;
@@ -6107,8 +6122,16 @@ void show_readPropertyACK( void )
            prop_idx = pif_get_byte(0);
            show_bac_unsigned(len);
            break;
-	       case 3:  show_context_tag("Property Value");  /* opening tag */
+	   case 3:
+		   show_context_tag("Property Value");  /* opening tag */
+
+		   //madanner 9/04 add calls to EPICS read property tracker
+		   //can't support indexes at this time
+		   if ( prop_idx == -1 )
+			   ::EPICS_AddRPValue(obj_id, prop_id, pif_get_addr(), pif_end_offset - pif_offset);
+
            show_bac_ANY(obj_type,prop_id,prop_idx);
+
            show_context_tag("Property Value");  /* closing tag */
            break;
        default: len = show_context_tag("Unknown tag");
@@ -6124,6 +6147,8 @@ void show_readPropertyACK( void )
    }
 exit:;
 }
+
+
 
 /*************************************************************************/
 void show_readPropertyConditionalACK( void )
@@ -6843,6 +6868,7 @@ unsigned int show_application_data ( unsigned char tagbuff )
    unsigned char type;
    unsigned char lloc,tloc;
 
+
    type = (tagbuff & 0xF0)>>4;
    if (type < 15)                   /* Extended type? */
      tloc = 0;                      /* Type in tag octet */  
@@ -7042,7 +7068,7 @@ void show_bac_action_command( unsigned int len )
 /**************************************************************************/
 {
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int end, len1;
+   unsigned int end;
    int obj_type,prop_idx,prop_id;
 
    end = pif_offset+len;
