@@ -58,7 +58,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy PTP.DLL to VTS3 root
-PostBuild_Cmds=attrib -r ..\..\release\ptp.dll	copy release\ptp.dll ..\..\release
+PostBuild_Cmds=copy release\ptp.dll ..\..\release
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "PTP - Win32 Debug"
@@ -89,7 +89,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy ptp.dll to VTS3 root
-PostBuild_Cmds=attrib -r ..\..\debug\ptp.dll	copy debug\ptp.dll ..\..\debug
+PostBuild_Cmds=copy debug\ptp.dll ..\..\debug
 # End Special Build Tool
 
 !ENDIF 
