@@ -66,6 +66,9 @@ public:
 	int LookupIndex( int code );						// find by code, return index in list
 	ScriptParmPtr LookupParm( int code );				// find by code, return pointer to parm
 
+	void UpdateItemVisual( int nIndex, ScriptParmPtr pp );	// visually change nth item in list
+	void UpdateParameterVisual( ScriptParmPtr pp );			// visually change parm identified here in list
+
 	void SetCurrentEnv( void );							// set this list as the current environment
 	void ResetCurrentEnv( void );						// reset
 
