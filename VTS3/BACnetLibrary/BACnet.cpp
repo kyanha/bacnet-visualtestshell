@@ -34,7 +34,11 @@ int cvt$convert_float( const void *, int, void *, int, int );
 }
 #endif
 
+#include "Props.h"
 #include "BACnet.hpp"
+
+#define nPRIO 16
+
 
 #ifndef _MSC_VER
 
@@ -71,6 +75,19 @@ namespace NetworkSniffer {
 #include "ScriptKeywords.h"
 
 #endif
+
+const char * apszBinaryPVNames[] = {"INACTIVE", "ACTIVE"};
+
+
+// Declare matching prototypes for globals defined in ScriptExecutor...
+bool Match( int op, int a, int b );
+//madanner 9/24/02, needed for expanded BACnetUsigned internal value
+//bool Match( int op, unsigned long a, unsigned long b );
+bool Match( int op, unsigned long a, unsigned long b );
+bool Match( int op, float a, float b );
+bool Match( int op, double a, double b );
+bool Match( int op, CTime &timeThis, CTime &timeThat );
+LPCSTR OperatorToString(int iOperator);
 
 //
 //	BACnetAddress
@@ -219,6 +236,9 @@ ostream &operator <<(ostream &strm,const BACnetAddress &addr)
 }
 #endif
 
+
+IMPLEMENT_DYNAMIC(BACnetEncodeable, CObject)
+
 //
 //	BACnetEncodeable
 //
@@ -248,9 +268,73 @@ void BACnetEncodeable::Peek( BACnetAPDUDecoder& dec )
 	dec.pktBuffer = saveBuff;
 }
 
+
+const char * BACnetEncodeable::ToString() const
+{
+	// User internal buffer and return to caller...  Data won't last too long so if you're going to use
+	// more than one of these in calling parameters... Use:  CString(this->ToString()) so the data
+	// will be allocated and copied out before the next call blows away the string.
+
+	static char buffer[40];		// should be enough for primitive values
+	Encode(buffer);
+	return buffer;
+}
+
+
+// Match is called by default from most all of the classes.  It really just fails and formats the error
+
+bool BACnetEncodeable::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */)
+{
+	CString strError;
+
+	if ( pstrError != NULL )
+	{
+		CString str1(ToString());	// have to do this because ToString uses a static buff... call it twice and you're hosed
+
+		strError.Format(IDS_SCREX_COMPFAILTYPE, rbacnet.ToString(), OperatorToString(iOperator), str1);
+		*pstrError += strError;
+	}
+
+	return false;
+}
+
+
+// Some types can only test for equality/inequality...  
+// Make this available at this level of the class structure
+
+bool BACnetEncodeable::EqualityRequiredFailure( BACnetEncodeable & rbacnet, int iOperator, CString * pstrError )
+{
+	if ( iOperator != '!=' && iOperator != '=' )
+	{
+		CString strError, str1(ToString());
+		strError.Format(IDS_SCREX_COMPEQREQ, rbacnet.ToString(), OperatorToString(iOperator), str1);
+		*pstrError = strError;
+		return true;
+	}
+
+	return false;
+}
+
+
+
+
+
+IMPLEMENT_DYNAMIC(BACnetNull, BACnetEncodeable)
+
 //
 //	BACnetNull
 //
+
+BACnetNull::BACnetNull( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
+BACnetNull::BACnetNull( )
+{
+}
+
 
 void BACnetNull::Encode( BACnetAPDUEncoder &enc, int context )
 {
@@ -280,14 +364,115 @@ void BACnetNull::Decode( BACnetAPDUDecoder &dec )
 
 void BACnetNull::Encode( char *enc ) const
 {
-	strcpy( enc, "Null" );
+	strcpy( enc, ToString() );
 }
 
 void BACnetNull::Decode( const char *dec )
 {
-	if (stricmp( dec, "Null") != 0)
+	if (stricmp( dec, ToString()) != 0)
 		throw_(6) /* null must be 'null' */;
 }
+
+const char * BACnetNull::ToString() const
+{
+	return "Null";
+}
+
+
+bool BACnetNull::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetNull)));
+
+	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+		return false;
+
+	bool fMatch = ((BACnetInteger &) rbacnet).IsKindOf(RUNTIME_CLASS(BACnetNull)) == TRUE;
+
+	if ( fMatch && iOperator == '='  ||  !fMatch &&  iOperator == '!=' )
+		return true;
+
+	return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+}
+
+
+
+//==========================================================================
+
+IMPLEMENT_DYNAMIC(BACnetAddr, BACnetEncodeable)
+
+
+BACnetAddr::BACnetAddr()
+{
+}
+
+
+BACnetAddr::BACnetAddr( BACnetOctet * paMAC, unsigned int nMACLen )
+{
+	AssignAddress(0, paMAC, nMACLen);
+}
+
+
+BACnetAddr::BACnetAddr( unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen )
+{
+	AssignAddress(nNet, paMAC, nMACLen);
+}
+
+
+BACnetAddr::BACnetAddr( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
+void BACnetAddr::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	BACnetUnsigned bacnetNet(m_bacnetAddress.addrNet);
+	BACnetOctetString bacnetMAC(m_bacnetAddress.addrAddr, m_bacnetAddress.addrLen);
+
+	bacnetNet.Encode(enc, context);
+	bacnetMAC.Encode(enc, context);
+}
+
+
+void BACnetAddr::Decode( BACnetAPDUDecoder& dec )
+{
+	BACnetUnsigned bacnetNet(dec);
+	BACnetOctetString bacnetMAC(dec);
+
+	AssignAddress(bacnetNet.uintValue, bacnetMAC.strBuff, bacnetMAC.strBuffLen);
+}
+
+
+void BACnetAddr::AssignAddress(unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen )
+{
+	if ( nMACLen == 0 )
+	{
+		// broadcast
+		if ( nNet == 0 )
+			m_bacnetAddress.LocalBroadcast();
+		else
+			m_bacnetAddress.RemoteBroadcast(nNet);
+	}
+	else
+	{
+		// specific address
+		if ( nNet == 0 )
+			m_bacnetAddress.LocalStation(paMAC, nMACLen);
+		else
+			m_bacnetAddress.RemoteStation(nNet, paMAC, nMACLen);
+	}
+}
+
+
+const char * BACnetAddr::ToString() const
+{
+	TRACE0("ToString() for BACnetAddr not implemented");
+	ASSERT(0);
+	return NULL;
+}
+
+
+IMPLEMENT_DYNAMIC(BACnetBoolean, BACnetEncodeable)
 
 //
 //	BACnetBoolean
@@ -297,6 +482,15 @@ BACnetBoolean::BACnetBoolean( int bvalu )
 	: boolValue(bvalu ? bTrue : bFalse)
 {
 }
+
+
+
+BACnetBoolean::BACnetBoolean( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 
 void BACnetBoolean::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -315,6 +509,7 @@ void BACnetBoolean::Encode( BACnetAPDUEncoder& enc, int context )
 		enc.pktBuffer[enc.pktLength++] = (boolValue == bFalse ? 0x00 : 0x01);
 	}
 }
+
 
 void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
 {
@@ -346,13 +541,12 @@ void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
 	}
 }
 
+
 void BACnetBoolean::Encode( char *enc ) const
 {
-	if (boolValue)
-		strcpy( enc, "Set" );
-	else
-		strcpy( enc, "Reset" );
+	strcpy( enc, ToString() );
 }
+
 
 void BACnetBoolean::Decode( const char *dec )
 {
@@ -381,6 +575,31 @@ void BACnetBoolean::Decode( const char *dec )
 	}
 }
 
+
+const char * BACnetBoolean::ToString() const
+{
+	return (boolValue ? "Set" : "Reset");
+}
+
+
+bool BACnetBoolean::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean)));
+
+	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+		return false;
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean))  || 
+		 !::Match(iOperator, ((BACnetBoolean &) rbacnet).boolValue, boolValue) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
+IMPLEMENT_DYNAMIC(BACnetEnumerated, BACnetEncodeable)
+
 //
 //	BACnetEnumerated
 //
@@ -389,6 +608,14 @@ BACnetEnumerated::BACnetEnumerated( int evalu )
 	: enumValue( evalu )
 {
 }
+
+
+BACnetEnumerated::BACnetEnumerated( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 
 void BACnetEnumerated::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -491,14 +718,41 @@ void BACnetEnumerated::Decode( const char *dec, const char **table, int tsize )
 	}
 }
 
+
+bool BACnetEnumerated::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+//	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated)));
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated))  || 
+		 !::Match(iOperator, ((BACnetEnumerated &) rbacnet).enumValue, enumValue) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
 //
 //	BACnetUnsigned
 //
 
-BACnetUnsigned::BACnetUnsigned( unsigned int uivalu )
+IMPLEMENT_DYNAMIC(BACnetUnsigned, BACnetEncodeable)
+
+// madanner 9/24/02... required change to unsigned long to handle, well, longs.
+//BACnetUnsigned::BACnetUnsigned( unsigned int uivalu )
+
+BACnetUnsigned::BACnetUnsigned( unsigned long uivalu )
 	: uintValue( uivalu )
 {
 }
+
+
+BACnetUnsigned::BACnetUnsigned( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 
 void BACnetUnsigned::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -556,8 +810,11 @@ void BACnetUnsigned::Decode( BACnetAPDUDecoder& dec )
 void BACnetUnsigned::Encode( char *enc ) const
 {
 	// simple, effective
-	sprintf( enc, "%u", uintValue );
+	// madanner 9/24/02, changed to handle unsigned long case
+//	sprintf( enc, "%u", uintValue );
+	sprintf( enc, "%lu", uintValue );
 }
+
 
 void BACnetUnsigned::Decode( const char *dec )
 {
@@ -657,6 +914,23 @@ void BACnetUnsigned::Decode( const char *dec )
 		throw_(23) /* unknown or invalid encoding */;
 }
 
+
+
+bool BACnetUnsigned::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned)));
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned))  ||  
+		 !::Match(iOperator, ((BACnetUnsigned &) rbacnet).uintValue, uintValue) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
+IMPLEMENT_DYNAMIC(BACnetInteger, BACnetEncodeable)
+
 //
 //	BACnetInteger
 //
@@ -665,6 +939,14 @@ BACnetInteger::BACnetInteger( int ivalu )
 	: intValue( ivalu )
 {
 }
+
+
+BACnetInteger::BACnetInteger( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 
 void BACnetInteger::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -847,6 +1129,23 @@ void BACnetInteger::Decode( const char *dec )
 		intValue = (intValue * -1);
 }
 
+
+
+bool BACnetInteger::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)));
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)) ||
+		 !::Match(iOperator, ((BACnetInteger &) rbacnet).intValue, intValue) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
+IMPLEMENT_DYNAMIC(BACnetReal, BACnetEncodeable)
+
 //
 //	BACnetReal
 //
@@ -855,6 +1154,15 @@ BACnetReal::BACnetReal( float rvalu )
 	: realValue( rvalu )
 {
 }
+
+
+
+BACnetReal::BACnetReal( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 
 void BACnetReal::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -931,6 +1239,26 @@ void BACnetReal::Decode( const char *dec )
 	if (sscanf( dec, "%f", &realValue ) != 1)
 		throw_(36) /* format error */;
 }
+
+
+bool BACnetReal::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	// Don't assert here because we might be comparing Real value with Null value from priority array
+	// This is normal and assert is getting in the way.
+
+//	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)));
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)) || 
+		 !::Match(iOperator, ((BACnetReal &) rbacnet).realValue, realValue ) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
+
+IMPLEMENT_DYNAMIC(BACnetDouble, BACnetEncodeable)
 
 //
 //	BACnetDouble
@@ -1035,6 +1363,23 @@ void BACnetDouble::Decode( const char *dec )
 		throw_(39) /* format error */;
 }
 
+
+
+bool BACnetDouble::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)));
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)) ||
+		 !::Match(iOperator, ((BACnetDouble &) rbacnet).doubleValue, doubleValue ) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
+IMPLEMENT_DYNAMIC(BACnetCharacterString, BACnetEncodeable)
+
 //
 //	BACnetCharacterString
 //
@@ -1042,11 +1387,27 @@ void BACnetDouble::Decode( const char *dec )
 BACnetCharacterString::BACnetCharacterString( char *svalu )
 	: strEncoding(0)
 {
+	Initialize(svalu);
+}
+
+
+void BACnetCharacterString::Initialize( char * svalu )
+{
 	strLen = (svalu ? strlen(svalu) : 0);
 	strBuff = new BACnetOctet[strLen];
 	if (svalu)
 		memcpy( strBuff, svalu, (size_t)strLen );
 }
+
+
+BACnetCharacterString::BACnetCharacterString( BACnetAPDUDecoder & dec )
+					  :strEncoding(0)
+{
+	Initialize(NULL);
+	Decode(dec);
+}
+
+
 
 BACnetCharacterString::~BACnetCharacterString( void )
 {
@@ -1298,6 +1659,141 @@ void BACnetCharacterString::Decode( const char *dec )
 	}
 }
 
+
+bool BACnetCharacterString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)));
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	// check encoding
+	if ( strEncoding != ((BACnetCharacterString &) rbacnet).strEncoding )
+	{
+		pstrError->Format(IDS_SCREX_COMPFAILSTRENCODING, strEncoding, ((BACnetCharacterString &) rbacnet).strEncoding );
+		return false;
+	}
+
+	// This may present a problem where the encoding is non ASCII or whatever the heck CString uses...
+	// So let's just keep the old stuff around for the sake of it, eh?
+
+	if ( !Match((BACnetCharacterString &) rbacnet, iOperator) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+bool BACnetCharacterString::Match( BACnetCharacterString & rstring, int iOperator )
+{
+	switch(iOperator)
+	{
+		case '=':	return *this == rstring;
+		case '<':	return *this < rstring;
+		case '>':	return *this > rstring;
+		case '<=':	return *this <= rstring;
+		case '>=':	return *this >= rstring;
+		case '!=':	return *this != rstring;
+		default:
+			ASSERT(0);
+	}
+	return false;
+}
+
+
+
+bool BACnetCharacterString::operator ==( const BACnetCharacterString & arg )
+{
+	return (CString(strBuff) == CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+}
+
+
+bool BACnetCharacterString::operator !=( const BACnetCharacterString & arg )
+{
+	return (CString(strBuff) != CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+}
+
+
+bool BACnetCharacterString::operator <=( const BACnetCharacterString & arg )
+{
+	return (CString(strBuff) <= CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+}
+
+
+bool BACnetCharacterString::operator <( const BACnetCharacterString & arg )
+{
+	return (CString(strBuff) < CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+}
+
+
+bool BACnetCharacterString::operator >=( const BACnetCharacterString & arg )
+{
+	return (CString(strBuff) >= CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+}
+
+
+bool BACnetCharacterString::operator >( const BACnetCharacterString & arg )
+{
+	return (CString(strBuff) > CString(arg.strBuff)) != 0;		// account for nasty Microsoft BOOL stuff
+}
+
+
+/*  Moved from ExpectCharacterString, madanner 10/02
+	// verify the encoding
+	if (cstrData.strEncoding != scriptData.strEncoding)
+		throw "Character string encoding mismatch";
+
+	// verify the value
+	minLen = (cstrData.strLen < scriptData.strLen ? cstrData.strLen : scriptData.strLen);
+
+	switch (spep->exprOp) {
+		case '<':
+			for (i = 0; i < minLen; i++)
+				if (cstrData.strBuff[i] >= scriptData.strBuff[i])
+					throw "Character string mismatch";
+			// ### what about the rest?
+			break;
+		case '>':
+			for (i = 0; i < minLen; i++)
+				if (cstrData.strBuff[i] <= scriptData.strBuff[i])
+					throw "Character string mismatch";
+			// ### what about the rest?
+			break;
+		case '<=':
+			for (i = 0; i < minLen; i++)
+				if (cstrData.strBuff[i] < scriptData.strBuff[i])
+					throw "Character string mismatch";
+			// ### what about the rest?
+			break;
+		case '>=':
+			for (i = 0; i < minLen; i++)
+				if (cstrData.strBuff[i] > scriptData.strBuff[i])
+					throw "Character string mismatch";
+			// ### what about the rest?
+			break;
+		case '=':
+			if (cstrData.strLen != scriptData.strLen)
+				throw "Character string mismatch";
+			for (i = 0; i < cstrData.strLen; i++)
+				if (cstrData.strBuff[i] != scriptData.strBuff[i])
+					throw "Character string mismatch";
+			break;
+		case '!=':
+			if (cstrData.strLen != scriptData.strLen)
+				break;
+			for (i = 0; i < cstrData.strLen; i++)
+				if (cstrData.strBuff[i] != scriptData.strBuff[i])
+					break;
+			if (i >= cstrData.strLen)
+				throw "Character string mismatch";
+			break;
+	}
+*/
+
+
+
+IMPLEMENT_DYNAMIC(BACnetOctetString, BACnetEncodeable)
+
 //
 //	BACnetOctetString::BACnetOctetString
 //
@@ -1306,6 +1802,14 @@ BACnetOctetString::BACnetOctetString( void )
 	: strLen(0), strBuffLen(0), strBuff(0)
 {
 }
+
+
+BACnetOctetString::BACnetOctetString( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 
 //
 //	BACnetOctetString::BACnetOctetString
@@ -1345,6 +1849,7 @@ BACnetOctetString::BACnetOctetString( BACnetOctet *bytes, int len )
 	strBuff = bytes;
 	strBuffLen = 0;
 }
+
 
 //
 //	BACnetOctetString::~BACnetOctetString
@@ -1415,7 +1920,7 @@ void BACnetOctetString::Append( BACnetOctet byte )
 //	BACnetOctetString::Insert
 //
 
-void BACnetOctetString::Insert( BACnetOctet *bytes, int len, int pos )
+void BACnetOctetString::Insert( BACnetOctet *bytes, int len, int position )
 {
 	// make sure the buffer can handle it
 	if (strLen + len > strBuffLen)
@@ -1423,10 +1928,10 @@ void BACnetOctetString::Insert( BACnetOctet *bytes, int len, int pos )
 
 	// move existing data out of the way
 	if (pos < strLen)
-		memmove( strBuff+pos+len, strBuff+pos, len );
+		memmove( strBuff+position+len, strBuff+position, len );
 
 	// copy in new data
-	memcpy( strBuff+pos, bytes, len );
+	memcpy( strBuff+position, bytes, len );
 	strLen += len;
 }
 
@@ -1434,9 +1939,9 @@ void BACnetOctetString::Insert( BACnetOctet *bytes, int len, int pos )
 //	BACnetOctetString::Insert
 //
 
-void BACnetOctetString::Insert( const BACnetOctetString &cpy, int pos )
+void BACnetOctetString::Insert( const BACnetOctetString &cpy, int position )
 {
-	Insert( cpy.strBuff, cpy.strLen, pos );
+	Insert( cpy.strBuff, cpy.strLen, position );
 }
 
 //
@@ -1563,6 +2068,123 @@ void BACnetOctetString::Decode( const char *dec )
 	}
 }
 
+
+
+bool BACnetOctetString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetOctetString)));
+
+	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+		return false;
+
+	bool fMatch = memcmp(strBuff, ((BACnetOctetString &) rbacnet).strBuff, min(((BACnetOctetString &) rbacnet).strBuffLen, strBuffLen)) == 0;
+
+	if ( (fMatch && iOperator == '=') || (!fMatch && iOperator == '!=') )
+		return true;
+
+	return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+}
+
+
+
+IMPLEMENT_DYNAMIC(BACnetWeekNDay, BACnetOctetString)
+
+
+BACnetWeekNDay::BACnetWeekNDay()
+			   :BACnetOctetString(3)
+{
+	Initialize(0xFF, 0xFF, 0xFF);
+}
+
+
+
+BACnetWeekNDay::BACnetWeekNDay( int nMonth, int nWeekOfMonth, int nDayOfWeek )
+			   :BACnetOctetString(3)
+{
+	Initialize(nMonth, nWeekOfMonth, nDayOfWeek);
+}
+
+
+BACnetWeekNDay::BACnetWeekNDay( BACnetAPDUDecoder& dec )
+			   :BACnetOctetString(3)
+{
+	Decode(dec);
+}
+
+
+void BACnetWeekNDay::Initialize( int nMonth, int nWeekOfMonth, int nDayOfWeek )
+{
+	m_nMonth = nMonth;
+	m_nWeekOfMonth = nWeekOfMonth;
+	m_nDayOfWeek = nDayOfWeek;
+
+	ASSERT( (nMonth > 0 && nMonth < 13) || nMonth == 0xFF );
+	ASSERT( (nWeekOfMonth > 0 && nWeekOfMonth < 7) || nWeekOfMonth == 0xFF );
+	ASSERT( (nDayOfWeek > 0 && nDayOfWeek < 8) || nDayOfWeek == 0xFF );
+	LoadBuffer();
+}
+
+
+void BACnetWeekNDay::LoadBuffer()
+{
+	strBuff[0] = (BACnetOctet) m_nMonth;
+	strBuff[1] = (BACnetOctet) m_nWeekOfMonth;
+	strBuff[2] = (BACnetOctet) m_nDayOfWeek;
+}
+
+
+void BACnetWeekNDay::UnloadBuffer()
+{
+	m_nMonth = strBuff[0];
+	m_nWeekOfMonth = strBuff[1];
+	m_nDayOfWeek = strBuff[2];
+}
+
+
+void BACnetWeekNDay::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	// just in case the values have changed...
+	LoadBuffer();
+	BACnetOctetString::Encode(enc,context);
+}
+
+
+
+void BACnetWeekNDay::Decode( BACnetAPDUDecoder& dec )
+{
+	BACnetOctetString::Decode(dec);
+	UnloadBuffer();
+}
+
+
+void BACnetWeekNDay::Encode( char *enc ) const
+{
+	sprintf(enc, "%d, %d, %d", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);
+}
+
+
+bool BACnetWeekNDay::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetWeekNDay)));
+
+	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+		return false;
+
+	bool fMatch = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetWeekNDay)) && 
+		          m_nDayOfWeek == ((BACnetWeekNDay &) rbacnet).m_nDayOfWeek &&
+		          m_nMonth == ((BACnetWeekNDay &) rbacnet).m_nMonth &&
+		          m_nWeekOfMonth == ((BACnetWeekNDay &) rbacnet).m_nWeekOfMonth;
+
+	if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
+IMPLEMENT_DYNAMIC(BACnetBitString, BACnetEncodeable)
+
 //
 //	BACnetBitString::BACnetBitString
 //
@@ -1571,6 +2193,15 @@ BACnetBitString::BACnetBitString( void )
 	: bitLen(0), bitBuffLen(0), bitBuff(0)
 {
 }
+
+
+BACnetBitString::BACnetBitString( BACnetAPDUDecoder & dec )
+	: bitLen(0), bitBuffLen(0), bitBuff(0)
+{
+	Decode(dec);
+}
+
+
 
 //
 //	BACnetBitString::BACnetBitString
@@ -1583,6 +2214,15 @@ BACnetBitString::BACnetBitString( int siz )
 	if (bitBuff)
 		for (int i = 0; i < bitBuffLen; i++)
 			bitBuff[i] = 0;
+}
+
+
+BACnetBitString::BACnetBitString( int siz, unsigned char * pbits )
+	: bitLen(siz), bitBuffLen((siz + 31) / 32), bitBuff(0)
+{
+	bitBuff = new unsigned long[ bitBuffLen ];
+	if (bitBuff)
+		LoadBitsFromByteArray(pbits);
 }
 
 //
@@ -1613,6 +2253,19 @@ BACnetBitString::~BACnetBitString( void )
 //
 //	BACnetBitString::SetSize
 //
+
+
+void BACnetBitString::LoadBitsFromByteArray( unsigned char * pabBits )
+{
+	ASSERT(pabBits != NULL);
+
+	// bits stored in char array are already in BACnet order, that is, left to right where
+	// msb is first flag, etc.
+
+	for ( int i = 0; pabBits != NULL && i < bitLen; i++ )
+		SetBit(i, pabBits[i/8] & (unsigned char)(1<<(7-(i%8))) );
+}
+
 
 void BACnetBitString::SetSize( int siz )
 {
@@ -1677,7 +2330,7 @@ void BACnetBitString::ResetBit( int bit )
 //	BACnetBitString::GetBit
 //
 
-int BACnetBitString::GetBit( int bit )
+int BACnetBitString::GetBit( int bit ) const
 {
 	int		intOffset = (bit / 32)
 	,		bitOffset = 31 - (bit % 32)
@@ -1806,26 +2459,26 @@ BACnetBitString &BACnetBitString::operator &=( const BACnetBitString &arg )
 //	BACnetBitString::operator ==
 //
 
-bool BACnetBitString::operator ==( const BACnetBitString &arg )
+bool BACnetBitString::operator ==( BACnetBitString &arg )
 {
-	int				i
-	,				siz = (bitBuffLen < arg.bitBuffLen ? bitBuffLen : arg.bitBuffLen)
-	;
-	unsigned long	*src = arg.bitBuff
-	,				*dst = bitBuff
-	;
+//	int				i,	siz = (bitBuffLen < arg.bitBuffLen ? bitBuffLen : arg.bitBuffLen);
+//	unsigned long	*src = arg.bitBuff,	*dst = bitBuff;
 		
 	if (bitLen != arg.bitLen)
 		return false;
 
-	for (i = 0; i < siz; i++)
-		if (*dst++ != *src++)
-			return false;
+//	for (i = 0; i < siz; i++)
+//		if (*dst++ != *src++)
+//			return false;
 
 	// ### perhaps last bitBuff element shouldn't always have all bits compared
+	// Right!  So let's compare one bit at a time.
 
-	return true;
+	for ( int i = 0; i < bitLen  && GetBit(i) == arg.GetBit(i);  i++ );			// [] doesn't work for some reason
+
+	return i >= bitLen;		// made it through, must be OK
 }
+
 
 void BACnetBitString::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -1906,7 +2559,7 @@ void BACnetBitString::Encode( char *enc ) const
 	*enc++ = 'B';
 	*enc++ = '\'';
 
-	// encode the content
+/*	// encode the content
 	if (bitBuff) {
 		int bit = 0;
 		for (int i = 0; bit < bitLen; i++) {
@@ -1918,6 +2571,10 @@ void BACnetBitString::Encode( char *enc ) const
 			}
 		}
 	}
+*/
+
+	for (int i = 0; i < bitLen; i++)			// madanner 10/02
+		*enc++ = '0' + (int) GetBit(i);
 
 	*enc++ = '\'';
 	*enc = 0;
@@ -1956,6 +2613,27 @@ void BACnetBitString::Decode( const char *dec )
 	}
 }
 
+
+bool BACnetBitString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBitString)));
+
+	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+		return false;
+
+	bool fMatch = *this == ((BACnetBitString &) rbacnet);
+
+	if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
+
+IMPLEMENT_DYNAMIC(BACnetDate, BACnetEncodeable)
+
 //
 //	BACnetDate::BACnetDate
 //
@@ -1984,8 +2662,19 @@ BACnetDate::BACnetDate( void )
 BACnetDate::BACnetDate( int y, int m, int d )
 	: year(y), month(m), day(d)
 {
+	if ( y == 0 && m == 0 && d == 0 )
+		year = month = day = DATE_DONT_CARE;
+
 	CalcDayOfWeek();
 }
+
+
+BACnetDate::BACnetDate( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 
 //
 //	BACnetDate::CalcDayOfWeek
@@ -1993,26 +2682,28 @@ BACnetDate::BACnetDate( int y, int m, int d )
 
 void BACnetDate::CalcDayOfWeek( void )
 {
-	int		a, b, c, y, m
-	;
+//	int		a, b, c, y, m;
 	
 	// dont even try with "unspecified" or "don't care" values
-	if ((year == 255) || (month == 255) || (day == 255)) {
-		dayOfWeek = 255;
+	if ((year == DATE_DONT_CARE) || (month == DATE_DONT_CARE) || (day == DATE_DONT_CARE)) {
+		dayOfWeek = DATE_DONT_CARE;
 		return;
 	}
+
+	// CTime version says 1 = Sunday...  Oops... Convert to 1 = Monday
+	dayOfWeek = (Convert().GetDayOfWeek() + 5) % 7 + 1;
 	
 	// thanks Dr McKenna!
-	a = (month <= 2) ? 1 : 0;
-	y = year + 1900 - a;
-	m = month + 10 * a - 2 * (1 - a);
-	c = y / 100;
-	a = y % 100;
-	b = ((13 * m - 1) / 5) + (a / 4) + (c / 4);
-	dayOfWeek = (b + a + day - 2 * c) % 7;		// 0=Sunday, ...
+//	a = (month <= 2) ? 1 : 0;
+//	y = year + 1900 - a;
+//	m = month + 10 * a - 2 * (1 - a);
+//	c = y / 100;
+//	a = y % 100;
+//	b = ((13 * m - 1) / 5) + (a / 4) + (c / 4);
+//	dayOfWeek = (b + a + day - 2 * c) % 7;		// 0=Sunday, ...
 	
 	// translate to BACnet order, 1=Monday, ...
-	dayOfWeek = (dayOfWeek + 6) % 7 + 1;
+//	dayOfWeek = (dayOfWeek + 6) % 7 + 1;
 }
 
 void BACnetDate::Encode( BACnetAPDUEncoder& enc, int context )
@@ -2058,7 +2749,7 @@ void BACnetDate::Encode( char *enc ) const
 	;
 
 	// day of week
-	if (dayOfWeek == 255)
+	if (dayOfWeek == DATE_DONT_CARE)
 		*enc++ = '?';
 	else
 	if ((dayOfWeek > 0) && (dayOfWeek < 8)) {
@@ -2069,7 +2760,7 @@ void BACnetDate::Encode( char *enc ) const
 	*enc++ = ' ';
 
 	// month
-	if (month == 255)
+	if (month == DATE_DONT_CARE)
 		*enc++ = '?';
 	else {
 		sprintf( enc, "%d", month );
@@ -2078,7 +2769,7 @@ void BACnetDate::Encode( char *enc ) const
 	*enc++ = '/';
 
 	// day
-	if (day == 255)
+	if (day == DATE_DONT_CARE)
 		*enc++ = '?';
 	else {
 		sprintf( enc, "%d", day );
@@ -2087,7 +2778,7 @@ void BACnetDate::Encode( char *enc ) const
 	*enc++ = '/';
 
 	// year
-	if (year == 255) {
+	if (year == DATE_DONT_CARE) {
 		*enc++ = '?';
 		*enc = 0;
 	} else
@@ -2102,7 +2793,7 @@ void BACnetDate::Decode( const char *dec )
 	;
 
 	// initialize everything to don't care
-	dayOfWeek = month = day = year = 255;
+	dayOfWeek = month = day = year = DATE_DONT_CARE;
 
 	// skip blank on front
 	while (*dec && isspace(*dec)) dec++;
@@ -2184,6 +2875,222 @@ void BACnetDate::Decode( const char *dec )
 	}
 }
 
+
+
+CTime BACnetDate::Convert() const
+{
+	ASSERT( year != DATE_DONT_CARE  && month != DATE_DONT_CARE && day != DATE_DONT_CARE);
+	return CTime(year + 1900, month, day, 0, 0, 0);
+}
+
+
+
+BACnetDate & BACnetDate::operator =( const BACnetDate & arg )
+{
+	day = arg.day;
+	dayOfWeek = arg.dayOfWeek;
+	month = arg.month;
+	year = arg.year;
+
+	return *this;
+}
+
+
+
+bool BACnetDate::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)));
+
+//  Won't work due to don't care cases
+//	CTime dateThis(year + 1900, month + 1, day + 1, 0, 0, 0);
+//	CTime dateThat(((BACnetDate &) rbacnet).year + 1900, ((BACnetDate &) rbacnet).month + 1, ((BACnetDate &) rbacnet).day + 1, 0, 0, 0);
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)) ||
+		 !Match((BACnetDate &) rbacnet, iOperator) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
+bool BACnetDate::Match( BACnetDate & rdate, int iOperator )
+{
+	switch(iOperator)
+	{
+		case '=':	return *this == rdate;
+		case '<':	return *this < rdate;
+		case '>':	return *this > rdate;
+		case '<=':	return *this <= rdate;
+		case '>=':	return *this >= rdate;
+		case '!=':	return *this != rdate;
+		default:
+			ASSERT(0);
+	}
+	return false;
+}
+
+
+
+bool BACnetDate::operator ==( const BACnetDate & arg )
+{
+	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE &&  year != arg.year )
+		return false;
+
+	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE &&  month != arg.month )
+		return false;
+
+	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE  &&  day != arg.day )
+		return false;
+
+	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek != arg.dayOfWeek )
+		return false;
+
+	return true;
+}
+
+
+bool BACnetDate::operator !=( const BACnetDate & arg )
+{
+	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE &&  year != arg.year )
+		return true;
+
+	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE &&  month != arg.month )
+		return true;
+
+	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE  &&  day != arg.day )
+		return true;
+
+	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE &&  dayOfWeek != arg.dayOfWeek )
+		return true;
+
+	return false;
+}
+
+
+bool BACnetDate::operator <=( const BACnetDate & arg )
+{
+	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE )
+		if ( year > arg.year )
+			return false;
+		else if ( year < arg.year )
+			return true;				// don't need to mess with this anymore... year is less
+
+	// years are now equal or we don't care...
+	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE )
+		if ( month > arg.month )
+			return false;
+		else if ( month < arg.month )
+			return true;
+
+	// years and months are equal or don't care... check day
+	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE )
+		if (  day > arg.day )
+			return false;
+		else if ( day < arg.day )
+			return true;
+
+	// all important values are either equal or don't care... check final day of week
+	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek > arg.dayOfWeek )
+		return false;
+
+	return true;
+}
+
+
+bool BACnetDate::operator <( const BACnetDate & arg )
+{
+	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE  )
+		if ( year < arg.year )
+			return true;
+		else if ( year > arg.year )
+			return false;				// don't need to mess with this anymore... year is more
+
+	// years are now equal or we don't care...
+	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE )
+		if ( month < arg.month )
+			return true;
+		else if ( month > arg.month )
+			return false;
+
+	// years and months are equal or don't care... check day
+	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE )
+		if (  day < arg.day )
+			return true;
+		else if ( day > arg.day )
+			return false;
+
+	// all important values are either equal or don't care... check final day of week
+	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek < arg.dayOfWeek )
+		return true;
+
+	return false;
+}
+
+
+bool BACnetDate::operator >=( const BACnetDate & arg )
+{
+	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE )
+		if ( year < arg.year )
+			return false;
+		else if ( year > arg.year )
+			return true;				// don't need to mess with this anymore... year is less
+
+	// years are now equal or we don't care...
+	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE )
+		if ( month < arg.month )
+			return false;
+		else if ( month > arg.month )
+			return true;
+
+	// years and months are equal or don't care... check day
+	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE )
+		if (  day < arg.day )
+			return false;
+		else if ( day > arg.day )
+			return true;
+
+	// all important values are either equal or don't care... check final day of week
+	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek < arg.dayOfWeek )
+		return false;
+
+	return true;
+}
+
+
+bool BACnetDate::operator >( const BACnetDate & arg )
+{
+	if ( year != DATE_DONT_CARE  &&  arg.year != DATE_DONT_CARE  )
+		if ( year > arg.year )
+			return true;
+		else if ( year < arg.year )
+			return false;
+
+	// years are now equal or we don't care...
+	if ( month != DATE_DONT_CARE  &&  arg.month != DATE_DONT_CARE )
+		if ( month > arg.month )
+			return true;
+		else if ( month < arg.month )
+			return false;
+
+	// years and months are equal or don't care... check day
+	if ( day != DATE_DONT_CARE  &&  arg.day != DATE_DONT_CARE )
+		if (  day > arg.day )
+			return true;
+		else if ( day < arg.day )
+			return false;
+
+	// all important values are either equal or don't care... check final day of week
+	if ( dayOfWeek != DATE_DONT_CARE  &&  arg.dayOfWeek != DATE_DONT_CARE  &&  dayOfWeek > arg.dayOfWeek )
+		return true;
+
+	return false;
+}
+
+
+
+IMPLEMENT_DYNAMIC(BACnetTime, BACnetEncodeable)
+
 //
 //	BACnetTime::BACnetTime
 //
@@ -2212,6 +3119,15 @@ BACnetTime::BACnetTime( int hr, int mn, int sc, int hun )
 	: hour(hr), minute(mn), second(sc), hundredths(hun)
 {
 }
+
+
+
+BACnetTime::BACnetTime( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 
 void BACnetTime::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -2253,7 +3169,7 @@ void BACnetTime::Decode( BACnetAPDUDecoder& dec )
 void BACnetTime::Encode( char *enc ) const
 {
 	// hour
-	if (hour == 255)
+	if (hour == DATE_DONT_CARE)
 		*enc++ = '?';
 	else {
 		sprintf( enc, "%02d", hour );
@@ -2262,7 +3178,7 @@ void BACnetTime::Encode( char *enc ) const
 	*enc++ = ':';
 
 	// minute
-	if (minute == 255)
+	if (minute == DATE_DONT_CARE)
 		*enc++ = '?';
 	else {
 		sprintf( enc, "%02d", minute );
@@ -2271,7 +3187,7 @@ void BACnetTime::Encode( char *enc ) const
 	*enc++ = ':';
 
 	// second
-	if (second == 255)
+	if (second == DATE_DONT_CARE)
 		*enc++ = '?';
 	else {
 		sprintf( enc, "%02d", second );
@@ -2280,7 +3196,7 @@ void BACnetTime::Encode( char *enc ) const
 	*enc++ = '.';
 
 	// hundredths
-	if (hundredths == 255) {
+	if (hundredths == DATE_DONT_CARE) {
 		*enc++ = '?';
 		*enc = 0;
 	} else
@@ -2290,7 +3206,7 @@ void BACnetTime::Encode( char *enc ) const
 void BACnetTime::Decode( const char *dec )
 {
 	// defaults
-	hour = minute = second = hundredths = 255;
+	hour = minute = second = hundredths = DATE_DONT_CARE;
 
 	// skip blank on front
 	while (*dec && isspace(*dec)) dec++;   //add by xlp
@@ -2365,6 +3281,518 @@ void BACnetTime::Decode( const char *dec )
 		throw_(59) /* invalid character */;
 }
 
+
+
+
+BACnetTime & BACnetTime::operator =( const BACnetTime & arg )
+{
+	hour = arg.hour;
+	hundredths = arg.hundredths;
+	minute = arg.minute;
+	second = arg.second;
+
+	return *this;
+}
+
+
+
+bool BACnetTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)));
+
+	// must use computed value because CTime doesn't deal with hundredths...
+	// doesn't work due to DON'T CAREs
+//	long int ltimeThis = hour * 3600 + minute * 60 + second;
+//	long int ltimeThat = ((BACnetTime &) rbacnet).hour * 3600 + ((BACnetTime &) rbacnet).minute * 60 + ((BACnetTime &) rbacnet).second;
+
+//	ltimeThis = ltimeThis * 100 + hundredths;
+//	ltimeThat = ltimeThat * 100 + ((BACnetTime &) rbacnet).hundredths;
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)) ||
+	     !Match((BACnetTime &) rbacnet, iOperator) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+bool BACnetTime::Match( BACnetTime & rtime, int iOperator )
+{
+	switch(iOperator)
+	{
+		case '=':	return *this == rtime;
+		case '<':	return *this < rtime;
+		case '>':	return *this > rtime;
+		case '<=':	return *this <= rtime;
+		case '>=':	return *this >= rtime;
+		case '!=':	return *this != rtime;
+		default:
+			ASSERT(0);
+	}
+	return false;
+}
+
+
+
+bool BACnetTime::operator ==( const BACnetTime & arg )
+{
+	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE &&  hour != arg.hour )
+		return false;
+
+	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE &&  minute != arg.minute )
+		return false;
+
+	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE  &&  second != arg.second )
+		return false;
+
+	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths != arg.hundredths )
+		return false;
+
+	return true;
+}
+
+
+bool BACnetTime::operator !=( const BACnetTime & arg )
+{
+	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE &&  hour != arg.hour )
+		return true;
+
+	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE &&  minute != arg.minute )
+		return true;
+
+	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE  &&  second != arg.second )
+		return true;
+
+	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE &&  hundredths != arg.hundredths )
+		return true;
+
+	return false;
+}
+
+
+bool BACnetTime::operator <=( const BACnetTime & arg )
+{
+	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE )
+		if ( hour > arg.hour )
+			return false;
+		else if ( hour < arg.hour )
+			return true;				// don't need to mess with this anymore... hour is less
+
+	// hours are now equal or we don't care...
+	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE )
+		if ( minute > arg.minute )
+			return false;
+		else if ( minute < arg.minute )
+			return true;
+
+	// hours and minutes are equal or don't care... check second
+	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE )
+		if (  second > arg.second )
+			return false;
+		else if ( second < arg.second )
+			return true;
+
+	// all important values are either equal or don't care... check final second of week
+	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths > arg.hundredths )
+		return false;
+
+	return true;
+}
+
+
+bool BACnetTime::operator <( const BACnetTime & arg )
+{
+	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE  )
+		if ( hour < arg.hour )
+			return true;
+		else if ( hour > arg.hour )
+			return false;				// don't need to mess with this anymore... hour is more
+
+	// hours are now equal or we don't care...
+	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE )
+		if ( minute < arg.minute )
+			return true;
+		else if ( minute > arg.minute )
+			return false;
+
+	// hours and minutes are equal or don't care... check second
+	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE )
+		if (  second < arg.second )
+			return true;
+		else if ( second > arg.second )
+			return false;
+
+	// all important values are either equal or don't care... check final second of week
+	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths < arg.hundredths )
+		return true;
+
+	return false;
+}
+
+
+bool BACnetTime::operator >=( const BACnetTime & arg )
+{
+	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE )
+		if ( hour < arg.hour )
+			return false;
+		else if ( hour > arg.hour )
+			return true;				// don't need to mess with this anymore... hour is less
+
+	// hours are now equal or we don't care...
+	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE )
+		if ( minute < arg.minute )
+			return false;
+		else if ( minute > arg.minute )
+			return true;
+
+	// hours and minutes are equal or don't care... check second
+	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE )
+		if (  second < arg.second )
+			return false;
+		else if ( second > arg.second )
+			return true;
+
+	// all important values are either equal or don't care... check final second of week
+	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths < arg.hundredths )
+		return false;
+
+	return true;
+}
+
+
+bool BACnetTime::operator >( const BACnetTime & arg )
+{
+	if ( hour != DATE_DONT_CARE  &&  arg.hour != DATE_DONT_CARE  )
+		if ( hour > arg.hour )
+			return true;
+		else if ( hour < arg.hour )
+			return false;
+
+	// hours are now equal or we don't care...
+	if ( minute != DATE_DONT_CARE  &&  arg.minute != DATE_DONT_CARE )
+		if ( minute > arg.minute )
+			return true;
+		else if ( minute < arg.minute )
+			return false;
+
+	// hours and minutes are equal or don't care... check second
+	if ( second != DATE_DONT_CARE  &&  arg.second != DATE_DONT_CARE )
+		if (  second > arg.second )
+			return true;
+		else if ( second < arg.second )
+			return false;
+
+	// all important values are either equal or don't care... check final second of week
+	if ( hundredths != DATE_DONT_CARE  &&  arg.hundredths != DATE_DONT_CARE  &&  hundredths > arg.hundredths )
+		return true;
+
+	return false;
+}
+
+
+//
+//	BACnetDateTime ===============================================
+//
+
+IMPLEMENT_DYNAMIC(BACnetDateTime, BACnetEncodeable)
+
+BACnetDateTime::BACnetDateTime( void )
+{
+	ctime = CTime::GetCurrentTime();
+
+	struct tm	*currtime = ctime.GetLocalTm(NULL);
+	
+	bacnetTime.hour = currtime->tm_hour;
+	bacnetTime.minute = currtime->tm_min;
+	bacnetTime.second = currtime->tm_sec;
+	bacnetTime.hundredths = 0;
+	bacnetDate.year = currtime->tm_year;
+	bacnetDate.month = currtime->tm_mon + 1;
+	bacnetDate.day = currtime->tm_mday;
+	bacnetDate.CalcDayOfWeek();
+}
+
+
+
+BACnetDateTime::BACnetDateTime( int y, int m, int d, int hr, int mn, int sc, int hun )
+			   :bacnetDate(y,m,d), bacnetTime(hr,mn,sc,hun)
+{
+}
+
+
+BACnetDateTime::BACnetDateTime( BACnetAPDUDecoder & dec )
+			   :bacnetDate(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE), bacnetTime(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE)
+{
+	Decode(dec);
+}
+
+
+
+void BACnetDateTime::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	bacnetDate.Encode(enc, context);
+	bacnetTime.Encode(enc, context);
+}
+
+
+void BACnetDateTime::Decode( BACnetAPDUDecoder& dec )
+{
+	bacnetDate.Decode(dec);
+	bacnetTime.Decode(dec);
+}
+
+
+void BACnetDateTime::Encode( char *enc ) const
+{
+	bacnetDate.Encode(enc);
+	strcpy(enc + strlen(enc), " ");
+	bacnetTime.Encode(enc + strlen(enc));
+}
+
+
+void BACnetDateTime::Decode( const char *dec )
+{
+	ASSERT(0); // this won't really work... do we need it?
+
+	bacnetDate.Decode(dec);
+	bacnetTime.Decode(dec);
+}
+
+
+BACnetDateTime & BACnetDateTime::operator =( const BACnetDateTime & arg )
+{
+	bacnetDate = arg.bacnetDate;
+	bacnetTime = arg.bacnetTime;
+	return *this;
+}
+
+
+
+
+bool BACnetDateTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)));
+
+	// CTimes don't work due to DONT_CARE value.  Too bad too.  CTime would work quite well
+//	CTime dateThis(bacnetDate.year + 1900, bacnetDate.month + 1, bacnetDate.day + 1, bacnetTime.hour, bacnetTime.minute, bacnetTime.second);
+//	CTime dateThat(((BACnetDateTime &) rbacnet).bacnetDate.year + 1900, ((BACnetDateTime &) rbacnet).bacnetDate.month + 1, ((BACnetDateTime &) rbacnet).bacnetDate.day + 1,
+//		           ((BACnetDateTime &) rbacnet).bacnetTime.hour, ((BACnetDateTime &) rbacnet).bacnetTime.minute, ((BACnetDateTime &) rbacnet).bacnetTime.second);
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)) ||
+		 !Match((BACnetDateTime &) rbacnet, iOperator) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+CTime BACnetDateTime::Convert()
+{
+	ASSERT( bacnetDate.year != DATE_DONT_CARE  && bacnetDate.month != DATE_DONT_CARE && bacnetDate.day != DATE_DONT_CARE);
+	ASSERT( bacnetTime.hour != DATE_DONT_CARE  && bacnetTime.minute != DATE_DONT_CARE && bacnetTime.second != DATE_DONT_CARE);
+
+	return CTime(bacnetDate.year + 1900, bacnetDate.month, bacnetDate.day, bacnetTime.hour, bacnetTime.minute, bacnetTime.second);
+}
+
+
+
+bool BACnetDateTime::Match( BACnetDateTime & rdatetime, int iOperator )
+{
+	switch(iOperator)
+	{
+		case '=':	return *this == rdatetime;
+		case '<':	return *this < rdatetime;
+		case '>':	return *this > rdatetime;
+		case '<=':	return *this <= rdatetime;
+		case '>=':	return *this >= rdatetime;
+		case '!=':	return *this != rdatetime;
+		default:
+			ASSERT(0);
+	}
+	return false;
+}
+
+
+
+bool BACnetDateTime::operator ==( const BACnetDateTime & arg )
+{
+	return bacnetDate == arg.bacnetDate  &&  bacnetTime == arg.bacnetTime;
+}
+
+
+bool BACnetDateTime::operator !=( const BACnetDateTime & arg )
+{
+	return bacnetDate != arg.bacnetDate  &&  bacnetTime != arg.bacnetTime;
+}
+
+
+bool BACnetDateTime::operator <=( const BACnetDateTime & arg )
+{
+	return bacnetDate < arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime <= arg.bacnetTime);
+}
+
+
+bool BACnetDateTime::operator <( const BACnetDateTime & arg )
+{
+	return bacnetDate < arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime < arg.bacnetTime);
+}
+
+
+bool BACnetDateTime::operator >=( const BACnetDateTime & arg )
+{
+	return bacnetDate > arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime >= arg.bacnetTime);
+}
+
+
+bool BACnetDateTime::operator >( const BACnetDateTime & arg )
+{
+	return bacnetDate > arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime > arg.bacnetTime);
+}
+
+
+//
+//	BACnetDateTime ===============================================
+//
+
+IMPLEMENT_DYNAMIC(BACnetDateRange, BACnetEncodeable)
+
+BACnetDateRange::BACnetDateRange( void )
+{
+}
+
+
+
+BACnetDateRange::BACnetDateRange( int y, int m, int d, int y2, int m2, int d2 )
+			   :bacnetDateStart(y,m,d), bacnetDateEnd(y2, m2, d2)
+{
+}
+
+
+
+
+BACnetDateRange::BACnetDateRange( BACnetAPDUDecoder& dec )
+//				:bacnetDateStart(dec), bacnetDateEnd(dec)		// can't guarantee calling order, but we need it :)
+{
+	Decode(dec);
+}
+
+
+
+void BACnetDateRange::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	bacnetDateStart.Encode(enc, context);
+	bacnetDateEnd.Encode(enc, context);
+}
+
+
+void BACnetDateRange::Decode( BACnetAPDUDecoder& dec )
+{
+	bacnetDateStart.Decode(dec);
+	bacnetDateEnd.Decode(dec);
+}
+
+
+void BACnetDateRange::Encode( char *enc ) const
+{
+	bacnetDateStart.Encode(enc);
+	strcpy(enc + strlen(enc), " ");
+	bacnetDateEnd.Encode(enc + strlen(enc));
+}
+
+
+void BACnetDateRange::Decode( const char *dec )
+{
+	ASSERT(0); // this won't really work... do we need it?
+}
+
+
+bool BACnetDateRange::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)));
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)) ||
+		 !Match((BACnetDateRange &) rbacnet, iOperator) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+
+BACnetDateRange & BACnetDateRange::operator =( const BACnetDateRange & arg )
+{
+	bacnetDateEnd = arg.bacnetDateEnd;
+	bacnetDateStart = arg.bacnetDateStart;
+	return *this;
+}
+
+
+
+
+CTimeSpan BACnetDateRange::GetSpan() const
+{
+	return (CTimeSpan) (bacnetDateEnd.Convert() - bacnetDateStart.Convert());
+}
+
+
+bool BACnetDateRange::Match( BACnetDateRange & rdaterange, int iOperator )
+{
+	switch(iOperator)
+	{
+		case '=':	return *this == rdaterange;
+		case '<':	return *this < rdaterange;
+		case '>':	return *this > rdaterange;
+		case '<=':	return *this <= rdaterange;
+		case '>=':	return *this >= rdaterange;
+		case '!=':	return *this != rdaterange;
+		default:
+			ASSERT(0);
+	}
+	return false;
+}
+
+
+
+bool BACnetDateRange::operator ==( const BACnetDateRange & arg )
+{
+	return bacnetDateStart == arg.bacnetDateStart && bacnetDateEnd == arg.bacnetDateEnd;
+}
+
+
+bool BACnetDateRange::operator !=( const BACnetDateRange & arg )
+{
+	return bacnetDateStart != arg.bacnetDateStart && bacnetDateEnd != arg.bacnetDateEnd;
+}
+
+
+bool BACnetDateRange::operator <=( const BACnetDateRange & arg )
+{
+	return (GetSpan() <= arg.GetSpan()) != 0;		// for stupid Microsoft BOOL
+}
+
+
+bool BACnetDateRange::operator <( const BACnetDateRange & arg )
+{
+	return GetSpan() < arg.GetSpan() != 0;		// for stupid Microsoft BOOL
+}
+
+
+bool BACnetDateRange::operator >=( const BACnetDateRange & arg )
+{
+	return GetSpan() >= arg.GetSpan() != 0;		// for stupid Microsoft BOOL
+}
+
+
+bool BACnetDateRange::operator >( const BACnetDateRange & arg )
+{
+	return GetSpan() > arg.GetSpan() != 0;		// for stupid Microsoft BOOL
+}
+
+
+
+
+IMPLEMENT_DYNAMIC(BACnetObjectIdentifier, BACnetEncodeable)
+
 //
 //	BACnetObjectIdentifier::BACnetObjectIdentifier
 //
@@ -2373,6 +3801,20 @@ BACnetObjectIdentifier::BACnetObjectIdentifier( int objType, int instanceNum )
 	: objID( (objType << 22) + instanceNum )
 {
 }
+
+
+BACnetObjectIdentifier::BACnetObjectIdentifier( unsigned int nobjID )
+					   :objID(nobjID)
+{
+}
+
+
+BACnetObjectIdentifier::BACnetObjectIdentifier( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
 
 //
 //	BACnetObjectIdentifier::SetValue
@@ -2505,6 +3947,84 @@ void BACnetObjectIdentifier::Decode( const char * )
 }
 #endif
 
+
+
+bool BACnetObjectIdentifier::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)));
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier))  ||  !::Match(iOperator, (unsigned long) ((BACnetObjectIdentifier &) rbacnet).objID, (unsigned long) objID) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+
+	return true;
+}
+
+
+BACnetObjectIdentifier & BACnetObjectIdentifier::operator =( const BACnetObjectIdentifier &arg )
+{
+	objID = arg.objID;
+	return *this;
+}
+
+
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetAddressBinding, BACnetEncodeable)
+
+
+BACnetAddressBinding::BACnetAddressBinding()
+{
+}
+
+
+BACnetAddressBinding::BACnetAddressBinding( unsigned int nobjID, unsigned short nNet, BACnetOctet * paMAC, unsigned short nMACLen )
+				     :m_bacnetObjectID(nobjID), m_bacnetAddr(nNet, paMAC, nMACLen)
+{
+}
+
+
+BACnetAddressBinding::BACnetAddressBinding( BACnetAPDUDecoder& dec )
+//					 :m_bacnetObjectID(dec), m_bacnetAddr(dec)				// can't guarantee calling order this way
+{
+	Decode(dec);
+}
+
+
+void BACnetAddressBinding::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	m_bacnetObjectID.Encode(enc, context);
+	m_bacnetAddr.Encode(enc, context);
+}
+
+
+void BACnetAddressBinding::Decode( BACnetAPDUDecoder& dec )
+{
+	m_bacnetObjectID.Decode(dec);
+	m_bacnetAddr.Decode(dec);
+}
+
+
+
+bool BACnetAddressBinding::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)));
+
+	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+		return false;
+
+	bool fMatch = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)) &&
+				  m_bacnetAddr.Match(((BACnetAddressBinding &) rbacnet).m_bacnetAddr, iOperator, pstrError )  &&
+				  m_bacnetObjectID.Match(((BACnetAddressBinding &) rbacnet).m_bacnetObjectID, iOperator, pstrError);
+
+	if ( (fMatch  && iOperator == '=')  ||  (!fMatch && iOperator == '!=') )
+		return true;
+
+	return BACnetEncodeable::Match(rbacnet, iOperator, pstrError, nIndex);
+}
+
+
+
 //
 //	BACnetOpeningTag
 //
@@ -2582,6 +4102,977 @@ void BACnetClosingTag::Decode( BACnetAPDUDecoder& dec )
 		dec.pktLength -= 1;
 	}
 }
+
+
+
+IMPLEMENT_DYNAMIC(BACnetBinaryPriV, BACnetEnumerated)
+
+BACnetBinaryPriV::BACnetBinaryPriV( int nValue )
+			   :BACnetEnumerated(nValue)
+{
+}
+
+
+
+void BACnetBinaryPriV::Encode( char *enc ) const
+{
+	BACnetEnumerated::Encode(enc, apszBinaryPVNames, 2);
+}
+
+
+void BACnetBinaryPriV::Decode( const char *dec )
+{
+	BACnetEnumerated::Decode(dec, apszBinaryPVNames, 2);
+}
+
+
+IMPLEMENT_DYNAMIC(BACnetObjectContainer, BACnetEncodeable)
+
+BACnetObjectContainer::BACnetObjectContainer()
+{
+	pbacnetTypedValue = NULL;
+}
+
+
+
+
+BACnetObjectContainer::BACnetObjectContainer( BACnetEncodeable * pbacnetEncodeable )
+{
+	pbacnetTypedValue = NULL;
+	SetObject(pbacnetEncodeable);
+}
+
+
+void BACnetObjectContainer::Decode( BACnetAPDUDecoder& dec )
+{
+	ASSERT(pbacnetTypedValue != NULL);
+
+	if ( pbacnetTypedValue != NULL )
+		pbacnetTypedValue->Decode(dec);
+}
+
+
+void BACnetObjectContainer::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	ASSERT(pbacnetTypedValue != NULL);
+
+	if ( pbacnetTypedValue != NULL )
+		pbacnetTypedValue->Encode(enc, context);
+}
+
+
+void BACnetObjectContainer::Encode( char *enc ) const
+{
+	ASSERT(pbacnetTypedValue != NULL);
+
+	if ( pbacnetTypedValue != NULL )
+		pbacnetTypedValue->Encode(enc);
+}
+
+
+void BACnetObjectContainer::Decode( const char *dec )
+{
+	ASSERT(pbacnetTypedValue != NULL);
+
+	if ( pbacnetTypedValue != NULL )
+		pbacnetTypedValue->Decode(dec);
+}
+
+
+const char * BACnetObjectContainer::ToString() const
+{
+	return pbacnetTypedValue == NULL ? NULL : pbacnetTypedValue->ToString();
+}
+
+
+void BACnetObjectContainer::SetObject( BACnetEncodeable * pBACnetEncodeable )
+{
+	if ( pbacnetTypedValue != NULL )
+		delete pbacnetTypedValue;
+
+	pbacnetTypedValue = pBACnetEncodeable;
+}
+
+
+
+bool BACnetObjectContainer::IsObjectType( CRuntimeClass * pruntimeclass )
+{
+	ASSERT(pruntimeclass != NULL);
+
+	return pbacnetTypedValue == NULL ? false : (pbacnetTypedValue->IsKindOf(pruntimeclass) != 0);	// accounts for BOOL(int) cases to convert to bool.
+}
+
+
+CRuntimeClass * BACnetObjectContainer::GetObjectType()
+{
+	return pbacnetTypedValue == NULL ? NULL : pbacnetTypedValue->GetRuntimeClass();
+}
+
+
+BACnetEncodeable *  BACnetObjectContainer::GetObject()
+{
+	return pbacnetTypedValue;
+}
+
+
+BACnetObjectContainer::~BACnetObjectContainer()
+{
+	SetObject(NULL);
+}
+
+
+
+//====================================================================
+
+IMPLEMENT_DYNAMIC(BACnetPriorityValue, BACnetObjectContainer)
+
+BACnetPriorityValue::BACnetPriorityValue()
+{
+}
+
+
+
+BACnetPriorityValue::BACnetPriorityValue( BACnetAPDUDecoder & dec )
+					:BACnetObjectContainer()
+{
+	Decode(dec);
+}
+
+
+
+BACnetPriorityValue::BACnetPriorityValue( BACnetEncodeable * pbacnetEncodeable )
+					:BACnetObjectContainer(pbacnetEncodeable)
+{
+}
+
+
+void BACnetPriorityValue::Decode( BACnetAPDUDecoder& dec )
+{
+	BACnetAPDUTag		tagNullTest;
+
+	// Peek for received null value of zero, don't advance APDU pointer
+	tagNullTest.Peek(dec);
+	CreateTypedObject(tagNullTest.tagNumber);
+
+	BACnetObjectContainer::Decode(dec);
+}
+
+
+void BACnetPriorityValue::CreateTypedObject(BACnetApplicationTag tag)
+{
+	switch( tag )
+	{
+		case nullAppTag:			SetObject(new BACnetNull());			break;
+		case unsignedIntAppTag:		SetObject(new BACnetUnsigned());		break;
+		case realAppTag:			SetObject(new BACnetReal());			break;
+		case enumeratedAppTag:		SetObject(new BACnetBinaryPriV());		break;
+		default:
+
+			TRACE1("Attempt to create BACnetEncodeable type %d from Tag", tag );
+			ASSERT(0);
+			SetObject(NULL);
+	}
+}
+
+
+
+bool BACnetPriorityValue::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)));
+	ASSERT(pbacnetTypedValue != NULL);
+
+	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue))  &&
+		   pbacnetTypedValue->Match(*((BACnetPriorityValue &)rbacnet).GetObject(), iOperator, pstrError, nIndex);
+}
+
+
+
+//====================================================================
+
+IMPLEMENT_DYNAMIC(BACnetCalendarEntry, BACnetObjectContainer)
+
+BACnetCalendarEntry::BACnetCalendarEntry()
+{
+}
+
+
+
+BACnetCalendarEntry::BACnetCalendarEntry( BACnetAPDUDecoder & dec )
+					:BACnetObjectContainer()
+{
+	Decode(dec);
+}
+
+
+
+BACnetCalendarEntry::BACnetCalendarEntry( BACnetEncodeable * pbacnetEncodeable )
+					:BACnetObjectContainer(pbacnetEncodeable)
+{
+}
+
+
+void BACnetCalendarEntry::Decode( BACnetAPDUDecoder& dec )
+{
+	BACnetAPDUTag		tagTestType;
+
+	tagTestType.Decode(dec);
+
+	// Tag has 0, 1, 2 for date, range, weeknday
+
+    switch (tagTestType.tagNumber)
+	{
+		case 0:					SetObject( new BACnetDate(dec) );	break;
+		case 1:					SetObject( new BACnetDateRange(dec) ); break;
+		case 2:					SetObject( new BACnetWeekNDay(dec) ); break;
+		default:				TRACE0("INVALID type in encoded stream for CalendarEntry");
+								ASSERT(0);
+	}
+}
+
+
+bool BACnetCalendarEntry::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCalendarEntry)));
+	ASSERT(pbacnetTypedValue != NULL);
+
+	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCalendarEntry))  &&
+		    pbacnetTypedValue->Match(*((BACnetCalendarEntry &)rbacnet).GetObject(), iOperator, pstrError, nIndex);
+}
+
+
+//====================================================================
+
+IMPLEMENT_DYNAMIC(BACnetTimeStamp, BACnetObjectContainer)
+
+BACnetTimeStamp::BACnetTimeStamp()
+{
+}
+
+
+
+BACnetTimeStamp::BACnetTimeStamp( BACnetAPDUDecoder & dec )
+				:BACnetObjectContainer()
+{
+	Decode(dec);
+}
+
+
+
+BACnetTimeStamp::BACnetTimeStamp( BACnetEncodeable * pbacnetEncodeable )
+					:BACnetObjectContainer(pbacnetEncodeable)
+{
+}
+
+
+void BACnetTimeStamp::Decode( BACnetAPDUDecoder& dec )
+{
+	BACnetAPDUTag		tagTestType;
+
+	tagTestType.Decode(dec);
+
+	// Tag has 0, 1, 2 for date, range, weeknday
+
+    switch (tagTestType.tagNumber)
+	{
+		case 0:					SetObject( new BACnetTime(dec) );	break;
+		case 1:					SetObject( new BACnetUnsigned(dec) ); break;
+		case 2:					SetObject( new BACnetDateTime(dec) ); break;
+		default:				TRACE0("INVALID type in encoded stream for TimeStamp");
+								ASSERT(0);
+	}
+}
+
+
+bool BACnetTimeStamp::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp)));
+	ASSERT(pbacnetTypedValue != NULL);
+
+	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp))  &&
+		    pbacnetTypedValue->Match(*((BACnetTimeStamp &)rbacnet).GetObject(), iOperator, pstrError, nIndex);
+}
+
+
+
+
+//====================================================================
+
+
+
+IMPLEMENT_DYNAMIC(BACnetGenericArray, BACnetEncodeable)
+
+
+BACnetGenericArray::BACnetGenericArray()
+{
+}
+
+
+
+BACnetGenericArray::BACnetGenericArray( int nSize )
+{
+	m_apBACnetObjects.SetSize(nSize);
+}
+
+
+
+void BACnetGenericArray::Decode( BACnetAPDUDecoder& dec )
+{
+	ClearArray();
+	BACnetUnsigned bacnetUnsigned(dec);
+	m_apBACnetObjects.SetSize(bacnetUnsigned.uintValue);
+}
+
+
+void BACnetGenericArray::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	BACnetUnsigned bacnetSize(m_apBACnetObjects.GetSize());
+	bacnetSize.Encode(enc, context);
+
+	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
+		if ( m_apBACnetObjects[i] != NULL )
+			m_apBACnetObjects[i]->Encode(enc, context);
+}
+
+
+void BACnetGenericArray::Encode( char *enc ) const
+{
+	ASSERT(0); // not implemented yet
+}
+
+
+void BACnetGenericArray::Decode( const char *dec )
+{
+	ASSERT(0); // not implemented yet
+}
+
+
+const char * BACnetGenericArray::ToString() const
+{
+	ASSERT(0); // not implemented yet
+	return NULL;
+}
+
+
+BACnetEncodeable * BACnetGenericArray::operator[](int nIndex) const
+{
+	ASSERT(nIndex < m_apBACnetObjects.GetSize());
+	return m_apBACnetObjects[nIndex];
+}
+
+
+int BACnetGenericArray::Add( BACnetEncodeable * pbacnetEncodeable )
+{
+	return m_apBACnetObjects.Add(pbacnetEncodeable);
+}
+
+
+
+BACnetEncodeable & BACnetGenericArray::operator[](int nIndex)
+{
+	return *m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetGenericArray::~BACnetGenericArray()
+{
+	ClearArray();
+}
+
+
+int BACnetGenericArray::GetSize()
+{
+	return m_apBACnetObjects.GetSize();
+}
+
+
+void BACnetGenericArray::ClearArray()
+{
+	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
+		if ( m_apBACnetObjects[i] != NULL )
+			delete m_apBACnetObjects[i];
+
+	m_apBACnetObjects.RemoveAll();
+}
+
+
+bool BACnetGenericArray::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError, int nIndex /* = -1 */ )
+{
+//	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetGenericArray)));
+
+	CString strError;
+
+	// want to compare entire array...  Better make sure lengths are the same
+	if ( nIndex == -1  &&  GetSize() != ((BACnetGenericArray &) rbacnet).GetSize() )
+	{
+		if ( pstrError != NULL )
+			pstrError->Format(IDS_SCREX_COMPARRAYSIZE, ((BACnetGenericArray &) rbacnet).GetSize(), GetSize()  );
+
+		return false;
+	}
+
+	int nEndIndex = GetSize();
+
+	if ( nIndex == -1 )
+		nIndex = 0;		// check entire array
+	else
+		nEndIndex = nIndex + 1;
+
+	// Check for out of bounds index request
+	if ( nIndex >= GetSize() )
+		strError.Format(IDS_SCREX_COMPARRAYINXBOUNDS, nIndex, GetSize() );
+	else
+	{
+		for ( ; nIndex < nEndIndex && 
+				m_apBACnetObjects[nIndex]->Match(((BACnetGenericArray &)rbacnet)[nIndex], iOperator, &strError);
+				nIndex++ );
+	}
+
+	if ( pstrError != NULL  &&  !strError.IsEmpty() )
+	{
+		char szBuff[20];
+
+		sprintf(szBuff, "[%d] ", nIndex);
+		*pstrError += szBuff + strError;
+	}
+
+	return strError.IsEmpty() != 0;		// account for stupid Windows BOOL define
+}
+
+
+
+//====================================================================
+//====================================================================
+
+
+
+IMPLEMENT_DYNAMIC(BACnetPriorityArray, BACnetGenericArray)
+
+BACnetPriorityArray::BACnetPriorityArray()
+{
+}
+
+
+
+BACnetPriorityArray::BACnetPriorityArray( BACnetAPDUDecoder& dec )
+					:BACnetGenericArray(nPRIO)
+{
+	Decode(dec);
+}
+
+
+BACnetPriorityArray::BACnetPriorityArray( float * paPriority, int nMax, float fNull )
+{
+	for ( int i = 0; i < nMax; i++ )
+		if ( paPriority[i] == fNull )
+			Add(new BACnetPriorityValue(new BACnetNull()));
+		else
+			Add(new BACnetPriorityValue(new BACnetReal(paPriority[i])));
+}
+
+
+BACnetPriorityArray::BACnetPriorityArray( int * paPriority, int nMax, int bNull )
+{
+	for ( int i = 0; i < nMax; i++ )
+		if ( paPriority[i] == bNull )
+			Add(new BACnetPriorityValue(new BACnetNull()));
+		else
+			Add(new BACnetPriorityValue(new BACnetBinaryPriV(paPriority[i])));
+}
+
+
+BACnetPriorityArray::BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull )
+{
+	for ( int i = 0; i < nMax; i++ )
+		if ( paPriority[i] == uNull )
+			Add(new BACnetPriorityValue(new BACnetNull()));
+		else
+			Add(new BACnetPriorityValue(new BACnetUnsigned(paPriority[i])));
+}
+
+
+void BACnetPriorityArray::Decode( BACnetAPDUDecoder& dec )
+{
+//	BACnetGenericArray::Decode(dec);		// no on priority arrays... assumed to be 16
+
+	for ( int i = 0; i < GetSize(); i++)
+		m_apBACnetObjects[i] = new BACnetPriorityValue(dec);
+}
+
+
+
+BACnetPriorityValue * BACnetPriorityArray::operator[](int nIndex) const
+{
+	return (BACnetPriorityValue *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetPriorityValue & BACnetPriorityArray::operator[](int nIndex)
+{
+	return (BACnetPriorityValue &) *m_apBACnetObjects[nIndex];
+}
+
+
+//====================================================================
+
+
+
+IMPLEMENT_DYNAMIC(BACnetCalendarArray, BACnetGenericArray)
+
+
+
+BACnetCalendarArray::BACnetCalendarArray()
+{
+}
+
+
+BACnetCalendarArray::BACnetCalendarArray( BACnetAPDUDecoder& dec )
+{
+	Decode(dec);
+}
+
+
+
+void BACnetCalendarArray::Decode( BACnetAPDUDecoder& dec )
+{
+	BACnetGenericArray::Decode(dec);
+
+	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
+		m_apBACnetObjects[i] = new BACnetCalendarEntry(dec);
+}
+
+
+
+BACnetCalendarEntry * BACnetCalendarArray::operator[](int nIndex) const
+{
+	return (BACnetCalendarEntry *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetCalendarEntry & BACnetCalendarArray::operator[](int nIndex)
+{
+	return  (BACnetCalendarEntry &) *m_apBACnetObjects[nIndex];
+}
+
+
+
+//====================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetTextArray, BACnetGenericArray)
+
+
+BACnetTextArray::BACnetTextArray( char * paText[], int nMax /* = -1 */ )
+{
+	int nSize = 0;
+
+	while ( paText[nSize] != NULL  && (nMax == -1 || nSize < nMax) )
+		m_apBACnetObjects.Add(new BACnetCharacterString(paText[nSize++]));
+}
+
+
+// Constructor for only one array element
+
+BACnetTextArray::BACnetTextArray( char * pText )
+{
+	m_apBACnetObjects.Add(new BACnetCharacterString(pText));
+}
+
+
+BACnetTextArray::BACnetTextArray( BACnetAPDUDecoder& dec )
+{
+	Decode(dec);
+}
+
+
+
+void BACnetTextArray::Decode( BACnetAPDUDecoder& dec )
+{
+	// Don't need unsigned at beginning of decode stream to tell us how many strings follow
+	// We'll figure that out by encountering a null in place of a string
+
+//	BACnetGenericArray::Decode(dec);
+
+	BACnetAPDUTag	tag;
+
+	while ( true )
+	{
+		tag.Peek(dec);
+		if ( tag.tagNumber != characterStringAppTag )
+			break;
+
+		Add(new BACnetCharacterString(dec));
+	}
+}
+
+
+BACnetCharacterString * BACnetTextArray::operator[](int nIndex) const
+{
+	return (BACnetCharacterString *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetCharacterString & BACnetTextArray::operator[](int nIndex)
+{
+	return  (BACnetCharacterString &) *m_apBACnetObjects[nIndex];
+}
+
+
+//====================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetUnsignedArray, BACnetGenericArray)
+
+
+// nMax, if specified, says don't check for zero to stop...
+
+BACnetUnsignedArray::BACnetUnsignedArray( unsigned char paUnsigned[], int nMax /* = -1 */ )
+{
+	int nSize = 0;
+
+	while ( (paUnsigned[nSize] != 0 || nMax != -1)  && (nMax == -1 || nSize < nMax) )
+		m_apBACnetObjects.Add(new BACnetUnsigned( (unsigned int) paUnsigned[nSize++]));
+}
+
+
+BACnetUnsignedArray::BACnetUnsignedArray( unsigned short paUnsigned[], int nMax /* = -1 */ )
+{
+	// Same as for chars but, well, different.
+	// This will probably go away if I change the EPICS internal store to have 'word' types
+	// for alarm_values and fault_values in the MSI and MSO object, like in the MSV object.
+
+	int nSize = 0;
+
+	while ( (paUnsigned[nSize] != 0  || nMax != -1)  && (nMax == -1 || nSize < nMax) )
+		m_apBACnetObjects.Add(new BACnetUnsigned( (unsigned int) paUnsigned[nSize++]));
+}
+
+
+BACnetUnsignedArray::BACnetUnsignedArray( BACnetAPDUDecoder& dec )
+{
+	Decode(dec);
+}
+
+
+void BACnetUnsignedArray::Decode( BACnetAPDUDecoder& dec )
+{
+	BACnetGenericArray::Decode(dec);
+
+	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
+		m_apBACnetObjects[i] = new BACnetUnsigned(dec);
+}
+
+
+BACnetUnsigned * BACnetUnsignedArray::operator[](int nIndex) const
+{
+	return (BACnetUnsigned *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetUnsigned & BACnetUnsignedArray::operator[](int nIndex)
+{
+	return  (BACnetUnsigned &) *m_apBACnetObjects[nIndex];
+}
+
+
+
+IMPLEMENT_DYNAMIC(BACnetObjectIDList, BACnetGenericArray)
+
+
+
+BACnetObjectIDList::BACnetObjectIDList()
+{
+}
+
+
+BACnetObjectIDList::BACnetObjectIDList( int nSize )
+					:BACnetGenericArray(nSize)
+{
+}
+
+
+BACnetObjectIDList::BACnetObjectIDList( BACnetAPDUDecoder& dec )
+{
+	Decode(dec);
+}
+
+
+
+void BACnetObjectIDList::Decode( BACnetAPDUDecoder& dec )
+{
+	// Object ID lists suck out of the stream until a non-object ID tag is found...
+	BACnetAPDUTag tag;
+
+//	BACnetGenericArray::Decode(dec);		// don't use unsigned int in front of list to determine size
+
+	while (true)
+	{
+		tag.Peek(dec);
+		if ( tag.tagNumber != objectIdentifierAppTag )
+			break;
+
+		Add(new BACnetObjectIdentifier(dec));
+	}
+}
+
+
+BACnetObjectIdentifier * BACnetObjectIDList::operator[](int nIndex) const
+{
+	return (BACnetObjectIdentifier *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetObjectIdentifier & BACnetObjectIDList::operator[](int nIndex)
+{
+	return  (BACnetObjectIdentifier &) *m_apBACnetObjects[nIndex];
+}
+
+
+
+//====================================================================
+
+IMPLEMENT_DYNAMIC(BACnetAnyValue, BACnetObjectContainer)
+
+BACnetAnyValue::BACnetAnyValue()
+{
+	SetType(0);
+}
+
+
+
+
+BACnetAnyValue::BACnetAnyValue( BACnetEncodeable * pbacnetEncodeable )
+					:BACnetObjectContainer(pbacnetEncodeable)
+{
+	SetType(0);
+}
+
+
+void BACnetAnyValue::SetType(int nNewType)
+{
+	m_nType = nNewType;
+}
+
+
+int BACnetAnyValue::GetType()
+{
+	return m_nType;
+}
+
+
+void BACnetAnyValue::SetObject( int nNewType, BACnetEncodeable * pbacnetEncodeable )
+{
+	SetType(nNewType);
+	BACnetObjectContainer::SetObject(pbacnetEncodeable);
+}
+
+
+
+bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOperator, int nArrayIndex, LPCSTR lpstrValueName )
+{
+	CString strThrowMessage;
+
+	if ( GetObject() == NULL )		// no data found
+		strThrowMessage.Format(IDS_SCREX_COMPEPICSNULL, lpstrValueName);
+
+	else if ( dec.pktBuffer == NULL )
+		strThrowMessage.Format(IDS_SCREX_COMPDATANULL, lpstrValueName);
+
+	else
+	{
+		// Have to use type value here because we don't know how to decode the stream...\
+		// The type tells us what kind of object to attempt to reconstitute
+
+		switch (GetType())
+		{
+			case u127:		// 1..127 ---------------------------------
+			case u16:		// 1..16 ----------------------------------
+			case ud:		// unsigned dword -------------------------
+			case uw:		// unsigned word --------------------------
+
+				GetObject()->Match(BACnetUnsigned(dec), iOperator, &strThrowMessage );
+				break;
+
+			case ssint:		// short signed int -----------------------		// actually the same type
+			case sw:		// signed word ----------------------------
+
+				GetObject()->Match(BACnetInteger(dec), iOperator, &strThrowMessage );
+				break;
+
+			case flt:		// float ----------------------------------------
+
+				GetObject()->Match(BACnetReal(dec), iOperator, &strThrowMessage );
+				break;
+
+			case pab:		// priority array bpv ---------------------		deal with index cases (-1=all, 0=element count, base 1=index
+			case paf:		// priority array flt ---------------------
+			case pau:		// priority array unsigned ----------------
+
+				GetObject()->Match(BACnetPriorityArray(dec), iOperator, &strThrowMessage, nArrayIndex );
+				break;
+
+			case ebool:		// boolean enumeration ---------------------------------
+
+				GetObject()->Match(BACnetBoolean(dec), iOperator, &strThrowMessage );
+				break;
+
+			case bits:		// octet of 1 or 0 flags
+
+				GetObject()->Match(BACnetBitString(dec), iOperator, &strThrowMessage );
+				break;
+
+			case ob_id:		// object identifier
+
+				GetObject()->Match(BACnetObjectIdentifier(dec), iOperator, &strThrowMessage );
+				break;
+
+			case s10:		// char [10] --------------------------------------------
+			case s32:		// char [32]
+			case s64:		// char [64]
+			case s132:		// char [132]
+
+				GetObject()->Match(BACnetCharacterString(dec), iOperator, &strThrowMessage );
+				break;
+       
+			case enull:		// null enumeration ------------------------------------
+
+				GetObject()->Match(BACnetNull(dec), iOperator, &strThrowMessage);
+				break;
+
+			case et:		// generic enumation ----------------------------------
+
+				GetObject()->Match(BACnetEnumerated(dec), iOperator, &strThrowMessage);
+				break;
+
+			case ptDate:	// date ------------------------------------------------
+
+				GetObject()->Match(BACnetDate(dec), iOperator, &strThrowMessage);
+				break;
+
+			case ptTime:	// time -------------------------------------------------
+
+				GetObject()->Match(BACnetTime(dec), iOperator, &strThrowMessage);
+				break;
+
+			case dt:		// date/time stamp -------------------------------------
+
+				GetObject()->Match(BACnetDateTime(dec), iOperator, &strThrowMessage);
+				break;
+
+			case dtrange:	// range of dates ---------------------------------------
+
+				GetObject()->Match(BACnetDateRange(dec), iOperator, &strThrowMessage);
+				break;
+
+			case calist:	// array of calendar entries -----------------------------
+
+				GetObject()->Match(BACnetCalendarArray(dec), iOperator, &strThrowMessage, nArrayIndex );
+				break;
+
+			case dabind:	// device address binding --------------------------------
+
+				GetObject()->Match(BACnetAddressBinding(dec), iOperator, &strThrowMessage );
+				break;
+
+			case lobj:		// array of object identifiers ----------------------------
+
+				GetObject()->Match(BACnetObjectIDList(dec), iOperator, &strThrowMessage );
+				break;
+
+			case uwarr:		// unsigned array ------------------------------------------
+			case stavals:	// list of unsigned ----------------------------------------
+
+				GetObject()->Match(BACnetUnsignedArray(dec), iOperator, &strThrowMessage );
+				break;
+
+			case statext:
+			case actext:	// character string array ----------------------------------
+
+				GetObject()->Match(BACnetTextArray(dec), iOperator, &strThrowMessage, nArrayIndex );
+				break;
+
+			default:
+
+				strThrowMessage.Format(IDS_SCREX_COMPUNSUPPORTED, GetType() );
+		}
+    }
+
+
+	if ( !strThrowMessage.IsEmpty() )
+	{
+		CString strFailString;
+		strFailString.Format(IDS_SCREX_COMPFAIL, lpstrValueName, (LPCSTR) strThrowMessage );
+
+		throw CString(strFailString);
+	}
+
+	return true;
+}
+
+
+
+
+
+/*  CASES NOT IMPLEMENTED YET...  Soon to follow (9/02) 
+
+		case raslist: // list of readaccessspecs
+             p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
+			break;
+
+		case act: // action array
+             p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
+			break;
+
+		case vtcl: // vt classes
+				 p= eVTCL(p,(BACnetVTClassList far*)msg->pv);
+			break;
+
+		case evparm: // event parameter
+				 p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
+			break;
+
+		case skeys: // session keys
+				 p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
+			break;
+
+		case tsrecip: // time synch recipients
+		case recip: // recipient
+				 p= eRECIP(p,(BACnetRecipient far*)msg->pv);
+			break;
+
+		case reciplist: // list of BACnetDestination
+				 p= eRECIPLIST(p,(BACnetDestination far*)msg->pv);
+			break;
+
+		case xsched:    // exception schedule: array[] of specialevent
+				 p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
+			break;
+
+		case wsched: // weekly schedule: array[7] of list of timevalue
+				 p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
+			break;
+
+		case propref: // list of object prop refs
+		case lopref:  // list of object prop refs
+				 p= eLOPREF(p,(BACnetObjectPropertyReference far*)msg->pv);
+			break;
+
+		case setref: // setpoint reference
+				 p= eSETREF(p,(BACnetObjectPropertyReference far*)msg->pv);
+			break;
+
+		case vtse: // list of active  vt sessions (parse type) 
+				 p= eVTSE(p,(BACnetVTSession far*)msg->pv);
+			break;
+
+*/
+
+
 
 //
 //	BACnetAPDUTag::BACnetAPDUTag
@@ -2690,7 +5181,7 @@ void BACnetAPDUTag::Encode( BACnetAPDUEncoder& enc, int )
 			enc.pktBuffer[enc.pktLength++] = tagLVT & 0x0FF;
 		} else {
 			// long lengths
-			enc.pktBuffer[enc.pktLength++] = 255;
+			enc.pktBuffer[enc.pktLength++] = DATE_DONT_CARE;
 			enc.pktBuffer[enc.pktLength++] = (tagLVT >> 24) & 0x0FF;
 			enc.pktBuffer[enc.pktLength++] = (tagLVT >> 16) & 0x0FF;
 			enc.pktBuffer[enc.pktLength++] = (tagLVT >>  8) & 0x0FF;
@@ -2761,6 +5252,8 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
 	if (dec.pktLength < tagLVT)
 		throw_(82);
 }
+
+
 
 //----------
 
