@@ -1274,6 +1274,7 @@ bool APIENTRY ReadTextPICS(
 	memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));	//added by xlp,2002-11
 	// initialize to no BIBBs supported
 	memset(pd->BIBBSupported,0,sizeof(pd->BIBBSupported));	//default is not supported
+   memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported
 	pd->BACnetFunctionalGroups=0;				//default is none
     // default is no data links supported
 	memset(pd->DataLinkLayerOptions, 0, sizeof(pd->DataLinkLayerOptions)); //default is none
