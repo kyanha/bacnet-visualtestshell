@@ -120,7 +120,7 @@ BOOL VTSNotifyComplex::OnInitDialog()
 	// set up the property list columns
 	m_PropListCtrl.InsertColumn( 0, "Property", LVCFMT_LEFT, 96 );
 	m_PropListCtrl.InsertColumn( 1, "Index", LVCFMT_RIGHT, 48 );
-	m_PropListCtrl.InsertColumn( 2, "Value", LVCFMT_LEFT, 96 );
+	m_PropListCtrl.InsertColumn( 2, "Value", LVCFMT_LEFT, 46 );
 	m_PropListCtrl.InsertColumn( 3, "Priority", LVCFMT_RIGHT, 48 );
 
 	// fill out the table with the current list of elements
@@ -326,6 +326,14 @@ void ComplexObjectList::AddButtonClick( void )
 	// create a new item, add to the end of the list
 	colCurElem = new ComplexObjectElem( colPagePtr );
 	colCurElemIndx = listLen;
+
+	// madanner, 9/3/02
+	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
+	// if list is altered.
+
+	colCurElem->coePropCombo.enumValue = 85;
+
 	AddTail( colCurElem );
 
 	// bind the element to the controls
@@ -333,6 +341,9 @@ void ComplexObjectList::AddButtonClick( void )
 
 	// update the encoding
 	colAddInProgress = false;
+
+	OnSelchangePropCombo();				// madanner 9/5/02, refresh field values into list control
+	colPagePtr->m_PropListCtrl.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
 //	colPagePtr->UpdateEncoded();
 }
 
@@ -361,6 +372,10 @@ void ComplexObjectList::RemoveButtonClick( void )
 	POSITION pos = FindIndex( curRow );
 	delete GetAt( pos );
 	RemoveAt( pos );
+
+	// madanner 9/4/02
+	// reselect a new row... just before the deleted one if any.
+	colPagePtr->m_PropListCtrl.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
 
 	// update the encoding
 //	colPagePtr->UpdateEncoded();
@@ -461,14 +476,15 @@ void ComplexObjectList::OnItemChanging( NMHDR *pNMHDR, LRESULT *pResult )
 	;
 
 	// forget messages that don't change the selection state
-	if (pNMListView->uOldState == pNMListView->uNewState)
+	// madanner 9/5/02, proper masking check?
+	if ((pNMListView->uOldState && LVIS_SELECTED) == (pNMListView->uNewState && LVIS_SELECTED))
 		return;
 
 	// skip messages during new item creation
 	if (colAddInProgress)
 		return;
 
-	if ((pNMListView->uNewState * LVIS_SELECTED) != 0) {
+	if ((pNMListView->uNewState && LVIS_SELECTED) != 0) {		// madanner 9/5/02, proper mask ??
 		// item becoming selected
 		colCurElemIndx = pNMListView->iItem;
 		colCurElem = GetAt( FindIndex( colCurElemIndx ) );
