@@ -184,6 +184,7 @@ ScriptPacket::ScriptPacket( ScriptPacketType type, ScriptPacketSubtype subtype, 
 	, packetType(type)
 	, packetSubtype(subtype)
 	, packetExprList( prev ? &prev->packetExprList : 0 )
+	, bpacketNotExpect(false)		//Added by Zhu Zhenhua, 2003-11-25
 //	, packetDelay( kMaxPacketDelay )    madanner 6/03
 	, packetDelay( kDefaultPacketDelay )
 {

@@ -475,20 +475,36 @@ BOOL ScriptDocument::CheckSyntax( void )
 //						newPacket->packetDelay = kMaxPacketDelay;		changed to default timer
 						newPacket->packetDelay = kDefaultPacketDelay;
 					else
-					if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwBEFORE)) {
-						// look for value
-						scannerStack[scannerStack.GetSize()-1]->Next( tok );
-						if (!tok.IsInteger(newPacket->packetDelay))
-							throw "Packet delay expected";
-						if (newPacket->packetDelay < 0)
-							throw "Delay must be a non-negative value";
-						if (newPacket->packetDelay > kMaxPacketDelay)
-							throw "Maximum delay exceeded";
-						scannerStack[scannerStack.GetSize()-1]->Next( tok );
-						if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
+					{	
+						//Modified by Zhu Zhenhua, 2003-11-25
+						if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwNOT))
+						{
+							newPacket->bpacketNotExpect = true;
+							scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
+								throw "Open parenthesis '(' expected";
+						}
+						else if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwBEFORE)) {
+							// look for value
+							scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							if (!tok.IsInteger(newPacket->packetDelay))
+								throw "Packet delay expected";
+							if (newPacket->packetDelay < 0)
+								throw "Delay must be a non-negative value";
+							if (newPacket->packetDelay > kMaxPacketDelay)
+								throw "Maximum delay exceeded";
+							scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							//Modified by Zhu Zhenhua, 2003-11-25
+							if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwNOT))
+							{
+								newPacket->bpacketNotExpect = true;
+								scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							}
+							if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
+								throw "Open parenthesis '(' expected";
+						} else
 							throw "Open parenthesis '(' expected";
-					} else
-						throw "Open parenthesis '(' expected";
+					}
 					TRACE2( "Packet %08X (Expect, %d)\n", newPacket, newPacket->packetDelay );
 
 					// now parse the contents
@@ -534,24 +550,44 @@ BOOL ScriptDocument::CheckSyntax( void )
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
 						newPacket->packetDelay = ((ScriptPacketPtr)prevCommand)->packetDelay;
 					else
-					if ((tok.tokenType == scriptKeyword) &&
-						    (  ((prevGroup->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)prevGroup)->packetType == ScriptPacket::sendPacket) && (tok.tokenSymbol == kwAFTER))
+					{
+						//Modified by Zhu Zhenhua, 2003-11-25
+						if ((tok.tokenType == scriptKeyword) &&
+							((prevGroup->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)prevGroup)->packetType == ScriptPacket::expectPacket) && (tok.tokenSymbol == kwNOT))
+							)
+						{	
+							newPacket->bpacketNotExpect = true;
+							scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
+								throw "Open parenthesis '(' expected";
+						}
+						else if ((tok.tokenType == scriptKeyword) &&
+							(  ((prevGroup->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)prevGroup)->packetType == ScriptPacket::sendPacket) && (tok.tokenSymbol == kwAFTER))
 							|| ((prevGroup->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)prevGroup)->packetType == ScriptPacket::expectPacket) && (tok.tokenSymbol == kwBEFORE))
 							))
 						{
-						// look for value
-						scannerStack[scannerStack.GetSize()-1]->Next( tok );
-						if (!tok.IsInteger(newPacket->packetDelay))
-							throw "Packet delay expected";
-						if (newPacket->packetDelay < 0)
-							throw "Delay must be a non-negative value";
-						if (newPacket->packetDelay > kMaxPacketDelay)
-							throw "Maximum delay exceeded";
-						scannerStack[scannerStack.GetSize()-1]->Next( tok );
-						if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
+							// look for value
+							scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							if (!tok.IsInteger(newPacket->packetDelay))
+								throw "Packet delay expected";
+							if (newPacket->packetDelay < 0)
+								throw "Delay must be a non-negative value";
+							if (newPacket->packetDelay > kMaxPacketDelay)
+								throw "Maximum delay exceeded";
+							scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							//Modified by Zhu Zhenhua, 2003-11-25
+							if ((tok.tokenType == scriptKeyword) &&
+								((prevGroup->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr)prevGroup)->packetType == ScriptPacket::expectPacket) && (tok.tokenSymbol == kwNOT))
+								)
+							{
+								newPacket->bpacketNotExpect = true;
+								scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							}
+							if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
+								throw "Open parenthesis '(' expected";
+						} else
 							throw "Open parenthesis '(' expected";
-					} else
-						throw "Open parenthesis '(' expected";
+					}
 					TRACE2( "Packet %08X (And, %d)\n", newPacket, newPacket->packetDelay );
 
 					// now parse the contents
@@ -899,6 +935,24 @@ void ScriptDocument::ParsePacket( ScriptIfdefHandler &ifdefHandler, ScriptScanne
 
 		// save this token in case there are problems with the keyword
 		keyToken = tok;
+		
+		// check this keyword
+		int rslt = ScriptToken::Lookup( eKeyword, scriptGenKeywordMap);
+		if ( rslt < 0 ) {
+			rslt = ScriptToken::Lookup( eKeyword, scriptDLCKeywordMap);
+			if ( rslt < 0 ) {
+				rslt = ScriptToken::Lookup( eKeyword, scriptNLKeywordMap);
+				if ( rslt < 0 ) {
+					rslt = ScriptToken::Lookup( eKeyword, scriptALKeywordMap);
+					if ( rslt < 0 ) {
+						rslt = ScriptToken::Lookup( eKeyword, scriptDataKeywordMap);
+						if ( rslt < 0 ) {
+							throw "Invalid packet keyword";
+						}
+					}
+				}
+			}
+		}
 
 		// create an object to hold stuff
 		spep = new ScriptPacketExpr;

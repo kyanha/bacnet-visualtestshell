@@ -4199,6 +4199,7 @@ bool DE_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case BACKUP_FAILURE_TIMEOUT:
 		case ACTIVE_COV_SUBSCRIPTION:
 		case PROFILE_NAME:
+		case MAX_SEGMENTS_ACCEPTED: // Zhu Zhenhua  2003-11-21 
 				return true;
 		default:
 				return false;

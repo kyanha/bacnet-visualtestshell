@@ -1041,9 +1041,11 @@ keepGoing:
 //	if (execPacket->packetType == ScriptPacket::expectPacket) {
 	if (execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket) {
 		execPacket = (ScriptPacketPtr) execCommand;
-		if (execPending) {
+		if (execPending) 
+		if ( execPacket->packetType == ScriptPacket::expectPacket && execPacket->bpacketNotExpect)	//Modified by Zhu Zhenhua, 2003-11-25
+			 NextPacket(true);							//add to meet "EXPECT NOT" or "EXPECT BEFORE (value) NOT"instead of "CHECK" sometimes				
+		else{			
 			bool gotOne = false;
-
 			// delay timer if necessary
 			if ( execPacket->m_pcmdMake != NULL )
 			{
@@ -1068,7 +1070,6 @@ keepGoing:
 					SetPacketStatus(execPacket->m_pcmdMake, 1);
 				}
 			}
-
 			// fail all the packets that have expired and min delay of rest
 			int minDelay1 = kMaxPacketDelay + 1;
 			for (ScriptPacketPtr pp1 = execPacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
@@ -1079,7 +1080,6 @@ keepGoing:
 						gotOne = true;
 						minDelay1 = (pp1->packetDelay < minDelay1 ? pp1->packetDelay : minDelay1);
 					}
-
 			// still one that hasn't failed?
 			if (!gotOne) {
 				Msg( 1, execTest->baseLineStart, "failed" );
@@ -1108,7 +1108,7 @@ keepGoing:
 			// set the root time, always a root packet here
 			TRACE2( "Expect %08X root time %d\n", execPacket, now );
 			execRootTime = now;
-
+			
 			// set all the packets pending and find min delay
 			int minDelay2 = kMaxPacketDelay + 1;
 //			for (ScriptPacketPtr pp2 = execPacket; pp2; pp2 = pp2->packetFail) {
@@ -8545,7 +8545,6 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 		Msg( 3, 0, "Executor not pointing to an EXPECT packet" );
 		return;
 	}
-
 	// match against the pending tests
 //	for (ScriptPacketPtr pp = execPacket; pp; pp = pp->packetFail)
 	for (ScriptPacketPtr pp = execPacket; pp; pp = (ScriptPacketPtr) pp->m_pcmdFail)
@@ -8554,7 +8553,12 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 			// this test is still pending, stash the execPacket
 			ScriptPacketPtr savePacket = execPacket;
 			execPacket = pp;
-			if (ExpectPacket(fp,npdu)) {
+			
+			//Modified by Zhu Zhenhua, 2003-11-25
+			if(ExpectPacket(fp,npdu)) {
+				if(!pp->bpacketNotExpect)
+				{
+				
 				// test was successful, reset all pending packets to unprocessed
 //				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = pp1->packetFail)
 //					if ((pp1->baseStatus == 2) && (pp1 != pp))
@@ -8565,6 +8569,16 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 				// move on to next statement
 				NextPacket( true );
 				break;
+				}
+				else
+				{
+					for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
+						if (pp1->baseStatus == 2 && pp1->baseType == ScriptBase::scriptPacket && pp1 != pp)
+							SetPacketStatus( pp1, 0 );				
+						// move on to next statement
+						NextPacket( false );
+						break;
+				}
 			}
 			execPacket = savePacket;
 		}
