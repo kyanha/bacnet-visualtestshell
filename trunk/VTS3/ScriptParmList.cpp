@@ -608,11 +608,14 @@ void ScriptParmList::OnDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
 		pp->parmValue = dlg.m_ParmValueNormalized;
 
 		// update the list to the new value and status
-		m_pListCtrl->SetItemText( m_iSelectedElem, 1, (LPCTSTR)pp->parmValue );
-		m_pListCtrl->SetItem( m_iSelectedElem, 0, TVIF_IMAGE, 0
-			, (pp->parmEnv ? 2 : 0) + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
-			, 0, 0, 0
-			);
+		// madanner 11/5/02
+
+		UpdateItemVisual(m_iSelectedElem, pp);
+//		m_pListCtrl->SetItemText( m_iSelectedElem, 1, (LPCTSTR)pp->parmValue );
+//		m_pListCtrl->SetItem( m_iSelectedElem, 0, TVIF_IMAGE, 0
+//			, (pp->parmEnv ? 2 : 0) + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0)
+//			, 0, 0, 0
+//			);
 
 		// if this is an env parm, update everybody else
 		if (pp->parmEnv)
@@ -624,6 +627,29 @@ void ScriptParmList::OnDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
 			}
 	}
 }
+
+
+void ScriptParmList::UpdateItemVisual( int nIndex, ScriptParmPtr pp )
+{
+	if ( nIndex >= 0 )
+	{
+		m_pListCtrl->SetItemText( nIndex, 1, (LPCTSTR)pp->parmValue );
+		m_pListCtrl->SetItem( nIndex, 0, TVIF_IMAGE, 0, (pp->parmEnv ? 2 : 0) + ((pp->parmValue != pp->parmScriptValue) ? 1 : 0), 0, 0, 0);
+	}
+}
+
+
+void ScriptParmList::UpdateParameterVisual( ScriptParmPtr pp )
+{
+	ASSERT(pp != NULL);
+
+	if ( m_pListCtrl == NULL  ||  pp == NULL )
+		return;
+
+	// look for the var
+	UpdateItemVisual(LookupIndex( pp->parmSymbol ), pp);
+}
+
 
 //
 //	ScriptParmList::OnColumnClick
