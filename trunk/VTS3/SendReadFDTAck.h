@@ -35,6 +35,9 @@ public:
 	//{{AFX_DATA(CSendReadFDTAck)
 	enum { IDD = IDD_SENDREADFDTACK };
 	CListCtrl	m_FDTList;
+	CEdit	m_port;
+	CIPAddressCtrl	m_IP;
+	int		m_portInt;
 	//}}AFX_DATA
 
 
@@ -52,7 +55,8 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnAddFDT();
 	afx_msg void OnRemoveFDT();
-	afx_msg void OnChangeFDTEntry();
+	afx_msg void OnChangeIP();
+	afx_msg void OnChangePort();
 	afx_msg void OnChangeTTL();
 	afx_msg void OnChangeTRemain();
 	afx_msg void OnItemchangingFDTList(NMHDR* pNMHDR, LRESULT* pResult);

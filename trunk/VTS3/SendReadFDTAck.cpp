@@ -23,6 +23,7 @@ CSendReadFDTAck::CSendReadFDTAck( void )
 {
 	//{{AFX_DATA_INIT(CSendReadFDTAck)
 		// NOTE: the ClassWizard will add member initialization here
+	m_portInt = 0;
 	//}}AFX_DATA_INIT
 }
 
@@ -30,7 +31,10 @@ void CSendReadFDTAck::DoDataExchange(CDataExchange* pDX)
 {
 	CPropertyPage::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CSendReadFDTAck)
+	DDX_Control(pDX, IDC_BDTPORT, m_port);
+	DDX_Control(pDX, IDC_IP, m_IP);
 	DDX_Control(pDX, IDC_FDTLIST, m_FDTList);
+	DDX_Text(pDX, IDC_BDTPORT, m_portInt);
 	//}}AFX_DATA_MAP
 }
 
@@ -38,7 +42,8 @@ BEGIN_MESSAGE_MAP(CSendReadFDTAck, CPropertyPage)
 	//{{AFX_MSG_MAP(CSendReadFDTAck)
 	ON_BN_CLICKED(IDC_ADDFDT, OnAddFDT)
 	ON_BN_CLICKED(IDC_REMOVEFDT, OnRemoveFDT)
-	ON_EN_CHANGE(IDC_FDTENTRY, OnChangeFDTEntry)
+	ON_EN_CHANGE(IDC_BDTPORT, OnChangePort)
+	ON_EN_CHANGE(IDC_IP, OnChangeIP)
 	ON_EN_CHANGE(IDC_TTL, OnChangeTTL)
 	ON_EN_CHANGE(IDC_TREMAIN, OnChangeTRemain)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_FDTLIST, OnItemchangingFDTList)
@@ -82,7 +87,12 @@ void CSendReadFDTAck::EncodePage( CByteArray* contents )
 
 	// validate and encode the BDT entries
 	for (int i = 0; i < len; i++) {
-		const char *entry = m_FDTCtrl.GetItemText( i, 0 );
+		//madanner 9/3/02
+		//format:192.168.1.88:47808
+        CString str = m_FDTCtrl.GetItemText( i, 0 );
+		str = str + ":" + m_FDTCtrl.GetItemText(i, 1);
+		const char *entry = (LPCTSTR)str;
+//		const char *entry = m_FDTCtrl.GetItemText( i, 0 );
 
 		// make sure something was provided
 		if (!entry || !*entry)
@@ -99,7 +109,7 @@ void CSendReadFDTAck::EncodePage( CByteArray* contents )
 		header.Add( port >> 8 );
 		header.Add( port & 0xFF );
 
-		const char *ttltxt = m_FDTCtrl.GetItemText( i, 1 );
+		const char *ttltxt = m_FDTCtrl.GetItemText( i, 2 );
 
 		// make sure something was provided
 		if (!ttltxt || !*ttltxt)
@@ -111,7 +121,7 @@ void CSendReadFDTAck::EncodePage( CByteArray* contents )
 		header.Add( ttl >> 8 );
 		header.Add( ttl & 0xFF );
 
-		const char *remtxt = m_FDTCtrl.GetItemText( i, 2 );
+		const char *remtxt = m_FDTCtrl.GetItemText( i, 3 );
 
 		// make sure something was provided
 		if (!remtxt || !*remtxt)
@@ -165,8 +175,9 @@ void CSendReadFDTAck::RestorePage( void )
 BOOL CSendReadFDTAck::OnInitDialog() 
 {
 	static VTSListColDesc colDesc[] =
-		{ { "FDT Entry", LVCFMT_RIGHT, 104, IDC_FDTENTRY }
-		, { "TTL", LVCFMT_RIGHT, 64, IDC_TTL }
+		{ { "IP Address", LVCFMT_RIGHT, 104, IDC_IP }
+		, { "UDP Port", LVCFMT_RIGHT, 64, IDC_BDTPORT }
+		, { "TTL", LVCFMT_RIGHT, 54, IDC_TTL }
 		, { "Remaining", LVCFMT_RIGHT, 64, IDC_TREMAIN }
 		, { 0, 0, 0, 0 }
 		};
@@ -182,12 +193,27 @@ BOOL CSendReadFDTAck::OnInitDialog()
 	// initialize the list
 	m_FDTCtrl.Init( this, &m_FDTList, colDesc );
 
+	//madanner 9/3/02 default UDP port
+	m_port.SetWindowText("47808"); 
+	GetDlgItem(IDC_TTL)->SetWindowText("0");
+	GetDlgItem(IDC_TREMAIN)->SetWindowText("0");
+
 	return TRUE;
 }
 
 void CSendReadFDTAck::OnAddFDT() 
 {
 	m_FDTCtrl.AddButtonClick();
+	//madanner 9/3/02 default UDP port
+	m_port.SetWindowText("47808"); 
+	GetDlgItem(IDC_TTL)->SetWindowText("0");
+	GetDlgItem(IDC_TREMAIN)->SetWindowText("0");
+}
+
+// madanner 9/3/02 added IP address text box
+void CSendReadFDTAck::OnChangeIP() 
+{
+	m_FDTCtrl.OnChangeItem( IDC_IP );
 }
 
 void CSendReadFDTAck::OnRemoveFDT() 
@@ -195,10 +221,11 @@ void CSendReadFDTAck::OnRemoveFDT()
 	m_FDTCtrl.RemoveButtonClick();
 }
 
-void CSendReadFDTAck::OnChangeFDTEntry() 
-{
-	m_FDTCtrl.OnChangeItem( IDC_FDTENTRY );
-}
+// madanner 9/3/02  Not needed... IP address broken out
+//void CSendReadFDTAck::OnChangeFDTEntry() 
+//{
+//	m_FDTCtrl.OnChangeItem( IDC_FDTENTRY );
+//}
 
 void CSendReadFDTAck::OnChangeTTL() 
 {
@@ -214,3 +241,10 @@ void CSendReadFDTAck::OnItemchangingFDTList(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	m_FDTCtrl.OnItemChanging( pNMHDR, pResult );
 }
+
+//madanner 9/3/02
+void CSendReadFDTAck::OnChangePort() 
+{	
+	m_FDTCtrl.OnChangeItem( IDC_BDTPORT );	
+}
+
