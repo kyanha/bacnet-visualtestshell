@@ -28,6 +28,7 @@ class CChildFrame : public CMDIChildWnd
 public:
 	CChildFrame();
 	void SaveBarStates(void);
+	void EPICSLoad( LPCSTR lpszFileName );
 
 // Attributes
 public:
@@ -107,6 +108,7 @@ protected:
 	afx_msg void OnViewDetail();
 	afx_msg void OnViewHex();
 	afx_msg void OnEPICSLoad();
+	afx_msg void OnEPICSLoadAuto();
 	//end 6.24
 	// Added by Yajun Zhou, 2002-7-24
 	afx_msg void OnFileExport();

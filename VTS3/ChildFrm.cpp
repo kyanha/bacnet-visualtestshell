@@ -20,6 +20,8 @@
 #include "CheckEPICSCons.h"
 #include "ScriptLoadResults.h"
 
+#include "VTSPreferences.h"
+
 ///////////////////////////////
 namespace PICS {
 #include "vtsapi.h"
@@ -35,6 +37,8 @@ extern PICS::PICSdb *gPICSdb;
 static char THIS_FILE[] = __FILE__;
 #endif
 
+
+extern VTSPreferences gVTSPreferences;
 
 /////////////////////////////////////////////////////////////////////////////
 // CChildFrame
@@ -80,6 +84,7 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_HEX, OnUpdateViewHex)
 	ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
 	ON_COMMAND(ID_EPICS_LOAD, OnEPICSLoad)
+	ON_COMMAND(ID_EPICS_LOADAUTO, OnEPICSLoadAuto)
 	ON_WM_DESTROY()
 	//Added by Zhenhua ZHu, 2003-6-2
 	ON_COMMAND(ID_FILE_PRINT, OnFilePrint)
@@ -814,8 +819,21 @@ void CChildFrame::OnUpdateFilePrint(CCmdUI* pCmdUI)
 
 void CChildFrame::OnEPICSLoad() 
 {
+	CFileDialog	fd( TRUE, "tpi", NULL, OFN_FILEMUSTEXIST, "EPICS (*.tpi)|*.tpi||" );
+	
+	if (fd.DoModal() == IDOK)
+		EPICSLoad(fd.GetPathName());
+}
+
+
+
+void CChildFrame::EPICSLoad( LPCSTR lpszFileName )
+{
 	int				errc;
 	int             errPICS;
+
+	if ( lpszFileName == NULL || lstrlen(lpszFileName) == 0 )
+		return;
 	
 	if (gPICSdb) {
 		// delete the database
@@ -826,21 +844,13 @@ void CChildFrame::OnEPICSLoad()
 		gPICSdb = 0;
 	}
 
-	// prep a dialog
-	CFileDialog	fd( TRUE, "tpi", NULL, OFN_FILEMUSTEXIST, "EPICS (*.tpi)|*.tpi||" )
-	;
-	
-	// if not acceptable, exit
-	if (fd.DoModal() != IDOK)
-		return;
-
 	// make a new database
 	gPICSdb = new PICS::PICSdb;
 
 	// read in the EPICS
 	// madanner 6/03: ReadTextPICS now returns false if canceled by user
 
-	if ( PICS::ReadTextPICS( (char *)(LPCSTR)fd.GetFileName(), gPICSdb, &errc,&errPICS ) )
+	if ( PICS::ReadTextPICS( (char *) (LPCSTR) lpszFileName, gPICSdb, &errc,&errPICS ) )
 	{
 		TRACE1( "error count = %d\n", errc );
 		//Added by Liangping Xu,2002-11
@@ -856,6 +866,9 @@ void CChildFrame::OnEPICSLoad()
 	// display the results
 	if (errc == 0)
 	{
+		// EPICS file was successfully loaded...  save it as the last
+		gVTSPreferences.Setting_SetLastEPICS(lpszFileName);
+
 		ScriptLoadResults	dlg;
 		dlg.DoModal();
 	} else {
@@ -868,3 +881,8 @@ void CChildFrame::OnEPICSLoad()
 	}
 }
 
+
+void CChildFrame::OnEPICSLoadAuto() 
+{
+	EPICSLoad(gVTSPreferences.Setting_GetLastEPICS());
+}
