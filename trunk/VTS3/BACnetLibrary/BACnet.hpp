@@ -26,6 +26,9 @@ const int				kMaxAddressLen = 8;				// longest address supported
 #define DATE_DONT_CARE	    0xFF				// indicates any value is OK
 #define DATE_SHOULDNT_CARE	0xFE				// should only be don't care value.  Get it?
 
+namespace PICS {
+#include "db.h"
+}
 //
 //	BACnet Address
 //
@@ -83,16 +86,17 @@ class BACnetAPDUDecoder;
 // madanner 9/26/02
 // Decends from MFC base object for dynamic type checking, serialization and other goodies
 
-class BACnetEncodeable : public CObject {
+class BACnetEncodeable : public CObject
+{
 	public:
-		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext ) = 0;
-		virtual void Decode( BACnetAPDUDecoder& dec ) = 0;
+		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+		virtual void Decode( BACnetAPDUDecoder& dec );
 		void Peek( BACnetAPDUDecoder& dec );
 
 		virtual void Encode( char *enc ) const;
 		virtual void Decode( const char *dec );
 
-		virtual int DataType(void);
+		virtual int DataType(void) {return 0;}
 		virtual BACnetEncodeable * clone(void);
 		virtual const char * ToString() const;
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
@@ -646,6 +650,36 @@ class BACnetObjectIdentifier : public BACnetEncodeable {
 
 
 
+//madanner 9/04
+class BACnetObjectPropertyReference : public BACnetEncodeable
+{
+private:
+	bool m_fDataValid;
+
+	public:
+		BACnetObjectIdentifier m_objID;
+		BACnetUnsigned			m_buPropID;
+		int						m_nIndex;
+		
+		BACnetObjectPropertyReference( BACnetAPDUDecoder& dec );
+		BACnetObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index = -1 );
+
+		BACnetObjectPropertyReference &operator =( const BACnetObjectPropertyReference &arg );
+
+		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+		virtual void Decode( BACnetAPDUDecoder& dec );								// decode
+		virtual void Encode( char *enc ) const;
+		virtual void Decode( const char *dec );
+
+		virtual int DataType(void);
+		virtual BACnetEncodeable * clone(void);
+		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetObjectPropertyReference)
+};
+
+
+
 class BACnetAddressBinding : public BACnetEncodeable
 {
 //	private:
@@ -1131,18 +1165,23 @@ class BACnetGenericArray : public BACnetEncodeable
 
 		void ClearArray();
 
+		int m_nElemType;
+		int m_nType;
+
 	public:
-		BACnetGenericArray();
-		BACnetGenericArray(int nSize);
+		BACnetGenericArray() {};
+		BACnetGenericArray( int nDataType, int nSize = -1 );
 		virtual ~BACnetGenericArray();
 
 		// override these guys so they operate on held BACnet type not this.
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
-		void Decode( const char *dec );
+		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+		virtual void Decode( BACnetAPDUDecoder& dec );								// decode
+		virtual void Encode( char *enc ) const;
+		virtual void Decode( const char *dec );
 
 		virtual const char * ToString() const;
+		virtual int DataType(void) { return m_nType; }
+		virtual BACnetEncodeable * NewDecoderElement(BACnetAPDUDecoder& dec);
 
 		BACnetEncodeable * operator[](int nIndex) const;
 		BACnetEncodeable & operator[](int nIndex);
@@ -1164,28 +1203,12 @@ class BACnetPriorityArray : public BACnetGenericArray
 		BACnetPriorityArray( int * paPriority, int nMax, int bNull );
 		BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull );
 
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-
 		BACnetPriorityValue * operator[](int nIndex) const;
 		BACnetPriorityValue & operator[](int nIndex);
 
 		DECLARE_DYNAMIC(BACnetPriorityArray)
 };
 
-
-class BACnetCalendarArray : public BACnetGenericArray
-{
-	public:
-		BACnetCalendarArray();
-		BACnetCalendarArray( BACnetAPDUDecoder& dec );
-
-		void Decode( BACnetAPDUDecoder& dec );
-
-		BACnetCalendarEntry * operator[](int nIndex) const;
-		BACnetCalendarEntry & operator[](int nIndex);
-
-		DECLARE_DYNAMIC(BACnetCalendarArray)
-};
 
 class BACnetTextArray : public BACnetGenericArray
 {
@@ -1194,13 +1217,29 @@ class BACnetTextArray : public BACnetGenericArray
 		BACnetTextArray( char * paText[], int nMax = -1 );
 		BACnetTextArray( char * pText );
 
-		virtual void Decode( BACnetAPDUDecoder& dec );
+		//virtual void Decode( BACnetAPDUDecoder& dec );
 
 		BACnetCharacterString * operator[](int nIndex) const;
 		BACnetCharacterString & operator[](int nIndex);
 
 		DECLARE_DYNAMIC(BACnetTextArray)
 };
+
+
+class BACnetListOfCalendarEntry : public BACnetGenericArray
+{
+	public:
+		BACnetListOfCalendarEntry();
+		BACnetListOfCalendarEntry( BACnetAPDUDecoder& dec );
+
+//		void Decode( BACnetAPDUDecoder& dec );
+
+		BACnetCalendarEntry * operator[](int nIndex) const;
+		BACnetCalendarEntry & operator[](int nIndex);
+
+		DECLARE_DYNAMIC(BACnetListOfCalendarEntry)
+};
+
 
 
 class BACnetUnsignedArray : public BACnetGenericArray
@@ -1210,7 +1249,7 @@ class BACnetUnsignedArray : public BACnetGenericArray
 		BACnetUnsignedArray( unsigned char paUnsigned[], int nMax = -1 );
 		BACnetUnsignedArray( unsigned short paUnsigned[], int nMax = -1 );
 
-		virtual void Decode( BACnetAPDUDecoder& dec );
+//		virtual void Decode( BACnetAPDUDecoder& dec );
 
 		BACnetUnsigned * operator[](int nIndex) const;
 		BACnetUnsigned & operator[](int nIndex);
@@ -1226,12 +1265,60 @@ class BACnetObjectIDList : public BACnetGenericArray
 		BACnetObjectIDList( int nSize );
 		BACnetObjectIDList( BACnetAPDUDecoder& dec );
 
-		virtual void Decode( BACnetAPDUDecoder& dec );
+//		virtual void Decode( BACnetAPDUDecoder& dec );
 
 		BACnetObjectIdentifier * operator[](int nIndex) const;
 		BACnetObjectIdentifier & operator[](int nIndex);
 
 		DECLARE_DYNAMIC(BACnetObjectIDList)
+};
+
+
+class BACnetTimeStampArray : public BACnetGenericArray
+{
+	public:
+		BACnetTimeStampArray();
+		BACnetTimeStampArray( int nSize );
+		BACnetTimeStampArray( BACnetAPDUDecoder& dec );
+
+		BACnetTimeStamp * operator[](int nIndex) const;
+		BACnetTimeStamp & operator[](int nIndex);
+
+		DECLARE_DYNAMIC(BACnetTimeStampArray)
+};
+
+
+class BACnetListOfObjectPropertyReference : public BACnetGenericArray
+{
+	public:
+		BACnetListOfObjectPropertyReference();
+		BACnetListOfObjectPropertyReference( BACnetAPDUDecoder& dec );
+		BACnetListOfObjectPropertyReference( PICS::BACnetObjectPropertyReference * pobjprops );
+
+//		void Decode( const char * dec );
+//		void Decode( BACnetAPDUDecoder& dec );
+//		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+
+		BACnetObjectPropertyReference * operator[](int nIndex) const;
+		BACnetObjectPropertyReference & operator[](int nIndex);
+
+		DECLARE_DYNAMIC(BACnetListOfObjectPropertyReference)
+};
+
+
+
+class BACnetListOfVTClass : public BACnetGenericArray
+{
+	public:
+		BACnetListOfVTClass();
+		BACnetListOfVTClass( BACnetAPDUDecoder& dec );
+
+		virtual BACnetEncodeable * NewDecoderElement(BACnetAPDUDecoder& dec);
+
+		BACnetEnumerated * operator[](int nIndex) const;
+		BACnetEnumerated & operator[](int nIndex);
+
+		DECLARE_DYNAMIC(BACnetListOfVTClass)
 };
 
 

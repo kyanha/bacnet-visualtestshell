@@ -37,6 +37,9 @@ int cvt$convert_float( const void *, int, void *, int, int );
 //madanner 9/04
 namespace PICS {
 #include "vtsapi.h"
+#include "db.h"
+#include "dudapi.h"
+#include "dudtool.h"
 }
 #include "propid.h"
 
@@ -264,15 +267,30 @@ IMPLEMENT_DYNAMIC(BACnetEncodeable, CObject)
 //	BACnetEncodeable
 //
 
-void BACnetEncodeable::Encode( char * ) const
+void BACnetEncodeable::Encode( char * enc ) const
 {
-	throw_(2) /*not implemented */;
+	sprintf(enc, "%s.Encode(char*) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
 }
+
 
 void BACnetEncodeable::Decode( const char * )
 {
-	throw_(3) /*not implemented */;
+	TRACE1("%s.Decode(char*) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
 }
+
+
+void BACnetEncodeable::Encode( BACnetAPDUEncoder& enc, int context /* = kAppContext */)
+{
+	TRACE1("%s.Encode(BACnetAPDUEncode& enc) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
+}
+
+
+void BACnetEncodeable::Decode( BACnetAPDUDecoder& dec )
+{
+	TRACE1("%s.Decode(BACnetAPDUDecoder& enc) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
+}
+
+
 
 void BACnetEncodeable::Peek( BACnetAPDUDecoder& dec )
 {
@@ -296,17 +314,11 @@ const char * BACnetEncodeable::ToString() const
 	// more than one of these in calling parameters... Use:  CString(this->ToString()) so the data
 	// will be allocated and copied out before the next call blows away the string.
 
-	static char buffer[40];		// should be enough for primitive values
+	static char buffer[1000];		// should be enough for primitive values
 	Encode(buffer);
 	return buffer;
 }
 
-
-int BACnetEncodeable::DataType()
-{
-	ASSERT(0);		// shouldn't be called here...
-	return 0;
-}
 
 
 BACnetEncodeable * BACnetEncodeable::clone()
@@ -445,9 +457,17 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 
 		case calist:	// array of calendar entries -----------------------------
 
-			return new BACnetCalendarArray(dec);
+			return new BACnetListOfCalendarEntry(dec);
 
-		case dabind:	// device address binding --------------------------------
+		case dabind:	// device address binding list--------------------------------
+
+			{
+			BACnetGenericArray * parray = new BACnetGenericArray(dabindelem);
+			parray->Decode(dec);
+			return parray;
+			}
+
+		case dabindelem:	// device address binding --------------------------------
 
 			return new BACnetAddressBinding(dec);
 
@@ -476,6 +496,30 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 		case TSTMP:		// time stamp, could be multiple type---------------------
 
 			return new BACnetTimeStamp(dec);
+
+		case TSTMParr:	// array of time stamp, could be multiple type---------------------
+
+			return new BACnetTimeStampArray(dec);
+
+		case propref:	// object prop refs
+
+			return new BACnetObjectPropertyReference(dec);
+
+		case lopref:	// list of object property references
+
+			return new BACnetListOfObjectPropertyReference(dec);
+
+		case recip:		// bacnet recipient
+
+			return new BACnetRecipient(dec);
+
+		case vtcl:		// vt classes
+
+			return new BACnetListOfVTClass(dec);
+
+//		case reciplist:	// list of bacnet destinations
+
+//			return new BACnetDestination(dec);
 	}
 
 	return NULL;
@@ -731,12 +775,15 @@ void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
 	tag = (dec.pktLength--,*dec.pktBuffer++);
 	
 	// it could be application tagged
-	if (tag == 0x10) {
+	if (tag == 0x10)
+	{
 		boolValue = bFalse;
-	} else
-	if (tag == 0x11) {
+	} else if (tag == 0x11)
+	{
 		boolValue = bTrue;
-	} else {
+	}
+	else
+	{
 		// verify context tagged and length
 		if ((tag & 0x0F) != 0x09)
 			throw_(8) /* bad length */;
@@ -4924,6 +4971,124 @@ BACnetObjectIdentifier & BACnetObjectIdentifier::operator =( const BACnetObjectI
 //==============================================================================
 
 
+IMPLEMENT_DYNAMIC(BACnetObjectPropertyReference, BACnetEncodeable)
+
+BACnetObjectPropertyReference::BACnetObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index /* = -1 */)
+								: m_objID(obj_id), m_buPropID(prop_id)
+{
+	m_nIndex = index;
+}
+
+
+
+BACnetObjectPropertyReference::BACnetObjectPropertyReference( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
+
+void BACnetObjectPropertyReference::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	PICS::BACnetObjectPropertyReference objprop;
+
+	objprop.next = NULL;
+	objprop.object_id = m_objID.objID;
+	objprop.property_id = m_buPropID.uintValue;
+	objprop.pa_index = m_nIndex == -1 ? NotAnArray : (unsigned short) m_nIndex;
+
+	//m_objID.Encode(enc, context);
+	//m_buPropID.Encode(enc, context);
+
+	//if ( m_nIndex != -1 )
+		//BACnetUnsigned(m_nIndex).Encode(enc, context);
+
+	unsigned char * pEnd = PICS::eLOPREF(enc.pktBuffer + enc.pktLength, &objprop);
+	enc.pktLength += (int) (pEnd - (enc.pktBuffer+enc.pktLength));
+}
+
+
+void BACnetObjectPropertyReference::Decode( BACnetAPDUDecoder& dec )
+{
+	m_fDataValid = false;
+	BACnetEncodeable::Decode(dec);
+}
+
+
+void BACnetObjectPropertyReference::Encode( char *enc ) const
+{
+	if ( !m_fDataValid )
+		BACnetEncodeable::Encode(enc);
+	else
+	{
+		char szObject[100];
+		char szProp[20];
+		char szIndex[20];
+
+		m_objID.Encode(szObject);
+		m_buPropID.Encode(szProp);
+
+		if ( m_nIndex != -1 )
+			BACnetUnsigned(m_nIndex).Encode(szIndex);
+
+		sprintf(enc, "[%s, %s", szObject, szProp);
+		if ( m_nIndex != -1 )
+		{
+			strcat(enc, ", ");
+			strcat(enc, szIndex);
+		}
+
+		strcat(enc, "]");
+	}
+}
+
+
+void BACnetObjectPropertyReference::Decode( const char *dec )
+{
+	m_fDataValid = false;
+	BACnetEncodeable::Decode(dec);
+}
+
+
+int BACnetObjectPropertyReference::DataType()
+{
+	return propref;
+}
+
+
+BACnetEncodeable * BACnetObjectPropertyReference::clone()
+{
+	return new BACnetObjectPropertyReference(m_objID.objID, m_buPropID.uintValue, m_nIndex);
+}
+
+
+
+bool BACnetObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	if ( PreMatch(iOperator) )
+		return true;
+
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference)));
+
+	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetObjectPropertyReference &) rbacnet).m_objID.objID) ||
+		 !::Match(iOperator, (int) m_buPropID.uintValue, (int) ((BACnetObjectPropertyReference &) rbacnet).m_buPropID.uintValue) )
+		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+
+	return true;
+}
+
+
+BACnetObjectPropertyReference & BACnetObjectPropertyReference::operator =( const BACnetObjectPropertyReference &arg )
+{
+	m_objID = arg.m_objID;
+	m_buPropID = arg.m_buPropID;
+	m_nIndex = arg.m_nIndex;
+	return *this;
+}
+
+
+//==============================================================================
+
 IMPLEMENT_DYNAMIC(BACnetAddressBinding, BACnetEncodeable)
 
 
@@ -5212,7 +5377,7 @@ void BACnetRecipient::Decode(BACnetAPDUDecoder& dec)
 
 int BACnetRecipient::DataType()
 {
-	return recipt;
+	return recip;
 }
 
 BACnetEncodeable * BACnetRecipient::clone()
@@ -5741,15 +5906,11 @@ bool BACnetTimeStamp::Match( BACnetEncodeable &rbacnet, int iOperator, CString *
 IMPLEMENT_DYNAMIC(BACnetGenericArray, BACnetEncodeable)
 
 
-BACnetGenericArray::BACnetGenericArray()
+BACnetGenericArray::BACnetGenericArray( int nDataType, int nSize /* = -1 */)
 {
-}
-
-
-
-BACnetGenericArray::BACnetGenericArray( int nSize )
-{
-	m_apBACnetObjects.SetSize(nSize);
+	m_nElemType = nDataType;
+	if ( nSize != -1 )
+		m_apBACnetObjects.SetSize(nSize);
 }
 
 
@@ -5757,31 +5918,48 @@ BACnetGenericArray::BACnetGenericArray( int nSize )
 void BACnetGenericArray::Decode( BACnetAPDUDecoder& dec )
 {
 	ClearArray();
-	BACnetUnsigned bacnetUnsigned(dec);
-	m_apBACnetObjects.SetSize(bacnetUnsigned.uintValue);
+	BACnetAPDUTag tag;
+
+	while (true)
+	{
+		tag.Peek(dec);
+		if ( tag.tagClass == closingTagClass )
+			break;
+
+		Add(NewDecoderElement(dec));
+	}
 }
 
 
 void BACnetGenericArray::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	BACnetUnsigned bacnetSize(m_apBACnetObjects.GetSize());
-	bacnetSize.Encode(enc, context);
+//	BACnetUnsigned bacnetSize(m_apBACnetObjects.GetSize());
+//	bacnetSize.Encode(enc, context);
+
+	if ( context != kAppContext )
+		BACnetOpeningTag().Encode(enc,context);
 
 	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
 		if ( m_apBACnetObjects[i] != NULL )
-			m_apBACnetObjects[i]->Encode(enc, context);
+			m_apBACnetObjects[i]->Encode(enc);
+
+	if ( context != kAppContext )
+		BACnetClosingTag().Encode(enc,context);
 }
 
 
 void BACnetGenericArray::Encode( char *enc ) const
 {
-	ASSERT(0); // not implemented yet
 }
 
 
 void BACnetGenericArray::Decode( const char *dec )
 {
-	ASSERT(0); // not implemented yet
+}
+
+BACnetEncodeable * BACnetGenericArray::NewDecoderElement( BACnetAPDUDecoder& dec )
+{
+	return BACnetEncodeable::Factory(m_nElemType, dec);
 }
 
 
@@ -5897,19 +6075,23 @@ IMPLEMENT_DYNAMIC(BACnetPriorityArray, BACnetGenericArray)
 
 BACnetPriorityArray::BACnetPriorityArray()
 {
+	m_nElemType = prival;
 }
 
 
 
 BACnetPriorityArray::BACnetPriorityArray( BACnetAPDUDecoder& dec )
-					:BACnetGenericArray(nPRIO)
+					:BACnetGenericArray(prival, nPRIO)
 {
 	Decode(dec);
 }
 
 
 BACnetPriorityArray::BACnetPriorityArray( float * paPriority, int nMax, float fNull )
+					:BACnetGenericArray(prival)
 {
+	m_nType = paf;
+
 	for ( int i = 0; i < nMax; i++ )
 		if ( paPriority[i] == fNull )
 			Add(new BACnetPriorityValue(new BACnetNull()));
@@ -5919,7 +6101,10 @@ BACnetPriorityArray::BACnetPriorityArray( float * paPriority, int nMax, float fN
 
 
 BACnetPriorityArray::BACnetPriorityArray( int * paPriority, int nMax, int bNull )
+					:BACnetGenericArray(prival)
 {
+	m_nType = pab;
+
 	for ( int i = 0; i < nMax; i++ )
 		if ( paPriority[i] == bNull )
 			Add(new BACnetPriorityValue(new BACnetNull()));
@@ -5929,7 +6114,10 @@ BACnetPriorityArray::BACnetPriorityArray( int * paPriority, int nMax, int bNull 
 
 
 BACnetPriorityArray::BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull )
+					:BACnetGenericArray(prival)
 {
+	m_nType = pau;
+
 	for ( int i = 0; i < nMax; i++ )
 		if ( paPriority[i] == uNull )
 			Add(new BACnetPriorityValue(new BACnetNull()));
@@ -5937,14 +6125,6 @@ BACnetPriorityArray::BACnetPriorityArray( unsigned short * paPriority, int nMax,
 			Add(new BACnetPriorityValue(new BACnetUnsigned(paPriority[i])));
 }
 
-
-void BACnetPriorityArray::Decode( BACnetAPDUDecoder& dec )
-{
-//	BACnetGenericArray::Decode(dec);		// no on priority arrays... assumed to be 16
-
-	for ( int i = 0; i < GetSize(); i++)
-		m_apBACnetObjects[i] = new BACnetPriorityValue(dec);
-}
 
 
 
@@ -5966,43 +6146,36 @@ BACnetPriorityValue & BACnetPriorityArray::operator[](int nIndex)
 
 
 
-IMPLEMENT_DYNAMIC(BACnetCalendarArray, BACnetGenericArray)
+IMPLEMENT_DYNAMIC(BACnetListOfCalendarEntry, BACnetGenericArray)
 
 
 
-BACnetCalendarArray::BACnetCalendarArray()
+BACnetListOfCalendarEntry::BACnetListOfCalendarEntry()
+							:BACnetGenericArray(calent)
 {
+	m_nType = calist;
 }
 
 
-BACnetCalendarArray::BACnetCalendarArray( BACnetAPDUDecoder& dec )
+BACnetListOfCalendarEntry::BACnetListOfCalendarEntry( BACnetAPDUDecoder& dec )
+							:BACnetGenericArray(calent)
 {
+	m_nType = calist;
 	Decode(dec);
 }
 
 
-
-void BACnetCalendarArray::Decode( BACnetAPDUDecoder& dec )
-{
-	BACnetGenericArray::Decode(dec);
-
-	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
-		m_apBACnetObjects[i] = new BACnetCalendarEntry(dec);
-}
-
-
-
-BACnetCalendarEntry * BACnetCalendarArray::operator[](int nIndex) const
+BACnetCalendarEntry * BACnetListOfCalendarEntry::operator[](int nIndex) const
 {
 	return (BACnetCalendarEntry *) m_apBACnetObjects[nIndex];
 }
 
 
-
-BACnetCalendarEntry & BACnetCalendarArray::operator[](int nIndex)
+BACnetCalendarEntry & BACnetListOfCalendarEntry::operator[](int nIndex)
 {
 	return  (BACnetCalendarEntry &) *m_apBACnetObjects[nIndex];
 }
+
 
 
 
@@ -6013,7 +6186,10 @@ IMPLEMENT_DYNAMIC(BACnetTextArray, BACnetGenericArray)
 
 
 BACnetTextArray::BACnetTextArray( char * paText[], int nMax /* = -1 */ )
+				:BACnetGenericArray(s132)
 {
+	m_nType = statext;
+
 	int nSize = 0;
 
 	while ( paText[nSize] != NULL  && (nMax == -1 || nSize < nMax) )
@@ -6024,36 +6200,38 @@ BACnetTextArray::BACnetTextArray( char * paText[], int nMax /* = -1 */ )
 // Constructor for only one array element
 
 BACnetTextArray::BACnetTextArray( char * pText )
+				:BACnetGenericArray(s132)
 {
+	m_nType = statext;
 	m_apBACnetObjects.Add(new BACnetCharacterString(pText));
 }
 
 
 BACnetTextArray::BACnetTextArray( BACnetAPDUDecoder& dec )
+				:BACnetGenericArray(s132)
 {
+	m_nType = statext;
 	Decode(dec);
 }
 
 
 
-void BACnetTextArray::Decode( BACnetAPDUDecoder& dec )
-{
+//void BACnetTextArray::Decode( BACnetAPDUDecoder& dec )
+//{
 	// Don't need unsigned at beginning of decode stream to tell us how many strings follow
 	// We'll figure that out by encountering a null in place of a string
 
-//	BACnetGenericArray::Decode(dec);
+//	BACnetAPDUTag	tag;
 
-	BACnetAPDUTag	tag;
+//	while ( true )
+//	{
+//		tag.Peek(dec);
+//		if ( tag.tagNumber != characterStringAppTag )
+//			break;
 
-	while ( true )
-	{
-		tag.Peek(dec);
-		if ( tag.tagNumber != characterStringAppTag )
-			break;
-
-		Add(new BACnetCharacterString(dec));
-	}
-}
+//		Add(new BACnetCharacterString(dec));
+//	}
+//}
 
 
 BACnetCharacterString * BACnetTextArray::operator[](int nIndex) const
@@ -6078,7 +6256,10 @@ IMPLEMENT_DYNAMIC(BACnetUnsignedArray, BACnetGenericArray)
 // nMax, if specified, says don't check for zero to stop...
 
 BACnetUnsignedArray::BACnetUnsignedArray( unsigned char paUnsigned[], int nMax /* = -1 */ )
+					:BACnetGenericArray(ud)
 {
+	m_nType = stavals;
+
 	int nSize = 0;
 
 	while ( (paUnsigned[nSize] != 0 || nMax != -1)  && (nMax == -1 || nSize < nMax) )
@@ -6087,7 +6268,10 @@ BACnetUnsignedArray::BACnetUnsignedArray( unsigned char paUnsigned[], int nMax /
 
 
 BACnetUnsignedArray::BACnetUnsignedArray( unsigned short paUnsigned[], int nMax /* = -1 */ )
+					:BACnetGenericArray(ud)
 {
+	m_nType = stavals;
+
 	// Same as for chars but, well, different.
 	// This will probably go away if I change the EPICS internal store to have 'word' types
 	// for alarm_values and fault_values in the MSI and MSO object, like in the MSV object.
@@ -6100,18 +6284,12 @@ BACnetUnsignedArray::BACnetUnsignedArray( unsigned short paUnsigned[], int nMax 
 
 
 BACnetUnsignedArray::BACnetUnsignedArray( BACnetAPDUDecoder& dec )
+					:BACnetGenericArray(ud)
 {
+	m_nType = stavals;
 	Decode(dec);
 }
 
-
-void BACnetUnsignedArray::Decode( BACnetAPDUDecoder& dec )
-{
-	BACnetGenericArray::Decode(dec);
-
-	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
-		m_apBACnetObjects[i] = new BACnetUnsigned(dec);
-}
 
 
 BACnetUnsigned * BACnetUnsignedArray::operator[](int nIndex) const
@@ -6127,45 +6305,97 @@ BACnetUnsigned & BACnetUnsignedArray::operator[](int nIndex)
 }
 
 
+//====================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetTimeStampArray, BACnetGenericArray)
+
+
+// nMax, if specified, says don't check for zero to stop...
+
+BACnetTimeStampArray::BACnetTimeStampArray()
+					:BACnetGenericArray(TSTMP)
+{
+	m_nType = TSTMParr;
+}
+
+
+BACnetTimeStampArray::BACnetTimeStampArray( int nSize )
+					:BACnetGenericArray(TSTMP, nSize)
+{
+	m_nType = TSTMParr;
+}
+
+
+BACnetTimeStampArray::BACnetTimeStampArray( BACnetAPDUDecoder& dec )
+					:BACnetGenericArray(TSTMP)
+{
+	m_nType = TSTMParr;
+	Decode(dec);
+}
+
+
+
+BACnetTimeStamp * BACnetTimeStampArray::operator[](int nIndex) const
+{
+	return (BACnetTimeStamp *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetTimeStamp & BACnetTimeStampArray::operator[](int nIndex)
+{
+	return  (BACnetTimeStamp &) *m_apBACnetObjects[nIndex];
+}
+
+
+//====================================================================
+
+
 
 IMPLEMENT_DYNAMIC(BACnetObjectIDList, BACnetGenericArray)
 
 
 
 BACnetObjectIDList::BACnetObjectIDList()
+					:BACnetGenericArray(ob_id)
 {
+	m_nType = lobj;
 }
 
 
 BACnetObjectIDList::BACnetObjectIDList( int nSize )
-					:BACnetGenericArray(nSize)
+					:BACnetGenericArray(ob_id, nSize)
 {
+	m_nType = lobj;
 }
 
 
 BACnetObjectIDList::BACnetObjectIDList( BACnetAPDUDecoder& dec )
+					:BACnetGenericArray(ob_id)
 {
+	m_nType = lobj;
 	Decode(dec);
 }
 
 
 
-void BACnetObjectIDList::Decode( BACnetAPDUDecoder& dec )
-{
+//void BACnetObjectIDList::Decode( BACnetAPDUDecoder& dec )
+//{
 	// Object ID lists suck out of the stream until a non-object ID tag is found...
-	BACnetAPDUTag tag;
+//	BACnetAPDUTag tag;
 
 //	BACnetGenericArray::Decode(dec);		// don't use unsigned int in front of list to determine size
 
-	while (true)
-	{
-		tag.Peek(dec);
-		if ( tag.tagNumber != objectIdentifierAppTag )
-			break;
+//	while (true)
+//	{
+//		tag.Peek(dec);
+//		if ( tag.tagNumber != objectIdentifierAppTag )
+//			break;
 
-		Add(new BACnetObjectIdentifier(dec));
-	}
-}
+//		Add(new BACnetObjectIdentifier(dec));
+//	}
+//}
 
 
 BACnetObjectIdentifier * BACnetObjectIDList::operator[](int nIndex) const
@@ -6179,6 +6409,104 @@ BACnetObjectIdentifier & BACnetObjectIDList::operator[](int nIndex)
 {
 	return  (BACnetObjectIdentifier &) *m_apBACnetObjects[nIndex];
 }
+
+
+
+//====================================================================
+
+
+
+IMPLEMENT_DYNAMIC(BACnetListOfObjectPropertyReference, BACnetGenericArray)
+
+
+
+BACnetListOfObjectPropertyReference::BACnetListOfObjectPropertyReference()
+									:BACnetGenericArray(propref)
+{
+	m_nType = lopref;
+}
+
+
+BACnetListOfObjectPropertyReference::BACnetListOfObjectPropertyReference( BACnetAPDUDecoder& dec )
+									:BACnetGenericArray(propref)
+{
+	m_nType = lopref;
+	Decode(dec);
+}
+
+
+BACnetListOfObjectPropertyReference::BACnetListOfObjectPropertyReference( PICS::BACnetObjectPropertyReference * pobjprops )
+									:BACnetGenericArray(propref)
+{
+	m_nType = lopref;
+	ClearArray();
+	while ( pobjprops != NULL )
+	{
+		Add(new ::BACnetObjectPropertyReference(pobjprops->object_id, pobjprops->property_id, pobjprops->pa_index));
+		pobjprops = pobjprops->next;
+	}
+}
+
+
+
+
+BACnetObjectPropertyReference * BACnetListOfObjectPropertyReference::operator[](int nIndex) const
+{
+	return (BACnetObjectPropertyReference *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetObjectPropertyReference & BACnetListOfObjectPropertyReference::operator[](int nIndex)
+{
+	return  (BACnetObjectPropertyReference &) *m_apBACnetObjects[nIndex];
+}
+
+
+
+//====================================================================
+
+
+
+IMPLEMENT_DYNAMIC(BACnetListOfVTClass, BACnetGenericArray)
+
+
+
+BACnetListOfVTClass::BACnetListOfVTClass()
+					:BACnetGenericArray(et)
+{
+	m_nType = vtcl;
+}
+
+
+BACnetListOfVTClass::BACnetListOfVTClass( BACnetAPDUDecoder& dec )
+					:BACnetGenericArray(et)
+{
+	m_nType = vtcl;
+	Decode(dec);
+}
+
+
+BACnetEncodeable * BACnetListOfVTClass::NewDecoderElement( BACnetAPDUDecoder& dec )
+{
+	BACnetEncodeable * penum = BACnetEncodeable::Factory(et, dec, VT_CLASSES_SUPPORTED);
+	penum->Decode(dec);
+	return penum;
+}
+
+
+BACnetEnumerated * BACnetListOfVTClass::operator[](int nIndex) const
+{
+	return (BACnetEnumerated *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetEnumerated & BACnetListOfVTClass::operator[](int nIndex)
+{
+	return  (BACnetEnumerated &) *m_apBACnetObjects[nIndex];
+}
+
 
 
 
@@ -6329,7 +6657,7 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 
 			case calist:	// array of calendar entries -----------------------------
 
-				BACnetCalendarArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+				BACnetListOfCalendarEntry(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			case dabind:	// device address binding --------------------------------
@@ -6369,6 +6697,26 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 				BACnetTimeStamp(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
+			case TSTMParr:		// array of timestamps
+
+				BACnetTimeStampArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+				break;
+
+			case propref: // object prop refs
+
+				BACnetObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+				break;
+
+			case lopref:  // list of object prop refs
+				BACnetListOfObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+				break;
+
+			//case tsrecip: // time synch recipients
+			case recip:		 // recipient
+
+				BACnetRecipient(dec).Match(*GetObject(), iOperator, &strThrowMessage);
+				break;
+
 			default:
 
 				strThrowMessage.Format(IDS_SCREX_COMPUNSUPPORTED, GetType() );
@@ -6401,21 +6749,12 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
              p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
 			break;
 
-		case vtcl: // vt classes
-				 p= eVTCL(p,(BACnetVTClassList far*)msg->pv);
-			break;
-
 		case evparm: // event parameter
 				 p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
 			break;
 
 		case skeys: // session keys
 				 p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
-			break;
-
-		case tsrecip: // time synch recipients
-		case recip: // recipient
-				 p= eRECIP(p,(BACnetRecipient far*)msg->pv);
 			break;
 
 		case reciplist: // list of BACnetDestination
@@ -6428,11 +6767,6 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 
 		case wsched: // weekly schedule: array[7] of list of timevalue
 				 p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
-			break;
-
-		case propref: // list of object prop refs
-		case lopref:  // list of object prop refs
-				 p= eLOPREF(p,(BACnetObjectPropertyReference far*)msg->pv);
 			break;
 
 		case setref: // setpoint reference

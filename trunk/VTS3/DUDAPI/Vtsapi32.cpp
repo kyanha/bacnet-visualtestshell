@@ -3615,6 +3615,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 				case flt:						//float
 					*(float *)pstruc=(float)atof(lp);
 					break;
+				case uwarr:
 				case uw:						//unsigned word
 				//Note: this is a hack to handle the case of NotificationClass Priority array (3 unsigned words)
 					if (pd->PropFlags&IsArray)	//this is an array of words			***012 Begin
@@ -3671,6 +3672,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                     //if (ParseLogRec((BACnetLogRecord *)pstruc)) return true;
                  	break;
                 case TSTMP:
+				case TSTMParr:		// madanner 9/04
                     if (ParseTimeStamp((BACnetTimeStamp *)pstruc)) return true;
 					break;
 				// *****018  begin
