@@ -26,11 +26,12 @@ protected:
 
 // Attributes
 public:
+	CEPICSViewNodeObject * m_pObjectNode;
+
 	void Reset( CEPICSViewNodeObject * pObjectNode, LPCSTR lpszColumnText );
 	void SetColumnText( int nCol, LPCSTR lpszText );
 
 private:
-	CEPICSViewNodeObject * m_pObjectNode;
 	POSITION m_curpos;
 
 	BOOL IsPortSelected(void);

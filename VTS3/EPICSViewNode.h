@@ -121,6 +121,7 @@ public:
 	void SetDeviceValue( int iIndex, LPCSTR lpszValue );
 	void ClearDeviceValues(void);
 	unsigned long GetObjectID(void);
+	int GetPropertyIndex( DWORD dwPropID, unsigned short * pParseType );
 	unsigned long GetPropertyID( int nLocalIndex );
 	unsigned long GetPropertyIDAndValue( int nLocalIndex, BACnetAnyValue * pany );
 	BOOL HasDeviceValues(void);

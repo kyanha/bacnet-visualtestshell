@@ -1190,7 +1190,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 				if( (pDatabase->propflags[nPropIndex] & ValueUnknown) == ValueUnknown )	// PropertyValue is unspecified
 					continue;												// skip
 
-				if ( PICS::GetPropNameSupported(szTemp, nPropIndex, pDatabase->object_type, pDatabase->propflags, &dwbogus) > 0 )
+				if ( PICS::GetPropNameSupported(szTemp, nPropIndex, pDatabase->object_type, pDatabase->propflags, &dwbogus, NULL) > 0 )
 				{
 					str.Format(" ;-------------------------------------------------------------------------------------\n" \
 						       "  TEST#%d.%d - Read %s\n" \
