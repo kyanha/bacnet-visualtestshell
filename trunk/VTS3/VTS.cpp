@@ -1459,12 +1459,91 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //
 //	3.4.6  	July, 2004 ====================
 //
-//          Bug 996723: Crashes if long Ethernet adapter name.  
-//          Bug 444179: Close send window when send button hit.  Now there are
-//                      two send buttons on the Send dialog:  One button sends the packet
-//                      and leaves the dialog open, and the other button sends the packet
-//                      and immediately closes the Send dialog.
-
+//         # The interface to the NB-Link MS/TP device was modified to improve performance.
+//         # Send windows can now be minimized.
+//         # Bug 974701 & 996723: Fixed a problem with VTS crashing if the network adapter name exceeded 64 characters.
+//         # Bug 444179:  Added a "Send & Close" button to the Send dialog box that causes the Send dialog to close immediately upon sending the message.
+//         # Bug 799217:  Now VTS can automatically send a BACnet SegmentACK, if the current active port has been bound to a device.  So when using VTS to send a RP/RPM for a property that will force the IUT to send a segmented response, if the IUT does send a segmented response, then VTS will automatically respond with BACnet SegmentACK packets as needed to receive the entire segmented response.
+//         # Bug 895889:  When a script referenced a timeout specified in EPICS, the script interpretted the value as seconds instead of milliseconds.  Now VTS understands that the timeouts specified in the EPICS are specified in milliseconds, and it converts these values into seconds for the script executor.
+//         # Bug 899927:  VTS now properly accepts the section title "BACnet Object Types Supported:" in an EPICS file.
+//         # Bug 791999: In the EPICS file, the Total_Record_Count property can now accept large numerical values.
+//         # Bug 922818: Fixed a problem with VTS crashing during the EPICS consistency check.
+//         # Changes to conform to 135-2001 addendum b:
+//
+//          * Feature request 950150:  Awareness of the BUFFER_READY Event Type (context 10) was added.
+//          * Feature request 950159: The decoder for the ConfirmedEventNotification service has been enhanced to decode the new context 10 (buffer-ready) production of the BACnetNotificationParameters, and the sniffer and the script executor also have been updated to make the new variables in the context 10 production available to the script via a RECEIVE (EXPECT) statement.
+//          * Feature request 950145: ReadRange was modified for 2001b: 
+//                o The 'By Time' option for the 'Range' parameter produces a context 7 encoding, not context 4
+//                o The 'Time Range' option for the 'Range' parameter has been removed.
+//                o A new 'By Sequence Number' option for the 'Range' parameter was added that produces a context 6 encoding, which uses the "referenceIndex" and "count" parameters.
+//                o The two reference time parameters in the ReadRange dialog have been converted into a single Reference time parameter named 'Reference Time'.
+//                o Decoding of ReadRange-ACK was modified to expect the optional 'firstSequenceNumber' parameter, which is context 6, of datatype unsigned32.
+//          * Feature request 950136: TrendLog Object was modified to conform to 135-2001 addendum b:
+//                o Removed Previous_Notify_Time & Current_Notify_Time properties.
+//                o Added Last_Notify_Record property.
+//
+//      # Feature request 950059: Added support for the GetInformation service.
+//      # Feature request 444242: Added custom dialog boxes (for use in the Send window) for entering the following complex datatypes:
+//
+//         1. BACnetAction
+//         2. BACnetActionCommand
+//         3. BACnetActionList
+//         4. BACnetBinaryPV
+//         5. BACnetClientCOV
+//         6. BACnetCOVSubscription
+//         7. BACnetDailySchedule
+//         8. BACnetDaysOfWeek
+//         9. BACnetDeviceStatus
+//        10. BACnetDeviceObjectPropertyReference
+//        11. BACnetDeviceObjectReference
+//        12. BACnetEngineeringUnits
+//        13. BACnetEventParameter
+//        14. BACnetEventState
+//        15. BACnetEventTransitionBits
+//        16. BACnetEventType
+//        17. BACnetFileAccessMethod
+//        18. BACnetLifeSafetyMode
+//        19. BACnetLifeSafetyOperation
+//        20. BACnetLifeSafetyState
+//        21. BACnetLimitEnable
+//        22. BACnetLogRecord
+//        23. BACnetLogStatus
+//        24. BACnetMaintenance
+//        25. BACnetNotifyType
+//        26. BACnetObjectPropertyReference
+//        27. BACnetObjectPropertyValue
+//        28. BACnetObjectType
+//        29. BACnetObectTypesSupported
+//        30. BACnetPolarity
+//        31. BACnetPriorityArray
+//        32. BACnetPriorityValue
+//        33. BACnetProgramError
+//        34. BACnetProgramRequest
+//        35. BACnetProgramState
+//        36. BACnetPropertyIdentifier
+//        37. BACnetPropertyReference
+//        38. BACnetPropertyStates
+//        39. BACnetPropertyValue
+//        40. BACnetRecipient
+//        41. BACnetRecipientProcess
+//        42. BACnetReliability
+//        43. BACnetResultFlags
+//        44. BACnetSegmentation
+//        45. BACnetServicesSupported
+//        46. BACnetSessionKey
+//        47. BACnetSetpointReference
+//        48. BACnetSilenceState
+//        49. BACnetSpecialEvent
+//        50. BACnetStatusFlags
+//        51. BACnetTimeStamp
+//        52. BACnetTimeValue
+//        53. BACnetVTClass
+//        54. BACnetVTSession
+//        55. BACnetWeekNDay
+//        56. ListOfBACnetDestination
+//        57. ListOfBACnetReadAccessResult
+//        58. ListOfBACnetReadAccessSpecification
+//
 			 
 			
 			
