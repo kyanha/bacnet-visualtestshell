@@ -186,7 +186,8 @@ static char		*lp;								//pointer into lb
 static word		lc;									//current 1-based line in file
 static int			lerrc;								//count of errors
 static FILE		*ifile;								//current input file				***008
-static int      lPICSCons;
+static int      lPICSErr;                           //added by xlp  
+
 //*****017 begin
 static octet	newParseType;						
 static word		newPropET;
@@ -886,10 +887,11 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 //		errc	pointer to an error counter
 //out:	ptr to the created list of database objects
 
-void APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc)
+void APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc,int *errPICS)
 {	int			i,j;
 	char opj[300]; //line added by MAG
 	generic_object *pd2;  // line added by MAG for debug only
+	lPICSErr=0;
 	
 	pd->Database=NULL;
 	memset(pd->BACnetStandardObjects,soNotSupported,sizeof(pd->BACnetStandardObjects));	     //added by xlp,2002-11
@@ -998,12 +1000,21 @@ void APIENTRY ReadTextPICS(char *tp,PICSdb *pd,int *errc)
 	};
 rtpclose:
 	fclose(ifile);							 //									***008
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 // add EPICS consistency Check ,xlp,2002-11
+    ::DeleteFile("c:\\EPICSConsChk.txt");
 	CheckPICSObjCons(pd);                  
     CheckPICSServCons(pd);               
     CheckPICSPropCons(pd);      
-	
+	*errPICS=lPICSErr;	
+    //clear the global variables
+	ProtocolServSup.PropSupValue=NULL;
+	ProtocolServSup.ObjServNum=0;
+	ProtocolObjSup.PropSupValue=NULL;
+	ProtocolObjSup.ObjServNum=0;
+	memset(ObjInTestDB,0,sizeof(ObjInTestDB));
+	memset(DevObjList,0,sizeof(DevObjList));
+//////////////////////////////////////////////////////////////
 rtpexit:
 	*errc=lerrc;
 
@@ -2053,7 +2064,7 @@ void CheckObjRequiredProp(dword hi_propFlag,dword lo_propFlag,generic_object *ob
 		if(i<32){ 
 		  if(lo_propFlag&flag1){
 				if(!((obj->propflags[pIndex])&1)){
-					sprintf(errMsg,"(%s,%u)must contain No.%d required property: %s!\n ",objName,objInstance,pIndex,propName);
+					sprintf(errMsg,"Object (%s,%u)must contain required property named %s!\n",objName,objInstance,propName);
 					PrintToFile(errMsg);
 					tperror(errMsg,false);
 				}
@@ -2063,7 +2074,7 @@ void CheckObjRequiredProp(dword hi_propFlag,dword lo_propFlag,generic_object *ob
 		 else{
   		   if(hi_propFlag&flag2){
 				if(!((obj->propflags[pIndex])&1)){
-					sprintf(errMsg,"(%s,%u)must contain No.%d required property--%s!\n ",objName,objInstance,pIndex,propName);
+					sprintf(errMsg,"Object (%s,%u)must contain required property named %s!\n",objName,objInstance,propName);
 					PrintToFile(errMsg);
 					tperror(errMsg,false);
 				}
@@ -2117,6 +2128,7 @@ void PrintToFile(char *outBuf)
 {
 	FILE *op;  
     word strLength;
+	lPICSErr++;
 	if(outBuf == NULL) return;
 	strLength=strlen(outBuf);
 	op = fopen("c:\\EPICSConsChk.txt","a+");
@@ -2143,12 +2155,12 @@ void CheckClass(word n, TApplServ * pApplServ, octet  ApplServSup[],char *errorM
 	     if((ApplServSup[ServNum]&(pApplServ[i].InitExec))!=pApplServ[i].InitExec){
 			  ServName=StandardServices[ServNum];
 			  if(pApplServ[i].InitExec == ssInitiate)
-				sprintf(opj,"%s\n%s standard service should be supported with Initiate !\n",errorMsg,ServName);
+				sprintf(opj,"%s%s standard service should be supported with Initiate !\n",errorMsg,ServName);
 			  else
 				  if(pApplServ[i].InitExec == ssExecute)
-					sprintf(opj,"%s\n%s standard service should be supported with Execute !\n",errorMsg,ServName);
+					sprintf(opj,"%s%s standard service should be supported with Execute !\n",errorMsg,ServName);
 				  else
-					sprintf(opj,"%s\n%s standard service should be supported with Initiate and Execute !\n",errorMsg,ServName);	
+					sprintf(opj,"%s%s standard service should be supported with Initiate and Execute !\n",errorMsg,ServName);	
 			  PrintToFile(opj);
 			  tperror(opj,false);
 		 }
@@ -2160,7 +2172,7 @@ void CheckClass(word n, TApplServ * pApplServ, octet  ApplServSup[],char *errorM
 		     ServNum=pApplServ[i].ApplServ;
 	         if((ApplServSup[ServNum]&(pApplServ[i].InitExec)&ssExecute)!=ssExecute){
 			     ServName=StandardServices[ServNum];
-			     sprintf(opj,"%s\n%s standard service should be supported with Initiate and Execute !\n",errorMsg,ServName);
+			     sprintf(opj,"%s%s standard service should be supported with Initiate and Execute !\n",errorMsg,ServName);
 			     PrintToFile(opj);
 			     tperror(opj,false);
 			 }
@@ -2434,7 +2446,7 @@ void CheckObjConsA(PICSdb *pd)
   case 2: 
   default:                 //Cons Class 1 must be supported;
 	  if(pd->BACnetStandardObjects[DEVICE]==soNotSupported){
-		  sprintf(opj,"EPICS Object Consistency check error: The Device Object type should be included to  meet the requiredment by Conformance Class 1!\n");
+		  sprintf(opj,"EPICS Object Cons check error: The Device Object type should be included to  meet the requiredment by Conformance Class 1!\n");
 		  PrintToFile(opj);
 		  tperror(opj,false);
 	  }
@@ -2760,15 +2772,14 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					break;
 				case pss:						//protocol services supported bitstring
 					if (ParseBitstring((octet *)pstruc,(sizeof(StandardServices)/sizeof(StandardServices[0])),NULL)) return true;
-					ProtocolServSup.ObjServNum=sizeof(StandardServices)/sizeof(StandardServices[0]);   //2003
-					ProtocolServSup.PropSupValue=(octet *)pstruc; //2003
+					ProtocolServSup.ObjServNum=sizeof(StandardServices)/sizeof(StandardServices[0]);   
+					ProtocolServSup.PropSupValue=(octet *)pstruc; 
 					
 					break;
 				case pos:						//protocol objects supported bitstring
 					if (ParseBitstring((octet *)pstruc,(sizeof(StandardObjects)/sizeof(StandardObjects[0])),NULL)) return true;
-					ProtocolObjSup.PropSupValue=(octet *)pstruc;       //2003
-					
-					ProtocolObjSup.ObjServNum=sizeof(StandardObjects)/sizeof(StandardObjects[0]);   //2003
+					ProtocolObjSup.PropSupValue=(octet *)pstruc;       
+					ProtocolObjSup.ObjServNum=sizeof(StandardObjects)/sizeof(StandardObjects[0]);   
 					break;
 				case dt:						//date/time
 					if (ParseDateTime((BACnetDateTime *)pstruc)) return true;
