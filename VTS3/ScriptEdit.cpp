@@ -42,13 +42,17 @@
 //						Fixed a bug that the LineNumCtrl's background is 
 //						white and could not work when horizontally scrolling
 //						under windows98.
+//					12)	Modified by Yajun Zhou, 2003-5-19
+//						Used memDC to reduce flicker in function OnPaint() and 
+//						deleted some unused functions.
+//					13)	Modified by Yajun Zhou, 2003-5-20
+//						Added handlers of cut, paste, undo and contextmenu.
 //******************************************************************
 // ScriptEdit.cpp : implementation file
 //
 #include "stdafx.h"
 #include "VTS.h"
 #include "ScriptEdit.h"
-//#include "MainFrm.h"
 #include "ScriptFrame.h"
 #include "GoToLineDlg.h"
 
@@ -76,10 +80,7 @@ ScriptEdit::ScriptEdit()
 	m_ptCurPoint.x	= MARGIN_3;
 	m_ptCurPoint.y	= 0;
 
-	m_bDelete		= false;
-	m_bInput		= false;
-
-	m_pframe = NULL;
+	m_pframe = NULL; 
 }
 
 ScriptEdit::~ScriptEdit()
@@ -94,18 +95,20 @@ BEGIN_MESSAGE_MAP(ScriptEdit, CEditView)
 	ON_WM_KEYDOWN()
 	ON_WM_CREATE()
 	ON_WM_SIZE()
-	ON_CONTROL_REFLECT(EN_CHANGE, OnChange)
-	ON_WM_MOUSEMOVE()
 	ON_WM_HSCROLL()
 	ON_WM_CTLCOLOR_REFLECT()
 	ON_WM_ERASEBKGND()
+	ON_WM_PAINT()
 	ON_WM_LBUTTONUP()
-	ON_WM_MOUSEWHEEL()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_CHAR()
 	ON_CONTROL_REFLECT(EN_HSCROLL, OnHscroll)
 	ON_WM_VSCROLL()
 	ON_CONTROL_REFLECT(EN_VSCROLL, OnVscroll)
+	ON_COMMAND(ID_EDIT_CUT, OnEditCut)
+	ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
+	ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
+	ON_WM_CONTEXTMENU()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -173,8 +176,7 @@ void ScriptEdit::OnSize(UINT nType, int cx, int cy)
 
 	m_nVisibleLnCount = cy/CHAR_HEIGHT;
 	
-	UpdateWholeEdit();
-	DisplayLnNum();
+	UpdateEditArea();
 
 	TRACE("cx = %d, cy = %d\n", cx,cy);
 }
@@ -193,24 +195,7 @@ HBRUSH ScriptEdit::CtlColor(CDC* pDC, UINT nCtlColor)
 
 BOOL ScriptEdit::OnEraseBkgnd(CDC* pDC) 
 {
-	m_nFirstVisibleLn = m_pEdit->GetFirstVisibleLine();
-	int nCurrentY;
-	nCurrentY = (m_nCurrentLine - m_nFirstVisibleLn) * CHAR_HEIGHT;
-	TRACE("m_nCurrentLine = %d, m_nFirstVisibleLn = %d, nCurrentY = %d\n",m_nCurrentLine, m_nFirstVisibleLn, nCurrentY);
-
-	CRect rClient; 
-	GetClientRect(&rClient);
-	pDC->FillSolidRect( rClient, RGB(255,255,255) );
-
-	if(nCurrentY+CHAR_HEIGHT-1 < m_nClientY)
-	{
-//madanner 5/03 memory leaks... 
-//		CRect rLine = new CRect(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
-		CRect	rLine(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
-		pDC->FillSolidRect( &rLine, RGB(255,255,0) );
-	}
-
- 	return TRUE;
+ 	return FALSE;
 }
 
 void ScriptEdit::OnInitialUpdate() 
@@ -223,8 +208,41 @@ void ScriptEdit::OnInitialUpdate()
 	m_nCurrentLine = 0;
 	m_nTempDigit = 3;
 	m_nLineCount = m_pEdit->GetLineCount();
+}
+
+void ScriptEdit::OnPaint() 
+{
+	CPaintDC dc(this); // device context for painting
+	
+	CRect rcClient;
+    GetClientRect( &rcClient );
+	
+	CDC memDC;
+    CBitmap bitmap;
+    memDC.CreateCompatibleDC(&dc);
+    bitmap.CreateCompatibleBitmap(&dc, rcClient.Width(), rcClient.Height());
+    CBitmap* pOldBitmap = memDC.SelectObject(&bitmap);
+	
+	m_nFirstVisibleLn = m_pEdit->GetFirstVisibleLine();
+	int nCurrentY;
+	nCurrentY = (m_nCurrentLine - m_nFirstVisibleLn) * CHAR_HEIGHT;
+	TRACE("m_nCurrentLine = %d, m_nFirstVisibleLn = %d, nCurrentY = %d\n",m_nCurrentLine, m_nFirstVisibleLn, nCurrentY);
+	
+	memDC.FillSolidRect( rcClient, RGB(255,255,255) );
+	
+	if(nCurrentY+CHAR_HEIGHT-1 < m_nClientY)
+	{
+		CRect *pRLine = new CRect(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
+		memDC.FillSolidRect( pRLine, RGB(255,255,0) );
+		delete pRLine;
+	}
+	
+    CWnd::DefWindowProc(WM_PAINT,(WPARAM)memDC.m_hDC, 0 );
 
 	DisplayLnNum();
+	
+    dc.BitBlt(rcClient.left, rcClient.top, rcClient.Width(), rcClient.Height(), &memDC, 0,0, SRCCOPY);
+    memDC.SelectObject(pOldBitmap);
 }
 
 void ScriptEdit::OnEditGotoline() 
@@ -255,36 +273,16 @@ void ScriptEdit::OnLButtonDown(UINT nFlags, CPoint point)
 
 	CEditView::OnLButtonDown(nFlags, point);
 
-	UpdateTwoLine();
+	UpdateEditArea();
 	GetCurLineIndex();
-	DisplayLnNum();
 }
 
 void ScriptEdit::OnLButtonUp(UINT nFlags, CPoint point) 
 {
 	CEditView::OnLButtonUp(nFlags, point);
 
-	UpdateTwoLine();
+	UpdateEditArea();
 	GetCurLineIndex();
-	DisplayLnNum();
-}
-
-void ScriptEdit::OnMouseMove(UINT nFlags, CPoint point) 
-{
-	CEditView::OnMouseMove(nFlags, point);
-
-	if(nFlags == MK_LBUTTON)
-		DisplayLnNum();
-}
-
-BOOL ScriptEdit::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) 
-{
-	BOOL bResult = CEditView::OnMouseWheel(nFlags, zDelta, pt);
-
-	UpdateWholeEdit();
-	DisplayLnNum();
-
-	return bResult;
 }
 
 void ScriptEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
@@ -294,193 +292,73 @@ void ScriptEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	CEditView::OnKeyDown(nChar, nRepCnt, nFlags);
 	
-	if(nChar == VK_RETURN 
-		|| nChar == VK_SCROLL || nChar == VK_NUMLOCK || nChar == VK_CAPITAL
-		|| nChar == VK_CONTROL || nChar == VK_SHIFT
-		|| nChar == VK_ESCAPE
-		|| nChar == VK_INSERT
-		)
-	{
-		return;
-	}
-
-	if(nChar == VK_NEXT || nChar == VK_PRIOR)
-	{
-		if(m_nCurrentLine == m_pEdit->LineFromChar(-1))
-		{
-			GetCurLineIndex();
-			return;
-		}
-
-		UpdateWholeEdit();
-		GetCurLineIndex();
-		DisplayLnNum();
-		return;
-	}
-
-	if(nChar == VK_UP || nChar == VK_DOWN)
-	{
-		UpdateTwoLine();
-		GetCurLineIndex();
-		DisplayLnNum();
-		return;
-	}
-
-	if(nChar == VK_LEFT || nChar == VK_RIGHT
-		|| nChar == VK_HOME || nChar == VK_END)
-	{
-		if(!IsCurLnVisible())
-		{
-			UpdateWholeEdit();
-			GetCurLineIndex();
-			DisplayLnNum();
-			return;
-		}
-
-		if(m_nCurrentLine == m_pEdit->LineFromChar(-1))
-		{
-//			UpdateOneLine(m_ptCurPoint.y);
-			return;
-		}
-		else
-		{
-			UpdateTwoLine();
-			GetCurLineIndex();
-			DisplayLnNum();
-			return;
-		}
-	}
-
-	if(nChar == VK_DELETE)
-	{
-		m_bDelete = true;
-
-		if(!IsCurLnVisible())
-		{
-			UpdateWholeEdit();
-			GetCurLineIndex();
-			DisplayLnNum();
-			return;
-		}
-		if(m_nLineCount == m_pEdit->GetLineCount())
-		{
-			UpdateOneLine(m_ptCurPoint.y);
-			GetCurLineIndex();
-			DisplayLnNum();
-			return;
-		}
-		else
-		{
-			UpdateRect(m_ptCurPoint.y);
-			GetCurLineIndex();
-			DisplayLnNum();
-			return;
-		}
-	}
-
-	if(nChar == VK_BACK || nChar == VK_TAB || nChar == VK_SPACE
-		|| (nChar >= 48 && nChar <= 127))
-	{
-		return;
-	}
-
-	UpdateWholeEdit();
+	UpdateEditArea();
 	GetCurLineIndex();
-	DisplayLnNum();
 }
 
 void ScriptEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
-	m_bInput = true;
-
 	CEditView::OnChar(nChar, nRepCnt, nFlags);
 
 	if(nChar == VK_RETURN)
 	{
-		UpdateWholeEdit();
+		UpdateEditArea();
 		GetCurLineIndex();
-		DisplayLnNum();
-		return;
 	}
-	else
-	{
-		if(!IsCurLnVisible())
-		{
-			UpdateWholeEdit();
-			GetCurLineIndex();
-			DisplayLnNum();
-			return;
-		}
-
-		if(m_nCurrentLine == m_pEdit->LineFromChar(-1))
-		{
-			UpdateOneLine(m_ptCurPoint.y);
-			DisplayLnNum();
-			return;
-		}
-		else
-		{
-			UpdateRect(m_ptCurPoint.y);
-			GetCurLineIndex();
-			DisplayLnNum();
-			return;
-		}
-	}
-}
-
-void ScriptEdit::OnChange() 
-{
-	if(m_bInput)
-	{
-		m_bInput = false;
-		return;
-	}
-	
-	if(m_bDelete)
-	{
-		m_bDelete = false;
-		return;
-	}
-	
-	UpdateWholeEdit();
-	GetCurLineIndex();
-	DisplayLnNum();
 }
 
 void ScriptEdit::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
 	CEditView::OnVScroll(nSBCode, nPos, pScrollBar);
 
-	if(m_nFirstVisibleLn == m_pEdit->GetFirstVisibleLine())
-	{
-		DisplayLnNum();
-		return;
-	}
-	
-	UpdateWholeEdit();
-	DisplayLnNum();
+	UpdateEditArea();
 }
 
 void ScriptEdit::OnVscroll() 
 {
-	UpdateWholeEdit();
-	DisplayLnNum();
+	UpdateEditArea();
 }
 
 void ScriptEdit::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
 	CEditView::OnHScroll(nSBCode, nPos, pScrollBar);
 
-	UpdateWholeEdit();
-	DisplayLnNum();
+	UpdateEditArea();
 }
 
 void ScriptEdit::OnHscroll() 
 {
-	UpdateWholeEdit();
-	DisplayLnNum();
+	UpdateEditArea();
 }
 
+void ScriptEdit::OnEditCut() 
+{
+	CEditView::OnEditCut();
+	GetCurLineIndex();
+	UpdateEditArea();	
+}
+
+void ScriptEdit::OnEditPaste() 
+{
+	CEditView::OnEditPaste();
+	GetCurLineIndex();
+	UpdateEditArea();	
+}
+
+void ScriptEdit::OnEditUndo() 
+{
+	CEditView::OnEditUndo();
+	GetCurLineIndex();
+	UpdateEditArea();	
+}
+
+void ScriptEdit::OnContextMenu(CWnd* pWnd, CPoint point) 
+{
+	// TODO: Add your message handler code here
+	CEditView::OnContextMenu(pWnd, point);
+	GetCurLineIndex();
+	UpdateEditArea();		
+}
 //******************************************************************
 //	Author:		Yajun Zhou
 //	Date:		2002-4-22
@@ -508,10 +386,7 @@ int ScriptEdit::GetCurLineIndex()
 	//End for BUG_1
 
 	CString str;
-	if(nLineIndex == 65536)
-		str = "";
-	else
-		str.Format(" Ln: %d",nLineIndex);
+	str.Format(" Ln: %d",nLineIndex);
 
 //madanner, 5/03
 //	CMainFrame* pFrm = (CMainFrame*) AfxGetMainWnd();
@@ -539,9 +414,8 @@ void ScriptEdit::GotoLine(int nLineIndex)
 	m_pEdit->LineScroll(m_nLineCount-m_nCurrentLine);
 	m_pEdit->SetSel(nCharIndex,nCharIndex,false);
 
-	UpdateWholeEdit();
+	UpdateEditArea();
 	GetCurLineIndex();
-	DisplayLnNum();
 }
 
 //******************************************************************
@@ -591,45 +465,15 @@ void ScriptEdit::DisplayLnNum()
 //******************************************************************
 //	Author:		Yajun Zhou
 //	Date:		2002-5-10
-//	Purpose:	Only refresh the edit area which changed.
+//	Purpose:	Refresh the edit area.
 //	In:			void
 //	Out:		void
 //******************************************************************
-void ScriptEdit::UpdateWholeEdit()
+void ScriptEdit::UpdateEditArea()
 {
 	CRect* pRect = new CRect(m_nMargin, 0, m_nClientX, m_nClientY);
 	InvalidateRect(pRect);
 	delete pRect;
-}
-
-void ScriptEdit::UpdateRect(int nCurrentY)
-{
-	CRect* pRect = new CRect(m_nMargin, nCurrentY - CHAR_HEIGHT, m_nClientX, m_nClientY);
-	InvalidateRect(pRect);
-	delete pRect;
-}
-
-void ScriptEdit::UpdateOneLine(int nCurrentY)
-{
-	CRect* pLine = new CRect(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
-	InvalidateRect(pLine);
-	delete pLine;
-}
-
-void ScriptEdit::UpdateTwoLine()
-{
-	if(m_nFirstVisibleLn != m_pEdit->GetFirstVisibleLine())
-	{
-		UpdateWholeEdit();
-		return;
-	}
-
-	int nCurrentY = (m_nCurrentLine - m_nFirstVisibleLn) * CHAR_HEIGHT;
-	UpdateOneLine(nCurrentY);
-
-	m_ptCurPoint = m_pEdit->GetCaretPos();
-
-	UpdateOneLine(m_ptCurPoint.y);
 }
 
 //******************************************************************
@@ -745,6 +589,5 @@ void ScriptEdit::SetLine(int nLineIndex, LPTSTR lpszString)
 		nChar = m_pEdit->LineIndex(nLineIndex);
 		m_pEdit->SetSel(nChar, nChar);
 		m_pEdit->ReplaceSel(lpszString);
-	}
-		
+	}		
 }

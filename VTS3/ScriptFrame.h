@@ -43,6 +43,8 @@ public:
 	ScriptParmList		*m_pParmList;
 	ScriptContentTree	*m_pContentTree;
 
+	BOOL				m_bSyntaxOK;
+
 	bool	DoInitialSetup( void );			// get ready to run
 
 // Attributes

@@ -124,11 +124,11 @@ void ScriptDocument::Dump(CDumpContext& dc) const
 //	ScriptDocument::CheckSyntax
 //
 
-void ScriptDocument::CheckSyntax( void )
+BOOL ScriptDocument::CheckSyntax( void )
 {
 	int					curCaseLevel = 0
 	;
-	bool				setupMode = false, isSend = false, expectRequired = false,	isEnv
+	bool				setupMode = false, isSend = false, expectRequired = false,	isEnv, checkok =true;
 	;
 	ScriptScanner		scan( m_editData )
 	;
@@ -715,6 +715,7 @@ void ScriptDocument::CheckSyntax( void )
 		AfxMessageBox( errMsg );
 		delete curBase;
 		curBase = 0;
+		checkok = false;
 	}
 	catch (CString strThrowMessage) 
 	{
@@ -722,6 +723,7 @@ void ScriptDocument::CheckSyntax( void )
 		AfxMessageBox( strThrowMessage );
 		delete curBase;
 		curBase = 0;
+		checkok =  false;
 	}
 
 	// delete those vars not found during this parsing phase
@@ -742,6 +744,8 @@ void ScriptDocument::CheckSyntax( void )
 
 	// bind to the new content (if there is any)
 	m_pContentTree->Bind( curBase );
+
+	return checkok;
 }
 
 //
