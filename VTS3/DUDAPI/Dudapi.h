@@ -124,7 +124,7 @@ short APIENTRY GetNextGenObj(generic_object far* obj);								//***002
 short APIENTRY GetObjType(word objtype, char far* Buffer);							//***002  
 
 short APIENTRY GetPropNameSupported(char far* PropName, word i, word objtype,		//***002
-                                           octet far propFlags[64], dword far* PropId);
+                                           octet far propFlags[64], dword far* PropId, word * pParseType);
 
 short APIENTRY GetEnumName(char far* Name, word objtype, dword PropId, word EnumVal);	//***002
 short APIENTRY GetPropName(dword PropId, char far* PropName);						//***002

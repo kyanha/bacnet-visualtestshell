@@ -133,12 +133,14 @@ generic_object far* APIENTRY FindGenObj(generic_object far* root, int index)
 // out:  PropId       property ID
 //
 // returns: >0 if property supported, -1 if invalid property index, 0 if not supported 
+
+//madanner 9/04, altered to return parse type of property
 extern "C"
-short APIENTRY GetPropNameSupported(char far* PropName, word i, word objtype, octet far propFlags[64], dword far* PropId) //***002
+short APIENTRY GetPropNameSupported(char far* PropName, word i, word objtype, octet far propFlags[64], dword far* PropId, word * pParseType) //***002
 { 
   if ( (propFlags[i] & 1) == 1 )
     {                                   
-      *PropId= VTSAPIgetpropinfo(objtype,i,PropName,NULL,NULL,NULL,NULL);
+      *PropId= VTSAPIgetpropinfo(objtype,i,PropName,pParseType,NULL,NULL,NULL);
       if (*PropId == -1) return(-1); // invalid property index
       else return( strlen(PropName) );			//						***001
     }  
