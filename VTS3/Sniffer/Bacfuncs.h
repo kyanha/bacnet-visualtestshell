@@ -1712,12 +1712,18 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                case 0:  /* Analog_Input - Real */
                case 1:  /* Analog_Output - Real */
                case 2:  /* Analog_Value - Real */
-               case 8:  /* Command - Unsigned */
-               case 13: /* Loop - Real */
-               case 14: /* Multistate_Input - Unsigned */
-               case 15: /* Multistate_Output - Unsigned */
+               //Modified by Yajun, Zhou 2002-8-1
+			   //case 8:  /* Command - Unsigned */
+			   //case 13: /* Loop - Real */
+			   //case 14: /* Multistate_Input - Unsigned */
+			   //case 15: /* Multistate_Output - Unsigned */
+			   case 7:  /* Command - Unsigned */
+			   case 12: /* Loop - Real */
+			   case 13: /* Multistate_Input - Unsigned */
+               case 14: /* Multistate_Output - Unsigned */
+			   /////////////////////////////////////
                case 17: /* Schedule - ANY Primitive Type */
-            case 19: /* Multistate_Value - Unsigned */
+               case 19: /* Multistate_Value - Unsigned */
                         show_application_data(x);
                         break;
                case 3:  /* Binary_Input - BACnetBinaryPV */
@@ -1729,7 +1735,10 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                           bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
                           };
                         break;
-               case 12: /* Group - List of Read Access Result */
+               //Modified by Yajun, Zhou 2002-8-1
+			   //case 12: /* Group - List of Read Access Result */
+			   case 11: /* Group - List of Read Access Result */
+			   ////////////////////////////////////////////
                        show_bac_read_access_result();
                        break;
                default: pif_show_ascii(0,
@@ -1883,7 +1892,11 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            show_application_data(x);
            break;
       case SETPOINT_REFERENCE:  /*  BACnetObjectPropertyReference */
+		   //Added for parsing opening tag ,by xuyiping, 2002-8-14
+		   show_context_tag("BACnetObjectPropertyReference"); /* opening tag */
            show_bac_obj_prop_ref();
+		     //Added for parsing closing tag ,by xuyiping, 2002-8-14
+		   show_context_tag("BACnetObjectPropertyReference"); /* closing tag */
            break;
       case STATE_TEXT :  /* Array of Character Strings */
            if (prop_idx == 0) {
@@ -1914,6 +1927,10 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            show_application_data(x);
            show_application_data(pif_get_byte(0));
            break;
+	  case TIME_SYNCHRONIZATION_RECIPIENTS:  //Added by xuyiping 2002-8-29
+		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
+				   show_bac_recipient();
+		   break;
       case UNITS:  /* BACnetEngineering Units */
            show_application_tag(x);
            bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
