@@ -1,42 +1,52 @@
-<!-- saved from url=(0022)http://internet.e-mail -->
-<!-- saved from url=(0022)http://internet.e-mail -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
-
 <head>
-<title>Untitled Document</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
-<meta name="ProgId" content="FrontPage.Editor.Document">
-<style type="text/css">
+<!-- saved from url=(0022)http://internet.e-mail --><!-- saved from url=(0022)http://internet.e-mail -->
+  <title>Untitled Document</title>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+  <meta name="ProgId" content="FrontPage.Editor.Document">
+  <style type="text/css">
 <!--
 body         { font-family: Verdana, Arial, Helvetica, sans-serif }
 p, td, blockquote { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12pt }
 h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: nowrap; 
                color: #0066CC }
 -->
-</style>
+  </style>
 </head>
-
-<body bgcolor="#FFFFFF" text="#000000">
-
-<h1><a name="start">VTS 3.4.5 </a><i>Quick Start Guide</i></h1>
+<body style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);">
+<h1><a name="start">VTS 3.4.6 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
-functionality of various devices used in building automation systems.&nbsp;
-BACnet is a Data Communication Protocol for Building Automation and Control
-Networks developed under the auspices of the American Society of Heating,
+functionality of various devices used in building automation
+systems.&nbsp;
+BACnet is a Data Communication Protocol for Building Automation and
+Control
+Networks developed under the auspices of the American Society of
+Heating,
 Refrigerating and Air-Conditioning Engineers (ASHRAE).&nbsp;&nbsp; For
 information on BACnet, see <a href="http://www.bacnet.org">http://www.bacnet.org</a>&nbsp;</p>
-<p>VTS 3.0 is the third generation of VTS.&nbsp; It is a complete redesign and
-rewrite of VTS and there are still some features missing and perhaps even a bug
-or two.&nbsp; VTS 3.0 has been turned into an open source project in the hopes
-that the users of this program will assist in making it a robust and full
-featured BACnet test tool.&nbsp; The home of the VTS 3.0 open source project
+<p>VTS 3.0 is the third generation of VTS.&nbsp; It is a complete
+redesign and
+rewrite of VTS and there are still some features missing and perhaps
+even a bug
+or two.&nbsp; VTS 3.0 has been turned into an open source project in
+the hopes
+that the users of this program will assist in making it a robust and
+full
+featured BACnet test tool.&nbsp; The home of the VTS 3.0 open source
+project
 is&nbsp; <a href="http://sourceforge.net/projects/vts/">http://sourceforge.net/projects/vts/</a>
 . </p>
-<p><h4>Go <a href="#whatsnew">here</a> to find out what is new in this release.</h4></p>
+<h4>Go <a href="#whatsnew">here</a> to find out what is new in this
+release.</h4>
 <h2>Platform Requirements</h2>
-<p>VTS 3.0 runs on Windows98, Windows NT 4.0 (Service Pack 4), Windows2000, or Windows XP.&nbsp; It may also work on Windows95 systems, but there may be some
-compatibility problems with several system DLLs on Windows95.&nbsp; (WindowsME
+<p>VTS 3.0 runs on Windows98, Windows NT 4.0 (Service Pack 4),
+Windows2000, or Windows XP.&nbsp; It may also work on Windows95
+systems, but there may be some
+compatibility problems with several system DLLs on Windows95.&nbsp;
+(WindowsME
 has not been tested). </p>
 <h3>Quick Start Guide Contents</h3>
 <blockquote>
@@ -53,46 +63,51 @@ has not been tested). </p>
     <li><a href="#10">Send a more complicated packet</a></li>
     <li><a href="#11">Analyze the response</a></li>
   </ol>
-    <p><a href="#History">VTS Release History</a></p>
-    <p><a href="#Links">VTS Web Links</a></p>
+  <p><a href="#History">VTS Release History</a></p>
+  <p><a href="#Links">VTS Web Links</a></p>
 </blockquote>
 <h2><a name="1">Step 1</a> : Install WinPcap 3.0</h2>
-<p><ol>
-<li>Run the WinPcap installation program packaged with VTS.  This progarm is named WinPcap_3_0.exe.</li>
-<li>Follow the instructions on the screen. The installation applet will automatically detect the operating system and install the correct drivers.</li>
-</ol> 
-If you later want to remove WinPcap from the system, go to the control-panel, click on "add/remove programs" and then select "WinPcap".<p>
-For details on WinPcap, check the <a href="http://winpcap.polito.it">WinPcap 
+<ol>
+  <li>Run the WinPcap installation program packaged with VTS. This
+progarm is named WinPcap_3_0.exe.</li>
+  <li>Follow the instructions on the screen. The installation applet
+will automatically detect the operating system and install the correct
+drivers.</li>
+</ol>
+If you later want to remove WinPcap from the system, go to the
+control-panel, click on "add/remove programs" and then select
+"WinPcap".
+<p>For details on WinPcap, check the <a href="http://winpcap.polito.it">WinPcap
 home page</a>. </p>
 <blockquote>
-  <p>WinPcap is Copyright (c) 1999 - 2004 NetGroup, Politecnico di Torino 
-  (Italy). All rights reserved. </p>
-  <p>Redistribution and use in source and binary forms, with or without 
-  modification, are permitted provided that the following conditions are met:
-  </p>
+  <p>WinPcap is Copyright (c) 1999 - 2004 NetGroup, Politecnico di
+Torino (Italy). All rights reserved. </p>
+  <p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met: </p>
   <ol>
-    <li>Redistributions of source code must retain the above copyright notice, 
-    this list of conditions and the following disclaimer. </li>
-    <li>Redistributions in binary form must reproduce the above copyright 
-    notice, this list of conditions and the following disclaimer in the 
-    documentation and/or other materials provided with the distribution. </li>
-    <li>Neither the name of the Politecnico di Torino nor the names of its 
-    contributors may be used to endorse or promote products derived from this 
-    software without specific prior written permission. </li>
+    <li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer. </li>
+    <li>Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution. </li>
+    <li>Neither the name of the Politecnico di Torino nor the names of
+its contributors may be used to endorse or promote products derived
+from this software without specific prior written permission. </li>
   </ol>
-  <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot; 
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE 
-  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
-  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
-  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
-  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
-  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+  <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 </blockquote>
-
-
 <p><a href="#2">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -107,8 +122,10 @@ home page</a>. </p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <h2><a name="2">Step 2</a> : Install VTS</h2>
-<p>VTS requires no installation. You may run it from the same directory where it was originally extracted from
-the zip archive.  If you move VTS.EXE to a different directory, you must also move the file PTP.DLL
+<p>VTS requires no installation. You may run it from the same directory
+where it was originally extracted from
+the zip archive. If you move VTS.EXE to a different directory, you must
+also move the file PTP.DLL
 to the same directory.</p>
 <p><a href="#3">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
@@ -124,32 +141,44 @@ to the same directory.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <h2><a name="3">Step 3</a> : Run VTS</h2>
-<p>Running VTS is as simple as double clicking on the application (VTS.EXE) or
-selecting Run from the Start menu and entering <a href="file:///C:/VTS/VTS">C:\VTS\VTS</a>
+<p>Running VTS is as simple as double clicking on the application
+(VTS.EXE) or
+selecting Run from the Start menu and entering <a
+ href="file:///C:/VTS/VTS">C:\VTS\VTS</a>
 (assuming that you moved VTS.EXE to the directory C:\VTS). </p>
 <h3>Workspaces (.cfg) and Logfiles (.vpk)</h3>
-<p>When you run VTS for the first time, a default <b>workspace</b> file named <b>vts3.cfg</b> will be
-created automatically, as well as a default <b>logfile</b> named <b>vts3.vpk</b>.  The <b>workspace</b> 
-file contains all of the VTS configuration data, such as Devices, Ports, Names, etc.  The 
-<b>logfile</b> contains the packet data that is captured while running VTS.</p>
-<p>Workspace files are updated automatically as the configuration is changed - there is no need to save
-the workspace.  However, there is a selection under the File menu to save the workspace
-under a new filename for the purpose of creating multiple workspaces. A workspace saved
-in this manner can be loaded via the <b>File/Workspace/Switch Workspace</b> menu selection. Only one
-workspace can be loaded at a time.  The name of the current workspace is shown in the title bar.  
-When VTS is run, the last workspace that was in use is always reloaded.
+<p>When you run VTS for the first time, a default <b>workspace</b>
+file named <b>vts3.cfg</b> will be
+created automatically, as well as a default <b>logfile</b> named <b>vts3.vpk</b>.
+The <b>workspace</b> file contains all of the VTS configuration data,
+such as Devices, Ports, Names, etc. The <b>logfile</b> contains the
+packet data that is captured while running VTS.</p>
+<p>Workspace files are updated automatically as the configuration is
+changed - there is no need to save
+the workspace. However, there is a selection under the File menu to
+save the workspace
+under a new filename for the purpose of creating multiple workspaces. A
+workspace saved
+in this manner can be loaded via the <b>File/Workspace/Switch Workspace</b>
+menu selection. Only one
+workspace can be loaded at a time. The name of the current workspace is
+shown in the title bar. When VTS is run, the last workspace that was in
+use is always reloaded.
 </p>
-
-<p>Each workspace (.cfg) references one logfile (.vpk), which contains packet data captured during a VTS session. 
-Like workspaces, logfiles are also saved automatically as packet data is generated.  A different logfile can be started 
-without creating or loading a new workspace by selecting <b>Edit/Change logfile</b>.  This causes the current
-logfile to be closed, and the user has a choice of creating a new logfile or loading an existing logfile.  Once
-the logfile has been changed in this manner, any new packet data will be appended to the new logfile, and
+<p>Each workspace (.cfg) references one logfile (.vpk), which contains
+packet data captured during a VTS session. Like workspaces, logfiles
+are also saved automatically as packet data is generated. A different
+logfile can be started without creating or loading a new workspace by
+selecting <b>Edit/Change logfile</b>. This causes the current
+logfile to be closed, and the user has a choice of creating a new
+logfile or loading an existing logfile. Once
+the logfile has been changed in this manner, any new packet data will
+be appended to the new logfile, and
 the current workspace will reference the new logfile.
-Switching workspaces will switch to whatever logfile was last viewed using that workspace.  </p>
-
-<p><b>To send a VTS session to a friend, both the workspace (.cfg) and logfile (.vpk) must be sent.</b></p>
-
+Switching workspaces will switch to whatever logfile was last viewed
+using that workspace. </p>
+<p><b>To send a VTS session to a friend, both the workspace (.cfg) and
+logfile (.vpk) must be sent.</b></p>
 <p><a href="#4">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -166,13 +195,16 @@ Switching workspaces will switch to whatever logfile was last viewed using that 
 <h2><a name="4">Step 4</a> : Configure VTS</h2>
 <p>Configuring VTS involves three steps:</p>
 <ol>
-	<li>Create one or more Devices, and optionally, Objects within those Devices</li>
-	<li>Create one or more Ports</li>
-	<li>Create Names as shortcuts for BACnet Addresses</li>
+  <li>Create one or more Devices, and optionally, Objects within those
+Devices</li>
+  <li>Create one or more Ports</li>
+  <li>Create Names as shortcuts for BACnet Addresses</li>
 </ol>
-<p>Each of these steps is performed by selecting the appropriate menu item from the <b>Edit</b> menu as shown below.</p>
-<p><img src="Images/EditMenu.png" ></p>
-<p>Each of the individual configuration steps is described in the following sections.</p>
+<p>Each of these steps is performed by selecting the appropriate menu
+item from the <b>Edit</b> menu as shown below.</p>
+<p><img src="Images/EditMenu.png"></p>
+<p>Each of the individual configuration steps is described in the
+following sections.</p>
 <p><a href="#5">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -187,27 +219,37 @@ Switching workspaces will switch to whatever logfile was last viewed using that 
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <h2><a name="5">Step 6</a> : Create a Device and Objects</h2>
-<p>This section is for creating Devices and Objects that are <b>hosted within the VTS program</b>.
-In other words, Devices and Objects created here will exist inside the VTS workstation for the
-purpose of providing test Devices and Objects that can be accessed from an external BACnet client
-application that is being tested.  If an external client sends ReadProprty or WriteProperty requests
-directed at the Devices and Objects created here, VTS will automatically respond to
+<p>This section is for creating Devices and Objects that are <b>hosted
+within the VTS program</b>.
+In other words, Devices and Objects created here will exist inside the
+VTS workstation for the
+purpose of providing test Devices and Objects that can be accessed from
+an external BACnet client
+application that is being tested. If an external client sends
+ReadProprty or WriteProperty requests
+directed at the Devices and Objects created here, VTS will
+automatically respond to
 those requests.</p>
-<p>Note that this section is <b>not</b> for configuring Devices and Objects that reside in the 
-implementation being tested by VTS. That is done by loading an EPICS file while a script
+<p>Note that this section is <b>not</b> for configuring Devices and
+Objects that reside in the implementation being tested by VTS. That is
+done by loading an EPICS file while a script
 window is open.
 </p>
-<p>Right click in the tree area to display a menu for adding Devices or Objects.
-Select each Device or Object to present some basic properties that can be edited 
-for each Object.</p>
-<p>There is no need to click the <b>OK</b> button after each Object is added.  Simply keep right clicking 
-within the tree to add more Objects, and then click <b>OK</b> when finished.  Clicking the
-<b>Cancel</b> button will cancel <b>all</b> of the changes that were made since the dialog box
+<p>Right click in the tree area to display a menu for adding Devices or
+Objects.
+Select each Device or Object to present some basic properties that can
+be edited for each Object.</p>
+<p>There is no need to click the <b>OK</b> button after each Object is
+added. Simply keep right clicking within the tree to add more Objects,
+and then click <b>OK</b> when finished. Clicking the
+<b>Cancel</b> button will cancel <b>all</b> of the changes that were
+made since the dialog box
 was first displayed.</p>
-<p><img src="Images/DeviceConfiguration.png" ></p>
-<p>Here is an example showing two Devices with some Objects within each Device.  
-(The standard Properties of each standard Object type are not yet supported.)</p>
-<p><img src="Images/DeviceConfiguration2.png" ></p>
+<p><img src="Images/DeviceConfiguration.png"></p>
+<p>Here is an example showing two Devices with some Objects within each
+Device. (The standard Properties of each standard Object type are not
+yet supported.)</p>
+<p><img src="Images/DeviceConfiguration2.png"></p>
 <p><a href="#6">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -222,22 +264,30 @@ was first displayed.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <h2><a name="6">Step 6</a> : Create a Port</h2>
-<p>A port is a communications endpoint that sends and receives packets. Some
+<p>A port is a communications endpoint that sends and receives packets.
+Some
 ports are associated with a physical interface such as an Ethernet
-communications card, and others such as IP ports are associated with a UDP port.</p>
-<p><img src="Images/PortConfiguration.png" ></p>
-<p>For BACnet/IP ports, the socket 0xBAC0 (or 47808) is the typical socket
+communications card, and others such as IP ports are associated with a
+UDP port.</p>
+<p><img src="Images/PortConfiguration.png"></p>
+<p>For BACnet/IP ports, the socket 0xBAC0 (or 47808) is the typical
+socket
 number. </p>
-<p><img src="Images/PortConfiguration2.png" ></p>
-<p>When a port is enabled, it is available for sending and receiving packets,
-and the status indicator will be green.  If
-the status indicator is red, there is some problem enabling the port and a
+<p><img src="Images/PortConfiguration2.png"></p>
+<p>When a port is enabled, it is available for sending and receiving
+packets,
+and the status indicator will be green. If
+the status indicator is red, there is some problem enabling the port
+and a
 description will appear in the status column.</p>
 <p>Ports are not actually created or enabled until the <b>OK</b> or <b>Apply</b>
-button is clicked.  (This is different than previous releases of VTS, which
+button is clicked. (This is different than previous releases of VTS,
+which
 created the port while it was being configured).</p>
-<p>Note: Associating more than one port to the same Device will cause VTS to
-function as a BACnet Router between those ports, which is usually unexpected
+<p>Note: Associating more than one port to the same Device will cause
+VTS to
+function as a BACnet Router between those ports, which is usually
+unexpected
 behavior and might cause some scripts to malfunction.</p>
 <p><a href="#7">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
@@ -253,26 +303,34 @@ behavior and might cause some scripts to malfunction.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <h2><a name="7">Step 7</a> : Create a Name</h2>
-<p>A <b>name</b> is a shortcut for an address. Names are used in the source and
-destination address areas of ports, as well as the SNET and DNET portion of the
-BACnet network layer. Select Names from the Edit menu and you will be presented
+<p>A <b>name</b> is a shortcut for an address. Names are used in the
+source and
+destination address areas of ports, as well as the SNET and DNET
+portion of the
+BACnet network layer. Select Names from the Edit menu and you will be
+presented
 with the following dialog box:</p>
-<p><img src="Images/Names.png" ></p>
-<p>Notice that there is already a name TD (common abbreviation for Test Device)
-defined and given the address of the port. If this was an Ethernet port, TD
+<p><img src="Images/Names.png"></p>
+<p>Notice that there is already a name TD (common abbreviation for Test
+Device)
+defined and given the address of the port. If this was an Ethernet
+port, TD
 would be the Ethernet address of the port.</p>
-<p>Click New, change the name to IUT, and then enter the address  
-of the implementation under test. The IUT name has special meaning
-in VTS because scripts will automatically SEND and EXPECT messages from 
+<p>Click New, change the name to IUT, and then enter the address of the
+implementation under test. The IUT name has special meaning
+in VTS because scripts will automatically SEND and EXPECT messages from
 whatever address is associated with the IUT name as long as an explicit
 destination address is <b>not</b> specified in the script.</p>
-<p><img src="Images/Names2.png" ></p>
+<p><img src="Images/Names2.png"></p>
 <p>Click New, change the name to LB, and click on the Local Broadcast
 radio button.</p>
-<p><img src="Images/Names3.png" ></p>
-<p>The LB name will now represent a local broadcast address for any port. For an
-Ethernet port, this is the address FF:FF:FF:FF:FF:FF, for an IP port it is the
-address 255.255.255.255:47808. Click on the OK button to close the dialog box.</p>
+<p><img src="Images/Names3.png"></p>
+<p>The LB name will now represent a local broadcast address for any
+port. For an
+Ethernet port, this is the address FF:FF:FF:FF:FF:FF, for an IP port it
+is the
+address 255.255.255.255:47808. Click on the OK button to close the
+dialog box.</p>
 <p><a href="#8">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -287,36 +345,50 @@ address 255.255.255.255:47808. Click on the OK button to close the dialog box.</
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <h2><a name="8">Step 8</a> : Send a packet</h2>
-<p>The most basic function of VTS is to send and receive packets and decode
-them. Click on the Send menu and you will see a menu that looks like this:</p>
-<p><img src="Images/SendMenu.png" ></p>
-<p>The MyIP name that is selected is the port created in Step 6. There is only
+<p>The most basic function of VTS is to send and receive packets and
+decode
+them. Click on the Send menu and you will see a menu that looks like
+this:</p>
+<p><img src="Images/SendMenu.png"></p>
+<p>The MyIP name that is selected is the port created in Step 6. There
+is only
 one enabled port, so it is selected by default, and below the port is a
-hierarchical menu of families of types of packets. The BVLL menu has BACnet/IP
-specific packets such as Register-Foreign-Device. The Network menu contains
-BACnet networking packets such as Who-Is-Router-To-Network. The other menus are
+hierarchical menu of families of types of packets. The BVLL menu has
+BACnet/IP
+specific packets such as Register-Foreign-Device. The Network menu
+contains
+BACnet networking packets such as Who-Is-Router-To-Network. The other
+menus are
 common groups of application layer messages.</p>
 <p>Select Register-Foreign-Device from the BVLL menu. You will be
 presented with the following dialog box:</p>
-<p><img src="Images/SendRegisterForeign.png" ></p>
-<p>The central feature of the dialog box is a set of tabbed panels, one tab for
-each layer in the packet. The Register-Foreign-Device message has only one
-parameter, the Time-To-Live. This is a required parameter, as indicated by the
+<p><img src="Images/SendRegisterForeign.png"></p>
+<p>The central feature of the dialog box is a set of tabbed panels, one
+tab for
+each layer in the packet. The Register-Foreign-Device message has only
+one
+parameter, the Time-To-Live. This is a required parameter, as indicated
+by the
 error message in the text area below the panels.</p>
 <p>Enter a time-to-live in seconds.</p>
-<p>When a parameter in the packet contains valid information, other parameters
+<p>When a parameter in the packet contains valid information, other
+parameters
 in other panels are verified to contain correct content.</p>
-<p><img src="Images/SendRegisterForeign2.png" ></p>
+<p><img src="Images/SendRegisterForeign2.png"></p>
 <p>Enter the destination address for the packet by selecting the IP
-tab. The destination address may be provided by entering an IP address in the
-text area, or selecting a name from the drop down menu.  In this case,
+tab. The destination address may be provided by entering an IP address
+in the
+text area, or selecting a name from the drop down menu. In this case,
 a default address was selected automatically because the 'IUT' name
 was defined in step 7.</p>
-<p><img src="Images/SendRegisterForeign3.png" ></p>
+<p><img src="Images/SendRegisterForeign3.png"></p>
 <p>Click on the Send button.</p>
-<p>When the packet is well formed, the encoded content will appear in the text
-area below the panels. This may be edited before sending to test how a device
-responds to malformed packets. In the session window you will see an indication
+<p>When the packet is well formed, the encoded content will appear in
+the text
+area below the panels. This may be edited before sending to test how a
+device
+responds to malformed packets. In the session window you will see an
+indication
 of a packet that has been transmitted.</p>
 <p>Close the Send dialog box.</p>
 <p>The Send dialog box is designed to be non-modal, so it is not closed
@@ -335,17 +407,23 @@ automatically. The packet contents can be modified and sent again.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <h2><a name="9">Step 9</a> : Analyze a packet</h2>
-<p>The session window contains three panes. The <b>summary view</b> on the left
-has one line per packet and provides general information such as the packet
+<p>The session window contains three panes. The <b>summary view</b> on
+the left
+has one line per packet and provides general information such as the
+packet
 number, time it arrived, source and destination addresses, and a brief
-description of the packet. The <b>detail view</b> in the upper right contains a
-complete decoding of the packet contents. The <b>hex view</b> in the lower window
+description of the packet. The <b>detail view</b> in the upper right
+contains a
+complete decoding of the packet contents. The <b>hex view</b> in the
+lower window
 displays the binary content of the packet using hexadecimal notation.</p>
-<p><img src="Images/Analyze.png" ></p>
-<p>The three views are synchronized so selecting a detail row will highlight the
+<p><img src="Images/Analyze.png"></p>
+<p>The three views are synchronized so selecting a detail row will
+highlight the
 hex encoding of that specific portion of the packet with a red box.</p>
-<p>The Detail and Hex views can be rearranged within the VTS window by dragging 
-their title bars to the desired new location.  The dividers between the views can
+<p>The Detail and Hex views can be rearranged within the VTS window by
+dragging their title bars to the desired new location. The dividers
+between the views can
 also be moved to resize the adjacent views at the same time.</p>
 <p><a href="#10">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
@@ -364,24 +442,27 @@ also be moved to resize the adjacent views at the same time.</p>
 <p>For the next example, send out a global broadcast Who-Is packet.</p>
 <p>Select Who-Is from the Remote Device Management submenu. You will
 be presented with the following dialog box.</p>
-<p><img src="Images/WhoIs.png" </p>
-<p>The device instance low limit and high limit are optional parameters in the
-message. By leaving both fields empty, the request will indicate that all
+<p><img src="Images/WhoIs.png"></p>
+<p>The device instance low limit and high limit are optional parameters
+in the
+message. By leaving both fields empty, the request will indicate that
+all
 devices must respond.</p>
 <p>Select the NPCI tab.</p>
-<p><img src="Images/WhoIs2.png"</p>
-<p>A Who-Is request is usually sent out as a global broadcast, so the DNET is
+<p><img src="Images/WhoIs2.png"></p>
+<p>A Who-Is request is usually sent out as a global broadcast, so the
+DNET is
 present and has the value 65535.</p>
 <p>Select the BVLCI tab.</p>
-<p><img src="Images/WhoIs3.png" </p>
-<p>Assuming the PC is connected to a BACnet/IP network, this message should be
+<p><img src="Images/WhoIs3.png"></p>
+<p>Assuming the PC is connected to a BACnet/IP network, this message
+should be
 sent out as an original broadcast message.</p>
 <p>Select the IP tab.</p>
-<p><img src="Images/WhoIs4.png" </p>
-<p>Select the LB name for the destination address so that 
-the WhoIs request is sent as a local broadcast.  Notice that the 
-correct broadcast address is filled in in teh numerical 
-address edit box.</p>
+<p><img src="Images/WhoIs4.png"></p>
+<p>Select the LB name for the destination address so that the WhoIs
+request is sent as a local broadcast. Notice that the correct broadcast
+address is filled in in teh numerical address edit box.</p>
 <p>Click Send, then close the dialog box.</p>
 <p><a href="#11">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
@@ -397,9 +478,10 @@ address edit box.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <h2><a name="11">Step 11</a> : Analyze the response</h2>
-<p>Here is a sample captured from a test network. Note that two Devices answered
+<p>Here is a sample captured from a test network. Note that two Devices
+answered
 the Who-Is request with the I-Am service.</p>
-<p><img src="Images/Analyze2.png" </p>
+<p><img src="Images/Analyze2.png"></p>
 <p>&nbsp;</p>
 <p><a href="#History">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
@@ -415,1552 +497,1710 @@ the Who-Is request with the I-Am service.</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <h1><a name="History">VTS Release History</a></h1>
-
-     <h2>3.0b2</h2>
-     Cleaned up support of EPICS references in Expect statements.
-
-     <h2>3.1.4</h2>
-	 Added function key shortcuts.  New support for device objects.  Fixed about box to generate a version string at run time.
-Added support for the following objects: averaging, multi-state-value, and trendlog;
-and all associated properties, EXCEPT: The Log_Buffer property of the TrendLog object.
-These changes enable VTS to handle the presence of the new objects in the EPICS.
-They also allow the user to perform Object Access services (in the interacterive mode) on devices containing these objects. Cleaned up IP address issues in scripting. DA and SA parameters may now be IP addresses vs. octet strings.
-
-     <h2>3.1.5</h2>
-Script support for device object. Includes changes that were made as a result
-                     of the Manchester plug-fest, including significant 
-                      improvements in application layer scripting. It also includes 
-                      bug fixes in the internal router code, along with buffer 
-                      overflow bug fixes. Cleaned up a decoding bug with DNET numbers (being treated as a signed integer and then extended to 32 bits).
-
-     <h2>3.1.6</h2>
-	 Added ReadRange support, but only for the Send window - no support in scripts yet.
+<h2>3.0b2</h2>
+Cleaned up support of EPICS references in Expect statements.
+<h2>3.1.4</h2>
+Added function key shortcuts. New support for device objects. Fixed
+about box to generate a version string at run time.
+Added support for the following objects: averaging, multi-state-value,
+and trendlog;
+and all associated properties, EXCEPT: The Log_Buffer property of the
+TrendLog object.
+These changes enable VTS to handle the presence of the new objects in
+the EPICS.
+They also allow the user to perform Object Access services (in the
+interacterive mode) on devices containing these objects. Cleaned up IP
+address issues in scripting. DA and SA parameters may now be IP
+addresses vs. octet strings.
+<h2>3.1.5</h2>
+Script support for device object. Includes changes that were made as a
+result of the Manchester plug-fest, including significant improvements
+in application layer scripting. It also includes bug fixes in the
+internal router code, along with buffer overflow bug fixes. Cleaned up
+a decoding bug with DNET numbers (being treated as a signed integer and
+then extended to 32 bits).
+<h2>3.1.6</h2>
+Added ReadRange support, but only for the Send window - no support in
+scripts yet.
 Fixed a TimeSynch encoding bug.
-
-     <h2>3.1.7</h2>
-Added the Send UTCTimeSynch service.  Minor improvements in the Send ReadRange interface.  Added a document to the release that provides instruction on how to use VTS 3 for testing BACnet devices.
-
-     <h2>3.1.8</h2>
-       <ul>
-	    <li>Session data is now cleared, so it doesn't grow continuously, but is not compressed.</li>
-	    <li>The Send windows have been sized up to make room for more buttons and clearer indicators.</li>
-	    <li>The IDD_SENDREADPROPMULT, IDD_SENDREADPROPMULTACK and IDD_SENDWRITEPROPMULT dialog boxes now have shuffle-up and shuffle-down buttons.  (May still need some work.)</li>
-	    <li>All of the Send dialog boxes that have lists now have 'Show selection always' turned on, which doesn't always seem to do what it's supposed to.</li>
-	    <li>There is now an automatic invoke ID for the send window.  It is incremented when the Send button is clicked.  The value is saved in the preferences (registry), so it comes back for the next VTS launch.  Note that this is NOT the same invoke ID that will be used by a built-in device object, and that is by design.</li>
-		<li>Now checks the version of BACMACNT.SYS it can find.  Only version 3.0 works.</li>
-		<li>Added decoding of UTCOffset and DayLightSavingStatus to the UTCTimeSynch service.</li>
-		<li>Changed the UTCOffset range from +/- 720 to +/-780.</li> 
-		<li>Line numbers have been added to script windows, with a way to "Go to" a line number via a new menu option.</li>
-		<li>The font was changed in script windows so that consecutive dashes would not appear as one long dash.</li>
-		<li>A menu item "Export" has been added for exporting the session contents to an ASCII file.  The ASCII file includes the summary and detail information.</li>
-        <li>Fixed a bug in decoding the BACnetEventTransitionBits datatype.</li>
-        <li>The 3 panes of the main view (summary, detail, and hex view) can each be sized, rearranged, and selectively hidden. </li>
-		<li>A statistics view has been added that shows statistics in real time. The statistics include:
-		   <ol>
-		      <li>The overall traffic load</li>
-			  <li>The packet count of one or several kinds of messages. For example, how many Who-Is packets are received/sent, how many Alarm & Event packets are received/sent etc. </li>
-			  <li>The packet count of packets that fall into 3 different user-specified size categories. </li>
-		   </ol>
-		</li>
-		<li>When the user double-clicks on a line in the outline view of a script, the script view will jump to the corresponding line. </li>
-		<li>Support was added for the Active_COV_Subscriptions Property of the Device Object. </li>
-		<li>Support was added for the Profile_Name Property.</li>
-       </ul>
-
-     <h2>3.1.9</h2>
-     <ul> 
-		<p><li>Added PTP Support
-			<p>The PTP data link layer has been added in this release. It launches a separate process
-			and displays transmit and receive logs that are specific to PTP.  There has been very
-			little testing on this feature, so please use it with caution.  If any bugs are discovered
-			in the PTP implementation, 
-			please report them <a href="http://sourceforge.net/tracker/?group_id=27326&atid=390005">here</a>.    
-         </p>
-		</li></p>
-		<p><li>Fixed problems parsing these BACnet Properties:
-			<ul>
-			<li>Recipient_List</li>
-			<li>Weekly_Schedule</li>
-			<li>Exception_Schedule</li>
-			<li>List_Of_Object_Property_References</li>
-			</ul>
-		</li></p>
-		<p><li>Fixed a problem in the vertical scrolling of the Script Edit view.</li></p>
-		<p><li>Fixed a problem that caused VTS to crash if a line in the detail view of the sniffer was too long.</li></p>
-		<p><li>590282: Added an easy way for the user to delete the current log.</li></p>
-		<p><li>598977: Fixed a problem with the Names configuration dialog box not refreshing properly.</li></p>
-		<p><li>Packaged the correct version of BACMACNT in this release.  This should allow users 
-		running Windows NT to utilize the BACnet/Ethernet data link, but there have been many problems
-		reported with this, and it definitely does not work on Windows XP systems.  The eventual
-		solution is to replace BACMACNT with a <a href="http://winpcap.polito.it">WinPcap</a> library interface,
-		which will also enable promiscuous BACnet/IP sniffing.</li></p>
-		<p><li>User interface enhancements to the ReadPropertyMultiple, ReadPropertyMultipleAck,
-		and WritePropertyMultiple Send dialogs.
-			<ul>
-				<li>Increased the size of the drop down combo boxes to show more Properties.</li>
-				<li>When adding a new Property, the default of Present_Value is automatically added, 
-				then the user must edit this addition to the Property of his/her choice.
-				Previously, a blank was added to the list of Properties, and the user could get
-				confused as to whether the Add button had any effect.</li>
-			 </ul>
-		</li> </p>
-		<p><li>General cleanup of many list controls.
-			<ol>
-				<li>ReadBDTAck<ul>
-					<li>Added controls for IP / Port creation instead of edit box</li>
-					<li>Address defaults and appears in list, rather than empty space item</li>
-					<li>List keeps selection, preventing GPF in removals of list items</li></ul>
-				</li>
-				<li>ReadFDTAck<ul>
-					<li>Added controls for IP / Port creation instead of edit box</li>
-					<li>Address defaults and appears in list, rather than empty space item</li>
-					<li>List keeps selection, preventing GPF in removals of list items</li>
-					<li>Changed tab order of dialog items</li></ul>
-				 </li>
-				<li>IAmRTN, RouterBusyToNetwork, RouterAvailToNetwork, InitRT, InitRTAck<ul>
-					<li>Default '1' for DNET address, port (where applicable) default to 0xBAC0</li>
-					<li>Address defaults and appears in list, rather than empty space item</li>
-					<li>List keeps selection, preventing GPF in removals of list items</li></ul>
-				</li>
-				<li>UnconfCOVNotification, ConfCOVNotification, CreateObject<ul>
-					<li>Default 'Present_Value' for property</li>
-					<li>Property value appears in list, rather than empty space item</li>
-					<li>List keeps selection, preventing GPF in removals of list items</li></ul>
-				</li>
-				<li>VTClose, VTCloseAck<ul>
-					<li>Default '1' for Session ID</li>
-					<li>ID appears in list, rather than empty space item</li>
-					<li>List keeps selection, preventing GPF in removals of list items</li></ul>
-				</li>
-				<li>WriteFile, ReadFileAck<ul>
-					<li>Default '(record data)' as string for adding data</li>
-					<li>Character data no longer needs to be placed in quotes in edit box (see below)</li>
-					<li>Data appears in list instead of empty space</li>
-					<li>List keeps selection, preventing GPF in removals of list items</li></ul>
-				</li>
-				<li>ReadPropMult, ReadPropMultAck, WritePropMult<ul>
-					<li>Default object ID</li>
-					<li>Defaulted data appears in list instead of blank space item</li>
-					<li>Resized property drop-downs</li>
-					<li>List keeps selection, preventing GPF in removals of list items</li></ul>
-				</li>
-				<li>GetAlarmSummaryAck, GetEnrollmentSummaryAck<ul>
-					<li>Default object ID and state</li>
-					<li>ID and state appear in list instead of empty space</li>
-					<li>Enabled transition checks - checks were previously always disabled </li>
-					<li>List keeps selection, preventing GPF in removals of list items</li>
-					<li>Changed 'property' label to 'Event State' for proper field</li></ul>
-				</li>
-				<li>ComplexObjectType<ul>
-					<li>Default 'Present_Value' in list</li>
-					<li>Property appears in list instead of empty space</li>
-					<li>Disabled controls on dialog start when no items in list (formerly enabled)</li>
-					<li>List keeps selection, preventing GPF in removals of list items</li></ul>
-				</li>
-				<li>VTSAny<ul>
-					<li>List keeps selection, preventing GPF in removals of list items</li></ul>
-				</li>
-		    </ol>
-		</li></p>
-		<p><li>511345, 511412:  Charstring handling
-			<p>
-			User was unable to see char string entered for passwords in DCC & Charstring was apparently
-			not sent to device in WP/WPM.  This problem was actually caused by the method for entering
-			char strings in edit boxes.  Single or double quotes were required within the edit box to
-			properly input the desired text for passwords, messages, names, etc..  Strings were using the
-			script parser to identify strings but this is not necessary in the UI.  Edit fields requiring 
-			strings throughout VTS have been altered accept what is entered.  If quotes are present, the quotes
-			are assumed to be part of the text and sent to the device in the relavent BACnet message.  This
-			change effects the following areas:
-			</p>
-			<ul>
-			<li>SendAckAlarm -> ack source</li>
-			<li>ConfirmedEventNotification -> message text</li>
-			<li>ConfirmedTextMessage -> character class, text message</li>
-			<li>DeviceCommunicationControl -> password (original bug report)</li>
-			<li>IHave -> object name</li>
-			<li>ReinitializeDevice -> password</li>
-			<li>Test? -> character string</li>
-			<li>UnconfirmedEventNotification -> message text</li>
-			<li>UnconfirmedTextMessage -> character class, text message</li>
-			<li>WhoHas -> object name</li>
-			<li>Any -> character string</li>
-			</ul>
-		</li></p>
-		<p><li>444134: Auto Segmentation Support
-			<p>
-			User can now select a device from the Send menu, or the port drop down menu.  There is a new 
-			Device page which is looking for a destination address (type, network, and address) and the 
-			outgoing APDU will be set to that address.  The device object will take care of segmentation,
-			retries, etc, as necessary.  Properly configuring a built-in device object and binding it to a 
-			port will be part of a separate document. 
-			</p>
-		</li></p>
-		<p><li>511406:  Status flags in a variable comp fails
-			<p>
-				Comparisons for status flags in RP/M, WP/M work properly now.  This problem was caused
-				by reading one byte passed the encoded PDU for the bitstring.  The comparison failed 
-				because the tag was being interpreted as part of the incoming bitstring.
-			</p>
-		</li></p>
-		<p><li>508646:  rp to UTC_Offset fails in a script
-			<p>
-				Comparing the returned UTC_Offset value in a script to EPICS failed because the data type
-				used in VTS's internal structures for UTC_Offset was a float instead of int.  This has been
-				corrected by changing it's internal type to 'ssint' and processing accordingly.
-			</p>
-		</li></p>
-		<p><li>508643:  VTS3 unable to read device-address-binding(RP, RPM)
-			<p>
-				'Property value not known' was returned correctly when comparing device-address-binding to EPICS when
-				the value was '?'.  It returned this error incorrectly when the EPICS value was defined as empty ().
-				It now compares the valid empty condition.  This error would also show up on other non-primitive data types
-				whose value could be empty ().
-			</p>
-		</li></p>
-		<p><li>508640, Array bugs in rp (1E,1F,1G)
-			<p>
-				<p><u>Case 1E</u> has been fixed by creating a BACnet type class structure that will facilitate easier type
-				comparisons.  Cases 1F and 1G are errors in the script parser that don't deal with array
-				indices.  (See below)</p>
-
-				<p>Reworked implementation for comparing data in EXPECT statements from values retrieved from EPICS and
-				specified in scripts.   Any AL value being compared to EPICS data was using a method to match encoded
-				streams.  This scheme would fail in cases where numbers used different encoding sizes, different type
-				comparisons that are legal (such as float vs. null in priority arrays) and many other.  More detailed
-				comparisons were impossible with this method because VTS had no way of determining the type of data 
-				and could not determine the proper end of the stream, among other reasons.  </p>
-
-				<p>To implement type specific comparisons for all possible BACnet data types, including arrays, lists and 
-				complex structures, the c++ class representation for BACnet data types has been extended.  These 
-				classes serve as a foundation that allows the use of more tools (MFC, polymorphism, etc.) to 
-				facilitate feature additions and more flexibility where BACnet data type are concerned.  Type specific 
-				matching methods, display methods, decoding, assignment and comparative operators are now available.  </p>
-
-				<p>Using these classes to perform decoding and comparisons in the heart of EXPECT statements required 
-				the need for a retreval method to access the internal EPICS structures and convert them to BACnet 
-				type classes.   The immediate result of these changes can be seen in more meaningful text in test 
-				fail results.  In addition, comparisons can now be made to the following data types: 
-
-					<ul>
-					<li>Unsigned values - all sizes.</li>
-					<li>Integer values - all sizes.</li>
-					<li>Real and doubles.</li>
-					<li>Priority arrays for floats, reals, enumerated and NULL choices.  Indexes not supported yet from sript parser yet but comparisons are ready.</li>
-					<li>Boolean.</li>
-					<li>Bit strings.</li>
-					<li>Object IDs.</li>
-					<li>Character strings - any size.</li>
-					<li>Enumerated values.</li>
-					<li>Date values - all comparison operators.</li>
-					<li>Time values - all comparison operators.</li>
-					<li>DateTime values - all comparison operators.</li>
-					<li>DateRange - all comparison operators (where applicable).</li>
-					<li>Calendar Entries and lists.</li>
-					<li>Device Address Bindings.</li>
-					<li>Array of object identifiers.</li>
-					<li>Arrays and lists of unsigned values.</li>
-					<li>Arrays of text for active/inactive.</li>
-					</ul> </p>
-
-            <blockquote><font color="#777777">
-            Notes for future enhancements:
-
-				<p>The following type comparisons are <b>not</b> implemented yet:
-					<ul>
-					<li>List of read access specs.</li>
-					<li>Action commands and arrays of action commands.</li>
-					<li>VT classes.</li>
-					<li>Event parameters.</li>
-					<li>Session keys.</li>
-					<li>Time Synch recipients.</li>
-					<li>Recipients.</li>
-					<li>List of Recipients.</li>
-					<li>Array of exceptions schedule events.</li>
-					<li>Array of weekly schedules.</li>
-					<li>List of object property references.</li>
-					<li>Setpoint reference.</li>
-					<li>List of active VT sessions.</li>
-					</ul> </p>
-				<p>Adding support for these remaining types is simply a matter of constructing the object from the 
-				EPICS internal structures and decoding the object from a stream.  The mechanisms for performing the 
-				comparisons are already in place.  The development of support for proprietary objects in EPICS 
-				and scripts will be assisted by BACnet classes as well. </p>
-
-				<p>Other benefits of this work will be seen later as the EPICS store gradually converts to store 
-				data internally in these classes.  The greatest benefit to this foundation work will be seen as data 
-				becomes extractable from Complex Acks either compared, tested or even assigned to variables of complex
-				types in scripts.  Additionally, script parsing will be effected by these changes once all of the 
-				data types are supported and proper scanning methods for each will allow a single source code source 
-				for the creation of such objects. </p>
-            </font></blockquote>
-
-				<p>Most of the SEND methods have been altered to retrieve EPICS data using these classes as well as 
-				creation and encoding of send streams from these object types.  Specifically, the following classes 
-				have been added or altered: </p>
-					<ul>
-					<li>All BACnet classes enhanced with Runtime type declaratives, ToString and Match virtuals.</li>  
-					<li>Most classes now have constructors that take an APDUDecoder to construct the value from an 
-					encoded stream.</li>  
-					<li>BACnetEncodeable now decends from CObject, added Match and ToString virtuals.</li>  
-						<li>BACnetAddr</li>
-						<li>BACnetUnsigned</li>
-						<li>BACnetCharacterString</li>
-						<li>BACnetBinaryPriV</li>
-						<li>BACnetCalendarArray</li>
-						<li>BACnetCalendarEntry</li>
-						<li>BACnetDate</li>
-						<li>BACnetDateTime</li>
-						<li>BACnetDateRange</li>
-						<li>BACnetTime</li>
-						<li>BACnetTimeStamp</li>
-						<li>BACnetWeekNDay</li>
-						<li>BACnetObjectIDList</li>
-						<li>BACnetGenericArray</li>
-						<li>BACnetObjectContainer</li>
-						<li>BACnetAnyValue (to facility "any" type flexibility - but mostly to encapsulate dynamically 
-					        allocated objects for proper destruction when there's so much 'throwing' goings on...).	</li>
-					</ul>
-
-				<p><u>Case 1F</u> (test for size of array [0]) and <u>case 1G</u> (test of single index value in array [int]) have
-				also been fixed.  Indexing into array properties is now supported in the following manner:
-<pre>{property[int]}
-    - or -
-{property[var]}
-</pre>
-				The index must either be a literal integer or a variable which resolves to an integer.
-				</p>
-			</p>
-		</li></p>
-		<p><li>617618:  RPM MAX script crashes VTS
-			<p>
-				This problem was caused during an attempt to reallocate an APDU buffer to accomodate a larger
-				size APDU.  The problem has been fixed.  VTS no longer crashes.  Proper segmentation should occur.
-			</p>
-		</li></p>
-		<p><li>618176: EXPECT needs "Don't Care" arguments
-			<p>
-				<p>This feature was added to allow a script to test for the correct tagging 
-				in an EXPECT statement without regard to the actual data value.  Expressions within an EXPECT statement now support the don't care operation.  
-				Equations and values can be specified as don't care in one of the following ways:</p>
-
-				<ol>
-				<li>Replace the value in the right side of an expression with '?'. &nbsp;&nbsp;&nbsp;&nbsp;For example:
-<pre>Unsigned = 1, ?
-Bitstring = 2, ?
-Real = 3, ?
-</pre>
-
-
-				In the example above, the EXPECT statement will fail if the packet does
-				not contain a context 1 unsigned integer, followed by a context 2 bitstring, followed
-				by a context 3 real, but the actual values of each of the data values is discarded.  This can 
-            prove useful if one or more of the parameters expected cannot be
-            pre-determined, such as a time stamp.  If the expected data is application tagged instead
-            of context tagged, then the following is also valid:
-<pre>Unsigned = ?
-Bitstring = ?
-Real = ?
-</pre>
-				
-				'?' can also be used for always matching addresses
-				returned for EXPECT statements when applied to:  
-				<ul>
-					<li>WriteBDT</li>
-					<li>BVLLResult</li>
-					<li>ReadBDTAck</li>
-					<li>ForwardedNPDU</li>
-					<li>RegisterFD</li>
-					<li>ReadFDTAck</li>
-					<li>DeleteFDTEntry</li>
-					<li>WhoIsRouterToNetwork</li>
-					<li>IAmRouterToNetwork</li>
-					<li>ICouldBeRouterToNetwork</li>
-					<li>RejectMsgToNetwork</li>
-					<li>RouterBusyToNetwork</li>
-					<li>RouterAvailToNetwork</li>
-					<li>InitializeRoutingTable</li>
-					<li>EstablishConnectionToNetwork</li>
-					<li>DisconnectConnectionToNetwork</li>
-				 </ul>
-				
-				 
-				<p>'?' is not valid for AL type data
-				where the datatype is determined by the EPICS reference on the right side of the expression. 
-				'?' can only be used if the left side of the expression specifies the datatype.</p>
-				</li>
-
-				<li>Use of the don't care operator: '?=' &nbsp;&nbsp;&nbsp;&nbsp; For example:
-<pre>Unsigned ?= 20
-Bitstring ?= F, T
-AL ?= {EPICSReference}
-</pre>
-
-				<p>Use of the don't care operator '?=' within an EXPECT statement will cause the data stream to be
-				parsed correctly according to the data type but the value will not be tested.  This operator
-				works on primitive types (Unsigned ?= 20) as well as the AL data.  The value on the right of the operator must be valid for the datatype.  EPICS references for AL
-				expressions must be valid in order to determine the data stream type. </p>
-            
-            <p>The '?=' operator
-				is more flexible than the '?' data matching method, but the '?' is provided for
-				clarity in simpler expressions.  For example:
-<pre>Unsigned = ?
-</pre>
-is easier to understand than:
-<pre>Unsigned ?= 9
-</pre>
-where the '9' is superfluous.  But both formats accomplish the same thing.
-
-				</p>
-				</li>
-				</ol>
-			</p>
-		</li></p>
-		<p><li>Date / Time Improvements
-			<p>Several changes have taken place in the handling of the primitive Date and
-				Time data types.  The listing here does not include other improvements that
-				were made concerning script variables (reported later in this text).  Unless
-				noted, both the Date and Time data type handling were affected equally by
-				these corrections and enhancements.</p>
-			<ol>
-			<li>The Date and Time data types were not accepting a script variable
-substitution when used in Send and Expect statements.  Full support for
-receiving Date and Time values from variables has been added.  Substitutions
-will take the standard form in Expect and Send statements:
-<pre>Date = tag, VAR
-Date = VAR
-Time = tag, VAR
-Time = VAR
-Date = VAR   (where VAR = tag, [value])
-Time = VAR   (where VAR = tag, [value])
-</pre>
-            </li>
-			<li>The Date and Time data types were having trouble comparing don't care
-             values '?' or '*'.  '?' characters in a field of a Date or Time variable are now 
-             considered to be wildcards that match any value in the corresponding field of the 
-             Date or Time being compared, whereas the '*' 
-             character <b>only</b> matches the BACnet "unspecified" value of X'FF'. 
-             In other words, '*' is not a wildcard, but a symbol that represents the 
-             unspecified X'FF' value.</li>
-			<li>Added support for the don't care value that other data types recently
-support.  '?' can be substituted for a Date or Time value and the comparison
-will return true.  Ex:   (Date = tag, ?) will pass the comparison in an
-Expect statement.  ? substitutions are not valid in Send statements.</li>
-			<li>Date and Time values specified in EPICS that had don't care values would
-not be allowed in references.  Date = {Local_Date} would fail because the
-script executor thought data wasn't defined in EPICS for that property.
-This restriction has been removed and now supports all combinations of don't
-care specifications (?/?/?).</li>
-			<li>Full comparison support has been added to the Date and Time primitive
-types.  &lt;, &gt;, =, !=, &lt;=, &gt;=, ?= and &gt;&gt; (see below) have been added.  This
-includes date and time values that have the don't care specification.</li>
-			<li>The Date and Time primitive types had various parsing problems.  This
-particularly true when Date and Time values were used as expression
-parameters when other parameters were present.  Tag values were especially
-troublesome because they introduce another parameter in the expression that
-is only separated by a comma, which is also used to separate values in the
-date. Here is an example of a pre-3.1.9 assignment:
-<pre>Date = tag, dow, n/n/n
-</pre>
-			<p>With this syntax, parsing the day of week and/or the tag was difficult due to data values for
-complex types being mixed with parameter in an expression.  These problems
-have been cleaned up by adding the following requirements to data types
-whose ASCII format requires multiple values.  These kinds of values are
-considered complex data types and the Date and Time types fall into this
-category.  Other values (lists, calendar entries, and other not-yet
-implemented value specifiers) also fall into this category.</p>
-
-				<b>Text representations of complex data types now require the use of brackets '[]' to separate
-				their data from other parameters.</b>  The brackets are required even if no other parameters
-				in an expression are present.  The Date and Time text representations now take the following
-				form:
-<pre>Date = [<i>dow</i>, <i>mm</i>/<i>dd</i>/<i>yy</i>]
-         -or-
-Date = [<i>dow</i>, <i>mm</i>-<i>dd</i>-<i>yy</i>]
-Time = [<i>hh</i>:<i>mm</i>:<i>ss.HH</i>]
-</pre>
-					<ul>
-					<li><tt><i>dow</i></tt> = 3 characters (case insensitive) for MON, TUE, WED, THU, FRI, SAT, SUN.
-						  This value must be present and can be substituted with ? as in
-						  <tt>[?, mm/dd/yy]</tt>.  A comma separates this value and leading and trailing
-						  spaces between each atomic type are ignored 
-						  (i.e. <tt>[?   ,   mm  /  dd  / yy]</tt> is the same as <tt>[?,mm/dd/yy]</tt>).</li>
-					<li><tt><i>mm, dd, yy, hh, mm, ss, HH</i></tt> = numeric values with leading or no zeros.
-				          Values are checked for validity in every case except invalid dates as
-						  a whole (Feb 31st).</li>
-					<li><tt><i>yy</i></tt> = Year specification given as either the full year (2002) or a partial
-						  year (02).  Values interpreted as partial years range from 1941 to 2040. '23' indicates 2023 whereas '45' indicated 1945.  '98' indicates 1948 and
-'00' indicates 2000.</li>
-					<li><tt><i>HH</i></tt> =  hundredth value in the range 0 - 99.  This value is optional in the text
-						  representation.  If the period is present in the text, the value MUST follow
-						  or a parsing error is generated and the Time is invalid.</li>
-					</ul>
-				<p>Any and all values can be substituted with the don't care value ?.  For example:  <tt>[12:?:44.?]</tt>.
-				Enclosing these complex representations inside brackets gives clarity to expressions with
-				multiple parameters as in the case of tag specifications:
-<pre>Date = tag, [TUE, 11/4/02]
-         -or-
-VAR = [TUE, 11/4/02]
-Date = tag, VAR
-</pre>
-				</p>
-				<p>Bracketing this compound data can be
-				nested as in the case of the text representation for a DateTime and DateRange:
-<pre>DateTime  = [DATE, TIME]   = [[dow, mm/dd/yy], [hh:mm:ss]]
-DateRange = [DATE1, DATE2] = [[dow, mm/dd/yy], [dow, mm/dd/yy]]
-</pre>
-
-				<p>DateTime and DateRange are not considered primitive types and currently can
-only be used when referencing EPICS data and so a text representation for
-these types has not been needed as yet.  The addition of variable
-assignments tends to usher in the requirement for these representations.
-How text representations are interpreted as certain data types requires a
-solution, as referenced in the following section on variable assignments.</p>
-
-<p>One final note on the bracketing of compound data is that, like quotes for
-strings, the brackets are only necessary in situations where other types of
-data may be read as well.  Brackets are not necessary when date and time
-values are specified inside edit fields within the VTS user interface.  They
-are, however, necessary in scripts and subsequently, like quotes, necessary
-inside script parameter data, since this data is partially parsed.</p>
-
-
-			</li>
-		</ol>
-		</li></p>
-		<p><li>444200: Extract data from incoming packets
-			<p>
-				Support for stuffing incoming data elements into script variables has been added throughout
-				the EXPECT statement, except where noted.  Syntax for the new operator '>>' in assignments
-				take the following form:
-<pre>Keyword >> VAR
-         -or-
-Keyword >> tag, VAR
-</pre>
-				<p>The above assignments will place a text representation of the incoming data given by the keyword into the
-				script parameter VAR.  The assignment that contains the 'tag' parameter is used when the encoded data is expected to be context tagged instead of application tagged. <b>The VAR parameter MUST be previously created in the SETUP section
-				of the script or an error will be reported. </b></p>
-
-				<p>The first form assumes no tag is present and the data is removed from the
-				stream and placed in the VAR.  If a tag is expected (as found in the
-				incoming packet), and error will be reported.  The second form allows the
-				testing of a context tag first and then an assignment into the variable.
-				The tag will NOT be present in the new assignment.  The contents of VAR will
-				NOT be interpreted prior to assignment.  This is relevant because it is
-				possible to have statements:</p>
-<pre>VAR = tag, value
-Keyword = VAR
-   ... which resolves to:
-Keyword = tag, value
-   ... and the tag is tested.
-</pre>
-<p>Thus, it would be conceivable to allow:</p>
-<pre>VAR = tag, VAR2
-Keyword = VAR
-   ... which might resolve to:
-Keyword = tag, VAR2
-   ... and finally place the decoded value in the VAR2 parameter. <b>But this is not supported.</b>
-</pre>
-				<p>The data will be placed in script parameters in a text format that can be
-re-decoded for use in comparisons in other expressions.  Each text format
-will be determined by the appropriate type.  The following assignments are
-legal for these data types:</p>
-  				<blockquote>
-				<p><tt>Boolean >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: Set or Reset</p>
-				<p><tt>Unsigned >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: Number</p> 
-				<p><tt>Integer >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: Number</p> 
-				<p><tt>Real >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: Real</p> 
-				<p><tt>Double >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: Real</p> 
-				<p><tt>OctetString >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:  X'nnnnnn'</p> 
-				<p><tt>BitString >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:  B'0102010'</p> 
-				<p><tt>CharacterString >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:  "Char"</p> 
-				<p><tt>Date >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:  [dow, mm/dd/yy]</p> 
-				<p><tt>Time >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:  [hh:mm:ss.HH]</p> 
-					<hr>
-				<p><tt>Enumerated >> VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:  Number or KEYWORD if enumeration table is known
-(as in the case of Boolean).  Support for this can be incremental.</p> 
-					<hr>
-			        <p><tt>Object >> VAR</tt></p>
-					<p>-or-</p>
-					<p><tt>Object >> tag, VAR</tt></p>
-					  Expects and Object Identifier and assigns 'OBJECT-TYPE, Number'  to VAR.  In other words, this type of assignment will place the object type keyword AND the object instance number
-					  inside the script parameter value. (Note that the object really falls
-in the compound data class and would best be served by bracketing the type
-and instance together [type, instance].  This was NOT implemented because
-too many scripts would require alteration). 
-				<hr>
-  				
-			        <p><tt>Property >> tag, VAR	</tt></p>
-					  Expects a context tagged Property Identifier and assigns it to VAR. The property keyword (i.e. PRESENT_VALUE) will be placed inside the variable. 
-					  This will be properly decoded and compared in other equality expressions in the current
-					  or upcoming EXPECT statements.
-				<hr>
-				<p>(OpeningTag and ClosingTag do not support the assignment operator).</p>
-				<hr>
-
-				<p><tt>VERSION >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: Number</p>
-				<p><tt>PRIORITY >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: Number</p>
-				<p><tt>DER >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: Boolean (Set or Reset)</p>
-				<p><tt>DNET >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: Number</p>
-				<p><tt>SNET >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: Number</p>
-				<p><tt>HOPCOUNT >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: Number</p>
-				<p><tt>NEGATIVEACK >> VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: Boolean</p>
-				<p><tt>SERVER >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: Boolean</p>
-				<p><tt>INVOKEID >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: Number</p>
-				<p><tt>ABORTREASON >> VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: EnumeratedKeyword (SEGMENTATION-NOT-SUPPORTED)</p>
-				<p><tt>REJECTREASON >> VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: EnumeratedKeyword (INCONSISTENT-PARAMETERS)</p>
-				<p><tt>WINDOWSIZE >> VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: Number</p>
-				<p><tt>SEQUENCENR >> VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: Number</p>
-				<p><tt>SETACCEPTED >> VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: Boolean</p>
-				<p><tt>MOREFOLLOWS >> VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: Boolean</p>
-				<p><tt>ERRORCHOICE >> VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: EnumeratedKeyword ()</p>
-				<p><tt>SEGMESSAGE >> VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: Boolean</p>
-				<p><tt>SERVICE >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: EnumeratedKeyword (ACKNOWLEDGEALARM)</p>
-				<p><tt>PDU >> VAR</tt>&nbsp;&nbsp;&nbsp;;  Assigns: EnumeratedKeyword (CONFIRMED-REQUEST)</p>
-				<hr>
-			    <p><tt>MAXSIZE >> VAR</tt></p>
-					Assigns: Enumeration of ("50", "128", "206", "480", "1024", "1476")  or Number if less than 16.
-			 If VAR now contains a number, it will be converted to code if VAR is then used in a SEND.
-				<hr>
-			        <p><tt>NETWORK >> VAR</tt></p>
-					Assigns: CharacterString for currently defined port (in quotes).
-				<hr>
-			        <p><tt>SADR >> VAR</tt></p>
-			        <p><tt>DADR >> VAR</tt></p>
-					<p>Both of these assign a CharacterString for the defined name of the device if known,
-OctetString if not.</p>
-<p>An error was discovered and corrected concerning the specification of DNET/DADR and SNET/SADR
-			pairs in the script.  The test for whether or not these pairs were present in the received
-			packet was being determined by whether or not the DNET/DADR keywords were supplied in the
-			script.	 This was causing the script to have hard-coded expectations about whether the IUT was 
-			behind a router or not.</p>
-				<hr>
-			        <p><tt>BVLCI >> VAR</tt></p> Assigns: BVLCI type, i.e. READ-BROADCAST-DISTRIBUTION-TABLE-ACK {,host/net:port}*
-			        <p><tt>MESSAGE >> VAR, ?, ?, ?</tt></p>	Assigns the network layer message type to VAR.  
-					<p><b>A special note about these two keywords:  MESSAGE and BVLCI. </b> These
-keywords have parameters that follow which dictate how the values are
-extracted from the received packet.  As VTS is currently coded, assignment
-of all of the parameters into a VAR is impossible because the number of
-parameters that are specified in an equality expression determines what data
-to extract.  For example: Assignments of </p>
-			        <p><tt>BVLCI >> VAR</tt></p> ... where the BVLCI received is READ-BROADCAST-DISTRIBUTION-TABLE-ACK
-{,host/net:port}*
-<p>...would fail because the number of entries into the table is matched and
-determined by the number of parameters given in the expression.    Although simpler
-assignments are possible with other kinds of BLVCI types (BVLC-RESULT,
-rslt), it is not clear whether a variable assignment of the entire set of
-parameters or just the BLVCI type would be most useful further in the
-script.  For this reason, the current implementation supports the assignment
-of the type ONLY into the script variable, using a syntax such as:
-</p>
-			        <p><tt>BVLCI >> VAR, ?, ?, ?</tt></p>
-
-<p>The contents of VAR will have the enumerated keyword
-READ-BROADCAST-DISTRIBUTION-TABLE-ACK and no further parameters.  The use of
-the don't care value is required for types that have a variable number of
-arguments so the receive packet can be properly decoded.  Looking into how
-this could be implemented in such a way as to not depend on the parameters
-supplied in the script to properly decode the received packet is probably
-warranted.</p>
-
-<p>All of the parameters must be specified, even in simple cases such as:
-</p>
-
-			        <p><tt>BVLCI >> VAR, rslt</tt></p>
-
-<p>...where the type is BVLC-RESULT.   After the VAR is stuffed with the BLVCI
-type, 'rslt' will be compared to the received result as if the equals
-operator was used.
-</p>
-<p>The MESSAGE keyword for determining network layer message types:
-</p>
-			        <p><tt>MESSAGE >> VAR, ?, ?, ?</tt></p>
-<p>... where the type is I-AM-ROUTER-TO-NETWORK would require the specification
-of all of the networks the sender is a router to (or specified as don't care
-values).  VAR would be assigned with the network message enumerated keyword
-(i.e. I-AM-ROUTER-TO-NETWORK).  An alternate way of handling this <b>in future releases</b> might be to allow the assignment of multiple values into multiple
-variables with a single assignment expression.  Like this:
-</p>
-			        <p><tt>MESSAGE >> VAR1, VAR2, VAR3, VAR4, etc.</tt></p>
-					<p>-or-</p>
-			        <p><tt>MESSAGE >> I-AM-ROUTER-TO-NETWORK, VAR, ?, ?</tt></p>
-					<p><b>But both of these forms are currently unsupported.</b></p>
-
-				<hr>
-				  
-<!--			</blockquote>    -->
-		</li></p>
-	 </ul>
-
-     <h2>3.2.0</h2>
+<h2>3.1.7</h2>
+Added the Send UTCTimeSynch service. Minor improvements in the Send
+ReadRange interface. Added a document to the release that provides
+instruction on how to use VTS 3 for testing BACnet devices.
+<h2>3.1.8</h2>
 <ul>
-  <p><li>
-  				<blockquote>
-				618172: Conditional flow control for scripts
-<p>Support for the IF statement has been added. The statement is a pre-processor form used to 
-control  compilation during the "Syntax Check" function. The
-expression in the conditional will not be evaluated at script 
-execution.  Syntax for the conditional compilation will take 
-the form:</p>
-
-<pre>IF (expression {[OR | AND] expression} )
-.
-{ELSEIF (expression {[OR | AND] expression} )}
-.
-{ELSE} 
-.
-ENDIF
-</pre>
-
-<p>The pre-processor will evaluate the expressions contained 
-within the perenthesis following the 'IF' keyword before 
-scanning the next line.  If the expression evaluates to true,
-all
-of the following lines up to the ENDIF keyword (or ELSEIF or 
-ELSE, if supplied) will be included in the compile.  Multiple 
-expressions can be evaluated.  Evaluation will occur left to 
-right until a false condition is detected.  Parenthesis for 
-logical grouping is not supported.</p>
-
-<p>The ELSEIF and ELSE clauses are optional (indicated 
-by '{}').  Only one ELSE clause can be present within an IF 
-block but multiple ELSEIF clauses can exist.  Each of the 
-keywords must appear at the first element on a line.  Once a 
-true condition in any clause is found, any remaining ELSEIF 
-or ELSE clauses will not be evaluated and the syntax for 
-these clauses will not be checked.</p>
-
-<p>The expressions will take the following form:</p>
-
-<pre>VAR/Value operator VAR/Value
-</pre>
-
-<p>Where VAR/Value is either a script variable name that has 
-already been assigned in the SETUP section or a literal 
-value.  Any expression referencing a script variable that has 
-not been defined will evaluate as if the variable is an 
-enumeration keyword.  All literals or variables must evaluate 
-to one of the following types:</p>
-
-<pre>Boolean (TRUE, T, FALSE, F, Y, YES, N, NO) {=, !=}
-Enumeration (NAME) {=, !=}
-Integer (-1, 0, 1, etc.) {=, !=, <, <=, >, >=}
-Unsigned (0, 1, 2) {=, !=, <, <=, >, >=}
-CharacterString ("Twinkies") {=, !=, <, <=, >,>=}
-</pre>
-
-<p>Note that use of Real, Double, Null, BitString, OctetString, 
-Date, Time, ObjectIdentifier, DeviceIdentifier, 
-PropertyIdentifier type are not supported in IF expressions at 
-the present time.  The assignment operator '>>' and don't 
-care operator '?=' are unsupported in IF expressions.  Use of 
-the don't care value '?' is supported and will always match 
-whatever type and value it is compared to, regardless of the 
-operator used.   i.e.  VAR != ?, where VAR = 20 or any value 
-will be true. </p>
-
-<p>Enumeration types will be supported.  All unquoted names 
-will be treated as an enumeration type and a conversion to 
-caps and '_' to '-' will be performed prior to evaluation.  It
-is
-not necessary to supply a valid enumeration name because 
-all names that do not resolve to parameters will be treated 
-like an enumeration. </p>
-
-<pre>VAR = I-AM-ROUTER-TO-NETWORK
-VAR = BOGUS-NOT-FOUND-ENUMERATION
-</pre>
-
-<p>Parameters that have either been changed by the user or 
-changed by a previous script execution (item shows blue in  
-parameter list) will use the new value for IF comparisons.  
-A 'reset' must be performed to have the IF conditional use the 
-script assigned value for comparison. </p>
-
-<p>IFs can be nested.  Since the IF statement is used for 
-conditional compilation, the IF block can span multiple script 
-statements, occur within a SEND or EXPECT statement, or 
-straddle the beginning and/or end of SEND or EXPECT 
-statements.</p>
-</li>
-
-<p><li>444152: New CHECK statement
-
-<p>Added CHECK statement to script commands that will popup 
-a modal dialog box and allow the user to PASS or FAIL the 
-script test.  Script execution is halted while the dialog is
-up. Syntax for the CHECK statement is as follows:  </p>
-
-<pre>CHECK "Title" (
-   "Text line"
-    ...
-   "Text line"
-   )
-</pre>
-
-<p>Usage details can be found in a usage document attached to 
-the MAKE item, 44153. </p>
-</li>
-
-<p><li>444153: New non-modal MAKE statement
-<p>
-Added MAKE statement to script commands.  It will pop up 
-a dialog with a supplied message and allow the user to alter 
-a condition that generates a receive packet.  When followed 
-by an EXPECT statement, script execution continues with 
-indefinately extended EXPECT timers.  Syntax is exactly like 
-the CHECK statement with the exception of the keyword 
-MAKE.
-
-<pre>MAKE "Title" (
-   "Text line"
-    ...
-   "Text line"
-   )
-</pre>
-
-<p>Usage details can be found in the document attached to the 
-sourceforge item. </p>
-</li>
-
-
-<p><li>508582: (*Add) Inefficient drop down windows
-<p>Now the send page such as "CSendNPCI", "CSendBVLCI", "CSendReadProp", "CSendReadPropACK", "CSendReadPropMult", "CSendReadPropMultACK", "CsendWriteProp", "CSendWritePropMult", "CSendWritePropMultError"  can remember the values of the past 5 packets. 
-</p>
-
-<p>And when tester sends an request with  a particular object and property in one of send window:  "CSendReadPropMult", "CSendReadPropMultACK" and "CsendWritePropMult" windows, the others will have the same settings.
-</p>
-</li>
-
-<p><li>468378: Schedule Object EPICS Parsing Probs
-<p>We have used other way to fix this bug without type identifier
-in
-the EPICS. The value of present-value will be parsed according 
-to value of list_of_object_property_reference.
-Now VTS3 can parse the schedule object defined in EPICS 
-correctly. However we found although we have fixed this bug, 
-there are some problems in handling packet expected, we 
-modified the struct of schedule object, and now VTS3 can handle 
-three kinds of data type: Binary value, unsigned word and float.
-</p>
-</li>
-
-<p><li>444148: Read-all test
-<p>
-Now VTS3 can support read-all test. A menu item "read all property" has been added into menu "script", after loading EPICS successfully, this menu will be enabled. When you click this menu, VTS prompts you to input network number and destination address, after then VTS3 create a temp VTS3 script in a new script document, you can save this script file. If you don't save this file, VTS3 will delete this temp file. 
-Note: At present, VTS3 only supports read all test over BACnet/IP.
-</p>
-</li>
-
-<p><li>444157: EPICS consistency checks
-<p>
-Now VTS3 can support more consistency check function. EPICS consistency check is in accordance with BACnet standard 1995, have finished the following items consistency check.:
-</p>
-<ol>
-<li>All object types required by the specified conformance class shall be indicated as supported in the Standard Object Types Supported section of the EPICS.
-</li>
-
-<li>A minimum of one instance of each object type required by the specified conformance class shall be included in the test database.
-</li>
-<li>The Object_Types_Supported property of the Device object in the test database shall indicate support for each object type required by the specified conformance class.
-</li> 
-<li>All application services required by the specified conformance class shall be indicated as supported in the BACnet Standard Application Services Supported section of the EPICS with Initiate and Execute indicated as required by the conformance class.
-</li>
-<li>The Application_Services_Supported property of the Device object in the test database shall indicate support for each application service for which the specified conformance class requires support for execution of the service.
-</li>
-<li>All object types required by the specified functional groups shall be indicated as supported in the Standard Object Types Supported section of the EPICS.
-</li>
-<li>A minimum of one instance of each object type required by the specified functional groups shall be included in the test database.
-</li>
-<li>The Object_Types_Supported property of the Device object in the test database shall indicate support for each object type required by the specified functional groups.
-</li>
-<li>All application services required by the specified functional groups shall be indicated as supported in the BACnet Standard Application Services Supported section of the EPICS with Initiate and Execute indicated as required by the functional groups.
-</li>
-<li>The Application_Services_Supported property of the Device object in the test database shall indicate support for each application service for which the specified functional groups require support for execution of the service.
-</li>
-<li>The object types listed in the Standard Object Types Supported section of the EPICS shall have a one-to-one correspondence with object types listed in the Object_Types_Supported property of the Device object contained in the test database.
-</li>
-<li>For each object type listed in the Standard Object Types Supported section of the EPICS there shall be at least one object of that type in the test database.
-</li>
-<li>There shall be a one-to-one correspondence between the objects listed in the Object_List property of the Device object and the objects included in the test database. The Object_List property and the test database shall both include all proprietary objects. Properties of proprietary objects that are not required by BACnet Clause 23.4.3 need not be included in the test database.
-</li>
-<li>For each object included in the test database, all required properties for that object as defined in Clause 12 of BACnet shall be present. In addition, if any of the properties 
-supported for an object require the conditional presence of other properties, their presence shall be verified.
-</li>
-</ol>
-</li>
-
-<p><li>444237:  Add column labels to summary window
-
-<p>Now summary window has been changed from Scroll view to List view. This list view contains the following columns: number, Ssource/Destination, Service Type.
-</p>
-</li>
-
-<p><li>566972: Trace Window LEFT pane unusable
-<p>To improve the usability of the left (summary) pane, the following enhancements were made:</p>
-<ol>
-<li> Moved all text to the far left in order to maximize space. </li>
-<li> Moved the long timestamp to the right 'detailed' pane. </li>
-<li> Spaces were removed between source and destination fields. </li> 
-<li>  A thin column header was added to identify the columns in the left pane. </li>
-</ol>
-</li>
-
-<p><li>444243: Autoscroll the summary view
-<p>Now if the last packet in the session is selected and a new packet is sent or received, VTS3 can continue to keep the scroll value pegged to the bottom of the list, scrolling the current contents up, and make the new incoming packet the selected packet.
-Note: when the selected packet isn't the last packet, VTS3 will not make a change to select the last packet when a new packet is sent or received. 
-</p></li>
+  <li>Session data is now cleared, so it doesn't grow continuously, but
+is not compressed.</li>
+  <li>The Send windows have been sized up to make room for more buttons
+and clearer indicators.</li>
+  <li>The IDD_SENDREADPROPMULT, IDD_SENDREADPROPMULTACK and
+IDD_SENDWRITEPROPMULT dialog boxes now have shuffle-up and shuffle-down
+buttons. (May still need some work.)</li>
+  <li>All of the Send dialog boxes that have lists now have 'Show
+selection always' turned on, which doesn't always seem to do what it's
+supposed to.</li>
+  <li>There is now an automatic invoke ID for the send window. It is
+incremented when the Send button is clicked. The value is saved in the
+preferences (registry), so it comes back for the next VTS launch. Note
+that this is NOT the same invoke ID that will be used by a built-in
+device object, and that is by design.</li>
+  <li>Now checks the version of BACMACNT.SYS it can find. Only version
+3.0 works.</li>
+  <li>Added decoding of UTCOffset and DayLightSavingStatus to the
+UTCTimeSynch service.</li>
+  <li>Changed the UTCOffset range from +/- 720 to +/-780.</li>
+  <li>Line numbers have been added to script windows, with a way to "Go
+to" a line number via a new menu option.</li>
+  <li>The font was changed in script windows so that consecutive dashes
+would not appear as one long dash.</li>
+  <li>A menu item "Export" has been added for exporting the session
+contents to an ASCII file. The ASCII file includes the summary and
+detail information.</li>
+  <li>Fixed a bug in decoding the BACnetEventTransitionBits datatype.</li>
+  <li>The 3 panes of the main view (summary, detail, and hex view) can
+each be sized, rearranged, and selectively hidden. </li>
+  <li>A statistics view has been added that shows statistics in real
+time. The statistics include:
+    <ol>
+      <li>The overall traffic load</li>
+      <li>The packet count of one or several kinds of messages. For
+example, how many Who-Is packets are received/sent, how many Alarm
+&amp; Event packets are received/sent etc. </li>
+      <li>The packet count of packets that fall into 3 different
+user-specified size categories. </li>
+    </ol>
+  </li>
+  <li>When the user double-clicks on a line in the outline view of a
+script, the script view will jump to the corresponding line. </li>
+  <li>Support was added for the Active_COV_Subscriptions Property of
+the Device Object. </li>
+  <li>Support was added for the Profile_Name Property.</li>
 </ul>
-
-
+<h2>3.1.9</h2>
+<ul>
+  <li>Added PTP Support
+    <p>The PTP data link layer has been added in this release. It
+launches a separate process and displays transmit and receive logs that
+are specific to PTP. There has been very little testing on this
+feature, so please use it with caution. If any bugs are discovered in
+the PTP implementation, please report them <a
+ href="http://sourceforge.net/tracker/?group_id=27326&amp;atid=390005">here</a>.
+    </p>
+  </li>
+  <li>Fixed problems parsing these BACnet Properties:
+    <ul>
+      <li>Recipient_List</li>
+      <li>Weekly_Schedule</li>
+      <li>Exception_Schedule</li>
+      <li>List_Of_Object_Property_References</li>
+    </ul>
+  </li>
+  <li>Fixed a problem in the vertical scrolling of the Script Edit view.</li>
+  <li>Fixed a problem that caused VTS to crash if a line in the detail
+view of the sniffer was too long.</li>
+  <li>590282: Added an easy way for the user to delete the current log.</li>
+  <li>598977: Fixed a problem with the Names configuration dialog box
+not refreshing properly.</li>
+  <li>Packaged the correct version of BACMACNT in this release. This
+should allow users running Windows NT to utilize the BACnet/Ethernet
+data link, but there have been many problems reported with this, and it
+definitely does not work on Windows XP systems. The eventual solution
+is to replace BACMACNT with a <a href="http://winpcap.polito.it">WinPcap</a>
+library interface, which will also enable promiscuous BACnet/IP
+sniffing.</li>
+  <li>User interface enhancements to the ReadPropertyMultiple,
+ReadPropertyMultipleAck, and WritePropertyMultiple Send dialogs.
+    <ul>
+      <li>Increased the size of the drop down combo boxes to show more
+Properties.</li>
+      <li>When adding a new Property, the default of Present_Value is
+automatically added, then the user must edit this addition to the
+Property of his/her choice. Previously, a blank was added to the list
+of Properties, and the user could get confused as to whether the Add
+button had any effect.</li>
+    </ul>
+  </li>
+  <li>General cleanup of many list controls.
+    <ol>
+      <li>ReadBDTAck
+        <ul>
+          <li>Added controls for IP / Port creation instead of edit box</li>
+          <li>Address defaults and appears in list, rather than empty
+space item</li>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+        </ul>
+      </li>
+      <li>ReadFDTAck
+        <ul>
+          <li>Added controls for IP / Port creation instead of edit box</li>
+          <li>Address defaults and appears in list, rather than empty
+space item</li>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+          <li>Changed tab order of dialog items</li>
+        </ul>
+      </li>
+      <li>IAmRTN, RouterBusyToNetwork, RouterAvailToNetwork, InitRT,
+InitRTAck
+        <ul>
+          <li>Default '1' for DNET address, port (where applicable)
+default to 0xBAC0</li>
+          <li>Address defaults and appears in list, rather than empty
+space item</li>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+        </ul>
+      </li>
+      <li>UnconfCOVNotification, ConfCOVNotification, CreateObject
+        <ul>
+          <li>Default 'Present_Value' for property</li>
+          <li>Property value appears in list, rather than empty space
+item</li>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+        </ul>
+      </li>
+      <li>VTClose, VTCloseAck
+        <ul>
+          <li>Default '1' for Session ID</li>
+          <li>ID appears in list, rather than empty space item</li>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+        </ul>
+      </li>
+      <li>WriteFile, ReadFileAck
+        <ul>
+          <li>Default '(record data)' as string for adding data</li>
+          <li>Character data no longer needs to be placed in quotes in
+edit box (see below)</li>
+          <li>Data appears in list instead of empty space</li>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+        </ul>
+      </li>
+      <li>ReadPropMult, ReadPropMultAck, WritePropMult
+        <ul>
+          <li>Default object ID</li>
+          <li>Defaulted data appears in list instead of blank space item</li>
+          <li>Resized property drop-downs</li>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+        </ul>
+      </li>
+      <li>GetAlarmSummaryAck, GetEnrollmentSummaryAck
+        <ul>
+          <li>Default object ID and state</li>
+          <li>ID and state appear in list instead of empty space</li>
+          <li>Enabled transition checks - checks were previously always
+disabled </li>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+          <li>Changed 'property' label to 'Event State' for proper field</li>
+        </ul>
+      </li>
+      <li>ComplexObjectType
+        <ul>
+          <li>Default 'Present_Value' in list</li>
+          <li>Property appears in list instead of empty space</li>
+          <li>Disabled controls on dialog start when no items in list
+(formerly enabled)</li>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+        </ul>
+      </li>
+      <li>VTSAny
+        <ul>
+          <li>List keeps selection, preventing GPF in removals of list
+items</li>
+        </ul>
+      </li>
+    </ol>
+  </li>
+  <li>511345, 511412: Charstring handling
+    <p> User was unable to see char string entered for passwords in DCC
+&amp; Charstring was apparently not sent to device in WP/WPM. This
+problem was actually caused by the method for entering char strings in
+edit boxes. Single or double quotes were required within the edit box
+to properly input the desired text for passwords, messages, names,
+etc.. Strings were using the script parser to identify strings but this
+is not necessary in the UI. Edit fields requiring strings throughout
+VTS have been altered accept what is entered. If quotes are present,
+the quotes are assumed to be part of the text and sent to the device in
+the relavent BACnet message. This change effects the following areas: </p>
+    <ul>
+      <li>SendAckAlarm -&gt; ack source</li>
+      <li>ConfirmedEventNotification -&gt; message text</li>
+      <li>ConfirmedTextMessage -&gt; character class, text message</li>
+      <li>DeviceCommunicationControl -&gt; password (original bug
+report)</li>
+      <li>IHave -&gt; object name</li>
+      <li>ReinitializeDevice -&gt; password</li>
+      <li>Test? -&gt; character string</li>
+      <li>UnconfirmedEventNotification -&gt; message text</li>
+      <li>UnconfirmedTextMessage -&gt; character class, text message</li>
+      <li>WhoHas -&gt; object name</li>
+      <li>Any -&gt; character string</li>
+    </ul>
+  </li>
+  <li>444134: Auto Segmentation Support
+    <p> User can now select a device from the Send menu, or the port
+drop down menu. There is a new Device page which is looking for a
+destination address (type, network, and address) and the outgoing APDU
+will be set to that address. The device object will take care of
+segmentation, retries, etc, as necessary. Properly configuring a
+built-in device object and binding it to a port will be part of a
+separate document. </p>
+  </li>
+  <li>511406: Status flags in a variable comp fails
+    <p> Comparisons for status flags in RP/M, WP/M work properly now.
+This problem was caused by reading one byte passed the encoded PDU for
+the bitstring. The comparison failed because the tag was being
+interpreted as part of the incoming bitstring. </p>
+  </li>
+  <li>508646: rp to UTC_Offset fails in a script
+    <p> Comparing the returned UTC_Offset value in a script to EPICS
+failed because the data type used in VTS's internal structures for
+UTC_Offset was a float instead of int. This has been corrected by
+changing it's internal type to 'ssint' and processing accordingly. </p>
+  </li>
+  <li>508643: VTS3 unable to read device-address-binding(RP, RPM)
+    <p> 'Property value not known' was returned correctly when
+comparing device-address-binding to EPICS when the value was '?'. It
+returned this error incorrectly when the EPICS value was defined as
+empty (). It now compares the valid empty condition. This error would
+also show up on other non-primitive data types whose value could be
+empty (). </p>
+  </li>
+  <li>508640, Array bugs in rp (1E,1F,1G)
+    <p> </p>
+    <p><u>Case 1E</u> has been fixed by creating a BACnet type class
+structure that will facilitate easier type comparisons. Cases 1F and 1G
+are errors in the script parser that don't deal with array indices.
+(See below)</p>
+    <p>Reworked implementation for comparing data in EXPECT statements
+from values retrieved from EPICS and specified in scripts. Any AL value
+being compared to EPICS data was using a method to match encoded
+streams. This scheme would fail in cases where numbers used different
+encoding sizes, different type comparisons that are legal (such as
+float vs. null in priority arrays) and many other. More detailed
+comparisons were impossible with this method because VTS had no way of
+determining the type of data and could not determine the proper end of
+the stream, among other reasons. </p>
+    <p>To implement type specific comparisons for all possible BACnet
+data types, including arrays, lists and complex structures, the c++
+class representation for BACnet data types has been extended. These
+classes serve as a foundation that allows the use of more tools (MFC,
+polymorphism, etc.) to facilitate feature additions and more
+flexibility where BACnet data type are concerned. Type specific
+matching methods, display methods, decoding, assignment and comparative
+operators are now available. </p>
+    <p>Using these classes to perform decoding and comparisons in the
+heart of EXPECT statements required the need for a retreval method to
+access the internal EPICS structures and convert them to BACnet type
+classes. The immediate result of these changes can be seen in more
+meaningful text in test fail results. In addition, comparisons can now
+be made to the following data types: </p>
+    <ul>
+      <li>Unsigned values - all sizes.</li>
+      <li>Integer values - all sizes.</li>
+      <li>Real and doubles.</li>
+      <li>Priority arrays for floats, reals, enumerated and NULL
+choices. Indexes not supported yet from sript parser yet but
+comparisons are ready.</li>
+      <li>Boolean.</li>
+      <li>Bit strings.</li>
+      <li>Object IDs.</li>
+      <li>Character strings - any size.</li>
+      <li>Enumerated values.</li>
+      <li>Date values - all comparison operators.</li>
+      <li>Time values - all comparison operators.</li>
+      <li>DateTime values - all comparison operators.</li>
+      <li>DateRange - all comparison operators (where applicable).</li>
+      <li>Calendar Entries and lists.</li>
+      <li>Device Address Bindings.</li>
+      <li>Array of object identifiers.</li>
+      <li>Arrays and lists of unsigned values.</li>
+      <li>Arrays of text for active/inactive.</li>
+    </ul>
+    <blockquote><font color="#777777"> Notes for future enhancements:
+      <p>The following type comparisons are <b>not</b> implemented
+yet: </p>
+      <ul>
+        <li>List of read access specs.</li>
+        <li>Action commands and arrays of action commands.</li>
+        <li>VT classes.</li>
+        <li>Event parameters.</li>
+        <li>Session keys.</li>
+        <li>Time Synch recipients.</li>
+        <li>Recipients.</li>
+        <li>List of Recipients.</li>
+        <li>Array of exceptions schedule events.</li>
+        <li>Array of weekly schedules.</li>
+        <li>List of object property references.</li>
+        <li>Setpoint reference.</li>
+        <li>List of active VT sessions.</li>
+      </ul>
+      <p>Adding support for these remaining types is simply a matter of
+constructing the object from the EPICS internal structures and decoding
+the object from a stream. The mechanisms for performing the comparisons
+are already in place. The development of support for proprietary
+objects in EPICS and scripts will be assisted by BACnet classes as
+well. </p>
+      <p>Other benefits of this work will be seen later as the EPICS
+store gradually converts to store data internally in these classes. The
+greatest benefit to this foundation work will be seen as data becomes
+extractable from Complex Acks either compared, tested or even assigned
+to variables of complex types in scripts. Additionally, script parsing
+will be effected by these changes once all of the data types are
+supported and proper scanning methods for each will allow a single
+source code source for the creation of such objects. </p>
+      </font></blockquote>
+    <p>Most of the SEND methods have been altered to retrieve EPICS
+data using these classes as well as creation and encoding of send
+streams from these object types. Specifically, the following classes
+have been added or altered: </p>
+    <ul>
+      <li>All BACnet classes enhanced with Runtime type declaratives,
+ToString and Match virtuals.</li>
+      <li>Most classes now have constructors that take an APDUDecoder
+to construct the value from an encoded stream.</li>
+      <li>BACnetEncodeable now decends from CObject, added Match and
+ToString virtuals.</li>
+      <li>BACnetAddr</li>
+      <li>BACnetUnsigned</li>
+      <li>BACnetCharacterString</li>
+      <li>BACnetBinaryPriV</li>
+      <li>BACnetCalendarArray</li>
+      <li>BACnetCalendarEntry</li>
+      <li>BACnetDate</li>
+      <li>BACnetDateTime</li>
+      <li>BACnetDateRange</li>
+      <li>BACnetTime</li>
+      <li>BACnetTimeStamp</li>
+      <li>BACnetWeekNDay</li>
+      <li>BACnetObjectIDList</li>
+      <li>BACnetGenericArray</li>
+      <li>BACnetObjectContainer</li>
+      <li>BACnetAnyValue (to facility "any" type flexibility - but
+mostly to encapsulate dynamically allocated objects for proper
+destruction when there's so much 'throwing' goings on...). </li>
+    </ul>
+    <p><u>Case 1F</u> (test for size of array [0]) and <u>case 1G</u>
+(test of single index value in array [int]) have also been fixed.
+Indexing into array properties is now supported in the following
+manner: </p>
+    <pre>{property[int]}<br>    - or -<br>{property[var]}<br></pre>
+The index must either be a literal integer or a variable which resolves
+to an integer. </li>
+  <li>617618: RPM MAX script crashes VTS
+    <p> This problem was caused during an attempt to reallocate an APDU
+buffer to accomodate a larger size APDU. The problem has been fixed.
+VTS no longer crashes. Proper segmentation should occur. </p>
+  </li>
+  <li>618176: EXPECT needs "Don't Care" arguments
+    <p> </p>
+    <p>This feature was added to allow a script to test for the correct
+tagging in an EXPECT statement without regard to the actual data value.
+Expressions within an EXPECT statement now support the don't care
+operation. Equations and values can be specified as don't care in one
+of the following ways:</p>
+    <ol>
+      <li>Replace the value in the right side of an expression with
+'?'. &nbsp;&nbsp;&nbsp;&nbsp;For example:
+        <pre>Unsigned = 1, ?<br>Bitstring = 2, ?<br>Real = 3, ?<br></pre>
+In the example above, the EXPECT statement will fail if the packet does
+not contain a context 1 unsigned integer, followed by a context 2
+bitstring, followed by a context 3 real, but the actual values of each
+of the data values is discarded. This can prove useful if one or more
+of the parameters expected cannot be pre-determined, such as a time
+stamp. If the expected data is application tagged instead of context
+tagged, then the following is also valid:
+        <pre>Unsigned = ?<br>Bitstring = ?<br>Real = ?<br></pre>
+'?' can also be used for always matching addresses returned for EXPECT
+statements when applied to:
+        <ul>
+          <li>WriteBDT</li>
+          <li>BVLLResult</li>
+          <li>ReadBDTAck</li>
+          <li>ForwardedNPDU</li>
+          <li>RegisterFD</li>
+          <li>ReadFDTAck</li>
+          <li>DeleteFDTEntry</li>
+          <li>WhoIsRouterToNetwork</li>
+          <li>IAmRouterToNetwork</li>
+          <li>ICouldBeRouterToNetwork</li>
+          <li>RejectMsgToNetwork</li>
+          <li>RouterBusyToNetwork</li>
+          <li>RouterAvailToNetwork</li>
+          <li>InitializeRoutingTable</li>
+          <li>EstablishConnectionToNetwork</li>
+          <li>DisconnectConnectionToNetwork</li>
+        </ul>
+        <p>'?' is not valid for AL type data where the datatype is
+determined by the EPICS reference on the right side of the expression.
+'?' can only be used if the left side of the expression specifies the
+datatype.</p>
+      </li>
+      <li>Use of the don't care operator: '?=' &nbsp;&nbsp;&nbsp;&nbsp;
+For example:
+        <pre>Unsigned ?= 20<br>Bitstring ?= F, T<br>AL ?= {EPICSReference}<br></pre>
+        <p>Use of the don't care operator '?=' within an EXPECT
+statement will cause the data stream to be parsed correctly according
+to the data type but the value will not be tested. This operator works
+on primitive types (Unsigned ?= 20) as well as the AL data. The value
+on the right of the operator must be valid for the datatype. EPICS
+references for AL expressions must be valid in order to determine the
+data stream type. </p>
+        <p>The '?=' operator is more flexible than the '?' data
+matching method, but the '?' is provided for clarity in simpler
+expressions. For example: </p>
+        <pre>Unsigned = ?<br></pre>
+is easier to understand than:
+        <pre>Unsigned ?= 9<br></pre>
+where the '9' is superfluous. But both formats accomplish the same
+thing. </li>
+    </ol>
+  </li>
+  <li>Date / Time Improvements
+    <p>Several changes have taken place in the handling of the
+primitive Date and Time data types. The listing here does not include
+other improvements that were made concerning script variables (reported
+later in this text). Unless noted, both the Date and Time data type
+handling were affected equally by these corrections and enhancements.</p>
+    <ol>
+      <li>The Date and Time data types were not accepting a script
+variable
+substitution when used in Send and Expect statements. Full support for
+receiving Date and Time values from variables has been added.
+Substitutions
+will take the standard form in Expect and Send statements:
+        <pre>Date = tag, VAR<br>Date = VAR<br>Time = tag, VAR<br>Time = VAR<br>Date = VAR   (where VAR = tag, [value])<br>Time = VAR   (where VAR = tag, [value])<br></pre>
+      </li>
+      <li>The Date and Time data types were having trouble comparing
+don't care values '?' or '*'. '?' characters in a field of a Date or
+Time variable are now considered to be wildcards that match any value
+in the corresponding field of the Date or Time being compared, whereas
+the '*' character <b>only</b> matches the BACnet "unspecified" value
+of X'FF'. In other words, '*' is not a wildcard, but a symbol that
+represents the unspecified X'FF' value.</li>
+      <li>Added support for the don't care value that other data types
+recently
+support. '?' can be substituted for a Date or Time value and the
+comparison
+will return true. Ex: (Date = tag, ?) will pass the comparison in an
+Expect statement. ? substitutions are not valid in Send statements.</li>
+      <li>Date and Time values specified in EPICS that had don't care
+values would
+not be allowed in references. Date = {Local_Date} would fail because
+the
+script executor thought data wasn't defined in EPICS for that property.
+This restriction has been removed and now supports all combinations of
+don't
+care specifications (?/?/?).</li>
+      <li>Full comparison support has been added to the Date and Time
+primitive
+types. &lt;, &gt;, =, !=, &lt;=, &gt;=, ?= and &gt;&gt; (see below)
+have been added. This
+includes date and time values that have the don't care specification.</li>
+      <li>The Date and Time primitive types had various parsing
+problems. This
+particularly true when Date and Time values were used as expression
+parameters when other parameters were present. Tag values were
+especially
+troublesome because they introduce another parameter in the expression
+that
+is only separated by a comma, which is also used to separate values in
+the
+date. Here is an example of a pre-3.1.9 assignment:
+        <pre>Date = tag, dow, n/n/n<br></pre>
+        <p>With this syntax, parsing the day of week and/or the tag was
+difficult due to data values for
+complex types being mixed with parameter in an expression. These
+problems
+have been cleaned up by adding the following requirements to data types
+whose ASCII format requires multiple values. These kinds of values are
+considered complex data types and the Date and Time types fall into
+this
+category. Other values (lists, calendar entries, and other not-yet
+implemented value specifiers) also fall into this category.</p>
+        <b>Text representations of complex data types now require the
+use of brackets '[]' to separate their data from other parameters.</b>
+The brackets are required even if no other parameters in an expression
+are present. The Date and Time text representations now take the
+following form:
+        <pre>Date = [<i>dow</i>, <i>mm</i>/<i>dd</i>/<i>yy</i>]<br>         -or-<br>Date = [<i>dow</i>, <i>mm</i>-<i>dd</i>-<i>yy</i>]<br>Time = [<i>hh</i>:<i>mm</i>:<i>ss.HH</i>]<br></pre>
+        <ul>
+          <li><tt><i>dow</i></tt> = 3 characters (case insensitive) for
+MON, TUE, WED, THU, FRI, SAT, SUN. This value must be present and can
+be substituted with ? as in <tt>[?, mm/dd/yy]</tt>. A comma separates
+this value and leading and trailing spaces between each atomic type are
+ignored (i.e. <tt>[? , mm / dd / yy]</tt> is the same as <tt>[?,mm/dd/yy]</tt>).</li>
+          <li><tt><i>mm, dd, yy, hh, mm, ss, HH</i></tt> = numeric
+values with leading or no zeros. Values are checked for validity in
+every case except invalid dates as a whole (Feb 31st).</li>
+          <li><tt><i>yy</i></tt> = Year specification given as either
+the full year (2002) or a partial year (02). Values interpreted as
+partial years range from 1941 to 2040. '23' indicates 2023 whereas '45'
+indicated 1945. '98' indicates 1948 and
+'00' indicates 2000.</li>
+          <li><tt><i>HH</i></tt> = hundredth value in the range 0 - 99.
+This value is optional in the text representation. If the period is
+present in the text, the value MUST follow or a parsing error is
+generated and the Time is invalid.</li>
+        </ul>
+        <p>Any and all values can be substituted with the don't care
+value ?. For example: <tt>[12:?:44.?]</tt>. Enclosing these complex
+representations inside brackets gives clarity to expressions with
+multiple parameters as in the case of tag specifications: </p>
+        <pre>Date = tag, [TUE, 11/4/02]<br>         -or-<br>VAR = [TUE, 11/4/02]<br>Date = tag, VAR<br></pre>
+        <p>Bracketing this compound data can be nested as in the case
+of the text representation for a DateTime and DateRange: </p>
+        <pre>DateTime  = [DATE, TIME]   = [[dow, mm/dd/yy], [hh:mm:ss]]<br>DateRange = [DATE1, DATE2] = [[dow, mm/dd/yy], [dow, mm/dd/yy]]<br></pre>
+        <p>DateTime and DateRange are not considered primitive types
+and currently can
+only be used when referencing EPICS data and so a text representation
+for
+these types has not been needed as yet. The addition of variable
+assignments tends to usher in the requirement for these
+representations.
+How text representations are interpreted as certain data types requires
+a
+solution, as referenced in the following section on variable
+assignments.</p>
+        <p>One final note on the bracketing of compound data is that,
+like quotes for
+strings, the brackets are only necessary in situations where other
+types of
+data may be read as well. Brackets are not necessary when date and time
+values are specified inside edit fields within the VTS user interface.
+They
+are, however, necessary in scripts and subsequently, like quotes,
+necessary
+inside script parameter data, since this data is partially parsed.</p>
+      </li>
+    </ol>
+  </li>
+  <li>444200: Extract data from incoming packets
+    <p> Support for stuffing incoming data elements into script
+variables has been added throughout the EXPECT statement, except where
+noted. Syntax for the new operator '&gt;&gt;' in assignments take the
+following form: </p>
+    <pre>Keyword &gt;&gt; VAR<br>         -or-<br>Keyword &gt;&gt; tag, VAR<br></pre>
+    <p>The above assignments will place a text representation of the
+incoming data given by the keyword into the script parameter VAR. The
+assignment that contains the 'tag' parameter is used when the encoded
+data is expected to be context tagged instead of application tagged. <b>The
+VAR parameter MUST be previously created in the SETUP section of the
+script or an error will be reported. </b></p>
+    <p>The first form assumes no tag is present and the data is removed
+from the stream and placed in the VAR. If a tag is expected (as found
+in the incoming packet), and error will be reported. The second form
+allows the testing of a context tag first and then an assignment into
+the variable. The tag will NOT be present in the new assignment. The
+contents of VAR will NOT be interpreted prior to assignment. This is
+relevant because it is possible to have statements:</p>
+    <pre>VAR = tag, value<br>Keyword = VAR<br>   ... which resolves to:<br>Keyword = tag, value<br>   ... and the tag is tested.<br></pre>
+    <p>Thus, it would be conceivable to allow:</p>
+    <pre>VAR = tag, VAR2<br>Keyword = VAR<br>   ... which might resolve to:<br>Keyword = tag, VAR2<br>   ... and finally place the decoded value in the VAR2 parameter. <b>But this is not supported.</b><br>    </pre>
+    <p>The data will be placed in script parameters in a text format
+that can be
+re-decoded for use in comparisons in other expressions. Each text
+format
+will be determined by the appropriate type. The following assignments
+are
+legal for these data types:</p>
+    <blockquote>
+      <p><tt>Boolean &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: Set
+or Reset</p>
+      <p><tt>Unsigned &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:
+Number</p>
+      <p><tt>Integer &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: Number</p>
+      <p><tt>Real &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: Real</p>
+      <p><tt>Double &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: Real</p>
+      <p><tt>OctetString &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:
+X'nnnnnn'</p>
+      <p><tt>BitString &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:
+B'0102010'</p>
+      <p><tt>CharacterString &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:
+"Char"</p>
+      <p><tt>Date &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns: [dow,
+mm/dd/yy]</p>
+      <p><tt>Time &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:
+[hh:mm:ss.HH]</p>
+      <hr>
+      <p><tt>Enumerated &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;;Assigns:
+Number or KEYWORD if enumeration table is known
+(as in the case of Boolean). Support for this can be incremental.</p>
+      <hr>
+      <p><tt>Object &gt;&gt; VAR</tt></p>
+      <p>-or-</p>
+      <p><tt>Object &gt;&gt; tag, VAR</tt></p>
+Expects and Object Identifier and assigns 'OBJECT-TYPE, Number' to VAR.
+In other words, this type of assignment will place the object type
+keyword AND the object instance number inside the script parameter
+value. (Note that the object really falls
+in the compound data class and would best be served by bracketing the
+type
+and instance together [type, instance]. This was NOT implemented
+because
+too many scripts would require alteration).
+      <hr>
+      <p><tt>Property &gt;&gt; tag, VAR </tt></p>
+Expects a context tagged Property Identifier and assigns it to VAR. The
+property keyword (i.e. PRESENT_VALUE) will be placed inside the
+variable. This will be properly decoded and compared in other equality
+expressions in the current or upcoming EXPECT statements.
+      <hr>
+      <p>(OpeningTag and ClosingTag do not support the assignment
+operator).</p>
+      <hr>
+      <p><tt>VERSION &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Number</p>
+      <p><tt>PRIORITY &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Number</p>
+      <p><tt>DER &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: Boolean
+(Set or Reset)</p>
+      <p><tt>DNET &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: Number</p>
+      <p><tt>SNET &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns: Number</p>
+      <p><tt>HOPCOUNT &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Number</p>
+      <p><tt>NEGATIVEACK &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Boolean</p>
+      <p><tt>SERVER &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Boolean</p>
+      <p><tt>INVOKEID &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Number</p>
+      <p><tt>ABORTREASON &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+EnumeratedKeyword (SEGMENTATION-NOT-SUPPORTED)</p>
+      <p><tt>REJECTREASON &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+EnumeratedKeyword (INCONSISTENT-PARAMETERS)</p>
+      <p><tt>WINDOWSIZE &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Number</p>
+      <p><tt>SEQUENCENR &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Number</p>
+      <p><tt>SETACCEPTED &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Boolean</p>
+      <p><tt>MOREFOLLOWS &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Boolean</p>
+      <p><tt>ERRORCHOICE &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+EnumeratedKeyword ()</p>
+      <p><tt>SEGMESSAGE &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+Boolean</p>
+      <p><tt>SERVICE &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+EnumeratedKeyword (ACKNOWLEDGEALARM)</p>
+      <p><tt>PDU &gt;&gt; VAR</tt>&nbsp;&nbsp;&nbsp;; Assigns:
+EnumeratedKeyword (CONFIRMED-REQUEST)</p>
+      <hr>
+      <p><tt>MAXSIZE &gt;&gt; VAR</tt></p>
+Assigns: Enumeration of ("50", "128", "206", "480", "1024", "1476") or
+Number if less than 16. If VAR now contains a number, it will be
+converted to code if VAR is then used in a SEND.
+      <hr>
+      <p><tt>NETWORK &gt;&gt; VAR</tt></p>
+Assigns: CharacterString for currently defined port (in quotes).
+      <hr>
+      <p><tt>SADR &gt;&gt; VAR</tt></p>
+      <p><tt>DADR &gt;&gt; VAR</tt></p>
+      <p>Both of these assign a CharacterString for the defined name of
+the device if known,
+OctetString if not.</p>
+      <p>An error was discovered and corrected concerning the
+specification of DNET/DADR and SNET/SADR pairs in the script. The test
+for whether or not these pairs were present in the received packet was
+being determined by whether or not the DNET/DADR keywords were supplied
+in the script. This was causing the script to have hard-coded
+expectations about whether the IUT was behind a router or not.</p>
+      <hr>
+      <p><tt>BVLCI &gt;&gt; VAR</tt></p>
+Assigns: BVLCI type, i.e. READ-BROADCAST-DISTRIBUTION-TABLE-ACK
+{,host/net:port}*
+      <p><tt>MESSAGE &gt;&gt; VAR, ?, ?, ?</tt></p>
+Assigns the network layer message type to VAR.
+      <p><b>A special note about these two keywords: MESSAGE and BVLCI.
+      </b> These
+keywords have parameters that follow which dictate how the values are
+extracted from the received packet. As VTS is currently coded,
+assignment
+of all of the parameters into a VAR is impossible because the number of
+parameters that are specified in an equality expression determines what
+data
+to extract. For example: Assignments of </p>
+      <p><tt>BVLCI &gt;&gt; VAR</tt></p>
+... where the BVLCI received is READ-BROADCAST-DISTRIBUTION-TABLE-ACK
+{,host/net:port}*
+      <p>...would fail because the number of entries into the table is
+matched and
+determined by the number of parameters given in the expression.
+Although simpler
+assignments are possible with other kinds of BLVCI types (BVLC-RESULT,
+rslt), it is not clear whether a variable assignment of the entire set
+of
+parameters or just the BLVCI type would be most useful further in the
+script. For this reason, the current implementation supports the
+assignment
+of the type ONLY into the script variable, using a syntax such as: </p>
+      <p><tt>BVLCI &gt;&gt; VAR, ?, ?, ?</tt></p>
+      <p>The contents of VAR will have the enumerated keyword
+READ-BROADCAST-DISTRIBUTION-TABLE-ACK and no further parameters. The
+use of
+the don't care value is required for types that have a variable number
+of
+arguments so the receive packet can be properly decoded. Looking into
+how
+this could be implemented in such a way as to not depend on the
+parameters
+supplied in the script to properly decode the received packet is
+probably
+warranted.</p>
+      <p>All of the parameters must be specified, even in simple cases
+such as: </p>
+      <p><tt>BVLCI &gt;&gt; VAR, rslt</tt></p>
+      <p>...where the type is BVLC-RESULT. After the VAR is stuffed
+with the BLVCI
+type, 'rslt' will be compared to the received result as if the equals
+operator was used. </p>
+      <p>The MESSAGE keyword for determining network layer message
+types: </p>
+      <p><tt>MESSAGE &gt;&gt; VAR, ?, ?, ?</tt></p>
+      <p>... where the type is I-AM-ROUTER-TO-NETWORK would require the
+specification
+of all of the networks the sender is a router to (or specified as don't
+care
+values). VAR would be assigned with the network message enumerated
+keyword
+(i.e. I-AM-ROUTER-TO-NETWORK). An alternate way of handling this <b>in
+future releases</b> might be to allow the assignment of multiple values
+into multiple
+variables with a single assignment expression. Like this: </p>
+      <p><tt>MESSAGE &gt;&gt; VAR1, VAR2, VAR3, VAR4, etc.</tt></p>
+      <p>-or-</p>
+      <p><tt>MESSAGE &gt;&gt; I-AM-ROUTER-TO-NETWORK, VAR, ?, ?</tt></p>
+      <p><b>But both of these forms are currently unsupported.</b></p>
+      <hr><!--			</blockquote>    --> </blockquote>
+  </li>
+</ul>
+<h2>3.2.0</h2>
+<ul>
+  <li>
+    <blockquote> 618172: Conditional flow control for scripts
+      <p>Support for the IF statement has been added. The statement is
+a pre-processor form used to control compilation during the "Syntax
+Check" function. The
+expression in the conditional will not be evaluated at script
+execution. Syntax for the conditional compilation will take the form:</p>
+      <pre>IF (expression {[OR | AND] expression} )<br>.<br>{ELSEIF (expression {[OR | AND] expression} )}<br>.<br>{ELSE} <br>.<br>ENDIF<br></pre>
+      <p>The pre-processor will evaluate the expressions contained
+within the perenthesis following the 'IF' keyword before scanning the
+next line. If the expression evaluates to true,
+all
+of the following lines up to the ENDIF keyword (or ELSEIF or ELSE, if
+supplied) will be included in the compile. Multiple expressions can be
+evaluated. Evaluation will occur left to right until a false condition
+is detected. Parenthesis for logical grouping is not supported.</p>
+      <p>The ELSEIF and ELSE clauses are optional (indicated by '{}').
+Only one ELSE clause can be present within an IF block but multiple
+ELSEIF clauses can exist. Each of the keywords must appear at the first
+element on a line. Once a true condition in any clause is found, any
+remaining ELSEIF or ELSE clauses will not be evaluated and the syntax
+for these clauses will not be checked.</p>
+      <p>The expressions will take the following form:</p>
+      <pre>VAR/Value operator VAR/Value<br></pre>
+      <p>Where VAR/Value is either a script variable name that has
+already been assigned in the SETUP section or a literal value. Any
+expression referencing a script variable that has not been defined will
+evaluate as if the variable is an enumeration keyword. All literals or
+variables must evaluate to one of the following types:</p>
+      <pre>Boolean (TRUE, T, FALSE, F, Y, YES, N, NO) {=, !=}<br>Enumeration (NAME) {=, !=}<br>Integer (-1, 0, 1, etc.) {=, !=, &lt;, &lt;=, &gt;, &gt;=}<br>Unsigned (0, 1, 2) {=, !=, &lt;, &lt;=, &gt;, &gt;=}<br>CharacterString ("Twinkies") {=, !=, &lt;, &lt;=, &gt;,&gt;=}<br></pre>
+      <p>Note that use of Real, Double, Null, BitString, OctetString,
+Date, Time, ObjectIdentifier, DeviceIdentifier, PropertyIdentifier type
+are not supported in IF expressions at the present time. The assignment
+operator '&gt;&gt;' and don't care operator '?=' are unsupported in IF
+expressions. Use of the don't care value '?' is supported and will
+always match whatever type and value it is compared to, regardless of
+the operator used. i.e. VAR != ?, where VAR = 20 or any value will be
+true. </p>
+      <p>Enumeration types will be supported. All unquoted names will
+be treated as an enumeration type and a conversion to caps and '_' to
+'-' will be performed prior to evaluation. It
+is
+not necessary to supply a valid enumeration name because all names that
+do not resolve to parameters will be treated like an enumeration. </p>
+      <pre>VAR = I-AM-ROUTER-TO-NETWORK<br>VAR = BOGUS-NOT-FOUND-ENUMERATION<br></pre>
+      <p>Parameters that have either been changed by the user or
+changed by a previous script execution (item shows blue in parameter
+list) will use the new value for IF comparisons. A 'reset' must be
+performed to have the IF conditional use the script assigned value for
+comparison. </p>
+      <p>IFs can be nested. Since the IF statement is used for
+conditional compilation, the IF block can span multiple script
+statements, occur within a SEND or EXPECT statement, or straddle the
+beginning and/or end of SEND or EXPECT statements.</p>
+    </blockquote>
+  </li>
+  <li>444152: New CHECK statement
+    <p>Added CHECK statement to script commands that will popup a modal
+dialog box and allow the user to PASS or FAIL the script test. Script
+execution is halted while the dialog is
+up. Syntax for the CHECK statement is as follows: </p>
+    <pre>CHECK "Title" (<br>   "Text line"<br>    ...<br>   "Text line"<br>   )<br></pre>
+    <p>Usage details can be found in a usage document attached to the
+MAKE item, 44153. </p>
+  </li>
+  <li>444153: New non-modal MAKE statement
+    <p>Added MAKE statement to script commands. It will pop up a dialog
+with a supplied message and allow the user to alter a condition that
+generates a receive packet. When followed by an EXPECT statement,
+script execution continues with indefinately extended EXPECT timers.
+Syntax is exactly like the CHECK statement with the exception of the
+keyword MAKE. </p>
+    <pre>MAKE "Title" (<br>   "Text line"<br>    ...<br>   "Text line"<br>   )<br></pre>
+    <p>Usage details can be found in the document attached to the
+sourceforge item. </p>
+  </li>
+  <li>508582: (*Add) Inefficient drop down windows
+    <p>Now the send page such as "CSendNPCI", "CSendBVLCI",
+"CSendReadProp", "CSendReadPropACK", "CSendReadPropMult",
+"CSendReadPropMultACK", "CsendWriteProp", "CSendWritePropMult",
+"CSendWritePropMultError" can remember the values of the past 5
+packets. </p>
+    <p>And when tester sends an request with a particular object and
+property in one of send window: "CSendReadPropMult",
+"CSendReadPropMultACK" and "CsendWritePropMult" windows, the others
+will have the same settings. </p>
+  </li>
+  <li>468378: Schedule Object EPICS Parsing Probs
+    <p>We have used other way to fix this bug without type identifier
+in
+the EPICS. The value of present-value will be parsed according to value
+of list_of_object_property_reference.
+Now VTS3 can parse the schedule object defined in EPICS correctly.
+However we found although we have fixed this bug, there are some
+problems in handling packet expected, we modified the struct of
+schedule object, and now VTS3 can handle three kinds of data type:
+Binary value, unsigned word and float. </p>
+  </li>
+  <li>444148: Read-all test
+    <p>Now VTS3 can support read-all test. A menu item "read all
+property" has been added into menu "script", after loading EPICS
+successfully, this menu will be enabled. When you click this menu, VTS
+prompts you to input network number and destination address, after then
+VTS3 create a temp VTS3 script in a new script document, you can save
+this script file. If you don't save this file, VTS3 will delete this
+temp file. Note: At present, VTS3 only supports read all test over
+BACnet/IP. </p>
+  </li>
+  <li>444157: EPICS consistency checks
+    <p>Now VTS3 can support more consistency check function. EPICS
+consistency check is in accordance with BACnet standard 1995, have
+finished the following items consistency check.: </p>
+    <ol>
+      <li>All object types required by the specified conformance class
+shall be indicated as supported in the Standard Object Types Supported
+section of the EPICS. </li>
+      <li>A minimum of one instance of each object type required by the
+specified conformance class shall be included in the test database. </li>
+      <li>The Object_Types_Supported property of the Device object in
+the test database shall indicate support for each object type required
+by the specified conformance class. </li>
+      <li>All application services required by the specified
+conformance class shall be indicated as supported in the BACnet
+Standard Application Services Supported section of the EPICS with
+Initiate and Execute indicated as required by the conformance class. </li>
+      <li>The Application_Services_Supported property of the Device
+object in the test database shall indicate support for each application
+service for which the specified conformance class requires support for
+execution of the service. </li>
+      <li>All object types required by the specified functional groups
+shall be indicated as supported in the Standard Object Types Supported
+section of the EPICS. </li>
+      <li>A minimum of one instance of each object type required by the
+specified functional groups shall be included in the test database. </li>
+      <li>The Object_Types_Supported property of the Device object in
+the test database shall indicate support for each object type required
+by the specified functional groups. </li>
+      <li>All application services required by the specified functional
+groups shall be indicated as supported in the BACnet Standard
+Application Services Supported section of the EPICS with Initiate and
+Execute indicated as required by the functional groups. </li>
+      <li>The Application_Services_Supported property of the Device
+object in the test database shall indicate support for each application
+service for which the specified functional groups require support for
+execution of the service. </li>
+      <li>The object types listed in the Standard Object Types
+Supported section of the EPICS shall have a one-to-one correspondence
+with object types listed in the Object_Types_Supported property of the
+Device object contained in the test database. </li>
+      <li>For each object type listed in the Standard Object Types
+Supported section of the EPICS there shall be at least one object of
+that type in the test database. </li>
+      <li>There shall be a one-to-one correspondence between the
+objects listed in the Object_List property of the Device object and the
+objects included in the test database. The Object_List property and the
+test database shall both include all proprietary objects. Properties of
+proprietary objects that are not required by BACnet Clause 23.4.3 need
+not be included in the test database. </li>
+      <li>For each object included in the test database, all required
+properties for that object as defined in Clause 12 of BACnet shall be
+present. In addition, if any of the properties supported for an object
+require the conditional presence of other properties, their presence
+shall be verified. </li>
+    </ol>
+  </li>
+  <li>444237: Add column labels to summary window
+    <p>Now summary window has been changed from Scroll view to List
+view. This list view contains the following columns: number,
+Ssource/Destination, Service Type. </p>
+  </li>
+  <li>566972: Trace Window LEFT pane unusable
+    <p>To improve the usability of the left (summary) pane, the
+following enhancements were made:</p>
+    <ol>
+      <li> Moved all text to the far left in order to maximize space. </li>
+      <li> Moved the long timestamp to the right 'detailed' pane. </li>
+      <li> Spaces were removed between source and destination fields. </li>
+      <li> A thin column header was added to identify the columns in
+the left pane. </li>
+    </ol>
+  </li>
+  <li>444243: Autoscroll the summary view
+    <p>Now if the last packet in the session is selected and a new
+packet is sent or received, VTS3 can continue to keep the scroll value
+pegged to the bottom of the list, scrolling the current contents up,
+and make the new incoming packet the selected packet.
+Note: when the selected packet isn't the last packet, VTS3 will not
+make a change to select the last packet when a new packet is sent or
+received. </p>
+  </li>
+</ul>
 <h2>3.3.0</h2>
 <ul>
-<p><li>567046: Now the Detail pane is a treelist pane, with most of the tree nodes collapsed by 
-default to reduce the amount of information shown.  The tree nodes containing the information
-that is the most pertinent to the service are expanded by default.</li></p>
-
-<p><li>485733: Added server side ReadProperty and WriteProperty support to internal Device Objects.  
-This required changes to the .vdb database to store this information. </li></p>
-
-<p><li>626601: Any attempt to open a read-only .vdb file is now greeted with a message instead of a crash.</li></p>
-
-<p><li>Fixed all of the child popups decending from the Send dialog to retain their relationship to the parent.  Each 
-occurrence was altered to report to the proper parent such that all of the popups are now modal
-to the modeless Send dialog.  Multiple Send dialogs can now be used simultaneously.</li></p>
-
-<p><li>Attempts to open a corrupted or inconsistent database now results in a report of the problem.</li></p>
-
-<p><li><b>Replaced the BACMACNT driver with WinPcap library calls.</b>  No change was made to the database format, just the
-format of the adapter/interface configuration strings has changed.  BACMACNT is no longer required and is no longer distributed with VTS 3.x</li></p>
+  <li>567046: Now the Detail pane is a treelist pane, with most of the
+tree nodes collapsed by default to reduce the amount of information
+shown. The tree nodes containing the information
+that is the most pertinent to the service are expanded by default.</li>
+  <li>485733: Added server side ReadProperty and WriteProperty support
+to internal Device Objects. This required changes to the .vdb database
+to store this information. </li>
+  <li>626601: Any attempt to open a read-only .vdb file is now greeted
+with a message instead of a crash.</li>
+  <li>Fixed all of the child popups decending from the Send dialog to
+retain their relationship to the parent. Each occurrence was altered to
+report to the proper parent such that all of the popups are now modal
+to the modeless Send dialog. Multiple Send dialogs can now be used
+simultaneously.</li>
+  <li>Attempts to open a corrupted or inconsistent database now results
+in a report of the problem.</li>
+  <li><b>Replaced the BACMACNT driver with WinPcap library calls.</b>
+No change was made to the database format, just the
+format of the adapter/interface configuration strings has changed.
+BACMACNT is no longer required and is no longer distributed with VTS 3.x</li>
 </ul>
-
 <h2>3.4.0</h2>
-<p>The primary goal of this release was to increase the stability of VTS.</p>
+<p>The primary goal of this release was to increase the stability of
+VTS.</p>
 <ul>
-<li>Removed the internal database and replaced with workspace files (.cfg)
+  <li>Removed the internal database and replaced with workspace files
+(.cfg)
 that are loaded upon startup and saved when VTS configuration changes.
-Packets are not stored in the .CFG file, rather in an associated .VPK file.
+Packets are not stored in the .CFG file, rather in an associated .VPK
+file.
 The usage of these two files will cut down on VTS instability due to
-database corruptions.  
-</li><li>	<b>VTS can no longer load .vdb files!</b>  VTS will not associate .VDB files with VTS upon startup anymore.
-</li><li>	Workspaces menu added to main menu.  VTS will handle script
+database corruptions. </li>
+  <li> <b>VTS can no longer load .vdb files!</b> VTS will not
+associate .VDB files with VTS upon startup anymore. </li>
+  <li> Workspaces menu added to main menu. VTS will handle script
 documents in a typical manner (load, save, save as, most recently used,
-etc.) but will use workspace files to store configuration.
-</li><li>	VTS can switch workspaces without shutting down.
-</li><li>	Only one workspace can be loaded at once.   The VTS main window will
-always show the packet window.
-</li><li>	VTS will open the most recently used workspace file upon VTS start.
+etc.) but will use workspace files to store configuration. </li>
+  <li> VTS can switch workspaces without shutting down. </li>
+  <li> Only one workspace can be loaded at once. The VTS main window
+will
+always show the packet window. </li>
+  <li> VTS will open the most recently used workspace file upon VTS
+start.
 If no workspace was found (or VTS is being run for the first time), the
-standard file 'vts3.cfg' file will be opened.  If this file is not present
-it will be created in the current working directory.
-</li><li>	Menu items have been changed to reflect workspace handling (on
-separate menu) and document handling (on main File menu).
-</li><li>	Scripts are opened in a separate frame window with a menu and button
-bar appropriate for script handling.  These windows will no longer be bound
-inside of the main VTS window.
-</li><li>	VTS main window remembers packet view column sizes.  This even
-allows column sizes to be zero effectively removing columns from the view.
-</li><li>	Packet summary window now has timestamp and port name columns. 
-</li><li>	Button bar has been expanded on main VTS packet view and menu as
-been trimmed to commands relative to main VTS (not scripts).
-</li><li>	Port names on Send menu are grayed if inactive and show port type.
-</li><li>	Refresh added to reload packet view.  This is useful if you have
-changed name/address mappings.
-</li><li>	Revamped 'Export' function.
-</li><li>	Added progress bar on status bar that shows during lengthy
-operations (loading large packet files, exporting, etc.).
-</li><li>	Changed main list view to handle virtually unlimited number of
-packets.
-</li><li>	Delete all packets reduces packet file to zero and does not affect
-configuration file.
-</li><li>	VTS can switch packet files via Change Packet file menu item.  The
-user is presented with a file dialog asking for a new packet file.  If a
-packet file is specified that does not exist it is created.  If the packet
-file exists it will be opened, shown in the view and incoming packets will
-be appended.  The currently opened packet file will be closed.  Each time a
-different packet file is chosen it is associated with the current workspace
-and will be reloaded upon workspace reload.
-</li><li>	Changed port configuration for usability.  Port changed will not
-take effect until OK or Apply is pressed.  This allows changes to be
-cancelled.
-</li><li>	Changed device configuration for usability.  Device changes will not
-take effect until OK is pressed, which also allows changes to be cancelled.
-</li><li>	Added ability to edit object, property and values to devices.
-</li><li>	Added ReadProperty and WriteProperty support to devices.  Arrays and
-array index operations are also supported for RP and WP.
-</li><li>	Added automatic RP and WP to parameters of configured devices:  Name
-(care should be taken when writing this value), Vendor ID, Max APDU, APDU
-Timeout, APDU Seg Timeout, APDU Retries, Segmentation, Local Date (RP only)
-and Local Time (RP only).  These properties can be overridden by defining
-similar properties from a device object.
-</li><li>	Changed names configuration for usability.  Names changes will not
-take effect until OK is pressed, allowing changes to be cancelled. 
-</li><li>	VTS had a registry problem confusing an INI path with key names.  An
-attempt to use INI files is no longer present in VTS and the registry main
-key in SOFTWARE has been moved to "BACnet Manufacturers Association" instead
-of "Visual Test Shell 3".
-</li><li>	Added preferences dialog.  Preferences are stored in "Setting"
-subkey inside registry.
-</li><li>	Added preference setting for specification of number of slots used
-for main packet view cache.  This defaults to 5000 which allocates slightly
-less than one meg or memory.  The setting allows adjustments to try to tweak
-performance when packet counts reach very high numbers.  This setting does
-not actually limit the number of packets that can be received, it is just
-a performance tuning parameter.
-</li><li>	Added timeout for auto-scroll.  If the user selects a packet other
-than the last one, auto-scroll is disabled until the timeout occurs.
-</li><li>	Added preference setting for number of seconds auto-scroll is to
-remain inactive.  0 = disable automatic selection of auto-scroll.
-</li><li>	Added preference for relative vs. absolute packet file path
-association in workspace.  If this value is relative (default), the path to
+standard file 'vts3.cfg' file will be opened. If this file is not
+present
+it will be created in the current working directory. </li>
+  <li> Menu items have been changed to reflect workspace handling (on
+separate menu) and document handling (on main File menu). </li>
+  <li> Scripts are opened in a separate frame window with a menu and
+button
+bar appropriate for script handling. These windows will no longer be
+bound
+inside of the main VTS window. </li>
+  <li> VTS main window remembers packet view column sizes. This even
+allows column sizes to be zero effectively removing columns from the
+view. </li>
+  <li> Packet summary window now has timestamp and port name columns. </li>
+  <li> Button bar has been expanded on main VTS packet view and menu as
+been trimmed to commands relative to main VTS (not scripts). </li>
+  <li> Port names on Send menu are grayed if inactive and show port
+type. </li>
+  <li> Refresh added to reload packet view. This is useful if you have
+changed name/address mappings. </li>
+  <li> Revamped 'Export' function. </li>
+  <li> Added progress bar on status bar that shows during lengthy
+operations (loading large packet files, exporting, etc.). </li>
+  <li> Changed main list view to handle virtually unlimited number of
+packets. </li>
+  <li> Delete all packets reduces packet file to zero and does not
+affect
+configuration file. </li>
+  <li> VTS can switch packet files via Change Packet file menu item.
+The
+user is presented with a file dialog asking for a new packet file. If a
+packet file is specified that does not exist it is created. If the
+packet
+file exists it will be opened, shown in the view and incoming packets
+will
+be appended. The currently opened packet file will be closed. Each time
+a
+different packet file is chosen it is associated with the current
+workspace
+and will be reloaded upon workspace reload. </li>
+  <li> Changed port configuration for usability. Port changed will not
+take effect until OK or Apply is pressed. This allows changes to be
+cancelled. </li>
+  <li> Changed device configuration for usability. Device changes will
+not
+take effect until OK is pressed, which also allows changes to be
+cancelled. </li>
+  <li> Added ability to edit object, property and values to devices. </li>
+  <li> Added ReadProperty and WriteProperty support to devices. Arrays
+and
+array index operations are also supported for RP and WP. </li>
+  <li> Added automatic RP and WP to parameters of configured devices:
+Name
+(care should be taken when writing this value), Vendor ID, Max APDU,
+APDU
+Timeout, APDU Seg Timeout, APDU Retries, Segmentation, Local Date (RP
+only)
+and Local Time (RP only). These properties can be overridden by
+defining
+similar properties from a device object. </li>
+  <li> Changed names configuration for usability. Names changes will
+not
+take effect until OK is pressed, allowing changes to be cancelled. </li>
+  <li> VTS had a registry problem confusing an INI path with key names.
+An
+attempt to use INI files is no longer present in VTS and the registry
+main
+key in SOFTWARE has been moved to "BACnet Manufacturers Association"
+instead
+of "Visual Test Shell 3". </li>
+  <li> Added preferences dialog. Preferences are stored in "Setting"
+subkey inside registry. </li>
+  <li> Added preference setting for specification of number of slots
+used
+for main packet view cache. This defaults to 5000 which allocates
+slightly
+less than one meg or memory. The setting allows adjustments to try to
+tweak
+performance when packet counts reach very high numbers. This setting
+does
+not actually limit the number of packets that can be received, it is
+just
+a performance tuning parameter. </li>
+  <li> Added timeout for auto-scroll. If the user selects a packet
+other
+than the last one, auto-scroll is disabled until the timeout occurs. </li>
+  <li> Added preference setting for number of seconds auto-scroll is to
+remain inactive. 0 = disable automatic selection of auto-scroll. </li>
+  <li> Added preference for relative vs. absolute packet file path
+association in workspace. If this value is relative (default), the path
+to
 an associated packet file will be stored relative to whatever path the
-workspace file is loaded from.  If the workspace file is moved, the packet
-file must also be moved to a location relative to the workspace file.  If
-this value is absolute, the fully qualified path to the packet file will be
-saved with the workspace file.  If the workspace file is moved and reloaded,
-the associated packet file must remain in its current location.  Changes to
+workspace file is loaded from. If the workspace file is moved, the
+packet
+file must also be moved to a location relative to the workspace file.
+If
+this value is absolute, the fully qualified path to the packet file
+will be
+saved with the workspace file. If the workspace file is moved and
+reloaded,
+the associated packet file must remain in its current location. Changes
+to
 this preference setting only take effect when a new packet file is
-specified.
-</li>
+specified. </li>
 </ul>
-
 <h2>3.4.1</h2>
 <ul>
-<li>747747: Fixed EPICS loading problems:
-   <ul><li>VTS was not parsing bitstrings larger than one byte. </li>
-       <li>VTS would cause an exception when property names were not found in AVG, Trend-Log and Multistate Value objects.</li>
-	   <li>VTS would not properly recognize property names if comments followed on the same line.</li>
-	   <li>EPICS parser was incorrectly looking for the following in Supported Services and Objects:
-	       <ul><li>"Read Range"  -> now changed to "ReadRange"></li>
-		       <li>"UTC-Time-Synchronization"  -> now changed to "UTCTimeSynchronization"</li>
-			   <li>"Trend-Log"  -> now changed to "Trend Log"</li>
-			   <li>"trendlog"  -> now changed to "Trend-Log" for object type specification</li>
-		   </ul>
-	   </li>
-	   <li>Fixed VTS to skip consistency check (and subsequent dialog box) if user cancels at any encountered parsing error.</li>
-	   <li>Fixed EPICS parsing error notifications to parent script window properly.</li>
-	   <li>Fixed problem where EPICS wouldn't load again if user canceled a prior EPICS load attempt without without restarting VTS.</li>
-	   <li>Fixed EPICS parser to barf on malformed object property reference in list-of-object-property-reference. If delimeter is not present, parsing notifies with an error instead of continuing and subsequently attempts to recognize extraneous garbage as property names. </li>
-	   <li>Fixed whitespace trim from right function - which never worked correctly.  This may fix spurrious recognition problems throughout parsing.</li>
-	</ul>
-</li>
-<li>Added option in preferences for verification on delete packets.  Defaults to true.</li>
+  <li>747747: Fixed EPICS loading problems:
+    <ul>
+      <li>VTS was not parsing bitstrings larger than one byte. </li>
+      <li>VTS would cause an exception when property names were not
+found in AVG, Trend-Log and Multistate Value objects.</li>
+      <li>VTS would not properly recognize property names if comments
+followed on the same line.</li>
+      <li>EPICS parser was incorrectly looking for the following in
+Supported Services and Objects:
+        <ul>
+          <li>"Read Range" -&gt; now changed to "ReadRange"&gt;</li>
+          <li>"UTC-Time-Synchronization" -&gt; now changed to
+"UTCTimeSynchronization"</li>
+          <li>"Trend-Log" -&gt; now changed to "Trend Log"</li>
+          <li>"trendlog" -&gt; now changed to "Trend-Log" for object
+type specification</li>
+        </ul>
+      </li>
+      <li>Fixed VTS to skip consistency check (and subsequent dialog
+box) if user cancels at any encountered parsing error.</li>
+      <li>Fixed EPICS parsing error notifications to parent script
+window properly.</li>
+      <li>Fixed problem where EPICS wouldn't load again if user
+canceled a prior EPICS load attempt without without restarting VTS.</li>
+      <li>Fixed EPICS parser to barf on malformed object property
+reference in list-of-object-property-reference. If delimeter is not
+present, parsing notifies with an error instead of continuing and
+subsequently attempts to recognize extraneous garbage as property
+names. </li>
+      <li>Fixed whitespace trim from right function - which never
+worked correctly. This may fix spurrious recognition problems
+throughout parsing.</li>
+    </ul>
+  </li>
+  <li>Added option in preferences for verification on delete packets.
+Defaults to true.</li>
 </ul>
-
-
 <h2>3.4.2</h2>
 <ul>
-
-<p><li>681223: Changed the default delay in EXPECT and SEND packets to 3 seconds and changed the maximum
-delay to 2 minutes.  The default and max were previously set to 1.8 seconds, which was a bug.
-</li></p>
-
-<p><li>Added support to parse "Event-Time-Stamps" property.  Unfortunately this is not yet a property
-that can be handled inside a script... It only parses EPICS correctly for these objects:
-<pre>
-	- MSI, MSO, MSV, AI, AO, AV, BI, BO, EE, LOOP, BV, BV
-	- TR object support already existed, but it was the only one.
-</pre></li>
-</p>
-
-<p><li>618217: INCLUDE directive added to scripts.  
-<p>
-Syntax for including files:
-</p>
-<pre>
-		INCLUDE "filename.vts"
-</pre>
-	<p>
-	Usage of the INCLUDE directive follows these rules:
-		<ol>
-		<li> The INCLUDE keyword must be the first item on a line (excluding whitespace) and is 
-		  followed by a filename to include in quotes.
-		</li><li> The extension for included files is the same as script files.
-		</li><li> Any number of files can be included.
-		</li><li> Included files can contain nested includes.
-		</li><li> The file name should include a relative path that is always relative to the location
-		  of the file that contains the include statement.  This is also true for each included
-		  file.  This means that file specifications included from the base file will be
-		  relative to the base file but files that are included from an include file will be
-		  relative to the location of the include file.  For example:  If included files are
-		  in a subdirectory called 'inc', only the base file, which is located one directory up
-		  from 'inc' will have the statement:  INCLUDE "inc\file1.vts".
-		  If file1.vts contains include statements that pull in files from the inc directory as
-		  well, the statement will be:  INCLUDE "file2.vts".
-		</li><li> Absolute paths may be used as well if specified properly (C:\, \, etc.)
-		</li><li> INCLUDE statements can occur anywhere within the script file with the exception of 
-		  inside statements.  This means that they cannot appear within SEND or EXPECT
-		  statements even though these statements may span several lines.  CHECK, MAKE and
-		  other multi-line statements are part of this restriction.
-		</li><li> Circular includes are not allowed.
-		</li><li> If variables are defined and initialized in included files that are already
-		  defined in the base file, the values will be overridden with the last encountered declaration.
-		</li>
-		</ol>
-	 </p>
-
-	<p>There are a few things to note when files are included:
-		<ol><li> Include files are opened and parsed during the "Check Syntax" command.
-		</li><li> When errors are encountered within an included file during parsing, an error message 
-		  will present (as usual) and the line and text that produced the error will be 
-		  highlighted in a separate editing window that allows the imediate editing and 
-		  saving of the included file.  This window is modal and parsing execution halts.
-		  A quick correction followed by another Syntax Check will have you on your way.
-		</li><li> Nodes created on the tree (following a successful syntax check) from include files
-		  will appear in blue text.  Clicking once on these nodes will display the fully
-		  qualified path to the containing include file in the editor's status bar.  Double
-		  clicking on these nodes will open a modal editing window and the statement's line
-		  will be highlighted.  This editing window will allow the file to be saved (no SaveAs).
-		</li></ol>
-	 </p>
-</li>
-</p>
-
-<p><li>A bug was fixed in the script editor that would not initially place the caret on the 
-line if goto was used.
-</li></p>
-
-<p><li>Moved Load EPICS command from Script frame to main frame under "EPICS" menu.  This menu will be populated
-with other EPICS type functions in future versions.
-</li></p>
-
-<p><li>Altered EPICS load results dialog to use static windows (instead of read only edit boxes) to do automatic
-word wrap.
-</li></p>
-
-<p><li>Added "Load last EPICS on startup" to preferences section.
-</li></p>
-
-<p><li>Fixed a bug in the specification of the EPICS file to load.  It was using the filename only, even if
-the file specified from the file dialog found the file in other directories.
-</li></p>
-
-<p><li>Moved "Read All Properties" command to main window menu.  Revamped generation of script file for reading
+  <li>681223: Changed the default delay in EXPECT and SEND packets to 3
+seconds and changed the maximum
+delay to 2 minutes. The default and max were previously set to 1.8
+seconds, which was a bug. </li>
+  <li>Added support to parse "Event-Time-Stamps" property.
+Unfortunately this is not yet a property
+that can be handled inside a script... It only parses EPICS correctly
+for these objects:
+    <pre>	- MSI, MSO, MSV, AI, AO, AV, BI, BO, EE, LOOP, BV, BV<br>	- TR object support already existed, but it was the only one.<br></pre>
+  </li>
+  <li>618217: INCLUDE directive added to scripts.
+    <p>Syntax for including files: </p>
+    <pre>		INCLUDE "filename.vts"<br></pre>
+    <p> Usage of the INCLUDE directive follows these rules: </p>
+    <ol>
+      <li> The INCLUDE keyword must be the first item on a line
+(excluding whitespace) and is followed by a filename to include in
+quotes. </li>
+      <li> The extension for included files is the same as script
+files. </li>
+      <li> Any number of files can be included. </li>
+      <li> Included files can contain nested includes. </li>
+      <li> The file name should include a relative path that is always
+relative to the location of the file that contains the include
+statement. This is also true for each included file. This means that
+file specifications included from the base file will be relative to the
+base file but files that are included from an include file will be
+relative to the location of the include file. For example: If included
+files are in a subdirectory called 'inc', only the base file, which is
+located one directory up from 'inc' will have the statement: INCLUDE
+"inc\file1.vts". If file1.vts contains include statements that pull in
+files from the inc directory as well, the statement will be: INCLUDE
+"file2.vts". </li>
+      <li> Absolute paths may be used as well if specified properly
+(C:\, \, etc.) </li>
+      <li> INCLUDE statements can occur anywhere within the script file
+with the exception of inside statements. This means that they cannot
+appear within SEND or EXPECT statements even though these statements
+may span several lines. CHECK, MAKE and other multi-line statements are
+part of this restriction. </li>
+      <li> Circular includes are not allowed. </li>
+      <li> If variables are defined and initialized in included files
+that are already defined in the base file, the values will be
+overridden with the last encountered declaration. </li>
+    </ol>
+    <p>There are a few things to note when files are included: </p>
+    <ol>
+      <li> Include files are opened and parsed during the "Check
+Syntax" command. </li>
+      <li> When errors are encountered within an included file during
+parsing, an error message will present (as usual) and the line and text
+that produced the error will be highlighted in a separate editing
+window that allows the imediate editing and saving of the included
+file. This window is modal and parsing execution halts. A quick
+correction followed by another Syntax Check will have you on your way. </li>
+      <li> Nodes created on the tree (following a successful syntax
+check) from include files will appear in blue text. Clicking once on
+these nodes will display the fully qualified path to the containing
+include file in the editor's status bar. Double clicking on these nodes
+will open a modal editing window and the statement's line will be
+highlighted. This editing window will allow the file to be saved (no
+SaveAs). </li>
+    </ol>
+  </li>
+  <li>A bug was fixed in the script editor that would not initially
+place the caret on the line if goto was used. </li>
+  <li>Moved Load EPICS command from Script frame to main frame under
+"EPICS" menu. This menu will be populated
+with other EPICS type functions in future versions. </li>
+  <li>Altered EPICS load results dialog to use static windows (instead
+of read only edit boxes) to do automatic
+word wrap. </li>
+  <li>Added "Load last EPICS on startup" to preferences section. </li>
+  <li>Fixed a bug in the specification of the EPICS file to load. It
+was using the filename only, even if
+the file specified from the file dialog found the file in other
+directories. </li>
+  <li>Moved "Read All Properties" command to main window menu. Revamped
+generation of script file for reading
 all properties (bug not generating last object RP).
-	<ol>
-	<li>The filename "ReadAllProperties.vts" will be generated when this command is given.  The file will reside
-		  in the current working directory and will not be deleted.
-	</li>
-	<li>This file will be overriden when the command is performed a second time.
-	</li>
-	<li>The user may edit the vts file as any other script and perform SaveAs to retain the generated file.
-	</li>
-	</ol>
-</li></p>
-
-<p><li>Fixed a GPF when recompiling script after prior compile.
-</li></p>
-
-<p><li>608821: Very important error in EXPECT
-<ol>
-<li>Fixed an error in the script executor to throw an error, halting execution, if neither a network layer
-message (MESSAGE = ) was defined in EXPECT or an application layer message (PDU =) was defined.  Scripts now
-force one of these statements within an EXPECT clause.
-</li>
-
-<li>Fixed an error that prevented the ability to stuff a received value into the PDU field with the assignment
-operator.  PDU >> VAR now works just fine.  Before the fix, the MESSAGE statement had to be an assignment as
-well as the PDU statement, which was impossible because both statements cannot occur at once.
-</li>
-
-<li>Fixed an error that never evaluated DER statement against incoming packet.  The DER = TRUE statement ALWAYS
-failed and the DER = FALSE statement ALWAYS passed.  Now the DER statement is evaluated properly.
-</li>
-
-<li>Fixed an error that never evaluated the PRIORITY statement properly.  Priority was always tested again zero.
-Now the test is performed by examining the statements value against the incomming PRIORITY.
-</li>
-
-<li>Fixed an error that prematurely passed an address evaluation with the minimum of the address lengths
-(between the incoming SADR and the script SADR) used in the comparison.  Now the two addresses must match
-exactly.
-</li>
-
-<li>Added the ability to specify SNET/SADR and DNET/DADR pairs in an EXPECT statement with a NONE value that
-indicates the received packet must not have SNET/SADR or DNET/DADR values.  In addition, if these statements
-are present in an EXPECT clause the received packet MUST contain the values.  Previously the test was
-only evaluated if the received message had the values.  Usage is as follows:
-<pre>
-	SNET = NONE, SADR = NONE, DNET = NONE, DADR = NONE.
-</pre>
-So now if the SNET/SADR or DNET/DADR values are specified in the script, the values must exist in the 
-received message.  Conversely, if they are specified in the script with the NONE value, the src/dst addresses
-must NOT be present in the received packet.
-</li>
-
-<li>New tests have been added in the script executor that force the reserved bits in each PDU control octet to 
-be zero.  An error is reported if they are not.  Bits 6 and 4 are tested for network layer messages and application
-layer messages have different reserved bits for each PDU type.
-</li>
-</ol></p>
-
-<p><li>Updated and included new test scripts designed for testing BACnet/IP devices.  
-These are located in the <b>scripts</b> folder.
-</li></p>
-
+    <ol>
+      <li>The filename "ReadAllProperties.vts" will be generated when
+this command is given. The file will reside in the current working
+directory and will not be deleted. </li>
+      <li>This file will be overriden when the command is performed a
+second time. </li>
+      <li>The user may edit the vts file as any other script and
+perform SaveAs to retain the generated file. </li>
+    </ol>
+  </li>
+  <li>Fixed a GPF when recompiling script after prior compile. </li>
+  <li>608821: Very important error in EXPECT
+    <ol>
+      <li>Fixed an error in the script executor to throw an error,
+halting execution, if neither a network layer
+message (MESSAGE = ) was defined in EXPECT or an application layer
+message (PDU =) was defined. Scripts now
+force one of these statements within an EXPECT clause. </li>
+      <li>Fixed an error that prevented the ability to stuff a received
+value into the PDU field with the assignment
+operator. PDU &gt;&gt; VAR now works just fine. Before the fix, the
+MESSAGE statement had to be an assignment as
+well as the PDU statement, which was impossible because both statements
+cannot occur at once. </li>
+      <li>Fixed an error that never evaluated DER statement against
+incoming packet. The DER = TRUE statement ALWAYS
+failed and the DER = FALSE statement ALWAYS passed. Now the DER
+statement is evaluated properly. </li>
+      <li>Fixed an error that never evaluated the PRIORITY statement
+properly. Priority was always tested again zero.
+Now the test is performed by examining the statements value against the
+incomming PRIORITY. </li>
+      <li>Fixed an error that prematurely passed an address evaluation
+with the minimum of the address lengths
+(between the incoming SADR and the script SADR) used in the comparison.
+Now the two addresses must match
+exactly. </li>
+      <li>Added the ability to specify SNET/SADR and DNET/DADR pairs in
+an EXPECT statement with a NONE value that
+indicates the received packet must not have SNET/SADR or DNET/DADR
+values. In addition, if these statements
+are present in an EXPECT clause the received packet MUST contain the
+values. Previously the test was
+only evaluated if the received message had the values. Usage is as
+follows:
+        <pre>	SNET = NONE, SADR = NONE, DNET = NONE, DADR = NONE.<br></pre>
+So now if the SNET/SADR or DNET/DADR values are specified in the
+script, the values must exist in the received message. Conversely, if
+they are specified in the script with the NONE value, the src/dst
+addresses
+must NOT be present in the received packet. </li>
+      <li>New tests have been added in the script executor that force
+the reserved bits in each PDU control octet to be zero. An error is
+reported if they are not. Bits 6 and 4 are tested for network layer
+messages and application
+layer messages have different reserved bits for each PDU type. </li>
+    </ol>
+  </li>
+  <li>Updated and included new test scripts designed for testing
+BACnet/IP devices. These are located in the <b>scripts</b> folder. </li>
 </ul>
-
 <!-- 3.4.3 release notes -->
 <h2>3.4.3</h2>
-
 <ul>
-
-<p><li>Feature request 444244: <b>Added capture and display filters.</b>
-<p>The capture and display filters are a list of ACCEPT or REJECT filter
-elements, each of which can specify a variety of source 
-and destination addresses, as well as "function groups"
+  <li>Feature request 444244: <b>Added capture and display filters.</b>
+    <p>The capture and display filters are a list of ACCEPT or REJECT
+filter
+elements, each of which can specify a variety of source and destination
+addresses, as well as "function groups"
 that match the function groups in the Send menu. </p>
-
-<p>Addresses are "deep parsed", so you can filter on anything
+    <p>Addresses are "deep parsed", so you can filter on anything
 to and/or from a remote network because the filter will look into
-the NPCI for routing information.  Ack's to a confirmed 
-service (both simple acks and complex acks) are paired up 
-with the function group. </p>
-
-<p>Note that this does not change the behavior of the
-application, only what is saved in the packet database and/or 
-shown in the window.  For this version, script 
-generated "packets" are not subject to filtering. </p>
-
-<p>(The up and down arrow buttons to change the
+the NPCI for routing information. Ack's to a confirmed service (both
+simple acks and complex acks) are paired up with the function group. </p>
+    <p>Note that this does not change the behavior of the
+application, only what is saved in the packet database and/or shown in
+the window. For this version, script generated "packets" are not
+subject to filtering. </p>
+    <p>(The up and down arrow buttons to change the
 order of the filter elements are not working). </p>
-</li></p>
-
-<p><li>Bug 567046: <b>Reworked the Detail View</b> to collapse tag
+  </li>
+  <li>Bug 567046: <b>Reworked the Detail View</b> to collapse tag
 details and
-expand the application data by default.  This should make it easier to
-use the Detail View to spot the most important data quickly. 
-</li></p>
-
-<p><li>Feature request 444130: The <b>Property Identifier selection list
+expand the application data by default. This should make it easier to
+use the Detail View to spot the most important data quickly. </li>
+  <li>Feature request 444130: The <b>Property Identifier selection
+list
 is
-now context sensitive</b> to the Object Type selected.  The Properties
+now context sensitive</b> to the Object Type selected. The Properties
 at
-the	top of the list are the standard Properties for the associated
-Object. These are followed by a string of dashes (---------) to serve as
+the top of the list are the standard Properties for the associated
+Object. These are followed by a string of dashes (---------) to serve
+as
 a
 visual separator, and then the remaining BACnet Properties are listed.
-At the end of the list is a Property named "<proprietary>", which allows
+At the end of the list is a Property named "<proprietary>", which
+allows
 the user to enter a numerical Property Identifier for proprietary
-Properties.</p>
-
-<p>Proprietary Property Identifiers are now encoded and decoded
+Properties.</proprietary>
+    <p>Proprietary Property Identifiers are now encoded and decoded
 correctly and shown as numerical Property Identifiers, but the value of
 the proprietary Property will not be decoded correctly if it is a
 constructed data type.</p>
-
-<p>Property Identifiers are no longer restricted to the first 123
-enumerations.  Property Identifiers up to enumeration 168 (profile-name)
-are now decoded.  Property Identifiers can now be up to
-enumeration 4194303.  (This was limited to two octets in prior
+    <p>Property Identifiers are no longer restricted to the first 123
+enumerations. Property Identifiers up to enumeration 168 (profile-name)
+are now decoded. Property Identifiers can now be up to
+enumeration 4194303. (This was limited to two octets in prior
 versions). Enumerations higher than 168 are shown as numerical Property
 Identifiers.</p>
-</li></p>
-
-<li><p>Feature request 544511: More information was added to each row of
-the summary view in the sniffer.  This feature needs to be reviewed to
-see if the most useful data was added for each message type.</li></p>
-
-<li><p>Fixed the following bugs:</p>
-<ul>
-  <li>727597: Commas needed in bacfuncs.h.   The strings "SCHEDULE" and
-  "AVERAGING" are now separated.</li>
-  <li>787626: EPICS parser does not know about new properties.  The
-  following Properties were added: <ul>
-     <li>ProfileName (all objects)</li>
-     <li>Device.database-revision</li>
-	 <li>Device.configuration-files</li>
-	 <li>Device.last-restore-time</li>
-	 <li>Device.backup-failure-timeout</li>
-	 <li>Device.active-cov-subscriptions</li>
-     <li>Device.max-segments-accepted</li>
-	 </ul>
   </li>
-  <li>779139: Send Dialog missing vertical scroll bar </li>
-  <li>788953: Send UTCTimeSynchronization service is bad</li>
-  <li>767301: UTCTimeSynchronization has extra fields</li>
-  <li>759946: Object_Property_Reference property mislabelled</li>
-  <li>767311: Signed values displayed as unsigned in Detail view</li>
-  <li>787629: EPICS parser requires optional properties.  The EPICS
-  parser was generating an error when a) the device supports Event
-  Notification services and	b) any object that COULD support intrinsic
-  alarming doesn't have the properties to do so (time-delay,
-  notification-class, etc).	 Now the EPICS parser checks to see if ANY
-  of the intrinsic reporting properties exist in each Object, and if so,
-  they all must exist. </li>
+  <li>
+    <p>Feature request 544511: More information was added to each row
+of
+the summary view in the sniffer. This feature needs to be reviewed to
+see if the most useful data was added for each message type.</p>
+  </li>
+  <li>
+    <p>Fixed the following bugs:</p>
+    <ul>
+      <li>727597: Commas needed in bacfuncs.h. The strings "SCHEDULE"
+and "AVERAGING" are now separated.</li>
+      <li>787626: EPICS parser does not know about new properties. The
+following Properties were added:
+        <ul>
+          <li>ProfileName (all objects)</li>
+          <li>Device.database-revision</li>
+          <li>Device.configuration-files</li>
+          <li>Device.last-restore-time</li>
+          <li>Device.backup-failure-timeout</li>
+          <li>Device.active-cov-subscriptions</li>
+          <li>Device.max-segments-accepted</li>
+        </ul>
+      </li>
+      <li>779139: Send Dialog missing vertical scroll bar </li>
+      <li>788953: Send UTCTimeSynchronization service is bad</li>
+      <li>767301: UTCTimeSynchronization has extra fields</li>
+      <li>759946: Object_Property_Reference property mislabelled</li>
+      <li>767311: Signed values displayed as unsigned in Detail view</li>
+      <li>787629: EPICS parser requires optional properties. The EPICS
+parser was generating an error when a) the device supports Event
+Notification services and b) any object that COULD support intrinsic
+alarming doesn't have the properties to do so (time-delay,
+notification-class, etc). Now the EPICS parser checks to see if ANY of
+the intrinsic reporting properties exist in each Object, and if so,
+they all must exist. </li>
+    </ul>
+  </li>
 </ul>
-
-</ul>
-
 <!-- 3.4.4 release notes -->
 <h2>3.4.4</h2>
 <ul>
-
-<p><li>Feature Request 837460: Provide a method for failing a test script if a particular message is received. 
-(This is essentially a negative form of the EXPECT statement).  An additional parameter has been added in the EXPECT statement
-to negate the expected condition.   The syntax for this for of an EXPECT statement is:
-<pre>      EXPECT NOT
-</pre>       
+  <li>Feature Request 837460: Provide a method for failing a test
+script if a particular message is received. (This is essentially a
+negative form of the EXPECT statement). An additional parameter has
+been added in the EXPECT statement
+to negate the expected condition. The syntax for this for of an EXPECT
+statement is:
+    <pre>      EXPECT NOT<br></pre>
 or
-<pre>      EXPECT BEFORE xxx NOT
-</pre>
+    <pre>      EXPECT BEFORE xxx NOT<br></pre>
 Example:
-<pre>
-  EXPECT BEFORE 200 NOT (
-    NETWORK = "Untitled"
-    SA = IUT_IP
-    DER = FALSE
-    BVLCI = ORIGINAL-UNICAST-NPDU 
-    PDU = ComplexAck
-    Service = ReadProperty
-    Object = 0, OBJECT1
-    Property = 1, PRESENT-VALUE
-    OpenTag 3
-      REAL = LOWVAL                
-    CloseTag 3
-  )
-</pre>
-If VTS receives the specified packet in the given time then this test fails.
-</li></p>
-
-<p><li>Feature Request 837459: It was requested that scripts should cause a syntax error
-if an unrecognized keyword is encountered rather than assuming that the unrecognized keyword 
-was an uninitialized variable.  VTS now checks all of the keywords in the script file, and triggers an error message if a keyword is not a keyword predefined in VTS. 
-</li></p>
-
-
-<p><li>Bug 827465: VTS now recognizes the Device object's Max_Segments_Accepted property - both in the interactive 
-portion of VTS as well as in scripts. </li></p>
-
-<p><li>Bug 843232: Now the default time delay in scripts is assigned by the variable 'Internal Processing Fail Time' 
-if this variable has been defined in the EPICS, otherwise the default time delay is still 3 seconds.
-</li></p>
-
-<p><li>Feature Request 843336: An ASSIGN statement has been added to the script commands so that a script can explicitly set the
-	test result to PASSED or FAILED based on scripted conditionals instead of being dependent on 
-	failed EXPECT statements. For example:
-<pre>
-	IF (timeRemaining = 0)
-	ASSIGN FAILED
-	ENDIF
-</pre>
-</li></p>
-
-<p><li>Feature Request 843292: A WAIT statement has been added to the script commands to provide
-a method for inserting an unconditional wait into a script.  The syntax for the
+    <pre>  EXPECT BEFORE 200 NOT (<br>    NETWORK = "Untitled"<br>    SA = IUT_IP<br>    DER = FALSE<br>    BVLCI = ORIGINAL-UNICAST-NPDU <br>    PDU = ComplexAck<br>    Service = ReadProperty<br>    Object = 0, OBJECT1<br>    Property = 1, PRESENT-VALUE<br>    OpenTag 3<br>      REAL = LOWVAL                <br>    CloseTag 3<br>  )<br></pre>
+If VTS receives the specified packet in the given time then this test
+fails. </li>
+  <li>Feature Request 837459: It was requested that scripts should
+cause a syntax error
+if an unrecognized keyword is encountered rather than assuming that the
+unrecognized keyword was an uninitialized variable. VTS now checks all
+of the keywords in the script file, and triggers an error message if a
+keyword is not a keyword predefined in VTS. </li>
+  <li>Bug 827465: VTS now recognizes the Device object's
+Max_Segments_Accepted property - both in the interactive portion of VTS
+as well as in scripts. </li>
+  <li>Bug 843232: Now the default time delay in scripts is assigned by
+the variable 'Internal Processing Fail Time' if this variable has been
+defined in the EPICS, otherwise the default time delay is still 3
+seconds. </li>
+  <li>Feature Request 843336: An ASSIGN statement has been added to the
+script commands so that a script can explicitly set the test result to
+PASSED or FAILED based on scripted conditionals instead of being
+dependent on failed EXPECT statements. For example:
+    <pre>	IF (timeRemaining = 0)<br>	ASSIGN FAILED<br>	ENDIF<br></pre>
+  </li>
+  <li>Feature Request 843292: A WAIT statement has been added to the
+script commands to provide
+a method for inserting an unconditional wait into a script. The syntax
+for the
 WAIT statement is described by:
-<pre>  &lsaquo;wait statement&rsaquo; ::= WAIT &lsaquo;timer value&rsaquo;
-
-  "The TD shall pause the amount of time specified by the 
-  &lsaquo;timer value&rsaquo; before proceeding to the next test step. 
-  The &lsaquo;timer value&rsaquo; shall be one of the timers specified in 
-  6.3 or as otherwise specified."
-
-  &lsaquo;timer value&rsaquo; ::= &lsaquo;constant&rsaquo; | &lsaquo;variable&rsaquo; | '{' &lsaquo;Fail Time&rsaquo; '}'
-
-  &lsaquo;Fail Time&rsaquo; ::= Notification Fail Time | 
-                  Internal Processing Fail Time | 
-                  Minimum ON/OFF Time | 
-                  Schedule Evaluation Fail Time | 
-                  External Command Fail Time | 
-                  Program Object State Change Fail Time | 
-                  Acknowledgement Fail Time
-</pre>
-</li></p>
-
-<p><li>Feature Request 843302: Within a script window, the user can now select which SECTION to run, 
-as well as which test within that SECTION. </li></p>
-
-<p><li>Feature Request 843304: VTS scripts now have a sort of "auto-complete" feature that will automatically type the remaining 
-characters of some keywords when the script writer begins typeing a recognized keyword.  This facility was implemented
-in lieu of the drop down menu for common script parameters that was requested. </li></p>
-
-
-<p><li>Bug 843245: VTS can now distinguish between the global broadcast IP address and the local broadcast IP address.
-</li></p>
-
-
-<p><li>Feature Request 843288: VTS scripts now support the following format for testing if the IUT
-supports a particular BACnet service as defined in the loaded EPICS file:
-<pre>
-  IF '(' '{'&lsaquo;service&rsaquo;', ' EXECUTE | INITIATE'}' '=' TRUE | FALSE')'
-</pre></li></p>
-
-
-<p><li>Feature Request 843284: In scripts, now EPICS references can be supported in conjunction with delays indicated by the keywords AFTER and BEFORE. 
-Command syntax:
-<pre>
-   SEND AFTER '{'&lsaquo;Fail Time&rsaquo;'}'
-
-   &lsaquo;Fail Time&rsaquo; ::= Notification Fail Time |  
-                   Internal Processing Fail Time | 
-                   Minimum ON/OFF Time | 
-                   Schedule Evaluation Fail Time | 
-                   External Command Fail Time | 
-                   Program Object State Change Fail Time | 
-                   Acknowledgement Fail Time
-</pre></p>
-<p>Example:
-<pre>
-	SEND AFTER {Internal Processing Fail Time}(
-	...
-	)
-</pre></li></p>
-
-
-<p><li>Feature Request 843265: Added support for the MAXSEGS keyword in scripts.
-</li></p>
-
-<p><li>Feature Request 843281: In scripts, the following EPICS references are now supported:
-<pre>
-  {Max_APDU_Length_Accepted}
-  {Max_Segments_Accepted}
-</pre>
+    <pre>  &#8249;wait statement&#8250; ::= WAIT &#8249;timer value&#8250;<br><br>  "The TD shall pause the amount of time specified by the <br>  &#8249;timer value&#8250; before proceeding to the next test step. <br>  The &#8249;timer value&#8250; shall be one of the timers specified in <br>  6.3 or as otherwise specified."<br><br>  &#8249;timer value&#8250; ::= &#8249;constant&#8250; | &#8249;variable&#8250; | '{' &#8249;Fail Time&#8250; '}'<br><br>  &#8249;Fail Time&#8250; ::= Notification Fail Time | <br>                  Internal Processing Fail Time | <br>                  Minimum ON/OFF Time | <br>                  Schedule Evaluation Fail Time | <br>                  External Command Fail Time | <br>                  Program Object State Change Fail Time | <br>                  Acknowledgement Fail Time<br></pre>
+  </li>
+  <li>Feature Request 843302: Within a script window, the user can now
+select which SECTION to run, as well as which test within that SECTION.
+  </li>
+  <li>Feature Request 843304: VTS scripts now have a sort of
+"auto-complete" feature that will automatically type the remaining
+characters of some keywords when the script writer begins typeing a
+recognized keyword. This facility was implemented
+in lieu of the drop down menu for common script parameters that was
+requested. </li>
+  <li>Bug 843245: VTS can now distinguish between the global broadcast
+IP address and the local broadcast IP address. </li>
+  <li>Feature Request 843288: VTS scripts now support the following
+format for testing if the IUT
+supports a particular BACnet service as defined in the loaded EPICS
+file:
+    <pre>  IF '(' '{'&#8249;service&#8250;', ' EXECUTE | INITIATE'}' '=' TRUE | FALSE')'<br></pre>
+  </li>
+  <li>Feature Request 843284: In scripts, now EPICS references can be
+supported in conjunction with delays indicated by the keywords AFTER
+and BEFORE. Command syntax:
+    <pre>   SEND AFTER '{'&#8249;Fail Time&#8250;'}'<br><br>   &#8249;Fail Time&#8250; ::= Notification Fail Time |  <br>                   Internal Processing Fail Time | <br>                   Minimum ON/OFF Time | <br>                   Schedule Evaluation Fail Time | <br>                   External Command Fail Time | <br>                   Program Object State Change Fail Time | <br>                   Acknowledgement Fail Time<br></pre>
+    <p>Example: </p>
+    <pre>	SEND AFTER {Internal Processing Fail Time}(<br>	...<br>	)<br></pre>
+  </li>
+  <li>Feature Request 843265: Added support for the MAXSEGS keyword in
+scripts. </li>
+  <li>Feature Request 843281: In scripts, the following EPICS
+references are now supported:
+    <pre>  {Max_APDU_Length_Accepted}<br>  {Max_Segments_Accepted}<br></pre>
 Examples:
-<pre>
-   MAXSEGS = {Max_Segments_Accepted}
-   MAXRESP = {Max_APDU_Length_Accepted}
-</pre>
-
-</li></p>
-
-
-<p><li>Feature Request 843274: EPICS references are now allowed within IF expressions in a script.
+    <pre>   MAXSEGS = {Max_Segments_Accepted}<br>   MAXRESP = {Max_APDU_Length_Accepted}<br></pre>
+  </li>
+  <li>Feature Request 843274: EPICS references are now allowed within
+IF expressions in a script.
 Examples:
-<pre>
-  IF ({binary-value, 1, OUT-OF-SERVICE} = FALSE)
-    OBJECT1 = binary-value, 1	
-  ELSE
-    OBJECT1 = binary-value, 2	
-  ENDIF
-
-  OBJECT = binary-value, 1	
-  IF ({OBJECT, OUT-OF-SERVICE} = FALSE)
-    OBJECT1 = binary-value, 2	
-  ELSE
-    OBJECT1 = binary-value, 3	
-  ENDIF
-</pre></li></p>
-
-<p><li>Bug 843243: This bug says that the don't care value '?' is not allowed to be assigned to the invokeID parameter within an EXPECT statement
-in a script.  This is true, but the user could have used the don't care <b>operator</b> to achieve the desired results. For example:
-<pre>
-   EXPECT (
-      ...
-      PDU = Confirmed-Request
-      ...
-      invokeID = ?
-      ...
-   )
-</pre>Does not work as a don't care operation on the invokeID, but this does ...
-<pre>
-   EXPECT (
-      ...
-      PDU = Confirmed-Request
-      ...
-      invokeID ?= 0
-      ...
-   )
-</pre>
-However, VTS has been changed so that the first format now also works as a don't care operation on the invokeID in an EXPECT statement.
-</li></p>
-
-
-<p><li>Bug 843258: If an ENDIF statement was missing in a script, VTS would crash. This bug has been fixed.
-</li></p>
-
-
-<p><li>Bug 843252:  This bug states that the CHECK statement requires that the open parenthesis must be followed by a carriage return.
+    <pre>  IF ({binary-value, 1, OUT-OF-SERVICE} = FALSE)<br>    OBJECT1 = binary-value, 1	<br>  ELSE<br>    OBJECT1 = binary-value, 2	<br>  ENDIF<br><br>  OBJECT = binary-value, 1	<br>  IF ({OBJECT, OUT-OF-SERVICE} = FALSE)<br>    OBJECT1 = binary-value, 2	<br>  ELSE<br>    OBJECT1 = binary-value, 3	<br>  ENDIF<br></pre>
+  </li>
+  <li>Bug 843243: This bug says that the don't care value '?' is not
+allowed to be assigned to the invokeID parameter within an EXPECT
+statement
+in a script. This is true, but the user could have used the don't care <b>operator</b>
+to achieve the desired results. For example:
+    <pre>   EXPECT (<br>      ...<br>      PDU = Confirmed-Request<br>      ...<br>      invokeID = ?<br>      ...<br>   )<br></pre>
+Does not work as a don't care operation on the invokeID, but this does
+...
+    <pre>   EXPECT (<br>      ...<br>      PDU = Confirmed-Request<br>      ...<br>      invokeID ?= 0<br>      ...<br>   )<br></pre>
+However, VTS has been changed so that the first format now also works
+as a don't care operation on the invokeID in an EXPECT statement. </li>
+  <li>Bug 843258: If an ENDIF statement was missing in a script, VTS
+would crash. This bug has been fixed. </li>
+  <li>Bug 843252: This bug states that the CHECK statement requires
+that the open parenthesis must be followed by a carriage return.
 In other words, the following is not allowed:
-<pre>
-  CHECK "Title" (IF (VAR = 1)
-      "Text"
-    ELSE
-      "Text2"
-    ENDIF
-  )
-</pre>
+    <pre>  CHECK "Title" (IF (VAR = 1)<br>      "Text"<br>    ELSE<br>      "Text2"<br>    ENDIF<br>  )<br></pre>
 But the following syntax is allowed:
-
-<pre>
-  CHECK "Title" (
-    IF (VAR = 1)
-      "Text"
-    ELSE
-      "Text2"
-    ENDIF
-  )
-</pre>
-The SEND and EXPECT statements do not support the first syntax either.  Since the work-around is simple, and
-since other statements must be changed if the CHECK statement was changed, there are no plans to fix this bug.
-</li></p>
-
+    <pre>  CHECK "Title" (<br>    IF (VAR = 1)<br>      "Text"<br>    ELSE<br>      "Text2"<br>    ENDIF<br>  )<br></pre>
+The SEND and EXPECT statements do not support the first syntax either.
+Since the work-around is simple, and
+since other statements must be changed if the CHECK statement was
+changed, there are no plans to fix this bug. </li>
 </ul>
-
 <!-- 3.4.5 release notes -->
-<h2><a name="whatsnew">3.4.5</a></h2>
+<h2>3.4.5</h2>
 <ul>
-<li>
-<p>Added MS/TP datalink support through the American Auto-Matrix NB-Link device.
-This is a device that connects to a TCP/IP network and provides an MS/TP connection
-for VTS.  In other words, VTS maintains a TCP/IP connection to the NB-Link, 
-which allows VTS to send and receive MS/TP data frames to the MS/TP network
-connected to the NB-Link.  The NB-Link functions as a master node on the
-MS/TP network, handling the MS/TP token passing independently of VTS. 
-</p>
-<p>
-VTS supports multiple NB-Link devices, once for each MS/TP network.  The MS/TP network
-can be located remotely, perhaps even across the Internet.  If there is not a TCP/IP
-network available, the NB-Link can be connected to the PC running VTS by using
-an Ethernet crossover cable between the PC and the NB-Link.  An inexpensive 
-Ethernet hub or switch will also work.
-</p>
-<p>
-The NB-Link is configured from within VTS by adding an MS/TP port in the ports dialog.
-The first step is to add an MS/TP Port by selecting Edit/Ports... from the menu,
-clicking the "New" button, and selecting the MSTP tab and entering the MS/TP parameters
-for this port.  These parameters determine the MS/TP characteristics of the NB-Link.  For example:
-</p>
-<p><img src="Images/mstp_port.png" ></p>
-<p>
-The next step is to click the "Configure Implementation" button to
-set the parameters that determine how the NB-Link communicates with VTS.  Most
-of these parameters are related to the TCP/IP communication employed between VTS
-and the NB-Link, such as the IP address parameters of the NB-Link.  This dialog is
-used to actually <b>set</b> these parameters in the NB-Link, not to match parameters
-that have already previously been set by some other configuration tool.  In
-other words, VTS knows how to configure the NB-Link, even prior to setting
-the NB-Link's IP address - and in fact, this dialog is how the NB-Link's IP
-address is set. (How this functions with multiple NB-Link devices attached has not been tested.)
-</p>
-<p><img src="Images/nblink.png" ></p>
-
-<p>
-Here is the purchasing information for the American Auto-Matrix NB-Link:
-<pre>
-  The part number is NB-LINK-HW-KT.  
-  The price is $1078.50 (US) each.
-  Purchase by credit card by contacting
-  Carla Beiter, American Auto-Matrix inside sales.
-  InsideSales@aamatrix.com 
-  877-226-4822  
-</pre>
-</p>
-</li>
-
-
-<li>
-<p>
-There is a new window visible on the main screen that will become a visual
-representation of the loaded EPICS, but this feature is not yet functional.
-</p>
-</li>
-			
-
+  <li>
+    <p>Added MS/TP datalink support through the American Auto-Matrix
+NB-Link device.
+This is a device that connects to a TCP/IP network and provides an
+MS/TP connection
+for VTS. In other words, VTS maintains a TCP/IP connection to the
+NB-Link, which allows VTS to send and receive MS/TP data frames to the
+MS/TP network
+connected to the NB-Link. The NB-Link functions as a master node on the
+MS/TP network, handling the MS/TP token passing independently of VTS. </p>
+    <p>VTS supports multiple NB-Link devices, once for each MS/TP
+network. The
+MS/TP network
+can be located remotely, perhaps even across the Internet. If there is
+not a TCP/IP
+network available, the NB-Link can be connected to the PC running VTS
+by using
+an Ethernet crossover cable between the PC and the NB-Link. An
+inexpensive Ethernet hub or switch will also work. </p>
+    <p>The NB-Link is configured from within VTS by adding an MS/TP
+port in
+the ports dialog.
+The first step is to add an MS/TP Port by selecting Edit/Ports... from
+the menu,
+clicking the "New" button, and selecting the MSTP tab and entering the
+MS/TP parameters
+for this port. These parameters determine the MS/TP characteristics of
+the NB-Link. For example: </p>
+    <p><img src="Images/mstp_port.png"></p>
+    <p>The next step is to click the "Configure Implementation" button
+to
+set the parameters that determine how the NB-Link communicates with
+VTS. Most
+of these parameters are related to the TCP/IP communication employed
+between VTS
+and the NB-Link, such as the IP address parameters of the NB-Link. This
+dialog is
+used to actually <b>set</b> these parameters in the NB-Link, not to
+match parameters
+that have already previously been set by some other configuration tool.
+In
+other words, VTS knows how to configure the NB-Link, even prior to
+setting
+the NB-Link's IP address - and in fact, this dialog is how the
+NB-Link's IP
+address is set. (How this functions with multiple NB-Link devices
+attached has not been tested.) </p>
+    <p><img src="Images/nblink.png"></p>
+    <p>Here is the purchasing information for the American Auto-Matrix
+NB-Link: </p>
+The part number is NB-LINK-HW-KT. <br>
+The price is $1078.50 (US) each.<br>
+Purchase by credit card by contacting<br>
+Carla Beiter, American Auto-Matrix inside sales.<br>
+InsideSales@aamatrix.com <br>
+877-226-4822 <br>
+    <br>
+The BACnet Testing Laboratories (BTL) has not tested the <br>
+American Auto-Matrix NB-Link for conformance to the BACnet standard, <br>
+nor does the BTL endorse the NB-Link as a product. <br>
+  </li>
+  <li>
+    <p>There is a new window visible on the main screen that will
+become a visual
+representation of the loaded EPICS, but this feature is not yet
+functional. </p>
+  </li>
 </ul>
-
-
- 
+<!-- 3.4.6 release notes -->
+<h2><a name="whatsnew">3.4.6</a></h2>
+<ul>
+  <li>The interface to the NB-Link MS/TP device was modified to improve
+performance. <br>
+  </li>
+  <li>Bug 974701 &amp; 996723: Fixed a problem with VTS crashing if the
+network adapter name exceeded 64 characters.</li>
+  <li>Bug 444179:&nbsp; Added a "Send &amp; Close" button to the Send
+dialog box that causes the Send dialog to close immediately upon
+sending the message.</li>
+  <li>Bug 799217:&nbsp; Now VTS can automatically send a BACnet
+SegmentACK, if the current active port has been bound to a
+device.&nbsp; So when using VTS to send a RP/RPM for a property that
+will force the IUT to send a segmented response, if the IUT does send a
+segmented response, then VTS will automatically respond with BACnet
+SegmentACK packets as needed to receive the entire segmented response.</li>
+  <li>Bug 895889:&nbsp; When a script referenced a timeout specified in
+EPICS, the script interpretted the value as seconds instead of
+milliseconds.&nbsp; Now VTS understands that the timeouts specified in
+the EPICS are specified in milliseconds, and it converts these values
+into seconds for the script executor.<br>
+  </li>
+  <li>Bug 899927:&nbsp; VTS now properly accepts the section title
+"BACnet Object Types Supported:" in an EPICS file.</li>
+  <li>Bug 791999: In the EPICS file, the Total_Record_Count property
+can now accept large numerical values.</li>
+  <li>Bug 922818: Fixed a problem with VTS crashing during the EPICS
+consistency check.</li>
+  <li>Changes to conform to 135-2001 addendum b:</li>
+  <ul>
+    <li>Feature request 950150:&nbsp; Awareness of the BUFFER_READY
+Event Type (context 10) was added.</li>
+    <li>Feature request 950159: The decoder for the
+ConfirmedEventNotification service has been enhanced to decode the new
+context 10 (buffer-ready) production of the
+BACnetNotificationParameters, and the sniffer and the script executor
+also have been updated to make the new variables in the context 10
+production available to the script via a RECEIVE (EXPECT) statement.</li>
+    <li>Feature request 950145: ReadRange was modified for 2001b:&nbsp;
+      <br>
+    </li>
+    <ul>
+      <li>The 'By Time' option for the 'Range' parameter produces a
+context 7 encoding, not context 4</li>
+      <li>The 'Time Range' option for the 'Range' parameter has been
+removed.</li>
+      <li>A new 'By Sequence Number' option for the 'Range' parameter
+was added that produces a context 6 encoding, which uses the
+"referenceIndex" and "count" parameters.</li>
+      <li>The two reference time parameters in the ReadRange dialog
+have been converted into a single Reference time parameter named
+'Reference Time'.</li>
+      <li>Decoding of ReadRange-ACK was modified to expect the optional
+'firstSequenceNumber' parameter, which is context 6, of datatype
+unsigned32. </li>
+    </ul>
+    <li>Feature request 950136: TrendLog Object was modified to conform
+to 135-2001 addendum b:
+      <ul>
+        <li>Removed Previous_Notify_Time &amp; Current_Notify_Time
+properties.</li>
+        <li>Added Last_Notify_Record property.</li>
+      </ul>
+    </li>
+  </ul>
+  <li>Feature request 950059: Added support for the GetInformation
+service.</li>
+  <li>Feature request 444242: Added custom dialog boxes (for use in the
+Send window) for entering the following complex datatypes:<br>
+  </li>
+  <ol>
+    <li>BACnetAction</li>
+    <li>BACnetActionCommand</li>
+    <li>BACnetActionList</li>
+    <li>BACnetBinaryPV</li>
+    <li>BACnetClientCOV</li>
+    <li>BACnetCOVSubscription</li>
+    <li>BACnetDailySchedule</li>
+    <li>BACnetDaysOfWeek</li>
+    <li>BACnetDeviceStatus</li>
+    <li>BACnetDeviceObjectPropertyReference</li>
+    <li>BACnetDeviceObjectReference</li>
+    <li>BACnetEngineeringUnits</li>
+    <li>BACnetEventParameter</li>
+    <li>BACnetEventState</li>
+    <li>BACnetEventTransitionBits</li>
+    <li>BACnetEventType</li>
+    <li>BACnetFileAccessMethod</li>
+    <li>BACnetLifeSafetyMode</li>
+    <li>BACnetLifeSafetyOperation</li>
+    <li>BACnetLifeSafetyState</li>
+    <li>BACnetLimitEnable</li>
+    <li>BACnetLogRecord</li>
+    <li>BACnetLogStatus</li>
+    <li>BACnetMaintenance</li>
+    <li>BACnetNotifyType</li>
+    <li>BACnetObjectPropertyReference</li>
+    <li>BACnetObjectPropertyValue</li>
+    <li>BACnetObjectType</li>
+    <li>BACnetObectTypesSupported</li>
+    <li>BACnetPolarity</li>
+    <li>BACnetPriorityArray</li>
+    <li>BACnetPriorityValue</li>
+    <li>BACnetProgramError</li>
+    <li>BACnetProgramRequest</li>
+    <li>BACnetProgramState</li>
+    <li>BACnetPropertyIdentifier</li>
+    <li>BACnetPropertyReference</li>
+    <li>BACnetPropertyStates</li>
+    <li>BACnetPropertyValue</li>
+    <li>BACnetRecipient</li>
+    <li>BACnetRecipientProcess</li>
+    <li>BACnetReliability</li>
+    <li>BACnetResultFlags</li>
+    <li>BACnetSegmentation</li>
+    <li>BACnetServicesSupported</li>
+    <li>BACnetSessionKey</li>
+    <li>BACnetSetpointReference</li>
+    <li>BACnetSilenceState</li>
+    <li>BACnetSpecialEvent</li>
+    <li>BACnetStatusFlags</li>
+    <li>BACnetTimeStamp</li>
+    <li>BACnetTimeValue</li>
+    <li>BACnetVTClass</li>
+    <li>BACnetVTSession</li>
+    <li>BACnetWeekNDay</li>
+    <li>ListOfBACnetDestination</li>
+    <li>ListOfBACnetReadAccessResult</li>
+    <li>ListOfBACnetReadAccessSpecification<br>
+      <br>
+    </li>
+  </ol>
+</ul>
 <p>&nbsp;</p>
 <p><a href="#Links">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
@@ -1977,7 +2217,8 @@ representation of the loaded EPICS, but this feature is not yet functional.
 <p>&nbsp;</p>
 <h2><a name="Links">VTS Web Links</a></h2>
 <p>The home page of VTS is <a href="http://vts.sourceforge.net">http://vts.sourceforge.net</a></p>
-<p>The home page of the BACnet Testing Laboratories (BTL) is <a href="http://www.bacnetassociation.org/bacnet_testing.htm">http://www.bacnetassociation.org/bacnet_testing.htm</a></p>
+<p>The home page of the BACnet Testing Laboratories (BTL) is <a
+ href="http://www.bacnetassociation.org/bacnet_testing.htm">http://www.bacnetassociation.org/bacnet_testing.htm</a></p>
 <p>&nbsp;</p>
 <p><a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
@@ -1991,7 +2232,6 @@ representation of the loaded EPICS, but this feature is not yet functional.
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-
+=
 </body>
-
-</html>=
+</html>
