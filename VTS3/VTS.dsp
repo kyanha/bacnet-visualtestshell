@@ -1449,7 +1449,7 @@ SOURCE=.\VTS.reg
 # End Source File
 # Begin Source File
 
-SOURCE=..\TPacket32\packet32_NT.lib
+SOURCE=.\BACnetLibrary\packet32_NT.lib
 # End Source File
 # End Target
 # End Project
