@@ -503,8 +503,8 @@ typedef struct
      dword						    	    total_record_count;			//should be Unsigned32, GJB 01-MAR-2004
      word						    	    notification_threshold;
      word						    	    records_since_notification;
-     BACnetDateTime				    		previous_notify_time;
-     BACnetDateTime				    		current_notify_time;
+ //    BACnetDateTime				    		previous_notify_time;
+//     BACnetDateTime				    		current_notify_time;
      enum BACnetEventState		    		event_state;
      word						    	   	notification_class;
      word                                   alarm_value;
@@ -513,6 +513,7 @@ typedef struct
      octet						    		acked_transitions;
      enum BACnetNotifyType		    		notify_type;
      BACnetTimeStamp			            event_time_stamps[3];
+	 dword									last_notify_record;		//Added by Zhu Zhenhua, 2004-5-11
    } trend_obj_type;
 
 #endif //__STDOBJ_H_INCLUDED

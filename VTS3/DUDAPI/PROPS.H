@@ -274,7 +274,7 @@ static const char *stPropIDs[]={
 				"buffer_size",                              
 				"client_cov_increment",                     
 				"cov_resubscription_interval",              
-				"current_notify_time",                      
+//				"current_notify_time",                      
 				"event_time_stamps",                        
 				"log_buffer",                               
 				"log_device_object_property",               
@@ -283,7 +283,7 @@ static const char *stPropIDs[]={
 				"maximum_value",                            
 				"minimum_value",                            
 				"notification_threshold",                   
-				"previous_notify_time",                     
+			//	"previous_notify_time",                     
 				"protocol_revision",                        
 				"records_since_notification",               
 				"record_count",                             
@@ -296,7 +296,8 @@ static const char *stPropIDs[]={
 				"window_samples",                           
 				"maximum_value_timestamp",                  
 				"minimum_value_timestamp",                  
-				"variance_value",                           
+				"variance_value", 
+				"last_notify_record",
 				NULL /*always last*/
 				};
 //qualifiers in PropFlags

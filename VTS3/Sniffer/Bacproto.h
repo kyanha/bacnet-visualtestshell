@@ -147,7 +147,7 @@
 #define BUFFER_SIZE                           126
 #define CLIENT_COV_INCREMENT                  127
 #define COV_RESUBSCRIPTION_INTERVAL           128
-#define CURRENT_NOTIFY_TIME                   129
+//#define CURRENT_NOTIFY_TIME                   129
 #define EVENT_TIME_STAMPS                     130
 #define LOG_BUFFER                            131
 #define LOG_DEVICE_OBJECT_PROPERTY            132
@@ -156,7 +156,7 @@
 #define MAXIMUM_VALUE 			              135
 #define MINIMUM_VALUE 			              136
 #define NOTIFICATION_THRESHOLD                137
-#define PREVIOUS_NOTIFY_TIME                  138
+//#define PREVIOUS_NOTIFY_TIME                  138
 #define PROTOCOL_REVISION                     139
 #define RECORDS_SINCE_NOTIFICATION            140
 #define RECORD_COUNT                          141
@@ -186,7 +186,8 @@
 #define	ZONE_MEMBERS 					      165 // Zhu Zhenhua  2003-11-21 
 #define	LIFE_SAFETY_ALARM_VALUES 		      166 // Zhu Zhenhua  2003-11-21 
 #define	MAX_SEGMENTS_ACCEPTED 			      167 // Zhu Zhenhua  2003-11-21 
-#define PROFILE_NAME                          168  //Xiao Shiyuan 2002-7-23
+#define PROFILE_NAME                          168 //Xiao Shiyuan 2002-7-23
+#define LAST_NOTIFY_RECORD					  173 //Zhu Zhenhua  2004-5-11
 /* ----- prototypes for interpreter functions ----- */
 
 int     interp_bacnet_IP( char *header, int length);
@@ -217,6 +218,9 @@ void    show_confirmedCOVNotification(void);
 void    show_confirmedEventNotification(void);
 void    show_getAlarmSummary(void);
 void    show_getEnrollmentSummary(void);
+void    show_getEventInformation(void); //Added by Zhu Zhenhua, 2004-5-25
+void    show_getEventInformationACK(void); //Added by Zhu Zhenhua, 2004-5-25
+void	show_event_summary(void); //Added by Zhu Zhenhua, 2004-5-25
 void    show_subscribeCOV(void);
 void    show_atomicReadFile(void);
 void    show_atomicWriteFile(void);
@@ -310,12 +314,15 @@ void     show_bac_unsigned(unsigned int);
 
 /*  ----- prototypes for displaying BACnet base types ----- */
 
+void	show_bac_action_list(void);		//Added by Zhu Zhenhua, 2004-6-14
 void     show_bac_action_command(unsigned int);
 void     show_bac_address(void);
 void     show_bac_calendar_entry(void);
 void     show_bac_event_parameters(void);
 void     show_bac_event_transitions_ackd(void);
 void     show_bac_obj_prop_ref(void);
+void     show_bac_dev_obj_prop_ref(void); //Added by Zhu Zhenhua, 2004-6-14
+void     show_bac_dev_obj_ref(void); //Added by Zhu Zhenhua, 2004-6-14
 void     show_bac_obj_prop_value(void);
 void     show_bac_object_type(void);
 void     show_bac_property_identifier(unsigned int);
@@ -338,6 +345,7 @@ void     show_bac_result_flags( unsigned int);
 void     show_bac_COV_Subscription(); //Xiao Shiyuan 2002-7-23
 void     show_bac_destination(void); //Xu yiping 2002-9-28
 void	 show_bac_bitstring_value(char**c);	//Xu yiping 2002-9-28
+void	 show_bac_devobj_prop_ref(); //Added by Zhu Zhenhua, 2004-5-17
 
 /*  ----- functions to add new tree node to the detail view ----- */
 

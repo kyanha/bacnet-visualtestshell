@@ -1111,8 +1111,10 @@ propdescriptor	TRprops[]={
 	 "total-record-count",  		TOTAL_RECORD_COUNT,  	      oo(trend,total_record_count),  	      ud,       0,      0,       R,
     "notification-threshold",  	NOTIFICATION_THRESHOLD,       oo(trend,notification_threshold),      uw,       0,      0,       O|WithService,
      "records-since-notification",  RECORDS_SINCE_NOTIFICATION,   oo(trend,records_since_notification),  uw,       0,      0,       O|WithService,
-     "previous-notify-time",  		PREVIOUS_NOTIFY_TIME,  	      oo(trend,previous_notify_time),  	      dt,       0,      0,       O|WithService,
-     "current-notify-time",  		CURRENT_NOTIFY_TIME,  	      oo(trend,current_notify_time),  	      dt,       0,      0,       O|WithService,
+  //   "previous-notify-time",  		PREVIOUS_NOTIFY_TIME,  	      oo(trend,previous_notify_time),  	      dt,       0,      0,       O|WithService,
+//     "current-notify-time",  		CURRENT_NOTIFY_TIME,  	      oo(trend,current_notify_time),  	      dt,       0,      0,       O|WithService,
+//Added by Zhu Zhenhua, 2004-5-11
+	"last_notify_record",			LAST_NOTIFY_RECORD,	          oo(trend, last_notify_record),			uw,		0,		0,		O|WithService,
      "event-state",  				EVENT_STATE,  			      oo(trend,event_state),  			      et,       0,  eiEvState,   R,
      "notification-class",  		NOTIFICATION_CLASS,  	      oo(trend,notification_class),  	      uw,       0,      0,       O|WithService,
      "event-enable",  				EVENT_ENABLE,  			      oo(trend,event_enable),  			      bits,     0,      0,       O|WithService,
@@ -1123,7 +1125,7 @@ propdescriptor	TRprops[]={
 //modified by Jingbo Gao, 2003-9-1
 	"event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    0,      0,       O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
-	"profile-name",				    PROFILE_NAME,				  oo(trend,go.profile_name),			   s132,	Last,			0,	 O  
+	"profile-name",				    PROFILE_NAME,				  oo(trend,go.profile_name),			   s132,	Last,			0,	 O
 };
 
 stdobjtype	StdObjects[]={

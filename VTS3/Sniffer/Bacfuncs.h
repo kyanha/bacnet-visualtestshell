@@ -6,6 +6,9 @@ char *BACnetAction[] = {
    "REVERSE"
    };
 
+char* BACnetAcitonList[] = {
+	"Action"
+};
 char *BACnetActionCommand[] = {
    "Device Identifier",
    "Object Identifier",
@@ -72,6 +75,14 @@ char *BACnetDestination[] = {
    "Process Identifier",
    "Issue Confirmed Notifications",
    "Transitions"
+   };
+
+//Added By Zhu Zhenhua, 2004-5-17
+char *BACnetDeviceObjectPropertyReference[] = {
+   "Object Identifier",
+   "Property Identifier",
+   "Property Array Index",
+   "Device Identifier"
    };
 
 char *BACnetDeviceStatus[] = {
@@ -362,13 +373,19 @@ char *BACnetErrorCode[] = {
    "Invalid-array-index"                 /* 42 */
    };
 
+//Modified by Zhu Zhenhua, 2004-5-20
 char *BACnetEventParameter[] = {
    "Change of Bitstring",
    "Change of State",
    "Change of Value",
    "Command Failure",
    "Floating Limit",
-   "Out of Range"
+   "Out of Range",
+   "Deprecated",	
+   "Deprecated",
+   "Change of Life Safety",
+   "Deprecated",
+   "Buffer Ready"
    };
 
 char *BACnetEventState[] = {
@@ -385,6 +402,7 @@ char *BACnetEventTransitionBits[] = {
    "TO-NORMAL",
    };
 
+//Modified by Zhu Zhenhua, 2004-5-17
 char *BACnetEventType[] = {
    "CHANGE-OF-BITSTRING",
    "CHANGE-OF-STATE",
@@ -392,6 +410,11 @@ char *BACnetEventType[] = {
    "COMMAND-FAILURE",
    "FLOATING-LIMIT",
    "OUT-OF-RANGE",
+   "COMPLEX-EVENT-TYPE",   
+   "DEPRECATED",            
+   "CHANGE-OF-LIFE-SAFETY", 
+   "DEPRECATED",			
+   "BUFFER-READY"           
    };
 
 char *BACnetFileAccessMethod[] ={
@@ -399,6 +422,89 @@ char *BACnetFileAccessMethod[] ={
    "STREAM-ACCESS",
    "RECORD-AND-STREAM-ACCESS"
    };
+
+//Added by Zhu Zhenhua, 2004-5-25
+char *BACnetGetEventInfoACK[] = {
+   "List of Event summary",
+   "More Event"
+   };
+//Added by Zhu Zhenhua, 2004-5-25
+char *BACnetEventSummary[] = {
+   "Object Indentifier",
+   "Event State",
+   "Acknowledged Transitions",
+   "Event Time Stamps",
+   "Notify Type",
+   "Event Enable",
+   "Event Priorities"	
+   };
+///////////////////////////////////////////////////////////////////////////
+//Added by Zhu Zhenhua, 2004-6-14
+char *BACnetLifeSafetyMode[] = {
+   "off",
+   "on",
+   "test",
+   "manned",
+   "unmanned",
+   "armed",
+   "disarmed",
+   "prearmed",
+   "slow",
+   "fast",
+   "disconnected",
+   "enabled",
+   "disabled",
+   "automatic-release-disabled",
+   "default"
+   };
+char *BACnetLifeSafetyOperation[] = {
+   "none",
+   "silence",
+   "silence-audible",
+   "silence-visual",
+   "reset",
+   "reset-alarm",
+   "reset-fault"
+   };
+char *BACnetLifeSafetyState[] = {
+   "quiet",
+   "pre-alarm",
+   "alarm",
+   "fault",
+   "fault-pre-alarm",
+   "fault-alarm",
+   "not-ready",
+   "active",
+   "tamper",
+   "test-alarm",
+   "test-active",
+   "test-fault",
+   "test-fault-alarm",
+   "holdup",
+   "duress",
+   "tamper-alarm",
+   "abnormal",
+   "emergency-power",
+   "delayed",
+   "blocked",
+   "local-alarm",
+   "general-alarm",
+   "supervisory",
+   "test-supervisory"
+   };
+char* BACnetMaintenance[] = {
+	"None",
+	"Periodic-test",
+	"Need-Service-Operational",
+	"Need-Service-Inoperative"
+};
+char* BACnetSilencedState[] = {
+	"Unsilenced",
+	"Audible-Silenced",
+	"Visible-Silenced",
+	"All-Silenced"
+};
+
 
 char *BACnetLimitEnable[] = {
    "LOW-LIMIT-ENABLE",
@@ -656,7 +762,8 @@ char *BACnetPropertyIdentifier[] = {
    "Buffer_Size ",                      /* 126 */
    "Client_Cov_Increment ",             /* 127 */
    "Cov_Resubscription_Interval ",      /* 128 */
-   "Current_Notify_Time ",              /* 129 */
+   "unused",								/* 129  Added by Zhu Zhenhua, 2004-5-11*/
+//   "Current_Notify_Time ",            /* 129 */
    "Event_Time_Stamps ",                /* 130 */
    "Log_Buffer ",                       /* 131 */
    "Log_Device_Object_Property ",       /* 132 Zhu Zhenhua 2003-7-24 */
@@ -665,7 +772,8 @@ char *BACnetPropertyIdentifier[] = {
    "Maximum_Value ",                    /* 135 */
    "Minimum_Value ",                    /* 136 */
    "Notification_Threshold ",           /* 137 */
-   "Previous_Notify_Time ",             /* 138 */   
+   "unused",								/* 138   Added by Zhu Zhenhua, 2004-5-11*/
+   //  "Previous_Notify_Time ",         /* 138 */   
    "Protocol_Revision ",                /* 139 */
    "Records_Since_Notification ",       /* 140 */
    "Record_Count ",                     /* 141 */
@@ -695,7 +803,12 @@ char *BACnetPropertyIdentifier[] = {
    "zone-members",						/* 165 Xiao Shiyuan 2002-7-18 */
    "life-safety-alarm-values",			/* 166 Xiao Shiyuan 2002-7-18 */
    "max-segments-accepted",				/* 167 Xiao Shiyuan 2002-7-18 */
-   "Profile_Name"                       /* 168 Xiao Shiyuan 2002-7-18 */
+   "Profile_Name",                      /* 168 Xiao Shiyuan 2002-7-18 */
+   "unused",							/* 169   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
+   "unused",							/* 170   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
+   "unused",							/* 171   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
+   "unused",							/* 172   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
+   "last_notify_record"					/* 173 Zhu Zhenhua  2004-5-11 */
    };
 
 char *BACnetPropertyReference[] = {
@@ -1400,18 +1513,18 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            show_bac_event_transitions_ackd();
            break;
       case ACTION: switch (obj_type) {
-/***         Command Object: ARRAY OF (LIST OF BACnetActionCommands)
-                     case 8: /* command object 
+//         Command Object: ARRAY OF (LIST OF BACnetActionCommands)
+                     case 7: //command object 
                         if (prop_idx == 0) {
                           pif_show_ascii(0,"Array Size");
                           show_application_data(x);
                           };
-                        while ((pif_get_byte(0) & 0x0f) != 0x0f) {
-                          show_bac_action_command(len);
+                       while ((pif_get_byte(0) & 0x0f) != 0x0f) {
+                         show_bac_action_list();
                           };
                         break;
-***/
-                     case 13: /* loop object */
+
+                     case 12: /* loop object */
                          len1 = show_application_tag(x);
                          show_str_eq_str("Control Action",
                          BACnetAction[pif_get_byte(0)],len1);
@@ -1728,6 +1841,11 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 				show_bac_obj_prop_ref();    //modified by Xu Yiping, 2002-9-28
            break;
 /***/      case LIST_OF_SESSION_KEYS:
+		   while ((pif_get_byte(0) & 0x0f) != 0x0f) //Added by Zhu ZHenhua, 2004-6-14
+		   {
+			   show_application_data(pif_get_byte(0));
+			   show_bac_address();
+		   }
            break;
       case LOCAL_DATE: /* Date */
 		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
@@ -1847,8 +1965,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 
            show_application_data(x);
            break;
-      case OBJECT_PROPERTY_REFERENCE: /*  BACnetObjectPropertyReference  */
-           show_bac_obj_prop_ref();
+      case OBJECT_PROPERTY_REFERENCE: /*  BACnetDeviceObjectPropertyReference Modified by Zhu Zhenhua, 2004-6-14*/ 
+           show_bac_dev_obj_prop_ref();
            break;
       case OBJECT_TYPE: /*  BACnetObjectType  */
            show_application_tag(x);
@@ -1904,6 +2022,10 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 			   ////////////////////////////////////////////
                        show_bac_read_access_result();
                        break;
+			   case 21: /* Enumerated    Life Safety Point*/
+		        show_head_app_data();		 //added by Zhu Zhenhua, 2004-6-14
+                show_application_data(x);
+				break;
                default: pif_show_ascii(0,
                   "Unknown Data - Object Type does not have Present Value Property!");
                }
@@ -1921,23 +2043,36 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case PRIORITY_ARRAY: /* BACnetPriorityArray  */
            if (prop_idx == 0) {
              bac_show_unsigned("Array Size",show_application_tag(x));
-             x = pif_get_byte(0);
+        //     x = pif_get_byte(0);
              break;
              };
-           while ((x & 0x0f) != 0x0f) {
-             /* handles single element or entire array */
-             if((obj_type == 4) || (obj_type == 5)){ /* BO or BV */
-               if(x == 0x00) /* null */
-                  show_application_data(x);
-               else{
-                  show_application_tag(x);
-                  bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
-                  }
+	//	   x = pif_get_byte(0);
+           while (((x= pif_get_byte(0)) & 0x0F) != 0x0F) 
+		   {
+			   /* handles single element or entire array */
+			   if((obj_type == 4) || (obj_type == 5))
+			   { /* BO or BV */
+				   if(x == 0x00) /* null */
+					   show_application_data(x);
+				   else{
+					   show_application_tag(x);
+					   bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
+				   }
                }
-             else
-               show_application_data(x);
-             x = pif_get_byte(0);
-             };
+			   else
+			   {
+				   if(x == 0x0E)
+				   {
+					   show_context_tag("constructed Value");  /* opening tag */
+					   show_head_app_data();		
+			//		   show_bac_ANY(0,162,0);
+					   show_context_tag("constructed Value");  /* closing tag */
+				   }
+				   else
+					   show_application_data(x);
+			   }
+			   x = pif_get_byte(0);
+		   }//;
            break;
       case PRIORITY_FOR_WRITING: /* Unsigned  */
 		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
@@ -2000,7 +2135,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              }
            break;
       case PROTOCOL_SERVICES_SUPPORTED: /* BACnetServicesSupported  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+//		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
 
            len1 = show_application_tag(x);
            unused = pif_get_byte(0);
@@ -2174,6 +2309,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 		   while ((pif_get_byte(0) & 0x0f) != 0x0f) {
 			 
 			 show_context_tag("BACnetDailySchedule");  //added by xuyiping. 2002-9-24
+		   while ((pif_get_byte(0) & 0x0f) != 0x0f)    //Modified by Zhu Zhenhua, 2004-6-14
              show_bac_time_value();
 			 show_context_tag("BACnetDailySchedule");  //added by xuyiping. 2002-9-24
              };
@@ -2201,17 +2337,17 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 
            show_application_data(x);
            break;
-      case PREVIOUS_NOTIFY_TIME:            // BACnetDateTime
+//      case PREVIOUS_NOTIFY_TIME:            // BACnetDateTime
            //break;
-      case CURRENT_NOTIFY_TIME:             // BACnetDateTime
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+//      case CURRENT_NOTIFY_TIME:             // BACnetDateTime
+//		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
 
-           show_application_data(x);
+//           show_application_data(x);
 		   
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+//		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
 
-           show_application_data(pif_get_byte(0));
-           break;
+//           show_application_data(pif_get_byte(0));
+//           break;
       case EVENT_TIME_STAMPS:               // Array of BACnetTimeStamp
          for(i=0; i<3; i++)
               show_bac_timestamp();
@@ -2338,7 +2474,9 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 		  
 		   show_application_data(x);
 		   break;
-
+	  case MEMBER_OF:					//Zhu Zhenhua, 2004-6-14 
+		   show_bac_dev_obj_ref();		 
+		   break;
       default:
 //	       bac_show_byte("Error: Unknown Property Identifier","%u");
 		   show_head_app_data();		 //modified by Lei Chengxin 2003-9-8

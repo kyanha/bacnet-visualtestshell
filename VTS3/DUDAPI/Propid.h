@@ -133,8 +133,8 @@ enum BACnetPropertyIdentifier
         BUFFER_SIZE,                             //126
         CLIENT_COV_INCREMENT,                    //127
         COV_RESUBSCRIPTION_INTERVAL,             //128
-        CURRENT_NOTIFY_TIME,                     //129
-        EVENT_TIME_STAMPS,                       //130
+//        CURRENT_NOTIFY_TIME,                     //129		//Modified by Zhu Zhenhua, 2004-5-11
+        EVENT_TIME_STAMPS = 130,                       //130
         LOG_BUFFER,                              //131
         LOG_DEVICE_OBJECT_PROPERTY,              //132
         LOG_ENABLE,                              //133
@@ -142,8 +142,8 @@ enum BACnetPropertyIdentifier
         MAXIMUM_VALUE, 			                //135
         MINIMUM_VALUE, 			                //136
         NOTIFICATION_THRESHOLD,                  //137
-        PREVIOUS_NOTIFY_TIME,                    //138
-        PROTOCOL_REVISION,                       //139
+ //       PREVIOUS_NOTIFY_TIME,                    //138       //Modified by Zhu Zhenhua, 2004-5-11
+        PROTOCOL_REVISION = 139,                       //139
         RECORDS_SINCE_NOTIFICATION,              //140
         RECORD_COUNT,                            //141
         START_TIME,                              //142
@@ -172,7 +172,8 @@ enum BACnetPropertyIdentifier
 		ZONE_MEMBERS, 					  // 165 Zhu Zhenhua  2003-7-21 
 		LIFE_SAFETY_ALARM_VALUES, 		  // 166 Zhu Zhenhua  2003-7-21 
 		MAX_SEGMENTS_ACCEPTED, 			  // 167 Zhu Zhenhua  2003-7-21 
-		PROFILE_NAME					  // 168 Zhu Zhenhua  2003-7-21 
+		PROFILE_NAME,					  // 168 Zhu Zhenhua  2003-7-21 
+		LAST_NOTIFY_RECORD = 173		  // 173 Zhu Zhenhua  2004-5-11
 	};
 
 #endif
