@@ -8,6 +8,23 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef _MSC_VER
+#define ENDIAN_SWAP     1
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
+#endif
+
+#if (__DECCXX && __ALPHA)
+#define ENDIAN_SWAP     1
+#endif
+
+#ifndef ENDIAN_SWAP
+#define ENDIAN_SWAP     0
+#endif
+
 #if (__DECCXX)
 #include "cvtdef.h"
 #include <ssdef.h>
@@ -19,13 +36,7 @@ int cvt$convert_float( const void *, int, void *, int, int );
 
 #include "BACnet.hpp"
 
-#ifdef _MSC_VER
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#else
+#ifndef _MSC_VER
 
 int stricmp( const char *, const char * );
 
@@ -47,7 +58,7 @@ int stricmp( const char *a, const char *b )
 
 #endif
 
-#define	VTSScanner		1
+#define	VTSScanner		0
 
 #if VTSScanner
 
@@ -125,6 +136,9 @@ void BACnetAddress::GlobalBroadcast( void )
 
 int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 {
+	int		i
+	;
+
 	// address types must match
 	if (addr1.addrType != addr2.addrType)
 		return 0;
@@ -140,9 +154,13 @@ int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 			if (addr1.addrNet != addr1.addrNet) return 0;
 		case localStationAddr:
 			if (addr1.addrLen != addr2.addrLen) return 0;
-			for (int i = 0; i < addr1.addrLen; i++)
+			for (i = 0; i < addr1.addrLen; i++)
 				if (addr1.addrAddr[i] != addr2.addrAddr[i])
 					return 0;
+			break;
+			
+		default:
+			throw -1; // no other address types allowed
 	}
 	
 	// must be equal
@@ -817,7 +835,7 @@ void BACnetReal::Encode( BACnetAPDUEncoder& enc, int context )
 		);
 	enc.pktLength += 4;
 #else
-#ifdef _MSC_VER
+#ifdef ENDIAN_SWAP
 	unsigned long cpy = *(unsigned long *)&realValue;
 	for (int j = 3; j >= 0; j--)
 		enc.pktBuffer[enc.pktLength++] = (cpy >> (j * 8)) & 0xFF;
@@ -851,7 +869,7 @@ void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 	dec.pktBuffer += 4;
 	dec.pktLength -= 4;
 #else
-#ifdef _MSC_VER
+#ifdef ENDIAN_SWAP
 	unsigned long cpy = 0;
 	for (int j = 3; dec.pktLength && j >= 0; j--)
 		cpy = (cpy << 8) + (dec.pktLength--,*dec.pktBuffer++);
@@ -902,7 +920,7 @@ void BACnetDouble::Encode( BACnetAPDUEncoder& enc, int context )
 		);
 	enc.pktLength += 8;
 #else
-#ifdef _MSC_VER
+#ifdef ENDIAN_SWAP
 	union {
 		double	src;
 		struct {
@@ -945,7 +963,7 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 	dec.pktBuffer += 8;
 	dec.pktLength -= 8;
 #else
-#ifdef _MSC_VER
+#ifdef ENDIAN_SWAP
 	union {
 		double	src;
 		struct {
@@ -1022,7 +1040,7 @@ bool BACnetCharacterString::Equals( const char *valu )
 		return false;
 
 	// case insensitive, strBuff is not null-terminated
-	for (int i = 0; i < strLen; i++)
+	for (unsigned i = 0; i < strLen; i++)
 		if (tolower(strBuff[i]) != tolower(valu[i]))
 			return false;
 
@@ -1088,7 +1106,7 @@ void BACnetCharacterString::Encode( char *enc )
 
 		// simple contents
 		const char *src = (char *)strBuff;
-		for (int i = 0; i < strLen; i++, src++)
+		for (unsigned i = 0; i < strLen; i++, src++)
 			if (*src < ' ') {
 				*enc++ = '\\';
 				*enc++ = 'x';
@@ -1127,7 +1145,7 @@ void BACnetCharacterString::Encode( char *enc )
 		while (*enc) enc++;
 
 		// encode the content
-		for (int i = 0; i < strLen; i++) {
+		for (unsigned i = 0; i < strLen; i++) {
 			*enc++ = hex[ strBuff[i] >> 4 ];
 			*enc++ = hex[ strBuff[i] & 0x0F ];
 		}
@@ -1787,7 +1805,7 @@ void BACnetBitString::Encode( BACnetAPDUEncoder& enc, int context )
 	enc.pktBuffer[enc.pktLength++] = 8 - (((bitLen + 7) % 8) + 1);
 	len -= 1;
 
-#ifdef _MSC_VER
+#ifdef ENDIAN_SWAP
 	int i = 0;
 	while (len) {
 		int cpy = bitBuff[i++];
@@ -1824,7 +1842,7 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 		throw (-1) /* destination too small */;
 	
 	// copy out the data, null terminated
-#ifdef _MSC_VER
+#ifdef ENDIAN_SWAP
 	int i = 0;
 	while (dec.pktLength) {
 		bitBuff[i] = 0;
@@ -2295,10 +2313,6 @@ void BACnetObjectIdentifier::SetValue( BACnetObjectType objType, int instanceNum
 	objID = ((int)objType << 22) + instanceNum;
 }
 
-//
-//	BACnetObjectIdentifier::Encode
-//
-
 void BACnetObjectIdentifier::Encode( BACnetAPDUEncoder& enc, int context )
 {
 	// encode the tag
@@ -2308,7 +2322,7 @@ void BACnetObjectIdentifier::Encode( BACnetAPDUEncoder& enc, int context )
 		BACnetAPDUTag( objectIdentifierAppTag, 4 ).Encode( enc );
 	
 	// fill in the data
-#ifdef _MSC_VER
+#ifdef ENDIAN_SWAP
 	for (int j = 3; j >= 0; j--)
 		enc.pktBuffer[enc.pktLength++] = (objID >> (j * 8)) & 0xFF;
 #else
@@ -2332,7 +2346,7 @@ void BACnetObjectIdentifier::Decode( BACnetAPDUDecoder& dec )
 		throw (-1) /* four bytes of data expected */;
 	
 	// copy out the data
-#ifdef _MSC_VER
+#ifdef ENDIAN_SWAP
 	for (int j = 3; dec.pktLength && j >= 0; j--)
 		objID = (objID << 8) + (dec.pktLength--,*dec.pktBuffer++);
 #else
@@ -2413,7 +2427,6 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 
 	// everything checks out
 	objID = (objType << 22) + instanceNum;
-}
 #else
 void BACnetObjectIdentifier::Decode( const char * )
 {

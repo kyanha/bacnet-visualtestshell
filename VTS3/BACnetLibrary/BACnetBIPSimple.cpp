@@ -65,6 +65,9 @@ void BACnetBIPSimple::Indication( const BACnetNPDU &npdu )
 				);
 			delete[] msg;
 			break;
+        
+        default:
+            throw -1; // should never get any other kind of address
 	}
 }
 

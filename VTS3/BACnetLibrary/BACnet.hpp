@@ -1,7 +1,7 @@
 #ifndef _BACnet
 #define _BACnet
 
-#define _TSMDebug	0
+#define _TSMDebug	1
 
 #if _TSMDebug
 #include <iostream.h>
@@ -176,11 +176,11 @@ class BACnetDouble : public BACnetEncodeable {
 class BACnetCharacterString : public BACnetEncodeable {
 	public:
 		int				strEncoding;	// encoding
-		int				strLen;			// number of octets
+		unsigned		strLen;			// number of octets
 		BACnetOctet		*strBuff;		// pointer to data
 				
 		BACnetCharacterString( char *svalu = 0 );
-		~BACnetCharacterString( void );
+		virtual ~BACnetCharacterString( void );
 		
 		void SetValue( char *svalu, int enc = 0 );
 
@@ -204,7 +204,7 @@ class BACnetOctetString : public BACnetEncodeable {
 		BACnetOctetString( int len );
 		BACnetOctetString( BACnetOctet *bytes, int len );
 		BACnetOctetString( const BACnetOctetString &cpy );
-		~BACnetOctetString( void );
+		virtual ~BACnetOctetString( void );
 		
 		void Flush( void );
 		void Append( BACnetOctet byte );
@@ -232,7 +232,7 @@ class BACnetBitString : public BACnetEncodeable {
 		BACnetBitString( void );
 		BACnetBitString( int siz );
 		BACnetBitString( const BACnetBitString &cpy );
-		~BACnetBitString( void );
+		virtual ~BACnetBitString( void );
 		
 		void	SetBit( int bit, int valu = 1 );
 		void	ResetBit( int bit );
@@ -486,6 +486,8 @@ class BACnetAPDUDecoder {
 
 typedef BACnetAPDUDecoder *BACnetAPDUDecoderPtr;
 const int kBACnetAPDUDecoderSize = sizeof( BACnetAPDUDecoder );
+
+ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec );
 
 //
 //	BACnetNetClient

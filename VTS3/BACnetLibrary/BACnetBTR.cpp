@@ -43,19 +43,25 @@ BACnetBTR::~BACnetBTR( void )
 
 void BACnetBTR::Indication( const BACnetNPDU &npdu )
 {
+	int		i
+	;
+
 	switch (npdu.pduAddr.addrType) {
 		case localStationAddr:
 			Request( npdu );
 			break;
 			
 		case localBroadcastAddr:
-			for (int i = 0; i < btrPeerLen; i++)
+			for (i = 0; i < btrPeerLen; i++)
 				Request(
 					BACnetNPDU( btrPeer[i], npdu.pduData, npdu.pduLen
 						, npdu.pduExpectingReply, npdu.pduNetworkPriority
 						)
 					);
 			break;
+        
+        default:
+            throw -1; // should never get any other kind of address
 	}
 }
 

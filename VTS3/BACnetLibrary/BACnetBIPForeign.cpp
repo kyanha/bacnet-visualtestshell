@@ -19,8 +19,8 @@ static char THIS_FILE[] = __FILE__;
 //
 
 BACnetBIPForeign::BACnetBIPForeign( void )
-	: foreignStatus(0), foreignTimeToLive(0)
-	, BACnetTask( recurringTask )
+	: BACnetTask( recurringTask )
+	, foreignStatus(0), foreignTimeToLive(0)
 {
 }
 
@@ -112,6 +112,9 @@ void BACnetBIPForeign::Indication( const BACnetNPDU &npdu )
 				);
 			delete[] msg;
 			break;
+			
+		default:
+			throw -1; // no other address types allowed
 	}
 }
 

@@ -143,6 +143,9 @@ const BACnetAPDU& BACnetAPDUSegment::operator[](const int indx)
 				, (indx < (segLen / segSize)) ? segSize : (segLen % segSize)
 				);
 			break;
+		
+		default:
+			throw -1; // other PDU types invalid
 	}
 	
 	return segAPDU;

@@ -17,14 +17,15 @@ static char THIS_FILE[] = __FILE__;
 //
 
 BACnetTSM::BACnetTSM( BACnetDevicePtr dp )
-	: tsmDevice(dp), tsmState(tsmIdle), tsmSeg(0)
+	: tsmState(tsmIdle), tsmSeg(0)
 	, tsmInvokeID(0)
 	, tsmRetryCount(0)
 	, tsmSegmentRetryCount(0)
-	, tsmLastSequenceNumber(0)
 	, tsmInitialSequenceNumber(0)
+	, tsmLastSequenceNumber(0)
 	, tsmActualWindowSize(0)
 	, tsmProposedWindowSize(0)
+	, tsmDevice(dp)
 {
 }
 

@@ -42,29 +42,6 @@ class BACnetVLANMsg : public BACnetTask {
 typedef BACnetVLANMsg *BACnetVLANMsgPtr;
 
 //
-//	BACnetVLANNode
-//
-
-class BACnetVLANNode : public BACnetPort {
-		friend class BACnetVLAN;
-		
-	public:
-		BACnetAddress	nodeAddr;
-		
-	protected:
-		BACnetVLANPtr	nodeLAN;
-		
-		BACnetVLANNode( BACnetAddress addr, BACnetVLANPtr lan )
-			: nodeLAN(lan)
-		{
-			portLocalAddr = addr;
-		}
-		
-		virtual void Indication( const BACnetNPDU &pdu );
-		virtual void SendData( BACnetOctet *, int len );
-	};
-
-//
 //	BACnetVLAN
 //
 
@@ -83,8 +60,34 @@ class BACnetVLAN {
 	public:
 		BACnetVLAN( void );
 		
-		BACnetVLANNodePtr	NewNode( void );
+		void NewNode( BACnetVLANNodePtr np );
 		void DeleteNode( BACnetVLANNodePtr np );
+	};
+
+//
+//	BACnetVLANNode
+//
+
+class BACnetVLANNode : public BACnetPort {
+		friend class BACnetVLAN;
+		
+	protected:
+		BACnetVLANPtr	nodeLAN;
+		
+		virtual void Indication( const BACnetNPDU &pdu );
+		virtual void SendData( BACnetOctet *, int len );
+		
+	public:
+		BACnetVLANNode( BACnetVLANPtr lan )
+			: nodeLAN(lan)
+		{
+			nodeLAN->NewNode( this );
+		}
+		
+		virtual ~BACnetVLANNode( void )
+		{
+			nodeLAN->DeleteNode( this  );
+		}
 	};
 
 #endif
