@@ -39,180 +39,10 @@ static HMODULE hMod= 0; // instance handle of this module						***001
 
 //int		far pascal _WEP(int);					//			***001        
 int     CheckTableProp(generic_object far* pObj, TApplServ far* pApplServ);
-int     CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[MAX_SERVS_SUPP], char far Result[35], 
-                  generic_object far* root, TObjProp far resObj[64], short far* eol);	//***002
+//int     CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[MAX_SERVS_SUPP], char far Result[35], 
+//                  generic_object far* root, TObjProp far resObj[64], short far* eol);	//***002
 
 
-// conformance classes: -------------------------------------------------------------------------------------
-
-
-#define nCC1 1
-TApplServ gCC1_Table[nCC1]= // Conformance Class 1
-        { 
-             { asReadProperty, ssExecute, DEVICE, -1 }, 
-        };  
-
-#define nCC2 1
-TApplServ gCC2_Table[nCC2]= // Conformance Class 2
-        {
-             { asWriteProperty, ssExecute, -1, -1 }
-        };
-
-#define nCC3 6
-TApplServ gCC3_Table[nCC3]= // Conformance Class 3
-        { 
-             { asI_Am,                  ssInitiate, -1, -1 },
-             { asI_Have,                ssInitiate, -1, -1 },
-             { asReadPropertyMultiple,  ssExecute,  -1, -1 },
-             { asWritePropertyMultiple, ssExecute,  -1, -1 },
-             { asWho_Has,               ssExecute,  -1, -1 },
-             { asWho_Is,                ssExecute,  -1, -1 }
-        };
-
-#define nCC4 6
-TApplServ gCC4_Table[nCC4]= // Conformance Class 4
-        { 
-             { asAddListElement,        ssInitiate|ssExecute, -1, -1 },
-             { asRemoveListElement,     ssInitiate|ssExecute, -1, -1 },
-             { asReadProperty,          ssInitiate,           -1, -1 },
-             { asReadPropertyMultiple,  ssInitiate,           -1, -1 },
-             { asWriteProperty,         ssInitiate,           -1, -1 },
-             { asWritePropertyMultiple, ssInitiate,           -1, -1 }
-        };
-
-#define nCC5 5
-TApplServ gCC5_Table[nCC5]= // Conformance Class 5
-        { 
-             { asCreateObject,            ssExecute,  -1, -1 },
-             { asDeleteObject,            ssExecute,  -1, -1 },
-             { asReadPropertyConditional, ssExecute,  -1, -1 },
-             { asWho_Has,                 ssInitiate, -1, -1 },
-             { asWho_Is,                  ssInitiate, -1, -1 }
-        };
-
-
-// functional groups: ----------------------------------------------------------------------------------------
-
-#define nFgClock 4
-TApplServ gFgClock[nFgClock]=
-   {
-      { asTimeSynchronization, ssExecute, DEVICE, LOCAL_TIME },
-      { asTimeSynchronization, ssExecute, DEVICE, LOCAL_DATE },
-      { asTimeSynchronization, ssExecute, DEVICE, UTC_OFFSET },
-      { asTimeSynchronization, ssExecute, DEVICE, DAYLIGHT_SAVINGS_STATUS }
-   };
-
-#define nFgHHWS 6
-TApplServ gFgHHWS[nFgHHWS]=
-        { 
-             { asWho_Is,              ssInitiate|ssExecute, -1, -1 },
-             { asI_Am,                ssInitiate,           -1, -1 },
-             { asReadProperty,        ssInitiate,           -1, -1 },
-             { asWriteProperty,       ssInitiate,           -1, -1 },
-             { asReinitializeDevice,  ssInitiate,           -1, -1 },
-             { asTimeSynchronization, ssInitiate,           -1, -1 }
-        };
-        
-#define nFgPCWS 15
-TApplServ gFgPCWS[nFgPCWS]=
-        {
-             { asWho_Is,                  ssInitiate|ssExecute, -1, -1 },
-             { asI_Am,                    ssInitiate,           -1, -1 },
-             { asReadProperty,            ssInitiate,           -1, -1 },
-             { asReadPropertyConditional, ssInitiate,           -1, -1 },
-             { asReadPropertyMultiple,    ssInitiate,           -1, -1 },
-             { asWriteProperty,           ssInitiate,           -1, -1 },
-             { asWritePropertyMultiple,   ssInitiate,           -1, -1 },
-             { asReinitializeDevice,      ssInitiate,           -1, -1 },
-             { asTimeSynchronization,     ssInitiate,           -1, -1 },
-             { asCreateObject,            ssInitiate,           -1, -1 },
-             { asDeleteObject,            ssInitiate,           -1, -1 },   
-             { asAddListElement,          ssInitiate,           -1, -1 },
-             { asRemoveListElement,       ssInitiate,           -1, -1 },
-             { asAtomicReadFile,          ssInitiate,           -1, -1 },
-             { asAtomicWriteFile,         ssInitiate,           -1, -1 }
-        };
-
-#define nFgEventInit 4
-TApplServ gFgEventInit[nFgEventInit]=
-        { 
-             { asAcknowledgeAlarm,              ssExecute,  -1, -1 },
-             { asConfirmedEventNotification,    ssInitiate, -1, -1 },
-             { asGetAlarmSummary,               ssExecute,  -1, -1 },
-             { asUnconfirmedEventNotification,  ssInitiate, -1, -1 }
-        };
-
-#define nFgEventResponse 2
-TApplServ gFgEventResponse[nFgEventResponse]=
-        { 
-             { asAcknowledgeAlarm,              ssInitiate, -1, -1 },
-             { asConfirmedEventNotification,    ssExecute,  -1, -1 },
-        };        
-
-
-#define nFgCOVInit 2
-TApplServ gFgCOVInit[nFgCOVInit]=        
-        {
-             { asSubscribeCOV,             ssExecute,  -1, -1 },
-             { asConfirmedCOVNotification, ssInitiate, -1, -1 } 
-        };
-
-        
-#define nFgCOVResponse 2
-TApplServ gFgCOVResponse[nFgCOVResponse]=        
-        {
-             { asSubscribeCOV,             ssInitiate, -1, -1 },
-             { asConfirmedCOVNotification, ssExecute,  -1, -1 } 
-        };
-        
-
-#define nFgFiles 3
-TApplServ gFgFiles[nFgFiles]=
-        { 
-             { asAtomicReadFile,  ssExecute, -1, -1 },
-             { asAtomicWriteFile, ssExecute, -1, -1 },
-             { asNN, -1, FILE_O, -1 }
-        };
-
-
-#define nFgReinitialize 1
-TApplServ gFgReinitialize[nFgReinitialize]=
-        {
-             { asReinitializeDevice,      ssExecute,        -1, -1 },
-        };
-
-#define nFgVO 3
-TApplServ gFgVO[nFgVO]=
-        { 
-             { asVT_Open,  ssInitiate,            -1, -1 },
-             { asVT_Close, ssInitiate|ssExecute,  -1, -1 },
-             { asVT_Data,  ssInitiate|ssExecute,  -1, -1 }
-             
-        };        
-
-#define nFgVT 3
-TApplServ gFgVT[nFgVT]=
-        { 
-             { asVT_Open,             ssExecute,  -1, -1 },
-             { asVT_Close, ssInitiate|ssExecute,  -1, -1 },
-             { asVT_Data,  ssInitiate|ssExecute,  -1, -1 }
-        };        
-
-#define nFgDevCom 1
-TApplServ gFgDevCom[nFgDevCom]=
-        { 
-             { asDeviceCommunicationControl, ssExecute, -1, -1 }
-        };        
-        
-#define nFgTimeMaster 5
-TApplServ gFgTimeMaster[nFgTimeMaster]=
-  { 
-      { asTimeSynchronization, ssExecute, DEVICE, LOCAL_TIME },
-      { asTimeSynchronization, ssExecute, DEVICE, LOCAL_DATE },
-      { asTimeSynchronization, ssExecute, DEVICE, UTC_OFFSET },
-      { asTimeSynchronization, ssExecute, DEVICE, DAYLIGHT_SAVINGS_STATUS },
-      { asTimeSynchronization, ssExecute, DEVICE, TIME_SYNCHRONIZATION_RECIPIENTS } 
-  };        
 
 
 // local variables -------------------------------------------------------------------------------------------
@@ -466,7 +296,7 @@ short APIENTRY GetPropIndex(word object_type, dword PropId)
   return -1;
 }        
  
-           
+//Marked by xlp,2002-11          
            
 // This function is used to check a conformance class or a functional group.
 // in:		n				number of lines in table
@@ -475,7 +305,7 @@ short APIENTRY GetPropIndex(word object_type, dword PropId)
 //		    root			object list (objects supported)
 // out:     Result  		appl services missing to complete the class
 //			resObj  		objects and properties missing (int ObjType, int PropIndex...)
-int CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[MAX_SERVS_SUPP], char far Result[35], 
+/*int CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[MAX_SERVS_SUPP], char far Result[35], 
                            generic_object far* root, TObjProp far resObj[64], short far* eol)
 {
   int line; enum BACnetApplServ serv; 
@@ -549,7 +379,7 @@ int CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[MAX_SERVS_SUPP
   if (iObjProp>0) rval= 0; // class not supported
   return(rval);  
     
-}          
+}     */     
 
 
 
@@ -561,7 +391,7 @@ int CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[MAX_SERVS_SUPP
 // out:     Result  		appl services missing to complete the conformance class
 //			resObj  		objects and properties missing (int ObjType, int PropIndex...)
 // retunrs  1 if supported, 0 else			
-extern "C"
+/*extern "C"
 short APIENTRY CheckConfClass(word ConfClass, char far ApplServ[35], char far Result[35], 
                                    generic_object far* root, TObjProp far resObj[64], short far* eol)
 {  short rval= 1; // default: ConfClass supported					***002
@@ -599,10 +429,10 @@ short APIENTRY CheckConfClass(word ConfClass, char far ApplServ[35], char far Re
     }    
     
   return(rval);  
-}
+}*/
   
 
-extern "C"
+/*extern "C"
 short APIENTRY CheckFunctionalGroup(dword FuncGroup, char far ApplServ[35], char far Result[35], 
                                           generic_object far* root, TObjProp far resObj[64], short far* eol)
 { 
@@ -656,7 +486,7 @@ short APIENTRY CheckFunctionalGroup(dword FuncGroup, char far ApplServ[35], char
     }
     
   return (rval);  
-}
+}*/
 
 
 
