@@ -14,27 +14,26 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSNamesDlg dialog
 
-VTSNamesDlg::VTSNamesDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(VTSNamesDlg::IDD, pParent)
-	, m_pNameList( 0 ), m_pPortList( 0 )
-	, m_iSelectedName( -1 )
-{
-	//{{AFX_DATA_INIT(VTSNamesDlg)
-	m_Name = _T("");
-	m_Address = _T("");
-	m_Network = _T("");
-	//}}AFX_DATA_INIT
-}
 
-VTSNamesDlg::VTSNamesDlg( VTSNameListPtr nlp, VTSPortListPtr plp )
-	: CDialog( VTSNamesDlg::IDD, NULL )
-	, m_pNameList( nlp ), m_pPortList( plp )
-	, m_iSelectedName( -1 )
+
+//VTSNamesDlg::VTSNamesDlg( VTSNameListPtr nlp, VTSPortListPtr plp )
+// MAD_DB
+VTSNamesDlg::VTSNamesDlg(  VTSNames * pnames, VTSPorts * pports, CWnd* pParent /* = NULL */ )
+	: CDialog( VTSNamesDlg::IDD, pParent )
+//MAD_DB	, m_pNameList( nlp ), m_pPortList( plp )
+//MAD_DB	, m_pPortList( plp )
+//MAD_DB	, m_iSelectedName( -1 )
 {
 	// duplicate the member initalization that the class 'wizard' adds
 	m_Name = _T("");
 	m_Address = _T("");
 	m_Network = _T("");
+
+	m_names.DeepCopy(pnames);
+	m_pnames = pnames;
+	m_pports = pports;
+	m_fWarnedAlready = false;
+	m_iSelectedName = -1;
 }
 
 void VTSNamesDlg::DoDataExchange(CDataExchange* pDX)
@@ -94,18 +93,12 @@ BOOL VTSNamesDlg::OnInitDialog()
 
 void VTSNamesDlg::InitPortList()
 {
-	VTSPortPtr	curPort
-	;
-
 	// Add the ports
 	m_PortCombo.AddString( "(any port)" );
 
 	// add items and subitems
-	for (int i = 0; i < m_pPortList->Length(); i++) {
-		// get a pointer to the ith port
-		curPort = (*m_pPortList)[i];
-		m_PortCombo.AddString( curPort->portDesc.portName );
-	}
+	for (int i = 0; i < m_pports->GetSize(); i++)
+		m_PortCombo.AddString( (*m_pports)[i]->GetName() );
 
 	// set the first item as the default
 	m_PortCombo.SetCurSel( 0 );
@@ -113,10 +106,10 @@ void VTSNamesDlg::InitPortList()
 
 void VTSNamesDlg::InitNameList()
 {
-	VTSNameDesc		name
-	;
-	int				len = m_pNameList->Length()
-	;
+//MAD_DB
+//	VTSNameDesc		name;
+	//int				len = m_pNameList->Length();
+	int				len = m_names.GetSize();
 
 	// only allow one selected name at a time
 	m_NameList.m_nFlags |= LVS_SINGLESEL;
@@ -131,15 +124,18 @@ void VTSNamesDlg::InitNameList()
 	m_NameList.InsertColumn (3, _T("Address"), LVCFMT_LEFT, 128 );
 
 	// add names
-	for (int i = 0; i < len; i++) {
+	for (int i = 0; i < len; i++)
+	{
 		// make a placeholder for the item
 		m_NameList.InsertItem( i, _T("") );
 
 		// read the name from the database
-		m_pNameList->ReadName( i, &name );
+//MAD_DB		m_pNameList->ReadName( i, &name );
 
 		// transfer the record contents to the list
-		NameToList( name, i );
+//		NameToList( name, i );
+		VTSName * p = (VTSName *) m_names[i];
+		NameToList( (VTSName *) m_names[i], i );
 	}
 }
 
@@ -209,41 +205,58 @@ void VTSNamesDlg::SynchronizeControls()
 //	VTSNamesDlg::NameToList
 //
 
-void VTSNamesDlg::NameToList( const VTSNameDesc &name, int elem )
+//MAD_DB void VTSNamesDlg::NameToList( const VTSNameDesc &name, int elem )
+void VTSNamesDlg::NameToList( const VTSName * pname, int elem )
 {
-	CString		netStr, addrStr
-	;
+	CString		netStr, addrStr;
+
+	ASSERT(pname != NULL);
 
 	// update the display list
-	m_NameList.SetItemText( elem, 0, name.nameName );
+//MAD_DB	m_NameList.SetItemText( elem, 0, name.nameName );
+	m_NameList.SetItemText( elem, 0, pname->m_strName );
+
+	if ( pname->m_pportLink == NULL )
+		m_NameList.SetItemText( elem, 1, _T("*") );
+	else
+		m_NameList.SetItemText( elem, 1, _T(pname->m_pportLink->GetName()) );
 
 	// check the port
+
+/* MAD_DB
 	if (name.namePort == 0)
 		m_NameList.SetItemText( elem, 1, _T("*") );
-	else {
-		VTSPortPtr	curPort
-		;
+	else
+	{
+		VTSPortPtr	curPort;
 
 		// look for the matching ID
-		for (int i = 0; i < m_pPortList->Length(); i++) {
+		for (int i = 0; i < m_pPortList->Length(); i++)
+		{
 			// get a pointer to the ith port
 			curPort = (*m_pPortList)[i];
-			if (name.namePort == curPort->portDescID) {
+
+			if ( name.namePort == curPort->portDescID) {
 				m_NameList.SetItemText( elem, 1, curPort->portDesc.portName );
 				break;
 			}
 		}
 	}
+*/
 
 	// check for some remote broadcast or remote station
-	if ((name.nameAddr.addrType == remoteBroadcastAddr) || (name.nameAddr.addrType == remoteStationAddr))
-		netStr.Format( "%d", name.nameAddr.addrNet );
+//MAD_DB
+//	if ((name.nameAddr.addrType == remoteBroadcastAddr) || (name.nameAddr.addrType == remoteStationAddr))
+//		netStr.Format( "%d", name.nameAddr.addrNet );
+	if ((pname->m_bacnetaddr.addrType == remoteBroadcastAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr))
+		netStr.Format( "%d", pname->m_bacnetaddr.addrNet );
 	else
 		netStr = _T("");
 	m_NameList.SetItemText( elem, 2, netStr );
 
 	// check for local or remote station
-	if ((name.nameAddr.addrType == localStationAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
+//MAD_DB	if ((name.nameAddr.addrType == localStationAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
+	if ((pname->m_bacnetaddr.addrType == localStationAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr)) {
 		static const char	hex[] = "0123456789ABCDEF"
 		;
 		char	buff[kMaxAddressLen * 3], *s = buff
@@ -253,10 +266,13 @@ void VTSNamesDlg::NameToList( const VTSNameDesc &name, int elem )
 		buff[0] = 0;
 
 		// encode the address
-		for (int i = 0; i < name.nameAddr.addrLen; i++) {
+//MAD_DB		for (int i = 0; i < name.nameAddr.addrLen; i++) {
+		for (int i = 0; i < pname->m_bacnetaddr.addrLen; i++) {
 			if (i) *s++ = '-';
-			*s++ = hex[ name.nameAddr.addrAddr[i] >> 4 ];
-			*s++ = hex[ name.nameAddr.addrAddr[i] & 0x0F ];
+//			*s++ = hex[ name.nameAddr.addrAddr[i] >> 4 ];
+//			*s++ = hex[ name.nameAddr.addrAddr[i] & 0x0F ];
+			*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] >> 4 ];
+			*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] & 0x0F ];
 		}
 		*s = 0;
 
@@ -270,20 +286,21 @@ void VTSNamesDlg::NameToList( const VTSNameDesc &name, int elem )
 //	VTSNamesDlg::NameToCtrl
 //
 
-void VTSNamesDlg::NameToCtrl( const VTSNameDesc &name )
+//MAD_DB void VTSNamesDlg::NameToCtrl( const VTSNameDesc &name )
+void VTSNamesDlg::NameToCtrl( const VTSName * pname )
 {
 	// set the contents of the member vars from the record
-	m_Name = name.nameName;
-	m_AddrType = name.nameAddr.addrType;
+	m_Name = pname->m_strName;
+	m_AddrType = pname->m_bacnetaddr.addrType;
 
 	m_Address = _T("");
 
-	if ((name.nameAddr.addrType == remoteBroadcastAddr) || (name.nameAddr.addrType == remoteStationAddr))
-		m_Network.Format( "%d", name.nameAddr.addrNet );
+	if ((pname->m_bacnetaddr.addrType == remoteBroadcastAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr))
+		m_Network.Format( "%d", pname->m_bacnetaddr.addrNet );
 	else
 		m_Network = _T("");
 
-	if ((name.nameAddr.addrType == localStationAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
+	if ((pname->m_bacnetaddr.addrType == localStationAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr)) {
 		static const char	hex[] = "0123456789ABCDEF"
 		;
 		char	buff[kMaxAddressLen * 3], *s = buff
@@ -293,16 +310,22 @@ void VTSNamesDlg::NameToCtrl( const VTSNameDesc &name )
 		buff[0] = 0;
 
 		// encode the address
-		for (int i = 0; i < name.nameAddr.addrLen; i++) {
+		for (int i = 0; i < pname->m_bacnetaddr.addrLen; i++) {
 			if (i) *s++ = '-';
-			*s++ = hex[ name.nameAddr.addrAddr[i] >> 4 ];
-			*s++ = hex[ name.nameAddr.addrAddr[i] & 0x0F ];
+			*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] >> 4 ];
+			*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] & 0x0F ];
 		}
 		*s = 0;
 
 		m_Address = buff;
 	} else
 		m_Address = _T("");
+
+
+	m_PortCombo.SelectString(0, pname->m_pportLink == NULL ? "(any port)" : pname->m_pportLink->GetName());
+
+/*
+MAD_DB
 
 	//fixed bug 598977, by xuyiping, 2002-9-24
 	if (name.namePort == 0)
@@ -322,6 +345,7 @@ void VTSNamesDlg::NameToCtrl( const VTSNameDesc &name )
 		}
 	}
 	//End fixed
+*/
 
 	// sync the controls
 	SynchronizeControls();
@@ -334,7 +358,8 @@ void VTSNamesDlg::NameToCtrl( const VTSNameDesc &name )
 //	VTSNamesDlg::CtrlToName
 //
 
-void VTSNamesDlg::CtrlToName( VTSNameDesc &name )
+//MAD_DB void VTSNamesDlg::CtrlToName( VTSNameDesc &name )
+void VTSNamesDlg::CtrlToName( VTSName * pname )
 {
 	int			valu = 0
 	;
@@ -350,17 +375,35 @@ void VTSNamesDlg::CtrlToName( VTSNameDesc &name )
 	SynchronizeControls();
 
 	// copy the vars into the name
-	strcpy( name.nameName, m_Name );
+//	strcpy( name.nameName, m_Name );
+	pname->m_strName = m_Name;
 
 	// do the address type
-	name.nameAddr.addrType = (BACnetAddressType)m_AddrType;
+//	name.nameAddr.addrType = (BACnetAddressType)m_AddrType;
+	pname->m_bacnetaddr.addrType = (BACnetAddressType)m_AddrType;
 
 	// check the port
-	valu = cbp->GetCurSel();
-	name.namePort = (valu == 0 ? 0 : (*m_pPortList)[valu - 1]->portDescID);
+//	valu = cbp->GetCurSel();
+//	name.namePort = (valu == 0 ? 0 : (*m_pPortList)[valu - 1]->portDescID);
+
+	// must do more than assing pointer link... we've got to setup the name as well
+	// so if the ports are changed this NAME object can relink when ports dialog is used.
+
+	if ( cbp->GetCurSel() == 0 )
+	{
+		pname->m_pportLink = NULL;
+		pname->m_strPortNameTemp.Empty();
+	}
+	else
+	{
+		pname->m_pportLink = (*m_pports)[cbp->GetCurSel() - 1];
+		pname->m_strPortNameTemp = pname->m_pportLink->GetName();
+	}
+
 
 	// check for some remote broadcast or remote station
-	if ((name.nameAddr.addrType == remoteBroadcastAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
+//	if ((name.nameAddr.addrType == remoteBroadcastAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
+	if ((pname->m_bacnetaddr.addrType == remoteBroadcastAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr)) {
 		s = m_Network;
 
 		if ((s[0] == '0') && ((s[1] == 'x') || (s[1] == 'X'))) {
@@ -372,11 +415,13 @@ void VTSNamesDlg::CtrlToName( VTSNameDesc &name )
 				valu = (valu *10) + (*s - '0');
 		}
 
-		name.nameAddr.addrNet = valu;
+//		name.nameAddr.addrNet = valu;
+		pname->m_bacnetaddr.addrNet = valu;
 	}
 
 	// check for local or remote station
-	if ((name.nameAddr.addrType == localStationAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
+//	if ((name.nameAddr.addrType == localStationAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
+	if ((pname->m_bacnetaddr.addrType == localStationAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr)) {
 		int			upperNibble, lowerNibble
 		;
 		char		c
@@ -385,7 +430,8 @@ void VTSNamesDlg::CtrlToName( VTSNameDesc &name )
 		s = m_Address;
 
 		// remove contents
-		name.nameAddr.addrLen = 0;
+//		name.nameAddr.addrLen = 0;
+		pname->m_bacnetaddr.addrLen = 0;
 
 		// translate the text into octets
 		for (;;) {
@@ -402,8 +448,10 @@ void VTSNamesDlg::CtrlToName( VTSNameDesc &name )
 			lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
 
 			// add the byte
-			if (name.nameAddr.addrLen < kMaxAddressLen)
-				name.nameAddr.addrAddr[ name.nameAddr.addrLen++ ] = (upperNibble << 4) + lowerNibble;
+//			if (name.nameAddr.addrLen < kMaxAddressLen)
+//				name.nameAddr.addrAddr[ name.nameAddr.addrLen++ ] = (upperNibble << 4) + lowerNibble;
+			if (pname->m_bacnetaddr.addrLen < kMaxAddressLen)
+				pname->m_bacnetaddr.addrAddr[ pname->m_bacnetaddr.addrLen++ ] = (upperNibble << 4) + lowerNibble;
 		}
 	}
 }
@@ -412,12 +460,66 @@ void VTSNamesDlg::CtrlToName( VTSNameDesc &name )
 //	VTSNamesDlg::OnNew
 //
 
+void VTSNamesDlg::OnOK() 
+{
+	// First we have to validate the data...  so far, the only thing can could go wrong is
+	// when we let them off of the address edit control having entered an invalid address
+	// for specific types...  loop through all names and check 'em.
+
+	for ( int n = 0; n < m_names.GetSize(); n++ )
+	{
+		VTSName * pname = (VTSName *) m_names[n];
+
+		if ( (pname->m_bacnetaddr.addrType == localStationAddr  || pname->m_bacnetaddr.addrType == remoteStationAddr)
+			 &&  pname->m_bacnetaddr.addrLen != 1 && pname->m_bacnetaddr.addrLen != 6 )
+		{
+			// select the item in the list...  then change focus to address edit control
+
+			m_NameList.SetItemState( n, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED );
+			m_AddressCtrl.SetFocus();
+
+			AfxMessageBox(IDS_NAME_ADDRERROR, MB_ICONEXCLAMATION | MB_OK);
+			return;  // don't allow OK
+		}
+	}
+
+	// copy names array...   then copy array.  Elements remain allocated
+	m_pnames->KillContents();
+
+	// copy only the element references... changes ownership of element memory
+	for ( int i = 0; i < m_names.GetSize(); i++ )
+	{
+		VTSName * p = (VTSName *) m_names[i];
+		m_pnames->Add(m_names[i]);
+	}
+
+	// empty list but don't remove elements...  this will avoid destructor
+	// killing the memory... which we've already transferred ownership to document's member
+	// names list
+
+	m_names.RemoveAll();
+
+	CDialog::OnOK(); // This will close the dialog and DoModal will return.
+}
+
+
+void VTSNamesDlg::OnCancel() 
+{
+	// remove allocated temp elements...  destructor will kill array
+	m_names.KillContents();
+
+	CDialog::OnCancel(); // This will close the dialog and DoModal will return.
+}
+
+
+
 void VTSNamesDlg::OnNew() 
 {
-	int		listLen = m_pNameList->Length()
-	;
-	VTSNameDesc		name
-	;
+//	int		listLen = m_pNameList->Length();
+//	VTSNameDesc		name;
+
+	int listLen = m_names.GetSize();
+	VTSName * pname = new VTSName();
 
 	// deselect if something was selected
 	POSITION	selPos = m_NameList.GetFirstSelectedItemPosition();
@@ -427,16 +529,19 @@ void VTSNamesDlg::OnNew()
 	}
 	
 	// create a new name
-	m_pNameList->Add();
+//	m_pNameList->Add();
+	m_names.Add(pname);
 
 	// read the name from the database
-	m_pNameList->ReadName( listLen, &name );
+//	m_pNameList->ReadName( listLen, &name );
 
 	// make a placeholder for the item
-	m_NameList.InsertItem( listLen, _T("") );
+//	m_NameList.InsertItem( listLen, _T("") );
+	m_NameList.InsertItem( listLen, _T(pname->m_strName) );
 
 	// copy the contents to the list
-	NameToList( name, listLen );
+//	NameToList( name, listLen );
+	NameToList( pname, listLen );
 
 	// make sure it is visible and selected, this also transfers the info to the ctrls
 	m_NameList.EnsureVisible( listLen, false );
@@ -453,8 +558,7 @@ void VTSNamesDlg::OnNew()
 
 void VTSNamesDlg::OnDelete() 
 {
-	POSITION	selPos = m_NameList.GetFirstSelectedItemPosition()
-	;
+	POSITION	selPos = m_NameList.GetFirstSelectedItemPosition();
 
 	// make sure something was selected
 	if (selPos == NULL)
@@ -470,7 +574,15 @@ void VTSNamesDlg::OnDelete()
 	m_NameList.DeleteItem( nItem );
 
 	// delete the name from the database
-	m_pNameList->Remove( nItem );
+//	m_pNameList->Remove( nItem );
+	m_names.Remove( nItem );
+
+	// now select the next item if there is one... select the previous item if not... until null
+	if ( nItem >= m_NameList.GetItemCount() )
+		nItem = m_NameList.GetItemCount() - 1;
+
+	if ( nItem >= 0 )
+		m_NameList.SetItemState( nItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED );
 }
 
 //
@@ -495,12 +607,10 @@ void VTSNamesDlg::OnExportNames()
 
 void VTSNamesDlg::OnItemchangingNamelist(NMHDR* pNMHDR, LRESULT* pResult) 
 {
-	VTSNameDesc		name
-	;
-	NM_LISTVIEW*	pNMListView = (NM_LISTVIEW*)pNMHDR
-	;
+//	VTSNameDesc		name	;
+	NM_LISTVIEW*	pNMListView = (NM_LISTVIEW*)pNMHDR;
 	
-#if 0
+#if 1
 	TRACE3( "Item %d from %d to %d\n"
 		, pNMListView->iItem
 		, pNMListView->uOldState
@@ -516,10 +626,12 @@ void VTSNamesDlg::OnItemchangingNamelist(NMHDR* pNMHDR, LRESULT* pResult)
 		m_iSelectedName = pNMListView->iItem;
 
 		// read the name from the database
-		m_pNameList->ReadName( m_iSelectedName, &name );
+//		m_pNameList->ReadName( m_iSelectedName, &name );
 
 		// transfer the values to the controls
-		NameToCtrl( name );
+//		NameToCtrl( name );
+		NameToCtrl( (VTSName *) m_names[m_iSelectedName]);
+
 	} else {
 		if (pNMListView->iItem == m_iSelectedName)
 			ResetSelection();
@@ -547,35 +659,53 @@ void VTSNamesDlg::OnDblclkNamelist(NMHDR* pNMHDR, LRESULT* pResult)
 
 void VTSNamesDlg::SaveChanges()
 {
-	VTSNameDesc		name
-	;
+//	VTSNameDesc		name;
 
 	// read the name from the database
-	m_pNameList->ReadName( m_iSelectedName, &name );
+//	m_pNameList->ReadName( m_iSelectedName, &name );
 
 	// transfer the contents of the controls to the record
-	CtrlToName( name );
+//	CtrlToName( name );
+	CtrlToName( (VTSName *) m_names[m_iSelectedName] );
 
 	// save the updated record
-	m_pNameList->WriteName( m_iSelectedName, &name );
+//	m_pNameList->WriteName( m_iSelectedName, &name );
 
 	// bring the list up-to-date
-	NameToList( name, m_iSelectedName );
+//	NameToList( name, m_iSelectedName );
+	NameToList( (VTSName *) m_names[m_iSelectedName], m_iSelectedName );
 }
 
 //Xiao Shiyuan 2002-12-25
 void VTSNamesDlg::OnKillfocusAddress() 
 {
-	// TODO: Add your control notification handler code here
-	VTSNameDesc		name;
+//	VTSNameDesc		name;
 
-	// read the name from the database
-	m_pNameList->ReadName( m_iSelectedName, &name );
+	if ( m_iSelectedName == -1 )
+		return;
 
-	if(name.nameAddr.addrLen != 1 && name.nameAddr.addrLen != 6)
-	{
-		this->MessageBox("Address length should be 1 or 6 bytes!\nMSTP Address length is 1 byte, B/IP and Ethernet MAC Address length are both 6 bytes.", "Error", MB_ICONERROR);
-		m_AddressCtrl.SetFocus();
-	}
+	VTSName * pname = (VTSName *) m_names[m_iSelectedName];
+
+	int nFocusID = GetFocus()->GetDlgCtrlID();
 	
+	// read the name from the database
+//	m_pNameList->ReadName( m_iSelectedName, &name );
+
+//	if(name.nameAddr.addrLen != 1 && name.nameAddr.addrLen != 6)
+
+	// Check for validity and warn if we haven't already warned and they didn't 
+	// press the cancel or delete key...
+
+	if(    pname->m_bacnetaddr.addrLen != 1 && pname->m_bacnetaddr.addrLen != 6
+		&& nFocusID != GetDlgItem(IDCANCEL)->GetDlgCtrlID()  &&  nFocusID != GetDlgItem(ID_DELETENAME)->GetDlgCtrlID() )
+	{
+		if ( !m_fWarnedAlready )
+		{
+			AfxMessageBox(IDS_NAME_ADDRERROR, MB_ICONEXCLAMATION | MB_OK);
+
+//		this->MessageBox("Address length should be 1 or 6 bytes!\nMSTP Address length is 1 byte, B/IP and Ethernet MAC Address length are both 6 bytes.", "Error", MB_ICONERROR);
+			m_AddressCtrl.SetFocus();
+			m_fWarnedAlready = true;
+		}
+	}
 }

@@ -44,7 +44,7 @@ END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CReadAllPropSettingsDlg message handlers
-extern VTSPortList gMasterPortList;
+//MAD_DB extern VTSPortList gMasterPortList;
 
 BOOL CReadAllPropSettingsDlg::OnInitDialog() 
 {
@@ -53,13 +53,17 @@ BOOL CReadAllPropSettingsDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 	CComboBox* pComboBox =(CComboBox*)GetDlgItem(IDC_COMBO_NETWORK);
 
-	VTSPortPtr	curPort;
+//	VTSPortPtr	curPort;
+	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+	VTSPorts * pports = pdoc == NULL ? NULL : pdoc->GetPorts();
 
-	for (int i = 0; i < gMasterPortList.Length(); i++)
+//MAD_DB	for (int i = 0; i < gMasterPortList.Length(); i++)
+	for (int i = 0; pports != NULL && i < pports->GetSize(); i++)
 	{
 		// get a pointer to the ith port
-		curPort = gMasterPortList[i];
-		pComboBox->AddString( curPort->portDesc.portName );
+//		curPort = gMasterPortList[i];
+//		pComboBox->AddString( curPort->portDesc.portName );
+		pComboBox->AddString( (*pports)[i]->GetName() );
 	}
 	
 	return TRUE;  // return TRUE unless you set the focus to a control

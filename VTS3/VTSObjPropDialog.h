@@ -68,6 +68,8 @@ protected:
 	afx_msg void OnItemChangingObjectList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnItemChangingPropList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnChangePropID();
+	afx_msg void OnOK();
+	afx_msg void OnCancel();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

@@ -116,16 +116,27 @@ BOOL VTSObjPropDialog::OnInitDialog()
 	return TRUE;  
 }
 
+
+void VTSObjPropDialog::OnOK() 
+{
+	CDialog::OnOK(); // This will close the dialog and DoModal will return.
+}
+
+
+void VTSObjPropDialog::OnCancel() 
+{
+	CDialog::OnCancel(); // This will close the dialog and DoModal will return.
+}
+
+
 //
 //	VTSObjPropDialog::SetObjSelection
 //
 
 void VTSObjPropDialog::SetObjSelection( int indx )
 {
-	int			i
-	;
-	CString		propDesc
-	;
+	int			i;
+	CString		propDesc;
 
 	// if we seem to be selecting something that is already selected, bail out
 	if (m_iSelectedObj == indx)

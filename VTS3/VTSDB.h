@@ -11,11 +11,13 @@
 
 #include <Afxmt.h>
 
+/* MAD_DB
 #include "JDB.hpp"
 #include "JDBObj.hpp"
 #include "JDBArray.hpp"
 #include "JDBList.hpp"
 #include "JDBOctetStringObj.hpp"
+*/
 
 #include "BACnet.hpp"
 
@@ -42,26 +44,31 @@ enum VTSPacketType
 	};
 
 struct VTSPacketHeader {
-	objId			packetPortID;				// port identifier
+// MAD_DB	objId			packetPortID;				// port identifier
+	char		    m_szPortName[32];			// store name for associated port
 	int				packetProtocolID;			// protocol identifier for decoding
 	int				packetFlags;				// protocol specific flags
 	FILETIME		packetTime;					// transmit/receive time
 	VTSPacketType	packetType;					// path as above
 	BACnetAddress	packetSource;				// source address
 	BACnetAddress	packetDestination;			// destination address
-	objId			packetDataID;				// objId of packet contents
+// MAD_DB	objId			packetDataID;				// objId of packet contents
 
 	VTSPacketHeader::VTSPacketHeader( void );
-	};
+};
 
 typedef VTSPacketHeader *VTSPacketHeaderPtr;
 const int kVTSPacketHeaderSize = sizeof( VTSPacketHeader );
 
-class VTSPacket {
+class VTSPort;
+
+class VTSPacket : public CObject
+{
 	protected:
 		bool			ownData;				// object owns the data
 
 	public:
+		// Begin persistent data
 		VTSPacketHeader	packetHdr;				// header contents
 		int				packetLen;				// number of octets in data
 		BACnetOctetPtr	packetData;				// pointer to data
@@ -70,14 +77,16 @@ class VTSPacket {
 		~VTSPacket( void );
 
 		void NewData( BACnetOctetPtr data, int len );		// flush old, copy new (owned)
-		void NewDataRef( BACnetOctetPtr data, int len );	// flush old, reference new (not owned)
+		void NewDataRef( BACnetOctetPtr data, int len, bool fOwned = false );	// flush old, reference new (not owned)
+		VTSPort *		GetPortLink(void);
 
-	private:
+//	private:
 		VTSPacket( const VTSPacket& );				// disable copy constructor
-		operator =( const VTSPacket& );				// disable assignment operator
+		void operator =( const VTSPacket& pkt);				// disable assignment operator
 	};
 
 typedef VTSPacket *VTSPacketPtr;
+
 
 //
 //	VTSPortDescObj
@@ -104,6 +113,7 @@ enum VTSPortType
 
 extern const char *gVTSPortTypes[6];					// label for port type
 
+/* MAD_DB
 struct VTSPortDesc : JDBObj {
 	VTSPortType		portType;							// port type
 	int				portEnabled;						// true iff IO should be enabled
@@ -115,6 +125,7 @@ struct VTSPortDesc : JDBObj {
 
 typedef VTSPortDesc *VTSPortDescPtr;
 const int kVTSPortDescSize = sizeof( VTSPortDesc );
+*/
 
 #if Mac_Platform
 #pragma options align=reset
@@ -136,14 +147,19 @@ const int kVTSPortDescSize = sizeof( VTSPortDesc );
 
 const int kVTSMaxNameLength = 32;
 
+/* MAD_DB
 struct VTSNameDesc {
 	char			nameName[kVTSMaxNameLength];		// name
 	BACnetAddress	nameAddr;							// address
 	objId			namePort;							// specific to a port
 	};
+*/
 
+
+/* MAD_DB
 typedef VTSNameDesc *VTSNameDescPtr;
 const int kVTSNameDescSize = sizeof( VTSNameDesc );
+*/
 
 #if Mac_Platform
 #pragma options align=reset
@@ -163,6 +179,7 @@ const int kVTSNameDescSize = sizeof( VTSNameDesc );
 #pragma pack(push,2)
 #endif
 
+/* MAD_DB
 struct VTSDeviceDesc : JDBObj {
 	char				deviceName[kVTSMaxNameLength];	// name
 	int					deviceInstance;					// instance number
@@ -181,6 +198,7 @@ struct VTSDeviceDesc : JDBObj {
 
 typedef VTSDeviceDesc *VTSDeviceDescPtr;
 const int kVTSDeviceDescSize = sizeof( VTSDeviceDesc );
+*/
 
 #if Mac_Platform
 #pragma options align=reset
@@ -197,6 +215,7 @@ const int kVTSDeviceDescSize = sizeof( VTSDeviceDesc );
 //	lists.
 //
 
+/* MAD_DB
 struct VTSDescObj : public JDBDescObj {
 	objId		portListID;
 	objId		nameListID;
@@ -208,6 +227,7 @@ typedef VTSDescObj *VTSDescObjPtr;
 const int kVTSDescObjSize = sizeof( VTSDescObj );
 
 const short kVTSDescSig = 0x0001;
+*/
 
 //
 //	VTSDB
@@ -216,23 +236,33 @@ const short kVTSDescSig = 0x0001;
 const int kVTSDBMajorVersion = 3;			// current version
 const int kVTSDBMinorVersion = 3;
 
-class VTSDB : public JDB {
+//class VTSDB : public JDB {
+class VTSDB : public CObject
+{
 	public:
-		VTSDB( void );
+//		VTSDB( void );  MAD_DB
+		VTSDB( LPCTSTR lpszFileName );
 		virtual ~VTSDB( void );
 
-		virtual void Init( void );				// newly created database
-		virtual void Open( void );				// existing database
+//MAD_DB		virtual void Init( void );				// newly created database
+//		virtual void Open( void );				// existing database
 		virtual void Close( void );				// clean up operations
+
+		// MAD_DB
+		bool Open( LPCTSTR lpszFileName );
+		void ClosePackets( void );
 	
-		int GetPacketCount( void );						// packet count
+// MAD_DB		int GetPacketCount( void );						// packet count
 		void DeletePackets( void );						// clear out the packets
 
-		void ReadPacket( int indx, VTSPacket& pkt );	// read a packet
-		void WritePacket( int indx, VTSPacket& pkt );	// write a packet
+// MAD_DB		void ReadPacket( int indx, VTSPacket& pkt );	// read a packet
+		LONG WritePacket(VTSPacket& pkt);				// write a packet
+
+		LONG ReadNextPacket(VTSPacket& pkt, LONG lPosition = -1 );		// MAD_DB
 
 		CCriticalSection	writeLock;			// locked when transaction in progress
 
+/* MAD_DB
 		JDBObjMgrPtr	pObjMgr;				// object manager
 		JDBArrayMgrPtr	pArrayMgr;				// array manager
 		JDBListMgrPtr	pListMgr;				// list manager
@@ -243,6 +273,10 @@ class VTSDB : public JDB {
 		JDBList			dbNameList;				// list of name/address translations
 		JDBArray		dbPacketList;			// array of packet objects
 		JDBList			dbDeviceList;			// list of device objects
+*/
+
+		CString			m_strPacketFileName;
+		CFile *			m_pfilePackets;			// pointer to packet file dump
 	};
 
 typedef VTSDB *VTSDBPtr;
@@ -266,6 +300,7 @@ typedef VTSDB *VTSDBPtr;
 //	the destructor will call CancelTransaction if necessary.
 //
 
+/* MAD_DB
 class VTSDBTransaction {
 	public:
 		VTSDBTransaction( VTSDBPtr dbp );			// database to bind to
@@ -281,5 +316,6 @@ class VTSDBTransaction {
 	};
 
 typedef VTSDBTransaction *VTSDBTransactionPtr;
+*/
 
 #endif // !defined(AFX_VTSDB_H__D75BFF4F_ED36_11D3_BE6B_00A0C95A9812__INCLUDED_)

@@ -4,7 +4,9 @@
 #include "stdafx.h"
 #include "VTS.h"
 
+#include "VTSPreferences.h"
 #include "ChildFrm.h"
+#include "MainFrm.h"
 
 #include "SummaryView.h"
 #include "ListSummaryView.h"
@@ -21,41 +23,50 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+
 /////////////////////////////////////////////////////////////////////////////
 // CChildFrame
 
 IMPLEMENT_DYNCREATE(CChildFrame, CMDIChildWnd)
 
+
 BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	//{{AFX_MSG_MAP(CChildFrame)
 	ON_WM_CANCELMODE()
+	ON_UPDATE_COMMAND_UI(ID_FILE_WKS_NEW, OnUpdateFileWksNew)
+	ON_UPDATE_COMMAND_UI(ID_FILE_WKS_SWITCH, OnUpdateFileWksSwitch)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_DELETE, OnUpdateEditDelete)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_REFRESH, OnUpdateEditRefresh)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PORTS, OnUpdateEditPorts)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_NAMES, OnUpdateEditNames)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_DEVICES, OnUpdateEditDevices)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_LOGFILE, OnUpdateEditLogfile)
+//	ON_UPDATE_COMMAND_UI(ID_FILE_WKS_SAVEAS, OnUpdateFileWksSaveAs)
+//	ON_UPDATE_COMMAND_UI(AFX_IDS_FILESAVEAS, OnUpdateFileWksSaveAs)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_FIRSTFRAME, OnUpdateViewFirstFrame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_LASTFRAME, OnUpdateViewLastFrame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_NEXTFRAME, OnUpdateViewNextFrame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_PREVFRAME, OnUpdateViewPrevFrame)
 	ON_COMMAND(ID_EDIT_DELETE, OnEditDelete)
+	ON_COMMAND(ID_EDIT_REFRESH, OnEditRefresh)
 	ON_COMMAND(ID_EDIT_PORTS, OnEditPorts)
 	ON_COMMAND(ID_EDIT_NAMES, OnEditNames)
 	ON_COMMAND(ID_EDIT_DEVICES, OnEditDevices)
+	ON_COMMAND(ID_EDIT_LOGFILE, OnEditLogfile)
 	ON_COMMAND(ID_EDIT_PREFERENCES, OnEditPreferences)
+	ON_COMMAND_RANGE( 0x8100, 0x81FF, OnSendSelectPort)
+	ON_COMMAND_RANGE( 0x8200, 0x82FF, OnSendSelectPacket)
 	ON_COMMAND(ID_VIEW_FIRSTFRAME, OnViewFirstFrame)
 	ON_COMMAND(ID_VIEW_PREVFRAME, OnViewPrevFrame)
 	ON_COMMAND(ID_VIEW_NEXTFRAME, OnViewNextFrame)
 	ON_COMMAND(ID_VIEW_LASTFRAME, OnViewLastFrame)
 	ON_COMMAND(ID_SEND_NEWPACKET, OnSendNewPacket)
-	ON_COMMAND_RANGE( 0x8100, 0x81FF, OnSendSelectPort)
-	ON_COMMAND_RANGE( 0x8200, 0x82FF, OnSendSelectPacket)
 	ON_COMMAND(ID_VIEW_DETAIL, OnViewDetail)
 	ON_COMMAND(ID_VIEW_HEX, OnViewHex)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_DETAIL, OnUpdateViewDetail)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_HEX, OnUpdateViewHex)
-	// Added by Yajun Zhou, 2002-7-24
 	ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
-	///////////////////////////////////////////
+	ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -82,6 +93,12 @@ BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
 	// TODO: Modify the Window class or styles here by modifying
 	//  the CREATESTRUCT cs
+
+	//MAD_DB
+	// Get rid of the overlapping min, restore, max buttons... this should 
+	// always be maximized.
+
+	cs.style = (cs.style & ~WS_OVERLAPPEDWINDOW) | WS_OVERLAPPED | WS_CAPTION;
 
 	if( !CMDIChildWnd::PreCreateWindow(cs) )
 		return FALSE;
@@ -182,16 +199,27 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 
 BOOL CChildFrame::DestroyWindow() 
 {
-	// TODO: Add your specialized code here and/or call the base class
+	SaveBarStates();
+	return CMDIChildWnd::DestroyWindow();
+}
+
+
+void CChildFrame::SaveBarStates()
+{
 	if(!m_pwndDetailViewBar->IsFloating()&&!m_pwndHexViewBar->IsFloating())
 		SaveBarState("Bar Status");
 	if(!m_pwndDetailViewBar->IsFloating())
 		m_pwndDetailViewBar->SaveState(_T("Detail Bar Status"));
 	if(!m_pwndHexViewBar->IsFloating())
 		m_pwndHexViewBar->SaveState(_T("Hex Bar Status"));
-
-	return CMDIChildWnd::DestroyWindow();
 }
+
+void CChildFrame::OnDestroy() 
+{
+	SaveBarStates();
+	CMDIChildWnd::OnDestroy();
+}
+
 
 void CChildFrame::OnCancelMode() 
 {
@@ -200,9 +228,29 @@ void CChildFrame::OnCancelMode()
 	TRACE0( "CChildFrame::OnCancelMode() ?\n" );
 }
 
+void CChildFrame::OnUpdateFileWksNew(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable(true);
+}
+
+void CChildFrame::OnUpdateFileWksSwitch(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable(true);
+}
+
+void CChildFrame::OnUpdateFileWksSaveAs(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable(true);
+}
+
 void CChildFrame::OnUpdateEditDelete(CCmdUI* pCmdUI) 
 {
 //	TRACE0( "VTSDoc::OnUpdateEditDelete()\n" );
+	pCmdUI->Enable( (m_frameContext->m_PacketCount > 0) );
+}
+
+void CChildFrame::OnUpdateEditRefresh(CCmdUI* pCmdUI) 
+{
 	pCmdUI->Enable( (m_frameContext->m_PacketCount > 0) );
 }
 
@@ -221,6 +269,11 @@ void CChildFrame::OnUpdateEditNames(CCmdUI* pCmdUI)
 void CChildFrame::OnUpdateEditDevices(CCmdUI* pCmdUI) 
 {
 //	TRACE0( "VTSDoc::OnUpdateEditDevices()\n" );
+	pCmdUI->Enable( true );
+}
+
+void CChildFrame::OnUpdateEditLogfile(CCmdUI* pCmdUI) 
+{
 	pCmdUI->Enable( true );
 }
 
@@ -256,9 +309,17 @@ void CChildFrame::OnUpdateViewSend(CCmdUI* pCmdUI)
 
 void CChildFrame::OnEditDelete() 
 {
-	m_frameContext->m_pDoc->DeletePackets();
-	delete m_frameContext->m_pDoc->m_pStatisticsCollector;
-	m_frameContext->m_pDoc->m_pStatisticsCollector=new VTSStatisticsCollector();
+	if ( AfxMessageBox(IDS_DELETEAREYOUSURE, MB_YESNO | MB_ICONQUESTION) == IDYES )
+	{
+		delete m_frameContext->m_pDoc->m_pStatisticsCollector;
+		m_frameContext->m_pDoc->m_pStatisticsCollector=new VTSStatisticsCollector();
+		m_frameContext->m_pDoc->DeletePackets();
+	}
+}
+
+void CChildFrame::OnEditRefresh() 
+{
+	m_frameContext->m_pDoc->ReloadPacketStore();
 }
 
 void CChildFrame::OnEditPorts() 
@@ -276,9 +337,14 @@ void CChildFrame::OnEditDevices()
 	m_frameContext->m_pDoc->DoDevicesDialog();
 }
 
+void CChildFrame::OnEditLogfile() 
+{
+	m_frameContext->m_pDoc->DoPacketFileNameDialog();
+}
+
 void CChildFrame::OnEditPreferences()
 {
-	m_frameContext->m_pDoc->DoPreferencesDialog();
+	gVTSPreferences.DoPrefsDlg();
 }
 
 void CChildFrame::OnViewFirstFrame() 
@@ -375,6 +441,8 @@ void CChildFrame::OnUpdateViewHex(CCmdUI* pCmdUI)
 }
 
 // Added by Yajun Zhou, 2002-7-24
+/* Optimized madanner 5/03
+
 void CChildFrame::OnFileExport()
 {
 	static char BASED_CODE pchFilter[]="TXT Files(*.txt)|*.txt||";
@@ -400,10 +468,12 @@ void CChildFrame::OnFileExport()
 			exportFile.Open(strFileFullName.GetBuffer(nNameLength), 
 				CFile::modeCreate|CFile::modeWrite);//|CFile::typeText
 		
-			CString* pszLine;
+			CString* pszLine = NULL;		// madanner, 5/03
 			char cLineEnd[2];
 			cLineEnd[0] = 0x0d;
 			cLineEnd[1] = 0x0a;
+
+			// optimized (slightly) by madanner, 5/03
 
 			CString strStartSeparator;
 			CString strEndSeparator;
@@ -425,10 +495,7 @@ void CChildFrame::OnFileExport()
 
 			for(i = 0; i < nPacketCount; i++)
 			{
-				strStartSeparator.Format("%s%d%s",
-					"*************************** [ Packet ",
-					i,
-					" Start ] ***************************");
+				strStartSeparator.Format("*************************** [ Packet %d Start ] ***************************", i);
 				
 				exportFile.Write(strStartSeparator.GetBuffer(1), strStartSeparator.GetLength());
 				exportFile.Write(cLineEnd, 2);
@@ -476,10 +543,16 @@ void CChildFrame::OnFileExport()
 
 				nDetailCount = m_frameContext->m_PacketInfo.detailCount;
 				for(j = 0; j < nDetailCount; j++)
+
 				{
-					pszLine->Format(m_frameContext->m_PacketInfo.detailLine[j]->piLine);
+					// What?  Why not just reassign this? madanner, 5/03
+					//pszLine->Format(m_frameContext->m_PacketInfo.detailLine[j]->piLine);
+					*pszLine = m_frameContext->m_PacketInfo.detailLine[j]->piLine;
+
 						//m_pDetailView->GetLineData(j);
-					exportFile.Write(pszLine->GetBuffer(1), pszLine->GetLength());
+					// What?  GetBuffer without ReleaseBuffer... just use LPCSTR cast, madanner 5/03
+					//exportFile.Write(pszLine->GetBuffer(1), pszLine->GetLength());
+					exportFile.Write((LPCSTR) *pszLine, pszLine->GetLength());
 					exportFile.Write(cLineEnd, 2);
 				}
 
@@ -493,6 +566,10 @@ void CChildFrame::OnFileExport()
 
 				exportFile.Write(cLineEnd, 2);
 				exportFile.Write(cLineEnd, 2);
+
+				// madanner 5/03   Don't forget (already did) to delete memory returned by GetLineData
+				if ( pszLine != NULL )
+					delete pszLine;
 			}
 			exportFile.Close();
 
@@ -508,7 +585,97 @@ void CChildFrame::OnFileExport()
 		if(nCurrentPacket != -1)
 			m_frameContext->SetCurrentPacket(nCurrentPacket);
 	}
-
-	
 }
-///////////////////////////////////////////////////////////
+*/
+
+
+// modified madanner 5/03
+
+void CChildFrame::OnFileExport()
+{
+	int nPacketCount = m_frameContext->m_pDoc->GetPacketCount();
+
+	// pop up dialog asking for export filename
+	CFileDialog exportFileDlg(FALSE,NULL,NULL,NULL,"TXT Files(*.txt)|*.txt||", NULL);
+	if ( exportFileDlg.DoModal() != IDOK )
+		return;
+
+	CString strPathName = exportFileDlg.GetPathName();
+	if( exportFileDlg.GetFileExt() != "txt")
+		strPathName += ".txt";
+		
+	CString str;
+	CStdioFile exportFile;
+
+	CProgressCtrl * pprogress = ((CMainFrame *) AfxGetApp()->m_pMainWnd)->InitializeProgress();
+	pprogress->SetRange(0, m_frameContext->m_pDoc->GetPacketCount());
+
+	try
+	{
+		exportFile.Open(strPathName, CFile::modeCreate | CFile::modeWrite);
+		
+		// for some reason we have to have two info objects, one just for the summary and one for 
+		// the detail lines...  If not, the detail lines are out of order.
+
+		BACnetPIInfo	summary( true, false );
+
+		for( int i = 0; i < m_frameContext->m_pDoc->GetPacketCount(); i++ )
+		{
+			pprogress->SetPos(i);
+
+			VTSPacketPtr ppkt = m_frameContext->m_pDoc->GetPacket(i);
+			if ( ppkt == NULL )
+				break;
+
+			str.Format("*************************** [ Packet %d Start ] ***************************\n\n" \
+				       "[ Summary Information ]\n\n", i);
+			exportFile.WriteString(str);
+
+			str.Format("Time:        %s\n", ppkt->GetTimeStampString());
+			exportFile.WriteString(str);
+
+			str.Format("Source:      %s\n", ppkt->GetAddressString(m_frameContext->m_pDoc, rxData));
+			exportFile.WriteString(str);
+
+			str.Format("Destination: %s\n", ppkt->GetAddressString(m_frameContext->m_pDoc, txData));
+			exportFile.WriteString(str);
+			
+			NetworkSniffer::SetLookupContext( ppkt->packetHdr.m_szPortName );
+			summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
+
+			str.Format("Summary:     %s\n\n" \
+					   "[ Detail Information ]\n\n", summary.summaryLine );
+			exportFile.WriteString(str);
+
+			// have to call the interpreter twice because of the summery/detail breakdown problem..
+			BACnetPIInfo	detail(false, true);
+			detail.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
+			
+			for (int j = 0; j < detail.detailCount; j++ )
+			{
+				// Careful... BACnetPIInfo does not allocate space for the first element, which should be
+				// used for the timestamp.  We already do that so everything's fine.  Just skip it.
+
+				if ( detail.detailLine[j] != NULL )
+				{
+					exportFile.WriteString(detail.detailLine[j]->piLine);
+					exportFile.WriteString("\n");
+				}
+			}
+
+			str.Format("*************************** [ Packet %d End ] ***************************\n\n", i);
+			exportFile.WriteString(str);
+		}
+
+		exportFile.Close();
+	}
+	catch(CFileException e)
+	{
+		e.GetErrorMessage(str.GetBuffer(100), 100);
+		AfxMessageBox(str);
+	}
+
+	((CMainFrame *) AfxGetApp()->m_pMainWnd)->ReleaseProgress();
+}
+
+

@@ -7,32 +7,39 @@
 // VTSPortIPDialog.h : header file
 //
 
+#include "VTSPropertyPage.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortIPDialog dialog
 
-class VTSPortIPDialog : public CDialog
+class VTSPortIPDialog : public VTSPropertyPage
 {
+	DECLARE_DYNCREATE(VTSPortIPDialog)
+
+	CString		* m_pstrConfigParms;
+
 // Construction
 public:
-	VTSPortIPDialog(CString *cp, CWnd* pParent = NULL);   // non-standard constructor
-
-	CString		*m_Config;
-
-	virtual void OnOK();
+	VTSPortIPDialog( VTSPageCallbackInterface * pparent );
+	VTSPortIPDialog();
+	~VTSPortIPDialog();
 
 // Dialog Data
 	//{{AFX_DATA(VTSPortIPDialog)
-	enum { IDD = IDD_PORT_IP };
+	enum { IDD = IDD_PORTPAGE_IP };
 	CString	m_Socket;
 	CString	m_HostAddr;
 	CString	m_TTL;
-	int		m_PortType;
+	int		m_nPortType;
 	//}}AFX_DATA
 
 
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(VTSPortIPDialog)
+	public:
+	virtual BOOL OnSetActive();
+	virtual BOOL OnKillActive();
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
@@ -42,9 +49,15 @@ protected:
 
 	// Generated message map functions
 	//{{AFX_MSG(VTSPortIPDialog)
-	virtual BOOL OnInitDialog();
-	afx_msg void OnPortType();
+	afx_msg void OnDataChange();
+	afx_msg void OnBTRPeers();
+	afx_msg void OnBBMDPeers();
 	//}}AFX_MSG
+
+	void ObjToCtrl(void);
+	void CtrlToObj(void);
+	void SynchControls( bool fEnable = true );
+
 	DECLARE_MESSAGE_MAP()
 };
 

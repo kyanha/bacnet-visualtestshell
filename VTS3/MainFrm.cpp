@@ -29,6 +29,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_WM_CREATE()
 	ON_COMMAND(ID_WINDOW_NEW, OnWindowNew)
 	ON_WM_INITMENUPOPUP()
+	ON_WM_SIZE()
+	ON_WM_CLOSE()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -36,7 +38,8 @@ static UINT indicators[] =
 {
 	ID_SEPARATOR,           // status line indicator
 //	Added by Yajun Zhou, 2002-4-22
-	ID_LNCOLINDEX,
+// madanner, 5/03 moved to frame of edit
+//	ID_LNCOLINDEX,
 /////////////////////////
 	ID_INDICATOR_CAPS,
 	ID_INDICATOR_NUM,
@@ -55,6 +58,7 @@ CMainFrame::CMainFrame()
 CMainFrame::~CMainFrame()
 {
 }
+
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
@@ -148,8 +152,11 @@ void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 	while (pPopupMenu->DeleteMenu( 2, MF_BYPOSITION ))
 		;
 
-	int	portListLen = gMasterPortList.Length()
-	;
+//	int	portListLen = gMasterPortList.Length();
+// MAD_DB
+	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+	VTSPorts * pports = pdoc == NULL ? NULL : pdoc->GetPorts();
+	int portListLen = pports == NULL ? 0 : pports->GetSize();
 
 	// if there are no ports, we're done
 	if ((portListLen == 0) || (gSelectedPort >= portListLen)) {
@@ -165,19 +172,22 @@ void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 	pPopupMenu->AppendMenu( MF_SEPARATOR );
 
 	// add the ports
+	CString strPortMenuItem;
+
 	for (int k = 0; k < portListLen; k++)
-		pPopupMenu->AppendMenu( MF_STRING | (gSelectedPort == k ? MF_CHECKED : 0)
-			,	0x8100 + k
-			,	gMasterPortList[k]->portDesc.portName
-			);
+	{
+//MAD_DB		pPopupMenu->AppendMenu( MF_STRING | (gSelectedPort == k ? MF_CHECKED : 0),	0x8100 + k,	gMasterPortList[k]->portDesc.portName );
+		strPortMenuItem.Format("%s (%s)", (*pports)[k]->GetName(), (*pports)[k]->GetTypeDesc() );
+		pPopupMenu->AppendMenu( MF_STRING | (gSelectedPort == k ? MF_CHECKED : 0) | ((*pports)[k]->IsEnabled() ? 0 : MF_GRAYED), 0x8100 + k,	strPortMenuItem );
+	}
 
 	// if there is no selected port, we're done
 	if (gSelectedPort == -1)
 		return;
 
 	// add each group of packets as defined by the selected port
-	CSendGroupList	curGroupList = gMasterPortList[gSelectedPort]->portSendGroup
-	;
+//	CSendGroupList	curGroupList = gMasterPortList[gSelectedPort]->portSendGroup;
+	CSendGroupList	curGroupList = (*pports)[gSelectedPort]->portSendGroup;
 
 	if (!curGroupList)
 		return;
@@ -208,6 +218,7 @@ void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 	}
 }
 
+// madanner, 5/03 moved to frame of edit
 //******************************************************************
 //	Author:		Yajun Zhou
 //	Date:		2002-4-22
@@ -216,9 +227,52 @@ void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 //				be display. 
 //	Out:		void
 //******************************************************************
-void CMainFrame::SetLnPaneText(CString str)
+// 
+//void CMainFrame::SetLnPaneText(CString str)
+//{
+//	int i = m_wndStatusBar.CommandToIndex(ID_LNCOLINDEX);
+//	m_wndStatusBar.SetPaneText(i, str);
+//
+
+
+CProgressCtrl * CMainFrame::InitializeProgress( void )
 {
-	int i = m_wndStatusBar.CommandToIndex(ID_LNCOLINDEX);
-	m_wndStatusBar.SetPaneText(i, str);
+	RECT rect;
+
+	if ( !::IsWindow(m_progress.m_hWnd) )
+	{
+		m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_SEPARATOR), &rect);  
+		m_progress.Create(WS_VISIBLE | WS_CHILD | WS_BORDER | PBS_SMOOTH, rect, &m_wndStatusBar, 1); 
+	}
+
+	return &m_progress;
 }
-///////////////////////////////////////////////
+
+
+void CMainFrame::ReleaseProgress( void )
+{
+	if ( ::IsWindow(m_progress.m_hWnd) )
+		m_progress.DestroyWindow();
+}
+
+
+void CMainFrame::OnSize(UINT nType, int cx, int cy) 
+{
+	CMDIFrameWnd::OnSize(nType, cx, cy);
+	
+	if ( ::IsWindow(m_wndStatusBar.m_hWnd) &&  ::IsWindow( m_progress.m_hWnd) )
+    {
+		RECT	rect;
+		m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_SEPARATOR), &rect);  
+
+		// Reposition the progress control correctly!
+		m_progress.SetWindowPos(&wndTop, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, 0);
+    }
+}
+
+void CMainFrame::OnClose() 
+{
+	// TODO: Add your message handler code here and/or call default
+	
+	CMDIFrameWnd::OnClose();
+}

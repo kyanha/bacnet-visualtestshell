@@ -825,6 +825,11 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 	return rslt;
 }
 
+
+
+
+
+
 //
 //	VTSObjectListContext
 //

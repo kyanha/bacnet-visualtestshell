@@ -52,10 +52,11 @@ void CSummaryView::OnInitialUpdate()
 	CScrollLineView::OnInitialUpdate();
 	
 	// set the line count according to what is in the document
-	VTSDoc* pDoc = GetDocument();
-	ASSERT_VALID(pDoc);
-	SetLineCount( pDoc->m_PacketCount );
-	
+//	VTSDoc* pDoc = GetDocument();
+//	ASSERT_VALID(pDoc);
+//	SetLineCount( pDoc->m_nPacketCount );
+	SetLineCount(m_FrameContext->m_PacketCount);
+
 	// set the scroll position at the top
 	ScrollToPosition( CPoint( 0, 0 ) );
 }
@@ -241,16 +242,20 @@ CString* CSummaryView::GetLineData(int lineNo)
 {
 	CString*	pString = new CString()
 	;
-	VTSPacket	pkt
-	;
 	char		theTime[16]
 	;
+
+	//MAD_DB	VTSPacket	pkt;
+	VTSPacketPtr	ppkt = m_FrameContext->m_pDoc->GetPacket(lineNo);
+
+	if ( ppkt == NULL || pString == NULL )
+		return NULL;
 
 	// format the packet number
 	pString->Format( "%5d ", lineNo );
 	
 	// read the packet, the frame context holds the information
-	m_FrameContext->m_pDoc->m_pDB->ReadPacket( lineNo, pkt );
+//MAD_DB	m_FrameContext->m_pDoc->m_pDB->ReadPacket( lineNo, pkt );
 
 	// format the time
 	FILETIME	locFileTime
@@ -258,7 +263,8 @@ CString* CSummaryView::GetLineData(int lineNo)
     SYSTEMTIME	st
 	;
 
-	::FileTimeToLocalFileTime( &pkt.packetHdr.packetTime, &locFileTime );
+//MAD_DB	::FileTimeToLocalFileTime( &pkt.packetHdr.packetTime, &locFileTime );
+	::FileTimeToLocalFileTime( &(ppkt->packetHdr.packetTime), &locFileTime );
 	::FileTimeToSystemTime( &locFileTime, &st );
 
 	sprintf( theTime, "%02d:%02d:%02d.%03d "
@@ -275,31 +281,53 @@ CString* CSummaryView::GetLineData(int lineNo)
 	;
 
 	// look up the source
-	name = m_FrameContext->m_pDoc->m_Names.AddrToName( pkt.packetHdr.packetSource, pkt.packetHdr.packetPortID );
+//MAD_DB	name = m_FrameContext->m_pDoc->m_Names.AddrToName( pkt.packetHdr.packetSource, pkt.packetHdr.packetPortID );
+	name = m_FrameContext->m_pDoc->AddrToName( ppkt->packetHdr.packetSource, ppkt->packetHdr.m_szPortName );
+
 	if (name)
 		sprintf( nameBuff, "%-*.*s", len+1, len, name );
 	else {
 		addrBuff[0] = 0;
 		addr = addrBuff;
+
+/* MAD_DB
 		for (i = 0; i < pkt.packetHdr.packetSource.addrLen; i++) {
 			sprintf( addr, "%02X", pkt.packetHdr.packetSource.addrAddr[i] );
 			addr += 2;
 		}
+*/
+		for (i = 0; i < ppkt->packetHdr.packetSource.addrLen; i++)
+		{
+			sprintf( addr, "%02X", ppkt->packetHdr.packetSource.addrAddr[i] );
+			addr += 2;
+		}
+
 		sprintf( nameBuff, "%-*.*s", len+1, len, addrBuff );
 	}
 	*pString += nameBuff;
 
 	// look up the destination
-	name = m_FrameContext->m_pDoc->m_Names.AddrToName( pkt.packetHdr.packetDestination, pkt.packetHdr.packetPortID );
+//MAD_DB	name = m_FrameContext->m_pDoc->m_Names.AddrToName( pkt.packetHdr.packetDestination, pkt.packetHdr.packetPortID );
+	name = m_FrameContext->m_pDoc->AddrToName( ppkt->packetHdr.packetDestination, ppkt->packetHdr.m_szPortName );
+
 	if (name)
 		sprintf( nameBuff, "%-*.*s", len+1, len, name );
 	else {
 		addrBuff[0] = 0;
 		addr = addrBuff;
+
+/* MAD_DB
 		for (i = 0; i < pkt.packetHdr.packetDestination.addrLen; i++) {
 			sprintf( addr, "%02X", pkt.packetHdr.packetDestination.addrAddr[i] );
 			addr += 2;
 		}
+*/
+		for (i = 0; i < ppkt->packetHdr.packetDestination.addrLen; i++)
+		{
+			sprintf( addr, "%02X", ppkt->packetHdr.packetDestination.addrAddr[i] );
+			addr += 2;
+		}
+
 		sprintf( nameBuff, "%-*.*s", len+1, len, addrBuff );
 	}
 	*pString += nameBuff;
@@ -308,10 +336,15 @@ CString* CSummaryView::GetLineData(int lineNo)
 #if 1
 	// format the summary line
 	BACnetPIInfo	summary( true, false );
+
+/*MAD_DB
 	summary.Interpret( (BACnetPIInfo::ProtocolType)pkt.packetHdr.packetProtocolID
 		, (char *)pkt.packetData
 		, pkt.packetLen
 		);
+*/
+
+	summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen );
 
 	*pString += summary.summaryLine;
 #endif

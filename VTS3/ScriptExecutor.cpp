@@ -124,7 +124,7 @@ ScriptMsgStatus::ScriptMsgStatus( ScriptDocumentPtr pDoc, ScriptBasePtr pbase, i
 //	ScriptFilter::ScriptFilter
 //
 
-ScriptFilter::ScriptFilter( ScriptFilterType typ, char *name )
+ScriptFilter::ScriptFilter( ScriptFilterType typ, const char *name )
 	: filterType(typ)
 {
 	strcpy( filterName, name );
@@ -232,7 +232,7 @@ ScriptFilterPtr ScriptFilterList::operator []( int i )
 //	The only thing that the filter ctor must do is save its name.
 //
 
-ScriptNetFilter::ScriptNetFilter( char *name )
+ScriptNetFilter::ScriptNetFilter( const char *name )
 	: ScriptFilter( scriptNPDUFilter, name )
 {
 }
@@ -554,9 +554,9 @@ void ScriptExecutor::Cleanup( void )
 
 bool ScriptExecutor::IsBound( ScriptDocumentPtr sdp )
 {
-	execCS.Lock();
+//	execCS.Lock();
 	bool rslt = ((execState != execIdle) && (execDoc == sdp));
-	execCS.Unlock();
+//	execCS.Unlock();
 
 	return rslt;
 }
@@ -571,9 +571,9 @@ bool ScriptExecutor::IsBound( ScriptDocumentPtr sdp )
 
 bool ScriptExecutor::IsBound( VTSDocPtr vdp )
 {
-	execCS.Lock();
+//	execCS.Lock();
 	bool rslt = ((execState != execIdle) && (execDB == vdp));
-	execCS.Unlock();
+//	execCS.Unlock();
 
 	return rslt;
 }
@@ -625,7 +625,7 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 	while (*dst) dst++;
 
 	// fill in the packet header
-	pkt.packetHdr.packetPortID = 0;
+//MAD_DB	pkt.packetHdr.packetPortID = 0;
 	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::msgProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = msgData;
@@ -634,13 +634,17 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 	pkt.NewDataRef( buff, (dst - buff) + 1 );
 
 	// save it in the database;
-	execDB->m_pDB->WritePacket( -1, pkt );
+//	execDB->m_pDB->WritePacket( -1, pkt );			// MAD_DB
+	execDB->WritePacket( pkt );
 
+//MAD_DB  This is now called from the Doc's WritePacket
+/*
 	// tell the application
 	if (execDB->m_postMessages)
 		::PostThreadMessage( AfxGetApp()->m_nThreadID
 			, WM_VTS_RCOUNT, (WPARAM)0, (LPARAM)execDB
 			);
+*/
 }
 
 //
@@ -1463,6 +1467,7 @@ bool ScriptExecutor::SendPacket( void )
 		// get the destination
 		nlDA = execPacket->packetExprList.Find( kwDA );
 		if (!nlDA) {
+/* MAD_DB
 			for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 				VTSNameDesc		nameDesc;
 
@@ -1473,6 +1478,8 @@ bool ScriptExecutor::SendPacket( void )
 				}
 			}
 			if (i >= execDB->m_Names.Length())
+*/
+			if ( !execDB->LoadNamedAddress(&nlDestAddr, "IUT") )
 				throw ExecError( "Default destination address IUT not found", execPacket->baseLineStart );
 		} else {
 			ScriptTokenList			daList
@@ -1495,6 +1502,7 @@ bool ScriptExecutor::SendPacket( void )
 			} else
 			// it might be a name
 			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+/* MAD_DB
 				CString tvalu = t.RemoveQuotes();
 				for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 					VTSNameDesc		nameDesc;
@@ -1506,6 +1514,8 @@ bool ScriptExecutor::SendPacket( void )
 					}
 				}
 				if (i >= execDB->m_Names.Length())
+*/
+				if ( !execDB->LoadNamedAddress(&nlDestAddr, t.RemoveQuotes()) )
 					throw ExecError( "Destination address name not found", nlDA->exprLine );
 			} else
 			// it might be an IP address
@@ -2522,11 +2532,13 @@ void ScriptExecutor::SendDevPacket( void )
 	alMsg = execPacket->packetExprList.Find( kwPDU );
 
 	// make sure we have a device
-	if (gMasterDeviceList.Length() == 0)
+//MAD_DB	if (gMasterDeviceList.Length() == 0)
+	if ( execDB->GetDevices()->GetSize() == 0)
 		throw ExecError( "No defined devices", alMsg->exprLine );
 
 	// make it an error to have more than one for now
-	if (gMasterDeviceList.Length() > 1)
+//MAD_DB	if (gMasterDeviceList.Length() > 1)
+	if ( execDB->GetDevices()->GetSize() > 1)
 		throw ExecError( "Too many defined devices, there can be only one", alMsg->exprLine );
 
 	// get the destination.  The IUT will be the default for all outbound
@@ -2535,6 +2547,7 @@ void ScriptExecutor::SendDevPacket( void )
 	// the IUT).
 	nlDA = execPacket->packetExprList.Find( kwDA );
 	if (!nlDA) {
+/* MAD_DB
 		for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 			VTSNameDesc		nameDesc;
 
@@ -2545,6 +2558,8 @@ void ScriptExecutor::SendDevPacket( void )
 			}
 		}
 		if (i >= execDB->m_Names.Length())
+*/
+		if ( !execDB->LoadNamedAddress(&nlDestAddr, "IUT") )
 			throw ExecError( "Default destination address IUT not found", execPacket->baseLineStart );
 	} else {
 		ScriptTokenList			daList
@@ -2586,6 +2601,7 @@ void ScriptExecutor::SendDevPacket( void )
 		if (daList.Length() == 1) {
 			// it might be a name
 			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+/* MAD_DB
 				CString tvalu = t.RemoveQuotes();
 				for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 					VTSNameDesc		nameDesc;
@@ -2597,6 +2613,8 @@ void ScriptExecutor::SendDevPacket( void )
 					}
 				}
 				if (i >= execDB->m_Names.Length())
+*/
+				if ( !execDB->LoadNamedAddress(&nlDestAddr, t.RemoveQuotes()) )
 					throw ExecError( "Destination address name not found", nlDA->exprLine );
 			} else
 			// it might be an IP address
@@ -2708,7 +2726,7 @@ void ScriptExecutor::SendDevPacket( void )
 	}
 
 	// pass along to the device object
-	gMasterDeviceList[0]->SendAPDU( apdu );
+	(*execDB->GetDevices())[0]->SendAPDU( apdu );
 }
 
 //
@@ -4627,6 +4645,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 		// get the source
 		nlSA = execPacket->packetExprList.Find( kwSA );
 		if (!nlSA) {
+/* MAD_DB
 			for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 				VTSNameDesc		nameDesc;
 
@@ -4637,6 +4656,8 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				}
 			}
 			if (i >= execDB->m_Names.Length())
+*/
+			if ( !execDB->LoadNamedAddress(&nlSrcAddr, "IUT") )
 				throw ExecError( "Default source address IUT not found", execPacket->baseLineStart );
 		} else {
 			ScriptTokenList			saList
@@ -4664,8 +4685,9 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				// If not... stuff the parameter with the encoded (ASCII) address... it has to be decodeable
 				// for use in other SEND statements.
 
-				VTSNameDesc		nameDesc;
-				int nNameIndex;
+//MAD_DB		VTSNameDesc		nameDesc;
+//MAD_DB		int nNameIndex;
+				LPCSTR lpszName;
 
 				switch( npdu.pduAddr.addrType )
 				{
@@ -4681,13 +4703,15 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
 					default:
 
-						for (nNameIndex = 0; nNameIndex < execDB->m_Names.Length() && !(npdu.pduAddr == nameDesc.nameAddr); nNameIndex++ )
-							execDB->m_Names.ReadName( nNameIndex, &nameDesc );
+//MAD_DB				for (nNameIndex = 0; nNameIndex < execDB->m_Names.Length() && !(npdu.pduAddr == nameDesc.nameAddr); nNameIndex++ )
+//MAD_DB					execDB->m_Names.ReadName( nNameIndex, &nameDesc );
 
-						if ( nNameIndex < execDB->m_Names.Length() )
+//MAD_DB				if ( nNameIndex < execDB->m_Names.Length() )
+						if ( (lpszName = execDB->AddrToName(npdu.pduAddr)) != NULL )
 						{
 							// found a name in our table that matches this address... encode the name into the variable
-							StuffScriptParameter( BACnetCharacterString(nameDesc.nameName), pScriptParm, nlSA->exprValue);
+//MAD_DB					StuffScriptParameter( BACnetCharacterString(nameDesc.nameName), pScriptParm, nlSA->exprValue);
+							StuffScriptParameter( BACnetCharacterString(lpszName), pScriptParm, nlSA->exprValue);
 						}
 						else
 						{
@@ -4711,6 +4735,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				} else
 				// it might be a name
 				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+/* MAD_DB
 					CString tvalu = t.RemoveQuotes();
 					for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 						VTSNameDesc		nameDesc;
@@ -4722,6 +4747,8 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 						}
 					}
 					if (i >= execDB->m_Names.Length())
+*/
+					if ( !execDB->LoadNamedAddress(&nlSrcAddr, t.RemoveQuotes()) )
 						throw ExecError( "Source address name not found", nlSA->exprLine );
 				} else
 				// it might be an IP address
@@ -6221,6 +6248,7 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 		// Get the source.  The IUT will be the default for all inbound messages.
 		nlSA = execPacket->packetExprList.Find( kwDA );
 		if (!nlSA) {
+/* MAD_DB
 			for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 				VTSNameDesc		nameDesc;
 
@@ -6231,6 +6259,8 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 				}
 			}
 			if (i >= execDB->m_Names.Length())
+*/
+			if ( !execDB->LoadNamedAddress(&nlSourceAddr, "IUT") )
 				throw ExecError( "Default source address IUT not found", execPacket->baseLineStart );
 		} else {
 			if (nlSA->exprOp != '='  &&  !nlSA->IsAssignment() )
@@ -6259,16 +6289,19 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 				// If not... stuff the parameter with the encoded (ASCII) address... it has to be decodeable
 				// for use in other SEND statements.
 
-				VTSNameDesc		nameDesc;
-				int nNameIndex;
+//MAD_DB		VTSNameDesc		nameDesc;
+//MAD_DB		int nNameIndex;
+				LPCSTR lpszName;
 
-				for (nNameIndex = 0; nNameIndex < execDB->m_Names.Length() && !(apdu.apduAddr == nameDesc.nameAddr); nNameIndex++ )
-					execDB->m_Names.ReadName( nNameIndex, &nameDesc );
+//MAD_DB		for (nNameIndex = 0; nNameIndex < execDB->m_Names.Length() && !(apdu.apduAddr == nameDesc.nameAddr); nNameIndex++ )
+//MAD_DB			execDB->m_Names.ReadName( nNameIndex, &nameDesc );
 
-				if ( nNameIndex < execDB->m_Names.Length() )
+//MAD_DB		if ( nNameIndex < execDB->m_Names.Length() )
+				if ( (lpszName = execDB->AddrToName(apdu.apduAddr)) != NULL )
 				{
 					// found a name in our table that matches this address... encode the name into the variable
-					StuffScriptParameter( BACnetCharacterString(nameDesc.nameName), pScriptParm, nlSA->exprValue);
+//MAD_DB			StuffScriptParameter( BACnetCharacterString(nameDesc.nameName), pScriptParm, nlSA->exprValue);
+					StuffScriptParameter( BACnetCharacterString(lpszName), pScriptParm, nlSA->exprValue);
 				}
 				else
 				{
@@ -6282,6 +6315,7 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 				if (saList.Length() == 1) {
 					// it might be a name
 					if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+/*MAD_DB
 						CString tvalu = t.RemoveQuotes();
 						for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 							VTSNameDesc		nameDesc;
@@ -6293,6 +6327,8 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 							}
 						}
 						if (i >= execDB->m_Names.Length())
+*/
+						if ( !execDB->LoadNamedAddress(&nlSourceAddr, t.RemoveQuotes()) )
 							throw ExecError( "Destination address name not found", nlSA->exprLine );
 					} else
 					// it might be an IP address
@@ -7152,6 +7188,7 @@ void ScriptExecutor::StuffScriptParameter(BACnetEncodeable &rbacnet, ScriptParmP
 	rbacnet.Encode(pp->parmValue.GetBuffer(1024));
 	pp->parmValue.ReleaseBuffer();
 
+	// Make the special call from the executor thread...  This posts the update, not sends.
 	execDoc->m_pParmList->UpdateParameterVisual(pp);
 }
 

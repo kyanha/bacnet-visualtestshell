@@ -14,44 +14,78 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortDlg dialog
 
+#pragma warning(disable:4355)
 
-VTSPortDlg::VTSPortDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(VTSPortDlg::IDD, pParent)
-	, m_pPortList( 0 )
-{
-	//{{AFX_DATA_INIT(VTSPortDlg)
-	m_Name = _T("");
-	m_Enabled = FALSE;
-	m_Type = -1;
-	m_Network = _T("");
-	//}}AFX_DATA_INIT
-}
 
-VTSPortDlg::VTSPortDlg( VTSPortListPtr plp, VTSDeviceListPtr dlp )
-	: CDialog( VTSPortDlg::IDD, NULL )
-	, m_pPortList( plp ), m_pDeviceList( dlp )
+//MAD_DB VTSPortDlg::VTSPortDlg( VTSPortListPtr plp, VTSDeviceListPtr dlp )
+
+
+VTSPortDlg::VTSPortDlg( VTSDoc * pdoc )
+	: CDialog( VTSPortDlg::IDD, NULL ),
+	  m_pageNull(this),  m_pageIP(this),  m_pageEthernet(this),  m_pageARCNET(this),  m_pageMSTP(this),  m_pagePTP(this)
 {
 	// duplicate the member initalization that the class 'wizard' adds
-	m_Name = _T("");
-	m_Type = -1;
-	m_Enabled = FALSE;
-	m_Network = _T("");
+	m_strName = _T("");
+	m_fEnabled = FALSE;
+	m_nNetwork = -1;
 
-	// configuration no longer a bound variable
-	m_Config = _T("");
+	m_pdoc = pdoc;
+	m_pdevices = pdoc->GetDevices();
+	m_pports = pdoc->GetPorts();
+
+	CopyMainPortArray();
+
+	for (int i = 0; i < PORT_PAGE_MAX; i++ )
+		m_pstrPageData[i] = new CString(_T(""));
+
+	m_ppages[0] = &m_pageNull;
+	m_ppages[1] = &m_pageIP;
+	m_ppages[2] = &m_pageEthernet;
+	m_ppages[3] = &m_pageARCNET;
+	m_ppages[4] = &m_pageMSTP;
+	m_ppages[5] = &m_pagePTP;
 }
+
+
+VTSPortDlg::~VTSPortDlg()
+{
+	// only memory allocated are strings for isolated config parm creation
+
+	for ( int i = 0; i < PORT_PAGE_MAX; i++ )
+		delete m_pstrPageData[i];
+}
+
+
 
 void VTSPortDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(VTSPortDlg)
 	DDX_Control(pDX, IDC_PORTLIST, m_PortList);
-	DDX_Text(pDX, IDC_PORTNAME, m_Name);
-	DDX_Check(pDX, IDC_ENABLEPORT, m_Enabled);
-	DDX_Text(pDX, IDC_NETWORK2, m_Network);
+	DDX_Text(pDX, IDC_PORTNAME, m_strName);
+	DDX_Check(pDX, IDC_ENABLEPORT, m_fEnabled);
 	DDX_Control(pDX, IDC_DEVICECOMBO, m_DeviceCombo);
-	DDX_Radio(pDX, IDC_NULLPORT, m_Type);
 	//}}AFX_DATA_MAP
+
+	if ( pDX->m_bSaveAndValidate )
+	{
+		CString str;
+		GetDlgItem(IDC_NETWORK2)->GetWindowText(str);
+		if ( str.IsEmpty() )
+			m_nNetwork = -1;
+		else
+		{
+			DDX_Text(pDX, IDC_NETWORK2, m_nNetwork);
+			DDV_MinMaxInt(pDX, m_nNetwork, 0, 65536);
+		}
+	}
+	else
+	{
+		if ( m_nNetwork == -1 )
+			GetDlgItem(IDC_NETWORK2)->SetWindowText(_T(""));
+		else
+			DDX_Text(pDX, IDC_NETWORK2, m_nNetwork);
+	}
 }
 
 
@@ -60,18 +94,12 @@ BEGIN_MESSAGE_MAP(VTSPortDlg, CDialog)
 	ON_BN_CLICKED(IDC_NEWPORT, OnNewPort)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_PORTLIST, OnItemchangingPortList)
 	ON_NOTIFY(NM_DBLCLK, IDC_PORTLIST, OnDblclkPortList)
-	ON_BN_CLICKED(IDC_CONFIG, OnConfig)
+	ON_BN_CLICKED(ID_DELETE, OnDelete)
 	ON_EN_UPDATE(IDC_PORTNAME, SaveChanges)
-	ON_BN_CLICKED(IDC_NULLPORT, SaveChanges)
-	ON_BN_CLICKED(IDC_IPPORT, SaveChanges)
-	ON_BN_CLICKED(IDC_ETHERNETPORT, SaveChanges)
-	ON_BN_CLICKED(IDC_ARCNETPORT, SaveChanges)
-	ON_BN_CLICKED(IDC_MSTPPORT, SaveChanges)
-	ON_BN_CLICKED(IDC_PTPPORT, SaveChanges)
 	ON_BN_CLICKED(IDC_ENABLEPORT, SaveChanges)
 	ON_EN_UPDATE(IDC_NETWORK2, SaveChanges)
 	ON_CBN_SELCHANGE(IDC_DEVICECOMBO, SaveChanges)
-	ON_BN_CLICKED(IDC_COLOR, OnColor)
+	ON_BN_CLICKED(ID_APPLY_NOW, OnApplyNow)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -84,57 +112,146 @@ END_MESSAGE_MAP()
 
 BOOL VTSPortDlg::OnInitDialog() 
 {
-	VTSPortPtr		curPort
-	;
-	VTSDevicePtr	curDevice
-	;
+//	VTSDevicePtr	curDevice;
 
 	CDialog::OnInitDialog();
-	
+
+	// Normally we would add the pages before creation... but this seems to barf the release
+	// version of MFC during create.  We have to point to one temporary thing to set the
+	// size, then after creation, remove it and place the real pages.  Bogus.
+
+	CPropertyPage	pageTemp(IDD_PORTPAGE_NULL);
+	m_sheet.AddPage(&pageTemp);
+
+ 	m_sheet.Create(this, WS_CHILD | WS_VISIBLE, 0);
+	m_sheet.ModifyStyleEx(0, WS_EX_CONTROLPARENT);
+	m_sheet.ModifyStyle( 0, WS_TABSTOP );
+
+	m_sheet.RemovePage(&pageTemp);
+
+	for ( int n = 0; n < PORT_PAGE_MAX; n++ )
+		m_sheet.AddPage(m_ppages[n]);
+
+	CRect rcSheet;
+	GetDlgItem(IDC_PORTPAGE_HOLDER)->GetWindowRect( &rcSheet );
+	ScreenToClient( &rcSheet );
+	m_sheet.SetWindowPos( NULL, rcSheet.left-7, rcSheet.top-7, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE );
+
 	// initialize the port list
 	m_PortList.m_nFlags |= LVS_SINGLESEL;
 	m_PortList.InsertColumn( 0, _T("Name"), LVCFMT_LEFT, 96 );
 	m_PortList.InsertColumn( 1, _T("Type"), LVCFMT_LEFT, 64 );
 	m_PortList.InsertColumn( 2, _T("Config"), LVCFMT_LEFT, 96 );
-	m_PortList.InsertColumn( 3, _T("Status"), LVCFMT_LEFT, 256 );
+	m_PortList.InsertColumn( 3, _T("Status"), LVCFMT_LEFT, 65 ); // 256 );
 
 	// initialize the status image list
 	m_ilStatus.Create( IDB_PORTSTATUS, 16, 1, RGB(255,0,255) );
 	m_PortList.SetImageList( &m_ilStatus, LVSIL_SMALL );
 
 	// add items and subitems
-	for (int i = 0; i < m_pPortList->Length(); i++) {
+	for (int i = 0; i < m_ports.GetSize(); i++)
+	{
 		// get a pointer to the ith port
-		curPort = (*m_pPortList)[i];
+		VTSPortPtr		curPort = m_ports[i];
 
 		// copy the descriptions into the list
+/* MAD_DB
 		m_PortList.InsertItem( i, (LPCTSTR)curPort->portDesc.portName, curPort->portStatus );
 		m_PortList.SetItemText( i, 1, (LPCTSTR)gVTSPortTypes[curPort->portDesc.portType] );
 		m_PortList.SetItemText( i, 2, (LPCTSTR)curPort->portDesc.portConfig );
-		m_PortList.SetItemText( i, 3
-			, (LPCTSTR)(curPort->portStatusDesc ? curPort->portStatusDesc : "")
-			);
+		m_PortList.SetItemText( i, 3, (LPCTSTR)(curPort->portStatusDesc ? curPort->portStatusDesc : "")	);
+*/
+		m_PortList.InsertItem( i, curPort->GetName(), curPort->portStatus );
+		UpdatePortListItem(i, curPort );
 	}
 
-	// Add the ports
+	// Add the devices
 	m_DeviceCombo.AddString( "(no device)" );
 
+	for (int j = 0; j < m_pdevices->GetSize(); j++)
+		m_DeviceCombo.AddString( (*m_pdevices)[j]->GetName() );
+
 	// add items and subitems
+/* MAD_DB
 	for (int j = 0; j < m_pDeviceList->Length(); j++) {
 		// get a pointer to the jth port
 		curDevice = (*m_pDeviceList)[j];
 		m_DeviceCombo.AddString( curDevice->devDesc.deviceName );
 	}
+*/
 
 	// set the first item as the default
-	m_DeviceCombo.SetCurSel( 0 );
+//	m_DeviceCombo.SetCurSel( 0 );
 
 	// make sure nothing is selected
-	ResetSelection();
+	if ( m_ports.GetSize() )
+		SetSelection(0);
+	else
+		ResetSelection();
 
+	SynchronizeControls();
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
+
+
+void VTSPortDlg::CopyMainPortArray()
+{
+	m_ports.DeepCopy(m_pports);
+
+	// Now that the ports have been copied, setup the array to track changes
+	m_apOriginalPort.RemoveAll();
+
+	for ( int n = 0; n < m_pports->GetSize(); n++ )
+		m_apOriginalPort.Add((*m_pports)[n]);
+
+	m_fModified = false;
+}
+
+
+void VTSPortDlg::DataChangeNotification(void)
+{
+	// called by child property pages... we don't care about things here...
+	if ( m_iSelectedPort == -1 )
+		return;
+
+	VTSPort * curPort = m_ports[m_iSelectedPort];
+	curPort->SetConfig(*m_pstrPageData[curPort->m_nPortType]);
+
+	if ( curPort->IsDirty() )
+		m_fModified = true;
+
+	// set the image for the list to match the status of the port
+	m_PortList.SetItem( m_iSelectedPort, 0, TVIF_IMAGE, 0, curPort->portStatus, 0, 0, 0 );
+
+	// update the list
+	UpdatePortListItem(m_iSelectedPort, curPort );
+	EnableOK();
+}
+
+
+void * VTSPortDlg::GetActiveData(void)
+{
+	if ( m_iSelectedPort < 0 )
+		return NULL;
+
+	// Called from the selected page in an attempt to get the current data...
+	// What is current port?
+	// What is current selected page?
+
+	VTSPort * curPort = m_ports[m_iSelectedPort];
+	curPort->SetPortType( (VTSPortType) m_sheet.GetActiveIndex() );
+	curPort->SetConfig( *m_pstrPageData[curPort->m_nPortType] );
+	
+	if ( curPort->IsDirty() )
+	{
+		m_fModified = true;
+		EnableOK();
+	}
+
+	return (void *) m_pstrPageData[curPort->m_nPortType];
+}
+
 
 //
 //	VTSPortDlg::SetSelection
@@ -142,12 +259,8 @@ BOOL VTSPortDlg::OnInitDialog()
 
 void VTSPortDlg::SetSelection( int indx )
 {
-	int				i
-	;
-	VTSPortPtr		curPort
-	;
-	VTSDevicePtr	curDevice
-	;
+	VTSPortPtr		curPort;
+//	VTSDevicePtr	curDevice;
 
 	TRACE1( "SetSelection( %d )\n", indx );
 
@@ -156,10 +269,13 @@ void VTSPortDlg::SetSelection( int indx )
 		ResetSelection();
 
 	// get a pointer to the port
-	curPort = (*m_pPortList)[indx];
+//MAD_DB	curPort = (*m_pPortList)[indx];
+	curPort = m_ports[indx];
 
 	// set the local variables to the port information
 	m_iSelectedPort = indx;
+
+/* MAD_DB
 	m_Name = curPort->portDesc.portName;
 	m_Type = curPort->portDesc.portType;
 	m_Enabled = curPort->portDesc.portEnabled;
@@ -181,9 +297,20 @@ void VTSPortDlg::SetSelection( int indx )
 			}
 		}
 	}
+*/
 
-	// this is no longer a dialog bound variable, but the config button needs the data
-	m_Config = curPort->portDesc.portConfig;
+	m_strName = curPort->GetName();
+	m_fEnabled = curPort->m_fEnabled;
+	m_nNetwork = curPort->m_nNet;
+
+	// now set the correct parm string
+	ReloadTypeData(curPort->m_nPortType, &curPort->m_strConfigParms);
+	m_sheet.SetActivePage(curPort->m_nPortType);
+
+	if ( curPort->m_pdevice == NULL )
+		m_DeviceCombo.SetCurSel( 0 );
+	else
+		m_DeviceCombo.SelectString(0, curPort->m_pdevice->GetName() );
 
 	// make sure the controls are properly enabled
 	SynchronizeControls();
@@ -191,6 +318,19 @@ void VTSPortDlg::SetSelection( int indx )
 	// let the CDialog sync the controls with the local vars
 	UpdateData( false );
 }
+
+
+void VTSPortDlg::ReloadTypeData( int nActiveType, CString * pstr )
+{
+	for ( int i = 0; i < PORT_PAGE_MAX; i++)
+	{
+		if ( nActiveType == i && pstr != NULL )
+			*m_pstrPageData[i] = *pstr;
+		else
+			m_pstrPageData[i]->Empty();
+	}
+}
+
 
 //
 //	VTSPortDlg::ResetSelection
@@ -215,11 +355,13 @@ void VTSPortDlg::ResetSelection( void )
 
 	// clear out the contents of the local vars
 	m_iSelectedPort = -1;
-	m_Name = _T("");
-	m_Type = -1;
-	m_Enabled = 0;
-	m_Config = _T("");
-	m_Network = _T("");
+	m_strName = _T("");
+	m_fEnabled = FALSE;
+	m_nNetwork = -1;
+
+	ReloadTypeData(m_iSelectedPort, NULL);
+	m_sheet.SetActivePage(0);
+
 	m_DeviceCombo.SetCurSel( 0 );
 
 	// let the CDialog sync the controls with the local vars
@@ -235,20 +377,18 @@ void VTSPortDlg::ResetSelection( void )
 
 void VTSPortDlg::SynchronizeControls( void )
 {
-	// disable if nothing selected
 	GetDlgItem( IDC_PORTNAME )->EnableWindow( m_iSelectedPort >= 0 );
-
 	GetDlgItem( IDC_ENABLEPORT )->EnableWindow( m_iSelectedPort >= 0 );
-	GetDlgItem( IDC_CONFIG )->EnableWindow( m_iSelectedPort >= 0 );
 	GetDlgItem( IDC_NETWORK2 )->EnableWindow( m_iSelectedPort >= 0 );
 	GetDlgItem( IDC_DEVICECOMBO )->EnableWindow( m_iSelectedPort >= 0 );
+	EnableOK();
+}
 
-	GetDlgItem( IDC_NULLPORT )->EnableWindow( m_iSelectedPort >= 0 );
-	GetDlgItem( IDC_IPPORT )->EnableWindow( m_iSelectedPort >= 0 );
-	GetDlgItem( IDC_ETHERNETPORT )->EnableWindow( m_iSelectedPort >= 0 );
-	GetDlgItem( IDC_ARCNETPORT )->EnableWindow( m_iSelectedPort >= 0 );
-	GetDlgItem( IDC_MSTPPORT )->EnableWindow( m_iSelectedPort >= 0 );
-	GetDlgItem( IDC_PTPPORT )->EnableWindow( m_iSelectedPort >= 0 );
+
+void VTSPortDlg::EnableOK()
+{
+	GetDlgItem( IDOK )->EnableWindow(m_fModified);
+	GetDlgItem( ID_APPLY_NOW )->EnableWindow(m_fModified);
 }
 
 //
@@ -257,21 +397,20 @@ void VTSPortDlg::SynchronizeControls( void )
 
 void VTSPortDlg::PortStatusChange( void )
 {
-	VTSPortPtr	curPort
-	;
+	// look through copy of ports and refresh all of the status values from their originals
+	// then update the status display
 
-	// add items and subitems
-	for (int i = 0; i < m_pPortList->Length(); i++) {
-		// get a pointer to the ith port
-		curPort = (*m_pPortList)[i];
+	for (int i = 0; i < m_ports.GetSize(); i++)
+	{
+		// if original is NULL, this value was added and can't have a status change... hasn't been activated yet.
+		if ( m_apOriginalPort[i] != NULL )
+		{
+			m_ports[i]->portStatus = ((VTSPort *) m_apOriginalPort[i])->portStatus;
+			m_ports[i]->portStatusDesc = ((VTSPort *) m_apOriginalPort[i])->portStatusDesc;
+		}
 
-		// set the image for the list to match the status of the port
-		m_PortList.SetItem( i, 0, TVIF_IMAGE, 0, curPort->portStatus, 0, 0, 0 );
-
-		// copy the status description
-		m_PortList.SetItemText( i, 3
-			, (LPCTSTR)(curPort->portStatusDesc ? curPort->portStatusDesc : "")
-			);
+		m_PortList.SetItem( i, 0, TVIF_IMAGE, 0, m_ports[i]->portStatus, 0, 0, 0 );
+		m_PortList.SetItemText( i, 3, (LPCTSTR)(m_ports[i]->portStatusDesc ? m_ports[i]->portStatusDesc : "") );
 	}
 }
 
@@ -281,29 +420,39 @@ void VTSPortDlg::PortStatusChange( void )
 
 void VTSPortDlg::OnNewPort() 
 {
-	int		indx
-	;
-	VTSPortPtr	curPort
-	;
+	VTSPortPtr	curPort = new VTSPort();
 
 	// tell the list to add a new port
-	m_pPortList->Add();
+//	m_pPortList->Add();
 
 	// get its index, it will always be the last one
-	indx = m_pPortList->Length() - 1;
+//	indx = m_pPortList->Length() - 1;
 
 	// get a pointer to the new port
-	curPort = (*m_pPortList)[indx];
+//	curPort = (*m_pPortList)[indx];
+	int indx = m_ports.Add(curPort);
+	m_apOriginalPort.Add(NULL);
 
 	// copy the descriptions into the list
-	m_PortList.InsertItem( indx, (LPCTSTR)curPort->portDesc.portName );
-	m_PortList.SetItemText( indx, 1, (LPCTSTR)gVTSPortTypes[curPort->portDesc.portType] );
-	m_PortList.SetItemText( indx, 2, (LPCTSTR)curPort->portDesc.portConfig );
-	m_PortList.SetItemText( indx, 3, (LPCTSTR)"" );
+	m_PortList.InsertItem( indx, curPort->GetName() );
+	UpdatePortListItem(indx, curPort);
 
 	// make sure the record is visible and selected
 	m_PortList.EnsureVisible( indx, false );
 	m_PortList.SetItemState( indx, LVIS_SELECTED, LVIS_SELECTED );
+
+	m_fModified = true;
+	EnableOK();
+}
+
+
+void VTSPortDlg::UpdatePortListItem( int nIndex, VTSPort * pport )
+{
+	// copy the descriptions into the list
+	m_PortList.SetItemText( nIndex, 0, pport->GetName() );
+	m_PortList.SetItemText( nIndex, 1, pport->GetTypeDesc() );
+	m_PortList.SetItemText( nIndex, 2, pport->m_strConfigParms );
+	m_PortList.SetItemText( nIndex, 3, (LPCTSTR)(pport->portStatusDesc ? pport->portStatusDesc : "") );
 }
 
 //
@@ -343,146 +492,259 @@ void VTSPortDlg::OnDblclkPortList(NMHDR* pNMHDR, LRESULT* pResult)
 //
 //	VTSPortDlg::SaveChanges
 //
-//	This function is called when something changes in one of the dialog box configuration 
-//	fields.  It copies the dialog box information into the port description record and 
-//	tells the port to refresh, which opens the port if possible.
-//
 
 void VTSPortDlg::SaveChanges() 
 {
-	bool		doRefresh
-	;
-	int			net, valu
-	;
-	VTSPortPtr	curPort
-	;
-	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_DEVICECOMBO )
-	;
+	VTSPort *   curPort;
 
 	ASSERT( m_iSelectedPort >= 0 );
 
 	// get a pointer to the new port
-	curPort = (*m_pPortList)[m_iSelectedPort];
+	curPort = m_ports[m_iSelectedPort];
 
-	// sync the member variables with the dialog controls
 	UpdateData( true );
 
-	// assume nothing has changed
-	doRefresh = false;
-
-	// copy the data back to the current selected port
-	strcpy( curPort->portDesc.portName, m_Name );
-
-	if (curPort->portDesc.portEnabled != m_Enabled) {
-		doRefresh = true;
-		curPort->portDesc.portEnabled = m_Enabled;
-	}
-	if (strcmp(curPort->portDesc.portConfig, m_Config) != 0) {
-		doRefresh = true;
-		strcpy( curPort->portDesc.portConfig, m_Config );
-	}
-	if (curPort->portDesc.portType != (VTSPortType)m_Type) {
-		doRefresh = true;
-		curPort->portDesc.portType = (VTSPortType)m_Type;
-
-		// flush the data
-		curPort->portDesc.portEnabled = false;
-		curPort->portDesc.portConfig[0] = 0;
-
-		// make sure the dialog box knows
-		m_Config.Empty();
-		m_Enabled = false;
-		UpdateData( false );
-	}
-
-	// extract the network number
-	if (m_Network.IsEmpty())
-		net = -1;
-	else
-		sscanf( m_Network, "%d", &net );
-	if (curPort->portDesc.portNet != net) {
-		doRefresh = true;
-		curPort->portDesc.portNet = net;
-	}
+	curPort->SetName(m_strName);
+	curPort->SetEnabled(m_fEnabled);
+//	curPort->SetConfig(m_strConfig);
+	curPort->SetPortType( (VTSPortType) m_sheet.GetActiveIndex() );
+	curPort->SetNetwork(m_nNetwork);
 
 	// check the device
-	valu = cbp->GetCurSel();
-	if (valu == 0) {
-		if (curPort->portDesc.portDeviceObjID != 0) {
-			doRefresh = true;
-			curPort->portDesc.portDeviceObjID = 0;
-		}
-	} else {
-		objId	newID = (*m_pDeviceList)[valu - 1]->devDescID
-		;
-
-		if (curPort->portDesc.portDeviceObjID != newID) {
-			doRefresh = true;
-			curPort->portDesc.portDeviceObjID = newID;
-		}
+	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_DEVICECOMBO );
+	if ( cbp->GetCurSel() == 0 )
+	{
+		curPort->SetDevice(NULL);
+		curPort->m_strDevice.Empty();
+	}
+	else
+	{
+		curPort->SetDevice( (*m_pdevices)[cbp->GetCurSel()-1] );
+		curPort->m_strDevice = curPort->m_pdevice->GetName();
 	}
 
-	// tell the port to save changes
-	curPort->WriteDesc();
-
-	// if something other than the name changed, tell it to refresh
-	if (doRefresh)
-		curPort->Refresh();
+	if ( curPort->IsDirty() )
+		m_fModified = true;
 
 	// set the image for the list to match the status of the port
 	m_PortList.SetItem( m_iSelectedPort, 0, TVIF_IMAGE, 0, curPort->portStatus, 0, 0, 0 );
 
 	// update the list
-	m_PortList.SetItemText( m_iSelectedPort, 0, (LPCTSTR)curPort->portDesc.portName );
-	m_PortList.SetItemText( m_iSelectedPort, 1, (LPCTSTR)gVTSPortTypes[curPort->portDesc.portType] );
-	m_PortList.SetItemText( m_iSelectedPort, 2, (LPCTSTR)curPort->portDesc.portConfig );
-	m_PortList.SetItemText( m_iSelectedPort, 3
-		, (LPCTSTR)(curPort->portStatusDesc ? curPort->portStatusDesc : "")
-		);
+	UpdatePortListItem(m_iSelectedPort, curPort );
+	EnableOK();
 }
 
+
+/*
 void VTSPortDlg::OnConfig() 
 {
-	VTSPortPtr	curPort
-	;
+	VTSPortPtr	curPort;
 
 	ASSERT( m_iSelectedPort >= 0 );
 
 	// get a pointer to the port
-	curPort = (*m_pPortList)[m_iSelectedPort];
+	curPort = (*m_pports)[m_iSelectedPort];
 
 	// tell the port to update this string with the configuration (can cancel!)
-	curPort->Configure( &m_Config );
+	//Configure( &m_strConfig );
 
 	// if nothing has changed, bail
-	if (strcmp(curPort->portDesc.portConfig, m_Config) == 0)
-		return;
+//	if (strcmp(curPort->portDesc.portConfig, m_Config) == 0)
+//	if ( curPort->m_strConfigParms.CompareNoCase(m_Config) == 0 )
+//		return;
 
 	// save the data into the port
-	strcpy( curPort->portDesc.portConfig, m_Config );
+//	strcpy( curPort->portDesc.portConfig, m_Config );
+
+	if ( Configure( &m_strConfig ) )
+	{
+		curPort->m_strConfigParms = m_strConfig;
+		curPort->SetDirty();
+	}
 
 	// tell the port to save changes
-	curPort->WriteDesc();
+//	curPort->WriteDesc();
 
 	// and now refresh
-	curPort->Refresh();
+//	curPort->Refresh();
 
 	// set the image for the list to match the status of the port
 	m_PortList.SetItem( m_iSelectedPort, 0, TVIF_IMAGE, 0, curPort->portStatus, 0, 0, 0 );
+	UpdatePortListItem( m_iSelectedPort, curPort );
+}
+*/
 
-	// update the list
-	m_PortList.SetItemText( m_iSelectedPort, 2, (LPCTSTR)curPort->portDesc.portConfig );
-	m_PortList.SetItemText( m_iSelectedPort, 3
-		, (LPCTSTR)(curPort->portStatusDesc ? curPort->portStatusDesc : "")
-		);
+
+
+void VTSPortDlg::OnOK() 
+{
+	DeactivateChangedPorts();
+	MoveLocalPortsToMain();
+	m_pdoc->FixupNameToPortLinks(false);			// must refixup while ports are inactive...
+	m_pdoc->ReActivateAllPorts();
+
+	CDialog::OnOK();
 }
 
-void VTSPortDlg::OnColor() 
-{
-	CColorDialog	clr
-	;
 
-	if (clr.DoModal() == IDOK) {
-		TRACE0( "New color?\n" );
+
+void VTSPortDlg::OnApplyNow() 
+{
+	DeactivateChangedPorts();
+	MoveLocalPortsToMain();
+	m_pdoc->FixupNameToPortLinks(false);
+
+	// Now copy these ports back to local storage.. Local array needs to be here first
+	// so we can properly respond to status changes calls produced by activating all ports
+
+	CopyMainPortArray();
+	m_pdoc->ReActivateAllPorts();
+	PortStatusChange();
+	m_pdoc->SaveConfiguration();
+	EnableOK();
+}
+
+
+// Deactivate all ports that have changed...  kill ports ports that shouldn't exist anymore
+// and move activated ports that haven't changed over to the local array for, well, moving later.
+
+void VTSPortDlg::DeactivateChangedPorts()
+{
+	for ( int i = 0; i < m_pports->GetSize(); i++ )
+	{
+		// Find index into local array for this active port...
+
+		int nLocalIndex;
+		for ( nLocalIndex = 0; nLocalIndex < m_apOriginalPort.GetSize(); nLocalIndex++ )
+			if ( m_apOriginalPort[nLocalIndex] == (CObject *) (*m_pports)[i] ) 
+				break;
+
+		if ( nLocalIndex < m_apOriginalPort.GetSize() )
+		{
+			// found cooresponding port in local array...
+			// should we kill it?  Deactivate or what?
+
+			if ( m_ports[nLocalIndex]->IsDirty() )
+				(*m_pports)[i]->Deactivate();
+			else
+			{
+				// Original port not dirty... so keep this one (might be active) by moving
+				// out of the main array into the local one... we'll move local to main later
+				delete m_ports[nLocalIndex];
+				m_ports[nLocalIndex] = (*m_pports)[i];
+				(*m_pports)[i] = NULL;
+			}
+		}
+		else
+			(*m_pports)[i]->Deactivate();
 	}
 }
+
+
+void VTSPortDlg::MoveLocalPortsToMain()
+{
+	//Now it's safe to kill all of the ports in the main list... they'll be moved over later...
+	m_pports->KillContents();
+
+	// OK.. all active ports that should be deleted or have been changed are now deactivated...
+	// Now move ports over from local storage into main array...
+	// Just move them and destroy local array (not contents)
+	
+	for ( int i = 0; i < m_ports.GetSize(); i++ )
+		m_pports->Add(m_ports[i]);
+
+	// Kill local array without destroying memory (destructor will delete contents.. so make no pointers).
+	m_ports.RemoveAll();
+}
+
+
+void VTSPortDlg::OnCancel() 
+{
+	// skip everything we were doing here...
+	m_ports.KillContents();
+	CDialog::OnCancel();
+}
+
+
+
+void VTSPortDlg::OnDelete() 
+{
+	POSITION	selPos = m_PortList.GetFirstSelectedItemPosition();
+
+	// make sure something was selected
+	if (selPos == NULL)
+		return;
+
+	// figure out which item it is
+	int	 nItem = m_PortList.GetNextSelectedItem( selPos );
+
+	// now deselect it, clearing out the controls in the process
+	m_PortList.SetItemState( nItem, 0, LVIS_SELECTED | LVIS_FOCUSED );
+
+	// delete it from the list
+	m_PortList.DeleteItem( nItem );
+
+	// delete the port from the local list
+	delete m_ports[nItem];
+	m_ports.RemoveAt(nItem);
+	m_apOriginalPort.RemoveAt(nItem);
+
+	// now select the next item if there is one... select the previous item if not... until null
+	if ( nItem >= m_PortList.GetItemCount() )
+		nItem = m_PortList.GetItemCount() - 1;
+
+	if ( nItem >= 0 )
+		m_PortList.SetItemState( nItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED );
+
+	m_fModified = true;
+	EnableOK();
+}
+
+
+//
+//	VTSPort::Configure
+//
+
+/*
+bool VTSPortDlg::Configure( CString * pstrConfigParms )
+{
+	// returns true if modifications made
+	CString strPreviousConfig = *pstrConfigParms;
+
+//	switch (portDesc.portType) {
+	switch (m_nType) {
+		case ipPort: {
+				TRACE0( "IP config request\n" );
+
+				VTSPortIPDialog	dlg( pstrConfigParms );
+				dlg.DoModal();
+				break;
+			}
+
+		case ethernetPort: {
+				TRACE0( "Ethernet config request\n" );
+
+				VTSPortEthernetDialog	dlg( pstrConfigParms );
+				dlg.DoModal();
+				break;
+			}
+
+		case arcnetPort:
+			TRACE0( "ARCNET config request\n" );
+			break;
+
+		case mstpPort:
+			TRACE0( "MS/TP config request\n" );
+			break;
+
+		case ptpPort:
+			//supported by Xiao Shiyuan 2002-4-22
+            VTSPortPTPDialog	dlg( pstrConfigParms );
+			dlg.DoModal(); 
+			break;
+	}
+
+	return strPreviousConfig.CompareNoCase(*pstrConfigParms) != 0;
+	return false;
+}
+*/

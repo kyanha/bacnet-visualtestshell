@@ -10,6 +10,8 @@
 /////////////////////////////////////////////////////////////////////////////
 // CListSummaryView view
 #include "FrameContext.h"
+#include "ListSummaryCache.h"
+
 #include <afxcview.h>
 
 class CListSummaryView : public CListView,public CFrameContextListener
@@ -24,10 +26,15 @@ public:
 // Operations
 public:
 	void ContextChange( CFrameContext::Signal s );
-	CString* GetLineData(int lineNo);
+
+// No need for method anymore
+//	CString* GetLineData(int lineNo);
+
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CListSummaryView)
+	public:
+	virtual BOOL OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult);
 	protected:
 	virtual void OnDraw(CDC* pDC);      // overridden to draw this view
 	//}}AFX_VIRTUAL
@@ -37,9 +44,14 @@ protected:
 	virtual ~CListSummaryView();
 
 private:
+
+	BACnetPIInfo		m_summary;		// so it doesn't have to be allocated and deallocated
+	CListSummaryCache	m_cache;
+
 	void SetSelectedLine(int currentLineNo);
 	void AddLine(int lineNo);
-
+	char * FillColumnData( int nColumn, char * pszFill, VTSPacket * ppkt );
+	void CacheItem(int nItem, LVCachedItem * pcacheditem );
 
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -53,6 +65,10 @@ protected:
 	afx_msg void OnItemchanging(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnDestroy();
+	afx_msg void OnTimer(UINT nIDEvent);
+	afx_msg void OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

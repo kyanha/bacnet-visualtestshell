@@ -1,5 +1,6 @@
 
 #include "stdafx.h"
+#include "resource.h"
 
 #include "WinBACnetTaskManager.hpp"
 
@@ -246,7 +247,16 @@ void WinBACnetTaskManager::ProcessTasks( void )
 		lock.Unlock();
 
 		// given the task a chance to do something
-		curTask->taskPtr->ProcessTask();
+		try
+		{
+			curTask->taskPtr->ProcessTask();
+		}
+		catch(...)
+		{
+			AfxMessageBox(IDS_ERR_TASKERROR, MB_ICONHAND);
+			// Set task type to oneShotTask so this will kill itself
+			curTask->taskPtr->taskType = BACnetTask::oneShotTask;
+		}
 		
 		// lock it back down
 		lock.Lock();

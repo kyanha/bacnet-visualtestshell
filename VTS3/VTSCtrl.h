@@ -56,27 +56,61 @@ typedef VTSAddrCtrl *VTSAddrCtrlPtr;
 //	VTSEnetAddrCtrl
 //
 
-class VTSNameList;
+//MAD_DB  class VTSNameList;
+class VTSNames;
+class VTSName;
+class VTSPort;
 
-class VTSEnetAddrCtrl : public VTSCtrl, public BACnetAddress {
+class VTSAddrComboCtrl : public VTSCtrl, public BACnetAddress
+{
 	public:
-		int				ctrlComboID;
-		VTSNameList		*ctrlNameList;
+		int		   m_ctrlComboID;
+		VTSNames * m_pnamesCtrl;
 
-		VTSEnetAddrCtrl( const CWnd* wp, int cid, int tid );	// bind to window and control
+		VTSAddrComboCtrl( const CWnd* wp, int cid, int tid );	// bind to window and control
 
-		void LoadCombo( VTSNameList *nameList, unsigned int portID );		// load the names
+		void LoadCombo( VTSNames * pnames, VTSPort * pport, bool okBroadcast = false );
+		virtual bool IsNameMatch( VTSName * pname, bool okBroadcast );
+
 		void Selchange( void );							// combo selection changed
-		void FindName( const char *name );				// initialize with a specific name (TD or IUT)
+		virtual void AssignAddress(VTSName * pname) = 0;
+		void FindName( LPCSTR lpszName );				// initialize with a specific name (TD or IUT)
 
 		virtual void Enable( void );					// enable object and control
 		virtual void Disable( void );					// disable both
 
 		void CtrlToObj( void );					// interpret control contents, save in object
+		virtual void CtrlToAddress( LPCTSTR s );
+		virtual bool IsAddressMatch( BACnetAddress * pbacnetaddr );
+
 		void ObjToCtrl( void );					// object value reflected in control
 
 		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
 		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
+	};
+
+
+//MAD_DB class VTSEnetAddrCtrl : public VTSCtrl, public BACnetAddress {
+class VTSEnetAddrCtrl : public VTSAddrComboCtrl
+{
+	public:
+//MAD_DB	int				ctrlComboID;
+//MAD_DB	VTSNameList		*ctrlNameList;
+
+		VTSEnetAddrCtrl( const CWnd* wp, int cid, int tid );	// bind to window and control
+
+//MAD_DB	void LoadCombo( VTSNameList *nameList, unsigned int portID );		// load the names
+		virtual void AssignAddress(VTSName * pname);
+
+//MAD_DB		void FindName( const char *name );				// initialize with a specific name (TD or IUT)
+//MAD_DB		virtual void Enable( void );					// enable object and control
+//MAD_DB		virtual void Disable( void );					// disable both
+
+//MAD_DB		void CtrlToObj( void );					// interpret control contents, save in object
+//MAD_DB		void ObjToCtrl( void );					// object value reflected in control
+
+//MAD_DB		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
+//MAD_DB		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
 	};
 
 typedef VTSEnetAddrCtrl *VTSEnetAddrCtrlPtr;
@@ -85,25 +119,31 @@ typedef VTSEnetAddrCtrl *VTSEnetAddrCtrlPtr;
 //	VTSIPAddrCtrl
 //
 
-class VTSIPAddrCtrl : public VTSCtrl, public BACnetIPAddr {
+//MAD_DB class VTSIPAddrCtrl : public VTSCtrl, public BACnetIPAddr {
+// Warning... have to munge BACnetIPAddr methods because polymorphism removes this ability
+
+class VTSIPAddrCtrl : public VTSAddrComboCtrl
+{
 	public:
-		int				ctrlComboID;
-		VTSNameList		*ctrlNameList;
+//MAD_DB	int				ctrlComboID;
+//MAD_DB	VTSNameList		*ctrlNameList;
 
 		VTSIPAddrCtrl( const CWnd* wp, int cid, int tid );	// bind to window and controls
 
-		void LoadCombo( VTSNameList *nameList, unsigned int portID );		// load the names
-		void Selchange( void );							// combo selection changed
-		void FindName( const char *name );				// initialize with a specific name (TD or IUT)
+//MAD_DB	void LoadCombo( VTSNameList *nameList, unsigned int portID );		// load the names
+		virtual void AssignAddress(VTSName * pname);
 
-		virtual void Enable( void );					// enable object and control
-		virtual void Disable( void );					// disable both
+//MAD_DB		void FindName( const char *name );				// initialize with a specific name (TD or IUT)
+//MAD_DB		virtual void Enable( void );					// enable object and control
+//MAD_DB		virtual void Disable( void );					// disable both
 
-		void CtrlToObj( void );					// interpret control contents, save in object
+//MAD_DB		void CtrlToObj( void );					// interpret control contents, save in object
+		virtual void CtrlToAddress( LPCTSTR s );
+
 		void ObjToCtrl( void );					// object value reflected in control
 
-		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
-		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
+//MAD_DB		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
+//MAD_DB		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
 	};
 
 typedef VTSIPAddrCtrl *VTSIPAddrCtrlPtr;
@@ -114,26 +154,31 @@ typedef VTSIPAddrCtrl *VTSIPAddrCtrlPtr;
 
 class VTSIntegerCtrl;
 
-class VTSRemoteAddrCtrl : public VTSCtrl, public BACnetAddress {
+//MAD_DB class VTSRemoteAddrCtrl : public VTSCtrl, public BACnetAddress
+class VTSRemoteAddrCtrl : public VTSAddrComboCtrl
+{
 	public:
-		int				ctrlComboID;
-		VTSNameList		*ctrlNameList;
+//MAD_DB	int				ctrlComboID;
+//MAD_DB	VTSNameList		*ctrlNameList;
 		VTSIntegerCtrl	*ctrlNet;
 
 		VTSRemoteAddrCtrl( const CWnd* wp, VTSIntegerCtrl *icp, int cid, int tid );	// bind to window and controls
 
-		void LoadCombo( VTSNameList *nameList, unsigned int portID, bool okBroadcast );	// load the names
+//MAD_DB	void LoadCombo( VTSNameList *nameList, unsigned int portID, bool okBroadcast );	// load the names
+		virtual bool IsNameMatch( VTSName * pname, bool okBroadcast );
 
-		void Selchange( void );							// combo selection changed
-		void FindName( const char *name );				// initialize with a specific name (TD or IUT)
+		virtual void AssignAddress(VTSName * pname);
 
-		virtual void Enable( void );					// enable object and control
-		virtual void Disable( void );					// disable both
+//MAD_DB		void FindName( const char *name );				// initialize with a specific name (TD or IUT)
+//MAD_DB		virtual void Enable( void );					// enable object and control
+//MAD_DB		virtual void Disable( void );					// disable both
 
-		void CtrlToObj( void );					// interpret control contents, save in object
-		void ObjToCtrl( void );					// object value reflected in control
+//MAD_DB		void CtrlToObj( void );					// interpret control contents, save in object
+		virtual bool IsAddressMatch( BACnetAddress * pbacnetaddr );
 
-		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
+//MAD_DB		void ObjToCtrl( void );					// object value reflected in control
+
+//MAD_DB		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
 		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
 	};
 
@@ -263,6 +308,7 @@ class VTSCharacterStringCtrl : public VTSCtrl, public BACnetCharacterString {
 		bool	emptyIsNull;						// empty control value is null
 
 		VTSCharacterStringCtrl( const CWnd* wp, int id );	// bind to window and control
+		virtual ~VTSCharacterStringCtrl();
 
 		void CtrlToObj( void );						// interpret control contents, save in object
 		void ObjToCtrl( void );						// object value reflected in control
@@ -282,6 +328,7 @@ class VTSOctetStringCtrl : public VTSCtrl, public BACnetOctetString {
 		bool	emptyIsNull;						// empty control value is null
 
 		VTSOctetStringCtrl( const CWnd* wp, int id );		// bind to window and control
+		virtual ~VTSOctetStringCtrl();
 
 		void CtrlToObj( void );						// interpret control contents, save in object
 		void ObjToCtrl( void );						// object value reflected in control
@@ -301,6 +348,7 @@ class VTSBitStringCtrl : public VTSCtrl, public BACnetBitString {
 		bool	emptyIsNull;						// empty control value is null
 
 		VTSBitStringCtrl( const CWnd* wp, int id );		// bind to window and control
+		~VTSBitStringCtrl();
 
 		void CtrlToObj( void );						// interpret control contents, save in object
 		void ObjToCtrl( void );						// object value reflected in control

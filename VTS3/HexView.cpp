@@ -261,7 +261,8 @@ void CHexView::ContextChange( CFrameContext::Signal s )
 			if (m_FrameContext->m_CurrentPacket == -1)
 				SetLineCount( 0 );
 			else
-				SetLineCount( (m_FrameContext->m_Packet.packetLen + 15) / 16 );
+//MAD_DB		SetLineCount( (m_FrameContext->m_Packet.packetLen + 15) / 16 );
+				SetLineCount( (m_FrameContext->GetCurrentPacket()->packetLen + 15) / 16 );
 			m_SelectedStart = m_SelectedLen = 0;
 			ResetView();
 			break;
@@ -332,7 +333,8 @@ CString* CHexView::GetLineData(int lineNo)
 	;
 	
 	// figure out how many bytes are available
-	bCount = m_FrameContext->m_Packet.packetLen - (lineNo * 16);
+//MAD_DB	bCount = m_FrameContext->m_Packet.packetLen - (lineNo * 16);
+	bCount = (m_FrameContext->GetCurrentPacket() != NULL ? m_FrameContext->GetCurrentPacket()->packetLen : 0) - (lineNo * 16);
 	if (bCount > 16) bCount = 16;
 
 	//
@@ -342,10 +344,8 @@ CString* CHexView::GetLineData(int lineNo)
     ::FillMemory (b, 16, 32);
 
 	// get 16 bytes out of the packet
-	memcpy( b
-		, m_FrameContext->m_Packet.packetData + (lineNo * 16)
-		, 16
-		);
+//MAD_DB	memcpy( b, m_FrameContext->m_Packet.packetData + (lineNo * 16), 16	);
+	memcpy( b, m_FrameContext->GetCurrentPacket()->packetData + (lineNo * 16), 16 );
 
 	// format the result
     pString->Format( _T( "%0.4X  %0.2X %0.2X %0.2X %0.2X %0.2X %0.2X " \

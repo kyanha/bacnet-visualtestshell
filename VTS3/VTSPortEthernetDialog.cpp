@@ -18,25 +18,43 @@ short UnicodeToAscii( char *ap, wchar_t *up, short max );
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortEthernetDialog dialog
 
-VTSPortEthernetDialog::VTSPortEthernetDialog(CString *cp, CWnd* pParent /*=NULL*/)
-	: CDialog(VTSPortEthernetDialog::IDD, pParent)
-	, m_Config( cp )
+IMPLEMENT_DYNCREATE(VTSPortEthernetDialog, VTSPropertyPage)
+
+
+VTSPortEthernetDialog::VTSPortEthernetDialog( VTSPageCallbackInterface * pparent )
+                      :VTSPropertyPage(VTSPortEthernetDialog::IDD, pparent)
 {
 	//{{AFX_DATA_INIT(VTSPortEthernetDialog)
 	//}}AFX_DATA_INIT
+
+	m_pstrConfigParms = NULL;
 }
+
+VTSPortEthernetDialog::VTSPortEthernetDialog(void) : VTSPropertyPage()
+{
+	ASSERT(0);
+}
+
+
+VTSPortEthernetDialog::~VTSPortEthernetDialog()
+{
+}
+
+
 
 void VTSPortEthernetDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(VTSPortEthernetDialog)
-	DDX_Control(pDX, IDC_ADAPTERCOMBO, m_AdapterCombo);
-	DDX_Control(pDX, IDC_PROMISCUOUS, m_Promiscuous);
+	DDX_CBString(pDX, IDC_ADAPTERCOMBO, m_strAdapter);
+	DDX_Check(pDX, IDC_PROMISCUOUS, m_fPromiscuous);
 	//}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(VTSPortEthernetDialog, CDialog)
+BEGIN_MESSAGE_MAP(VTSPortEthernetDialog, VTSPropertyPage)
 	//{{AFX_MSG_MAP(VTSPortEthernetDialog)
+	ON_BN_CLICKED(IDC_PROMISCUOUS, OnDataChange)
+	ON_CBN_SELCHANGE(IDC_ADAPTERCOMBO, OnDataChange)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -48,85 +66,68 @@ END_MESSAGE_MAP()
 //	the config data provided by the caller, VTSPort::Configuration.
 //
 
-void VTSPortEthernetDialog::OnOK()
+BOOL VTSPortEthernetDialog::OnKillActive() 
 {
-	CString adapter
-	;
+	// calls DDX
+	VTSPropertyPage::OnKillActive();
+	CtrlToObj();
 
-	// sync the vars with the controls
-	UpdateData();
-
-	// control text has info (might not be a selection!)
-	m_AdapterCombo.GetWindowText( adapter );
-
-	// transfer
-	*m_Config = adapter + "," + (m_Promiscuous.GetCheck() ? "1" : "0");
-
-	// continue normal processing
-	CDialog::OnOK();
+	return TRUE;
 }
 
-//
-//	VTSPortEthernetDialog::OnInitDialog
-//
 
-BOOL VTSPortEthernetDialog::OnInitDialog() 
+
+BOOL VTSPortEthernetDialog::OnSetActive() 
 {
-	int		len
-	;
+	m_pstrConfigParms = (CString * ) RetrieveCurrentData();
 
-	// let the base class do its work
-	CDialog::OnInitDialog();
-	
 	// make sure the adapter list is initialized
 	if (!gAdapterList)
 		InitAdapterList();
 
 	// look for ethernet ports
-	len = 0;
+//	char nameBuff[64];
+
+	// We'll keep adding and adding and adding the stuff since OnSetActive is called mutliple times
+	// but the VTSPortEthernetDialog is not destroyed
+
+	((CComboBox *) GetDlgItem(IDC_ADAPTERCOMBO))->ResetContent();
+
 	for (int i = 0; i < gAdapterListLen; i++) {
+//		if (gAdapterList[i].AdapterType == ETH_802_3_ADAPTER) {
+			// convert the name
+//			UnicodeToAscii( nameBuff, gAdapterList[i].MacDriverName, sizeof(nameBuff) );
+
 			// add it to the combo
-			m_AdapterCombo.AddString( gAdapterList[i].AdapterDescription );
-			m_AdapterCombo.SetItemData( len, i );
-
-			// count it
-			len++;
-	}
-	
-	// if there's no adapters, toss up a message box and exit
-	if (len == 0) {
-		AfxMessageBox( "No Ethernet adapters available" );
-		CDialog::EndDialog( IDCANCEL );
-	}
-
-	// If there is already a configuration, set the combo box text to
-	// it, otherwise, set it to the first one.  It would be nice if I went 
-	// through all of the ports and picked one that wasn't already picked.
-	// That will make a nice enhancement.
-	if (m_Config->GetLength() != 0) {
-		char config[256], *src, *dst;
-
-		// copy the name over
-		src = m_Config->GetBuffer(0);
-		dst = config;
-		while (*src && (*src != ','))
-			*dst++ = *src++;
-		*dst++ = 0;
-
-		// look for promiscuous mode
-		if (*src == ',') {
-			src += 1;
-			if (*src == '1')
-				m_Promiscuous.SetCheck( 1 );
+//			((CComboBox *) GetDlgItem(IDC_ADAPTERCOMBO))->AddString( nameBuff );
+			((CComboBox *) GetDlgItem(IDC_ADAPTERCOMBO))->AddString( gAdapterList[i].AdapterDescription );
+//			m_AdapterCombo.SetItemData( len, i );
 		}
 
-		// set the combo text
-		m_AdapterCombo.SetWindowText( config );
-	} else
-		m_AdapterCombo.SetCurSel( 0 );
+	// change dialog, produce message and hide other controls if no ethernet adapters present.
+	// only need to do this once.
 
-	return TRUE;
+	if ( gAdapterListLen == 0 )
+	{
+		GetDlgItem(IDC_NOETHERNET)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_ADAPTERCOMBO)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_PROMISCUOUS)->ShowWindow(SW_HIDE);
+	}
+
+	ObjToCtrl();
+
+	// calls DDX
+	VTSPropertyPage::OnSetActive();
+	NotifyOfDataChange();
+
+	//m_AdapterCombo.SetCurSel( 0 );		 what if not found with string?
+
+	// if we return FALSE here then this page will not be activated.  It will move on to the next. 
+	// That's good because it's extremely painful to disable all of the stuff.
+
+	return m_pstrConfigParms != NULL;
 }
+	
 
 //
 //	UnicodeToAscii
@@ -145,3 +146,64 @@ short UnicodeToAscii( char *ap, wchar_t *up, short max )
 
 	return n;
 }
+
+
+void VTSPortEthernetDialog::ObjToCtrl()
+{
+	if ( m_pstrConfigParms == NULL )
+		return;
+
+	// If there is already a configuration, set the combo box text to
+	// it, otherwise, set it to the first one.  It would be nice if I went 
+	// through all of the ports and picked one that wasn't already picked.
+	// That will make a nice enhancement.
+
+	if ( m_pstrConfigParms->GetLength() == 0 || m_pstrConfigParms->Find(',') == -1 )
+	{
+		if ( gAdapterListLen > 0 )
+		{
+			((CComboBox *) GetDlgItem(IDC_ADAPTERCOMBO))->GetLBText(0, *m_pstrConfigParms );
+			*m_pstrConfigParms += ",0";
+		}
+	}
+
+	m_fPromiscuous = FALSE;
+	m_strAdapter.Empty();
+
+	if ( m_pstrConfigParms->GetLength() != 0 )
+	{
+		char  * dst = m_strAdapter.GetBuffer(64);
+		LPCSTR src = *m_pstrConfigParms;
+
+		// copy the name over
+		while (*src && (*src != ','))
+			*dst++ = *src++;
+		*dst++ = 0;
+
+		// look for promiscuous mode
+		if (*src == ',') {
+			src += 1;
+			m_fPromiscuous = (*src == '1');
+		}
+
+		m_strAdapter.ReleaseBuffer();
+	}
+}
+
+
+void VTSPortEthernetDialog::CtrlToObj()
+{
+	if ( m_pstrConfigParms == NULL )
+		return;
+
+	*m_pstrConfigParms = m_strAdapter + "," + (m_fPromiscuous ? "1" : "0");
+}
+
+
+void VTSPortEthernetDialog::OnDataChange() 
+{
+	UpdateData( true );
+	CtrlToObj();
+	NotifyOfDataChange();
+}
+

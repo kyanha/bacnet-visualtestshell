@@ -48,7 +48,8 @@
 #include "stdafx.h"
 #include "VTS.h"
 #include "ScriptEdit.h"
-#include "MainFrm.h"
+//#include "MainFrm.h"
+#include "ScriptFrame.h"
 #include "GoToLineDlg.h"
 
 #ifdef _DEBUG
@@ -77,6 +78,8 @@ ScriptEdit::ScriptEdit()
 
 	m_bDelete		= false;
 	m_bInput		= false;
+
+	m_pframe = NULL;
 }
 
 ScriptEdit::~ScriptEdit()
@@ -201,8 +204,10 @@ BOOL ScriptEdit::OnEraseBkgnd(CDC* pDC)
 
 	if(nCurrentY+CHAR_HEIGHT-1 < m_nClientY)
 	{
-		CRect rLine = new CRect(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
-		pDC->FillSolidRect( rLine, RGB(255,255,0) );
+//madanner 5/03 memory leaks... 
+//		CRect rLine = new CRect(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
+		CRect	rLine(m_nMargin, nCurrentY, m_nClientX, nCurrentY + CHAR_HEIGHT);
+		pDC->FillSolidRect( &rLine, RGB(255,255,0) );
 	}
 
  	return TRUE;
@@ -238,8 +243,10 @@ void ScriptEdit::OnSetfocus()
 	CString str;
 	str.Format(" Ln: %d",m_nCurrentLine+1);
 
-	CMainFrame* pFrm = (CMainFrame*) AfxGetMainWnd();
-	pFrm->SetLnPaneText(str);	
+//madanner 5/03	CMainFrame* pFrm = (CMainFrame*) AfxGetMainWnd();
+//	pFrm->SetLnPaneText(str);	
+	if ( m_pframe != NULL )
+		m_pframe->SetLnPaneText(str);
 }
 
 void ScriptEdit::OnLButtonDown(UINT nFlags, CPoint point) 
@@ -506,8 +513,11 @@ int ScriptEdit::GetCurLineIndex()
 	else
 		str.Format(" Ln: %d",nLineIndex);
 
-	CMainFrame* pFrm = (CMainFrame*) AfxGetMainWnd();
-	pFrm->SetLnPaneText(str);
+//madanner, 5/03
+//	CMainFrame* pFrm = (CMainFrame*) AfxGetMainWnd();
+//	pFrm->SetLnPaneText(str);
+	if ( m_pframe != NULL )
+		m_pframe->SetLnPaneText(str);
 
 	return m_nCurrentLine;
 }

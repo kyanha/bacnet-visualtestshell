@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
+#include "VTSPreferences.h"
 
 #include "Send.h"
 
@@ -17,6 +18,11 @@ static char THIS_FILE[] = __FILE__;
 #define IDC_PACKETDATA	0x1003
 #define IDC_SEND		0x1004
 #define IDC_HISTORY     0x1005 //Xiao Shiyuan 2002-12-5
+
+/////////////////////////////////////////////////////////////////////////////
+
+extern VTSPreferences	gVTSPreferences;
+
 /////////////////////////////////////////////////////////////////////////////
 
 CSendGroupItem gIPItemList[] =
@@ -487,6 +493,9 @@ BOOL CSend::OnInitDialog()
 	;
 	CRect	rectWnd
 	;
+
+	// MAD_DB
+	VTSPorts * pports = ((VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace())->GetPorts();
 	
 	// resize the window to make space for the tree
 	GetWindowRect( rectWnd );
@@ -506,8 +515,11 @@ BOOL CSend::OnInitDialog()
 	
 	// define the ports
 	m_port.AddString( "(select a port)" );
-	for (int i = 0; i < gMasterPortList.Length(); i++)
-		m_port.AddString( gMasterPortList[i]->portDesc.portName );
+//MAD_DB	for (int i = 0; i < gMasterPortList.Length(); i++)
+//MAD_DB		m_port.AddString( gMasterPortList[i]->portDesc.portName );
+
+	for (int i = 0; pports != NULL && i < pports->GetSize(); i++)
+		m_port.AddString( (*pports)[i]->GetName() );
 	
 	// select the null port, note that the null page has already been added 
 	// in the constructor, you can't add it here! (gag)
@@ -582,7 +594,7 @@ BOOL CSend::OnInitDialog()
 	UpdateEncoded();
 
 	// make sure the selected port is clipped
-	if (gSelectedPort >= gMasterPortList.Length())
+	if (gSelectedPort >= pports->GetSize() )
 		gSelectedPort = -1;
 
 	// change to the selected port if there is one
@@ -647,7 +659,12 @@ void CSend::ChangePort( int indx )
 	}
 
 	// get a pointer to the port
-	m_pPort = gMasterPortList[indx - 1];
+	// MAD_DB
+	VTSPorts * pports = ((VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace())->GetPorts();
+	if ( pports == NULL || indx > pports->GetSize() )
+		return;
+
+	m_pPort = (*pports)[indx - 1];
 
 	// if the port didn't specify a group, return to null page and empty tree
 	if (!m_pPort->portSendGroup) {
@@ -943,10 +960,10 @@ void CSend::OnSend()
 	// if it's a confirmed request, bump up the invoke ID
 	if (m_isConfirmedRequest) {
 		// bump the invoke ID
-		gVTSPreferences.sendInvokeID = (gVTSPreferences.sendInvokeID + 1) % 256;
+		gVTSPreferences.Send_SetInvokeID((gVTSPreferences.Send_GetInvokeID() + 1) % 256);
 
 		// pass the new value to the background value in the control
-		ConfirmedRequestPage.m_InvokeID.intValue = gVTSPreferences.sendInvokeID;
+		ConfirmedRequestPage.m_InvokeID.intValue = gVTSPreferences.Send_GetInvokeID();
 
 		// let the control reflect the new value
 		ConfirmedRequestPage.m_InvokeID.ObjToCtrl();

@@ -16,8 +16,9 @@ class VTSNamesDlg : public CDialog
 {
 // Construction
 public:
-	VTSNamesDlg(CWnd* pParent = NULL);	// standard constructor (not used)
-	VTSNamesDlg( VTSNameListPtr nlp, VTSPortListPtr plp );	// ctor
+//MAD_DB	VTSNamesDlg(CWnd* pParent = NULL);	// standard constructor (not used)
+//MAD_DB	VTSNamesDlg( VTSNameListPtr nlp, VTSPortListPtr plp );	// ctor
+	VTSNamesDlg( VTSNames * pnames, VTSPorts * pports, CWnd* pParent = NULL  );	// ctor
 
 	void InitPortList( void );			// init the port pop-up list
 	void InitNameList( void );			// init the CListCtrl of existing names
@@ -26,9 +27,13 @@ public:
 	void SynchronizeControls( void );	// sync list and controls
 	void SaveChanges( void );			// new values to update selected name
 
-	void NameToList( const VTSNameDesc &name, int elem );
-	void NameToCtrl( const VTSNameDesc &name );
-	void CtrlToName( VTSNameDesc &name );
+//MAD_DB
+//	void NameToList( const VTSNameDesc &name, int elem );
+	void NameToList( const VTSName * pname, int elem );
+//	void NameToCtrl( const VTSNameDesc &name );
+	void NameToCtrl( const VTSName * pname );
+//	void CtrlToName( VTSNameDesc &name );
+	void CtrlToName( VTSName * pname );
 
 // Dialog Data
 	//{{AFX_DATA(VTSNamesDlg)
@@ -51,14 +56,21 @@ public:
 
 // Implementation
 protected:
-	VTSNameListPtr	m_pNameList;						// pointer to list of names
-	VTSPortListPtr	m_pPortList;						// pointer to list of ports
+//MAD_DB	VTSNameListPtr	m_pNameList;						// pointer to list of names
+//MAD_DB	VTSPortListPtr	m_pPortList;						// pointer to list of ports
+	VTSPorts *		m_pports;
+	VTSNames		m_names;							// copy of names for dlg manipulation
+	VTSNames *		m_pnames;							// pointer to original names list for copy OnOK
+
 	int				m_iSelectedName;					// index of selected name
+	bool			m_fWarnedAlready;
 
 	// Generated message map functions
 	//{{AFX_MSG(VTSNamesDlg)
 	virtual BOOL OnInitDialog();
 	afx_msg void OnNew();
+	afx_msg void OnOK();
+	afx_msg void OnCancel();
 	afx_msg void OnDelete();
 	afx_msg void OnImportNames();
 	afx_msg void OnExportNames();

@@ -8,7 +8,8 @@
 #include "ScriptFrame.h"
 #include "ScriptBase.h"
 #include "ScriptExecutor.h"
-#include "ScriptSelectSession.h"
+//MAD_DB Not needed anymore with single session VTS
+//#include "ScriptSelectSession.h"
 
 //Added by Yajun Zhou, 2002-11-4
 #include "ReadAllPropSettingsDlg.h"
@@ -53,9 +54,12 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // ScriptFrame
 
-IMPLEMENT_DYNCREATE(ScriptFrame, CMDIChildWnd)
+//madanner 5/03
+//IMPLEMENT_DYNCREATE(ScriptFrame, CMDIChildWnd)
+IMPLEMENT_DYNCREATE(ScriptFrame, CMDIFrameWnd)
 
-BEGIN_MESSAGE_MAP(ScriptFrame, CMDIChildWnd)
+//madanner 5/03 BEGIN_MESSAGE_MAP(ScriptFrame, CMDIChildWnd)
+BEGIN_MESSAGE_MAP(ScriptFrame, CMDIFrameWnd)
 	//{{AFX_MSG_MAP(ScriptFrame)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_CHECK_SYNTAX, OnUpdateScriptCheckSyntax)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_LOADEPICS, OnUpdateScriptLoadEPICS)
@@ -99,7 +103,9 @@ BOOL ScriptFrame::PreCreateWindow(CREATESTRUCT& cs)
 	// TODO: Modify the Window class or styles here by modifying
 	//  the CREATESTRUCT cs
 
-	if( !CMDIChildWnd::PreCreateWindow(cs) )
+//madanner 5/03	if( !CMDIChildWnd::PreCreateWindow(cs) )
+
+	if( !CMDIFrameWnd::PreCreateWindow(cs) )
 		return FALSE;
 
 	return TRUE;
@@ -113,12 +119,14 @@ BOOL ScriptFrame::PreCreateWindow(CREATESTRUCT& cs)
 #ifdef _DEBUG
 void ScriptFrame::AssertValid() const
 {
-	CMDIChildWnd::AssertValid();
+//madanner 5/03	CMDIChildWnd::AssertValid();
+	CMDIFrameWnd::AssertValid();
 }
 
 void ScriptFrame::Dump(CDumpContext& dc) const
 {
-	CMDIChildWnd::Dump(dc);
+//madanner 5/03	CMDIChildWnd::Dump(dc);
+	CMDIFrameWnd::Dump(dc);
 }
 
 #endif //_DEBUG
@@ -126,10 +134,50 @@ void ScriptFrame::Dump(CDumpContext& dc) const
 /////////////////////////////////////////////////////////////////////////////
 // ScriptFrame message handlers
 
+static UINT Script_indicators[] =
+{
+	ID_SEPARATOR,           // status line indicator
+//	Added by Yajun Zhou, 2002-4-22
+	ID_LNCOLINDEX,
+/////////////////////////
+	ID_INDICATOR_CAPS,
+	ID_INDICATOR_NUM,
+	ID_INDICATOR_SCRL,
+};
+
+
+void ScriptFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
+{
+	CFrameWnd::OnUpdateFrameTitle(bAddToTitle);
+}
+
+
 BOOL ScriptFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext) 
 {
 	// save a pointer to the document
 	m_pDoc = (ScriptDocument*)pContext->m_pCurrentDoc;
+
+	// Attempt to create toolbar and status bars
+	// madanner 5/03
+
+	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP	| CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
+		!m_wndToolBar.LoadToolBar(IDR_VTSTYPE))
+	{
+		TRACE0("Failed to create toolbar\n");
+		return -1;      // fail to create
+	}
+
+	if (!m_wndStatusBar.Create(this) ||	!m_wndStatusBar.SetIndicators(Script_indicators,  sizeof(Script_indicators)/sizeof(UINT)))
+	{
+		TRACE0("Failed to create status bar\n");
+		return -1;      // fail to create
+	}
+
+	// TODO: Delete these three lines if you don't want the toolbar to
+	//  be dockable
+	m_wndToolBar.EnableDocking( CBRS_ALIGN_ANY );
+	EnableDocking( CBRS_ALIGN_ANY );
+	DockControlBar( &m_wndToolBar );
 
 	// create a splitter with 2 rows, 1 column
 	if (!m_wndSplit1.CreateStatic(this, 2, 1))
@@ -142,9 +190,16 @@ BOOL ScriptFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 //	Changed by Yajun Zhou, 2002-4-22
 //	if (!m_wndSplit1.CreateView(0, 0,
 //		RUNTIME_CLASS(CEditView), CSize(0, 300), pContext))
-	if (!m_wndSplit1.CreateView(0, 0,
-		RUNTIME_CLASS(ScriptEdit), CSize(0, 300), pContext))
-////////////////////////////////////////////////////////////
+
+	RECT	rt;
+	GetWindowRect(&rt);
+
+	// adjust size:  left = full width, top = 1/3 of full height
+	rt.left = rt.right - rt.left;
+	rt.top = (rt.bottom - rt.top) / 3;
+
+//	if (!m_wndSplit1.CreateView(0, 0, RUNTIME_CLASS(ScriptEdit), CSize(0, 300), pContext))
+	if (!m_wndSplit1.CreateView(0, 0, RUNTIME_CLASS(ScriptEdit), CSize(rt.left, rt.top * 2), pContext))
 	{
 		TRACE0("Failed to create edit pane\n");
 		return FALSE;
@@ -154,6 +209,10 @@ BOOL ScriptFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 //	Changed by Yajun Zhou, 2002-4-22
 //	m_pEditView = (CEditView*)m_wndSplit1.GetPane( 0, 0 );
 	m_pEditView = (ScriptEdit*)m_wndSplit1.GetPane( 0, 0 );
+
+	//madanner 5/03
+	// Hack to get frame because we're not really a frame window
+	m_pEditView->SetFrame(this);
 //////////////////////////////////////////////////////////
 
 	// pass it along to the document
@@ -173,11 +232,11 @@ BOOL ScriptFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	}
 	
 	// now create the two views inside the nested splitter
-	int cxHalf = max(lpcs->cx / 2, 20);
+//	int cxHalf = max(lpcs->cx / 2, 20);
 	
 	// tree view gets left half
-	if (!m_wndSplit2.CreateView(0, 0,
-		RUNTIME_CLASS(ScriptContentTree), CSize(cxHalf, 0), pContext))
+//	if (!m_wndSplit2.CreateView(0, 0, RUNTIME_CLASS(ScriptContentTree), CSize(cxHalf, 0), pContext))
+	if (!m_wndSplit2.CreateView(0, 0, RUNTIME_CLASS(ScriptContentTree), CSize(rt.left/2, rt.top), pContext))
 	{
 		TRACE0("Failed to create tree pane\n");
 		return FALSE;
@@ -192,8 +251,7 @@ BOOL ScriptFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 //////////////////////////////////////////////////////////
 
 	// list view gets right half
-	if (!m_wndSplit2.CreateView(0, 1,
-		RUNTIME_CLASS(ScriptParmList), CSize(0, 0), pContext))
+	if (!m_wndSplit2.CreateView(0, 1, RUNTIME_CLASS(ScriptParmList), CSize(0, 0), pContext))
 	{
 		TRACE0("Failed to create parameter list pane\n");
 		return FALSE;
@@ -205,6 +263,14 @@ BOOL ScriptFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 
 	// success
 	return TRUE;
+//	return CreateClient(lpcs, NULL);
+}
+
+
+void ScriptFrame::SetLnPaneText(LPCSTR lpszText)
+{
+	int i = m_wndStatusBar.CommandToIndex(ID_LNCOLINDEX);
+	m_wndStatusBar.SetPaneText(i, lpszText);
 }
 
 //
@@ -614,19 +680,19 @@ void ScriptFrame::OnScriptReset()
 
 bool ScriptFrame::DoInitialSetup( void )
 {
-	VTSDocPtr			vdp
-	;
-	ScriptDocumentPtr	sdp
-	;
-	ScriptTestPtr		stp = 0
-	;
+	VTSDocPtr			vdp = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+	ScriptDocumentPtr	sdp;
+	ScriptTestPtr		stp = 0;
 	
 	// find a database for test messages
-	if (gDocList.Length() == 0) {
+//MAD_DB	if (gDocList.Length() == 0) {
+	if ( vdp == NULL ) {
 		// alert the user
 		AfxMessageBox( _T("No session database available to receive test results") );
 		return false;
-	} else
+	}
+/*MAD_DB
+	else
 	if (gDocList.Length() == 1)
 		vdp = gDocList.Child( 0 );
 	else {
@@ -640,6 +706,7 @@ bool ScriptFrame::DoInitialSetup( void )
 			return false;
 		}
 	}
+*/
 
 	// the document to run is this one
 	sdp = m_pDoc;

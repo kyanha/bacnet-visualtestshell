@@ -17,7 +17,7 @@ class ScriptParmUpdate : public CDialog
 // Construction
 public:
 	ScriptParmUpdate( CWnd* pParent = NULL );	// standard constructor
-	ScriptParmUpdate( ScriptParmPtr pp );		// extended constructor
+	ScriptParmUpdate( ScriptParmPtr pp, CWnd * pparent = NULL );		// extended constructor
 
 // Dialog Data
 	bool		m_ParmValueOK;

@@ -10,12 +10,18 @@
 #endif // _MSC_VER > 1000
 // ScriptEdit.h : header file
 //
+
+class ScriptFrame;
+
 /////////////////////////////////////////////////////////////////////////////
 // ScriptEdit view
 #include "LineNumCtrl.h"
 
 class ScriptEdit : public CEditView
 {
+private:
+	ScriptFrame * m_pframe;
+
 protected:
 	ScriptEdit();           // protected constructor used by dynamic creation
 	DECLARE_DYNCREATE(ScriptEdit)
@@ -29,6 +35,7 @@ public:
 	int GetCurLineIndex();
 	void GotoLine(int nLineIndex);
 	void SetDefaultFont();
+	void SetFrame( ScriptFrame * pframe ) { m_pframe = pframe; }
 
 // Overrides
 	// ClassWizard generated virtual function overrides

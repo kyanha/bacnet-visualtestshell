@@ -8,29 +8,60 @@
 //
 
 #include "VTSDoc.h"
+#include "VTSPortIPDialog.h"
+#include "VTSPortEthernetDialog.h"
+#include "VTSPortPTPDialog.h"
+#include "VTSPortARCNETDialog.h"
+#include "VTSPortMSTPDialog.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortDlg dialog
 
-class VTSPortDlg : public CDialog
+#define PORT_PAGE_MAX		6
+
+class VTSPortDlg : public CDialog, public VTSPageCallbackInterface
 {
+	CPropertyPage * m_ppages[PORT_PAGE_MAX];
+	CString		  * m_pstrPageData[PORT_PAGE_MAX];
+	bool			m_fModified;
+
+	// mirrors manipulation of local m_ports array so we can tell which ports have been modified, added
+	// and change status
+
+	CPtrArray		m_apOriginalPort;
+
+	void ReloadTypeData( int nActiveType, CString * pstr );
+	void DeactivateChangedPorts(void);
+	void MoveLocalPortsToMain(void);
+	void CopyMainPortArray(void);
+	void EnableOK(void);
+
 // Construction
 public:
-	VTSPortDlg(CWnd* pParent = NULL);   // standard constructor (not used)
-	VTSPortDlg( VTSPortListPtr plp, VTSDeviceListPtr dlp );		// ctor
+//	VTSPortDlg( VTSPortListPtr plp, VTSDeviceListPtr dlp );		// ctor
+	VTSPortDlg( VTSDoc * pdoc );
+	~VTSPortDlg();
 
-	CString		m_Config;				// transfer config string
-
+	CPropertySheet		    m_sheet;
+	VTSPortNullDialog		m_pageNull;
+	VTSPortIPDialog			m_pageIP;
+	VTSPortEthernetDialog	m_pageEthernet;
+	VTSPortARCNETDialog		m_pageARCNET;
+	VTSPortMSTPDialog		m_pageMSTP;
+	VTSPortPTPDialog		m_pagePTP;
+	
 	void PortStatusChange( void );						// status of some port has changed
+
+	virtual void DataChangeNotification(void);		// call back from pages
+	virtual void * GetActiveData(void);
 
 // Dialog Data
 	//{{AFX_DATA(VTSPortDlg)
 	enum { IDD = IDD_PORT };
 	CListCtrl	m_PortList;
-	CString		m_Name;
-	BOOL		m_Enabled;
-	int			m_Type;
-	CString		m_Network;
+	CString		m_strName;
+	BOOL		m_fEnabled;
+	int			m_nNetwork;
 	CComboBox	m_DeviceCombo;
 	//}}AFX_DATA
 
@@ -43,8 +74,13 @@ public:
 
 // Implementation
 protected:
-	VTSPortListPtr		m_pPortList;					// pointer to list of ports
-	VTSDeviceListPtr	m_pDeviceList;					// pointer to list of devices
+//MAD_DB	VTSPortListPtr		m_pPortList;					// pointer to list of ports
+//MAD_DB	VTSDeviceListPtr	m_pDeviceList;					// pointer to list of devices
+	VTSDevices *		m_pdevices;						// pointer to list of devices
+	VTSPorts *			m_pports;
+	VTSDoc *			m_pdoc;
+	VTSPorts			m_ports;						// new copy of ports...
+
 	int					m_iSelectedPort;				// index of selected port
 	CImageList			m_ilStatus;						// status images
 
@@ -52,6 +88,7 @@ protected:
 	void ResetSelection( void );
 	void SynchronizeControls( void );
 
+	void UpdatePortListItem( int nIndex, VTSPort * pport );
 	afx_msg void SaveChanges();							// save changes in port desc
 
 	// Generated message map functions
@@ -60,9 +97,12 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnItemchangingPortList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnDblclkPortList(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnConfig();
-	afx_msg void OnColor();
+	virtual void OnOK();
+	virtual void OnCancel();
+	afx_msg void OnDelete();
+	afx_msg void OnApplyNow();
 	//}}AFX_MSG
+
 	DECLARE_MESSAGE_MAP()
 };
 

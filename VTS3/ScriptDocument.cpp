@@ -318,7 +318,7 @@ void ScriptDocument::CheckSyntax( void )
 
 					prevGroup = NULL;
 					{
-					ScriptCHECKCommand	* pcheckCommand = new ScriptCHECKCommand(ifdefHandler, scan, tok, &curTest->baseLabel);
+					ScriptCHECKCommand	* pcheckCommand = new ScriptCHECKCommand(ifdefHandler, scan, tok, &curTest->baseLabel, AfxGetMainWnd()->GetActiveWindow() );
 					pcheckCommand->m_nCaseLevel = curCaseLevel;
 					curCase->Append(pcheckCommand);
 					prevCommand = (ScriptCommandPtr) pcheckCommand;
@@ -335,7 +335,7 @@ void ScriptDocument::CheckSyntax( void )
 
 					prevGroup = NULL;			// for AND/OR stuff
 					{
-					ScriptMAKECommand	* pmakeCommand = new ScriptMAKECommand(ifdefHandler, scan, tok, &curTest->baseLabel);
+					ScriptMAKECommand	* pmakeCommand = new ScriptMAKECommand(ifdefHandler, scan, tok, &curTest->baseLabel, AfxGetMainWnd()->GetActiveWindow() );
 					pmakeCommand->m_nCaseLevel = curCaseLevel;
 					curCase->Append(pmakeCommand);
 					prevCommand = (ScriptCommandPtr) pmakeCommand;

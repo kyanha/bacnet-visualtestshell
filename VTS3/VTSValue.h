@@ -79,8 +79,10 @@ const int kVTSObjPropValueSize = sizeof( VTSObjPropValue );
 //	null, opening, and closing tags there is no content to save.
 //
 
+//MAD_DB  moved to VTSPropValue.h
+//const int kVTSValueElemContentLength = 512;
+
 const int kVTSValueElemHeaderLength = kJDBObjSize + sizeof(int);
-const int kVTSValueElemContentLength = 512;
 
 struct VTSValueElemDesc : JDBObj {
 	int						elemLen;				// length of encoded content
@@ -176,6 +178,8 @@ class VTSObjPropValueList {
 
 typedef VTSObjPropValueList *VTSObjPropValueListPtr;
 const int kVTSObjPropValueListSize = sizeof( VTSObjPropValueList );
+
+
 
 //
 //	VTSObjectList

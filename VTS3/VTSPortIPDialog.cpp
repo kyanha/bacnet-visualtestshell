@@ -16,27 +16,127 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortIPDialog dialog
 
-VTSPortIPDialog::VTSPortIPDialog(CString *cp, CWnd* pParent /*=NULL*/)
-	: CDialog(VTSPortIPDialog::IDD, pParent)
-	, m_Config( cp )
+IMPLEMENT_DYNCREATE(VTSPortIPDialog, VTSPropertyPage)
+
+VTSPortIPDialog::VTSPortIPDialog( VTSPageCallbackInterface * pparent )
+                      :VTSPropertyPage(VTSPortIPDialog::IDD, pparent)
 {
-	//{{AFX_DATA_INIT(VTSPortIPDialog)
+	//{{AFX_DATA_INIT(VTSPortEthernetDialog)
 	m_HostAddr = _T("");
 	m_TTL = _T("");
-	m_PortType = -1;
+	m_nPortType = -1;
 	//}}AFX_DATA_INIT
 
-	int		argc = 0
-	;
-	char	config[kVTSPortConfigLength], *src
-	,		*argv[16]
-	;
+	m_pstrConfigParms = NULL;
+}
+
+VTSPortIPDialog::VTSPortIPDialog(void) : VTSPropertyPage()
+{
+	ASSERT(0);
+}
+
+
+VTSPortIPDialog::~VTSPortIPDialog()
+{
+}
+
+
+void VTSPortIPDialog::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	//{{AFX_DATA_MAP(VTSPortIPDialog)
+	DDX_Text(pDX, IDC_SOCKET, m_Socket);
+	DDX_Text(pDX, IDC_HOSTADDR, m_HostAddr);
+	DDX_Text(pDX, IDC_TTL, m_TTL);
+	DDX_Radio(pDX, IDC_RAW, m_nPortType);
+	//}}AFX_DATA_MAP
+}
+
+BEGIN_MESSAGE_MAP(VTSPortIPDialog, VTSPropertyPage)
+	//{{AFX_MSG_MAP(VTSPortIPDialog)
+	ON_BN_CLICKED(IDC_RAW, OnDataChange)
+	ON_BN_CLICKED(ID_BTRPEERS, OnBTRPeers)
+	ON_BN_CLICKED(ID_BBMDPEERS, OnBBMDPeers)
+	ON_BN_CLICKED(IDC_BTR, OnDataChange)
+	ON_BN_CLICKED(IDC_BBMD, OnDataChange)
+	ON_BN_CLICKED(IDC_BIP, OnDataChange)
+	ON_BN_CLICKED(IDC_FOREIGN, OnDataChange)
+	ON_EN_CHANGE(IDC_SOCKET, OnDataChange)
+	ON_EN_CHANGE(IDC_HOSTADDR, OnDataChange)
+	ON_EN_CHANGE(IDC_TTL, OnDataChange)
+	//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+
+BOOL VTSPortIPDialog::OnSetActive() 
+{
+	m_pstrConfigParms = (CString * ) RetrieveCurrentData();
+
+	ObjToCtrl();
+	CtrlToObj();		// must suck the data back out to rectify parm string
+
+	// calls DDX
+	VTSPropertyPage::OnSetActive();
+	NotifyOfDataChange();
+
+	SynchControls(m_pstrConfigParms != NULL);
+
+	// if we return FALSE here then this page will not be activated.  It will move on to the next. 
+	// That's good because it's extremely painful to disable all of the stuff.
+
+	return m_pstrConfigParms != NULL;
+}
+	
+
+
+BOOL VTSPortIPDialog::OnKillActive() 
+{
+	// calls DDX
+	VTSPropertyPage::OnKillActive();
+	CtrlToObj();
+
+	return TRUE;
+}
+
+
+//
+//	VTSPortIPDialog::OnPortType
+//
+
+void VTSPortIPDialog::OnDataChange() 
+{
+	// sync the member variables with the dialog controls
+	UpdateData( true );
+	CtrlToObj();
+	SynchControls(m_pstrConfigParms != NULL);
+	NotifyOfDataChange();
+}
+
+
+
+void VTSPortIPDialog::SynchControls( bool fEnable /* = true */ )
+{
+	GetDlgItem( IDC_HOSTADDR )->EnableWindow( fEnable && m_nPortType == 4 );
+	GetDlgItem( IDC_TTL )->EnableWindow( fEnable && m_nPortType == 4 );
+	GetDlgItem( ID_BTRPEERS )->EnableWindow( fEnable && m_nPortType == 1 );
+	GetDlgItem( ID_BBMDPEERS )->EnableWindow( fEnable && m_nPortType == 2 );
+}
+
+
+void VTSPortIPDialog::ObjToCtrl()
+{
+	if ( m_pstrConfigParms == NULL )
+		return;
+
+	int		argc = 0;
+	LPCSTR  p = *m_pstrConfigParms;
+	char	config[kVTSPortConfigLength], *src,		*argv[16];
 
 	// copy the configuration, split it up
-	if (**cp == 0)
+	if (*p == 0)
 		strcpy( config, "0xBAC0" );
 	else
-		strcpy( config, *cp );
+		strcpy( config, p );
 	for (src = config; *src; ) {
 		argv[argc++] = src;
 		while (*src && (*src != ','))
@@ -52,10 +152,10 @@ VTSPortIPDialog::VTSPortIPDialog(CString *cp, CWnd* pParent /*=NULL*/)
 
 	// if that's the only thing, that's OK
 	if (argc == 1)
-		m_PortType = 0;
+		m_nPortType = 0;
 	else {
-		m_PortType = atoi( argv[1] );
-		switch (m_PortType) {
+		m_nPortType = atoi( argv[1] );
+		switch (m_nPortType) {
 			case 0:				// raw
 			case 1:				// BTR
 			case 2:				// BBMD
@@ -69,96 +169,47 @@ VTSPortIPDialog::VTSPortIPDialog(CString *cp, CWnd* pParent /*=NULL*/)
 	}
 }
 
-void VTSPortIPDialog::DoDataExchange(CDataExchange* pDX)
-{
-	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(VTSPortIPDialog)
-	DDX_Text(pDX, IDC_SOCKET, m_Socket);
-	DDX_Text(pDX, IDC_HOSTADDR, m_HostAddr);
-	DDX_Text(pDX, IDC_TTL, m_TTL);
-	DDX_Radio(pDX, IDC_RAW, m_PortType);
-	//}}AFX_DATA_MAP
 
-	GetDlgItem( IDC_HOSTADDR )->EnableWindow( m_PortType == 4 );
-	GetDlgItem( IDC_TTL )->EnableWindow( m_PortType == 4 );
-}
-
-BEGIN_MESSAGE_MAP(VTSPortIPDialog, CDialog)
-	//{{AFX_MSG_MAP(VTSPortIPDialog)
-	ON_BN_CLICKED(IDC_RAW, OnPortType)
-	ON_BN_CLICKED(IDC_BTR, OnPortType)
-	ON_BN_CLICKED(IDC_BBMD, OnPortType)
-	ON_BN_CLICKED(IDC_BIP, OnPortType)
-	ON_BN_CLICKED(IDC_FOREIGN, OnPortType)
-	//}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
-//
-//	VTSPortIPDialog::OnOK
-//
 //	When the user accepts the configuration information and clicks OK, 
 //	this function is called which transfers the new configuration into 
 //	the config data provided by the caller, VTSPort::Configuration.
-//
 
-void VTSPortIPDialog::OnOK()
+void VTSPortIPDialog::CtrlToObj()
 {
-	CString		rslt, form
-	;
+	if ( m_pstrConfigParms == NULL )
+		return;
 
-	// sync the vars with the controls
-	UpdateData();
+	*m_pstrConfigParms = m_Socket;
 
-	// format the result string
-	rslt = m_Socket;
-	switch (m_PortType) {
+	switch (m_nPortType)
+	{
 		case 0:				// Raw
 			break;
 
 		case 1:				// BTR [, ipaddr ]*
-			rslt += ",1";
+			*m_pstrConfigParms += ",1";
 			break;
 
 		case 2:				// BBMD [, ipaddr/host:socket ]*
-			rslt += ",2";
+			*m_pstrConfigParms += ",2";
 			break;
 
 		case 3:				// BIP
-			rslt += ",3";
+			*m_pstrConfigParms += ",3";
 			break;
 
 		case 4:				// FOREIGN, ipaddr:socket, TTL
-			rslt += ",4," + m_HostAddr + "," + m_TTL;
+			*m_pstrConfigParms += ",4," + m_HostAddr + "," + m_TTL;
 			break;
 	}
-
-	// transfer
-	*m_Config = rslt;
-
-	// continue normal processing
-	CDialog::OnOK();
 }
 
-//
-//	VTSPortIPDialog::OnInitDialog
-//
-
-BOOL VTSPortIPDialog::OnInitDialog() 
+void VTSPortIPDialog::OnBTRPeers() 
 {
-	CDialog::OnInitDialog();
-	
-	return TRUE;
+	AfxMessageBox("Unfortunately I have no clue what this BTRPeers button should do at this point.");
 }
 
-//
-//	VTSPortIPDialog::OnPortType
-//
-
-void VTSPortIPDialog::OnPortType() 
+void VTSPortIPDialog::OnBBMDPeers() 
 {
-	// sync the member variables with the dialog controls
-	UpdateData( true );
-
-	GetDlgItem( IDC_HOSTADDR )->EnableWindow( m_PortType == 4 );
-	GetDlgItem( IDC_TTL )->EnableWindow( m_PortType == 4 );
+	AfxMessageBox("Unfortunately I have no clue what this BBMDPeers should do at this point.");
 }

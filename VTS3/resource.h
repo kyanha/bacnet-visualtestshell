@@ -3,7 +3,9 @@
 // Used by VTS.rc
 //
 #define ID_NEWNAME                      3
+#define IDC_DEVIMPORT                   3
 #define ID_DELETENAME                   4
+#define IDC_DEVEXPORT                   4
 #define ID_IMPORTNAMES                  5
 #define ID_EXPORTNAMES                  6
 #define IDD_ABOUTBOX                    100
@@ -15,6 +17,7 @@
 #define IDR_VTSTYPE                     129
 #define IDR_VDBTYPE                     130
 #define IDR_SUMMARYTYPE                 132
+#define IDR_DEVTREE                     133
 #define IDC_CURSOR1                     135
 #define IDC_CURSOR2                     136
 #define IDB_PACKETTREE                  140
@@ -107,11 +110,13 @@
 #define IDD_SENDUNCONFEVENTNOTIFICATION 227
 #define IDD_SENDUNCONFCOVNOTIFICATION   228
 #define IDD_PORT_ENET                   229
+#define IDD_PORTPAGE_ENET               229
 #define IDD_PORT_IP                     230
 #define IDB_PARMSTATUS                  230
 #define IDD_PORT_ARCNET                 231
 #define IDD_PORT_MSTP                   232
 #define IDD_PORT_PTP                    233
+#define IDD_PORTPAGE_PTP                233
 #define IDD_SCRIPTPARMUPDATE            234
 #define IDB_CONTENTSTATUS               235
 #define IDD_SELECT_SESSION              236
@@ -125,6 +130,7 @@
 #define IDD_STATISTICS_OPTIONS          244
 #define IDD_SENDDEVICE                  245
 #define IDD_DIALOG1                     246
+#define IDD_DEVICESTREE                 246
 #define IDD_READALLPROPSETTING          247
 #define IDD_LOADEPICSCONSCHK            248
 #define IDD_SCRIPTMAKE                  250
@@ -134,6 +140,22 @@
 #define IDB_SCRIPTCHECK                 253
 #define IDD_OBJPROPLIST                 253
 #define IDD_OBJPROPARRAY                254
+#define IDD_PACKETFILE                  255
+#define IDD_OBJPROPERTYLIST             256
+#define IDD_DEVTREENULL                 259
+#define IDD_DEVTREEDEV                  260
+#define IDD_DEVTREEOBJ                  261
+#define IDD_DEVTREEPROP                 263
+#define IDD_DEVTREEVALUE                264
+#define IDD_BTYPEGENERIC                266
+#define IDB_DEVTREE                     268
+#define IDD_PORTPAGE_IP                 269
+#define IDD_PORTPAGE_NULL               270
+#define IDD_PORTPAGE_ARCNET             271
+#define IDD_PORTPAGE_MSTP               272
+#define IDD_PREFERENCES                 273
+#define IDB_BMALOGO                     300
+#define IDB_WINPCAPLOGO                 301
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -398,6 +420,7 @@
 #define ID_BTRPEERS                     1184
 #define IDC_OBJPROP                     1184
 #define IDC_HOSTADDR                    1185
+#define IDC_DELETEDEVICE                1185
 #define IDC_STARTDATUM                  1190
 #define IDC_ENDDATUM                    1191
 #define IDC_COUNT                       1192
@@ -488,6 +511,20 @@
 #define IDC_COMBO_NETWORK               1251
 #define IDC_EPICSCONSRESULT             1252
 #define IDC_SCRIPTMAKETEXT1             1253
+#define IDC_PACKETFILE                  1256
+#define IDC_DEVICETREE                  1258
+#define IDC_DEVTREEHOLDER               1266
+#define IDC_PROPISARRAY                 1268
+#define IDC_TYPESHEETHOLDER             1269
+#define IDC_TAB1                        1270
+#define IDC_BTYPEDESCRIPTOR             1271
+#define IDC_VALUEBOOL                   1272
+#define IDC_PORTPAGE_HOLDER             1275
+#define IDC_NOETHERNET                  1279
+#define IDC_PREF_PACKETCOUNT            1283
+#define IDC_PREF_ASTIMEOUT              1284
+#define IDC_PREF_RELATIVE               1285
+#define IDC_PREF_ABSOLUTE               1286
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -520,6 +557,50 @@
 #define ID_FILE_EXPORT                  32810
 #define ID_SCRIPT_ENV                   32811
 #define ID_SCRIPT_READALLPROPERTY       32812
+#define ID_FILE_WKS_NEW                 32814
+#define ID_FILE_WKS_OPEN                32815
+#define ID_FILE_WKS_SWITCH              32816
+#define ID_FILE_WKS_SAVEAS              32817
+#define ID_NEWDEVICE                    32822
+#define ID_NEWPROPERTY                  32823
+#define ID_NEWOBJECT                    32824
+#define ID_NEWVALUE                     32825
+#define ID_DELETE                       32826
+#define ID_NEWCOMPONENT                 32827
+#define ID_EDIT_REFRESH                 32828
+#define ID_FILE_MRU_WKSFIRST            32850
+#define ID_FILE_MRU_WKS1                32850
+#define ID_FILE_MRU_WKS2                32851
+#define ID_FILE_MRU_WKS3                32852
+#define ID_FILE_MRU_WKS4                32853
+#define ID_FILE_MRU_WKS5                32854
+#define ID_FILE_MRU_WKS6                32855
+#define ID_FILE_MRU_WKS7                32856
+#define ID_FILE_MRU_WKS8                32857
+#define ID_FILE_MRU_WKS9                32858
+#define ID_FILE_MRU_WKS10               32859
+#define ID_FILE_MRU_WKS11               32860
+#define ID_FILE_MRU_WKS12               32861
+#define ID_FILE_MRU_WKS13               32862
+#define ID_FILE_MRU_WKS14               32863
+#define ID_FILE_MRU_WKS15               32864
+#define ID_FILE_MRU_WKSLAST             32864
+#define ID_EDIT_LOGFILE                 32900
+#define IDS_BTYPE0                      32950
+#define IDS_BTYPE1                      32951
+#define IDS_BTYPE2                      32952
+#define IDS_BTYPE3                      32953
+#define IDS_BTYPE4                      32954
+#define IDS_BTYPE5                      32955
+#define IDS_BTYPE6                      32956
+#define IDS_BTYPE7                      32957
+#define IDS_BTYPE8                      32958
+#define IDS_BTYPE9                      32959
+#define IDS_BTYPE10                     32960
+#define IDS_BTYPE11                     32961
+#define IDS_BTYPE12                     32962
+#define IDS_BTYPE13                     32963
+#define IDS_BTYPE14                     32964
 #define IDS_SCREX_COMPREAL              33000
 #define IDS_SCREX_COMPEPICSNULL         33001
 #define IDS_SCREX_COMPREALDATALEN       33002
@@ -558,15 +639,31 @@
 #define IDS_SCREX_ASGN_UNDEFVAR         33036
 #define IDS_SCREX_BADDATADATE           33037
 #define IDS_SCREX_BADDATATIME           33038
+#define IDS_ERR_FILEPKTOPEN             34000
+#define IDS_DEVTREE_CAPTION             34001
+#define IDS_ERR_FILENOTPKT              34002
+#define IDS_ERR_FILEMOVEON              34003
+#define IDS_ERR_FILEOPENRCT             34004
+#define IDS_ERR_FILEPKTRELOAD           34005
+#define IDS_NEWPACKETFILENAME           34006
+#define IDS_ERR_MAXPACKETS              34007
+#define IDS_ERR_NOREALDEVICENAME        34008
+#define IDS_ERR_TASKERROR               34009
+#define IDS_WKS_SWITCH                  57346
+#define IDS_WKS_OVERWRITE               57347
+#define IDS_WKS_OVERWRITESAVE           57348
+#define IDS_DELETEAREYOUSURE            57349
+#define IDS_REGISTRYKEY                 57350
+#define IDS_NAME_ADDRERROR              57682
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        254
-#define _APS_NEXT_COMMAND_VALUE         32813
-#define _APS_NEXT_CONTROL_VALUE         1255
+#define _APS_NEXT_RESOURCE_VALUE        275
+#define _APS_NEXT_COMMAND_VALUE         32829
+#define _APS_NEXT_CONTROL_VALUE         1288
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -16,11 +16,12 @@
 //////////////////////////////////////////////////////////////////////
 
 
-ScriptMessage::ScriptMessage( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle )
+ScriptMessage::ScriptMessage( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle, CWnd * pparent /* = NULL */ )
 			  : ScriptCommand(ScriptBase::scriptCheck)
 			  , m_pstrTestTitle(pstrTestTitle)
 {
 	baseStatus = 0;
+	m_pParent = pparent;
 
 	baseLineStart = tok.tokenLine;
 
@@ -87,8 +88,8 @@ void ScriptMessage::Parse( ScriptIfdefHandler & ifdefHandler, ScriptScanner & sc
 }
 
 
-ScriptCHECKCommand::ScriptCHECKCommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle )
-				   :ScriptMessage(ifdefHandler, scan, tok, pstrTestTitle)
+ScriptCHECKCommand::ScriptCHECKCommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle, CWnd * pparent /* = NULL */ )
+				   :ScriptMessage(ifdefHandler, scan, tok, pstrTestTitle, pparent)
 {
 	baseType = scriptCheck;
 
@@ -109,7 +110,7 @@ bool ScriptCHECKCommand::Execute(CString * pstrError)
 	strFullText.Format("TEST:  %s\nCHECK: %s\n_____________________________________________\n\n%s\n_____________________________________________\nPass %s?",
 						(LPCSTR) *m_pstrTestTitle, baseLabel, m_strText, baseLabel);
 
-	CScriptMakeDlg	dlg(false, strFullText);
+	CScriptMakeDlg	dlg(false, strFullText, m_pParent);
 	if ( dlg.DoModal() != IDOK )
 //	if ( AfxMessageBox(strFullText, MB_YESNO | MB_ICONQUESTION) != IDYES )
 	{
@@ -124,8 +125,8 @@ bool ScriptCHECKCommand::Execute(CString * pstrError)
 }
 
 
-ScriptMAKECommand::ScriptMAKECommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle )
-				   :ScriptMessage(ifdefHandler, scan, tok, pstrTestTitle)
+ScriptMAKECommand::ScriptMAKECommand( ScriptIfdefHandler & ifdefHandler, ScriptScanner & scan, ScriptToken & tok, CString * pstrTestTitle, CWnd * pparent /* = NULL */ )
+				   :ScriptMessage(ifdefHandler, scan, tok, pstrTestTitle, pparent )
 {
 	baseType = scriptMake;
 
@@ -204,12 +205,12 @@ bool ScriptMAKECommand::Execute(CString * pstrError)
 	// called with string error pointer if we should do modal...
 	if ( m_fHanging  &&  m_pqueue != NULL )
 	{
-		m_pdlg = new CScriptMakeDlg(true, strFullText);
+		m_pdlg = new CScriptMakeDlg(true, strFullText, m_pParent );
 		m_pqueue->Fire( new ScriptMsgMake(ScriptMsgMake::msgmakeCreate, m_pdlg) );
 	}
 	else
 	{
-		CScriptMakeDlg	dlg(true, strFullText);
+		CScriptMakeDlg	dlg(true, strFullText, m_pParent );
 		if ( dlg.DoModal() != IDOK )
 		{
 			if ( pstrError != NULL )

@@ -173,8 +173,8 @@ void VTSObjPropArrayDialog::OnRemoveElem()
 
 void VTSObjPropArrayDialog::OnValue() 
 {
-	VTSObjPropValueDialog	dlg( m_OPVL )
-	;
+//	VTSObjPropValueDialog	dlg( m_OPVL );
+	VTSObjPropValueDialog	dlg( m_OPVL );
 
 	// make sure an element is selected
 	if (m_iSelectedElem < 0)
