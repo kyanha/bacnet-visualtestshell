@@ -533,6 +533,9 @@
 #define IDS_SCREX_INDEXUNSEXP           33033
 #define IDS_SCREX_INDEXBOUNDS           33034
 #define IDS_SCREX_INDEXUNSVAR           33035
+#define IDS_SCREX_ASGN_UNDEFVAR         33036
+#define IDS_SCREX_BADDATADATE           33037
+#define IDS_SCREX_BADDATATIME           33038
 
 // Next default values for new objects
 // 
