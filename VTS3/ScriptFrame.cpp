@@ -892,7 +892,7 @@ BOOL ScriptFrame::CreateScriptFile()
 //******************************************************************
 CString GetObject(dword object_id)
 {
-	word object_type = object_id >> 22;
+	word object_type = (word)(object_id >> 22);
 	unsigned long instance_number = (object_id & 0x003fffff);
 
 	CString strObject;

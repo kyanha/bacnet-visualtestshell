@@ -133,8 +133,8 @@ void CSendDevice::EncodePage( CByteArray* contents )
 	header.Add( m_AddrType );
 
 	// save the network number
-	header.Add( m_Network.uintValue >> 8 );
-	header.Add( m_Network.uintValue & 0xFF );
+	header.Add( (unsigned char)(m_Network.uintValue >> 8) );
+	header.Add( (unsigned char)(m_Network.uintValue & 0xFF) );
 
 	// save the address
 	header.Add( m_Address.strLen );
