@@ -19,7 +19,7 @@
 #include "ScriptFrame.h"
 #include "ScriptExecutor.h"
 
-#include "WinPacket32.hpp"
+#include "WinWinPcap.hpp"
 #include "WinBACnetTaskManager.hpp"
 
 #include "ScriptMsgMake.h"
@@ -200,8 +200,8 @@ BOOL VTSApp::InitInstance()
 	// load the preferences
 	gVTSPreferences.Load();
 
-	// check BACMACNT.SYS
-	CheckBACMACNTVersion();
+	// check WinPcap
+	CheckWinPcapVersion();
 
 	return TRUE;
 }
@@ -823,6 +823,9 @@ void VTSPreferences::Save( void )
 //
 //			Trapped corrupted and inconsistent database opens, report the problem and control document close.
 //
+//	3.4		Replaced BACMACNT driver with WinPcap library calls.  No changes to the database format, just the
+//			format of the adapter/interface configuration strings.
+//
 
 const int kReleaseVersion = 1;
 
@@ -886,22 +889,18 @@ void VTSApp::OnAppAbout()
 }
 
 //
-//	VTSApp::CheckBACMACNTVersion
+//	VTSApp::CheckWinPcapVersion
 //
 //	Thanks to Thomas Weller and www.codeguru.com, this function checks to see if 
-//	BACMACNT.SYS is installed and checks the version.  As written this will not work 
-//	if the driver is installed someplace else, like perhaps C: isn't the boot 
-//	volume.
-//
-//	There is no warning if the file can't be found, so the user of strictly IP traffic
-//	isn't bothered by an annoying message.
+//	WinPcap is installed and checks the version.
 //
 
-void VTSApp::CheckBACMACNTVersion( void )
+void VTSApp::CheckWinPcapVersion( void )
 {
 	CFileVersionInfo	m_info
 	;
 
+#if 0
 	// get the information
 	m_info.ReadVersionInfo( "C:\\WINNT\\system32\\drivers\\bacmacnt.sys" );
 
@@ -915,6 +914,7 @@ void VTSApp::CheckBACMACNTVersion( void )
 		if (ver < 3)
 			AfxMessageBox( _T("WARNING: Installed version of BACMACNT.SYS must be 3.0 or later.") );
 	}
+#endif
 }
 
 //

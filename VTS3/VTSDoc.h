@@ -21,7 +21,7 @@
 #include "BACnetBIPForeign.hpp"
 
 #include "WinIP.hpp"
-#include "WinPacket32.hpp"
+#include "WinWinPcap.hpp"
 
 #include "JConfig.hpp"
 #include "JDB.hpp"
@@ -44,8 +44,8 @@ typedef CFrameContext *CFrameContextPtr;
 class VTSPort;
 typedef VTSPort *VTSPortPtr;
 
-class VTSWinPacket32Port;
-typedef VTSWinPacket32Port *VTSWinPacket32PortPtr;
+class VTSWinWinPcapPort;
+typedef VTSWinWinPcapPort *VTSWinWinPcapPortPtr;
 
 class VTSWinIPPort;
 typedef VTSWinIPPort *VTSWinIPPortPtr;
@@ -424,16 +424,16 @@ const int kVTSDocListSize = sizeof( VTSDocList );
 extern VTSDocList gDocList;							// list of all documents
 
 //
-//	VTSWinPacket32Port
+//	VTSWinWinPcapPort
 //
 
-class VTSWinPacket32Port : public WinPacket32 {
+class VTSWinWinPcapPort : public WinWinPcap {
 	protected:
 		VTSPortPtr			m_pPort;
 
 	public:
-		VTSWinPacket32Port( VTSPortPtr pp );
-		virtual ~VTSWinPacket32Port( void );
+		VTSWinWinPcapPort( VTSPortPtr pp );
+		virtual ~VTSWinWinPcapPort( void );
 
 		void FilterData( BACnetOctet *, int len, BACnetPortDirection dir );
 

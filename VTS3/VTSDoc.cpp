@@ -861,12 +861,12 @@ void VTSPort::Refresh( void )
 			}
 
 		case ethernetPort: {
-				VTSWinPacket32PortPtr	pp
+				VTSWinWinPcapPortPtr	pp
 				;
 				
 				portStatus = 1;
 				portStatusDesc = 0;
-				portEndpoint = pp = new VTSWinPacket32Port( this );
+				portEndpoint = pp = new VTSWinWinPcapPort( this );
 				
 				// define the TD name
 				portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
@@ -874,16 +874,18 @@ void VTSPort::Refresh( void )
 			}
 
 		case arcnetPort: {
-				VTSWinPacket32PortPtr	pp
-				;
-				
-				portStatus = 2;		// good luck
-				portStatusDesc = "ARCNET untested";
-				portEndpoint = pp = new VTSWinPacket32Port( this );
-				
-				// define the TD name
-				portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
-				break;
+				portStatusDesc = "ARCNET unsupported";
+
+//				VTSWinPacket32PortPtr	pp
+//				;
+//				
+//				portStatus = 2;		// good luck
+//				portStatusDesc = "ARCNET untested";
+//				portEndpoint = pp = new VTSWinPacket32Port( this );
+//				
+//				// define the TD name
+//				portDoc->m_Names.DefineTD( portDescID, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
+//				break;
 			}		
 
 		case ptpPort: {
@@ -2307,46 +2309,38 @@ VTSDevicePtr VTSDeviceList::operator []( int i )
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// VTSWinPacket32Port
+// VTSWinWinPcapPort
 
 //
-//	VTSWinPacket32Port::VTSWinPacket32Port
+//	VTSWinWinPcapPort::VTSWinWinPcapPort
 //
 
 extern CSendGroupPtr gEthernetGroupList[];
 extern CSendGroupPtr gARCNETGroupList[];
 
-VTSWinPacket32Port::VTSWinPacket32Port( VTSPortPtr pp )
-	: WinPacket32( pp->portDesc.portConfig )
+VTSWinWinPcapPort::VTSWinWinPcapPort( VTSPortPtr pp )
+	: WinWinPcap( pp->portDesc.portConfig )
 	, m_pPort( pp )
 {
 	// let the port know which send group to use
-	if (portStatus == 0) {
-		if (this->m_AdapterType == ETH_802_3_ADAPTER)
-			m_pPort->portSendGroup = gEthernetGroupList;
-		else
-		if (this->m_AdapterType == ARCNET_ADAPTER)
-			m_pPort->portSendGroup = gARCNETGroupList;
-		else
-			;
-	}
+	m_pPort->portSendGroup = gEthernetGroupList;
 }
 
 //
-//	VTSWinPacket32Port::~VTSWinPacket32Port
+//	VTSWinWinPcapPort::~VTSWinWinPcapPort
 //
 
-VTSWinPacket32Port::~VTSWinPacket32Port( void )
+VTSWinWinPcapPort::~VTSWinWinPcapPort( void )
 {
 	// reset the send group
 	m_pPort->portSendGroup = 0;
 }
 
 //
-//	VTSWinPacket32Port::FilterData
+//	VTSWinWinPcapPort::FilterData
 //
 
-void VTSWinPacket32Port::FilterData( BACnetOctet *data, int len, BACnetPortDirection dir )
+void VTSWinWinPcapPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection dir )
 {
 	VTSPacket	pkt
 	;
@@ -2357,31 +2351,17 @@ void VTSWinPacket32Port::FilterData( BACnetOctet *data, int len, BACnetPortDirec
 	pkt.packetHdr.packetType = (dir == portSending) ? txData : rxData;
 
 	// parse the source and destination addresses
-	if (m_AdapterType == ETH_802_3_ADAPTER) {
-		pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::ethernetProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::ethernetProtocol;
 
-		// check for broadcast destination
-		if (memcmp(data,"\377\377\377\377\377\377",6) == 0)
-			pkt.packetHdr.packetDestination.LocalBroadcast();
-		else
-			pkt.packetHdr.packetDestination.LocalStation( data, 6 );
+	// check for broadcast destination
+	if ((data[0] == 0xFF) && (data[1] == 0xFF) && (data[2] == 0xFF)
+			&& (data[3] == 0xFF) && (data[4] == 0xFF) && (data[5] == 0xFF))
+		pkt.packetHdr.packetDestination.LocalBroadcast();
+	else
+		pkt.packetHdr.packetDestination.LocalStation( data, 6 );
 
-		// source is always a station
-		pkt.packetHdr.packetSource.LocalStation( data + 6, 6 );
-	} else
-	if (m_AdapterType == ARCNET_ADAPTER) {
-		pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::arcnetProtocol;
-
-		// check for broadcast destination
-		if (data[1] == 0)
-			pkt.packetHdr.packetDestination.LocalBroadcast();
-		else
-			pkt.packetHdr.packetDestination.LocalStation( data + 1, 1 );
-
-		// source is always a station
-		pkt.packetHdr.packetSource.LocalStation( data, 1 );
-	} else
-		return;
+	// source is always a station
+	pkt.packetHdr.packetSource.LocalStation( data + 6, 6 );
 
 	// skip processing packets from myself
 	if ((dir == portReceiving) && (pkt.packetHdr.packetSource == portLocalAddr))
@@ -2401,10 +2381,10 @@ void VTSWinPacket32Port::FilterData( BACnetOctet *data, int len, BACnetPortDirec
 }
 
 //
-//	VTSWinPacket32Port::PortStatusChange
+//	VTSWinWinPcapPort::PortStatusChange
 //
 
-void VTSWinPacket32Port::PortStatusChange( void )
+void VTSWinWinPcapPort::PortStatusChange( void )
 {
 	// set the VTSPort info to reflect this status
 	if (portStatus == 0) {
