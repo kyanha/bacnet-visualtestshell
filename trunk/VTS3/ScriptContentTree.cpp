@@ -8,6 +8,9 @@
 #include "ScriptDocument.h"
 // Added by Yajun Zhou, 2002-6-20
 #include "ScriptFrame.h"
+
+#include "ScriptEditIncludeDlg.h"
+
 //////////////////////////////////
 
 #ifdef _DEBUG
@@ -25,6 +28,7 @@ ScriptContentTree::ScriptContentTree()
 	: m_pDoc(0)
 	, m_pScriptContent(0)
 {
+	m_pframe = NULL;
 }
 
 ScriptContentTree::~ScriptContentTree()
@@ -163,10 +167,17 @@ void ScriptContentTree::Load( HTREEITEM parent, ScriptBasePtr sbp )
 
 void ScriptContentTree::OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult) 
 {
-	HTREEITEM		hNewItem = m_pTreeCtrl->GetSelectedItem()
-	;
-	ScriptBasePtr	pElem = (ScriptBasePtr)m_pTreeCtrl->GetItemData( hNewItem )
-	;
+	HTREEITEM		hNewItem = m_pTreeCtrl->GetSelectedItem();
+	ScriptBasePtr	pElem = (ScriptBasePtr)m_pTreeCtrl->GetItemData( hNewItem );
+
+	//madanner 6/03, change status text for include filename if selected...
+	if ( m_pframe != NULL )
+	{
+		CString strStatusText;
+		if ( !pElem->m_strFile.IsEmpty() )
+			strStatusText.Format("INCLUDE: [%s]", pElem->m_strFile );
+		m_pframe->SetMessageText(strStatusText);
+	}
 
 	// if a test selected
 	if (pElem->baseType == ScriptBase::scriptTest)
@@ -213,9 +224,59 @@ void ScriptContentTree::OnLButtonDblClk(UINT nFlags, CPoint point)
 		ScriptBasePtr	pElem = (ScriptBasePtr)m_pTreeCtrl->GetItemData( htItem );
 		
 		ScriptFrame* pCFrm = (ScriptFrame*)GetParentFrame();
-		pCFrm->SetActiveView(m_pEditView);
-		m_pEditView->GotoLine(pElem->baseLineStart+1);
+
+		// madanner 6/03, add support for editing include files...
+		if ( pElem->m_strFile.IsEmpty() )
+		{
+			pCFrm->SetActiveView(m_pEditView);
+			m_pEditView->GotoLine(pElem->baseLineStart+1);
+		}
+		else
+		{
+			CScriptEditIncludeDlg	dlgInclude(pElem->m_strFile, NULL, NULL, pElem->baseLineStart+1, pCFrm);
+			dlgInclude.DoModal();
+		}
 	}
 	
 	CTreeView::OnLButtonDblClk(nFlags, point);
 }
+
+
+//madanner 6/03, added to support different colors in tree for noded found in include file
+
+BOOL ScriptContentTree::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult) 
+{
+	if (message == WM_NOTIFY)
+	{
+		NMHDR *pnmh = (LPNMHDR) lParam; 
+
+		// Is the code set to custom drawing?
+		if (pnmh->code == NM_CUSTOMDRAW)
+		{
+			LPNMTVCUSTOMDRAW pTVCustomDraw = (LPNMTVCUSTOMDRAW) lParam;
+
+			if (pTVCustomDraw)
+			{
+				switch (pTVCustomDraw->nmcd.dwDrawStage)
+				{
+					case CDDS_PREPAINT:             *pLResult = CDRF_NOTIFYITEMDRAW;
+													return TRUE;
+
+					case CDDS_ITEMPREPAINT:
+						{
+							//HTREEITEM hItem = HTREEITEM(pTVCustomDraw->nmcd.dwItemSpec);
+							ScriptBasePtr pbase = (ScriptBasePtr) pTVCustomDraw->nmcd.lItemlParam;
+
+							try {
+							if ( pbase != NULL  && !pbase->m_strFile.IsEmpty() )
+								pTVCustomDraw->clrText = RGB(0,0,255);
+							} catch (...) {}
+						}
+				}
+			}
+		}
+	}
+
+	return CTreeView::OnChildNotify(message, wParam, lParam, pLResult);
+}
+
