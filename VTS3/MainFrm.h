@@ -40,6 +40,12 @@ public:
 	CProgressCtrl * InitializeProgress( void );
 	void ReleaseProgress( void );
 
+	////////////////////////////////////
+	//Added by Zhenhua Zhu, 2003-6-2
+	CMDIChildWnd* GetChildFrame(CRuntimeClass *pClass, int nNum = 1);
+	BOOL GetCmdState(int CmdType, CMDIChildWnd* pFrame, CString& str);
+	///////////////////////////////////
+
 	virtual ~CMainFrame();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -50,6 +56,9 @@ protected:  // control bar embedded members
 	CStatusBar  m_wndStatusBar;
 	CToolBar    m_wndToolBar;
 
+	//Added by Zhenhua Zhu, 2003-5-26
+//////////////////////////////////
+
 // Generated message map functions
 protected:
 	//{{AFX_MSG(CMainFrame)
@@ -58,6 +67,13 @@ protected:
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnClose();
+	////////////////////////////////////////////////////////////
+	//Added by Zhenhua Zhu, 2003-6-2
+	afx_msg void OnEditDelete();
+	afx_msg void OnUpdateEditDelete(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateScriptRun(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateScriptCheckSyntax(CCmdUI* pCmdUI);
+	afx_msg void OnToolbarDropDown(NMTOOLBAR* pnmh, LRESULT* plRes);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

@@ -67,6 +67,11 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_HEX, OnUpdateViewHex)
 	ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
 	ON_WM_DESTROY()
+	//Added by Zhenhua ZHu, 2003-6-2
+	ON_COMMAND(ID_FILE_PRINT, OnFilePrint)
+	ON_COMMAND(ID_FILE_PRINT_SETUP,OnFilePrintSetup)
+	ON_UPDATE_COMMAND_UI(ID_FILE_PRINT,OnUpdateFilePrint)
+	////////////////////////////////////////////////
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -80,6 +85,8 @@ CChildFrame::CChildFrame()
 	//	OnCreateClient().
 	//
 	m_frameContext = new CFrameContext();
+	m_bPrintSetup = false;
+	m_bInPrinting = false;
 }
 
 CChildFrame::~CChildFrame()
@@ -495,7 +502,10 @@ void CChildFrame::OnFileExport()
 
 			for(i = 0; i < nPacketCount; i++)
 			{
-				strStartSeparator.Format("*************************** [ Packet %d Start ] ***************************", i);
+				strStartSeparator.Format("%s%d%s",
+					"*************************** [ Packet ",
+					i,
+					" Start ] ***************************");
 				
 				exportFile.Write(strStartSeparator.GetBuffer(1), strStartSeparator.GetLength());
 				exportFile.Write(cLineEnd, 2);
@@ -678,4 +688,95 @@ void CChildFrame::OnFileExport()
 	((CMainFrame *) AfxGetApp()->m_pMainWnd)->ReleaseProgress();
 }
 
+///////////////////////////////////////////////////////////
+// Added by Zhenhua Zhu, 2003-6-2
+//Modifyed by Zhenhua Zhu, 2003-6-11
+void CChildFrame::OnFilePrint()
+{	
+	HPRIVATEFONT	hFont;
+	if(!m_bPrintSetup)
+	{
+		if(m_printer.Dialog()!=-1)
+			m_bPrintSetup= true;
+		else return;
+	}
+	m_printer.StartPrint();
+	m_bInPrinting = true;
+	hFont = m_printer.AddFontToEnvironment("Arial");	
+	m_printer.SetMargins(50,130,50,10);
+	m_printer.SetDistance(2);
+	m_printer.StartPage();	
+	
+	int nPacketCount = m_frameContext->m_pDoc->GetPacketCount();
+	CString str;
+	CProgressCtrl * pprogress = ((CMainFrame *) AfxGetApp()->m_pMainWnd)->InitializeProgress();
+	pprogress->SetRange(0, m_frameContext->m_pDoc->GetPacketCount());	
 
+		BACnetPIInfo	summary( true, false );
+		for( int i = 0; i < m_frameContext->m_pDoc->GetPacketCount(); i++ )
+		{
+			pprogress->SetPos(i);
+			VTSPacketPtr ppkt = m_frameContext->m_pDoc->GetPacket(i);
+			if ( ppkt == NULL )
+				break;
+			str.Format("*************************** [ Packet %d Start ] ***************************", i);
+			m_printer.Print(hFont, str, FORMAT_NORMAL);
+			m_printer.Print(hFont, "", FORMAT_NORMAL);
+
+			m_printer.Print(hFont, "[ Summary Information ]", FORMAT_NORMAL);
+			m_printer.Print(hFont, "", FORMAT_NORMAL);
+
+			str.Format("Time:        %s", ppkt->GetTimeStampString());
+			m_printer.Print(hFont, str, FORMAT_NORMAL);
+
+			str.Format("Source:      %s", ppkt->GetAddressString(m_frameContext->m_pDoc, rxData));
+			m_printer.Print(hFont, str, FORMAT_NORMAL);
+
+			str.Format("Destination: %s", ppkt->GetAddressString(m_frameContext->m_pDoc, txData));
+			m_printer.Print(hFont, str, FORMAT_NORMAL);
+			
+			NetworkSniffer::SetLookupContext( ppkt->packetHdr.m_szPortName );
+			summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
+
+			str.Format("Summary:     %s", summary.summaryLine );
+			m_printer.Print(hFont, str, FORMAT_NORMAL);
+			m_printer.Print(hFont, "", FORMAT_NORMAL);
+			m_printer.Print(hFont, "[ Detail Information ]", FORMAT_NORMAL);
+			m_printer.Print(hFont, "", FORMAT_NORMAL);
+			// have to call the interpreter twice because of the summery/detail breakdown problem..
+			BACnetPIInfo	detail(false, true);
+			detail.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
+			
+			for (int j = 0; j < detail.detailCount; j++ )
+			{
+				// Careful... BACnetPIInfo does not allocate space for the first element, which should be
+				// used for the timestamp.  We already do that so everything's fine.  Just skip it.
+				if ( detail.detailLine[j] != NULL )
+				{
+			m_printer.Print(hFont, detail.detailLine[j]->piLine, FORMAT_NORMAL);
+				}
+			}
+			str.Format("*************************** [ Packet %d End ] ***************************", i);
+			m_printer.Print(hFont, str, FORMAT_NORMAL);
+			m_printer.Print(hFont, "", FORMAT_NORMAL);
+		}
+			m_printer.EndPage();
+			m_printer.EndPrint();
+	((CMainFrame *) AfxGetApp()->m_pMainWnd)->ReleaseProgress();
+}
+
+///////////////////////////////////////////////////////////
+// Added by Zhenhua Zhu, 2003-6-2
+void CChildFrame::OnFilePrintSetup()
+{
+	if(m_printer.Dialog()!=-1)
+
+		m_bPrintSetup = true;
+}
+
+///////////////////////////////////////////////////////////
+// Added by Zhenhua Zhu, 2003-6-2
+void CChildFrame::OnUpdateFilePrint(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable(!m_bInPrinting);
+}

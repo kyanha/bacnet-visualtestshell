@@ -6,7 +6,9 @@
 #include "VTSDoc.h"
 
 #include "MainFrm.h"
-
+#include "ScriptFrame.h"
+#include "ScriptExecutor.h"
+#include "ChildFrm.h"
 #include "SendPage.h"
 
 #ifdef _DEBUG
@@ -18,7 +20,7 @@ static char THIS_FILE[] = __FILE__;
 int gSelectedPort = -1;		// which port selected for Send menu
 int gSelectedGroup = -1;
 int gSelectedItem = -1;
-
+static HHOOK hkb= NULL;	//Added by Zhenhua Zhu, 2003-5-26
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame
 
@@ -31,6 +33,12 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_WM_INITMENUPOPUP()
 	ON_WM_SIZE()
 	ON_WM_CLOSE()
+	//Added by Zhenhua Zhu, 2003-6-2
+	ON_COMMAND(ID_EDIT_DELETE, OnEditDelete)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_DELETE, OnUpdateEditDelete)
+	ON_UPDATE_COMMAND_UI(ID_SCRIPT_RUN1, OnUpdateScriptRun)
+	ON_UPDATE_COMMAND_UI(ID_SCRIPT_CHECK_SYNTAX1, OnUpdateScriptCheckSyntax)
+	ON_NOTIFY(TBN_DROPDOWN, AFX_IDW_TOOLBAR, OnToolbarDropDown)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -45,6 +53,60 @@ static UINT indicators[] =
 	ID_INDICATOR_NUM,
 	ID_INDICATOR_SCRL,
 };
+
+//Added by Zhenhua Zhu, 2003-5-26
+//CallBack Func To catch the keyUp, to support the hotkey for Toolbar
+LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
+{	
+	CMainFrame* pMain = (CMainFrame*) AfxGetMainWnd();
+	CMDIChildWnd* pactiveframe = NULL;
+	CMDIChildWnd* pFrame = NULL;
+	CString strCmd;
+	pactiveframe = pMain->MDIGetActive();
+	if(((DWORD)lParam&0x80000000) && (HC_ACTION==nCode))
+	{	
+		switch(wParam)
+		{
+		case 0x43:
+			
+			if(GetKeyState(VK_CONTROL) < 0)
+			{
+				if(pactiveframe != NULL && pactiveframe->IsKindOf(RUNTIME_CLASS(ScriptFrame)))
+					pFrame = pactiveframe;
+				else pFrame = pMain->GetChildFrame(RUNTIME_CLASS(ScriptFrame)); 
+				if(pFrame != NULL)
+					if(pMain->GetCmdState(2,pFrame,strCmd))
+					((ScriptFrame*)pFrame)->PostMessage(WM_COMMAND,ID_SCRIPT_CHECK_SYNTAX);
+			}
+			break;
+		case 0x44:
+			if(GetKeyState(VK_CONTROL) < 0)
+			{
+				if(pactiveframe != NULL && pactiveframe->IsKindOf(RUNTIME_CLASS(CChildFrame)))
+					pFrame = pactiveframe;
+				else pFrame = pMain->GetChildFrame(RUNTIME_CLASS(CChildFrame));
+				if(pFrame != NULL)
+					((CChildFrame*)pFrame)->PostMessage(WM_COMMAND,ID_EDIT_DELETE);
+			}
+			break;
+		case 0x52:
+			if(GetKeyState(VK_CONTROL) < 0)
+			{
+				if(pactiveframe != NULL && pactiveframe->IsKindOf(RUNTIME_CLASS(ScriptFrame)))
+					pFrame = pactiveframe;
+				else pFrame = pMain->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+				if(pFrame != NULL)
+					if(pMain->GetCmdState(1, pFrame, strCmd))
+					((ScriptFrame*)pFrame)->PostMessage(WM_COMMAND, ID_SCRIPT_RUN);
+			}
+			break;			
+		default:
+			break;			
+		}
+	}
+	return CallNextHookEx(NULL,nCode,wParam,lParam);
+}
+///////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame construction/destruction
@@ -86,7 +148,18 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndToolBar.EnableDocking( CBRS_ALIGN_ANY );
 	EnableDocking( CBRS_ALIGN_ANY );
 	DockControlBar( &m_wndToolBar );
+	hkb = SetWindowsHookEx( WH_KEYBOARD, KeyboardProc, 0, GetCurrentThreadId() );
+/////////////////////////////////////////////////////
+	DWORD dwExStyle = TBSTYLE_EX_DRAWDDARROWS;
+	m_wndToolBar.GetToolBarCtrl().SendMessage(TB_SETEXTENDEDSTYLE, 0, (LPARAM)dwExStyle);
 
+	DWORD dwStyle = m_wndToolBar.GetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_RUN1));
+	dwStyle |= TBSTYLE_DROPDOWN;
+	m_wndToolBar.SetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_RUN1), dwStyle);
+	m_wndToolBar.GetToolBarCtrl().SendMessage(TB_SETEXTENDEDSTYLE, 0, (LPARAM)dwExStyle);
+	dwStyle = m_wndToolBar.GetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_CHECK_SYNTAX1));
+	dwStyle |= TBSTYLE_DROPDOWN;
+	m_wndToolBar.SetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_CHECK_SYNTAX1), dwStyle);
 	return 0;
 }
 
@@ -275,4 +348,209 @@ void CMainFrame::OnClose()
 	// TODO: Add your message handler code here and/or call default
 	
 	CMDIFrameWnd::OnClose();
+}
+
+
+///////////////////////////////////////////////
+////////////////////////////////////////////////////////
+//Added by Zhenhua Zhu, 2003-5-26
+// OnCommand of ID_EDIT_DELETE in toolbar
+void CMainFrame::OnEditDelete() 
+{
+	CMDIChildWnd* pFrame = GetChildFrame(RUNTIME_CLASS(CChildFrame));
+	if(pFrame != NULL)
+	((CChildFrame*)pFrame)->PostMessage(WM_COMMAND,ID_EDIT_DELETE);
+	
+}
+
+////////////////////////////////////////////////////////
+//Added by Zhenhua Zhu, 2003-5-26
+// OnUpdate of ID_EDIT_DELETE in toolbar
+void CMainFrame::OnUpdateEditDelete(CCmdUI* pCmdUI) 
+{
+	CMDIChildWnd* pFrame = GetChildFrame(RUNTIME_CLASS(CChildFrame));
+	if(pFrame != NULL)
+		pCmdUI->Enable((((CChildFrame*)pFrame)->m_frameContext->m_PacketCount > 0));
+	else pCmdUI->Enable(FALSE);
+	
+}
+
+////////////////////////////////////////////////////////
+//Added by Zhenhua Zhu, 2003-5-26
+// OnUpdate of ID_SCRIPT_RUN in toolbar
+void CMainFrame::OnUpdateScriptRun(CCmdUI* pCmdUI) 
+{		
+	CMDIChildWnd* pFrame = NULL;
+	BOOL bSyntaxOk = FALSE;
+	for(int i=1;;i++)
+	{	
+		pFrame = GetChildFrame(RUNTIME_CLASS(ScriptFrame),i);
+		if(pFrame != NULL)
+		{	
+			if(((ScriptFrame*)pFrame)->m_bSyntaxOK)
+			{
+				bSyntaxOk = TRUE;
+				break;
+			}
+		}
+		else 
+			break;
+	}
+	pCmdUI->Enable( (!gExecutor.IsRunning()) && bSyntaxOk );		
+}
+
+
+///////////////////////////////////////////////////////////////
+//Added by Zhenhua Zhu, 2003-5-26
+// OnUpdate of ID_SCRIPT_CHECK_SYNTAX in toolbar
+void CMainFrame::OnUpdateScriptCheckSyntax(CCmdUI* pCmdUI) 
+{	
+			CMDIChildWnd* pFrame = GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+				if( pFrame != NULL )
+				pCmdUI->Enable( gExecutor.IsIdle() );
+				else 
+				pCmdUI->Enable( FALSE );
+		
+}
+//Added by Zhenhua Zhu, 2003-5-26
+// To get the Special MDIChildWnd of CMainFrame(Not opened return NULL)
+CMDIChildWnd* CMainFrame::GetChildFrame(CRuntimeClass *pClass, int nNum)
+{	CView* pView;
+	CMDIChildWnd* pFrame;
+	int i = 1;
+	bool bNumadd = false;
+	POSITION pos1 = AfxGetApp()->GetFirstDocTemplatePosition();
+	while(pos1 != NULL)
+	{	
+		CDocTemplate* pDocTemplate = AfxGetApp()->GetNextDocTemplate(pos1);
+		POSITION pos2 = pDocTemplate->GetFirstDocPosition();
+		while(pos2 != NULL)
+		{	
+			CDocument* pDoc = pDocTemplate->GetNextDoc(pos2);
+			POSITION pos3 = pDoc->GetFirstViewPosition();
+			while (pos3 != NULL)
+			{	
+				pView = pDoc->GetNextView(pos3);
+				pFrame = (CMDIChildWnd *)pView->GetParentFrame();
+				if(pFrame != NULL && pFrame->IsKindOf(pClass))
+				{	if(i == nNum)
+					return pFrame;
+					bNumadd = true;
+				}
+			}
+			if(bNumadd)
+				i++;
+			
+		}
+	}
+	return NULL;
+}
+/////////////////////////////////////////////////////////////////////////////
+//Added by Zhenhua Zhu, 2003-6-2
+// OnToolbarDropDown of ID_SCRIPT_RUN and ID_SCRIPT_CHECK_SYNTAX in toolbar
+void CMainFrame::OnToolbarDropDown(NMTOOLBAR* pnmtb, LRESULT *plr)
+{
+    CWnd *pWnd;
+	CString strCmd;
+	CString strTotle;
+	int CommandType = 0;
+    switch (pnmtb->iItem)
+    {
+		case ID_SCRIPT_RUN1:
+        pWnd = &m_wndToolBar;
+		strCmd = "Run ";
+		CommandType = 1;
+        break;
+		case ID_SCRIPT_CHECK_SYNTAX1:
+		pWnd = &m_wndToolBar;
+		strCmd = "Check ";
+		CommandType = 2;
+		break;
+    default:
+        break;
+    }
+		CMenu pPopup;
+		CMDIChildWnd* pFrame = NULL; 
+		pPopup.CreatePopupMenu();
+		DWORD style = MF_GRAYED;
+		for(int i=1;;i++)
+		{	
+			pFrame = GetChildFrame(RUNTIME_CLASS(ScriptFrame),i);
+			if(pFrame != NULL)
+			{	
+				if(GetCmdState(CommandType,pFrame,strCmd))
+				style = MF_ENABLED;
+				else 
+				style = MF_GRAYED;
+				strTotle = strCmd + pFrame->GetActiveDocument()->GetTitle();
+				pPopup.AppendMenu(MF_STRING|style,i,strTotle);
+			}
+			else break;
+		}
+		this->m_bAutoMenuEnable = false;
+		 CRect rc;
+		    pWnd->SendMessage(TB_GETRECT, pnmtb->iItem, (LPARAM)&rc);
+		    pWnd->ClientToScreen(&rc);
+		    int nCommand = (int) pPopup.TrackPopupMenu(
+				TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD,
+				rc.left,  rc.bottom, this);
+	this->m_bAutoMenuEnable = true;
+	if(nCommand >= 1)
+	{
+		pFrame = GetChildFrame(RUNTIME_CLASS(ScriptFrame),nCommand);
+		if(pFrame != NULL)
+		{	
+			switch(CommandType)
+			{
+				case 1:
+				((ScriptFrame*)pFrame)->PostMessage(WM_COMMAND,ID_SCRIPT_RUN);
+				break;
+				case 2:
+				((ScriptFrame*)pFrame)->PostMessage(WM_COMMAND,ID_SCRIPT_CHECK_SYNTAX);	
+				break;
+				default:
+				break;
+			}
+		}
+	}		
+}
+
+/////////////////////////////////////////////////////////////////////////////
+//Added by Zhenhua Zhu, 2003-6-2
+// Get Command IsEnabled of ID_SCRIPT_RUN and ID_SCRIPT_CHECK_SYNTAX in toolbar
+BOOL CMainFrame::GetCmdState(int CmdType,CMDIChildWnd* pFrame, CString & str)
+{
+	if(pFrame == NULL)
+		return FALSE;
+	switch(CmdType)
+	{
+	case 1:
+		{
+			
+			if(!pFrame->IsKindOf(RUNTIME_CLASS(ScriptFrame)))
+				return FALSE;
+			{	
+				if (gExecutor.IsIdle() && ((ScriptFrame*)pFrame)->m_pDoc->m_pContentTree) 				
+					return ((ScriptFrame*)pFrame)->m_bSyntaxOK ;	
+				else
+					if (gExecutor.IsBound( ((ScriptFrame*)pFrame)->m_pDoc))
+					{	
+						str = "Resume " ;
+						return (!gExecutor.IsRunning());
+					} 
+					else
+					{	
+						str = "Run " ;						
+						return ((ScriptFrame*)pFrame)->m_bSyntaxOK ;
+					}
+			}
+		}
+		break;
+	case 2:
+		return gExecutor.IsIdle();
+		break;
+	default:
+		return FALSE;
+		break;
+	}
 }
