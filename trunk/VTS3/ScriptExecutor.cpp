@@ -4884,10 +4884,19 @@ void ScriptExecutor::ExpectBVLCResult( ScriptTokenList &tlist, BACnetAPDUDecoder
 
 				if (dnet.tokenType != scriptValue)
 					throw "Result code expected";
-				if (!dnet.IsInteger(valu1))
-					throw "Result code invalid format";
-				if ((valu1 < 0) || (valu1 > 65535))
-					throw "Result code out of range (0..65535)";
+
+				// madanner 11/4/02
+				// account for don't care case.  Not sure if this is a good thing or not.
+
+				bool fDontCare = dnet.IsDontCare();
+
+				if ( !fDontCare )
+				{
+					if ( !dnet.IsInteger(valu1))
+						throw "Result code invalid format";
+					if ((valu1 < 0) || (valu1 > 65535))
+						throw "Result code out of range (0..65535)";
+				}
 
 				TRACE1( "    Result code %d\n", valu1 );
 
@@ -4896,7 +4905,7 @@ void ScriptExecutor::ExpectBVLCResult( ScriptTokenList &tlist, BACnetAPDUDecoder
 				valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 				// check for a match
-				if (valu1 != valu2)
+				if ( !fDontCare && valu1 != valu2)
 					throw "Result code mismatch";
 
 				break;
@@ -4927,11 +4936,20 @@ void ScriptExecutor::ExpectWriteBDT( ScriptTokenList &tlist, BACnetAPDUDecoder &
 
 			if (t.tokenType != scriptValue)
 				throw "IP address expected";
-			if (t.tokenEnc != scriptIPEnc)
-				throw "IP address required";
 
-			// convert to host, port and network mask
-			BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+			// madanner 11/4/02
+			// account for don't care case.  Not sure if this is a good thing or not.
+
+			bool fDontCare = t.IsDontCare();
+
+			if ( !fDontCare )
+			{
+				if (t.tokenEnc != scriptIPEnc)
+					throw "IP address required";
+
+				// convert to host, port and network mask
+				BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+			}
 
 			// make sure there's enough data
 			if (dec.pktLength < 10)
@@ -4942,7 +4960,7 @@ void ScriptExecutor::ExpectWriteBDT( ScriptTokenList &tlist, BACnetAPDUDecoder &
 				host2 = (host2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (host1 != host2)
+			if ( !fDontCare && host1 != host2)
 				throw "Host address mismatch";
 
 			// extract the port
@@ -4950,7 +4968,7 @@ void ScriptExecutor::ExpectWriteBDT( ScriptTokenList &tlist, BACnetAPDUDecoder &
 			port2 = (port2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (port1 != port2)
+			if (!fDontCare && port1 != port2)
 				throw "Port mismatch";
 
 			// extract the mask
@@ -4958,7 +4976,7 @@ void ScriptExecutor::ExpectWriteBDT( ScriptTokenList &tlist, BACnetAPDUDecoder &
 				mask2 = (mask2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (mask1 != mask2)
+			if ( !fDontCare &&  mask1 != mask2)
 				throw "Subnet mask mismatch";
 		}
 
@@ -4994,11 +5012,20 @@ void ScriptExecutor::ExpectReadBDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 
 			if (t.tokenType != scriptValue)
 				throw "IP address expected";
-			if (t.tokenEnc != scriptIPEnc)
-				throw "IP address required";
 
-			// convert to host, port and network mask
-			BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+			// madanner 11/4/02
+			// account for don't care case.  Not sure if this is a good thing or not.
+
+			bool fDontCare = t.IsDontCare();
+
+			if ( !fDontCare )
+			{
+				if (t.tokenEnc != scriptIPEnc)
+					throw "IP address required";
+
+				// convert to host, port and network mask
+				BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+			}
 
 			// make sure there's enough data
 			if (dec.pktLength < 10)
@@ -5009,7 +5036,7 @@ void ScriptExecutor::ExpectReadBDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 				host2 = (host2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (host1 != host2)
+			if ( !fDontCare && host1 != host2)
 				throw "Host address mismatch";
 
 			// extract the port
@@ -5017,7 +5044,7 @@ void ScriptExecutor::ExpectReadBDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 			port2 = (port2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (port1 != port2)
+			if ( !fDontCare && port1 != port2)
 				throw "Port mismatch";
 
 			// extract the mask
@@ -5025,7 +5052,7 @@ void ScriptExecutor::ExpectReadBDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 				mask2 = (mask2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (mask1 != mask2)
+			if ( !fDontCare && mask1 != mask2)
 				throw "Subnet mask mismatch";
 		}
 
@@ -5062,11 +5089,20 @@ void ScriptExecutor::ExpectForwardedNPDU( ScriptTokenList &tlist, BACnetAPDUDeco
 
 				if (t.tokenType != scriptValue)
 					throw "IP address expected";
-				if (t.tokenEnc != scriptIPEnc)
-					throw "IP address required";
 
-				// convert to host, port and network mask
-				BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+				// madanner 11/4/02
+				// account for don't care case.  Not sure if this is a good thing or not.
+
+				bool fDontCare = t.IsDontCare();
+
+				if ( !fDontCare )
+				{
+					if (t.tokenEnc != scriptIPEnc)
+						throw "IP address required";
+
+					// convert to host, port and network mask
+					BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+				}
 
 				// make sure there's enough data
 				if (dec.pktLength < 6)
@@ -5077,7 +5113,7 @@ void ScriptExecutor::ExpectForwardedNPDU( ScriptTokenList &tlist, BACnetAPDUDeco
 					host2 = (host2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 				// see if they match
-				if (host1 != host2)
+				if ( !fDontCare && host1 != host2)
 					throw "Host address mismatch";
 
 				// extract the port
@@ -5085,7 +5121,7 @@ void ScriptExecutor::ExpectForwardedNPDU( ScriptTokenList &tlist, BACnetAPDUDeco
 				port2 = (port2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 				// see if they match
-				if (port1 != port2)
+				if ( !fDontCare && port1 != port2)
 					throw "Port mismatch";
 				break;
 			}
@@ -5103,6 +5139,8 @@ void ScriptExecutor::ExpectRegisterFD( ScriptTokenList &tlist, BACnetAPDUDecoder
 	int		valu1, valu2
 	;
 
+	bool fDontCare = false;
+
 	TRACE0( "ExpectRegisterFD\n" );
 
 	switch (tlist.Length()) {
@@ -5114,10 +5152,19 @@ void ScriptExecutor::ExpectRegisterFD( ScriptTokenList &tlist, BACnetAPDUDecoder
 
 				if (dnet.tokenType != scriptValue)
 					throw "Time-to-live expected";
-				if (!dnet.IsInteger(valu1))
-					throw "Time-to-live invalid format";
-				if ((valu1 < 0) || (valu1 > 65535))
-					throw "Time-to-live out of range (0..65535)";
+
+				// madanner 11/4/02
+				// account for don't care case.  Not sure if this is a good thing or not.
+
+				bool fDontCare = dnet.IsDontCare();
+
+				if ( !fDontCare )
+				{
+					if (!dnet.IsInteger(valu1))
+						throw "Time-to-live invalid format";
+					if ((valu1 < 0) || (valu1 > 65535))
+						throw "Time-to-live out of range (0..65535)";
+				}
 
 				TRACE1( "    TTL %d\n", valu1 );
 
@@ -5126,7 +5173,7 @@ void ScriptExecutor::ExpectRegisterFD( ScriptTokenList &tlist, BACnetAPDUDecoder
 				valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 				// check for a match
-				if (valu1 != valu2)
+				if ( !fDontCare && valu1 != valu2)
 					throw "Time-to-live mismatch";
 
 				break;
@@ -5157,11 +5204,20 @@ void ScriptExecutor::ExpectReadFDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 
 			if (t.tokenType != scriptValue)
 				throw "IP address expected";
-			if (t.tokenEnc != scriptIPEnc)
-				throw "IP address required";
 
-			// convert to host, port and network mask
-			BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+			// madanner 11/4/02
+			// account for don't care case.  Not sure if this is a good thing or not.
+
+			bool fDontCare = t.IsDontCare();
+
+			if ( !fDontCare )
+			{
+				if (t.tokenEnc != scriptIPEnc)
+					throw "IP address required";
+
+				// convert to host, port and network mask
+				BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+			}
 
 			// make sure there's enough data
 			if (dec.pktLength < 10)
@@ -5172,7 +5228,7 @@ void ScriptExecutor::ExpectReadFDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 				host2 = (host2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (host1 != host2)
+			if ( !fDontCare &&  host1 != host2)
 				throw "Host address mismatch";
 
 			// extract the port
@@ -5180,7 +5236,7 @@ void ScriptExecutor::ExpectReadFDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 			port2 = (port2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (port1 != port2)
+			if ( !fDontCare &&  port1 != port2)
 				throw "Port mismatch";
 
 			// extract the ttl
@@ -5190,10 +5246,16 @@ void ScriptExecutor::ExpectReadFDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 
 			if (ttl.tokenType != scriptValue)
 				throw "Time-to-live expected";
-			if (!ttl.IsInteger(valu1))
-				throw "Time-to-live invalid format";
-			if ((valu1 < 0) || (valu1 > 65535))
-				throw "Time-to-live out of range (0..65535)";
+
+			fDontCare = ttl.IsDontCare();
+
+			if ( !fDontCare )
+			{
+				if (!ttl.IsInteger(valu1))
+					throw "Time-to-live invalid format";
+				if ((valu1 < 0) || (valu1 > 65535))
+					throw "Time-to-live out of range (0..65535)";
+			}
 
 			TRACE1( "    TTL %d\n", valu1 );
 
@@ -5202,7 +5264,7 @@ void ScriptExecutor::ExpectReadFDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 			valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// check for a match
-			if (valu1 != valu2)
+			if ( !fDontCare && valu1 != valu2)
 				throw "Time-to-live mismatch";
 
 			// extract the tr
@@ -5212,10 +5274,16 @@ void ScriptExecutor::ExpectReadFDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 
 			if (tr.tokenType != scriptValue)
 				throw "Time remaining expected";
-			if (!tr.IsInteger(valu1))
-				throw "Time remaining invalid format";
-			if ((valu1 < 0) || (valu1 > 65535))
-				throw "Time remaining out of range (0..65535)";
+
+			fDontCare = tr.IsDontCare();
+
+			if ( !fDontCare )
+			{
+				if (!tr.IsInteger(valu1))
+					throw "Time remaining invalid format";
+				if ((valu1 < 0) || (valu1 > 65535))
+					throw "Time remaining out of range (0..65535)";
+			}
 
 			TRACE1( "    TR %d\n", valu1 );
 
@@ -5224,7 +5292,7 @@ void ScriptExecutor::ExpectReadFDTAck( ScriptTokenList &tlist, BACnetAPDUDecoder
 			valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// check for a match
-			if (valu1 != valu2)
+			if ( !fDontCare && valu1 != valu2)
 				throw "Time remaining mismatch";
 		}
 
@@ -5261,11 +5329,17 @@ void ScriptExecutor::ExpectDeleteFDTEntry( ScriptTokenList &tlist, BACnetAPDUDec
 
 				if (t.tokenType != scriptValue)
 					throw "IP address expected";
-				if (t.tokenEnc != scriptIPEnc)
-					throw "IP address required";
 
-				// convert to host, port and network mask
-				BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+				bool fDontCare = t.IsDontCare();
+
+				if ( !fDontCare )
+				{
+					if (t.tokenEnc != scriptIPEnc)
+						throw "IP address required";
+
+					// convert to host, port and network mask
+					BACnetIPAddr::StringToHostPort( t.tokenValue, &host1, &mask1, &port1 );
+				}
 
 				// make sure there's enough data
 				if (dec.pktLength < 6)
@@ -5276,7 +5350,7 @@ void ScriptExecutor::ExpectDeleteFDTEntry( ScriptTokenList &tlist, BACnetAPDUDec
 					host2 = (host2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 				// see if they match
-				if (host1 != host2)
+				if ( !fDontCare && host1 != host2)
 					throw "Entry address mismatch";
 
 				// extract the port
@@ -5284,7 +5358,7 @@ void ScriptExecutor::ExpectDeleteFDTEntry( ScriptTokenList &tlist, BACnetAPDUDec
 				port2 = (port2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 				// see if they match
-				if (port1 != port2)
+				if ( !fDontCare && port1 != port2)
 					throw "Port mismatch";
 				break;
 			}
@@ -5315,10 +5389,16 @@ void ScriptExecutor::ExpectWhoIsRouterToNetwork( ScriptTokenList &tlist, BACnetA
 
 				if (dnet.tokenType != scriptValue)
 					throw "Network expected";
-				if (!dnet.IsInteger(valu1))
-					throw "Network invalid format";
-				if ((valu1 < 0) || (valu1 > 65534))
-					throw "Network out of range (0..65534)";
+
+				bool fDontCare = dnet.IsDontCare();
+
+				if ( !fDontCare )
+				{
+					if (!dnet.IsInteger(valu1))
+						throw "Network invalid format";
+					if ((valu1 < 0) || (valu1 > 65534))
+						throw "Network out of range (0..65534)";
+				}
 
 				TRACE1( "    Network %d\n", valu1 );
 
@@ -5327,7 +5407,7 @@ void ScriptExecutor::ExpectWhoIsRouterToNetwork( ScriptTokenList &tlist, BACnetA
 				valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 				// check for a match
-				if (valu1 != valu2)
+				if ( !fDontCare && valu1 != valu2)
 					throw "Network mismatch";
 
 				break;
@@ -5357,10 +5437,16 @@ void ScriptExecutor::ExpectIAmRouterToNetwork( ScriptTokenList &tlist, BACnetAPD
 
 			if (t.tokenType != scriptValue)
 				throw "Network expected";
-			if (!t.IsInteger(valu1))
-				throw "Network invalid format";
-			if ((valu1 < 0) || (valu1 > 65534))
-				throw "Network out of range (0..65534)";
+
+			bool fDontCare = t.IsDontCare();
+
+			if ( !fDontCare )
+			{
+				if (!t.IsInteger(valu1))
+					throw "Network invalid format";
+				if ((valu1 < 0) || (valu1 > 65534))
+					throw "Network out of range (0..65534)";
+			}
 
 			TRACE1( "    Network %d\n", valu1 );
 
@@ -5373,7 +5459,7 @@ void ScriptExecutor::ExpectIAmRouterToNetwork( ScriptTokenList &tlist, BACnetAPD
 			valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (valu1 != valu2)
+			if ( !fDontCare && valu1 != valu2)
 				throw "Network mismatch";
 		}
 
@@ -5406,10 +5492,16 @@ void ScriptExecutor::ExpectICouldBeRouterToNetwork( ScriptTokenList &tlist, BACn
 
 	if (dnet.tokenType != scriptValue)
 		throw "DNET expected";
-	if (!dnet.IsInteger(valu1))
-		throw "DNET invalid format";
-	if ((valu1 < 0) || (valu1 > 65534))
-		throw "DNET out of range (0..65534)";
+
+	bool fDontCare = dnet.IsDontCare();
+
+	if ( !fDontCare )
+	{
+		if (!dnet.IsInteger(valu1))
+			throw "DNET invalid format";
+		if ((valu1 < 0) || (valu1 > 65534))
+			throw "DNET out of range (0..65534)";
+	}
 
 	TRACE1( "    Network %d\n", valu1 );
 
@@ -5418,17 +5510,23 @@ void ScriptExecutor::ExpectICouldBeRouterToNetwork( ScriptTokenList &tlist, BACn
 	valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 	// see if they match
-	if (valu1 != valu2)
+	if ( !fDontCare && valu1 != valu2)
 		throw "Network mismatch";
 
 	const ScriptToken &perf = tlist[2];
 
 	if (perf.tokenType != scriptValue)
 		throw "Performance index expected";
-	if (!perf.IsInteger(valu1))
-		throw "Performance index invalid format";
-	if ((valu1 < 0) || (valu1 > 255))
-		throw "Performance index out of range (0..255)";
+
+	fDontCare = perf.IsDontCare();
+
+	if ( !fDontCare )
+	{
+		if (!perf.IsInteger(valu1))
+			throw "Performance index invalid format";
+		if ((valu1 < 0) || (valu1 > 255))
+			throw "Performance index out of range (0..255)";
+	}
 
 	TRACE1( "    Performance %d\n", valu1 );
 
@@ -5436,7 +5534,7 @@ void ScriptExecutor::ExpectICouldBeRouterToNetwork( ScriptTokenList &tlist, BACn
 	valu2 = (dec.pktLength--,*dec.pktBuffer++);
 
 	// see if they match
-	if (valu1 != valu2)
+	if ( !fDontCare && valu1 != valu2)
 		throw "Performance index mismatch";
 }
 
@@ -5458,10 +5556,16 @@ void ScriptExecutor::ExpectRejectMessageToNetwork( ScriptTokenList &tlist, BACne
 
 	if (reason.tokenType != scriptValue)
 		throw "Reject reason expected";
-	if (!reason.IsInteger(valu1))
-		throw "Reject reason invalid format";
-	if ((valu1 < 0) || (valu1 > 255))
-		throw "Reject reason out of range (0..255)";
+
+	bool fDontCare = reason.IsDontCare();
+
+	if ( !fDontCare )
+	{
+		if (!reason.IsInteger(valu1))
+			throw "Reject reason invalid format";
+		if ((valu1 < 0) || (valu1 > 255))
+			throw "Reject reason out of range (0..255)";
+	}
 
 	TRACE1( "    Reject reason %d\n", valu1 );
 
@@ -5469,17 +5573,23 @@ void ScriptExecutor::ExpectRejectMessageToNetwork( ScriptTokenList &tlist, BACne
 	valu2 = (dec.pktLength--,*dec.pktBuffer++);
 
 	// see if they match
-	if (valu1 != valu2)
+	if ( !fDontCare && valu1 != valu2)
 		throw "Reject reason mismatch";
 
 	const ScriptToken &dnet = tlist[2];
 
 	if (dnet.tokenType != scriptValue)
 		throw "DNET expected";
-	if (!dnet.IsInteger(valu1))
-		throw "DNET invalid format";
-	if ((valu1 < 0) || (valu1 > 65534))
-		throw "DNET out of range (0..65534)";
+
+	fDontCare = dnet.IsDontCare();
+
+	if ( !fDontCare )
+	{
+		if (!dnet.IsInteger(valu1))
+			throw "DNET invalid format";
+		if ((valu1 < 0) || (valu1 > 65534))
+			throw "DNET out of range (0..65534)";
+	}
 
 	TRACE1( "    DNET %d\n", valu1 );
 
@@ -5488,7 +5598,7 @@ void ScriptExecutor::ExpectRejectMessageToNetwork( ScriptTokenList &tlist, BACne
 	valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 	// see if they match
-	if (valu1 != valu2)
+	if ( !fDontCare && valu1 != valu2)
 		throw "Network mismatch";
 }
 
@@ -5509,10 +5619,16 @@ void ScriptExecutor::ExpectRouterBusyToNetwork( ScriptTokenList &tlist, BACnetAP
 
 			if (t.tokenType != scriptValue)
 				throw "Network expected";
-			if (!t.IsInteger(valu1))
-				throw "Network invalid format";
-			if ((valu1 < 0) || (valu1 > 65534))
-				throw "Network out of range (0..65534)";
+
+			bool fDontCare = t.IsDontCare();
+
+			if ( !fDontCare )
+			{
+				if (!t.IsInteger(valu1))
+					throw "Network invalid format";
+				if ((valu1 < 0) || (valu1 > 65534))
+					throw "Network out of range (0..65534)";
+			}
 
 			TRACE1( "    Network %d\n", valu1 );
 
@@ -5525,7 +5641,7 @@ void ScriptExecutor::ExpectRouterBusyToNetwork( ScriptTokenList &tlist, BACnetAP
 			valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (valu1 != valu2)
+			if ( !fDontCare && valu1 != valu2)
 				throw "Network mismatch";
 		}
 
@@ -5557,10 +5673,16 @@ void ScriptExecutor::ExpectRouterAvailableToNetwork( ScriptTokenList &tlist, BAC
 
 			if (t.tokenType != scriptValue)
 				throw "Network expected";
-			if (!t.IsInteger(valu1))
-				throw "Network invalid format";
-			if ((valu1 < 0) || (valu1 > 65534))
-				throw "Network out of range (0..65534)";
+
+			bool fDontCare = t.IsDontCare();
+
+			if ( !fDontCare )
+			{
+				if (!t.IsInteger(valu1))
+					throw "Network invalid format";
+				if ((valu1 < 0) || (valu1 > 65534))
+					throw "Network out of range (0..65534)";
+			}
 
 			TRACE1( "    Network %d\n", valu1 );
 
@@ -5573,7 +5695,7 @@ void ScriptExecutor::ExpectRouterAvailableToNetwork( ScriptTokenList &tlist, BAC
 			valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// see if they match
-			if (valu1 != valu2)
+			if ( !fDontCare && valu1 != valu2)
 				throw "Network mismatch";
 		}
 
@@ -5611,10 +5733,16 @@ void ScriptExecutor::ExpectInitializeRoutingTable( ScriptTokenList &tlist, BACne
 
 		if (dnet.tokenType != scriptValue)
 			throw "DNET expected";
-		if (!dnet.IsInteger(valu1))
-			throw "DNET invalid format";
-		if ((valu1 < 0) || (valu1 > 65534))
-			throw "DNET out of range (0..65534)";
+
+		bool fDontCare = dnet.IsDontCare();
+
+		if ( !fDontCare )
+		{
+			if (!dnet.IsInteger(valu1))
+				throw "DNET invalid format";
+			if ((valu1 < 0) || (valu1 > 65534))
+				throw "DNET out of range (0..65534)";
+		}
 
 		TRACE1( "    Network %d\n", valu1 );
 
@@ -5623,7 +5751,7 @@ void ScriptExecutor::ExpectInitializeRoutingTable( ScriptTokenList &tlist, BACne
 		valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 		// see if they match
-		if (valu1 != valu2)
+		if ( !fDontCare &&  valu1 != valu2)
 			throw "Network mismatch";
 
 		if (i >= tlist.Length())
@@ -5632,8 +5760,14 @@ void ScriptExecutor::ExpectInitializeRoutingTable( ScriptTokenList &tlist, BACne
 
 		if (portID.tokenType != scriptValue)
 			throw "Port ID expected";
-		if (!portID.IsInteger(valu1))
-			throw "Port ID invalid format";
+
+		fDontCare = portID.IsDontCare();
+
+		if ( !fDontCare )
+		{
+			if (!portID.IsInteger(valu1))
+				throw "Port ID invalid format";
+		}
 
 		TRACE1( "    Port ID %d\n", valu1 );
 
@@ -5641,7 +5775,7 @@ void ScriptExecutor::ExpectInitializeRoutingTable( ScriptTokenList &tlist, BACne
 		valu2 = (dec.pktLength--,*dec.pktBuffer++);
 
 		// see if they match
-		if (valu1 != valu2)
+		if ( !fDontCare && valu1 != valu2)
 			throw "Port ID mismatch";
 
 		if (i >= tlist.Length())
@@ -5650,17 +5784,24 @@ void ScriptExecutor::ExpectInitializeRoutingTable( ScriptTokenList &tlist, BACne
 
 		if (portInfo.tokenType != scriptValue)
 			throw "Port information expected";
-		if (!portInfo.IsEncodeable( cstr ))
-			throw "Port information invalid format";
-		if (cstr.strEncoding != 0)
-			throw "Port information must be ASCII encoded";
+
+		fDontCare = portInfo.IsDontCare();
+
+		if ( !fDontCare )
+		{
+			if (!portInfo.IsEncodeable( cstr ))
+				throw "Port information invalid format";
+			if (cstr.strEncoding != 0)
+				throw "Port information must be ASCII encoded";
+		}
 
 		// check the port information content
 		if (cstr.strLen != (dec.pktLength--,*dec.pktBuffer++))
 			throw "Port information mismatch";
 		for (unsigned j = 0; j < cstr.strLen; j++)
 			if (cstr.strBuff[j] != (dec.pktLength--,*dec.pktBuffer++))
-				throw "Port information mismatch";
+				if ( !fDontCare )
+					throw "Port information mismatch";
 	}
 }
 
@@ -5682,10 +5823,16 @@ void ScriptExecutor::ExpectEstablishConnectionToNetwork( ScriptTokenList &tlist,
 
 	if (dnet.tokenType != scriptValue)
 		throw "DNET expected";
-	if (!dnet.IsInteger(valu1))
-		throw "DNET invalid format";
-	if ((valu1 < 0) || (valu1 > 65534))
-		throw "DNET out of range (0..65534)";
+
+	bool fDontCare = dnet.IsDontCare();
+
+	if ( !fDontCare )
+	{
+		if (!dnet.IsInteger(valu1))
+			throw "DNET invalid format";
+		if ((valu1 < 0) || (valu1 > 65534))
+			throw "DNET out of range (0..65534)";
+	}
 
 	TRACE1( "    Network %d\n", valu1 );
 
@@ -5694,15 +5841,21 @@ void ScriptExecutor::ExpectEstablishConnectionToNetwork( ScriptTokenList &tlist,
 	valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 	// see if they match
-	if (valu1 != valu2)
+	if ( !fDontCare &&  valu1 != valu2)
 		throw "Network mismatch";
 
 	const ScriptToken &term = tlist[2];
 
 	if (term.tokenType != scriptValue)
 		throw "Termination time expected";
-	if (!term.IsInteger(valu1))
-		throw "Termination time invalid format";
+
+	fDontCare = term.IsDontCare();
+
+	if ( !fDontCare )
+	{
+		if (!term.IsInteger(valu1))
+			throw "Termination time invalid format";
+	}
 
 	TRACE1( "    Termination time %d\n", valu1 );
 
@@ -5710,7 +5863,7 @@ void ScriptExecutor::ExpectEstablishConnectionToNetwork( ScriptTokenList &tlist,
 	valu2 = (dec.pktLength--,*dec.pktBuffer++);
 
 	// see if they match
-	if (valu1 != valu2)
+	if ( !fDontCare &&  valu1 != valu2)
 		throw "Termination time mismatch";
 }
 
@@ -5732,10 +5885,16 @@ void ScriptExecutor::ExpectDisconnectConnectionToNetwork( ScriptTokenList &tlist
 
 	if (dnet.tokenType != scriptValue)
 		throw "DNET expected";
-	if (!dnet.IsInteger(valu1))
-		throw "DNET invalid format";
-	if ((valu1 < 0) || (valu1 > 65534))
-		throw "DNET out of range (0..65534)";
+
+	bool fDontCare = dnet.IsDontCare();
+
+	if ( !fDontCare )
+	{
+		if (!dnet.IsInteger(valu1))
+			throw "DNET invalid format";
+		if ((valu1 < 0) || (valu1 > 65534))
+			throw "DNET out of range (0..65534)";
+	}
 
 	TRACE1( "    Network %d\n", valu1 );
 
@@ -5744,7 +5903,7 @@ void ScriptExecutor::ExpectDisconnectConnectionToNetwork( ScriptTokenList &tlist
 	valu2 = (valu2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 	// see if they match
-	if (valu1 != valu2)
+	if ( !fDontCare &&  valu1 != valu2)
 		throw "Network mismatch";
 }
 
@@ -6044,7 +6203,7 @@ void ScriptExecutor::ExpectDevSimpleACK( const BACnetAPDU &apdu )
 	// get the service choice
 	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
 	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (INVOKEID) mismatch";
 }
 
 //
@@ -6066,7 +6225,7 @@ void ScriptExecutor::ExpectDevComplexACK( const BACnetAPDU &apdu )
 	// get the service choice
 	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
 	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (INVOKEID) mismatch";
 
 	// expect the rest
 	BACnetAPDUDecoder dec( apdu );
@@ -6094,23 +6253,23 @@ void ScriptExecutor::ExpectDevSegmentACK( const BACnetAPDU &apdu )
 
 	pNegativeACK = GetKeywordValue( kwNEGATIVEACK, alNegativeACK );
 	if (pNegativeACK && !Match(pNegativeACK->exprOp,apdu.apduNak,alNegativeACK.boolValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (NEGATIVEACK) mismatch";
 
 	pServer = GetKeywordValue( kwSERVER, alServer );
 	if (pServer && !Match(pServer->exprOp,apdu.apduSrv,alServer.boolValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (SERVER) mismatch";
 
 	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
 	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (INVOKEID) mismatch";
 
 	pSeqNumber = GetKeywordValue( kwSEQUENCENR, alSeqNumber );
 	if (pSeqNumber && !Match(pSeqNumber->exprOp,apdu.apduSeq,alSeqNumber.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (SEQUENCENR) mismatch";
 
 	pWindowSize = GetKeywordValue( kwWINDOWSIZE, alWindowSize );
 	if (pWindowSize && !Match(pWindowSize->exprOp,apdu.apduWin,alWindowSize.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (WINDOWSIZE) mismatch";
 }
 
 //
@@ -6132,7 +6291,7 @@ void ScriptExecutor::ExpectDevError( const BACnetAPDU &apdu )
 	// get the service choice
 	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
 	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (INVOKEID) mismatch";
 
 	// expect the rest
 	BACnetAPDUDecoder dec( apdu );
@@ -6159,12 +6318,12 @@ void ScriptExecutor::ExpectDevReject( const BACnetAPDU &apdu )
 	// get the service choice
 	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID, ScriptALConfirmedServiceMap );
 	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (INVOKEID) mismatch";
 
 	// get the service choice
 	pReason = GetKeywordValue( kwREJECTREASON, alReason, ScriptALRejectReasonMap );
 	if (pReason && !Match(pReason->exprOp,apdu.apduAbortRejectReason,alReason.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (REJECTREASON) mismatch";
 }
 
 //
@@ -6188,12 +6347,12 @@ void ScriptExecutor::ExpectDevAbort( const BACnetAPDU &apdu )
 	// get the service choice
 	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
 	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (INVOKEID) mismatch";
 
 	// get the service choice
 	pReason = GetKeywordValue( kwABORTREASON, alReason, ScriptALAbortReasonMap );
 	if (pReason && !Match(pReason->exprOp,apdu.apduAbortRejectReason,alReason.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+		throw "Service-choice (ABORTREASON) mismatch";
 }
 
 //
@@ -6876,7 +7035,9 @@ void ScriptExecutor::ExpectALBoolean( ScriptPacketExprPtr spep, BACnetAPDUDecode
 
 		scriptData.boolValue = ((BACnetBoolean *) bacnetEPICSProperty.GetObject())->boolValue;
 	} else
-	if (!tlist[indx].IsEncodeable( scriptData ))
+	if ( tlist[indx].IsDontCare() )
+		spep->exprOp = '?=';
+	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Boolean value expected";
 
 	// decode it
@@ -6942,15 +7103,22 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 
 		scriptData.uintValue = ((BACnetUnsigned *) bacnetEPICSProperty.GetObject())->uintValue;
 	} else
-	if (!tlist[indx].IsEncodeable( scriptData ))
+	if ( tlist[indx].IsDontCare() )
+		spep->exprOp = '?=';
+	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Unsigned value expected";
+
+	// There may be a bug here... possibly we should always Decode the uintData regardless of
+	// what the scriptData indicates as size.  But I don't know enough yet to tell what this would
+	// break?  madanner 11/4/02
 
    //***Added by Liangping Xu, 2002-8-5***//
     nArrayIndx = scriptData.uintValue;
    //***Ended by Liangping Xu, 2002-8-5***//
 	// check for wierd versions
 	if (spep->exprKeyword == kwUNSIGNED8) {
-		if ((uintData.uintValue < 0) || (uintData.uintValue > 255))
+//		if ((uintData.uintValue < 0) || (uintData.uintValue > 255))			// madanner 11/4/02, should be scriptData?
+		if ((scriptData.uintValue < 0) || (scriptData.uintValue > 255))
 			throw "Unsigned8 value out of range (0..255)";
 		if (tlist.Length() == 2)
 			throw "Unsigned8 keyword cannot be context encoded";
@@ -6958,7 +7126,8 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 		uintData.uintValue = (dec.pktLength--,*dec.pktBuffer++);
 	} else
 	if (spep->exprKeyword == kwUNSIGNED16) {
-		if ((uintData.uintValue < 0) || (uintData.uintValue > 65535))
+//		if ((uintData.uintValue < 0) || (uintData.uintValue > 65535))		// madanner 11/4/02, should be scriptData?
+		if ((scriptData.uintValue < 0) || (scriptData.uintValue > 65535))
 			throw "Unsigned16 value out of range (0..65535)";
 		if (tlist.Length() == 2)
 			throw "Unsigned16 keyword cannot be context encoded";
@@ -7043,7 +7212,9 @@ void ScriptExecutor::ExpectALInteger( ScriptPacketExprPtr spep, BACnetAPDUDecode
 		else
 			throw "Integer property value expected in EPICS";
 	} else
-	if (!tlist[indx].IsEncodeable( scriptData ))
+	if ( tlist[indx].IsDontCare() )
+		spep->exprOp = '?=';
+	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Integer value expected";
 
 	// decode it
@@ -7107,7 +7278,9 @@ void ScriptExecutor::ExpectALReal( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 
 		scriptData.realValue = ((BACnetReal *) bacnetEPICSProperty.GetObject())->realValue;
 	} else
-	if (!tlist[indx].IsEncodeable( scriptData ))
+	if ( tlist[indx].IsDontCare() )
+		spep->exprOp = '?=';
+	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Single precision floating point value expected";
 
 	// decode it
@@ -7173,7 +7346,9 @@ void ScriptExecutor::ExpectALDouble( ScriptPacketExprPtr spep, BACnetAPDUDecoder
 
 		scriptData.doubleValue = ((BACnetReal *) bacnetEPICSProperty.GetObject())->realValue;
 	} else
-	if (!tlist[indx].IsEncodeable( scriptData ))
+	if ( tlist[indx].IsDontCare() )
+		spep->exprOp = '?=';
+	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Double precision floating point expected";
 
 	// decode it
@@ -7231,7 +7406,9 @@ void ScriptExecutor::ExpectALOctetString( ScriptPacketExprPtr spep, BACnetAPDUDe
 	// no references
 	if (tlist[indx].tokenType == scriptReference)
 		throw "Octet string property references not supported";
-	if (!tlist[indx].IsEncodeable( scriptData ))
+	if ( tlist[indx].IsDontCare() )
+		spep->exprOp = '?=';
+	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Octet string value expected";
 
 	// decode it
@@ -7291,9 +7468,11 @@ void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAP
 	if (tlist.Length() == 1) {
 		if (tlist[0].tokenType == scriptReference)
 			indx = 0;
-		else
-		if (!tlist[0].IsEncodeable( scriptData ))
+		else if ( tlist[0].IsDontCare() )
+			spep->exprOp = '?=';
+		else if (!tlist[0].IsEncodeable( scriptData ))
 			throw "ASCII string value expected";
+
 		if (tag.tagClass)
 			throw "Application tagged character string expected";
 		if (tag.tagNumber != characterStringAppTag)
@@ -7308,9 +7487,14 @@ void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAP
 			if (ScriptToken::Lookup( tlist[0].tokenSymbol, ScriptCharacterTypeMap ) < 0)
 				throw "Unknown encoding";
 
-			CString buff;
-			buff.Format( "%s, %s", tlist[0].tokenValue, tlist[1].tokenValue );
-			scriptData.Decode( buff );
+			if ( tlist[1].IsDontCare() )
+				spep->exprOp = '?=';
+			else
+			{
+				CString buff;
+				buff.Format( "%s, %s", tlist[0].tokenValue, tlist[1].tokenValue );
+				scriptData.Decode( buff );
+			}
 
 			if (tag.tagClass)
 				throw "Application tagged character string expected";
@@ -7324,9 +7508,14 @@ void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAP
 		if (ScriptToken::Lookup( tlist[1].tokenSymbol, ScriptCharacterTypeMap ) < 0)
 			throw "Unknown encoding";
 
-		CString buff;
-		buff.Format( "%s, %s", tlist[1].tokenValue, tlist[2].tokenValue );
-		scriptData.Decode( buff );
+		if ( tlist[2].IsDontCare() )
+			spep->exprOp = '?=';
+		else
+		{
+			CString buff;
+			buff.Format( "%s, %s", tlist[1].tokenValue, tlist[2].tokenValue );
+			scriptData.Decode( buff );
+		}
 
 		// check the type
 		if (!tag.tagClass)
@@ -7396,11 +7585,12 @@ void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDeco
 
 			scriptData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
 		} else
-		if (data.tokenEnc == scriptBinaryEnc) {
+		if ( data.IsDontCare() )
+			spep->exprOp = '?=';
+		else if (data.tokenEnc == scriptBinaryEnc) {
 			if (!data.IsEncodeable( scriptData ))
 				throw "Bit string value expected";
-		} else
-		if (data.tokenType == scriptKeyword) {
+		} else if (data.tokenType == scriptKeyword) {
 			if (data.IsInteger( bit, ScriptBooleanMap ))
 				scriptData += bit;
 		} else
@@ -7433,7 +7623,9 @@ void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDeco
 
 			scriptData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
 		} else
-		if (tlist[i].IsEncodeable( scriptData ))
+		if ( tlist[i].IsDontCare() )
+			spep->exprOp = '?=';
+		else if (tlist[i].IsEncodeable( scriptData ))
 			;
 		else {
 			int count = 0;
@@ -7470,7 +7662,10 @@ void ScriptExecutor::CompareAndThrowError( BACnetEncodeable & rbacnet1, BACnetEn
 {
 	CString strError;
 
-	if ( !rbacnet2.Match(rbacnet1, iOperator, &strError) )
+	// Account for dont' care operator.  Operator usually filled in last minute... not specified
+	// as real operator so we don't have to place test in ALL virtual matching methods !!
+
+	if ( iOperator != '?=' && !rbacnet2.Match(rbacnet1, iOperator, &strError) )
 	{
 		CString strErrorPrefix;
 		strErrorPrefix.LoadString(nError);
@@ -7531,7 +7726,10 @@ void ScriptExecutor::ExpectALEnumerated( ScriptPacketExprPtr spep, BACnetAPDUDec
 		scriptData.enumValue = ((BACnetEnumerated *) bacnetEPICSProperty.GetObject())->enumValue;
 	} else {
 		try {
-			scriptData.Decode( tlist[indx].tokenValue );
+			if ( tlist[indx].IsDontCare() )
+				spep->exprOp = '?=';
+			else
+				scriptData.Decode( tlist[indx].tokenValue );
 		}
 		catch (...) {
 			throw "Integer value expected";
@@ -7588,14 +7786,24 @@ void ScriptExecutor::ExpectALDate( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 
 			scriptData = *((BACnetDate *) bacnetEPICSProperty.GetObject());
 		} else
-			scriptData.Decode( scan.scanSrc );
+		{
+			if ( tok.IsDontCare() )
+				spep->exprOp = '?=';
+			else 
+				scriptData.Decode( scan.scanSrc );
+		}
 
 		if (!tag.tagClass)
 			throw "Context tagged date expected";
 		if (tag.tagNumber != context)
 			throw "Mismatched context tag value";
 	} else {
-		scriptData.Decode( spep->exprValue );
+
+		if ( tok.IsDontCare() )
+			spep->exprOp = '?=';
+		else 
+			scriptData.Decode( spep->exprValue );
+
 		if (tag.tagClass)
 			throw "Application tagged date expected";
 		if (tag.tagNumber != dateAppTag)
@@ -7639,29 +7847,38 @@ void ScriptExecutor::ExpectALTime( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 				context = holdContext;
 				scan.Next( tok );
 			   }                          //added by Liangping Xu  
-				if (tok.tokenType == scriptReference) {
-					BACnetAnyValue		bacnetEPICSProperty;
+			if (tok.tokenType == scriptReference) {
+				BACnetAnyValue		bacnetEPICSProperty;
 
-					GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty, tok.m_nIndex);
+				GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty, tok.m_nIndex);
 
-					if ( bacnetEPICSProperty.GetType() != ptTime )
-						throw "Time property value expected in EPICS";
+				if ( bacnetEPICSProperty.GetType() != ptTime )
+					throw "Time property value expected in EPICS";
 
-					scriptData = *((BACnetTime *) bacnetEPICSProperty.GetObject());
-				} else
+				scriptData = *((BACnetTime *) bacnetEPICSProperty.GetObject());
+			} else
+			{
+				if ( tok.IsDontCare() )
+					spep->exprOp = '?=';
+				else
 					scriptData.Decode( scan.scanSrc );	// do the rest as a time
-
-				if (!tag.tagClass)
-					throw "Context tagged date expected";
-				if (tag.tagNumber != context)
-					throw "Mismatched context tag value";
-			} else {
-				scriptData.Decode( spep->exprValue );	// do whole thing
-				if (tag.tagClass)
-					throw "Application tagged time expected";
-				if (tag.tagNumber != timeAppTag)
-					throw "Mismatched data type, time expected";
 			}
+
+			if (!tag.tagClass)
+				throw "Context tagged date expected";
+			if (tag.tagNumber != context)
+				throw "Mismatched context tag value";
+		} else {
+			if ( tok.IsDontCare() )
+				spep->exprOp = '?=';
+			else
+				scriptData.Decode( spep->exprValue );	// do whole thing
+
+			if (tag.tagClass)
+				throw "Application tagged time expected";
+			if (tag.tagNumber != timeAppTag)
+				throw "Mismatched data type, time expected";
+		}
              // deleted by Liangping Xu
 			//} else
 	//		throw "Time keyword parameter format invalid";
@@ -7733,7 +7950,9 @@ void ScriptExecutor::ExpectALObjectIdentifier( ScriptPacketExprPtr spep, BACnetA
 	} else {
 		if (!tlist[indx].IsInteger( objType, ScriptObjectTypeMap ))
 			throw "Object identifier type expected";
-		if (!tlist[indx+1].IsInteger( instanceNum ))
+		if ( tlist[indx+1].IsDontCare() )
+			spep->exprOp = '?=';
+		else if (!tlist[indx+1].IsInteger( instanceNum ))
 			throw "Object identifier instance expected";
 
 //		scriptData = (objType << 22) + instanceNum;
@@ -7775,17 +7994,20 @@ void ScriptExecutor::ExpectALDeviceIdentifier( ScriptPacketExprPtr spep, BACnetA
 
 	// tag is optional
 	if (tlist.Length() == 1) {
-		if (!tlist[0].IsInteger( instanceNum ))
+		if ( tlist[0].IsDontCare() )
+			spep->exprOp = '?=';
+		else if (!tlist[0].IsInteger( instanceNum ))
 			throw "Device identifier instance value expected";
 		if (tag.tagClass)
 			throw "Application tagged object identifier expected";
 		if (tag.tagNumber != objectIdentifierAppTag)
 			throw "Mismatched data type, object identifier expected";
-	} else
-	if (tlist.Length() == 2) {
+	} else if (tlist.Length() == 2) {
 		if (!tlist[0].IsInteger( context ))
 			throw "Tag number expected";
-		if (!tlist[1].IsInteger( instanceNum ))
+		if ( tlist[1].IsDontCare() )
+			spep->exprOp = '?=';
+		else if (!tlist[1].IsInteger( instanceNum ))
 			throw "Device identifier instance value expected";
 		if (!tag.tagClass)
 			throw "Context tagged object identifier expected";
@@ -8350,6 +8572,7 @@ LPCSTR OperatorToString(int iOperator)
 {
 	switch( iOperator )
 	{
+		case '?=':	return "?=";	// don't care case
 		case '=': return "=";
 		case '<': return "<";
 		case '>': return ">";
@@ -8375,6 +8598,7 @@ LPCSTR OperatorToString(int iOperator)
 bool Match( int op, int a, int b )
 {
 	switch (op) {
+		case '?=':	return true;	// don't care case
 		case '=': return (a == b);
 		case '<': return (a < b);
 		case '>': return (a > b);
@@ -8389,6 +8613,7 @@ bool Match( int op, int a, int b )
 bool Match( int op, unsigned long a, unsigned long b )
 {
 	switch (op) {
+		case '?=':	return true;	// don't care case
 		case '=': return (a == b);
 		case '<': return (a < b);
 		case '>': return (a > b);
@@ -8410,6 +8635,7 @@ bool Match( int op, float a, float b )
 		//case '<=': return (a <= b);
 		//case '>=': return (a >= b);
 		//case '!=': return (a != b);
+		case '?=':	return true;	// don't care case
 		case '=': return (fabs(a - b) < FLOAT_EPSINON);
 		case '<': return (a < b && fabs(a - b) > FLOAT_EPSINON);
 		case '>': return (a > b && fabs(a - b) > FLOAT_EPSINON);
@@ -8449,6 +8675,7 @@ bool Match( int op, CTime &timeThis, CTime &timeThat )
 {
 	switch(op)
 	{
+		case '?=':	return true;	// don't care case
 		case '=':	return (timeThis == timeThat) != 0;		// stop crazy Microsoft BOOL warning
 		case '<':	return (timeThis < timeThat) != 0;
 		case '>':	return (timeThis > timeThat) != 0;
