@@ -17,6 +17,7 @@
 #include "ScriptBase.h"
 #include "ScriptDocument.h"
 #include "ScriptPacket.h"
+#include "ScriptExecMsg.h"
 
 #include "BACnet.hpp"
 #include "VTSQueue.h"
@@ -33,21 +34,21 @@
 #define nPRIO 16				    // size of priority arrays
 #endif
 
-//
-//	ScriptExecMsg
-//
 
-class ScriptExecMsg {
+
+class ScriptMsgStatus : public ScriptExecMsg
+{
 	public:
-		ScriptDocumentPtr	msgDoc;			// current script document
-		ScriptBasePtr		msgBase;		// section/test/deps/packet
-		int					msgStatus;		// common status code
-	};
+		ScriptDocumentPtr	m_pdoc;			// current script document
+		ScriptBasePtr		m_pbase;		// section/test/deps/packet
+		int					m_nStatus;		// common status code
 
-typedef ScriptExecMsg *ScriptExecMsgPtr;
-const int kScriptExecMsgSize = sizeof( ScriptExecMsg );
+		ScriptMsgStatus( ScriptDocumentPtr pDoc, ScriptBasePtr pbase, int nStatus );
+};
 
-typedef VTSQueue<ScriptExecMsg> ScriptExecMsgQueue;
+
+//typedef VTSQueue<ScriptExecMsg> ScriptExecMsgQueue;
+// now defined in VTSQueue.h
 
 //
 //	ScriptFilter
@@ -231,11 +232,12 @@ class ScriptExecutor : public BACnetTask {
 		ScriptDocumentPtr		execDoc;		// current script document
 		ScriptTestPtr			execTest;		// current test
 		ScriptPacketPtr			execPacket;		// current packet
+		ScriptCommandPtr		execCommand;	// current command... could be packet or something else
 		int						execStepForced;	// packet forced to pass (=1) or fail (=2)
 		unsigned long			execObjID;		// object context for property references
 
 		void ProcessTask( void );				// timer went off
-		void NextPacket( bool okPacket );		// move to next in sequence
+		void NextPacket( bool okPacket, bool fHanging = false );		// move to next in sequence
 
 		void ResolveExpr( const char *expr, int exprLine, ScriptTokenList &lst, ScriptParmPtr * ppScriptParm = NULL );
 //		void* GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *dp = 0 );
@@ -377,7 +379,8 @@ class ScriptExecutor : public BACnetTask {
 		void ResetFamily( ScriptBasePtr sbp );
 		void ResetTest( ScriptTestPtr stp );
 		void SetTestStatus( ScriptTestPtr stp, int stat );		// change the test status
-		void SetPacketStatus( ScriptPacketPtr spp, int stat );	// change the packet status
+//		void SetPacketStatus( ScriptPacketPtr spp, int stat );	// change the packet status
+		void SetPacketStatus( ScriptBasePtr spp, int stat );	// change the packet status
 		int CalcTestStatus( ScriptTestPtr stp );				// check deps and return status
 		void VerifySectionStatus( ScriptSectionPtr ssp );
 
@@ -403,7 +406,7 @@ class ScriptExecutor : public BACnetTask {
 		void Resume( void );					// go back to running
 		void Kill( void );						// fail test and exit
 
-		ScriptExecMsgPtr ReadMsg( void );		// read a message from the queue
+		ScriptExecMsg * ReadMsg( void );		// read a message from the queue
 
 		inline bool IsIdle( void ) { return (execState == execIdle); }
 		inline bool IsRunning( void ) { return (execState == execRunning); }
