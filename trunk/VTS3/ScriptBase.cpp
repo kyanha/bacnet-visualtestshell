@@ -606,6 +606,7 @@ void ScriptScanner::Next( ScriptToken& tok )
 	switch (c) {
 		case '=':
 		case '?':
+        case '*':              //add by Liangping Xu
 		case ',':
 		case '/':
 		case ':':
@@ -653,19 +654,36 @@ void ScriptScanner::Next( ScriptToken& tok )
 		case '+':
 		case '-':
 			signFound = true;
+			// Added by Yajun Zhou, 2002-9-4
+			if(*scanSrc == '&')
+			{
+				*dst++ = c = toupper(*scanSrc++);
+				*dst = 0;
+				goto FORMAT1;
+			}
+			if(*scanSrc == '0' && !isdigit(*(scanSrc+1)))
+			{
+				*dst++ = c = toupper(*scanSrc++);
+				*dst = 0;
+				break;
+			}
+			//////////////////////////////////////
 			if (!isdigit(*scanSrc))
 				FormatError( tok, "Invalid character in numeric constant" );
 			break;
 
 		case '&':
-			if (*scanSrc == 'D') {
+FORMAT1:	if (*scanSrc == 'D') {
 				tok.tokenType = scriptValue;
 				tok.tokenEnc = scriptDecimalEnc;
 				*dst++ = *scanSrc++;
 				while (isdigit(*scanSrc))
 					*dst++ = *scanSrc++;
 			} else
-			if (*scanSrc == 'H') {
+			//Modified by Yajun Zhou, 2002-8-16
+			//if (*scanSrc == 'H') {
+			if (*scanSrc == 'X' ) {
+			///////////////////////////////////
 				tok.tokenType = scriptValue;
 				tok.tokenEnc = scriptHexEnc;
 				*dst++ = *scanSrc++;
