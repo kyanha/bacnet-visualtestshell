@@ -333,7 +333,10 @@ generic_object far* APIENTRY GetpObj(generic_object far* root, dword ObjectId)
   return root;
 }
 
-   
+
+
+/* no longer used
+   mandanner 10/02   
 // This function is used to retrieve the property value of an object.
 //
 // in:
@@ -344,79 +347,17 @@ generic_object far* APIENTRY GetpObj(generic_object far* root, dword ObjectId)
 extern "C"
 short APIENTRY GetPropValue(char far* Buffer, PVMessage far* msg)	//***002
 { 
-  generic_object far* Obj= msg->Obj;
-  int value; 
-  if (Obj==NULL) return(-1); // no generic_object
-  
-  switch( (enum BACnetObjectType) Obj->object_type)  
-    { 
-      case ANALOG_INPUT:
-          value= ai(Buffer,msg);
-        break;
-      case ANALOG_OUTPUT:
-          value= ao(Buffer,msg);
-        break;
-      case ANALOG_VALUE:
-          value= av(Buffer,msg);
-        break;   
-      case BINARY_INPUT:
-          value= bi(Buffer,msg);
-        break;   
-      case BINARY_OUTPUT:
-          value= bo(Buffer,msg);
-        break;   
-      case BINARY_VALUE:
-          value= bv(Buffer,msg);
-        break;   
-      case CALENDAR:
-          value= cal(Buffer,msg);
-        break;   
-      case COMMAND:
-          value= com(Buffer,msg);
-        break;   
-      case DEVICE:
-          value= dev(Buffer,msg);
-        break;   
-      case EVENT_ENROLLMENT:
-          value= eve(Buffer,msg);
-        break;   
-      case FILE_O:
-          value= flo(Buffer,msg);
-        break;   
-      case GROUP:
-          value= gru(Buffer,msg);
-        break;   
-      case LOOP:
-          value= loo(Buffer,msg);
-        break;   
-      case MULTI_STATE_INPUT:
-          value= msi(Buffer,msg);
-        break;       
-      case MULTI_STATE_OUTPUT:
-          value= mso(Buffer,msg);
-        break;   
-      case NOTIFICATIONCLASS:
-          value= nofy(Buffer,msg);
-        break;   
-      case PROGRAM:
-          value= prg(Buffer,msg);
-        break;   
-      case SCHEDULE:
-          value= sced(Buffer,msg);
-        break;   
-      case AVERAGING:
-          value= avrg(Buffer,msg);
-        break;   
-      case MULTI_STATE_VALUE:
-          value= msval(Buffer,msg);
-        break;   
-      case TRENDLOG:
-          value= trnd(Buffer,msg);
-        break;   
-    }   
-  return (short)value;						//						***002
+	ASSERT(Buffer != NULL && msg != NULL);
+
+	if ( msg->Obj == NULL )
+		return(-1); // no generic_object
+
+	LoadObjectTypedData(msg);
+	return (short) EncodeFromDatabase(Buffer, msg);
 }
-  
+*/
+
+
 
 // This Function is used to obtain the literal name of a BACnetObjectType.
 // in:    objtype   enumerated BACnetObjectType
