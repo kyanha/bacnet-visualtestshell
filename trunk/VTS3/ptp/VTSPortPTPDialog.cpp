@@ -6,53 +6,38 @@
 #include "VTSPortPTPDialog.h"
 
 
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
 
-char * gBaudrateList[7] = {
-	"1200", "2400", "4800", "9600", "19200", "38400", "57600"
-};
-
-const char *gParityStr = "N"; 
-const char *gDatabitsStr = "8";
-const char *gStopbitsStr = "1";
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortPTPDialog dialog
 
 
-VTSPortPTPDialog::VTSPortPTPDialog(CString *cp, CWnd* pParent /*=NULL*/)
-	: CDialog(VTSPortPTPDialog::IDD, pParent)
-	, m_Config( cp )
+IMPLEMENT_DYNCREATE(VTSPortPTPDialog, VTSPropertyPage)
+
+VTSPortPTPDialog::VTSPortPTPDialog( VTSPageCallbackInterface * pparent )
+                      :VTSPropertyPage(VTSPortPTPDialog::IDD, pparent)
 {
 	//{{AFX_DATA_INIT(VTSPortPTPDialog)
+	m_strCOM = _T("");
+	m_strBaud = _T("");
 	//}}AFX_DATA_INIT
 
-	CString temp;
-	temp = *m_Config;
+	m_pstrConfigParms = NULL;
+}
 
-	int index;
-	index = temp.Find(':');
+VTSPortPTPDialog::VTSPortPTPDialog(void) : VTSPropertyPage()
+{
+	ASSERT(0);
+}
 
-	if(index == 4)
-	{
-		m_portStr = temp.Left(4);
-	}
-	else
-		return;	
 
-	DCB dcb;
-	if( !BuildCommDCB(temp, &dcb) )
-	{
-		*m_Config = "";
-		return;
-	}
-	 
-    m_baudrateStr.Format("%d", dcb.BaudRate);
+VTSPortPTPDialog::~VTSPortPTPDialog()
+{
 }
 
 
@@ -60,69 +45,99 @@ void VTSPortPTPDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(VTSPortPTPDialog)
-	DDX_Control(pDX, IDC_PORTCOMBO, m_port);
-	DDX_Control(pDX, IDC_BAUDRATE, m_baudrate);
+	DDX_CBString(pDX, IDC_PORTCOMBO, m_strCOM);
+	DDX_CBString(pDX, IDC_BAUDRATE, m_strBaud);
 	//}}AFX_DATA_MAP
 }
 
 
-BEGIN_MESSAGE_MAP(VTSPortPTPDialog, CDialog)
+BEGIN_MESSAGE_MAP(VTSPortPTPDialog, VTSPropertyPage)
 	//{{AFX_MSG_MAP(VTSPortPTPDialog)
+	ON_CBN_SELCHANGE(IDC_PORTCOMBO, OnDataChange)
+	ON_CBN_SELCHANGE(IDC_BAUDRATE, OnDataChange)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSPortPTPDialog message handlers
 
-BOOL VTSPortPTPDialog::OnInitDialog() 
+BOOL VTSPortPTPDialog::OnSetActive() 
 {
-	CDialog::OnInitDialog();
-	
-	// TODO: Add extra initialization here	
+	// Call the first time to get the data... this will cause the parent to 
+	// update the list... 
 
-	if( m_portStr.Compare("COM1") == 0 )
-		m_port.SetCurSel(0);
-	else
-	if( m_portStr.Compare("COM2") == 0 )
-		m_port.SetCurSel(1);
-	else
-	if( m_portStr.Compare("COM3") == 0 )
-		m_port.SetCurSel(2);
-	else
-	if( m_portStr.Compare("COM4") == 0 )
-		m_port.SetCurSel(3);
-	else
-		m_port.SetCurSel(0);
-	
-	//init baudrate
-	for(int index = 0; index < 7; index++)
-	{
-		m_baudrate.AddString(gBaudrateList[index]);		
-	}	
+	m_pstrConfigParms = (CString * ) RetrieveCurrentData();
 
-	m_baudrate.SetCurSel(3); //"9600" is default selection
-	for(index = 0; index < 7; index++)
-	{
-		if( m_baudrateStr.Compare(gBaudrateList[index]) == 0 )
-			m_baudrate.SetCurSel(index);	
-	}		
+	ObjToCtrl();
+
+	// Called DDX
+	VTSPropertyPage::OnSetActive();
+
+	// Call it again to tell the parent to refresh it's data..
+	NotifyOfDataChange();
+
+	// if we return FALSE here then this page will not be activated.  It will move on to the next. 
+	// That's good because it's extremely painful to disable all of the stuff.
+
+	return m_pstrConfigParms != NULL;
+}
 	
-	return TRUE;  // return TRUE unless you set the focus to a control
-	              // EXCEPTION: OCX Property Pages should return FALSE
+
+
+BOOL VTSPortPTPDialog::OnKillActive() 
+{
+	// calls DDX
+	VTSPropertyPage::OnKillActive();
+	CtrlToObj();
+
+	return TRUE;
 }
 
-void VTSPortPTPDialog::OnOK() 
+
+
+void VTSPortPTPDialog::ObjToCtrl()
 {
-	// TODO: Add extra validation here
-	
+	if ( m_pstrConfigParms == NULL )
+		return;
 
-	int index = m_port.GetCurSel();
-	int port = (int)m_port.GetItemData(index);	
+	// Check for validity of existing data.. assume all bad if first part no good
+	if ( m_pstrConfigParms->Find("COM") != 0  ||  m_pstrConfigParms->Find(':') != 4 )
+		*m_pstrConfigParms = "COM1:9600,N,8,1";
 
-	m_port.GetWindowText(m_portStr);
-	m_baudrate.GetWindowText(m_baudrateStr);	
+	m_strCOM = m_pstrConfigParms->Left(4);
+	int n = m_pstrConfigParms->Find(',');
 
-	*m_Config = m_portStr + ":" + m_baudrateStr + "," + gParityStr + "," + gDatabitsStr + "," + gStopbitsStr;	
+	if ( n != -1 )
+		m_strBaud = m_pstrConfigParms->Mid(5, n-5);
+	else
+		m_strBaud = "9600";
 
-	CDialog::OnOK();
+/* madanner 5/03.  Is this necessary?  Baud was not being saved...
+	DCB dcb;
+	if ( !BuildCommDCB(m_strCOM, &dcb) )
+		return;
+	 
+    m_strBaud.Format("%d", dcb.BaudRate);
+*/
+}
+
+
+//	When the user accepts the configuration information and clicks OK, 
+//	this function is called which transfers the new configuration into 
+//	the config data provided by the caller, VTSPort::Configuration.
+
+void VTSPortPTPDialog::CtrlToObj()
+{
+	if ( m_pstrConfigParms == NULL )
+		return;
+
+	*m_pstrConfigParms = m_strCOM + ":" + m_strBaud + ",N,8,1";
+}
+
+
+void VTSPortPTPDialog::OnDataChange() 
+{
+	UpdateData( true );
+	CtrlToObj();
+	NotifyOfDataChange();
 }

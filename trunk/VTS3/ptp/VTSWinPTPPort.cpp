@@ -20,7 +20,8 @@ static char THIS_FILE[]=__FILE__;
 //////////////////////////////////////////////////////////////////////
 
 VTSWinPTPPort::VTSWinPTPPort(VTSPortPtr pp)
-			:WinPTP(pp->portDesc.portConfig)
+//			:WinPTP(pp->portDesc.portConfig)
+			:WinPTP(pp->m_strConfigParms)
 			,m_pPort( pp )
 {
 	// let the port know which send group to use
@@ -37,7 +38,9 @@ void VTSWinPTPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection 
 	unsigned char address[8];
 	
 	// fill in the packet header
-	pkt.packetHdr.packetPortID = m_pPort->portDescID;
+//MAD_DB	pkt.packetHdr.packetPortID = m_pPort->portDescID;
+	strncpy(pkt.packetHdr.m_szPortName, m_pPort->GetName(), sizeof(pkt.packetHdr.m_szPortName)-1 );
+
 	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::ptpProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = (dir == portSending) ? txData : rxData;
@@ -56,13 +59,17 @@ void VTSWinPTPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection 
 	pkt.NewDataRef( data, len );
 	
 	// save it in the database;
-	m_pPort->portDoc->m_pDB->WritePacket( -1, pkt );
+//	m_pPort->portDoc->m_pDB->WritePacket( -1, pkt );		// MAD_DB
+	m_pPort->portDoc->WritePacket( pkt );
 	
+//MAD_DB  This is now called from the Doc's WritePacket
+/*
 	// tell the application there is a new packet count
 	if (m_pPort->portDoc->m_postMessages)
 		::PostThreadMessage( AfxGetApp()->m_nThreadID
 			, WM_VTS_RCOUNT, (WPARAM)0, (LPARAM)m_pPort->portDoc
 			);
+*/
 }
 
 void VTSWinPTPPort::PortStatusChange( void )
