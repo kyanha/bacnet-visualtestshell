@@ -19,7 +19,7 @@ static char THIS_FILE[] = __FILE__;
 extern void CheckSocketError( char *func );
 extern const char * GetSocketErrorMsg( int nSocketError );
 
-
+const LPCTSTR lpctstrDisclaimer = "The BACnet Testing Laboratories (BTL) has not tested the American Auto-Matrix NB-Link for conformance to the BACnet standard, nor does the BTL endorse the NB-Link as a product.";
 
 CMSTP_NBLinkDlg::CMSTP_NBLinkDlg( CWnd* pParent /*=NULL*/ )
 	: CDialog(CMSTP_NBLinkDlg::IDD, pParent)
@@ -30,6 +30,8 @@ CMSTP_NBLinkDlg::CMSTP_NBLinkDlg( CWnd* pParent /*=NULL*/ )
 	m_nListenPort = 0;
 	m_fInitOnStartup = TRUE;
 	//}}AFX_DATA_INIT
+
+    m_fontFineprint.CreatePointFont(60, "Arial", NULL);	
 }
 
 
@@ -37,6 +39,7 @@ void CMSTP_NBLinkDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CMSTP_NBLinkDlg)
+	DDX_Control(pDX, IDC_DISCLAIMER, m_ctrlEditDisclaimer);
 	DDX_Control(pDX, IDC_NBLINKGATEWAY, m_ctrlIPAddrGateway);
 	DDX_Control(pDX, IDC_NBLINKSUBNETMASK, m_ctrlSubnetMask);
 	DDX_Control(pDX, IDC_NBLINKRESETADDR, m_ctrlIPAddrReset);
@@ -170,7 +173,10 @@ BOOL CMSTP_NBLinkDlg::OnInitDialog()
 	OnNblinkreset();
 	
 	// TODO: Add extra initialization here
-	
+
+    m_ctrlEditDisclaimer.SetWindowText(lpctstrDisclaimer);
+	m_ctrlEditDisclaimer.SetFont(&m_fontFineprint);
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
@@ -180,4 +186,12 @@ void CMSTP_NBLinkDlg::OnNblinkreset()
 	bool bChecked = ((CButton *) GetDlgItem(IDC_NBLINKRESET))->GetCheck() == 1;
 
 	m_ctrlIPAddrReset.EnableWindow(bChecked);
+}
+
+BOOL CMSTP_NBLinkDlg::DestroyWindow() 
+{
+	// TODO: Add your specialized code here and/or call the base class
+    m_fontFineprint.DeleteObject();	
+
+	return CDialog::DestroyWindow();
 }

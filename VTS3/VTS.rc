@@ -2969,10 +2969,10 @@ BEGIN
                     IDC_STATIC,141,124,229,68
     LTEXT           "These parameters can be set in the NB-Link device now by using the reset button instead of VTS performing the configuration on startup.",
                     IDC_STATIC,146,135,218,21
-    CONTROL         284,IDC_STATIC,"Static",SS_BITMAP,22,55,95,137
+    CONTROL         284,IDC_STATIC,"Static",SS_BITMAP,23,7,95,137
     LTEXT           "Gateway Address:",IDC_STATIC,141,63,60,10,0,WS_EX_RIGHT
-    LTEXT           "The BACnet Testing Laboratories (BTL) has not tested the American Auto-Matrix NB-Link for conformance to the BACnet standard, nor does the BTL endorse the NB-Link as a product.",
-                    IDC_STATIC,7,7,137,42
+    EDITTEXT        IDC_DISCLAIMER,13,160,124,32,ES_CENTER | ES_MULTILINE | 
+                    ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER
 END
 
 IDD_EPICSVIEW DIALOGEX 0, 0, 138, 192

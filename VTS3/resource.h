@@ -662,6 +662,7 @@
 #define IDC_EPICSV_FILENAME             1293
 #define IDC_REALINCR                    1293
 #define IDC_TIMEDELAY                   1293
+#define IDC_DISCLAIMER                  1293
 #define IDC_RPALL_DA                    1294
 #define IDC_MSTPMAXMASTER               1294
 #define ID_NEWFILTER                    1295
