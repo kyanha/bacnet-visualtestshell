@@ -246,6 +246,7 @@
 #define IDD_LISTOFREADACCESSRESULT      358
 #define IDD_LISTOFREADACCESSSPECIFICATION 359
 #define IDD_EPICSVIEW_PROP              360
+#define IDR_EPICS_PROP                  361
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -719,6 +720,8 @@
 #define IDC_TREE1                       1348
 #define IDC_EPICSV_TREE                 1348
 #define IDC_EPICSV_EDIT                 1349
+#define IDC_EPICSV_GEN                  1350
+#define IDC_EPICSV_GENALL               1351
 #define IDC_PRENOTIF                    1354
 #define IDC_CURNOTIF                    1355
 #define IDC_HASOBJID                    1358
@@ -904,6 +907,12 @@
 #define ID_SCRIPT_RUN1                  32829
 #define ID_SCRIPT_CHECK_SYNTAX1         32830
 #define ID_VIEW_EPICS                   32831
+#define ID_EPICS_PROP_RP                32833
+#define ID_EPICS_PROP_WP                32834
+#define ID_EPICS_PROP_RPM               32835
+#define ID_EPICS_PROP_WPM               32836
+#define ID_EPICS_PROP_GEN               32837
+#define ID_EPICS_PROP_CLEAR             32838
 #define ID_FILE_MRU_WKSFIRST            32850
 #define ID_FILE_MRU_WKS1                32850
 #define ID_FILE_MRU_WKS2                32851
@@ -998,8 +1007,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        361
-#define _APS_NEXT_COMMAND_VALUE         32832
+#define _APS_NEXT_RESOURCE_VALUE        362
+#define _APS_NEXT_COMMAND_VALUE         32839
 #define _APS_NEXT_CONTROL_VALUE         1522
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
