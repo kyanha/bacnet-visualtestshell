@@ -61,6 +61,7 @@ class CFrameContext {
 		VTSPacketPtr GetCurrentPacket(void);
 
 		void AddListener( CFrameContextListener* pListener );
+		void RemoveListener( CFrameContextListener * pListener );
 
 	protected:
 		CFrameContextListener*	m_Listeners;
@@ -86,6 +87,7 @@ class CFrameContextListener {
 		CFrameContextPtr			m_FrameContext;
 
 		void SetContext( CFrameContextPtr pContext );
+		void RemoveContext();
 		virtual void ContextChange( CFrameContext::Signal s ) = 0;
 	};
 

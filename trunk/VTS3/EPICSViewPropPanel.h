@@ -20,6 +20,10 @@ protected:
 	CEPICSViewPropPanel();           // protected constructor used by dynamic creation
 	DECLARE_DYNCREATE(CEPICSViewPropPanel)
 
+	CSend * m_pSend;
+	HWND m_hwndSend;
+	bool m_fSendReuse;
+
 // Attributes
 public:
 	void Reset( CEPICSViewNodeObject * pObjectNode, LPCSTR lpszColumnText );
@@ -63,6 +67,7 @@ protected:
 	afx_msg void OnWritePropertyMultiple();
 	afx_msg void OnReadAllProperty();
 	afx_msg void OnDeviceValueClear();
+	afx_msg void OnCSendReuse();
 	afx_msg void OnDoubleClick(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()

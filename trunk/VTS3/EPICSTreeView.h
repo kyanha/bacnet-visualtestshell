@@ -23,13 +23,15 @@
 //#include "ScriptLoadResults.h"
 
 #include "VTSPreferences.h"
+#include "VTSDoc.h"
+#include "FrameContext.h"
 
 extern VTSPreferences gVTSPreferences;
 
 
 class CDockingEPICSViewBar;
 
-class CEPICSTreeView : public CFormView
+class CEPICSTreeView : public CFormView, public CFrameContextListener
 {
 private:
 	CSplitterWnd * m_pwndSplit;
@@ -38,10 +40,14 @@ private:
 	CImageList		m_imagelist;
 	CDockingEPICSViewBar * m_pbar;
 
+	BACnetPIInfo		m_summary;		// so it doesn't have to be allocated and deallocated
+
 
 protected:
 	CEPICSTreeView();           // protected constructor used by dynamic creation
 	DECLARE_DYNCREATE(CEPICSTreeView)
+
+	virtual void ContextChange( CFrameContext::Signal s );
 
 	void ResizeControl(CWnd * pwnd, int cx, int cy);
 	CView * CreateInfoView( CRuntimeClass * pviewclass, BOOL fDeleteOldView );
@@ -102,6 +108,7 @@ protected:
 	afx_msg void OnDestroy();
 	afx_msg void OnEpicsReadSingleProps();
 	afx_msg void OnEpicsReadAllProps();
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

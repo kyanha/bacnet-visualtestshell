@@ -61,6 +61,26 @@ void CFrameContext::AddListener( CFrameContextListener* pListener )
 	m_Listeners = pListener;
 }
 
+
+// The EPICS view creates and destroys so we want to erase before we add upon creation again
+
+void CFrameContext::RemoveListener( CFrameContextListener * pListener )
+{
+	if ( m_Listeners == pListener )
+		m_Listeners = pListener->m_NextListener;
+	else
+	{
+		for (CFrameContextListener* cur = m_Listeners; cur  &&  cur->m_NextListener; cur = cur->m_NextListener)
+			if ( cur->m_NextListener == pListener )
+			{
+				cur->m_NextListener = pListener->m_NextListener;
+				break;
+			}
+	}
+}
+
+
+
 //
 //	CFrameContext::NotifyListeners
 //
@@ -234,4 +254,11 @@ void CFrameContextListener::SetContext( CFrameContextPtr pContext )
 {
 	m_FrameContext = pContext;
 	pContext->AddListener( this );
+}
+
+
+void CFrameContextListener::RemoveContext()
+{
+	if ( m_FrameContext != NULL )
+		m_FrameContext->RemoveListener(this);
 }
