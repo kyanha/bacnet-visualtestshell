@@ -821,6 +821,8 @@ void VTSPreferences::Save( void )
 //          ocurrance was altered to report to the proper parent such that all of the popups are now modal
 //          to the modeless Send dialog.  Multiple Send dialogs can now be up simultaneously.
 //
+//			Trapped corrupted and inconsistent database opens, report the problem and control document close.
+//
 
 const int kReleaseVersion = 1;
 
