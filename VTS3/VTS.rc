@@ -2786,6 +2786,18 @@ BEGIN
     PUSHBUTTON      "ID...",IDC_VALUEIDBTN,145,140,20,12,NOT WS_TABSTOP
 END
 
+IDD_SCRIPTINCLUDE DIALOG DISCARDABLE  0, 0, 394, 213
+STYLE WS_MAXIMIZEBOX | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Script Include"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Save Include",IDOK,338,4,50,14,WS_GROUP
+    LTEXT           "Error text",IDC_INCLUDEERROR,35,3,291,17
+    LTEXT           "Placeholder",IDC_INCLUDEPLACE,0,23,393,189,WS_DISABLED | 
+                    WS_BORDER
+    ICON            "",IDC_INCLUDEICON,6,1,20,20
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -3680,6 +3692,14 @@ BEGIN
         LEFTMARGIN, 7
         TOPMARGIN, 7
         BOTTOMMARGIN, 90
+    END
+
+    IDD_SCRIPTINCLUDE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 387
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 206
     END
 END
 #endif    // APSTUDIO_INVOKED

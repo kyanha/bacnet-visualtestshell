@@ -83,7 +83,7 @@ void ScriptMessage::Parse( ScriptIfdefHandler & ifdefHandler, ScriptScanner & sc
 
 		do
 			scan.NextLine(tok);
-		while ( ifdefHandler.IsIfdefExpression(tok) || ifdefHandler.IsSkipping() );
+		while ( ifdefHandler.IsIfdefExpression(tok, &scan) || ifdefHandler.IsSkipping() );
 	}
 }
 

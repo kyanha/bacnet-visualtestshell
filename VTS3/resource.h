@@ -160,6 +160,7 @@
 #define IDD_PREFERENCES                 273
 #define IDD_DATETIME                    274
 #define IDD_TIMESTAMP1                  275
+#define IDD_SCRIPTINCLUDE               276
 #define IDB_BMALOGO                     300
 #define IDB_WINPCAPLOGO                 301
 #define IDC_PORTLIST                    1000
@@ -554,6 +555,10 @@
 #define IDC_PREF_RELATIVE               1285
 #define IDC_PREF_ABSOLUTE               1286
 #define IDC_PREF_DELETEVERIFY           1288
+#define IDC_INCLUDEPLACE                1290
+#define IDC_INCLUDEERROR                1291
+#define IDC_INCLUDEICON                 1292
+#define IDC_EDIT1                       1293
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -692,9 +697,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        275
+#define _APS_NEXT_RESOURCE_VALUE        277
 #define _APS_NEXT_COMMAND_VALUE         32831
-#define _APS_NEXT_CONTROL_VALUE         1289
+#define _APS_NEXT_CONTROL_VALUE         1294
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
