@@ -6220,6 +6220,142 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 */
 
 
+// madanner 9/04
+// Factory method to instantiate the correct BACnetEncodeable type from a parse type and 
+// decoder...
+
+BACnetAnyValue * BACnetAnyValue::Factory( int nParseType, BACnetAPDUDecoder & dec )
+{
+	BACnetEncodeable * pany = NULL;
+
+	switch ( nParseType )
+	{
+		case u127:		// 1..127 ---------------------------------
+		case u16:		// 1..16 ----------------------------------
+		case ud:		// unsigned dword -------------------------
+		case uw:		// unsigned word --------------------------
+
+			pany = new BACnetUnsigned(dec);
+			break;
+
+		case ssint:		// short signed int -----------------------		// actually the same type
+		case sw:		// signed word ----------------------------
+
+			pany = new BACnetInteger(dec);
+			break;
+
+		case flt:		// float ----------------------------------------
+
+			pany = new BACnetReal(dec);
+			break;
+
+		case pab:		// priority array bpv ---------------------		deal with index cases (-1=all, 0=element count, base 1=index
+		case paf:		// priority array flt ---------------------
+		case pau:		// priority array unsigned ----------------
+
+			pany = new BACnetPriorityArray(dec);
+			break;
+
+		case ebool:		// boolean enumeration ---------------------------------
+
+			pany = new BACnetBoolean(dec);
+			break;
+
+		case bits:		// octet of 1 or 0 flags
+
+			pany = new BACnetBitString(dec);
+			break;
+
+		case ob_id:		// object identifier
+
+			pany = new BACnetObjectIdentifier(dec);
+			break;
+
+		case s10:		// char [10] --------------------------------------------
+		case s32:		// char [32]
+		case s64:		// char [64]
+		case s132:		// char [132]
+
+			pany = new BACnetCharacterString(dec);
+			break;
+       
+		case enull:		// null enumeration ------------------------------------
+
+			pany = new BACnetNull(dec);
+			break;
+
+		case et:		// generic enumation ----------------------------------
+
+			pany = new BACnetEnumerated(dec);
+			break;
+
+		case ptDate:	// date ------------------------------------------------
+
+			pany = new BACnetDate(dec);
+			break;
+
+		case ptTime:	// time -------------------------------------------------
+
+			pany = new BACnetTime(dec);
+			break;
+
+		case dt:		// date/time stamp -------------------------------------
+
+			pany = new BACnetDateTime(dec);
+			break;
+
+		case dtrange:	// range of dates ---------------------------------------
+
+			pany = new BACnetDateRange(dec);
+			break;
+
+		case calist:	// array of calendar entries -----------------------------
+
+			pany = new BACnetCalendarArray(dec);
+			break;
+
+		case dabind:	// device address binding --------------------------------
+
+			pany = new BACnetAddressBinding(dec);
+			break;
+
+		case lobj:		// array of object identifiers ----------------------------
+
+			pany = new BACnetObjectIDList(dec);
+			break;
+
+		case uwarr:		// unsigned array ------------------------------------------
+		case stavals:	// list of unsigned ----------------------------------------
+
+			pany = new BACnetUnsignedArray(dec);
+			break;
+
+		case statext:
+		case actext:	// character string array ----------------------------------
+
+			pany = new BACnetTextArray(dec);
+			break;
+
+		case prival:	// single priority value----------------------------------
+
+			pany = new BACnetPriorityValue(dec);
+			break;
+
+		case calent:	// single calendar entry ----------------------------------
+
+			pany = new BACnetCalendarEntry(dec);
+			break;
+
+		case TSTMP:		// time stamp, could be multiple type---------------------
+
+			pany = new BACnetTimeStamp(dec);
+			break;
+	}
+
+	return pany != NULL ? new BACnetAnyValue(pany) : NULL;
+}
+
+
 
 //
 //	BACnetAPDUTag::BACnetAPDUTag
