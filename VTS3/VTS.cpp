@@ -1033,6 +1033,8 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //			[ 747747 ] EPICS loading problems:
 //			Fixed this problem loading bitstrings larger than one byte.
 //
+//			Added option in preferences for verification on delete packets.  Defaults to true.
+//
 //
 
 const int kReleaseVersion = 0;
