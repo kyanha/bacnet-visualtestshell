@@ -4488,6 +4488,7 @@ void show_bac_unsigned( unsigned int len )
         "Value (3-octet unsigned)");
         sprintf(get_int_line(pi_data_current,pif_offset,3),outstr,
                 (pif_get_long_hl(-1)&0x00FFFFFF));
+		pif_offset += 3;
         break;
      case 4: sprintf(outstr,"%"FW"s = %%lu",
         "Value (4-octet unsigned)");
