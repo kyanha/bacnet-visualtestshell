@@ -1,0 +1,3170 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\VTS.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#include ""afxprint.rc""       // printing/print preview resources\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON    DISCARDABLE     "res\\VTS.ico"
+IDR_VTSTYPE             ICON    DISCARDABLE     "res\\VTSDoc.ico"
+IDR_VDBTYPE             ICON    DISCARDABLE     "res\\idr_vtst.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP  MOVEABLE PURE   "res\\Toolbar.bmp"
+IDB_PACKETTREE          BITMAP  DISCARDABLE     "res\\bitmap1.bmp"
+IDB_PORTSTATUS          BITMAP  DISCARDABLE     "res\\packettr.bmp"
+IDB_PARMSTATUS          BITMAP  DISCARDABLE     "res\\bmp00001.bmp"
+IDB_CONTENTSTATUS       BITMAP  DISCARDABLE     "res\\contents.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    SEPARATOR
+    BUTTON      ID_EDIT_CUT
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_FILE_PRINT
+    SEPARATOR
+    BUTTON      ID_APP_ABOUT
+    BUTTON      ID_BUTTON32799
+    BUTTON      ID_BUTTON32800
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU PRELOAD DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About VTS...",               ID_APP_ABOUT
+    END
+END
+
+IDR_VTSTYPE MENU PRELOAD DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "&Close",                      ID_FILE_CLOSE
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
+        MENUITEM SEPARATOR
+        MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
+        MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
+        MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "&Delete",                     ID_EDIT_DELETE
+    END
+    POPUP "&Script"
+    BEGIN
+        MENUITEM "&Check Syntax",               ID_SCRIPT_CHECK_SYNTAX
+        MENUITEM "&Load EPICS",                 ID_SCRIPT_LOADEPICS
+        MENUITEM SEPARATOR
+        MENUITEM "&Run",                        ID_SCRIPT_RUN
+        MENUITEM "&Halt",                       ID_SCRIPT_HALT
+        MENUITEM "&Step",                       ID_SCRIPT_STEP
+        MENUITEM "Step &Pass",                  ID_SCRIPT_STEPPASS
+        MENUITEM "Step &Fail",                  ID_SCRIPT_STEPFAIL
+        MENUITEM "&Kill",                       ID_SCRIPT_KILL
+        MENUITEM SEPARATOR
+        MENUITEM "Rese&t",                      ID_SCRIPT_RESET
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
+        MENUITEM "&Tile",                       ID_WINDOW_TILE_HORZ
+        MENUITEM "&Arrange Icons",              ID_WINDOW_ARRANGE
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About VTS...",               ID_APP_ABOUT
+    END
+END
+
+IDR_VDBTYPE MENU PRELOAD DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "&Close",                      ID_FILE_CLOSE
+        MENUITEM SEPARATOR
+        MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
+        MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
+        MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "&Delete",                     ID_EDIT_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Ports...",                    ID_EDIT_PORTS
+        MENUITEM "Names...",                    ID_EDIT_NAMES
+        MENUITEM "Capture Filter...",           ID_EDIT_CAPTUREFILTER
+        , GRAYED
+        MENUITEM "Display Filter...",           ID_EDIT_DISPLAYFILTER
+        , GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "Preferences...",              ID_EDIT_PREFERENCES
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        MENUITEM SEPARATOR
+        MENUITEM "&First Frame\tCtrl+1",        ID_VIEW_FIRSTFRAME
+        MENUITEM "&Previous Frame\tCtrl+2",     ID_VIEW_PREVFRAME
+        MENUITEM "&Next Frame\tCtrl+3",         ID_VIEW_NEXTFRAME
+        MENUITEM "&Last Frame\tCtrl+4",         ID_VIEW_LASTFRAME
+    END
+    POPUP "&Send"
+    BEGIN
+        MENUITEM "&New Packet...",              ID_SEND_NEWPACKET
+        MENUITEM "Send &Again",                 ID_SEND_SENDAGAIN, GRAYED
+        MENUITEM SEPARATOR
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&New Window",                 ID_WINDOW_NEW
+        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
+        MENUITEM "&Tile",                       ID_WINDOW_TILE_HORZ
+        MENUITEM "&Arrange Icons",              ID_WINDOW_ARRANGE
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About VTS...",               ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS PRELOAD MOVEABLE PURE 
+BEGIN
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
+    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+END
+
+IDR_VTSTYPE ACCELERATORS DISCARDABLE 
+BEGIN
+    "1",            ID_VIEW_FIRSTFRAME,     VIRTKEY, CONTROL, NOINVERT
+    "2",            ID_VIEW_PREVFRAME,      VIRTKEY, CONTROL, NOINVERT
+    "3",            ID_VIEW_NEXTFRAME,      VIRTKEY, CONTROL, NOINVERT
+    "4",            ID_VIEW_LASTFRAME,      VIRTKEY, CONTROL, NOINVERT
+END
+
+IDR_VDBTYPE ACCELERATORS DISCARDABLE 
+BEGIN
+    "1",            ID_VIEW_FIRSTFRAME,     VIRTKEY, CONTROL, NOINVERT
+    "2",            ID_VIEW_PREVFRAME,      VIRTKEY, CONTROL, NOINVERT
+    "3",            ID_VIEW_NEXTFRAME,      VIRTKEY, CONTROL, NOINVERT
+    "4",            ID_VIEW_LASTFRAME,      VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 55
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About VTS"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,10,10,20,20
+    LTEXT           "Visual Test Shell 3.0b1",IDC_STATIC,40,15,119,8,
+                    SS_NOPREFIX
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
+END
+
+IDD_PORT DIALOG DISCARDABLE  0, 0, 262, 210
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ports"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_PORTLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,5,190,80
+    PUSHBUTTON      "New",IDC_NEWPORT,205,5,50,15
+    LTEXT           "Name:",IDC_STATIC,5,97,25,10
+    EDITTEXT        IDC_PORTNAME,35,95,160,12,ES_AUTOHSCROLL | WS_DISABLED
+    GROUPBOX        "Port Type",IDC_PORTTYPE,5,110,70,95
+    CONTROL         "Null",IDC_NULLPORT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED | WS_GROUP,15,125,50,10
+    CONTROL         "IP",IDC_IPPORT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,15,138,55,10
+    CONTROL         "Ethernet",IDC_ETHERNETPORT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,15,151,55,10
+    CONTROL         "ARCNET",IDC_ARCNETPORT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,15,164,55,10
+    CONTROL         "MS/TP",IDC_MSTPPORT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,15,177,55,10
+    CONTROL         "PTP",IDC_PTPPORT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,15,190,55,10
+    CONTROL         "Enable",IDC_ENABLEPORT,"Button",BS_AUTOCHECKBOX | 
+                    WS_DISABLED | WS_TABSTOP,95,150,90,10
+    DEFPUSHBUTTON   "OK",IDOK,205,190,50,14
+    PUSHBUTTON      "Configuration",IDC_CONFIG,95,125,70,15,WS_DISABLED
+    PUSHBUTTON      "Color...",IDC_COLOR,95,170,35,15,NOT WS_VISIBLE | 
+                    WS_DISABLED
+END
+
+IDD_SENDIP DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "IP"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Destination:",IDC_STATIC,10,36,50,10
+    COMBOBOX        IDC_DADRCOMBO,60,35,60,75,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_DADR,125,35,95,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDRAW DIALOGEX 0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Data"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Data:",IDC_STATIC,10,57,25,10
+    EDITTEXT        IDC_DATA,40,55,185,70,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL,
+                    WS_EX_LEFTSCROLLBAR
+END
+
+IDD_SENDNPCI DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "NPCI"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Version",IDC_STATIC,10,7,50,8
+    EDITTEXT        IDC_VERSION,65,5,45,12,ES_AUTOHSCROLL
+    CONTROL         "DNET/DLEN/DADR Present",IDC_DESTPRESENT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,130,10
+    LTEXT           "DNET",IDC_STATIC,30,38,50,8
+    EDITTEXT        IDC_DNET,85,35,45,12,ES_AUTOHSCROLL
+    LTEXT           "DADR",IDC_STATIC,30,52,50,8
+    COMBOBOX        IDC_DADRCOMBO,85,50,60,75,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_DADR,150,50,80,12,ES_AUTOHSCROLL
+    LTEXT           "Hop Count",IDC_STATIC,30,67,50,8
+    EDITTEXT        IDC_HOPCOUNT,85,65,45,12,ES_AUTOHSCROLL
+    CONTROL         "SNET/SLEN/SADR Present",IDC_SRCPRESENT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,85,130,10
+    LTEXT           "SNET",IDC_STATIC,30,97,50,8
+    EDITTEXT        IDC_SNET,85,95,45,12,ES_AUTOHSCROLL
+    LTEXT           "SADR",IDC_STATIC,30,111,50,8
+    COMBOBOX        IDC_SADRCOMBO,85,109,60,75,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_SADR,150,109,80,12,ES_AUTOHSCROLL
+    CONTROL         "Data Expecting Reply",IDC_EXPECTINGREPLY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,130,130,10
+    LTEXT           "Priority",IDC_STATIC,10,148,50,8
+    EDITTEXT        IDC_PRIORITY,65,145,45,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDNULL DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Null"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "This page left blank.  Deal with it.",IDC_STATIC,10,10,
+                    215,15
+END
+
+IDD_SENDVENDORNPDU DIALOGEX 0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Vendor NPDU"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Data:",IDC_STATIC,10,47,25,10
+    EDITTEXT        IDC_DATA,40,45,185,110,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL,
+                    WS_EX_LEFTSCROLLBAR
+    LTEXT           "Message Type",IDC_STATIC,10,12,50,8
+    EDITTEXT        IDC_MSGTYPE,65,10,45,12,ES_AUTOHSCROLL
+    LTEXT           "Vendor ID",IDC_STATIC,10,27,50,8
+    EDITTEXT        IDC_VENDORID,65,25,45,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDWHOISRTN DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Who-Is-Router-To-Network"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "DNET",IDC_STATIC,10,41,50,10
+    EDITTEXT        IDC_DNET,65,40,95,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDENET DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ethernet"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Source",IDC_STATIC,10,41,50,10
+    COMBOBOX        IDC_SADRCOMBO,65,40,60,75,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_SADR,130,40,95,12,ES_AUTOHSCROLL
+    LTEXT           "Destination",IDC_STATIC,10,61,50,10
+    COMBOBOX        IDC_DADRCOMBO,65,60,60,75,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_DADR,130,60,95,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDIAMRTN DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "I-AM-Router-To-Network"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_DNETLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,90
+    PUSHBUTTON      "Add",IDC_ADDDNET,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEDNET,175,30,50,15
+    LTEXT           "DNET",IDC_STATIC,10,106,50,10
+    EDITTEXT        IDC_DNET,65,105,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDBVLCRESULT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "BVLC-Result"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Result Code",IDC_STATIC,10,41,50,10
+    EDITTEXT        IDC_RESULT,65,40,95,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDWRITEBDT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Wrte-Broadcast-Distribution-Table"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_BDTLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,90
+    PUSHBUTTON      "Add",IDC_ADDBDT,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEBDT,175,30,50,15
+    LTEXT           "BDT Entry",IDC_STATIC,10,106,50,10
+    EDITTEXT        IDC_BDTENTRY,65,105,100,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDREADBDT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Read-Broadcast-Distribution-Table"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "There are no parameters for this request.",IDC_STATIC,
+                    10,41,210,10
+END
+
+IDD_SENDREADBDTACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Read-Broadcast-Distribution-Table-Ack"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_BDTLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,90
+    PUSHBUTTON      "Add",IDC_ADDBDT,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEBDT,175,30,50,15
+    LTEXT           "BDT Entry",IDC_STATIC,10,106,50,10
+    EDITTEXT        IDC_BDTENTRY,65,105,100,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDREGISTERFD DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Register-Foreign-Device"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Time-to-Live",IDC_STATIC,10,41,50,10
+    EDITTEXT        IDC_TTL,65,40,95,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDREADFDT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Read-Foreign-Device-Table"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "There are no parameters for this request.",IDC_STATIC,
+                    10,41,210,10
+END
+
+IDD_SENDREADFDTACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Read-Foreign-Device-Table-Ack"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_FDTLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,90
+    PUSHBUTTON      "Add",IDC_ADDFDT,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEFDT,175,30,50,15
+    LTEXT           "B/IP Address",IDC_STATIC,10,106,55,10
+    EDITTEXT        IDC_FDTENTRY,75,105,90,12,ES_AUTOHSCROLL
+    LTEXT           "Time-to-Live",IDC_STATIC,10,121,55,10
+    EDITTEXT        IDC_TTL,75,120,50,12,ES_AUTOHSCROLL
+    LTEXT           "Time Remaining",IDC_STATIC,10,136,60,10
+    EDITTEXT        IDC_TREMAIN,75,135,50,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDDELETEFDTENTRY DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Delete-Foreign-Device-Table-Entry"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "B/IP Address",IDC_STATIC,10,41,50,10
+    COMBOBOX        IDC_ADDRCOMBO,65,40,60,75,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_ADDR,130,40,95,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDBVLCI DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "BVLCI"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "No BVLCI (Annex H)",IDC_NONE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,25,15,135,8
+    CONTROL         "Distribute-Broadcast-To-Network",IDC_DBTN,"Button",
+                    BS_AUTORADIOBUTTON,25,40,135,8
+    CONTROL         "Original Unicast",IDC_UNICAST,"Button",
+                    BS_AUTORADIOBUTTON,25,55,135,8
+    CONTROL         "Original Broadcast",IDC_BROADCAST,"Button",
+                    BS_AUTORADIOBUTTON,25,70,135,8
+    CONTROL         "Forwarded-NPDU",IDC_FORWARD,"Button",BS_AUTORADIOBUTTON,
+                    25,90,135,8
+    LTEXT           "Originating Device Address",IDC_STATIC,20,107,90,10
+    COMBOBOX        IDC_OADRCOMBO,60,120,60,75,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_OADR,125,120,95,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDTEST DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Test"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Boolean",IDC_STATIC,5,6,40,10
+    EDITTEXT        IDC_BOOLEAN,50,5,45,12,ES_AUTOHSCROLL
+    CONTROL         "Check Box",IDC_BOOLEANCHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,105,7,95,10
+    LTEXT           "Enumerated",IDC_STATIC,5,22,40,10
+    EDITTEXT        IDC_ENUMERATED,50,20,45,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_ENUMERATEDCOMBO,105,20,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Unsigned",IDC_STATIC,5,36,40,10
+    EDITTEXT        IDC_UNSIGNED,50,35,45,12,ES_AUTOHSCROLL
+    LTEXT           "Integer",IDC_STATIC,5,51,40,10
+    EDITTEXT        IDC_INTEGER,50,50,45,12,ES_AUTOHSCROLL
+    LTEXT           "Real",IDC_STATIC,5,66,40,10
+    EDITTEXT        IDC_REAL,50,65,45,12,ES_AUTOHSCROLL
+    LTEXT           "Double",IDC_STATIC,5,81,40,10
+    EDITTEXT        IDC_DOUBLE,50,80,45,12,ES_AUTOHSCROLL
+    LTEXT           "CharStr",IDC_STATIC,5,99,40,10
+    EDITTEXT        IDC_CHARSTR,50,98,175,12,ES_AUTOHSCROLL
+    LTEXT           "OctetStr",IDC_STATIC,5,114,40,10
+    EDITTEXT        IDC_OCTETSTR,50,113,175,12,ES_AUTOHSCROLL
+    LTEXT           "BitStr",IDC_STATIC,5,129,40,10
+    EDITTEXT        IDC_BITSTR,50,128,175,12,ES_AUTOHSCROLL
+    LTEXT           "ObjID",IDC_STATIC,5,146,40,10
+    EDITTEXT        IDC_OBJID,50,145,85,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,140,145,20,12,NOT WS_TABSTOP
+    LTEXT           "Date",IDC_STATIC,120,66,40,10
+    EDITTEXT        IDC_DATE,165,65,60,12,ES_AUTOHSCROLL
+    LTEXT           "Time",IDC_STATIC,120,82,40,10
+    EDITTEXT        IDC_TIME,165,80,60,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Any...",IDC_ANY,170,145,55,15
+END
+
+IDD_SENDICOULDBERTN DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "I-Could-Be-Router-To-Network"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "DNET",IDC_STATIC,45,31,50,10
+    EDITTEXT        IDC_DNET,115,30,50,12,ES_AUTOHSCROLL
+    LTEXT           "Performance Index",IDC_STATIC,45,52,65,10
+    EDITTEXT        IDC_PERFINDX,115,50,50,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDREJECTMTN DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Reject-Message-To-Network"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "DNET",IDC_STATIC,10,102,50,10
+    EDITTEXT        IDC_DNET,80,100,50,12,ES_AUTOHSCROLL
+    LTEXT           "Reject Reason",IDC_STATIC,10,17,65,10
+    EDITTEXT        IDC_REASON,80,15,50,12,ES_AUTOHSCROLL
+    LTEXT           "0: Other error",IDC_STATIC,20,35,160,8
+    LTEXT           "1: Router not connected and cannot find a path",
+                    IDC_STATIC,20,46,160,8
+    LTEXT           "2: Router is busy",IDC_STATIC,20,57,160,8
+    LTEXT           "3: Unknown network layer message type",IDC_STATIC,20,68,
+                    160,8
+    LTEXT           "4: Message too long to be routed to this DNET",
+                    IDC_STATIC,20,79,160,8
+END
+
+IDD_SENDROUTERBUSY DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Router-Busy-To-Network"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_DNETLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,90
+    PUSHBUTTON      "Add",IDC_ADDDNET,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEDNET,175,30,50,15
+    LTEXT           "DNET",IDC_STATIC,10,106,50,10
+    EDITTEXT        IDC_DNET,65,105,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDROUTERAVAIL DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Router-Available-To-Network"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_DNETLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,90
+    PUSHBUTTON      "Add",IDC_ADDDNET,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEDNET,175,30,50,15
+    LTEXT           "DNET",IDC_STATIC,10,106,50,10
+    EDITTEXT        IDC_DNET,65,105,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDINITRT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Initialize-Routing-Table"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_DNETLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,90
+    PUSHBUTTON      "Add",IDC_ADDDNET,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEDNET,175,30,50,15
+    LTEXT           "DNET",IDC_STATIC,10,106,50,10
+    EDITTEXT        IDC_DNET,65,105,35,12,ES_AUTOHSCROLL
+    LTEXT           "Port ID",IDC_STATIC,10,122,50,10
+    EDITTEXT        IDC_PORTID,65,121,35,12,ES_AUTOHSCROLL
+    LTEXT           "Port Info",IDC_STATIC,10,138,50,10
+    EDITTEXT        IDC_PORTINFO,65,137,100,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDINITRTACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Initialize-Routing-Table-Ack"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_DNETLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,90
+    PUSHBUTTON      "Add",IDC_ADDDNET,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEDNET,175,30,50,15
+    LTEXT           "DNET",IDC_STATIC,10,106,50,10
+    EDITTEXT        IDC_DNET,65,105,35,12,ES_AUTOHSCROLL
+    LTEXT           "Port ID",IDC_STATIC,10,122,50,10
+    EDITTEXT        IDC_PORTID,65,121,35,12,ES_AUTOHSCROLL
+    LTEXT           "Port Info",IDC_STATIC,10,138,50,10
+    EDITTEXT        IDC_PORTINFO,65,137,100,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDESTABLISHCTN DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Establish-Connection-To-Network"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "DNET",IDC_STATIC,20,31,50,10
+    EDITTEXT        IDC_DNET,90,30,50,12,ES_AUTOHSCROLL
+    LTEXT           "Termination Time",IDC_STATIC,20,52,65,10
+    EDITTEXT        IDC_TERMTIME,90,50,50,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDDISCONNECTCTN DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Disconnect-Connection-To-Network"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "DNET",-1,20,31,50,10
+    EDITTEXT        IDC_DNET,90,30,50,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDSIMPLEACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "SimpleACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Invoke ID",-1,10,31,40,10
+    EDITTEXT        IDC_INVOKEID,55,30,45,12,ES_AUTOHSCROLL
+    LTEXT           "Service",-1,10,52,40,10
+    COMBOBOX        IDC_SERVICECOMBO,55,50,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_SENDSEGMENTACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Segment-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Negative Acknowledgement, Segment Out Of Order",IDC_NAK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,25,20,185,10
+    CONTROL         "Sent by Client",IDC_CLIENT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,25,41,70,8
+    CONTROL         "Sent by Server",IDC_SERVER,"Button",BS_AUTORADIOBUTTON,
+                    25,52,70,8
+    LTEXT           "Invoke ID",-1,20,79,50,8
+    EDITTEXT        IDC_INVOKEID,95,75,45,12,ES_AUTOHSCROLL
+    LTEXT           "Sequence Number",-1,20,93,65,8
+    EDITTEXT        IDC_SEQNUM,95,90,45,12,ES_AUTOHSCROLL
+    LTEXT           "Actual Window Size",-1,20,108,70,8
+    EDITTEXT        IDC_WINDOWSIZE,95,105,45,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDERROR DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Error"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Invoke ID",-1,10,31,40,10
+    EDITTEXT        IDC_INVOKEID,55,30,45,12,ES_AUTOHSCROLL
+    LTEXT           "Service",-1,10,52,40,10
+    COMBOBOX        IDC_SERVICECOMBO,55,50,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Class",-1,10,73,40,10
+    COMBOBOX        IDC_ERRORCLASSCOMBO,55,70,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Code",-1,10,93,40,10
+    COMBOBOX        IDC_ERRORCODECOMBO,55,90,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_SENDREJECT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Reject"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Invoke ID",IDC_STATIC,10,31,50,10
+    EDITTEXT        IDC_INVOKEID,75,30,45,12,ES_AUTOHSCROLL
+    LTEXT           "Reject Reason",IDC_STATIC,10,52,55,10
+    COMBOBOX        IDC_REJECTCOMBO,75,50,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_SENDABORT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Abort"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Invoke ID",IDC_STATIC,10,31,50,10
+    EDITTEXT        IDC_INVOKEID,75,30,45,12,ES_AUTOHSCROLL
+    LTEXT           "Abort Reason",IDC_STATIC,10,52,55,10
+    COMBOBOX        IDC_ABORTCOMBO,75,50,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_SENDCHANGELISTERROR DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ChangeList-Error"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Invoke ID",IDC_STATIC,66,32,32,8
+    EDITTEXT        IDC_INVOKEID,110,30,45,12,ES_AUTOHSCROLL
+    LTEXT           "Service",IDC_STATIC,74,52,25,8
+    COMBOBOX        IDC_SERVICECOMBO,110,50,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Class",IDC_STATIC,64,73,34,8
+    COMBOBOX        IDC_ERRORCLASSCOMBO,110,70,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Code",IDC_STATIC,64,92,34,8
+    COMBOBOX        IDC_ERRORCODECOMBO,110,90,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "First Failed Element Number",IDC_STATIC,10,112,88,8
+    EDITTEXT        IDC_ELEMENT,110,110,45,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDIAM DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "I-Am"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Device ID",IDC_STATIC,56,32,33,8
+    EDITTEXT        IDC_DEVICEID,100,30,90,12,ES_AUTOHSCROLL
+    LTEXT           "Segmentation Supported",IDC_STATIC,10,73,79,8
+    COMBOBOX        IDC_SEGMENTATIONCOMBO,100,70,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Max APDU Length",IDC_STATIC,30,52,60,8
+    EDITTEXT        IDC_MAXAPDULENGTH,100,50,70,12,ES_AUTOHSCROLL
+    LTEXT           "Vendor ID",IDC_STATIC,56,91,33,8
+    EDITTEXT        IDC_VENDORID,100,90,70,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_DEVICEIDBTN,195,30,20,12,NOT WS_TABSTOP
+END
+
+IDD_SENDWHOIS DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Who-Is"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Low Limit",IDC_STATIC,72,52,30,8
+    EDITTEXT        IDC_LOWLIMIT,115,50,70,12,ES_AUTOHSCROLL
+    LTEXT           "High Limit",IDC_STATIC,70,73,32,8
+    EDITTEXT        IDC_HIGHLIMIT,115,70,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDCREATEOBJECTERROR DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CreateObject-Error"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Invoke ID",IDC_STATIC,66,32,32,8
+    EDITTEXT        IDC_INVOKEID,110,30,45,12,ES_AUTOHSCROLL
+    LTEXT           "Service",IDC_STATIC,74,52,25,8
+    COMBOBOX        IDC_SERVICECOMBO,110,50,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Class",IDC_STATIC,64,73,34,8
+    COMBOBOX        IDC_ERRORCLASSCOMBO,110,70,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Code",IDC_STATIC,64,92,34,8
+    COMBOBOX        IDC_ERRORCODECOMBO,110,90,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "First Failed Element Number",IDC_STATIC,10,112,88,8
+    EDITTEXT        IDC_ELEMENT,110,110,45,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDWRITEPROPMULTERROR DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "WritePropertyMultiple-Error"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Invoke ID",IDC_STATIC,39,12,32,8
+    EDITTEXT        IDC_INVOKEID,83,10,45,12,ES_AUTOHSCROLL
+    LTEXT           "Service",IDC_STATIC,47,32,25,8
+    COMBOBOX        IDC_SERVICECOMBO,83,30,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Class",IDC_STATIC,37,53,34,8
+    COMBOBOX        IDC_ERRORCLASSCOMBO,83,50,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Code",IDC_STATIC,37,72,34,8
+    COMBOBOX        IDC_ERRORCODECOMBO,83,70,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Object ID",IDC_STATIC,41,97,31,8
+    EDITTEXT        IDC_OBJECTID,83,95,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,179,95,20,12,NOT WS_TABSTOP
+    LTEXT           "Property",IDC_STATIC,45,116,27,8
+    EDITTEXT        IDC_PROPERTYID,83,114,100,12,ES_AUTOHSCROLL
+    LTEXT           "Array Index",IDC_STATIC,35,137,36,8
+    EDITTEXT        IDC_INDEX,83,135,45,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDVTCLOSEERROR DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "VT-Close-Error"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Invoke ID",IDC_STATIC,22,7,32,8
+    EDITTEXT        IDC_INVOKEID,66,5,45,12,ES_AUTOHSCROLL
+    LTEXT           "Service",IDC_STATIC,30,27,25,8
+    COMBOBOX        IDC_SERVICECOMBO,66,25,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Class",IDC_STATIC,20,43,34,8
+    COMBOBOX        IDC_ERRORCLASSCOMBO,66,40,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Code",IDC_STATIC,20,57,34,8
+    COMBOBOX        IDC_ERRORCODECOMBO,66,55,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "List1",IDC_IDLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,75,155,65
+    PUSHBUTTON      "Add",IDC_ADDID,175,75,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEID,175,95,50,15
+    LTEXT           "Session ID",IDC_STATIC,10,146,50,10
+    EDITTEXT        IDC_ID,65,145,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDIHAVE DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "I-Have"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Device ID",IDC_STATIC,40,32,33,8
+    EDITTEXT        IDC_DEVICEID,84,30,91,12,ES_AUTOHSCROLL
+    LTEXT           "Object Name",IDC_STATIC,31,72,42,8
+    EDITTEXT        IDC_OBJECTNAME,84,70,121,12,ES_AUTOHSCROLL
+    LTEXT           "Object ID",IDC_STATIC,42,52,31,8
+    EDITTEXT        IDC_OBJECTID,84,50,91,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_DEVICEIDBTN,180,30,20,12,NOT WS_TABSTOP
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,180,50,20,12,NOT WS_TABSTOP
+END
+
+IDD_SENDWHOHAS DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Who-Has"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Low Limit",IDC_STATIC,42,33,30,8
+    EDITTEXT        IDC_LOWLIMIT,85,30,70,12,ES_AUTOHSCROLL
+    LTEXT           "High Limit",IDC_STATIC,40,53,32,8
+    EDITTEXT        IDC_HIGHLIMIT,85,50,70,12,ES_AUTOHSCROLL
+    LTEXT           "Object ID",IDC_STATIC,41,72,31,8
+    EDITTEXT        IDC_OBJECTID,85,70,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,180,70,20,12,NOT WS_TABSTOP
+    LTEXT           "Object Name",IDC_STATIC,30,92,42,8
+    EDITTEXT        IDC_OBJECTNAME,85,90,115,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDTIMESYNC DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "TimeSynchronization"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Date",IDC_STATIC,60,65,35,10
+    EDITTEXT        IDC_DATE,105,65,65,12,ES_AUTOHSCROLL
+    LTEXT           "Time",IDC_STATIC,60,87,35,10
+    EDITTEXT        IDC_TIME,105,85,65,12,ES_AUTOHSCROLL
+    CONTROL         "Synchronize with VTS",IDC_AUTOSYNC,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,70,40,90,10
+END
+
+IDD_SENDUNCONFTEXTMSG DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "UnconfirmedTextMessage"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Source Device",IDC_STATIC,20,12,48,8
+    EDITTEXT        IDC_SOURCEDEVICE,84,10,91,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_SOURCEDEVICEBTN,180,10,20,12,NOT WS_TABSTOP
+    GROUPBOX        "Message Class",IDC_STATIC,5,30,220,55
+    LTEXT           "Numeric Class",IDC_STATIC,25,45,46,8
+    EDITTEXT        IDC_NUMCLASS,84,45,70,12,ES_AUTOHSCROLL
+    LTEXT           "Character Class",IDC_STATIC,20,65,50,8
+    EDITTEXT        IDC_CHARCLASS,84,65,131,12,ES_AUTOHSCROLL
+    GROUPBOX        "Message Priority",IDC_STATIC,5,95,220,40
+    CONTROL         "Normal",IDC_NORMAL,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,85,105,120,10
+    CONTROL         "Urgent",IDC_URGENT,"Button",BS_AUTORADIOBUTTON,85,118,
+                    120,10
+    LTEXT           "Message",IDC_STATIC,40,145,30,8
+    EDITTEXT        IDC_MSG,83,145,121,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDCONFTEXTMSG DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ConfirmedTextMessage"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Source Device",IDC_STATIC,20,12,48,8
+    EDITTEXT        IDC_SOURCEDEVICE,84,10,91,12,ES_AUTOHSCROLL
+    LTEXT           "Numeric Class",IDC_STATIC,25,45,46,8
+    EDITTEXT        IDC_NUMCLASS,84,45,70,12,ES_AUTOHSCROLL
+    LTEXT           "Character Class",IDC_STATIC,20,65,50,8
+    EDITTEXT        IDC_CHARCLASS,84,65,131,12,ES_AUTOHSCROLL
+    CONTROL         "Normal",IDC_NORMAL,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,85,105,120,10
+    CONTROL         "Urgent",IDC_URGENT,"Button",BS_AUTORADIOBUTTON,85,118,
+                    120,10
+    LTEXT           "Message",IDC_STATIC,40,145,30,8
+    EDITTEXT        IDC_MSG,83,145,121,12,ES_AUTOHSCROLL
+    GROUPBOX        "Message Class",IDC_STATIC,5,30,220,55
+    GROUPBOX        "Message Priority",IDC_STATIC,5,95,220,40
+    PUSHBUTTON      "ID...",IDC_SOURCEDEVICEBTN,180,10,20,12,NOT WS_TABSTOP
+END
+
+IDD_SENDCONFREQUEST DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Confirmed-Request"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Segmented message",IDC_SEGMENTED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,40,130,10
+    CONTROL         "More Follows",IDC_MOREFOLLOWS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,35,56,75,10
+    LTEXT           "Sequence Number",IDC_STATIC,35,72,80,8
+    EDITTEXT        IDC_SEQNUMBER,121,70,45,12,ES_AUTOHSCROLL
+    LTEXT           "Proposed Window Size",IDC_STATIC,35,86,80,8
+    EDITTEXT        IDC_WINDOWSIZE,121,85,45,12,ES_AUTOHSCROLL
+    CONTROL         "Segmented response accepted",IDC_SEGRESPONSE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,110,130,10
+    LTEXT           "Max APDU length accepted",IDC_STATIC,15,127,90,8
+    COMBOBOX        IDC_MAXAPDULEN,121,125,90,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Invoke ID",IDC_STATIC,15,143,90,8
+    EDITTEXT        IDC_INVOKEID,121,140,45,12,ES_AUTOHSCROLL
+    LTEXT           "Auto segment size",IDC_STATIC,15,17,65,8
+    EDITTEXT        IDC_SEGMENTSIZE,85,15,45,12,ES_AUTOHSCROLL
+    LTEXT           "",IDC_SEGCOUNTMSG,135,17,65,8
+END
+
+IDD_SENDCOMPLEXACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Complex-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Segmented message",IDC_SEGMENTED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,30,40,130,10
+    CONTROL         "More Follows",IDC_MOREFOLLOWS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,50,56,75,10
+    LTEXT           "Sequence Number",-1,50,72,80,8
+    EDITTEXT        IDC_SEQNUMBER,135,70,45,12,ES_AUTOHSCROLL
+    LTEXT           "Proposed Window Size",-1,50,86,80,8
+    EDITTEXT        IDC_WINDOWSIZE,135,85,45,12,ES_AUTOHSCROLL
+    LTEXT           "Original Invoke ID",-1,30,113,90,8
+    EDITTEXT        IDC_INVOKEID,135,110,45,12,ES_AUTOHSCROLL
+    LTEXT           "Auto segment size",-1,30,17,65,8
+    EDITTEXT        IDC_SEGMENTSIZE,100,15,45,12,ES_AUTOHSCROLL
+    LTEXT           "",IDC_SEGCOUNTMSG,150,17,65,8
+END
+
+IDD_SENDDEVICECOMMCTRL DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "DeviceCommunicationControl"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Time duration",-1,30,36,44,8
+    EDITTEXT        IDC_TIMEDURATION,84,35,70,12,ES_AUTOHSCROLL
+    CONTROL         "Enable",IDC_ENABLE,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,85,65,120,10
+    CONTROL         "Disable",IDC_DISABLE,"Button",BS_AUTORADIOBUTTON,85,78,
+                    120,10
+    LTEXT           "Password",-1,40,108,32,8
+    EDITTEXT        IDC_PASSWORD,83,105,121,12,ES_AUTOHSCROLL
+    GROUPBOX        "Enable/Disable",-1,5,55,220,40
+END
+
+IDD_SENDREINITDEVICE DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ReinitializeDevice"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Cold start",IDC_COLDSTART,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,85,46,120,10
+    CONTROL         "Warm start",IDC_WARMSTART,"Button",BS_AUTORADIOBUTTON,
+                    85,58,120,10
+    LTEXT           "Password",-1,40,89,32,8
+    EDITTEXT        IDC_PASSWORD,83,86,121,12,ES_AUTOHSCROLL
+    GROUPBOX        "Reinitialized State of Device",-1,5,35,220,40
+END
+
+IDD_ANY DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ABSTRACT-SYNTAX.&Type"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_ELEMLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,90
+    PUSHBUTTON      "Add",IDC_ADDELEM,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEELEM,175,30,50,15
+    LTEXT           "Type",IDC_STATIC,10,107,25,10
+    COMBOBOX        IDC_TYPECOMBO,45,105,100,60,CBS_DROPDOWN | WS_DISABLED | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Context",IDC_STATIC,10,125,30,10
+    EDITTEXT        IDC_CONTEXT,45,123,35,12,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Value",IDC_STATIC,10,142,25,10
+    EDITTEXT        IDC_VALUE,45,140,95,12,ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "OK",IDOK,175,140,50,15
+    PUSHBUTTON      "ID...",IDC_VALUEIDBTN,145,140,20,12,NOT WS_TABSTOP
+END
+
+IDD_SENDREADPROP DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ReadProperty"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Object ID",IDC_STATIC,41,42,31,8
+    EDITTEXT        IDC_OBJECTID,85,40,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,180,40,20,12,NOT WS_TABSTOP
+    LTEXT           "Property",IDC_STATIC,43,62,28,10
+    COMBOBOX        IDC_PROPCOMBO,85,60,100,12,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Array Index",IDC_STATIC,35,82,36,8
+    EDITTEXT        IDC_ARRAYINDEX,85,79,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDREADPROPACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ReadPropertyACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Object ID",IDC_STATIC,41,42,31,8
+    EDITTEXT        IDC_OBJECTID,85,40,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,180,40,20,12,NOT WS_TABSTOP
+    LTEXT           "Property",IDC_STATIC,43,62,28,10
+    COMBOBOX        IDC_PROPCOMBO,85,60,100,12,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Array Index",IDC_STATIC,35,82,36,8
+    EDITTEXT        IDC_ARRAYINDEX,85,79,70,12,ES_AUTOHSCROLL
+    LTEXT           "Value",IDC_STATIC,50,102,19,8
+    PUSHBUTTON      "Any...",IDC_VALUE,85,100,55,15
+END
+
+IDD_SENDWRITEPROP DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "WriteProperty"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Object ID",IDC_STATIC,41,42,31,8
+    EDITTEXT        IDC_OBJECTID,85,40,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,180,40,20,12,NOT WS_TABSTOP
+    LTEXT           "Property",IDC_STATIC,43,62,28,10
+    COMBOBOX        IDC_PROPCOMBO,85,60,100,12,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Array Index",IDC_STATIC,35,82,36,8
+    EDITTEXT        IDC_ARRAYINDEX,85,79,70,12,ES_AUTOHSCROLL
+    LTEXT           "Value",IDC_STATIC,50,102,19,8
+    PUSHBUTTON      "Any...",IDC_VALUE,85,100,55,15
+    LTEXT           "Priority",IDC_STATIC,40,127,22,8
+    EDITTEXT        IDC_PRIORITYX,84,125,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDWRITEPROPMULT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "WritePropertyMultiple"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_OBJLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,5,155,45
+    PUSHBUTTON      "Add",IDC_ADDOBJ,175,5,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEOBJ,175,25,50,15
+    LTEXT           "Object ID",IDC_STATIC,10,57,35,10
+    EDITTEXT        IDC_OBJID,50,55,90,12,ES_AUTOHSCROLL
+    CONTROL         "List1",IDC_PROPLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,75,155,45
+    PUSHBUTTON      "Add",IDC_ADDPROP,175,75,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEPROP,175,95,50,15
+    LTEXT           "Index",IDC_STATIC,155,126,18,8
+    EDITTEXT        IDC_ARRAYINDEX,180,125,25,12,ES_AUTOHSCROLL
+    LTEXT           "Property",IDC_STATIC,10,127,28,10
+    COMBOBOX        IDC_PROPCOMBO,45,125,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Any...",IDC_VALUE,45,145,55,15
+    LTEXT           "Value",IDC_STATIC,20,148,19,8
+    LTEXT           "Priority",IDC_STATIC,154,148,22,8
+    EDITTEXT        IDC_PRIORITYX,179,145,26,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,145,55,20,12,WS_DISABLED | NOT 
+                    WS_TABSTOP
+END
+
+IDD_SENDREADPROPMULT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ReadPropertyMultiple"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_OBJLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,5,155,45
+    PUSHBUTTON      "Add",IDC_ADDOBJ,175,5,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEOBJ,175,25,50,15
+    LTEXT           "Object ID",-1,10,57,35,10
+    EDITTEXT        IDC_OBJID,50,55,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,145,55,20,12,WS_DISABLED | NOT 
+                    WS_TABSTOP
+    CONTROL         "List1",IDC_PROPLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,75,155,45
+    PUSHBUTTON      "Add",IDC_ADDPROP,175,75,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEPROP,175,95,50,15
+    LTEXT           "Property",-1,10,127,28,10
+    COMBOBOX        IDC_PROPCOMBO,45,125,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Index",-1,20,146,18,8
+    EDITTEXT        IDC_ARRAYINDEX,45,145,25,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDREADPROPMULTACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ReadPropertyMultiple-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_OBJLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,5,155,45
+    PUSHBUTTON      "Add",IDC_ADDOBJ,175,5,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEOBJ,175,25,50,15
+    LTEXT           "Object ID",-1,10,53,35,10
+    EDITTEXT        IDC_OBJID,50,51,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,145,51,20,12,WS_DISABLED | NOT 
+                    WS_TABSTOP
+    CONTROL         "List1",IDC_PROPLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,65,155,45
+    PUSHBUTTON      "Add",IDC_ADDPROP,175,65,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEPROP,175,85,50,15
+    LTEXT           "Property",-1,10,113,28,10
+    COMBOBOX        IDC_PROPCOMBO,45,111,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Index",-1,155,112,18,8
+    EDITTEXT        IDC_ARRAYINDEX,180,111,25,12,ES_AUTOHSCROLL
+    LTEXT           "Value",-1,20,132,19,8
+    PUSHBUTTON      "Any...",IDC_VALUE,45,129,55,15
+    LTEXT           "Error Class",-1,5,151,35,10
+    COMBOBOX        IDC_ERRORCLASSCOMBO,45,149,75,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Error Code",-1,122,152,35,10
+    COMBOBOX        IDC_ERRORCODECOMBO,160,149,75,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_SENDREADFILE DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "AtomicReadFile"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Start Position",IDC_STATIC,28,52,42,8
+    EDITTEXT        IDC_STARTPOSITION,85,50,70,12,ES_AUTOHSCROLL
+    LTEXT           "File ID",IDC_STATIC,50,16,21,8
+    EDITTEXT        IDC_FILEID,84,15,70,12,ES_AUTOHSCROLL
+    LTEXT           "Octet Count",IDC_STATIC,31,67,39,8
+    EDITTEXT        IDC_OCTETCOUNT,85,65,70,12,ES_AUTOHSCROLL
+    LTEXT           "Start Record",IDC_STATIC,29,112,41,8
+    EDITTEXT        IDC_STARTRECORD,85,110,70,12,ES_AUTOHSCROLL
+    LTEXT           "Record Count",IDC_STATIC,25,127,45,8
+    EDITTEXT        IDC_RECORDCOUNT,85,125,70,12,ES_AUTOHSCROLL
+    GROUPBOX        "Stream Access",IDC_STATIC,10,35,210,50
+    GROUPBOX        "Record Access",IDC_STATIC,10,95,210,50
+    PUSHBUTTON      "ID...",IDC_FILEIDBTN,160,15,20,12,NOT WS_TABSTOP
+END
+
+IDD_SENDREADFILEACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "AtomicReadFile-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "End Of File",IDC_EOF,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,5,100,10
+    GROUPBOX        "Stream Access",IDC_STATIC,10,15,210,45
+    LTEXT           "Start Position",IDC_STATIC,30,28,42,8
+    EDITTEXT        IDC_STARTPOSITION,85,26,70,12,ES_AUTOHSCROLL
+    LTEXT           "Data",IDC_STATIC,60,42,16,8
+    EDITTEXT        IDC_DATA,85,40,125,12,ES_AUTOHSCROLL
+    GROUPBOX        "Record Access",IDC_STATIC,10,60,210,105
+    LTEXT           "Start Record",IDC_STATIC,30,76,41,8
+    EDITTEXT        IDC_STARTRECORD,86,74,70,12,ES_AUTOHSCROLL
+    CONTROL         "List1",IDC_RECORDLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,20,94,135,45
+    PUSHBUTTON      "Add",IDC_ADDRECORD,165,94,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVERECORD,165,114,50,15
+    LTEXT           "Record Data",IDC_STATIC,20,147,45,10
+    EDITTEXT        IDC_RECORDDATA,71,145,139,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDWRITEFILE DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "AtomicWriteFile"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "File ID",IDC_STATIC,50,3,21,8
+    EDITTEXT        IDC_FILEID,84,2,91,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_FILEIDBTN,180,2,20,12,NOT WS_TABSTOP
+    GROUPBOX        "Stream Access",IDC_STATIC,10,15,210,45
+    LTEXT           "Start Position",IDC_STATIC,30,28,42,8
+    EDITTEXT        IDC_STARTPOSITION,85,26,70,12,ES_AUTOHSCROLL
+    LTEXT           "Data",IDC_STATIC,55,42,16,8
+    EDITTEXT        IDC_DATA,85,40,125,12,ES_AUTOHSCROLL
+    GROUPBOX        "Record Access",IDC_STATIC,10,60,210,105
+    LTEXT           "Start Record",IDC_STATIC,30,76,41,8
+    EDITTEXT        IDC_STARTRECORD,86,74,70,12,ES_AUTOHSCROLL
+    CONTROL         "List1",IDC_RECORDLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,20,94,135,45
+    PUSHBUTTON      "Add",IDC_ADDRECORD,165,94,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVERECORD,165,114,50,15
+    LTEXT           "Record Data",IDC_STATIC,20,147,45,10
+    EDITTEXT        IDC_RECORDDATA,71,145,139,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDWRITEFILEACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "AtomicWriteFile-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Stream Access",-1,10,35,210,35
+    LTEXT           "Start Position",-1,28,52,42,8
+    EDITTEXT        IDC_STARTPOSITION,85,50,70,12,ES_AUTOHSCROLL
+    GROUPBOX        "Record Access",-1,10,80,210,35
+    LTEXT           "Start Record",-1,29,97,41,8
+    EDITTEXT        IDC_STARTRECORD,85,95,70,12,ES_AUTOHSCROLL
+END
+
+IDD_NAMES DIALOGEX 0, 0, 320, 206
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "Names"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_NAMELIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,5,5,245,90
+    PUSHBUTTON      "New",ID_NEWNAME,260,5,50,14
+    PUSHBUTTON      "Delete",ID_DELETENAME,260,25,50,14
+    PUSHBUTTON      "Import...",ID_IMPORTNAMES,260,45,50,14
+    PUSHBUTTON      "Export...",ID_EXPORTNAMES,260,65,50,14
+    LTEXT           "Name",IDC_STATIC,5,102,30,8
+    EDITTEXT        IDC_NAME,35,100,215,12,ES_AUTOHSCROLL
+    GROUPBOX        "Address Type",IDC_STATIC,5,120,100,80
+    CONTROL         "Null",IDC_NULLADDR,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,15,135,75,8
+    CONTROL         "Local Broadcast",IDC_LOCALBROADCAST,"Button",
+                    BS_AUTORADIOBUTTON,15,145,80,8
+    CONTROL         "Local Station",IDC_LOCALSTATION,"Button",
+                    BS_AUTORADIOBUTTON,15,155,80,8
+    CONTROL         "Remote Broadcast",IDC_REMOTEBROADCAST,"Button",
+                    BS_AUTORADIOBUTTON,15,165,75,8
+    CONTROL         "Remote Station",IDC_REMOTESTATION,"Button",
+                    BS_AUTORADIOBUTTON,15,175,75,8
+    CONTROL         "Global Broadcast",IDC_GLOBALBROADCAST,"Button",
+                    BS_AUTORADIOBUTTON,15,185,80,8
+    LTEXT           "Port",IDC_STATIC,130,127,30,10
+    COMBOBOX        IDC_PORTCOMBO,165,125,85,65,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Network",IDC_STATIC,130,146,30,10
+    EDITTEXT        IDC_NETWORK,165,144,30,12,ES_AUTOHSCROLL
+    LTEXT           "Address",IDC_STATIC,130,162,30,10
+    EDITTEXT        IDC_ADDRESS,165,159,85,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,260,185,50,14
+END
+
+IDD_SENDVTOPEN DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "VT-Open"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "VT Class",-1,65,32,29,8
+    COMBOBOX        IDC_VTCLASSCOMBO,100,30,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Local VT Session ID",-1,30,52,66,8
+    EDITTEXT        IDC_SESSIONID,100,50,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDVTOPENACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "VT-Open-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Remote VT Session ID",-1,20,52,73,8
+    EDITTEXT        IDC_SESSIONID,100,50,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDVTCLOSE DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "VT-Close"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_IDLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,30,155,65
+    PUSHBUTTON      "Add",IDC_ADDID,175,30,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEID,175,50,50,15
+    LTEXT           "Session ID",-1,10,101,50,10
+    EDITTEXT        IDC_ID,65,100,70,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDVTDATA DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "VT-Data"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Session ID",-1,40,42,35,8
+    EDITTEXT        IDC_ID,85,40,70,12,ES_AUTOHSCROLL
+    LTEXT           "Data",-1,60,61,16,8
+    EDITTEXT        IDC_DATA,85,59,125,12,ES_AUTOHSCROLL
+    CONTROL         "Data Flag",IDC_DATAFLAG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,79,100,10
+END
+
+IDD_SENDVTDATAACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "VT-Data-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "All new data accepted",IDC_ALLDATAFLAG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,95,40,100,10
+    LTEXT           "Accepted Octet Count",-1,15,62,72,8
+    EDITTEXT        IDC_ACCEPTEDCOUNT,95,60,70,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED
+END
+
+IDD_SENDADDLISTELEMENT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "AddListElement"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Object ID",IDC_STATIC,41,42,31,8
+    EDITTEXT        IDC_OBJECTID,85,40,95,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,185,40,20,12,NOT WS_TABSTOP
+    LTEXT           "Property",IDC_STATIC,43,62,28,10
+    COMBOBOX        IDC_PROPCOMBO,85,60,100,12,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Array Index",IDC_STATIC,35,82,36,8
+    EDITTEXT        IDC_ARRAYINDEX,85,79,70,12,ES_AUTOHSCROLL
+    LTEXT           "List of Elements",IDC_STATIC,20,102,50,8
+    PUSHBUTTON      "Any...",IDC_VALUE,85,100,55,15
+END
+
+IDD_SENDCREATEOBJECT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CreateObject"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "ObjectType",IDC_STATIC,25,12,40,10
+    COMBOBOX        IDC_OBJECTTYPECOMBO,79,10,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Object ID",IDC_STATIC,35,31,31,8
+    EDITTEXT        IDC_OBJECTID,79,30,91,12,ES_AUTOHSCROLL
+    CONTROL         "List1",IDC_PROPLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,50,155,70
+    PUSHBUTTON      "Add",IDC_ADDPROP,175,50,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEPROP,175,70,50,15
+    LTEXT           "Property",IDC_STATIC,10,127,28,10
+    COMBOBOX        IDC_PROPCOMBO,45,125,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Index",IDC_STATIC,155,126,18,8
+    EDITTEXT        IDC_ARRAYINDEX,180,125,25,12,ES_AUTOHSCROLL
+    LTEXT           "Value",IDC_STATIC,20,148,19,8
+    PUSHBUTTON      "Any...",IDC_VALUE,45,145,55,15
+    LTEXT           "Priority",IDC_STATIC,154,148,22,8
+    EDITTEXT        IDC_PRIORITYX,179,145,26,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,175,30,20,12,NOT WS_TABSTOP
+END
+
+IDD_SENDCREATEOBJECTACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CreateObject-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Object ID",-1,25,62,31,8
+    EDITTEXT        IDC_OBJECTID,69,60,91,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,165,60,20,12,NOT WS_TABSTOP
+END
+
+IDD_SENDDELETEOBJECT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "DeleteObject"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Object ID",-1,30,62,31,8
+    EDITTEXT        IDC_OBJECTID,74,60,91,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,170,60,20,12,NOT WS_TABSTOP
+END
+
+IDD_SENDREMOVELISTELEMENT DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "RemoveListElement"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Object ID",IDC_STATIC,41,42,31,8
+    EDITTEXT        IDC_OBJECTID,85,40,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,180,40,20,12,NOT WS_TABSTOP
+    LTEXT           "Property",IDC_STATIC,43,62,28,10
+    COMBOBOX        IDC_PROPCOMBO,85,60,100,12,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Array Index",IDC_STATIC,35,82,36,8
+    EDITTEXT        IDC_ARRAYINDEX,85,79,70,12,ES_AUTOHSCROLL
+    LTEXT           "List of Elements",IDC_STATIC,20,102,50,8
+    PUSHBUTTON      "Any...",IDC_VALUE,85,100,55,15
+END
+
+IDD_TIMESTAMP DIALOG DISCARDABLE  0, 0, 207, 116
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Time Stamp"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,150,5,50,14
+    LTEXT           "Time",IDC_STATIC,15,11,20,10
+    EDITTEXT        IDC_TIME,85,10,45,12,ES_AUTOHSCROLL
+    LTEXT           "Sequence Number",IDC_STATIC,15,32,60,10
+    EDITTEXT        IDC_SEQNUM,85,30,45,12,ES_AUTOHSCROLL
+    LTEXT           "Date",IDC_STATIC,25,67,50,10
+    EDITTEXT        IDC_DTDATE,85,65,45,12,ES_AUTOHSCROLL
+    LTEXT           "Time",IDC_STATIC,25,87,50,10
+    EDITTEXT        IDC_DTTIME,85,86,45,12,ES_AUTOHSCROLL
+    GROUPBOX        "DateTime",IDC_STATIC,10,50,130,55
+END
+
+IDD_SENDACKALARM DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "AcknowledgeAlarm"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Acknowledging Process Identifier",IDC_STATIC,10,22,110,
+                    8
+    EDITTEXT        IDC_ACKPROCESSID,125,20,60,12,ES_AUTOHSCROLL
+    LTEXT           "Event Object Identifier",IDC_STATIC,10,42,110,8
+    EDITTEXT        IDC_OBJECTID,125,41,75,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJIDBTN,205,41,20,12,NOT WS_TABSTOP
+    LTEXT           "Event State Acknowledged",IDC_STATIC,10,60,110,8
+    COMBOBOX        IDC_EVENTSTATECOMBO,125,60,75,12,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Time Stamp",IDC_STATIC,10,84,110,8
+    PUSHBUTTON      "Time Stamp...",IDC_TIMESTAMP,125,81,60,15
+    LTEXT           "Acknowledgment Source",IDC_STATIC,10,104,110,8
+    EDITTEXT        IDC_ACKSOURCE,125,102,95,12,ES_AUTOHSCROLL
+    LTEXT           "Time Of Acknowledgment",IDC_STATIC,10,126,110,8
+    PUSHBUTTON      "Time Stamp...",IDC_TIMEOFACK,125,123,60,15
+END
+
+IDD_SENDCONFCOVNOTIFICATION DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ConfirmedCOVNotification"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Subscriber Process ID",IDC_STATIC,25,7,71,8
+    EDITTEXT        IDC_PROCESSID,105,5,70,12,ES_AUTOHSCROLL
+    LTEXT           "Initiating Device ID",IDC_STATIC,35,22,61,8
+    EDITTEXT        IDC_DEVICEID,105,20,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_DEVICEIDBTN,200,20,20,12,NOT WS_TABSTOP
+    LTEXT           "Monitored Object ID",IDC_STATIC,32,37,64,8
+    EDITTEXT        IDC_OBJECTID,105,35,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,200,35,20,12,NOT WS_TABSTOP
+    LTEXT           "Time Remaining",IDC_STATIC,44,51,52,8
+    EDITTEXT        IDC_TIMEREMAINING,105,50,70,12,ES_AUTOHSCROLL
+    CONTROL         "List1",IDC_PROPLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,70,155,50
+    PUSHBUTTON      "Add",IDC_ADDPROP,175,70,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEPROP,175,90,50,15
+    LTEXT           "Property",IDC_STATIC,10,127,28,10
+    COMBOBOX        IDC_PROPCOMBO,45,125,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Index",IDC_STATIC,155,126,18,8
+    EDITTEXT        IDC_ARRAYINDEX,180,125,25,12,ES_AUTOHSCROLL
+    LTEXT           "Value",IDC_STATIC,20,148,19,8
+    PUSHBUTTON      "Any...",IDC_VALUE,45,145,55,15
+    LTEXT           "Priority",IDC_STATIC,154,148,22,8
+    EDITTEXT        IDC_PRIORITYX,179,145,26,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDGETALARMSUMMARY DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "GetAlarmSummary"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "There are no parameters to the GetAlarmSummary service.",
+                    -1,15,20,205,13
+END
+
+IDD_SENDGETALARMSUMMARYACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "GetAlarmSummary-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_ALARMSUMLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,65
+    PUSHBUTTON      "Add",IDC_ADDSUMELEM,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVESUMELEM,175,30,50,15
+    LTEXT           "Object ID",IDC_STATIC,25,87,31,8
+    EDITTEXT        IDC_OBJECTID,64,85,91,12,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Property",IDC_STATIC,30,107,28,10
+    COMBOBOX        IDC_EVENTSTATECOMBO,66,105,89,12,CBS_DROPDOWNLIST | 
+                    WS_DISABLED | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "To-Offnormal",IDC_TOOFFNORMAL,"Button",BS_AUTOCHECKBOX | 
+                    WS_DISABLED | WS_TABSTOP,66,125,80,10
+    CONTROL         "To-fault",IDC_TOFAULT,"Button",BS_AUTOCHECKBOX | 
+                    WS_DISABLED | WS_TABSTOP,66,138,80,10
+    CONTROL         "To-normal",IDC_TONORMAL,"Button",BS_AUTOCHECKBOX | 
+                    WS_DISABLED | WS_TABSTOP,66,151,80,10
+    LTEXT           "Acknowedged Transitions",IDC_STATIC,10,135,50,20
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,160,85,20,12,WS_DISABLED | NOT 
+                    WS_TABSTOP
+END
+
+IDD_SENDCONFEVENTNOTIFICATION DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ConfirmedEventNotification"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Process Identifier",IDC_STATIC,14,7,55,8
+    EDITTEXT        IDC_PROCESSID,75,5,60,12,ES_AUTOHSCROLL
+    LTEXT           "Init Device ID",IDC_STATIC,24,21,44,8
+    EDITTEXT        IDC_DEVICEID,75,20,80,12,ES_AUTOHSCROLL
+    LTEXT           "Event Object ID",IDC_STATIC,16,36,52,8
+    EDITTEXT        IDC_OBJECTID,75,35,80,12,ES_AUTOHSCROLL
+    LTEXT           "Time Stamp",IDC_STATIC,30,58,38,8
+    PUSHBUTTON      "Time Stamp...",IDC_TIMESTAMP,75,55,60,15
+    LTEXT           "Notification class",IDC_STATIC,14,77,54,8
+    EDITTEXT        IDC_NOTIFYCLASS,75,75,30,12,ES_AUTOHSCROLL
+    LTEXT           "Notify Type",IDC_STATIC,110,78,40,8
+    COMBOBOX        IDC_NOTIFYTYPECOMBO,155,75,75,12,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Priority",IDC_STATIC,46,92,22,8
+    EDITTEXT        IDC_PRIORITY,75,90,30,12,ES_AUTOHSCROLL
+    LTEXT           "Message Text",IDC_STATIC,22,112,46,8
+    EDITTEXT        IDC_MESSAGETEXT,75,110,155,12,ES_AUTOHSCROLL
+    LTEXT           "From State",IDC_STATIC,34,132,35,8
+    COMBOBOX        IDC_FROMSTATECOMBO,75,130,75,12,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "To State",IDC_STATIC,40,147,28,8
+    COMBOBOX        IDC_TOSTATECOMBO,75,145,75,12,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "ACK Required",IDC_ACKREQUIRED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,160,130,65,10
+    PUSHBUTTON      "Event Values...",IDC_EVENTVALUES,160,145,60,15
+    PUSHBUTTON      "ID...",IDC_DEVICEIDBTN,160,20,20,12,NOT WS_TABSTOP
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,160,35,20,12,NOT WS_TABSTOP
+END
+
+IDD_NOTIFY_BITSTRING DIALOG DISCARDABLE  0, 0, 227, 111
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Change-of-bitstring"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Referenced bitstring",IDC_STATIC,30,16,70,10
+    EDITTEXT        IDC_REFBITSTRING,105,15,85,12,ES_AUTOHSCROLL
+    CONTROL         "In-alarm",IDC_INALARM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,50,55,60,10
+    CONTROL         "Fault",IDC_FAULT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    50,70,60,10
+    CONTROL         "Overridden",IDC_OVERRIDDEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,115,55,60,10
+    CONTROL         "Out-of-service",IDC_OUTOFSERVICE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,115,70,60,10
+    GROUPBOX        "Status Flags",IDC_STATIC,30,40,165,45
+END
+
+IDD_NOTIFY_STATE DIALOG DISCARDABLE  0, 0, 227, 111
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Change-of-state"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "In-alarm",IDC_INALARM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,50,65,60,10
+    CONTROL         "Fault",IDC_FAULT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    50,80,60,10
+    CONTROL         "Overridden",IDC_OVERRIDDEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,115,65,60,10
+    CONTROL         "Out-of-service",IDC_OUTOFSERVICE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,115,80,60,10
+    GROUPBOX        "Status Flags",IDC_STATIC,30,50,165,45
+    LTEXT           "State type",IDC_STATIC,40,12,33,8
+    COMBOBOX        IDC_TYPECOMBO,80,10,100,12,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "State value",IDC_STATIC,35,32,37,8
+    COMBOBOX        IDC_VALUECOMBO,80,30,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_NOTIFY_VALUE DIALOG DISCARDABLE  0, 0, 227, 111
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Change-of-value"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Changed bits",IDC_STATIC,58,17,42,8
+    EDITTEXT        IDC_CHANGEDBITS,105,15,85,12,ES_AUTOHSCROLL
+    CONTROL         "In-alarm",IDC_INALARM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,50,70,60,10
+    CONTROL         "Fault",IDC_FAULT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    50,84,60,10
+    CONTROL         "Overridden",IDC_OVERRIDDEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,115,70,60,10
+    CONTROL         "Out-of-service",IDC_OUTOFSERVICE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,115,84,60,10
+    GROUPBOX        "Status Flags",IDC_STATIC,30,55,165,45
+    LTEXT           "Changed Value",IDC_STATIC,50,37,50,8
+    EDITTEXT        IDC_CHANGEDVALUE,105,35,55,12,ES_AUTOHSCROLL
+END
+
+IDD_NOTIFY_CMDFAILURE DIALOG DISCARDABLE  0, 0, 227, 111
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Command-failure"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Any...",IDC_COMMANDVALUE,110,10,55,15
+    LTEXT           "Command value",IDC_STATIC,50,12,52,8
+    PUSHBUTTON      "Any...",IDC_FEEDBACKVALUE,110,85,55,15
+    LTEXT           "Feedback value",IDC_STATIC,50,87,52,8
+    CONTROL         "In-alarm",IDC_INALARM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,50,45,60,10
+    CONTROL         "Fault",IDC_FAULT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    50,60,60,10
+    CONTROL         "Overridden",IDC_OVERRIDDEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,116,45,60,10
+    CONTROL         "Out-of-service",IDC_OUTOFSERVICE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,116,60,60,10
+    GROUPBOX        "Status Flags",IDC_STATIC,30,30,165,45
+END
+
+IDD_NOTIFY_FLOATLIMIT DIALOG DISCARDABLE  0, 0, 227, 111
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Floating-limit"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Reference value",IDC_STATIC,45,7,54,8
+    EDITTEXT        IDC_REFVALUE,105,5,65,12,ES_AUTOHSCROLL
+    CONTROL         "In-alarm",IDC_INALARM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,50,35,60,10
+    CONTROL         "Fault",IDC_FAULT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    50,50,60,10
+    CONTROL         "Overridden",IDC_OVERRIDDEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,115,35,60,10
+    CONTROL         "Out-of-service",IDC_OUTOFSERVICE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,115,50,60,10
+    GROUPBOX        "Status Flags",IDC_STATIC,30,20,165,45
+    LTEXT           "Setpoint value",IDC_STATIC,53,72,46,8
+    EDITTEXT        IDC_SETPOINTVALUE,105,70,65,12,ES_AUTOHSCROLL
+    LTEXT           "Error limit",IDC_STATIC,71,89,29,8
+    EDITTEXT        IDC_ERRORLIMIT,105,87,65,12,ES_AUTOHSCROLL
+END
+
+IDD_NOTIFY_OUTOFRANGE DIALOG DISCARDABLE  0, 0, 227, 111
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Out-of-range"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Exceeding value",IDC_STATIC,45,7,54,8
+    EDITTEXT        IDC_EXCEEDINGVALUE,105,5,65,12,ES_AUTOHSCROLL
+    CONTROL         "In-alarm",IDC_INALARM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,50,35,60,10
+    CONTROL         "Fault",IDC_FAULT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    50,50,60,10
+    CONTROL         "Overridden",IDC_OVERRIDDEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,115,35,60,10
+    CONTROL         "Out-of-service",IDC_OUTOFSERVICE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,115,50,60,10
+    GROUPBOX        "Status Flags",IDC_STATIC,30,20,165,45
+    LTEXT           "Deadband",IDC_STATIC,65,72,34,8
+    EDITTEXT        IDC_DEADBAND,105,70,65,12,ES_AUTOHSCROLL
+    LTEXT           "Exceeded limit",IDC_STATIC,53,89,46,8
+    EDITTEXT        IDC_EXCEEDINGLIMIT,105,87,65,12,ES_AUTOHSCROLL
+END
+
+IDD_NOTIFY_COMPLEX DIALOG DISCARDABLE  0, 0, 227, 111
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Complex-event-type"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_PROPLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,50
+    PUSHBUTTON      "Add",IDC_ADDPROP,170,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEPROP,170,30,50,15
+    LTEXT           "Index",IDC_STATIC,155,66,18,8
+    EDITTEXT        IDC_ARRAYINDEX,185,65,25,12,ES_AUTOHSCROLL
+    LTEXT           "Property",IDC_STATIC,10,66,28,10
+    COMBOBOX        IDC_PROPCOMBO,45,65,100,45,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "Any...",IDC_VALUE,45,85,55,15
+    LTEXT           "Value",IDC_STATIC,20,88,19,8
+    LTEXT           "Priority",IDC_STATIC,154,88,22,8
+    EDITTEXT        IDC_PRIORITYX,185,86,26,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDGETENROLLMENTSUMMARY DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "GetEnrollmentSummary"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Minimum priority",IDC_STATIC,62,103,50,8
+    EDITTEXT        IDC_MINPRIORITY,125,100,50,12,ES_AUTOHSCROLL
+    LTEXT           "Maximum priority",IDC_STATIC,60,117,52,8
+    EDITTEXT        IDC_MAXPRIORITY,125,115,50,12,ES_AUTOHSCROLL
+    LTEXT           "Acknowledgement filter",IDC_STATIC,40,13,74,8
+    COMBOBOX        IDC_ACKFILTERCOMBO,125,10,75,12,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Enrollment filter",IDC_STATIC,66,34,48,8
+    PUSHBUTTON      "Recipient Process...",IDC_RECIPIENTPROCESS,125,30,75,15
+    LTEXT           "Notification class filter",IDC_STATIC,45,143,69,8
+    EDITTEXT        IDC_NOTIFICATIONCLASS,125,140,50,12,ES_AUTOHSCROLL
+    LTEXT           "Event state filter",IDC_STATIC,62,58,52,8
+    COMBOBOX        IDC_EVENTSTATECOMBO,125,55,75,12,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Event type filter",IDC_STATIC,64,77,50,8
+    COMBOBOX        IDC_EVENTTYPECOMBO,125,76,75,12,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Priority Filter",IDC_STATIC,15,90,195,45
+END
+
+IDD_RECIPIENTPROCESS DIALOG DISCARDABLE  0, 0, 237, 141
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "BACnetRecipientProcess"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Recipient",IDC_STATIC,15,10,205,95
+    LTEXT           "Device",IDC_STATIC,67,22,24,8
+    EDITTEXT        IDC_DEVICEID,100,20,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_DEVICEIDBTN,195,20,20,12,NOT WS_TABSTOP
+    GROUPBOX        "Address",IDC_STATIC,25,40,185,55
+    LTEXT           "Network number",IDC_STATIC,37,57,53,8
+    EDITTEXT        IDC_NETWORK,100,55,55,12,ES_AUTOHSCROLL
+    LTEXT           "MAC address",IDC_STATIC,45,75,43,8
+    EDITTEXT        IDC_MACADDRESS,100,75,55,12,ES_AUTOHSCROLL
+    LTEXT           "Process Identifier",IDC_STATIC,35,111,55,8
+    EDITTEXT        IDC_PROCESSID,100,110,55,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "OK",IDOK,175,120,50,15
+END
+
+IDD_SENDGETENROLLMENTSUMMARYACK DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "GetEnrollmentSummary-ACK"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_ENROLLMENTSUMLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,155,65
+    PUSHBUTTON      "Add",IDC_ADDSUMELEM,175,10,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVESUMELEM,175,30,50,15
+    LTEXT           "Object ID",IDC_STATIC,43,87,31,8
+    EDITTEXT        IDC_OBJECTID,79,85,91,12,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Event type",IDC_STATIC,39,102,35,8
+    COMBOBOX        IDC_EVENTTYPECOMBO,80,100,90,65,CBS_DROPDOWN | 
+                    WS_DISABLED | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Event state",IDC_STATIC,37,120,37,8
+    COMBOBOX        IDC_EVENTSTATECOMBO,80,118,90,42,CBS_DROPDOWN | 
+                    WS_DISABLED | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Priority",IDC_STATIC,52,137,22,8
+    EDITTEXT        IDC_PRIORITY,79,135,36,12,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Notification class",IDC_STATIC,20,152,54,8
+    EDITTEXT        IDC_NOTIFICATIONCLASS,79,150,36,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,175,85,20,12,WS_DISABLED | NOT 
+                    WS_TABSTOP
+END
+
+IDD_SENDSUBSCRIBECOV DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "SubscribeCOV"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Subscriber Process ID",IDC_STATIC,27,47,71,8
+    EDITTEXT        IDC_PROCESSID,105,45,35,12,ES_AUTOHSCROLL
+    LTEXT           "Monitored Object ID",IDC_STATIC,33,67,64,8
+    EDITTEXT        IDC_OBJECTID,105,65,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,200,65,20,12,NOT WS_TABSTOP
+    LTEXT           "Issue Confirmed Notifications",IDC_STATIC,5,87,92,8
+    EDITTEXT        IDC_ISSUECONFIRMED,105,85,35,12,ES_AUTOHSCROLL
+    LTEXT           "Lifetime",IDC_STATIC,73,107,25,8
+    EDITTEXT        IDC_LIFETIME,105,105,35,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDUNCONFEVENTNOTIFICATION DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "UnconfirmedEventNotification"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Process Identifier",IDC_STATIC,14,7,55,8
+    EDITTEXT        IDC_PROCESSID,75,5,60,12,ES_AUTOHSCROLL
+    LTEXT           "Init Device ID",IDC_STATIC,24,21,44,8
+    EDITTEXT        IDC_DEVICEID,75,20,80,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_DEVICEIDBTN,160,20,20,12,NOT WS_TABSTOP
+    LTEXT           "Event Object ID",IDC_STATIC,16,36,52,8
+    EDITTEXT        IDC_OBJECTID,75,35,80,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,160,35,20,12,NOT WS_TABSTOP
+    LTEXT           "Time Stamp",IDC_STATIC,30,58,38,8
+    PUSHBUTTON      "Time Stamp...",IDC_TIMESTAMP,75,55,60,15
+    LTEXT           "Notification class",IDC_STATIC,14,77,54,8
+    EDITTEXT        IDC_NOTIFYCLASS,75,75,30,12,ES_AUTOHSCROLL
+    LTEXT           "Notify Type",IDC_STATIC,110,78,40,8
+    COMBOBOX        IDC_NOTIFYTYPECOMBO,155,75,75,12,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Priority",IDC_STATIC,46,92,22,8
+    EDITTEXT        IDC_PRIORITY,75,90,30,12,ES_AUTOHSCROLL
+    LTEXT           "Message Text",IDC_STATIC,22,112,46,8
+    EDITTEXT        IDC_MESSAGETEXT,75,110,155,12,ES_AUTOHSCROLL
+    LTEXT           "From State",IDC_STATIC,34,132,35,8
+    COMBOBOX        IDC_FROMSTATECOMBO,75,130,75,12,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "To State",IDC_STATIC,40,147,28,8
+    COMBOBOX        IDC_TOSTATECOMBO,75,145,75,12,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "ACK Required",IDC_ACKREQUIRED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,160,130,65,10
+    PUSHBUTTON      "Event Values...",IDC_EVENTVALUES,160,145,60,15
+END
+
+IDD_SENDUNCONFCOVNOTIFICATION DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "UnconfirmedCOVNotification"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Subscriber Process ID",IDC_STATIC,25,7,71,8
+    EDITTEXT        IDC_PROCESSID,105,5,70,12,ES_AUTOHSCROLL
+    LTEXT           "Initiating Device ID",IDC_STATIC,35,22,61,8
+    EDITTEXT        IDC_DEVICEID,105,20,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_DEVICEIDBTN,200,20,20,12,NOT WS_TABSTOP
+    LTEXT           "Monitored Object ID",IDC_STATIC,32,37,64,8
+    EDITTEXT        IDC_OBJECTID,105,35,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,200,35,20,12,NOT WS_TABSTOP
+    LTEXT           "Time Remaining",IDC_STATIC,44,51,52,8
+    EDITTEXT        IDC_TIMEREMAINING,105,50,70,12,ES_AUTOHSCROLL
+    CONTROL         "List1",IDC_PROPLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,70,155,50
+    PUSHBUTTON      "Add",IDC_ADDPROP,175,70,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEPROP,175,90,50,15
+    LTEXT           "Property",IDC_STATIC,10,127,28,10
+    COMBOBOX        IDC_PROPCOMBO,45,125,100,12,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Index",IDC_STATIC,155,126,18,8
+    EDITTEXT        IDC_ARRAYINDEX,180,125,25,12,ES_AUTOHSCROLL
+    LTEXT           "Value",IDC_STATIC,20,148,19,8
+    PUSHBUTTON      "Any...",IDC_VALUE,45,145,55,15
+    LTEXT           "Priority",IDC_STATIC,154,148,22,8
+    EDITTEXT        IDC_PRIORITYX,179,145,26,12,ES_AUTOHSCROLL
+END
+
+IDD_PORT_ENET DIALOG DISCARDABLE  0, 0, 187, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ethernet Configuration"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "The drop-down list below contains the names of the Ethernet adapters that are available through the BACMAC driver.",
+                    IDC_STATIC,10,8,165,25
+    LTEXT           "Adapter",IDC_STATIC,15,42,25,10
+    COMBOBOX        IDC_ADAPTERCOMBO,45,40,135,50,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Promiscuous mode",IDC_PROMISCUOUS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,45,58,95,10
+    DEFPUSHBUTTON   "OK",IDOK,130,75,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,70,75,50,14
+END
+
+IDD_PORT_IP DIALOG DISCARDABLE  0, 0, 187, 90
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "IP Configuration"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Enter the UDP socket number for the port.  The value 0xBAC0 (47808) is reserved for BACnet.  Enter zero (0) for a dynamically assigned socket.",
+                    IDC_STATIC,10,10,165,30
+    LTEXT           "Socket",IDC_STATIC,45,47,25,10
+    EDITTEXT        IDC_SOCKET,80,45,65,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,130,70,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,70,70,50,14
+END
+
+IDD_PORT_ARCNET DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ARCNET Configuration"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
+IDD_PORT_MSTP DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "MS/TP Configuration"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
+IDD_PORT_PTP DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "PTP Configuration"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
+IDD_SCRIPTPARMUPDATE DIALOGEX 0, 0, 242, 106
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Script Parameter Update"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,180,85,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,120,85,50,14
+    LTEXT           "Parameter Name",IDC_STATIC,10,10,55,8
+    LTEXT           "Description",IDC_STATIC,10,26,60,8
+    LTEXT           "Script Value",IDC_STATIC,10,46,60,8
+    LTEXT           "New Value",IDC_STATIC,10,60,55,10
+    LTEXT           "Name",IDC_PARMNAME,75,10,150,10,0,WS_EX_STATICEDGE
+    LTEXT           "Description",IDC_PARMDESC,75,25,150,10,0,
+                    WS_EX_STATICEDGE
+    LTEXT           "Script Value",IDC_PARMSCRIPTVALUE,75,45,150,10,0,
+                    WS_EX_STATICEDGE
+    EDITTEXT        IDC_PARMVALUE,75,58,150,12,ES_AUTOHSCROLL
+    CONTROL         "",IDC_PARMERRMSG,"Static",SS_LEFTNOWORDWRAP | SS_NOTIFY | 
+                    WS_GROUP,75,72,150,10
+END
+
+IDD_SELECT_SESSION DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select a Session"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+    CONTROL         "List1",IDC_DOCLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_NOCOLUMNHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,5,115,85
+END
+
+IDD_OBJID DIALOG DISCARDABLE  0, 0, 237, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Object ID"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "An object identifier is made of two components: an object type and an instance number.",
+                    IDC_STATIC,10,5,215,17
+    LTEXT           "Object Type",IDC_STATIC,18,32,40,8
+    COMBOBOX        IDC_OBJTYPECOMBO,65,30,100,80,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Reserved Type",IDC_STATIC,8,52,50,8
+    EDITTEXT        IDC_RESERVED,65,50,35,12,ES_AUTOHSCROLL | WS_DISABLED
+    CONTROL         "Reserved types range 0..127",IDC_STATIC,"Static",
+                    SS_LEFTNOWORDWRAP | WS_GROUP,110,52,95,10
+    LTEXT           "Vendor Type",IDC_STATIC,16,72,42,8
+    EDITTEXT        IDC_VENDOR,65,70,35,12,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Vendor types range 128..1023",IDC_STATIC,110,72,100,10
+    LTEXT           "Instance",IDC_STATIC,30,92,28,8
+    EDITTEXT        IDC_INSTANCE,65,90,60,12,ES_AUTOHSCROLL
+    LTEXT           "Instance range 0..4194303",IDC_STATIC,135,92,90,10
+    LTEXT           "Here is how the value can be entered directly:",
+                    IDC_STATIC,10,115,146,8
+    EDITTEXT        IDC_ENCODED,65,130,90,12,ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "OK",IDOK,175,140,50,15
+END
+
+IDD_SCRIPTLOADRESULTS DIALOG DISCARDABLE  0, 0, 252, 161
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "EPICS Load Results"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,190,135,50,14
+    LTEXT           "Vendor Name",IDC_STATIC,10,12,80,10
+    LTEXT           "Product Name",IDC_STATIC,10,32,80,10
+    LTEXT           "Product Model Number",IDC_STATIC,10,52,80,10
+    LTEXT           "Product Description",IDC_STATIC,10,72,80,10
+    EDITTEXT        IDC_VENDORNAME,95,10,145,12,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_PRODUCTNAME,95,30,145,12,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    EDITTEXT        IDC_PRODUCTMODELNUMBER,95,50,145,12,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    EDITTEXT        IDC_PRODUCTDESCRIPTION,95,70,145,55,ES_AUTOHSCROLL | 
+                    ES_READONLY
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 3,0,0,1
+ PRODUCTVERSION 3,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "\0"
+            VALUE "FileDescription", "Visual Test Shell\0"
+            VALUE "FileVersion", "3, 0, 0, 1\0"
+            VALUE "InternalName", "VTS\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "VTS.EXE\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "Visual Test Shell\0"
+            VALUE "ProductVersion", "3, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_PORT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 255
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 203
+    END
+
+    IDD_SENDIP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDRAW, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDNPCI, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDNULL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDVENDORNPDU, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDWHOISRTN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDENET, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDIAMRTN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDBVLCRESULT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDWRITEBDT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADBDT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADBDTACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREGISTERFD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADFDT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADFDTACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDDELETEFDTENTRY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDBVLCI, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDTEST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDICOULDBERTN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREJECTMTN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDROUTERBUSY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDROUTERAVAIL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDINITRT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDINITRTACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDESTABLISHCTN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDDISCONNECTCTN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDSIMPLEACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDSEGMENTACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDERROR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREJECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDABORT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDCHANGELISTERROR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDIAM, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDWHOIS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDCREATEOBJECTERROR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDWRITEPROPMULTERROR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDVTCLOSEERROR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDIHAVE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDWHOHAS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDTIMESYNC, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDUNCONFTEXTMSG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDCONFTEXTMSG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDCONFREQUEST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDCOMPLEXACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDDEVICECOMMCTRL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREINITDEVICE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_ANY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADPROP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADPROPACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDWRITEPROP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDWRITEPROPMULT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADPROPMULT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADPROPMULTACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADFILE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREADFILEACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDWRITEFILE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDWRITEFILEACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_NAMES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 313
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 199
+    END
+
+    IDD_SENDVTOPEN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDVTOPENACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDVTCLOSE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDVTDATA, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDVTDATAACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDADDLISTELEMENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDCREATEOBJECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDCREATEOBJECTACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDDELETEOBJECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDREMOVELISTELEMENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_TIMESTAMP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 109
+    END
+
+    IDD_SENDACKALARM, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDCONFCOVNOTIFICATION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDGETALARMSUMMARY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDGETALARMSUMMARYACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDCONFEVENTNOTIFICATION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_NOTIFY_BITSTRING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 104
+    END
+
+    IDD_NOTIFY_STATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 104
+    END
+
+    IDD_NOTIFY_VALUE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 104
+    END
+
+    IDD_NOTIFY_CMDFAILURE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 104
+    END
+
+    IDD_NOTIFY_FLOATLIMIT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 104
+    END
+
+    IDD_NOTIFY_OUTOFRANGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 104
+    END
+
+    IDD_NOTIFY_COMPLEX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 104
+    END
+
+    IDD_SENDGETENROLLMENTSUMMARY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_RECIPIENTPROCESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 134
+    END
+
+    IDD_SENDGETENROLLMENTSUMMARYACK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDSUBSCRIBECOV, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDUNCONFEVENTNOTIFICATION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SENDUNCONFCOVNOTIFICATION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_PORT_ENET, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_PORT_IP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+    END
+
+    IDD_PORT_ARCNET, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_PORT_MSTP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_PORT_PTP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_SCRIPTPARMUPDATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 235
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 99
+    END
+
+    IDD_SELECT_SESSION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_OBJID, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_SCRIPTLOADRESULTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 245
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 154
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_CURSOR1             CURSOR  DISCARDABLE     "res\\cursor1.cur"
+IDC_CURSOR2             CURSOR  DISCARDABLE     "res\\cursor2.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_ANY DLGINIT
+BEGIN
+    IDC_TYPECOMBO, 0x403, 5, 0
+0x754e, 0x6c6c, "\000" 
+    IDC_TYPECOMBO, 0x403, 8, 0
+0x6f42, 0x6c6f, 0x6165, 0x006e, 
+    IDC_TYPECOMBO, 0x403, 9, 0
+0x6e55, 0x6973, 0x6e67, 0x6465, "\000" 
+    IDC_TYPECOMBO, 0x403, 7, 0
+0x6953, 0x6e67, 0x6465, "\000" 
+    IDC_TYPECOMBO, 0x403, 5, 0
+0x6552, 0x6c61, "\000" 
+    IDC_TYPECOMBO, 0x403, 7, 0
+0x6f44, 0x6275, 0x656c, "\000" 
+    IDC_TYPECOMBO, 0x403, 13, 0
+0x634f, 0x6574, 0x2074, 0x7453, 0x6972, 0x676e, "\000" 
+    IDC_TYPECOMBO, 0x403, 17, 0
+0x6843, 0x7261, 0x6361, 0x6574, 0x2072, 0x7453, 0x6972, 0x676e, "\000" 
+    IDC_TYPECOMBO, 0x403, 11, 0
+0x6942, 0x2074, 0x7453, 0x6972, 0x676e, "\000" 
+    IDC_TYPECOMBO, 0x403, 11, 0
+0x6e45, 0x6d75, 0x7265, 0x7461, 0x6465, "\000" 
+    IDC_TYPECOMBO, 0x403, 5, 0
+0x6144, 0x6574, "\000" 
+    IDC_TYPECOMBO, 0x403, 5, 0
+0x6954, 0x656d, "\000" 
+    IDC_TYPECOMBO, 0x403, 18, 0
+0x624f, 0x656a, 0x7463, 0x4920, 0x6564, 0x746e, 0x6669, 0x6569, 0x0072, 
+
+    IDC_TYPECOMBO, 0x403, 12, 0
+0x704f, 0x6e65, 0x6e69, 0x2067, 0x6154, 0x0067, 
+    IDC_TYPECOMBO, 0x403, 12, 0
+0x6c43, 0x736f, 0x6e69, 0x2067, 0x6154, 0x0067, 
+    0
+END
+
+IDD_OBJID DLGINIT
+BEGIN
+    IDC_OBJTYPECOMBO, 0x403, 13, 0
+0x6e41, 0x6c61, 0x676f, 0x492d, 0x706e, 0x7475, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 14, 0
+0x6e41, 0x6c61, 0x676f, 0x4f2d, 0x7475, 0x7570, 0x0074, 
+    IDC_OBJTYPECOMBO, 0x403, 13, 0
+0x6e41, 0x6c61, 0x676f, 0x562d, 0x6c61, 0x6575, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 13, 0
+0x6942, 0x616e, 0x7972, 0x492d, 0x706e, 0x7475, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 14, 0
+0x6942, 0x616e, 0x7972, 0x4f2d, 0x7475, 0x7570, 0x0074, 
+    IDC_OBJTYPECOMBO, 0x403, 13, 0
+0x6942, 0x616e, 0x7972, 0x562d, 0x6c61, 0x6575, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 9, 0
+0x6143, 0x656c, 0x646e, 0x7261, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 8, 0
+0x6f43, 0x6d6d, 0x6e61, 0x0064, 
+    IDC_OBJTYPECOMBO, 0x403, 7, 0
+0x6544, 0x6976, 0x6563, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 17, 0
+0x7645, 0x6e65, 0x2d74, 0x6e45, 0x6f72, 0x6c6c, 0x656d, 0x746e, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 5, 0
+0x6946, 0x656c, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 6, 0
+0x7247, 0x756f, 0x0070, 
+    IDC_OBJTYPECOMBO, 0x403, 5, 0
+0x6f4c, 0x706f, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 17, 0
+0x754d, 0x746c, 0x7369, 0x6174, 0x6574, 0x492d, 0x706e, 0x7475, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 18, 0
+0x754d, 0x746c, 0x7369, 0x6174, 0x6574, 0x4f2d, 0x7475, 0x7570, 0x0074, 
+
+    IDC_OBJTYPECOMBO, 0x403, 19, 0
+0x6f4e, 0x6974, 0x6966, 0x6163, 0x6974, 0x6e6f, 0x432d, 0x616c, 0x7373, 
+"\000" 
+    IDC_OBJTYPECOMBO, 0x403, 8, 0
+0x7250, 0x676f, 0x6172, 0x006d, 
+    IDC_OBJTYPECOMBO, 0x403, 9, 0
+0x6353, 0x6568, 0x7564, 0x656c, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 9, 0
+0x6552, 0x6573, 0x7672, 0x6465, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 7, 0
+0x6556, 0x646e, 0x726f, "\000" 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
+END
+
+STRINGTABLE PRELOAD DISCARDABLE 
+BEGIN
+    IDR_MAINFRAME           "VTS"
+    IDR_VTSTYPE             "\nVTS\nVTS\nVTS Script Files (*.vts)\n.vts\nVTS.Document\nVTS Script Document"
+    IDR_VDBTYPE             "\nVDB\nVDB\nVTS Database Files (*.vdb)\n.vdb\nVTS.Document\nVTS Database Document"
+    IDR_SUMMARYTYPE         "\nSummary\nSummary View"
+END
+
+STRINGTABLE PRELOAD DISCARDABLE 
+BEGIN
+    AFX_IDS_APP_TITLE       "VTS"
+    AFX_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_NEW             "Create a new session\nNew"
+    ID_FILE_OPEN            "Open an existing session\nOpen"
+    ID_FILE_CLOSE           "Close the active session\nClose"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+    ID_FILE_PAGE_SETUP      "Change the printing options\nPage Setup"
+    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
+    ID_FILE_PRINT           "Print the active document\nPrint"
+    ID_FILE_PRINT_PREVIEW   "Display full pages\nPrint Preview"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
+    ID_APP_EXIT             "Quit the application\nExit"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
+    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Erase the packets\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+    AFX_IDS_MDICHILD        "Activate this window"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    AFX_IDS_PREVIEW_CLOSE   "Close print preview mode\nCancel Preview"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_FIRSTFRAME      "View first frame in session\nFirst"
+    ID_VIEW_PREVFRAME       "View previous frame in session\nPrevious"
+    ID_VIEW_NEXTFRAME       "View next frame in session\nNext"
+    ID_VIEW_LASTFRAME       "View last frame in session\nLast"
+    ID_EDIT_PORTS           "Edit the port definitions"
+    ID_EDIT_NAMES           "Edit the address to name mapping"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_CAPTUREFILTER   "Edit the capture filter which restricts which packets will be saved"
+    ID_EDIT_DISPLAYFILTER   "Edit the display filter which restricts the packets displayed"
+    ID_EDIT_PREFERENCES     "Edit application preferences"
+    ID_EDIT_DELETE          "Delete the packets"
+    ID_SCRIPT_CHECK_SYNTAX  "Check the syntax of the script"
+    ID_SCRIPT_RUN           "Execute the selected test or all tests"
+    ID_SCRIPT_HALT          "Stop the currently running script"
+    ID_SCRIPT_STEP          "Execute a single step of the selected test"
+    ID_SCRIPT_RESET         "Return the parameter values to the script definition"
+    ID_SCRIPT_KILL          "Force the running or halted test to fail"
+    ID_SCRIPT_STEPPASS      "Pass the current SEND/EXPECT and continue"
+    ID_SCRIPT_STEPFAIL      "Fail the current SEND/EXPECT and continue"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\VTS.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#include "afxprint.rc"       // printing/print preview resources
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
