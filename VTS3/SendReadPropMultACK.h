@@ -58,6 +58,9 @@ class ReadPropACKList : public CList<ReadPropACKElemPtr,ReadPropACKElemPtr> {
 		void AddButtonClick( void );			// add a new property
 		void RemoveButtonClick( void );			// remove the selected property
 
+		void UpButtonClick( void );				// shuffle up
+		void DownButtonClick( void );			// shuffle down
+
 		void OnSelchangePropCombo( void );		// property combo has changed
 		void OnChangeArrayIndex( void );		// array index has changed
 		void OnValue( void );					// value button clicked on
@@ -86,6 +89,9 @@ class ReadPropACKListList : public CList<ReadPropACKListPtr,ReadPropACKListPtr> 
 
 		void AddButtonClick( void );			// add a new object
 		void RemoveButtonClick( void );			// remove the selected object
+
+		void UpButtonClick( void );				// shuffle up
+		void DownButtonClick( void );			// shuffle down
 
 		void OnChangeObjID( void );				// object ID has changed
 		void OnObjectIDButton( void );			// associated button
@@ -138,10 +144,14 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnAddObj();
 	afx_msg void OnRemoveObj();
+	afx_msg void OnObjUp();
+	afx_msg void OnObjDown();
 	afx_msg void OnChangeObjID();
 	afx_msg void OnItemchangingObjList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnAddProp();
 	afx_msg void OnRemoveProp();
+	afx_msg void OnPropUp();
+	afx_msg void OnPropDown();
 	afx_msg void OnItemchangingPropList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnSelchangePropCombo();
 	afx_msg void OnChangeArrayIndex();
