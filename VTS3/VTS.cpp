@@ -1055,6 +1055,13 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //
 //			Added option in preferences for verification on delete packets.  Defaults to true.
 //
+//			[681223] - Changed the default delay in EXPECT and SEND packets to 3 seconds and changed the maximum
+//			delay to 2 minutes.  The default and max were previously set to 1.8 seconds, which was a bug.
+//
+//			Added support to parse "Event-Time-Stamps" property.  Unfortunately this is not yet a property
+//			that can be handled inside a script... It only parses EPICS correctly for these objects:
+//				- MSI, MSO, MSV, AI, AO, AV, BI, BO, EE, LOOP, BV, BV
+//				- TR object support already existed, but it was the only one.
 //
 //
 
