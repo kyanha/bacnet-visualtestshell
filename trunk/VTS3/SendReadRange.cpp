@@ -207,6 +207,10 @@ void SendReadRange::SavePage( void )
 	m_ObjectID.SaveCtrl( pageContents );
 	m_PropCombo.SaveCtrl( pageContents );
 	m_ArrayIndex.SaveCtrl( pageContents );
+
+	// 3/24/2005, Shiyuan Xiao 
+	m_ReadRangeRefDate.CalcDayOfWeek();
+
     m_ReadRangeRefDate.SaveCtrl( pageContents );
     m_ReadRangeRefTime.SaveCtrl( pageContents );
     m_ReadRangeCount.SaveCtrl( pageContents );
