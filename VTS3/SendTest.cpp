@@ -164,7 +164,7 @@ void CSendTest::EncodePage( CByteArray* contents )
 	// do the any
 	for (int j = 0; j < m_Any.m_anyList.Length(); j++) {
 		BACnetAPDUEncoderPtr ep = &m_Any.m_anyList[j]->elemEncoder;
-		enc.CopyOctets( ep->pktBuffer, ep->pktLength );
+		enc.Append( ep->pktBuffer, ep->pktLength );
 	}
 
 	// copy the encoding into the byte array

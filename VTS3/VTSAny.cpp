@@ -437,7 +437,7 @@ void VTSAny::Encode( BACnetAPDUEncoder& enc, int context )
 
 	for (int i = 0; i < m_anyList.Length(); i++) {
 		BACnetAPDUEncoderPtr ep = &m_anyList[i]->elemEncoder;
-		enc.CopyOctets( ep->pktBuffer, ep->pktLength );
+		enc.Append( ep->pktBuffer, ep->pktLength );
 	}
 
 	if (context != kAppContext)

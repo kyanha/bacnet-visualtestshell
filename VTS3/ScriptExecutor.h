@@ -18,7 +18,6 @@
 #include "ScriptPacket.h"
 
 #include "BACnet.hpp"
-#include "BACnetTask.hpp"
 #include "VTSQueue.h"
 
 //
