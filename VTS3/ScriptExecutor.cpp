@@ -2662,12 +2662,12 @@ void ScriptExecutor::SendDevSegmentACK( BACnetAPDU &apdu )
 	// get the ACK
 	pNegativeACK = GetKeywordValue( kwNEGATIVEACK, alNegativeACK );
 	if (!pNegativeACK) throw "Negative-ACK keyword required";
-	apdu.apduNak = (bool)alNegativeACK.boolValue;
+	apdu.apduNak = (alNegativeACK.boolValue != 0);
 
 	// get the SERVER
 	pServer = GetKeywordValue( kwSERVER, alServer );
 	if (!pServer) throw "Server keyword required";
-	apdu.apduSrv = (bool)alServer.boolValue;
+	apdu.apduSrv = (alServer.boolValue != 0);
 
 	// get the invoke ID
 	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
