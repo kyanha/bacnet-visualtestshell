@@ -29,6 +29,10 @@
 //Added by Jingbo Gao, 2004-9-20
 #include "BakRestoreExecutor.h"
 
+//Added By Zhu Zhenhua, 2004-11-27
+#include "ScriptFrame.h"
+#include "ScriptExecutor.h"
+
 #define MAX_LENGTH_OF_OBJECTTYPE		30
 #define MAX_LENGTH_OF_PROPERTYNAME		100
 #define MAX_DIGITS_OF_INSTANCENUMBER	10
@@ -127,6 +131,29 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_COMMAND(ID_FILE_PRINT_SETUP,OnFilePrintSetup)
 	ON_UPDATE_COMMAND_UI(ID_FILE_PRINT,OnUpdateFilePrint)
 	ON_COMMAND(ID_EPICS_READALLPROPERTY, OnReadAllProperty)
+	//Added by Zhu Zhenhua, 2004-11-27,for #508589 request 
+	ON_COMMAND(ID_GLOBAL_SCRIPT_STEPPASS, OnGlobalScriptSteppass)
+	ON_UPDATE_COMMAND_UI(ID_GLOBAL_SCRIPT_STEPPASS, OnUpdateGlobalScriptSteppass)
+	ON_COMMAND(ID_GLOBAL_SCRIPT_STEPFAIL, OnGlobalScriptStepfail)
+	ON_UPDATE_COMMAND_UI(ID_GLOBAL_SCRIPT_STEPFAIL, OnUpdateGlobalScriptStepfail)
+	ON_COMMAND(ID_GLOBAL_SCRIPT_STEP, OnGlobalScriptStep)
+	ON_UPDATE_COMMAND_UI(ID_GLOBAL_SCRIPT_STEP, OnUpdateGlobalScriptStep)
+	ON_COMMAND(ID_GLOBAL_SCRIPT_KILL, OnGlobalScriptKill)
+	ON_UPDATE_COMMAND_UI(ID_GLOBAL_SCRIPT_KILL, OnUpdateGlobalScriptKill)
+	ON_COMMAND(ID_GLOBAL_SCRIPT_HALT, OnGlobalScriptHalt)
+	ON_UPDATE_COMMAND_UI(ID_GLOBAL_SCRIPT_HALT, OnUpdateGlobalScriptHalt)
+	ON_COMMAND(ID_GLOBAL_DISABLE_PORT, OnGlobalDisablePort)
+	ON_UPDATE_COMMAND_UI(ID_GLOBAL_DISABLE_PORT, OnUpdateGlobalDisablePort)
+	ON_COMMAND(ID_GLOBAL_SCRIPT_CHECKSYNTAX, OnGlobalScriptChecksyntax)
+	ON_UPDATE_COMMAND_UI(ID_GLOBAL_SCRIPT_CHECKSYNTAX, OnUpdateGlobalScriptChecksyntax)
+	ON_COMMAND(ID_GLOBAL_SCRIPT_RESET, OnGlobalScriptReset)
+	ON_UPDATE_COMMAND_UI(ID_GLOBAL_SCRIPT_RESET, OnUpdateGlobalScriptReset)
+	ON_COMMAND(ID_GLOBAL_SCRIPT_RUN, OnGlobalScriptRun)
+	ON_UPDATE_COMMAND_UI(ID_GLOBAL_SCRIPT_RUN, OnUpdateGlobalScriptRun)
+	ON_COMMAND(ID_VIEW_MAINTOOLBAR, OnViewMaintoolbar)
+	ON_COMMAND(ID_VIEW_GLOBAL_TOOLBAR, OnViewGlobalToolbar)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_MAINTOOLBAR, OnUpdateViewMaintoolbar)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_GLOBAL_TOOLBAR, OnUpdateViewGlobalToolbar)
 	////////////////////////////////////////////////
 	//}}AFX_MSG_MAP
 	//Added by Jingbo Gao, 2004-9-20
@@ -265,6 +292,18 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	DockControlBar(m_pwndDetailViewBar,AFX_IDW_DOCKBAR_RIGHT);
 	DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_RIGHT);
 	DockControlBar(m_pwndEPICSViewBar,AFX_IDW_DOCKBAR_RIGHT);
+
+//////////////////////////////////////////////////////////////////////////////////
+	m_wndGlobalBar = new CToolBar();
+	if (!m_wndGlobalBar->CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
+		| CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY |CBRS_HIDE_INPLACE| CBRS_SIZE_DYNAMIC) ||
+		!m_wndGlobalBar->LoadToolBar(IDR_GLOBALBAR))
+	{
+		TRACE0("Failed to create globalbar\n");
+		return -1;      // fail to create
+	}
+	m_wndGlobalBar->EnableDocking( CBRS_ALIGN_ANY );
+	DockControlBar( m_wndGlobalBar );
 	
 	CMDIChildWnd::OnCreateClient(lpcs,pContext);
 
@@ -1285,4 +1324,221 @@ void CChildFrame::OnUpdateBackupRestore(CCmdUI* pCmdUI)
 void CChildFrame::OnBackupRestore() 
 {
 	m_frameContext->m_pDoc->DoBackupRestore();
+}
+
+/////////////////////////////////////////////////////////////////////
+//Added by Zhu Zhenhua, 2004-11-27,for #508589 request 
+void CChildFrame::OnUpdateViewMaintoolbar(CCmdUI* pCmdUI)
+{
+	CMainFrame* pFrame = (CMainFrame*) GetParentFrame();
+	pCmdUI->Enable();
+	pCmdUI->SetCheck(pFrame->GetToolBarStatus());
+}
+void CChildFrame::OnUpdateViewGlobalToolbar(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable();
+	pCmdUI->SetCheck(m_wndGlobalBar->IsVisible());
+}
+
+void CChildFrame::OnUpdateGlobalDisablePort(CCmdUI* pCmdUI) 
+{	
+	BOOL bEnable = FALSE;
+	VTSPorts ports;
+	VTSPorts* pPorts = ((VTSDoc*)GetActiveDocument())->GetPorts();
+	ports.DeepCopy(pPorts);
+	for (int i = 0; i < ports.GetSize(); i++)
+	{
+		VTSPortPtr		curPort = ports[i];
+		if (curPort->IsEnabled())
+		{
+			bEnable = TRUE;
+			break;
+		}
+	}
+	pCmdUI->Enable(bEnable);	
+}
+void CChildFrame::OnUpdateGlobalScriptChecksyntax(CCmdUI* pCmdUI) 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(!pFrame)
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	pCmdUI->Enable( gExecutor.IsIdle() );	
+}
+void CChildFrame::OnUpdateGlobalScriptReset(CCmdUI* pCmdUI) 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(!pFrame)
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	pCmdUI->Enable( gExecutor.IsIdle() );		
+}
+
+void CChildFrame::OnUpdateGlobalScriptRun(CCmdUI* pCmdUI) 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(!pFrame)
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	if (gExecutor.IsIdle() && pFrame->m_pDoc->m_pContentTree) 
+		pCmdUI->Enable( pFrame->m_bSyntaxOK );
+	else if (gExecutor.IsBound(pFrame->m_pDoc))
+			pCmdUI->Enable( !gExecutor.IsRunning() );
+		else 
+			pCmdUI->Enable( pFrame->m_bSyntaxOK );
+	
+}
+void CChildFrame::OnUpdateGlobalScriptSteppass(CCmdUI* pCmdUI) 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(!pFrame)
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	pCmdUI->Enable( gExecutor.IsStopped() && gExecutor.IsBound(pFrame->m_pDoc) );
+}
+void CChildFrame::OnUpdateGlobalScriptStepfail(CCmdUI* pCmdUI) 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(!pFrame)
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	pCmdUI->Enable( gExecutor.IsStopped() && gExecutor.IsBound(pFrame->m_pDoc) );
+}
+
+void CChildFrame::OnUpdateGlobalScriptStep(CCmdUI* pCmdUI) 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(!pFrame)
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	if (gExecutor.IsIdle() && pFrame->m_pDoc->m_pContentTree) 
+		if (pFrame->m_pDoc->m_pSelectedTest) 
+			pCmdUI->Enable( true );
+	    else 
+			pCmdUI->Enable( false );		
+	else
+		if (gExecutor.IsBound(pFrame->m_pDoc)) 
+			pCmdUI->Enable( !gExecutor.IsRunning() );
+		else 
+			pCmdUI->Enable( false );	
+}
+
+void CChildFrame::OnUpdateGlobalScriptKill(CCmdUI* pCmdUI) 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(!pFrame)
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	pCmdUI->Enable( gExecutor.IsBound(pFrame->m_pDoc) );
+}
+void CChildFrame::OnUpdateGlobalScriptHalt(CCmdUI* pCmdUI) 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(!pFrame)
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	pCmdUI->Enable( gExecutor.IsRunning() && gExecutor.IsBound(pFrame->m_pDoc) );	
+}
+
+void CChildFrame::OnGlobalScriptChecksyntax() 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(pFrame)
+		pFrame->PostMessage(WM_COMMAND, ID_SCRIPT_CHECK_SYNTAX);
+}
+
+void CChildFrame::OnGlobalScriptReset() 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(pFrame)
+		pFrame->PostMessage(WM_COMMAND, ID_SCRIPT_RESET);	
+}
+
+void CChildFrame::OnGlobalScriptRun() 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(pFrame)
+		pFrame->PostMessage(WM_COMMAND, ID_SCRIPT_RUN);	
+}
+
+void CChildFrame::OnGlobalScriptSteppass() 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	pFrame->PostMessage(WM_COMMAND, ID_SCRIPT_STEPPASS);
+}
+
+void CChildFrame::OnGlobalScriptStepfail() 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(pFrame)
+		pFrame->PostMessage(WM_COMMAND, ID_SCRIPT_STEPFAIL);
+	
+}
+
+void CChildFrame::OnGlobalScriptStep() 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(pFrame)
+		pFrame->PostMessage(WM_COMMAND, ID_SCRIPT_STEP);
+}
+
+void CChildFrame::OnGlobalScriptKill() 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(pFrame)
+		pFrame->PostMessage(WM_COMMAND, ID_SCRIPT_KILL);
+}
+
+void CChildFrame::OnGlobalScriptHalt() 
+{
+	ScriptFrame* pFrame = (ScriptFrame*)((CMainFrame*) GetParentFrame())->GetChildFrame(RUNTIME_CLASS(ScriptFrame));
+	if(pFrame)
+		pFrame->PostMessage(WM_COMMAND, ID_SCRIPT_HALT);
+}
+
+void CChildFrame::OnGlobalDisablePort() 
+{	
+	VTSPorts ports;
+	VTSPorts* pPorts = ((VTSDoc*)GetActiveDocument())->GetPorts();
+	ports.DeepCopy(pPorts);
+	for (int i = 0; i < ports.GetSize(); i++)
+	{
+		VTSPortPtr		curPort = ports[i];
+		if (curPort->IsEnabled())
+			curPort->SetEnabled(false);
+	}
+	pPorts->KillContents();	
+	for (i = 0; i < ports.GetSize(); i++ )
+		pPorts->Add(ports[i]);
+	ports.RemoveAll();
+	((VTSDoc*)GetActiveDocument())->FixupNameToPortLinks(false);			// must refixup while ports are inactive...
+	((VTSDoc*)GetActiveDocument())->FixupFiltersToPortLinks(false);
+	((VTSDoc*)GetActiveDocument())->ReActivateAllPorts();
+}
+
+void CChildFrame::OnViewMaintoolbar() 
+{	
+	CMainFrame* pFrame = (CMainFrame*) GetParentFrame();
+	pFrame->ShowOwnToolBar();
+}
+
+void CChildFrame::OnViewGlobalToolbar() 
+{
+	ShowControlBar(m_wndGlobalBar, !m_wndGlobalBar->IsVisible(), FALSE);
 }

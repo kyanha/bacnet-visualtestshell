@@ -43,7 +43,11 @@ public:
 	////////////////////////////////////
 	//Added by Zhenhua Zhu, 2003-6-2
 	CMDIChildWnd* GetChildFrame(CRuntimeClass *pClass, int nNum = 1);
-	BOOL GetCmdState(int CmdType, CMDIChildWnd* pFrame, CString& str);
+	//Modified by Zhu Zhenhua, 2004-11-27,for #508589 request 
+	void ShowOwnToolBar();
+	bool GetToolBarStatus();
+	//Added by Zhu Zhenhua, 2004-11-27, to control mainframe toobar's show up while in Childframe
+	//because i think it's better than setting toolbar as public. 
 	///////////////////////////////////
 
 	virtual ~CMainFrame();
@@ -67,13 +71,6 @@ protected:
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnClose();
-	////////////////////////////////////////////////////////////
-	//Added by Zhenhua Zhu, 2003-6-2
-	afx_msg void OnEditDelete();
-	afx_msg void OnUpdateEditDelete(CCmdUI* pCmdUI);
-	afx_msg void OnUpdateScriptRun(CCmdUI* pCmdUI);
-	afx_msg void OnUpdateScriptCheckSyntax(CCmdUI* pCmdUI);
-	afx_msg void OnToolbarDropDown(NMTOOLBAR* pnmh, LRESULT* plRes);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

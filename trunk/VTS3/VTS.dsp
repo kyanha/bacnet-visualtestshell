@@ -2516,6 +2516,14 @@ SOURCE=.\res\epicstree.bmp
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\globalba.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\globalbal.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\ico00001.ico
 # End Source File
 # Begin Source File
