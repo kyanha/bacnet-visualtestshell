@@ -49,6 +49,7 @@ class JDBArrayMgr {
 		
 	protected:
 		JDBPtr				mgrFile;
+		void DeleteArrayHelper( int depth, blockNumber blckID, int bf );
 		
 	public:
 		JDBObjMgrPtr		mgrObjMgr;
