@@ -1,3 +1,4 @@
+
 // ScriptExecutor.cpp: implementation of the ScriptExecutor class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -46,24 +47,32 @@ static char THIS_FILE[]=__FILE__;
 #endif
 
 
+// MAX_PROP_ID = the number of elements in this array. It is located in Vts.h
+#define PDUTYPE_MAX   8
+#define CONFSVC_MAX   30
+#define UNCONFSVC_MAX 10
+#define REJECT_MAX    10
+#define ABORT_MAX     5
+#define BVLL_MAX	  12
+#define NLMSG_MAX     12
+
+namespace NetworkSniffer {
+	extern char *BACnetPropertyIdentifier[];
+	extern char *PDU_typesENUM[];
+	extern char *BACnetConfirmedServiceChoice[];
+	extern char *BACnetUnconfirmedServiceChoice[];
+	extern char *BACnetReject[];
+	extern char *BACnetAbort[];
+	extern char *BVLL_Function[];
+	extern char *NL_msgs[];
+}
+
+
 // global defines
 
 ScriptExecutor		gExecutor;
 ScriptFilterList	gMasterFilterList;
 
-//******Added by Liangping Xu, 2002-8-5********//
-
-int   nArrayIndx = -1;
-
-//******Ended by Liangping Xu, 2002-8-5********//
-
-//Added by Yiping Xu, 2002-8-5
-namespace NetworkSniffer {
-	extern char *BACnetConfirmedServiceChoice[];
-//	extern char *BACnetErrorClass[];
-//	extern char *BACnetErrorCode[];
-}
-//Ended by Yiping Xu, 2002-8-5
 
 // some useful matching functions
 
@@ -1096,7 +1105,7 @@ void ScriptExecutor::NextPacket( bool okPacket )
 //	parameter value is scanned recursively.
 //
 
-void ScriptExecutor::ResolveExpr( const char *expr, int exprLine, ScriptTokenList &lst )
+void ScriptExecutor::ResolveExpr( const char *expr, int exprLine, ScriptTokenList &lst, ScriptParmPtr * ppScriptParm /* = NULL */ )
 {
 	ScriptScanner	scan( expr )
 	;
@@ -1116,8 +1125,20 @@ void ScriptExecutor::ResolveExpr( const char *expr, int exprLine, ScriptTokenLis
 			case scriptKeyword:
 				// resolve the keyword as a parameter?
 				if ((pp = execDoc->m_pParmList->LookupParm( tok.tokenSymbol )) != 0) {
-					ResolveExpr( pp->parmValue, pp->parmLine, lst );
-					break;
+
+					// We've found a variable... use it as the first.  All other variables don't matter
+					// for the purposes of stuffing values INTO them.  Don't resolve parameter, it might
+					// contain junk and that would confuse the assignment.  Just drop through as keyword.
+
+					if ( ppScriptParm != NULL )
+						*ppScriptParm = pp;
+					else
+					{
+						// They haven't supplied a parm pointer so this must not be an assignment...
+						// we should resolve it and go through.
+						ResolveExpr( pp->parmValue, pp->parmLine, lst );
+						break;
+					}
 				}
 
 			case scriptValue:
@@ -1197,8 +1218,10 @@ void ScriptExecutor::GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny, in
 		throw "Property not defined for this object type";
 
 	// see if the value is not available
-	if (pobj->propflags[pindx] & ValueUnknown)
-		throw "EPICS property is not specified";
+	// madanner 11/6/02, commented.  Not sure the purpose of unknown values.  They're a good thing, no?
+
+//	if (pobj->propflags[pindx] & ValueUnknown)				
+//		throw "EPICS property is not specified";
 
 	// Access DUDAPI call to point to yucky part of EPICS internal data structures
 	PICS::CreatePropertyFromEPICS( pobj, pid, pbacnetAny );
@@ -1273,7 +1296,7 @@ bool ScriptExecutor::SendPacket( void )
 
 	try {
 		// see if the network is provided
-		pNet = GetKeywordValue( kwNETWORK, nlNetwork );
+		pNet = GetKeywordValue( NULL, kwNETWORK, nlNetwork );
 
 		// see if this has a BVLCI header
 		bipMsg = execPacket->packetExprList.Find( kwBVLCI );
@@ -1376,10 +1399,10 @@ bool ScriptExecutor::SendPacket( void )
 		}
 
 		// get some interesting keywords in case they should be used in BIP messages
-		pDER		= GetKeywordValue( kwDER, nlDER );
-		pPriority	= GetKeywordValue( kwPRIORITY, nlPriority );
+		pDER		= GetKeywordValue( NULL, kwDER, nlDER );
+		pPriority	= GetKeywordValue( NULL, kwPRIORITY, nlPriority );
 		if (!pPriority)
-			pPriority = GetKeywordValue( kwPRIO, nlPriority );
+			pPriority = GetKeywordValue( NULL, kwPRIO, nlPriority );
 		if (!pPriority)
 			nlPriority.intValue = 0;
 		else
@@ -1486,12 +1509,12 @@ bool ScriptExecutor::SendPacket( void )
 			throw "Specify network or application message but not both";
 
 		// find the interesting keywords
-		pVersion	= GetKeywordValue( kwVERSION, nlVersion );
-		pDNET		= GetKeywordValue( kwDNET, nlDNET );
-		pDADR		= GetKeywordValue( kwDADR, nlDADR );
-		pHopCount	= GetKeywordValue( kwHOPCOUNT, nlHopCount );
-		pSNET		= GetKeywordValue( kwSNET, nlSNET );
-		pSADR		= GetKeywordValue( kwSADR, nlSADR );
+		pVersion	= GetKeywordValue( NULL, kwVERSION, nlVersion );
+		pDNET		= GetKeywordValue( NULL, kwDNET, nlDNET );
+		pDADR		= GetKeywordValue( NULL, kwDADR, nlDADR );
+		pHopCount	= GetKeywordValue( NULL, kwHOPCOUNT, nlHopCount );
+		pSNET		= GetKeywordValue( NULL, kwSNET, nlSNET );
+		pSADR		= GetKeywordValue( NULL, kwSADR, nlSADR );
 
 		// validate version
 		if (pVersion && ((nlVersion.intValue < 0) || (nlVersion.intValue > 255)))
@@ -1629,7 +1652,7 @@ bool ScriptExecutor::SendPacket( void )
 			}
 
 			// look for optional network layer data
-			if (GetKeywordValue( kwNLDATA, nlData ) || GetKeywordValue( kwNL, nlData )) {
+			if (GetKeywordValue( NULL, kwNLDATA, nlData ) || GetKeywordValue( NULL, kwNL, nlData )) {
 				TRACE0( "Got additional network layer octet string\n" );
 				for (int i = 0; i < nlData.strLen; i++)
 					packet.Add( nlData.strBuff[i] );
@@ -2549,13 +2572,13 @@ void ScriptExecutor::SendDevPacket( void )
 	}
 
 	// get some interesting keywords that can override the default
-	pDER = GetKeywordValue( kwDER, nlDER );
+	pDER = GetKeywordValue( NULL, kwDER, nlDER );
 	if (pDER)
 		apdu.apduExpectingReply = nlDER.boolValue;
 
-	pPriority	= GetKeywordValue( kwPRIORITY, nlPriority );
+	pPriority	= GetKeywordValue( NULL, kwPRIORITY, nlPriority );
 	if (!pPriority)
-		pPriority = GetKeywordValue( kwPRIO, nlPriority );
+		pPriority = GetKeywordValue( NULL, kwPRIO, nlPriority );
 	if (pPriority) {
 		if ((nlPriority.intValue < 0) || (nlPriority.intValue > 3))
 			throw ExecError( "Priority out of range 0..3", pPriority->exprLine );
@@ -2584,7 +2607,7 @@ void ScriptExecutor::SendDevConfirmedRequest( BACnetAPDU &apdu )
 	apdu.apduExpectingReply = true;
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (!pService)
 		throw "Service choice (SERVICE) keyword required";
 
@@ -2616,7 +2639,7 @@ void ScriptExecutor::SendDevUnconfirmedRequest( BACnetAPDU &apdu )
 	apdu.apduExpectingReply = false;
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALUnconfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALUnconfirmedServiceMap );
 	if (!pService)
 		throw "Service choice (SERVICE) keyword required";
 
@@ -2645,7 +2668,7 @@ void ScriptExecutor::SendDevSimpleACK( BACnetAPDU &apdu )
 	apdu.apduType = simpleAckPDU;
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (!pService)
 		throw "Service-ACK-choice (SERVICE) keyword required";
 
@@ -2653,7 +2676,7 @@ void ScriptExecutor::SendDevSimpleACK( BACnetAPDU &apdu )
 	apdu.apduService = alService.intValue;
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -2681,7 +2704,7 @@ void ScriptExecutor::SendDevComplexACK( BACnetAPDU &apdu )
 	apdu.apduExpectingReply = false;
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (!pService)
 		throw "Service-ACK-choice (SERVICE) keyword required";
 
@@ -2689,7 +2712,7 @@ void ScriptExecutor::SendDevComplexACK( BACnetAPDU &apdu )
 	apdu.apduService = alService.intValue;
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -2723,17 +2746,17 @@ void ScriptExecutor::SendDevSegmentACK( BACnetAPDU &apdu )
 	apdu.apduExpectingReply = false;
 
 	// get the ACK
-	pNegativeACK = GetKeywordValue( kwNEGATIVEACK, alNegativeACK );
+	pNegativeACK = GetKeywordValue( NULL, kwNEGATIVEACK, alNegativeACK );
 	if (!pNegativeACK) throw "Negative-ACK keyword required";
 	apdu.apduNak = (alNegativeACK.boolValue != 0);
 
 	// get the SERVER
-	pServer = GetKeywordValue( kwSERVER, alServer );
+	pServer = GetKeywordValue( NULL, kwSERVER, alServer );
 	if (!pServer) throw "Server keyword required";
 	apdu.apduSrv = (alServer.boolValue != 0);
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -2741,7 +2764,7 @@ void ScriptExecutor::SendDevSegmentACK( BACnetAPDU &apdu )
 	apdu.apduInvokeID = alInvokeID.intValue;
 
 	// get the sequence number
-	pSeqNumber = GetKeywordValue( kwSEQUENCENR, alSeqNumber );
+	pSeqNumber = GetKeywordValue( NULL, kwSEQUENCENR, alSeqNumber );
 	if (!pSeqNumber)
 		throw "Sequence number (SEQUENCENR) keyword required";
 	if ((alSeqNumber.intValue < 0) || (alSeqNumber.intValue > 255))
@@ -2749,7 +2772,7 @@ void ScriptExecutor::SendDevSegmentACK( BACnetAPDU &apdu )
 	apdu.apduSeq = alSeqNumber.intValue;
 
 	// get the actual window size
-	pWindowSize = GetKeywordValue( kwWINDOWSIZE, alWindowSize );
+	pWindowSize = GetKeywordValue( NULL, kwWINDOWSIZE, alWindowSize );
 	if (!pWindowSize)
 		throw "Actual window size (WINDOWSIZE) keyword required";
 	if ((alWindowSize.intValue < 0) || (alWindowSize.intValue > 255))
@@ -2775,7 +2798,7 @@ void ScriptExecutor::SendDevError( BACnetAPDU &apdu )
 	apdu.apduExpectingReply = false;
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (!pService)
 		throw "Service choice (SERVICE) keyword required";
 
@@ -2783,7 +2806,7 @@ void ScriptExecutor::SendDevError( BACnetAPDU &apdu )
 	apdu.apduService = alService.intValue;
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -2815,7 +2838,7 @@ void ScriptExecutor::SendDevReject( BACnetAPDU &apdu )
 	apdu.apduExpectingReply = false;
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -2825,7 +2848,7 @@ void ScriptExecutor::SendDevReject( BACnetAPDU &apdu )
 	apdu.apduInvokeID = alInvokeID.intValue;
 
 	// get the reject reason
-	pReason = GetKeywordValue( kwREJECTREASON, alReason, ScriptALRejectReasonMap );
+	pReason = GetKeywordValue( NULL, kwREJECTREASON, alReason, ScriptALRejectReasonMap );
 	if (!pReason)
 		throw "Reject reason keyword required";
 	if ((alReason.intValue < 0) || (alReason.intValue > 255))
@@ -2853,14 +2876,14 @@ void ScriptExecutor::SendDevAbort( BACnetAPDU &apdu )
 	apdu.apduExpectingReply = false;
 
 	// see if this is being sent as a server
-	pServer = GetKeywordValue( kwSERVER, alServer );
+	pServer = GetKeywordValue( NULL, kwSERVER, alServer );
 	if (!pServer) throw "Server keyword required";
 
 	// encode it
 	apdu.apduSrv = (alServer.boolValue != 0);
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -2870,7 +2893,7 @@ void ScriptExecutor::SendDevAbort( BACnetAPDU &apdu )
 	apdu.apduInvokeID = alInvokeID.intValue;
 
 	// get the reject reason
-	pReason = GetKeywordValue( kwABORTREASON, alReason, ScriptALAbortReasonMap );
+	pReason = GetKeywordValue( NULL, kwABORTREASON, alReason, ScriptALAbortReasonMap );
 	if (!pReason)
 		throw "Abort reason keyword required";
 	if ((alReason.intValue < 0) || (alReason.intValue > 255))
@@ -2894,22 +2917,22 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 	;
 
 	// find segmentation inforamtion
-	pSegMsg = GetKeywordValue( kwSEGMSG, alSegMsg );
+	pSegMsg = GetKeywordValue( NULL, kwSEGMSG, alSegMsg );
 	if (!pSegMsg)
-		pSegMsg = GetKeywordValue( kwSEGMENTEDMESSAGE, alSegMsg );
+		pSegMsg = GetKeywordValue( NULL, kwSEGMENTEDMESSAGE, alSegMsg );
 	if (!pSegMsg)
 		throw "Segmented-message keyword required";
 
 	if (alSegMsg.boolValue) {
-		pMOR = GetKeywordValue( kwMOREFOLLOWS, alMOR );
+		pMOR = GetKeywordValue( NULL, kwMOREFOLLOWS, alMOR );
 		if (!pMOR)
 			throw "More-follows keyword required";
 	} else
 		alMOR.boolValue = BACnetBoolean::bFalse;
 
-	pSegResp = GetKeywordValue( kwSEGRESP, alSegResp );
+	pSegResp = GetKeywordValue( NULL, kwSEGRESP, alSegResp );
 	if (!pSegResp)
-		pSegResp = GetKeywordValue( kwSEGRESPACCEPTED, alSegResp );
+		pSegResp = GetKeywordValue( NULL, kwSEGRESPACCEPTED, alSegResp );
 	if (!pSegResp)
 		throw "Segmented-response-accepted keyword required";
 
@@ -2921,11 +2944,11 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 		);
 
 	// lots of options for maximum response size
-	pMaxResp = GetKeywordValue( kwMAXRESP, alMaxResp );
+	pMaxResp = GetKeywordValue( NULL, kwMAXRESP, alMaxResp );
 	if (!pMaxResp)
-		pMaxResp = GetKeywordValue( kwMAXRESPONSE, alMaxResp );
+		pMaxResp = GetKeywordValue( NULL, kwMAXRESPONSE, alMaxResp );
 	if (!pMaxResp)
-		pMaxResp = GetKeywordValue( kwMAXSIZE, alMaxResp );
+		pMaxResp = GetKeywordValue( NULL, kwMAXSIZE, alMaxResp );
 	if (!pMaxResp)
 		throw "Max response size keyword required";
 
@@ -2957,7 +2980,7 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 	packet.Add( alMaxResp.intValue );
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -2968,9 +2991,9 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 
 	// look up segmented message stuff
 	if (alSegMsg.boolValue) {
-		pSeq		= GetKeywordValue( kwSEQUENCENR, alSeq );
+		pSeq		= GetKeywordValue( NULL, kwSEQUENCENR, alSeq );
 		if (!pSeq) throw "Sequence number (SEQUENCENR) keyword required";
-		pWindow		= GetKeywordValue( kwWINDOWSIZE, alWindow );
+		pWindow		= GetKeywordValue( NULL, kwWINDOWSIZE, alWindow );
 		if (!pWindow) throw "Window size keyword required";
 
 		// encode it
@@ -2979,7 +3002,7 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 	}
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (!pService)
 		throw "Service choice (SERVICE) keyword required";
 
@@ -3005,7 +3028,7 @@ void ScriptExecutor::SendUnconfirmedRequest( CByteArray &packet )
 	packet.Add( 1 << 4 );
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALUnconfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALUnconfirmedServiceMap );
 	if (!pService)
 		throw "Service choice (SERVICE) keyword required";
 
@@ -3031,7 +3054,7 @@ void ScriptExecutor::SendSimpleACK( CByteArray &packet )
 	packet.Add( 2 << 4 );
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -3041,7 +3064,7 @@ void ScriptExecutor::SendSimpleACK( CByteArray &packet )
 	packet.Add( alInvokeID.intValue );
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (!pService)
 		throw "Service-ACK-choice (SERVICE) keyword required";
 
@@ -3063,13 +3086,13 @@ void ScriptExecutor::SendComplexACK( CByteArray &packet )
 	;
 
 	// find segmentation inforamtion
-	pSegMsg = GetKeywordValue( kwSEGMSG, alSegMsg );
+	pSegMsg = GetKeywordValue( NULL, kwSEGMSG, alSegMsg );
 	if (!pSegMsg)
-		pSegMsg = GetKeywordValue( kwSEGMENTEDMESSAGE, alSegMsg );
+		pSegMsg = GetKeywordValue( NULL, kwSEGMENTEDMESSAGE, alSegMsg );
 	if (!pSegMsg)
 		alSegMsg.boolValue = BACnetBoolean::bFalse;
 	if (alSegMsg.boolValue) {
-		pMOR = GetKeywordValue( kwMOREFOLLOWS, alMOR );
+		pMOR = GetKeywordValue( NULL, kwMOREFOLLOWS, alMOR );
 		if (!pMOR)
 			throw "More-follows keyword required";
 	} else
@@ -3082,7 +3105,7 @@ void ScriptExecutor::SendComplexACK( CByteArray &packet )
 		);
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Original invoke ID (INVOKEID) keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -3094,7 +3117,7 @@ void ScriptExecutor::SendComplexACK( CByteArray &packet )
 	// if this is segmented
 	if (alSegMsg.boolValue) {
 		// get the sequence number
-		pSeq = GetKeywordValue( kwSEQUENCENR, alSeq );
+		pSeq = GetKeywordValue( NULL, kwSEQUENCENR, alSeq );
 		if (!pSeq)
 			throw "Sequence number (SEQUENCENR) keyword required";
 		if ((alSeq.intValue < 0) || (alSeq.intValue > 255))
@@ -3104,7 +3127,7 @@ void ScriptExecutor::SendComplexACK( CByteArray &packet )
 		packet.Add( alSeq.intValue );
 
 		// get the proposed window size
-		pWindow = GetKeywordValue( kwWINDOWSIZE, alWindow );
+		pWindow = GetKeywordValue( NULL, kwWINDOWSIZE, alWindow );
 		if (!pWindow)
 			throw "Proposed window size keyword required";
 		if ((alWindow.intValue < 1) || (alWindow.intValue > 127))
@@ -3115,7 +3138,7 @@ void ScriptExecutor::SendComplexACK( CByteArray &packet )
 	}
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (!pService)
 		throw "Service choice (SERVICE) keyword required";
 
@@ -3140,9 +3163,9 @@ void ScriptExecutor::SendSegmentACK( CByteArray &packet )
 	;
 
 	// find the interesting keywords
-	pNegativeACK = GetKeywordValue( kwNEGATIVEACK, alNegativeACK );
+	pNegativeACK = GetKeywordValue( NULL, kwNEGATIVEACK, alNegativeACK );
 	if (!pNegativeACK) throw "Negative-ACK keyword required";
-	pServer = GetKeywordValue( kwSERVER, alServer );
+	pServer = GetKeywordValue( NULL, kwSERVER, alServer );
 	if (!pServer) throw "Server keyword required";
 
 	// encode it
@@ -3152,7 +3175,7 @@ void ScriptExecutor::SendSegmentACK( CByteArray &packet )
 		);
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -3162,7 +3185,7 @@ void ScriptExecutor::SendSegmentACK( CByteArray &packet )
 	packet.Add( alInvokeID.intValue );
 
 	// get the sequence number
-	pSeqNumber = GetKeywordValue( kwSEQUENCENR, alSeqNumber );
+	pSeqNumber = GetKeywordValue( NULL, kwSEQUENCENR, alSeqNumber );
 	if (!pSeqNumber)
 		throw "Sequence number (SEQUENCENR) keyword required";
 	if ((alSeqNumber.intValue < 0) || (alSeqNumber.intValue > 255))
@@ -3172,7 +3195,7 @@ void ScriptExecutor::SendSegmentACK( CByteArray &packet )
 	packet.Add( alSeqNumber.intValue );
 
 	// get the actual window size
-	pWindowSize = GetKeywordValue( kwWINDOWSIZE, alWindowSize );
+	pWindowSize = GetKeywordValue( NULL, kwWINDOWSIZE, alWindowSize );
 	if (!pWindowSize)
 		throw "Actual window size (WINDOWSIZE) keyword required";
 	if ((alWindowSize.intValue < 0) || (alWindowSize.intValue > 255))
@@ -3197,7 +3220,7 @@ void ScriptExecutor::SendError( CByteArray &packet )
 	packet.Add( 5 << 4 );
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -3207,7 +3230,7 @@ void ScriptExecutor::SendError( CByteArray &packet )
 	packet.Add( alInvokeID.intValue );
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	pService = GetKeywordValue( NULL, kwSERVICE, alService, ScriptALConfirmedServiceMap );
 	if (!pService)
 		throw "Service choice (SERVICE) keyword required";
 
@@ -3233,7 +3256,7 @@ void ScriptExecutor::SendReject( CByteArray &packet )
 	packet.Add( 6 << 4 );
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -3243,7 +3266,7 @@ void ScriptExecutor::SendReject( CByteArray &packet )
 	packet.Add( alInvokeID.intValue );
 
 	// get the reject reason
-	pReason = GetKeywordValue( kwREJECTREASON, alReason, ScriptALRejectReasonMap );
+	pReason = GetKeywordValue( NULL, kwREJECTREASON, alReason, ScriptALRejectReasonMap );
 	if (!pReason)
 		throw "Reject reason keyword required";
 	if ((alReason.intValue < 0) || (alReason.intValue > 255))
@@ -3267,7 +3290,7 @@ void ScriptExecutor::SendAbort( CByteArray &packet )
 	;
 
 	// see if this is being sent as a server
-	pServer = GetKeywordValue( kwSERVER, alServer );
+	pServer = GetKeywordValue( NULL, kwSERVER, alServer );
 	if (!pServer) throw "Server keyword required";
 
 	// encode it
@@ -3276,7 +3299,7 @@ void ScriptExecutor::SendAbort( CByteArray &packet )
 		);
 
 	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
 	if (!pInvokeID)
 		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
@@ -3286,7 +3309,7 @@ void ScriptExecutor::SendAbort( CByteArray &packet )
 	packet.Add( alInvokeID.intValue );
 
 	// get the reject reason
-	pReason = GetKeywordValue( kwABORTREASON, alReason, ScriptALAbortReasonMap );
+	pReason = GetKeywordValue( NULL, kwABORTREASON, alReason, ScriptALAbortReasonMap );
 	if (!pReason)
 		throw "Abort reason keyword required";
 	if ((alReason.intValue < 0) || (alReason.intValue > 255))
@@ -3424,6 +3447,10 @@ void ScriptExecutor::SendALData( CByteArray &packet )
 		}
 		catch (const char *errMsg) {
 			throw ExecError( errMsg, spep->exprLine );
+		}
+		catch (CString strThrowMessage) 
+		{
+			throw ExecError( strThrowMessage, spep->exprLine );
 		}
 	}
 }
@@ -4045,10 +4072,11 @@ void ScriptExecutor::SendALEnumerated( ScriptPacketExprPtr spep, CByteArray &pac
 //		DATE [ op ] [ tag ',' ] dow [ ',' ] mon '/' day '/' year
 //		DATE [ op ] [ tag ',' ] { ref }
 //
-//		dow ::= MONDAY | ... | SUNDAY | '*'
-//		mon ::= number | '*'
-//		day ::= number | '*'
-//		year ::= number | '*'
+//		dow ::= MONDAY | ... | SUNDAY | '*' | '?'
+//		mon ::= number | '*' | '?'
+//		day ::= number | '*' | '?'
+//		year ::= number | '*' | '?'
+//				number could be two digit year (02) or full year (2002)
 //
 //	In the future it would be nice to support these:
 //
@@ -4060,45 +4088,45 @@ void ScriptExecutor::SendALEnumerated( ScriptPacketExprPtr spep, CByteArray &pac
 
 void ScriptExecutor::SendALDate( ScriptPacketExprPtr spep, CByteArray &packet )
 {
-	int				context = kAppContext
-	;
-	BACnetDate		dateData
-	;
-	ScriptScanner	scan( spep->exprValue )
-	;
-	ScriptToken		tok
-	;
+	int				indx, context = kAppContext;
+	BACnetDate		dateData;
+	ScriptTokenList	tlist;
+	BACnetAPDUEncoder	enc;
 
-	// get something from the front
-	scan.Next( tok );
+	// translate the expression, resolve parameter names into values
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
 
-	// encode it
-	BACnetAPDUEncoder enc;
-
-	// if it is a number, it must be a tag
-	if ((tok.tokenType == scriptValue) && (tok.IsInteger( context ))) {
-		scan.Peek( tok );
-		if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ','))
-			scan.Next( tok );
-
-		if (tok.tokenType == scriptReference) {
-			BACnetAnyValue bacnetAny;
-
-			GetEPICSProperty( tok.tokenSymbol, &bacnetAny, tok.m_nIndex);
-
-			// verify the type
-			if ( bacnetAny.GetType() != ptDate )
-				throw "Date property value expected in EPICS";
-
-			bacnetAny.Encode(enc, context);
-		} else
-		{
-			dateData.Decode( scan.scanSrc );
-			dateData.Encode( enc, context );
-		}
+	// tag is optional
+	if (tlist.Length() == 1) {
+		indx = 0;
+	} else if (tlist.Length() == 2) {
+		if (!tlist[0].IsInteger( context ))
+			throw "Tag number expected";
+		indx = 1;
 	} else
-	{
-		dateData.Decode( spep->exprValue );
+		throw "Date keyword requires 1 or 2 parameters";
+
+	// reference or real data?
+	if (tlist[indx].tokenType == scriptReference) {
+		BACnetAnyValue bacnetAny;
+
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
+
+		// verify the type
+		if ( bacnetAny.GetType() != ptDate )
+			throw "Date property value expected in EPICS";
+
+		bacnetAny.Encode(enc, context);
+	} else {
+		try {
+			dateData.Decode( tlist[indx].tokenValue );
+		}
+		catch (...) {
+			CString str;
+			str.Format(IDS_SCREX_BADDATADATE, tlist[indx].tokenValue );
+			throw CString(str);
+		}
+
 		dateData.Encode( enc, context );
 	}
 
@@ -4118,54 +4146,51 @@ void ScriptExecutor::SendALDate( ScriptPacketExprPtr spep, CByteArray &packet )
 //
 //	The trick to parsing a time is the comma after the tag.  All four parts are 
 //	reqired, the '*' may be used for dont-care value.
+//  Actually, the hundredths is not required.  If a period is present, it expects the rest.
 //
 
 void ScriptExecutor::SendALTime( ScriptPacketExprPtr spep, CByteArray &packet )
 {
-	int				holdContext, context = kAppContext
-	;
-	BACnetTime		timeData
-	;
-	ScriptScanner	scan( spep->exprValue )
-	;
-	ScriptToken		tok
-	;
+	int				indx, context = kAppContext;
+	BACnetTime		timeData;
+	ScriptTokenList	tlist;
+	BACnetAPDUEncoder	enc;
 
-	// get something from the front
-	scan.Next( tok );
+	// translate the expression, resolve parameter names into values
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
 
-	// encode it
-	BACnetAPDUEncoder enc;
+	// tag is optional
+	if (tlist.Length() == 1) {
+		indx = 0;
+	} else if (tlist.Length() == 2) {
+		if (!tlist[0].IsInteger( context ))
+			throw "Tag number expected";
+		indx = 1;
+	} else
+		throw "Time keyword requires 1 or 2 parameters";
 
-	try {
-		// if it is a number
-		if ((tok.tokenType == scriptValue) && (tok.IsInteger( holdContext ))) {
-			scan.Peek( tok );
-			if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ',')) {
-				context = holdContext;
-				scan.Next( tok );
+	// reference or real data?
+	if (tlist[indx].tokenType == scriptReference) {
+		BACnetAnyValue bacnetAny;
 
-				if (tok.tokenType == scriptReference) {
-					BACnetAnyValue bacnetAny;
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
 
-					GetEPICSProperty( tok.tokenSymbol, &bacnetAny, tok.m_nIndex);
+		// verify the type
+		if ( bacnetAny.GetType() != ptTime )
+			throw "Time property value expected in EPICS";
 
-					// verify the type
-					if ( bacnetAny.GetType() != ptTime )
-						throw "Time property value expected in EPICS";
+		bacnetAny.Encode(enc, context);
+	} else {
+		try {
+			timeData.Decode( tlist[indx].tokenValue );
+		}
+		catch (...) {
+			CString str;
+			str.Format(IDS_SCREX_BADDATATIME, tlist[indx].tokenValue );
+			throw CString(str);
+		}
 
-					bacnetAny.Encode(enc, context);
-				} else
-					timeData.Decode( scan.scanSrc );	// do the rest as a time
-					timeData.Encode( enc, context );
-			} else
-				timeData.Decode( spep->exprValue );	// do whole thing
-				timeData.Encode( enc, context );
-		} else
-			throw "Time keyword parameter format invalid";
-	}
-	catch (...) {
-		throw "Time keyword parameter format invalid";
+		timeData.Encode( enc, context );
 	}
 
 	// copy the encoding into the byte array
@@ -4397,10 +4422,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 	;
 	ScriptNetFilterPtr		nfp
 	;
-	ScriptPacketExprPtr		pNet, bipMsg, nlMsg, nlSA, alMsg
-	,						pVersion, pDNET, pDADR, pHopCount, pSNET, pSADR
-	,						pDER, pPriority
-	;
+	ScriptPacketExprPtr		pNet, bipMsg, nlMsg, nlSA, alMsg, pDADR, pSADR;
 	BACnetAddress			nlSrcAddr
 	;
 	BACnetBoolean			nlDER
@@ -4412,10 +4434,11 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 	;
 	BACnetCharacterString	nlNetwork
 	;
+	ScriptParmPtr			pScriptParmNetwork = NULL, pScriptParm;
 
 	try {
 		// see if the netework is provided
-		pNet = GetKeywordValue( kwNETWORK, nlNetwork );
+		pNet = GetKeywordValue( &pScriptParmNetwork, kwNETWORK, nlNetwork );
 
 		// see if this should have a BVLCI header
 		bipMsg = execPacket->packetExprList.Find( kwBVLCI );
@@ -4438,22 +4461,36 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 		// look for the network (actually the filter name)
 		if (gMasterFilterList.Length() == 1) {
 			sfp = gMasterFilterList[0];
-			if (pNet && !nlNetwork.Equals(sfp->filterName))
+			if (pNet &&  !pNet->IsAssignment()  && !nlNetwork.Equals(sfp->filterName) )
 				throw ExecError( "Port not found", pNet->exprLine );
 		} else {
 			if (!pNet)
 				throw ExecError( "Network required", execPacket->baseLineStart );
 
-			if (pNet->exprOp != '=')
-				throw ExecError( "Equality operator required for network keyword", pNet->exprLine );
+			if (pNet->exprOp != '=' && !pNet->IsAssignment() && !pNet->IsDontCare())
+				throw ExecError( "Equality or assignment operator required for network keyword", pNet->exprLine );
 			
-			for (int i = 0; i < gMasterFilterList.Length(); i++) {
-				sfp = gMasterFilterList[i];
-				if (nlNetwork.Equals(sfp->filterName))
-					break;
+			if ( pNet->IsAssignment() )
+			{
+				if ( pScriptParmNetwork == NULL )
+					throw ExecError( "Undefined script variable for NETWORK assignment", pNet->exprLine );
+
+				sfp = fp;
+				nlNetwork.SetValue(sfp->filterName);
+				StuffScriptParameter( nlNetwork, pScriptParmNetwork, pNet->exprValue);
 			}
-			if (i >= gMasterFilterList.Length())
-				throw ExecError( "Port not found", pNet->exprLine );
+			else if ( pNet->IsDontCare() )
+				sfp = fp;
+			else
+			{
+				for (int i = 0; i < gMasterFilterList.Length(); i++) {
+					sfp = gMasterFilterList[i];
+					if (nlNetwork.Equals(sfp->filterName))
+						break;
+				}
+				if (i >= gMasterFilterList.Length())
+					throw ExecError( "Port not found", pNet->exprLine );
+			}
 		}
 
 		// make sure its a network filter for now
@@ -4483,49 +4520,99 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			ScriptTokenList			saList
 			;
 
-			if (nlSA->exprOp != '=')
-				throw ExecError( "Equality operator required for source address keyword", nlSA->exprLine );
+			if (nlSA->exprOp != '=' && !nlSA->IsAssignment() && !nlSA->IsDontCare() )
+				throw ExecError( "Equality or assignment operator required for source address keyword", nlSA->exprLine );
 
 			// resolve the expressions
-			ResolveExpr( nlSA->exprValue, nlSA->exprLine, saList );
+			pScriptParm = NULL;
+			ResolveExpr( nlSA->exprValue, nlSA->exprLine, saList, nlSA->IsAssignment() ? &pScriptParm : NULL );
 			if (saList.Length() < 1)
-				throw ExecError( "Address, name or keyword expected", nlSA->exprLine );
+				throw ExecError( "Address, variable, name or keyword expected", nlSA->exprLine );
 
 			// get a reference to the first parameter
 			const ScriptToken &t = saList[0];
 
-			// check to see if this is a keyword
-			if (t.tokenType == scriptKeyword) {
-				if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
-					nlSrcAddr.LocalBroadcast();
-				else
-					throw ExecError( "Unrecognized keyword", nlSA->exprLine );
-			} else
-			// it might be a name
-			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
-				CString tvalu = t.RemoveQuotes();
-				for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-					VTSNameDesc		nameDesc;
+			if ( nlSA->IsAssignment() )
+			{
+				if ( pScriptParm == NULL )
+					throw ExecError( "Undefined script variable for SA assignment", nlSA->exprLine );
 
-					execDB->m_Names.ReadName( i, &nameDesc );
-					if (stricmp(nameDesc.nameName,tvalu) == 0) {
-						nlSrcAddr = nameDesc.nameAddr;
+				// See if we can find the provided address in our list of known names... if so, then use
+				// that name (in quotes) for stuffing the parameter.
+				// If not... stuff the parameter with the encoded (ASCII) address... it has to be decodeable
+				// for use in other SEND statements.
+
+				VTSNameDesc		nameDesc;
+				int nNameIndex;
+
+				switch( npdu.pduAddr.addrType )
+				{
+					case localBroadcastAddr:
+
+						StuffScriptParameter( BACnetCharacterString("LOCALBROADCAST"), pScriptParm, nlSA->exprValue);
 						break;
-					}
+
+					case remoteBroadcastAddr:
+
+						StuffScriptParameter( BACnetCharacterString("BROADCAST"), pScriptParm, nlSA->exprValue);
+						break;
+
+					default:
+
+						for (nNameIndex = 0; nNameIndex < execDB->m_Names.Length() && !(npdu.pduAddr == nameDesc.nameAddr); nNameIndex++ )
+							execDB->m_Names.ReadName( nNameIndex, &nameDesc );
+
+						if ( nNameIndex < execDB->m_Names.Length() )
+						{
+							// found a name in our table that matches this address... encode the name into the variable
+							StuffScriptParameter( BACnetCharacterString(nameDesc.nameName), pScriptParm, nlSA->exprValue);
+						}
+						else
+						{
+							// supplied address is unknown... just setup the thing as an octet string into the variable
+							StuffScriptParameter( BACnetOctetString((BACnetOctet *) npdu.pduAddr.addrAddr, (int) npdu.pduAddr.addrLen), pScriptParm, nlSA->exprValue);
+						}
 				}
-				if (i >= execDB->m_Names.Length())
-					throw ExecError( "Source address name not found", nlSA->exprLine );
-			} else
-			// it might be an IP address
-			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
-				BACnetIPAddr nlIPAddr( t.tokenValue );
-				nlSrcAddr = nlIPAddr;
-			} else
-			// it might be an explicit octet string
-			if (t.IsEncodeable( nlSrc )) {
-				nlSrcAddr.LocalStation( nlSrc.strBuff, nlSrc.strLen );
-			} else
-				throw ExecError( "Source address expected", nlSA->exprLine );
+
+				nlSrcAddr = npdu.pduAddr;
+			}
+			else if ( nlSA->IsDontCare() )
+				nlSrcAddr = npdu.pduAddr;
+			else
+			{
+				// check to see if this is a keyword
+				if (t.tokenType == scriptKeyword) {
+					if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
+						nlSrcAddr.LocalBroadcast();
+					else
+						throw ExecError( "Unrecognized keyword supplied for SA", nlSA->exprLine );
+				} else
+				// it might be a name
+				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+					CString tvalu = t.RemoveQuotes();
+					for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
+						VTSNameDesc		nameDesc;
+
+						execDB->m_Names.ReadName( i, &nameDesc );
+						if (stricmp(nameDesc.nameName,tvalu) == 0) {
+							nlSrcAddr = nameDesc.nameAddr;
+							break;
+						}
+					}
+					if (i >= execDB->m_Names.Length())
+						throw ExecError( "Source address name not found", nlSA->exprLine );
+				} else
+				// it might be an IP address
+				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
+					BACnetIPAddr nlIPAddr( t.tokenValue );
+					nlSrcAddr = nlIPAddr;
+				} else
+				// it might be an explicit octet string
+				if (t.IsEncodeable( nlSrc )) {
+					nlSrcAddr.LocalStation( nlSrc.strBuff, nlSrc.strLen );
+				} else
+					throw ExecError( "Source address expected", nlSA->exprLine );
+			}
 		}
 
 		// did this packet come from the expected station?
@@ -4533,14 +4620,10 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			throw "Source address mismatch";
 
 		// match the DER
-		pDER = GetKeywordValue( kwDER, nlDER );
-		if (pDER && !Match(pDER->exprOp,npdu.pduExpectingReply,nlDER.boolValue))
-			throw ExecError( "Data expecting reply mismatch", pDER->exprLine );
+		MatchBoolExpression( kwDER, BACnetBoolean(npdu.pduExpectingReply), "Data expecting reply mismatch: " );
 
 		// match the priority
-		pPriority = GetKeywordValue( kwPRIORITY, nlPriority );
-		if (pPriority && !Match(pPriority->exprOp,npdu.pduNetworkPriority,nlPriority.intValue))
-			throw ExecError( "Priority mismatch", pPriority->exprLine );
+		MatchEnumExpression( kwPRIORITY, BACnetEnumerated(npdu.pduNetworkPriority), NULL, "Priority mismatch: " );
 
 		// the rest of this code will need a decoder
 		BACnetAPDUDecoder	dec( npdu.pduData, npdu.pduLen );
@@ -4549,30 +4632,54 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 		if (bipMsg) {
 			ScriptTokenList	bvllList;
 
-			if (bipMsg->exprOp != '=')
-				throw ExecError( "Equality operator required for BVLCI", bipMsg->exprLine );
+			if (bipMsg->exprOp != '=' && !bipMsg->IsAssignment()  && !bipMsg->IsDontCare() )
+				throw ExecError( "Equality or assignment operator required for BVLCI", bipMsg->exprLine );
 
 			// resolve the expressions
-			ResolveExpr( bipMsg->exprValue, bipMsg->exprLine, bvllList );
+			ResolveExpr( bipMsg->exprValue, bipMsg->exprLine, bvllList, bipMsg->IsAssignment() ? &pScriptParm : NULL );
 			if (bvllList.Length() < 1)
 				throw ExecError( "BIP message keyword expected", bipMsg->exprLine );
 
 			// get a reference to the first parameter
 			const ScriptToken &t = bvllList[0];
 
-			// check to see if this is a keyword
-			if (t.tokenType == scriptKeyword) {
-				bipMsgID = t.Lookup( t.tokenSymbol, ScriptBIPMsgTypeMap );
-				if (bipMsgID < 0)
-					throw ExecError( "Unrecognized keyword", bipMsg->exprLine );
-			} else
-				throw ExecError( "Keyword expected", bipMsg->exprLine );
+			// This gets tricky with assignments... if the first token is the scriptValue, then we hope we're 
+			// looking at the parameter to stuff, if assignment is true.
+
+			// we could work hard to allow keyword specification here and var assignment for one of the
+			// parameters... but that's another story.  For now, just assume we're assigning the BVLCI type.
+
+			if ( !bipMsg->IsAssignment()  && !bipMsg->IsDontCare() )
+			{
+				// check to see if this is a keyword
+				if (t.tokenType == scriptKeyword)
+				{
+					bipMsgID = t.Lookup( t.tokenSymbol, ScriptBIPMsgTypeMap );
+					if (bipMsgID < 0)
+						throw ExecError( "BVLCI Unrecognized keyword", bipMsg->exprLine );
+				}
+				else
+					throw ExecError( "BVLCI Keyword expected", bipMsg->exprLine );
+			}
 
 			// based on the number, check for other parameters
 			try {
 				// verify the message type and function
 				if (0x81 != (dec.pktLength--,*dec.pktBuffer++))
 					throw ExecError( "BVLCI expected", bipMsg->exprLine );
+
+				if ( bipMsg->IsAssignment() )
+				{
+					if ( pScriptParm == NULL )
+						throw ExecError( "Undefined script variable for BVLCI assignment", bipMsg->exprLine );
+
+					bipMsgID = *dec.pktBuffer;
+					BACnetEnumerated  bacnetMsg(bipMsgID, (const char **) NetworkSniffer::BVLL_Function, BVLL_MAX);
+					StuffScriptParameter( bacnetMsg, pScriptParm, bipMsg->exprValue);
+				}
+				else if ( bipMsg->IsDontCare() )
+					bipMsgID = *dec.pktBuffer;
+
 				if (bipMsgID != (dec.pktLength--,*dec.pktBuffer++))
 					throw ExecError( "BVLCI message mismatch", bipMsg->exprLine );
 
@@ -4582,6 +4689,9 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				len = (len << 8) + (dec.pktLength--,*dec.pktBuffer++);
 				if (len != npdu.pduLen)
 					throw "BVLCI length incorrect";
+
+				// go through the motions with all of these BVLCI parameter suckers.  Don't worry about
+				// asignment just yet...
 
 				switch (bipMsgID) {
 					case 0:						// BVLC-RESULT, rslt
@@ -4641,9 +4751,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
 		// match the version
 		valu = (dec.pktLength--,*dec.pktBuffer++);
-		pVersion = GetKeywordValue( kwVERSION, nlVersion );
-		if (pVersion && !Match(pVersion->exprOp,valu,nlPriority.intValue))
-			throw ExecError( "Version mismatch", pVersion->exprLine );
+		MatchEnumExpression( kwVERSION, BACnetEnumerated(valu), NULL, "Version mismatch: " );
 
 		// suck out the control field
 		ctrl = (dec.pktLength--,*dec.pktBuffer++);
@@ -4661,26 +4769,26 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			valu = (valu << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// are we looking for a specific DNET?
-			pDNET = GetKeywordValue( kwDNET, nlDNET );
-			if (pDNET && !Match(pDNET->exprOp,valu,nlDNET.intValue))
-				throw ExecError( "DNET mismatch", pDNET->exprLine );
+			MatchEnumExpression( kwDNET, BACnetEnumerated(valu), NULL, "DNET mismatch: " );
 
 			// suck out the length
 			int len = (dec.pktLength--,*dec.pktBuffer++);
 
 			// looking for a specific address?
-			pDADR = GetKeywordValue( kwDADR, nlDADR );
-			if (pDADR) {
-				if (pDADR->exprOp != '=')
-					throw ExecError( "Equality operator required for DADR", pDADR->exprLine );
-				if (len == 0)
-					throw ExecError( "No DADR in packet", pDADR->exprLine );
-				if (len != nlDADR.strLen)
-					throw ExecError( "DADR mismatch", pDADR->exprLine );
-				for (int ii = 0; ii < len; ii++)
-					if (nlDADR.strBuff[ii] != (dec.pktLength--,*dec.pktBuffer++))
-						throw ExecError( "DADR mismatch", pDADR->exprLine );
-			}
+			pDADR = GetKeywordValue( &pScriptParm, kwDADR, nlDADR );
+
+			if (len == 0)
+				throw ExecError( "No DADR in packet", pDADR->exprLine );
+
+			// suck out the address data from the stream even if we aren't testing for DADR
+			// This is a silly way to do this... but it forces BACnetOctetString to copy the data
+			// into its own buffer instead of just referencing it... :(
+
+			BACnetOctetString bacnetDADRData(BACnetOctetString(dec.pktBuffer, len));
+			dec.pktBuffer += len;
+			dec.pktLength -= len;
+
+			TestOrAssign(pDADR, bacnetDADRData, nlDADR, pScriptParm, "DADR mismatch: " );
 		}
 
 		// if we have an SNET/SADR, check it
@@ -4690,65 +4798,79 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			valu = (valu << 8) + (dec.pktLength--,*dec.pktBuffer++);
 
 			// are we looking for a specific SNET?
-			pSNET = GetKeywordValue( kwSNET, nlSNET );
-			if (pSNET && !Match(pSNET->exprOp,valu,nlSNET.intValue))
-				throw ExecError( "SNET mismatch", pVersion->exprLine );
+			MatchEnumExpression( kwSNET, BACnetEnumerated(valu), NULL, "SNET mismatch: " );
 
 			// suck out the length
 			int len = (dec.pktLength--,*dec.pktBuffer++);
 
 			// looking for a specific address?
-			pSADR = GetKeywordValue( kwSADR, nlSADR );
-			if (pSADR) {
-				if (pSADR->exprOp != '=')
-					throw ExecError( "Equality operator required for SADR", pSADR->exprLine );
-				if (len == 0)
-					throw ExecError( "No SADR in packet", pSADR->exprLine );
-				if (len != nlSADR.strLen)
-					throw ExecError( "SADR mismatch", pSADR->exprLine );
-				for (int ii = 0; ii < len; ii++)
-					if (nlSADR.strBuff[ii] != (dec.pktLength--,*dec.pktBuffer++))
-						throw ExecError( "SADR mismatch", pSADR->exprLine );
-			}
+			pSADR = GetKeywordValue( &pScriptParm, kwSADR, nlSADR );
+
+			if (len == 0)
+				throw ExecError( "No SADR in packet", pSADR->exprLine );
+
+			// suck out the address data from the stream even if we aren't testing for DADR
+			// This is a silly way to do this... but it forces BACnetOctetString to copy the data
+			// into its own buffer instead of just referencing it... :(
+
+			BACnetOctetString bacnetSADRData(BACnetOctetString(dec.pktBuffer, len));
+			dec.pktBuffer += len;
+			dec.pktLength -= len;
+
+			TestOrAssign(pSADR, bacnetSADRData, nlSADR, pScriptParm, "SADR mismatch: " );
 		}
 
 		// if we have a DNET/DADR, check the hop count
 		if ((ctrl & 0x20) != 0) {
 			// suck out the hop count
 			valu = (dec.pktLength--,*dec.pktBuffer++);
-			pHopCount = GetKeywordValue( kwHOPCOUNT, nlHopCount );
-			if (pHopCount && !Match(pHopCount->exprOp,valu,nlHopCount.intValue))
-				throw ExecError( "Hop count mismatch", pHopCount->exprLine );
+
+			MatchEnumExpression( kwHOPCOUNT, BACnetEnumerated(valu), NULL, "Hop count mismatch: " );
 		}
 
 		// if this is a network layer message, check it
 		if (nlMsg) {
 			ScriptTokenList	nlList;
 
-			if (nlMsg->exprOp != '=')
-				throw ExecError( "Equality operator required for network message", nlMsg->exprLine );
+			if (nlMsg->exprOp != '='  &&  !nlMsg->IsAssignment()  && !nlMsg->IsDontCare() )
+				throw ExecError( "Equality or assignment operator required for network message", nlMsg->exprLine );
 
 			// resolve the expressions
-			ResolveExpr( nlMsg->exprValue, nlMsg->exprLine, nlList );
+			ResolveExpr( nlMsg->exprValue, nlMsg->exprLine, nlList, nlMsg->IsAssignment() ? &pScriptParm : NULL );
 			if (nlList.Length() < 1)
 				throw ExecError( "Network message keyword expected", nlMsg->exprLine );
 
 			// get a reference to the first parameter
 			const ScriptToken &t = nlList[0];
 
-			// check to see if this is a keyword
-			if (t.tokenType == scriptKeyword) {
-				nlMsgID = t.Lookup( t.tokenSymbol, ScriptNLMsgTypeMap );
-				if (nlMsgID < 0)
-					throw ExecError( "Unrecognized keyword", nlMsg->exprLine );
-			} else
-				throw ExecError( "Keyword expected", nlMsg->exprLine );
+			if ( nlMsg->IsAssignment() )
+			{
+				if ( pScriptParm == NULL )
+					throw ExecError( "Undefined script variable for network message assignment", nlMsg->exprLine );
+
+				nlMsgID = *dec.pktBuffer;
+				BACnetEnumerated  bacnetMsg(nlMsgID, (const char **) NetworkSniffer::NL_msgs, NLMSG_MAX);
+				StuffScriptParameter( bacnetMsg, pScriptParm, nlMsg->exprValue);
+			}
+			else if ( nlMsg->IsDontCare() )
+				nlMsgID = *dec.pktBuffer;
+			else
+			{
+				// check to see if this is a keyword
+				if (t.tokenType == scriptKeyword) {
+					nlMsgID = t.Lookup( t.tokenSymbol, ScriptNLMsgTypeMap );
+					if ( nlMsgID < 0 )
+						throw ExecError( "Network message unrecognized keyword", nlMsg->exprLine );
+				}
+				else
+					throw ExecError( "Network message keyword expected", nlMsg->exprLine );
+			}
 
 			// based on the number, check for other parameters
 			try {
 				// verify the message type
 				if (nlMsgID != (dec.pktLength--,*dec.pktBuffer++))
-					throw ExecError( "Netork message mismatch", nlMsg->exprLine );
+					throw ExecError( "Network message mismatch", nlMsg->exprLine );
 
 				switch (nlMsgID) {
 					case 0:						// WHO-IS-ROUTER-TO-NETWORK
@@ -4788,27 +4910,45 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 		}
 		
 		// if this is an application layer message, check it
-		if (alMsg) {
+		if ( alMsg ) {
 			ScriptTokenList	alList;
 
 			// force property references to fail until context established
 			execObjID = 0xFFFFFFFF;
 
+			if (alMsg->exprOp != '='  &&  !alMsg->IsAssignment()  && !alMsg->IsDontCare() )
+				throw ExecError( "Equality or assignment operator required for PDU", alMsg->exprLine );
+
 			// resolve the expressions
-			ResolveExpr( alMsg->exprValue, alMsg->exprLine, alList );
+			ResolveExpr( alMsg->exprValue, alMsg->exprLine, alList, alMsg->IsAssignment() ? &pScriptParm : NULL );
 			if (alList.Length() < 1)
 				throw ExecError( "AL message keyword expected", alMsg->exprLine );
 
 			// get a reference to the first parameter
 			const ScriptToken &t = alList[0];
 
-			// check to see if this is a keyword
-			if (t.tokenType == scriptKeyword) {
-				alMsgID = t.Lookup( t.tokenSymbol, ScriptALMsgTypeMap );
-				if (alMsgID < 0)
-					throw ExecError( "Unrecognized keyword", alMsg->exprLine );
-			} else
-				throw ExecError( "Keyword expected", alMsg->exprLine );
+			if ( nlMsg->IsAssignment() )
+			{
+				if ( pScriptParm == NULL )
+					throw ExecError( "Undefined script variable for AL message assignment", alMsg->exprLine );
+
+				// get the stream's version of what msg ID this is...
+				alMsgID = *dec.pktBuffer >> 4;
+				BACnetEnumerated  bacnetMsg(alMsgID, (const char **) NetworkSniffer::PDU_typesENUM, PDUTYPE_MAX);
+				StuffScriptParameter( bacnetMsg, pScriptParm, alMsg->exprValue);
+			}
+			else if ( nlMsg->IsDontCare() )
+				alMsgID = *dec.pktBuffer >> 4;
+			else
+			{
+				// check to see if this is a keyword
+				if ( t.tokenType == scriptKeyword ) {
+					alMsgID = t.Lookup( t.tokenSymbol, ScriptALMsgTypeMap );
+					if (alMsgID < 0)
+						throw ExecError( "AL Unrecognized keyword", alMsg->exprLine );
+				} else
+					throw ExecError( "AL Keyword expected", alMsg->exprLine );
+			}
 
 			// based on the number, check for other parameters
 			try {
@@ -5913,7 +6053,7 @@ void ScriptExecutor::ExpectDisconnectConnectionToNetwork( ScriptTokenList &tlist
 
 bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 {
-	int						alMsgID, valu
+	int						valu
 	;
 	BACnetOctetString		nlSource
 	;
@@ -5924,10 +6064,11 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 	BACnetInteger			nlPriority, nlDNET
 	;
 	ScriptPacketExprPtr		pNet, bipMsg, nlMsg, alMsg
-	,						nlSA, pDER, pPriority
+	,						nlSA, pPriority
 	;
 	ScriptTokenList			alList
 	;
+	ScriptParmPtr			pScriptParm = NULL;			// used in various places for variable assignment
 
 	try {
 		// see if the netework is provided
@@ -5969,77 +6110,111 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 			if (i >= execDB->m_Names.Length())
 				throw ExecError( "Default source address IUT not found", execPacket->baseLineStart );
 		} else {
-			if (nlSA->exprOp != '=')
-				throw ExecError( "Equality operator required for source address", nlSA->exprLine );
+			if (nlSA->exprOp != '='  &&  !nlSA->IsAssignment() )
+				throw ExecError( "Equality or assignment operator required for source address", nlSA->exprLine );
 			
 			ScriptTokenList			saList
 			;
 
 			// resolve the expressions
-			ResolveExpr( nlSA->exprValue, nlSA->exprLine, saList );
+			pScriptParm = NULL;
+			ResolveExpr( nlSA->exprValue, nlSA->exprLine, saList, nlSA->IsAssignment() ? &pScriptParm : NULL );
 			if (saList.Length() < 1)
-				throw ExecError( "Address, or name expected", nlSA->exprLine );
+				throw ExecError( "Address, variable or name expected", nlSA->exprLine );
 
 			// get a reference to the first parameter
 			const ScriptToken &t = saList[0];
 
-			// check for name or octet string
-			if (saList.Length() == 1) {
-				// it might be a name
-				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
-					CString tvalu = t.RemoveQuotes();
-					for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-						VTSNameDesc		nameDesc;
+			// If this is an assignment... just make sure a param has been found for stuffing...
+			if ( nlSA->IsAssignment() )
+			{
+				if ( pScriptParm == NULL )
+					throw ExecError( "Undefined script variable for DA assignment", nlSA->exprLine );
 
-						execDB->m_Names.ReadName( i, &nameDesc );
-						if (stricmp(nameDesc.nameName,tvalu) == 0) {
-							nlSourceAddr = nameDesc.nameAddr;
-							break;
+				// See if we can find the provided address in our list of known names... if so, then use
+				// that name (in quotes) for stuffing the parameter.
+				// If not... stuff the parameter with the encoded (ASCII) address... it has to be decodeable
+				// for use in other SEND statements.
+
+				VTSNameDesc		nameDesc;
+				int nNameIndex;
+
+				for (nNameIndex = 0; nNameIndex < execDB->m_Names.Length() && !(apdu.apduAddr == nameDesc.nameAddr); nNameIndex++ )
+					execDB->m_Names.ReadName( nNameIndex, &nameDesc );
+
+				if ( nNameIndex < execDB->m_Names.Length() )
+				{
+					// found a name in our table that matches this address... encode the name into the variable
+					StuffScriptParameter( BACnetCharacterString(nameDesc.nameName), pScriptParm, nlSA->exprValue);
+				}
+				else
+				{
+					// supplied address is unknown... just setup the thing as an octet string into the variable
+					StuffScriptParameter( BACnetOctetString((BACnetOctet *) apdu.apduAddr.addrAddr, (int) apdu.apduAddr.addrLen), pScriptParm, nlSA->exprValue);
+				}
+			}
+			else
+			{
+				// check for name or octet string
+				if (saList.Length() == 1) {
+					// it might be a name
+					if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+						CString tvalu = t.RemoveQuotes();
+						for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
+							VTSNameDesc		nameDesc;
+
+							execDB->m_Names.ReadName( i, &nameDesc );
+							if (stricmp(nameDesc.nameName,tvalu) == 0) {
+								nlSourceAddr = nameDesc.nameAddr;
+								break;
+							}
 						}
-					}
-					if (i >= execDB->m_Names.Length())
-						throw ExecError( "Destination address name not found", nlSA->exprLine );
+						if (i >= execDB->m_Names.Length())
+							throw ExecError( "Destination address name not found", nlSA->exprLine );
+					} else
+					// it might be an IP address
+					if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
+						BACnetIPAddr nlIPAddr( t.tokenValue );
+						nlSourceAddr = nlIPAddr;
+					} else
+					// it might be an explicit octet string
+					if (t.IsEncodeable( nlSource )) {
+						nlSourceAddr.LocalStation( nlSource.strBuff, nlSource.strLen );
+					} else
+						throw ExecError( "Source address expected", nlSA->exprLine );
 				} else
-				// it might be an IP address
-				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
-					BACnetIPAddr nlIPAddr( t.tokenValue );
-					nlSourceAddr = nlIPAddr;
-				} else
-				// it might be an explicit octet string
-				if (t.IsEncodeable( nlSource )) {
-					nlSourceAddr.LocalStation( nlSource.strBuff, nlSource.strLen );
+				if (saList.Length() == 2) {
+					if (t.tokenType != scriptValue)
+						throw "SNET expected";
+					if (!t.IsInteger(valu))
+						throw "SNET invalid format, integer required";
+					if ((valu < 0) || (valu > 65534))
+						throw "DNET out of range (0..65534)";
+
+					const ScriptToken &sadr = saList[1];
+
+					// it might be an IP address
+					if ((sadr.tokenType == scriptValue) && (sadr.tokenEnc == scriptIPEnc)) {
+						BACnetIPAddr nlIPAddr( sadr.tokenValue );
+						nlSourceAddr = nlIPAddr;
+					} else
+					// it might be an explicit octet string
+					if (sadr.IsEncodeable( nlSource )) {
+						nlSourceAddr.LocalStation( nlSource.strBuff, nlSource.strLen );
+					} else
+						throw ExecError( "Source address expected", nlSA->exprLine );
+
+					nlSourceAddr.addrType = remoteStationAddr;
+					nlSourceAddr.addrNet = valu;
 				} else
 					throw ExecError( "Source address expected", nlSA->exprLine );
-			} else
-			if (saList.Length() == 2) {
-				if (t.tokenType != scriptValue)
-					throw "SNET expected";
-				if (!t.IsInteger(valu))
-					throw "SNET invalid format, integer required";
-				if ((valu < 0) || (valu > 65534))
-					throw "DNET out of range (0..65534)";
-
-				const ScriptToken &sadr = saList[1];
-
-				// it might be an IP address
-				if ((sadr.tokenType == scriptValue) && (sadr.tokenEnc == scriptIPEnc)) {
-					BACnetIPAddr nlIPAddr( sadr.tokenValue );
-					nlSourceAddr = nlIPAddr;
-				} else
-				// it might be an explicit octet string
-				if (sadr.IsEncodeable( nlSource )) {
-					nlSourceAddr.LocalStation( nlSource.strBuff, nlSource.strLen );
-				} else
-					throw ExecError( "Source address expected", nlSA->exprLine );
-
-				nlSourceAddr.addrType = remoteStationAddr;
-				nlSourceAddr.addrNet = valu;
-			} else
-				throw ExecError( "Source address expected", nlSA->exprLine );
+			}
 		}
 
 		// make sure the addresses match
-		if (!(apdu.apduAddr == nlSourceAddr))
+		// but only if we're not assigning
+
+		if (  (!nlSA || !nlSA->IsAssignment()) && !(apdu.apduAddr == nlSourceAddr))
 			throw ExecError( "Source address mismatch"
 					, (nlSA ? nlSA->exprLine : execPacket->baseLineStart)
 					);
@@ -6047,28 +6222,26 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 		// force property references to fail until context established
 		execObjID = 0xFFFFFFFF;
 
-		// resolve the expressions
-		ResolveExpr( alMsg->exprValue, alMsg->exprLine, alList );
-		if (alList.Length() < 1)
-			throw ExecError( "AL message keyword expected", alMsg->exprLine );
+		// test operator for PDU expression...
+		// madanner 11/12/02, added to support assignment in PDU
 
-		// get a reference to the first parameter
-		const ScriptToken &t = alList[0];
+		BACnetEnumerated  bacnetAPDUData(apdu.apduType, (const char **) NetworkSniffer::PDU_typesENUM, PDUTYPE_MAX);
+		MatchEnumExpression( kwPDU, bacnetAPDUData, ScriptALMsgTypeMap, "PDU type mismatch: " );
 
-		// check to see if this is a keyword
-		if (t.tokenType == scriptKeyword) {
-			alMsgID = t.Lookup( t.tokenSymbol, ScriptALMsgTypeMap );
-			if (alMsgID < 0)
-				throw ExecError( "Unrecognized keyword", alMsg->exprLine );
-		} else
-			throw ExecError( "Keyword expected", alMsg->exprLine );
+		// get some interesting keywords that might match
+		// moved these tests (DER and PRIORITY) before the decoding of the PDU
 
-		if (alMsgID != apdu.apduType)
-			throw ExecError( "PDU type mismatch", alMsg->exprLine );
+		MatchBoolExpression( kwDER, BACnetBoolean(apdu.apduExpectingReply), "Expecting reply mismatch: " );
+
+		pPriority	= GetKeywordValue( &pScriptParm, kwPRIORITY, nlPriority );
+		if (!pPriority)
+			pPriority = GetKeywordValue( &pScriptParm, kwPRIO, nlPriority );
+
+		TestOrAssign(pPriority, BACnetInteger(apdu.apduNetworkPriority), nlPriority, pScriptParm, "Network priority mismatch: " );
 
 		// based on the number, check for other parameters
 		try {
-			switch (alMsgID) {
+			switch (bacnetAPDUData.enumValue) {
 				case 0:						// CONFIRMED-REQUEST
 					ExpectDevConfirmedRequest( apdu );
 					break;
@@ -6103,17 +6276,6 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 		{
 			throw ExecError( strThrow, alMsg->exprLine );
 		}
-
-		// get some interesting keywords that might match
-		pDER = GetKeywordValue( kwDER, nlDER );
-		if (pDER && !Match(pDER->exprOp,nlDER.boolValue,apdu.apduExpectingReply))
-			throw ExecError( "Network priority mismatch", pDER->exprLine );
-
-		pPriority	= GetKeywordValue( kwPRIORITY, nlPriority );
-		if (!pPriority)
-			pPriority = GetKeywordValue( kwPRIO, nlPriority );
-		if (pPriority && !Match(pPriority->exprOp,nlPriority.intValue,apdu.apduNetworkPriority))
-			throw ExecError( "Network priority mismatch", pPriority->exprLine );
 	}
 	catch (const ExecError &err) {
 		// failed
@@ -6130,31 +6292,73 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 	return true;
 }
 
+
+void ScriptExecutor::TestOrAssign( ScriptPacketExprPtr pScriptExpr, BACnetEncodeable & rbacnetData, BACnetEncodeable & rbacnetScript, ScriptParmPtr pScriptParm, const char * pszErrorPrefix )
+{
+	if ( pScriptExpr == NULL )
+		return;
+
+	CString strError;
+	
+	// if script parm is not null, then we must want to assign this value instead of test it
+	if ( pScriptParm != NULL )
+		StuffScriptParameter( rbacnetData, pScriptParm, pScriptExpr->exprValue);
+	else if ( !rbacnetData.Match(rbacnetScript, pScriptExpr->exprOp, &strError) )
+	{
+		strError = pszErrorPrefix + strError;
+		throw ExecError( strError, pScriptExpr->exprLine );
+	}
+}
+
 //
 //	ScriptExecutor::ExpectDevConfirmedRequest
 //
 
 void ScriptExecutor::ExpectDevConfirmedRequest( const BACnetAPDU &apdu )
 {
-	ScriptPacketExprPtr		pService
-	;
-	BACnetInteger			alService
-	;
-
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Confirmed Request Service mismatch: " );
 
 	// expect the rest
 	BACnetAPDUDecoder dec( apdu );
 	ExpectALData( dec );
+	ExpectNoMore(dec);
+}
 
+
+
+void ScriptExecutor::ExpectNoMore( BACnetAPDUDecoder & dec )
+{
 	// make sure all the data was matched
-	if (dec.pktLength != 0)
-		throw ExecError( "Additional application data not matched"
-		, execPacket->baseLineStart
-		);
+	if ( dec.pktLength != 0 )
+		throw ExecError( "Additional application data not matched", execPacket->baseLineStart);
+}
+
+
+void ScriptExecutor::MatchEnumExpression( int nKeyword, BACnetEnumerated &rbacnetData, ScriptTranslateTablePtr pMap, const char * pszErrorPrefix )
+{
+	ScriptPacketExprPtr		pExpression;
+	ScriptParmPtr			pScriptParm = NULL;			// used for variable assignment
+	BACnetEnumerated		bacnetScript;
+
+	bacnetScript = rbacnetData;			// point to same enum table and such
+
+	pExpression = GetKeywordValue( &pScriptParm, nKeyword, bacnetScript, pMap );
+	TestOrAssign(pExpression, rbacnetData, bacnetScript, pScriptParm, pszErrorPrefix );
+}
+
+
+void ScriptExecutor::MatchBoolExpression( int nKeyword, BACnetBoolean &rbacnetData, const char * pszErrorPrefix )
+{
+	ScriptPacketExprPtr		pExpression;
+	ScriptParmPtr			pScriptParm = NULL;			// used for variable assignment
+	BACnetBoolean			bacnetScript;
+
+	bacnetScript = rbacnetData;			// point to same enum table and such
+
+	pExpression = GetKeywordValue( &pScriptParm, nKeyword, bacnetScript );
+	TestOrAssign(pExpression, rbacnetData, bacnetScript, pScriptParm, pszErrorPrefix );
 }
 
 //
@@ -6163,25 +6367,14 @@ void ScriptExecutor::ExpectDevConfirmedRequest( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevUnconfirmedRequest( const BACnetAPDU &apdu )
 {
-	ScriptPacketExprPtr		pService
-	;
-	BACnetInteger			alService
-	;
-
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALUnconfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetUnconfirmedServiceChoice, UNCONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALUnconfirmedServiceMap, "Unconfirmed Request Service mismatch: " );
 
 	// expect the rest
 	BACnetAPDUDecoder dec( apdu );
 	ExpectALData( dec );
-
-	// make sure all the data was matched
-	if (dec.pktLength != 0)
-		throw ExecError( "Additional application data not matched"
-		, execPacket->baseLineStart
-		);
+	ExpectNoMore(dec);
 }
 
 //
@@ -6190,20 +6383,11 @@ void ScriptExecutor::ExpectDevUnconfirmedRequest( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevSimpleACK( const BACnetAPDU &apdu )
 {
-	ScriptPacketExprPtr		pService, pInvokeID
-	;
-	BACnetInteger			alService, alInvokeID
-	;
-
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Simple Ack Service mismatch: " );
 
-	// get the service choice
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (INVOKEID) mismatch";
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Simple Ack InvokeID mismatch: " );
 }
 
 //
@@ -6212,30 +6396,16 @@ void ScriptExecutor::ExpectDevSimpleACK( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevComplexACK( const BACnetAPDU &apdu )
 {
-	ScriptPacketExprPtr		pService, pInvokeID
-	;
-	BACnetInteger			alService, alInvokeID
-	;
-
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Complex Ack Service mismatch: " );
 
-	// get the service choice
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (INVOKEID) mismatch";
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Complex Ack InvokeID mismatch: " );
 
 	// expect the rest
 	BACnetAPDUDecoder dec( apdu );
 	ExpectALData( dec );
-
-	// make sure all the data was matched
-	if (dec.pktLength != 0)
-		throw ExecError( "Additional application data not matched"
-		, execPacket->baseLineStart
-		);
+	ExpectNoMore(dec);
 }
 
 //
@@ -6244,32 +6414,15 @@ void ScriptExecutor::ExpectDevComplexACK( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevSegmentACK( const BACnetAPDU &apdu )
 {
-	ScriptPacketExprPtr		pNegativeACK, pServer, pInvokeID, pSeqNumber, pWindowSize
-	;
-	BACnetBoolean			alNegativeACK, alServer
-	;
-	BACnetInteger			alInvokeID, alSeqNumber, alWindowSize
-	;
+	MatchBoolExpression( kwNEGATIVEACK, BACnetBoolean(apdu.apduNak), "Segment Ack Negative Ack mismatch: " );
 
-	pNegativeACK = GetKeywordValue( kwNEGATIVEACK, alNegativeACK );
-	if (pNegativeACK && !Match(pNegativeACK->exprOp,apdu.apduNak,alNegativeACK.boolValue))
-		throw "Service-choice (NEGATIVEACK) mismatch";
+	MatchBoolExpression( kwSERVER, BACnetBoolean(apdu.apduSrv), "Segment Ack Server mismatch: " );
 
-	pServer = GetKeywordValue( kwSERVER, alServer );
-	if (pServer && !Match(pServer->exprOp,apdu.apduSrv,alServer.boolValue))
-		throw "Service-choice (SERVER) mismatch";
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Segment Ack InvokeID mismatch: " );
 
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (INVOKEID) mismatch";
+	MatchEnumExpression( kwSEQUENCENR, BACnetEnumerated(apdu.apduSeq), NULL, "Segment Ack Sequence mismatch: " );
 
-	pSeqNumber = GetKeywordValue( kwSEQUENCENR, alSeqNumber );
-	if (pSeqNumber && !Match(pSeqNumber->exprOp,apdu.apduSeq,alSeqNumber.intValue))
-		throw "Service-choice (SEQUENCENR) mismatch";
-
-	pWindowSize = GetKeywordValue( kwWINDOWSIZE, alWindowSize );
-	if (pWindowSize && !Match(pWindowSize->exprOp,apdu.apduWin,alWindowSize.intValue))
-		throw "Service-choice (WINDOWSIZE) mismatch";
+	MatchEnumExpression( kwWINDOWSIZE, BACnetEnumerated(apdu.apduWin), NULL, "Segment Ack Windowsize mismatch: " );
 }
 
 //
@@ -6278,30 +6431,16 @@ void ScriptExecutor::ExpectDevSegmentACK( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevError( const BACnetAPDU &apdu )
 {
-	ScriptPacketExprPtr		pService, pInvokeID
-	;
-	BACnetInteger			alService, alInvokeID
-	;
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Error Service mismatch: " );
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,apdu.apduService,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
-
-	// get the service choice
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (INVOKEID) mismatch";
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Error InvokeID mismatch: " );
 
 	// expect the rest
 	BACnetAPDUDecoder dec( apdu );
 	ExpectALData( dec );
-
-	// make sure all the data was matched
-	if (dec.pktLength != 0)
-		throw ExecError( "Additional application data not matched"
-		, execPacket->baseLineStart
-		);
+	ExpectNoMore(dec);
 }
 
 //
@@ -6310,20 +6449,10 @@ void ScriptExecutor::ExpectDevError( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevReject( const BACnetAPDU &apdu )
 {
-	ScriptPacketExprPtr		pInvokeID, pReason
-	;
-	BACnetInteger			alInvokeID, alReason
-	;
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Reject InvokeID mismatch: " );
 
-	// get the service choice
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID, ScriptALConfirmedServiceMap );
-	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (INVOKEID) mismatch";
-
-	// get the service choice
-	pReason = GetKeywordValue( kwREJECTREASON, alReason, ScriptALRejectReasonMap );
-	if (pReason && !Match(pReason->exprOp,apdu.apduAbortRejectReason,alReason.intValue))
-		throw "Service-choice (REJECTREASON) mismatch";
+	BACnetEnumerated  bacnetRejectData(apdu.apduAbortRejectReason, (const char **) NetworkSniffer::BACnetReject, REJECT_MAX);
+	MatchEnumExpression( kwREJECTREASON, bacnetRejectData, ScriptALRejectReasonMap, "Reject Reason mismatch: " );
 }
 
 //
@@ -6332,27 +6461,15 @@ void ScriptExecutor::ExpectDevReject( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevAbort( const BACnetAPDU &apdu )
 {
-	ScriptPacketExprPtr		pServer, pInvokeID, pReason
-	;
-	BACnetBoolean			alServer
-	;
-	BACnetInteger			alInvokeID, alReason
-	;
+	// get the service choice
+	MatchBoolExpression( kwSERVER, BACnetBoolean(apdu.apduSrv), "Abort Server mismatch: " );
 
 	// get the service choice
-	pServer = GetKeywordValue( kwSERVER, alServer );
-	if (pServer && !Match(pServer->exprOp,apdu.apduInvokeID,alServer.boolValue))
-		throw "Service-choice (SERVER) mismatch";
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Abort InvokeID mismatch: " );
 
 	// get the service choice
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,apdu.apduInvokeID,alInvokeID.intValue))
-		throw "Service-choice (INVOKEID) mismatch";
-
-	// get the service choice
-	pReason = GetKeywordValue( kwABORTREASON, alReason, ScriptALAbortReasonMap );
-	if (pReason && !Match(pReason->exprOp,apdu.apduAbortRejectReason,alReason.intValue))
-		throw "Service-choice (ABORTREASON) mismatch";
+	BACnetEnumerated  bacnetAbortData(apdu.apduAbortRejectReason, (const char **) NetworkSniffer::BACnetAbort, ABORT_MAX);
+	MatchEnumExpression( kwABORTREASON, bacnetAbortData, ScriptALAbortReasonMap, "Abort Reason mismatch: " );
 }
 
 //
@@ -6361,14 +6478,12 @@ void ScriptExecutor::ExpectDevAbort( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
 {
-	int						header, valu
-	;
-	ScriptPacketExprPtr		pSegMsg, pMOR, pSegResp, pMaxResp, pInvokeID, pSeq, pWindow, pService
-	;
-	BACnetBoolean			alSegMsg, alMOR, alSegResp
-	;
-	BACnetInteger			alMaxResp, alInvokeID, alSeq, alWindow, alService
-	;
+	int						header, valu;
+	ScriptPacketExprPtr		pMaxResp;
+	BACnetInteger			alMaxResp;
+	ScriptParmPtr			pScriptParm = NULL;			// used for variable assignment
+
+	const char * apMaxSizes[] = {"50", "128", "206", "480", "1024", "1476"};
 
 	// check the header
 	header = (dec.pktLength--,*dec.pktBuffer++);
@@ -6376,36 +6491,32 @@ void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
 		throw "Confirmed request expected";
 
 	// check segmented message
-	pSegMsg = GetKeywordValue( kwSEGMSG, alSegMsg );
-	if (!pSegMsg)
-		pSegMsg = GetKeywordValue( kwSEGMENTEDMESSAGE, alSegMsg );
-	if (pSegMsg && !Match(pSegMsg->exprOp,(header >> 3) & 0x01,alSegMsg.boolValue))
-		throw "Segmented message mismatch";
+	MatchBoolExpression( kwSEGMSG, BACnetBoolean((header >> 3 & 0x01)), "Segmented message mismatch: " );
+	// do it again for the full word, just for fun.  Shouldn't break
+	MatchBoolExpression( kwSEGMENTEDMESSAGE, BACnetBoolean((header >> 3 & 0x01)), "Segmented message mismatch: " );
 
 	// check more follows
-	pMOR = GetKeywordValue( kwMOREFOLLOWS, alMOR );
-	if (pMOR && !Match(pMOR->exprOp,(header >> 2) & 0x01,alMOR.boolValue))
-		throw "More-follows mismatch";
+	MatchBoolExpression( kwMOREFOLLOWS, BACnetBoolean((header >> 2 & 0x01)), "More-follows mismatch: " );
 
 	// check segmented response
-	pSegResp = GetKeywordValue( kwSEGRESP, alSegResp );
-	if (!pSegResp)
-		pSegResp = GetKeywordValue( kwSEGRESPACCEPTED, alSegResp );
-	if (pSegResp && !Match(pSegResp->exprOp,(header >> 1) & 0x01,alSegResp.boolValue))
-		throw "Segmented response accepted mismatch";
+	MatchBoolExpression( kwSEGRESP, BACnetBoolean((header >> 1 & 0x01)), "Segmented response accepted mismatch: " );
+	MatchBoolExpression( kwSEGRESPACCEPTED, BACnetBoolean((header >> 1 & 0x01)), "Segmented response accepted mismatch: " );
 
 	// extract the max response size
 	valu = (dec.pktLength--,*dec.pktBuffer++);
 
 	// lots of options for maximum response size
-	pMaxResp = GetKeywordValue( kwMAXRESP, alMaxResp );
+	pMaxResp = GetKeywordValue( &pScriptParm, kwMAXRESP, alMaxResp );
 	if (!pMaxResp)
-		pMaxResp = GetKeywordValue( kwMAXRESPONSE, alMaxResp );
+		pMaxResp = GetKeywordValue( &pScriptParm, kwMAXRESPONSE, alMaxResp );
 	if (!pMaxResp)
-		pMaxResp = GetKeywordValue( kwMAXSIZE, alMaxResp );
-	if (pMaxResp) {
+		pMaxResp = GetKeywordValue( &pScriptParm, kwMAXSIZE, alMaxResp );
+
+	if (pMaxResp)
+	{
 		// translate the max response size into the code
-		if (alMaxResp.intValue < 16)
+
+		if (alMaxResp.intValue < 16)			// if they've supplied the actual encoding... just use it.
 			;
 		else
 		if (alMaxResp.intValue <= 50)
@@ -6428,51 +6539,63 @@ void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
 		else
 			alMaxResp.intValue = 6;
 
-		// now check it
-		if (pMaxResp && !Match(pMaxResp->exprOp,valu,alMaxResp.intValue))
-			throw "Max response size mismatch";
+		// if we're making an assignment, encode alMax with enumeration of reserved int... then stuff
+		BACnetEnumerated	bacnetSizeData(valu, valu > 5 ? NULL : apMaxSizes, valu > 5 ? 0 : 6);
+		BACnetEnumerated	bacnetSizeScript(alMaxResp.intValue, alMaxResp.intValue > 5 ? NULL : apMaxSizes, alMaxResp.intValue > 5 ? 0 : 6);
+		
+		// now check it or assign it
+		TestOrAssign(pMaxResp, bacnetSizeData, bacnetSizeScript, pScriptParm, "Max response size mismatch: " );
 	}
 
 	// extract the invoke ID
 	valu = (dec.pktLength--,*dec.pktBuffer++);
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(valu), NULL, "InvokeID mismatch: " );
 
-	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,valu,alInvokeID.intValue))
-		throw ExecError( "Invoke ID mismatch", pInvokeID->exprLine );
+	// check sequence number if it is specified and is found in data
+	TestOrAssignOptionValue( kwSEQUENCENR, "Sequence number mismatch: ", (header & 0x80) != 0 ? &dec : NULL );
 
-	// might check these
-	pSeq = GetKeywordValue( kwSEQUENCENR, alSeq );
-	pWindow = GetKeywordValue( kwWINDOWSIZE, alWindow );
-
-	// check segmented message stuff
-	if ((header & 0x80) != 0) {
-		// extract the sequence number and check it
-		valu = (dec.pktLength--,*dec.pktBuffer++);
-		if (pSeq && !Match(pSeq->exprOp,valu,alSeq.intValue))
-			throw ExecError( "Invoke ID mismatch", pSeq->exprLine );
-
-		// extract the proposed window size and check it
-		valu = (dec.pktLength--,*dec.pktBuffer++);
-		if (pWindow && !Match(pWindow->exprOp,valu,alWindow.intValue))
-			throw ExecError( "Proposed window size mismatch", pWindow->exprLine );
-	} else
-	if (pSeq)
-		throw "Sequence number not matched, message is not segmented";
-	else
-	if (pWindow)
-		throw "Window size not matched, message is not segmented";
+	// now check window size if provided
+	TestOrAssignOptionValue( kwWINDOWSIZE, "Window size mismatch: ", (header & 0x80) != 0 ? &dec : NULL );
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,valu,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Service mismatch: " );
 
 	// expect the rest
 	ExpectALData( dec );
+}
+
+
+
+void ScriptExecutor::TestOrAssignOptionValue( int kw, const char * pszErrorPrefix, BACnetAPDUDecoder * pdec /* = NULL */ )
+{
+	int						valu;
+	ScriptPacketExprPtr		pExpr;
+	BACnetInteger			bacnetInt;
+	ScriptParmPtr			pScriptParm = NULL;			// used for variable assignment
+
+	// check number if it is specified and is found in data
+	pExpr = GetKeywordValue( &pScriptParm, kw, bacnetInt );
+
+	// check segmented message stuff
+	if ( pdec != NULL )
+	{
+		// extract the sequence number and check it
+		valu = (pdec->pktLength--,*(pdec->pktBuffer++));
+		TestOrAssign(pExpr, BACnetInteger(valu), bacnetInt, pScriptParm, pszErrorPrefix );
+	}
+	else if (pExpr)
+	{
+		CString str(pszErrorPrefix);
+
+		if ( pScriptParm != NULL )
+			str.Format("Assignment to %s illegal, received message not segmented", pScriptParm->parmName );
+		else
+			str += "Message not segmented";
+
+		throw CString(str);
+	}
 }
 
 //
@@ -6481,12 +6604,7 @@ void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectUnconfirmedRequest( BACnetAPDUDecoder &dec )
 {
-	int						valu
-	;
-	ScriptPacketExprPtr		pService
-	;
-	BACnetInteger			alService
-	;
+	int						valu;
 
 	// check the header
 	valu = (dec.pktLength--,*dec.pktBuffer++);
@@ -6495,11 +6613,8 @@ void ScriptExecutor::ExpectUnconfirmedRequest( BACnetAPDUDecoder &dec )
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALUnconfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,valu,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetUnconfirmedServiceChoice, UNCONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALUnconfirmedServiceMap, "Service mismatch: " );
 
 	// expect the rest
 	ExpectALData( dec );
@@ -6511,12 +6626,7 @@ void ScriptExecutor::ExpectUnconfirmedRequest( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectSimpleACK( BACnetAPDUDecoder &dec )
 {
-	int						valu
-	;
-	ScriptPacketExprPtr		pInvokeID, pService
-	;
-	BACnetInteger			alInvokeID, alService
-	;
+	int						valu;
 
 	// check the header
 	valu = (dec.pktLength--,*dec.pktBuffer++);
@@ -6525,19 +6635,12 @@ void ScriptExecutor::ExpectSimpleACK( BACnetAPDUDecoder &dec )
 
 	// extract the invoke ID
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,valu,alInvokeID.intValue))
-		throw ExecError( "Invoke ID mismatch", pInvokeID->exprLine );
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(valu), NULL, "InvokeID mismatch: " );
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,valu,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Service mismatch: " );
 }
 
 //
@@ -6546,14 +6649,7 @@ void ScriptExecutor::ExpectSimpleACK( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectComplexACK( BACnetAPDUDecoder &dec )
 {
-	int						header, valu
-	;
-	ScriptPacketExprPtr		pSegMsg, pMOR, pInvokeID, pSeq, pWindow, pService
-	;
-	BACnetBoolean			alSegMsg, alMOR
-	;
-	BACnetInteger			alInvokeID, alSeq, alWindow, alService
-	;
+	int						header, valu;
 
 	// check the header
 	header = (dec.pktLength--,*dec.pktBuffer++);
@@ -6561,54 +6657,27 @@ void ScriptExecutor::ExpectComplexACK( BACnetAPDUDecoder &dec )
 		throw "ComplexACK expected";
 
 	// check segmented message
-	pSegMsg = GetKeywordValue( kwSEGMSG, alSegMsg );
-	if (!pSegMsg)
-		pSegMsg = GetKeywordValue( kwSEGMENTEDMESSAGE, alSegMsg );
-	if (pSegMsg && !Match(pSegMsg->exprOp,(header >> 3) & 0x01,alSegMsg.boolValue))
-		throw "Segmented message mismatch";
+	MatchBoolExpression( kwSEGMSG, BACnetBoolean((header >> 3 & 0x01)), "Segmented message mismatch: " );
+	// do it again for the full word, just for fun.  Shouldn't break
+	MatchBoolExpression( kwSEGMENTEDMESSAGE, BACnetBoolean((header >> 3 & 0x01)), "Segmented message mismatch: " );
 
 	// check more follows
-	pMOR = GetKeywordValue( kwMOREFOLLOWS, alMOR );
-	if (pMOR && !Match(pMOR->exprOp,(header >> 2) & 0x01,alMOR.boolValue))
-		throw "More-follows mismatch";
+	MatchBoolExpression( kwMOREFOLLOWS, BACnetBoolean((header >> 2 & 0x01)), "More-follows mismatch: " );
 
 	// extract the invoke ID
 	valu = (dec.pktLength--,*dec.pktBuffer++);
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(valu), NULL, "InvokeID mismatch: " );
 
-	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,valu,alInvokeID.intValue))
-		throw ExecError( "Invoke ID mismatch", pInvokeID->exprLine );
+	// check sequence number if it is specified and is found in data
+	TestOrAssignOptionValue( kwSEQUENCENR, "Sequence number mismatch: ", (header & 0x80) != 0 ? &dec : NULL );
 
-	// might check these
-	pSeq = GetKeywordValue( kwSEQUENCENR, alSeq );
-	pWindow = GetKeywordValue( kwWINDOWSIZE, alWindow );
-
-	// check segmented message stuff
-	if ((header & 0x80) != 0) {
-		// extract the sequence number and check it
-		valu = (dec.pktLength--,*dec.pktBuffer++);
-		if (pSeq && !Match(pSeq->exprOp,valu,alSeq.intValue))
-			throw ExecError( "Invoke ID mismatch", pSeq->exprLine );
-
-		// extract the proposed window size and check it
-		valu = (dec.pktLength--,*dec.pktBuffer++);
-		if (pWindow && !Match(pWindow->exprOp,valu,alWindow.intValue))
-			throw ExecError( "Proposed window size mismatch", pWindow->exprLine );
-	} else
-	if (pSeq)
-		throw "Sequence number not matched, message is not segmented";
-	else
-	if (pWindow)
-		throw "Window size not matched, message is not segmented";
+	// now check window size if provided
+	TestOrAssignOptionValue( kwWINDOWSIZE, "Window size mismatch: ", (header & 0x80) != 0 ? &dec : NULL );
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,valu,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Service mismatch: " );
 
 	// expect the rest
 	ExpectALData( dec );
@@ -6620,14 +6689,7 @@ void ScriptExecutor::ExpectComplexACK( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectSegmentACK( BACnetAPDUDecoder &dec )
 {
-	int						valu
-	;
-	ScriptPacketExprPtr		pNegativeACK, pServer, pInvokeID, pSeqNumber, pService, pWindowSize
-	;
-	BACnetBoolean			alNegativeACK, alServer
-	;
-	BACnetInteger			alInvokeID, alSeqNumber, alService, alWindowSize
-	;
+	int						valu;
 
 	// check the header
 	valu = (dec.pktLength--,*dec.pktBuffer++);
@@ -6635,46 +6697,27 @@ void ScriptExecutor::ExpectSegmentACK( BACnetAPDUDecoder &dec )
 		throw "SegmentACK expected";
 
 	// check negative ACK
-	pNegativeACK = GetKeywordValue( kwNEGATIVEACK, alNegativeACK );
-	if (pNegativeACK && !Match(pNegativeACK->exprOp,(valu >> 1) & 0x01,alNegativeACK.boolValue))
-		throw "Negative-ACK mismatch";
+	MatchBoolExpression( kwNEGATIVEACK, BACnetBoolean((valu >> 1) & 0x01), "Negative Ack mismatch: " );
 
 	// check the server bit
-	pServer = GetKeywordValue( kwSERVER, alServer );
-	if (pServer && !Match(pServer->exprOp,valu & 0x01,alServer.boolValue))
-		throw "Server mismatch";
+	MatchBoolExpression( kwSERVER, BACnetBoolean(valu & 0x01), "Server mismatch: " );
 
 	// extract the invoke ID
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,valu,alInvokeID.intValue))
-		throw ExecError( "Invoke ID mismatch", pInvokeID->exprLine );
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(valu), NULL, "InvokeID mismatch: " );
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
-	if (pService && !Match(pService->exprOp,valu,alService.intValue))
-		throw "Service-choice (SERVICE) mismatch";
+	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Service mismatch: " );
 
 	// extract the sequence number
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the sequence number
-	pSeqNumber = GetKeywordValue( kwSEQUENCENR, alSeqNumber );
-	if (pSeqNumber && !Match(pSeqNumber->exprOp,valu,alSeqNumber.intValue))
-		throw ExecError( "Sequence number mismatch", pSeqNumber->exprLine );
+	MatchEnumExpression( kwSEQUENCENR, BACnetEnumerated(valu), NULL, "Sequence number mismatch: " );
 
 	// extract the actual window size
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the window size
-	pWindowSize = GetKeywordValue( kwWINDOWSIZE, alWindowSize );
-	if (pWindowSize && !Match(pWindowSize->exprOp,valu,alWindowSize.intValue))
-		throw ExecError( "Window size mismatch", pWindowSize->exprLine );
+	MatchEnumExpression( kwWINDOWSIZE, BACnetEnumerated(valu), NULL, "Window size mismatch: " );
 }
 
 //
@@ -6686,11 +6729,6 @@ void ScriptExecutor::ExpectError( BACnetAPDUDecoder &dec )
 {
     int			          valu;
 
-	ScriptPacketExprPtr	  pInvokeID, pErrorService;
-	BACnetInteger		  alInvokeID, alReason;
-
-    CString errorService;
-	
 	// check the header
 	valu = (dec.pktLength--,*dec.pktBuffer++);
 	if ((valu >> 4) != 5)
@@ -6698,19 +6736,18 @@ void ScriptExecutor::ExpectError( BACnetAPDUDecoder &dec )
 
 	// extract the invoke ID
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,valu,alInvokeID.intValue))
-		throw ExecError( "Invoke ID mismatch", pInvokeID->exprLine );
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(valu), NULL, "InvokeID mismatch: " );
 
 	// extract the Error Choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
 
 	// get the Error Choice
-	pErrorService = execPacket->packetExprList.Find( kwERRORCHOICE );
-	errorService=pErrorService->exprValue;
-	if(errorService.CompareNoCase(CString(NetworkSniffer::BACnetConfirmedServiceChoice[valu])))
-	 		 throw ExecError( "Error Service mismatch", pErrorService->exprLine );
+	BACnetEnumerated  bacnetErrorServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	MatchEnumExpression( kwERRORCHOICE, bacnetErrorServiceData, ScriptALConfirmedServiceMap, "Error Service mismatch: " );
+//	pErrorService = execPacket->packetExprList.Find( kwERRORCHOICE );
+//	errorService=pErrorService->exprValue;
+//	if(errorService.CompareNoCase(CString(NetworkSniffer::BACnetConfirmedServiceChoice[valu])))
+//	 		 throw ExecError( "Error Service mismatch", pErrorService->exprLine );
 
 	//extract AL data,including the Error Class & Code Nmu
 	ExpectALData( dec );
@@ -6723,12 +6760,7 @@ void ScriptExecutor::ExpectError( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectReject( BACnetAPDUDecoder &dec )
 {
-	int						valu
-	;
-	ScriptPacketExprPtr		pInvokeID, pReason
-	;
-	BACnetInteger			alInvokeID, alReason
-	;
+	int						valu;
 
 	// check the header
 	valu = (dec.pktLength--,*dec.pktBuffer++);
@@ -6737,19 +6769,12 @@ void ScriptExecutor::ExpectReject( BACnetAPDUDecoder &dec )
 
 	// extract the invoke ID
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,valu,alInvokeID.intValue))
-		throw ExecError( "Invoke ID mismatch", pInvokeID->exprLine );
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(valu), NULL, "InvokeID mismatch: " );
 
 	// extract the reject reason
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// check the reason
-	pReason = GetKeywordValue( kwREJECTREASON, alReason, ScriptALRejectReasonMap );
-	if (pReason && !Match(pReason->exprOp,valu,alReason.intValue))
-		throw ExecError( "Reject reason mismatch", pReason->exprLine );
+	BACnetEnumerated  bacnetRejectData(valu, (const char **) NetworkSniffer::BACnetReject, REJECT_MAX);
+	MatchEnumExpression( kwREJECTREASON, bacnetRejectData, ScriptALRejectReasonMap, "Reject Reason mismatch: " );
 }
 
 //
@@ -6758,14 +6783,7 @@ void ScriptExecutor::ExpectReject( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectAbort( BACnetAPDUDecoder &dec )
 {
-	int						valu
-	;
-	ScriptPacketExprPtr		pServer, pInvokeID, pReason
-	;
-	BACnetBoolean			alServer
-	;
-	BACnetInteger			alInvokeID, alReason
-	;
+	int						valu;
 
 	// check the header
 	valu = (dec.pktLength--,*dec.pktBuffer++);
@@ -6773,25 +6791,16 @@ void ScriptExecutor::ExpectAbort( BACnetAPDUDecoder &dec )
 		throw "Abort expected";
 
 	// check the server bit
-	pServer = GetKeywordValue( kwSERVER, alServer );
-	if (pServer && !Match(pServer->exprOp,valu & 0x01,alServer.boolValue))
-		throw "Server mismatch";
+	MatchBoolExpression( kwSERVER, BACnetBoolean(valu & 0x01), "Server mismatch: " );
 
 	// extract the invoke ID
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the invoke ID
-	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
-	if (pInvokeID && !Match(pInvokeID->exprOp,valu,alInvokeID.intValue))
-		throw ExecError( "Invoke ID mismatch", pInvokeID->exprLine );
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(valu), NULL, "InvokeID mismatch: " );
 
 	// extract the abort reason
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-
-	// get the abort reason
-	pReason = GetKeywordValue( kwABORTREASON, alReason, ScriptALAbortReasonMap );
-	if (pReason && !Match(pReason->exprOp,valu,alReason.intValue))
-		throw ExecError( "Abort reason mismatch", pReason->exprLine );
+	BACnetEnumerated  bacnetAbortData(valu, (const char **) NetworkSniffer::BACnetAbort, ABORT_MAX);
+	MatchEnumExpression( kwABORTREASON, bacnetAbortData, ScriptALAbortReasonMap, "Abort Reason mismatch: " );
 }
 
 //
@@ -6810,10 +6819,6 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 	int						indx, len;
 	BACnetOctetString		ostr;
 	CString strThrowMessage;
-
-   //***Added by Liangping Xu, 2002-8-5***//
-	nArrayIndx = -1;
-   //***Ended by Liangping Xu, 2002-8-5***//
 
 	// get the index of the first data
 	indx = execPacket->packetExprList.FirstData();
@@ -6944,44 +6949,22 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectALNull( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int					context = kAppContext
+	int					indx, context = kAppContext
 	;
 	BACnetNull			nullData
 	;
 	ScriptTokenList		tlist
 	;
-	BACnetAPDUTag		tag
-	;
-	
-	// extract the tag
-	tag.Peek( dec );
 	
 	// translate the expression, resolve parameter names into values
 	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
 
-	// tag is optional
-	if (tlist.Length() == 0) {
-		// check the type
-		if (tag.tagClass)
-			throw "Application tagged null expected";
-		if (tag.tagNumber != nullAppTag)
-			throw "Mismatched data type, null expected";
-	} else
-	if (tlist.Length() == 1) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
+	indx = CheckExpressionParams( 0, 1, tlist.Length(), "Null");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), nullAppTag, "Null");
 
-		// check the type
-		if (!tag.tagClass)
-			throw "Context tagged null expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Too many keyword values";
-
-	// decode it
 	nullData.Decode( dec );
 }
+
 
 //
 //	ScriptExecutor::ExpectALBoolean
@@ -6995,33 +6978,18 @@ void ScriptExecutor::ExpectALBoolean( ScriptPacketExprPtr spep, BACnetAPDUDecode
 	;
 	ScriptTokenList		tlist
 	;
-	BACnetAPDUTag		tag
-	;
-	
-	// extract the tag
-	tag.Peek( dec );
+	ScriptParmPtr		pScriptParm = NULL;
 	
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		indx = 0;
-		if (tag.tagClass)
-			throw "Application tagged boolean expected";
-		if (tag.tagNumber != booleanAppTag)
-			throw "Mismatched data type, boolean expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		indx = 1;
-		if (!tag.tagClass)
-			throw "Context tagged boolean expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Boolean keyword requires 1 or 2 parameters";
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Boolean");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), booleanAppTag, "Boolean");
+
+	// tag is optional, now point to beginning of data token
+	indx++;
+
+	boolData.Decode( dec );
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
@@ -7034,21 +7002,34 @@ void ScriptExecutor::ExpectALBoolean( ScriptPacketExprPtr spep, BACnetAPDUDecode
 			throw "Boolean property value expected in EPICS";
 
 		scriptData.boolValue = ((BACnetBoolean *) bacnetEPICSProperty.GetObject())->boolValue;
-	} else
-	if ( tlist[indx].IsDontCare() )
-		spep->exprOp = '?=';
+	}
+	else if ( spep->IsAssignment() )			// madanner 11/5/02, added >> operator support
+		StuffScriptParameter(boolData, pScriptParm, spep->exprValue);
+	else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+		return;
 	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Boolean value expected";
 
-	// decode it
-	boolData.Decode( dec );
 	CompareAndThrowError(boolData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILBOOL);
+}
 
-/*
-	// verify the value
-	if (!Match(spep->exprOp,boolData.boolValue,scriptData.boolValue))
-		throw "Boolean value mismatch";
-*/
+
+void ScriptExecutor::StuffScriptParameter(BACnetEncodeable &rbacnet, ScriptParmPtr pp, LPCSTR lpstrValue )
+{
+//	ASSERT(pp != NULL);
+
+	if ( pp == NULL)
+	{
+		CString str;
+		str.Format(IDS_SCREX_ASGN_UNDEFVAR, lpstrValue);
+		throw CString(str);
+	}
+
+	// assign extracted bool value to parm
+	rbacnet.Encode(pp->parmValue.GetBuffer(1024));
+	pp->parmValue.ReleaseBuffer();
+
+	execDoc->m_pParmList->UpdateParameterVisual(pp);
 }
 
 //
@@ -7063,33 +7044,16 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 	;
 	ScriptTokenList		tlist
 	;
-	BACnetAPDUTag		tag
-	;
-	
-	// extract the tag
-	tag.Peek( dec );
+	ScriptParmPtr		pScriptParm = NULL;
 	
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		indx = 0;
-		if (tag.tagClass)
-			throw "Application tagged unsigned expected";
-		if (tag.tagNumber != unsignedIntAppTag)
-			throw "Mismatched data type, unsigned expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		indx = 1;
-		if (!tag.tagClass)
-			throw "Context tagged unsigned expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Unsigned keyword requires 1 or 2 parameters";
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Unsigned");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), unsignedIntAppTag, "Unsigned");
+
+	// tag is optional, now point to beginning of data token
+	indx++;
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
@@ -7102,8 +7066,10 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 			throw "Unsigned property value expected in EPICS";
 
 		scriptData.uintValue = ((BACnetUnsigned *) bacnetEPICSProperty.GetObject())->uintValue;
-	} else
-	if ( tlist[indx].IsDontCare() )
+	}
+	else if ( spep->IsAssignment() )
+		;	// don't do anything just yet... wait until data is extracted
+	else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
 		spep->exprOp = '?=';
 	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Unsigned value expected";
@@ -7112,9 +7078,6 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 	// what the scriptData indicates as size.  But I don't know enough yet to tell what this would
 	// break?  madanner 11/4/02
 
-   //***Added by Liangping Xu, 2002-8-5***//
-    nArrayIndx = scriptData.uintValue;
-   //***Ended by Liangping Xu, 2002-8-5***//
 	// check for wierd versions
 	if (spep->exprKeyword == kwUNSIGNED8) {
 //		if ((uintData.uintValue < 0) || (uintData.uintValue > 255))			// madanner 11/4/02, should be scriptData?
@@ -7149,11 +7112,10 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 	}
 
 	CompareAndThrowError(uintData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILUNSIGNED);
-/*
-	// verify the value
-	if (!Match(spep->exprOp,uintData.uintValue,scriptData.uintValue))
-		throw "Unsigned value mismatch";
-*/
+
+	// now suck out the data and slap it into the parm if needed
+	if ( spep->IsAssignment() )
+		StuffScriptParameter(uintData, pScriptParm, spep->exprValue);
 }
 
 //
@@ -7168,35 +7130,18 @@ void ScriptExecutor::ExpectALInteger( ScriptPacketExprPtr spep, BACnetAPDUDecode
 	;
 	ScriptTokenList		tlist
 	;
-	BACnetAPDUTag		tag
-	;
+	ScriptParmPtr		pScriptParm = NULL;
 	
-	// extract the tag
-	tag.Peek( dec );
-
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		indx = 0;
-		if (tag.tagClass)
-			throw "Application tagged integer expected";
-		if (tag.tagNumber != integerAppTag)
-			throw "Mismatched data type, integer expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		indx = 1;
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Integer");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), integerAppTag, "Integer");
 
-		// check the type
-		if (!tag.tagClass)
-			throw "Context tagged integer expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Integer keyword requires 1 or 2 parameters";
+	// tag is optional, now point to beginning of data token
+	indx++;
+
+	intData.Decode( dec );
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
@@ -7211,20 +7156,15 @@ void ScriptExecutor::ExpectALInteger( ScriptPacketExprPtr spep, BACnetAPDUDecode
 			scriptData.intValue = ((BACnetInteger *) bacnetEPICSProperty.GetObject())->intValue;
 		else
 			throw "Integer property value expected in EPICS";
-	} else
-	if ( tlist[indx].IsDontCare() )
-		spep->exprOp = '?=';
+	}
+	else if ( spep->IsAssignment() )
+		StuffScriptParameter(intData, pScriptParm, spep->exprValue);
+	else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+		return;
 	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Integer value expected";
 
-	// decode it
-	intData.Decode( dec );
 	CompareAndThrowError(intData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILINT);
-/*
-	// verify the value
-	if (!Match(spep->exprOp,intData.intValue,scriptData.intValue))
-		throw "Integer value mismatch";
-*/
 }
 
 //
@@ -7239,33 +7179,18 @@ void ScriptExecutor::ExpectALReal( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 	;
 	ScriptTokenList		tlist
 	;
-	BACnetAPDUTag		tag
-	;
+	ScriptParmPtr		pScriptParm = NULL;
 	
-	// extract the tag
-	tag.Peek( dec );
-
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		indx = 0;
-		if (tag.tagClass)
-			throw "Application tagged real expected";
-		if (tag.tagNumber != realAppTag)
-			throw "Mismatched data type, real expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		indx = 1;
-		if (!tag.tagClass)
-			throw "Context tagged real expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Real keyword requires 1 or 2 parameters";
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Real");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), realAppTag, "Real");
+
+	// tag is optional, now point to beginning of data token
+	indx++;
+
+	realData.Decode( dec );
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
@@ -7277,21 +7202,85 @@ void ScriptExecutor::ExpectALReal( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 			throw "Real property value expected in EPICS";
 
 		scriptData.realValue = ((BACnetReal *) bacnetEPICSProperty.GetObject())->realValue;
-	} else
-	if ( tlist[indx].IsDontCare() )
-		spep->exprOp = '?=';
+	}
+	else if ( spep->IsAssignment() )
+		StuffScriptParameter(realData, pScriptParm, spep->exprValue);
+	else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+		return;
 	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Single precision floating point value expected";
 
-	// decode it
-	realData.Decode( dec );
 	CompareAndThrowError(realData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILREAL);
-/*
-	// verify the value
-	if (!Match(spep->exprOp,realData.realValue,scriptData.realValue))
-		throw "Real value mismatch";
-*/
 }
+
+
+
+// check the number of supplied parameters and throw an error.
+// Also return the index into the parm list that is the tag... -1 for not supplied.
+
+int ScriptExecutor::CheckExpressionParams( int nMinParms, int nMaxParms, int nSuppliedParms, const char * pszDataType )
+{
+	int					indx = 0;
+	CString				strError;
+	
+	// If they've supplied more than the max parameters... let them know about it.
+
+	if ( nSuppliedParms > nMaxParms &&  nMaxParms != -1 )		// handle no max case
+	{
+		strError.Format("%s keyword requires max of %d parameter%s.  %d supplied", pszDataType, nMaxParms, nMaxParms > 1 ? "s" : "", nSuppliedParms );
+		throw CString(strError);
+	}
+
+	// if they've supplied less than the minimum number of parsm... well... you get the idea.
+
+	if ( nSuppliedParms < nMinParms )
+	{
+		strError.Format("%s keyword requires at least %d parameter%s.  %d supplied", pszDataType, nMinParms, nMinParms > 1 ? "s" : "", nSuppliedParms );
+		throw CString(strError);
+	}
+
+	// return the index for the expected tag in the token list...  If the tag is supplied in the parms... it's
+	// always at zero.  Return -1 if it's not supplied.  This will be true if they've supplied the minimum number of parms.
+
+	return nSuppliedParms - nMaxParms;
+}
+
+
+
+// Test for the proper tag and throw error if not.  The number of parms have already been supplied
+// so we only need to pass the actual token of the supplied tag, if present.
+
+void ScriptExecutor::ExpectALTag( BACnetAPDUDecoder &dec, ScriptToken * ptok, BACnetApplicationTag tagNumber, const char * pszDataType )
+{
+	int					context = kAppContext;
+	BACnetAPDUTag		tag;
+	CString				strError;
+	
+	// extract the tag
+	tag.Peek( dec );
+
+	// tag is optional... but at least check the type of stream data if they've supplied a don't care context
+	if ( ptok == NULL  ||  (ptok != NULL && ptok->IsDontCare()) )
+	{
+		if (tag.tagClass)
+			strError.Format("Application tagged %s expected", pszDataType );
+		else if (tag.tagNumber != tagNumber)
+			strError.Format("Mismatched data type, %s expected", pszDataType);
+	}
+	else
+	{
+		if ( !ptok->IsInteger(context) )
+			strError.Format("Tag number expected, (%s) supplied as tag parameter", ptok->tokenValue);
+		else if ( !tag.tagClass )
+			strError.Format("Context tagged %s expected", pszDataType);
+		else if ( tag.tagNumber != context )
+			strError.Format("Mismatched context tag value, %d supplied", context);
+	}
+
+	if ( !strError.IsEmpty() )
+		throw CString(strError);
+}
+
 
 //
 //	ScriptExecutor::ExpectALDouble
@@ -7305,35 +7294,18 @@ void ScriptExecutor::ExpectALDouble( ScriptPacketExprPtr spep, BACnetAPDUDecoder
 	;
 	ScriptTokenList		tlist
 	;
-	BACnetAPDUTag		tag
-	;
+	ScriptParmPtr		pScriptParm = NULL;
 	
-	// extract the tag
-	tag.Peek( dec );
-
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		indx = 0;
-		if (tag.tagClass)
-			throw "Application tagged double expected";
-		if (tag.tagNumber != doubleAppTag)
-			throw "Mismatched data type, double expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		indx = 1;
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Double");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), doubleAppTag, "Double");
 
-		// check the type
-		if (!tag.tagClass)
-			throw "Context tagged double expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Double keyword requires 1 or 2 parameters";
+	// tag is optional, now point to beginning of data token
+	indx++;
+
+	doubleData.Decode( dec );
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
@@ -7345,21 +7317,15 @@ void ScriptExecutor::ExpectALDouble( ScriptPacketExprPtr spep, BACnetAPDUDecoder
 			throw "Floating point property value expected in EPICS";
 
 		scriptData.doubleValue = ((BACnetReal *) bacnetEPICSProperty.GetObject())->realValue;
-	} else
-	if ( tlist[indx].IsDontCare() )
-		spep->exprOp = '?=';
+	}
+	else if ( spep->IsAssignment() )
+		StuffScriptParameter(doubleData, pScriptParm, spep->exprValue);
+	else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+		return;
 	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Double precision floating point expected";
 
-	// decode it
-	doubleData.Decode( dec );
 	CompareAndThrowError(doubleData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILDOUBLE);
-
-/*
-	// verify the value
-	if (!Match(spep->exprOp,doubleData.doubleValue,scriptData.doubleValue))
-		throw "Real value mismatch";
-*/
 }
 
 //
@@ -7374,70 +7340,30 @@ void ScriptExecutor::ExpectALOctetString( ScriptPacketExprPtr spep, BACnetAPDUDe
 	;
 	ScriptTokenList		tlist
 	;
-	BACnetAPDUTag		tag
-	;
+	ScriptParmPtr		pScriptParm = NULL;
 	
-	// extract the tag
-	tag.Peek( dec );
-
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		indx = 0;
-		if (tag.tagClass)
-			throw "Application tagged octet string expected";
-		if (tag.tagNumber != octetStringAppTag)
-			throw "Mismatched data type, octet string expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		indx = 1;
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Octet string");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), octetStringAppTag, "Octet string");
 
-		if (!tag.tagClass)
-			throw "Context tagged double expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Octet string keyword requires 1 or 2 parameters";
+	// tag is optional, now point to beginning of data token
+	indx++;
+
+	ostrData.Decode( dec );
 
 	// no references
 	if (tlist[indx].tokenType == scriptReference)
 		throw "Octet string property references not supported";
-	if ( tlist[indx].IsDontCare() )
-		spep->exprOp = '?=';
+	else if ( spep->IsAssignment() )
+		StuffScriptParameter(ostrData, pScriptParm, spep->exprValue);
+	else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+		return;
 	else if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Octet string value expected";
 
-	// decode it
-	ostrData.Decode( dec );
 	CompareAndThrowError(ostrData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILOCTSTRING);
-
-/*
-	// verify the value
-	switch (spep->exprOp) {
-		case '=':
-			if (ostrData.strLen != scriptData.strLen)
-				throw "Octet string mismatch";
-			for (i = 0; i < ostrData.strLen; i++)
-				if (ostrData.strBuff[i] != scriptData.strBuff[i])
-					throw "Octet string mismatch";
-			break;
-		case '!=':
-			if (ostrData.strLen != scriptData.strLen)
-				break;
-			for (i = 0; i < ostrData.strLen; i++)
-				if (ostrData.strBuff[i] != scriptData.strBuff[i])
-					break;
-			if (i >= ostrData.strLen)
-				throw "Octet string mismatch";
-			break;
-		default:
-			throw "Equality and inequality comparisons only";
-	}
-*/
 }
 
 //
@@ -7448,85 +7374,68 @@ void ScriptExecutor::ExpectALOctetString( ScriptPacketExprPtr spep, BACnetAPDUDe
 
 void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int						indx = -1, context = kAppContext;
+	int						indx, context = kAppContext;
 //	unsigned int minLen; // for string len
 //	unsigned int i; // counter 
-	BACnetCharacterString	cstrData, scriptData
-	;
-	ScriptTokenList			tlist
-	;
-	BACnetAPDUTag		tag
-	;
+	BACnetCharacterString	cstrData, scriptData;
+	ScriptTokenList			tlist;
+	ScriptParmPtr			pScriptParm = NULL;
 	
-	// extract the tag
-	tag.Peek( dec );
-
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		if (tlist[0].tokenType == scriptReference)
-			indx = 0;
-		else if ( tlist[0].IsDontCare() )
-			spep->exprOp = '?=';
-		else if (!tlist[0].IsEncodeable( scriptData ))
-			throw "ASCII string value expected";
+	indx = CheckExpressionParams( 1, 3, tlist.Length(), "Character string");
 
-		if (tag.tagClass)
-			throw "Application tagged character string expected";
-		if (tag.tagNumber != characterStringAppTag)
-			throw "Mismatched data type, character string expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (tlist[1].tokenType == scriptReference) {
-			if (!tlist[0].IsInteger( context ))
-				throw "Tag number expected";
-			indx = 1;
-		} else {
-			if (ScriptToken::Lookup( tlist[0].tokenSymbol, ScriptCharacterTypeMap ) < 0)
-				throw "Unknown encoding";
+	switch ( tlist.Length() )
+	{
+		case 1:
+				// tag is optional.  If there is only one token then we only need to check to see
+				// if the stream's type is char.
 
-			if ( tlist[1].IsDontCare() )
-				spep->exprOp = '?=';
-			else
-			{
-				CString buff;
-				buff.Format( "%s, %s", tlist[0].tokenValue, tlist[1].tokenValue );
-				scriptData.Decode( buff );
-			}
+				ExpectALTag( dec, NULL, characterStringAppTag, "Character string");
+				indx++;		// prep for increment to char data
+				break;
 
-			if (tag.tagClass)
-				throw "Application tagged character string expected";
-			if (tag.tagNumber != characterStringAppTag)
-				throw "Mismatched data type, character string expected";
-		}
-	} else
-	if (tlist.Length() == 3) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		if (ScriptToken::Lookup( tlist[1].tokenSymbol, ScriptCharacterTypeMap ) < 0)
-			throw "Unknown encoding";
+		case 2:
+				// two supplied parameters.  This could mean that the first one is either a tag number
+				// or the encoding, because the last one should be the value.
+				// Check to see if it's an integer... if so, it's the tag, otherwise, it's the encoding.
 
-		if ( tlist[2].IsDontCare() )
-			spep->exprOp = '?=';
-		else
-		{
-			CString buff;
-			buff.Format( "%s, %s", tlist[1].tokenValue, tlist[2].tokenValue );
-			scriptData.Decode( buff );
-		}
+				if ( tlist[0].IsDontCare() ||  tlist[0].IsInteger(context) )
+				{
+					// assume they've supplied the context tag and NOT the character encoding...
+					ExpectALTag( dec, &(tlist[0]), characterStringAppTag, "Character string");
 
-		// check the type
-		if (!tag.tagClass)
-			throw "Context tagged double expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Missing requred parameters";
+					// prep index to point to context, which will increment later to point to char data
+					indx = 0;
+					break;
+				}
 
-	// see if a reference was used
-	if (indx >= 0) {
+				// OK.  Let's then assume they've tried to supply the char encoding... then
+				// context check should be as char implied... test NULL context and then test encoding
+
+				ExpectALTag( dec, NULL, characterStringAppTag, "Character string");
+				indx = -1;
+				// drop through
+
+		case 3:
+				if ( indx >= 0 )
+					ExpectALTag( dec,  &(tlist[indx]), characterStringAppTag, "Character string");
+				indx++;
+
+				if ( ScriptToken::Lookup( tlist[indx].tokenSymbol, ScriptCharacterTypeMap ) < 0 )
+					throw "Unknown encoding for character keyword";
+
+				tlist[indx+1].tokenValue = tlist[indx].tokenValue + ", " + tlist[indx+1].tokenValue;
+	}
+
+	indx++;
+
+	cstrData.Decode( dec );
+
+		// see if a reference was used
+	if ( tlist[indx].tokenType == scriptReference )
+	{
 		BACnetAnyValue		bacnetEPICSProperty;
 
 		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
@@ -7536,9 +7445,14 @@ void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAP
 
 		scriptData.SetValue( (char *) ((BACnetCharacterString *) bacnetEPICSProperty.GetObject())->strBuff );
 	}
+	else if ( spep->IsAssignment() )
+		StuffScriptParameter(cstrData, pScriptParm, spep->exprValue);
+	else if ( tlist[indx].IsDontCare() ||  spep->IsDontCare() )
+		return;
+	else if ( !tlist[indx].IsEncodeable( scriptData ) )
+		throw "Unable to encode string value";
 
-	// decode it
-	cstrData.Decode( dec );
+
 	CompareAndThrowError(cstrData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILSTRING);
 }
 
@@ -7551,110 +7465,75 @@ void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAP
 
 void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int					context = kAppContext, bit, i
+	int					indx, context = kAppContext, bit
 	;
 	BACnetBitString		bstrData, scriptData
 	;
 	ScriptTokenList		tlist
 	;
-	BACnetAPDUTag		tag
-	;
+	ScriptParmPtr		pScriptParm = NULL;
 	
-	// extract the tag
-	tag.Peek( dec );
-
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 0)
-		throw "Bit string keyword values required";
+	CheckExpressionParams( 1, -1, tlist.Length(), "Bit string");
 
-	const ScriptToken &data = tlist[0];
+	// check for the number of supplied parms... if it's greater than one then we need to check for the 
+	// context tag... if not, then it's either one bit or one bitstring with NO context...
 
-	// must only be one bit or a bit string
-	if (tlist.Length() == 1) {
-		if (data.tokenType == scriptReference) {
-			BACnetAnyValue		bacnetEPICSProperty;
+	indx = 0;		// set next to real data...
+	if ( tlist.Length() == 1 )
+	{
+		// check data type in stream
+		ExpectALTag( dec, NULL, bitStringAppTag, "Bit string");
+	}
+	else
+	{
+		// they MIGHT have supplied the context along with the many bit values... better test
+		// the waters for integer before assuming it's the context.
 
-			GetEPICSProperty( data.tokenSymbol, &bacnetEPICSProperty, data.m_nIndex);
-
-			// verify the type
-			if ( bacnetEPICSProperty.GetType() != bits)
-				throw "Bit string property value expected in EPICS";
-
-			scriptData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
-		} else
-		if ( data.IsDontCare() )
-			spep->exprOp = '?=';
-		else if (data.tokenEnc == scriptBinaryEnc) {
-			if (!data.IsEncodeable( scriptData ))
-				throw "Bit string value expected";
-		} else if (data.tokenType == scriptKeyword) {
-			if (data.IsInteger( bit, ScriptBooleanMap ))
-				scriptData += bit;
-		} else
-			throw "Bit list expected";
-
-		if (tag.tagClass)
-			throw "Application tagged bit string expected";
-		if (tag.tagNumber != bitStringAppTag)
-			throw "Mismatched data type, bit string expected";
-	} else {
-		i = 0;
-		if (data.tokenEnc != scriptBinaryEnc)
-			if (data.IsInteger( context )) {
-				i += 1;
-
-				if (!tag.tagClass)
-					throw "Context tagged bit string expected";
-				if (tag.tagNumber != context)
-					throw "Mismatched context tag value";
-			}
-
-		if (tlist[i].tokenType == scriptReference) {
-			BACnetAnyValue		bacnetEPICSProperty;
-
-			GetEPICSProperty( tlist[i].tokenSymbol, &bacnetEPICSProperty, tlist[i].m_nIndex);
-
-			// verify the type
-			if ( bacnetEPICSProperty.GetType() != bits)
-				throw "Bit string property value expected in EPICS";
-
-			scriptData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
-		} else
-		if ( tlist[i].IsDontCare() )
-			spep->exprOp = '?=';
-		else if (tlist[i].IsEncodeable( scriptData ))
-			;
-		else {
-			int count = 0;
-			while (i < tlist.Length())
-				if (tlist[i++].IsInteger( bit, ScriptBooleanMap ))
-					scriptData.SetBit( count++, bit );
-				else
-					throw "Bit value expected";
-		}
+		if ( tlist[indx].tokenEnc != scriptBinaryEnc  &&  tlist[indx].IsInteger(context) )
+			ExpectALTag( dec, &(tlist[indx++]), bitStringAppTag, "Bit string");
 	}
 
-	// decode it
+	// must be here to pass all the tag checks to avoid throws in decode
 	bstrData.Decode( dec );
-	CompareAndThrowError(bstrData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILBITSTRING);
 
-/*	// verify the value
-	switch (spep->exprOp) {
-		case '=':
-			if (!(bstrData == scriptData))
-				throw "Bit string mismatch";
-			break;
-		case '!=':
-			if (bstrData == scriptData)
-				throw "Bit string mismatch";
-			break;
-		default:
-			throw "Equality and inequality comparisons only";
+	// we've made it this far... now check all of the other data as bits...
+
+	if ( tlist[indx].tokenType == scriptReference)
+	{
+		BACnetAnyValue		bacnetEPICSProperty;
+
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
+
+		if ( bacnetEPICSProperty.GetType() != bits)
+			throw "Bit string property value expected in EPICS";
+
+		scriptData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
 	}
-*/
+	else if ( spep->IsAssignment() )
+		StuffScriptParameter(bstrData, pScriptParm, spep->exprValue);
+	else if ( tlist[indx].IsDontCare()  || spep->IsDontCare() )
+		return;
+	else if ( tlist[indx].tokenEnc == scriptBinaryEnc)
+	{
+		if ( !tlist[indx].IsEncodeable( scriptData ) )
+			throw "Bit string value expected";
+	}
+	else
+	{
+		// OK... the dang thing isn't a reference, isn't an assignment, isn't a don't are and isn't a hunk o' bits...
+		// so, it must be a string of bit values like FALSE, F, T, 0, 1, etc...   Suck 'em out.
+
+		for ( int nBitIndex = 0; indx < tlist.Length(); indx++ )
+			if ( tlist[nBitIndex].IsInteger( bit, ScriptBooleanMap ) )
+				scriptData.SetBit(nBitIndex++, bit);
+			else
+				throw "Bit value expected";
+	}
+
+	CompareAndThrowError(bstrData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILBITSTRING);
 }
 
 
@@ -7662,10 +7541,7 @@ void ScriptExecutor::CompareAndThrowError( BACnetEncodeable & rbacnet1, BACnetEn
 {
 	CString strError;
 
-	// Account for dont' care operator.  Operator usually filled in last minute... not specified
-	// as real operator so we don't have to place test in ALL virtual matching methods !!
-
-	if ( iOperator != '?=' && !rbacnet2.Match(rbacnet1, iOperator, &strError) )
+	if ( !rbacnet1.Match(rbacnet2, iOperator, &strError) )
 	{
 		CString strErrorPrefix;
 		strErrorPrefix.LoadString(nError);
@@ -7686,33 +7562,18 @@ void ScriptExecutor::ExpectALEnumerated( ScriptPacketExprPtr spep, BACnetAPDUDec
 	;
 	ScriptTokenList		tlist
 	;
-	BACnetAPDUTag		tag
-	;
+	ScriptParmPtr		pScriptParm = NULL;
 	
-	// extract the tag
-	tag.Peek( dec );
-
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		indx = 0;
-		if (tag.tagClass)
-			throw "Application tagged enumerated expected";
-		if (tag.tagNumber != enumeratedAppTag)
-			throw "Mismatched data type, enumerated expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		indx = 1;
-		if (!tag.tagClass)
-			throw "Context tagged enumerated expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Integer keyword requires 1 or 2 parameters";
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Enumerated");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), enumeratedAppTag, "Enumerated");
+
+	// tag is optional, now point to beginning of data token
+	indx++;
+
+	enumData.Decode( dec );
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
@@ -7724,27 +7585,23 @@ void ScriptExecutor::ExpectALEnumerated( ScriptPacketExprPtr spep, BACnetAPDUDec
 			throw "Enumerated property value expected in EPICS";
 
 		scriptData.enumValue = ((BACnetEnumerated *) bacnetEPICSProperty.GetObject())->enumValue;
-	} else {
-		try {
-			if ( tlist[indx].IsDontCare() )
-				spep->exprOp = '?=';
-			else
+	}
+	else
+	{
+		if ( spep->IsAssignment() )
+			StuffScriptParameter(enumData, pScriptParm, spep->exprValue);
+		else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+			return;
+		else
+			try {
 				scriptData.Decode( tlist[indx].tokenValue );
-		}
-		catch (...) {
-			throw "Integer value expected";
-		}
+			}
+			catch (...) {
+				throw "Enumerated value expected";
+			}
 	}
 
-	// decode it
-	enumData.Decode( dec );
 	CompareAndThrowError(enumData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILENUM);
-
-/*
-	// verify the value
-	if (!Match(spep->exprOp,enumData.enumValue,scriptData.enumValue))
-		throw "Enumeration value mismatch";
-*/
 }
 
 //
@@ -7753,67 +7610,52 @@ void ScriptExecutor::ExpectALEnumerated( ScriptPacketExprPtr spep, BACnetAPDUDec
 
 void ScriptExecutor::ExpectALDate( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int				context = kAppContext
-	;
-	BACnetDate		dateData, scriptData
-	;
-	ScriptScanner	scan( spep->exprValue )
-	;
-	ScriptToken		tok
-	;
-	BACnetAPDUTag		tag
-	;
+	int				indx, context = kAppContext;
+	BACnetDate		dateData, scriptData;
+	ScriptTokenList	tlist;
+	ScriptParmPtr	pScriptParm = NULL;
 	
-	// extract the tag
-	tag.Peek( dec );
+	// translate the expression, resolve parameter names into values
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// get something from the front
-	scan.Next( tok );
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Date");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), dateAppTag, "Date");
 
-	// if it is a number, it must be a tag
-	if ((tok.tokenType == scriptValue) && (tok.IsInteger( context ))) {
-		scan.Peek( tok );
-		if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ','))
-			scan.Next( tok );
+	// tag is optional, now point to beginning of data token
+	indx++;
 
-		if (tok.tokenType == scriptReference) {
-			BACnetAnyValue		bacnetEPICSProperty;
+	dateData.Decode( dec );
 
-			GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty, tok.m_nIndex);
+	// reference or date data?
+	if ( tlist[indx].tokenType == scriptReference) {
+		BACnetAnyValue		bacnetEPICSProperty;
 
-			if ( bacnetEPICSProperty.GetType() != ptDate )
-				throw "Date property value expected in EPICS";
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
-			scriptData = *((BACnetDate *) bacnetEPICSProperty.GetObject());
-		} else
-		{
-			if ( tok.IsDontCare() )
-				spep->exprOp = '?=';
-			else 
-				scriptData.Decode( scan.scanSrc );
-		}
+		if ( bacnetEPICSProperty.GetType() != ptDate )
+			throw "Date property value expected in EPICS";
 
-		if (!tag.tagClass)
-			throw "Context tagged date expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else {
-
-		if ( tok.IsDontCare() )
-			spep->exprOp = '?=';
-		else 
-			scriptData.Decode( spep->exprValue );
-
-		if (tag.tagClass)
-			throw "Application tagged date expected";
-		if (tag.tagNumber != dateAppTag)
-			throw "Mismatched data type, date expected";
+		scriptData = *((BACnetDate *) bacnetEPICSProperty.GetObject());
+	}
+	else
+	{
+		if ( spep->IsAssignment() )
+			StuffScriptParameter(dateData, pScriptParm, spep->exprValue);
+		else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+			return;
+		else
+			try {
+				//tlist[indx].tokenType == scriptValue && tlist[indx].tokenEnc == scriptComplex )
+				scriptData.Decode( tlist[indx].tokenValue );
+			}
+			catch (...) {
+				CString str;
+				str.Format(IDS_SCREX_BADDATADATE, tlist[indx].tokenValue );
+				throw CString(str);
+			}
 	}
 
-	// decode it
-	dateData.Decode( dec );
 	CompareAndThrowError(dateData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILDATE);
-
 }
 
 //
@@ -7822,73 +7664,51 @@ void ScriptExecutor::ExpectALDate( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 
 void ScriptExecutor::ExpectALTime( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int				holdContext, context = kAppContext
-	;
-	BACnetTime		timeData, scriptData
-	;
-	ScriptScanner	scan( spep->exprValue )
-	;
-	ScriptToken		tok
-	;
-	BACnetAPDUTag	tag
-	;
+	int				indx, context = kAppContext;
+	BACnetTime		timeData, scriptData;
+	ScriptTokenList	tlist;
+	ScriptParmPtr	pScriptParm = NULL;
 	
-	// extract the tag
-	tag.Peek( dec );
+	// translate the expression, resolve parameter names into values
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// get something from the front
-	scan.Next( tok );
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Time");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), timeAppTag, "Time");
 
-	try {
-		// if it is a number
-		if ((tok.tokenType == scriptValue) && (tok.IsInteger( holdContext ))) {
-			scan.Peek( tok );
-			if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ',')) {
-				context = holdContext;
-				scan.Next( tok );
-			   }                          //added by Liangping Xu  
-			if (tok.tokenType == scriptReference) {
-				BACnetAnyValue		bacnetEPICSProperty;
+	// tag is optional, now point to beginning of data token
+	indx++;
 
-				GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty, tok.m_nIndex);
-
-				if ( bacnetEPICSProperty.GetType() != ptTime )
-					throw "Time property value expected in EPICS";
-
-				scriptData = *((BACnetTime *) bacnetEPICSProperty.GetObject());
-			} else
-			{
-				if ( tok.IsDontCare() )
-					spep->exprOp = '?=';
-				else
-					scriptData.Decode( scan.scanSrc );	// do the rest as a time
-			}
-
-			if (!tag.tagClass)
-				throw "Context tagged date expected";
-			if (tag.tagNumber != context)
-				throw "Mismatched context tag value";
-		} else {
-			if ( tok.IsDontCare() )
-				spep->exprOp = '?=';
-			else
-				scriptData.Decode( spep->exprValue );	// do whole thing
-
-			if (tag.tagClass)
-				throw "Application tagged time expected";
-			if (tag.tagNumber != timeAppTag)
-				throw "Mismatched data type, time expected";
-		}
-             // deleted by Liangping Xu
-			//} else
-	//		throw "Time keyword parameter format invalid";
-	}
-	catch (...) {
-		throw "Time keyword parameter format invalid";
-	}
-
-	// decode it
 	timeData.Decode( dec );
+
+	// reference or date data?
+	if ( tlist[indx].tokenType == scriptReference) {
+		BACnetAnyValue		bacnetEPICSProperty;
+
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
+
+		if ( bacnetEPICSProperty.GetType() != ptTime )
+			throw "Time property value expected in EPICS";
+
+		scriptData = *((BACnetTime *) bacnetEPICSProperty.GetObject());
+	}
+	else
+	{
+		if ( spep->IsAssignment() )
+			StuffScriptParameter(timeData, pScriptParm, spep->exprValue);
+		else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+			return;
+		else
+			try {
+				//tlist[indx].tokenType == scriptValue && tlist[indx].tokenEnc == scriptComplex )
+				scriptData.Decode( tlist[indx].tokenValue );
+			}
+			catch (...) {
+				CString str;
+				str.Format(IDS_SCREX_BADDATATIME, tlist[indx].tokenValue );
+				throw CString(str);
+			}
+	}
+
 	CompareAndThrowError(timeData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILTIME);
 }
 
@@ -7898,44 +7718,57 @@ void ScriptExecutor::ExpectALTime( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 
 void ScriptExecutor::ExpectALObjectIdentifier( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int						indx, context = kAppContext, objType, instanceNum
-	;
-	BACnetObjectIdentifier	objData, scriptData
-	;
-	ScriptTokenList			tlist
-	;
-	BACnetAPDUTag			tag
-	;
+	int						indx, context = kAppContext, objType, instanceNum;
+	BACnetObjectIdentifier	objData, scriptData;
+	ScriptTokenList			tlist;
+	BACnetAPDUTag			tag;
+	ScriptParmPtr			pScriptParm = NULL;
 	
 	// extract the tag
 	tag.Peek( dec );
 	
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		indx = 0;
-		if (tlist[0].tokenType != scriptReference)
-			throw "Object identifier keyword expects an EPICS reference";
-	} else
-	if (tlist.Length() == 2) {
-		indx = 0;
-		if (tag.tagClass)
-			throw "Application tagged object identifier expected";
-		if (tag.tagNumber != objectIdentifierAppTag)
-			throw "Mismatched data type, object identifier expected";
-	} else
-	if (tlist.Length() == 3) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		indx = 1;
-		if (!tag.tagClass)
-			throw "Context tagged object identifier expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Object identifier keyword requires 1, 2 or 3 parameters";
+	indx = CheckExpressionParams( 1, 3, tlist.Length(), "Object Identifier");
+
+	switch ( tlist.Length() )
+	{
+		case 2:	
+				// two supplied parameters.  This could mean that the first one is either a tag number
+				// or the object type.
+				// Check to see if it's an integer... if so, it's the tag, otherwise, it's the encoding.
+				// if it's a don't care... assume it's the tag
+
+				if ( tlist[0].IsDontCare() ||  tlist[0].IsInteger(context) )
+				{
+					// assume they've supplied the context tag and NOT the character encoding...
+					ExpectALTag( dec, &(tlist[0]), objectIdentifierAppTag, "Object Identifier");
+
+					// prep index to point to context, which will increment later to point to char data
+					indx = 1;
+					break;
+				}
+
+				// Drop through and test the implied tag. Let's then assume they've tried to supply the other stuff... but if we stop here..
+				// it had better be a var stuffer or EPICS reference.
+
+		case 1:	
+				// tag is optional.  If there is only one token then we only need to check to see
+				// if the stream's type is char.
+
+				ExpectALTag( dec, NULL, objectIdentifierAppTag, "Object Identifier");
+				indx = 0;		// prep for increment to char data
+				break;
+
+		case 3:	
+				// Three parms mean the tag and object type and instance..
+
+				ExpectALTag( dec,  &(tlist[0]), objectIdentifierAppTag, "Object Identifier");
+				indx = 1;
+	}
+
+	objData.Decode( dec );
 
 	// reference or real data?
 	if (tlist[indx].tokenType == scriptReference) {
@@ -7948,25 +7781,23 @@ void ScriptExecutor::ExpectALObjectIdentifier( ScriptPacketExprPtr spep, BACnetA
 
 		scriptData = *((BACnetObjectIdentifier *) bacnetEPICSProperty.GetObject());
 	} else {
-		if (!tlist[indx].IsInteger( objType, ScriptObjectTypeMap ))
-			throw "Object identifier type expected";
-		if ( tlist[indx+1].IsDontCare() )
-			spep->exprOp = '?=';
-		else if (!tlist[indx+1].IsInteger( instanceNum ))
-			throw "Object identifier instance expected";
+		if ( spep->IsAssignment() )
+			StuffScriptParameter(objData, pScriptParm, spep->exprValue);
+		else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+			return;
+		else
+		{
+			if ( !tlist[indx++].IsInteger( objType, ScriptObjectTypeMap) )
+				throw "Object identifier type expected";
+			if ( tlist.Length() <= indx || !tlist[indx].IsInteger( instanceNum) )
+				throw "Object identifier instance expected";
 
-//		scriptData = (objType << 22) + instanceNum;
-		scriptData.SetValue((BACnetObjectType) objType, instanceNum);
+			scriptData.SetValue((BACnetObjectType) objType, instanceNum);
+		}
 	}
 	
-	// decode it
-	objData.Decode( dec );
 	CompareAndThrowError(objData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILOBJID);
 
-/*	// verify the value
-	if (!Match(spep->exprOp,objData.objID,scriptData))
-		throw "Object identifier mismatch";
-*/
 	// store the context for property references that may appear later
 	execObjID = objData.objID;
 }
@@ -7977,53 +7808,31 @@ void ScriptExecutor::ExpectALObjectIdentifier( ScriptPacketExprPtr spep, BACnetA
 
 void ScriptExecutor::ExpectALDeviceIdentifier( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int						context = kAppContext, instanceNum
-	;
-	BACnetObjectIdentifier	objData
-	;
-	ScriptTokenList			tlist
-	;
-	BACnetAPDUTag			tag
-	;
-	
-	// extract the tag
-	tag.Peek( dec );
+	int						indx, context = kAppContext, instanceNum;
+	BACnetObjectIdentifier	objData;
+	ScriptTokenList			tlist;
+	ScriptParmPtr			pScriptParm = NULL;
 	
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		if ( tlist[0].IsDontCare() )
-			spep->exprOp = '?=';
-		else if (!tlist[0].IsInteger( instanceNum ))
-			throw "Device identifier instance value expected";
-		if (tag.tagClass)
-			throw "Application tagged object identifier expected";
-		if (tag.tagNumber != objectIdentifierAppTag)
-			throw "Mismatched data type, object identifier expected";
-	} else if (tlist.Length() == 2) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		if ( tlist[1].IsDontCare() )
-			spep->exprOp = '?=';
-		else if (!tlist[1].IsInteger( instanceNum ))
-			throw "Device identifier instance value expected";
-		if (!tag.tagClass)
-			throw "Context tagged object identifier expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Device identifier keyword requires 1 or 2 parameters";
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Device Identifier");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), objectIdentifierAppTag, "Device Identifier");
+
+	// tag is optional, now point to beginning of data token
+	indx++;
 
 	// decode it
 	objData.Decode( dec );
+
+	if ( spep->IsAssignment() )
+		StuffScriptParameter(objData, pScriptParm, spep->exprValue);
+	else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+		return;
+	else if (!tlist[indx].IsInteger( instanceNum ))
+		throw "Device identifier instance value expected";
+
 	CompareAndThrowError(objData, BACnetObjectIdentifier(8, instanceNum), spep->exprOp, IDS_SCREX_COMPFAILDEVID);
-/*
-	// verify the value
-	if (!Match(spep->exprOp,(unsigned long) objData.objID,(unsigned long)((8 << 22) + instanceNum)))
-		throw "Device identifier mismatch";
-*/
 }
 
 //
@@ -8032,50 +7841,30 @@ void ScriptExecutor::ExpectALDeviceIdentifier( ScriptPacketExprPtr spep, BACnetA
 
 void ScriptExecutor::ExpectALPropertyIdentifier( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	int					context = kAppContext, valu
-	;
-	BACnetEnumerated	enumData
-	;
-	ScriptTokenList		tlist
-	;
-	BACnetAPDUTag		tag
-	;
-	
-	// extract the tag
-	tag.Peek( dec );
+	int					indx, context = kAppContext, valu;
+	BACnetEnumerated	enumData(0, (const char **) NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID);
+	ScriptTokenList		tlist;
+	ScriptParmPtr		pScriptParm = NULL;
 
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
 
-	// tag is optional
-	if (tlist.Length() == 1) {
-		if (!tlist[0].IsInteger( valu, ScriptPropertyMap ))
-			throw "Property name expected";
-		if (tag.tagClass)
-			throw "Application tagged enumerated (property identifier) expected";
-		if (tag.tagNumber != enumeratedAppTag)
-			throw "Mismatched data type, enumerated (property identifier) expected";
-	} else
-	if (tlist.Length() == 2) {
-		if (!tlist[0].IsInteger( context ))
-			throw "Tag number expected";
-		if (!tlist[1].IsInteger( valu, ScriptPropertyMap ))
-			throw "Property name expected";
-		if (!tag.tagClass)
-			throw "Context tagged enumerated expected";
-		if (tag.tagNumber != context)
-			throw "Mismatched context tag value";
-	} else
-		throw "Property identifier keyword requires 1 or 2 parameters";
+	indx = CheckExpressionParams( 1, 2, tlist.Length(), "Property Identifier");
+	ExpectALTag( dec, indx < 0 ? NULL : &(tlist[indx]), enumeratedAppTag, "Property Identifier");
 
-	// decode it
+	// tag is optional, now point to beginning of data token
+	indx++;
+
 	enumData.Decode( dec );
-	CompareAndThrowError(enumData, BACnetEnumerated(valu), spep->exprOp, IDS_SCREX_COMPFAILPROP);
-/*
-	// verify the value
-	if (!Match(spep->exprOp,enumData.enumValue,valu))
-		throw "Enumeration value mismatch";
-*/
+
+	if ( spep->IsAssignment() )
+		StuffScriptParameter(enumData, pScriptParm, spep->exprValue);
+	else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+		return;
+	else if (!tlist[indx].IsInteger( valu, ScriptPropertyMap ))
+		throw "Property name expected";
+
+	CompareAndThrowError(enumData, BACnetEnumerated(valu, (const char **) NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID), spep->exprOp, IDS_SCREX_COMPFAILPROP);
 }
 
 //
@@ -8150,7 +7939,7 @@ void ScriptExecutor::ExpectALClosingTag( ScriptPacketExprPtr spep, BACnetAPDUDec
 //	ScriptExecutor::GetKeywordValue
 //
 
-ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( int keyword, BACnetEncodeable &enc, ScriptTranslateTablePtr tp )
+ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( ScriptParmPtr * ppScriptParm, int keyword, BACnetEncodeable &enc, ScriptTranslateTablePtr tp )
 {
 	ScriptPacketExprPtr	pep = 0
 	;
@@ -8163,10 +7952,36 @@ ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( int keyword, BACnetEncodeab
 	ScriptTokenList		tlist
 	;
 
+	if ( ppScriptParm != NULL )			// just initialize for left overs
+		*ppScriptParm = NULL;
+
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( pep->exprValue, pep->exprLine, tlist );
+	ResolveExpr( pep->exprValue, pep->exprLine, tlist, pep->IsAssignment() ? ppScriptParm : NULL );
 	if (tlist.Length() < 1)
 		throw ExecError( "Keyword value expected", pep->exprLine );
+
+	if ( pep->IsAssignment() )
+	{
+		CString str;
+
+		if ( ppScriptParm == NULL )
+		{
+			str.Format("Use of assignment operator requires script variable in expression (%s)", pep->exprValue);
+			throw ExecError( str, pep->exprLine );
+		}
+
+		if ( *ppScriptParm == NULL )
+		{
+			str.Format("Script variable undefined (%s) for assignment operator", pep->exprValue);
+			throw ExecError( str, pep->exprLine);
+		}
+
+		// Assignement is fine...return to caller and he'll deal with stuffing the parameter
+		return pep;
+	}
+
+	if ( pep->IsDontCare() )		// they're using ?= operator... just return
+		return pep;
 
 	// get a reference to the first parameter
 	const ScriptToken &t = tlist[0];
@@ -8186,9 +8001,13 @@ ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( int keyword, BACnetEncodeab
 		catch (...) {
 			throw ExecError( "Keyword translation format error", pep->exprLine );
 		}
-	} else
-	if (!t.IsEncodeable( enc ))
-		throw ExecError( "Value translation format error", pep->exprLine );
+	}
+	else if (!t.IsEncodeable( enc ))
+	{
+		CString str;
+		str.Format("Incorrect data type on expression (%s), %s type required", pep->exprValue, enc.GetRuntimeClass()->m_lpszClassName);
+		throw ExecError( str, pep->exprLine );
+	}
 
 	// success
 	return pep;
@@ -8456,12 +8275,12 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 	// if we're not expecting something, toss it
 	if (!execPending) {
 		TRACE0( "(not expecting a packet)\n" );
-		Msg( 3, 0, "Exector not expecting a packet" );
+		Msg( 3, 0, "Executor not expecting a packet" );
 		return;
 	}
 	if (execPacket->packetType != ScriptPacket::expectPacket) {
 		TRACE0( "(not pointing to an expect packet)\n" );
-		Msg( 3, 0, "Exector not pointing to an EXPECT packet" );
+		Msg( 3, 0, "Executor not pointing to an EXPECT packet" );
 		return;
 	}
 
@@ -8512,12 +8331,12 @@ void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 	// if we're not expecting something, toss it
 	if (!execPending) {
 		TRACE0( "(not expecting a packet)\n" );
-		Msg( 3, 0, "Exector not expecting a packet" );
+		Msg( 3, 0, "Executor not expecting a packet" );
 		return;
 	}
 	if (execPacket->packetType != ScriptPacket::expectPacket) {
 		TRACE0( "(not pointing to an expect packet)\n" );
-		Msg( 3, 0, "Exector not pointing to an EXPECT packet" );
+		Msg( 3, 0, "Executor not pointing to an EXPECT packet" );
 		return;
 	}
 
@@ -8572,6 +8391,7 @@ LPCSTR OperatorToString(int iOperator)
 {
 	switch( iOperator )
 	{
+		case '>>':	return ">>";	// assignment
 		case '?=':	return "?=";	// don't care case
 		case '=': return "=";
 		case '<': return "<";
