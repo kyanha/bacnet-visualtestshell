@@ -1127,6 +1127,7 @@ void ScriptExecutor::ResolveExpr( const char *expr, int exprLine, ScriptTokenLis
 
 			case scriptReference:
 				// look up reference in EPICS database
+
 				lst.Append( tok );
 				break;
 
@@ -1146,7 +1147,18 @@ void ScriptExecutor::ResolveExpr( const char *expr, int exprLine, ScriptTokenLis
 		// get ready for next value
 		scan.Next( tok );
 	}
+
+	// token list is built.  Now go through and resolve all of the index items on each token and
+	// set that final index value into the top level token.
+
+	// allow cases of {property[int]}, {property[var]}, {property[{property}]}, {property[{property[int]}]}, etc.
+	// Don't allow cases (yet) of var[var], var[int], var[etc.]
+
+	for ( int i = 0; i < lst.GetCount(); i++ )
+		lst[i].ResolveIndex(execDoc->m_pParmList);
 }
+
+
 
 
 //
@@ -1156,7 +1168,7 @@ void ScriptExecutor::ResolveExpr( const char *expr, int exprLine, ScriptTokenLis
 //	property from the EPICS database.
 //  Throw a string exception if there is a problem
 
-void ScriptExecutor::GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny )
+void ScriptExecutor::GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny, int nIndex /* = -1 */ )
 {
 	int						pid, pindx;
 	PICS::generic_object	*pobj;
@@ -1189,12 +1201,37 @@ void ScriptExecutor::GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny )
 		throw "EPICS property is not specified";
 
 	// Access DUDAPI call to point to yucky part of EPICS internal data structures
-	// The PVM object will be loaded with info on how to construct a BACnet object
-
 	PICS::CreatePropertyFromEPICS( pobj, pid, pbacnetAny );
 
-	if ( pbacnetAny->GetObject() == NULL )
+	// assign real value to this array pointer... doesn't matter here if it's an actual
+	// array or not... just pretent.  Sure.  I knew you could.
+
+	BACnetGenericArray * pbacnetarray = (BACnetGenericArray *) pbacnetAny->GetObject();
+
+	if ( pbacnetarray == NULL )
 		throw "Property value not known or comparison for this type not implemented";
+
+	// see if caller really wants just an element here.  If so, (won't be -1), then
+	// grab a copy of the element and destroy the rest (taken care of by resetting object).
+	// only do this for list and array types.
+	// ALL must decend from GenericArray
+
+	if ( nIndex != -1  &&  pbacnetarray->IsKindOf(RUNTIME_CLASS(BACnetGenericArray)) )
+	{
+		if ( nIndex == 0 )				// return number of elements only
+			pbacnetAny->SetObject(uw, new BACnetUnsigned(pbacnetarray->GetSize()) );
+		else
+		{
+			if ( nIndex > pbacnetarray->GetSize() )			// out of bounds?  Remember index is base 1
+			{
+				CString str;
+				str.Format(IDS_SCREX_INDEXBOUNDS, nIndex, pbacnetarray->GetSize());
+				throw CString(str);
+			}
+
+			pbacnetAny->SetObject((*pbacnetarray)[nIndex-1].clone());
+		}
+	}
 }
 
 
@@ -3301,7 +3338,7 @@ void ScriptExecutor::SendALData( CByteArray &packet )
 			if (tlist[0].tokenType == scriptReference) {
 				BACnetAnyValue		bacnetEPICSProperty;
 
-				GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+				GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
 				BACnetAPDUEncoder	enc(2048);		// big buffer size
 				bacnetEPICSProperty.Encode(enc);
@@ -3461,7 +3498,7 @@ void ScriptExecutor::SendALBoolean( ScriptPacketExprPtr spep, CByteArray &packet
 	{
 		BACnetAnyValue bacnetAny;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
 
 		// verify the type
 		if (bacnetAny.GetType() != ebool)
@@ -3519,7 +3556,7 @@ void ScriptExecutor::SendALUnsigned( ScriptPacketExprPtr spep, CByteArray &packe
 	{
 		BACnetAnyValue bacnetAny;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
 
 		// verify the type
 		if (bacnetAny.GetType() != uw )
@@ -3598,7 +3635,7 @@ void ScriptExecutor::SendALInteger( ScriptPacketExprPtr spep, CByteArray &packet
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue bacnetAny;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
 
 		// verify the type
 		if (!bacnetAny.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)) && !bacnetAny.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetInteger)) )
@@ -3652,7 +3689,7 @@ void ScriptExecutor::SendALReal( ScriptPacketExprPtr spep, CByteArray &packet )
 	{
 		BACnetAnyValue bacnetAny;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex );
 
 		// verify the type
 		if ( bacnetAny.GetType() != flt )
@@ -3705,7 +3742,7 @@ void ScriptExecutor::SendALDouble( ScriptPacketExprPtr spep, CByteArray &packet 
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue bacnetAny;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
 
 		// verify the type
 		if (bacnetAny.GetType() != flt )
@@ -3843,7 +3880,7 @@ void ScriptExecutor::SendALCharacterString( ScriptPacketExprPtr spep, CByteArray
 	if (indx >= 0) {
 		BACnetAnyValue bacnetAny;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
 
 		// verify the type
 		if ( !bacnetAny.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
@@ -3890,7 +3927,7 @@ void ScriptExecutor::SendALBitString( ScriptPacketExprPtr spep, CByteArray &pack
 		if (data.tokenType == scriptReference) {
 			BACnetAnyValue		bacnetEPICSProperty;
 
-			GetEPICSProperty( data.tokenSymbol, &bacnetEPICSProperty);
+			GetEPICSProperty( data.tokenSymbol, &bacnetEPICSProperty, data.m_nIndex);
 
 			// verify the type
 			if ( bacnetEPICSProperty.GetType() != bits)
@@ -3917,7 +3954,7 @@ void ScriptExecutor::SendALBitString( ScriptPacketExprPtr spep, CByteArray &pack
 		if (tlist[i].tokenType == scriptReference) {
 			BACnetAnyValue		bacnetEPICSProperty;
 
-			GetEPICSProperty( tlist[i].tokenSymbol, &bacnetEPICSProperty);
+			GetEPICSProperty( tlist[i].tokenSymbol, &bacnetEPICSProperty, tlist[i].m_nIndex);
 
 			// verify the type
 			if ( bacnetEPICSProperty.GetType() != bits)
@@ -3976,7 +4013,7 @@ void ScriptExecutor::SendALEnumerated( ScriptPacketExprPtr spep, CByteArray &pac
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue bacnetAny;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
 
 		// verify the type
 		if ( bacnetAny.GetType() != et )
@@ -4047,7 +4084,7 @@ void ScriptExecutor::SendALDate( ScriptPacketExprPtr spep, CByteArray &packet )
 		if (tok.tokenType == scriptReference) {
 			BACnetAnyValue bacnetAny;
 
-			GetEPICSProperty( tok.tokenSymbol, &bacnetAny);
+			GetEPICSProperty( tok.tokenSymbol, &bacnetAny, tok.m_nIndex);
 
 			// verify the type
 			if ( bacnetAny.GetType() != ptDate )
@@ -4111,7 +4148,7 @@ void ScriptExecutor::SendALTime( ScriptPacketExprPtr spep, CByteArray &packet )
 				if (tok.tokenType == scriptReference) {
 					BACnetAnyValue bacnetAny;
 
-					GetEPICSProperty( tok.tokenSymbol, &bacnetAny);
+					GetEPICSProperty( tok.tokenSymbol, &bacnetAny, tok.m_nIndex);
 
 					// verify the type
 					if ( bacnetAny.GetType() != ptTime )
@@ -4174,7 +4211,7 @@ void ScriptExecutor::SendALObjectIdentifier( ScriptPacketExprPtr spep, CByteArra
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue bacnetAny;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetAny, tlist[indx].m_nIndex);
 
 		if ( bacnetAny.GetType() != ob_id )
 			throw "Object identifier property value expected in EPICS";
@@ -6649,10 +6686,10 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 			{
 				BACnetAnyValue		bacnetEPICSProperty;
 
-				GetEPICSProperty( tlist[0].tokenSymbol, &bacnetEPICSProperty);
+				GetEPICSProperty( tlist[0].tokenSymbol, &bacnetEPICSProperty, tlist[0].m_nIndex);
 
 				// Will throw errors
-				bacnetEPICSProperty.CompareToEncodedStream( dec, spep->exprOp, nArrayIndx, spep->exprValue );
+				bacnetEPICSProperty.CompareToEncodedStream( dec, spep->exprOp, spep->exprValue );
 			}
 			else
 			{
@@ -6831,7 +6868,7 @@ void ScriptExecutor::ExpectALBoolean( ScriptPacketExprPtr spep, BACnetAPDUDecode
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue		bacnetEPICSProperty;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
 		// verify the type
 		if (bacnetEPICSProperty.GetType() != ebool)
@@ -6897,7 +6934,7 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue		bacnetEPICSProperty;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
 		// verify the type
 		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)) )
@@ -6996,7 +7033,7 @@ void ScriptExecutor::ExpectALInteger( ScriptPacketExprPtr spep, BACnetAPDUDecode
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue		bacnetEPICSProperty;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
 		// verify the type
 		if ( bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)) )
@@ -7063,7 +7100,7 @@ void ScriptExecutor::ExpectALReal( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue		bacnetEPICSProperty;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
 		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetReal)) )
 			throw "Real property value expected in EPICS";
@@ -7129,7 +7166,7 @@ void ScriptExecutor::ExpectALDouble( ScriptPacketExprPtr spep, BACnetAPDUDecoder
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue		bacnetEPICSProperty;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
 		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetReal)) )
 			throw "Floating point property value expected in EPICS";
@@ -7303,7 +7340,7 @@ void ScriptExecutor::ExpectALCharacterString( ScriptPacketExprPtr spep, BACnetAP
 	if (indx >= 0) {
 		BACnetAnyValue		bacnetEPICSProperty;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
 		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
 			throw "Character string property value expected in EPICS";
@@ -7351,7 +7388,7 @@ void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDeco
 		if (data.tokenType == scriptReference) {
 			BACnetAnyValue		bacnetEPICSProperty;
 
-			GetEPICSProperty( data.tokenSymbol, &bacnetEPICSProperty);
+			GetEPICSProperty( data.tokenSymbol, &bacnetEPICSProperty, data.m_nIndex);
 
 			// verify the type
 			if ( bacnetEPICSProperty.GetType() != bits)
@@ -7388,7 +7425,7 @@ void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDeco
 		if (tlist[i].tokenType == scriptReference) {
 			BACnetAnyValue		bacnetEPICSProperty;
 
-			GetEPICSProperty( tlist[i].tokenSymbol, &bacnetEPICSProperty);
+			GetEPICSProperty( tlist[i].tokenSymbol, &bacnetEPICSProperty, tlist[i].m_nIndex);
 
 			// verify the type
 			if ( bacnetEPICSProperty.GetType() != bits)
@@ -7486,7 +7523,7 @@ void ScriptExecutor::ExpectALEnumerated( ScriptPacketExprPtr spep, BACnetAPDUDec
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue		bacnetEPICSProperty;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
 		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetEnumerated)) )
 			throw "Enumerated property value expected in EPICS";
@@ -7544,7 +7581,7 @@ void ScriptExecutor::ExpectALDate( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 		if (tok.tokenType == scriptReference) {
 			BACnetAnyValue		bacnetEPICSProperty;
 
-			GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty);
+			GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty, tok.m_nIndex);
 
 			if ( bacnetEPICSProperty.GetType() != ptDate )
 				throw "Date property value expected in EPICS";
@@ -7605,7 +7642,7 @@ void ScriptExecutor::ExpectALTime( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 				if (tok.tokenType == scriptReference) {
 					BACnetAnyValue		bacnetEPICSProperty;
 
-					GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty);
+					GetEPICSProperty( tok.tokenSymbol, &bacnetEPICSProperty, tok.m_nIndex);
 
 					if ( bacnetEPICSProperty.GetType() != ptTime )
 						throw "Time property value expected in EPICS";
@@ -7687,7 +7724,7 @@ void ScriptExecutor::ExpectALObjectIdentifier( ScriptPacketExprPtr spep, BACnetA
 	if (tlist[indx].tokenType == scriptReference) {
 		BACnetAnyValue		bacnetEPICSProperty;
 
-		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty);
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
 
 		if ( bacnetEPICSProperty.GetType() != ob_id )
 			throw "Object identifier property value expected in EPICS";
