@@ -16,6 +16,9 @@
 #include "ScriptParmList.h"
 #include "ScriptContentTree.h"
 #include "ScriptLoadResults.h"
+//	Added by Yajun Zhou, 2002-4-22
+#include "ScriptEdit.h"
+///////////////////////////
 
 class ScriptFrame : public CMDIChildWnd
 {
@@ -28,7 +31,10 @@ public:
 	CSplitterWnd		m_wndSplit1;
 	CSplitterWnd		m_wndSplit2;
 
-	CEditView			*m_pEditView;
+//	Changed by Yajun Zhou, 2002-4-22
+//	CEditView			*m_pEditView;
+	ScriptEdit			*m_pEditView;
+////////////////////////////////////////////
 	ScriptParmList		*m_pParmList;
 	ScriptContentTree	*m_pContentTree;
 

@@ -6,6 +6,9 @@
 
 #include "ScriptContentTree.h"
 #include "ScriptDocument.h"
+// Added by Yajun Zhou, 2002-6-20
+#include "ScriptFrame.h"
+//////////////////////////////////
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -35,6 +38,7 @@ BEGIN_MESSAGE_MAP(ScriptContentTree, CTreeView)
 	ON_WM_CREATE()
 	ON_NOTIFY_REFLECT(NM_DBLCLK, OnDblclk)
 	ON_NOTIFY_REFLECT(TVN_SELCHANGED, OnSelchanged)
+	ON_WM_LBUTTONDBLCLK()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -171,6 +175,7 @@ void ScriptContentTree::OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult)
 		m_pDoc->m_pSelectedTest = 0;
 
 	*pResult = 0;
+
 }
 
 //
@@ -190,4 +195,27 @@ void ScriptContentTree::OnDblclk(NMHDR* pNMHDR, LRESULT* pResult)
 #endif
 
 	*pResult = 0;
+}
+
+//******************************************************************
+//	Author:		Yajun Zhou
+//	Date:		2002-7-12
+//	Purpose:	Auto-scroll to the interrelated text in the edit pane
+//				when double-clicking on a test item.  
+//******************************************************************
+void ScriptContentTree::OnLButtonDblClk(UINT nFlags, CPoint point) 
+{
+	UINT uFlags;
+	HTREEITEM htItem = m_pTreeCtrl->HitTest(point, &uFlags);
+	
+	if ((htItem != NULL) && (TVHT_ONITEM & uFlags))
+	{
+		ScriptBasePtr	pElem = (ScriptBasePtr)m_pTreeCtrl->GetItemData( htItem );
+		
+		ScriptFrame* pCFrm = (ScriptFrame*)GetParentFrame();
+		pCFrm->SetActiveView(m_pEditView);
+		m_pEditView->SetLine(pElem->baseLineStart+1);
+	}
+	
+	CTreeView::OnLButtonDblClk(nFlags, point);
 }
