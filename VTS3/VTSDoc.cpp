@@ -43,6 +43,7 @@ IMPLEMENT_DYNCREATE(VTSDoc, CDocument)
 BEGIN_MESSAGE_MAP(VTSDoc, CDocument)
 	//{{AFX_MSG_MAP(VTSDoc)
 	ON_COMMAND(ID_VIEW_STATISTICS, OnViewStatistics)
+	ON_COMMAND(ID_FILE_SAVE, OnFileSave)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -2216,4 +2217,10 @@ void VTSDevicePort::SendData( BACnetOctet *data, int len )
 
 	// pass it along to the device to process
 	m_pDevice->SendAPDU( apdu );
+}
+
+void VTSDoc::OnFileSave() 
+{
+	// TODO: Add your command handler code here
+	
 }
