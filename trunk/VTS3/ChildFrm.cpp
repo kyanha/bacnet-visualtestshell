@@ -246,7 +246,7 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
     m_pFloatingFrameClass = RUNTIME_CLASS(CSCBMiniDockFrameWnd);
 	#endif //_SCB_REPLACE_MINIFRAME
 	
-	if (!m_pwndEPICSViewBar->Create(_T("EPICS View (Not Implemented Yet)"), this, 125))
+	if (!m_pwndEPICSViewBar->Create(_T("EPICS View"), this, 125))
 	{
 	    TRACE0("Failed to create EPICS mybar\n");
 		return -1;
@@ -1011,7 +1011,7 @@ void CChildFrame::OnReadAllProperty()
 	CString strFileName;
 	CReadAllPropSettingsDlg dlg;
 
-	if ( gPICSdb && dlg.DoModal() == IDOK && CreateScriptFile(&strFileName, &dlg) )
+	if ( gPICSdb && dlg.DoModal() == IDOK && CreateScriptFile(&strFileName, &dlg, 0) )
 	{
 		// Open the file (with frame) and kill it from the recent list
 		if ( AfxGetApp()->OpenDocumentFile(strFileName) != NULL )
@@ -1019,6 +1019,28 @@ void CChildFrame::OnReadAllProperty()
 
 		// Should we delete the file?
 		// DeleteFile(strFileName);
+	}
+}
+
+
+// For protected access
+// madanner 8/04
+
+void CChildFrame::DoReadAllProperties()
+{
+	OnReadAllProperty();
+}
+
+void CChildFrame::DoReadSingleProperties( LPCSTR lpszFileName, unsigned long ulObjectID )
+{
+	CString strFileName = lpszFileName;
+	CReadAllPropSettingsDlg dlg;
+
+	if ( gPICSdb && dlg.DoModal() == IDOK && CreateScriptFile(&strFileName, &dlg, ulObjectID) )
+	{
+		// Open the file (with frame) and kill it from the recent list
+		if ( AfxGetApp()->OpenDocumentFile(strFileName) != NULL )
+			((VTSApp *) AfxGetApp())->GetRecentFileList()->Remove(0);
 	}
 }
 
@@ -1033,7 +1055,7 @@ void CChildFrame::OnReadAllProperty()
 //					  FALSE when fault
 //******************************************************************
 
-BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettingsDlg * pdlg )
+BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettingsDlg * pdlg, unsigned long ulObjectID )
 {
 	// use dynamic memory here so open on create will throw... the same as WriteString
 	CStdioFile	*   pscript;
@@ -1046,7 +1068,11 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 		PICS::generic_object far * pDatabase;
 		static const char	hex[] = "0123456789ABCDEF";
 
-		pscript = new CStdioFile("ReadAllProperties.vts", CFile::modeCreate|CFile::modeWrite);
+		// madanner 8/04
+		if ( pstrFileName->IsEmpty() )
+			*pstrFileName = "ReadAllProperties.vts";
+
+		pscript = new CStdioFile(*pstrFileName, CFile::modeCreate|CFile::modeWrite);
 		*pstrFileName = pscript->GetFilePath();
 		
 		pscript->WriteString(" ;Read All Property Tests\n" \
@@ -1146,6 +1172,12 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 		// Now build each SECTION and TEST for each object
 		for ( nObjNum = 1, pDatabase = gPICSdb->Database;  pDatabase != NULL;  pDatabase = (PICS::generic_object *) pDatabase->next, nObjNum++ )
 		{
+			// madanner 8/04
+			// Added support for single object properties script
+
+			if ( ulObjectID != 0  &&  ulObjectID != pDatabase->object_id )
+				continue;
+
 			str.Format("\n ;-------------------------------------------------------------------------------------\n" \
 				  	     "  SECTION Read Properties of OBJECT%d\n\n", nObjNum);
 			pscript->WriteString(str);

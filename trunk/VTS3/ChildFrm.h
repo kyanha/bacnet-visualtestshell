@@ -71,6 +71,9 @@ public:
 
 	void SaveBarStates(void);
 	void EPICSLoad( LPCSTR lpszFileName );
+	void DoReadAllProperties();
+	void DoReadSingleProperties( LPCSTR lpszFileName, unsigned long ulObjectID );
+
 
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -79,7 +82,7 @@ public:
 
 
 private:
-	BOOL CreateScriptFile( CString * pstrFileName, CReadAllPropSettingsDlg * pdlg );
+	BOOL CreateScriptFile( CString * pstrFileName, CReadAllPropSettingsDlg * pdlg, unsigned long ulObjectID );
 
 // Generated message map functions
 protected:
