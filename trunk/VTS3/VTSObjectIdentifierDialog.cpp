@@ -179,7 +179,8 @@ void VTSObjectIdentifierDialog::OnChangeReserved()
 	// save the new value
 	objType = valu;
 
-	// update the control to reflect the new value	m_ObjTypeCombo.SetCurSel( objType < MAX_DEFINED_OBJ ? objType : MAX_DEFINED_OBJ ); //was 18 replaced by MAX_DEFINED_OBJ
+	// update the control to reflect the new value
+	m_ObjTypeCombo.SetCurSel( objType < MAX_DEFINED_OBJ ? objType : MAX_DEFINED_OBJ ); //was 18 replaced by MAX_DEFINED_OBJ
 
 	// update the encoded id
 	UpdateEncoding( true );
