@@ -2290,10 +2290,14 @@ BACnetObjectIdentifier::BACnetObjectIdentifier( int objType, int instanceNum )
 //	BACnetObjectIdentifier::SetValue
 //
 
-void BACnetObjectIdentifier::SetValue( int objType, int instanceNum )
+void BACnetObjectIdentifier::SetValue( BACnetObjectType objType, int instanceNum )
 {
-	objID = (objType << 22) + instanceNum;
+	objID = ((int)objType << 22) + instanceNum;
 }
+
+//
+//	BACnetObjectIdentifier::Encode
+//
 
 void BACnetObjectIdentifier::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -2359,9 +2363,9 @@ void BACnetObjectIdentifier::Encode( char *enc )
 	sprintf( enc, "%s, %d", s, instanceNum );
 }
 
+#if VTSScanner
 void BACnetObjectIdentifier::Decode( const char *dec )
 {
-#if VTSScanner
 	int		objType, instanceNum
 	;
 
@@ -2409,10 +2413,13 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 
 	// everything checks out
 	objID = (objType << 22) + instanceNum;
-#else
-	throw (-1) /* not implemented */;
-#endif
 }
+#else
+void BACnetObjectIdentifier::Decode( const char * )
+{
+	throw (-1) /* not implemented */;
+}
+#endif
 
 //
 //	BACnetOpeningTag
