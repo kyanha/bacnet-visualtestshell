@@ -655,7 +655,7 @@ void VTSDoc::PortStatusChange( void )
 
 extern int gSelectedGroup, gSelectedItem;
 
-void VTSDoc::DoSendWindow( int iGroup, int iItem )
+CSend * VTSDoc::DoSendWindow( int iGroup, int iItem )
 {
 	CSend		*sendp = new CSend( "Send" )
 	;
@@ -675,6 +675,8 @@ void VTSDoc::DoSendWindow( int iGroup, int iItem )
 	// reset the selection
 	gSelectedGroup = -1;
 	gSelectedItem = -1;
+
+	return sendp;
 }
 
 /////////////////////////////////////////////////////////////////////////////
