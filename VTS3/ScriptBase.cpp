@@ -109,7 +109,9 @@ ScriptToken::ScriptToken( void )
 	, tokenLine( -1 )
 	, tokenOffset(0), tokenLength(0)
 	, tokenValue(""), tokenSymbol(0)
+	, m_nIndex(-1)
 {
+	pTokenIndex = NULL;
 }
 
 //
@@ -122,8 +124,20 @@ ScriptToken::ScriptToken( const ScriptToken& cpy )
 	, tokenLine( cpy.tokenLine )
 	, tokenOffset( cpy.tokenOffset) , tokenLength( cpy.tokenLength )
 	, tokenValue( cpy.tokenValue ), tokenSymbol( cpy.tokenSymbol )
+	, m_nIndex(-1)
 {
+	pTokenIndex = NULL;
+	SetIndex(cpy.pTokenIndex);
 }
+
+
+void ScriptToken::SetIndex( ScriptToken * ptoken )
+{
+	KillIndex();
+	if ( ptoken != NULL )
+		pTokenIndex = new ScriptToken(*ptoken);
+}
+
 
 //
 //	ScriptToken::operator =
@@ -137,7 +151,18 @@ ScriptToken::operator =( const ScriptToken& cpy )
 	tokenLength = cpy.tokenLength;
 	tokenValue = cpy.tokenValue;
 	tokenSymbol = cpy.tokenSymbol;
+	SetIndex(cpy.pTokenIndex);
 }
+
+
+// Kills index token chain
+
+void ScriptToken::KillIndex()
+{
+	if ( pTokenIndex != NULL )
+		delete pTokenIndex;
+}
+
 
 //
 //	ScriptToken::~ScriptToken
@@ -145,6 +170,7 @@ ScriptToken::operator =( const ScriptToken& cpy )
 
 ScriptToken::~ScriptToken( void )
 {
+	KillIndex();
 }
 
 //
@@ -401,6 +427,58 @@ int ScriptToken::Lookup( int code, ScriptTranslateTablePtr tp )
 	return -1;
 }
 
+
+void ScriptToken::ResolveIndex( ScriptParmListPtr parms )
+{
+	if ( pTokenIndex == NULL )
+		return;
+
+	// recurse to start with the ground up... shouldn't be too many.  Don't worry.  Be happy.
+	// This is to support things like junk[junkagain[parm]] and such.  Not fully implemented.
+
+	pTokenIndex->ResolveIndex(parms);
+		
+	CString strError;
+	BACnetUnsigned bacnetIndex;
+
+	switch(pTokenIndex->tokenType)
+	{
+		case scriptValue:
+
+			if ( !pTokenIndex->IsEncodeable(bacnetIndex) )
+				strError.Format(IDS_SCREX_INDEXUNSEXP, tokenValue, pTokenIndex->tokenValue);
+			else
+				m_nIndex = (int) bacnetIndex.uintValue;
+			break;
+
+		case scriptReference:
+
+			// not implemented yet
+			break;
+
+		case scriptKeyword:
+
+//			Could use this call and that would give us lots of conversion power (hex, binary, dec, octal), but
+//			it can't handle things without the base specifier (like '12', etc.).  Too afraid to modify IsInteger
+//			to perform that action at this point.  So, look up the parm ourselves.
+//			if ( !pTokenIndex->IsInteger(m_nIndex, parms) )
+
+			try {		// may return null, try catches it though
+				bacnetIndex.Decode( ((ScriptParmPtr) parms->LookupParm(pTokenIndex->tokenSymbol))->parmValue );
+				m_nIndex = (int) bacnetIndex.uintValue;
+			}
+			catch (...) {
+				strError.Format(IDS_SCREX_INDEXUNSVAR, tokenValue, pTokenIndex->tokenValue);
+			}
+	}
+
+
+	if ( !strError.IsEmpty() )
+		throw CString(strError);
+}
+
+
+
 //
 //	ScriptTokenList::ScriptTokenList
 //
@@ -442,7 +520,8 @@ int ScriptTokenList::Length( void )
 //	ScriptTokenList::operator []
 //
 
-const ScriptToken& ScriptTokenList::operator []( int i )
+//madanner 10/24/02, const removed
+ScriptToken& ScriptTokenList::operator []( int i )
 {
 	POSITION	pos = FindIndex( i )
 	;
@@ -526,9 +605,7 @@ void ScriptScanner::Next( ScriptToken& tok )
 	dst = scanValueBuffer;
 	*dst = 0;
 
-	// deblank
-	while (*scanSrc && isspace(*scanSrc))
-		scanSrc += 1;
+	Deblank();
 
 	// keep track of the start for computing length
 	tStart = scanSrc;
@@ -565,9 +642,7 @@ void ScriptScanner::Next( ScriptToken& tok )
 		while (*scanSrc == '-')
 			scanSrc++;
 
-		// deblank
-		while (*scanSrc && isspace(*scanSrc))
-			scanSrc += 1;
+		Deblank();
 
 		// look for a word
 		while (*scanSrc) {
@@ -575,10 +650,8 @@ void ScriptScanner::Next( ScriptToken& tok )
 			while (*scanSrc && (!isspace(*scanSrc)))
 				*dst++ = *scanSrc++;
 
-			// deblank
-			while (*scanSrc && isspace(*scanSrc))
-				scanSrc += 1;
-
+			Deblank();
+	
 			// copy a blank before the next word
 			if (*scanSrc)
 				*dst++ = ' ';
@@ -728,9 +801,8 @@ FORMAT1:	if (*scanSrc == 'D') {
 
 		case '{':
 			tok.tokenType = scriptReference;
-			// deblank
-			while (*scanSrc && isspace(*scanSrc))
-				scanSrc += 1;
+
+			Deblank();
 
 			// get the name
 			scanValueBuffer[1] = 0;
@@ -747,12 +819,17 @@ FORMAT1:	if (*scanSrc == 'D') {
 			// compute the hash code
 			tok.tokenSymbol = ScriptToken::HashCode( scanValueBuffer + 1 );
 
-			// deblank
-			while (*scanSrc && isspace(*scanSrc))
-				scanSrc += 1;
+			// deal with possible index into property.
+			// Only allow indices in property references (as apposed to var references).
+			// allow cases of {property[int]}, {property[var]}, {property[{property}]}, {property[{property[int]}]}, etc.
+			// Don't allow cases (yet) of var[var], var[int], var[etc.]
+
+			ScanIndexTokens(tok);
+			Deblank();
 
 			if ((*dst++ = *scanSrc++) != '}')
 				FormatError( tok, "Missing close brace" );
+
 			*dst = 0;
 			break;
 	}
@@ -981,13 +1058,21 @@ FORMAT1:	if (*scanSrc == 'D') {
 	// compute the hash code
 	tok.tokenSymbol = ScriptToken::HashCode( scanValueBuffer );
 
+	// deal with possible index into property.
+	// Only allow indices in property references (as apposed to var references).
+	// allow cases of {property[int]}, {property[var]}, {property[{property}]}, {property[{property[int]}]}, etc.
+	// Don't allow cases (yet) of var[var], var[int], var[etc.]
+	// If cases of var[x] are allowed, this call to ScanIndexTokens would work... but it's just too messy when resolving
+	// things at this point.  In addition, parameters are stored as text and arrays are not allowed or
+	// would not be resolved properly.
+
+//	ScanIndexTokens(tok);
+
+	Deblank();
+
 	// check for COMMENT keyword
 	if (tok.tokenSymbol == kwCOMMENT) {
 		dst = scanValueBuffer;
-
-		// deblank
-		while (*scanSrc && isspace(*scanSrc))
-			scanSrc += 1;
 
 		// look for a word
 		while (*scanSrc) {
@@ -995,9 +1080,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 			while (*scanSrc && (!isspace(*scanSrc)))
 				*dst++ = *scanSrc++;
 
-			// deblank
-			while (*scanSrc && isspace(*scanSrc))
-				scanSrc += 1;
+			Deblank();
 
 			// copy a blank before the next word
 			if (*scanSrc)
@@ -1100,6 +1183,45 @@ FORMAT1:	if (*scanSrc == 'D') {
 	// no more special cases
 	return;
 }
+
+
+// madanner 10/24/02
+// suck out the values (or references) in the index.
+// warning:  recusive through ScripScanner.Next()
+
+void ScriptScanner::ScanIndexTokens( ScriptToken & tok )
+{
+	Deblank();
+
+	// check to see if we're about to start an index entry
+	if ( *scanSrc == '[' )
+	{
+		// Process the index recursively.  We should end up with the scan buffer advanced to past
+		// all of the indices.
+
+		ScriptScanner scanAgain(++scanSrc);
+		ScriptToken tokIndex;
+
+		scanAgain.Next(tokIndex);
+		scanSrc = scanAgain.scanSrc;
+
+		Deblank();
+
+		if ( *scanSrc++ != ']' )
+			FormatError(tokIndex, "Missing close bracket ]");
+
+		tok.SetIndex(new ScriptToken(tokIndex));
+	}
+}
+
+
+
+void ScriptScanner::Deblank()
+{
+	while (*scanSrc && isspace(*scanSrc))
+		scanSrc += 1;
+}
+
 
 //
 //	ScriptScanner::Peek

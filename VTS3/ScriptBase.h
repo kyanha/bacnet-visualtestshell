@@ -171,9 +171,12 @@ typedef ScriptParmList *ScriptParmListPtr;
 const int kTokenBufferSize = 8192;
 
 class ScriptToken {
+	private:
+		void KillIndex();									// madanner 10/24/02
+
 	public:
 		ScriptToken( void );								// initialize
-		~ScriptToken( void );
+		virtual ~ScriptToken( void );						// madanner 10/24/02, added virtual
 
 		ScriptToken( const ScriptToken &cpy );				// copy constructor allowed
 		operator =( const ScriptToken &ref );				// assignment allowed
@@ -183,8 +186,14 @@ class ScriptToken {
 		int					tokenSymbol;					// character code or keyword hash code
 		int					tokenLine;						// line number
 		int					tokenOffset, tokenLength;		// char offset and length
+		int					m_nIndex;						// index into value when resolved (-1=all, 0=size, 1>= index)
 
 		CString				tokenValue;						// token value
+
+		ScriptToken *		pTokenIndex;					// madanner 10/24/02, pointer to token for possible index
+
+		void SetIndex( ScriptToken * ptoken );				// madanner 10/24/02, index token chain helper
+		void ResolveIndex(ScriptParmListPtr parms);			// madanner 10/24/02, index token chain built, time to resolve to number
 
 		bool IsInteger( int &valu, ScriptParmListPtr parms = 0 ) const;	// acceptable integer form with parm lookup
 		bool IsInteger( int &valu, ScriptTranslateTablePtr tp ) const;	// with keyword lookup
@@ -212,7 +221,8 @@ class ScriptTokenList : public CList<ScriptTokenPtr,ScriptTokenPtr> {
 		void Append( const ScriptToken& tok );				// add a token (makes a copy)
 
 		int Length( void );									// number of tokens
-		const ScriptToken& operator []( int i );			// index operator
+															//madanner 10/24/02, const removed
+		ScriptToken& operator []( int i );					// index operator
 	};
 
 typedef ScriptTokenList *ScriptTokenListPtr;
@@ -231,6 +241,8 @@ class ScriptScanner {
 		char			scanValueBuffer[kTokenBufferSize];	// current token being built
 
 		void FormatError( ScriptToken &tok, char *msg );	// sets up the token and throws the message
+		void Deblank(void);									// madanner 10/24/02, frequently called
+		void ScanIndexTokens( ScriptToken & tok );			// madanner 10/24/02, scan for [] tokens
 
 	public:
 		const char		*scanSrc;							// ptr to current/next token
