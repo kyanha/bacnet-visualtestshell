@@ -409,8 +409,80 @@ void VTSPreferences::Save( void )
 //			column length as well as the property drop-down list.  Performed same mods to
 //			ReadPropertyMultipleAck and WritePropertyMultiple dialog.  Previously the combos
 //			in the Ack dialog were not large enough to drop-down.
+//	
+//			In relation to the list control problem in the ReadPropertyMultiple bug, a general 
+//			clean up of all dialogs presenting list controls was performed.  The following lists were
+//			affected:
+//				ReadBDTAck
+//								- Added controls for IP / Port creation instead of edit box
+//								- Address defaults and appears in list, rather than empty space item
+//								- List keeps selection, preventing GPF in removals of list items
+//				ReadFDTAck
+//								- Added controls for IP / Port creation instead of edit box
+//								- Address defaults and appears in list, rather than empty space item
+//								- List keeps selection, preventing GPF in removals of list items
+//								- Changed tab order of dialog items
+//				IAmRTN, RouterBusyToNetwork, RouterAvailToNetwork, InitRT, InitRTAck
+//								- Default '1' for DNET address, port (where applicable) default to 0xBAC0
+//								- Address defaults and appears in list, rather than empty space item
+//								- List keeps selection, preventing GPF in removals of list items
+//				UnconfCOVNotification, ConfCOVNotification, CreateObject
+//								- Default 'Present_Value' for property
+//								- Property value appears in list, rather than empty space item
+//								- List keeps selection, preventing GPF in removals of list items
+//				VTClose, VTCloseAck
+//								- Default '1' for Session ID
+//								- ID appears in list, rather than empty space item
+//								- List keeps selection, preventing GPF in removals of list items
+//				WriteFile, ReadFileAck
+//								- Default '(record data)' as string for adding data
+//								- Character data no longer needs to be placed in quotes in edit box (see below)
+//								- Data appears in list instead of empty space
+//								- List keeps selection, preventing GPF in removals of list items
+//				ReadPropMult, ReadPropMultAck, WritePropMult
+//								- Default object ID
+//								- Defaulted data appears in list instead of blank space item
+//								- Resized property drop-downs
+//								- List keeps selection, preventing GPF in removals of list items
+//				GetAlarmSummaryAck, GetEnrollmentSummaryAck
+//								- Default object ID and state
+//								- ID and state appear in list instead of empty space
+//								- Enabled transition checks - checks were previously always disabled 
+//								- List keeps selection, preventing GPF in removals of list items
+//								- Changed 'property' label to 'Event State' for proper field
+//				ComplexObjectType
+//								- Default 'Present_Value' in list
+//								- Property appears in list instead of empty space
+//								- Disabled controls on dialog start when no items in list (formerly enabled)
+//								- List keeps selection, preventing GPF in removals of list items
+//				VTSAny
+//								- List keeps selection, preventing GPF in removals of list items
 //
+//			511345, 511412:  Charstring handling
 //
+//			User was unable to see char string entered for passwords in DCC & Charstring was apparently
+//			not sent to device in WP/WPM.  This problem was actually caused by the method for entering
+//			char strings in edit boxes.  Single or double quotes were required within the edit box to
+//			properly input the desired text for passwords, messages, names, etc..  Strings were using the
+//			script parser to identify strings but this is not necessary in the UI.  Edit fields requiring 
+//			strings throughout VTS have been altered accept what is entered.  If quotes are present, the quotes
+//			are assumed to be part of the text and sent to the device in the relavent BACnet message.  This
+//			change effects the following areas:
+//
+//				SendAckAlarm -> ack source
+//				ConfirmedEventNotification -> message text
+//				ConfirmedTextMessage -> character class, text message
+//				DeviceCommunicationControl -> password (original bug report)
+//				IHave -> object name
+//				ReinitializeDevice -> password
+//				Test? -> character string
+//				UnconfirmedEventNotification -> message text
+//				UnconfirmedTextMessage -> character class, text message
+//				WhoHas -> object name
+//				Any -> character string
+//
+//			Drop-downs for property values have been resized in various places to allow more than only a few
+//			properties to be visible.
 //
 
 
