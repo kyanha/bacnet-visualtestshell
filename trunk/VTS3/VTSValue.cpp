@@ -143,7 +143,7 @@ void VTSObjPropValueList::WriteComponent( int indx, VTSObjPropValueElemDesc& des
 	// if there is no element ID but the new content length is non-zero, create a new object
 	if (!desc.descValue.valueElemID && (desc.descElement.elemLen != 0)) {
 		// allocate a new object
-		objPropDoc->m_pDB->pObjMgr->NewObject( &desc.descValue.valueElemID, objSize );
+		objPropDoc->m_pDB->pObjMgr->NewObject( &desc.descValue.valueElemID, (JDBObjPtr)&desc.descElement, objSize );
 
 		// initialize the element object header
 		desc.descElement.objID = (unsigned char)(desc.descValue.valueElemID & 0xFF);
@@ -156,6 +156,32 @@ void VTSObjPropValueList::WriteComponent( int indx, VTSObjPropValueElemDesc& des
 	// if there's an associated object, write it
 	if (desc.descValue.valueElemID)
 		objPropDoc->m_pDB->pObjMgr->WriteObject( desc.descValue.valueElemID, (JDBObjPtr)&desc.descElement );
+}
+
+//
+//	VTSObjPropValueList::InsertComponent
+//
+
+void VTSObjPropValueList::InsertComponent( int indx, VTSObjPropValueElemDesc& desc )
+{
+	TRACE1( "InsertComponent %d\n", indx );
+
+	// calculate the object size correctly
+	int objSize = kVTSValueElemHeaderLength + desc.descElement.elemLen;		// expected size
+	objSize += (objSize & 1);												// must be even
+
+	// if content length is non zero, create and save an object
+	if (desc.descElement.elemLen != 0) {
+		// allocate a new object
+		objPropDoc->m_pDB->pObjMgr->NewObject( &desc.descValue.valueElemID, (JDBObjPtr)&desc.descElement, objSize );
+
+		// save it
+		objPropDoc->m_pDB->pObjMgr->WriteObject( desc.descValue.valueElemID, (JDBObjPtr)&desc.descElement );
+	} else
+		desc.descValue.valueElemID = 0;
+
+	// insert the value
+	InsertElem( indx, desc.descValue );
 }
 
 //
@@ -387,15 +413,169 @@ void VTSObjPropValueList::Encode( unsigned int objID, int propID, int indx, BACn
 
 void VTSObjPropValueList::Decode( unsigned int objID, int propID, int indx, BACnetAPDUDecoder& dec )
 {
-	CSingleLock lock( &objPropLock )
+	CSingleLock					lock( &objPropLock )
 	;
-	
+	int							i, fini = 0, nest = 0
+	;
+	VTSObjPropValue				val
+	;
+	VTSObjPropValueElemDesc		desc
+	;
+
 	// make sure no other threads are mucking around
 	lock.Lock();
 
 	// if the user is editing, toss out "device configuration in progress" error
 	if (objPropBusy)
-		throw (1);
+		throw (2);
+
+	// look for the start of the obj/prop/indx
+	for (i = 0; i < objPropList.Length(); i++) {
+		objPropList.ReadElem( i, &val );
+		if ((val.valueObjID == objID) && (val.valueProperty == propID))
+			break;
+	}
+
+	// check to see if we found something
+	if ((i >= objPropList.Length()) || (val.valueObjID != objID))
+		throw (31); // unknown-object
+	if (val.valueProperty != propID)
+		throw (32); // unknown-property
+
+	// case 1: looking for a value, got a value
+	if (indx == -1) {
+		// looking for the whole thing
+		if (val.valueIndx != -1)
+			throw (25); // operational-problem, can't write whole array
+
+		// remove the existing content
+		while (i < objPropList.Length()) {
+			objPropList.ReadElem( i, &val );
+			if ((val.valueObjID == objID) && (val.valueProperty == propID))
+				objPropList.DeleteElem( i );
+			else
+				break;
+		}
+	} else
+	if (indx == 0) {
+		// looking for the length of an array
+		if (val.valueIndx == -1)
+			throw (7); // inconsistent-parameters, can't index a simple value
+		else
+		if (val.valueIndx != 0)
+			throw (25); // operational-problem, database configuration error
+
+		// got an array, change the size
+		throw (25); // operational-problem, can't write to array size
+	} else {
+		// looking for a specific element
+		if (val.valueIndx == -1)
+			throw (7); // inconsistent-parameters, can't index a simple value
+		else
+		if (val.valueIndx == 0) {
+			// skip the marker
+			i += 1;
+
+			// scan for a specific index
+			int found = 0;
+			for (; i < objPropList.Length(); i++) {
+				objPropList.ReadElem( i, &val );
+				if ((val.valueObjID != objID) || (val.valueProperty != propID) || (val.valueIndx > indx))
+					break;
+
+				if (val.valueIndx == indx) {
+					found = 1;
+					break;
+				}
+			}
+
+			// make sure we've got something
+			if (!found)
+				throw (42); // invalid-array-index
+
+			// remove the existing content
+			while (i < objPropList.Length()) {
+				objPropList.ReadElem( i, &val );
+				if ((val.valueObjID == objID) && (val.valueProperty == propID) && (val.valueIndx == indx))
+					objPropList.DeleteElem( i );
+				else
+					break;
+			}
+		} else
+			throw (25); // operational-problem, database configuration error
+	}
+
+	// put in the new stuff
+	BACnetAPDUTag	t
+	;
+
+	// the major section will be the same
+	desc.descValue.valueObjID = objID;
+	desc.descValue.valueProperty = propID;	// property identifier
+	desc.descValue.valueIndx = indx;		// element index
+
+	// first piece will be component 0
+	desc.descValue.valueComponent = 0;
+
+	// scan through the rest of the data
+	while (!fini && (dec.pktLength > 0)) {
+		try {
+			// get a peek at the tag
+			dec.ExamineTag( t );
+
+			switch (t.tagClass) {
+				case contextTagClass:
+					// set this as an octet string.  Because it is context tagged, the datatype connot
+					// be determined, the context isn't maintained.  It could be, because we know the 
+					// object type and property, and we could even validate the datatype along the 
+					// way, but that will be saved for future work.
+					desc.descValue.valueType = octetStringAppTag;
+					desc.descValue.valueContext = (int)t.tagNumber;
+					break;
+					
+				case openingTagClass:
+					// nested
+					nest++;
+
+					desc.descValue.valueType = 13;	// opening tag
+					desc.descValue.valueContext = (int)t.tagNumber;
+					break;
+					
+				case closingTagClass:
+					// not nested so deep
+					if (!nest--) {
+						fini = 1;
+						break;
+					}
+
+					desc.descValue.valueType = 14;	// closing tag
+					desc.descValue.valueContext = (int)t.tagNumber;
+					break;
+				
+				case applicationTagClass:
+					desc.descValue.valueType = t.tagNumber;	// tag number matches type
+					desc.descValue.valueContext = -1;
+					break;
+			}
+		}
+		catch (...) {
+			// decoding error
+			break;
+		}
+
+		// done yet?
+		if (fini)
+			break;
+
+		// copy the tag and data to the element
+		desc.descElement.elemLen = dec.ExtractTagData( desc.descElement.elemContent );
+		
+		// save what we just built
+		InsertComponent( i++, desc );
+
+		// get ready for the next component
+		desc.descValue.valueComponent += 1;
+	}
 
 	// be nice and release it before returning
 	lock.Unlock();
@@ -448,8 +628,12 @@ CString VTSObjPropValueList::DescribeValue( int indx )
 		// get a description of it
 		CString comp = DescribeComponent( cur );
 
+		// figure out the length
+		int rsltLen = rslt.GetLength();
+		int compLen = comp.GetLength();
+
 		// get a buffer big enough to hold the results
-		LPTSTR p = rslt.GetBuffer( rslt.GetLength() + comp.GetLength() + 3 );
+		LPTSTR p = rslt.GetBuffer( rsltLen + compLen + 3 );
 
 		// comma seaparated list of values
 		if (needsComma && (cur.descValue.valueType != 14))		// closeTag
@@ -459,7 +643,7 @@ CString VTSObjPropValueList::DescribeValue( int indx )
 		lstrcat( p, comp );
 
 		// release the buffer
-		rslt.ReleaseBuffer( );
+		rslt.ReleaseBuffer();
 
 		needsComma = (cur.descValue.valueType != 13);			// openTag
 	}
@@ -594,7 +778,8 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 				}
 	}
 
-	TRACE1( "DescribeComponent '%s'\n", rslt );
+	// release the buffer
+	rslt.ReleaseBuffer( );
 
 	// all done
 	return rslt;

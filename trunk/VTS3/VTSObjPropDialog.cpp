@@ -103,6 +103,7 @@ BOOL VTSObjPropDialog::OnInitDialog()
 
 		// translate the ID into readable text
 	    BACnetObjectIdentifier( objID ).Encode( buff.GetBuffer(32) );
+		buff.ReleaseBuffer();
 
 		// add it to the list
 		m_ObjectList.InsertItem( i, buff );
@@ -142,6 +143,7 @@ void VTSObjPropDialog::SetObjSelection( int indx )
 
 	// translate the ID into readable text
 	BACnetObjectIdentifier( objID ).Encode( m_ObjectID.GetBuffer(32) );
+	m_ObjectID.ReleaseBuffer();
 
 	// bind the property list to the new object
 	m_dPropList.Bind( objID );
@@ -231,6 +233,7 @@ void VTSObjPropDialog::OnAddObject()
 
 	// translate the ID into readable text
     BACnetObjectIdentifier( objID ).Encode( buff.GetBuffer(32) );
+	buff.ReleaseBuffer();
 
 	// add an item to the list
 	m_ObjectList.InsertItem( i, buff );
@@ -314,6 +317,8 @@ void VTSObjPropDialog::OnChangeObjectID()
 
 	// update the list version
 	id.Encode( buff.GetBuffer(32) );
+	buff.ReleaseBuffer();
+
 	m_ObjectList.SetItemText( m_iSelectedObj, 0, buff );
 
 }
@@ -361,6 +366,8 @@ void VTSObjPropDialog::OnObjectIDButton()
 		// update the list version
 		id.objID = newID;
 		id.Encode( m_ObjectID.GetBuffer(32) );
+		m_ObjectID.ReleaseBuffer();
+
 		m_ObjectList.SetItemText( m_iSelectedObj, 0, m_ObjectID );
 
 		// let the CDialog sync the controls with the local vars

@@ -158,6 +158,7 @@ class VTSObjPropValueList {
 
 		void ReadComponent( int indx, VTSObjPropValueElemDesc& desc );
 		void WriteComponent( int indx, VTSObjPropValueElemDesc& desc );
+		void InsertComponent( int indx, VTSObjPropValueElemDesc& desc );
 
 		int ScanList( VTSObjPropValueProc fp, int startIndx = 0 );		// cycle through the elements
 
