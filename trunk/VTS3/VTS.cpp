@@ -492,6 +492,12 @@ void VTSPreferences::Save( void )
 //			retries, etc, as necessary.  Properly configuring a built-in device object and binding it to a 
 //			port will be part of a separate document.
 //
+//			511406:  Status flags in a variable comp fails
+//
+//			Comparisons for status flags in RP/M, WP/M work properly now.  This problem was caused
+//			by reading one byte passed the encoded PDU for the bitstring.  The comparison failed 
+//			because the tag was being interpreted as part of the incoming bitstring.
+//
 
 const int kReleaseVersion = 9;
 
