@@ -54,6 +54,7 @@
 </ul>
 </ul>
 <li><a href="#alp">Application Layer Packets</a>
+<li><a href="#sc">Severity Codes in Tests</a>
 </ul>
 
 <hr>
@@ -945,6 +946,32 @@ If there is a name called 'IUT' defined then this parameter may be omitted.</p>
 <p><b>addr</b> is an octet string.</p>
 
 <p>After the <code>PDU</code> is provided, the packet contents are formed (and checked) as above.</p>
+
+<h2><a name="sc">Severity Codes in Tests</a></h2>
+
+<p>Messages from the script interpreter are generated during script execution.  These messages have a 
+'severity code' that is visible in the detail view of a message.  These codes are designed to allow future 
+versions of VTS to color code the summary window according to 'severity' and be available when display 
+filters are implemented.</p>
+
+<p>There are currently three severity codes:</p>
+
+<blockquote>
+<p><b>1</b> This code is used when the script interpreter starts or stops a test.  A test may be started 
+by selecting a test in the script edit window and running a single test, or by running all tests.  A 
+test may stop because it passes, fails (a SEND or EXPECT statement fails), or is halted by the user.<p>
+
+<p><b>2</b> This code is used when the user manually controls the script execution.  Each step, step/pass,
+and step/fail as signaled by the user is recorded.  These are recorded because the user may skip some 
+portion of the test that would otherwise cause the test to fail.<p>
+
+<p><b>3</b> This code is used when the interpreter cannot execute a statement.  A failing condition might 
+be that some timer has expired or the packet doesn't contain the expected contents.</p>
+
+A failing statement may not necessarily fail the test.  For example, the form <code>EXPECT () OR ()</code> 
+has two different packets that are accepted.  If the first one fails then that will be logged, but if the 
+second succeeds, the the test might succeed.<p>
+</blockquote>
 
 </body>
 </html>
