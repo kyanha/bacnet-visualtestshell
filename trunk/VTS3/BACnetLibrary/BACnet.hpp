@@ -1247,6 +1247,9 @@ class BACnetAnyValue : public BACnetObjectContainer
 		void SetObject( int nNewType, BACnetEncodeable * pbacnetEncodeable );
 		virtual void SetObject( BACnetEncodeable * pbacnetEncodeable );		// to derive type
 
+		//madanner 9/04, static factory
+		static BACnetAnyValue * BACnetAnyValue::Factory( int nParseType, BACnetAPDUDecoder & dec );
+
 		DECLARE_DYNAMIC(BACnetAnyValue)
 };
 
