@@ -489,8 +489,8 @@ char *BACnetObjectTypesSupported[] = {
    "MULTISTATE-OUTPUT",     /* 14 */
    "NOTIFICATION-CLASS",    /* 15 */
    "PROGRAM",               /* 16 */
-   "SCHEDULE"               /* 17 */
-   "AVERAGING"          /* 18 */
+   "SCHEDULE",               /* 17 */
+   "AVERAGING",             /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
    "TRENDLOG"           /* 20 */
    };
