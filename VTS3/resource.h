@@ -404,7 +404,6 @@
 #define IDC_STATICUTCTIMEFMT            1211
 #define IDC_STATICUTCRANGE              1212
 #define IDC_EDIT_LINEINDEX              1213
-#define IDC_PORT                        1213
 #define IDC_BDTPORT                     1213
 #define IDC_TOTALSENT                   1213
 #define IDC_TOTALSEND                   1213
