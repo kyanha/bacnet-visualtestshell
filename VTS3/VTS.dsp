@@ -750,10 +750,6 @@ SOURCE=.\VTSPortIPDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSQueue.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\VTSRecipientProcess.cpp
 # End Source File
 # Begin Source File
