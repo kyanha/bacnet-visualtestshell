@@ -18,6 +18,7 @@ static char THIS_FILE[] = __FILE__;
 #define IDC_PACKETDATA	0x1003
 #define IDC_SEND		0x1004
 #define IDC_HISTORY     0x1005 //Xiao Shiyuan 2002-12-5
+#define IDC_TRANSMIT_CLOSE 0x1006  // MAG 27 OCT 03
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -438,6 +439,7 @@ BEGIN_MESSAGE_MAP(CSend, CPropertySheet)
 	ON_NOTIFY( TVN_ITEMEXPANDEDA, IDC_PACKETTREE, OnItemExpandedPacketTree)
 	ON_NOTIFY( TVN_ITEMEXPANDEDW, IDC_PACKETTREE, OnItemExpandedPacketTree)
 	ON_BN_CLICKED( IDC_SEND, OnSend )
+		 ON_BN_CLICKED( IDC_TRANSMIT_CLOSE, OnTransmitClose )
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -470,10 +472,12 @@ void CSend::UpdateEncoded( void )
 		for (i = lastPage; i >= 0; i--)
 			m_pages[i]->EncodePage( &contents );
 		m_send.EnableWindow( true );
+		 		 m_transmit_close.EnableWindow( true );
 	}
 	catch (char *errTxt) {
 		m_packetData.SetWindowText( errTxt );
 		m_send.EnableWindow( false );
+		 		 m_transmit_close.EnableWindow( false );
 		return;
 	}
 
@@ -579,12 +583,22 @@ BOOL CSend::OnInitDialog()
 	GetWindowRect( rectWnd );
 	ScreenToClient( &rectWnd );
 	//int hmiddle = rectWnd.right - (kTreeWidth / 2);
-	CRect rectSend( rectWnd.right - 120, rectWnd.bottom - 50
-		, rectWnd.right - 10, rectWnd.bottom - 19
-		);
-	m_send.Create( "Send", BS_PUSHBUTTON
+		 
+		 // MAG modify bottom parameters
+		 CRect rectSend( rectWnd.right - 120, rectWnd.bottom - 60
+		 		 , rectWnd.right - 10, rectWnd.bottom - 35
+		 		 );
+		 m_send.Create( "Send", BS_PUSHBUTTON
 		| WS_CHILD | WS_VISIBLE | WS_TABSTOP
 		, rectSend, this, IDC_SEND
+		 		 );
+		 // MAG add second button
+		 CRect rectSend2( rectWnd.right - 120, rectWnd.bottom - 30
+		 		 , rectWnd.right - 10, rectWnd.bottom - 5
+		 		 );
+		 m_transmit_close.Create( "Send && Close", BS_PUSHBUTTON
+		 		 | WS_CHILD | WS_VISIBLE | WS_TABSTOP
+		 		 , rectSend2, this, IDC_TRANSMIT_CLOSE
 		);
 
 	// create the history combo box. Xiao Shiyuan
@@ -601,6 +615,7 @@ BOOL CSend::OnInitDialog()
 
 	// disable it until a port is selected
 	m_send.EnableWindow( false );
+		 m_transmit_close.EnableWindow( false );
 
 	// put it in the middle
 	CenterWindow();
@@ -662,7 +677,7 @@ void CSend::ChangePort( int indx )
 
 	// enable the send button if a port is selected
 	m_send.EnableWindow( indx != 0 );
-
+		 m_transmit_close.EnableWindow( indx != 0 );
 	// return to a null page
 	SetNullPageList();
 
@@ -991,6 +1006,14 @@ void CSend::OnSend()
 		UpdateEncoded();
 	}
 }
+
+// MAG 27 OCT 03 add subroutine to close send/transmit window when 'Transmit/Close' is pressed
+// SourceForge bug 444179
+void CSend::OnTransmitClose(){
+		 OnSend();
+		 this->PostNcDestroy();
+}
+
 
 //Xiao Shiyuan 2002-12-5
 void CSend::SetHistoryComboBox(int count)
