@@ -86,6 +86,7 @@ IDB_SCRIPTMAKE          BITMAP  DISCARDABLE     "res\\BACnetMake.bmp"
 IDB_SCRIPTCHECK         BITMAP  DISCARDABLE     "res\\BACnetCheck.bmp"
 IDB_DEVTREE             BITMAP  DISCARDABLE     "res\\devtree.bmp"
 IDB_BMALOGO             BITMAP  DISCARDABLE     "res\\AboutBox.bmp"
+IDB_NBLINK              BITMAP  DISCARDABLE     "res\\nblink.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -609,6 +610,26 @@ BEGIN
     COMBOBOX        IDC_DADRCOMBO,65,60,60,75,CBS_DROPDOWN | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_DADR,130,60,95,12,ES_AUTOHSCROLL
+END
+
+IDD_SENDMSTP DIALOG DISCARDABLE  0, 0, 300, 234
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "MS/TP"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Source",IDC_STATIC,10,41,50,10
+    COMBOBOX        IDC_SADRCOMBO,65,40,60,75,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_SADR,130,40,32,12,ES_AUTOHSCROLL
+    LTEXT           "Destination",IDC_STATIC,10,61,50,10
+    COMBOBOX        IDC_DADRCOMBO,65,60,60,75,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_DADR,130,60,32,12,ES_AUTOHSCROLL
+    LTEXT           "0 - 254",IDC_STATIC,167,43,79,8
+    LTEXT           "0 - 254, 255=broadcast",IDC_STATIC,167,63,79,8
+    LTEXT           "Frame Type:",IDC_STATIC,9,83,46,8
+    COMBOBOX        IDC_MSTPFRTYPECOMBO,65,82,140,59,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_SENDIAMRTN DIALOG DISCARDABLE  0, 0, 300, 234
@@ -2632,12 +2653,25 @@ BEGIN
     LTEXT           "ARCNET not implemented.",IDC_STATIC,7,7,86,8
 END
 
-IDD_PORTPAGE_MSTP DIALOG DISCARDABLE  0, 0, 112, 38
+IDD_PORTPAGE_MSTP DIALOGEX 0, 0, 204, 113
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "MSTP"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    LTEXT           "MSTP not implemented.",IDC_STATIC,7,7,76,8
+    EDITTEXT        IDC_MSTPMAC,65,4,34,12,ES_AUTOHSCROLL | WS_GROUP
+    EDITTEXT        IDC_MSTPMAXMASTER,65,20,34,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_MSTPMAXINFO,65,36,34,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_MSTPBAUD,65,52,52,61,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_MSTPIMP,65,75,105,34,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_GROUP | WS_TABSTOP
+    PUSHBUTTON      "Configure Implementation...",ID_MSTPCONFIGIMP,65,91,105,
+                    12
+    LTEXT           "MAC Address:",IDC_STATIC,4,6,58,10,0,WS_EX_RIGHT
+    LTEXT           "Max Master:",IDC_STATIC,4,23,58,10,0,WS_EX_RIGHT
+    LTEXT           "Max Info Frames:",IDC_STATIC,4,38,58,10,0,WS_EX_RIGHT
+    LTEXT           "Baud Rate:",IDC_STATIC,4,54,58,10,0,WS_EX_RIGHT
+    LTEXT           "Implementation:",IDC_STATIC,4,78,58,10,0,WS_EX_RIGHT
 END
 
 IDD_PREFERENCES DIALOG DISCARDABLE  0, 0, 280, 97
@@ -2922,6 +2956,44 @@ BEGIN
     LTEXT           "to",IDC_STATIC,244,69,9,8
     LTEXT           "Network Number",IDC_STATIC,18,76,57,8
     LTEXT           "MAC Address",IDC_STATIC,18,95,45,8
+END
+
+IDD_MSTPIMP_NBLINK DIALOGEX 0, 0, 377, 182
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "MS/TP NB-Link Implementation Parameters"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_NBLINKSOCKET,207,10,38,12,ES_AUTOHSCROLL | WS_GROUP
+    CONTROL         "IPAddress1",IDC_NBLINKADDR,"SysIPAddress32",WS_TABSTOP,
+                    207,26,100,13
+    CONTROL         "IPAddress1",IDC_NBLINKSUBNETMASK,"SysIPAddress32",
+                    WS_TABSTOP,207,43,100,13
+    CONTROL         "IPAddress1",IDC_NBLINKGATEWAY,"SysIPAddress32",
+                    WS_TABSTOP,207,60,100,13
+    EDITTEXT        IDC_NBLINKLOCALPORT,207,77,38,12,ES_AUTOHSCROLL
+    CONTROL         "Check && reset (if necessary) on startup?",
+                    IDC_NBLINKSTARTUP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    207,93,139,10
+    CONTROL         "Use this address to set locate NB-Link when setting parameters",
+                    IDC_NBLINKRESET,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,148,142,215,12
+    CONTROL         "IPAddress1",IDC_NBLINKRESETADDR,"SysIPAddress32",
+                    WS_GROUP | WS_TABSTOP,147,156,100,12
+    DEFPUSHBUTTON   "OK",IDOK,320,7,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,320,24,50,14,NOT WS_TABSTOP
+    PUSHBUTTON      "Apply && Reset",ID_APPLY,295,155,67,14,NOT WS_TABSTOP
+    LTEXT           "Listen Port:",IDC_STATIC,141,12,60,10,0,WS_EX_RIGHT
+    LTEXT           "17284 = default",IDC_STATIC,251,12,53,10
+    LTEXT           "NB-Link Address:",IDC_STATIC,141,29,60,10,0,WS_EX_RIGHT
+    LTEXT           "Subnet Mask:",IDC_STATIC,141,46,60,10,0,WS_EX_RIGHT
+    LTEXT           "Local Port:",IDC_STATIC,141,80,60,10,0,WS_EX_RIGHT
+    LTEXT           "10001 = default",IDC_STATIC,251,80,53,10
+    GROUPBOX        "Adjustments to any parameters require an NB-Link reset",
+                    IDC_STATIC,141,107,229,68
+    LTEXT           "These parameters can be set in the NB-Link device now by using the reset button instead of VTS performing the configuration on startup.",
+                    IDC_STATIC,147,121,218,21
+    CONTROL         284,IDC_STATIC,"Static",SS_BITMAP,7,7,126,168
+    LTEXT           "Gateway Address:",IDC_STATIC,141,63,60,10,0,WS_EX_RIGHT
 END
 
 
@@ -3751,10 +3823,10 @@ BEGIN
 
     IDD_PORTPAGE_MSTP, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 105
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 31
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 200
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 109
     END
 
     IDD_PREFERENCES, DIALOG
@@ -3858,6 +3930,14 @@ BEGIN
         RIGHTMARGIN, 315
         TOPMARGIN, 7
         BOTTOMMARGIN, 201
+    END
+
+    IDD_MSTPIMP_NBLINK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 370
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 175
     END
 END
 #endif    // APSTUDIO_INVOKED
