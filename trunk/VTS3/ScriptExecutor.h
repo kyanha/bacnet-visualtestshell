@@ -11,6 +11,7 @@
 
 #include <afxmt.h>
 #include <afxtempl.h>
+#include <float.h>
 
 #include "VTSDoc.h"
 #include "ScriptBase.h"
@@ -19,6 +20,18 @@
 
 #include "BACnet.hpp"
 #include "VTSQueue.h"
+
+// madanner, 9/30/02
+// equates for priority arrays inside internal EPICS store
+// already defined in stdobj.h for dudtool.
+// had to include here for Create helper functions
+
+#ifndef fpaNULL
+#define	fpaNULL				FLT_MIN				//too bad we can't use NAN
+#define bpaNULL				2					//binary present values are 0 and 1
+#define upaNULL				0xFFFF				//can't use more than 65534 enumerations, too bad
+#define nPRIO 16				    // size of priority arrays
+#endif
 
 //
 //	ScriptExecMsg
@@ -200,8 +213,10 @@ class ScriptExecutor : public BACnetTask {
 			public:
 				const char		*errMsg;
 				int				errLineNo;
+				char			szBuf[512];
 
 				ExecError( const char *msg, int lineNo = -1 );
+				ExecError( CString & str, int lineNo = -1 );
 			};
 
 		ScriptExecMsgQueue		execMsgQueue;	// messages to application
@@ -343,6 +358,10 @@ class ScriptExecutor : public BACnetTask {
 		void ExpectALPropertyIdentifier( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec );
 		void ExpectALOpeningTag( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec );
 		void ExpectALClosingTag( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec );
+
+		// madanner 9/25/02
+		void GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny );
+		void CompareAndThrowError( BACnetEncodeable & rbacnet1, BACnetEncodeable & rbacnet2, int iOperator, unsigned int nError );
 
 		ScriptPacketExprPtr GetKeywordValue( int keyword, BACnetEncodeable &enc, ScriptTranslateTablePtr tp = 0 );
 
