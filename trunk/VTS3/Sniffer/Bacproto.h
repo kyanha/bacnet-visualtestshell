@@ -170,6 +170,8 @@
 #define MAXIMUM_VALUE_TIMESTAMP               149
 #define MINIMUM_VALUE_TIMESTAMP               150
 #define VARIANCE_VALUE 			              151
+#define ACTIVE_COV_SUBSCRIPTION	              152  //Xiao Shiyuan 2002-7-23
+#define PROFILE_NAME                          168  //Xiao Shiyuan 2002-7-23
 /* ----- prototypes for interpreter functions ----- */
 
 int     interp_bacnet_IP( char *header, int length);
@@ -318,6 +320,7 @@ void     show_bac_weeknday(void);
 void     show_log_buffer( void );
 void     show_logDatum_choice( void );
 void     show_bac_result_flags( unsigned int);
+void     show_bac_COV_Subscription(); //Xiao Shiyuan 2002-7-23
 
 /*  ----- prototypes extracting information from object identifiers ----- */
 
