@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I ".\JLib" /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
 # ADD LINK32 version.lib macdll/ptp/release/ptp.lib /nologo /subsystem:windows /machine:I386
-# SUBTRACT LINK32 /pdb:none
+# SUBTRACT LINK32 /pdb:none /debug
 
 !ELSEIF  "$(CFG)" == "VTS - Win32 Debug"
 
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "." /I ".\JLib" /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "." /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 version.lib macdll/ptp/debug/ptp.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"LIBCMT" /pdbtype:sept
+# ADD LINK32 version.lib macdll/PTP/debug/PTP.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"LIBCMT" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -238,55 +238,11 @@ SOURCE=.\HexView.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\JLib\JDB.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBArray.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBKey.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBList.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBObj.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBOctetStringObj.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBProp.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBRelation.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBStringObj.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JFile.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JMemory.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JTextFile.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\LineNumCtrl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ListSummaryCache.cpp
 # End Source File
 # Begin Source File
 
@@ -299,6 +255,10 @@ SOURCE=.\MainFrm.cpp
 # Begin Source File
 
 SOURCE=.\md5.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\PacketFileDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -404,10 +364,6 @@ SOURCE=.\ScriptReference.cpp
 # Begin Source File
 
 SOURCE=.\ScriptSection.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ScriptSelectSession.cpp
 # End Source File
 # Begin Source File
 
@@ -780,15 +736,31 @@ SOURCE=.\DUDAPI\Vtsapi32.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSBACnetTypeGenericPage.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSCtrl.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSDB.cpp
+SOURCE=.\VTSDevicesTreeDevPage.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSDevicesDlg.cpp
+SOURCE=.\VTSDevicesTreeDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDevicesTreeObjPage.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDevicesTreePropPage.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDevicesTreeValuePage.cpp
 # End Source File
 # Begin Source File
 
@@ -840,15 +812,15 @@ SOURCE=.\VTSObjectIdentifierDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSObjPropArrayDialog.cpp
+SOURCE=.\VTSPacket.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSObjPropDialog.cpp
+SOURCE=.\VTSPacketDB.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSObjPropValueDialog.cpp
+SOURCE=.\VTSPortARCNETDialog.cpp
 # End Source File
 # Begin Source File
 
@@ -864,7 +836,27 @@ SOURCE=.\VTSPortIPDialog.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSPortMSTPDialog.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ptp\VTSPortPTPDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPreferences.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPreferencesDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyPage.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropValue.cpp
 # End Source File
 # Begin Source File
 
@@ -885,10 +877,6 @@ SOURCE=.\Statistics\VTSStatisticsOptionsDlg.cpp
 # Begin Source File
 
 SOURCE=.\VTSTimeStamp.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\VTSValue.cpp
 # End Source File
 # Begin Source File
 
@@ -1044,63 +1032,11 @@ SOURCE=.\GetMACAddress\IPTypes.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\JLib\JConfig.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDB.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBArray.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBKey.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBList.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBObj.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBOctetStringObj.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBProp.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBRelation.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JDBStringObj.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JError.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JFile.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JMemory.hpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\JLib\JTextFile.hpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\LineNumCtrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ListSummaryCache.h
 # End Source File
 # Begin Source File
 
@@ -1117,6 +1053,10 @@ SOURCE=.\md5.h
 # Begin Source File
 
 SOURCE=.\BACnetLibrary\NTDDNDIS.H
+# End Source File
+# Begin Source File
+
+SOURCE=.\PacketFileDlg.h
 # End Source File
 # Begin Source File
 
@@ -1217,10 +1157,6 @@ SOURCE=.\ScriptParmList.h
 # Begin Source File
 
 SOURCE=.\ScriptParmUpdate.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ScriptSelectSession.h
 # End Source File
 # Begin Source File
 
@@ -1600,15 +1536,31 @@ SOURCE=.\DUDAPI\Vtsapi.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSBACnetTypeGenericPage.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSCtrl.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSDB.h
+SOURCE=.\VTSDevicesTreeDevPage.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSDevicesDlg.h
+SOURCE=.\VTSDevicesTreeDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDevicesTreeObjPage.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDevicesTreePropPage.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDevicesTreeValuePage.h
 # End Source File
 # Begin Source File
 
@@ -1660,15 +1612,15 @@ SOURCE=.\VTSObjectIdentifierDialog.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSObjPropArrayDialog.h
+SOURCE=.\VTSPacket.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSObjPropDialog.h
+SOURCE=.\VTSPacketDB.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\VTSObjPropValueDialog.h
+SOURCE=.\VTSPortARCNETDialog.h
 # End Source File
 # Begin Source File
 
@@ -1684,7 +1636,27 @@ SOURCE=.\VTSPortIPDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSPortMSTPDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ptp\VTSPortPTPDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPreferences.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPreferencesDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropertyPage.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPropValue.h
 # End Source File
 # Begin Source File
 
@@ -1709,10 +1681,6 @@ SOURCE=.\Statistics\VTSStatisticsOptionsDlg.h
 # Begin Source File
 
 SOURCE=.\VTSTimeStamp.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\VTSValue.h
 # End Source File
 # Begin Source File
 
@@ -1744,6 +1712,10 @@ SOURCE=.\WPRPList.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
+SOURCE=.\res\AboutBox.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\BACnetCheck.bmp
 # End Source File
 # Begin Source File
@@ -1764,6 +1736,10 @@ SOURCE=.\res\bitmap1.bmp
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\BMALogo.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\bmp00001.bmp
 # End Source File
 # Begin Source File
@@ -1780,11 +1756,19 @@ SOURCE=.\res\cursor2.cur
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\devtree.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\idr_vtst.ico
 # End Source File
 # Begin Source File
 
 SOURCE=.\res\packettr.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\Scripttool.bmp
 # End Source File
 # Begin Source File
 
@@ -1806,6 +1790,14 @@ SOURCE=.\res\VTS.rc2
 
 SOURCE=.\res\VTSDoc.ico
 # End Source File
+# Begin Source File
+
+SOURCE=.\res\WinPCapLogo.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\WorkSpcTool.bmp
+# End Source File
 # End Group
 # Begin Source File
 
@@ -1814,10 +1806,6 @@ SOURCE=.\ReadMe.txt
 # Begin Source File
 
 SOURCE=.\VTS.reg
-# End Source File
-# Begin Source File
-
-SOURCE=.\macdll\ptp\ptp.lib
 # End Source File
 # Begin Source File
 
