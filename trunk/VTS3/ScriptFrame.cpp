@@ -63,7 +63,6 @@ IMPLEMENT_DYNCREATE(ScriptFrame, CMDIFrameWnd)
 BEGIN_MESSAGE_MAP(ScriptFrame, CMDIFrameWnd)
 	//{{AFX_MSG_MAP(ScriptFrame)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_CHECK_SYNTAX, OnUpdateScriptCheckSyntax)
-	ON_UPDATE_COMMAND_UI(ID_SCRIPT_LOADEPICS, OnUpdateScriptLoadEPICS)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_ENV, OnUpdateScriptEnvironment)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_RUN, OnUpdateScriptRun)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_HALT, OnUpdateScriptHalt)
@@ -73,7 +72,6 @@ BEGIN_MESSAGE_MAP(ScriptFrame, CMDIFrameWnd)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_KILL, OnUpdateScriptKill)
 	ON_UPDATE_COMMAND_UI(ID_SCRIPT_RESET, OnUpdateScriptReset)
 	ON_COMMAND(ID_SCRIPT_CHECK_SYNTAX, OnScriptCheckSyntax)
-	ON_COMMAND(ID_SCRIPT_LOADEPICS, OnScriptLoadEPICS)
 	ON_COMMAND(ID_SCRIPT_ENV, OnScriptEnvironment)
 	ON_COMMAND(ID_SCRIPT_RUN, OnScriptRun)
 	ON_COMMAND(ID_SCRIPT_HALT, OnScriptHalt)
@@ -289,19 +287,6 @@ afx_msg void ScriptFrame::OnUpdateScriptCheckSyntax(CCmdUI* pCmdUI)
 }
 
 //
-//	ScriptFrame::OnUpdateScriptLoadEPICS
-//
-//	It's kinda lame, but the menu item is checked when an EPICS has been 
-//	successfully loaded.
-//
-
-afx_msg void ScriptFrame::OnUpdateScriptLoadEPICS(CCmdUI* pCmdUI)
-{
-	pCmdUI->Enable( true );
-	pCmdUI->SetCheck( gPICSdb != 0 );
-}
-
-//
 //	ScriptFrame::OnUpdateScriptEnvironment
 //
 //	The menu is checked when the parameter list in this frame is the 
@@ -445,64 +430,6 @@ afx_msg void ScriptFrame::OnUpdateScriptReset(CCmdUI* pCmdUI)
 void ScriptFrame::OnScriptCheckSyntax() 
 {
 	m_bSyntaxOK = m_pDoc->CheckSyntax();
-}
-
-//
-//	ScriptFrame::OnScriptLoadEPICS
-//
-
-void ScriptFrame::OnScriptLoadEPICS() 
-{
-	int				errc;
-	int             errPICS;
-	
-	if (gPICSdb) {
-		// delete the database
-		PICS::MyDeletePICSObject( gPICSdb->Database );
-
-		// toss the rest
-		delete gPICSdb;
-		gPICSdb = 0;
-	}
-
-	// prep a dialog
-	CFileDialog	fd( TRUE, "tpi", NULL, OFN_FILEMUSTEXIST, "EPICS (*.tpi)|*.tpi||" )
-	;
-	
-	// if not acceptable, exit
-	if (fd.DoModal() != IDOK)
-		return;
-
-	// make a new database
-	gPICSdb = new PICS::PICSdb;
-
-	// read in the EPICS
-	// madanner 6/03: ReadTextPICS now returns false if canceled by user
-
-	if ( PICS::ReadTextPICS( (char *)(LPCSTR)fd.GetFileName(), gPICSdb, &errc,&errPICS ) )
-	{
-		TRACE1( "error count = %d\n", errc );
-		//Added by Liangping Xu,2002-11
-		CCheckEPICSCons dlgEPICSCons;
-	    if(errPICS){
-			errc+=errPICS;
-			dlgEPICSCons.DoModal();
-		}
-	}
-
-    /////////////////////////////////
-	
-	// display the results
-	if (errc == 0) {
-		ScriptLoadResults().DoModal();
-	} else {
-		// delete the database
-		PICS::MyDeletePICSObject( gPICSdb->Database );
-
-		// toss the rest
-		delete gPICSdb;
-		gPICSdb = 0;
-	}
 }
 
 //

@@ -20,8 +20,6 @@
 #include "ScriptEdit.h"
 ///////////////////////////
 
-// Added by Liangping Xu,2002-11
-#include "CheckEPICSCons.h"
 //////////////////////////
 //madanner, 5/03
 //class ScriptFrame : public CMDIChildWnd
@@ -85,7 +83,6 @@ protected:
 
 	//{{AFX_MSG(ScriptFrame)
 	afx_msg void OnUpdateScriptCheckSyntax(CCmdUI* pCmdUI);
-	afx_msg void OnUpdateScriptLoadEPICS(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptEnvironment(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptRun(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptHalt(CCmdUI* pCmdUI);
@@ -95,7 +92,6 @@ protected:
 	afx_msg void OnUpdateScriptKill(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateScriptReset(CCmdUI* pCmdUI);
 	afx_msg void OnScriptCheckSyntax();
-	afx_msg void OnScriptLoadEPICS();
 	afx_msg void OnScriptEnvironment();
 	afx_msg void OnScriptRun();
 	afx_msg void OnScriptHalt();
