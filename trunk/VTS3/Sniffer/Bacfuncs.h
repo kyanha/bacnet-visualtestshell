@@ -1953,6 +1953,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              break;
              };
            while ((x & 0x0f) != 0x0f) {
+	    	   show_head_app_data();   //Added by Zhu Zhenhua,2004-12-21, to show object_list correctly
              len = show_application_tag(x);
              if(x != 0xc4){ /* invalid tag */
                pif_show_space();

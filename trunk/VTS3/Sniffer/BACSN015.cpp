@@ -1504,39 +1504,79 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					}
 					break;
 				case 15: /* Write Property Request */
-					{
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
-						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+5+x*2 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						
-						int pID = pif_get_byte(10+x*2);
-						
-						if(pif_get_byte(9+x*2)&0x07 != 1)
+						//Modified by Zhu Zhenhua, 2004-12-21, for task #544511
 						{
-							if(obj_type > 63){ /* proprietary object type */
-								sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+							long	obj_id;
+							int		obj_type;
+							long	obj_instance;
+							unsigned char tagbuffs,tagvals,pid_index;
+							int lentemp;
+							for (int i = 0; i < 4; i++)
+								obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+5+x*2 );
+							
+							obj_type = (obj_id >> 22) & 0x000003FF;
+							obj_instance = (obj_id & 0x003FFFFF);
+							
+							int pID = pif_get_byte(10+x*2);
+
+							tagbuffs = pif_get_byte(11 +x*2);
+							tagvals = (tagbuffs&0xF0)>>4;
+							if((tagvals == 2)&&(tagbuffs & 0x08))
+							{
+								pid_index = pif_get_byte(12 +x*2);
 							}
-							else{ /* standard object type */
-								sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+							else
+								pid_index = 0;
+							if(pif_get_byte(9+x*2)&0x07 != 1)
+							{
+								
+								if(obj_type > 63){ /* proprietary object type */
+									if(!pid_index)
+										lentemp = sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+									else
+										lentemp = sprintf(moreDetail, "%u_%lu, %s, Index = %lu,", obj_type, obj_instance, BACnetPropertyIdentifier[pID],pid_index);
+								}
+								else{ /* standard object type */
+									if(!pid_index)
+										lentemp = sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+									else
+										lentemp = sprintf(moreDetail, "%s_%lu, %s, Index = %lu", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID],pid_index);
+								}
 							}
+							else
+							{
+								if(obj_type > 63){ /* proprietary object type */
+									lentemp = sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
+								}
+								else{ /* standard object type */
+									lentemp = sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
+								}
+							}	
+							if(!pid_index)
+							pif_offset = 12 +x*2;
+							else
+							pif_offset = 14 +x*2;
+							show_bac_ANY(obj_type,pID,pid_index);
+								bool showvalue = false;
+							CString temp(gCurrentInfo->detailLine[0]->piLine);
+							CString apptagstr(gCurrentInfo->detailLine[1]->piLine);
+							if(apptagstr.Find("Application Tag", 0) != -1)
+							{   
+								if(temp.Find(':')!=-1)
+									temp = temp.Right(temp.GetLength()-temp.Find(':')-1);
+								showvalue = true;
+							}
+							else
+								if(apptagstr.Find("Enumerated", 0) != -1)
+								{   
+									CString temps(gCurrentInfo->detailLine[4]->piLine);	
+									temp = temps.Left(temps.Find('='));
+									showvalue = true;
+								}
+							if(showvalue)
+							sprintf(moreDetail + lentemp, "=%s", temp.GetBuffer(0));										
 						}
-						else
-						{
-							if(obj_type > 63){ /* proprietary object type */
-								sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
-							}
-							else{ /* standard object type */
-								sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
-							}
-						}
-					}
-					break;
+						break;
 				case 18: /* Confirmed Private Transfer Request */
 					{
 						int len1,len2,tagbuff;
@@ -1898,27 +1938,103 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 				int nService = pif_get_byte(2);
                 SEG = x;                                  
                 if (SEG) {   
-                  MOR = (pif_get_byte(0)&0x04)>>2;
-                  SEQ = pif_get_byte(2);
-                  sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SEQ=%u",
-                          PDU_types[pdu_type],
-                          ID, SEG, MOR, SEQ);
-                  }
+					MOR = (pif_get_byte(0)&0x04)>>2;
+					SEQ = pif_get_byte(2);
+					sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SEQ=%u",
+						PDU_types[pdu_type],
+						ID, SEG, MOR, SEQ);
+				}
                 else{
-//					switch(nService){
-//					case 12: /* Read Property Ack */
-//						sprintf(moreDetail, "Read Property Acknowledgement");
-//						break;
-//					default:
+					switch(nService){
+					//Modified by Zhu Zhenhua, 2004-12-21, for task #544511
+					case 12: /* Read Property Ack */   
+						{
+							long	obj_id;
+							int		obj_type;
+							long	obj_instance;
+							unsigned char tagbuffs,tagvals,pid_index;
+							int lentemp;
+							for (int i = 0; i < 4; i++)
+								obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+4+x*2 );
+							
+							obj_type = (obj_id >> 22) & 0x000003FF;
+							obj_instance = (obj_id & 0x003FFFFF);
+							
+							int pID = pif_get_byte(9+x*2);
+
+							tagbuffs = pif_get_byte(10 +x*2);
+							tagvals = (tagbuffs&0xF0)>>4;
+							if((tagvals == 2)&&(tagbuffs & 0x08))
+							{
+								pid_index = pif_get_byte(11 +x*2);
+							}
+							else
+								pid_index = 0;
+							if(pif_get_byte(8+x*2)&0x07 != 1)
+							{
+								
+								if(obj_type > 63){ /* proprietary object type */
+									if(!pid_index)
+										lentemp = sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
+									else
+										lentemp = sprintf(moreDetail, "%u_%lu, %s, Index = %lu,", obj_type, obj_instance, BACnetPropertyIdentifier[pID],pid_index);
+								}
+								else{ /* standard object type */
+									if(!pid_index)
+										lentemp = sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
+									else
+										lentemp = sprintf(moreDetail, "%s_%lu, %s, Index = %lu", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID],pid_index);
+								}
+							}
+							else
+							{
+								if(obj_type > 63){ /* proprietary object type */
+									lentemp = sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
+								}
+								else{ /* standard object type */
+									lentemp = sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
+								}
+							}	
+							if(!pid_index)
+							pif_offset = 11 +x*2;
+							else
+							pif_offset = 13 +x*2;
+							show_bac_ANY(obj_type,pID,pid_index);
+							bool showvalue = false;
+							CString temp(gCurrentInfo->detailLine[0]->piLine);
+							CString apptagstr(gCurrentInfo->detailLine[1]->piLine);
+							if(apptagstr.Find("Application Tag", 0) != -1)
+							{   
+								if(temp.Find(':')!=-1)
+									temp = temp.Right(temp.GetLength()-temp.Find(':')-1);
+								showvalue = true;
+							}
+							else
+								if(apptagstr.Find("Enumerated", 0) != -1)
+								{   
+									CString temps(gCurrentInfo->detailLine[4]->piLine);	
+									temp = temps.Left(temps.Find('='));
+									showvalue = true;
+								}
+							if(showvalue)
+							sprintf(moreDetail + lentemp, "=%s", temp.GetBuffer(0));											
+						}
+						break;
+					default:
 						sprintf(moreDetail, "%s-ACK", BACnetConfirmedServiceChoice[nService]);
-//						break;
-//					}
-                    sprintf(outstr,"%s, ID=%u, %s",
-                            PDU_types[pdu_type],
-                            ID, moreDetail);
-				  }
+						break;
+					}
+/*
+						                    sprintf(outstr,"%s, ID=%u, %s",
+												PDU_types[pdu_type],
+												ID, moreDetail);*/
+						
+                    sprintf(outstr,"%s-ACK, ID=%u, %s",
+						BACnetConfirmedServiceChoice[nService],
+						ID, moreDetail);
+				}
 			}
-                break;
+			break;
         case 4: /* Segment ACK */
                 ID = pif_get_byte(1);
                 NAK = (pif_get_byte(0)&0x02)>>1UL;
