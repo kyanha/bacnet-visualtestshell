@@ -467,7 +467,7 @@ void CEPICSTreeView::AddRPValue( long obj_id, int prop_id, char * pbuffer, int n
 				int x = pnode->GetPropertyIndex((DWORD) prop_id, &nParseType);
 
 				if ( x != -1 )
-					pnode->SetDeviceValue(x, BACnetAnyValue::Factory(nParseType, BACnetAPDUDecoder((const BACnetOctet *) pbuffer, nLen))->ToString());
+					pnode->SetDeviceValue(x, BACnetAnyValue(BACnetAnyValue::Factory(nParseType, BACnetAPDUDecoder((const BACnetOctet *) pbuffer, nLen), prop_id)).ToString());
 				break;
 			}
 		}
