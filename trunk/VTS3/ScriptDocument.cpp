@@ -502,7 +502,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 							if (nTime == ftNotSupported) {
 								throw "This Fail Time is not support in EPICS database";
 							}
-							newPacket->packetDelay = nTime;
+							newPacket->packetDelay = nTime*1000;  // convert seconds into milliseconds
 						}else if (!tok.IsInteger(newPacket->packetDelay))
 							throw "Packet delay expected";
 						if (newPacket->packetDelay < 0)
@@ -556,7 +556,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 						{
 							int nTime = gPICSdb->BACnetFailTimes[1];
 							if (nTime != ftNotSupported)
-								newPacket->packetDelay = nTime;
+								newPacket->packetDelay = nTime*1000;		// convert seconds to milliseconds
 							else
 								newPacket->packetDelay = kDefaultPacketDelay;
 						} 						
@@ -597,7 +597,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 								if (nTime == ftNotSupported) {
 									throw "This Fail Time is not support in EPICS database";
 								}
-								newPacket->packetDelay = nTime;
+								newPacket->packetDelay = nTime*1000;		// convert seconds to milliseconds
 							}else if (!tok.IsInteger(newPacket->packetDelay))
 								throw "Packet delay expected";
 							if (newPacket->packetDelay < 0)
