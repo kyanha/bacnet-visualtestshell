@@ -310,7 +310,7 @@ UINT WinIPThreadFunc( LPVOID pParam )
 			// pass the contents up to the client
 			pServer->Response(
 				BACnetNPDU(
-						BACnetIPAddr( *(unsigned long *)&saUdpClient.sin_addr, saUdpClient.sin_port )
+						BACnetIPAddr( ntohl( *(unsigned long *)&saUdpClient.sin_addr), ntohs(saUdpClient.sin_port) )
 					,	(unsigned char *)achBuffer, nBytes
 					)
 				);
