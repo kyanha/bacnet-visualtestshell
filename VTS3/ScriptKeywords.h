@@ -188,3 +188,4 @@ extern ScriptTranslateTable ScriptCharacterTypeMap[];
 extern ScriptTranslateTable ScriptWeekdayMap[];
 extern ScriptTranslateTable ScriptMonthMap[];
 extern ScriptTranslateTable ScriptPropertyMap[];
+extern ScriptTranslateTable ScriptNONEMap[];
