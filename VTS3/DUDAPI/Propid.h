@@ -155,7 +155,24 @@ enum BACnetPropertyIdentifier
         WINDOW_SAMPLES, 			                //148
         MAXIMUM_VALUE_TIMESTAMP,                 //149
         MINIMUM_VALUE_TIMESTAMP,                 //150
-        VARIANCE_VALUE 			                //151
+        VARIANCE_VALUE, 			                //151
+		ACTIVE_COV_SUBSCRIPTION,           // 152 Zhu Zhenhua  2003-7-21 
+		BACKUP_FAILURE_TIMEOUT,            // 153 Zhu Zhenhua  2003-7-21 
+		CONFIGURATION_FILES,               // 154 Zhu Zhenhua  2003-7-21 
+		DATABASE_REVISION,                 // 155 Zhu Zhenhua  2003-7-21 
+		DIRECT_READING,                    // 156 Zhu Zhenhua  2003-7-21 
+		LAST_RESTORE_TIME, 				  // 157 Zhu Zhenhua  2003-7-21 
+		MAINTENANCE_REQUIRED, 			  // 158 Zhu Zhenhua  2003-7-21 
+		MEMBER_OF, 						  // 159 Zhu Zhenhua  2003-7-21 
+		MODE, 							  // 160 Zhu Zhenhua  2003-7-21 
+		OPERATION_EXPECTED, 				  // 161 Zhu Zhenhua  2003-7-21 
+		SETTING, 						  // 162 Zhu Zhenhua  2003-7-21 
+		SILENCED,    					  // 163 Zhu Zhenhua  2003-7-21 
+		TRACKING_VALUE, 					  // 164 Zhu Zhenhua  2003-7-21 
+		ZONE_MEMBERS, 					  // 165 Zhu Zhenhua  2003-7-21 
+		LIFE_SAFETY_ALARM_VALUES, 		  // 166 Zhu Zhenhua  2003-7-21 
+		MAX_SEGMENTS_ACCEPTED, 			  // 167 Zhu Zhenhua  2003-7-21 
+		PROFILE_NAME					  // 168 Zhu Zhenhua  2003-7-21 
 	};
 
 #endif
