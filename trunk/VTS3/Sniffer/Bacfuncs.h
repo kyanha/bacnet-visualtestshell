@@ -1044,6 +1044,26 @@ void bac_show_byte ( char *label, char *format_str )
    pif_offset += 1;
 }
 
+/**************************************************************************/
+void bac_show_unsigned ( char *label, unsigned int len )
+/**************************************************************************/
+{
+   switch (len) {
+     case 1: bac_show_byte( label,"%u");
+        break;
+     case 2: sprintf(outstr,"%"FW"s = %%u", label );
+        pif_show_word_hl(outstr);
+        break;
+     case 3: sprintf(outstr,"%"FW"s = %%lu", label );
+        sprintf(get_int_line(pi_data_current,pif_offset,3),outstr,
+                (pif_get_long_hl(-1)&0x00FFFFFF));
+        pif_offset += 3;
+        break;
+     case 4: sprintf(outstr,"%"FW"s = %%lu", label );
+        pif_show_long_hl(outstr);
+     }
+}
+
 const char* LookupName( int net, const unsigned char *addr, int len );
 
 /*************************************************************************/
@@ -1333,8 +1353,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
               break;
       case ACTION_TEXT:  /* ARRAY OF Character Strings */
            if (prop_idx == 0) {
-             show_application_tag(x);
-             bac_show_byte("Array Size","%u");
+             bac_show_unsigned("Array Size",show_application_tag(x));
              }
            else
              while ((x&0x0f) != 0x0f) {
@@ -1481,8 +1500,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            break;
       case EXCEPTION_SCHEDULE: /*  ARRAY of BACnet SpecialEvents  */
            if (prop_idx == 0) {
-             show_application_tag(x);
-             bac_show_byte("Array Size","%u");
+             bac_show_unsigned("Array Size",show_application_tag(x));
              };
            while ((pif_get_byte(0) & 0x0f) != 0x0f) {
              show_bac_special_event();
@@ -1622,8 +1640,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            break;
       case OBJECT_LIST:
            if (prop_idx == 0) {
-             show_application_tag(x);
-             bac_show_byte("Array Size","%u");
+             bac_show_unsigned("Array Size",show_application_tag(x));
              break;
              };
            while ((x & 0x0f) != 0x0f) {
@@ -1689,8 +1706,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            break;
       case PRIORITY:
            if (prop_idx == 0) {
-             show_application_tag(x);
-             bac_show_byte("Array Size","%u");
+             bac_show_unsigned("Array Size",show_application_tag(x));
              break;
              };
            while ((x & 0x0f) != 0x0f) {
@@ -1700,8 +1716,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            break;
       case PRIORITY_ARRAY: /* BACnetPriorityArray  */
            if (prop_idx == 0) {
-             show_application_tag(x);
-             bac_show_byte("Array Size","%u");
+             bac_show_unsigned("Array Size",show_application_tag(x));
              x = pif_get_byte(0);
              break;
              };
@@ -1840,8 +1855,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            break;
       case STATE_TEXT :  /* Array of Character Strings */
            if (prop_idx == 0) {
-             show_application_tag(x);
-             bac_show_byte("Array Size","%u");
+             bac_show_unsigned("Array Size",show_application_tag(x));
              }
            else
              while ((x & 0x0f) != 0x0f) {
@@ -1890,8 +1904,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            break;
       case WEEKLY_SCHEDULE:  /* ARRAY of BACnetTimeValue */
            if (prop_idx == 0) {
-             show_application_tag(x);
-             bac_show_byte("Array Size","%u");
+             bac_show_unsigned("Array Size",show_application_tag(x));
              };
            while ((pif_get_byte(0) & 0x0f) != 0x0f) {
              show_bac_time_value();

@@ -259,6 +259,7 @@ void     show_vtCloseError(void);
 /*  ----- prototypes for general purpose pif routines ----- */
 
 void     bac_show_byte(char *,char *);
+void     bac_show_unsigned(char *,unsigned int);
 void     bac_show_bipaddr(char *);
 void     bac_show_flag(char *, unsigned char);
 void     bac_show_ctag_flag(void);
