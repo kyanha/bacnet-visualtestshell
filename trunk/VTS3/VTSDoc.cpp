@@ -120,7 +120,15 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		return FALSE;
 	
 	m_pDB = new VTSDB();
-	m_pDB->OpenFile( (char *)lpszPathName );
+	try {
+		m_pDB->OpenFile( (char *)lpszPathName );
+	}
+	catch (char *errMsg) {
+		AfxMessageBox( errMsg );
+		delete m_pDB;
+		m_pDB = 0;
+		return FALSE;
+	}
 
 	// get the packet count
 	SetPacketCount( m_pDB->GetPacketCount() );

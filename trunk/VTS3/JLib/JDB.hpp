@@ -121,8 +121,8 @@ const int kJDBBlockAllocRecSize = sizeof( JDBBlockAllocRec );
 #endif
 struct JDBDescRec {
 	transactionId	transID;				// last successful transaction
-	unsigned char	fileType;				// 0=Mac, 1=PC, ...
-	unsigned char	fileVersion;			// simple version for converting old formats
+	unsigned char	majorVersion;			// different major versions not compatible
+	unsigned char	minorVersion;			// minor versions should auto-convert
 	short			freeBytes;				// bytes available in descriptor block
 	short			structCacheSize;		// structure cache records maintained
 	short			dataCacheSize;			// data cache records maintained
