@@ -85,6 +85,8 @@ class BACnetRouter : public BACnetNetServer {
 		}
 		
 		void BindToEndpoint( BACnetNetServerPtr endp, int net );
+		void UnbindFromEndpoint( BACnetNetServerPtr endp );
+
 		void BroadcastRoutingTables( void );
 	};
 
