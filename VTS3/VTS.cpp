@@ -809,7 +809,11 @@ void VTSPreferences::Save( void )
 //  3.2.1   [567046] 
 //          Now Detail pane has been changed into treelist pane, we expanded some nodes by 
 //          default to display the informations that we think they are very important.
-
+//
+//	3.3		[485733] Add RP/WP support to internal device objects.  Minor version number changed to reflect
+//			change to the database (the device descriptor now has an ID of a list of object/property/value 
+//			components.
+//
 
 const int kReleaseVersion = 1;
 

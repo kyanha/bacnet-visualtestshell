@@ -48,8 +48,6 @@ int VTSObjPropValueList::Length( void )
 
 void VTSObjPropValueList::InsertElem( int indx, VTSObjPropValue &val )
 {
-	TRACE1( "InsertElem %d\n", indx );
-
 	objPropList.NewElem( &indx, &val );
 
 	// if inserting before the current scan element, it has moved
@@ -63,8 +61,6 @@ void VTSObjPropValueList::InsertElem( int indx, VTSObjPropValue &val )
 
 void VTSObjPropValueList::RemoveElem( int indx )
 {
-	TRACE1( "RemoveElem %d\n", indx );
-
 	objPropList.DeleteElem( indx );
 
 	// if deleting the current scan element, it has 'moved'
@@ -78,7 +74,6 @@ void VTSObjPropValueList::RemoveElem( int indx )
 
 void VTSObjPropValueList::ReadElem( int indx, VTSObjPropValue& val )
 {
-	TRACE1( "ReadElem %d\n", indx );
 	objPropList.ReadElem( indx, &val );
 }
 
@@ -88,7 +83,6 @@ void VTSObjPropValueList::ReadElem( int indx, VTSObjPropValue& val )
 
 void VTSObjPropValueList::WriteElem( int indx, const VTSObjPropValue& val )
 {
-	TRACE1( "WriteElem %d\n", indx );
 	objPropList.WriteElem( indx, (void *)&val );
 }
 
@@ -98,8 +92,6 @@ void VTSObjPropValueList::WriteElem( int indx, const VTSObjPropValue& val )
 
 void VTSObjPropValueList::ReadComponent( int indx, VTSObjPropValueElemDesc& desc )
 {
-	TRACE1( "ReadComponent %d\n", indx );
-
 	// make sure it's not out of bounds
 	ASSERT( (indx >= 0) && (indx < objPropList.Length()) );
 
@@ -119,8 +111,6 @@ void VTSObjPropValueList::ReadComponent( int indx, VTSObjPropValueElemDesc& desc
 
 void VTSObjPropValueList::WriteComponent( int indx, VTSObjPropValueElemDesc& desc )
 {
-	TRACE1( "WriteComponent %d\n", indx );
-
 	// make sure it's not out of bounds
 	ASSERT( (indx >= 0) && (indx < objPropList.Length()) );
 
@@ -164,8 +154,6 @@ void VTSObjPropValueList::WriteComponent( int indx, VTSObjPropValueElemDesc& des
 
 void VTSObjPropValueList::InsertComponent( int indx, VTSObjPropValueElemDesc& desc )
 {
-	TRACE1( "InsertComponent %d\n", indx );
-
 	// calculate the object size correctly
 	int objSize = kVTSValueElemHeaderLength + desc.descElement.elemLen;		// expected size
 	objSize += (objSize & 1);												// must be even
@@ -364,7 +352,7 @@ void VTSObjPropValueList::Encode( unsigned int objID, int propID, int indx, BACn
 		}
 
 		// encode the count
-		BACnetInteger( elemCount ).Encode( enc );
+		BACnetUnsigned( elemCount ).Encode( enc );
 	} else {
 		// looking for the length of an array
 		if (val.valueIndx == -1)
@@ -415,7 +403,7 @@ void VTSObjPropValueList::Decode( unsigned int objID, int propID, int indx, BACn
 {
 	CSingleLock					lock( &objPropLock )
 	;
-	int							i, fini = 0, nest = 0
+	int							i, fini = 0, nest = 0, elemCount
 	;
 	VTSObjPropValue				val
 	;
@@ -466,7 +454,61 @@ void VTSObjPropValueList::Decode( unsigned int objID, int propID, int indx, BACn
 			throw (25); // operational-problem, database configuration error
 
 		// got an array, change the size
-		throw (25); // operational-problem, can't write to array size
+		BACnetUnsigned	newLen;
+		newLen.Decode( dec );
+
+		// check for valid value
+		if (newLen.uintValue < 0)
+			throw (42); // invalid-array-index
+
+		// skip over existing content that will remain
+		elemCount = 0;
+		while (i < objPropList.Length()) {
+			objPropList.ReadElem( i, &val );
+			if ((val.valueObjID != objID) || (val.valueProperty != propID) || (val.valueIndx > (int)newLen.uintValue))
+				break;
+			if (val.valueIndx > elemCount)
+				elemCount += 1;
+			i += 1;
+		}
+
+		if (elemCount > (int)newLen.uintValue)
+			throw (25); // operational-problem, database configuration error
+
+		if (elemCount == (int)newLen.uintValue) {
+			// remove the rest of the content
+			while (i < objPropList.Length()) {
+				objPropList.ReadElem( i, &val );
+				if ((val.valueObjID == objID) && (val.valueProperty == propID))
+					objPropList.DeleteElem( i );
+				else
+					break;
+			}
+		} else {
+			// add more elements to fill out the array
+			elemCount += 1;
+
+			// the major section will be the same
+			desc.descValue.valueObjID = objID;
+			desc.descValue.valueProperty = propID;	// property identifier
+			desc.descValue.valueComponent = 0;		// only one component
+			desc.descValue.valueType = 0;			// null
+			desc.descValue.valueContext = -1;		// application encoded
+			desc.descElement.elemLen = 1;			// one octet
+			desc.descElement.elemContent[0] = 0x00;	// application encoded null
+
+			// write them out
+			while (elemCount <= (int)newLen.uintValue) {
+				// set the index
+				desc.descValue.valueIndx = elemCount++;
+
+				// save what we just built
+				InsertComponent( i++, desc );
+			}
+
+			// dont try to put in more content
+			fini = 1;
+		}
 	} else {
 		// looking for a specific element
 		if (val.valueIndx == -1)
@@ -597,8 +639,6 @@ CString VTSObjPropValueList::DescribeValue( int indx )
 	;
 	bool						needsComma
 	;
-
-	TRACE1( "DescribeValue %d\n", indx );
 
 	// read the first component
 	ReadComponent( indx, first );
@@ -1725,8 +1765,6 @@ int VTSValue::Length( void )
 
 void VTSValue::ReadComponent( int indx, VTSObjPropValueElemDesc& desc )
 {
-	TRACE1( "VTSValue::ReadComponent %d\n", indx );
-
 	// make sure it's not out of bounds
 	ASSERT( (indx >= 0) && (indx < valueCompLen) );
 
@@ -1744,8 +1782,6 @@ void VTSValue::ReadComponent( int indx, VTSObjPropValueElemDesc& desc )
 
 void VTSValue::WriteComponent( int indx, VTSObjPropValueElemDesc& desc )
 {
-	TRACE1( "VTSValue::WriteComponent %d\n", indx );
-
 	// make sure it's not out of bounds
 	ASSERT( (indx >= 0) && (indx < valueCompLen) );
 
