@@ -559,7 +559,9 @@ propdescriptor	AVprops[]={
     "limit-enable",			LIMIT_ENABLE,		oo(av,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
     "event-enable",			EVENT_ENABLE,		oo(av,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(av,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(av,notify_type),		et,Last|Intr,	eiNT,	O|WithService
+    "notify-type",			NOTIFY_TYPE,		oo(av,notify_type),		et,		Intr,	eiNT,	O|WithService,
+//Added for supporting event-time-stamps, by xuyiping 2002-8-29
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(av,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
     };
 
 propdescriptor	BIprops[]={
@@ -655,7 +657,9 @@ propdescriptor	BVprops[]={
     "alarm-value",			ALARM_VALUE,		oo(bv,alarm_value),		et,		Intr,  eiBPV,	O|WithService,
     "event-enable",			EVENT_ENABLE,		oo(bv,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(bv,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(bv,notify_type),		et,Last|Intr,	eiNT,	O|WithService
+    "notify-type",			NOTIFY_TYPE,		oo(bv,notify_type),		et,		Intr,	eiNT,	O|WithService,
+	//Added for supporting event-time-stamps, by xuyiping 2002-8-29
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bv,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
     };
 
 propdescriptor	CLprops[]={
@@ -741,7 +745,7 @@ propdescriptor	EEprops[]={
     											parameter_list.event_type),	et,	0,	eiEvType,	R,
     "notify-type",			NOTIFY_TYPE,		oo(ee,notify_type),		et,		0,	    eiNT,	R,
     "event-parameters",		EVENT_PARAMETERS,	oo(ee,parameter_list),	evparm,	0,	       0,	R,
-"object-property-reference",OBJECT_PROPERTY_REFERENCE,oo(ee,obj_prop_ref),propref,0,       0,	R,
+"object-property-reference",OBJECT_PROPERTY_REFERENCE,oo(ee,obj_prop_ref),devobjpropref,0,       0,	R,
     "event-state",			EVENT_STATE,		oo(ee,state),			et,		0, eiEvState,	R,
     "event-enable",			EVENT_ENABLE,		oo(ee,event_enable),	bits,	0,	 eiEvTr,	R,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(ee,acked_transitions),bits,	0,	 eiEvTr,	R,
@@ -941,7 +945,7 @@ propdescriptor	AVGprops[]={
     "description",			     DESCRIPTION,		        oo(avg,go.description),	           s132,	0,	       0,	O,
     "attempted-samples",	     ATTEMPTED_SAMPLES,		    oo(avg,attempted_samples),		   uw,		Intr,	   0,	O|WithService,
     "valid-samples",	         VALID_SAMPLES,	            oo(avg,valid_samples),             uw,	    Intr,	   0,	O|WithService,
-    "object-property-reference", OBJECT_PROPERTY_REFERENCE, oo(avg,obj_prop_ref),              propref,	0,         0,	O|WithService,
+    "object-property-reference", OBJECT_PROPERTY_REFERENCE, oo(avg,obj_prop_ref),              devobjpropref,	0,         0,	O|WithService,
     "window-interval",		     WINDOW_INTERVAL,		    oo(avg,window_interval),	       uw,	    Intr,	   0,	O|WithService,
     "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Intr,      0,    O|WithService,
     };
@@ -981,7 +985,7 @@ propdescriptor	TRprops[]={
      "log-enable",  				LOG_ENABLE,  			      oo(trend,log_enable),  			      ebool,    0,      eiTF,    W,
      "start-time",  	 			START_TIME,  	 		      oo(trend,start_time),  	 		      dt,       0,      0,       O,
      "stop-time",  					STOP_TIME,  				  oo(trend,stop_time),  				  dt,       0,      0,       O, 
-     "log-device-object-property",  LOG_DEVICE_OBJECT_PROPERTY,   oo(trend,log_device_object_property),  propref,   0,      0,       O, 
+     "log-device-object-property",  LOG_DEVICE_OBJECT_PROPERTY,   oo(trend,log_device_object_property),  devobjpropref,   0,      0,       O, 
      "log-interval",  				LOG_INTERVAL,  			      oo(trend,log_interval),  			      uw,       0,      0,       O, 
      "cov-resubscription-interval", COV_RESUBSCRIPTION_INTERVAL,  oo(trend,cov_resubscription_interval),  uw,       0,      0,       O,
      "client-cov-increment",  		CLIENT_COV_INCREMENT,  	      oo(trend,client_cov_increment),  	      flt,      0,      0,       O,
@@ -1135,7 +1139,7 @@ static dpttable dParseTypes={
                 {OBJECT_IDENTIFIER,ob_id,0,0},
                 {OBJECT_LIST,none,0,IsArray},
                 {OBJECT_NAME,s32,0,0},
-                {OBJECT_PROPERTY_REFERENCE,propref,0},
+                {OBJECT_PROPERTY_REFERENCE,devobjpropref,0},
                 {OBJECT_TYPE,et,eiObjectTypes,0}, 
                 {ISOPTIONAL,none,0,0},
                 {OUT_OF_SERVICE,ebool,eiTF,0},
