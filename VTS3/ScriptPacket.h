@@ -16,6 +16,9 @@
 class ScriptPacket;
 typedef ScriptPacket *ScriptPacketPtr;
 
+class ScriptCommand;
+typedef ScriptCommand *ScriptCommandPtr;
+
 class ScriptPacketExpr;
 typedef ScriptPacketExpr *ScriptPacketExprPtr;
 
@@ -44,28 +47,6 @@ class ScriptPacketExpr {
 	};
 
 
-class ScriptIfdefExpr
-{
-	private:
-		ScriptDocument * m_pdocument;
-
-		void ParseForValue(ScriptToken &tok );
-		void ResolveToValue( ScriptToken & tok );
-		BACnetEncodeable * CreateOperand( ScriptToken & token );
-
-	public:
-		ScriptIfdefExpr( ScriptDocument * pdoc );
-		ScriptIfdefExpr( ScriptDocument * pdoc, ScriptScanner &scan, ScriptToken & tok );
-
-		bool Evaluate( ScriptToken & tok);
-		void Parse( ScriptScanner &scan, ScriptToken &tok );
-
-		ScriptToken		m_tokLValue; 					// value on left of operator
-		ScriptToken		m_tokRValue;					// value on right of operator
-		int				m_nOp;							// operator
-		int				m_nLine;						// line number in script
-};
-
 
 const int kScriptPacketExprSize = sizeof( ScriptPacketExpr );
 
@@ -93,13 +74,28 @@ class ScriptPacketExprList : public CList<ScriptPacketExprPtr,ScriptPacketExprPt
 
 const int kScriptPacketExprListSize = sizeof( ScriptPacketExprList );
 
-//
-//	ScriptPacket
-//
 
 const int kMaxPacketDelay = 1800;						// in ms, 1 minute
 
-class ScriptPacket : public ScriptBase {
+class ScriptCommand : public ScriptBase {
+	public:
+
+		int							m_nCaseLevel;		// case level
+		ScriptCommandPtr			m_pcmdNext;			// next packet in test sequence
+		ScriptCommandPtr			m_pcmdPass;			// next when execution passes
+		ScriptCommandPtr			m_pcmdFail;			// next when it fails
+
+		ScriptCommand( ScriptBaseType type );
+		~ScriptCommand( void );
+
+		virtual bool Execute(CString * pstrError) = 0;
+	};
+
+
+class ScriptMAKECommand;
+
+//class ScriptPacket : public ScriptBase {
+class ScriptPacket : public ScriptCommand {
 	public:
 		enum ScriptPacketType
 				{ sendPacket
@@ -118,12 +114,16 @@ class ScriptPacket : public ScriptBase {
 		ScriptPacketSubtype			packetSubtype;		// could be root!
 		ScriptPacketExprList		packetExprList;		// list of expressions
 
-		int							packetLevel;		// case level
+//		int							packetLevel;		// case level
 		int							packetDelay;		// BEFORE/AFTER time value (in ms)
-		ScriptPacketPtr				packetNext;			// next packet in test sequence
+//		ScriptPacketPtr				packetNext;			// next packet in test sequence
 
-		ScriptPacketPtr				packetPass;			// next when execution passes
-		ScriptPacketPtr				packetFail;			// next when it fails
+//		ScriptPacketPtr				packetPass;			// next when execution passes
+//		ScriptPacketPtr				packetFail;			// next when it fails
+
+		ScriptMAKECommand *			m_pcmdMake;			// pointer back to preceeding MAKE command, if any
+
+		bool Execute(CString * pstrError);
 	};
 
 const int kScriptPacketSize = sizeof( ScriptPacket );
