@@ -594,7 +594,14 @@ void VTSPreferences::Save( void )
 //				BACnetAnyValue (to facility "any" type flexibility - but mostly to encapsulate dynamically 
 //				allocated objects for proper destruction when there's so much 'throwing' goings on...).
 //
+//			617618:  RPM MAX script crashes VTS
 //
+//			This problem was caused during an attempt to reallocate an APDU buffer to accomodate a larger
+//			size APDU.  The problem has been fixed.  VTS no longer crashes.  Proper segmentation should occur.
+//
+
+
+There may still be a problem with a rpm request that must be segmented.  This can be verified by testing this MAX script on a device that supports segmentation.
 
 const int kReleaseVersion = 9;
 
