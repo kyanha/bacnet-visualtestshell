@@ -22,8 +22,6 @@
 #include "VTSStatisticsCollector.h"
 #include "VTSStatisticsDlg.h"
 
-VTSStatisticsCollector *gStatisticsCollector;
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -52,7 +50,7 @@ _CrtMemState		s1, s2, s3;
 #endif
 
 //create the statistics dialog object
-VTSStatisticsDlg	dlg(NULL);
+//VTSStatisticsDlg	dlg(NULL);
 
 VTSDoc::VTSDoc()
 	: m_PacketCount(0), m_pDB(0), m_FrameContexts(0)
@@ -62,7 +60,8 @@ VTSDoc::VTSDoc()
 	_CrtMemCheckpoint( &s1 );
 #endif
 	m_bStatisticsDlgInUse=false;
-	m_pStatitiscsDlg=&dlg;
+//	m_pStatitiscsDlg=&dlg;
+//	m_pStatitiscsDlg->m_pDoc=this;
 }
 
 //
@@ -123,7 +122,8 @@ BOOL VTSDoc::OnNewDocument()
 	m_postMessages = true;
 
 	// create a new statistics collector
-	gStatisticsCollector=new VTSStatisticsCollector();
+	m_pStatisticsCollector=new VTSStatisticsCollector();
+	//gStatisticsCollector=new VTSStatisticsCollector();
 	
 	return TRUE;
 }
@@ -139,7 +139,8 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		return FALSE;
 
 	// create a new statistics collector
-	gStatisticsCollector=new VTSStatisticsCollector();
+	m_pStatisticsCollector=new VTSStatisticsCollector();
+//	gStatisticsCollector=new VTSStatisticsCollector();
 
 	m_pDB = new VTSDB();
 	try {
@@ -179,7 +180,8 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		summary.Interpret( (BACnetPIInfo::ProtocolType)pkt.packetHdr.packetProtocolID
 			, (char *)pkt.packetData
 			, pkt.packetLen);
-		gStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
+		m_pStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
+	//	gStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
 	}
 	
 
@@ -192,6 +194,9 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 void VTSDoc::OnCloseDocument() 
 {
+	// delete the statistics collector
+	delete m_pStatisticsCollector;
+
 	// no more messages please
 	m_postMessages = false;
 
@@ -217,8 +222,8 @@ void VTSDoc::OnCloseDocument()
 	// pass along to the framework
 	CDocument::OnCloseDocument();
 
-	// delete the statistics collector
-	delete gStatisticsCollector;
+
+//	delete gStatisticsCollector;
 }
 
 //
@@ -479,7 +484,8 @@ void VTSDoc::NewPacketCount( void )
 				, (char *)pkt.packetData
 				, pkt.packetLen);
 
-			gStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
+			m_pStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
+			//gStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
 			if(m_bStatisticsDlgInUse)
 			{
 				m_pStatitiscsDlg->Update(summary.summaryLine);
@@ -2111,6 +2117,7 @@ void VTSDoc::OnViewStatistics()
 	m_bStatisticsDlgInUse=true;
 	VTSStatisticsDlg dlg;
 	m_pStatitiscsDlg=&dlg;
+	m_pStatitiscsDlg->m_pDoc=this;
 	dlg.DoModal();
 	m_bStatisticsDlgInUse=false;
 	

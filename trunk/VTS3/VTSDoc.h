@@ -28,6 +28,8 @@
 
 #include "VTSDB.h"
 
+class VTSStatisticsCollector;
+typedef VTSStatisticsCollector *VTSStatisticsCollectorPtr;
 
 class VTSStatisticsDlg;
 typedef VTSStatisticsDlg *VTSStatisticsDlgPtr;
@@ -320,6 +322,11 @@ public:
 	VTSDeviceList			m_Devices;
 
 	bool					m_postMessages;		// OK to post messages about new packets
+	
+	VTSPortDlgPtr	m_pPortDlg;
+	VTSStatisticsDlgPtr m_pStatitiscsDlg;// a pointer to the statistics dialog
+	bool m_bStatisticsDlgInUse;// indicates whether the statistics dialog is shown
+    VTSStatisticsCollectorPtr m_pStatisticsCollector;
 
 // Operations
 public:
@@ -341,9 +348,6 @@ public:
 
 // Implementation
 public:
-	VTSPortDlgPtr	m_pPortDlg;
-	VTSStatisticsDlgPtr m_pStatitiscsDlg;// a pointer to the statistics dialog
-	bool m_bStatisticsDlgInUse;// indicates whether the statistics dialog is shown
 
 	void DeletePackets( void );
 	void DoPortsDialog( void );
