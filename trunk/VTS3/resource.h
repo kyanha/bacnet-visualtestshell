@@ -374,12 +374,15 @@
 #define IDC_HOSTADDR                    1185
 #define IDC_STARTDATUM                  1190
 #define IDC_ENDDATUM                    1191
+#define IDC_COUNT                       1192
+#define IDC_REFINDEX                    1193
 #define IDC_RADIONONE                   1195
 #define IDC_RADIOPOSITION               1196
 #define IDC_RADIOTIME                   1197
 #define IDC_RADIOTIMERANGE              1198
 #define IDC_TIMESTART                   1199
 #define IDC_ENDTIME                     1200
+#define IDC_BEGDATECAPTION              1201
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -412,7 +415,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        241
 #define _APS_NEXT_COMMAND_VALUE         32804
-#define _APS_NEXT_CONTROL_VALUE         1201
+#define _APS_NEXT_CONTROL_VALUE         1202
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

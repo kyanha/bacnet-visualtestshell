@@ -75,6 +75,8 @@ protected:
 	afx_msg void OnSetfocusStartdatum();
 	afx_msg void OnChangeTimestart();
 	afx_msg void OnChangeEndtime();
+	afx_msg void OnChangePosRef();
+	afx_msg void OnChangeCount();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
