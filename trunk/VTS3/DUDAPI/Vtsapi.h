@@ -119,7 +119,7 @@ word  APIENTRY VTSAPIgetdefaultparsetype(dword,HWND);
 BOOL  APIENTRY VTSAPIgetdefaultpropinfo(word,dword,word *,word *);
 word  APIENTRY VTSAPIgetpropertystates(word,HWND);
 word  APIENTRY VTSAPIgetpropertystate(word,word,char *);
-void  APIENTRY ReadTextPICS(char *,PICSdb *,int *,int *);
+bool  APIENTRY ReadTextPICS(char *,PICSdb *,int *,int *);
 void  APIENTRY DeletePICSObject(generic_object *);
 #ifdef __cplusplus					//end of extern "C" declarations
 }
