@@ -319,6 +319,9 @@ void VTSPreferences::Save( void )
 //				don't know why.
 //			Support environment parameters.  One open script can be selected as the 'environment'
 //				and all other open scripts will inherit the defined parameters.
+//			TRANSMIT and RECEIVE are now aliases to SEND and EXPECT.  The error messages and 
+//				user visible indicators should also be renamed, but I don't expect the code to 
+//				be renamed.
 //
 
 const int kReleaseVersion = 8;

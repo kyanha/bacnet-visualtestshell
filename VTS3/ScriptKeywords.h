@@ -20,8 +20,10 @@
 #define		kwREF					0x068F23C6
 #define		kwREFERENCE				0x0F4ABD9F
 #define		kwSEND					0xB68B8DB5
+#define		kwTRANSMIT				0x72CC912D
 #define		kwAFTER					0xF34A1E11
 #define		kwEXPECT				0x1D75F6B8
+#define		kwRECEIVE				0x625A643F
 #define		kwBEFORE				0x997A45A6
 #define		kwAND					0xD31F7A67
 #define		kwOR					0xC108A1DD
