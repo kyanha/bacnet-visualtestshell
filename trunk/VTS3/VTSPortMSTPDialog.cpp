@@ -245,8 +245,11 @@ void VTSPortMSTPDialog::OnMstpconfigimp()
 		CtrlToObj();
 		NotifyOfDataChange();
 
-		delete pimplementation;
 	}
+
+	// MSD: 7/29/04 - added to fix memory leak if the user selected the Cancel button
+    if (pimplementation != NULL)
+		delete pimplementation;
 
 	delete pdata;
 }
