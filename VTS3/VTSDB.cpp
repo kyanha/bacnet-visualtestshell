@@ -465,13 +465,22 @@ void VTSDB::WritePacket( int indx, VTSPacket& pkt )
 	// finished saving contents (already saved when it was created)
 	delete osp;
 
-	// write back if this is an update, otherwise append
-	if (indx >= 0) {
-		if ((stat = dbPacketList.WriteElem( indx, &pkt.packetHdr )) != 0)
-			throw stat;
-	} else {
-		if ((stat = dbPacketList.NewElem( &rnum, &pkt.packetHdr )) != 0)
-			throw stat;
+	// madanner 3/03, attempt to catch write error and report... close transaction
+	try
+	{
+		// write back if this is an update, otherwise append
+		if (indx >= 0) {
+			if ((stat = dbPacketList.WriteElem( indx, &pkt.packetHdr )) != 0)
+				throw stat;
+		} else {
+			if ((stat = dbPacketList.NewElem( &rnum, &pkt.packetHdr )) != 0)
+				throw stat;
+		}
+	}
+	catch(...)
+	{
+		TRACE0("PROBLEM WRITING TO DB !!! ");
+		AfxMessageBox("An unexpected exception ocurred writing a packet to database.  Please close the database to prevent corruption.");
 	}
 
 	// finished with update
