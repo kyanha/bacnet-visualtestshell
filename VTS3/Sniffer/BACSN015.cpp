@@ -1128,7 +1128,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
                 break;
         case 4: /* Segment ACK */
                 ID = pif_get_byte(1);
-                NAK = pif_get_byte(0)&0x02>>1;
+                NAK = (pif_get_byte(0)&0x02)>>1UL;
                 SRV = pif_get_byte(0)&0x01;
                 sprintf(outstr,"%s, ID=%u, NAK=%u, SRV=%u",
                 PDU_types[pdu_type], ID, NAK, SRV);
@@ -4304,7 +4304,7 @@ void show_bac_bitstring( unsigned int len )
 /**************************************************************************/
 /* Displays a bit string with no interpretation of the bit semantics */
 {
-   int i;
+   unsigned int i;
 
    /* the tag should be displayed before calling this function */
    bac_show_byte("Number of unused bits","%u");
@@ -4807,7 +4807,7 @@ void show_bac_action_command( unsigned int len )
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
    unsigned int end, len1;
    end = pif_offset+len;
-   while(pif_offset < end) {
+   while((unsigned int)pif_offset < end) {
       tagbuff = pif_get_byte(0);
       tagval = (tagbuff&0xF0)>>4;
       if (!(tagbuff & 0x80)) {
@@ -4852,16 +4852,15 @@ void show_bac_action_command( unsigned int len )
 void show_bac_address( void )
 /**************************************************************************/
 {
-   unsigned int			net = 0, len
-   ;
-   const char			*name
-   ;
+   unsigned int			net = 0, len;
+   const char			*name;
+   unsigned int			i;
 
    pif_show_ascii(0,"Network Number");
    len = show_application_tag(pif_get_byte(0));
 
    /* extract the network number and save it */
-   for (int i = 0; i < len; i++)
+   for (i = 0; i < len; i++)
 	   net = (net << 8) + pif_get_byte(i);
    show_bac_unsigned(len);
 
