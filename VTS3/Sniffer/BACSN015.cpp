@@ -317,11 +317,17 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
    boolean byte1_stuffed;     /* TRUE if X'10' code found */
    boolean byte2_stuffed;     /* TRUE if X'10' code found */
    int i,j;                   /* loop index */
-   unsigned char dataValue;   /* used in data CRC check */
+
+   unsigned char dataValue;   /* used in header and data CRC check */
    unsigned char headerCRC;   /* used in header CRC check */
-   unsigned int crc;          /* used in header CRC check */
-   unsigned int crcValue;     /* used in data CRC check */
-   unsigned int crcLow;       /* used in data CRC check */
+
+   //unsigned int crc;          /* used in header CRC check */
+   unsigned short crc;          // used in header CRC check. 2 bytes. Xiao Shiyuan 2002-5-17
+
+   //unsigned int crcValue;     /* used in data CRC check */
+   unsigned short crcValue;     // used in data CRC check. 2 bytes. Xiao Shiyuan 2002-5-17  
+   //unsigned int crcLow;       /* used in data CRC check */
+   unsigned short crcLow;       // used in data CRC check. 2 bytes. Xiao Shiyuan 2002-5-17
    char *ptp_header;          /* points to beginning of PTP preamble */
 
    strcpy(trigger, "BACnet");  /* initialize trigger string */
@@ -332,27 +338,38 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
    }   /* End of Summary Line */
 
    /* Detail line? */
+   BOOL flag = pi_data_bacnet_PTP->do_int; //xsy for test 2002-5-16
+
    if (pi_data_bacnet_PTP->do_int) {
       pif_init (pi_data_bacnet_PTP, header, length);
       pif_header (length, "BACnet PTP Frame Detail");
       ptp_header = header;
 
       /* ----- check for BACnet trigger sequence ----- */
+	  //0x0d == '\r'
+	  int x1 = *msg_origin; //xsy for test 2002-5-16
+	  int x2 = pif_offset; //xsy for test 2002-5-16
+	  
       if((length == 7) && (pif_get_byte(6) == 0x0d)){
-         pif_get_ascii(0, 6, result_str);
+         pif_get_ascii(0, 6, result_str); //results are stored in "result_str"
          if(strcmp(result_str, trigger) == 0)  /* trigger found */
             bac_show_nbytes(7,"`BACnet<CR>' Trigger Sequence Found");
          }
       else{ /* not a trigger sequence */
          /* ----- interpret PTP frame ----- */
          wbuff = pif_get_word_hl(0);
+		 x2 = pif_offset; //xsy for test 2002-5-16
          if(wbuff == 0x55FF)
-            pif_show_word_hl("Preamble                        = X'%04X'");
+            pif_show_word_hl("Preamble                        = X'%04X'"); //pif_offset adds 2
          else
-            pif_show_word_hl("Error: PTP Preamble (X'55FF') Expected.  X'%04X'");
+		 {
+		    pif_show_word_hl("Error: PTP Preamble (X'55FF') Expected.  X'%04X'");
+			return length; //when error occurs, return. xsy 2002-5-16
+		 }
 
          /* frame type field */
          frame_type = pif_get_byte(0);
+		 x2 = pif_offset; //xsy for test 2002-5-16
          switch(frame_type){
             case 0x00: pif_show_byte("Heartbeat (XOFF) Frame          = X'%02X'");
                        break;
@@ -386,10 +403,14 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
                        break;
             case 0x0F: pif_show_byte("Test Response Frame             = X'%02X'");
                        break;
-            default:   pif_show_byte("Error: Invalid Frame Type       = X'%02X'");
+            default:   {
+						pif_show_byte("Error: Invalid Frame Type       = X'%02X'");
+						return length; //when error occurs, return. xsy 2002-5-16
+                       }
             };
 
-         /* length field -- check for stuffed bytes */
+         // length field -- check for stuffed bytes, X'10' 
+		 //len means the length of length field
          if(pif_get_byte(0) == 0x10){
             byte1_stuffed = TRUE;
             if(pif_get_byte(2) == 0x10)
@@ -438,6 +459,7 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
                         else{
                           sprintf(outstr, "Error: Invalid Data Length  = %u", data_length);
                           bac_show_nbytes(len, outstr);
+						  return length; //when error occurs, return. xsy 2002-5-16
                           };
                        break;
             /* frames with data */
@@ -450,6 +472,7 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
                         else{
                           sprintf(outstr, "Error: Invalid Data Length  = %u", data_length);
                           bac_show_nbytes(len, outstr);
+						  return length; //when error occurs, return. xsy 2002-5-16
                           };
                        break;
             };  /* end of frame_type switch */
@@ -474,13 +497,14 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
             if(pif_get_byte(0) == 0x10)
                bac_show_word_hl("Header CRC Verified", "%04X");
             else
-               bac_show_byte("Header CRC Verified","%02X");
+               bac_show_byte("Header CRC Verified","%02X");			   
             }
          else{
             if(pif_get_byte(0) == 0x10)
                bac_show_word_hl("Header CRC Failure", "%04X");
             else
                bac_show_byte("Error: Header CRC Failure","%02X");
+			   return length; //when error occurs, return. xsy 2002-5-16
             };
 
 
@@ -510,9 +534,9 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
                case 0x08: case 0x09: case 0x0a: case 0x0d: 
                           bac_show_nbytes(data_length,"Error: No data expected for this frame type.");
                           break;
-               case 0x02: case 0x03: /* call network layer interpreter */
-                          /* decode AL message before passing it on */
-                          ptr = (unsigned char *)(ptp_header + len + 4);  /* point to beginning data field */
+               case 0x02: case 0x03: // call network layer interpreter 
+                          // decode AL message before passing it on 
+                          ptr = (unsigned char *)(ptp_header + len + 4);  // point to beginning data field 
                           ptr1 = ptr;
                           len2 = 0;
                           for(i=0; i<data_length; i++){
@@ -789,45 +813,74 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
    unsigned char DERmask;   /* Data Expecting Reply mask */
    int mac_length;          /* MAC address length in octets */
    int npdu_length;         /* NPDU length in octets */
+   int apdu_length;         //APDU length in octets. Xiao Shiyuan 2002-5-19
    int port_id;             /* port ID field */
    int port_info_length;    /* port information length in octets */
-   const char *name;    /* translated name */
-   char namebuff[80];      /* buffer to print translated name */
+   const char *name;		/* translated name */
+   char namebuff[80];		/* buffer to print translated name */
 
    pi_data_current = pi_data_bacnet_NL;
    npdu_length = 2;
    control = header + 1;  /* initialize pointer to control octet */
    /* Summary line? */
-   if (pi_data_bacnet_NL->do_sum) {
+   if (pi_data_bacnet_NL->do_sum) {   	   
        /* Figure out length of NPCI */
        pif_init (pi_data_bacnet_NL, header, length);
+
+	   //Xiao Shiyuan 2002-5-19. BEGIN
+	   //if header is not NPDU
+	   if(length < 2)
+	   {
+		   strcpy( get_sum_line(pi_data_bacnet_NL), "Error NPDU" );
+		   return length;			
+	   }
+	   //Xiao Shiyuan 2002-5-19. END
+
        pif_skip(1); /* Point to control octet */
        buff = pif_get_byte(0);
        DESTmask = (buff & 0x20 )>>5;   /* mask for DNET, DLEN, DADR, & Hop Count present switch */
        SOURCEmask = (buff & 0x08)>>3;  /* mask for SNET, SLEN, and SADR present switch */
        if (DESTmask == 1) {
-          npdu_length += 4; /* DNET, DLEN, DADR, & Hop Count ARE present */  
+          npdu_length += 4; // DNET, DLEN, & Hop Count ARE present   
           pif_skip(3);      /* Point to DLEN */      
           npdu_length += pif_get_byte(0); /* Add length of DADR and skip over */
           pif_skip(pif_get_byte(0));
        }
        if (SOURCEmask == 1) {
-          npdu_length += 3; /* SNET, SLEN, and SADR ARE present */
-          pif_skip(3);      /* Point to SLEN */
-          npdu_length += pif_get_byte(0);
+          npdu_length += 3; // SNET, SLEN ARE present 
+          pif_skip(3);      // Point to SLEN 
+          npdu_length += pif_get_byte(0); //Add length of SADR and skip over
           pif_skip(pif_get_byte(0));
        }
-      if (*control&0x80) {
+
+	   if (*control&0x80) { //does not contain BACnet APDU and MessageType is present
          if (DESTmask == 1) /* Must skip over hop count too! */
             pif_skip(2);
          else
             pif_skip(1);
 
-       int  nlMsgID = pif_get_byte(0);
-       if ((nlMsgID < 0) || (nlMsgID > (sizeof(NL_msgs)/sizeof(char*))))
-          strcpy( get_sum_line(pi_data_bacnet_NL), "Proprietary Network Layer Message" );
-        else
-          strcpy( get_sum_line(pi_data_bacnet_NL), NL_msgs[pif_get_byte(0)] );
+		 int	nlMsgID = pif_get_byte(0); //Point to MessageType
+		 //Xiao SHiyuan 2002-5-17
+		 if (nlMsgID < 0)
+		 {		 
+			 strcpy( get_sum_line(pi_data_bacnet_NL), "Error Network Layer Message Type" );
+			 return length;
+		 }
+		 else
+         if(nlMsgID > (sizeof(NL_msgs)/sizeof(char*)) && nlMsgID < 0x80)
+         {
+			 strcpy( get_sum_line(pi_data_bacnet_NL), "ASHRAE Reserves The Network Layer Message Type" );
+			 return length;
+         }
+		 else
+	     if( nlMsgID > 0x80 )
+		 {	
+			 npdu_length += 2; //VendorID is present
+			 //Proprietary Network Layer Message
+		     strcpy( get_sum_line(pi_data_bacnet_NL), "Proprietary Network Layer Message" );			
+		 }
+	     else
+		    strcpy( get_sum_line(pi_data_bacnet_NL), NL_msgs[pif_get_byte(0)] );
 /*
          sprintf (get_sum_line (pi_data_bacnet_NL),
             "BACnet NL (%s)",NL_msgs[pif_get_byte(0)]);
@@ -838,21 +891,41 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          sprintf (get_sum_line (pi_data_bacnet_NL),
             "BACnet NL (APDU)");
 */
+		 //contain BACnet APDU
+         //Xiao Shiyuan 2002-5-19. BEGIN
+         apdu_length = length - npdu_length;
+         if(apdu_length <= 0 || npdu_length > length || npdu_length > 1497) //npdu length error
+		 {
+			 strcpy( get_sum_line(pi_data_bacnet_NL), "Error NPDU" );
+			 return length;
+		 }
+		 //Xiao Shiyuan 2002-5-19. END
          return npdu_length + interp_bacnet_AL( header + npdu_length, length - npdu_length );
       }
    }   /* End of Summary Line */
 
    /* Detail line? */
-   if (pi_data_bacnet_NL->do_int) {
+   if (pi_data_bacnet_NL->do_int) {      
+
       pif_init (pi_data_bacnet_NL, header, length);
       pif_header (length, "BACnet Network Layer Detail");
+
+	  //Xiao Shiyuan 2002-5-19. BEGIN
+	  //if header is not NPDU
+	  if(length < 2)
+	  {
+		  pif_show_ascii(0, "Error NPDU" );
+		  return length;			
+	  }
+	  //Xiao Shiyuan 2002-5-19. END
 
       pif_show_byte("Protocol Version Number = %d");
 
       /* --- display the network control octet detail --- */
       buff = pif_get_byte(0);
-      APDUmask = (buff & 0x80);       /* mask  APDU/Network control bit (7) */
-      RESV1mask = (buff & 0x40)>>6;       /* reserved mask */
+      //APDUmask = (buff & 0x80);       /* mask  APDU/Network control bit (7) */
+	  APDUmask = (buff & 0x80)>>7;       //mask  APDU/Network control bit (7).Xiao Shiyuan 2002-5-17
+      RESV1mask = (buff & 0x40)>>6;   /* reserved mask */
       DESTmask = (buff & 0x20 )>>5;   /* mask for DNET, DLEN, DADR, & Hop Count present switch */
       RESV2mask = (buff & 0x10)>>4;   /* reserved mask */
       SOURCEmask = (buff & 0x08)>>3;  /* mask for SNET, SLEN, and SADR present switch */
@@ -876,10 +949,10 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
       if (DESTmask == 1) {
          wbuff = pif_get_word_hl(0);
          if(wbuff == 65535) {
-         if ((name = LookupName( 65535, 0, 0 )) != 0) {
-           sprintf( namebuff, "Global Broadcast DNET          = X'%%04X', %s", name );
+		   if ((name = LookupName( 65535, 0, 0 )) != 0) {
+			  sprintf( namebuff, "Global Broadcast DNET          = X'%%04X', %s", name );
               pif_show_word_hl(namebuff);
-         } else
+		   } else
               pif_show_word_hl("Global Broadcast DNET          = X'%04X'");
          } else
            pif_show_word_hl("Destination Network Number     = %u");
@@ -900,7 +973,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
              pif_show_ascii(0,"Broadcast MAC address implied");
              }
 
-       if (name) pif_append_ascii( ", %s", name );
+		 if (name) pif_append_ascii( ", %s", name );
          }
 
       /*  ----- show SNET, SLEN and SADR if present ----- */
@@ -918,7 +991,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          if(mac_length <= 0)
             pif_show_ascii(0,"Invalid MAC address length!");
 
-       if (name) pif_append_ascii( ", %s", name );
+		 if (name) pif_append_ascii( ", %s", name );
          }
 
       /*  ----- show Hop Count if DNET present ----- */
@@ -928,6 +1001,16 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
       if(APDUmask == 0) {  /* BACnet APDU in message, call AL interpreter */
          pif_show_space();
          npdu_length = pif_offset;
+
+		 //Xiao Shiyuan 2002-5-19. BEGIN
+         apdu_length = length - npdu_length;
+         if(apdu_length <= 0 || npdu_length > length || npdu_length > 1497) //npdu length error
+		 {
+			 pif_show_ascii(0, "Error NPDU" );
+			 return length;
+		 }
+		 //Xiao Shiyuan 2002-5-19. END
+
          return npdu_length
             + interp_bacnet_AL( header + npdu_length, length - npdu_length );
          }  /* end of APDU present case */
@@ -1054,7 +1137,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
           } /* End of if proprietary message type else branch */
           
           pif_show_space();
-      }  /* End of else network control message*/
+		}  /* End of else network control message*/
       }   /* End of Detail Lines */
    return length;
 }
@@ -1520,14 +1603,20 @@ void show_acknowledgeAlarm( void )
              };
            break;
        case 3:  show_context_tag("Time Stamp");
-           show_bac_timestamp();
+		   //Added by Yajun Zhou, 2002-9-18
+		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
+		   //////////////////////////////
+				show_bac_timestamp();
            show_context_tag("Time Stamp");  /* closing tag */
            break;
        case 4: len = show_context_tag("Acknowledgement Source");
                show_bac_charstring(len);
            break;
        case 5:  show_context_tag("Time of Acknowledgement");
-           show_bac_timestamp();
+		   //Added by Yajun Zhou, 2002-9-18
+		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
+		   //////////////////////////////
+				show_bac_timestamp();
            show_context_tag("Time of Acknowledgement");  /* closing tag */
            break;
        default: len = show_context_tag("Unknown tag");
@@ -5974,7 +6063,7 @@ void show_bac_special_event( void )
      if(tagval == 1){
        show_context_tag(BACnetSpecialEvent[tagval]);
        show_bac_object_identifier();
-       tagbuff = pif_get_byte(0);
+	   tagbuff = pif_get_byte(0);
        tagval = (tagbuff&0xF0)>>4;
        };
 
@@ -6142,7 +6231,7 @@ void show_bac_weeknday( void )
    else
       sprintf(outstr,day_of_week[pif_get_byte(0)-1]);
    show_str_eq_str("Day of Week",outstr,1);
-   pif_offset++;
+  // pif_offset++;   // commented by xuyiping, 2002-9-26
 }
 
 //Xiso Shiyuan 2002-7-23
@@ -6192,7 +6281,82 @@ void show_bac_COV_Subscription( void )
       }  /* end of while loop */
    exit:;
 }
+
+//Xuyiping 2002-9-28
+void show_bac_destination( void )
+{
+
+	unsigned int len;
+	   
+	show_bac_bitstring_value(&BACnetDaysOfWeek[0]);
+   
+	pif_show_space();
+	len = show_application_tag(pif_get_byte(0));
+    show_bac_time();
+	len = show_application_tag(pif_get_byte(0));
+    show_bac_time();
+   
+	pif_show_space();
+	show_bac_recipient();  
+   
+	pif_show_space();
+	len = show_application_tag(pif_get_byte(0));
+	show_bac_unsigned(len);
+ 
+	pif_show_space();
+	len = show_application_tag(pif_get_byte(0));
+
+
+	pif_show_space();
+
+	show_bac_bitstring_value(&BACnetEventTransitionBits[0]);
+	  
 }
+
+void show_bac_bitstring_value(char** c)
+{
+   unsigned char tagbuff,x; /* buffers for tags and tag values */
+   unsigned int unused,len;
+   unsigned int i,j;
+   
+   tagbuff = pif_get_byte(0);
+
+   len = tagbuff&0x0f;
+
+   if ((tagbuff & 0xf0) != 0x80) { 
+        pif_show_space();
+        bac_show_nbytes(1,"Error: bitstring expected!"); 
+   }
+   else
+   {
+	   pif_show_space();
+	   show_application_tag(pif_get_byte(0));
+	   
+	   unused = pif_get_byte(0);
+	   bac_show_byte("Unused Bits in Last Octet","%u");
+	  
+	   j=0;
+	   for(i=0;i<((len-1)*8-unused);i++) {
+			if(!(i%8)) {
+				x = pif_get_byte(0);
+				sprintf(outstr,"Bit String Octet [%u]",j++);
+				bac_show_byte(outstr,"X'%02X'");
+			}
+			sprintf(outstr,"   %s",c[i]);
+			pif_offset--;
+			if(x&0x80)
+				 show_str_eq_str(outstr,"TRUE",1);
+			else
+				 show_str_eq_str(outstr,"FALSE",1);
+			pif_offset++;
+			x <<= 1;
+		}
+   }
+
+}
+}
+
+
 
 
 
