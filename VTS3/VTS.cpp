@@ -1055,6 +1055,8 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //
 //			Added option in preferences for verification on delete packets.  Defaults to true.
 //
+//
+//  3.4.2
 //			[681223] - Changed the default delay in EXPECT and SEND packets to 3 seconds and changed the maximum
 //			delay to 2 minutes.  The default and max were previously set to 1.8 seconds, which was a bug.
 //
