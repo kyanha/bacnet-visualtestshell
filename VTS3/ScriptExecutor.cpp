@@ -6333,7 +6333,7 @@ void ScriptExecutor::ExpectUnconfirmedRequest( BACnetAPDUDecoder &dec )
 	valu = (dec.pktLength--,*dec.pktBuffer++);
 
 	// get the service choice
-	pService = GetKeywordValue( kwSERVICE, alService, ScriptALConfirmedServiceMap );
+	pService = GetKeywordValue( kwSERVICE, alService, ScriptALUnconfirmedServiceMap );
 	if (pService && !Match(pService->exprOp,valu,alService.intValue))
 		throw "Service-choice (SERVICE) mismatch";
 
