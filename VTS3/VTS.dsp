@@ -764,6 +764,10 @@ SOURCE=.\VTSDateTimeDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSDestinationDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSDevicesTreeDevPage.cpp
 # End Source File
 # Begin Source File
@@ -789,6 +793,10 @@ SOURCE=.\VTSDoc.cpp
 # Begin Source File
 
 SOURCE=.\VTSFiltersDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -1596,6 +1604,10 @@ SOURCE=.\VTSDateTimeDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSDestinationDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSDevicesTreeDevPage.h
 # End Source File
 # Begin Source File
@@ -1621,6 +1633,10 @@ SOURCE=.\VTSDoc.h
 # Begin Source File
 
 SOURCE=.\VTSFiltersDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSListOfDlg.h
 # End Source File
 # Begin Source File
 

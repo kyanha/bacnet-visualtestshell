@@ -20,6 +20,7 @@ void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 
 struct VTSAnyElement {
 	int					elemType;
+	int					elemitemType; //Added By Zhu Zhenhua 2003-9-10 , for SequenceOf,ListOf...;
 	int					elemContext;
 	BACnetAPDUEncoder	elemEncoder;
 	};
@@ -76,6 +77,7 @@ public:
 // Dialog Data
 	//{{AFX_DATA(VTSAny)
 	enum { IDD = IDD_ANY };
+	CComboBox	m_ComboItemType;
 	CListCtrl			m_ElemList;
 	CComboBox			m_TypeCombo;
 	CEdit				m_Context;

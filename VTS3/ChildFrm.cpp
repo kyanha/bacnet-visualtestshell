@@ -976,6 +976,7 @@ void CChildFrame::OnReadAllProperty()
 //******************************************************************
 //	Author:		Yajun Zhou
 //	Date:		2002-11-4
+//  last edit:	03-SEP-03 GJB  added the support two keywords: DNET and DADR
 //	Purpose:	Create a script file to read all the properties
 //	In:			void
 //	Out:		BOOL: TRUE when success
@@ -993,21 +994,96 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 		CString str;
 		char	szTemp[255];
 		PICS::generic_object far * pDatabase;
+		static const char	hex[] = "0123456789ABCDEF";
 
 		pscript = new CStdioFile("ReadAllProperties.vts", CFile::modeCreate|CFile::modeWrite);
 		*pstrFileName = pscript->GetFilePath();
-
+		
 		pscript->WriteString(" ;Read All Property Tests\n" \
 							 " ;-------------------------------------------------------------------------------------\n" \
 							 "  SETUP ReadProperty Tests\n" \
 							 " ;-------------------------------------------------------------------------------------\n\n");
 
-		str.Format("  IUT_IP = \"%s\"\n" \
-				   "  ACTIVENET = \"%s\"\n\n", pdlg->m_strIUTIP, pdlg->m_strNetwork );
+		//	VTSPortPtr	curPort;
+		VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+		VTSPorts * pports = pdoc == NULL ? NULL : pdoc->GetPorts();
+		VTSNames * pnames = pdoc == NULL ? NULL : pdoc->GetNames();
+
+		// get port type
+		VTSPortType nPortType = ipPort;
+		int i = 0;
+		for ( i = 0; pports != NULL && i < pports->GetSize(); i++ )
+		{
+			if ( (*pports)[i]->m_strName.CompareNoCase(pdlg->m_strNetwork) == 0 ) {
+				nPortType = (*pports)[i]->m_nPortType;
+				break;
+			}
+		}
+		// get DA
+		CString  strDA = "";
+		int nIndex = pnames->FindIndex(pdlg->m_strIUTIP);
+		if ( nIndex != -1) {
+			BACnetAddress* pAdr = &((*pnames)[nIndex]->m_bacnetaddr);
+			if ( pAdr->addrType == nullAddr || pAdr->addrType == remoteBroadcastAddr 
+				|| pAdr->addrType == remoteStationAddr ) {
+				AfxMessageBox("DA address should in the same network!");
+				return	FALSE;
+			}
+
+			char	buff[kMaxAddressLen * 3], *s = buff;
+			// clear the buffer
+			buff[0] = 0;
+			// encode the address
+			for ( i = 0; i < pAdr->addrLen; i++) {
+				if (i) *s++ = '-';
+				*s++ = hex[ pAdr->addrAddr[i] >> 4 ];
+				*s++ = hex[ pAdr->addrAddr[i] & 0x0F ];
+			}
+			*s = 0;
+			strDA = buff;
+		}else{
+			strDA = pdlg->m_strIUTIP;
+		}
+		
+		// get DNET, DADR if they are existed
+		CString  strDNET = "";
+		CString  strDADR = "";
+		if ( pdlg->m_bDNET ) {
+			int nIndex = pnames->FindIndex(pdlg->m_strDnetDadr);
+			BACnetAddress* pAdr = &((*pnames)[nIndex]->m_bacnetaddr);
+			if ( pAdr->addrType == nullAddr || pAdr->addrType == localBroadcastAddr 
+					|| pAdr->addrType == localStationAddr ) {
+				AfxMessageBox("DNET should be a different network!");
+				return	FALSE;
+			}
+
+			char buffer[16];
+			_itoa( pAdr->addrNet, buffer, 10 );
+			strDNET = buffer;
+
+			char	buff[kMaxAddressLen * 3], *s = buff;
+			// clear the buffer
+			buff[0] = 0;
+			// encode the address
+			for ( i = 0; i < pAdr->addrLen; i++) {
+				if (i) *s++ = '-';
+				*s++ = hex[ pAdr->addrAddr[i] >> 4 ];
+				*s++ = hex[ pAdr->addrAddr[i] & 0x0F ];
+			}
+			*s = 0;
+			strDADR = buff;
+		}
+		str.Format("  IUT_DA = %s\n" \
+				   "  ACTIVENET = %s\n\n", strDA, pdlg->m_strNetwork );
 		pscript->WriteString(str);
 
+		if (pdlg->m_bDNET) {
+			str.Format("  IUT_DNET = %s\n" \
+					   "  IUT_DADR = %s\n\n", strDNET, strDADR );
+			pscript->WriteString(str);
+		}
+			
 		// Generate list of all parameters for each object found in DB
-
 		int nObjNum;
 		for ( nObjNum = 1, pDatabase = gPICSdb->Database;  pDatabase != NULL;  pDatabase = (PICS::generic_object *) pDatabase->next, nObjNum++ )
 		{
@@ -1039,11 +1115,21 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 					pscript->WriteString(str);
 
 					str.Format( "    SEND (\n" \
-								"\tNETWORK = ACTIVENET\n" \
-								"\tDA = IUT_IP\n" \
-								"\tDER = TRUE\n" \
-								"\tBVLCI = ORIGINAL-UNICAST-NPDU\n" \
-								"\tPDU = Confirmed-Request\n" \
+								"\tNETWORK = ACTIVENET\n" );
+					pscript->WriteString(str);
+					if (pdlg->m_bDNET) {
+						str.Format(	"\tDNET = IUT_DNET\n" \
+									"\tDADR = IUT_DADR\n" );
+						pscript->WriteString(str);
+					}
+					str.Format( "\tDA = IUT_DA\n" 
+								"\tDER = TRUE\n" );
+					pscript->WriteString(str);
+					if (nPortType == ipPort ) {
+						str.Format( "\tBVLCI = ORIGINAL-UNICAST-NPDU\n" );
+						pscript->WriteString(str);
+					}
+					str.Format( "\tPDU = Confirmed-Request\n" \
 								"\tService = ReadProperty\n" \
 								"\tInvokeID = 1\n" \
 								"\tSegMsg = 0\n" \
@@ -1055,11 +1141,21 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 					pscript->WriteString(str);
 
 					str.Format( "    EXPECT (\n" \
-								"\tNETWORK = ACTIVENET\n" \
-								"\tSA = IUT_IP\n" \
-								"\tDER = FALSE\n" \
-								"\tBVLCI = ORIGINAL-UNICAST-NPDU\n" \
-								"\tPDU = ComplexAck\n" \
+								"\tNETWORK = ACTIVENET\n" );
+					pscript->WriteString(str);
+					if (pdlg->m_bDNET) {
+						str.Format(	"\tDNET = IUT_DNET\n" \
+							"\tDADR = IUT_DADR\n" );
+						pscript->WriteString(str);
+					}
+					str.Format( "\tSA = IUT_DA\n" 
+								"\tDER = FALSE\n" );
+					pscript->WriteString(str);
+					if (nPortType == ipPort ) {
+						str.Format( "\tBVLCI = ORIGINAL-UNICAST-NPDU\n" );
+						pscript->WriteString(str);
+					}
+					str.Format( "\tPDU = ComplexAck\n" \
 								"\tService = ReadProperty\n" \
 								"\tObject = 0, OBJECT%d\n" \
 								"\tProperty = 1, %s\n" \

@@ -163,6 +163,8 @@
 #define IDD_VENDORPROPID                276
 #define IDD_SCRIPTINCLUDE               277
 #define IDD_FILTERS                     278
+#define IDD_LISTOF                      279
+#define IDD_DESTINATION                 280
 #define IDB_BMALOGO                     300
 #define IDB_WINPCAPLOGO                 301
 #define IDC_PORTLIST                    1000
@@ -568,14 +570,40 @@
 #define IDC_INCLUDEERROR                1291
 #define IDC_INCLUDEICON                 1292
 #define IDC_EDIT1                       1293
+#define IDC_DESTINATION_NETWORK         1293
 #define IDC_RPALL_DA                    1294
 #define ID_NEWFILTER                    1295
+#define IDC_RPALL_DNET_DADR             1295
 #define ID_DELETEFILTER                 1296
 #define ID_IMPORTFILTERS                1297
 #define ID_EXPORTFILTERS                1298
 #define IDC_FILTERLIST                  1299
 #define IDC_FILTERUP                    1300
 #define IDC_FILTERDOWN                  1301
+#define IDC_DNETPRESENT                 1302
+#define IDC_LIST_LISTOF                 1303
+#define IDC_LISTOF_ADD                  1304
+#define IDC_LISTOF_DELETE               1305
+#define IDC_LISTOF_MODIFY               1306
+#define IDC_DESTINATION_SUNDAY          1309
+#define IDC_DESTINATION_MONDAY          1310
+#define IDC_DESTINATION_TUESDAY         1311
+#define IDC_DESTINATION_WEDNESDAY       1312
+#define IDC_DESTINATION_THURSDAY        1313
+#define IDC_DESTINATION_FRIDAY          1314
+#define IDC_DESTINATION_SATURDAY        1315
+#define IDC_DESTINATION_OFFNORMAL       1318
+#define IDC_DESTINATION_FAULT           1319
+#define IDC_DESTINATION_NORMAL          1320
+#define IDC_DESTINATION_CONFIRM         1321
+#define IDC_DESTINATION_ADDRESS         1322
+#define IDC_DESTINATION__MACADDRESS     1323
+#define IDC_DESTINATION_DEVICE          1324
+#define IDC_DESTINATION_DEVICEID        1327
+#define IDC_DESTINATION_DEVICEIDBTN     1329
+#define IDC_COMBO_ITEMTYPE              1330
+#define IDC_DESTINATION_FROMTIME        1332
+#define IDC_DESTINATION_TOTIME          1333
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -716,9 +744,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        278
+#define _APS_NEXT_RESOURCE_VALUE        282
 #define _APS_NEXT_COMMAND_VALUE         32831
-#define _APS_NEXT_CONTROL_VALUE         1302
+#define _APS_NEXT_CONTROL_VALUE         1335
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
