@@ -79,7 +79,7 @@ ScriptFilterList	gMasterFilterList;
 
 //Added by Yajun Zhou, 2002-7-16
 #include "math.h"
-const float FLOAT_EPSINON = 1e-005;
+const float FLOAT_EPSINON = (float)1e-005;
 const double DOUBLE_EPSINON = 1e-010;
 /////////////////////////////
 
