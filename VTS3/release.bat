@@ -16,6 +16,6 @@ cd ..
 pkzip25 -add -path %1-win32.zip scripts\*.vts
 REM --- Then make the source distribution ---
 del %1-source.zip
-pkzip25 -add -dir %1-source.zip *.cpp *.hpp *.c *.h
+pkzip25 -add -dir %1-source.zip *.cpp *.hpp *.c *.h *.inl
 pkzip25 -add -dir %1-source.zip *.bmp *.cur *.ico *.rc *.rc2 *.dsp *.dsw *.lib *.vts
 
