@@ -4342,7 +4342,12 @@ BOOL ParseBitstring(octet *bsp,word nbits,octet *nbf)
 			{	skipwhitespace();
 				if (*lp=='t'||*lp=='T')
 					*bsp|=db;
-				if (strdelim(&term[0])==NULL) break;
+//madanner 6/03
+//Bug in delimeter search... order of delim chars is significant in strdelim function
+//Used here as ",)" so we'll find comma first...   Was: ")," which found paren first and skipped
+//reading entire bitstring
+//				if (strdelim(&term[0])==NULL) break;
+				if (strdelim(",)")==NULL) break;
 				if (lp[-1]==term[0]) break;
 			}										//								***008 End
 			if ((db>>=1)==0)
