@@ -151,6 +151,9 @@ enum ScriptEncodingType
 		, scriptBinaryEnc									// 0b11111111, B'11111111', &B11111111
 		, scriptASCIIEnc									// A'hi', "hi", 'hi'
 		, scriptIPEnc										// n.n.n.n[/n][:n]
+		, scriptComplex										// Complex hunk o' data, enclosed in brackets [] to parse
+															//	  madanner 11/6/02, should be text like a string
+															//	  without quotes.  Each complex data type decodes.
 		};
 
 struct ScriptTranslateTable {

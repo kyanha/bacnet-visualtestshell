@@ -377,7 +377,7 @@ bool ScriptToken::IsDontCare() const
 //	ScriptToken::RemoveQuotes
 //
 //	Remove the single or double quotes around strings.
-//
+//	madanner 11/602, WARNING... Also used for stripping enclosing brackets !!
 
 CString ScriptToken::RemoveQuotes( void ) const
 {
@@ -720,6 +720,11 @@ void ScriptScanner::Next( ScriptToken& tok )
 				scanSrc += 1;
 				tok.tokenType = scriptSymbol;
 				tok.tokenSymbol = '>=';
+			} else
+			if (*scanSrc == '>') {
+				scanSrc += 1;
+				tok.tokenType = scriptSymbol;
+				tok.tokenSymbol = '>>';
 			} else {
 				tok.tokenType = scriptSymbol;
 				tok.tokenSymbol = c;
@@ -807,6 +812,34 @@ FORMAT1:	if (*scanSrc == 'D') {
 				FormatError( tok, "Missing close quote" );
 			*dst++ = *scanSrc++;
 			*dst = 0;
+			break;
+
+		case '[':
+			//		madanner 11/6/02, for ascii encoded data in complex data types
+			//		Values during parsing will be enclosed in [] brackets but the brackets
+			//		will be removed at the top layer.  Nested brackets will still be contained
+			//		in this one token's value... to be parsed later, in context to the complex
+			//		data type.
+
+			tok.tokenType = scriptValue;
+			tok.tokenEnc = scriptComplex;
+			{
+
+			// backup to remove bracket
+//			*(--dst) = 0;
+			int nBrackets;			// pass nested brackets through
+
+			for (nBrackets = 1; *scanSrc && nBrackets; *scanSrc == ']' ? --nBrackets : nBrackets, *dst++ = *scanSrc++)
+			{
+				if ( *scanSrc == '[' )
+					nBrackets++;
+			}
+
+			if ( nBrackets )
+				FormatError( tok, "Complex data types require enclosing brackets []" );
+			
+			*dst = 0;
+			}
 			break;
 
 		case '?':								// for don't care values
