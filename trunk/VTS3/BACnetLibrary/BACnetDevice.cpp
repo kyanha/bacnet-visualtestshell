@@ -274,6 +274,22 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 					break;
 				} else
 					cp = cp->clientNext;
+
+			//Added by Zhu zhenhua, 2003-3-10, to set a clientTSM for complexACKPDU
+			//when we send read-multiproperty request from menu or script, these is not a clientTSM wait for ACK
+				if(!cp)
+				{
+					cp = deviceClients;
+					while(cp)
+						if (cp->clientTSM.tsmState == tsmIdle)
+						{
+							cp->clientTSM.tsmInvokeID = apdu.apduInvokeID;
+							cp->clientTSM.SetState(tsmAwaitConfirmation);
+							cp->clientTSM.Confirmation( apdu );
+							break;
+						} else
+							cp = cp->clientNext;
+				}
 #if _TSMDebug
 			if (!cp)
 				cout << "[BACnetDevice::complexAckPDU: no client matching invokeID " << apdu.apduInvokeID << " found]" << endl;
@@ -387,7 +403,6 @@ again:
 	
 	return newID;
 }
-
 //
 //	MaxAPDUEncode
 //

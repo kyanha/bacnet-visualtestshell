@@ -1,4 +1,4 @@
-
+  
 #include "stdafx.h"
 
 #include "BACnet.hpp"
@@ -174,7 +174,8 @@ void BACnetClientTSM::Indication( const BACnetAPDU &apdu )
 //
 
 void BACnetClientTSM::Confirmation( const BACnetAPDU &apdu )
-{
+{	
+	tsmAddr = apdu.apduAddr;
 	switch (tsmState) {
 		case tsmSegmentedRequest:
 			SegmentedRequest( apdu );
@@ -272,6 +273,7 @@ void BACnetClientTSM::SegmentedRequest( const BACnetAPDU &apdu )
 			tsmSeg->AddSegment( apdu );
 			
 			StopTimer();
+			tsmAddr = apdu.apduAddr;
 			tsmActualWindowSize = apdu.apduWin;		// accept what device gave us
 			Request( BACnetSegmentAckAPDU( tsmAddr, tsmInvokeID, 0, 0, 0, tsmActualWindowSize ) );
 			StartTimer( tsmDevice->deviceAPDUSegmentTimeout );
@@ -403,6 +405,7 @@ void BACnetClientTSM::AwaitConfirmation( const BACnetAPDU &apdu )
 			tsmSeg->AddSegment( apdu );
 			
 			StopTimer();
+			tsmAddr = apdu.apduAddr;
 			tsmActualWindowSize = apdu.apduWin;		// accept what device gave us
 			Request( BACnetSegmentAckAPDU( tsmAddr, tsmInvokeID, 0, 0, 0, tsmActualWindowSize ) );
 			StartTimer( tsmDevice->deviceAPDUSegmentTimeout );
@@ -499,7 +502,7 @@ void BACnetClientTSM::SegmentedConfirmation( const BACnetAPDU &apdu )
 {
 	BACnetAbortAPDU			abrt( tsmAddr, 0, tsmInvokeID, invalidAPDUInThisStateAbort )
 	;
-	BACnetAPDUSegmentPtr	tempSeg
+	BACnetAPDUSegmentPtr	tempSeg = 0
 	;
 	
 #if _TSMDebug
@@ -557,11 +560,33 @@ abort:		StopTimer();
 				tempSeg = tsmSeg;
 				tsmSeg = 0;
 				
-				// send complete apdu to the client
-				Response( tempSeg->ResultAPDU() );
-				
+			// send complete apdu to the client
+
+			//Modified by Zhu zhenhua, 2003-3-10
+				BACnetAPDU apdu = tempSeg->ResultAPDU();
+				apdu.apduSeg = 0;
+				apdu.apduMor = 0;
+				apdu.apduSrv = 0;
+				apdu.apduSeq = 0;
+//				Response(apdu);				
+				apdu.apduAddr = tsmAddr;
+				unsigned char	localbroadcastAddr[4] = { 0xFF, 0xFF, 0xFF, 0xFF};
+				char szHostName[128];
+				if( gethostname(szHostName, 128) == 0 )
+				{
+					// Get host adresses
+					struct hostent * pHost;
+					pHost = gethostbyname(szHostName);
+					LPSTR lpAddr = pHost->h_addr_list[0];
+					if (lpAddr) 
+						memcpy (&localbroadcastAddr, lpAddr, 4);
+				}	//To get localbroadcast address
+				memcpy( apdu.apduAddr.addrAddr, localbroadcastAddr, 4 );
+				Request(apdu);
+
 				// now it is OK to delete it
-				delete tempSeg;
+				//	delete tempSeg;					
+				
 				break;
 			}
 			
