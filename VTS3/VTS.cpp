@@ -1544,10 +1544,15 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //        57. ListOfBACnetReadAccessResult
 //        58. ListOfBACnetReadAccessSpecification
 //
+//	3.4.7  	September, 2004 ====================
+//      Added the EPICS view.
+//      Upgraded EPICS functionality to the level of 135.1-2003.
+//      Rewrote EPICS consistency tests.
+  
 			 
 			
 			
-const int kReleaseVersion = 6;
+const int kReleaseVersion = 7;
 			
 			class CAboutDlg : public CDialog
 			{
