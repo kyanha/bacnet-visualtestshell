@@ -17,6 +17,6 @@ pkzip25 -add -path %1-win32.zip scripts\*.vts bacmacNT\*.*
 REM --- Then make the source distribution ---
 del %1-source.zip
 pkzip25 -add -dir %1-source.zip *.cpp *.hpp *.c *.h *.inl 
-pkzip25 -add -dir %1-source.zip *.bmp *.cur *.ico *.rc *.rc2 *.dsp *.dsw *.lib *.vts ptp.dll
+pkzip25 -add -dir %1-source.zip *.bmp *.cur *.ico *.rc *.rc2 *.dsp *.dsw *.lib *.vts
 pkzip25 -add -path %1-source.zip bacmacNT\*.*
 
