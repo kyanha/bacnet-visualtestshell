@@ -629,8 +629,10 @@ void VTSDoc::DoSendWindow( int iGroup, int iItem )
 	gSelectedItem = iItem;
 
 	// create the window and show it
-	//sendp->Create( AfxGetApp()->m_pMainWnd );
-	sendp->Create(); //Make send window a client window, Xiao Shiyuan 2002-10-24
+	// madanner 6/03, changed back to be child of main window, not the desktop.  This was originally an attempt
+	// to satisfy feature request 444238. 
+    sendp->Create( AfxGetApp()->m_pMainWnd );
+//	sendp->Create(); //Make send window a client window, Xiao Shiyuan 2002-10-24
 	sendp->ShowWindow( SW_SHOW );
 	
 	// reset the selection
