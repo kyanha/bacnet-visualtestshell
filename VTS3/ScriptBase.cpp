@@ -7,6 +7,9 @@
 #include "ScriptBase.h"
 #include "ScriptKeywords.h"
 #include "ScriptParmList.h"
+#include "ScriptDocument.h"
+
+#include "ScriptEditIncludeDlg.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -52,8 +55,13 @@ ScriptBase::~ScriptBase()
 //	ScriptBase::Append
 //
 
-void ScriptBase::Append( ScriptBasePtr sbp )
+void ScriptBase::Append( ScriptBasePtr sbp, ScriptScanner * pscan /* = NULL */ )
 {
+	// add support to show include file from where this came from...
+	if ( pscan != NULL )
+		if ( pscan->m_fileSource != NULL )
+			sbp->m_strFile = pscan->GetPathName();
+
 	// add to the end of the list
 	AddTail( sbp );
 
@@ -112,6 +120,7 @@ ScriptToken::ScriptToken( void )
 	, m_nIndex(-1)
 {
 	pTokenIndex = NULL;
+	m_fIgnoreEscape = false;
 }
 
 //
@@ -549,14 +558,30 @@ ScriptToken& ScriptTokenList::operator []( int i )
 //	window.
 //
 
-ScriptScanner::ScriptScanner( CEdit* ep )
-	: scanSource( ep )
-	, scanLine( -1 )
-	, scanSrc( scanLineBuffer )
+ScriptScanner::ScriptScanner( ScriptDocument * pdoc )
 {
+	Initialize();
+	m_pdocSource = pdoc;
+}
+
+
+void ScriptScanner::Initialize()
+{
+	m_pdocSource = NULL;
+	m_fileSource = NULL;
 	scanLineBuffer[0] = 0;
 	scanValueBuffer[0] = 0;
+	scanLine = -1;
+	scanSrc = scanLineBuffer;
+	m_nLineOffset = 0;
 }
+
+ScriptScanner::ScriptScanner( CStdioFile * fileSource )
+{
+	Initialize();
+	m_fileSource = fileSource;
+}
+
 
 //
 //	ScriptScanner::ScriptScanner
@@ -565,10 +590,9 @@ ScriptScanner::ScriptScanner( CEdit* ep )
 //
 
 ScriptScanner::ScriptScanner( const char *src )
-	: scanSource( 0 )
-	, scanLine( -1 )
-	, scanSrc( src )
 {
+	Initialize();
+	scanSrc = src;
 }
 
 //
@@ -577,6 +601,11 @@ ScriptScanner::ScriptScanner( const char *src )
 
 ScriptScanner::~ScriptScanner( void )
 {
+	if ( m_fileSource != NULL )
+	{
+		delete m_fileSource;
+		m_fileSource = NULL;
+	}
 }
 
 //
@@ -586,15 +615,51 @@ ScriptScanner::~ScriptScanner( void )
 void ScriptScanner::FormatError( ScriptToken &tok, char *msg )
 {
 	// set up the token to point to the bad char
-	if (scanSource) {
+	if ( m_pdocSource != NULL  ||  m_fileSource != NULL )
+	{
 		tok.tokenLine = scanLine;
-		tok.tokenOffset = scanSource->LineIndex( scanLine ) + (scanSrc - scanLineBuffer);
+		tok.tokenOffset = m_nLineOffset + (scanSrc - scanLineBuffer);
+//		tok.tokenOffset = m_pdocSource->m_editData->LineIndex( scanLine ) + (scanSrc - scanLineBuffer);
 		tok.tokenLength = (*scanSrc ? 1 : 0);
 	}
 
 	// here it goes
 	throw msg;
 }
+
+
+CString ScriptScanner::GetPathName(void)
+{
+	if ( m_pdocSource != NULL )
+		return m_pdocSource->GetPathName();
+
+	if ( m_fileSource != NULL )
+		return m_fileSource->GetFilePath();
+
+	return CString();
+}
+
+
+
+void ScriptScanner::ReportSyntaxError( ScriptToken * ptok, LPCSTR lpszErrorMsg )
+{
+	if ( m_pdocSource != NULL )
+	{
+		m_pdocSource->m_editData->SetSel( ptok->tokenOffset, ptok->tokenOffset + ptok->tokenLength );
+		AfxMessageBox( lpszErrorMsg );
+	}
+
+	if ( m_fileSource != NULL )
+	{
+		CScriptEditIncludeDlg	dlgInclude(m_fileSource->GetFilePath(), ptok, lpszErrorMsg );
+
+		// have to close the file so the save will work...
+		m_fileSource->Close();
+		dlgInclude.DoModal();
+	}
+}
+
+
 
 //
 //	ScriptScanner::Next
@@ -623,9 +688,10 @@ void ScriptScanner::Next( ScriptToken& tok )
 	tStart = scanSrc;
 
 	// compute the offset into the source text (unless working from a buffer)
-	if (scanSource) {
+	if ( m_pdocSource != NULL || m_fileSource != NULL ) {
 		tok.tokenLine = scanLine;
-		tok.tokenOffset = scanSource->LineIndex( scanLine ) + (scanSrc - scanLineBuffer);
+		tok.tokenOffset = m_nLineOffset + (scanSrc - scanLineBuffer);
+//		tok.tokenOffset = m_pdocSource->m_editData->LineIndex( scanLine ) + (scanSrc - scanLineBuffer);
 	}
 
 	// check for end-of-line
@@ -805,8 +871,11 @@ FORMAT1:	if (*scanSrc == 'D') {
 			tok.tokenType = scriptValue;
 			tok.tokenEnc = scriptASCIIEnc;
 
-			while (*scanSrc && (*scanSrc != c)) {
-				if ((*scanSrc == '\\') && (*(scanSrc+1)))
+			while (*scanSrc && (*scanSrc != c))
+			{
+				//madanner 6/03, allow inclusion of slash if token parameter says so
+				if ((*scanSrc == '\\') && !tok.m_fIgnoreEscape && (*(scanSrc+1)))
+//				if ((*scanSrc == '\\') && (*(scanSrc+1)))
 					scanSrc += 1;
 				*dst++ = *scanSrc++;
 			}
@@ -1332,7 +1401,9 @@ void ScriptScanner::NextTitle( ScriptToken& tok )
 	tStart = scanSrc;
 
 	// compute the offset into the source text
-	tok.tokenOffset = scanSource->LineIndex( scanLine ) + (scanSrc - scanLineBuffer);
+	if ( m_pdocSource  != NULL ||  m_fileSource != NULL )
+		tok.tokenOffset = m_nLineOffset + (scanSrc - scanLineBuffer);
+//		tok.tokenOffset = m_pdocSource->m_editData->LineIndex( scanLine ) + (scanSrc - scanLineBuffer);
 
 	// look for a word
 	while (*scanSrc) {
@@ -1373,23 +1444,55 @@ void ScriptScanner::NextTitle( ScriptToken& tok )
 
 void ScriptScanner::NextLine( ScriptToken& tok )
 {
-	int		len
-	;
+	int		len;
 
 	// if there's no source, bail
-	if (!scanSource)
+	if ( m_pdocSource == NULL  &&  m_fileSource == NULL )			// madanner 6/03
 		throw (-1);
 
 	// get the next line
 	scanLine += 1;
-	if (scanLine >= scanSource->GetLineCount()) {
-		tok.tokenType = scriptEOF;
-		return;
-	}
+
+//madanner 6/03
+//	if (scanLine >= scanSource->GetLineCount()) {
+//		tok.tokenType = scriptEOF;
+//		return;
+//	}
 
 	// suck the line into a private buffer and null-terminate it
-	len = scanSource->GetLine( scanLine, scanLineBuffer, kTokenBufferSize );
-	scanLineBuffer[len] = 0;
+//	len = scanSource->GetLine( scanLine, scanLineBuffer, kTokenBufferSize );
+
+	if ( m_pdocSource != NULL )
+	{
+		m_nLineOffset = m_pdocSource->m_editData->LineIndex(scanLine);
+		if (scanLine >= m_pdocSource->m_editData->GetLineCount())
+		{
+			tok.tokenType = scriptEOF;
+			return;
+		}
+
+		// suck the line into a private buffer and null-terminate it
+		len = m_pdocSource->m_editData->GetLine( scanLine, scanLineBuffer, kTokenBufferSize );
+		scanLineBuffer[len] = 0;
+	}
+	
+	if ( m_fileSource != NULL )
+	{
+		try
+		{
+			m_nLineOffset = m_fileSource->GetPosition();
+			if ( m_fileSource->ReadString(scanLineBuffer, kTokenBufferSize) == NULL )
+			{
+				tok.tokenType = scriptEOF;
+				return;
+			}
+		}
+		catch( CFileException e )
+		{
+			tok.tokenType = scriptEOF;
+			return;
+		}
+	}
 
 	// load the next token
 	scanSrc = scanLineBuffer;
