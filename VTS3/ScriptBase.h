@@ -34,6 +34,8 @@ class ScriptBase : public CList<ScriptBasePtr,ScriptBasePtr> {
 				, scriptReference
 				, scriptPacket
 				, scriptCase
+				, scriptCheck
+				, scriptMake
 				};
 
 		ScriptBase();
@@ -114,14 +116,16 @@ const int kScriptCaseSize = sizeof( ScriptCase );
 //	ScriptTest
 //
 
-class ScriptPacket;
+//class ScriptPacket;
+class ScriptCommand;
 
 class ScriptTest : public ScriptCase {
 	public:
 		ScriptTest( const CString& number );
 
 		ScriptTest		*testNext;					// next test
-		ScriptPacket	*testFirstPacket;			// first packet in test
+//		ScriptPacket	*testFirstPacket;			// first packet in test
+		ScriptCommand	*testFirstCommand;			// first packet in test
 	};
 
 typedef ScriptTest *ScriptTestPtr;
