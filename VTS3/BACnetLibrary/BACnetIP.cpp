@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -9,11 +10,20 @@
 #include "BACnetIP.hpp"
 
 #ifdef _MSC_VER
+#define ENDIAN_SWAP     1
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+#endif
+
+#if (__DECCXX && __ALPHA)
+#define ENDIAN_SWAP     1
+#endif
+
+#ifndef ENDIAN_SWAP
+#define ENDIAN_SWAP     0
 #endif
 
 //
@@ -78,6 +88,7 @@ void BACnetIPAddr::Pack( unsigned long host, unsigned short port )
 //
 
 void BACnetIPAddr::Unpack( unsigned long *hostp, unsigned short *portp )
+	const
 {
 	Unpack( addrAddr, hostp, portp );
 }
@@ -88,7 +99,7 @@ void BACnetIPAddr::Unpack( unsigned long *hostp, unsigned short *portp )
 
 void BACnetIPAddr::Pack( BACnetOctet *rsltp, unsigned long host, unsigned short port )
 {
-#ifdef _MSC_VER
+#if ENDIAN_SWAP
 	rsltp[3] = (host & 0xFF);	host >>= 8;
 	rsltp[2] = (host & 0xFF);	host >>= 8;
 	rsltp[1] = (host & 0xFF);	host >>= 8;
@@ -105,9 +116,9 @@ void BACnetIPAddr::Pack( BACnetOctet *rsltp, unsigned long host, unsigned short 
 //	BACnetIPAddr::Unpack
 //
 
-void BACnetIPAddr::Unpack( BACnetOctet *rsltp, unsigned long *hostp, unsigned short *portp )
+void BACnetIPAddr::Unpack( const BACnetOctet *rsltp, unsigned long *hostp, unsigned short *portp )
 {
-#ifdef _MSC_VER
+#if ENDIAN_SWAP
 	unsigned long	host
 	;
 	unsigned short	port

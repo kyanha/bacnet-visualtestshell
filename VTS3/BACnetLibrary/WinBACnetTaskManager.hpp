@@ -3,7 +3,7 @@
 
 #include <afxmt.h>
 
-#include "BACnetTask.hpp"
+#include "BACnet.hpp"
 
 //
 //	WinBACnetTaskManager

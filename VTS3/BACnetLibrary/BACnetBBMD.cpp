@@ -83,8 +83,7 @@ void BACnetBBMD::Indication( const BACnetNPDU &npdu )
 			// send it to all of the foreign devices
 			for (i = 0; i < bbmdFDTSize; i++)
 				Request(
-					BACnetNPDU(
-						BACnetIPAddr( bbmdFDT[i].fdIPAddr, bbmdFDT[i].fdPort )
+					BACnetNPDU( bbmdFDT[i].fdAddress
 						, msg, len
 						)
 					);
@@ -450,7 +449,7 @@ void BACnetBBMD::ProcessTask( void )
 	
 #ifdef _BACnetOStreamAddr
 	// debug
-	std::cout << "[tick]" << std::endl;
+	cout << "[tick]" << endl;
 #endif
 	
 	src = dst = bbmdFDT;
@@ -464,7 +463,7 @@ void BACnetBBMD::ProcessTask( void )
 		} else {
 #ifdef _BACnetOStreamAddr
 			// debug
-			std::cout << "Expired: " << src->fdAddress << std::endl;
+			cout << "Expired: " << src->fdAddress << endl;
 #endif
 			
 			src += 1;
@@ -479,7 +478,7 @@ void BACnetBBMD::ProcessTask( void )
 //	BACnetBBMD::RegisterForeignDevice
 //
 
-int BACnetBBMD::RegisterForeignDevice( const BACnetAddress &addr, int ttl )
+int BACnetBBMD::RegisterForeignDevice( const BACnetIPAddr &addr, int ttl )
 {
 	int			i
 	;
@@ -496,7 +495,7 @@ int BACnetBBMD::RegisterForeignDevice( const BACnetAddress &addr, int ttl )
 			
 #ifdef _BACnetOStreamAddr
 			// debug
-			std::cout << "Re-registered: " << addr << std::endl;
+			cout << "Re-registered: " << addr << endl;
 #endif
 			
 			// success
@@ -505,8 +504,9 @@ int BACnetBBMD::RegisterForeignDevice( const BACnetAddress &addr, int ttl )
 	
 	// load the table
 	bbmdFDT[bbmdFDTSize].fdAddress = addr;
-	bbmdFDT[bbmdFDTSize].fdIPAddr = *(unsigned long *)addr.addrAddr;
-	bbmdFDT[bbmdFDTSize].fdPort = *(unsigned short *)(addr.addrAddr + 4);
+	addr.Unpack( &bbmdFDT[bbmdFDTSize].fdIPAddr
+		, &bbmdFDT[bbmdFDTSize].fdPort
+		);
 	bbmdFDT[bbmdFDTSize].fdTTL = ttl;
 	bbmdFDT[bbmdFDTSize].fdRemain = ttl;
 	
@@ -515,7 +515,7 @@ int BACnetBBMD::RegisterForeignDevice( const BACnetAddress &addr, int ttl )
 	
 #ifdef _BACnetOStreamAddr
 	// debug
-	std::cout << "Registered: " << addr << std::endl;
+	cout << "Registered: " << addr << endl;
 #endif
 	
 	// success

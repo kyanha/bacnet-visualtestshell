@@ -178,8 +178,12 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 	//
 	if ((!netLayerMessage) && ((!dnetPresent) || (destAddr.addrType == globalBroadcastAddr))) {
 		// only forward to the application layer if we are bound to one
-		if (serverPeer)
+		if (serverPeer) {
+			// if this isn't from a 'local' network, present it as routed
+			if (adapter->adapterNet != kBACnetRouterLocalNetwork)
+				srcAddr.addrType = remoteStationAddr;
 			Response( BACnetNPDU( srcAddr, apduData, apduLen, dataExpectingReply, networkPriority ) );
+		}
 		
 		// don't continue processing if this was just for our benefit
 		if (!dnetPresent)
@@ -190,11 +194,11 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 	//
 	//	Check to see if we can do any routing.  If the adapter the message came 
 	//	from is our local network, we don't know what network we are connected
-	//	to and the adapterNet is -1.  This ProcessNPDU() function we are in is
+	//	to and the adapterNet is kBACnetRouterLocalNetwork.  This ProcessNPDU() function we are in is
 	//	only called from a connected adapter, so our adapterListLen is at least
 	//	one.
 	//
-	if (adapter->adapterNet == -1)
+	if (adapter->adapterNet == kBACnetRouterLocalNetwork)
 		return;
 #endif
 	// don't bother to check for others if there is only one!
@@ -389,15 +393,14 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 //
 
 void BACnetRouter::ProcessVendorNetMessage(
-	BACnetRouterAdapterPtr adapter,
-	const int msgType,
-	const BACnetAddress &srcAddr,
-	const BACnetAddress &destAddr,
-	const BACnetOctet *msgPtr,
-	const int msgLen
+	BACnetRouterAdapterPtr /* adapter */,
+	const int /* msgType */,
+	const BACnetAddress & /* srcAddr */,
+	const BACnetAddress & /* destAddr */,
+	const BACnetOctet * /* msgPtr */,
+	const int /* msgLen */
 	)
 {
-#pragma unused (adapter,msgType,srcAddr,destAddr,msgPtr,msgLen)
 }
 
 //
@@ -408,12 +411,11 @@ void BACnetRouter::ProcessNetMessage(
 	BACnetRouterAdapterPtr adapter,
 	const int msgType,
 	const BACnetAddress &srcAddr,
-	const BACnetAddress &destAddr,
+	const BACnetAddress & /* destAddr */,
 	const BACnetOctet *msgPtr,
 	const int mLen
 	)
 {
-#pragma unused (destAddr)
 	int				i, j, net, found, msgLen = mLen
 	,				netListLen, *netList
 	;
@@ -568,7 +570,7 @@ void BACnetRouter::BroadcastRoutingTable( BACnetRouterAdapterPtr adapter )
 	*mptr++ = (unsigned char)IAmRouterToNetwork;
 	// append those directly connected
 	for (i = 0; i < adapterListLen; i++)
-		if ((adapterList[i] != adapter) && (adapterList[i]->adapterNet != -1)) {
+		if ((adapterList[i] != adapter) && (adapterList[i]->adapterNet != kBACnetRouterLocalNetwork)) {
 			*mptr++ = (adapterList[i]->adapterNet >> 8) & 0xFF;
 			*mptr++ = (adapterList[i]->adapterNet & 0xFF);
 		}
@@ -631,7 +633,10 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 		case localStationAddr:
 		case localBroadcastAddr:
 			// find the endpoint considered the local network
-			if ((adapterListLen == 0) || (adapterList[0]->adapterNet != -1))
+			for (i = 0; i < adapterListLen; i++)
+				if (adapterList[i]->adapterNet == kBACnetRouterLocalNetwork)
+					break;
+			if (i >= adapterListLen)
 				throw (-1); // no local network defined
 			
 			// build the header, append the APDU

@@ -18,15 +18,16 @@ static char THIS_FILE[] = __FILE__;
 //
 //	This version of the constructor is used when the application already 
 //	has a buffer (probably allocated on the stack) and knows that it is 
-//	big enough.
+//	big enough.  If some of the content has already been encoded, pass 
+//	the number of octets as the length.
 //
 //	WARNING: Because the encoder object does not own the buffer it can't 
 //	verify that there really is enough space.  Unless the application is
 //	careful, bad things could happen.
 //
 
-BACnetAPDUEncoder::BACnetAPDUEncoder( BACnetOctet *buffPtr )
-	: pktBuffer(buffPtr), pktBuffSize(0), pktLength(0)
+BACnetAPDUEncoder::BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen )
+	: pktBuffer(buffPtr), pktBuffSize(0), pktLength(buffLen)
 {
 }
 
@@ -92,10 +93,24 @@ void BACnetAPDUEncoder::CheckSpace( int len )
 }
 
 //
-//	BACnetAPDUEncoder::CopyOctets
+//	BACnetAPDUEncoder::Append
 //
 
-void BACnetAPDUEncoder::CopyOctets( BACnetOctet *buff, int len )
+void BACnetAPDUEncoder::Append( BACnetOctet ch )
+{
+	// short circuit size check
+	if ((pktBuffSize != 0) && ((pktLength + 1) > pktBuffSize))
+		CheckSpace( 1 );
+	
+	// copy it in
+	*(pktBuffer + pktLength++) = ch;
+}
+
+//
+//	BACnetAPDUEncoder::Append
+//
+
+void BACnetAPDUEncoder::Append( BACnetOctet *buff, int len )
 {
 	// make sure there's enough room
 	CheckSpace( len );

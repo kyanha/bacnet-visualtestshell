@@ -39,10 +39,10 @@ class BACnetIPAddr : public BACnetAddress {
 		BACnetIPAddr( unsigned long host, unsigned short port = kBACnetIPDefaultPort );
 		
 		void Pack( unsigned long host, unsigned short port );
-		void Unpack( unsigned long *hostp, unsigned short *portp );
+		void Unpack( unsigned long *hostp, unsigned short *portp ) const;
 		
 		static void Pack( BACnetOctet *rsltp, unsigned long host, unsigned short port );
-		static void Unpack( BACnetOctet *rsltp, unsigned long *hostp, unsigned short *portp );
+		static void Unpack( const BACnetOctet *rsltp, unsigned long *hostp, unsigned short *portp );
 		
 		static void StringToHostPort( const char *str, unsigned long *hostp, unsigned long *maskp, unsigned short *portp );
 		
