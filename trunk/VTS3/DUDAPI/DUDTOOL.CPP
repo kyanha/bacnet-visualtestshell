@@ -2216,7 +2216,7 @@ extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId
       case PROGRAM:					PR_CreateProperty( (program_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
       case SCHEDULE:				SC_CreateProperty( (schedule_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
       case AVERAGING:				AVG_CreateProperty( (avg_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
-      case TRENDLOG:				TR_CreateProperty( (trend_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+      case TREND_LOG:				TR_CreateProperty( (trend_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break; // msdanner 9/04, was "TRENDLOG"
 	  default:
 		  TRACE("CreatePropertyFromDB called for unknown object type");
 		  ASSERT(0);
