@@ -511,6 +511,90 @@ void VTSPreferences::Save( void )
 //			It now compares the valid empty condition.  This error would also show up on other non-primitive data types
 //			whose value could be empty ().
 //
+//			508640, Array bugs in rp (1E,1F,1G) 
+//			
+//			Case 1e has been fixed by creating a BACnet type class structure that will facilitate easier type
+//			comparisons.  (See below).   Cases 1F and 1G are errors in the script parser that don't deal with array
+//			indices.
+//
+//			Reworked implementation for comparing data in EXPECT statements from values retrieved from EPICS and
+//			specified in scripts.   Any AL value being compared to EPICS data was using a method to match encoded
+//			streams.  This scheme would fail in cases where numbers used different encoding sizes, different type
+//			comparisons that are legal (such as float vs. null in priority arrays) and many other.  More detailed
+//			comparisons were impossible with this method because VTS had no way of determining the type of data 
+//			and could not determine the proper end of the stream, among other reasons.  
+//
+//			To implement type specific comparisons for all possible BACnet data types, including arrays, lists and 
+//			complex structures, the c++ class representation for BACnet data types has been extended.  These 
+//			classes serve as a foundation that allows the use of more tools (MFC, polymorphism, etc.) to 
+//			facilitate feature additions and more flexibility where BACnet data type are concerned.  Type specific 
+//			matching methods, display methods, decoding, assignment and comparative operators are now available.  
+//
+//			Using these classes to perform decoding and comparisons in the heart of EXPECT statements required 
+//			the need for a retreval method to access the internal EPICS structures and convert them to BACnet 
+//			type classes.   The immediate result of these changes can be seen in more meaningful text in test 
+//			fail results.  In addition, comparisons can now be made to the following data types:
+//
+//				Unsigned values - all sizes.
+//				Integer values - all sizes.
+//				Real and doubles.
+//				Priority arrays for floats, reals, enumerated and NULL choices.  Indexes not supported yet from 
+//							script parser yet but comparisons are ready.
+//				Boolean.
+//				Bit strings.
+//				Object IDs.
+//				Character strings - any size.
+//				Enumerated values.
+//				Date values - all comparison operators.
+//				Time values - all comparison operators.
+//				DateTime values - all comparison operators.
+//				DateRange - all comparison operators (where applicable).
+//				Calendar Entries and lists.
+//				Device Address Bindings.
+//				Array of object identifiers.
+//				Arrays and lists of unsigned values.
+//				Arrays of text for active/inactive.
+//
+//			The following type comparisons are not implemented yet:
+//				List of read access specs.
+//				Action commands and arrays of action commands.
+//				VT classes.
+//				Event parameters.
+//				Session keys.
+//				Time Synch recipients.
+//				Recipients.
+//				List of Recipients.
+//				Array of exceptions schedule events.
+//				Array of weekly schedules.
+//				List of object property references.
+//				Setpoint reference.
+//				List of active VT sessions.
+//
+//			Adding support for these remaining types is simply a matter of constructing the object from the 
+//			EPICS internal structures and decoding the object from a stream.  The mechanisms for performing the 
+//			comparisons are already in place.  The development of support for proprietary objects in EPICS 
+//			and scripts will be assisted by BACnet classes as well.
+//
+//			Other benefits of this work will be seen later as the EPICS store gradually converts to store 
+//			data internally in these classes.  The greatest benefit to this foundation work will be seen as data 
+//			becomes extractable from Complex Acks either compared, tested or even assigned to variables of complex
+//			types in scripts.  Additionally, script parsing will be effected by these changes once all of the 
+//			data types are supported and proper scanning methods for each will allow a single source code source 
+//			for the creation of such objects.
+//
+//			Most of the SEND methods have been altered to retrieve EPICS data using these classes as well as 
+//			creation and encoding of send streams from these object types.  Specifically, the following classes 
+//			have been added or altered:
+//				All BACnet classes enhanced with Runtime type declaratives, ToString and Match virtuals.  
+//				Most classes now have constructors that take an APDUDecoder to construct the value from an 
+//				encoded stream.  BACnetEncodeable now decends from CObject, added Match and ToString virtuals.  
+//				BACnetAddr, BACnetUnsigned, BACnetCharacterString, BACnetBinaryPriV, BACnetCalendarArray, 
+//				BACnetCalendarEntry, BACnetDate, BACnetDateTime, BACnetDateRange, BACnetTime, BACnetTimeStamp, 
+//				BACnetWeekNDay, BACnetObjectIDList, BACnetGenericArray, BACnetObjectContainer, 
+//				BACnetAnyValue (to facility "any" type flexibility - but mostly to encapsulate dynamically 
+//				allocated objects for proper destruction when there's so much 'throwing' goings on...).
+//
+//
 
 const int kReleaseVersion = 9;
 

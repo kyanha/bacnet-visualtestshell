@@ -124,6 +124,7 @@
 #define IDD_STATISTICS                  243
 #define IDD_STATISTICS_OPTIONS          244
 #define IDD_SENDDEVICE                  245
+#define IDD_DIALOG1                     246
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -497,13 +498,45 @@
 #define ID_VIEW_STATISTICS              32809
 #define ID_FILE_EXPORT                  32810
 #define ID_SCRIPT_ENV                   32811
+#define IDS_SCREX_COMPREAL              33000
+#define IDS_SCREX_COMPEPICSNULL         33001
+#define IDS_SCREX_COMPREALDATALEN       33002
+#define IDS_SCREX_COMPDATANULL          33003
+#define IDS_SCREX_COMPINT               33004
+#define IDS_SCREX_COMPUINT              33005
+#define IDS_SCREX_COMPARRAY             33006
+#define IDS_SCREX_COMPSHORTDATA         33007
+#define IDS_SCREX_COMPSTREAMFAIL_NE     33008
+#define IDS_SCREX_COMPSTREAM_E          33009
+#define IDS_SCREX_COMPEQREQ             33010
+#define IDS_SCREX_COMPSTRING            33012
+#define IDS_SCREX_COMPFAILTYPE          33013
+#define IDS_SCREX_COMPARRAYSIZE         33014
+#define IDS_SCREX_COMPARRAYINXBOUNDS    33015
+#define IDS_SCREX_COMPUNSUPPORTED       33016
+#define IDS_SCREX_COMPFAIL              33017
+#define IDS_SCREX_COMPFAILBITSTRING     33018
+#define IDS_SCREX_COMPFAILENUM          33019
+#define IDS_SCREX_COMPFAILPROP          33020
+#define IDS_SCREX_COMPFAILDEVID         33021
+#define IDS_SCREX_COMPFAILOBJID         33022
+#define IDS_SCREX_COMPFAILSTRING        33023
+#define IDS_SCREX_COMPFAILOCTSTRING     33024
+#define IDS_SCREX_COMPFAILDOUBLE        33025
+#define IDS_SCREX_COMPFAILREAL          33026
+#define IDS_SCREX_COMPFAILINT           33027
+#define IDS_SCREX_COMPFAILUNSIGNED      33028
+#define IDS_SCREX_COMPFAILBOOL          33029
+#define IDS_SCREX_COMPFAILSTRENCODING   33030
+#define IDS_SCREX_COMPFAILDATE          33031
+#define IDS_SCREX_COMPFAILTIME          33032
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        245
+#define _APS_NEXT_RESOURCE_VALUE        247
 #define _APS_NEXT_COMMAND_VALUE         32812
 #define _APS_NEXT_CONTROL_VALUE         1249
 #define _APS_NEXT_SYMED_VALUE           105
