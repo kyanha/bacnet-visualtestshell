@@ -43,6 +43,7 @@ public:
 	CDockingHexViewBar* m_pwndHexViewBar;
 	CDockingEPICSViewBar * m_pwndEPICSViewBar;
 
+
 	/////////////////////////////////
 	//Added by Zhenhua Zhu, 2003-6-2
 	CVdbPrint m_printer;
@@ -50,6 +51,8 @@ public:
 	BOOL	  m_bInPrinting;
 
 	/////////////////////////////////
+protected:
+		CToolBar * m_wndGlobalBar;
 // Operations
 public:
 
@@ -140,6 +143,29 @@ protected:
 	afx_msg void OnFilePrintSetup();
 	afx_msg void OnUpdateFilePrint(CCmdUI* pCmdUI);
 	afx_msg void OnReadAllProperty();
+	//Added by Zhu Zhenhua, 2004-11-27,for #508589 request 
+	afx_msg void OnGlobalScriptSteppass();
+	afx_msg void OnUpdateGlobalScriptSteppass(CCmdUI* pCmdUI);
+	afx_msg void OnGlobalScriptStepfail();
+	afx_msg void OnUpdateGlobalScriptStepfail(CCmdUI* pCmdUI);
+	afx_msg void OnGlobalScriptStep();
+	afx_msg void OnUpdateGlobalScriptStep(CCmdUI* pCmdUI);
+	afx_msg void OnGlobalScriptKill();
+	afx_msg void OnUpdateGlobalScriptKill(CCmdUI* pCmdUI);
+	afx_msg void OnGlobalScriptHalt();
+	afx_msg void OnUpdateGlobalScriptHalt(CCmdUI* pCmdUI);
+	afx_msg void OnGlobalDisablePort();
+	afx_msg void OnUpdateGlobalDisablePort(CCmdUI* pCmdUI);
+	afx_msg void OnGlobalScriptChecksyntax();
+	afx_msg void OnUpdateGlobalScriptChecksyntax(CCmdUI* pCmdUI);
+	afx_msg void OnGlobalScriptReset();
+	afx_msg void OnUpdateGlobalScriptReset(CCmdUI* pCmdUI);
+	afx_msg void OnGlobalScriptRun();
+	afx_msg void OnUpdateGlobalScriptRun(CCmdUI* pCmdUI);
+	afx_msg void OnViewMaintoolbar();
+	afx_msg void OnViewGlobalToolbar();
+	afx_msg void OnUpdateViewMaintoolbar(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewGlobalToolbar(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	// Added by Jingbo Gao, 2004-9-20
 	void OnBackupRestore();

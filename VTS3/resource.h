@@ -248,6 +248,7 @@
 #define IDD_EPICSVIEW_PROP              360
 #define IDR_EPICS_PROP                  361
 #define IDD_BACKUP_RESTORE              362
+#define IDR_GLOBALBAR                   364
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -871,7 +872,6 @@
 #define IDC_BACKUPFILENAME              1528
 #define IDC_BACKUPFILENAME2             1530
 #define IDC_BROWSE                      1531
-
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -927,21 +927,34 @@
 #define ID_EPICS_PROP_GEN               32837
 #define ID_EPICS_PROP_CLEAR             32838
 #define ID_EPICS_PROP_REUSE             32839
+#define ID_GLOBAL_SCRIPT_CHECKSYNTAX    32849
 #define ID_FILE_MRU_WKSFIRST            32850
 #define ID_FILE_MRU_WKS1                32850
+#define ID_GLOBAL_SCRIPT_RESET          32850
 #define ID_FILE_MRU_WKS2                32851
+#define ID_GLOBAL_SCRIPT_RUN            32851
 #define ID_FILE_MRU_WKS3                32852
+#define ID_GLOBAL_SCRIPT_HALT           32852
 #define ID_FILE_MRU_WKS4                32853
+#define ID_GLOBAL_SCRIPT_STEP           32853
 #define ID_FILE_MRU_WKS5                32854
+#define ID_GLOBAL_SCRIPT_STEPPASS       32854
 #define ID_FILE_MRU_WKS6                32855
+#define ID_GLOBAL_SCRIPT_STEPFAIL       32855
 #define ID_FILE_MRU_WKS7                32856
+#define ID_GLOBAL_SCRIPT_KILL           32856
 #define ID_FILE_MRU_WKS8                32857
+#define ID_GLOBAL_NEW_LOGFILE           32857
 #define ID_FILE_MRU_WKS9                32858
+#define ID_GLOBAL_DISABLE_PORT          32858
 #define ID_FILE_MRU_WKS10               32859
 #define ID_FILE_MRU_WKS11               32860
 #define ID_FILE_MRU_WKS12               32861
+#define ID_VIEW_GLOBALBAR               32861
 #define ID_FILE_MRU_WKS13               32862
+#define ID_VIEW_MAINTOOLBAR             32862
 #define ID_FILE_MRU_WKS14               32863
+#define ID_VIEW_GLOBAL_TOOLBAR          32863
 #define ID_FILE_MRU_WKS15               32864
 #define ID_FILE_MRU_WKSLAST             32864
 #define ID_EDIT_LOGFILE                 32900
@@ -1021,8 +1034,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        362
-#define _APS_NEXT_COMMAND_VALUE         32839
+#define _APS_NEXT_RESOURCE_VALUE        369
+#define _APS_NEXT_COMMAND_VALUE         32866
 #define _APS_NEXT_CONTROL_VALUE         1523
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
