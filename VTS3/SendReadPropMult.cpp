@@ -165,7 +165,7 @@ BOOL CSendReadPropMult::OnInitDialog()
 	m_PropList.m_nFlags &= ~LBS_SORT;
 
 	// set up the property list columns
-	m_PropList.InsertColumn( 0, "Property", LVCFMT_LEFT, 96 );
+	m_PropList.InsertColumn( 0, "Property", LVCFMT_LEFT, 175 );
 	m_PropList.InsertColumn( 1, "Index", LVCFMT_RIGHT, 48 );
 
 	// disable the controls, they'll be enabled when an object is selected
@@ -431,6 +431,14 @@ void ReadPropList::AddButtonClick( void )
 	// create a new item, add to the end of the list
 	rplCurElem = new ReadPropElem( rplPagePtr );
 	rplCurElemIndx = listLen;
+
+	// madanner, 8/26/02.  Sourceforge bug #472392
+	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
+	// if list is altered.
+
+	rplCurElem->rpePropCombo.enumValue = 85;
+
 	AddTail( rplCurElem );
 
 	// bind the element to the controls
@@ -438,7 +446,10 @@ void ReadPropList::AddButtonClick( void )
 
 	// update the encoding
 	rplAddInProgress = false;
-	rplPagePtr->UpdateEncoded();
+
+	// madanner, 8/26/02.  Sourceforge bug #472392
+	OnSelchangePropCombo();				// Insert new list text for Present_Value
+//	rplPagePtr->UpdateEncoded();		Commented because prior call to selchange updates.
 }
 
 //
