@@ -865,7 +865,9 @@ octet far* ePAF(octet far* p, const float far* pv, int ArrayIndex, int TagNr)
 }
 
 // encode BACnetBinaryPV
-octet far* ePAB(octet far* p, const enum BACnetBinaryPV far* pv, int ArrayIndex, int TagNr)
+//MOdified by Liangping Xu, 2002-8-5
+//octet far* ePAB(octet far* p, const enum BACnetBinaryPV far* pv, int ArrayIndex, int TagNr)
+octet far* ePAB(octet far* p, const word far* pv, int ArrayIndex, int TagNr)
 { int i;
   if (pv==NULL) return p;
   
@@ -885,7 +887,11 @@ octet far* ePAB(octet far* p, const enum BACnetBinaryPV far* pv, int ArrayIndex,
         
       default: // ArrayIndex element     
         if ((ArrayIndex>0)&&(ArrayIndex<=nPRIO))
-          p= eENUM(p,pv[ArrayIndex-1]);
+         
+		//p= eENUM(p,pv[ArrayIndex-1]);  -- Marked by Liangping Xu, 2002-8-5
+		  if(pv[ArrayIndex-1]!=bpaNULL) p= eENUM(p,pv[ArrayIndex-1]);       
+            else p= eNULL(p);
+
         break;
     }
   return p;
@@ -1505,7 +1511,22 @@ octet far* eASN_1_AnyType(octet far* p, PVMessage far* msg)
              break;
          }    
        break;                                                   
-       
+    //***Added by LiangPing Xu, 2002-8-5
+      case ssint://short signed int
+		switch(msg->Action)
+		   {
+			case SETPROP:
+             break;
+            case ENCODEPROP: // encode from database
+             p= eINT(p, *((short far*)(msg->pv)) ); 
+             break;
+            case RND_ENCODEPROP: // encode a test value 
+             p= eINT(p, gTestInt[i]); 
+             break;
+		   }
+		break;
+	   
+    //***Ended by LiangPing Xu, 2002-8-5
      case flt: // float ----------------------------------------
        switch(msg->Action)
          {
@@ -1713,10 +1734,13 @@ octet far* eASN_1_AnyType(octet far* p, PVMessage far* msg)
            case SETPROP:
              break;
            case ENCODEPROP: // encode from database
-             p= ePAB(p,(enum BACnetBinaryPV far*)msg->pv,msg->ArrayIndex);
-             break;
+          //   p= ePAB(p,(enum BACnetBinaryPV far*)msg->pv,msg->ArrayIndex);--Marked by Liangping Xu,2002-8-5
+            p= ePAB(p,(word far*)msg->pv,msg->ArrayIndex);
+			   break;
            case RND_ENCODEPROP: // encode a test value 
-             p= ePAB(p,gTestPAB[i]);
+             //p= ePAB(p,gTestPAB[i]);    --Marked by Liangping Xu,2002-8-5
+			 p= ePAB(p,(const word *)gTestPAB[i]);
+
              break;
          }    
        break;
@@ -2927,10 +2951,10 @@ int com(char far* Buffer,PVMessage far* msg)
 // device
 int dev(char far* Buffer,PVMessage far* msg)
 { device_obj_type far* Obj= (device_obj_type far*)msg->Obj;
-  
+ 
   BACnetTime LocalTime;
   BACnetDate LocalDate;
-  
+ 
   msg->UsedBits= 0;
   msg->pv= NULL;
 
@@ -3018,7 +3042,7 @@ int dev(char far* Buffer,PVMessage far* msg)
         msg->pv= Obj->active_vt_sessions;
         msg->pt= vtse;
         break;
-      case LOCAL_TIME:
+      case LOCAL_TIME:      
         { time_t timer;
           struct tm* ptm;
           tzset();
@@ -3032,9 +3056,9 @@ int dev(char far* Buffer,PVMessage far* msg)
             }
         }  
         msg->pv= &LocalTime;
-        msg->pt= ptTime;
+		msg->pt= ptTime;
         break;
-      case LOCAL_DATE:
+      case LOCAL_DATE:      
         { time_t timer;
           struct tm* ptm;
           tzset();
@@ -3048,11 +3072,13 @@ int dev(char far* Buffer,PVMessage far* msg)
             }  
         }  
         msg->pv= &LocalDate;
-        msg->pt= ptDate;
+		msg->pt= ptDate;
         break;
-      case UTC_OFFSET:
+      case UTC_OFFSET:              
         msg->pv= &Obj->utc_offset;
-        msg->pt= flt;
+       //***Modified by Liangping Xu, 2002-8-5
+        //msg->pt= flt;                 
+		msg->pt = ssint;
         break;
       case DAYLIGHT_SAVINGS_STATUS:
         msg->pv= &Obj->day_savings_status;
