@@ -75,6 +75,8 @@
 #define lCOVSub 205		// List of BACnetCOVSubcription,   added Gingbo Gao, 2003-9-1
 #define TSTMParr 206	// array of BACnetTimeStamp  madanner 9/04
 #define dabindelem 207	// single BACnetDeviceAddressBinding madanner 9/04
+#define COVSub 208		// single BACnetCOVSubscription madanner 9/04
+#define recipproc 209	// singled BACnetRecipientProcess madanner 9/04
 
 
 
