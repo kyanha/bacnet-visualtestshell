@@ -19,6 +19,7 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CMSTP_NBLinkDlg)
 	enum { IDD = IDD_MSTPIMP_NBLINK };
+	CEdit	m_ctrlEditDisclaimer;
 	CIPAddressCtrl	m_ctrlIPAddrGateway;
 	CIPAddressCtrl	m_ctrlSubnetMask;
 	CIPAddressCtrl	m_ctrlIPAddrReset;
@@ -33,12 +34,15 @@ public:
 	CString m_strIPAddr;
 	CString m_strIPMask;
 	CString m_strIPGateway;
+	CFont   m_fontFineprint;
 
 	MSTPImp_NBLink * m_pnblink;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CMSTP_NBLinkDlg)
+	public:
+	virtual BOOL DestroyWindow();
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
