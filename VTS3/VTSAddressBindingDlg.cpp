@@ -57,7 +57,7 @@ void VTSAddressBindingDlg::OnOK()
 	m_NetworkNumberCtrl.CtrlToObj();
 	m_MACAddressCtrl.CtrlToObj();
 
-	m_pValue = new BACnetAddressBinding(m_ObjectIDCtrl.objID, m_NetworkNumberCtrl.uintValue, 
+	m_pValue = new BACnetAddressBinding(m_ObjectIDCtrl.objID, (unsigned short)m_NetworkNumberCtrl.uintValue, 
 										m_MACAddressCtrl.strBuff, m_MACAddressCtrl.strLen);
 
 	CDialog::OnOK();
