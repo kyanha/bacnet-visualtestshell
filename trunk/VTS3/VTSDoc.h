@@ -13,6 +13,8 @@
 #include <afxtempl.h>
 
 #include "BACnet.hpp"
+#include "BACnetRouter.hpp"
+
 #include "WinIP.hpp"
 #include "WinPacket32.hpp"
 
@@ -40,6 +42,18 @@ typedef VTSWinIPPort *VTSWinIPPortPtr;
 
 class VTSPortDlg;
 typedef VTSPortDlg *VTSPortDlgPtr;
+
+class VTSClient;
+typedef VTSClient *VTSClientPtr;
+
+class VTSServer;
+typedef VTSServer *VTSServerPtr;
+
+class VTSDevice;
+typedef VTSDevice *VTSDevicePtr;
+
+class VTSDeviceDlg;
+typedef VTSDeviceDlg *VTSDeviceDlgPtr;
 
 struct CSendGroup;
 typedef CSendGroup *CSendGroupPtr;
@@ -72,6 +86,7 @@ class VTSPort {
 		CSendGroupList		portSendGroup;				// send group to form packets
 		BACnetPortPtr		portEndpoint;				// endpoint to get them
 		ScriptNetFilterPtr	portFilter;					// way to process them in scripts
+		VTSDevicePtr		portDevice;					// pointer to bound device
 
 		VTSPort( VTSDocPtr dp, objId id );
 		~VTSPort( void );
@@ -160,6 +175,109 @@ int NameSearch( const VTSNameDescPtr, const VTSNameDescPtr );
 }
 
 //
+//	VTSClient
+//
+
+class VTSClient : public BACnetClient {
+	public:
+		VTSDevicePtr		clientDev;
+
+		VTSClient( VTSDevicePtr dp );
+
+		void Confirmation( const BACnetAPDU &apdu );
+
+		void IAm( void );	// initiate a global-broadcast I-Am
+	};
+
+typedef VTSClient *VTSClientPtr;
+
+//
+//	VTSServer
+//
+
+class VTSServer : public BACnetServer {
+	public:
+		VTSDevicePtr		serverDev;
+
+		VTSServer( VTSDevicePtr dp );
+
+		void Indication( const BACnetAPDU &apdu );
+	};
+
+typedef VTSServer *VTSServerPtr;
+
+//
+//	VTSDevice
+//
+//	The VTSDevice object wraps around a BACnetDevice, BACnetRouter, VTSServer and 
+//	VTSClient.
+//
+
+class VTSDevice {
+		friend class VTSClient;
+		friend class VTSServer;
+
+	protected:
+		void AddToMasterList( void );
+		void RemoveFromMasterList( void );
+
+		BACnetDevice		devDevice;
+		BACnetRouter		devRouter;
+		
+		VTSClient			devClient;
+		VTSServer			devServer;
+
+	public:
+		objId				devDescID;					// ID of descriptor
+		VTSDeviceDesc		devDesc;					// device configuration info
+		VTSDocPtr			devDoc;						// doc for packets
+
+		VTSDevice( VTSDocPtr dp, objId id );
+		~VTSDevice( void );
+
+		void ReadDesc( void );							// read descriptor from database
+		void WriteDesc( void );							// save changes to descriptor
+
+		void Bind( VTSPortPtr pp, int net );			// associate with a port and network
+		void Unbind( VTSPortPtr pp );					// disassociate
+
+		void IAm( void );								// ask the client to send out an I-Am
+	};
+
+typedef VTSDevice *VTSDevicePtr;
+
+//
+//	VTSDeviceList
+//
+
+class VTSDeviceList : public CList<VTSDevicePtr,VTSDevicePtr> {
+	protected:
+		VTSDocPtr	m_pDoc;
+		
+		static VTSDeviceDesc searchDevice;
+		static int TDSearch( const VTSDeviceDescPtr, const VTSDeviceDescPtr );
+
+	public:
+		VTSDeviceList( void );
+		~VTSDeviceList( void );
+
+		void Load( VTSDocPtr docp );					// bind to database
+		void Unload( void );
+
+		void Add( void );								// add a new name
+		void Remove( int i );							// remove a name
+		VTSDevicePtr FindDevice( const char *name );	// find a device with a given name
+		VTSDevicePtr FindDevice( objId id );			// find a device with a given objId
+
+		int Length( void );								// number of defined ports
+		VTSDevicePtr operator []( int i );				// index into device list
+	};
+
+typedef VTSDeviceList *VTSDeviceListPtr;
+
+extern VTSDeviceList gMasterDeviceList;					// global list of all devices
+
+//
 //	VTSDoc
 //
 
@@ -181,6 +299,7 @@ public:
 
 	VTSPortList				m_Ports;
 	VTSNameList				m_Names;
+	VTSDeviceList			m_Devices;
 
 	bool					m_postMessages;		// OK to post messages about new packets
 
@@ -211,6 +330,7 @@ public:
 	void PortStatusChange( void );
 	void DoNamesDialog( void );
 	void DoPreferencesDialog( void );
+	void DoDevicesDialog( void );
 
 	void DoSendWindow( int iGroup, int iItem );
 

@@ -195,6 +195,14 @@ void VTSDB::Init( void )
 
 	// save the packet list ID in the descriptor
 	dbDesc->packetListID = dbPacketList.objID;
+
+	// create the device list
+	if ((stat = pListMgr->NewList( dbDeviceList, kObjIdSize )) != 0) {
+		return;
+	}
+
+	// save the list ID in the descriptor
+	dbDesc->deviceListID = dbDeviceList.objID;
 }
 
 //
@@ -224,15 +232,17 @@ void VTSDB::Open( void )
 		throw errMsg;
 	}
 
-	// update if we need to
-	if (fileDesc->minorVersion < kVTSDBMinorVersion) {
-	}
-
 	// build some managers for objects and arrays
 	pObjMgr = new JDBObjMgr( this );
 	pArrayMgr = new JDBArrayMgr( pObjMgr );
 	pListMgr = new JDBListMgr( pObjMgr );
 	
+	// update if we need to
+	if (fileDesc->minorVersion < kVTSDBMinorVersion) {
+		// it probably grew bigger
+		ResizeDesc( kVTSDescSig, kVTSDescObjSize );
+	}
+
 	// get a pointer to our descriptor
 	dbDesc = (VTSDescObjPtr)GetDesc( kVTSDescSig );
 
@@ -247,6 +257,23 @@ void VTSDB::Open( void )
 	// load the packet array
 	if ((stat = pArrayMgr->GetArray( dbPacketList, dbDesc->packetListID )) != 0)
 		return;
+
+	if (fileDesc->minorVersion == 0) {
+		// create the device list
+		if ((stat = pListMgr->NewList( dbDeviceList, kObjIdSize )) != 0) {
+			return;
+		}
+
+		// save the list ID in the descriptor
+		dbDesc->deviceListID = dbDeviceList.objID;
+	} else {
+		// load the device list
+		if ((stat = pListMgr->GetList( dbDeviceList, dbDesc->deviceListID )) != 0)
+			return;
+	}
+
+	// updated to current version
+	fileDesc->minorVersion = kVTSDBMinorVersion;
 }
 
 //

@@ -23,17 +23,19 @@ VTSPortDlg::VTSPortDlg(CWnd* pParent /*=NULL*/)
 	m_Name = _T("");
 	m_Enabled = FALSE;
 	m_Type = -1;
+	m_Network = _T("");
 	//}}AFX_DATA_INIT
 }
 
-VTSPortDlg::VTSPortDlg( VTSPortListPtr plp )
+VTSPortDlg::VTSPortDlg( VTSPortListPtr plp, VTSDeviceListPtr dlp )
 	: CDialog( VTSPortDlg::IDD, NULL )
-	, m_pPortList( plp )
+	, m_pPortList( plp ), m_pDeviceList( dlp )
 {
 	// duplicate the member initalization that the class 'wizard' adds
 	m_Name = _T("");
 	m_Type = -1;
 	m_Enabled = FALSE;
+	m_Network = _T("");
 
 	// configuration no longer a bound variable
 	m_Config = _T("");
@@ -46,6 +48,8 @@ void VTSPortDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PORTLIST, m_PortList);
 	DDX_Text(pDX, IDC_PORTNAME, m_Name);
 	DDX_Check(pDX, IDC_ENABLEPORT, m_Enabled);
+	DDX_Text(pDX, IDC_NETWORK2, m_Network);
+	DDX_Control(pDX, IDC_DEVICECOMBO, m_DeviceCombo);
 	DDX_Radio(pDX, IDC_NULLPORT, m_Type);
 	//}}AFX_DATA_MAP
 }
@@ -65,6 +69,8 @@ BEGIN_MESSAGE_MAP(VTSPortDlg, CDialog)
 	ON_BN_CLICKED(IDC_MSTPPORT, SaveChanges)
 	ON_BN_CLICKED(IDC_PTPPORT, SaveChanges)
 	ON_BN_CLICKED(IDC_ENABLEPORT, SaveChanges)
+	ON_EN_UPDATE(IDC_NETWORK2, SaveChanges)
+	ON_CBN_SELCHANGE(IDC_DEVICECOMBO, SaveChanges)
 	ON_BN_CLICKED(IDC_COLOR, OnColor)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -78,7 +84,9 @@ END_MESSAGE_MAP()
 
 BOOL VTSPortDlg::OnInitDialog() 
 {
-	VTSPortPtr	curPort
+	VTSPortPtr		curPort
+	;
+	VTSDevicePtr	curDevice
 	;
 
 	CDialog::OnInitDialog();
@@ -108,6 +116,19 @@ BOOL VTSPortDlg::OnInitDialog()
 			);
 	}
 
+	// Add the ports
+	m_DeviceCombo.AddString( "(no device)" );
+
+	// add items and subitems
+	for (int j = 0; j < m_pDeviceList->Length(); j++) {
+		// get a pointer to the jth port
+		curDevice = (*m_pDeviceList)[j];
+		m_DeviceCombo.AddString( curDevice->devDesc.deviceName );
+	}
+
+	// set the first item as the default
+	m_DeviceCombo.SetCurSel( 0 );
+
 	// make sure nothing is selected
 	ResetSelection();
 
@@ -121,7 +142,11 @@ BOOL VTSPortDlg::OnInitDialog()
 
 void VTSPortDlg::SetSelection( int indx )
 {
-	VTSPortPtr	curPort
+	int				i
+	;
+	VTSPortPtr		curPort
+	;
+	VTSDevicePtr	curDevice
 	;
 
 	TRACE1( "SetSelection( %d )\n", indx );
@@ -138,6 +163,24 @@ void VTSPortDlg::SetSelection( int indx )
 	m_Name = curPort->portDesc.portName;
 	m_Type = curPort->portDesc.portType;
 	m_Enabled = curPort->portDesc.portEnabled;
+	if (curPort->portDesc.portNet == -1)
+		m_Network = _T("");
+	else
+		m_Network.Format( "%d", curPort->portDesc.portNet );
+
+	if (curPort->portDesc.portDeviceObjID == 0)
+		m_DeviceCombo.SetCurSel( 0 );
+	else {
+		// add items and subitems
+		for (i = 0; i < m_pDeviceList->Length(); i++) {
+			// get a pointer to the jth port
+			curDevice = (*m_pDeviceList)[i];
+			if (curDevice->devDescID == curPort->portDesc.portDeviceObjID) {
+				m_DeviceCombo.SetCurSel( i + 1 );
+				break;
+			}
+		}
+	}
 
 	// this is no longer a dialog bound variable, but the config button needs the data
 	m_Config = curPort->portDesc.portConfig;
@@ -176,6 +219,8 @@ void VTSPortDlg::ResetSelection( void )
 	m_Type = -1;
 	m_Enabled = 0;
 	m_Config = _T("");
+	m_Network = _T("");
+	m_DeviceCombo.SetCurSel( 0 );
 
 	// let the CDialog sync the controls with the local vars
 	UpdateData( false );
@@ -195,6 +240,8 @@ void VTSPortDlg::SynchronizeControls( void )
 
 	GetDlgItem( IDC_ENABLEPORT )->EnableWindow( m_iSelectedPort >= 0 );
 	GetDlgItem( IDC_CONFIG )->EnableWindow( m_iSelectedPort >= 0 );
+	GetDlgItem( IDC_NETWORK2 )->EnableWindow( m_iSelectedPort >= 0 );
+	GetDlgItem( IDC_DEVICECOMBO )->EnableWindow( m_iSelectedPort >= 0 );
 
 	GetDlgItem( IDC_NULLPORT )->EnableWindow( m_iSelectedPort >= 0 );
 	GetDlgItem( IDC_IPPORT )->EnableWindow( m_iSelectedPort >= 0 );
@@ -305,7 +352,11 @@ void VTSPortDlg::SaveChanges()
 {
 	bool		doRefresh
 	;
+	int			net, valu
+	;
 	VTSPortPtr	curPort
+	;
+	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_DEVICECOMBO )
 	;
 
 	ASSERT( m_iSelectedPort >= 0 );
@@ -342,6 +393,33 @@ void VTSPortDlg::SaveChanges()
 		m_Config.Empty();
 		m_Enabled = false;
 		UpdateData( false );
+	}
+
+	// extract the network number
+	if (m_Network.IsEmpty())
+		net = -1;
+	else
+		sscanf( m_Network, "%d", &net );
+	if (curPort->portDesc.portNet != net) {
+		doRefresh = true;
+		curPort->portDesc.portNet = net;
+	}
+
+	// check the device
+	valu = cbp->GetCurSel();
+	if (valu == 0) {
+		if (curPort->portDesc.portDeviceObjID != 0) {
+			doRefresh = true;
+			curPort->portDesc.portDeviceObjID = 0;
+		}
+	} else {
+		objId	newID = (*m_pDeviceList)[valu - 1]->devDescID
+		;
+
+		if (curPort->portDesc.portDeviceObjID != newID) {
+			doRefresh = true;
+			curPort->portDesc.portDeviceObjID = newID;
+		}
 	}
 
 	// tell the port to save changes

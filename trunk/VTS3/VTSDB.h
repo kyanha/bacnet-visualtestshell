@@ -109,6 +109,8 @@ struct VTSPortDesc : JDBObj {
 	int				portEnabled;						// true iff IO should be enabled
 	char			portName[kVTSPortNameLength];		// port name
 	char			portConfig[kVTSPortConfigLength];	// configuration string
+	int				portNet;							// network associated with device
+	objId			portDeviceObjID;					// ID of bound device
 	};
 
 typedef VTSPortDesc *VTSPortDescPtr;
@@ -151,6 +153,42 @@ const int kVTSNameDescSize = sizeof( VTSNameDesc );
 #endif
 
 //
+//	VTSDeviceDesc
+//
+
+#if Mac_Platform
+#pragma options align=mac68k
+#endif
+#if NT_Platform
+#pragma pack(push,2)
+#endif
+
+struct VTSDeviceDesc : JDBObj {
+	char				deviceName[kVTSMaxNameLength];	// name
+	int					deviceInstance;					// instance number
+	int					deviceRouter;					// true iff device should act like a router
+	BACnetSegmentation	deviceSegmentation;				// supports segments requests
+	int					deviceSegmentSize;				// how to divide up chunks
+	int					deviceWindowSize;				// how many to send
+	int					deviceMaxAPDUSize;				// maximum APDU size
+	int					deviceNextInvokeID;				// next invoke ID for client
+	int					deviceAPDUTimeout;				// how long to wait for ack
+	int					deviceAPDUSegmentTimeout;		// how long to wait between segments
+	int					deviceAPDURetries;				// how many retries are acceptable
+	int					deviceVendorID;					// which vendor is this?
+	};
+
+typedef VTSDeviceDesc *VTSDeviceDescPtr;
+const int kVTSDeviceDescSize = sizeof( VTSDeviceDesc );
+
+#if Mac_Platform
+#pragma options align=reset
+#endif
+#if NT_Platform
+#pragma pack(pop)
+#endif
+
+//
 //	VTSDescObj
 //
 //	The VTS descriptor object is a special object that sits in the database at block 
@@ -162,6 +200,7 @@ struct VTSDescObj : public JDBDescObj {
 	objId		portListID;
 	objId		nameListID;
 	objId		packetListID;
+	objId		deviceListID;
 	};
 
 typedef VTSDescObj *VTSDescObjPtr;
@@ -174,7 +213,7 @@ const short kVTSDescSig = 0x0001;
 //
 
 const int kVTSDBMajorVersion = 3;			// current version
-const int kVTSDBMinorVersion = 0;
+const int kVTSDBMinorVersion = 1;
 
 class VTSDB : public JDB {
 	public:
@@ -202,6 +241,7 @@ class VTSDB : public JDB {
 		JDBList			dbPortList;				// list of ports
 		JDBList			dbNameList;				// list of name/address translations
 		JDBArray		dbPacketList;			// array of packet objects
+		JDBList			dbDeviceList;			// list of device objects
 	};
 
 typedef VTSDB *VTSDBPtr;

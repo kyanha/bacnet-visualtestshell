@@ -115,6 +115,7 @@
 #define IDD_SELECT_SESSION              236
 #define IDD_OBJID                       237
 #define IDD_SCRIPTLOADRESULTS           238
+#define IDD_DEVICES                     239
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -139,12 +140,18 @@
 #define IDC_PTPPORT                     1011
 #define IDC_ENABLEPORT                  1012
 #define IDC_DADR                        1013
+#define IDC_NETWORK2                    1013
 #define IDC_SADR                        1015
+#define IDC_MAXAPDUSIZE                 1015
 #define IDC_DATA                        1016
 #define IDC_ENUMERATED                  1016
+#define IDC_NEXTINVOKEID                1016
 #define IDC_UNSIGNED                    1017
+#define IDC_APDUTIMEOUT                 1017
 #define IDC_INTEGER                     1018
+#define IDC_APDUSEGTIMEOUT              1018
 #define IDC_REAL                        1019
+#define IDC_APDURETRIES                 1019
 #define IDC_VERSION                     1020
 #define IDC_DOUBLE                      1020
 #define IDC_DNET                        1021
@@ -343,8 +350,19 @@
 #define IDC_MAXAPDULEN                  1171
 #define IDC_VENDORNAME                  1172
 #define IDC_PRODUCTNAME                 1173
+#define IDC_DEVICECOMBO                 1173
 #define IDC_PRODUCTMODELNUMBER          1174
+#define IDC_ROUTER                      1174
 #define IDC_PRODUCTDESCRIPTION          1175
+#define IDC_SEGTYPE                     1175
+#define IDC_SEGBOTH                     1176
+#define IDC_SEGTRANSMIT                 1177
+#define IDC_SEGRECEIVE                  1178
+#define IDC_SEGNONE                     1179
+#define IDC_DEVICELIST                  1180
+#define IDC_NEWDEVICE                   1181
+#define IDC_IAM                         1182
+#define IDC_SEGSIZE                     1183
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -368,6 +386,7 @@
 #define ID_BUTTON32799                  32799
 #define ID_BUTTON32800                  32800
 #define ID_SCRIPT_LOADEPICS             32801
+#define ID_EDIT_DEVICES                 32803
 
 // Next default values for new objects
 // 
@@ -375,8 +394,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        239
-#define _APS_NEXT_COMMAND_VALUE         32803
-#define _APS_NEXT_CONTROL_VALUE         1173
+#define _APS_NEXT_COMMAND_VALUE         32804
+#define _APS_NEXT_CONTROL_VALUE         1174
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
