@@ -17,8 +17,9 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ScriptIfdefHandler::ScriptIfdefHandler( ScriptDocument * pDoc, ScriptScanner & scan )
-				   :m_pDoc(pDoc), m_scanner(scan)
+//madanner 6/03  ScriptIfdefHandler::ScriptIfdefHandler( ScriptDocument * pDoc, ScriptScanner & scan )
+ScriptIfdefHandler::ScriptIfdefHandler( ScriptDocument * pDoc )
+				   :m_pDoc(pDoc)
 {
 	m_curIfdefLevel = 0;
 
@@ -42,7 +43,7 @@ bool ScriptIfdefHandler::IsIfBlock()
 // The caller, in the true instance, should abort searching through the next line...
 // This class keeps track of whether or not we should be collecting stuff...
 
-bool ScriptIfdefHandler::IsIfdefExpression(ScriptToken &tok)
+bool ScriptIfdefHandler::IsIfdefExpression(ScriptToken &tok, ScriptScanner * pscan)
 {
 	// we have to deal with conditional compilation.  We want to take care of it here
 	// so we don't have to specially deal with any token if we're not collection.  Dig?
@@ -77,7 +78,7 @@ bool ScriptIfdefHandler::IsIfdefExpression(ScriptToken &tok)
 			else
 			{
 				// see if we should include this next section...
-				if ( tok.tokenSymbol == kwELSEDEF || EvaluateConditional(tok) )
+				if ( tok.tokenSymbol == kwELSEDEF || EvaluateConditional(tok, pscan) )
 					m_bIfdefFlags[m_curIfdefLevel] |= (IFDEF_SPENT | IFDEF_INCLUDING);
 				else
 					// shut off including code
@@ -110,7 +111,7 @@ bool ScriptIfdefHandler::IsIfdefExpression(ScriptToken &tok)
 				m_bIfdefFlags[m_curIfdefLevel] = IFDEF_SPENT;
 			else
 			{
-				if ( EvaluateConditional(tok) )
+				if ( EvaluateConditional(tok, pscan) )
 					m_bIfdefFlags[m_curIfdefLevel] = (IFDEF_SPENT | IFDEF_INCLUDING);
 				else
 					m_bIfdefFlags[m_curIfdefLevel] = 0;		// not spent and not including, start fresh
@@ -131,9 +132,9 @@ bool ScriptIfdefHandler::IsSkipping()
 }
 
 
-bool ScriptIfdefHandler::EvaluateConditional(ScriptToken & tok )
+bool ScriptIfdefHandler::EvaluateConditional(ScriptToken & tok, ScriptScanner * pscan )
 {
-	m_scanner.Next( tok );
+	pscan->Next( tok );
 	if ( tok.tokenType != scriptSymbol  &&  tok.tokenSymbol != '(' )
 		throw "'(' expected for IF conditional expression";
 
@@ -143,13 +144,13 @@ bool ScriptIfdefHandler::EvaluateConditional(ScriptToken & tok )
 	do
 	{
 		// suck expression into parts and evalute.  will throw exception if problem
-		ScriptIfdefExpr		expression(m_pDoc, m_scanner, tok);
+		ScriptIfdefExpr		expression(m_pDoc, *pscan, tok);
 
 		if ( !fFinished )
 			fResult = expression.Evaluate(tok);
 
 		// expression is finished... now look for either AND OR or )
-		m_scanner.Next( tok );
+		pscan->Next( tok );
 
 		// we could just bail here if final condition is known... but continue on so we look for closing parens
 		// this is to add some measure of completeness here...
