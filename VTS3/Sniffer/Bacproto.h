@@ -221,7 +221,7 @@ void    show_vtClose(void);
 void    show_vtData(void);
 void    show_authenticate(void);
 void    show_requestKey(void);
-
+void    show_ReadRange(void);
 /* ----- prototypes for unconfirmed service interpreter functions ----- */
 
 void     show_iAm(void);
@@ -248,7 +248,7 @@ void     show_conf_PrivateTransferACK(void);
 void     show_vtOpenACK(void);
 void     show_vtDataACK(void);
 void     show_authenticateACK(void);
-
+void     show_ReadRangeACK(void);
 /* ----- prototypes for error interpreter functions ----- */
 
 void     show_error_codes(void);
@@ -314,6 +314,9 @@ void     show_bac_timestamp(void);
 void     show_bac_time_value(void);
 void     show_bac_VT_session(void);
 void     show_bac_weeknday(void);
+void     show_log_buffer( void );
+void     show_logDatum_choice( void );
+void     show_bac_result_flags( unsigned int);
 
 /*  ----- prototypes extracting information from object identifiers ----- */
 

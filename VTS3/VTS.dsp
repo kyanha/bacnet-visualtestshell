@@ -529,6 +529,10 @@ SOURCE=.\SendReadPropMultACK.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SendReadRange.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SendRegisterFD.cpp
 # End Source File
 # Begin Source File
@@ -1175,6 +1179,10 @@ SOURCE=.\SendReadPropMult.h
 # Begin Source File
 
 SOURCE=.\SendReadPropMultACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadRange.h
 # End Source File
 # Begin Source File
 

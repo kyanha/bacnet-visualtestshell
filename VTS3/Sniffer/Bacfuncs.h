@@ -49,10 +49,10 @@ char *BACnetDateTime[] = {
    "Time"
    };
 char *BACnetTimeStamp[]= {
-	"Time",
-	"Unsigned",
-	"DateTime"
-	};
+   "Time",
+   "Unsigned",
+   "DateTime"
+   };
 
 char *BACnetDaysOfWeek[] = {
    "Monday",
@@ -405,10 +405,10 @@ char *BACnetLimitEnable[] = {
    "HIGH-LIMIT-ENABLE"
    };
 char *BACnetLogRecord [] = {
-	"TimeStamp",
-	"LogDatum", 
-	"StatusFlags"
-	};
+   "TimeStamp",
+   "LogDatum", 
+   "StatusFlags"
+   };
 
 char *BACnetNotifyType[] = {
    "ALARM",
@@ -421,7 +421,22 @@ char *BACnetObjectPropertyReference[] = {
    "Property Identifier",
    "Property Array Index"
    };
-
+char *BACnetReadRangeACK[] = {
+   "Object Identifier",
+   "Property Identifier",
+   "Property Array Index",
+   "ResultsFlag",
+   "ItemCount",
+   "ItemData"
+   };
+char *BACnetReadRangeRequest[] = {
+   "Object Identifier",
+   "Property Identifier",
+   "Property Array Index",
+   "Reference Index",
+   "Reference Time",
+   "TimeRange"
+   };
 char *BACnetObjectPropertyValue[] = {
    "Object Identifier",
    "Property Identifier",
@@ -449,9 +464,9 @@ char *BACnetObjectType[] = {
    "NOTIFICATION-CLASS",    /* 15 */
    "PROGRAM",               /* 16 */
    "SCHEDULE",               /* 17 */
-   "AVERAGING",				/* 18 */
+   "AVERAGING",            /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
-   "TRENDLOG"				/* 20 */
+   "TRENDLOG"           /* 20 */
    };
 
 char *BACnetObjectTypesSupported[] = {
@@ -473,9 +488,9 @@ char *BACnetObjectTypesSupported[] = {
    "NOTIFICATION-CLASS",    /* 15 */
    "PROGRAM",               /* 16 */
    "SCHEDULE"               /* 17 */
-   "AVERAGING"				/* 18 */
+   "AVERAGING"          /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
-   "TRENDLOG"				/* 20 */
+   "TRENDLOG"           /* 20 */
    };
 
 char *BACnetPolarity[] = {
@@ -768,12 +783,14 @@ char *BACnetServicesSupported[] = {
    "TimeSynchronization",           /* 32 */
    "Who-Has",                       /* 33 */
    "Who-Is",                        /* 34 */
-   "ReadRange",						/* 35*/
-   "UtcTimeSynchronization",	    /* 36 */
-   "LifeSafetyOperation",		    /* 37 */
-   "SubscribeCOVProperty",		    /* 38 */ 
-   "GetEventInformation"			/* 39 */
-   };								 
+
+/* Added after 1995 */
+   "ReadRange",                     /* 35 */
+   "UtcTimeSynchronization"  ,      /* 36 */
+   "LifeSafetyOperation",           /* 37 */
+   "SubscribeCOVProperty",          /* 38 */ 
+   "GetEventInformation"            /* 39 */
+   };                       
 
 char *BACnetSessionKey[] = {
    "Session Key",
@@ -792,6 +809,11 @@ char *BACnetStatusFlags[] = {
    "FAULT",
    "OVERRIDDEN",
    "OUT_OF_SERVICE"
+   };
+char *BACnetResultFlags[] = {
+   "FIRSTITEM",
+   "LASTITEM",
+   "MOREITEMS"
    };
 
 /*
@@ -945,19 +967,65 @@ char *Relation_Specifier[] = {
    };
 
 char *BVLL_Function[] = {
-	"BVLC-Result",
-	"Write-Broadcast-Distribution-Table",
-	"Read-Broadcast-Distribution-Table",
-	"Read-Broadcast-Distribution-Table-Ack",
-	"Forwarded-NPDU",
-	"Register-Foreign-Device",
-	"Read-Foreign-Device-Table",
-	"Read-Foreign-Device-Table-Ack",
-	"Delete-Foreign-Device-Table-Entry",
-	"Distribute-Broadcast-To-Network",
-	"Original-Unicast-NPDU",
-	"Original-Broadcast-NPDU"
-	};
+   "BVLC-Result",
+   "Write-Broadcast-Distribution-Table",
+   "Read-Broadcast-Distribution-Table",
+   "Read-Broadcast-Distribution-Table-Ack",
+   "Forwarded-NPDU",
+   "Register-Foreign-Device",
+   "Read-Foreign-Device-Table",
+   "Read-Foreign-Device-Table-Ack",
+   "Delete-Foreign-Device-Table-Entry",
+   "Distribute-Broadcast-To-Network",
+   "Original-Unicast-NPDU",
+   "Original-Broadcast-NPDU"
+   };
+
+char *BACnetConfirmedServiceChoice[] = {
+   "AcknowledgeAlarm",              /* 0 */
+   "ConfirmedCOVNotification",      /* 1 */
+   "ConfirmedEventNotification",    /* 2 */
+   "GetAlarmSummary",               /* 3 */
+   "GetEnrollmentSummary",          /* 4 */
+   "SubscribeCOV",                  /* 5 */
+   "AtomicReadFile",                /* 6 */
+   "AtomicWriteFile",               /* 7 */
+   "AddListElement",                /* 8 */
+   "RemoveListElement",             /* 9 */
+   "CreateObject",                  /* 10 */
+   "DeleteObject",                  /* 11 */
+   "ReadProperty",                  /* 12 */
+   "ReadPropertyConditional",       /* 13 */
+   "ReadPropertyMultiple",          /* 14 */
+   "WriteProperty",                 /* 15 */
+   "WritePropertyMultiple",         /* 16 */
+   "DeviceCommunicationControl",    /* 17 */
+   "ConfirmedPrivateTransfer",      /* 18 */
+   "ConfirmedTextMessage",          /* 19 */
+   "ReinitializeDevice",            /* 20 */
+   "VT-Open",                       /* 21 */
+   "VT-Close",                      /* 22 */
+   "VT-Data",                       /* 23 */
+   "Authenticate",                  /* 24 */
+   "RequestKey",                    /* 25 */
+   "ReadRange",                     /* 26 */
+   "LifeSafetyOperation",           /* 27 */
+   "SubscribeCOVProperty",          /* 28 */
+   "GetEventInformation"            /* 29 */
+   };                       
+
+char *BACnetUnconfirmedServiceChoice[] = {
+   "I-Am",                          /* 0 */
+   "I-Have",                        /* 1 */
+   "UnconfirmedCOVNotification",    /* 2 */
+   "UnconfirmedEventNotification",  /* 3 */
+   "UnconfirmedPrivateTransfer",    /* 4 */
+   "UnconfirmedTextMessage",        /* 5 */
+   "TimeSynchronization",           /* 6 */
+   "Who-Has",                       /* 7 */
+   "Who-Is",                        /* 8 */
+   "UTCTimeSynchronization"         /* 9 */
+   };                       
 
 /**************************************************************************/
 /* The functions that follow are used to complement the PIF functions     */
@@ -984,7 +1052,7 @@ void bac_show_enetaddr ( char *label )
 {
    const unsigned char *addr = (const unsigned char *)msg_origin + pif_offset
    ;
-   const char	*name
+   const char  *name
    ;
 
    /* check for a broadcast */
@@ -1011,7 +1079,7 @@ void bac_show_enetaddr ( char *label )
 void bac_show_bipaddr ( char *label )
 /*************************************************************************/
 {
-   const char	*name = LookupName( 0, (const unsigned char *)msg_origin + pif_offset, 6 )
+   const char  *name = LookupName( 0, (const unsigned char *)msg_origin + pif_offset, 6 )
    ;
 
    sprintf(outstr,"%"FW"s = %%u.%%u.%%u.%%u:0x%%04X",label); /* Set up alignment of output */
@@ -1102,9 +1170,9 @@ void float_to_ascii( double x, char *outstr)
 {
    sprintf( outstr, "%3.1f", x );
 /*
-	It looks like this horrible code is a way to get floating point
-	formatting.  I recommend it be taken out and shot.
-	
+   It looks like this horrible code is a way to get floating point
+   formatting.  I recommend it be taken out and shot.
+   
    int i,j;
    int dec,sign;
    char *instrg;
@@ -1600,7 +1668,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                case 14: /* Multistate_Input - Unsigned */
                case 15: /* Multistate_Output - Unsigned */
                case 17: /* Schedule - ANY Primitive Type */
-			   case 19: /* Multistate_Value - Unsigned */
+            case 19: /* Multistate_Value - Unsigned */
                         show_application_data(x);
                         break;
                case 3:  /* Binary_Input - BACnetBinaryPV */
@@ -1829,10 +1897,10 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              show_bac_time_value();
              };
            break;
-      case ATTEMPTED_SAMPLES:             // Unsigned 32		   
+      case ATTEMPTED_SAMPLES:             // Unsigned 32       
            show_application_data(x);
            break;
-      case AVERAGE_VALUE: 	              // Real		   
+      case AVERAGE_VALUE:                // Real         
            show_application_data(x);
            break;
       case BUFFER_SIZE:                   // Unsigned 32        
@@ -1840,30 +1908,24 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            break;
       case CLIENT_COV_INCREMENT:          // BACnetClientCOV     
            //break;
-      case COV_RESUBSCRIPTION_INTERVAL:	  // Unsigned 32
+      case COV_RESUBSCRIPTION_INTERVAL:     // Unsigned 32
            show_application_data(x);
            break;
-      case PREVIOUS_NOTIFY_TIME:       	  // BACnetDateTime
+      case PREVIOUS_NOTIFY_TIME:            // BACnetDateTime
            //break;
-      case CURRENT_NOTIFY_TIME:        	  // BACnetDateTime
+      case CURRENT_NOTIFY_TIME:             // BACnetDateTime
            show_application_data(x);
            show_application_data(pif_get_byte(0));
            break;
-      case EVENT_TIME_STAMPS:          	  // Array of BACnetTimeStamp
-           if (prop_idx == 0) {
-             show_application_tag(x);
-             bac_show_byte("Array Size","%u");
-             break;
-             };
-           while ((x & 0x0f) != 0x0f) {
-             show_application_data(x);
-             x = pif_get_byte(0);
-             };
+      case EVENT_TIME_STAMPS:               // Array of BACnetTimeStamp
+         for(i=0; i<3; i++)
+              show_bac_timestamp();
+//           show_context_tag("Event Time Stamp");  /* closing tag */
            break;
-      case LOG_BUFFER:                 	  // List of BACnetLogRecord
-		  // We need a function to decode this.
-           break;
-      case LOG_DEVICE_OBJECT_PROPERTY: 	  // BACnetDeviceObjectReferenceProperty
+      case LOG_BUFFER:                      // List of BACnetLogRecord
+          show_log_buffer();
+          break;
+      case LOG_DEVICE_OBJECT_PROPERTY:      // BACnetDeviceObjectReferenceProperty
            show_bac_obj_prop_ref();
            break;
       case LOG_ENABLE:                    // Boolean             
@@ -1872,19 +1934,19 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case LOG_INTERVAL:                  // Unsigned            
            show_application_data(x);
            break;
-      case MAXIMUM_VALUE:                 // Real			   
+      case MAXIMUM_VALUE:                 // Real           
            show_application_data(x);
            break;
-      case MINIMUM_VALUE: 			   	  // Real
+      case MINIMUM_VALUE:                // Real
            show_application_data(x);
            break;
-      case NOTIFICATION_THRESHOLD:     	  // Unsigned 32
+      case NOTIFICATION_THRESHOLD:          // Unsigned 32
            show_application_data(x);
            break;
-      case PROTOCOL_REVISION:         	  // Unsigned 32
+      case PROTOCOL_REVISION:            // Unsigned 32
 
            //break;
-      case RECORDS_SINCE_NOTIFICATION: 	  // Unsigned 32
+      case RECORDS_SINCE_NOTIFICATION:      // Unsigned 32
            show_application_data(x);
            break;
       case RECORD_COUNT:                  // Unsigned 32            
@@ -1904,24 +1966,24 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case TOTAL_RECORD_COUNT:           // Unsigned 32      
            show_application_data(x);
            break;
-      case VALID_SAMPLES: 			   	 // Unsigned 32
+      case VALID_SAMPLES:               // Unsigned 32
            show_application_data(x);
            break;
-      case WINDOW_INTERVAL: 		   	 // Unsigned 32
+      case WINDOW_INTERVAL:             // Unsigned 32
            show_application_data(x);
            break;
-      case WINDOW_SAMPLES: 			   	 // Unsigned 32
+      case WINDOW_SAMPLES:                 // Unsigned 32
            show_application_data(x);
            break;
-      case MAXIMUM_VALUE_TIMESTAMP:    	 // BACnetDateTime
-           show_application_data(x);
-           show_application_data(pif_get_byte(0));
-           break;
-      case MINIMUM_VALUE_TIMESTAMP:    	 // BACnetDateTime
+      case MAXIMUM_VALUE_TIMESTAMP:        // BACnetDateTime
            show_application_data(x);
            show_application_data(pif_get_byte(0));
            break;
-      case VARIANCE_VALUE: 			   	 // Real
+      case MINIMUM_VALUE_TIMESTAMP:        // BACnetDateTime
+           show_application_data(x);
+           show_application_data(pif_get_byte(0));
+           break;
+      case VARIANCE_VALUE:                 // Real
            show_application_data(x);
            break;
       default:
@@ -1952,11 +2014,11 @@ int bac_extract_obj_type( void )
 
   return (object_type.word);
 #else
-	long	obj_id;
-	
-	for (int i = 0; i < 4; i++)
-		obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i );
-	
-	return (obj_id >> 22) & 0x000003FF;
+   long  obj_id;
+   
+   for (int i = 0; i < 4; i++)
+      obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i );
+   
+   return (obj_id >> 22) & 0x000003FF;
 #endif
 }

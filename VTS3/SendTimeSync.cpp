@@ -68,9 +68,12 @@ void CSendTimeSync::InitPage( void )
 
 void CSendTimeSync::EncodePage( CByteArray* contents )
 {
+	CByteArray          header;
 	BACnetAPDUEncoder	enc
 	;
-
+	// encode the pdu type and service choice
+	header.Add( 0x10 );
+	header.Add( 0x06 );
 	if (m_Date.ctrlNull)
 		throw "Date required";
 	m_Date.Encode( enc );
@@ -79,9 +82,15 @@ void CSendTimeSync::EncodePage( CByteArray* contents )
 		throw "Time required";
 	m_Time.Encode( enc );
 
+	// copy the encoding into the byte array		was this 
+//	for (int i = 0; i < enc.pktLength; i++)
+//		contents->Add( enc.pktBuffer[i] );
+
 	// copy the encoding into the byte array
 	for (int i = 0; i < enc.pktLength; i++)
-		contents->Add( enc.pktBuffer[i] );
+		header.Add( enc.pktBuffer[i] );		 // new
+	// stuff the header on the front
+	contents->InsertAt( 0, &header );		 // new
 }
 
 //
