@@ -18,8 +18,8 @@
 
 // Added by Liangping Xu,2002-11
 //madanner 6/03, moved out of ScriptFrame
-#include "CheckEPICSCons.h"
-#include "ScriptLoadResults.h"
+//#include "CheckEPICSCons.h"
+//#include "ScriptLoadResults.h"
 
 #include "VTSPreferences.h"
 
@@ -112,8 +112,10 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_COMMAND(ID_SEND_NEWPACKET, OnSendNewPacket)
 	ON_COMMAND(ID_VIEW_DETAIL, OnViewDetail)
 	ON_COMMAND(ID_VIEW_HEX, OnViewHex)
+	ON_COMMAND(ID_VIEW_EPICS, OnViewEPICS)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_DETAIL, OnUpdateViewDetail)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_HEX, OnUpdateViewHex)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_EPICS, OnUpdateViewEPICS)
 	ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
 	ON_COMMAND(ID_EPICS_LOAD, OnEPICSLoad)
 	ON_COMMAND(ID_EPICS_LOADAUTO, OnEPICSLoadAuto)
@@ -146,6 +148,16 @@ CChildFrame::~CChildFrame()
 	delete m_frameContext;
 	delete m_pwndDetailViewBar;
 	delete m_pwndHexViewBar;
+
+
+	if ( gPICSdb )
+	{
+		PICS::MyDeletePICSObject( gPICSdb->Database );
+		delete gPICSdb;
+		gPICSdb = NULL;
+	}
+
+	delete m_pwndEPICSViewBar;
 }
 
 BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)
@@ -199,6 +211,7 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	//  three different views
 	m_pwndHexViewBar=new CDockingHexViewBar(pContext);
 	m_pwndDetailViewBar=new CDockingDetailViewBar(pContext);
+	m_pwndEPICSViewBar = new CDockingEPICSViewBar(pContext);
 
 	if (!m_pwndHexViewBar->Create(_T("Hex View"), this, 123))
 	{
@@ -233,8 +246,20 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
     m_pFloatingFrameClass = RUNTIME_CLASS(CSCBMiniDockFrameWnd);
 	#endif //_SCB_REPLACE_MINIFRAME
 	
+	if (!m_pwndEPICSViewBar->Create(_T("EPICS View (Not Implemented Yet)"), this, 125))
+	{
+	    TRACE0("Failed to create EPICS mybar\n");
+		return -1;
+	    // fail to create
+	}
+
+	m_pwndEPICSViewBar->SetBarStyle(m_pwndEPICSViewBar->GetBarStyle() | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
+	m_pwndEPICSViewBar->SetSCBStyle(SCBS_SIZECHILD);
+	m_pwndEPICSViewBar->EnableDocking(CBRS_ALIGN_ANY);
+
 	DockControlBar(m_pwndDetailViewBar,AFX_IDW_DOCKBAR_RIGHT);
 	DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_RIGHT);
+	DockControlBar(m_pwndEPICSViewBar,AFX_IDW_DOCKBAR_RIGHT);
 	
 	CMDIChildWnd::OnCreateClient(lpcs,pContext);
 
@@ -245,14 +270,17 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	// set up the tab ring
 	m_pSummaryView->m_pTabRing = m_pDetailView;
 	m_pDetailView->m_pTabRing = m_pHexView;
-	m_pHexView->m_pTabRing = m_pSummaryView;
+	m_pHexView->m_pTabRing = m_pwndEPICSViewBar;
+	m_pwndEPICSViewBar->m_pTabRing = m_pSummaryView;
 	
 	// make sure this isn't used
 	gNewFrameContext = NULL;
 	m_pwndDetailViewBar->LoadState(_T("Detail Bar Status"));
 	m_pwndHexViewBar->LoadState(_T("Hex Bar Status"));
+	m_pwndEPICSViewBar->LoadState(_T("EPICS Bar Status"));
 	LoadBarState("Bar Status");
-	
+
+	m_pwndEPICSViewBar->OnDockPositionChanged();
 	return TRUE;
 }
 
@@ -271,6 +299,8 @@ void CChildFrame::SaveBarStates()
 		m_pwndDetailViewBar->SaveState(_T("Detail Bar Status"));
 	if(!m_pwndHexViewBar->IsFloating())
 		m_pwndHexViewBar->SaveState(_T("Hex Bar Status"));
+	if(!m_pwndEPICSViewBar->IsFloating())
+		m_pwndEPICSViewBar->SaveState(_T("EPICS Bar Status"));
 }
 
 void CChildFrame::OnDestroy() 
@@ -536,6 +566,11 @@ void CChildFrame::OnViewHex()
 	ShowControlBar(m_pwndHexViewBar, !m_pwndHexViewBar->IsVisible(), FALSE);
 }
 
+void CChildFrame::OnViewEPICS() 
+{	
+	ShowControlBar(m_pwndEPICSViewBar, !m_pwndEPICSViewBar->IsVisible(), FALSE);
+}
+
 void CChildFrame::OnUpdateViewDetail(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable();
@@ -546,6 +581,12 @@ void CChildFrame::OnUpdateViewHex(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable();
 	pCmdUI->SetCheck(m_pwndHexViewBar->IsVisible());
+}
+
+void CChildFrame::OnUpdateViewEPICS(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable();
+	pCmdUI->SetCheck(m_pwndEPICSViewBar->IsVisible());
 }
 
 // Added by Yajun Zhou, 2002-7-24
@@ -892,6 +933,14 @@ void CChildFrame::OnEPICSLoad()
 
 void CChildFrame::EPICSLoad( LPCSTR lpszFileName )
 {
+	if ( m_pwndEPICSViewBar != NULL )
+		if ( !m_pwndEPICSViewBar->EPICSLoad(lpszFileName)  &&  !m_pwndEPICSViewBar->IsVisible() )
+			ShowControlBar(m_pwndEPICSViewBar, TRUE, FALSE);
+}
+
+/*
+// madanner 4/04, moved to EPICSView control bar
+
 	int				errc;
 	int             errPICS;
 
@@ -943,6 +992,7 @@ void CChildFrame::EPICSLoad( LPCSTR lpszFileName )
 		gPICSdb = 0;
 	}
 }
+*/
 
 
 void CChildFrame::OnEPICSLoadAuto() 

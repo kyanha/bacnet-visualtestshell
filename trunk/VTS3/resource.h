@@ -169,6 +169,8 @@
 #define IDD_SENDMSTP                    281
 #define IDD_MSTPIMP_NBLINK              282
 #define IDB_NBLINK                      284
+#define IDD_EPICSVIEW                   285
+#define IDB_EPICSTREE                   286
 #define IDB_BMALOGO                     300
 #define IDB_WINPCAPLOGO                 301
 #define IDC_PORTLIST                    1000
@@ -576,6 +578,7 @@
 #define IDC_EDIT1                       1293
 #define IDC_DESTINATION_NETWORK         1293
 #define IDC_MSTPMAC                     1293
+#define IDC_EPICSV_FILENAME             1293
 #define IDC_RPALL_DA                    1294
 #define IDC_MSTPMAXMASTER               1294
 #define ID_NEWFILTER                    1295
@@ -625,6 +628,12 @@
 #define IDC_NBLINKRESET                 1343
 #define IDC_NBLINKSTARTUP               1344
 #define IDC_NBLINKGATEWAY               1345
+#define IDC_EPICSV_LOAD                 1345
+#define IDC_EPICSV_RESET                1346
+#define IDC_EPICSV_INFO                 1347
+#define IDC_TREE1                       1348
+#define IDC_EPICSV_TREE                 1348
+#define IDC_EPICSV_EDIT                 1349
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -671,6 +680,7 @@
 #define ID_EDIT_REFRESH                 32828
 #define ID_SCRIPT_RUN1                  32829
 #define ID_SCRIPT_CHECK_SYNTAX1         32830
+#define ID_VIEW_EPICS                   32831
 #define ID_FILE_MRU_WKSFIRST            32850
 #define ID_FILE_MRU_WKS1                32850
 #define ID_FILE_MRU_WKS2                32851
@@ -765,9 +775,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        285
-#define _APS_NEXT_COMMAND_VALUE         32831
-#define _APS_NEXT_CONTROL_VALUE         1345
-#define _APS_NEXT_SYMED_VALUE           105
+#define _APS_NEXT_RESOURCE_VALUE        287
+#define _APS_NEXT_COMMAND_VALUE         32832
+#define _APS_NEXT_CONTROL_VALUE         1349
+#define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

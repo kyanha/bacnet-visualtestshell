@@ -354,6 +354,8 @@ void CSizingControlBar::OnWindowPosChanging(WINDOWPOS FAR* lpwndpos)
             m_bKeepSize = TRUE;
 }
 
+
+
 /////////////////////////////////////////////////////////////////////////
 // Mouse Handling
 //
@@ -364,7 +366,11 @@ void CSizingControlBar::OnLButtonDown(UINT nFlags, CPoint point)
         // start the drag
         ASSERT(m_pDockContext != NULL);
         ClientToScreen(&point);
+
+		int n = m_nDockBarID;
         m_pDockContext->StartDrag(point);
+		if ( n != m_nDockBarID )
+			OnDockPositionChanged();
     }
     else
         CWnd::OnLButtonDown(nFlags, point);
@@ -377,6 +383,7 @@ void CSizingControlBar::OnLButtonDblClk(UINT nFlags, CPoint point)
         // toggle docking
         ASSERT(m_pDockContext != NULL);
         m_pDockContext->ToggleDocking();
+		OnDockPositionChanged();
     }
     else
         CWnd::OnLButtonDblClk(nFlags, point);

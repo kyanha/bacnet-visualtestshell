@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /I ".\NBLink" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /I ".\NBLink" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -210,6 +210,10 @@ SOURCE=.\DockingDetailViewBar.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\DockingEPICSViewBar.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\DockingHexViewbar.cpp
 # End Source File
 # Begin Source File
@@ -219,6 +223,18 @@ SOURCE=.\DUDAPI\dudapi32.cpp
 # Begin Source File
 
 SOURCE=.\DUDAPI\DUDTOOL.CPP
+# End Source File
+# Begin Source File
+
+SOURCE=.\EPICSTreeView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\EPICSViewInfoPanel.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\EPICSViewNode.cpp
 # End Source File
 # Begin Source File
 
@@ -1040,6 +1056,10 @@ SOURCE=.\DockingDetailViewBar.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DockingEPICSViewBar.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\DockingHexViewbar.h
 # End Source File
 # Begin Source File
@@ -1053,6 +1073,18 @@ SOURCE=.\DUDAPI\DUDTOOL.H
 # Begin Source File
 
 SOURCE=.\DUDAPI\EPICSConsCheck.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\EPICSTreeView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\EPICSViewInfoPanel.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\EPICSViewNode.h
 # End Source File
 # Begin Source File
 
@@ -1876,7 +1908,23 @@ SOURCE=.\res\devtree.bmp
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\epicstree.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\ico00001.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\idr_epic.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\idr_vtst.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\mdi.ico
 # End Source File
 # Begin Source File
 
@@ -1930,7 +1978,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy  $(InputPath)  $(OutDir)\ 
+	copy         $(InputPath)         $(OutDir)\ 
 
 # End Custom Build
 
@@ -1941,7 +1989,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy  $(InputPath)  $(OutDir)\ 
+	copy         $(InputPath)         $(OutDir)\ 
 
 # End Custom Build
 
