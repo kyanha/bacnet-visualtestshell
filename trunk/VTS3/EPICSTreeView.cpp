@@ -38,12 +38,33 @@ extern PICS::PICSdb * gPICSdb;
 static char THIS_FILE[] = __FILE__;
 #endif
 
+
+
+/////////////////////////////////////////////////////////////////////////////
+// 
+// madanner 9/04 add setup for EPICS notification
+// global hack avoids messing with bacfuncs too much
+
+CEPICSTreeView * g_pEPICSTreeView = NULL;
+
+void EPICS_AddRPValue(long obj_id, int prop_id, char * pbuffer, int nLen );
+
+// hack globals to build a list of obj/prop/values received from RP and RPM
+
+void EPICS_AddRPValue(long obj_id, int prop_id, char * pbuffer, int nLen )
+{
+	if ( g_pEPICSTreeView != NULL  )
+		g_pEPICSTreeView->AddRPValue(obj_id, prop_id, pbuffer, nLen );
+}
+
+
+
 /////////////////////////////////////////////////////////////////////////////
 // CEPICSTreeView
 
 IMPLEMENT_DYNCREATE(CEPICSTreeView, CFormView)
 
-CEPICSTreeView::CEPICSTreeView() : m_summary(true, false), CFormView(CEPICSTreeView::IDD)
+CEPICSTreeView::CEPICSTreeView() : m_summary(false, true), CFormView(CEPICSTreeView::IDD)
 {
 	m_pwndSplit = NULL;
 	m_pnodeview = NULL;
@@ -77,6 +98,7 @@ BEGIN_MESSAGE_MAP(CEPICSTreeView, CFormView)
 	ON_BN_CLICKED(IDC_EPICSV_GEN, OnEpicsReadSingleProps)
 	ON_BN_CLICKED(IDC_EPICSV_GENALL, OnEpicsReadAllProps)
 	ON_WM_CREATE()
+	ON_CBN_DROPDOWN(IDC_EPICSV_DA, OnDropdownEpicsDA)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -148,16 +170,47 @@ void CEPICSTreeView::ContextChange( CFrameContext::Signal s )
 	// there are no packet... get out.
 
 	if ( s != CFrameContext::eNewPacketCount ||  gPICSdb == NULL  ||  m_FrameContext->m_PacketCount <= 0 )
+//	if ( s != CFrameContext::eNewCurrentPacket ||  gPICSdb == NULL  ||  m_FrameContext->m_PacketCount <= 0 )
 		return;
 	
 	// Get last added packet and get out if it's not a received packet
 	VTSPacketPtr ppkt = m_FrameContext->m_pDoc->GetPacket(m_FrameContext->m_PacketCount-1);
+//	VTSPacketPtr ppkt = m_FrameContext->m_pDoc->GetPacket(m_FrameContext->m_CurrentPacket);
 
 	if ( ppkt->packetHdr.packetType != rxData )
 		return;
 
+	// OK.. see if it's from our TD
+	const char * name = m_FrameContext->m_pDoc->AddrToName( ppkt->packetHdr.packetSource, ppkt->packetHdr.m_szPortName );
+	CComboBox * pcomboDA = (CComboBox *) GetDlgItem(IDC_EPICSV_DA);
+	CString strDA;
+	pcomboDA->GetWindowText(strDA);
+
+	if ( strDA.Compare(name) != 0 )
+		return;
+
+
+	// Clear out read arrays and prep for the sniffer to stuff the values
+	PrepRPCallback(this);
+
+	NetworkSniffer::SetLookupContext( ppkt->packetHdr.m_szPortName );
 	m_summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
-	GetDlgItem(IDC_EPICSV_FILENAME)->SetWindowText(m_summary.summaryLine);
+
+	PrepRPCallback(NULL);
+}
+
+
+
+void CEPICSTreeView::PrepRPCallback( CEPICSTreeView * pthis )
+{
+	g_pEPICSTreeView = pthis;			// setup global so sniffer populates these lists properly
+//	m_aRPCallback_ObjID.RemoveAll();
+//	m_aRPCallback_PropID.RemoveAll();
+
+//	for(int i = 0; i < m_aRPCallback_ValuePtr.GetSize(); i++ )
+//		delete (BACnetEncodeable *) m_aRPCallback_ValuePtr[i];
+
+//	m_aRPCallback_ValuePtr.RemoveAll();
 }
 
 
@@ -368,6 +421,7 @@ void CEPICSTreeView::Refresh()
 
 	// Create Object Types
 	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Object List"), 3, 3, 0, 0, (LPARAM) new CEPICSViewNodeObjTypes(this), htreeitemRoot, htreeitemLast );
+	m_htreeitemObjectParent = htreeitemLast;
 
 	if ( gPICSdb != NULL )
 		LoadObjectNodes(htreeitemLast);
@@ -386,6 +440,43 @@ void CEPICSTreeView::Refresh()
 }
 
 
+// Find the object nodes in the tree and attempt to set the object/prop/value...
+
+void CEPICSTreeView::AddRPValue( long obj_id, int prop_id, char * pbuffer, int nLen )
+{
+//	g_aRPCallback_ObjID.Add((DWORD) obj_id);
+//	g_aRPCallback_PropID.Add( (UINT) prop_id);
+//	g_aRPCallback_ValuePtr.Add( BACnetEncodeable::Factory(datatype, &decoder) );
+
+	CTreeCtrl * ptree = (CTreeCtrl *) GetDlgItem(IDC_EPICSV_TREE);
+
+	if ( !ptree->ItemHasChildren(m_htreeitemObjectParent) )
+		return;
+
+	// Could be any number of things that go wrong here... don't blow the sniffer decoding
+	// just because we can't get our value stuffed into our list view
+
+	try
+	{
+		for ( HTREEITEM htreeitemLast = ptree->GetChildItem(m_htreeitemObjectParent); htreeitemLast != NULL; htreeitemLast = ptree->GetNextSiblingItem(htreeitemLast) )
+		{
+			CEPICSViewNodeObject * pnode = (CEPICSViewNodeObject *) ptree->GetItemData(htreeitemLast);
+			if ( pnode->IsKindOf(RUNTIME_CLASS(CEPICSViewNodeObject))  &&  pnode->GetObjectID() == (DWORD) obj_id )
+			{
+				unsigned short nParseType;
+				int x = pnode->GetPropertyIndex((DWORD) prop_id, &nParseType);
+
+				if ( x != -1 )
+					pnode->SetDeviceValue(x, BACnetAnyValue::Factory(nParseType, BACnetAPDUDecoder((const BACnetOctet *) pbuffer, nLen))->ToString());
+				break;
+			}
+		}
+	}
+	catch(...){}
+}
+
+
+
 void CEPICSTreeView::LoadObjectNodes( HTREEITEM htreeitemParent )
 {
 	HTREEITEM htreeitemLast = NULL;
@@ -399,6 +490,32 @@ void CEPICSTreeView::LoadObjectNodes( HTREEITEM htreeitemParent )
 		pObj = (PICS::generic_object *) pObj->next;
 	}
 }
+
+
+void CEPICSTreeView::LoadDACombo()
+{
+	CComboBox * pcombo = (CComboBox *) GetDlgItem(IDC_EPICSV_DA);
+
+	CString strText;
+	pcombo->GetWindowText(strText);
+
+	pcombo->ResetContent();
+
+	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+	VTSNames * pnames = pdoc == NULL ? NULL : pdoc->GetNames();
+
+	for (int i = 0; pnames != NULL && i < pnames->GetSize(); i++)
+		pcombo->AddString((*pnames)[i]->GetName());
+
+	if ( strText.IsEmpty() )
+		pcombo->SetCurSel(0);
+	else
+		pcombo->SelectString(0, strText);
+
+	if ( pcombo->GetCurSel() == -1  &&  pcombo->GetCount() > 0 )
+		pcombo->SetCurSel(0);
+}
+
 
 
 void CEPICSTreeView::WipeOut( CTreeCtrl * ptree, HTREEITEM htreeitem )
@@ -435,6 +552,7 @@ void CEPICSTreeView::OnInitialUpdate()
 
 	GetDlgItem(IDC_EPICSV_GEN)->EnableWindow(FALSE);
 	GetDlgItem(IDC_EPICSV_GENALL)->EnableWindow(FALSE);
+	LoadDACombo();
 }
 
 
@@ -471,3 +589,8 @@ void CEPICSTreeView::OnDestroy()
 	CFormView::OnDestroy();
 }
 
+
+void CEPICSTreeView::OnDropdownEpicsDA() 
+{
+	LoadDACombo();
+}

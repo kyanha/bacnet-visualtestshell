@@ -252,6 +252,28 @@ unsigned long CEPICSViewNodeObject::GetObjectID()
 }
 
 
+int CEPICSViewNodeObject::GetPropertyIndex( DWORD dwPropID, unsigned short * pParseType )
+{
+	PICS::generic_object * pObj = (PICS::generic_object *) m_pObj;
+
+	DWORD dwPropIDSearch = 0;
+	char szPropName[100];
+	int x = 0;
+
+	for (int i = 0; i < sizeof(pObj->propflags); i++ )
+		if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropIDSearch, pParseType) > 0 )
+		{
+			if ( dwPropIDSearch == dwPropID )
+				return x;
+			else
+				x++;
+		}
+
+	return -1;
+}
+
+
+
 // Local index here is the nth SUPPORTED property... not just a blind index into the array
 // of propflags
 
@@ -264,7 +286,7 @@ unsigned long CEPICSViewNodeObject::GetPropertyID( int nLocalIndex )
 	int x = 0;
 
 	for (int i = 0; i < sizeof(pObj->propflags); i++ )
-		if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID) > 0 )
+		if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID, NULL) > 0 )
 			if ( x++ == nLocalIndex )
 				return (unsigned long) dwPropID;
 
@@ -285,7 +307,7 @@ unsigned long CEPICSViewNodeObject::GetPropertyIDAndValue( int nLocalIndex, BACn
 	int x = 0;
 
 	for (int i = 0; i < sizeof(pObj->propflags); i++ )
-		if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID) > 0 )
+		if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID, NULL) > 0 )
 			if ( x++ == nLocalIndex )
 			{
 				PICS::CreatePropertyFromEPICS( pObj, (PICS::BACnetPropertyIdentifier) dwPropID, pany );
@@ -330,7 +352,7 @@ void CEPICSViewNodeObject::LoadInfoPanel()
 		BACnetAnyValue bacnetAnyValue;
 
 		for (int i = 0; i < sizeof(pObj->propflags); i++ )
-			if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID) > 0 )
+			if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID, NULL) > 0 )
 			{
 				listCtrl.InsertItem(x, NetworkSniffer::BACnetPropertyIdentifier[dwPropID] );
 
@@ -364,11 +386,10 @@ void CEPICSViewNodeObject::SetDeviceValue( int iIndex, LPCSTR lpszValue )
 {
 	CEPICSViewPropPanel * ppanel = (CEPICSViewPropPanel *) m_ptreeview->GetInfoPanel();
 
-	if ( m_astrDevValues.GetSize() != ppanel->GetListCtrl().GetItemCount() )
-		m_astrDevValues.SetSize(ppanel->GetListCtrl().GetItemCount());
+	m_astrDevValues.SetAtGrow(iIndex, lpszValue);
 
-	m_astrDevValues[iIndex] = lpszValue;
-	ppanel->GetListCtrl().SetItemText(iIndex, 3, lpszValue);
+	if ( ppanel->m_pObjectNode == this )
+		ppanel->GetListCtrl().SetItemText(iIndex, 3, lpszValue);
 }
 
 
@@ -376,8 +397,11 @@ void CEPICSViewNodeObject::ClearDeviceValues()
 {
 	CEPICSViewPropPanel * ppanel = (CEPICSViewPropPanel *) m_ptreeview->GetInfoPanel();
 
-	for ( int i = 0; i < ppanel->GetListCtrl().GetItemCount(); i++ )
-		ppanel->GetListCtrl().SetItemText(i, 3, "");
+	if ( ppanel->m_pObjectNode == this )
+	{
+		for ( int i = 0; i < ppanel->GetListCtrl().GetItemCount(); i++ )
+			ppanel->GetListCtrl().SetItemText(i, 3, "");
+	}
 
 	m_astrDevValues.RemoveAll();
 	m_astrDevValues.SetSize(0);
@@ -386,7 +410,6 @@ void CEPICSViewNodeObject::ClearDeviceValues()
 
 BOOL CEPICSViewNodeObject::HasDeviceValues()
 {
-	CEPICSViewPropPanel * ppanel = (CEPICSViewPropPanel *) m_ptreeview->GetInfoPanel();
 	return m_astrDevValues.GetSize() != 0;
 }
 

@@ -41,7 +41,15 @@ private:
 	CDockingEPICSViewBar * m_pbar;
 
 	BACnetPIInfo		m_summary;		// so it doesn't have to be allocated and deallocated
+	HTREEITEM			m_htreeitemObjectParent;
 
+	// Stuff for RP callback values assemblies
+//	CPtrArray m_aRPCallback_ValuePtr;
+//	CUIntArray m_aRPCallback_PropID;
+//	CDWordArray m_aRPCallback_ObjID;
+
+public:
+	void AddRPValue( long obj_id, int prop_id, char * pbuffer, int nLen );
 
 protected:
 	CEPICSTreeView();           // protected constructor used by dynamic creation
@@ -57,6 +65,9 @@ protected:
 	void LoadObjectNodes( HTREEITEM htreeitemParent );
 	void WipeOut( CTreeCtrl * ptree, HTREEITEM htreeitem );
 	void SetTreeImageList();
+	void PrepRPCallback( CEPICSTreeView * pthis );
+	void LoadDACombo(void);
+
 
 	// Node selection methods
 	void DisplayRootNode();
@@ -109,6 +120,7 @@ protected:
 	afx_msg void OnEpicsReadSingleProps();
 	afx_msg void OnEpicsReadAllProps();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg void OnDropdownEpicsDA();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
