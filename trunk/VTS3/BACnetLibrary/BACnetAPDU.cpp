@@ -128,7 +128,7 @@ void BACnetAPDU::Encode( BACnetAPDUEncoder& enc ) const
 //	BACnetAPDU::Decode
 //
 
-void BACnetAPDU::Decode( BACnetAPDUDecoder& dec )
+void BACnetAPDU::Decode( const BACnetAPDUDecoder& dec )
 {
 	// transform the NPDU into an APDU
 	apduType = (BACnetAPDUType)((dec.pktBuffer[0] & 0xF0) >> 4);

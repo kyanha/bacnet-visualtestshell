@@ -672,8 +672,8 @@ class BACnetAPDU : public BACnetAPDUEncoder  {
 		BACnetAPDU( int initBuffSize = kDefaultBufferSize );
 		BACnetAPDU( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
 
-		void Encode( BACnetAPDUEncoder& enc ) const;	// encode
-		void Decode( BACnetAPDUDecoder& dec );			// decode
+		void Encode( BACnetAPDUEncoder& enc ) const;				// encode
+		void Decode( const BACnetAPDUDecoder& dec );				// decode
 	};
 
 typedef BACnetAPDU *BACnetAPDUPtr;
