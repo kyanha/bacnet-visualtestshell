@@ -6,6 +6,8 @@
 #include "VTSCtrl.h"
 #include "VTSAny.h"
 
+#include "Props.h"
+
 #include "VTSObjectIdentifierDialog.h"
 
 #include "VTSDateTimeDlg.h"
@@ -94,9 +96,19 @@ VTSAnyList::VTSAnyList( void )
 
 VTSAnyList::~VTSAnyList( void )
 {
-	for (POSITION pos = GetHeadPosition(); pos; )
-		delete (VTSAnyElementPtr)GetNext( pos );
+	KillAll();
 }
+
+
+// madanner 9/04
+void VTSAnyList::KillAll()
+{
+	for ( POSITION ppos = GetHeadPosition(); ppos != NULL; )
+		delete (VTSAnyElementPtr)GetNext( ppos );
+
+	RemoveAll();
+}
+
 
 //
 //	VTSAnyList::Add
@@ -127,12 +139,12 @@ void VTSAnyList::Add( void )
 
 void VTSAnyList::Remove( int i )
 {
-	POSITION	pos = FindIndex( i )
+	POSITION	ppos = FindIndex( i )
 	;
 
 	ASSERT( pos != NULL );
-	delete (VTSAnyElementPtr)GetAt( pos );
-	RemoveAt( pos );
+	delete (VTSAnyElementPtr)GetAt( ppos );
+	RemoveAt( ppos );
 }
 
 //
@@ -150,11 +162,11 @@ int VTSAnyList::Length( void )
 
 VTSAnyElementPtr VTSAnyList::operator []( int i )
 {
-	POSITION	pos = FindIndex( i )
+	POSITION	ppos = FindIndex( i )
 	;
 
-	ASSERT( pos != NULL );
-	return (VTSAnyElementPtr)GetAt( pos );
+	ASSERT( ppos != NULL );
+	return (VTSAnyElementPtr)GetAt( ppos );
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -177,10 +189,13 @@ VTSAny& VTSAny::operator = (const VTSAny& any)
 {
    if(this != &any)
    {
-	   for (POSITION pos = m_anyList.GetHeadPosition(); pos; )
-		delete (VTSAnyElementPtr)m_anyList.GetNext( pos );
- 
-	   m_anyList.RemoveAll();	   
+	   //madanner 9/04
+
+//	   for (POSITION pos = m_anyList.GetHeadPosition(); pos; )
+//		delete (VTSAnyElementPtr)m_anyList.GetNext( pos );
+
+	   
+	   m_anyList.KillAll();	   
 
 	   for(int index = 0; index < any.m_anyList.GetCount(); index++)
 	   {		    
@@ -251,6 +266,21 @@ BOOL VTSAny::OnInitDialog()
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
+
+
+//madanner 9/04, add VTSAny value based on BACnetEncodeable
+
+void VTSAny::AddValue( BACnetEncodeable * pbacnetValue )
+{
+	m_anyList.Add();
+
+	VTSAnyElementPtr curElem = m_anyList[m_anyList.Length()-1];
+	curElem->elemType = GetBACnetToAnyTypeMapping(pbacnetValue->DataType());
+
+	curElem->elemEncoder.Flush();
+	pbacnetValue->Encode(curElem->elemEncoder, curElem->elemContext);
+}
+
 
 //
 //	VTSAny::SetSelection
@@ -1913,3 +1943,140 @@ void VTSAny::RestoreCtrl( BACnetAPDUDecoder& dec )
 	BACnetNull().Decode( dec );
 }
 
+
+int VTSAny::GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
+{
+	switch(nBACnetEncodeableDataType)
+	{
+		case enull:			return 0;		//null enumeration, BACnetNull
+		case ob_id:			return 12;		//an object identifier, BACnetObjectIdentifier
+		case et:			return 9;		//an enumeration table, BACnetEnumerated
+		case flt:			return 5;		//float / double, BACnetDouble
+
+		case pss:							//protocol services supported bitstring
+		case pos:							//protocol objects supported bitstring
+		case bits:			return 8;		//octet of T or F flags, BACnetBitString
+
+		case uw:							//unsigned word
+		case u16:							//1..16
+		case u127:							//1..127
+		case ud:			return 2;		//unsigned dword, BACnetUnsigned
+
+		case ssint:							//short (2-byte) signed integer  MAG 13 FEB 2001
+		case sw:			return 3;		//signed word, BACnetInteger
+
+		case s10:							//char [10]
+		case s32:							//char [32]
+		case s64:							//char [64]
+		case s132:			return 7;		//char [132], BACnetCharacterString
+
+		case dt:			return 15;		//date/time, BACnetDateTime
+		case calist:		return 18;		//list of calendarentry, BACnetCalendarEntry
+
+		case statext:						//state text array
+		case actext:		return 20;		//action_text array, BACnetTextArray
+
+		case dabind:		return 17;		//device address bindings, BACnetDeviceAddressBinding
+
+		case paf:							//priority array flt
+		case pab:							//priority array bpv
+		case pau:			return 50;		//priority array uw, BACnetPriorityArray
+
+		case dtrange:		return 16;		//range of dates, BACnetDateRange
+
+		case ptDate:		
+		case ddate:			return 10;		//date, BACnetDate
+		case ptTime:
+		case ttime:			return 11;		//time, BACnetTime
+
+		case ebool:			return 1;		//boolean enumeration, BACnetBoolean
+		case TSTMP:			return 70;		//BACnetTimeStamp
+
+		case prival:		return 51;		//single priority value (could be b, flt, null, r), madanner 11/1/02, BACnetPriorityValue
+
+		// Unimplemented as of 9/04
+		case propref:		return 45;		//obj property reference, NI
+		case act:			return 21;		//action array, NI
+		case vtcl:			return 72;		//vt classes, NI
+		case evparm:		return 32;		//event parameter, NI
+		case skeys:			return 65;		//session keys, NI
+		case recip:			return 59;		//recipient, NI
+		case reciplist:		return 27;		//list of BACnetDestination, NI
+		case xsched:		return 68;		//exception schedule: array[] of specialevent, NI
+		case setref:		return 66;		//setpoint reference, NI
+		case raslist:		return 77;		//list of readaccessspecs, NI
+		case LOGREC:		return 41;		//LogRecord, NI
+		case devobjpropref:	return 29;		//dev obj property reference, NI
+		case dsofweek:		return 26;		//BACnetDaysofWeek, NI
+		case eventransbits:	return 34;		//BACnetEventTansitionBits, NI
+		case lCOVSub:		return 24;		// List of BACnetCOVSubcription,   added Gingbo Gao, 2003-9-1, NI
+
+		// Implemented as BACnet type, but no weird match in these types
+	//	case uwarr:							//array of uw, 
+	//	case stavals:		return ??;		//list of unsigned, BACnetUnsignedArray
+	//	case calent:		return ??;		//single calendar entry, madanner 11/1/02, BACnetCalendarEntry
+	//	case lobj:			return ??;		//array of objects, (parse type), BACnetObjectIDList
+
+		// Not implemented and also not found in this list
+	//	case lopref:		return ??;		//list of object prop refs, NI
+	//	case tsrecip:		return ??;		//time synch recipients, NI
+	//	case looref:		return ??;		//list of objectid references, NI
+	//	case wsched:		return ??; 		//weekly schedule: array[7] of list of timevalue, NI
+	//	case recipt:		return ??;		//BACnetRecipient, NI
+	//	case destination:	return ??;		//BACnetDestination. NI
+	//	case sequenceof:	return ??;		//BACnetSequenceOf, NI
+	//	case listof:		return ??;		//BACnetListOf, NI
+	//	case arrayof:		return ??;		//BACnetArrayOf, NI
+	//	case vtse:			return ??;		//list of active  vt sessions (parse type), NI
+
+		default:			return 0;
+	}
+}
+
+
+/*
+	case 6: { octetstring
+	case 13: {openingtab
+	case 14: {clostingtag
+	case 22: //BinaryPV
+	case 23: //Client COV
+	case 24: //COVSubscription
+	case 25: //dailySchedule
+	case 28://Device Status
+	case 29://DeviceObjectPropertyReference
+	case 30://DeviceObjectReference
+	case 31://EngineeringUnits
+	case 33://EventState
+	case 34://EventTransitionBits
+	case 35://EventType
+	case 36://FileAccessMethod
+	case 37://LifeSafetyMode	
+	case 38://LifeSafetyOperation
+	case 39://LifeSafetyState
+	case 40://LimitEnable
+	case 41://LogRecord
+	case 42://LogStatus
+	case 43://Maintenance
+	case 44://NotifyType
+	case 46://ObjectPropertyValue
+	case 47://ObjecTtype
+	case 48://ObectTypesSupported
+	case 49://Polarity 
+	case 52://ProgramError   
+	case 53://ProgramRequest 
+	case 54://ProgramState
+	case 55://PropertyIdentifier  
+	case 56://PropertyReference
+	case 57://PropertyStates 
+	case 58://PropertyValue
+	case 60://RecipientProcess
+	case 61://Reliability 
+	case 62://ResultFlags
+	case 63://Segmentation 
+	case 64://ServicesSupported 
+	case 67://SilenceState  
+	case 69://StatusFlags
+	case 74://WeekNDay
+	case 75://list of Destination
+	case 76://List Of ReadAccessResult
+*/
