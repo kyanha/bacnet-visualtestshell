@@ -287,7 +287,7 @@ void VTSPreferences::Save( void )
 //          Fixed minor problems in the Send ReadRange dialog.
 //
 
-const int kReleaseVersion = 7;
+const int kReleaseVersion = 8;
 
 class CAboutDlg : public CDialog
 {
