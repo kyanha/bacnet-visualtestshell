@@ -28,6 +28,9 @@
 
 #include "VTSDB.h"
 
+
+class VTSStatisticsDlg;
+typedef VTSStatisticsDlg *VTSStatisticsDlgPtr;
 // forward declarations
 
 class VTSDoc;
@@ -339,6 +342,8 @@ public:
 // Implementation
 public:
 	VTSPortDlgPtr	m_pPortDlg;
+	VTSStatisticsDlgPtr m_pStatitiscsDlg;// a pointer to the statistics dialog
+	bool m_bStatisticsDlgInUse;// indicates whether the statistics dialog is shown
 
 	void DeletePackets( void );
 	void DoPortsDialog( void );
@@ -362,9 +367,12 @@ protected:
 	CCriticalSection		m_FrameContextsCS;
 	CFrameContextPtr		m_FrameContexts;
 
+
+
 // Generated message map functions
 protected:
 	//{{AFX_MSG(VTSDoc)
+	afx_msg void OnViewStatistics();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

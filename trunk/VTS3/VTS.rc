@@ -160,6 +160,7 @@ BEGIN
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
         MENUITEM "&Delete",                     ID_EDIT_DELETE
+        MENUITEM "Go to &Line...\tCtrl+G",      IDC_EDIT_GOTOLINE
     END
     POPUP "&Script"
     BEGIN
@@ -199,6 +200,8 @@ BEGIN
         MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
         MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
         MENUITEM SEPARATOR
+        MENUITEM "&Export...",                  ID_FILE_EXPORT
+        MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
@@ -231,6 +234,11 @@ BEGIN
         MENUITEM "&Previous Frame\tCtrl+2",     ID_VIEW_PREVFRAME
         MENUITEM "&Next Frame\tCtrl+3",         ID_VIEW_NEXTFRAME
         MENUITEM "&Last Frame\tCtrl+4",         ID_VIEW_LASTFRAME
+        MENUITEM SEPARATOR
+        MENUITEM "Detail View",                 ID_VIEW_DETAIL
+        MENUITEM "Hex View",                    ID_VIEW_HEX
+        MENUITEM SEPARATOR
+        MENUITEM "Statistics",                  ID_VIEW_STATISTICS
     END
     POPUP "&Send"
     BEGIN
@@ -281,6 +289,7 @@ BEGIN
     "2",            ID_VIEW_PREVFRAME,      VIRTKEY, CONTROL, NOINVERT
     "3",            ID_VIEW_NEXTFRAME,      VIRTKEY, CONTROL, NOINVERT
     "4",            ID_VIEW_LASTFRAME,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDC_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
     VK_F5,          ID_SCRIPT_RUN,          VIRTKEY, NOINVERT
     VK_F6,          ID_SCRIPT_STEP,         VIRTKEY, NOINVERT
     VK_F8,          ID_SCRIPT_KILL,         VIRTKEY, NOINVERT
@@ -299,6 +308,115 @@ END
 //
 // Dialog
 //
+
+IDD_STATISTICS DIALOG DISCARDABLE  0, 0, 493, 317
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Statistics"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Options",IDC_OPTIONS,358,296,50,14
+    DEFPUSHBUTTON   "Close",IDOK,422,296,50,14
+    GROUPBOX        "Detail",IDC_STATIC,320,7,166,271
+    LTEXT           "Overall  Send",IDC_STATIC,344,68,53,8
+    LTEXT           "Overall Receive",IDC_STATIC,344,84,61,8
+    LTEXT           "IP Send",IDC_STATIC,344,100,29,8
+    LTEXT           "IP Receive",IDC_STATIC,344,116,41,8
+    EDITTEXT        IDC_TOTALSEND,414,68,41,12,ES_AUTOHSCROLL | WS_DISABLED | 
+                    NOT WS_TABSTOP
+    EDITTEXT        IDC_TOTALRECEIVE,414,84,41,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED | NOT WS_TABSTOP
+    EDITTEXT        IDC_IPSEND,414,100,41,12,ES_AUTOHSCROLL | WS_DISABLED | 
+                    NOT WS_TABSTOP
+    EDITTEXT        IDC_IPRECEIVE,414,116,41,12,ES_AUTOHSCROLL | WS_DISABLED | 
+                    NOT WS_TABSTOP
+    CONTROL         "",IDC_SERVICE_TREE,"Static",SS_BLACKFRAME,7,7,298,303
+    LTEXT           "Ethernet Send",IDC_STATIC,344,132,53,8
+    LTEXT           "Ethernet Receive",IDC_STATIC,344,148,65,8
+    EDITTEXT        IDC_ETHERNETSEND,414,132,41,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED | NOT WS_TABSTOP
+    EDITTEXT        IDC_ETHERNETRECEIVE,414,148,41,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED | NOT WS_TABSTOP
+    LTEXT           "Arcnet Send",IDC_STATIC,344,164,45,8
+    LTEXT           "Arcnet Receive",IDC_STATIC,344,180,57,8
+    EDITTEXT        IDC_ARCNETSEND,414,164,41,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED | NOT WS_TABSTOP
+    EDITTEXT        IDC_ARCNETRECEIVE,414,180,41,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED | NOT WS_TABSTOP
+    LTEXT           "MSTP Send",IDC_STATIC,344,196,37,8
+    LTEXT           "MSTP Receive",IDC_STATIC,344,212,49,8
+    EDITTEXT        IDC_MSTPSEND,414,196,41,12,ES_AUTOHSCROLL | WS_DISABLED | 
+                    NOT WS_TABSTOP
+    EDITTEXT        IDC_MSTPRECEIVE,414,212,41,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED | NOT WS_TABSTOP
+    LTEXT           "PTP Send",IDC_STATIC,344,228,33,8
+    LTEXT           "PTP Receive",IDC_STATIC,344,244,45,8
+    EDITTEXT        IDC_PTPSEND,414,228,41,12,ES_AUTOHSCROLL | WS_DISABLED | 
+                    NOT WS_TABSTOP
+    EDITTEXT        IDC_PTPRECEIVE,414,244,41,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED | NOT WS_TABSTOP
+    LTEXT           "Packet statistics of",IDC_STATIC,334,30,139,8
+    CTEXT           "Packet Type",IDC_PACKET_TYPE_TEXT,329,44,142,17
+END
+
+IDD_STATISTICS_OPTIONS DIALOG DISCARDABLE  0, 0, 245, 287
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Statistics View Options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_RANGE_2,106,179,27,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RANGE_4,135,201,27,13,ES_AUTOHSCROLL
+    GROUPBOX        "Statistics view choices",IDC_STATIC,7,7,229,141
+    GROUPBOX        "Size distribution options",IDC_STATIC,7,163,229,92
+    DEFPUSHBUTTON   "OK",IDOK,50,266,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,127,266,50,14
+    LTEXT           "Please choose the statistics you wanna view",IDC_STATIC,
+                    19,23,209,13
+    CONTROL         "IP Send",IDC_IP_SEND_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,29,42,44,10
+    CONTROL         "IP Receive",IDC_IP_RECEIVE_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,119,42,56,10
+    CONTROL         "Ethernet Send",IDC_ETHERNET_SEND_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,29,55,68,10
+    CONTROL         "Ethernet Receive",IDC_ETHERNET_RECEIVE_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,119,55,80,10
+    CONTROL         "Arcnet Send",IDC_ARCNET_SEND_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,29,68,60,10
+    CONTROL         "Arcnet Receive",IDC_ARCNET_RECEIVE_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,119,68,72,10
+    CONTROL         "MSTP Send",IDC_MSTP_SEND_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,29,81,52,10
+    CONTROL         "MSTP Receive",IDC_MSTP_RECEIVE_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,119,81,64,10
+    CONTROL         "PTP Receive",IDC_PTP_RECEIVE_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,119,94,60,10
+    CONTROL         "PTP Send",IDC_PTP_SEND_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,29,94,48,10
+    CONTROL         "Overall Send",IDC_OVERALL_SEND_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,29,107,64,10
+    CONTROL         "Overall Receive",IDC_OVERALL_RECEIVE_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,119,107,76,10
+    PUSHBUTTON      "Select All",IDC_SEL_ALL,36,124,50,14
+    PUSHBUTTON      "Clear All",IDC_CLEAR_ALL,123,124,50,14
+    LTEXT           "range 1",IDC_STATIC,23,180,29,13
+    LTEXT           "range 2",IDC_STATIC,23,201,29,13
+    LTEXT           "range 3",IDC_STATIC,23,223,29,8
+    LTEXT           "<=",IDC_STATIC,82,181,9,8
+    EDITTEXT        IDC_RANGE_3,71,201,27,13,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "to",IDC_STATIC,111,201,9,8
+    EDITTEXT        IDC_RANGE_5,106,222,27,13,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           ">=",IDC_STATIC,81,226,9,8
+END
+
+IDD_GOTOLINE DIALOG DISCARDABLE  0, 0, 164, 62
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Go to"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_EDIT_LINEINDEX,14,20,69,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,98,12,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,98,35,50,14
+    LTEXT           "Enter line number:",IDC_STATIC,16,2,73,8
+END
 
 IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 55
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
@@ -479,13 +597,19 @@ CAPTION "Wrte-Broadcast-Distribution-Table"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "List1",IDC_BDTLIST,"SysListView32",LVS_REPORT | 
-                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | 
-                    WS_TABSTOP,10,10,215,185
-    PUSHBUTTON      "Add",IDC_ADDBDT,235,10,50,15
-    PUSHBUTTON      "Remove",IDC_REMOVEBDT,235,30,50,15
-    LTEXT           "BDT Entry",IDC_STATIC,10,207,50,10
-    EDITTEXT        IDC_BDTENTRY,65,205,100,12,ES_AUTOHSCROLL
-    CTEXT           "addr/net:port",IDC_STATIC,65,220,100,10
+                    LVS_SINGLESEL | WS_BORDER | WS_TABSTOP,10,10,194,118
+    PUSHBUTTON      "Add",IDC_ADDBDT,228,12,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEBDT,228,32,50,15
+    GROUPBOX        "BDT Entry",IDC_STATIC,10,139,221,66
+    LTEXT           "IP Address",IDC_STATIC,15,152,41,8
+    LTEXT           "UDP Port",IDC_STATIC,15,170,33,8
+    EDITTEXT        IDC_BDTPORT,65,170,40,14,ES_AUTOHSCROLL
+    LTEXT           "Broadcast Distribution Mask",IDC_STATIC,15,187,109,8
+    CONTROL         "IPAddress1",IDC_IP,"SysIPAddress32",WS_TABSTOP,65,152,
+                    100,14
+    LTEXT           "(0-65535)",IDC_STATIC,105,170,38,8
+    EDITTEXT        IDC_MASK,129,187,40,14,ES_AUTOHSCROLL
+    LTEXT           "(1-32)",IDC_STATIC,175,187,25,8
 END
 
 IDD_SENDREADBDT DIALOG DISCARDABLE  0, 0, 300, 234
@@ -2210,7 +2334,7 @@ BEGIN
     LTEXT           "Date",IDC_STATICUTCDATE,65,42,16,8
     LTEXT           "Time",IDC_STATICUTCTIME,63,76,16,8
     LTEXT           "UTC Offset",IDC_STATICUTCOFFSET,63,110,36,8
-    CTEXT           "(- 780 ..780 )",IDC_STATICUTCRANGE,115,125,43,8
+    CTEXT           "(- 720 ..720 )",IDC_STATICUTCRANGE,115,125,43,8
 END
 
 
@@ -2268,6 +2392,32 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO DISCARDABLE 
 BEGIN
+    IDD_STATISTICS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 486
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 310
+    END
+
+    IDD_STATISTICS_OPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 236
+        VERTGUIDE, 238
+        VERTGUIDE, 243
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 280
+    END
+
+    IDD_GOTOLINE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 157
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 51
+    END
+
     IDD_ABOUTBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -3040,6 +3190,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_LNCOLINDEX           "               "
     IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
 END
 

@@ -7,7 +7,9 @@
 #define ID_IMPORTNAMES                  5
 #define ID_EXPORTNAMES                  6
 #define IDD_ABOUTBOX                    100
+#define ID_LNCOLINDEX                   101
 #define IDD_NAMES                       102
+#define IDC_LINENUMBER                  103
 #define IDP_SOCKETS_INIT_FAILED         104
 #define IDR_MAINFRAME                   128
 #define IDR_VTSTYPE                     129
@@ -118,6 +120,9 @@
 #define IDD_DEVICES                     239
 #define IDD_SENDREADRANGE               240
 #define IDD_SENDUTCTIMESYNC             241
+#define IDD_GOTOLINE                    242
+#define IDD_STATISTICS                  243
+#define IDD_STATISTICS_OPTIONS          244
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -398,6 +403,68 @@
 #define IDC_STATICUTCOFFSET             1209
 #define IDC_STATICUTCTIMEFMT            1211
 #define IDC_STATICUTCRANGE              1212
+#define IDC_EDIT_LINEINDEX              1213
+#define IDC_PORT                        1213
+#define IDC_BDTPORT                     1213
+#define IDC_TOTALSENT                   1213
+#define IDC_TOTALSEND                   1213
+#define IDC_IP                          1214
+#define IDC_TOTALRECEIVE                1214
+#define IDC_MASK                        1215
+#define IDC_SENDRATE                    1215
+#define IDC_IPSEND                      1215
+#define IDC_RECEIVERATE                 1216
+#define IDC_IPRECEIVE                   1216
+#define IDC_ETHERNETSEND                1217
+#define IDC_ALARMANDEVENT               1218
+#define IDC_ETHERNETRECEIVE             1218
+#define IDC_FILEACCESS                  1219
+#define IDC_OBJECTACCESS                1220
+#define IDC_DETAIL                      1221
+#define IDC_ARCNETSEND                  1221
+#define IDC_ARCNETRECEIVE               1222
+#define IDC_IP_SEND                     1223
+#define IDC_IP_SEND_CHECK               1223
+#define IDC_MSTPSEND                    1223
+#define IDC_ETHERNET_SEND               1224
+#define IDC_MSTPRECEIVE                 1224
+#define IDC_SERVICE_TREE                1225
+#define IDC_PACKET_TYPE                 1226
+#define IDC_PTPSEND                     1226
+#define IDC_PTPRECEIVE                  1227
+#define IDC_ARCNET_SEND                 1228
+#define IDC_REMOTEDEVICEMANAGEMENT      1229
+#define IDC_IP_RECEIVE_CHECK            1229
+#define IDC_PACKET_TYPE_TEXT            1229
+#define IDC_VIRTUALTERMINAL             1230
+#define IDC_MSTP_SEND                   1230
+#define IDC_ETHERNET_SEND_CHECK         1230
+#define IDC_ACK                         1231
+#define IDC_ETHERNET_RECEIVE_CHECK      1231
+#define IDC_ERRORS                      1232
+#define IDC_ARCNET_SEND_CHECK           1232
+#define IDC_PTP_SEND                    1233
+#define IDC_ARCNET_RECEIVE_CHECK        1233
+#define IDC_OVERALL_SEND                1234
+#define IDC_MSTP_SEND_CHECK             1234
+#define IDC_IP_RECEIVE                  1235
+#define IDC_MSTP_RECEIVE_CHECK          1235
+#define IDC_ETHERNET_RECEIVE            1236
+#define IDC_PTP_RECEIVE_CHECK           1236
+#define IDC_ARCNET_RECEIVE              1237
+#define IDC_PTP_SEND_CHECK              1237
+#define IDC_MSTP_RECEIVE                1238
+#define IDC_OVERALL_SEND_CHECK          1238
+#define IDC_PTP_RECEIVE                 1239
+#define IDC_OVERALL_RECEIVE_CHECK       1239
+#define IDC_OVERALL_RECEIVE             1240
+#define IDC_SEL_ALL                     1240
+#define IDC_CLEAR_ALL                   1241
+#define IDC_RANGE_2                     1243
+#define IDC_RANGE_3                     1244
+#define IDC_RANGE_4                     1245
+#define IDC_RANGE_5                     1246
+#define IDC_OPTIONS                     1247
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -422,15 +489,21 @@
 #define ID_BUTTON32800                  32800
 #define ID_SCRIPT_LOADEPICS             32801
 #define ID_EDIT_DEVICES                 32803
+#define IDC_EDIT_GOTOLINE               32804
+#define ID_MENUITEM32806                32806
+#define ID_VIEW_HEX                     32807
+#define ID_VIEW_DETAIL                  32808
+#define ID_VIEW_STATISTICS              32809
+#define ID_FILE_EXPORT                  32810
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        242
-#define _APS_NEXT_COMMAND_VALUE         32804
-#define _APS_NEXT_CONTROL_VALUE         1213
-#define _APS_NEXT_SYMED_VALUE           101
+#define _APS_NEXT_RESOURCE_VALUE        245
+#define _APS_NEXT_COMMAND_VALUE         32811
+#define _APS_NEXT_CONTROL_VALUE         1248
+#define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

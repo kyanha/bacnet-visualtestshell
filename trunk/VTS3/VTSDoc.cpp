@@ -19,11 +19,17 @@
 
 #include "ScriptExecutor.h"
 
+#include "VTSStatisticsCollector.h"
+#include "VTSStatisticsDlg.h"
+
+VTSStatisticsCollector *gStatisticsCollector;
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
 
 #define NT_DebugMemState	0
 
@@ -34,6 +40,7 @@ IMPLEMENT_DYNCREATE(VTSDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(VTSDoc, CDocument)
 	//{{AFX_MSG_MAP(VTSDoc)
+	ON_COMMAND(ID_VIEW_STATISTICS, OnViewStatistics)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -43,14 +50,19 @@ END_MESSAGE_MAP()
 #if NT_DebugMemState
 _CrtMemState		s1, s2, s3;
 #endif
-	
+
+//create the statistics dialog object
+VTSStatisticsDlg	dlg(NULL);
+
 VTSDoc::VTSDoc()
 	: m_PacketCount(0), m_pDB(0), m_FrameContexts(0)
-	, m_pPortDlg(0), m_postMessages(false)
+	, m_pPortDlg(0), m_postMessages(false),m_pStatitiscsDlg(0)
 {
 #if NT_DebugMemState
 	_CrtMemCheckpoint( &s1 );
 #endif
+	m_bStatisticsDlgInUse=false;
+	m_pStatitiscsDlg=&dlg;
 }
 
 //
@@ -110,6 +122,9 @@ BOOL VTSDoc::OnNewDocument()
 	// ready for messages
 	m_postMessages = true;
 
+	// create a new statistics collector
+	gStatisticsCollector=new VTSStatisticsCollector();
+	
 	return TRUE;
 }
 
@@ -122,7 +137,10 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	// be nice to the base class, but it is not used
 	if (!CDocument::OnOpenDocument(lpszPathName))
 		return FALSE;
-	
+
+	// create a new statistics collector
+	gStatisticsCollector=new VTSStatisticsCollector();
+
 	m_pDB = new VTSDB();
 	try {
 		m_pDB->OpenFile( (char *)lpszPathName );
@@ -151,6 +169,19 @@ BOOL VTSDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 	// ready for messages
 	m_postMessages = true;
+
+	//get the statistics from the loading db file
+	for(int i=0;i<m_pDB->GetPacketCount();i++)
+	{
+		VTSPacket	pkt;
+		m_pDB->ReadPacket(i,pkt);
+		BACnetPIInfo	summary( true, false );
+		summary.Interpret( (BACnetPIInfo::ProtocolType)pkt.packetHdr.packetProtocolID
+			, (char *)pkt.packetData
+			, pkt.packetLen);
+		gStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
+	}
+	
 
 	return TRUE;
 }
@@ -185,6 +216,9 @@ void VTSDoc::OnCloseDocument()
 
 	// pass along to the framework
 	CDocument::OnCloseDocument();
+
+	// delete the statistics collector
+	delete gStatisticsCollector;
 }
 
 //
@@ -419,9 +453,41 @@ void VTSDoc::DeletePackets( void )
 
 void VTSDoc::NewPacketCount( void )
 {
-	SetPacketCount( m_pDB->GetPacketCount() );
-}
 
+	int NewPacket=m_pDB->GetPacketCount()-m_PacketCount;
+
+	// Edited By Hu Meng 
+	// Notice: I made some changes here.
+	// Sometimes when this function is called, the packet has not been written into the
+	// vdb file. So the NewPacket will be 0,and I will ignore it. 
+	// Otherwise the last packet  in the db file will be counted in the statistics collector 
+	// for two times
+	// The new coming packet will be counted in the statistics collector the next time this
+	// function is called.
+
+	if (NewPacket>0)
+	{
+		SetPacketCount( m_pDB->GetPacketCount() );
+		
+		for(int i=1;i<=NewPacket;i++)
+		{
+			VTSPacket	pkt;
+			m_pDB->ReadPacket(m_PacketCount-i,pkt);
+
+			BACnetPIInfo	summary( true, false );
+			summary.Interpret( (BACnetPIInfo::ProtocolType)pkt.packetHdr.packetProtocolID
+				, (char *)pkt.packetData
+				, pkt.packetLen);
+
+			gStatisticsCollector->Update(summary.summaryLine,pkt.packetLen,pkt.packetHdr.packetType,pkt.packetHdr.packetProtocolID);
+			if(m_bStatisticsDlgInUse)
+			{
+				m_pStatitiscsDlg->Update(summary.summaryLine);
+			}
+		}
+		
+	}
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSDocList
@@ -1982,11 +2048,12 @@ VTSWinIPPort::~VTSWinIPPort( void )
 //	VTSWinIPPort::FilterData
 //
 
+
 void VTSWinIPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection dir )
 {
 	VTSPacket	pkt
 	;
-	
+
 	// fill in the packet header
 	pkt.packetHdr.packetPortID = m_pPort->portDescID;
 	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::ipProtocol;
@@ -2013,6 +2080,8 @@ void VTSWinIPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection d
 		::PostThreadMessage( AfxGetApp()->m_nThreadID
 			, WM_VTS_RCOUNT, (WPARAM)0, (LPARAM)m_pPort->portDoc
 			);
+	
+
 }
 
 //
@@ -2034,4 +2103,15 @@ void VTSWinIPPort::PortStatusChange( void )
 	::PostThreadMessage( AfxGetApp()->m_nThreadID
 		, WM_VTS_PORTSTATUS, (WPARAM)0, (LPARAM)m_pPort->portDoc
 		);
+}
+
+void VTSDoc::OnViewStatistics() 
+{
+	// TODO: Add your command handler code here
+	m_bStatisticsDlgInUse=true;
+	VTSStatisticsDlg dlg;
+	m_pStatitiscsDlg=&dlg;
+	dlg.DoModal();
+	m_bStatisticsDlgInUse=false;
+	
 }

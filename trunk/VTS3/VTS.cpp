@@ -53,6 +53,7 @@ ScriptDebugNetFilter	gDebug2( "_2" );
 //
 
 VTSApp theApp;
+extern CWinThread	*gBACnetWinTaskThread;
 
 BEGIN_MESSAGE_MAP(VTSApp, CWinApp)
 	//{{AFX_MSG_MAP(VTSApp)
@@ -164,6 +165,9 @@ BOOL VTSApp::InitInstance()
 
 	// initialize the BACnet task manager
 	gTaskManager = new WinBACnetTaskManager();
+
+	// Move and add it from WinBACnetTaskManager::WinBACnetTaskManager ,Modified by xuyiping-hust
+	gBACnetWinTaskThread->ResumeThread();
 
 #if NT_DebugMemState
 	_CrtSetAllocHook( VTSAllocHook );
@@ -310,8 +314,6 @@ void VTSPreferences::Save( void )
 //				will be used by a built-in device object, and I think that is a good thing.
 //			Now checks the version of BACMACNT.SYS it can find.  Only version 3.0 works, but I
 //				don't know why.
-//       Added decoding of UTCOffset and DayLightSavingStatus to the UTCTimeSynch service.
-//       Changed the UTCOffset range from +/- 720 to +/-780. 
 //
 
 const int kReleaseVersion = 8;

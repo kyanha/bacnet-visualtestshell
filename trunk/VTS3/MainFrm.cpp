@@ -35,6 +35,9 @@ END_MESSAGE_MAP()
 static UINT indicators[] =
 {
 	ID_SEPARATOR,           // status line indicator
+//	Added by Yajun Zhou, 2002-4-22
+	ID_LNCOLINDEX,
+/////////////////////////
 	ID_INDICATOR_CAPS,
 	ID_INDICATOR_NUM,
 	ID_INDICATOR_SCRL,
@@ -204,3 +207,18 @@ void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 		pPopupMenu->AppendMenu( MF_POPUP, (UINT)menuPopup.Detach(), curGrp->groupName );
 	}
 }
+
+//******************************************************************
+//	Author:		Yajun Zhou
+//	Date:		2002-4-22
+//	Purpose:	Display the line index on the status bar
+//	In:			CString str: The information that should 
+//				be display. 
+//	Out:		void
+//******************************************************************
+void CMainFrame::SetLnPaneText(CString str)
+{
+	int i = m_wndStatusBar.CommandToIndex(ID_LNCOLINDEX);
+	m_wndStatusBar.SetPaneText(i, str);
+}
+///////////////////////////////////////////////
