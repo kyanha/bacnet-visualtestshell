@@ -208,7 +208,7 @@ Change log
 
 #define MAX_SUM_LINE    143             /* maximum width of a summary line */
 #define MAX_SUM_LINES    12             /* maximum summary lines per packet */
-#define MAX_INT_LINE    100             /* maximum width of a detail line */
+#define MAX_INT_LINE    500             /* maximum width of a detail line */
 #define MAX_INT_LINES   5000            /* maximum detail lines per packet */
 
 struct BACnetPIDetail {
@@ -1058,6 +1058,18 @@ typedef struct {
 
 /*
 $Log$
+Revision 1.3  2002/09/25 02:47:10  xyp
+modified  MAX_INT_LINE    500
+
+Revision 1.2  2002/09/20 09:46:47  xyp
+modified MAX_INT_LINE = 200
+
+Revision 1.1.1.1  2002/07/19 01:39:20  xyp
+no message
+
+Revision 1.3  2002/05/14 18:03:02  joelbender
+Getting synchronized for the next release.
+
 Revision 1.2  2001/08/14 19:59:47  joelbender
 C9 bug fixes
 
