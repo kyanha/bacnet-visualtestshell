@@ -104,6 +104,8 @@
 #include "SendReinitDevice.h"
 #include "SendUnconfTextMsg.h"
 #include "SendTimeSync.h"
+#include "SendUTCTimeSync.h"
+//#include "SendUTCTimeSync.h"
 #include "SendWhoHas.h"
 #include "SendWhoIs.h"
 
@@ -212,6 +214,7 @@ public:
 	CSendReinitDevice		ReinitDevicePage;		// ReinitializeDevice
 	CSendUnconfTextMsg		UnconfTextMsgPage;		// UnconfirmedTextMessage
 	CSendTimeSync			TimeSyncPage;			// TimeSynchronization
+	CSendUTCTimeSync	    UTCTimeSyncPage;		// UTCTimeSynchronization
 	CSendWhoHas				WhoHasPage;				// Who-Has
 	CSendWhoIs				WhoIsPage;				// Who-Is
 

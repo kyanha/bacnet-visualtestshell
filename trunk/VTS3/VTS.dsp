@@ -593,6 +593,10 @@ SOURCE=.\SendUnconfTextMsg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SendUTCTimeSync.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SendVendorNPDU.cpp
 # End Source File
 # Begin Source File
@@ -1243,6 +1247,10 @@ SOURCE=.\SendUnconfEventNotification.h
 # Begin Source File
 
 SOURCE=.\SendUnconfTextMsg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendUTCTimeSync.h
 # End Source File
 # Begin Source File
 

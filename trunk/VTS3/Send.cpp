@@ -198,6 +198,7 @@ CSendGroupItem gRemoteDevMgmtItemList[] =
 	, { "TimeSynchronization", (CSendPageMPtr)&CSend::TimeSyncPage, 0 }
 	, { "Who-Has", (CSendPageMPtr)&CSend::WhoHasPage, 0 }
 	, { "Who-Is", (CSendPageMPtr)&CSend::WhoIsPage, 0 }
+	, { "UTCTimeSynchronization", (CSendPageMPtr)&CSend::UTCTimeSyncPage, 0 }
 	, { 0, 0, 0 }
 	};
 
@@ -338,6 +339,7 @@ void CSend::InitPages( void )
 	ReinitDevicePage.pageParent = this;
 	UnconfTextMsgPage.pageParent = this;
 	TimeSyncPage.pageParent = this;
+	UTCTimeSyncPage.pageParent = this;
 	WhoHasPage.pageParent = this;
 	WhoIsPage.pageParent = this;
 
