@@ -170,7 +170,7 @@
 #define MAXIMUM_VALUE_TIMESTAMP               149
 #define MINIMUM_VALUE_TIMESTAMP               150
 #define VARIANCE_VALUE 			              151
-#define ACTIVE_COV_SUBSCRIPTION	              152  //Xiao Shiyuan 2002-7-23
+#define ACTIVE_COV_SUBSCRIPTIONS	              152  //Xiao Shiyuan 2002-7-23
 #define	BACKUP_FAILURE_TIMEOUT				  153 // Zhu Zhenhua  2003-11-21 
 #define	CONFIGURATION_FILES                   154 // Zhu Zhenhua  2003-11-21 
 #define	DATABASE_REVISION                     155 // Zhu Zhenhua  2003-11-21 
