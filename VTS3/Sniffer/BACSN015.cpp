@@ -822,7 +822,12 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
             pif_skip(2);
          else
             pif_skip(1);
-		 strcpy( get_sum_line(pi_data_bacnet_NL), NL_msgs[pif_get_byte(0)] );
+
+		 int	nlMsgID = pif_get_byte(0);
+		 if ((nlMsgID < 0) || (nlMsgID > (sizeof(NL_msgs)/sizeof(char*))))
+		    strcpy( get_sum_line(pi_data_bacnet_NL), "Proprietary Network Layer Message" );
+	     else
+		    strcpy( get_sum_line(pi_data_bacnet_NL), NL_msgs[pif_get_byte(0)] );
 /*
          sprintf (get_sum_line (pi_data_bacnet_NL),
             "BACnet NL (%s)",NL_msgs[pif_get_byte(0)]);
@@ -1369,6 +1374,10 @@ void show_complex_ack( unsigned char x )
    if (pif_get_byte(0) >= max_confirmed_services)
       bac_show_byte("Error: Unknown Complex ACK Type","%u");
    else
+   if (x & 0x08) /* SEG = 1 */ {
+     pif_show_space();
+     bac_show_nbytes( pif_end_offset - pif_offset, "[segmented data]" );
+   } else
       (*show_confirmed_service_ACK[pif_get_byte(0)])();
 }
 
