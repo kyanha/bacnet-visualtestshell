@@ -107,26 +107,31 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 	// set the PI mode to match the settings for this
 	SetPIMode( doSummary, doDetail );
 
-	// call one of the known interpreters
-	switch (proto) {
-		case ipProtocol:
-			NetworkSniffer::interp_bacnet_IP( header, length );
-			break;
-		case ethernetProtocol:
-			NetworkSniffer::interp_bacnet_ETHERNET( header, length );
-			break;
-		case arcnetProtocol:
-			NetworkSniffer::interp_bacnet_ARCNET( header, length );
-			break;
-		case mstpProtocol:
-			NetworkSniffer::interp_bacnet_MSTP( header, length );
-			break;
-		case ptpProtocol:
-			NetworkSniffer::interp_bacnet_PTP( header, length );
-			break;
-		case msgProtocol:
-			NetworkSniffer::interp_Message( header, length );
-			break;
+	try {
+		// call one of the known interpreters
+		switch (proto) {
+			case ipProtocol:
+				NetworkSniffer::interp_bacnet_IP( header, length );
+				break;
+			case ethernetProtocol:
+				NetworkSniffer::interp_bacnet_ETHERNET( header, length );
+				break;
+			case arcnetProtocol:
+				NetworkSniffer::interp_bacnet_ARCNET( header, length );
+				break;
+			case mstpProtocol:
+				NetworkSniffer::interp_bacnet_MSTP( header, length );
+				break;
+			case ptpProtocol:
+				NetworkSniffer::interp_bacnet_PTP( header, length );
+				break;
+			case msgProtocol:
+				NetworkSniffer::interp_Message( header, length );
+				break;
+		}
+	}
+	catch (...) {
+		// if we run out of detail lines, get_int_line throws -1
 	}
 }
 
