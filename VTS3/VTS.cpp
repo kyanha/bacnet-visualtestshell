@@ -599,6 +599,19 @@ void VTSPreferences::Save( void )
 //			This problem was caused during an attempt to reallocate an APDU buffer to accomodate a larger
 //			size APDU.  The problem has been fixed.  VTS no longer crashes.  Proper segmentation should occur.
 //
+//			508640:  Array bugs in rp(1E, 1F, 1G)
+//
+//			Cases 1F (test for size of array [0]) and 1G (test of single index value in array [int]) have
+//			now been fixed.  Indexing into array properties is now supported in the following manner:
+//					{property[int]}, {property[var]}
+//			The index must either be a literal integer or a parameter which resolves to an integer.  Errors will
+//			be reported upon execution otherwise.  Index references as properties, other indexed properties or even
+//			indexes into parms that are arrays may be easily added in the future.  At present, specifications
+//			such as these:
+//					{property[{property}]}, {property[{property[int]}]}, etc.
+//			are not supported.
+//
+		
 
 
 const int kReleaseVersion = 9;
