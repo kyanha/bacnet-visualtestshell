@@ -126,13 +126,13 @@ void rtrim(char *);							//										***006
 #define	accentgrave					0x60
 #define	badobjid					0xFFFFFFFF	//we presume that no one will use this as a valid object identifier
 ///////////////////////////////////////////////////////////////////////
-// Global variables
-BOOL		cancel=false;						//global cancel flag
-char		lb[256];							//line buffer (current line of input file)
-char		*lp;								//pointer into lb
-word		lc;									//current 1-based line in file
-int			lerrc;								//count of errors
-FILE		*ifile;								//current input file				***008
+// local variables
+static BOOL		cancel=false;						//global cancel flag
+static char		lb[256];							//line buffer (current line of input file)
+static char		*lp;								//pointer into lb
+static word		lc;									//current 1-based line in file
+static int			lerrc;								//count of errors
+static FILE		*ifile;								//current input file				***008
 //---------------------------------------------------------------------
 //  Large Static Tables
 static char	picshdr[]="PICS 0\x0D\x0A";
@@ -2402,41 +2402,52 @@ calx:
 octet whatIsChoice(char str[])
 {
   unsigned char ucindex = 0;
+  octet status = 33; /* return value - set to be invalid */
    
-    skipwhitespace();
+  skipwhitespace();
 	 
-// Start checking 
-      while(*lp != '/' && *lp != ':' && *lp != ')' && ucindex < 7)
-	  {
-		  lp++;
-		  ucindex++;
-	  }
-		  
-      if (ucindex <= 5)
-      {
-         switch (*lp)
-		 {
-		 case ':':		   // Found the time delimiter.
-           lp -= ucindex;  // move the line pointer to the first char in the field
-		   return 0;	 
-		 break;
+  // Start checking 
+  while(*lp != '/' && *lp != ':' && *lp != ')' && ucindex < 7)
+  {
+    lp++;
+    ucindex++;
+  }
 
-		 case '/':			 // Found the date-time delimiter.
-           lp -= ucindex;
-		   return 20;	  
-		 break;
-		 case ')':			 // Found the sequence number.
-			str[ucindex] = *lp;
-           while(*lp >= '0' && *lp <= '9' && ucindex > 0 || *lp == ')') // do we have an int in front of the delimiter?
-			   str[--ucindex] = *--lp;
-           if (*lp == '?') return 10; // wildcard is ok.
-		   if(ucindex == 0)
-             return 11;	      // we have a well formed int. life is good.
-           break;
-		 }
-	  }
-       else
-		   return 12;	      //error: The Sequence Number is > 65535.
+  if (ucindex <= 5)
+  {
+    switch (*lp)
+	{
+	  // Found the time delimiter.
+      case ':':		   
+		// move the line pointer to the first char in the field
+        lp -= ucindex;  
+        status = 0;	 
+        break;
+	  // Found the date-time delimiter.
+      case '/':			 
+        lp -= ucindex;
+        status = 20;	  
+        break;
+	  // Found the sequence number.
+      case ')':
+        str[ucindex] = *lp;
+		// do we have an int in front of the delimiter?
+        while(*lp >= '0' && *lp <= '9' && ucindex > 0 || *lp == ')') 
+          str[--ucindex] = *--lp;
+		// wildcard is ok.
+        if (*lp == '?') 
+		  status = 10; 
+		// we have a well formed int. life is good.
+        else if (ucindex == 0)
+          status = 11;	      
+        break;
+	}
+  }
+  //error: The Sequence Number is > 65535.
+  else
+    status = 12;
+
+  return (status);
 } // end whatIsChoice
 
 
@@ -2493,9 +2504,6 @@ BOOL ParseTimeStamp(BACnetTimeStamp *ptstamp)
 			 else
               if (tperror("Invalid Time format.",true)) return true;
         break;
-		case 01:
-            if (tperror("Too many digits or spaces before :",true)) return true;
-		break;      
         case 10:	  // The choice is sequence number, wildcard option.
                ptstamp->u.sequence_number = 0;	// wildcard
 			   goto numch;
@@ -2539,9 +2547,6 @@ numch:     ptstamp->choice = 1;	//
 			  else
               if (tperror("Invalid Date-Time format.",true)) return true;
         break;
-		case 21:
-             if (tperror("Too many digits or spaces before /",true)) return true;
-		break;
 		default:
              if (tperror("Cannot decode Event-Time-Stamp.",true)) return true;
 	    break;
