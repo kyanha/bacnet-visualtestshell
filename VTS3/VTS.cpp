@@ -283,8 +283,11 @@ void VTSPreferences::Save( void )
 //			Increased the size of the source and destination in the summary pane, and if the 
 //			name lookup fails, show the address in hex.
 //
+//  3.1.7   Added SendUTCTimeSync to the send window.
+//          Fixed minor problems in the Send ReadRange dialog.
+//
 
-const int kReleaseVersion = 6;
+const int kReleaseVersion = 7;
 
 class CAboutDlg : public CDialog
 {

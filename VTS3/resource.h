@@ -117,6 +117,7 @@
 #define IDD_SCRIPTLOADRESULTS           238
 #define IDD_DEVICES                     239
 #define IDD_SENDREADRANGE               240
+#define IDD_SENDUTCTIMESYNC             241
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -383,6 +384,16 @@
 #define IDC_TIMESTART                   1199
 #define IDC_ENDTIME                     1200
 #define IDC_BEGDATECAPTION              1201
+#define IDC_AUTOSYNCTIME                1202
+#define IDC_DAYLIGHTSAVINGS             1203
+#define IDC_UTCDATE                     1204
+#define IDC_UTCTIME                     1205
+#define IDC_UTCOFFSET                   1206
+#define IDC_STATICUTCDATE               1207
+#define IDC_STATICUTCTIME               1208
+#define IDC_STATICUTCOFFSET             1209
+#define IDC_STATICUTCTIMEFMT            1211
+#define IDC_STATICUTCRANGE              1212
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -413,9 +424,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        241
+#define _APS_NEXT_RESOURCE_VALUE        242
 #define _APS_NEXT_COMMAND_VALUE         32804
-#define _APS_NEXT_CONTROL_VALUE         1202
+#define _APS_NEXT_CONTROL_VALUE         1213
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

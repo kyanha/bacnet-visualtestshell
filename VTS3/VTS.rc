@@ -2145,18 +2145,37 @@ BEGIN
                     BS_AUTORADIOBUTTON,19,135,53,10
     PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,194,7,24,14
     GROUPBOX        "Reference Date and Time",IDC_BEGDATECAPTION,91,92,140,
-                    35
-    GROUPBOX        "Ending Date and Time",IDC_STATIC,91,128,140,35
+                    35,BS_CENTER
+    GROUPBOX        "Ending Date and Time",IDC_STATIC,91,128,140,35,
+                    BS_CENTER
     LTEXT           "Array Index",IDC_STATIC,42,50,36,14
     LTEXT           "Property",IDC_STATIC,42,30,27,14
     LTEXT           "Object ID",IDC_STATIC,42,10,31,14
     GROUPBOX        "Range",IDC_STATIC,13,80,64,70
-    LTEXT           "Reference Index",IDC_STATIC,97,64,53,9
-    LTEXT           "Count (pos. or neg.)",IDC_STATIC,167,65,60,8
+    LTEXT           "Reference Index",IDC_STATIC,101,64,53,9
+    CTEXT           "Count (+/-)",IDC_STATIC,167,65,60,8
     LTEXT           "(HH:MM:SS.hh)",IDC_STATIC,170,117,45,9
     LTEXT           "(HH:MM:SS.hh)",IDC_STATIC,169,152,45,9
     LTEXT           "(MM/DD/YYYY)",IDC_STATIC,100,152,56,9
     LTEXT           "(MM/DD/YYYY)",IDC_STATIC,99,117,56,9
+END
+
+IDD_SENDUTCTIMESYNC DIALOG DISCARDABLE  0, 0, 245, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "SendUTCTimeSynchronization"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Synchronize Time With TD",IDC_AUTOSYNCTIME,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,63,15,101,10
+    CONTROL         "Daylight Savings Status",IDC_DAYLIGHTSAVINGS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,63,145,91,10
+    EDITTEXT        IDC_UTCDATE,111,38,69,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_UTCTIME,111,74,69,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_UTCOFFSET,111,108,49,14,ES_AUTOHSCROLL
+    LTEXT           "Date",IDC_STATICUTCDATE,65,42,16,8
+    LTEXT           "Time",IDC_STATICUTCTIME,63,76,16,8
+    LTEXT           "UTC Offset",IDC_STATICUTCOFFSET,63,110,36,8
+    CTEXT           "(- 720 ..720 )",IDC_STATICUTCRANGE,115,125,43,8
 END
 
 
@@ -2167,8 +2186,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,1,6,0
- PRODUCTVERSION 3,1,6,0
+ FILEVERSION 3,1,7,0
+ PRODUCTVERSION 3,1,7,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2186,14 +2205,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "Visual Test Shell\0"
-            VALUE "FileVersion", "3, 1, 6, 0\0"
+            VALUE "FileVersion", "3, 1, 7, 0\0"
             VALUE "InternalName", "VTS\0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2002\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "VTS.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Visual Test Shell\0"
-            VALUE "ProductVersion", "3, 1, 6, 0\0"
+            VALUE "ProductVersion", "3, 1, 7, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -3018,6 +3037,14 @@ BEGIN
         HORZGUIDE, 73
         HORZGUIDE, 103
         HORZGUIDE, 138
+    END
+
+    IDD_SENDUTCTIMESYNC, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 238
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
     END
 END
 #endif    // APSTUDIO_INVOKED

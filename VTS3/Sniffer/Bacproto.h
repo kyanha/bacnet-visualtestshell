@@ -233,7 +233,7 @@ void     show_unconfTextMessage(void);
 void     show_timeSynchronization(void);
 void     show_whoHas(void);
 void     show_whoIs(void);
-
+void     show_UTCtimeSynchronization(void);
 /* ----- prototypes for complex ACK interpreter functions ----- */
 
 void     show_getAlarmSummaryACK(void);

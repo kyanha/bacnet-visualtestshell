@@ -29,7 +29,7 @@ namespace NetworkSniffer {
 #include "bacproto.h"
 
 #define max_confirmed_services 27
-#define max_unconfirmed_services 9
+#define max_unconfirmed_services 10
 #define max_property_id 123
 #define FW "-27"
 #define ARC 0
@@ -1309,7 +1309,8 @@ void show_unconfirmed( unsigned char )
       show_unconfTextMessage,           /* 5 */
       show_timeSynchronization,         /* 6 */
       show_whoHas,                      /* 7 */
-      show_whoIs                        /* 8 */
+      show_whoIs,                       /* 8 */
+      show_UTCtimeSynchronization       /* 9 */
    };
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
@@ -3820,6 +3821,15 @@ void show_timeSynchronization( void )
    show_application_data(pif_get_byte(0)); /*Time*/
 }
 
+void show_UTCtimeSynchronization( void )
+/*************************************************************************/
+  /* This function interprets Time Synchronization requests */
+{
+   bac_show_byte("UTC Time Synchronization Request","%u");
+   show_application_data(pif_get_byte(0)); /*Date*/
+   show_application_data(pif_get_byte(0)); /*Time*/
+   // remember to show the daylight savings status flag
+}
 /*************************************************************************/
 void show_whoHas( void )
 /*************************************************************************/
