@@ -555,6 +555,7 @@
 #define IDC_PREF_RELATIVE               1285
 #define IDC_PREF_ABSOLUTE               1286
 #define IDC_PREF_DELETEVERIFY           1288
+#define IDC_PREF_LOADEPICS              1289
 #define IDC_INCLUDEPLACE                1290
 #define IDC_INCLUDEERROR                1291
 #define IDC_INCLUDEICON                 1292
@@ -581,7 +582,8 @@
 #define ID_SEND_SENDAGAIN               32798
 #define ID_BUTTON32799                  32799
 #define ID_BUTTON32800                  32800
-#define ID_EPICS_LOAD		            32801
+#define ID_EPICS_LOAD                   32801
+#define ID_EPICS_LOADAUTO				32802			// not a menu item, used as autoload from InitInstance
 #define ID_EDIT_DEVICES                 32803
 #define IDC_EDIT_GOTOLINE               32804
 #define ID_MENUITEM32806                32806
