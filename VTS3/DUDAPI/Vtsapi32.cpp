@@ -616,7 +616,7 @@ static char *StandardDataLinks[]={
 			"ARCNET, fiber star",                           //8
 			"MS/TP master. Baud rate(s)",                   //9
 			"MS/TP slave. Baud rate(s)",                    //10
-			"Point-To-Point. EIA232, Baud rate(s)",         //11
+			"Point-To-Point. EIA 232, Baud rate(s)",        //11  msdanner 9/2004, was "EIA232" (no space)
 			"Point-To-Point. Modem, Baud rate(s)",          //12
 			"Point-To-Point. Modem, Autobaud range",        //13
 			"LonTalk",                                      //14
@@ -1639,7 +1639,7 @@ rdlorates:		got9600=false;
 				lp=p;							//point to argument(s)
 				p[-1]=':';
 				for (j=0;j<16;j++)				//read up to 16 baudrates
-					if ((dp[j]=ReadDW())==0)
+					if ( (*lp==0) || ((dp[j]=ReadDW())==0) )
 						break;					//stop as soon as we fail to find another one
 					else if (dp[j]==9600)
 						got9600=true;			//remember if we find 9600 baud
@@ -1817,7 +1817,7 @@ BOOL ReadObjects(PICSdb *pd)
 		dword	objid;							//object identifier
 		octet	fType,fID,fName;				//										***014
 generic_object	*pobj,*po;					//pointers to objects
-        BOOL    i;                            
+      BOOL    i;                            
 	ReadNext();									//point to next token					***008
 	if (lp==NULL||*lp++!='{')					//no open token
 		return tperror("Expected { here",true);
@@ -1863,11 +1863,14 @@ nextobject:										//										***012
 									objtype=0xFFFF;		//pretend objid was bad
 								}
 								//added by xlp,2002-11
-								ObjInTestDB[objtype].object_type=objtype;       
-								ObjInTestDB[objtype].ObjIDSupported|=soSupported;
-								i=ObjInTestDB[objtype].ObjInstanceNum;
-								ObjInTestDB[objtype].ObjInstanceNum++;
-								ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;     
+                        if (objtype != 0xFFFF)  // msdanner 9/2004
+                        {
+								   ObjInTestDB[objtype].object_type=objtype;       
+								   ObjInTestDB[objtype].ObjIDSupported|=soSupported;
+								   i=ObjInTestDB[objtype].ObjInstanceNum;
+								   ObjInTestDB[objtype].ObjInstanceNum++;
+								   ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;     
+                        }
 								//ended by xlp,2002-11
 
 								pobj->propflags[typeProp]|=PropIsPresent; //remember we saw object type		***014 Begin
@@ -1885,11 +1888,14 @@ nextobject:										//										***012
 									objtype=0xFFFF;		//pretend objid was bad
 								}
 								//added by xlp,2002-11
-								ObjInTestDB[objtype].object_type=objtype;       
-								ObjInTestDB[objtype].ObjIDSupported|=soSupported;
-								i=ObjInTestDB[objtype].ObjInstanceNum;
-								ObjInTestDB[objtype].ObjInstanceNum++;
-								ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;     
+                        if (objtype != 0xFFFF) // msdaner 9/2004
+                        {
+								  ObjInTestDB[objtype].object_type=objtype;       
+								  ObjInTestDB[objtype].ObjIDSupported|=soSupported;
+								  i=ObjInTestDB[objtype].ObjInstanceNum;
+								  ObjInTestDB[objtype].ObjInstanceNum++;
+								  ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;     
+                        }
 								//ended by xlp,2002-11
 								pobj->propflags[idProp]|=PropIsPresent;	//remember we saw ID				***014 Begin
 								while (*lp==space||*lp==',') lp++;	//skip any more whitespace or commas
@@ -5756,12 +5762,13 @@ dword ReadDW()
 	char	c;
 
 	skipwhitespace();
-	while (isdigit(c=*lp++))
+	while (isdigit(c=*lp++))  
 		d=(d*10L)+(c-'0');
 	if (c=='?') c=*lp++;						//pretend ? is a valid digit
 	if (c==0) lp--;								//stick at end of buffer
 	return d;
 }
+
 
 ///////////////////////////////////////////////////////////////////////
 //	read a word from the buffer lp points to
@@ -5830,7 +5837,7 @@ octet ReadBool()
 	octet	v=0;
 	
 	while (q=*lp++)
-	{	if (q==')'||q=='}'||q==',') break;
+	{	if (q==')'||q=='}'||q==','||q==' ') break;    // msdanner 9/2004, added space delimeter
 		if (q=='t'||q=='T') v=1;
 	}
 	return v;
