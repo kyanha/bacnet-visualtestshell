@@ -1376,6 +1376,17 @@ octet far* eEVPARM(octet far* p, const BACnetEventParameter far* pv, int TagNr)
         	*s= 0x38 | (*s & 0x07); // [3]
         *p++= 0x5F;
         break;
+	  //Added by Zhu Zhenhua, 2004-5-20
+      case BUFFER_READY: // [10]
+        *p++= 0xAE;
+        	s= p;
+        	p= eUINT(p,pv->notification_threshold);
+        	*s= 0x08 | (*s & 0x07); // [0]
+        	s= p;
+        	p= eDWORD(p,pv->previous_notification_count,0x20,FALSE);
+        	*s= 0x18 | (*s & 0x07); // [1]       
+        *p++= 0xAF;
+        break;
     }
   return p;
 }
@@ -3766,16 +3777,18 @@ void TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
 		case RECORDS_SINCE_NOTIFICATION:  
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->records_since_notification));
 			break;
-		case PREVIOUS_NOTIFY_TIME:  	     
-			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->previous_notify_time.date.year, pObj->previous_notify_time.date.month, 
-													pObj->previous_notify_time.date.day_of_month, pObj->previous_notify_time.time.hour, 
-													pObj->previous_notify_time.time.minute, pObj->previous_notify_time.time.second));
-			break;         	       
-		case CURRENT_NOTIFY_TIME:  	     
-			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->current_notify_time.date.year, pObj->current_notify_time.date.month, 
-													pObj->current_notify_time.date.day_of_month, pObj->current_notify_time.time.hour, 
-													pObj->current_notify_time.time.minute, pObj->current_notify_time.time.second));
-			break;         	       
+/*
+					case PREVIOUS_NOTIFY_TIME:  	     
+						pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->previous_notify_time.date.year, pObj->previous_notify_time.date.month, 
+																pObj->previous_notify_time.date.day_of_month, pObj->previous_notify_time.time.hour, 
+																pObj->previous_notify_time.time.minute, pObj->previous_notify_time.time.second));
+						break;         	       
+					case CURRENT_NOTIFY_TIME:  	     
+						pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->current_notify_time.date.year, pObj->current_notify_time.date.month, 
+																pObj->current_notify_time.date.day_of_month, pObj->current_notify_time.time.hour, 
+																pObj->current_notify_time.time.minute, pObj->current_notify_time.time.second));
+						break;  */
+			       	       
 		case EVENT_STATE:  			     
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->event_state));
 			break;
@@ -3793,6 +3806,10 @@ void TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
 			break;
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
+		//Added by Zhu Zhenhua,  2004-5-11
+		case LAST_NOTIFY_RECORD:
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
 			break;
 		default:
 			TRACE("INVALID TYPE in TR_CreateProperty");
@@ -4549,8 +4566,8 @@ bool TR_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case TOTAL_RECORD_COUNT:  	     
 		case NOTIFICATION_THRESHOLD:      
 		case RECORDS_SINCE_NOTIFICATION:  
-		case PREVIOUS_NOTIFY_TIME:  	             	       
-		case CURRENT_NOTIFY_TIME:  	             	       
+	//	case PREVIOUS_NOTIFY_TIME:  	             	       
+	//	case CURRENT_NOTIFY_TIME:  	// Modified by Zhu Zhenhua 2004-5-11     	       
 		case EVENT_STATE:  			     
 		case NOTIFICATION_CLASS:
 		case EVENT_ENABLE:	
@@ -4558,6 +4575,7 @@ bool TR_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case NOTIFY_TYPE:
 		case EVENT_TIME_STAMPS:	
 		case PROFILE_NAME:
+		case LAST_NOTIFY_RECORD:  // Added by Zhu Zhenhua 2004-5-11
 			return true;
 		default:
 			return false;

@@ -1,4 +1,4 @@
-/* -------------------------------------------------------------------- */
+     /* -------------------------------------------------------------------- */
 /*              BACnet Protocol Interpreter Version 15                  */
 /* -------------------------------------------------------------------- */
 /*                           */
@@ -36,7 +36,7 @@ namespace NetworkSniffer {
 
 #include "bacproto.h"
 
-#define max_confirmed_services 27
+#define max_confirmed_services 30   //Modified by Zhu Zhenhua, 2004-5-25
 #define max_unconfirmed_services 10
 #define max_property_id 123
 #define FW "-27"
@@ -2056,8 +2056,9 @@ void show_confirmed( unsigned char x )
       show_vtData,                      /* 23 */
       show_authenticate,                /* 24 */
       show_requestKey,                  /* 25 */
-      show_ReadRange                    /* 26 */
-
+      show_ReadRange,                    /* 26 */
+	  0,0,
+	  show_getEventInformation          /* 29 Added by Zhu Zhenhua, 2004-5-25*/
    };
 
    /* --- display the confirmed service header detail --- */
@@ -2188,7 +2189,9 @@ void show_complex_ack( unsigned char x )
       show_vtDataACK,                  /* 23 */
       show_authenticateACK,            /* 24 */
       0,
-      show_ReadRangeACK                /* 26 */
+      show_ReadRangeACK,                /* 26 */
+	  0,0,
+	  show_getEventInformationACK	   /* 29 Added by Zhu Zhenhua, 2004-5-25*/
    };
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
@@ -2659,7 +2662,7 @@ void show_confirmedEventNotification( void )
       tagval= (tagbuff&0xF0)>>4;
       switch(tagval){
          case 0:/* change of bitstring */
-            show_context_tag("Change of Bitstring Event Parameters");  /* opening tag */
+            show_context_tag("Change of Bitstring Notification Parameters");  /* opening tag */
 
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
@@ -2687,10 +2690,10 @@ void show_confirmedEventNotification( void )
 			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
                };
 
-            show_context_tag("Change of Bitstring Event Parameters");  /* closing tag */
+            show_context_tag("Change of Bitstring Notification Parameters");  /* closing tag */
             break;
          case 1: /* change of state */
-            show_context_tag("Change of State Event Parameters");  /* opening tag */
+            show_context_tag("Change of State Notification Parameters");  /* opening tag */
 
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
@@ -2716,10 +2719,10 @@ void show_confirmedEventNotification( void )
 			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
                };
 
-            show_context_tag("Change of State Event Parameters");  /* closing tag */
+            show_context_tag("Change of State Notification Parameters");  /* closing tag */
             break;
          case 2: /* change of value */
-            show_context_tag("Change of Value Event Parameters");  /* opening tag */
+            show_context_tag("Change of Value Notification Parameters");  /* opening tag */
 
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
@@ -2765,10 +2768,10 @@ void show_confirmedEventNotification( void )
 //	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
 			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
                };
-            show_context_tag("Change of Value Event Parameters");  /* closing tag */
+            show_context_tag("Change of Value Notification Parameters");  /* closing tag */
             break;
          case 3: /* command failure */
-            show_context_tag("Command Failure Event Parameters");  /* opening tag */
+            show_context_tag("Command Failure Notification Parameters");  /* opening tag */
 
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
@@ -2844,10 +2847,10 @@ void show_confirmedEventNotification( void )
 			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
                };
 
-            show_context_tag("Command Failure Event Parameters");  /* closing tag */
+            show_context_tag("Command Failure Notification Parameters");  /* closing tag */
             break;
          case 4: /* floating limit */
-            show_context_tag("Floating Limit Event Parameters");  /* opening tag */
+            show_context_tag("Floating Limit Notification Parameters");  /* opening tag */
 /*
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
@@ -2914,10 +2917,10 @@ void show_confirmedEventNotification( void )
 			   show_head_ascii("Error: Context Tag 3 Expected!");								   //  ***002
                };
 
-            show_context_tag("Floating Limit Event Parameters");  /* closing tag */
+            show_context_tag("Floating Limit Notification Parameters");  /* closing tag */
             break;
          case 5: /* out of range */
-            show_context_tag("Out of Range Event Parameters");  /* opening tag */
+            show_context_tag("Out of Range Notification Parameters");  /* opening tag */
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
             if((tagbuff & 0x08) && (tagval == 0)){
@@ -2972,14 +2975,44 @@ void show_confirmedEventNotification( void )
 			   show_head_ascii("Error: Context Tag 3 Expected!");								   //  ***002
                };
 
-            show_context_tag("Out of Range Event Parameters");  /* closing tag */
+            show_context_tag("Out of Range Notification Parameters");  /* closing tag */
             break;
          case 6: /* complex event type */
-            show_context_tag("Complex Event Parameters");  /* opening tag */
+            show_context_tag("Complex Notification Parameters");  /* opening tag */
             while(pif_offset < (pif_end_offset-2))
                show_bac_property_value();
-            show_context_tag("Complex Event Parameters");  /* closing tag */
+            show_context_tag("Complex Notification Parameters");  /* closing tag */
             break;
+		 //Added by Zhu Zhenhua, 2004-5-17
+		 case 10: /*buffer ready*/	
+            show_context_tag("Buffer ready Notification Parameters");  /* opening tag */
+			show_context_tag("Buffer-Property");  /* opening tag */
+			show_bac_devobj_prop_ref();
+			show_context_tag("Buffer-Property");  /* closing tag */			
+            tagbuff = pif_get_byte(0);
+            tagval = (tagbuff&0xF0)>>4;
+            if((tagbuff & 0x08) && (tagval == 1)){
+			   show_head_unsigned(1, "previous-notification", tagval);											   //  ***002
+               len = show_context_tag("previous-notification");
+               show_bac_unsigned(len);
+               }
+            else{
+               pif_show_space();
+			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***001
+               };
+            tagbuff = pif_get_byte(0);
+            tagval = (tagbuff&0xF0)>>4;
+            if((tagbuff & 0x08) && (tagval == 2)){
+			   show_head_unsigned(1, "current-notification", tagval);											 
+               len = show_context_tag("current-notification");
+               show_bac_unsigned(len);
+               }
+            else{
+               pif_show_space();
+			   show_head_ascii("Error: Context Tag 2 Expected!");								   
+               };
+            show_context_tag("Buffer ready Notification Parameters");  /* closing tag */
+			break;
          default:
             pif_show_space();
             bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 6)!");
@@ -3000,6 +3033,223 @@ void show_getAlarmSummary( void )
   /* This function interprets GetAlarmSummary service requests */
 {
    bac_show_byte("Get Alarm Summary Request","%u");
+}
+
+//Added by Zhu Zhenhua, 2004-5-25
+/**************************************************************************/
+void show_getEventInformation( void )
+/**************************************************************************/
+  /* This function interprets GetEventInformation service requests */
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+	bac_show_byte("Get Event Information Request","%u");
+	if(pif_offset < pif_end_offset) 
+	{
+		tagbuff = pif_get_byte(0);
+		tagval = (tagbuff&0xF0)>>4;
+		if((tagbuff & 0x08) && (tagval == 0)){
+			show_head_obj_id(1, "Last Received Object Identifier", tagval);								   //  ***002
+			show_context_tag("Last Received Object Identifier");
+			show_bac_object_identifier();
+		}
+		else{
+			pif_show_space();
+			show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
+		};
+   }
+}
+//Added by Zhu Zhenhua, 2004-5-25
+/**************************************************************************/
+void show_getEventInformationACK( void )
+/**************************************************************************/
+  /* This function interprets GetEventInformationACK service requests */
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+  bac_show_byte("Get EventInformation Acknowledgement","%u");
+   tagbuff = pif_get_byte(0);
+   tagval = (tagbuff&0xF0)>>4;
+   if (tagbuff & 0x08) {  /* context tag */
+     if(tagval > 1) {
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 1)!");
+       goto exit;
+       };
+
+     if(tagval == 0){ /* list of event summary */
+       show_context_tag(BACnetGetEventInfoACK[tagval]);  /* opening tag */
+       while ((pif_get_byte(0) & 0x0f) != 0x0f) show_event_summary();
+       show_context_tag(BACnetGetEventInfoACK[0]);  /* closing tag */
+       tagbuff = pif_get_byte(0);
+       tagval = (tagbuff&0xF0)>>4;
+       }
+     else{
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Context Tag 0 Expected");
+       goto exit;
+       };    
+   if(tagval == 1){
+	   if(pif_get_byte(1)) /* TRUE */
+		   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+		   "[%u] More Event:  TRUE", tagval);
+	   else
+		   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+		   "[%u] More Event:  FALSE", tagval);
+	   show_context_tag("More Event");
+	   tagbuff = pif_get_byte(0);
+	   if(tagbuff)  /* TRUE */
+		   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+		   "%"FW"s = %>ku %s", "More Event","(TRUE)");
+	   else
+		   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+		   "%"FW"s = %>ku %s", "More Event","(FALSE)");
+	   pif_show_space();
+   }
+   else{ 
+	   pif_show_space();
+	   show_head_ascii("Error: Context Tag 1 Expected!");										   //  ***002
+   }
+}
+   exit:;
+}
+//Added by Zhu Zhenhua, 2004-5-25
+void show_event_summary( void )
+{
+
+  unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int len, notify_type;
+   
+   tagbuff = pif_get_byte(0);
+   tagval = (tagbuff&0xF0)>>4;
+   if (tagbuff & 0x08) {  /* context tag */
+     if(tagval > 6) {
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 6)!");
+       goto exit;
+       };
+
+     if(tagval == 0){
+	   show_head_obj_id(1, BACnetEventSummary[tagval], tagval);									   //  ***002
+       show_context_tag(BACnetEventSummary[tagval]);
+       show_bac_object_identifier();
+	   tagbuff = pif_get_byte(0);
+       tagval = (tagbuff&0xF0)>>4;
+       }     
+	 else{
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Context Tag 0 Expected");
+       goto exit;
+       };
+
+     if(tagval == 1){
+	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),										   //  ***002
+		  "[%u] Event State:  %s", tagval, BACnetEventState[pif_get_byte(1)]);
+      show_context_tag(BACnetEventSummary[tagval]);
+      bac_show_byte(BACnetEventState[pif_get_byte(0)], "%u");
+	   tagbuff = pif_get_byte(0);
+       tagval = (tagbuff&0xF0)>>4;
+      }    
+	 else{
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Context Tag 1 Expected");
+       goto exit;
+       };
+     if(tagval == 2){												 
+		 int len,count,i,j;
+		 char* bitStr;
+		 len = pif_get_byte(0)&0x07;
+		 count = pif_get_byte(1);
+		 bitStr = new char[8-count+1];
+		 int bitHex[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
+		 for( i=0,j=7; i<(8-count); i++,j-- )
+		 {
+			 sprintf(bitStr+i, "%u", (pif_get_byte(2)&bitHex[i])>>j);
+		 }
+		 bitStr[8-count+1] = '\0';
+		 sprintf(get_int_line(pi_data_current,pif_offset,1+len,1), 
+			 "[%u] Acknowledged Transitions:  '%s'", tagval, bitStr);												 
+		 show_context_tag(BACnetEventSummary[tagval]);
+		 show_bac_event_transitions_ackd();
+	   tagbuff = pif_get_byte(0);
+       tagval = (tagbuff&0xF0)>>4;
+      }    
+	 else{
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Context Tag 2 Expected");
+       goto exit;
+       };
+	 
+     if(tagval == 3){ /* list of time values */
+       show_context_tag(BACnetEventSummary[tagval]);  /* opening tag */
+       while ((pif_get_byte(0) & 0x0f) != 0x0f) show_bac_timestamp();
+       show_context_tag(BACnetEventSummary[3]);  /* closing tag */
+       tagbuff = pif_get_byte(0);
+       tagval = (tagbuff&0xF0)>>4;
+       }
+     else{
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Context Tag 3 Expected");
+       goto exit;
+       };
+       
+     if(tagval == 4){ /* Notify Type */
+      sprintf(get_int_line(pi_data_current,pif_offset,2,1),
+		  "[%u] Notify Type:  %s", tagval, BACnetNotifyType[pif_get_byte(1)]);					   //  ***002
+
+      show_context_tag("Notify Type");
+      notify_type = pif_get_byte(0);
+      bac_show_byte(BACnetNotifyType[pif_get_byte(0)],"%u");
+	   tagbuff = pif_get_byte(0);
+       tagval = (tagbuff&0xF0)>>4;
+       }
+     else{
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Context Tag 4 Expected");
+       goto exit;
+       };
+     if(tagval == 5){												   //  ***002 begin
+		 int len,count,i,j;
+		 char* bitStr;
+		 len = pif_get_byte(0)&0x07;
+		 count = pif_get_byte(1);
+		 bitStr = new char[8-count+1];
+		 int bitHex[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
+		 for( i=0,j=7; i<(8-count); i++,j-- )
+		 {
+			 sprintf(bitStr+i, "%u", (pif_get_byte(2)&bitHex[i])>>j);
+		 }
+		 bitStr[8-count+1] = '\0';
+		 sprintf(get_int_line(pi_data_current,pif_offset,1+len,1), 
+			 "[%u] Event Enable:  '%s'", tagval, bitStr);												   //  ***002 end
+		 show_context_tag(BACnetEventSummary[tagval]);
+		 show_bac_event_transitions_ackd();
+	   tagbuff = pif_get_byte(0);
+       tagval = (tagbuff&0xF0)>>4;		 
+      }    
+	 else{
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Context Tag 5 Expected");
+       goto exit;
+       };
+  if(tagval == 6){ /* list of time values */
+       show_context_tag(BACnetEventSummary[tagval]);  /* opening tag */
+       while ((pif_get_byte(0) & 0x0f) != 0x0f)
+	   {
+		len = show_application_tag(pif_get_byte(0));
+		show_bac_unsigned(len);
+	   }
+       show_context_tag(BACnetEventSummary[6]);  /* closing tag */
+       }
+     else{
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Context Tag 6 Expected");
+       goto exit;
+       };
+     }
+   else {  /* application tag */
+     pif_show_space();
+     bac_show_nbytes(1,"Error: Context Tag expected!");
+     }
+   exit:;
 }
 
 /**************************************************************************/
@@ -4957,7 +5207,7 @@ void show_unconfEventNotification( void )
       tagval= (tagbuff&0xF0)>>4;
       switch(tagval){
          case 0:/* change of bitstring */
-            show_context_tag("Change of Bitstring Event Parameters");  /* opening tag */
+            show_context_tag("Change of Bitstring Notification Parameters");  /* opening tag */
 
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
@@ -4985,10 +5235,10 @@ void show_unconfEventNotification( void )
 			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
                };
 
-            show_context_tag("Change of Bitstring Event Parameters");  /* closing tag */
+            show_context_tag("Change of Bitstring Notification Parameters");  /* closing tag */
             break;
          case 1: /* change of state */
-            show_context_tag("Change of State Event Parameters");  /* opening tag */
+            show_context_tag("Change of State Notification Parameters");  /* opening tag */
 
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
@@ -5014,10 +5264,10 @@ void show_unconfEventNotification( void )
 			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
                };
 
-            show_context_tag("Change of State Event Parameters");  /* closing tag */
+            show_context_tag("Change of State Notification Parameters");  /* closing tag */
             break;
          case 2: /* change of value */
-            show_context_tag("Change of Value Event Parameters");  /* opening tag */
+            show_context_tag("Change of Value Notification Parameters");  /* opening tag */
 
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
@@ -5062,10 +5312,10 @@ void show_unconfEventNotification( void )
 //	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
 			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
                };
-            show_context_tag("Change of Value Event Parameters");  /* closing tag */
+            show_context_tag("Change of Value Notification Parameters");  /* closing tag */
             break;
          case 3: /* command failure */
-            show_context_tag("Command Failure Event Parameters");  /* opening tag */
+            show_context_tag("Command Failure Notification Parameters");  /* opening tag */
 
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
@@ -5141,10 +5391,10 @@ void show_unconfEventNotification( void )
 			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
                };
 
-            show_context_tag("Command Failure Event Parameters");  /* closing tag */
+            show_context_tag("Command Failure Notification Parameters");  /* closing tag */
             break;
          case 4: /* floating limit */
-            show_context_tag("Floating Limit Event Parameters");  /* opening tag */
+            show_context_tag("Floating Limit Notification Parameters");  /* opening tag */
             tagbuff = pif_get_byte(0);
             tagval = (tagbuff&0xF0)>>4;
             if((tagbuff & 0x08) && (tagval == 0)){
@@ -5170,7 +5420,7 @@ void show_unconfEventNotification( void )
 //	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
 			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
                };
-            show_context_tag("Floating Limit Event Parameters");  /* closing tag */
+            show_context_tag("Floating Limit Notification Parameters");  /* closing tag */
             break;
          case 5: /* out of range */
             show_context_tag("Out of Range Notification Parameters");  /* opening tag */
@@ -5231,14 +5481,44 @@ void show_unconfEventNotification( void )
             show_context_tag("Out of Range Notification Parameters");  /* closing tag */
             break;
          case 6: /* complex event type */
-            show_context_tag("Complex Event Parameters");  /* opening tag */
+            show_context_tag("Complex Notification Parameters");  /* opening tag */
             while(pif_offset < (pif_end_offset-2))
                show_bac_property_value();
-            show_context_tag("Complex Event Parameters");  /* closing tag */
+            show_context_tag("Complex Notification Parameters");  /* closing tag */
             break;
+		 //Added by Zhu Zhenhua, 2004-5-17
+		 case 10: /*buffer ready*/	
+            show_context_tag("Buffer ready Notification Parameters");  /* opening tag */
+			show_context_tag("Buffer-Property");  /* opening tag */
+			show_bac_devobj_prop_ref();
+			show_context_tag("Buffer-Property");  /* closing tag */			
+            tagbuff = pif_get_byte(0);
+            tagval = (tagbuff&0xF0)>>4;
+            if((tagbuff & 0x08) && (tagval == 1)){
+			   show_head_unsigned(1, "previous-notification", tagval);											   //  ***002
+               len = show_context_tag("previous-notification");
+               show_bac_unsigned(len);
+               }
+            else{
+               pif_show_space();
+			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***001
+               };
+            tagbuff = pif_get_byte(0);
+            tagval = (tagbuff&0xF0)>>4;
+            if((tagbuff & 0x08) && (tagval == 2)){
+			   show_head_unsigned(1, "current-notification", tagval);											   //  ***002
+               len = show_context_tag("current-notification");
+               show_bac_unsigned(len);
+               }
+            else{
+               pif_show_space();
+			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
+               };
+            show_context_tag("Buffer ready Notification Parameters");  /* closing tag */
+			break;
          default:
             pif_show_space();
-            bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 6)!");
+            bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 10)!");
             break;
          };
       show_context_tag("Event Values");  /* closing tag */
@@ -5827,7 +6107,7 @@ void show_readPropertyACK( void )
            prop_idx = pif_get_byte(0);
            show_bac_unsigned(len);
            break;
-       case 3:  show_context_tag("Property Value");  /* opening tag */
+	       case 3:  show_context_tag("Property Value");  /* opening tag */
            show_bac_ANY(obj_type,prop_id,prop_idx);
            show_context_tag("Property Value");  /* closing tag */
            break;
@@ -6007,9 +6287,9 @@ void show_ReadRange ( void )
       tagval = (tagbuff&0xf0)>>4;
       if (tagbuff & 0x08) 
       {  /* context tag */
-        if(tagval > 5)
+        if(tagval > 7)
       {
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 5)!");
+         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 7)!");
           goto exit;
       }
         pif_show_space();
@@ -6049,7 +6329,7 @@ void show_ReadRange ( void )
 				show_context_tag("By Position");			// closing tag
           break;
           case 4:
-                show_context_tag("Reference Time");    // Opening Tag
+                show_context_tag("Reference Time(Be deprecated in 2001)");    // Opening Tag
                    tagbuff = pif_get_byte(0);
                    while ((tagbuff & 0x0f) != 0x0f)
                {
@@ -6064,7 +6344,7 @@ void show_ReadRange ( void )
                show_bac_signed(len);  /* ItemCount */
         break;
           case 5:  
-                show_context_tag("TimeRange");           // Opening Tag
+                show_context_tag("TimeRange(Be deprecated in 2001)");           // Opening Tag
                    tagbuff = pif_get_byte(0);
                    while ((tagbuff & 0x0f) != 0x0f)
                {
@@ -6075,6 +6355,37 @@ void show_ReadRange ( void )
                };
                    show_context_tag("TimeRange");           // Closing Tag
           break;
+		//Modified by Zhu Zhenhua, 2004-5-22
+		  case 6:
+				show_context_tag("By SequenceNumber");			// opening tag					
+			  
+			    show_head_unsigned(1, "Reference Index", -1);									  
+
+                show_context_tag("Reference Index");
+                show_bac_unsigned(len);                     /* By SequenceNumber */
+                
+				show_head_signed(1, "Count", -1);												  
+
+				len = show_context_tag("Count");
+                show_bac_signed(len);
+
+				show_context_tag("By SequenceNumber");			// closing tag
+		  break;
+          case 7:                                              /* By Time */
+                show_context_tag("Reference Time");    // Opening Tag
+                   tagbuff = pif_get_byte(0);
+                   while ((tagbuff & 0x0f) != 0x0f)          
+               {
+                     show_head_app_data();														 
+					   
+					 show_application_data(tagbuff);
+                     tagbuff = pif_get_byte(0);
+               };
+                   //show_context_tag("Reference Time");      // Closing Tag
+
+               len = show_context_tag("Count");
+               show_bac_signed(len);  /* ItemCount */
+        break;
         }   // end switch
       }   // end if closing tag
      tagbuff = pif_get_byte(0);
@@ -6120,9 +6431,11 @@ void show_ReadRangeACK ( void )
                    break;
           case 4:  show_bac_unsigned(len);  /* ItemCount */
                    break;
-          case 5:  
-               show_log_buffer();
-              goto exit;
+          case 5:  show_log_buffer();
+				   break;
+		  //Modified by Zhu Zhenhua, 2004-5-22
+		  case 6:  show_bac_unsigned(len);  /* first sequence number */
+				   goto exit;
                    break;
         }
       }
@@ -6724,45 +7037,116 @@ unsigned int show_application_tag( unsigned char tagbuff )
 /* that appear either as parameters in services or as properties.    */
 /*************************************************************************/
 
-
 /**************************************************************************/
 void show_bac_action_command( unsigned int len )
 /**************************************************************************/
 {
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
    unsigned int end, len1;
+   int obj_type,prop_idx,prop_id;
+
    end = pif_offset+len;
    while((unsigned int)pif_offset < end) {
       tagbuff = pif_get_byte(0);
       tagval = (tagbuff&0xF0)>>4;
-      if (!(tagbuff & 0x80)) {
+      if (!(tagbuff & 0x08)) {
     pif_show_space();
     bac_show_nbytes(1,"Error: Context Tag expected!");
     goto exit;
       }
-      if (tagbuff & 0x80) {
-    if(tagval > 6) {
+      if (tagbuff & 0x08) {
+    if(tagval > 8) {
        pif_show_space();
-       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 6)!");
+       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 8)!");
        goto exit;
     }
-    len1 = show_context_tag(BACnetActionCommand[tagval]);
     switch (tagval) {
-       case 0:  show_bac_object_identifier();
-           show_application_data(pif_get_byte(0));
+       case 0:  
+	{
+	   show_head_obj_id(1, BACnetActionCommand[tagval], tagval);									   //  ***002
+       show_context_tag(BACnetActionCommand[tagval]);
+       show_bac_object_identifier();
+	   tagbuff = pif_get_byte(0);
+       tagval = (tagbuff&0xF0)>>4;
+       }     
            break;
-       case 1:  show_bac_object_identifier();
-           show_application_data(pif_get_byte(0));
+   case 1:  
+		   show_head_obj_id(1, BACnetActionCommand[tagval], tagval);									   //  ***002		   
+		   show_context_tag(BACnetActionCommand[tagval]);
+           obj_type = bac_extract_obj_type();
+           show_bac_object_identifier();
            break;
-       case 2:  show_bac_object_type();
+       case 2:  
+		   show_head_property_ID(1, "Property Identifier", tagval);								   //  ***002		   
+		   len = show_context_tag("Property Identifier");
+           if (len == 1)
+             prop_id = (int)pif_get_byte(0);
+           else
+             prop_id = (int)pif_get_word_hl(0);
+           show_bac_property_identifier(len);
            break;
-       case 3:  show_bac_property_identifier(len1);
+
+       case 3:  
+		   show_head_unsigned(1, "Property Array Index", tagval);								   //  ***002	   
+		   len = show_context_tag("Property Array Index");
+           prop_idx = pif_get_byte(0);
+           show_bac_unsigned(len);
            break;
-       case 4:  show_bac_unsigned(len1);
+       case 4: 
+           show_context_tag("Property Value");  /* opening tag */
+           show_bac_ANY(obj_type,prop_id,prop_idx);
+           show_context_tag("Property Value");  /* closing tag */
            break;
-       case 5:  show_application_data(pif_get_byte(0));
+       case 5:  
+		   show_head_unsigned(1, "Priority", tagval);								   //  ***002	   
+		   len = show_context_tag("Priority");
+           show_bac_unsigned(len);
            break;
-       case 6:  show_bac_unsigned(len1);
+       case 6:  
+		   show_head_unsigned(1, "Post Delay", tagval);								   //  ***002	   
+		   len = show_context_tag("Post Delay");
+           show_bac_unsigned(len);
+		   break;
+	   case 7: 
+		   {
+			   if(pif_get_byte(1)) /* TRUE */
+				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+				   "[%u] QuitOnFailure:  TRUE", tagval);
+			   else
+				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+				   "[%u] QuitOnFailure:  FALSE", tagval);
+			   show_context_tag("QuitOnFailure");
+			   tagbuff = pif_get_byte(0);
+			   if(tagbuff)  /* TRUE */
+				   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+				   "%"FW"s = %>ku %s", "QuitOnFailure","(TRUE)");
+			   else
+				   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+				   "%"FW"s = %>ku %s", "QuitOnFailure","(FALSE)");
+			   pif_show_space();
+		   }
+		   break;
+	   case 8:
+		   {
+			   if(pif_get_byte(1)) /* TRUE */
+				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+				   "[%u] WriteSuccessul:  TRUE", tagval);
+			   else
+				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+				   "[%u] WriteSuccessul:  FALSE", tagval);
+			   show_context_tag("WriteSuccessul");
+			   tagbuff = pif_get_byte(0);
+			   if(tagbuff)  /* TRUE */
+				   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+				   "%"FW"s = %>ku %s", "WriteSuccessul","(TRUE)");
+			   else
+				   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+				   "%"FW"s = %>ku %s", "WriteSuccessul","(FALSE)");
+			   pif_show_space();
+		   }
+		   goto exit;
+
+
     }
       }
       else {
@@ -6772,7 +7156,30 @@ void show_bac_action_command( unsigned int len )
    }
    exit:;
 }
-
+void show_bac_action_list()
+{
+	unsigned int len;
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   tagbuff = pif_get_byte(0);
+   tagval = (tagbuff&0xF0)>>4;
+   if (tagbuff & 0x08) 
+   {  /* context tag */
+     if(tagval == 0){ /* actionlist */
+       show_context_tag(BACnetAcitonList[0]);  /* opening tag */
+       while ((pif_get_byte(0) & 0x0f) != 0x0f) show_bac_action_command(len);
+       show_context_tag(BACnetAcitonList[0]);  /* closing tag */
+       tagbuff = pif_get_byte(0);
+       tagval = (tagbuff&0xF0)>>4;
+       }
+	else
+		{
+       pif_show_space();
+       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 1)!");
+       goto exit;
+       }
+   }
+   exit:;	
+}
 /**************************************************************************/
 void show_bac_address( void )
 /**************************************************************************/
@@ -6852,9 +7259,9 @@ void show_bac_event_parameters( void )
    tagbuff = pif_get_byte(0);
    tagval = (tagbuff&0xF0)>>4;
    if (tagbuff & 0x08) {
-      if (tagval > 5) {
+      if (tagval > 10) {
         pif_show_space();
-        bac_show_nbytes(1,"Error: Invalid Tag Number (should be 0-5)!");
+        bac_show_nbytes(1,"Error: Invalid Tag Number (should be 0-10)!");
         goto exit;
         };
       len = show_context_tag(BACnetEventParameter[tagval]); /* opening tag */
@@ -7129,6 +7536,34 @@ void show_bac_event_parameters( void )
 			   show_head_ascii("Error: Context Tag 3 Expected!");								   //  ***002
                };
             break;
+
+      case 10: /* buffer ready */		//Added By Zhu Zhenhua, 2004-5-20
+            tagbuff = pif_get_byte(0);
+            tagval = (tagbuff&0xF0)>>4;
+            if((tagbuff & 0x08) && (tagval == 0)){
+			   show_head_unsigned(1, "notification-threshold", tagval);										  
+               len = show_context_tag("notification-threshold");
+               show_bac_unsigned(len);
+               }
+            else{
+               pif_show_space();
+//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
+			   show_head_ascii("Error: Context Tag 0 Expected!");							
+               };
+
+            tagbuff = pif_get_byte(0);
+            tagval = (tagbuff&0xF0)>>4;
+            if((tagbuff & 0x08) && (tagval == 1)){
+			   show_head_unsigned(1, "previous-notification-count", tagval);										   //  ***002
+               len = show_context_tag("previous-notification-count");
+               show_bac_unsigned(len);
+               }
+            else{
+               pif_show_space();
+//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
+			   show_head_ascii("Error: Context Tag 1 Expected!");								  
+               };
+            break;
          }
       len = show_context_tag(BACnetEventParameter[tagval]); /* closing tag */
    }
@@ -7352,6 +7787,220 @@ void show_bac_obj_prop_ref( void )
     exit:;
 }
 
+//Added by Zhu Zhenhua, 2004-6-14
+/**************************************************************************/
+void show_bac_dev_obj_prop_ref( void )
+/**************************************************************************/
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int len;
+
+   tagbuff = pif_get_byte(0);
+  
+    while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
+      tagval = (tagbuff&0xf0)>>4;
+      if (tagbuff & 0x08) {  /* context tag */
+        if(tagval > 3) {
+          pif_show_space();
+         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 3)!");
+          goto exit;
+		}
+		
+        switch (tagval) {																		   //  ***002 begin
+		case 0:
+			{
+				len = pif_get_byte(0)&0x07;
+				long  obj_id;
+				int      obj_type;
+				long  obj_instance;
+				
+				for (int i = 0; i < 4; i++)
+					obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+1 );
+				
+				obj_type = (obj_id >> 22) & 0x000003FF;
+				obj_instance = (obj_id & 0x003FFFFF);
+				
+				if(obj_type > 63){ /* proprietary object type */
+					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+						"[%u] %s:  %u,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], obj_type, obj_instance);
+				}
+				else{ /* standard object type */
+					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+						"[%u] %s:  %s,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetObjectType[obj_type], obj_instance);
+				}
+			}
+			break;
+		case 1:
+			{
+				len = pif_get_byte(0)&0x07;
+				
+				unsigned int x;
+				switch (len) {
+				case 1:  
+					x = (unsigned int)pif_get_byte(1);
+					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+						"[%u] %s:  %s", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetPropertyIdentifier[x]);
+					break;
+				case 2:  
+					x = pif_get_word_hl(1);
+					if(x>max_property_id)
+					{	
+						sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+							"Unknown Property Identifier:  %u", x);
+					}
+					else
+					{	
+						sprintf(get_int_line(pi_data_current,pif_offset,len,1), 
+							"[%u] %s:  %s", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetPropertyIdentifier[x]);
+					}
+					break;
+				default: 
+					sprintf(get_int_line(pi_data_current,pif_offset,len,1), 
+						"Error: Invalid Property Identifier!");
+				}
+			}
+			break;
+		case 2:
+			{
+				len = pif_get_byte(0)&0x07;
+				unsigned long value = get_bac_unsigned(1, len);
+				
+				sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+					"[%u] %s:  %lu", tagval, BACnetDeviceObjectPropertyReference[tagval], value);
+			}
+			break;
+		case 3:
+			{
+				len = pif_get_byte(0)&0x07;
+				long  obj_id;
+				int      obj_type;
+				long  obj_instance;
+				
+				for (int i = 0; i < 4; i++)
+					obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+1 );
+				
+				obj_type = (obj_id >> 22) & 0x000003FF;
+				obj_instance = (obj_id & 0x003FFFFF);
+				
+				if(obj_type > 63){ /* proprietary object type */
+					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+						"[%u] %s:  %u,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], obj_type, obj_instance);
+				}
+				else{ /* standard object type */
+					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+						"[%u] %s:  %s,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetObjectType[obj_type], obj_instance);
+				}
+			}
+			break;
+		}																						   //  ***002 end
+
+        len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
+        switch (tagval) {
+          case 0:  show_bac_object_identifier();
+                   break;
+          case 1:  show_bac_property_identifier(len);
+                   break;
+          case 2:  show_bac_unsigned(len);  /* array index */
+                   break;
+          case 3:  show_bac_object_identifier();
+                   break;
+          }
+        }
+      else {  /* application tag */
+        pif_show_space();
+        bac_show_nbytes(1,"Error: Context Tag expected!");
+        }
+      tagbuff = pif_get_byte(0);
+      }  /* end of while loop */
+
+    exit:;
+}
+
+//Added by Zhu Zhenhua, 2004-6-14
+/**************************************************************************/
+void show_bac_dev_obj_ref( void )
+/**************************************************************************/
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int len;
+
+   tagbuff = pif_get_byte(0);
+  
+    while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
+      tagval = (tagbuff&0xf0)>>4;
+      if (tagbuff & 0x08) {  /* context tag */
+        if(tagval > 1) {
+          pif_show_space();
+         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 1)!");
+          goto exit;
+		}
+		
+        switch (tagval) {																		   //  ***002 begin
+		case 0:
+			{
+				len = pif_get_byte(0)&0x07;
+				long  obj_id;
+				int      obj_type;
+				long  obj_instance;
+				
+				for (int i = 0; i < 4; i++)
+					obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+1 );
+				
+				obj_type = (obj_id >> 22) & 0x000003FF;
+				obj_instance = (obj_id & 0x003FFFFF);
+				
+				if(obj_type > 63){ /* proprietary object type */
+					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+						"[%u] %s:  %u,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], obj_type, obj_instance);
+				}
+				else{ /* standard object type */
+					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+						"[%u] %s:  %s,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetObjectType[obj_type], obj_instance);
+				}
+			}
+			break;
+		case 1:
+			{
+				len = pif_get_byte(0)&0x07;
+				long  obj_id;
+				int      obj_type;
+				long  obj_instance;
+				
+				for (int i = 0; i < 4; i++)
+					obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+1 );
+				
+				obj_type = (obj_id >> 22) & 0x000003FF;
+				obj_instance = (obj_id & 0x003FFFFF);
+				
+				if(obj_type > 63){ /* proprietary object type */
+					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+						"[%u] %s:  %u,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], obj_type, obj_instance);
+				}
+				else{ /* standard object type */
+					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
+						"[%u] %s:  %s,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetObjectType[obj_type], obj_instance);
+				}
+			}
+			break;
+		}																						   //  ***002 end
+
+        len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
+        switch (tagval) {
+          case 0:  show_bac_object_identifier();
+                   break;
+          case 1:  show_bac_object_identifier();
+                   break;
+          }
+        }
+      else {  /* application tag */
+        pif_show_space();
+        bac_show_nbytes(1,"Error: Context Tag expected!");
+        }
+      tagbuff = pif_get_byte(0);
+      }  /* end of while loop */
+
+    exit:;
+}
 /**************************************************************************/
 void show_bac_obj_prop_value( void )
 /**************************************************************************/
@@ -7594,6 +8243,8 @@ void show_bac_read_access_result( void )
 
    while (pif_offset < pif_end_offset) {
       tagbuff = pif_get_byte(0);
+	  if((tagbuff&0x0F) == 0x0F)     //Modified by Zhu Zhenhua, 2004-6-14
+	    goto exit;
       tagval = (tagbuff&0xF0)>>4;
       if ((tagbuff & 0x08) && (tagval == 0)){
 		 show_head_obj_id(1, "Object Identifier", tagval);										   //  ***002
@@ -7665,6 +8316,7 @@ void show_bac_read_access_result( void )
          bac_show_nbytes(1,"Error: Context Tag 1 expected!");
          }
       } /* while */
+   exit:;
 }
 
 /**************************************************************************/
@@ -7767,7 +8419,7 @@ void show_log_buffer( void )
      }
      tagbuff = pif_get_byte(0);
    }while((tagbuff!=0x3F) && (tagbuff!=0x4F) && (tagbuff!=0x5F)&& (++ui_count<100));
-   show_context_tag("ItemData");  /* Opening Tag */
+//   show_context_tag("ItemData");  /* Opening Tag */		//modified by LeiChengxin
 
 }
 /**************************************************************************/
@@ -7817,7 +8469,7 @@ void show_logDatum_choice( void )
        break;
       case 7:  //NULL
           len = show_context_tag("NULL-Value");
-        bac_show_byte("NULL:","%u");
+//        bac_show_byte("NULL:","%u");					//modified by LeiChengxin
        break;
       case 8:  //Error 
           len = show_context_tag("Failure");
@@ -8535,6 +9187,53 @@ void show_bac_destination( void )
 	  
 }
 
+//Added By Zhu Zhenhua, 2004-5-17
+/**************************************************************************/
+void show_bac_devobj_prop_ref( void )
+/**************************************************************************/
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int len;
+
+   tagbuff = pif_get_byte(0);
+   while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
+      tagval = (tagbuff&0xf0)>>4;
+      if (tagbuff & 0x08) {  /* context tag */
+        if(tagval > 3) {
+          pif_show_space();
+         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 3)!");
+          goto exit;
+          }
+//       len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
+        switch (tagval) {
+          case 0:  
+			show_head_obj_id(1, BACnetObjectPropertyReference[tagval], tagval);
+			len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
+			show_bac_object_identifier();
+                   break;
+          case 1:
+			  len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]); 
+			  show_bac_property_identifier(len);
+                   break;
+          case 2:
+			  len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]); 
+			  show_bac_unsigned(len);  /* array index */
+                   break;
+          case 3:  
+			show_head_obj_id(1, BACnetObjectPropertyReference[tagval], tagval);
+			len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
+			show_bac_object_identifier(); /* device Identifier*/
+                   break;
+          }
+        }
+      else {  /* application tag */
+        pif_show_space();
+        bac_show_nbytes(1,"Error: Context Tag expected!");
+        }
+      tagbuff = pif_get_byte(0);
+      }  /* end of while loop */
+   exit:;
+}
 void show_bac_bitstring_value(char** c)
 {
    unsigned char tagbuff,x; /* buffers for tags and tag values */

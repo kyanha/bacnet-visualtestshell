@@ -1400,7 +1400,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 		*np++=0;
 		cp=strchr(np,',');
 		*cp++=0;
-		j=atoi(np);								//get time delay
+//		j=atoi(np);								//get time delay
 		n=VTSAPIgetenumtable(eiEvType,0,NULL,NULL,ptext);		//get number of enumerations this pointer (n will always be 2!)
 		for (i=0;i<n;i++)
 		{	n=VTSAPIgetenumtable(eiEvType,i,NULL,NULL,ptext);	//get text for enumeration
@@ -1408,9 +1408,15 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 		}
 		*op++=0x0E+(octet)(i<<4);				//open tag
 		tp=(char *)op;
-		op=eDWORD(op,j,0x08,FALSE);				//SD context tag 0
-		opmax-=(char *)op-tp;
-		np=cp;									//np points to first param after td
+		if(i<=5)			//Modified by Zhu Zhenhua, 2004-5-20
+		{
+			j=atoi(np);								//get time delay
+			op=eDWORD(op,j,0x08,FALSE);				//SD context tag 0
+			opmax-=(char *)op-tp;
+			np=cp;	
+		}						//np points to first param after td
+		else
+			cp = np;
 // Do NOT!! destroy i
 		switch (i)
 		{
@@ -1533,6 +1539,20 @@ dolims:		if (opmax<15) return 0;				//can't fit 3 floats
 		case 5:									//out-of-range
 			tag=0x1C;							//base tag
 			goto dolims;
+		//Added by Zhu Zhenhua, 2004-5-20
+		case 10:
+			tag = 0x09;						//base tag 0
+			if (opmax<4) return 0;				//can't fit 2 unsigned
+			np=strchr(cp,',');
+			*np++=0;	
+			tp=(char *)op;
+			op=eDWORD(op,(word)atoi(cp), 0x08, FALSE);	
+			cp=strchr(np,',');
+			*cp++=0;	
+			tp=(char *)op;
+			op=eDWORD(op,(dword)atol(np), 0x18, FALSE);		
+			break;
+
 		default:								//invalid event type
 			return 0;
 		}

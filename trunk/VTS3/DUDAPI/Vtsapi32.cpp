@@ -479,8 +479,8 @@ TApplServ gFgCOVResponse[nFgCOVResponse]=
 TApplServ gFgFiles[nFgFiles]=
         { 
              { asAtomicReadFile,  ssExecute, -1, -1 },
-             { asAtomicWriteFile, ssExecute, -1, -1 },
-             { asNN, -1, FILE_O, -1 }
+             { asAtomicWriteFile, ssExecute, -1, -1 }// ,
+//             { asNN, -1, FILE_O, -1 }
         };
 
 
@@ -3324,10 +3324,10 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
 	skipwhitespace();
 	if (MustBe('(')) return true;
 	skipwhitespace();
-	evp->time_delay=ReadW();
 	switch(evp->event_type)
 	{
 	case CHANGE_OF_BITSTRING:					//0
+		evp->time_delay=ReadW();
 		skipwhitespace();
 		if (ParseBitstring(&evp->bitmask.bitstring_value[0],
 							sizeof(evp->bitmask.bitstring_value)*8,
@@ -3358,6 +3358,7 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
 		if (qbv!=NULL) free(qbv);
 		break;
 	case CHANGE_OF_STATE:						//1
+		evp->time_delay=ReadW();
 		evp->list_of_value=NULL;				//no values initially
 		while(feof(ifile)==0)
 		{   while (*lp==space||*lp==',') lp++;	//skip separation between list elements
@@ -3382,6 +3383,7 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
 		if (qv!=NULL) free(qv);
 		break;
 	case CHANGE_OF_VALUE:						//2
+		evp->time_delay=ReadW();
 		skipwhitespace();
 		if (*lp=='('||*lp=='B'||*lp=='b')		//cov-criteria is a bitmask
 		{	evp->use_property_increment=false;
@@ -3397,9 +3399,11 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
 		}
 		break;
 	case COMMAND_FAILURE:						//3
+		evp->time_delay=ReadW();
 		ParseReference(&evp->feed_prop_ref);
 		break;
 	case FLOATING_LIMIT:						//4
+		evp->time_delay=ReadW();	
 		ParseReference(&evp->setpoint_ref);
 		if (MustBe(',')) return true;
 		evp->low_diff_limit=(float)atof(lp);
@@ -3411,11 +3415,20 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
 		lp--;
 		break;
 	case OUT_OF_RANGE:							//5
+		evp->time_delay=ReadW();
 		evp->low_limit=(float)atof(lp);
 		if ((strdelim(","))==NULL) return true;
 		evp->high_limit=(float)atof(lp);
 		if ((strdelim(","))==NULL) return true;
 		evp->deadband=(float)atof(lp);
+		if ((strdelim(")"))==NULL) return true;
+		lp--;
+		break;
+//Modified by Zhu Zhenhua, 2004-5-20
+	case BUFFER_READY:						//10
+		evp->notification_threshold=ReadW();
+		if ((strdelim(","))==NULL) return true;
+		evp->previous_notification_count=ReadDW();
 		if ((strdelim(")"))==NULL) return true;
 		lp--;
 		break;

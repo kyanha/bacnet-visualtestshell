@@ -285,7 +285,10 @@ enum BACnetEventType
 		CHANGE_OF_VALUE,					//2
 		COMMAND_FAILURE,					//3
 		FLOATING_LIMIT,						//4
-		OUT_OF_RANGE						//5
+		OUT_OF_RANGE,						//5		
+		COMPLEX_EVENT_TYPE,					//6    
+		CHANGE_OF_LIFE_SAFETY = 8,			//8   
+		BUFFER_READY  = 10					//10  Added by Zhu Zhenhua, 2004-5-17    
 	};
 
 enum BACnetPolarity {NORM, REV};
@@ -395,6 +398,8 @@ enum BACnetEventType				event_type;
 	float							low_diff_limit;
 	float							high_limit;
 	float							low_limit;
+	word							notification_threshold;          //Added By Zhu Zhenhua, 2004-5-20
+	dword							previous_notification_count;      //Added By Zhu Zhenhua, 2004-5-20
 	} BACnetEventParameter;
 
 typedef struct tagObjectIdentifier {
