@@ -48,6 +48,7 @@ protected:
 
 	// Generated message map functions
 protected:
+	int m_nTempDigit;
 	void ScrollCurLnVisible(UINT nChar);
 	BOOL IsCurLnVisible();
 	void UpdateRect(int nCurrentY);

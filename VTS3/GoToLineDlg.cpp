@@ -11,7 +11,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#define MAX_LINE 9999
 /////////////////////////////////////////////////////////////////////////////
 // CGoToLineDlg dialog
 
@@ -47,8 +46,8 @@ void CGoToLineDlg::OnOK()
 	// TODO: Add extra validation here
 	UpdateData(true);
 
-	if(m_nLineIndex > 0 && m_nLineIndex <= MAX_LINE)
+	if(m_nLineIndex > 0)
 		CDialog::OnOK();
 	else
-		AfxMessageBox("Please enter an integer between 1 and 9999!",MB_OK);
+		AfxMessageBox("Please enter an integer no less than 1!",MB_OK);
 }
