@@ -2027,6 +2027,27 @@ int interp_Message( char *header, int length)  /* message interpreter */
    return length;
 }
 
+// Jingbo Gao, Sep 20 2004
+/**************************************************************************/
+int interp_BakRestoreMessage( char *header, int length)  /* message interpreter */
+/**************************************************************************/
+{
+	/* Summary line? */
+	if (pi_data_Message->do_sum)
+		strcpy( get_sum_line(pi_data_Message), header + 21 );
+	
+	/* Detail line? */
+	if (pi_data_bacnet_IP->do_int) {
+		pif_init (pi_data_Message, header, length);
+		pif_header (length, "Message Detail");
+		pif_show_space();
+		pif_show_ascii( strlen(pif_get_addr()), "%s" );
+		pif_show_space();
+	}
+	
+	return length;
+}
+
 /***************************************************************************/
 void show_confirmed( unsigned char x )
 /***************************************************************************/

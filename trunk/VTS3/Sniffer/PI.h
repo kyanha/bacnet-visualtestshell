@@ -238,6 +238,7 @@ class BACnetPIInfo {
 			, mstpProtocol
 			, ptpProtocol
 			, msgProtocol					// message from application
+			, bakRestoreMsgProtocol			// added by Jingbo Gao, Sep 20 2004
 			};
 
 		char				*piBuffer;		// beginning of buffer
@@ -1065,6 +1066,9 @@ typedef struct {
 
 /*
 $Log$
+Revision 1.3.2.4  2004/11/05 01:07:47  gaojingbo
+Backup & Restore, 2004-11-4
+
 Revision 1.3.2.3  2003/09/05 04:21:06  lcx
 no message
 

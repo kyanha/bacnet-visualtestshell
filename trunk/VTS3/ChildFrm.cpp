@@ -26,6 +26,8 @@
 //Added by Yajun Zhou, 2002-11-4
 #include "ReadAllPropSettingsDlg.h"
 
+//Added by Jingbo Gao, 2004-9-20
+#include "BakRestoreExecutor.h"
 
 #define MAX_LENGTH_OF_OBJECTTYPE		30
 #define MAX_LENGTH_OF_PROPERTYNAME		100
@@ -127,6 +129,9 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_COMMAND(ID_EPICS_READALLPROPERTY, OnReadAllProperty)
 	////////////////////////////////////////////////
 	//}}AFX_MSG_MAP
+	//Added by Jingbo Gao, 2004-9-20
+	ON_UPDATE_COMMAND_UI(ID_BACKUP_RESTORE, OnUpdateBackupRestore)
+	ON_COMMAND(ID_BACKUP_RESTORE, OnBackupRestore)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1269,3 +1274,15 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 	return strError.IsEmpty();
 }
 
+//Added by Jingbo Gao, 2004-9-20
+extern BakRestoreExecutor gBakRestoreExecutor;
+void CChildFrame::OnUpdateBackupRestore(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable(!gBakRestoreExecutor.IsRunning());
+}
+
+
+void CChildFrame::OnBackupRestore() 
+{
+	m_frameContext->m_pDoc->DoBackupRestore();
+}

@@ -29,6 +29,8 @@ VTSPortDlg::VTSPortDlg( VTSDoc * pdoc )
 	m_fEnabled = FALSE;
 	m_nNetwork = -1;
 
+	m_iSelectedPort = -1;		// initialize port index, Jingbo Gao, 2004-11-10
+
 	m_pdoc = pdoc;
 	m_pdevices = pdoc->GetDevices();
 	m_pports = pdoc->GetPorts();

@@ -141,6 +141,9 @@ protected:
 	afx_msg void OnUpdateFilePrint(CCmdUI* pCmdUI);
 	afx_msg void OnReadAllProperty();
 	//}}AFX_MSG
+	// Added by Jingbo Gao, 2004-9-20
+	void OnBackupRestore();
+	void OnUpdateBackupRestore(CCmdUI* pCmdUI);
 	DECLARE_MESSAGE_MAP()
 };
 

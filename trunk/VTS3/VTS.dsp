@@ -190,6 +190,10 @@ SOURCE=.\Sniffer\BACSN015.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\BakRestoreExecutor.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CheckEPICSCons.cpp
 # End Source File
 # Begin Source File
@@ -796,6 +800,10 @@ SOURCE=.\DUDAPI\Vtsapi32.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSBackupRestoreDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSBACnetTypeGenericPage.cpp
 # End Source File
 # Begin Source File
@@ -1325,6 +1333,10 @@ SOURCE=.\DUDAPI\Bacprim.h
 # Begin Source File
 
 SOURCE=.\Sniffer\Bacproto.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\BakRestoreExecutor.h
 # End Source File
 # Begin Source File
 
@@ -1964,6 +1976,10 @@ SOURCE=.\DUDAPI\Vtsapi.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSBackupRestoreDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSBACnetTypeGenericPage.h
 # End Source File
 # Begin Source File
@@ -2566,7 +2582,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                         $(InputPath)                                         $(OutDir)\ 
+	copy                                          $(InputPath)                                          $(OutDir)\ 
 
 # End Custom Build
 
@@ -2577,7 +2593,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                         $(InputPath)                                         $(OutDir)\ 
+	copy                                          $(InputPath)                                          $(OutDir)\ 
 
 # End Custom Build
 

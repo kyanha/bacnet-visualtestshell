@@ -17,6 +17,7 @@ namespace NetworkSniffer {
 	int interp_bacnet_NL( char *, int );
 	int interp_bacnet_AL( char *, int );
 	int interp_Message( char *, int );
+	int interp_BakRestoreMessage( char *, int );	// added by Jingbo Gao, Sep 20 2004
 
 	struct pi_data pi_data_bacnet_IPRec, *pi_data_bacnet_IP = &pi_data_bacnet_IPRec;
 	struct pi_data pi_data_bacnet_ETHERNETRec, *pi_data_bacnet_ETHERNET = &pi_data_bacnet_ETHERNETRec;
@@ -135,6 +136,8 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 			case msgProtocol:
 				NetworkSniffer::interp_Message( header, length );
 				break;
+			case bakRestoreMsgProtocol:			// added by Jingbo Gao, Sep 20 2004
+				NetworkSniffer::interp_BakRestoreMessage( header, length );
 		}
 	}
 	catch (...) {

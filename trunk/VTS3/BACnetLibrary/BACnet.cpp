@@ -4872,7 +4872,10 @@ BACnetObjectIdentifier::BACnetObjectIdentifier( BACnetAPDUDecoder & dec )
 	Decode(dec);
 }
 
-
+BACnetObjectIdentifier::BACnetObjectIdentifier( const BACnetObjectIdentifier& objectId )	// Jingbo Gao, Sep 11, 2004
+:objID(objectId.objID)
+{
+}
 
 //
 //	BACnetObjectIdentifier::SetValue
