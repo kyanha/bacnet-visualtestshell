@@ -2,10 +2,13 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+
 #include "stdafx.h"
 #include "VTS.h"
 #include "VTSDoc.h"
 #include "VTSQueue.h"
+
+
 
 #include "PI.h"
 
@@ -42,7 +45,27 @@ static char THIS_FILE[]=__FILE__;
 ScriptExecutor		gExecutor;
 ScriptFilterList	gMasterFilterList;
 
+//******Added by Liangping Xu, 2002-8-5********//
+
+int   nArrayIndx = -1;
+
+//******Ended by Liangping Xu, 2002-8-5********//
+
+//Added by Yiping Xu, 2002-8-5
+namespace NetworkSniffer {
+	extern char *BACnetConfirmedServiceChoice[];
+//	extern char *BACnetErrorClass[];
+//	extern char *BACnetErrorCode[];
+}
+//Ended by Yiping Xu, 2002-8-5
+
 // some useful matching functions
+
+//Added by Yajun Zhou, 2002-7-16
+#include "math.h"
+const float FLOAT_EPSINON = 1e-005;
+const double DOUBLE_EPSINON = 1e-010;
+/////////////////////////////
 
 bool Match( int op, int a, int b );
 bool Match( int op, unsigned a, unsigned b );
@@ -1148,7 +1171,11 @@ void* ScriptExecutor::GetReferenceData( int prop, int *typ, BACnetAPDUDecoder *d
 	pvm.Obj = pobj;
 	pvm.PropId = pid;
 	pvm.Action = ASN_1_ANY_PROP;
-
+    
+	//***Added by Liangping Xu, 2002-8-5***//
+	 pvm.ArrayIndex = nArrayIndx;
+ 	 nArrayIndx = -1;
+    //***Ended by Liangping Xu, 2002-8-5***//
 	// get the index of the property flags
 	pindx = PICS::GetPropIndex( pobj->object_type, pid );
 	if (pindx < 0)
@@ -3479,6 +3506,10 @@ void ScriptExecutor::SendALUnsigned( ScriptPacketExprPtr spep, CByteArray &packe
 	ScriptTokenList		tlist
 	;
 
+	//Added by Yajun Zhou, 2002-8-16
+	spep->exprValue.MakeUpper();
+	////////////////////////////////
+	
 	// translate the expression, resolve parameter names into values
 	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
 
@@ -3561,6 +3592,10 @@ void ScriptExecutor::SendALInteger( ScriptPacketExprPtr spep, CByteArray &packet
 	;
 	ScriptTokenList		tlist
 	;
+
+	//Added by Yajun Zhou, 2002-8-17
+	spep->exprValue.MakeUpper();
+	////////////////////////////////
 
 	// translate the expression, resolve parameter names into values
 	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
@@ -6516,10 +6551,42 @@ void ScriptExecutor::ExpectSegmentACK( BACnetAPDUDecoder &dec )
 //
 //	ScriptExecutor::ExpectError
 //
+//Added by Liangping Xu, 2002-8-5********//
 
 void ScriptExecutor::ExpectError( BACnetAPDUDecoder &dec )
 {
+    int			          valu;
+
+	ScriptPacketExprPtr	  pInvokeID, pErrorService;
+	BACnetInteger		  alInvokeID, alReason;
+
+    CString errorService;
+	
+	// check the header
+	valu = (dec.pktLength--,*dec.pktBuffer++);
+	if ((valu >> 4) != 5)
+		throw "Error expected";
+
+	// extract the invoke ID
+	valu = (dec.pktLength--,*dec.pktBuffer++);
+	// get the invoke ID
+	pInvokeID = GetKeywordValue( kwINVOKEID, alInvokeID );
+	if (pInvokeID && !Match(pInvokeID->exprOp,valu,alInvokeID.intValue))
+		throw ExecError( "Invoke ID mismatch", pInvokeID->exprLine );
+
+	// extract the Error Choice
+	valu = (dec.pktLength--,*dec.pktBuffer++);
+
+	// get the Error Choice
+	pErrorService = execPacket->packetExprList.Find( kwERRORCHOICE );
+	errorService=pErrorService->exprValue;
+	if(errorService.CompareNoCase(CString(NetworkSniffer::BACnetConfirmedServiceChoice[valu])))
+	 		 throw ExecError( "Error Service mismatch", pErrorService->exprLine );
+
+	//extract AL data,including the Error Class & Code Nmu
+	ExpectALData( dec );
 }
+
 
 //
 //	ScriptExecutor::ExpectReject
@@ -6608,10 +6675,11 @@ void ScriptExecutor::ExpectAbort( BACnetAPDUDecoder &dec )
 
 void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 {
-	int						indx, len
-	;
-	BACnetOctetString		ostr
-	;
+	int						indx, len;
+	BACnetOctetString		ostr;
+   //***Added by Liangping Xu, 2002-8-5***//
+	nArrayIndx = -1;
+   //***Ended by Liangping Xu, 2002-8-5***//
 
 	// get the index of the first data
 	indx = execPacket->packetExprList.FirstData();
@@ -6635,8 +6703,12 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 			// just a little error checking
 			if (tlist.Length() != 1)
 				throw "ALDATA requires an octet string";
-			if (spep->exprOp != '=')
-				throw "Equality match required";
+			//Modified by Yajun Zhou, 2002-8-29
+			//if (spep->exprOp != '=')
+			//	throw "Equality match required";
+			if (spep->exprOp != '=' && spep->exprOp != '!=')
+				throw "Equality or inequality match required";
+			///////////////////////////////////
 
 			// reference or data?
 			if (tlist[0].tokenType == scriptReference) {
@@ -6656,12 +6728,26 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 				if (dec.pktLength < refData.pktLength)
 					throw "Not enough data to match";
 
+				
 				// match the contents
+				//Modified by Yajun Zhou, 2002-8-29
+				//for (int i = 0; i < refData.pktLength; i++) {
+				//	BACnetOctet valu = (dec.pktLength--,*dec.pktBuffer++);
+				//	if (valu != refData.pktBuffer[i])
+				//		throw "Data mismatch";
+				//}
+				CString strGet = "";
+				CString strExpect = "";
 				for (int i = 0; i < refData.pktLength; i++) {
 					BACnetOctet valu = (dec.pktLength--,*dec.pktBuffer++);
-					if (valu != refData.pktBuffer[i])
-						throw "Data mismatch";
+					strGet += valu;
+					strExpect += refData.pktBuffer[i];
 				}
+				if (spep->exprOp == '=' && strGet != strExpect)
+					throw "Data mismatch";
+				if (spep->exprOp == '!=' && strGet == strExpect)
+					throw "Data mismatch";
+				/////////////////////////////////////////
 			} else {
 				// extract octet string
 				if (!tlist[0].IsEncodeable( ostr ))
@@ -6672,11 +6758,24 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 					throw "Not enough data to match";
 
 				// match the contents
+				//Modified by Yajun Zhou, 2002-8-29
+				//for (int i = 0; i < ostr.strLen; i++) {
+				//	BACnetOctet valu = (dec.pktLength--,*dec.pktBuffer++);
+				//	if (valu != ostr.strBuff[i])
+				//		throw "Data mismatch";
+				//}
+				CString strGet = "";
+				CString strExpect = "";
 				for (int i = 0; i < ostr.strLen; i++) {
 					BACnetOctet valu = (dec.pktLength--,*dec.pktBuffer++);
-					if (valu != ostr.strBuff[i])
-						throw "Data mismatch";
+					strGet += valu;
+					strExpect += ostr.strBuff[i];
 				}
+				if (spep->exprOp == '=' && strGet != strExpect)
+					throw "Data mismatch";
+				if (spep->exprOp == '!=' && strGet == strExpect)
+					throw "Data mismatch";
+				/////////////////////////////////////////
 			}
 
 			continue;
@@ -6933,6 +7032,9 @@ void ScriptExecutor::ExpectALUnsigned( ScriptPacketExprPtr spep, BACnetAPDUDecod
 	if (!tlist[indx].IsEncodeable( scriptData ))
 		throw "Unsigned value expected";
 
+   //***Added by Liangping Xu, 2002-8-5***//
+    nArrayIndx = scriptData.uintValue;
+   //***Ended by Liangping Xu, 2002-8-5***//
 	// check for wierd versions
 	if (spep->exprKeyword == kwUNSIGNED8) {
 		if ((uintData.uintValue < 0) || (uintData.uintValue > 255))
@@ -7807,7 +7909,7 @@ void ScriptExecutor::ExpectALTime( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 			if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ',')) {
 				context = holdContext;
 				scan.Next( tok );
-
+			   }                          //added by Liangping Xu  
 				if (tok.tokenType == scriptReference) {
 					int					typ
 					;
@@ -7841,8 +7943,9 @@ void ScriptExecutor::ExpectALTime( ScriptPacketExprPtr spep, BACnetAPDUDecoder &
 				if (tag.tagNumber != timeAppTag)
 					throw "Mismatched data type, time expected";
 			}
-		} else
-			throw "Time keyword parameter format invalid";
+             // deleted by Liangping Xu
+			//} else
+	//		throw "Time keyword parameter format invalid";
 	}
 	catch (...) {
 		throw "Time keyword parameter format invalid";
@@ -8685,12 +8788,20 @@ bool Match( int op, unsigned a, unsigned b )
 bool Match( int op, float a, float b )
 {
 	switch (op) {
-		case '=': return (a == b);
-		case '<': return (a < b);
-		case '>': return (a > b);
-		case '<=': return (a <= b);
-		case '>=': return (a >= b);
-		case '!=': return (a != b);
+		//Modified by Yajun Zhou, 2002-7-16
+		//case "=": return (a == b);
+		//case '<': return (a < b);
+		//case '>': return (a > b);
+		//case '<=': return (a <= b);
+		//case '>=': return (a >= b);
+		//case '!=': return (a != b);
+		case '=': return (fabs(a - b) < FLOAT_EPSINON);
+		case '<': return (a < b && fabs(a - b) > FLOAT_EPSINON);
+		case '>': return (a > b && fabs(a - b) > FLOAT_EPSINON);
+		case '<=': return (a < b || fabs(a - b) < FLOAT_EPSINON);
+		case '>=': return (a > b || fabs(a - b) < FLOAT_EPSINON);
+		case '!=': return (fabs(a - b) > FLOAT_EPSINON);
+		///////////////////////////////////
 	}
 
 	return false;
@@ -8699,12 +8810,20 @@ bool Match( int op, float a, float b )
 bool Match( int op, double a, double b )
 {
 	switch (op) {
-		case '=': return (a == b);
-		case '<': return (a < b);
-		case '>': return (a > b);
-		case '<=': return (a <= b);
-		case '>=': return (a >= b);
-		case '!=': return (a != b);
+		//Modified by Yajun Zhou, 2002-7-16
+		//case "=": return (a == b);
+		//case '<': return (a < b);
+		//case '>': return (a > b);
+		//case '<=': return (a <= b);
+		//case '>=': return (a >= b);
+		//case '!=': return (a != b);
+		case '=': return (fabs(a - b) < DOUBLE_EPSINON);
+		case '<': return (a < b && fabs(a - b) > DOUBLE_EPSINON);
+		case '>': return (a > b && fabs(a - b) > DOUBLE_EPSINON);
+		case '<=': return (a < b || fabs(a - b) < DOUBLE_EPSINON);
+		case '>=': return (a > b || fabs(a - b) < DOUBLE_EPSINON);
+		case '!=': return (fabs(a - b) > DOUBLE_EPSINON);
+		///////////////////////////////////
 	}
 
 	return false;
