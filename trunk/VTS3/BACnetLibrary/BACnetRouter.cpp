@@ -51,6 +51,45 @@ void BACnetRouter::BindToEndpoint( BACnetNetServerPtr endp, int net )
 }
 
 //
+//	BACnetRouter::UnbindFromEndpoint
+//
+
+void BACnetRouter::UnbindFromEndpoint( BACnetNetServerPtr endp )
+{
+	int		i, j, k
+	;
+
+	// can we find it?
+	for (i = 0; i < adapterListLen; i++)
+		if (IsBound(adapterList[i],endp))
+			break;
+
+	if (i < adapterListLen) {
+		// unbind the adapter (client) from the endpoint (server)
+		Unbind( adapterList[i], endp );
+
+		// find and delete all routing table entries for this endpoint
+		k = 0;
+		for (j = 0; j < routerListLen; j++)
+			if (routerList[j].routerAdapter != adapterList[i]) {
+				if (j != k)
+					routerList[k] = routerList[j];
+				k += 1;
+			}
+
+		// delete the adapter
+		delete adapterList[i];
+
+		// remove it from the list
+		while (i < (adapterListLen - 1)) {
+			adapterList[i] = adapterList[i+1];
+			i += 1;
+		}
+		adapterListLen -= 1;
+	}
+}
+
+//
 //	BACnetRouter::ProcessNPDU
 //
 //	This function is called by BACnetRouterAdapter::Confirmation() when it receives
