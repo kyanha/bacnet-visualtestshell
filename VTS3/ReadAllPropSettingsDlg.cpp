@@ -31,8 +31,8 @@ void CReadAllPropSettingsDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CReadAllPropSettingsDlg)
-	DDX_Text(pDX, IDC_EDIT_IUTIP, m_strIUTIP);
-	DDX_CBString(pDX, IDC_COMBO_NETWORK, m_strNetwork);
+	DDX_CBString(pDX, IDC_RPALL_DA, m_strIUTIP);
+	DDX_CBString(pDX, IDC_RPALL_NETWORK, m_strNetwork);
 	//}}AFX_DATA_MAP
 }
 
@@ -49,13 +49,13 @@ END_MESSAGE_MAP()
 BOOL CReadAllPropSettingsDlg::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
-	
-	// TODO: Add extra initialization here
-	CComboBox* pComboBox =(CComboBox*)GetDlgItem(IDC_COMBO_NETWORK);
+
+	CComboBox * pComboBox =(CComboBox*)GetDlgItem(IDC_RPALL_NETWORK);
 
 //	VTSPortPtr	curPort;
 	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 	VTSPorts * pports = pdoc == NULL ? NULL : pdoc->GetPorts();
+	VTSNames * pnames = pdoc == NULL ? NULL : pdoc->GetNames();
 
 //MAD_DB	for (int i = 0; i < gMasterPortList.Length(); i++)
 	for (int i = 0; pports != NULL && i < pports->GetSize(); i++)
@@ -65,7 +65,18 @@ BOOL CReadAllPropSettingsDlg::OnInitDialog()
 //		pComboBox->AddString( curPort->portDesc.portName );
 		pComboBox->AddString( (*pports)[i]->GetName() );
 	}
+
+	// Now setup the names...
+
+	pComboBox->SetCurSel(0);
 	
+	pComboBox =(CComboBox*)GetDlgItem(IDC_RPALL_DA);
+
+	for (i = 0; pnames != NULL && i < pnames->GetSize(); i++)
+		pComboBox->AddString((*pnames)[i]->GetName());
+
+	pComboBox->SetCurSel(0);
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
