@@ -299,6 +299,58 @@ class VTSNames : public CTypedPtrArray<CPtrArray, VTSName *>
 		LPCSTR AddrToName( const BACnetAddress &addr, VTSPort * pport );
 };
 
+class VTSFilter : public CObject							// serializable filter element
+{
+	private:
+
+	public:
+
+		// Begin persistent data
+		int				m_type;					// 1=accept, 0=reject
+		CString			m_strPortNameTemp;
+		int				m_addr;					// none, source, destination, bidirectional
+		int				m_addrType;				// LS, LN, LB, RS, RN, RB, GB
+		BACnetAddress	m_filteraddr;			// address filter bits
+		int				m_fnGroup;				// function group
+		// End persistend data
+
+		VTSPort *		m_pportLink;
+
+	public:
+		VTSFilter( void );
+		virtual ~VTSFilter( void );
+
+		const VTSFilter& operator=(const VTSFilter& rfilterSrc);
+
+		void Serialize( CArchive& archive );
+		LPCSTR GetPortName(void) {	return m_strPortNameTemp; }
+
+		bool TestAddress( const BACnetAddress &addr );
+
+		DECLARE_SERIAL(VTSFilter)
+};
+
+
+class VTSFilters : public CTypedPtrArray<CPtrArray, VTSFilter *>
+{
+	public:
+		VTSFilters();
+		virtual ~VTSFilters( void );
+
+		void DeepCopy( const VTSFilters * psrc );
+		void KillContents( void );
+		void Serialize( CArchive& archive );
+
+		void Remove( int i );							// remove a filter
+
+		bool TestPacket( const VTSPacket& packet );
+		int ConfirmedServiceFnGroup( int service );
+		int UnconfirmedServiceFnGroup( int service );
+
+		DECLARE_SERIAL(VTSFilters)
+};
+
+
 
 
 namespace NetworkSniffer {
@@ -492,6 +544,8 @@ private:
 	VTSNames				m_names;
 	VTSDevices				m_devices;			// list of persistent devices defined for this doc
 	VTSPorts				m_ports;			// list of persistent ports
+	VTSFilters				m_captureFilters;	// list of capture filters
+	VTSFilters				m_displayFilters;	// list of display filters
 	// ======== Persistent data end (preserve order)
 
 	CTypedPtrArray <CPtrArray, VTSPacketPtr> m_apPackets;		// array of ptrs to packets
@@ -550,6 +604,7 @@ public:
 	void ReActivateAllPorts(void);
 	void FixupPortToDeviceLinks( bool fCheckForExistingLink = true );
 	void FixupNameToPortLinks( bool fCheckForExistingLink = true );
+	void FixupFiltersToPortLinks( bool fCheckForExistingLink = true );
 	void BindPortsToDevices(void);
 	void UnbindPortsToDevices(void);
 	void ChangeCWDToWorkspace( LPCSTR lpszWksFile = NULL );
@@ -573,6 +628,8 @@ public:
 	void DoPortsDialog( void );
 	void PortStatusChange( void );
 	void DoNamesDialog( void );
+	void DoCaptureFiltersDialog( void );
+	void DoDisplayFiltersDialog( void );
 	void DoDevicesDialog( void );
 	bool DoPacketFileNameDialog( bool fReload = true );
 	void SaveConfiguration(void);
@@ -582,6 +639,8 @@ public:
 	VTSDevices * GetDevices( void ) { return &m_devices; }
 	VTSPorts * GetPorts( void ) { return &m_ports; }
 	VTSNames * GetNames(void) { return &m_names; }
+	VTSFilters * GetCaptureFilters(void) { return &m_captureFilters; }
+	VTSFilters * GetDisplayFilters(void) { return &m_displayFilters; }
 
 //MAD_DB	void NewPacketCount(void);
 

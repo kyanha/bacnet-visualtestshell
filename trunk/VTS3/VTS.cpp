@@ -1166,9 +1166,11 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //			be zero.  An error is reported if they are not.  Bits 6 and 4 are tested for network layer messages and application
 //			layer messages have different reserved bits for each PDU type.
 //
+//  3.4.3	Capture and display filters added, PTP unfinished.  Caputure filters changed what is saved in the 
+//			database, but not what is otherwise processed by the application.
 
 
-const int kReleaseVersion = 2;
+const int kReleaseVersion = 3;
 
 class CAboutDlg : public CDialog
 {
