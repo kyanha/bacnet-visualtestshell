@@ -106,6 +106,7 @@ BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference	*);
 BOOL ParseCOVSubList(BACnetCOVSubscription **);												//*****018
 BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *);						//*****018
 BOOL ReadFailTimes(PICSdb *);																//*****019							
+BOOL ReadBIBBSupported(PICSdb *);
 
 //************added by Liangping Xu,2002*****************//
 BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference *);
@@ -226,7 +227,9 @@ static char *SectionNames[]={
 			"Special Functionality",							//9
 			"List of Objects in test device",					//10
 			"Character Sets Supported",							//11				***006
-			"Fail Times"										//12				***019
+			"Fail Times",										//12				***019
+            "BIBBs Supported",                                  //13                msd 8/31/04
+			"Default Property Value Restrictions"               //14                msd 8/31/04
 			};
 static namedw FunctionalGroups[]={
 			"HHWS",							fgHHWS,
@@ -243,6 +246,79 @@ static namedw FunctionalGroups[]={
 			"Reinitialize",					fgReinitialize,
 			"Virtual Terminal",				fgVirtualTerminal
 			};
+
+// msd 8/31/04 - added BIBBs
+static namedw BIBBs[]={
+	        "DS-RP-A",						bibbDS_RP_A,		
+			"DS-RP-B",						bibbDS_RP_B,
+			"DS-RPM-A",						bibbDS_RPM_A,
+			"DS-RPM-B",						bibbDS_RPM_B,
+			"DS-RPC-A",						bibbDS_RPC_A,
+			"DS-RPC-B",						bibbDS_RPC_B,
+			"DS-WP-A",						bibbDS_WP_A,
+			"DS-WP-B",						bibbDS_WP_B,
+			"DS-WPM-A",						bibbDS_WPM_A,
+			"DS-WPM-B",						bibbDS_WPM_B,
+			"DS-COV-A",						bibbDS_COV_A,
+			"DS-COV-B",						bibbDS_COV_B,
+			"DS-COVP-A",					bibbDS_COVP_A,
+			"DS-COVP-B",					bibbDS_COVP_B,
+			"DS-COVU-A",					bibbDS_COVU_A,
+			"DS-COVU-B",					bibbDS_COVU_B,
+			"AE-N-A",						bibbAE_N_A,
+			"AE-N-I-B",						bibbAE_N_I_B,
+			"AE-N-E-B",						bibbAE_N_E_B,
+			"AE-ACK-A",						bibbAE_ACK_A,
+			"AE-ACK-B",						bibbAE_ACK_B,
+			"AE-ASUM-A",					bibbAE_ASUM_A,
+			"AE-ASUM-B",					bibbAE_ASUM_B,
+			"AE-ESUM-A",					bibbAE_ESUM_A,
+			"AE-ESUM-B",					bibbAE_ESUM_B,
+			"AE-INFO-A",					bibbAE_INFO_A,
+			"AE-INFO-B",					bibbAE_INFO_B,
+			"AE-LS-A",						bibbAE_LS_A,
+			"AE-LS-B",						bibbAE_LS_B,
+			"SCHED-A",						bibbSCHED_A,
+			"SCHED-I-B",					bibbSCHED_I_B,
+			"SCHED-E-B",					bibbSCHED_E_B,
+			"T-VMT-A",						bibbT_VMT_A,
+			"T-VMT-I-B",					bibbT_VMT_I_B,
+			"T-VMT-E-B",					bibbT_VMT_E_B,
+			"T-ATR-A",						bibbbibb_ATR_A,
+			"T-ATR-B",						bibbT_ATR_B,
+			"DM-DDB-A",						bibbDM_DDB_A,
+			"DM-DDB-B",						bibbDM_DDB_B,
+			"DM-DOB-A",						bibbDM_DOB_A,
+			"DM-DOB-B",						bibbDM_DOB_B,
+			"DM-DCC-A",						bibbDM_DCC_A,
+			"DM-DCC-B",						bibbDM_DCC_B,
+            "DM-PT-A",						bibbDM_PT_A,
+			"DM-PT-B",						bibbDM_PT_B,
+			"DM-TM-A",						bibbDM_TM_A,
+			"DM-TM-B",						bibbDM_TM_B,
+			"DM-TS-A",						bibbDM_TS_A,
+			"DM-TS-B",						bibbDM_TS_B,
+			"DM-UTC-A",						bibbDM_UTC_A,
+			"DM-UTC-B",						bibbDM_UTC_B,
+			"DM-RD-A",						bibbDM_RD_A,
+			"DM-RD-B",						bibbDM_RD_B,
+			"DM-BR-A",						bibbDM_BR_A,
+			"DM-BR-B",						bibbDM_BR_B,
+			"DM-R-A",						bibbDM_R_A,
+			"DM-R-B",						bibbDM_R_B,
+			"DM-LM-A",						bibbDM_LM_A,
+			"DM-LM-B",						bibbDM_LM_B,
+			"DM-OCD-A",						bibbDM_OCD_A,
+			"DM-OCD-B",						bibbDM_OCD_B,
+			"DM-VT-A",						bibbDM_VT_A,
+			"DM-VT-B",						bibbDM_VT_B,
+			"NM-CE-A",						bibbNM_CE_A,
+			"NM-CE-B",						bibbNM_CE_B,
+			"NM-RC-A",						bibbNM_RC_A,
+			"NM-RC-B",						bibbNM_RC_B
+			};  
+
+
 static char *StandardServices[]={
 			"AcknowledgeAlarm",
 			"ConfirmedCOVNotification",       
@@ -309,36 +385,48 @@ static char *StandardObjects[]={
 			"Multi-state Value",
 			"Trend Log"								// madanner 6/03: "Trend-Log"
 			};
-static namedw StandardDataLinks[]={
-			"ISO 8802-3, 10BASE5",					dlISO88023_10BASE5,
-			"ISO 8802-3, 10BASE2",					dlISO88023_10BASE2,
-			"ISO 8802-3, 10BASET",					dlISO88023_10BASET,
-			"ISO 8802-3, fiber",  					dlISO88023_fiber,
-			"ARCNET, coax star",  					dlARCNETcoaxstar,
-			"ARCNET, coax bus",   					dlARCNETcoaxbus,
-			"ARCNET, twisted pair star",			dlARCNETtpstar,
-			"ARCNET, twisted pair bus",				dlARCNETtpbus,
-			"ARCNET, fiber star",					dlARCNETfiberstar,
-			"MS/TP master. Baud rate(s)",			dlMSTPmaster,
-			"MS/TP slave. Baud rate(s)",			dlMSTPslave,
-			"Point-To-Point. EIA232, Baud rate(s)",	dlPTP232,
-			"Point-To-Point. Modem, Baud rate(s)",	dlPTPmodem,
-			"Point-To-Point. Modem, Autobaud range",dlPTPautobaudmodem,
-			"LonTalk",								dlLonTalk,
-			"Other",								dlOther
+
+
+// The order of these is important.  New ones should be added to the end, or
+// at least inserted after the last "Point-To-Point" entry.
+// Maximum is specified by MAX_DATALINK_OPTIONS in vts.h
+static char *StandardDataLinks[]={
+			"ISO 8802-3, 10BASE5",				    //0
+			"ISO 8802-3, 10BASE2",					//1
+			"ISO 8802-3, 10BASET",					//2
+			"ISO 8802-3, fiber",  					//3
+			"ARCNET, coax star",  					//4
+			"ARCNET, coax bus",   					//5
+			"ARCNET, twisted pair star",			//6
+			"ARCNET, twisted pair bus",				//7
+			"ARCNET, fiber star",					//8
+			"MS/TP master. Baud rate(s)",			//9
+			"MS/TP slave. Baud rate(s)",			//10
+			"Point-To-Point. EIA232, Baud rate(s)",	//11
+			"Point-To-Point. Modem, Baud rate(s)",	//12
+			"Point-To-Point. Modem, Autobaud range",//13
+			"LonTalk",								//14
+			"BACnet/IP, 'DIX' Ethernet",            //15
+			"BACnet/IP, PPP",                       //16
+			"Other",								//17
 			};
+
+// Position is important.  Must preserve index numbers.
 static char *SpecialFunctionality[]={
-			"Maximum APDU size in octets",
-			"Segmented Requests Supported, window size",
-			"Segmented Responses Supported, window size",
-			"Router"
+			"Maximum APDU size in octets",                       //0
+			"Segmented Requests Supported, window size",         //1
+			"Segmented Responses Supported, window size",        //2
+			"Router",                                            //3
+			"BACnet/IP BBMD"                                     //4
 			};
+
 static nameoctet Charsets[]={						//								***006 Begin
 			"ANSI X3.4",							csANSI,
 			"IBM/Microsoft DBCS",					csDBCS,
 			"JIS C 6226",							csJIS,
 			"ISO 10646 (UCS-4)",					csUCS4,
-			"ISO 10646 (UCS-2)",					csUCS2
+			"ISO 10646 (UCS-2)",					csUCS2,
+			"ISO 8859-1",                           cs8859 
 			};										//								***006 End
 static char *FailTimes[]={						//								***019 Begin
 			"Notification Fail Time",	
@@ -936,7 +1024,17 @@ bool APIENTRY ReadTextPICS(
 	pd->Database=NULL;
 	memset(pd->BACnetStandardObjects,soNotSupported,sizeof(pd->BACnetStandardObjects));	     //added by xlp,2002-11
 	memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));	//added by xlp,2002-11
+	// initialize to no BIBBs supported
+	memset(pd->BIBBSupported,0,sizeof(pd->BIBBSupported));	//default is not supported
 	pd->BACnetFunctionalGroups=0;				//default is none
+    // default is no data links supported
+	memset(pd->DataLinkLayerOptions, 0, sizeof(pd->DataLinkLayerOptions)); //default is none
+
+	// Initialize Special Functionality items, in case this section is omitted in EPICS
+	pd->RouterFunctions=rfNotSupported;			//default is none
+	pd->SegmentedRequestWindow=pd->SegmentedResponseWindow=0;
+	pd->MaxAPDUSize=50;
+    pd->BBMD=0;  // default is no BBMD support
 
 	print_debug("RTP: open file '%.275s'\n",tp);
 	lerrc=0;									//no errors yet
@@ -1025,6 +1123,12 @@ bool APIENTRY ReadTextPICS(
 						break;
 					case 12:
 						if (ReadFailTimes(pd)) goto rtpclose;	//					***019
+						break;
+                    case 13: // BIBBs supported
+						if (ReadBIBBSupported(pd)) goto rtpclose;
+						break;
+					case 14: // Default Property Value Restrictions
+						//if (ReadDefaultPropertyValueRestrictions(pd)) goto rtpclose;
 						break;
 					}
 					i=0;						//remember that we found one
@@ -1143,6 +1247,39 @@ BOOL ReadCharsets(PICSdb *pd)
 	return false;		
 }												//									***006 End
 
+///////////////////////////////////////////////////////////////////////				***006 Begin
+//	Read BIBBs Supported section of a TPI file
+//in:	ifile		file stream
+//		pd			database structure to be filled in from PICS
+//out:	true		if cancel selected
+
+BOOL ReadBIBBSupported(PICSdb *pd)
+{	int			i;
+
+	ReadNext();									//point to next token				***008
+	if (lp==NULL||*lp++!='{')					//no open token
+		return tperror("Expected { here",true);
+
+	// initialize to no BIBBs supported
+	memset(pd->BIBBSupported,0,sizeof(pd->BIBBSupported));	//default is not supported
+	while (lp!=NULL)
+	{	ReadNext();								//point to next token				***008
+		rtrim(lp);
+		if (*lp=='}'||lp==NULL) break;			//return, we're done with these
+ 		for (i=0;i<(sizeof(BIBBs)/sizeof(BIBBs[0]));i++)
+		  if (stricmp(lp,BIBBs[i].name)==0) //found it
+		  {	pd->BIBBSupported[BIBBs[i].dwcons] = 1;	// Mark this BIBB supported
+			i=0;
+			break;
+		  }
+		if (i)
+		{	if (tperror("Unknown BIBB",true))
+				return true;
+		}
+	}
+	return false;		
+}												//									***006 End
+
 ///////////////////////////////////////////////////////////////////////
 //	Read Standard Services section of a TPI file
 //in:	ifile		file stream
@@ -1247,7 +1384,7 @@ BOOL ReadDataLinkOptions(PICSdb *pd)
 	if (lp==NULL||*lp++!='{')					//no open token
 		return tperror("Expected { here",true);
 		
-	pd->DataLinkLayerOptions=0;					//default is none
+	memset(pd->DataLinkLayerOptions, 0, sizeof(pd->DataLinkLayerOptions)); //default is none
 	pd->PTPAutoBaud[0]=pd->PTPAutoBaud[1]=0;
 	for (i=0;i<16;i++)
 	{	
@@ -1263,8 +1400,8 @@ BOOL ReadDataLinkOptions(PICSdb *pd)
 			*p++=0;								//make it asciz there
 		rtrim(lp);								//trim trailing blanks				***006
  		for (i=0;i<(sizeof(StandardDataLinks)/sizeof(StandardDataLinks[0]));i++)
-		  if (stricmp(lp,StandardDataLinks[i].name)==0) //found it
-		  {	pd->DataLinkLayerOptions|=LOWORD(StandardDataLinks[i].dwcons);
+		  if (stricmp(lp,StandardDataLinks[i])==0) //found it
+		  {	pd->DataLinkLayerOptions[i] = 1;    //mark this data link supported
 		  	switch(i)							//some of these need extra handling
 		  	{
 		  	case 9:								//MS/TP master
@@ -1340,10 +1477,12 @@ BOOL ReadSpecialFunctionality(PICSdb *pd)
 	ReadNext();									//point to next token				***008
 	if (lp==NULL||*lp++!='{')					//no open token
 		return tperror("Expected { here",true);
-		
+
+	// Initialize Special Functionality items
 	pd->RouterFunctions=rfNotSupported;			//default is none
 	pd->SegmentedRequestWindow=pd->SegmentedResponseWindow=0;
 	pd->MaxAPDUSize=50;
+    pd->BBMD=0;  // default is no BBMD support
 	while (lp!=NULL)
 	{	ReadNext();								//point to next token				***008
 		if (*lp=='}'||lp==NULL) break;			//return, we're done with these
@@ -1379,6 +1518,10 @@ rsfwin:			lp=p;							//point to argument(s)
 				break;
 		  	case 3:								//Router
 		  		pd->RouterFunctions=rfSupported;
+				break;
+            case 4:
+				pd->BBMD=1;                     //BBMD functionality is supported
+				break;
 		  	}
 			i=0;
 			break;
@@ -5864,6 +6007,143 @@ BOOL tperror(char *mp,BOOL showline)
 
 	// deal with silly MS BOOL vs. bool
 	return cancel ? TRUE : FALSE;
+}
+
+// Returns the maximum number of standard services
+int GetStandardServicesSize()
+{
+   return sizeof(StandardServices)/sizeof(StandardServices[0]);
+}
+
+// Returns a string representing the standard service indexed by i 
+char *GetStandardServicesName(int i)
+{
+	return StandardServices[i];
+}
+
+// Returns the maximum number of potential BIBBs
+int GetBIBBSize()
+{
+	return MAX_BIBBS;
+}
+
+// Returns a string representing the BIBB corresponding to i 
+char *GetBIBBName(int i)
+{
+	int j;
+	for (j=0;j<(sizeof(BIBBs)/sizeof(BIBBs[0]));j++)
+	{
+		if ((int)(BIBBs[j].dwcons) == i)
+			return BIBBs[j].name;
+	}
+	return NULL;
+}
+
+// Returns the maximum number of potential Object Types
+int GetObjectTypeSize()
+{
+   return sizeof(StandardObjects)/sizeof(StandardObjects[0]);
+}
+
+// Returns a string representing the Object Type indexed by i 
+char *GetObjectTypeName(int i)
+{
+	return StandardObjects[i];
+}
+
+// Returns the maximum number of potential Data Link Options
+int GetDataLinkSize()
+{
+	return  sizeof(StandardDataLinks)/sizeof(StandardDataLinks[0]);
+}
+
+// Returns a string representing the Data Link Option indexed by i 
+// and any baud rate options.
+// Caller must allocate the memory to hold the resulting string
+// and pass in a pointer to the allocation in pstrResult.
+// Allocation should be at least 200 bytes
+void GetDataLinkString(int i, PICSdb *pd, char *pstrResult)
+{
+	int j;
+	char *pz;
+    dword *dp;
+
+	if (!pstrResult)
+		return;
+
+	// Construct the first part of the string, the data link name
+	pz = pstrResult;
+	pz += sprintf(pz, "%s", StandardDataLinks[i]);   // get Data Link name 
+
+	// append optional baud rates 
+	switch (i)
+	{
+  	case 9:								//MS/TP master
+  		dp=&pd->MSTPmasterBaudRates[0];
+		break;
+	case 10:                            //MS/TP slave
+		dp=&pd->MSTPslaveBaudRates[0];  
+		break;
+ 	case 11:							//PTP 232
+		dp=&pd->PTP232BaudRates[0];
+		break;
+  	case 12:							//PTP modem, fixed baud rates
+		dp=&pd->PTPmodemBaudRates[0];
+		break;
+	}
+
+	// If list of fixed baud rates, append them to the string
+	if ( (i >= 9) && (i <= 12) )
+	{
+		for (j=0; (j<16) && dp[j]; j++)
+		{
+		   // If this is the first one
+		   if ( j == 0 )
+  		      pz += sprintf(pz, ": %u", dp[j]);  // add first baud rate
+		   else
+              pz += sprintf(pz, ", %u", dp[j]);  // else, add another one
+		}
+	}
+	else if ( i == 13 )  // PTP auto-baud range - only 2 baud rates to add
+	{
+		pz += sprintf(pz, ": %u to %u",
+			pd->PTPAutoBaud[0],
+			pd->PTPAutoBaud[1] );
+	}
+    return;
+
+}
+
+// Returns the maximum number of potential Character Sets
+int GetCharsetSize()
+{
+	return  sizeof(Charsets)/sizeof(Charsets[0]);
+}
+
+// Returns a string representing the Charset matching csTag 
+char *GetCharsetName(octet csTag)
+{
+	int j;
+	for (j=0;j<(sizeof(Charsets)/sizeof(Charsets[0]));j++)
+	{
+		if ((int)(Charsets[j].octetcons) == csTag)
+			return Charsets[j].name;
+	}
+	return NULL;
+		
+}
+
+
+// Returns the maximum number of Special Functionality choices
+int GetSpecialFunctionalitySize()
+{
+	return  sizeof(SpecialFunctionality)/sizeof(SpecialFunctionality[0]);
+}
+
+// Returns a Special Functionality string at index i 
+char *GetSpecialFunctionalityName(int i)
+{
+	return SpecialFunctionality[i];
 }
 
 
