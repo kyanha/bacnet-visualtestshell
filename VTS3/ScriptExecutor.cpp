@@ -432,6 +432,8 @@ ScriptExecutor::ScriptExecutor( void )
 	, execFailContinue(false)
 	, execDB(0), execDoc(0), execTest(0), execPacket(0)
 {
+//	BACnetTime::TestTimeComps();
+//	BACnetDate::TestDateComps();
 }
 
 //
