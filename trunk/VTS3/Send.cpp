@@ -108,7 +108,18 @@ CSendGroupItem gPTPItemList[] =
 
 CSendGroup gPTPGroup = { "PTP", gPTPItemList, (CSendPageMPtr)&CSend::PTPPage, 0 };
 
-CSendGroupPtr gPTPGroupList[] = { &gPTPGroup, 0 };
+//Modified by Xiao Shiyuan 2002-9-24
+CSendGroupPtr gPTPGroupList[] = { &gPTPGroup 
+	, &gNetworkGroup
+	, &gAlarmEventAccessGroup
+	, &gFileAccessGroup
+	, &gObjectAccessGroup
+	, &gRemoteDevMgmtGroup
+	, &gVirtualTerminalGroup
+	, &gSimpleACKGroup
+	, &gErrorGroup
+	, 0
+	};
 
 /////////////////////////////////////////////////////////////////////////////
 
