@@ -814,6 +814,13 @@ void VTSPreferences::Save( void )
 //			change to the database (the device descriptor now has an ID of a list of object/property/value 
 //			components.
 //
+//          [626601] Crashes when openning a read-only VDB
+//		    A message is now returned when an attempt to open a read-only VDB is made.
+//
+//          Fixed all of the child popups decending from the Send dialog to chain properly.  Each (tedious) 
+//          ocurrance was altered to report to the proper parent such that all of the popups are now modal
+//          to the modeless Send dialog.  Multiple Send dialogs can now be up simultaneously.
+//
 
 const int kReleaseVersion = 1;
 
