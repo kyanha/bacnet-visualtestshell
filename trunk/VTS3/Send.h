@@ -36,6 +36,11 @@
 
 // ARCNET Pages
 
+// PTP Pages
+
+// Device Pages
+#include "SendDevice.h"
+
 // NPDU Pages
 #include "SendNPCI.h"
 #include "SendVendorNPDU.h"
@@ -149,6 +154,7 @@ public:
 	CSendNull				ARCNETPage;				// ARCNET base page
 	CSendNull				MSTPPage;				// MS/TP base page
 	CSendNull				PTPPage;				// PTP base page
+	CSendDevice				DevicePage;				// Device base page
 
 	CSendBVLCI				BVLCIPage;				// BVLCI base page
 	CSendBVLCResult			BVLCResultPage;			// BVLC-Result
@@ -300,6 +306,9 @@ extern CSendGroupPtr gMSTPGroupList[];
 
 extern CSendGroup gPTPGroup;
 extern CSendGroupPtr gPTPGroupList[];
+
+extern CSendGroup gDeviceGroup;
+extern CSendGroupPtr gDeviceGroupList[];
 
 /////////////////////////////////////////////////////////////////////////////
 

@@ -484,7 +484,14 @@ void VTSPreferences::Save( void )
 //			Drop-downs for property values have been resized in various places to allow more than only a few
 //			properties to be visible.
 //
-
+//			444134: Auto Segmentation Support
+//
+//			User can now select a device from the Send menu, or the port drop down menu.  There is a new 
+//			Device page which is looking for a destination address (type, network, and address) and the 
+//			outgoing APDU will be set to that address.  The device object will take care of segmentation,
+//			retries, etc, as necessary.  Properly configuring a built-in device object and binding it to a 
+//			port will be part of a separate document.
+//
 
 const int kReleaseVersion = 9;
 

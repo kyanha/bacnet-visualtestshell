@@ -121,6 +121,126 @@ void VTSCtrl::UpdateData( BOOL bCtrlToObj )
 /////////////////////////////////////////////////////////////////////////////
 
 //
+//	VTSAddrCtrl
+//
+
+VTSAddrCtrl::VTSAddrCtrl( const CWnd* wp, int id )
+	: VTSCtrl( wp, id )
+	, emptyIsNull( true )
+{
+}
+
+//
+//	VTSAddrCtrl::CtrlToObj
+//
+
+void VTSAddrCtrl::CtrlToObj( void )
+{
+	CString		str
+	;
+	LPCTSTR		s
+	;
+
+	// get the text from the control
+	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
+	s = str.operator LPCTSTR();
+
+	// no data might mean empty is null
+	ctrlNull = (!*s && emptyIsNull);
+
+	try {
+		int				valu
+		;
+		ScriptScanner	scan( s )
+		;
+		ScriptToken		tok
+		;
+		
+		// get the content
+		scan.Next( tok );
+		if (tok.tokenType == scriptEOL)
+			return;
+
+		if (tok.tokenEnc == scriptIntegerEnc) {
+			tok.IsInteger( valu );
+
+			Flush();
+			if ((valu >= 0) && (valu < 256))
+				Append( valu );
+		} else
+		if (tok.tokenEnc == scriptHexEnc) {
+			// use the built-in decoder
+			Decode( s );
+		} else
+		if (tok.tokenEnc == scriptIPEnc) {
+			BACnetIPAddr	addr( s )
+			;
+
+			// flush the current contents
+			Flush();
+
+			// copy the new stuff in
+			Insert( addr.addrAddr, addr.addrLen, 0 );
+		}
+	}
+	catch (...) {
+	}
+}
+
+//
+//	VTSAddrCtrl::ObjToCtrl
+//
+
+void VTSAddrCtrl::ObjToCtrl( void )
+{
+	CString		str
+	;
+
+	if (!ctrlNull)
+		Encode( str.GetBuffer( strLen * 2 + 4 ) );
+
+	// set the text
+	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
+}
+
+//
+//	VTSAddrCtrl::SaveCtrl
+//
+
+void VTSAddrCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
+{
+//	TRACE0( "VTSAddrCtrl::SaveCtrl\n" );
+
+	if (ctrlNull)
+		BACnetNull().Encode( enc );
+	else
+		Encode( enc );
+}
+
+//
+//	VTSAddrCtrl::RestoreCtrl
+//
+
+void VTSAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
+{
+	BACnetAPDUTag	tag
+	;
+
+//	TRACE0( "VTSAddrCtrl::RestoreCtrl\n" );
+
+	dec.ExamineTag( tag );
+	if (tag.tagNumber == nullAppTag) {
+		ctrlNull = true;
+		BACnetNull().Decode( dec );
+	} else {
+		ctrlNull = false;
+		Decode( dec );
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+//
 //	VTSEnetAddrCtrl
 //
 

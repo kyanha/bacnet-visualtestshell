@@ -62,6 +62,9 @@ typedef VTSServer *VTSServerPtr;
 class VTSDevice;
 typedef VTSDevice *VTSDevicePtr;
 
+class VTSDevicePort;
+typedef VTSDevicePort *VTSDevicePortPtr;
+
 class VTSDeviceDlg;
 typedef VTSDeviceDlg *VTSDeviceDlgPtr;
 
@@ -244,6 +247,9 @@ class VTSDevice {
 		
 		VTSClient			devClient;
 		VTSServer			devServer;
+
+		VTSPortPtr			devPort;
+		VTSDevicePortPtr	devPortEndpoint;
 
 	public:
 		objId				devDescID;					// ID of descriptor
@@ -437,6 +443,23 @@ class VTSWinIPPort : public WinIP {
 		void FilterData( BACnetOctet *, int len, BACnetPortDirection dir );
 
 		void PortStatusChange( void );
+	};
+
+//
+//	VTSDevicePort
+//
+
+class VTSDevicePort : public BACnetPort {
+	protected:
+		VTSPortPtr			m_pPort;
+		VTSDevicePtr		m_pDevice;
+
+	public:
+		VTSDevicePort( VTSPortPtr pp, VTSDevicePtr dp );
+		virtual ~VTSDevicePort( void );
+
+		void Indication( const BACnetNPDU &pdu );
+		void SendData( BACnetOctet *data, int len );		// raw data request
 	};
 
 /////////////////////////////////////////////////////////////////////////////

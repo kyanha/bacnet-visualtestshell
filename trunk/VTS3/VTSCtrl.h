@@ -34,6 +34,25 @@ class VTSCtrl {
 typedef VTSCtrl *VTSCtrlPtr;
 
 //
+//	VTSAddrCtrl
+//
+
+class VTSAddrCtrl : public VTSCtrl, public BACnetOctetString {
+	public:
+		bool	emptyIsNull;						// empty control value is null
+
+		VTSAddrCtrl( const CWnd* wp, int id );		// bind to window and control
+
+		void CtrlToObj( void );						// interpret control contents, save in object
+		void ObjToCtrl( void );						// object value reflected in control
+
+		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
+		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
+	};
+
+typedef VTSAddrCtrl *VTSAddrCtrlPtr;
+
+//
 //	VTSEnetAddrCtrl
 //
 
