@@ -277,6 +277,9 @@ BOOL VTSApp::InitInstance()
 	// move on from here... if we haven't opened a document file... we're just going to have to allow
 	// the user to attempt one
 
+	if ( gVTSPreferences.Setting_IsLoadEPICS() )
+		pMainFrame->PostMessage(WM_COMMAND, ID_EPICS_LOADAUTO, NULL);
+
 	// Move and add it from WinBACnetTaskManager::WinBACnetTaskManager ,Modified by xuyiping-hust
 	gBACnetWinTaskThread->ResumeThread();
 	return TRUE;
@@ -1108,6 +1111,17 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //
 //			A bug was fixed in the script editor that would not initially place the caret on the 
 //			line if goto was used.
+//
+//			Moved Load EPICS command from Script frame to main frame under "EPICS" menu.  This menu will be populated
+//			with other EPICS type functions in future versions.
+//
+//			Altered EPICS load results dialog to use static windows (instead of read only edit boxes) to do automatic
+//			word wrap.
+//			
+//			Added "Load last EPICS on startup" to preferences section.
+//
+//			Fixed a bug in the specification of the EPICS file to load.  It was using the filename only, even if
+//			the file specified from the file dialog found the file in other directories.
 
 
 const int kReleaseVersion = 2;
