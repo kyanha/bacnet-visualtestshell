@@ -211,8 +211,8 @@ void CSendUTCTimeSync::EncodePage( CByteArray* contents )
 
     if (m_UTC_offset.ctrlNull)
 	   throw "UTC Offset required";
-	if ((m_UTC_offset.intValue < -720) || (m_UTC_offset.intValue > 720))
-	   throw "UTC Offset out of range -720..720 minutes";
+	if ((m_UTC_offset.intValue < -780) || (m_UTC_offset.intValue > 780))
+	   throw "UTC Offset out of range -780..780 minutes";
 	m_UTC_offset.Encode(enc);
 
 //	m_fDaylightSavingsStatus.Encode(enc);
