@@ -2694,7 +2694,7 @@ void ScriptExecutor::SendALData( CByteArray &packet )
 	// get the index of the first data
 	indx = execPacket->packetExprList.FirstData();
 	if (indx < 0)
-		throw "Application variable encoding expected";
+		return;		// in some cases, like Who-Is, there might not be any parameters
 
 	// get the length
 	len = execPacket->packetExprList.Length();
@@ -3929,17 +3929,23 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			} else
 			// it might be a name
 			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
+				CString tvalu = t.RemoveQuotes();
 				for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
 					VTSNameDesc		nameDesc;
 
 					execDB->m_Names.ReadName( i, &nameDesc );
-					if (stricmp(nameDesc.nameName,t.tokenValue) == 0) {
+					if (stricmp(nameDesc.nameName,tvalu) == 0) {
 						nlSrcAddr = nameDesc.nameAddr;
 						break;
 					}
 				}
 				if (i >= execDB->m_Names.Length())
 					throw ExecError( "Source address name not found", nlSA->exprLine );
+			} else
+			// it might be an IP address
+			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
+				BACnetIPAddr nlIPAddr( t.tokenValue );
+				nlSrcAddr = nlIPAddr;
 			} else
 			// it might be an explicit octet string
 			if (t.IsEncodeable( nlSrc )) {
