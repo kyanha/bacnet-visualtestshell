@@ -39,6 +39,10 @@
 //#include "VTSPortPTPDialog.h"
 #include "PropID.h"
 
+// Added by Jingbo Gao, Sep 20 2004
+#include "VTSBackupRestoreDlg.h"
+#include "BakRestoreExecutor.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -4764,5 +4768,16 @@ void VTSDevicePort::SendData( BACnetOctet *data, int len )
 
 	// pass it along to the device to process
 	m_pDevice->SendAPDU( apdu );
+}
+
+// Added by Jingbo Gao, Sep 20 2004
+//
+//	VTSDoc::DoDevicesDialog
+//
+extern BakRestoreExecutor gBakRestoreExecutor;
+void VTSDoc::DoBackupRestore( void )
+{
+	gBakRestoreExecutor.ExecuteTest();
+	
 }
 

@@ -90,8 +90,9 @@ char *BACnetDeviceStatus[] = {
    "Operational-read-only",
    "Download-required",
    "Download-in-progress",
-   "Non-Operational"
-   };
+   "Non-Operational",
+   "Backup-in-porgress"		// added by Jingbo Gao, Sep 20 2004
+	};
 
 char *BACnetEngineeringUnits[] = {
 /* Area */

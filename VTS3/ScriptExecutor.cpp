@@ -22,6 +22,8 @@
 
 #include "ScriptKeywords.h"
 
+#include "BakRestoreExecutor.h"		// Added by Jingbo Gao, Sep 20 2004
+
 namespace PICS {
 
 #include "db.h" 
@@ -271,12 +273,17 @@ void ScriptNetFilter::Indication( const BACnetNPDU &npdu )
 //	at it and see if it passes any EXPECT conditions that a running script established.
 //	If the executor isn't running, don't bother.
 //
-
+extern BakRestoreExecutor gBakRestoreExecutor;
 void ScriptNetFilter::Confirmation( const BACnetNPDU &npdu )
 {
 	// make a copy for the executor thread
 	if (gExecutor.IsRunning())
 		new ScriptNetPacket( this, npdu );
+	
+	// send this packet to BackupRestore executor	Jingbo Gao, Sep 20 2004
+	if (gBakRestoreExecutor.IsRunning()) {
+		gBakRestoreExecutor.ReceiveNPDU(npdu);
+	}
 
 	// pass up to client
 	Response( npdu );

@@ -149,7 +149,8 @@ enum BACnetDeviceStatus
 		OPERATIONAL_READ_ONLY,    //1
 		DOWNLOAD_REQUIRED,        //2
 		DOWNLOAD_IN_PROGRESS,     //3
-		NON_OPERATIONAL           //4
+		NON_OPERATIONAL,          //4
+		BACKUP_IN_PROGRESS		  //5		Added by Jingbo Gao 09/09/2004
 	};
 
 enum BACnetEngineeringUnits

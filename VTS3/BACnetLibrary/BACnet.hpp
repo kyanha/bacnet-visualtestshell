@@ -635,6 +635,7 @@ class BACnetObjectIdentifier : public BACnetEncodeable {
 		BACnetObjectIdentifier( BACnetAPDUDecoder& dec );
 		BACnetObjectIdentifier( int objType = 0, int instanceNum = 0 );
 		BACnetObjectIdentifier( unsigned int nobjID );
+		BACnetObjectIdentifier( const BACnetObjectIdentifier& objectId );	// Jingbo Gao, Sep 11, 2004
 
 		BACnetObjectIdentifier &operator =( const BACnetObjectIdentifier &arg );
 
@@ -2427,6 +2428,78 @@ class BACnetError {
 		{
 		}
 	};
+
+// Define error-class and error-code as in Clause 18	Jingbo Gao, Sep 14, 2004
+class ErrorClass : public BACnetEnumerated
+{
+public:
+	static enum EnumValue
+	{
+		DEVICE		= 0,
+		OBJECT		= 1,
+		PROPERTY	= 2,
+		RESOURCES	= 3,
+		SECURITY	= 4,
+		SERVICES	= 5,
+		VT_ErrorCLass	= 6
+		//......
+	};
+};
+
+class ErrorCode : public BACnetEnumerated
+{
+public:
+	static enum EnumValue
+	{
+		OTHER								= 0,
+		AUTHENTICATION_FAILED				= 1,
+		CHARACTER_SET_NOT_SUPPORTED			= 41,
+		CONFIGURATION_IN_PROGRESS			= 2,
+		DEVICE_BUSY							= 3,
+		DYNAMIC_CREATION_NOT_SUPPORTED		= 4,
+		FILE_ACCESS_DYNIED					= 5,
+		INCOMPATIBLE_SECURITY_LEVELS		= 6,
+		INCONSISTENT_PARAMETERS				= 7,
+		INCONSISTERN_SELECTION_CRITERION	= 8,
+		INVALID_ARRAY_INDEX					= 42,
+		INVALID_CONFIGURATION_DATA			= 46,
+		INVALID_DATA_TYPE					= 9,
+		INVALID_FILE_ACCESS_METHOD			= 10,
+		INVALID_FLIE_START_POSITION			= 11,
+		INVALID_OPERATOR_NAME				= 12,
+		INVALID_PARAMETER_DATA_TYPE			= 13,
+		INVALID_TIME_STAMP					= 14,
+		KEY_GENERATION_ERROR				= 15,
+		MISSING_REQUIRED_PARAMETER			= 16,
+		NO_OBJECTS_OF_SPECIFIED_TYPE		= 17,
+		NO_SPACE_FOR_OBJECT					= 18,
+		NO_SPACE_TO_ADD_LIST_ELEMENT		= 19,
+		NO_SPACE_TO_WRITE_PROPERTY			= 20,
+		NO_VT_SESSIONS_AVAILABLE			= 21,
+		OBJECT_DELETION_NOT_PERMITTED		= 23,
+		OBJECT_IDENTIFIER_ALREADY_EXISTS	= 24,
+		OPERATIONAL_PROBLEM					= 25,
+		OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED= 45,
+		PASSWORD_FAILURE					= 26,
+		PROPERTY_IS_NOT_A_LIST				= 22,
+		READ_ACCESS_DENIED					= 27,
+		SECURITY_NOT_SUPPORTED				= 28,
+		SERVICE_REQUEST_DENIED				= 29,
+		TIMEOUT								= 30,
+		UNKNOWN_OBJECT						= 31,
+		UNKNOWN_PROPERTY					= 32,
+		UNKNOWN_VT_CLASS					= 34,
+		UNKNOWN_VT_SESSION					= 35,
+		UNSUPPORTED_OBJECT_TYPE				= 36,
+		VALUE_OUT_OF_RANGE					= 37,
+		VT_SESSION_ALREADY_CLOSED			= 38,
+		VT_SESSION_TERMINATION_FAILURE		= 39,
+		WRITE_ACCESS_DENIED					= 40,
+		COV_SUBSCRIPTION_FAILED				= 43,
+		NOT_COV_PROPERTY					= 44,
+		//......
+	};
+};
 
 #define throw_(x)	throw BACnetError( __FILE__, __LINE__, x )
 

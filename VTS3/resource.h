@@ -247,6 +247,7 @@
 #define IDD_LISTOFREADACCESSSPECIFICATION 359
 #define IDD_EPICSVIEW_PROP              360
 #define IDR_EPICS_PROP                  361
+#define IDD_BACKUP_RESTORE              362
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -665,6 +666,7 @@
 #define IDC_REALINCR                    1293
 #define IDC_TIMEDELAY                   1293
 #define IDC_DISCLAIMER                  1293
+#define IDC_DEVICEOBJINST               1293
 #define IDC_RPALL_DA                    1294
 #define IDC_MSTPMAXMASTER               1294
 #define ID_NEWFILTER                    1295
@@ -861,6 +863,15 @@
 #define IDC_RADIOBITSTR                 1517
 #define IDC_EPICSV_PROP_LIST            1521
 #define IDC_EPICSV_DA                   1522
+#define IDC_ALLBACKUPRESTORE            1523
+#define IDC_FULLBACKUPRESTORE           1524
+#define IDC_RESTOREONLY                 1525
+#define IDC_AUXILIARYBACKUPRESTORE      1526
+#define IDC_BACKUPONLY                  1527
+#define IDC_BACKUPFILENAME              1528
+#define IDC_BACKUPFILENAME2             1530
+#define IDC_BROWSE                      1531
+
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -908,6 +919,7 @@
 #define ID_SCRIPT_RUN1                  32829
 #define ID_SCRIPT_CHECK_SYNTAX1         32830
 #define ID_VIEW_EPICS                   32831
+#define ID_BACKUP_RESTORE               32832
 #define ID_EPICS_PROP_RP                32833
 #define ID_EPICS_PROP_WP                32834
 #define ID_EPICS_PROP_RPM               32835

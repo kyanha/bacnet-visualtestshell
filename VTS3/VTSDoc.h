@@ -651,6 +651,9 @@ public:
 	virtual void SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU = TRUE);
 	void ConvertPathToRelative( CString * pstr );
 
+	// Jingbo Gao, 2004-9-20, do backup and restore test
+	void DoBackupRestore(void);
+	
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
