@@ -15,6 +15,18 @@
 #include "HexView.h"
 #include "VTSStatisticsCollector.h"
 
+// Added by Liangping Xu,2002-11
+//madanner 6/03, moved out of ScriptFrame
+#include "CheckEPICSCons.h"
+#include "ScriptLoadResults.h"
+
+///////////////////////////////
+namespace PICS {
+#include "vtsapi.h"
+#include "dudapi.h"
+}
+
+extern PICS::PICSdb *gPICSdb;
 
 
 #ifdef _DEBUG
@@ -47,6 +59,7 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_LASTFRAME, OnUpdateViewLastFrame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_NEXTFRAME, OnUpdateViewNextFrame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_PREVFRAME, OnUpdateViewPrevFrame)
+	ON_UPDATE_COMMAND_UI(ID_EPICS_LOAD, OnUpdateEPICSLoad)
 	ON_COMMAND(ID_EDIT_DELETE, OnEditDelete)
 	ON_COMMAND(ID_EDIT_REFRESH, OnEditRefresh)
 	ON_COMMAND(ID_EDIT_PORTS, OnEditPorts)
@@ -66,6 +79,7 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_DETAIL, OnUpdateViewDetail)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_HEX, OnUpdateViewHex)
 	ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
+	ON_COMMAND(ID_EPICS_LOAD, OnEPICSLoad)
 	ON_WM_DESTROY()
 	//Added by Zhenhua ZHu, 2003-6-2
 	ON_COMMAND(ID_FILE_PRINT, OnFilePrint)
@@ -378,6 +392,18 @@ void CChildFrame::OnSendNewPacket()
 {
 	m_frameContext->m_pDoc->DoSendWindow( -1, -1 );
 }
+
+//	CChildFrame::OnUpdateEPICSLoad
+//
+//	It's kinda lame, but the menu item is checked when an EPICS has been 
+//	successfully loaded.
+
+afx_msg void CChildFrame::OnUpdateEPICSLoad(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable( true );
+	pCmdUI->SetCheck( gPICSdb != 0 );
+}
+
 
 //
 //	CChildFrame::OnSendSelectPort
@@ -780,3 +806,65 @@ void CChildFrame::OnUpdateFilePrint(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable(!m_bInPrinting);
 }
+
+
+//madanner 6/03, moved from ScriptFrame
+//	CChildFrame::OnEPICSLoad
+//
+
+void CChildFrame::OnEPICSLoad() 
+{
+	int				errc;
+	int             errPICS;
+	
+	if (gPICSdb) {
+		// delete the database
+		PICS::MyDeletePICSObject( gPICSdb->Database );
+
+		// toss the rest
+		delete gPICSdb;
+		gPICSdb = 0;
+	}
+
+	// prep a dialog
+	CFileDialog	fd( TRUE, "tpi", NULL, OFN_FILEMUSTEXIST, "EPICS (*.tpi)|*.tpi||" )
+	;
+	
+	// if not acceptable, exit
+	if (fd.DoModal() != IDOK)
+		return;
+
+	// make a new database
+	gPICSdb = new PICS::PICSdb;
+
+	// read in the EPICS
+	// madanner 6/03: ReadTextPICS now returns false if canceled by user
+
+	if ( PICS::ReadTextPICS( (char *)(LPCSTR)fd.GetFileName(), gPICSdb, &errc,&errPICS ) )
+	{
+		TRACE1( "error count = %d\n", errc );
+		//Added by Liangping Xu,2002-11
+		CCheckEPICSCons dlgEPICSCons;
+	    if(errPICS){
+			errc+=errPICS;
+			dlgEPICSCons.DoModal();
+		}
+	}
+
+    /////////////////////////////////
+	
+	// display the results
+	if (errc == 0)
+	{
+		ScriptLoadResults	dlg;
+		dlg.DoModal();
+	} else {
+		// delete the database
+		PICS::MyDeletePICSObject( gPICSdb->Database );
+
+		// toss the rest
+		delete gPICSdb;
+		gPICSdb = 0;
+	}
+}
+

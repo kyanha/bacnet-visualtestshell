@@ -86,6 +86,9 @@ protected:
 	afx_msg void OnUpdateViewNextFrame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewPrevFrame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewSend(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewDetail(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewHex(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateEPICSLoad(CCmdUI* pCmdUI);
 	afx_msg void OnEditDelete();
 	afx_msg void OnEditRefresh();
 	afx_msg void OnEditPorts();
@@ -103,8 +106,7 @@ protected:
 	//add by Hu Meng responding to new menu items
 	afx_msg void OnViewDetail();
 	afx_msg void OnViewHex();
-	afx_msg void OnUpdateViewDetail(CCmdUI* pCmdUI);
-	afx_msg void OnUpdateViewHex(CCmdUI* pCmdUI);
+	afx_msg void OnEPICSLoad();
 	//end 6.24
 	// Added by Yajun Zhou, 2002-7-24
 	afx_msg void OnFileExport();
