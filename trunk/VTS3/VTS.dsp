@@ -318,6 +318,10 @@ SOURCE=.\ScriptCase.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScriptCommand.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ScriptContentTree.cpp
 # End Source File
 # Begin Source File
@@ -334,6 +338,10 @@ SOURCE=.\ScriptEdit.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScriptExecMsg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ScriptExecutor.cpp
 # End Source File
 # Begin Source File
@@ -342,11 +350,23 @@ SOURCE=.\ScriptFrame.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScriptIfdefHandler.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ScriptKeywords.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\ScriptLoadResults.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptMakeDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptMsgMake.cpp
 # End Source File
 # Begin Source File
 
@@ -1087,6 +1107,10 @@ SOURCE=.\ScriptBase.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScriptCommand.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ScriptContentTree.h
 # End Source File
 # Begin Source File
@@ -1099,6 +1123,10 @@ SOURCE=.\ScriptEdit.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScriptExecMsg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ScriptExecutor.h
 # End Source File
 # Begin Source File
@@ -1107,11 +1135,23 @@ SOURCE=.\ScriptFrame.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScriptIfdefHandler.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ScriptKeywords.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\ScriptLoadResults.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptMakeDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptMsgMake.h
 # End Source File
 # Begin Source File
 
@@ -1633,6 +1673,22 @@ SOURCE=.\WPRPList.h
 # Begin Group "Resource Files"
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+# Begin Source File
+
+SOURCE=.\res\BACnetCheck.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\BACnetCheckT.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\BACnetMake.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\BACnetMakeT.bmp
+# End Source File
 # Begin Source File
 
 SOURCE=.\res\bitmap1.bmp
