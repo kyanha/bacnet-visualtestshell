@@ -57,6 +57,14 @@
 #define calent				46					//single calendar entry, madanner 11/1/02
 #define prival				47					//single priority value (could be b, flt, null, r), madanner 11/1/02
 
+//Added by Zhu Zhen hua, 2003-9-4
+#define dsofweek            48			//BACnetDaysofWeek
+#define eventransbits		49			//BACnetEventTansitionBits
+#define recipt				50			//BACnetRecipient
+#define destination         51			//BACnetDestination
+#define sequenceof			52			//BACnetSequenceOf
+#define listof				53			//BACnetListOf
+#define arrayof				54			//BACnetArrayOf
 
 #define ptDate 200  // parsetype BACnetDate
 #define ptTime 201  // parsetype BACnetTime

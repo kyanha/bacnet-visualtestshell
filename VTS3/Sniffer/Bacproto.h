@@ -324,6 +324,8 @@ void     show_bac_COV_Subscription(); //Xiao Shiyuan 2002-7-23
 void     show_bac_destination(void); //Xu yiping 2002-9-28
 void	 show_bac_bitstring_value(char**c);	//Xu yiping 2002-9-28
 
+/*  ----- functions to add new tree node to the detail view ----- */
+
 void	 show_head_obj_id( unsigned int , char* , int );		// Lei Chengxin 2003-7-25		
 void	 show_head_unsigned( unsigned int , char* , int );		// Lei Chengxin 2003-7-30
 void	 show_head_ascii( char* );								// Lei Chengxin 2003-7-31

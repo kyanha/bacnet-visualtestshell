@@ -183,6 +183,7 @@ Change log
 08/04/96  G. Gilliom    Added 3rd parameter to create_cache functional prototype.
                         Added define for size of cache header.
 08/26/96  A.Babulevich	Added ASYNC_PPP, SY_ASYNC mode and AS_FRAME_PPP for async mode.
+07/22/03  LCX			Added a new variable to classify the node type.
 ------------------------------------------------------------------------------*/
 
 /*
@@ -1064,6 +1065,9 @@ typedef struct {
 
 /*
 $Log$
+Revision 1.3.2.3  2003/09/05 04:21:06  lcx
+no message
+
 Revision 1.3.2.2  2003/09/03 07:00:15  lcx
 no message
 
