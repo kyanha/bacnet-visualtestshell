@@ -402,9 +402,13 @@ void VTSPreferences::Save( void )
 //			properties have been given in Addendum c and e, but we don't know if they have 
 //			been included in ANSI/ASHRAE Standard 135-2001 as they have been described in 
 //			Addendum C and E .
+//
+//	3.1.9	<add 3.1.9 changes here>
+//
+//
 
 
-const int kReleaseVersion = 8;
+const int kReleaseVersion = 9;
 
 class CAboutDlg : public CDialog
 {
