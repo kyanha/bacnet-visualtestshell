@@ -900,3 +900,10 @@ BOOL VTSApp::PreTranslateMessage(MSG* pMsg)
 	// pass along to regular processing
 	return CWinApp::PreTranslateMessage(pMsg);
 }
+
+//Added by Yajun Zhou, 2002-11-22
+CRecentFileList* VTSApp::GetRecentFileList()
+{
+	return m_pRecentFileList;
+}
+///////////////////////////////

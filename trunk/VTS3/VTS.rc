@@ -175,6 +175,7 @@ BEGIN
         MENUITEM "&Kill\tF8",                   ID_SCRIPT_KILL
         MENUITEM SEPARATOR
         MENUITEM "Rese&t",                      ID_SCRIPT_RESET
+        MENUITEM "Read &All Property",          ID_SCRIPT_READALLPROPERTY
     END
     POPUP "&Window"
     BEGIN
@@ -2408,6 +2409,22 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
 END
 
+IDD_READALLPROPSETTING DIALOG DISCARDABLE  0, 0, 208, 169
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Read All Property Settings"
+FONT 8, "MS Sans Serif"
+BEGIN
+    COMBOBOX        IDC_COMBO_NETWORK,73,29,80,30,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_IUTIP,73,52,100,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,45,131,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,111,131,50,14
+    LTEXT           "DA:",IDC_STATIC,53,58,13,8
+    LTEXT           "NetWork:",IDC_STATIC,33,33,33,8
+    LTEXT           "Notice: To do these tests, there must be a session database available. And you should specify the network and destination address here.",
+                    IDC_STATIC,17,83,173,38
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -3160,6 +3177,14 @@ BEGIN
         RIGHTMARGIN, 179
         TOPMARGIN, 7
         BOTTOMMARGIN, 83
+    END
+
+    IDD_READALLPROPSETTING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 201
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
     END
 END
 #endif    // APSTUDIO_INVOKED
