@@ -5445,7 +5445,8 @@ void show_bac_obj_prop_ref( void )
    unsigned int len;
 
    tagbuff = pif_get_byte(0);
-   while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
+  
+    while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
       tagval = (tagbuff&0xf0)>>4;
       if (tagbuff & 0x08) {  /* context tag */
         if(tagval > 2) {
@@ -5469,7 +5470,8 @@ void show_bac_obj_prop_ref( void )
         }
       tagbuff = pif_get_byte(0);
       }  /* end of while loop */
-   exit:;
+
+    exit:;
 }
 
 /**************************************************************************/
