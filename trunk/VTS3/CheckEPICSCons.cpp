@@ -66,8 +66,11 @@ BOOL CCheckEPICSCons::OnInitDialog()
 		  pLB->InsertString(-1,outMsg);
           fgets(fbuf,sizeof(fbuf),mfile);
 		}
+
+	    fclose(mfile);
 	}
-    fclose(mfile);
+	// madanner 6/03: moved close to inside successful condition
+
 	return CDialog::OnInitDialog();  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
