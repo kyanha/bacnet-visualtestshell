@@ -657,7 +657,7 @@ void BACnetBoolean::Decode( const char *dec )
 
 const char * BACnetBoolean::ToString() const
 {
-	return (boolValue ? "Set" : "Reset");
+	return (boolValue ? "True" : "False");
 }
 
 
