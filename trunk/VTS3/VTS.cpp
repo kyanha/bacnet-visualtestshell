@@ -1168,6 +1168,77 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //
 //  3.4.3	Capture and display filters added, PTP unfinished.  Caputure filters changed what is saved in the 
 //			database, but not what is otherwise processed by the application.
+//
+//			The capture and display filters are a list of ACCEPT or REJECT filter elements,
+//			each of which can specify a variety of source and destination addresses, as well
+//			as "function groups" that match the function groups in the Send menu.
+//
+//			Addresses are "deep parsed", so you can filter on anything to and/or from a remote
+//			network because the filter will look into the NPCI for routing information. Ack's
+//			to a confirmed service (both simple acks and complex acks) are paired up with the
+//			function group.
+//
+//			Note that this does not change the behavior of the application, only what is saved
+//			in the packet database and/or shown in the window. For this version, script
+//			generated "packets" are not subject to filtering.
+//
+//			(The up and down arrow buttons to change the order of the filter elements are not
+//			working).
+//
+//
+//
+//			Bug 567046: Reworked the Detail View to collapse tag details and expand the
+//			application data by default. This should make it easier to use the Detail View to
+//			spot the most important data quickly.
+//
+//
+//			Feature request 444130: The Property Identifier selection list is now context
+//			sensitive to the Object Type selected. The Properties at the top of the list are
+//			the standard Properties for the associated Object. These are followed by a string
+//			of dashes (---------) to serve as a visual separator, and then the remaining
+//			BACnet Properties are listed. At the end of the list is a Property named "", which
+//			allows the user to enter a numerical Property Identifier for proprietary
+//			Properties.
+//
+//			Proprietary Property Identifiers are now encoded and decoded correctly and shown
+//			as numerical Property Identifiers, but the value of the proprietary Property will
+//			not be decoded correctly if it is a constructed data type.
+//
+//			Property Identifiers are no longer restricted to the first 123 enumerations.
+//			Property Identifiers up to enumeration 168 (profile-name) are now decoded.
+//			Property Identifiers can now be up to enumeration 4194303. (This was limited to
+//			two octets in prior versions). Enumerations higher than 168 are shown as numerical
+//			Property Identifiers.
+//
+//
+//			Feature request 544511: More information was added to each row of the summary view
+//			in the sniffer. This feature needs to be reviewed to see if the most useful data
+//			was added for each message type.
+//
+//			Fixed the following bugs:
+//
+//				727597: Commas needed in bacfuncs.h. The strings "SCHEDULE" and "AVERAGING"
+//				are now separated.
+//				787626: EPICS parser does not know about new properties. The following
+//				Properties were added:
+//					ProfileName (all objects)
+//					Device.database-revision
+//					Device.configuration-files
+//					Device.last-restore-time
+//					Device.backup-failure-timeout
+//					Device.active-cov-subscriptions
+//					Device.max-segments-accepted
+//				779139: Send Dialog missing vertical scroll bar
+//				788953: Send UTCTimeSynchronization service is bad
+//				767301: UTCTimeSynchronization has extra fields
+//				759946: Object_Property_Reference property mislabelled
+//				767311: Signed values displayed as unsigned in Detail view
+//				787629: EPICS parser requires optional properties. The EPICS parser was
+//				generating an error when a) the device supports Event Notification services
+//				and b) any object that COULD support intrinsic alarming doesn't have the
+//				properties to do so (time-delay, notification-class, etc). Now the EPICS
+//				parser checks to see if ANY of the intrinsic reporting properties exist in
+//				each Object, and if so, they all must exist.
 
 
 const int kReleaseVersion = 3;
