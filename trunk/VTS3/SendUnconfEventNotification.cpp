@@ -222,7 +222,7 @@ void CSendUnconfEventNotification::SavePage( void )
 //	CSendUnconfEventNotification::RestorePage
 //
 
-void CSendUnconfEventNotification::RestorePage( void )
+void CSendUnconfEventNotification::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

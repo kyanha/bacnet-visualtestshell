@@ -127,7 +127,7 @@ void CSendWriteFileACK::SavePage( void )
 //	CSendWriteFileACK::RestorePage
 //
 
-void CSendWriteFileACK::RestorePage( void )
+void CSendWriteFileACK::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

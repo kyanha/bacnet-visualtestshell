@@ -168,7 +168,7 @@ void CSendReadFile::SavePage( void )
 //	CSendReadFile::RestorePage
 //
 
-void CSendReadFile::RestorePage( void )
+void CSendReadFile::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

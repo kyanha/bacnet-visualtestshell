@@ -108,7 +108,7 @@ void CSendIP::SavePage( void )
 //	CSendIP::RestorePage
 //
 
-void CSendIP::RestorePage( void )
+void CSendIP::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

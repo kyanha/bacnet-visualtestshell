@@ -269,7 +269,7 @@ void CSendConfirmedRequest::SavePage( void )
 //	CSendConfirmedRequest::RestorePage
 //
 
-void CSendConfirmedRequest::RestorePage( void )
+void CSendConfirmedRequest::RestorePage(  int index  )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

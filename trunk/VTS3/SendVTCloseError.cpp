@@ -215,7 +215,7 @@ void CSendVTCloseError::SavePage( void )
 //	CSendVTCloseError::RestorePage
 //
 
-void CSendVTCloseError::RestorePage( void )
+void CSendVTCloseError::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

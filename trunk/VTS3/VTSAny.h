@@ -53,6 +53,8 @@ class VTSAny : public CDialog
 // Construction
 public:
 	VTSAny(CWnd* pParent = NULL);   // standard constructor
+	VTSAny(const VTSAny&); //Xiao Shiyuan 2002-12-3
+	VTSAny& operator = (const VTSAny&);
 
 	VTSAnyList			m_anyList;				// list of encoded elements
 	int					m_iSelectedElem;		// index of selected element

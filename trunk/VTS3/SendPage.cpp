@@ -12,7 +12,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-
 /////////////////////////////////////////////////////////////////////////////
 // CSendPage
 
@@ -24,6 +23,7 @@ CSendPage::CSendPage( UINT id )
 	: CPropertyPage( id )
 	, pageParent(0)
 {
+	isShown = FALSE; //Xiao Shiyuan 2002-12-5
 }
 
 //
@@ -92,6 +92,6 @@ void CSendPage::SavePage( void )
 //	to what they were when the page was last saved.
 //
 
-void CSendPage::RestorePage( void )
+void CSendPage::RestorePage( int )
 {
 }

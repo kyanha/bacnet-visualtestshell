@@ -116,7 +116,7 @@ void CSendWhoIsRTN::SavePage( void )
 //	CSendWhoIsRTN::RestorePage
 //
 
-void CSendWhoIsRTN::RestorePage( void )
+void CSendWhoIsRTN::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

@@ -162,7 +162,7 @@ void CSendUnconfTextMsg::SavePage( void )
 //	CSendUnconfTextMsg::RestorePage
 //
 
-void CSendUnconfTextMsg::RestorePage( void )
+void CSendUnconfTextMsg::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

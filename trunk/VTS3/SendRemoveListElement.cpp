@@ -148,7 +148,7 @@ void CSendRemoveListElement::SavePage( void )
 //	CSendRemoveListElement::RestorePage
 //
 
-void CSendRemoveListElement::RestorePage( void )
+void CSendRemoveListElement::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

@@ -122,7 +122,7 @@ void CSendGetAlarmSummaryACK::SavePage( void )
 //	CSendGetAlarmSummaryACK::RestorePage
 //
 
-void CSendGetAlarmSummaryACK::RestorePage( void )
+void CSendGetAlarmSummaryACK::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

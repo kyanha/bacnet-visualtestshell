@@ -181,7 +181,7 @@ void CSendCreateObjectError::SavePage( void )
 //	CSendCreateObjectError::RestorePage
 //
 
-void CSendCreateObjectError::RestorePage( void )
+void CSendCreateObjectError::RestorePage(  int index  )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

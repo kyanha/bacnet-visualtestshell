@@ -6,6 +6,7 @@
 #include "SendWritePropMultError.h"
 
 #include "VTSObjectIdentifierDialog.h"
+#include "Send.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -20,7 +21,9 @@ namespace NetworkSniffer {
 	extern char *BACnetPropertyIdentifier[];
 }
 
-BACnetAPDUEncoder CSendWritePropMultError::pageContents;
+BACnetAPDUEncoder CSendWritePropMultError::pageContents[glMaxHistoryCount];
+int CSendWritePropMultError::historyCount = 0;           //Xiao Shiyuan 2002-12-5
+int CSendWritePropMultError::curHistoryIndex = 0;        //Xiao Shiyuan 2002-12-5
 
 /////////////////////////////////////////////////////////////////////////////
 // CSendWritePropMultError dialog
@@ -70,6 +73,8 @@ BEGIN_MESSAGE_MAP(CSendWritePropMultError, CPropertyPage)
 	ON_EN_CHANGE(IDC_PROPERTYID, OnChangePropertyID)
 	ON_EN_CHANGE(IDC_INDEX, OnChangeIndex)
 	ON_BN_CLICKED(IDC_OBJECTIDBTN, OnObjectIDButton)
+	ON_WM_SHOWWINDOW()
+	ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -195,27 +200,36 @@ void CSendWritePropMultError::SavePage( void )
 {
 	TRACE0( "CSendWritePropMultError::SavePage\n" );
 
-	pageContents.Flush();
+	pageContents[curHistoryIndex].Flush();
 
-	m_InvokeID.SaveCtrl( pageContents );
-	m_ServiceCombo.SaveCtrl( pageContents );
-	m_ErrorClassCombo.SaveCtrl( pageContents );
-	m_ErrorCodeCombo.SaveCtrl( pageContents );
-	m_ObjectID.SaveCtrl( pageContents );
-	m_PropertyID.SaveCtrl( pageContents );
-	m_Index.SaveCtrl( pageContents );
+	m_InvokeID.SaveCtrl( pageContents[curHistoryIndex] );
+	m_ServiceCombo.SaveCtrl( pageContents[curHistoryIndex] );
+	m_ErrorClassCombo.SaveCtrl( pageContents[curHistoryIndex] );
+	m_ErrorCodeCombo.SaveCtrl( pageContents[curHistoryIndex] );
+	m_ObjectID.SaveCtrl( pageContents[curHistoryIndex] );
+	m_PropertyID.SaveCtrl( pageContents[curHistoryIndex] );
+	m_Index.SaveCtrl( pageContents[curHistoryIndex] );
 }
 
 //
 //	CSendWritePropMultError::RestorePage
 //
 
-void CSendWritePropMultError::RestorePage( void )
+void CSendWritePropMultError::RestorePage( int index )
 {
-	BACnetAPDUDecoder	dec( pageContents )
-	;
-
 	TRACE0( "CSendWritePropMultError::RestorePage\n" );
+
+	if(historyCount < 1)
+		return;
+	
+	if(index > historyCount)
+		return;
+
+	index = curHistoryIndex - index - 1;
+	if(index < 0)
+		index = index + glMaxHistoryCount;
+
+	BACnetAPDUDecoder	dec( pageContents[index] );	
 
 	if (dec.pktLength == 0)
 		return;
@@ -227,6 +241,18 @@ void CSendWritePropMultError::RestorePage( void )
 	m_ObjectID.RestoreCtrl( dec );
 	m_PropertyID.RestoreCtrl( dec );
 	m_Index.RestoreCtrl( dec );
+
+	if(isShown)
+	{
+		//update data to controls
+		m_InvokeID.ObjToCtrl();
+		m_ServiceCombo.ObjToCtrl();
+		m_ErrorClassCombo.ObjToCtrl();
+		m_ErrorCodeCombo.ObjToCtrl();
+		m_ObjectID.ObjToCtrl();
+		m_PropertyID.ObjToCtrl();
+		m_Index.ObjToCtrl();
+	}
 }
 
 //
@@ -299,4 +325,32 @@ void CSendWritePropMultError::OnChangeIndex()
 	m_Index.UpdateData();
 	SavePage();
 	UpdateEncoded();
+}
+
+void CSendWritePropMultError::OnShowWindow(BOOL bShow, UINT nStatus) 
+{
+	CPropertyPage::OnShowWindow(bShow, nStatus);
+	
+	// TODO: Add your message handler code here
+	isShown = bShow;
+
+	if(bShow)
+	{
+		pageParent->SetHistoryComboBox(historyCount);
+		pageParent->curPagePtr = this;
+	}
+}
+
+void CSendWritePropMultError::OnDestroy() 
+{
+	CPropertyPage::OnDestroy();
+	
+	// TODO: Add your message handler code here
+	if(historyCount < glMaxHistoryCount)
+		historyCount++;
+
+	curHistoryIndex++;
+	
+	if(curHistoryIndex > glMaxHistoryCount - 1)
+		curHistoryIndex = 0;
 }

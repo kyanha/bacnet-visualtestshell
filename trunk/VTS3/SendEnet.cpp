@@ -151,7 +151,7 @@ void CSendEnet::SavePage( void )
 //	CSendEnet::RestorePage
 //
 
-void CSendEnet::RestorePage( void )
+void CSendEnet::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

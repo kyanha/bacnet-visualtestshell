@@ -114,13 +114,15 @@ public:
 
 	ReadPropACKListList		m_PropListList;		// list of lists
 
+	CList<CString, CString> m_strList;
+
 	void InitPage( void );						// give it a chance to init
 	void EncodePage( CByteArray* contents );	// encode the page
 
 	static BACnetAPDUEncoder	pageContents;
 
 	void SavePage( void );						// save contents
-	void RestorePage( void );					// restore contents to last saved values
+	void RestorePage( int index = 0 );					// restore contents to last saved values
 
 // Dialog Data
 	//{{AFX_DATA(CSendReadPropMultACK)
@@ -159,6 +161,8 @@ protected:
 	afx_msg void OnSelchangeClassCombo();
 	afx_msg void OnSelchangeCodeCombo();
 	afx_msg void OnObjectIDButton();
+	afx_msg void OnDestroy();
+	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

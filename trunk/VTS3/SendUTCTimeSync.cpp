@@ -156,7 +156,7 @@ void CSendUTCTimeSync::SavePage( void )
 //
 //	CSendUTCTimeSync::RestorePage
 //
-void CSendUTCTimeSync::RestorePage( void )
+void CSendUTCTimeSync::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

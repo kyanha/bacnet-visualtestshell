@@ -164,7 +164,7 @@ void CSendError::SavePage( void )
 //	CSendError::RestorePage
 //
 
-void CSendError::RestorePage( void )
+void CSendError::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

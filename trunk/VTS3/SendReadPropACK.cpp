@@ -148,7 +148,7 @@ void CSendReadPropACK::SavePage( void )
 //	CSendReadPropACK::RestorePage
 //
 
-void CSendReadPropACK::RestorePage( void )
+void CSendReadPropACK::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

@@ -143,7 +143,7 @@ void CSendWhoIs::SavePage( void )
 //	CSendWhoIs::RestorePage
 //
 
-void CSendWhoIs::RestorePage( void )
+void CSendWhoIs::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

@@ -384,8 +384,8 @@ void ScriptFrame::OnScriptCheckSyntax()
 
 void ScriptFrame::OnScriptLoadEPICS() 
 {
-	int				errc
-	;
+	int				errc;
+	int             errPICS;
 	
 	if (gPICSdb) {
 		// delete the database
@@ -408,9 +408,16 @@ void ScriptFrame::OnScriptLoadEPICS()
 	gPICSdb = new PICS::PICSdb;
 
 	// read in the EPICS
-	PICS::ReadTextPICS( (char *)(LPCSTR)fd.GetFileName(), gPICSdb, &errc );
+	PICS::ReadTextPICS( (char *)(LPCSTR)fd.GetFileName(), gPICSdb, &errc,&errPICS );
 	TRACE1( "error count = %d\n", errc );
-
+    //Added by Liangping Xu,2002-11
+	CCheckEPICSCons dlgEPICSCons;
+    if(errPICS){
+		errc+=errPICS;
+	    dlgEPICSCons.DoModal();
+	}
+    /////////////////////////////////
+	
 	// display the results
 	if (errc == 0) {
 		ScriptLoadResults().DoModal();

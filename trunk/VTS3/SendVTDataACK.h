@@ -30,7 +30,7 @@ public:
 	static BACnetAPDUEncoder	pageContents;
 
 	void SavePage( void );						// save contents
-	void RestorePage( void );					// restore contents to last saved values
+	void RestorePage( int index = 0 );					// restore contents to last saved values
 
 // Dialog Data
 	//{{AFX_DATA(CSendVTDataACK)

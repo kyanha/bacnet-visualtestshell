@@ -119,7 +119,7 @@ void CSendVendorNPDU::SavePage( void )
 //	CSendVendorNPDU::RestorePage
 //
 
-void CSendVendorNPDU::RestorePage( void )
+void CSendVendorNPDU::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

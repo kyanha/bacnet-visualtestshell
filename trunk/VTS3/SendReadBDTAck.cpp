@@ -138,7 +138,7 @@ void CSendReadBDTAck::SavePage( void )
 //	CSendReadBDTAck::RestorePage
 //
 
-void CSendReadBDTAck::RestorePage( void )
+void CSendReadBDTAck::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

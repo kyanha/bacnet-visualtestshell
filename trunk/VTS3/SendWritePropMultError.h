@@ -6,7 +6,6 @@
 #endif // _MSC_VER > 1000
 // SendWritePropMultError.h : header file
 //
-
 #include "SendPage.h"
 #include "VTSCtrl.h"
 
@@ -30,13 +29,16 @@ public:
 	VTSEnumeratedCtrl		m_PropertyID;
 	VTSUnsignedCtrl			m_Index;
 
+	static  int historyCount;           //Xiao Shiyuan 2002-12-5
+	static  int curHistoryIndex;        //Xiao Shiyuan 2002-12-5
+
 	void InitPage( void );						// give it a chance to init
 	void EncodePage( CByteArray* contents );	// encode the page
 
-	static BACnetAPDUEncoder	pageContents;
+	static BACnetAPDUEncoder	pageContents[glMaxHistoryCount];
 
 	void SavePage( void );						// save contents
-	void RestorePage( void );					// restore contents to last saved values
+	void RestorePage( int index = 0 );					// restore contents to last saved values
 
 // Dialog Data
 	//{{AFX_DATA(CSendWritePropMultError)
@@ -66,6 +68,8 @@ protected:
 	afx_msg void OnChangePropertyID();
 	afx_msg void OnChangeIndex();
 	afx_msg void OnObjectIDButton();
+	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
+	afx_msg void OnDestroy();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

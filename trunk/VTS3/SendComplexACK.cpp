@@ -220,7 +220,7 @@ void CSendComplexACK::SavePage( void )
 //	CSendComplexACK::RestorePage
 //
 
-void CSendComplexACK::RestorePage( void )
+void CSendComplexACK::RestorePage(  int index  )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

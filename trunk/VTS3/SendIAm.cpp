@@ -170,7 +170,7 @@ void CSendIAm::SavePage( void )
 //	CSendIAm::RestorePage
 //
 
-void CSendIAm::RestorePage( void )
+void CSendIAm::RestorePage( int index )
 {
 	BACnetAPDUDecoder	dec( pageContents )
 	;

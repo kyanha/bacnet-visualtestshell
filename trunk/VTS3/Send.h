@@ -251,9 +251,12 @@ public:
 	bool			m_isConfirmedRequest;		// true iff ConfirmedRequestPage loaded
 
 	CButton			m_send;						// send button
+	CComboBox       m_history;                  //choose history data. Xiao Shiyuan 2002-12-5  
+	CSendPagePtr    curPagePtr;                 //current shown page. Xiao Shiyuan 2002-12-5 
 
 // Operations
 public:
+	void SetHistoryComboBox(int count);
 	void UpdateEncoded( void );					// update the encoded contents
 	void DoSend();								// send the contents to the port
 
@@ -282,6 +285,7 @@ public:
 protected:
 	//{{AFX_MSG(CSend)
 	void OnSelchangePort();
+	void OnSelchangeHistory();
 	void OnSelchangePacketTree( NMHDR* pNotifyStruct, LRESULT* result );
 	void OnItemExpandedPacketTree( NMHDR* pNotifyStruct, LRESULT* result );
 	void OnSend();

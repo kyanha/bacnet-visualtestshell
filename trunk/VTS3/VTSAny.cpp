@@ -102,6 +102,40 @@ VTSAny::VTSAny(CWnd* pParent /*=NULL*/)
 	//}}AFX_DATA_INIT
 }
 
+//Xiao Shiyuan 2002-12-3
+VTSAny::VTSAny(const VTSAny& any)
+{   
+}
+
+//Xiao Shiyuan 2002-12-3
+VTSAny& VTSAny::operator = (const VTSAny& any)
+{
+   if(this != &any)
+   {
+	   for (POSITION pos = m_anyList.GetHeadPosition(); pos; )
+		delete (VTSAnyElementPtr)m_anyList.GetNext( pos );
+ 
+	   m_anyList.RemoveAll();	   
+
+	   for(int index = 0; index < any.m_anyList.GetCount(); index++)
+	   {		    
+			VTSAnyElementPtr old_elemPtr = any.m_anyList.GetAt(any.m_anyList.FindIndex(index));
+			VTSAnyElementPtr elemPtr = new VTSAnyElement();
+			
+            elemPtr->elemContext = old_elemPtr->elemContext;
+			elemPtr->elemType = old_elemPtr->elemType;	
+			elemPtr->elemEncoder = old_elemPtr->elemEncoder;
+			
+			m_anyList.AddTail(elemPtr);
+		}
+	    
+		m_hWndOwner = any.m_hWndOwner;
+		m_iSelectedElem = any.m_iSelectedElem;
+   }   
+
+   return *this;
+}
+
 void VTSAny::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
