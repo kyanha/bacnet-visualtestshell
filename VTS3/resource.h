@@ -913,6 +913,7 @@
 #define ID_EPICS_PROP_WPM               32836
 #define ID_EPICS_PROP_GEN               32837
 #define ID_EPICS_PROP_CLEAR             32838
+#define ID_EPICS_PROP_REUSE             32839
 #define ID_FILE_MRU_WKSFIRST            32850
 #define ID_FILE_MRU_WKS1                32850
 #define ID_FILE_MRU_WKS2                32851

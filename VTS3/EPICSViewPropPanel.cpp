@@ -25,6 +25,8 @@ IMPLEMENT_DYNCREATE(CEPICSViewPropPanel, CListView)
 
 CEPICSViewPropPanel::CEPICSViewPropPanel()
 {
+	m_pSend = NULL;
+	m_fSendReuse = true;
 }
 
 CEPICSViewPropPanel::~CEPICSViewPropPanel()
@@ -42,6 +44,7 @@ BEGIN_MESSAGE_MAP(CEPICSViewPropPanel, CListView)
 	ON_COMMAND(ID_EPICS_PROP_WPM, OnWritePropertyMultiple)
 	ON_COMMAND(ID_EPICS_PROP_GEN, OnReadAllProperty)
 	ON_COMMAND(ID_EPICS_PROP_CLEAR, OnDeviceValueClear)
+	ON_COMMAND(ID_EPICS_PROP_REUSE, OnCSendReuse)
 	ON_NOTIFY_REFLECT(NM_DBLCLK, OnDoubleClick)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -137,6 +140,8 @@ void CEPICSViewPropPanel::OnContextMenu(CWnd* pWnd, CPoint point)
 	menu.AppendMenu(MF_ENABLED | MF_UNCHECKED | MF_SEPARATOR);
 	menu.AppendMenu( (GetListCtrl().GetItemCount() > 0 ? MF_ENABLED : MF_GRAYED) | MF_UNCHECKED | MF_STRING, ID_EPICS_PROP_GEN, _T("Read Object Properties"));
 	menu.AppendMenu( (GetListCtrl().GetItemCount() > 0 && m_pObjectNode->HasDeviceValues() ? MF_ENABLED : MF_GRAYED) | MF_UNCHECKED | MF_STRING, ID_EPICS_PROP_CLEAR, _T("Clear Device Values"));
+	menu.AppendMenu(MF_ENABLED | MF_UNCHECKED | MF_SEPARATOR);
+	menu.AppendMenu( (m_fSendReuse ? MF_CHECKED : MF_UNCHECKED) | MF_ENABLED | MF_STRING, ID_EPICS_PROP_REUSE, _T("Reuse Send Window"));
 
 	menu.TrackPopupMenu( TPM_CENTERALIGN | TPM_LEFTBUTTON, point.x, point.y, this);
 }
@@ -243,6 +248,12 @@ void CEPICSViewPropPanel::OnDeviceValueClear()
 }
 
 
+void CEPICSViewPropPanel::OnCSendReuse() 
+{
+	m_fSendReuse = !m_fSendReuse;
+}
+
+
 int CEPICSViewPropPanel::GetFirstSelectedIndex()
 {
 	m_curpos = GetListCtrl().GetFirstSelectedItemPosition();
@@ -269,6 +280,7 @@ void CEPICSViewPropPanel::OnDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
 
 
 
+
 CSend * CEPICSViewPropPanel::InvokeSendWindow( LPCSTR lpszAction, int * pSelectedIndex )
 {
 	*pSelectedIndex = GetFirstSelectedIndex();
@@ -288,8 +300,23 @@ CSend * CEPICSViewPropPanel::InvokeSendWindow( LPCSTR lpszAction, int * pSelecte
 		ASSERT(0);
 	}
 
-	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
-	return pdoc->DoSendWindow( nSelectedGroup, nSelectedItem );
+	// Attempt to reuse the send window
+	// This doesn't work because the CSend window needs massaging to invoke the proper tab pages...
+
+//	if ( m_pSend == NULL || !AfxIsMemoryBlock(m_pSend, sizeof(CSend)) ||  !::IsWindow(m_pSend->m_hWnd)  ||  !m_fSendReuse )
+	if ( m_pSend == NULL || !::IsWindow(m_hwndSend)  ||  !m_fSendReuse )
+	{
+		VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+		m_pSend = pdoc->DoSendWindow( nSelectedGroup, nSelectedItem );
+		m_hwndSend = m_pSend->m_hWnd;
+	}
+	else
+	{
+		m_pSend->BringWindowToTop();
+		m_pSend->ChangePacketTree(nSelectedGroup, nSelectedItem);
+	}
+
+	return m_pSend;
 }
 
 

@@ -274,7 +274,8 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	m_pwndEPICSViewBar->m_pTabRing = m_pSummaryView;
 	
 	// make sure this isn't used
-	gNewFrameContext = NULL;
+//	gNewFrameContext = NULL;			madanner 9/04.. EPICS window listens, recreates and destroys
+
 	m_pwndDetailViewBar->LoadState(_T("Detail Bar Status"));
 	m_pwndHexViewBar->LoadState(_T("Hex Bar Status"));
 	m_pwndEPICSViewBar->LoadState(_T("EPICS Bar Status"));

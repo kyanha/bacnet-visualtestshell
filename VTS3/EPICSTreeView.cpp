@@ -43,7 +43,7 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNCREATE(CEPICSTreeView, CFormView)
 
-CEPICSTreeView::CEPICSTreeView() : CFormView(CEPICSTreeView::IDD)
+CEPICSTreeView::CEPICSTreeView() : m_summary(true, false), CFormView(CEPICSTreeView::IDD)
 {
 	m_pwndSplit = NULL;
 	m_pnodeview = NULL;
@@ -76,6 +76,7 @@ BEGIN_MESSAGE_MAP(CEPICSTreeView, CFormView)
 	ON_WM_DESTROY()
 	ON_BN_CLICKED(IDC_EPICSV_GEN, OnEpicsReadSingleProps)
 	ON_BN_CLICKED(IDC_EPICSV_GENALL, OnEpicsReadAllProps)
+	ON_WM_CREATE()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -126,6 +127,39 @@ void CEPICSTreeView::OnSize(UINT nType, int cx, int cy)
 	CFormView::OnSize(nType, cx, cy);
 	
 }
+
+
+int CEPICSTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct) 
+{
+	if (CFormView::OnCreate(lpCreateStruct) == -1)
+		return -1;
+	
+	SetContext( gNewFrameContext );
+	return 0;
+}
+
+
+// Called when a new packet is received...
+// See if we should pay attention to it.
+
+void CEPICSTreeView::ContextChange( CFrameContext::Signal s )
+{
+	// If this notification isn't for a newly arrived packet, or we haven't loaded EPICS or
+	// there are no packet... get out.
+
+	if ( s != CFrameContext::eNewPacketCount ||  gPICSdb == NULL  ||  m_FrameContext->m_PacketCount <= 0 )
+		return;
+	
+	// Get last added packet and get out if it's not a received packet
+	VTSPacketPtr ppkt = m_FrameContext->m_pDoc->GetPacket(m_FrameContext->m_PacketCount-1);
+
+	if ( ppkt->packetHdr.packetType != rxData )
+		return;
+
+	m_summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
+	GetDlgItem(IDC_EPICSV_FILENAME)->SetWindowText(m_summary.summaryLine);
+}
+
 
 
 void CEPICSTreeView::ResizeControl(CWnd * pwnd, int cx, int cy)
@@ -427,8 +461,13 @@ void CEPICSTreeView::OnSelchangedEpicsTree(NMHDR* pNMHDR, LRESULT* pResult)
 void CEPICSTreeView::OnDestroy() 
 {
 	CTreeCtrl * ptree = (CTreeCtrl *) GetDlgItem(IDC_EPICSV_TREE);
+
+	// Kill the frame context listner
+	RemoveContext();
+
 	WipeOut(ptree, ptree->GetRootItem());
 	ptree->DeleteAllItems();
 
 	CFormView::OnDestroy();
 }
+
