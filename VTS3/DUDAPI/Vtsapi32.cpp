@@ -92,6 +92,13 @@ BOOL ParseSessionKeyList(BACnetSessionKey **);
 BOOL ParseRefList(BACnetObjectPropertyReference	**);
 BACnetRecipient *ParseRecipient(BACnetRecipient *);
 BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference	*);
+
+//************added by Liangping Xu,2002-9*****************//
+BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference *);
+
+//
+/////////////////////////////////////////////////////////////
+
 BACnetActionCommand *ReadActionCommands(void);
 BOOL setstring(char *,word,char *);
 char *ReadNext(void);						//										***008
@@ -207,8 +214,9 @@ static char *StandardServices[]={
          "UTC-Time-Synchronization",
          "LifeSafetyOperation",		    
          "SubscribeCOVProperty",		     
-         "GetEventInformation"			
+         "GetEventInformation"
 			};
+
 static char *StandardObjects[]={
 			"Analog Input",
 			"Analog Output",       
@@ -1277,6 +1285,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 	etable 			*ep;
 	float		far	*fp;
 	word		far	*wp;
+    char        *p; 
 	char		**cp;
 	octet		*op;
 	BACnetActionCommand **acp;
@@ -1295,7 +1304,11 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 			skipwhitespace();					//point to where the value should be					***013 Begin
 			sprintf(opj,"PP: pd->ParseType == %d\n",pd->ParseType); //MAG
 			mprintf(opj); //MAG
-			if (*lp=='?')						//property value is unspecified
+//Modfyied by Liangping Xu,2002-9
+            p=lp;
+			if(strchr(p,42)||strchr(p,63))
+			//if (*lp=='?'||*lp=='*')						//property value is unspecified
+////////////////////////////////////////////////
 			{	pobj->propflags[pindex]|=ValueUnknown;	//we don't know what the value is
 				lp++;							//skip ?												***014
 			}
@@ -1313,6 +1326,11 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					break;
 				case propref:					//obj property reference
 					ParseReference((BACnetObjectPropertyReference *)pstruc);
+					break;
+
+				//////Modified by Liangping Xu,2002-9////
+				case devobjpropref:					//obj property reference
+                    ParseDevObjPropReference((BACnetDeviceObjectPropertyReference *)pstruc);
 					break;
 				case recip:						//recipient
 					ParseRecipient((BACnetRecipient *)pstruc);						//				***012
@@ -1359,12 +1377,21 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 				case dt:						//date/time
 					if (ParseDateTime((BACnetDateTime *)pstruc)) return true;
 					break;
+                //** Modified by Liangping Xu,2002-9
 				case dtrange:					//daterange
 					skipwhitespace();
 					if (MustBe('(')) return true;
+	                 mprintf("PD:  ParseDateRange starts now\n");	
+                	if (MustBe('(')) return true; 
+	                 mprintf("PD: about to read first date\n");     
 					dtp=(BACnetDateRange *)pstruc;
 					if (ParseDate(&dtp->start_date)) return true;
+                    if(*lp=='.'&&*(lp+1)=='.')     
 					lp=strstr(lp,"..")+2;
+                    else                           
+						lp=strstr(lp,"-")+1;
+                	if (MustBe('(')) return true;  
+	                 mprintf("PD: about to second first date\n");                        
 					if (ParseDate(&dtp->end_date)) return true;
 					if (MustBe(')')) return true;
 					break;
@@ -1498,7 +1525,10 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					if ((lp=openarray(lp))==NULL) return true;
 					
 					while (*lp&&i<16)
-					{	if (*lp=='n'||*lp=='N')	//we'll assume he means 'NULL'
+					{
+						while(*lp==space){lp++;       // skip the space **add by xlp**
+						}                         
+						if (*lp=='n'||*lp=='N')	//we'll assume he means 'NULL'
 						{	*fp++=fpaNULL;		//									***013 Begin
 							while (*lp&&*lp!=space&&*lp!=','&&*lp!='}') lp++; //skip rest of NULL ***014
 						}						//									***013 End
@@ -1537,7 +1567,9 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 				case sw:						//signed word
 					*(int *)pstruc=atoi(lp);
 					break;
-				case ssint:						// case added for 2.27 MAG 13 FEB 2001
+				case ssint:						// case added  by Liangping Xu, 2002-8-5
+					*(int*)pstruc =(int)atoi(lp);	
+					break;
 				case flt:						//float
 					*(float *)pstruc=(float)atof(lp);
 					break;
@@ -2284,6 +2316,109 @@ oprfail:
 	return NULL;
 }
 
+//*********added by Liangping Xu,2002-9*************************//
+
+///////////////////////////////////////////////////////////////////////
+//	read a BACnetDeviceObjectPropertyReference from the buffer lp points to
+//	((objtype,instance),propertyname[arrayindex])  or ?
+//in:	lp		points to current position in buffer lb
+//		inq		points to a BACnetDeviceObjectPropertyReference to be filled in (or NULL)
+//out:	NULL	if an error occurred
+//		else	pointer to newly created BACnetObjectPropertyReference
+//		lp		points past the delimiter ) unless it was the end of the buffer
+
+BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference	*inq)
+{	BACnetDeviceObjectPropertyReference	*q=NULL;
+	propdescriptor		*pd;
+	dword	dw,objId_Ref;
+	word	i,objtype_Ref;
+	char	pn[40];
+	
+	//here we have ((objtype,instance),propertyname[arrayindex])...
+	skipwhitespace();
+	if (*lp=='?') return NULL;
+	if (MustBe('(')) return NULL;
+
+	if (inq==NULL)
+	{	if ((q=(BACnetDeviceObjectPropertyReference *)malloc(sizeof(BACnetDeviceObjectPropertyReference)))==NULL)
+		{	tperror("Can't Get Object Space!",true);
+			return NULL;
+		}
+	}
+	else
+		q=inq;
+
+    //initial the Values
+    q->DeviceObj.object_id =0xffffffff;
+    q->Objid.object_id =0xffffffff;
+	q->wPropertyid=0xffffffff;
+	q->ulIndex=NotAnArray;
+
+	skipwhitespace();
+	dw=ReadObjID();
+	if (dw==badobjid)
+	{	tperror("Must use an Object Identifier here!",true);	//					***006
+		goto oprfail;
+	}
+    if((objtype_Ref=(dw>>22))==0x0008) 
+     q->DeviceObj.object_id =dw;
+	else{ 
+		 q->Objid.object_id=dw; 
+		 objId_Ref=dw;
+		 goto propcheck;
+	}
+	if ((strdelim(","))==NULL) goto oprfail;
+	skipwhitespace();						//										***006
+
+    //Read Obj_id that's referred
+	objId_Ref=ReadObjID();
+	if (objId_Ref==badobjid)
+	{	tperror("Must use an Object Identifier here!",true);	//					***006
+		goto oprfail;
+	}
+    q->Objid.object_id=objId_Ref;
+propcheck:
+	if ((strdelim(","))==NULL) goto oprfail;
+
+//*****check out the Property referred	
+	i=0;
+	while(*lp&&*lp!=','&&*lp!=')'&&*lp!='['&&i<39)
+		pn[i++]=*lp++;
+	pn[i]=0;								//force it to be asciz
+	rtrim(&pn[0]);							//										***006 Begin
+	while(i)								//force _ and spaces to dashes
+	{	if (pn[i]==space||pn[i]=='_') pn[i]='-';
+		i--;
+	}										//										***006 End
+	pd=StdObjects[(word)(objId_Ref>>22)].sotProps;	//point to property descriptor table for this object type
+	do
+	{	if (stricmp(pn,pd->PropertyName)==0)	//found this property name
+        {	q->wPropertyid=pd->PropID;
+        	break;
+		}
+		if (pd->PropGroup&Last)
+		{	tperror("Invalid Property Name",true);
+			break;
+		}
+		pd++;								//advance to next table entry
+	}
+	while(true);
+
+	q->ulIndex=NotAnArray;
+	if (pd->PropFlags&IsArray)
+	{	if (MustBe('[')) goto oprfail;		//require [arrayindex]					***012 Begin
+		q->ulIndex=ReadW();
+	}
+	if (MustBe(')')) return NULL;
+	return q;
+	
+oprfail:
+	if (inq==NULL) free(q);
+	return NULL;
+}
+//
+////////////////////////////////////////////////////////////////////
+
 ///////////////////////////////////////////////////////////////////////				***008 Begin
 //	read a list BACnetCalendarEntrys from the buffer lp points to
 //	((m/d/y dow),(d-m-y dow),(m,wom,dow),(date..date)...)
@@ -2301,7 +2436,8 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 				
 	*calp=NULL;									//initially there is no list
 	skipwhitespace();
-	if (MustBe('{')) return true;  // MAG was (
+	//if (MustBe('{')) return true;  // MAG was (
+	if (MustBe('(')) return true;     //Modified by xlp
 	while(true)
 	{   //here lp must point to:
 		//1. a comma or whitespace which we ignore as a separator between list elements.
@@ -2312,7 +2448,8 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
 		if (*lp==0) 
 			if (ReadNext()==NULL) break;
-		if (*lp=='}')  // MAG was )
+		//if (*lp=='}')  // MAG was )
+		if (*lp==')')    //Modified by xlp
 		{	lp++;
 			break;								//close this list out
 		}
@@ -2369,12 +2506,23 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 	    		}
 	    	lp+=3;
 		}
-		else if (strstr(lp,"..")!=NULL)		//must be daterange
+//***Modified by Liangping Xu,2002-9
+//		else if (strstr(lp,"..")!=NULL)		//must be daterange
+		else if (strstr(lp,"..")!=NULL||strstr(lp,"(")!=NULL)  
 		{	q->choice=1;						//DateRange
-			if (ParseDate(&q->u.date_range.start_date)) goto calx;
-			lp=strstr(lp,"..")+2;				//skip delimiter
+	        if (MustBe('(')) return true;       
+		    if (ParseDate(&q->u.date_range.start_date)) goto calx;
+            if(ep==strstr(ep,".."))
+			{ep+=2;				//skip delimiter
+			  lp=ep;
+			}
+			else if(ep==strstr(ep,"-"))
+			{ ep++; lp=ep;}
+	        if (MustBe('(')) return true;       
 			if (ParseDate(&q->u.date_range.end_date)) goto calx;
 		}
+//////////////////////////////////////////////////////////////
+
 		else									//must be date
 		{	q->choice=0;						//Date
 			if (ParseDate(&q->u.date)) goto calx;
@@ -2582,7 +2730,7 @@ BOOL ParseDate(BACnetDate *dtp)
 {	octet	db;
 	word	i;
 	char opj[300]; // MAG
-
+    char c;
 	sprintf(opj,"PD: Enter ParseDate, lp = '%s'\n",lp);	//MAG
 	mprintf(opj);									//MAG
 	
@@ -2622,7 +2770,8 @@ BOOL ParseDate(BACnetDate *dtp)
 		for (i=0;i<12;i++)
     		if (strnicmp(lp,MonthNames[i],3)==0)
     		{	dtp->month=(octet)i+1;			//months are 1-12
-    			break;
+    			lp+=3;							//added by Liangping Xu
+			    break;
     		}
     	if ((strdelim("-"))==NULL)
 		{	tperror("Must use monthname-year here!",true);
@@ -2648,14 +2797,27 @@ BOOL ParseDate(BACnetDate *dtp)
     	dtp->year=(octet)i;
     }
     if (lp[-1]==space)							//must have a day of week
-    {	for(i=0;i<7;i++)
+    {   c=*lp;
+	if(c=='?'|| c=='*') {
+	 lp++;
+	 dtp->day_of_week=dontcare;
+	}
+		else{
+		for(i=0;i<7;i++)
     		if (strnicmp(lp,DOWNames[i],3)==0)
     		{	dtp->day_of_week=(octet)i+1;	//days are 1-7
     			lp+=3;							//skip day name						***013
     			break;
     		}
-    }
-    else
+		}
+	}
+
+	else if(lp[-1]==')') {                    //added by Liangping Xu,2002-9
+	mprintf("PD: Exit ParseDate normal\n");	
+	return false;        
+	}
+	
+	else
     	lp--;									//point back to delimiter
 	mprintf("PD: Exit ParseDate normal\n");
 	return false;
@@ -3479,6 +3641,11 @@ octet ReadB(octet lb,octet ub)
 	{	c=*lp++;								//pretend ? is a valid digit
 		d=dontcare;
 	}
+	//Added by xuyiping 2002-8-29
+	if (c=='*') 
+	{	c=*lp++;								//pretend * is a valid digit
+		d=dontcare;
+	}
 	if (c==0) lp--;								//stick at end of buffer
 	if (d!=dontcare)
 	{	if(d<lb||d>ub)
@@ -3537,6 +3704,7 @@ word ReadEnum(etable *etp)
 		else									//found the delimiter
 			break;
 	}
+    e[i]=0;  //add by Liangping Xu,2002-8
 	mprintf("RE: find enum '");
 	mprintf(e);
 	mprintf("'\n");
