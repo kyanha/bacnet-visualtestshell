@@ -2582,7 +2582,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                          $(InputPath)                                          $(OutDir)\ 
+	copy                                           $(InputPath)                                           $(OutDir)\ 
 
 # End Custom Build
 
@@ -2593,7 +2593,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                          $(InputPath)                                          $(OutDir)\ 
+	copy                                           $(InputPath)                                           $(OutDir)\ 
 
 # End Custom Build
 

@@ -1548,8 +1548,15 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //      Added the EPICS view.
 //      Upgraded EPICS functionality to the level of 135.1-2003.
 //      Rewrote EPICS consistency tests.
-  
-			 
+
+//      # Bug 799851: Fixed Script line numbers off by one in VTS messages
+// ScriptBase.cpp has a class member named scanLine. That member is file local;
+// there are no references to it outside the file. It was being initialized to
+// -1 in ScriptBase::Initialize(). I changed it to initialize to 0 in
+// ScriptBase::Initialize(), and I moved the location of where scanLine += 1;
+// executes, so that other data structures which are indexed by scanLine are
+// unaffected. They formerly executed after scanLine += 1; which had started at
+// -1, now they execute before scanLine += 1; but scanLine starts at 0.
 			
 			
 const int kReleaseVersion = 7;
