@@ -239,8 +239,27 @@ bool ScriptToken::IsInteger( int &valu, ScriptParmListPtr parms ) const
 		else
 			return false;
 	} else
-	if (tokenType != scriptValue)
+	if (tokenType != scriptValue && tokenType != scriptReference)
 		return false;
+
+  // Check for tag
+  if (tokenType == scriptReference)
+    {
+      // Tags are surrounded by braces
+      if (*src != '{')
+        return false;
+
+      src++;
+
+      if (!isdigit(*src))
+        return false;
+
+      for (valu = 0; isdigit(*src), *src != '}'; *src++)
+        {
+          valu = (valu * 10) + (*src - '0');
+        }
+      return true;
+    }
 
 	// look for a sign
 	if (*src == '-') {
