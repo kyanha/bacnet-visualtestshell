@@ -123,6 +123,7 @@ void VTSCalendarEntryDlg::Encode(BACnetAPDUEncoder& enc,int context)
 
 void VTSCalendarEntryDlg::OnOK() 
 {
+//Modified by Zhu Zhenhua, 2004-6-14
 	// TODO: Add extra validation here
 	switch (m_nChoice) {
 	case 0:
@@ -131,6 +132,7 @@ void VTSCalendarEntryDlg::OnOK()
 			BACnetDate* pDate = new BACnetDate();
 			*pDate = m_DateCtrl;
 			m_value.SetObject(pDate);
+			m_value.m_nChoice = m_nChoice;
 			break;
 		}
 	case 1:
@@ -141,6 +143,7 @@ void VTSCalendarEntryDlg::OnOK()
 			pDateRange->bacnetDateStart = m_StartDateCtrl;
 			pDateRange->bacnetDateEnd = m_EndDateCtrl;
 			m_value.SetObject(pDateRange);
+			m_value.m_nChoice = m_nChoice;
 			break;
 		}
 	case 2:
@@ -149,6 +152,7 @@ void VTSCalendarEntryDlg::OnOK()
 			BACnetOctetString *pWeekNDay=new BACnetOctetString(m_WeekNDayCtrl);
 	//		*pWeekNDay = (BACnetOctetString)m_WeekNDayCtrl;
 			m_value.SetObject(pWeekNDay);
+			m_value.m_nChoice = m_nChoice;
 			break;
 		}
 	default:

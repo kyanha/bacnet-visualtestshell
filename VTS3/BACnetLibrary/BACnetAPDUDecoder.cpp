@@ -61,6 +61,27 @@ void BACnetAPDUDecoder::ExamineTag( BACnetAPDUTag &t )
 	pktLength = len;
 }
 
+bool BACnetAPDUDecoder::ExamineOption(int nContext)	//Added by Zhu Zhenhua, 2004-6-14
+{
+	if(pktLength <= 0)
+		return false;
+	
+	BACnetAPDUTag tag;
+
+	try
+	{
+		ExamineTag(tag);
+	}
+	catch(...)
+	{
+		return false;
+	}
+	
+	if(tag.tagClass == closingTagClass)
+		return false;
+	else
+		return (tag.tagNumber == nContext);	
+}
 //
 //	BACnetAPDUDecoder::Skip
 //

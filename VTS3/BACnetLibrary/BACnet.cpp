@@ -5345,41 +5345,47 @@ void BACnetCalendarEntry::Encode( BACnetAPDUEncoder& enc, int context)
 {
 	if(pbacnetTypedValue == NULL)
 		return;
-	if(context == 1)	//daterange
+	switch (m_nChoice) 
 	{
-		BACnetOpeningTag().Encode(enc,1);
+	case 0:
+		pbacnetTypedValue->Encode(enc, 0);
+		break;
+	case 1:
+		BACnetOpeningTag().Encode(enc, 1);
 		pbacnetTypedValue->Encode(enc);
-		BACnetClosingTag().Encode(enc,1);
+		BACnetClosingTag().Encode(enc, 1);
+		break;
+	case 2:
+		pbacnetTypedValue->Encode(enc, 2);
+		break;
+	default:
+		throw "Unknow choice.";
+		break;
 	}
-	else
-		pbacnetTypedValue->Encode(enc, context);
-
 }
 
 
 void BACnetCalendarEntry::Decode( BACnetAPDUDecoder& dec )
 {
 	BACnetAPDUTag		tagTestType;
-
-	//Modified by HUMENG
 	dec.ExamineTag(tagTestType);
-
-	// Tag has 0, 1, 2 for date, range, weeknday
-
-	if (tagTestType.tagClass == openingTagClass)
+	m_nChoice = tagTestType.tagNumber;		
+	switch (m_nChoice) 
 	{
+	case 0:
+		SetObject( new BACnetDate(dec) );
+		break;
+	case 1:
 		BACnetOpeningTag().Decode(dec);
 		SetObject( new BACnetDateRange(dec) ); 
 		BACnetClosingTag().Decode(dec);
-	}
-	else
-    switch (tagTestType.tagNumber)
-	{
-		case 0:					SetObject( new BACnetDate(dec) );	break;
-		//case 1:					SetObject( new BACnetDateRange(dec) ); break;
-		case 2:					SetObject( new BACnetWeekNDay(dec) ); break;
-		default:				TRACE0("INVALID type in encoded stream for CalendarEntry");
-								ASSERT(0);
+		break;
+	case 2:
+		SetObject( new BACnetWeekNDay(dec) );
+		break;
+	default:
+		throw "Unknow choice.";
+		break;
 	}
 }
 

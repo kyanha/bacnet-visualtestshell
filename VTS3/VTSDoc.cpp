@@ -3047,6 +3047,7 @@ int VTSFilters::ConfirmedServiceFnGroup( int service )
 		case confirmedEventNotification:
 		case getAlarmSummary:
 		case getEnrollmentSummary:
+		case getEventInformation:                 //Added by Zhu Zhenhua, 2004-5-25
 		case subscribeCOV:
 			pktFnGroup = 5;
 			break;

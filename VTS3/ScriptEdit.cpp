@@ -70,7 +70,7 @@ namespace NetworkSniffer {
 #define MARGIN_3			25
 #define CHAR_HEIGHT			16
 #define LIMITTEXT			0x000FFFFF
-#define MAX_PROPID			168  //Added by Zhu Zhenhua, 2003-12-25
+#define MAX_PROPID			174  //Modified by Zhu Zhenhua, 2004-5-11
 /////////////////////////////////////////////////////////////////////////////
 // ScriptEdit
 
@@ -217,7 +217,7 @@ void ScriptEdit::OnInitialUpdate()
 
 //Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
 	
-	for(int i = 0; i <= MAX_PROPID; i ++)
+	for(int i = 0; i < MAX_PROPID; i ++)
 	{	
 		CString strprop;
 		strprop = NetworkSniffer::BACnetPropertyIdentifier[i];
