@@ -392,9 +392,9 @@ void pif_show_nbytes_hex( char *prstr, int byte_count )
 
 long pif_show_long_hl( char *prstr )
 {
-	char	*s
+	char			*s
 	;
-	long	arg
+	unsigned long	arg
 	;
 	
 	// get a detail line
@@ -416,9 +416,9 @@ long pif_show_long_hl( char *prstr )
 
 int pif_show_word_hl( char *prstr )
 {
-	char	*s
+	char			*s
 	;
-	short	arg
+	unsigned short	arg
 	;
 	
 	// get a detail line
@@ -440,16 +440,16 @@ int pif_show_word_hl( char *prstr )
 
 int pif_show_byte( char *prstr )
 {
-	char	*s
+	char			*s
 	;
-	int		arg
+	unsigned char	arg
 	;
 	
 	// get a detail line
 	s = get_int_line( pif_pi, pif_offset, 1 );
 	
 	// get the long data and format it in the buffer
-	arg = (unsigned char)pif_get_byte(0);
+	arg = pif_get_byte(0);
 	sprintf( s, prstr, arg );
 	
 	// update the offset
