@@ -3820,15 +3820,25 @@ void show_timeSynchronization( void )
    show_application_data(pif_get_byte(0)); /*Date*/
    show_application_data(pif_get_byte(0)); /*Time*/
 }
+/*************************************************************************/
+  /* This function interprets UTC Time Synchronization requests */
 
 void show_UTCtimeSynchronization( void )
-/*************************************************************************/
-  /* This function interprets Time Synchronization requests */
 {
+   unsigned int len,x;
+
    bac_show_byte("UTC Time Synchronization Request","%u");
    show_application_data(pif_get_byte(0)); /*Date*/
    show_application_data(pif_get_byte(0)); /*Time*/
-   // remember to show the daylight savings status flag
+   len = show_context_tag("UTC_Offset");   /*UTC _Offst*/
+   show_bac_signed(len);
+
+   len = show_context_tag("DaylightSavingsStatus");   /*DaylightSavingsStatus*/
+   x = pif_get_byte(-1);
+   if(x & 0x0F)
+      bac_show_nbytes(len, "TRUE");
+   else
+      bac_show_nbytes(len,"FALSE");
 }
 /*************************************************************************/
 void show_whoHas( void )
