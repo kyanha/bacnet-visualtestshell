@@ -1846,19 +1846,18 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 	if (!bitBuff)
 		throw_(49) /* destination too small */;
 	
-	// copy out the data, null terminated
+	// copy out the data
 #ifdef ENDIAN_SWAP
-	int i = 0;
+	int i = 0, copyLen = tag.tagLVT;
 
-	// madanner 9/10/02, dec.pktLengh check for non-zero wasn't accounting for end tag byte.
-	// Tag byte was being copied as bit flag holder.
-	// There may be a case where no bit flags are present and the tag wouldn't be there either...
-	// But I'm not sure about this.  Testing for > 0 instead of bool accounts for this potential.
-
-	while ( dec.pktLength - 1 > 0 ) {
+	// don't copy more than copyLen octets
+	while (dec.pktLength && copyLen) {
 		bitBuff[i] = 0;
-		for (int j = 3; (dec.pktLength - 1) > 0 && j >= 0; j--)
+		for (int j = 3; (dec.pktLength - 1) > 0 && j >= 0; j--) {
 			bitBuff[i] |= (dec.pktLength--,*dec.pktBuffer++) << (j * 8);
+			if (!--copyLen)
+				break;
+		}
 		i += 1;
 	}
 #else
