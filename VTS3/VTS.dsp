@@ -1,0 +1,1455 @@
+# Microsoft Developer Studio Project File - Name="VTS" - Package Owner=<4>
+# Microsoft Developer Studio Generated Build File, Format Version 6.00
+# ** DO NOT EDIT **
+
+# TARGTYPE "Win32 (x86) Application" 0x0101
+
+CFG=VTS - Win32 Debug
+!MESSAGE This is not a valid makefile. To build this project using NMAKE,
+!MESSAGE use the Export Makefile command and run
+!MESSAGE 
+!MESSAGE NMAKE /f "VTS.mak".
+!MESSAGE 
+!MESSAGE You can specify a configuration when running NMAKE
+!MESSAGE by defining the macro CFG on the command line. For example:
+!MESSAGE 
+!MESSAGE NMAKE /f "VTS.mak" CFG="VTS - Win32 Debug"
+!MESSAGE 
+!MESSAGE Possible choices for configuration are:
+!MESSAGE 
+!MESSAGE "VTS - Win32 Release" (based on "Win32 (x86) Application")
+!MESSAGE "VTS - Win32 Debug" (based on "Win32 (x86) Application")
+!MESSAGE 
+
+# Begin Project
+# PROP AllowPerConfigDependencies 0
+# PROP Scc_ProjName ""
+# PROP Scc_LocalPath ""
+CPP=cl.exe
+MTL=midl.exe
+RSC=rc.exe
+
+!IF  "$(CFG)" == "VTS - Win32 Release"
+
+# PROP BASE Use_MFC 6
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "Release"
+# PROP BASE Intermediate_Dir "Release"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 6
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "Release"
+# PROP Intermediate_Dir "Release"
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I ".\JLib" /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /c
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
+# ADD LINK32 /nologo /subsystem:windows /machine:I386
+
+!ELSEIF  "$(CFG)" == "VTS - Win32 Debug"
+
+# PROP BASE Use_MFC 6
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "Debug"
+# PROP BASE Intermediate_Dir "Debug"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 6
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "Debug"
+# PROP Intermediate_Dir "Debug"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".\JLib" /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+
+!ENDIF 
+
+# Begin Target
+
+# Name "VTS - Win32 Release"
+# Name "VTS - Win32 Debug"
+# Begin Group "Source Files"
+
+# PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnet.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetAPDUDecoder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetAPDUEncoder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetBBMD.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetBIPForeign.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetBIPSimple.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetBTR.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetIP.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetPDU.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetRouter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetTask.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetTimer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetVIPLAN.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetVLAN.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Bacprim32.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Sniffer\BACSN015.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ChildFrm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DetailView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\dudapi32.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\DUDTOOL.CPP
+# End Source File
+# Begin Source File
+
+SOURCE=.\FrameContext.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\HexView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDB.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBArray.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBKey.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBList.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBObj.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBOctetStringObj.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBProp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBRelation.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBStringObj.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JMemory.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JTextFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MainFrm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Sniffer\PI.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptBase.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptCase.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptContentTree.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptDependency.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptDocument.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptExecutor.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptFrame.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptKeywords.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptLoadResults.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptPacket.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptParmList.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptParmUpdate.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptReference.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptSection.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptSelectSession.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptTest.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScrollLineView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Send.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendAbort.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendAckAlarm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendAddListElement.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendBVLCI.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendBVLCResult.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendChangeListError.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendComplexACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendConfCOVNotification.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendConfEventNotification.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendConfirmedRequest.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendConfTextMsg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendCreateObject.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendCreateObjectACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendCreateObjectError.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendDeleteFDTEntry.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendDeleteObject.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendDeviceCommCtrl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendDisconnectCTN.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendEnet.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendError.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendEstablishCTN.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetAlarmSummary.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetAlarmSummaryACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetEnrollmentSummary.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetEnrollmentSummaryACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendIAm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendIAmRTN.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendICouldBeRTN.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendIHave.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendInitRT.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendInitRTAck.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendIP.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendNPCI.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendNull.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendPage.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRaw.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadBDT.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadBDTAck.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadFDT.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadFDTAck.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadFileACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadProp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadPropACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadPropMult.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadPropMultACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRegisterFD.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReinitDevice.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReject.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRejectMTN.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRemoveListElement.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRouterAvailable.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRouterBusy.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendSegmentACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendSimpleACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendSubscribeCOV.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendTest.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendTimeSync.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendUnconfCOVNotification.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendUnconfEventNotification.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendUnconfTextMsg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVendorNPDU.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTClose.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTCloseError.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTData.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTDataACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTOpen.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTOpenACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWhoHas.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWhoIs.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWhoIsRTN.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWriteBDT.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWriteFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWriteFileACK.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWriteProp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWritePropMult.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWritePropMultError.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\StdAfx.cpp
+# ADD CPP /Yc"stdafx.h"
+# End Source File
+# Begin Source File
+
+SOURCE=.\SummaryView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTS.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTS.rc
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSAny.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Vtsapi32.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSCtrl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDB.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDoc.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNamesDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotificationParameters.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyBitstring.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyCmdFailure.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyComplex.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyFloatLimit.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyOutOfRange.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyPage.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyState.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyValue.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjectIdentifierDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPortDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPortEthernetDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPortIPDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSQueue.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSRecipientProcess.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSTimeStamp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\WinBACnetTaskManager.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\WinIP.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\WinPacket32.cpp
+# End Source File
+# End Group
+# Begin Group "Header Files"
+
+# PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\Sniffer\Bacfuncs.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnet.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetBBMD.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetBIPForeign.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetBIPSimple.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetBTR.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetIP.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetRouter.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetTask.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetTimer.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetVIPLAN.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\BACnetVLAN.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Bacprim.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Sniffer\Bacproto.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ChildFrm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Db.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DetailView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Dudapi.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\DUDTOOL.H
+# End Source File
+# Begin Source File
+
+SOURCE=.\FrameContext.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HexView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JConfig.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDB.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBArray.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBKey.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBList.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBObj.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBOctetStringObj.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBProp.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBRelation.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JDBStringObj.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JError.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JFile.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JMemory.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\JLib\JTextFile.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MainFrm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\NTDDNDIS.H
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\Packet32.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Sniffer\PI.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Propid.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\PROPS.H
+# End Source File
+# Begin Source File
+
+SOURCE=.\Resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptBase.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptContentTree.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptDocument.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptExecutor.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptFrame.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptKeywords.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptLoadResults.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptPacket.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptParmList.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptParmUpdate.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptSelectSession.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScrollLineView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Send.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendAbort.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendAckAlarm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendAddListElement.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendBVLCI.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendBVLCResult.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendChangeListError.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendComplexACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendConfCOVNotification.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendConfEventNotification.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendConfirmedRequest.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendConfTextMsg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendCreateObject.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendCreateObjectACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendCreateObjectError.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendDeleteFDTEntry.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendDeleteObject.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendDeviceCommCtrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendDisconnectCTN.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendEnet.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendError.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendEstablishCTN.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetAlarmSummary.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetAlarmSummaryACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetEnrollmentSummary.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendGetEnrollmentSummaryACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendIAm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendIAmRTN.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendICouldBeRTN.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendIHave.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendInitRT.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendInitRTAck.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendIP.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendNPCI.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendNull.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendPage.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRaw.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadBDT.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadBDTAck.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadFDT.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadFDTAck.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadFile.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadFileACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadProp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadPropACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadPropMult.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReadPropMultACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRegisterFD.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReinitDevice.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReject.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRejectMTN.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRemoveListElement.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRouterAvailable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendRouterBusy.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendSegmentACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendSimpleACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendSubscribeCOV.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendTest.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendTimeSync.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendUnconfCOVNotification.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendUnconfEventNotification.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendUnconfTextMsg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVendorNPDU.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTClose.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTCloseError.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTData.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTDataACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTOpen.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendVTOpenACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWhoHas.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWhoIs.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWhoIsRTN.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWriteBDT.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWriteFile.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWriteFileACK.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWriteProp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWritePropMult.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendWritePropMultError.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Service.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Stdobj.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Stdobjpr.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SummaryView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTS.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSAny.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DUDAPI\Vtsapi.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSCtrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDB.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDoc.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNamesDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotificationParameters.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyBitstring.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyCmdFailure.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyComplex.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyFloatLimit.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyOutOfRange.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyPage.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyState.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyValue.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSObjectIdentifierDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPortDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPortEthernetDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSPortIPDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSQueue.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSRecipientProcess.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSTimeStamp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\WinBACnetTaskManager.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\WinIP.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BACnetLibrary\WinPacket32.hpp
+# End Source File
+# End Group
+# Begin Group "Resource Files"
+
+# PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+# Begin Source File
+
+SOURCE=.\res\bitmap1.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bmp00001.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\contents.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\cursor1.cur
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\cursor2.cur
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\idr_vtst.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\packettr.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\Toolbar.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\toolbar1.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\VTS.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\VTS.rc2
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\VTSDoc.ico
+# End Source File
+# End Group
+# Begin Source File
+
+SOURCE=.\ReadMe.txt
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTS.reg
+# End Source File
+# Begin Source File
+
+SOURCE=..\TPacket32\packet32_NT.lib
+# End Source File
+# End Target
+# End Project
