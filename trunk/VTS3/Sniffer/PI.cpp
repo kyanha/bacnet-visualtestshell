@@ -602,12 +602,15 @@ int pif_show_flagmask( int maskbits, int value, char *prstr )
 
 void pif_show_space( void )
 {
+
+/*	disabled for TreeList Detail View
 	char	*s
 	;
 	
 	// get a detail line, make sure it's empty
 	s = get_int_line( pif_pi, pif_offset, 0 );
 	*s = 0;
+*/
 }
 
 //

@@ -74,6 +74,8 @@ CChildFrame::CChildFrame()
 CChildFrame::~CChildFrame()
 {
 	delete m_frameContext;
+	delete m_pwndDetailViewBar;
+	delete m_pwndHexViewBar;
 }
 
 BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)
@@ -163,7 +165,7 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	CMDIChildWnd::OnCreateClient(lpcs,pContext);
 	
 
-	m_pDetailView = m_pwndDetailViewBar->m_pDetailView;
+	m_pDetailView = m_pwndDetailViewBar->m_pList;
 	m_pHexView = m_pwndHexViewBar->m_pHexView;
 	m_pSummaryView=(CListSummaryView *)GetDlgItem(AFX_IDW_PANE_FIRST);
 	
@@ -175,7 +177,8 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	
 	// make sure this isn't used
 	gNewFrameContext = NULL;
-	
+
+
 	return TRUE;
 }
 
@@ -463,7 +466,8 @@ void CChildFrame::OnFileExport()
 				nDetailCount = m_frameContext->m_PacketInfo.detailCount;
 				for(j = 0; j < nDetailCount; j++)
 				{
-					pszLine = m_pDetailView->GetLineData(j);
+					pszLine->Format(m_frameContext->m_PacketInfo.detailLine[j]->piLine);
+						//m_pDetailView->GetLineData(j);
 					exportFile.Write(pszLine->GetBuffer(1), pszLine->GetLength());
 					exportFile.Write(cLineEnd, 2);
 				}

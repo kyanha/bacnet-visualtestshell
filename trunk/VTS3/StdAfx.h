@@ -25,7 +25,7 @@
 #include "sizecbar.h"
 #include "scbarg.h"
 #include "scbarcf.h"
-#define baseCMyBar CSizingControlBarCF
+
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 

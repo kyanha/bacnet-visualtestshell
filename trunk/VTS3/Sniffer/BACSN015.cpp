@@ -695,7 +695,7 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
 
      switch (pif_get_byte(0)) {
          case 0x01:
-            pif_show_ascii( 0, "Empty BVLL" );
+//            pif_show_ascii( 0, "Empty BVLL" );
             pif_show_space();
             return interp_bacnet_NL( header, length );
             break;

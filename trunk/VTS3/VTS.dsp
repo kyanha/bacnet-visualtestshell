@@ -198,6 +198,10 @@ SOURCE=.\ChildFrm.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\DetailTreeCtrl.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\DetailView.cpp
 # End Source File
 # Begin Source File
@@ -961,6 +965,10 @@ SOURCE=.\ChildFrm.h
 # Begin Source File
 
 SOURCE=.\DUDAPI\Db.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DetailTreeCtrl.h
 # End Source File
 # Begin Source File
 
