@@ -14,6 +14,7 @@
 //Added by Yajun Zhou, 2002-11-4
 #include "ReadAllPropSettingsDlg.h"
 
+
 #define MAX_LENGTH_OF_OBJECTTYPE		30
 #define MAX_LENGTH_OF_PROPERTYNAME		100
 #define MAX_DIGITS_OF_INSTANCENUMBER	10
@@ -245,6 +246,8 @@ BOOL ScriptFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	// nice to have around, and pass along to the document
 	m_pContentTree = (ScriptContentTree*)m_wndSplit2.GetPane( 0, 0 );
 	m_pContentTree->m_pDoc = m_pDoc;
+	m_pContentTree->SetFrame(this);
+
 	m_pDoc->m_pContentTree = m_pContentTree;
 //	Added by Yajun Zhou, 2002-6-20
 	m_pContentTree->m_pEditView = m_pEditView;
