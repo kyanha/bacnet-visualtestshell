@@ -572,9 +572,9 @@ char *BACnetObjectType[] = {
    "SCHEDULE",               /* 17 */
    "AVERAGING",            /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
-   "TRENDLOG" ,          /* 20 */
-   "LIFESAFETYPOINT",	/*21 Zhu Zhenhua 2003-7-24 */
-   "LIFESAFETYZONE"	    /*21 Zhu Zhenhua 2003-7-24 */
+   "TREND-LOG" ,          /* 20 */		// msdanner 9/04, was "TRENDLOG"
+   "LIFE-SAFETY-POINT",	/*21 Zhu Zhenhua 2003-7-24 */	 // msdanner 9/04, was "LIFESAFETYPOINT"
+   "LIFE-SAFETY-ZONE"	    /*21 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
    };
 
 char *BACnetObjectTypesSupported[] = {
@@ -598,7 +598,9 @@ char *BACnetObjectTypesSupported[] = {
    "SCHEDULE",               /* 17 */
    "AVERAGING",          /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
-   "TRENDLOG"           /* 20 */
+   "TREND-LOG",           /* 20 */	  // msdanner 9/04, was "TRENDLOG"
+   "LIFE-SAFETY-POINT",    /* 21 */	  // msdanner 9/04, added
+   "LIFE-SAFETY-ZONE"      /* 22 */	  // msdanner 9/04, added
    };
 
 char *BACnetPolarity[] = {
