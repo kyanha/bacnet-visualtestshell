@@ -562,32 +562,32 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 		case act:		// action array
             
 			//p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
-			//return new BACnetActionCommand(dec);
+			return new BACnetActionCommand(dec);
 
 		case evparm:	// event parameter
 			
 			//p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
-			//return new BACnetEventParameter(dec);
+			return new BACnetEventParameter(dec);
 
 		case skeys:		// session keys
 			
 			//p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
-			//return new BACnetSessionKey(dec);
+			return new BACnetSessionKey(dec);
 
 		case xsched:    // exception schedule: array[] of specialevent
 
 			//p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
-			//return new BACnetExceptionSchedule(dec);
+			return new BACnetExceptionSchedule(dec);
 
 		case wsched:	// weekly schedule: array[7] of list of timevalue
 
 			//p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
-			//return new BACnetTimeValue(dec);
+			return new BACnetTimeValue(dec);
 
 		case vtse:		// list of active  vt sessions (parse type) 
 
 			//p= eVTSE(p,(BACnetVTSession far*)msg->pv);
-			;//return new BACnetVTSession(dec);
+			return new BACnetVTSession(dec);
 	}
 
 	return NULL;
@@ -5287,6 +5287,132 @@ int BACnetReadAccessSpecification::DataType(void)
 	return raslist;
 }
 
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetActionCommand, BACnetEncodeable)
+
+
+BACnetActionCommand::BACnetActionCommand()
+{
+	m_fDataInvalid = true;
+}
+
+BACnetActionCommand::BACnetActionCommand( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+int BACnetActionCommand::DataType(void)
+{
+	return act;
+}
+
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetEventParameter, BACnetEncodeable)
+
+
+BACnetEventParameter::BACnetEventParameter()
+{
+	m_fDataInvalid = true;
+}
+
+BACnetEventParameter::BACnetEventParameter( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+int BACnetEventParameter::DataType(void)
+{
+	return evparm;
+}
+
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetSessionKey, BACnetEncodeable)
+
+
+BACnetSessionKey::BACnetSessionKey()
+{
+	m_fDataInvalid = true;
+}
+
+BACnetSessionKey::BACnetSessionKey( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+int BACnetSessionKey::DataType(void)
+{
+	return skeys;
+}
+
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetExceptionSchedule, BACnetEncodeable)
+
+
+BACnetExceptionSchedule::BACnetExceptionSchedule()
+{
+	m_fDataInvalid = true;
+}
+
+BACnetExceptionSchedule::BACnetExceptionSchedule( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+int BACnetExceptionSchedule::DataType(void)
+{
+	return xsched;
+}
+
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetTimeValue, BACnetEncodeable)
+
+
+BACnetTimeValue::BACnetTimeValue()
+{
+	m_fDataInvalid = true;
+}
+
+BACnetTimeValue::BACnetTimeValue( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+int BACnetTimeValue::DataType(void)
+{
+	return wsched;
+}
+
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetVTSession, BACnetEncodeable)
+
+
+BACnetVTSession::BACnetVTSession()
+{
+	m_fDataInvalid = true;
+}
+
+BACnetVTSession::BACnetVTSession( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+int BACnetVTSession::DataType(void)
+{
+	return vtse;
+}
+
 
 //==============================================================================
 
@@ -5999,6 +6125,8 @@ void BACnetObjectContainer::Encode( char *enc ) const
 
 	if ( pbacnetTypedValue != NULL )
 		pbacnetTypedValue->Encode(enc);
+	else
+		enc[0] = 0;
 }
 
 
