@@ -132,6 +132,8 @@ class VTSBooleanCtrl : public VTSCtrl, public BACnetBoolean {
 
 		void CtrlToObj( void );					// interpret control contents, save in object
 		void ObjToCtrl( void );					// object value reflected in control
+		void SetCheck( bool fChecked );			// madanner 9/4/02
+												// simplifies setting control from external 
 
 		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
 		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents

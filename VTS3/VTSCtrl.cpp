@@ -955,7 +955,7 @@ void VTSBooleanCtrl::ObjToCtrl( void )
 	;
 
 	if (m_bCheckBox)
-		((CButton *)ctrlWindow->GetDlgItem( ctrlID ))->SetCheck( boolValue ? 1 : 0 );
+		SetCheck(boolValue ? 1 : 0);		// madanner 9/4/02, new check method
 	else {
 		// values are normalized
 		if (!ctrlNull)
@@ -965,6 +965,15 @@ void VTSBooleanCtrl::ObjToCtrl( void )
 		((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
 	}
 }
+
+
+// madanner 9/4/02, added check method for encapsulation
+
+void VTSBooleanCtrl::SetCheck( bool fChecked )
+{
+	((CButton *)ctrlWindow->GetDlgItem( ctrlID ))->SetCheck( fChecked ? 1 : 0 );
+}
+
 
 //
 //	VTSBooleanCtrl::SaveCtrl
@@ -1628,11 +1637,20 @@ void VTSCharacterStringCtrl::CtrlToObj( void )
 	if (ctrlNull)
 		return;
 
-	try {
-		Decode( s );
-	}
-	catch (...) {
-	}
+	// madanner 8/27/02, We're pulling data from an edit field so we don't need to scan for quotes, escape stuff, etc.
+	// We'll just put this directly into the buffer.  If we decide to allow encoding of escapes here... then we'll
+	// either need to add quotes just before we call Decode or alter Decode to not deal with quotes.
+
+	delete[] strBuff;
+	strLen = str.GetLength();
+	strBuff = new BACnetOctet[strLen];
+	memcpy(strBuff, str, strLen);
+
+//	try {
+//		Decode( s );
+//	}
+//	catch (...) {
+//	}
 }
 
 //
@@ -1641,17 +1659,21 @@ void VTSCharacterStringCtrl::CtrlToObj( void )
 
 void VTSCharacterStringCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	// madanner 8/27/02, No need to encode string to send to this control.  Encoding only has relevance
+	// when reading from script files.  Here, ALL data in the edit box should be placed in the BACnet string.
+
+	CString		str((LPCSTR)strBuff, strLen);
 
 	// values are normalized
 	// ### this could be trouble depending on the encoding and number of chars that need escaping
-	if (!ctrlNull)
-		Encode( str.GetBuffer( strLen + 16 ) );
+	if (ctrlNull)
+//		Encode( str.GetBuffer( strLen + 16 ) );
+		str.Empty();
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( str );
 }
+
 
 //
 //	VTSCharacterStringCtrl::SaveCtrl
