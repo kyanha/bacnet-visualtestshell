@@ -51,17 +51,10 @@
 #define	none				255					//no parsing required, runtime generated value
 
 
-static char	nullstring[5]={'n','u','l','l',0};	//"null\0";			//	***001
-static char anystring[4]={'a','n','y',0};		//"any\0";			//	***001
+static const char nullstring[5]={"null"};	//"null\0";			//	***001
+static const char anystring[4]={"any"};		//"any\0";			//	***001
 
-typedef struct {
-	word	nes;								//number of string pointers which follow
-	char	*estrings[0];						//table of pointers to strings
-	} stable;
-//Special table for parse types
-
-static stable stParseTypes={
-				43,								//43 parse types  //MAG was 42
+static const char *stParseTypes[]={
 				"object ID",
 				"enumeration",
 				"float",
@@ -104,22 +97,22 @@ static stable stParseTypes={
 				"date",
 				"time",
 				"obj ref list",
-				"short signed int"  //MAG added 13 FEB 2001
+				"short signed int",  //MAG added 13 FEB 2001
+				NULL /*always last*/
 				};
 //Special table for parse types
-static stable stRelationTypes={
-				6,								//6 relation types						
+static const char *stRelationTypes[]={
 				"==",
 				"!=",
 				"< ",
 				"> ",
 				"<=",
-				">="
+				">=",
+				NULL /*always last*/
 				};
 //Special table for property ids
 
-static stable stPropIDs={
-				124,
+static const char *stPropIDs[]={
 				"acked-transitions",
 				"ack-required",
 				"action",
@@ -243,7 +236,8 @@ static stable stPropIDs={
 				"vendor-identifier",
 				"vendor-name",
 				"vt-classes-supported",
-				"weekly-schedule"
+				"weekly-schedule",
+				NULL /*always last*/
 				};
 //qualifiers in PropFlags
 #define	O					0x0000				//optional

@@ -794,8 +794,8 @@ word eSelCrit(octet *op,word opmax,char *pstr)
 			ep=atoi(vp);
 		}
 		else return 0;								//									***023 End
-		for (i=0;i<stParseTypes.nes;i++)
-		{	if (stricmp(stParseTypes.estrings[i],cp)==0)
+		for (i=0;stParseTypes[i];i++)
+		{	if (stricmp(stParseTypes[i],cp)==0)
 			{	ptype=i;							//parse type found
 				break;
 			}
@@ -803,9 +803,9 @@ word eSelCrit(octet *op,word opmax,char *pstr)
 	}
 	else return 0;
 	reltype=0;										//default
-	for (i=1;i<stRelationTypes.nes;i++)
-	{	if (cp=strchr(pstr,*stRelationTypes.estrings[i]))
-		{	if (*(cp+1)==*(stRelationTypes.estrings[i]+1))
+	for (i=1;stRelationTypes[i];i++)
+	{	if (cp=strchr(pstr,*stRelationTypes[i]))
+		{	if (*(cp+1)==*(stRelationTypes[i]+1))
 			{	reltype=i;							//relational specifier found
 				break;
 			}
@@ -836,8 +836,8 @@ getvp:	vp=strchr(pstr,fc);						//find first char of relation
     	aryindex=atol(cp);							//get array index
     	ha=TRUE;
     }
-    for (i=0;i<stPropIDs.nes;i++)
-	{	if (stricmp(pstr,stPropIDs.estrings[i])==0)
+    for (i=0;stPropIDs[i];i++)
+	{	if (stricmp(pstr,stPropIDs[i])==0)
 		{	if ((word)(op-iop+2)>=opmax) return 0;			
 			op=eDWORD(op,i,0x08,FALSE);				//context tag 0 property id
 			if (ha)	
@@ -2545,14 +2545,14 @@ word  APIENTRY eReadPropConditionalService(octet *op,word opmax,word selectlogic
 		*op++=0x1E;									//open tag 1 list of property refs
 		for (i=0;i<nv;i++)
 		{	GetListText(hrefs,i,(char *)p);			//get the property reference text to encode
-		    for (j=0;j<stPropIDs.nes;j++)
-			{	if (stricmp((char *)p,stPropIDs.estrings[j])==0)
+		    for (j=0;stPropIDs[j];j++)
+			{	if (stricmp((char *)p,stPropIDs[j])==0)
 				{	if ((word)(op-iop+2)>=opmax) return 0;			
 					op=eDWORD(op,j,0x08,FALSE);		//context tag 0 property id
 					break;
 				}
 			}
-			if (j==stPropIDs.nes) return 0;   
+			if (!stPropIDs[j]) return 0;   //if we didn't find it
 		}
 		*op++=0x1F;									//close tag 1 list of property refs
 	}
