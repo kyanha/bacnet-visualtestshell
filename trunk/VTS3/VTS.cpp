@@ -310,6 +310,8 @@ void VTSPreferences::Save( void )
 //				will be used by a built-in device object, and I think that is a good thing.
 //			Now checks the version of BACMACNT.SYS it can find.  Only version 3.0 works, but I
 //				don't know why.
+//       Added decoding of UTCOffset and DayLightSavingStatus to the UTCTimeSynch service.
+//       Changed the UTCOffset range from +/- 720 to +/-780. 
 //
 
 const int kReleaseVersion = 8;
