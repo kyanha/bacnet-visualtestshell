@@ -1239,21 +1239,220 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //				properties to do so (time-delay, notification-class, etc). Now the EPICS
 //				parser checks to see if ANY of the intrinsic reporting properties exist in
 //				each Object, and if so, they all must exist.
-
-
-const int kReleaseVersion = 3;
-
-class CAboutDlg : public CDialog
-{
-public:
-	CAboutDlg();
-
-// Dialog Data
-	//{{AFX_DATA(CAboutDlg)
+//
+//  3.4.4     January 2004
+//
+//			
+//			Feature Request 837460: Provide a method for failing a test script if a particular message
+//       is received. (This is essentially a negative form of the EXPECT statement). An additional
+//			parameter has been added in the EXPECT statement to negate the expected condition. The
+//			syntax for this for of an EXPECT statement is:
+//			      EXPECT NOT
+//			
+//       or 
+//			      EXPECT BEFORE xxx NOT
+//
+//			Example: 
+//         EXPECT BEFORE 200 NOT (
+//			    NETWORK = "Untitled"
+//			    SA = IUT_IP
+//			    DER = FALSE
+//			    BVLCI = ORIGINAL-UNICAST-NPDU 
+//			    PDU = ComplexAck
+//			    Service = ReadProperty
+//			    Object = 0, OBJECT1
+//			    Property = 1, PRESENT-VALUE
+//			    OpenTag 3
+//			      REAL = LOWVAL                
+//			    CloseTag 3
+//			  )
+//			
+//			If VTS receives the specified packet in the given time then this test fails. 
+//			
+//			
+//			Feature Request 837459: It was requested that scripts should cause a syntax error if an
+//			unrecognized keyword is encountered rather than assuming that the unrecognized keyword was
+//			an uninitialized variable. VTS now checks all of the keywords in the script file, and
+//			triggers an error message if a keyword is not a keyword predefined in VTS.
+//			
+//			
+//			Bug 827465: VTS now recognizes the Device object's Max_Segments_Accepted property - both
+//       in the interactive portion of VTS as well as in scripts.
+//			
+//			
+//			Bug 843232: Now the default time delay in scripts is assigned by the variable 'Internal
+//			Processing Fail Time' if this variable has been defined in the EPICS, otherwise the
+//			default time delay is still 3 seconds.
+//			
+//			
+//			Feature Request 843336: An ASSIGN statement has been added to the script commands so that
+//			a script can explicitly set the test result to PASSED or FAILED based on scripted
+//			conditionals instead of being dependent on failed EXPECT statements. For example:
+//				IF (timeRemaining = 0)
+//				ASSIGN FAILED
+//	         ENDIF
+//			
+//			
+//
+//			Feature Request 843292: A WAIT statement has been added to the script commands to provide
+//			a method for inserting an unconditional wait into a script. The syntax for the WAIT
+//       statement is described by:
+//			  <wait statement> ::= WAIT <timer value>
+//			
+//			  "The TD shall pause the amount of time specified by the 
+//			  <timer value> before proceeding to the next test step.
+//         The <timer value> shall be one of the timers specified in
+//			  6.3 or as otherwise specified."
+//			
+//         <timer value> ::= <constant> | <variable> | '{' <Fail Time> '}'
+//			
+//			  <Fail Time> ::= Notification Fail Time |
+//			                  Internal Processing Fail Time | 
+//			                  Minimum ON/OFF Time | 
+//			                  Schedule Evaluation Fail Time | 
+//			                  External Command Fail Time | 
+//                         Program Object State Change Fail Time | 
+//			                  Acknowledgement Fail Time
+//
+//			
+//			
+//       Feature Request 843302: Within a script window, the user can now select which SECTION to
+//			run, as well as which test within that SECTION.
+//			
+//			
+//       Feature Request 843304: VTS scripts now have a sort of "auto-complete" feature that will
+//			automatically type the remaining characters of some keywords when the script writer begins
+//			typeing a recognized keyword. This facility was implemented in lieu of the drop down menu
+//			for common script parameters that was requested.
+//
+//			
+//			Bug 843245: VTS can now distinguish between the global broadcast IP address and the local
+//       broadcast IP address.
+//			
+//			
+//       Feature Request 843288: VTS scripts now support the following format for testing if the
+//			IUT supports a particular BACnet service as defined in the loaded EPICS file:
+//			  IF '(' '{'<service>', ' EXECUTE | INITIATE'}' '=' TRUE | FALSE')'
+//			
+//
+//			
+//			Feature Request 843284: In scripts, now EPICS references can be supported in conjunction
+//			with delays indicated by the keywords AFTER and BEFORE. Command syntax:
+//			   SEND AFTER '{'<Fail Time>'}'
+//			
+//			   <Fail Time> ::= Notification Fail Time |
+//			                   Internal Processing Fail Time | 
+//			                   Minimum ON/OFF Time | 
+//                          Schedule Evaluation Fail Time | 
+//			                   External Command Fail Time | 
+//			                   Program Object State Change Fail Time | 
+//			                   Acknowledgement Fail Time
+//
+//			
+//			   Example: 
+//
+//				SEND AFTER {Internal Processing Fail Time}(
+//				...
+//				)
+//			
+//
+//			
+//       Feature Request 843265: Added support for the MAXSEGS keyword in scripts. 
+//			
+//
+//			Feature Request 843281: In scripts, the following EPICS references are now supported: 
+//			  {Max_APDU_Length_Accepted}
+//			  {Max_Segments_Accepted}
+//			
+//			Examples: 
+//			   MAXSEGS = {Max_Segments_Accepted}
+//			   MAXRESP = {Max_APDU_Length_Accepted}
+//			
+//			
+//			
+//			Feature Request 843274: EPICS references are now allowed within IF expressions in a
+//			script. Examples:
+//			  IF ({binary-value, 1, OUT-OF-SERVICE} = FALSE)
+//			    OBJECT1 = binary-value, 1	
+//			  ELSE
+//			    OBJECT1 = binary-value, 2	
+//			  ENDIF
+//			
+//			  OBJECT = binary-value, 1	
+//			  IF ({OBJECT, OUT-OF-SERVICE} = FALSE)
+//			    OBJECT1 = binary-value, 2	
+//			  ELSE
+//			    OBJECT1 = binary-value, 3	
+//         ENDIF
+//			
+//			
+//			
+//			Bug 843243: This bug says that the don't care value '?' is not allowed to be assigned to
+//			the invokeID parameter within an EXPECT statement in a script. This is true, but the user
+//			could have used the don't care operator to achieve the desired results. For example:
+//			   EXPECT (
+//			      ...
+//			      PDU = Confirmed-Request
+//			      ...
+//			      invokeID = ?
+//			      ...
+//          )
+//			
+//			Does not work as a don't care operation on the invokeID, but this does ... 
+//          EXPECT (
+//			      ...
+//			      PDU = Confirmed-Request
+//             ...
+//			      invokeID ?= 0
+//			      ...
+//			   )
+//			
+//       However, VTS has been changed so that the first format now also works as a don't care
+//			operation on the invokeID in an EXPECT statement.
+//			
+//
+//			Bug 843258: If an ENDIF statement was missing in a script, VTS would crash. This bug has
+//			been fixed.
+//			
+//			
+//			Bug 843252: This bug states that the CHECK statement requires that the open parenthesis
+//			must be followed by a carriage return. In other words, the following is not allowed:
+//        CHECK "Title" (IF (VAR = 1)
+//			            "Text"
+//          ELSE
+//			            "Text2"
+//			          ENDIF
+//        )
+//			
+//			But the following syntax is allowed:
+//		      CHECK "Title" (
+//             IF (VAR = 1)
+//			               "Text"
+//			             ELSE
+//			               "Text2"
+//             ENDIF
+//		      )
+//			
+//       The SEND and EXPECT statements do not support the first syntax either. Since the
+//			work-around is simple, and since other statements must be changed if the CHECK statement
+//			was changed, there are no plans to fix this bug.
+//
+			 
+			
+			
+const int kReleaseVersion = 4;
+			
+			class CAboutDlg : public CDialog
+			{
+			public:
+				CAboutDlg();
+			
+			// Dialog Data
+				//{{AFX_DATA(CAboutDlg)
 	enum { IDD = IDD_ABOUTBOX };
-	CString	m_Version;
-	//}}AFX_DATA
-
+				CString	m_Version;
+				//}}AFX_DATA
+			
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CAboutDlg)
 	protected:
