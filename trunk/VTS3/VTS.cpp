@@ -249,8 +249,13 @@ void VTSPreferences::Save( void )
 //			from 64 to 512 bytes to make room for BTR and BBMD configuration info.
 //			The old value of 64 bytes is way to short for a list of peer IP addresses.
 //
+//	3.1.4
+//			Massive changes to APDU structure, encoding, and decoding.  Changes to device 
+//			object to allow it to limit itself to looking like it is a local object on 
+//			one network.
+//
 
-const int kReleaseVersion = 3;
+const int kReleaseVersion = 4;
 
 class CAboutDlg : public CDialog
 {

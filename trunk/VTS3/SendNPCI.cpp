@@ -258,7 +258,7 @@ void CSendNPCI::EncodePage( CByteArray *contents )
 		header.Add( m_DNET.intValue >> 8 );
 		header.Add( m_DNET.intValue & 0x0FF );
 		if (!m_DADR.ctrlNull) {
-			header.Add( m_DADR.addrLen );
+			header.Add( (unsigned char)m_DADR.addrLen );
 			for (int i = 0; i < m_DADR.addrLen; i++)
 				header.Add( m_DADR.addrAddr[i] );
 		} else
@@ -269,7 +269,7 @@ void CSendNPCI::EncodePage( CByteArray *contents )
 	if (m_SrcPresent) {
 		header.Add( m_SNET.intValue >> 8 );
 		header.Add( m_SNET.intValue & 0x0FF );
-		header.Add( m_SADR.addrLen );
+		header.Add( (unsigned char)m_SADR.addrLen );
 		for (int i = 0; i < m_SADR.addrLen; i++)
 			header.Add( m_SADR.addrAddr[i] );
 	}

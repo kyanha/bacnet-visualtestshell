@@ -179,7 +179,7 @@ void BACnetServerTSM::Idle( const BACnetAPDU &apdu )
 			cout << "[BACnetServerTSM::confirmedRequestPDU: invokeID " << apdu.apduInvokeID << "]" << endl;
 #endif
 			// is this an unsegmented request?
-			if (!(apdu.pktBuffer[0] & 0x08)) {
+			if (!apdu.apduSeg) {
 				SetState( tsmAwaitResponse );
 				Request( apdu );
 				break;
@@ -193,16 +193,16 @@ void BACnetServerTSM::Idle( const BACnetAPDU &apdu )
 			}
 			
 			// must be first segment
-			if (apdu.pktBuffer[3] != 0) {
+			if (apdu.apduSeq != 0) {
 				Response( BACnetAbortAPDU( apdu.apduAddr, 1, tsmInvokeID, invalidAPDUInThisStateAbort ) );
 				break;
 			}
 			
 			// set the segmented reply accepted based on the request
-			tsmSegmentation = (apdu.pktBuffer[0] & 0x02 ? segmentedReceive : noSegmentation);
+			tsmSegmentation = (apdu.apduSA ? segmentedReceive : noSegmentation);
 			
 			// set the segment size going back to what the device gave us in this request
-			tsmSegmentSize = MaxAPDUDecode( apdu.pktBuffer[1] );
+			tsmSegmentSize = apdu.apduMaxResp;
 			
 			// clip it to what can be sent
 			if (tsmSegmentSize > tsmDevice->deviceMaxAPDUSize)
@@ -212,7 +212,7 @@ void BACnetServerTSM::Idle( const BACnetAPDU &apdu )
 			tsmSeg->AddSegment( apdu );
 			
 			// extract the proposed window size
-			tsmProposedWindowSize = apdu.pktBuffer[4];
+			tsmProposedWindowSize = apdu.apduWin;
 			
 			// actual window size is the min of what we accept and what the device wants
 			if (tsmProposedWindowSize > tsmDevice->deviceWindowSize)
@@ -270,7 +270,7 @@ void BACnetServerTSM::SegmentedRequest( const BACnetAPDU &apdu )
 	switch (apdu.apduType) {
 		case confirmedRequestPDU:
 			// must be segmented
-			if (!(apdu.pktBuffer[0] & 0x08)) {
+			if (!apdu.apduSeg) {
 				StopTimer();
 				SetState( tsmIdle );
 				if (tsmSeg) {
@@ -282,7 +282,7 @@ void BACnetServerTSM::SegmentedRequest( const BACnetAPDU &apdu )
 			}
 			
 			// proper segment number?
-			if (apdu.pktBuffer[3] != ((tsmLastSequenceNumber + 1) % 256)) {
+			if (apdu.apduSeq != ((tsmLastSequenceNumber + 1) % 256)) {
 				RestartTimer( tsmDevice->deviceAPDUSegmentTimeout );
 				Response( BACnetSegmentAckAPDU( tsmAddr, tsmInvokeID, 1, 1, tsmLastSequenceNumber, tsmActualWindowSize ) );
 				tsmInitialSequenceNumber = tsmLastSequenceNumber;
@@ -302,7 +302,7 @@ void BACnetServerTSM::SegmentedRequest( const BACnetAPDU &apdu )
 			tsmLastSequenceNumber = (tsmLastSequenceNumber + 1) % 256;
 			
 			// last segment?
-			if ((apdu.pktBuffer[0] & 0x04) == 0) {
+			if (!apdu.apduMor) {
 				StopTimer();
 				
 				// send an ack to the server
@@ -324,7 +324,7 @@ void BACnetServerTSM::SegmentedRequest( const BACnetAPDU &apdu )
 			}
 			
 			// last in the group?
-			if (apdu.pktBuffer[3] == ((tsmInitialSequenceNumber + tsmActualWindowSize) % 256)) {
+			if (apdu.apduSeq == ((tsmInitialSequenceNumber + tsmActualWindowSize) % 256)) {
 				RestartTimer( tsmDevice->deviceAPDUSegmentTimeout * 4 );
 				Response( BACnetSegmentAckAPDU( tsmAddr, tsmInvokeID, 0, 1, tsmLastSequenceNumber, tsmActualWindowSize ) );
 				tsmInitialSequenceNumber = tsmLastSequenceNumber;
@@ -430,13 +430,13 @@ void BACnetServerTSM::SegmentedResponse( const BACnetAPDU &apdu )
 			
 		case segmentAckPDU:
 			// duplicate?
-			if (!InWindow(apdu.pktBuffer[2],tsmInitialSequenceNumber)) {
+			if (!InWindow(apdu.apduSeq,tsmInitialSequenceNumber)) {
 				RestartTimer( tsmDevice->deviceAPDUSegmentTimeout );
 				break;
 			}
 			
 			// add how many packets were accepted
-			tsmSegmentsSent += (apdu.pktBuffer[2] + 256 - tsmInitialSequenceNumber) % 256 + 1;
+			tsmSegmentsSent += (apdu.apduSeq + 256 - tsmInitialSequenceNumber) % 256 + 1;
 			if (tsmSegmentsSent == tsmSegmentCount) {
 				StopTimer();
 				SetState( tsmIdle );
@@ -449,7 +449,7 @@ void BACnetServerTSM::SegmentedResponse( const BACnetAPDU &apdu )
 			
 			tsmSegmentRetryCount = 0;
 			tsmInitialSequenceNumber = tsmSegmentsSent % 256;
-			tsmActualWindowSize = apdu.pktBuffer[2];
+			tsmActualWindowSize = apdu.apduWin;
 			RestartTimer( tsmDevice->deviceAPDUSegmentTimeout );
 			FillWindow( tsmSegmentsSent );
 			break;

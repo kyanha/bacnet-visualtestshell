@@ -1,7 +1,7 @@
 #ifndef _BACnet
 #define _BACnet
 
-#define _TSMDebug	1
+#define _TSMDebug	0
 
 #if _TSMDebug
 #include <iostream.h>
@@ -382,62 +382,6 @@ class BACnetAPDUTag : public BACnetEncodeable {
 	};
 
 //
-//	BACnetAPDUEncoder
-//
-//	An encoder is an object passed to the various types to store the encoded version 
-//	of themselves.
-//
-
-const int kDefaultBufferSize = 1024;
-
-class BACnetAPDUEncoder {
-	protected:
-		int					pktBuffSize;			// allocated size
-		
-	public:
-		BACnetAPDUEncoder( int initBuffSize = kDefaultBufferSize );
-		BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
-		~BACnetAPDUEncoder( void );
-		
-		BACnetOctet			*pktBuffer;				// pointer to start of buffer
-		int					pktLength;				// number of encoded octets
-		
-		void CheckSpace( int len );					// resize iff necessary
-		void Append( BACnetOctet ch );				// simple copy, should be inline!
-		void Append( BACnetOctet *buff, int len );	// raw copy into buffer
-		void Flush( void );							// remove all contents
-	};
-
-typedef BACnetAPDUEncoder *BACnetAPDUEncoderPtr;
-const int kBACnetAPDUEncoderSize = sizeof( BACnetAPDUEncoder );
-
-//
-//	BACnetAPDUDecoder
-//
-//	A decoder sets up a context that is used to decode objects.  It is passed to the 
-//	objects to decode themselves.
-//
-
-class BACnetAPDUDecoder {
-	public:
-		const BACnetOctet	*pktBuffer;				// pointer to buffer
-		int					pktLength;				// number of encoded octets
-		
-		BACnetAPDUDecoder( const BACnetOctet *buffer = 0, int len = 0 );
-		BACnetAPDUDecoder( const BACnetAPDUEncoder &enc );
-		
-		void SetBuffer( const BACnetOctet *buffer, int len );
-
-		void ExamineTag( BACnetAPDUTag &t );			// just peek at the next tag
-		
-		void CopyOctets( BACnetOctet *buff, int len );	// raw copy into buffer
-		int ExtractData( BACnetOctet *buffer );		// skip the tag and extract the data
-	};
-
-typedef BACnetAPDUDecoder *BACnetAPDUDecoderPtr;
-const int kBACnetAPDUDecoderSize = sizeof( BACnetAPDUDecoder );
-
-//
 //	BACnetNPDU
 //
 //	A BACnetNPDU is the object that gets passed between a client and an endpoint
@@ -461,6 +405,66 @@ struct BACnetNPDU {
 	};
 
 typedef BACnetNPDU *BACnetNPDUPtr;
+
+//
+//	BACnetAPDUEncoder
+//
+//	An encoder is an object passed to the various types to store the encoded version 
+//	of themselves.
+//
+
+const int kDefaultBufferSize = 1024;
+
+class BACnetAPDUEncoder {
+	protected:
+		int					pktBuffSize;			// allocated size
+		
+	public:
+		BACnetAPDUEncoder( int initBuffSize = kDefaultBufferSize );
+		BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
+		~BACnetAPDUEncoder( void );
+		
+		BACnetOctet			*pktBuffer;				// pointer to start of buffer
+		int					pktLength;				// number of encoded octets
+		
+		void SetBuffer( const BACnetOctet *buffer, int len );
+		void NewBuffer( int len );					// allocate a new buffer
+
+		void CheckSpace( int len );					// resize iff necessary
+		void Append( BACnetOctet ch );				// simple copy, should be inline!
+		void Append( BACnetOctet *buff, int len );	// raw copy into buffer
+		void Flush( void );							// remove all contents
+	};
+
+typedef BACnetAPDUEncoder *BACnetAPDUEncoderPtr;
+const int kBACnetAPDUEncoderSize = sizeof( BACnetAPDUEncoder );
+
+//
+//	BACnetAPDUDecoder
+//
+//	A decoder sets up a context that is used to decode objects.  It is passed to the 
+//	objects to decode themselves.
+//
+
+class BACnetAPDUDecoder {
+	public:
+		const BACnetOctet	*pktBuffer;				// pointer to buffer
+		int					pktLength;				// number of encoded octets
+		
+		BACnetAPDUDecoder( const BACnetOctet *buffer = 0, int len = 0 );
+		BACnetAPDUDecoder( const BACnetAPDUEncoder &enc );
+		BACnetAPDUDecoder( const BACnetNPDU &npdu );
+		
+		void SetBuffer( const BACnetOctet *buffer, int len );
+
+		void ExamineTag( BACnetAPDUTag &t );			// just peek at the next tag
+		
+		void CopyOctets( BACnetOctet *buff, int len );	// raw copy into buffer
+		int ExtractData( BACnetOctet *buffer );		// skip the tag and extract the data
+	};
+
+typedef BACnetAPDUDecoder *BACnetAPDUDecoderPtr;
+const int kBACnetAPDUDecoderSize = sizeof( BACnetAPDUDecoder );
 
 //
 //	BACnetNetClient
@@ -489,8 +493,8 @@ typedef BACnetNetServer *BACnetNetServerPtr;
 class BACnetNetClient {
 		friend void Bind( BACnetNetClientPtr, BACnetNetServerPtr );
 		friend void Unbind( BACnetNetClientPtr, BACnetNetServerPtr );
-		friend bool IsBound( BACnetNetClientPtr cp, BACnetNetServerPtr sp );
-
+		friend bool IsBound( BACnetNetClientPtr, BACnetNetServerPtr );
+		
 	protected:
 		BACnetNetServerPtr		clientPeer;
 		
@@ -505,7 +509,7 @@ class BACnetNetClient {
 class BACnetNetServer {
 		friend void Bind( BACnetNetClientPtr, BACnetNetServerPtr );
 		friend void Unbind( BACnetNetClientPtr, BACnetNetServerPtr );
-		friend bool IsBound( BACnetNetClientPtr cp, BACnetNetServerPtr sp );
+		friend bool IsBound( BACnetNetClientPtr, BACnetNetServerPtr );
 		
 	protected:
 		BACnetNetClientPtr		serverPeer;
@@ -649,8 +653,16 @@ enum BACnetAPDUType
 
 class BACnetAPDU : public BACnetAPDUEncoder  {
 	public:
-		BACnetAddress		apduAddr;
+		BACnetAddress		apduAddr;				// source/destination address
 		BACnetAPDUType		apduType;
+		bool				apduSeg;				// segmented
+		bool				apduMor;				// more follows
+		bool				apduSA;					// segmented response accepted
+		bool				apduSrv;				// sent by server
+		bool				apduNak;				// negative acknowledgement
+		int					apduSeq;				// sequence number
+		int					apduWin;				// actual/proposed window size
+		int					apduMaxResp;			// max response accepted (decoded)
 		int					apduService;
 		int					apduInvokeID;
 		int					apduAbortRejectReason;
@@ -659,6 +671,9 @@ class BACnetAPDU : public BACnetAPDUEncoder  {
 
 		BACnetAPDU( int initBuffSize = kDefaultBufferSize );
 		BACnetAPDU( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
+
+		void Encode( BACnetAPDUEncoder& enc ) const;	// encode
+		void Decode( BACnetAPDUDecoder& dec );			// decode
 	};
 
 typedef BACnetAPDU *BACnetAPDUPtr;
@@ -738,9 +753,6 @@ class BACnetUnconfirmedServiceAPDU : public BACnetAPDU {
 //
 
 class BACnetSimpleAckAPDU : public BACnetAPDU {
-	protected:
-		BACnetOctet		simpleAckBuff[3];
-		
 	public:
 		BACnetSimpleAckAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID );
 	};
@@ -761,9 +773,6 @@ class BACnetComplexAckAPDU : public BACnetAPDU {
 //
 
 class BACnetSegmentAckAPDU : public BACnetAPDU {
-	protected:
-		BACnetOctet		segmentAckBuff[4];
-		
 	public:
 		BACnetSegmentAckAPDU( const BACnetAddress &dest, BACnetOctet invID, int nak, int srv, BACnetOctet seg, BACnetOctet win );
 	};
@@ -795,9 +804,6 @@ enum BACnetRejectReason {
 		};
 
 class BACnetRejectAPDU : public BACnetAPDU {
-	protected:
-		BACnetOctet		rejectBuff[3];
-		
 	public:
 		BACnetRejectAPDU( BACnetOctet invID, BACnetRejectReason reason );
 	};
@@ -818,9 +824,6 @@ enum BACnetAbortReason {
 		};
 
 class BACnetAbortAPDU : public BACnetAPDU {
-	protected:
-		BACnetOctet		abortBuff[3];
-		
 	public:
 		BACnetAbortAPDU( const BACnetAddress &dest, int srv, BACnetOctet invID, BACnetAbortReason reason );
 	};
@@ -924,8 +927,8 @@ class BACnetDevice : public BACnetNetClient, public BACnetDeviceInfo {
 		BACnetDeviceInfoPtr GetInfo( const BACnetObjectIdentifier &id );
 		BACnetDeviceInfoPtr GetInfo( const BACnetAddress &addr );
 		
-		void Indication( const BACnetAPDU &pdu );		// outgoing packet
-		void Confirmation( const BACnetNPDU &pdu );		// incoming packet
+		void Indication( const BACnetAPDU &apdu );		// outgoing packet
+		void Confirmation( const BACnetNPDU &apdu );	// incoming packet
 		
 		int GetInvokeID( void );						// new invoke ID
 	};

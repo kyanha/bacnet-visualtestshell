@@ -35,9 +35,9 @@ BACnetClientTSM::~BACnetClientTSM( void )
 //	the information along to the device to deal with.
 //
 
-void BACnetClientTSM::Request( const BACnetAPDU &pdu )
+void BACnetClientTSM::Request( const BACnetAPDU &apdu )
 {
-	tsmDevice->Indication( pdu );
+	tsmDevice->Indication( apdu );
 }
 
 //
@@ -68,18 +68,16 @@ void BACnetClientTSM::Indication( const BACnetAPDU &apdu )
 			tsmSeg = new BACnetAPDUSegment( apdu, this );
 			
 			// if we support segmented responses, set the bit
-			if (	(tsmDevice->deviceSegmentation == segmentedReceive)
+			tsmSeg->segAPDU.apduSA = (	(tsmDevice->deviceSegmentation == segmentedReceive)
 				 || (tsmDevice->deviceSegmentation == segmentedBoth)
-				)
-				tsmSeg->segAPDU.pktBuffer[0] |= 0x02;
+				);
 			
 			// encode the maximum response
-			tsmSeg->segAPDU.pktBuffer[1] = MaxAPDUEncode( tsmDevice->deviceMaxAPDUSize );
+			tsmSeg->segAPDU.apduMaxResp = tsmDevice->deviceMaxAPDUSize;
 			
 			// get an invoke ID
 			tsmInvokeID = tsmDevice->GetInvokeID();
 			tsmSeg->segAPDU.apduInvokeID = tsmInvokeID;
-			tsmSeg->segAPDU.pktBuffer[2] = tsmInvokeID;
 			
 			// see if we have info about the device
 			dip = tsmDevice->GetInfo( apdu.apduAddr );
@@ -245,11 +243,11 @@ void BACnetClientTSM::SegmentedRequest( const BACnetAPDU &apdu )
 		// finished sending our request yet!
 		case complexAckPDU:
 			// might be unsegmented
-			if (!(apdu.pktBuffer[0] & 0x08))
+			if (!apdu.apduSeg)
 				goto fini;
 			
 			// must be first segment
-			if (apdu.pktBuffer[2] != 0) {
+			if (apdu.apduSeq != 0) {
 				StopTimer();
 				// abort in both directions
 				Request( abrt );
@@ -270,7 +268,7 @@ void BACnetClientTSM::SegmentedRequest( const BACnetAPDU &apdu )
 			tsmSeg->AddSegment( apdu );
 			
 			StopTimer();
-			tsmActualWindowSize = apdu.pktBuffer[3];	// accept what device gave us
+			tsmActualWindowSize = apdu.apduWin;		// accept what device gave us
 			Request( BACnetSegmentAckAPDU( tsmAddr, tsmInvokeID, 0, 0, 0, tsmActualWindowSize ) );
 			StartTimer( tsmDevice->deviceAPDUSegmentTimeout );
 			tsmLastSequenceNumber = 0;
@@ -280,13 +278,13 @@ void BACnetClientTSM::SegmentedRequest( const BACnetAPDU &apdu )
 		
 		case segmentAckPDU:
 			// duplicate?
-			if (!InWindow(apdu.pktBuffer[2],tsmInitialSequenceNumber)) {
+			if (!InWindow(apdu.apduSeq,tsmInitialSequenceNumber)) {
 				RestartTimer( tsmDevice->deviceAPDUSegmentTimeout );
 				break;
 			}
 			
 			// add how many packets were accepted
-			tsmSegmentsSent += (apdu.pktBuffer[2] + 256 - tsmInitialSequenceNumber) % 256 + 1;
+			tsmSegmentsSent += (apdu.apduSeq + 256 - tsmInitialSequenceNumber) % 256 + 1;
 			if (tsmSegmentsSent == tsmSegmentCount) {
 				StopTimer();
 				StartTimer( tsmDevice->deviceAPDUTimeout );
@@ -295,7 +293,7 @@ void BACnetClientTSM::SegmentedRequest( const BACnetAPDU &apdu )
 			}
 			
 			tsmInitialSequenceNumber = tsmSegmentsSent % 256;
-			tsmActualWindowSize = apdu.pktBuffer[3];
+			tsmActualWindowSize = apdu.apduWin;
 			RestartTimer( tsmDevice->deviceAPDUSegmentTimeout );
 			FillWindow( tsmSegmentsSent );
 			break;
@@ -376,11 +374,11 @@ void BACnetClientTSM::AwaitConfirmation( const BACnetAPDU &apdu )
 		
 		case complexAckPDU:
 			// might be unsegmented
-			if (!(apdu.pktBuffer[0] & 0x08))
+			if (!apdu.apduSeg)
 				goto fini;
 			
 			// must be first segment
-			if (apdu.pktBuffer[2] != 0) {
+			if (apdu.apduSeq != 0) {
 				StopTimer();
 				// abort in both directions
 				Request( abrt );
@@ -401,7 +399,7 @@ void BACnetClientTSM::AwaitConfirmation( const BACnetAPDU &apdu )
 			tsmSeg->AddSegment( apdu );
 			
 			StopTimer();
-			tsmActualWindowSize = apdu.pktBuffer[3];	// accept what device gave us
+			tsmActualWindowSize = apdu.apduWin;		// accept what device gave us
 			Request( BACnetSegmentAckAPDU( tsmAddr, tsmInvokeID, 0, 0, 0, tsmActualWindowSize ) );
 			StartTimer( tsmDevice->deviceAPDUSegmentTimeout );
 			tsmLastSequenceNumber = 0;
@@ -522,12 +520,12 @@ abort:		StopTimer();
 		
 		case complexAckPDU:
 			// must be segmented
-			if (!(apdu.pktBuffer[0] & 0x08)) {
+			if (!apdu.apduSeg) {
 				goto abort;
 			}
 			
 			// proper segment number?
-			if (apdu.pktBuffer[2] != ((tsmLastSequenceNumber + 1) % 256)) {
+			if (apdu.apduSeq != ((tsmLastSequenceNumber + 1) % 256)) {
 				RestartTimer( tsmDevice->deviceAPDUSegmentTimeout );
 				Request( BACnetSegmentAckAPDU( tsmAddr, tsmInvokeID, 1, 0, tsmLastSequenceNumber, tsmActualWindowSize ) );
 				tsmInitialSequenceNumber = tsmLastSequenceNumber;
@@ -536,14 +534,13 @@ abort:		StopTimer();
 			
 			// will it fit?
 			if (tsmSeg->AddSegment( apdu ) != 0) {
-				abrt.pktBuffer[2] = bufferOverflowAbort;
 				abrt.apduAbortRejectReason = (int)bufferOverflowAbort;
 				goto abort;
 			}
 			tsmLastSequenceNumber = (tsmLastSequenceNumber + 1) % 256;
 			
 			// last segment?
-			if ((apdu.pktBuffer[0] & 0x04) == 0) {
+			if (!apdu.apduMor) {
 				StopTimer();
 				
 				// send an ack to the server
@@ -565,7 +562,7 @@ abort:		StopTimer();
 			}
 			
 			// last in the group?
-			if (apdu.pktBuffer[2] == ((tsmInitialSequenceNumber + tsmActualWindowSize) % 256)) {
+			if (apdu.apduSeq == ((tsmInitialSequenceNumber + tsmActualWindowSize) % 256)) {
 				RestartTimer( tsmDevice->deviceAPDUSegmentTimeout );
 				Request( BACnetSegmentAckAPDU( tsmAddr, tsmInvokeID, 0, 0, tsmLastSequenceNumber, tsmActualWindowSize ) );
 				tsmInitialSequenceNumber = tsmLastSequenceNumber;

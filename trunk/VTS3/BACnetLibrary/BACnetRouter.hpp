@@ -76,17 +76,20 @@ class BACnetRouter : public BACnetNetServer {
 		
 		void BroadcastRoutingTable( BACnetRouterAdapterPtr adapter );
 		
-		void Indication( const BACnetNPDU &pdu );				// message from app
+		void Indication( const BACnetNPDU &pdu );			// message from app
 		
 	public:
-		BACnetRouter( void )
-			: adapterListLen(0), routerListLen(0)
-		{
-		}
+		BACnetRouter( void );
+		virtual ~BACnetRouter( void );
+		
+		int					deviceLocalNetwork;				// net number of "local" net
+		BACnetAddress		deviceLocalAddress;				// address on the network
+		
+		void SetLocalAddress( int net, const BACnetAddress &addr );
 		
 		void BindToEndpoint( BACnetNetServerPtr endp, int net );
 		void UnbindFromEndpoint( BACnetNetServerPtr endp );
-
+		
 		void BroadcastRoutingTables( void );
 	};
 

@@ -2967,5 +2967,5 @@ void Unbind( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
 
 bool IsBound( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
 {
-	return ((cp->clientPeer == sp) && (sp->serverPeer = cp));
+	return ((cp->clientPeer == sp) && (sp->serverPeer == cp));
 }

@@ -93,7 +93,7 @@ void CSendReadFDTAck::EncodePage( CByteArray* contents )
 
 		// encode the host
 		for (int j = 3; j >= 0; j--)
-			header.Add( (host >> (j * 8)) & 0xFF );
+			header.Add( (unsigned char)((host >> (j * 8)) & 0xFF) );
 
 		// encode the port
 		header.Add( port >> 8 );

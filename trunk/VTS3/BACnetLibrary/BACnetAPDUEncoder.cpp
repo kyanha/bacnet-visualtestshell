@@ -40,9 +40,10 @@ BACnetAPDUEncoder::BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen )
 //
 
 BACnetAPDUEncoder::BACnetAPDUEncoder( int initBuffSize )
-	: pktBuffSize(initBuffSize), pktLength(0)
+	: pktBuffSize(initBuffSize), pktBuffer(0), pktLength(0)
 {
-	pktBuffer = new BACnetOctet[initBuffSize];
+	if (initBuffSize != 0)
+		pktBuffer = new BACnetOctet[initBuffSize];
 }
 
 //
@@ -57,11 +58,46 @@ BACnetAPDUEncoder::~BACnetAPDUEncoder( void )
 }
 
 //
+//	BACnetAPDUEncoder::SetBuffer
+//
+//	Use this routine to set the buffer pointers to an existing buffer.
+//	This is used when building an APDU where the contents are already 
+//	inside an NPDU, so there's actually no additional encoding involved.
+//
+
+void BACnetAPDUEncoder::SetBuffer( const BACnetOctet *buffer, int len )
+{
+	pktBuffSize = 0;
+	pktBuffer = (BACnetOctetPtr)buffer;		// cast away const
+	pktLength  = len;
+}
+
+//
+//	BACnetAPDUEncoder::NewBuffer
+//
+
+void BACnetAPDUEncoder::NewBuffer( int len )
+{
+	// delete the buffer if we own it
+	if (pktBuffSize != 0)
+		delete[] pktBuffer;
+	
+	// create a new one
+	pktBuffer = new BACnetOctet[len];
+	pktBuffSize = len;
+	pktLength = len;
+}
+
+//
 //	BACnetAPDUEncoder::CheckSpace
 //
 
 void BACnetAPDUEncoder::CheckSpace( int len )
 {
+	// if we don't have a buffer, it's a real problem
+	if (!pktBuffer)
+		throw -1;
+	
 	// if we don't own this buffer, skip checking
 	if (pktBuffSize == 0)
 		return;
@@ -98,6 +134,10 @@ void BACnetAPDUEncoder::CheckSpace( int len )
 
 void BACnetAPDUEncoder::Append( BACnetOctet ch )
 {
+	// if we don't have a buffer, it's a real problem
+	if (!pktBuffer)
+		throw -1;
+	
 	// short circuit size check
 	if ((pktBuffSize != 0) && ((pktLength + 1) > pktBuffSize))
 		CheckSpace( 1 );

@@ -10,7 +10,7 @@
 
 class VTSCtrl {
 	public:
-		bool		ctrlNull;				// no value specified
+		BOOL		ctrlNull;				// no value specified
 		bool		ctrlEnabled;			// control enabled on page
 
 		int			ctrlID;					// dialog control ID
@@ -28,7 +28,7 @@ class VTSCtrl {
 		virtual void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
 		virtual void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents
 
-		void UpdateData( bool bCtrlToObj = true );	// call one of above functions.
+		void UpdateData( BOOL bCtrlToObj = true );	// call one of above functions.
 	};
 
 typedef VTSCtrl *VTSCtrlPtr;
@@ -411,7 +411,7 @@ class VTSStatusFlags : public BACnetBitString {
 
 		void CtrlToObj( void );						// interpret control contents, save in object
 		void ObjToCtrl( void );						// object value reflected in control
-		void UpdateData( bool bCtrlToObj );			// call one of the above
+		void UpdateData( BOOL bCtrlToObj );			// call one of the above
 
 		void SaveCtrl( BACnetAPDUEncoder& enc );		// save the contents
 		void RestoreCtrl( BACnetAPDUDecoder& dec );		// restore the contents

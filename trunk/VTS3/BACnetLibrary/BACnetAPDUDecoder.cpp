@@ -27,6 +27,11 @@ BACnetAPDUDecoder::BACnetAPDUDecoder( const BACnetAPDUEncoder &enc )
 {
 }
 
+BACnetAPDUDecoder::BACnetAPDUDecoder( const BACnetNPDU &npdu )
+	: pktBuffer(npdu.pduData), pktLength(npdu.pduLen)
+{
+}
+
 //
 //	BACnetAPDUDecoder::SetBuffer
 //
@@ -41,7 +46,7 @@ void BACnetAPDUDecoder::SetBuffer( const BACnetOctet *buffer, int len )
 //	ExamineTag
 //
 
-void BACnetAPDUDecoder::ExamineTag(BACnetAPDUTag &t)
+void BACnetAPDUDecoder::ExamineTag( BACnetAPDUTag &t )
 {
 	const BACnetOctet	*pkt = pktBuffer		// save the packet pointer
 	;

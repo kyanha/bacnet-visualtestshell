@@ -25,6 +25,36 @@ void BACnetRouterAdapter::Confirmation( const BACnetNPDU &pdu )
 }
 
 //
+//	BACnetRouter::BACnetRouter
+//
+
+BACnetRouter::BACnetRouter( void )
+	: adapterListLen(0), routerListLen(0)
+	, deviceLocalNetwork(kBACnetRouterLocalNetwork), deviceLocalAddress()
+{
+}
+
+//
+//	BACnetRouter::~BACnetRouter
+//
+
+BACnetRouter::~BACnetRouter( void )
+{
+}
+
+//
+//	BACnetRouter::SetLocalAddress
+//
+
+void BACnetRouter::SetLocalAddress( int net, const BACnetAddress &addr )
+{
+	deviceLocalNetwork = net;
+	deviceLocalAddress = addr;
+	deviceLocalAddress.addrType = remoteStationAddr;
+	deviceLocalAddress.addrNet = net;
+}
+
+//
 //	BACnetRouter::BindToEndpoint
 //
 //	Binding a router object to an endpoint needs an adapter to associate a network 
@@ -53,22 +83,25 @@ void BACnetRouter::BindToEndpoint( BACnetNetServerPtr endp, int net )
 //
 //	BACnetRouter::UnbindFromEndpoint
 //
+//	Binding a router object to an endpoint needs an adapter to associate a network 
+//	number with that endpoint.
+//
 
 void BACnetRouter::UnbindFromEndpoint( BACnetNetServerPtr endp )
 {
 	int		i, j, k
 	;
-
+	
 	// can we find it?
 	for (i = 0; i < adapterListLen; i++)
 		if (IsBound(adapterList[i],endp))
 			break;
-
+	
 	if (i < adapterListLen) {
 		// unbind the adapter (client) from the endpoint (server)
 		Unbind( adapterList[i], endp );
-
-		// find and delete all routing table entries for this endpoint
+		
+		// find and delete all routing table entries for thie endpoint
 		k = 0;
 		for (j = 0; j < routerListLen; j++)
 			if (routerList[j].routerAdapter != adapterList[i]) {
@@ -76,10 +109,10 @@ void BACnetRouter::UnbindFromEndpoint( BACnetNetServerPtr endp )
 					routerList[k] = routerList[j];
 				k += 1;
 			}
-
+		
 		// delete the adapter
 		delete adapterList[i];
-
+		
 		// remove it from the list
 		while (i < (adapterListLen - 1)) {
 			adapterList[i] = adapterList[i+1];
@@ -209,19 +242,45 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 	apduData = npci;
 	apduLen = npdu.pduLen - (npci - npdu.pduData);
 	
-	//
-	//	This is an application layer message that we should send up to the application layer 
-	//	object iff: it is not a network layer message, it has no DNET/DADR (which means it 
-	//	doesn't need to be forwarded on) or it is a global broadcast (which means everybody 
-	//	should get a chance to process it).
-	//
-	if ((!netLayerMessage) && ((!dnetPresent) || (destAddr.addrType == globalBroadcastAddr))) {
-		// only forward to the application layer if we are bound to one
+	// if this is an application layer message, see if it can be forwarded
+	if (!netLayerMessage) {
+		// only forward to the device if we are bound to one
 		if (serverPeer) {
+			bool	passItOn = false;
+			
 			// if this isn't from a 'local' network, present it as routed
-			if (adapter->adapterNet != kBACnetRouterLocalNetwork)
+			if (adapter->adapterNet != deviceLocalNetwork)
 				srcAddr.addrType = remoteStationAddr;
-			Response( BACnetNPDU( srcAddr, apduData, apduLen, dataExpectingReply, networkPriority ) );
+			
+			if (!dnetPresent) {
+				// it could be local and the device is local
+				passItOn = (srcAddr.addrType == localStationAddr)
+					&& (deviceLocalNetwork == kBACnetRouterLocalNetwork)
+					;
+				// it could be remote and it matches the device's network (it was sent as a local broadcast)
+				passItOn |= (srcAddr.addrType == remoteStationAddr)
+					&& (srcAddr.addrNet == deviceLocalNetwork)
+					;
+			} else {
+				// it could be a global broadcast
+				passItOn = (destAddr.addrType == globalBroadcastAddr);
+				
+				// it could be a remote broadcast for the device's network
+				passItOn |= (destAddr.addrType == remoteBroadcastAddr)
+					&& (destAddr.addrNet == deviceLocalNetwork)
+					;
+				
+				// it could be a remote station for the device
+				passItOn |= (destAddr.addrType == remoteStationAddr)
+					&& (deviceLocalAddress == destAddr)
+					;
+			}
+			
+			// send to device object
+			if (passItOn)
+				Response(
+					BACnetNPDU( srcAddr, apduData, apduLen, dataExpectingReply, networkPriority )
+					);
 		}
 		
 		// don't continue processing if this was just for our benefit
@@ -229,17 +288,6 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 			return;
 	}
 	
-#if 0
-	//
-	//	Check to see if we can do any routing.  If the adapter the message came 
-	//	from is our local network, we don't know what network we are connected
-	//	to and the adapterNet is kBACnetRouterLocalNetwork.  This ProcessNPDU() function we are in is
-	//	only called from a connected adapter, so our adapterListLen is at least
-	//	one.
-	//
-	if (adapter->adapterNet == kBACnetRouterLocalNetwork)
-		return;
-#endif
 	// don't bother to check for others if there is only one!
 	if (adapterListLen == 1)
 		return;
@@ -394,7 +442,7 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 	// that network, give them the benefit of the doubt.
 	mptr = msg = new BACnetOctet[ 10 + destAddr.addrLen + srcAddr.addrLen + apduLen ];
 	
-	// build a message to be routed
+	// build a message to be sent back
 	*mptr++ = 0x01;											// version
 	// routed to get here?
 	if (srcAddr.addrNet == adapter->adapterNet)
@@ -646,8 +694,8 @@ void BACnetRouter::BroadcastRoutingTables( void )
 //
 //	This PDU is coming down from a device and needs the properly formed NPDU header
 //	attached to the front.  In terms of the protocol, this is really an APDU, but it is 
-//	not a BACnetAPDU because I chose to move that encoding to a higher level (above 
-//	segmentation).
+//	not a BACnetAPDU because I chose to move that encoding to a higher level (now 
+//	in the BACnetDevice object).
 //
 
 void BACnetRouter::Indication( const BACnetNPDU &pdu )
@@ -671,9 +719,9 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 			
 		case localStationAddr:
 		case localBroadcastAddr:
-			// find the endpoint considered the local network
+			// find the adapter considered the local network
 			for (i = 0; i < adapterListLen; i++)
-				if (adapterList[i]->adapterNet == kBACnetRouterLocalNetwork)
+				if (adapterList[i]->adapterNet == deviceLocalNetwork)
 					break;
 			if (i >= adapterListLen)
 				throw (-1); // no local network defined
