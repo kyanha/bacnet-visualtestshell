@@ -1523,7 +1523,7 @@ void VTSDevice::ReadDesc( void )
 	stat = devDoc->m_pDB->pObjMgr->ReadObject( devDescID, &devDesc );
 
 	// make sure the device matches the descriptor contents
-	devDevice.deviceID = (8 << 22) + devDesc.deviceInstance;
+	devDevice.deviceInst = devDesc.deviceInstance;
 	devDevice.deviceSegmentSize = devDesc.deviceSegmentSize;
 	devDevice.deviceWindowSize = devDesc.deviceWindowSize;
 	devDevice.deviceNextInvokeID = devDesc.deviceNextInvokeID;
@@ -1546,7 +1546,7 @@ void VTSDevice::WriteDesc( void )
 	stat = devDoc->m_pDB->pObjMgr->WriteObject( devDescID, &devDesc );
 
 	// make sure the device matches the descriptor contents
-	devDevice.deviceID = (8 << 22) + devDesc.deviceInstance;
+	devDevice.deviceInst = devDesc.deviceInstance;
 	devDevice.deviceSegmentSize = devDesc.deviceSegmentSize;
 	devDevice.deviceWindowSize = devDesc.deviceWindowSize;
 	devDevice.deviceNextInvokeID = devDesc.deviceNextInvokeID;

@@ -71,7 +71,7 @@ void BACnetVLANNode::Indication( const BACnetNPDU &pdu )
 
 void BACnetVLANNode::SendData( BACnetOctet *, int )
 {
-	throw (-1);
+	throw_(1);
 }
 
 //
@@ -100,7 +100,7 @@ void BACnetVLAN::NewNode( BACnetVLANNodePtr np )
 	// no slot found
 	if (i >= nodeListSize) {
 		if (nodeListSize == kBACnetVLANNodeListSize)
-			throw (-1); // no more node slots available
+			throw_(2); // no more node slots available
 		
 		i = nodeListSize++;
 	}

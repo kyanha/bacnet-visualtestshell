@@ -62,6 +62,27 @@ void BACnetAPDUDecoder::ExamineTag( BACnetAPDUTag &t )
 }
 
 //
+//	BACnetAPDUDecoder::Skip
+//
+
+void BACnetAPDUDecoder::Skip( void )
+{
+	BACnetAPDUTag	tag
+	;
+	
+	// extract the tag
+	tag.Decode( *this );
+	
+	// don't update length for an application tagged boolean (there isn't any)
+	if (!tag.tagClass && (tag.tagNumber == booleanAppTag))
+		return;
+	
+	// skip the data
+	pktBuffer += tag.tagLVT;
+	pktLength += tag.tagLVT;
+}
+
+//
 //	BACnetAPDUDecoder::CopyOctets
 //
 //	A crude but effective way of copying out a chunk of information.  Note that 
@@ -107,6 +128,49 @@ int BACnetAPDUDecoder::ExtractData( BACnetOctet *buffer )
 	return tag.tagLVT;
 }
 
+//
+//	BACnetAPDUDecoder::FindContext
+//
+
+bool BACnetAPDUDecoder::FindContext( int context, BACnetAPDUDecoder &dec )
+{
+	BACnetAPDUTag	tag
+	;
+	int		level = 0
+	;
+	
+	// start where we are
+	dec = *this;
+
+	while (dec.pktLength != 0) {
+		dec.ExamineTag( tag );
+
+		if (tag.tagClass == openingTagClass) {
+			if ((level == 0) && (tag.tagNumber == context))
+				return true;
+			level += 1;
+		} else
+		if (tag.tagClass == closingTagClass) {
+			if (level == 0)
+				return false;
+			level -= 1;
+		} else
+		if ((level == 0) && (tag.tagClass == contextTagClass)) {
+			if (tag.tagNumber == context)
+				return true;
+			else
+			if (tag.tagNumber > context)
+				return false;
+		}
+
+		dec.Skip();
+	}
+
+	// must not be around
+	return false;
+}
+
+#if _TSMDebug
 //
 //	ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec )
 //
@@ -168,7 +232,7 @@ ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec )
 				case applicationTagClass:
 					switch (t.tagNumber) {
 						case unusedAppTag:
-							throw -1; // should never get here
+							throw_(1); // should never get here
 						
 						case nullAppTag: {
 							BACnetNull		nullValue
@@ -320,3 +384,4 @@ ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec )
 	
 	return strm;
 }
+#endif

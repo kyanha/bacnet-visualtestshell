@@ -96,7 +96,7 @@ void BACnetAPDUEncoder::CheckSpace( int len )
 {
 	// if we don't have a buffer, it's a real problem
 	if (!pktBuffer)
-		throw -1;
+		throw_(1);
 	
 	// if we don't own this buffer, skip checking
 	if (pktBuffSize == 0)
@@ -117,7 +117,7 @@ void BACnetAPDUEncoder::CheckSpace( int len )
 	
 	newBuffer = new BACnetOctet[ newSize ];
 	if (!newBuffer)
-		throw (-1);
+		throw_(2);
 	
 	// copy the old data
 	memcpy( newBuffer, pktBuffer, pktBuffSize );
@@ -136,7 +136,7 @@ void BACnetAPDUEncoder::Append( BACnetOctet ch )
 {
 	// if we don't have a buffer, it's a real problem
 	if (!pktBuffer)
-		throw -1;
+		throw_(3);
 	
 	// short circuit size check
 	if ((pktBuffSize != 0) && ((pktLength + 1) > pktBuffSize))

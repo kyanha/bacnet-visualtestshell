@@ -94,7 +94,7 @@ void BACnetServerTSM::Confirmation( const BACnetAPDU &apdu )
 			
 		case confirmedRequestPDU:
 		case segmentAckPDU:
-			throw -1; // ###
+			throw_(1); // ###
 		
 		case complexAckPDU:
 			// compute the segment count
@@ -159,7 +159,7 @@ void BACnetServerTSM::ProcessTask( void )
 			SegmentedResponseTimeout();
 			break;
 		default:
-			throw -1; // ###
+			throw_(2); // ###
 	}
 }
 

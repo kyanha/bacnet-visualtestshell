@@ -136,9 +136,9 @@ void BACnetAddress::GlobalBroadcast( void )
 
 int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 {
-	int		i
+	int			i
 	;
-
+	
 	// address types must match
 	if (addr1.addrType != addr2.addrType)
 		return 0;
@@ -146,9 +146,11 @@ int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 	// remote broadcast and remote station have a network, localStation and remote
 	// station have an address.
 	switch (addr1.addrType) {
+		case nullAddr:
 		case localBroadcastAddr:
+		case globalBroadcastAddr:
 			break;
-
+			
 		case remoteBroadcastAddr:
 			if (addr1.addrNet != addr1.addrNet) return 0;
 			break;
@@ -163,7 +165,7 @@ int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 			break;
 			
 		default:
-			throw -1; // no other address types allowed
+			throw_(1); // no other address types allowed
 	}
 	
 	// must be equal
@@ -221,14 +223,14 @@ ostream &operator <<(ostream &strm,const BACnetAddress &addr)
 //	BACnetEncodeable
 //
 
-void BACnetEncodeable::Encode( char * )
+void BACnetEncodeable::Encode( char * ) const
 {
-	throw (-1) /*not implemented */;
+	throw_(2) /*not implemented */;
 }
 
 void BACnetEncodeable::Decode( const char * )
 {
-	throw (-1) /*not implemented */;
+	throw_(3) /*not implemented */;
 }
 
 void BACnetEncodeable::Peek( BACnetAPDUDecoder& dec )
@@ -266,17 +268,17 @@ void BACnetNull::Decode( BACnetAPDUDecoder &dec )
 {
 	// enough for the tag byte?
 	if (dec.pktLength < 1)
-		throw (-1) /* not enough data */;
+		throw_(4) /* not enough data */;
 	
 	// suck out the tag
 	BACnetOctet	tag = (dec.pktLength--,*dec.pktBuffer++);
 	
 	// verify its a null
 	if (((tag & 0x08) == 0) && ((tag & 0xF0) != 0x00))
-		throw (-1) /* mismatched data type */;
+		throw_(5) /* mismatched data type */;
 }
 
-void BACnetNull::Encode( char *enc )
+void BACnetNull::Encode( char *enc ) const
 {
 	strcpy( enc, "Null" );
 }
@@ -284,7 +286,7 @@ void BACnetNull::Encode( char *enc )
 void BACnetNull::Decode( const char *dec )
 {
 	if (stricmp( dec, "Null") != 0)
-		throw (-1) /* null must be 'null' */;
+		throw_(6) /* null must be 'null' */;
 }
 
 //
@@ -321,7 +323,7 @@ void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
 	
 	// enough for the tag byte?
 	if (dec.pktLength < 1)
-		throw (-1) /* not enough data */;
+		throw(7) /* not enough data */;
 	
 	tag = (dec.pktLength--,*dec.pktBuffer++);
 	
@@ -334,17 +336,17 @@ void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
 	} else {
 		// verify context tagged and length
 		if ((tag & 0x0F) != 0x09)
-			throw (-1) /* bad length */;
+			throw_(8) /* bad length */;
 		
 		// check for more data
 		if (dec.pktLength < 1)
-			throw (-1);
+			throw_(9);
 		
 		boolValue = (eBACnetBoolean)(dec.pktLength--,*dec.pktBuffer++);
 	}
 }
 
-void BACnetBoolean::Encode( char *enc )
+void BACnetBoolean::Encode( char *enc ) const
 {
 	if (boolValue)
 		strcpy( enc, "Set" );
@@ -375,7 +377,7 @@ void BACnetBoolean::Decode( const char *dec )
 			break;
 
 		default:
-			throw (-1) /* unknown keyword */;
+			throw_(10) /* unknown keyword */;
 	}
 }
 
@@ -428,7 +430,7 @@ void BACnetEnumerated::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type
 	if (!tag.tagClass && (tag.tagNumber != enumeratedAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(11) /* mismatched data type */;
 	
 	// copy out the data
 	rslt = 0;
@@ -441,12 +443,12 @@ void BACnetEnumerated::Decode( BACnetAPDUDecoder& dec )
 	enumValue = rslt;
 }
 
-void BACnetEnumerated::Encode( char *enc )
+void BACnetEnumerated::Encode( char *enc ) const
 {
 	Encode( enc, 0, 0 );
 }
 
-void BACnetEnumerated::Encode( char *enc, const char **table, int tsize )
+void BACnetEnumerated::Encode( char *enc, const char **table, int tsize ) const
 {
 	int		valu = enumValue
 	;
@@ -468,12 +470,12 @@ void BACnetEnumerated::Decode( const char *dec, const char **table, int tsize )
 		// integer encoding
 		for (enumValue = 0; *dec; dec++)
 			if (!isdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(12) /* invalid character */;
 			else
 				enumValue = (enumValue * 10) + (*dec - '0');
 	} else
 	if (!table)
-		throw (-1) /* no translation available */;
+		throw_(13) /* no translation available */;
 	else {
 		enumValue = 0;
 		while (enumValue < tsize) {
@@ -485,7 +487,7 @@ void BACnetEnumerated::Decode( const char *dec, const char **table, int tsize )
 			enumValue += 1;
 		}
 		if (enumValue >= tsize)
-			throw (-1) /* no matching translation */;
+			throw_(14) /* no matching translation */;
 	}
 }
 
@@ -538,7 +540,7 @@ void BACnetUnsigned::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type
 	if (!tag.tagClass && (tag.tagNumber != unsignedIntAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(15) /* mismatched data type */;
 	
 	// copy out the data
 	rslt = 0;
@@ -551,7 +553,7 @@ void BACnetUnsigned::Decode( BACnetAPDUDecoder& dec )
 	uintValue = rslt;
 }
 
-void BACnetUnsigned::Encode( char *enc )
+void BACnetUnsigned::Encode( char *enc ) const
 {
 	// simple, effective
 	sprintf( enc, "%u", uintValue );
@@ -567,7 +569,7 @@ void BACnetUnsigned::Decode( const char *dec )
 		// integer encoding
 		for (uintValue = 0; *dec; dec++)
 			if (!isdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(16) /* invalid character */;
 			else
 				uintValue = (uintValue * 10) + (*dec - '0');
 	} else
@@ -577,18 +579,18 @@ void BACnetUnsigned::Decode( const char *dec )
 		// decimal encoding
 		dec += 2;
 		if (((strlen(dec) - 1) % 3) != 0)			// must be triplet
-			throw (-1) /* must be triplet */;
+			throw_(17) /* must be triplet */;
 		for (uintValue = 0; *dec != '\''; ) {
 			if (!isdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(18) /* invalid character */;
 			t = (*dec++ - '0');
 
 			if (!isdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(19) /* invalid character */;
 			t = (t * 10) + (*dec++ - '0');
 
 			if (!isdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(20) /* invalid character */;
 			t = (t * 10) + (*dec++ - '0');
 
 			uintValue = (uintValue * 256) + t;
@@ -604,7 +606,7 @@ void BACnetUnsigned::Decode( const char *dec )
 		dec += 2;
 		for (uintValue = 0; *dec && (*dec != '\''); dec++) {
 			if (!isxdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(21) /* invalid character */;
 			uintValue = (uintValue * 16) + (isdigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
 		}
 	} else
@@ -618,7 +620,7 @@ void BACnetUnsigned::Decode( const char *dec )
 		dec += 2;
 		for (uintValue = 0; *dec && (*dec != '\''); dec++) {
 			if ((*dec < '0') || (*dec > '7'))
-				throw (-1) /* invalid character */;
+				throw_(21) /* invalid character */;
 			uintValue = (uintValue * 16) + (*dec - '0');
 		}
 	} else
@@ -632,11 +634,11 @@ void BACnetUnsigned::Decode( const char *dec )
 		dec += 2;
 		for (uintValue = 0; *dec && (*dec != '\''); dec++) {
 			if ((*dec < '0') || (*dec > '1'))
-				throw (-1) /* invalid character */;
+				throw_(22) /* invalid character */;
 			uintValue = (uintValue * 2) + (*dec - '0');
 		}
 	} else
-		throw (-1) /* unknown or invalid encoding */;
+		throw_(23) /* unknown or invalid encoding */;
 }
 
 //
@@ -693,7 +695,7 @@ void BACnetInteger::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type
 	if (!tag.tagClass && (tag.tagNumber != integerAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(24) /* mismatched data type */;
 	
 	// check for sign extension
 	if ((*dec.pktBuffer & 0x80) != 0)
@@ -711,7 +713,7 @@ void BACnetInteger::Decode( BACnetAPDUDecoder& dec )
 	intValue = rslt;
 }
 
-void BACnetInteger::Encode( char *enc )
+void BACnetInteger::Encode( char *enc ) const
 {
 	// simple, effective
 	sprintf( enc, "%d", intValue );
@@ -737,7 +739,7 @@ void BACnetInteger::Decode( const char *dec )
 		// integer encoding
 		for (intValue = 0; *dec; dec++)
 			if (!isdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(25) /* invalid character */;
 			else
 				intValue = (intValue * 10) + (*dec - '0');
 	} else
@@ -747,18 +749,18 @@ void BACnetInteger::Decode( const char *dec )
 		// decimal encoding
 		dec += 2;
 		if (((strlen(dec) - 1) % 3) != 0)			// must be triplet
-			throw (-1) /* must be triplet */;
+			throw_(26) /* must be triplet */;
 		for (intValue = 0; *dec != '\''; ) {
 			if (!isdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(27) /* invalid character */;
 			t = (*dec++ - '0');
 
 			if (!isdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(28) /* invalid character */;
 			t = (t * 10) + (*dec++ - '0');
 
 			if (!isdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(29) /* invalid character */;
 			t = (t * 10) + (*dec++ - '0');
 
 			intValue = (intValue * 256) + t;
@@ -774,7 +776,7 @@ void BACnetInteger::Decode( const char *dec )
 		dec += 2;
 		for (intValue = 0; *dec && (*dec != '\''); dec++) {
 			if (!isxdigit(*dec))
-				throw (-1) /* invalid character */;
+				throw_(30) /* invalid character */;
 			intValue = (intValue * 16) + (isdigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
 		}
 	} else
@@ -788,7 +790,7 @@ void BACnetInteger::Decode( const char *dec )
 		dec += 2;
 		for (intValue = 0; *dec && (*dec != '\''); dec++) {
 			if ((*dec < '0') || (*dec > '7'))
-				throw (-1) /* invalid character */;
+				throw_(31) /* invalid character */;
 			intValue = (intValue * 16) + (*dec - '0');
 		}
 	} else
@@ -802,11 +804,11 @@ void BACnetInteger::Decode( const char *dec )
 		dec += 2;
 		for (intValue = 0; *dec && (*dec != '\''); dec++) {
 			if ((*dec < '0') || (*dec > '1'))
-				throw (-1) /* invalid character */;
+				throw_(32) /* invalid character */;
 			intValue = (intValue * 2) + (*dec - '0');
 		}
 	} else
-		throw (-1) /* unknown or invalid encoding */;
+		throw_(33) /* unknown or invalid encoding */;
 
 	// update for sign
 	if (negValue)
@@ -859,9 +861,9 @@ void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type and length
 	if (!tag.tagClass && (tag.tagNumber != realAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(34) /* mismatched data type */;
 	if (tag.tagLVT != 4)
-		throw (-1) /* four bytes of data expected */;
+		throw_(35) /* four bytes of data expected */;
 	
 	// copy out the data
 #if (__DECCXX)
@@ -885,7 +887,7 @@ void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetReal::Encode( char *enc )
+void BACnetReal::Encode( char *enc ) const
 {
 	// simple, effective
 	sprintf( enc, "%f", realValue );
@@ -895,7 +897,7 @@ void BACnetReal::Decode( const char *dec )
 {
 	// check for valid format
 	if (sscanf( dec, "%f", &realValue ) != 1)
-		throw (-1) /* format error */;
+		throw_(36) /* format error */;
 }
 
 //
@@ -953,9 +955,9 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type and length
 	if (!tag.tagClass && (tag.tagNumber != doubleAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(37) /* mismatched data type */;
 	if (tag.tagLVT != 8)
-		throw (-1) /* eight bytes of data expected */;
+		throw_(38) /* eight bytes of data expected */;
 	
 	// copy out the data
 #if (__DECCXX)
@@ -988,7 +990,7 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetDouble::Encode( char *enc )
+void BACnetDouble::Encode( char *enc ) const
 {
 	// simple, effective
 	sprintf( enc, "%lf", doubleValue );
@@ -998,7 +1000,7 @@ void BACnetDouble::Decode( const char *dec )
 {
 	// check for valid format
 	if (sscanf( dec, "%lf", &doubleValue ) != 1)
-		throw (-1) /* format error */;
+		throw_(39) /* format error */;
 }
 
 //
@@ -1079,7 +1081,7 @@ void BACnetCharacterString::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type and length
 	if (!tag.tagClass && (tag.tagNumber != characterStringAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(40) /* mismatched data type */;
 
 	// extract the encoding
 	strEncoding = (dec.pktLength--,*dec.pktBuffer++);
@@ -1098,7 +1100,7 @@ void BACnetCharacterString::Decode( BACnetAPDUDecoder& dec )
 	dec.pktLength -= strLen;
 }
 
-void BACnetCharacterString::Encode( char *enc )
+void BACnetCharacterString::Encode( char *enc ) const
 {
 	static char hex[] = "0123456789ABCDEF"
 	;
@@ -1227,10 +1229,10 @@ void BACnetCharacterString::Decode( const char *dec )
 			strEncoding = 0;
 		else {
 			if (!tok.IsInteger( encType, ScriptCharacterTypeMap ))
-				throw (-1) /* encoding type keyword expected */;
+				throw_(41) /* encoding type keyword expected */;
 			else
 			if ((encType < 0) || (encType > 255))
-				throw (-1) /* out of range */;
+				throw_(42) /* out of range */;
 			strEncoding = encType;
 
 			// get the next token
@@ -1257,9 +1259,9 @@ void BACnetCharacterString::Decode( const char *dec )
 			strBuff = new BACnetOctet[ strLen ];
 			memcpy( strBuff, ostr.strBuff, (size_t)strLen );
 		} else
-			throw (-1) /* ASCII or hex string expected */;
+			throw_(43) /* ASCII or hex string expected */;
 #else
-		throw (-1) /* not implemented */;
+		throw_(44) /* not implemented */;
 #endif
 	}
 }
@@ -1456,7 +1458,7 @@ void BACnetOctetString::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type and length
 	if (!tag.tagClass && (tag.tagNumber != octetStringAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(45) /* mismatched data type */;
 	
 	// check for space
 	if ((strBuffLen != 0) && (strBuffLen != tag.tagLVT)) {
@@ -1476,7 +1478,7 @@ void BACnetOctetString::Decode( BACnetAPDUDecoder& dec )
 	dec.pktLength -= tag.tagLVT;
 }
 
-void BACnetOctetString::Encode( char *enc )
+void BACnetOctetString::Encode( char *enc ) const
 {
 	static char hex[] = "0123456789ABCDEF"
 	;
@@ -1516,12 +1518,12 @@ void BACnetOctetString::Decode( const char *dec )
 	while (*dec && (*dec != '\'')) {
 		c = toupper( *dec++ );
 		if (!isxdigit(c))
-			throw (-1) /* invalid character */;
+			throw_(46) /* invalid character */;
 		upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		c = toupper( *dec++ );
 		if (!isxdigit(c))
-			throw (-1) /* invalid character */;
+			throw_(47) /* invalid character */;
 		lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		// stick this on the end
@@ -1833,7 +1835,7 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type and length
 	if (!tag.tagClass && (tag.tagNumber != bitStringAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(48) /* mismatched data type */;
 	
 	// make sure the destination has enough space
 	bLen = ((tag.tagLVT - 1) * 8 - (dec.pktLength--,*dec.pktBuffer++));
@@ -1842,7 +1844,7 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 	tag.tagLVT -= 1;
 	
 	if (!bitBuff)
-		throw (-1) /* destination too small */;
+		throw_(49) /* destination too small */;
 	
 	// copy out the data, null terminated
 #ifdef ENDIAN_SWAP
@@ -1862,7 +1864,7 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetBitString::Encode( char *enc )
+void BACnetBitString::Encode( char *enc ) const
 {
 	*enc++ = 'B';
 	*enc++ = '\'';
@@ -1912,7 +1914,7 @@ void BACnetBitString::Decode( const char *dec )
 		if (c == '1')
 			SetBit( bit, 1 );
 		else
-			throw (-1) /* invalid character */;
+			throw_(50) /* invalid character */;
 		bit += 1;
 	}
 }
@@ -2001,9 +2003,9 @@ void BACnetDate::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type and length
 	if (!tag.tagClass && (tag.tagNumber != dateAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(51) /* mismatched data type */;
 	if (tag.tagLVT != 4)
-		throw (-1) /* four bytes of data expected */;
+		throw_(52) /* four bytes of data expected */;
 	
 	// copy out the data
 	year		= *dec.pktBuffer++;
@@ -2013,7 +2015,7 @@ void BACnetDate::Decode( BACnetAPDUDecoder& dec )
 	dec.pktLength -= 4;
 }
 
-void BACnetDate::Encode( char *enc )
+void BACnetDate::Encode( char *enc ) const
 {
 	static char *dow[] = { "", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }
 	;
@@ -2100,7 +2102,7 @@ void BACnetDate::Decode( const char *dec )
 			month = (month * 10) + (*dec - '0');
 	}
 	while (*dec && isspace(*dec)) dec++;
-
+	
 	// skip over slash and more space
 	if (*dec == '/') {
 		dec += 1;
@@ -2115,7 +2117,7 @@ void BACnetDate::Decode( const char *dec )
 			day = (day * 10) + (*dec - '0');
 	}
 	while (*dec && isspace(*dec)) dec++;
-
+	
 	// skip over slash and more space
 	if (*dec == '/') {
 		dec += 1;
@@ -2199,9 +2201,9 @@ void BACnetTime::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type and length
 	if (!tag.tagClass && (tag.tagNumber != timeAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(53) /* mismatched data type */;
 	if (tag.tagLVT != 4)
-		throw (-1) /* four bytes of data expected */;
+		throw_(54) /* four bytes of data expected */;
 	
 	// copy out the data
 	hour		= *dec.pktBuffer++;
@@ -2211,7 +2213,7 @@ void BACnetTime::Decode( BACnetAPDUDecoder& dec )
 	dec.pktLength -= 4;
 }
 
-void BACnetTime::Encode( char *enc )
+void BACnetTime::Encode( char *enc ) const
 {
 	// hour
 	if (hour == 255)
@@ -2264,7 +2266,7 @@ void BACnetTime::Decode( const char *dec )
 	if (*dec == ':')
 		dec += 1;
 	else
-		throw (-1) /* invalid character */;
+		throw_(55) /* invalid character */;
 
 	// check for minute
 	if ((*dec == '*') || (*dec == '?'))
@@ -2277,7 +2279,7 @@ void BACnetTime::Decode( const char *dec )
 	if (*dec == ':')
 		dec += 1;
 	else
-		throw (-1) /* invalid character */;
+		throw_(56) /* invalid character */;
 
 	// check for second
 	if ((*dec == '*') || (*dec == '?'))
@@ -2290,7 +2292,7 @@ void BACnetTime::Decode( const char *dec )
 	if (*dec == '.')
 		dec += 1;
 	else
-		throw (-1) /* invalid character */;
+		throw_(57) /* invalid character */;
 
 	// check for hundredths
 	if ((*dec == '*') || (*dec == '?'))
@@ -2303,9 +2305,9 @@ void BACnetTime::Decode( const char *dec )
 		while (isdigit(*dec))
 			dec++;
 		if (*dec)
-			throw (-1) /* invalid character */;
+			throw_(58) /* invalid character */;
 	} else
-		throw (-1) /* invalid character */;
+		throw_(59) /* invalid character */;
 }
 
 //
@@ -2354,9 +2356,9 @@ void BACnetObjectIdentifier::Decode( BACnetAPDUDecoder& dec )
 	
 	// check the type and length
 	if (!tag.tagClass && (tag.tagNumber != objectIdentifierAppTag))
-		throw (-1) /* mismatched data type */;
+		throw_(60) /* mismatched data type */;
 	if (tag.tagLVT != 4)
-		throw (-1) /* four bytes of data expected */;
+		throw_(61) /* four bytes of data expected */;
 	
 	// copy out the data
 #ifdef ENDIAN_SWAP
@@ -2369,7 +2371,7 @@ void BACnetObjectIdentifier::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetObjectIdentifier::Encode( char *enc )
+void BACnetObjectIdentifier::Encode( char *enc ) const
 {
 	int		objType = (objID >> 22)
 	,		instanceNum = (objID & 0x003FFFFF)
@@ -2390,9 +2392,9 @@ void BACnetObjectIdentifier::Encode( char *enc )
 	sprintf( enc, "%s, %d", s, instanceNum );
 }
 
+#if VTSScanner
 void BACnetObjectIdentifier::Decode( const char *dec )
 {
-#if VTSScanner
 	int		objType, instanceNum
 	;
 
@@ -2407,23 +2409,23 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 		// next must be a number in the reserved range
 		scan.Next( tok );
 		if (!tok.IsInteger( objType ))
-			throw (-1) /* integer expected */;
+			throw_(62) /* integer expected */;
 		if ((objType < 0) || (objType >= 128))
-			throw (-1) /* out of range */;
+			throw_(63) /* out of range */;
 	} else
 	if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwVENDOR)) {
 		// next must be a number in the vendor range
 		scan.Next( tok );
 		if (!tok.IsInteger( objType ))
-			throw (-1) /* integer expected */;
+			throw_(64) /* integer expected */;
 		if ((objType < 128) || (objType >= (1 << 10)))
-			throw (-1) /* out of range */;
+			throw_(65) /* out of range */;
 	} else
 	if (!tok.IsInteger( objType, ScriptObjectTypeMap ))
-		throw (-1) /* object type keyword expected */;
+		throw_(66) /* object type keyword expected */;
 	else
 	if ((objType < 0) || (objType >= (1 << 10)))
-		throw (-1) /* out of range */;
+		throw_(67) /* out of range */;
 
 	// get the next token
 	scan.Next( tok );
@@ -2434,16 +2436,19 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 
 	// make sure it's an integer
 	if (!tok.IsInteger( instanceNum ))
-		throw (-1) /* instance expected */;
+		throw_(68) /* instance expected */;
 	if ((instanceNum < 0) || (instanceNum >= (1 << 22)))
-		throw (-1) /* out of range */;
+		throw_(69) /* out of range */;
 
 	// everything checks out
 	objID = (objType << 22) + instanceNum;
-#else
-	throw (-1) /* not implemented */;
-#endif
 }
+#else
+void BACnetObjectIdentifier::Decode( const char * )
+{
+	throw_(70) /* not implemented */;
+}
+#endif
 
 //
 //	BACnetOpeningTag
@@ -2468,18 +2473,18 @@ void BACnetOpeningTag::Decode( BACnetAPDUDecoder& dec )
 	
 	// enough for the tag byte?
 	if (dec.pktLength < 1)
-		throw (-1) /* not enough data */;
+		throw_(71) /* not enough data */;
 	
 	tag = (dec.pktLength--,*dec.pktBuffer++);
 	
 	// check the type
 	if ((tag & 0x0F) != 0x0E)
-		throw (-1) /* mismatched tag class */;
+		throw_(72) /* mismatched tag class */;
 	
 	// check for a big context
 	if ((tag & 0xF0) == 0xF0) {
 		if (dec.pktLength < 1)
-			throw (-1) /* not enough data */;
+			throw_(73) /* not enough data */;
 		dec.pktLength -= 1;
 	}
 }
@@ -2507,18 +2512,18 @@ void BACnetClosingTag::Decode( BACnetAPDUDecoder& dec )
 	
 	// enough for the tag byte?
 	if (dec.pktLength < 1)
-		throw (-1) /* not enough data */;
+		throw_(74) /* not enough data */;
 	
 	tag = (dec.pktLength--,*dec.pktBuffer++);
 	
 	// check the type
 	if ((tag & 0x0F) != 0x0F)
-		throw (-1) /* mismatched tag class */;
+		throw_(75) /* mismatched tag class */;
 	
 	// check for a big context
 	if ((tag & 0xF0) == 0xF0) {
 		if (dec.pktLength < 1)
-			throw (-1) /* not enough data */;
+			throw_(76) /* not enough data */;
 		dec.pktLength -= 1;
 	}
 }
@@ -2646,7 +2651,7 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
 	
 	// enough for the tag byte?
 	if (dec.pktLength < 1)
-		throw (-1) /* not enough data */;
+		throw_(77) /* not enough data */;
 	
 	tag = (dec.pktLength--,*dec.pktBuffer++);
 	
@@ -2657,7 +2662,7 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
 	tagNumber = (BACnetApplicationTag)(tag >> 4);
 	if (tagNumber == 0x0F) {
 		if (dec.pktLength < 1)
-			throw (-1) /* not enough data */;
+			throw_(78) /* not enough data */;
 		tagNumber = (BACnetApplicationTag)(dec.pktLength--,*dec.pktBuffer++);
 	}
 	
@@ -2668,17 +2673,17 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
 	else
 	if (tagLVT == 5) {
 		if (dec.pktLength < 1)
-			throw (-1) /* not enough data */;
+			throw_(79) /* not enough data */;
 		tagLVT = (dec.pktLength--,*dec.pktBuffer++);
 		if (tagLVT == 254) {
 			if (dec.pktLength < 2)
-				throw (-1) /* not enough data */;
+				throw_(80) /* not enough data */;
 			tagLVT = (dec.pktLength--,*dec.pktBuffer++);
 			tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
 		} else
 		if (tagLVT == 255) {
 			if (dec.pktLength < 4)
-				throw (-1) /* not enough data */;
+				throw_(81) /* not enough data */;
 			tagLVT = (dec.pktLength--,*dec.pktBuffer++);
 			tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
 			tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
@@ -2699,7 +2704,7 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
 		;
 	else
 	if (dec.pktLength < tagLVT)
-		throw (-1);
+		throw_(82);
 }
 
 //----------
@@ -2937,7 +2942,7 @@ BACnetAppClient::~BACnetAppClient( void )
 
 void BACnetAppClient::Request( const BACnetAPDU &pdu )
 {
-	if (!clientPeer) throw -1;
+	if (!clientPeer) throw_(83);
 	clientPeer->Indication( pdu );
 }
 
@@ -2966,7 +2971,7 @@ BACnetAppServer::~BACnetAppServer( void )
 
 void BACnetAppServer::Response( const BACnetAPDU &pdu )
 {
-	if (!serverPeer) throw -1;
+	if (!serverPeer) throw_(84);
 	serverPeer->Confirmation( pdu );
 }
 

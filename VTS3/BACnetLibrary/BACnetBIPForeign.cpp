@@ -114,7 +114,7 @@ void BACnetBIPForeign::Indication( const BACnetNPDU &npdu )
 			break;
 			
 		default:
-			throw -1; // no other address types allowed
+			throw_(1); // no other address types allowed
 	}
 }
 

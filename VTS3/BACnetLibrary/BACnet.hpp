@@ -1,7 +1,9 @@
 #ifndef _BACnet
 #define _BACnet
 
-#define _TSMDebug	1
+#ifndef _TSMDebug
+#define _TSMDebug	0
+#endif
 
 #if _TSMDebug
 #include <iostream.h>
@@ -78,7 +80,7 @@ class BACnetEncodeable {
 		virtual void Decode( BACnetAPDUDecoder& dec ) = 0;
 		void Peek( BACnetAPDUDecoder& dec );
 
-		virtual void Encode( char *enc );
+		virtual void Encode( char *enc ) const;
 		virtual void Decode( const char *dec );
 	};
 
@@ -92,7 +94,7 @@ class BACnetNull : public BACnetEncodeable {
 	public:
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -105,7 +107,7 @@ class BACnetBoolean : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -117,10 +119,10 @@ class BACnetEnumerated : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 
-		void Encode( char *enc, const char **table, int tsize );
+		void Encode( char *enc, const char **table, int tsize ) const;
 		void Decode( const char *dec, const char **table, int tsize );
 	};
 
@@ -132,7 +134,7 @@ class BACnetUnsigned : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -145,7 +147,7 @@ class BACnetInteger : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -157,7 +159,7 @@ class BACnetReal : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -169,7 +171,7 @@ class BACnetDouble : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -188,7 +190,7 @@ class BACnetCharacterString : public BACnetEncodeable {
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -216,7 +218,7 @@ class BACnetOctetString : public BACnetEncodeable {
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -250,7 +252,7 @@ class BACnetBitString : public BACnetEncodeable {
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -268,7 +270,7 @@ class BACnetDate : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -284,7 +286,7 @@ class BACnetTime : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -319,7 +321,7 @@ class BACnetObjectIdentifier : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc );
+		void Encode( char *enc ) const;
 		void Decode( const char *dec );
 	};
 
@@ -479,15 +481,21 @@ class BACnetAPDUDecoder {
 		void SetBuffer( const BACnetOctet *buffer, int len );
 
 		void ExamineTag( BACnetAPDUTag &t );			// just peek at the next tag
+		void Skip( void );				// skip the tag
 		
 		void CopyOctets( BACnetOctet *buff, int len );	// raw copy into buffer
+
 		int ExtractData( BACnetOctet *buffer );		// skip the tag and extract the data
+
+		bool FindContext( int context, BACnetAPDUDecoder &dec );	// return a decoder for a specific context
 	};
 
 typedef BACnetAPDUDecoder *BACnetAPDUDecoderPtr;
 const int kBACnetAPDUDecoderSize = sizeof( BACnetAPDUDecoder );
 
+#if _TSMDebug
 ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec );
+#endif
 
 //
 //	BACnetNetClient
@@ -907,7 +915,7 @@ enum BACnetSegmentation {
 
 class BACnetDeviceInfo {
 	public:
-		BACnetObjectIdentifier	deviceID;
+		unsigned int	deviceInst;
 		BACnetAddress			deviceAddr;
 		BACnetSegmentation		deviceSegmentation;			// supports segments requests
 		int						deviceSegmentSize;			// how to divide up chunks
@@ -947,7 +955,7 @@ class BACnetDevice : public BACnetNetClient, public BACnetDeviceInfo {
 		void Bind( BACnetServerPtr sp );
 		void Unbind( BACnetServerPtr sp );
 		
-		BACnetDeviceInfoPtr GetInfo( const BACnetObjectIdentifier &id );
+		BACnetDeviceInfoPtr GetInfo( unsigned int inst );
 		BACnetDeviceInfoPtr GetInfo( const BACnetAddress &addr );
 		
 		void Indication( const BACnetAPDU &apdu );		// outgoing packet
@@ -1138,6 +1146,24 @@ class BACnetServer : public BACnetAppServer {
 		BACnetServer( BACnetDevicePtr dp );
 		virtual ~BACnetServer( void );
 	};
+
+//
+//	BACnetError
+//
+
+class BACnetError {
+	public:
+		const char	*errFile;
+		const int	errLine;
+		const int	errError;
+
+		BACnetError( const char *file, const int line, const int err )
+			: errFile(file), errLine(line), errError(err)
+		{
+		}
+	};
+
+#define throw_(x)	throw BACnetError( __FILE__, __LINE__, x )
 
 #endif
 // vinculum - a unifying bond, link, or tie

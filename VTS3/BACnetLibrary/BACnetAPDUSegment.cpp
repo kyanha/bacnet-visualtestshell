@@ -145,7 +145,7 @@ const BACnetAPDU& BACnetAPDUSegment::operator[](const int indx)
 			break;
 		
 		default:
-			throw -1; // other PDU types invalid
+			throw_(1); // other PDU types invalid
 	}
 	
 	return segAPDU;

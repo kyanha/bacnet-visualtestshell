@@ -64,11 +64,11 @@ void BACnetRouter::SetLocalAddress( int net, const BACnetAddress &addr )
 void BACnetRouter::BindToEndpoint( BACnetNetServerPtr endp, int net )
 {
 	if (adapterListLen == kBACnetRouterMaxAdapters)
-		throw (-1); // out of adapter space
+		throw_(1); // out of adapter space
 	
 	for (int i = 0; i < adapterListLen; i++)
 		if (adapterList[i]->adapterNet == net)
-			throw (-1); // already an adapter for this network
+			throw_(2); // already an adapter for this network
 	
 	// create a new adapter that refers back to this router
 	BACnetRouterAdapterPtr	adapter = new BACnetRouterAdapter( net, this );
@@ -144,8 +144,8 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 	;
 	BACnetAddress		srcAddr, destAddr, *addrPtr
 	;
-    BACnetAddress		localBroadcast( localBroadcastAddr )
-    ;
+	BACnetAddress		localBroadcast( localBroadcastAddr )
+	;
 	const BACnetOctet	*npci = npdu.pduData, *apduData
 	;
 	BACnetOctet			*msg, *mptr
@@ -201,9 +201,9 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 		slen = *npci++;
 		
 		if (slen == 0xFFFF)
-			throw (-1); // source can't be a global broadcast
+			throw_(3); // source can't be a global broadcast
 		if (slen == 0)
-			throw (-1); // source can't be a remote broadcast
+			throw_(4); // source can't be a remote broadcast
 		
 		srcAddr.addrType = remoteStationAddr;
 		srcAddr.addrNet = snet;
@@ -286,17 +286,20 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 		}
 		
 		// don't continue processing if this was just for our benefit
-		if (!dnetPresent)
+		if (!dnetPresent) {
 			return;
+		}
 	}
 	
 	// don't bother to check for others if there is only one!
-	if (adapterListLen == 1)
+	if (adapterListLen == 1) {
 		return;
+	}
 		
 	// make sure it hasn't been looped around
-	if (hopCount == 0)
+	if (hopCount == 0) {
 		return;
+	}
 	hopCount -= 1;
 	
 	//
@@ -304,7 +307,7 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 	//	one the original message came from.
 	//
 	if (destAddr.addrType == globalBroadcastAddr) {
-		mptr = msg = new BACnetOctet[ 10 + srcAddr.addrLen + apduLen ];
+		mptr = msg = new BACnetOctet[ 12 + srcAddr.addrLen + apduLen ];
 		
 		*mptr++ = 0x01;										// version
 		// build a message to be broadcast on all endpoints, include source address
@@ -350,10 +353,11 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 			break;
 	if (i < adapterListLen) {
 		// don't route to self adapter
-		if (adapterList[i] == adapter)
+		if (adapterList[i] == adapter) {
 			return; // requesting routing back to itself
+		}
 		
-		mptr = msg = new BACnetOctet[ 3 + apduLen ];
+		mptr = msg = new BACnetOctet[ 10 + apduLen ];
 		
 		*mptr++ = 0x01;										// version
 		// build the header, append the APDU
@@ -397,7 +401,7 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 		if (routerList[i].routerNet == destAddr.addrNet)
 			break;
 	if (i < routerListLen) {
-		mptr = msg = new BACnetOctet[ 10 + destAddr.addrLen + srcAddr.addrLen + apduLen ];
+		mptr = msg = new BACnetOctet[ 12 + destAddr.addrLen + srcAddr.addrLen + apduLen ];
 		
 		// build a message to be routed
 		*mptr++ = 0x01;										// version
@@ -442,7 +446,7 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 	// We could start up a state machine and see if one of our other adapters has a path 
 	// to get there, then process the packet again.  Somebody thinks we are a router to 
 	// that network, give them the benefit of the doubt.
-	mptr = msg = new BACnetOctet[ 10 + destAddr.addrLen + srcAddr.addrLen + apduLen ];
+	mptr = msg = new BACnetOctet[ 10 + srcAddr.addrLen ];
 	
 	// build a message to be sent back
 	*mptr++ = 0x01;											// version
@@ -510,8 +514,8 @@ void BACnetRouter::ProcessNetMessage(
 	;
 	BACnetOctet		*msg, *mptr
 	;
-    BACnetAddress	localBroadcast( localBroadcastAddr )
-    ;
+	BACnetAddress	localBroadcast( localBroadcastAddr )
+	;
 	
 	// interpret type
 	switch ((BACnetNetworkMessageType)msgType) {
@@ -634,7 +638,7 @@ void BACnetRouter::ProcessNetMessage(
 			break;
 			
 		default:
-			throw (-1); // unknown message type
+			throw_(5); // unknown message type
 	}
 }
 
@@ -712,7 +716,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
     ;
 	
 	// build a buffer as big as the longest header plus the pdu
-	msg = new BACnetOctet[ 10 + pdu.pduAddr.addrLen + pdu.pduLen ];
+	msg = new BACnetOctet[ 10 + pdu.pduAddr.addrLen + deviceLocalAddress.addrLen + pdu.pduLen ];
 	mptr = msg;
 	
 	// all messages start with the version
@@ -721,7 +725,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 	// figure out which header to build
 	switch (pdu.pduAddr.addrType) {
 		case nullAddr:
-			throw (-1); // can't send to a null address
+			throw_(6); // can't send to a null address
 			
 		case localStationAddr:
 		case localBroadcastAddr:
@@ -730,7 +734,7 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 				if (adapterList[i]->adapterNet == deviceLocalNetwork)
 					break;
 			if (i >= adapterListLen)
-				throw (-1); // no local network defined
+				throw_(7); // no local network defined
 			
 			// build the header, append the APDU
 			*mptr++ = 0x00 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
@@ -777,12 +781,20 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 				adapterList[i]->Request( npdu );
 			} else {
 				// build a message to be routed
-				*mptr++ = 0x20 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
+				*mptr++ = 0x28 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
+
 				*mptr++ = (pdu.pduAddr.addrNet >> 8);							// DNET
 				*mptr++ = (pdu.pduAddr.addrNet & 0x00FF);
 				*mptr++ = (unsigned char)pdu.pduAddr.addrLen;					// DLEN
 				memcpy( mptr, pdu.pduAddr.addrAddr, pdu.pduAddr.addrLen );		// DADR
 				mptr += pdu.pduAddr.addrLen;
+
+				*mptr++ = (deviceLocalNetwork >> 8) & 0xFF;			// SNET
+				*mptr++ = (deviceLocalNetwork & 0xFF);
+				*mptr++ = (unsigned char)deviceLocalAddress.addrLen;						// SLEN
+				memcpy( mptr, deviceLocalAddress.addrAddr, deviceLocalAddress.addrLen );	// SADR
+				mptr += deviceLocalAddress.addrLen;
+
 				*mptr++ = 0xFF;													// hopcount
 				
 				memcpy( mptr, pdu.pduData, pdu.pduLen );
@@ -837,10 +849,17 @@ void BACnetRouter::Indication( const BACnetNPDU &pdu )
 				adapterList[i]->Request( npdu );
 			} else {
 				// build a message to be broadcast by the real router
-				*mptr++ = 0x20 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
+				*mptr++ = 0x28 + (pdu.pduExpectingReply << 2) + (pdu.pduNetworkPriority);
 				*mptr++ = (pdu.pduAddr.addrNet >> 8);		// DNET
 				*mptr++ = (pdu.pduAddr.addrNet & 0x00FF);		
 				*mptr++ = 0;									// DLEN
+
+				*mptr++ = (deviceLocalNetwork >> 8) & 0xFF;			// SNET
+				*mptr++ = (deviceLocalNetwork & 0xFF);
+				*mptr++ = (unsigned char)deviceLocalAddress.addrLen;						// SLEN
+				memcpy( mptr, deviceLocalAddress.addrAddr, deviceLocalAddress.addrLen );	// SADR
+				mptr += deviceLocalAddress.addrLen;
+
 				*mptr++ = 0xFF;		// hop count
 				memcpy( mptr, pdu.pduData, pdu.pduLen );
 				mptr += pdu.pduLen;
