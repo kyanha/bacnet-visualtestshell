@@ -18,6 +18,7 @@
 #include "ScriptExecutor.h"
 #include "ScriptSelectSession.h"
 #include "ScriptParmList.h"
+#include "ScriptCommand.h"
 
 #include "ScriptKeywords.h"
 
@@ -108,6 +109,16 @@ LPCSTR OperatorToString(int iOperator);
 // This is instantiated in the class ScriptExecutor as execMsgQueue - STK
 // I wouldn't have typedef'd it - that really confuses the programmer. - STK
 //template class VTSQueue<ScriptExecMsg>;
+
+
+ScriptMsgStatus::ScriptMsgStatus( ScriptDocumentPtr pDoc, ScriptBasePtr pbase, int nStatus )
+				:ScriptExecMsg(ScriptExecMsg::msgStatus)
+{
+	m_pdoc = pDoc;
+	m_pbase = pbase;
+	m_nStatus = nStatus;
+}
+
 
 //
 //	ScriptFilter::ScriptFilter
@@ -430,7 +441,7 @@ ScriptExecutor::ScriptExecutor( void )
 	: execState(execIdle)
 	, execAllTests(false), execSingleStep(false), execStepForced(0)
 	, execFailContinue(false)
-	, execDB(0), execDoc(0), execTest(0), execPacket(0)
+	, execDB(0), execDoc(0), execTest(0), execPacket(0), execCommand(0)
 {
 //	BACnetTime::TestTimeComps();
 //	BACnetDate::TestDateComps();
@@ -477,6 +488,7 @@ void ScriptExecutor::Setup( VTSDocPtr vdp, ScriptDocumentPtr sdp, ScriptTestPtr 
 
 	// there is no current packet
 	execPacket = 0;
+	execCommand = NULL;
 
 	// let the document know that a script will be writing messages
 	execDoc->BindExecutor();
@@ -502,6 +514,7 @@ void ScriptExecutor::Cleanup( void )
 		// move to the next test
 		execTest = execTest->testNext;
 		execPacket = 0;
+		execCommand = NULL;
 
 		// install the task
 		taskType = oneShotTask;
@@ -511,12 +524,21 @@ void ScriptExecutor::Cleanup( void )
 		// release from the document
 		execDoc->UnbindExecutor();
 
+		if ( execCommand && execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket &&
+			((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL  && ((ScriptPacketPtr) execCommand)->m_pcmdMake->IsUp() )
+		{
+			// It's still up... Kill it with a success regardless of whether or not this one failed...
+			((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
+			SetPacketStatus(((ScriptPacketPtr) execCommand)->m_pcmdMake, 1);
+		}
+
 		// clear all the rest of the execution vars
 		execState = execIdle;
 		execDB = 0;
 		execDoc = 0;
 		execTest = 0;
 		execPacket = 0;
+		execCommand = NULL;
 	}
 }
 
@@ -814,8 +836,14 @@ void ScriptExecutor::Kill( void )
 	SuspendTask();
 
 	// set the status
-	SetPacketStatus( execPacket, 3 );
+//	SetPacketStatus( execPacket, 3 );
+	SetPacketStatus( execCommand, 3 );
 	SetTestStatus( execTest, 3 );
+
+	// Clean up left over popups...
+
+	if ( execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL )
+		((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
 
 	// make sure the doc knows we're done
 	Cleanup();
@@ -831,7 +859,7 @@ void ScriptExecutor::Kill( void )
 //	which is protected.
 //
 
-ScriptExecMsgPtr ScriptExecutor::ReadMsg( void )
+ScriptExecMsg * ScriptExecutor::ReadMsg( void )
 {
 	return execMsgQueue.Read();
 }
@@ -885,6 +913,7 @@ void ScriptExecutor::ProcessTask( void )
 			}
 		}
 		if (!execTest) {
+//		if (!execCommand) {
 			// alert the user
 			Msg( 2, 0, "No test to run, check syntax" );
 
@@ -895,7 +924,8 @@ void ScriptExecutor::ProcessTask( void )
 	}
 
 	// if no packet, get first one
-	if (!execPacket) {
+//	if (!execPacket) {
+	if (!execCommand) {
 		// reset the test
 		ResetTest( execTest );
 
@@ -914,10 +944,12 @@ void ScriptExecutor::ProcessTask( void )
 		}
 
 		// extract the first packet
-		execPacket = execTest->testFirstPacket;
+//		execPacket = execTest->testFirstPacket;
+		execCommand = execTest->testFirstCommand;
 
 		// if no packets in test, it succeeds easily
-		if (!execPacket) {
+//		if (!execPacket) {
+		if (!execCommand) {
 			// alert the user
 			Msg( 1, execTest->baseLineStart, "trivial test successful" );
 
@@ -939,7 +971,8 @@ void ScriptExecutor::ProcessTask( void )
 		// if single stepping, go to stopped
 		if (execSingleStep) {
 			// set the packet status to running
-			SetPacketStatus( execPacket, 2 );
+//			SetPacketStatus( execPacket, 2 );
+			SetPacketStatus( execCommand, 2 );
 
 			execState = execStopped;
 			return;
@@ -959,7 +992,9 @@ keepGoing:
 		execStepForced = 0;
 		NextPacket( false );
 	} else
-	if (execPacket->packetType == ScriptPacket::sendPacket) {
+//	if (execPacket->packetType == ScriptPacket::sendPacket) {
+	if (execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::sendPacket) {
+		execPacket = (ScriptPacketPtr) execCommand;
 		if (execPending || (execPacket->packetDelay == 0)) {
 			execPending = false;
 
@@ -970,7 +1005,8 @@ keepGoing:
 			// a zero delay, keep the executor locked down until the transition to 
 			// the next packet can be completed.  This prevents packets that come in 
 			// faster than the reschedule from being processed by ReceiveNPDU.
-			if (execPacket)
+//			if (execPacket)
+			if (execCommand)
 				goto keepGoing;
 		} else {
 			if (execPacket->packetSubtype == ScriptPacket::rootPacket) {
@@ -998,14 +1034,41 @@ keepGoing:
 			}
 		}
 	} else
-	if (execPacket->packetType == ScriptPacket::expectPacket) {
+//	if (execPacket->packetType == ScriptPacket::expectPacket) {
+	if (execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket) {
+		execPacket = (ScriptPacketPtr) execCommand;
 		if (execPending) {
 			bool gotOne = false;
 
+			// delay timer if necessary
+			if ( execPacket->m_pcmdMake != NULL )
+			{
+				if ( execPacket->m_pcmdMake->IsUp() )		// if dialog still pending... don't start timers yet
+					execRootTime = now;
+				else if ( !execPacket->m_pcmdMake->IsSuccess() )
+				{
+					CString strError;
+
+					SetPacketStatus(execPacket->m_pcmdMake, 3);
+					strError.Format("MAKE \"%s\" aborted by user", execPacket->m_pcmdMake->baseLabel );
+					Msg( 3, execPacket->m_pcmdMake->baseLineStart, strError );
+
+					// shouldn't chain to next packet... already did.  Fail all these guys.
+					// This will short circuit all th timer stuff and fail all of the pending
+					// expect chains.
+
+					execRootTime = 0;
+				}
+				else
+				{
+					SetPacketStatus(execPacket->m_pcmdMake, 1);
+				}
+			}
+
 			// fail all the packets that have expired and min delay of rest
 			int minDelay1 = kMaxPacketDelay + 1;
-			for (ScriptPacketPtr pp1 = execPacket; pp1; pp1 = pp1->packetFail)
-				if (pp1->baseStatus == 2)
+			for (ScriptPacketPtr pp1 = execPacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
+				if (pp1->baseStatus == 2 && pp1->baseType == ScriptBase::scriptPacket)
 					if (pp1->packetDelay <= (now - execRootTime))
 						SetPacketStatus( pp1, 3 );
 					else {
@@ -1024,6 +1087,12 @@ keepGoing:
 				// subtract time already expired
 				minDelay1 -= (now - execRootTime);
 
+				// If there is a modeless MAKE dialog UP... come back as soon as possible and keep checking
+				// it's status to delay the timer...
+
+				if ( execPacket->m_pcmdMake != NULL  && execPacket->m_pcmdMake->IsUp() )
+					minDelay1 = 180;
+
 				// schedule for the next delay
 				TRACE1( "Expect more delay %d\n", minDelay1 );
 				execPending = true;
@@ -1038,11 +1107,20 @@ keepGoing:
 
 			// set all the packets pending and find min delay
 			int minDelay2 = kMaxPacketDelay + 1;
-			for (ScriptPacketPtr pp2 = execPacket; pp2; pp2 = pp2->packetFail) {
-				SetPacketStatus( pp2, 2 );
-				minDelay2 = (pp2->packetDelay < minDelay2 ? pp2->packetDelay : minDelay2);
+//			for (ScriptPacketPtr pp2 = execPacket; pp2; pp2 = pp2->packetFail) {
+			for (ScriptPacketPtr pp2 = execPacket; pp2; pp2 = (ScriptPacketPtr) pp2->m_pcmdFail) {
+				if ( pp2->baseType == ScriptBase::scriptPacket ) {
+					SetPacketStatus( pp2, 2 );
+					minDelay2 = (pp2->packetDelay < minDelay2 ? pp2->packetDelay : minDelay2);
+				}
 			}
-			
+
+			// If there is a modeless MAKE dialog up... come back as soon as possible and keep checking
+			// it's status to delay the timer...
+
+			if ( execPacket->m_pcmdMake != NULL )
+				minDelay2 = 180;
+
 			// schedule for the next delay
 			TRACE1( "Expect delay %d\n", minDelay2 );
 			execPending = true;
@@ -1050,7 +1128,37 @@ keepGoing:
 			taskInterval = minDelay2;
 			InstallTask();
 		}
+	} else
+	if (execCommand->baseType == ScriptBase::scriptMake) {
+		execPending = false;
+		SetPacketStatus( execCommand, 2 );
+
+		CString strError;
+		// Setup the queue needed by this guy to fire off message for handling
+		// modeless dialogs to main app.  Sorry.  It's weird, I know.
+
+		((ScriptMAKECommand *) execCommand)->SetQueue(&execMsgQueue);
+
+		bool fCmdResult = execCommand->Execute(&strError);
+
+		if ( !fCmdResult && !((ScriptMAKECommand *) execCommand)->m_fHanging )
+			Msg( 3, execCommand->baseLineStart, strError);
+
+		NextPacket(fCmdResult, ((ScriptMAKECommand *) execCommand)->m_fHanging );
+	} else
+	if (execCommand->baseType == ScriptBase::scriptCheck ) {
+		execPending = false;
+		SetPacketStatus( execCommand, 2 );
+
+		CString strError;
+		bool fCmdResult = execCommand->Execute(&strError);
+
+		if ( !fCmdResult )
+			Msg( 3, execCommand->baseLineStart, strError);
+
+		NextPacket(fCmdResult);
 	}
+
 
 	// unlock
 	lock.Unlock();
@@ -1060,18 +1168,30 @@ keepGoing:
 //	ScriptExecutor::NextPacket
 //
 
-void ScriptExecutor::NextPacket( bool okPacket )
+void ScriptExecutor::NextPacket( bool okPacket, bool fHanging /* = false */ )
 {
-	TRACE2( "Packet %08X %s\n", execPacket, (okPacket ? "succeeded" : "failed") );
+//	TRACE2( "Packet %08X %s\n", execPacket, (okPacket ? "succeeded" : "failed") );
+	TRACE2( "Packet %08X %s\n", execCommand, (fHanging ? "hanging" : (okPacket ? "succeeded" : "failed")) );
 
 	// set the current packet status
-	SetPacketStatus( execPacket, okPacket ? 1 : 3 );
+	if ( !fHanging )
+		SetPacketStatus( execCommand, okPacket ? 1 : 3 );
+
+	// Test to see if the one we're finished with is an EXPECT with a MAKE in front of it that is still up
+
+	if ( execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket &&
+		((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL  && ((ScriptPacketPtr) execCommand)->m_pcmdMake->IsUp() )
+	{
+		// It's still up... Kill it with a success regardless of whether or not this one failed...
+		((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
+		SetPacketStatus(((ScriptPacketPtr) execCommand)->m_pcmdMake, 1);
+	}
 
 	// move to next packet
-	execPacket = (okPacket ? execPacket->packetPass : execPacket->packetFail);
+	execCommand = (okPacket ? execCommand->m_pcmdPass : execCommand->m_pcmdFail);
 
 	// if no next packet, set test status
-	if (!execPacket) {
+	if (!execCommand) {
 		// set the test status
 		if (okPacket) {
 			Msg( 1, execTest->baseLineStart, "passed" );
@@ -1085,7 +1205,7 @@ void ScriptExecutor::NextPacket( bool okPacket )
 		Cleanup();
 	} else {
 		// set the current packet status to running
-		SetPacketStatus( execPacket, 2 );
+		SetPacketStatus( execCommand, 2 );
 
 		// if the user is single stepping, stop
 		if (execSingleStep)
@@ -8111,9 +8231,10 @@ void ScriptExecutor::SetTestStatus( ScriptTestPtr stp, int stat )
 //	ScriptExecutor::SetPacketStatus
 //
 
-void ScriptExecutor::SetPacketStatus( ScriptPacketPtr spp, int stat )
+//void ScriptExecutor::SetPacketStatus( ScriptPacketPtr spp, int stat )
+void ScriptExecutor::SetPacketStatus( ScriptBasePtr spp, int stat )
 {
-	TRACE2( "Packet %08X status %d\n", spp, stat );
+	TRACE2( "Base %08X status %d\n", spp, stat );
 
 	// set the object status
 	spp->baseStatus = stat;
@@ -8287,15 +8408,19 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 	}
 
 	// match against the pending tests
-	for (ScriptPacketPtr pp = execPacket; pp; pp = pp->packetFail)
-		if (pp->baseStatus == 2) {
+//	for (ScriptPacketPtr pp = execPacket; pp; pp = pp->packetFail)
+	for (ScriptPacketPtr pp = execPacket; pp; pp = (ScriptPacketPtr) pp->m_pcmdFail)
+//		if (pp->baseStatus == 2) {
+		if (pp->baseStatus == 2 && pp->baseType == ScriptBase::scriptPacket) {
 			// this test is still pending, stash the execPacket
 			ScriptPacketPtr savePacket = execPacket;
 			execPacket = pp;
 			if (ExpectPacket(fp,npdu)) {
 				// test was successful, reset all pending packets to unprocessed
-				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = pp1->packetFail)
-					if ((pp1->baseStatus == 2) && (pp1 != pp))
+//				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = pp1->packetFail)
+//					if ((pp1->baseStatus == 2) && (pp1 != pp))
+				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
+					if (pp1->baseStatus == 2 && pp1->baseType == ScriptBase::scriptPacket && pp1 != pp)
 						SetPacketStatus( pp1, 0 );
 
 				// move on to next statement
@@ -8343,15 +8468,20 @@ void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 	}
 
 	// match against the pending tests
-	for (ScriptPacketPtr pp = execPacket; pp; pp = pp->packetFail)
-		if (pp->baseStatus == 2) {
+//	for (ScriptPacketPtr pp = execPacket; pp; pp = pp->packetFail)
+//		if (pp->baseStatus == 2) {
+	for (ScriptPacketPtr pp = execPacket; pp; pp = (ScriptPacketPtr) pp->m_pcmdFail)
+		if (pp->baseStatus == 2 && pp->baseType == ScriptBase::scriptPacket) {
 			// this test is still pending, stash the execPacket
 			ScriptPacketPtr savePacket = execPacket;
 			execPacket = pp;
+			execCommand = pp;
 			if (ExpectDevPacket(apdu)) {
 				// test was successful, reset all pending packets to unprocessed
-				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = pp1->packetFail)
-					if ((pp1->baseStatus == 2) && (pp1 != pp))
+//				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = pp1->packetFail)
+//					if ((pp1->baseStatus == 2) && (pp1 != pp))
+				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
+					if (pp1->baseStatus == 2 && pp1->baseType == ScriptBase::scriptPacket && pp1 != pp)
 						SetPacketStatus( pp1, 0 );
 
 				// move on to next statement
@@ -8359,6 +8489,7 @@ void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 				break;
 			}
 			execPacket = savePacket;
+			execCommand = savePacket;
 		}
 
 	// unlock
@@ -8371,21 +8502,8 @@ void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 
 void ScriptExecutor::SetImageStatus( ScriptBasePtr sbp, int stat )
 {
-	ScriptExecMsgPtr	msg = new ScriptExecMsg()
-	;
-
-	// describe the change
-	msg->msgDoc = execDoc;
-	msg->msgBase = sbp;
-	msg->msgStatus = stat;
-
-	// queue it
-	execMsgQueue.Write( msg );
-
-	// tell the application
-	::PostThreadMessage( AfxGetApp()->m_nThreadID
-		, WM_VTS_EXECMSG, (WPARAM)0, (LPARAM)0
-		);
+	// queue it and send it
+	execMsgQueue.Fire( new ScriptMsgStatus(execDoc, sbp, stat) );
 }
 
 
@@ -8556,3 +8674,100 @@ void ScriptExecutor::CompareStreamData( BACnetAPDUDecoder & dec, int iOperator, 
 	dec.pktBuffer += nLen;
 }
 */
+
+//
+//	VTSQueue<T>::VTSQueue
+//
+
+template<class T>
+	VTSQueue<T>::VTSQueue()
+		: qFirst(0), qLast(0)
+	{
+	}
+
+//
+//	VTSQueue<T>::~VTSQueue
+//
+
+template<class T>
+	VTSQueue<T>::~VTSQueue()
+	{
+		if (qFirst)
+			TRACE0( "Warning: queue not empty\n" );
+	}
+
+//
+//	VTSQueue<T>::Read
+//
+//	This function returns a pointer to the first (oldest) element that was
+//	added to the queue.  If the queue is empty it returns nil.
+//
+
+template<class T>
+	T* VTSQueue<T>::Read( void )
+	{
+		// lock the queue
+		qCS.Lock();
+
+		VTSQueueElem	*cur = qFirst
+		;
+		T				*rslt = 0
+		;
+
+		// if the queue not is empty, extract the first element
+		if (cur) {
+			// set result
+			rslt = cur->qElem;
+
+			// remove from list
+			qFirst = cur->qNext;
+			if (!qFirst)
+				qLast = 0;
+
+			// delete wrapper element
+			delete cur;
+		}
+
+		// unlock the queue
+		qCS.Unlock();
+
+		// fini
+		return rslt;
+	}
+
+//
+//	VTSQueue<T>::Write
+//
+//	This function adds a pointer to an element to the end of the queue.
+//
+
+template<class T>
+	void VTSQueue<T>::Write( T* tp )
+	{
+		// lock the queue
+		qCS.Lock();
+
+		VTSQueueElem	*cur = new VTSQueueElem()
+		;
+
+		cur->qElem = tp;
+		cur->qNext = 0;
+
+		if (qFirst)
+			qLast->qNext = cur;
+		else
+			qFirst = cur;
+
+		qLast = cur;
+
+		// unlock the queue
+		qCS.Unlock();
+	}
+
+
+template<class T>
+	void VTSQueue<T>::Fire( T* tp )
+	{
+		Write(tp);
+		::PostThreadMessage( AfxGetApp()->m_nThreadID, WM_VTS_EXECMSG, (WPARAM)0, (LPARAM)0	);
+	}
