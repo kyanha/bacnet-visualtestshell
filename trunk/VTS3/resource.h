@@ -516,6 +516,7 @@
 #define IDC_REMOVECOMP                  1249
 #define IDC_COMPLIST                    1250
 #define IDC_COMBO_NETWORK               1251
+#define IDC_RPALL_NETWORK               1251
 #define IDC_EPICSCONSRESULT             1252
 #define IDC_SCRIPTMAKETEXT1             1253
 #define IDC_DATETIME_DATE               1255
@@ -560,6 +561,7 @@
 #define IDC_INCLUDEERROR                1291
 #define IDC_INCLUDEICON                 1292
 #define IDC_EDIT1                       1293
+#define IDC_RPALL_DA                    1294
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -583,7 +585,7 @@
 #define ID_BUTTON32799                  32799
 #define ID_BUTTON32800                  32800
 #define ID_EPICS_LOAD                   32801
-#define ID_EPICS_LOADAUTO				32802			// not a menu item, used as autoload from InitInstance
+#define ID_EPICS_LOADAUTO               32802
 #define ID_EDIT_DEVICES                 32803
 #define IDC_EDIT_GOTOLINE               32804
 #define ID_MENUITEM32806                32806
@@ -592,7 +594,7 @@
 #define ID_VIEW_STATISTICS              32809
 #define ID_FILE_EXPORT                  32810
 #define ID_SCRIPT_ENV                   32811
-#define ID_SCRIPT_READALLPROPERTY       32812
+#define ID_EPICS_READALLPROPERTY        32812
 #define ID_FILE_WKS_NEW                 32814
 #define ID_FILE_WKS_OPEN                32815
 #define ID_FILE_WKS_SWITCH              32816
@@ -701,7 +703,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        277
 #define _APS_NEXT_COMMAND_VALUE         32831
-#define _APS_NEXT_CONTROL_VALUE         1294
+#define _APS_NEXT_CONTROL_VALUE         1295
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
