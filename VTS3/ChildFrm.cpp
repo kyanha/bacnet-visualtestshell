@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
+#include "BACnet.hpp"
 
 #include "VTSPreferences.h"
 #include "ChildFrm.h"
@@ -22,13 +23,39 @@
 
 #include "VTSPreferences.h"
 
+//Added by Yajun Zhou, 2002-11-4
+#include "ReadAllPropSettingsDlg.h"
+
+
+#define MAX_LENGTH_OF_OBJECTTYPE		30
+#define MAX_LENGTH_OF_PROPERTYNAME		100
+#define MAX_DIGITS_OF_INSTANCENUMBER	10
+
+#ifndef dword
+typedef unsigned long dword;
+#endif
+#ifndef word
+typedef unsigned short word;
+#endif
+#ifndef octet
+typedef unsigned char octet;
+#endif
+
+
+
 ///////////////////////////////
 namespace PICS {
+#include "db.h" 
+#include "service.h"
 #include "vtsapi.h"
+#include "props.h"
+#include "bacprim.h"
 #include "dudapi.h"
+#include "propid.h"
 }
 
-extern PICS::PICSdb *gPICSdb;
+PICS::PICSdb *gPICSdb = 0;
+
 
 
 #ifdef _DEBUG
@@ -64,6 +91,7 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_NEXTFRAME, OnUpdateViewNextFrame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_PREVFRAME, OnUpdateViewPrevFrame)
 	ON_UPDATE_COMMAND_UI(ID_EPICS_LOAD, OnUpdateEPICSLoad)
+	ON_UPDATE_COMMAND_UI(ID_EPICS_READALLPROPERTY, OnUpdateEPICSReadallproperty)
 	ON_COMMAND(ID_EDIT_DELETE, OnEditDelete)
 	ON_COMMAND(ID_EDIT_REFRESH, OnEditRefresh)
 	ON_COMMAND(ID_EDIT_PORTS, OnEditPorts)
@@ -90,6 +118,7 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	ON_COMMAND(ID_FILE_PRINT, OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_SETUP,OnFilePrintSetup)
 	ON_UPDATE_COMMAND_UI(ID_FILE_PRINT,OnUpdateFilePrint)
+	ON_COMMAND(ID_EPICS_READALLPROPERTY, OnReadAllProperty)
 	////////////////////////////////////////////////
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -332,6 +361,21 @@ void CChildFrame::OnUpdateViewSend(CCmdUI* pCmdUI)
 //	TRACE0( "VTSDoc::OnUpdateViewSend()\n" );
 	pCmdUI->Enable( true );
 }
+
+
+///////////////////////////////////////////////////////////
+// Added by Zhenhua Zhu, 2003-6-2
+void CChildFrame::OnUpdateFilePrint(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable(!m_bInPrinting);
+}
+
+
+void CChildFrame::OnUpdateEPICSReadallproperty(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable(gPICSdb != NULL);
+}
+
 
 void CChildFrame::OnEditDelete() 
 {
@@ -805,13 +849,6 @@ void CChildFrame::OnFilePrintSetup()
 		m_bPrintSetup = true;
 }
 
-///////////////////////////////////////////////////////////
-// Added by Zhenhua Zhu, 2003-6-2
-void CChildFrame::OnUpdateFilePrint(CCmdUI* pCmdUI) 
-{
-	pCmdUI->Enable(!m_bInPrinting);
-}
-
 
 //madanner 6/03, moved from ScriptFrame
 //	CChildFrame::OnEPICSLoad
@@ -886,3 +923,143 @@ void CChildFrame::OnEPICSLoadAuto()
 {
 	EPICSLoad(gVTSPreferences.Setting_GetLastEPICS());
 }
+
+
+
+//	Added by Yajun Zhou, 2002-11-1
+//
+//	ScriptFrame::OnReadAllProperty
+
+void CChildFrame::OnReadAllProperty() 
+{
+	CString strFileName;
+	CReadAllPropSettingsDlg dlg;
+
+	if ( gPICSdb && dlg.DoModal() == IDOK && CreateScriptFile(&strFileName, &dlg) )
+	{
+		// Open the file (with frame) and kill it from the recent list
+		if ( AfxGetApp()->OpenDocumentFile(strFileName) != NULL )
+			((VTSApp *) AfxGetApp())->GetRecentFileList()->Remove(0);
+
+		// Should we delete the file?
+		// DeleteFile(strFileName);
+	}
+}
+
+
+//******************************************************************
+//	Author:		Yajun Zhou
+//	Date:		2002-11-4
+//	Purpose:	Create a script file to read all the properties
+//	In:			void
+//	Out:		BOOL: TRUE when success
+//					  FALSE when fault
+//******************************************************************
+
+BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettingsDlg * pdlg )
+{
+	// use dynamic memory here so open on create will throw... the same as WriteString
+	CStdioFile	*   pscript;
+	CString			strError;
+
+	try
+	{
+		CString str;
+		char	szTemp[255];
+		PICS::generic_object far * pDatabase;
+
+		pscript = new CStdioFile("ReadAllProperties.vts", CFile::modeCreate|CFile::modeWrite);
+		*pstrFileName = pscript->GetFilePath();
+
+		pscript->WriteString(" ;Read All Property Tests\n" \
+							 " ;-------------------------------------------------------------------------------------\n" \
+							 "  SETUP ReadProperty Tests\n" \
+							 " ;-------------------------------------------------------------------------------------\n\n");
+
+		str.Format("  IUT_IP = %s\n\n", pdlg->m_strIUTIP);
+		pscript->WriteString(str);
+
+		// Generate list of all parameters for each object found in DB
+
+		int nObjNum;
+		for ( nObjNum = 1, pDatabase = gPICSdb->Database;  pDatabase != NULL;  pDatabase = (PICS::generic_object *) pDatabase->next, nObjNum++ )
+		{
+			BACnetObjectIdentifier	bacnetObjID((unsigned int) pDatabase->object_id);
+			bacnetObjID.Encode(szTemp);
+			str.Format("  OBJECT%d = %s\n", nObjNum, szTemp);
+			pscript->WriteString(str);
+		}
+
+		// Now build each SECTION and TEST for each object
+		for ( nObjNum = 1, pDatabase = gPICSdb->Database;  pDatabase != NULL;  pDatabase = (PICS::generic_object *) pDatabase->next, nObjNum++ )
+		{
+			str.Format("\n ;-------------------------------------------------------------------------------------\n" \
+				  	     "  SECTION Read Properties of OBJECT%d\n\n", nObjNum);
+			pscript->WriteString(str);
+
+			// Now create a TEST section for each of the defined properties
+			for ( int nPropIndex = 0; nPropIndex < 64; nPropIndex++ )
+			{
+				dword	dwbogus;
+				if( (pDatabase->propflags[nPropIndex] & ValueUnknown) == ValueUnknown )	// PropertyValue is unspecified
+					continue;												// skip
+
+				if ( PICS::GetPropNameSupported(szTemp, nPropIndex, pDatabase->object_type, pDatabase->propflags, &dwbogus) > 0 )
+				{
+					str.Format(" ;-------------------------------------------------------------------------------------\n" \
+						       "  TEST#%d.%d - Read %s\n" \
+							   "  DEPENDENCIES None\n\n", nObjNum, nPropIndex+1, szTemp);
+					pscript->WriteString(str);
+
+					str.Format( "    SEND (\n" \
+								"\tNETWORK = \"%s\"\n" \
+								"\tDA = IUT_IP\n" \
+								"\tDER = TRUE\n" \
+								"\tBVLCI = ORIGINAL-UNICAST-NPDU\n" \
+								"\tPDU = Confirmed-Request\n" \
+								"\tService = ReadProperty\n" \
+								"\tInvokeID = 1\n" \
+								"\tSegMsg = 0\n" \
+								"\tSegResp = 0\n" \
+								"\tMaxResp = 1470\n" \
+								"\tObject = 0, OBJECT%d\n" \
+								"\tProperty = 1, %s\n" \
+								"    )\n\n", pdlg->m_strNetwork, nObjNum, szTemp );
+					pscript->WriteString(str);
+
+					str.Format( "    EXPECT (\n" \
+								"\tNETWORK = \"%s\"\n" \
+								"\tSA = IUT_IP\n" \
+								"\tDER = FALSE\n" \
+								"\tBVLCI = ORIGINAL-UNICAST-NPDU\n" \
+								"\tPDU = ComplexAck\n" \
+								"\tService = ReadProperty\n" \
+								"\tObject = 0, OBJECT%d\n" \
+								"\tProperty = 1, %s\n" \
+								"\tOpenTag 3\n" \
+								"\t\tAL = {%s}\n" \
+								"\tCloseTag 3\n" \
+								"    )\n\n", pdlg->m_strNetwork, nObjNum, szTemp, szTemp );
+					pscript->WriteString(str);
+				}
+			}
+		}
+
+		// Now close off the file for good measure
+		pscript->WriteString(";---------------------- End of generated Read Property file ---------------------------");
+	}
+
+	catch(CFileException e)
+	{
+		char szErr[255];
+		e.GetErrorMessage(szErr, sizeof(szErr));
+		strError.Format("Error Generating Script: %s", szErr);
+		AfxMessageBox(strError);
+	}
+
+	if ( pscript != NULL )			// closes file as well
+		delete pscript;
+
+	return strError.IsEmpty();
+}
+
