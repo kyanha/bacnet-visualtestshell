@@ -977,7 +977,7 @@ word APIENTRY VTSAPIgetenumtable(word etindex,word index,word *propstart,dword *
 
 	if (etindex==0||etindex>(sizeof(AllETs)/sizeof(AllETs[0])))
 		return 0;
-	pet=AllETs[etindex-1];
+	pet=AllETs[etindex];
 	if (index>=pet->nes) return 0;						//invalid index
 	if (propstart) *propstart=pet->propes;				//return start of proprietary enumerations
 	if (propmax) *propmax=pet->propmaxes;				//return max proprietary enumerations
@@ -1844,7 +1844,7 @@ BOOL ReadObjects(PICSdb *pd)
 		word	objtype;						//enumeration value for object type
 		dword	objid;							//object identifier
 		octet	fType,fID,fName;				//										***014
-generic_object	*pobj,*po;					//pointers to objects
+generic_object	*pobj,*po,*polast;					//pointers to objects
       BOOL    i;                            
 	ReadNext();									//point to next token					***008
 	if (lp==NULL||*lp++!='{')					//no open token
@@ -2015,16 +2015,24 @@ nextobject:										//										***012
 						return true;			//fail
 					}
 					po=pd->Database;			//check for uniqueness of objid
+               polast = NULL;          
 					while (po!=NULL)
 					{	if (objid==po->object_id)	//oops, we already have this one!
 						{	tperror("Object Identifier is not unique!",true);
 							free(pobj);		//toss allocated object
 							return true;		//fail
 						}
+                  polast = po;  // msdanner 9/2004 - remember the last object in the list
 						po=(generic_object *)po->next;			//try next one
 					}
-					pobj->next=pd->Database;	//link it in
-					pd->Database=pobj;
+               // msdanner 9/2004 - add new objects to the end instead of the beginning
+					//pobj->next=pd->Database;	//link it in
+					//pd->Database=pobj;
+               if (polast)
+                  polast->next = pobj;  // add new object after the last one
+               else
+                  pd->Database = pobj;  // This is the first object, so set head pointer.
+
 				}								//									***012 End
 			}
 			else								//anything else is junk
@@ -3512,7 +3520,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					if ((lp=openarray(lp))==NULL) return true;
 					
 					while (*lp&&i<16)
-					{	ep=AllETs[pd->PropET-1]; //point to enumeration table for this guy
+					{	ep=AllETs[pd->PropET]; //point to enumeration table for this guy
 						if ((ub=ReadEnum(ep))==0xFFFF)
 						{	tperror("Invalid Enumeration",true);
 							return true;
@@ -3581,7 +3589,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					*(octet *)pstruc=ReadBool();	//							***012
 					break;						//									***006 End
 				case et:						//an enumeration table
-					ep=AllETs[pd->PropET-1];	//point to enumeration table for this guy
+					ep=AllETs[pd->PropET];	//point to enumeration table for this guy
 					if ((ub=ReadEnum(ep))==0xFFFF)
 					{	tperror("Invalid Enumeration",true);
 						return true;
@@ -5203,10 +5211,21 @@ BOOL ParseVTClassList(BACnetVTClassList **vtclp)
 		{	tperror("Can't Get Object Space!",true);
 			break;
 		}
-
+      q->next = NULL;
 		if ((vtc=ReadEnum(&etVTClasses))!=0xFFFF)
 		{	q->vtclass=(BACnetVTClass)vtc;
-			q->next=p;							//link onto the list
+         //msdanner 9/2004 - new items now added to the end, not beginning
+         if (p)
+         {
+            // if aready one item in the list
+            p->next = q;
+            p = q;  // new end of list
+         }
+         else
+         {
+            // first item found ...
+            *vtclp = q;
+         }
 			p=q;
 		}
 		else
@@ -5216,7 +5235,7 @@ BOOL ParseVTClassList(BACnetVTClassList **vtclp)
 		if (lp[-1]==')') break;					//list is done						***008
 	}
 	if (q!=NULL) free(q);						//don't lose this block!
-	*vtclp=p;
+	// *vtclp=p;  msdanner 9/2004 - now assigned above to preserve list order
 	return false;
 }
 
@@ -7342,6 +7361,10 @@ void CheckPICSCons2003L(PICSdb *pd)
 	return;
 }
 
+void *GetEnumTable(int iTableIndex)
+{
+   return AllETs[iTableIndex];
+}
 
 
 }
