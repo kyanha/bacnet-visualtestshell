@@ -753,8 +753,12 @@ void CSend::ChangePacketTree( int iGroup, int iItem )
 		ASSERT( curItem != 0 );
 	}
 
+/////////////////////////////////////////////////////////////////////////////
+//Modified by Zhu Zhenhua 2003-9-3
+//use this Expand function instead of SetItemState to show the scroll bar of tree
 	// make sure it is expanded
-	m_packetTree.SetItemState( curItem, TVIS_EXPANDED, TVIS_EXPANDED );
+	//m_packetTree.SetItemState( curItem, TVIS_EXPANDED, TVIS_EXPANDED );
+	m_packetTree.Expand(curItem,TVE_EXPAND);
 
 	// dive into the children until we find the handle to the item
 	curItem = m_packetTree.GetChildItem( curItem );
