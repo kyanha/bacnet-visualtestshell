@@ -214,7 +214,7 @@ void ScriptContentTree::OnLButtonDblClk(UINT nFlags, CPoint point)
 		
 		ScriptFrame* pCFrm = (ScriptFrame*)GetParentFrame();
 		pCFrm->SetActiveView(m_pEditView);
-		m_pEditView->SetLine(pElem->baseLineStart+1);
+		m_pEditView->GotoLine(pElem->baseLineStart+1);
 	}
 	
 	CTreeView::OnLButtonDblClk(nFlags, point);
