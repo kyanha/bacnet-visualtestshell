@@ -222,6 +222,23 @@ void CSendReadProp::OnChangeArrayIndex()
 	UpdateEncoded();
 }
 
+// madanner 9/04, added from EPICS view
+
+void CSendReadProp::ForceValues(BACnetObjectIdentifier * pObjectID, BACnetEnumerated * pPropID )
+{
+	m_ObjectID.objID = pObjectID->objID;
+	m_ObjectID.ctrlNull = FALSE;
+	m_PropCombo.enumValue = pPropID->enumValue;
+	m_PropCombo.ctrlNull = FALSE;
+	m_ArrayIndex.ctrlNull = true;
+
+	m_ObjectID.ObjToCtrl();
+	m_PropCombo.ObjToCtrl();
+	SavePage();
+	UpdateEncoded();
+}
+
+
 void CSendReadProp::OnShowWindow(BOOL bShow, UINT nStatus) 
 {
 	CPropertyPage::OnShowWindow(bShow, nStatus);

@@ -276,6 +276,9 @@ public:
 	void ChangePort( int indx );				// change the port selection
 	void ChangePacketTree( int iGroup, int iItem );	// change the tree selection
 
+	// static
+	static void FindActionIndicies( LPCSTR lpszCommand, int * pIndexGroup, int * pIndexItem );
+
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CSend)

@@ -180,13 +180,7 @@ void CSendWritePropMult::RestorePage( int index )
 	//restore data. Xiao Shiyuan 2002-12-3	
 	if(isShown)
 	{
-		m_ObjList.DeleteAllItems();
-		m_PropList.DeleteAllItems();
-
-		for (POSITION pos = m_PropListList.GetHeadPosition(); pos != NULL; )
-		  delete m_PropListList.GetNext( pos );		
-
-		m_PropListList.RemoveAll();
+		ClearAll();
 	}	  
 	
 	//restore data. Xiao Shiyuan 2002-12-3	
@@ -232,6 +226,17 @@ void CSendWritePropMult::RestorePage( int index )
 	}
 }
 
+
+void CSendWritePropMult::ClearAll()
+{
+	m_ObjList.DeleteAllItems();
+	m_PropList.DeleteAllItems();
+
+	for (POSITION pos = m_PropListList.GetHeadPosition(); pos != NULL; )
+	  delete m_PropListList.GetNext( pos );		
+
+	m_PropListList.RemoveAll();
+}
 //
 //	CSendWritePropMult::OnInitDialog
 //
@@ -370,6 +375,23 @@ void CSendWritePropMult::OnChangePriority()
 	if (m_PropListList.wpllCurElem)
 		m_PropListList.wpllCurElem->OnChangePriority();
 }
+
+
+
+
+// madanner 9/04, added from EPICS view
+
+void CSendWritePropMult::ForceValues(BACnetObjectIdentifier * pObjectID, int apPropID[], CPtrArray * apbacnetValues, int nSize )
+{
+	ClearAll();
+
+	m_PropListList.ForceValues(pObjectID, apPropID, apbacnetValues, nSize);
+
+	SavePage();
+	UpdateEncoded();
+}
+
+
 
 //
 //	WritePropElem::WritePropElem
@@ -936,6 +958,46 @@ void WritePropListList::AddButtonClick( void )
 	wpllPagePtr->m_ObjList.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
 	wpllPagePtr->UpdateEncoded();
 }
+
+
+void WritePropListList::ForceValues(BACnetObjectIdentifier * pObjectID, int apPropID[], CPtrArray * apbacnetValues, int nSize )
+{
+	// create a new list item
+	wpllAddInProgress = true;
+	wpllPagePtr->m_ObjList.InsertItem( 0, "" );
+	wpllCurElemIndx = 0;
+
+	WritePropListPtr wplistPtr = new WritePropList(wpllPagePtr);
+		
+	wplistPtr->wplObjID.ctrlNull = FALSE;
+	wplistPtr->wplObjID.objID = pObjectID->objID;
+
+//      m_strList.AddTail(wpmrplistPtr->m_ObjIDStr);
+
+	for ( int j = 0; j < nSize; j++)
+	{
+		WritePropElemPtr elemPtr = new WritePropElem(wpllPagePtr);
+			
+		elemPtr->wpePropCombo.enumValue = apPropID[j];
+		elemPtr->wpePropCombo.ctrlNull = FALSE;
+		elemPtr->wpeArrayIndex.uintValue = 0;
+		elemPtr->wpeArrayIndex.ctrlNull = TRUE;
+			
+		elemPtr->wpeValue.m_anyList.KillAll();
+		elemPtr->wpeValue.AddValue( (BACnetEncodeable *)(*apbacnetValues)[j] );
+		elemPtr->wpePriority.ctrlNull = TRUE;
+
+		wplistPtr->AddTail( elemPtr);
+	}
+
+	AddTail(wplistPtr);
+	wplistPtr->Bind();
+
+	// update the encoding
+	wpllAddInProgress = false;
+	wpllPagePtr->m_ObjList.SetItemState( 0, LVIS_SELECTED, LVIS_SELECTED);
+}
+
 
 //
 //	WritePropListList::RemoveButtonClick
