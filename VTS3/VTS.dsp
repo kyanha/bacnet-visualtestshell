@@ -1817,7 +1817,7 @@ SOURCE=.\VTS.reg
 # End Source File
 # Begin Source File
 
-SOURCE=.\macdll\ptp\release\ptp.lib
+SOURCE=.\macdll\ptp\ptp.lib
 # End Source File
 # Begin Source File
 
