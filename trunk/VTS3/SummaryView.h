@@ -25,9 +25,10 @@ public:
 
 // Operations
 public:
+	BOOL CreateView(CWnd* pParent,CCreateContext* pContext,RECT rect);
 	CString* GetLineData(int lineNo);
 	CWnd* m_pTabRing;
-	CChildFrame* GetFrame( void );
+	//CChildFrame* GetFrame( void );
 	VTSDoc* GetDocument();
 	
 	virtual void ContextChange( CFrameContext::Signal s );
@@ -58,6 +59,8 @@ protected:
 	afx_msg void OnCancelMode();
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
+	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
+	afx_msg void OnCaptureChanged(CWnd *pWnd);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

@@ -34,6 +34,7 @@ BEGIN_MESSAGE_MAP(CDetailView, CScrollView)
 	ON_WM_KILLFOCUS()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_KEYDOWN()
+	ON_WM_LBUTTONDBLCLK()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -205,4 +206,34 @@ void CDetailView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			CScrollView::OnKeyDown(nChar, nRepCnt, nFlags);
 			break;
 	}
+}
+
+BOOL CDetailView::CreateView(CWnd *pParent, CCreateContext *pContext, RECT rect)
+{
+	DWORD dwStyle = AFX_WS_DEFAULT_VIEW|WS_HSCROLL;
+    // dwStyle &= ~WS_BORDER;
+
+    // Create with the right size (wrong position)
+    CRect rect1(0,0,500,400);
+	
+
+    if (!Create(NULL, NULL, dwStyle,
+        rect1, pParent, AFX_IDW_PANE_FIRST,pContext))
+    {
+        TRACE0("Warning: couldn't create treeview pane!. \n");
+        return FALSE;
+    }
+
+	return TRUE;
+}
+
+void CDetailView::OnLButtonDblClk(UINT nFlags, CPoint point) 
+{
+	// TODO: Add your message handler code here and/or call default
+	CWnd*	parent = GetParentFrame();
+
+	if(! ((CChildFrame*)parent)->m_pwndHexViewBar->IsVisible())
+			((CChildFrame*)parent)->ShowControlBar( ((CChildFrame*)parent)->m_pwndHexViewBar, TRUE, FALSE);
+
+	CScrollView::OnLButtonDblClk(nFlags, point);
 }

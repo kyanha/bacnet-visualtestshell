@@ -26,6 +26,7 @@ public:
 
 // Operations
 public:
+	BOOL CreateView(CWnd* pParent,CCreateContext* pContext,RECT rect);
 	CWnd* m_pTabRing;
 	VTSDoc* GetDocument();
 
@@ -58,6 +59,7 @@ protected:
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

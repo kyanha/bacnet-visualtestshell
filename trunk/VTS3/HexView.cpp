@@ -388,3 +388,21 @@ CString* CHexView::GetLineData(int lineNo)
 	
 	return pString;
 }
+
+BOOL CHexView::CreateView(CWnd *pParent, CCreateContext *pContext, RECT rect)
+{
+	DWORD dwStyle = AFX_WS_DEFAULT_VIEW;
+    // dwStyle &= ~WS_BORDER;
+
+    // Create with the right size (wrong position)
+    CRect rect1(0,0,500,300);
+
+    if (!Create(NULL, NULL, dwStyle,
+        rect1, pParent, AFX_IDW_PANE_FIRST,pContext))
+    {
+        TRACE0("Warning: couldn't create treeview pane!. \n");
+        return FALSE;
+    }
+
+	return TRUE;
+}
