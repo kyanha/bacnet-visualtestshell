@@ -479,7 +479,9 @@ typedef struct {
     enum BACnetReliability	reliability;
     bool					out_of_service;
     word				    number_of_states;
-    char					state_text[64];
+	// msdanner 9/2004
+    //char					state_text[64];
+    char				far	*state_text[32];
     word				    priority_array[16];                        
     word				    relinquish_default;
     word				    time_delay;

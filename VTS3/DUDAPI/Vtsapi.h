@@ -166,6 +166,10 @@ int   GetSpecialFunctionalitySize(void);
 char *GetSpecialFunctionalityName(int i);
 void *GetEnumTable(int iTableIndex);
 
+// Global variables
+extern octet EPICSLengthProtocolServicesSupportedBitstring;    //msdanner 9/2004 - used by test 135.1-2003 (k)
+extern octet EPICSLengthProtocolObjectTypesSupportedBitstring; //msdanner 9/2004 - used by test 135.1-2003 (l)
+
 
 #ifdef __cplusplus					//end of extern "C" declarations
 }

@@ -210,6 +210,10 @@ void preprocstr(char *str);					//                                      ***020
 #define	BeginPics	                &EndPics[7]
 
 ///////////////////////////////////////////////////////////////////////
+// global variables
+octet EPICSLengthProtocolServicesSupportedBitstring;    //msdanner 9/2004 - used by test 135.1-2003 (k)
+octet EPICSLengthProtocolObjectTypesSupportedBitstring; //msdanner 9/2004 - used by test 135.1-2003 (l)
+///////////////////////////////////////////////////////////////////////
 // local variables
 static bool		cancel=false;						//global cancel flag
 static char		lb[256];							//line buffer (current line of input file)
@@ -229,8 +233,6 @@ static char		NoneTypeValue[256],NoneTypePropName[20];	 // for store temp address
 
 // msdanner 9/2004: added global consistency error counter
 static unsigned int cConsistencyErrors;
-static octet LengthProtocolServicesSupportedBitstring;    //msdanner 9/2004 - used by test 135.1-2003 (k)
-static octet LengthProtocolObjectTypesSupportedBitstring; //msdanner 9/2004 - used by test 135.1-2003 (l)
 
 // Array of expected bitstring lengths for ProtocolServicesSupported
 // based on the Protocol_Revision property as the index.
@@ -1235,8 +1237,12 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		break; 
       case AVERAGING:
         break;   
-      case MULTI_STATE_VALUE:    // Dennis reminder to add code later
-        break;   
+	  case MULTI_STATE_VALUE: // msdanner 9/2004
+		for (i=0;i<32;i++)
+		{	if (((msv_obj_type *)p)->state_text[i]!=NULL)
+				free(((msv_obj_type *)p)->state_text[i]);
+		}
+		break; 
       case TREND_LOG:
         break;
          
@@ -3398,9 +3404,9 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                // regardless of the number of defined protocol services
 					if (ParseBitstring((octet *)pstruc,
 					    MAX_BITSTRING,                                  /* max bits to parse */
-					    &LengthProtocolServicesSupportedBitstring)) /* how many bits were parsed? */
+					    &EPICSLengthProtocolServicesSupportedBitstring)) /* how many bits were parsed? */
 					    return true;
-               LengthProtocolServicesSupportedBitstring++;  // zero-based correction
+               EPICSLengthProtocolServicesSupportedBitstring++;  // zero-based correction
 					ProtocolServSup.ObjServNum=sizeof(StandardServices)/sizeof(StandardServices[0]);   
 					ProtocolServSup.PropSupValue=(octet *)pstruc; 
 					
@@ -3410,9 +3416,9 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                // regardless of the number of defined protocol object types
 					if (ParseBitstring((octet *)pstruc,
 					    MAX_BITSTRING,                                  /* max bits to parse */
-					    &LengthProtocolObjectTypesSupportedBitstring)) /* how many bits were parsed? */
+					    &EPICSLengthProtocolObjectTypesSupportedBitstring)) /* how many bits were parsed? */
 					    return true;
-               LengthProtocolObjectTypesSupportedBitstring++;  // zero-based correction
+               EPICSLengthProtocolObjectTypesSupportedBitstring++;  // zero-based correction
 					ProtocolObjSup.PropSupValue=(octet *)pstruc;       
 					ProtocolObjSup.ObjServNum=sizeof(StandardObjects)/sizeof(StandardObjects[0]);   
 					break;
@@ -7314,14 +7320,14 @@ void CheckPICSCons2003K(PICSdb *pd)
       return;
 
    ExpectedLength = aCorrectLengthProtocolServicesSupportedBitstring[pDevice->protocol_rev];
-   if (LengthProtocolServicesSupportedBitstring != ExpectedLength)
+   if (EPICSLengthProtocolServicesSupportedBitstring != ExpectedLength)
    {
 	   sprintf(errMsg,"135.1-2003 5.(k): "
 		   "For Protocol_Revision of %d, the length of Protocol_Services_Supported "
 		   "must be %d bits, but it is %d bits.\n",
 		   pDevice->protocol_rev,
 		   ExpectedLength,
-		   LengthProtocolServicesSupportedBitstring);
+		   EPICSLengthProtocolServicesSupportedBitstring);
 	   tperror(errMsg,false);
    }
 	return;
@@ -7350,14 +7356,14 @@ void CheckPICSCons2003L(PICSdb *pd)
       return;
 
    ExpectedLength = aCorrectLengthProtocolObjectTypesSupportedBitstring[pDevice->protocol_rev];
-   if (LengthProtocolObjectTypesSupportedBitstring != ExpectedLength)
+   if (EPICSLengthProtocolObjectTypesSupportedBitstring != ExpectedLength)
    {
 	   sprintf(errMsg,"135.1-2003 5.(l): "
 		   "For Protocol_Revision of %d, the length of Protocol_Object_Types_Supported "
 		   "must be %d bits, but it is %d bits.\n",
 		   pDevice->protocol_rev,
 		   ExpectedLength,
-		   LengthProtocolObjectTypesSupportedBitstring);
+		   EPICSLengthProtocolObjectTypesSupportedBitstring);
 	   tperror(errMsg,false);
    }
 	return;
