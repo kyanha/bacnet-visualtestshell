@@ -1554,7 +1554,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 		}
 		if(m_nObjType != -1)
 		{
-			CString str = "Vendor";
+			CString str = "<proprietary>";
 			cbp->AddString(str);
 		}
 		// make sure at least eight lines are visible
@@ -1565,15 +1565,19 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 	if (!ctrlNull)
 	{
 		EnumToSelect();
+		/* This code replaces the "<proprietary>" choice at the end of the list with
+		   the enumerated choice entered in the dialog.  I didn't like
+		   that behavior.  I think the choice "<proprietary>" should stay
+		   as it is.
 		if(enumValue > 511 && m_nObjType != -1)
 		{
 			CString text;
 			cbp->DeleteString(cbp->GetCount()-1);
-			text.Format("Vendor %d", enumValue);
+			text.Format("%d", enumValue);
 			cbp->AddString(text);
 			cbp->SetCurSel(cbp->GetCount() -1);
 		}
-		else
+		else  */
 			cbp->SetCurSel( m_SelectValue );
 	}
 }
@@ -3271,7 +3275,7 @@ void VTSEnumeratedCtrl::SelectToEnum()
 		{
 			CString text;
 			cbp->DeleteString(cbp->GetCount()-1);
-			text.Format("Vendor %d", enumValue);
+			text.Format("%d", enumValue);
 			cbp->AddString(text);
 			cbp->SetCurSel(cbp->GetCount() -1);
 			return;
