@@ -323,33 +323,34 @@ static const char *stPropIDs[]={
 #define	Last		0x80
 
 //NOTE: the following equates MUST represent the order in the AllETs table in STDOBJPR.H!
-#define		eiTF			1
-#define		eiReli			2
-#define		eiEvState		3
-#define		eiEU			4
-#define		eiNT			5
-#define		eiBPV			6
-#define		eiPolar			7
-#define		eiDS			8
-#define		eiSegOpt		9
-#define		eiEvType		10
-#define		eiFAM			11
-#define		eiLoopAct		12
-#define		eiPrErr			13
-#define		eiPrState		14
-#define		eiPrChg			15
-#define 	eiObjectTypes	16
-#define		eiStF			17
-#define		eiEvTr			18
-#define		eiLimEn			19
-#define		eiVTCls			20
-#define		eiDOW			21
-#define		eiYN			22
-#define		eiCalType		23
-#define		eiMon			24
-#define		eiWOM			25
-#define		eiAnyDOW		26
-#define		eiBPVn			27
-#define		eiAppDataTypes	28
+//msdanner 9/2004 - all reduced by one to eliminate need for "-1" all the time.
+#define		eiTF           0
+#define		eiReli         1
+#define		eiEvState      2
+#define		eiEU           3
+#define		eiNT           4
+#define		eiBPV          5
+#define		eiPolar        6
+#define		eiDS           7
+#define		eiSegOpt       8
+#define		eiEvType       9
+#define		eiFAM          10
+#define		eiLoopAct      11
+#define		eiPrErr        12
+#define		eiPrState      13
+#define		eiPrChg        14
+#define 	eiObjectTypes     15
+#define		eiStF          16
+#define		eiEvTr         17
+#define		eiLimEn        18
+#define		eiVTCls        19
+#define		eiDOW          20
+#define		eiYN           21
+#define		eiCalType      22
+#define		eiMon          23
+#define		eiWOM          24
+#define		eiAnyDOW       25
+#define		eiBPVn         26
+#define		eiAppDataTypes 27
 
 #endif //__PROPS_H_INCLUDED
