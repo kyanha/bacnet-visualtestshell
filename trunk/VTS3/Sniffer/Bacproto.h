@@ -321,7 +321,8 @@ void     show_log_buffer( void );
 void     show_logDatum_choice( void );
 void     show_bac_result_flags( unsigned int);
 void     show_bac_COV_Subscription(); //Xiao Shiyuan 2002-7-23
-
+void     show_bac_destination(void); //Xu yiping 2002-9-28
+void	 show_bac_bitstring_value(char**c);	//Xu yiping 2002-9-28
 /*  ----- prototypes extracting information from object identifiers ----- */
 
 int      bac_extract_obj_type(void);
