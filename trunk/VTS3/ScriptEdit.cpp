@@ -32,9 +32,12 @@
 //					8)	Modified by Yajun Zhou, 2002-7-8
 //						Fixed a bug that display wrong line numbers in 
 //						the LineNumCtrl when mouse wheeling. 
-//					8)	Modified by Yajun Zhou, 2002-7-12
+//					9)	Modified by Yajun Zhou, 2002-7-12
 //						Fixed a bug that sometimes when the current line 
 //						is the last visible line, it doesn't be highlighted.
+//					10)	Modified by Yajun Zhou, 2002-8-5
+//						Modified the function, DisplayLnNum(), so that it 
+//						could display numbers larger than 9999 correctly.
 //******************************************************************
 // ScriptEdit.cpp : implementation file
 //
@@ -207,6 +210,7 @@ void ScriptEdit::OnInitialUpdate()
 	
 	m_nFirstVisibleLn = 0;
 	m_nCurrentLine = 0;
+	m_nTempDigit = 3;
 	m_nLineCount = m_pEdit->GetLineCount();
 
 	DisplayLnNum();
@@ -537,25 +541,29 @@ void ScriptEdit::DisplayLnNum()
 
 	m_LineNumCtrl.m_nLineCount = m_nLineCount;
 	
-	if(nFirstVisibleLn >= (1000-m_nVisibleLnCount))
+	char buf[10];
+	itoa(nLastVisibleLn, buf, 10);
+	CString strLineNum = buf;
+	int nDigit = strLineNum.GetLength();
+	
+	if(nDigit > 3 && nDigit != m_nTempDigit)
 	{
-		if(m_nMargin == MARGIN_3)
-		{
-			m_nMargin = MARGIN_4;
-			m_pEdit->SetMargins(m_nMargin+1, 0);
-			if (::IsWindow(m_LineNumCtrl.m_hWnd))
-				m_LineNumCtrl.MoveWindow(1, 1, m_nMargin, m_nClientY, TRUE);
-		}
+		m_nTempDigit = nDigit;
+		m_nMargin = MARGIN_3 + (nDigit - 3) * 6;
+		m_pEdit->SetMargins(m_nMargin+1, 0);
+		if (::IsWindow(m_LineNumCtrl.m_hWnd))
+			m_LineNumCtrl.MoveWindow(1, 1, m_nMargin, m_nClientY, TRUE);
+
 	}
-	else
+
+	if(nDigit <= 3 && nDigit != m_nTempDigit)
 	{
-		if(m_nMargin == MARGIN_4)
-		{
-			m_nMargin = MARGIN_3;
-			m_pEdit->SetMargins(m_nMargin+1, 0);
-			if (::IsWindow(m_LineNumCtrl.m_hWnd))
-				m_LineNumCtrl.MoveWindow(1, 1, m_nMargin, m_nClientY, TRUE);
-		}
+		m_nTempDigit = nDigit;
+		m_nMargin = MARGIN_3;
+		m_pEdit->SetMargins(m_nMargin+1, 0);
+		if (::IsWindow(m_LineNumCtrl.m_hWnd))
+			m_LineNumCtrl.MoveWindow(1, 1, m_nMargin, m_nClientY, TRUE);
+
 	}
 
 	m_LineNumCtrl.Display(nFirstVisibleLn+1, nLastVisibleLn);
