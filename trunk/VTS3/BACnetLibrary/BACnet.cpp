@@ -267,14 +267,21 @@ IMPLEMENT_DYNAMIC(BACnetEncodeable, CObject)
 //	BACnetEncodeable
 //
 
+BACnetEncodeable::BACnetEncodeable()
+{
+	m_fDataInvalid = false;
+}
+
+
 void BACnetEncodeable::Encode( char * enc ) const
 {
-	sprintf(enc, "%s.Encode(char*) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
+	strcpy(enc, this->GetRuntimeClass()->m_lpszClassName);
 }
 
 
 void BACnetEncodeable::Decode( const char * )
 {
+	m_fDataInvalid = true;
 	TRACE1("%s.Decode(char*) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
 }
 
@@ -287,6 +294,7 @@ void BACnetEncodeable::Encode( BACnetAPDUEncoder& enc, int context /* = kAppCont
 
 void BACnetEncodeable::Decode( BACnetAPDUDecoder& dec )
 {
+	m_fDataInvalid = true;
 	TRACE1("%s.Decode(BACnetAPDUDecoder& enc) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
 }
 
@@ -505,6 +513,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 
 			return new BACnetTimeStampArray(dec);
 
+		case setref:
 		case propref:	// object prop refs
 
 			return new BACnetObjectPropertyReference(dec);
@@ -513,21 +522,78 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 
 			return new BACnetListOfObjectPropertyReference(dec);
 
+		case devobjpropref:	// deviceobject prop refs
+
+			return new BACnetDeviceObjectPropertyReference(dec);
+
 		case recip:		// bacnet recipient
 
 			return new BACnetRecipient(dec);
+
+		case tsrecip:	// list of time synch recipients
+
+			return new BACnetListOfRecipient(dec);
 
 		case vtcl:		// vt classes
 
 			return new BACnetListOfVTClass(dec);
 
-//		case reciplist:	// list of bacnet destinations
+		case destination:		//
 
-//			return new BACnetDestination(dec);
+			return new BACnetDestination(dec);
+
+		case reciplist:	// list of BACnetDestination
+
+			return new BACnetListOfDestination(dec);
+
+		case COVSub:
+
+			return new BACnetCOVSubscription(dec);
+
+		case lCOVSub:
+
+			return new BACnetListOfCOVSubscription(dec);
+
+		case raslist:	// list of readaccessspecs
+             
+			//p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
+			return new BACnetReadAccessSpecification(dec);
+
+		case act:		// action array
+            
+			//p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
+			//return new BACnetActionCommand(dec);
+
+		case evparm:	// event parameter
+			
+			//p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
+			//return new BACnetEventParameter(dec);
+
+		case skeys:		// session keys
+			
+			//p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
+			//return new BACnetSessionKey(dec);
+
+		case xsched:    // exception schedule: array[] of specialevent
+
+			//p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
+			//return new BACnetExceptionSchedule(dec);
+
+		case wsched:	// weekly schedule: array[7] of list of timevalue
+
+			//p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
+			//return new BACnetTimeValue(dec);
+
+		case vtse:		// list of active  vt sessions (parse type) 
+
+			//p= eVTSE(p,(BACnetVTSession far*)msg->pv);
+			;//return new BACnetVTSession(dec);
 	}
 
 	return NULL;
 }
+
+
 
 
 
@@ -4978,7 +5044,7 @@ BACnetObjectIdentifier & BACnetObjectIdentifier::operator =( const BACnetObjectI
 IMPLEMENT_DYNAMIC(BACnetObjectPropertyReference, BACnetEncodeable)
 
 BACnetObjectPropertyReference::BACnetObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index /* = -1 */)
-								: m_objID(obj_id), m_buPropID(prop_id)
+								: m_objID(obj_id), m_bacnetenumPropID(prop_id, stPropIDs, sizeof(stPropIDs)/sizeof(char *))
 {
 	m_nIndex = index;
 }
@@ -4986,6 +5052,7 @@ BACnetObjectPropertyReference::BACnetObjectPropertyReference( unsigned int obj_i
 
 
 BACnetObjectPropertyReference::BACnetObjectPropertyReference( BACnetAPDUDecoder & dec )
+								:m_bacnetenumPropID(0, stPropIDs, sizeof(stPropIDs)/sizeof(char *))
 {
 	Decode(dec);
 }
@@ -4994,64 +5061,57 @@ BACnetObjectPropertyReference::BACnetObjectPropertyReference( BACnetAPDUDecoder 
 
 void BACnetObjectPropertyReference::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	PICS::BACnetObjectPropertyReference objprop;
+	if ( context != kAppContext )
+		BACnetOpeningTag().Encode(enc, context);
 
-	objprop.next = NULL;
-	objprop.object_id = m_objID.objID;
-	objprop.property_id = m_buPropID.uintValue;
-	objprop.pa_index = m_nIndex == -1 ? NotAnArray : (unsigned short) m_nIndex;
+	m_objID.Encode(enc, 0);
+	m_bacnetenumPropID.Encode(enc, 1);
 
-	//m_objID.Encode(enc, context);
-	//m_buPropID.Encode(enc, context);
+	if ( m_nIndex != -1 )
+		BACnetUnsigned(m_nIndex).Encode(enc, 2);
 
-	//if ( m_nIndex != -1 )
-		//BACnetUnsigned(m_nIndex).Encode(enc, context);
-
-	unsigned char * pEnd = PICS::eLOPREF(enc.pktBuffer + enc.pktLength, &objprop);
-	enc.pktLength += (int) (pEnd - (enc.pktBuffer+enc.pktLength));
+	if ( context != kAppContext )
+		BACnetClosingTag().Encode(enc, context);
 }
 
 
-void BACnetObjectPropertyReference::Decode( BACnetAPDUDecoder& dec )
+
+void BACnetObjectPropertyReference::Decode(BACnetAPDUDecoder& dec)
 {
-	m_fDataValid = false;
-	BACnetEncodeable::Decode(dec);
+	m_objID.Decode(dec);
+	m_bacnetenumPropID.Decode(dec);
+
+	BACnetAPDUTag		tagTestType;	
+	dec.ExamineTag(tagTestType);
+	
+	if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 2 )
+		m_nIndex = BACnetUnsigned(dec).uintValue;
 }
 
 
 void BACnetObjectPropertyReference::Encode( char *enc ) const
 {
-	if ( !m_fDataValid )
-		BACnetEncodeable::Encode(enc);
-	else
+	char szObject[100];
+	char szProp[20];
+	char szIndex[20];
+
+	m_objID.Encode(szObject);
+	m_bacnetenumPropID.Encode(szProp);
+
+	if ( m_nIndex != -1 )
+		BACnetUnsigned(m_nIndex).Encode(szIndex);
+
+	sprintf(enc, "[%s, %s", szObject, szProp);
+	if ( m_nIndex != -1  && m_nIndex != NotAnArray )
 	{
-		char szObject[100];
-		char szProp[20];
-		char szIndex[20];
-
-		m_objID.Encode(szObject);
-		m_buPropID.Encode(szProp);
-
-		if ( m_nIndex != -1 )
-			BACnetUnsigned(m_nIndex).Encode(szIndex);
-
-		sprintf(enc, "[%s, %s", szObject, szProp);
-		if ( m_nIndex != -1 )
-		{
-			strcat(enc, ", ");
-			strcat(enc, szIndex);
-		}
-
+		strcat(enc, "[");
+		strcat(enc, szIndex);
 		strcat(enc, "]");
 	}
+
+	strcat(enc, "]");
 }
 
-
-void BACnetObjectPropertyReference::Decode( const char *dec )
-{
-	m_fDataValid = false;
-	BACnetEncodeable::Decode(dec);
-}
 
 
 int BACnetObjectPropertyReference::DataType()
@@ -5062,7 +5122,7 @@ int BACnetObjectPropertyReference::DataType()
 
 BACnetEncodeable * BACnetObjectPropertyReference::clone()
 {
-	return new BACnetObjectPropertyReference(m_objID.objID, m_buPropID.uintValue, m_nIndex);
+	return new BACnetObjectPropertyReference(m_objID.objID, (unsigned int) m_bacnetenumPropID.enumValue, m_nIndex);
 }
 
 
@@ -5075,7 +5135,7 @@ bool BACnetObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOpera
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference)));
 
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetObjectPropertyReference &) rbacnet).m_objID.objID) ||
-		 !::Match(iOperator, (int) m_buPropID.uintValue, (int) ((BACnetObjectPropertyReference &) rbacnet).m_buPropID.uintValue) )
+		 !::Match(iOperator, (int) m_bacnetenumPropID.enumValue, (int) ((BACnetObjectPropertyReference &) rbacnet).m_bacnetenumPropID.enumValue) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
 	return true;
@@ -5085,9 +5145,146 @@ bool BACnetObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOpera
 BACnetObjectPropertyReference & BACnetObjectPropertyReference::operator =( const BACnetObjectPropertyReference &arg )
 {
 	m_objID = arg.m_objID;
-	m_buPropID = arg.m_buPropID;
+	m_bacnetenumPropID = arg.m_bacnetenumPropID;
 	m_nIndex = arg.m_nIndex;
 	return *this;
+}
+
+
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetDeviceObjectPropertyReference, BACnetEncodeable)
+
+BACnetDeviceObjectPropertyReference::BACnetDeviceObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index /* = -1 */, unsigned int devobj_id /* = 0xFFFFFFFF */ )
+								: m_objpropref(obj_id, prop_id, index)
+{
+	m_unObjectID = devobj_id;
+}
+
+
+
+BACnetDeviceObjectPropertyReference::BACnetDeviceObjectPropertyReference( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
+
+void BACnetDeviceObjectPropertyReference::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	if ( context != kAppContext )
+		BACnetOpeningTag().Encode(enc, context);
+
+	m_objpropref.Encode(enc);
+
+	if ( m_unObjectID != 0xFFFFFFFF )
+		::BACnetObjectIdentifier((unsigned int) m_unObjectID).Encode(enc, 3);
+
+	if ( context != kAppContext )
+		BACnetClosingTag().Encode(enc, context);
+}
+
+
+
+void BACnetDeviceObjectPropertyReference::Decode(BACnetAPDUDecoder& dec)
+{
+	m_objpropref.Decode(dec);
+
+	BACnetAPDUTag		tagTestType;	
+	dec.ExamineTag(tagTestType);
+	
+	if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 3 )
+		m_unObjectID = BACnetObjectIdentifier(dec).objID;
+}
+
+
+void BACnetDeviceObjectPropertyReference::Encode( char *enc ) const
+{
+	char szObject[100];
+	char szProp[20];
+	char szIndex[20];
+	char szDevice[100];
+
+	m_objpropref.m_objID.Encode(szObject);
+	m_objpropref.m_bacnetenumPropID.Encode(szProp);
+
+	if ( m_objpropref.m_nIndex != -1 )
+		BACnetUnsigned(m_objpropref.m_nIndex).Encode(szIndex);
+
+	sprintf(enc, "[%s, %s", szObject, szProp);
+	if ( m_objpropref.m_nIndex != -1  && m_objpropref.m_nIndex != NotAnArray )
+	{
+		strcat(enc, "[");
+		strcat(enc, szIndex);
+		strcat(enc, "]");
+	}
+	if ( m_unObjectID != 0xFFFFFFFF )
+	{
+		BACnetObjectIdentifier((unsigned int) m_unObjectID).Encode(szDevice);
+		strcat(enc, ", ");
+		strcat(enc, szDevice);
+	}
+
+	strcat(enc, "]");
+}
+
+
+
+int BACnetDeviceObjectPropertyReference::DataType()
+{
+	return devobjpropref;
+}
+
+
+BACnetEncodeable * BACnetDeviceObjectPropertyReference::clone()
+{
+	return new BACnetDeviceObjectPropertyReference(m_objpropref.m_objID.objID, (unsigned int) m_objpropref.m_bacnetenumPropID.enumValue, m_objpropref.m_nIndex, m_unObjectID);
+}
+
+
+bool BACnetDeviceObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	if ( PreMatch(iOperator) )
+		return true;
+
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectPropertyReference)));
+
+//	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetDeviceObjectPropertyReference &) rbacnet).m_objID.objID) ||
+//		 !::Match(iOperator, (int) m_buPropID.uintValue, (int) ((BACnetDeviceObjectPropertyReference &) rbacnet).m_buPropID.uintValue) )
+//		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+
+	return true;
+}
+
+
+BACnetDeviceObjectPropertyReference & BACnetDeviceObjectPropertyReference::operator =( const BACnetDeviceObjectPropertyReference &arg )
+{
+	m_objpropref = arg.m_objpropref;
+	m_unObjectID = arg.m_unObjectID;
+	return *this;
+}
+
+
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetReadAccessSpecification, BACnetEncodeable)
+
+
+BACnetReadAccessSpecification::BACnetReadAccessSpecification()
+{
+	m_fDataInvalid = true;
+}
+
+BACnetReadAccessSpecification::BACnetReadAccessSpecification( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+int BACnetReadAccessSpecification::DataType(void)
+{
+	return raslist;
 }
 
 
@@ -5333,16 +5530,31 @@ BACnetRecipient::BACnetRecipient( BACnetEncodeable * pbacnetEncodeable )
 {
 	
 }
+
+int BACnetRecipient::GetChoice()
+{
+	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
+		return 0;
+	else return 1;
+}
+
 BACnetRecipient & BACnetRecipient::operator =( const BACnetRecipient & arg )
 {
 	BACnetRecipient* newrecipent = new BACnetRecipient();
 	this->SetObject(arg.pbacnetTypedValue->clone());
 	return *this;
 }
+
 void BACnetRecipient::Encode(BACnetAPDUEncoder& enc, int context)
 {
 	if(pbacnetTypedValue == NULL)
 		return;	
+
+	//madanner 9/04
+
+	if ( context != kAppContext )
+		BACnetOpeningTag().Encode(enc, context);
+
 	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
 		pbacnetTypedValue->Encode(enc, 0);
 	else
@@ -5352,7 +5564,10 @@ void BACnetRecipient::Encode(BACnetAPDUEncoder& enc, int context)
 		BACnetClosingTag().Encode(enc,1);
 	}
 
+	if ( context != kAppContext )
+		BACnetClosingTag().Encode(enc, context);
 }
+
 
 void BACnetRecipient::Decode(BACnetAPDUDecoder& dec)
 {
@@ -5403,12 +5618,205 @@ bool BACnetRecipient::Match( BACnetEncodeable &rbacnet, int iOperator, CString *
 }
 //end of class BacnetRecipient
 
+
+/////////////////////////////////////////////////////////////////////////////
+
+IMPLEMENT_DYNAMIC(BACnetRecipientProcess, BACnetEncodeable)
+
+BACnetRecipientProcess::BACnetRecipientProcess(void)
+{
+}
+
+
+BACnetRecipientProcess::BACnetRecipientProcess( ::BACnetRecipient & rc, unsigned int nID )
+						:m_bacnetunsignedID(nID)
+{
+	m_bacnetrecipient = rc;
+}
+
+
+BACnetRecipientProcess::BACnetRecipientProcess( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
+BACnetRecipientProcess & BACnetRecipientProcess::operator =( const BACnetRecipientProcess & arg )
+{
+	BACnetRecipientProcess* newrecip = new BACnetRecipientProcess();
+
+	newrecip->m_bacnetrecipient = m_bacnetrecipient;
+	newrecip->m_bacnetunsignedID = m_bacnetunsignedID;
+	return *this;
+}
+
+
+void BACnetRecipientProcess::Encode(BACnetAPDUEncoder& enc, int context)
+{
+	if ( context != kAppContext )
+		BACnetOpeningTag().Encode(enc, context);
+
+	m_bacnetrecipient.Encode(enc, 0);
+	m_bacnetunsignedID.Encode(enc, 1);
+
+	if ( context != kAppContext )
+		BACnetClosingTag().Encode(enc, context);
+}
+
+
+void BACnetRecipientProcess::Decode(BACnetAPDUDecoder& dec)
+{
+	BACnetAPDUTag		tagTestType;	
+	dec.ExamineTag(tagTestType);
+
+//	if (tagTestType.tagClass == openingTagClass)
+//		BACnetOpeningTag().Decode(dec);
+
+	m_bacnetrecipient.Decode(dec);
+	m_bacnetunsignedID.Decode(dec);
+
+//	if (tagTestType.tagClass == openingTagClass)
+//		BACnetClosingTag().Decode(dec);
+}
+
+
+int BACnetRecipientProcess::DataType()
+{
+	return recipproc;
+}
+
+
+BACnetEncodeable * BACnetRecipientProcess::clone()
+{
+	BACnetRecipientProcess * p = new BACnetRecipientProcess();
+	*p = *this;
+	return p;
+}
+
+
+bool BACnetRecipientProcess::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	if ( PreMatch(iOperator) )
+		return true;
+
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipientProcess)));
+
+	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipientProcess))  &&
+		    m_bacnetrecipient.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetrecipient, iOperator, pstrError) &&
+		    m_bacnetunsignedID.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetunsignedID, iOperator, pstrError);
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+
+IMPLEMENT_DYNAMIC(BACnetCOVSubscription, BACnetEncodeable)
+
+
+BACnetCOVSubscription::BACnetCOVSubscription( ::BACnetRecipientProcess & rcp, ::BACnetObjectPropertyReference & objpr,
+								bool fNotify, unsigned int nTimeRemaining, float flCOVIncrement )
+								:m_bacnetunsignedTimeRemaining(nTimeRemaining), m_bacnetrealCOVIncrement(flCOVIncrement),
+								m_bacnetboolNotification(fNotify)
+{
+	m_bacnetrecipprocess = rcp;
+	m_bacnetobjpropref = objpr;
+}
+
+
+BACnetCOVSubscription::BACnetCOVSubscription( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
+BACnetCOVSubscription & BACnetCOVSubscription::operator =( const BACnetCOVSubscription & arg )
+{
+	BACnetCOVSubscription* newsub = new BACnetCOVSubscription();
+
+	newsub->m_bacnetrecipprocess = m_bacnetrecipprocess;
+	newsub->m_bacnetobjpropref = m_bacnetobjpropref;
+	newsub->m_bacnetboolNotification = m_bacnetboolNotification;
+	newsub->m_bacnetunsignedTimeRemaining = m_bacnetunsignedTimeRemaining;
+	newsub->m_bacnetrealCOVIncrement.realValue = m_bacnetrealCOVIncrement.realValue;
+
+	return *this;
+}
+
+
+
+void BACnetCOVSubscription::Encode(BACnetAPDUEncoder& enc, int context)
+{
+	if ( context != kAppContext )
+		BACnetOpeningTag().Encode(enc, context);
+
+	m_bacnetrecipprocess.Encode(enc, 0);
+	m_bacnetobjpropref.Encode(enc, 1);
+	m_bacnetboolNotification.Encode(enc, 2);
+	m_bacnetunsignedTimeRemaining.Encode(enc, 3);
+	m_bacnetrealCOVIncrement.Encode(enc,4);
+
+	if ( context != kAppContext )
+		BACnetClosingTag().Encode(enc, context);
+}
+
+
+void BACnetCOVSubscription::Decode(BACnetAPDUDecoder& dec)
+{
+	BACnetAPDUTag		tagTestType;	
+	dec.ExamineTag(tagTestType);
+
+//	if (tagTestType.tagClass == openingTagClass)
+//		BACnetOpeningTag().Decode(dec);
+
+	m_bacnetrecipprocess.Decode(dec);
+	m_bacnetobjpropref.Decode(dec);
+	m_bacnetboolNotification.Decode(dec);
+	m_bacnetunsignedTimeRemaining.Decode(dec);
+	m_bacnetrealCOVIncrement.Decode(dec);
+
+//	if (tagTestType.tagClass == openingTagClass)
+//		BACnetClosingTag().Decode(dec);
+}
+
+
+int BACnetCOVSubscription::DataType()
+{
+	return COVSub;
+}
+
+
+BACnetEncodeable * BACnetCOVSubscription::clone()
+{
+	BACnetCOVSubscription * p = new BACnetCOVSubscription();
+	*p = *this;
+	return p;
+}
+
+
+bool BACnetCOVSubscription::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	if ( PreMatch(iOperator) )
+		return true;
+
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCOVSubscription)));
+
+	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCOVSubscription))  &&
+		   m_bacnetrecipprocess.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrecipprocess, iOperator, pstrError) &&
+		   m_bacnetobjpropref.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetobjpropref, iOperator, pstrError) &&
+		   m_bacnetboolNotification.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetboolNotification, iOperator, pstrError) &&
+		   m_bacnetunsignedTimeRemaining.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetunsignedTimeRemaining, iOperator, pstrError) &&
+		   m_bacnetrealCOVIncrement.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrealCOVIncrement, iOperator, pstrError) ;
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 //
 //	BACnetDestination
 //Added by Zhu Zhenhua, 2003-9-4
 IMPLEMENT_DYNAMIC(BACnetDestination, BACnetEncodeable)
+
 BACnetDestination::BACnetDestination(
 	BACnetDaysOfWeek &validDays,
 	BACnetTime &fromTime,
@@ -5426,14 +5834,25 @@ m_transitions(transitions)
 	m_processID = processID;
 	m_issueConfirmedNotifications = issueConfirmedNotifications;
 }
+
+
+BACnetDestination::BACnetDestination( BACnetAPDUDecoder& dec )
+{
+	Decode(dec);
+}
+
+
 BACnetDestination::BACnetDestination(const BACnetDestination  &src)
 {
 	*this = src;
 }
+
+
 BACnetDestination::BACnetDestination(void)
 {	
-
 }
+
+
 BACnetDestination & BACnetDestination::operator =( const BACnetDestination & arg )
 {
 	m_validDays = arg.m_validDays;
@@ -5444,11 +5863,11 @@ BACnetDestination & BACnetDestination::operator =( const BACnetDestination & arg
 	m_processID = arg.m_processID;
 	m_issueConfirmedNotifications = arg.m_issueConfirmedNotifications;
 	return *this;
-	
 }
+
+
 void BACnetDestination::Encode(BACnetAPDUEncoder &enc, int nContext)
 {
-
 	m_validDays.Encode(enc);
 	m_fromTime.Encode(enc);
 	m_toTime.Encode(enc);
@@ -5456,12 +5875,11 @@ void BACnetDestination::Encode(BACnetAPDUEncoder &enc, int nContext)
 	m_processID.Encode(enc);
 	m_issueConfirmedNotifications.Encode(enc);
 	m_transitions.Encode(enc);
-
 }
+
 
 void BACnetDestination::Decode(BACnetAPDUDecoder &dec)
 {
-
 	m_validDays.Decode(dec);
 	m_fromTime.Decode(dec);
 	m_toTime.Decode(dec);
@@ -5469,16 +5887,19 @@ void BACnetDestination::Decode(BACnetAPDUDecoder &dec)
 	m_processID.Decode(dec);
 	m_issueConfirmedNotifications.Decode(dec);
 	m_transitions.Decode(dec);
-
 }
+
+
 int BACnetDestination::DataType()
 {
 	return destination;
 }
 
+
 //
 //	BACnetClosingTag
 //
+
 void BACnetClosingTag::Encode( BACnetAPDUEncoder& enc, int context )
 {
 	if (context < 15) {
@@ -5960,6 +6381,7 @@ void BACnetGenericArray::Encode( char *enc ) const
 void BACnetGenericArray::Decode( const char *dec )
 {
 }
+
 
 BACnetEncodeable * BACnetGenericArray::NewDecoderElement( BACnetAPDUDecoder& dec )
 {
@@ -6453,7 +6875,6 @@ BACnetListOfObjectPropertyReference::BACnetListOfObjectPropertyReference( PICS::
 
 
 
-
 BACnetObjectPropertyReference * BACnetListOfObjectPropertyReference::operator[](int nIndex) const
 {
 	return (BACnetObjectPropertyReference *) m_apBACnetObjects[nIndex];
@@ -6465,6 +6886,61 @@ BACnetObjectPropertyReference & BACnetListOfObjectPropertyReference::operator[](
 {
 	return  (BACnetObjectPropertyReference &) *m_apBACnetObjects[nIndex];
 }
+
+
+//====================================================================
+
+
+
+IMPLEMENT_DYNAMIC(BACnetListOfDeviceObjectPropertyReference, BACnetGenericArray)
+
+
+
+BACnetListOfDeviceObjectPropertyReference::BACnetListOfDeviceObjectPropertyReference()
+									:BACnetGenericArray(propref)
+{
+	m_nType = lopref;
+}
+
+
+BACnetListOfDeviceObjectPropertyReference::BACnetListOfDeviceObjectPropertyReference( BACnetAPDUDecoder& dec )
+									:BACnetGenericArray(propref)
+{
+	m_nType = lopref;
+	Decode(dec);
+}
+
+
+BACnetListOfDeviceObjectPropertyReference::BACnetListOfDeviceObjectPropertyReference( PICS::BACnetObjectPropertyReference * pobjprops )
+									:BACnetGenericArray(propref)
+{
+	m_nType = lopref;
+	ClearArray();
+	while ( pobjprops != NULL )
+	{
+		Add(new ::BACnetDeviceObjectPropertyReference(pobjprops->object_id, pobjprops->property_id, pobjprops->pa_index));
+		pobjprops = pobjprops->next;
+	}
+}
+
+
+
+BACnetDeviceObjectPropertyReference * BACnetListOfDeviceObjectPropertyReference::operator[](int nIndex) const
+{
+	return (BACnetDeviceObjectPropertyReference *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetDeviceObjectPropertyReference & BACnetListOfDeviceObjectPropertyReference::operator[](int nIndex)
+{
+	return  (BACnetDeviceObjectPropertyReference &) *m_apBACnetObjects[nIndex];
+}
+
+
+
+//====================================================================
+
 
 
 
@@ -6511,6 +6987,122 @@ BACnetEnumerated & BACnetListOfVTClass::operator[](int nIndex)
 	return  (BACnetEnumerated &) *m_apBACnetObjects[nIndex];
 }
 
+
+
+
+//====================================================================
+
+
+
+IMPLEMENT_DYNAMIC(BACnetListOfDestination, BACnetGenericArray)
+
+
+
+BACnetListOfDestination::BACnetListOfDestination()
+						:BACnetGenericArray(destination)
+{
+	m_nType = reciplist;
+}
+
+
+BACnetListOfDestination::BACnetListOfDestination( BACnetAPDUDecoder& dec )
+									:BACnetGenericArray(destination)
+{
+	m_nType = reciplist;
+	Decode(dec);
+}
+
+
+
+
+BACnetDestination * BACnetListOfDestination::operator[](int nIndex) const
+{
+	return (BACnetDestination *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetDestination & BACnetListOfDestination::operator[](int nIndex)
+{
+	return  (BACnetDestination &) *m_apBACnetObjects[nIndex];
+}
+
+
+
+
+
+//====================================================================
+
+
+
+IMPLEMENT_DYNAMIC(BACnetListOfRecipient, BACnetGenericArray)
+
+
+
+BACnetListOfRecipient::BACnetListOfRecipient()
+					  :BACnetGenericArray(recip)
+{
+	m_nType = tsrecip;
+}
+
+
+BACnetListOfRecipient::BACnetListOfRecipient( BACnetAPDUDecoder& dec )
+									:BACnetGenericArray(recip)
+{
+	m_nType = tsrecip;
+	Decode(dec);
+}
+
+
+BACnetRecipient * BACnetListOfRecipient::operator[](int nIndex) const
+{
+	return (BACnetRecipient *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetRecipient & BACnetListOfRecipient::operator[](int nIndex)
+{
+	return  (BACnetRecipient &) *m_apBACnetObjects[nIndex];
+}
+
+
+
+
+//====================================================================
+
+
+
+IMPLEMENT_DYNAMIC(BACnetListOfCOVSubscription, BACnetGenericArray)
+
+
+
+BACnetListOfCOVSubscription::BACnetListOfCOVSubscription()
+					  :BACnetGenericArray(COVSub)
+{
+	m_nType = lCOVSub;
+}
+
+
+BACnetListOfCOVSubscription::BACnetListOfCOVSubscription( BACnetAPDUDecoder& dec )
+									:BACnetGenericArray(COVSub)
+{
+	m_nType = lCOVSub;
+	Decode(dec);
+}
+
+
+BACnetCOVSubscription * BACnetListOfCOVSubscription::operator[](int nIndex) const
+{
+	return (BACnetCOVSubscription *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetCOVSubscription & BACnetListOfCOVSubscription::operator[](int nIndex)
+{
+	return  (BACnetCOVSubscription &) *m_apBACnetObjects[nIndex];
+}
 
 
 
@@ -6738,51 +7330,6 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 
 	return true;
 }
-
-
-
-
-
-/*  CASES NOT IMPLEMENTED YET...  Soon to follow (9/02) 
-
-		case raslist: // list of readaccessspecs
-             p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
-			break;
-
-		case act: // action array
-             p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
-			break;
-
-		case evparm: // event parameter
-				 p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
-			break;
-
-		case skeys: // session keys
-				 p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
-			break;
-
-		case reciplist: // list of BACnetDestination
-				 p= eRECIPLIST(p,(BACnetDestination far*)msg->pv);
-			break;
-
-		case xsched:    // exception schedule: array[] of specialevent
-				 p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
-			break;
-
-		case wsched: // weekly schedule: array[7] of list of timevalue
-				 p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
-			break;
-
-		case setref: // setpoint reference
-				 p= eSETREF(p,(BACnetObjectPropertyReference far*)msg->pv);
-			break;
-
-		case vtse: // list of active  vt sessions (parse type) 
-				 p= eVTSE(p,(BACnetVTSession far*)msg->pv);
-			break;
-
-*/
-
 
 
 //
@@ -7263,9 +7810,3 @@ bool IsBound( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
 	return ((cp->clientPeer == sp) && (sp->serverPeer == cp));
 }
 
-int BACnetRecipient::GetChoice()
-{
-	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
-		return 0;
-	else return 1;
-}
