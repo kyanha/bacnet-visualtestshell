@@ -188,6 +188,10 @@ BOOL CSendInitRTAck::OnInitDialog()
 void CSendInitRTAck::OnAddDNET() 
 {
 	m_DNETCtrl.AddButtonClick();
+
+	// madanner 9/3/02 - initialize defaults DNET=1, port=1 (0=remove)
+	m_DNETCtrl.SetCtrlText(IDC_DNET, "1");
+	m_DNETCtrl.SetCtrlText(IDC_PORTID, "1");
 }
 
 void CSendInitRTAck::OnRemoveDNET() 

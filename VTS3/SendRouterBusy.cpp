@@ -154,6 +154,9 @@ BOOL CSendRouterBusy::OnInitDialog()
 void CSendRouterBusy::OnAddDNET() 
 {
 	m_DNETCtrl.AddButtonClick();
+
+	// madanner 9/3/02, added default DNET of 1
+	m_DNETCtrl.SetCtrlText(IDC_DNET, "1");
 }
 
 void CSendRouterBusy::OnRemoveDNET() 
