@@ -744,9 +744,30 @@ void VTSPreferences::Save( void )
 //
 //					'*' appearing in any field means that the field it's matching to MUST be either '*' or '?'.
 //					
+//  3.2.0		[618172] Conditional flow control for scripts
+//
+//				Added conditional script compilation with use of IFDEF type keyword.  IF is a pre-processor
+//				conditional used during the "Syntax Check" function.  The expression
+//				in the conditional will not be evaluated at script execution.  Syntax is as follows:
+//
+//					IF (expression {[OR | AND] expression} )
+//						.
+//					{ELSEIF (expression {[OR | AND] expression} )}
+//						.
+//					{ELSE} 
+//						.
+//					ENDIF
+//
+//				The pre-processor will evaluate the expressions contained within the perenthesis following
+//				the 'IF' keyword before scanning the next line.  If the expression evaluates to true, all
+//				of the following lines up to the ENDIF keyword (or ELSEIF or ELSE, if supplied) will be
+//				included in the compile.  Multiple expressions can be evaluated.  Evaluation will occur left
+//				to right until a false condition is detected.
+//
+//				See Sourceforge item 618172 for details regarding usage of the IF statement.
+//
 
-
-const int kReleaseVersion = 10;
+const int kReleaseVersion = 0;
 
 class CAboutDlg : public CDialog
 {
