@@ -219,15 +219,17 @@ afx_msg void ScriptFrame::OnUpdateScriptRun(CCmdUI* pCmdUI)
 			CString	str( "&Run " );
 
 			str += m_pDoc->m_pSelectedTest->baseLabel;
+			str += "\tF5";
+
 			pCmdUI->SetText( str );
 		} else
-			pCmdUI->SetText( "&Run all tests" );
+			pCmdUI->SetText( "&Run all tests\tF5" );
 	} else
 	if (gExecutor.IsBound(m_pDoc)) {
 		pCmdUI->SetText( "&Resume" );
 		pCmdUI->Enable( !gExecutor.IsRunning() );
 	} else {
-		pCmdUI->SetText( "Run" );
+		pCmdUI->SetText( "Run\tF5" );
 		pCmdUI->Enable( false );
 	}
 }
@@ -258,18 +260,20 @@ afx_msg void ScriptFrame::OnUpdateScriptStep(CCmdUI* pCmdUI)
 			CString	str( "&Step " );
 
 			str += m_pDoc->m_pSelectedTest->baseLabel;
+			str += "\tF6";
+
 			pCmdUI->SetText( str );
 			pCmdUI->Enable( true );
 		} else {
-			pCmdUI->SetText( "Step" );
+			pCmdUI->SetText( "Step\tF6" );
 			pCmdUI->Enable( false );
 		}
 	} else
 	if (gExecutor.IsBound(m_pDoc)) {
-		pCmdUI->SetText( "&Step" );
+		pCmdUI->SetText( "&Step\tF6" );
 		pCmdUI->Enable( !gExecutor.IsRunning() );
 	} else {
-		pCmdUI->SetText( "Step" );
+		pCmdUI->SetText( "Step\tF6" );
 		pCmdUI->Enable( false );
 	}
 }
