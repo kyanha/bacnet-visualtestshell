@@ -316,7 +316,7 @@ void CChildFrame::OnUpdateViewSend(CCmdUI* pCmdUI)
 
 void CChildFrame::OnEditDelete() 
 {
-	if ( AfxMessageBox(IDS_DELETEAREYOUSURE, MB_YESNO | MB_ICONQUESTION) == IDYES )
+	if ( !gVTSPreferences.Setting_IsVerifyDelete() || AfxMessageBox(IDS_DELETEAREYOUSURE, MB_YESNO | MB_ICONQUESTION) == IDYES )
 	{
 		delete m_frameContext->m_pDoc->m_pStatisticsCollector;
 		m_frameContext->m_pDoc->m_pStatisticsCollector=new VTSStatisticsCollector();

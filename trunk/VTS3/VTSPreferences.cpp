@@ -33,6 +33,7 @@ VTSPreferences::VTSPreferences()
 	m_nCachePacketCount = 5000;				// start with about 1M of memory
 	m_nAutoscrollTimeout = 300;	// seconds
 	m_fRelativePacketFile = true;
+	m_fVerifyDelete = true;
 }
 
 
@@ -87,6 +88,9 @@ void VTSPreferences::Load( void )
 
 	int nRelative = pApp->GetProfileInt( "Settings", "RelativePacketFile", m_fRelativePacketFile ? 1 : 0);
 	m_fRelativePacketFile = nRelative != 0;
+
+	nRelative = pApp->GetProfileInt( "Settings", "VerifyDelete", m_fVerifyDelete ? 1 : 0);
+	m_fVerifyDelete = nRelative != 0;
 }
 
 //
@@ -112,6 +116,7 @@ void VTSPreferences::Save( void )
 	pApp->WriteProfileInt( "Settings", "CachePacketCount", m_nCachePacketCount);
 	pApp->WriteProfileInt( "Settings", "AutoscrollTimeout", m_nAutoscrollTimeout);
 	pApp->WriteProfileInt( "Settings", "RelativePacketFile", m_fRelativePacketFile ? 1 : 0);
+	pApp->WriteProfileInt( "Settings", "VerifyDelete", m_fVerifyDelete ? 1 : 0);
 }
 
 
@@ -122,6 +127,7 @@ void VTSPreferences::DoPrefsDlg()
 	dlg.m_nAutoscrollTimeout = Setting_GetAutoscrollTimeout();
 	dlg.m_nPacketCount = Setting_GetCachePacketCount();
 	dlg.m_nRelative = Setting_IsPacketFileRelative() ? 0 : 1;
+	dlg.m_fVerify = Setting_IsVerifyDelete() ? TRUE : FALSE;
 
 	if ( dlg.DoModal() == IDOK )
 	{
@@ -133,6 +139,8 @@ void VTSPreferences::DoPrefsDlg()
 			Setting_SetCachePacketCount(dlg.m_nPacketCount);
 			((VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace())->SetNewCacheSize();
 		}
+
+		Setting_SetVerifyDelete(dlg.m_fVerify ? true : false);		// account for MS BOOL junk
 	}
 }
 
