@@ -19,7 +19,7 @@
 //#include "VTSDevicesDlg.h"
 #include "VTSDevicesTreeDlg.h"
 
-#include "PacketFileDlg.h"
+//#include "PacketFileDlg.h"
 #include "FrameContext.h"
 
 #include "Send.h"
