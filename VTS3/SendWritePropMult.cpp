@@ -179,7 +179,7 @@ BOOL CSendWritePropMult::OnInitDialog()
 	
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (int i = 0; i < 124; i++)
+	for (int i = 0; i < MAX_PROP_ID; i++)
 		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	return TRUE;
@@ -257,7 +257,7 @@ void CSendWritePropMult::OnChangePriority()
 //
 
 WritePropElem::WritePropElem( CSendPagePtr wp )
-	: wpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, 124, true )
+	: wpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, wpeArrayIndex( wp, IDC_ARRAYINDEX )
 	, wpePriority( wp, IDC_PRIORITYX )
 {

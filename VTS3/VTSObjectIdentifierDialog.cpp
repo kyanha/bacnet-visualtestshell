@@ -1,6 +1,5 @@
 // VTSObjectIdentifierDialog.cpp : implementation file
 //
-
 #include "stdafx.h"
 #include "VTS.h"
 #include "VTSObjectIdentifierDialog.h"
@@ -65,8 +64,8 @@ BOOL VTSObjectIdentifierDialog::OnInitDialog()
 	// format the object type
 	txt.Format( "%d", objType );
 
-	// check for known values
-	if (objType < 18) {
+	// check for known values [MAX_DEFINED_OBJ is defined in VTS.h
+	if (objType < MAX_DEFINED_OBJ) {
 		// standard, known type
 		m_ObjTypeCombo.SetCurSel( objType );
 
@@ -75,9 +74,9 @@ BOOL VTSObjectIdentifierDialog::OnInitDialog()
 		m_Vendor.SetWindowText( _T("") );
 		m_Vendor.EnableWindow( false );
 	} else
-	if ((objType >= 18) && (objType < 128)) {
+	if ((objType >= MAX_DEFINED_OBJ) && (objType < 128)) {
 		// reserved type
-		m_ObjTypeCombo.SetCurSel( 18 );
+		m_ObjTypeCombo.SetCurSel( MAX_DEFINED_OBJ ); //was 18
 
 		m_Reserved.SetWindowText( txt );
 		m_Reserved.EnableWindow( true );
@@ -86,7 +85,7 @@ BOOL VTSObjectIdentifierDialog::OnInitDialog()
 	} else
 	if (objType >= 128) {
 		// vendor type
-		m_ObjTypeCombo.SetCurSel( 19 );
+		m_ObjTypeCombo.SetCurSel( MAX_DEFINED_OBJ +1 ); //was 19
 
 		m_Reserved.SetWindowText( _T("") );
 		m_Reserved.EnableWindow( false );
@@ -114,7 +113,8 @@ void VTSObjectIdentifierDialog::OnSelchangeObjTypeCombo()
 	objType = m_ObjTypeCombo.GetCurSel();
 
 	// check for known values
-	if (objType < 18) {
+	if (objType < MAX_DEFINED_OBJ)  //was 18
+	{
 		// standard, known type
 		txt.Format( "%d", objType );
 
@@ -123,7 +123,8 @@ void VTSObjectIdentifierDialog::OnSelchangeObjTypeCombo()
 		m_Vendor.SetWindowText( _T("") );
 		m_Vendor.EnableWindow( false );
 	} else
-	if (objType == 18) {
+	if (objType == MAX_DEFINED_OBJ) // was 18
+	{
 		// reserved type
 		txt.Format( "%d", objType );
 
@@ -132,7 +133,8 @@ void VTSObjectIdentifierDialog::OnSelchangeObjTypeCombo()
 		m_Vendor.SetWindowText( _T("") );
 		m_Vendor.EnableWindow( false );
 	} else
-	if (objType == 19) {
+	if (objType == (MAX_DEFINED_OBJ +1) ) //was 19
+	{
 		// vendor type
 		objType = 128;
 		txt.Format( "%d", objType );
@@ -177,8 +179,7 @@ void VTSObjectIdentifierDialog::OnChangeReserved()
 	// save the new value
 	objType = valu;
 
-	// update the control to reflect the new value
-	m_ObjTypeCombo.SetCurSel( objType < 18 ? objType : 18 );
+	// update the control to reflect the new value	m_ObjTypeCombo.SetCurSel( objType < MAX_DEFINED_OBJ ? objType : MAX_DEFINED_OBJ ); //was 18 replaced by MAX_DEFINED_OBJ
 
 	// update the encoded id
 	UpdateEncoding( true );
@@ -265,7 +266,7 @@ void VTSObjectIdentifierDialog::UpdateEncoding( bool valid )
 		char	typeBuff[32], *s
 		;
 
-		if (objType < 18 /* sizeof(NetworkSniffer::BACnetObjectType) */)
+		if (objType < MAX_DEFINED_OBJ /* sizeof(NetworkSniffer::BACnetObjectType) */)
 			s = NetworkSniffer::BACnetObjectType[objType];
 		else
 		if (objType < 128)

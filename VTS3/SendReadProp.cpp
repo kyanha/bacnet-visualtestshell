@@ -29,7 +29,7 @@ IMPLEMENT_DYNCREATE( CSendReadProp, CPropertyPage )
 CSendReadProp::CSendReadProp( void )
 	: CSendPage( CSendReadProp::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, 124, true )
+	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 {
 	//{{AFX_DATA_INIT(CSendReadProp)

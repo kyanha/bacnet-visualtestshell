@@ -1,6 +1,6 @@
 //DB.H
 //Base Datatype Defitions for BACnet
-#ifndef __DB_H_INCLUDED
+#ifndef __DB_H_INCLUDED								
 #define __DB_H_INCLUDED
 
 #define	true				1
@@ -12,6 +12,7 @@ typedef unsigned long dword;
 typedef unsigned short word;
 
 /*   ---------- BACnet base types --------------- */
+typedef word BACnetStatusFlags[2];
 
 enum BACnetAction {DIRECT, REVERSE};
 enum BACnetBinaryPV {INACTIVE, ACTIVE};
@@ -95,15 +96,28 @@ typedef struct {
 	octet	day;								//Monday = 1
 	} BACnetWeekNDay;
 
-typedef struct tagCalendarEntry {
-struct tagCalendarEntry *next;
+typedef struct tagCalendarEntry 
+  {
+    struct tagCalendarEntry *next;
 	octet					choice;
 	union {
 		BACnetDate			date;
 		BACnetDateRange		date_range;
 		BACnetWeekNDay		weekNday;
 		}					u;
-	} BACnetCalendarEntry;
+  } BACnetCalendarEntry;
+
+typedef struct //tagTimeStamp
+ {
+//   struct tagTimeStamp		*next;
+   octet                choice;
+   union
+   {
+	 BACnetTime			time;
+	 dword				sequence_number;
+	 BACnetDateTime		date_time;
+   }u;
+ } BACnetTimeStamp;				  // added Sep 18 2001
 
 typedef struct tagRecipient {
 struct tagRecipient 	*next;
@@ -355,6 +369,17 @@ struct tagListBitstringValue	far	*next;
 	octet							bitstring_value[4];
 	} BACnetListBitstringValue;
 
+typedef struct tagLogRecord
+ {
+	struct tagLogRecord *next;
+	BACnetDateTime     timestamp;
+    octet              oLenBitString;
+	octet	             choice;
+	dword               logDatum;
+	BACnetStatusFlags  statusFlags;
+ }BACnetLogRecord;
+
+
 typedef struct {
 enum BACnetEventType				event_type;
 	BACnetListBitstringValue		bitmask;
@@ -438,7 +463,10 @@ enum  BACnetObjectType
 		MULTI_STATE_OUTPUT, 					//14 
 		NOTIFICATIONCLASS,						//15 
 		PROGRAM,            					//16 
-		SCHEDULE            					//17 
+		SCHEDULE,            					//17
+		AVERAGING,								//18
+		MULTI_STATE_VALUE,						//19
+		TRENDLOG 								//20
    };
 
 typedef struct tagPropertyReference {
@@ -491,12 +519,6 @@ struct tagSessionKey			*next;
 	BACnetAddress				peer_address;
 	} BACnetSessionKey;
 
-typedef struct tagTimeStamp {
-struct tagTimeStamp		*next;
-	BACnetTime			time;
-	dword				sequence_number;
-	BACnetDateTime		date_time;
-	} BACnetTimeStamp;
 
 enum BACnetVTClass {
    DEFAULT_TERMINAL,            				//0
@@ -541,5 +563,12 @@ enum BACnetAbortReason
 		ABORT_PreemptedByHigherPriorityTask,	//3
 		ABORT_SegmentationNotSupported			//4
 	};
+typedef struct
+{
+   BACnetObjectIdentifier     Objid;
+   word                       wPropertyid;
+   word                      ulIndex;
+   BACnetObjectIdentifier     DeviceObj;
+} BACnetDeviceObjectPropertyReference;      // Added Sep 18 2001
 
 #endif //__DB_H_INCLUDED

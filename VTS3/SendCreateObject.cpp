@@ -31,7 +31,7 @@ IMPLEMENT_DYNCREATE( CSendCreateObject, CPropertyPage )
 
 CSendCreateObject::CSendCreateObject( void )
 	: CSendPage( CSendCreateObject::IDD )
-	, m_ObjectTypeCombo( this, IDC_OBJECTTYPECOMBO, NetworkSniffer::BACnetObjectType, 18, true )
+	, m_ObjectTypeCombo( this, IDC_OBJECTTYPECOMBO, NetworkSniffer::BACnetObjectType, MAX_DEFINED_OBJ, true )
 	, m_ObjectID( this, IDC_OBJECTID )
 	, m_PropList( this )
 {
@@ -183,7 +183,7 @@ BOOL CSendCreateObject::OnInitDialog()
 
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (int i = 0; i < 124; i++)
+	for (int i = 0; i < MAX_PROP_ID; i++)
 		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	return TRUE;
@@ -280,7 +280,7 @@ void CSendCreateObject::OnChangePriority()
 //
 
 CreateObjectElem::CreateObjectElem( CSendPagePtr wp )
-	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, 124, true )
+	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, coeArrayIndex( wp, IDC_ARRAYINDEX )
 	, coePriority( wp, IDC_PRIORITYX )
 {

@@ -1,9 +1,9 @@
 // SendGetAlarmSummaryACK.cpp : implementation file
 //
 
+
 #include "stdafx.h"
 #include "VTS.h"
-
 #include "Send.h"
 #include "SendGetAlarmSummaryACK.h"
 
@@ -395,7 +395,7 @@ void AlarmSummaryList::OnChangeObjectID( void )
 			,		typeBuff[32]
 			;
 
-			if (objType < 18 /* sizeof(NetworkSniffer::BACnetObjectType) */)
+			if (objType < MAX_DEFINED_OBJ /* sizeof(NetworkSniffer::BACnetObjectType) */)
 				s = NetworkSniffer::BACnetObjectType[objType];
 			else
 			if (objType < 128)

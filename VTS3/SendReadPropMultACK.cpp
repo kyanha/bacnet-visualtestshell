@@ -1,8 +1,10 @@
 // SendReadPropMultACK.cpp : implementation file
 //
 
+
 #include "stdafx.h"
 #include "VTS.h"
+
 
 #include "Send.h"
 #include "SendReadPropMultACK.h"
@@ -188,7 +190,7 @@ BOOL CSendReadPropMultACK::OnInitDialog()
 	
 	// load the property enumeration table
 	cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (int i = 0; i < 124; i++)
+	for (int i = 0; i < MAX_PROP_ID; i++)		  //MAX_PROP_ID is located in 
 		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	// load the error class enumeration table
@@ -282,7 +284,7 @@ void CSendReadPropMultACK::OnSelchangeCodeCombo()
 //
 
 ReadPropACKElem::ReadPropACKElem( CSendPagePtr wp )
-	: rpaePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, 124, true )
+	: rpaePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, rpaeArrayIndex( wp, IDC_ARRAYINDEX )
 	, rpaeClassCombo( wp, IDC_ERRORCLASSCOMBO, NetworkSniffer::BACnetErrorClass, 7, true )
 	, rpaeCodeCombo( wp, IDC_ERRORCODECOMBO, NetworkSniffer::BACnetErrorCode, 43, true )

@@ -57,8 +57,13 @@ namespace PICS {									//									***016
 #include "stdobj.h"
 #include "stdobjpr.h"
 #include "vtsapi.h"
+#include "VTS.h"
+
+
 ///////////////////////////////////////////////////////////////////////
 //	function prototypes
+BOOL ParseLogRec(BACnetLogRecord *);
+BOOL ParseTimeStamp(BACnetTimeStamp *);
 BOOL ReadFunctionalGroups(PICSdb *);	//										***008 Begin
 BOOL ReadStandardServices(PICSdb *);
 BOOL ReadStandardObjects(PICSdb *);
@@ -97,6 +102,7 @@ dword ReadDW(void);
 octet ReadB(octet,octet);
 word  ReadW(void);
 octet ReadBool(void);
+octet whatIsChoice(char str[]);
 word ReadEnum(etable *);
 dword ReadObjID(void);
 int CreateTextPICS(char *);
@@ -196,7 +202,12 @@ static char *StandardServices[]={
 			"UnconfirmedTextMessage",
 			"TimeSynchronization",
 			"Who-Has",
-			"Who-Is"
+         "Who-Is",
+         "Read-Range",
+         "UTC-Time-Synchronization",
+         "LifeSafetyOperation",		    
+         "SubscribeCOVProperty",		     
+         "GetEventInformation"			
 			};
 static char *StandardObjects[]={
 			"Analog Input",
@@ -216,7 +227,10 @@ static char *StandardObjects[]={
 			"Multi-state Output",
 			"Notification Class",
 			"Program",
-			"Schedule"
+         "Schedule",
+         "Averaging",
+         "Multi-state Value",
+         "TrendLog"
 			};
 static namedw StandardDataLinks[]={
 			"ISO 8802-3, 10BASE5",					dlISO88023_10BASE5,
@@ -622,6 +636,13 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			free(vq);
 		}
 		break; 
+      case AVERAGING:
+        break;   
+      case MULTI_STATE_VALUE:    // Dennis reminder to add code later
+        break;   
+      case TRENDLOG:
+        break;
+         
 	}
 	free(p);									//and the object itself					***008 End
 }
@@ -1571,6 +1592,13 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 				case s132:						//char [132]
 					ub=132;
 	ppstub:         if (setstring((char *)pstruc,ub,lp)) return true;
+                    break;
+                case LOGREC:
+                    //if (ParseLogRec((BACnetLogRecord *)pstruc)) return true;
+                 	break;
+                case TSTMP:
+                    if (ParseTimeStamp((BACnetTimeStamp *)pstruc)) return true;
+                    
 					break;
 				default:
 				//Note:	If we get here it is always an error because the default case means that
@@ -2367,6 +2395,162 @@ calx:
 	if (q!=NULL) free(q);						//don't lose this block!
 	return calfail;								//								***008 End
 }
+////////////////////////////////////////////////////////////////////
+// This function is called to determine the type of the values in the
+// event-time-stamp.
+////////////////////////////////////////////////////////////////////
+octet whatIsChoice(char str[])
+{
+  unsigned char ucindex = 0;
+   
+    skipwhitespace();
+	 
+// Start checking 
+      while(*lp != '/' && *lp != ':' && *lp != ')' && ucindex < 7)
+	  {
+		  lp++;
+		  ucindex++;
+	  }
+		  
+      if (ucindex <= 5)
+      {
+         switch (*lp)
+		 {
+		 case ':':		   // Found the time delimiter.
+           lp -= ucindex;  // move the line pointer to the first char in the field
+		   return 0;	 
+		 break;
+
+		 case '/':			 // Found the date-time delimiter.
+           lp -= ucindex;
+		   return 20;	  
+		 break;
+		 case ')':			 // Found the sequence number.
+			str[ucindex] = *lp;
+           while(*lp >= '0' && *lp <= '9' && ucindex > 0 || *lp == ')') // do we have an int in front of the delimiter?
+			   str[--ucindex] = *--lp;
+           if (*lp == '?') return 10; // wildcard is ok.
+		   if(ucindex == 0)
+             return 11;	      // we have a well formed int. life is good.
+           break;
+		 }
+	  }
+       else
+		   return 12;	      //error: The Sequence Number is > 65535.
+} // end whatIsChoice
+
+
+///////////////////////////////////////////////////////////////////
+//  This function parses the Time Stamp data presented in the PICS
+//  Format: DateTime ,Time & Sequence number -> {(6/21/2001,11:32:43.0),(12:14:01.05),(65535)}     
+//  The sequence number may be assigned any value from 0 - 65535 or the default "?".  
+//	in:	lp		points to current position in buffer lb
+//			inq		points to a BACnetObjectPropertyReference to be filled in (or NULL)
+//	out:	NULL	if an error occurred
+//			else	pointer to newly created BACnetObjectPropertyReference
+//			lp		points past the delimiter ) unless it was the end of the buffer
+///////////////////////////////////////////////////////////////
+BOOL ParseTimeStamp(BACnetTimeStamp *ptstamp)
+{
+    unsigned char   index;
+	octet           oSwval;
+    word			i=0,j;
+    char			amyLine[20];
+
+    static char  *Delim[]= {
+                    	 ")",
+                    	 ",",
+                    	 "(",         
+                    	 ")", 
+                    	 "}"  };
+
+    skipwhitespace();
+
+    if (MustBe('{'))
+        return true;  // We are done, there is a foramt error in the PICS
+    if (MustBe('('))
+        return true;  // We are done, there is a foramt error in the PICS
+
+    for(index = 0; index < 3; index++)
+    {
+      switch (oSwval = whatIsChoice(amyLine))
+      {
+        case 00:   // The choice is time.
+             if (!(ParseTime(&ptstamp->u.time)))  // Returns with lp pointing to ")".
+             {
+                if (index<2)
+      	        {
+                  for (j=0; j<3; j++)
+      	     		if (MustBe(*Delim[j])) return true;  // We are done, there is a foramt error in the PICS
+                }
+                else
+                {
+                  for (j=3; j<5; j++)
+      	     		if (MustBe(*Delim[j])) return true;  // We are done, there is a foramt error in the PICS
+      	        }
+               ptstamp->choice = 0;
+             }
+			 else
+              if (tperror("Invalid Time format.",true)) return true;
+        break;
+		case 01:
+            if (tperror("Too many digits or spaces before :",true)) return true;
+		break;      
+        case 10:	  // The choice is sequence number, wildcard option.
+               ptstamp->u.sequence_number = 0;	// wildcard
+			   goto numch;
+        case 11:	  // The choice is sequence number number 0-65535.
+
+               ptstamp->u.sequence_number = atoi(amyLine);
+numch:     ptstamp->choice = 1;	//
+			   while (*++lp != ')');
+                 if (index < 2)
+      	         {
+                  for (j=0; j<3; j++)                      //Looking for this sequence: ),(
+      	     		if (MustBe(*Delim[j])) return true;  // We are done, there is a foramt error in the PICS
+                 }
+                 else
+                 {
+                   //lp--;
+                  for (j=3; j<5; j++)       // This value is at the end of the array.
+      	     		   if (MustBe(*Delim[j])) return true;  // We are done, there is a foramt error in the PICS
+      	         }
+        break;
+		case 12:
+             if (tperror("Too many digits or spaces before /",true)) return true;
+		break;
+
+        case 20:	  // The choice is Date-Time.
+			   lp--;      // We have to adjust the pointer because ParseDateTime is looking for this "(".
+              if (!(ParseDateTime(&ptstamp->u.date_time)))  //Returns with lp pointing past this char ")".
+              {
+                if (index < 2)
+				{
+                  for (j=1; j<3; j++)
+      	     		if (MustBe(*Delim[j])) return true;  // We are done, there is a foramt error in the PICS
+				} 
+				else
+				{
+                  for (j=4; j<5; j++)
+      	     		if (MustBe(*Delim[j])) return true;  // We are done, there is a foramt error in the PICS
+				}
+				ptstamp->choice = 2;	//
+			  }
+			  else
+              if (tperror("Invalid Date-Time format.",true)) return true;
+        break;
+		case 21:
+             if (tperror("Too many digits or spaces before /",true)) return true;
+		break;
+		default:
+             if (tperror("Cannot decode Event-Time-Stamp.",true)) return true;
+	    break;
+       }
+    ptstamp++;
+    }
+      	   return false;
+}  // end PareseTimeStamp
+ 
 
 ///////////////////////////////////////////////////////////////////////
 //	parse a date/time value

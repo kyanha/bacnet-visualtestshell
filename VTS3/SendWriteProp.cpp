@@ -29,7 +29,7 @@ IMPLEMENT_DYNCREATE( CSendWriteProp, CPropertyPage )
 CSendWriteProp::CSendWriteProp( void )
 	: CSendPage( CSendWriteProp::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, 124, true )
+	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 	, m_Priority( this, IDC_PRIORITYX )
 {

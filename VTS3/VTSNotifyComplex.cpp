@@ -152,7 +152,7 @@ BOOL VTSNotifyComplex::OnInitDialog()
 
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (i = 0; i < 124; i++)
+	for (i = 0; i < MAX_PROP_ID; i++)
 		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	return TRUE;
@@ -198,7 +198,7 @@ void VTSNotifyComplex::OnChangePriority()
 //
 
 ComplexObjectElem::ComplexObjectElem( VTSNotifyComplexPtr wp )
-	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, 124, true )
+	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, coeArrayIndex( wp, IDC_ARRAYINDEX )
 	, coePriority( wp, IDC_PRIORITYX )
 {

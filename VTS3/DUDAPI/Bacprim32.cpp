@@ -1866,6 +1866,10 @@ sstring:
 		if (opmax<1) return 0;
 		op=eNULL (op);
 		break;
+	case LOGREC:
+		break;
+    case TSTMP:
+        break;
 //																						***020 End	
 
 // --below this line cannot be modified!

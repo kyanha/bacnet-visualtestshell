@@ -3414,7 +3414,6 @@ int loo(char far* Buffer,PVMessage far* msg)
 
   return EncodeFromDatabase(Buffer, msg);
 }
- 
 
 // multi state input 
 int msi(char far* Buffer,PVMessage far* msg)
@@ -3649,7 +3648,6 @@ int nofy(char far* Buffer,PVMessage far* msg)
         msg->pt= reciplist;
         break;
     }    
-
   return EncodeFromDatabase(Buffer, msg);
 }
 
@@ -3715,7 +3713,6 @@ int prg(char far* Buffer,PVMessage far* msg)
         msg->pt= ebool;
         break;
     }    
-
   return EncodeFromDatabase(Buffer, msg);
 }
 
@@ -3781,5 +3778,286 @@ int sced(char far* Buffer,PVMessage far* msg)
 
   return EncodeFromDatabase(Buffer, msg);
 }
+int  avrg(char far* Buffer, PVMessage far* msg)
+{
+   avg_obj_type far* Obj = (avg_obj_type far*)msg->Obj;
+   msg->UsedBits = 0;
+    switch ( (enum BACnetPropertyIdentifier) msg->PropId )
+      {
+       case OBJECT_IDENTIFIER:
+         msg->pv = &Obj->go.object_id;       
+         msg->pt = ob_id;        
+         break;         	       
+       case OBJECT_NAME:
+         msg->pv = Obj->go.object_name;       
+         msg->pt = s32;       
+         break;         	       
+       case OBJECT_TYPE:		       
+         msg->pv = &Obj->go.object_type;       
+         msg->pt = et;       
+         break;         	       
+       case DESCRIPTION:		       
+         msg->pv = Obj->go.description;       
+         msg->pt = s132;       
+         break;         	       
+       case MINIMUM_VALUE:		       
+         msg->pv = &Obj->minimum_value;       
+         msg->pt = uw;       
+         break;         	       
+       case MINIMUM_VALUE_TIMESTAMP:  
+         msg->pv = &Obj->minimum_value_timestamp;       
+         msg->pt = dt;       
+         break;         	       
+       case AVERAGE_VALUE:		       
+         msg->pv = &Obj->average_value;       
+         msg->pt = flt;       
+         break;         	       
+       case VARIANCE_VALUE:	       
+         msg->pv = &Obj->variance_value;       
+         msg->pt = flt;       
+         break;         	       
+       case MAXIMUM_VALUE:		       
+         msg->pv = &Obj->maximum_value;       
+         msg->pt = flt;       
+         break;         	       
+       case MAXIMUM_VALUE_TIMESTAMP:  
+         msg->pv = &Obj->maximum_value_timestamp;       
+         msg->pt = dt;       
+         break;         	       
+       case ATTEMPTED_SAMPLES:		   
+         msg->pv = &Obj->attempted_samples;       
+         msg->pt = uw;       
+         break;         	       
+       case VALID_SAMPLES:	           
+         msg->pv = &Obj->valid_samples;       
+         msg->pt = uw;       
+         break;         	       
+       case OBJECT_PROPERTY_REFERENCE:
+         msg->pv = &Obj->obj_prop_ref;       
+         msg->pt = propref;       
+         break;         	       
+       case WINDOW_INTERVAL:		   
+         msg->pv = &Obj->window_interval;       
+         msg->pt = uw;       
+         break;         	       
+       case WINDOW_SAMPLES:		   
+         msg->pv = &Obj->window_samples;       
+         msg->pt = uw;       
+         break;         	       
+    }
+  return EncodeFromDatabase(Buffer, msg);
+}
 
+//Multi-State Value
+
+
+int  msval(char far* Buffer, PVMessage far* msg)
+{
+     msv_obj_type far* Obj = (msv_obj_type far*)msg->Obj;
+     msg->UsedBits = 0;
+     switch ( (enum BACnetPropertyIdentifier) msg->PropId )
+       {
+       case OBJECT_IDENTIFIER:	
+         msg->pv  = &Obj->go.object_id;      
+         msg->pt =  ob_id;      
+         break;         	       
+       case OBJECT_NAME:		
+         msg->pv = Obj->go.object_name;      
+         msg->pt =  s64;      
+         break;         	       
+       case OBJECT_TYPE:		
+         msg->pv  = &Obj->go.object_name;      
+         msg->pt =  et;     
+         break;         	       
+       case PRESENT_VALUE:		
+         msg->pv = &Obj->present_value;      
+         msg->pt =  ud;      
+         break;         	       
+       case DESCRIPTION:		
+         msg->pv = &Obj->go.description;      
+         msg->pt =  s132;      
+         break;         	       
+       case STATUS_FLAGS:		
+         msg->pv = &Obj->status_flags;
+         msg->pt = bits;       
+         break;         	       
+       case EVENT_STATE:		
+         msg->pv = &Obj->event_state;      
+         msg->pt = et;       
+         break;         	       
+       case RELIABILITY:		
+         msg->pv = &Obj->reliability;       
+         msg->pt = et;       
+         break;         	       
+       case OUT_OF_SERVICE:		
+         msg->pv = &Obj->out_of_service;       
+         msg->pt = ebool;       
+         break;         	       
+       case NUMBER_OF_STATES:	
+         msg->pv = &Obj->number_of_states;       
+         msg->pt = uw;       
+         break;         	       
+       case STATE_TEXT:			
+         msg->pv = Obj->state_text;       
+        msg->pt= statext;
+        msg->Num= 32;
+         break;         	       
+       case PRIORITY_ARRAY:		
+         msg->pv = Obj->priority_array;       
+         msg->pt = pau;       
+         break;         	       
+       case RELINQUISH_DEFAULT:	
+         msg->pv = &Obj->relinquish_default;       
+         msg->pt = uw;       
+         break;         	       
+       case TIME_DELAY:			
+         msg->pv = &Obj->time_delay;       
+         msg->pt = uw;       
+         break;         	       
+       case NOTIFICATION_CLASS:	
+         msg->pv = &Obj->notification_class;       
+         msg->pt = uw;       
+         break;         	       
+       case ALARM_VALUE:		
+         msg->pv = Obj->alarm_values;       
+         msg->pt = uw;       
+         break;         	       
+       case FAULT_VALUES:		
+         msg->pv = Obj->fault_values;       
+         msg->pt = uw;       
+         break;         	       
+       case EVENT_ENABLE:		
+         msg->pv = &Obj->event_enable;       
+         msg->pt = bits;       
+         break;         	       
+       case ACKED_TRANSITIONS:		
+         msg->pv = &Obj->acked_transitions;       
+         msg->pt = bits;       
+         break;         	       
+       case NOTIFY_TYPE:		
+         msg->pv = &Obj->notify_type;       
+         msg->pt = et;       
+         break;         	       
+       case EVENT_TIME_STAMPS:		
+         msg->pv = Obj->event_time_stamps;       
+         msg->pt = TSTMP;       
+         break;         	       
+   }
+  return EncodeFromDatabase(Buffer, msg);
+}
+// Trend-Log
+int  trnd(char far* Buffer, PVMessage far* msg)
+ {
+
+    trend_obj_type far* Obj = (trend_obj_type far*)msg->Obj;
+    msg->UsedBits = 0;
+    switch ( (enum BACnetPropertyIdentifier) msg->PropId )
+       {
+       case OBJECT_IDENTIFIER:  		 
+         msg->pv = &Obj->go.object_id;       
+         msg->pt = ob_id;       
+         break;         	       
+       case OBJECT_NAME: 			     
+         msg->pv = Obj->go.object_name;       
+         msg->pt = s32;       
+         break;         	       
+       case OBJECT_TYPE: 			     
+         msg->pv = &Obj->go.object_type;       
+         msg->pt = et;       
+         break;         	       
+       case DESCRIPTION:  			     
+         msg->pv = Obj->go.description;       
+         msg->pt = s132;       
+         break;         	       
+       case LOG_ENABLE:  			     
+         msg->pv = &Obj->log_enable;       
+         msg->pt = ebool;       
+         break;         	       
+       case START_TIME:  	 		     
+         msg->pv = &Obj->start_time;       
+         msg->pt = dt;      
+         break;         	       
+       case STOP_TIME:  				 
+         msg->pv = &Obj->stop_time;       
+         msg->pt = dt;      
+         break;         	       
+       case LOG_DEVICE_OBJECT_PROPERTY:  
+         msg->pv = &Obj->log_device_object_property;       
+         msg->pt = propref;      
+         break;         	       
+       case LOG_INTERVAL:  			     
+         msg->pv = &Obj->log_interval;       
+         msg->pt = uw;      
+         break;         	       
+       case COV_RESUBSCRIPTION_INTERVAL: 
+         msg->pv = &Obj->cov_resubscription_interval;       
+         msg->pt = uw;      
+         break;         	       
+       case CLIENT_COV_INCREMENT:  	     
+         msg->pv = &Obj->client_cov_increment;       
+         msg->pt = flt;       
+         break;         	       
+       case STOP_WHEN_FULL:  		     
+         msg->pv = &Obj->stop_when_full;       
+         msg->pt = ebool;       
+         break;         	       
+       case BUFFER_SIZE:  			     
+         msg->pv = &Obj->buffer_size;       
+         msg->pt = uw;       
+         break;         	       
+       case LOG_BUFFER:  			     
+         msg->pv = &Obj->log_buffer;       
+         msg->pt = LOGREC;       
+         break;         	       
+       case RECORD_COUNT:  			     
+         msg->pv = &Obj->record_count;       
+         msg->pt = uw;       
+         break;         	       
+       case TOTAL_RECORD_COUNT:  	     
+         msg->pv = &Obj->total_record_count;       
+         msg->pt = uw;        
+         break;         	       
+       case NOTIFICATION_THRESHOLD:      
+         msg->pv = &Obj->notification_threshold;       
+         msg->pt = uw;        
+         break;         	       
+       case RECORDS_SINCE_NOTIFICATION:  
+         msg->pv = &Obj->records_since_notification;       
+         msg->pt = uw;       
+         break;         	       
+       case PREVIOUS_NOTIFY_TIME:  	     
+         msg->pv = &Obj->previous_notify_time;       
+         msg->pt = dt;       
+         break;         	       
+       case CURRENT_NOTIFY_TIME:  	     
+         msg->pv = &Obj->current_notify_time;       
+         msg->pt =  dt;       
+         break;         	       
+       case EVENT_STATE:  			     
+         msg->pv = &Obj->event_state;       
+         msg->pt = et;       
+         break;         	       
+       case NOTIFICATION_CLASS:  	     
+         msg->pv = &Obj->notification_class;      
+         msg->pt = uw;       
+         break;         	       
+       case EVENT_ENABLE:  			     
+         msg->pv = &Obj->event_enable;       
+         msg->pt = bits;       
+         break;         	       
+       case ACKED_TRANSITIONS:  		 
+         msg->pv = &Obj->acked_transitions;       
+         msg->pt = bits;       
+         break;         	       
+       case NOTIFY_TYPE:  			     																// ***002
+         msg->pv = &Obj->notify_type;       
+         msg->pt = et;       
+         break;         	       
+       case EVENT_TIME_STAMPS:  		 
+         msg->pv = Obj->event_time_stamps;       
+         msg->pt = TSTMP;       
+         break;         	       
+   }
+  return EncodeFromDatabase(Buffer, msg);
+ }	
 }																		// ***002

@@ -1,6 +1,6 @@
 
 #include "stdafx.h"
-
+#include "VTS.h"
 #include <iostream>
 
 #include <stdio.h>
@@ -2347,7 +2347,7 @@ void BACnetObjectIdentifier::Encode( char *enc )
 	;
 
 #if VTSScanner
-	if (objType < 18 /* sizeof(NetworkSniffer::BACnetObjectType) */)
+	if (objType < MAX_DEFINED_OBJ /* sizeof(NetworkSniffer::BACnetObjectType) */)
 		s = NetworkSniffer::BACnetObjectType[objType];
 	else
 #endif

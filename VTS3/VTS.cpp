@@ -253,6 +253,21 @@ void VTSPreferences::Save( void )
 //			Massive changes to APDU structure, encoding, and decoding.  Changes to device 
 //			object to allow it to limit itself to looking like it is a local object on 
 //			one network.
+//       
+//          By ALC:
+//          Enhancements to begin adding support for BACnet Addendum 135b
+//          1) Added support for the Event_Time_Stamps property in each event-generating object. 
+//          2) Added support for the TrendLog object, except for the Log_Buffer property. 
+//          3) Added support for the Multi-state Value Object 
+//          4) Added support for the Averaging Object 
+//          By "added support", I mean that these objects and their properties can now be 
+//          parsed from the EPICS correctly, and they are decoded properly in the 
+//          interactive sniffer.   
+//          Added the following macros to replace hard-coded maximums.
+//          These are defined in VTS.H
+//             MAX_DEFINED_OBJ 
+//             MAX_PROP_ID
+//             MAX_SERVS_SUPP
 //
 
 const int kReleaseVersion = 4;

@@ -31,14 +31,15 @@ namespace PICS {															// ***003
 #include "dudtool.h"  // tool functions
 
 #include "props.h"                 
-#include "propid.h"                  
+#include "propid.h"
+#include "VTS.h"
 
 const char* gThisDLLName= "DUDAPI32.DLL"; // literal name of this dll			***001
 static HMODULE hMod= 0; // instance handle of this module						***001
 
 //int		far pascal _WEP(int);					//			***001        
 int     CheckTableProp(generic_object far* pObj, TApplServ far* pApplServ);
-int     CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[35], char far Result[35], 
+int     CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[MAX_SERVS_SUPP], char far Result[35], 
                   generic_object far* root, TObjProp far resObj[64], short far* eol);	//***002
 
 
@@ -403,6 +404,15 @@ short APIENTRY GetPropValue(char far* Buffer, PVMessage far* msg)	//***002
       case SCHEDULE:
           value= sced(Buffer,msg);
         break;   
+      case AVERAGING:
+          value= avrg(Buffer,msg);
+        break;   
+      case MULTI_STATE_VALUE:
+          value= msval(Buffer,msg);
+        break;   
+      case TRENDLOG:
+          value= trnd(Buffer,msg);
+        break;   
     }   
   return (short)value;						//						***002
 }
@@ -524,7 +534,7 @@ short APIENTRY GetPropIndex(word object_type, dword PropId)
 //		    root			object list (objects supported)
 // out:     Result  		appl services missing to complete the class
 //			resObj  		objects and properties missing (int ObjType, int PropIndex...)
-int CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[35], char far Result[35], 
+int CheckClass(int n, TApplServ far* pApplServ, char far ApplServ[MAX_SERVS_SUPP], char far Result[35], 
                            generic_object far* root, TObjProp far resObj[64], short far* eol)
 {
   int line; enum BACnetApplServ serv; 
@@ -615,6 +625,7 @@ short APIENTRY CheckConfClass(word ConfClass, char far ApplServ[35], char far Re
                                    generic_object far* root, TObjProp far resObj[64], short far* eol)
 {  short rval= 1; // default: ConfClass supported					***002
   
+  memset(Result, 0, MAX_SERVS_SUPP);						//					***001
   memset(Result, 0, 35);						//					***001
   memset(resObj,0,64*sizeof(TObjProp));			//					***001
   *eol= -1;
@@ -709,7 +720,7 @@ short APIENTRY CheckFunctionalGroup(dword FuncGroup, char far ApplServ[35], char
 
 
 extern "C"
-short APIENTRY DevApplServCheck(char far ApplServ[35], generic_object far* root, 
+short APIENTRY DevApplServCheck(char far ApplServ[MAX_SERVS_SUPP], generic_object far* root, 
               					char far resApplServ[35])					//***002
 { device_obj_type far* pdev= NULL; 
   while (root!=NULL)
@@ -836,7 +847,7 @@ short APIENTRY pDBinList(BACnetObjectIdentifier far* pidRoot, long far* pdb, dwo
 // returns: 0 if at least one object type is missing, 1 else
 extern "C"
 short APIENTRY CheckObjTypeDevPics(char far* StdObj, generic_object far* pdbRoot,
-                                          octet far resObjDev[18], octet far resObjPICS[18])	//***002
+                                          octet far resObjDev[MAX_DEFINED_OBJ], octet far resObjPICS[MAX_DEFINED_OBJ])	//***002
 { // find the device object
   device_obj_type far* pdev= NULL; 
   while (pdbRoot!=NULL)
@@ -852,10 +863,10 @@ short APIENTRY CheckObjTypeDevPics(char far* StdObj, generic_object far* pdbRoot
   int iBit= 0x80;
   short rval= 1; // default: no object type missing					***002
 
-  memset(resObjDev, 0, 18);				//							***001
-  memset(resObjPICS, 0, 18);			//							***001
+  memset(resObjDev, 0, MAX_DEFINED_OBJ);				//							***001
+  memset(resObjPICS, 0, MAX_DEFINED_OBJ);			//							***001
   
-  for (int i=0; i<18; i++)
+  for (int i=0; i<MAX_DEFINED_OBJ; i++)
     { 
       if ( (StdObj[i]>0) && ((pdev->object_types_supported[iOctet] & iBit) == 0) )     // not in Device object
         { resObjDev[i]= 1; rval= 0; }

@@ -29,7 +29,9 @@ int  mso(char far* Buffer, PVMessage far* msg);
 int  nofy(char far* Buffer, PVMessage far* msg);
 int  prg(char far* Buffer, PVMessage far* msg);
 int  sced(char far* Buffer, PVMessage far* msg);
-
+int  avrg(char far* Buffer, PVMessage far* msg);
+int  msval(char far* Buffer, PVMessage far* msg);
+int  trnd(char far* Buffer, PVMessage far* msg);
 
 // encode simple properties:
 octet far* ecBOOL(octet far* p, octet tag, boolean bval);
