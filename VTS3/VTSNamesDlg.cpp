@@ -681,7 +681,8 @@ void VTSNamesDlg::OnKillfocusAddress()
 {
 //	VTSNameDesc		name;
 
-	if ( m_iSelectedName == -1 )
+	//Xiao Shiyuan 2005-1-18
+	if ( m_iSelectedName == -1 || m_iSelectedName > m_names.GetSize() - 1)
 		return;
 
 	VTSName * pname = (VTSName *) m_names[m_iSelectedName];
