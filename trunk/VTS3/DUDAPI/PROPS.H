@@ -54,10 +54,19 @@
 
 #define	devobjpropref	    45					//dev obj property reference
 
+
+#define ptDate 200  // parsetype BACnetDate
+#define ptTime 201  // parsetype BACnetTime
+#define lobj   202  // array of objects, (parse type)
+#define vtse   203  // list of active  vt sessions (parse type)
+#define uwarr  204  // array of uw
+
+
 ////
 //////////////////////////////////////////////
 #define enull				254					//null enumeration
 #define	none				255					//no parsing required, runtime generated value
+
 
 
 static const char nullstring[5]={"null"};	//"null\0";			//	***001
