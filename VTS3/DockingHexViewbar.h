@@ -13,6 +13,10 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#ifndef baseCMyBar
+#define baseCMyBar CSizingControlBarCF
+#endif
+
 class CDockingHexViewBar : public baseCMyBar  
 {
 public:

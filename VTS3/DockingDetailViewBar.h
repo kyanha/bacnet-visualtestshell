@@ -13,6 +13,12 @@
 #include "DetailView.h"
 #endif
 
+#ifndef baseCMyBar
+#define baseCMyBar CSizingControlBarCF
+#endif
+
+#include "DetailTreeCtrl.h"
+
 class CDockingDetailViewBar : public baseCMyBar  
 {
 public:
@@ -21,6 +27,7 @@ public:
 
 	CDetailView* m_pDetailView;
 	CCreateContext* m_pContext;
+	CDetailTreeCtrl* m_pList;
 
 protected:
 	//{{AFX_MSG(CDockingDetailViewBar)

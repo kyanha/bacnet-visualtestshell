@@ -35,7 +35,7 @@ BEGIN_MESSAGE_MAP(CListSummaryView, CListView)
 	ON_WM_CREATE()
 	ON_NOTIFY_REFLECT(LVN_ITEMCHANGING, OnItemchanging)
 	ON_WM_LBUTTONDBLCLK()
-	ON_NOTIFY_REFLECT(NM_KILLFOCUS, OnKillfocus)
+	ON_WM_CHAR()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -140,11 +140,6 @@ void CListSummaryView::OnItemchanging(NMHDR* pNMHDR, LRESULT* pResult)
 	*pResult = 0;
 }
 
-void CListSummaryView::OnKillfocus(NMHDR* pNMHDR, LRESULT* pResult) 
-{
-	// TODO: Add your control notification handler code here
-	*pResult = 0;
-}
 
 void CListSummaryView::OnLButtonDblClk(UINT nFlags, CPoint point) 
 {
@@ -156,6 +151,14 @@ void CListSummaryView::OnLButtonDblClk(UINT nFlags, CPoint point)
 			((CChildFrame*)parent)->ShowControlBar( ((CChildFrame*)parent)->m_pwndDetailViewBar, TRUE, FALSE);
 
 	CListView::OnLButtonDblClk(nFlags, point);
+}
+
+void CListSummaryView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
+{
+	// TODO: Add your message handler code here and/or call default
+	if ((nChar == 0x09) && (m_pTabRing))
+		m_pTabRing->SetFocus();
+	CListView::OnChar(nChar, nRepCnt, nFlags);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -207,6 +210,10 @@ void CListSummaryView::AddLine(int lineNo)
 			}
 			sprintf( nameBuff, "%-*.*s", len+1, len, addrBuff );
 		}
+	}
+	if(pkt.packetHdr.packetType==msgData)
+	{
+		sprintf( nameBuff, "VTS Message");
 	}
 
 	BACnetPIInfo	summary( true, false );
@@ -313,5 +320,4 @@ CString* CListSummaryView::GetLineData(int lineNo)
 
 	return pString;
 }
-
 

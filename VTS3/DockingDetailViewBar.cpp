@@ -12,7 +12,6 @@
 CDockingDetailViewBar::CDockingDetailViewBar(CCreateContext* pContext)
 {
 	m_pContext = pContext;
-
 	CRuntimeClass* pFactory = RUNTIME_CLASS(CDetailView);
     m_pDetailView = (CDetailView *)(pFactory->CreateObject() );
 }
@@ -33,14 +32,17 @@ int CDockingDetailViewBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (baseCMyBar::OnCreate(lpCreateStruct) == -1)
 		return -1;
-	CRect r;
-	GetParentFrame()->GetClientRect(&r);
-	//ClientToScreen(&r);
-	// TODO: Add your specialized creation code here
-	if (m_pDetailView )
-   {
-       m_pDetailView->CreateView(this,m_pContext,r);
-   }
 
+	m_pList=new CDetailTreeCtrl();
+	m_pList->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP 
+		|TVS_HASLINES |TVS_HASBUTTONS |TVS_LINESATROOT , CRect(0,0,0,0),this,0x1001);	
+
+	CRect rc;
+	ScreenToClient(rc);
+	if(m_pList->GetSafeHwnd())
+		m_pList->MoveWindow(rc);
+	
+	m_pList->SetContext(gNewFrameContext);
 	return 0;
 }
+

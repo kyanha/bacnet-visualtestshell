@@ -20,7 +20,6 @@ class CDetailView;
 class CHexView;
 class CListSummaryView;
 
-
 class CChildFrame : public CMDIChildWnd
 {
 	DECLARE_DYNCREATE(CChildFrame)
@@ -34,7 +33,7 @@ public:
 	CFrameContext*	m_frameContext;		// frame context
 
 	CListSummaryView*	m_pSummaryView;
-	CDetailView*	m_pDetailView;
+	CDetailTreeCtrl*  m_pDetailView;
 	CHexView*		m_pHexView;
 	CDockingDetailViewBar* m_pwndDetailViewBar;
 	CDockingHexViewBar* m_pwndHexViewBar;
