@@ -823,11 +823,11 @@ void VTSPreferences::Save( void )
 //
 //			Trapped corrupted and inconsistent database opens, report the problem and control document close.
 //
-//	3.4		Replaced BACMACNT driver with WinPcap library calls.  No changes to the database format, just the
+//			Replaced BACMACNT driver with WinPcap library calls.  No changes to the database format, just the
 //			format of the adapter/interface configuration strings.
 //
 
-const int kReleaseVersion = 1;
+const int kReleaseVersion = 0;
 
 class CAboutDlg : public CDialog
 {
