@@ -72,11 +72,20 @@ void BACnetVLANNode::Indication( const BACnetNPDU &pdu )
 }
 
 //
+//	BACnetVLANNode::SendData
+//
+
+void BACnetVLANNode::SendData( BACnetOctet *, int )
+{
+	throw (-1);
+}
+
+//
 //	BACnetVLAN::BACnetVLAN
 //
 
-BACnetVLAN::BACnetVLAN( int id )
-	: vlanID( id ), nodeListSize(0)
+BACnetVLAN::BACnetVLAN( void )
+	: nodeListSize(0)
 {
 }
 
@@ -112,7 +121,7 @@ void BACnetVLAN::ProcessMessage( BACnetVLANMsgPtr msg )
 	
 #if _BACnetVLANDebug
 	const static char hex[] = "0123456789ABCDEF";
-	cout << "VLAN " << vlanID << ": ";
+	cout << "VLAN: ";
 	cout << "src = " << msg->msgSource;
 	cout << ", dst = " << msg->msgDestination;
 	cout << ", msg = ";
