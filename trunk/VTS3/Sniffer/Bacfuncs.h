@@ -947,6 +947,20 @@ char *PDU_types[] = {
    "Abort"
    };
 
+// madanner 11/12/02, added to support variable stuffing for PDU type,
+// values written to var must decode back into values
+
+char *PDU_typesENUM[] = {
+   "CONFIRMED-REQUEST",
+   "UNCONFIRMED-REQUEST",
+   "SIMPLEACK",
+   "COMPLEXACK",
+   "SEGMENTACK",
+   "ERROR",
+   "REJECT",
+   "ABORT"
+   };
+
 char *NL_msgs[] = {
    "Who-Is-Router-To-Network",
    "I-Am-Router-To-Network",
