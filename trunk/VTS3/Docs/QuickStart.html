@@ -4,7 +4,7 @@
 <head>
 <title>Untitled Document</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
 <meta name="ProgId" content="FrontPage.Editor.Document">
 <style type="text/css">
 <!--
@@ -18,7 +18,7 @@ h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: 
 
 <body bgcolor="#FFFFFF" text="#000000">
 
-<h1><a name="start">VTS 3.2.0 </a><i>Quick Start Guide</i></h1>
+<h1><a name="start">VTS 3.3.0 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
 functionality of various devices used in building automation systems.&nbsp;
 BACnet is a Data Communication Protocol for Building Automation and Control
@@ -34,15 +34,13 @@ is&nbsp; <a href="http://sourceforge.net/projects/vts/">http://sourceforge.net/p
 . </p>
 <p><h4>Go <a href="#whatsnew">here</a> to find out what is new in this release.</h4></p>
 <h2>Platform Requirements</h2>
-<p>VTS 3.0 runs on Windows98, Windows NT 4.0 (Service Pack 4), or
-Windows2000.&nbsp; It may also work on Windows95 systems, but there may be some
+<p>VTS 3.0 runs on Windows98, Windows NT 4.0 (Service Pack 4), Windows2000, or Windows XP.&nbsp; It may also work on Windows95 systems, but there may be some
 compatibility problems with several system DLLs on Windows95.&nbsp; (WindowsME
-has not been tested). On Windows XP, BACMACNT does not function
-correctly, so BACnet/Ethernet is not available.  </p>
+has not been tested). </p>
 <h3>Quick Start Guide Contents</h3>
 <blockquote>
   <ol>
-    <li><a href="#1">Install BACMACNT (if required)</a></li>
+    <li><a href="#1">Install WinPcap 3.0 (if required)</a></li>
     <li><a href="#2">Install VTS</a></li>
     <li><a href="#3">Run VTS</a></li>
     <li><a href="#4">Create a database</a></li>
@@ -56,18 +54,47 @@ correctly, so BACnet/Ethernet is not available.  </p>
     <p><a href="#History">VTS Release History</a></p>
     <p><a href="#Links">VTS Web Links</a></p>
 </blockquote>
-<h2><a name="1">Step 1</a> : Install BACMACNT (if required)</h2>
-<p>If you are interested in Ethernet or ARCnet traffic, and you plan to run VTS
-on Windows NT (or Windows2000), you need to install BACMACNT - otherwise, you
-can skip this step.  <b>BACMACNT is incompatible with Windows XP.</b>  
-If you are running Windows XP, please skip the BACMACNT installation.&nbsp;</p>
-<p><b>1.1</b> Copy the BACMACNT.SYS file into the \WinNT\System32\Drivers
-directory</p>
-<p><b>1.2</b> Reboot to load the new driver.</p>
-<p><b>1.3</b> Run BACREGNT.EXE.</p>
-<p><b>1.4</b> Make sure the adapters are properly bound (check mark in front of
-adapter name).</p>
-<p><b>1.5</b> Reboot if necessary.</p>
+<h2><a name="1">Step 1</a> : Install WinPcap 3.0 (if required)</h2>
+<p>If you are interested in Ethernet traffic (not IP, but the ISO 8802-3 
+Ethernet data link specified by BACnet clause 7), you need to install WinPcap - otherwise, you
+can skip this step. </p> 
+<p><ol>
+<li>Run the WinPcap installation program packaged with VTS.  This progarm is named WinPcap_3_0.exe.</li>
+<li>Follow the instructions on the screen. The installation applet will automatically detect the operating system and install the correct drivers.</li>
+</ol> 
+If you later want to remove WinPcap from the system, go to the control-panel, click on "add/remove programs" and then select "WinPcap".<p>
+For details on WinPcap, check the <a href="http://winpcap.polito.it">WinPcap 
+home page</a>. </p>
+<blockquote>
+  <p>WinPcap is Copyright (c) 1999 - 2003 NetGroup, Politecnico di Torino 
+  (Italy). All rights reserved. </p>
+  <p>Redistribution and use in source and binary forms, with or without 
+  modification, are permitted provided that the following conditions are met:
+  </p>
+  <ol>
+    <li>Redistributions of source code must retain the above copyright notice, 
+    this list of conditions and the following disclaimer. </li>
+    <li>Redistributions in binary form must reproduce the above copyright 
+    notice, this list of conditions and the following disclaimer in the 
+    documentation and/or other materials provided with the distribution. </li>
+    <li>Neither the name of the Politecnico di Torino nor the names of its 
+    contributors may be used to endorse or promote products derived from this 
+    software without specific prior written permission. </li>
+  </ol>
+  <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot; 
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE 
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+</blockquote>
+
+
+
 <p><a href="#2">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
@@ -641,8 +668,7 @@ Added the Send UTCTimeSynch service.  Minor improvements in the Send ReadRange i
 
 				<p><u>Case 1F</u> (test for size of array [0]) and <u>case 1G</u> (test of single index value in array [int]) have
 				also been fixed.  Indexing into array properties is now supported in the following manner:
-<pre>
-{property[int]}
+<pre>{property[int]}
     - or -
 {property[var]}
 </pre>
@@ -664,8 +690,7 @@ Added the Send UTCTimeSynch service.  Minor improvements in the Send ReadRange i
 
 				<ol>
 				<li>Replace the value in the right side of an expression with '?'. &nbsp;&nbsp;&nbsp;&nbsp;For example:
-<pre>
-Unsigned = 1, ?
+<pre>Unsigned = 1, ?
 Bitstring = 2, ?
 Real = 3, ?
 </pre>
@@ -677,8 +702,7 @@ Real = 3, ?
             prove useful if one or more of the parameters expected cannot be
             pre-determined, such as a time stamp.  If the expected data is application tagged instead
             of context tagged, then the following is also valid:
-<pre>
-Unsigned = ?
+<pre>Unsigned = ?
 Bitstring = ?
 Real = ?
 </pre>
@@ -747,8 +771,7 @@ where the '9' is superfluous.  But both formats accomplish the same thing.
 substitution when used in Send and Expect statements.  Full support for
 receiving Date and Time values from variables has been added.  Substitutions
 will take the standard form in Expect and Send statements:
-<pre>
-Date = tag, VAR
+<pre>Date = tag, VAR
 Date = VAR
 Time = tag, VAR
 Time = VAR
@@ -781,8 +804,7 @@ parameters when other parameters were present.  Tag values were especially
 troublesome because they introduce another parameter in the expression that
 is only separated by a comma, which is also used to separate values in the
 date. Here is an example of a pre-3.1.9 assignment:
-<pre>
-Date = tag, dow, n/n/n
+<pre>Date = tag, dow, n/n/n
 </pre>
 			<p>With this syntax, parsing the day of week and/or the tag was difficult due to data values for
 complex types being mixed with parameter in an expression.  These problems
@@ -796,8 +818,7 @@ implemented value specifiers) also fall into this category.</p>
 				their data from other parameters.</b>  The brackets are required even if no other parameters
 				in an expression are present.  The Date and Time text representations now take the following
 				form:
-<pre>
-Date = [<i>dow</i>, <i>mm</i>/<i>dd</i>/<i>yy</i>]
+<pre>Date = [<i>dow</i>, <i>mm</i>/<i>dd</i>/<i>yy</i>]
          -or-
 Date = [<i>dow</i>, <i>mm</i>-<i>dd</i>-<i>yy</i>]
 Time = [<i>hh</i>:<i>mm</i>:<i>ss.HH</i>]
@@ -821,8 +842,7 @@ Time = [<i>hh</i>:<i>mm</i>:<i>ss.HH</i>]
 				<p>Any and all values can be substituted with the don't care value ?.  For example:  <tt>[12:?:44.?]</tt>.
 				Enclosing these complex representations inside brackets gives clarity to expressions with
 				multiple parameters as in the case of tag specifications:
-<pre>
-Date = tag, [TUE, 11/4/02]
+<pre>Date = tag, [TUE, 11/4/02]
          -or-
 VAR = [TUE, 11/4/02]
 Date = tag, VAR
@@ -830,8 +850,7 @@ Date = tag, VAR
 				</p>
 				<p>Bracketing this compound data can be
 				nested as in the case of the text representation for a DateTime and DateRange:
-<pre>
-DateTime  = [DATE, TIME]   = [[dow, mm/dd/yy], [hh:mm:ss]]
+<pre>DateTime  = [DATE, TIME]   = [[dow, mm/dd/yy], [hh:mm:ss]]
 DateRange = [DATE1, DATE2] = [[dow, mm/dd/yy], [dow, mm/dd/yy]]
 </pre>
 
@@ -858,8 +877,7 @@ inside script parameter data, since this data is partially parsed.</p>
 				Support for stuffing incoming data elements into script variables has been added throughout
 				the EXPECT statement, except where noted.  Syntax for the new operator '>>' in assignments
 				take the following form:
-<pre>
-Keyword >> VAR
+<pre>Keyword >> VAR
          -or-
 Keyword >> tag, VAR
 </pre>
@@ -874,16 +892,14 @@ Keyword >> tag, VAR
 				The tag will NOT be present in the new assignment.  The contents of VAR will
 				NOT be interpreted prior to assignment.  This is relevant because it is
 				possible to have statements:</p>
-<pre>
-VAR = tag, value
+<pre>VAR = tag, value
 Keyword = VAR
    ... which resolves to:
 Keyword = tag, value
    ... and the tag is tested.
 </pre>
 <p>Thus, it would be conceivable to allow:</p>
-<pre>
-VAR = tag, VAR2
+<pre>VAR = tag, VAR2
 Keyword = VAR
    ... which might resolve to:
 Keyword = tag, VAR2
@@ -1020,17 +1036,18 @@ variables with a single assignment expression.  Like this:
 		</li></p>
 	 </ul>
 
-     <h2><a name="whatsnew">3.2.0</a></h2>
+     <h2>3.2.0</h2>
 <ul>
-  <p><li>618172: Conditional flow control for scripts
+  <p><li>
+  				<blockquote>
+				618172: Conditional flow control for scripts
 <p>Support for the IF statement has been added. The statement is a pre-processor form used to 
 control  compilation during the "Syntax Check" function. The
 expression in the conditional will not be evaluated at script 
 execution.  Syntax for the conditional compilation will take 
 the form:</p>
 
-<pre>
-IF (expression {[OR | AND] expression} )
+<pre>IF (expression {[OR | AND] expression} )
 .
 {ELSEIF (expression {[OR | AND] expression} )}
 .
@@ -1059,8 +1076,7 @@ these clauses will not be checked.</p>
 
 <p>The expressions will take the following form:</p>
 
-<pre>
-VAR/Value operator VAR/Value
+<pre>VAR/Value operator VAR/Value
 </pre>
 
 <p>Where VAR/Value is either a script variable name that has 
@@ -1070,8 +1086,7 @@ not been defined will evaluate as if the variable is an
 enumeration keyword.  All literals or variables must evaluate 
 to one of the following types:</p>
 
-<pre>
-Boolean (TRUE, T, FALSE, F, Y, YES, N, NO) {=, !=}
+<pre>Boolean (TRUE, T, FALSE, F, Y, YES, N, NO) {=, !=}
 Enumeration (NAME) {=, !=}
 Integer (-1, 0, 1, etc.) {=, !=, <, <=, >, >=}
 Unsigned (0, 1, 2) {=, !=, <, <=, >, >=}
@@ -1096,8 +1111,7 @@ not necessary to supply a valid enumeration name because
 all names that do not resolve to parameters will be treated 
 like an enumeration. </p>
 
-<pre>
-VAR = I-AM-ROUTER-TO-NETWORK
+<pre>VAR = I-AM-ROUTER-TO-NETWORK
 VAR = BOGUS-NOT-FOUND-ENUMERATION
 </pre>
 
@@ -1121,8 +1135,7 @@ a modal dialog box and allow the user to PASS or FAIL the
 script test.  Script execution is halted while the dialog is
 up. Syntax for the CHECK statement is as follows:  </p>
 
-<pre>
-CHECK "Title" (
+<pre>CHECK "Title" (
    "Text line"
     ...
    "Text line"
@@ -1143,8 +1156,7 @@ indefinately extended EXPECT timers.  Syntax is exactly like
 the CHECK statement with the exception of the keyword 
 MAKE.
 
-<pre>
-MAKE "Title" (
+<pre>MAKE "Title" (
    "Text line"
     ...
    "Text line"
@@ -1242,8 +1254,28 @@ supported for an object require the conditional presence of other properties, th
 <p>Now if the last packet in the session is selected and a new packet is sent or received, VTS3 can continue to keep the scroll value pegged to the bottom of the list, scrolling the current contents up, and make the new incoming packet the selected packet.
 Note: when the selected packet isn't the last packet, VTS3 will not make a change to select the last packet when a new packet is sent or received. 
 </p></li>
+</ul>
 
 
+<h2><a name="whatsnew">3.3.0</a></h2>
+<ul>
+<p><li>567046: Now the Detail pane is a treelist pane, with most of the tree nodes collapsed by 
+default to reduce the amount of information shown.  The tree nodes containing the information
+that is the most pertinent to the service are expanded by default.</li></p>
+
+<p><li>485733: Added server side ReadProperty and WriteProperty support to internal Device Objects.  
+This required changes to the .vdb database to store this information. </li></p>
+
+<p><li>626601: Any attempt to open a read-only .vdb file is now greeted with a message instead of a crash.</li></p>
+
+<p><li>Fixed all of the child popups decending from the Send dialog to retain their relationship to the parent.  Each 
+occurrence was altered to report to the proper parent such that all of the popups are now modal
+to the modeless Send dialog.  Multiple Send dialogs can now be used simultaneously.</li></p>
+
+<p><li>Attempts to open a corrupted or inconsistent database now results in a report of the problem./li></p>
+
+<p><li><b>Replaced the BACMACNT driver with WinPcap library calls.</b>  No change was made to the database format, just the
+format of the adapter/interface configuration strings has changed.  BACMACNT is no longer required and is no longer distributed with VTS 3.x</li></p>
 
  
 <p>&nbsp;</p>
