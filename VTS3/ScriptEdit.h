@@ -22,7 +22,8 @@ class ScriptEdit : public CEditView
 private:			
 	ScriptFrame * m_pframe; 
 
-protected:
+//protected:
+public:
 	ScriptEdit();           // protected constructor used by dynamic creation
 	DECLARE_DYNCREATE(ScriptEdit)
 
