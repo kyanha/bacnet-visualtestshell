@@ -465,6 +465,7 @@
 #define IDC_RANGE_4                     1245
 #define IDC_RANGE_5                     1246
 #define IDC_OPTIONS                     1247
+#define IDC_BAUDRATE                    1249
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -504,7 +505,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        245
 #define _APS_NEXT_COMMAND_VALUE         32812
-#define _APS_NEXT_CONTROL_VALUE         1248
+#define _APS_NEXT_CONTROL_VALUE         1249
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
