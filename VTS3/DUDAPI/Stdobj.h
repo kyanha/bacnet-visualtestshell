@@ -251,6 +251,7 @@ enum BACnetDeviceStatus		system_status;
     char					application_software_ver[32];
     char					location[64];
     word					protocol_ver;
+    word					protocol_rev;                     // msdanner 9/2004 - added
     word					protocol_conf_class;
     octet					protocol_services_supported[5]; //bit string, one bit per service
     octet					object_types_supported[3];		//bit string, one bit per object type
