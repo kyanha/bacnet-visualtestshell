@@ -34,8 +34,15 @@ int cvt$convert_float( const void *, int, void *, int, int );
 }
 #endif
 
+//madanner 9/04
+namespace PICS {
+#include "vtsapi.h"
+}
+#include "propid.h"
+
 #include "Props.h"
 #include "BACnet.hpp"
+
 
 #define nPRIO 16
 
@@ -351,6 +358,128 @@ bool BACnetEncodeable::EqualityRequiredFailure( BACnetEncodeable & rbacnet, int 
 }
 
 
+
+// madanner 9/04
+// Factory method to instantiate the correct BACnetEncodeable type from a parse type and 
+// decoder...
+
+BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder & dec, int nPropID /* = -1 */ )
+{
+	switch ( nParseType )
+	{
+		case u127:		// 1..127 ---------------------------------
+		case u16:		// 1..16 ----------------------------------
+		case ud:		// unsigned dword -------------------------
+		case uw:		// unsigned word --------------------------
+
+			return new BACnetUnsigned(dec);
+			break;
+
+		case ssint:		// short signed int -----------------------		// actually the same type
+		case sw:		// signed word ----------------------------
+
+			return new BACnetInteger(dec);
+			break;
+
+		case flt:		// float ----------------------------------------
+
+			return new BACnetReal(dec);
+			break;
+
+		case pab:		// priority array bpv ---------------------		deal with index cases (-1=all, 0=element count, base 1=index
+		case paf:		// priority array flt ---------------------
+		case pau:		// priority array unsigned ----------------
+
+			return new BACnetPriorityArray(dec);
+			break;
+
+		case ebool:		// boolean enumeration ---------------------------------
+
+			return new BACnetBoolean(dec);
+			break;
+
+		case bits:		// octet of 1 or 0 flags
+
+			return new BACnetBitString(dec);
+			break;
+
+		case ob_id:		// object identifier
+
+			return new BACnetObjectIdentifier(dec);
+			break;
+
+		case s10:		// char [10] --------------------------------------------
+		case s32:		// char [32]
+		case s64:		// char [64]
+		case s132:		// char [132]
+
+			return new BACnetCharacterString(dec);
+       
+		case enull:		// null enumeration ------------------------------------
+
+			return new BACnetNull(dec);
+
+		case et:		// generic enumation ----------------------------------
+
+			{
+			BACnetEnumerated * penum = BACnetEnumerated::Factory(nPropID);
+			penum->Decode(dec);
+			return penum;
+			}
+
+		case ptDate:	// date ------------------------------------------------
+
+			return new BACnetDate(dec);
+
+		case ptTime:	// time -------------------------------------------------
+
+			return new BACnetTime(dec);
+
+		case dt:		// date/time stamp -------------------------------------
+
+			return new BACnetDateTime(dec);
+
+		case dtrange:	// range of dates ---------------------------------------
+
+			return new BACnetDateRange(dec);
+
+		case calist:	// array of calendar entries -----------------------------
+
+			return new BACnetCalendarArray(dec);
+
+		case dabind:	// device address binding --------------------------------
+
+			return new BACnetAddressBinding(dec);
+
+		case lobj:		// array of object identifiers ----------------------------
+
+			return new BACnetObjectIDList(dec);
+
+		case uwarr:		// unsigned array ------------------------------------------
+		case stavals:	// list of unsigned ----------------------------------------
+
+			return new BACnetUnsignedArray(dec);
+
+		case statext:
+		case actext:	// character string array ----------------------------------
+
+			return new BACnetTextArray(dec);
+
+		case prival:	// single priority value----------------------------------
+
+			return new BACnetPriorityValue(dec);
+
+		case calent:	// single calendar entry ----------------------------------
+
+			return new BACnetCalendarEntry(dec);
+
+		case TSTMP:		// time stamp, could be multiple type---------------------
+
+			return new BACnetTimeStamp(dec);
+	}
+
+	return NULL;
+}
 
 
 
@@ -853,6 +982,103 @@ bool BACnetEnumerated::Match( BACnetEncodeable &rbacnet, int iOperator, CString 
 
 	return true;
 }
+
+
+//madanner 9/04
+BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
+{
+	PICS::etable *petable;
+
+	switch ( nPropID )
+	{
+		case OBJECT_TYPE:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiObjectTypes);
+			break;
+
+		case EVENT_STATE:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiEvState);  
+			break;
+
+		case RELIABILITY:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiReli);  
+			break;
+
+		case UNITS:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+			break;
+
+		case NOTIFY_TYPE:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiNT);  
+			break;
+
+		case PRESENT_VALUE:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);  
+			break;
+
+		case POLARITY:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiPolar);  
+			break;
+
+		case ALARM_VALUE:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);  
+			break;
+
+		case SYSTEM_STATUS:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiDS);  
+			break;
+
+		case SEGMENTATION_SUPPORTED:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiDS);  
+			break;
+
+		case FILE_ACCESS_METHOD: 
+			petable = (PICS::etable *)PICS::GetEnumTable(eiFAM);  
+			break;
+
+		case OUTPUT_UNITS: 
+			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+			break;
+
+		case CONTROLLED_VARIABLE_UNITS:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+			break;
+
+		case ACTION:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiLoopAct);  
+			break;
+
+		case PROPORTIONAL_CONSTANT_UNITS:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+			break;
+
+		case INTEGRAL_CONSTANT_UNITS:  
+			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+			break;
+
+		case DERIVATIVE_CONSTANT_UNITS:  
+			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+			break;
+
+		case PROGRAM_STATE:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiPrState);  
+			break;
+
+		case REASON_FOR_HALT:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiPrErr);  
+			break;
+
+		case VT_CLASSES_SUPPORTED:
+			petable = (PICS::etable *)PICS::GetEnumTable(eiVTCls);
+			break;
+
+		default:
+			return new BACnetEnumerated(0);
+	}
+
+	return new BACnetEnumerated( 0, (const char **) petable->estrings, petable->nes );
+}
+
+
 
 
 
@@ -4601,7 +4827,7 @@ void BACnetObjectIdentifier::Encode( char *enc ) const
 	else
 		sprintf( s = typeBuff, "proprietary %d", objType );
 
-	sprintf( enc, "(%s, %d)", s, instanceNum );
+	sprintf( enc, "%s, %d", s, instanceNum );
 }
 
 #if VTSScanner
@@ -6218,142 +6444,6 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 			break;
 
 */
-
-
-// madanner 9/04
-// Factory method to instantiate the correct BACnetEncodeable type from a parse type and 
-// decoder...
-
-BACnetAnyValue * BACnetAnyValue::Factory( int nParseType, BACnetAPDUDecoder & dec )
-{
-	BACnetEncodeable * pany = NULL;
-
-	switch ( nParseType )
-	{
-		case u127:		// 1..127 ---------------------------------
-		case u16:		// 1..16 ----------------------------------
-		case ud:		// unsigned dword -------------------------
-		case uw:		// unsigned word --------------------------
-
-			pany = new BACnetUnsigned(dec);
-			break;
-
-		case ssint:		// short signed int -----------------------		// actually the same type
-		case sw:		// signed word ----------------------------
-
-			pany = new BACnetInteger(dec);
-			break;
-
-		case flt:		// float ----------------------------------------
-
-			pany = new BACnetReal(dec);
-			break;
-
-		case pab:		// priority array bpv ---------------------		deal with index cases (-1=all, 0=element count, base 1=index
-		case paf:		// priority array flt ---------------------
-		case pau:		// priority array unsigned ----------------
-
-			pany = new BACnetPriorityArray(dec);
-			break;
-
-		case ebool:		// boolean enumeration ---------------------------------
-
-			pany = new BACnetBoolean(dec);
-			break;
-
-		case bits:		// octet of 1 or 0 flags
-
-			pany = new BACnetBitString(dec);
-			break;
-
-		case ob_id:		// object identifier
-
-			pany = new BACnetObjectIdentifier(dec);
-			break;
-
-		case s10:		// char [10] --------------------------------------------
-		case s32:		// char [32]
-		case s64:		// char [64]
-		case s132:		// char [132]
-
-			pany = new BACnetCharacterString(dec);
-			break;
-       
-		case enull:		// null enumeration ------------------------------------
-
-			pany = new BACnetNull(dec);
-			break;
-
-		case et:		// generic enumation ----------------------------------
-
-			pany = new BACnetEnumerated(dec);
-			break;
-
-		case ptDate:	// date ------------------------------------------------
-
-			pany = new BACnetDate(dec);
-			break;
-
-		case ptTime:	// time -------------------------------------------------
-
-			pany = new BACnetTime(dec);
-			break;
-
-		case dt:		// date/time stamp -------------------------------------
-
-			pany = new BACnetDateTime(dec);
-			break;
-
-		case dtrange:	// range of dates ---------------------------------------
-
-			pany = new BACnetDateRange(dec);
-			break;
-
-		case calist:	// array of calendar entries -----------------------------
-
-			pany = new BACnetCalendarArray(dec);
-			break;
-
-		case dabind:	// device address binding --------------------------------
-
-			pany = new BACnetAddressBinding(dec);
-			break;
-
-		case lobj:		// array of object identifiers ----------------------------
-
-			pany = new BACnetObjectIDList(dec);
-			break;
-
-		case uwarr:		// unsigned array ------------------------------------------
-		case stavals:	// list of unsigned ----------------------------------------
-
-			pany = new BACnetUnsignedArray(dec);
-			break;
-
-		case statext:
-		case actext:	// character string array ----------------------------------
-
-			pany = new BACnetTextArray(dec);
-			break;
-
-		case prival:	// single priority value----------------------------------
-
-			pany = new BACnetPriorityValue(dec);
-			break;
-
-		case calent:	// single calendar entry ----------------------------------
-
-			pany = new BACnetCalendarEntry(dec);
-			break;
-
-		case TSTMP:		// time stamp, could be multiple type---------------------
-
-			pany = new BACnetTimeStamp(dec);
-			break;
-	}
-
-	return pany != NULL ? new BACnetAnyValue(pany) : NULL;
-}
 
 
 

@@ -100,6 +100,9 @@ class BACnetEncodeable : public CObject {
 		bool EqualityRequiredFailure( BACnetEncodeable & rbacnet, int iOperator, CString * pstrError );
 		bool PreMatch( int iOperator );
 
+		//madanner 9/04, static factory
+		static BACnetEncodeable * Factory( int nParseType, BACnetAPDUDecoder & dec, int nPropID = -1 );
+
 		DECLARE_DYNAMIC(BACnetEncodeable)
 	};
 
@@ -202,6 +205,9 @@ class BACnetEnumerated : public BACnetEncodeable {
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		//madanner 9/04
+		static BACnetEnumerated * Factory(int nPropID);
 
 		DECLARE_DYNAMIC(BACnetEnumerated)
 	};
@@ -1246,9 +1252,6 @@ class BACnetAnyValue : public BACnetObjectContainer
 		bool CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOperator, LPCSTR lpstrValueName );
 		void SetObject( int nNewType, BACnetEncodeable * pbacnetEncodeable );
 		virtual void SetObject( BACnetEncodeable * pbacnetEncodeable );		// to derive type
-
-		//madanner 9/04, static factory
-		static BACnetAnyValue * BACnetAnyValue::Factory( int nParseType, BACnetAPDUDecoder & dec );
 
 		DECLARE_DYNAMIC(BACnetAnyValue)
 };
