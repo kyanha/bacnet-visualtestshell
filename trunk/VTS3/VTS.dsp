@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /I ".\NBLink" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "." /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "." /I ".\BACnetLibrary" /I ".\Sniffer" /I ".\DUDAPI" /I ".\FileVersionInfo" /I ".\Statistics" /I ".\ptp" /I ".\winpcap" /I ".\GetMACAddress" /I ".\NBLink" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -255,6 +255,10 @@ SOURCE=.\MainFrm.cpp
 # Begin Source File
 
 SOURCE=.\md5.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MSTP_NBLinkDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -508,6 +512,10 @@ SOURCE=.\SendInitRTAck.cpp
 # Begin Source File
 
 SOURCE=.\SendIP.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendMSTP.cpp
 # End Source File
 # Begin Source File
 
@@ -920,6 +928,10 @@ SOURCE=.\VTSVendorPropIDDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSWinMSTPPort.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ptp\VTSWinPTPPort.cpp
 # End Source File
 # Begin Source File
@@ -929,6 +941,10 @@ SOURCE=.\BACnetLibrary\WinBACnetTaskManager.cpp
 # Begin Source File
 
 SOURCE=.\BACnetLibrary\WinIP.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\WinMSTP.cpp
 # End Source File
 # Begin Source File
 
@@ -1089,6 +1105,14 @@ SOURCE=.\MainFrm.h
 # Begin Source File
 
 SOURCE=.\md5.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MSTP_NBLinkDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\NBLink\nbsettings.h
 # End Source File
 # Begin Source File
 
@@ -1337,6 +1361,10 @@ SOURCE=.\SendInitRTAck.h
 # Begin Source File
 
 SOURCE=.\SendIP.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendMSTP.h
 # End Source File
 # Begin Source File
 
@@ -1764,6 +1792,10 @@ SOURCE=.\VTSVendorPropIDDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSWinMSTPPort.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ptp\VTSWinPTPPort.h
 # End Source File
 # Begin Source File
@@ -1773,6 +1805,10 @@ SOURCE=.\BACnetLibrary\WinBACnetTaskManager.hpp
 # Begin Source File
 
 SOURCE=.\BACnetLibrary\WinIP.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\WinMSTP.h
 # End Source File
 # Begin Source File
 
@@ -1844,6 +1880,10 @@ SOURCE=.\res\idr_vtst.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\nblink.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\packettr.bmp
 # End Source File
 # Begin Source File
@@ -1881,6 +1921,35 @@ SOURCE=.\res\WorkSpcTool.bmp
 # End Group
 # Begin Source File
 
+SOURCE=.\NBLink\nb_link_settings.dll
+
+!IF  "$(CFG)" == "VTS - Win32 Release"
+
+# Begin Custom Build
+OutDir=.\Release
+InputPath=.\NBLink\nb_link_settings.dll
+
+"$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy  $(InputPath)  $(OutDir)\ 
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "VTS - Win32 Debug"
+
+# Begin Custom Build - Performing Custom Build Step on $(InputPath)
+OutDir=.\Debug
+InputPath=.\NBLink\nb_link_settings.dll
+
+"$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy  $(InputPath)  $(OutDir)\ 
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\ReadMe.txt
 # End Source File
 # Begin Source File
@@ -1894,6 +1963,10 @@ SOURCE=.\WinPcap\wpcap.lib
 # Begin Source File
 
 SOURCE=.\WinPcap\IPHlpApi.Lib
+# End Source File
+# Begin Source File
+
+SOURCE=.\NBLink\nb_link_settings.lib
 # End Source File
 # End Target
 # End Project

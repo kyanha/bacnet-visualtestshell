@@ -1437,6 +1437,24 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //			work-around is simple, and since other statements must be changed if the CHECK statement
 //			was changed, there are no plans to fix this bug.
 //
+//		====================
+//		
+//			Added MS/TP support through American Automatrix NB-Link IP device.
+//			VTS supports multiple NB-Link devices, once for each MS/TP network VTS is connected to.
+//			Configure the device by adding the NS/TP port type in the ports dialog.
+//				The dlg allows communication with the device by either setting parameters manually in 
+//				the dialog or by setting the parameters and having VTS check and set them when the ports
+//				startup (set on if NB-Link parameters from the device are not as expected upon query).
+//
+//			Secondary implementations of the MS/TP port can be added by subclassing the MSTPImplementation
+//			class in the WinMSTP.h	header (which defines an MS/TP implementation API) and adding 
+//			a configuration dialog specific to a new implementation.  Any new implementations can be
+//			modeled after the MSTPImp_NBLink class in the WinMSTP.cpp file.
+//
+//			The NB-Link device searches for a TCP/IP connection on its specific remote IP:Port every 2 seconds
+//			until VTS receives the connection when its port opens.  The port status will indicate proper
+//			connection status and serious port error messages will be written during script execution if the 
+//			MS/TP port encounters errors.
 			 
 			
 			

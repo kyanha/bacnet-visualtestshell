@@ -33,6 +33,9 @@
 
 //Xiao Shiyuan 2002-9-23
 #include "VTSWinPTPPort.h"
+
+#include "VTSWinMSTPPort.h"
+
 //#include "VTSPortPTPDialog.h"
 #include "PropID.h"
 
@@ -1579,6 +1582,19 @@ void VTSPort::Refresh( void )
 //				portDoc->DefineTD( this, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
 				break;
 			}		
+
+		case mstpPort:
+			{
+				VTSWinMSTPPort * pp;
+				
+				portStatus = 2;			// need yellow status because connection must be setup
+				portStatusDesc = "MSTP started";
+				portEndpoint = pp = new VTSWinMSTPPort( this );
+				
+				// define the TD name
+				portDoc->DefineTD( this, pp->portLocalAddr.addrAddr, pp->portLocalAddr.addrLen );
+				break;
+			}
 
 		case ptpPort: {
 			VTSWinPTPPortPtr pp;

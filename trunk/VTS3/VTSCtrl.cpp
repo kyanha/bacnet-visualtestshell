@@ -763,6 +763,55 @@ void VTSEnetAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 /////////////////////////////////////////////////////////////////////////////
 
 //
+//	VTSMSTPAddrCtrl
+//
+
+VTSMSTPAddrCtrl::VTSMSTPAddrCtrl( const CWnd* wp, int cid, int tid )
+	: VTSAddrComboCtrl( wp, cid, tid )
+{
+}
+
+
+void VTSMSTPAddrCtrl::AssignAddress(VTSName * pname)
+{
+	addrLen = 1;
+	addrAddr[0] = pname->m_bacnetaddr.addrType == localBroadcastAddr ? 0xFF : addrAddr[0] = pname->m_bacnetaddr.addrAddr[0];
+}
+
+
+void VTSMSTPAddrCtrl::CtrlToAddress( LPCTSTR s )
+{
+	ctrlNull = (s == NULL || *s == 0);
+
+	if ( !ctrlNull )
+	{
+		int n = atoi(s);
+		if ( n < 0 || n > 255 )
+			n = 0;
+
+		addrType = n == 255 ? localBroadcastAddr : localStationAddr;
+		addrLen = 1;
+		addrAddr[0] = n & 0xFF;
+	}
+}
+
+
+void VTSMSTPAddrCtrl::ObjToCtrl( void )
+{
+	char txt[10];
+	
+	txt[0] = 0;
+	if ( !ctrlNull )
+		itoa((int) addrAddr[0], txt, 10);
+
+	// set the text
+	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( txt );
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+
+//
 //	VTSIPAddrCtrl
 //
 

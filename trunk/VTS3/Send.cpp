@@ -101,9 +101,19 @@ CSendGroupItem gMSTPItemList[] =
 	, { 0, 0, 0 }
 	};
 
-CSendGroup gMSTPGroup = { "MS/TP", gMSTPItemList, (CSendPageMPtr)&CSend::MSTPPage, 0 };
+CSendGroup gMSTPGroup = { "MS/TP", gMSTPItemList, (CSendPageMPtr)&CSend::MSTPPage, (CSendPageMPtr)&CSend::MSTPPage };
 
-CSendGroupPtr gMSTPGroupList[] = { &gMSTPGroup, 0 };
+CSendGroupPtr gMSTPGroupList[] =
+	{ &gMSTPGroup
+	, &gNetworkGroup
+	, &gAlarmEventAccessGroup
+	, &gFileAccessGroup
+	, &gObjectAccessGroup
+	, &gRemoteDevMgmtGroup
+	, &gVirtualTerminalGroup
+	, &gSimpleACKGroup
+	, &gErrorGroup
+	, 0 };
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -320,6 +330,7 @@ void CSend::InitPages( void )
 	DeleteFDTEntryPage.pageParent = this;
 
 	EnetPage.pageParent = this;
+	MSTPPage.pageParent = this;
 
 	DevicePage.pageParent = this;
 

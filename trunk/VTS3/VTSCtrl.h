@@ -115,6 +115,20 @@ class VTSEnetAddrCtrl : public VTSAddrComboCtrl
 
 typedef VTSEnetAddrCtrl *VTSEnetAddrCtrlPtr;
 
+
+class VTSMSTPAddrCtrl : public VTSAddrComboCtrl
+{
+	public:
+
+		VTSMSTPAddrCtrl( const CWnd* wp, int cid, int tid );	// bind to window and control
+
+		virtual void AssignAddress(VTSName * pname);
+		virtual void CtrlToAddress( LPCTSTR s );
+		void ObjToCtrl( void );
+};
+
+typedef VTSMSTPAddrCtrl *VTSMSTPAddrCtrlPtr;
+
 //
 //	VTSIPAddrCtrl
 //

@@ -36,6 +36,9 @@
 
 // ARCNET Pages
 
+// MSTP Pages
+#include "SendMSTP.h"
+
 // PTP Pages
 
 // Device Pages
@@ -152,7 +155,7 @@ public:
 	CSendIP					IPPage;					// IP base page
 	CSendEnet				EnetPage;				// Ethernet base page
 	CSendNull				ARCNETPage;				// ARCNET base page
-	CSendNull				MSTPPage;				// MS/TP base page
+	CSendMSTP				MSTPPage;				// MS/TP base page
 	CSendNull				PTPPage;				// PTP base page
 	CSendDevice				DevicePage;				// Device base page
 
