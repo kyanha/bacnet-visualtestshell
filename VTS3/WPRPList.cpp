@@ -17,3 +17,44 @@ static char THIS_FILE[]=__FILE__;
 WPMRPMListList glWPMRPMListList[5];
 int glWPMRPMHistoryCount = 0;
 int glCurWPMRPMHistory = 0;
+
+
+//madanner 9/04, fixed massive memory leaks :(  by adding destructor
+WPMRPMList::~WPMRPMList()
+{
+	DeleteAllObjects();
+}
+
+void WPMRPMList::DeleteAllObjects(void)
+{
+	for (POSITION pos = GetHeadPosition(); pos != NULL; )
+		delete GetNext( pos );
+}
+
+
+void WPMRPMList::KillAll(void)
+{
+	DeleteAllObjects();
+	RemoveAll();
+}
+
+
+WPMRPMListList::~WPMRPMListList()
+{
+	DeleteAllObjects();
+}
+
+void WPMRPMListList::DeleteAllObjects(void)
+{
+	for (POSITION pos = GetHeadPosition(); pos != NULL; )
+		delete GetNext( pos );
+}
+
+
+void WPMRPMListList::KillAll(void)
+{
+	DeleteAllObjects();
+	RemoveAll();
+}
+
+
