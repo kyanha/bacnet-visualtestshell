@@ -302,6 +302,10 @@ SOURCE=.\ScriptEdit.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScriptEditIncludeDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ScriptExecMsg.cpp
 # End Source File
 # Begin Source File
@@ -1129,6 +1133,10 @@ SOURCE=.\ScriptDocument.h
 # Begin Source File
 
 SOURCE=.\ScriptEdit.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScriptEditIncludeDlg.h
 # End Source File
 # Begin Source File
 

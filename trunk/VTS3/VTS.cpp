@@ -1065,9 +1065,52 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //				- MSI, MSO, MSV, AI, AO, AV, BI, BO, EE, LOOP, BV, BV
 //				- TR object support already existed, but it was the only one.
 //
+//			[618217] - INCLUDE directive added to scripts.  Syntax for including files:
 //
+//					INCLUDE "filename.vts"
+//
+//				Usage of the INCLUDE directive follows these rules:
+//					- The INCLUDE keyword must be the first item on a line (excluding whitespace) and is 
+//					  followed by a filename to include in quotes.
+//					- The extension for included files is the same as script files.
+//					- Any number of files can be included.
+//					- Included files can contain nested includes.
+//					- The file name should include a relative path that is always relative to the location
+//					  of the file that contains the include statement.  This is also true for each included
+//					  file.  This means that file specifications included from the base file will be
+//					  relative to the base file but files that are included from an include file will be
+//					  relative to the location of the include file.  For example:  If included files are
+//					  in a subdirectory called 'inc', only the base file, which is located one directory up
+//					  from 'inc' will have the statement:  INCLUDE "inc\file1.vts".
+//					  If file1.vts contains include statements that pull in files from the inc directory as
+//					  well, the statement will be:  INCLUDE "file2.vts".
+//					- Absolute paths may be used as well if specified properly (C:\, \, etc.)
+//					- INCLUDE statements can occur anywhere within the script file with the exception of 
+//					  inside statements.  This means that they cannot appear within SEND or EXPECT
+//					  statements even though these statements may span several lines.  CHECK, MAKE and
+//					  other multi-line statements are part of this restriction.
+//					- Circular includes are not allowed.
+//					- If variables are defined and initialized in included files that are already
+//					  defined in the base file, the values will be overridden with the last encountered declaration.
+//
+//				There are a few things to note when files are included:
+//					- Include files are opened and parsed during the "Check Syntax" command.
+//					- When errors are encountered within an included file during parsing, an error message 
+//					  will present (as usual) and the line and text that produced the error will be 
+//					  highlighted in a separate editing window that allows the imediate editing and 
+//					  saving of the included file.  This window is modal and parsing execution halts.
+//					  A quick correction followed by another Syntax Check will have you on your way.
+//					- Nodes created on the tree (following a successful syntax check) from include files
+//					  will appear in blue text.  Clicking once on these nodes will display the fully
+//					  qualified path to the containing include file in the editor's status bar.  Double
+//					  clicking on these nodes will open a modal editing window and the statement's line
+//					  will be highlighted.  This editing window will allow the file to be saved (no SaveAs).
+//
+//			A bug was fixed in the script editor that would not initially place the caret on the 
+//			line if goto was used.
 
-const int kReleaseVersion = 1;
+
+const int kReleaseVersion = 2;
 
 class CAboutDlg : public CDialog
 {
