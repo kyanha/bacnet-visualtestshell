@@ -32,12 +32,17 @@ typedef ScriptPacketExprList *ScriptPacketExprListPtr;
 const int kMaxScriptExprLen = 8;
 
 class ScriptPacketExpr {
+	private:
+		bool m_fNoneValue;
+
 	public:
 		ScriptPacketExpr( void );
 		~ScriptPacketExpr( void );
 
 		bool IsAssignment(void);						// madanner 11/5/02, is this expression an assignment?
 		bool IsDontCare(void);							// is this a don't care assignment?
+		bool IsNoneValue() { return m_fNoneValue; }
+		void SetNoneValue(bool fNone) { m_fNoneValue = fNone; }
 
 		int				exprKeyword;					// keyword
 		bool			exprIsData;						// true if data keyword
