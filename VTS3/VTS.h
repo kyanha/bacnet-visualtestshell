@@ -68,6 +68,8 @@ class VTSPreferences {
 		int		summaryNameWidth;				// summary view name width
 		int		summaryTimeFormat;				// 0=local time, 1=UTC
 
+		int		sendInvokeID;					// next invoke ID for Send
+
 		void Load( void );
 		void Save( void );
 	};
