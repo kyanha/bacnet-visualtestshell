@@ -4599,9 +4599,9 @@ void BACnetObjectIdentifier::Encode( char *enc ) const
 	if (objType < 128)
 		sprintf( s = typeBuff, "RESERVED %d", objType );
 	else
-		sprintf( s = typeBuff, "VENDOR %d", objType );
+		sprintf( s = typeBuff, "proprietary %d", objType );
 
-	sprintf( enc, "%s, %d", s, instanceNum );
+	sprintf( enc, "(%s, %d)", s, instanceNum );
 }
 
 #if VTSScanner
