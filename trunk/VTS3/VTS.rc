@@ -166,12 +166,12 @@ BEGIN
         MENUITEM "&Check Syntax",               ID_SCRIPT_CHECK_SYNTAX
         MENUITEM "&Load EPICS",                 ID_SCRIPT_LOADEPICS
         MENUITEM SEPARATOR
-        MENUITEM "&Run",                        ID_SCRIPT_RUN
+        MENUITEM "&Run\tF5",                    ID_SCRIPT_RUN
         MENUITEM "&Halt",                       ID_SCRIPT_HALT
-        MENUITEM "&Step",                       ID_SCRIPT_STEP
+        MENUITEM "&Step\tF6",                   ID_SCRIPT_STEP
         MENUITEM "Step &Pass",                  ID_SCRIPT_STEPPASS
         MENUITEM "Step &Fail",                  ID_SCRIPT_STEPFAIL
-        MENUITEM "&Kill",                       ID_SCRIPT_KILL
+        MENUITEM "&Kill\tF8",                   ID_SCRIPT_KILL
         MENUITEM SEPARATOR
         MENUITEM "Rese&t",                      ID_SCRIPT_RESET
     END
@@ -280,6 +280,9 @@ BEGIN
     "2",            ID_VIEW_PREVFRAME,      VIRTKEY, CONTROL, NOINVERT
     "3",            ID_VIEW_NEXTFRAME,      VIRTKEY, CONTROL, NOINVERT
     "4",            ID_VIEW_LASTFRAME,      VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_SCRIPT_RUN,          VIRTKEY, NOINVERT
+    VK_F6,          ID_SCRIPT_STEP,         VIRTKEY, NOINVERT
+    VK_F8,          ID_SCRIPT_KILL,         VIRTKEY, NOINVERT
 END
 
 IDR_VDBTYPE ACCELERATORS DISCARDABLE 
