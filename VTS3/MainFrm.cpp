@@ -10,6 +10,7 @@
 #include "ScriptExecutor.h"
 #include "ChildFrm.h"
 #include "SendPage.h"
+#include <atlbase.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -65,6 +66,7 @@ CMainFrame::CMainFrame()
 
 CMainFrame::~CMainFrame()
 {
+	SaveReg();
 }
 
 //Modifed by Zhu Zhenhua, 2004-11-27,for #508589 request, 
@@ -82,6 +84,34 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		TRACE0("Failed to create toolbar\n");
 		return -1;      // fail to create
 	}
+	
+	int COMBOBOX_WIDTH = 180; //the width of the combo box
+    
+    //First get the index of the placeholder's position in the toolbar
+    int index = 0;
+    while(m_wndToolBar.GetItemID(index)!= ID_COMBOBOX_SEPARATOR) 
+		index++;
+
+	CRect rect;
+    //next convert that button to a seperator and get its position
+    m_wndToolBar.SetButtonInfo(index, ID_COMBOBOX_SEPARATOR,
+                               TBBS_SEPARATOR, COMBOBOX_WIDTH);
+    m_wndToolBar.GetItemRect(index, &rect);
+
+    //expand the rectangle to allow the combo box room to drop down
+    
+    rect.bottom += 200;
+
+    // then .Create the combo box and show it
+    if (!m_wndFileCombo.Create(WS_CHILD|WS_VISIBLE | CBS_AUTOHSCROLL | CBS_DROPDOWN |
+		CBS_HASSTRINGS, rect, &m_wndToolBar, ID_COMBOBOX_SEPARATOR))
+    {
+       TRACE0("Failed to create combo-box\n");
+       return FALSE;
+    }
+
+	ReadReg();
+	m_wndFileCombo.SetCurSel(0);
 
 	if (!m_wndStatusBar.Create(this) ||
 		!m_wndStatusBar.SetIndicators(indicators,
@@ -93,9 +123,21 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// TODO: Delete these three lines if you don't want the toolbar to
 	//  be dockable
-	m_wndToolBar.EnableDocking( CBRS_ALIGN_ANY );
+	m_wndToolBar.EnableDocking( CBRS_ALIGN_ANY );	
 	EnableDocking( CBRS_ALIGN_ANY );
-	DockControlBar( &m_wndToolBar );
+	DockControlBar( &m_wndToolBar );	
+	
+/////////////////////////////////////////////////////
+	DWORD dwExStyle = TBSTYLE_EX_DRAWDDARROWS;
+	m_wndToolBar.GetToolBarCtrl().SendMessage(TB_SETEXTENDEDSTYLE, 0, (LPARAM)dwExStyle);
+
+	DWORD dwStyle = m_wndToolBar.GetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_RUN1));
+	dwStyle |= TBSTYLE_DROPDOWN;
+	m_wndToolBar.SetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_RUN1), dwStyle);
+	m_wndToolBar.GetToolBarCtrl().SendMessage(TB_SETEXTENDEDSTYLE, 0, (LPARAM)dwExStyle);
+	dwStyle = m_wndToolBar.GetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_CHECK_SYNTAX1));
+	dwStyle |= TBSTYLE_DROPDOWN;
+	m_wndToolBar.SetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_CHECK_SYNTAX1), dwStyle);
 	return 0;
 }
 
@@ -328,4 +370,82 @@ CMDIChildWnd* CMainFrame::GetChildFrame(CRuntimeClass *pClass, int nNum)
 		}
 	}
 	return NULL;
+}
+
+//read register table and initialize log file combobox
+void CMainFrame::ReadReg()
+{
+	CRegKey regKey;
+	long lRet = regKey.Open(HKEY_LOCAL_MACHINE,
+		"Software\\vts3\\logfiles");
+	if(lRet != ERROR_SUCCESS)
+	{
+		regKey.Create(HKEY_LOCAL_MACHINE,
+		"Software\\vts3\\logfiles");
+	}
+	else
+	{
+		CString keyName;	
+		CString filename;		
+		for(int index = 0; index < HISTORY_LOGFILE_COUNT; index++)
+		{
+			char keyValue[MAX_PATH] = "";
+			DWORD bufferLen = MAX_PATH;
+			keyName.Format("%d", index);
+			regKey.QueryValue(keyValue, keyName, &bufferLen);
+			filename = keyValue;
+			if( !filename.IsEmpty() )
+			{
+				m_historyLogList.AddTail(filename);
+				m_wndFileCombo.AddString(filename);
+			}			
+		}		
+	}	
+	regKey.Close();
+}
+
+void CMainFrame::SaveReg()
+{
+	CRegKey regKey;
+	CString keyName;
+	
+	long lRet = regKey.Open(HKEY_LOCAL_MACHINE,
+		"Software\\vts3\\logfiles");
+
+	ASSERT(m_historyLogList.GetCount() <= HISTORY_LOGFILE_COUNT);
+
+	for(int index = 0; index < m_historyLogList.GetCount(); index++)
+	{
+		keyName.Format("%d", index);
+		regKey.SetValue((LPCTSTR)m_historyLogList.GetAt(m_historyLogList.FindIndex(index)), 
+			keyName);		
+	}	
+}
+
+void CMainFrame::SaveLogFileHistory(LPCTSTR filepath)
+{
+	POSITION pos = m_historyLogList.Find(CString(filepath));
+	
+	if(pos)
+	{
+		m_historyLogList.RemoveAt(pos);
+		m_historyLogList.AddHead(CString(filepath));
+	}
+	else
+	{
+		if(m_historyLogList.GetCount() == HISTORY_LOGFILE_COUNT)
+			m_historyLogList.RemoveTail();
+		m_historyLogList.AddHead(CString(filepath));
+	}
+	
+	while( m_wndFileCombo.GetCount() )
+		m_wndFileCombo.DeleteString(0);
+	
+	for(int index = 0; index < m_historyLogList.GetCount(); index++)
+	{
+		m_wndFileCombo.AddString(m_historyLogList.GetAt(m_historyLogList.FindIndex(index)));
+	}
+
+	if(m_wndFileCombo.GetCount())
+		m_wndFileCombo.SetCurSel(0);
 }

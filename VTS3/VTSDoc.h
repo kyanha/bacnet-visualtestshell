@@ -552,7 +552,8 @@ private:
 
 	CTypedPtrArray <CPtrArray, VTSPacketPtr> m_apPackets;		// array of ptrs to packets
 
-	void DestroyPacketArray(void);
+	void DestroyPacketArray(void);		
+	BOOL DeletePacket(int id); //added: 2004/12/02 author:Xiao Shiyuan	purpose: delete selected packet
 	int LoadPacketArray( void );
 	void ScheduleForProcessing(void);
 	LPCSTR StripToPath( CString * pstr );
@@ -625,7 +626,7 @@ public:
 
 // Implementation
 public:
-
+	void DeleteSelPacket(int index); // 2/25/05 Shiyuan Xiao. Delete selected packet.
 	void DeletePackets( void );
 	void DoPortsDialog( void );
 	void PortStatusChange( void );
@@ -667,6 +668,7 @@ protected:
 protected:
 	//{{AFX_MSG(VTSDoc)
 	afx_msg void OnViewStatistics();
+	afx_msg void OnEditQuickSave();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

@@ -14,7 +14,7 @@
 //	VTSPreferences
 //
 
-#define SUMMARY_VIEW_COLUMN_COUNT		5
+#define SUMMARY_VIEW_COLUMN_COUNT		10
 #define SUMMARY_VIEW_MAXCACHESLOTS		32000
 
 class VTSPreferences : public CObject
@@ -30,6 +30,10 @@ class VTSPreferences : public CObject
 		bool	m_fRelativePacketFile;			// true if packet file should be relative
 		bool	m_fVerifyDelete;				// should we ask 'are you sure' when deleting packets?
 		bool	m_fLoadEPICS;					// should we load the EPICS file upon startup?
+		bool    m_bAutoScroll;					// Added: 2004/12/07 author:Xiao Shiyuan purpose:summary window auto scroll
+		bool    m_bRecvPkt;                     // 2/15/05 Shiyuan Xiao If receive packet(Sometime we only want to send packet)
+		bool    m_bSaveSentPkt;                 // 2/15/05 Shiyuan Xiao If save packets which have been sent
+		int     m_resendInterval;               // 3/9/05 Shiyuan Xiao 
 
 		CString m_strLastEPICS;					// filename of last EPICS file loaded
 
@@ -57,7 +61,14 @@ class VTSPreferences : public CObject
 		void Setting_SetLoadEPICS(bool fLoad) { m_fLoadEPICS = fLoad; }
 		LPCSTR Setting_GetLastEPICS() { return m_strLastEPICS; };
 		void Setting_SetLastEPICS(LPCSTR lpszEPICSFile);
-
+		bool Setting_IsAutoScroll() { return m_bAutoScroll; };
+		void Setting_SetAutoScroll(bool bAutoScroll) { m_bAutoScroll = bAutoScroll; };
+		bool Setting_IsRecvPkt(){ return m_bRecvPkt; };
+		void Setting_SetRecvPkt(bool bRecvPkt) { m_bRecvPkt = bRecvPkt; };
+		bool Setting_IsSaveSentPkt(){ return m_bSaveSentPkt; };
+		void Setting_SetSaveSentPkt(bool bSaveSentPkt) { m_bSaveSentPkt = bSaveSentPkt; };
+		int  Setting_GetResendInterval() { return m_resendInterval; }
+		void Setting_SetResendInterval(int interval) { m_resendInterval = interval; }
 		void Load( void );
 		void Save( void );
 		void DoPrefsDlg(void);

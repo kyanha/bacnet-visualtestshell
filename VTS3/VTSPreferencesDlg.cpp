@@ -25,6 +25,10 @@ VTSPreferencesDlg::VTSPreferencesDlg(CWnd* pParent /*=NULL*/)
 	m_nRelative = -1;
 	m_fVerify = FALSE;
 	m_fLoadEPICS = FALSE;
+	m_bAutoScroll = FALSE;
+	m_bRecvPkt = FALSE;
+	m_bSaveSentPkt = FALSE;
+	m_resendInterval = 0;
 	//}}AFX_DATA_INIT
 }
 
@@ -40,13 +44,16 @@ void VTSPreferencesDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Radio(pDX, IDC_PREF_RELATIVE, m_nRelative);
 	DDX_Check(pDX, IDC_PREF_DELETEVERIFY, m_fVerify);
 	DDX_Check(pDX, IDC_PREF_LOADEPICS, m_fLoadEPICS);
+	DDX_Check(pDX, IDC_AUTOSCROLL, m_bAutoScroll);
+	DDX_Check(pDX, IDC_RECVPKT, m_bRecvPkt);
+	DDX_Check(pDX, IDC_SAVESENTPKT, m_bSaveSentPkt);
+	DDX_Text(pDX, IDC_RESENDINTERVAL, m_resendInterval);
 	//}}AFX_DATA_MAP
 }
 
 
 BEGIN_MESSAGE_MAP(VTSPreferencesDlg, CDialog)
 	//{{AFX_MSG_MAP(VTSPreferencesDlg)
-		// NOTE: the ClassWizard will add message map macros here
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 

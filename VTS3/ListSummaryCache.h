@@ -25,8 +25,15 @@ typedef struct
 	char	szColumn0[10];			// data for number
 	char	szColumn1[20];			// data for timestamp
 	char	szColumn2[30];			// data for port name
-	char	szColumn3[40];			// data for address
-	char	szColumn4[75];			// data for BACnet message summary
+	//Xiao Shiyuan 2004-sep-20
+	char	szColumn3[40];			// data for source 
+	char	szColumn4[40];			// data for destination
+	char	szColumn5[10];			// data for snet 
+	char	szColumn6[20];			// data for saddr 
+	char	szColumn7[10];			// data for dnet 
+	char	szColumn8[20];			// data for daddr 	
+	char	szColumn9[80];			// data for BACnet message summary
+	//Xiao Shiyuan 2004-sep-20
 } LVCacheData;
 
 
@@ -61,6 +68,7 @@ class CListSummaryCache : public CObject
 		void AllocCacheSlots(int nCacheSize);
 		bool GetCachedItem( DWORD dwIndex, LVCachedItem * pcacheditem );
 		int FindCachedIndex( DWORD dwIndex );
+		void DeleteCachedItem( DWORD dwIndex );
 };
 
 #endif // !defined(AFX_LISTSUMMARYCACHE_H__7E68EECE_35C2_4D2D_91C8_9EFCD4ABCDC8__INCLUDED_)
