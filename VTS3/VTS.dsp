@@ -294,6 +294,10 @@ SOURCE=.\Sniffer\PI.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ReadAllPropSettingsDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\scbarcf.cpp
 # End Source File
 # Begin Source File
@@ -935,6 +939,10 @@ SOURCE=.\DUDAPI\DUDTOOL.H
 # End Source File
 # Begin Source File
 
+SOURCE=.\DUDAPI\EPICSConsCheck.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileVersionInfo\file_ver.h
 # End Source File
 # Begin Source File
@@ -1044,6 +1052,10 @@ SOURCE=.\DUDAPI\PROPS.H
 # Begin Source File
 
 SOURCE=.\ptp\ptp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ReadAllPropSettingsDlg.h
 # End Source File
 # Begin Source File
 
