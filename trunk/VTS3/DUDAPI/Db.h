@@ -571,4 +571,14 @@ typedef struct
    BACnetObjectIdentifier     DeviceObj;
 } BACnetDeviceObjectPropertyReference;      // Added Sep 18 2001
 
+//Xiao Shiyuan 2002-7-23
+typedef struct tagCOVSubscription {
+struct tagCOVSubscription		*next;
+	BACnetRecipientProcess		recipient;
+	BACnetObjectIdentifier		monitoredPropertyReference;
+	boolean		notification;
+	word        timeRemaining;
+	float       covIncrement;
+	} BACnetCOVSubscription;
+
 #endif //__DB_H_INCLUDED
