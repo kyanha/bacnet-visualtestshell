@@ -210,7 +210,11 @@ void CSendUTCTimeSync::OnTimer(UINT nIDEvent)
 	m_Date.year = currtime->tm_year;
 	m_Date.month = currtime->tm_mon + 1;
 	m_Date.day = currtime->tm_mday;
-	m_Date.CalcDayOfWeek();
+
+	//Modified by Xu Yiping, 2003-09-03
+	//m_Date.CalcDayOfWeek();
+	m_Date.dayOfWeek = currtime->tm_wday;
+
 	m_Date.ObjToCtrl();
 
 	m_Time.hour = currtime->tm_hour;
