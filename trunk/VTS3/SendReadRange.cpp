@@ -43,7 +43,6 @@ SendReadRange::SendReadRange(void)
 	, m_RadioChoice(0)
 {
 	//{{AFX_DATA_INIT(SendReadRange)
-//	m_RadioChoice = -1;
 	//}}AFX_DATA_INIT
 }
 #pragma warning( default : 4355 )
