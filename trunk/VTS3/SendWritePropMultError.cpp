@@ -34,7 +34,7 @@ CSendWritePropMultError::CSendWritePropMultError( void )
 	, m_ErrorClassCombo( this, IDC_ERRORCLASSCOMBO, NetworkSniffer::BACnetErrorClass, 7, true )
 	, m_ErrorCodeCombo( this, IDC_ERRORCODECOMBO, NetworkSniffer::BACnetErrorCode, 43, true )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_PropertyID( this, IDC_PROPERTYID, NetworkSniffer::BACnetPropertyIdentifier, 124, false )
+	, m_PropertyID( this, IDC_PROPERTYID, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, false )
 	, m_Index( this, IDC_INDEX )
 {
 	//{{AFX_DATA_INIT(CSendWritePropMultError)

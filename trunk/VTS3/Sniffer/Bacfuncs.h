@@ -1,4 +1,5 @@
    /*   ------ BACnet base type character arrays --------------- */
+// Revision: Sep 18 2001 added new properties published in Addendum 135b to ANSI/ASHRAE Standard 135-1995
 
 char *BACnetAction[] = {
    "DIRECT",
@@ -47,6 +48,11 @@ char *BACnetDateTime[] = {
    "Date",
    "Time"
    };
+char *BACnetTimeStamp[]= {
+	"Time",
+	"Unsigned",
+	"DateTime"
+	};
 
 char *BACnetDaysOfWeek[] = {
    "Monday",
@@ -398,6 +404,11 @@ char *BACnetLimitEnable[] = {
    "LOW-LIMIT-ENABLE",
    "HIGH-LIMIT-ENABLE"
    };
+char *BACnetLogRecord [] = {
+	"TimeStamp",
+	"LogDatum", 
+	"StatusFlags"
+	};
 
 char *BACnetNotifyType[] = {
    "ALARM",
@@ -437,7 +448,10 @@ char *BACnetObjectType[] = {
    "MULTISTATE-OUTPUT",     /* 14 */
    "NOTIFICATION-CLASS",    /* 15 */
    "PROGRAM",               /* 16 */
-   "SCHEDULE"               /* 17 */
+   "SCHEDULE",               /* 17 */
+   "AVERAGING",				/* 18 */
+   "MULTISTATE-VALUE",      /* 19 */
+   "TRENDLOG"				/* 20 */
    };
 
 char *BACnetObjectTypesSupported[] = {
@@ -459,6 +473,9 @@ char *BACnetObjectTypesSupported[] = {
    "NOTIFICATION-CLASS",    /* 15 */
    "PROGRAM",               /* 16 */
    "SCHEDULE"               /* 17 */
+   "AVERAGING"				/* 18 */
+   "MULTISTATE-VALUE",      /* 19 */
+   "TRENDLOG"				/* 20 */
    };
 
 char *BACnetPolarity[] = {
@@ -491,132 +508,160 @@ char *BACnetProgramState[] = {
    "HALTED",
    "UNLOADING"
    };   
-
+// MAX_PROP_ID = the number of elements in this array. It is located in Vts.h
 char *BACnetPropertyIdentifier[] = {
-   "Acked_Transitions property",                /* 0 */
-   "Ack_Required Property",                     /* 1 */
-   "Action property",                           /* 2 */
-   "Action_Text property",                      /* 3 */
-   "Active_Text property",                      /* 4 */
-   "Active_VT_Sessions property",               /* 5 */
-   "Alarm_Value property",                      /* 6 */
-   "Alarm_Values property",                     /* 7 */
-   "All property",                              /* 8 */
-   "All_Writes_Successful property",            /* 9 */
-   "APDU_Segment_Timeout property",             /* 10 */
-   "APDU_Timeout property",                     /* 11 */
-   "Application-software-version property",     /* 12 */
-   "Archive property",                          /* 13 */
-   "Bias property",                             /* 14 */
-   "Change_Of_State_Count property",            /* 15*/
-   "Change_Of_State_Time property",             /* 16 */
-   "Notification_Class property",               /* 17  renamed in 2nd public review*/
-   "Invalid Property Enumeration",              /* 18*/
-   "Controlled_Variable_Reference property",    /* 19 */
-   "Controlled_Variable_Units property",        /* 20 */
-   "Controlled_Variable_Value property",        /* 21 */
-   "COV_Increment property",                    /* 22 */
-   "Datelist property",                         /* 23 */
-   "Daylight_Savings_Status property",          /* 24 */
-   "Deadband property",                         /* 25 */
-   "Derivative_Constant property",              /* 26 */
-   "Derivative_Constant_Units property",        /* 27 */
-   "Description property",                      /* 28 */
-   "Description_Of_Halt property",              /* 29 */
-   "Device_Address_Binding property",           /* 30 */
-   "Device_Type property",                      /* 31 */
-   "Effective_Period property",                 /* 32 */
-   "Elapsed_Active_Time property",              /* 33 */
-   "Error_Limit property",                      /* 34 */
-   "Event_Enable property",                     /* 35 */
-   "Event_State property",                      /* 36 */
-   "Event_Type property",                       /* 37 */
-   "Exception_Schedule property",               /* 38 */
-   "Fault_Values property",                     /* 39 */
-   "Feedback_Value property",                   /* 40 */
-   "File_Access_Method property",               /* 41 */
-   "File_Size property",                        /* 42 */
-   "File_Type property",                        /* 43 */
-   "Firmware_Revision property",                /* 44 */
-   "High_Limit property",                       /* 45 */
-   "Inactive_Text property",                    /* 46 */
-   "In_Process property",                       /* 47 */
-   "Instance_Of property",                      /* 48 */
-   "Integral_Constant property",                /* 49 */
-   "Integral_Constant_Units property",          /* 50 */
-   "Issue_Confirmed_Notifications property",    /* 51 */
-   "Limit_Enable property",                     /* 52 */
-   "List_Of_Group_Members property",            /* 53 */
-   "List_Of_Object_Property_References property",  /* 54 */
-   "List_Of_Session_Keys property",             /* 55 */
-   "Local_Date property",                       /* 56 */
-   "Local_Time property",                       /* 57 */
-   "Location property",                         /* 58 */
-   "Low_Limit property",                        /* 59 */
-   "Manipulated_Variable_Reference property",   /* 60 */
-   "Maximum_Output property",                   /* 61 */
-   "Max_Apdu_Length_Accepted property",         /* 62 */
-   "Max_Info_Frames property",                  /* 63 */
-   "Max_Master property",                       /* 64 */
-   "Max_Pres_Value property",                   /* 65 */
-   "Minimum_Off_Time property",                 /* 66 */
-   "Minimum_On_Time property",                  /* 67 */
-   "Minimum_Output property",                   /* 68 */
-   "Min_Pres_Value property",                   /* 69 */
-   "Model_Name property",                       /* 70 */
-   "Modification_Date property",                /* 71 */
-   "Notify_Type property",                      /* 72 */
+   "Acked_Transitions  ",                /* 0 */
+   "Ack_Required ",                     /* 1 */
+   "Action ",                           /* 2 */
+   "Action_Text ",                      /* 3 */
+   "Active_Text ",                      /* 4 */
+   "Active_VT_Sessions ",               /* 5 */
+   "Alarm_Value ",                      /* 6 */
+   "Alarm_Values ",                     /* 7 */
+   "All ",                              /* 8 */
+   "All_Writes_Successful ",            /* 9 */
+   "APDU_Segment_Timeout ",             /* 10 */
+   "APDU_Timeout ",                     /* 11 */
+   "Application-software-version ",     /* 12 */
+   "Archive ",                          /* 13 */
+   "Bias ",                             /* 14 */
+   "Change_Of_State_Count ",            /* 15*/
+   "Change_Of_State_Time ",             /* 16 */
+   "Notification_Class ",               /* 17  renamed in 2nd public review*/
+   "Invalid  Enumeration",              /* 18*/
+   "Controlled_Variable_Reference ",    /* 19 */
+   "Controlled_Variable_Units ",        /* 20 */
+   "Controlled_Variable_Value ",        /* 21 */
+   "COV_Increment ",                    /* 22 */
+   "Datelist ",                         /* 23 */
+   "Daylight_Savings_Status ",          /* 24 */
+   "Deadband ",                         /* 25 */
+   "Derivative_Constant ",              /* 26 */
+   "Derivative_Constant_Units ",        /* 27 */
+   "Description ",                      /* 28 */
+   "Description_Of_Halt ",              /* 29 */
+   "Device_Address_Binding ",           /* 30 */
+   "Device_Type ",                      /* 31 */
+   "Effective_Period ",                 /* 32 */
+   "Elapsed_Active_Time ",              /* 33 */
+   "Error_Limit ",                      /* 34 */
+   "Event_Enable ",                     /* 35 */
+   "Event_State ",                      /* 36 */
+   "Event_Type ",                       /* 37 */
+   "Exception_Schedule ",               /* 38 */
+   "Fault_Values ",                     /* 39 */
+   "Feedback_Value ",                   /* 40 */
+   "File_Access_Method ",               /* 41 */
+   "File_Size ",                        /* 42 */
+   "File_Type ",                        /* 43 */
+   "Firmware_Revision ",                /* 44 */
+   "High_Limit ",                       /* 45 */
+   "Inactive_Text ",                    /* 46 */
+   "In_Process ",                       /* 47 */
+   "Instance_Of ",                      /* 48 */
+   "Integral_Constant ",                /* 49 */
+   "Integral_Constant_Units ",          /* 50 */
+   "Issue_Confirmed_Notifications ",    /* 51 */
+   "Limit_Enable ",                     /* 52 */
+   "List_Of_Group_Members ",            /* 53 */
+   "List_Of_Object__References ",  /* 54 */
+   "List_Of_Session_Keys ",             /* 55 */
+   "Local_Date ",                       /* 56 */
+   "Local_Time ",                       /* 57 */
+   "Location ",                         /* 58 */
+   "Low_Limit ",                        /* 59 */
+   "Manipulated_Variable_Reference ",   /* 60 */
+   "Maximum_Output ",                   /* 61 */
+   "Max_Apdu_Length_Accepted ",         /* 62 */
+   "Max_Info_Frames ",                  /* 63 */
+   "Max_Master ",                       /* 64 */
+   "Max_Pres_Value ",                   /* 65 */
+   "Minimum_Off_Time ",                 /* 66 */
+   "Minimum_On_Time ",                  /* 67 */
+   "Minimum_Output ",                   /* 68 */
+   "Min_Pres_Value ",                   /* 69 */
+   "Model_Name ",                       /* 70 */
+   "Modification_Date ",                /* 71 */
+   "Notify_Type ",                      /* 72 */
    "Number_Of_APDU_Retries",                    /* 73 */
-   "Number_Of_States property",                 /* 74 */
-   "Object_Identifier property",                /* 75 */
-   "Object_List property",                      /* 76 */
-   "Object_Name property",                      /* 77 */
-   "Object_Property_Reference property",        /* 78 */
-   "Object_Type property",                      /* 79 */
-   "Optional property",                         /* 80 */
-   "Out_Of_Service property",                   /* 81 */
-   "Output_Units property",                     /* 82 */
-   "Event-Parameters property",                 /* 83 */
-   "Polarity property",                         /* 84 */
-   "Present_Value property",                    /* 85 */
-   "Priority property",                         /* 86 */
-   "Priority_Array property",                   /* 87 */
-   "Priority_For_Writing property",             /* 88 */
-   "Process_Identifier property",               /* 89 */
-   "Program_Change property",                   /* 90 */
-   "Program_Location property",                 /* 91 */
-   "Program_State property",                    /* 92 */
-   "Proportional_Constant property",            /* 93 */
-   "Proportional_Constant_Units property",      /* 94 */
-   "Protocol_Conformance_Class property",       /* 95 */
-   "Protocol_Object_Types_Supported property",  /* 96 */
-   "Protocol_Services_Supported property",      /* 97 */
-   "Protocol_Version property",                 /* 98 */
-   "Read_Only property",                        /* 99 */
-   "Reason_For_Halt property",                  /* 100 */
-   "Recipient property",                        /* 101 */
-   "Recipient_List property",                   /* 102 */
-   "Reliability property",                      /* 103 */
-   "Relinquish_Default property",               /* 104 */
-   "Required property",                         /* 105 */
-   "Resolution property",                       /* 106 */
-   "Segmentation_Supported property",           /* 107 */
-   "Setpoint property",                         /* 108 */
-   "Setpoint_Reference property",               /* 109 */
-   "State_Text property",                       /* 110 */
-   "Status_Flags property",                     /* 111 */
-   "System_Status property",                    /* 112 */
-   "Time_Delay property",                       /* 113 */
-   "Time_Of_Active_Time_Reset property",        /* 114 */
-   "Time_Of_State_Count_Reset property",        /* 115 */
-   "Time_Synchronization_Recipients property",  /* 116 */
-   "Units property",                            /* 117 */
-   "Update_Interval property",                  /* 118 */
-   "UTC_Offset property",                       /* 119 */
-   "Vendor_Identifier property",                /* 120 */
-   "Vendor_Name property",                      /* 121 */
-   "Vt_Classes_Supported property",             /* 122 */
-   "Weekly_Schedule property",                  /* 123 */
+   "Number_Of_States ",                 /* 74 */
+   "Object_Identifier ",                /* 75 */
+   "Object_List ",                      /* 76 */
+   "Object_Name ",                      /* 77 */
+   "Object__Reference ",        /* 78 */
+   "Object_Type ",                      /* 79 */
+   "Optional ",                         /* 80 */
+   "Out_Of_Service ",                   /* 81 */
+   "Output_Units ",                     /* 82 */
+   "Event-Parameters ",                 /* 83 */
+   "Polarity ",                         /* 84 */
+   "Present_Value ",                    /* 85 */
+   "Priority ",                         /* 86 */
+   "Priority_Array ",                   /* 87 */
+   "Priority_For_Writing ",             /* 88 */
+   "Process_Identifier ",               /* 89 */
+   "Program_Change ",                   /* 90 */
+   "Program_Location ",                 /* 91 */
+   "Program_State ",                    /* 92 */
+   "Proportional_Constant ",            /* 93 */
+   "Proportional_Constant_Units ",      /* 94 */
+   "Protocol_Conformance_Class ",       /* 95 */
+   "Protocol_Object_Types_Supported ",  /* 96 */
+   "Protocol_Services_Supported ",      /* 97 */
+   "Protocol_Version ",                 /* 98 */
+   "Read_Only ",                        /* 99 */
+   "Reason_For_Halt ",                  /* 100 */
+   "Recipient ",                        /* 101 */
+   "Recipient_List ",                   /* 102 */
+   "Reliability ",                      /* 103 */
+   "Relinquish_Default ",               /* 104 */
+   "Required ",                         /* 105 */
+   "Resolution ",                       /* 106 */
+   "Segmentation_Supported ",           /* 107 */
+   "Setpoint ",                         /* 108 */
+   "Setpoint_Reference ",               /* 109 */
+   "State_Text ",                       /* 110 */
+   "Status_Flags ",                     /* 111 */
+   "System_Status ",                    /* 112 */
+   "Time_Delay ",                       /* 113 */
+   "Time_Of_Active_Time_Reset ",        /* 114 */
+   "Time_Of_State_Count_Reset ",        /* 115 */
+   "Time_Synchronization_Recipients ",  /* 116 */
+   "Units ",                            /* 117 */
+   "Update_Interval ",                  /* 118 */
+   "UTC_Offset ",                       /* 119 */
+   "Vendor_Identifier ",                /* 120 */
+   "Vendor_Name ",                      /* 121 */
+   "Vt_Classes_Supported ",             /* 122 */
+   "Weekly_Schedule ",                  /* 123 */
+   "Attempted_Samples ",                /* 124 */
+   "Average_Value ",                    /* 125 */
+   "Buffer_Size ",                      /* 126 */
+   "Client_Cov_Increment ",             /* 127 */
+   "Cov_Resubscription_Interval ",      /* 128 */
+   "Current_Notify_Time ",              /* 129 */
+   "Event_Time_Stamps ",                /* 130 */
+   "Log_Buffer ",                       /* 131 */
+   "Log_Device_Object_ ",       /* 132 */
+   "Log_Enable ",                       /* 133 */
+   "Log_Interval ",                     /* 134 */
+   "Maximum_Value ",                    /* 135 */
+   "Minimum_Value ",                    /* 136 */
+   "Notification_Threshold ",           /* 137 */
+   "Previous_Notify_Time ",             /* 138 */
+   "Protocol_Revision ",                /* 139 */
+   "Records_Since_Notification ",       /* 140 */
+   "Record_Count ",                     /* 141 */
+   "Start_Time ",                       /* 142 */
+   "Stop_Time ",                        /* 143 */
+   "Stop_When_Full ",                   /* 144 */
+   "Total_Record_Count ",               /* 145 */            
+   "Valid_Samples ",                    /* 146 */
+   "Window_Interval ",                  /* 147 */
+   "Window_Samples ",                   /* 148 */
+   "Maximum_Value_Timestamp ",          /* 149 */
+   "Minimum_value_Timestamp ",          /* 150 */
+   "Variance_Value ",                   /* 151 */
    };
 
 char *BACnetPropertyReference[] = {
@@ -722,8 +767,13 @@ char *BACnetServicesSupported[] = {
    "UnconfirmedTextMessage",        /* 31 */
    "TimeSynchronization",           /* 32 */
    "Who-Has",                       /* 33 */
-   "Who-Is"                         /* 34 */
-   };
+   "Who-Is",                        /* 34 */
+   "ReadRange",						/* 35*/
+   "UtcTimeSynchronization",	    /* 36 */
+   "LifeSafetyOperation",		    /* 37 */
+   "SubscribeCOVProperty",		    /* 38 */ 
+   "GetEventInformation"			/* 39 */
+   };								 
 
 char *BACnetSessionKey[] = {
    "Session Key",
@@ -744,13 +794,15 @@ char *BACnetStatusFlags[] = {
    "OUT_OF_SERVICE"
    };
 
+/*
 char *BACnetTimeStamp[] = {
    "Time",
    "Sequence Number",
    "Date-Time"
    };
 
-char *BACnetVendorID[] = {
+*/
+  char *BACnetVendorID[] = {
    "ASHRAE",
    "NIST",
    "Trane",
@@ -1548,6 +1600,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                case 14: /* Multistate_Input - Unsigned */
                case 15: /* Multistate_Output - Unsigned */
                case 17: /* Schedule - ANY Primitive Type */
+			   case 19: /* Multistate_Value - Unsigned */
                         show_application_data(x);
                         break;
                case 3:  /* Binary_Input - BACnetBinaryPV */
@@ -1776,6 +1829,101 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
              show_bac_time_value();
              };
            break;
+      case ATTEMPTED_SAMPLES:             // Unsigned 32		   
+           show_application_data(x);
+           break;
+      case AVERAGE_VALUE: 	              // Real		   
+           show_application_data(x);
+           break;
+      case BUFFER_SIZE:                   // Unsigned 32        
+           show_application_data(x);
+           break;
+      case CLIENT_COV_INCREMENT:          // BACnetClientCOV     
+           //break;
+      case COV_RESUBSCRIPTION_INTERVAL:	  // Unsigned 32
+           show_application_data(x);
+           break;
+      case PREVIOUS_NOTIFY_TIME:       	  // BACnetDateTime
+           //break;
+      case CURRENT_NOTIFY_TIME:        	  // BACnetDateTime
+           show_application_data(x);
+           show_application_data(pif_get_byte(0));
+           break;
+      case EVENT_TIME_STAMPS:          	  // Array of BACnetTimeStamp
+           if (prop_idx == 0) {
+             show_application_tag(x);
+             bac_show_byte("Array Size","%u");
+             break;
+             };
+           while ((x & 0x0f) != 0x0f) {
+             show_application_data(x);
+             x = pif_get_byte(0);
+             };
+           break;
+      case LOG_BUFFER:                 	  // List of BACnetLogRecord
+		  // We need a function to decode this.
+           break;
+      case LOG_DEVICE_OBJECT_PROPERTY: 	  // BACnetDeviceObjectReferenceProperty
+           show_bac_obj_prop_ref();
+           break;
+      case LOG_ENABLE:                    // Boolean             
+           show_application_data(x);
+           break;
+      case LOG_INTERVAL:                  // Unsigned            
+           show_application_data(x);
+           break;
+      case MAXIMUM_VALUE:                 // Real			   
+           show_application_data(x);
+           break;
+      case MINIMUM_VALUE: 			   	  // Real
+           show_application_data(x);
+           break;
+      case NOTIFICATION_THRESHOLD:     	  // Unsigned 32
+           show_application_data(x);
+           break;
+      case PROTOCOL_REVISION:         	  // Unsigned 32
+
+           //break;
+      case RECORDS_SINCE_NOTIFICATION: 	  // Unsigned 32
+           show_application_data(x);
+           break;
+      case RECORD_COUNT:                  // Unsigned 32            
+           show_application_data(x);
+           break;
+      case START_TIME:                   // BACnetDateTime            
+           show_application_data(x);
+           show_application_data(pif_get_byte(0));
+           break;
+      case STOP_TIME:                    //BACnetDateTime             
+           show_application_data(x);
+           show_application_data(pif_get_byte(0));
+           break;
+      case STOP_WHEN_FULL:               // Boolean         
+           show_application_data(x);
+           break;
+      case TOTAL_RECORD_COUNT:           // Unsigned 32      
+           show_application_data(x);
+           break;
+      case VALID_SAMPLES: 			   	 // Unsigned 32
+           show_application_data(x);
+           break;
+      case WINDOW_INTERVAL: 		   	 // Unsigned 32
+           show_application_data(x);
+           break;
+      case WINDOW_SAMPLES: 			   	 // Unsigned 32
+           show_application_data(x);
+           break;
+      case MAXIMUM_VALUE_TIMESTAMP:    	 // BACnetDateTime
+           show_application_data(x);
+           show_application_data(pif_get_byte(0));
+           break;
+      case MINIMUM_VALUE_TIMESTAMP:    	 // BACnetDateTime
+           show_application_data(x);
+           show_application_data(pif_get_byte(0));
+           break;
+      case VARIANCE_VALUE: 			   	 // Real
+           show_application_data(x);
+           break;
       default:
            bac_show_byte("Error: Unknown Property Identifier","%u");
 
@@ -1789,8 +1937,10 @@ int bac_extract_obj_type( void )
     identifer and returns the integer value of the enumeration. */
 { 
 #if 0
-  union {
-    struct {
+  union 
+  {
+    struct 
+    {
       unsigned char lo;
       unsigned char hi;
       } byte;

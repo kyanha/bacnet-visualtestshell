@@ -1,5 +1,6 @@
 //PROPS.H
 //property definitions for standard objects
+#include "VTS.h"
 #ifndef __PROPS_H_INCLUDED
 #define __PROPS_H_INCLUDED
 
@@ -47,6 +48,8 @@
 #define ttime				40					//time
 #define looref				41					//list of objectid references
 #define ssint				42					//short (2-byte) signed integer  MAG 13 FEB 2001
+#define LOGREC				43					//LogRecord
+#define TSTMP           44             // BACnetTimeStamp
 #define enull				254					//null enumeration
 #define	none				255					//no parsing required, runtime generated value
 
@@ -237,6 +240,34 @@ static const char *stPropIDs[]={
 				"vendor-name",
 				"vt-classes-supported",
 				"weekly-schedule",
+				"attempted_samples",                        
+				"average_value",                            
+				"buffer_size",                              
+				"client_cov_increment",                     
+				"cov_resubscription_interval",              
+				"current_notify_time",                      
+				"event_time_stamps",                        
+				"log_buffer",                               
+				"log_device_object_property",               
+				"log_enable",                               
+				"log_interval",                             
+				"maximum_value",                            
+				"minimum_value",                            
+				"notification_threshold",                   
+				"previous_notify_time",                     
+				"protocol_revision",                        
+				"records_since_notification",               
+				"record_count",                             
+				"start_time",                               
+				"stop_time",                                
+				"stop_when_full",                           
+				"total_record_count",                       
+				"valid_samples",                            
+				"window_interval",                          
+				"window_samples",                           
+				"maximum_value_timestamp",                  
+				"minimum_value_timestamp",                  
+				"variance_value",                           
 				NULL /*always last*/
 				};
 //qualifiers in PropFlags

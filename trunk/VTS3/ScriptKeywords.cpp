@@ -188,6 +188,12 @@ ScriptTranslateTable ScriptObjectTypeMap[] =
 	, { 0x71D084EF, 16 }					// PRO
 	, { 0x105A8215, 17 }					// SCHEDULE
 	, { 0xFA230323, 17 }					// SCH
+	, { 0x3771A5E3, 18 }					// AVERAGING
+	, { 0x52B95396, 18 }					// AVG
+	, { 0xE83992C9, 19 }					// MULTISTATE-VALUE
+	, { 0x5D3473DF, 19 }					// MSV
+	, { 0xAE9EAB5C, 20 }					// TRENDLOG
+	, { 0xC2E8CFF0, 20 }					// TR
 	, { 0, 0 }
 	};
 

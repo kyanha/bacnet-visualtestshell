@@ -412,7 +412,7 @@ void EnrollmentSummaryList::OnChangeObjectID( void )
 			,		typeBuff[32]
 			;
 
-			if (objType < 18 /* sizeof(NetworkSniffer::BACnetObjectType) */)
+			if (objType < MAX_DEFINED_OBJ /* sizeof(NetworkSniffer::BACnetObjectType) */)
 				s = NetworkSniffer::BACnetObjectType[objType];
 			else
 			if (objType < 128)

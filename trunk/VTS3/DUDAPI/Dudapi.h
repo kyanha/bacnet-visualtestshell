@@ -52,7 +52,12 @@ enum BACnetApplServ
    asUnconfirmedTextMessage,        //31
    asTimeSynchronization,           //32
    asWho_Has,                       //33
-   asWho_Is                         //34
+   asWho_Is, 						//34
+   asRead_Range,					//35
+   asUTC_Time_Synchronization,		//36
+   asLifeSafetyOperation,		    //37 
+   asSubscribeCOVProperty,		    //38  
+   asGetEventInformation,			//39
  };
 
 
@@ -127,7 +132,7 @@ short APIENTRY GetPropValue(char far* Buffer, PVMessage far* msg);					//***002
 short APIENTRY GetPropIndex(word object_type, dword PropId);
 
 short APIENTRY CheckObjTypeDevPics(char far* StdObj, generic_object far* pdbRoot,
-									octet far resObjDev[18], octet far resObjPICS[18]); //***002
+									octet far resObjDev[MAX_DEFINED_OBJ], octet far resObjPICS[MAX_DEFINED_OBJ]); //***002
 short APIENTRY CheckConfClass(word ConfClass, char far ApplServ[35], char far Result[35], 
 								generic_object far* root, TObjProp far resObj[64], short far* eol); //***002
 short APIENTRY CheckFunctionalGroup(dword FuncGroup, char far ApplServ[35], char far Result[35], 

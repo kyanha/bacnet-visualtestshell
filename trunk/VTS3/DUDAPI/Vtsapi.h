@@ -10,6 +10,7 @@ typedef unsigned short uint;
 
 #include	"db.h"
 #include	"stdobj.h"
+#include    "VTS.h"
 
 #ifndef _etable
 typedef struct {
@@ -43,8 +44,8 @@ typedef	struct {
 	word	RouterFunctions;
 	dword	BACnetFunctionalGroups;				//bitmap of functional groups supported
 	octet	BACnetCharsets;						//bitmap of std charactersets supported
-	octet	BACnetStandardServices[35];			//array of standard services supported
-	octet	BACnetStandardObjects[18];			//array of standard objects supported
+	octet	BACnetStandardServices[MAX_SERVS_SUPP];			//array of standard services supported
+	octet	BACnetStandardObjects[MAX_DEFINED_OBJ];			//array of standard objects supported
 	word	DataLinkLayerOptions;
 	dword	MSTPmasterBaudRates[16];
 	dword	MSTPslaveBaudRates[16];

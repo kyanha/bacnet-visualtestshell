@@ -127,7 +127,35 @@ enum BACnetPropertyIdentifier
 		VENDOR_IDENTIFIER,						//120
 		VENDOR_NAME,							//121
 		VT_CLASSES_SUPPORTED,					//122
-		WEEKLY_SCHEDULE							//123
+		WEEKLY_SCHEDULE,							//123
+        ATTEMPTED_SAMPLES, 		                //124
+        AVERAGE_VALUE, 			                //125
+        BUFFER_SIZE,                             //126
+        CLIENT_COV_INCREMENT,                    //127
+        COV_RESUBSCRIPTION_INTERVAL,             //128
+        CURRENT_NOTIFY_TIME,                     //129
+        EVENT_TIME_STAMPS,                       //130
+        LOG_BUFFER,                              //131
+        LOG_DEVICE_OBJECT_PROPERTY,              //132
+        LOG_ENABLE,                              //133
+        LOG_INTERVAL,                            //134
+        MAXIMUM_VALUE, 			                //135
+        MINIMUM_VALUE, 			                //136
+        NOTIFICATION_THRESHOLD,                  //137
+        PREVIOUS_NOTIFY_TIME,                    //138
+        PROTOCOL_REVISION,                       //139
+        RECORDS_SINCE_NOTIFICATION,              //140
+        RECORD_COUNT,                            //141
+        START_TIME,                              //142
+        STOP_TIME,                               //143
+        STOP_WHEN_FULL,                          //144
+        TOTAL_RECORD_COUNT,                      //145            
+        VALID_SAMPLES, 			                //146
+        WINDOW_INTERVAL, 		                //147
+        WINDOW_SAMPLES, 			                //148
+        MAXIMUM_VALUE_TIMESTAMP,                 //149
+        MINIMUM_VALUE_TIMESTAMP,                 //150
+        VARIANCE_VALUE 			                //151
 	};
 
 #endif

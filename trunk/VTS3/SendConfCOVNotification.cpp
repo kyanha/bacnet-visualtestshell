@@ -199,7 +199,7 @@ BOOL CSendConfCOVNotification::OnInitDialog()
 
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (int i = 0; i < 124; i++)
+	for (int i = 0; i < MAX_PROP_ID; i++)
 		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	return TRUE;
@@ -312,7 +312,7 @@ void CSendConfCOVNotification::OnChangePriority()
 //
 
 COVNotificationElem::COVNotificationElem( CSendPagePtr wp )
-	: cnePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, 124, true )
+	: cnePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, cneArrayIndex( wp, IDC_ARRAYINDEX )
 	, cnePriority( wp, IDC_PRIORITYX )
 {

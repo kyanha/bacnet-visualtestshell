@@ -172,7 +172,7 @@ BOOL CSendReadPropMult::OnInitDialog()
 	
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (int i = 0; i < 124; i++)
+	for (int i = 0; i < MAX_PROP_ID; i++)
 		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	return TRUE;
@@ -238,7 +238,7 @@ void CSendReadPropMult::OnChangeArrayIndex()
 //
 
 ReadPropElem::ReadPropElem( CSendPagePtr wp )
-	: rpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, 124, true )
+	: rpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
 	, rpeArrayIndex( wp, IDC_ARRAYINDEX )
 {
 	// controls start out disabled
