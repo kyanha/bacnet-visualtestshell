@@ -8,6 +8,7 @@
 #include "ChildFrm.h"
 #include "SummaryView.h"
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -37,6 +38,8 @@ BEGIN_MESSAGE_MAP(CSummaryView, CScrollView)
 	ON_WM_CANCELMODE()
 	ON_WM_SETFOCUS()
 	ON_WM_KILLFOCUS()
+	ON_WM_LBUTTONDBLCLK()
+	ON_WM_CAPTURECHANGED()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -199,19 +202,19 @@ void CSummaryView::OnKillFocus(CWnd* pNewWnd)
 	CScrollLineView::OnKillFocus(pNewWnd);
 }
 
-CChildFrame* CSummaryView::GetFrame()
-{
-	CWnd*	parent = GetParent();
+//CChildFrame* CSummaryView::GetFrame()
+//{
+//	CWnd*	parent = GetParent();
+//
+//	while (parent) {
+//		if (parent->IsKindOf(RUNTIME_CLASS(CChildFrame)))
+//			return (CChildFrame*)parent;
+//		parent = parent->GetParent();
+//	}
+//
+//	// bad news, this view is not a child of CChildFrame
+//	return NULL;
 
-	while (parent) {
-		if (parent->IsKindOf(RUNTIME_CLASS(CChildFrame)))
-			return (CChildFrame*)parent;
-		parent = parent->GetParent();
-	}
-
-	// bad news, this view is not a child of CChildFrame
-	return NULL;
-}
 
 void CSummaryView::ContextChange( CFrameContext::Signal s )
 {
@@ -232,6 +235,7 @@ void CSummaryView::ContextChange( CFrameContext::Signal s )
 //	be displayed in the summary view.  Note that it cannot rely on the 
 //	current packet, because it is independant of the current packet!
 //
+
 
 CString* CSummaryView::GetLineData(int lineNo)
 {
@@ -313,4 +317,40 @@ CString* CSummaryView::GetLineData(int lineNo)
 #endif
 
 	return pString;
+}
+
+BOOL CSummaryView::CreateView(CWnd* pParent,CCreateContext* pContext,RECT rect)
+{
+	DWORD dwStyle = AFX_WS_DEFAULT_VIEW;
+    // dwStyle &= ~WS_BORDER;
+
+    // Create with the right size (wrong position)
+    CRect rect1(0,0,300,300);
+
+    if (!Create(NULL, NULL, dwStyle,
+        rect1, pParent, AFX_IDW_PANE_FIRST,pContext))
+    {
+        TRACE0("Warning: couldn't create treeview pane!. \n");
+        return FALSE;
+    }
+
+	return TRUE;
+}
+
+void CSummaryView::OnLButtonDblClk(UINT nFlags, CPoint point) 
+{
+	// TODO: Add your message handler code here and/or call default
+	CWnd*	parent = GetParentFrame();
+
+	if(! ((CChildFrame*)parent)->m_pwndDetailViewBar->IsVisible())
+			((CChildFrame*)parent)->ShowControlBar( ((CChildFrame*)parent)->m_pwndDetailViewBar, TRUE, FALSE);
+
+	CScrollView::OnLButtonDblClk(nFlags, point);
+}
+
+void CSummaryView::OnCaptureChanged(CWnd *pWnd) 
+{
+	// TODO: Add your message handler code here
+	
+	CScrollView::OnCaptureChanged(pWnd);
 }

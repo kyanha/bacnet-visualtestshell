@@ -32,6 +32,7 @@ public:
 	VTSDoc*		GetDocument();
 
 	virtual void ContextChange( CFrameContext::Signal s );
+	BOOL CreateView(CWnd* pParent,CCreateContext* pContext,RECT rect);
 
 	CString* GetLineData(int lineNo);
 	void SetSelectedRange( int start, int len );
