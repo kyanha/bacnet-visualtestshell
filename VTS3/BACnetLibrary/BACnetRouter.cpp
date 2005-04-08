@@ -608,6 +608,9 @@ void BACnetRouter::ProcessNetMessage(
 			for (i = 0; i < adapterListLen; i++)
 				if (adapterList[i] != adapter)
 					BroadcastRoutingTable( adapterList[i] );
+
+            // msdanner 4/8/2005
+			delete netList;  // to fix memory leak
 			break;
 			
 		case ICouldBeRouterToNetwork:
