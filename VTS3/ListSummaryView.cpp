@@ -973,23 +973,27 @@ void CListSummaryView::SaveReg()
 	CString keyName;
 	DWORD keyValue;
 
-	regKey.Open(HKEY_LOCAL_MACHINE,	"Software\\vts3\\Columns");
-	
-	for(int index = 0; index < 10; index++)
+	// msdanner 4/8/2005:  added protection against trying to save
+	// keys that do not already exist.  This can happen on the initial upgrade
+	// to the first version of VTS that preserves column settings. 
+	if (regKey.Open(HKEY_LOCAL_MACHINE,	"Software\\vts3\\Columns") == ERROR_SUCCESS)
 	{
-		keyName.Format("%d", index);
-		if(m_bColumn[index])
-			keyValue = 1;
-		else
-			keyValue = 0;
+		for(int index = 0; index < 10; index++)
+		{
+			keyName.Format("%d", index);
+			if(m_bColumn[index])
+				keyValue = 1;
+			else
+				keyValue = 0;
 
-		regKey.SetValue(keyValue, keyName);		
+			regKey.SetValue(keyValue, keyName);		
 
-		keyName.Format("width%d", index);
-		keyValue = m_columnWidth[index];
-		regKey.SetValue(keyValue, keyName);		
-	}	
-	regKey.Close();
+			keyName.Format("width%d", index);
+			keyValue = m_columnWidth[index];
+			regKey.SetValue(keyValue, keyName);		
+		}	
+		regKey.Close();
+	}
 }
 
 void CListSummaryView::OnRButtonDown(UINT nFlags, CPoint point) 
