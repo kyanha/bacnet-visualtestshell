@@ -681,7 +681,23 @@ static char *FailTimes[]={						//								***019 Begin
 			"Program Object State Change Fail Time",		
 			"Acknowledgement Fail Time",				
 			};										//								***019 End
-static char *MonthNames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+
+// 5/9/05 Shiyuan Xiao. Support 135.1-2003
+static char *MonthNames[] = {
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December"
+};
+
 static char *DOWNames[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
 
 // conformance classes: -------------------------------------------------------------------------------------
@@ -1263,7 +1279,7 @@ bool APIENTRY ReadTextPICS(
 	generic_object *pd2;  // line added by MAG for debug only
 	lPICSErr=-1;
 	
-	//madanner 6/03: wasn't initializing cancel
+	//madanner 6/03: wasn't ini tializing cancel
 	cancel = false;
 	::DeleteFile("c:\\EPICSConsChk.txt");		//madanner 4/4
 	pfileError = fopen("c:\\EPICSConsChk.txt","a+");
@@ -1898,14 +1914,14 @@ nextobject:										//										***012
 									objtype=0xFFFF;		//pretend objid was bad
 								}
 								//added by xlp,2002-11
-                        if (objtype != 0xFFFF)  // msdanner 9/2004
-                        {
+								if (objtype != 0xFFFF)  // msdanner 9/2004
+								{
 								   ObjInTestDB[objtype].object_type=objtype;       
 								   ObjInTestDB[objtype].ObjIDSupported|=soSupported;
 								   i=ObjInTestDB[objtype].ObjInstanceNum;
 								   ObjInTestDB[objtype].ObjInstanceNum++;
 								   ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;     
-                        }
+								}
 								//ended by xlp,2002-11
 
 								pobj->propflags[typeProp]|=PropIsPresent; //remember we saw object type		***014 Begin
@@ -1923,14 +1939,14 @@ nextobject:										//										***012
 									objtype=0xFFFF;		//pretend objid was bad
 								}
 								//added by xlp,2002-11
-                        if (objtype != 0xFFFF) // msdaner 9/2004
-                        {
+							    if (objtype != 0xFFFF) // msdaner 9/2004
+							    {
 								  ObjInTestDB[objtype].object_type=objtype;       
 								  ObjInTestDB[objtype].ObjIDSupported|=soSupported;
 								  i=ObjInTestDB[objtype].ObjInstanceNum;
 								  ObjInTestDB[objtype].ObjInstanceNum++;
 								  ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;     
-                        }
+								}
 								//ended by xlp,2002-11
 								pobj->propflags[idProp]|=PropIsPresent;	//remember we saw ID				***014 Begin
 								while (*lp==space||*lp==',') lp++;	//skip any more whitespace or commas
@@ -4517,6 +4533,8 @@ oprfail:
 ///////////////////////////////////////////////////////////////////////				***008 Begin
 //	read a list BACnetCalendarEntrys from the buffer lp points to
 //	((m/d/y dow),(d-m-y dow),(m,wom,dow),(date..date)...)
+//  ((dow, d-m-y), (date..date)...) Shiyuan Xiao. According to standard 135.1-2003.
+
 //in:	lp		points to current position in buffer lb
 //		calp	points to a variable which should point to a list of BACnetCalendarEntrys
 //out:	true	if an error occurred
@@ -4571,7 +4589,8 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 		{	tperror("Can't Get Object Space!",true);
 			goto calx;
 		}
-		if (strchr(lp,',')!=NULL)				//must be WeekNDay
+//		if (strchr(lp,',')!=NULL)				//must be WeekNDay
+		if (strchr(lp,'X')!=NULL)				//must be WeekNDay
 		{	q->choice=2;						//WeekNDay
 			skipwhitespace();
 			q->u.weekNday.month=dontcare;
@@ -4824,7 +4843,8 @@ BOOL ParseDateTime(BACnetDateTime *dtp)
 //out:	true	if cancel selected
 
 BOOL ParseDate(BACnetDate *dtp)
-{	octet	db;
+{
+	octet	db;
 	word	i;
     char c;
 	
@@ -4835,84 +4855,111 @@ BOOL ParseDate(BACnetDate *dtp)
 	dtp->day_of_week=dontcare;
 	skipwhitespace();
 	print_debug("PD: about to read first set\n");
+
+	if( strchr(lp, ',') != NULL)	//must have a day of week
+    {  
+		c=*lp;
+		if(c=='?'|| c=='*') 
+		{
+			lp++;
+			dtp->day_of_week=dontcare;
+		}
+		else
+		{
+			for(i=0;i<7;i++)
+			{
+				if (strnicmp(DOWNames[i], lp, strlen(DOWNames[i])) == 0)
+				{	
+					dtp->day_of_week=(octet)i+1;	//days are 1-7
+					lp += strlen(DOWNames[i]);		//skip day name		***013
+					skipwhitespace();
+					lp++; //skip ','
+					break;
+				}
+			}
+			
+		}
+	}
+	
+	skipwhitespace();
+	
     if ((db=ReadB(1,31))!=dontcare)				//not wild
-    {	if (lp[-1]=='/')						//was it month/day/year?
-    	{	print_debug("PD: find month first\n");
+    {
+		if (lp[-1]=='/')						//was it month/day/year?
+		{	
+			print_debug("PD: find month first\n");
 			if (db>12)							//yes
-    		{	tperror("Month must be 1-12!",true);
+			{	
+				tperror("Month must be 1-12!",true);
 				return true;
 			}
+
 			dtp->month=db;
-    	}
-    	else									//must be day-month-year
-    	{	print_debug("PD: find day of month first\n");
+		}
+		else									//must be day-month-year
+		{	
+			print_debug("PD: find day of month first\n");
 			if (db>31)
-    		{	tperror("Day of month must be 1-31!",true);
-    			return true;
-    		}
-    		dtp->day_of_month=db;
-    	}
-    } else print_debug("PD: first value not specified\n");
+			{
+				tperror("Day of month must be 1-31!",true);
+				return true;
+			}
+			dtp->day_of_month=db;
+		}
+    } 
+	else 
+		print_debug("PD: first value not specified\n");
+	
 	print_debug("PD: About to read second set, db = %d lp = '%s' lp[-1] = '%c' \n",db,lp,&lp[-1]);
+
     if (lp[-1]=='/')      //was it month/day/year?
-    {	print_debug("PD: second set slash case\n");
+    {	
+		print_debug("PD: second set slash case\n");
+
 		if ((db=ReadB(1,31))!=dontcare)			//we'll check for valid days later
-    		dtp->day_of_month=db;
+		dtp->day_of_month=db;
     }
     else if (lp[-1]=='-')						//day-month-year
-    {	print_debug("PD: second set dash case\n");
+    {	
+		print_debug("PD: second set dash case\n");
+
 		for (i=0;i<12;i++)
-    		if (strnicmp(lp,MonthNames[i],3)==0)
-    		{	dtp->month=(octet)i+1;			//months are 1-12
-    			lp+=3;							//added by Liangping Xu
-			    break;
-    		}
-    	if ((strdelim("-"))==NULL)
-		{	tperror("Must use monthname-year here!",true);
+			if (strnicmp(lp,MonthNames[i],3)==0)
+			{	dtp->month=(octet)i+1;			//months are 1-12
+			lp+=3;							//added by Liangping Xu
+			break;
+			}
+			if ((strdelim("-"))==NULL)
+			{	tperror("Must use monthname-year here!",true);
 			return true;
-    	}
+			}
     }
     else if (lp[-1]!=',')
 	{	tperror("Must use month/day/year or day-monthname-year here!",true);
-		return true;
+	return true;
 	}
     
 	print_debug("PD: About to read third set\n");
     if (i=ReadW())								//not wild
-    {	if (i>2154)								//can't represent this date
-    	{	tperror("Can't represent dates beyond 2154!",true);
-    		return true;
-    	}
-    	if (i>254&&i<1900)
-    	{	tperror("Can't represent this year!",true);
-    		return true;
-    	}
-    	if (i>=1900) i-=1900;// MAG fix bug here when date==1900 by change > to >= 08 FEB 2001
-    	dtp->year=(octet)i;
-    }
-    if (lp[-1]==space)							//must have a day of week
-    {   c=*lp;
-	if(c=='?'|| c=='*') {
-	 lp++;
-	 dtp->day_of_week=dontcare;
-	}
-		else{
-		for(i=0;i<7;i++)
-    		if (strnicmp(lp,DOWNames[i],3)==0)
-    		{	dtp->day_of_week=(octet)i+1;	//days are 1-7
-    			lp+=3;							//skip day name						***013
-    			break;
-    		}
+    {	
+		if (i>2154)								//can't represent this date
+		{	
+			tperror("Can't represent dates beyond 2154!",true);
+			return true;
 		}
-	}
 
-	else if(lp[-1]==')') {                    //added by Liangping Xu,2002-9
-	print_debug("PD: Exit ParseDate normal\n");	
-	return false;        
-	}
-	
-	else
-    	lp--;									//point back to delimiter
+		if (i>254&&i<1900)
+		{	
+			tperror("Can't represent this year!",true);
+			return true;
+		}
+
+		if (i>=1900) 
+			i-=1900;// MAG fix bug here when date==1900 by change > to >= 08 FEB 2001
+
+		dtp->year=(octet)i;
+    }
+    
 	print_debug("PD: Exit ParseDate normal\n");
 	return false;
 }
@@ -5784,6 +5831,7 @@ brfail:
 
 
 ///////////////////////////////////////////////////////////////////////
+//  5/13/05 Shiyuan xiao. Support ASHRAE Standard 135.1-2003
 //	parse a string parameter
 //in:	p		points to string variable to contain the result
 //		ps		max size of p
@@ -5796,25 +5844,35 @@ brfail:
 //out:	true		if cancel selected
 
 BOOL setstring(char *p,word ps, char *param)
-{	char	q;
+{
+	char	q;
 	word	i;
 
-	lp=param;									//									***008
+	lp = param;									//									***008
 	skipwhitespace();
-	q=*lp++;
-	if (q==singlequote||q==doublequote)
-	{	for (i=0;i<(ps-1);i++)					//copy until end of line, end of string or ps chars copied
-		  if (*lp==q)
-		  {	lp++;								//skip trailing quote				***012 Begin
-		  	break;
-		  }
-		  else if (*lp==0)						//									***012 End
-			break;								//found end of line
-		  else
-		  	*p++=*lp++;
+	q = *lp++;
+	if (q == singlequote || q == doublequote || q == accentgrave)
+	{
+		for (i = 0; i < (ps-1); i++)					//copy until end of line, end of string or ps chars copied
+		{
+			if (*lp == q )
+			{	
+				lp++;								//skip trailing quote
+				break;
+			}
+			else if (*lp == 0 || *lp == 0x0a)		//0x0a, the end of the line
+			{
+				break;								//found end of line
+			}
+			else
+				*p++ = *lp++;
+		}
+
 		*p=0;									//mark end with asciz
+		
 		return false;
 	}
+	
 	return tperror("Expected string parameter here",true);
 }
 
@@ -6115,8 +6173,9 @@ static void readline(char *lp,int lps)
 			HaveNonWS=TRUE;
 			break; 
 		case accentgrave:
-			c=singlequote;						//matching quote is singlequote
-			goto rlquote;
+			//c=singlequote;						//matching quote is singlequote
+			//goto rlquote;
+			// 5/13/05 shiyuan xiao. 135.1-2003
 		case doublequote:
 		case singlequote:
 rlquote:	*dp++=c;
