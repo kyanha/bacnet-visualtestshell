@@ -527,4 +527,13 @@ typedef struct
 	 dword									last_notify_record;		//Added by Zhu Zhenhua, 2004-5-11
    } trend_obj_type;
 
+// 5-23-2005 Shiyuan Xiao
+// --------------------------------------------------------
+// Proprietary Object
+// --------------------------------------------------------
+typedef struct
+{
+    generic_object go;
+} proprietary_obj_type;
+
 #endif //__STDOBJ_H_INCLUDED

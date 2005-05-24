@@ -342,7 +342,12 @@ void CEPICSViewNodeObject::LoadInfoPanel()
 	if ( gPICSdb && pObj )
 	{
 		strcat(szPropHeader, " - ");
-		strcat(szPropHeader, PICS::GetObjectTypeName(pObj->object_type));
+
+		// 5-23-2005 Shiyuan Xiao
+		if(pObj->object_type < 128)
+			strcat(szPropHeader, PICS::GetObjectTypeName(pObj->object_type));
+		else
+			strcat(szPropHeader, "Proprietary Object");
 	}
 
 	ppanel->Reset(this, szPropHeader);
@@ -359,6 +364,7 @@ void CEPICSViewNodeObject::LoadInfoPanel()
 		BACnetAnyValue bacnetAnyValue;
 
 		for (int i = 0; i < sizeof(pObj->propflags); i++ )
+		{
 			if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID, NULL) > 0 )
 			{
 				listCtrl.InsertItem(x, NetworkSniffer::BACnetPropertyIdentifier[dwPropID] );
@@ -383,6 +389,7 @@ void CEPICSViewNodeObject::LoadInfoPanel()
 
 				x++;
 			}
+		}
 
 		// Now that all the properties are loaded into the list we can add our stored device values
 		// if we have some... Size of array must match our property list... so we can count on the list size

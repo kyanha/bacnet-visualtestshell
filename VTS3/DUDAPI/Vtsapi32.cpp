@@ -965,13 +965,26 @@ dword APIENTRY VTSAPIgetpropinfo(word objtype,word propindex,
 {	propdescriptor	*pt;
 	word			np;
 
-	if (objtype>=etObjectTypes.nes) return 0xFFFFFFFF;	//not a valid object type
-	pt=StdObjects[objtype].sotProps;					//point to table of properties for this guy
+	//if (objtype>=etObjectTypes.nes) return 0xFFFFFFFF;	//not a valid object type
+	//pt=StdObjects[objtype].sotProps;					//point to table of properties for this guy
+
+	if (objtype <= etObjectTypes.nes)  //not a standard object type
+		pt = StdObjects[objtype].sotProps;
+	else
+		pt = ProprietaryObjProps;	   //point to table of properties for this guy
+
 	np=1;												//always at least one property
 	while((pt->PropGroup&Last)==0) {np++;pt++;}			//count num props
 	if (propindex==0xFFFF) return (dword)np;			//just say how many properties there are
 	if (propindex>=np) return 0xFFFFFFFF;				//invalid property index
-	pt=StdObjects[objtype].sotProps;					//point to table of properties for this guy
+
+	//pt=StdObjects[objtype].sotProps;					//point to table of properties for this guy
+	
+	if (objtype <= etObjectTypes.nes)  //not a standard object type
+		pt = StdObjects[objtype].sotProps;
+	else
+		pt = ProprietaryObjProps;	   //point to table of properties for this guy
+
 	strcpy(pname,pt[propindex].PropertyName);			//return the name
 	if (ptype) *ptype=(word)pt[propindex].ParseType;
 	if (pgroup) *pgroup=(word)pt[propindex].PropGroup;
@@ -1861,16 +1874,17 @@ BOOL ReadFailTimes(PICSdb *pd)
 //out:	true		if cancel selected
 
 BOOL ReadObjects(PICSdb *pd)
-{		char	*pn;							//property name pointer
-		char	objname[32];
-		BOOL	WeKnowObjectType;
-		word	objtype;						//enumeration value for object type
-		dword	objid;							//object identifier
-		octet	fType,fID,fName;				//										***014
-generic_object	*pobj,*po,*polast;					//pointers to objects
-      BOOL    i;                            
-	ReadNext();									//point to next token					***008
-	if (lp==NULL||*lp++!='{')					//no open token
+{	
+	char	*pn;							//property name pointer
+	char	objname[32];
+	BOOL	WeKnowObjectType;
+	word	objtype;						//enumeration value for object type
+	dword	objid;							//object identifier
+	octet	fType,fID,fName;				//										***014
+	generic_object	*pobj,*po,*polast;		//pointers to objects
+    BOOL    i;                            
+	ReadNext();								//point to next token					***008
+	if (lp==NULL||*lp++!='{')				//no open token
 		return tperror("Expected { here",true);
 
 	while (lp!=NULL&&!cancel)
@@ -1885,31 +1899,39 @@ nextobject:										//										***012
 		ReadNext();								//point to next token					***008
 		if (*lp=='}'||lp==NULL) break;			//return, we're done with these
 		if (*lp)								//not a blank line
-		{	if (*lp=='{')						//begin a new object
-			{	WeKnowObjectType=false;			//don't know what kind yet
+		{	
+			if (*lp=='{')						//begin a new object
+			{	
+				WeKnowObjectType=false;			//don't know what kind yet
 				objtype=0;						//no object found yet
 				objname[0]=0;
 				fType=fID=fName=0;				//										***014
 				pobj=NULL;
 				while (true)					//(lp!=NULL)							***006
-				{	ReadNext();					//point to next token					***008
+				{	
+					ReadNext();					//point to next token					***008
 					if (*lp=='}'||lp==NULL) break;	//done with this object
 					if (objtype==0xFFFF)		//										***012
 						goto nextobject;		//once we find a bogus object type, we skip the rest of the object def
 					if (*lp)					//ignore blank lines
-					{	skipwhitespace();		//point to first char of name
+					{	
+						skipwhitespace();		//point to first char of name
 						pn=lp;
 						if ((lp=strchr(pn,':'))==NULL)		//find its end
-						{	lp=strchr(pn,0);	//point to the end
+						{	
+							lp=strchr(pn,0);	//point to the end
 							if (tperror("Expected : after property name here!",true))
 								return true;
 						}
 						*lp++=0;				//make property name asciz
 						if (WeKnowObjectType)
-						{	if (stricmp(pn,"object-type")==0)
-							{	lp[-1]=':';
-								if (objtype!=ReadEnum(&etObjectTypes))
-								{	if (tperror("The object-type does not agree with the object-identifier!",true))
+						{	
+							if (stricmp(pn,"object-type")==0)
+							{	
+								lp[-1]=':';
+								if ( objtype <=etObjectTypes.propes && objtype!=ReadEnum(&etObjectTypes) )
+								{	
+									if (tperror("The object-type does not agree with the object-identifier!",true))
 										return true;
 									objtype=0xFFFF;		//pretend objid was bad
 								}
@@ -1931,10 +1953,12 @@ nextobject:										//										***012
 								continue;
 							}
 							else if (stricmp(pn,"object-identifier")==0)
-							{	lp[-1]=':';
+							{	
+								lp[-1]=':';
 								objid=ReadObjID();
 								if (objtype!=(word)(objid>>22))
-								{	if (tperror("The object-type does not agree with the object-identifier!",true))
+								{	
+									if (tperror("The object-type does not agree with the object-identifier!",true))
 										return true;
 									objtype=0xFFFF;		//pretend objid was bad
 								}
@@ -1964,10 +1988,13 @@ nextobject:										//										***012
 							print_debug("RO: Done PP'ing\n");
 						}
 						else							//don't know what kind of object this is yet
-						{	if (stricmp(pn,"object-type")==0)
-							{	lp[-1]=':';
+						{	
+							if (stricmp(pn,"object-type")==0)
+							{	
+								lp[-1]=':';
 								if ((objtype=ReadEnum(&etObjectTypes))!=0xFFFF)
-								{	WeKnowObjectType=true;
+								{	
+									WeKnowObjectType=true;
 								    objid=((dword)objtype)<<22;
 									fType|=PropIsPresent; //remember we have the type						***014 Begin
 									while (*lp==space||*lp==',') lp++;	//skip any more whitespace or commas
@@ -1976,7 +2003,8 @@ nextobject:										//										***012
 								}
 							}
 							else if (stricmp(pn,"object-identifier")==0)
-							{	lp[-1]=':';
+							{	
+								lp[-1]=':';
 								if ((objid=ReadObjID())!=badobjid)
 								{	WeKnowObjectType=true;
 									objtype=(word)(objid>>22);
@@ -1989,7 +2017,8 @@ nextobject:										//										***012
 									objtype=0xFFFF;		//object identifier was bogus
 							}
 							else if (stricmp(pn,"object-name")==0)
-							{	lp[-1]=':';
+							{	
+								lp[-1]=':';
 								if (setstring(objname,sizeof(objname),lp)) return true;
 								fName|=PropIsPresent;	//remember we have the name							***014 Begin
 								while (*lp==space||*lp==',') lp++;	//skip any more whitespace or commas
@@ -1997,16 +2026,43 @@ nextobject:										//										***012
 									fType|=PropIsWritable;			//										***014 End
 							}
 							else
-							{	lp[-1]=':';
+							{	
+								lp[-1]=':';
 								if (tperror("Must identify the object-identifier or object-type before defining this property!",true))
 									return true;
 							}
 							if (WeKnowObjectType)		//just found out what type it is
-							{	if (objtype>=etObjectTypes.propes)	//this is a proprietary object type
-								{	tperror("Sorry, this version does not support Proprietary Objects in TextPICS!",true);
-									objtype=0xFFFF;		//pretend objid was bad
+							{	
+								// 5-23-05 Shiyuan Xiao.
+//								if (objtype>=etObjectTypes.propes)	//this is a proprietary object type
+//								{	
+//									tperror("Sorry, this version does not support Proprietary Objects in TextPICS!",true);
+//									objtype=0xFFFF;		//pretend objid was bad
+//									continue;
+//								}
+
+								if (objtype>=etObjectTypes.propes)
+								{
+									if ((pobj=(generic_object *)malloc(sizeof(proprietary_obj_type)))==NULL)		//can't allocate space for it
+									{	
+										tperror("Can't allocate space for this object...",true);
+										objtype=0xFFFF;		//pretend objid was bad
+										continue;
+									}
+									
+									memset(pobj, 0, sizeof(proprietary_obj_type));	//zero it out first
+									pobj->next = NULL;
+									pobj->object_id = objid;
+									pobj->object_type = objtype;
+									memcpy(&pobj->object_name[0], &objname[0],32);
+
+									pobj->propflags[typeProp]|=fType;	//found type	***014 Begin
+									pobj->propflags[idProp]|=fID;		//found id
+									pobj->propflags[nameProp]|=fName;	//found name	***014 End
+
 									continue;
 								}
+								
 								if ((pobj=(generic_object *)malloc(StdObjects[objtype].sotSize))==NULL)		//can't allocate space for it
 								{	tperror("Can't allocate space for this object...",true);
 									objtype=0xFFFF;		//pretend objid was bad
@@ -2020,9 +2076,10 @@ nextobject:										//										***012
 								pobj->propflags[typeProp]|=fType;	//found type	***014 Begin
 								pobj->propflags[idProp]|=fID;		//found id
 								pobj->propflags[nameProp]|=fName;	//found name	***014 End
-                        // msdanner 9/2004: remember pointer to Device Object for consistency checks
-                        if (objtype == DEVICE)
-                           pd->pDeviceObject = (device_obj_type *)pobj;
+
+							    // msdanner 9/2004: remember pointer to Device Object for consistency checks
+								if (objtype == DEVICE)
+									pd->pDeviceObject = (device_obj_type *)pobj;
 							}
 						}
 					}
@@ -3292,7 +3349,16 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 	void 		far	*pvalue_type;
 
 	print_debug("PP: Enter ParseProperty, search for '%s' objtype %d\n",pn,objtype);	//MAG
-	pd=StdObjects[objtype].sotProps;			//point to property descriptor table for this object type
+
+	if (objtype <= etObjectTypes.propes)
+	{
+		pd = StdObjects[objtype].sotProps;	//point to property descriptor table for this object type
+	}
+	else
+	{
+		pd = ProprietaryObjProps;
+	}
+	
 	pindex=0;
     do
 	{	if (stricmp(pn,pd->PropertyName)==0)	//found this property name
@@ -3314,9 +3380,9 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 			skipwhitespace();					//point to where the value should be					***013 Begin
 			print_debug("PP: pd->ParseType == %d\n",pd->ParseType); //MAG
 			//Modified by Liangping Xu,2002-9
-            p=lp;
-			if(strchr(p,42)||strchr(p,63))
-			//if (*lp=='?'||*lp=='*')						//property value is unspecified
+            //p=lp;
+			//if(strchr(p,42)||strchr(p,63))
+			if (*lp=='?'||*lp=='*')						//property value is unspecified
 ////////////////////////////////////////////////
 			{	pobj->propflags[pindex]|=ValueUnknown;	//we don't know what the value is
 				if(pd->ParseType == none) NoneTypeValue[0] = *lp;   //added for storeing the value of property,********017
@@ -3740,7 +3806,17 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 			return false;						//we're done parsing
 		}
 		if (pd->PropGroup&Last)
-			return tperror("Invalid Property Name- Check Spelling",true); 
+		{
+			if (objtype <= etObjectTypes.propes)
+			{
+				return tperror("Invalid Property Name- Check Spelling",true); 
+			}
+			else
+			{
+				//ignore unknown property of proprietary objects
+				return false;
+			}
+		}
 		pd++;									//advance to next table entry
 		pindex++;
 	}
@@ -3903,7 +3979,8 @@ BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
 				
 	*rasp=NULL;									//initially there is no list
 	skipwhitespace();
-	if (MustBe('{')) return true;  //MAG change from '('
+//	if (MustBe('{')) return true;  //MAG change from '('
+	if (MustBe('(')) return true;  
 	while(true)
 	{   //here lp must point to:
 		//1. a comma or whitespace which we ignore as a separator between list elements.
@@ -3914,11 +3991,13 @@ BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
 		if (*lp==0) 
 			if (ReadNext()==NULL) break;
-		if (*lp=='}') // MAG was )
+		//if (*lp=='}') // MAG was )
+		if ( *lp==')' && *(lp+1)== 0 )
 		{	lp++;
 			break;								//close this list out
 		}
-		if (MustBe('(')) goto rasx;
+		//if (MustBe('(')) goto rasx;
+		if (MustBe('{')) goto rasx; // 135.1
 
 		//here we have (objtype,instance),propid,propid...)...
 		if ((q=(tagReadAccessSpecification *)malloc(sizeof(BACnetReadAccessSpecification)))==NULL)
@@ -3985,7 +4064,8 @@ BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
 			pq=NULL;
         }
 
-		if (lp[-1]!=')')
+		//if (lp[-1]!=')')
+		if (lp[-1]!='}') //135.1
 rasrem:	{	tperror("Expected ) here!",true);
 			goto rasx;
 		}
@@ -4831,7 +4911,7 @@ BOOL ParseDateTime(BACnetDateTime *dtp)
 {	skipwhitespace();
 	if (MustBe('(')) return true;
     if (ParseDate(&dtp->date)) return true;
-	if (MustBe(',')) return true;
+	//if (MustBe(',')) return true;
     if (ParseTime(&dtp->time)) return true;
 	return MustBe(')');
 }
@@ -4859,7 +4939,8 @@ BOOL ParseDate(BACnetDate *dtp)
 	if( strchr(lp, ',') != NULL)	//must have a day of week
     {  
 		c=*lp;
-		if(c=='?'|| c=='*') 
+		//if(c=='?'|| c=='*') 
+		if(c == '*') 
 		{
 			lp++;
 			dtp->day_of_week=dontcare;
@@ -4874,14 +4955,12 @@ BOOL ParseDate(BACnetDate *dtp)
 					lp += strlen(DOWNames[i]);		//skip day name		***013
 					skipwhitespace();
 					lp++; //skip ','
+					skipwhitespace();
 					break;
 				}
-			}
-			
+			}					
 		}
-	}
-	
-	skipwhitespace();
+	}	
 	
     if ((db=ReadB(1,31))!=dontcare)				//not wild
     {
@@ -5386,8 +5465,8 @@ BOOL ParseAddressList(BACnetAddressBinding **dalp)
 		//1. a comma or whitespace which we ignore as a separator between list elements.
 		//   Note that we require "empty" list elements to use proper syntax (...),(),(...)
 		//   but (...),,(...) is treated the same as (...),(...)
-		//2. (			i.e. the beginning of a new BACnetAddressBinding in the list
-		//3. )			i.e. the closing part of the list
+		//2. {			i.e. the beginning of a new BACnetAddressBinding in the list
+		//3. }			i.e. the closing part of the list
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
 		if (*lp==0)
 			if (ReadNext()==NULL) break;		//									***008
@@ -6011,15 +6090,19 @@ word ReadEnum(etable *etp)
 	{	e[i]=0;									//always leave asciz in buffer
 		if (e[0]=='?') return 0;				//? defaults to enumeration 0
 		for (i=0;i<etp->nes;i++)
-		{	if (etp->estrings[i])				//make sure it's not null			***006
-				if (stricmp(e,etp->estrings[i])==0){	//matching enumeration
+		{	
+			if (etp->estrings[i])				//make sure it's not null			***006
+				if (stricmp(e,etp->estrings[i])==0)
+				{	//matching enumeration
 					print_debug("RE: find match (%d)- return\n",i);
 					return i;
 				}
 		}
 		if (stricmp(e,"proprietary")==0)
-		{	if (etp->propes)
-			{	if ((i=(word)ReadDW())>=etp->propes)
+		{	
+			if (etp->propes)
+			{	
+				if ((i=(word)ReadDW())>=etp->propes)
 					return i;
 				tperror("Proprietary enumeration cannot use the reserved range for this property!",true);
 			}
@@ -6051,8 +6134,20 @@ dword ReadObjID()
 	{	tperror("Expected ( before (objecttype,instance) here!",true);
 		goto roidx;
 	}
+
+	// 5/19/2005 Shiyuan Xiao. Support proprietary object
+	if( strnicmp(lp, "proprietary", strlen("proprietary")) == 0 )
+	{
+		lp += strlen("proprietary");
+		skipwhitespace();
+		objtype = ReadDW();		
+	}
+	else 
 	if ((objtype=ReadEnum(&etObjectTypes))==0xFFFF)
+	{
 		goto roidx;
+	}
+	
 	print_debug("ROI: object type %s %d\n",etObjectTypes.estrings[objtype], objtype);
 	skipwhitespace();						//									***006 Begin
 	if (strnicmp(lp,"instance ",9)==0)		//ignore instance here
@@ -7349,10 +7444,15 @@ void CheckPICSCons2003I(PICSdb *pd)
    generic_object *obj;
 	obj=pd->Database;
    // Loop through the entire database ...
-	while(obj){
+	while(obj)
+	{
       // check for required, conditionally required, and mandatory writable properties
-      CheckPICSConsProperties(pd, obj); 
-		obj=(generic_object *)obj->next;
+
+	  // 5-24-2005 Shiyuan Xiao. Ignore unstandard object
+	  if(obj->object_type <= etObjectTypes.propes)
+		  CheckPICSConsProperties(pd, obj); 
+	  
+	  obj=(generic_object *)obj->next;
    }
 	return;
 }
