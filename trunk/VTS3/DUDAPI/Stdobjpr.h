@@ -1136,6 +1136,14 @@ propdescriptor	TRprops[]={
 	"profile-name",				    PROFILE_NAME,				  oo(trend,go.profile_name),			   s132,	Last,			0,	 O
 };
 
+propdescriptor ProprietaryObjProps[] = 
+{
+	 //	"property name",		property identifier,	      struc offset,					    parse,	group,	table,	qualifiers
+     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(proprietary,  go.object_id),   	ob_id,    0,      0,       R,
+     "object-name",  			OBJECT_NAME, 			      oo(proprietary,  go.object_name),  	s32,      0,      0,       R,
+     "object-type",  			OBJECT_TYPE, 			      oo(proprietary,  go.object_type), 	et,       Last,      0,       R,
+};
+
 stdobjtype	StdObjects[]={
     sizeof(ai_obj_type),					AIprops,
     sizeof(ao_obj_type),					AOprops,
@@ -1163,6 +1171,7 @@ stdobjtype	StdObjects[]={
 #else
 
 extern stdobjtype	StdObjects[];
+extern propdescriptor ProprietaryObjProps[];
 
 #endif
 

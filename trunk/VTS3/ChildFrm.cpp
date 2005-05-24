@@ -190,6 +190,7 @@ CChildFrame::~CChildFrame()
 	}
 
 	delete m_pwndEPICSViewBar;
+	delete m_wndGlobalBar;
 }
 
 BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)

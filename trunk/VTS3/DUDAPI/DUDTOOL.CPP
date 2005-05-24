@@ -63,7 +63,7 @@ BACnetListOfRecipient * CreateRecipientList( PICS::BACnetRecipient * precip );
 BACnetListOfCOVSubscription * CreateCOVSubscriptionList( PICS::BACnetCOVSubscription * psub );
 
 //void CreatePropertyFromEPICS( generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue );
-
+void ProprietaryObj_CreateProperty( proprietary_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
 void AI_CreateProperty( ai_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
 void AO_CreateProperty( ao_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
 void AV_CreateProperty( av_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
@@ -2222,11 +2222,37 @@ extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId
       case AVERAGING:				AVG_CreateProperty( (avg_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
       case TREND_LOG:				TR_CreateProperty( (trend_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break; // msdanner 9/04, was "TRENDLOG"
 	  default:
-		  TRACE("CreatePropertyFromDB called for unknown object type");
-		  ASSERT(0);
+		  //TRACE("CreatePropertyFromDB called for unknown object type");
+		  //ASSERT(0);
+		  //Proprietary objects
+		  ProprietaryObj_CreateProperty((proprietary_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue);
+		  break;
     }   
 }
 
+// 5-23-2005 Shiyuan Xiao. //To support proprietary objects
+void ProprietaryObj_CreateProperty( proprietary_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
+{
+	etable *petable;
+	ASSERT(pbacnetAnyValue != NULL);
+	
+	switch ( propertyID )
+	{
+	case OBJECT_IDENTIFIER:
+		pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->go.object_id));
+		break;
+	case OBJECT_NAME:
+		pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
+		break;
+	case OBJECT_TYPE:
+		petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+		
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
+			(const char **)petable->estrings,
+			petable->nes) );
+		break;
+	}
+}
 
 void AI_CreateProperty( ai_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
