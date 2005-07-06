@@ -1557,9 +1557,17 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 // executes, so that other data structures which are indexed by scanLine are
 // unaffected. They formerly executed after scanLine += 1; which had started at
 // -1, now they execute before scanLine += 1; but scanLine starts at 0.
+
+//  3.4.8   July 6, 2005
+//        Sniffer improvements were made
+//        The following bugs were fixed:
+//        1069018, 1067771, 1021196, 1006602, 
+//        799851, 485728, 895879
+//        The following feature requests were closed:
+//        544511, 544324, 508589, 444238
 			
 			
-const int kReleaseVersion = 7;
+const int kReleaseVersion = 8;
 			
 			class CAboutDlg : public CDialog
 			{
