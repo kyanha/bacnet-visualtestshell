@@ -679,6 +679,7 @@ CSend * VTSDoc::DoSendWindow( int iGroup, int iItem )
 	// to satisfy feature request 444238. 
 	// Added minimize/maximize controls, Mike Danner 2004-Jul-23
     sendp->Create( AfxGetApp()->m_pMainWnd, WS_SYSMENU | WS_POPUP | WS_CAPTION | DS_MODALFRAME | WS_VISIBLE | WS_MINIMIZEBOX );
+//    sendp->Create( NULL, WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_VISIBLE );  // this creates a window that can go behind the main window for 444238 but decided this was not what the user actually wanted and therefore was not used.
 //	sendp->Create(); //Make send window a client window, Xiao Shiyuan 2002-10-24
 	sendp->ShowWindow( SW_SHOW );
 	
