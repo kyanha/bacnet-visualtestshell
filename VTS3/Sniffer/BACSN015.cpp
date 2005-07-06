@@ -6724,6 +6724,45 @@ void show_bac_bitstring( unsigned int len )
      };
 }
 
+void pif_get_hex(unsigned int len, char* str, unsigned int flag, unsigned int offset)
+{
+	static char	hex[] = "0123456789ABCDEF";
+	char *dst;
+	dst = str;
+	len-=1;
+	int i = flag+1;
+	while (len--) {
+		int x = pif_get_byte(i+offset);
+		*dst++ = hex[ (x >> 4) & 0x0F ];
+		*dst++ = hex[ x & 0x0F ];
+		i++;
+	}
+	*dst = 0;
+}
+
+void get_bac_charstring(unsigned int len, char* str, unsigned int flag, unsigned int offset )
+{
+	char c = pif_get_byte(flag+offset);
+	switch(c)
+	{
+	case 0: /* ASCII */
+		pif_get_ascii(flag+1+offset, len-1, str);
+		break;
+	case 1: /* MS DBCS */
+    case 2: /* JIS C 6226 */
+    case 3: /* ISO 10646(UCS-4) */
+    case 4: /* ISO 10646(UCS-2) */
+    case 5: /* ISO 8859-1 */
+		{
+		pif_get_hex( len, str, flag, offset );
+		}
+		break;
+	default:
+		sprintf(str, "");
+		break;
+	}
+}
+
 /**************************************************************************/
 void show_bac_charstring( unsigned int len)
 /**************************************************************************/
@@ -6742,8 +6781,28 @@ void show_bac_charstring( unsigned int len)
              sprintf(outstr,"%"FW"s = `%%s'","Character string");
              pif_show_nbytes_hex(outstr, len-1);
              break;
+      case 2: /* JIS C 6226 */
+             bac_show_byte("JIS C 6226","%u");
+             sprintf(outstr,"%"FW"s = `%%s'","Character string");
+             pif_show_nbytes_hex(outstr, len-1);
+             break;
+      case 3: /* ISO 10646(UCS-4) */
+             bac_show_byte("ISO 10646(UCS-4)","%u");
+             sprintf(outstr,"%"FW"s = `%%s'","Character string");
+             pif_show_nbytes_hex(outstr, len-1);
+             break;
+      case 4: /* ISO 10646(UCS-2) */
+             bac_show_byte("ISO 10646(UCS-2)","%u");
+             sprintf(outstr,"%"FW"s = `%%s'","Character string");
+             pif_show_nbytes_hex(outstr, len-1);
+             break;
+      case 5: /* ISO 8859-1 */
+             bac_show_byte("ISO 8859-1","%u");
+             sprintf(outstr,"%"FW"s = `%%s'","Character string");
+             pif_show_nbytes_hex(outstr, len-1);
+             break;
       default:  /* invalid character set */
-             sprintf(pif_line(0),"Error: Invalid Chacter Set!");
+             sprintf(pif_line(0),"Error: Invalid Chacter Set! %d", charset);
       };
 }
 
@@ -8998,30 +9057,7 @@ void show_head_char_string(unsigned int offset, char* type, int tagval)
 	}
 	strLength = tmpLen;
 	char strBuff[MAX_INT_LINE];
-	switch(pif_get_byte(flag+offset)){
-	case 0: /* ASCII */
-		pif_get_ascii(flag+1+offset, strLength-1, strBuff);
-		break;
-	case 1: /* MS DBCS */
-		{
-			static char	hex[] = "0123456789ABCDEF";
-			char *dst;
-			dst = strBuff;
-			tmpLen-=1;
-			int i = flag+1;
-			while (tmpLen--) {
-				int x = pif_get_byte(i+offset);
-				*dst++ = hex[ (x >> 4) & 0x0F ];
-				*dst++ = hex[ x & 0x0F ];
-				i++;
-			}
-			*dst = 0;
-		}
-		break;
-	default:
-		sprintf(strBuff, "");
-		break;
-	}
+    get_bac_charstring( strLength, strBuff, flag, offset );
 	if(tagval == -1)
 		sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
 			"%s:  '%s'", type, strBuff);
