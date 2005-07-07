@@ -8,13 +8,13 @@ REM
 REM This should be invoked from the VTS3 root.
 REM
 REM "-dir" is the same as combining "-path" and "-recurse"
-REM
+REM  
 REM --- First make the executable distribution ---
 del %1-win32.zip
 pkzip25 -add %1-win32.zip release\VTS.exe release\ptp.dll winpcap\*.exe
 pkzip25 -add %1-win32.zip NBLink\release\nb_link_settings.dll 
 cd docs
-pkzip25 -add -path ..\%1-win32.zip *.html images\*.png *.doc
+pkzip25 -add -path ..\%1-win32.zip *.html images\*.png images\*.jpg *.doc
 cd ..
 pkzip25 -add -dir %1-win32.zip *.vts
 REM --- Then make the source distribution ---
