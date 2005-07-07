@@ -17,7 +17,7 @@ h1, h2, h3   { font-family: Verdana, Arial, Helvetica, sans-serif; white-space: 
   </style>
 </head>
 <body style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);">
-<h1><a name="start">VTS 3.4.7 </a><i>Quick Start Guide</i></h1>
+<h1><a name="start">VTS 3.4.8 </a><i>Quick Start Guide</i></h1>
 <p>Visual Test Shell (VTS) is an application for testing the BACnet
 functionality of various devices used in building automation
 systems.&nbsp;
@@ -2278,21 +2278,161 @@ are no longer considered during the EPICS consistency test. <br>
 <br>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
 <p><a href="#Links">[&nbsp;Next&nbsp;]</a>&nbsp;&nbsp;<a href="#start">[&nbsp;Home&nbsp;]</a></p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
+
+<h2>3.4.8</h2>
+
+<p class=MsoNormal><span style='font-family:Verdana;color:black'>&nbsp; This
+release enhances the <span class=SpellE>Sniffer</span> summary view<o:p></o:p></span></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
+     auto;mso-list:l2 level1 lfo21;tab-stops:list .5in'><span style='font-family:
+     Verdana'>The new view now shows more information in the &#8216;Service
+     Type&#8217; section by attempting to summarize the details into one line. <o:p></o:p></span></li>
+ <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
+     auto;mso-list:l2 level1 lfo21;tab-stops:list .5in'><span style='font-family:
+     Verdana'>This new view also shows receive and sent arrows to the left of
+     the number of the packet.<span style='mso-spacerun:yes'>  </span><o:p></o:p></span></li>
+ <li class=MsoNormal style='color:black;mso-margin-top-alt:auto;mso-margin-bottom-alt:
+     auto;mso-list:l2 level1 lfo21;tab-stops:list .5in'><span style='font-family:
+     Verdana'>Selected packets may now be re-sent using the new &#8216;right-click&#8217;
+     menu shown below.<o:p></o:p></span></li>
+</ul>
+
+<p class=MsoNormal style='margin-bottom:12.0pt'><span style='font-family:Verdana;
+color:black'><img border=0 width=1024 height=768 id="_x0000_i1055"
+src="Images/sniffer1.jpg" style='height:394px;width:894px' alt="Sniffer View"><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><span
+style='font-family:Verdana;color:black'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto'><span
+style='font-family:Verdana;color:black'>This release also fixes the following
+bugs and feature requests in Source Forge:<o:p></o:p></span></p>
+
+<table class=MsoNormalTable border=1 cellpadding=0 style='mso-cellspacing:1.5pt'>
+ <tr style='mso-yfti-irow:0'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>ID<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>Summary<o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:1'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>1069018<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal><span class=SpellE>BACnetFailTimes</span> are <span
+  class=SpellE>uninitialized</span><o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:2'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>1067771<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal><span class=SpellE>Edit|Names|New</span> with no EPICS
+  crashes<o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:3'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>1021196<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>Decoding of <span class=SpellE>SubscribeCOV</span>-Requests<o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:4'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>1006602<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>Not all <span class=SpellE>CharacterSets</span> in <span
+  class=SpellE>DetailView</span> supported<o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:5'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>895879</p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>Decoding of character strings</p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:6'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>799851<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>Script line numbers off by one in VTS messages<o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:7'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>485728<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>EPICS parser - proprietary handling<o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:8'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>544511<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>Expand <span class=SpellE>sniffer</span> summary
+  information<o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:9'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>544324<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>Support proprietary Objects/Properties<o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:10'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>508589<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>(Add) Single Click buttons and hot keys <o:p></o:p></p>
+  </td>
+ </tr>
+ <tr style='mso-yfti-irow:11;mso-yfti-lastrow:yes'>
+  <td width=80 style='width:60.35pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>444238<o:p></o:p></p>
+  </td>
+  <td width=762 style='width:571.45pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=MsoNormal>Make Send window a client window<o:p></o:p></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+margin-left:.5in'><span style='font-family:Verdana;color:black'><o:p>&nbsp;</o:p></span></p>
+
+<p><span style='color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p><span style='color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p><span style='color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p><span style='color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p><span style='color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p><span style='color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p><span style='color:black'>&nbsp;<o:p></o:p></span></p>
+
+<p><span style='color:black'><a href="#Links"><span class=GramE>[&nbsp;Next</span>&nbsp;]</a>&nbsp;&nbsp;<a
+href="#start"><span class=GramE>[&nbsp;Home</span>&nbsp;]</a><o:p></o:p></span></p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
