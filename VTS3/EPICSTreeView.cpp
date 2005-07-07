@@ -186,6 +186,9 @@ void CEPICSTreeView::ContextChange( CFrameContext::Signal s )
 	CString strDA;
 	pcomboDA->GetWindowText(strDA);
 
+	if ( name == NULL )
+		return;
+
 	if ( strDA.Compare(name) != 0 )
 		return;
 
