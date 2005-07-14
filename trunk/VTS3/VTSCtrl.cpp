@@ -1588,7 +1588,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 	if (!m_bCombo)
 		return;	
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
-	if(cbp->GetCount != 0 && m_nObjType != -1 && m_nObjType < 23)
+	if(cbp->GetCount != 0 && m_nObjType != -1 && m_nObjType < 25)
 	{	
 		cbp->Clear();
 		cbp->ResetContent();
@@ -1598,7 +1598,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 	{
 		for (int i = 0; i < m_TableSize; i++)
 		{
-			if(m_nObjType != -1 && m_nObjType < 23)
+			if(m_nObjType != -1 && m_nObjType < 25)
 			{
 				if(Check_Obj_Prop(m_nObjType, (unsigned int) i))
 					cbp->AddString( m_Table[i] );
@@ -1606,7 +1606,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 			else
 				cbp->AddString( m_Table[i] );
 		}
-		if(m_nObjType != -1 && m_nObjType < 23)
+		if(m_nObjType != -1 && m_nObjType < 25)
 		{
 			CString str = "------------------------------";
 			cbp->AddString(str);

@@ -119,6 +119,33 @@ typedef struct //tagTimeStamp
    }u;
  } BACnetTimeStamp;				  // added Sep 18 2001
 
+//Shiyuan Xiao. 7/14/2005
+typedef struct 
+ {
+   octet            choice;
+   union
+   {
+	 float			floatScale;
+	 dword			integerScale;	 
+   }u;
+ } BACnetScale;
+
+//Shiyuan Xiao. 7/14/2005
+typedef struct 
+{
+	word multiplier;
+    word moduloDivide;
+} BACnetPrescale;
+
+//Shiyuan Xiao. 7/14/2005
+typedef struct 
+{
+	BACnetDateTime timestamp;
+	word           presentValue;
+	word           accumulatedValue;
+	word           accumulatorStatus;
+} BACnetAccumulatorRecord;
+
 typedef struct tagRecipient {
 struct tagRecipient 	*next;
 	octet					choice;    			//0 = device, 1 = address
@@ -450,6 +477,73 @@ typedef struct {
 	BACnetObjectIdentifier	object_list_id;
 	} BACnetObjectList;
 
+//Shiyuan Xiao. 7/14/2005
+enum BACnetLifeSafetyState
+{
+   quiet,
+   pre_alarm,
+   alarm,
+   fault,
+   fault_pre_alarm,
+   fault_alarm,
+   not_ready,
+   active,
+   tamper,
+   test_alarm,
+   test_active,
+   test_fault,
+   test_fault_alarm,
+   holdup,
+   duress,
+   tamper_alarm,
+   abnormal,
+   emergency_power,
+   delayed,
+   blocked,
+   local_alarm,
+   general_alarm,
+   supervisory,
+   test_supervisory
+};
+
+enum BACnetLifeSafetyMode
+{
+   off,
+   on,
+   test,
+   manned,
+   unmanned,
+   armed,
+   disarmed,
+   prearmed,
+   slow,
+   fast,
+   disconnected,
+   enabled,
+   disabled,
+   automatic_release_disabled,
+   _default
+};
+
+enum BACnetSilencedState
+{
+	Unsilenced,
+	Audible_Silenced,
+	Visible_Silenced,
+	All_Silenced
+};
+
+enum BACnetLifeSafetyOperation
+{
+   none,
+   silence,
+   silence_audible,
+   silence_visual,
+   reset,
+   reset_alarm,
+   reset_fault
+};
+
 enum  BACnetObjectType
 	{
 		ANALOG_INPUT,       					// 0 
@@ -474,8 +568,9 @@ enum  BACnetObjectType
 		MULTI_STATE_VALUE,						//19
 		TREND_LOG, 								//20  msdanner 9/04, was "TENDLOG"
 		LIFE_SAFETY_POINT,                      //21  msdanner 9/04, added
-		LIFE_SAFETY_ZONE					    //22  msdanner 9/04, added
-
+		LIFE_SAFETY_ZONE,					    //22  msdanner 9/04, added
+        ACCUMULATOR,                            //23  Shiyuan Xiao. 7/13/05, added
+		PULSE_CONVERTER                         //24  Shiyuan Xiao. 7/13/05, added
    };
 
 // msdanner 9/04:

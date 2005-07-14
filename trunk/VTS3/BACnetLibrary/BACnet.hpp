@@ -625,7 +625,9 @@ enum BACnetObjectType {
 		multistateValue					= 19,   /* Zhu Zhenhua 2003-7-22*/
 		trendlog						= 20,   /* Zhu Zhenhua 2003-7-22*/
 		lifesafetypoint					= 21,   /* Zhu Zhenhua 2003-7-22*/
-		lifesafetyzone					= 22    /* Zhu Zhenhua 2003-7-22*/
+		lifesafetyzone					= 22,   /* Zhu Zhenhua 2003-7-22*/
+		accumulator                     = 23,   //Shiyuan Xiao. 7/13/2005
+		pulseconverter                  = 24,   //Shiyuan Xiao. 7/13/2005
 		};
 
 class BACnetObjectIdentifier : public BACnetEncodeable {
