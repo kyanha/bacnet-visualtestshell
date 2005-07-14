@@ -536,4 +536,100 @@ typedef struct
     generic_object go;
 } proprietary_obj_type;
 
+//Shiyuan Xiao. 7/14/2005.
+typedef struct
+{
+    generic_object		           go;
+enum BACnetLifeSafetyState 		   present_value;
+enum BACnetLifeSafetyState         tracking_value;
+    char					       device_type[64];
+    octet					       status_flags;
+enum BACnetEventState	           event_state;
+enum BACnetReliability	           reliability;
+    bool					       out_of_service;
+enum BACnetLifeSafetyMode          mode;
+    word        				   time_delay;
+    word				           notification_class;
+enum BACnetLifeSafetyState         ls_alarm_values[10];
+enum BACnetLifeSafetyState		   alarm_values[10];
+enum BACnetLifeSafetyState		   fault_values[10];
+    octet					       event_enable;
+    octet					       acked_transitions;
+    enum BACnetNotifyType          notify_type;
+    BACnetTimeStamp	 	           event_time_stamps[3];
+enum BACnetSilencedState           slienced; 
+enum BACnetLifeSafetyOperation     operation_expected;
+enum BACnetMaintenance             maintenance_required;
+    word                           setting;
+    float                          direct_reading;
+enum BACnetEngineeringUnits        uints;
+    BACnetDeviceObjectPropertyReference memeber_of[10];  
+} lifesafetypoint_obj_type;
+
+//Shiyuan Xiao. 7/14/2005.
+typedef struct
+{
+    generic_object		           go;
+enum BACnetLifeSafetyState 		   present_value;
+enum BACnetLifeSafetyState         tracking_value;
+    char					       device_type[64];
+    octet					       status_flags;
+enum BACnetEventState	           event_state;
+enum BACnetReliability	           reliability;
+    bool					       out_of_service;
+enum BACnetLifeSafetyMode          mode;
+    word        				   time_delay;
+    word				           notification_class;
+enum BACnetLifeSafetyState         ls_alarm_values[10];
+enum BACnetLifeSafetyState		   alarm_values[10];
+enum BACnetLifeSafetyState		   fault_values[10];
+    octet					       event_enable;
+    octet					       acked_transitions;
+    enum BACnetNotifyType          notify_type;
+    BACnetTimeStamp	 	           event_time_stamps[3];
+enum BACnetSilencedState           slienced; 
+enum BACnetLifeSafetyOperation     operation_expected;
+enum BACnetMaintenance             maintenance_required;
+     BACnetDeviceObjectPropertyReference zones_memebers[10]; 
+     BACnetDeviceObjectPropertyReference memeber_of[10];  
+} lifesafetyzone_obj_type;
+
+//Shiyuan Xiao. 7/14/2005.
+typedef struct
+{
+    generic_object		           go;
+	word 					       present_value;
+    char					       device_type[64];
+    octet					       status_flags;
+enum BACnetEventState	           event_state;
+enum BACnetReliability	           reliability;
+    bool					       out_of_service;
+	BACnetScale                    scale;
+enum BACnetEngineeringUnits        uints;
+    BACnetPrescale                 prescale;
+	word                           max_pres_value;
+	BACnetDateTime                 value_change_time;
+	word                           value_before_change;
+	word                           value_set;
+	BACnetAccumulatorRecord        logging_record;
+	BACnetObjectIdentifier         logging_object;
+	word                           pulse_rate;
+	word                           high_limit;
+	word                           low_limit;
+	word                           limit_monitoring_interval;
+	word                           notification_class;
+	word        				   time_delay;
+	octet					       event_enable;
+    octet					       acked_transitions;
+	enum BACnetNotifyType          notify_type;
+    BACnetTimeStamp	 	           event_time_stamps[3];
+} accumulator_obj_type;
+
+//Shiyuan Xiao. 7/14/2005.
+typedef struct
+{
+    generic_object		           go;
+	float 					       present_value;
+} pulseconverter_obj_type;
+
 #endif //__STDOBJ_H_INCLUDED

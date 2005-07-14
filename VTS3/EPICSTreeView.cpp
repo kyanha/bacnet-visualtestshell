@@ -493,7 +493,7 @@ void CEPICSTreeView::LoadObjectNodes( HTREEITEM htreeitemParent )
 		if(pObj->object_type <= 128)
 			htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T(pObj->object_name), 7+(pObj->object_type), 7+(pObj->object_type), 0, 0, (LPARAM) new CEPICSViewNodeObject(this, pObj), htreeitemParent, htreeitemLast );
 		else
-			htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T(pObj->object_name), 28, 28, 0, 0, (LPARAM) new CEPICSViewNodeObject(this, pObj), htreeitemParent, htreeitemLast );
+			htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T(pObj->object_name), 32, 32, 0, 0, (LPARAM) new CEPICSViewNodeObject(this, pObj), htreeitemParent, htreeitemLast );
 
 		pObj = (PICS::generic_object *) pObj->next;
 	}

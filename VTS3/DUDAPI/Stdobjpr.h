@@ -22,7 +22,7 @@ typedef struct {
 //------------------------------------------------------
 //	Special Enumeration Tables
 static etable etObjectTypes={
-            128,1024,21,
+            128,1024,25, 
             "analog-input",
             "analog-output",       
             "analog-value",     
@@ -43,7 +43,11 @@ static etable etObjectTypes={
             "schedule",
             "averaging",			// Sep 18 2001
             "multi-state-value",
-            "trend-log"				//madanner 6/03: was "trendlog"
+            "trend-log",			//madanner 6/03: was "trendlog"
+			"life-safety-point",    //Shiyuan Xiao. 7/13/2005, added
+            "life-safety-zone",     //Shiyuan Xiao. 7/13/2005, added
+			"accumulator",          //Shiyuan Xiao. 7/13/2005, added
+			"pulse-converter"       //Shiyuan Xiao. 7/13/2005, added
             };
 static etable etTF={0,0,2,"False","True"};
 static etable etYN={0,0,2,"No","Yes"};
@@ -1138,10 +1142,54 @@ propdescriptor	TRprops[]={
 
 propdescriptor ProprietaryObjProps[] = 
 {
-	 //	"property name",		property identifier,	      struc offset,					    parse,	group,	table,	qualifiers
+	 //	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
      "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(proprietary,  go.object_id),   	ob_id,    0,      0,       R,
      "object-name",  			OBJECT_NAME, 			      oo(proprietary,  go.object_name),  	s32,      0,      0,       R,
-     "object-type",  			OBJECT_TYPE, 			      oo(proprietary,  go.object_type), 	et,       Last,      0,       R,
+     "object-type",  			OBJECT_TYPE, 			      oo(proprietary,  go.object_type), 	et,       Last,   0,       R,
+};
+
+propdescriptor LFSPProps[] = 
+{
+	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lifesafetypoint,  go.object_id),   	ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(lifesafetypoint,  go.object_name),  	s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(lifesafetypoint,  go.object_type), 	et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			      oo(lifesafetypoint,  go.description),  		      s132,     0,      0,       O,
+	"present-value",		    PRESENT_VALUE,		          oo(lifesafetypoint,  present_value),	uw,		  0,      0,	   R,
+	"profile-name",				PROFILE_NAME,				  oo(lifesafetypoint,  go.profile_name),	s132,	  Last,	  0,       O
+};
+
+propdescriptor LFSZProps[] = 
+{
+	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lifesafetyzone,  go.object_id),   	ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(lifesafetyzone,  go.object_name),  	s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(lifesafetyzone,  go.object_type), 	et,       0,      0,       R,
+	"description",  				DESCRIPTION,  			  oo(lifesafetyzone,  go.description),  		      s132,     0,      0,       O,
+	"present-value",		    PRESENT_VALUE,		          oo(lifesafetyzone,  present_value),	    uw,		  0,      0,	   R,
+	"profile-name",				PROFILE_NAME,				  oo(lifesafetyzone,  go.profile_name),	s132,	  Last,	  0,       O
+};
+
+propdescriptor ACProps[] = 
+{
+	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(accumulator,  go.object_id),   	ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(accumulator,  go.object_name),  	s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(accumulator,  go.object_type), 	et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			      oo(accumulator,  go.description),  		      s132,     0,      0,       O,
+	"present-value",		    PRESENT_VALUE,		          oo(accumulator,  present_value),	    uw,		  0,      0,	   R,
+	"profile-name",				PROFILE_NAME,				  oo(accumulator,  go.profile_name),	s132,	  Last,	  0,       O
+};
+
+propdescriptor PCProps[] = 
+{
+	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(pulseconverter,  go.object_id),   	ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(pulseconverter,  go.object_name),  	s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(pulseconverter,  go.object_type), 	et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			      oo(pulseconverter,  go.description),  		      s132,     0,      0,       O,
+	"present-value",		    PRESENT_VALUE,		          oo(pulseconverter,  present_value),	    uw,		  0,      0,	   R,
+	"profile-name",				PROFILE_NAME,				  oo(pulseconverter,  go.profile_name),	s132,	  Last,	  0,       O
 };
 
 stdobjtype	StdObjects[]={
@@ -1165,7 +1213,11 @@ stdobjtype	StdObjects[]={
     sizeof(schedule_obj_type),				SCprops,
     sizeof(avg_obj_type),					AVGprops,
     sizeof(msv_obj_type),					MVprops,
-    sizeof(trend_obj_type),					TRprops
+    sizeof(trend_obj_type),					TRprops,
+	sizeof(lifesafetypoint_obj_type),       LFSPProps,
+	sizeof(lifesafetyzone_obj_type),        LFSZProps,
+	sizeof(accumulator_obj_type),           ACProps,
+	sizeof(pulseconverter_obj_type),        PCProps
     };
 
 #else
