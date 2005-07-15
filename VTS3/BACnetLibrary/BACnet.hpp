@@ -1366,6 +1366,24 @@ class BACnetTimeStamp : public BACnetObjectContainer
 		DECLARE_DYNAMIC(BACnetTimeStamp)
 };
 
+class BACnetScale : public BACnetObjectContainer
+{
+	public:
+		BACnetScale();
+		BACnetScale( BACnetAPDUDecoder & dec );
+		BACnetScale( BACnetEncodeable * pbacnetEncodeable );
+
+		// override decode for special construction from stream
+		void Decode( BACnetAPDUDecoder& dec );								// decode
+
+		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+
+		virtual int DataType(void);
+		virtual BACnetEncodeable * clone(void);
+		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetScale)
+};
 
 
 class BACnetGenericArray : public BACnetEncodeable

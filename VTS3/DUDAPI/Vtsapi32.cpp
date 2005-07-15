@@ -3769,6 +3769,9 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					if (ParseCOVSubList((BACnetCOVSubscription **)pstruc)) return true;
 					break;
 				//*****018  end
+				case escale: //BACnetScale Shiyuan Xiao
+					*(float *)pstruc=(float)atof(lp);
+					break;
 				case none:
 					// reset the datatype of present value according to EPICS,  by Yiping XU, 2002/11/2
 						bHasNoneType = true;

@@ -23,7 +23,7 @@ typedef struct {
 //	Special Enumeration Tables
 static etable etObjectTypes={
             128,1024,25, 
-            "analog-input",
+            "analog-input",       //0
             "analog-output",       
             "analog-value",     
             "binary-input",     
@@ -1176,8 +1176,33 @@ propdescriptor ACProps[] =
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(accumulator,  go.object_id),   	ob_id,    0,      0,       R,
     "object-name",  			OBJECT_NAME, 			      oo(accumulator,  go.object_name),  	s32,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(accumulator,  go.object_type), 	et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(accumulator,  go.description),  		      s132,     0,      0,       O,
+	"description",  			DESCRIPTION,  			      oo(accumulator,  go.description),  	s132,     0,      0,       O,
 	"present-value",		    PRESENT_VALUE,		          oo(accumulator,  present_value),	    uw,		  0,      0,	   R,
+	"device-type",			    DEVICE_TYPE,		          oo(accumulator,  device_type),		s64,	  0,	  0,	   O,
+	"status-flags",			    STATUS_FLAGS,		          oo(accumulator,  status_flags),	    bits,	  0,	  0,	   R,
+	"event-state",			    EVENT_STATE,		          oo(accumulator,  event_state),	    et,		  0,      eiEvState, R,
+    "reliability",			    RELIABILITY,		          oo(accumulator,  reliability),	    et,		  0,	  eiReli,  O,
+    "out-of-service",		    OUT_OF_SERVICE,		          oo(accumulator,  out_of_service),	    ebool,    0,	  eiTF,	   R,
+	"scale",                    SCALE,                        oo(accumulator,  scale),              escale,      0,      0,       R,   
+	"units",                    UNITS,                        oo(accumulator,  units),              et,       0,      eiEU,    R,
+	"prescale",                 PRESCALE,                     oo(accumulator,  prescale),           eprescl,   0,      0,       O,
+	"max-pres-value",           MAX_PRES_VALUE,               oo(accumulator,  max_pres_value),     uw,       0,      0,       R,   
+	"value-change-time",        VALUE_CHANGE_TIME,            oo(accumulator,  value_change_time),  dt,       0,      0,       O|WithService,    
+	"value-before-change",      VALUE_BEFORE_CHANGE,          oo(accumulator,  value_before_change),uw,       0,      0,       O|WithService,       
+	"value-set",                VALUE_SET,                    oo(accumulator,  value_set),          uw,       0,      0,       O|WithService,  
+	"logging-record",           LOGGING_RECORD,               oo(accumulator,  logging_record),     eaclr,     0,      0,       O,    
+	"logging-object",           LOGGING_OBJECT,               oo(accumulator,  logging_object),     ob_id,    0,      0,       O, 
+	"pulse-rate",               PULSE_RATE,                   oo(accumulator,  pulse_rate),         uw,       0,      0,       O|WithService,  	
+	"high-limit",			    HIGH_LIMIT,			          oo(accumulator,  high_limit),		    uw,	      Intr,	  0,	   O|WithService,
+    "low-limit",			    LOW_LIMIT,			          oo(accumulator,  low_limit),		    uw,	      Intr,	  0,	   O|WithService,	
+	"limit-monitoring-interval",LIMIT_MONITORING_INTERVAL,    oo(accumulator,  limit_monitoring_interval), uw,0,      0,       O|WithService, 
+	"notification-class",	    NOTIFICATION_CLASS,	          oo(accumulator,  notification_class), uw,	      0,	  0,  	   O|WithService,
+	"time-delay",               TIME_DELAY,                   oo(accumulator,  time_delay),         uw,	      0,	  0,  	   O|WithService,		
+	"limit-enable",             LIMIT_ENABLE,                 oo(accumulator,  limit_enable),       bits,     0,      0,       O|WithService, 
+	"event-enable",  			EVENT_ENABLE,  			      oo(accumulator,  event_enable),  		bits,     0,      0,       O|WithService,
+	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(accumulator,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
+	"notify-type",  			NOTIFY_TYPE,  			      oo(accumulator,  notify_type),  		et,       0,      eiNT,    O|WithService,
+	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(accumulator,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
 	"profile-name",				PROFILE_NAME,				  oo(accumulator,  go.profile_name),	s132,	  Last,	  0,       O
 };
 
@@ -1214,10 +1239,10 @@ stdobjtype	StdObjects[]={
     sizeof(avg_obj_type),					AVGprops,
     sizeof(msv_obj_type),					MVprops,
     sizeof(trend_obj_type),					TRprops,
-	sizeof(lifesafetypoint_obj_type),       LFSPProps,
-	sizeof(lifesafetyzone_obj_type),        LFSZProps,
-	sizeof(accumulator_obj_type),           ACProps,
-	sizeof(pulseconverter_obj_type),        PCProps
+	sizeof(lifesafetypoint_obj_type),       LFSPProps, //Shiyuan Xiao 7/13/2005
+	sizeof(lifesafetyzone_obj_type),        LFSZProps, //Shiyuan Xiao 7/13/2005
+	sizeof(accumulator_obj_type),           ACProps,   //Shiyuan Xiao 7/13/2005
+	sizeof(pulseconverter_obj_type),        PCProps    //Shiyuan Xiao 7/13/2005
     };
 
 #else

@@ -570,12 +570,14 @@ char *BACnetObjectType[] = {
    "MULTISTATE-OUTPUT",     /* 14 */
    "NOTIFICATION-CLASS",    /* 15 */
    "PROGRAM",               /* 16 */
-   "SCHEDULE",               /* 17 */
-   "AVERAGING",            /* 18 */
+   "SCHEDULE",              /* 17 */
+   "AVERAGING",             /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
-   "TREND-LOG" ,          /* 20 */		// msdanner 9/04, was "TRENDLOG"
-   "LIFE-SAFETY-POINT",	/*21 Zhu Zhenhua 2003-7-24 */	 // msdanner 9/04, was "LIFESAFETYPOINT"
-   "LIFE-SAFETY-ZONE"	    /*21 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
+   "TREND-LOG" ,            /* 20 */		// msdanner 9/04, was "TRENDLOG"
+   "LIFE-SAFETY-POINT",	    /*21 Zhu Zhenhua 2003-7-24 */	 // msdanner 9/04, was "LIFESAFETYPOINT"
+   "LIFE-SAFETY-ZONE",	    /*22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
+   "ACCUMULATOR",           //23 Shiyuan Xiao 7/15/2005
+   "PULSE-CONVERTER",       //24 Shiyuan Xiao 7/15/2005
    };
 
 char *BACnetObjectTypesSupported[] = {
@@ -596,12 +598,14 @@ char *BACnetObjectTypesSupported[] = {
    "MULTISTATE-OUTPUT",     /* 14 */
    "NOTIFICATION-CLASS",    /* 15 */
    "PROGRAM",               /* 16 */
-   "SCHEDULE",               /* 17 */
-   "AVERAGING",          /* 18 */
+   "SCHEDULE",              /* 17 */
+   "AVERAGING",             /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
-   "TREND-LOG",           /* 20 */	  // msdanner 9/04, was "TRENDLOG"
-   "LIFE-SAFETY-POINT",    /* 21 */	  // msdanner 9/04, added
-   "LIFE-SAFETY-ZONE"      /* 22 */	  // msdanner 9/04, added
+   "TREND-LOG",             /* 20 */	  // msdanner 9/04, was "TRENDLOG"
+   "LIFE-SAFETY-POINT",     /* 21 */	  // msdanner 9/04, added
+   "LIFE-SAFETY-ZONE"       /* 22 */	  // msdanner 9/04, added
+   "ACCUMULATOR",           //23 Shiyuan Xiao 7/15/2005
+   "PULSE-CONVERTER",       //24 Shiyuan Xiao 7/15/2005
    };
 
 char *BACnetPolarity[] = {
@@ -811,8 +815,27 @@ char *BACnetPropertyIdentifier[] = {
    "unused",							/* 170   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
    "unused",							/* 171   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
    "unused",							/* 172   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
-   "last_notify_record"					/* 173 Zhu Zhenhua  2004-5-11 */
-   };
+   "last_notify_record",				/* 173 Zhu Zhenhua  2004-5-11 */
+   "Schedule_Default",                 // 174 Shiyuan Xiao 7/15/2005
+   "Accepted_Modes",                   // 175 Shiyuan Xiao 7/15/2005
+   "Adjust_Value",                     // 176 Shiyuan Xiao 7/15/2005
+   "Count",                            // 177 Shiyuan Xiao 7/15/2005 
+   "Count_Before_Change",              // 178 Shiyuan Xiao 7/15/2005
+   "Count_Change_Time",                // 179 Shiyuan Xiao 7/15/2005		
+   "Cov_Period",                       // 180 Shiyuan Xiao 7/15/2005
+   "Input_Reference",                  // 181 Shiyuan Xiao 7/15/2005
+   "Limit_Monitoring_Interval",        // 182 Shiyuan Xiao 7/15/2005
+   "Logginf_Device",                   // 183 Shiyuan Xiao 7/15/2005
+   "Logginf_Record",                   // 184 Shiyuan Xiao 7/15/2005  
+   "Prescale",                         // 185 Shiyuan Xiao 7/15/2005  
+   "Pulse_Rate",                       // 186 Shiyuan Xiao 7/15/2005
+   "Scale",                            // 187 Shiyuan Xiao 7/15/2005
+   "Scale_Factor",                     // 188 Shiyuan Xiao 7/15/2005  
+   "Update_Time",                      // 189 Shiyuan Xiao 7/15/2005 
+   "Value_Before_Change",              // 190 Shiyuan Xiao 7/15/2005
+   "Value_Set",                        // 191 Shiyuan Xiao 7/15/2005
+   "Value_Change_Time"                 // 192 Shiyuan Xiao 7/15/2005
+};
 
 char *BACnetPropertyReference[] = {
    "Property Identifier",
