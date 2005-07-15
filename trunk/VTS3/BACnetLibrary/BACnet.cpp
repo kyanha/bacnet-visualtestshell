@@ -6452,7 +6452,69 @@ bool BACnetTimeStamp::Match( BACnetEncodeable &rbacnet, int iOperator, CString *
 		    pbacnetTypedValue->Match(*((BACnetTimeStamp &)rbacnet).GetObject(), iOperator, pstrError);
 }
 
+//====================================================================
 
+IMPLEMENT_DYNAMIC(BACnetScale, BACnetObjectContainer)
+
+BACnetScale::BACnetScale()
+{
+}
+
+BACnetScale::BACnetScale( BACnetAPDUDecoder & dec )
+				:BACnetObjectContainer()
+{
+	Decode(dec);
+}
+
+
+BACnetScale::BACnetScale( BACnetEncodeable * pbacnetEncodeable )
+					:BACnetObjectContainer(pbacnetEncodeable)
+{
+}
+
+void BACnetScale::Encode( BACnetAPDUEncoder& enc, int context)
+{
+	if(pbacnetTypedValue == NULL)
+		return;
+	pbacnetTypedValue->Encode(enc, context);
+}
+
+void BACnetScale::Decode( BACnetAPDUDecoder& dec )
+{
+	BACnetAPDUTag		tagTestType;	
+	dec.ExamineTag(tagTestType);	
+    switch (tagTestType.tagNumber)
+	{
+		case 0:					SetObject( new BACnetReal(dec) );	break;
+		case 1:					SetObject( new BACnetUnsigned(dec) ); break;
+		default:				TRACE0("INVALID type in encoded stream for BACnetScale");
+								ASSERT(0);
+	}
+}
+
+int BACnetScale::DataType()
+{
+	return escale;
+}
+
+
+BACnetEncodeable * BACnetScale::clone()
+{
+	return new BACnetScale( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
+}
+
+
+bool BACnetScale::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	if ( PreMatch(iOperator) )
+		return true;
+
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetScale)));
+	ASSERT(pbacnetTypedValue != NULL);
+
+	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetScale))  &&
+		    pbacnetTypedValue->Match(*((BACnetScale &)rbacnet).GetObject(), iOperator, pstrError);
+}
 
 
 //====================================================================

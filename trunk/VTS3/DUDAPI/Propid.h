@@ -172,8 +172,31 @@ enum BACnetPropertyIdentifier
 		ZONE_MEMBERS, 					  // 165 Zhu Zhenhua  2003-7-21 
 		LIFE_SAFETY_ALARM_VALUES, 		  // 166 Zhu Zhenhua  2003-7-21 
 		MAX_SEGMENTS_ACCEPTED, 			  // 167 Zhu Zhenhua  2003-7-21 
-		PROFILE_NAME,					  // 168 Zhu Zhenhua  2003-7-21 
-		LAST_NOTIFY_RECORD = 173		  // 173 Zhu Zhenhua  2004-5-11
+		PROFILE_NAME,					  // 168 Zhu Zhenhua  2003-7-21
+		AUTO_SLAVE_DISCOVERY,             // 169 Shiyuan Xiao 7/15/2005
+		MANUAL_SLAVE_ADDRESS_BINDING,     // 170 Shiyuan Xiao 7/15/2005
+		SLAVE_ADDRESS_BINDING,            // 171 Shiyuan Xiao 7/15/2005
+		SLAVE_PROXY_ENABLE,               // 172 Shiyuan Xiao 7/15/2005		
+		LAST_NOTIFY_RECORD,   		      // 173 Zhu Zhenhua  2004-5-11
+		SCHEDULE_DEFAULT,                 // 174 Shiyuan Xiao 7/15/2005
+		ACCEPTED_MODES,                   // 175 Shiyuan Xiao 7/15/2005
+		ADJUST_VALUE,                     // 176 Shiyuan Xiao 7/15/2005
+		COUNT,                            // 177 Shiyuan Xiao 7/15/2005 
+		COUNT_BEFORE_CHANGE,              // 178 Shiyuan Xiao 7/15/2005
+		COUNT_CHANGE_TIME,                // 179 Shiyuan Xiao 7/15/2005		
+		COV_PERIOD,                       // 180 Shiyuan Xiao 7/15/2005
+		INPUT_REFERENCE,                  // 181 Shiyuan Xiao 7/15/2005
+		LIMIT_MONITORING_INTERVAL,        // 182 Shiyuan Xiao 7/15/2005
+		LOGGING_OBJECT,                   // 183 Shiyuan Xiao 7/15/2005
+		LOGGING_RECORD,                   // 184 Shiyuan Xiao 7/15/2005  
+		PRESCALE,                         // 185 Shiyuan Xiao 7/15/2005  
+		PULSE_RATE,                       // 186 Shiyuan Xiao 7/15/2005
+		SCALE,                            // 187 Shiyuan Xiao 7/15/2005
+		SCALE_FACTOR,                     // 188 Shiyuan Xiao 7/15/2005  
+		UPDATE_TIME,                      // 189 Shiyuan Xiao 7/15/2005 
+		VALUE_BEFORE_CHANGE,              // 190 Shiyuan Xiao 7/15/2005
+		VALUE_SET,                        // 191 Shiyuan Xiao 7/15/2005
+		VALUE_CHANGE_TIME                 // 192 Shiyuan Xiao 7/15/2005
 	};
 
 #endif

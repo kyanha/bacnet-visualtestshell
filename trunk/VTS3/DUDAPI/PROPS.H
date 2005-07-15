@@ -66,6 +66,10 @@
 #define listof				53			//BACnetListOf
 #define arrayof				54			//BACnetArrayOf
 
+#define escale    60   // BACnetScale    Shiyuan Xiao 7/15/2005
+#define eprescl    61   // BACnetPrescale Shiyuan Xiao 7/15/2005
+#define eaclr      62     // BACnetAccumulatorRecord Shiyuan Xiao 7/15/2005
+
 #define ptDate 200  // parsetype BACnetDate
 #define ptTime 201  // parsetype BACnetTime
 #define lobj   202  // array of objects, (parse type)
@@ -77,7 +81,6 @@
 #define dabindelem 207	// single BACnetDeviceAddressBinding madanner 9/04
 #define COVSub 208		// single BACnetCOVSubscription madanner 9/04
 #define recipproc 209	// singled BACnetRecipientProcess madanner 9/04
-
 
 
 ////
