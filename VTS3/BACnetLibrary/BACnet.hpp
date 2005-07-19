@@ -1370,6 +1370,8 @@ class BACnetScale : public BACnetObjectContainer
 {
 	public:
 		BACnetScale();
+		BACnetScale(float value);
+		BACnetScale(int value);
 		BACnetScale( BACnetAPDUDecoder & dec );
 		BACnetScale( BACnetEncodeable * pbacnetEncodeable );
 

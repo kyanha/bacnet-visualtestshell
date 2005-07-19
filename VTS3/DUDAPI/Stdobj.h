@@ -619,8 +619,8 @@ enum BACnetEngineeringUnits        units;
 	word                           limit_monitoring_interval;
 	word                           notification_class;
 	word        				   time_delay;
-	octet					       event_enable;
 	octet                          limit_enable;
+	octet					       event_enable;	
     octet					       acked_transitions;
 	enum BACnetNotifyType          notify_type;
     BACnetTimeStamp	 	           event_time_stamps[3];
@@ -631,6 +631,30 @@ typedef struct
 {
     generic_object		           go;
 	float 					       present_value;
+	BACnetObjectPropertyReference  input_reference;
+	octet					       status_flags;
+enum BACnetEventState	           event_state;
+enum BACnetReliability	           reliability;
+    bool					       out_of_service;
+	enum BACnetEngineeringUnits    units;
+	float                          scale_factor;
+	float                          adjust_value;
+	word                           count;
+	BACnetDateTime                 update_time;
+	BACnetDateTime                 count_change_time;
+	word                           count_before_change;
+	float                          cov_increment;
+	word                           cov_period;
+	word                           notification_class;
+	word        				   time_delay;
+	float                          high_limit;
+	float                          low_limit;
+	float                          deadband;
+	octet                          limit_enable;
+	octet					       event_enable;	
+    octet					       acked_transitions;
+	enum BACnetNotifyType          notify_type;
+    BACnetTimeStamp	 	           event_time_stamps[3];
 } pulseconverter_obj_type;
 
 #endif //__STDOBJ_H_INCLUDED

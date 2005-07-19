@@ -6460,6 +6460,16 @@ BACnetScale::BACnetScale()
 {
 }
 
+BACnetScale::BACnetScale(float value)
+{
+	SetObject( new BACnetReal(value) );
+}
+
+BACnetScale::BACnetScale(int value)
+{
+	SetObject( new BACnetUnsigned(value) );
+}
+
 BACnetScale::BACnetScale( BACnetAPDUDecoder & dec )
 				:BACnetObjectContainer()
 {

@@ -1208,13 +1208,37 @@ propdescriptor ACProps[] =
 
 propdescriptor PCProps[] = 
 {
-	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(pulseconverter,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(pulseconverter,  go.object_name),  	s32,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(pulseconverter,  go.object_type), 	et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(pulseconverter,  go.description),  		      s132,     0,      0,       O,
-	"present-value",		    PRESENT_VALUE,		          oo(pulseconverter,  present_value),	    uw,		  0,      0,	   R,
-	"profile-name",				PROFILE_NAME,				  oo(pulseconverter,  go.profile_name),	s132,	  Last,	  0,       O
+	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(pulseconverter,  go.object_id),   	   ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(pulseconverter,  go.object_name),     s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(pulseconverter,  go.object_type), 	   et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			      oo(pulseconverter,  go.description),     s132,     0,      0,       O,
+	"present-value",		    PRESENT_VALUE,		          oo(pulseconverter,  present_value),      flt,	     0,      0,	      R,
+	"input-reference",          INPUT_REFERENCE,              oo(pulseconverter,  input_reference),    propref,  0,      0,       O,  
+	"status-flags",			    STATUS_FLAGS,		          oo(pulseconverter,  status_flags),	   bits,	 0,	     0,	      R,
+	"event-state",			    EVENT_STATE,		          oo(pulseconverter,  event_state),	       et,		 0,      eiEvState, R,
+	"reliability",			    RELIABILITY,		          oo(pulseconverter,  reliability),	       et,		 0,	     eiReli,  O,
+    "out-of-service",		    OUT_OF_SERVICE,		          oo(pulseconverter,  out_of_service),	   ebool,    0,	     eiTF,	   R,
+	"units",                    UNITS,                        oo(pulseconverter,  units),              et,       0,      eiEU,    R,
+	"scale-factor",             SCALE_FACTOR,                 oo(pulseconverter,  scale_factor),       flt,      0,      0,       R,
+	"adjust-value",             ADJUST_VALUE,                 oo(pulseconverter,  adjust_value),       flt,      0,      0,       W,
+	"count",                    COUNT,                        oo(pulseconverter,  count),              uw,       0,      0,       R,    
+	"update-time",              UPDATE_TIME,                  oo(pulseconverter,  update_time),        dt,       0,      0,       R,
+	"count-change-time",        COUNT_CHANGE_TIME,            oo(pulseconverter,  count_change_time),  dt,       0,      0,       R|WithService,         
+	"count-before-change",      COUNT_BEFORE_CHANGE,          oo(pulseconverter,  count_before_change),uw,       0,      0,       R,
+	"cov-increment",            COV_INCREMENT,                oo(pulseconverter,  cov_increment),      flt,      0,      0,       O|WithService,    
+	"cov-period",               COV_PERIOD,                   oo(pulseconverter,  cov_period),         uw,       0,      0,       O|WithService,      
+	"notification-class",	    NOTIFICATION_CLASS,	          oo(pulseconverter,  notification_class), uw,	     0,	     0,  	  O|WithService,
+	"time-delay",               TIME_DELAY,                   oo(pulseconverter,  time_delay),         uw,	     0,	     0,  	  O|WithService,		
+	"high-limit",			    HIGH_LIMIT,			          oo(pulseconverter,  high_limit),		   flt,	     0,	     0,	      O|WithService,
+    "low-limit",			    LOW_LIMIT,			          oo(pulseconverter,  low_limit),		   flt,	     0,	     0,	      O|WithService,	
+	"deadband",                 DEADBAND,                     oo(pulseconverter,  deadband),           flt,      0,      0,       O|WithService,	
+	"limit-enable",             LIMIT_ENABLE,                 oo(pulseconverter,  limit_enable),       bits,     0,      0,       O|WithService, 
+	"event-enable",  			EVENT_ENABLE,  			      oo(pulseconverter,  event_enable),  	   bits,     0,      0,       O|WithService,
+	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(pulseconverter,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
+	"notify-type",  			NOTIFY_TYPE,  			      oo(pulseconverter,  notify_type),  	   et,       0,      eiNT,    O|WithService,
+	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(pulseconverter,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
+	"profile-name",				PROFILE_NAME,				  oo(pulseconverter,  go.profile_name),	   s132,	 Last,	 0,       O
 };
 
 stdobjtype	StdObjects[]={

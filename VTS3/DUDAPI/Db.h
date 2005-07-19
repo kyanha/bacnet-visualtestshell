@@ -126,7 +126,7 @@ typedef struct
    union
    {
 	 float			floatScale;
-	 dword			integerScale;	 
+	 int			integerScale;	 
    }u;
  } BACnetScale;
 
