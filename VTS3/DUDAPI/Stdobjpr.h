@@ -413,6 +413,85 @@ static etable etAnyDayofWeek={
             "Sun"
             };
 
+//Shiyuan Xiao 7/20/2005
+static etable etLifeSafetyState = {
+   0, 0, 24,
+   "quiet",
+   "pre-alarm",
+   "alarm",
+   "fault",
+   "fault-pre-alarm",
+   "fault-alarm",
+   "not-ready",
+   "active",
+   "tamper",
+   "test-alarm",
+   "test-active",
+   "test-fault",
+   "test-fault-alarm",
+   "holdup",
+   "duress",
+   "tamper-alarm",
+   "abnormal",
+   "emergency-power",
+   "delayed",
+   "blocked",
+   "local-alarm",
+   "general-alarm",
+   "supervisory",
+   "test-supervisory"
+   };
+
+//Shiyuan Xiao 7/21/2005
+static etable etSilencedState = {
+	0, 0, 4,
+	"Unsilenced",
+	"Audible-Silenced",
+	"Visible-Silenced",
+	"All-Silenced"
+};
+
+//Shiyuan Xiao 7/21/2005
+static etable etMaintenance = {
+	0, 0, 4,
+	"None",
+	"Periodic-test",
+	"Need-Service-Operational",
+	"Need-Service-Inoperative"
+};
+
+//Shiyuan Xiao 7/21/2005
+static etable etLifeSafetyOperation = {
+   0, 0, 7,
+   "none",
+   "silence",
+   "silence-audible",
+   "silence-visual",
+   "reset",
+   "reset-alarm",
+   "reset-fault"
+};
+
+//Shiyuan Xiao 7/21/2005
+static etable etLifeSafetyMode = {
+	0, 0, 15,
+   "off",
+   "on",
+   "test",
+   "manned",
+   "unmanned",
+   "armed",
+   "disarmed",
+   "prearmed",
+   "slow",
+   "fast",
+   "disconnected",
+   "enabled",
+   "disabled",
+   "automatic-release-disabled",
+   "default"
+};
+
 static etable *AllETs[]={
             &etTF,
             &etReli,
@@ -441,7 +520,12 @@ static etable *AllETs[]={
             &etWeekofMonth,
             &etAnyDayofWeek,
             &etBPVn,
-            &etAppDataTypes
+            &etAppDataTypes,
+			&etLifeSafetyState,
+			&etSilencedState,
+			&etLifeSafetyOperation,
+			&etMaintenance,
+			&etLifeSafetyMode
             };
 //NOTE: the ei defs have been moved to PROP.H
 
@@ -1154,8 +1238,32 @@ propdescriptor LFSPProps[] =
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lifesafetypoint,  go.object_id),   	ob_id,    0,      0,       R,
     "object-name",  			OBJECT_NAME, 			      oo(lifesafetypoint,  go.object_name),  	s32,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(lifesafetypoint,  go.object_type), 	et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(lifesafetypoint,  go.description),  		      s132,     0,      0,       O,
-	"present-value",		    PRESENT_VALUE,		          oo(lifesafetypoint,  present_value),	uw,		  0,      0,	   R,
+	"description",  			DESCRIPTION,  			      oo(lifesafetypoint,  go.description),     s132,     0,      0,       O,
+	"present-value",		    PRESENT_VALUE,		          oo(lifesafetypoint,  present_value),	    et,		  0,      eiLifeSafetyState,	   R,
+	"tracking-value",           TRACKING_VALUE,               oo(lifesafetypoint,  tracking_value),     et,       0,      eiLifeSafetyState,	   O,
+	"device-type",			    DEVICE_TYPE,		          oo(lifesafetypoint,  device_type),		s64,	  0,	  0,	   R,
+    "status-flags",			    STATUS_FLAGS,		          oo(lifesafetypoint,  status_flags),	    bits,	  0,	  0,	   R,
+	"event-state",			    EVENT_STATE,		          oo(lifesafetypoint,  event_state),	    et,		  0,      eiEvState, R,
+    "reliability",			    RELIABILITY,		          oo(lifesafetypoint,  reliability),	    et,		  0,	  eiReli,  O,
+    "out-of-service",		    OUT_OF_SERVICE,		          oo(lifesafetypoint,  out_of_service),	    ebool,    0,	  eiTF,	   R,
+	"mode",                     MODE,                         oo(lifesafetypoint,  mode),               et,       0,      eiLifeSafetyMode, W,
+	"accepted-modes",           ACCEPTED_MODES,               oo(lifesafetypoint,  accepted_modes),     et,       0,      0,       O,    
+	"time-delay",               TIME_DELAY,                   oo(lifesafetypoint,  time_delay),         uw,	      0,	  0,  	   O|WithService,
+	"notification-class",	    NOTIFICATION_CLASS,	          oo(lifesafetypoint,  notification_class), uw,	      0,	  0,  	   O|WithService,
+	"life-safety-alarm-value",  LIFE_SAFETY_ALARM_VALUES,     oo(lifesafetypoint,  life_safety_alarm_values), et, 0,	  0,  	   O|WithService,		
+	"alarm-values",             ALARM_VALUES,                 oo(lifesafetypoint,  alarm_values),       et,       0,      0,       O|WithService, 
+	"fault-values",             FAULT_VALUES,                 oo(lifesafetypoint,  fault_values),       et,       0,      0,       O|WithService, 
+	"event-enable",  			EVENT_ENABLE,  			      oo(lifesafetypoint,  event_enable),  		bits,     0,      0,       O|WithService,
+	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(lifesafetypoint,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
+	"notify-type",  			NOTIFY_TYPE,  			      oo(lifesafetypoint,  notify_type),  		et,       0,      eiNT,    O|WithService,
+	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(lifesafetypoint,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
+	"silenced",                 SILENCED,                     oo(lifesafetypoint,  silenced),           et,       0,      eiSilencedState,       R,
+    "operation-expected",       OPERATION_EXPECTED,           oo(lifesafetypoint,  operation_expected), et,       0,      eiLifeSafetyOperation, R,
+	"maintenance-required",     MAINTENANCE_REQUIRED,         oo(lifesafetypoint,  maintenance_required),et,      0,      eiMaintenance, O, 
+    "setting",                  SETTING,                      oo(lifesafetypoint,  setting),            uw,       0,      0,       O,
+    "direct-reading",           DIRECT_READING,               oo(lifesafetypoint,  direct_reading),     flt,      0,      0,       O,
+    "units",                    UNITS,                        oo(lifesafetypoint,  units),              et,       0,      eiEU,    O,
+	"member-of",                MEMBER_OF,                    oo(lifesafetypoint,  member_of),          devobjpropref,0,  0,       O,    
 	"profile-name",				PROFILE_NAME,				  oo(lifesafetypoint,  go.profile_name),	s132,	  Last,	  0,       O
 };
 
@@ -1163,11 +1271,32 @@ propdescriptor LFSZProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lifesafetyzone,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(lifesafetyzone,  go.object_name),  	s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(lifesafetyzone,  go.object_name),  s32,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(lifesafetyzone,  go.object_type), 	et,       0,      0,       R,
-	"description",  				DESCRIPTION,  			  oo(lifesafetyzone,  go.description),  		      s132,     0,      0,       O,
-	"present-value",		    PRESENT_VALUE,		          oo(lifesafetyzone,  present_value),	    uw,		  0,      0,	   R,
-	"profile-name",				PROFILE_NAME,				  oo(lifesafetyzone,  go.profile_name),	s132,	  Last,	  0,       O
+	"description",  			DESCRIPTION,  			      oo(lifesafetyzone,  go.description),  s132,     0,      0,       O,
+	"present-value",		    PRESENT_VALUE,		          oo(lifesafetyzone,  present_value),	uw,		  0,      0,	   R,
+	"tracking-value",           TRACKING_VALUE,               oo(lifesafetyzone,  tracking_value),  et,       0,      eiLifeSafetyState,	   O,
+	"device-type",			    DEVICE_TYPE,		          oo(lifesafetyzone,  device_type),		s64,	  0,	  0,	   R,
+	"status-flags",			    STATUS_FLAGS,		          oo(lifesafetyzone,  status_flags),	bits,	  0,	  0,	   R,
+	"event-state",			    EVENT_STATE,		          oo(lifesafetyzone,  event_state),	    et,		  0,      eiEvState, R,
+    "reliability",			    RELIABILITY,		          oo(lifesafetyzone,  reliability),	    et,		  0,	  eiReli,  O,
+    "out-of-service",		    OUT_OF_SERVICE,		          oo(lifesafetyzone,  out_of_service),	ebool,    0,	  eiTF,	   R,
+	"mode",                     MODE,                         oo(lifesafetyzone,  mode),               et,       0,      eiLifeSafetyMode, W,
+	"time-delay",               TIME_DELAY,                   oo(lifesafetyzone,  time_delay),         uw,	      0,	  0,  	   O|WithService,
+	"notification-class",	    NOTIFICATION_CLASS,	          oo(lifesafetyzone,  notification_class), uw,	      0,	  0,  	   O|WithService,
+	"life-safety-alarm-value",  LIFE_SAFETY_ALARM_VALUES,     oo(lifesafetyzone,  life_safety_alarm_values), et, 0,	  0,  	   O|WithService,		
+	"alarm-values",             ALARM_VALUES,                 oo(lifesafetyzone,  alarm_values),       et,       0,      0,       O|WithService, 
+	"fault-values",             FAULT_VALUES,                 oo(lifesafetyzone,  fault_values),       et,       0,      0,       O|WithService, 
+	"event-enable",  			EVENT_ENABLE,  			      oo(lifesafetyzone,  event_enable),  		bits,     0,      0,       O|WithService,
+	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(lifesafetyzone,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
+	"notify-type",  			NOTIFY_TYPE,  			      oo(lifesafetyzone,  notify_type),  		et,       0,      eiNT,    O|WithService,
+	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(lifesafetyzone,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
+	"silenced",                 SILENCED,                     oo(lifesafetyzone,  silenced),           et,       0,      eiSilencedState,       R,
+    "operation-expected",       OPERATION_EXPECTED,           oo(lifesafetyzone,  operation_expected), et,       0,      eiLifeSafetyOperation, R,
+	"maintenance-required",     MAINTENANCE_REQUIRED,         oo(lifesafetyzone,  maintenance_required),et,      0,      eiMaintenance, O, 
+	"zone-members",             ZONE_MEMBERS,                 oo(lifesafetyzone,  zone_members),     devobjpropref,0,  0,       R,   
+	"member-of",                MEMBER_OF,                    oo(lifesafetyzone,  member_of),        devobjpropref,0,  0,       O,    
+	"profile-name",				PROFILE_NAME,				  oo(lifesafetyzone,  go.profile_name),	 s132,	  Last,	  0,        O
 };
 
 propdescriptor ACProps[] = 

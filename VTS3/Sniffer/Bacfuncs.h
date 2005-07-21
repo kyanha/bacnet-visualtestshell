@@ -493,12 +493,14 @@ char *BACnetLifeSafetyState[] = {
    "supervisory",
    "test-supervisory"
    };
+
 char* BACnetMaintenance[] = {
 	"None",
 	"Periodic-test",
 	"Need-Service-Operational",
 	"Need-Service-Inoperative"
 };
+
 char* BACnetSilencedState[] = {
 	"Unsilenced",
 	"Audible-Silenced",

@@ -346,7 +346,7 @@ static const char *stPropIDs[]={
 #define		eiPrErr        12
 #define		eiPrState      13
 #define		eiPrChg        14
-#define 	eiObjectTypes     15
+#define 	eiObjectTypes  15
 #define		eiStF          16
 #define		eiEvTr         17
 #define		eiLimEn        18
@@ -359,5 +359,10 @@ static const char *stPropIDs[]={
 #define		eiAnyDOW       25
 #define		eiBPVn         26
 #define		eiAppDataTypes 27
+#define     eiLifeSafetyState 28
+#define     eiSilencedState   29
+#define     eiLifeSafetyOperation   30
+#define     eiMaintenance  31
+#define     eiLifeSafetyMode 32
 
 #endif //__PROPS_H_INCLUDED
