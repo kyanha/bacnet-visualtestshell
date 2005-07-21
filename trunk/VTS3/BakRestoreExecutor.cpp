@@ -239,7 +239,7 @@ void BakRestoreExecutor::DoBackupTest()
 	{
 		if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) 
 		{
-			char msg[50];
+			char msg[200];
 			sprintf(msg, "The file %s already existes, do you want to overwrite it?\n", fd.cFileName);
 			if (IDNO == AfxMessageBox(msg, MB_YESNO|MB_ICONSTOP)) 
 			{
@@ -303,7 +303,7 @@ void BakRestoreExecutor::DoBackupTest()
 		throw("cannot read DATABASE_REVISION from IUT\n");
 	}
 	propID.enumValue = PICS::LAST_RESTORE_TIME;
-	BACnetDateTime	lastRestoreTime;
+	BACnetTimeStamp	lastRestoreTime;
 	propValue.SetObject(&lastRestoreTime);
 	if (!SendExpectReadProperty(devObjID, propID, propValue))
 	{
@@ -315,7 +315,7 @@ void BakRestoreExecutor::DoBackupTest()
 	int nStart = sprintf(buffer, "(%s), ", chEnc);
 	maxAPDULenAccepted.Encode(chEnc);
 	nStart +=  sprintf(buffer+nStart, "%s, ", chEnc);
-	lastRestoreTime.Encode(chEnc);
+	lastRestoreTime.pbacnetTypedValue->Encode(chEnc);
 	nStart += sprintf(buffer+nStart, "%s\n", chEnc);
 	backupIndexFile.Write(buffer, strlen(buffer));	
 
@@ -1993,6 +1993,5 @@ void BakRestoreExecutor::Msg(const char* errMsg)
 	VTSDocPtr	vdp = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 	vdp->WritePacket( pkt );
 	
-	delete []buff;
-	
+	delete []buff;	
 }

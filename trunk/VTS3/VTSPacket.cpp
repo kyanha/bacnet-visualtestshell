@@ -279,6 +279,10 @@ void VTSPacket::FindNPDUStartPos(int& npduindex)
 			// skip over preamble
 			npduindex += 2;			
 			break;
+		case BACnetPIInfo::msgProtocol:
+		case BACnetPIInfo::bakRestoreMsgProtocol:
+			npduindex = -1;		// just VTS message, do not contain npdu
+			break;
 	}
 }
 
@@ -376,6 +380,9 @@ CString VTSPacket::GetDADRString(VTSDoc * pdoc, BOOL bAlias)
 	int npduindex = 0;
 
 	FindNPDUStartPos(npduindex);
+
+	if (npduindex == -1)
+		return "";	// do not contain NPDU
 
 	if(packetLen - npduindex< 2)
 		return "";		

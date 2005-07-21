@@ -56,6 +56,7 @@ protected:
 	afx_msg void OnBrowse();
 	virtual void OnOK();
 	afx_msg void OnSelendokDevicecombo();
+	afx_msg void OnSelendokPortcombo();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
