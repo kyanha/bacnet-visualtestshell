@@ -506,6 +506,15 @@ enum BACnetLifeSafetyState
    test_supervisory
 };
 
+//Shiyuan Xiao. 7/21/2005
+enum BACnetMaintenance
+{
+	None,
+	Periodic_test,
+	Need_Service_Operational,
+	Need_Service_Inoperative
+};
+
 enum BACnetLifeSafetyMode
 {
    off,
