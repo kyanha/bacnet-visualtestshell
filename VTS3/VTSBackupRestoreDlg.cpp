@@ -56,6 +56,7 @@ BEGIN_MESSAGE_MAP(VTSBackupRestoreDlg, CDialog)
 	//{{AFX_MSG_MAP(VTSBackupRestoreDlg)
 	ON_BN_CLICKED(IDC_BROWSE, OnBrowse)
 	ON_CBN_SELENDOK(IDC_DEVICECOMBO, OnSelendokDevicecombo)
+	ON_CBN_SELENDOK(IDC_PORTCOMBO, OnSelendokPortcombo)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -73,8 +74,11 @@ BOOL VTSBackupRestoreDlg::OnInitDialog()
 		m_deviceCtrl.AddString( ((VTSName *) m_names.GetAt(i))->m_strName );
 	}
 
-	if ( m_deviceCtrl.SelectString( -1, "IUT" ) != CB_ERR ) 
-	{
+	int nIndex = m_deviceCtrl.FindStringExact(-1, "IUT");
+	if ( nIndex != CB_ERR ) 
+	{			
+		// default to the name "IUT" if this name has been configured
+		m_deviceCtrl.SetCurSel(nIndex);		
 		VTSPortPtr pPort;
 		int index = const_cast<VTSNames&>(m_names).FindIndex("IUT");
 		ASSERT(index != -1);
@@ -93,6 +97,18 @@ BOOL VTSBackupRestoreDlg::OnInitDialog()
 				{
 					m_portCtrl.AddString( pPort->m_strName );
 				}
+			}
+		}
+	}
+	else
+	{
+		VTSPortPtr pPort;
+		for ( i = 0; i < m_ports.GetSize(); i++)
+		{
+			pPort = (VTSPort *) m_ports.GetAt(i);
+			if (pPort->IsEnabled())
+			{
+				m_portCtrl.AddString( pPort->m_strName );
 			}
 		}
 	}
@@ -159,32 +175,50 @@ void VTSBackupRestoreDlg::OnOK()
 void VTSBackupRestoreDlg::OnSelendokDevicecombo() 
 {
 	// TODO: Add your control notification handler code here
-	CString str;
-	m_deviceCtrl.GetWindowText(str);
+	CString strDevice;
+	m_deviceCtrl.GetWindowText(strDevice);
+	CString strPort;
+	m_portCtrl.GetWindowText(strPort);
 
-	while (m_portCtrl.GetCount() != 0)
-	{
-		m_portCtrl.DeleteString( 0 );
-	}
-
+	// consisteny check between Device and Port
 	VTSPortPtr pPort;
-	int index = const_cast<VTSNames&>(m_names).FindIndex(str);
+	int index = const_cast<VTSNames&>(m_names).FindIndex(strDevice);
 	ASSERT(index != -1);
 	VTSName* pName = m_names.GetAt(index);
 	if (pName->m_pportLink != NULL)
 	{
 		pPort = pName->m_pportLink;
-		m_portCtrl.AddString( pPort->m_strName );
-	}
-	else
-	{
-		for (int i = 0; i < m_ports.GetSize(); i++)
+		if (pPort->m_strName.CompareNoCase(strPort))
 		{
-			pPort = (VTSPort *) m_ports.GetAt(i);
-			if (pPort->IsEnabled())
-			{
-				m_portCtrl.AddString( pPort->m_strName );
-			}
+			m_portCtrl.SetCurSel(-1);
 		}
 	}
 }
+
+void VTSBackupRestoreDlg::OnSelendokPortcombo() 
+{
+	// TODO: Add your control notification handler code here
+	CString strPort;
+	m_portCtrl.GetWindowText(strPort);
+	CString strDevice;
+	m_deviceCtrl.GetWindowText(strDevice);
+
+	// consisteny check between Device and Port
+	if (!strDevice.IsEmpty())
+	{
+		VTSPortPtr pPort;
+		int index = const_cast<VTSNames&>(m_names).FindIndex(strDevice);
+		ASSERT(index != -1);
+		VTSName* pName = m_names.GetAt(index);
+		if (pName->m_pportLink != NULL)
+		{
+			pPort = pName->m_pportLink;
+			if (pPort->m_strName.CompareNoCase(strPort)) 
+			{
+				m_deviceCtrl.SetCurSel(-1);
+			}
+		}
+	}	
+
+}
+
