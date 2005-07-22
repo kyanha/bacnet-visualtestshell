@@ -73,46 +73,18 @@ BOOL VTSBackupRestoreDlg::OnInitDialog()
 	{
 		m_deviceCtrl.AddString( ((VTSName *) m_names.GetAt(i))->m_strName );
 	}
+	m_deviceCtrl.SelectString(-1, "IUT");
 
-	int nIndex = m_deviceCtrl.FindStringExact(-1, "IUT");
-	if ( nIndex != CB_ERR ) 
-	{			
-		// default to the name "IUT" if this name has been configured
-		m_deviceCtrl.SetCurSel(nIndex);		
-		VTSPortPtr pPort;
-		int index = const_cast<VTSNames&>(m_names).FindIndex("IUT");
-		ASSERT(index != -1);
-		VTSName* pName = m_names.GetAt(index);
-		if (pName->m_pportLink != NULL)
+	VTSPortPtr pPort;
+	for ( i = 0; i < m_ports.GetSize(); i++ )
+	{
+		pPort = (VTSPort *) m_ports.GetAt(i);
+		if (pPort->IsEnabled())
 		{
-			pPort = pName->m_pportLink;
 			m_portCtrl.AddString( pPort->m_strName );
 		}
-		else
-		{
-			for ( i = 0; i < m_ports.GetSize(); i++)
-			{
-				pPort = (VTSPort *) m_ports.GetAt(i);
-				if (pPort->IsEnabled())
-				{
-					m_portCtrl.AddString( pPort->m_strName );
-				}
-			}
-		}
 	}
-	else
-	{
-		VTSPortPtr pPort;
-		for ( i = 0; i < m_ports.GetSize(); i++)
-		{
-			pPort = (VTSPort *) m_ports.GetAt(i);
-			if (pPort->IsEnabled())
-			{
-				m_portCtrl.AddString( pPort->m_strName );
-			}
-		}
-	}
-
+		
 	m_funCtrl.SetCheck(2);
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
