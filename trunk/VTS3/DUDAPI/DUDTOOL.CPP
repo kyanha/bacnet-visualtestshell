@@ -4258,6 +4258,8 @@ void LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
 			(const char **)petable->estrings,
 			petable->nes) );
 		break;
+	case ACCEPTED_MODES:
+		break;
 	case TIME_DELAY:
 		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->time_delay));
 		break;
@@ -4278,10 +4280,9 @@ void LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
 			break;
 	case NOTIFY_TYPE:
          petable = (etable *)PICS::GetEnumTable(eiNT);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
+		 pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
+                     (const char **)petable->estrings, petable->nes) );
+		 break;
 	case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
@@ -4305,6 +4306,22 @@ void LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
 		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->maintenance_required, 
 			(const char **)petable->estrings,
 			petable->nes) );
+		break;
+	case SETTING:
+		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->setting));
+		break;
+	case DIRECT_READING:
+		pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->direct_reading));
+		break;
+	case UNITS:
+        petable = (etable *)PICS::GetEnumTable(eiEU);  
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->units,
+                     (const char **)petable->estrings, petable->nes) );
+		break;
+	case MEMBER_OF:
+		break;
+    case PROFILE_NAME:
+		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 		break;
 	}
 }
@@ -4365,8 +4382,8 @@ void LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifi
                                                                petable->nes) );
 			break;
 	case OUT_OF_SERVICE:
-			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
-			break;	
+		pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
+		break;	
 	case MODE:
 		petable = (etable *)PICS::GetEnumTable(eiLifeSafetyMode);  
 		
@@ -4416,12 +4433,15 @@ void LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifi
 			petable->nes) );
 		break;
 	case MAINTENANCE_REQUIRED:
-		petable = (etable *)PICS::GetEnumTable(eiMaintenance);  
-		
-		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->maintenance_required, 
-			(const char **)petable->estrings,
-			petable->nes) );
+		pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->maintenance_required));			
 		break;
+	case ZONE_MEMBERS:
+		break;
+	case MEMBER_OF:
+		break;
+	case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
 	}
 }
 
