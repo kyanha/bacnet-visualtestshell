@@ -5020,9 +5020,9 @@ BOOL ParseDate(BACnetDate *dtp)
 		print_debug("PD: second set dash case\n");
 
 		for (i=0;i<12;i++)
-			if (strnicmp(lp,MonthNames[i],3)==0)
+			if (strnicmp(lp,MonthNames[i],strlen(MonthNames[i]))==0)
 			{	dtp->month=(octet)i+1;			//months are 1-12
-			lp+=3;							//added by Liangping Xu
+			lp += strlen(MonthNames[i]);	    //added by Liangping Xu
 			break;
 			}
 			if ((strdelim("-"))==NULL)
@@ -5036,8 +5036,15 @@ BOOL ParseDate(BACnetDate *dtp)
 	}
     
 	print_debug("PD: About to read third set\n");
+	BOOL flag = TRUE;
+	if( strchr(lp, ')') == NULL )
+		flag = FALSE;
     if (i=ReadW())								//not wild
     {	
+		//Shiyuan Xiao 7/25/2005
+		if(flag && strchr(lp, ')') == NULL)
+			lp--;
+		
 		if (i>2154)								//can't represent this date
 		{	
 			tperror("Can't represent dates beyond 2154!",true);
@@ -5984,8 +5991,11 @@ dword ReadDW()
 	char	c;
 
 	skipwhitespace();
-	while (isdigit(c=*lp++))  
-		d=(d*10L)+(c-'0');
+	while( isdigit( c = *(lp++) ) )  
+	{
+		d = (d*10L)+(c-'0');	
+	}
+	
 	if (c=='?') c=*lp++;						//pretend ? is a valid digit
 	if (c==0) lp--;								//stick at end of buffer
 	return d;
