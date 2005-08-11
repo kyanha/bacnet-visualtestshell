@@ -89,7 +89,8 @@ int CEPICSViewPropPanel::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	listCtrl.InsertColumn( 1, _T("Writeable"), LVCFMT_LEFT, 60 );
 	listCtrl.InsertColumn( 2, _T("EPICS Value"), LVCFMT_LEFT, 125 );
 	listCtrl.InsertColumn( 3, _T("Device Value"), LVCFMT_LEFT, 125 );
-
+	//Shiyuan Xiao 7/28/2005
+	listCtrl.InsertColumn( 4, _T("Restriction"), LVCFMT_LEFT, 125 );	
 	// column hiding not available yet...
 	listCtrl.m_nFlags |= LVS_REPORT;
 	return 0;

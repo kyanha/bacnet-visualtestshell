@@ -1263,7 +1263,7 @@ propdescriptor LFSPProps[] =
     "setting",                  SETTING,                      oo(lifesafetypoint,  setting),            uw,       0,      0,       O,
     "direct-reading",           DIRECT_READING,               oo(lifesafetypoint,  direct_reading),     flt,      0,      0,       O,
     "units",                    UNITS,                        oo(lifesafetypoint,  units),              et,       0,      eiEU,    O,
-	"member-of",                MEMBER_OF,                    oo(lifesafetypoint,  member_of),          devobjpropref,0,  0,       O,    
+	"member-of",                MEMBER_OF,                    oo(lifesafetypoint,  member_of),          devobjpropref,0,  0,       O|IsArray,    
 	"profile-name",				PROFILE_NAME,				  oo(lifesafetypoint,  go.profile_name),	s132,	  Last,	  0,       O
 };
 
