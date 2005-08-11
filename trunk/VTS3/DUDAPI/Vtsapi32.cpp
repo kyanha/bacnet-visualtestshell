@@ -627,7 +627,9 @@ static char *StandardObjects[]={
 			"Multi-state Value",           //19
 			"Trend Log",                   //20  madanner 6/03: "Trend-Log"
 			"Life Safety Point",           //21  msdanner 9/04: added
-			"Life Safety Zone"             //22  msdanner 9/04: added
+			"Life Safety Zone",            //22  msdanner 9/04: added
+			"Accumulator",                 //23  Shiyuan Xiao
+			"Pulse Converter"              //24  Shiyuan Xiao
 			};
 
 

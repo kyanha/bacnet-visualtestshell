@@ -26,6 +26,18 @@
 #define	PropIsWritable		2					//0=R, 1=W
 #define	ValueUnknown		4					//0=have a value, 1=value is ?
 
+//Shiyuan Xiao 8/1/2005
+typedef struct
+{
+//	BACnetAnyValue minValue;
+//	BACnetAnyValue maxValue;
+//	BACnetAnyValue resolution;
+	int            maxLengthStr;
+	int            maxLengthList;  
+	int            maxLengthArray;
+	int            allowedValues;
+} ObjPropValueLimit; //Default property value restriction
+
 //Generic Object type structure common to all Std Objects
 //-------------------------------------------------------
 typedef struct {
