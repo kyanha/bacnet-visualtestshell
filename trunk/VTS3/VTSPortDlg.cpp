@@ -46,6 +46,8 @@ VTSPortDlg::VTSPortDlg( VTSDoc * pdoc )
 	m_ppages[3] = &m_pageARCNET;
 	m_ppages[4] = &m_pageMSTP;
 	m_ppages[5] = &m_pagePTP;
+
+	m_iSelectedPort=0;  // changed by Kare Sars 2005
 }
 
 
