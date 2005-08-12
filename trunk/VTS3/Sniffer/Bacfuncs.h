@@ -372,6 +372,14 @@ char *BACnetErrorCode[] = {
    "Write-access-denied",                /* 40 */
    "Character-set-not-supported",        /* 41 */
    "Invalid-array-index"                 /* 42 */
+   "Cov-subscription-failed",            /* 43 kare.sars@wapice.com */
+   "Not-cov-property",                   /* 44 | */
+   "Optional-functionality-not-supported",/*45 | */
+   "Invalid-configuration-data",         /* 46 | */
+   "Datatype-not-supported",             /* 47 | */
+   "Duplicate-name",                     /* 48 | */
+   "Duplicate-object-id",                /* 49 | */
+   "Property-is-not-an-array"            /* 50 kare.sars@wapice.com */
    };
 
 //Modified by Zhu Zhenhua, 2004-5-20
