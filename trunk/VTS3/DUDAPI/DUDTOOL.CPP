@@ -2796,7 +2796,8 @@ void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
 			pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->min_on_time));
 			break;
 		case PRIORITY_ARRAY:    
-			pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((int *) pObj->priority_array, nPRIO, bpaNULL));
+			//pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((int *) pObj->priority_array, nPRIO, bpaNULL));
+			pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((unsigned short *) pObj->priority_array, nPRIO, bpaNULL));  // changed by Kare Sars
 			break;
 		case RELINQUISH_DEFAULT:
 			pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV((int) pObj->relinquish_default));
