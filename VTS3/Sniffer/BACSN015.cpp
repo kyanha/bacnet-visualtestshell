@@ -7383,7 +7383,7 @@ void show_bac_action_command( unsigned int len )
 }
 void show_bac_action_list()
 {
-	unsigned int len;
+	unsigned int len=0;  // changed by kare sars
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
    tagbuff = pif_get_byte(0);
    tagval = (tagbuff&0xF0)>>4;
