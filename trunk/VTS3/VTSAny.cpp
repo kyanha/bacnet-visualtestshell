@@ -1951,7 +1951,8 @@ int VTSAny::GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
 		case enull:			return 0;		//null enumeration, BACnetNull
 		case ob_id:			return 12;		//an object identifier, BACnetObjectIdentifier
 		case et:			return 9;		//an enumeration table, BACnetEnumerated
-		case flt:			return 5;		//float / double, BACnetDouble
+//		case flt:			return 5;		//float / double, BACnetDouble
+		case flt:			return 4;		//float / real, BACnetReal (changed 2005 by kare.sars@wapice.com)
 
 		case pss:							//protocol services supported bitstring
 		case pos:							//protocol objects supported bitstring
