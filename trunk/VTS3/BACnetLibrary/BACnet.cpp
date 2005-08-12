@@ -6526,7 +6526,68 @@ bool BACnetScale::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pst
 		    pbacnetTypedValue->Match(*((BACnetScale &)rbacnet).GetObject(), iOperator, pstrError);
 }
 
+//====================================================================
 
+IMPLEMENT_DYNAMIC(BACnetPrescale, BACnetEncodeable)
+
+BACnetPrescale::BACnetPrescale()
+{
+}
+
+BACnetPrescale::BACnetPrescale(unsigned short multiplier, unsigned short moduloDivide)
+{
+	this->multiplier = multiplier;
+	this->moduloDivide = moduloDivide;
+}
+
+BACnetPrescale::BACnetPrescale( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+void BACnetPrescale::Encode( BACnetAPDUEncoder& enc, int context)
+{
+	BACnetUnsigned value1(multiplier);
+	BACnetUnsigned value2(moduloDivide);
+
+	value1.Encode(enc, context);
+	value2.Encode(enc, context);
+}
+
+void BACnetPrescale::Decode( BACnetAPDUDecoder& dec )
+{	
+	BACnetUnsigned value1(dec);
+	BACnetUnsigned value2(dec);
+
+	multiplier = value1.uintValue;
+	moduloDivide = value2.uintValue;
+}
+
+void BACnetPrescale::Encode( char *enc ) const
+{
+	sprintf(enc, "{%d, %d}", multiplier, moduloDivide);
+}
+
+void BACnetPrescale::Decode( const char *dec )
+{
+}
+
+int BACnetPrescale::DataType()
+{
+	return eprescl;
+}
+
+
+BACnetEncodeable * BACnetPrescale::clone()
+{	
+	return new BACnetPrescale(multiplier, moduloDivide); 
+}
+
+
+bool BACnetPrescale::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	return true;
+}
 //====================================================================
 
 

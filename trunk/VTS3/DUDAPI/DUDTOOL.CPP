@@ -4512,7 +4512,9 @@ void AC_CreateProperty( accumulator_obj_type * pObj, BACnetPropertyIdentifier pr
                                                                petable->nes) );
 			break;
 	case PRESCALE:
-		    break;
+		pbacnetAnyValue->SetObject(eprescl, new ::BACnetPrescale(pObj->prescale.multiplier, 
+				pObj->prescale.moduloDivide));
+		break;
 	case MAX_PRES_VALUE:
 		    pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->max_pres_value));
 			break;

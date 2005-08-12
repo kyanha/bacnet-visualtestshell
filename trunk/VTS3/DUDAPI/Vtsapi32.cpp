@@ -103,6 +103,7 @@ BOOL ParseRecipientList(BACnetRecipient **);
 BOOL ParseEventParameter(BACnetEventParameter *);
 BOOL ParseSessionKeyList(BACnetSessionKey **);
 BOOL ParseRefList(BACnetObjectPropertyReference	**);
+BOOL ParsePrescale(BACnetPrescale* pt);
 BACnetRecipient *ParseRecipient(BACnetRecipient *);
 BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference	*);
 BOOL ParseCOVSubList(BACnetCOVSubscription **);												//*****018
@@ -3788,6 +3789,10 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 							
 					}					
 					break;
+				case eprescl: //BACnetPrescale Shiyuan Xiao
+					if (ParsePrescale((BACnetPrescale *)pstruc))
+						return true;
+					break;
 				case none:
 					// reset the datatype of present value according to EPICS,  by Yiping XU, 2002/11/2
 						bHasNoneType = true;
@@ -5214,6 +5219,29 @@ BOOL ParseOctetstring(octet *osp,word nmax,word *ncount)
 	return false;
 }
 
+BOOL ParsePrescale(BACnetPrescale* pt)
+{
+	skipwhitespace();
+	if (*lp=='?') 
+		return false;					
+
+	if (MustBe('{')) 
+		return true;
+	pt->multiplier = ReadDW();
+	lp--;
+	
+	if (MustBe(',')) 
+		return true;
+
+	skipwhitespace();	
+    pt->moduloDivide = ReadDW();
+	lp--;
+
+	if (MustBe('}')) 
+		return true;
+	
+	return false;
+}
 ///////////////////////////////////////////////////////////////////////
 //	read a list BACnetActionCommands from the buffer lp points to
 //	((actioncommand),(actioncommand),(actioncommand)...)
