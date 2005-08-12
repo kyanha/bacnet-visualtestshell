@@ -478,6 +478,8 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0x85001409, 123 }					// WEEKLY-SCHEDULE
 	, { 0x83ECF07D, 139 }					//PROTOCOL-REVISION
 	, { 0X537D4DF1, 152 }					//ACTIVE_COV_SUBSCRIPTION
+	, { 0X684A30CD, 155 }					//DATABASE-REVISION    kare.sars@wapice.com 2005
+	, { 0X2DC1631D, 167 }					//MAX-SEGMENTS-ACCEPTED kare.sars@wapice.com 2005
 	, { 0, 0 }
 	};
 
