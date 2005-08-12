@@ -706,6 +706,13 @@ UINT MSTP_NBLink_ThreadFunc( LPVOID pParam )
 						// Assume that if we get a message at all from the NB-Link, the CRC was correct
 						// Calculation of CRC is for sniffer only...
 
+						// section added by Kare Sars 
+                        // preamble should be 0x55FF not 0000
+						pbuf[0]=0x55;
+						pbuf[1]=0xFF;
+						// recalculate data crc
+						pbuf[7]=~MSTPCalcHeaderCRC(pbuf+2, 5);
+
 						//*(unsigned short *)(pbuf + nError/2 - sizeof(unsigned short)) = ~MSTPCalcDataCRC(pbuf+8, nError/2 - 10);
 						*(unsigned short *)(pbuf + nError - sizeof(unsigned short)+1) = ~MSTPCalcDataCRC(pbuf+8, nError - 9);
 
