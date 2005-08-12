@@ -54,7 +54,10 @@ BACnetAPDUEncoder::~BACnetAPDUEncoder( void )
 {
 	// delete the buffer if we own it
 	if (pktBuffSize != 0)
+	{
 		delete[] pktBuffer;
+		pktBuffSize = 0;  // added by Kare Sars
+	}
 }
 
 //
