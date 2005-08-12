@@ -1366,6 +1366,7 @@ class BACnetTimeStamp : public BACnetObjectContainer
 		DECLARE_DYNAMIC(BACnetTimeStamp)
 };
 
+//Shiyuan Xiao 
 class BACnetScale : public BACnetObjectContainer
 {
 	public:
@@ -1387,6 +1388,55 @@ class BACnetScale : public BACnetObjectContainer
 		DECLARE_DYNAMIC(BACnetScale)
 };
 
+//Shiyuan Xiao 
+class BACnetPrescale : public BACnetEncodeable
+{
+	public:
+		unsigned short multiplier;
+		unsigned short moduloDivide;
+		
+		BACnetPrescale();		
+		BACnetPrescale(unsigned short multiplier, unsigned short moduloDivide);
+		BACnetPrescale( BACnetAPDUDecoder & dec );	
+
+		// override decode for special construction from stream
+		void Decode( BACnetAPDUDecoder& dec );								// decode
+		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+
+		void Encode( char *enc ) const;
+		void Decode( const char *dec );
+
+		virtual int DataType(void);
+		virtual BACnetEncodeable * clone(void);
+		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetPrescale)
+};
+
+//Shiyuan Xiao 
+class BACnetAccumulatorRecord : public BACnetEncodeable
+{
+	public:
+		unsigned short multiplier;
+		unsigned short moduloDivide;
+		
+		BACnetAccumulatorRecord();		
+		BACnetAccumulatorRecord(unsigned short presentValue, unsigned short accumulatedValue);
+		BACnetAccumulatorRecord( BACnetAPDUDecoder & dec );	
+
+		// override decode for special construction from stream
+		void Decode( BACnetAPDUDecoder& dec );								// decode
+		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+
+		void Encode( char *enc ) const;
+		void Decode( const char *dec );
+
+		virtual int DataType(void);
+		virtual BACnetEncodeable * clone(void);
+		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetAccumulatorRecord)
+};
 
 class BACnetGenericArray : public BACnetEncodeable
 {
