@@ -6588,6 +6588,70 @@ bool BACnetPrescale::Match( BACnetEncodeable &rbacnet, int iOperator, CString * 
 {
 	return true;
 }
+
+//====================================================================
+IMPLEMENT_DYNAMIC(BACnetAccumulatorRecord, BACnetEncodeable)
+BACnetAccumulatorRecord::BACnetAccumulatorRecord()		
+{
+}
+
+BACnetAccumulatorRecord::BACnetAccumulatorRecord(PICS::BACnetDateTime timestamp, 
+	unsigned short presentValue, unsigned short accumulatedValue, unsigned short accumulatorStatus)
+{
+	this->timestamp = timestamp;
+	this->presentValue = presentValue;
+	this->accumulatedValue = accumulatedValue;
+	this->accumulatorStatus = accumulatorStatus;
+}
+
+BACnetAccumulatorRecord::BACnetAccumulatorRecord( BACnetAPDUDecoder & dec )
+{
+}
+
+void BACnetAccumulatorRecord::Decode( BACnetAPDUDecoder& dec )
+{
+}
+
+void BACnetAccumulatorRecord::Encode( BACnetAPDUEncoder& enc, int context)
+{
+}
+
+void BACnetAccumulatorRecord::Encode( char *enc ) const
+{
+	static char* monthstr[] = {"Jan", "Feb", "March", "April", "May", "June", "July",
+		"August", "Sep", "Oct", "Nov", "Dec"};
+	static char* statusstr[] = 
+	{
+		"normal",
+		"starting",
+		"recovered",
+		"abnormal",
+		"failed"	
+	};
+	sprintf(enc, "{(%d-%s-%d, %d:%d:%d.%d),%d, %d, %s}", timestamp.date.day_of_month, monthstr[timestamp.date.month], 
+		timestamp.date.year + 1900, timestamp.time.hour, timestamp.time.minute, timestamp.time.second, timestamp.time.hundredths, 
+		presentValue, accumulatedValue, statusstr[accumulatorStatus]);	
+}
+
+void BACnetAccumulatorRecord::Decode( const char *dec )
+{
+}
+
+int BACnetAccumulatorRecord::DataType(void)
+{
+	return eaclr;
+}
+
+BACnetEncodeable * BACnetAccumulatorRecord::clone(void)
+{
+	return new BACnetAccumulatorRecord(timestamp, presentValue, accumulatedValue,
+		accumulatorStatus); 
+}
+
+bool BACnetAccumulatorRecord::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	return true;
+}
 //====================================================================
 
 

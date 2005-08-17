@@ -1417,11 +1417,14 @@ class BACnetPrescale : public BACnetEncodeable
 class BACnetAccumulatorRecord : public BACnetEncodeable
 {
 	public:
-		unsigned short multiplier;
-		unsigned short moduloDivide;
+		PICS::BACnetDateTime timestamp;
+		unsigned short presentValue;
+		unsigned short accumulatedValue;
+		unsigned short accumulatorStatus;
 		
 		BACnetAccumulatorRecord();		
-		BACnetAccumulatorRecord(unsigned short presentValue, unsigned short accumulatedValue);
+		BACnetAccumulatorRecord(PICS::BACnetDateTime timestamp, unsigned short presentValue, 
+			unsigned short accumulatedValue, unsigned short accumulatorStatus);
 		BACnetAccumulatorRecord( BACnetAPDUDecoder & dec );	
 
 		// override decode for special construction from stream
