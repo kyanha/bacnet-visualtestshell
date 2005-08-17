@@ -502,6 +502,14 @@ char *BACnetLifeSafetyState[] = {
    "test-supervisory"
    };
 
+char *BACnetAccumulatorStatus[] = {
+	"normal",
+	"starting",
+	"recovered",
+	"abnormal",
+    "failed"
+};
+
 char* BACnetMaintenance[] = {
 	"None",
 	"Periodic-test",
@@ -835,8 +843,8 @@ char *BACnetPropertyIdentifier[] = {
    "Cov_Period",                       // 180 Shiyuan Xiao 7/15/2005
    "Input_Reference",                  // 181 Shiyuan Xiao 7/15/2005
    "Limit_Monitoring_Interval",        // 182 Shiyuan Xiao 7/15/2005
-   "Logginf_Device",                   // 183 Shiyuan Xiao 7/15/2005
-   "Logginf_Record",                   // 184 Shiyuan Xiao 7/15/2005  
+   "Logging_Device",                   // 183 Shiyuan Xiao 7/15/2005
+   "Logging_Record",                   // 184 Shiyuan Xiao 7/15/2005  
    "Prescale",                         // 185 Shiyuan Xiao 7/15/2005  
    "Pulse_Rate",                       // 186 Shiyuan Xiao 7/15/2005
    "Scale",                            // 187 Shiyuan Xiao 7/15/2005
