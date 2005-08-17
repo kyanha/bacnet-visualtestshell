@@ -4530,6 +4530,11 @@ void AC_CreateProperty( accumulator_obj_type * pObj, BACnetPropertyIdentifier pr
 	case VALUE_SET:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->value_set));
 			break;
+	case LOGGING_RECORD:
+		pbacnetAnyValue->SetObject(eaclr, new ::BACnetAccumulatorRecord(pObj->logging_record.timestamp,
+			pObj->logging_record.presentValue, pObj->logging_record.accumulatedValue, 
+			pObj->logging_record.accumulatorStatus));
+		    break;
 	case LOGGING_OBJECT:
 		    pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->logging_object.object_id));
 		    break;
