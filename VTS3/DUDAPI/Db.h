@@ -553,6 +553,16 @@ enum BACnetLifeSafetyOperation
    reset_fault
 };
 
+//Shiyuna Xiao
+enum BACnetAccumulatorStatus
+{
+	normal,
+	starting,
+	recovered,
+	abnormall,
+    failed
+};
+
 enum  BACnetObjectType
 	{
 		ANALOG_INPUT,       					// 0 

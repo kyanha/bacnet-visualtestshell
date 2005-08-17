@@ -104,6 +104,7 @@ BOOL ParseEventParameter(BACnetEventParameter *);
 BOOL ParseSessionKeyList(BACnetSessionKey **);
 BOOL ParseRefList(BACnetObjectPropertyReference	**);
 BOOL ParsePrescale(BACnetPrescale* pt);
+BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt);
 BACnetRecipient *ParseRecipient(BACnetRecipient *);
 BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference	*);
 BOOL ParseCOVSubList(BACnetCOVSubscription **);												//*****018
@@ -3764,6 +3765,8 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                     //if (ParseLogRec((BACnetLogRecord *)pstruc)) return true;
                  	break;
                 case TSTMP:
+					if (ParseTimeStamp((BACnetTimeStamp *)pstruc)) return true;
+					break;
 				case TSTMParr:		// madanner 9/04
                     if (ParseTimeStamp((BACnetTimeStamp *)pstruc)) return true;
 					break;
@@ -3791,6 +3794,10 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					break;
 				case eprescl: //BACnetPrescale Shiyuan Xiao
 					if (ParsePrescale((BACnetPrescale *)pstruc))
+						return true;
+					break;
+				case eaclr: //BACnetAccumulatorRecord Shiyuan Xiao
+					if (ParseAccumulatorRecord((BACnetAccumulatorRecord *)pstruc))
 						return true;
 					break;
 				case none:
@@ -5237,8 +5244,35 @@ BOOL ParsePrescale(BACnetPrescale* pt)
     pt->moduloDivide = ReadDW();
 	lp--;
 
+	skipwhitespace();
 	if (MustBe('}')) 
 		return true;
+	
+	return false;
+}
+
+BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
+{
+	skipwhitespace();
+	if (*lp=='?') 
+		return false;					
+
+	if (MustBe('{')) 
+		return true;
+	
+	ParseDateTime(&pt->timestamp);
+
+	skipwhitespace();
+	if (MustBe(',')) 
+		return true;
+
+	skipwhitespace();
+	pt->presentValue = ReadDW();
+
+	skipwhitespace();
+	pt->accumulatedValue = ReadDW();
+
+    pt->accumulatorStatus = ReadEnum(&etAccumulatorStatus);
 	
 	return false;
 }

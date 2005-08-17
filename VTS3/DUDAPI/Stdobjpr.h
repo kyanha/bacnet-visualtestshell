@@ -492,6 +492,15 @@ static etable etLifeSafetyMode = {
    "default"
 };
 
+static etable etAccumulatorStatus = {
+	0, 0, 5,
+	"normal",
+	"starting",
+	"recovered",
+	"abnormal",
+    "failed"
+};
+
 static etable *AllETs[]={
             &etTF,
             &etReli,
@@ -525,7 +534,8 @@ static etable *AllETs[]={
 			&etSilencedState,
 			&etLifeSafetyOperation,
 			&etMaintenance,
-			&etLifeSafetyMode
+			&etLifeSafetyMode,
+			&etAccumulatorStatus
             };
 //NOTE: the ei defs have been moved to PROP.H
 
