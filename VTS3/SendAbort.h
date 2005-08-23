@@ -54,6 +54,8 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnChangeInvokeID();
 	afx_msg void OnSelchangeAbortCombo();
+	afx_msg void OnClient();
+	afx_msg void OnServer();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

@@ -1,5 +1,6 @@
 // SendAbort.cpp : implementation file
 //
+// MAG 16AUG05 add 'Client' and 'Server' buttons and related code for SF bug #1167286
 
 #include "stdafx.h"
 #include "VTS.h"
@@ -39,6 +40,7 @@ void CSendAbort::DoDataExchange(CDataExchange* pDX)
 
 	CPropertyPage::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CSendAbort)
+//	DDX_Radio(pDX, IDC_CLIENT, m_SRV);
 	//}}AFX_DATA_MAP
 
 	m_InvokeID.UpdateData( pDX->m_bSaveAndValidate );
@@ -49,6 +51,8 @@ BEGIN_MESSAGE_MAP(CSendAbort, CPropertyPage)
 	//{{AFX_MSG_MAP(CSendAbort)
 	ON_EN_CHANGE(IDC_INVOKEID, OnChangeInvokeID)
 	ON_CBN_SELCHANGE(IDC_ABORTCOMBO, OnSelchangeAbortCombo)
+	ON_BN_CLICKED(IDC_CLIENT, OnClient)
+	ON_BN_CLICKED(IDC_SERVER, OnServer)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -64,6 +68,9 @@ BOOL CSendAbort::OnInitDialog()
 	
 	// load the enumeration table
 	m_AbortCombo.LoadCombo();
+	CButton *cb;
+	cb = (CButton *) GetDlgItem(IDC_CLIENT);
+	cb->SetCheck(1);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
@@ -90,11 +97,16 @@ void CSendAbort::EncodePage( CByteArray* contents )
 {
 	CByteArray	header
 	;
+	CButton *cb;
+	unsigned char uc;
 
 	TRACE0( "CSendAbort::EncodePage()\n" );
 
+	cb = (CButton *) GetDlgItem(IDC_CLIENT);
+	if((cb == NULL)||(cb->GetCheck() )) uc = 0;
+	else uc = 1;
 	// encode the pdu type
-	header.Add( 0x70 );
+	header.Add( 0x70 + uc);
 
 	// encode the invoke ID
 	if (m_InvokeID.ctrlNull)
@@ -163,6 +175,21 @@ void CSendAbort::OnSelchangeAbortCombo()
 {
 	TRACE0( "CSendAbort::OnSelchangeAbortCombo()\n" );
 	m_AbortCombo.UpdateData();
+	SavePage();
+	UpdateEncoded();
+}
+
+// MAG 16AUG05 add client and server button subroutines
+void CSendAbort::OnClient() 
+{
+	UpdateData();
+	SavePage();
+	UpdateEncoded();
+}
+
+void CSendAbort::OnServer() 
+{
+	UpdateData();
 	SavePage();
 	UpdateEncoded();
 }
