@@ -875,18 +875,22 @@
 #define IDC_EPICSV_PROP_LIST            1521
 #define IDC_EPICSV_DA                   1522
 #define IDC_ALLBACKUPRESTORE            1523
+#define IDC_DOW3                        1523
+#define IDC_DOW2                        1524
+#define IDC_DOW1                        1525
+#define IDC_DOW4                        1526
 #define IDC_FULLBACKUPRESTORE           1524
 #define IDC_RESTOREONLY                 1525
 #define IDC_AUXILIARYBACKUPRESTORE      1526
 #define IDC_BACKUPONLY                  1527
-#define IDC_BACKUPFILENAME              1528
-#define IDC_BACKUPFILENAME2             1530
-#define IDC_BROWSE                      1531
 #define IDC_COMBOBOXEX1                 1527
 #define IDC_COLORCOMBO1                 1527
+#define IDC_BACKUPFILENAME              1528
 #define IDC_AUTOSCROLL                  1528
 #define IDC_RECVPKT                     1529
+#define IDC_BACKUPFILENAME2             1530
 #define IDC_SAVESENTPKT                 1530
+#define IDC_BROWSE                      1531
 #define IDC_DESCOMBO                    1531
 #define IDC_COMBOBOXEX2                 1532
 #define IDC_COLORCOMBO2                 1532
@@ -954,10 +958,10 @@
 #define ID_EPICS_PROP_GEN               32837
 #define ID_EPICS_PROP_CLEAR             32838
 #define ID_EPICS_PROP_REUSE             32839
-#define ID_GLOBAL_SCRIPT_CHECKSYNTAX    32849
 #define ID_VIEW_COLOR                   32839
 #define ID_SAVEPKT                      32840
 #define ID_PKT_FILENAME                 32841
+#define ID_GLOBAL_SCRIPT_CHECKSYNTAX    32849
 #define ID_FILE_MRU_WKSFIRST            32850
 #define ID_FILE_MRU_WKS1                32850
 #define ID_GLOBAL_SCRIPT_RESET          32850
@@ -987,13 +991,12 @@
 #define ID_VIEW_GLOBAL_TOOLBAR          32863
 #define ID_FILE_MRU_WKS15               32864
 #define ID_FILE_MRU_WKSLAST             32864
-#define ID_EDIT_LOGFILE                 32900
 #define ID_EDIT_DELETESEL               32870
 #define ID_EDIT_SENDPACKET              32871
-
 #define ID_COMBOBOX_SEPARATOR           32873
 #define ID_EDIT_QUICKSAVE               32874
 #define ID_EDIT_AUTOSCROLL              32875
+#define ID_EDIT_LOGFILE                 32900
 #define IDS_BTYPE0                      32950
 #define IDS_BTYPE1                      32951
 #define IDS_BTYPE2                      32952
@@ -1087,7 +1090,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        369
 #define _APS_NEXT_COMMAND_VALUE         32866
-#define _APS_NEXT_CONTROL_VALUE         1523
+#define _APS_NEXT_CONTROL_VALUE         1524
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif
