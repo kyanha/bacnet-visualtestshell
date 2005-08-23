@@ -28,6 +28,10 @@ BACnetAPDUEncoder SendReadRange::pageContents;
 //Modified by Zhu Zhenhua, 2004-5-22, remove timeRange choice, change the context
 // of byTime, Add bySequenceNumber of context 6
 
+// MAG 16AUG05 modify page to fix SourceForge bug #1155180
+// -fixed day-of-week parsing
+// -added comments that appear when Range:'By Time' is selected (and disappear when it's not)
+// -fixed minor layout issues
 
 IMPLEMENT_DYNCREATE(SendReadRange, CPropertyPage)
 
@@ -208,8 +212,13 @@ void SendReadRange::SavePage( void )
 	m_PropCombo.SaveCtrl( pageContents );
 	m_ArrayIndex.SaveCtrl( pageContents );
 
-	// 3/24/2005, Shiyuan Xiao 
-	m_ReadRangeRefDate.CalcDayOfWeek();
+	// MAG 16AUG05 put CalcDayOfWeek in this if block. DayOfWeek was being overwritten, even if specified
+	if(m_ReadRangeRefDate.dayOfWeek > 8)
+	{
+		// 3/24/2005, Shiyuan Xiao 
+		m_ReadRangeRefDate.CalcDayOfWeek();
+	}
+	
 
     m_ReadRangeRefDate.SaveCtrl( pageContents );
     m_ReadRangeRefTime.SaveCtrl( pageContents );
@@ -305,6 +314,9 @@ void SendReadRange::OnRadionone()
     m_ReadRangeRefTime.Disable();
 	m_ReadRangePosRef.Disable();
 	m_ReadRangeCount.Disable();
+//	GetDlgItem(IDC_DOW1)->ShowWindow(SW_HIDE);
+//	GetDlgItem(IDC_DOW2)->ShowWindow(SW_HIDE);
+//	GetDlgItem(IDC_DOW3)->ShowWindow(SW_HIDE);
 	SavePage();
 	UpdateEncoded();
 	
@@ -320,6 +332,10 @@ void SendReadRange::OnRadioposition()
     m_ReadRangeRefTime.Disable();
 	m_ReadRangePosRef.Enable();
 	m_ReadRangeCount.Enable();
+//	GetDlgItem(IDC_DOW1)->ShowWindow(SW_HIDE);
+//	GetDlgItem(IDC_DOW2)->ShowWindow(SW_HIDE);
+//	GetDlgItem(IDC_DOW3)->ShowWindow(SW_HIDE);
+//	GetDlgItem(IDC_DOW4)->ShowWindow(SW_HIDE);
 	SavePage();
 	UpdateEncoded();
 	
@@ -336,6 +352,10 @@ void SendReadRange::OnRadiotime()
 	m_ReadRangePosRef.Disable();
 	m_ReadRangeCount.Enable();
 	SetDlgItemText( IDC_BEGDATECAPTION, "Reference Date and Time");
+//	GetDlgItem(IDC_DOW1)->ShowWindow(SW_SHOW);
+//	GetDlgItem(IDC_DOW2)->ShowWindow(SW_SHOW);
+//	GetDlgItem(IDC_DOW3)->ShowWindow(SW_SHOW);
+//	GetDlgItem(IDC_DOW4)->ShowWindow(SW_SHOW);
 	SavePage();
 	UpdateEncoded();
 	
@@ -353,6 +373,10 @@ void SendReadRange::OnRadioSequenceNum()
 	m_ReadRangePosRef.Enable();
 	m_ReadRangeCount.Enable();
 	SetDlgItemText( IDC_BEGDATECAPTION, "Reference Date and Time");
+//	GetDlgItem(IDC_DOW1)->ShowWindow(SW_HIDE);
+//	GetDlgItem(IDC_DOW2)->ShowWindow(SW_HIDE);
+//	GetDlgItem(IDC_DOW3)->ShowWindow(SW_HIDE);
+//	GetDlgItem(IDC_DOW4)->ShowWindow(SW_HIDE);
 	SavePage();
 	UpdateEncoded();
 }
