@@ -19,6 +19,7 @@ static char THIS_FILE[] = __FILE__;
 #define IDC_SEND		0x1004
 #define IDC_HISTORY     0x1005 //Xiao Shiyuan 2002-12-5
 #define IDC_TRANSMIT_CLOSE 0x1006  // MAG 27 OCT 03
+#define IDC_CLOSE		0x1007  // MAG 15AUG05
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -440,9 +441,10 @@ BEGIN_MESSAGE_MAP(CSend, CPropertySheet)
 	ON_NOTIFY( TVN_ITEMEXPANDEDW, IDC_PACKETTREE, OnItemExpandedPacketTree)
 	ON_BN_CLICKED( IDC_SEND, OnSend )
 		 ON_BN_CLICKED( IDC_TRANSMIT_CLOSE, OnTransmitClose )
+		 ON_BN_CLICKED( IDC_CLOSE, OnOnlyClose )
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
-
+// MAG 15AUG05 add on_bn_clicked for OnOnlyClose function
 /////////////////////////////////////////////////////////////////////////////
 // CSend encoding functions
 
@@ -485,7 +487,7 @@ void CSend::UpdateEncoded( void )
 	for (i = 0; i < contents.GetSize(); i++ ) {
 		if ((i > 0) && ((i % 4) == 0))
 			enc += ' ';
-		if ((i > 0) && ((i % 16) == 0)) {
+		if ((i > 0) && ((i % 20) == 0)) {  // MAG 15AUG05 change line breaks to 20 spaces
 			enc += 0x0D;
 			enc += 0x0A;
 		}
@@ -565,10 +567,11 @@ BOOL CSend::OnInitDialog()
 		);
 	
 	// create the edit text object
+	// MAG 15AUG05 modify text object- increase height 4px, allowing 3 lines of text to display
 	GetWindowRect( rectWnd );
 	ScreenToClient( &rectWnd );
-	CRect rectData( rectWnd.left + 10, rectWnd.bottom - 60
-		, rectWnd.right - (kTreeWidth + 10), rectWnd.bottom - 9
+	CRect rectData( rectWnd.left + 10, rectWnd.bottom - 62  // MAG was 60
+		, rectWnd.right - (kTreeWidth + 10), rectWnd.bottom - 7  // MAG was 9
 		);
 	m_packetData.Create( ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL
 		| ES_WANTRETURN | ES_LEFT
@@ -601,11 +604,20 @@ BOOL CSend::OnInitDialog()
 		 		 , rectSend2, this, IDC_TRANSMIT_CLOSE
 		);
 
+		// MAG 15AUG05 add 'Close' button
+		 CRect rectSend3( rectWnd.right - kTreeWidth, rectWnd.bottom - 30
+		 		 , rectWnd.right - kTreeWidth+90, rectWnd.bottom - 5
+		 		 );
+		 m_close.Create( "&Close", BS_PUSHBUTTON
+		 		 | WS_CHILD | WS_VISIBLE | WS_TABSTOP
+		 		 , rectSend3, this, IDC_CLOSE
+		);
 	// create the history combo box. Xiao Shiyuan
+	// MAG 15AUG05 move history combo box up 10px to make room for 'Close' button
 	GetWindowRect( rectWnd );
 	ScreenToClient( &rectWnd );
-	CRect rectHistory( rectWnd.right - kTreeWidth, rectWnd.bottom - 50
-		, rectWnd.right - kTreeWidth + 90, rectWnd.bottom + 50);
+	CRect rectHistory( rectWnd.right - kTreeWidth, rectWnd.bottom - 60
+		, rectWnd.right - kTreeWidth + 90, rectWnd.bottom + 40);
 	m_history.Create( CBS_DROPDOWNLIST
 		| WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | WS_VSCROLL
 		, rectHistory, this, IDC_HISTORY
@@ -771,6 +783,7 @@ void CSend::OnSelchangePacketTree( NMHDR* pNotifyStruct, LRESULT* result )
 
 void CSend::ChangePacketTree( int iGroup, int iItem )
 {
+	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 	int				newLen = 0
 	;
 	HTREEITEM		curItem = 0
@@ -812,7 +825,7 @@ void CSend::ChangePacketTree( int iGroup, int iItem )
 	;
 
 	// add all of the followup pages
-	for (int i = 0; i < iGroup; i++)
+	for (i = 0; i < iGroup; i++)
 		if (m_groupList[i]->groupFollowupPage)
 			newPages[newLen++] = m_groupList[i]->groupFollowupPage;
 
@@ -1014,6 +1027,10 @@ void CSend::OnTransmitClose(){
 		 this->PostNcDestroy();
 }
 
+// MAG 15AUG05 add subroutine to close send/transmit window when 'Close' is pressed
+void CSend::OnOnlyClose(){
+		 this->PostNcDestroy();
+}
 
 //Xiao Shiyuan 2002-12-5
 void CSend::SetHistoryComboBox(int count)
