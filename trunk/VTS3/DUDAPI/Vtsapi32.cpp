@@ -77,6 +77,7 @@ namespace PICS {									//									***016
 //	function prototypes
 BOOL ParseLogRec(BACnetLogRecord *);
 BOOL ParseTimeStamp(BACnetTimeStamp *);
+BOOL ParseTimeStampArray(BACnetTimeStamp *parray, int arraycount);
 BOOL ReadFunctionalGroups(PICSdb *);	//										***008 Begin
 BOOL ReadStandardServices(PICSdb *);
 BOOL ReadStandardObjects(PICSdb *);
@@ -3768,7 +3769,10 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					if (ParseTimeStamp((BACnetTimeStamp *)pstruc)) return true;
 					break;
 				case TSTMParr:		// madanner 9/04
-                    if (ParseTimeStamp((BACnetTimeStamp *)pstruc)) return true;
+					{						
+						if( ParseTimeStampArray((BACnetTimeStamp *)pstruc, 3) ) 
+							return true;
+					}
 					break;
 				// *****018  begin
 				case lCOVSub:		//List of BACnetCOVSubcription
@@ -4931,7 +4935,16 @@ numch:     ptstamp->choice = 1;	//
       	   return false;
 }  // end PareseTimeStamp
  
+BOOL ParseTimeStampArray(BACnetTimeStamp *parray, int arraycount)
+{
+	skipwhitespace();
 
+    if (MustBe('{'))
+        return true;	
+	
+	//ParseTimeStamp(parray);
+	return FALSE;
+}
 ///////////////////////////////////////////////////////////////////////
 //	parse a date/time value
 //in:	lp		points to (date,time)
