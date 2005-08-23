@@ -70,11 +70,12 @@ END_MESSAGE_MAP()
 BOOL CColorSettingDlg::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
+	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 	
 //	// TODO: Add extra initialization here
 	m_imageList.Create(IDB_COLOR, 16, 1, RGB(255, 255, 255));
 
-	for(int i = 0; i < COLOR_PDU_COUNT; i++)
+	for(i = 0; i < COLOR_PDU_COUNT; i++)
 	{
 		m_ctrl[i].SetImageList(&m_imageList);
 

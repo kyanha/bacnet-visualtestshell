@@ -924,6 +924,7 @@ void CSizingControlBar::GetRowSizingBars(CSCBArray& arrSCBars, int& nThis)
 BOOL CSizingControlBar::NegotiateSpace(int nLengthTotal, BOOL bHorz)
 {
     ASSERT(bHorz == IsHorzDocked());
+	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 
     int nFirst, nLast, nThis;
     GetRowInfo(nFirst, nLast, nThis);
@@ -934,7 +935,7 @@ BOOL CSizingControlBar::NegotiateSpace(int nLengthTotal, BOOL bHorz)
     int nWidthMax = 0;
     CSizingControlBar* pBar;
 
-    for (int i = nFirst; i <= nLast; i++)
+    for (i = nFirst; i <= nLast; i++)
     {
         pBar = (CSizingControlBar*) m_pDockBar->m_arrBars[i];
         if (HIWORD(pBar) == 0) continue; // placeholder
