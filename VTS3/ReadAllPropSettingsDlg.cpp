@@ -56,6 +56,7 @@ END_MESSAGE_MAP()
 BOOL CReadAllPropSettingsDlg::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
+	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 
 	CComboBox * pComboBox =(CComboBox*)GetDlgItem(IDC_RPALL_NETWORK);
 
@@ -65,7 +66,7 @@ BOOL CReadAllPropSettingsDlg::OnInitDialog()
 	VTSNames * pnames = pdoc == NULL ? NULL : pdoc->GetNames();
 
 //MAD_DB	for (int i = 0; i < gMasterPortList.Length(); i++)
-	for (int i = 0; pports != NULL && i < pports->GetSize(); i++)
+	for (i = 0; pports != NULL && i < pports->GetSize(); i++)
 	{
 		// get a pointer to the ith port
 //		curPort = gMasterPortList[i];

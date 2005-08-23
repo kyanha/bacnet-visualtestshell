@@ -88,6 +88,7 @@ void VTSListOfReadAccessSpecDlg::Decode( BACnetAPDUDecoder& dec )
 BOOL VTSListOfReadAccessSpecDlg::OnInitDialog() 
 {
 	TRACE0( "VTSListOfReadAccessSpecDlg::OnInitDialog()\n" );
+	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 
 	CDialog::OnInitDialog();
 	
@@ -116,7 +117,7 @@ BOOL VTSListOfReadAccessSpecDlg::OnInitDialog()
 	
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (int i = 0; i < MAX_PROP_ID; i++)
+	for (i = 0; i < MAX_PROP_ID; i++)
 		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	for(int m = 0; m < m_PropListList.GetCount(); m++)

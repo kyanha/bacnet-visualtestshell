@@ -657,6 +657,7 @@ void ScriptEdit::SetLine(int nLineIndex, LPTSTR lpszString)
 bool ScriptEdit::AddInputHelpString(CString sString)
 {
 	bool bRet;		
+	int f;					// MAG 11AUG05 add this line, remove local declaration below since f is used out of that scope
 	if( m_strList.IsEmpty() ) {
 		// if list is empty add first string
 		try {
@@ -671,7 +672,7 @@ bool ScriptEdit::AddInputHelpString(CString sString)
 			// insert into sorted list searching for a valid position
 			int nCount = m_strList.GetCount();
 			POSITION pos = m_strList.GetHeadPosition();
-			for( int f=0; f<nCount; f++ ) {
+			for( f=0; f<nCount; f++ ) {
 				// ascending order
 				if( sString < m_strList.GetAt( pos ) ) {
 					break;
@@ -700,6 +701,7 @@ bool ScriptEdit::AddInputHelpString(CString sString)
 //Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
 void ScriptEdit::OnHelpInput(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
+	int x;					// MAG 11AUG05 add this line, remove local declaration below since x is used out of that scope
 	POSITION pos;
 	CString sBuffer,sWord, sBufferLine;
 	char pBuffer[1024];
@@ -716,7 +718,7 @@ void ScriptEdit::OnHelpInput(UINT nChar, UINT nRepCnt, UINT nFlags)
 	m_pEdit->GetSel(nstar,nOver);
 	sBuffer = sBufferLine.Left((nstar - nBegin));
 	nLen = sBuffer.GetLength();
-	for( int x=sBuffer.GetLength(); x>0; x-- )
+	for( x=sBuffer.GetLength(); x>0; x-- )
 		if( isspace( sBuffer.GetAt(x-1)))
 			break;
 	nLastSpace = x-1;

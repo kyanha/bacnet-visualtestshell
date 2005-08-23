@@ -107,6 +107,7 @@ BOOL VTSListOfReadAccessResultDlg::OnInitDialog()
 	;
 
 	TRACE0( "VTSListOfReadAccessResultDlg::OnInitDialog()\n" );
+	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 
 	CDialog::OnInitDialog();
 	
@@ -141,7 +142,7 @@ BOOL VTSListOfReadAccessResultDlg::OnInitDialog()
 	
 	// load the property enumeration table
 	cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (int i = 0; i < MAX_PROP_ID; i++)		  //MAX_PROP_ID is located in 
+	for (i = 0; i < MAX_PROP_ID; i++)		  //MAX_PROP_ID is located in 
 		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	// load the error class enumeration table
