@@ -1537,11 +1537,14 @@ bool ScriptExecutor::SendPacket( void )
 			sfp = gMasterFilterList[0];
 			if (pNet && !nlNetwork.Equals(sfp->filterName))
 				throw ExecError( "Port not found", pNet->exprLine );
-		} else {
+		} 
+		else 
+		{
+            int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 			if (!pNet)
 				throw ExecError( "Network required", execPacket->baseLineStart );
 
-			for (int i = 0; i < gMasterFilterList.Length(); i++) {
+			for (i = 0; i < gMasterFilterList.Length(); i++) {
 				sfp = gMasterFilterList[i];
 				if (nlNetwork.Equals(sfp->filterName))
 					break;
@@ -1789,7 +1792,8 @@ bool ScriptExecutor::SendPacket( void )
 		if (pDNET) {
 			packet.Add( nlDNET.intValue >> 8 );
 			packet.Add( nlDNET.intValue & 0x0FF );
-			if (pDADR) {
+			if (pDADR) 
+			{
 				packet.Add( nlDADR.strLen );
 				for (int i = 0; i < nlDADR.strLen; i++)
 					packet.Add( nlDADR.strBuff[i] );
@@ -1798,7 +1802,8 @@ bool ScriptExecutor::SendPacket( void )
 		}
 
 		// add the source stuff
-		if (pSNET) {
+		if (pSNET) 
+		{
 			packet.Add( nlSNET.intValue >> 8 );
 			packet.Add( nlSNET.intValue & 0x0FF );
 			packet.Add( nlSADR.strLen );
@@ -4746,7 +4751,8 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				sfp = fp;
 			else
 			{
-				for (int i = 0; i < gMasterFilterList.Length(); i++) {
+             	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
+				for (i = 0; i < gMasterFilterList.Length(); i++) {
 					sfp = gMasterFilterList[i];
 					if (nlNetwork.Equals(sfp->filterName))
 						break;

@@ -331,6 +331,7 @@ CString* CHexView::GetLineData(int lineNo)
 	;
 	int			bCount
 	;
+	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 	
 	// figure out how many bytes are available
 //MAD_DB	bCount = m_FrameContext->m_Packet.packetLen - (lineNo * 16);
@@ -359,7 +360,7 @@ CString* CHexView::GetLineData(int lineNo)
 	//
 	// Replace non-printable characters with periods.
 	//
-    for (int i=0; i<bCount; i++) {
+    for (i=0; i<bCount; i++) {
 //		if (!::IsCharAlphaNumeric(b[i]))
 //			b[i] = 0x2E;
 		if ((b[i] < ' ') || (b[i] > '~'))

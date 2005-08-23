@@ -1596,7 +1596,8 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 	}									
 	if (cbp->GetCount() == 0) 
 	{
-		for (int i = 0; i < m_TableSize; i++)
+    	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
+		for (i = 0; i < m_TableSize; i++)
 		{
 			if(m_nObjType != -1 && m_nObjType < 25)
 			{
