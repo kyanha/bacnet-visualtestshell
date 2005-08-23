@@ -1318,7 +1318,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 extern BakRestoreExecutor gBakRestoreExecutor;
 void CChildFrame::OnUpdateBackupRestore(CCmdUI* pCmdUI) 
 {
-	pCmdUI->Enable( false ); //!gBakRestoreExecutor.IsRunning()); // removed temporarily for release of 3.4.8 until it can be fixed LJT
+	pCmdUI->Enable(FALSE); //pCmdUI->Enable(!gBakRestoreExecutor.IsRunning()); 
 }
 
 
@@ -1515,10 +1515,11 @@ void CChildFrame::OnGlobalScriptHalt()
 
 void CChildFrame::OnGlobalDisablePort() 
 {	
+	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 	VTSPorts ports;
 	VTSPorts* pPorts = ((VTSDoc*)GetActiveDocument())->GetPorts();
 	ports.DeepCopy(pPorts);
-	for (int i = 0; i < ports.GetSize(); i++)
+	for (i = 0; i < ports.GetSize(); i++)
 	{
 		VTSPortPtr		curPort = ports[i];
 		if (curPort->IsEnabled())
