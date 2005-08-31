@@ -4632,10 +4632,10 @@ bool BACnetDateTime::operator ==( const BACnetDateTime & arg )
 	return bacnetDate == arg.bacnetDate  &&  bacnetTime == arg.bacnetTime;
 }
 
-
+// changed comparison to use || from && per AWood@nz.schneider-electric.com for #1244867 8/31/2005
 bool BACnetDateTime::operator !=( const BACnetDateTime & arg )
 {
-	return bacnetDate != arg.bacnetDate  &&  bacnetTime != arg.bacnetTime;
+	return bacnetDate != arg.bacnetDate  ||  bacnetTime != arg.bacnetTime;
 }
 
 
