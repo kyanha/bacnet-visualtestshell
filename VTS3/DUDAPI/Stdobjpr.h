@@ -884,7 +884,7 @@ propdescriptor	DVprops[]={
     "configuration-files",	CONFIGURATION_FILES, oo(device,	
 													configuration_files),   looref, 0,	       0,   O|IsArray,
 	"last-restore-time",		LAST_RESTORE_TIME,   oo(device,
-													last_restore_time),		dt,		0,		   0,	O,
+													last_restore_time),		TSTMP,		0,		   0,	O,	
 	"backup-failure-timeout",	BACKUP_FAILURE_TIMEOUT,		oo(device,
 													backup_failure_timeout), uw, 0,     0,   O,
 	"active-cov-subscriptions", ACTIVE_COV_SUBSCRIPTIONS,  oo(device, 
