@@ -2522,6 +2522,9 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 	  case MEMBER_OF:					//Zhu Zhenhua, 2004-6-14 
 		   show_bac_dev_obj_ref();		 
 		   break;
+	  case LAST_RESTORE_TIME:			//Jingbo Gao, 2005-8-17
+		   show_bac_timestamp();
+		   break;
       default:
 //	       bac_show_byte("Error: Unknown Property Identifier","%u");
 		   show_head_app_data();		 //modified by Lei Chengxin 2003-9-8
