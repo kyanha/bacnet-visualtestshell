@@ -256,8 +256,9 @@
 #define IDR_COLUMNS                     369
 #define IDR_SUMMARYWIN                  369
 #define IDI_RECVPKT                     370
+#define IDD_BACKUP_RESTORE_PROGRESS     371
 #define IDI_SENDPKT                     371
-#define IDD_EDITRESENTPKT               374
+#define IDD_EDITRESENTPKT               372
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -875,11 +876,13 @@
 #define IDC_EPICSV_PROP_LIST            1521
 #define IDC_EPICSV_DA                   1522
 #define IDC_ALLBACKUPRESTORE            1523
+#define IDC_BACKUP_RESTORE_OUTPUT       1523
 #define IDC_DOW3                        1523
 #define IDC_DOW2                        1524
 #define IDC_DOW1                        1525
 #define IDC_DOW4                        1526
 #define IDC_FULLBACKUPRESTORE           1524
+#define IDC_BACKUP_RESTORE_KILL         1524
 #define IDC_RESTOREONLY                 1525
 #define IDC_AUXILIARYBACKUPRESTORE      1526
 #define IDC_BACKUPONLY                  1527
@@ -1088,9 +1091,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        369
+#define _APS_NEXT_RESOURCE_VALUE        373
 #define _APS_NEXT_COMMAND_VALUE         32866
-#define _APS_NEXT_CONTROL_VALUE         1524
+#define _APS_NEXT_CONTROL_VALUE         1537
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif
