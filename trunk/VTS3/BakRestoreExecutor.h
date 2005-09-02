@@ -10,10 +10,13 @@
 #endif // _MSC_VER > 1000
 
 #include <afxmt.h>
+#include "bacnet.hpp"
+#include "vtsdoc.h"
 
 class VTSDoc;
 typedef VTSDoc * VTSDocPtr;
 struct BACnetNPDU;
+class VTSBackupRestoreProgressDlg;
 
 enum ReinitializedStateOfDevice 
 {
@@ -74,10 +77,11 @@ public:
 
 	
 	void ExecuteTest();
-	
+	void Kill();
 	void ProcessTask();
 	void ReceiveNPDU(const BACnetNPDU& npdu);
 	BOOL IsRunning(void) { return m_execState == execRunning; }
+	void DestoryOutputDlg(void) { m_pOutputDlg = NULL; }
 
 public:
 	BakRestoreExecutor();
@@ -102,11 +106,13 @@ private:
 	BOOL m_bExpectPacket;	// tell the main thread to receive packet and write it to the buffer
 	CEvent m_event;		// is uesed by the main thread that the packet has been correctly received
 	BACnetOctet* m_packetData;	// buffer used to hold the received packet
+	BOOL m_bUserCancelled;
 	
 	BOOL m_bExpectAPDU;		// if expect a APDU or not
 	BACnetAPDUType m_nExpectAPDUType;	// expected APDU type if expect a APDU
 	int m_nExpectAPDUServiceChoice;		// expected Service Choice if expect a APDU
 
+	VTSBackupRestoreProgressDlg* m_pOutputDlg;
 	void DoBackupTest();
 	void DoRestoreTest();
 	void DoAuxiliaryTest();

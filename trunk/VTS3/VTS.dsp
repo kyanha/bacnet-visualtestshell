@@ -812,6 +812,10 @@ SOURCE=.\VTSBackupRestoreDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSBackupRestoreProgressDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSBACnetTypeGenericPage.cpp
 # End Source File
 # Begin Source File
@@ -1996,6 +2000,10 @@ SOURCE=.\VTSBackupRestoreDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSBackupRestoreProgressDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSBACnetTypeGenericPage.h
 # End Source File
 # Begin Source File
@@ -2512,6 +2520,10 @@ SOURCE=.\res\bmp00001.bmp
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\colors.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\contents.bmp
 # End Source File
 # Begin Source File
@@ -2614,7 +2626,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                             $(InputPath)                                             $(OutDir)\ 
+	copy                                               $(InputPath)                                               $(OutDir)\ 
 
 # End Custom Build
 
@@ -2625,7 +2637,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                             $(InputPath)                                             $(OutDir)\ 
+	copy                                               $(InputPath)                                               $(OutDir)\ 
 
 # End Custom Build
 
