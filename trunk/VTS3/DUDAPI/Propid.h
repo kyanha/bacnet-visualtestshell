@@ -187,7 +187,7 @@ enum BACnetPropertyIdentifier
 		COV_PERIOD,                       // 180 Shiyuan Xiao 7/15/2005
 		INPUT_REFERENCE,                  // 181 Shiyuan Xiao 7/15/2005
 		LIMIT_MONITORING_INTERVAL,        // 182 Shiyuan Xiao 7/15/2005
-		LOGGING_OBJECT,                   // 183 Shiyuan Xiao 7/15/2005
+		LOGGING_DEVICE,                   // 183 Shiyuan Xiao 7/15/2005
 		LOGGING_RECORD,                   // 184 Shiyuan Xiao 7/15/2005  
 		PRESCALE,                         // 185 Shiyuan Xiao 7/15/2005  
 		PULSE_RATE,                       // 186 Shiyuan Xiao 7/15/2005

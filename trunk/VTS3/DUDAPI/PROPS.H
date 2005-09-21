@@ -82,6 +82,7 @@
 #define COVSub 208		// single BACnetCOVSubscription madanner 9/04
 #define recipproc 209	// singled BACnetRecipientProcess madanner 9/04
 
+#define etl 210         // enumeration table in a list ljt 9/05
 
 ////
 //////////////////////////////////////////////

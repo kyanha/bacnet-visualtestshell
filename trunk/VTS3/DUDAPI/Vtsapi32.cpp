@@ -1301,7 +1301,9 @@ bool APIENTRY ReadTextPICS(
 	cancel = false;
 	::DeleteFile("c:\\EPICSConsChk.txt");		//madanner 4/4
 	pfileError = fopen("c:\\EPICSConsChk.txt","a+");
-	
+
+// looks to be a duplicate of the below therefore did not enable this line.  LJT 8/31/2005	
+//	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported // added by Kare Sars
 
 	pd->Database=NULL;
 	memset(pd->BACnetStandardObjects,soNotSupported,sizeof(pd->BACnetStandardObjects));	     //added by xlp,2002-11
@@ -3682,6 +3684,29 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 				case ebool:						//boolean value 					***006 Begin
 					*(octet *)pstruc=ReadBool();	//							***012
 					break;						//									***006 End
+				case etl:
+					if ( *lp != '(' )  // we are in the correct place
+					{
+						tperror("Invalid List of enumerations, must start with '('", true);
+						return true;
+					}
+                    lp++;  // skip over (
+					wp = (word *)pstruc;
+					ep=AllETs[pd->PropET];	//point to enumeration table for this guy
+					while( *lp )
+					{
+ 					   if ((ub=ReadEnum(ep))==0xFFFF)
+					   {	tperror("Invalid Enumeration",true);
+					    	return true;
+					   }
+					   *wp++=ub;
+ 					   //while (*lp==space||*lp==',') lp++;	//skip separation between list elements
+					   //if ( *lp == ')' ) break;  // we reached the end
+                    };
+					// read last ')';
+					//lp++;
+
+					break;
 				case et:						//an enumeration table
 					ep=AllETs[pd->PropET];	//point to enumeration table for this guy
 					if ((ub=ReadEnum(ep))==0xFFFF)
