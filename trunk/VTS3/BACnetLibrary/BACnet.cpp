@@ -6628,7 +6628,7 @@ void BACnetAccumulatorRecord::Encode( char *enc ) const
 		"abnormal",
 		"failed"	
 	};
-	sprintf(enc, "{(%d-%s-%d, %d:%d:%d.%d),%d, %d, %s}", timestamp.date.day_of_month, monthstr[timestamp.date.month], 
+	sprintf(enc, "{(%d-%s-%d, %d:%d:%d.%d),%d, %d, %s}", timestamp.date.day_of_month, timestamp.date.month == 0xFF ? "*" : monthstr[timestamp.date.month], 
 		timestamp.date.year + 1900, timestamp.time.hour, timestamp.time.minute, timestamp.time.second, timestamp.time.hundredths, 
 		presentValue, accumulatedValue, statusstr[accumulatorStatus]);	
 }
