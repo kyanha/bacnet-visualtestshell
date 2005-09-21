@@ -4535,8 +4535,8 @@ void AC_CreateProperty( accumulator_obj_type * pObj, BACnetPropertyIdentifier pr
 			pObj->logging_record.presentValue, pObj->logging_record.accumulatedValue, 
 			pObj->logging_record.accumulatorStatus));
 		    break;
-	case LOGGING_OBJECT:
-		    pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->logging_object.object_id));
+	case LOGGING_DEVICE:
+		    pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->logging_device.object_id));
 		    break;
 	case PULSE_RATE:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->pulse_rate));

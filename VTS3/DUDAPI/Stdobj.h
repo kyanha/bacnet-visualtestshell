@@ -626,7 +626,7 @@ enum BACnetEngineeringUnits        units;
 	word                           value_before_change;
 	word                           value_set;
 	BACnetAccumulatorRecord        logging_record;
-	BACnetObjectIdentifier         logging_object;
+	BACnetObjectIdentifier         logging_device;
 	word                           pulse_rate;
 	word                           high_limit;
 	word                           low_limit;
