@@ -1318,7 +1318,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 extern BakRestoreExecutor gBakRestoreExecutor;
 void CChildFrame::OnUpdateBackupRestore(CCmdUI* pCmdUI) 
 {
-	pCmdUI->Enable(FALSE); //pCmdUI->Enable(!gBakRestoreExecutor.IsRunning()); 
+	pCmdUI->Enable(!gBakRestoreExecutor.IsRunning()); 
 }
 
 
