@@ -525,11 +525,11 @@ void BakRestoreExecutor::DoBackupTest()
 			{
 				UINT	nM1 = m_pPort->m_pdevice->m_nMaxAPDUSize;
 				UINT	nM2 = maxAPDULenAccepted.uintValue;
-				nMROC = min(nM1, nM2);				
+				nMROC = min(nM1, nM2) - 21;				
 			}
 			else	
 			{	// if this port does not bind to a device
-				nMROC = maxAPDULenAccepted.uintValue;
+				nMROC = maxAPDULenAccepted.uintValue - 21;
 			}
 
 			UINT nX = 0;
