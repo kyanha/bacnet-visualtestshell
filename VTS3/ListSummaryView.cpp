@@ -38,6 +38,7 @@ CListSummaryView::CListSummaryView()
 
 CListSummaryView::~CListSummaryView()
 {
+	// note the is called after the OnDestroy()
 	SaveReg();
 }
 
@@ -194,13 +195,21 @@ int CListSummaryView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_ElemList.InsertColumn( 2, _T("Port"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(2) );
 	//Xiao Shiyuan 2004-Sep-17
 	m_ElemList.InsertColumn( 3, _T("Source"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(3) );	
-	m_ElemList.InsertColumn( 4, _T("Destination"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(6) );
-	m_ElemList.InsertColumn( 5, _T("SNET"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(4) );	
-	m_ElemList.InsertColumn( 6, _T("SADDR"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(5) );
-	m_ElemList.InsertColumn( 7, _T("DNET"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(4) );	
-	m_ElemList.InsertColumn( 8, _T("DADDR"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(5) );
-	m_ElemList.InsertColumn( 9, _T("Service Type"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(7) );
+	m_ElemList.InsertColumn( 4, _T("Destination"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(4) );
+	m_ElemList.InsertColumn( 5, _T("SNET"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(5) );	
+	m_ElemList.InsertColumn( 6, _T("SADDR"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(6) );
+	m_ElemList.InsertColumn( 7, _T("DNET"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(7) );	
+	m_ElemList.InsertColumn( 8, _T("DADDR"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(8) );
+	m_ElemList.InsertColumn( 9, _T("Service Type"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(9) );
 	//Xiao Shiyuan 2004-Sep-17
+
+	// now refresh with column sizes set to zero if they are not supposed to be visible. LJT 10/1/2005
+	for(int id=0; id < 10; id++)
+	{
+		if ( !gVTSPreferences.SView_IsColumnOn(id) )
+    		m_ElemList.SetColumnWidth(id, 0);
+	}
+
 
 	m_tooltip.Create(this);
 	m_tooltip.AddTool(this, "");
@@ -232,7 +241,13 @@ void CListSummaryView::OnDestroy()
 {
 	// View is being destroyed... save column positions...
 	for (int i = 0; i < SUMMARY_VIEW_COLUMN_COUNT; i++ )
-		gVTSPreferences.SView_SetColumnWidth(i, GetListCtrl().GetColumnWidth(i) );
+	{
+		// update our internal list here, the saveReg will update the preferences dialog later
+		// only update if the column is visible, we don't want to set width to 0.
+		if ( m_bColumn[i] == 1 )
+			m_columnWidth[i] = GetListCtrl().GetColumnWidth(i);
+//		gVTSPreferences.SView_SetColumnWidth(i, GetListCtrl().GetColumnWidth(i) );
+	}
 
 	CListView::OnDestroy();
 }
@@ -941,6 +956,17 @@ void CListSummaryView::OnInitialUpdate()
 
 void CListSummaryView::ReadReg()
 {
+
+// fill in data from the preferences dialog
+   for(int index = 0; index < 10; index++)
+   {
+	   m_columnWidth[index] = 	gVTSPreferences.SView_GetColumnWidth(index);
+	   m_bColumn[index] = gVTSPreferences.SView_IsColumnOn(index);
+
+   }
+// removed the actual read from registry for column width because the preferences dialog 
+// is doing this now.  LJT 10/1/2005
+/*
 	CRegKey regKey;
 	long lRet = regKey.Open(HKEY_LOCAL_MACHINE,
 		"Software\\vts3\\Columns");
@@ -965,10 +991,18 @@ void CListSummaryView::ReadReg()
 		}		
 	}	
 	regKey.Close();
+*/
 }
 
 void CListSummaryView::SaveReg()
 {
+	// save current settings to our preferences dialog
+	for(int index = 0; index < 10; index++)
+	{
+		gVTSPreferences.SView_SetColumnOn(index, m_bColumn[index]==1);
+		gVTSPreferences.SView_SetColumnWidth(index, m_columnWidth[index]);
+	}
+/*
 	CRegKey regKey;
 	CString keyName;
 	DWORD keyValue;
@@ -994,6 +1028,7 @@ void CListSummaryView::SaveReg()
 		}	
 		regKey.Close();
 	}
+*/
 }
 
 void CListSummaryView::OnRButtonDown(UINT nFlags, CPoint point) 
@@ -1553,3 +1588,4 @@ void CListSummaryView::OnUpdateEditEditSendAllPkt(CCmdUI* pCmdUI)
 		&& gSelectedPort >= 0
 		&& gSelectedPort < pports->GetSize());
 }
+
