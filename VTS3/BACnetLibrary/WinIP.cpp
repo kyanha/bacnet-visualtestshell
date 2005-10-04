@@ -231,7 +231,7 @@ void WinIP::Indication( const BACnetNPDU &pdu )
 		*(unsigned short *)(msg+4) = m_Port;
 	} else
 	if (pdu.pduAddr.addrType == globalBroadcastAddr) {
-		*(unsigned long *)msg = 0xFF+0xFF*0x100+0xFF*0x10000+0xFF*0x1000000;
+		*(unsigned long *)msg = 0xFFFFFFFF;
 		*(unsigned short *)(msg+4) = m_Port;
 	} else
 	if (pdu.pduAddr.addrType == localStationAddr) {
