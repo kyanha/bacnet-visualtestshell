@@ -107,9 +107,9 @@ typedef struct tagCalendarEntry
 		}					u;
   } BACnetCalendarEntry;
 
-typedef struct //tagTimeStamp
+typedef struct tagTimeStamp
  {
-//   struct tagTimeStamp		*next;
+//   struct tagTimeStamp	*next;
    octet                choice;
    union
    {
@@ -506,6 +506,12 @@ enum BACnetLifeSafetyState
    test_supervisory
 };
 
+typedef struct tagEnumList
+{
+	struct tagEnumList *next;
+	word  value;
+} BACnetEnumList;
+
 //Shiyuan Xiao. 7/21/2005
 enum BACnetMaintenance
 {
@@ -762,13 +768,22 @@ enum BACnetAbortReason
 		ABORT_PreemptedByHigherPriorityTask,	//3
 		ABORT_SegmentationNotSupported			//4
 	};
-typedef struct
+typedef struct tagDeviceObjectPropertyReference
 {
-   BACnetObjectIdentifier     Objid;
-   dword                       wPropertyid;
-   word                      ulIndex;
-   BACnetObjectIdentifier     DeviceObj;
+   struct tagDeviceObjectPropertyReference	*next;
+
+   dword     Objid;
+   dword    wPropertyid;
+   word     ulIndex;
+   dword     DeviceObj;
 } BACnetDeviceObjectPropertyReference;      // Added Sep 18 2001
+
+typedef struct tagDeviceObjectReference
+{
+    struct tagDeviceObjectReference	*next;
+	dword DeviceObj;
+	dword Objid;
+} BACnetDeviceObjectReference;  // LJT 10/11/2005
 
 //Xiao Shiyuan 2002-7-23
 typedef struct tagCOVSubscription {

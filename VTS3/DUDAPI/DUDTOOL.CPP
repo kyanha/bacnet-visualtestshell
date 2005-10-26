@@ -45,6 +45,7 @@ namespace PICS {															// ***002
 BACnetCalendarEntry far* gTestCalist[nTESTLIST];
 BACnetReadAccessSpecification far* gTestRaslist[nTESTLIST];
 BACnetVTClassList far* gTestVtcl[nTESTLIST];
+BACnetDeviceObjectPropertyReference far* gTestLodpref[nTESTLIST];  
 BACnetObjectPropertyReference far* gTestLopref[nTESTLIST];  
 BACnetSessionKey far* gTestSkeys[nTESTLIST];
 BACnetAddressBinding far* gTestDabind[nTESTLIST];
@@ -55,12 +56,15 @@ BACnetVTSession far* gTestVtse[nTESTLIST];
 
 BACnetGenericArray * CreateAddressBindingList( PICS::BACnetAddressBinding * pAddrBinding );
 BACnetObjectIDList * CreateObjectList( PICS::BACnetObjectIdentifier * pobjidlist );
-BACnetTimeStampArray * CreateTimeStampArray( PICS::BACnetTimeStamp  * ptimestamp, int nMax );
+BACnetTimeStampArray * CreateTimeStampArray( PICS::BACnetTimeStamp  * ptimestamp[3], int nMax );
 BACnetListOfCalendarEntry * CreateCalendarList( PICS::BACnetCalendarEntry * pcalentry );
 BACnetListOfVTClass * CreateVTClassesSupported( PICS::BACnetVTClassList * pVTClassList );
+BACnetListOfEnum * CreateEnumList( PICS::BACnetEnumList * penumList, int iTableIndex);
 BACnetListOfDestination * CreateListOfDestination( PICS::BACnetDestination * pdest );
 BACnetListOfRecipient * CreateRecipientList( PICS::BACnetRecipient * precip );
 BACnetListOfCOVSubscription * CreateCOVSubscriptionList( PICS::BACnetCOVSubscription * psub );
+BACnetListOfDeviceObjectPropertyReference * CreateDeviceObjectPropertyList( PICS::BACnetDeviceObjectPropertyReference * pdevobjlist );
+BACnetListOfDeviceObjectReference * CreateDeviceObjectList( PICS::BACnetDeviceObjectReference * pdevobjlist );
 
 //void CreatePropertyFromEPICS( generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue );
 void ProprietaryObj_CreateProperty( proprietary_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
@@ -640,9 +644,8 @@ void CreateTestValues(void)
 
 
   // List_Of_Object_Property_References(schedule) List of BACnetObjectPropertyReference
-   
   BACnetObjectPropertyReference far* pLopref= gTestLopref[0]= new  BACnetObjectPropertyReference; // 3 elements***001
-  
+
   pLopref->object_id= 4711;
   pLopref->property_id= 75;
   pLopref->pa_index= NotAnArray;
@@ -668,6 +671,34 @@ void CreateTestValues(void)
   pLopref->property_id= 75;
   pLopref->pa_index= NotAnArray;
   pLopref->next= NULL;
+  
+  BACnetDeviceObjectPropertyReference far* pLodpref= gTestLodpref[0]= new  BACnetDeviceObjectPropertyReference; // 3 elements***001
+  
+  pLodpref->Objid= 4711;
+  pLodpref->wPropertyid= 75;
+  pLodpref->ulIndex= NotAnArray;
+  pLodpref->next= new  BACnetDeviceObjectPropertyReference;							//					***001
+  pLodpref= pLodpref->next;
+  
+  pLodpref->Objid= 4712;
+  pLodpref->wPropertyid= 75;
+  pLodpref->ulIndex= NotAnArray;
+  pLodpref->next= new  BACnetDeviceObjectPropertyReference;							//					***001
+  pLodpref= pLodpref->next;
+
+  pLodpref->Objid= 4713;
+  pLodpref->wPropertyid= 75;
+  pLodpref->ulIndex= NotAnArray;
+  pLodpref->next= NULL;
+
+  gTestLodpref[1]= gTestLodpref[0]->next->next; // 1 element
+  gTestLodpref[2]= NULL; // empty list    
+
+  pLodpref= gTestLodpref[3]= new  BACnetDeviceObjectPropertyReference;							//					***001
+  pLodpref->Objid= 4714;
+  pLodpref->wPropertyid= 75;
+  pLodpref->ulIndex= NotAnArray;
+  pLodpref->next= NULL;
 
 }
 
@@ -735,6 +766,11 @@ void DeleteTestValues(void)
   while (pReciplist!=NULL) { pReciplist2= pReciplist->next; delete pReciplist; pReciplist= pReciplist2; }
   delete gTestReciplist[3];
 
+  BACnetDeviceObjectPropertyReference far* pLodpref= gTestLodpref[0];
+  BACnetDeviceObjectPropertyReference far* pLodpref2;
+  while (pLodpref!=NULL) { pLodpref2= pLodpref->next; delete pLodpref; pLodpref= pLodpref2; }
+  delete gTestLodpref[3];
+
   BACnetObjectPropertyReference far* pLopref= gTestLopref[0];
   BACnetObjectPropertyReference far* pLopref2;
   while (pLopref!=NULL) { pLopref2= pLopref->next; delete pLopref; pLopref= pLopref2; }
@@ -799,8 +835,20 @@ octet far* ePROPREF(octet far* p, const BACnetPropertyReference far* pv, int Tag
   return p;
 }
 
+// encode list of BACnetDeviceObjectPropertyReference             
+octet far* eLOPREF(octet far* p, const BACnetDeviceObjectPropertyReference far* pv, int TagNr)
+{ while (pv!=NULL)
+    { p= etagOBJECTID(p,0x08,pv->Objid);
+      p= ecUINT(p,0x18,pv->wPropertyid);
+      if (pv->ulIndex!=NotAnArray) // optional: array index
+        { p= ecUINT(p,0x28,pv->ulIndex); }
+      pv= pv->next;
+    }      
+  return p;
+}
+
 // encode list of BACnetObjectPropertyReference             
-octet far* eLOPREF(octet far* p, const BACnetObjectPropertyReference far* pv, int TagNr)
+octet far* eOPROPREF(octet far* p, const BACnetObjectPropertyReference far* pv, int TagNr)
 { while (pv!=NULL)
     { p= etagOBJECTID(p,0x08,pv->object_id);
       p= ecUINT(p,0x18,pv->property_id);
@@ -1345,7 +1393,7 @@ octet far* eEVPARM(octet far* p, const BACnetEventParameter far* pv, int TagNr)
         	p= eUINT(p,pv->time_delay);
         	*s= 0x08 | (*s & 0x07); // [0]
             *p++= 0x1E; 
-                p= eLOPREF(p,&pv->setpoint_ref); // [1] 
+                p= eOPROPREF(p,&pv->setpoint_ref); // [1] 
             *p++= 0x1F; 
         *p++= 0x3F;
         break;
@@ -1355,7 +1403,7 @@ octet far* eEVPARM(octet far* p, const BACnetEventParameter far* pv, int TagNr)
             p= eUINT(p,pv->time_delay);
             *s= 0x08 | (*s & 0x07); // [0]
             *p++= 0x1E; 
-                p= eLOPREF(p,&pv->setpoint_ref); // [1] 
+                p= eOPROPREF(p,&pv->setpoint_ref); // [1] 
             *p++= 0x1F; 
             s= p;
             p= eREAL(p,pv->low_diff_limit);
@@ -1495,7 +1543,7 @@ octet far* eSETREF(octet far* p, const BACnetObjectPropertyReference far* pv, in
   if (pv==NULL) { p= eNULL(p); return p; } // optional: SetpointReference
   while (pv!=NULL)
     { *p++= 0x0E; // [0] opening tag 
-       p= eLOPREF(p,pv);
+       p= eOPROPREF(p,pv);
        *p++= 0x0F;
        pv= pv->next;
     }
@@ -2009,17 +2057,30 @@ octet far* eASN_1_AnyType(octet far* p, PVMessage far* msg)
          }    
        break;
      
-     case propref: // list of object prop refs
-     case lopref:  // list of object prop refs
+     case propref: // object prop refs
        switch(msg->Action)
          {
            case SETPROP:
              break;
            case ENCODEPROP: // encode from database
-             p= eLOPREF(p,(BACnetObjectPropertyReference far*)msg->pv);
+             p= eOPROPREF(p,(BACnetObjectPropertyReference far*)msg->pv);
              break;
            case RND_ENCODEPROP: // encode a test value 
-             p= eLOPREF(p,gTestLopref[i]);
+             p= eOPROPREF(p,gTestLopref[i]);
+             break;
+         }    
+       break;
+
+	 case lopref:  // list of object prop refs device
+       switch(msg->Action)
+         {
+           case SETPROP:
+             break;
+           case ENCODEPROP: // encode from database
+             p= eLOPREF(p,(BACnetDeviceObjectPropertyReference far*)msg->pv);
+             break;
+           case RND_ENCODEPROP: // encode a test value 
+             p= eLOPREF(p,gTestLodpref[i]);
              break;
          }    
        break;
@@ -2362,7 +2423,7 @@ void AI_CreateProperty( ai_obj_type far * pObj, BACnetPropertyIdentifier propert
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -2476,7 +2537,7 @@ void AO_CreateProperty( ao_obj_type far * pObj, BACnetPropertyIdentifier propert
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -2572,7 +2633,7 @@ void AV_CreateProperty( av_obj_type far * pObj, BACnetPropertyIdentifier propert
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 		case UNITS:
          petable = (etable *)PICS::GetEnumTable(eiEU);  
@@ -2698,7 +2759,7 @@ void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propert
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -2824,7 +2885,7 @@ void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -2940,7 +3001,7 @@ void BV_CreateProperty( bv_obj_type far * pObj, BACnetPropertyIdentifier propert
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -3152,7 +3213,6 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 		case TIME_SYNCHRONIZATION_RECIPIENTS:
 			pbacnetAnyValue->SetObject(tsrecip, CreateRecipientList(pObj->time_synch_recipients));
 	        break;
-			break;
 		case MAX_MASTER:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->max_master));
 			break;
@@ -3176,15 +3236,35 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 			pbacnetAnyValue->SetObject(lobj, CreateObjectList(pObj->configuration_files));
 			break;
       case LAST_RESTORE_TIME:
-			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->last_restore_time.date.year, pObj->last_restore_time.date.month, 
-													pObj->last_restore_time.date.day_of_month, pObj->last_restore_time.time.hour, 
-													pObj->last_restore_time.time.minute, pObj->last_restore_time.time.second, 0));
+		switch(pObj->last_restore_time.choice)
+		{
+			case 0:		pbacnetAnyValue->SetObject(TSTMP, new ::BACnetTimeStamp(new ::BACnetTime(pObj->last_restore_time.u.time.hour, pObj->last_restore_time.u.time.minute, pObj->last_restore_time.u.time.second, pObj->last_restore_time.u.time.hundredths)));
+						break;
+			case 1:		pbacnetAnyValue->SetObject(TSTMP, new ::BACnetTimeStamp(new BACnetUnsigned(pObj->last_restore_time.u.sequence_number)));
+						break;
+			case 2:		pbacnetAnyValue->SetObject(TSTMP, new ::BACnetTimeStamp(new ::BACnetDateTime(pObj->last_restore_time.u.date_time.date.year, pObj->last_restore_time.u.date_time.date.month, pObj->last_restore_time.u.date_time.date.day_of_month,
+										pObj->last_restore_time.u.date_time.time.hour, pObj->last_restore_time.u.date_time.time.minute, pObj->last_restore_time.u.date_time.time.second, pObj->last_restore_time.u.date_time.time.hundredths)));
+						break;
+		}
+
+//			pbacnetAnyValue->SetObject(TSTMP, new ::BACnetTimeStamp(pObj->last_restore_time.u.date_time.date.year, pObj->last_restore_time.u.date_time.date.month, 
+//													pObj->last_restore_time.u.date_time.date.day_of_month, pObj->last_restore_time.u.date_time.time.hour, 
+//													pObj->last_restore_time.u.date_time.time.minute, pObj->last_restore_time.u.date_time.time.second, 0));
 			break;
       case BACKUP_FAILURE_TIMEOUT:
          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->backup_failure_timeout));
          break;
-		case ACTIVE_COV_SUBSCRIPTIONS:
+	  case ACTIVE_COV_SUBSCRIPTIONS:
 			pbacnetAnyValue->SetObject(lCOVSub, CreateCOVSubscriptionList(pObj->active_cov_subscriptions));
+			break;
+	  case SLAVE_ADDRESS_BINDING:
+			pbacnetAnyValue->SetObject(dabind, CreateAddressBindingList(pObj->slave_add_bind));
+	        break;
+	  case MANUAL_SLAVE_ADDRESS_BINDING:
+			pbacnetAnyValue->SetObject(dabind, CreateAddressBindingList(pObj->manual_slave_add_bind));
+	        break;
+	  case AUTO_SLAVE_DISCOVERY:
+	  case SLAVE_PROXY_ENABLE:
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -3241,9 +3321,12 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 			// devobjpropref it is supposed to be... For sanity's sake, continue to create the 
 			// BACnetObjectPropertyReference to reflect EPICS.
 			// Good luck, should you choose to accept this mission.  This code has already self destructed.
-			pbacnetAnyValue->SetObject(propref, new ::BACnetObjectPropertyReference(pObj->obj_prop_ref.object_id,
-																					pObj->obj_prop_ref.property_id, 
-																					pObj->obj_prop_ref.pa_index));
+			pbacnetAnyValue->SetObject(devobjpropref, new ::BACnetDeviceObjectPropertyReference(pObj->obj_prop_ref.Objid,
+						pObj->obj_prop_ref.wPropertyid,
+						pObj->obj_prop_ref.ulIndex,
+						pObj->obj_prop_ref.DeviceObj
+				
+																					));
 			break;
 		case EVENT_STATE:
          petable = (etable *)PICS::GetEnumTable(eiEvState);  
@@ -3279,7 +3362,7 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->issue_conf_notifications));
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -3334,6 +3417,9 @@ void FI_CreateProperty( file_obj_type far * pObj, BACnetPropertyIdentifier prope
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->access_method,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
+			break;
+		case RECORD_COUNT:
+			pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->record_count));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -3453,7 +3539,10 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
                                                                petable->nes) );
 			break;
 		case SETPOINT_REFERENCE:
-			pbacnetAnyValue->SetObject(lopref, new ::BACnetListOfObjectPropertyReference(pObj->setpoint_ref));
+			// pbacnetAnyValue->SetObject(lopref, new ::BACnetListOfObjectPropertyReference(pObj->setpoint_ref));
+			pbacnetAnyValue->SetObject(propref, new ::BACnetObjectPropertyReference(pObj->setpoint_ref[0].object_id,
+																							pObj->setpoint_ref[0].property_id,
+																							pObj->setpoint_ref[0].pa_index));
 			break;
 			//msg->pv= Obj->setpoint_ref;
 			//msg->pt= setref;
@@ -3531,7 +3620,7 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -3620,7 +3709,7 @@ void MSI_CreateProperty( mi_obj_type far * pObj, BACnetPropertyIdentifier proper
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -3712,7 +3801,7 @@ void MSO_CreateProperty( mo_obj_type far * pObj, BACnetPropertyIdentifier proper
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -3807,7 +3896,7 @@ void MSV_CreateProperty( msv_obj_type far * pObj, BACnetPropertyIdentifier prope
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -3986,7 +4075,7 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
 			//msg->pt= xsched;                    
 			break;
 		case LIST_OF_OBJECT_PROPERTY_REFERENCES:
-			pbacnetAnyValue->SetObject(lopref, new ::BACnetListOfDeviceObjectPropertyReference(pObj->list_obj_prop_ref));
+			pbacnetAnyValue->SetObject(lopref, CreateDeviceObjectPropertyList(pObj->list_obj_prop_ref));
 			break;
 		case PRIORITY_FOR_WRITING:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->priority_for_writing));
@@ -4052,9 +4141,9 @@ void AVG_CreateProperty( avg_obj_type far * pObj, BACnetPropertyIdentifier prope
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->valid_samples));
 			break;
 		case OBJECT_PROPERTY_REFERENCE:
-			pbacnetAnyValue->SetObject(devobjpropref, new ::BACnetDeviceObjectPropertyReference(pObj->obj_prop_ref.Objid.object_id,
+			pbacnetAnyValue->SetObject(devobjpropref, new ::BACnetDeviceObjectPropertyReference(pObj->obj_prop_ref.Objid,
 																					pObj->obj_prop_ref.wPropertyid, 
-																					pObj->obj_prop_ref.ulIndex, pObj->obj_prop_ref.DeviceObj.object_id));
+																					pObj->obj_prop_ref.ulIndex, pObj->obj_prop_ref.DeviceObj));
 			break;         	       
 		case WINDOW_INTERVAL:		   
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->window_interval));
@@ -4109,9 +4198,9 @@ void TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
 													pObj->stop_time.time.minute, pObj->stop_time.time.second));
 			break;         	       
 		case LOG_DEVICE_OBJECT_PROPERTY:  
-			pbacnetAnyValue->SetObject(devobjpropref, new ::BACnetDeviceObjectPropertyReference(pObj->log_device_object_property.Objid.object_id,
+			pbacnetAnyValue->SetObject(devobjpropref, new ::BACnetDeviceObjectPropertyReference(pObj->log_device_object_property.Objid,
 																					pObj->log_device_object_property.wPropertyid, 
-																					pObj->log_device_object_property.ulIndex, pObj->log_device_object_property.DeviceObj.object_id));
+																					pObj->log_device_object_property.ulIndex, pObj->log_device_object_property.DeviceObj));
 			break;         	       
 		case LOG_INTERVAL:  			     
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->log_interval));
@@ -4179,7 +4268,7 @@ void TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
                                                                petable->nes) );
 			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 		//Added by Zhu Zhenhua,  2004-5-11
 		case LAST_NOTIFY_RECORD:
@@ -4260,6 +4349,7 @@ void LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
 			petable->nes) );
 		break;
 	case ACCEPTED_MODES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->accepted_modes, eiLifeSafetyMode ));
 		break;
 	case TIME_DELAY:
 		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->time_delay));
@@ -4268,10 +4358,13 @@ void LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
 		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
 		break;
 	case LIFE_SAFETY_ALARM_VALUES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->life_safety_alarm_values, eiLifeSafetyState ));
 		break;
 	case ALARM_VALUES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->alarm_values, eiLifeSafetyState ));
 		break;
 	case FAULT_VALUES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->fault_values, eiLifeSafetyState ));
 		break;
 	case EVENT_ENABLE:	
 			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
@@ -4285,7 +4378,7 @@ void LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
                      (const char **)petable->estrings, petable->nes) );
 		 break;
 	case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 	case SILENCED:
 		petable = (etable *)PICS::GetEnumTable(eiSilencedState);  
@@ -4320,6 +4413,7 @@ void LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
                      (const char **)petable->estrings, petable->nes) );
 		break;
 	case MEMBER_OF:
+		pbacnetAnyValue->SetObject(lodoref, CreateDeviceObjectList(pObj->member_of));
 		break;
     case PROFILE_NAME:
 		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -4392,6 +4486,9 @@ void LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifi
 			(const char **)petable->estrings,
 			petable->nes) );
 		break;
+	case ACCEPTED_MODES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->accepted_modes, eiLifeSafetyMode ));
+		break;
 	case TIME_DELAY:
 		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->time_delay));
 		break;
@@ -4399,10 +4496,13 @@ void LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifi
 		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
 		break;
 	case LIFE_SAFETY_ALARM_VALUES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->life_safety_alarm_values, eiLifeSafetyState ));
 		break;
 	case ALARM_VALUES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->alarm_values, eiLifeSafetyState ));
 		break;
 	case FAULT_VALUES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->fault_values, eiLifeSafetyState ));
 		break;
 	case EVENT_ENABLE:	
 			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
@@ -4417,7 +4517,7 @@ void LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifi
                                                                petable->nes) );
 			break;
 	case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;	
 	case SILENCED:
 		petable = (etable *)PICS::GetEnumTable(eiSilencedState);  
@@ -4437,8 +4537,10 @@ void LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifi
 		pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->maintenance_required));			
 		break;
 	case ZONE_MEMBERS:
+		pbacnetAnyValue->SetObject(lodoref, CreateDeviceObjectList(pObj->zone_members));
 		break;
 	case MEMBER_OF:
+		pbacnetAnyValue->SetObject(lodoref, CreateDeviceObjectList(pObj->member_of));
 		break;
 	case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -4572,7 +4674,7 @@ void AC_CreateProperty( accumulator_obj_type * pObj, BACnetPropertyIdentifier pr
                                                                petable->nes) );
 			break;
 	case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 	case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -4693,7 +4795,7 @@ void PC_CreateProperty( pulseconverter_obj_type * pObj, BACnetPropertyIdentifier
                                                                petable->nes) );
 			break;
 	case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMP, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
 	case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -4730,26 +4832,40 @@ BACnetListOfCalendarEntry * CreateCalendarList( PICS::BACnetCalendarEntry * pcal
 
 
 
-BACnetTimeStampArray * CreateTimeStampArray( PICS::BACnetTimeStamp  * ptimestamp, int nMax )
+BACnetTimeStampArray * CreateTimeStampArray( PICS::BACnetTimeStamp *ptimestamp[3], int nMax )
 {
-	BACnetTimeStampArray * pbacnetArray = new BACnetTimeStampArray(nMax);
+	BACnetTimeStampArray * pbacnetArray = new BACnetTimeStampArray();  // (nMax) don't set because puts empty array values and no way to set them
 
 	for ( int i = 0; i < nMax; i++ )
-		switch(ptimestamp[i].choice)
+		switch(ptimestamp[i]->choice)
 		{
-			case 0:		pbacnetArray->Add( new ::BACnetTimeStamp(new ::BACnetTime(ptimestamp[i].u.time.hour, ptimestamp[i].u.time.minute, ptimestamp[i].u.time.second, ptimestamp[i].u.time.hundredths)));
+			case 0:		pbacnetArray->Add( new ::BACnetTimeStamp(new ::BACnetTime(ptimestamp[i]->u.time.hour, ptimestamp[i]->u.time.minute, ptimestamp[i]->u.time.second, ptimestamp[i]->u.time.hundredths)));
 						break;
-			case 1:		pbacnetArray->Add( new ::BACnetTimeStamp(new BACnetUnsigned(ptimestamp[i].u.sequence_number)));
+			case 1:		pbacnetArray->Add( new ::BACnetTimeStamp(new BACnetUnsigned(ptimestamp[i]->u.sequence_number)));
 						break;
-			case 2:		pbacnetArray->Add( new ::BACnetTimeStamp(new ::BACnetDateTime(ptimestamp[i].u.date_time.date.year, ptimestamp[i].u.date_time.date.month, ptimestamp[i].u.date_time.date.day_of_month,
-										ptimestamp[i].u.date_time.time.hour, ptimestamp[i].u.date_time.time.minute, ptimestamp[i].u.date_time.time.second, ptimestamp[i].u.date_time.time.hundredths)));
+			case 2:		pbacnetArray->Add( new ::BACnetTimeStamp(new ::BACnetDateTime(ptimestamp[i]->u.date_time.date.year, ptimestamp[i]->u.date_time.date.month, ptimestamp[i]->u.date_time.date.day_of_month,
+										ptimestamp[i]->u.date_time.time.hour, ptimestamp[i]->u.date_time.time.minute, ptimestamp[i]->u.date_time.time.second, ptimestamp[i]->u.date_time.time.hundredths)));
 						break;
 		}
 
 	return pbacnetArray;
 }
 
+BACnetListOfDeviceObjectReference * CreateDeviceObjectList( PICS::BACnetDeviceObjectReference * pdevobjlist )
+{
+	BACnetListOfDeviceObjectReference * pbacnetList = new BACnetListOfDeviceObjectReference();
+	for ( ; pdevobjlist != NULL; pdevobjlist = pdevobjlist->next )
+		pbacnetList->Add(new ::BACnetDeviceObjectReference( pdevobjlist->Objid, pdevobjlist->DeviceObj));
+	return pbacnetList;
+}
 
+BACnetListOfDeviceObjectPropertyReference * CreateDeviceObjectPropertyList( PICS::BACnetDeviceObjectPropertyReference * pdevobjlist )
+{
+	BACnetListOfDeviceObjectPropertyReference * pbacnetList = new BACnetListOfDeviceObjectPropertyReference();
+	for ( ; pdevobjlist != NULL; pdevobjlist = pdevobjlist->next )
+		pbacnetList->Add(new ::BACnetDeviceObjectPropertyReference( pdevobjlist->Objid, pdevobjlist->wPropertyid, pdevobjlist->ulIndex, pdevobjlist->DeviceObj));
+	return pbacnetList;
+}
 
 BACnetObjectIDList * CreateObjectList( PICS::BACnetObjectIdentifier * pobjidlist )
 {
@@ -4773,7 +4889,16 @@ BACnetGenericArray * CreateAddressBindingList( PICS::BACnetAddressBinding * pAdd
 	return pbacnetArray;
 }
 
+BACnetListOfEnum * CreateEnumList( PICS::BACnetEnumList * penumList, int iTableIndex )
+{
+	BACnetListOfEnum * pbacnetList = new BACnetListOfEnum(iTableIndex);
 
+    etable *petable = (etable *)PICS::GetEnumTable(iTableIndex);
+	for ( ; penumList != NULL; penumList = penumList->next )
+		pbacnetList->Add(new ::BACnetEnumerated((int)penumList->value , (const char **)petable->estrings , petable->nes ));
+
+	return pbacnetList;
+}
 
 BACnetListOfVTClass * CreateVTClassesSupported( PICS::BACnetVTClassList * pVTClassList )
 {
@@ -5196,6 +5321,10 @@ bool DE_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case ACTIVE_COV_SUBSCRIPTIONS:
 		case PROFILE_NAME:
 		case MAX_SEGMENTS_ACCEPTED: // Zhu Zhenhua  2003-11-21 
+		case MANUAL_SLAVE_ADDRESS_BINDING:
+		case SLAVE_ADDRESS_BINDING:
+		case SLAVE_PROXY_ENABLE:
+		case AUTO_SLAVE_DISCOVERY:
 				return true;
 		default:
 				return false;

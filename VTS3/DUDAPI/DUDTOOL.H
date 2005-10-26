@@ -20,7 +20,8 @@ octet far* ecUINT(octet far* p, octet tag, dword property_id);
 
 // encode list properties:
 octet far* ePROPREF(octet far* p, const BACnetPropertyReference far* pv, int TagNr= -1);
-octet far* eLOPREF(octet far* p, const BACnetObjectPropertyReference far* pv, int TagNr= -1);    
+octet far* eOPROPREF(octet far* p, const BACnetObjectPropertyReference far* pv, int TagNr= -1);    
+octet far* eLOPREF(octet far* p, const BACnetDeviceObjectPropertyReference far* pv, int TagNr= -1);    
 octet far* eSETREF(octet far* p, const BACnetObjectPropertyReference far* pv, int TagNr= -1);    
 octet far* eRASLIST(octet far* p, const BACnetReadAccessSpecification far * pv, int TagNr= -1);
 octet far* eRECIPLIST(octet far* p, const BACnetDestination far* pv, int TagNr= -1); 

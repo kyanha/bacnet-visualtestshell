@@ -65,6 +65,8 @@
 #define sequenceof			52			//BACnetSequenceOf
 #define listof				53			//BACnetListOf
 #define arrayof				54			//BACnetArrayOf
+#define lodoref           55          // List of BACnetDeviceObjectReference
+#define devobjref         56          // BACnetDeviceObjectReference
 
 #define escale    60   // BACnetScale    Shiyuan Xiao 7/15/2005
 #define eprescl    61   // BACnetPrescale Shiyuan Xiao 7/15/2005
@@ -283,6 +285,7 @@ static const char *stPropIDs[]={
 				"client_cov_increment",                     
 				"cov_resubscription_interval",              
 //				"current_notify_time",                      
+                "unused129",
 				"event_time_stamps",                        
 				"log_buffer",                               
 				"log_device_object_property",               
@@ -291,7 +294,8 @@ static const char *stPropIDs[]={
 				"maximum_value",                            
 				"minimum_value",                            
 				"notification_threshold",                   
-			//	"previous_notify_time",                     
+			//	"previous_notify_time",  
+			    "unused138",   
 				"protocol_revision",                        
 				"records_since_notification",               
 				"record_count",                             
@@ -304,8 +308,49 @@ static const char *stPropIDs[]={
 				"window_samples",                           
 				"maximum_value_timestamp",                  
 				"minimum_value_timestamp",                  
-				"variance_value", 
-				"last_notify_record",
+				"variance_value", // 151
+				"active_cov_subscriptions",
+				"backup_failure_timeout",
+				"configuration_files",
+				"database_revision",  // 155
+				"direct_reading", 		//	(156),
+				"last_restore_time",	//	(157),
+				"maintenance_required", //	(158),
+				"member-of",			//	(159),
+				"mode",					//  (160),
+				"operation-expected", // 			(161),
+				"setting", //				(162),
+				"silenced", //				(163),
+				"tracking-value", //			(164),
+				"zone-members", //			(165),
+				"life-safety-alarm-values", //		(166),
+				"max-segments-accepted", //		(167),
+				"profile-name", //			(168),
+				"auto-slave-discovery", //			(169),
+				"manual-slave-address-binding", //	(170),
+				"slave-address-binding", //		(171),
+				"slave-proxy-enable", //			(172),
+				"last-notify-time", //			(173),
+				"schedule-default", //			(174),
+				"accepted-modes", //			(175),
+				"adjust-value", //				(176),
+				"count", //				(177),
+				"count-before-change", //			(178),
+				"count-change-time", //			(179),
+				"cov-period", //				(180),
+				"input-reference", //			(181),
+				"limit-monitoring-interval", //		(182),
+				"logging-device", //			(183),
+				"logging-record", //			(184),
+				"prescale", //				(185),
+				"pulse-rate", //				(186),
+				"scale", //				(187),
+				"scale-factor", //				(188),
+				"update-time", //			(189),
+				"value-before-change", //			(190),
+				"value-set", //				(191),
+				"value-change-time", //     (192)
+
 				NULL /*always last*/
 				};
 //qualifiers in PropFlags
