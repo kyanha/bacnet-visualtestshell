@@ -707,32 +707,31 @@ class BACnetDeviceObjectPropertyReference : public BACnetEncodeable
 		DECLARE_DYNAMIC(BACnetDeviceObjectPropertyReference)
 };
 
-
-
-
-class BACnetAddressBinding : public BACnetEncodeable
+class BACnetDeviceObjectReference : public BACnetEncodeable
 {
-//	private:
-	public: //modified by HUMENG
-		BACnetObjectIdentifier		m_bacnetObjectID;
-		BACnetAddr					m_bacnetAddr;
-
 	public:
-		BACnetAddressBinding();
-		BACnetAddressBinding( unsigned int nobjID, unsigned short nNet, BACnetOctet * paMAC, unsigned short nMACLen );
-		BACnetAddressBinding( BACnetAPDUDecoder& dec );
+		BACnetObjectIdentifier      m_objID;
+//		BACnetObjectIdentifier      m_devID;  // optional
+		unsigned int				m_undevID; // optional
 		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
-		void Decode( BACnetAPDUDecoder& dec );
+		BACnetDeviceObjectReference() {}
+		BACnetDeviceObjectReference( BACnetAPDUDecoder& dec );
+		BACnetDeviceObjectReference( unsigned int obj_id, unsigned int devobj_id = 0xFFFFFFFF );
 
-		BACnetAddressBinding &operator =( const BACnetAddressBinding & arg );
+		BACnetDeviceObjectReference &operator =( const BACnetDeviceObjectReference &arg );
+
+		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+		virtual void Encode( char *enc ) const;
+		virtual void Decode(BACnetAPDUDecoder& dec);
 
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetAddressBinding)
+		DECLARE_DYNAMIC(BACnetDeviceObjectReference)
 };
+
+
 
 // msdanner 9/2004 - These are not implemented yet.
 
@@ -815,6 +814,31 @@ class BACnetExceptionSchedule : public BACnetEncodeable
 //		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
 		DECLARE_DYNAMIC(BACnetExceptionSchedule)
+};
+
+class BACnetAddressBinding : public BACnetEncodeable
+{
+//	private:
+	public: //modified by HUMENG
+		BACnetObjectIdentifier		m_bacnetObjectID;
+		BACnetAddr					m_bacnetAddr;
+
+	public:
+		BACnetAddressBinding();
+		BACnetAddressBinding( unsigned int nobjID, unsigned short nNet, BACnetOctet * paMAC, unsigned short nMACLen );
+		BACnetAddressBinding( BACnetAPDUDecoder& dec );
+		
+		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+		void Decode( BACnetAPDUDecoder& dec );
+		virtual void Encode( char *enc ) const;
+
+		BACnetAddressBinding &operator =( const BACnetAddressBinding & arg );
+
+		virtual int DataType(void);
+		virtual BACnetEncodeable * clone(void);
+		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetAddressBinding)
 };
 
 class BACnetTimeValue : public BACnetEncodeable
@@ -1009,6 +1033,7 @@ public:
 	BACnetRecipient( BACnetEncodeable * pbacnetEncodeable );	
 	void Encode(BACnetAPDUEncoder &enc, int Context = kAppContext);
 	void Decode(BACnetAPDUDecoder &dec);
+	void Encode( char *enc ) const;
 	BACnetRecipient &operator = ( const BACnetRecipient &arg );
 	virtual int DataType(void);
 	virtual BACnetEncodeable * clone(void);
@@ -1031,6 +1056,7 @@ public:
 
 	void Encode(BACnetAPDUEncoder &enc, int Context = kAppContext);
 	void Decode(BACnetAPDUDecoder &dec);
+	void Encode( char *enc ) const;
 
 	BACnetRecipientProcess &operator = ( const ::BACnetRecipientProcess &arg );
 
@@ -1060,6 +1086,9 @@ class BACnetCOVSubscription : public BACnetEncodeable
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
 		void Decode( BACnetAPDUDecoder& dec );
+
+		void Encode( char *enc ) const;
+		void Decode( const char *dec );
 
 		BACnetCOVSubscription &operator =( const BACnetCOVSubscription & arg );
 
@@ -1570,7 +1599,7 @@ class BACnetTimeStampArray : public BACnetGenericArray
 		DECLARE_DYNAMIC(BACnetTimeStampArray)
 };
 
-
+/*
 class BACnetListOfObjectPropertyReference : public BACnetGenericArray
 {
 	public:
@@ -1583,14 +1612,14 @@ class BACnetListOfObjectPropertyReference : public BACnetGenericArray
 
 		DECLARE_DYNAMIC(BACnetListOfObjectPropertyReference)
 };
-
+*/
 
 class BACnetListOfDeviceObjectPropertyReference : public BACnetGenericArray
 {
 	public:
 		BACnetListOfDeviceObjectPropertyReference();
 		BACnetListOfDeviceObjectPropertyReference( BACnetAPDUDecoder& dec );
-		BACnetListOfDeviceObjectPropertyReference( PICS::BACnetObjectPropertyReference * pobjprops );
+		BACnetListOfDeviceObjectPropertyReference( PICS::BACnetDeviceObjectPropertyReference * pobjprops );
 
 		BACnetDeviceObjectPropertyReference * operator[](int nIndex) const;
 		BACnetDeviceObjectPropertyReference & operator[](int nIndex);
@@ -1598,7 +1627,37 @@ class BACnetListOfDeviceObjectPropertyReference : public BACnetGenericArray
 		DECLARE_DYNAMIC(BACnetListOfDeviceObjectPropertyReference)
 };
 
+class BACnetListOfDeviceObjectReference : public BACnetGenericArray
+{
+	public:
+		BACnetObjectIdentifier m_devID;
+		BACnetObjectIdentifier m_objID;
 
+		BACnetListOfDeviceObjectReference();
+		BACnetListOfDeviceObjectReference( BACnetAPDUDecoder& dec );
+		BACnetListOfDeviceObjectReference(PICS::BACnetDeviceObjectReference * pobjs);
+
+		BACnetDeviceObjectReference * operator[](int nIndex) const;
+		BACnetDeviceObjectReference & operator[](int nIndex);
+
+		DECLARE_DYNAMIC(BACnetListOfDeviceObjectReference)
+};
+
+
+class BACnetListOfEnum : public BACnetGenericArray
+{
+	int m_nTableId;
+public:
+	BACnetListOfEnum(int tableId);
+	BACnetListOfEnum( BACnetAPDUDecoder& dec, int tableId );
+
+	virtual BACnetEncodeable * NewDecoderElement(BACnetAPDUDecoder& dec);
+
+	BACnetEnumerated * operator[](int nIndex) const;
+	BACnetEnumerated & operator[](int nIndex);
+
+	DECLARE_DYNAMIC(BACnetListOfEnum)
+};
 
 class BACnetListOfVTClass : public BACnetGenericArray
 {

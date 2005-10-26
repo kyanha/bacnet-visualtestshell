@@ -520,7 +520,13 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 
 		case lopref:	// list of object property references
 
-			return new BACnetListOfObjectPropertyReference(dec);
+			return new BACnetListOfDeviceObjectPropertyReference(dec);
+
+        case devobjref:
+			return new BACnetDeviceObjectReference(dec);
+		case lodoref:  // LJT  List Of Device Object References
+			
+			return new BACnetListOfDeviceObjectReference(dec);
 
 		case devobjpropref:	// deviceobject prop refs
 
@@ -743,11 +749,25 @@ void BACnetAddr::Decode( BACnetAPDUDecoder& dec )
 void BACnetAddr::Encode( char *enc ) const
 {
 	char * addr = enc;
+	sprintf( addr, "[" );
+	addr++;
+	char tmp[50];
+	sprintf( tmp, "%d", m_bacnetAddress.addrNet );
+	strcat( addr, tmp );
+	addr += strlen(tmp);
+	strcat( addr, "," );
+	addr++;
+	if ( m_bacnetAddress.addrLen > 0 )
+	{
+		strcat( addr, "0x" );
+		addr += 2;
+	}
 	for (int i = 0; i < m_bacnetAddress.addrLen; i++)
 	{
 		sprintf( addr, "%02X", m_bacnetAddress.addrAddr[i] );
 		addr += 2;
 	}
+	strcat( addr, "]" );
 }
 
 
@@ -4947,7 +4967,8 @@ void BACnetObjectIdentifier::Encode( char *enc ) const
 	else
 		sprintf( s = typeBuff, "proprietary %d", objType );
 
-	sprintf( enc, "%s, %d", s, instanceNum );
+//	sprintf( enc, "%s, %d", s, instanceNum );
+	sprintf( enc, "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
 }
 
 #if VTSScanner
@@ -5070,7 +5091,7 @@ void BACnetObjectPropertyReference::Encode( BACnetAPDUEncoder& enc, int context 
 	m_objID.Encode(enc, 0);
 	m_bacnetenumPropID.Encode(enc, 1);
 
-	if ( m_nIndex != -1 )
+	if ( m_nIndex != -1 && m_nIndex != NotAnArray)
 		BACnetUnsigned(m_nIndex).Encode(enc, 2);
 
 	if ( context != kAppContext )
@@ -5268,6 +5289,105 @@ BACnetDeviceObjectPropertyReference & BACnetDeviceObjectPropertyReference::opera
 	return *this;
 }
 
+//==============================================================================
+
+
+IMPLEMENT_DYNAMIC(BACnetDeviceObjectReference, BACnetEncodeable)
+
+BACnetDeviceObjectReference::BACnetDeviceObjectReference( unsigned int obj_id, unsigned int devobj_id /* = 0xFFFFFFFF */ )
+								: m_objID(obj_id)
+{
+	m_undevID = devobj_id;
+}
+
+
+
+BACnetDeviceObjectReference::BACnetDeviceObjectReference( BACnetAPDUDecoder & dec )
+{
+	Decode(dec);
+}
+
+
+
+void BACnetDeviceObjectReference::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	if ( context != kAppContext )
+		BACnetOpeningTag().Encode(enc, context);
+
+	if ( m_undevID != 0xFFFFFFFF )
+		::BACnetObjectIdentifier((unsigned int) m_undevID).Encode(enc, 0);
+
+	m_objID.Encode(enc, 1);
+
+	if ( context != kAppContext )
+		BACnetClosingTag().Encode(enc, context);
+}
+
+
+
+void BACnetDeviceObjectReference::Decode(BACnetAPDUDecoder& dec)
+{
+	BACnetAPDUTag		tagTestType;	
+	dec.ExamineTag(tagTestType);
+	
+	if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 0 )
+		m_undevID = BACnetObjectIdentifier(dec).objID;
+
+	m_objID.Decode(dec);
+
+}
+
+
+void BACnetDeviceObjectReference::Encode( char *enc ) const
+{
+	char szObject[100];
+	char szDevice[100];
+
+	sprintf(enc, "[" );
+	if ( m_undevID != 0xFFFFFFFF )
+	{
+		BACnetObjectIdentifier((unsigned int) m_undevID).Encode(szDevice);
+		strcat(enc, szDevice);
+	}
+	m_objID.Encode(szObject);
+
+	strcat(enc, ", ");
+	strcat(enc, szObject);
+
+	strcat(enc, "]");
+}
+
+
+
+int BACnetDeviceObjectReference::DataType()
+{
+	return devobjref;
+}
+
+
+BACnetEncodeable * BACnetDeviceObjectReference::clone()
+{
+	return new BACnetDeviceObjectReference(m_objID.objID, m_undevID);
+}
+
+
+bool BACnetDeviceObjectReference::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	if ( PreMatch(iOperator) )
+		return true;
+
+	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectReference)));
+
+	return true;
+}
+
+
+BACnetDeviceObjectReference & BACnetDeviceObjectReference::operator =( const BACnetDeviceObjectReference &arg )
+{
+	m_objID = arg.m_objID;
+	m_undevID = arg.m_undevID;
+	return *this;
+}
 
 //==============================================================================
 
@@ -5419,14 +5539,15 @@ int BACnetVTSession::DataType(void)
 
 //==============================================================================
 
-IMPLEMENT_DYNAMIC(BACnetAddressBinding, BACnetEncodeable)
+IMPLEMENT_DYNAMIC(BACnetAddressBinding, BACnetObjectContainer)
 
 
 BACnetAddressBinding::BACnetAddressBinding()
 {
 }
 
-
+//BACnetAddressBinding::BACnetAddressBinding( BACnetEncodeable * pbacnetEncodeable ) 
+//						: BACnetObjectContainer(pbacnetEncodeable)
 BACnetAddressBinding::BACnetAddressBinding( unsigned int nobjID, unsigned short nNet, BACnetOctet * paMAC, unsigned short nMACLen )
 				     :m_bacnetObjectID(nobjID), m_bacnetAddr(nNet, paMAC, nMACLen)
 {
@@ -5446,14 +5567,17 @@ void BACnetAddressBinding::Encode( BACnetAPDUEncoder& enc, int context )
 	m_bacnetAddr.Encode(enc, context);
 }
 
+void BACnetAddressBinding::Encode( char *enc ) const
+{
+	m_bacnetObjectID.Encode( enc );
+	m_bacnetAddr.Encode( enc );
+}
 
 void BACnetAddressBinding::Decode( BACnetAPDUDecoder& dec )
 {
 	m_bacnetObjectID.Decode(dec);
 	m_bacnetAddr.Decode(dec);
 }
-
-
 
 BACnetAddressBinding & BACnetAddressBinding::operator =( const BACnetAddressBinding & arg )
 {
@@ -5669,9 +5793,19 @@ int BACnetRecipient::GetChoice()
 
 BACnetRecipient & BACnetRecipient::operator =( const BACnetRecipient & arg )
 {
-	BACnetRecipient* newrecipent = new BACnetRecipient();
 	this->SetObject(arg.pbacnetTypedValue->clone());
 	return *this;
+}
+
+void BACnetRecipient::Encode( char *enc ) const
+{
+	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
+		pbacnetTypedValue->Encode( enc );
+	else
+	{
+//		sprintf( enc, "%d", pbacnetTypedValue->intValue );
+		pbacnetTypedValue->Encode( enc );
+	}
 }
 
 void BACnetRecipient::Encode(BACnetAPDUEncoder& enc, int context)
@@ -5723,6 +5857,7 @@ void BACnetRecipient::Decode(BACnetAPDUDecoder& dec)
 
 }
 
+
 int BACnetRecipient::DataType()
 {
 	return recip;
@@ -5772,13 +5907,25 @@ BACnetRecipientProcess::BACnetRecipientProcess( BACnetAPDUDecoder & dec )
 
 BACnetRecipientProcess & BACnetRecipientProcess::operator =( const BACnetRecipientProcess & arg )
 {
-	BACnetRecipientProcess* newrecip = new BACnetRecipientProcess();
+//	BACnetRecipientProcess* newrecip = new BACnetRecipientProcess();
 
-	newrecip->m_bacnetrecipient = m_bacnetrecipient;
-	newrecip->m_bacnetunsignedID = m_bacnetunsignedID;
+//	newrecip->m_bacnetrecipient = arg.m_bacnetrecipient;
+//	newrecip->m_bacnetunsignedID = arg.m_bacnetunsignedID;
+//	return *newrecip;
+
+	m_bacnetrecipient = arg.m_bacnetrecipient;
+	m_bacnetunsignedID = arg.m_bacnetunsignedID;
 	return *this;
 }
 
+void BACnetRecipientProcess::Encode( char *enc ) const
+{
+	*enc++ = '[';
+	m_bacnetrecipient.Encode( enc );
+	strcat( enc, ", ");
+	m_bacnetunsignedID.Encode( enc+strlen(enc) );
+	strcat( enc, "]");
+}
 
 void BACnetRecipientProcess::Encode(BACnetAPDUEncoder& enc, int context)
 {
@@ -5860,17 +6007,44 @@ BACnetCOVSubscription::BACnetCOVSubscription( BACnetAPDUDecoder & dec )
 
 BACnetCOVSubscription & BACnetCOVSubscription::operator =( const BACnetCOVSubscription & arg )
 {
-	BACnetCOVSubscription* newsub = new BACnetCOVSubscription();
+	m_bacnetrecipprocess = arg.m_bacnetrecipprocess;
+	m_bacnetobjpropref = arg.m_bacnetobjpropref;
+	m_bacnetboolNotification = arg.m_bacnetboolNotification;
+	m_bacnetunsignedTimeRemaining = arg.m_bacnetunsignedTimeRemaining;
+	m_bacnetrealCOVIncrement.realValue = arg.m_bacnetrealCOVIncrement.realValue;
+    return *this;
 
-	newsub->m_bacnetrecipprocess = m_bacnetrecipprocess;
-	newsub->m_bacnetobjpropref = m_bacnetobjpropref;
-	newsub->m_bacnetboolNotification = m_bacnetboolNotification;
-	newsub->m_bacnetunsignedTimeRemaining = m_bacnetunsignedTimeRemaining;
-	newsub->m_bacnetrealCOVIncrement.realValue = m_bacnetrealCOVIncrement.realValue;
-
-	return *this;
+//	BACnetCOVSubscription* newsub = new BACnetCOVSubscription();
+//	newsub->m_bacnetrecipprocess = arg.m_bacnetrecipprocess;
+//	newsub->m_bacnetobjpropref = arg.m_bacnetobjpropref;
+//	newsub->m_bacnetboolNotification = arg.m_bacnetboolNotification;
+//	newsub->m_bacnetunsignedTimeRemaining = arg.m_bacnetunsignedTimeRemaining;
+//	newsub->m_bacnetrealCOVIncrement.realValue = arg.m_bacnetrealCOVIncrement.realValue;
+//	return *newsub;
 }
 
+void BACnetCOVSubscription::Encode( char *enc ) const
+{
+	*enc++ = '[';
+	m_bacnetrecipprocess.Encode( enc );
+	strcat(enc,", ");
+	m_bacnetobjpropref.Encode( enc+strlen(enc) );
+	strcat(enc,", ");
+	m_bacnetboolNotification.Encode( enc+strlen(enc) );
+	strcat(enc,", ");
+	m_bacnetunsignedTimeRemaining.Encode( enc+strlen(enc) );
+	strcat(enc,", ");
+	if ( m_bacnetrealCOVIncrement.realValue > 0 )
+		m_bacnetrealCOVIncrement.Encode( enc+strlen(enc) );
+	else
+		strcat( enc, "0" );
+	strcat(enc,"]");
+
+}
+
+void BACnetCOVSubscription::Decode( const char *dec )
+{
+}
 
 
 void BACnetCOVSubscription::Encode(BACnetAPDUEncoder& enc, int context)
@@ -5882,7 +6056,8 @@ void BACnetCOVSubscription::Encode(BACnetAPDUEncoder& enc, int context)
 	m_bacnetobjpropref.Encode(enc, 1);
 	m_bacnetboolNotification.Encode(enc, 2);
 	m_bacnetunsignedTimeRemaining.Encode(enc, 3);
-	m_bacnetrealCOVIncrement.Encode(enc,4);
+	if ( m_bacnetrealCOVIncrement.realValue > 0 )
+		m_bacnetrealCOVIncrement.Encode(enc,4);
 
 	if ( context != kAppContext )
 		BACnetClosingTag().Encode(enc, context);
@@ -6389,15 +6564,27 @@ void BACnetTimeStamp::Encode( BACnetAPDUEncoder& enc, int context)
 {
 	if(pbacnetTypedValue == NULL)
 		return;
-	if(context == 2)	//datetime
+
+	if ( context == -1 )
 	{
-		BACnetOpeningTag().Encode(enc,2);
+		if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDateTime)))
+			context = 2;
+		else if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetTime)))
+			context = 1;
+		else if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)))
+			context = 0;
+	}
+
+	if ( context != -1 )
+	{
+		BACnetOpeningTag().Encode(enc,context);
 		pbacnetTypedValue->Encode(enc);
-		BACnetClosingTag().Encode(enc,2);
+		BACnetClosingTag().Encode(enc,context);
 	}
 	else
+	{
 		pbacnetTypedValue->Encode(enc, context);
-
+	}
 }
 
 void BACnetTimeStamp::Decode( BACnetAPDUDecoder& dec )
@@ -7169,7 +7356,7 @@ BACnetObjectIdentifier & BACnetObjectIDList::operator[](int nIndex)
 //====================================================================
 
 
-
+/*
 IMPLEMENT_DYNAMIC(BACnetListOfObjectPropertyReference, BACnetGenericArray)
 
 
@@ -7214,7 +7401,7 @@ BACnetObjectPropertyReference & BACnetListOfObjectPropertyReference::operator[](
 {
 	return  (BACnetObjectPropertyReference &) *m_apBACnetObjects[nIndex];
 }
-
+*/
 
 //====================================================================
 
@@ -7239,14 +7426,14 @@ BACnetListOfDeviceObjectPropertyReference::BACnetListOfDeviceObjectPropertyRefer
 }
 
 
-BACnetListOfDeviceObjectPropertyReference::BACnetListOfDeviceObjectPropertyReference( PICS::BACnetObjectPropertyReference * pobjprops )
+BACnetListOfDeviceObjectPropertyReference::BACnetListOfDeviceObjectPropertyReference( PICS::BACnetDeviceObjectPropertyReference * pobjprops )
 									:BACnetGenericArray(propref)
 {
 	m_nType = lopref;
 	ClearArray();
 	while ( pobjprops != NULL )
 	{
-		Add(new ::BACnetDeviceObjectPropertyReference(pobjprops->object_id, pobjprops->property_id, pobjprops->pa_index));
+		Add(new ::BACnetDeviceObjectPropertyReference(pobjprops->Objid, pobjprops->wPropertyid, pobjprops->ulIndex, pobjprops->DeviceObj));
 		pobjprops = pobjprops->next;
 	}
 }
@@ -7269,6 +7456,95 @@ BACnetDeviceObjectPropertyReference & BACnetListOfDeviceObjectPropertyReference:
 
 //====================================================================
 
+IMPLEMENT_DYNAMIC(BACnetListOfDeviceObjectReference, BACnetGenericArray)
+
+
+
+BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference()
+									:BACnetGenericArray(propref)
+{
+	m_nType = lodoref;
+}
+
+
+BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference( BACnetAPDUDecoder& dec )
+									:BACnetGenericArray(propref)
+{
+	m_nType = lodoref;
+	Decode(dec);
+}
+
+
+BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference( PICS::BACnetDeviceObjectReference * pobjprops )
+									:BACnetGenericArray(propref)
+{
+	m_nType = lodoref;
+	ClearArray();
+	while ( pobjprops != NULL )
+	{
+		Add(new ::BACnetDeviceObjectReference(pobjprops->Objid, pobjprops->DeviceObj));
+		pobjprops = pobjprops->next;
+	}
+}
+
+
+
+BACnetDeviceObjectReference * BACnetListOfDeviceObjectReference::operator[](int nIndex) const
+{
+	return (BACnetDeviceObjectReference *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetDeviceObjectReference & BACnetListOfDeviceObjectReference::operator[](int nIndex)
+{
+	return  (BACnetDeviceObjectReference &) *m_apBACnetObjects[nIndex];
+}
+
+
+
+//====================================================================
+
+IMPLEMENT_DYNAMIC(BACnetListOfEnum, BACnetGenericArray)
+
+
+
+BACnetListOfEnum::BACnetListOfEnum(int tableId)
+					:BACnetGenericArray(etl)
+{
+	m_nType = etl;
+	m_nTableId = tableId;  // from AllETs list in stdobjpr.h
+}
+
+
+BACnetListOfEnum::BACnetListOfEnum( BACnetAPDUDecoder& dec, int tableId )
+					:BACnetGenericArray(etl)
+{
+	m_nType = etl;
+	m_nTableId = tableId;
+	Decode(dec);
+}
+
+
+BACnetEncodeable * BACnetListOfEnum::NewDecoderElement( BACnetAPDUDecoder& dec )
+{
+	BACnetEncodeable * penum = BACnetEncodeable::Factory(etl, dec, m_nTableId);
+	penum->Decode(dec);
+	return penum;
+}
+
+
+BACnetEnumerated * BACnetListOfEnum::operator[](int nIndex) const
+{
+	return (BACnetEnumerated *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetEnumerated & BACnetListOfEnum::operator[](int nIndex)
+{
+	return  (BACnetEnumerated &) *m_apBACnetObjects[nIndex];
+}
 
 
 
@@ -7476,7 +7752,10 @@ void BACnetAnyValue::SetObject( int nNewType, BACnetEncodeable * pbacnetEncodeab
 
 void BACnetAnyValue::SetObject( BACnetEncodeable * pbacnetEncodeable )
 {
-	SetType(pbacnetEncodeable->DataType());
+	if ( pbacnetEncodeable == NULL )
+		SetType(0);
+	else
+		SetType(pbacnetEncodeable->DataType());
 	BACnetObjectContainer::SetObject(pbacnetEncodeable);
 }
 
@@ -7631,8 +7910,8 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 				BACnetObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
-			case lopref:  // list of object prop refs
-				BACnetListOfObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+			case lopref:  // list of object prop refs (device)
+				BACnetListOfDeviceObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			//case tsrecip: // time synch recipients
