@@ -77,7 +77,7 @@ enum BACnetEngineeringUnits	units;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
+    BACnetTimeStamp	       far *event_time_stamps[3];  //madanner 6/03, added
    } ai_obj_type;
 
 //Analog Output Object
@@ -106,7 +106,7 @@ enum BACnetEngineeringUnits units;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
+    BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } ao_obj_type;
 
 //Analog Value Object
@@ -131,7 +131,7 @@ enum BACnetEngineeringUnits units;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-     BACnetTimeStamp	    event_time_stamps[3];  //Added by xuyiping 2002-8-29
+     BACnetTimeStamp	    far *event_time_stamps[3];  //Added by xuyiping 2002-8-29
    } av_obj_type;
 
 //Binary Input Object
@@ -158,7 +158,7 @@ enum BACnetBinaryPV			alarm_value;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
+    BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } bi_obj_type;
 
 //Binary Output Object
@@ -189,7 +189,7 @@ enum BACnetBinaryPV			feedback_value;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
+    BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } bo_obj_type;
 
 //Binary Value Object
@@ -218,7 +218,7 @@ enum BACnetBinaryPV			alarm_value;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-	BACnetTimeStamp	        event_time_stamps[3];  //Added by xuyiping 2002-8-29
+	BACnetTimeStamp	        far *event_time_stamps[3];  //Added by xuyiping 2002-8-29
    } bv_obj_type;
 
 //Calendar Object
@@ -299,9 +299,14 @@ enum BACnetSegmentation		segmentation_supported;
 	// added by Jingbo Gao, 2003-9-1
 	dword					database_revision;
 	BACnetObjectIdentifier	far	*configuration_files;		// points to configuration files
-	BACnetDateTime			last_restore_time;
+	BACnetTimeStamp			last_restore_time;
 	word					backup_failure_timeout;
 	BACnetCOVSubscription   far	*active_cov_subscriptions;
+	// added LJT 10/12/2005
+	BACnetAddressBinding far *manual_slave_add_bind;
+	boolean              far *auto_slave_disc;   // array of boolean
+	BACnetAddressBinding far *slave_add_bind;
+	boolean                  slave_proxy_enable;
 
    } device_obj_type;
 
@@ -312,7 +317,7 @@ typedef struct {
 enum BACnetNotifyType		notify_type;
 //Note that event_type is part of parameter_list structure in this implementation!
     BACnetEventParameter	parameter_list;
-    BACnetObjectPropertyReference obj_prop_ref;
+    BACnetDeviceObjectPropertyReference obj_prop_ref;
 enum BACnetEventState 		state;
     octet					event_enable;
     octet					acked_transitions;
@@ -321,7 +326,7 @@ enum BACnetEventState 		state;
     word					process_id;
     word					priority;
     boolean					issue_conf_notifications;
-    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
+    BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } ee_obj_type;
 
 //File Object
@@ -333,6 +338,7 @@ typedef struct {
     BACnetDateTime			mod_date;
     boolean					archive;
     boolean					read_only;
+	dword                   record_count;
 enum BACnetFileAccessMethod access_method;
    } file_obj_type;
 
@@ -380,7 +386,7 @@ enum BACnetEngineeringUnits derivative_const_units;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
+    BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } loop_obj_type;
 
 //Multi-state Input Object
@@ -397,12 +403,12 @@ enum BACnetReliability		reliability;
     char				far	*state_text[32];
     word					time_delay;
     word					notification_class;
-    octet					alarm_values[32];	//note that 0 marks the end of each "list"
-    octet					fault_values[32];
+    octet				far *alarm_values;
+    octet				far	*fault_values;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
+    BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } mi_obj_type;
 
 //Multi-state Output Object
@@ -425,7 +431,7 @@ enum BACnetReliability		reliability;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
-    BACnetTimeStamp	        event_time_stamps[3];  //madanner 6/03, added
+    BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } mo_obj_type;
 
 //Program Object
@@ -458,7 +464,7 @@ typedef struct {
     BACnetDateRange			effective_period;
     BACnetTimeValue		far	*weekly_schedule[7];
     BACnetExceptionSchedule	exception_schedule;
-    BACnetObjectPropertyReference far *list_obj_prop_ref;
+    BACnetDeviceObjectPropertyReference far *list_obj_prop_ref;
     word					priority_for_writing;
    } schedule_obj_type;
 
@@ -498,12 +504,12 @@ typedef struct {
     word				    relinquish_default;
     word				    time_delay;
     word				    notification_class;
-    word				    alarm_values[10];
-    word				    fault_values[10];
+    word				    far *alarm_values;
+    word				    far *fault_values;
     octet					event_enable;
     octet					acked_transitions;
     enum BACnetNotifyType	notify_type;
-    BACnetTimeStamp		event_time_stamps[3];
+    BACnetTimeStamp		far *event_time_stamps[3];
    } msv_obj_type;
 // --------------------------------------------------------
 // TrendLog Object
@@ -535,7 +541,7 @@ typedef struct
      octet						    		event_enable;
      octet						    		acked_transitions;
      enum BACnetNotifyType		    		notify_type;
-     BACnetTimeStamp			            event_time_stamps[3];
+     BACnetTimeStamp			            far *event_time_stamps[3];
 	 dword									last_notify_record;		//Added by Zhu Zhenhua, 2004-5-11
    } trend_obj_type;
 
@@ -560,23 +566,23 @@ enum BACnetEventState	           event_state;
 enum BACnetReliability	           reliability;
     bool					       out_of_service;
 enum BACnetLifeSafetyMode          mode;
-    BACnetLifeSafetyMode           accepted_modes[10];
+    BACnetEnumList       far *accepted_modes; // List of BACnetLifeSafetyMode
     word        				   time_delay;
     word				           notification_class;
-enum BACnetLifeSafetyState         life_safety_alarm_values[10];
-enum BACnetLifeSafetyState		   alarm_values[10];
-enum BACnetLifeSafetyState		   fault_values[10];
+    BACnetEnumList      far *life_safety_alarm_values; // List of LifeSafetyState
+    BACnetEnumList	   far *alarm_values; // List of LifeSafetyState
+    BACnetEnumList	   far *fault_values; // List of LifeSafetyState
     octet					       event_enable;
     octet					       acked_transitions;
     enum BACnetNotifyType          notify_type;
-    BACnetTimeStamp	 	           event_time_stamps[3];
+    BACnetTimeStamp	 	           far *event_time_stamps[3];
 enum BACnetSilencedState           silenced; 
 enum BACnetLifeSafetyOperation     operation_expected;
 enum BACnetMaintenance             maintenance_required;
     word                           setting;
     float                          direct_reading;
 enum BACnetEngineeringUnits        units;
-    BACnetDeviceObjectPropertyReference member_of[10];  
+    BACnetDeviceObjectReference    far *member_of;  
 } lifesafetypoint_obj_type;
 
 //Shiyuan Xiao. 7/14/2005.
@@ -591,21 +597,21 @@ enum BACnetEventState	           event_state;
 enum BACnetReliability	           reliability;
     bool					       out_of_service;
 enum BACnetLifeSafetyMode          mode;
-	BACnetLifeSafetyMode           accepted_modes[10];
+	BACnetEnumList       far *accepted_modes; // List of BACnetLifeSafetyMode
     word        				   time_delay;
     word				           notification_class;
-enum BACnetLifeSafetyState         life_safety_alarm_values[10];
-enum BACnetLifeSafetyState		   alarm_values[10];
-enum BACnetLifeSafetyState		   fault_values[10];
+    BACnetEnumList      far *life_safety_alarm_values; // List of LifeSafetyState
+    BACnetEnumList	   far *alarm_values; // List of LifeSafetyState
+    BACnetEnumList	   far *fault_values; // List of LifeSafetyState
     octet					       event_enable;
     octet					       acked_transitions;
     enum BACnetNotifyType          notify_type;
-    BACnetTimeStamp	 	           event_time_stamps[3];
+    BACnetTimeStamp	 	           far *event_time_stamps[3];
 enum BACnetSilencedState           silenced; 
 enum BACnetLifeSafetyOperation     operation_expected;
      bool                          maintenance_required;
-     BACnetDeviceObjectPropertyReference zone_members[10]; 
-     BACnetDeviceObjectPropertyReference member_of[10];  
+     BACnetDeviceObjectReference   far *zone_members; 
+     BACnetDeviceObjectReference   far *member_of;  
 } lifesafetyzone_obj_type;
 
 //Shiyuan Xiao. 7/14/2005.
@@ -637,7 +643,7 @@ enum BACnetEngineeringUnits        units;
 	octet					       event_enable;	
     octet					       acked_transitions;
 	enum BACnetNotifyType          notify_type;
-    BACnetTimeStamp	 	           event_time_stamps[3];
+    BACnetTimeStamp	 	     far *event_time_stamps[3];
 } accumulator_obj_type;
 
 //Shiyuan Xiao. 7/14/2005.
@@ -668,7 +674,7 @@ enum BACnetReliability	           reliability;
 	octet					       event_enable;	
     octet					       acked_transitions;
 	enum BACnetNotifyType          notify_type;
-    BACnetTimeStamp	 	           event_time_stamps[3];
+    BACnetTimeStamp	 	           far *event_time_stamps[3];
 } pulseconverter_obj_type;
 
 #endif //__STDOBJ_H_INCLUDED

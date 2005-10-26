@@ -309,11 +309,11 @@ static etable etLimitEnable={
 static etable etVTClasses={
             0,0,7,
             "default-terminal",
-            "ansi-x3.64",
+            "ansi-x3-64",
             "dec-vt52",
             "dec-vt100",
             "dec-vt220",
-            "hp-700/94",
+            "hp-700-94",
             "ibm-3130"
             };
             
@@ -889,6 +889,12 @@ propdescriptor	DVprops[]={
 													backup_failure_timeout), uw, 0,     0,   O,
 	"active-cov-subscriptions", ACTIVE_COV_SUBSCRIPTIONS,  oo(device, 
 													active_cov_subscriptions), lCOVSub, 0,		0,    O|IsArray,
+
+    "slave-proxy-enable", SLAVE_PROXY_ENABLE, oo(device, slave_proxy_enable), ebool, 0, 0, O,
+//	"auto-slave-discovery", AUTO_SLAVE_DISCOVERY,  oo(device, auto_slave_disc), ebool, 0, 0, O,
+	"slave-address-binding", SLAVE_ADDRESS_BINDING, oo(device, slave_add_bind), dabind, 0, 0, O,
+	"manual-slave-address-binding", MANUAL_SLAVE_ADDRESS_BINDING, oo(device, manual_slave_add_bind), dabind, 0, 0, O,
+
 	"profile-name",			PROFILE_NAME,       oo(device,go.profile_name), s132,	Last,		0,	 O 
 };
 
@@ -934,6 +940,7 @@ propdescriptor	FLprops[]={
 //    "file-access-method",	FILE_ACCESS_METHOD,	oo(file,access_method),	et,		Last,   eiFAM,	R
 //modified by Jingbo Gao
     "file-access-method",	FILE_ACCESS_METHOD,	oo(file,access_method),	et,		0,   eiFAM,	R,
+	"record-count",         RECORD_COUNT,       oo(file,record_count),  ud,     0,         0,    O,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(file,go.profile_name), s132,	Last,		0,	 O  
 };
@@ -1260,9 +1267,9 @@ propdescriptor LFSPProps[] =
 	"accepted-modes",           ACCEPTED_MODES,               oo(lifesafetypoint,  accepted_modes),     etl,       0,      eiLifeSafetyMode, O,    
 	"time-delay",               TIME_DELAY,                   oo(lifesafetypoint,  time_delay),         uw,	      0,	  0,  	   O|WithService,
 	"notification-class",	    NOTIFICATION_CLASS,	          oo(lifesafetypoint,  notification_class), uw,	      0,	  0,  	   O|WithService,
-	"life-safety-alarm-values",  LIFE_SAFETY_ALARM_VALUES,     oo(lifesafetypoint,  life_safety_alarm_values), et, 0,	  0,  	   O|WithService,		
-	"alarm-values",             ALARM_VALUES,                 oo(lifesafetypoint,  alarm_values),       et,       0,      0,       O|WithService, 
-	"fault-values",             FAULT_VALUES,                 oo(lifesafetypoint,  fault_values),       et,       0,      0,       O|WithService, 
+	"life-safety-alarm-values",  LIFE_SAFETY_ALARM_VALUES,     oo(lifesafetypoint,  life_safety_alarm_values),   etl, 0,	eiLifeSafetyState,      O|WithService,		
+	"alarm-values",             ALARM_VALUES,                 oo(lifesafetypoint,  alarm_values),       etl,       0,      eiLifeSafetyState,       O|WithService, 
+	"fault-values",             FAULT_VALUES,                 oo(lifesafetypoint,  fault_values),       etl,       0,      eiLifeSafetyState,       O|WithService, 
 	"event-enable",  			EVENT_ENABLE,  			      oo(lifesafetypoint,  event_enable),  		bits,     0,      0,       O|WithService,
 	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(lifesafetypoint,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
 	"notify-type",  			NOTIFY_TYPE,  			      oo(lifesafetypoint,  notify_type),  		et,       0,      eiNT,    O|WithService,
@@ -1273,7 +1280,7 @@ propdescriptor LFSPProps[] =
     "setting",                  SETTING,                      oo(lifesafetypoint,  setting),            uw,       0,      0,       O,
     "direct-reading",           DIRECT_READING,               oo(lifesafetypoint,  direct_reading),     flt,      0,      0,       O,
     "units",                    UNITS,                        oo(lifesafetypoint,  units),              et,       0,      eiEU,    O,
-	"member-of",                MEMBER_OF,                    oo(lifesafetypoint,  member_of),          devobjpropref,0,  0,       O|IsArray,    
+	"member-of",                MEMBER_OF,                    oo(lifesafetypoint,  member_of),          lodoref,0,  0,       O|IsArray,    
 	"profile-name",				PROFILE_NAME,				  oo(lifesafetypoint,  go.profile_name),	s132,	  Last,	  0,       O
 };
 
@@ -1292,12 +1299,12 @@ propdescriptor LFSZProps[] =
     "reliability",			    RELIABILITY,		          oo(lifesafetyzone,  reliability),	    et,		  0,	  eiReli,  O,
     "out-of-service",		    OUT_OF_SERVICE,		          oo(lifesafetyzone,  out_of_service),	ebool,    0,	  eiTF,	   R,
 	"mode",                     MODE,                         oo(lifesafetyzone,  mode),            et,       0,      eiLifeSafetyMode, W,
-	"accepted-modes",           ACCEPTED_MODES,               oo(lifesafetyzone,  accepted_modes),  et,       0,      0,       O,    
+	"accepted-modes",           ACCEPTED_MODES,               oo(lifesafetyzone,  accepted_modes),  etl,       0,     eiLifeSafetyMode, O,    
 	"time-delay",               TIME_DELAY,                   oo(lifesafetyzone,  time_delay),         uw,	      0,	  0,  	   O|WithService,
 	"notification-class",	    NOTIFICATION_CLASS,	          oo(lifesafetyzone,  notification_class), uw,	      0,	  0,  	   O|WithService,
-	"life-safety-alarm-values",  LIFE_SAFETY_ALARM_VALUES,     oo(lifesafetyzone,  life_safety_alarm_values), et, 0,	  0,  	   O|WithService,		
-	"alarm-values",             ALARM_VALUES,                 oo(lifesafetyzone,  alarm_values),       et,       0,      0,       O|WithService, 
-	"fault-values",             FAULT_VALUES,                 oo(lifesafetyzone,  fault_values),       et,       0,      0,       O|WithService, 
+	"life-safety-alarm-values",  LIFE_SAFETY_ALARM_VALUES,     oo(lifesafetyzone,  life_safety_alarm_values), etl, 0,	  eiLifeSafetyState,  	   O|WithService,		
+	"alarm-values",             ALARM_VALUES,                 oo(lifesafetyzone,  alarm_values),       etl,       0,      eiLifeSafetyState,       O|WithService, 
+	"fault-values",             FAULT_VALUES,                 oo(lifesafetyzone,  fault_values),       etl,       0,      eiLifeSafetyState,       O|WithService, 
 	"event-enable",  			EVENT_ENABLE,  			      oo(lifesafetyzone,  event_enable),  		bits,     0,      0,       O|WithService,
 	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(lifesafetyzone,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
 	"notify-type",  			NOTIFY_TYPE,  			      oo(lifesafetyzone,  notify_type),  		et,       0,      eiNT,    O|WithService,
@@ -1305,8 +1312,8 @@ propdescriptor LFSZProps[] =
 	"silenced",                 SILENCED,                     oo(lifesafetyzone,  silenced),           et,       0,      eiSilencedState,       R,
     "operation-expected",       OPERATION_EXPECTED,           oo(lifesafetyzone,  operation_expected), et,       0,      eiLifeSafetyOperation, R,
 	"maintenance-required",     MAINTENANCE_REQUIRED,         oo(lifesafetyzone,  maintenance_required),ebool,   0,      0, O, 
-	"zone-members",             ZONE_MEMBERS,                 oo(lifesafetyzone,  zone_members),     devobjpropref,0,  0,       R,   
-	"member-of",                MEMBER_OF,                    oo(lifesafetyzone,  member_of),        devobjpropref,0,  0,       O,    
+	"zone-members",             ZONE_MEMBERS,                 oo(lifesafetyzone,  zone_members),     lodoref,  0,  0,       R,   
+	"member-of",                MEMBER_OF,                    oo(lifesafetyzone,  member_of),        lodoref,  0,  0,       O,    
 	"profile-name",				PROFILE_NAME,				  oo(lifesafetyzone,  go.profile_name),	 s132,	  Last,	  0,        O
 };
 
