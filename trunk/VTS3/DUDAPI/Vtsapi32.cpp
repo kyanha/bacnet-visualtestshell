@@ -113,9 +113,9 @@ BOOL ParseCOVSubList(BACnetCOVSubscription **);												//*****018
 BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *);						//*****018
 BOOL ReadFailTimes(PICSdb *);																//*****019							
 BOOL ReadBIBBSupported(PICSdb *);
-//BOOL ParseLifeSafetyModeList(BACnetLifeSafetyModeList **);
-//BOOL ParseLifeSafetyStateList(BACnetLifeSafetyStateList **);
 BOOL ParseEnumList(BACnetEnumList **, etable *);
+BOOL ParseUnsignedList( UnsignedList **elp );
+BOOL ParseBooleanList( BooleanList **elp );
 
 //************added by Liangping Xu,2002*****************//
 BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference *);
@@ -1199,12 +1199,6 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			vp=((BACnetAddressBinding *)vp)->next;
 			free(vq);
 		}
-		vp=((device_obj_type *)p)->auto_slave_disc;
-		while(vp!=NULL)
-		{	vq=vp;
-			//vp=((boolean *)vp)++;
-			free(vq);
-		}
 		vp=((device_obj_type *)p)->slave_add_bind;
 		while(vp!=NULL)
 		{	vq=vp;
@@ -1225,6 +1219,21 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			vp=((BACnetObjectIdentifier *)vp)->next;
 			free(vq);
 		}
+		vp=((device_obj_type *)p)->slave_proxy_enable;
+		while(vp!=NULL)
+		{
+			vq=vp;
+			vp=((BooleanList *)vp)->next;
+			free(vq);
+		}
+		vp=((device_obj_type *)p)->auto_slave_disc;
+		while(vp!=NULL)
+		{
+			vq=vp;
+			vp=((BooleanList *)vp)->next;
+			free(vq);
+		}
+
 		break; 
 	case EVENT_ENROLLMENT: 
 		vp=((ee_obj_type *)p)->parameter_list.list_bitstring_value;
@@ -1283,7 +1292,20 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			if ( ((mi_obj_type *)p)->event_time_stamps[i]!=NULL)
 				free(((mi_obj_type *)p)->event_time_stamps[i]);
 		}
-		// todo add alarm_values and fault_values destruction here
+		vp=((mi_obj_type *)p)->alarm_values;
+		while(vp!=NULL)
+		{
+			vq=vp;
+			vp=((UnsignedList *)vp)->next;
+			free(vq);
+		}
+		vp=((mi_obj_type *)p)->fault_values;
+		while(vp!=NULL)
+		{
+			vq=vp;
+			vp=((UnsignedList *)vp)->next;
+			free(vq);
+		}
 		break; 
 	case MULTI_STATE_OUTPUT: 
 		for (i=0;i<32;i++)
@@ -1403,7 +1425,20 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			if ( ((msv_obj_type *)p)->event_time_stamps[i]!=NULL)
 				free(((msv_obj_type *)p)->event_time_stamps[i]);
 		}
-        // todo: add alarm_values and fault_values destruction here
+		vp=((msv_obj_type *)p)->alarm_values;
+		while(vp!=NULL)
+		{
+			vq=vp;
+			vp=((UnsignedList *)vp)->next;
+			free(vq);
+		}
+		vp=((msv_obj_type *)p)->fault_values;
+		while(vp!=NULL)
+		{
+			vq=vp;
+			vp=((UnsignedList *)vp)->next;
+			free(vq);
+		}
 		break; 
       case TREND_LOG:
   		vp=((trend_obj_type *)p)->event_time_stamps;
@@ -3809,7 +3844,13 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					}
 					((command_obj_type *)pobj)->num_actions=i;
 					break;
-				case stavals:					//list of states					***006 Begin
+				case eboollist:         // list of booleans
+					if (ParseBooleanList( (BooleanList **)pstruc )) return true;
+					break;
+				case stavals:			// list of unsigned
+					if (ParseUnsignedList( (UnsignedList **)pstruc )) return true;
+/*
+					//list of states					***006 Begin
 					op=(octet *)pstruc;
 					for (i=0;i<32;i++) op[i]=0;	//									***011
 					i=0;
@@ -3828,6 +3869,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 							break;				//close this array out
 						}						//									***011 End
 					}
+*/
 					break;
 				case statext:					//state text array
 				case actext:					//action_text array
@@ -3894,7 +3936,10 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 							while (*lp&&*lp!=space&&*lp!=','&&*lp!='}') lp++; //skip rest of NULL ***014
 						}						//									***013 End
 						else					//we'll assume there's a number here
+						{
 							*wp++=ReadW();
+							if ( *(lp-1)=='}' ) lp--;  // put back last read char.
+						}
 						i++;					//									***011 Begin
 						while (*lp==space||*lp==',') lp++; //skip separation between list elements
 						if (*lp==0) 
@@ -3963,6 +4008,8 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					break;
 				case flt:						//float
 					*(float *)pstruc=(float)atof(lp);
+					while(*lp!=0&&*lp!=space&&*lp!=',') 
+						lp++;  // now move past word we just read;
 					break;
 				case uwarr:
 				case uw:						//unsigned word
@@ -5184,29 +5231,27 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 				
 	*calp=NULL;									//initially there is no list
 	skipwhitespace();
-	//if (MustBe('{')) return true;  // MAG was (
 	if (MustBe('(')) return true;     //Modified by xlp
 	while(true)
 	{   //here lp must point to:
 		//1. a comma or whitespace which we ignore as a separator between list elements.
 		//   Note that we require "empty" list elements to use proper syntax (...),(),(...)
 		//   but (...),,(...) is treated the same as (...),(...)
-		//2. (	i.e. the beginning of a new BACnetCalendarEntry in the list
-		//3. )				i.e. the closing part of the list
+		//2. {	i.e. the beginning of a new BACnetCalendarEntry in the list
+		//3. }				i.e. the closing part of the list
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
 		if (*lp==0) 
 			if (ReadNext()==NULL) break;
-		//if (*lp=='}')  // MAG was )
 		if (*lp==')')    //Modified by xlp
 		{	lp++;
 			break;								//close this list out
 		}
-		if (MustBe('(')) goto calx;
+		if (MustBe('{')) goto calx;
 
 		//here we have calentry)...     
-		if ((ep=strchr(lp,')'))==NULL)
+		if ((ep=strchr(lp,'}'))==NULL)
 		{	lp=strchr(lp,0);
-			tperror("Expected ) here!",true);
+			tperror("Expected } here!",true);
 			goto calx;
 		}
 		*ep++=0;								//remember this end pointer
@@ -5217,8 +5262,7 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 		//
 		//where date is in one of two formats:
 		//	month/day/year dow			- month is numeric, is optional (if present, separated by a space)
-    //  dow, day-month-year     - month is full name (e.g. January)
-		//The .. between dates in a daterange is significant and must be literally 2 dots in a row
+        //  dow, day-month-year     - month is full name (e.g. January)
 		
 		if ((q=(tagCalendarEntry *)malloc(sizeof(BACnetCalendarEntry)))==NULL)
 		{	tperror("Can't Get Object Space!",true);
@@ -5226,59 +5270,48 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 		}
 		print_debug("LJT: CalendarEntry=%x\n",q);
 
-//		if (strchr(lp,',')!=NULL)				//must be WeekNDay
 		if (strchr(lp,'X')!=NULL)				//must be WeekNDay
-		{	q->choice=2;						//WeekNDay
+		{	
+			q->choice=2;						//WeekNDay
 			skipwhitespace();
 			q->u.weekNday.month=dontcare;
 			q->u.weekNday.day=dontcare;
 			q->u.weekNday.week=dontcare;
-			if (isdigit(*lp))					//use numeric form of month
-			    q->u.weekNday.month=ReadB(1,12);
-			else								//use monthname
-		    {	for (i=0;i<12;i++)
-		    		if (strnicmp(lp,MonthNames[i],3)==0)
-		    		{	q->u.weekNday.month=(octet)i+1;	//months are 1-12
-		    			break;
-		    		}
-		    	strdelim(",");					//skip past comma
-			}
-			if (*lp=='l'||*lp=='L')				//Last week
-			{	q->u.weekNday.week=6;
-				strdelim(",");
-			}
-			else
-				q->u.weekNday.week=ReadB(1,6);
-	    	for(i=0;i<7;i++)
-	    		if (strnicmp(lp,DOWNames[i],3)==0)
-	    		{	q->u.weekNday.day=(octet)i+1;		//days are 1-7
-	    			break;
-	    		}
-	    	lp+=3;
+			
+			lp+=2;  // skip the X'
+
+			cvhex(lp,&q->u.weekNday.month);
+			cvhex(lp+2,&q->u.weekNday.week);
+			cvhex(lp+4,&q->u.weekNday.day);
+	    	lp+=6;
 		}
 //***Modified by Liangping Xu,2002-9
-//		else if (strstr(lp,"..")!=NULL)		//must be daterange
-		else if (strstr(lp,"..")!=NULL||strstr(lp,"(")!=NULL)  
-		{	q->choice=1;						//DateRange
-	        //if (MustBe('(')) return true;       
-		    if (ParseDate(&q->u.date_range.start_date)) goto calx;
-            if(ep==strstr(ep,".."))
-			{ep+=2;				//skip delimiter
-			  lp=ep;
+		// Modified by LJT 10/27/2005
+		else if (strstr(lp,"(")!=NULL)  // either date or daterange LJT
+		{	
+			q->choice=0;						// assume date for now
+			if (ParseDate(&q->u.date)) goto calx;
+//		    if (ParseDate(&q->u.date_range.start_date)) goto calx;
+
+			skipwhitespace();
+			// skip the , if that is the delimeter between date range
+			if ( *lp==',' )
+			{
+				q->choice=1;						//DateRange
+				q->u.date_range.start_date = q->u.date;
+				lp++;
+				if (ParseDate(&q->u.date_range.end_date)) goto calx;
 			}
-			else if(ep==strstr(ep,"-"))
-			{ ep++; lp=ep;}
-	        //if (MustBe('(')) return true;       
-			if (ParseDate(&q->u.date_range.end_date)) goto calx;
 		}
 //////////////////////////////////////////////////////////////
 
-		else									//must be date
-		{	q->choice=0;						//Date
-			if (ParseDate(&q->u.date)) goto calx;
+		else
+		{	
+			// invalid entry
+			goto calx;
 		}
 		lp=ep;
-		ep[-1]=')';
+		ep[-1]='}';  // put end of item back
 		q->next=NULL;							//link onto the list
 		if (fp==NULL)
 			fp=q;								//remember first guy we made
@@ -5780,7 +5813,14 @@ BOOL ParseBitstring(octet *bsp,word nbits,octet *nbf)
 //reading entire bitstring
 //				if (strdelim(&term[0])==NULL) break;
 				if (strdelim(",)")==NULL) break;
-				if (lp[-1]==term[0]) break;
+
+				if (lp[-1]==term[0])  // )
+					break;
+				if (lp[-1]==term[1]&&lp[-2]==term[0])  // ), 
+				{
+					lp--;  // backup one to leave the comma
+					break;
+				}
 			}										//								***008 End
 			if ((db>>=1)==0)
 			{	db=0x80;
@@ -6011,6 +6051,127 @@ acprem:	{	tperror("Expected ) here!",true);
 	}
 	if (q!=NULL) free(q);						//don't lose this block!
 	return firstp;								//								***008 End
+}
+
+BOOL ParseBooleanList( BooleanList **elp )
+{
+	BooleanList	*p=NULL,*q=NULL;
+	word			value;
+				
+	*elp=NULL;									//initially there is no list
+	
+	skipwhitespace();
+	if (MustBe('(')) return true;
+	while(feof(ifile)==0)
+	{   //here lp must point to:
+		//1. a comma or whitespace which we ignore as a separator between list elements.
+		//2. {              the beginning of a new unsigned in the list
+		//3. }				i.e. the closing part of the list
+		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
+		if (*lp==0)
+			if (ReadNext()==NULL) break;		//									***008
+		if (*lp==')') 
+		{	lp++;
+			break;								//close this list out
+		}
+
+		if ((q=(tagBooleanList *)malloc(sizeof(BooleanList)))==NULL)
+		{	tperror("Can't Get Object Space!",true);
+			break;
+		}
+		print_debug("LJT: BooleanList=%x\n",q);
+
+        q->next = NULL;
+
+		skipwhitespace();
+		if (*lp=='{') 
+			lp++;
+
+		if ((value=ReadBool())!=0xFFFF)
+		{	
+			q->value=value;
+         //msdanner 9/2004 - new items now added to the end, not beginning
+         if (p)
+         {
+            // if aready one item in the list
+            p->next = q;
+            p = q;  // new end of list
+         }
+         else
+         {
+            // first item found ...
+            *elp = q;
+         }
+			p=q;
+		}
+		else
+			free(q);							//give this one up
+
+		lp--;  // don't eat last character
+		if (*lp=='}') 
+			lp++;
+
+		q=NULL;
+		if (lp[-1]==')') break;					//list is done						***008
+	}
+	if (q!=NULL) free(q);						//don't lose this block!
+	return false;
+}
+
+BOOL ParseUnsignedList( UnsignedList **elp )
+{
+	UnsignedList	*p=NULL,*q=NULL;
+	word			value;
+				
+	*elp=NULL;									//initially there is no list
+	
+	skipwhitespace();
+	if (MustBe('(')) return true;
+	while(feof(ifile)==0)
+	{   //here lp must point to:
+		//1. a comma or whitespace which we ignore as a separator between list elements.
+		//2. {              the beginning of a new unsigned in the list
+		//3. }				i.e. the closing part of the list
+		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
+		if (*lp==0)
+			if (ReadNext()==NULL) break;		//									***008
+		if (*lp==')') 
+		{	lp++;
+			break;								//close this list out
+		}
+
+		if ((q=(tagUnsignedList *)malloc(sizeof(UnsignedList)))==NULL)
+		{	tperror("Can't Get Object Space!",true);
+			break;
+		}
+		print_debug("LJT: UnsignedList=%x\n",q);
+
+        q->next = NULL;
+		if ((value=ReadW())!=0xFFFF)
+		{	
+			q->value=value;
+         //msdanner 9/2004 - new items now added to the end, not beginning
+         if (p)
+         {
+            // if aready one item in the list
+            p->next = q;
+            p = q;  // new end of list
+         }
+         else
+         {
+            // first item found ...
+            *elp = q;
+         }
+			p=q;
+		}
+		else
+			free(q);							//give this one up
+
+		q=NULL;
+		if (lp[-1]==')') break;					//list is done						***008
+	}
+	if (q!=NULL) free(q);						//don't lose this block!
+	return false;
 }
 
 BOOL ParseEnumList(BACnetEnumList **elp, etable *etbl)
@@ -6283,7 +6444,8 @@ alprem:	{	lp--;
 //		lp		points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseSessionKeyList(BACnetSessionKey **dalp)
-{	BACnetSessionKey	*p=NULL,*q=NULL;
+{	
+	BACnetSessionKey	*p=NULL,*q=NULL;
 				
 	*dalp=NULL;									//initially there is no list
 	
@@ -6294,8 +6456,8 @@ BOOL ParseSessionKeyList(BACnetSessionKey **dalp)
 		//1. a comma or whitespace which we ignore as a separator between list elements.
 		//   Note that we require "empty" list elements to use proper syntax (...),(),(...)
 		//   but (...),,(...) is treated the same as (...),(...)
-		//2. (			i.e. the beginning of a new BACnetSessionKey in the list
-		//3. )			i.e. the closing part of the list
+		//2. {			i.e. the beginning of a new BACnetSessionKey in the list
+		//3. }			i.e. the closing part of the list
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
 		if (*lp==0)
 			if (ReadNext()==NULL) break;		//									***008
@@ -6303,9 +6465,9 @@ BOOL ParseSessionKeyList(BACnetSessionKey **dalp)
 		{	lp++;
 			break;								//close this list out
 		}
-		if (MustBe('(')) break;
+		if (MustBe('{')) break; // each list item is surrounded by {}
 
-		//here we have key,network,macaddr)...
+		//here we have key,network,macaddr}...
 
 		if ((q=(tagSessionKey *)malloc(sizeof(BACnetSessionKey)))==NULL)
 		{	tperror("Can't Get Object Space!",true);
@@ -6320,9 +6482,9 @@ BOOL ParseSessionKeyList(BACnetSessionKey **dalp)
         if (ParseOctetstring(&q->peer_address.mac_address[0],
         					 sizeof(q->peer_address.mac_address),
         					 &q->peer_address.address_size)) break;
-		if (*lp++!=')')
+		if (*lp++!='}')
 skprem:	{	lp--;
-			tperror("Expected ) here!",true);
+			tperror("Expected } here!",true);
 			break;
 		}
 		q->next=p;								//link onto the list
@@ -6332,6 +6494,29 @@ skprem:	{	lp--;
 	if (q!=NULL) free(q);						//don't lose this block!
 	*dalp=p;
 	return false;
+}
+
+BOOL normalBitstring(char *src)
+{
+	char *ep = src;
+	BOOL found = false;
+	if ((ep=strchr(src,','))==NULL)
+	{	
+		ep=strchr(src,0);
+	}
+	else
+		*ep++=0;								//remember this end pointer
+
+	for(int i=0; i<7; i++)
+	{
+		if (strnicmp(ep,DOWNames[i],3)==0)
+		{
+			found=true;
+			break;
+		}
+	}
+	ep[-1]=',';  // put it back like we found it
+	return !found;  // if we found a day of week text it is NOT normal bitstring
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -6344,7 +6529,8 @@ skprem:	{	lp--;
 //		lp		points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseDestinationList(BACnetDestination **dalp)
-{	BACnetDestination	*p=NULL,*q=NULL;
+{	
+	BACnetDestination	*p=NULL,*q=NULL;
 	char	c;
 	octet	dm;
 	word	i;
@@ -6360,8 +6546,8 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 		//1. a comma or whitespace which we ignore as a separator between list elements.
 		//   Note that we require "empty" list elements to use proper syntax (...),(),(...)
 		//   but (...),,(...) is treated the same as (...),(...)
-		//2. (			i.e. the beginning of a new BACnetDestination in the list
-		//3. )			i.e. the closing part of the list
+		//2. {			i.e. the beginning of a new BACnetDestination in the list
+		//3. }			i.e. the closing part of the list
 		print_debug("PDL: start loop lp = '%s'\n",lp);
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
 		if (*lp==0)
@@ -6371,7 +6557,7 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 			break;								//close this list out
 		}
 
-		if (MustBe('(')) break;
+		if (MustBe('{')) break;
 
 		//here we have days,from,to,(recipient),procid,conf,transitions),...
 
@@ -6384,60 +6570,50 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 		//look for (days of week),
 		skipwhitespace();						//									***013
 		print_debug("PDL: About to check weekdays\n");
-		if (MustBe('(')) break;
 		q->valid_days=0;
-		print_debug("PDL: pre while 1\n");
-        while(*lp&&*lp!=')')
-        {   while (*lp==space||*lp==',') lp++;	//skip separation between list elements
-			print_debug("PDL: post while 2 lp = '%s'\n",lp);
-			if (*lp==')') break;				//done								***013
-			found_day = 0;  // MAG
-	    	for(i=0;i<7;i++)
-	    		if (strnicmp(lp,DOWNames[i],3)==0)
-	    		{	q->valid_days|=(octet)(0x80>>i);	//Monday is 80, Sunday is 2
-					while (*lp&&*lp!=' '&&*lp!=','&&*lp!=')') lp++;	//find delim	***014
-					found_day = 1;
-	    			break;
-	    		}
-			print_debug("PDL: post while 3 lp = '%s'\n",lp);
-			if(!found_day)
-				return tperror("Expected Day of Week Here",true);
-
+		// test if days of week are entered as (T,F,T,F,F,T,T) or (MON,WED,SAT,SUN)
+		if (normalBitstring(lp))
+		{
+			unsigned char d = 0;
+			ParseBitstring(&q->valid_days, 7, &d);
 		}
-		print_debug("PDL: Past check weekdays\n");
-		if (MustBe(')')) break;
+		else
+		{
+			// special bitstring handling for days of week
+			if (MustBe('(')) break;
+			print_debug("PDL: pre while 1\n");
+			while(*lp&&*lp!=')')
+			{   
+				while (*lp==space||*lp==',') lp++;	//skip separation between list elements
+				print_debug("PDL: post while 2 lp = '%s'\n",lp);
+				if (*lp==')') break;				//done								***013
+				found_day = 0;  // MAG
+	    		for(i=0;i<7;i++)
+	    			if (strnicmp(lp,DOWNames[i],3)==0)
+	    			{	q->valid_days|=(octet)(0x80>>i);	//Monday is 80, Sunday is 2
+						while (*lp&&*lp!=' '&&*lp!=','&&*lp!=')') lp++;	//find delim	***014
+						found_day = 1;
+	    				break;
+	    			}
+				print_debug("PDL: post while 3 lp = '%s'\n",lp);
+				if(!found_day)
+					return tperror("Expected Day of Week Here",true);
+
+			}
+			print_debug("PDL: Past check weekdays\n");
+			if (MustBe(')')) break;
+		}	
 		if (strdelim(",")==NULL) break;
-    	q->from_time.hour=ReadB(0,23);
-    	q->from_time.minute=dontcare;
-    	q->from_time.second=dontcare;
-    	q->from_time.hundredths=dontcare;
-    	if (lp[-1]==':')
-    	{	q->from_time.minute=ReadB(0,59);
-    		if (lp[-1]==':')
-    		{	q->from_time.second=ReadB(0,59);
-    			if (lp[-1]=='.')
-    				q->from_time.hundredths=ReadB(0,99);
-    		}
-    	}
+		ParseTime(&q->from_time);
 		print_debug("PDL: Past min-sec-hsec\n");
-		lp--;
+
 		if (strdelim(",")==NULL) break;
-    	q->to_time.hour=ReadB(0,23);
-    	q->to_time.minute=dontcare;
-    	q->to_time.second=dontcare;
-    	q->to_time.hundredths=dontcare;
-    	if (lp[-1]==':')
-    	{	q->to_time.minute=ReadB(0,59);
-    		if (lp[-1]==':')
-    		{	q->to_time.second=ReadB(0,59);
-    			if (lp[-1]=='.')
-    				q->to_time.hundredths=ReadB(0,99);
-    		}
-    	}
+		ParseTime(&q->to_time);
 		print_debug("PDL: Past min-sec-hsec 2\n");
-		lp--;
+		
 		if (strdelim(",")==NULL) break;
 		if (ParseRecipient(&q->recipient)==NULL) break;
+		
 		if (strdelim(",")==NULL) break;
 		q->process_id=ReadW();
 		q->notification=ReadBool();
@@ -6451,7 +6627,7 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 			if (c=='t'||c=='T') q->transitions|=dm;
 		}
 		skipwhitespace();
-		if (MustBe(')')) break;
+		if (MustBe('}')) break;
 		q->next=p;								//link onto the list
 		p=q;
 		q=NULL;
@@ -6752,6 +6928,11 @@ dword ReadDW()
 	
 	if (c=='?') c=*lp++;						//pretend ? is a valid digit
 	if (c==0) lp--;								//stick at end of buffer
+
+// ideally we want this to leave any closing or delimeters but too many places 
+// using this function are taking pains to work around this bug  LJT
+//	if (c==','||c==')'||c=='}')
+//		lp--;   // don't eat the last character  LJT
 	return d;
 }
 

@@ -795,4 +795,14 @@ struct tagCOVSubscription		*next;
 	float       covIncrement;
 	} BACnetCOVSubscription;
 
+typedef struct tagBooleanList {
+	struct tagBooleanList *next;
+	boolean value;
+} BooleanList;
+
+typedef struct tagUnsignedList {
+	struct tagUnsignedList *next;
+	unsigned value;
+} UnsignedList;
+
 #endif //__DB_H_INCLUDED
