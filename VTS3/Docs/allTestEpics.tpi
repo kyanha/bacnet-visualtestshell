@@ -1,0 +1,898 @@
+PICS 0
+BACnet Protocol Implementation Conformance Statement
+
+Vendor Name: "Test Corporation"
+Product Name: "Control Module"
+Product Model Number: "CM_01"
+Product Description: "Test Corporation Control Module"
+
+BIBBs Supported:
+{
+  DS-RP-A
+  DS-RP-B
+  DS-RPM-A
+  DS-RPM-B
+  DS-RPC-A
+  DS-RPC-B
+  DS-WP-A
+  DS-WP-B
+  DS-WPM-A
+  DS-WPM-B
+  DS-COV-A
+  DS-COV-B
+  DS-COVP-A
+  DS-COVP-B
+  DS-COVU-A
+  DS-COVU-B
+  AE-N-I-B
+  AE-N-A
+  AE-N-E-B
+  AE-ACK-A
+  AE-ACK-B
+  AE-ASUM-A
+  AE-ASUM-B
+  AE-ESUM-A
+  AE-ESUM-B
+  AE-INFO-A
+  AE-INFO-B
+  AE-LS-A
+  AE-LS-B
+  SCHED-A
+  SCHED-I-B
+  SCHED-E-B
+  T-VMT-A
+  T-VMT-I-B
+  T-VMT-E-B
+  T-ATR-A
+  T-ATR-B
+  DM-DDB-A
+  DM-DDB-B
+  DM-DOB-A
+  DM-DOB-B
+  DM-DCC-A
+  DM-DCC-B
+  DM-PT-A
+  DM-PT-B
+  DM-TM-A
+  DM-TM-B
+  DM-TS-A
+  DM-TS-B
+  DM-UTC-A
+  DM-UTC-B
+  DM-RD-A
+  DM-RD-B
+  DM-BR-A
+  DM-BR-B
+  DM-R-A
+  DM-R-B
+  DM-LM-A
+  DM-LM-B
+  DM-OCD-A
+  DM-OCD-B
+  DM-VT-A
+  DM-VT-B
+  NM-CE-A
+  NM-CE-B
+  NM-RC-A
+  NM-RC-B
+}
+
+BACnet Standard Application Services Supported:
+{
+  AcknowledgeAlarm                	Initiate Execute
+  ConfirmedCOVNotification        	Initiate Execute
+  UnconfirmedCOVNotification      	Initiate Execute
+  ConfirmedEventNotification      	Initiate Execute
+  UnconfirmedEventNotification    	Initiate Execute
+  GetAlarmSummary                 	Initiate Execute
+  GetEventInformation             	Initiate Execute
+  GetEnrollmentSummary                  Initiate Execute
+  SubscribeCOV                    	Initiate Execute
+  SubscribeCOVProperty                  Initiate Execute
+  lifeSafetyOperation                   Initiate Execute
+  AtomicReadFile                  	Initiate Execute
+  AtomicWriteFile                 	Initiate Execute
+  AddListElement                  	Initiate Execute
+  RemoveListElement               	Initiate Execute
+  CreateObject                          Initiate Execute
+  deleteObject                          Initiate Execute
+  ReadProperty                    	Initiate Execute
+  ReadPropertyConditional               Initiate Execute
+  ReadPropertyMultiple            	Initiate Execute
+  ReadRange                       	Initiate Execute
+  WriteProperty                   	Initiate Execute
+  WritePropertyMultiple           	Initiate Execute
+  DeviceCommunicationControl      	Initiate Execute
+  ConfirmedPrivateTransfer        	Initiate Execute
+  UnconfirmedPrivateTransfer      	Initiate Execute
+  confirmedTextMessage                  Initiate Execute
+  UnconfirmedTextMessage                Initiate Execute
+  ReinitializeDevice              	Initiate Execute
+  TimeSynchronization             	Initiate Execute
+  UTCTimeSynchronization          	Initiate Execute
+  Who-Has                         	Initiate Execute
+  I-Have                          	Initiate Execute
+  Who-Is                          	Initiate Execute
+  I-Am                            	Initiate Execute
+  VT-Open				Initiate Execute
+  VT-Close				Initiate Execute
+  VT-Data				Initiate Execute
+  authenticate				Initiate Execute
+  requestKey				Initiate Execute
+  UnconfirmedCOVNotification		Initiate Execute
+}
+
+Standard Object-Types Supported:
+{
+  Accumulator
+  Analog Input                    	
+  Analog Output                   	
+  Analog Value   
+  Averaging                 	
+  Binary Input                    	
+  Binary Output                   	
+  Binary Value                    	
+  Calendar  
+  Command                      	
+  Device    
+  Event Enrollment                      	
+  File 
+  Group
+  Life Safety Point
+  Life Safety Zone
+  Loop
+  Multi-State Input
+  Multi-State Output
+  Multi-State Value               	
+  Notification Class              	
+  Program         
+  Pulse Converter                	
+  Schedule                        	
+  Trend Log                       	
+}
+
+-- VTS 3.4.9 does not recognize the items commented out below.
+Data Link Layer Option:
+{
+  ISO 8802-3, 10BASE5
+  ISO 8802-3, 10BASE2
+  ISO 8802-3, 10BASET
+  ISO 8802-3, fiber
+--  ISO 8802-3, 100BASET
+
+  ARCNET, coax star
+  ARCNET, coax bus
+  ARCNET, twisted pair star
+  ARCNET, twisted pair bus
+  ARCNET, fiber star
+
+  MS/TP master. Baud rate(s): 9600, 19200, 38400, 76800
+  MS/TP slave. Baud rate(s): 9600, 38400
+
+  Point-To-Point. EIA 232, Baud rate(s): 9600, 19200, 38400
+  Point-To-Point. Modem, Baud rate(s): 9600, 19200, 38400
+  Point-To-Point. Modem, Autobaud range: 9600 to 38400
+
+  BACnet/IP, 'DIX' Ethernet
+  BACnet/IP, PPP
+
+  LonTalk
+}
+
+
+Character Sets Supported:
+{
+  ANSI X3.4
+  IBM/Microsoft DBCS
+  JIS C 6226
+  ISO 10646 (UCS-4)
+  ISO 10646 (UCS-2)
+  ISO 8859-1
+}
+
+Special Functionality:
+{
+  Maximum APDU size in octets: 480	
+}
+
+List of Objects in Test Device:
+{
+  {
+    object-identifier: (device,481641)
+    object-name: "device481641"
+    object-type: device
+    system-status: operational
+    vendor-name: "Test Corporation"
+    vendor-identifier: 99
+    model-name: "test-module"
+    firmware-revision: "1.2.3.4"
+    application-software-version: "appVersion"
+    location: "Device Location"
+    description: "Device Description"
+    protocol-version: 1
+    protocol-revision: 3
+    protocol-services-supported: (T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T)
+    protocol-object-types-supported: (T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T)
+    object-list: {
+     (device,481641),
+     (accumulator,1),
+     (analog-value,1),
+     (analog-input,1),
+     (analog-output,1),
+     (averaging,1),
+     (binary-input,1),
+     (binary-output,1),
+     (binary-value,1),
+     (calendar,1),
+     (command,1),
+     (event-enrollment,1),
+     (file,1),
+     (file,2),
+     (group,1),
+     (life-safety-point,1),
+     (life-safety-zone,1),
+     (loop,1),
+     (multi-state-input,1),
+     (multi-state-output,1),
+     (multi-state-value,1),
+     (notification-class,1),
+     (program,1),
+     (pulse-converter,1),
+     (schedule,1),
+     (trend-log,1)
+    }
+    max-apdu-length-accepted: 480
+    segmentation-supported: no-segmentation
+    vt-classes-supported: (DEFAULT-TERMINAL, 
+        ANSI-X3-64, 
+        DEC-VT52, 
+        DEC-VT100, 
+        DEC-VT220, 
+        HP-700-94, 
+        IBM-3130) 
+
+    active-vt-sessions: ({29,5,1, X'0000C0B3EF13'},{23,8,2, X'05'}) 
+    local-time: 10:31:13.95
+    local-date: (FRIDAY, 6/10/2005)
+    utc-offset: 300
+    daylight-savings-status: true
+    apdu-segment-timeout: 2000
+    apdu-timeout: 3000
+    number-of-APDU-retries: 3
+    list-of-session-keys: ({X'3799246237984589', 1, X'03'},{X'4446214686489744',1, X'05'})
+    time-synchronization-recipients: ({(Device,18)},{(Device,20)},{4,X'04'}) w
+    max-master: 127
+    max-info-frames: 10
+    device-address-binding: ({(device,481699),888,X'ac1006f6bac0'})
+    database-revision: 195
+    configuration-files: {(File, 1), (File, 2)}
+    last-restore-time: (9/29/1989,Friday), 01:00:00.0
+    backup-failure-timeout: 300 w
+    active-cov-subscriptions: (
+       {{(Device, 12), 30}, {(Analog-Input, 2),Present-Value},TRUE,100,1.0},
+       {{55, X'01', 30}, {(Analog-Input, 1),Present-Value},TRUE,100}
+        )
+
+    max-segments-accepted: 0
+
+    slave-proxy-enable: (T, T, T)
+    auto-slave-discovery: ({F}, {F}, {F})
+
+    slave-address-binding: (
+        {(device,481699),888,X'ac1006f6bac0'},
+        {(device,481699),888,X'ac1006f6bac0'}
+      )
+    manual-slave-address-binding:       (
+        {(device,481699),888,X'ac1006f6bac0'},
+        {(device,481699),888,X'ac1006f6bac0'}
+      )
+    profile-name: "Test Device"
+  }
+  {
+    Object-Identifier:		(Accumulator, 1)
+    Object-Name:		"Ac_1"
+    Object-Type:		ACCUMULATOR
+    Present-Value:		323
+    Description:		""
+    Device-Type:		"Electric Pulse"
+    Status-Flags:		(FALSE, FALSE, FALSE, FALSE)
+    Event-State:		NORMAL
+    Reliability:                OPEN_LOOP
+    Out-Of-Service:		FALSE
+    Scale:			2
+    Units:			KILOWATT_HOURS
+    Prescale:			{1,10000}
+    Max-Pres-Value: 		9999
+    value-Change-Time: 	        (Wednesday, 23-MAR-01),18:50:21.2
+    Value-Before-Change:	0
+    Value-Set:			67
+    Logging-Record:		{(13-JUL-01,2),13:00:00.2,120,1,NORMAL}
+    Logging-Device:		(Trend-Log, 100)
+    Pulse-Rate:			3
+    High-Limit:			15
+    Low-Limit:			0
+    Limit-Monitoring-Interval:	300
+    Notification-Class:		3
+    Time-Delay:                 30
+    Limit-Enable:		(TRUE, FALSE)
+    Event-Enable:		(TRUE, FALSE, TRUE)
+    Acked-Transitions:		(TRUE, TRUE, TRUE)
+    Notify-Type:		ALARM
+-- Supported formats for event-time-stamps
+--  Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+--  Event-Time-Stamps:		{}
+--  Event-Time-Stamps:		{{18:50:21.2}, {*:*:*.*}, {19:01:34.0}}
+--  Event-Time-Stamps:		{{13},{222},{1}}
+    Event-Time-Stamps:		{{13},{(12-JUL-01,2),18:50:21.2},{19:01:34.0}}
+    Profile-Name:               "Accumulator"
+  }
+  {
+    object-identifier: (analog-input,1)
+    object-name: "ai_1"
+    object-type: analog-input
+    present-value: 58.1
+    description: "Analog input"
+    device-type: "device type"
+    status-flags: (T, T, F, F)
+    event-state: fault
+    reliability: no-sensor
+    out-of-service: false
+    update-interval: 3
+    units: volts
+    min-pres-value: 0.0
+    max-pres-value: 5.0
+    resolution: 0.1
+    cov-increment: 0.5
+    time-delay: 5
+    notification-class: 1
+    high-limit: 4.0
+    low-limit: 1.0
+    deadband: 0.0
+    limit-enable: (F, F)
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name:  "analog"
+  }
+  {
+    object-identifier: (analog-output,1)
+    object-name: "ao_1"
+    object-type: analog-output
+    present-value: 1.0
+    description: "analog output"
+    device-type: "analog device type"
+    status-flags: (T, T, F, F)
+    event-state: fault
+    reliability: no-output
+    out-of-service: false
+    units: volts
+    min-pres-value: 0.0
+    max-pres-value: 10.0
+    resolution: 0.1
+    priority-array: {NULL, NULL, NULL, 2.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1.0}
+    relinquish-default: 0.0
+    cov-increment: 1.0
+    time-delay: 5
+    notification-class: 1
+    high-limit: 8.0
+    low-limit: 2.0
+    deadband: 0.0
+    limit-enable: (F, F)
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "analog"
+  }
+  {
+    object-identifier: (analog-value,1)
+    object-name: "av_1"
+    object-type: analog-value
+    present-value: 0.0
+    description: "analog value"
+    status-flags: (F, F, F, F)
+    event-state: normal
+    reliability: no-fault-detected
+    out-of-service: false
+    units: no-units
+    priority-array: {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
+    relinquish-default: 0.0
+    cov-increment: 0.5
+    time-delay: 5
+    notification-class: 1
+    high-limit: 100.0
+    low-limit: 0.0
+    deadband: 0.0
+    limit-enable: (F, F)
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "analog"
+  }
+  {
+    object-identifier: (averaging, 1)
+    object-name: "avg_1"
+    object-type: averaging
+    minimum-value: 2.4
+    minimum-value-timestamp: (16-DEC-1999,4),13:15:07.32
+    average-value: 12.7
+    variance-value: 4.3
+    maximum-value: 18.8
+    maximum-value-timestamp: (Thursday, 16-DEC-1999),13:06:12.19
+    description: "averaging description"
+    attempted-samples: 15 w
+    valid-samples: 14
+    object-property-reference: {(analog-input,1),event-time-stamps,1,(device,99)}
+    window-interval: 900 w
+    window-samples: 15 w
+    profile-name: "average"
+  }
+  {
+    object-identifier: (binary-input,1)
+    object-name: "bi_1"
+    object-type: binary-input
+    present-value: active
+    description: "Binary input"
+    device-type: "binary device"
+    status-flags: (T, F, F, F)
+    event-state: offnormal
+    reliability: no-fault-detected
+    out-of-service: false
+    polarity: normal
+    inactive-text: "Off"
+    active-text: "On"
+    change-of-state-time: (*/*/*,*),0:0:0.0
+    change-of-state-count: 0
+    time-of-state-count-reset: (6/10/2005,5),10:27:37.42
+    elapsed-active-time: 216
+    time-of-active-time-reset: (6/10/2005,5),10:27:37.6
+    time-delay: 5
+    notification-class: 1
+    alarm-value: active
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "binary"
+  }
+  {
+    object-identifier: (binary-output,1)
+    object-name: "bo_1"
+    object-type: binary-output
+    present-value: inactive
+    description: "binary output"
+    device-type: ""
+    status-flags: (T, T, F, F)
+    event-state: fault
+    reliability: no-output
+    out-of-service: false
+    polarity: normal
+    inactive-text: "Off"
+    active-text: "On"
+    change-of-state-time: (*/*/*,*),0:0:0.0
+    change-of-state-count: 0
+    time-of-state-count-reset: (6/10/2005,5),10:27:37.42
+    elapsed-active-time: 0
+    time-of-active-time-reset: (6/10/2005,5),10:27:37.6
+    minimum-off-time: 0
+    minimum-on-time: 0
+    priority-array: {NULL, NULL, NULL, NULL, NULL, unknown:1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, unknown:0}
+    relinquish-default: inactive
+    time-delay: 60
+    notification-class: 1
+    feedback-value: inactive
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "binary"
+  }
+  {
+    object-identifier: (binary-value,1)
+    object-name: "bv_1"
+    object-type: binary-value
+    present-value: inactive
+    description: "binary value"
+    status-flags: (T, F, F, F)
+    event-state: offnormal
+    reliability: no-fault-detected
+    out-of-service: false
+    inactive-text: "Off"
+    active-text: "On"
+    change-of-state-time: (*/*/*,*),0:0:0.0
+    change-of-state-count: 0
+    time-of-state-count-reset: (6/10/2005,5),10:27:37.42
+    elapsed-active-time: 0
+    time-of-active-time-reset: (6/10/2005,5),10:27:37.6
+    minimum-off-time: 0
+    minimum-on-time: 0
+    priority-array: {NULL, NULL, NULL, NULL, NULL, inactive, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, active}
+    relinquish-default: inactive
+    time-delay: 5
+    notification-class: 1
+    alarm-value: inactive
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "binary"
+  }
+  {
+    object-identifier: (calendar,1)
+    object-name: "Calendar_1"
+    object-type: calendar
+    description: "calendar object"
+    present-value: false
+    date-list: ({(SAT,23-DEC-1995),(WED,3-JAN-1996)},{(MON,19-FEB-1996)},{X'010401'})
+    profile-name: "calendar"
+  }
+  {
+    Object-Identifier: (Command, 1)
+    Object-Name: "cmd_1"
+    Object-Type: COMMAND
+    Description: "Command description"
+    Present-Value: 1 w
+    In-Process:	FALSE
+    All-Writes-Successful: TRUE
+--    Action:	{({,(analog-value,1),present-value,,65.0,,,TRUE,TRUE},
+--	          {,(binary-output,1),Present-Value,,INACTIVE,8,1,TRUE,TRUE}),
+--	         ({,(analog-value,5),Present-Value,,72.0,,,TRUE,TRUE}, 
+--	          {,(binary-output,3),Present-Value,,ACTIVE,8,2,TRUE,TRUE})}
+    Action-Text: {"Unoccupied", "Occupied"}
+    profile-name: "command"
+  }
+  {
+    object-identifier: (event-enrollment, 1)
+    object-name: "ee_1"
+    object-type: event-enrollment
+    description: "Event Enrollment object 1"
+    event-type: change-of-state
+    notify-type: event
+--    event-parameters: [0]{3, (T,T,F,T), ((T,T,F,T),(F,F,F,F))}
+--    event-parameters: [1]{3, ([0]T, [0]T, [1]inactive)}
+--    event-parameters: [2]{3, [0](T,F,T)}
+--    event-parameters: [2]{3, [1]38.5}
+--    event-parameters: [3]{3, {(analog-input,1),present-value,,}}
+--    event-parameters: [4]{3, {(analog-input,1),present-value,,}, 4.4, 5.5, 6.6}
+--    event-parameters: [5]{3, 44.3, 22.2, 45.1}
+--    event-parameters: [8]{3, (quiet, not-ready),(alarm, fault),{(analog-input,1),present-value,,}}
+--    event-parameters: [9]{3, 4, (NULL, 3.3, 44)}
+--    event-parameters: [10]{3, 4}
+--    event-parameters: [11]{3, 4, 5}
+    event-parameters:   (30,65.0,85.0,0.25)
+    object-property-reference: {(binary-input,2),present-value,(Device,12)}
+    event-state: offnormal
+    event-enable: (t, t, t)
+    acked-transitions: (t, t, t)
+    notification-class: 1
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "test"
+  }
+  {
+    object-identifier: (file,1)
+    object-name: "file_1"
+    object-type: file
+    description: "File Description"
+    file-type: "type_1"
+    file-size: 14486
+    modification-date: (6/10/2005,5),10:27:21.74
+    archive: false w
+    read-only: false
+    file-access-method: stream-access
+    record-count: 0
+    profile-name: "file1"
+  }
+  {
+    object-identifier: (file,2)
+    object-name: "file_2"
+    object-type: file
+    description: "File Description"
+    file-type: "type_2"
+    file-size: 9368
+    modification-date: (6/10/2005,5),10:28:17.59
+    archive: false w
+    read-only: false
+    file-access-method: record_access
+    record-count: 5
+    profile-name: "file2"
+  }
+  {
+     object-identifier: (group, 1)
+     object-name: "group_1"
+     object-type: group
+     description: "group object 1"
+     list-of-group-members: ?
+--     list-of-group-members: ({(analog-input,1),({present-value,},{recipient-list,3})},
+--                             {(analog-input,2),({present-value,},{recipient-list,3})})
+--     present-value: ({(analog-input,1),({present-value,,[5]{device,other}})})
+     present-value: ?
+     profile-name: "group 1"
+  }
+  {
+    object-identifier: (life-safety-point, 1)
+    object-type: life-safety-point
+    object-name: "lsp_1"
+    description: "life safety description"
+    present-value: active
+    tracking-value: test-alarm
+    device-type: "Beta 1"
+    status-flags: (TRUE, FALSE, FALSE, FALSE)
+    event-state: NORMAL
+    reliability: OPEN_LOOP
+    out-of-service: false
+    mode: fast w
+    accepted-modes: (enabled, disabled, test)
+    time-delay: 30
+    notification-class: 1 W
+    life-safety-alarm-values: (ALARM)
+    alarm-values: (PRE_ALARM, alarm)
+    fault-values: (FAULT)
+    event-enable: (FALSE, FALSE, FALSE) W
+    acked-transitions: {FALSE, TRUE, FALSE}
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    silenced: unsilenced
+    operation-expected: reset-alarm    
+    maintenance-required: Periodic-test
+    setting: 10
+    direct-reading: 1.5
+    units: volts
+    member-of: ({(device,99),(analog-input,2)},{(analog-value,1)})
+    profile-name: "life safety"
+  }   
+  {
+    object-identifier: (life-safety-zone, 1)
+    object-type: life-safety-zone
+    object-name: "lsz_1"
+    description: "life safety zone" W
+    present-value: active
+    tracking-value: test-alarm
+    device-type: "Beta 1"
+    status-flags: (TRUE, FALSE, FALSE, FALSE)
+    event-state: NORMAL    
+    reliability: OPEN_LOOP
+    out-of-service: false
+    mode: fast w
+    accepted-modes: (enabled, disabled, test)
+    time-delay: 30
+    notification-class: 1 W
+    life-safety-alarm-values: (pre_alarm, alarm)
+    alarm-values: (pre_alarm, alarm)
+    fault-values: (alarm)
+    event-enable: (FALSE, FALSE, FALSE) W
+    acked-transitions: {false, true, false}
+    notify-type: event   
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    silenced: unsilenced
+    operation-expected: reset-alarm    
+    maintenance-required: FALSE
+    zone-members: ({(device,99),(analog-input,2)},{(analog-value,1)})
+    member-of: ({(device,99),(analog-input,2)})
+    profile-name: "life safety"
+  }
+  {
+    object-identifier: (loop, 1)
+    object-name: "loop_1"
+    object-type: loop
+    description: "loop description"
+    present-value: 0.0
+    status-flags: (true, false, false, false)
+    event-state: normal
+    reliability: OPEN_LOOP
+    out-of-service: FALSE
+    update-interval: 30
+    output-units: cubic-feet
+    manipulated-variable-reference: {(analog-value,1),present-value}
+    controlled-variable-reference: {(analog-value,1),event-time-stamps,1}
+    controlled-variable-value: 65.4
+    controlled-variable-units: degrees-Fahrenheit
+    setpoint-reference: {{(analog-value,1),present-value}}
+    setpoint: 72.0
+    action: direct
+    proportional-constant: 33.2
+    proportional-constant-units: degrees-Fahrenheit
+    integral-constant: 3.2
+    integral-constant-units: degrees-Fahrenheit
+    derivative-constant: 5.2
+    derivative-constant-units: degrees-Fahrenheit
+    bias: 6.4
+    maximum-output: 5.4
+    minimum-output: 0.0
+    priority-for-writing: 5
+    cov-increment: 0.5
+    time-delay: 30
+    notification-class: 1
+    error-limit: 65.8
+    event-enable: (true, false, false)
+    acked-transitions: (true, false, false)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "loop"
+  }
+  {
+    object-identifier: (multi-state-input,1)
+    object-name: "msi_1"
+    object-type: multi-state-input
+    present-value: 1
+    description: "multi state input description"
+    device-type: ""
+    status-flags: (F, F, F, F)
+    event-state: normal
+    reliability: no-fault-detected
+    out-of-service: false
+    number-of-states: 10
+    state-text: {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}
+    time-delay: 5
+    notification-class: 1
+    alarm-values: (3,5,6)
+    fault-values: (1,5,2,7)
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "multi state"
+  }   
+  {
+    object-identifier: (multi-state-output,1)
+    object-name: "mso_1"
+    object-type: multi-state-output
+    present-value: 1
+    description: "multi state output"
+    device-type: ""
+    status-flags: (F, F, F, F)
+    event-state: normal
+    reliability: no-fault-detected
+    out-of-service: false
+    number-of-states: 10
+    state-text: {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}
+    priority-array: {NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1}
+    relinquish-default: 1
+    time-delay: 5 
+    notification-class: 1
+    feedback-value: 3
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "multi state"
+  }
+  {
+    object-identifier: (multi-state-value,1)
+    object-name: "msv_1"
+    object-type: multi-state-value
+    present-value: 1
+    description: "multi state value"
+    status-flags: (F, F, F, F)
+    event-state: normal
+    reliability: no-fault-detected
+    out-of-service: false
+    number-of-states: 10
+    state-text: {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}
+    priority-array: {NULL, NULL, NULL, NULL, NULL, NULL, NULL, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1}
+    relinquish-default: 0
+    time-delay: 5
+    notification-class: 1
+    alarm-values: (3,5,6)
+    fault-values: (18,566,2,7)
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    Profile-Name: "multi state"
+  }
+  {
+    object-identifier: (notification-class,1)
+    object-name: "NC_1"
+    object-type: notification-class
+    description: ""
+    notification-class: 1
+    priority: {128, 64, 128}
+    ack-required: (F, F, F)
+-- NOTE: Either of the following forms of valid-days is accepted
+--    recipient-list: ({(T, F, T, F, F, T,T),0:0:0.0,23:59:59.99,(device,481699),1,true,(T, T, T)})
+    recipient-list: ({(MON,WED,SAT,SUN),0:0:0.0,23:59:59.99,(device,481699),1,true,(T, T, T)})
+    profile-name: "notification class"
+  }
+  {
+    object-identifier: (program,1)
+    object-name: "program_1"
+    object-type: program
+    program-state: running
+    program-change: ready w
+    reason-for-halt: normal
+    description-of-halt: ""
+    program-location: "me-test"
+    description: ""
+    instance-of: "PRG:btl_1"
+    status-flags: (F, F, F, F)
+    reliability: no-fault-detected
+    out-of-service: false
+    profile-name: "program"
+  }
+  {
+    object-identifier: (pulse-converter, 1)
+    object-type: pulse-converter
+    object-name: "pc_1"
+    description: "pulse converter description"    
+    present-value: 22.9  
+    input-reference: {(analog-value,3), object-name}
+    status-flags: (TRUE, FALSE, FALSE, FALSE)
+    event-state: NORMAL
+    reliability: no-fault-detected
+    out-of-service: FALSE    
+    units: Volts
+    scale-factor: 1.5 w
+    adjust-value: 12.5 w
+    count: 2
+    update-time: (16-December-1999,4),13:11:12.19    
+    count-change-time: (16-December-1999,4),14:16:32.21
+    count-before-change: 5
+    cov-increment: 19.2
+    cov-period: 20
+    notification-class: 1 W
+    time-delay: 30
+    high-limit: 150.5
+    low-limit: 1.5 
+    deadband: 3.2
+    Limit-Enable: (TRUE, FALSE)
+    event-enable: (FALSE, FALSE, FALSE) W
+    acked-transitions: {FALSE, TRUE, TRUE}
+    notify-type: event
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "pulse converter"
+  }
+  {
+    object-identifier: (schedule,1)
+    object-name: "schedule_1"
+    object-type: schedule
+    present-value: unknown:1
+    description: "Binary Schedule"
+    effective-period: (1/2/2005,1),(2/1/2005,5)
+    weekly-schedule: {({1:0:0.0,unknown:1}),
+                      ({2:0:0.0,unknown:0}),
+                      ({3:0:0.0,unknown:1}),
+                      ({4:0:0.0,unknown:0}),
+                      ({5:0:0.0,unknown:1}),
+                      ({6:0:0.0,unknown:0}),
+                      ({7:0:0.0,unknown:1})}
+--    exception-schedule: {[0]{(MON,23-DEC-1995),(FRI,3-JAN-1996)},({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4}
+--    exception-schedule: {[1](calendar,1),({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4}
+--    schedule-default: unknown:1
+    list-of-object-property-references: ({(binary-value,1),present-value})) 
+    priority-for-writing: 16
+    status-flags: (F, F, T, F)
+    reliability: no-fault-detected
+    out-of-service: false
+    profile-name: "schedule"
+  }
+  {
+    object-identifier: (trend-log,1)
+    object-name: "trend_log_1"
+    object-type: trend-log
+    description: ""
+    log-enable: false w
+    start-time: (6/10/2005,5),10:27:21.74
+    stop-time: (6/10/2005,5),10:27:21.74
+    log-device-object-property: {(analog-input,2),present-value}
+    log-interval: 30000
+    cov-resubscription-interval: 0
+    client-cov-increment: 1.0
+    stop-when-full: false
+    buffer-size: 288
+    log-buffer: ?
+    record-count: 0 w
+    total-record-count: 0
+    notification-threshold: 129
+    records-since-notification: 0
+    event-state: normal
+    notification-class: 1
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "trend"
+  }
+}
+
+End of BACnet Protocol Implementation Conformance Statement
