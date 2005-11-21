@@ -77,6 +77,11 @@ char *BACnetDestination[] = {
    "Transitions"
    };
 
+char *BACnetDeviceObjectReference[] = {
+	"Device Identifier",
+	"Object Identifier"
+};
+
 //Added By Zhu Zhenhua, 2004-5-17
 char *BACnetDeviceObjectPropertyReference[] = {
    "Object Identifier",
@@ -829,10 +834,10 @@ char *BACnetPropertyIdentifier[] = {
    "life-safety-alarm-values",			/* 166 Xiao Shiyuan 2002-7-18 */
    "max-segments-accepted",				/* 167 Xiao Shiyuan 2002-7-18 */
    "Profile_Name",                      /* 168 Xiao Shiyuan 2002-7-18 */
-   "unused",							/* 169   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
-   "unused",							/* 170   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
-   "unused",							/* 171   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
-   "unused",							/* 172   Added by Zhu Zhenhua, 2004-5-11, to be set by new protocol */
+   "auto-slave-discovery",				/* 169 LJT 2005-10-12   */
+   "manual-slave-address-binding",		/* 170 LJT 2005-10-12   */
+   "slave-address-binding",				/* 171 LJT 2005-10-12   */
+   "slave-proxy-enable",				/* 172 LJT 2005-10-12   */
    "last_notify_record",				/* 173 Zhu Zhenhua  2004-5-11 */
    "Schedule_Default",                 // 174 Shiyuan Xiao 7/15/2005
    "Accepted_Modes",                   // 175 Shiyuan Xiao 7/15/2005
@@ -1707,6 +1712,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 
            show_application_data(x);
            break;
+	  case SLAVE_ADDRESS_BINDING:
+	  case MANUAL_SLAVE_ADDRESS_BINDING:
       case DEVICE_ADDRESS_BINDING:  /* sequence of BACnetAddressBinding */
            while ((x & 0x0f) != 0x0f){
 			show_head_app_data();		 //added by Lei Chengxin 2003-9-1
@@ -1882,7 +1889,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case LIST_OF_OBJ_PROP_REFERENCES: /* List of object_property_references  */
            while ((pif_get_byte(0) & 0x0f) != 0x0f)
 			    //show_bac_read_access_spec();
-				show_bac_obj_prop_ref();    //modified by Xu Yiping, 2002-9-28
+				show_bac_dev_obj_prop_ref();    //modified by Xu Yiping, 2002-9-28
            break;
 /***/      case LIST_OF_SESSION_KEYS:
 		   while ((pif_get_byte(0) & 0x0f) != 0x0f) //Added by Zhu ZHenhua, 2004-6-14
@@ -2402,7 +2409,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
           show_log_buffer();
           break;
       case LOG_DEVICE_OBJECT_PROPERTY:      // BACnetDeviceObjectReferenceProperty
-           show_bac_obj_prop_ref();
+           show_bac_dev_obj_prop_ref();
            break;
       case LOG_ENABLE:                    // Boolean    
 		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
@@ -2525,6 +2532,9 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 	  case LAST_RESTORE_TIME:			//Jingbo Gao, 2005-8-17
 		   show_bac_timestamp();
 		   break;
+      case SLAVE_PROXY_ENABLE:
+	  case AUTO_SLAVE_DISCOVERY:
+		  break;
       default:
 //	       bac_show_byte("Error: Unknown Property Identifier","%u");
 		   show_head_app_data();		 //modified by Lei Chengxin 2003-9-8
