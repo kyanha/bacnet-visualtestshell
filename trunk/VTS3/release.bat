@@ -14,7 +14,7 @@ del %1-win32.zip
 pkzip25 -add %1-win32.zip release\VTS.exe release\ptp.dll winpcap\*.exe
 pkzip25 -add %1-win32.zip NBLink\release\nb_link_settings.dll 
 cd docs
-pkzip25 -add -path ..\%1-win32.zip *.html images\*.png images\*.jpg *.doc
+pkzip25 -add -path ..\%1-win32.zip *.html images\*.png images\*.jpg *.doc *.tpi
 cd ..
 pkzip25 -add -dir %1-win32.zip *.vts
 REM --- Then make the source distribution ---
