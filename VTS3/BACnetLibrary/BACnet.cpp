@@ -2914,7 +2914,8 @@ BACnetBitString::BACnetBitString( const BACnetBitString &cpy )
 		dst = bitBuff = new unsigned long[ bitBuffLen ];
 
 	for (int i = 0; i < bitBuffLen && dst != NULL; i++)
-		*src++ = *dst++;
+	//	*src++ = *dst++;
+	    *dst++ = *src++;  // reversed this so that it is copied correctly LJT 10/27/2005
 }
 
 //
@@ -7041,6 +7042,7 @@ BACnetPriorityArray::BACnetPriorityArray( float * paPriority, int nMax, float fN
 }
 
 
+/*
 BACnetPriorityArray::BACnetPriorityArray( int * paPriority, int nMax, int bNull )
 					:BACnetGenericArray(prival)
 {
@@ -7052,9 +7054,9 @@ BACnetPriorityArray::BACnetPriorityArray( int * paPriority, int nMax, int bNull 
 		else
 			Add(new BACnetPriorityValue(new BACnetBinaryPriV(paPriority[i])));
 }
+*/
 
-
-BACnetPriorityArray::BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull )
+BACnetPriorityArray::BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull, boolean binaryPV )
 					:BACnetGenericArray(prival)
 {
 	m_nType = pau;
@@ -7063,7 +7065,10 @@ BACnetPriorityArray::BACnetPriorityArray( unsigned short * paPriority, int nMax,
 		if ( paPriority[i] == uNull )
 			Add(new BACnetPriorityValue(new BACnetNull()));
 		else
-			Add(new BACnetPriorityValue(new BACnetUnsigned(paPriority[i])));
+			if ( binaryPV )
+			    Add(new BACnetPriorityValue(new BACnetBinaryPriV(paPriority[i])));
+			else
+			    Add(new BACnetPriorityValue(new BACnetUnsigned(paPriority[i])));
 }
 
 
@@ -7191,6 +7196,48 @@ BACnetCharacterString & BACnetTextArray::operator[](int nIndex)
 //====================================================================
 
 
+IMPLEMENT_DYNAMIC(BACnetBooleanArray, BACnetGenericArray)
+
+
+BACnetBooleanArray::BACnetBooleanArray( PICS::BooleanList *paBoolean )
+{
+	m_nType = eboollist;
+
+	int nSize = 0;
+	while ( paBoolean != NULL )
+	{
+		m_apBACnetObjects.Add(new ::BACnetBoolean((boolean) paBoolean->value));
+		paBoolean = paBoolean->next;
+	}
+}
+
+BACnetBooleanArray::BACnetBooleanArray( BACnetAPDUDecoder& dec )
+					:BACnetGenericArray(ud)
+{
+	m_nType = eboollist;
+	Decode(dec);
+}
+
+
+
+BACnetBoolean * BACnetBooleanArray::operator[](int nIndex) const
+{
+	return (BACnetBoolean *) m_apBACnetObjects[nIndex];
+}
+
+
+
+BACnetBoolean & BACnetBooleanArray::operator[](int nIndex)
+{
+	return  (BACnetBoolean &) *m_apBACnetObjects[nIndex];
+}
+
+
+//====================================================================
+
+//====================================================================
+
+
 IMPLEMENT_DYNAMIC(BACnetUnsignedArray, BACnetGenericArray)
 
 
@@ -7223,6 +7270,17 @@ BACnetUnsignedArray::BACnetUnsignedArray( unsigned short paUnsigned[], int nMax 
 		m_apBACnetObjects.Add(new BACnetUnsigned( (unsigned int) paUnsigned[nSize++]));
 }
 
+BACnetUnsignedArray::BACnetUnsignedArray( PICS::UnsignedList *paUnsigned )
+{
+	m_nType = stavals;
+
+	int nSize = 0;
+	while ( paUnsigned != NULL )
+	{
+		m_apBACnetObjects.Add(new ::BACnetUnsigned((unsigned int) paUnsigned->value));
+		paUnsigned = paUnsigned->next;
+	}
+}
 
 BACnetUnsignedArray::BACnetUnsignedArray( BACnetAPDUDecoder& dec )
 					:BACnetGenericArray(ud)
