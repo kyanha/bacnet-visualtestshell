@@ -170,7 +170,7 @@
 #define MAXIMUM_VALUE_TIMESTAMP               149
 #define MINIMUM_VALUE_TIMESTAMP               150
 #define VARIANCE_VALUE 			              151
-#define ACTIVE_COV_SUBSCRIPTIONS	              152  //Xiao Shiyuan 2002-7-23
+#define ACTIVE_COV_SUBSCRIPTIONS	          152  //Xiao Shiyuan 2002-7-23
 #define	BACKUP_FAILURE_TIMEOUT				  153 // Zhu Zhenhua  2003-11-21 
 #define	CONFIGURATION_FILES                   154 // Zhu Zhenhua  2003-11-21 
 #define	DATABASE_REVISION                     155 // Zhu Zhenhua  2003-11-21 
@@ -187,7 +187,31 @@
 #define	LIFE_SAFETY_ALARM_VALUES 		      166 // Zhu Zhenhua  2003-11-21 
 #define	MAX_SEGMENTS_ACCEPTED 			      167 // Zhu Zhenhua  2003-11-21 
 #define PROFILE_NAME                          168 //Xiao Shiyuan 2002-7-23
+#define AUTO_SLAVE_DISCOVERY                  169
+#define MANUAL_SLAVE_ADDRESS_BINDING          170
+#define SLAVE_ADDRESS_BINDING				  171
+#define SLAVE_PROXY_ENABLE					  172
 #define LAST_NOTIFY_RECORD					  173 //Zhu Zhenhua  2004-5-11
+#define SCHEDULE_DEFAULT					174
+#define ACCEPTED_MODES						175
+#define	ADJUST_VALUE						176
+#define	COUNT				177
+#define COUNT_BEFORE_CHANGE					178
+#define COUNT_CHANGE_TIME					179
+#define	COV_PERIOD							180
+#define INPUT_REFERENCE						181
+#define LIMIT_MONITORING_INTERVAL			182
+#define LOGGING_DEVICE						183
+#define LOGGING_RECORD						184
+#define PRESCALE							185
+#define PULSE_RATE							186
+#define SCALE								187
+#define	SCALE_FACTOR						188
+#define UPDATE_TIME							189
+#define VALUE_BEFORE_CHANGE					190
+#define VALUE_SET							191
+#define VALUE_CHANGE_TIME					192
+
 /* ----- prototypes for interpreter functions ----- */
 
 int     interp_bacnet_IP( char *header, int length);
