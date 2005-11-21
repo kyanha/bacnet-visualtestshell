@@ -1512,8 +1512,8 @@ class BACnetPriorityArray : public BACnetGenericArray
 		BACnetPriorityArray();
 		BACnetPriorityArray( BACnetAPDUDecoder& dec );
 		BACnetPriorityArray( float * paPriority, int nMax, float fNull );
-		BACnetPriorityArray( int * paPriority, int nMax, int bNull );
-		BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull );
+//		BACnetPriorityArray( int * paPriority, int nMax, int bNull );
+		BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull, boolean binaryPV );
 
 		BACnetPriorityValue * operator[](int nIndex) const;
 		BACnetPriorityValue & operator[](int nIndex);
@@ -1552,7 +1552,19 @@ class BACnetListOfCalendarEntry : public BACnetGenericArray
 		DECLARE_DYNAMIC(BACnetListOfCalendarEntry)
 };
 
+class BACnetBooleanArray : public BACnetGenericArray
+{
+	public:
+		BACnetBooleanArray( BACnetAPDUDecoder& dec );
+		BACnetBooleanArray( PICS::BooleanList *ub );
 
+//		virtual void Decode( BACnetAPDUDecoder& dec );
+
+		BACnetBoolean * operator[](int nIndex) const;
+		BACnetBoolean & operator[](int nIndex);
+
+		DECLARE_DYNAMIC(BACnetBooleanArray)
+};
 
 class BACnetUnsignedArray : public BACnetGenericArray
 {
@@ -1560,6 +1572,7 @@ class BACnetUnsignedArray : public BACnetGenericArray
 		BACnetUnsignedArray( BACnetAPDUDecoder& dec );
 		BACnetUnsignedArray( unsigned char paUnsigned[], int nMax = -1 );
 		BACnetUnsignedArray( unsigned short paUnsigned[], int nMax = -1 );
+		BACnetUnsignedArray( PICS::UnsignedList *ul );
 
 //		virtual void Decode( BACnetAPDUDecoder& dec );
 
