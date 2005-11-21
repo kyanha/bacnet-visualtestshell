@@ -67,6 +67,7 @@
 #define arrayof				54			//BACnetArrayOf
 #define lodoref           55          // List of BACnetDeviceObjectReference
 #define devobjref         56          // BACnetDeviceObjectReference
+#define eboollist         57          // list of boolean
 
 #define escale    60   // BACnetScale    Shiyuan Xiao 7/15/2005
 #define eprescl    61   // BACnetPrescale Shiyuan Xiao 7/15/2005

@@ -304,9 +304,9 @@ enum BACnetSegmentation		segmentation_supported;
 	BACnetCOVSubscription   far	*active_cov_subscriptions;
 	// added LJT 10/12/2005
 	BACnetAddressBinding far *manual_slave_add_bind;
-	boolean              far *auto_slave_disc;   // array of boolean
 	BACnetAddressBinding far *slave_add_bind;
-	boolean                  slave_proxy_enable;
+	BooleanList          far *auto_slave_disc;    // SEQ of boolean
+	BooleanList          far *slave_proxy_enable; // SEQ of boolean
 
    } device_obj_type;
 
@@ -322,10 +322,10 @@ enum BACnetEventState 		state;
     octet					event_enable;
     octet					acked_transitions;
     word					notification_class;
-    BACnetRecipient			recipient;
-    word					process_id;
-    word					priority;
-    boolean					issue_conf_notifications;
+    BACnetRecipient			recipient;          // removed for revision 4
+    word					process_id;         // removed for revision 4
+    word					priority;           // removed for revision 4
+    boolean					issue_conf_notifications; // removed for revision 4
     BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } ee_obj_type;
 
@@ -403,8 +403,8 @@ enum BACnetReliability		reliability;
     char				far	*state_text[32];
     word					time_delay;
     word					notification_class;
-    octet				far *alarm_values;
-    octet				far	*fault_values;
+    UnsignedList		far *alarm_values;
+    UnsignedList		far	*fault_values;
     octet					event_enable;
     octet					acked_transitions;
 enum BACnetNotifyType		notify_type;
@@ -466,6 +466,11 @@ typedef struct {
     BACnetExceptionSchedule	exception_schedule;
     BACnetDeviceObjectPropertyReference far *list_obj_prop_ref;
     word					priority_for_writing;
+
+    octet					status_flags;
+enum BACnetReliability		reliability;
+    boolean					out_of_service;
+
    } schedule_obj_type;
 
 //Averaging Object
@@ -504,8 +509,8 @@ typedef struct {
     word				    relinquish_default;
     word				    time_delay;
     word				    notification_class;
-    word				    far *alarm_values;
-    word				    far *fault_values;
+    UnsignedList	    far *alarm_values;
+    UnsignedList	    far *fault_values;
     octet					event_enable;
     octet					acked_transitions;
     enum BACnetNotifyType	notify_type;

@@ -2857,8 +2857,7 @@ void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
 			pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->min_on_time));
 			break;
 		case PRIORITY_ARRAY:    
-			//pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((int *) pObj->priority_array, nPRIO, bpaNULL));
-			pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((unsigned short *) pObj->priority_array, nPRIO, bpaNULL));  // changed by Kare Sars
+			pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((unsigned short *) pObj->priority_array, nPRIO, bpaNULL, true));  // changed by Kare Sars
 			break;
 		case RELINQUISH_DEFAULT:
 			pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV((int) pObj->relinquish_default));
@@ -2974,7 +2973,7 @@ void BV_CreateProperty( bv_obj_type far * pObj, BACnetPropertyIdentifier propert
 			pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->min_on_time));
 			break;
 		case PRIORITY_ARRAY:    
-			pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((int *) pObj->priority_array, nPRIO, bpaNULL));
+			pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((unsigned short *) pObj->priority_array, nPRIO, bpaNULL, true));  // changed by Kare Sars
 			break;
 		case RELINQUISH_DEFAULT:
 			pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV((int) pObj->relinquish_default));
@@ -3264,7 +3263,10 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 			pbacnetAnyValue->SetObject(dabind, CreateAddressBindingList(pObj->manual_slave_add_bind));
 	        break;
 	  case AUTO_SLAVE_DISCOVERY:
+		  pbacnetAnyValue->SetObject(eboollist, new BACnetBooleanArray(pObj->auto_slave_disc));
+		  break;
 	  case SLAVE_PROXY_ENABLE:
+		  pbacnetAnyValue->SetObject(eboollist, new BACnetBooleanArray(pObj->slave_proxy_enable));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -3774,7 +3776,7 @@ void MSO_CreateProperty( mo_obj_type far * pObj, BACnetPropertyIdentifier proper
 			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->state_text, 32));
 			break;
 		case PRIORITY_ARRAY:    
-			pbacnetAnyValue->SetObject(pau, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL));
+			pbacnetAnyValue->SetObject(pau, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL, false));
 			break;
 		case RELINQUISH_DEFAULT:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->relinquish_default));
@@ -3863,7 +3865,7 @@ void MSV_CreateProperty( msv_obj_type far * pObj, BACnetPropertyIdentifier prope
 			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->state_text));
 			break;
 		case PRIORITY_ARRAY:    
-			pbacnetAnyValue->SetObject(pau, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL));
+			pbacnetAnyValue->SetObject(pau, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL, false));
 			break;
 		case RELINQUISH_DEFAULT:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->relinquish_default));
@@ -3874,14 +3876,11 @@ void MSV_CreateProperty( msv_obj_type far * pObj, BACnetPropertyIdentifier prope
 		case NOTIFICATION_CLASS:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
 			break;
-      // msdanner 9/2004 - The following still need work.  They should be dynamically sized,
-      // but EPICS parser is fixed at 10 also.  We do not even know how
-      // many elements are in each array.
-		case ALARM_VALUE:					// array of 10 words...  was 'uw' type (I think by mistake)
-			pbacnetAnyValue->SetObject(stavals, new BACnetUnsignedArray(pObj->alarm_values, 10));
+		case ALARM_VALUES:					// array of words...  was 'uw' type (I think by mistake)
+			pbacnetAnyValue->SetObject(stavals, new BACnetUnsignedArray(pObj->alarm_values));
 			break;
-		case FAULT_VALUES:					// array of 10 words   was 'uw' type (I think by mistake)
-			pbacnetAnyValue->SetObject(stavals, new BACnetUnsignedArray(pObj->fault_values, 10));
+		case FAULT_VALUES:					// array of words   was 'uw' type (I think by mistake)
+			pbacnetAnyValue->SetObject(stavals, new BACnetUnsignedArray(pObj->fault_values));
 			break;         	       
 		case EVENT_ENABLE:	
 			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
@@ -4080,6 +4079,19 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
 		case PRIORITY_FOR_WRITING:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->priority_for_writing));
 			break;
+		case STATUS_FLAGS:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
+			break;
+		case RELIABILITY:
+         petable = (etable *)PICS::GetEnumTable(eiReli);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+		case OUT_OF_SERVICE:
+			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
+			break;
+
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
@@ -5349,10 +5361,12 @@ bool EV_CheckProperty(unsigned int propertyID)
 		case EVENT_ENABLE:	
 		case ACKED_TRANSITIONS:
 		case NOTIFICATION_CLASS:
+			// note these were removed for revision 4
 		case RECIPIENT:     
 		case PROCESS_IDENTIFIER:
 		case PRIORITY:
 		case ISSUE_CONFIRMED_NOTIFICATIONS:	
+			// note the above were removed for revision 4
 		case EVENT_TIME_STAMPS:
 		case PROFILE_NAME:
 			return true;
@@ -5615,6 +5629,9 @@ bool SC_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case EXCEPTION_SCHEDULE:
 		case LIST_OF_OBJECT_PROPERTY_REFERENCES:
 		case PRIORITY_FOR_WRITING:
+		case RELIABILITY:
+		case STATUS_FLAGS:
+		case OUT_OF_SERVICE:
 		case PROFILE_NAME:
 			return true;
 		default:

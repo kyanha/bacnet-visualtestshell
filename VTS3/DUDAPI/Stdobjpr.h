@@ -890,8 +890,9 @@ propdescriptor	DVprops[]={
 	"active-cov-subscriptions", ACTIVE_COV_SUBSCRIPTIONS,  oo(device, 
 													active_cov_subscriptions), lCOVSub, 0,		0,    O|IsArray,
 
-    "slave-proxy-enable", SLAVE_PROXY_ENABLE, oo(device, slave_proxy_enable), ebool, 0, 0, O,
-//	"auto-slave-discovery", AUTO_SLAVE_DISCOVERY,  oo(device, auto_slave_disc), ebool, 0, 0, O,
+    "slave-proxy-enable", SLAVE_PROXY_ENABLE, oo(device, slave_proxy_enable), eboollist, 0, 0, O,
+	"auto-slave-discovery", AUTO_SLAVE_DISCOVERY,  oo(device, auto_slave_disc), eboollist, 0, 0, O,
+
 	"slave-address-binding", SLAVE_ADDRESS_BINDING, oo(device, slave_add_bind), dabind, 0, 0, O,
 	"manual-slave-address-binding", MANUAL_SLAVE_ADDRESS_BINDING, oo(device, manual_slave_add_bind), dabind, 0, 0, O,
 
@@ -913,13 +914,14 @@ propdescriptor	EEprops[]={
     "event-enable",			EVENT_ENABLE,		oo(ee,event_enable),	bits,	0,	 eiEvTr,	R,
     "acked-transitions",	ACKED_TRANSITIONS,	oo(ee,acked_transitions),bits,	0,	 eiEvTr,	R,
     "notification-class",	NOTIFICATION_CLASS,	oo(ee,notification_class),uw,	1,		   0,	O|NotWithGroup2,
+// Note these properties were removed for revision 4
     "recipient",			RECIPIENT,			oo(ee,recipient),		recip,	2,		   0,	O|NotWithGroup1,
     "process-identifier",	PROCESS_IDENTIFIER,	oo(ee,process_id),		uw,		2,		   0,	O|NotWithGroup1,
     "priority",				PRIORITY,			oo(ee,priority),		uw,		2,		   0,	O|NotWithGroup1,
-"issue-confirmed-notifications",ISSUE_CONFIRMED_NOTIFICATIONS,oo(ee,
+    "issue-confirmed-notifications",ISSUE_CONFIRMED_NOTIFICATIONS,oo(ee,
                                                 issue_conf_notifications),ebool,2,	eiTF,	O|NotWithGroup1,
+// Note the above properties were removed for revision 4
 //madanner 6/03: Added for supporting event-time-stamps
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMP, Last|2,   0, O|IsArray|NotWithGroup1
 //Modified by Jingbo Gao, 2003-9-1
 	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMParr, 2,   0, O|IsArray|NotWithGroup1,
 //Added by Jingbo Gao, 2003-9-1
@@ -1038,7 +1040,6 @@ propdescriptor	MIprops[]={
     "acked-transitions",	ACKED_TRANSITIONS,	oo(mi,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
     "notify-type",			NOTIFY_TYPE,		oo(mi,notify_type),		et,     Intr,	eiNT,	O|WithService,
 //madanner 6/03: Added for supporting event-time-stamps
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 // modified by Jingbo Gao, 2003-9-1
 	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
@@ -1136,7 +1137,12 @@ propdescriptor	SCprops[]={
 // modified by Jingbo Gao, 2003-9-1
 	"priority-for-writing",	PRIORITY_FOR_WRITING,oo(schedule,
 												priority_for_writing),	u16,	0,	   0,	R,
-//Added by Jingbo Gao, 2003-9-1
+// added by ltribble, 10/27/2005
+	"status-flags",         STATUS_FLAGS,       oo(schedule, status_flags), bits, 0, eiStF, O,
+    "reliability",			RELIABILITY,		oo(schedule, reliability),	    et,		 0,	  eiReli,	    O,
+    "out-of-service",		OUT_OF_SERVICE,		oo(schedule, out_of_service),	ebool,   0,	  eiTF,	        O,
+
+	//Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(schedule,go.profile_name), s132,	Last,  0,	 O  
 };
 
