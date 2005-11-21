@@ -1566,8 +1566,20 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //        The following feature requests were closed:
 //        544511, 544324, 508589, 444238
 			
+//  3.4.9    November 21, 2005
+//         EPICS parsing improvements made
+//         Column resizing fixed
+//         Backup and Restore tests are now included
+//   The following bugs were closed:
+//         1275709, 1261344, 1260152, 1260136, 1259984,
+//         1256856, 1254028, 1244867, 1190196, 1167286,
+//         1155180, 1149504, 1149490, 1056200, 1031010,
+//         1031009, 1031004, 1029342, 974907, 787623 
+//         966851, 974991
+//   The following feature requests were closed:
+//        1259864, 996131
 			
-const int kReleaseVersion = 8;
+const int kReleaseVersion = 9;
 			
 			class CAboutDlg : public CDialog
 			{
