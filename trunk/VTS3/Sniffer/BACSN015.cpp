@@ -6567,19 +6567,19 @@ void show_ReadRangeACK ( void )
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
    unsigned int len;
    int prop_idx;
-
+   
    prop_idx = -1;  /* initialize to indicate no array index present */
-
    bac_show_byte("Read Range Acknowledgement","%u");
    tagbuff = pif_get_byte(0);
+
    while(pif_offset < pif_end_offset) 
    {
       tagval = (tagbuff&0xf0)>>4;
       if (tagbuff & 0x08) 
       {  /* context tag */
-        if(tagval > 5)
+        if(tagval > 6)  // changed to handle new context 6 LJT 12/12/2005
       {
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 5)!");
+         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 6)!");
           goto exit;
       }
         pif_show_space();
@@ -7104,18 +7104,28 @@ unsigned int show_application_data ( unsigned char tagbuff )
    pif_show_flagmask(0xF0,0x0f*16,"Non-standard type");
    pif_show_flagbit(0x08,"Context Specific Tag","Application Tag");
 
+   if ((tagbuff & 0x08) != 0)
+   {
+	   // CLASS = 1 and therefore IMPLICIT context tag used, we don't know type
+	   type = 15; 
+	   if (len > 5)
+	   {
+		   type = 0; // either open or closing tag ignore this guy
+	   }
+   }
+
    switch (type) {
-     case 0: pif_show_flagbit(0x07,"Unused","Unused");
+       case 0: pif_show_flagbit(0x07,"Unused","Unused");
              len = 0;
              break;
-     case 1: pif_show_flagbit(0x07,"TRUE","FALSE");
+       case 1: pif_show_flagbit(0x07,"TRUE","FALSE");
              len = 0;
              break;
-     default: if (len < 5)
+       default: if (len < 5)
                  bac_show_flagmask(0x07,"Length = %d");
               else
                  pif_show_flagmask(0x07,0x05, "Extended Length");
-   }
+	}
    if (tloc == 1) bac_show_byte("Non-standard type","%u");
    if ((lloc != 0) && (type > 1)) {
       switch (len = pif_get_byte(0)) {
@@ -7135,7 +7145,7 @@ unsigned int show_application_data ( unsigned char tagbuff )
         default: bac_show_byte("Length of data","%u");
        }
    }
-   if (type < 15) {
+   if (type <= 15) {
      switch (type) {
        case UNSIGNED: show_bac_unsigned(len);
                       break;
@@ -7176,7 +7186,9 @@ unsigned int show_application_data ( unsigned char tagbuff )
                       pif_show_ascii(0,"The tag value is reserved for ASHRAE");
                       break;
        case 15:       /* non-standard */
-                      bac_show_nbytes(len,"Non-standard data!");
+                      sprintf(outstr,"%"FW"s = X'%%s'","Unknown Type: ");
+                      //bac_show_nbytes(len, outstr);
+					  pif_show_nbytes_hex(outstr, len);
      }  /* end of type switch */
    }    /* end of if(type) */
    return(len);
@@ -8435,10 +8447,20 @@ void show_bac_property_value( void )
           case 1:  show_bac_unsigned(len);  /* array index */
                    break;
           case 2:  show_head_app_data();														   //  ***002
-			  
+			  // repeat until end of tag is found 0x2f
+			  while (true) 
+			  {
 				   show_application_data(pif_get_byte(0));  /* value */
-                   tagbuff = pif_get_byte(0);  /* show closing PD tag */
-                   tagval = (tagbuff&0xF0)>>4;
+				   tagbuff = pif_get_byte(0);
+				   // if closing tag and context is 2
+				   if ((tagbuff & 0x0f ) == 0x0F)
+				   {
+						if ((tagbuff&0xf0)>>4 == 2 )
+							break;
+				   }
+			  }
+//                   tagbuff = pif_get_byte(0);  /* show closing PD tag */
+//                   tagval = (tagbuff&0xF0)>>4;
       /* we may need a show_bac_ANY here
          show_bac_ANY(obj_type,prop_id,prop_idx);
       */
@@ -8637,7 +8659,8 @@ void show_log_buffer( void )
    ui_count = 0;
    tagbuff = pif_get_byte(0);
    tagval = (tagbuff&0xF0)>>4;
-   do
+   // Changed to while instead of do/while so that we handle empty buffer too.
+   while((tagbuff!=0x3F) && (tagbuff!=0x4F) && (tagbuff!=0x5F)&& (++ui_count<100))
    {
      show_context_tag("TimeStamp");  // Opening Tag
      x = pif_get_byte(0);
@@ -8658,9 +8681,9 @@ void show_log_buffer( void )
        show_bac_status_flags(len);
      }
      tagbuff = pif_get_byte(0);
-   }while((tagbuff!=0x3F) && (tagbuff!=0x4F) && (tagbuff!=0x5F)&& (++ui_count<100));
-//   show_context_tag("ItemData");  /* Opening Tag */		//modified by LeiChengxin
-
+   }
+   // need to read the closing tag out of buffer so that next processing is correct
+   show_context_tag("ItemData");  /* Closing Tag */		// modified LJT 12/12/2005
 }
 /**************************************************************************/
 void show_logDatum_choice( void )
@@ -9309,6 +9332,8 @@ void show_head_bit_string( unsigned int offset , char* type , int tagval )
 	  char* bitStr;
 	  len = pif_get_byte(offset)&0x07;
 	  count = pif_get_byte(offset+1);
+	  if ( count > 8 ) 
+		  count = 8;  // temporary
 	  bitStr = new char[8-count+1];
 	  int bitHex[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
 	  for( i=0,j=7; i<(8-count); i++,j-- )
