@@ -282,16 +282,16 @@ BEGIN
     POPUP "&Edit"
     BEGIN
         MENUITEM "&Delete All Packets\tCtrl+D", ID_EDIT_DELETE
-        MENUITEM "Refresh",                     ID_EDIT_REFRESH
+        MENUITEM "&Refresh",                    ID_EDIT_REFRESH
         MENUITEM SEPARATOR
-        MENUITEM "Devices...",                  ID_EDIT_DEVICES
-        MENUITEM "Ports...",                    ID_EDIT_PORTS
-        MENUITEM "Names...",                    ID_EDIT_NAMES
+        MENUITEM "De&vices...",                 ID_EDIT_DEVICES
+        MENUITEM "Por&ts...",                   ID_EDIT_PORTS
+        MENUITEM "&Names...",                   ID_EDIT_NAMES
         MENUITEM "Change &Logfile...",          ID_EDIT_LOGFILE
-        MENUITEM "Capture Filter...",           ID_EDIT_CAPTUREFILTER
-        MENUITEM "Display Filter...",           ID_EDIT_DISPLAYFILTER
+        MENUITEM "&Capture Filter...",          ID_EDIT_CAPTUREFILTER
+        MENUITEM "Display &Filter...",          ID_EDIT_DISPLAYFILTER
         MENUITEM SEPARATOR
-        MENUITEM "Preferences...",              ID_EDIT_PREFERENCES
+        MENUITEM "&Preferences...",             ID_EDIT_PREFERENCES
     END
     POPUP "&View"
     BEGIN
@@ -306,11 +306,11 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "C&olor Setting...",           ID_VIEW_COLOR
         MENUITEM SEPARATOR
-        MENUITEM "Detail View",                 ID_VIEW_DETAIL
-        MENUITEM "Hex View",                    ID_VIEW_HEX
-        MENUITEM "EPICS View",                  ID_VIEW_EPICS
+        MENUITEM "&Detail View",                ID_VIEW_DETAIL
+        MENUITEM "&Hex View",                   ID_VIEW_HEX
+        MENUITEM "&EPICS View",                 ID_VIEW_EPICS
         MENUITEM SEPARATOR
-        MENUITEM "Statistics",                  ID_VIEW_STATISTICS
+        MENUITEM "St&atistics",                 ID_VIEW_STATISTICS
     END
     POPUP "&Send"
     BEGIN
@@ -323,9 +323,9 @@ BEGIN
         MENUITEM "&Load EPICS...",              ID_EPICS_LOAD
         MENUITEM "Read &All Property",          ID_EPICS_READALLPROPERTY
     END
-    POPUP "Tests"
+    POPUP "&Tests"
     BEGIN
-        MENUITEM "Backup/Restore...",           ID_BACKUP_RESTORE
+        MENUITEM "&Backup/Restore...",          ID_BACKUP_RESTORE
     END
     POPUP "&Help"
     BEGIN
@@ -2308,6 +2308,9 @@ BEGIN
     LTEXT           "Object Type",IDC_STATIC,18,32,40,8
     COMBOBOX        IDC_OBJTYPECOMBO,65,30,100,80,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
+    LTEXT           "Instance",IDC_STATIC,30,92,28,8
+    EDITTEXT        IDC_INSTANCE,65,90,60,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "OK",IDOK,175,140,50,15
     LTEXT           "Reserved Type",IDC_STATIC,8,52,50,8
     EDITTEXT        IDC_RESERVED,65,50,35,12,ES_AUTOHSCROLL | WS_DISABLED
     CONTROL         "Reserved types range 0..127",IDC_STATIC,"Static",
@@ -2315,13 +2318,10 @@ BEGIN
     LTEXT           "Vendor Type",IDC_STATIC,16,72,42,8
     EDITTEXT        IDC_VENDOR,65,70,35,12,ES_AUTOHSCROLL | WS_DISABLED
     LTEXT           "Vendor types range 128..1023",IDC_STATIC,110,72,100,10
-    LTEXT           "Instance",IDC_STATIC,30,92,28,8
-    EDITTEXT        IDC_INSTANCE,65,90,60,12,ES_AUTOHSCROLL
-    LTEXT           "Instance range 0..4194303",IDC_STATIC,135,92,90,10
     LTEXT           "Here is how the value can be entered directly:",
                     IDC_STATIC,10,115,146,8
     EDITTEXT        IDC_ENCODED,65,130,90,12,ES_AUTOHSCROLL | WS_DISABLED
-    PUSHBUTTON      "OK",IDOK,175,140,50,15
+    LTEXT           "Instance range 0..4194303",IDC_STATIC,135,92,90,10
 END
 
 IDD_SCRIPTLOADRESULTS DIALOG DISCARDABLE  0, 0, 301, 118
@@ -2892,16 +2892,16 @@ BEGIN
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | 
                     WS_TABSTOP,10,10,162,90
     PUSHBUTTON      "Add",IDC_ADDELEM,187,22,50,15
-    PUSHBUTTON      "Remove",IDC_REMOVEELEM,187,43,50,15
-    LTEXT           "Type",IDC_STATIC,10,107,25,10
     COMBOBOX        IDC_TYPECOMBO,41,105,100,143,CBS_DROPDOWN | WS_DISABLED | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Context",IDC_STATIC,10,125,30,10
     EDITTEXT        IDC_CONTEXT,40,123,35,12,ES_AUTOHSCROLL | WS_DISABLED
-    LTEXT           "Value",IDC_STATIC,10,142,25,10
     EDITTEXT        IDC_VALUE,39,140,95,12,ES_AUTOHSCROLL | WS_DISABLED
-    PUSHBUTTON      "OK",IDOK,189,134,50,15
     PUSHBUTTON      "ID...",IDC_VALUEIDBTN,142,140,20,12,NOT WS_TABSTOP
+    PUSHBUTTON      "OK",IDOK,189,134,50,15
+    PUSHBUTTON      "Remove",IDC_REMOVEELEM,187,43,50,15
+    LTEXT           "Type",IDC_STATIC,10,107,25,10
+    LTEXT           "Context",IDC_STATIC,10,125,30,10
+    LTEXT           "Value",IDC_STATIC,10,142,25,10
 END
 
 IDD_SCRIPTINCLUDE DIALOG DISCARDABLE  0, 0, 394, 213
@@ -6926,6 +6926,8 @@ BEGIN
     ID_SCRIPT_KILL          "Force the running or halted test to fail.\nForce fail"
     ID_SCRIPT_STEPPASS      "Pass the current SEND/EXPECT and continue.\nBypass with PASS"
     ID_SCRIPT_STEPFAIL      "Fail the current SEND/EXPECT and continue.\nBypass with FAIL"
+    ID_SEND_NEWPACKET       "Create a new packet to send"
+    ID_SEND_SENDAGAIN       "Send this packet again"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -6970,6 +6972,7 @@ BEGIN
     ID_VIEW_HEX             "Show the hex data view for current packet.\nShow Hex"
     ID_VIEW_DETAIL          "Show packet detail view.\nShow Details"
     ID_VIEW_STATISTICS      "View packet file statistics data.\nStatistics"
+    ID_FILE_EXPORT          "Export packets in human readable format"
     ID_EPICS_READALLPROPERTY 
                             "Generate a script file that reads all of the properties defined in the loaded EPICS file.\nGenerate RP Script"
     ID_FILE_WKS_NEW         "Create a new workspace"
@@ -7016,6 +7019,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_BACKUP_RESTORE       "Show dialog to setup and run backup and restore tests"
+    ID_VIEW_COLOR           "Set the colors for the sniffer view"
     ID_SAVEPKT              "Save packets file"
 END
 
@@ -7036,6 +7041,7 @@ BEGIN
     ID_GLOBAL_DISABLE_PORT  "Disable all ports\nDisable ports"
     ID_VIEW_GLOBALBAR       "Show or hide the globallbar\nToggle GlobalBar"
     ID_VIEW_MAINTOOLBAR     "Show or hide the Toolbar\nToolBar"
+    ID_VIEW_GLOBAL_TOOLBAR  "Show or hide the global bar\nToggle global bar"
 END
 
 #endif    // English (U.S.) resources
