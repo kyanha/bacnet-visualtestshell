@@ -224,6 +224,7 @@ void VTSPacket::FindNPDUStartPos(int& npduindex)
 	switch ((BACnetPIInfo::ProtocolType)packetHdr.packetProtocolID)
 	{
 		case BACnetPIInfo::ipProtocol:
+
 			// new code is using the length specified in the BVLC packet to determine
 			// the start of the NPDU.  Submitted in #1261344 by dmrichards on 8/19/2005
 			// skip the fake ip header, address (4), and port (2) 
@@ -348,6 +349,9 @@ CString VTSPacket::GetSADRString(VTSDoc * pdoc, BOOL bAlias)
 
 	if(slen == 0)
 		return "";
+
+	if ( slen > 7 )
+		return "BAD07";    // error string can not be larger than this
 	
 	sadr.addrType = localStationAddr;
 	sadr.addrLen = slen;
@@ -406,6 +410,9 @@ CString VTSPacket::GetDADRString(VTSDoc * pdoc, BOOL bAlias)
 
 	if(dlen == 0)
 		return "";	
+
+	if (dlen > 7 )
+		return "BAD07";  // probably bad packet do not parse any more of the addressing
 
 	dadr.addrType = localStationAddr;
 	dadr.addrLen = dlen;
