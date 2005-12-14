@@ -881,7 +881,7 @@ TApplServ gFgTimeMaster[nFgTimeMaster]=
       { asTimeSynchronization, ssExecute, DEVICE, TIME_SYNCHRONIZATION_RECIPIENTS } 
   };        
 
-#define MDEBUG
+//#define MDEBUG
 static void print_debug(char *fmt, ...)
 {
 	#ifdef MDEBUG	// comment out for release versions
