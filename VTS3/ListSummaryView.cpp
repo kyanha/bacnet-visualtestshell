@@ -1000,7 +1000,8 @@ void CListSummaryView::SaveReg()
 	for(int index = 0; index < 10; index++)
 	{
 		gVTSPreferences.SView_SetColumnOn(index, m_bColumn[index]==1);
-		gVTSPreferences.SView_SetColumnWidth(index, m_columnWidth[index]);
+		if ( m_columnWidth[index] != 0 )  // only save if not zero (although should never be zero)
+			gVTSPreferences.SView_SetColumnWidth(index, m_columnWidth[index]);
 	}
 /*
 	CRegKey regKey;
