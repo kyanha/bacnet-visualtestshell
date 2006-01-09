@@ -3599,7 +3599,7 @@ void ScriptExecutor::SendALData( CByteArray &packet )
 			if (tlist[0].tokenType == scriptReference) {
 				BACnetAnyValue		bacnetEPICSProperty;
 
-				GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
+				GetEPICSProperty( tlist[0].tokenSymbol, &bacnetEPICSProperty, tlist[0].m_nIndex);
 
 				BACnetAPDUEncoder	enc(2048);		// big buffer size
 				bacnetEPICSProperty.Encode(enc);
