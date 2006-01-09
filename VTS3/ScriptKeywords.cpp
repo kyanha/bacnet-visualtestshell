@@ -198,7 +198,7 @@ ScriptTranslateTable ScriptObjectTypeMap[] =
 	, { 0x52B95396, 18 }					// AVG
 	, { 0xE83992C9, 19 }					// MULTISTATE-VALUE
 	, { 0x5D3473DF, 19 }					// MSV
-	, { 0xAE9EAB5C, 20 }					// TRENDLOG
+	, { 0xb6f0ce38, 20 }					// TREND-LOG    // fixed 1/5/2006
 	, { 0xC2E8CFF0, 20 }					// TR
 	, { 0, 0 }
 	};
@@ -368,7 +368,7 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0xE6E8E6CD,  20 }					// CONTROLLED-VARIABLE-UNITS
 	, { 0x5D8F717B,  21 }					// CONTROLLED-VARIABLE-VALUE
 	, { 0x533D4619,  22 }					// COV-INCREMENT
-	, { 0x7836ADF3,  23 }					// DATELIST
+	, { 0x5198af72,  23 }					// DATE-LIST     // fixed 1/5/2006
 // Modified by Yajun Zhou, 2002-7-10
 //	, { 0x549D27C7,  24 }					// DAYLIGHT-SAVINGS-TIME
 	, { 0x16B1C6EA,  24 }					// DAYLIGHT-SAVINGS-STATUS
@@ -476,8 +476,58 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0x47700E02, 121 }					// VENDOR-NAME
 	, { 0x70A3D8F0, 122 }					// VT-CLASSES-SUPPORTED
 	, { 0x85001409, 123 }					// WEEKLY-SCHEDULE
+
+// added 1/5/2006 by Lori Tribble	
+	, { 0x145bdb7b, 124 }                   // ATTEMPTED-SAMPLES
+	, { 0x01e4cc31, 125 }                   // average-value
+	, { 0x519731fa, 126 }                   // buffer-size	
+	, { 0x4b7ec038, 127 }                   // client-cov-increment
+	, { 0x06f5a877, 128 }                   // cov-resubscription-interval
+	//, { 0x00000000, 129 }                   // unused,	current-notify-time was deleted in version 1 revision 3.
+	, { 0x4a7f3fcc, 130 }                   // event-time-stamps
+	, { 0x0ed94132, 131 }                   // log-buffer
+	, { 0xd8434882, 132 }                   // log-device-object-property
+	, { 0x9ce888d3, 133 }                   // log-enable
+	, { 0xe0c14afb, 134 }                   // log-interval
+	, { 0xe989f346, 135 }                   // maximum-value
+	, { 0x83331d44, 136 }                   // minimum-value
+	, { 0x6fcc3db4, 137 }                   // notification-threshold
+	//, { 0x00000000, 138 }                   // unused,	previous-notify-time was deleted in version 1 revision 3.
+	, { 0x27de87b0, 140 }                   // records-since-notification
+	, { 0x2cf137df, 141 }                   // record-count
+	, { 0xe1fa43f5, 142 }                   // start-time
+	, { 0xedf4c093, 143 }                   // stop-time
+	, { 0xe0148693, 144 }                   // stop-when-full
+	, { 0x8d399ad5, 145 }                   // total-record-count
+	, { 0x5eedfe6d, 146 }                   // valid-samples
+	, { 0x9fc09c84, 147 }                   // window-interval
+	, { 0x6d61b4e7, 148 }                   // window-samples
+	, { 0x2f122c55, 149 }                   // maximum-value-timestamp
+	, { 0xc8bb5653, 150 }                   // minimum-value-timestamp
+	, { 0x9bfe9805, 151 }                   // variance-value
+	, { 0X692957dd, 152 }					//ACTIVE_COV_SUBSCRIPTIONS
+	, { 0x122719fe, 153 }                   // backup-failure-timeout
+	, { 0x04c00e4e, 154 }                   // configuration-files
+	, { 0xb603fe6b, 156 }                   // direct-reading
+	, { 0xa32e8218, 157 }                   // last-restore-time
+	, { 0x91d29fa0, 158 }                   // maintenance-required
+	, { 0xb22fa708, 159 }                   // member-of
+	, { 0x79209a31, 160 }                   // mode
+	, { 0x430ee957, 161 }                   // operation-expected
+	, { 0x216df9e9, 162 }                   // setting
+	, { 0x42095de8, 163 }                   // silenced
+	, { 0x4fee86e7, 164 }                   // tracking-value
+	, { 0xa4fe6ece, 165 }                   // zone-members	
+	, { 0x81bfa098, 166 }                   // life-safety-alarm-values
+	, { 0xad4d0cb8, 168 }                   // profile-name	
+	, { 0xa27be56d, 169 }                   // auto-slave-discovery	
+	, { 0x79e33e4f, 170 }                   // manual-slave-address-binding
+	, { 0xf17261da, 171 }                   // slave-address-binding
+	, { 0x586535ab, 172 }                   // slave-proxy-enable
+	, { 0xb6ee1702, 173 }                   // last-notify-time
+	, { 0x50cb13c6, 174 }                   // schedule-default
+// above were added 1/5/2006 by Lori Tribble
 	, { 0x83ECF07D, 139 }					//PROTOCOL-REVISION
-	, { 0X537D4DF1, 152 }					//ACTIVE_COV_SUBSCRIPTION
 	, { 0X684A30CD, 155 }					//DATABASE-REVISION    kare.sars@wapice.com 2005
 	, { 0X2DC1631D, 167 }					//MAX-SEGMENTS-ACCEPTED kare.sars@wapice.com 2005
 	, { 0, 0 }
