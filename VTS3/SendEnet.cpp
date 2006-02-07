@@ -131,6 +131,7 @@ void CSendEnet::EncodePage( CByteArray* contents )
 	header.Add( BACnetLSAP );				// SSAP
 	header.Add( 0x03 );						// LLC Control = UI
 
+	len = header.GetSize();
 	// stuff the header on the front
 	contents->InsertAt( 0, &header );
 

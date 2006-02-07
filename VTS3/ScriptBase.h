@@ -191,7 +191,7 @@ class ScriptToken {
 		virtual ~ScriptToken( void );						// madanner 10/24/02, added virtual
 
 		ScriptToken( const ScriptToken &cpy );				// copy constructor allowed
-		operator =( const ScriptToken &ref );				// assignment allowed
+		void operator =( const ScriptToken &ref );				// assignment allowed  MAG 01FEB06 add void
 
 		ScriptTokenType		tokenType;						// token type
 		ScriptEncodingType	tokenEnc;						// value encoding

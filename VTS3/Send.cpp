@@ -462,6 +462,7 @@ void CSend::UpdateEncoded( void )
 	;
 	CByteArray			contents
 	;
+	char crlf[3] = {0x0D,0x0A,0};  // MAG 31JAN05 used below
 
 	TRACE0( "CSend::UpdateEncoded()\n" );
 
@@ -471,15 +472,16 @@ void CSend::UpdateEncoded( void )
 
 	// encode the pages
 	try {
-		for (i = lastPage; i >= 0; i--)
+		for (i = lastPage; i >= 0; i--){
 			m_pages[i]->EncodePage( &contents );
+		}
 		m_send.EnableWindow( true );
-		 		 m_transmit_close.EnableWindow( true );
+		m_transmit_close.EnableWindow( true );
 	}
 	catch (char *errTxt) {
 		m_packetData.SetWindowText( errTxt );
 		m_send.EnableWindow( false );
-		 		 m_transmit_close.EnableWindow( false );
+		m_transmit_close.EnableWindow( false );
 		return;
 	}
 
@@ -488,8 +490,9 @@ void CSend::UpdateEncoded( void )
 		if ((i > 0) && ((i % 4) == 0))
 			enc += ' ';
 		if ((i > 0) && ((i % 20) == 0)) {  // MAG 15AUG05 change line breaks to 20 spaces
-			enc += 0x0D;
-			enc += 0x0A;
+			enc += crlf;  //MAG 31JAN06 compiler found method below 'ambiguous'
+			//enc += 0x0D;
+			//enc += 0x0A;
 		}
 		x = contents.GetAt( i );
 		enc += hex[ x >> 4 ];

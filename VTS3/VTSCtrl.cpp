@@ -1588,7 +1588,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 	if (!m_bCombo)
 		return;	
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
-	if(cbp->GetCount != 0 && m_nObjType != -1 && m_nObjType < 25)
+	if(cbp->GetCount() != 0 && m_nObjType != -1 && m_nObjType < 25)  // MAG 31JAN06 GetCount was missing ()
 	{	
 		cbp->Clear();
 		cbp->ResetContent();
