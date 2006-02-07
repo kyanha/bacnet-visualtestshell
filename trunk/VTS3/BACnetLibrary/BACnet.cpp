@@ -3146,6 +3146,7 @@ bool BACnetBitString::operator ==( BACnetBitString &arg )
 {
 //	int				i,	siz = (bitBuffLen < arg.bitBuffLen ? bitBuffLen : arg.bitBuffLen);
 //	unsigned long	*src = arg.bitBuff,	*dst = bitBuff;
+	int i;  // MAG 31JAN06  i was used out of scope below
 		
 	if (bitLen != arg.bitLen)
 		return false;
@@ -3157,7 +3158,7 @@ bool BACnetBitString::operator ==( BACnetBitString &arg )
 	// ### perhaps last bitBuff element shouldn't always have all bits compared
 	// Right!  So let's compare one bit at a time.
 
-	for ( int i = 0; i < bitLen  && GetBit(i) == arg.GetBit(i);  i++ );			// [] doesn't work for some reason
+	for (i = 0; i < bitLen  && GetBit(i) == arg.GetBit(i);  i++ );			// [] doesn't work for some reason
 
 	return i >= bitLen;		// made it through, must be OK
 }
