@@ -2275,12 +2275,13 @@ int CSuperGridCtrl::CompareChildren(const void* p1, const void* p2)
 void CSuperGridCtrl::Sort(CTreeItem* pParent, BOOL bSortChildren)
 {
 	const int nChildren = NumChildren(pParent);
+	int i;  // MAG 31JAN06  i was used out of scope below
 	if (nChildren > 1)
 	{
 		CTreeItem** ppSortArray = new CTreeItem*[nChildren];
 		// Fill in array with pointers to our children.
 		POSITION pos = pParent->m_listChild.GetHeadPosition();
-		for (int i=0; pos; i++)
+		for (i=0; pos; i++)
 		{
 			ASSERT(i < nChildren);
 			ppSortArray[i] = (CTreeItem*)pParent->m_listChild.GetAt(pos);
@@ -2314,6 +2315,7 @@ void CSuperGridCtrl::Sort(CTreeItem* pParent, BOOL bSortChildren)
 void CSuperGridCtrl::SortEx(BOOL bSortChildren)
 {
 	int nItems = m_RootItems.GetCount();
+	int i;  // MAG 31JAN06  i was used out of scope below
 	if (nItems > 0)
 	{
 		if(bSortChildren)
@@ -2338,7 +2340,7 @@ void CSuperGridCtrl::SortEx(BOOL bSortChildren)
 		CTreeItem** ppSortArray = new CTreeItem*[nItems];
 		// Fill in array with pointers to our children.
 		POSITION posCur = m_RootItems.GetHeadPosition();
-		for (int i=0; posCur; i++)
+		for (i=0; posCur; i++)
 		{
 			ppSortArray[i] = (CTreeItem*)m_RootItems.GetAt(posCur);
 			m_RootItems.GetNext(posCur);

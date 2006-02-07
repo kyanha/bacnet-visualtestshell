@@ -59,8 +59,9 @@ Create the tree including general ,size distribution and watch items
 void CTreeListCtrl::InitializeGrid()
 {
 	int index=0,startPos=0,endPos=0;
+	int i;  // MAG 31JAN06  i was used out of scope below
 
-	for(int i =0;i<10;i++)
+	for(i =0;i<10;i++)
 	{
 		startPos=index;
 		for(int j =0;j<Service_Type_Index[i];j++)
@@ -606,7 +607,7 @@ find group item and update the data
 void CTreeListCtrl::GetGroupStatistics(CString group)
 {
 	//get group index range from the map
-	int start,end;
+	int start,end,i;  // MAG 31JAN06 i was used out of scope below
 	CGroupIndex* p;
 	m_mapGroupToIndex.Lookup(group,(CGroupIndex*&)p);
 	start=p->m_nStartPos;
@@ -627,7 +628,7 @@ void CTreeListCtrl::GetGroupStatistics(CString group)
 	m_nColumnData[5] = 0;
 
 	//get the statistics data
-	for(int i =start;i<=end;i++)
+	for(i =start;i<=end;i++)
 	{
 		m_nColumnData[0]+=gStatisticsCollector->GetPacketCounter(BACnet_msgs[i],CPacketCounter::ipProtocol,CPacketCounter::sendPacket);
 		m_nColumnData[1]+=gStatisticsCollector->GetPacketCounter(BACnet_msgs[i],CPacketCounter::ipProtocol,CPacketCounter::receivePacket);
@@ -805,10 +806,11 @@ update item data
 
 void CTreeListCtrl::UpdateStatistics(CString service)
 {
+	int i;  // MAG 31JAN06 i was used out of scope below
 
 	GetGeneralStatistics();
 	//update general item info
-	for(int i=0;i<10;i++)
+	for(i=0;i<10;i++)
 		GetGroupStatistics(group[i]);
 	GetServiceStatistics(service);
 	
