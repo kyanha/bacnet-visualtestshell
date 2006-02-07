@@ -8415,18 +8415,24 @@ void show_bac_property_value( void )
 {
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
    unsigned int len;
+   unsigned int pid;
+   int pidx = -1;
+   unsigned int obj_type = 0;
 
    tagbuff = pif_get_byte(0);
    while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
       tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        if(tagval > 3) {
+      if (tagbuff & 0x08) 
+	  {  /* context tag */
+        if(tagval > 3) 
+		{
           pif_show_space();
           bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 3)!");
           goto exit;
-          }
+        }
         
-		switch (tagval) {																		   //  ***002 begin
+		switch (tagval) 
+		{																		   //  ***002 begin
 		case 0:
 			show_head_property_ID(1, BACnetPropertyValue[tagval], tagval);
 			break;
@@ -8441,31 +8447,38 @@ void show_bac_property_value( void )
 		}																						   //  ***002 end
 		
 		len = show_context_tag(BACnetPropertyValue[tagval]);
-        switch (tagval) {
-          case 0:  show_bac_property_identifier(len);
+        switch (tagval) 
+		{
+          case 0:
+			  if ( len == 1 )
+				pid = pif_get_byte(0);
+			  else
+				pid = pif_get_word_hl(0);
+			  show_bac_property_identifier(len);
+			  // need to extract the property Id here to be used in case 2
                    break;
-          case 1:  show_bac_unsigned(len);  /* array index */
+          case 1:  
+			  pidx = pif_get_byte(0);
+			  show_bac_unsigned(len);  /* array index */
+			  // need to extract the property index to be used in case 2
                    break;
           case 2:  show_head_app_data();														   //  ***002
 			  // repeat until end of tag is found 0x2f
 			  while (true) 
 			  {
-				   show_application_data(pif_get_byte(0));  /* value */
+				  // show_application_data(pif_get_byte(0));  /* value */
+				  // need to figure out how to get the object type and property id here!!!!  TODO: for LJT 806427
+				   show_bac_ANY( obj_type, pid, pidx);  // obj_type, prop_id, prop_idx
 				   tagbuff = pif_get_byte(0);
-				   // if closing tag and context is 2
+				   // if closing tag and context is 2 go ahead and end processing before we read more so we don't lose data
 				   if ((tagbuff & 0x0f ) == 0x0F)
 				   {
 						if ((tagbuff&0xf0)>>4 == 2 )
 							break;
 				   }
 			  }
-//                   tagbuff = pif_get_byte(0);  /* show closing PD tag */
-//                   tagval = (tagbuff&0xF0)>>4;
-      /* we may need a show_bac_ANY here
-         show_bac_ANY(obj_type,prop_id,prop_idx);
-      */
-                   show_context_tag(BACnetPropertyValue[tagval]);  /* closing tag */
-                   break;
+              show_context_tag(BACnetPropertyValue[tagval]);  /* closing tag */
+              break;
           case 3:  show_bac_unsigned(len);  /* priority */
           }
         }
