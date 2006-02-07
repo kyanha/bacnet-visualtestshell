@@ -3621,9 +3621,9 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 	etable 			*ep;
 	float		far	*fp;
 	word		far	*wp;
-    char        *p; 
+    //char        *p;  MAG 31JAN06 variable p not used
 	char		**cp;
-	octet		*op,oParseType;
+	octet		oParseType;// *op, MAG 31JAN06 variable op not used
 	BACnetActionCommand **acp;
 	BACnetDateRange		*dtp;
 
@@ -5225,7 +5225,7 @@ oprfail:
 
 BOOL ParseCalist(BACnetCalendarEntry **calp)
 {	BACnetCalendarEntry	*fp=NULL,*p=NULL,*q=NULL;
-	word				i;
+	//word				i;  MAG 31JAN06 variable i not used
 	char			*ep;
 	BOOL				calfail=true;				
 				
