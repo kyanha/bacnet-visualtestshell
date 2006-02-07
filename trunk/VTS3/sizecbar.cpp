@@ -1301,7 +1301,7 @@ BOOL CSCBMiniDockFrameWnd::Create(CWnd* pParent, DWORD dwBarStyle)
 #endif
 
     if (!CMiniFrameWnd::CreateEx(dwExStyle,
-        NULL, &afxChNil, dwStyle, rectDefault, pParent))
+        NULL, &afxChNil, dwStyle, rectDefault, pParent))  // MAG 01FEB06 NOTE- afxChNil causes error in MSVC8 (beta)
     {
         m_bInRecalcLayout = FALSE;
         return FALSE;

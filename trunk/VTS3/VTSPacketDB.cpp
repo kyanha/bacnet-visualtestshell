@@ -101,7 +101,7 @@ void VTSPacketDB::Close()
 {
 	if ( m_pfilePackets != NULL )
 	{
-		if ( m_pfilePackets->m_hFile != (UINT)CFile::hFileNull )
+		if ( m_pfilePackets->m_hFile != CFile::hFileNull )  // MAG 01FEB06 removed (UINT) cast from hFileNull
 		{
 			try
 			{
@@ -146,9 +146,9 @@ void VTSPacketDB::DeletePackets( void )
 
 LONG VTSPacketDB::ReadNextPacket(VTSPacket& pkt, LONG lPosition /* = -1 */  )
 {
-	ASSERT(m_pfilePackets != NULL && m_pfilePackets->m_hFile != (UINT)CFile::hFileNull );
+	ASSERT(m_pfilePackets != NULL && m_pfilePackets->m_hFile != CFile::hFileNull );  // MAG 01FEB06 removed (UINT) cast from hFileNull
 
-	if ( m_pfilePackets == NULL || m_pfilePackets->m_hFile == (UINT)CFile::hFileNull )
+	if ( m_pfilePackets == NULL || m_pfilePackets->m_hFile == CFile::hFileNull )  // MAG 01FEB06 removed (UINT) cast from hFileNull
 		return -1;
 
 	// make sure no other threads are mucking around

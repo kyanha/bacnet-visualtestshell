@@ -152,7 +152,7 @@ void ScriptToken::SetIndex( ScriptToken * ptoken )
 //	ScriptToken::operator =
 //
 
-ScriptToken::operator =( const ScriptToken& cpy )
+void ScriptToken::operator =( const ScriptToken& cpy ) // MAG 01FEB06 add void
 {
 	tokenType = cpy.tokenType;
 	tokenLine = cpy.tokenLine;

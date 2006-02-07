@@ -1012,6 +1012,9 @@ void VTSDoc::ProcessPacketStoreChange( void )
 	VTSPacketPtr ppkt = NULL;
 	int nNewIndex;
 
+	if(m_nPacketCount < 0)  // MAG 01FEB06 this appears to somehow occasionally get corrupted, i.e. -17891602
+		return;
+
 	// update stats for the unread packets
 
 	// See if this update operation (catching up the views from their current packet size to 
