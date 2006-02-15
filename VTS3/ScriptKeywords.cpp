@@ -530,6 +530,7 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0x83ECF07D, 139 }					//PROTOCOL-REVISION
 	, { 0X684A30CD, 155 }					//DATABASE-REVISION    kare.sars@wapice.com 2005
 	, { 0X2DC1631D, 167 }					//MAX-SEGMENTS-ACCEPTED kare.sars@wapice.com 2005
+	, { 0xebbf5f06, 175 }                   // accepted-modes  added 2/15/2006 LJT
 	, { 0, 0 }
 	};
 
