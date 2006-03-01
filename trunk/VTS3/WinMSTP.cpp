@@ -44,6 +44,7 @@ WinMSTP::WinMSTP(  const char * config )
 	m_nMaxMaster = 0;
 	m_nMaxInfoFrame = 0;
 	m_nMAC = 0;
+	m_pmstpimp = NULL;
 
 	InitPort( config );
 }

@@ -228,7 +228,6 @@ void VTSPortMSTPDialog::OnMstpconfigimp()
 
 	CComboBox * pcombo = (CComboBox *) GetDlgItem(IDC_MSTPIMP);
 	MSTPImplementation * pimplementation = NULL;
-	WinMSTPData * pdata = new WinMSTPData(m_strBaud, m_nMAC, m_nMaxMaster, m_nMaxInfoFrame);
 
 	switch( pcombo->GetCurSel() )
 	{
@@ -236,10 +235,15 @@ void VTSPortMSTPDialog::OnMstpconfigimp()
 					pimplementation = new MSTPImp_NBLink(NULL, m_strImpParms);
 					break;
 	}
+	// 3/1/2006
+	// Submitted by: Alan.Wood@nz.schneider-electric.com
+	if(pimplementation == NULL)
+		return;
 
+	WinMSTPData * pdata = new WinMSTPData(m_strBaud, m_nMAC, m_nMaxMaster, m_nMaxInfoFrame);
 	pimplementation->m_pmstpData = pdata;		// so dialog can also deal with MSTP data as well as implementation specific stuff
 
-	if ( pimplementation != NULL &&  pimplementation->ConfigureDlg(this) == IDOK )
+	if ( pimplementation->ConfigureDlg(this) == IDOK )
 	{
 		pimplementation->LoadConfigString(&m_strImpParms);
 		CtrlToObj();
@@ -248,8 +252,7 @@ void VTSPortMSTPDialog::OnMstpconfigimp()
 	}
 
 	// MSD: 7/29/04 - added to fix memory leak if the user selected the Cancel button
-    if (pimplementation != NULL)
-		delete pimplementation;
+	delete pimplementation;
 
 	delete pdata;
 }

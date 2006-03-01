@@ -3745,6 +3745,10 @@ void VTSDevice::WriteDesc( void )
 
 void VTSDevice::Bind( VTSPortPtr pp, int net )
 {
+	// Submitted by: Alan.Wood@nz.schneider-electric.com
+	if(pp->portEndpoint == NULL || pp->portBindPoint == NULL)
+		return;	// port not set-up completely yet
+
 	devRouter.BindToEndpoint( pp->portBindPoint, net );
 
 	//madanner 5/03, uncommented SetLocaAddress to enable device RP/WP system
