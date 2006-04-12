@@ -2067,6 +2067,15 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 			}
                 break;
       }
+	  // LJT - Added check that our output string does not exceed our summary line maximum
+	  if ( strlen(outstr) >= MAX_SUM_LINE )
+	  {
+		  // truncate our outstr with '...' on the end
+		  outstr[MAX_SUM_LINE-4]='.';
+		  outstr[MAX_SUM_LINE-3]='.';
+		  outstr[MAX_SUM_LINE-2]='.';
+		  outstr[MAX_SUM_LINE-1]='\0';
+	  }
      strcpy( get_sum_line(pi_data_bacnet_AL), outstr );											   //  ***001 end
 /*
       sprintf (get_sum_line (pi_data_bacnet_AL),
@@ -9087,9 +9096,15 @@ void show_head_char_string(unsigned int offset, char* type, int tagval)
 	tagbuff = pif_get_byte(offset);
 	tmpLen = tagbuff & 0x07;
 	flag = 1;
-	if(tmpLen == 5){
+	if(tmpLen == 5)
+	{
 		tmpLen = pif_get_byte(1+offset);
 		flag = 2;
+		if (tmpLen == 254)
+		{
+			tmpLen = pif_get_word_hl(flag+offset);
+		}
+		flag=4;
 	}
 	strLength = tmpLen;
 	char strBuff[MAX_INT_LINE];
