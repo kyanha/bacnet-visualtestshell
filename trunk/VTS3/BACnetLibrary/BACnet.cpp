@@ -4969,8 +4969,9 @@ void BACnetObjectIdentifier::Encode( char *enc ) const
 	else
 		sprintf( s = typeBuff, "proprietary %d", objType );
 
-//	sprintf( enc, "%s, %d", s, instanceNum );
-	sprintf( enc, "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
+	// changed this back because it broke the Send Dialog VTSANY entry of ObjId 3/10/2006
+	sprintf( enc, "%s, %d", s, instanceNum );
+//	sprintf( enc, "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
 }
 
 #if VTSScanner
