@@ -5066,14 +5066,19 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			// looking for a specific address?
 			pDADR = GetKeywordValue( &pScriptParm, kwDADR, nlDADR, ScriptNONEMap );
 
+// a length of 0 indicates a broadcast and is a valid entry for Destination specs - removed below LJT 1/12/2006
 //			if (len == 0)
 //				throw ExecError( "No DADR in packet", pDADR->exprLine );
-			if (len == 0) {
-				if (pDADR != 0)
-				    throw ExecError( "No DADR in packet", pDADR->exprLine );
-				else
-					throw ExecError( "No DADR in packet" );
-			}  // add by Kare Sars
+//			if (len == 0) {
+//				if (pDADR != 0)
+//				    throw ExecError( "No DADR in packet", pDADR->exprLine );
+//				else
+//					throw ExecError( "No DADR in packet" );
+//			}  // add by Kare Sars
+
+			// if length indicates we have an addr and not addr exists we have an error.  LJT 1/12/2006
+			if ( len != 0 && pDADR == 0 )
+				throw ExecError( "No DADR in packet" );
 
 			// suck out the address data from the stream even if we aren't testing for DADR
 			// This is a silly way to do this... but it forces BACnetOctetString to copy the data
