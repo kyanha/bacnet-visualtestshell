@@ -22,18 +22,18 @@ static char THIS_FILE[]=__FILE__;
 VTSPreferences::VTSPreferences()
 {
 	// Initialize all fields on
-	m_nSummaryFields = 0xFF;				// bit mask of display options
-	m_nSummaryColumnWidth[0] = 25;			// Number
-	m_nSummaryColumnWidth[1] = 50;			// timestamp
-	m_nSummaryColumnWidth[2] = 30;			// port
+	m_nSummaryFields = 0x3FF;				// bit mask of display options, LJT 5/22/2006 changed from 0xff to 0x3ff to include all fields
+	m_nSummaryColumnWidth[0] = 42;//25;			// Number
+	m_nSummaryColumnWidth[1] = 78;//50;			// timestamp
+	m_nSummaryColumnWidth[2] = 32;//30;			// port
 	//Xiao Shiyuan 2004-Sep-17
-	m_nSummaryColumnWidth[3] = 50;			// source
-	m_nSummaryColumnWidth[4] = 50;			// destination
-	m_nSummaryColumnWidth[5] = 50;			// snet
-	m_nSummaryColumnWidth[6] = 60;			// saddr
-	m_nSummaryColumnWidth[7] = 50;			// dnet
-	m_nSummaryColumnWidth[8] = 50;	        // daddr
-	m_nSummaryColumnWidth[9] = 150;			// service type
+	m_nSummaryColumnWidth[3] = 113; //50;			// source
+	m_nSummaryColumnWidth[4] = 71; //50;			// destination
+	m_nSummaryColumnWidth[5] = 37; //50;			// snet
+	m_nSummaryColumnWidth[6] = 52; //60;			// saddr
+	m_nSummaryColumnWidth[7] = 38; //50;			// dnet
+	m_nSummaryColumnWidth[8] = 50; //50;	        // daddr
+	m_nSummaryColumnWidth[9] = 363; //150;			// service type
 	//Xiao Shiyuan 2004-Sep-17
 	m_nInvokeID = 0;
 	m_nTimeFormat = 0;
@@ -91,7 +91,7 @@ void VTSPreferences::Load( void )
 {
 	CWinApp* pApp = AfxGetApp();
 
-	m_nSummaryFields = pApp->GetProfileInt( "SummaryView", "Fields", 0xFF);
+	m_nSummaryFields = pApp->GetProfileInt( "SummaryView", "Fields", m_nSummaryFields); // LJT 5/22/2006 changed default from 0xff to 0x3ff to include all columns
 
 	char szBuffer[15];
 	for ( int i = 0; i < SUMMARY_VIEW_COLUMN_COUNT; i++ )
