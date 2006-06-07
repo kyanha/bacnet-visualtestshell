@@ -23,6 +23,7 @@ public:
 	VTSTimeCtrl					m_FromTimeCtrl;
 	VTSTimeCtrl					m_ToTimeCtrl;
 	BACnetDestination			m_Value;
+	VTSUnsignedCtrl				m_ProcessID;	// MAG 06JUN06 add this control
 // Dialog Data
 	//{{AFX_DATA(VTSDestinationDlg)
 	enum { IDD = IDD_DESTINATION };
