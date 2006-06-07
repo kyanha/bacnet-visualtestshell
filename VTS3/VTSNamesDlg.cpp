@@ -687,8 +687,15 @@ void VTSNamesDlg::OnKillfocusAddress()
 
 	VTSName * pname = (VTSName *) m_names[m_iSelectedName];
 
-	int nFocusID = GetFocus()->GetDlgCtrlID();
-	
+	// MAG 06JUN06 fix lost focus crash bug
+	CWnd *cwt;
+	int nFocusID=0;
+
+	cwt = GetFocus();
+	if(cwt != NULL)
+		nFocusID = cwt->GetDlgCtrlID();  // GetFocus() sometimes returns NULL, i.e. when new focus is not VTS
+	// MAG 06JUN06 end modifications
+
 	// read the name from the database
 //	m_pNameList->ReadName( m_iSelectedName, &name );
 
