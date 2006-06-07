@@ -681,6 +681,7 @@
 #define IDC_RESENDINTERVAL              1293
 #define IDC_RPALL_DA                    1294
 #define IDC_MSTPMAXMASTER               1294
+#define IDC_PROCESS_IDENTIFIER          1294
 #define ID_NEWFILTER                    1295
 #define IDC_RPALL_DNET_DADR             1295
 #define IDC_MSTPMAXINFO                 1295

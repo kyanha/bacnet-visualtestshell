@@ -22,6 +22,7 @@ VTSDestinationDlg::VTSDestinationDlg(CWnd* pParent /*=NULL*/)
 	, m_MACAddress( this, IDC_DESTINATION__MACADDRESS )
 	, m_FromTimeCtrl(this, IDC_DESTINATION_FROMTIME)
 	, m_ToTimeCtrl(this, IDC_DESTINATION_TOTIME)
+	, m_ProcessID(this, IDC_PROCESS_IDENTIFIER)
 {
 	//{{AFX_DATA_INIT(VTSDestinationDlg)
 	m_bDestinationFault = FALSE;
@@ -103,8 +104,12 @@ void VTSDestinationDlg::OnDestinationDevice()
 
 BOOL VTSDestinationDlg::OnInitDialog() 
 {
+	char junk[20];  // MAG 06JUN06
 	CDialog::OnInitDialog();	
 	
+	sprintf(junk,"%d",m_Value.m_processID.uintValue);  // MAG 06JUN06
+	this->GetDlgItem(IDC_PROCESS_IDENTIFIER)->SetWindowText(junk);  // MAG 06JUN06
+
 	m_bDestinationConfirm = m_Value.m_issueConfirmedNotifications.boolValue;
 	m_bDestinationOffNormal = m_Value.m_transitions.GetBit(0);
 	m_bDestinationFault = m_Value.m_transitions.GetBit(1);
@@ -136,6 +141,7 @@ BOOL VTSDestinationDlg::OnInitDialog()
 			m_IsRecipientDevice = 0;
 			BACnetObjectIdentifier* pDeviceCtrl=&m_DeviceID;
 			m_Network.ctrlNull=true;
+			m_ProcessID.ctrlNull=true;  // MAG 06JUN06
 			m_DeviceID.ctrlNull = false;	
 			pDeviceCtrl->objID = ((BACnetObjectIdentifier*)(m_Value.m_recipient.GetObject()))->objID ;				
 			m_DeviceID.ObjToCtrl();
@@ -148,6 +154,7 @@ BOOL VTSDestinationDlg::OnInitDialog()
 			m_DeviceID.ctrlNull = true;
 			m_IsRecipientDevice = 1;																		
 			m_Network.uintValue = ((BACnetAddr*)m_Value.m_recipient.GetObject())->m_bacnetAddress.addrNet;
+			m_ProcessID.uintValue = 0;  // MAG 06JUN06
 			m_Network.ObjToCtrl();			
 			m_MACAddress.Insert(((BACnetAddr*)m_Value.m_recipient.GetObject())->m_bacnetAddress.addrAddr, ((BACnetAddr*)m_Value.m_recipient.GetObject())->m_bacnetAddress.addrLen, 0);
 			m_MACAddress.ObjToCtrl();			
@@ -159,6 +166,7 @@ BOOL VTSDestinationDlg::OnInitDialog()
 		m_IsRecipientDevice = 0;
 		m_MACAddress.ctrlNull=true;
 		m_Network.ctrlNull=true;
+		m_ProcessID.ctrlNull=true;    // MAG 06JUN06
 		m_DeviceID.ctrlNull = false;
 		OnDestinationDevice();
 	}
@@ -194,6 +202,7 @@ void VTSDestinationDlg::Decode(BACnetAPDUDecoder &dec)
 
 void VTSDestinationDlg::OnOK() 
 {	
+	char junk[12];
 	UpdateData(TRUE);
 	m_Value.m_issueConfirmedNotifications = *(new BACnetBoolean(m_bDestinationConfirm));
 #pragma warning( disable : 4800 )
@@ -210,6 +219,9 @@ void VTSDestinationDlg::OnOK()
 	m_Value.m_fromTime = m_FromTimeCtrl;
 	m_ToTimeCtrl.CtrlToObj();
 	m_Value.m_toTime = m_ToTimeCtrl;
+
+	this->GetDlgItem(IDC_PROCESS_IDENTIFIER)->GetWindowText(junk,10);  // MAG 06JUN06
+	m_Value.m_processID = atoi(junk);  // MAG 06JUN06
 
 	if(!m_IsRecipientDevice)
 	{
