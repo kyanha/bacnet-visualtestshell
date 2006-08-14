@@ -376,7 +376,7 @@ char *BACnetErrorCode[] = {
    "VT-session-termination-failure",     /* 39 */
    "Write-access-denied",                /* 40 */
    "Character-set-not-supported",        /* 41 */
-   "Invalid-array-index"                 /* 42 */
+   "Invalid-array-index",                /* 42 */
    "Cov-subscription-failed",            /* 43 kare.sars@wapice.com */
    "Not-cov-property",                   /* 44 | */
    "Optional-functionality-not-supported",/*45 | */
@@ -2062,12 +2062,15 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                case 3:  /* Binary_Input - BACnetBinaryPV */
                case 4:  /* Binary_Output - BACnetBinaryPV */
                case 5:  /* Binary_Value - BACnetBinaryPV */
-               case 6:  /* Calendar - BACnetBinaryPV */
                         show_application_tag(x);
                         if(x != 0x00){ /* not a NULL */
                           bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
                           };
                         break;
+               case 6:  /* Calendar - BOOLEAN */
+					   show_head_app_data();		 
+			           show_application_data(x);
+				   break;
                //Modified by Yajun, Zhou 2002-8-1
 			   //case 12: /* Group - List of Read Access Result */
 			   case 11: /* Group - List of Read Access Result */
@@ -2239,6 +2242,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
               case 1:  /* Analog_Out */
               case 2:  /* Analog_Value */
               case 14: /* Multistate_Output */
+			  case 13:
+			  case 19:
 					   show_head_app_data();	 //added by Lei Chengxin 2003-9-1
 
                        show_application_data(x);
