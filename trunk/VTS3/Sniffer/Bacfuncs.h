@@ -2540,6 +2540,10 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case SLAVE_PROXY_ENABLE:
 	  case AUTO_SLAVE_DISCOVERY:
 		  break;
+	  case DATABASE_REVISION:		// added by LJT 2006-08-15
+		   show_head_app_data();	
+           show_application_data(x);
+ 		  break;
       default:
 //	       bac_show_byte("Error: Unknown Property Identifier","%u");
 		   show_head_app_data();		 //modified by Lei Chengxin 2003-9-8
