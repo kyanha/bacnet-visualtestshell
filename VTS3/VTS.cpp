@@ -1578,6 +1578,17 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //         966851, 974991
 //   The following feature requests were closed:
 //        1259864, 996131
+
+//  3.4.10		October 21, 2006
+//         General Bug Fixes
+//   The following bugs were closed:
+//           617212,  960274,  965935,  960275,
+//           960273, 1540412, 1538594, 1501806,
+//          1486033, 1461695, 1452771, 1440025,
+//          1431140, 1431111, 1400472, 1380510,
+//          1264041, 1256830, 1025962, 1021192,
+//			1021191,  806427,  787641,  779138,
+//			 779132, 1565943
 			
 const int kReleaseVersion = 10;
 			
