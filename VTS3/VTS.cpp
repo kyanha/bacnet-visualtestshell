@@ -1579,7 +1579,7 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //   The following feature requests were closed:
 //        1259864, 996131
 			
-const int kReleaseVersion = 9;
+const int kReleaseVersion = 10;
 			
 			class CAboutDlg : public CDialog
 			{
