@@ -259,6 +259,7 @@
 #define IDD_BACKUP_RESTORE_PROGRESS     371
 #define IDI_SENDPKT                     371
 #define IDD_EDITRESENTPKT               372
+#define IDD_SENDSUBSCRIBECOVPROPERTY    373
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -713,6 +714,7 @@
 #define IDC_DESTINATION_DEVICEID        1327
 #define IDC_DESTINATION_DEVICEIDBTN     1329
 #define IDC_COMBO_ITEMTYPE              1330
+#define IDC_REINITSTATE                 1330
 #define IDC_DESTINATION_FROMTIME        1332
 #define IDC_DESTINATION_TOTIME          1333
 #define IDC_NBLINKSOCKET                1335
@@ -907,6 +909,8 @@
 #define IDC_SNETCHECK                   1535
 #define IDC_COLORCOMBO5                 1536
 #define IDC_DNETCHECK                   1536
+#define IDC_DELAY                       1543
+#define IDC_COMBO1                      1550
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -1092,9 +1096,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        373
+#define _APS_NEXT_RESOURCE_VALUE        374
 #define _APS_NEXT_COMMAND_VALUE         32866
-#define _APS_NEXT_CONTROL_VALUE         1537
+#define _APS_NEXT_CONTROL_VALUE         1551
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

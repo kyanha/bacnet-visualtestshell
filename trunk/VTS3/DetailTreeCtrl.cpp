@@ -83,7 +83,7 @@ void CDetailTreeCtrl::ShowDetail()
 	HTREEITEM hLastNode=NULL;
 
 	int index=0;
-	HTREEITEM hDLItem,hALItem;
+	HTREEITEM hDLItem = NULL,hALItem = NULL;
 	for(int i=0;i<m_FrameContext->m_PacketInfo.detailCount;i++)
 	{
 		CString temp(m_FrameContext->m_PacketInfo.detailLine[i]->piLine);
@@ -254,8 +254,10 @@ void CDetailTreeCtrl::ShowDetail()
 	if(!ALdetail){
 		Expand(hLastRoot,TVE_EXPAND);
 	}
-	Expand(hDLItem,TVE_EXPAND);
-	Expand(hALItem,TVE_EXPAND);
+  if(hDLItem)
+	  Expand(hDLItem,TVE_EXPAND);
+  if(hALItem)
+	  Expand(hALItem,TVE_EXPAND);
 	SetRedraw(TRUE);
 }
 

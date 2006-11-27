@@ -12,6 +12,7 @@
 #include <afxmt.h>
 #include "bacnet.hpp"
 #include "vtsdoc.h"
+#include "afxmt.h"
 
 class VTSDoc;
 typedef VTSDoc * VTSDocPtr;
@@ -111,6 +112,7 @@ private:
 	BOOL m_bExpectAPDU;		// if expect a APDU or not
 	BACnetAPDUType m_nExpectAPDUType;	// expected APDU type if expect a APDU
 	int m_nExpectAPDUServiceChoice;		// expected Service Choice if expect a APDU
+  UINT m_Delay;
 
 	VTSBackupRestoreProgressDlg* m_pOutputDlg;
 	void DoBackupTest();
@@ -157,7 +159,7 @@ private:
 	void FindRouterAddress(void);
 
 	void Msg(const char* errMsg);
-		
+	
 };
 
 #endif // !defined(AFX_BAKRESTOREEXECUTOR_H__B11EB238_C49B_4046_84A9_0CF30BFD844B__INCLUDED_)

@@ -64,6 +64,10 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+#ifndef afxChNil
+static TCHAR afxChNil = _T('\0');
+#endif
+
 /////////////////////////////////////////////////////////////////////////
 // CSizingControlBar
 
@@ -1301,7 +1305,11 @@ BOOL CSCBMiniDockFrameWnd::Create(CWnd* pParent, DWORD dwBarStyle)
 #endif
 
     if (!CMiniFrameWnd::CreateEx(dwExStyle,
-        NULL, &afxChNil, dwStyle, rectDefault, pParent))  // MAG 01FEB06 NOTE- afxChNil causes error in MSVC8 (beta)
+        AfxRegisterWndClass(CS_VREDRAW | CS_HREDRAW,
+                            ::LoadCursor(NULL, IDC_ARROW),
+                            (HBRUSH) ::GetStockObject(WHITE_BRUSH),
+                            ::LoadIcon(NULL, IDI_APPLICATION)),
+        &afxChNil, dwStyle, rectDefault, pParent))
     {
         m_bInRecalcLayout = FALSE;
         return FALSE;

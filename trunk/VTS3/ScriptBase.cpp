@@ -640,7 +640,7 @@ void ScriptScanner::FormatError( ScriptToken &tok, char *msg )
 	if ( m_pdocSource != NULL  ||  m_fileSource != NULL )
 	{
 		tok.tokenLine = scanLine;
-		tok.tokenOffset = m_nLineOffset + (scanSrc - scanLineBuffer);
+		tok.tokenOffset = m_nLineOffset + (ULONGLONG)(scanSrc - scanLineBuffer);
 //		tok.tokenOffset = m_pdocSource->m_editData->LineIndex( scanLine ) + (scanSrc - scanLineBuffer);
 		tok.tokenLength = (*scanSrc ? 1 : 0);
 	}
@@ -671,7 +671,7 @@ void ScriptScanner::ReportSyntaxError( ScriptToken * ptok, LPCSTR lpszErrorMsg )
 		POSITION pos = m_pdocSource->GetFirstViewPosition();
 		ScriptEdit* pFirstView = (ScriptEdit*)(m_pdocSource->GetNextView( pos ));
 		pFirstView->GotoLine( nLineIndex );
-		m_pdocSource->m_editData->SetSel( ptok->tokenOffset, ptok->tokenOffset + ptok->tokenLength );
+		m_pdocSource->m_editData->SetSel( (DWORD)ptok->tokenOffset, (DWORD)(ptok->tokenOffset + ptok->tokenLength), 0 );
 		AfxMessageBox( lpszErrorMsg );
 	}
 
@@ -1531,8 +1531,9 @@ void ScriptScanner::NextLine( ScriptToken& tok )
 				return;
 			}
 		}
-		catch( CFileException e )
+		catch( CFileException *e )
 		{
+      e->Delete();
 			tok.tokenType = scriptEOF;
 			return;
 		}

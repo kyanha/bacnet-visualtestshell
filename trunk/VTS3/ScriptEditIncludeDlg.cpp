@@ -128,7 +128,7 @@ BOOL CScriptEditIncludeDlg::OnInitDialog()
 	}
 
 	if ( m_ptok != NULL )
-		m_pEdit->GetEditCtrl().SetSel( m_ptok->tokenOffset, m_ptok->tokenOffset + m_ptok->tokenLength );
+		m_pEdit->GetEditCtrl().SetSel( (DWORD)m_ptok->tokenOffset, (DWORD)(m_ptok->tokenOffset + m_ptok->tokenLength), 0 );
 
 	m_pEdit->SetFocus();
 	if ( m_nLine != -1 )

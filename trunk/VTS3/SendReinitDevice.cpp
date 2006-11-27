@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "VTS.h"
 #include "SendReinitDevice.h"
+#include "bakrestoreexecutor.h"
+#include ".\sendreinitdevice.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -23,28 +25,26 @@ CSendReinitDevice::CSendReinitDevice( void )
 	: CSendPage( CSendReinitDevice::IDD )
 	, m_Password( this, IDC_PASSWORD )
 {
-	//{{AFX_DATA_INIT(CSendReinitDevice)
 	m_State = 0;
-	//}}AFX_DATA_INIT
 }
+
 #pragma warning( default : 4355 )
 
 void CSendReinitDevice::DoDataExchange(CDataExchange* pDX)
 {
-	CPropertyPage::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CSendReinitDevice)
-	DDX_Radio(pDX, IDC_COLDSTART, m_State);
-	//}}AFX_DATA_MAP
+  CPropertyPage::DoDataExchange(pDX);
+  //{{AFX_DATA_MAP(CSendReinitDevice)
+  //}}AFX_DATA_MAP
 
-	m_Password.UpdateData( pDX->m_bSaveAndValidate );
+  m_Password.UpdateData( pDX->m_bSaveAndValidate );
+  DDX_Control(pDX, IDC_REINITSTATE, ReinitStates);
 }
 
 BEGIN_MESSAGE_MAP(CSendReinitDevice, CPropertyPage)
 	//{{AFX_MSG_MAP(CSendReinitDevice)
-	ON_BN_CLICKED(IDC_COLDSTART, OnColdStart)
-	ON_BN_CLICKED(IDC_WARMSTART, OnWarmStart)
-	ON_EN_CHANGE(IDC_PASSWORD, OnChangePassword)
 	//}}AFX_MSG_MAP
+  ON_CBN_SELCHANGE(IDC_REINITSTATE, OnCbnSelchangeReinitstate)
+  ON_EN_CHANGE(IDC_PASSWORD, OnEnChangePassword)
 END_MESSAGE_MAP()
 
 //
@@ -54,7 +54,16 @@ END_MESSAGE_MAP()
 BOOL CSendReinitDevice::OnInitDialog() 
 {
 	CPropertyPage::OnInitDialog();
-	
+
+  ReinitStates.AddString("Cold Start");
+  ReinitStates.AddString("Warm Start");
+  ReinitStates.AddString("Start Backup");
+  ReinitStates.AddString("End Backup");
+  ReinitStates.AddString("Start Restore");
+  ReinitStates.AddString("End Restore");
+  ReinitStates.AddString("Abort Restore");
+  ReinitStates.SetCurSel(m_State);
+
 	return TRUE;
 }
 
@@ -117,6 +126,7 @@ void CSendReinitDevice::SavePage( void )
 
 void CSendReinitDevice::RestorePage( int index )
 {
+
 	BACnetAPDUDecoder	dec( pageContents )
 	;
 	BACnetInteger		intValue
@@ -129,33 +139,21 @@ void CSendReinitDevice::RestorePage( int index )
 
 	intValue.Decode( dec );
 	m_State = intValue.intValue;
+
 	m_Password.RestoreCtrl( dec );
 }
 
-//
-//	CSendReinitDevice::OnChangeX
-//
-//	The following set of functions are called when one of the interface elements
-//	has changed.
-//
-
-void CSendReinitDevice::OnWarmStart() 
+void CSendReinitDevice::OnCbnSelchangeReinitstate()
 {
-	UpdateData();
-	SavePage();
+  m_State = ReinitStates.GetCurSel();
+  SavePage();
 	UpdateEncoded();
 }
 
-void CSendReinitDevice::OnColdStart() 
+void CSendReinitDevice::OnEnChangePassword()
 {
-	UpdateData();
-	SavePage();
-	UpdateEncoded();
+  m_Password.UpdateData();
+  SavePage();
+  UpdateEncoded();
 }
 
-void CSendReinitDevice::OnChangePassword()
-{
-	m_Password.UpdateData();
-	SavePage();
-	UpdateEncoded();
-}

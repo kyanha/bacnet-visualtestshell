@@ -197,7 +197,7 @@ class ScriptToken {
 		ScriptEncodingType	tokenEnc;						// value encoding
 		int					tokenSymbol;					// character code or keyword hash code
 		int					tokenLine;						// line number
-		int					tokenOffset, tokenLength;		// char offset and length
+		ULONGLONG	  tokenOffset, tokenLength;		// char offset and length
 		int					m_nIndex;						// index into value when resolved (-1=all, 0=size, 1>= index)
 
 		CString				tokenValue;						// token value
@@ -255,7 +255,7 @@ class ScriptScanner {
 //		CEdit*			scanSource;							// where this token came from (?)
 
 		int				scanLine;							// line number of source
-		int				m_nLineOffset;						// # of chars in file to current line start
+		ULONGLONG				m_nLineOffset;						// # of chars in file to current line start
 
 		char			scanLineBuffer[kTokenBufferSize];	// current line being parsed
 		char			scanValueBuffer[kTokenBufferSize];	// current token being built

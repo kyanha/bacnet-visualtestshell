@@ -389,10 +389,10 @@ void CMainFrame::ReadReg()
 		CString filename;		
 		for(int index = 0; index < HISTORY_LOGFILE_COUNT; index++)
 		{
-			char keyValue[MAX_PATH] = "";
+			TCHAR keyValue[MAX_PATH] = _T("");
 			DWORD bufferLen = MAX_PATH;
 			keyName.Format("%d", index);
-			regKey.QueryValue(keyValue, keyName, &bufferLen);
+			regKey.QueryValue(keyValue, (LPCTSTR)keyName, &bufferLen);
 			filename = keyValue;
 			if( !filename.IsEmpty() )
 			{
@@ -418,7 +418,7 @@ void CMainFrame::SaveReg()
 	{
 		keyName.Format("%d", index);
 		regKey.SetValue((LPCTSTR)m_historyLogList.GetAt(m_historyLogList.FindIndex(index)), 
-			keyName);		
+			(LPCTSTR)keyName);		
 	}	
 }
 

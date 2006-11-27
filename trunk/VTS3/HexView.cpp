@@ -371,7 +371,7 @@ CString* CHexView::GetLineData(int lineNo)
 	// If less than 16 bytes were retrieved, erase to the end of the line.
 	//
     b[bCount] = 0;
-    *pString += b;
+    *pString += (CString)b;
 
 	// wipe out invalid data
     if (bCount < 16) {

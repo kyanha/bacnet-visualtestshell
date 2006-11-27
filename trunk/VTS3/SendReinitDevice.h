@@ -9,6 +9,7 @@
 
 #include "SendPage.h"
 #include "VTSCtrl.h"
+#include "afxwin.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CSendReinitDevice dialog
@@ -22,6 +23,7 @@ public:
 	CSendReinitDevice( void );   // non-standard constructor
 
 	VTSCharacterStringCtrl		m_Password;
+  UINT                      m_State;
 
 	void InitPage( void );						// give it a chance to init
 	void EncodePage( CByteArray* contents );	// encode the page
@@ -34,7 +36,6 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CSendReinitDevice)
 	enum { IDD = IDD_SENDREINITDEVICE };
-	int		m_State;
 	//}}AFX_DATA
 
 // Overrides
@@ -49,12 +50,13 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(CSendReinitDevice)
 	virtual BOOL OnInitDialog();
-	afx_msg void OnColdStart();
-	afx_msg void OnWarmStart();
-	afx_msg void OnChangePassword();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
+public:
+  CComboBox ReinitStates;
+  afx_msg void OnCbnSelchangeReinitstate();
+  afx_msg void OnEnChangePassword();
 };
 
 //{{AFX_INSERT_LOCATION}}

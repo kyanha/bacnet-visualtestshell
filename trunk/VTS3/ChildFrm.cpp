@@ -867,10 +867,11 @@ void CChildFrame::OnFileExport()
 
 		exportFile.Close();
 	}
-	catch(CFileException e)
+	catch(CFileException *e)
 	{
-		e.GetErrorMessage(str.GetBuffer(100), 100);
+		e->GetErrorMessage(str.GetBuffer(100), 100);
 		AfxMessageBox(str);
+    e->Delete();
 	}
 
 	((CMainFrame *) AfxGetApp()->m_pMainWnd)->ReleaseProgress();
@@ -1300,12 +1301,12 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 		pscript->WriteString(";---------------------- End of generated Read Property file ---------------------------");
 	}
 
-	catch(CFileException e)
+	catch(CFileException *e)
 	{
-		char szErr[255];
-		e.GetErrorMessage(szErr, sizeof(szErr));
-		strError.Format("Error Generating Script: %s", szErr);
-		AfxMessageBox(strError);
+		TCHAR szErr[255];
+		e->GetErrorMessage(szErr, sizeof(szErr));
+		strError.Format(_T("Error Generating Script: %s"), szErr);
+		AfxMessageBox((LPCTSTR)strError);
 	}
 
 	if ( pscript != NULL )			// closes file as well
