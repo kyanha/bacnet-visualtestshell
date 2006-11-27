@@ -193,6 +193,7 @@ CSendGroupItem gAlarmEventItemList[] =
 	, { "GetEventInformation", (CSendPageMPtr)&CSend::GetEventInformationPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { "GetEventInformation-ACK", (CSendPageMPtr)&CSend::GetEventInformationACKPage, (CSendPageMPtr)&CSend::ComplexACKPage }
 	, { "SubscribeCOV", (CSendPageMPtr)&CSend::SubscribeCOVPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
+  , { "SubscribeCOVProperty", (CSendPageMPtr)&CSend::SubscribeCOVPropertyPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { 0, 0, 0 }
 	};
 
@@ -366,7 +367,7 @@ void CSend::InitPages( void )
 	GetEventInformationPage.pageParent =  this;    //Added by Zhu Zhenhua, 2004-5-25
 	GetEventInformationACKPage.pageParent =  this;   //Added by Zhu Zhenhua, 2004-5-25
 	SubscribeCOVPage.pageParent = this;
-
+  SubscribeCOVPropertyPage.pageParent = this;
 	ReadFilePage.pageParent = this;
 	ReadFileACKPage.pageParent = this;
 	WriteFilePage.pageParent = this;
@@ -472,16 +473,15 @@ void CSend::UpdateEncoded( void )
 
 	// encode the pages
 	try {
-		for (i = lastPage; i >= 0; i--){
+		for (i = lastPage; i >= 0; i--)
 			m_pages[i]->EncodePage( &contents );
-		}
 		m_send.EnableWindow( true );
-		m_transmit_close.EnableWindow( true );
+		 		 m_transmit_close.EnableWindow( true );
 	}
 	catch (char *errTxt) {
 		m_packetData.SetWindowText( errTxt );
 		m_send.EnableWindow( false );
-		m_transmit_close.EnableWindow( false );
+		 		 m_transmit_close.EnableWindow( false );
 		return;
 	}
 
@@ -495,8 +495,8 @@ void CSend::UpdateEncoded( void )
 			//enc += 0x0A;
 		}
 		x = contents.GetAt( i );
-		enc += hex[ x >> 4 ];
-		enc += hex[ x & 0x0F ];
+		enc += TCHAR(hex[ x >> 4 ]);
+		enc += TCHAR(hex[ x & 0x0F ]);
 	}
 
 	// display hex content in window

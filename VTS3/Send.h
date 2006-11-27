@@ -75,6 +75,7 @@
 #include "SendGetEventInfo.h"			//Added by Zhu Zhenhua, 5-25
 #include "SendGetEventInfoACK.h"	   //Added by Zhu Zhenhua, 5-25
 #include "SendSubscribeCOV.h"
+#include "SendSubscribeCOVProperty.h"
 
 // File Access Services
 #include "SendReadFile.h"
@@ -199,6 +200,7 @@ public:
 	CSendGetEventInfo		 GetEventInformationPage;		//GetEventInformation        ,Added by Zhu Zhenhua, 2004-5-25
 	CSendGetEventInfoACK	 GetEventInformationACKPage;	//GetEventInformation-ACK    ,Added by Zhu Zhenhua, 2004-5-25
 	CSendSubscribeCOV		SubscribeCOVPage;		// SubscribeCOV
+  CSendSubscribeCOVProperty SubscribeCOVPropertyPage;  //SubscribeCOVProperty
 
 	CSendReadFile			ReadFilePage;			// AtomicReadFile
 	CSendReadFileACK		ReadFileACKPage;		// AtomicReadFile-ACK

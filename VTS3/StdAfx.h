@@ -25,6 +25,7 @@
 #include "sizecbar.h"
 #include "scbarg.h"
 #include "scbarcf.h"
+#include <afxdlgs.h>
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
