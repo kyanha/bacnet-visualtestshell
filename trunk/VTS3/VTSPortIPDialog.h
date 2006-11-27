@@ -56,7 +56,7 @@ protected:
 
 	void ObjToCtrl(void);
 	void CtrlToObj(void);
-	void SynchControls( bool fEnable = true );
+	void SynchControls( int fEnable = TRUE );
 
 	DECLARE_MESSAGE_MAP()
 };

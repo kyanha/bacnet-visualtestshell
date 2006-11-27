@@ -114,7 +114,7 @@ void VTSPortIPDialog::OnDataChange()
 
 
 
-void VTSPortIPDialog::SynchControls( bool fEnable /* = true */ )
+void VTSPortIPDialog::SynchControls( int fEnable /* = true */ )
 {
 	GetDlgItem( IDC_HOSTADDR )->EnableWindow( fEnable && m_nPortType == 4 );
 	GetDlgItem( IDC_TTL )->EnableWindow( fEnable && m_nPortType == 4 );

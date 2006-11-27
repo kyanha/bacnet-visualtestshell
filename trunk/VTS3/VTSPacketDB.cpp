@@ -101,15 +101,17 @@ void VTSPacketDB::Close()
 {
 	if ( m_pfilePackets != NULL )
 	{
-		if ( m_pfilePackets->m_hFile != CFile::hFileNull )  // MAG 01FEB06 removed (UINT) cast from hFileNull
+		if ( m_pfilePackets->m_hFile != CFile::hFileNull )
 		{
 			try
 			{
 				m_pfilePackets->Flush();
 				m_pfilePackets->Close();
 			}
-			catch (CFileException e )
-			{}
+			catch (CFileException *e )
+			{
+        e->Delete();
+      }
 		}
 
 		delete m_pfilePackets;
@@ -133,8 +135,9 @@ void VTSPacketDB::DeletePackets( void )
 		m_pfilePackets->Flush();
 		m_pfilePackets->SeekToEnd();
 	}
-	catch (CFileException e)
+	catch (CFileException *e)
 	{
+    e->Delete();
 	}
 
 	lock.Unlock();
@@ -144,29 +147,28 @@ void VTSPacketDB::DeletePackets( void )
 
 // returns -1 if file problem or no more records
 
-LONG VTSPacketDB::ReadNextPacket(VTSPacket& pkt, LONG lPosition /* = -1 */  )
+ULONGLONG VTSPacketDB::ReadNextPacket(VTSPacket& pkt, ULONGLONG lPosition )
 {
-	ASSERT(m_pfilePackets != NULL && m_pfilePackets->m_hFile != CFile::hFileNull );  // MAG 01FEB06 removed (UINT) cast from hFileNull
+	ASSERT(m_pfilePackets != NULL && m_pfilePackets->m_hFile != CFile::hFileNull );
 
-	if ( m_pfilePackets == NULL || m_pfilePackets->m_hFile == CFile::hFileNull )  // MAG 01FEB06 removed (UINT) cast from hFileNull
-		return -1;
+	if ( m_pfilePackets == NULL || m_pfilePackets->m_hFile == CFile::hFileNull )
+		return lPosition;
 
 	// make sure no other threads are mucking around
 	CSingleLock lock( &writeLock );
 	lock.Lock();
 
 	// Get current position to restore if read problem
-	LONG nCurrentPosition = m_pfilePackets->Seek(0, CFile::current);
+	ULONGLONG nCurrentPosition = m_pfilePackets->Seek(0, CFile::current);
 	BACnetOctetPtr pbuffer = NULL;
-	LONG nNewPosition = -1;
+	ULONGLONG nNewPosition;
 
 	// If caller specified a position to read from, go there first... 
 	// otherwise, use the current position
 
 	try
 	{
-		if ( lPosition != -1 )
-			m_pfilePackets->Seek( lPosition < sizeof(DWORD) ? sizeof(DWORD) : lPosition, CFile::begin);
+		 m_pfilePackets->Seek( lPosition < sizeof(DWORD) ? sizeof(DWORD) : lPosition, CFile::begin);
 
 		// Attempt to read the packet header... throw exception if header isn't there
 		if ( m_pfilePackets->Read(&pkt.packetHdr, sizeof(pkt.packetHdr)) != sizeof(pkt.packetHdr) )
@@ -214,7 +216,7 @@ LONG VTSPacketDB::ReadNextPacket(VTSPacket& pkt, LONG lPosition /* = -1 */  )
 		}
 
 		// reset file pointer and return read error or end of file (-1)
-		m_pfilePackets->Seek(nCurrentPosition, CFile::begin);
+		nNewPosition = m_pfilePackets->Seek(nCurrentPosition, CFile::begin);
 	}
 
 	// be nice and release it before returning
@@ -224,7 +226,7 @@ LONG VTSPacketDB::ReadNextPacket(VTSPacket& pkt, LONG lPosition /* = -1 */  )
 
 
 
-LONG VTSPacketDB::WritePacket( VTSPacket& pkt )
+ULONGLONG VTSPacketDB::WritePacket( VTSPacket& pkt )
 {
 	if ( m_pfilePackets == NULL )
 		return 0;
@@ -233,7 +235,7 @@ LONG VTSPacketDB::WritePacket( VTSPacket& pkt )
 	CSingleLock lock( &writeLock );
 	lock.Lock();
 
-	DWORD	dwFileLength = m_pfilePackets->SeekToEnd();
+	ULONGLONG	dwFileLength = m_pfilePackets->SeekToEnd();
 
 	try
 	{
@@ -249,8 +251,9 @@ LONG VTSPacketDB::WritePacket( VTSPacket& pkt )
 		int nTotal = sizeof(pkt.packetHdr) + sizeof(int) + pkt.packetLen;
 		m_pfilePackets->Write(&nTotal, sizeof(int));
 	}
-	catch (CFileException e)
+	catch (CFileException *e)
 	{
+    e->Delete();
 		// There was a problem writing one of these guys... rollback the file and return the error
 		m_pfilePackets->SetLength(dwFileLength);
 		m_pfilePackets->Flush();
