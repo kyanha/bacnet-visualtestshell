@@ -558,11 +558,11 @@ void VTSDB::ReadPacket( int indx, VTSPacket& pkt )
 
 // returns -1 if file problem or no more records
 
-LONG VTSDB::ReadNextPacket(VTSPacket& pkt, LONG lPosition /* = -1 */  )
+ULONGLONG VTSDB::ReadNextPacket(VTSPacket& pkt, ULONGUONG lPosition )
 {
-	ASSERT(m_pfilePackets != NULL && m_pfilePackets->m_hFile != (UINT)CFile::hFileNull );
+	ASSERT(m_pfilePackets != NULL && m_pfilePackets->m_hFile != CFile::hFileNull );
 
-	if ( m_pfilePackets == NULL || m_pfilePackets->m_hFile == (UINT)CFile::hFileNull )
+	if ( m_pfilePackets == NULL || m_pfilePackets->m_hFile == CFile::hFileNull )
 		return -1;
 
 	CSingleLock lock( &writeLock );
@@ -570,18 +570,19 @@ LONG VTSDB::ReadNextPacket(VTSPacket& pkt, LONG lPosition /* = -1 */  )
 	// make sure no other threads are mucking around
 	lock.Lock();
 
-	// Get current position to restore if read problem
-	LONG nCurrentPosition = m_pfilePackets->Seek(0, CFile::current);
-	BACnetOctetPtr pbuffer = NULL;
-	LONG nNewPosition = -1;
+	
 
 	// If caller specified a position to read from, go there first... 
 	// otherwise, use the current position
 
 	try
 	{
-		if ( lPosition != -1 )
-			m_pfilePackets->Seek(lPosition, CFile::begin);
+
+    // Get current position to restore if read problem
+	  ULONGULONG nCurrentPosition = m_pfilePackets->Seek(0, CFile::current);
+	  BACnetOctetPtr pbuffer = NULL;
+	  ULONGULONG nNewPosition;
+	  m_pfilePackets->Seek(lPosition, CFile::begin);
 
 		// Attempt to read the packet header... throw exception if header isn't there
 		if ( m_pfilePackets->Read(&pkt.packetHdr, sizeof(pkt.packetHdr)) != sizeof(pkt.packetHdr) )

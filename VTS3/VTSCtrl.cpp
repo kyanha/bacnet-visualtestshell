@@ -157,7 +157,7 @@ void VTSAddrCtrl::CtrlToObj( void )
 		;
 		ScriptToken		tok
 		;
-		
+
 		// get the content
 		scan.Next( tok );
 		if (tok.tokenType == scriptEOL)
@@ -799,7 +799,7 @@ void VTSMSTPAddrCtrl::CtrlToAddress( LPCTSTR s )
 void VTSMSTPAddrCtrl::ObjToCtrl( void )
 {
 	char txt[10];
-	
+
 	txt[0] = 0;
 	if ( !ctrlNull )
 		itoa((int) addrAddr[0], txt, 10);
@@ -833,11 +833,11 @@ void VTSIPAddrCtrl::AssignAddress(VTSName * pname)
 		struct hostent * pHost;
 		pHost = gethostbyname(szHostName);
 		LPSTR lpAddr = pHost->h_addr_list[0];
-		if (lpAddr) 
+		if (lpAddr)
 			memcpy (&localbroadcastAddr, lpAddr, 3);
 	}	//To get localbroadcast address
 		//Modified by Zhu Zhenhua, 2003-12-12
-		
+
 
 	unsigned char	globalbroadcastAddr[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xBA, 0xC0 };
 
@@ -862,7 +862,7 @@ void VTSIPAddrCtrl::CtrlToAddress( LPCTSTR s )
 	{
 		BACnetIPAddr::StringToHostPort( s, &host, 0, &port );
 
-		// Can't call BACnetIPAddr's Pack method because we don't inherit 
+		// Can't call BACnetIPAddr's Pack method because we don't inherit
 		// from BACnetIPAddr anymore...  Duplicate Pach method and call the static
 
 		addrType = localStationAddr;
@@ -1101,7 +1101,7 @@ VTSRemoteAddrCtrl::VTSRemoteAddrCtrl( const CWnd* wp, VTSIntegerCtrl *icp, int c
 
 bool VTSRemoteAddrCtrl::IsNameMatch( VTSName * pname, bool okBroadcast )
 {
-	return (   pname->m_bacnetaddr.addrType == remoteStationAddr 
+	return (   pname->m_bacnetaddr.addrType == remoteStationAddr
 		    || (okBroadcast && pname->m_bacnetaddr.addrType == remoteBroadcastAddr)
 			|| (okBroadcast && pname->m_bacnetaddr.addrType == globalBroadcastAddr) );
 }
@@ -1140,7 +1140,7 @@ void VTSRemoteAddrCtrl::AssignAddress(VTSName * pname)
 
 bool VTSRemoteAddrCtrl::IsAddressMatch( BACnetAddress * pbacnetaddr )
 {
-	if (   pbacnetaddr->addrType == remoteStationAddr 
+	if (   pbacnetaddr->addrType == remoteStationAddr
 		&& pbacnetaddr->addrNet == ctrlNet->intValue
 		&& pbacnetaddr->addrLen == addrLen
 		&& memcmp(pbacnetaddr->addrAddr,addrAddr,addrLen) == 0 )
@@ -1151,7 +1151,7 @@ bool VTSRemoteAddrCtrl::IsAddressMatch( BACnetAddress * pbacnetaddr )
 		&& addrLen == 0 )
 		return true;
 
-	if (   pbacnetaddr->addrType == globalBroadcastAddr 
+	if (   pbacnetaddr->addrType == globalBroadcastAddr
 		&& ctrlNet->intValue == 65535
 		&& addrLen == 0 )
 		return true;
@@ -1221,7 +1221,7 @@ void VTSRemoteAddrCtrl::LoadCombo( VTSNameList *nameList, unsigned int portID, b
 
 		// if it matches our port, save the name and index
 		if ((name.namePort == portID) || (name.namePort == 0))
-			if ((name.nameAddr.addrType == remoteStationAddr) 
+			if ((name.nameAddr.addrType == remoteStationAddr)
 				|| (okBroadcast && (name.nameAddr.addrType == remoteBroadcastAddr))
 				|| (okBroadcast && (name.nameAddr.addrType == globalBroadcastAddr)) ) {
 					indx = cbp->AddString( name.nameName );
@@ -1377,18 +1377,18 @@ void VTSRemoteAddrCtrl::CtrlToObj( void )
 		ctrlNameList->ReadName( cbp->GetItemData( i ), &name );
 
 		// if it matches our stuff, set it to the current selection
-		if ((name.nameAddr.addrType == remoteStationAddr) 
+		if ((name.nameAddr.addrType == remoteStationAddr)
 				&& (name.nameAddr.addrNet == ctrlNet->intValue)
 				&& (name.nameAddr.addrLen == addrLen)
 				&& (memcmp(name.nameAddr.addrAddr,addrAddr,addrLen) == 0) )
 			found = true;
 		else
-		if ((name.nameAddr.addrType == remoteBroadcastAddr) 
+		if ((name.nameAddr.addrType == remoteBroadcastAddr)
 				&& (name.nameAddr.addrNet == ctrlNet->intValue)
 				&& (addrLen == 0) )
 			found = true;
 		else
-		if ((name.nameAddr.addrType == globalBroadcastAddr) 
+		if ((name.nameAddr.addrType == globalBroadcastAddr)
 				&& (ctrlNet->intValue == 65535)
 				&& (addrLen == 0) )
 			found = true;
@@ -1584,17 +1584,17 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 {
 	//Modifyed by Zhu Zhenhua 2003-7-22
 	//Load Standard Property List for propCombo(when m_nObjectType != -1 )
-	//And add Other select after standard properties for propCombo,which can set Vendor Property 
+	//And add Other select after standard properties for propCombo,which can set Vendor Property
 	if (!m_bCombo)
-		return;	
+		return;
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
-	if(cbp->GetCount() != 0 && m_nObjType != -1 && m_nObjType < 25)  // MAG 31JAN06 GetCount was missing ()
-	{	
+	if(cbp->GetCount() != 0 && m_nObjType != -1 && m_nObjType < 25)
+	{
 		cbp->Clear();
 		cbp->ResetContent();
 		m_bHaveDropDown = true;
-	}									
-	if (cbp->GetCount() == 0) 
+	}
+	if (cbp->GetCount() == 0)
 	{
     	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 		for (i = 0; i < m_TableSize; i++)
@@ -1612,7 +1612,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 			CString str = "------------------------------";
 			cbp->AddString(str);
 			for (i = 0; i < m_TableSize; i++)
-			{		
+			{
 				CString str;
 				str = m_Table[i];
 				if(cbp->FindString(-1, str) < 0)
@@ -1724,7 +1724,6 @@ void VTSEnumeratedCtrl::CtrlToObj( void )
 			return;
 		if(OldSelectValue != m_SelectValue || m_bHaveDropDown)
 		SelectToEnum();
-
 		return;
 	}
 
@@ -1766,8 +1765,8 @@ void VTSEnumeratedCtrl::CtrlToObj( void )
 			}
 #endif
 #if 0
-	// This interesting code changes the control text to the complete 
-	// enumerated value and sets the selection to what wasn't entered 
+	// This interesting code changes the control text to the complete
+	// enumerated value and sets the selection to what wasn't entered
 	// by the user.  Would be better if the rest of the text was gray
 	// but that would take time I don't have right now.
 	// NOTE: the control is disabled to prevent message loops.
@@ -2868,8 +2867,8 @@ VTSListCtrl::VTSListCtrl( void )
 //
 //	VTSListCtrl::~VTSListCtrl
 //
-//	The list control doesn't maintain any data outside of the list contents, 
-//	so there's nothing to do.  The class has virtual functions, so this is 
+//	The list control doesn't maintain any data outside of the list contents,
+//	so there's nothing to do.  The class has virtual functions, so this is
 //	a virtual dtor.
 //
 
@@ -2880,8 +2879,8 @@ VTSListCtrl::~VTSListCtrl( void )
 //
 //	VTSListCtrl::Init
 //
-//	When the CSendPage is initialized the OnInitDialog function is called, so all 
-//	of the controls for the window have been created.  That function calls this 
+//	When the CSendPage is initialized the OnInitDialog function is called, so all
+//	of the controls for the window have been created.  That function calls this
 //	one to initialize the list.
 //
 
@@ -2909,7 +2908,7 @@ void VTSListCtrl::Init( CSendPage* wp, CListCtrl *cp, VTSListColDesc *dp  )
 //
 //	VTSListCtrl::GetItemCount
 //
-//	In theory it would be simpler to get the item count directly from the list control, 
+//	In theory it would be simpler to get the item count directly from the list control,
 //	but it is better to be balanced.
 //
 
@@ -2921,8 +2920,8 @@ int	VTSListCtrl::GetItemCount( void )
 //
 //	VTSListCtrl::EnableCtrl
 //
-//	The list will request that a control be enabled or disabled.  Normally this 
-//	simply enables or disables the contorl, but in case there is some more 
+//	The list will request that a control be enabled or disabled.  Normally this
+//	simply enables or disables the contorl, but in case there is some more
 //	processing needed, this is passed along to the derived class.
 //
 
@@ -2936,11 +2935,11 @@ void VTSListCtrl::EnableCtrl( int ctrlID, int enable )
 //
 //	VTSListCtrl::GetItemText
 //
-//	This function extracts the text from the list.  It is usually used in the 
-//	encoding routines.  Because this uses a local static buffer, it is not 
+//	This function extracts the text from the list.  It is usually used in the
+//	encoding routines.  Because this uses a local static buffer, it is not
 //	thread safe.
 //
-//	WARNING: Do not use CListCtrl::GetItemText(r,c), it doesn't work, don't ask 
+//	WARNING: Do not use CListCtrl::GetItemText(r,c), it doesn't work, don't ask
 //	me why.
 //
 
@@ -3167,7 +3166,7 @@ VTSStatusFlags::VTSStatusFlags( const CWnd* wp )
 //
 //	VTSStatusFlags::Enable
 //
-//	Enabling the flags means enabling all of the buttons and making their status reflect 
+//	Enabling the flags means enabling all of the buttons and making their status reflect
 //	the value in the bit string.
 //
 
@@ -3324,17 +3323,17 @@ void VTSStatusFlags::UpdateData( BOOL bCtrlToObj )
 //Added by Zhu Zhenhua 2003-7-22
 //To get the enumValue for the SelectItem Index
 void VTSEnumeratedCtrl::SelectToEnum()
-{			
+{
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
 	m_bHaveDropDown = false;
 	if(m_SelectValue == (cbp->GetCount() -1))
-	{	
+	{
 		VTSVendorPropIDDlg dlg;
 		if(m_VendorPropID != -1)
 			dlg.m_PropID = m_VendorPropID;
 		int res = dlg.DoModal();
 		if(res == IDOK)
-		{	
+		{
 			m_VendorPropID = dlg.m_PropID;
 			enumValue = m_VendorPropID;
 		}
@@ -3347,23 +3346,28 @@ void VTSEnumeratedCtrl::SelectToEnum()
 			cbp->SetCurSel(cbp->GetCount() -1);
 			return;
 		}
-		else 
-		{	
+		else
+		{
 			EnumToSelect();
 			cbp->SetCurSel(m_SelectValue);
 		}
-	}				
+	}
 	if(m_nObjType > 23)
 	{
 		enumValue = m_SelectValue;
 		return;
 	}
-	if (cbp->GetCount() != 0) 
+	if (cbp->GetCount() != 0)
 	{
+    CString str;
+    LPTSTR lpStr;
+//			cbp->GetWindowText(str);
+    lpStr = str.GetBufferSetLength(cbp->GetLBTextLen(cbp->GetCurSel()+1));
+    str.ReleaseBuffer(-1);
+    cbp->GetLBText(cbp->GetCurSel(), str);
+
 		for (int i = 0; i < m_TableSize; i++)
 		{
-			CString str;
-			cbp->GetWindowText(str);
 			CString strtemp = m_Table[i];
 			if(!str.Compare(strtemp))
 				enumValue = i;
@@ -3375,10 +3379,10 @@ void VTSEnumeratedCtrl::SelectToEnum()
 //Added by Zhu Zhenhua 2003-7-22
 //To get the slectItem Index from enumValue
 void VTSEnumeratedCtrl::EnumToSelect()
-{	
+{
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
 	if(enumValue > 511 && m_nObjType != -1)
-	{	
+	{
 		m_SelectValue = cbp->GetCount() - 1;
 		m_VendorPropID = enumValue;
 		return;
@@ -3388,7 +3392,7 @@ void VTSEnumeratedCtrl::EnumToSelect()
 		m_SelectValue = enumValue;
 		return;
 	}
-	if (cbp->GetCount() != 0) 
+	if (cbp->GetCount() != 0)
 	{
 			CString str = m_Table[enumValue];
 			m_SelectValue = cbp->FindString(-1, str);

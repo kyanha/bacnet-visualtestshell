@@ -256,9 +256,9 @@ class VTSDB : public CObject
 		void DeletePackets( void );						// clear out the packets
 
 // MAD_DB		void ReadPacket( int indx, VTSPacket& pkt );	// read a packet
-		LONG WritePacket(VTSPacket& pkt);				// write a packet
+		ULONGLONG WritePacket(VTSPacket& pkt);				// write a packet
 
-		LONG ReadNextPacket(VTSPacket& pkt, LONG lPosition = -1 );		// MAD_DB
+		ULONGULONG ReadNextPacket(VTSPacket& pkt, ULONGULONG lPosition);		// MAD_DB
 
 		CCriticalSection	writeLock;			// locked when transaction in progress
 

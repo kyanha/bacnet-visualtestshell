@@ -54,17 +54,18 @@ void VTSBackupRestoreProgressDlg::OutMessage(const CString& msg, BOOL bnewLine /
 	cf.cbSize = 10;
 	m_editOutput.SetDefaultCharFormat(cf);	
 	
-	int currLine = m_editOutput.GetLineCount()-1;
-	m_editOutput.SetSel(-1, -1);
+	int currLine = m_editOutput.GetLineCount() - 1;
+  m_editOutput.SetSel(-1,-1);
 	m_editOutput.ReplaceSel(msg);
-	m_editOutput.SetSel(-1, -1);
+  m_editOutput.SetSel(-1, -1);
 	if (bnewLine)
 	{
+   
 		m_editOutput.ReplaceSel("\r\n");
 	}
 	else
 	{
-		m_editOutput.ReplaceSel("\t");
+ 		m_editOutput.ReplaceSel("\t");
 	}
 	
 }
@@ -120,6 +121,7 @@ void VTSBackupRestoreProgressDlg::EndTestProcess()
 
 BOOL VTSBackupRestoreProgressDlg::OnInitDialog() 
 {
+  AfxInitRichEdit();
 	CDialog::OnInitDialog();
 	
 	// TODO: Add extra initialization here

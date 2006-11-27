@@ -852,8 +852,9 @@ int VTSDoc::WritePacket( VTSPacket & pkt )
 					nIndex = m_apPackets.Add(ppkt);
 				}
 			}
-			catch(CMemoryException e)
+			catch(CMemoryException *e)
 			{
+        e->Delete();
 				if ( ppkt != NULL )
 					delete ppkt;
 
@@ -958,12 +959,14 @@ void VTSDoc::ReloadPacketStore( void )
 
 int VTSDoc::LoadPacketArray( void )
 {
+  ULONGLONG tempPosition;
 	try
 	{
 		VTSPacketPtr ppkt = new VTSPacket();
 
 		// put everything into the packet list that matches the display filter
-		for ( long lNextPosition = 0; ppkt != NULL && (lNextPosition = m_PacketDB.ReadNextPacket(*ppkt, lNextPosition)) != -1; )
+		for ( ULONGLONG lNextPosition = 0; ppkt != NULL && (tempPosition = m_PacketDB.ReadNextPacket(*ppkt, lNextPosition)) != lNextPosition;  lNextPosition = tempPosition)
+      
 			if (m_displayFilters.TestPacket(*ppkt)) {
 				m_apPackets.Add(ppkt);
 				ppkt = new VTSPacket();
@@ -973,8 +976,9 @@ int VTSDoc::LoadPacketArray( void )
 		if ( ppkt != NULL )
 			delete ppkt;
 	}
-	catch(CMemoryException e)
+	catch(CMemoryException *e)
 	{
+    e->Delete();
 		AfxMessageBox(IDS_ERR_MAXPACKETS, MB_ICONSTOP | MB_OK);
 		m_fLoadPackets = false;
 	}
@@ -1037,7 +1041,7 @@ void VTSDoc::ProcessPacketStoreChange( void )
 
 		m_pStatisticsCollector->Update(summary.summaryLine, ppkt->packetLen, ppkt->packetHdr.packetType, ppkt->packetHdr.packetProtocolID );
 
-		if ( m_bStatisticsDlgInUse )
+		if ( m_bStatisticsDlgInUse && m_pStatitiscsDlg)
 			m_pStatitiscsDlg->Update(summary.summaryLine);
 	}
 
@@ -2396,8 +2400,9 @@ void VTSName::Serialize(CArchive& ar)
 		{
 			ar.Write(&m_bacnetaddr, sizeof(m_bacnetaddr));
 		}
-		catch( CFileException e )
+		catch( CFileException *e )
 		{
+       e->Delete();
 		}
 
 		if ( m_pportLink != NULL )
@@ -2654,8 +2659,9 @@ void VTSFilter::Serialize(CArchive& ar)
 		{
 			ar.Write(&m_filteraddr, sizeof(m_filteraddr));
 		}
-		catch( CFileException e )
+		catch( CFileException *e )
 		{
+      e->Delete();
 		}
 
 		ar << m_fnGroup;

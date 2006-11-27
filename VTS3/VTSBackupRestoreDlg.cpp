@@ -22,6 +22,7 @@ VTSBackupRestoreDlg::VTSBackupRestoreDlg(const VTSNames& names, const VTSPorts& 
 	: CDialog(VTSBackupRestoreDlg::IDD, pParent),
 	  m_names(names),
 	  m_ports(ports)
+    , Delay(0)
 {
 	//{{AFX_DATA_INIT(VTSBackupRestoreDlg)
 	m_nFunction = -1;
@@ -36,19 +37,20 @@ VTSBackupRestoreDlg::VTSBackupRestoreDlg(const VTSNames& names, const VTSPorts& 
 
 void VTSBackupRestoreDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(VTSBackupRestoreDlg)
-	DDX_Control(pDX, IDC_ALLBACKUPRESTORE, m_funCtrl);
-	DDX_Control(pDX, IDC_PORTCOMBO, m_portCtrl);
-	DDX_Control(pDX, IDC_DEVICECOMBO, m_deviceCtrl);
-	DDX_Radio(pDX, IDC_ALLBACKUPRESTORE, m_nFunction);
-	DDX_Text(pDX, IDC_BACKUPFILENAME, m_strBackupFileName);
-	DDX_CBString(pDX, IDC_DEVICECOMBO, m_strDevice);
-	DDX_Text(pDX, IDC_PASSWORD, m_strPassword);
-	DDX_CBString(pDX, IDC_PORTCOMBO, m_strPort);
-	DDX_Text(pDX, IDC_DEVICEOBJINST, m_strDevObjInst);
-	DDV_MaxChars(pDX, m_strDevObjInst, 7);
-	//}}AFX_DATA_MAP
+  CDialog::DoDataExchange(pDX);
+  //{{AFX_DATA_MAP(VTSBackupRestoreDlg)
+  DDX_Control(pDX, IDC_ALLBACKUPRESTORE, m_funCtrl);
+  DDX_Control(pDX, IDC_PORTCOMBO, m_portCtrl);
+  DDX_Control(pDX, IDC_DEVICECOMBO, m_deviceCtrl);
+  DDX_Radio(pDX, IDC_ALLBACKUPRESTORE, m_nFunction);
+  DDX_Text(pDX, IDC_BACKUPFILENAME, m_strBackupFileName);
+  DDX_CBString(pDX, IDC_DEVICECOMBO, m_strDevice);
+  DDX_Text(pDX, IDC_PASSWORD, m_strPassword);
+  DDX_CBString(pDX, IDC_PORTCOMBO, m_strPort);
+  DDX_Text(pDX, IDC_DEVICEOBJINST, m_strDevObjInst);
+  DDV_MaxChars(pDX, m_strDevObjInst, 7);
+  DDX_Control(pDX, IDC_DELAY, m_Delay);
+  //}}AFX_DATA_MAP
 }
 
 
@@ -58,6 +60,7 @@ BEGIN_MESSAGE_MAP(VTSBackupRestoreDlg, CDialog)
 	ON_CBN_SELENDOK(IDC_DEVICECOMBO, OnSelendokDevicecombo)
 	ON_CBN_SELENDOK(IDC_PORTCOMBO, OnSelendokPortcombo)
 	//}}AFX_MSG_MAP
+  ON_EN_CHANGE(IDC_DELAY, OnEnChangeDelay)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -194,3 +197,12 @@ void VTSBackupRestoreDlg::OnSelendokPortcombo()
 
 }
 
+void VTSBackupRestoreDlg::OnEnChangeDelay()
+{
+  CString delaystr;
+  m_Delay.GetWindowText(delaystr);
+  if(delaystr.GetLength())
+    Delay = atoi((LPCTSTR)delaystr);
+  else
+    Delay = 0;
+}

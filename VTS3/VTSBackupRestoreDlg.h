@@ -2,6 +2,7 @@
 // Jingbo Gao, Sep 20 2004
 //////////////////////////////////////////////////////////////////////
 
+#include "afxwin.h"
 #if !defined(AFX_VTSBACKUPRESTOREDLG_H__82C2A51F_AD40_42AD_B7BB_336533F2279E__INCLUDED_)
 #define AFX_VTSBACKUPRESTOREDLG_H__82C2A51F_AD40_42AD_B7BB_336533F2279E__INCLUDED_
 
@@ -32,6 +33,7 @@ public:
 	CComboBox	m_portCtrl;
 	CComboBox	m_deviceCtrl;
 	int		m_nFunction;
+  CEdit   m_Delay;
 	CString	m_strBackupFileName;
 	CString	m_strDevice;
 	CString	m_strPassword;
@@ -57,8 +59,11 @@ protected:
 	virtual void OnOK();
 	afx_msg void OnSelendokDevicecombo();
 	afx_msg void OnSelendokPortcombo();
+  afx_msg void OnEnChangeDelay();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+public:
+  UINT Delay;
 };
 
 //{{AFX_INSERT_LOCATION}}

@@ -26,8 +26,8 @@ class VTSPacketDB : public CObject
 		bool Open( LPCTSTR lpszFileName );
 		void DeletePackets( void );						// clear out the packets
 
-		LONG WritePacket(VTSPacket& pkt);				// write a packet
-		LONG ReadNextPacket(VTSPacket& pkt, LONG lPosition = -1 );		// MAD_DB
+		ULONGLONG WritePacket(VTSPacket& pkt);				// write a packet
+		ULONGLONG ReadNextPacket(VTSPacket& pkt, ULONGLONG lPosition );		// MAD_DB
 
 		CCriticalSection	writeLock;			// locked when transaction in progress
 
