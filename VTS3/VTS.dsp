@@ -663,6 +663,10 @@ SOURCE=.\SendSubscribeCOV.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SendSubscribeCOVProperty.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SendTest.cpp
 # End Source File
 # Begin Source File
@@ -1840,6 +1844,10 @@ SOURCE=.\SendSubscribeCOV.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SendSubscribeCOVProperty.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SendTest.h
 # End Source File
 # Begin Source File
@@ -2626,7 +2634,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                               $(InputPath)                                               $(OutDir)\ 
+	copy                                                $(InputPath)                                                $(OutDir)\ 
 
 # End Custom Build
 
@@ -2637,7 +2645,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                               $(InputPath)                                               $(OutDir)\ 
+	copy                                                $(InputPath)                                                $(OutDir)\ 
 
 # End Custom Build
 

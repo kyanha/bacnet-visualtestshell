@@ -1589,6 +1589,20 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //          1264041, 1256830, 1025962, 1021192,
 //			1021191,  806427,  787641,  779138,
 //			 779132, 1565943
+//
+//  3.4.10.a     November 21, 2006
+//  Backup and Restore Test fixes.  This includes changes to the reinit dialog.
+//  There are also changes made for stability and use in VC2005 projects.  These changes
+//  were supplied by JCI (Glen).  The only change not applied was in the BakRestoreExecutor.cpp.
+//  
+//
+//  Files changes are:
+//      BakRestoreExecutor.cpp/h, ChildFrm.cpp, DetailTreeCtrl.cpp,
+//      MainFrm.cpp, resource.h, ScriptBase.cpp/h, ScriptEditIncludeDlg.cpp,
+//      Send.cpp/h, SendReinitDevice.cpp/h, sizecbar.cpp, StdAfx.h,
+//      VTS.rc, VTSBackupRestoreDlg.cpp/h, VTSBackupRestoreProgress.cpp/h, 
+//      VTSCtrl.cpp, VTSDB.cpp/h, VTSDoc.cpp, VTSPacket.cpp, VTSPacketDB.cpp/h,
+//      VTSPortIPDialog.cpp/h, VTSPortMSTPDialog.cpp
 			
 const int kReleaseVersion = 10;
 			
@@ -1623,7 +1637,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 //	m_Version = _T("");
 	//}}AFX_DATA_INIT
 
-	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d"
+	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d.a"
 		, kVTSDBMajorVersion
 		, kVTSDBMinorVersion
 		, kReleaseVersion		// defined above
