@@ -715,11 +715,11 @@ void BakRestoreExecutor::DoRestoreTest()
 		BACnetUnsigned fileSize(atoi(strToken));
         nPos1 = nPos2 + 1;
 
-        int nPos3 = nPos1;  //Before string encoding method
-        nPos2 = strText.Find(',', nPos1);       //After string encoding method
-        nPos1 = nPos2 + 1;
+        //int nPos3 = nPos1;  //Before string encoding method
+        //nPos2 = strText.Find(',', nPos1);       //After string encoding method
+        //nPos1 = nPos2 + 1;
         nPos2 = strText.Find(',', nPos1);       //After object name
-        strToken = strText.Mid(nPos3, nPos2 - nPos3);
+        strToken = strText.Mid(nPos1, nPos2 - nPos1);
 
         BACnetCharacterString objName;
         objName.Decode( strToken );
@@ -2149,7 +2149,7 @@ BOOL BakRestoreExecutor::SendExpectPacket(CByteArray& contents)
 	}
 	else
 	{
-		buf.Add((BYTE)0x00);		// control
+		buf.Add((BYTE)0x04);		// control
 	}
 	contents.InsertAt(0, &buf);
 	if (m_pPort->m_nPortType == ipPort)
@@ -2172,7 +2172,7 @@ BOOL BakRestoreExecutor::SendExpectPacket(CByteArray& contents)
 	else
 	{
 		nNumOfAPDURetries = 3;
-		nAPDUTimeOut = 50000;	// millisecond
+		nAPDUTimeOut = 10000;	// millisecond
 	}
 
 	BACnetAddress	addr;
@@ -2295,7 +2295,8 @@ void BakRestoreExecutor::FindRouterAddress()
 		int len = contents.GetSize() + 4;		 // the size of npdu plus BVLC
 		contents.InsertAt( 0, (BYTE)(len & 0x00FF) );
 		contents.InsertAt( 0, (BYTE)(len >> 8) );
-		contents.InsertAt( 0, (BYTE)0x0A );
+//		contents.InsertAt( 0, (BYTE)0x0A );  // This is Original Unicast message specifier
+		contents.InsertAt( 0, (BYTE)0x0B );  // This is Original Broadcast message specifier
 		contents.InsertAt( 0, (BYTE)0x81 );
 	}
 
