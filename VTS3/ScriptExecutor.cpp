@@ -4792,7 +4792,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			ScriptTokenList			saList
 			;
 
-			if (nlSA->exprOp != '=' && !nlSA->IsAssignment() && !nlSA->IsDontCare() )
+			if ((nlSA->exprOp != '=') && (!nlSA->IsAssignment()) && (!nlSA->IsDontCare() ))
 				throw ExecError( "Equality or assignment operator required for source address keyword", nlSA->exprLine );
 
 			// resolve the expressions
