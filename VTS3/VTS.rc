@@ -1361,9 +1361,9 @@ BEGIN
 END
 
 IDD_SENDREINITDEVICE DIALOGEX 0, 0, 300, 234
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ReinitializeDevice"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
+FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Password",IDC_STATIC,35,69,32,8
     EDITTEXT        IDC_PASSWORD,80,67,120,12,ES_AUTOHSCROLL
@@ -4495,9 +4495,9 @@ BEGIN
 END
 
 IDD_BACKUP_RESTORE DIALOGEX 0, 0, 329, 150
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Backup/Restore a BACnet Device"
-FONT 10, "System", 0, 0, 0x0
+FONT 10, "System"
 BEGIN
     COMBOBOX        IDC_PORTCOMBO,39,12,77,49,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
@@ -4599,20 +4599,19 @@ BEGIN
 END
 
 IDD_BACKUP_RESTORE_PROGRESS DIALOGEX 0, 0, 187, 122
-STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU | WS_THICKFRAME
+STYLE WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
+    WS_THICKFRAME
 CAPTION "The Progress of Backup/Restore Process"
-FONT 10, "System", 0, 0, 0x0
+FONT 10, "System"
 BEGIN
     PUSHBUTTON      "Cancel",IDC_BACKUP_RESTORE_KILL,26,101,50,14
     DEFPUSHBUTTON   "Close",IDOK,105,101,50,14
-    CONTROL         "",IDC_BACKUP_RESTORE_OUTPUT,"RichEdit20A",ES_MULTILINE | 
-                    ES_AUTOHSCROLL | WS_BORDER | WS_TABSTOP,15,16,156,83
+    CONTROL         "",IDC_BACKUP_RESTORE_OUTPUT,"RichEdit20A",WS_BORDER | 
+                    WS_TABSTOP | 0x84,15,16,156,83
 END
 
 IDD_SENDSUBSCRIBECOVPROPERTY DIALOGEX 0, 0, 297, 135
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "SubscribeCOVProperty"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -4642,7 +4641,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,4,10,0
+ FILEVERSION 3,4,10,2
  PRODUCTVERSION 3,4,10,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -4661,14 +4660,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "Visual Test Shell\0"
-            VALUE "FileVersion", "3, 4, 10, 0\0"
+            VALUE "FileVersion", "3, 4, 10, 2\0"
             VALUE "InternalName", "VTS\0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2006\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "VTS.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Visual Test Shell\0"
-            VALUE "ProductVersion", "3, 4, 10, 0\0"
+            VALUE "ProductVersion", "3, 4, 10, 2\0"
             VALUE "SpecialBuild", "\0"
         END
     END
