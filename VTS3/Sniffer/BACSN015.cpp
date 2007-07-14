@@ -4374,6 +4374,9 @@ void show_deviceCommunicationControl( void )
 				   else if(pif_get_byte(1) == 0)
 					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
 					       "[%d] Device Communication Status:  ENABLED", tagval);
+				   else if(pif_get_byte(1) == 2)
+					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
+					       "[%d] Device Communication Status:  DISABLE-INIT", tagval);
 			   }
                break;
            case 2:
@@ -4425,10 +4428,13 @@ void show_deviceCommunicationControl( void )
            case 1:  /* enable/disable flag */
                show_context_tag("Enable/Disable Flag");
                tagbuff = pif_get_byte(0);
-               if(tagbuff)  /* TRUE */
+               if(tagbuff == 1)  /* DISABLED */
                  xsprintf(get_int_line(pi_data_current,pif_offset,1),
                    "%"FW"s = %>ku %s", "Device Communication Status","(DISABLED)");
-               else
+               else if(tagbuff == 2)  /* DISABLED-INIT */
+                 xsprintf(get_int_line(pi_data_current,pif_offset,1),
+                   "%"FW"s = %>ku %s", "Device Communication Status","(DISABLE-INITIATION)");
+			   else
                  xsprintf(get_int_line(pi_data_current,pif_offset,1),
                    "%"FW"s = %>ku %s", "Device Communication Status","(ENABLED)");
                pif_show_space();
@@ -6871,7 +6877,7 @@ void show_bac_real( void )
 {
    double dx;
    unsigned char fstr[4];
-   char float_str[20];
+   char float_str[40];  // changed from 20 to 40 to fix buffer overrun #1606486 Buddy Lott
    unsigned int i;
 
    for (i=0;i<4;i++) fstr[i] = pif_get_byte(3-i);
