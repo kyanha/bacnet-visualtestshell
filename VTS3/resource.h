@@ -400,6 +400,7 @@
 #define IDC_TIMEDURATION                1083
 #define IDC_PASSWORD                    1084
 #define IDC_COLDSTART                   1085
+#define IDC_DISABLE_INIT                1085
 #define IDC_WARMSTART                   1086
 #define IDC_CONTEXT                     1087
 #define IDC_ELEMLIST                    1088
@@ -882,11 +883,11 @@
 #define IDC_BACKUP_RESTORE_OUTPUT       1523
 #define IDC_DOW3                        1523
 #define IDC_DOW2                        1524
-#define IDC_DOW1                        1525
-#define IDC_DOW4                        1526
 #define IDC_FULLBACKUPRESTORE           1524
 #define IDC_BACKUP_RESTORE_KILL         1524
+#define IDC_DOW1                        1525
 #define IDC_RESTOREONLY                 1525
+#define IDC_DOW4                        1526
 #define IDC_AUXILIARYBACKUPRESTORE      1526
 #define IDC_BACKUPONLY                  1527
 #define IDC_COMBOBOXEX1                 1527

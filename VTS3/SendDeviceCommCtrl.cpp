@@ -46,6 +46,7 @@ BEGIN_MESSAGE_MAP(CSendDeviceCommCtrl, CPropertyPage)
 	ON_EN_CHANGE(IDC_TIMEDURATION, OnChangeTimeDuration)
 	ON_BN_CLICKED(IDC_ENABLE, OnEnable)
 	ON_BN_CLICKED(IDC_DISABLE, OnDisable)
+	ON_BN_CLICKED(IDC_DISABLE_INIT, OnDisableInit)
 	ON_EN_CHANGE(IDC_PASSWORD, OnChangePassword)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -169,6 +170,13 @@ void CSendDeviceCommCtrl::OnEnable()
 }
 
 void CSendDeviceCommCtrl::OnDisable() 
+{
+	UpdateData();
+	SavePage();
+	UpdateEncoded();
+}
+
+void CSendDeviceCommCtrl::OnDisableInit() 
 {
 	UpdateData();
 	SavePage();
