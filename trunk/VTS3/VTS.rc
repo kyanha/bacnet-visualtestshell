@@ -1355,9 +1355,11 @@ BEGIN
                     WS_GROUP,85,65,120,10
     CONTROL         "Disable",IDC_DISABLE,"Button",BS_AUTORADIOBUTTON,85,78,
                     120,10
-    LTEXT           "Password",-1,40,108,32,8
-    EDITTEXT        IDC_PASSWORD,83,105,121,12,ES_AUTOHSCROLL
-    GROUPBOX        "Enable/Disable",-1,5,55,280,40
+    CONTROL         "Disable Initiation",IDC_DISABLE_INIT,"Button",
+                    BS_AUTORADIOBUTTON,85,91,120,10
+    LTEXT           "Password",-1,39,121,32,8
+    EDITTEXT        IDC_PASSWORD,83,118,121,12,ES_AUTOHSCROLL
+    GROUPBOX        "Enable/Disable",-1,7,57,280,56
 END
 
 IDD_SENDREINITDEVICE DIALOGEX 0, 0, 300, 234
@@ -4641,7 +4643,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,4,10,2
+ FILEVERSION 3,4,10,3
  PRODUCTVERSION 3,4,10,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -4660,14 +4662,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "Visual Test Shell\0"
-            VALUE "FileVersion", "3, 4, 10, 2\0"
+            VALUE "FileVersion", "3, 4, 10, 3\0"
             VALUE "InternalName", "VTS\0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2006\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "VTS.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Visual Test Shell\0"
-            VALUE "ProductVersion", "3, 4, 10, 2\0"
+            VALUE "ProductVersion", "3, 4, 10, 3\0"
             VALUE "SpecialBuild", "\0"
         END
     END

@@ -54,6 +54,7 @@ protected:
 	afx_msg void OnChangePassword();
 	afx_msg void OnEnable();
 	afx_msg void OnDisable();
+	afx_msg void OnDisableInit();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
