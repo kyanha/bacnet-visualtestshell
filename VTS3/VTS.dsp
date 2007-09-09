@@ -2634,7 +2634,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                $(InputPath)                                                $(OutDir)\ 
+	copy                                                 $(InputPath)                                                 $(OutDir)\ 
 
 # End Custom Build
 
@@ -2645,7 +2645,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                $(InputPath)                                                $(OutDir)\ 
+	copy                                                 $(InputPath)                                                 $(OutDir)\ 
 
 # End Custom Build
 
@@ -2666,11 +2666,11 @@ SOURCE=.\WinPcap\wpcap.lib
 # End Source File
 # Begin Source File
 
-SOURCE=.\WinPcap\IPHlpApi.Lib
+SOURCE=.\NBLink\nb_link_settings.lib
 # End Source File
 # Begin Source File
 
-SOURCE=.\NBLink\nb_link_settings.lib
+SOURCE=.\GetMACAddress\IPHlpApi.Lib
 # End Source File
 # End Target
 # End Project
