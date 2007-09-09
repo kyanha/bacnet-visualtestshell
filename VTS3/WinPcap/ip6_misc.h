@@ -31,9 +31,11 @@
 #include <ws2tcpip.h>
 #endif /* __MINGW32__ */
 
+#ifndef __MINGW32__
 #define	IN_MULTICAST(a)		IN_CLASSD(a)
+#endif
 
-#define	IN_EXPERIMENTAL(a)	((((u_int32_t) (a)) & 0xe0000000) == 0xe0000000)
+#define	IN_EXPERIMENTAL(a)	((((u_int32_t) (a)) & 0xf0000000) == 0xf0000000)
 
 #define	IN_LOOPBACKNET		127
 
@@ -58,8 +60,12 @@ struct in6_addr
 #endif /* __MINGW32__ */
 
 
-#ifdef __MINGW32__
+#if (defined WIN32) || (defined __MINGW32__)
 typedef unsigned short	sa_family_t;
+#endif
+
+
+#ifdef __MINGW32__
 
 #define	__SOCKADDR_COMMON(sa_prefix) \
   sa_family_t sa_prefix##family
