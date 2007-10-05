@@ -46,7 +46,9 @@ void InitAdapterList( void )
 		gAdapterListLen = 0;
 
 		/* Retrieve the interfaces list */
-		if (pcap_findalldevs_ex(NULL, NULL, 0, NULL, &alldevs, errbuf) == -1) {
+//		if (pcap_findalldevs_ex(NULL, NULL, 0, NULL, &alldevs, errbuf) == -1) 
+		if (pcap_findalldevs(&alldevs, errbuf) == -1)		// changed for WinPCap 4.0.1
+		{
 			AfxMessageBox( errbuf );
 			exit(1);
 		}
@@ -179,13 +181,15 @@ void WinWinPcap::InitPort( short port, bool ispromiscuous )
 	m_Thread = 0;
 
 	// open the capture interface
-	m_Interface = pcap_open( gAdapterList[port].AdapterName
-		, 1500														// snaplen
-		, (ispromiscuous ? PCAP_OPENFLAG_PROMISCUOUS : 0)			// flags
-		, 500														// read timeout
-		, NULL														// authentication
-		, errbuf
-		);
+//	m_Interface = pcap_open( gAdapterList[port].AdapterName
+//		, 1500														// snaplen
+//		, (ispromiscuous ? PCAP_OPENFLAG_PROMISCUOUS : 0)			// flags
+//		, 500														// read timeout
+//		, NULL														// authentication
+//		, errbuf
+//		);
+	// Changed for WinPCap 4.0.1
+	m_Interface = pcap_open_live(gAdapterList[port].AdapterName, 1500, 1, 500, errbuf);
 	if (!m_Interface) {
 		AfxMessageBox( errbuf );
 		return;
@@ -369,7 +373,7 @@ UINT WinWinPcapThreadFunc( LPVOID pParam )
 
 	// read packets
 	while (pServer->m_Continue) {
-		res = pcap_next_ex( pServer->m_Interface, &header, &pkt_data);
+		res = pcap_next_ex( pServer->m_Interface, &header, (const unsigned char **)&pkt_data);
 
 		// check for problems
 		if (res < 0) break;
