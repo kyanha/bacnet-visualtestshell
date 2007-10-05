@@ -4056,7 +4056,7 @@ void ScriptExecutor::SendALOctetString( ScriptPacketExprPtr spep, CByteArray &pa
 			throw "Tag number expected";
 		indx = 1;
 	} else
-		throw "Double keyword requires 1 or 2 parameters";
+		throw "OctetString keyword requires 1 or 2 parameters";
 
 	// no references
 	if (tlist[indx].tokenType == scriptReference)
@@ -8714,6 +8714,7 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 			// this test is still pending, stash the execPacket
 			ScriptPacketPtr savePacket = execPacket;
 			execPacket = pp;
+			execCommand = pp;  // added by LJT
 			
 			//Modified by Zhu Zhenhua, 2003-11-25
 			if(ExpectPacket(fp,npdu)) {
