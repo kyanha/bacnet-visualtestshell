@@ -13,14 +13,17 @@ REM --- First make the executable distribution ---
 del %1-win32.zip
 pkzip25 -add %1-win32.zip release\VTS.exe release\ptp.dll winpcap\*.exe
 pkzip25 -add %1-win32.zip NBLink\release\nb_link_settings.dll 
-cd docs
-pkzip25 -add -path ..\%1-win32.zip *.html images\*.png images\*.jpg *.doc *.tpi
-cd ..
+rem cd docs
+rem pkzip25 -add -path ..\%1-win32.zip *.html images\*.png images\*.jpg *.doc *.tpi
+rem cd ..
+rem Copy the documents stuff
+pkzip25 -add -dir %1-win32.zip *.html *.png *.jpg *.gif *.doc *.tpi
+
 pkzip25 -add -dir %1-win32.zip *.vts
 REM --- Then make the source distribution ---
 del %1-source.zip
 pkzip25 -add -dir %1-source.zip *.cpp *.hpp *.c *.h *.inl 
-pkzip25 -add -dir %1-source.zip *.bmp *.cur *.ico *.rc *.rc2 *.dsp *.dsw *.lib *.vts *.def
+pkzip25 -add -dir %1-source.zip *.bmp *.cur *.ico *.rc *.rc2 *.dsp *.dsw *.lib *.vts *.def *.doc *.html *.png *.jpg *.tpi
 REM pkzip25 -add -path %1-source.zip bacmacNT\*.*
 pkzip25 -add -path %1-source.zip winpcap\*.exe
 pkzip25 -add -dir %1-source.zip nblink\*.dll 
