@@ -5736,16 +5736,16 @@ void show_unconfPrivateTransfer( void )
       if ((tagval == 2) && (tagbuff & 0x08)) {
          show_context_tag("Service Parameters");  /* opening tag */
 
-         while (pif_offset < (pif_end_offset-1)) 
-		 {
-			 show_head_app_data();																   //  ***002
-			 show_application_data( pif_get_byte(0) );
-		 }
-         /*
+//         while (pif_offset < (pif_end_offset-1)) 
+//		 {
+//			 show_head_app_data();																   //  ***002
+//			 show_application_data( pif_get_byte(0) );
+//		 }
+         
             len = pif_end_offset - pif_offset - 1;
             sprintf(outstr,"Service Parameters (%u Octets)",len);
             bac_show_nbytes(len,outstr);
-         */
+         
 
          show_context_tag("Service Parameters");  /* closing tag */
          }
@@ -6161,6 +6161,11 @@ void show_atomicReadFileACK( void )
 			  if(len == 5){
 				  len = pif_get_byte(1);
 				  flag = 1;
+					if (len == 254)
+					{
+						len = pif_get_word_hl(flag+1);
+					}
+					flag=3;
 			  }
 			  dataStr = new char[len*2+1];
 			  if(len){
@@ -6168,7 +6173,10 @@ void show_atomicReadFileACK( void )
 				  {
 					  sprintf(dataStr+i*2, "%02X", pif_get_byte(1+i+flag));
 				  }
-				  dataStr[len*2+1] = '\0';
+				  if (len > 254)
+					dataStr[255] = '\0';   // truncate the line so it is not too large to display
+				  else
+					dataStr[len*2+1] = '\0';
 				  sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
 					  "File Data (%u Octets):  X'%s'", len, dataStr);
 			  }
@@ -6178,6 +6186,7 @@ void show_atomicReadFileACK( void )
 			  }
 		  }																						   //  ***002 end
 		  show_application_data(tagbuff);
+		  pif_offset += len+flag+1;
       }
    }
 }
@@ -6901,6 +6910,12 @@ void show_bac_signed ( unsigned int len )
            "Value (2-octet signed)");
         pif_show_word_hl(outstr);
         break;
+
+	 case 3:
+		sprintf(outstr, "%" FW "s = %%ld", "Value (3-octet signed)");
+		pif_show_slong_hl(outstr);
+		break;
+
      case 4: sprintf(outstr,"%"FW"s = %%ld",
            "Value (4-octet signed)");
         pif_show_long_hl(outstr);
@@ -8435,7 +8450,8 @@ void show_bac_property_value( void )
    unsigned int obj_type = 0;
 
    tagbuff = pif_get_byte(0);
-   while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
+   while ((tagbuff & 0x0f) != 0x0f) 
+   {  /* closing PD tag not yet found */
       tagval = (tagbuff&0xf0)>>4;
       if (tagbuff & 0x08) 
 	  {  /* context tag */
@@ -8477,13 +8493,14 @@ void show_bac_property_value( void )
 			  show_bac_unsigned(len);  /* array index */
 			  // need to extract the property index to be used in case 2
                    break;
-          case 2:  show_head_app_data();														   //  ***002
+          case 2:  //show_head_app_data();														   //  ***002
 			  // repeat until end of tag is found 0x2f
 			  while (true) 
 			  {
 				  // show_application_data(pif_get_byte(0));  /* value */
 				  // need to figure out how to get the object type and property id here!!!!  TODO: for LJT 806427
 				   show_bac_ANY( obj_type, pid, pidx);  // obj_type, prop_id, prop_idx
+				   
 				   tagbuff = pif_get_byte(0);
 				   // if closing tag and context is 2 go ahead and end processing before we read more so we don't lose data
 				   if ((tagbuff & 0x0f ) == 0x0F)
@@ -9265,6 +9282,11 @@ void show_head_octet_string( unsigned int offset , char* type , int tagval )
 	if(tmpLen == 5){
 		tmpLen = pif_get_byte(offset+1);
 		flag = 2;
+		if (tmpLen == 254)
+		{
+			tmpLen = pif_get_word_hl(flag+offset);
+		}
+		flag=4;
 	}
 	strLength = tmpLen;
 	char outputStr[500],tempStr[10];

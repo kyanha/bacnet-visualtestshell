@@ -2548,7 +2548,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 //	       bac_show_byte("Error: Unknown Property Identifier","%u");
 		   show_head_app_data();		 //modified by Lei Chengxin 2003-9-8
 		   show_application_data(x);
-		   if(pif_get_byte(0) != 0x3f)
+		   if(pif_get_byte(0)&0x0F != 0x0F)
 		   {
 			   bac_show_byte("Error: Closing Tag Expected!","'%02X'");
 			   pif_end_offset = pif_offset;

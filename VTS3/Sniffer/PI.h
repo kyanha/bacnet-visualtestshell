@@ -388,6 +388,7 @@ void	pif_show_flag_value (char, int, char *);
 void	pif_show_2byte(char *);
 int		pif_show_word(char *);
 int		pif_show_word_hl(char *);
+long	pif_show_slong_hl(char *);  // 3 byte encoded
 long	pif_show_long(char *);
 long	pif_show_long_hl(char *);
 void	pif_show_4byte(char *);
@@ -860,7 +861,9 @@ extern  char    *pif_line();            /* get a detail line buffer */
 
 /* The following MACROs will not check the last byte addressed for End of Frame */
 
-#define pif_get_byte(n)      ((unsigned char)(*(msg_origin + pif_offset + (n))))
+// #Change made by Buddy Lott to correct VTS crashes #1608485
+//#define pif_get_byte(n)      ((unsigned char)(*(msg_origin + pif_offset + (n))))
+#define pif_get_byte(n) (( pif_offset + (n) >= pif_end_offset) ? 0 : ((unsigned char)(*(msg_origin + pif_offset + (n)))))
 
 #if LITTLEENDIAN
 /*  These are little endian defines - JJB */
@@ -1066,6 +1069,9 @@ typedef struct {
 
 /*
 $Log$
+Revision 1.7  2004/11/12 15:01:06  xuyiping-hust
+added for #787626: BACnet Backup & Restore Tests
+
 Revision 1.3.2.4  2004/11/05 01:07:47  gaojingbo
 Backup & Restore, 2004-11-4
 
