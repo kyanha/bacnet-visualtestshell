@@ -1637,7 +1637,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 //	m_Version = _T("");
 	//}}AFX_DATA_INIT
 
-	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d.4"
+	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d.5"
 		, kVTSDBMajorVersion
 		, kVTSDBMinorVersion
 		, kReleaseVersion		// defined above
