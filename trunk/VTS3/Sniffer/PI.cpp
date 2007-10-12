@@ -377,7 +377,7 @@ void pif_append_ascii( const char *fmt, const char *data )
 //
 //	pif_show_nbytes_hex
 //
-
+/* replaced with method below in order to correct buffer overruns
 void pif_show_nbytes_hex( char *prstr, int byte_count )
 {
 	static char	hex[] = "0123456789ABCDEF"
@@ -402,6 +402,48 @@ void pif_show_nbytes_hex( char *prstr, int byte_count )
 	// format the data into the detail line
 	sprintf( s, prstr, buff );
 }
+*/
+// new method provided by Buddy Lott for bug #1606849
+void pif_show_nbytes_hex( char *prstr, int byte_count )
+{
+	static char hex[] = "0123456789ABCDEF";
+	char *s, *dst
+	,	buff[ MAX_INT_LINE + 4]; /* use the extra 3 bytes for a '...' when data is dropped*/
+	
+	int spaceleft = MAX_INT_LINE - strlen(prstr); // keeps track of how much of the buffer should be used.
+
+	// since each byte takes at least 2 characters, lets make sure that the space left is even
+	spaceleft = (spaceleft%2)?spaceleft-1:spaceleft;
+
+	// fill in the buffer '.' mark some dropped data!
+	memset(buff,'.',MAX_INT_LINE + 3);
+
+	// get a detail line
+	s = get_int_line( pif_pi, pif_offset, byte_count );
+
+	// build a hex string
+	dst = buff;
+	while (spaceleft > 0 && byte_count--) {
+		int x = pif_get_byte(0);
+		*dst++ = hex[ (x >> 4) & 0x0F ];
+		*dst++ = hex[ x & 0x0F ];
+		spaceleft -=2;
+		pif_offset++;
+	}
+
+	if ( byte_count )
+	{
+		*(dst+3) = 0;
+	}
+	else
+	{
+	*dst = 0;
+	}
+
+	// format the data into the detail line
+	sprintf( s, prstr, buff );
+}
+
 
 //
 //	pif_show_long_hl
@@ -439,6 +481,46 @@ long pif_show_long_hl( char *prstr )
 
 	// update the offset
 	pif_offset += 4;	
+	return arg;
+}
+
+//
+//	pif_show_slong_hl
+//      LJT 10/11/2007 - added to fix handling of signed integers which encode to 3 bytes
+
+long pif_show_slong_hl( char *prstr )
+{
+	//Modifyed by Zhu Zhenhua 2003-7-22, the code to add "-" before the number if it is signed and negative
+	//else do as before	
+	CString str = prstr;
+	CString str1 = "Value (3-octet signed)";
+	unsigned char necValue = (0x80 & (unsigned char)pif_get_byte(0));
+	char			*s
+	;
+	unsigned long	arg
+	;
+	
+	// get a detail line
+	s = get_int_line( pif_pi, pif_offset, 3 );
+	
+	// get the long data and format it in the buffer
+	arg = pif_get_long_hl(0);
+	arg = arg >>8;   // Note: the pif_get_long_hl read 4 bytes which is 1 too many so here we strip it back off.  LJT
+	if(str.Find(str1)!= -1)
+		if(necValue)
+		{
+			int nIndex = str.Find("=")+2;
+			str.Insert(nIndex,'-');
+			unsigned long nValue = (unsigned short)(0x100000000 - arg);
+			strcpy(prstr,str);
+			sprintf(s,prstr,nValue);
+			pif_offset += 3;
+			return arg;
+		}
+	sprintf( s, prstr, arg );	
+
+	// update the offset
+	pif_offset += 3;	
 	return arg;
 }
 
