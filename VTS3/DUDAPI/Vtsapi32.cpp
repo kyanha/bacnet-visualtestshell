@@ -261,7 +261,7 @@ static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
    21, /* Protocol_Revision = 1 */
    23, /* Protocol_Revision = 2 */
    23, /* Protocol_Revision = 3 */
-   23  /* Protocol_Revision = 4 */
+   25  /* Protocol_Revision = 4 */ // LJT updated 3/27/2007
 };
 
 //---------------------------------------------------------------------
@@ -7756,7 +7756,7 @@ void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDepend
 // but is clearly stated in the BIBB definition section of the BACnet standard.
 // 
 // In addition, this function also checks for specific properties
-// that must be present for certain BIBBs. 
+// that must be present for certain BIBBs. TODO
 //  
 void CheckPICSCons2003A(PICSdb *pd)
 { 

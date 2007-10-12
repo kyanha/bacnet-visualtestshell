@@ -411,5 +411,6 @@ static const char *stPropIDs[]={
 #define     eiLifeSafetyOperation   30
 #define     eiMaintenance  31
 #define     eiLifeSafetyMode 32
+#define     eiAccumulatorStatus  33
 
 #endif //__PROPS_H_INCLUDED
