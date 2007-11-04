@@ -56,7 +56,7 @@ ScriptDebugNetFilter	gDebug2( "_2" );
 
 // Defined in VTSPacketDB.h
 extern const int kVTSDBMajorVersion = 3;			// current version
-extern const int kVTSDBMinorVersion = 4;
+extern const int kVTSDBMinorVersion = 5;
 
 extern CWinThread	*gBACnetWinTaskThread;
 
@@ -1604,7 +1604,7 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //      VTSCtrl.cpp, VTSDB.cpp/h, VTSDoc.cpp, VTSPacket.cpp, VTSPacketDB.cpp/h,
 //      VTSPortIPDialog.cpp/h, VTSPortMSTPDialog.cpp
 			
-const int kReleaseVersion = 10;
+const int kReleaseVersion = 0;
 			
 			class CAboutDlg : public CDialog
 			{
@@ -1637,7 +1637,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 //	m_Version = _T("");
 	//}}AFX_DATA_INIT
 
-	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d.5"
+	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d"
 		, kVTSDBMajorVersion
 		, kVTSDBMinorVersion
 		, kReleaseVersion		// defined above
