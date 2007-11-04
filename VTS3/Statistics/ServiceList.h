@@ -1,8 +1,8 @@
-#define TOTAL_MSG_NUMBER 64
+#define TOTAL_MSG_NUMBER 65
 
 
 int Service_Type_Index[]=
-{8,10,10,2,10,12,3,3,3,3
+{8,10,10,2,10,12,3,3,4,3
 };
 
 /* BACnet packet groups */
@@ -98,6 +98,7 @@ CString BACnet_msgs[]={
 	"Complex ACK",
 	"Simple ACK",
 	"Segment ACK",
+	"ReadProperty-ACK",
 
 /* Error packets */
 	"Error",
