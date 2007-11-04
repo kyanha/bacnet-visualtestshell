@@ -45,7 +45,7 @@ struct BACnetRouterList {
 
 const int kBACnetRouterMaxAdapters = 8;			// how many connected adapters
 const int kBACnetRouterMaxRouterListLen = 50;	// how many networks
-const int kBACnetRouterLocalNetwork = -1;		// local network, pass to BindToNetwork
+const int kBACnetRouterLocalNetwork = 0;		// local network, pass to BindToNetwork
 
 class BACnetRouter : public BACnetNetServer {
 		friend class BACnetRouterAdapter;
