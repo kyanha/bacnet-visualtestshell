@@ -397,6 +397,7 @@ class VTSServer : public BACnetServer {
 
 		void ReadProperty( const BACnetAPDU &apdu );
 		void WriteProperty( const BACnetAPDU &apdu );
+		void CovNotification( const BACnetAPDU &apdu );
 	};
 
 typedef VTSServer *VTSServerPtr;
