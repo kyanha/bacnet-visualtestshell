@@ -149,7 +149,8 @@ void BakRestoreExecutor::ExecuteTest()
 		}
 		m_strBackupFileName = dlg.m_strBackupFileName;
 		m_strPassword = dlg.m_strPassword;
-    m_Delay = dlg.Delay;
+		m_Delay = dlg.Delay;
+		m_Backup_Timeout = dlg.timeout;
 	}
 	else
 	{
@@ -387,11 +388,10 @@ void BakRestoreExecutor::DoBackupTest()
 	nStart += sprintf(buffer+nStart, "%s\n", chEnc);
 	backupIndexFile.Write(buffer, strlen(buffer));
 
-	m_pOutputDlg->OutMessage("Write a value of 60 seconds to the Device/Backup_Failure_Timeout...", FALSE);
-	// use WriteProperty to write a value of 60 seconds to the
-	// Device/Backup_Failure_Timeout property
+	m_pOutputDlg->OutMessage("Write to the Device/Backup_Failure_Timeout...", FALSE);
+	// use WriteProperty to write to the Device/Backup_Failure_Timeout property
 	propID.enumValue = PICS::BACKUP_FAILURE_TIMEOUT;
-	BACnetUnsigned backupFailureTimeout(60);
+	BACnetUnsigned backupFailureTimeout(m_Backup_Timeout);
 	propValue.SetObject(&backupFailureTimeout);
 	if (!SendExpectWriteProperty(devObjID, propID, propValue))
 	{
@@ -406,6 +406,16 @@ void BakRestoreExecutor::DoBackupTest()
 		throw("Result(+) is not received in response to the ReinitializeDevice\n");
 	}
 	m_pOutputDlg->OutMessage("OK");
+
+
+	if(m_Delay)
+	{
+		CString str;
+		str.Format("Waiting %d seconds", m_Delay);
+		m_pOutputDlg->OutMessage((LPCTSTR)str);
+
+		Sleep(m_Delay * 1000);
+	}
 
 	// Read array index zero of the Configuration_File property of the Device Object,
 	// and store it in a variable named NUM_FILES.
@@ -652,14 +662,14 @@ void BakRestoreExecutor::DoRestoreTest()
 	m_pOutputDlg->OutMessage("OK");
 
 
-  if(m_Delay)
-  {
-    CString str;
-    str.Format("Waiting %d seconds", m_Delay);
-    m_pOutputDlg->OutMessage((LPCTSTR)str);
+    if(m_Delay)
+	{
+      CString str;
+      str.Format("Waiting %d seconds", m_Delay);
+      m_pOutputDlg->OutMessage((LPCTSTR)str);
 
-    Sleep(m_Delay * 1000);
-  }
+      Sleep(m_Delay * 1000);
+	}
 
 	m_pOutputDlg->OutMessage("Use ReadProperty to read the Device/Object_List...", FALSE);
 	BACnetArrayOf<BACnetObjectIdentifier>	objList;
@@ -777,12 +787,12 @@ void BakRestoreExecutor::DoRestoreTest()
 			// Note: The JCI version of fixes removed the following two elements from
 			//       the create object list.  Does this make it more interoperable to do
 			//       this?  I chose to leave these values in for now.  11/21/2006 LJT
-			listOfInitialValues.AddElement(
-				&PropertyValue(BACnetEnumerated(PICS::FILE_ACCESS_METHOD), fileAccessMethod)
-				);
-			listOfInitialValues.AddElement(
-				&PropertyValue(BACnetEnumerated(PICS::FILE_SIZE), fileSize)
-				);
+			//listOfInitialValues.AddElement(
+			//	&PropertyValue(BACnetEnumerated(PICS::FILE_ACCESS_METHOD), fileAccessMethod)
+			//	);
+			//listOfInitialValues.AddElement(
+			//	&PropertyValue(BACnetEnumerated(PICS::FILE_SIZE), fileSize)
+			//	);
 
 			if (!SendExpectCreatObject(fileID, listOfInitialValues)) 
 			{
@@ -1598,8 +1608,9 @@ void BakRestoreExecutor::ReceiveNPDU(const BACnetNPDU& npdu)
 	// the rest of this code will need a decoder
 	BACnetAPDUDecoder	dec( packetData, npdu.pduLen );
 	// Decode the packet
-	if (0x81 == (dec.pktLength--,*dec.pktBuffer++))
+	if (0x81 == *dec.pktBuffer)
 	{
+		(dec.pktLength--,*dec.pktBuffer++);	// fix by Trevor from Delta 1/30/2008
 		// decode BVLCI
 		int nBVLCfunc = (dec.pktLength--,*dec.pktBuffer++);
 		if ((nBVLCfunc != 4) && (nBVLCfunc != 9)
@@ -2134,7 +2145,7 @@ BOOL BakRestoreExecutor::SendExpectPacket(CByteArray& contents)
 	if (m_IUTAddr.addrType == remoteStationAddr)
 	{	// if the IUT is on the remote network
 		BYTE control = 0;
-		control |= 0x20;
+		control |= 0x24;							// Set control to include DNET, DLEN, DADR, Hop and DER 
 		buf.Add(control);
 		buf.Add((m_IUTAddr.addrNet & 0xFF00) >> 8);	// DNET
 		buf.Add(m_IUTAddr.addrNet & 0x00FF);
