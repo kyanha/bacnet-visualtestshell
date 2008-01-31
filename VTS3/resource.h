@@ -911,6 +911,7 @@
 #define IDC_COLORCOMBO5                 1536
 #define IDC_DNETCHECK                   1536
 #define IDC_DELAY                       1543
+#define IDC_BACKUPTIMEOUT               1544
 #define IDC_COMBO1                      1550
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
