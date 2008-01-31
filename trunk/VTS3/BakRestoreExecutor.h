@@ -112,7 +112,8 @@ private:
 	BOOL m_bExpectAPDU;		// if expect a APDU or not
 	BACnetAPDUType m_nExpectAPDUType;	// expected APDU type if expect a APDU
 	int m_nExpectAPDUServiceChoice;		// expected Service Choice if expect a APDU
-  UINT m_Delay;
+	UINT m_Delay;
+	UINT m_Backup_Timeout;
 
 	VTSBackupRestoreProgressDlg* m_pOutputDlg;
 	void DoBackupTest();
