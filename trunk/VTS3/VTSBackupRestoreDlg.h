@@ -34,6 +34,7 @@ public:
 	CComboBox	m_deviceCtrl;
 	int		m_nFunction;
   CEdit   m_Delay;
+  CEdit	  m_backup_timeout;
 	CString	m_strBackupFileName;
 	CString	m_strDevice;
 	CString	m_strPassword;
@@ -60,10 +61,12 @@ protected:
 	afx_msg void OnSelendokDevicecombo();
 	afx_msg void OnSelendokPortcombo();
   afx_msg void OnEnChangeDelay();
+  afx_msg void OnEnChangeTimeout();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 public:
   UINT Delay;
+  UINT timeout;
 };
 
 //{{AFX_INSERT_LOCATION}}

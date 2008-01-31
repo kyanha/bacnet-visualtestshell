@@ -23,6 +23,7 @@ VTSBackupRestoreDlg::VTSBackupRestoreDlg(const VTSNames& names, const VTSPorts& 
 	  m_names(names),
 	  m_ports(ports)
     , Delay(0)
+	, timeout(60)
 {
 	//{{AFX_DATA_INIT(VTSBackupRestoreDlg)
 	m_nFunction = -1;
@@ -50,6 +51,7 @@ void VTSBackupRestoreDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Text(pDX, IDC_DEVICEOBJINST, m_strDevObjInst);
   DDV_MaxChars(pDX, m_strDevObjInst, 7);
   DDX_Control(pDX, IDC_DELAY, m_Delay);
+  DDX_Control(pDX, IDC_BACKUPTIMEOUT, m_backup_timeout);
   //}}AFX_DATA_MAP
 }
 
@@ -61,6 +63,7 @@ BEGIN_MESSAGE_MAP(VTSBackupRestoreDlg, CDialog)
 	ON_CBN_SELENDOK(IDC_PORTCOMBO, OnSelendokPortcombo)
 	//}}AFX_MSG_MAP
   ON_EN_CHANGE(IDC_DELAY, OnEnChangeDelay)
+  ON_EN_CHANGE(IDC_BACKUPTIMEOUT, OnEnChangeTimeout)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -205,4 +208,14 @@ void VTSBackupRestoreDlg::OnEnChangeDelay()
     Delay = atoi((LPCTSTR)delaystr);
   else
     Delay = 0;
+}
+
+void VTSBackupRestoreDlg::OnEnChangeTimeout()
+{
+  CString timeoutstr;
+  m_backup_timeout.GetWindowText(timeoutstr);
+  if(timeoutstr.GetLength())
+    timeout = atoi((LPCTSTR)timeoutstr);
+  else
+    timeout = 60;
 }
