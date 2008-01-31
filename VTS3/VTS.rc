@@ -4496,44 +4496,47 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,252,218,46,15
 END
 
-IDD_BACKUP_RESTORE DIALOGEX 0, 0, 329, 150
+IDD_BACKUP_RESTORE DIALOG DISCARDABLE  0, 0, 329, 174
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Backup/Restore a BACnet Device"
-FONT 10, "System", 0, 0, 0x1
+FONT 10, "System"
 BEGIN
-    COMBOBOX        IDC_PORTCOMBO,39,12,77,49,CBS_DROPDOWNLIST | CBS_SORT | 
+    COMBOBOX        IDC_PORTCOMBO,33,9,77,49,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_DELAY,39,27,77,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_DELAY,91,41,25,12,ES_AUTOHSCROLL
     CONTROL         "All backup and restore tests",IDC_ALLBACKUPRESTORE,
-                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,20,55,106,10
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,20,81,106,10
     CONTROL         "Full backup and restore",IDC_FULLBACKUPRESTORE,"Button",
-                    BS_AUTORADIOBUTTON,20,68,92,10
+                    BS_AUTORADIOBUTTON,20,94,92,10
     CONTROL         "Backup only",IDC_BACKUPONLY,"Button",BS_AUTORADIOBUTTON,
-                    20,81,53,10
+                    20,107,53,10
     CONTROL         "Restore only",IDC_RESTOREONLY,"Button",
-                    BS_AUTORADIOBUTTON,20,94,58,10
+                    BS_AUTORADIOBUTTON,20,120,58,10
     CONTROL         "Auxiliary backup and restore tests",
                     IDC_AUXILIARYBACKUPRESTORE,"Button",BS_AUTORADIOBUTTON,
-                    20,107,127,10
-    COMBOBOX        IDC_DEVICECOMBO,155,25,93,55,CBS_DROPDOWNLIST | CBS_SORT | 
+                    20,133,127,10
+    COMBOBOX        IDC_DEVICECOMBO,215,22,93,55,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_DEVICEOBJINST,260,25,65,12,ES_AUTOHSCROLL
-    EDITTEXT        IDC_BACKUPFILENAME,155,58,110,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Browse",IDC_BROWSE,275,59,50,11
-    EDITTEXT        IDC_PASSWORD,155,99,170,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,210,126,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,274,125,50,14
-    LTEXT           "Port:",IDC_STATIC,17,14,18,8
-    GROUPBOX        "Function to execute",IDC_STATIC,13,44,137,81
-    LTEXT           "Device to Backup/Restore:",IDC_STATIC,157,14,87,8
-    LTEXT           "Device Obj Instance:*",IDC_STATIC,258,14,71,8
-    LTEXT           "Backup filename:",IDC_STATIC,157,45,57,8
+    EDITTEXT        IDC_DEVICEOBJINST,243,54,65,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BACKUPFILENAME,153,87,110,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse",IDC_BROWSE,273,88,50,11
+    EDITTEXT        IDC_PASSWORD,154,131,170,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,209,153,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,271,154,50,14
+    LTEXT           "Port:",IDC_STATIC,10,11,18,8
+    GROUPBOX        "Function to execute",IDC_STATIC,13,70,137,81
+    LTEXT           "Device to Backup/Restore:",IDC_STATIC,217,11,87,8
+    LTEXT           "Device Obj Instance:*",IDC_STATIC,157,55,71,8
+    LTEXT           "Backup filename:",IDC_STATIC,155,74,57,8
     LTEXT           "Password required by the Device\n(Leave blank if no password is required)",
-                    IDC_STATIC,157,80,140,20
+                    IDC_STATIC,154,106,168,20
     LTEXT           "*.leave blank to use dynamic discovery of Device Object ID",
-                    IDC_STATIC,5,130,193,8
-    LTEXT           "Delay:",IDC_STATIC,11,30,24,8
-    LTEXT           "Seconds",IDC_STATIC,119,30,29,8
+                    IDC_STATIC,7,157,193,8
+    RTEXT           "Delay:",IDC_STATIC,7,42,79,8
+    LTEXT           "Seconds",IDC_STATIC,119,44,29,8
+    EDITTEXT        IDC_BACKUPTIMEOUT,91,28,25,12,ES_AUTOHSCROLL
+    RTEXT           "Backup Failure Timeout:",IDC_STATIC,4,30,82,8
+    LTEXT           "Seconds",IDC_STATIC,119,31,29,8
 END
 
 IDD_EPICSVIEW_PROP DIALOGEX 0, 0, 186, 90
@@ -4643,8 +4646,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,5,0,0
- PRODUCTVERSION 3,5,0,0
+ FILEVERSION 3,5,0,2
+ PRODUCTVERSION 3,5,0,2
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -4662,14 +4665,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "Visual Test Shell\0"
-            VALUE "FileVersion", "3, 5, 0, 0\0"
+            VALUE "FileVersion", "3, 5, 0, 2\0"
             VALUE "InternalName", "VTS\0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2006\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "VTS.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Visual Test Shell\0"
-            VALUE "ProductVersion", "3, 5, 0, 0\0"
+            VALUE "ProductVersion", "3, 5, 0, 2\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -6142,6 +6145,11 @@ BEGIN
     BEGIN
         LEFTMARGIN, 7
         TOPMARGIN, 7
+    END
+
+    IDD_BACKUP_RESTORE, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 150
     END
 
     IDD_EPICSVIEW_PROP, DIALOG
