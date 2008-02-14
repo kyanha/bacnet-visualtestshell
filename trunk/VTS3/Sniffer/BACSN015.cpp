@@ -3778,9 +3778,15 @@ void show_atomicWriteFile( void )
 				   {
 					   sprintf(dataStr+i*2, "%02X", pif_get_byte(1+i+flag));
 				   }
-				   dataStr[len*2+1] = '\0';
+
+				   if (len > 254)
+					dataStr[254*2+1] = '\0';   // truncate the line so it is not too large to display
+				  else
+					dataStr[len*2+1] = '\0';
+
 				   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
 					   "File Data (%u Octets):  X'%s'", len, dataStr);
+
 			   }
 			   else{
 				   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
@@ -3830,7 +3836,10 @@ void show_atomicWriteFile( void )
 					   {
 						   sprintf(dataStr+i*2, "%02X", pif_get_byte(1+i+flag));
 					   }
-					   dataStr[len*2+1] = '\0';
+					  if (len > 254)
+						dataStr[254*2+1] = '\0';   // truncate the line so it is not too large to display
+					  else
+						dataStr[len*2+1] = '\0';
 					   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
 						   "File Record Data (%u Octets):  X'%s'", len, dataStr);
 				   }
@@ -4415,6 +4424,12 @@ void show_deviceCommunicationControl( void )
 					   sprintf(strBuff, "");
 					   break;
 				   }
+				   // ensure we do not run over our length of detail line during the sprintf operation.
+				   if (strLength > 529)
+					   strBuff[530] = '\0';
+				   else
+					   strBuff[strLength+1]='\0';
+
 				   sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
 					   "[%d] Password:  '%s'", tagval, strBuff);
 			   }
@@ -4591,6 +4606,12 @@ void show_confirmedTextMessage( void )
 							  sprintf(strBuff, "");
 							  break;
 						  }
+						   // ensure we do not run over our length of detail line during the sprintf operation.
+						   if (strLength > 529)
+							   strBuff[530] = '\0';
+						   else
+							   strBuff[strLength+1]='\0';
+
 						  sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
 							  "Character Class:  '%s'", strBuff);								   //  ***002 end		  
 						  
@@ -4650,6 +4671,12 @@ void show_confirmedTextMessage( void )
 					   sprintf(strBuff, "");
 					   break;
 				   }
+				   // ensure we do not run over our length of detail line during the sprintf operation.
+				   if (strLength > (MAX_INT_LINE-21))      // note 21 is size of displayed text below.
+					   strBuff[MAX_INT_LINE-20] = '\0';
+				   else
+					   strBuff[strLength+1]='\0';
+
 				   sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
 					   "[%d] Message:  '%s'", tagval, strBuff);									   //  ***002 end
 				   
@@ -4805,7 +4832,12 @@ void show_vtData( void )
 	   {
 		   sprintf(dataStr+i*2, "%02X", pif_get_byte(1+i+flag));
 	   }
-	   dataStr[len*2+1] = '\0';
+	   // ensure we do not run over our detail line length (550) during the sprintf operation.
+	   if (len > 254)
+		   dataStr[254*2+1] = '\0';
+	   else
+			dataStr[len*2+1] = '\0';
+
 	   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
 		   "VT New Data (%u Octets):  X'%s'", len, dataStr);
    }
@@ -6164,8 +6196,8 @@ void show_atomicReadFileACK( void )
 					if (len == 254)
 					{
 						len = pif_get_word_hl(flag+1);
+						flag = 3;
 					}
-					flag=3;
 			  }
 			  dataStr = new char[len*2+1];
 			  if(len){
@@ -6174,7 +6206,7 @@ void show_atomicReadFileACK( void )
 					  sprintf(dataStr+i*2, "%02X", pif_get_byte(1+i+flag));
 				  }
 				  if (len > 254)
-					dataStr[255] = '\0';   // truncate the line so it is not too large to display
+					dataStr[254*2+1] = '\0';   // truncate the line so it is not too large to display
 				  else
 					dataStr[len*2+1] = '\0';
 				  sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
@@ -9126,8 +9158,8 @@ void show_head_char_string(unsigned int offset, char* type, int tagval)
 		if (tmpLen == 254)
 		{
 			tmpLen = pif_get_word_hl(flag+offset);
+			flag=4;
 		}
-		flag=4;
 	}
 	strLength = tmpLen;
 	char strBuff[MAX_INT_LINE];
