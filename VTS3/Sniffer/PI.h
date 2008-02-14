@@ -207,7 +207,7 @@ Change log
 
 #define MAX_SUM_LINE    143             /* maximum width of a summary line */
 #define MAX_SUM_LINES    12             /* maximum summary lines per packet */
-#define MAX_INT_LINE    500             /* maximum width of a detail line */
+#define MAX_INT_LINE    550             /* maximum width of a detail line */ // Increased line to allow 255 bytes
 #define MAX_INT_LINES   5000            /* maximum detail lines per packet */
 
 struct BACnetPIDetail {
@@ -1069,6 +1069,9 @@ typedef struct {
 
 /*
 $Log$
+Revision 1.8  2007/10/12 18:46:57  ltribble
+Corrected decoding of AtomicReadFile to fix the backup tests.  Corrected decoding of COVNotifications when propertyIdentifier is user defined.  Corrected decoding of PrivateTransfer to show only number of octets to eliminate VTS Crash if can't decode an unknown structure.
+
 Revision 1.7  2004/11/12 15:01:06  xuyiping-hust
 added for #787626: BACnet Backup & Restore Tests
 

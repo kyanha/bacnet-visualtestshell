@@ -431,9 +431,10 @@ void pif_show_nbytes_hex( char *prstr, int byte_count )
 		pif_offset++;
 	}
 
-	if ( byte_count )
+	if ( byte_count > 0 )
 	{
 		*(dst+3) = 0;
+		pif_offset += byte_count;
 	}
 	else
 	{
