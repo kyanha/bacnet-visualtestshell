@@ -2059,8 +2059,8 @@ BOOL ReadSpecialFunctionality(PICSdb *pd)
 				lp=p;							//point to argument(s)
 				p[-1]=':';
 				d=ReadDW();						//parse a window argument
-				if (d<50||d>1470)				//APDU size must be 50-1470
-				{	if (tperror("APDU sizes must be 50..1470!",true))
+				if (d<50||d>1476)				//APDU size must be 50-1476
+				{	if (tperror("APDU sizes must be 50..1476!",true))
 						return true;
 				}
 				pd->MaxAPDUSize=LOWORD(d);
