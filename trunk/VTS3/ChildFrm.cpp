@@ -1263,7 +1263,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 								"\tInvokeID = 1\n" \
 								"\tSegMsg = 0\n" \
 								"\tSegResp = 0\n" \
-								"\tMaxResp = 1470\n" \
+								"\tMaxResp = 1476\n" \
 								"\tObject = 0, OBJECT%d\n" \
 								"\tProperty = 1, %s\n" \
 								"    )\n\n", nObjNum, szTemp );
@@ -1273,8 +1273,8 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 								"\tNETWORK = ACTIVENET\n" );
 					pscript->WriteString(str);
 					if (pdlg->m_bDNET) {
-						str.Format(	"\tDNET = IUT_DNET\n" \
-							"\tDADR = IUT_DADR\n" );
+						str.Format(	"\tSNET = IUT_DNET\n" \
+							"\tSADR = IUT_DADR\n" );
 						pscript->WriteString(str);
 					}
 					str.Format( "\tSA = IUT_DA\n" 
