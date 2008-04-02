@@ -28,9 +28,10 @@ IMPLEMENT_DYNCREATE( CSendError, CPropertyPage )
 CSendError::CSendError( void )
 	: CSendPage( CSendError::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
-	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BACnetServicesSupported, 26, true )
-	, m_ErrorClassCombo( this, IDC_ERRORCLASSCOMBO, NetworkSniffer::BACnetErrorClass, 7, true )
-	, m_ErrorCodeCombo( this, IDC_ERRORCODECOMBO, NetworkSniffer::BACnetErrorCode, 43, true )
+	// TODO: These combos need to get their size from somewhere rather than be hard coded.
+	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BACnetServicesSupported, 40, true )
+	, m_ErrorClassCombo( this, IDC_ERRORCLASSCOMBO, NetworkSniffer::BACnetErrorClass, 8, true )
+	, m_ErrorCodeCombo( this, IDC_ERRORCODECOMBO, NetworkSniffer::BACnetErrorCode, 80, true )
 {
 	//{{AFX_DATA_INIT(CSendError)
 	//}}AFX_DATA_INIT
