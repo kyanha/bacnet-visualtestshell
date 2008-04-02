@@ -142,6 +142,7 @@ class VTSPort : public CObject
 		CString				m_strConfigParms;			// configuration string
 		// End persistent data
 
+
 //MAD_DB		VTSPort( VTSDocPtr dp, objId id );
 		VTSPort( void );
 		~VTSPort( void );
@@ -398,6 +399,12 @@ class VTSServer : public BACnetServer {
 		void ReadProperty( const BACnetAPDU &apdu );
 		void WriteProperty( const BACnetAPDU &apdu );
 		void CovNotification( const BACnetAPDU &apdu );
+
+		void GetAlarmSummary( const BACnetAPDU &apdu );
+		void DeviceCommunicationControl( const BACnetAPDU &apdu );
+		void AcknowledgeAlarm( const BACnetAPDU &apdu );
+		void EventNotification( const BACnetAPDU &apdu );
+		void ReinitializeDevice( const BACnetAPDU &apdu );
 	};
 
 typedef VTSServer *VTSServerPtr;
@@ -453,6 +460,10 @@ class VTSDevice : public CObject
 
 		VTSDevObjects m_devobjects;
 		// End persistent data
+
+		// TODO: move to persistent
+		BACnetBitString		m_objects_supported;
+		BACnetBitString		m_services_supported;
 
 //		VTSDevice( VTSDocPtr dp, objId id );
 		VTSDevice( void );

@@ -3253,6 +3253,21 @@ void VTSServer::Indication( const BACnetAPDU &apdu )
 			case confirmedCOVNotification:
 				CovNotification( apdu );
 				break;
+			case getAlarmSummary:
+				GetAlarmSummary(apdu);
+				break;
+			case deviceCommunicationControl:
+				DeviceCommunicationControl(apdu);
+				break;
+			case reinitializeDevice:
+				ReinitializeDevice(apdu);
+				break;
+			case confirmedEventNotification:
+				EventNotification(apdu);
+				break;
+			case acknowledgeAlarm:
+				AcknowledgeAlarm(apdu);
+				break;
 			default:
 				// madanner 5/03, needs address for return
 				{
@@ -3640,6 +3655,281 @@ void VTSServer::WriteProperty( const BACnetAPDU &apdu )
 	}
 }
 
+void VTSServer::GetAlarmSummary( const BACnetAPDU &apdu )
+{
+	BACnetAPDUTag			t	;
+	BACnetAPDUDecoder		dec( apdu )	;
+	BACnetObjectIdentifier	objId;
+	BACnetEnumerated		alarmState;
+	BACnetBitString			acknowledgedTransitions;
+	bool					gotIndex = false	;
+
+	try {
+//		TRACE3( "getAlarmSummary  \n");
+
+		// build an ack
+		BACnetComplexAckAPDU ack( getAlarmSummary, apdu.apduInvokeID );
+
+		// send the response back to where the request came from
+		ack.apduAddr = apdu.apduAddr;
+
+		// encode the properties from the request
+//		objId.Encode( ack );
+//		alarmState.Encode( ack );
+//		acknowledgedTransitions.Encode( ack );
+//		objId.Encode( ack );
+//		alarmState.Encode( ack );
+//		acknowledgedTransitions.Encode( ack );
+		
+		// send it
+		Response( ack );
+	}
+	catch (BACnetRejectReason rr) {
+		TRACE0( "getAlarmSummary execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, rr );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+	catch (...) {
+		TRACE0( "getAlarmSummary execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, otherReject );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+}
+
+void VTSServer::ReinitializeDevice( const BACnetAPDU &apdu)
+{
+	BACnetAPDUTag			t	;
+	BACnetAPDUDecoder		dec( apdu )	;
+
+	BACnetEnumerated		stateOfDevice;
+	BACnetCharacterString	password;
+
+	try {
+		password.SetValue("");
+
+		stateOfDevice.Decode( dec );
+
+		if ( dec.pktLength > 0 )
+		{
+			// look at the next tag
+			dec.ExamineTag( t );
+
+			if ((t.tagClass == contextTagClass) && (t.tagNumber == 1)) 
+			{
+				password.Decode( dec );
+			}
+		}
+
+		// TODO: We should actually do something with this information.
+
+//		TRACE3( "reinitializeDevice  %d, %s\n", stateOfDevice.enumValue, password );
+
+		// build an ack
+		BACnetSimpleAckAPDU	ack( reinitializeDevice, apdu.apduInvokeID );
+
+		// send the response back to where the request came from
+		ack.apduAddr = apdu.apduAddr;
+
+		// send it
+		Response( ack );
+	}
+	catch (BACnetRejectReason rr) {
+		TRACE0( "reinitializeDevice execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, rr );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+	catch (...) {
+		TRACE0( "reinitializeDevice execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, otherReject );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+}
+
+void VTSServer::DeviceCommunicationControl( const BACnetAPDU &apdu )
+{
+	BACnetAPDUTag			t	;
+	BACnetAPDUDecoder		dec( apdu )	;
+
+	BACnetUnsigned			timeDur;
+	BACnetEnumerated		enableDisable;
+	BACnetCharacterString	password;
+
+	try {
+		password.SetValue("");
+
+		// look at the next tag
+		dec.ExamineTag( t );
+		if ((t.tagClass == contextTagClass) && (t.tagNumber == 0))
+		{
+			timeDur.Decode( dec );
+		}
+
+		enableDisable.Decode( dec );
+
+		if ( dec.pktLength > 0 )
+		{
+			// look at the next tag
+			dec.ExamineTag( t );
+
+			if ((t.tagClass == contextTagClass) && (t.tagNumber == 2)) 
+			{
+				password.Decode( dec );
+			}
+		}
+
+		// TODO: We should actually do something with this information.
+
+//		TRACE3( "deviceCommunicationControl  %d, %d, %d\n", timeDur.uintValue, enableDisable.enumValue, password );
+
+		// build an ack
+		BACnetSimpleAckAPDU	ack( deviceCommunicationControl, apdu.apduInvokeID );
+
+		// send the response back to where the request came from
+		ack.apduAddr = apdu.apduAddr;
+
+		// send it
+		Response( ack );
+	}
+	catch (BACnetRejectReason rr) {
+		TRACE0( "deviceCommunicationControl execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, rr );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+	catch (...) {
+		TRACE0( "deviceCommunicationControl execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, otherReject );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+}
+
+void VTSServer::AcknowledgeAlarm( const BACnetAPDU &apdu )
+{
+	BACnetAPDUTag			t	;
+	BACnetAPDUDecoder		dec( apdu )	;
+	BACnetUnsigned			ack_pid;
+	BACnetObjectIdentifier	eventObjId;
+	BACnetEnumerated		eventState;
+	BACnetTimeStamp			timeStamp;
+	BACnetCharacterString	ackSource;
+	BACnetTimeStamp			ackTime;
+
+	try {
+		ack_pid.Decode( dec );
+		eventObjId.Decode( dec );
+		eventState.Decode( dec );
+
+//		timeStamp.Decode( dec );
+//		ackSource.Decode( dec );
+//		ackTime.Decode( dec );
+
+		// TODO: someday do something with this information
+
+//		TRACE3( "acknowledgeAlarm  %d, %d, %d\n", ack_pid.uintValue, eventObjId.objID, eventState.enumValue);
+
+		// build an ack
+		BACnetSimpleAckAPDU	ack( acknowledgeAlarm, apdu.apduInvokeID );
+
+		// send the response back to where the request came from
+		ack.apduAddr = apdu.apduAddr;
+
+		// send it
+		Response( ack );
+	}
+	catch (BACnetRejectReason rr) {
+		TRACE0( "confirmedCOVNotification execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, rr );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+	catch (...) {
+		TRACE0( "confirmedCOVNotification execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, otherReject );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+}
+
+void VTSServer::EventNotification( const BACnetAPDU &apdu )
+{
+	BACnetAPDUTag			t	;
+	BACnetAPDUDecoder		dec( apdu )	;
+	BACnetObjectIdentifier	objId	;
+	BACnetEnumerated		propId	;
+	BACnetUnsigned			arryIndx	;
+	bool					gotIndex = false	;
+
+	try {
+		// todo: need to decode the EventNotification packet to ensure it
+		// is encoded correctly and then perform any functions we might
+		// need to do.  Then send the simpleAck.  Currently we just send 
+		// the simpleAck.
+
+//		objId.Decode( dec );
+//		propId.Decode( dec );
+
+		// look at the next tag
+//		dec.ExamineTag( t );
+
+//		if ((t.tagClass == contextTagClass) && (t.tagNumber == 2)) {
+//			gotIndex = true;
+//			arryIndx.Decode( dec );
+
+			// look at the next tag
+//			dec.ExamineTag( t );
+//		}
+
+//		TRACE3( "EventNotification  %d, %d, %d\n", objId.objID, propId.enumValue, arryIndx.uintValue );
+
+		// build an ack
+		BACnetSimpleAckAPDU	ack( confirmedEventNotification, apdu.apduInvokeID );
+
+		// send the response back to where the request came from
+		ack.apduAddr = apdu.apduAddr;
+
+		// send it
+		Response( ack );
+	}
+	catch (BACnetRejectReason rr) {
+		TRACE0( "confirmedCOVNotification execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, rr );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+	catch (...) {
+		TRACE0( "confirmedCOVNotification execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, otherReject );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+}
+
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSDevice
 
@@ -3715,34 +4005,6 @@ void VTSDevice::Deactivate()
 }
 
 
-/* MAD_DB
-VTSDevice::VTSDevice( VTSDocPtr dp, objId id )
-	: devDoc(dp), devDescID(id)
-	, devClient(this), devServer(this)
-{
-	// read in the descriptor
-	ReadDesc();
-
-	// bind the device to the router (global Bind(), not our local one)
-	::Bind( &devDevice, &devRouter );
-
-	// add this to the master list
-	AddToMasterList();
-
-	// create a dummy port
-	devPort = new VTSPort( 0, 0 );
-
-	// the port name matches the device name
-	strcpy( devPort->portDesc.portName, devDesc.deviceName );
-
-	// create a funny endpoint that redirects requests back to this device
-	devPortEndpoint = new VTSDevicePort( devPort, this );
-
-	// read in the defined objects, properties and values
-	devObjPropValueList = new VTSObjPropValueList( dp, devDesc.deviceObjPropValueListID );
-}
-*/
-
 #pragma warning( default : 4355 )
 
 //
@@ -3766,80 +4028,7 @@ VTSDevice::~VTSDevice( void )
 //		delete devObjPropValueList;
 }
 
-//
-//	VTSDevice::AddToMasterList
-//
 
-/* MAD_DB
-void VTSDevice::AddToMasterList( void )
-{
-	// add this to the end, regardless of its status
-	gMasterDeviceList.AddTail( this );
-}
-
-//
-//	VTSDevice::RemoveFromMasterList
-//
-
-void VTSDevice::RemoveFromMasterList( void )
-{
-	POSITION pos = gMasterDeviceList.Find( this )
-	;
-
-//MAD_DB	ASSERT( pos != NULL );
-	if ( pos != NULL )
-		gMasterDeviceList.RemoveAt( pos );
-}
-
-//
-//	VTSDevice::ReadDesc
-//
-
-void VTSDevice::ReadDesc( void )
-{
-	int		stat
-	;
-
-	// ask the database for the descriptor
-	stat = devDoc->m_pDB->pObjMgr->ReadObject( devDescID, &devDesc );
-
-	// make sure the device matches the descriptor contents
-	devDevice.deviceInst = devDesc.deviceInstance;
-	devDevice.deviceSegmentSize = devDesc.deviceSegmentSize;
-	devDevice.deviceWindowSize = devDesc.deviceWindowSize;
-	devDevice.deviceNextInvokeID = devDesc.deviceNextInvokeID;
-	devDevice.deviceMaxAPDUSize = devDesc.deviceMaxAPDUSize;
-	devDevice.deviceAPDUTimeout = devDesc.deviceAPDUTimeout;
-	devDevice.deviceAPDUSegmentTimeout = devDesc.deviceAPDUSegmentTimeout;
-	devDevice.deviceAPDURetries = devDesc.deviceAPDURetries;
-}
-
-//
-//	VTSDevice::WriteDesc
-//
-
-void VTSDevice::WriteDesc( void )
-{
-	int		stat
-	;
-
-	// save the descriptor in the database
-	stat = devDoc->m_pDB->pObjMgr->WriteObject( devDescID, &devDesc );
-
-	// make sure the device matches the descriptor contents
-	devDevice.deviceInst = devDesc.deviceInstance;
-	devDevice.deviceSegmentSize = devDesc.deviceSegmentSize;
-	devDevice.deviceWindowSize = devDesc.deviceWindowSize;
-	devDevice.deviceNextInvokeID = devDesc.deviceNextInvokeID;
-	devDevice.deviceMaxAPDUSize = devDesc.deviceMaxAPDUSize;
-	devDevice.deviceAPDUTimeout = devDesc.deviceAPDUTimeout;
-	devDevice.deviceAPDUSegmentTimeout = devDesc.deviceAPDUSegmentTimeout;
-	devDevice.deviceAPDURetries = devDesc.deviceAPDURetries;
-
-	// make sure the dummy port has the correct name
-	strcpy( devPort->portDesc.portName, devDesc.deviceName );
-}
-*/
 
 
 //
@@ -3955,9 +4144,17 @@ void VTSDevice::Serialize(CArchive& ar)
 		ar << m_nAPDUSegmentTimeout;
 		ar << m_nAPDURetries;
 		ar << m_nVendorID;
+		// new for schema 2
+		// TODO: can't serialize BitString class directly need to figure out how to serialize
+		//       .. decode into char* and then create CString?
+//		ar << m_objects_supported;
+//		ar << m_services_supported;
 	}
 	else
 	{
+
+		UINT nSchema = ar.GetObjectSchema();
+		// nSchema = 1
 		ar >> m_strName;
 		ar >> m_nInstance;
 		ar >> m_fRouter;
@@ -3972,6 +4169,15 @@ void VTSDevice::Serialize(CArchive& ar)
 		ar >> m_nAPDUSegmentTimeout;
 		ar >> m_nAPDURetries;
 		ar >> m_nVendorID;
+
+		if ( nSchema == 2 )
+		{
+			// new for schema 2
+			// TODO: can't serialize directly  Read CString and get array of chars then encode into BitString
+//			ar >> m_objects_supported;
+//			ar >> m_services_supported;
+		}
+
 	}
 
 	m_devobjects.Serialize(ar);
@@ -4018,6 +4224,46 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 
 	switch( pbacnetpropid->enumValue )
 	{
+		case MODEL_NAME:
+			{
+						BACnetCharacterString(m_strName).Encode(*pAPDUEncoder);
+			}
+			break;
+		case SYSTEM_STATUS:
+			BACnetEnumerated(0).Encode(*pAPDUEncoder);
+			break;
+		case PROTOCOL_SERVICES_SUPPORTED:
+			{
+				BACnetBitString services_supported = BACnetBitString(40);
+				services_supported.SetBit(12);  // readProperty,
+				services_supported.SetBit(3);   // getAlarmSummary
+				services_supported.SetBit(17);	// deviceCommunicationControl
+				services_supported.SetBit(20);  // reinitializeDevice
+				services_supported.SetBit(34);	// who-is
+				services_supported.SetBit(0);	// acknowledgeAlarm
+				services_supported.SetBit(1);	// confirmedCOVNotification
+				services_supported.SetBit(2);	// confirmedEventNotification
+				services_supported.Encode(*pAPDUEncoder);
+			}
+			break;
+		case PROTOCOL_OBJECT_TYPES_SUPPORTED:
+			{
+				BACnetBitString objects_supported = BACnetBitString(25);
+				// TODO: one day setup using objects entered.
+				for (int x = 0; x < 25; x++)
+				{
+					objects_supported.SetBit(x);
+				}
+//				objects_supported.SetBit(8);  // only support Device  
+				objects_supported.Encode(*pAPDUEncoder);
+			}
+			break;
+		case PROTOCOL_VERSION:
+			BACnetUnsigned(1).Encode(*pAPDUEncoder);
+			break;
+		case PROTOCOL_REVISION:
+			BACnetUnsigned(2).Encode(*pAPDUEncoder);
+			break;
 		case OBJECT_NAME:
 						{
 						BACnetCharacterString(m_strName).Encode(*pAPDUEncoder);
@@ -4419,219 +4665,6 @@ const VTSDevice& VTSDevice::operator=(const VTSDevice& rdeviceSrc)
 
 
 IMPLEMENT_VTSPTRARRAY(VTSDevices, VTSDevice);
-
-
-
-/* MAD_DB
-
-/////////////////////////////////////////////////////////////////////////////
-// VTSDeviceList
-
-//
-//	VTSDeviceList::VTSDeviceList
-//
-
-VTSDeviceList::VTSDeviceList( void )
-	: m_pDoc(0)
-{
-}
-
-//
-//	VTSDeviceList::~VTSDeviceList
-//
-
-VTSDeviceList::~VTSDeviceList( void )
-{
-}
-
-//
-//	VTSDeviceList::Load
-//
-
-void VTSDeviceList::Load( VTSDocPtr docp )
-{
-	int				stat
-	;
-	objId			curID
-	;
-	JDBListPtr		plist
-	;
-	VTSDevicePtr	cur
-	;
-
-	// keep track of the database
-	m_pDoc = docp;
-
-	// get a pointer to the list
-	plist = &m_pDoc->m_pDB->dbDeviceList;
-
-	// intialize the port list
-	for (int i = 0; i < plist->Length(); i++) {
-		// get the port descriptor ID's
-		stat = plist->ReadElem( i, &curID );
-		ASSERT( stat == 0 );
-
-		// create a new device object to match
-		cur = new VTSDevice( m_pDoc, curID );
-
-		// add it to our list of ports
-		AddTail( cur );
-	}
-}
-
-//
-//	VTSDeviceList::Unload
-//
-
-void VTSDeviceList::Unload( void )
-{
-	for (POSITION pos = GetHeadPosition(); pos; )
-		delete GetNext( pos );
-}
-
-//
-//	VTSDeviceList::Add
-//
-
-void VTSDeviceList::Add( void )
-{
-	int					stat, elemLoc
-	;
-	objId				newDescID
-	;
-	VTSDevicePtr		cur
-	;
-	VTSDeviceDesc		newDesc
-	;
-	JDBListPtr			lp
-	;
-
-	// create a new descriptor
-	stat = m_pDoc->m_pDB->pObjMgr->NewObject( &newDescID, &newDesc, kVTSDeviceDescSize );
-
-	// initalize it
-	strcpy( newDesc.deviceName, "Untitled" );
-	newDesc.deviceInstance = 0;
-	newDesc.deviceRouter = 0;
-	newDesc.deviceSegmentation = noSegmentation;
-	newDesc.deviceSegmentSize = 1024;
-	newDesc.deviceWindowSize = 1;
-	newDesc.deviceMaxAPDUSize = 1024;
-	newDesc.deviceNextInvokeID = 0;
-	newDesc.deviceAPDUTimeout = 5000;
-	newDesc.deviceAPDUSegmentTimeout = 1000;
-	newDesc.deviceAPDURetries = 3;
-	newDesc.deviceVendorID = 15;				// default to Cornell
-
-	// create a new object and property list
-	lp = new JDBList();
-	stat = m_pDoc->m_pDB->pListMgr->NewList( *lp, kVTSObjPropValueSize );
-	newDesc.deviceObjPropValueListID = lp->objID;
-	delete lp;
-
-	// save it
-	stat = m_pDoc->m_pDB->pObjMgr->WriteObject( newDescID, &newDesc );
-	ASSERT( stat == 0 );
-
-	// add it on the end of the device list
-	elemLoc = 0x7FFFFFFF;
-	stat = m_pDoc->m_pDB->dbDeviceList.NewElem( &elemLoc, &newDescID );
-
-	// create a new device object to match
-	cur = new VTSDevice( m_pDoc, newDescID );
-
-	// add it to our list of ports
-	AddTail( cur );
-}
-
-//
-//	VTSDeviceList::Remove
-//
-//	This function is currently not called.  Note there is no delete button in 
-//	the device dialog box.
-//
-
-void VTSDeviceList::Remove( int i )
-{
-//	ASSERT( 0 );
-	int			stat
-	;
-	POSITION	pos = FindIndex( i )
-	;
-
-	ASSERT( pos != NULL );
-	delete GetAt( pos );
-	RemoveAt( pos );
-
-	stat = m_pDoc->m_pDB->dbDeviceList.DeleteElem( i );
-}
-
-//
-//	VTSPortList::FindPort
-//
-//	This function is called by the scripting engine to find a port with a given 
-//	name as described in the packet description in the script.  Used for sending 
-//	low level messages directly to a port.
-//
-
-VTSDevicePtr VTSDeviceList::FindDevice( const char *name )
-{
-	for (POSITION pos = GetHeadPosition(); pos; ) {
-		VTSDevicePtr cur = (VTSDevicePtr)GetNext( pos );
-
-		if (strcmp(name,cur->devDesc.deviceName) == 0)
-			return cur;
-	}
-
-	// failed to find it
-	return 0;
-}
-
-//
-//	VTSDeviceList::FindDevice
-//
-//	This function is used by a port to bind itself properly to a device object.
-//
-
-VTSDevicePtr VTSDeviceList::FindDevice( objId id )
-{
-	for (POSITION pos = GetHeadPosition(); pos; ) {
-		VTSDevicePtr cur = (VTSDevicePtr)GetNext( pos );
-
-		if (cur->devDescID == id)
-			return cur;
-	}
-
-	// failed to find it
-	return 0;
-}
-
-//
-//	VTSDeviceList::Length
-//
-
-int VTSDeviceList::Length( void )
-{
-	return CList<VTSDevicePtr,VTSDevicePtr>::GetCount();
-}
-
-//
-//	VTSDeviceList::operator []
-//
-//	When the user selects a port from the list of defined ports in the VTSPortDlg, this 
-//	function is called to return a pointer to the VTSPort object.  
-//
-
-VTSDevicePtr VTSDeviceList::operator []( int i )
-{
-	POSITION	pos = FindIndex( i )
-	;
-
-	ASSERT( pos != NULL );
-	return GetAt( pos );
-}
-
-*/  
 
 
 /////////////////////////////////////////////////////////////////////////////
