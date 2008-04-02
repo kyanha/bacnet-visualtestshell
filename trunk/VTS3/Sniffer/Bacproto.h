@@ -371,6 +371,7 @@ void     show_bac_COV_Subscription(); //Xiao Shiyuan 2002-7-23
 void     show_bac_destination(void); //Xu yiping 2002-9-28
 void	 show_bac_bitstring_value(char**c);	//Xu yiping 2002-9-28
 void	 show_bac_devobj_prop_ref(); //Added by Zhu Zhenhua, 2004-5-17
+void	 show_bac_scale(void);
 
 /*  ----- functions to add new tree node to the detail view ----- */
 

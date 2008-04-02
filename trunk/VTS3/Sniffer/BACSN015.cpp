@@ -4710,17 +4710,17 @@ void show_reinitializeDevice( void )
       tagbuff = pif_get_byte(0);
       tagval = (tagbuff&0xF0)>>4;
       if (tagbuff & 0x08) { /* context tag */
+		  int choice = pif_get_byte(1);
+
 		  switch(tagval){																		   //  ***002 begin
 		  case 0:
 			  {
-				  if(!pif_get_byte(1)){															
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
-						  "[%d] Reinitialized State of Device:  Coldstart=%u", tagval, pif_get_byte(1));
-				  }
-				  else{
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
-						  "[%d] Reinitialized State of Device:  Warmstart=%u", tagval, pif_get_byte(1));
-				  }
+				  if (choice < 7 ) // m_nBACnetSizeOfReinitializedStateOfDevice
+					sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
+					  "[%d] Reinitialized State of Device:  %s=%u", tagval, BACnetReinitializedStateOfDevice[choice], choice);
+				  else
+					sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
+					  "[%d] Reinitialized State of Device:  Unknown=%u", tagval, choice);
 			  }
 			  break;
 		  case 1:
@@ -4732,10 +4732,10 @@ void show_reinitializeDevice( void )
 
         switch(tagval) {
            case 0:  show_context_tag("Reinitialized State of Device");
-               if(!pif_get_byte(0))
-                 bac_show_byte("Coldstart","%u");
-               else
-                 bac_show_byte("Warmstart","%u");
+			  if (choice < 7 ) // m_nBACnetSizeOfReinitializedStateOfDevice
+				  bac_show_byte( BACnetReinitializedStateOfDevice[choice], "%u");
+			  else
+				  bac_show_byte( "Unknown", "%u");
                break;
            case 1:  len = show_context_tag("Password");
                show_bac_charstring(len);
@@ -7548,6 +7548,36 @@ void show_bac_calendar_entry( void )
    exit:;
 }
 
+void show_bac_scale( void )
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+
+   tagbuff = pif_get_byte(0);
+   tagval = (tagbuff&0xF0)>>4;
+   if (tagbuff & 0x08) {
+      if (tagval > 1) {
+         pif_show_space();
+         bac_show_nbytes(1,"Error: Invalid Choice (should be 0, or 1)!");
+         goto exit;
+         };
+      show_context_tag(BACnetScale[tagval]);
+      switch (tagval) {
+         case 0: show_bac_real();
+                 break;
+         case 1: 
+		          int len = show_context_tag("Signed-Value");
+				  show_bac_signed(len);
+			     break;
+         }
+      }
+   else {
+      pif_show_space();
+      bac_show_nbytes(1,"Error: Context Tag expected!");
+      }
+   exit:;
+}
+
+
 /**************************************************************************/
 void show_bac_event_parameters( void )
 /**************************************************************************/
@@ -9317,8 +9347,8 @@ void show_head_octet_string( unsigned int offset , char* type , int tagval )
 		if (tmpLen == 254)
 		{
 			tmpLen = pif_get_word_hl(flag+offset);
+			flag=4;
 		}
-		flag=4;
 	}
 	strLength = tmpLen;
 	char outputStr[500],tempStr[10];
