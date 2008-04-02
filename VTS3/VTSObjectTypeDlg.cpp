@@ -20,7 +20,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSObjectTypeDlg::VTSObjectTypeDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSObjectTypeDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetObjectType, 23, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetObjectType, MAX_DEFINED_OBJ, true )
 {
 	//{{AFX_DATA_INIT(VTSObjectTypeDlg)
 		// NOTE: the ClassWizard will add member initialization here

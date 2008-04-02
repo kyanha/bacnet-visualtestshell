@@ -57,6 +57,15 @@ BOOL VTSObjectIdentifierDialog::OnInitDialog()
 
 	CDialog::OnInitDialog();
 
+
+	m_ObjTypeCombo.ResetContent();
+	for( int i = 0; i < MAX_DEFINED_OBJ; i++)
+	{
+		m_ObjTypeCombo.AddString( NetworkSniffer::BACnetObjectType[i] );
+	}
+	m_ObjTypeCombo.AddString("Reserved");
+	m_ObjTypeCombo.AddString("Vendor");
+		
 	// use value given to us
 	objType = (objID >> 22);
 	instance = (objID & ((1 << 22) - 1));
