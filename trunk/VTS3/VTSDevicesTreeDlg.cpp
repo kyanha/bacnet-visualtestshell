@@ -69,6 +69,8 @@ BEGIN_MESSAGE_MAP(VTSDevicesTreeDlg, CDialog)
 	ON_UPDATE_COMMAND_UI(ID_DELETE, OnUpdateDelete)
 	ON_NOTIFY(TVN_KEYDOWN, IDC_DEVICETREE, OnKeydownDevicetree)
 	//}}AFX_MSG_MAP
+	ON_COMMAND( IDC_DEVEXPORT, OnExport)
+	ON_COMMAND( IDC_DEVIMPORT, OnImport)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -583,3 +585,77 @@ void VTSDevicesTreeDlg::OnKeydownDevicetree(NMHDR* pNMHDR, LRESULT* pResult)
 	
 	*pResult = 0;
 }
+
+void VTSDevicesTreeDlg::OnImport()
+{
+	
+}
+
+void VTSDevicesTreeDlg::OnExport()
+{
+	FILE *mfile;
+	// TODO: open file for our information
+	mfile=fopen("VTS_Devices_01.ini","w+");
+
+	fprintf(mfile, "VTS Devices\n");
+	fprintf(mfile, "{\n");
+
+	// VTSDevices
+	for ( int i = 0; i < m_devicesLocal.GetSize(); i++ )
+	{
+		VTSDevice * p = m_devicesLocal[i];
+		VTSDevObjects * pobjects;
+		VTSDevProperties * pproperties;
+		VTSDevValues * pvalues;
+
+		int j, k, l, m;
+
+		// TODO: write device information out to file
+		fprintf(mfile, "{\n");
+		fprintf(mfile, "Instance=%d\n", p->m_nInstance);
+		fprintf(mfile, "object-name=%s\n", p->m_strName);
+		fprintf(mfile, "number-of-APDU-retries=%d\n", p->m_nAPDURetries);
+		fprintf(mfile, "apdu-segment-timeout=%d\n", p->m_nAPDUSegmentTimeout);
+		fprintf(mfile, "apdu-timeout=%d\n", p->m_nAPDUTimeout);
+		fprintf(mfile, "max-APDU-length-supported=%d\n", p->m_nMaxAPDUSize);
+		fprintf(mfile, "max-segments-accepted=%d\n", p->m_nSegmentSize);
+		fprintf(mfile, "vendor-identifier=%d\n", p->m_nVendorID);
+		fprintf(mfile, "segmentation-supported=%d\n", p->m_segmentation);
+		fprintf(mfile, "WindowSize=%d\n", p->m_nWindowSize);
+
+
+
+		for ( j = 0, pobjects = p->GetObjects(); pobjects != NULL && j < pobjects->GetSize(); j++ )
+		{
+			// TODO: now write the object information
+			fprintf(mfile, "{\n");
+			fprintf(mfile, "object-identifier=%d:%d\n", (*pobjects)[j]->GetType(), (*pobjects)[j]->GetInstance() );
+
+			for ( k = 0, pproperties = (*pobjects)[j]->GetProperties(); pproperties != NULL && k < pproperties->GetSize(); k++ )
+			{
+				// TODO: now write the property information
+				fprintf(mfile, "{\n");
+				fprintf(mfile, "Property=%d\n", (*pproperties)[k]->GetID() );
+				for ( l = 0, pvalues = (*pproperties)[k]->GetValues(); pvalues != NULL && l < pvalues->GetSize(); l++ )
+				{
+					fprintf(mfile, "Value=%d:", (*pvalues)[l]->m_nLength);
+					for ( m = 0; m < (*pvalues)[l]->m_nLength; m++ )
+					{
+						fprintf(mfile, "%x ",(*pvalues)[l]->m_abContent[m] );
+					}
+					fprintf(mfile, "\n");
+				}
+				fprintf(mfile, "} End of Property\n");
+			}
+			fprintf(mfile, "} End of Object\n");
+
+		}
+		fprintf(mfile, "} End of Device\n");
+	}
+
+	// TODO: close file
+	fprintf(mfile, "} End of Devices\n");
+	fclose(mfile);
+
+}
+

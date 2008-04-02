@@ -13,6 +13,10 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+namespace NetworkSniffer {
+	extern char *BACnetObjectType[];
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSDevicesTreeObjPage property page
 
@@ -60,7 +64,8 @@ void VTSDevicesTreeObjPage::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_VENDOR, m_nVendor);
 	DDX_Text(pDX, IDC_RESERVED, m_nReserved);
 	DDX_Text(pDX, IDC_INSTANCE, m_nInstance);
-	DDX_CBIndex(pDX, IDC_OBJTYPECOMBO, m_nObjType);
+	DDX_Control(pDX, IDC_OBJTYPECOMBO, m_ObjTypeCombo);
+//	DDX_CBIndex(pDX, IDC_OBJTYPECOMBO, m_nObjType);
 	//}}AFX_DATA_MAP
 }
 
@@ -79,6 +84,15 @@ END_MESSAGE_MAP()
 
 BOOL VTSDevicesTreeObjPage::OnSetActive() 
 {
+	m_ObjTypeCombo.ResetContent();
+	for( int i = 0; i < MAX_DEFINED_OBJ; i++)
+	{
+		m_ObjTypeCombo.AddString( NetworkSniffer::BACnetObjectType[i] );
+	}
+	m_ObjTypeCombo.AddString("Reserved");
+	m_ObjTypeCombo.AddString("Vendor");
+
+	
 	m_pdevobject = (VTSDevObject *) RetrieveCurrentData();
 	if ( m_pdevobject != NULL &&  !m_pdevobject->IsKindOf(RUNTIME_CLASS(VTSDevObject)) )
 		m_pdevobject = NULL;
@@ -129,6 +143,7 @@ void VTSDevicesTreeObjPage::ObjToCtrl( VTSDevObject * pdevobject )
 		m_nVendor = m_nObjType;
 		m_nObjType = MAX_DEFINED_OBJ + 1; //was 19, 		// vendor type
 	}
+	m_ObjTypeCombo.SelectString( 0, NetworkSniffer::BACnetObjectType[m_nObjType] );
 }
 
 
@@ -141,6 +156,8 @@ void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
 	// Validate all control variables... stuff later.
 
 	ValidateTypeCode();
+
+	m_nObjType = m_ObjTypeCombo.GetCurSel();
 
 	int nObjID = m_nObjType;
 	switch(m_nObjType)

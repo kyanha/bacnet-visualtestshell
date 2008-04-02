@@ -34,9 +34,9 @@ public:
 	int			m_nVendor;
 	int			m_nReserved;
 	int			m_nInstance;
-	int			m_nObjType;
+	CComboBox	m_ObjTypeCombo;
 	//}}AFX_DATA
-
+	int         m_nObjType;
 
 // Overrides
 	// ClassWizard generate virtual function overrides
