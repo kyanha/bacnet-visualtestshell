@@ -105,7 +105,7 @@ void BACnetServerTSM::Confirmation( const BACnetAPDU &apdu )
 			tsmSegmentCount = (apdu.pktLength + tsmSegmentSize - 4) / tsmSegmentSize;
 			
 			// might not need segmentation
-			if (tsmSegmentCount == 1)
+			if (tsmSegmentCount <= 1)
 				goto fini;
 			
 			// verify request said the device supports a segmented reply
