@@ -42,6 +42,11 @@ char *BACnetCalendarEntry[] = {
    "WeekNDay"
     };
 
+char *BACnetScale[] = {
+	"floatScale",
+	"integerScale"
+};
+
 char *BACnetDateRange[] = {
    "Start Date",
    "End Date"
@@ -281,6 +286,59 @@ char *BACnetEngineeringUnits[] = {
    "Megajoules-per-square-meter",          /* 139 */
    "Megajoules-per-square-foot",           /* 140 */
    "Watts-per-square-meter-degree-Kelvin", /* 141 */
+   // New units added 3/9/2008
+   "Cubic-feet-per-second",					/* 142 */
+   "Percent-obscuration-per-foot",			/* 143 */
+   "Percent-obscuration-per-meter", 		/* 144 */
+   "miliohms", 								/* 145 */
+   "megawatt-hours", 						/* 146 */
+   "kilo-btus",								/* 147 */
+   "mega-btus",								/* 148 */
+   "kilojoules-per-kilogram-dry-air",		/* 149 */
+   "megajoules-per-kilogram-dry-air",		/* 150 */
+   "kilojoules-per-degree-Kelvin",			/* 151 */
+   "megajoules-per-degree-Kelvin",			/* 152 */
+   "newton",								/* 153 */
+   "grams-per-second",						/* 154 */
+   "grams-per-minute",						/* 155 */
+   "tons-per-hour",							/* 156 */
+   "kilo-btus-per-hour",					/* 157 */
+   "Hundredths-seconds",					/* 158 */
+   "milliseconds",							/* 159 */
+   "newton-meters",							/* 160 */
+   "millimeters-per-second",				/* 161 */
+   "millimeters-per-minute", 				/* 162 */
+   "meters-per-minute",						/* 163 */
+   "meters-per-hour",						/* 164 */
+   "cubic-meters-per-minute",				/* 165 */
+   "meters-per-second-per-second",			/* 166 */
+   "amperes-per-meter",						/* 167 */
+   "amperes-per-square-meter",				/* 168 */
+   "ampere-square-meters",					/* 169 */
+   "farads",								/* 170 */
+   "henrys",								/* 171 */
+   "ohm-meters",							/* 172 */
+   "siemens",								/* 173 */
+   "siemens-per-meter",						/* 174 */
+   "teslas",								/* 175 */
+   "volts-per-degree-Kelvin",				/* 176 */
+   "volts-per-meter",						/* 177 */
+   "webers",								/* 178 */
+   "candelas",								/* 179 */
+   "candelas-per-square-meter",				/* 180 */
+   "degrees-Kelvin-per-hour",				/* 181 */
+   "degrees-Kelvin-per-minute",				/* 182 */
+	"joule-seconds",						/* 183 */
+	"radians-per-second",					/* 184 */
+	"square-meters-per-Newton",				/* 185 */
+	"kilograms-per-cubic-meter",			/* 186 */
+	"newton-seconds",						/* 187 */
+	"newtons-per-meter",					/* 188 */
+	"watts-per-meter-per-degree-Kelvin",	/* 189 */
+	// Added by Addenda H (135-2004)
+	"micro-siemens",
+	"cubic-feet-per-hour",
+	"us-gallons-per-hour",  /* 192 */
    };
 
 char *BACnetError[] = {
@@ -320,7 +378,13 @@ char *BACnetError[] = {
 
 /* Security Services */
    "Authenticate Error Choice",
-   "RequestKey Error Choice"
+   "RequestKey Error Choice",
+
+/* services added after 1995 */
+	"ReadRange Error Choice",
+	"Life Safety Operation Error Choice",
+	"SubscribeCOVProperty Error Choice",
+	"GetEventInformation Error Choice",
    };
 
 char *BACnetErrorClass[] = {
@@ -330,7 +394,8 @@ char *BACnetErrorClass[] = {
    "Resources",
    "Security",
    "Services",
-   "VT"
+   "VT",
+   "Communication",
    };
 
 char *BACnetErrorCode[] = {
@@ -384,8 +449,48 @@ char *BACnetErrorCode[] = {
    "Datatype-not-supported",             /* 47 | */
    "Duplicate-name",                     /* 48 | */
    "Duplicate-object-id",                /* 49 | */
-   "Property-is-not-an-array"            /* 50 kare.sars@wapice.com */
+   "Property-is-not-an-array",            /* 50 kare.sars@wapice.com */
+   // Added by Addenda B (135-2004)
+   "abort-buffer-overflow",
+   "abort-invalid-apdu-in-this-state",
+   "abort-preempted-by-higher-priority-task",
+   "abort-segmentation-not-supported",
+   "abort-proprietary",
+   "abort-other", /* 56 */
+   "invalid-tag",
+   "network-down",
+   "reject-buffer-overflow",
+   "reject-inconsistent-parameters",
+   "reject-invalid-parameter-data-type",
+   "reject-missing-required-parameter",
+   "reject-parameter-out-of-range",
+   "reject-too-many-arguments",
+   "reject-undefined-enumeration",
+   "reject-proprietary",  /* 68 */
+   "reject-other",
+   "unknown-device",
+   "unknown-route",
+   "value-not-totalized",   /* 72 */
+   // Added by Addenda D (135-2004)
+   "invalid-event-state",  /* 73 */
+   "no-alarm-configured", /* 74 */
+   // added by Addenda B
+   "log-buffer-full", // 75
+   "logged-value-purged", // 76
+   "no-property-specified", // 77
+   "not-configured-for-triggered-logging", // 78
+   // added by Addenda H (135-2004)
+   "unknown-subscription",	  // 79
    };
+
+// Added Addendum B (135-2004)
+char *BACnetEventLogRecord[] = {
+	"timestamp",
+	"logDatum",
+	"log-status",
+	"notification",
+	"time-change"
+};
 
 //Modified by Zhu Zhenhua, 2004-5-20
 char *BACnetEventParameter[] = {
@@ -399,7 +504,9 @@ char *BACnetEventParameter[] = {
    "Deprecated",
    "Change of Life Safety",
    "Deprecated",
-   "Buffer Ready"
+   "Buffer Ready",
+   "Unsigned Range",
+   "Change of status-flags",
    };
 
 char *BACnetEventState[] = {
@@ -408,6 +515,7 @@ char *BACnetEventState[] = {
    "OFFNORMAL",
    "HIGH-LIMIT",
    "LOW-LIMIT",
+   "LIFE-SAFETY-ALARM",
    };
 
 char *BACnetEventTransitionBits[] = {
@@ -428,7 +536,9 @@ char *BACnetEventType[] = {
    "DEPRECATED",            
    "CHANGE-OF-LIFE-SAFETY", 
    "DEPRECATED",			
-   "BUFFER-READY"           
+   "BUFFER-READY",
+   "UNSIGNED-RANGE",
+   "CHANGE-OF-STATUS-FLAGS",
    };
 
 char *BACnetFileAccessMethod[] ={
@@ -478,7 +588,10 @@ char *BACnetLifeSafetyOperation[] = {
    "silence-visual",
    "reset",
    "reset-alarm",
-   "reset-fault"
+   "reset-fault",
+   "unsilence",
+   "unsilence-audible",
+   "unsilence-visual",
    };
 char *BACnetLifeSafetyState[] = {
    "quiet",
@@ -551,13 +664,24 @@ char *BACnetObjectPropertyReference[] = {
    "Property Identifier",
    "Property Array Index"
    };
+
+// Added addendum B (135-2004)
+char *BACnetPropertyAccessResult[] = {
+	"Object Identifier",
+	"Property Identifier",
+	"Property Array Index",
+	"Device Identifier",
+	"Access Result",
+};
+
 char *BACnetReadRangeACK[] = {
    "Object Identifier",
    "Property Identifier",
    "Property Array Index",
    "ResultsFlag",
    "ItemCount",
-   "ItemData"
+   "ItemData",
+   "First Sequence Number",
    };
 char *BACnetReadRangeRequest[] = {
    "Object Identifier",
@@ -601,6 +725,11 @@ char *BACnetObjectType[] = {
    "LIFE-SAFETY-ZONE",	    /*22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
    "ACCUMULATOR",           //23 Shiyuan Xiao 7/15/2005
    "PULSE-CONVERTER",       //24 Shiyuan Xiao 7/15/2005
+   "EVENT-LOG",			  // 25	- Addendum B
+   "GLOBAL-GROUP",		  // 26 - Addendum B
+   "TREND-LOG-MULTIPLE",  // 27 - Addendum B
+   "",					  // 28 - Addendum E
+   "STRUCTURED-VIEW",     // 29 - Addendum D
    };
 
 char *BACnetObjectTypesSupported[] = {
@@ -629,6 +758,11 @@ char *BACnetObjectTypesSupported[] = {
    "LIFE-SAFETY-ZONE"       /* 22 */	  // msdanner 9/04, added
    "ACCUMULATOR",           //23 Shiyuan Xiao 7/15/2005
    "PULSE-CONVERTER",       //24 Shiyuan Xiao 7/15/2005
+   "EVENT-LOG",			  // 25	- Addendum B
+   "GLOBAL-GROUP",		  // 26 - Addendum B
+   "TREND-LOG-MULTIPLE",  // 27 - Addendum B
+   "",					  // 28 - Addendum E
+   "STRUCTURED-VIEW",     // 29 - Addendum D
    };
 
 char *BACnetPolarity[] = {
@@ -858,8 +992,44 @@ char *BACnetPropertyIdentifier[] = {
    "Value_Before_Change",              // 190 Shiyuan Xiao 7/15/2005
    "Value_Set",                        // 191 Shiyuan Xiao 7/15/2005
    "Value_Change_Time"                 // 192 Shiyuan Xiao 7/15/2005
+   // added Addendum B (135-2004)
+	"Align_Intervals",
+	"Group_Members_Names",
+	"Interval_Offset",
+	"Last_Restart_Reason",
+	"Logging_Type",
+	"Member_Status_Flags",
+	"Previous_Notify_Record",
+	"Requested_Update_Interval",
+	"Restart_Notification_Recipients",
+	"Time_Of_Device_Restart",
+	"Time_Synchronization_Interval",
+	"Trigger",
+	"Utc_Time_Syncrhonization_Recipients",  // 206
+	// Added by addenda D
+	"node-subtype", // 207
+	"node-type",   // 208
+	"structured-object-list",  // 209
+	"subordinate-annotation",  // 210
+	"subordinate-list", // 211
 };
 
+// Added by Addenda D
+char *BACnetNodeType[] = {
+   "UNKNOWN",
+   "SYSTEM",
+   "NETWORK",
+   "DEVICE",
+   "ORGANIZATION",
+   "AREA",
+   "EQUIPMENT",
+   "POINT",
+   "COLLECTION",
+   "PROPERTY",
+   "FUNCTIONAL",
+   "OTHER"
+   };
+   
 char *BACnetPropertyReference[] = {
    "Property Identifier",
    "Property Array Index"
@@ -867,7 +1037,7 @@ char *BACnetPropertyReference[] = {
 
 char *BACnetPropertyStates[] = { 
    "Boolean-value",
-   "Binary-value"
+   "Binary-value",
    "Event-type",
    "Polarity",
    "Program-change",
@@ -876,7 +1046,10 @@ char *BACnetPropertyStates[] = {
    "Reliability",
    "State",
    "System-status",
-   "Units"
+   "Units",
+   "Unsigned-value",
+   "Life-safety-mode",
+   "Life-safety-state",
    };
 
 char *BACnetPropertyValue[] = {
@@ -905,7 +1078,12 @@ char *BACnetReliability[] = {
    "SHORTED-LOOP",
    "NO-OUTPUT",
    "UNRELIABLE-OTHER",
-   "PROCESS-ERROR"
+   "PROCESS-ERROR",
+   "MULTI-STATE-FAULT",
+   "CONFIGURATION-ERROR", // 10
+   // added addendum B (135-2004)
+   "MEMBER-FAULT",
+   "COMMUNICATION-FAILURE",
    };
 
 char *BACnetSegmentation[] = {
@@ -1034,7 +1212,8 @@ char *BACnetTimeStamp[] = {
    "Control Systems International",
    "Phoenix Controls Corporation",
    "Innovex",
-   "KMC Controls"
+   "KMC Controls",
+   // TODO add more here ...
    };
 
 char *BACnetTimeValue[] = {
@@ -1230,6 +1409,16 @@ char *BACnetUnconfirmedServiceChoice[] = {
    "Who-Is",                        /* 8 */
    "UTCTimeSynchronization"         /* 9 */
    };                       
+
+char *BACnetReinitializedStateOfDevice[] = {
+	"coldstart",	/* 0 */
+	"warmstart",
+	"startbackup",
+	"endbackup",
+	"startrestore",
+	"endrestore",
+	"abortrestore"	/* 6 */
+};
 
 /**************************************************************************/
 /* The functions that follow are used to complement the PIF functions     */
@@ -2544,6 +2733,9 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 		   show_head_app_data();	
            show_application_data(x);
  		  break;
+	  case SCALE:
+		  show_bac_scale();
+		  break;
       default:
 //	       bac_show_byte("Error: Unknown Property Identifier","%u");
 		   show_head_app_data();		 //modified by Lei Chengxin 2003-9-8
