@@ -76,6 +76,10 @@ public:
 
 	VTSEnumeratedCtrl			m_ObjectTypeCombo;
 	VTSObjectIdentifierCtrl		m_ObjectID;
+
+	bool	m_bObjectTypeActive;
+	int		m_nChoice;
+
 	CreateObjectList			m_PropList;		// list of properties
 
 	void InitPage( void );						// give it a chance to init
@@ -116,6 +120,10 @@ protected:
 	afx_msg void OnChangePriority();
 	afx_msg void OnObjectIDButton();
 	//}}AFX_MSG
+	afx_msg void OnSelectObjectType();
+	afx_msg void OnSelectObjectID();
+
+
 	DECLARE_MESSAGE_MAP()
 };
 

@@ -848,7 +848,7 @@ CAPTION "BVLCI"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "No BVLCI (Annex H)",IDC_NONE,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,25,15,135,8
+                    BS_AUTORADIOBUTTON | WS_GROUP,25,17,135,8
     CONTROL         "Distribute-Broadcast-To-Network",IDC_DBTN,"Button",
                     BS_AUTORADIOBUTTON,25,45,135,8
     CONTROL         "Original Unicast",IDC_UNICAST,"Button",
@@ -1730,11 +1730,14 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "CreateObject"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "ObjectType",IDC_STATIC,25,12,40,10
-    COMBOBOX        IDC_OBJECTTYPECOMBO,79,10,100,75,CBS_DROPDOWNLIST | 
+    CONTROL         "",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | WS_GROUP,23,
+                    12,14,14
+    CONTROL         "",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,23,32,14,14
+    LTEXT           "ObjectType",IDC_STATIC,43,15,40,10
+    COMBOBOX        IDC_OBJECTTYPECOMBO,97,12,100,75,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Object ID",IDC_STATIC,35,31,31,8
-    EDITTEXT        IDC_OBJECTID,79,30,91,12,ES_AUTOHSCROLL
+    LTEXT           "Object ID",IDC_STATIC,53,33,31,8
+    EDITTEXT        IDC_OBJECTID,97,33,91,12,ES_AUTOHSCROLL
     CONTROL         "List1",IDC_PROPLIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | 
                     WS_TABSTOP,10,50,215,135
@@ -1749,7 +1752,7 @@ BEGIN
     PUSHBUTTON      "Any...",IDC_VALUE,45,210,55,15
     LTEXT           "Priority",IDC_STATIC,154,214,22,8
     EDITTEXT        IDC_PRIORITYX,179,210,26,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,175,30,20,12,NOT WS_TABSTOP
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,193,33,20,12,NOT WS_TABSTOP
 END
 
 IDD_SENDCREATEOBJECTACK DIALOG DISCARDABLE  0, 0, 300, 234
@@ -2489,10 +2492,8 @@ BEGIN
                     7,136,185,WS_EX_DLGMODALFRAME
     CONTROL         "",IDC_DEVTREEHOLDER,"Static",SS_BLACKFRAME | 
                     WS_DISABLED | WS_GROUP,150,7,215,167
-    PUSHBUTTON      "Import",IDC_DEVIMPORT,149,178,50,14,WS_DISABLED | 
-                    WS_GROUP
-    PUSHBUTTON      "Import",IDC_DEVEXPORT,204,178,50,14,WS_DISABLED | NOT 
-                    WS_TABSTOP
+    PUSHBUTTON      "Import",IDC_DEVIMPORT,149,178,50,14,WS_GROUP
+    PUSHBUTTON      "Export",IDC_DEVEXPORT,204,178,50,14,NOT WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,260,178,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,315,178,50,14,NOT WS_TABSTOP
 END
@@ -2621,7 +2622,7 @@ BEGIN
                     WS_DISABLED,136,70,50,10
     CONTROL         "Router",IDC_ROUTER,"Button",BS_AUTOCHECKBOX | 
                     WS_DISABLED | WS_GROUP | WS_TABSTOP,121,97,55,10
-    PUSHBUTTON      "I-Am",IDC_IAM,120,118,50,15,NOT WS_TABSTOP
+    PUSHBUTTON      "I-Am",IDC_IAM,119,111,50,15,NOT WS_TABSTOP
 END
 
 IDD_DEVTREENULL DIALOG DISCARDABLE  0, 0, 196, 148
@@ -4646,13 +4647,13 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,5,0,2
- PRODUCTVERSION 3,5,0,2
+ FILEVERSION 3,5,0,4
+ PRODUCTVERSION 3,5,0,4
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
- FILEFLAGS 0x1L
+ FILEFLAGS 0x21L
 #else
- FILEFLAGS 0x0L
+ FILEFLAGS 0x20L
 #endif
  FILEOS 0x4L
  FILETYPE 0x1L
@@ -4665,14 +4666,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "Visual Test Shell\0"
-            VALUE "FileVersion", "3, 5, 0, 2\0"
+            VALUE "FileVersion", "3, 5, 0, 4\0"
             VALUE "InternalName", "VTS\0"
-            VALUE "LegalCopyright", "Copyright (C) 2001-2006\0"
+            VALUE "LegalCopyright", "Copyright (C) 2001-2008\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "VTS.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Visual Test Shell\0"
-            VALUE "ProductVersion", "3, 5, 0, 2\0"
+            VALUE "ProductVersion", "3, 5, 0, 4\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -5119,7 +5120,7 @@ BEGIN
     IDD_SENDCREATEOBJECT, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        TOPMARGIN, 7
+        TOPMARGIN, 6
     END
 
     IDD_SENDCREATEOBJECTACK, DIALOG
@@ -6257,6 +6258,10 @@ BEGIN
 0x694c, 0x6566, 0x6153, 0x6566, 0x7974, 0x6f50, 0x6e69, 0x0074, 
     IDC_OBJTYPECOMBO, 0x403, 15, 0
 0x694c, 0x6566, 0x6153, 0x6566, 0x7974, 0x6f5a, 0x656e, "\000" 
+    IDC_OBJTYPECOMBO, 0x403, 12, 0
+0x6341, 0x7563, 0x756d, 0x616c, 0x6f74, 0x0072, 
+    IDC_OBJTYPECOMBO, 0x403, 15, 0
+0x7550, 0x736c, 0x4365, 0x6e6f, 0x6576, 0x7472, 0x7265, "\000" 
     IDC_OBJTYPECOMBO, 0x403, 9, 0
 0x6552, 0x6573, 0x7672, 0x6465, "\000" 
     IDC_OBJTYPECOMBO, 0x403, 7, 0
