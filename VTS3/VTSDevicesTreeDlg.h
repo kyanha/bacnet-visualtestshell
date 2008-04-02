@@ -95,6 +95,9 @@ protected:
 	afx_msg void OnUpdateDelete(CCmdUI* pCmdUI);
 	afx_msg void OnKeydownDevicetree(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG
+
+	afx_msg void OnExport();
+	afx_msg void OnImport();
 	DECLARE_MESSAGE_MAP()
 };
 
