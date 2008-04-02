@@ -813,7 +813,7 @@ void BakRestoreExecutor::DoRestoreTest()
 		  m_pOutputDlg->OutMessage("OK");
 
 			UINT nX = 0;
-			while (TRUE)//backupDataFile.ReadString(strText))
+			while (backupDataFile.ReadString(strText))
 			{
 				m_pOutputDlg->OutMessage("Use AtomicWriteFile to write one record to (File, File_Instance)"
 					"int the IUT...", FALSE);
