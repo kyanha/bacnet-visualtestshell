@@ -7770,7 +7770,7 @@ void CheckPICSCons2003A(PICSdb *pd)
          switch (i)
          {
             case bibbAE_N_I_B:  // requires support for either NC or EE Objects
-               if ( (pd->BACnetStandardObjects[NOTIFICATION_CLASS]==soNotSupported) &&
+               if ( (pd->BACnetStandardObjects[NOTIFICATIONCLASS]==soNotSupported) &&
                     (pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported) )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
