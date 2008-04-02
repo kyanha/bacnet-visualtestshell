@@ -260,6 +260,7 @@
 #define IDI_SENDPKT                     371
 #define IDD_EDITRESENTPKT               372
 #define IDD_SENDSUBSCRIBECOVPROPERTY    373
+#define IDD_DEVADV                      374
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -535,6 +536,7 @@
 #define ID_BBMDPEERS                    1183
 #define ID_BTRPEERS                     1184
 #define IDC_OBJPROP                     1184
+#define IDC_DEVADV                      1184
 #define IDC_HOSTADDR                    1185
 #define IDC_DELETEDEVICE                1185
 #define IDC_STARTDATUM                  1190
@@ -913,6 +915,33 @@
 #define IDC_DELAY                       1543
 #define IDC_BACKUPTIMEOUT               1544
 #define IDC_COMBO1                      1550
+#define IDC_CHECK1                      1551
+#define IDC_CHECK2                      1552
+#define IDC_RADIO1                      1552
+#define IDC_CHECK3                      1553
+#define IDC_RADIO2                      1553
+#define IDC_CHECK4                      1554
+#define IDC_CHECK5                      1555
+#define IDC_CHECK6                      1556
+#define IDC_CHECK7                      1557
+#define IDC_CHECK8                      1558
+#define IDC_CHECK9                      1559
+#define IDC_CHECK10                     1560
+#define IDC_CHECK11                     1561
+#define IDC_CHECK12                     1562
+#define IDC_CHECK13                     1563
+#define IDC_CHECK14                     1564
+#define IDC_CHECK15                     1565
+#define IDC_CHECK16                     1566
+#define IDC_CHECK17                     1567
+#define IDC_CHECK18                     1568
+#define IDC_CHECK19                     1569
+#define IDC_CHECK20                     1570
+#define IDC_CHECK21                     1571
+#define IDC_CHECK22                     1572
+#define IDC_CHECK23                     1573
+#define IDC_CHECK24                     1574
+#define IDC_CHECK25                     1575
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -1098,9 +1127,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        374
+#define _APS_NEXT_RESOURCE_VALUE        375
 #define _APS_NEXT_COMMAND_VALUE         32866
-#define _APS_NEXT_CONTROL_VALUE         1551
+#define _APS_NEXT_CONTROL_VALUE         1553
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

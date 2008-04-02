@@ -38,6 +38,7 @@ CSendCreateObject::CSendCreateObject( void )
 {
 	//{{AFX_DATA_INIT(CSendCreateObject)
 	//}}AFX_DATA_INIT
+	m_nChoice = 0;
 }
 #pragma warning( default : 4355 )
 
@@ -48,6 +49,7 @@ void CSendCreateObject::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CSendCreateObject)
 	DDX_Control(pDX, IDC_PROPLIST, m_PropListCtrl);
 	//}}AFX_DATA_MAP
+	DDX_Radio(pDX, IDC_RADIO1, m_nChoice);
 
 	m_ObjectTypeCombo.UpdateData( pDX->m_bSaveAndValidate );
 	m_ObjectID.UpdateData( pDX->m_bSaveAndValidate );
@@ -73,6 +75,9 @@ BEGIN_MESSAGE_MAP(CSendCreateObject, CPropertyPage)
 	ON_BN_CLICKED(IDC_VALUE, OnValue)
 	ON_EN_CHANGE(IDC_PRIORITYX, OnChangePriority)
 	//}}AFX_MSG_MAP
+	ON_BN_CLICKED(IDC_RADIO1, OnSelectObjectType)
+	ON_BN_CLICKED(IDC_RADIO2, OnSelectObjectID)
+
 END_MESSAGE_MAP()
 
 //
@@ -86,6 +91,10 @@ void CSendCreateObject::InitPage( void )
 	// flush the data
 	m_ObjectTypeCombo.ctrlNull = true;
 	m_ObjectID.ctrlNull = true;
+
+	// LJT: added to control when controls should be active, ctrlNull can't be used because a filled combo box sets to false
+	m_bObjectTypeActive = true;
+
 }
 
 //
@@ -104,9 +113,10 @@ void CSendCreateObject::EncodePage( CByteArray* contents )
 
 	// encode the object type or object identifier
 	BACnetOpeningTag().Encode( enc, 0 );
-	if (!m_ObjectTypeCombo.ctrlNull) {
-		if (!m_ObjectID.ctrlNull)
-			throw "Omit the object ID when providing an object type";
+  
+	// LJT: Updated section
+	if (m_bObjectTypeActive)
+	{
 		m_ObjectTypeCombo.Encode( enc, 0 );
 	} else
 	if (!m_ObjectID.ctrlNull) {
@@ -157,6 +167,7 @@ void CSendCreateObject::RestorePage(  int index )
 
 	m_ObjectTypeCombo.RestoreCtrl( dec );
 	m_ObjectID.RestoreCtrl( dec );
+
 //	m_PropList.RestoreList( dec );
 }
 
@@ -173,6 +184,8 @@ BOOL CSendCreateObject::OnInitDialog()
 	// load the enumeration table
 	m_ObjectTypeCombo.LoadCombo();
 	
+	m_ObjectID.Disable();
+
 	// only allow one selection at a time, no sorting
 	m_PropListCtrl.m_nFlags |= LVS_SINGLESEL;
 	m_PropListCtrl.m_nFlags &= ~LBS_SORT;
@@ -195,23 +208,15 @@ void CSendCreateObject::OnSelchangeObjectTypeCombo()
 {
 	m_ObjectTypeCombo.UpdateData();
 
-	if (m_ObjectTypeCombo.ctrlNull)
-		m_ObjectID.Enable();
-	else
-		m_ObjectID.Disable();
-	
 	SavePage();
 	UpdateEncoded();
+
+
 }
 
 void CSendCreateObject::OnChangeObjectID()
 {
 	m_ObjectID.UpdateData();
-
-	if (m_ObjectID.ctrlNull)
-		m_ObjectTypeCombo.Enable();
-	else
-		m_ObjectTypeCombo.Disable();
 
 	SavePage();
 	UpdateEncoded();
@@ -227,8 +232,6 @@ void CSendCreateObject::OnObjectIDButton()
 		m_ObjectID.ctrlNull = false;
 		m_ObjectID.objID = dlg.objID;
 		m_ObjectID.ObjToCtrl();
-
-		m_ObjectTypeCombo.Disable();
 
 		SavePage();
 		UpdateEncoded();
@@ -592,4 +595,30 @@ void CreateObjectList::Encode( BACnetAPDUEncoder& enc )
 	for (POSITION pos = GetHeadPosition(); pos != NULL; )
 		GetNext( pos )->Encode( enc );
 	BACnetClosingTag().Encode( enc, 1 );
+}
+
+void CSendCreateObject::OnSelectObjectType()
+{
+	UpdateData();
+
+	m_ObjectTypeCombo.Enable();
+	m_ObjectID.Disable();
+
+	m_bObjectTypeActive = true;
+
+	SavePage();
+	UpdateEncoded();
+}
+
+void CSendCreateObject::OnSelectObjectID()
+{
+	UpdateData();
+
+	m_ObjectID.Enable();
+	m_ObjectTypeCombo.Disable();
+
+	m_bObjectTypeActive = false;
+
+	SavePage();
+	UpdateEncoded();
 }
