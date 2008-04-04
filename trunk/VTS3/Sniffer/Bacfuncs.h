@@ -95,6 +95,14 @@ char *BACnetDeviceObjectPropertyReference[] = {
    "Device Identifier"
    };
 
+char *BACnetDeviceObjectPropertyValue[] = {
+   "Device Identifier"
+   "Object Identifier",
+   "Property Identifier",
+   "Property Array Index",
+   "Value"
+};
+
 char *BACnetDeviceStatus[] = {
    "Operational",
    "Operational-read-only",
@@ -2595,9 +2603,18 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 //           show_application_data(pif_get_byte(0));
 //           break;
       case EVENT_TIME_STAMPS:               // Array of BACnetTimeStamp
-         for(i=0; i<3; i++)
-              show_bac_timestamp();
-//           show_context_tag("Event Time Stamp");  /* closing tag */
+             if (prop_idx == 0) {
+	             bac_show_unsigned("Array Size",show_application_tag(x));
+             }
+			 else if (prop_idx > 0)
+			{
+		          show_bac_timestamp();
+			}
+			else
+			{
+	         for(i=0; i<3; i++)
+		          show_bac_timestamp();
+			}
            break;
       case LOG_BUFFER:                      // List of BACnetLogRecord
           show_log_buffer();
