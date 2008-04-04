@@ -561,6 +561,112 @@ static bibbdef BIBBs[]={
 			"NM-RC-B",  // network services are not specified in EPICS
              { { 0 }
              },								
+			// Added Workstation BIBBs 12/5/2007 LJT
+			"DS-V-A",  
+             { { ssInitiate, asReadProperty }
+             },								
+			"DS-AV-A",  
+             { { ssInitiate, asReadProperty }
+             },								
+			"DS-M-A",  
+             { { ssInitiate, asWriteProperty }
+             },								
+			"DS-AM-A",  
+             { { ssInitiate, asWriteProperty }
+             },								
+			"AE-VN-A",  
+             {	{ ssExecute, asConfirmedEventNotification },
+				{ ssExecute, asUnconfirmedEventNotification }
+             },								
+			"AE-AVN-A",  
+             {	{ ssExecute, asConfirmedEventNotification },
+				{ ssExecute, asUnconfirmedEventNotification }
+             },								
+			"AE-VM-A",  
+             {	{ ssInitiate, asReadProperty },
+				{ ssInitiate, asWriteProperty }
+             },								
+			"AE-AVM-A",  
+             {	{ ssInitiate, asReadProperty },
+				{ ssInitiate, asWriteProperty },
+				{ ssInitiate, asCreateObject },
+				{ ssInitiate, asDeleteObject }
+             },								
+			"AE-AS-A",  
+             {	{ ssInitiate, asGetEventInformation },
+				{ ssInitiate, asGetAlarmSummary }
+             },								
+			"SCH-AVM-A",  
+             {	{ ssInitiate, asReadProperty },
+				{ ssInitiate, asWriteProperty },
+				{ ssInitiate, asCreateObject },
+				{ ssInitiate, asDeleteObject }
+             },								
+			"SCH-VM-A",  
+             {	{ ssInitiate, asReadProperty },
+				{ ssInitiate, asWriteProperty }
+             },								
+			"SCH-WS-A",  
+             {	{ ssInitiate, asReadProperty },
+				{ ssInitiate, asWriteProperty }
+             },								
+			"SCH-WSI-B",  
+             {	{ ssExecute, asReadProperty },
+				{ ssExecute, asWriteProperty },
+				{ ssExecute, asTimeSynchronization },
+				{ ssExecute, asUTCTimeSynchronization }
+             },								
+			"SCH-I-B", // no specific services required, other requirements are in the code											
+             {	{ ssExecute, asReadProperty },
+				{ ssExecute, asWriteProperty },
+				{ ssExecute, asTimeSynchronization },
+				{ ssExecute, asUTCTimeSynchronization }
+             },								
+			"SCH-E-B", // no specific services required, other requirements are in the code																
+             {	{ ssExecute, asReadProperty },
+				{ ssExecute, asWriteProperty },
+				{ ssInitiate, asWriteProperty },
+				{ ssExecute, asTimeSynchronization },
+				{ ssExecute, asUTCTimeSynchronization }
+             },								
+			"T-AVM-A",  
+             {	{ ssInitiate, asReadProperty },
+				{ ssInitiate, asWriteProperty },
+				{ ssInitiate, asCreateObject },
+				{ ssInitiate, asDeleteObject },
+				{ ssInitiate, asReadRange }
+             },								
+			"T-VM-I-B",					
+             { { ssExecute,  asReadRange } 
+             }, 
+			"T-VM-E-B",  
+             {	{ ssExecute, asReadRange },
+				{ ssInitiate, asReadProperty }
+             }, 
+			"T-V-A",  
+             {	{ ssInitiate, asReadRange }
+             }, 
+			"T-A-A",  
+             {	{ ssInitiate, asReadRange },
+				{ ssExecute, asConfirmedEventNotification }
+             }, 
+			"DM-ANM-A",  
+			 { { ssInitiate, asWho_Is },
+			   { ssExecute,  asI_Am   },
+				{ ssExecute,  asWho_Is },
+			   { ssInitiate, asI_Am   }
+			 },  					
+			"DM-ADM-A",  
+             {	{ ssInitiate, asReadProperty }
+             }, 
+			"DM-ATS-A",  
+             {	{ ssInitiate, asTimeSynchronization },
+				{ ssInitiate, asUTCTimeSynchronization }
+             }, 
+			"DM-MTS-A",  
+             {	{ ssInitiate, asTimeSynchronization },
+				{ ssInitiate, asUTCTimeSynchronization }
+             }, 
 			};  
 
 // The order and position of elements in this array is important!
@@ -7811,6 +7917,7 @@ void CheckPICSCons2003A(PICSdb *pd)
 
             case bibbSCHED_I_B:  // requires DS-RP-B, DS-WP-B, Calendar & Schedule objects
                                  // and either DM-TS-B or DM-UTC-B
+			case bibbSCH_I_B:
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_B); 
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_B);
                if ( pd->BACnetStandardObjects[CALENDAR]==soNotSupported )
@@ -7836,11 +7943,13 @@ void CheckPICSCons2003A(PICSdb *pd)
                break;
 
             case bibbSCHED_E_B:  // requires support for SCHED-I-B and DS-WP-A
-               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbSCHED_I_B); 
+			case bibbSCH_E_B:
+				CheckPICS_BIBB_Cross_Dependency(pd,i,bibbSCHED_I_B); 
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A);
                break;
 
             case bibbT_VMT_I_B:  // both require support for TREND_LOG object
+			case bibbT_VM_I_B:
             case bibbT_ATR_B:
                if ( pd->BACnetStandardObjects[TREND_LOG]==soNotSupported )
                {
@@ -7856,6 +7965,11 @@ void CheckPICSCons2003A(PICSdb *pd)
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbT_VMT_I_B); 
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A);
                break;
+
+			case bibbT_VM_E_B:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbT_VM_I_B);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
+				break;
 
             case bibbDM_TS_A:
             case bibbDM_UTC_A:
@@ -7880,6 +7994,86 @@ void CheckPICSCons2003A(PICSdb *pd)
                                // TODO
                break;
 
+// LJT Updated this list with the new Workstation Bibbs and their dependencies
+			case bibbDS_V_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
+				break;
+			case bibbAE_VN_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbAE_N_A);
+				break;
+			case bibbAE_AVN_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbAE_VN_A);
+				break;
+			case bibbAE_VM_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_A);
+				break;
+			case bibbAE_AVM_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_A);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDM_OCD_A);
+				break;
+			case bibbSCH_AVM_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_A);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDM_OCD_A);
+				break;
+			case bibbSCH_VM_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_A);
+				break;
+			case bibbSCH_WS_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_A);
+				break;
+			case bibbSCH_WS_I_B:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_B);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_B);
+                if ( !pd->BIBBSupported[bibbDM_TS_B] &&
+                    !pd->BIBBSupported[bibbDM_UTC_B] )
+                {
+                   sprintf(opj,"BIBB SCH-WS-I-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
+                   tperror(opj,false);
+                }
+               if ( pd->BACnetStandardObjects[SCHEDULE]==soNotSupported )
+               {
+                 sprintf(opj,"135.1-2003 5.(a): "
+                   "BIBB SCH-WS-I-B requires support for the Schedule object "
+                   "in the \"Standard Object Types Supported\" section.\n");
+                 tperror(opj,false);
+               }  
+
+				break;
+			case bibbSCH_R_B:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_B);
+                if ( !pd->BIBBSupported[bibbDM_TS_B] &&
+                    !pd->BIBBSupported[bibbDM_UTC_B] )
+                {
+                   sprintf(opj,"BIBB SCH-R-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
+                   tperror(opj,false);
+                }
+                if ( pd->BACnetStandardObjects[SCHEDULE]==soNotSupported )
+                {
+                  sprintf(opj,"135.1-2003 5.(a): "
+                   "BIBB SCH-R-B requires support for the Schedule object "
+                   "in the \"Standard Object Types Supported\" section.\n");
+                  tperror(opj,false);
+                }  
+				break;
+			case bibbT_AVM_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_A);
+				break;
+			case bibbT_A_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbT_ATR_A);
+				break;
+			case bibbDM_ANM_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDM_DDB_B);
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDM_DDB_A);
+				break;
+			case bibbDM_ADM_A:
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_AV_A);
+				break;
          }
       }
    }

@@ -639,7 +639,7 @@ enum BIBB {
 	bibbT_VMT_A,
 	bibbT_VMT_I_B,
 	bibbT_VMT_E_B,
-	bibbbibb_ATR_A,
+	bibbT_ATR_A,
 	bibbT_ATR_B,
 	bibbDM_DDB_A,
 	bibbDM_DDB_B,
@@ -670,7 +670,34 @@ enum BIBB {
 	bibbNM_CE_A,
 	bibbNM_CE_B,
 	bibbNM_RC_A,
-	bibbNM_RC_B
+	bibbNM_RC_B,
+// Added Workstation BIBBs 12/5/2007 LJT
+	bibbDS_V_A,
+	bibbDS_AV_A,
+	bibbDS_M_A,
+	bibbDS_AM_A,
+	bibbAE_VN_A,
+	bibbAE_AVN_A,
+	bibbAE_VM_A,
+	bibbAE_AVM_A,
+	bibbAE_AS_A,
+	bibbSCH_AVM_A,
+	bibbSCH_VM_A,
+	bibbSCH_WS_A,
+	bibbSCH_WS_I_B,
+	bibbSCH_R_B,
+	bibbSCH_I_B,
+	bibbSCH_E_B,
+	bibbT_AVM_A,
+	bibbT_VM_I_B,
+	bibbT_VM_E_B,
+	bibbT_V_A,
+	bibbT_A_A,
+	bibbDM_ANM_A,
+	bibbDM_ADM_A,
+	bibbDM_ATS_A,
+	bibb_DM_MTS_A
+
 };
 
 
