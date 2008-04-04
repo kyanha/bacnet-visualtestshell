@@ -19,6 +19,9 @@
 #include "VTSNotifyOutOfRange.h"
 #include "VTSNotifyComplex.h"
 #include "VTSNotifyBufferReady.h"		//Added by Zhu Zhenhua, 2004-5-17
+#include "VTSNotifyExtended.h"
+#include "VTSNotifyUnsignedRange.h"
+#include "VTSNotifyChgLifeSafety.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSNotificationParameters
@@ -45,6 +48,9 @@ public:
 	VTSNotifyOutOfRange	OutOfRangePage;
 	VTSNotifyComplex	ComplexPage;
 	VTSNotifyBufferReady BufferReadyPage;      	//Added by Zhu Zhenhua, 2004-5-17
+	VTSNotifyChgLifeSafety ChgLifeSafetyPage;
+	VTSNotifyExtended	ExtendedPage;
+	VTSNotifyUnsignedRange	UnsignedRangePage;
 
 	void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 

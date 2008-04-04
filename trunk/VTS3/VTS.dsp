@@ -1040,11 +1040,19 @@ SOURCE=.\VTSNotifyBufferReady.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSNotifyChgLifeSafety.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSNotifyCmdFailure.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\VTSNotifyComplex.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyExtended.cpp
 # End Source File
 # Begin Source File
 
@@ -1065,6 +1073,10 @@ SOURCE=.\VTSNotifyState.cpp
 # Begin Source File
 
 SOURCE=.\VTSNotifyTypeDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSNotifyUnsignedRange.cpp
 # End Source File
 # Begin Source File
 
@@ -2634,7 +2646,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                 $(InputPath)                                                 $(OutDir)\ 
+	copy                                                  $(InputPath)                                                  $(OutDir)\ 
 
 # End Custom Build
 
@@ -2645,7 +2657,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                 $(InputPath)                                                 $(OutDir)\ 
+	copy                                                  $(InputPath)                                                  $(OutDir)\ 
 
 # End Custom Build
 

@@ -4639,6 +4639,63 @@ BEGIN
     LTEXT           "COV Increment",IDC_STATIC,51,107,50,8
 END
 
+IDD_NOTIFY_CHG_LS DIALOG DISCARDABLE  0, 0, 227, 113
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Change of Life Safety"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "In-alarm",IDC_INALARM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,36,55,60,10
+    CONTROL         "Fault",IDC_FAULT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    36,70,60,10
+    CONTROL         "Overridden",IDC_OVERRIDDEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,101,55,60,10
+    CONTROL         "Out-of-service",IDC_OUTOFSERVICE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,101,70,60,10
+    LTEXT           "New State",IDC_STATIC,7,9,77,8
+    COMBOBOX        IDC_LS_STATE,87,7,105,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "New Mode",IDC_STATIC,7,23,77,8
+    COMBOBOX        IDC_LS_MODE,87,23,105,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Operation Expected",IDC_STATIC,7,94,77,8
+    COMBOBOX        IDC_LS_OPERATION,85,94,105,30,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Status Flags",IDC_STATIC,16,40,165,45
+END
+
+IDD_NOTIFY_EXTENDED DIALOG DISCARDABLE  0, 0, 227, 113
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Extended"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Vendor Id",IDC_STATIC,7,9,77,8
+    LTEXT           "Extended Event Type",IDC_STATIC,7,23,77,8
+    LTEXT           "Parameters",IDC_STATIC,6,45,77,8
+    EDITTEXT        IDC_VENDORID,87,7,76,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EVENTTYPE,87,20,76,12,ES_AUTOHSCROLL
+END
+
+IDD_NOTIFY_UNS_RANGE DIALOG DISCARDABLE  0, 0, 227, 113
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Unsigned Range"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "In-alarm",IDC_INALARM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,29,45,60,10
+    CONTROL         "Fault",IDC_FAULT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    29,60,60,10
+    CONTROL         "Overridden",IDC_OVERRIDDEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,95,45,60,10
+    CONTROL         "Out-of-service",IDC_OUTOFSERVICE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,95,60,60,10
+    LTEXT           "Exceeding Value",IDC_STATIC,7,9,77,8
+    LTEXT           "Exceeded Limit",IDC_STATIC,7,94,77,8
+    GROUPBOX        "Status Flags",IDC_STATIC,9,30,165,45
+    EDITTEXT        IDC_EXVALUE,87,7,76,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EXLIMIT,87,92,76,12,ES_AUTOHSCROLL
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -6190,6 +6247,14 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 290
         BOTTOMMARGIN, 128
+    END
+
+    IDD_NOTIFY_CHG_LS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 106
     END
 END
 #endif    // APSTUDIO_INVOKED
