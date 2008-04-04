@@ -60,6 +60,10 @@ void VTSNotificationParameters::AddPages( void )
 	AddPage( &ComplexPage );
 	AddPage( &BufferReadyPage );       	//Added by Zhu Zhenhua, 2004-5-17
 
+	AddPage( &ChgLifeSafetyPage );       	//Added by LJT 4/3/2008
+	AddPage( &ExtendedPage );       	//Added by LJT 4/3/2008
+	AddPage( &UnsignedRangePage );       	//Added by LJT 4/3/2008
+
 	// tell them who their parent is
 	BitstringPage.pageParent = this;
 	StatePage.pageParent = this;
@@ -69,6 +73,10 @@ void VTSNotificationParameters::AddPages( void )
 	OutOfRangePage.pageParent = this;
 	ComplexPage.pageParent = this;
 	BufferReadyPage.pageParent = this;
+
+	ChgLifeSafetyPage.pageParent = this;
+	ExtendedPage.pageParent = this;
+	UnsignedRangePage.pageParent = this;
 }
 
 BEGIN_MESSAGE_MAP(VTSNotificationParameters, CPropertySheet)
@@ -96,7 +104,10 @@ void VTSNotificationParameters::Encode( BACnetAPDUEncoder& enc, int context )
 		case 4:		FloatLimitPage.Encode( enc, context );	break;
 		case 5:		OutOfRangePage.Encode( enc, context );	break;
 		case 6:		ComplexPage.Encode( enc, context );		break;
+		case 8:		ChgLifeSafetyPage.Encode( enc, context); break;
+		case 9:		ExtendedPage.Encode( enc, context );	break;
 		case 10:    BufferReadyPage.Encode(enc, context);	break; 	//Added by Zhu Zhenhua, 2004-5-17
+		case 11:	UnsignedRangePage.Encode(enc, context);		break;
 	}
 
 	// finished with this context
