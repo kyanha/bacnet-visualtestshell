@@ -267,9 +267,9 @@ BOOL CSendReadPropMult::OnInitDialog()
 	GetDlgItem( IDC_ARRAYINDEX )->EnableWindow( false );
 	
 	// load the enumeration table
-	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (i = 0; i < MAX_PROP_ID; i++)
-		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
+//	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
+//	for (i = 0; i < MAX_PROP_ID; i++)
+//		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
 
 	//Xiao Shiyuan 2002-12-5
 	//madanner 9/04 - converted to StringArray
@@ -560,6 +560,9 @@ void ReadPropList::AddButtonClick( void )
 	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
 	// if list is altered.
 
+	rplCurElem->rpePropCombo.m_nObjType = rplObjID.GetObjectType();
+	rplCurElem->rpePropCombo.LoadCombo();
+
 	rplCurElem->rpePropCombo.enumValue = 85;
 
 	AddTail( rplCurElem );
@@ -704,9 +707,18 @@ void ReadPropList::OnSelchangePropCombo( void )
 		rplCurElem->rpePropCombo.UpdateData();
 		rplPagePtr->UpdateEncoded();
 
-		rplPagePtr->m_PropList.SetItemText( rplCurElemIndx, 0
-			, NetworkSniffer::BACnetPropertyIdentifier[ rplCurElem->rpePropCombo.enumValue ]
-			);
+		if (rplCurElem->rpePropCombo.enumValue < 512 )
+		{
+			rplPagePtr->m_PropList.SetItemText( rplCurElemIndx, 0
+				, NetworkSniffer::BACnetPropertyIdentifier[ rplCurElem->rpePropCombo.enumValue ]
+				);
+		}
+		else
+		{
+			CString c;
+			c.Format("%d", rplCurElem->rpePropCombo.enumValue);
+			rplPagePtr->m_PropList.SetItemText(rplCurElemIndx, 0, c);
+		}
 	}
 }
 

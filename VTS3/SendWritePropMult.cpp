@@ -275,11 +275,6 @@ BOOL CSendWritePropMult::OnInitDialog()
 	GetDlgItem( IDC_VALUE )->EnableWindow( false );
 	GetDlgItem( IDC_PRIORITYX )->EnableWindow( false );
 	
-	// load the enumeration table
-	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (i = 0; i < MAX_PROP_ID; i++)
-		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
-
 	//Xiao Shiyuan 2002-12-5
 	for(i = 0; i < m_strList.GetCount(); i++)    
 		m_ObjList.InsertItem(i, m_strList.GetAt(m_strList.FindIndex(i)));    
@@ -605,6 +600,9 @@ void WritePropList::AddButtonClick( void )
 	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
 	// if list is altered.
 
+	wplCurElem->wpePropCombo.m_nObjType = wplObjID.GetObjectType();
+	wplCurElem->wpePropCombo.LoadCombo();
+
 	wplCurElem->wpePropCombo.enumValue = 85;
 	AddTail( wplCurElem );
 
@@ -768,9 +766,18 @@ void WritePropList::OnSelchangePropCombo( void )
 		wplCurElem->wpePropCombo.UpdateData();
 		wplPagePtr->UpdateEncoded();
 
-		wplPagePtr->m_PropList.SetItemText( wplCurElemIndx, 0
-			, NetworkSniffer::BACnetPropertyIdentifier[ wplCurElem->wpePropCombo.enumValue ]
-			);
+		if ( wplCurElem->wpePropCombo.enumValue < 512 )
+		{
+			wplPagePtr->m_PropList.SetItemText( wplCurElemIndx, 0
+				, NetworkSniffer::BACnetPropertyIdentifier[ wplCurElem->wpePropCombo.enumValue ]
+				);
+		}
+		else
+		{
+			CString c;
+			c.Format("%d", wplCurElem->wpePropCombo.enumValue );
+			wplPagePtr->m_PropList.SetItemText( wplCurElemIndx, 0, c );
+		}
 	}
 }
 
