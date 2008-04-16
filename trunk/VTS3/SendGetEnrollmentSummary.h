@@ -65,6 +65,9 @@ protected:
 	afx_msg void OnChangeMaxPriority();
 	afx_msg void OnChangeNotificationClass();
 	//}}AFX_MSG
+	afx_msg void OnChangeEventStateCombo();
+	afx_msg void OnChangeEventTypeCombo();
+	afx_msg void OnChangeAckFilterCombo();
 	DECLARE_MESSAGE_MAP()
 };
 

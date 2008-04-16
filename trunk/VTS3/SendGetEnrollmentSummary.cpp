@@ -80,6 +80,9 @@ BEGIN_MESSAGE_MAP(CSendGetEnrollmentSummary, CPropertyPage)
 	ON_EN_CHANGE(IDC_MAXPRIORITY, OnChangeMaxPriority)
 	ON_EN_CHANGE(IDC_NOTIFICATIONCLASS, OnChangeNotificationClass)
 	//}}AFX_MSG_MAP
+	ON_CBN_EDITCHANGE(IDC_EVENTSTATECOMBO, OnChangeEventStateCombo)
+	ON_CBN_EDITCHANGE(IDC_EVENTTYPECOMBO, OnChangeEventTypeCombo)
+	ON_CBN_EDITCHANGE(IDC_ACKFILTERCOMBO, OnChangeAckFilterCombo)
 END_MESSAGE_MAP()
 
 //
@@ -214,6 +217,15 @@ void CSendGetEnrollmentSummary::RestorePage( int index )
 //	The following set of functions are called when one of the interface elements
 //	has changed.
 //
+void CSendGetEnrollmentSummary::OnChangeAckFilterCombo()
+{
+	// any change resets the selected value to none selected
+	m_AckFilterCombo.enumValue = -1;
+	m_AckFilterCombo.UpdateData(false);
+	SavePage();
+	UpdateEncoded();
+
+}
 
 void CSendGetEnrollmentSummary::OnSelchangeAckFilterCombo()
 {
@@ -229,11 +241,31 @@ void CSendGetEnrollmentSummary::OnRecipientProcess()
 	UpdateEncoded();
 }
 
+void CSendGetEnrollmentSummary::OnChangeEventStateCombo()
+{
+	// any change resets the selected value to none selected
+	m_EventStateCombo.enumValue = -1;
+	m_EventStateCombo.UpdateData(false);
+	SavePage();
+	UpdateEncoded();
+
+}
+
 void CSendGetEnrollmentSummary::OnSelchangeEventStateCombo()
 {
 	m_EventStateCombo.UpdateData();
 	SavePage();
 	UpdateEncoded();
+}
+
+void CSendGetEnrollmentSummary::OnChangeEventTypeCombo()
+{
+	// any change resets the selected value to none selected
+	m_EventTypeCombo.enumValue = -1;
+	m_EventTypeCombo.UpdateData(false);
+	SavePage();
+	UpdateEncoded();
+
 }
 
 void CSendGetEnrollmentSummary::OnSelchangeEventTypeCombo()
