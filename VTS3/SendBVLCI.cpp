@@ -25,7 +25,7 @@ IMPLEMENT_DYNCREATE( CSendBVLCI, CPropertyPage )
 #pragma warning( disable : 4355 )
 CSendBVLCI::CSendBVLCI( void )
 	: CSendPage( CSendBVLCI::IDD )
-	, m_HeaderType(0)
+	, m_HeaderType(2)
 	, m_OADR( this, IDC_OADRCOMBO, IDC_OADR )
 {
 	//{{AFX_DATA_INIT(CSendBVLCI)
