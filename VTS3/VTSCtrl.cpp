@@ -1712,6 +1712,10 @@ void VTSEnumeratedCtrl::CtrlToObj( void )
 		//do some special works for propCommbo(when m_nObjectType != -1 )
 		int OldSelectValue = m_SelectValue;
 		m_SelectValue = cbp->GetCurSel();
+		// LJT: added
+		if (m_SelectValue < 0)
+			ctrlNull = true;
+
 		if(m_nObjType == -1)
 		{
 			enumValue = m_SelectValue;
@@ -1799,6 +1803,8 @@ void VTSEnumeratedCtrl::ObjToCtrl( void )
 		EnumToSelect();
 		cbp->SetCurSel( m_SelectValue );
 
+		if (m_SelectValue < 0)
+			ctrlNull = true;
 		return;
 	}
 
