@@ -471,6 +471,12 @@ typedef struct {
 enum BACnetReliability		reliability;
     boolean					out_of_service;
 
+    union {
+        enum BACnetBinaryPV	bproperty_value; 	//binary value
+        word				uproperty_value;	//unsigned word
+        float				fproperty_value;	//float
+        }					schedule_default;
+
    } schedule_obj_type;
 
 //Averaging Object
