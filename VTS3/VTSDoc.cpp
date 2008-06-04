@@ -3256,6 +3256,9 @@ void VTSServer::Indication( const BACnetAPDU &apdu )
 			case getAlarmSummary:
 				GetAlarmSummary(apdu);
 				break;
+			case getEventInformation:
+				GetEventInformation(apdu);
+				break;
 			case deviceCommunicationControl:
 				DeviceCommunicationControl(apdu);
 				break;
@@ -3694,6 +3697,50 @@ void VTSServer::GetAlarmSummary( const BACnetAPDU &apdu )
 	}
 	catch (...) {
 		TRACE0( "getAlarmSummary execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, otherReject );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+}
+
+void VTSServer::GetEventInformation( const BACnetAPDU &apdu )
+{
+	BACnetAPDUTag			t	;
+	BACnetAPDUDecoder		dec( apdu )	;
+
+	BACnetBoolean moreEvents;
+	BACnetOpeningTag openT;
+	BACnetClosingTag closeT;
+
+	try {
+//		TRACE3( "getEventInformation  \n");
+
+		// build an ack
+		BACnetComplexAckAPDU ack( getEventInformation, apdu.apduInvokeID );
+
+		// send the response back to where the request came from
+		ack.apduAddr = apdu.apduAddr;
+
+		openT.Encode(ack, 0);  // encode empty results
+		closeT.Encode(ack, 0);
+		moreEvents = false;
+		moreEvents.Encode(ack, 1);
+
+		// send it
+		Response( ack );
+	}
+	catch (BACnetRejectReason rr) {
+		TRACE0( "getEventInformation execution error\n" );
+
+		BACnetRejectAPDU goAway( apdu.apduInvokeID, rr );
+		goAway.apduAddr = apdu.apduAddr;
+
+		Response( goAway );
+	}
+	catch (...) {
+		TRACE0( "getEventInformation execution error\n" );
 
 		BACnetRejectAPDU goAway( apdu.apduInvokeID, otherReject );
 		goAway.apduAddr = apdu.apduAddr;
@@ -4239,6 +4286,7 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 				services_supported.SetBit(3);   // getAlarmSummary
 				services_supported.SetBit(17);	// deviceCommunicationControl
 				services_supported.SetBit(20);  // reinitializeDevice
+				services_supported.SetBit(39);  // getEventInformation
 				services_supported.SetBit(34);	// who-is
 				services_supported.SetBit(0);	// acknowledgeAlarm
 				services_supported.SetBit(1);	// confirmedCOVNotification
@@ -4246,15 +4294,37 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 				services_supported.Encode(*pAPDUEncoder);
 			}
 			break;
+		case OBJECT_LIST:
+			{
+				BACnetArrayOf<BACnetObjectIdentifier>	objList;
+				for(UINT i = 0; i < m_devobjects.GetSize(); i++)
+				{
+					BACnetObjectIdentifier objID;
+					unsigned int objid = m_devobjects[i]->GetID();
+					int inst = objid & 0x003fffff ;
+					int objtype=(word)(objid>>22);
+					objID.SetValue( (BACnetObjectType)objtype, inst );
+					objList.AddElement(&objID);
+				}
+				BACnetObjectIdentifier me;
+				me.SetValue( (BACnetObjectType)8, m_nInstance );
+				objList.AddElement(&me);  // add device object
+
+				objList.Encode(*pAPDUEncoder);
+
+			}
+			break;
 		case PROTOCOL_OBJECT_TYPES_SUPPORTED:
 			{
+				// run through m_devobjects to see which objects are defined
 				BACnetBitString objects_supported = BACnetBitString(25);
-				// TODO: one day setup using objects entered.
-				for (int x = 0; x < 25; x++)
+				for(UINT i = 0; i < m_devobjects.GetSize(); i++)
 				{
-					objects_supported.SetBit(x);
+					unsigned int objid = m_devobjects[i]->GetID();
+					int objtype=(word)(objid>>22);
+					objects_supported.SetBit(objtype);
 				}
-//				objects_supported.SetBit(8);  // only support Device  
+				objects_supported.SetBit(8);  // always support DEVICE type object
 				objects_supported.Encode(*pAPDUEncoder);
 			}
 			break;
