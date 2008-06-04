@@ -458,7 +458,7 @@ char *BACnetErrorCode[] = {
    "Duplicate-name",                     /* 48 | */
    "Duplicate-object-id",                /* 49 | */
    "Property-is-not-an-array",            /* 50 kare.sars@wapice.com */
-   // Added by Addenda B (135-2004)
+   // Added by Addenda B PPR3 (135-2004)
    "abort-buffer-overflow",
    "abort-invalid-apdu-in-this-state",
    "abort-preempted-by-higher-priority-task",
@@ -470,10 +470,12 @@ char *BACnetErrorCode[] = {
    "reject-buffer-overflow",
    "reject-inconsistent-parameters",
    "reject-invalid-parameter-data-type",
+   "reject-invalid-tag", /* 62 */
    "reject-missing-required-parameter",
    "reject-parameter-out-of-range",
    "reject-too-many-arguments",
    "reject-undefined-enumeration",
+   "reject-unrecognized-service", /* 67 */
    "reject-proprietary",  /* 68 */
    "reject-other",
    "unknown-device",
@@ -999,7 +1001,7 @@ char *BACnetPropertyIdentifier[] = {
    "Update_Time",                      // 189 Shiyuan Xiao 7/15/2005 
    "Value_Before_Change",              // 190 Shiyuan Xiao 7/15/2005
    "Value_Set",                        // 191 Shiyuan Xiao 7/15/2005
-   "Value_Change_Time"                 // 192 Shiyuan Xiao 7/15/2005
+   "Value_Change_Time",                 // 192 Shiyuan Xiao 7/15/2005
    // added Addendum B (135-2004)
 	"Align_Intervals",
 	"Group_Members_Names",
@@ -2282,6 +2284,11 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                   "Unknown Data - Object Type does not have Present Value Property!");
                }
            break;
+	   case SCHEDULE_DEFAULT:  // LJT
+            show_head_app_data();	
+			show_application_data(x);
+            break;
+
       case PRIORITY:
            if (prop_idx == 0) {
              bac_show_unsigned("Array Size",show_application_tag(x));
