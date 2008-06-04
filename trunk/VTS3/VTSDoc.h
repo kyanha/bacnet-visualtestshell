@@ -401,6 +401,7 @@ class VTSServer : public BACnetServer {
 		void CovNotification( const BACnetAPDU &apdu );
 
 		void GetAlarmSummary( const BACnetAPDU &apdu );
+		void GetEventInformation( const BACnetAPDU &apdu );
 		void DeviceCommunicationControl( const BACnetAPDU &apdu );
 		void AcknowledgeAlarm( const BACnetAPDU &apdu );
 		void EventNotification( const BACnetAPDU &apdu );
