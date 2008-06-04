@@ -923,7 +923,7 @@ propdescriptor	EEprops[]={
 // Note the above properties were removed for revision 4
 //madanner 6/03: Added for supporting event-time-stamps
 //Modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMParr, 2,   0, O|IsArray|NotWithGroup1,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMParr, 0,   0, O|IsArray,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(ee,go.profile_name), s132,	Last,	  0,	 O  
 };
@@ -1141,7 +1141,7 @@ propdescriptor	SCprops[]={
 	"status-flags",         STATUS_FLAGS,       oo(schedule, status_flags), bits, 0, eiStF, O,
     "reliability",			RELIABILITY,		oo(schedule, reliability),	    et,		 0,	  eiReli,	    O,
     "out-of-service",		OUT_OF_SERVICE,		oo(schedule, out_of_service),	ebool,   0,	  eiTF,	        O,
-
+	"schedule-default",		SCHEDULE_DEFAULT,	oo(schedule, schedule_default), none,	0,	0,	R,			
 	//Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(schedule,go.profile_name), s132,	Last,  0,	 O  
 };

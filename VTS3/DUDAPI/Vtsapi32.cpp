@@ -4878,7 +4878,7 @@ BOOL ParseTVList(BACnetTimeValue **tvp)
 		lp=ep;
 
 		// MAG 25 JAN 01 added as bugfix for schedule:exception-schedule property
-		if((lp[0] == ',') && (lp[1] != '(')){
+		if((lp[0] == ',') && (lp[1] != '{')){
 			//print_debug("PTVL: Exit PTVL at repeat check lp = '%s'\n",lp);
 			if(*lp != ',') lp++;  // MAG 14 FEB 2001 fix parse error-add 'if()' part to line
 			break;								//close this list out
@@ -5399,7 +5399,8 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 			if (ParseDate(&q->u.date)) goto calx;
 //		    if (ParseDate(&q->u.date_range.start_date)) goto calx;
 
-			skipwhitespace();
+			while (*lp==space||*lp==',') lp++;		//skip separation between list elements
+//			skipwhitespace();
 			// skip the , if that is the delimeter between date range
 			if ( *lp==',' )
 			{
@@ -8433,7 +8434,11 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
 				"(%s,%u) must have property \"%s\" marked writable.\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
 			tperror(errMsg,false);
       }
-
+	  else if ( propdesc->PropFlags & AtLeast1 )
+	  {
+		  // special property here -- need to find at least 1 of these when we do we can stop looking.
+	  }
+	  
       // Test for the presence of properties that are marked with 'footnotes' 
       // that cause other properties to be present if this property is present.
       // These are remembered for a second pass through the properties to
@@ -8441,7 +8446,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
       group = propdesc->PropGroup & ~Last; // mask off the "Last" indicator bit
       // If this property is in a "group" (footnote), and it is present in the database, 
       // mark this whole group as required.
-      if (group && (obj->propflags[i] & PropIsPresent))
+      if (group && (obj->propflags[i] & PropIsPresent) ) //&& !(propdesc->PropFlags&&AtLeast1 == AtLeast1))  // LJT 4/17/2008 added AtLeast1Check 
          GroupRequired[group] = 1;
 
 
