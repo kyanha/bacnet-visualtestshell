@@ -7,6 +7,22 @@
 #include "VTSPropValue.h"
 #include "VTSDevicesTreeObjPage.h"
 
+#include "bacnet.hpp"
+
+//namespace PICS {
+//#include "db.h" 
+//#include "service.h"
+//#include "vtsapi.h"
+//#include "stdobj.h"
+//#include "props.h"
+//#include "bacprim.h"
+//#include "dudapi.h"
+//#include "propid.h"
+
+//extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue );
+
+//}
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -166,7 +182,101 @@ void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
 		case MAX_DEFINED_OBJ + 1:	nObjID = m_nVendor;
 	}
 
+	unsigned oldID = pdevobject->GetID();
 	pdevobject->SetID(nObjID, m_nInstance);
+
+	// 1) if no current properties, 
+	CObArray * pobarray = (CObArray *)pdevobject->GetProperties();
+	if ( pobarray != NULL && pobarray->GetSize() == 0 )
+	{
+	// 3) Create all required properties with default values
+		if ( m_nObjType < MAX_DEFINED_OBJ )
+		{
+			// TODO: LJT add all required properties for selected object type
+			//       Create file format to read defaults from?? Suggest use same format as
+			//       chosen for the import/export functionality
+			// standard object type
+			VTSDevProperty * devprop = new VTSDevProperty();
+			pobarray->Add(devprop);
+			devprop->SetID(77);   // Object_Name
+			// now create value for this property
+			CObArray * pobvalarray = (CObArray *)devprop->GetValues();
+			VTSDevValue * pdevvalue = new VTSDevValue();
+			pobvalarray->Add(pdevvalue);
+			pdevvalue->m_nType = 7;
+			pdevvalue->m_nContext = -1;
+
+			BACnetAPDUEncoder	compEncoder;
+			BACnetCharacterString xx;
+			xx.SetValue( "objectname", 0);
+			xx.Encode( compEncoder, pdevvalue->m_nContext);
+//			VTSCharacterStringCtrl m_CharStr(this, 0);
+//			m_CharStr.SetValue( "ObjectName", 0 );
+//			m_CharStr.Encode( compEncoder, pdevvalue->m_nContext );
+			memcpy( pdevvalue->m_abContent, compEncoder.pktBuffer, compEncoder.pktLength );
+
+		}
+	}
+/*
+	// Load Default values for all objects
+	PICS::PICSdb * pd = new PICS::PICSdb;
+
+  // need to open file and load objects into db
+	File ifile = fopen( "myfile", "r" );
+	char data[500];
+
+	readline(data, sizeof(data));
+
+	// keep reading until find 'objects in db'
+	PICS::ReadObjects(pd);
+
+	// now repeat for each object until we find the matching type
+
+	PICS::generic_object * pObj = (PICS::generic_object *) pd->Database;
+	DWORD dwPropID;
+	char szPropName[100];
+	BACnetAnyValue bacnetAnyValue;
+	// Load default values for object need to find object type
+	for (int i = 0; i < sizeof(pObj->propflags); i++ )
+	{
+		if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID, NULL) > 0 )
+		{
+			// got number add Property using dwPropID;
+			VTSDevProperty * devprop = new VTSDevProperty();
+			pobarray->Add(devprop);
+			devprop->SetID(dwProp);
+
+			// try to determine value
+			if ( (pObj->propflags[i] & ValueUnknown) != 0 )
+			{
+				// property not specified don't do anything
+			}
+			else
+			{
+				try
+				{
+					PICS::CreatePropertyFromEPICS( pObj, (PICS::BACnetPropertyIdentifier) dwPropID, &bacnetAnyValue );
+				}
+				catch(...)
+				{
+					bacnetAnyValue.SetObject(NULL);
+				}
+				// now set value
+				CObArray * pobvalarray = (CObArray *)devprop->GetValues();
+				VTSDevValue * pdevvalue = new VTSDevValue();
+				pobvalarray->Add(pdevvalue);
+				pdevvalue->m_nContext = -1;
+				
+				pdevvalue->m_nType = bacnetAnyValue.DataType();
+
+				BACnetAPDUEncoder	compEncoder;
+				bacnetAnyValue.Encode( compEncoder, -1 );
+				memcpy( pdevvalue->m_abContent, compEncoder.pktBuffer, compEncoder.pktLength );
+			}
+		}
+	}
+*/
+
 }
 
 
