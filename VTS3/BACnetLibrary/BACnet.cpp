@@ -323,6 +323,7 @@ const char * BACnetEncodeable::ToString() const
 	// will be allocated and copied out before the next call blows away the string.
 
 	static char buffer[1000];		// should be enough for primitive values
+	memset(buffer, 0, sizeof(buffer));
 	Encode(buffer);
 	return buffer;
 }
@@ -659,7 +660,7 @@ void BACnetNull::Decode( const char *dec )
 
 const char * BACnetNull::ToString() const
 {
-	return "Null";
+	return "Null";    // true 135.1 : NULL
 }
 
 
@@ -749,7 +750,7 @@ void BACnetAddr::Decode( BACnetAPDUDecoder& dec )
 void BACnetAddr::Encode( char *enc ) const
 {
 	char * addr = enc;
-	sprintf( addr, "[" );
+	sprintf( addr, "{" );   // LJT changed from [ to {
 	addr++;
 	char tmp[50];
 	sprintf( tmp, "%d", m_bacnetAddress.addrNet );
@@ -759,7 +760,7 @@ void BACnetAddr::Encode( char *enc ) const
 	addr++;
 	if ( m_bacnetAddress.addrLen > 0 )
 	{
-		strcat( addr, "0x" );
+		strcat( addr, "X\'" );   // LJT changed from 0x to X'
 		addr += 2;
 	}
 	for (int i = 0; i < m_bacnetAddress.addrLen; i++)
@@ -767,7 +768,12 @@ void BACnetAddr::Encode( char *enc ) const
 		sprintf( addr, "%02X", m_bacnetAddress.addrAddr[i] );
 		addr += 2;
 	}
-	strcat( addr, "]" );
+	if ( m_bacnetAddress.addrLen > 0 )
+	{
+		strcat( addr, "\'" );   // LJT added '
+		addr += 1;
+	}
+	strcat( addr, "}" );      // LJT changed from ] to }
 }
 
 
@@ -923,7 +929,7 @@ void BACnetBoolean::Decode( const char *dec )
 
 const char * BACnetBoolean::ToString() const
 {
-	return (boolValue ? "True" : "False");
+	return (boolValue ? "True" : "False");  // true 135.1  T or TRUE, F or FALSE
 }
 
 
@@ -2820,7 +2826,8 @@ void BACnetWeekNDay::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetWeekNDay::Encode( char *enc ) const
 {
-	sprintf(enc, "%d, %d, %d", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);
+//	sprintf(enc, "%d, %d, %d", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);   // changed for 135.1 compliance
+	sprintf(enc, "X\'%02X%02X%02X\'", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);
 }
 
 
@@ -3244,8 +3251,8 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetBitString::Encode( char *enc ) const
 {
-	*enc++ = 'B';
-	*enc++ = '\'';
+	*enc++ = '{';   // LJT changed to 135.1 compliance  from B' to {
+//	*enc++ = '\'';
 
 /*	// encode the content
 	if (bitBuff) {
@@ -3260,14 +3267,50 @@ void BACnetBitString::Encode( char *enc ) const
 		}
 	}
 */
-
+/*	LJT changed to 135.1 compliance from 0110 to F,T,T,F
 	for (int i = 0; i < bitLen; i++)			// madanner 10/02
 		*enc++ = '0' + (int) GetBit(i);
 
 	*enc++ = '\'';
+*/
+	for (int i = 0; i < bitLen; i++)		
+	{
+		*enc++ = (int) GetBit(i) ? 'F' : 'T';
+		if ( (i+1) < bitLen )
+			*enc++ = ',';
+	}
+	*enc++ = '}';
+
 	*enc = 0;
 }
 
+void BACnetBitString::Decode( const char *dec )
+{
+	int		bit;
+	char	c;
+
+	// toss existing content
+	SetSize( 0 );
+
+	// expect { at beginning
+	if ( dec[0] == '{' )
+		dec++;
+
+	while (*dec && (*dec != '}'))
+	{
+		c = *dec++;
+		if ( c == 'T' || c == '1' )
+			SetBit( bit++, 1 );
+		else if ( c== 'F' || c == '0' )
+			SetBit( bit++, 0 );
+		else if ( c == ' ' || c == ',' )
+			continue;   // skip ahead
+		else
+			throw_(50);  // invalid character found
+	}
+}
+
+/*  Replaced to match 135.1 formats
 void BACnetBitString::Decode( const char *dec )
 {
 	int		bit
@@ -3296,11 +3339,11 @@ void BACnetBitString::Decode( const char *dec )
 		if (c == '1')
 			SetBit( bit, 1 );
 		else
-			throw_(50) /* invalid character */;
+			throw_(50); // invalid character 
 		bit += 1;
 	}
 }
-
+*/
 
 int BACnetBitString::DataType()
 {
@@ -3469,28 +3512,28 @@ void BACnetDate::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetDate::Encode( char *enc ) const
 {
-	static char *dow[] = { "", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }
+	static char *dow[] = { "", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
 	;
 
 	// Date is complex data structure... must use brackets to enclose data
-	*enc++ = '[';
+	*enc++ = '(';  // LJT changed from [ to (
 
 	// day of week
 	if (dayOfWeek == DATE_DONT_CARE)
-		*enc++ = '?';
+		*enc++ = '*';	// LJT changed from ? to *
 	else if (dayOfWeek == DATE_SHOULDNT_CARE)
 		*enc++ = '*';
 	else if ((dayOfWeek > 0) && (dayOfWeek < 8)) {
 		strcpy( enc, dow[dayOfWeek] );
-		enc += 3;
+		enc += strlen(dow[dayOfWeek]);
 	} else
-		*enc++ = '?';
+		*enc++ = '*';   // LJT changed from ? to *
 
-	*enc++ = ' ';
+	*enc++ = ',';
 
 	// month
 	if (month == DATE_DONT_CARE)
-		*enc++ = '?';
+		*enc++ = '*';	// LJT changed from ? to *
 	else if (month == DATE_SHOULDNT_CARE)
 		*enc++ = '*';
 	else
@@ -3499,11 +3542,11 @@ void BACnetDate::Encode( char *enc ) const
 		while (*enc) enc++;
 	}
 
-	*enc++ = '/';
+	*enc++ = '/';  // LJT changed from / to -
 
 	// day
 	if (day == DATE_DONT_CARE)
-		*enc++ = '?';
+		*enc++ = '*';   // LJT changed from ? to *
 	else if (day == DATE_SHOULDNT_CARE)
 		*enc++ = '*';
 	else {
@@ -3511,11 +3554,11 @@ void BACnetDate::Encode( char *enc ) const
 		while (*enc) enc++;
 	}
 
-	*enc++ = '/';
+	*enc++ = '/';  // LJT changed from / to -
 
 	// year
 	if (year == DATE_DONT_CARE) {
-		*enc++ = '?';
+		*enc++ = '*';	// LJT changed from ? to *
 		*enc = 0;
 	} else if (year == DATE_SHOULDNT_CARE) {
 		*enc++ = '*';
@@ -3524,10 +3567,156 @@ void BACnetDate::Encode( char *enc ) const
 		sprintf( enc, "%d", year + 1900 );
 
 	// Date is complex data type so must enclose in brackets for proper parsing
-	strcat(enc, "]");
+	strcat(enc, ")");	// LJT changed from ] to )
 }
 
+void BACnetDate::Decode( const char *dec )
+{
+	static char *dow[] = { "", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY" }
+	;
+	char		dowBuff[10]
+	;
 
+	// initialize everything to don't care
+	dayOfWeek = month = day = year = DATE_DONT_CARE;
+
+	// skip blank on front
+	while (*dec && isspace(*dec)) dec++;
+
+	// Date is complex data type so must enclose in brackets
+	if ( *dec++ != '(' )
+		throw_(110);			// missing start bracket for complex data structures
+
+	// check for dow
+	if ( *dec == '*' )
+	{
+		dayOfWeek = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
+		dec += 1;
+	else if (isalpha(*dec)) {
+		// They've provided a day...  read it and test for validity
+
+		for (int j = 0; (j < 9) && isalpha(*dec); j++)
+		{
+			if ( *dec == ' ' || *dec == ',' )
+				break;
+			dowBuff[j] = toupper(*dec++);
+		}
+		dowBuff[j] = 0;
+
+		for (int i = 1; i < 8 && dayOfWeek == DATE_DONT_CARE; i++)
+			if (strcmp(dowBuff,dow[i]) == 0)
+				dayOfWeek = i;
+
+		// scanned through... test for validity
+		if ( dayOfWeek == DATE_DONT_CARE )
+			throw_(91);									// code for bad supplied day (interpreted in caller's context)
+
+		while (*dec!=',' && !isspace(*dec)) dec++;    //Modified by Liangping Xu
+	}
+	while (*dec && isspace(*dec)) dec++;
+
+	// skip over comma and more space
+	if (*dec == ',') {
+		dec += 1;
+		while (*dec && isspace(*dec)) dec++;
+	}
+
+	// check for month
+	if ( *dec == '*' )
+	{
+		month = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
+		dec += 1;
+	else {
+		for (month = 0; isdigit(*dec); dec++)
+			month = (month * 10) + (*dec - '0');
+
+		// they've supplied a month (I think)
+		if ( month < 1 || month > 12)
+			throw_(92);								// code for bad month, , interpreted in caller's context
+	}
+	while (*dec && isspace(*dec)) dec++;
+	
+	// skip over slash and more space
+	// make sure slash is there... or (-)
+	if (*dec == '/' || *dec == '-') {
+		dec += 1;
+		while (*dec && isspace(*dec)) dec++;
+	}
+	else
+		throw_(93);									// code for bad date separator, interpreted in caller's context
+
+	// check for day
+	if ( *dec == '*' )
+	{
+		day = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
+		dec += 1;
+	else {
+		for (day = 0; isdigit(*dec); dec++)
+			day = (day * 10) + (*dec - '0');
+
+		// they've supplied a day (I think)
+		if ( day < 1 || day > 31)					// doesn't account for month/day invalids (feb 30)
+			throw_(94);								// code for bad day, interpreted in caller's context
+	}
+	while (*dec && isspace(*dec)) dec++;
+	
+	// skip over slash and more space
+	if (*dec == '/' || *dec == '-') {
+		dec += 1;
+		while (*dec && isspace(*dec)) dec++;
+	}
+	else
+		throw_(93);									// code for bad date separator, interpreted in caller's context
+
+	// check for year
+	if ( *dec == '*' )
+	{
+		year = DATE_SHOULDNT_CARE;
+		dec += 1;
+	}
+	else if ( *dec == '?' )
+		dec += 1;
+	else {
+		int	yr = -1;			// start with no supplied year
+
+		// if they've supplied any number we'll go through this once at least...
+		if ( isdigit(*dec) )
+			for (yr = 0; isdigit(*dec); dec++)
+				yr = (yr * 10) + (*dec - '0');
+
+		// 0..40 -> 2000..2040, 41.. -> 1941..
+		// negative = error
+
+		if ( yr < 0 )
+			throw_(94);									// code for no supplied year, interpreted in caller's context
+		if (yr < 40)
+			year = yr + 100;
+		else if (yr < 100)
+			year = yr;
+		else if ((yr >= 1900) && (yr <= (1900 + 254)))
+			year = (yr - 1900);
+		else
+			throw_(95);									// code for bad year, interpreted in caller's context
+	}
+
+	// clear white space and look for close bracket
+	while (*dec && isspace(*dec)) dec++;
+	if ( *dec++ != ')' )
+		throw_(111);									// missing close bracket code
+
+	// if we've gotten this far, all values have been read in and are correct
+}
+
+/*
 void BACnetDate::Decode( const char *dec )
 {
 	static char *dow[] = { "", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }
@@ -3669,7 +3858,7 @@ void BACnetDate::Decode( const char *dec )
 
 	// if we've gotten this far, all values have been read in and are correct
 }
-
+*/
 
 
 CTime BACnetDate::Convert() const
@@ -4073,7 +4262,7 @@ void BACnetTime::Decode( BACnetAPDUDecoder& dec )
 void BACnetTime::Encode( char *enc ) const
 {
 	// Time is complex data structure... must use brackets to enclose data
-	*enc++ = '[';
+//	*enc++ = '[';		// LJT changed to comply with 135.1
 
 	// hour
 	if (hour == DATE_DONT_CARE)
@@ -4120,7 +4309,7 @@ void BACnetTime::Encode( char *enc ) const
 		sprintf( enc, "%02d", hundredths );
 
 	// Time is complex data type so must enclose in brackets for proper parsing
-	strcat(enc, "]");
+//	strcat(enc, "]");
 }
 
 
@@ -4539,13 +4728,13 @@ void BACnetDateTime::Decode( BACnetAPDUDecoder& dec )
 void BACnetDateTime::Encode( char *enc ) const
 {
 	// DateTime is complex data structure... must use brackets to enclose data
-	*enc++ = '[';
+	*enc++ = '{';	// LJT changed from [ to {
 
 	bacnetDate.Encode(enc);
 	strcat(enc, ", ");
 	bacnetTime.Encode(enc + strlen(enc));
 
-	strcat(enc, "]");
+	strcat(enc, "}");	// LJT changed from ] to }
 }
 
 
@@ -4555,7 +4744,7 @@ void BACnetDateTime::Decode( const char *dec )
 	while (*dec && isspace(*dec)) dec++;
 
 	// Whole thing  is complex data type so must enclose in brackets
-	if ( *dec++ != '[' )
+	if ( *dec++ != '{' )	// LJT changed from [ to {
 		throw_(110);			// missing start bracket for complex data structures
 
 	bacnetDate.Decode(dec);
@@ -4571,7 +4760,7 @@ void BACnetDateTime::Decode( const char *dec )
 
 	// clear white space and look for close bracket
 	while (*dec && isspace(*dec)) dec++;
-	if ( *dec++ != ']' )
+	if ( *dec++ != '}' )	// LJT changed from ] to }
 		throw_(111);									// missing close bracket code
 }
 
@@ -4730,13 +4919,13 @@ void BACnetDateRange::Decode( BACnetAPDUDecoder& dec )
 void BACnetDateRange::Encode( char *enc ) const
 {
 	// DateRange is complex data structure... must use brackets to enclose data
-	*enc++ = '[';
+	*enc++ = '{';	// LJT changed from [ to {
 
 	bacnetDateStart.Encode(enc);
 	strcat(enc, ", ");
 	bacnetDateEnd.Encode(enc + strlen(enc));
 
-	strcat(enc, "]");
+	strcat(enc, "}");	// LJT changed from ] to }
 }
 
 
@@ -4746,7 +4935,7 @@ void BACnetDateRange::Decode( const char *dec )
 	while (*dec && isspace(*dec)) dec++;
 
 	// Whole thing  is complex data type so must enclose in brackets
-	if ( *dec++ != '[' )
+	if ( *dec++ != '{' )	// LJT changed from [ to {
 		throw_(110);			// missing start bracket for complex data structures
 
 	bacnetDateStart.Decode(dec);
@@ -4762,7 +4951,7 @@ void BACnetDateRange::Decode( const char *dec )
 
 	// clear white space and look for close bracket
 	while (*dec && isspace(*dec)) dec++;
-	if ( *dec++ != ']' )
+	if ( *dec++ != '}' )	// LJT changed from ] to }
 		throw_(111);									// missing close bracket code
 }
 
@@ -4970,8 +5159,8 @@ void BACnetObjectIdentifier::Encode( char *enc ) const
 		sprintf( s = typeBuff, "proprietary %d", objType );
 
 	// changed this back because it broke the Send Dialog VTSANY entry of ObjId 3/10/2006
-	sprintf( enc, "%s, %d", s, instanceNum );
-//	sprintf( enc, "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
+//	sprintf( enc, "%s, %d", s, instanceNum );
+	sprintf( enc, "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
 }
 
 #if VTSScanner
@@ -4986,7 +5175,7 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 
 	// get something
 	scan.Next( tok );
-
+// TODO: LJT need to account for new ( and ) that surrounds the object identifier
 	if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwRESERVED)) {
 		// next must be a number in the reserved range
 		scan.Next( tok );
@@ -5028,6 +5217,7 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 #else
 void BACnetObjectIdentifier::Decode( const char * )
 {
+	// TODO: LJT implement this ...
 	throw_(70) /* not implemented */;
 }
 #endif
@@ -5128,15 +5318,15 @@ void BACnetObjectPropertyReference::Encode( char *enc ) const
 	if ( m_nIndex != -1 )
 		BACnetUnsigned(m_nIndex).Encode(szIndex);
 
-	sprintf(enc, "[%s, %s", szObject, szProp);
+	sprintf(enc, "{%s, %s", szObject, szProp);	// LJT changed [ to {
 	if ( m_nIndex != -1  && m_nIndex != NotAnArray )
 	{
-		strcat(enc, "[");
+		strcat(enc, ",");		// LJT changed [ to ,
 		strcat(enc, szIndex);
-		strcat(enc, "]");
+//		strcat(enc, "]");
 	}
 
-	strcat(enc, "]");
+	strcat(enc, "}");		// LJT changed ] to }
 }
 
 
@@ -5239,12 +5429,13 @@ void BACnetDeviceObjectPropertyReference::Encode( char *enc ) const
 	if ( m_objpropref.m_nIndex != -1 )
 		BACnetUnsigned(m_objpropref.m_nIndex).Encode(szIndex);
 
-	sprintf(enc, "[%s, %s", szObject, szProp);
+	sprintf(enc, "{%s, %s", szObject, szProp);		// LJT changed [ to {
 	if ( m_objpropref.m_nIndex != -1  && m_objpropref.m_nIndex != NotAnArray )
 	{
-		strcat(enc, "[");
+//		strcat(enc, "[");
+		strcat(enc, ",");
 		strcat(enc, szIndex);
-		strcat(enc, "]");
+//		strcat(enc, "]");
 	}
 	if ( m_unObjectID != 0xFFFFFFFF )
 	{
@@ -5253,7 +5444,7 @@ void BACnetDeviceObjectPropertyReference::Encode( char *enc ) const
 		strcat(enc, szDevice);
 	}
 
-	strcat(enc, "]");
+	strcat(enc, "}");		// LJT changed from ] to }
 }
 
 
@@ -5346,18 +5537,19 @@ void BACnetDeviceObjectReference::Encode( char *enc ) const
 	char szObject[100];
 	char szDevice[100];
 
-	sprintf(enc, "[" );
+	sprintf(enc, "{" );	// LJT changed from [ to {
 	if ( m_undevID != 0xFFFFFFFF )
 	{
 		BACnetObjectIdentifier((unsigned int) m_undevID).Encode(szDevice);
 		strcat(enc, szDevice);
+		strcat(enc, ", ");
 	}
 	m_objID.Encode(szObject);
 
-	strcat(enc, ", ");
-	strcat(enc, szObject);
+//	strcat(enc, ", ");
+//	strcat(enc, szObject);
 
-	strcat(enc, "]");
+	strcat(enc, "}");
 }
 
 
@@ -5572,8 +5764,11 @@ void BACnetAddressBinding::Encode( BACnetAPDUEncoder& enc, int context )
 
 void BACnetAddressBinding::Encode( char *enc ) const
 {
+	strcat( enc, "{" );	// LJT added
 	m_bacnetObjectID.Encode( enc );
+	strcat( enc, "," ); // LJT added
 	m_bacnetAddr.Encode( enc );
+	strcat( enc, "}" ); // LJT added
 }
 
 void BACnetAddressBinding::Decode( BACnetAPDUDecoder& dec )
@@ -5628,6 +5823,11 @@ bool BACnetAddressBinding::Match( BACnetEncodeable &rbacnet, int iOperator, CStr
 //
 //	BACnetOpeningTag
 //
+
+void BACnetOpeningTag::Encode(char *enc) const
+{
+	*enc++ = '{';
+}
 
 void BACnetOpeningTag::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -5802,6 +6002,7 @@ BACnetRecipient & BACnetRecipient::operator =( const BACnetRecipient & arg )
 
 void BACnetRecipient::Encode( char *enc ) const
 {
+	// TODO: LJT add context tag in square brackets for 135.1 compliance ...
 	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
 		pbacnetTypedValue->Encode( enc );
 	else
@@ -5923,11 +6124,11 @@ BACnetRecipientProcess & BACnetRecipientProcess::operator =( const BACnetRecipie
 
 void BACnetRecipientProcess::Encode( char *enc ) const
 {
-	*enc++ = '[';
+	*enc++ = '{';	// LJT changed from [ to {
 	m_bacnetrecipient.Encode( enc );
 	strcat( enc, ", ");
 	m_bacnetunsignedID.Encode( enc+strlen(enc) );
-	strcat( enc, "]");
+	strcat( enc, "}");	// LJT changed from ] to }
 }
 
 void BACnetRecipientProcess::Encode(BACnetAPDUEncoder& enc, int context)
@@ -6028,7 +6229,7 @@ BACnetCOVSubscription & BACnetCOVSubscription::operator =( const BACnetCOVSubscr
 
 void BACnetCOVSubscription::Encode( char *enc ) const
 {
-	*enc++ = '[';
+	*enc++ = '{';	// changed from [ to {
 	m_bacnetrecipprocess.Encode( enc );
 	strcat(enc,", ");
 	m_bacnetobjpropref.Encode( enc+strlen(enc) );
@@ -6041,12 +6242,13 @@ void BACnetCOVSubscription::Encode( char *enc ) const
 		m_bacnetrealCOVIncrement.Encode( enc+strlen(enc) );
 	else
 		strcat( enc, "0" );
-	strcat(enc,"]");
+	strcat(enc,"}");	// changed from ] to }
 
 }
 
 void BACnetCOVSubscription::Decode( const char *dec )
 {
+	// todo: write decoder if it is ever used...
 }
 
 
@@ -6206,6 +6408,10 @@ int BACnetDestination::DataType()
 //
 //	BACnetClosingTag
 //
+void BACnetClosingTag::Encode(char *enc) const
+{
+	*enc++ = '}';
+}
 
 void BACnetClosingTag::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -6464,6 +6670,18 @@ BACnetCalendarEntry::BACnetCalendarEntry( BACnetAPDUDecoder & dec )
 BACnetCalendarEntry::BACnetCalendarEntry( BACnetEncodeable * pbacnetEncodeable )
 					:BACnetObjectContainer(pbacnetEncodeable)
 {
+	if ( pbacnetEncodeable != NULL )
+	{
+		switch(pbacnetEncodeable->DataType())
+		{
+			case ptDate: m_nChoice = 0;
+				break;
+			case dtrange: m_nChoice = 1;
+				break;
+			case dsofweek: m_nChoice = 2;
+				break;
+		}
+	}
 }
 
 void BACnetCalendarEntry::Encode( BACnetAPDUEncoder& enc, int context)
@@ -6760,6 +6978,7 @@ void BACnetPrescale::Encode( char *enc ) const
 
 void BACnetPrescale::Decode( const char *dec )
 {
+	// todo: write decoder if used...
 }
 
 int BACnetPrescale::DataType()
@@ -6808,8 +7027,6 @@ void BACnetAccumulatorRecord::Encode( BACnetAPDUEncoder& enc, int context)
 
 void BACnetAccumulatorRecord::Encode( char *enc ) const
 {
-	static char* monthstr[] = {"Jan", "Feb", "March", "April", "May", "June", "July",
-		"August", "Sep", "Oct", "Nov", "Dec"};
 	static char* statusstr[] = 
 	{
 		"normal",
@@ -6818,13 +7035,22 @@ void BACnetAccumulatorRecord::Encode( char *enc ) const
 		"abnormal",
 		"failed"	
 	};
-	sprintf(enc, "{(%d-%s-%d, %d:%d:%d.%d),%d, %d, %s}", timestamp.date.day_of_month, timestamp.date.month == 0xFF ? "*" : monthstr[timestamp.date.month], 
+	static char* monthstr[] = {"Jan", "Feb", "March", "April", "May", "June", "July",
+		"August", "Sep", "Oct", "Nov", "Dec"};
+
+	sprintf(enc, "{{(%d-%s-%d), %d:%d:%d.%d},%d, %d, %s}", timestamp.date.day_of_month, timestamp.date.month == 0xFF ? "*" : monthstr[timestamp.date.month], 
 		timestamp.date.year + 1900, timestamp.time.hour, timestamp.time.minute, timestamp.time.second, timestamp.time.hundredths, 
 		presentValue, accumulatedValue, statusstr[accumulatorStatus]);	
+
+//	char timestampenc[50];
+//	timestamp.Encode(timestampenc);
+//	sprintf(enc, "{%s,%d, %d, %s}", timestampenc,
+//		presentValue, accumulatedValue, statusstr[accumulatorStatus]);	
 }
 
 void BACnetAccumulatorRecord::Decode( const char *dec )
 {
+	// TODO: LJT write if needed
 }
 
 int BACnetAccumulatorRecord::DataType(void)
