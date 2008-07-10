@@ -487,7 +487,7 @@ class VTSDevice : public CObject
 		VTSDevObjects * GetObjects(void) { return &m_devobjects; }
 
 		int ReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, int nIndex, BACnetAPDUEncoder * pAPDUEncoder );
-		int InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUEncoder * pAPDUEncoder );
+		int InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUEncoder * pAPDUEncoder, int index );
 		int WriteProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, int nIndex, BACnetAPDUDecoder * pdec );
 		int InternalWriteProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUDecoder * pdec );
 
