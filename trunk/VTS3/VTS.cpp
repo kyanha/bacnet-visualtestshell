@@ -1603,8 +1603,34 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //      VTS.rc, VTSBackupRestoreDlg.cpp/h, VTSBackupRestoreProgress.cpp/h, 
 //      VTSCtrl.cpp, VTSDB.cpp/h, VTSDoc.cpp, VTSPacket.cpp, VTSPacketDB.cpp/h,
 //      VTSPortIPDialog.cpp/h, VTSPortMSTPDialog.cpp
+//
+//  3.5.0.5		July 10, 2008
+//
+//		Several items were fixed in the Backup and Restore procedures.
+//		AtomicWriteFile decoding and display was fixed.
+//		ReinitializeDevice was fixed to show enumeration correctly.
+//		Added several new properties and structures.
+//		Added EventType handling for: UnsignedRange, Extended, and ChangeOfLifeSafety.
+//		Fixed CreateObject dialog
+//		Fixed EventEnrollment dialog
+//		Updated EPICS Consistency for new workstation BIBBs (Addendum L)
+//		EPICS now accepts 1476.
+//		ReadAllProperties script creation now produces correct syntax.
+//		VTS Server now supports ReinitializeDevice and GetEventInformation.
+//		VTS Server now responds to most required device properties.
+//		VTS Server creates Object_List and Object_Type based on objects defined in the VTS Device.
+//		Started work on import and export of VTS device objects.  Not Complete.
+//		Changed several dialogs to use standard combo box lists for properties and object types.
+//		Encoding/Decoding of string formats now better matches 135.1 formats.
+//		Fixed proprietary usage in WritePropertyMultiple
+//
+//		Known Bugs Fixed: 1921977, 1912929, 1841379, 1841067, 1799670,
+//						1615874, 1592190, 1554997, 1477101, 1447133, 
+//						1431122, 1254440, 994901, 974844, 895890, 895882,
+//						855084. 829159
+
 			
-const int kReleaseVersion = 0;
+const int kReleaseVersion = 5;
 			
 			class CAboutDlg : public CDialog
 			{
@@ -1637,7 +1663,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 //	m_Version = _T("");
 	//}}AFX_DATA_INIT
 
-	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d"
+	m_Version.Format( "Visual Test Shell\nVersion %d.%d.0.%d"
 		, kVTSDBMajorVersion
 		, kVTSDBMinorVersion
 		, kReleaseVersion		// defined above
