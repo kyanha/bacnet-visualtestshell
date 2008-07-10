@@ -874,6 +874,11 @@ BOOL ScriptDocument::CheckSyntax( void )
 						if (tok.tokenSymbol != '=')
 							throw "Assignment operator '=' expected";
 						scannerStack[scannerStack.GetSize()-1]->Next( tok );
+						
+						// special handling for complex data types
+						if ( tok.tokenType == scriptSymbol && (tok.tokenSymbol == '('))
+							scannerStack[scannerStack.GetSize()-1]->Next( tok );
+
 					}
 
 					for (;;) {
@@ -890,13 +895,22 @@ BOOL ScriptDocument::CheckSyntax( void )
 						if (tok.tokenType == scriptEOL)
 							break;
 
+						// special handling in case of complex types
+						if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ')'))
+						{
+							scannerStack[scannerStack.GetSize()-1]->Next( tok );
+							if (tok.tokenType == scriptEOL)
+								break;
+						}
+
 						// check for more
-						if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != ','))
+						if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != ',') )
 							throw "End-of-line or comma expected";
 						valu += ", ";
 
 						// get ready for next value
 						scannerStack[scannerStack.GetSize()-1]->Next( tok );
+
 					}
 
 					// add it to the parameter list
