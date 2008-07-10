@@ -830,7 +830,7 @@ char *BACnetPropertyIdentifier[] = {
    "Controlled_Variable_Units ",        /* 20 */
    "Controlled_Variable_Value ",        /* 21 */
    "COV_Increment ",                    /* 22 */
-   "Datelist ",                         /* 23 */
+   "Date-list ",                        /* 23 */
    "Daylight_Savings_Status ",          /* 24 */
    "Deadband ",                         /* 25 */
    "Derivative_Constant ",              /* 26 */
