@@ -1768,12 +1768,16 @@ class BACnetOpeningTag : public BACnetEncodeable {
 	public:
 		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
 		void Decode( BACnetAPDUDecoder& dec );					// decode
+
+		void Encode( char *enc ) const;
 	};
 
 class BACnetClosingTag : public BACnetEncodeable {
 	public:
 		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
 		void Decode( BACnetAPDUDecoder& dec );					// decode
+
+		void Encode( char *enc ) const;
 	};
 
 //
