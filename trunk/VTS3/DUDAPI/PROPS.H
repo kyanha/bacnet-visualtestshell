@@ -179,7 +179,7 @@ static const char *stPropIDs[]={
 				"controlled-variable-units",
 				"controlled-variable-value",
 				"cov-increment",
-				"datelist",
+				"date-list",
 				"daylight-savings-status",
 				"deadband",
 				"derivative-constant",
