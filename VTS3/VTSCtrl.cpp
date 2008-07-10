@@ -2598,7 +2598,8 @@ void VTSDateCtrl::CtrlToObj( void )
 	// madanner 11/7/02, We're pulling data from an edit field so we don't need to scan for brackets
 	// We'll just put this directly into the buffer after we add brackets.
 
-	str = "[" + str + "]";
+//	str = "[" + str + "]";
+	str = "(" + str + ")";
 
 	try {
 		// use the built-in decoder
@@ -2698,7 +2699,7 @@ void VTSTimeCtrl::CtrlToObj( void )
 	// madanner 11/7/02, We're pulling data from an edit field so we don't need to scan for brackets.
 	// We do, however, have to put them in there for the decode to work correctly for complex data types.
 
-	str = "[" + str + "]";
+//	str = "[" + str + "]";   // LJT time is not complex and does not get brackets
 
 	try {
 		// use the built-in decoder
@@ -2724,8 +2725,8 @@ void VTSTimeCtrl::ObjToCtrl( void )
 		// Encoding for complex types have brackets [] on the ends.  Encoding does not throw
 		// so we're pretty sure the brackets are there.
 
-		str.Delete( 0, 1 );
-		str.Delete( str.GetLength() - 1, 1 );
+//		str.Delete( 0, 1 );
+//		str.Delete( str.GetLength() - 1, 1 );
 	}
 
 	// set the text

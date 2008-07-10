@@ -1638,6 +1638,38 @@ void VTSAny::Encode( BACnetAPDUEncoder& enc, int context )
 }
 
 //
+//  DecoderFromHex
+//
+void DecoderFromHex( CString &str, BACnetAPDUEncoder &dec )
+{
+	char c;
+	int upperNibble, lowerNibble;
+
+	int length = str.GetLength();
+
+	if ( length == 0 || (length&1 != 0) )
+		return;
+
+	// encode the content
+	for (int i = 0; i < str.GetLength(); i++) 
+	{
+		c = toupper( str.GetAt(i) );
+		if (!isxdigit(c))
+			throw_(46) /* invalid character */;
+		upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+
+		c = toupper( str.GetAt(++i) );
+		if (!isxdigit(c))
+			throw_(47) /* invalid character */;
+		lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+
+		// stick this on the end
+		dec.pktBuffer[dec.pktLength++] = (upperNibble << 4) + lowerNibble;
+	}
+
+}
+
+//
 //	EncoderToHex
 //
 
