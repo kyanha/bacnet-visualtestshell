@@ -1,11 +1,40 @@
 // VTSDevicesTreeDlg.cpp : implementation file
 //
+//#include "stdafx.h"
+//#include <afxrich.h>
+//#include <process.h>
+
+#include "stdafx.h"
+#include "VTS.h"
+#include "ChildFrm.h"
 
 #include "stdafx.h"
 #include "vts.h"
+
+
+namespace NetworkSniffer {
+//	extern char *BACnetPropertyIdentifier[];
+	extern char *BACnetObjectType[];
+	extern char *BACnetSegmentation[] ;
+}
+
+///////////////////////////////
+namespace PICS {
+#include "db.h" 
+#include "service.h"
+#include "vtsapi.h"
+#include "props.h"
+#include "bacprim.h"
+#include "dudapi.h"
+#include "propid.h"
+#include "stdobj.h"
+extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue );
+}
+
 #include "VTSDevicesTreeDlg.h"
 
-//#include "VTSValue.h"
+void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
+void DecoderFromHex( CString &str,  BACnetAPDUEncoder &enc );
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -70,7 +99,7 @@ BEGIN_MESSAGE_MAP(VTSDevicesTreeDlg, CDialog)
 	ON_NOTIFY(TVN_KEYDOWN, IDC_DEVICETREE, OnKeydownDevicetree)
 	//}}AFX_MSG_MAP
 	ON_COMMAND( IDC_DEVEXPORT, OnExport)
-	ON_COMMAND( IDC_DEVIMPORT, OnImport)
+//	ON_COMMAND( IDC_DEVIMPORT, OnImport)  // Note not enabled because of too many bugs
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -108,8 +137,10 @@ void VTSDevicesTreeDlg::OnOK()
 
 		for ( j = 0, pobjects = p->GetObjects(); pobjects != NULL && j < pobjects->GetSize(); j++ )
 			for ( k = 0, pproperties = (*pobjects)[j]->GetProperties(); pproperties != NULL && k < pproperties->GetSize(); k++ )
-				if ( (*pproperties)[k]->GetValues()->GetSize() > 1 && !(*pproperties)[k]->IsArray() )
+			{
+//				if ( (*pproperties)[k]->GetValues()->GetSize() > 1 && !(*pproperties)[k]->IsArray() )
 					(*pproperties)[k]->SetIsArray(true);
+			}
 			
 		m_pdevices->Add(m_devicesLocal[i]);
 	}
@@ -152,6 +183,8 @@ BOOL VTSDevicesTreeDlg::OnInitDialog()
 	// initialize the image list.
     m_imagelist.Create( IDB_DEVTREE, 18, 1, RGB(255,0,255) );
     m_treeDevices.SetImageList( &m_imagelist, TVSIL_NORMAL );
+
+	GetDlgItem(IDC_DEVIMPORT)->EnableWindow(false);
 
 	InitTree();				// get device definitions from the database
 	return TRUE;
@@ -586,8 +619,161 @@ void VTSDevicesTreeDlg::OnKeydownDevicetree(NMHDR* pNMHDR, LRESULT* pResult)
 	*pResult = 0;
 }
 
+int GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
+{
+	switch(nBACnetEncodeableDataType)
+	{
+		case enull:			return 0;		//null enumeration, BACnetNull
+		case ebool:			return 1;		//boolean enumeration, BACnetBoolean
+		
+		case uw:							//unsigned word
+		case u16:							//1..16
+		case u127:							//1..127
+		case ud:			return 2;		//unsigned dword, BACnetUnsigned
+
+		case ssint:							//short (2-byte) signed integer  MAG 13 FEB 2001
+		case sw:			return 3;		//signed word, BACnetInteger
+
+		case flt:			return 4;		//float / real, BACnetReal (changed 2005 by kare.sars@wapice.com)
+//		case flt:			return 5;		//float / double, BACnetDouble
+
+		case s10:							//char [10]
+		case s32:							//char [32]
+		case s64:							//char [64]
+		case s132:			return 7;		//char [132], BACnetCharacterString
+
+		case pss:							//protocol services supported bitstring
+		case pos:							//protocol objects supported bitstring
+		case bits:			return 8;		//octet of T or F flags, BACnetBitString
+
+		case et:			return 9;		//an enumeration table, BACnetEnumerated
+
+		case ptDate:		
+		case ddate:			return 10;		//date, BACnetDate
+		case ptTime:
+		case ttime:			return 11;		//time, BACnetTime
+
+		case ob_id:			return 12;		//an object identifier, BACnetObjectIdentifier
+
+		default:			return -1;
+	}
+}
+
+// Note: Currently not enabled because too many bugs to release to general public
+//       If someone wants to refine and improve this method, willing to accept input
 void VTSDevicesTreeDlg::OnImport()
 {
+	PICS::PICSdb *db = new PICS::PICSdb;
+
+	LPCSTR lpszFileName = "VTS_Devices_01.ini";
+	int error_count;
+	int error_number;
+
+	/* This method depends on reading in a 'real' EPICS looking file it is unreliable and error prone
+	   This method also does not handle complex property imports very well.
+	*/
+	// TODO: LJT create another method import/export that does not rely on the EPICS text format
+	//       We could introduce code to read and write XML as denoted by the CSML format or
+	//       We could use similar format to EPICS but instead of string representation use ASN HEX
+
+	if ( PICS::ReadTextPICS( (char *) (LPCSTR) lpszFileName, db, &error_count, &error_number ) )
+	{
+		if ( error_count > 1 || error_number > 0 )
+		{
+			AfxMessageBox("Error reading vts_devices_01.ini.  Objects not loaded.");			
+		}
+		else
+		{
+			m_treeDevices.DeleteAllItems();
+
+			// put DB into format for TD
+			if (db)
+			{
+				if ( db->Database )
+				{
+					m_devicesLocal.KillContents();
+					m_devicesLocal.Add(new VTSDevice());
+					VTSDevice * p = m_devicesLocal[0];
+					VTSDevObjects * pobjects;
+
+					pobjects = p->GetObjects();
+					pobjects->KillContents();
+
+					PICS::generic_object *pd2 = db->Database;
+					while (pd2)
+					{
+						VTSDevProperties * pproperties;
+
+						unsigned short type;
+						unsigned long inst;
+						PICS::SplitObjectId(pd2->object_id, &type, &inst );
+						BACnetAnyValue bacnetAny;
+
+						if ( pd2->object_type != 8 )
+						{
+							VTSDevObject * dvo = new VTSDevObject();
+							dvo->SetID(pd2->object_type, inst);
+							pobjects->Add( dvo );
+							// now need to load properties and values
+
+							pproperties = dvo->GetProperties();
+							DWORD dwPropID = 0;
+							char szPropName[50];
+
+							// loop all properties
+							for ( int i = 0; i < sizeof(pd2->propflags); i++ )
+							{
+								if ( PICS::GetPropNameSupported(szPropName, i, pd2->object_type, pd2->propflags, &dwPropID, NULL) > 0 )
+								{
+									VTSDevProperty * dpo = new VTSDevProperty();
+									dpo->SetID(dwPropID);
+									pproperties->Add( dpo );
+
+									// now create value
+									VTSDevValues * vvalues = dpo->GetValues();
+
+									// Access DUDAPI call to point to yucky part of EPICS internal data structures
+									PICS::CreatePropertyFromEPICS( pd2, dwPropID, &bacnetAny );
+									BACnetEncodeable * xy = bacnetAny.GetObject();
+									VTSDevValue * dvo = new VTSDevValue();
+
+									BACnetAPDUEncoder ae;
+									xy->Encode(ae);
+									memcpy(dvo->m_abContent, ae.pktBuffer, ae.pktLength);
+									
+									dvo->m_nLength = ae.pktLength;
+									dvo->m_nType = GetBACnetToAnyTypeMapping(xy->DataType());
+
+									vvalues->Add(dvo);
+
+								}
+							}
+
+						}
+						else
+						{
+							// special case : device object properties get filled into p
+							//p->m_nVendorID = pd2->propflags
+							p->m_strName = pd2->object_name;
+							p->m_nInstance = inst;
+
+						}
+						pd2 = (PICS::generic_object*)pd2->next;
+					}
+				}
+				LoadDevices( &m_devicesLocal, NULL );
+			}
+		}
+	}
+
+	// done with the db , we can delete it.
+	if ( db )
+	{
+		PICS::MyDeletePICSObject( db->Database );
+		delete db;
+		db = NULL;
+	}
+
 	
 }
 
@@ -597,7 +783,10 @@ void VTSDevicesTreeDlg::OnExport()
 	// TODO: open file for our information
 	mfile=fopen("VTS_Devices_01.ini","w+");
 
-	fprintf(mfile, "VTS Devices\n");
+	fprintf(mfile, "PICS 0\n");
+	fprintf(mfile, "BACnet Protocol Implementation Conformance Statement\n");
+
+	fprintf(mfile, "List of objects in Test Device:\n");
 	fprintf(mfile, "{\n");
 
 	// VTSDevices
@@ -608,53 +797,108 @@ void VTSDevicesTreeDlg::OnExport()
 		VTSDevProperties * pproperties;
 		VTSDevValues * pvalues;
 
-		int j, k, l, m;
+		int j, k, l;
 
 		// TODO: write device information out to file
-		fprintf(mfile, "{\n");
-		fprintf(mfile, "Instance=%d\n", p->m_nInstance);
-		fprintf(mfile, "object-name=%s\n", p->m_strName);
-		fprintf(mfile, "number-of-APDU-retries=%d\n", p->m_nAPDURetries);
-		fprintf(mfile, "apdu-segment-timeout=%d\n", p->m_nAPDUSegmentTimeout);
-		fprintf(mfile, "apdu-timeout=%d\n", p->m_nAPDUTimeout);
-		fprintf(mfile, "max-APDU-length-supported=%d\n", p->m_nMaxAPDUSize);
-		fprintf(mfile, "max-segments-accepted=%d\n", p->m_nSegmentSize);
-		fprintf(mfile, "vendor-identifier=%d\n", p->m_nVendorID);
-		fprintf(mfile, "segmentation-supported=%d\n", p->m_segmentation);
-		fprintf(mfile, "WindowSize=%d\n", p->m_nWindowSize);
-
+		fprintf(mfile, "\t{\n");
+		fprintf(mfile, "\tobject-identifier:(%s,%d)\n", "Device", p->m_nInstance);
+		fprintf(mfile, "\tobject-name: \"%s\"\n", p->m_strName);
+		fprintf(mfile, "\tobject-type: %s\n", "Device");
+		fprintf(mfile, "\tnumber-of-APDU-retries: %d\n", p->m_nAPDURetries);
+		fprintf(mfile, "\tapdu-segment-timeout: %d\n", p->m_nAPDUSegmentTimeout);
+		fprintf(mfile, "\tapdu-timeout: %d\n", p->m_nAPDUTimeout);
+		fprintf(mfile, "\tmax-apdu-length-accepted: %d\n", p->m_nMaxAPDUSize);
+		fprintf(mfile, "\tmax-segments-accepted: %d\n", p->m_nSegmentSize);
+		fprintf(mfile, "\tvendor-identifier: %d\n", p->m_nVendorID);
+		fprintf(mfile, "\tsegmentation-supported: %s\n", NetworkSniffer::BACnetSegmentation[p->m_segmentation]);
+		fprintf(mfile, "\t}\n");
 
 
 		for ( j = 0, pobjects = p->GetObjects(); pobjects != NULL && j < pobjects->GetSize(); j++ )
 		{
 			// TODO: now write the object information
-			fprintf(mfile, "{\n");
-			fprintf(mfile, "object-identifier=%d:%d\n", (*pobjects)[j]->GetType(), (*pobjects)[j]->GetInstance() );
+			fprintf(mfile, "\t{\n");
+			fprintf(mfile, "\tobject-identifier: (%s, %d)\n", NetworkSniffer::BACnetObjectType[(*pobjects)[j]->GetID()>>22], (*pobjects)[j]->GetInstance());
+			fprintf(mfile, "\tobject-type: %s\n", NetworkSniffer::BACnetObjectType[(*pobjects)[j]->GetID()>>22]);
 
 			for ( k = 0, pproperties = (*pobjects)[j]->GetProperties(); pproperties != NULL && k < pproperties->GetSize(); k++ )
 			{
-				// TODO: now write the property information
-				fprintf(mfile, "{\n");
-				fprintf(mfile, "Property=%d\n", (*pproperties)[k]->GetID() );
-				for ( l = 0, pvalues = (*pproperties)[k]->GetValues(); pvalues != NULL && l < pvalues->GetSize(); l++ )
+				if ( (*pproperties)[k]->GetID() == 75 || (*pproperties)[k]->GetID() == 79 )
 				{
-					fprintf(mfile, "Value=%d:", (*pvalues)[l]->m_nLength);
-					for ( m = 0; m < (*pvalues)[l]->m_nLength; m++ )
+					// skip object-identifier and object-type because we already put them out.
+				}
+				else
+				{
+					LPCSTR str = PICS::stPropIDs[(*pproperties)[k]->GetID()];
+
+					fprintf(mfile, "\t%s: ", str );
+					for ( l = 0, pvalues = (*pproperties)[k]->GetValues(); pvalues != NULL && l < pvalues->GetSize(); l++ )
 					{
-						fprintf(mfile, "%x ",(*pvalues)[l]->m_abContent[m] );
+						BACnetEncodeable * ax = (*pvalues)[l]->CreateBACnetObject();
+/*
+// alternate method to write encoded strings out to file rather than 135.1 EPICS strings to file
+						BACnetAPDUEncoder enc;
+						CString str;
+						ax->Encode( enc, -1 );
+						EncoderToHex( enc, str );
+//						fprintf(mfile, "%s", str );
+// this is how you read back in an encoded string 
+						BACnetAPDUEncoder enc1;
+						DecoderFromHex( str, enc1 );
+						// ok I have my data in an BACnetOctet buffer 
+
+						// There is no way to create one of the nice BACnetEncodeable objects from this because we don't have the parseType
+						// For purposes of this devices dialog tree we just need the encoded string and
+						// its actual encoding type (applicationtag type)
+
+						BACnetAPDUDecoder dec;
+						dec.SetBuffer( enc1.pktBuffer, enc1.pktLength );
+						
+						BACnetAPDUTag	t;
+						dec.ExamineTag(t);
+
+						switch (t.tagClass)
+						{
+							case contextTagClass:
+								// set this as an octet string.  Because it is context tagged, the datatype connot
+								// be determined, the context isn't maintained.  It could be, because we know the 
+								// object type and property, and we could even validate the datatype along the 
+								// way, but that will be saved for future work.
+								pvalue->m_nType = octetStringAppTag;
+								pvalue->m_nContext = (int) t.tagNumber;
+								break;
+								
+							case openingTagClass:
+								pvalue->m_nType = 13;	// opening tag
+								pvalue->m_nContext = (int) t.tagNumber;
+								break;
+								
+							case closingTagClass:
+								pvalue->m_nType = 14;	// closing tag
+								pvalue->m_nContext = (int) t.tagNumber;
+								break;
+							
+							case applicationTagClass:
+
+								pvalue->m_nType = t.tagNumber;	// tag number matches type
+								pvalue->m_nContext = -1;
+								break;
+						}
+
+*/
+
+						fprintf(mfile, "%s ", ax->ToString());
 					}
 					fprintf(mfile, "\n");
 				}
-				fprintf(mfile, "} End of Property\n");
 			}
-			fprintf(mfile, "} End of Object\n");
+			fprintf(mfile, "\t} \n");
 
 		}
-		fprintf(mfile, "} End of Device\n");
 	}
 
 	// TODO: close file
-	fprintf(mfile, "} End of Devices\n");
+	fprintf(mfile, "} End of Objects in Test Device\n");
 	fclose(mfile);
 
 }
