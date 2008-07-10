@@ -1144,6 +1144,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 		}
 		// get DA
 		CString  strDA = "";
+		
 		int nIndex = pnames->FindIndex(pdlg->m_strIUTIP);
 		if ( nIndex != -1) {
 			BACnetAddress* pAdr = &((*pnames)[nIndex]->m_bacnetaddr);
@@ -1156,13 +1157,21 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 			char	buff[kMaxAddressLen * 3], *s = buff;
 			// clear the buffer
 			buff[0] = 0;
-			// encode the address
-			for ( i = 0; i < pAdr->addrLen; i++) {
-				if (i) *s++ = '-';
-				*s++ = hex[ pAdr->addrAddr[i] >> 4 ];
-				*s++ = hex[ pAdr->addrAddr[i] & 0x0F ];
+			if ( nPortType == ipPort )
+			{
+				memcpy( buff, BACnetIPAddr::AddressToString(pAdr->addrAddr), sizeof(buff));
+				
 			}
-			*s = 0;
+			else
+			{
+				// encode the address
+				for ( i = 0; i < pAdr->addrLen; i++) {
+					if (i) *s++ = '-';				
+					*s++ = hex[ pAdr->addrAddr[i] >> 4 ];
+					*s++ = hex[ pAdr->addrAddr[i] & 0x0F ];
+				}
+				*s = 0;
+			}
 			strDA = buff;
 		}else{
 			strDA = pdlg->m_strIUTIP;
@@ -1197,7 +1206,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 			strDADR = buff;
 		}
 		str.Format("  IUT_DA = %s\n" \
-				   "  ACTIVENET = %s\n\n", strDA, pdlg->m_strNetwork );
+				   "  ACTIVENET = \'%s\'\n\n", strDA, pdlg->m_strNetwork );
 		pscript->WriteString(str);
 
 		if (pdlg->m_bDNET) {
