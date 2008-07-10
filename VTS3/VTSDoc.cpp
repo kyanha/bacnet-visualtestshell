@@ -4262,7 +4262,7 @@ VTSDevProperty * VTSDevice::FindProperty( VTSDevObject * pobject, int nPropID )
 }
 
 
-int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUEncoder * pAPDUEncoder )
+int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUEncoder * pAPDUEncoder, int index )
 {
 	BACnetObjectIdentifier	bacnetobjidThis(8, m_nInstance);
 
@@ -4291,27 +4291,63 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 				services_supported.SetBit(0);	// acknowledgeAlarm
 				services_supported.SetBit(1);	// confirmedCOVNotification
 				services_supported.SetBit(2);	// confirmedEventNotification
+
+				services_supported.SetBit(14);  // readPropertyMultiple -- Does not really support!!!!
 				services_supported.Encode(*pAPDUEncoder);
 			}
 			break;
 		case OBJECT_LIST:
 			{
-				BACnetArrayOf<BACnetObjectIdentifier>	objList;
-				for(UINT i = 0; i < m_devobjects.GetSize(); i++)
+				if (index == 0)
 				{
-					BACnetObjectIdentifier objID;
-					unsigned int objid = m_devobjects[i]->GetID();
-					int inst = objid & 0x003fffff ;
-					int objtype=(word)(objid>>22);
-					objID.SetValue( (BACnetObjectType)objtype, inst );
-					objList.AddElement(&objID);
+					BACnetUnsigned val;
+					val = m_devobjects.GetSize()+1;  // have to add one for the Device object
+					val.Encode(*pAPDUEncoder);
 				}
-				BACnetObjectIdentifier me;
-				me.SetValue( (BACnetObjectType)8, m_nInstance );
-				objList.AddElement(&me);  // add device object
+				else if (index > 0)
+				{
+					BACnetArrayOf<BACnetObjectIdentifier>	objList;
+					if ( (index-1) > (m_devobjects.GetSize()+1) )
+					{
+						return 42;   // invalid-array-index
+					}
+					else if ((index-1) == m_devobjects.GetSize())  // special case: return device
+					{
+						BACnetObjectIdentifier me;
+						me.SetValue( (BACnetObjectType)8, m_nInstance );
+						objList.AddElement(&me);  // add device object
 
-				objList.Encode(*pAPDUEncoder);
+						objList.Encode(*pAPDUEncoder);
+					}
+					else
+					{
+							BACnetObjectIdentifier objID;
+							unsigned int objid = m_devobjects[index-1]->GetID();  // remember index is 1 based our array is 0 based
+							int inst = objid & 0x003fffff ;
+							int objtype=(word)(objid>>22);
+							objID.SetValue( (BACnetObjectType)objtype, inst );
+							objList.AddElement(&objID);
+							objList.Encode(*pAPDUEncoder);
+					}
+				}
+				else
+				{
+					BACnetArrayOf<BACnetObjectIdentifier>	objList;
+					for(UINT i = 0; i < m_devobjects.GetSize(); i++)
+					{
+						BACnetObjectIdentifier objID;
+						unsigned int objid = m_devobjects[i]->GetID();
+						int inst = objid & 0x003fffff ;
+						int objtype=(word)(objid>>22);
+						objID.SetValue( (BACnetObjectType)objtype, inst );
+						objList.AddElement(&objID);
+					}
+					BACnetObjectIdentifier me;
+					me.SetValue( (BACnetObjectType)8, m_nInstance );
+					objList.AddElement(&me);  // add device object
 
+					objList.Encode(*pAPDUEncoder);
+				}
 			}
 			break;
 		case PROTOCOL_OBJECT_TYPES_SUPPORTED:
@@ -4495,11 +4531,16 @@ int VTSDevice :: ReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetE
 	// First attempt to locate property in question from list... if property is for this device this will 
 	// allow for overrides in device object property configuration
 
+	// if we find a pobject than we need to try to find the property
+	// if we don't find the pobject than we assume it is our device object
 	if ( (pobject = FindObject(pbacnetobjectid->objID)) == NULL )
-		return InternalReadProperty(pbacnetobjectid, pbacnetpropid, pAPDUEncoder);
+		return InternalReadProperty(pbacnetobjectid, pbacnetpropid, pAPDUEncoder, nIndex);
 
 	if ( (pprop = FindProperty(pobject, pbacnetpropid->enumValue)) == NULL )
-		return InternalReadProperty(pbacnetobjectid, pbacnetpropid, pAPDUEncoder);
+// LJT changed this because InternalReadProperty should only be used for Device Object and 
+//  we already figured out this is not for the device object
+//		return InternalReadProperty(pbacnetobjectid, pbacnetpropid, pAPDUEncoder);
+		return 32;
 
 	// IF they've requested either the length of the array or a specific element and this isn't
 	// an array, we need to tell them
