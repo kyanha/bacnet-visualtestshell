@@ -1604,7 +1604,7 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //      VTSCtrl.cpp, VTSDB.cpp/h, VTSDoc.cpp, VTSPacket.cpp, VTSPacketDB.cpp/h,
 //      VTSPortIPDialog.cpp/h, VTSPortMSTPDialog.cpp
 //
-//  3.5.0.5		July 10, 2008
+//  3.5.1		July 14, 2008
 //
 //		Several items were fixed in the Backup and Restore procedures.
 //		AtomicWriteFile decoding and display was fixed.
@@ -1630,7 +1630,7 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //						855084. 829159
 
 			
-const int kReleaseVersion = 5;
+const int kReleaseVersion = 1;
 			
 			class CAboutDlg : public CDialog
 			{
@@ -1663,7 +1663,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 //	m_Version = _T("");
 	//}}AFX_DATA_INIT
 
-	m_Version.Format( "Visual Test Shell\nVersion %d.%d.0.%d"
+	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d"
 		, kVTSDBMajorVersion
 		, kVTSDBMinorVersion
 		, kReleaseVersion		// defined above
