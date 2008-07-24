@@ -5175,7 +5175,11 @@ void BACnetObjectIdentifier::Decode( const char *dec )
 
 	// get something
 	scan.Next( tok );
-// TODO: LJT need to account for new ( and ) that surrounds the object identifier
+	// LJT need to account for new ( and ) that surrounds the object identifier
+	if ((tok.tokenType == scriptSymbol) && (tok.tokenValue == '('))
+	{
+		scan.Next(tok);
+	}
 	if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwRESERVED)) {
 		// next must be a number in the reserved range
 		scan.Next( tok );
