@@ -196,7 +196,29 @@ enum BACnetPropertyIdentifier
 		UPDATE_TIME,                      // 189 Shiyuan Xiao 7/15/2005 
 		VALUE_BEFORE_CHANGE,              // 190 Shiyuan Xiao 7/15/2005
 		VALUE_SET,                        // 191 Shiyuan Xiao 7/15/2005
-		VALUE_CHANGE_TIME                 // 192 Shiyuan Xiao 7/15/2005
+		VALUE_CHANGE_TIME,                // 192 Shiyuan Xiao 7/15/2005
+	   // added Addendum B (135-2004)
+		ALIGN_INTERVALS,					// 193
+		GROUP_MEMBERS_NAMES,				// 194
+		INTERVAL_OFFSET,					// 195
+		LAST_RESTART_REASON,				// 196
+		LOGGING_TYPE,						// 197
+		MEMBER_STATUS_FLAGS,				// 198
+		NOTIFICATION_PERIOD,				// 199
+		PREVIOUS_NOTIFY_RECORD,				// 200
+		REQUESTED_UPDATE_INTERVAL,			// 201
+		RESTART_NOTIFICATION_RECIPIENTS,	// 202
+		TIME_OF_DEVICE_RESTART,				// 203
+		TIME_SYNCHRONIZATION_INTERVAL,		// 204
+		TRIGGER,							// 205
+		UTC_TIME_SYNCHRONIZATION_RECIPIENTS,  // 206
+		// Added by addenda D
+		NODE_SUBTYPE,					// 207
+		NODE_TYPE,						// 208
+		STRUCTURED_OBJECT_LIST,			// 209
+		SUBORDINATE_ANNOTATION,			// 210
+		SUBORDINATE_LIST,				// 211
+
 	};
 
 #endif

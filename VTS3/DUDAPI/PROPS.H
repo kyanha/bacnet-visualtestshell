@@ -351,6 +351,27 @@ static const char *stPropIDs[]={
 				"value-before-change", //			(190),
 				"value-set", //				(191),
 				"value-change-time", //     (192)
+				// Added by addenda B
+				"align-intervals",					// 193
+				"group-members-names",				// 194
+				"interval-offset",					// 195
+				"last-restart-reason",				// 196
+				"logging_Type",						// 197
+				"member-status-flags",				// 198
+				"notification-period",				// 199
+				"previous-notify-record",			// 200
+				"requested-update-interval",		// 201
+				"restart-notification-recipients",	// 202
+				"time-of-device-restart",			// 203
+				"time-synchronization-interval",	// 204
+				"trigger",							// 205
+				"utc-time-syncrhonization-recipients",  // 206
+				// Added by addenda D
+				"node-subtype", // 207
+				"node-type",   // 208
+				"structured-object-list",  // 209
+				"subordinate-annotation",  // 210
+				"subordinate-list", // 211
 
 				NULL /*always last*/
 				};
