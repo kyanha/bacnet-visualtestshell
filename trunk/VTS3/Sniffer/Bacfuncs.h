@@ -1003,18 +1003,19 @@ char *BACnetPropertyIdentifier[] = {
    "Value_Set",                        // 191 Shiyuan Xiao 7/15/2005
    "Value_Change_Time",                 // 192 Shiyuan Xiao 7/15/2005
    // added Addendum B (135-2004)
-	"Align_Intervals",
-	"Group_Members_Names",
-	"Interval_Offset",
-	"Last_Restart_Reason",
-	"Logging_Type",
-	"Member_Status_Flags",
-	"Previous_Notify_Record",
-	"Requested_Update_Interval",
-	"Restart_Notification_Recipients",
-	"Time_Of_Device_Restart",
-	"Time_Synchronization_Interval",
-	"Trigger",
+	"Align_Intervals",					// 193
+	"Group_Members_Names",				// 194
+	"Interval_Offset",					// 195
+	"Last_Restart_Reason",				// 196
+	"Logging_Type",						// 197
+	"Member_Status_Flags",				// 198
+	"Notification_Period",				// 199
+	"Previous_Notify_Record",			// 200
+	"Requested_Update_Interval",		// 201
+	"Restart_Notification_Recipients",	// 202
+	"Time_Of_Device_Restart",			// 203
+	"Time_Synchronization_Interval",	// 204
+	"Trigger",							// 205
 	"Utc_Time_Syncrhonization_Recipients",  // 206
 	// Added by addenda D
 	"node-subtype", // 207
