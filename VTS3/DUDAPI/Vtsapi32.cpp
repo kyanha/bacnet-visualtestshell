@@ -4397,8 +4397,12 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
 //Modified by Zhu Zhenhua, 2004-5-20
 	case BUFFER_READY:						//10
 		evp->notification_threshold=ReadW();
+		if (*(lp-1) == ',')
+			lp--;  // backup one we went too far // todo: really need to fix ReadW
 		if ((strdelim(","))==NULL) return true;
 		evp->previous_notification_count=ReadDW();
+		if (*(lp-1) == ')')
+			lp--;  // backup one we went too far // todo: really need to fix ReadW
 		if ((strdelim(")"))==NULL) return true;
 		lp--;
 		break;
@@ -5399,7 +5403,7 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
 			if (ParseDate(&q->u.date)) goto calx;
 //		    if (ParseDate(&q->u.date_range.start_date)) goto calx;
 
-			while (*lp==space||*lp==',') lp++;		//skip separation between list elements
+			while (*lp==space) lp++;		//skip spaces but leave ',' list elements
 //			skipwhitespace();
 			// skip the , if that is the delimeter between date range
 			if ( *lp==',' )
@@ -6449,11 +6453,14 @@ BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
 		//Modified by xlp,2002-11
         objectInstance=ReadObjID(); 
         objtype=(word)(objectInstance>>22);
-		DevObjList[objtype].object_type=objtype;       
-		DevObjList[objtype].ObjIDSupported|=soSupported;
-		i=DevObjList[objtype].ObjInstanceNum;
-		DevObjList[objtype].ObjInstanceNum++;
-		DevObjList[objtype].ObjInstance[i]=objectInstance&0x003fffff;     
+		if ( objtype < MAX_DEFINED_OBJ )
+		{	// don't add proprietary objects here
+			DevObjList[objtype].object_type=objtype;       
+			DevObjList[objtype].ObjIDSupported|=soSupported;
+			i=DevObjList[objtype].ObjInstanceNum;
+			DevObjList[objtype].ObjInstanceNum++;
+			DevObjList[objtype].ObjInstance[i]=objectInstance&0x003fffff;     
+		}
 		//ended by xlp,2002-11
 		
 		q->object_id=objectInstance;

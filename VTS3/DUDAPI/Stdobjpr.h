@@ -22,7 +22,7 @@ typedef struct {
 //------------------------------------------------------
 //	Special Enumeration Tables
 static etable etObjectTypes={
-            128,1024,25, 
+            128,1024,30, 
             "analog-input",       //0
             "analog-output",       
             "analog-value",     
@@ -47,12 +47,17 @@ static etable etObjectTypes={
 			"life-safety-point",    //Shiyuan Xiao. 7/13/2005, added
             "life-safety-zone",     //Shiyuan Xiao. 7/13/2005, added
 			"accumulator",          //Shiyuan Xiao. 7/13/2005, added
-			"pulse-converter"       //Shiyuan Xiao. 7/13/2005, added
+			"pulse-converter",       //Shiyuan Xiao. 7/13/2005, added
+			"event-log",
+			"global-group",
+			"trend-log-multiple",
+			"xxx",
+			"structured-view"
             };
 static etable etTF={0,0,2,"False","True"};
 static etable etYN={0,0,2,"No","Yes"};
 static etable etReli={
-            64,65536,9,
+            64,65536,11,
             "no-fault-detected",
             "no-sensor",
             "over-range",
@@ -61,19 +66,22 @@ static etable etReli={
             "shorted-loop",
             "no-output",
             "unreliable-other",
-            "process-error"
+            "process-error",
+			"multi-state-fault",
+			"configuration-error"
             };
 static etable etEvState={
-            64,65536,5,
+            64,65536,6,
             "normal",
             "fault",
             "offnormal",
             "high-limit",
-            "low-limit"
+            "low-limit",
+			"life-safety-alarm"
             };
 
 static etable etEU={
-            256,65536,142,
+            256,65536,193,
         //Area   
             "square-meters",                     //	 0
             "square-feet",                       //	 1
@@ -236,29 +244,89 @@ static etable etEU={
             "kilowatt-hours-per-square-foot",	 //138
             "megajoules-per-square-meter",		 //139
             "megajoules-per-square-foot",		 //140
-            "watts-per-square-meter-degree-kelvin" //141
+            "watts-per-square-meter-degree-kelvin", //141
+		   // New units added 3/9/2008
+		   "cubic-feet-per-second",					/* 142 */
+		   "percent-obscuration-per-foot",			/* 143 */
+		   "percent-obscuration-per-meter", 		/* 144 */
+		   "miliohms", 								/* 145 */
+		   "megawatt-hours", 						/* 146 */
+		   "kilo-btus",								/* 147 */
+		   "mega-btus",								/* 148 */
+		   "kilojoules-per-kilogram-dry-air",		/* 149 */
+		   "megajoules-per-kilogram-dry-air",		/* 150 */
+		   "kilojoules-per-degree-Kelvin",			/* 151 */
+		   "megajoules-per-degree-Kelvin",			/* 152 */
+		   "newton",								/* 153 */
+		   "grams-per-second",						/* 154 */
+		   "grams-per-minute",						/* 155 */
+		   "tons-per-hour",							/* 156 */
+		   "kilo-btus-per-hour",					/* 157 */
+		   "hundredths-seconds",					/* 158 */
+		   "milliseconds",							/* 159 */
+		   "newton-meters",							/* 160 */
+		   "millimeters-per-second",				/* 161 */
+		   "millimeters-per-minute", 				/* 162 */
+		   "meters-per-minute",						/* 163 */
+		   "meters-per-hour",						/* 164 */
+		   "cubic-meters-per-minute",				/* 165 */
+		   "meters-per-second-per-second",			/* 166 */
+		   "amperes-per-meter",						/* 167 */
+		   "amperes-per-square-meter",				/* 168 */
+		   "ampere-square-meters",					/* 169 */
+		   "farads",								/* 170 */
+		   "henrys",								/* 171 */
+		   "ohm-meters",							/* 172 */
+		   "siemens",								/* 173 */
+		   "siemens-per-meter",						/* 174 */
+		   "teslas",								/* 175 */
+		   "volts-per-degree-Kelvin",				/* 176 */
+		   "volts-per-meter",						/* 177 */
+		   "webers",								/* 178 */
+		   "candelas",								/* 179 */
+		   "candelas-per-square-meter",				/* 180 */
+		   "degrees-Kelvin-per-hour",				/* 181 */
+		   "degrees-Kelvin-per-minute",				/* 182 */
+			"joule-seconds",						/* 183 */
+			"radians-per-second",					/* 184 */
+			"square-meters-per-Newton",				/* 185 */
+			"kilograms-per-cubic-meter",			/* 186 */
+			"newton-seconds",						/* 187 */
+			"newtons-per-meter",					/* 188 */
+			"watts-per-meter-per-degree-Kelvin",	/* 189 */
+			// Added by Addenda H (135-2004)
+			"micro-siemens",
+			"cubic-feet-per-hour",
+			"us-gallons-per-hour",  /* 192 */
             };
 static etable etNT={0,0,3,"alarm","event","ack-notification"};
 static etable etBPV={0,0,2,"inactive","active"};
 static etable etBPVn={0,0,3,"inactive","active","null"};
 static etable etPolar={0,0,2,"normal","reverse"};
 static etable etDS={
-            64,65536,5,
+            64,65536,6,
             "operational",
             "operational-read-only",
             "download-required",
             "download-in-progress",
-            "non-operational"
+            "non-operational",
+			"backup-in-progress"
             };
 static etable etSegOpt={0,0,4,"segmented-both","segmented-transmit","segmented-receive","no-segmentation"};
 static etable etEvType={
-            64,65536,6,
+            64,65536,12,
             "change-of-bitstring",
             "change-of-state",
             "change-of-value",
             "command-failure",
             "floating-limit",
-            "out-of-range"
+            "out-of-range",
+			"complex-event-type",
+			"deprecated",
+			"change-of-life-safety",
+			"extended",
+			"buffer-ready",
+			"unsigned-range"
             };
 static etable etFAM={0,0,3,"record-access","stream-access","record-and-stream-access"};
 static etable etLoopAct={0,0,2,"direct","reverse"};
@@ -462,14 +530,17 @@ static etable etMaintenance = {
 
 //Shiyuan Xiao 7/21/2005
 static etable etLifeSafetyOperation = {
-   0, 0, 7,
+   0, 0, 10,
    "none",
    "silence",
    "silence-audible",
    "silence-visual",
    "reset",
    "reset-alarm",
-   "reset-fault"
+   "reset-fault",
+   "unsilence",
+   "unsilence-audible",
+   "unsilence-visual"
 };
 
 //Shiyuan Xiao 7/21/2005
