@@ -2797,6 +2797,7 @@ void BACnetWeekNDay::LoadBuffer()
 	strBuff[0] = (BACnetOctet) m_nMonth;
 	strBuff[1] = (BACnetOctet) m_nWeekOfMonth;
 	strBuff[2] = (BACnetOctet) m_nDayOfWeek;
+	strLen = 3;
 }
 
 
@@ -6692,6 +6693,16 @@ void BACnetCalendarEntry::Encode( BACnetAPDUEncoder& enc, int context)
 {
 	if(pbacnetTypedValue == NULL)
 		return;
+
+	if ( context != kAppContext )
+		m_nChoice = context;
+	else if ( pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDate)))
+		m_nChoice = 0;
+	else if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDateRange)))
+		m_nChoice = 1;
+	else
+		m_nChoice = 2;
+
 	switch (m_nChoice) 
 	{
 	case 0:

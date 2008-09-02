@@ -1738,6 +1738,7 @@ class BACnetAnyValue : public BACnetObjectContainer
 		BACnetAnyValue();
 		BACnetAnyValue( BACnetEncodeable * pbacnetEncodeable );
 
+		int DataType(void) {return GetType();}
 		int GetType();
 		void SetType(int nNewType);
 
