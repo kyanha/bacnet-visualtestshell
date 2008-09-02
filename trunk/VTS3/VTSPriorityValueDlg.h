@@ -20,7 +20,7 @@ public:
 	void Decode( BACnetAPDUDecoder& dec );
 	VTSRealCtrl         m_RealCtrl;
 	VTSEnumeratedCtrl   m_BinaryPV; 
-	VTSIntegerCtrl      m_IntCtrl;
+	VTSUnsignedCtrl     m_IntCtrl;
 	VTSAny				m_Value;
 // Dialog Data
 	//{{AFX_DATA(VTSPriorityValueDlg)

@@ -161,7 +161,7 @@ void VTSPriorityValueDlg::Decode(BACnetAPDUDecoder& dec)
 					m_BinaryPV.ctrlNull = false;
 					m_nChoice = 2;
 					break;
-				case integerAppTag:
+				case unsignedIntAppTag:
 					m_IntCtrl.Decode(dec);
 					m_IntCtrl.ctrlNull = false;
 					m_nChoice = 3;
