@@ -2321,7 +2321,8 @@ nextobject:										//										***012
 									objtype=0xFFFF;		//pretend objid was bad
 								}
 								//added by xlp,2002-11
-								if (objtype != 0xFFFF)  // msdanner 9/2004
+//								if (objtype != 0xFFFF)  // msdanner 9/2004
+								if (objtype < MAX_DEFINED_OBJ)
 								{
 								   ObjInTestDB[objtype].object_type=objtype;       
 								   ObjInTestDB[objtype].ObjIDSupported|=soSupported;
@@ -2348,7 +2349,8 @@ nextobject:										//										***012
 									objtype=0xFFFF;		//pretend objid was bad
 								}
 								//added by xlp,2002-11
-							    if (objtype != 0xFFFF) // msdaner 9/2004
+//							    if (objtype != 0xFFFF) // msdaner 9/2004
+								if (objtype < MAX_DEFINED_OBJ)
 							    {
 								  ObjInTestDB[objtype].object_type=objtype;       
 								  ObjInTestDB[objtype].ObjIDSupported|=soSupported;
@@ -4797,7 +4799,7 @@ BOOL ParseWeekdaySchedule(BACnetTimeValue *wp[])
 
 ///////////////////////////////////////////////////////////////////////				***008 Begin
 //	read a list BACnetTimeValues from the buffer lp points to
-//	((time,value),(time,value)...)
+//	({time,value},{time,value}...)
 //in:	lp		points to current position in buffer lb
 //		tvp		points to a variable which should point to a list of BACnetTimeValues
 //out:	true	if an error occurred
@@ -4827,7 +4829,6 @@ BOOL ParseTVList(BACnetTimeValue **tvp)
 			break;								//close this list out
 		}
 
-		//if((*(lp-1) == '(')&&(*lp != '(')) lp--;  // MAG
 		if (MustBe('{')) goto tvx;
 
 		//here we have time,value),...)
@@ -4878,15 +4879,10 @@ BOOL ParseTVList(BACnetTimeValue **tvp)
 			p->next=q;							//link new guy on the end of the list
 		p=q;									//remember new guy is now the last guy
 		q=NULL;
-		*ep++=')';
+		*ep++='}';
 		lp=ep;
 
-		// MAG 25 JAN 01 added as bugfix for schedule:exception-schedule property
-		if((lp[0] == ',') && (lp[1] != '{')){
-			//print_debug("PTVL: Exit PTVL at repeat check lp = '%s'\n",lp);
-			if(*lp != ',') lp++;  // MAG 14 FEB 2001 fix parse error-add 'if()' part to line
-			break;								//close this list out
-		}
+		// loop back around to see if we have another {time,value} pair
 	}
 	tvfail=false;
 tvx:
