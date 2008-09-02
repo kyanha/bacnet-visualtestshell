@@ -309,7 +309,20 @@ void CSendWriteProp::ForceValues(BACnetObjectIdentifier * pObjectID, BACnetEnume
 	m_PropCombo.ObjToCtrl();
 
 	m_Value.m_anyList.KillAll();
-	m_Value.AddValue(pbacnetEncodeable);
+	if ( pbacnetEncodeable->IsKindOf(RUNTIME_CLASS(BACnetGenericArray)))
+	{
+		BACnetGenericArray *pbacnetarray = (BACnetGenericArray *)pbacnetEncodeable;
+		for ( int i = 0; i < pbacnetarray->GetSize(); i++ )
+		{
+			BACnetAnyValue pbacnetAny;
+			pbacnetAny.SetObject( (*pbacnetarray)[i].clone());	
+			m_Value.AddValue(&pbacnetAny);
+		}
+	}
+	else
+	{
+		m_Value.AddValue(pbacnetEncodeable);
+	}
 
 	SavePage();
 	UpdateEncoded();

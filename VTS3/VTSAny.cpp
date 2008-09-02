@@ -2043,11 +2043,12 @@ int VTSAny::GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
 		case dsofweek:		return 26;		//BACnetDaysofWeek, NI
 		case eventransbits:	return 34;		//BACnetEventTansitionBits, NI
 		case lCOVSub:		return 24;		// List of BACnetCOVSubcription,   added Gingbo Gao, 2003-9-1, NI
+		case COVSub:		return 24;
+		case calent:		return 18;		//single calendar entry, madanner 11/1/02, BACnetCalendarEntry
 
 		// Implemented as BACnet type, but no weird match in these types
 	//	case uwarr:							//array of uw, 
 	//	case stavals:		return ??;		//list of unsigned, BACnetUnsignedArray
-	//	case calent:		return ??;		//single calendar entry, madanner 11/1/02, BACnetCalendarEntry
 	//	case lobj:			return ??;		//array of objects, (parse type), BACnetObjectIDList
 
 		// Not implemented and also not found in this list
