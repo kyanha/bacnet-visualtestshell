@@ -1588,7 +1588,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 	if (!m_bCombo)
 		return;
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
-	if(cbp->GetCount() != 0 && m_nObjType != -1 && m_nObjType < 25)
+	if(cbp->GetCount() != 0 && m_nObjType != -1 && m_nObjType < MAX_DEFINED_OBJ)
 	{
 		cbp->Clear();
 		cbp->ResetContent();
@@ -1599,7 +1599,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
     	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
 		for (i = 0; i < m_TableSize; i++)
 		{
-			if(m_nObjType != -1 && m_nObjType < 25)
+			if(m_nObjType != -1 && m_nObjType < MAX_DEFINED_OBJ)
 			{
 				if(Check_Obj_Prop(m_nObjType, (unsigned int) i))
 					cbp->AddString( m_Table[i] );
@@ -1607,7 +1607,7 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 			else
 				cbp->AddString( m_Table[i] );
 		}
-		if(m_nObjType != -1 && m_nObjType < 25)
+		if(m_nObjType != -1 && m_nObjType < MAX_DEFINED_OBJ)
 		{
 			CString str = "------------------------------";
 			cbp->AddString(str);
@@ -3359,7 +3359,7 @@ void VTSEnumeratedCtrl::SelectToEnum()
 			cbp->SetCurSel(m_SelectValue);
 		}
 	}
-	if(m_nObjType > 23)
+	if(m_nObjType > MAX_DEFINED_OBJ)
 	{
 		enumValue = m_SelectValue;
 		return;
@@ -3394,7 +3394,7 @@ void VTSEnumeratedCtrl::EnumToSelect()
 		m_VendorPropID = enumValue;
 		return;
 	}
-	if(m_nObjType == -1 || m_nObjType > 23)
+	if(m_nObjType == -1 || m_nObjType > MAX_DEFINED_OBJ)
 	{
 		m_SelectValue = enumValue;
 		return;
