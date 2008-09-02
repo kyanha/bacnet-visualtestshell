@@ -5807,6 +5807,87 @@ bool SC_CheckPropery(BACnetPropertyIdentifier propertyID)
 	}
 }
 
+bool ACC_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case DEVICE_TYPE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case SCALE:
+		case UNITS:
+		case PRESCALE:
+		case MAX_PRES_VALUE:
+		case VALUE_CHANGE_TIME:
+		case VALUE_BEFORE_CHANGE:
+		case VALUE_SET:
+		case LOGGING_RECORD:
+		case LOGGING_DEVICE:
+		case PULSE_RATE:
+		case HIGH_LIMIT:
+		case LOW_LIMIT:
+		case LIMIT_MONITORING_INTERVAL:
+		case NOTIFICATION_CLASS:
+		case TIME_DELAY:
+		case LIMIT_ENABLE:
+		case EVENT_ENABLE:  			     
+		case ACKED_TRANSITIONS:  	 		            	       
+		case NOTIFY_TYPE:  				          	       
+		case EVENT_TIME_STAMPS:          	       
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool PC_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case INPUT_REFERENCE:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case UNITS:
+		case SCALE_FACTOR:
+		case ADJUST_VALUE:
+		case COUNT:
+		case UPDATE_TIME:
+		case COUNT_CHANGE_TIME:
+		case COUNT_BEFORE_CHANGE:
+		case COV_INCREMENT:
+		case COV_PERIOD:
+		case NOTIFICATION_CLASS:
+		case TIME_DELAY:
+		case HIGH_LIMIT:
+		case LOW_LIMIT:
+		case DEADBAND:
+		case LIMIT_ENABLE:
+		case EVENT_ENABLE:  			     
+		case ACKED_TRANSITIONS:  	 		            	       
+		case NOTIFY_TYPE:  				          	       
+		case EVENT_TIME_STAMPS:          	       
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
 } // end of PICS namespace
 
 
@@ -5863,6 +5944,10 @@ bool Check_Obj_Prop(int ObjType, unsigned int propertyID)
 		return PICS::LSP_CheckProperty(propID);
 	case lifesafetyzone:
 		return PICS::LSZ_CheckProperty(propID);
+	case accumulator:
+		return PICS::ACC_CheckProperty(propID);
+	case pulseconverter:
+		return PICS::PC_CheckProperty(propID);
 
 	default:
 		return false;
