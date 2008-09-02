@@ -946,6 +946,13 @@ void CSend::SetPageList( CSendPageMList lp )
 	TRACE0( "---------- Away we go...\n" );
 #endif
 
+	// Change Send Dialog title to match Active Page
+	CPropertyPage * activePage = GetActivePage();
+	
+	CString myTitle;
+	activePage->GetWindowText(myTitle);
+	SetTitle( myTitle );
+
 	// update the encoding
 	UpdateEncoded();
 }
