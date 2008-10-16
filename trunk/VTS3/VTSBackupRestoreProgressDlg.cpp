@@ -31,8 +31,9 @@ void VTSBackupRestoreProgressDlg::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(VTSBackupRestoreProgressDlg)
 	DDX_Control(pDX, IDOK, m_okCtrl);
 	DDX_Control(pDX, IDC_BACKUP_RESTORE_KILL, m_killCtrl);
-	DDX_Control(pDX, IDC_BACKUP_RESTORE_OUTPUT, m_editOutput);
+//	DDX_Control(pDX, IDC_BACKUP_RESTORE_OUTPUT, m_editOutput);
 	//}}AFX_DATA_MAP
+	DDX_Control(pDX, IDC_RICHEDIT1, m_editOutput2);
 }
 
 
@@ -49,25 +50,26 @@ END_MESSAGE_MAP()
 
 void VTSBackupRestoreProgressDlg::OutMessage(const CString& msg, BOOL bnewLine /*= TRUE*/)
 {
-	CHARFORMAT cf;
-	m_editOutput.GetDefaultCharFormat(cf);
-	cf.cbSize = 10;
-	m_editOutput.SetDefaultCharFormat(cf);	
 	
-	int currLine = m_editOutput.GetLineCount() - 1;
-  m_editOutput.SetSel(-1,-1);
-	m_editOutput.ReplaceSel(msg);
-  m_editOutput.SetSel(-1, -1);
+	CHARFORMAT cf;
+	m_editOutput2.GetDefaultCharFormat(cf);
+	cf.cbSize = 10;
+	m_editOutput2.SetDefaultCharFormat(cf);	
+	
+	int currLine = m_editOutput2.GetLineCount() - 1;
+  m_editOutput2.SetSel(-1,-1);
+	m_editOutput2.ReplaceSel(msg);
+  m_editOutput2.SetSel(-1, -1);
 	if (bnewLine)
 	{
    
-		m_editOutput.ReplaceSel("\r\n");
+		m_editOutput2.ReplaceSel("\r\n");
 	}
 	else
 	{
- 		m_editOutput.ReplaceSel("\t");
+ 		m_editOutput2.ReplaceSel("\t");
 	}
-	
+
 }
 
 void VTSBackupRestoreProgressDlg::OnOK()
@@ -136,7 +138,7 @@ void VTSBackupRestoreProgressDlg::OnSize(UINT nType, int cx, int cy)
 	CDialog::OnSize(nType, cx, cy);
 	
 	// TODO: Add your message handler code here
-	if (m_killCtrl || m_okCtrl || m_editOutput)
+	if (m_killCtrl || m_okCtrl || m_editOutput2)
 	{ 
 		// Get size of the dialog
 		void* p = &m_killCtrl;
@@ -150,15 +152,17 @@ void VTSBackupRestoreProgressDlg::OnSize(UINT nType, int cx, int cy)
 		m_okCtrl.GetClientRect(&rectOk);
 		// get size of the output window
 		CRect rectOutput;
-		m_editOutput.GetClientRect(&rectOutput);
+		m_editOutput2.GetClientRect(&rectOutput);
 		// move the position and resize output
-		m_editOutput.MoveWindow(15, 15, rect.Width()-30, rect.Height()-15-(rectOk.Height())-30);
+		m_editOutput2.MoveWindow(15, 15, rect.Width()-30, rect.Height()-15-(rectOk.Height())-30);
 		// move and resize kill button
 		m_killCtrl.MoveWindow((int)(0.339*rect.Width()-0.5*rectKill.Width()), rect.Height()-15-(rectKill.Height()), 
 			rectKill.Width(), rectKill.Height());
 		// move and resize ok button
 		m_okCtrl.MoveWindow((int)(0.661*rect.Width()-0.5*rectOk.Width()), rect.Height()-15-(rectOk.Height()), 
 			rectOk.Width(), rectOk.Height());
+
+
 	}
 	
 }

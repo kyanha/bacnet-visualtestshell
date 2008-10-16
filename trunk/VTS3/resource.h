@@ -927,6 +927,7 @@
 #define IDC_RADIO2                      1553
 #define IDC_LS_STATE                    1553
 #define IDC_CHECK4                      1554
+#define IDC_RICHEDIT1                   1554
 #define IDC_CHECK5                      1555
 #define IDC_CHECK6                      1556
 #define IDC_CHECK7                      1557
@@ -1135,7 +1136,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        378
 #define _APS_NEXT_COMMAND_VALUE         32866
-#define _APS_NEXT_CONTROL_VALUE         1554
+#define _APS_NEXT_CONTROL_VALUE         1555
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

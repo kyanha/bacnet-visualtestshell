@@ -453,13 +453,6 @@ void BakRestoreExecutor::DoBackupTest()
 		UINT nFileInstance = fileID.objID & 0x003fffff;
 		m_pOutputDlg->OutMessage("OK");
 
-		// creata a new empty disk file
-		m_pOutputDlg->OutMessage("Create an empty backup data file...", FALSE);
-		CString strDataFileName;
-		strDataFileName.Format("%s.file%d.backupdata", m_strBackupFileName, nFileInstance);
-		CFile backupDataFile(strDataFileName, CFile::modeWrite|CFile::modeCreate);
-		m_pOutputDlg->OutMessage("OK");
-
 		m_pOutputDlg->OutMessage("Use ReadProperty to get the File_Access_Method...", FALSE);
 		propID.enumValue = PICS::FILE_ACCESS_METHOD;
 		BACnetEnumerated fileAccessMethod;
@@ -467,16 +460,6 @@ void BakRestoreExecutor::DoBackupTest()
 		if (!SendExpectReadProperty(fileID, propID, propValue))
 		{
 			throw("fail to read File/File_Access_Method\n");
-		}
-		m_pOutputDlg->OutMessage("OK");
-
-		m_pOutputDlg->OutMessage("Use ReadProperty to get the File_Size...", FALSE);
-		propID.enumValue = PICS::FILE_SIZE;
-		BACnetUnsigned fileSize;
-		propValue.SetObject(&fileSize);
-		if (!SendExpectReadProperty(fileID, propID, propValue))
-		{
-			throw("fail to read File/File_Size\n");
 		}
 		m_pOutputDlg->OutMessage("OK");
 
@@ -490,6 +473,35 @@ void BakRestoreExecutor::DoBackupTest()
 		}
 		m_pOutputDlg->OutMessage("OK");
 
+		BACnetUnsigned recordCount;
+		if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
+		{
+			m_pOutputDlg->OutMessage("Use ReadProperty to get the Record_Count...", FALSE);
+			propID.enumValue = PICS::RECORD_COUNT;
+			propValue.SetObject(&recordCount);
+			if (!SendExpectReadProperty(fileID, propID, propValue))
+			{
+				throw("fail to read File/Record_Count\n");
+			}
+			m_pOutputDlg->OutMessage("OK");
+		}
+
+		m_pOutputDlg->OutMessage("Use ReadProperty to get the File_Size...", FALSE);
+		propID.enumValue = PICS::FILE_SIZE;
+		BACnetUnsigned fileSize;
+		propValue.SetObject(&fileSize);
+		if (!SendExpectReadProperty(fileID, propID, propValue))
+		{
+			throw("fail to read File/File_Size\n");
+		}
+		m_pOutputDlg->OutMessage("OK");
+
+		// creata a new empty disk file
+		m_pOutputDlg->OutMessage("Create an empty backup data file...", FALSE);
+		CString strDataFileName;
+		strDataFileName.Format("%s.file%d.backupdata", m_strBackupFileName, nFileInstance);
+		m_pOutputDlg->OutMessage("OK");
+
 		// write a new line to the .backupindex file
 		// write to the .backupindex file
 
@@ -500,6 +512,12 @@ void BakRestoreExecutor::DoBackupTest()
 		nStart +=  sprintf(buffer+nStart, "%s, ", NetworkSniffer::BACnetFileAccessMethod[fileAccessMethod.enumValue]);
 		fileSize.Encode(chEnc);
 		nStart += sprintf(buffer+nStart, "%s, ", chEnc);
+		// add record count to index file if and only if RECORD_ACCESS type.
+		if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
+		{
+			recordCount.Encode(chEnc);
+			nStart += sprintf(buffer+nStart, "%s, ", chEnc);
+		}
 		objName.Encode(chEnc);
 		nStart += sprintf(buffer+nStart, "%s, ", chEnc);
 		nStart += sprintf(buffer+nStart, "%s\n", (LPCSTR)strDataFileName);
@@ -509,9 +527,10 @@ void BakRestoreExecutor::DoBackupTest()
 
 		if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
 		{
-			BACnetBoolean	endofFile(FALSE);
+			BACnetBoolean	endofFile(fileSize.uintValue == 0 ? TRUE : FALSE);
 			UINT nX = 0;
 			BACnetOctetString fileRecordData;
+
 			while (!endofFile.boolValue)
 			{
 				// use AtomicReadFile (Record Access) to read one record from the file
@@ -524,15 +543,24 @@ void BakRestoreExecutor::DoBackupTest()
 				}
 				m_pOutputDlg->OutMessage("OK");
 				m_pOutputDlg->OutMessage("Write File record data to the backup data file...", FALSE);
-				backupDataFile.Write(fileRecordData.strBuff, fileRecordData.strLen);
-				BYTE b = 0x0A;
-				backupDataFile.Write(&b, 1);	// write a newline character to the file
+
+				// Create new file for each record read
+				CString strDataFileName_record;
+				strDataFileName_record.Format("%s.record%d", strDataFileName, nX);
+				CFile backupDataFile_record(strDataFileName_record, CFile::modeWrite|CFile::modeCreate);
+
+				backupDataFile_record.Write(fileRecordData.strBuff, fileRecordData.strLen);
+				backupDataFile_record.Close();
+
 				m_pOutputDlg->OutMessage("OK");
 				nX++;
 			}
 		}
 		else
 		{
+			// now open the new file for stream access
+			CFile backupDataFile(strDataFileName, CFile::modeWrite|CFile::modeCreate);
+
 			// calculate the Maximun Requested Octet Count
 			UINT nMROC;
 			if (m_pPort->m_pdevice)
@@ -567,9 +595,11 @@ void BakRestoreExecutor::DoBackupTest()
 				m_pOutputDlg->OutMessage("OK");
 				nX += nROC;
 			}
+			backupDataFile.Close();
 		}
 	}
 
+	backupIndexFile.Close();
 	// close the .backupindex file
 	// Transmit a ReinitializeDevice service
 	m_pOutputDlg->OutMessage("Transmit a ReinitalizeDevice service...", FALSE);
@@ -720,14 +750,21 @@ void BakRestoreExecutor::DoRestoreTest()
 				  "Only record_access and stream_access\n");
 		}
 		nPos1 = nPos2 + 1;
+
 		nPos2 = strText.Find(',', nPos1);       //After file size
 		strToken = strText.Mid(nPos1, nPos2 - nPos1);
 		BACnetUnsigned fileSize(atoi(strToken));
         nPos1 = nPos2 + 1;
 
-        //int nPos3 = nPos1;  //Before string encoding method
-        //nPos2 = strText.Find(',', nPos1);       //After string encoding method
-        //nPos1 = nPos2 + 1;
+		BACnetUnsigned recordCount;
+		if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
+		{
+			nPos2 = strText.Find(',', nPos1);       //After record_count
+			strToken = strText.Mid(nPos1, nPos2 - nPos1);
+			recordCount.uintValue = atoi(strToken);
+			nPos1 = nPos2 + 1;
+		}
+
         nPos2 = strText.Find(',', nPos1);       //After object name
         strToken = strText.Mid(nPos1, nPos2 - nPos1);
 
@@ -752,28 +789,56 @@ void BakRestoreExecutor::DoRestoreTest()
 		BACnetObjectIdentifier	fileID(file, nFileInstance);
 		if (bFind)
 		{
-			m_pOutputDlg->OutMessage("Use ReadProperty to read the File_Size property...", FALSE);
-			propID.enumValue = PICS::FILE_SIZE;
-			BACnetUnsigned	fileSizeIUT;
-			propValue.SetObject(&fileSizeIUT);
-			if (!SendExpectReadProperty(fileID, propID, propValue))
+			if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
 			{
-				throw("unable to read File/FILE_SIZE\n");
-			}
-			m_pOutputDlg->OutMessage("OK");
- 			if (fileSize.uintValue != fileSizeIUT.uintValue)
-			{
-				// use write_property to set the File_Size to zero
-				m_pOutputDlg->OutMessage("Use WriteProperty to set the File_Size to zero...", FALSE);
-				propID.enumValue = PICS::FILE_SIZE;
-				BACnetUnsigned temp(0);
-				propValue.SetObject(&temp);
-				if (!SendExpectWriteProperty(fileID, propID, propValue))
+				m_pOutputDlg->OutMessage("Use ReadProperty to read the Record_Count property...", FALSE);
+				propID.enumValue = PICS::RECORD_COUNT;
+				BACnetUnsigned	recordCountIUT;
+				propValue.SetObject(&recordCountIUT);
+				if (!SendExpectReadProperty(fileID, propID, propValue))
 				{
-					throw("can not write File/File_Size to zero\n");
+					throw("unable to read File/RECORD_COUNT\n");
 				}
 				m_pOutputDlg->OutMessage("OK");
+ 				if (recordCount.uintValue != recordCountIUT.uintValue)
+				{
+					// use write_property to set the Record_Count to zero
+					m_pOutputDlg->OutMessage("Use WriteProperty to set the Record_Count to zero...", FALSE);
+					propID.enumValue = PICS::RECORD_COUNT;
+					BACnetUnsigned temp(0);
+					propValue.SetObject(&temp);
+					if (!SendExpectWriteProperty(fileID, propID, propValue))
+					{
+						throw("can not write File/Record_Count to zero\n");
+					}
+					m_pOutputDlg->OutMessage("OK");
+				}
+			}
+			else
+			{
+				m_pOutputDlg->OutMessage("Use ReadProperty to read the File_Size property...", FALSE);
+				propID.enumValue = PICS::FILE_SIZE;
+				BACnetUnsigned	fileSizeIUT;
+				propValue.SetObject(&fileSizeIUT);
+				if (!SendExpectReadProperty(fileID, propID, propValue))
+				{
+					throw("unable to read File/FILE_SIZE\n");
+				}
+				m_pOutputDlg->OutMessage("OK");
+ 				if (fileSize.uintValue != fileSizeIUT.uintValue)
+				{
+					// use write_property to set the File_Size to zero
+					m_pOutputDlg->OutMessage("Use WriteProperty to set the File_Size to zero...", FALSE);
+					propID.enumValue = PICS::FILE_SIZE;
+					BACnetUnsigned temp(0);
+					propValue.SetObject(&temp);
+					if (!SendExpectWriteProperty(fileID, propID, propValue))
+					{
+						throw("can not write File/File_Size to zero\n");
+					}
+					m_pOutputDlg->OutMessage("OK");
 
+				}
 			}
 		}
 		else
@@ -805,39 +870,49 @@ void BakRestoreExecutor::DoRestoreTest()
 
 		if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
 		{
-      CStdioFile backupDataFile;
-		  if (!backupDataFile.Open(strDataFileName, CFile::modeRead))
-		  {
-			  throw("Can not open \".backupData\" file, maybe this file doesn't exist\n");
-		  }
-		  m_pOutputDlg->OutMessage("OK");
+			CStdioFile backupDataFile_record;
 
 			UINT nX = 0;
-			while (backupDataFile.ReadString(strText))
+
+			CString strDataFileName_record;
+			for ( int rcount = 0; rcount < recordCount.uintValue; rcount++)
 			{
+				strDataFileName_record.Format("%s.record%d", strDataFileName, nX);
+				if (!backupDataFile_record.Open(strDataFileName_record, CFile::modeRead))
+				{
+					throw("Can not open \".backupData\" file, maybe this file doesn't exist\n");
+				}
+				m_pOutputDlg->OutMessage("OK");
+	
+				// create a buffer max size TD's APDU size
+				int nMWOC = m_pPort->m_pdevice->m_nMaxAPDUSize;
+				BYTE* pBuffer = new BYTE[nMWOC];
+				int len_read = backupDataFile_record.Read(pBuffer, nMWOC);
+
 				m_pOutputDlg->OutMessage("Use AtomicWriteFile to write one record to (File, File_Instance)"
-					"int the IUT...", FALSE);
+						"in the IUT...", FALSE);
 				BACnetInteger	fileStartRecord(nX);
-				BACnetOctet*	pBuff = new BACnetOctet[strText.GetLength()];
-				memcpy(pBuff, (LPCSTR)strText, strText.GetLength());
-				BACnetOctetString fileRecordData(pBuff, strText.GetLength());
+				BACnetOctetString fileRecordData(pBuffer, len_read);
 				if (!SendExpectAtomicWriteFile_Record(fileID, fileStartRecord, fileRecordData))
 				{
 					throw("Unable to write one record to FILE in the IUT\n");
 				}
 				m_pOutputDlg->OutMessage("OK");
-				delete pBuff;
+//				delete pBuff;
+				delete[] pBuffer;
 				nX++;
+
+				backupDataFile_record.Close();
 			}
 		}
 		else
 		{
-      CFile backupDataFile;
-		  if (!backupDataFile.Open(strDataFileName, CFile::modeRead))
-		  {
+			CFile backupDataFile;
+			if (!backupDataFile.Open(strDataFileName, CFile::modeRead))
+			{
 			  throw("Can not open \".backupData\" file, maybe this file doesn't exist\n");
-		  }
-		  m_pOutputDlg->OutMessage("OK");
+			}
+			m_pOutputDlg->OutMessage("OK");
 			// calculate the Maximun Requested Octet Count
 			UINT nMWOC;
 			if (m_pPort->m_pdevice)
@@ -858,7 +933,7 @@ void BakRestoreExecutor::DoRestoreTest()
 			{
 				m_pOutputDlg->OutMessage("Use AtomicWriteFile to write octets to (File, File_Instance)"
 					"in the IUT...", FALSE);
-        backupDataFile.Seek((LONGLONG)nX, CFile::begin);
+				backupDataFile.Seek((LONGLONG)nX, CFile::begin);
 				UINT nWOC = backupDataFile.Read(pBuffer, nMWOC);
 				BACnetInteger fileStartPosition(nX);
 				BACnetOctetString fileData(pBuffer, nWOC);
