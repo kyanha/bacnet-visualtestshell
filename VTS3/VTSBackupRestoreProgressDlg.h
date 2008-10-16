@@ -25,9 +25,9 @@ public:
 	enum { IDD = IDD_BACKUP_RESTORE_PROGRESS };
 	CButton	m_okCtrl;
 	CButton	m_killCtrl;
-	CRichEditCtrl	m_editOutput;
+//	CRichEditCtrl	m_editOutput;
 	//}}AFX_DATA
-
+	CRichEditCtrl	m_editOutput2;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
