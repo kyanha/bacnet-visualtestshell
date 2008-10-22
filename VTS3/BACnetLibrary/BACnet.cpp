@@ -3276,7 +3276,7 @@ void BACnetBitString::Encode( char *enc ) const
 */
 	for (int i = 0; i < bitLen; i++)		
 	{
-		*enc++ = (int) GetBit(i) ? 'F' : 'T';
+		*enc++ = (int) GetBit(i) ? 'T' : 'F';
 		if ( (i+1) < bitLen )
 			*enc++ = ',';
 	}
@@ -4323,8 +4323,8 @@ void BACnetTime::Decode( const char *dec )
 	while (*dec && isspace(*dec)) dec++;   //add by xlp
 
 	// Time is complex data type so must enclose in brackets
-	if ( *dec++ != '[' )
-		throw_(110);			// missing start bracket for complex data structures
+//	if ( *dec++ != '[' )
+//		throw_(110);			// missing start bracket for complex data structures
 
 	// check for hour
 	if ( *dec == '*' )
@@ -4442,8 +4442,8 @@ void BACnetTime::Decode( const char *dec )
 
 	// clear white space and look for close bracket
 	while (*dec && isspace(*dec)) dec++;
-	if ( *dec++ != ']' )
-		throw_(111);									// missing close bracket code
+//	if ( *dec++ != ']' )
+//		throw_(111);									// missing close bracket code
 }
 
 
@@ -4649,13 +4649,13 @@ void BACnetTime::TestTimeComps()
 	bool f;
 	int max = 7;
 	BACnetTime t1, t2;
-	char * t[] = {  "[10:11:12.99]", "[10:11:12.99]",
-					"[10:11:12.99]", "[10:11:12.50]",
-					"[10:11:12.99]", "[10:11:12.*]",
-					"[10:11:12.99]", "[10:*:12.50]",
-					"[10:?:12.99]", "[10:11:12.50]",
-					"[10:*:12.99]", "[10:?:12.50]",
-					"[?:11:12.99]", "[12:?:15.50]"
+	char * t[] = {  "10:11:12.99", "10:11:12.99",
+					"10:11:12.99", "10:11:12.50",
+					"10:11:12.99", "10:11:12.*",
+					"10:11:12.99", "10:*:12.50",
+					"10:?:12.99", "10:11:12.50",
+					"10:*:12.99", "10:?:12.50",
+					"?:11:12.99", "12:?:15.50"
 				};
 
 
@@ -6806,12 +6806,12 @@ void BACnetTimeStamp::Encode( BACnetAPDUEncoder& enc, int context)
 		if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDateTime)))
 			context = 2;
 		else if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetTime)))
-			context = 1;
-		else if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)))
 			context = 0;
+		else if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)))
+			context = 1;
 	}
 
-	if ( context != -1 )
+	if ( context > 1 )	// only do an explicit Application tag if DateTime type
 	{
 		BACnetOpeningTag().Encode(enc,context);
 		pbacnetTypedValue->Encode(enc);
