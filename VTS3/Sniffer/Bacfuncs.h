@@ -2372,7 +2372,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            show_application_data(x);
            break;
       case PROTOCOL_OBJECT_TYPES_SUPPORTED: /* BACnetObjectTypesSupported  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+		   //show_head_app_data();		 //added by Lei Chengxin 2003-9-1
 
            len1 = show_application_tag(x);
            unused = pif_get_byte(0);
@@ -2542,13 +2542,13 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            show_application_data(x);
            break;
       case UTC_OFFSET:  /*  Real  */
-           show_application_data(x);
 		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+           show_application_data(x);
 
            break;
       case VENDOR_IDENTIFIER:
-           show_application_data(x);
 		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
+           show_application_data(x);
 
            break;
       case VENDOR_NAME:  /* Character String   */
