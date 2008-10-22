@@ -7218,8 +7218,8 @@ unsigned int show_context_tag( char *tagstr )
    else {
       bac_show_flagmask(0xF0,"Extended Tag = %d");
       if(len < 5)    bac_show_flagmask(0x07,"Length = %d");
-      if(len == 5) pif_show_flagmask(0x07, 0x07, "Extended Length");
-      if(len == 6) pif_show_flagmask(0x07, 0x07, "Opening Tag");
+      if(len == 5) pif_show_flagmask(0x07, 0x05, "Extended Length");
+      if(len == 6) pif_show_flagmask(0x07, 0x06, "Opening Tag");
       if(len == 7) pif_show_flagmask(0x07, 0x07, "Closing Tag");
 
       pif_show_byte("Non-standard type           = %u");
@@ -7444,7 +7444,7 @@ unsigned int show_application_tag( unsigned char tagbuff )
      default: if (len < 5)
                 bac_show_flagmask(0x07,"Length = %d");
               else
-                pif_show_flagmask(0x07,0x07, "Extended Length");
+                pif_show_flagmask(0x07,0x05, "Extended Length");
    }
    if (tloc == 1) bac_show_byte("Non-standard type","%u");
    if ((lloc != 0) && (type > 1)) {
