@@ -681,13 +681,11 @@ enum BIBB {
 	bibbAE_VM_A,
 	bibbAE_AVM_A,
 	bibbAE_AS_A,
-	bibbSCH_AVM_A,
-	bibbSCH_VM_A,
-	bibbSCH_WS_A,
-	bibbSCH_WS_I_B,
-	bibbSCH_R_B,
-	bibbSCH_I_B,
-	bibbSCH_E_B,
+	bibbSCHED_AVM_A,
+	bibbSCHED_VM_A,
+	bibbSCHED_WS_A,
+	bibbSCHED_WS_I_B,
+	bibbSCHED_R_B,
 	bibbT_AVM_A,
 	bibbT_VM_I_B,
 	bibbT_VM_E_B,
@@ -696,7 +694,15 @@ enum BIBB {
 	bibbDM_ANM_A,
 	bibbDM_ADM_A,
 	bibbDM_ATS_A,
-	bibb_DM_MTS_A
+	bibb_DM_MTS_A,
+	bibbSCH_AVM_A,
+	bibbSCH_VM_A,
+	bibbSCH_WS_A,
+	bibbSCH_WS_I_B,
+	bibbSCH_R_B,
+	bibbSCH_I_B,
+	bibbSCH_E_B,
+
 
 };
 

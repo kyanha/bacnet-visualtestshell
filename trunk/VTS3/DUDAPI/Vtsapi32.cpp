@@ -250,7 +250,10 @@ static octet aCorrectLengthProtocolServicesSupportedBitstring[] =
    37, /* Protocol_Revision = 1 */
    40, /* Protocol_Revision = 2 */
    40, /* Protocol_Revision = 3 */
-   40  /* Protocol_Revision = 4 */
+   40,  /* Protocol_Revision = 4 */
+   40,  /* Protocol_Revision = 5 */
+   40,  /* Protocol_Revision = 6 */
+   40,  /* Protocol_Revision = 7 */
 };
 
 // Array of expected bitstring lengths for ProtocolObjectTypesSupported
@@ -261,7 +264,10 @@ static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
    21, /* Protocol_Revision = 1 */
    23, /* Protocol_Revision = 2 */
    23, /* Protocol_Revision = 3 */
-   25  /* Protocol_Revision = 4 */ // LJT updated 3/27/2007
+   25,  /* Protocol_Revision = 4 */ // LJT updated 3/27/2007
+   25,  /* Protocol_Revision = 5 */
+   25,  /* Protocol_Revision = 6 */
+   30,  /* protocol_revision = 7 */ // 135-2008	
 };
 
 //---------------------------------------------------------------------
@@ -424,11 +430,18 @@ static bibbdef BIBBs[]={
              { { 0 }
              }, 
 			"SCHED-I-B", // no specific services required, other requirements are in the code											
-             { { 0 }
-             }, 
+             {	{ ssExecute, asReadProperty },
+				{ ssExecute, asWriteProperty },
+				{ ssExecute, asTimeSynchronization },
+				{ ssExecute, asUTCTimeSynchronization }
+             },								
 			"SCHED-E-B", // no specific services required, other requirements are in the code																
-             { { 0 }
-             }, 
+             {	{ ssExecute, asReadProperty },
+				{ ssExecute, asWriteProperty },
+				{ ssInitiate, asWriteProperty },
+				{ ssExecute, asTimeSynchronization },
+				{ ssExecute, asUTCTimeSynchronization }
+             },								
 			"T-VMT-A",						
              { { ssInitiate, asReadRange } 
              }, 
@@ -436,7 +449,8 @@ static bibbdef BIBBs[]={
              { { ssExecute,  asReadRange } 
              }, 
 			"T-VMT-E-B",  // no specific services required, other requirements are in the code
-             { { 0 }
+             {	{ ssExecute, asReadRange },
+				{ ssInitiate, asReadProperty }
              }, 
 			"T-ATR-A",	
 			    { { ssExecute,  asConfirmedEventNotification },
@@ -596,39 +610,31 @@ static bibbdef BIBBs[]={
              {	{ ssInitiate, asGetEventInformation },
 				{ ssInitiate, asGetAlarmSummary }
              },								
-			"SCH-AVM-A",  
+			"SCHED-AVM-A",  
              {	{ ssInitiate, asReadProperty },
 				{ ssInitiate, asWriteProperty },
 				{ ssInitiate, asCreateObject },
 				{ ssInitiate, asDeleteObject }
              },								
-			"SCH-VM-A",  
+			"SCHED-VM-A",  
              {	{ ssInitiate, asReadProperty },
 				{ ssInitiate, asWriteProperty }
              },								
-			"SCH-WS-A",  
+			"SCHED-WS-A",  
              {	{ ssInitiate, asReadProperty },
 				{ ssInitiate, asWriteProperty }
              },								
-			"SCH-WSI-B",  
+			"SCHED-WS-I-B",  
              {	{ ssExecute, asReadProperty },
 				{ ssExecute, asWriteProperty },
 				{ ssExecute, asTimeSynchronization },
 				{ ssExecute, asUTCTimeSynchronization }
-             },								
-			"SCH-I-B", // no specific services required, other requirements are in the code											
-             {	{ ssExecute, asReadProperty },
-				{ ssExecute, asWriteProperty },
+             },		
+			"SCHED-R-B",
+			 {	{ ssExecute, asReadProperty },
 				{ ssExecute, asTimeSynchronization },
 				{ ssExecute, asUTCTimeSynchronization }
-             },								
-			"SCH-E-B", // no specific services required, other requirements are in the code																
-             {	{ ssExecute, asReadProperty },
-				{ ssExecute, asWriteProperty },
-				{ ssInitiate, asWriteProperty },
-				{ ssExecute, asTimeSynchronization },
-				{ ssExecute, asUTCTimeSynchronization }
-             },								
+			 },
 			"T-AVM-A",  
              {	{ ssInitiate, asReadProperty },
 				{ ssInitiate, asWriteProperty },
@@ -667,6 +673,45 @@ static bibbdef BIBBs[]={
              {	{ ssInitiate, asTimeSynchronization },
 				{ ssInitiate, asUTCTimeSynchronization }
              }, 
+			// These names have been deprecated and could be removed
+			"SCH-AVM-A",  
+             {	{ ssInitiate, asReadProperty },
+				{ ssInitiate, asWriteProperty },
+				{ ssInitiate, asCreateObject },
+				{ ssInitiate, asDeleteObject }
+             },								
+			"SCH-VM-A",  
+             {	{ ssInitiate, asReadProperty },
+				{ ssInitiate, asWriteProperty }
+             },								
+			"SCH-WS-A",  
+             {	{ ssInitiate, asReadProperty },
+				{ ssInitiate, asWriteProperty }
+             },								
+			"SCH-WS-I-B",  
+             {	{ ssExecute, asReadProperty },
+				{ ssExecute, asWriteProperty },
+				{ ssExecute, asTimeSynchronization },
+				{ ssExecute, asUTCTimeSynchronization }
+             },		
+			"SCH-R-B",
+			 {	{ ssExecute, asReadProperty },
+				{ ssExecute, asTimeSynchronization },
+				{ ssExecute, asUTCTimeSynchronization }
+			 },
+			"SCH-I-B", // no specific services required, other requirements are in the code											
+             {	{ ssExecute, asReadProperty },
+				{ ssExecute, asWriteProperty },
+				{ ssExecute, asTimeSynchronization },
+				{ ssExecute, asUTCTimeSynchronization }
+             },								
+			"SCH-E-B", // no specific services required, other requirements are in the code																
+             {	{ ssExecute, asReadProperty },
+				{ ssExecute, asWriteProperty },
+				{ ssInitiate, asWriteProperty },
+				{ ssExecute, asTimeSynchronization },
+				{ ssExecute, asUTCTimeSynchronization }
+             },								
 			};  
 
 // The order and position of elements in this array is important!
@@ -811,7 +856,9 @@ static char *MonthNames[] = {
 	"September",
 	"October",
 	"November",
-	"December"
+	"December",
+	"Odd",
+	"Even"
 };
 
 static char *DOWNames[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
@@ -4683,7 +4730,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 				if (isdigit(*lp))				//use numeric form of month
 				    q->u.weekNday.month=ReadB(1,12);
 				else							//use monthname
-			    {	for (i=0;i<12;i++)
+			    {	for (i=0;i<14;i++)
 			    		if (strnicmp(lp,MonthNames[i],3)==0)
 			    		{	q->u.weekNday.month=(octet)i+1;	//months are 1-12
 			    			break;
@@ -7947,11 +7994,14 @@ void CheckPICSCons2003A(PICSdb *pd)
                break;
 
             case bibbSCHED_E_B:  // requires support for SCHED-I-B and DS-WP-A
-			case bibbSCH_E_B:
 				CheckPICS_BIBB_Cross_Dependency(pd,i,bibbSCHED_I_B); 
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A);
                break;
 
+			case bibbSCH_E_B:
+			   CheckPICS_BIBB_Cross_Dependency(pd,i,bibbSCH_I_B); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A);
+               break;
             case bibbT_VMT_I_B:  // both require support for TREND_LOG object
 			case bibbT_VM_I_B:
             case bibbT_ATR_B:
@@ -8018,6 +8068,7 @@ void CheckPICSCons2003A(PICSdb *pd)
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDM_OCD_A);
 				break;
 			case bibbSCH_AVM_A:
+			case bibbSCHED_AVM_A:
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_A);
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDM_OCD_A);
@@ -8027,39 +8078,42 @@ void CheckPICSCons2003A(PICSdb *pd)
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_A);
 				break;
 			case bibbSCH_WS_A:
+			case bibbSCHED_WS_A:
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_A);
 				break;
 			case bibbSCH_WS_I_B:
+			case bibbSCHED_WS_I_B:
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_B);
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_B);
                 if ( !pd->BIBBSupported[bibbDM_TS_B] &&
                     !pd->BIBBSupported[bibbDM_UTC_B] )
                 {
-                   sprintf(opj,"BIBB SCH-WS-I-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
+                   sprintf(opj,"BIBB SCHED-WS-I-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
                    tperror(opj,false);
                 }
                if ( pd->BACnetStandardObjects[SCHEDULE]==soNotSupported )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
-                   "BIBB SCH-WS-I-B requires support for the Schedule object "
+                   "BIBB SCHED-WS-I-B requires support for the Schedule object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
                }  
 
 				break;
 			case bibbSCH_R_B:
+			case bibbSCHED_R_B:
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_B);
                 if ( !pd->BIBBSupported[bibbDM_TS_B] &&
                     !pd->BIBBSupported[bibbDM_UTC_B] )
                 {
-                   sprintf(opj,"BIBB SCH-R-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
+                   sprintf(opj,"BIBB SCHED-R-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
                    tperror(opj,false);
                 }
                 if ( pd->BACnetStandardObjects[SCHEDULE]==soNotSupported )
                 {
                   sprintf(opj,"135.1-2003 5.(a): "
-                   "BIBB SCH-R-B requires support for the Schedule object "
+                   "BIBB SCHED-R-B requires support for the Schedule object "
                    "in the \"Standard Object Types Supported\" section.\n");
                   tperror(opj,false);
                 }  

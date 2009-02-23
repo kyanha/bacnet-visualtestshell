@@ -372,6 +372,17 @@ static const char *stPropIDs[]={
 				"structured-object-list",  // 209
 				"subordinate-annotation",  // 210
 				"subordinate-list", // 211
+				"actual-shed-level", // 212
+				"duty-window", // 213
+				"expected-shed-level", //214
+				"full-duty-baseline",  // 215
+				"unknown-216",
+				"unknown-217",
+				"requested-shed-level", // 218
+				"shed-duration",	// 219
+				"shed-level-descriptions", //220
+				"shed-levels",	// 221
+				"state-description", // 222
 
 				NULL /*always last*/
 				};
