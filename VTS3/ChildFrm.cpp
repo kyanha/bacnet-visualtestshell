@@ -1269,7 +1269,6 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 					}
 					str.Format( "\tPDU = Confirmed-Request\n" \
 								"\tService = ReadProperty\n" \
-								"\tInvokeID = 1\n" \
 								"\tSegMsg = 0\n" \
 								"\tSegResp = 0\n" \
 								"\tMaxResp = 1476\n" \
