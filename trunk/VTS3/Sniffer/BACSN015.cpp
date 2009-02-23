@@ -6835,20 +6835,38 @@ void show_error_codes( void )
       show_context_tag(BACnetError[service]);  /* opening tag */
 
 //   pif_show_ascii(0,"Error Class");
-   
-   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "Error Class:  %s",
-	   BACnetErrorClass[pif_get_byte(1)]);														   //  ***002
+    unsigned int len = pif_get_byte(0) & 0x07;
+    unsigned long value = get_bac_unsigned(1, len);
 
-   show_application_tag(pif_get_byte(0));
-   bac_show_byte(BACnetErrorClass[pif_get_byte(0)],"%u");
+	if ( value < 8 )
+	{
+		sprintf(get_int_line(pi_data_current, pif_offset, 2, 1), "Error Class:  %s", BACnetErrorClass[value]); //  ***002
+		show_application_tag(pif_get_byte(0));
+		bac_show_byte(BACnetErrorClass[value], "%u");
+	}
+	else
+	{
+		sprintf(get_int_line(pi_data_current, pif_offset, len+1, 1), "Error Class: %d", value);
+		show_application_tag(pif_get_byte(0));
+		bac_show_unsigned(BACnetErrorClass[value], len);
+	}
+    //   pif_show_ascii(0,"Error Code");
 
-//   pif_show_ascii(0,"Error Code");
-  
-   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "Error Code:  %s",
-	   BACnetErrorCode[pif_get_byte(1)]);														   //  ***002
+    len = pif_get_byte(0) & 0x07;
+    value = get_bac_unsigned(1, len);
 
-   show_application_tag(pif_get_byte(0));
-   bac_show_byte(BACnetErrorCode[pif_get_byte(0)],"%u");
+	if ( value < 80 )
+	{
+	    sprintf(get_int_line(pi_data_current, pif_offset, len+1, 1), "Error Code:  %s", BACnetErrorCode[value]); //  ***002
+		show_application_tag(pif_get_byte(0));
+		bac_show_byte(BACnetErrorCode[value], "%u");
+	}
+	else
+	{
+	    sprintf(get_int_line(pi_data_current, pif_offset, len+1, 1), "Error Code:  %d", value); //  ***002
+		show_application_tag(pif_get_byte(0));
+		bac_show_unsigned(BACnetErrorCode[value], len);
+	}
 
    /* show_context_tag(BACnetError[service]);  /* closing tag */
 }
@@ -7018,7 +7036,7 @@ void show_bac_date( void )
    if (x == 255)
       sprintf(outstr,"Unspecified");
    else {
-      if ((x>0) && (x<13)) sprintf(outstr,month[x]);
+      if ((x>0) && (x<15)) sprintf(outstr,month[x]);
       else sprintf(outstr,month[0]);
       }
    show_str_eq_str("Month",outstr,1);
@@ -7594,7 +7612,7 @@ void show_bac_action_command( unsigned int len )
 }
 void show_bac_action_list()
 {
-	unsigned int len=0;  // changed by kare sars
+	unsigned int len=1;  // changed by kare sars
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
    tagbuff = pif_get_byte(0);
    tagval = (tagbuff&0xF0)>>4;
@@ -7602,7 +7620,9 @@ void show_bac_action_list()
    {  /* context tag */
      if(tagval == 0){ /* actionlist */
        show_context_tag(BACnetAcitonList[0]);  /* opening tag */
-       while ((pif_get_byte(0) & 0x0f) != 0x0f) show_bac_action_command(len);
+	   int x = pif_get_byte(0);
+       while ((pif_get_byte(0) & 0x0f) != 0x0f) 
+		   show_bac_action_command(len);
        show_context_tag(BACnetAcitonList[0]);  /* closing tag */
        tagbuff = pif_get_byte(0);
        tagval = (tagbuff&0xF0)>>4;
@@ -7674,8 +7694,9 @@ void show_bac_calendar_entry( void )
                  show_application_data(pif_get_byte(0));
                  show_context_tag(BACnetCalendarEntry[tagval]); /* closing tag */
                  break;
-         case 2: show_bac_weeknday();
-                 show_context_tag(BACnetCalendarEntry[tagval]); /* closing tag */
+         case 2: 
+			 show_bac_weeknday();
+			 break;
          }
       }
    else {
@@ -8970,8 +8991,8 @@ void show_logDatum_choice( void )
      switch (tagval) 
      {
       case 0:  //BACnet LogSatus
-		  show_head_bit_string(0, "Log-Satus", tagval);											   //  ***002
-          len = show_context_tag("Log-Satus");
+		  show_head_bit_string(0, "Log-Status", tagval);											   //  ***002
+          len = show_context_tag("Log-Status");
           show_bac_bitstring(len);
        break;
       case 1:  //Boolean
@@ -9009,7 +9030,9 @@ void show_logDatum_choice( void )
        break;
       case 8:  //Error 
           len = show_context_tag("Failure");
-        bac_show_byte("Error:","%u");
+		  show_error_codes();
+			//bac_show_byte("Error:","%u");
+		  pif_offset += 1;  // remove the closing tag 8F
        break;
       case 9:  //Time-Change
 		   show_head_real(1, "Time-Change", tagval);											   //  ***002
@@ -9260,10 +9283,12 @@ void show_bac_VT_session( void )
 void show_bac_weeknday( void )
 /**************************************************************************/
 {
+	int x = pif_get_byte(0);
+
    if (pif_get_byte(0) == 255)
       sprintf(outstr,"Unspecified");
    else
-      sprintf(outstr,month[pif_get_byte(0)-1]);
+      sprintf(outstr,month[pif_get_byte(0)]);
    show_str_eq_str("Month",outstr,1);
    pif_offset++;
 
@@ -9277,9 +9302,9 @@ void show_bac_weeknday( void )
    if (pif_get_byte(0) == 255)
       sprintf(outstr,"Unspecified");
    else
-      sprintf(outstr,day_of_week[pif_get_byte(0)-1]);
+      sprintf(outstr,day_of_week[pif_get_byte(0)]);
    show_str_eq_str("Day of Week",outstr,1);
-  // pif_offset++;   // commented by xuyiping, 2002-9-26
+   pif_offset++;   
 }
 
 
