@@ -3287,7 +3287,7 @@ void BACnetBitString::Encode( char *enc ) const
 
 void BACnetBitString::Decode( const char *dec )
 {
-	int		bit;
+	int		bit = 0;
 	char	c;
 
 	// toss existing content
