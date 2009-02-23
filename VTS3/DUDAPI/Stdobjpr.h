@@ -51,7 +51,7 @@ static etable etObjectTypes={
 			"event-log",
 			"global-group",
 			"trend-log-multiple",
-			"xxx",
+			"load-control",			// Addendum e, 135-2004
 			"structured-view"
             };
 static etable etTF={0,0,2,"False","True"};
@@ -217,13 +217,13 @@ static etable etEU={
             "currency9",						 //113
             "currency10",						 //114
         //Free
-            NULL,								 //115
-            NULL,								 //116
-            NULL,								 //117
-            NULL,								 //118
-            NULL,								 //119
-            NULL,								 //120
-            NULL,								 //121
+            "square-inches"						 //115
+            "square-centimeters",				 //116
+            "btus-per-pound",					 //117
+            "centimeters",						 //118
+            "pounds-mass-per-second",			 //119
+            "delta-degrees-fahrenheit",			 //120
+            "delta-degrees-kelvin",				 //121
         //Added after second review:
             "kilohms",                           //122
             "megohms",							 //123
@@ -404,7 +404,7 @@ static etable etCalType={
             };
             
 static etable etMonths={
-            0,0,13,
+            0,0,15,
             "Any",
             "January",
             "February",
@@ -417,7 +417,9 @@ static etable etMonths={
             "September",
             "October",
             "November",
-            "December"
+            "December",
+			"Odd",
+			"Even"
             };
             
 static etable etWeekofMonth={
