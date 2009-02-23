@@ -33,6 +33,7 @@ CListSummaryView::CListSummaryView()
 {
 	m_bSortType = TRUE;
 	m_sortColumn = 0;
+	ReadReg();
 }
 
 
