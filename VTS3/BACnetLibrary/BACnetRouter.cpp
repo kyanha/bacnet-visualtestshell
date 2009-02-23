@@ -260,8 +260,10 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 					&& (deviceLocalNetwork == kBACnetRouterLocalNetwork)
 					;
 				// it could be remote and it matches the device's network (it was sent as a local broadcast)
-				passItOn |= (srcAddr.addrType == remoteStationAddr)
-					&& (srcAddr.addrNet == deviceLocalNetwork)
+				passItOn |= (srcAddr.addrType == remoteStationAddr);
+					// removed requirement that src net must match local net if dnet not present.
+					// LJT 12/16/2008 why was this here?
+					// && (srcAddr.addrNet == deviceLocalNetwork)
 					;
 			} else {
 				// it could be a global broadcast
