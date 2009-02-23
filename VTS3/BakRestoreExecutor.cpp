@@ -878,14 +878,27 @@ void BakRestoreExecutor::DoRestoreTest()
 			for ( int rcount = 0; rcount < recordCount.uintValue; rcount++)
 			{
 				strDataFileName_record.Format("%s.record%d", strDataFileName, nX);
-				if (!backupDataFile_record.Open(strDataFileName_record, CFile::modeRead))
+				if (!backupDataFile_record.Open(strDataFileName_record, CFile::modeRead | CFile::typeBinary))
 				{
 					throw("Can not open \".backupData\" file, maybe this file doesn't exist\n");
 				}
 				m_pOutputDlg->OutMessage("OK");
 	
 				// create a buffer max size TD's APDU size
-				int nMWOC = m_pPort->m_pdevice->m_nMaxAPDUSize;
+				// LJT: Note we assume here that the Record will fit in the MaxAPDU size and
+				//      therefore we create our buffer to the MaxAPDU size.
+				UINT nMWOC;
+				if (m_pPort->m_pdevice) 
+				{
+					UINT	nM1 = m_pPort->m_pdevice->m_nMaxAPDUSize;
+					UINT	nM2 = maxAPDULenAccepted.uintValue;
+					nMWOC = min(nM1, nM2); // - 21 + 3 //(octetstring header);				
+				}
+				else	
+				{	// if this port does not bind to a device
+					nMWOC = maxAPDULenAccepted.uintValue; // - 21 + 3 // (octetstring header);
+				}
+
 				BYTE* pBuffer = new BYTE[nMWOC];
 				int len_read = backupDataFile_record.Read(pBuffer, nMWOC);
 
