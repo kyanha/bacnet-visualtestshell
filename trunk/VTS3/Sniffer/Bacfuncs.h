@@ -266,13 +266,13 @@ char *BACnetEngineeringUnits[] = {
    "Currency 9",        /* 113 */
    "Currency 10",       /* 114 */
 
-   "Invalid Units",     /* 115 */
-   "Invalid Units",     /* 116 */
-   "Invalid Units",     /* 117 */
-   "Invalid Units",     /* 118 */
-   "Invalid Units",     /* 119 */
-   "Invalid Units",     /* 120 */
-   "Invalid Units",     /* 121 */
+   "square-inches",							/* 115 */
+   "square-centimeters",					/* 116 */
+   "btus-per-pound",						/* 117 */
+   "centimeters",							/* 118 */
+   "pounds-mass-per-second",				/* 119 */
+   "delta-degrees-Fahrenheit",				/* 120 */
+   "delta-degrees-Kelvin",					/* 121 */
 
    "Kilohms",                              /* 122 */
    "Megohms",                              /* 123 */
@@ -738,7 +738,7 @@ char *BACnetObjectType[] = {
    "EVENT-LOG",			  // 25	- Addendum B
    "GLOBAL-GROUP",		  // 26 - Addendum B
    "TREND-LOG-MULTIPLE",  // 27 - Addendum B
-   "",					  // 28 - Addendum E
+   "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
    "STRUCTURED-VIEW",     // 29 - Addendum D
    };
 
@@ -771,7 +771,7 @@ char *BACnetObjectTypesSupported[] = {
    "EVENT-LOG",			  // 25	- Addendum B
    "GLOBAL-GROUP",		  // 26 - Addendum B
    "TREND-LOG-MULTIPLE",  // 27 - Addendum B
-   "",					  // 28 - Addendum E
+   "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
    "STRUCTURED-VIEW",     // 29 - Addendum D
    };
 
@@ -1023,6 +1023,18 @@ char *BACnetPropertyIdentifier[] = {
 	"structured-object-list",  // 209
 	"subordinate-annotation",  // 210
 	"subordinate-list", // 211
+	// added by addendum E 135-2004
+	"actual-shed-level",	// 212
+	"duty-window",			// 213
+	"expected-shed-level",	// 214
+	"full-duty-baseline",	// 215
+	"unknown-216",
+	"unknown-217",
+	"requested-shed-level",	// 218
+	"shed-duration",		// 219
+	"shed-level-descriptions", // 220
+	"shed-levels",			// 221
+	"state-description",	// 222
 };
 
 // Added by Addenda D
@@ -1287,7 +1299,9 @@ char *month[] = {
    "September",     /* 9 */
    "October",       /* 10 */
    "November",      /* 11 */
-   "December"       /* 12 */
+   "December",      /* 12 */
+   "Odd",			/* 13 */
+   "Even"			/* 14 */
    };
 
 char *PDU_types[] = {
@@ -1764,13 +1778,22 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
       case ACTION: switch (obj_type) {
 //         Command Object: ARRAY OF (LIST OF BACnetActionCommands)
                      case 7: //command object 
-                        if (prop_idx == 0) {
+                        if (prop_idx == 0) 
+						{
                           pif_show_ascii(0,"Array Size");
                           show_application_data(x);
-                          };
-                       while ((pif_get_byte(0) & 0x0f) != 0x0f) {
-                         show_bac_action_list();
-                          };
+                        }
+						else if (prop_idx != -1 )
+						{
+							// only 1 index
+							show_bac_action_list();
+						}
+						else
+						{
+							while ((pif_get_byte(0) & 0x0f) != 0x0f) {
+								show_bac_action_list();
+								};
+						}
                         break;
 
                      case 12: /* loop object */
