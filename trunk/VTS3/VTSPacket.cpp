@@ -221,21 +221,24 @@ LPCSTR VTSPacket::GetAddressString( VTSDoc * pdoc, BOOL bSource, int nLen /* = -
 
 void VTSPacket::FindNPDUStartPos(int& npduindex)
 {
+	if ( packetData == NULL )
+		return;
+
 	switch ((BACnetPIInfo::ProtocolType)packetHdr.packetProtocolID)
 	{
 		case BACnetPIInfo::ipProtocol:
 			// new code is using the length specified in the BVLC packet to determine
 			// the start of the NPDU.  Submitted in #1261344 by dmrichards on 8/19/2005
 			// skip the fake ip header, address (4), and port (2) 
-			{ 
-			   npduindex += 6; //BVLC 
-			   if (packetData && packetData[npduindex] == 0x81) 
-			   { 
-			      npduindex += (packetData[npduindex+2]*256 + packetData[npduindex+3]); 
-				} 
-			} 
-			break; 
-/*
+//			{ 
+//			   npduindex += 6; //BVLC 
+//			   if (packetData && packetData[npduindex] == 0x81) 
+//			   { 
+//			      npduindex += (packetData[npduindex+2]*256 + packetData[npduindex+3]); 
+//				} 
+//			} 
+//			break; 
+
 			// skip the fake ip header, address (4), and port (2)
 			{
 				npduindex += 6;
@@ -276,7 +279,7 @@ void VTSPacket::FindNPDUStartPos(int& npduindex)
 				}			
 			}
 			break;
-*/
+
 		case BACnetPIInfo::ethernetProtocol:
 			// skip over source (6), destination (6), length (2), and SAP (3)
 			npduindex += 17;			
