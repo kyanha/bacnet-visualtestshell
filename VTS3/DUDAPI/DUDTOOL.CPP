@@ -93,6 +93,12 @@ void LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
 void LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue ); //Shiyuan Xiao 7/21/2005
 void AC_CreateProperty( accumulator_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue ); //Shiyuan Xiao 7/15/2005
 void PC_CreateProperty( pulseconverter_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
+void LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
+void AD_CreateProperty( ad_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
+void SV_CreateProperty( sv_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
+void EL_CreateProperty( el_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
+void TLM_CreateProperty( tlm_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
+             
 
 octet gTestStavals[nTESTLIST][4]= { {1,2,3,0}, {4,0,0,0}, {0,0,0,0}, {5,0,0,0} };
 
@@ -2290,6 +2296,11 @@ extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId
       case LIFE_SAFETY_ZONE:        LFSZ_CreateProperty((lifesafetyzone_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/21/2005 
       case ACCUMULATOR:             AC_CreateProperty( (accumulator_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break; //Shiyuan Xiao 7/15/2005
 	  case PULSE_CONVERTER:         PC_CreateProperty( (pulseconverter_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break; //Shiyuan Xiao 7/15/2005
+	  case EVENT_LOG:				EL_CreateProperty( (el_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case TREND_LOG_MULTIPLE:		TLM_CreateProperty( (tlm_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case LOAD_CONTROL:			LC_CreateProperty( (lc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case STRUCTURED_VIEW:			SV_CreateProperty( (sv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case ACCESS_DOOR:				AD_CreateProperty( (ad_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  default:
 		  //TRACE("CreatePropertyFromDB called for unknown object type");
 		  //ASSERT(0);
@@ -4815,6 +4826,511 @@ void PC_CreateProperty( pulseconverter_obj_type * pObj, BACnetPropertyIdentifier
 	}
 }
 
+void LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
+{
+	etable *petable;
+	ASSERT(pbacnetAnyValue != NULL);
+	
+	switch ( propertyID )
+	{
+	case OBJECT_IDENTIFIER:
+		pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->go.object_id));
+		break;
+	case OBJECT_NAME:
+		pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
+		break;
+	case OBJECT_TYPE:
+		petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+		
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
+			(const char **)petable->estrings,
+			petable->nes) );
+		break;
+	case DESCRIPTION:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
+			break;
+	case PRESENT_VALUE:
+         petable = (etable *)PICS::GetEnumTable(eiShedState);  
+ 		 pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->present_value,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+		break;
+	case STATE_DESCRIPTION:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->state_description));
+		break;
+	case STATUS_FLAGS:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
+			break;
+	case EVENT_STATE:
+         petable = (etable *)PICS::GetEnumTable(eiEvState);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->event_state,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+	case RELIABILITY:
+         petable = (etable *)PICS::GetEnumTable(eiReli);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+	case LOG_ENABLE:  			     
+		pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->log_enable));
+		break;
+	case NOTIFICATION_CLASS:
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
+			break;
+	case EVENT_ENABLE:	
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
+			break;
+	case ACKED_TRANSITIONS:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
+			break;
+	case NOTIFY_TYPE:
+         petable = (etable *)PICS::GetEnumTable(eiNT);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+	case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
+	case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
+	case REQUESTED_SHED_LEVEL:
+		switch( pObj->requested_shed_level.choice )
+		{
+		case 0:
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, pObj->requested_shed_level.sl.uproperty_value));
+		break;
+		case 1:
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, pObj->requested_shed_level.sl.uproperty_value));
+		break;
+		case 2:
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, pObj->requested_shed_level.sl.fproperty_value));
+		break;
+		}
+		break;
+	case START_TIME:
+			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->start_time.date.year, pObj->start_time.date.month, 
+													pObj->start_time.date.day_of_month, pObj->start_time.time.hour, 
+													pObj->start_time.time.minute, pObj->start_time.time.second));
+		break;
+	case SHED_DURATION:
+		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->shed_duration));
+		break;
+	case DUTY_WINDOW:
+		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->duty_window));
+		break;
+	case FULL_DUTY_BASELINE:
+		pbacnetAnyValue->SetObject(uw, new BACnetReal(pObj->full_duty_baseline));
+		break;
+	case EXPECTED_SHED_LEVEL:
+		switch( pObj->expected_shed_level.choice )
+		{
+		case 0:
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, pObj->expected_shed_level.sl.uproperty_value));
+		break;
+		case 1:
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, pObj->expected_shed_level.sl.uproperty_value));
+		break;
+		case 2:
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, pObj->expected_shed_level.sl.fproperty_value));
+		break;
+		}
+		break;
+	case ACTUAL_SHED_LEVEL:
+		switch( pObj->actual_shed_level.choice )
+		{
+		case 0:
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, pObj->actual_shed_level.sl.uproperty_value));
+		break;
+		case 1:
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, pObj->actual_shed_level.sl.uproperty_value));
+		break;
+		case 2:
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, pObj->actual_shed_level.sl.fproperty_value));
+		break;
+		}
+		break;
+	case SHED_LEVELS:
+		pbacnetAnyValue->SetObject(stavals, new BACnetUnsignedArray(pObj->shed_levels));
+		break;
+	case SHED_LEVEL_DESCRIPTIONS:
+			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->shed_level_descriptions, 255));
+		break;
+	}
+}
+
+void AD_CreateProperty( ad_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
+{
+	etable *petable;
+	ASSERT(pbacnetAnyValue != NULL);
+	
+	switch ( propertyID )
+	{
+	case OBJECT_IDENTIFIER:
+		pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->go.object_id));
+		break;
+	case OBJECT_NAME:
+		pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
+		break;
+	case OBJECT_TYPE:
+		petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+		
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
+			(const char **)petable->estrings,
+			petable->nes) );
+		break;
+	case PRESENT_VALUE:
+         petable = (etable *)PICS::GetEnumTable(eiDoorValue);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->present_value,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+		break;
+	case DESCRIPTION:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
+			break;
+	case STATUS_FLAGS:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
+			break;
+	case EVENT_STATE:
+         petable = (etable *)PICS::GetEnumTable(eiEvState);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->event_state,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+	case RELIABILITY:
+         petable = (etable *)PICS::GetEnumTable(eiReli);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+	case OUT_OF_SERVICE:
+			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
+			break;
+	case RELINQUISH_DEFAULT:
+		    petable = (etable *)PICS::GetEnumTable(eiDoorValue);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->relinquish_default,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+		break;
+	case PRIORITY_ARRAY:
+		pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((unsigned short *) pObj->priority_array, nPRIO, upaNULL, true)); 
+		break;
+	case DOOR_STATUS:
+		    petable = (etable *)PICS::GetEnumTable(eiDoorStatus);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->door_status,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+		break;
+	case LOCK_STATUS:
+		    petable = (etable *)PICS::GetEnumTable(eiLockStatus);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->lock_status,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+		break;
+	case SECURED_STATUS:
+		    petable = (etable *)PICS::GetEnumTable(eiDoorSecuredStatus);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->secured_status,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+		break;
+	case DOOR_MEMBERS:
+		pbacnetAnyValue->SetObject(lodoref, CreateDeviceObjectList(pObj->door_members));
+		break;
+	case DOOR_PULSE_TIME:
+			pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_pulse_time));
+		break;
+	case DOOR_EXTENDED_PULSE_TIME:
+			pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_extended_pulse_time));
+		break;
+	case DOOR_UNLOCK_DELAY_TIME:
+			pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_unlock_delay_time));
+		break;
+	case DOOR_OPEN_TOO_LONG_TIME:
+			pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_open_too_long_time));
+		break;
+	case DOOR_ALARM_STATE:
+		    petable = (etable *)PICS::GetEnumTable(eiDoorAlarmState);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->door_alarm_state,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+		break;
+	case MASKED_ALARM_VALUES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->masked_alarm_values, eiDoorAlarmState ));
+		break;
+	case MAINTENANCE_REQUIRED:
+		    petable = (etable *)PICS::GetEnumTable(eiMaintenance);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->maintenance_required,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+		break;
+	case TIME_DELAY:
+		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->time_delay));
+		break;
+	case NOTIFICATION_CLASS:
+		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
+		break;
+	case ALARM_VALUES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->alarm_values, eiDoorAlarmState ));
+		break;
+	case FAULT_VALUES:
+		pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->fault_values, eiDoorAlarmState ));
+		break;
+	case EVENT_ENABLE:	
+		pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
+		break;
+	case ACKED_TRANSITIONS:
+		pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
+		break;
+	case NOTIFY_TYPE:
+         petable = (etable *)PICS::GetEnumTable(eiNT);  
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
+                                                              (const char **)petable->estrings,
+                                                               petable->nes) );
+		break;
+	case EVENT_TIME_STAMPS:		
+		pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
+		break;
+	case PROFILE_NAME:
+		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+		break;
+	}
+}
+
+void SV_CreateProperty( sv_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
+{
+	etable *petable;
+	ASSERT(pbacnetAnyValue != NULL);
+	
+	switch ( propertyID )
+	{
+	case OBJECT_IDENTIFIER:
+		pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->go.object_id));
+		break;
+	case OBJECT_NAME:
+		pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
+		break;
+	case OBJECT_TYPE:
+		petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+		
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
+			(const char **)petable->estrings,
+			petable->nes) );
+		break;
+	case DESCRIPTION:
+		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
+		break;
+	case NODE_TYPE:
+		petable = (etable *)PICS::GetEnumTable(eiNodeType);  
+		
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->node_type, 
+			(const char **)petable->estrings,
+			petable->nes) );
+		break;
+	case NODE_SUBTYPE:
+		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->node_subtype));
+		break;
+	case SUBORDINATE_LIST:
+		pbacnetAnyValue->SetObject(lodoref, CreateDeviceObjectList(pObj->subordinate_list));
+		break;
+	case SUBORDINATE_ANNOTATIONS:
+		pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->subordinate_annotations));
+		break;
+	case PROFILE_NAME:
+		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+		break;
+	}
+}
+
+void EL_CreateProperty( el_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
+{
+	etable *petable;
+	ASSERT(pbacnetAnyValue != NULL);
+	
+	switch ( propertyID )
+	{
+	case OBJECT_IDENTIFIER:
+		pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->go.object_id));
+		break;
+	case OBJECT_NAME:
+		pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
+		break;
+	case OBJECT_TYPE:
+		petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+		
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
+			(const char **)petable->estrings,
+			petable->nes) );
+		break;
+	case DESCRIPTION:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
+			break;
+	case STATUS_FLAGS:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
+			break;
+	case EVENT_STATE:
+         petable = (etable *)PICS::GetEnumTable(eiEvState);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->event_state,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+	case RELIABILITY:
+         petable = (etable *)PICS::GetEnumTable(eiReli);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+		case LOG_ENABLE:  			     
+			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->log_enable));
+			break;
+		case START_TIME:  	 		     
+			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->start_time.date.year, pObj->start_time.date.month, 
+													pObj->start_time.date.day_of_month, pObj->start_time.time.hour, 
+													pObj->start_time.time.minute, pObj->start_time.time.second));
+			break;         	       
+		case STOP_TIME:  				 
+			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->stop_time.date.year, pObj->stop_time.date.month, 
+													pObj->stop_time.date.day_of_month, pObj->stop_time.time.hour, 
+													pObj->stop_time.time.minute, pObj->stop_time.time.second));
+			break;         	       
+		case BUFFER_SIZE:  			     
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->buffer_size));
+			break;
+		case LOG_BUFFER:  			     
+            // Cannot read this with ReadProperty!
+			//msg->pv = &Obj->log_buffer;       
+			//msg->pt = LOGREC;       
+			break;         	       
+		case RECORD_COUNT:  			     
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->record_count));
+			break;
+		case TOTAL_RECORD_COUNT:  	     
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->total_record_count));
+			break;
+		case NOTIFICATION_THRESHOLD:      
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_threshold));
+			break;
+		case RECORDS_SINCE_NOTIFICATION:  
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->records_since_notification));
+			break;
+		case LAST_NOTIFY_RECORD:
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
+			break;
+	case NOTIFICATION_CLASS:
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
+			break;
+	case EVENT_ENABLE:	
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
+			break;
+	case ACKED_TRANSITIONS:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
+			break;
+	case NOTIFY_TYPE:
+         petable = (etable *)PICS::GetEnumTable(eiNT);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+	case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			break;
+	case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+			break;
+	}
+}
+
+void TLM_CreateProperty( tlm_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
+{
+	etable *petable;
+	ASSERT(pbacnetAnyValue != NULL);
+	
+	switch ( propertyID )
+	{
+	case OBJECT_IDENTIFIER:
+		pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->go.object_id));
+		break;
+	case OBJECT_NAME:
+		pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
+		break;
+	case OBJECT_TYPE:
+		petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+		
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
+			(const char **)petable->estrings,
+			petable->nes) );
+		break;
+	case DESCRIPTION:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
+			break;
+		case STATUS_FLAGS:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
+			break;
+		case EVENT_STATE:
+         petable = (etable *)PICS::GetEnumTable(eiEvState);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->event_state,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+		case RELIABILITY:
+         petable = (etable *)PICS::GetEnumTable(eiReli);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+		case LOG_ENABLE:  			     
+			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->log_enable));
+			break;
+		case START_TIME:  	 		     
+			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->start_time.date.year, pObj->start_time.date.month, 
+													pObj->start_time.date.day_of_month, pObj->start_time.time.hour, 
+													pObj->start_time.time.minute, pObj->start_time.time.second));
+			break;         	       
+		case STOP_TIME:  				 
+			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->stop_time.date.year, pObj->stop_time.date.month, 
+													pObj->stop_time.date.day_of_month, pObj->stop_time.time.hour, 
+													pObj->stop_time.time.minute, pObj->stop_time.time.second));
+			break;         	       
+		case LOG_DEVICE_OBJECT_PROPERTY:  
+			pbacnetAnyValue->SetObject(devobjpropref, new ::BACnetDeviceObjectPropertyReference(pObj->log_device_object_property.Objid,
+																					pObj->log_device_object_property.wPropertyid, 
+																					pObj->log_device_object_property.ulIndex, pObj->log_device_object_property.DeviceObj));
+			break;         	       
+		case LOGGING_TYPE:
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->logging_type,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+		case LOG_INTERVAL:  			     
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->log_interval));
+			break;
+		case STOP_WHEN_FULL:  		     
+			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->stop_when_full));
+			break;
+		case BUFFER_SIZE:  			     
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->buffer_size));
+			break;
+		case LOG_BUFFER:  			     
+            // Cannot read this with ReadProperty!
+			//msg->pv = &Obj->log_buffer;       
+			//msg->pt = LOGREC;       
+			break;         	       
+		case RECORD_COUNT:  			     
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->record_count));
+			break;
+		case TOTAL_RECORD_COUNT:  	     
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->total_record_count));
+			break;
+		case NOTIFICATION_THRESHOLD:      
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_threshold));
+			break;
+		case RECORDS_SINCE_NOTIFICATION:  
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->records_since_notification));
+			break;
+	}
+}
+
 // Create separate function to hide the nasty internal EPICS structures until we can 
 // replace them with BACnet objects
 
@@ -5888,6 +6404,174 @@ bool PC_CheckProperty(BACnetPropertyIdentifier propertyID)
 	}
 }
 
+bool EL_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case LOG_ENABLE:
+		case START_TIME:
+		case STOP_TIME:
+		case STOP_WHEN_FULL:
+		case BUFFER_SIZE:
+		case LOG_BUFFER:
+		case RECORD_COUNT:
+		case TOTAL_RECORD_COUNT:
+		case NOTIFICATION_THRESHOLD:
+		case RECORDS_SINCE_NOTIFICATION:
+		case LAST_NOTIFY_RECORD:
+		case NOTIFICATION_CLASS:
+		case EVENT_ENABLE:  			     
+		case ACKED_TRANSITIONS:  	 		            	       
+		case NOTIFY_TYPE:  				          	       
+		case EVENT_TIME_STAMPS:          	       
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool SV_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case NODE_TYPE:
+		case NODE_SUBTYPE:
+		case SUBORDINATE_LIST:
+		case SUBORDINATE_ANNOTATIONS:
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool TLM_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case DESCRIPTION:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case LOG_ENABLE:
+		case START_TIME:
+		case STOP_TIME:
+		case LOG_DEVICE_OBJECT_PROPERTY:
+		case LOGGING_TYPE:
+		case LOG_INTERVAL:
+		case ALIGN_INTERVALS:
+		case INTERVAL_OFFSET:
+		case TRIGGER:
+		case STOP_WHEN_FULL:
+		case BUFFER_SIZE:
+		case LOG_BUFFER:
+		case RECORD_COUNT:
+		case TOTAL_RECORD_COUNT:
+		case NOTIFICATION_THRESHOLD:
+		case RECORDS_SINCE_NOTIFICATION:
+		case LAST_NOTIFY_RECORD:
+		case NOTIFICATION_CLASS:
+		case EVENT_ENABLE:  			     
+		case ACKED_TRANSITIONS:  	 		            	       
+		case NOTIFY_TYPE:  				          	       
+		case EVENT_TIME_STAMPS:          	       
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool AD_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case PRIORITY_ARRAY:
+		case RELINQUISH_DEFAULT:
+		case DOOR_STATUS:
+		case LOCK_STATUS:
+		case SECURED_STATUS:
+		case DOOR_MEMBERS:
+		case DOOR_PULSE_TIME:
+		case DOOR_EXTENDED_PULSE_TIME:
+		case DOOR_UNLOCK_DELAY_TIME:
+		case DOOR_ALARM_STATE:
+		case MASKED_ALARM_VALUES:
+		case MAINTENANCE_REQUIRED:
+		case NOTIFICATION_CLASS:
+		case TIME_DELAY:
+		case ALARM_VALUES:
+		case FAULT_VALUES:
+		case EVENT_ENABLE:  			     
+		case ACKED_TRANSITIONS:  	 		            	       
+		case NOTIFY_TYPE:  				          	       
+		case EVENT_TIME_STAMPS:          	       
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool LC_CheckProperty(BACnetPropertyIdentifier propertyID)
+{
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+		case OBJECT_NAME:
+		case OBJECT_TYPE:
+		case PRESENT_VALUE:
+		case DESCRIPTION:
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case REQUESTED_SHED_LEVEL:
+		case START_TIME:
+		case SHED_DURATION:
+		case DUTY_WINDOW:
+		case LOG_ENABLE:
+		case FULL_DUTY_BASELINE:
+		case EXPECTED_SHED_LEVEL:
+		case ACTUAL_SHED_LEVEL:
+		case SHED_LEVELS:
+		case SHED_LEVEL_DESCRIPTIONS:
+		case NOTIFICATION_CLASS:
+		case TIME_DELAY:
+		case EVENT_ENABLE:  			     
+		case ACKED_TRANSITIONS:  	 		            	       
+		case NOTIFY_TYPE:  				          	       
+		case EVENT_TIME_STAMPS:          	       
+		case PROFILE_NAME:
+			return true;
+		default:
+			return false;
+	}
+}
+
 } // end of PICS namespace
 
 
@@ -5948,7 +6632,16 @@ bool Check_Obj_Prop(int ObjType, unsigned int propertyID)
 		return PICS::ACC_CheckProperty(propID);
 	case pulseconverter:
 		return PICS::PC_CheckProperty(propID);
-
+	case eventlog:
+		return PICS::EL_CheckProperty(propID);
+	case trendlogmultiple:
+		return PICS::TLM_CheckProperty(propID);
+	case structuredview:
+		return PICS::SV_CheckProperty(propID);
+	case accessdoor:
+		return PICS::AD_CheckProperty(propID);
+	case loadcontrol:
+		return PICS::LC_CheckProperty(propID);
 	default:
 		return false;
 	}

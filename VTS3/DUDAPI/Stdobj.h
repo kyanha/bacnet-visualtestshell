@@ -688,4 +688,127 @@ enum BACnetReliability	           reliability;
     BACnetTimeStamp	 	           far *event_time_stamps[3];
 } pulseconverter_obj_type;
 
+typedef struct
+{
+    generic_object		           go;
+	octet					       status_flags;
+enum BACnetEventState	           event_state;
+enum BACnetReliability	           reliability;
+	BACnetShedLevel					requested_shed_level;
+	DWORD							shed_duration;
+	DWORD							duty_window;
+    BACnetShedLevel					expected_shed_level;
+	BACnetShedLevel					actual_shed_level;
+	UnsignedList				far *shed_levels;
+	char						far	*shed_level_descriptions[255];
+     boolean					   log_enable;                   
+	BACnetDateTime                 start_time;
+     word						    	   	notification_class;
+     octet						    		event_enable;
+     octet						    		acked_transitions;
+     enum BACnetNotifyType		    		notify_type;
+     BACnetTimeStamp			            far *event_time_stamps[3];
+    word				    time_delay;
+	enum BACnetShedState			present_value;
+    char 							state_description[132];
+	float							full_duty_baseline;
+
+} lc_obj_type;
+
+typedef struct
+{
+    generic_object		           go;
+    octet					status_flags;
+enum BACnetEventState		event_state;
+enum BACnetReliability		reliability;
+    boolean					out_of_service;
+     word					notification_class;
+     octet					event_enable;
+     octet					acked_transitions;
+     enum BACnetNotifyType	notify_type;
+     BACnetTimeStamp		far *event_time_stamps[3];
+    word				    time_delay;
+    BACnetEnumList		far *alarm_values;
+    BACnetEnumList		far	*fault_values;
+
+	enum BACnetDoorValue	present_value;
+	enum BACnetDoorValue	relinquish_default;
+	enum BACnetDoorValue	priority_array[16];
+	enum BACnetDoorStatus	door_status;
+	enum BACnetLockStatus	lock_status;
+	enum BACnetDoorSecuredStatus	secured_status;
+	BACnetDeviceObjectReference far *door_members;
+	word					door_pulse_time;
+	word					door_extended_pulse_time;
+	word					door_unlock_delay_time;
+	word					door_open_too_long_time;
+	enum BACnetDoorAlarmState	door_alarm_state;
+	BACnetEnumList			far *masked_alarm_values; //enum BACnetDoorAlarmState	
+	enum BACnetMaintenance	maintenance_required;
+
+
+} ad_obj_type;
+
+typedef struct
+{
+    generic_object		           go;
+	enum BACnetNodeType				node_type;
+	char							node_subtype[132];
+	BACnetDeviceObjectReference far *subordinate_list;
+	char						far *subordinate_annotations;
+} sv_obj_type;
+
+typedef struct
+{
+    generic_object		           go;
+    octet					status_flags;
+enum BACnetEventState		event_state;
+enum BACnetReliability		reliability;
+     boolean							    log_enable;                   
+     BACnetDateTime						    start_time;
+     BACnetDateTime						    stop_time;
+     word							        buffer_size;
+     BACnetLogRecord					    log_buffer;
+     word						    	    record_count;
+     dword						    	    total_record_count;			//should be Unsigned32, GJB 01-MAR-2004
+     word						    	    notification_threshold;
+     word						    	    records_since_notification;
+	 dword									last_notify_record;		//Added by Zhu Zhenhua, 2004-5-11
+     word						    	   	notification_class;
+     octet						    		event_enable;
+     octet						    		acked_transitions;
+     enum BACnetNotifyType		    		notify_type;
+     BACnetTimeStamp			            far *event_time_stamps[3];
+} el_obj_type;
+
+typedef struct
+{
+    generic_object		           go;
+    octet					status_flags;
+enum BACnetEventState		event_state;
+enum BACnetReliability		reliability;
+     boolean							    log_enable;                   
+     BACnetDateTime						    start_time;
+     BACnetDateTime						    stop_time;
+     BACnetDeviceObjectPropertyReference    log_device_object_property;
+	 enum BACnetLoggingType					logging_type;
+	 boolean								align_intervals;
+	 word									interval_offset;
+	 boolean								trigger;
+	 boolean								stop_when_full;
+     word							        log_interval;
+     word							        buffer_size;
+     BACnetLogRecord					    log_buffer;
+     word						    	    record_count;
+     dword						    	    total_record_count;			//should be Unsigned32, GJB 01-MAR-2004
+     word						    	    notification_threshold;
+     word						    	    records_since_notification;
+	 dword									last_notify_record;		//Added by Zhu Zhenhua, 2004-5-11
+     word						    	   	notification_class;
+     octet						    		event_enable;
+     octet						    		acked_transitions;
+     enum BACnetNotifyType		    		notify_type;
+     BACnetTimeStamp			            far *event_time_stamps[3];
+} tlm_obj_type;
+
 #endif //__STDOBJ_H_INCLUDED

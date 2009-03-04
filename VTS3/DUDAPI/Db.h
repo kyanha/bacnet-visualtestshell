@@ -595,7 +595,13 @@ enum  BACnetObjectType
 		LIFE_SAFETY_POINT,                      //21  msdanner 9/04, added
 		LIFE_SAFETY_ZONE,					    //22  msdanner 9/04, added
         ACCUMULATOR,                            //23  Shiyuan Xiao. 7/13/05, added
-		PULSE_CONVERTER                         //24  Shiyuan Xiao. 7/13/05, added
+		PULSE_CONVERTER,                        //24  Shiyuan Xiao. 7/13/05, added
+		EVENT_LOG,
+		GLOBAL_GROUP,
+		TREND_LOG_MULTIPLE,
+		LOAD_CONTROL,
+		STRUCTURED_VIEW,
+		ACCESS_DOOR
    };
 
 // msdanner 9/04:
@@ -837,5 +843,14 @@ typedef struct tagUnsignedList {
 	struct tagUnsignedList *next;
 	unsigned value;
 } UnsignedList;
+
+typedef struct tagBACnetShedLevel {
+	octet	choice;	// context tag for this structure
+	union {
+		dword	uproperty_value; 	//unsigned dword
+		float	fproperty_value;	//float
+	} sl;
+
+} BACnetShedLevel;
 
 #endif //__DB_H_INCLUDED

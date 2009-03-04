@@ -121,43 +121,43 @@ BOOL ParseBooleanList( BooleanList **elp );
 BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference *);
 BACnetDeviceObjectReference *ParseDevObjReference(BACnetDeviceObjectReference *);
 
-void CheckPICSObjCons(PICSdb *);
-void CheckObjConsK(PICSdb *);
-void CheckObjConsL(PICSdb *);
-void CheckObjConsM();
-void CheckObjConsF(PICSdb *);
-void CheckObjConsA(PICSdb *);
-void CheckPICSServCons(PICSdb *);
-void CheckServConsD(PICSdb *);
-void CheckServConsI(PICSdb *);
-void CheckServConsJ(PICSdb *);
-void CheckServConsE(PICSdb *);
-void CheckClass(word,TApplServ *,octet  ApplServ[],char *,BOOL);
-void CheckServClassCons(word,octet ApplServ[],char *,BOOL);
-void CheckServFGCons(dword,octet Applserv[],char *,BOOL);
-void CheckPICSPropCons(PICSdb *);      // continue
-void CheckObjRequiredProp(dword,dword,generic_object *,octet);         //continue
-void AI_CheckOptionalProperty(octet servFromPICS[],octet propFlag[]);
-void AO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void AV_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void BI_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void BO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void BV_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void CA_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void CO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void DV_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void EE_CheckOptionalProperty(octet propFlags[]);
-void FI_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void GR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void LO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void MI_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void MO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void MV_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void NC_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void PR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void SC_CheckOptionalProperty(octet propFlags[]);
-void AVG_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
-void TR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void CheckPICSObjCons(PICSdb *);
+//void CheckObjConsK(PICSdb *);
+//void CheckObjConsL(PICSdb *);
+//void CheckObjConsM();
+//void CheckObjConsF(PICSdb *);
+//void CheckObjConsA(PICSdb *);
+//void CheckPICSServCons(PICSdb *);
+//void CheckServConsD(PICSdb *);
+//void CheckServConsI(PICSdb *);
+//void CheckServConsJ(PICSdb *);
+//void CheckServConsE(PICSdb *);
+//void CheckClass(word,TApplServ *,octet  ApplServ[],char *,BOOL);
+//void CheckServClassCons(word,octet ApplServ[],char *,BOOL);
+//void CheckServFGCons(dword,octet Applserv[],char *,BOOL);
+//void CheckPICSPropCons(PICSdb *);      // continue
+//void CheckObjRequiredProp(dword,dword,generic_object *,octet);         //continue
+//void AI_CheckOptionalProperty(octet servFromPICS[],octet propFlag[]);
+//void AO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void AV_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void BI_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void BO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void BV_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void CA_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void CO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void DV_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void EE_CheckOptionalProperty(octet propFlags[]);
+//void FI_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void GR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void LO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void MI_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void MO_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void MV_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void NC_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void PR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void SC_CheckOptionalProperty(octet propFlags[]);
+//void AVG_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
+//void TR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 
 // msdanner 9/04:  135.1-2003 EPICS consistency checks added 
 void ExpandBitstring(octet *pExpandedResult, octet *pBitstring, int nBits);
@@ -265,9 +265,9 @@ static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
    23, /* Protocol_Revision = 2 */
    23, /* Protocol_Revision = 3 */
    25,  /* Protocol_Revision = 4 */ // LJT updated 3/27/2007
-   25,  /* Protocol_Revision = 5 */
-   25,  /* Protocol_Revision = 6 */
-   30,  /* protocol_revision = 7 */ // 135-2008	
+   30,  /* Protocol_Revision = 5 */
+   31,  /* Protocol_Revision = 6 */
+   31,  /* protocol_revision = 7 */ // 135-2008	
 };
 
 //---------------------------------------------------------------------
@@ -788,7 +788,13 @@ static char *StandardObjects[]={
 			"Life Safety Point",           //21  msdanner 9/04: added
 			"Life Safety Zone",            //22  msdanner 9/04: added
 			"Accumulator",                 //23  Shiyuan Xiao
-			"Pulse Converter"              //24  Shiyuan Xiao
+			"Pulse Converter",              //24  Shiyuan Xiao
+			"Event Log",
+			"Global Group",
+			"Trend Log Multiple",
+			"Load Control",
+			"Structured View",
+			"Access Door"
 			};
 
 
@@ -2560,6 +2566,7 @@ nextobject:										//										***012
 	return false;		
 }
 
+/*
 //=====================================================================//
 //EPICS consistency Object types check  added by xlp,2002-11
 //in:
@@ -3055,7 +3062,8 @@ void MO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 
   return;
 }
-
+*/
+/*
 //=====================================================================//
 //Check properties of Multi-State-Value from EPICS ,added by xlp,2002-11
 //=====================================================================//
@@ -3146,6 +3154,8 @@ void TR_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 
   return;
 }
+*/
+/*
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Object types check  added by xlp,2002-11
 //in:
@@ -3198,11 +3208,12 @@ void CheckObjRequiredProp(dword hi_propFlag,dword lo_propFlag,generic_object *ob
 
     return;
 }
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Object types check  added by xlp,2002-11
 //in:
 //out:
-
+/*
 void CheckPICSObjCons(PICSdb *pd)
 { 
 //PICS Cons Check a:
@@ -3217,11 +3228,12 @@ void CheckPICSObjCons(PICSdb *pd)
   CheckObjConsF(pd);
   return;
  }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Object types check  added by xlp,2002-11
 //in:
 //out:
+/*
 void CheckPICSServCons(PICSdb *pd)
 {  
    CheckServConsD(pd);
@@ -3230,6 +3242,7 @@ void CheckPICSServCons(PICSdb *pd)
    CheckServConsJ(pd);
    return;
 }
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
@@ -3257,6 +3270,7 @@ void PrintToFile(char *outBuf)
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
 //out:
+/*
 void CheckClass(word n, TApplServ * pApplServ, octet  ApplServSup[],char *errorMsg,BOOL IniExeFlag)
 {   int i; 
     BOOL ServNum;
@@ -3296,11 +3310,12 @@ void CheckClass(word n, TApplServ * pApplServ, octet  ApplServSup[],char *errorM
 	}
     return;
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
 //out:
+/*
 void CheckServClassCons(word Num,octet ApplServSup[MAX_SERVS_SUPP],char *errorMsg,BOOL IniExeFlag)
 {
 
@@ -3325,13 +3340,14 @@ void CheckServClassCons(word Num,octet ApplServSup[MAX_SERVS_SUPP],char *errorMs
 	}
    return;
 }
-
+*/
 
 
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
 //out:
+/*
 void CheckServConsD(PICSdb *pd)
 {   word classNum;
     char errorMsg[50]="EPICS Services Cons Check Error:";
@@ -3339,11 +3355,12 @@ void CheckServConsD(PICSdb *pd)
 	CheckServClassCons(classNum, pd->BACnetStandardServices,errorMsg,0);
 	return;
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
 //out:
+/*
 void CheckServFGCons(dword nFG,octet Applserv[],char *errMsg,BOOL IniExeFlag)
 {   dword nFGFlag=0x00000001; 
 	dword nFGNum;
@@ -3399,11 +3416,12 @@ void CheckServFGCons(dword nFG,octet Applserv[],char *errMsg,BOOL IniExeFlag)
 	}
 
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
 //out:
+/*
 void CheckServConsI(PICSdb *pd)
 {   dword nFG;
     char errorMsg[50]="EPICS Services Cons Check Error:"; 
@@ -3411,7 +3429,7 @@ void CheckServConsI(PICSdb *pd)
     CheckServFGCons(nFG,pd->BACnetStandardServices,errorMsg,0);
 	return;
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
@@ -3448,6 +3466,7 @@ void BitToArray(octet ObjServ[],DevProtocolSup *DevProp)
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
 //out:
+/*
 void CheckServConsE(PICSdb *pd)
 {   word classNum;
     char errMsg[50]="EPICS Services Cons Check Error:";
@@ -3459,11 +3478,13 @@ void CheckServConsE(PICSdb *pd)
 	CheckServClassCons(classNum, ObjServ,errMsg,ssExecute);
 
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
 //out:
+/*
 void CheckServConsJ(PICSdb *pd)
 {   char errorMsg[50]="EPICS Services Cons Check Error:";
 	octet ObjServ[MAX_SERVS_SUPP];
@@ -3473,9 +3494,11 @@ void CheckServConsJ(PICSdb *pd)
     CheckServFGCons(nFG,ObjServ,errorMsg,ssExecute);
 	return;
 }
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS Object Types consistency check  added by xlp,2002-11
 //Test A: for Object types supported by Conformance Class
+/*
 void CheckObjConsA(PICSdb *pd)
 { word nClassNum;
   dword nFG; 
@@ -3581,7 +3604,8 @@ void CheckObjConsA(PICSdb *pd)
   }
   return;
 }
-
+*/
+/*
 ////////////////////////////////////////////////////////////////////////
 //EPICS Object Types consistency check  added by xlp,2002-11
 //Test F: for Object types supported by Functional Group 
@@ -3646,12 +3670,13 @@ void CheckObjConsF(PICSdb *pd)
     }
   }
 }
-
+*/
 
 ////////////////////////////////////////////////////////////////////////
 //EPICS Object Types consistency check  added by xlp,2002-11
 //Test K: Consistency check between Standard Object Types Supported Section
 //and Object Types listed by Protocos_Object_types_Supported property
+/*
 void CheckObjConsK(PICSdb *pd)
 { char errMsg[300];
   char *objName;
@@ -3677,11 +3702,12 @@ void CheckObjConsK(PICSdb *pd)
     }
   }
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS Object Types consistency check  added by xlp,2002-11
 //Test L: Consistency check between Standard Object Types Supported Section
 //and Test Database Section
+/*
 void CheckObjConsL(PICSdb *pd)
 { char errMsg[100];
   char *objName;
@@ -3697,11 +3723,13 @@ void CheckObjConsL(PICSdb *pd)
     }
   }
 }
+*/
 ///////////////////////////////////////////////////////////////////////
 //PICS Consistency Check m:
 //Consistency check between the objects listed in the Object_List
 //property of the Device object and objects included in the test
 //database,both including proprietary objects.
+/*
 void CheckObjConsM()
 { octet num1,num2;
   int i,j; 
@@ -3742,6 +3770,7 @@ void CheckObjConsM()
   }
   return;
 }
+*/
 ///////////////////////////////////////////////////////////////////////
 //simple Sequence algorithm,added by xlp,2002-11
 void GetSequence(dword *p1,dword *p2,octet num)
@@ -4055,6 +4084,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 						}						//									***011 End
 					}
 					break;
+				case pae:						// priority array enums
 				case pab:						//priority array bpv
 					wp=(word *)pstruc;
 					for (i=0;i<16;i++) wp[i]=bpaNULL; //init all slots to NULL values	***011
@@ -4242,12 +4272,12 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 						float val =(float)atof(lp);
 						if(val > (float)((int)val))
 						{
-							pscale->choice = 1;
+							pscale->choice = 0;
 							pscale->u.floatScale = val;
 						}
 						else
 						{
-							pscale->choice = 2;
+							pscale->choice = 1;
 							pscale->u.integerScale = (int)val;
 						}
 							
@@ -4270,6 +4300,41 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 							NoneTypeValue[i] = *lp;
 							lp++;
 						}
+					break;
+				case shedlevel:
+					{
+						BACnetShedLevel* pshedlevel = (BACnetShedLevel *)pstruc;
+						pshedlevel->choice = -1;
+						if (*lp == '[')
+						{
+							lp++;
+							pshedlevel->choice = ReadDW();
+							// lp++;  // skip over ']'
+						}
+						float val =(float)atof(lp);
+						while(*lp!=0&&*lp!=space&&*lp!=',') 
+							lp++;  // now move past word we just read;
+						if (pshedlevel->choice == -1)
+						{
+							if(val > (float)((int)val))
+							{
+								pshedlevel->choice = 0;
+								pshedlevel->sl.uproperty_value = (int)val;
+							}
+							else
+							{
+								pshedlevel->choice = 2;
+								pshedlevel->sl.fproperty_value = val;
+							}
+						}	
+						else
+						{
+							if (pshedlevel->choice == 2)
+								pshedlevel->sl.fproperty_value = val;
+							else
+								pshedlevel->sl.uproperty_value = (int)val;
+						}
+					}					
 					break;
 				default:
 				//Note:	If we get here it is always an error because the default case means that
@@ -7968,7 +8033,6 @@ void CheckPICSCons2003A(PICSdb *pd)
 
             case bibbSCHED_I_B:  // requires DS-RP-B, DS-WP-B, Calendar & Schedule objects
                                  // and either DM-TS-B or DM-UTC-B
-			case bibbSCH_I_B:
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_B); 
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_B);
                if ( pd->BACnetStandardObjects[CALENDAR]==soNotSupported )
@@ -8003,7 +8067,6 @@ void CheckPICSCons2003A(PICSdb *pd)
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A);
                break;
             case bibbT_VMT_I_B:  // both require support for TREND_LOG object
-			case bibbT_VM_I_B:
             case bibbT_ATR_B:
                if ( pd->BACnetStandardObjects[TREND_LOG]==soNotSupported )
                {
@@ -8020,10 +8083,6 @@ void CheckPICSCons2003A(PICSdb *pd)
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A);
                break;
 
-			case bibbT_VM_E_B:
-				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbT_VM_I_B);
-				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
-				break;
 
             case bibbDM_TS_A:
             case bibbDM_UTC_A:
