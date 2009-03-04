@@ -460,11 +460,12 @@ class VTSDevice : public CObject
 		int			m_nVendorID;						// which vendor is this?
 
 		VTSDevObjects m_devobjects;
+
+		BACnetBitString		m_services_supported;
+		int					m_nEvents;
 		// End persistent data
 
-		// TODO: move to persistent
 		BACnetBitString		m_objects_supported;
-		BACnetBitString		m_services_supported;
 
 //		VTSDevice( VTSDocPtr dp, objId id );
 		VTSDevice( void );
@@ -496,6 +497,8 @@ class VTSDevice : public CObject
 
 		const VTSDevice& operator=(const VTSDevice& rdeviceSrc);
 		void Serialize( CArchive& archive );
+// Needed if we change schema and want alarm support configuration to be persistent
+//		UINT SerializeSchema (CArchive &ar, CRuntimeClass *pClass);
 
 		DECLARE_SERIAL(VTSDevice)
 	};

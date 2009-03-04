@@ -4696,6 +4696,21 @@ BEGIN
     EDITTEXT        IDC_EXLIMIT,87,92,76,12,ES_AUTOHSCROLL
 END
 
+IDD_DEVTREEOPT DIALOG DISCARDABLE  0, 0, 186, 166
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Supports Alarm Summary",IDC_SASUM,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,22,94,10
+    CONTROL         "Supports Event Summary",IDC_SESUM,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,34,95,10
+    CONTROL         "Supports Event Information",IDC_SINFO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,47,101,10
+    EDITTEXT        IDC_EVENTS,7,63,25,14,ES_AUTOHSCROLL
+    LTEXT           "Number of Events",IDC_STATIC,44,65,68,10
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -6255,6 +6270,14 @@ BEGIN
         RIGHTMARGIN, 220
         TOPMARGIN, 7
         BOTTOMMARGIN, 106
+    END
+
+    IDD_DEVTREEOPT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 159
     END
 END
 #endif    // APSTUDIO_INVOKED
