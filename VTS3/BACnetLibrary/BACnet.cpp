@@ -7083,6 +7083,108 @@ bool BACnetAccumulatorRecord::Match( BACnetEncodeable &rbacnet, int iOperator, C
 {
 	return true;
 }
+
+
+//====================================================================
+IMPLEMENT_DYNAMIC(BACnetShedLevel, BACnetEncodeable)
+BACnetShedLevel::BACnetShedLevel()		
+{
+}
+
+BACnetShedLevel::BACnetShedLevel(unsigned short context, float value)
+{
+	this->context = context;
+	if (context == 0)
+		this->percent = (unsigned short)value;
+	if (context == 1)
+		this->level = (unsigned short)value;
+	if (context == 2)
+		this->amount = value;
+}
+
+BACnetShedLevel::BACnetShedLevel( BACnetAPDUDecoder & dec )
+{
+}
+
+void BACnetShedLevel::Decode( BACnetAPDUDecoder& dec )
+{
+	BACnetAPDUTag		tagTestType;	
+	dec.ExamineTag(tagTestType);	
+	this->context = tagTestType.tagNumber;
+	if (context == 0)
+	{
+		BACnetUnsigned u1(dec); 
+		this->percent = u1.uintValue;
+	}
+	else if (context == 1)
+	{
+		BACnetUnsigned u1(dec); 
+		this->level = u1.uintValue;
+	}
+	else if (context == 2)
+	{
+		BACnetReal r1(dec);
+		this->amount = r1.realValue;
+	}
+	else
+	{
+		TRACE0("INVALID type in encoded stream for BACnetShedLevel");
+		ASSERT(0);
+	}
+}
+
+void BACnetShedLevel::Encode( BACnetAPDUEncoder& enc, int context)
+{
+}
+
+void BACnetShedLevel::Encode( char *enc ) const
+{
+	char value[20];
+	switch (context)
+	{
+	case 0:
+		sprintf( value, "%d", percent );
+		break;
+	case 1:
+		sprintf( value, "%d", level );
+		break;
+	case 2:
+		sprintf( value, "%lf", amount );
+		break;
+	default:
+		sprintf( value, "%s", "?");
+	}
+	sprintf(enc, "[%d]%s", context, value);	
+
+}
+
+void BACnetShedLevel::Decode( const char *dec )
+{
+	// TODO: LJT write if needed
+}
+
+int BACnetShedLevel::DataType(void)
+{
+	return shedlevel;
+}
+
+BACnetEncodeable * BACnetShedLevel::clone(void)
+{
+	float value = 0;
+	if (context == 0)
+		value = percent;
+	if (context == 1)
+		value = level;
+	if (context == 2)
+		value = amount;
+	return new BACnetShedLevel(context, value); 
+}
+
+bool BACnetShedLevel::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	return true;
+}
+
 //====================================================================
 
 
@@ -7308,8 +7410,10 @@ BACnetPriorityArray::BACnetPriorityArray( unsigned short * paPriority, int nMax,
 		if ( paPriority[i] == uNull )
 			Add(new BACnetPriorityValue(new BACnetNull()));
 		else
-			if ( binaryPV )
+			if ( binaryPV && uNull == bpaNULL)
 			    Add(new BACnetPriorityValue(new BACnetBinaryPriV(paPriority[i])));
+			else if (binaryPV)	// special case of any Enumerated
+				Add(new BACnetPriorityValue(new BACnetEnumerated(paPriority[i])));
 			else
 			    Add(new BACnetPriorityValue(new BACnetUnsigned(paPriority[i])));
 }

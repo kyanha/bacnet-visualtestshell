@@ -628,6 +628,12 @@ enum BACnetObjectType {
 		lifesafetyzone					= 22,   /* Zhu Zhenhua 2003-7-22*/
 		accumulator                     = 23,   //Shiyuan Xiao. 7/13/2005
 		pulseconverter                  = 24,   //Shiyuan Xiao. 7/13/2005
+		eventlog						= 25,
+		globalgroup						= 26,
+		trendlogmultiple				= 27,
+		loadcontrol						= 28,
+		structuredview					= 29,
+		accessdoor						= 30
 		};
 
 class BACnetObjectIdentifier : public BACnetEncodeable {
@@ -1468,6 +1474,32 @@ class BACnetAccumulatorRecord : public BACnetEncodeable
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
 		DECLARE_DYNAMIC(BACnetAccumulatorRecord)
+};
+
+class BACnetShedLevel : public BACnetEncodeable
+{
+	public:
+		unsigned short context;
+		unsigned short percent;
+		unsigned short level;
+		float amount;
+		
+		BACnetShedLevel();		
+		BACnetShedLevel(unsigned short context, float value);
+		BACnetShedLevel( BACnetAPDUDecoder & dec );	
+
+		// override decode for special construction from stream
+		void Decode( BACnetAPDUDecoder& dec );								// decode
+		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+
+		void Encode( char *enc ) const;
+		void Decode( const char *dec );
+
+		virtual int DataType(void);
+		virtual BACnetEncodeable * clone(void);
+		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+		DECLARE_DYNAMIC(BACnetShedLevel)
 };
 
 class BACnetGenericArray : public BACnetEncodeable
