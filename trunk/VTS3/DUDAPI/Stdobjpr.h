@@ -22,7 +22,7 @@ typedef struct {
 //------------------------------------------------------
 //	Special Enumeration Tables
 static etable etObjectTypes={
-            128,1024,30, 
+            128,1024,31, 
             "analog-input",       //0
             "analog-output",       
             "analog-value",     
@@ -52,7 +52,8 @@ static etable etObjectTypes={
 			"global-group",
 			"trend-log-multiple",
 			"load-control",			// Addendum e, 135-2004
-			"structured-view"
+			"structured-view",
+			"access-door"
             };
 static etable etTF={0,0,2,"False","True"};
 static etable etYN={0,0,2,"No","Yes"};
@@ -574,6 +575,85 @@ static etable etAccumulatorStatus = {
     "failed"
 };
 
+static etable etLogType = {
+	0, 0, 3,
+		"polled",
+		"cov",
+		"triggered"
+};
+
+static etable etShedState = {
+	0, 0, 4,
+		"shed-inactive",
+		"shed-request-pending",
+		"shed-compliant",
+		"shed-non-compliant"
+};
+
+static etable etNodeType = {
+	0, 0, 12,
+		"unknown",
+		"system",
+		"network",
+		"device",
+		"organizational",
+		"area",
+		"equipment",
+		"point",
+		"collection",
+		"property",
+		"functional",
+		"other"
+};
+
+static etable etDoorValue = {
+	0,	0,	4,
+		"lock",
+		"unlock",
+		"pulse-unlock",
+		"extended-pulse-unlock",
+};
+static etable etDoorValuen = {
+	0,	0,	5,
+		"lock",
+		"unlock",
+		"pulse-unlock",
+		"extended-pulse-unlock",
+		"null",
+};
+static etable etDoorStatus = {
+	0,	0,	3,
+	"closed",
+	"opened",
+	"unknown",
+};
+static etable etLockStatus = {
+	0, 0, 4,
+		"locked",
+		"unlocked",
+		"fault",
+		"unknown",
+};
+static etable etDoorSecuredStatus = {
+	0,	0,	3,
+		"secured",
+		"unsecured",
+		"unknown",
+};
+static etable etDoorAlarmState = {
+	0,	0,	9,
+		"normal",
+		"alarm",
+		"door-open-too-long",
+		"forced-open",
+		"tamper",
+		"door-fault",
+		"lock-down",
+		"free-access",
+		"egress-open",
+};
+
+// must match defines in props.h
 static etable *AllETs[]={
             &etTF,
             &etReli,
@@ -608,9 +688,18 @@ static etable *AllETs[]={
 			&etLifeSafetyOperation,
 			&etMaintenance,
 			&etLifeSafetyMode,
-			&etAccumulatorStatus
+			&etAccumulatorStatus,
+			&etLogType,
+			&etShedState,
+			&etNodeType,
+			&etDoorValue,
+			&etDoorStatus,
+			&etLockStatus,
+			&etDoorSecuredStatus,
+			&etDoorAlarmState,
+			&etDoorValuen,
             };
-//NOTE: the ei defs have been moved to PROP.H
+//NOTE: the ei defs have been moved to PROPS.H
 
 //Note:	The following table tracks the BACnetPropertyStates choices
 static etable *PropertyStates[]={
@@ -1467,6 +1556,151 @@ propdescriptor PCProps[] =
 	"profile-name",				PROFILE_NAME,				  oo(pulseconverter,  go.profile_name),	   s132,	 Last,	 0,       O
 };
 
+propdescriptor LCProps[] = 
+{
+	//	"property name",		property identifier,	      struc offset,				 parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lc,  go.object_id),   	   ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(lc,  go.object_name),     s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(lc,  go.object_type), 	   et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			      oo(lc,  go.description),     s132,     0,      0,       O,
+	"present-value" ,           PRESENT_VALUE,                oo(lc,  present_value),	     et, 	 0,	eiShedState,  R,
+	"state-description",       STATE_DESCRIPTION,           oo(lc,  state_description), s132,	 0,		 0,			O,
+	"status-flags",			    STATUS_FLAGS,		          oo(lc,  status_flags),		bits,	 0,		0,			R,
+	"event-state",			    EVENT_STATE,		          oo(lc,  event_state),			et,		 0,      eiEvState, R,
+    "reliability",				RELIABILITY,				  oo(lc,reliability),			et,		 0,	  eiReli,	    O,
+    "requested-shed-level",     REQUESTED_SHED_LEVEL,         oo(lc, requested_shed_level), shedlevel,  0,   0,			W,
+    "start-time",  	 			START_TIME,  	 		      oo(lc,start_time),  	 		dt,       0,      0,       W,
+    "shed-duration",            SHED_DURATION,				  oo(lc, shed_duration),		ud,       0,      0,       W,
+    "duty-window",              DUTY_WINDOW,				  oo(lc, duty_window),			ud,		0,		0,			W,
+    "log-enable",  				LOG_ENABLE,  			      oo(lc,log_enable),  			ebool,    0,      eiTF,    W,
+    "full-duty-baseline",       FULL_DUTY_BASELINE,			  oo(lc,full_duty_baseline),	flt,	0,		0,			O,
+    "expected-shed-level",      EXPECTED_SHED_LEVEL,		oo(lc, expected_shed_level),	shedlevel,  0,   0,			R,	
+    "actual-shed-level",        ACTUAL_SHED_LEVEL,			oo(lc, actual_shed_level),		shedlevel,  0,   0,			R,
+    "shed-levels",              SHED_LEVELS,				oo(lc, shed_levels),			stavals,	0,		0,		W|IsArray,	
+    "shed-level-descriptions",   SHED_LEVEL_DESCRIPTIONS,	oo(lc, shed_level_descriptions), statext,		0,		0,	R|IsArray,
+	"notification-class",	    NOTIFICATION_CLASS,	          oo(lc,  notification_class),	uw,	     Intr,	     0,  	  O|WithService,
+	"time-delay",               TIME_DELAY,                   oo(lc,  time_delay),			uw,	     Intr,	     0,  	  O|WithService,		
+	"event-enable",  			EVENT_ENABLE,  			      oo(lc,  event_enable),  		bits,     Intr,      0,       O|WithService,
+	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(lc,  acked_transitions),	bits,     Intr,      eiEvTr,  O|WithService,
+	"notify-type",  			NOTIFY_TYPE,  			      oo(lc,  notify_type),  		et,       Intr,      eiNT,    O|WithService,
+	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(lc,  event_time_stamps),	TSTMParr, Intr,      0,       O|IsArray|WithService,
+	"profile-name",				PROFILE_NAME,				  oo(lc,  go.profile_name),		s132,	 Last,	 0,       O
+};
+
+propdescriptor ADProps[] = 
+{
+	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(ad,  go.object_id),   	   ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(ad,  go.object_name),     s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(ad,  go.object_type), 	   et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			      oo(ad,  go.description),     s132,     0,      0,       O,
+	"status-flags",			    STATUS_FLAGS,		          oo(ad,  status_flags),	bits,	  0,	  0,	   R,
+	"event-state",			    EVENT_STATE,		          oo(ad,  event_state),	    et,		  0,      eiEvState, R,
+    "reliability",				RELIABILITY,				  oo(ad,	reliability),	    et,		 0,	  eiReli,	    O,
+    "out-of-service",			OUT_OF_SERVICE,				  oo(ad,out_of_service),	    ebool,   0,		eiTF,	    R,
+    "present-value",            PRESENT_VALUE,				  oo(ad, present_value),	et,			0,	eiDoorValue,	W,
+    "relinquish-default",       RELINQUISH_DEFAULT,			  oo(ad, relinquish_default),	et,		0,	eiDoorValue,	R,
+    "priority-array",           PRIORITY_ARRAY,				  oo(ad, priority_array),	pae,		0,	eiDoorValuen,	R,
+    "door-status",				DOOR_STATUS,				  oo(ad, door_status),		et,			0,	eiDoorStatus,	O|WithGroup|Woutofservice,
+    "lock-status",				LOCK_STATUS,				  oo(ad, lock_status),		et,			0,	eiLockStatus,	O|Woutofservice,
+    "secured-status",			SECURED_STATUS,				  oo(ad, secured_status),	et,			0,	eiDoorSecuredStatus,	O,
+    "door-members",				DOOR_MEMBERS,				  oo(ad, door_members),		lodoref,	0,		0,			O|IsArray,
+    "door-pulse-time",			DOOR_PULSE_TIME,			  oo(ad, door_pulse_time),	uw,			0,		0,			R,
+    "door-extended-pulse-time", DOOR_EXTENDED_PULSE_TIME,	  oo(ad, door_extended_pulse_time),	uw,	0,		0,			R,
+    "door-unlock-delay-time",   DOOR_UNLOCK_DELAY_TIME,		  oo(ad, door_unlock_delay_time),	uw,	0,		0,			O,
+    "door-open-too-long-time",  DOOR_OPEN_TOO_LONG_TIME,	  oo(ad, door_open_too_long_time),	uw,	0,		0,			R,
+    "door-alarm-state",         DOOR_ALARM_STATE,			  oo(ad, door_alarm_state),		et,	Intr, eiDoorAlarmState,	O|Woutofservice|WithService,
+    "masked-alarm-values",      MASKED_ALARM_VALUES,		  oo(ad, masked_alarm_values),  etl,	0,	eiDoorAlarmState,	O,
+    "maintenance-required",     MAINTENANCE_REQUIRED,		  oo(ad, maintenance_required),	et,		0,	eiMaintenance,	O,
+    "alarm-values",             ALARM_VALUES,				  oo(ad, alarm_values),		etl,	Intr,		eiDoorAlarmState,		O|WithService,
+    "fault-values",             FAULT_VALUES,				  oo(ad, fault_values),		etl,	Intr,		eiDoorAlarmState,		O|WithService,
+	"notification-class",	    NOTIFICATION_CLASS,	          oo(ad,  notification_class), uw,	     Intr,	     0,  	  O|WithService,
+	"time-delay",               TIME_DELAY,                   oo(ad,  time_delay),         uw,	     Intr,	     0,  	  O|WithService,		
+	"event-enable",  			EVENT_ENABLE,  			      oo(ad,  event_enable),  	   bits,     Intr,      0,       O|WithService,
+	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(ad,  acked_transitions),  bits,     Intr,      eiEvTr,  O|WithService,
+	"notify-type",  			NOTIFY_TYPE,  			      oo(ad,  notify_type),  	   et,       Intr,      eiNT,    O|WithService,
+	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(ad,  event_time_stamps),  TSTMParr, Intr,      0,       O|IsArray|WithService,
+
+	"profile-name",				PROFILE_NAME,				  oo(ad,  go.profile_name),	   s132,	 Last,	 0,       O
+};
+
+propdescriptor SVProps[] = 
+{
+	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(sv,  go.object_id),   	   ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(sv,  go.object_name),     s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(sv,  go.object_type), 	   et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			      oo(sv,  go.description),     s132,     0,      0,       O,
+	"node-type",				NODE_TYPE,					  oo(sv,  node_type),			et,		 0,	eiNodeType,	  R,
+	"node-subtype",				NODE_SUBTYPE,				  oo(sv,  node_subtype),        s132,	 0,      0,       O,
+	"subordinate-list",         SUBORDINATE_LIST,             oo(sv,  subordinate_list),   lodoref,	 0,		 0,		  R|IsArray,  
+	"subordinate-annotations",  SUBORDINATE_ANNOTATIONS,		  oo(sv,  subordinate_annotations), statext, 0,	 0,		  O|IsArray,
+	"profile-name",				PROFILE_NAME,				  oo(sv,  go.profile_name),	   s132,	 Last,	 0,       O
+};
+
+propdescriptor ELProps[] = 
+{
+	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(el,  go.object_id),   					ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(el,  go.object_name),					s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(el,  go.object_type), 					et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			      oo(el,  go.description),					s132,     0,      0,       O,
+	"status-flags",			    STATUS_FLAGS,		          oo(el,  status_flags),					bits,	  0,	  0,	   R,
+	"event-state",			    EVENT_STATE,		          oo(el,  event_state),						et,		  0,      eiEvState, R,
+    "reliability",				RELIABILITY,				  oo(el,  reliability),						et,		  0,	  eiReli,  O,
+    "log-enable",  				LOG_ENABLE,  			      oo(el,log_enable),  						ebool,    0,      eiTF,    W,
+    "start-time",  	 			START_TIME,  	 		      oo(el,start_time),  	 					dt,       0,      0,       O|WithGroup,
+    "stop-time",  				STOP_TIME,  				  oo(el,stop_time),  						dt,       0,      0,       O|WithGroup, 
+    "buffer-size",  			BUFFER_SIZE,  			      oo(el,buffer_size),  						uw,       0,      0,       R,
+    "log-buffer",  				LOG_BUFFER,  			      oo(el,log_buffer),  						LOGREC,   0,      0,       R,
+    "record-count",  			RECORD_COUNT,  			      oo(el,record_count),  					uw,       0,      0,       W,
+    "total-record-count",  		TOTAL_RECORD_COUNT,  	      oo(el,total_record_count),  				ud,       0,      0,       R,
+    "notification-threshold",  	NOTIFICATION_THRESHOLD,       oo(el,notification_threshold),			uw,       0,      0,       O|WithService,
+    "records-since-notification",  RECORDS_SINCE_NOTIFICATION,   oo(el,records_since_notification),		uw,       0,      0,       O|WithService,
+    "last-notify-record",			LAST_NOTIFY_RECORD,	          oo(el, last_notify_record),			uw,		  0,	  0,	   O|WithService,
+	"notification-class",	    NOTIFICATION_CLASS,	          oo(el,  notification_class),				uw,	      0,	  0,  	   O|WithService,
+	"event-enable",  			EVENT_ENABLE,  			      oo(el,  event_enable),  					bits,     0,      0,       O|WithService,
+	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(el,  acked_transitions),				bits,     0,      eiEvTr,  O|WithService,
+	"notify-type",  			NOTIFY_TYPE,  			      oo(el,  notify_type),  					et,       0,      eiNT,    O|WithService,
+	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(el,  event_time_stamps),				TSTMParr, 0,      0,       O|IsArray|WithService,
+	"profile-name",				PROFILE_NAME,				  oo(el,  go.profile_name),					s132,	 Last,	 0,        O
+};
+
+propdescriptor TLMProps[] = 
+{
+	//	"property name",		property identifier,	      struc offset,					 parse,	  group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(tlm,  go.object_id),   	   ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(tlm,  go.object_name),     s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			      oo(tlm,  go.object_type), 	   et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			      oo(tlm,  go.description),     s132,     0,      0,       O,
+	"status-flags",			    STATUS_FLAGS,		          oo(tlm,  status_flags),	bits,	  0,	  0,	   R,
+	"event-state",			    EVENT_STATE,		          oo(tlm,  event_state),	    et,		  0,      eiEvState, R,
+    "reliability",				RELIABILITY,				  oo(tlm,  reliability),	    et,		 0,	  eiReli,	    O,
+    "log-enable",  				LOG_ENABLE,  			      oo(tlm,log_enable), 	      ebool,    0,      eiTF,    W,
+    "start-time",  	 			START_TIME,  	 		      oo(tlm,start_time),  	 		      dt,       0,      0,       O,
+    "stop-time",  				STOP_TIME,  				  oo(tlm,stop_time),  				  dt,       0,      0,       O, 
+    "log-device-object-property",  LOG_DEVICE_OBJECT_PROPERTY,   oo(tlm,log_device_object_property),  devobjpropref,   0,      0,       R, 
+    "log-interval",  			LOG_INTERVAL,  			      oo(tlm,log_interval),  			      uw,       0,      0,       R, 
+    "logging-type",             LOGGING_TYPE,				  oo(tlm, logging_type),  et, 0, eiLogType, R,
+	"align-intervals",			ALIGN_INTERVALS,			  oo(tlm, align_intervals), ebool, 0, eiTF, O,
+	"interval-offset",          INTERVAL_OFFSET,			  oo(tlm, interval_offset), uw, 0, 0, O,
+	"trigger",					TRIGGER,					  oo(tlm, trigger), ebool, 0, eiTF, O,
+    "stop-when-full",  			STOP_WHEN_FULL,  		      oo(tlm,stop_when_full),  		      ebool,    0,      eiTF,    R,
+    "buffer-size",  			BUFFER_SIZE,  			      oo(tlm,buffer_size),  	     uw,       0,      0,       R,
+    "log-buffer",  				LOG_BUFFER,  			      oo(tlm,log_buffer),  			      LOGREC,   0,      0,       R,
+    "record-count",  			RECORD_COUNT,  			      oo(tlm,record_count),  			      uw,       0,      0,       W,
+	"total-record-count",  		TOTAL_RECORD_COUNT,  	      oo(tlm,total_record_count),  	      ud,       0,      0,       R,
+    "notification-threshold",  	NOTIFICATION_THRESHOLD,       oo(tlm,notification_threshold),      uw,       0,      0,       O|WithService,
+    "records-since-notification",  RECORDS_SINCE_NOTIFICATION,   oo(tlm,records_since_notification),  uw,       0,      0,       O|WithService,
+	"last-notify-record",		LAST_NOTIFY_RECORD,	          oo(tlm, last_notify_record),			uw,		0,		0,		O|WithService,
+	"notification-class",	    NOTIFICATION_CLASS,	          oo(tlm,  notification_class), uw,	     0,	     0,  	  O|WithService,
+	"event-enable",  			EVENT_ENABLE,  			      oo(tlm,  event_enable),  	   bits,     0,      0,       O|WithService,
+	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(tlm,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
+	"notify-type",  			NOTIFY_TYPE,  			      oo(tlm,  notify_type),  	   et,       0,      eiNT,    O|WithService,
+	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(tlm,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
+	"profile-name",				PROFILE_NAME,				  oo(tlm,  go.profile_name),	   s132,	 Last,	 0,       O
+};
+
 stdobjtype	StdObjects[]={
     sizeof(ai_obj_type),					AIprops,
     sizeof(ao_obj_type),					AOprops,
@@ -1492,7 +1726,13 @@ stdobjtype	StdObjects[]={
 	sizeof(lifesafetypoint_obj_type),       LFSPProps, //Shiyuan Xiao 7/13/2005
 	sizeof(lifesafetyzone_obj_type),        LFSZProps, //Shiyuan Xiao 7/13/2005
 	sizeof(accumulator_obj_type),           ACProps,   //Shiyuan Xiao 7/13/2005
-	sizeof(pulseconverter_obj_type),        PCProps    //Shiyuan Xiao 7/13/2005
+	sizeof(pulseconverter_obj_type),        PCProps,   //Shiyuan Xiao 7/13/2005
+	sizeof(el_obj_type),					ELProps,
+	sizeof(el_obj_type),					ELProps,   // place holder for global group
+	sizeof(tlm_obj_type),					TLMProps,
+	sizeof(lc_obj_type),					LCProps,
+	sizeof(sv_obj_type),					SVProps,
+	sizeof(ad_obj_type),					ADProps,
     };
 
 #else

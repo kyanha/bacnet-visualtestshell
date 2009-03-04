@@ -86,6 +86,8 @@
 #define recipproc 209	// singled BACnetRecipientProcess madanner 9/04
 
 #define etl 210         // enumeration table in a list ljt 9/05
+#define shedlevel	211  // BACnetShedLevel parse type  LJT 3/3/2009
+#define	pae			212		// priority-array of enum
 
 ////
 //////////////////////////////////////////////
@@ -383,7 +385,19 @@ static const char *stPropIDs[]={
 				"shed-level-descriptions", //220
 				"shed-levels",	// 221
 				"state-description", // 222
-
+				"p223",
+				"p224",
+				"p225",
+				"door-alarm-state",
+				"door-extended-pulse-time",
+				"door-members",
+				"door-open-too-long-time",
+				"door-pulse-time",
+				"door-status",
+				"door-unlock-delay-time",
+				"lock-status",
+				"masked-alarm-values",
+				"secured-status",			// 235
 				NULL /*always last*/
 				};
 //qualifiers in PropFlags
@@ -444,5 +458,14 @@ static const char *stPropIDs[]={
 #define     eiMaintenance  31
 #define     eiLifeSafetyMode 32
 #define     eiAccumulatorStatus  33
+#define		eiLogType 34
+#define		eiShedState 35
+#define		eiNodeType	36
+#define		eiDoorValue	37
+#define		eiDoorStatus	38
+#define		eiLockStatus	39
+#define		eiDoorSecuredStatus	40
+#define		eiDoorAlarmState	41
+#define		eiDoorValuen		42
 
 #endif //__PROPS_H_INCLUDED
