@@ -53,6 +53,7 @@ IMPLEMENT_DYNAMIC(VTSDevicesTreeDlg, CDialog)
 VTSDevicesTreeDlg::VTSDevicesTreeDlg(VTSDevices * pdevices, CWnd* pParent /*=NULL*/)
 	: CDialog(VTSDevicesTreeDlg::IDD, pParent),
 	  m_pageDev(this),
+	  m_pageOpt(this),
 	  m_pageObj(this),
 	  m_pageProp(this),
 	  m_pageValue(this),
@@ -63,7 +64,10 @@ VTSDevicesTreeDlg::VTSDevicesTreeDlg(VTSDevices * pdevices, CWnd* pParent /*=NUL
 	//}}AFX_DATA_INIT
 
 	m_pdevices = pdevices;
+
 	m_devicesLocal.DeepCopy(m_pdevices);
+//	int x = ((VTSDevice*)(*m_pdevices)[0])->m_nEvents;
+//	int y = ((VTSDevice*)(m_devicesLocal)[0])->m_nEvents;
 
 	m_htreeitemSelected = NULL;
 	m_pnodeSelected = NULL;
@@ -142,6 +146,8 @@ void VTSDevicesTreeDlg::OnOK()
 					(*pproperties)[k]->SetIsArray(true);
 			}
 			
+			CString ss = p->m_services_supported.ToString();
+
 		m_pdevices->Add(m_devicesLocal[i]);
 	}
 
@@ -208,6 +214,7 @@ void VTSDevicesTreeDlg::LoadDevices( VTSDevices * pdevices, HTREEITEM htreeitemP
 {
 	HTREEITEM htreeitemLast = NULL;
 
+	int y = ((VTSDevice*)(*pdevices)[0])->m_nEvents;
 	for (int i = 0; i < pdevices->GetSize(); i++ )
 	{
 		htreeitemLast = m_treeDevices.InsertItem(TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE, GetNodeTitle(0, (*pdevices)[i]), 0, 0, 0, 0, (LPARAM) (*pdevices)[i], htreeitemParent, htreeitemLast );
@@ -516,8 +523,21 @@ void VTSDevicesTreeDlg::OnSelchangedDeviceTree(NMHDR* pNMHDR, LRESULT* pResult)
 
 	if ( ppageShouldBe != ppageCurrent )
 	{
-		m_sheet.RemovePage(0);
+		int y = m_sheet.GetPageCount();
+		// device nodes can not have multiple sheets associated
+		for (int i = 0; i < y; i++ )
+		{
+			m_sheet.RemovePage(0);
+		}
+
 		m_sheet.AddPage(ppageShouldBe);
+		// Add second property sheet for device node
+		if ( GetSelectedNodeLevel() == 0 )
+		{
+			m_sheet.AddPage( &m_pageOpt );
+			m_sheet.SetActivePage( &m_pageOpt );
+		}
+
 	}
 
 	m_sheet.SetActivePage(ppageShouldBe);

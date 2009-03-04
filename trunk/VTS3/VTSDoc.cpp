@@ -3664,7 +3664,7 @@ void VTSServer::GetAlarmSummary( const BACnetAPDU &apdu )
 	BACnetAPDUDecoder		dec( apdu )	;
 	BACnetObjectIdentifier	objId;
 	BACnetEnumerated		alarmState;
-	BACnetBitString			acknowledgedTransitions;
+	BACnetBitString			acknowledgedTransitions(3);
 	bool					gotIndex = false	;
 
 	try {
@@ -3676,13 +3676,14 @@ void VTSServer::GetAlarmSummary( const BACnetAPDU &apdu )
 		// send the response back to where the request came from
 		ack.apduAddr = apdu.apduAddr;
 
+		for ( int i = 0; i < serverDev->m_nEvents; i++ )
+		{
 		// encode the properties from the request
-//		objId.Encode( ack );
-//		alarmState.Encode( ack );
-//		acknowledgedTransitions.Encode( ack );
-//		objId.Encode( ack );
-//		alarmState.Encode( ack );
-//		acknowledgedTransitions.Encode( ack );
+			objId.SetValue( (BACnetObjectType) 1, i );
+			objId.Encode( ack );
+			alarmState.Encode( ack );
+			acknowledgedTransitions.Encode( ack );
+		}
 		
 		// send it
 		Response( ack );
@@ -3714,20 +3715,63 @@ void VTSServer::GetEventInformation( const BACnetAPDU &apdu )
 	BACnetOpeningTag openT;
 	BACnetClosingTag closeT;
 
+	BACnetObjectIdentifier	objId;
+	BACnetEnumerated		eventState;
+	BACnetBitString			acknowledgedTransitions(3);
+	BACnetEnumerated		notifyType;
+	BACnetBitString			eventEnable(3);
+	unsigned short priorities[3] = { 0,0,0};
+	BACnetUnsignedArray		eventPriorities( priorities, 3);
+	BACnetTimeStampArray	eventTimeStamps;
+
 	try {
 //		TRACE3( "getEventInformation  \n");
 
+		// Decode the  requested objid if supplied
+		// look at the next tag
+		if ( dec.pktLength > 0 )
+		{
+			dec.ExamineTag( t );
+			if ((t.tagClass == contextTagClass) && (t.tagNumber == 0)) 
+			{
+				objId.Decode( dec );
+			}
+		}
 		// build an ack
 		BACnetComplexAckAPDU ack( getEventInformation, apdu.apduInvokeID );
 
 		// send the response back to where the request came from
 		ack.apduAddr = apdu.apduAddr;
 
-		openT.Encode(ack, 0);  // encode empty results
-		closeT.Encode(ack, 0);
-		moreEvents = false;
-		moreEvents.Encode(ack, 1);
+		if ( serverDev->m_nEvents > 0 )
+		{
+			openT.Encode(ack, 0);  
 
+			// todo: encode 1 event
+			objId.Encode( ack, 0 );
+			eventState.Encode( ack, 1 );
+			acknowledgedTransitions.Encode( ack, 2 );
+			eventTimeStamps.Add( new ::BACnetTimeStamp(new BACnetUnsigned(serverDev->m_nEvents)));
+			eventTimeStamps.Add( new ::BACnetTimeStamp(new BACnetUnsigned(0)));
+			eventTimeStamps.Add( new ::BACnetTimeStamp(new BACnetUnsigned(0)));
+			eventTimeStamps.Encode( ack, 3);
+			notifyType.Encode( ack, 4);
+			eventEnable.Encode( ack, 5);
+			eventPriorities.Encode( ack, 6);
+
+			closeT.Encode(ack, 0);
+			serverDev->m_nEvents--;
+			
+			moreEvents = (serverDev->m_nEvents > 0 ? true : false);
+			moreEvents.Encode(ack, 1);
+		}
+		else
+		{
+			openT.Encode(ack, 0);  // encode empty results
+			closeT.Encode(ack, 0);
+			moreEvents = false;
+			moreEvents.Encode(ack, 1);
+		}
 		// send it
 		Response( ack );
 	}
@@ -3987,6 +4031,7 @@ void VTSServer::EventNotification( const BACnetAPDU &apdu )
 //	VTSDevice::VTSDevice
 //
 
+//IMPLEMENT_SERIAL(VTSDevice, CObject, VERSIONABLE_SCHEMA|2);
 IMPLEMENT_SERIAL(VTSDevice, CObject, 1);
 
 
@@ -4007,6 +4052,19 @@ VTSDevice::VTSDevice()
 	m_nAPDUSegmentTimeout = 1000;
 	m_nAPDURetries = 3;
 	m_nVendorID = 15;				// default to Cornell
+
+	m_nEvents = 3;
+	m_services_supported = BACnetBitString(40);
+
+	// Set basic services supported
+	m_services_supported.SetBit(12);  // readProperty,
+	m_services_supported.SetBit(17);  // deviceCommunicationControl
+	m_services_supported.SetBit(20);  // reinitializeDevice
+	m_services_supported.SetBit(34);  // who-is
+	m_services_supported.SetBit(0);	  // acknowledgeAlarm
+	m_services_supported.SetBit(1);	  // confirmedCOVNotification
+	m_services_supported.SetBit(2);	  // confirmedEventNotification
+	m_services_supported.SetBit(14);  // readPropertyMultiple -- Does not really support!!!!
 
 	devPort = NULL;
 	devPortEndpoint = NULL;
@@ -4170,12 +4228,22 @@ void VTSDevice::SendAPDU( const BACnetAPDU &apdu )
 	}
 }
 
+/*
+UINT VTSDevice::SerializeSchema (CArchive &ar, CRuntimeClass *pClass)
+{
+  ar.SerializeClass(pClass);
+  UINT schema=(ar.IsLoading ()) ? ar.GetObjectSchema () : (UINT) -1;
+  return schema;
+}
+*/
 
 void VTSDevice::Serialize(CArchive& ar)
 {
+//	UINT nSchema=SerializeSchema (ar, RUNTIME_CLASS (VTSDevice));
+
 	if (ar.IsStoring())
 	{
-		// Switch on schema when loading for 
+		// Switch on schema when loading 
 		// Schema 1
 
 		ar << m_strName;
@@ -4192,15 +4260,18 @@ void VTSDevice::Serialize(CArchive& ar)
 		ar << m_nAPDURetries;
 		ar << m_nVendorID;
 		// new for schema 2
-		// TODO: can't serialize BitString class directly need to figure out how to serialize
-		//       .. decode into char* and then create CString?
-//		ar << m_objects_supported;
-//		ar << m_services_supported;
+//		ar << m_nEvents;
+
+//		CString dec;
+//		m_services_supported.Encode( dec.GetBuffer(100 ) );
+//		dec.ReleaseBuffer();
+
+//		ar << dec;
+
 	}
 	else
 	{
-
-		UINT nSchema = ar.GetObjectSchema();
+//		UINT nSchema = ar.GetObjectSchema();
 		// nSchema = 1
 		ar >> m_strName;
 		ar >> m_nInstance;
@@ -4217,14 +4288,24 @@ void VTSDevice::Serialize(CArchive& ar)
 		ar >> m_nAPDURetries;
 		ar >> m_nVendorID;
 
+/*
 		if ( nSchema == 2 )
 		{
 			// new for schema 2
 			// TODO: can't serialize directly  Read CString and get array of chars then encode into BitString
-//			ar >> m_objects_supported;
 //			ar >> m_services_supported;
-		}
+			ar >> m_nEvents;
 
+			CString tmp;
+			ar >> tmp;
+//			BACnetBitString tmp_str;
+//			tmp_str.Decode( tmp );
+			m_services_supported.Decode( tmp );
+//			m_services_supported |= tmp_str;
+
+			tmp = m_services_supported.ToString();
+		}
+*/
 	}
 
 	m_devobjects.Serialize(ar);
@@ -4271,6 +4352,13 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 
 	switch( pbacnetpropid->enumValue )
 	{
+		case OBJECT_IDENTIFIER:
+			{
+				BACnetObjectIdentifier me;
+				me.SetValue( (BACnetObjectType)8, m_nInstance );
+				me.Encode(*pAPDUEncoder);
+			}
+			break;
 		case MODEL_NAME:
 			{
 						BACnetCharacterString(m_strName).Encode(*pAPDUEncoder);
@@ -4281,19 +4369,8 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 			break;
 		case PROTOCOL_SERVICES_SUPPORTED:
 			{
-				BACnetBitString services_supported = BACnetBitString(40);
-				services_supported.SetBit(12);  // readProperty,
-				services_supported.SetBit(3);   // getAlarmSummary
-				services_supported.SetBit(17);	// deviceCommunicationControl
-				services_supported.SetBit(20);  // reinitializeDevice
-				services_supported.SetBit(39);  // getEventInformation
-				services_supported.SetBit(34);	// who-is
-				services_supported.SetBit(0);	// acknowledgeAlarm
-				services_supported.SetBit(1);	// confirmedCOVNotification
-				services_supported.SetBit(2);	// confirmedEventNotification
-
-				services_supported.SetBit(14);  // readPropertyMultiple -- Does not really support!!!!
-				services_supported.Encode(*pAPDUEncoder);
+				// set on device creation and can be modified through device dlg.
+				m_services_supported.Encode(*pAPDUEncoder);
 			}
 			break;
 		case OBJECT_LIST:
@@ -4768,6 +4845,8 @@ const VTSDevice& VTSDevice::operator=(const VTSDevice& rdeviceSrc)
 	m_nAPDUSegmentTimeout = rdeviceSrc.m_nAPDUSegmentTimeout;
 	m_nAPDURetries = rdeviceSrc.m_nAPDURetries;
 	m_nVendorID = rdeviceSrc.m_nVendorID;
+	m_nEvents = rdeviceSrc.m_nEvents;
+	m_services_supported = rdeviceSrc.m_services_supported;
 
 	m_devobjects.DeepCopy(&rdeviceSrc.m_devobjects);
 	

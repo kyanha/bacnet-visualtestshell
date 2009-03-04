@@ -264,6 +264,7 @@
 #define IDD_NOTIFY_CHG_LS               375
 #define IDD_NOTIFY_EXTENDED             376
 #define IDD_NOTIFY_UNS_RANGE            377
+#define IDD_DEVTREEOPT                  378
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -688,6 +689,7 @@
 #define IDC_DISCLAIMER                  1293
 #define IDC_DEVICEOBJINST               1293
 #define IDC_RESENDINTERVAL              1293
+#define IDC_EVENTS                      1293
 #define IDC_RPALL_DA                    1294
 #define IDC_MSTPMAXMASTER               1294
 #define IDC_PROCESS_IDENTIFIER          1294
@@ -929,8 +931,11 @@
 #define IDC_CHECK4                      1554
 #define IDC_RICHEDIT1                   1554
 #define IDC_CHECK5                      1555
+#define IDC_SASUM                       1555
 #define IDC_CHECK6                      1556
+#define IDC_SESUM                       1556
 #define IDC_CHECK7                      1557
+#define IDC_SINFO                       1557
 #define IDC_CHECK8                      1558
 #define IDC_CHECK9                      1559
 #define IDC_CHECK10                     1560
@@ -1134,9 +1139,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        378
+#define _APS_NEXT_RESOURCE_VALUE        379
 #define _APS_NEXT_COMMAND_VALUE         32866
-#define _APS_NEXT_CONTROL_VALUE         1555
+#define _APS_NEXT_CONTROL_VALUE         1556
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

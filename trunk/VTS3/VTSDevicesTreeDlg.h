@@ -9,6 +9,7 @@
 
 #include "VTSDoc.h"
 #include "VTSDevicesTreeDevPage.h"
+#include "VTSDevicesTreeOptPage.h"
 #include "VTSDevicesTreeObjPage.h"
 #include "VTSDevicesTreePropPage.h"
 #include "VTSDevicesTreeValuePage.h"
@@ -36,6 +37,7 @@ public:
 	CPropertySheet			m_sheet;
 	CPropertyPage			m_pageNull;
 	VTSDevicesTreeDevPage	m_pageDev;
+	VTSDevicesTreeOptPage	m_pageOpt;
 	VTSDevicesTreeObjPage	m_pageObj;
 	VTSDevicesTreePropPage	m_pageProp;
 	VTSDevicesTreeValuePage	m_pageValue;

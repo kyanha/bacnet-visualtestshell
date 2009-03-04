@@ -23,8 +23,8 @@ CFG=VTS - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName ""$/vts3", BAAAAAAA"
+# PROP Scc_LocalPath "."
 CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
@@ -885,6 +885,10 @@ SOURCE=.\VTSDevicesTreeDlg.cpp
 # Begin Source File
 
 SOURCE=.\VTSDevicesTreeObjPage.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDevicesTreeOptPage.cpp
 # End Source File
 # Begin Source File
 
@@ -2092,6 +2096,10 @@ SOURCE=.\VTSDevicesTreeObjPage.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSDevicesTreeOptPage.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSDevicesTreePropPage.h
 # End Source File
 # Begin Source File
@@ -2646,7 +2654,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                  $(InputPath)                                                  $(OutDir)\ 
+	copy                                                    $(InputPath)                                                    $(OutDir)\ 
 
 # End Custom Build
 
@@ -2657,7 +2665,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                  $(InputPath)                                                  $(OutDir)\ 
+	copy                                                    $(InputPath)                                                    $(OutDir)\ 
 
 # End Custom Build
 
