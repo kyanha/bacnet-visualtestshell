@@ -75,6 +75,29 @@ BIBBs Supported:
   NM-CE-B
   NM-RC-A
   NM-RC-B
+
+-- new in for Addendum L
+  DS-V-A
+  DS-AV-A
+  DS-M-A
+  DS-AM-A
+  AE-VN-A
+  AE-AVN-A
+  AE-VM-A
+  AE-AVM-A
+  AE-AS-A
+  SCHED-R-B
+  SCHED-WS-I-B
+  SCHED-AVM-A
+  SCHED-VM-A
+  SCHED-WS-A
+  T-AVM-A
+  T-A-A
+  T-V-A
+  DM-ANM-A
+  DM-ADM-A
+  DM-ATS-A
+  DM-MTS-A
 }
 
 BACnet Standard Application Services Supported:
@@ -148,7 +171,13 @@ Standard Object-Types Supported:
   Program         
   Pulse Converter                	
   Schedule                        	
-  Trend Log                       	
+  Trend Log
+-- new objects           
+  Event Log   
+  Trend Log Multiple
+  Load Control
+  Structured View
+  Access Door         	
 }
 
 -- VTS 3.4.9 does not recognize the items commented out below.
@@ -210,9 +239,9 @@ List of Objects in Test Device:
     location: "Device Location"
     description: "Device Description"
     protocol-version: 1
-    protocol-revision: 3
+    protocol-revision: 7
     protocol-services-supported: (T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T)
-    protocol-object-types-supported: (T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T)
+    protocol-object-types-supported: (T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, F, T, T, T, T)
     object-list: {
      (device,481641),
      (accumulator,1),
@@ -239,7 +268,13 @@ List of Objects in Test Device:
      (program,1),
      (pulse-converter,1),
      (schedule,1),
-     (trend-log,1)
+     (trend-log,1),
+-- new objects added 
+     (event-log,1),
+      (trend-log-multiple,1),
+      (load-control,1),
+      (structured-view,1),
+      (access-door,1)
     }
     max-apdu-length-accepted: 480
     segmentation-supported: no-segmentation
@@ -536,6 +571,7 @@ List of Objects in Test Device:
     Present-Value: 1 w
     In-Process:	FALSE
     All-Writes-Successful: TRUE
+    Action: ?
 --    Action:	{({,(analog-value,1),present-value,,65.0,,,TRUE,TRUE},
 --	          {,(binary-output,1),Present-Value,,INACTIVE,8,1,TRUE,TRUE}),
 --	         ({,(analog-value,5),Present-Value,,72.0,,,TRUE,TRUE}, 
@@ -858,7 +894,8 @@ List of Objects in Test Device:
                       ({7:0:0.0,unknown:1})}
 --    exception-schedule: {[0]{(MON,23-DEC-1995),(FRI,3-JAN-1996)},({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4}
 --    exception-schedule: {[1](calendar,1),({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4}
---    schedule-default: unknown:1
+    exception-schedule: ?
+    schedule-default: unknown:1
     list-of-object-property-references: ({(binary-value,1),present-value})) 
     priority-for-writing: 16
     status-flags: (F, F, T, F)
@@ -892,6 +929,135 @@ List of Objects in Test Device:
     notify-type: alarm
     Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
     profile-name: "trend"
+  }
+  {
+    object-identifier: (event-log,1)
+    object-name: "eventlog_1"
+    object-type: event-log
+    description: ""
+    status-flags: (TRUE, FALSE, FALSE, FALSE)
+    event-state: NORMAL
+    reliability: no-fault-detected
+    log-enable: false w   -- same as enable
+    start-time: (6/10/2005,5),10:27:21.74
+    stop-time: (6/10/2005,5),10:27:21.74
+    buffer-size: 288
+    log-buffer: ?
+    record-count: 0 w
+    total-record-count: 0
+    notification-threshold: 129
+    records-since-notification: 0
+    last-notify-record: 0
+    notification-class: 1
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "event log"
+  }
+  {
+    object-identifier: (trend-log-multiple,1)
+    object-name: "trend_log_multiple_1"
+    object-type: trend-log-multiple
+    description: ""
+    status-flags: (F,F,F,F)
+    event-state: normal
+    reliability: no-fault-detected
+    log-enable: false w
+    start-time: (6/10/2005,5),10:27:21.74
+    stop-time: (6/10/2005,5),10:27:21.74
+    log-device-object-property: {(analog-input,2),present-value}
+    logging-type: polled
+    log-interval: 30000
+    align-intervals: TRUE
+    interval-offset: 0
+    trigger: TRUE
+    stop-when-full: false
+    buffer-size: 288
+    log-buffer: ?
+    record-count: 0 w
+    total-record-count: 0
+    notification-threshold: 129
+    records-since-notification: 0
+    notification-class: 1
+    event-enable: (F, F, F)
+    acked-transitions: (T, T, T)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "trendlogmultiple"
+  }
+  {
+    object-identifier: (load-control,1)
+    object-type: load-control
+    object-name: "loadControl_1"
+    description: "load control description"    
+    present-value: shed-inactive
+    state-description: "description" 
+    status-flags: (TRUE, FALSE, FALSE, FALSE)
+    event-state: NORMAL
+    reliability: no-fault-detected
+    requested-shed-level: [0]50 W
+    start-time: (6/10/2005,5),10:27:21.74 W
+    shed-duration: 0 W
+    duty-window: 0 W
+    log-enable: TRUE W
+    full-duty-baseline: 3.4
+    expected-shed-level: [1]4
+    actual-shed-level: [2]4.3
+    shed-levels: () W
+    shed-level-descriptions: ?
+    notification-class: 1 W
+    time-delay: 30
+    event-enable: (FALSE, FALSE, FALSE) W
+    acked-transitions: {FALSE, TRUE, TRUE}
+    notify-type: event
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "load control"
+  }
+  {
+    object-identifier: (structured-view,1)
+    object-type: structured-view
+    object-name: "structure_view_1"
+    description: "structure view description"    
+    node-type: equipment
+    node-subtype: ""
+    subordinate-list: ?
+    subordinate-annotations: ?
+    profile-name: "structured view"
+  }
+  {
+    object-identifier: (access-door,1)
+    object-name: "accessdoor1"
+    object-type: access-door
+    present-value: lock W
+    description: ""
+    status-flags: (F, F, F, F)
+    event-state: normal
+    reliability: no-fault-detected
+    out-of-service: false
+    relinquish-default: pulse-unlock    
+    priority-array: {NULL, NULL, NULL, NULL, NULL, NULL, NULL, extended-pulse-unlock, NULL, NULL, NULL, NULL, NULL, NULL, NULL, lock}
+    door-status: closed
+    lock-status: locked
+    secured-status: secured
+    door-members: ?
+    door-pulse-time: 0
+    door-extended-pulse-time: 0
+    door-unlock-delay-time: 0
+    door-open-too-long-time: 0
+    door-alarm-state: forced-open
+    masked-alarm-values: ( alarm, forced-open)
+    maintenance-required: periodic-test
+    time-delay: 0
+    notification-class: 0
+    alarm-values: ( alarm)
+    fault-values: ( forced-open)
+    event-enable: (T,F,T)
+    acked-transitions: (F,F,F)
+    notify-type: alarm
+    Event-Time-Stamps:		{{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+    profile-name: "access door"
+
   }
 }
 
