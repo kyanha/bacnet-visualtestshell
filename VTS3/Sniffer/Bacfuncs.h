@@ -42,6 +42,11 @@ char *BACnetCalendarEntry[] = {
    "WeekNDay"
     };
 
+char *BACnetClientCOV[] = {
+	"real-increment",
+	"default-increment"
+};
+
 char *BACnetScale[] = {
 	"floatScale",
 	"integerScale"
@@ -58,7 +63,7 @@ char *BACnetDateTime[] = {
    };
 char *BACnetTimeStamp[]= {
    "Time",
-   "Unsigned",
+   "SequenceNumber",
    "DateTime"
    };
 
@@ -111,6 +116,37 @@ char *BACnetDeviceStatus[] = {
    "Non-Operational",
    "Backup-in-porgress"		// added by Jingbo Gao, Sep 20 2004
 	};
+
+char *BACnetDoorAlarmState[] = {
+	"normal",
+	"alarm",
+	"door-open-too-long",
+	"forced-open",
+	"tamper",
+	"door-fault",
+	"lock-down",
+	"free-access",
+	"egress-open"
+};
+
+char *BACnetDoorSecuredStatus[] = {
+	"secured",
+	"unsecured",
+	"unknown",
+};
+
+char *BACnetDoorStatus[] = {
+	"closed",
+	"open",
+	"unknown",
+};
+
+char *BACnetDoorValue[] = {
+	"lock",
+	"unlock",
+	"pulse-unlock",
+	"extended-pulse-unlock",
+};
 
 char *BACnetEngineeringUnits[] = {
 /* Area */
@@ -491,6 +527,10 @@ char *BACnetErrorCode[] = {
    "not-configured-for-triggered-logging", // 78
    // added by Addenda H (135-2004)
    "unknown-subscription",	  // 79
+   "e80",
+   "e81",
+   "e82",
+   "communication-disabled",	// 83
    };
 
 // Added Addendum B (135-2004)
@@ -510,10 +550,10 @@ char *BACnetEventParameter[] = {
    "Command Failure",
    "Floating Limit",
    "Out of Range",
-   "Deprecated",	
+   "Complex",	
    "Deprecated",
    "Change of Life Safety",
-   "Deprecated",
+   "Extended",
    "Buffer Ready",
    "Unsigned Range",
    "Change of status-flags",
@@ -545,7 +585,7 @@ char *BACnetEventType[] = {
    "COMPLEX-EVENT-TYPE",   
    "DEPRECATED",            
    "CHANGE-OF-LIFE-SAFETY", 
-   "DEPRECATED",			
+   "EXTENDED",			
    "BUFFER-READY",
    "UNSIGNED-RANGE",
    "CHANGE-OF-STATUS-FLAGS",
@@ -554,7 +594,7 @@ char *BACnetEventType[] = {
 char *BACnetFileAccessMethod[] ={
    "RECORD-ACCESS",
    "STREAM-ACCESS",
-   "RECORD-AND-STREAM-ACCESS"
+   "RECORD-AND-STREAM-ACCESS"	// note removed after 1995
    };
 
 //Added by Zhu Zhenhua, 2004-5-25
@@ -657,11 +697,42 @@ char *BACnetLimitEnable[] = {
    "LOW-LIMIT-ENABLE",
    "HIGH-LIMIT-ENABLE"
    };
+
+char *BACnetLockStatus[] = {
+	"locked",
+	"unlocked",
+	"fault",
+	"unknown",
+};
+
+char *BACnetLogData[] = {
+	"Log-status",
+	"Log-Data",
+	"Time-Change",
+};
+
+char *BACnetLoggingType[] = {
+	"polled",
+	"cov",
+	"triggered",
+};
+
+char *BACnetLogMultipleRecord[] = {
+	"timestamp",
+	"logData",
+};
+
 char *BACnetLogRecord [] = {
    "TimeStamp",
    "LogDatum", 
    "StatusFlags"
    };
+
+char *BACnetLogStatus[] = {
+	"log-disabled",
+	"buffer-purged",
+	"log-interrupted",
+};
 
 char *BACnetNotifyType[] = {
    "ALARM",
@@ -682,6 +753,20 @@ char *BACnetPropertyAccessResult[] = {
 	"Property Array Index",
 	"Device Identifier",
 	"Access Result",
+};
+
+// Added from 135-2008
+char *BACnetShedLevel[] = {
+	"Percent",
+	"Level",
+	"Amount",
+};
+
+char *BACnetShedState[] = {
+	"shed-inactive",
+	"shed-request-pending",
+	"shed-compliant",
+	"shed-non-compliant",
 };
 
 char *BACnetReadRangeACK[] = {
@@ -740,6 +825,7 @@ char *BACnetObjectType[] = {
    "TREND-LOG-MULTIPLE",  // 27 - Addendum B
    "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
    "STRUCTURED-VIEW",     // 29 - Addendum D
+   "ACCESS-DOOR",		  // 30
    };
 
 char *BACnetObjectTypesSupported[] = {
@@ -773,12 +859,18 @@ char *BACnetObjectTypesSupported[] = {
    "TREND-LOG-MULTIPLE",  // 27 - Addendum B
    "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
    "STRUCTURED-VIEW",     // 29 - Addendum D
+   "ACCESS-DOOR",			// 30
    };
 
 char *BACnetPolarity[] = {
    "NORMAL",
    "REVERSE"
    };
+
+char *BACnetPrescale[] = {
+	"multiplier",
+	"moduleDivide",
+};
 
 char *BACnetProgramError[] = {
    "NORMAL",
@@ -1035,6 +1127,19 @@ char *BACnetPropertyIdentifier[] = {
 	"shed-level-descriptions", // 220
 	"shed-levels",			// 221
 	"state-description",	// 222
+	"p223",
+	"p224",
+	"p225",
+	"door-alarm-state",
+	"door-extended-pulse-time",
+	"door-members",
+	"door-open-too-long-time",
+	"door-pulse-time",
+	"door-status",
+	"door-unlock-delay-time",
+	"lock-status",
+	"masked-alarm-values",
+	"secured-status",			// 235
 };
 
 // Added by Addenda D
@@ -1073,6 +1178,8 @@ char *BACnetPropertyStates[] = {
    "Unsigned-value",
    "Life-safety-mode",
    "Life-safety-state",
+   "Restart-reason",
+   "Door-alarm-state",
    };
 
 char *BACnetPropertyValue[] = {
@@ -1108,6 +1215,17 @@ char *BACnetReliability[] = {
    "MEMBER-FAULT",
    "COMMUNICATION-FAILURE",
    };
+
+char *BACnetRestartReason[] = {
+	"unknown",
+	"coldstart",
+	"warmstart",
+	"detected-power-lost",
+	"detected-power-off",
+	"hardware-watchdog",
+	"software-watchdog",
+	"suspended",
+};
 
 char *BACnetSegmentation[] = {
    "SEGMENTED-BOTH",
@@ -1198,14 +1316,6 @@ char *BACnetResultFlags[] = {
    "MOREITEMS"
    };
 
-/*
-char *BACnetTimeStamp[] = {
-   "Time",
-   "Sequence Number",
-   "Date-Time"
-   };
-
-*/
   char *BACnetVendorID[] = {
    "ASHRAE",
    "NIST",
@@ -2266,18 +2376,16 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                case 0:  /* Analog_Input - Real */
                case 1:  /* Analog_Output - Real */
                case 2:  /* Analog_Value - Real */
-               //Modified by Yajun, Zhou 2002-8-1
-			   //case 8:  /* Command - Unsigned */
-			   //case 13: /* Loop - Real */
-			   //case 14: /* Multistate_Input - Unsigned */
-			   //case 15: /* Multistate_Output - Unsigned */
+               case 6:  /* Calendar - BOOLEAN */
 			   case 7:  /* Command - Unsigned */
 			   case 12: /* Loop - Real */
 			   case 13: /* Multistate_Input - Unsigned */
                case 14: /* Multistate_Output - Unsigned */
-			   /////////////////////////////////////
                case 17: /* Schedule - ANY Primitive Type */
                case 19: /* Multistate_Value - Unsigned */
+			   case 21: /* Enumerated    Life Safety Point*/
+			   case 23: /* Accumulator -  Unsigned */
+			   case 24: /* Pulse Converter - Real */
                         show_head_app_data();	//added by Lei Chengxin 2003-9-1
 						
 						show_application_data(x);
@@ -2290,20 +2398,24 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
                           bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
                           };
                         break;
-               case 6:  /* Calendar - BOOLEAN */
-					   show_head_app_data();		 
-			           show_application_data(x);
-				   break;
                //Modified by Yajun, Zhou 2002-8-1
-			   //case 12: /* Group - List of Read Access Result */
+			   case 28: /* Load Control - Enumerated */
+		           show_application_tag(x);
+				   bac_show_byte(BACnetShedState[pif_get_byte(0)],"%u");
+				   break;
+			   case 30: /* Access Door - Enumerated */
+		           show_application_tag(x);
+				   bac_show_byte(BACnetDoorValue[pif_get_byte(0)],"%u");
+				   break;
 			   case 11: /* Group - List of Read Access Result */
 			   ////////////////////////////////////////////
                        show_bac_read_access_result();
                        break;
-			   case 21: /* Enumerated    Life Safety Point*/
-		        show_head_app_data();		 //added by Zhu Zhenhua, 2004-6-14
-                show_application_data(x);
-				break;
+			   // case 22: /* Life Safety Zone - No Present Value */
+			   // case 25: /* Event Log - No Present Value*/
+			   // case 26: /*  */
+			   // case 27: /*  Trend Log Multiple - No Present Value*/
+			   // case 29: /* Structured View - No Present Value */
                default: pif_show_ascii(0,
                   "Unknown Data - Object Type does not have Present Value Property!");
                }
@@ -2470,8 +2582,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
               case 1:  /* Analog_Out */
               case 2:  /* Analog_Value */
               case 14: /* Multistate_Output */
-			  case 13:
-			  case 19:
+			  case 19: /* Multistate_Value */
+			  case 30: /* Access Door */
 					   show_head_app_data();	 //added by Lei Chengxin 2003-9-1
 
                        show_application_data(x);
@@ -2783,6 +2895,34 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
  		  break;
 	  case SCALE:
 		  show_bac_scale();
+		  break;
+	  case DOOR_STATUS:
+           show_application_tag(x);
+		   bac_show_byte(BACnetDoorStatus[pif_get_byte(0)],"%u");
+		break;
+	  case LOCK_STATUS:
+           show_application_tag(x);
+		   bac_show_byte(BACnetLockStatus[pif_get_byte(0)],"%u");
+			break;
+	  case SECURED_STATUS:
+           show_application_tag(x);
+		   bac_show_byte(BACnetDoorSecuredStatus[pif_get_byte(0)],"%u");
+		  break;
+	  case DOOR_ALARM_STATE:
+           show_application_tag(x);
+		   bac_show_byte(BACnetDoorAlarmState[pif_get_byte(0)],"%u");
+		  break;
+	  case MAINTENANCE_REQUIRED:
+           show_application_tag(x);
+		   bac_show_byte(BACnetMaintenance[pif_get_byte(0)],"%u");
+		  break;
+	  case NODE_TYPE:
+           show_application_tag(x);
+		   bac_show_byte(BACnetNodeType[pif_get_byte(0)],"%u");
+		  break;
+	  case LOGGING_TYPE:
+           show_application_tag(x);
+		   bac_show_byte(BACnetLoggingType[pif_get_byte(0)],"%u");
 		  break;
       default:
 //	       bac_show_byte("Error: Unknown Property Identifier","%u");
