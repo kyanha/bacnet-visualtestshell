@@ -13,6 +13,7 @@
 //equates for priority arrays
 #define	fpaNULL				FLT_MIN				//too bad we can't use NAN
 #define bpaNULL				2					//binary present values are 0 and 1
+#define dvaNULL				4					// DoorValue Enum NULL value
 #define upaNULL				0xFFFF				//can't use more than 65534 enumerations, too bad
 
 //equates for standard properties

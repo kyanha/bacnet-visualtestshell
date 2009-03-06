@@ -1600,7 +1600,7 @@ propdescriptor ADProps[] =
     "out-of-service",			OUT_OF_SERVICE,				  oo(ad,out_of_service),	    ebool,   0,		eiTF,	    R,
     "present-value",            PRESENT_VALUE,				  oo(ad, present_value),	et,			0,	eiDoorValue,	W,
     "relinquish-default",       RELINQUISH_DEFAULT,			  oo(ad, relinquish_default),	et,		0,	eiDoorValue,	R,
-    "priority-array",           PRIORITY_ARRAY,				  oo(ad, priority_array),	pae,		0,	eiDoorValuen,	R,
+    "priority-array",           PRIORITY_ARRAY,				  oo(ad, priority_array),	pae,		0,	eiDoorValuen,	R|IsArray,
     "door-status",				DOOR_STATUS,				  oo(ad, door_status),		et,			0,	eiDoorStatus,	O|WithGroup|Woutofservice,
     "lock-status",				LOCK_STATUS,				  oo(ad, lock_status),		et,			0,	eiLockStatus,	O|Woutofservice,
     "secured-status",			SECURED_STATUS,				  oo(ad, secured_status),	et,			0,	eiDoorSecuredStatus,	O,
