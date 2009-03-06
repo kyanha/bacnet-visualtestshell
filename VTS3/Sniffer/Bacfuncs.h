@@ -2924,7 +2924,61 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
            show_application_tag(x);
 		   bac_show_byte(BACnetLoggingType[pif_get_byte(0)],"%u");
 		  break;
-      default:
+	  case ACTUAL_SHED_LEVEL:		// BACnetShedLevel
+	  case EXPECTED_SHED_LEVEL:		// BACnetShedLevel
+	  case REQUESTED_SHED_LEVEL:	// BACnetShedLevel
+		  show_bac_shed_level();
+		  break;
+	  case DOOR_MEMBERS:			// Array of BACnetDeviceObjectReference
+	  case SUBORDINATE_LIST:		// Array of BACnetDeviceObjectReference
+             if (prop_idx == 0) {
+	             bac_show_unsigned("Array Size",show_application_tag(x));
+             }
+			 else if (prop_idx > 0)
+			{
+		          show_bac_dev_obj_ref();
+			}
+			else
+			{
+	         for(i=0; i<3; i++)
+		          show_bac_dev_obj_ref();
+			}
+		  break;
+      case SUBORDINATE_ANNOTATIONS:	 // Array of Character Strings
+	  case SHED_LEVEL_DESCRIPTIONS:  // Array of Character Strings
+           if (prop_idx == 0) {
+             bac_show_unsigned("Array Size",show_application_tag(x));
+             }
+			 else if (prop_idx > 0)
+			{
+ 				show_application_data(x);
+			}
+           else
+             while ((x & 0x0f) != 0x0f) 
+			 {
+                show_application_data(x);
+                x = pif_get_byte(0);
+             };
+           break;
+		  break;
+	  case SHED_LEVELS:				// Array of Unsigned
+             if (prop_idx == 0) {
+	             bac_show_unsigned("Array Size",show_application_tag(x));
+             }
+			 else if (prop_idx > 0)
+			{
+		          bac_show_unsigned("Shed Level", show_application_tag(x));
+			}
+			else
+			{
+				while ((x & 0x0f) != 0x0f)
+				{
+		            bac_show_unsigned("Shed Level", show_application_tag(x));
+					x = pif_get_byte(0);
+				}
+			}
+		  break;
+	  default:
 //	       bac_show_byte("Error: Unknown Property Identifier","%u");
 		   show_head_app_data();		 //modified by Lei Chengxin 2003-9-8
 		   show_application_data(x);

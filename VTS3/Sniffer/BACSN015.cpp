@@ -9250,6 +9250,50 @@ void show_bac_timestamp( void )
    }
 exit:;
 }
+
+/**************************************************************************/
+void show_bac_shed_level( void )
+//	[0] percent Unsigned
+//	[1] level	Unsigned
+//	[2] amount	Real
+/**************************************************************************/
+{
+   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+   unsigned int len;
+
+   tagbuff = pif_get_byte(0);
+   tagval = (tagbuff&0xF0)>>4;
+   if (tagbuff & 0x08) {  /* context tag */
+      if (tagval > 2) {
+        pif_show_space();
+        bac_show_nbytes(1,"Error: Invalid Context Tag (should be 0,1 or 2)!");
+        goto exit;
+        }
+      switch (tagval) {
+        case 0: 
+				show_head_unsigned(1, BACnetShedLevel[tagval], tagval);							   
+				len = show_context_tag(BACnetShedLevel[tagval]);
+				show_bac_unsigned(len);
+                break;
+        case 1: 
+				show_head_unsigned(1, BACnetShedLevel[tagval], tagval);							   
+				len = show_context_tag(BACnetShedLevel[tagval]);
+				show_bac_unsigned(len);
+                break;
+        case 2:  
+				show_head_real(1, BACnetShedLevel[tagval], tagval);							   
+				len = show_context_tag(BACnetShedLevel[tagval]);
+				show_bac_unsigned(len);
+				break;
+        }  /* end of switch */
+     }
+   else {  /* application tag */
+      pif_show_space();
+      bac_show_nbytes(1,"Error: Context Tag expected!");
+   }
+exit:;
+}
+
 /**************************************************************************/
 void show_bac_time_value( void )
 /**************************************************************************/

@@ -394,6 +394,7 @@ void     show_bac_recipient_process(void);
 void     show_bac_special_event(void);
 void     show_bac_status_flags(unsigned int);
 void     show_bac_timestamp(void);
+void	 show_bac_shed_level(void);
 void     show_bac_time_value(void);
 void     show_bac_VT_session(void);
 void     show_bac_weeknday(void);
