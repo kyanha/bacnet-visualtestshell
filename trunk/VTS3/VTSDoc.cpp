@@ -4359,18 +4359,72 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 				me.Encode(*pAPDUEncoder);
 			}
 			break;
-		case MODEL_NAME:
+		case OBJECT_TYPE:
 			{
-						BACnetCharacterString(m_strName).Encode(*pAPDUEncoder);
+				BACnetEnumerated(8).Encode(*pAPDUEncoder);
+			}
+			break;
+		case OBJECT_NAME:
+			{
+				BACnetCharacterString(m_strName).Encode(*pAPDUEncoder);
 			}
 			break;
 		case SYSTEM_STATUS:
 			BACnetEnumerated(0).Encode(*pAPDUEncoder);
 			break;
+		case VENDOR_NAME:
+			{
+				CString tmp = "Vendor Name";   //BACnetVendorID[m_nVendorID];
+				if (tmp == "")
+					tmp = "Unknown Vendor";
+
+				BACnetCharacterString(tmp).Encode(*pAPDUEncoder);
+			}
+			break;
+		case VENDOR_IDENTIFIER:
+			{
+				BACnetUnsigned(m_nVendorID).Encode( *pAPDUEncoder );
+			}
+			break;
+		case MODEL_NAME:
+			{
+				BACnetCharacterString(m_strName).Encode(*pAPDUEncoder);
+			}
+			break;
+		case FIRMWARE_REVISION:
+			{
+				BACnetCharacterString("1.0").Encode(*pAPDUEncoder);
+			}
+			break;
+		case APPLICATION_SOFTWARE_VERSION:
+			{
+				BACnetCharacterString("1.0").Encode(*pAPDUEncoder);
+			}
+			break;
+		case PROTOCOL_VERSION:
+			BACnetUnsigned(1).Encode(*pAPDUEncoder);
+			break;
+		case PROTOCOL_REVISION:
+			BACnetUnsigned(7).Encode(*pAPDUEncoder);
+			break;
 		case PROTOCOL_SERVICES_SUPPORTED:
 			{
 				// set on device creation and can be modified through device dlg.
 				m_services_supported.Encode(*pAPDUEncoder);
+			}
+			break;
+		case PROTOCOL_OBJECT_TYPES_SUPPORTED:
+			{
+				// run through m_devobjects to see which objects are defined
+				BACnetBitString objects_supported = BACnetBitString(25);
+				for(UINT i = 0; i < m_devobjects.GetSize(); i++)
+				{
+					unsigned int objid = m_devobjects[i]->GetID();
+					int objtype=(word)(objid>>22);
+					objects_supported.SetBit(objtype);
+				}
+				objects_supported.SetBit(8);  // always support DEVICE type object
+				objects_supported.Encode(*pAPDUEncoder);
 			}
 			break;
 		case OBJECT_LIST:
@@ -4427,83 +4481,60 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 				}
 			}
 			break;
-		case PROTOCOL_OBJECT_TYPES_SUPPORTED:
-			{
-				// run through m_devobjects to see which objects are defined
-				BACnetBitString objects_supported = BACnetBitString(25);
-				for(UINT i = 0; i < m_devobjects.GetSize(); i++)
-				{
-					unsigned int objid = m_devobjects[i]->GetID();
-					int objtype=(word)(objid>>22);
-					objects_supported.SetBit(objtype);
-				}
-				objects_supported.SetBit(8);  // always support DEVICE type object
-				objects_supported.Encode(*pAPDUEncoder);
-			}
-			break;
-		case PROTOCOL_VERSION:
-			BACnetUnsigned(1).Encode(*pAPDUEncoder);
-			break;
-		case PROTOCOL_REVISION:
-			BACnetUnsigned(2).Encode(*pAPDUEncoder);
-			break;
-		case OBJECT_NAME:
-						{
-						BACnetCharacterString(m_strName).Encode(*pAPDUEncoder);
-						}
-						break;
-
-		case VENDOR_IDENTIFIER:
-						{
-						BACnetUnsigned(m_nVendorID).Encode( *pAPDUEncoder );
-						}
-						break;
 
 		case MAX_APDU_LENGTH_ACCEPTED:
-						{
-						BACnetUnsigned(m_nMaxAPDUSize).Encode( *pAPDUEncoder );
-						}
-						break;
-
-		case APDU_TIMEOUT:
-						{
-						BACnetUnsigned(m_nAPDUTimeout).Encode( *pAPDUEncoder );
-						}
-						break;
-
-		case APDU_SEGMENT_TIMEOUT:
-						{
-						BACnetUnsigned(m_nAPDUSegmentTimeout).Encode( *pAPDUEncoder );
-						}
-						break;
-
-		case NUMBER_OF_APDU_RETRIES:
-						{
-						BACnetUnsigned(m_nAPDURetries).Encode( *pAPDUEncoder );
-						}
-						break;
-
+			{
+				BACnetUnsigned(m_nMaxAPDUSize).Encode( *pAPDUEncoder );
+			}
+			break;
 		case SEGMENTATION_SUPPORTED:
-						{
-						BACnetUnsigned((int) m_segmentation).Encode( *pAPDUEncoder );
-						}
-						break;
-		case MAX_SEGMENTS_ACCEPTED: //Added by Zhu Zhenhua, 2003-11-21
-						{
-						BACnetUnsigned(m_nSegmentSize).Encode( *pAPDUEncoder );
-						}
-						break;
+			{
+				BACnetUnsigned((int) m_segmentation).Encode( *pAPDUEncoder );
+			}
+			break;
+		case NUMBER_OF_APDU_RETRIES:
+			{
+				BACnetUnsigned(m_nAPDURetries).Encode( *pAPDUEncoder );
+			}
+			break;
+		case DEVICE_ADDRESS_BINDING:
+			{
+				//BACnetAddressBinding( unsigned int nobjID, unsigned short nNet, BACnetOctet * paMAC, unsigned short nMACLen );
+			}
+			break;
+		case DATABASE_REVISION:
+			{
+				BACnetUnsigned(20).Encode(*pAPDUEncoder);
+			}
+			break;
+		// optional properties supported
 		case LOCAL_DATE:
-						{
-						BACnetDate().Encode( *pAPDUEncoder );
-						}
-						break;
+			{
+				BACnetDate().Encode( *pAPDUEncoder );
+			}
+			break;
 
 		case LOCAL_TIME:
-						{
-						BACnetTime().Encode( *pAPDUEncoder );
-						}
-						break;
+			{
+				BACnetTime().Encode( *pAPDUEncoder );
+			}
+			break;
+		case APDU_TIMEOUT:
+			{
+				BACnetUnsigned(m_nAPDUTimeout).Encode( *pAPDUEncoder );
+			}
+			break;
+
+		case APDU_SEGMENT_TIMEOUT:
+			{
+				BACnetUnsigned(m_nAPDUSegmentTimeout).Encode( *pAPDUEncoder );
+			}
+			break;
+		case MAX_SEGMENTS_ACCEPTED: //Added by Zhu Zhenhua, 2003-11-21
+			{
+				BACnetUnsigned(m_nSegmentSize).Encode( *pAPDUEncoder );
+			}
+			break;
 
 		// might be nice to support others implicitly with device declaration... 
 
