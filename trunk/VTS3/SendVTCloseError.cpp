@@ -184,7 +184,7 @@ void CSendVTCloseError::EncodePage( CByteArray* contents )
 	}
 
 	// closing tag
-	BACnetClosingTag().Encode( enc, 0 );
+	BACnetClosingTag().Encode( enc, 1 );
 
 	// copy the encoding into the byte array
 	for (int j = 0; j < enc.pktLength; j++)
