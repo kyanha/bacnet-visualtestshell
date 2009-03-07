@@ -3,7 +3,6 @@
 
   
   IUT_IP = 10.10.10.100:0xBAC0
-  TD_PORT = "bip"
   
   OBJECT1 = Device, 1967	; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1	; Object which is the subject of the Read Prop tests
@@ -37,7 +36,7 @@ SECTION ReadProperty Service Execution Tests
   REFERENCE (B) ReadProperty Service and (T) Reading Object Identifiers
 
   SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       Da = IUT_IP
       DER = TRUE
       bvlci =ORIGINAL-UNICAST-NPDU   
@@ -52,7 +51,7 @@ SECTION ReadProperty Service Execution Tests
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       DER = FALSE
       Sa  = IUT_IP   
       PDU = ComplexAck
@@ -84,7 +83,7 @@ SECTION ReadProperty Service Execution Tests
   REFERENCE (B) ReadProperty Service and (T) Reading Enumerated Values
 
     SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       DA = IUT_IP
       DER = TRUE
       BVLCI =ORIGINAL-UNICAST-NPDU 
@@ -99,7 +98,7 @@ SECTION ReadProperty Service Execution Tests
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       DER = FALSE
       BVLCI =ORIGINAL-UNICAST-NPDU 
       Sa  = IUT_IP
@@ -129,7 +128,7 @@ Test #1c - Read Property of Type CharacterString
 
 
     SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       DA = IUT_IP
       DER = TRUE
       PDU = Confirmed-Request
@@ -144,7 +143,7 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       DER = FALSE
       PDU = ComplexAck
       sa = IUT_IP
@@ -175,7 +174,7 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading Unsigned Values
 
     SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       bvlci=ORIGINAL-UNICAST-NPDU
       Da = IUT_IP
       DER = TRUE
@@ -190,7 +189,7 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       DER = FALSE
       PDU = ComplexAck
@@ -227,7 +226,7 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading Entire Arrays
 
     SEND (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Da = IUT_IP
       DER = TRUE
       BVLCI=ORIGINAL-UNICAST-NPDU
@@ -242,7 +241,7 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       BVLCI=ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
@@ -274,7 +273,7 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading the Size of an Array
 
     SEND (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Da = IUT_IP
       DER = TRUE
       BVLCI=ORIGINAL-UNICAST-NPDU
@@ -290,7 +289,7 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       BVLCI=ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
@@ -322,7 +321,7 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
 
     SEND (
-      NETWORK =TD_PORT
+      NETWORK ="Untitled"
       Da = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -338,7 +337,7 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
@@ -369,7 +368,7 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading Bitstring Values
  
   SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       bvlci=ORIGINAL-UNICAST-NPDU
       Da = IUT_IP
       DER = TRUE
@@ -384,7 +383,7 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       DER = FALSE
       PDU = ComplexAck
@@ -414,7 +413,7 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD
    SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       bvlci=ORIGINAL-UNICAST-NPDU
       Da = IUT_IP
       DER = TRUE
@@ -429,7 +428,7 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       DER = FALSE
       PDU = ComplexAck
@@ -456,7 +455,7 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD
  SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       bvlci=ORIGINAL-UNICAST-NPDU
       Da = IUT_IP
       DER = TRUE
@@ -472,7 +471,7 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       DER = FALSE
       PDU = ComplexAck
@@ -501,7 +500,7 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD
    SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       bvlci=ORIGINAL-UNICAST-NPDU
       Da = IUT_IP
       DER = TRUE
@@ -516,7 +515,7 @@ Test #1c - Read Property of Type CharacterString
      )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       DER = FALSE
       PDU = ComplexAck
@@ -543,7 +542,7 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD
    SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       bvlci=ORIGINAL-UNICAST-NPDU
       Da = IUT_IP
       DER = TRUE
@@ -558,7 +557,7 @@ Test #1c - Read Property of Type CharacterString
      )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       DER = FALSE
       PDU = ComplexAck
@@ -586,7 +585,7 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD   
   SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       bvlci=ORIGINAL-UNICAST-NPDU
       Da = IUT_IP
       DER = TRUE
@@ -601,7 +600,7 @@ Test #1c - Read Property of Type CharacterString
      )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       DER = FALSE
       PDU = ComplexAck
@@ -628,7 +627,7 @@ Test #10 - Read Property of Type Time ;
 
  REFERENCE (B) ReadProperty Service and (T) TBD
   SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       bvlci=ORIGINAL-UNICAST-NPDU
       Da = IUT_IP
       DER = TRUE
@@ -643,7 +642,7 @@ Test #10 - Read Property of Type Time ;
      )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       DER = FALSE
       PDU = ComplexAck
@@ -672,7 +671,7 @@ Test #10 - Read Property of Type Time ;
   REFERENCE (B) ReadProperty Service and (T) TBD
 
   SEND (
-      NETWORK = TD_PORT
+      NETWORK = "untitled"
       bvlci=ORIGINAL-UNICAST-NPDU
       Da = IUT_IP
       DER = TRUE
@@ -687,7 +686,7 @@ Test #10 - Read Property of Type Time ;
      )
 
     EXPECT (
-      NETWORK = TD_PORT
+      NETWORK = "Untitled"
       Sa=IUT_IP
       DER = FALSE
       PDU = ComplexAck
