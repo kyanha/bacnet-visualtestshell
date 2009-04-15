@@ -1238,6 +1238,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 				  	     "  SECTION Read Properties of OBJECT%d\n\n", nObjNum);
 			pscript->WriteString(str);
 
+			int cur_invokeid = 0;
 			// Now create a TEST section for each of the defined properties
 			for ( int nPropIndex = 0; nPropIndex < 64; nPropIndex++ )
 			{
@@ -1269,14 +1270,15 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 					}
 					str.Format( "\tPDU = Confirmed-Request\n" \
 								"\tService = ReadProperty\n" \
-								"\tInvokeID = 1\n" \
+								"\tInvokeID = %d\n" \
 								"\tSegMsg = 0\n" \
 								"\tSegResp = 0\n" \
 								"\tMaxResp = 1476\n" \
 								"\tObject = 0, OBJECT%d\n" \
 								"\tProperty = 1, %s\n" \
-								"    )\n\n", nObjNum, szTemp );
+								"    )\n\n", cur_invokeid, nObjNum, szTemp );
 					pscript->WriteString(str);
+					cur_invokeid = (cur_invokeid+1)%256;
 
 					str.Format( "    EXPECT (\n" \
 								"\tNETWORK = ACTIVENET\n" );
