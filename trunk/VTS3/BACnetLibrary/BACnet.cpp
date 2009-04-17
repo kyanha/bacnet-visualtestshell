@@ -750,7 +750,8 @@ void BACnetAddr::Decode( BACnetAPDUDecoder& dec )
 void BACnetAddr::Encode( char *enc ) const
 {
 	char * addr = enc;
-	sprintf( addr, "{" );   // LJT changed from [ to {
+	//sprintf( addr, "{" );   // LJT changed from [ to {
+	strcat( addr, "{");
 	addr++;
 	char tmp[50];
 	sprintf( tmp, "%d", m_bacnetAddress.addrNet );
@@ -5770,9 +5771,9 @@ void BACnetAddressBinding::Encode( BACnetAPDUEncoder& enc, int context )
 void BACnetAddressBinding::Encode( char *enc ) const
 {
 	strcat( enc, "{" );	// LJT added
-	m_bacnetObjectID.Encode( enc );
+	m_bacnetObjectID.Encode( enc+1 );
 	strcat( enc, "," ); // LJT added
-	m_bacnetAddr.Encode( enc );
+	m_bacnetAddr.Encode( enc + strlen(enc) );
 	strcat( enc, "}" ); // LJT added
 }
 
