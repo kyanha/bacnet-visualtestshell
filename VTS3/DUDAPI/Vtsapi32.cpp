@@ -432,15 +432,17 @@ static bibbdef BIBBs[]={
 			"SCHED-I-B", // no specific services required, other requirements are in the code											
              {	{ ssExecute, asReadProperty },
 				{ ssExecute, asWriteProperty },
-				{ ssExecute, asTimeSynchronization },
-				{ ssExecute, asUTCTimeSynchronization }
+				// these are an OR requirement and handled later
+				//{ ssExecute, asTimeSynchronization },
+				//{ ssExecute, asUTCTimeSynchronization }
              },								
 			"SCHED-E-B", // no specific services required, other requirements are in the code																
              {	{ ssExecute, asReadProperty },
 				{ ssExecute, asWriteProperty },
 				{ ssInitiate, asWriteProperty },
-				{ ssExecute, asTimeSynchronization },
-				{ ssExecute, asUTCTimeSynchronization }
+				// these are an OR requirement and handled later
+				//{ ssExecute, asTimeSynchronization },
+				//{ ssExecute, asUTCTimeSynchronization }
              },								
 			"T-VMT-A",						
              { { ssInitiate, asReadRange } 

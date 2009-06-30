@@ -4621,7 +4621,7 @@ void AC_CreateProperty( accumulator_obj_type * pObj, BACnetPropertyIdentifier pr
 			break;	
 	case SCALE:
 			{
-				if(pObj->scale.choice == 1)
+				if(pObj->scale.choice == 0)
 				{						
 					pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->scale.u.floatScale));
 				}
