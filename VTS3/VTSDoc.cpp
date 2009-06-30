@@ -3429,7 +3429,7 @@ void VTSServer::ReadProperty( const BACnetAPDU &apdu )
 		if ((errCode == 2) || (errCode == 25)) // configuration-in-progress, operational-problem
 			BACnetEnumerated( 0 ).Encode( error );		// DEVICE
 		else
-		if (errCode == 42) // invalid-array-index
+		if (errCode == 42 || errCode == 32) // invalid-array-index or unknown-property
 			BACnetEnumerated( 2 ).Encode( error );		// PROPERTY
 		else
 			BACnetEnumerated( 1 ).Encode( error );		// OBJECT
