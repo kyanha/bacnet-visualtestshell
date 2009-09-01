@@ -7500,139 +7500,148 @@ void show_bac_action_command( unsigned int len )
    int obj_type,prop_idx,prop_id;
 
    end = pif_offset+len;
-   while((unsigned int)pif_offset < end) {
+   while((unsigned int)pif_offset < end) 
+   {
       tagbuff = pif_get_byte(0);
       tagval = (tagbuff&0xF0)>>4;
-      if (!(tagbuff & 0x08)) {
-    pif_show_space();
-    bac_show_nbytes(1,"Error: Context Tag expected!");
-    goto exit;
+      if (!(tagbuff & 0x08)) 
+	  {
+		pif_show_space();
+		bac_show_nbytes(1,"Error: Context Tag expected!");
+		goto exit;
       }
-      if (tagbuff & 0x08) {
-    if(tagval > 8) {
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 8)!");
-       goto exit;
-    }
-    switch (tagval) {
-       case 0:  
-	{
-	   show_head_obj_id(1, BACnetActionCommand[tagval], tagval);									   //  ***002
-       show_context_tag(BACnetActionCommand[tagval]);
-       show_bac_object_identifier();
-	   tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-       }     
-           break;
-   case 1:  
-		   show_head_obj_id(1, BACnetActionCommand[tagval], tagval);									   //  ***002		   
+      if (tagbuff & 0x08) 
+	  {
+		if(tagval > 8) 
+		{
+			pif_show_space();
+			bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 8)!");
+			goto exit;
+		}
+		switch (tagval) {
+		   case 0:  
+		{
+		   show_head_obj_id(1, BACnetActionCommand[tagval], tagval);									   //  ***002
 		   show_context_tag(BACnetActionCommand[tagval]);
-           obj_type = bac_extract_obj_type();
-           show_bac_object_identifier();
-           break;
-       case 2:  
-		   show_head_property_ID(1, "Property Identifier", tagval);								   //  ***002		   
-		   len = show_context_tag("Property Identifier");
-           if (len == 1)
-             prop_id = (int)pif_get_byte(0);
-           else
-             prop_id = (int)pif_get_word_hl(0);
-           show_bac_property_identifier(len);
-           break;
+		   show_bac_object_identifier();
+		   tagbuff = pif_get_byte(0);
+		   tagval = (tagbuff&0xF0)>>4;
+		   }     
+			   break;
+			case 1:  
+			   show_head_obj_id(1, BACnetActionCommand[tagval], tagval);									   //  ***002		   
+			   show_context_tag(BACnetActionCommand[tagval]);
+			   obj_type = bac_extract_obj_type();
+			   show_bac_object_identifier();
+			   break;
+		   case 2:  
+			   show_head_property_ID(1, "Property Identifier", tagval);								   //  ***002		   
+			   len = show_context_tag("Property Identifier");
+			   if (len == 1)
+				 prop_id = (int)pif_get_byte(0);
+			   else
+				 prop_id = (int)pif_get_word_hl(0);
+			   show_bac_property_identifier(len);
+			   break;
 
-       case 3:  
-		   show_head_unsigned(1, "Property Array Index", tagval);								   //  ***002	   
-		   len = show_context_tag("Property Array Index");
-           prop_idx = pif_get_byte(0);
-           show_bac_unsigned(len);
-           break;
-       case 4: 
-           show_context_tag("Property Value");  /* opening tag */
-           show_bac_ANY(obj_type,prop_id,prop_idx);
-           show_context_tag("Property Value");  /* closing tag */
-           break;
-       case 5:  
-		   show_head_unsigned(1, "Priority", tagval);								   //  ***002	   
-		   len = show_context_tag("Priority");
-           show_bac_unsigned(len);
-           break;
-       case 6:  
-		   show_head_unsigned(1, "Post Delay", tagval);								   //  ***002	   
-		   len = show_context_tag("Post Delay");
-           show_bac_unsigned(len);
-		   break;
-	   case 7: 
-		   {
-			   if(pif_get_byte(1)) /* TRUE */
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-				   "[%u] QuitOnFailure:  TRUE", tagval);
-			   else
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-				   "[%u] QuitOnFailure:  FALSE", tagval);
-			   show_context_tag("QuitOnFailure");
-			   tagbuff = pif_get_byte(0);
-			   if(tagbuff)  /* TRUE */
-				   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-				   "%"FW"s = %>ku %s", "QuitOnFailure","(TRUE)");
-			   else
-				   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-				   "%"FW"s = %>ku %s", "QuitOnFailure","(FALSE)");
-			   pif_show_space();
-		   }
-		   break;
-	   case 8:
-		   {
-			   if(pif_get_byte(1)) /* TRUE */
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-				   "[%u] WriteSuccessul:  TRUE", tagval);
-			   else
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-				   "[%u] WriteSuccessul:  FALSE", tagval);
-			   show_context_tag("WriteSuccessul");
-			   tagbuff = pif_get_byte(0);
-			   if(tagbuff)  /* TRUE */
-				   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-				   "%"FW"s = %>ku %s", "WriteSuccessul","(TRUE)");
-			   else
-				   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-				   "%"FW"s = %>ku %s", "WriteSuccessul","(FALSE)");
-			   pif_show_space();
-		   }
-		   goto exit;
+		   case 3:  
+			   show_head_unsigned(1, "Property Array Index", tagval);								   //  ***002	   
+			   len = show_context_tag("Property Array Index");
+			   prop_idx = pif_get_byte(0);
+			   show_bac_unsigned(len);
+			   break;
+		   case 4: 
+			   show_context_tag("Property Value");  /* opening tag */
+			   show_bac_ANY(obj_type,prop_id,prop_idx);
+			   show_context_tag("Property Value");  /* closing tag */
+			   break;
+		   case 5:  
+			   show_head_unsigned(1, "Priority", tagval);								   //  ***002	   
+			   len = show_context_tag("Priority");
+			   show_bac_unsigned(len);
+			   break;
+		   case 6:  
+			   show_head_unsigned(1, "Post Delay", tagval);								   //  ***002	   
+			   len = show_context_tag("Post Delay");
+			   show_bac_unsigned(len);
+			   break;
+		   case 7: 
+			   {
+				   if(pif_get_byte(1)) /* TRUE */
+					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+					   "[%u] QuitOnFailure:  TRUE", tagval);
+				   else
+					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+					   "[%u] QuitOnFailure:  FALSE", tagval);
+				   show_context_tag("QuitOnFailure");
+				   tagbuff = pif_get_byte(0);
+				   if(tagbuff)  /* TRUE */
+					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+					   "%"FW"s = %>ku %s", "QuitOnFailure","(TRUE)");
+				   else
+					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+					   "%"FW"s = %>ku %s", "QuitOnFailure","(FALSE)");
+				   pif_show_space();
+			   }
+			   break;
+		   case 8:
+			   {
+				   if(pif_get_byte(1)) /* TRUE */
+					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+					   "[%u] WriteSuccessul:  TRUE", tagval);
+				   else
+					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
+					   "[%u] WriteSuccessul:  FALSE", tagval);
+				   show_context_tag("WriteSuccessul");
+				   tagbuff = pif_get_byte(0);
+				   if(tagbuff)  /* TRUE */
+					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+					   "%"FW"s = %>ku %s", "WriteSuccessul","(TRUE)");
+				   else
+					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
+					   "%"FW"s = %>ku %s", "WriteSuccessul","(FALSE)");
+				   pif_show_space();
+			   }
+			   goto exit;
 
 
-    }
+		}
       }
-      else {
-    pif_show_space();
-    bac_show_nbytes(1,"Error: Context Tag expected!");
+      else 
+	  {
+	    pif_show_space();
+	    bac_show_nbytes(1,"Error: Context Tag expected!");
       }
    }
    exit:;
 }
 void show_bac_action_list()
 {
-	unsigned int len=1;  // changed by kare sars
+	unsigned int len=80;  // changed from 1 to 80 to account for all possible tags in ActionCommand.  ActionCommand exists when it sees context tag 8 which is required.
    unsigned char tagbuff, tagval; /* buffers for tags and tag values */
    tagbuff = pif_get_byte(0);
    tagval = (tagbuff&0xF0)>>4;
    if (tagbuff & 0x08) 
    {  /* context tag */
-     if(tagval == 0){ /* actionlist */
+     if(tagval == 0)
+	 { /* actionlist */
        show_context_tag(BACnetAcitonList[0]);  /* opening tag */
 	   int x = pif_get_byte(0);
-       while ((pif_get_byte(0) & 0x0f) != 0x0f) 
+       while ((x & 0x0f) != 0x0f) 
+	   {
 		   show_bac_action_command(len);
+		   x = pif_get_byte(0);
+	   }
        show_context_tag(BACnetAcitonList[0]);  /* closing tag */
        tagbuff = pif_get_byte(0);
        tagval = (tagbuff&0xF0)>>4;
-       }
+    }
 	else
-		{
+	{
        pif_show_space();
        bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 1)!");
        goto exit;
-       }
+    }
    }
    exit:;	
 }
