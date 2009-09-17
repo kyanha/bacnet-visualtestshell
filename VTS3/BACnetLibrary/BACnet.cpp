@@ -3585,6 +3585,9 @@ void BACnetDate::Decode( const char *dec )
 	// skip blank on front
 	while (*dec && isspace(*dec)) dec++;
 
+	// script calls will have the square brackets as well
+	if ( *dec == '[' ) dec++;
+
 	// Date is complex data type so must enclose in brackets
 	if ( *dec++ != '(' )
 		throw_(110);			// missing start bracket for complex data structures
@@ -3714,6 +3717,9 @@ void BACnetDate::Decode( const char *dec )
 	while (*dec && isspace(*dec)) dec++;
 	if ( *dec++ != ')' )
 		throw_(111);									// missing close bracket code
+
+	// script calls will have the square brackets as well
+	if ( *dec == ']' ) dec++;
 
 	// if we've gotten this far, all values have been read in and are correct
 }
@@ -4324,8 +4330,7 @@ void BACnetTime::Decode( const char *dec )
 	while (*dec && isspace(*dec)) dec++;   //add by xlp
 
 	// Time is complex data type so must enclose in brackets
-//	if ( *dec++ != '[' )
-//		throw_(110);			// missing start bracket for complex data structures
+	if ( *dec == '[' ) dec++;
 
 	// check for hour
 	if ( *dec == '*' )
@@ -4443,8 +4448,8 @@ void BACnetTime::Decode( const char *dec )
 
 	// clear white space and look for close bracket
 	while (*dec && isspace(*dec)) dec++;
-//	if ( *dec++ != ']' )
-//		throw_(111);									// missing close bracket code
+	if ( *dec == ']' ) dec++;
+	//		throw_(111);									// missing close bracket code
 }
 
 
