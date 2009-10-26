@@ -2336,8 +2336,8 @@ nextobject:										//										***012
 		bHasNoneType = false;
 		bHasReset = false;
 		
-		ReadNext();								//point to next token					***008
-		if (*lp=='}'||lp==NULL) break;			//return, we're done with these
+		lp = ReadNext();						//point to next token					***008
+		if (lp == NULL || *lp=='}') break;			//return, we're done with these
 		if (*lp)								//not a blank line
 		{	
 			if (*lp=='{')						//begin a new object
