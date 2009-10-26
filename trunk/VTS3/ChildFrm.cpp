@@ -28,6 +28,7 @@
 
 //Added by Jingbo Gao, 2004-9-20
 #include "BakRestoreExecutor.h"
+#include "InconsistentParsExecutor.h"
 
 //Added By Zhu Zhenhua, 2004-11-27
 #include "ScriptFrame.h"
@@ -159,6 +160,8 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
 	//Added by Jingbo Gao, 2004-9-20
 	ON_UPDATE_COMMAND_UI(ID_BACKUP_RESTORE, OnUpdateBackupRestore)
 	ON_COMMAND(ID_BACKUP_RESTORE, OnBackupRestore)
+	ON_UPDATE_COMMAND_UI(ID_TESTS_INCONSISTENTPARS, OnUpdateInconsistentPars)
+	ON_COMMAND(ID_TESTS_INCONSISTENTPARS, OnInconsistentPars)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1337,6 +1340,18 @@ void CChildFrame::OnUpdateBackupRestore(CCmdUI* pCmdUI)
 void CChildFrame::OnBackupRestore() 
 {
 	m_frameContext->m_pDoc->DoBackupRestore();
+}
+
+extern InconsistentParsExecutor gInconsistentParsExecutor;
+void CChildFrame::OnUpdateInconsistentPars(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable(!gInconsistentParsExecutor.IsRunning()); 
+}
+
+
+void CChildFrame::OnInconsistentPars() 
+{
+	m_frameContext->m_pDoc->DoInconsistentPars();
 }
 
 /////////////////////////////////////////////////////////////////////

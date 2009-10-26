@@ -670,6 +670,7 @@ public:
 
 	// Jingbo Gao, 2004-9-20, do backup and restore test
 	void DoBackupRestore(void);
+	void DoInconsistentPars(void);
 	
 #ifdef _DEBUG
 	virtual void AssertValid() const;

@@ -274,6 +274,10 @@ SOURCE=.\HexView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\InconsistentParsExecutor.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\LineNumCtrl.cpp
 # End Source File
 # Begin Source File
@@ -964,6 +968,14 @@ SOURCE=.\VTSFiltersDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSInconsistentParsDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSInconsistentProgressDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSLifeSafetyModeDlg.cpp
 # End Source File
 # Begin Source File
@@ -1457,6 +1469,10 @@ SOURCE=.\GoToLineDlg.h
 # Begin Source File
 
 SOURCE=.\HexView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\InconsistentParsExecutor.h
 # End Source File
 # Begin Source File
 
@@ -2172,6 +2188,14 @@ SOURCE=.\VTSFiltersDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSInconsistentParsDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSInconsistentProgressDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSLifeSafetyModeDlg.h
 # End Source File
 # Begin Source File
@@ -2654,7 +2678,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                    $(InputPath)                                                    $(OutDir)\ 
+	copy                                                      $(InputPath)                                                      $(OutDir)\ 
 
 # End Custom Build
 
@@ -2665,7 +2689,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                    $(InputPath)                                                    $(OutDir)\ 
+	copy                                                      $(InputPath)                                                      $(OutDir)\ 
 
 # End Custom Build
 

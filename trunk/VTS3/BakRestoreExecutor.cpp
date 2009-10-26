@@ -825,7 +825,7 @@ void BakRestoreExecutor::DoRestoreTest()
 					throw("unable to read File/FILE_SIZE\n");
 				}
 				m_pOutputDlg->OutMessage("OK");
- 				if (fileSize.uintValue != fileSizeIUT.uintValue)
+ 				if ((fileSizeIUT.uintValue != 0) && (fileSize.uintValue != fileSizeIUT.uintValue))
 				{
 					// use write_property to set the File_Size to zero
 					m_pOutputDlg->OutMessage("Use WriteProperty to set the File_Size to zero...", FALSE);
@@ -1413,7 +1413,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_7()
 {
 	if (m_strPassword.IsEmpty())
 	{
-		Msg("no password is required, this test has beeb omitted\n");
+		Msg("no password is required, this test has been omitted\n");
 		return;		// do not need carry on this test
 	}
 
@@ -1447,7 +1447,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_8()
 {
 	if (m_strPassword.IsEmpty())
 	{
-		Msg("no password is required, this test has beeb omitted\n");
+		Msg("no password is required, this test has been omitted\n");
 		return;		// do not need carry on this test
 	}
 
@@ -1479,6 +1479,12 @@ void BakRestoreExecutor::DoAuxiliaryTest_8()
 // Initiating and ending a backup procedure when a password is not required
 void BakRestoreExecutor::DoAuxiliaryTest_9(BACnetObjectIdentifier& devObjID)
 {
+	if (!m_strPassword.IsEmpty())
+	{
+		Msg("A specific password is required, this test has been omitted\n");
+		return;		// do not need carry on this test
+	}
+
 	CString strPasswordTemp(m_strPassword);
 	m_strPassword = "123";		// any non-zero length password
 
@@ -1530,6 +1536,12 @@ void BakRestoreExecutor::DoAuxiliaryTest_9(BACnetObjectIdentifier& devObjID)
 // Initiating and ending a restore procedure when a password is not required
 void BakRestoreExecutor::DoAuxiliaryTest_10(BACnetObjectIdentifier& devObjID)
 {
+	if (!m_strPassword.IsEmpty())
+	{
+		Msg("A specific password is required, this test has been omitted\n");
+		return;		// do not need carry on this test
+	}
+
 	CString strPasswordTemp(m_strPassword);
 	m_strPassword = "123";
 
