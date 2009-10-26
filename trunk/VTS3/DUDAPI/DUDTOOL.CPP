@@ -3151,7 +3151,7 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 			pbacnetAnyValue->SetObject(s32, new BACnetCharacterString(pObj->model_name));
 			break;
 		case FIRMWARE_REVISION:
-			pbacnetAnyValue->SetObject(s10, new BACnetCharacterString(pObj->firmware_rev));
+			pbacnetAnyValue->SetObject(s32, new BACnetCharacterString(pObj->firmware_rev));
 			break;
 		case APPLICATION_SOFTWARE_VERSION:
 			pbacnetAnyValue->SetObject(s32, new BACnetCharacterString(pObj->application_software_ver));
