@@ -42,6 +42,8 @@
 // Added by Jingbo Gao, Sep 20 2004
 #include "VTSBackupRestoreDlg.h"
 #include "BakRestoreExecutor.h"
+#include "InconsistentParsExecutor.h"
+#include "VTSInconsistentParsDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -5162,6 +5164,13 @@ extern BakRestoreExecutor gBakRestoreExecutor;
 void VTSDoc::DoBackupRestore( void )
 {
 	gBakRestoreExecutor.ExecuteTest();
+	
+}
+
+extern InconsistentParsExecutor gInconsistentParsExecutor;
+void VTSDoc::DoInconsistentPars( void )
+{
+	gInconsistentParsExecutor.ExecuteTest();
 	
 }
 

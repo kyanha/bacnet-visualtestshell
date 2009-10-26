@@ -23,6 +23,7 @@
 #include "ScriptKeywords.h"
 
 #include "BakRestoreExecutor.h"		// Added by Jingbo Gao, Sep 20 2004
+#include "InconsistentParsExecutor.h"
 
 namespace PICS {
 
@@ -274,6 +275,8 @@ void ScriptNetFilter::Indication( const BACnetNPDU &npdu )
 //	If the executor isn't running, don't bother.
 //
 extern BakRestoreExecutor gBakRestoreExecutor;
+extern InconsistentParsExecutor gInconsistentParsExecutor;
+
 void ScriptNetFilter::Confirmation( const BACnetNPDU &npdu )
 {
 	// make a copy for the executor thread
@@ -285,6 +288,9 @@ void ScriptNetFilter::Confirmation( const BACnetNPDU &npdu )
 		gBakRestoreExecutor.ReceiveNPDU(npdu);
 	}
 
+	if (gInconsistentParsExecutor.IsRunning()) {
+		gInconsistentParsExecutor.ReceiveNPDU(npdu);
+	}
 	// pass up to client
 	Response( npdu );
 }

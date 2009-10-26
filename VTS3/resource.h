@@ -265,6 +265,8 @@
 #define IDD_NOTIFY_EXTENDED             376
 #define IDD_NOTIFY_UNS_RANGE            377
 #define IDD_DEVTREEOPT                  378
+#define IDD_INCONSISTENT_PARS           379
+#define IDD_INCONSISTENT_PARS_PROGRESS  380
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -903,6 +905,7 @@
 #define IDC_COLORCOMBO1                 1527
 #define IDC_BACKUPFILENAME              1528
 #define IDC_AUTOSCROLL                  1528
+#define IDC_ALLTESTS                    1528
 #define IDC_RECVPKT                     1529
 #define IDC_BACKUPFILENAME2             1530
 #define IDC_SAVESENTPKT                 1530
@@ -934,9 +937,12 @@
 #define IDC_SASUM                       1555
 #define IDC_CHECK6                      1556
 #define IDC_SESUM                       1556
+#define IDC_INVALIDTAG                  1556
 #define IDC_CHECK7                      1557
 #define IDC_SINFO                       1557
+#define IDC_MISSINGREQPAR               1557
 #define IDC_CHECK8                      1558
+#define IDC_TOOMANYARGS                 1558
 #define IDC_CHECK9                      1559
 #define IDC_CHECK10                     1560
 #define IDC_CHECK11                     1561
@@ -1042,6 +1048,7 @@
 #define ID_VIEW_GLOBAL_TOOLBAR          32863
 #define ID_FILE_MRU_WKS15               32864
 #define ID_FILE_MRU_WKSLAST             32864
+#define ID_TESTS_INCONSISTENTPARS       32866
 #define ID_EDIT_DELETESEL               32870
 #define ID_EDIT_SENDPACKET              32871
 #define ID_COMBOBOX_SEPARATOR           32873
@@ -1139,9 +1146,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        379
-#define _APS_NEXT_COMMAND_VALUE         32866
-#define _APS_NEXT_CONTROL_VALUE         1556
+#define _APS_NEXT_RESOURCE_VALUE        381
+#define _APS_NEXT_COMMAND_VALUE         32867
+#define _APS_NEXT_CONTROL_VALUE         1560
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

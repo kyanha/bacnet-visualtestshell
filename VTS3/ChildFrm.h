@@ -170,6 +170,8 @@ protected:
 	// Added by Jingbo Gao, 2004-9-20
 	void OnBackupRestore();
 	void OnUpdateBackupRestore(CCmdUI* pCmdUI);
+	void OnInconsistentPars();
+	void OnUpdateInconsistentPars(CCmdUI* pCmdUI);
 	DECLARE_MESSAGE_MAP()
 };
 

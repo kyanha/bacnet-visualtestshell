@@ -1628,9 +1628,27 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //						1615874, 1592190, 1554997, 1477101, 1447133, 
 //						1431122, 1254440, 994901, 974844, 895890, 895882,
 //						855084. 829159
+//
+///		3.5.2	March 7, 2009   See release documents in Source Forge
+//
+//		3.5.2a	June 30, 2009	Minor release to SoftDEL only
+//			Fixed DeviceAddressBinding display in EPICS view
+//			Fixed InvokeID for auto-generated script.  Added this back this version.
+//			Fixed Accumulator Scale decoding.
+//			Fixed VTS error code response for unknown-property
+//			Fixed EPICS consistency for Schedule BIBBs
+//			Fixed Restore test to not write File_Size if IUT size is already 0.
+//			Changed size of firmware revision allowed in EPICS from 10 to 32.
+//		3.5.2c	
+//			Fixed the 'any' password test in backup and restore
+//			Fixed ActionList decoding for sniffer
+//			Fixed date and time decoding for scripting
+//		
+//		3.5.3	October 21, 2009
+//			Added Inconsistent Parameters tests (13.4.3, 13.4.4, 13.4.5)
 
 			
-const int kReleaseVersion = 1;
+const int kReleaseVersion = 3;
 			
 			class CAboutDlg : public CDialog
 			{
@@ -1663,7 +1681,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 //	m_Version = _T("");
 	//}}AFX_DATA_INIT
 
-	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%dd"
+	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d"
 		, kVTSDBMajorVersion
 		, kVTSDBMinorVersion
 		, kReleaseVersion		// defined above

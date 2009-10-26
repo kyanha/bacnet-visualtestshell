@@ -326,6 +326,7 @@ BEGIN
     POPUP "&Tests"
     BEGIN
         MENUITEM "&Backup/Restore...",          ID_BACKUP_RESTORE
+        MENUITEM "&Inconsistent Pars...",       ID_TESTS_INCONSISTENTPARS
     END
     POPUP "&Help"
     BEGIN
@@ -4711,6 +4712,47 @@ BEGIN
     LTEXT           "Number of Events",IDC_STATIC,44,65,68,10
 END
 
+IDD_INCONSISTENT_PARS DIALOG DISCARDABLE  0, 0, 206, 190
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Inconsistent Parameter Tests"
+FONT 8, "MS Sans Serif"
+BEGIN
+    COMBOBOX        IDC_PORTCOMBO,80,13,101,49,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_DEVICECOMBO,80,27,101,55,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_OBJECTID,80,43,87,15,ES_AUTOHSCROLL
+    CONTROL         "Invalid Tag (13.4.3)",IDC_INVALIDTAG,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,13,97,141,12
+    CONTROL         "Missing Required Parameter (13.4.4)",IDC_MISSINGREQPAR,
+                    "Button",BS_AUTORADIOBUTTON,13,111,141,12
+    CONTROL         "Too Many Arguments (13.4.5)",IDC_TOOMANYARGS,"Button",
+                    BS_AUTORADIOBUTTON,13,125,141,12
+    CONTROL         "All Tests",IDC_ALLTESTS,"Button",BS_AUTORADIOBUTTON,13,
+                    140,141,12
+    DEFPUSHBUTTON   "OK",IDOK,115,169,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,35,169,50,14
+    LTEXT           "Port:",IDC_STATIC,7,14,66,10
+    LTEXT           "Object:",IDC_STATIC,7,44,66,10
+    LTEXT           "Property:",IDC_STATIC,7,62,64,10
+    GROUPBOX        "Tests to Execute",IDC_STATIC,7,84,177,78
+    LTEXT           "Device to Test:",IDC_STATIC,7,30,64,10
+    PUSHBUTTON      "ID...",IDC_OBJECTIDBTN,168,43,18,14
+    COMBOBOX        IDC_PROPCOMBO,80,62,101,30,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_INCONSISTENT_PARS_PROGRESS DIALOG DISCARDABLE  0, 0, 244, 132
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Progress Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDC_BACKUP_RESTORE_KILL,25,108,67,17
+    DEFPUSHBUTTON   "Close",IDOK,122,108,67,17
+    CONTROL         "",IDC_RICHEDIT1,"RICHEDIT",ES_MULTILINE | WS_BORDER | 
+                    WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,7,7,230,95
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -4719,8 +4761,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,5,1,4
- PRODUCTVERSION 3,5,1,4
+ FILEVERSION 3,5,3,0
+ PRODUCTVERSION 3,5,3,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x21L
@@ -4738,14 +4780,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "Visual Test Shell\0"
-            VALUE "FileVersion", "3, 5, 1, 4\0"
+            VALUE "FileVersion", "3, 5, 3, 0\0"
             VALUE "InternalName", "VTS\0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2008\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "VTS.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Visual Test Shell\0"
-            VALUE "ProductVersion", "3, 5, 1, 4\0"
+            VALUE "ProductVersion", "3, 5, 3, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -6279,6 +6321,22 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 159
     END
+
+    IDD_INCONSISTENT_PARS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 199
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 183
+    END
+
+    IDD_INCONSISTENT_PARS_PROGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 237
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 125
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -7128,6 +7186,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_TESTS_INCONSISTENTPARS 
+                            "Dialog for running inconsistent parameters tests"
     ID_EDIT_SENDPACKET      "Send selected packet in the current log\nSend selected packet"
     ID_EDIT_QUICKSAVE       "Closes the current logfile and opens another packet logfile quickly\nChange logfile quickly"
     ID_EDIT_AUTOSCROLL      "Enable auto scroll"
