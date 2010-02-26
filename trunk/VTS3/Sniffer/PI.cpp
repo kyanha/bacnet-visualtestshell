@@ -194,6 +194,7 @@ char *get_sum_line( struct pi_data * )
 	return gCurrentInfo->summaryLine;
 }
 
+// Get a new BACnetPIDetail line.  Return text buffer in which to build
 char *get_int_line( struct pi_data *, int offset, int length, int nodeType )
 {
 	BACnetPIDetailPtr	dp
@@ -215,6 +216,7 @@ char *get_int_line( struct pi_data *, int offset, int length, int nodeType )
 	return dp->piLine;
 }
 
+// Get a pointer to the current detail line
 char *get_cur_int_line( void )
 {
 	return gCurrentInfo->detailLine[gCurrentInfo->detailCount-1]->piLine;
@@ -299,6 +301,8 @@ void pif_header( int len, char *header_string )
 	;
 	
 	// generate the header line in the detail
+	// NOTE: these headers may be compared for in the DetailView.
+	// Any change here may break that view...
 	s = get_int_line( pif_pi, pif_offset, len );
 	sprintf( s, "----- %s -----", header_string );
 	
@@ -309,6 +313,7 @@ void pif_header( int len, char *header_string )
 //
 //	pif_line
 //
+//  Get a new BACnetPIDetail line for the current offset.  Return text buffer in which to build
 
 char *pif_line( int len )
 {
@@ -324,6 +329,7 @@ char *pif_line( int len )
 //
 //	pif_get_ascii
 //
+//  Copy len bytes of ASCII from the specified offset
 
 char *pif_get_ascii( int offset, int len, char result_str[] )
 {
@@ -344,6 +350,8 @@ char *pif_get_ascii( int offset, int len, char result_str[] )
 //
 //	pif_show_ascii
 //
+//  Show len bytes of ASCII from the current offset as a new detail line, using
+//  the specified format string.  Advance offset pointer.
 
 void pif_show_ascii( int len, char *prstr )
 {
@@ -365,6 +373,7 @@ void pif_show_ascii( int len, char *prstr )
 //
 //	pif_append_ascii
 //
+//  Append ASCII to the current detail line using the specified format string
 
 void pif_append_ascii( const char *fmt, const char *data )
 {
@@ -377,6 +386,9 @@ void pif_append_ascii( const char *fmt, const char *data )
 //
 //	pif_show_nbytes_hex
 //
+//  Show byte_count bytes from the current offset as hex on a new detail line,
+//  using the specified format string.  Advance offset pointer.
+
 /* replaced with method below in order to correct buffer overruns
 void pif_show_nbytes_hex( char *prstr, int byte_count )
 {
@@ -438,7 +450,7 @@ void pif_show_nbytes_hex( char *prstr, int byte_count )
 	}
 	else
 	{
-	*dst = 0;
+		*dst = 0;
 	}
 
 	// format the data into the detail line
@@ -592,7 +604,11 @@ int pif_show_byte( char *prstr )
 //
 //	pif_show_flag
 //
+//  Show a byte from the current offset as a set of flags on a new detail line, 
+//  followed by the string and the byte value in decimal.  Advance offset pointer.
 
+// JLH TODO: why show a flag byte in DECIMAL?
+// Isn't used anywhere
 void pif_show_flag( char *prstr, int mask )
 {
 	char	*s
@@ -631,16 +647,16 @@ void pif_show_flag( char *prstr, int mask )
 //
 //	pif_show_flagbit
 //
+//  Show a byte from the current-1 offset as a set of flags on a new detail line, 
+//  followed by either the true-string or false-string.  No effect on offset pointer.
 
 int pif_show_flagbit( int bit, char *truestr, char *falsestr )
 {
 	// get a detail line
-	char *s = get_int_line( pif_pi, pif_offset-1, 1 )
-	;
+	char *s = get_int_line( pif_pi, pif_offset-1, 1 );
 	
 	// get the previous byte
-	int		flag = pif_get_byte(-1)
-	;
+	int		flag = pif_get_byte(-1);
 	
 	// indent to line up '='
 	for (int i = 0; i < pif_flagbit_indent; i++)
@@ -674,6 +690,9 @@ int pif_show_flagbit( int bit, char *truestr, char *falsestr )
 //
 //	pif_show_flagmask
 //
+//  Compare the masked byte from current-1 offset to the specified value.
+//  If they match, show the byte as a set of flags on a new detail line, 
+//  followed by the string.  Else show nothing.  No effect on offset pointer.
 
 int pif_show_flagmask( int maskbits, int value, char *prstr )
 {
@@ -716,7 +735,7 @@ int pif_show_flagmask( int maskbits, int value, char *prstr )
 //
 //	pif_show_space
 //
-//	Simply outputs a blank detail line.
+//	Simply outputs a blank detail line. NOP for this implementation.
 //
 
 void pif_show_space( void )
@@ -735,32 +754,24 @@ void pif_show_space( void )
 //
 //	xsprintf
 //
-//	The sprintf() function in the real sniffer has an extension to allow the 
+//  sprintf of the byte at the current offset.
+//  format string prstr should have %s for hdr, %u for the byte, and %s for valu
+//  Offset pointer is advanced by one.
+//
+// Historical note: comment on the original function stated
+//	The sprintf() function in the real Sniffer (tm) has an extension to allow the 
 //	pif_offset to be updated as a side effect.  It takes the type of object 
 //	to know how far to update.  In the BACnet sniffer functions, only '%>ku'
 //	is used (which uses one byte, yet another extension) so that's the only 
 //	thing I check for.  Oh, and it's also used only once.
+// Reality check:
+//  This was just too disgusting, so I edited the 20 callers to just pass
+//  %u and eliminated the voodoo here.  Not like we are going back to Sniffer.
 //
-
 void xsprintf( char *dst, char *prstr, char *hdr, char *valu )
 {
-	char	buff[ MAX_INT_LINE ]
-	;
-	int		hackOffset
-	;
-	
-	// look for the magic string
-	for (hackOffset = 0; ; hackOffset++)
-		if (strncmp(prstr+hackOffset,"%>ku",4) == 0)
-			break;
-	
-	// replace the string with a regular %d
-	strncpy( buff, prstr, hackOffset );
-	strcpy( buff+hackOffset, "%d" );
-	strcat( buff, prstr+hackOffset+4 );
-	
 	// now use the real sprintf
-	sprintf( dst, buff, hdr, (unsigned char)pif_get_byte(0), valu );
+	sprintf( dst, prstr, hdr, (unsigned char)pif_get_byte(0), valu );
 	
 	// update passed the byte
 	pif_offset += 1;

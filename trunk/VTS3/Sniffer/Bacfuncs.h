@@ -1,12 +1,13 @@
    /*   ------ BACnet base type character arrays --------------- */
 // Revision: Sep 18 2001 added new properties published in Addendum 135b to ANSI/ASHRAE Standard 135-1995
+// Revision: Feb 3 2010  added new properties published ANSI/ASHRAE Standard 135-2008
 
 char *BACnetAction[] = {
    "DIRECT",
    "REVERSE"
    };
 
-char* BACnetAcitonList[] = {
+char* BACnetActionList[] = {
 	"Action"
 };
 char *BACnetActionCommand[] = {
@@ -378,11 +379,11 @@ char *BACnetEngineeringUnits[] = {
 	"kilograms-per-cubic-meter",			/* 186 */
 	"newton-seconds",						/* 187 */
 	"newtons-per-meter",					/* 188 */
-	"watts-per-meter-per-degree-Kelvin",	/* 189 */
+	"watts-per-meter-per-degree-Kelvin",	/* 189 last definition in 135-2008 */
 	// Added by Addenda H (135-2004)
-	"micro-siemens",
-	"cubic-feet-per-hour",
-	"us-gallons-per-hour",  /* 192 */
+	"micro-siemens",                        /* 190 */
+	"cubic-feet-per-hour",                  /* 191 */
+	"us-gallons-per-hour",                  /* 192 */
    };
 
 char *BACnetError[] = {
@@ -493,44 +494,44 @@ char *BACnetErrorCode[] = {
    "Datatype-not-supported",             /* 47 | */
    "Duplicate-name",                     /* 48 | */
    "Duplicate-object-id",                /* 49 | */
-   "Property-is-not-an-array",            /* 50 kare.sars@wapice.com */
+   "Property-is-not-an-array",           /* 50 kare.sars@wapice.com */
    // Added by Addenda B PPR3 (135-2004)
-   "abort-buffer-overflow",
+   "abort-buffer-overflow",              /* 51 */
    "abort-invalid-apdu-in-this-state",
    "abort-preempted-by-higher-priority-task",
    "abort-segmentation-not-supported",
    "abort-proprietary",
-   "abort-other", /* 56 */
+   "abort-other",                        /* 56 */
    "invalid-tag",
    "network-down",
    "reject-buffer-overflow",
    "reject-inconsistent-parameters",
    "reject-invalid-parameter-data-type",
-   "reject-invalid-tag", /* 62 */
+   "reject-invalid-tag",                 /* 62 */
    "reject-missing-required-parameter",
    "reject-parameter-out-of-range",
    "reject-too-many-arguments",
    "reject-undefined-enumeration",
-   "reject-unrecognized-service", /* 67 */
-   "reject-proprietary",  /* 68 */
+   "reject-unrecognized-service",        /* 67 */
+   "reject-proprietary",                 /* 68 */
    "reject-other",
    "unknown-device",
    "unknown-route",
-   "value-not-totalized",   /* 72 */
+   "value-not-totalized",                /* 72 */
    // Added by Addenda D (135-2004)
-   "invalid-event-state",  /* 73 */
-   "no-alarm-configured", /* 74 */
+   "invalid-event-state",                /* 73 */
+   "no-alarm-configured",                /* 74 */
    // added by Addenda B
-   "log-buffer-full", // 75
-   "logged-value-purged", // 76
-   "no-property-specified", // 77
+   "log-buffer-full",                    // 75
+   "logged-value-purged",                // 76
+   "no-property-specified",              // 77
    "not-configured-for-triggered-logging", // 78
    // added by Addenda H (135-2004)
-   "unknown-subscription",	  // 79
-   "e80",
-   "e81",
-   "e82",
-   "communication-disabled",	// 83
+   "unknown-subscription",	             // 79
+   "error-80",                           // reserved in 135-2008
+   "error-81",
+   "error-82",
+   "communication-disabled",	         // 83 last value in 135-2008
    };
 
 // Added Addendum B (135-2004)
@@ -825,7 +826,7 @@ char *BACnetObjectType[] = {
    "TREND-LOG-MULTIPLE",  // 27 - Addendum B
    "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
    "STRUCTURED-VIEW",     // 29 - Addendum D
-   "ACCESS-DOOR",		  // 30
+   "ACCESS-DOOR",		  // 30 Last in 135-2008
    };
 
 char *BACnetObjectTypesSupported[] = {
@@ -851,7 +852,7 @@ char *BACnetObjectTypesSupported[] = {
    "MULTISTATE-VALUE",      /* 19 */
    "TREND-LOG",             /* 20 */	  // msdanner 9/04, was "TRENDLOG"
    "LIFE-SAFETY-POINT",     /* 21 */	  // msdanner 9/04, added
-   "LIFE-SAFETY-ZONE"       /* 22 */	  // msdanner 9/04, added
+   "LIFE-SAFETY-ZONE",      /* 22 */	  // msdanner 9/04, added.  JLH: 1/25/2010 added missing comma
    "ACCUMULATOR",           //23 Shiyuan Xiao 7/15/2005
    "PULSE-CONVERTER",       //24 Shiyuan Xiao 7/15/2005
    "EVENT-LOG",			  // 25	- Addendum B
@@ -859,7 +860,7 @@ char *BACnetObjectTypesSupported[] = {
    "TREND-LOG-MULTIPLE",  // 27 - Addendum B
    "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
    "STRUCTURED-VIEW",     // 29 - Addendum D
-   "ACCESS-DOOR",			// 30
+   "ACCESS-DOOR",			// 30 Last in 135-2008
    };
 
 char *BACnetPolarity[] = {
@@ -950,7 +951,7 @@ char *BACnetPropertyIdentifier[] = {
    "Instance_Of ",                      /* 48 */
    "Integral_Constant ",                /* 49 */
    "Integral_Constant_Units ",          /* 50 */
-   "Issue_Confirmed_Notifications ",    /* 51 */
+   "unused-was-Issue_Confirmed_Notifications ",    /* 51 deleted in version 1 revision 4*/
    "Limit_Enable ",                     /* 52 */
    "List_Of_Group_Members ",            /* 53 */
    "List_Of_Object_Property_References ",  /* 54 Zhu Zhenhua 2003-7-24 */
@@ -972,7 +973,7 @@ char *BACnetPropertyIdentifier[] = {
    "Model_Name ",                       /* 70 */
    "Modification_Date ",                /* 71 */
    "Notify_Type ",                      /* 72 */
-   "Number_Of_APDU_Retries",                    /* 73 */
+   "Number_Of_APDU_Retries",            /* 73 */
    "Number_Of_States ",                 /* 74 */
    "Object_Identifier ",                /* 75 */
    "Object_List ",                      /* 76 */
@@ -1028,18 +1029,16 @@ char *BACnetPropertyIdentifier[] = {
    "Buffer_Size ",                      /* 126 */
    "Client_Cov_Increment ",             /* 127 */
    "Cov_Resubscription_Interval ",      /* 128 */
-   "unused",								/* 129  Added by Zhu Zhenhua, 2004-5-11*/
-//   "Current_Notify_Time ",            /* 129 */
+   "unused-was-Current_Notify_Time",    /* 129  Added by Zhu Zhenhua, 2004-5-11 deleded in version 1 rev 3 */
    "Event_Time_Stamps ",                /* 130 */
    "Log_Buffer ",                       /* 131 */
    "Log_Device_Object_Property ",       /* 132 Zhu Zhenhua 2003-7-24 */
-   "Log_Enable ",                       /* 133 */
+   "Enable ",                           /* 133 changed from Log_Enable in 135-2004b-5 */
    "Log_Interval ",                     /* 134 */
    "Maximum_Value ",                    /* 135 */
    "Minimum_Value ",                    /* 136 */
    "Notification_Threshold ",           /* 137 */
-   "unused",								/* 138   Added by Zhu Zhenhua, 2004-5-11*/
-   //  "Previous_Notify_Time ",         /* 138 */   
+   "unused-was-Previous_Notify_Time",   /* 138   Added by Zhu Zhenhua, 2004-5-11 deleted in version 1 rev 3 */
    "Protocol_Revision ",                /* 139 */
    "Records_Since_Notification ",       /* 140 */
    "Record_Count ",                     /* 141 */
@@ -1127,19 +1126,19 @@ char *BACnetPropertyIdentifier[] = {
 	"shed-level-descriptions", // 220
 	"shed-levels",			// 221
 	"state-description",	// 222
-	"p223",
-	"p224",
-	"p225",
-	"door-alarm-state",
+	"unknown-223",
+	"unknown-224",
+	"unknown-225",
+	"door-alarm-state",		// 226
 	"door-extended-pulse-time",
 	"door-members",
 	"door-open-too-long-time",
-	"door-pulse-time",
+	"door-pulse-time",		// 230
 	"door-status",
 	"door-unlock-delay-time",
 	"lock-status",
 	"masked-alarm-values",
-	"secured-status",			// 235
+	"secured-status",		// 235 last in 135-2008
 };
 
 // Added by Addenda D
@@ -1558,11 +1557,11 @@ char *BACnetReinitializedStateOfDevice[] = {
 /**************************************************************************/
 /* The functions that follow are used to complement the PIF functions     */
 /* supplied by Network General. There primary purpose is to allow greater */
-/* flexibility in displaying the various BACnet constructs.        */
+/* flexibility in displaying the various BACnet constructs.               */
 /**************************************************************************/
 
 /*************************************************************************/
-void bac_show_byte ( char *label, char *format_str )
+void bac_show_byte ( const char *label, const char *format_str )
 /*************************************************************************/
 /* Advantage: Allows FW alignment */
 {
@@ -1588,7 +1587,7 @@ void bac_show_byte ( char *label, char *format_str )
 }
 
 /**************************************************************************/
-void bac_show_unsigned ( char *label, unsigned int len )
+void bac_show_unsigned ( const char *label, unsigned int len )
 /**************************************************************************/
 {
    switch (len) {
@@ -1639,7 +1638,7 @@ void bac_show_enetaddr ( char *label )
 }
 
 /*************************************************************************/
-void bac_show_bipaddr ( char *label )
+void bac_show_bipaddr ( const char *label )
 /*************************************************************************/
 {
    const char  *name = LookupName( 0, (const unsigned char *)msg_origin + pif_offset, 6 )
@@ -1659,6 +1658,7 @@ void bac_show_bipaddr ( char *label )
 }
 
 /*************************************************************************/
+// TODO: called only from show_context_tag
 void bac_show_ctag_flag ( void )
 /*************************************************************************/
 /* Advantage: Allows FW alignment and extraction of tag value as [X] */
@@ -1694,7 +1694,7 @@ void bac_show_flag ( char outstr[80], unsigned char mask )
 }
 
 /**************************************************************************/
-void bac_show_nbytes( unsigned int len, char *str )
+void bac_show_nbytes( unsigned int len, const char *str )
 /**************************************************************************/
 /* Advantage: Highlights n bytes without 99 byte limitation of
    pif_show_nbytes_hex. Does not do any interpretation */
@@ -1704,26 +1704,26 @@ void bac_show_nbytes( unsigned int len, char *str )
 }
 
 /*************************************************************************/
-void bac_show_word_hl ( char *label, char *format_str )
+void bac_show_word_hl ( const char *label, const char *format_str )
 /*************************************************************************/
 /* Advantage: Allows FW alignment */
 {
   sprintf(outstr,"%"FW"s = ",label); /* Set up alignment of output */
   strcat(outstr,format_str);
   sprintf(get_int_line(pi_data_current,pif_offset,2),outstr,
-     pif_get_word_hl(0));
+          pif_get_word_hl(0));
   pif_offset += 2;
 }
 
 /*************************************************************************/
-void bac_show_long_hl ( char *label, char *format_str )
+void bac_show_long_hl ( const char *label, const char *format_str )
 /*************************************************************************/
 /* Advantage: Allows FW alignment */
 {
   sprintf(outstr,"%"FW"s = ",label); /* Set up alignment of output */
   strcat(outstr,format_str);
   sprintf(get_int_line(pi_data_current,pif_offset,4),outstr,
-     pif_get_long_hl(0));
+          pif_get_long_hl(0));
   pif_offset += 4;
 }
 
@@ -1731,43 +1731,23 @@ void bac_show_long_hl ( char *label, char *format_str )
 void float_to_ascii( double x, char *outstr)
 /**************************************************************************/
 {
-   sprintf( outstr, "%3.1f", x );
-/*
-   It looks like this horrible code is a way to get floating point
-   formatting.  I recommend it be taken out and shot.
-   
-   int i,j;
-   int dec,sign;
-   char *instrg;
-
-   instrg = fcvt(x,5,&dec,&sign);
-
-   if (sign == 0)
-      outstr[0] = '+';
-   else
-      outstr[0] = '-';
-
-   for (i=0,j=1;i<strlen(instrg);i++,j++) {
-      if (dec == i) {
-        outstr[j] = '.';
-        j += 1;
-      }
-      outstr[j] = instrg[i];
-   }
-   outstr[j] = 0;
-*/
+   // JLH let's try %g, so very large and very small numbers don't
+   // overfl000000000000000000000000000w the buffer...
+    // TODO: This function is not used anywhere: just do the sprintf in line  
+//   sprintf( outstr, "%3.1f", x );
+   sprintf( outstr, "%#g", x );
 }
 
 /*************************************************************************/
-void show_str_eq_str ( char *str1, char *str2, unsigned int len )
+void show_str_eq_str ( const char *str1, const char *str2, unsigned int len )
 /*************************************************************************/
 {
   sprintf(get_int_line(pi_data_current,pif_offset,len),
-     "%"FW"s = %s",str1,str2);
+          "%"FW"s = %s",str1,str2);
 }
 
 /*************************************************************************/
-void bac_show_flagmask ( unsigned char mask, char outstr[80] )
+void bac_show_flagmask ( unsigned char mask, const char *str )
 /*************************************************************************/
 /* Advantage: Allows the value of the masked-off field to be displayed
    in a formatted string to right of multi-bit field */
@@ -1855,7 +1835,7 @@ void bac_show_flagmask ( unsigned char mask, char outstr[80] )
    }
    strvar[i] = '\0';
    strcat(strvar," = ");
-   strcat(strvar,outstr);
+   strcat(strvar,str);
    sprintf(get_int_line(pi_data_current,pif_offset-1,1),strvar,saveval);
 }
 
@@ -2059,7 +2039,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 
             show_bac_address();
             x = pif_get_byte(0);
-            };
+           }
            break;
       case EFFECTIVE_PERIOD: /*  BACnetDateRAnge  */
 //	       pif_show_ascii(0,"Start Date");			/*modified by Lei Chengxin 2003-9-1*/
@@ -2224,7 +2204,8 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 			    //show_bac_read_access_spec();
 				show_bac_dev_obj_prop_ref();    //modified by Xu Yiping, 2002-9-28
            break;
-/***/      case LIST_OF_SESSION_KEYS:
+/***/
+	  case LIST_OF_SESSION_KEYS:
 		   while ((pif_get_byte(0) & 0x0f) != 0x0f) //Added by Zhu ZHenhua, 2004-6-14
 		   {
 			   show_application_data(pif_get_byte(0));
@@ -2982,7 +2963,7 @@ void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
 //	       bac_show_byte("Error: Unknown Property Identifier","%u");
 		   show_head_app_data();		 //modified by Lei Chengxin 2003-9-8
 		   show_application_data(x);
-		   if(pif_get_byte(0)&0x0F != 0x0F)
+		   if ((pif_get_byte(0) & 0x0F) != 0x0F)
 		   {
 			   bac_show_byte("Error: Closing Tag Expected!","'%02X'");
 			   pif_end_offset = pif_offset;

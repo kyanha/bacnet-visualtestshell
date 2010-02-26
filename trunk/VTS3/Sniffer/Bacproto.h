@@ -337,38 +337,39 @@ void     show_vtCloseError(void);
 
 /*  ----- prototypes for general purpose pif routines ----- */
 
-void     bac_show_byte(char *,char *);
-void     bac_show_unsigned(char *,unsigned int);
-void     bac_show_bipaddr(char *);
-void     bac_show_flag(char *, unsigned char);
+void     bac_show_byte(const char *,const char *);
+void     bac_show_unsigned(const char *,unsigned int);
+void     bac_show_bipaddr(const char *);
+void     bac_show_flag(char *outstr, unsigned char);
 void     bac_show_ctag_flag(void);
-void     bac_show_flagmask (unsigned char, char *);
-void     bac_show_nbytes(unsigned int, char *);
-void     bac_show_word_hl(char *, char *);
-void     bac_show_long_hl(char *, char *);
-void     float_to_ascii(double, char *);
-void     show_str_eq_str(char *, char *, unsigned int);
-unsigned long get_bac_unsigned(int, int);
+void     bac_show_flagmask (unsigned char, const char *);
+void     bac_show_nbytes(unsigned int, const char *);
+void     bac_show_word_hl(const char *, const char *);
+void     bac_show_long_hl(const char *, const char *);
+void     float_to_ascii(double, char *outstr);
+void     show_str_eq_str(const char *, const char *, unsigned int);
+unsigned long get_bac_unsigned(int offset, int length);
 
 /*  ----- prototypes for displaying other PDU components ----- */
 
 void     check_ctag_length(unsigned char, unsigned int, unsigned int);
-unsigned int show_context_tag(char *);
+unsigned int show_context_tag(const char *);
 unsigned int show_application_data(unsigned char);
 unsigned int show_application_tag(unsigned char);
 
 /*  ----- prototypes for displaying primitive data types ----- */
 
-void     show_bac_ANY(int, unsigned int, int);
+void     show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx );
 void     show_bac_bitstring(unsigned int);
-void     show_bac_charstring(unsigned int);
+void     show_bac_charstring(unsigned int len);
+void     show_bac_octetstring(unsigned int);
 void     show_bac_date(void);
 void     show_bac_double(void);
 void     show_bac_object_identifier(void);
 void     show_bac_real(void);
-void     show_bac_signed(unsigned int);
+void     show_bac_signed(unsigned int len);
 void     show_bac_time(void);
-void     show_bac_unsigned(unsigned int);
+void     show_bac_unsigned(unsigned int len);
 
 /*  ----- prototypes for displaying BACnet base types ----- */
 
@@ -413,17 +414,19 @@ void	show_bac_life_safety_operation();
 
 /*  ----- functions to add new tree node to the detail view ----- */
 
-void	 show_head_obj_id( unsigned int , char* , int );		// Lei Chengxin 2003-7-25		
-void	 show_head_unsigned( unsigned int , char* , int );		// Lei Chengxin 2003-7-30
-void	 show_head_ascii( char* );								// Lei Chengxin 2003-7-31
-void	 show_head_char_string( unsigned int , char* , int );	// Lei Chengxin 2003-7-31
-void	 show_head_time( unsigned int , char* , int );			// Lei Chengxin 2003-7-31
-void	 show_head_property_ID( unsigned int , char* , int );	// Lei Chengxin 2003-7-31
+void	 show_head_obj_id( unsigned int , const char* , int );		// Lei Chengxin 2003-7-25		
+void	 show_head_unsigned( unsigned int offset, const char* type, int tagval);		// Lei Chengxin 2003-7-30
+void	 show_head_ascii( const char* );								// Lei Chengxin 2003-7-31
+void	 show_head_char_string( unsigned int , const char* , int );	// Lei Chengxin 2003-7-31
+void	 show_head_time( unsigned int , const char* , int );			// Lei Chengxin 2003-7-31
+void	 show_head_date( unsigned int , const char* , int );
+void	 show_head_property_ID( unsigned int , const char* , int );	// Lei Chengxin 2003-7-31
 void     show_head_app_data( void );							// Lei Chengxin 2003-8-23
-void	 show_head_octet_string( unsigned int , char* , int );	// Lei Chengxin 2003-8-23
-void	 show_head_signed( unsigned int , char* , int );		// Lei Chengxin 2003-8-23
-void	 show_head_real( unsigned int , char* , int );			// Lei Chengxin 2003-8-23
-void     show_head_bit_string( unsigned int , char* , int );	// Lei Chengxin 2003-8-23
+void	 show_head_octet_string( unsigned int , const char* , int );	// Lei Chengxin 2003-8-23
+void	 show_head_signed( unsigned int , const char* , int );		// Lei Chengxin 2003-8-23
+void	 show_head_real( unsigned int , const char* , int );			// Lei Chengxin 2003-8-23
+void	 show_head_double( unsigned int , const char* , int );
+void     show_head_bit_string( unsigned int , const char* , int );	// Lei Chengxin 2003-8-23
 
 /*  ----- prototypes extracting information from object identifiers ----- */
 int      bac_extract_obj_type(void);

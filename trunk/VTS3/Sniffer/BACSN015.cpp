@@ -1,7 +1,7 @@
-     /* -------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
 /*              BACnet Protocol Interpreter Version 15                  */
 /* -------------------------------------------------------------------- */
-/*                           */
+/*                                                                      */
 /* INITPI.C will be set up to branch to this routine when 802.3 packets */
 /* are found with a DSAP of 0x82, 0x03(PTP), 0x04(MSTP); or ARCNET      */
 /* packets are found with a Sytem Code of 0xCD.                         */
@@ -77,12 +77,12 @@ int interp_bacnet_IP( char *header, int length)  /* IP interpreter */
 
    /* Detail line? */
    if (pi_data_bacnet_IP->do_int) {
-      pif_init (pi_data_bacnet_IP, header, length);
-      pif_header (length, "IP Frame Detail");
+      pif_init(pi_data_bacnet_IP, header, length);
+      pif_header(length, "IP Frame Detail");
       bac_show_bipaddr( "Source/Destination" );
-     pif_show_space();
+      pif_show_space();
 
-     interp_bacnet_BVLL( header + 6, length - 6 );
+      interp_bacnet_BVLL( header + 6, length - 6 );
    }
 
    return length;
@@ -108,19 +108,21 @@ int interp_bacnet_ETHERNET( char *header, int length)  /* Ethernet interpreter *
       pif_header( length, "Ethernet Frame Detail" );
       bac_show_enetaddr( "Destination" );
       bac_show_enetaddr( "Source" );
-
+      
       bac_show_word_hl( "Length", "%u" );
+      
+      bac_show_byte( "DSAP", "X'%02X'" );
+      bac_show_byte( "SSAP", "X'%02X'" );
+      bac_show_byte( "LLC Control", "X'%02X'" );
 
-     bac_show_byte( "DSAP", "X'%02X'" );
-     bac_show_byte( "SSAP", "X'%02X'" );
-     bac_show_byte( "LLC Control", "X'%02X'" );
+      pif_show_space();
 
-     pif_show_space();
-
-     if (pif_get_byte(0) == 0x01)
+      if (pif_get_byte(0) == 0x01)
         interp_bacnet_NL( header + 17, len );
-     else
-        interp_bacnet_BVLL( header + 17, len );
+      else
+        // This is bogus - BVLL on Ethernet without IP?
+		// interp_bacnet_BVLL( header + 17, len );
+        pif_show_byte("Ethernet with BACnet LLC is not network version 1.  Has 0x%02X");
    }
 
    return length;
@@ -141,18 +143,20 @@ int interp_bacnet_ARCNET( char *header, int length)  /* ARCNET interpreter */
       bac_show_byte( "Source", "%u" );
       bac_show_byte( "Destination", "%u" );
 
-     bac_show_byte( "BACnet SC", "X'%02X'" );
-     bac_show_byte( "DSAP", "X'%02X'" );
-     bac_show_byte( "SSAP", "X'%02X'" );
+      bac_show_byte( "BACnet SC", "X'%02X'" );
+      bac_show_byte( "DSAP", "X'%02X'" );
+      bac_show_byte( "SSAP", "X'%02X'" );
 
-     bac_show_byte( "LLC Control", "X'%02X'" );
+      bac_show_byte( "LLC Control", "X'%02X'" );
 
-     pif_show_space();
+      pif_show_space();
 
-     if (pif_get_byte(0) == 0x01)
+      if (pif_get_byte(0) == 0x01)
         interp_bacnet_NL( header + 6, length - 6 );
-     else
-        interp_bacnet_BVLL( header + 6, length - 6 );
+      else
+         // This is bogus - BVLL on ARCNET without IP?
+        // interp_bacnet_BVLL( header + 6, length - 6 );
+        pif_show_byte("ARCNET with BACnet LLC is not network version 1.  Has 0x%02X");
    }
 
    return length;
@@ -256,7 +260,7 @@ int interp_bacnet_MSTP( char *header, int length)  /* MS/TP interpreter */
                        bac_show_word_hl("Error: Invalid Data Length","%u");
                     break;
 
-         };  /* end of frame_type switch */
+      }  /* end of frame_type switch */
 
       /* header CRC field */
       /* -- check the CRC -- */
@@ -688,6 +692,7 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
       
       switch (pif_get_byte(0)) {
          case 0x01:
+			 // TODO: this is an error here: BACnet WITHOUT BVLL
             interp_bacnet_NL( header, length );
             break;
          case 0x81:
@@ -701,7 +706,7 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
                   break;
                default:
                   strcpy( get_sum_line(pi_data_bacnet_BVLL), BVLL_Function[pif_get_byte(1)] );
-         }
+            }
             break;
       }
    }
@@ -710,8 +715,9 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
       pif_init( pi_data_bacnet_BVLL, header, length );
       pif_header( length, "BACnet Virtual Link Layer Detail" );
 
-     switch (pif_get_byte(0)) {
+      switch (pif_get_byte(0)) {
          case 0x01:
+			 // TODO: this is an error here: BACnet WITHOUT BVLL
 //            pif_show_ascii( 0, "Empty BVLL" );
             pif_show_space();
             return interp_bacnet_NL( header, length );
@@ -807,8 +813,14 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
                   pif_show_space();
                   interp_bacnet_NL( header + pif_offset, length - pif_offset );
                   break;
-            }
+         default:
+            pif_show_byte("Unknown BVLC Function               = %u");
             break;
+         }
+         break;
+      default:
+         pif_show_byte("Unknown BVLC Version               = %u");
+         break;
       }
    }
    
@@ -880,7 +892,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 		 //Xiao SHiyuan 2002-5-17
 		 if (nlMsgID < 0)
 		 {		 
-			 strcpy( get_sum_line(pi_data_bacnet_NL), "Error Network Layer Message Type" );
+			 strcpy( get_sum_line(pi_data_bacnet_NL), "Error: Network Layer Message Type" );
 			 return length;
 		 }
 		 else
@@ -897,11 +909,13 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 		     strcpy( get_sum_line(pi_data_bacnet_NL), "Proprietary Network Layer Message" );			
 		 }
 	     else
+		 {
 		    strcpy( get_sum_line(pi_data_bacnet_NL), NL_msgs[pif_get_byte(0)] );
 /*
          sprintf (get_sum_line (pi_data_bacnet_NL),
             "BACnet NL (%s)",NL_msgs[pif_get_byte(0)]);
 */
+		 }
       }
       else {
 /*
@@ -913,7 +927,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          apdu_length = length - npdu_length;
          if(apdu_length <= 0 || npdu_length > length || npdu_length > 1497) //npdu length error
 		 {
-			 strcpy( get_sum_line(pi_data_bacnet_NL), "Error NPDU" );
+			 strcpy( get_sum_line(pi_data_bacnet_NL), "Error: NPDU length" );
 			 return length;
 		 }
 		 //Xiao Shiyuan 2002-5-19. END
@@ -1039,7 +1053,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
         buff = pif_get_byte(0);
         if(buff >= 0x80){
           pif_show_byte("Proprietary Message Type    = %u");
-          pif_show_word_hl("Vendor ID                   = %d");
+          pif_show_word_hl("Vendor ID                   = %u");
           }
         else{
           switch (buff) {   /* show appropriate NL interpretation */
@@ -2209,8 +2223,9 @@ void show_confirmed( unsigned char x )
       show_vtData,                      /* 23 */
       show_authenticate,                /* 24 */
       show_requestKey,                  /* 25 */
-      show_ReadRange,                    /* 26 */
-	  0,0,
+      show_ReadRange,                   /* 26 */
+      NULL,								/* 27 TODO: implement show_LifeSafetyOperation */
+	  NULL,								/* 28 TODO: implement show_SubscribeCOVProperty */
 	  show_getEventInformation          /* 29 Added by Zhu Zhenhua, 2004-5-25*/
    };
 
@@ -2222,24 +2237,39 @@ void show_confirmed( unsigned char x )
    pif_show_flagbit(0x08,"Segmented Message","Unsegmented Message");
    pif_show_flagbit(0x04,"More Follows","No More Follows");
    pif_show_flagbit(0x03,"Segmented Resp Accepted","Segmented Resp not Accepted");
-   sprintf(outstr,"%"FW"s = X'%%02X'","Maximum APDU Response Size Accepted");
+   sprintf(outstr,"%"FW"s = X'%%02X'","Maximum APDU Response Accepted");
    bac_show_flag(outstr,0xFF);
+
+   pif_show_flagmask(0x70, 0x00,"Unspecified number of segments");
+   pif_show_flagmask(0x70, 0x01,"2 segments accepted");
+   pif_show_flagmask(0x70, 0x02,"4 segments accepted");
+   pif_show_flagmask(0x70, 0x03,"8 segments accepted");
+   pif_show_flagmask(0x70, 0x04,"16 segments accepted");
+   pif_show_flagmask(0x70, 0x05,"32 segments accepted");
+   pif_show_flagmask(0x70, 0x06,"64 segments accepted");
+   pif_show_flagmask(0x70, 0x07,"More than segments accepted");
    pif_show_flagmask(0x0F, 0x00,"Up to 50 Octets");
    pif_show_flagmask(0x0F, 0x01,"Up to 128 Octets");
    pif_show_flagmask(0x0F, 0x02,"Up to 206 Octets");
    pif_show_flagmask(0x0F, 0x03,"Up to 480 Octets");
    pif_show_flagmask(0x0F, 0x04,"Up to 1024 Octets");
    pif_show_flagmask(0x0F, 0x05,"Up to 1476 Octets");
+   
    bac_show_byte("Invoke ID","%d");
    if (x & 0x08)  {               /* SEG = 1 */
      bac_show_byte("Sequence Number","%d");
      bac_show_byte("Proposed Window Size","%d");
    }
+   
    pif_show_space();
-   if (pif_get_byte(0) >= max_confirmed_services)
-      bac_show_byte("Error: Unknown Confirmed Service","%u");
-   else
+   if ((pif_get_byte(0) >= max_confirmed_services) ||
+	   (show_confirmed_service[pif_get_byte(0)] == NULL)) 
+   {
+      bac_show_byte("Error: Unsupported Confirmed Service","%u");
+   }
+   else {
       (*show_confirmed_service[pif_get_byte(0)])(); /* call the service interpreter function */
+   }
 }
 
 /***************************************************************************/
@@ -2315,7 +2345,8 @@ void show_simple_ack( unsigned char )
    pif_show_flagmask(0xF0,0x20,"BACnet-SimpleACK-PDU");
    pif_show_flagbit(0x0F,"Unused",NULLP);
    bac_show_byte("Invoke ID","%d");
-   bac_show_byte(BACnetServicesSupported[pif_get_byte(0)],"%d");
+   // Had BACnetServicesSupported - wrong for anything above 25
+   bac_show_byte(BACnetConfirmedServiceChoice[pif_get_byte(0)],"%d");
 }
 
 /*************************************************************************/
@@ -2335,14 +2366,14 @@ void show_complex_ack( unsigned char x )
       show_readPropertyConditionalACK, /* 13 */
       show_readPropertyMultipleACK,    /* 14 */
       0,0,0,
-      show_conf_PrivateTransferACK,    /* 18*/
+      show_conf_PrivateTransferACK,    /* 18 */
       0, 0,
       show_vtOpenACK,                  /* 21 */
       0,
       show_vtDataACK,                  /* 23 */
       show_authenticateACK,            /* 24 */
       0,
-      show_ReadRangeACK,                /* 26 */
+      show_ReadRangeACK,               /* 26 */
 	  0,0,
 	  show_getEventInformationACK	   /* 29 Added by Zhu Zhenhua, 2004-5-25*/
    };
@@ -2352,6 +2383,7 @@ void show_complex_ack( unsigned char x )
    pif_show_flagbit(0x08,"Segmented Message","Unsegmented Message");
    pif_show_flagbit(0x04,"More Follows","No More Follows");
    pif_show_flagbit(0x03,"Unused",NULLP);
+   
    pif_show_byte("Invoke ID                   = %d");
    if (x & 0x08) /* SEG = 1 */ {
      pif_show_byte   ("Sequence Number             = %d");
@@ -2359,14 +2391,18 @@ void show_complex_ack( unsigned char x )
    }
    pif_show_space();
    /* call the confirmed service ACK interpreter function */
-   if (pif_get_byte(0) >= max_confirmed_services)
-      bac_show_byte("Error: Unknown Complex ACK Type","%u");
-   else
-   if (x & 0x08) /* SEG = 1 */ {
+   if ((pif_get_byte(0) >= max_confirmed_services) ||
+	   (show_confirmed_service_ACK[pif_get_byte(0)] == NULL)) 
+   {
+      bac_show_byte("Error: Unsupported Complex ACK Type","%u");
+   }
+   else if (x & 0x08) /* SEG = 1 */ 
+   {
      pif_show_space();
      bac_show_nbytes( pif_end_offset - pif_offset, "[segmented data]" );
-   } else
+   } else {
       (*show_confirmed_service_ACK[pif_get_byte(0)])();
+   }
 }
 
 /*************************************************************************/
@@ -2388,32 +2424,32 @@ void show_error( unsigned char x )
 /**************************************************************************/
 {
    void (*show_confirmed_service_error[max_confirmed_services])() = {
+      show_error_codes,	// 0
       show_error_codes,
       show_error_codes,
       show_error_codes,
       show_error_codes,
+      show_error_codes,	// 5
+      show_error_codes,
+      show_error_codes,
+      show_createObjectError,  /* 8 change list error */
+      show_createObjectError,  /* 9 change list error */
+      show_createObjectError, // 10
       show_error_codes,
       show_error_codes,
       show_error_codes,
       show_error_codes,
-      show_createObjectError,  /*change list error */
-      show_createObjectError,  /*change list error */
-      show_createObjectError,
+      show_error_codes,	// 15
+      show_writePropertyMultipleError, // 16
       show_error_codes,
       show_error_codes,
       show_error_codes,
+      show_error_codes,	 // 20
+      show_error_codes,
+      show_vtCloseError, // 22
       show_error_codes,
       show_error_codes,
-      show_writePropertyMultipleError,
-      show_error_codes,
-      show_error_codes,
-      show_error_codes,
-      show_error_codes,
-      show_error_codes,
-      show_vtCloseError,
-      show_error_codes,
-      show_error_codes,
-      show_error_codes
+      show_error_codes   //25
    };
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
@@ -2427,18 +2463,23 @@ void show_error( unsigned char x )
      bac_show_byte("Proposed Window Size","%d");
    }
    pif_show_space();
-   if (pif_get_byte(0) < max_confirmed_services) {
-      sprintf(outstr,"%s Service Error",BACnetServicesSupported[pif_get_byte(0)]);
+   if ((pif_get_byte(0) < max_confirmed_services) &&
+	   (show_confirmed_service_error[pif_get_byte(0)] != NULL))
+   {
+      // Had BACnetServicesSupported - wrong for anything above 25
+   	  sprintf(outstr,"%s Service Error",BACnetConfirmedServiceChoice[pif_get_byte(0)]);
       bac_show_byte(outstr,"%u");
       (*show_confirmed_service_error[pif_get_byte(-1)])();
    }
    else {
       if (pif_get_byte(0) == 0) {
-    bac_show_byte("Other Error","%u");
-    show_error_codes();
+         bac_show_byte("Other Error","%u");
+         show_error_codes();
       }
       else
-    bac_show_byte("Error: Unknown Error Designation","%u");
+	  {
+         bac_show_byte("Error: Unsupported Error Designation","%u");
+	  }
    }
 }
 
@@ -2521,6 +2562,7 @@ void show_acknowledgeAlarm( void )
              };
            break;
        case 3:  show_context_tag("Time Stamp");
+		   // TODO: wtf? this isn't a list, and it IS required
 		   //Added by Yajun Zhou, 2002-9-18
 		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
 		   //////////////////////////////
@@ -2533,6 +2575,7 @@ void show_acknowledgeAlarm( void )
            show_bac_charstring(len);
            break;
        case 5:  show_context_tag("Time of Acknowledgement");
+		   // TODO: wtf? this isn't a list, and it IS required
 		   //Added by Yajun Zhou, 2002-9-18
 		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
 		   //////////////////////////////
@@ -2543,6 +2586,7 @@ void show_acknowledgeAlarm( void )
            bac_show_nbytes(len,"Unknown data");
     }
       }
+// TODO: the indenting on this leads me to wonder what was intended
       else
 		 show_head_app_data();																	   //  ***002
          show_application_data(tagbuff);
@@ -2761,10 +2805,10 @@ void show_confirmedEventNotification( void )
       tagbuff = pif_get_byte(0);
       if(tagbuff)  /* TRUE */
          xsprintf(get_int_line(pi_data_current,pif_offset,1),
-         "%"FW"s = %>ku %s", "Acknowledgement Required","(TRUE)");
+         "%"FW"s = %u %s", "Acknowledgement Required","(TRUE)");
       else
          xsprintf(get_int_line(pi_data_current,pif_offset,1),
-         "%"FW"s = %>ku %s", "Acknowledgement Required","(FALSE)");
+         "%"FW"s = %u %s", "Acknowledgement Required","(FALSE)");
       pif_show_space();
       }
    else{ /* required for alarm or event notifications */
@@ -3388,10 +3432,10 @@ void show_getEventInformationACK( void )
 	   tagbuff = pif_get_byte(0);
 	   if(tagbuff)  /* TRUE */
 		   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-		   "%"FW"s = %>ku %s", "More Event","(TRUE)");
+		   "%"FW"s = %u %s", "More Event","(TRUE)");
 	   else
 		   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-		   "%"FW"s = %>ku %s", "More Event","(FALSE)");
+		   "%"FW"s = %u %s", "More Event","(FALSE)");
 	   pif_show_space();
    }
    else{ 
@@ -3733,10 +3777,10 @@ void show_subscribeCOV( void )
             tagbuff = pif_get_byte(0);
             if(tagbuff)  /* TRUE */
                xsprintf(get_int_line(pi_data_current,pif_offset,1),
-               "%"FW"s = %>ku %s", "Issue Confirmed Notifications","(TRUE)");
+               "%"FW"s = %u %s", "Issue Confirmed Notifications","(TRUE)");
             else
                xsprintf(get_int_line(pi_data_current,pif_offset,1),
-               "%"FW"s = %>ku %s", "Issue Confirmed Notifications","(FALSE)");
+               "%"FW"s = %u %s", "Issue Confirmed Notifications","(FALSE)");
             pif_show_space();
             }
          else {
@@ -4582,13 +4626,13 @@ void show_deviceCommunicationControl( void )
                tagbuff = pif_get_byte(0);
                if(tagbuff == 1)  /* DISABLED */
                  xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %>ku %s", "Device Communication Status","(DISABLED)");
+                   "%"FW"s = %u %s", "Device Communication Status","(DISABLED)");
                else if(tagbuff == 2)  /* DISABLED-INIT */
                  xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %>ku %s", "Device Communication Status","(DISABLE-INITIATION)");
+                   "%"FW"s = %u %s", "Device Communication Status","(DISABLE-INITIATION)");
 			   else
                  xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %>ku %s", "Device Communication Status","(ENABLED)");
+                   "%"FW"s = %u %s", "Device Communication Status","(ENABLED)");
                pif_show_space();
                break;
            case 2:  /* password */
@@ -4904,7 +4948,7 @@ void show_vtOpen( void )
 
    show_application_tag(pif_get_byte(0));
    xsprintf(get_int_line(pi_data_current,pif_offset,1),
-           "%"FW"s = %>ku %s", "VT Class Enumeration",
+           "%"FW"s = %u %s", "VT Class Enumeration",
             BACnetVTClass[pif_get_byte(0)]);
 
    show_head_unsigned(1, "Local VT Session Id", -1);											   //  ***002
@@ -5035,10 +5079,10 @@ void show_authenticate( void )
                tagbuff = pif_get_byte(0);
                if(tagbuff)  /* TRUE */
                  xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %>ku %s", "Start Enciphered Session","(TRUE)");
+                   "%"FW"s = %u %s", "Start Enciphered Session","(TRUE)");
                else
                  xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %>ku %s", "Start Enciphered Session","(FALSE)");
+                   "%"FW"s = %u %s", "Start Enciphered Session","(FALSE)");
                pif_show_space();
                break;
            default: len = show_context_tag("Unknown tag");
@@ -5482,10 +5526,10 @@ void show_unconfEventNotification( void )
       tagbuff = pif_get_byte(0);
       if(tagbuff)  /* TRUE */
          xsprintf(get_int_line(pi_data_current,pif_offset,1),
-         "%"FW"s = %>ku %s", "Acknowledgement Required","(TRUE)");
+         "%"FW"s = %u %s", "Acknowledgement Required","(TRUE)");
       else
          xsprintf(get_int_line(pi_data_current,pif_offset,1),
-         "%"FW"s = %>ku %s", "Acknowledgement Required","(FALSE)");
+         "%"FW"s = %u %s", "Acknowledgement Required","(FALSE)");
       pif_show_space();
       }
    else{ /* required for alarm or event notifications */
@@ -6600,10 +6644,10 @@ void show_vtDataACK( void )
    tagbuff = pif_get_byte(0);
    if(tagbuff)  /* TRUE */
      xsprintf(get_int_line(pi_data_current,pif_offset,1),
-       "%"FW"s = %>ku %s", "All New Data Accepted","(TRUE)");
+       "%"FW"s = %u %s", "All New Data Accepted","(TRUE)");
    else
      xsprintf(get_int_line(pi_data_current,pif_offset,1),
-       "%"FW"s = %>ku %s", "All New Data Accepted","(FALSE)");
+       "%"FW"s = %u %s", "All New Data Accepted","(FALSE)");
    pif_show_space();
    if(pif_end_offset != pif_offset){ /* display accepted octet count if present */
 	   len = pif_get_byte(0)&0x07;
@@ -6957,19 +7001,17 @@ void get_bac_charstring(unsigned int len, char* str, unsigned int flag, unsigned
 	switch(c)
 	{
 	case 0: /* ASCII */
+    case 5: /* ISO 8859-1 */
 		pif_get_ascii(flag+1+offset, len-1, str);
 		break;
 	case 1: /* MS DBCS */
     case 2: /* JIS C 6226 */
     case 3: /* ISO 10646(UCS-4) */
     case 4: /* ISO 10646(UCS-2) */
-    case 5: /* ISO 8859-1 */
-		{
 		pif_get_hex( len, str, flag, offset );
-		}
 		break;
 	default:
-		sprintf(str, "");
+		sprintf(str, "Error: unknown character set %u", c);
 		break;
 	}
 }
@@ -7013,7 +7055,7 @@ void show_bac_charstring( unsigned int len)
              pif_show_nbytes_hex(outstr, len-1);
              break;
       default:  /* invalid character set */
-             sprintf(pif_line(0),"Error: Invalid Chacter Set! %d", charset);
+             sprintf(pif_line(1),"Error: unknown chacter Set %u", charset);
       };
 }
 
@@ -7197,7 +7239,7 @@ unsigned long get_bac_unsigned( int delta, int len )
 /*************************************************************************/
 
 /*************************************************************************/
-unsigned int show_context_tag( char *tagstr )
+unsigned int show_context_tag( const char *tagstr )
 /*************************************************************************/
 {
    unsigned char tagbuff;    /* a buffer for tags */
@@ -7303,22 +7345,23 @@ unsigned int show_application_data ( unsigned char tagbuff )
       ((tagbuff&0xF0)>>4));
    
    bac_show_flag(outstr,0xFF);
-   pif_show_flagmask(0xF0,0,"Null");
-   pif_show_flagmask(0xF0,BOOLEAN*16,"Boolean");
-   pif_show_flagmask(0xF0,UNSIGNED*16,"Unsigned Integer");
-   pif_show_flagmask(0xF0,SIGNED*16,"Signed Integer");
-   pif_show_flagmask(0xF0,REAL*16,"IEEE Floating Point");
-   pif_show_flagmask(0xF0,DOUBLE*16,"IEEE Double Floating Point");
-   pif_show_flagmask(0xF0,OCTET_STRING*16,"Octet String");
-   pif_show_flagmask(0xF0,CHARACTER_STRING*16,"Character String");
-   pif_show_flagmask(0xF0,BIT_STRING*16,"Bit String");
-   pif_show_flagmask(0xF0,ENUMERATED*16,"Enumerated");
-   pif_show_flagmask(0xF0,DATE*16,"Date");
-   pif_show_flagmask(0xF0,TIME*16,"Time");
-   pif_show_flagmask(0xF0,OBJECT_IDENTIFIER*16,"Object Identifier");
-   pif_show_flagmask(0xF0,0x0d*16,"Reserved for ASHRAE");
-   pif_show_flagmask(0xF0,0x0e*16,"Reserved for ASHRAE");
-   pif_show_flagmask(0xF0,0x0f*16,"Non-standard type");
+   // Mask of F8 will ignore context tags
+   pif_show_flagmask(0xF8,0,"Null");
+   pif_show_flagmask(0xF8,BOOLEAN*16,"Boolean");
+   pif_show_flagmask(0xF8,UNSIGNED*16,"Unsigned Integer");
+   pif_show_flagmask(0xF8,SIGNED*16,"Signed Integer");
+   pif_show_flagmask(0xF8,REAL*16,"IEEE Floating Point");
+   pif_show_flagmask(0xF8,DOUBLE*16,"IEEE Double Floating Point");
+   pif_show_flagmask(0xF8,OCTET_STRING*16,"Octet String");
+   pif_show_flagmask(0xF8,CHARACTER_STRING*16,"Character String");
+   pif_show_flagmask(0xF8,BIT_STRING*16,"Bit String");
+   pif_show_flagmask(0xF8,ENUMERATED*16,"Enumerated");
+   pif_show_flagmask(0xF8,DATE*16,"Date");
+   pif_show_flagmask(0xF8,TIME*16,"Time");
+   pif_show_flagmask(0xF8,OBJECT_IDENTIFIER*16,"Object Identifier");
+   pif_show_flagmask(0xF8,0x0d*16,"Reserved for ASHRAE");
+   pif_show_flagmask(0xF8,0x0e*16,"Reserved for ASHRAE");
+   pif_show_flagmask(0xF8,0x0f*16,"Non-standard type");
    pif_show_flagbit(0x08,"Context Specific Tag","Application Tag");
 
    if ((tagbuff & 0x08) != 0)
@@ -7412,6 +7455,8 @@ unsigned int show_application_data ( unsigned char tagbuff )
 }  
 
 /**************************************************************************/
+// Show application tag.
+// Return length of data
 unsigned int show_application_tag( unsigned char tagbuff )
 /**************************************************************************/
 {
@@ -7473,12 +7518,12 @@ unsigned int show_application_tag( unsigned char tagbuff )
                   pif_show_word_hl(outstr);
                   break;
 
-        /* Again, I'm commenting out this case...
+        // This works just fine unless you are compiling for 16-bit DOS...
         case 255: pif_show_byte("Length in next 4 octets");
                   len = pif_get_long_hl(0);
                   sprintf(outstr,"%"FW"s = %%lu","Length of data");
                   pif_show_long_hl(outstr);
-                  break;                        */
+                  break;
 
         default: bac_show_byte("Length of data","%u");
       }
@@ -7499,6 +7544,8 @@ void show_bac_action_command( unsigned int len )
    unsigned int end;
    int obj_type,prop_idx,prop_id;
 
+   // TODO: this end test is nuts.  This is tagged data: length isn't known.
+   // Caller passes in a constant "80"
    end = pif_offset+len;
    while((unsigned int)pif_offset < end) 
    {
@@ -7577,10 +7624,10 @@ void show_bac_action_command( unsigned int len )
 				   tagbuff = pif_get_byte(0);
 				   if(tagbuff)  /* TRUE */
 					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-					   "%"FW"s = %>ku %s", "QuitOnFailure","(TRUE)");
+					   "%"FW"s = %u %s", "QuitOnFailure","(TRUE)");
 				   else
 					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-					   "%"FW"s = %>ku %s", "QuitOnFailure","(FALSE)");
+					   "%"FW"s = %u %s", "QuitOnFailure","(FALSE)");
 				   pif_show_space();
 			   }
 			   break;
@@ -7596,10 +7643,10 @@ void show_bac_action_command( unsigned int len )
 				   tagbuff = pif_get_byte(0);
 				   if(tagbuff)  /* TRUE */
 					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-					   "%"FW"s = %>ku %s", "WriteSuccessul","(TRUE)");
+					   "%"FW"s = %u %s", "WriteSuccessul","(TRUE)");
 				   else
 					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-					   "%"FW"s = %>ku %s", "WriteSuccessul","(FALSE)");
+					   "%"FW"s = %u %s", "WriteSuccessul","(FALSE)");
 				   pif_show_space();
 			   }
 			   goto exit;
@@ -7625,14 +7672,14 @@ void show_bac_action_list()
    {  /* context tag */
      if(tagval == 0)
 	 { /* actionlist */
-       show_context_tag(BACnetAcitonList[0]);  /* opening tag */
+       show_context_tag(BACnetActionList[0]);  /* opening tag */
 	   int x = pif_get_byte(0);
        while ((x & 0x0f) != 0x0f) 
 	   {
 		   show_bac_action_command(len);
 		   x = pif_get_byte(0);
 	   }
-       show_context_tag(BACnetAcitonList[0]);  /* closing tag */
+       show_context_tag(BACnetActionList[0]);  /* closing tag */
        tagbuff = pif_get_byte(0);
        tagval = (tagbuff&0xF0)>>4;
     }
@@ -9362,7 +9409,7 @@ void show_bac_weeknday( void )
 
 
 //Lei Chengxin 2003-7-25
-void show_head_obj_id( unsigned int offset , char* type , int tagval )
+void show_head_obj_id( unsigned int offset , const char* type , int tagval )
 {
 	int len = pif_get_byte(offset-1)&0x07;
 	long		obj_id;
@@ -9400,7 +9447,7 @@ void show_head_obj_id( unsigned int offset , char* type , int tagval )
 }
 
 //Lei Chengxin 2003-7-30
-void show_head_unsigned(unsigned int offset, char* type, int tagval)
+void show_head_unsigned(unsigned int offset, const char* type, int tagval)
 {
 	int len = pif_get_byte(offset-1)&0x07;
 	unsigned long value = get_bac_unsigned(offset, len);
@@ -9413,13 +9460,13 @@ void show_head_unsigned(unsigned int offset, char* type, int tagval)
 }
 
 //Lei Chengxin 2003-7-31
-void show_head_ascii(char* type)
+void show_head_ascii(const char* type)
 {
 	sprintf(get_int_line(pi_data_current,pif_offset,0,3), "%s", type);
 }
 
 //Lei Chengxin 2003-7-31
-void show_head_char_string(unsigned int offset, char* type, int tagval)
+void show_head_char_string(unsigned int offset, const char* type, int tagval)
 {
 	int tmpLen,tagbuff,flag,strLength;
 	tagbuff = pif_get_byte(offset);
@@ -9447,7 +9494,7 @@ void show_head_char_string(unsigned int offset, char* type, int tagval)
 }
 
 //Lei Chengxin 2003-7-31
-void show_head_time(unsigned int offset, char* type, int tagval)
+void show_head_time(unsigned int offset, const char* type, int tagval)
 {
 	unsigned char x;
 	char tempstr[80];
@@ -9490,7 +9537,7 @@ void show_head_time(unsigned int offset, char* type, int tagval)
 }
 
 //Lei Chengxin 2003-7-31
-void show_head_property_ID( unsigned int offset , char* type , int tagval )
+void show_head_property_ID( unsigned int offset , const char* type , int tagval )
 {
 	char len = pif_get_byte(offset-1)&0x07;
 				
@@ -9523,6 +9570,11 @@ void show_head_property_ID( unsigned int offset , char* type , int tagval )
 
 
 //Lei Chengxin 2003-8-23
+// TODO: this is called for context tags as well.
+// Probably should rename the function.
+//
+// Show the tag and value of an item.
+// Does not affect the cursor.
 void show_head_app_data( void )
 {
 	unsigned char dataType,len;
@@ -9579,7 +9631,7 @@ void show_head_app_data( void )
 }
 
 //Lei Chengxin 2003-8-23
-void show_head_octet_string( unsigned int offset , char* type , int tagval )
+void show_head_octet_string( unsigned int offset , const char* type , int tagval )
 {
 	int tmpLen,tagbuff,flag,strLength;
 	tagbuff = pif_get_byte(offset);
@@ -9612,7 +9664,7 @@ void show_head_octet_string( unsigned int offset , char* type , int tagval )
 }
 
 //Lei Chengxin 2003-8-23
-void show_head_signed( unsigned int offset , char* type , int tagval )
+void show_head_signed( unsigned int offset , const char* type , int tagval )
 {
 	int tmpLen;
 	unsigned char necValue;
@@ -9669,7 +9721,7 @@ void show_head_signed( unsigned int offset , char* type , int tagval )
 }
 
 //Lei Chengxin 2003-8-23
-void show_head_real( unsigned int offset , char* type , int tagval )
+void show_head_real( unsigned int offset , const char* type , int tagval )
 {
 	double dx;
 	unsigned char fstr[4];
@@ -9688,7 +9740,7 @@ void show_head_real( unsigned int offset , char* type , int tagval )
 }
 
 //Lei Chengxin 2003-8-23
-void show_head_bit_string( unsigned int offset , char* type , int tagval )
+void show_head_bit_string( unsigned int offset , const char* type , int tagval )
 {
 	  int len,count,i,j;
 	  char* bitStr;
@@ -9908,7 +9960,7 @@ void show_bac_bitstring_value(char** c)
 
    len = tagbuff&0x0f;
 
-   if ((tagbuff & 0xf0) != 0x80) { 
+   if ((tagbuff & 0xf8) != 0x80) { 
         pif_show_space();
         bac_show_nbytes(1,"Error: bitstring expected!"); 
    }
@@ -9929,7 +9981,7 @@ void show_bac_bitstring_value(char** c)
 			}
 			sprintf(outstr,"   %s",c[i]);
 			pif_offset--;
-			if(x&0x80)
+			if(x & 0x80)
 				 show_str_eq_str(outstr,"TRUE",1);
 			else
 				 show_str_eq_str(outstr,"FALSE",1);
