@@ -270,9 +270,14 @@ extern BACnetPIInfoPtr		gCurrentInfo;
 namespace NetworkSniffer {
 #endif
 
-/* are we a little endian (PC) or big endian (Macintosh) */
-#define LITTLEENDIAN	1
-#define BIGENDIAN		0
+/* Are we a little endian (PC) or big endian (Macintosh)
+ * (Conditional, to avoid warnings if WinSock2.h etc. is brought in) */
+#ifndef LITTLEENDIAN
+	#define LITTLEENDIAN	1
+#endif
+#ifndef BIGENDIAN
+	#define BIGENDIAN		0
+#endif
 
 /* might take advantage of this in some cases */
 #define	near		
@@ -280,7 +285,9 @@ namespace NetworkSniffer {
 /* PICK_STRINGS_INT needed a size, can no longer declare an empty array */
 #define	PICK_STRINGS_INT_SIZE		16
 
-/* a most disgusting hack of sprintf hack */
+// sprintf of the byte at the current offset.
+// format string prstr should have %s for hdr, %u for the byte, and %s for valu
+// Offset pointer is advanced by one.
 void xsprintf( char *dst, char *prstr, char *hdr, char *valu );
 
 /*----------------------------------------------------------------------------
@@ -361,59 +368,58 @@ typedef void *ADDRTYPE_HANDLE;			/* handle to address type */
 /*  Function prototype declarations for Protocol Interpreters   */
 
 void	pif_init(struct pi_data *,void *,int );
-void	pif_save(struct pif_info *);
-void	pif_restore(struct pif_info *);
+// void	pif_save(struct pif_info *);
+// void	pif_restore(struct pif_info *);
 char	*pif_get_ascii(int ,int ,char *);
-char	*pif_get_ebcdic(int ,int ,char *);
-char	*pif_get_lstring(int ,char *);
+//char	*pif_get_ebcdic(int ,int ,char *);
+//char	*pif_get_lstring(int ,char *);
 char	*pif_line(int );
 void	pif_show_ascii(int ,char *);
 void	pif_append_ascii(const char *, const char *); /* JJB */
-void	pif_show_ebcdic(int ,char *);
-void	pif_show_lstring(char *);
+// void	pif_show_ebcdic(int ,char *);
+// void	pif_show_lstring(char *);
 void	pif_show_space(void);
-void	pif_autoscroll(void);
+// void	pif_autoscroll(void);
 void	pif_header(int ,char *);
-void	pif_trailer(void);
+// void	pif_trailer(void);
 int		pif_show_byte(char *);
 void	pif_show_flag(char *, int);
-void	pif_flag_w_hl(char *, int);
-void	pif_flag_w(char *, int);
+//void	pif_flag_w_hl(char *, int);
+//void	pif_flag_w(char *, int);
 int		pif_show_flagbit(int ,char *,char *);
-boolean pif_flagbit_w(int, char *, char *);
-boolean pif_flagbit_w_hl(int, char *, char *);
+// boolean pif_flagbit_w(int, char *, char *);
+// boolean pif_flagbit_w_hl(int, char *, char *);
 int		pif_show_flagmask(int ,int ,char *);
-void	pif_show_flag_string (char, int, char *, char **);
-void	pif_show_flag_value (char, int, char *);
-void	pif_show_2byte(char *);
-int		pif_show_word(char *);
+// void	pif_show_flag_string (char, int, char *, char **);
+// void	pif_show_flag_value (char, int, char *);
+// void	pif_show_2byte(char *);
+// int	pif_show_word(char *);
 int		pif_show_word_hl(char *);
 long	pif_show_slong_hl(char *);  // 3 byte encoded
 long	pif_show_long(char *);
 long	pif_show_long_hl(char *);
-void	pif_show_4byte(char *);
-void	pif_show_5byte(char *);
-void	pif_show_6byte(char *);
-void	pif_show_7byte(char *);
-void    pif_show_8byte(char *);
+// void	pif_show_4byte(char *);
+// void	pif_show_5byte(char *);
+// void	pif_show_6byte(char *);
+// void	pif_show_7byte(char *);
+// void    pif_show_8byte(char *);
 void    pif_show_nbytes_hex (char *, int);
-void    pif_show_nbytes_hex2 (char *, int, int);
-void 	pif_show_hbytes_str (char *);
-void	pif_show_date(char *);
-void	pif_show_date_hl(char *);
-void 	pif_make_line (int, int, char *);
-void	pif_add_str (char *, int);
+// void    pif_show_nbytes_hex2 (char *, int, int);
+// void 	pif_show_hbytes_str (char *);
+// void	pif_show_date(char *);
+// void	pif_show_date_hl(char *);
+// void 	pif_make_line (int, int, char *);
+// void	pif_add_str (char *, int);
 int     pif_off_end (void);
 char	*pif_off_endp (void);
 
-char	*make_dos_datestr(int ,char *);
-char	*make_dos_timestr(int ,char *);
-char	*make_c_str(char *,char *,int ,int );
-char	*format_date (unsigned long, struct date *, char []);
+// char	*make_dos_datestr(int ,char *);
+// char	*make_dos_timestr(int ,char *);
+//char	*make_c_str(char *,char *,int ,int );
+//char	*format_date (unsigned long, struct date *, char []);
 
-char	*get_int_line (struct pi_data *, int, int, int nodeType = 0);	/*	modified by Lei Chengxin 2003-7-22, add a new 
+char	*get_int_line (struct pi_data *, int offset, int length, int nodeType = 0);	/*	modified by Lei Chengxin 2003-7-22, add a new 
 																			parameter to classify the tree node type. */
-
 char	*get_sum_line (struct pi_data *);
 char	*get_cur_int_line( void ); /* JJB */
 
@@ -826,8 +832,8 @@ extern  char    pif_header_msg[];       /* Saved header message */
 
 extern  long    rev_long();             /* Reverse a long word */
 extern  char    *pif_get_ascii();       /* move asciiz string */
-extern  char    *pif_get_ebcdic();      /* move ebcdic string */
-extern  char    *pif_get_lstring();     /* move asciiz lstring */
+//extern  char    *pif_get_ebcdic();      /* move ebcdic string */
+//extern  char    *pif_get_lstring();     /* move asciiz lstring */
 extern  char    *pif_line();            /* get a detail line buffer */
 #endif
 
@@ -863,6 +869,9 @@ extern  char    *pif_line();            /* get a detail line buffer */
 
 // #Change made by Buddy Lott to correct VTS crashes #1608485
 //#define pif_get_byte(n)      ((unsigned char)(*(msg_origin + pif_offset + (n))))
+// TODO: Turn these into real functions (perhaps inlined).
+// Otherwise calls like pif_get_byte( offset++ ) double increment
+// Bugs like that we don't need...
 #define pif_get_byte(n) (( pif_offset + (n) >= pif_end_offset) ? 0 : ((unsigned char)(*(msg_origin + pif_offset + (n)))))
 
 #if LITTLEENDIAN
@@ -1069,6 +1078,9 @@ typedef struct {
 
 /*
 $Log$
+Revision 1.12  2009/03/04 14:44:22  ltribble
+Updated detail view decoding to recognize new objects and properties.  Fixed a few decoding problems.
+
 Revision 1.8  2007/10/12 18:46:57  ltribble
 Corrected decoding of AtomicReadFile to fix the backup tests.  Corrected decoding of COVNotifications when propertyIdentifier is user defined.  Corrected decoding of PrivateTransfer to show only number of octets to eliminate VTS Crash if can't decode an unknown structure.
 
