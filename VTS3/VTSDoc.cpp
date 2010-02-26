@@ -4419,7 +4419,7 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 			{
 				// run through m_devobjects to see which objects are defined
 				BACnetBitString objects_supported = BACnetBitString(25);
-				for(UINT i = 0; i < m_devobjects.GetSize(); i++)
+				for(int i = 0; i < m_devobjects.GetSize(); i++)
 				{
 					unsigned int objid = m_devobjects[i]->GetID();
 					int objtype=(word)(objid>>22);
@@ -4466,7 +4466,7 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 				else
 				{
 					BACnetArrayOf<BACnetObjectIdentifier>	objList;
-					for(UINT i = 0; i < m_devobjects.GetSize(); i++)
+					for(int i = 0; i < m_devobjects.GetSize(); i++)
 					{
 						BACnetObjectIdentifier objID;
 						unsigned int objid = m_devobjects[i]->GetID();

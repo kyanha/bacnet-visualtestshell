@@ -1647,7 +1647,7 @@ void DecoderFromHex( CString &str, BACnetAPDUEncoder &dec )
 
 	int length = str.GetLength();
 
-	if ( length == 0 || (length&1 != 0) )
+	if ( length == 0 || ((length & 1) != 0) )
 		return;
 
 	// encode the content
