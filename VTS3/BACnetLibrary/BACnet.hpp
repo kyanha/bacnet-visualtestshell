@@ -1230,7 +1230,7 @@ public:
 	}
 	void SetElement(unsigned int index, MyDataType* src)
 	{
-		if(index >= listSequenceOf.GetCount())
+		if((int)index >= listSequenceOf.GetCount())
 			throw "The specified index is beyond the scope of the sequenceof.";
 		POSITION pos = listSequenceOf.FindIndex(index);		
 		MyDataType* elem=listSequenceOf.GetAt(pos);
