@@ -233,8 +233,11 @@ const short kVTSDescSig = 0x0001;
 //	VTSDB
 //
 
-const int kVTSDBMajorVersion = 3;			// current version
-const int kVTSDBMinorVersion = 3;
+// TODO: the values here differ from those in VTS.CPP (shown in Abort box)
+// They are used only in commented-out code in VTSDB.cpp.
+// If that code is ever re-enabled, then figure out how the versioning needs to work.
+//const int kVTSDBMajorVersion = 3;			// current version
+//const int kVTSDBMinorVersion = 3;
 
 //class VTSDB : public JDB {
 class VTSDB : public CObject

@@ -54,9 +54,13 @@ ScriptDebugNetFilter	gDebug2( "_2" );
 #endif
 
 
-// Defined in VTSPacketDB.h
+// Formerly redundantly (and DIFFERENTLY) defined in VTSDB.h
+// but not used anywhere but here.
+// They show up in commented-out code in VTSDB.cpp.
+// If that code is ever re-enabled, then figure out how the versioning needs to work.
 extern const int kVTSDBMajorVersion = 3;			// current version
 extern const int kVTSDBMinorVersion = 5;
+const int kReleaseVersion = 4;
 
 extern CWinThread	*gBACnetWinTaskThread;
 
@@ -155,6 +159,8 @@ BOOL VTSApp::InitInstance()
 	//  of your final executable, you should remove from the following
 	//  the specific initialization routines you do not need.
 
+	// JLH TODO: why are we linking statically?  Perhaps required for NB-Link DLL to use MFC 4.2D?
+	// Causes a "deprecated" warning.
 #ifdef _AFXDLL
 	Enable3dControls();			// Call this when using MFC in a shared DLL
 #else
@@ -1648,7 +1654,6 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //			Added Inconsistent Parameters tests (13.4.3, 13.4.4, 13.4.5)
 
 			
-const int kReleaseVersion = 3;
 			
 			class CAboutDlg : public CDialog
 			{
