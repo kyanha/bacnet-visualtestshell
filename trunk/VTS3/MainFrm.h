@@ -70,7 +70,7 @@ protected:  // control bar embedded members
 	void ReadReg();
 	void SaveReg();
 
-
+	void RestorePosition();
 
 	//Added by Zhenhua Zhu, 2003-5-26
 //////////////////////////////////
@@ -83,6 +83,7 @@ protected:
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnClose();
+	afx_msg void OnDestroy();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
