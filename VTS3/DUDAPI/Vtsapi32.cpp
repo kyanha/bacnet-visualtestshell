@@ -7464,7 +7464,7 @@ static void readline(char *lp,int lps)
 			// 5/13/05 shiyuan xiao. 135.1-2003
 		case doublequote:
 		case singlequote:
-rlquote:	*dp++=c;
+			*dp++=c;
 			while (*sp&&c!=*sp)
 				*dp++=*sp++;
 			*dp++=c;
