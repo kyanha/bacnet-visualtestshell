@@ -34,6 +34,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_WM_INITMENUPOPUP()
 	ON_WM_SIZE()
 	ON_WM_CLOSE()
+	ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 //Modifieded by Zhu Zhennhua, 2004-11-27, move the functions to CChildFrame
@@ -138,6 +139,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	dwStyle = m_wndToolBar.GetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_CHECK_SYNTAX1));
 	dwStyle |= TBSTYLE_DROPDOWN;
 	m_wndToolBar.SetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_CHECK_SYNTAX1), dwStyle);
+
+	RestorePosition();
 	return 0;
 }
 
@@ -149,6 +152,117 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 	//  the CREATESTRUCT cs
 
 	return TRUE;
+}
+
+static const TCHAR s_profileHeading[] = _T("Windows");
+static const TCHAR s_profileFrame[]   = _T("Frame");
+//=============================================================================
+// Called before Frame is destroyed.
+// Write the window particulars into the INI/Registry
+void CMainFrame::OnDestroy()
+{
+	BOOL bIconic = FALSE, bMaximized = FALSE;
+
+	WINDOWPLACEMENT wndpl;
+	wndpl.length = sizeof(WINDOWPLACEMENT);
+
+	// gets current window position and
+	// iconized/maximized status
+	GetWindowPlacement(&wndpl);
+	if (wndpl.showCmd == SW_SHOWMAXIMIZED) 
+	{
+		bMaximized = TRUE;
+	} 
+	else if (wndpl.showCmd == SW_SHOWMINIMIZED) 
+	{
+		bIconic = TRUE;
+		if (wndpl.flags & WPF_RESTORETOMAXIMIZED) 
+		{
+			bMaximized = TRUE;
+		}
+	}
+
+	CString strText;
+	strText.Format("%04d %04d %04d %04d %1d %1d",
+	               wndpl.rcNormalPosition.left,
+	               wndpl.rcNormalPosition.top,
+	               wndpl.rcNormalPosition.right,
+	               wndpl.rcNormalPosition.bottom,
+				   bIconic,
+				   bMaximized
+				  );
+	AfxGetApp()->WriteProfileString(s_profileHeading, s_profileFrame, strText);
+	CFrameWnd::OnDestroy();
+}
+
+//=============================================================================
+// Called before Frame is shown.
+// Read the window particulars from the INI/Registry
+void CMainFrame::RestorePosition()
+{
+	CString strText;
+	strText = AfxGetApp()->GetProfileString(s_profileHeading, s_profileFrame);
+	CRect rect;
+	BOOL bIconic = FALSE, bMaximized = FALSE;
+	if (!strText.IsEmpty()) 
+	{
+		rect.left = atoi((const char*) strText);
+		rect.top = atoi((const char*) strText + 5);
+		rect.right = atoi((const char*) strText + 10);
+		rect.bottom = atoi((const char*) strText + 15);
+		bIconic = atoi((const char*) strText + 20);
+		bMaximized = atoi((const char*) strText + 22);
+	}
+	else 
+	{
+		// Default is 2/3 the available height and width.
+		// Position is 1/6 from edges
+		rect.left  = GetSystemMetrics( SM_CXMAXIMIZED ) / 6;
+		rect.right = rect.left + ((2*GetSystemMetrics( SM_CXMAXIMIZED )) / 3);
+
+		rect.top    = GetSystemMetrics( SM_CYMAXIMIZED ) / 6;
+		rect.bottom = rect.top + ((2*GetSystemMetrics( SM_CYMAXIMIZED )) / 3);
+	}
+
+	int nCmdShow;
+	UINT flags;
+	if (bIconic) 
+	{
+		nCmdShow = SW_SHOWMINNOACTIVE;
+		if (bMaximized) 
+		{
+			flags = WPF_RESTORETOMAXIMIZED;
+		}
+		else 
+		{
+			flags = WPF_SETMINPOSITION;
+		}
+	}
+	else 
+	{
+		if (bMaximized) 
+		{
+			nCmdShow = SW_SHOWMAXIMIZED;
+			flags = WPF_RESTORETOMAXIMIZED;
+		}
+		else 
+		{
+			nCmdShow = SW_NORMAL;
+			flags = WPF_SETMINPOSITION;
+		}
+	}
+	WINDOWPLACEMENT wndpl;
+	wndpl.length = sizeof(WINDOWPLACEMENT);
+	wndpl.showCmd = nCmdShow;
+	wndpl.flags = flags;
+	wndpl.ptMinPosition = CPoint(0, 0);
+	wndpl.ptMaxPosition =
+		CPoint(-::GetSystemMetrics(SM_CXBORDER),
+		-::GetSystemMetrics(SM_CYBORDER));
+	wndpl.rcNormalPosition = rect;
+
+	// sets window's position and minimized/maximized status
+	SetWindowPlacement(&wndpl);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -375,50 +489,34 @@ CMDIChildWnd* CMainFrame::GetChildFrame(CRuntimeClass *pClass, int nNum)
 //read register table and initialize log file combobox
 void CMainFrame::ReadReg()
 {
-	CRegKey regKey;
-	long lRet = regKey.Open(HKEY_LOCAL_MACHINE,
-		"Software\\vts3\\logfiles");
-	if(lRet != ERROR_SUCCESS)
+	// Formerly read settings from HKEY_LOCAL_MACHINE\Software\\vts3\\logfiles
+	// All other settings are under HKEY_CURRENT_USER\Software\BACnet Manufacturers Association\VTS
+	// Moved there under "logfiles"
+	CString keyName;
+	CString filename;
+	CWinApp* pApp = AfxGetApp();
+	for (int index = 0; index < HISTORY_LOGFILE_COUNT; index++)
 	{
-		regKey.Create(HKEY_LOCAL_MACHINE,
-		"Software\\vts3\\logfiles");
-	}
-	else
-	{
-		CString keyName;	
-		CString filename;		
-		for(int index = 0; index < HISTORY_LOGFILE_COUNT; index++)
+		keyName.Format("%d", index);
+		filename = pApp->GetProfileString( "logfiles", (LPCTSTR)keyName, "" );
+		if (!filename.IsEmpty())
 		{
-			TCHAR keyValue[MAX_PATH] = _T("");
-			DWORD bufferLen = MAX_PATH;
-			keyName.Format("%d", index);
-			regKey.QueryValue(keyValue, (LPCTSTR)keyName, &bufferLen);
-			filename = keyValue;
-			if( !filename.IsEmpty() )
-			{
-				m_historyLogList.AddTail(filename);
-				m_wndFileCombo.AddString(filename);
-			}			
-		}		
+			m_historyLogList.AddTail(filename);
+			m_wndFileCombo.AddString(filename);
+		}			
 	}	
-	regKey.Close();
 }
 
 void CMainFrame::SaveReg()
 {
 	CRegKey regKey;
 	CString keyName;
-	
-	long lRet = regKey.Open(HKEY_LOCAL_MACHINE,
-		"Software\\vts3\\logfiles");
-
-	ASSERT(m_historyLogList.GetCount() <= HISTORY_LOGFILE_COUNT);
-
-	for(int index = 0; index < m_historyLogList.GetCount(); index++)
+	CWinApp* pApp = AfxGetApp();
+	for (int index = 0; index < m_historyLogList.GetCount(); index++)
 	{
 		keyName.Format("%d", index);
-		regKey.SetValue((LPCTSTR)m_historyLogList.GetAt(m_historyLogList.FindIndex(index)), 
-			(LPCTSTR)keyName);		
+		pApp->WriteProfileString( "logfiles", (LPCTSTR)keyName, 
+								  (LPCTSTR)m_historyLogList.GetAt(m_historyLogList.FindIndex(index)) );
 	}	
 }
 
