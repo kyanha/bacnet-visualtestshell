@@ -1157,7 +1157,8 @@ void ScriptDocument::ParsePacket( ScriptIfdefHandler &ifdefHandler, ScriptScanne
 
 		//GJB 12/12/1003,  to check this packet expression value to see if it's the DON'T CARE value,
 		//If it is, change the packet expression operator to '?=' which indicates 'don't care'.
-		if (spep->exprValue[0] == '?') {
+		// JLH 2/5/2010.  Wih VC++ 6, the [0] asserts if the CString is empty
+		if ((spep->exprValue.GetLength() > 0) && (spep->exprValue[0] == '?')) {
 			spep->exprOp = '?=';
 		}
 		
