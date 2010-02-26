@@ -176,6 +176,9 @@ void CFrameContext::SetCurrentPacket( int packetNum )
 */
 
 		gCurrentInfo->detailLine[0]=new BACnetPIDetail;
+		gCurrentInfo->detailLine[0]->piOffset = 0;
+		gCurrentInfo->detailLine[0]->piLen = 0;
+		gCurrentInfo->detailLine[0]->piNodeType = 0;
 		sprintf(gCurrentInfo->detailLine[0]->piLine,"Timestamp : %s", ppkt->GetTimeStampString());
 	}
 
