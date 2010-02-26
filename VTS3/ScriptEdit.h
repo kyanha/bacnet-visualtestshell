@@ -66,6 +66,9 @@ protected:
 	BOOL IsCurLnVisible();
 	void UpdateEditArea();
 	void DisplayLnNum();
+	virtual void OnFindNext(LPCTSTR lpszFind, BOOL bNext, BOOL bCase);
+	virtual void OnReplaceSel(LPCTSTR lpszFind, BOOL bNext, BOOL bCase, LPCTSTR lpszReplace );
+	virtual void OnReplaceAll(LPCTSTR lpszFind, LPCTSTR lpszReplace, BOOL bCase );
 	//{{AFX_MSG(ScriptEdit)
 	afx_msg void OnSetfocus();
 	afx_msg void OnEditGotoline();
@@ -86,6 +89,7 @@ protected:
 	afx_msg void OnEditPaste();
 	afx_msg void OnEditUndo();
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+	afx_msg void OnEditRepeat();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:

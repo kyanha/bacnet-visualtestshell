@@ -114,6 +114,7 @@ BEGIN_MESSAGE_MAP(ScriptEdit, CEditView)
 	ON_COMMAND(ID_EDIT_CUT, OnEditCut)
 	ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
 	ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
+	ON_COMMAND(ID_EDIT_REPEAT, OnEditRepeat)
 	ON_WM_CONTEXTMENU()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -354,7 +355,6 @@ void ScriptEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 		UpdateEditArea();
 		GetCurLineIndex();
 	}
-
 }
 
 void ScriptEdit::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
@@ -400,6 +400,63 @@ void ScriptEdit::OnEditUndo()
 	CEditView::OnEditUndo();
 	GetCurLineIndex();
 	UpdateEditArea();	
+}
+
+// If Findtext were virtual, we could just override that.
+// But it ain't...
+void ScriptEdit::OnFindNext(LPCTSTR lpszFind, BOOL bNext, BOOL bCase)
+{
+	// Do the hard work
+	CEditView::OnFindNext(lpszFind, bNext, bCase);
+
+	// Use GotoLine to move the highlight and update the status line
+	int start, end;
+	GetEditCtrl().GetSel( start, end );
+	GotoLine( GetEditCtrl().LineFromChar( start ) + 1 );
+
+	// Re-select the search target, or find-again won't move
+	GetEditCtrl().SetSel( start, end );
+}
+
+void ScriptEdit::OnEditRepeat() 
+{
+	CEditView::OnEditRepeat();
+
+	// Use GotoLine to move the highlight and update the status line
+	int start, end;
+	GetEditCtrl().GetSel( start, end );
+	GotoLine( GetEditCtrl().LineFromChar( start ) + 1 );
+
+	// Re-select the search target, or find-again won't move
+	GetEditCtrl().SetSel( start, end );
+}
+
+void ScriptEdit::OnReplaceSel(LPCTSTR lpszFind, BOOL bNext, BOOL bCase, LPCTSTR lpszReplace )
+{
+	// Do the hard work
+	CEditView::OnReplaceSel(lpszFind, bNext, bCase, lpszReplace );
+
+	// Use GotoLine to move the highlight and update the status line
+	int start, end;
+	GetEditCtrl().GetSel( start, end );
+	GotoLine( GetEditCtrl().LineFromChar( start ) + 1 );
+
+	// Re-select the search target, or find-again won't move
+	GetEditCtrl().SetSel( start, end );
+}
+
+void ScriptEdit::OnReplaceAll(LPCTSTR lpszFind, LPCTSTR lpszReplace, BOOL bCase )
+{
+	// Do the hard work
+	CEditView::OnReplaceAll( lpszFind, lpszReplace, bCase );
+
+	// Use GotoLine to move the highlight and update the status line
+	int start, end;
+	GetEditCtrl().GetSel( start, end );
+	GotoLine( GetEditCtrl().LineFromChar( start ) + 1 );
+
+	// Re-select the search target, or find-again won't move
+	GetEditCtrl().SetSel( start, end );
 }
 
 void ScriptEdit::OnContextMenu(CWnd* pWnd, CPoint point) 
@@ -589,6 +646,7 @@ void ScriptEdit::ScrollCurLnVisible(UINT nChar)
 void ScriptEdit::SetDefaultFont()
 {
 	// instantiate a CFont pointer
+	// TODO: this leaks at exit...
     CFont* pFont  = new CFont();
     	
    	LOGFONT lf ;

@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by VTS.rc
 //
 #define ID_NEWNAME                      3
@@ -1049,6 +1049,7 @@
 #define ID_FILE_MRU_WKS15               32864
 #define ID_FILE_MRU_WKSLAST             32864
 #define ID_TESTS_INCONSISTENTPARS       32866
+#define ID_FIND_FINDNEXT                32868
 #define ID_EDIT_DELETESEL               32870
 #define ID_EDIT_SENDPACKET              32871
 #define ID_COMBOBOX_SEPARATOR           32873
@@ -1147,7 +1148,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        381
-#define _APS_NEXT_COMMAND_VALUE         32867
+#define _APS_NEXT_COMMAND_VALUE         32877
 #define _APS_NEXT_CONTROL_VALUE         1560
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
