@@ -469,7 +469,7 @@ typedef struct {
     word					priority_for_writing;
 
     octet					status_flags;
-enum BACnetReliability		reliability;
+	enum BACnetReliability	reliability;
     boolean					out_of_service;
 
     union {
