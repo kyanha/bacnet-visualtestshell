@@ -875,7 +875,7 @@ void BakRestoreExecutor::DoRestoreTest()
 			UINT nX = 0;
 
 			CString strDataFileName_record;
-			for ( int rcount = 0; rcount < recordCount.uintValue; rcount++)
+			for ( UINT rcount = 0; rcount < recordCount.uintValue; rcount++)
 			{
 				strDataFileName_record.Format("%s.record%d", strDataFileName, nX);
 				if (!backupDataFile_record.Open(strDataFileName_record, CFile::modeRead | CFile::typeBinary))
@@ -946,7 +946,7 @@ void BakRestoreExecutor::DoRestoreTest()
 			{
 				m_pOutputDlg->OutMessage("Use AtomicWriteFile to write octets to (File, File_Instance)"
 					"in the IUT...", FALSE);
-				backupDataFile.Seek((LONGLONG)nX, CFile::begin);
+				backupDataFile.Seek(nX, CFile::begin);
 				UINT nWOC = backupDataFile.Read(pBuffer, nMWOC);
 				BACnetInteger fileStartPosition(nX);
 				BACnetOctetString fileData(pBuffer, nWOC);
