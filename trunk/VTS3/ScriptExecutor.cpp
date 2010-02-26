@@ -632,7 +632,8 @@ bool ScriptExecutor::IsBound( VTSDocPtr vdp )
 
 void ScriptExecutor::Msg( int sc, int line, const char *msg )
 {
-	unsigned char	buff[256], *dst
+	// JLH 26 January 2010: room for longer message
+	unsigned char	buff[1024], *dst
 	;
 	VTSPacket		pkt
 	;
@@ -663,8 +664,19 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 		// add a space
 		*dst++ = ' ';
 	}
-	strcpy( (char *)dst, msg );
-	while (*dst) dst++;
+
+	// JLH 26 January 2010: don't let msg overflow the buffer
+//	strcpy( (char *)dst, msg );
+//	while (*dst) dst++;
+	int remains = sizeof(buff) - (dst - buff) - 1;
+	int len = strlen( msg );
+	if (len > remains)
+	{
+		len = remains;
+	}
+	memcpy( dst, msg, len );
+	dst += len;
+	*dst = 0;
 
 	// fill in the packet header
 //MAD_DB	pkt.packetHdr.packetPortID = 0;
@@ -4206,7 +4218,7 @@ void ScriptExecutor::SendALCharacterString( ScriptPacketExprPtr spep, CByteArray
 
 void ScriptExecutor::SendALBitString( ScriptPacketExprPtr spep, CByteArray &packet )
 {
-	int					context = kAppContext, bit, i;
+	int					indx, context = kAppContext, bit, i;
 	BACnetBitString		bstrData
 	;
 	BACnetAPDUEncoder	enc
@@ -4218,61 +4230,48 @@ void ScriptExecutor::SendALBitString( ScriptPacketExprPtr spep, CByteArray &pack
 	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
 
 	// tag is optional
-	if (tlist.Length() == 0)
-		throw "Bit string keyword values required";
-
-	const ScriptToken &data = tlist[0];
-
-	// must only be one bit or a bit string
 	if (tlist.Length() == 1) {
-		if (data.tokenType == scriptReference) {
-			BACnetAnyValue		bacnetEPICSProperty;
+		indx = 0;
+	} else
+	if (tlist.Length() == 2) {
+		if (!tlist[0].IsInteger( context ))
+			throw "Tag number expected";
+		indx = 1;
+	} else
+		throw "Bitstring keyword requires 1 or 2 parameters";
 
-			GetEPICSProperty( data.tokenSymbol, &bacnetEPICSProperty, data.m_nIndex);
+	const ScriptToken &data = tlist[indx];
 
-			// verify the type
-			if ( bacnetEPICSProperty.GetType() != bits)
-				throw "Bit string property value expected in EPICS";
+	if (data.tokenType == scriptReference) 
+	{
+		BACnetAnyValue	bacnetEPICSProperty;
+		GetEPICSProperty( data.tokenSymbol, &bacnetEPICSProperty, data.m_nIndex);
 
-			bstrData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
-		} else
-		if (data.tokenEnc == scriptBinaryEnc) {
-			if (!data.IsEncodeable( bstrData ))
-				throw "Bit string value expected";
-		} else
-		if (data.tokenType == scriptKeyword) {
-			if (data.IsInteger( bit, ScriptBooleanMap ))
-				bstrData += bit;
-		} else
-			throw "Bit list expected";
-	} else {
-		i = 0;
-		// check for a context
-		if (data.tokenEnc != scriptBinaryEnc)
-			if (data.IsInteger( context ))
-				i += 1;
+		// verify the type
+		if ( bacnetEPICSProperty.GetType() != bits)
+			throw "Bit string property value expected in EPICS";
 
-		if (tlist[i].tokenType == scriptReference) {
-			BACnetAnyValue		bacnetEPICSProperty;
-
-			GetEPICSProperty( tlist[i].tokenSymbol, &bacnetEPICSProperty, tlist[i].m_nIndex);
-
-			// verify the type
-			if ( bacnetEPICSProperty.GetType() != bits)
-				throw "Bit string property value expected in EPICS";
-
-			bstrData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
-		} else
-		if (tlist[i].IsEncodeable( bstrData ))
-			;
-		else {
-			int count = 0;
-			while (i < tlist.Length())
-				if (tlist[i++].IsInteger( bit, ScriptBooleanMap ))
-					bstrData.SetBit( count++, bit );
-				else
-					throw "Bit value expected";
-		}
+		bstrData = *((BACnetBitString *) bacnetEPICSProperty.GetObject());
+	} 
+	else if (data.tokenEnc == scriptComplex) 
+	{
+		// Value enclosed by []
+		if (!data.IsEncodeable( bstrData ))
+			throw "Bit string value expected";
+	} 
+	else if (data.tokenEnc == scriptBinaryEnc) 
+	{
+		if (!data.IsEncodeable( bstrData ))
+			throw "Bit string value expected";
+	} 
+	else if (data.tokenType == scriptKeyword) 
+	{
+		if (data.IsInteger( bit, ScriptBooleanMap ))
+			bstrData += bit;
+	} 
+	else
+	{
+		throw "Bit list expected";
 	}
 
 	// encode it
@@ -9068,6 +9067,8 @@ template<class T>
 		// lock the queue
 		qCS.Lock();
 
+		// JLH TODO: VC++ 2003 gives warning C4345: behavior change: an object of POD 
+		// type constructed with an initializer of the form () will be default-initialized
 		VTSQueueElem	*cur = new VTSQueueElem()
 		;
 
