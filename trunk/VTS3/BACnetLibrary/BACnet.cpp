@@ -1014,7 +1014,7 @@ void BACnetEnumerated::Encode( BACnetAPDUEncoder& enc, int context )
 	
 	// fill in the data
 	while (len--) {
-		enc.pktBuffer[enc.pktLength++] = (valuCopy >> 24) & 0xFF;
+		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(valuCopy >> 24);
 		valuCopy = (valuCopy << 8);
 	}
 }
@@ -1271,7 +1271,7 @@ void BACnetUnsigned::Encode( BACnetAPDUEncoder& enc, int context )
 	
 	// fill in the data
 	while (len--) {
-		enc.pktBuffer[enc.pktLength++] = (valuCopy >> 24) & 0xFF;
+		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(valuCopy >> 24);
 		valuCopy = (valuCopy << 8);
 	}
 }
@@ -1703,7 +1703,7 @@ void BACnetReal::Encode( BACnetAPDUEncoder& enc, int context )
 #ifdef ENDIAN_SWAP
 	unsigned long cpy = *(unsigned long *)&realValue;
 	for (int j = 3; j >= 0; j--)
-		enc.pktBuffer[enc.pktLength++] = (cpy >> (j * 8)) & 0xFF;
+		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(cpy >> (j * 8));
 #else
 	memcpy( enc.pktBuffer+enc.pktLength, &realValue, (size_t)4 );
 	enc.pktLength += 4;
@@ -1750,12 +1750,15 @@ void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 void BACnetReal::Encode( char *enc ) const
 {
 	// simple, effective
-	sprintf( enc, "%f", realValue );
+//	sprintf( enc, "%f", realValue );
+   // JLH .... and wr000000000000000000000000000000ng for 
+   // very large and very small numbers. Use %g to avoid buffer overrun
+   sprintf( enc, "%#g", realValue );
 }
 
 void BACnetReal::Decode( const char *dec )
 {
-	// check for valid format
+	// check for valid format (also accepts 1e10 format)
 	if (sscanf( dec, "%f", &realValue ) != 1)
 		throw_(36) /* format error */;
 }
@@ -1819,6 +1822,7 @@ void BACnetDouble::Encode( BACnetAPDUEncoder& enc, int context )
 	
 	// fill in the data
 #if (__DECCXX)
+	// VAX anyone?
 	cvt$convert_float( &doubleValue, CVT$K_VAX_G
 		, enc.pktBuffer+enc.pktLength, CVT$K_IEEE_T
 		, CVT$M_ROUND_TO_NEAREST + CVT$M_BIG_ENDIAN
@@ -1834,10 +1838,11 @@ void BACnetDouble::Encode( BACnetAPDUEncoder& enc, int context )
 	}		x;
 
 	x.src = doubleValue;
+	// High half first, high byte first
 	for (int j = 3; j >= 0; j--)
-		enc.pktBuffer[enc.pktLength++] = (x.s.t1 >> (j * 8)) & 0xFF;
+		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(x.s.t2 >> (j * 8));
 	for (int k = 3; k >= 0; k--)
-		enc.pktBuffer[enc.pktLength++] = (x.s.t2 >> (k * 8)) & 0xFF;
+		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(x.s.t1 >> (k * 8));
 #else
 	memcpy( enc.pktBuffer+enc.pktLength, &doubleValue, (size_t)8 );
 	enc.pktLength += 8;
@@ -1877,10 +1882,11 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 	}		x;
 
 	x.src = doubleValue;
+	// High half first, high byte first
 	for (int j = 3; dec.pktLength && j >= 0; j--)
-		x.s.t1 = (x.s.t1 << 8) + (dec.pktLength--,*dec.pktBuffer++);
+		x.s.t1 = (x.s.t2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 	for (int k = 3; dec.pktLength && k >= 0; k--)
-		x.s.t2 = (x.s.t2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
+		x.s.t2 = (x.s.t1 << 8) + (dec.pktLength--,*dec.pktBuffer++);
 	doubleValue = x.src;
 #else
 	memcpy( &doubleValue, dec.pktBuffer, (size_t)8 );
@@ -1893,12 +1899,15 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 void BACnetDouble::Encode( char *enc ) const
 {
 	// simple, effective
-	sprintf( enc, "%lf", doubleValue );
+//	sprintf( enc, "%lf", doubleValue );
+    // JLH .... and wr000000000000000000000000000000ng for 
+    // very large and very small numbers. Use %g to avoid buffer overrun
+	sprintf( enc, "%#lg", doubleValue );
 }
 
 void BACnetDouble::Decode( const char *dec )
 {
-	// check for valid format
+	// check for valid format (also accepts 1e10 format)
 	if (sscanf( dec, "%lf", &doubleValue ) != 1)
 		throw_(39) /* format error */;
 }
@@ -3286,6 +3295,18 @@ void BACnetBitString::Encode( char *enc ) const
 	*enc = 0;
 }
 
+// 135.1 wants bitstring as {T,F,F} in the EPICS
+// - This is annoying, since {} is also used to delimit constructed data, meaning
+//   that a bitstring and a list of BOOLEAN will have the same ASCII encoding.
+//   But thus sayeth the standard.
+// - Can't pass {T,F,F} here directly from a script, since ResolveExpr gives us
+//   only the first bit.
+// - [{T,F,F}] comes here (scripComplex), but with the [] intact. The 
+//   ScriptToken class has no functions to get at the token string to remove 
+//   the brackets, so the easiest thing is to allow them here.
+// - B'100' was formerly allowed.  Allow it as well so old scripts
+//   will continue to work.
+
 void BACnetBitString::Decode( const char *dec )
 {
 	int		bit = 0;
@@ -3294,21 +3315,45 @@ void BACnetBitString::Decode( const char *dec )
 	// toss existing content
 	SetSize( 0 );
 
-	// expect { at beginning
-	if ( dec[0] == '{' )
+	// Allow [ at beginning (as when passed from a script)
+	if ( dec[0] == '[' )
 		dec++;
 
-	while (*dec && (*dec != '}'))
+	// expect { at beginning
+	if ( dec[0] == '{' )
 	{
-		c = *dec++;
-		if ( c == 'T' || c == '1' )
-			SetBit( bit++, 1 );
-		else if ( c== 'F' || c == '0' )
-			SetBit( bit++, 0 );
-		else if ( c == ' ' || c == ',' )
-			continue;   // skip ahead
-		else
-			throw_(50);  // invalid character found
+		dec++;
+		while (*dec && (*dec != '}'))
+		{
+			c = *dec++;
+			if ( c == 'T' || c == '1' )
+				SetBit( bit++, 1 );
+			else if ( c== 'F' || c == '0' )
+				SetBit( bit++, 0 );
+			else if ( c == ' ' || c == ',' )
+				continue;   // skip ahead
+			else
+				throw_(50);  // invalid character found
+		}
+	}
+	else if ((dec[0] == 'B') && (dec[1] == '\''))
+	{
+		// Old format
+		dec += 2;
+		while (*dec && (*dec != '\'')) 
+		{
+			c = *dec++;
+			if (c == '0')
+				SetBit( bit++, 0 );
+			else if (c == '1')
+				SetBit( bit++, 1 );
+			else
+				throw_(50); // invalid character 
+		}
+	}
+	else
+	{
+		throw_(50);  // invalid character found
 	}
 }
 
@@ -3481,10 +3526,11 @@ void BACnetDate::Encode( BACnetAPDUEncoder& enc, int context )
 		BACnetAPDUTag( dateAppTag, 4 ).Encode( enc );
 	
 	// fill in the data
-	enc.pktBuffer[enc.pktLength++] = year;
-	enc.pktBuffer[enc.pktLength++] = month;
-	enc.pktBuffer[enc.pktLength++] = day;
-	enc.pktBuffer[enc.pktLength++] = dayOfWeek;
+	// JLH was copying 0xFE for DATE_SHOULDNT_CARE
+	enc.pktBuffer[enc.pktLength++] = (year < DATE_SHOULDNT_CARE) ? year : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (month < DATE_SHOULDNT_CARE) ? month : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (day < DATE_SHOULDNT_CARE) ? day : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (dayOfWeek < DATE_SHOULDNT_CARE) ? dayOfWeek: 0xFF;
 }
 
 void BACnetDate::Decode( BACnetAPDUDecoder& dec )
@@ -4236,10 +4282,11 @@ void BACnetTime::Encode( BACnetAPDUEncoder& enc, int context )
 		BACnetAPDUTag( timeAppTag, 4 ).Encode( enc );
 	
 	// fill in the data
-	enc.pktBuffer[enc.pktLength++] = hour;
-	enc.pktBuffer[enc.pktLength++] = minute;
-	enc.pktBuffer[enc.pktLength++] = second;
-	enc.pktBuffer[enc.pktLength++] = hundredths;
+	// JLH: ended up encoding * (DATE_SHOULDNT_CARE) as 0xFE
+	enc.pktBuffer[enc.pktLength++] = (hour < DATE_SHOULDNT_CARE) ? hour : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (minute < DATE_SHOULDNT_CARE) ? minute : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (second < DATE_SHOULDNT_CARE) ? second : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (hundredths < DATE_SHOULDNT_CARE) ? hundredths : 0xFF;
 }
 
 void BACnetTime::Decode( BACnetAPDUDecoder& dec )
@@ -6654,8 +6701,41 @@ bool BACnetPriorityValue::Match( BACnetEncodeable &rbacnet, int iOperator, CStri
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)));
 	ASSERT(pbacnetTypedValue != NULL);
 
-	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue))  &&
-		   pbacnetTypedValue->Match(*((BACnetPriorityValue &)rbacnet).GetObject(), iOperator, pstrError);
+	// JLH 26 January 2010: 
+	// Compare for equality, greater, or less returns true only if
+	// - matching CHOICE (via GetRuntimeClass)
+	// - compare values
+	//
+	// Compare for inequality returns true if either
+	// - non-matching CHOICE (via GetRuntimeClass)
+	// - compare values
+	// Use OperatorToString to show oeprator
+	//
+	bool retval = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)) &&
+				  (pbacnetTypedValue != NULL) &&
+				  ( ((BACnetPriorityValue&)rbacnet).GetObject()->GetRuntimeClass() ==
+					 pbacnetTypedValue->GetRuntimeClass() );
+	if (!retval)
+	{
+		if (iOperator == '!=')
+		{
+			retval = true;
+		}
+		else
+		{
+			CString vBAC( ((BACnetPriorityValue&)rbacnet).GetObject()->ToString() );
+			CString vEPICS( pbacnetTypedValue->ToString() );
+			TRACE( "Got %s and %s\n", vBAC, vEPICS );
+
+			pstrError->Format( "(%s) different type from (%s)", vBAC, vEPICS );
+		}
+	}
+	else
+	{
+		retval = pbacnetTypedValue->Match(*((BACnetPriorityValue &)rbacnet).GetObject(), iOperator, pstrError);
+	}
+
+	return retval;
 }
 
 
