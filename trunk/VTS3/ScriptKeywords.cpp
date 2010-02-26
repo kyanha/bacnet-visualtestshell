@@ -109,8 +109,10 @@ ScriptTranslateTable ScriptALConfirmedServiceMap[] =
 	, { 0x0fa4f51c, 23 }					// VTDATA
 	, { 0xd08d352b, 24 }					// AUTHENTICATE
 	, { 0x9c38b663, 25 }					// REQUESTKEY
-	, { 0x5F156F1A, 26 }					//READRANGE			added by xuyiping 2002-8-29
-	, { 0xBC29635E, 29 }					//GETEVENTINFORMATION  Added by Zhu Zhenhua, 2004-5-25
+	, { 0x5F156F1A, 26 }					// READRANGE			added by xuyiping 2002-8-29
+	, { 0xe7bde28d, 27 }                    // LIFESAFETYOPERATION
+	, { 0x0971d2e9, 28 }                    // SUBSCRIBECOVPROPERTY
+	, { 0xBC29635E, 29 }					// GETEVENTINFORMATION  Added by Zhu Zhenhua, 2004-5-25
 	, { 0, 0 }
 	};
 
@@ -125,7 +127,7 @@ ScriptTranslateTable ScriptALUnconfirmedServiceMap[] =
 	, { 0x474218f1, 7 }						// WHO-HAS
 	, { 0xb0e1c86d, 8 }						// WHO-IS
 // Added by Yajun Zhou, 2002-7-11
-	, { 0xf908f2f1, 9 }						//UTCTIMESYNCHRONIZATION
+	, { 0xf908f2f1, 9 }						// UTCTIMESYNCHRONIZATION
 /////////////////////////////
 	, { 0, 0 }
 	};
@@ -202,15 +204,18 @@ ScriptTranslateTable ScriptObjectTypeMap[] =
 	, { 0x5D3473DF, 19 }					// MSV
 	, { 0xb6f0ce38, 20 }					// TREND-LOG    // fixed 1/5/2006
 	, { 0xC2E8CFF0, 20 }					// TR
-	, { 0x36c7b975, 21}	// LIFE-SAFETY-POINT
-	, { 0x5906dc54, 22}	// LIFE-SAFETY-ZONE
-	, { 0xb348f6a5, 23}						// ACCUMULATOR
-	, { 0x08ce27c5, 24}	// PULSE-CONVERTER
-	, { 0xde8871b7, 25}	// EVENT-LOG
-	, { 0xfdf5d47a, 27}	// TREND-LOG-MULTIPLE
-	, { 0xc5c4b5a2, 28}	// LOAD-CONTROL
-	, { 0x9f6849cd, 29}	// STRUCTURED-VIEW
-	, { 0x79d71549, 30}	// ACCESS-DOOR
+
+	// Added JLH 25-Jan-2010
+	, { 0x36c7b975, 21 }                    // LIFE-SAFETY-POINT
+	, { 0x5906dc54, 22 }                    // LIFE-SAFETY-ZONE
+	, { 0xb348f6a5, 23 }                    // ACCUMULATOR
+	, { 0x08ce27c5, 24}	                    // PULSE-CONVERTER
+	, { 0xde8871b7, 25 }                    // EVENT-LOG
+	, { 0x90cf9601, 26 }                    // GLOBAL-GROUP
+	, { 0xfdf5d47a, 27 }                    // TREND-LOG-MULTIPLE
+	, { 0xc5c4b5a2, 28 }                    // LOAD-CONTROL
+	, { 0x9f6849cd, 29 }                    // STRUCTURED-VIEW
+	, { 0x79d71549, 30 }                    // ACCESS-DOOR
 	, { 0, 0 }
 	};
 
@@ -542,75 +547,60 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { 0X684A30CD, 155 }					//DATABASE-REVISION    kare.sars@wapice.com 2005
 	, { 0X2DC1631D, 167 }					//MAX-SEGMENTS-ACCEPTED kare.sars@wapice.com 2005
 	, { 0xebbf5f06, 175 }                   // accepted-modes  added 2/15/2006 LJT
-// added 11/20/2009
-	, { 0x256ace07, 176 }                   // adjust-value
-	, { 0x14f48270, 177 }                   // count
-	, { 0x6810ef08, 178 }                   // count-before-change
-	, { 0x9f1e5f8e, 179 }                   // count-change-time
-	, { 0xcb1e40b6, 180 }                   // cov-period
-	, { 0xbbfc7ff6, 181 }                   // input-reference
-	, { 0x0a7ffe60, 182 }                   // limit-monitoring-interval
-	, { 0xbe59fa7e, 183 }                   // logging-device
-	, { 0xcedcc298, 184 }                   // logging-record
-	, { 0x60bad11c, 185 }                   // prescale
-	, { 0xf0a828a7, 186 }                   // pulse-rate
-	, { 0xa97b8ddf, 187 }                   // scale
-	, { 0xfcef704b, 188 }                   // scale-factor
-	, { 0xb7844f1c, 189 }                   // update-time
-	, { 0x4f69a743, 190 }                   // value-before-change
-	, { 0xb6bbf190, 191 }                   // value-set
-	, { 0x867717c9, 192 }                   // value-change-time
 
-	, { 0xc72c8737, 193 }                   // align-intervals
-	// 194 not defined yet
-	, { 0xca08d008, 195 }                   // interval-offset
-	, { 0xce286d96, 196 }                   // last-restart-reason
-	, { 0xc2016991, 197 }                   // logging-type
-	/**
-	, { 0x, 198 }                   // 
-	, { 0x, 199 }                   // 
-	, { 0x, 200 }                   // 
-	, { 0x, 201 }                   // 
-	*/
-	, { 0x26ace4eb, 202 }                   // restart-notification-recipients
-	, { 0x7e7e0db5, 203 }                   // time-of-device-restart
-	, { 0x85f4b60b, 204 }                   // time-synchronization-interval
-	, { 0xea9dc67e, 205 }                   // trigger
-	, { 0x2bce783a, 206 }                   // utc-time-syncrhonization-recipients
-	/**
-	, { 0x, 207 }                   // 
-	, { 0x, 208 }                   // 
-	*/
-	, { 0x59ff7dd7, 209 }                   // structured-object-list
-	, { 0xb1ad7c04, 210 }                   // subordinate-annotation
-	, { 0x977f09bd, 211 }                   // subordinate-list
-	, { 0xc0be1af3, 212 }                   // actual-shed-level
-	, { 0xcce95635, 213 }                   // duty-window
-	, { 0x1882a7a0, 214 }                   // expected-shed-level
-	, { 0x2b4e7142, 215 }                   // full-duty-baseline
-	, { 0xede99158, 216 }                   // node-subtype
-	, { 0x058a200b, 217 }                   // node-type
-	, { 0xba1cc33f, 218 }                   // requested-shed-level
-	, { 0x0d0c847c, 219 }                   // shed-duration
-	, { 0x80855c05, 220 }                   // shed-level-descriptions
-	, { 0x3537dc1c, 221 }                   // shed-levels
-	, { 0x56d7a8f7, 222 }                   // state-description
-	/**
-	, { 0x, 223 }                   // 
-	, { 0x, 224 }                   // 
-	, { 0x, 225 }                   // 
-	*/
-	, { 0x53cb6b9, 226 }                   // door-alarm-state
-	, { 0x2c25b4c1, 227 }                   // door-extended-pulse-time
-	, { 0xa87f337d, 228 }                   // door-members
-	, { 0xbd649ff8, 229 }                   // door-open-too-long-time
-	, { 0xaf368b47, 230 }                   // door-pulse-time
-	, { 0x29c0ccd7, 231 }                   // door-status
-	, { 0xf80242be, 232 }                   // door-unlock-delay-time
-	, { 0xf1a90477, 233 }                   // lock-status
-	, { 0xe6020cc0, 234 }                   // masked-alarm-values
-	, { 0x46d0b485, 235 }                   // secured-status
-
+	// JLH 25-January-2010
+	, { 0x256ace07, 176 }                   // ADJUST-VALUE
+	, { 0x14f48270, 177 }                   // COUNT
+	, { 0x6810ef08, 178 }                   // COUNT-BEFORE-CHANGE
+	, { 0x9f1e5f8e, 179 }                   // COUNT-CHANGE-TIME
+	, { 0xcb1e40b6, 180 }                   // COV-PERIOD
+	, { 0xbbfc7ff6, 181 }                   // INPUT-REFERENCE
+	, { 0x0a7ffe60, 182 }                   // LIMIT-MONITORING-INTERVAL
+	, { 0xbe59fa7e, 183 }                   // LOGGING-DEVICE
+	, { 0xcedcc298, 184 }                   // LOGGING-RECORD
+	, { 0x60bad11c, 185 }                   // PRESCALE
+	, { 0xf0a828a7, 186 }                   // PULSE-RATE
+	, { 0xa97b8ddf, 187 }                   // SCALE
+	, { 0xfcef704b, 188 }                   // SCALE-FACTOR
+	, { 0xb7844f1c, 189 }                   // UPDATE-TIME
+	, { 0x4f69a743, 190 }                   // VALUE-BEFORE-CHANGE
+	, { 0xb6bbf190, 191 }                   // VALUE-SET
+	, { 0x867717c9, 192 }                   // VALUE-CHANGE-TIME
+	// Added in 135-2008
+	, { 0xc72c8737, 193 }                   // ALIGN-INTERVALS
+	, { 0xca08d008, 195 }                   // INTERVAL-OFFSET
+	, { 0xce286d96, 196 }                   // LAST-RESTART-REASON
+	, { 0xc2016991, 197 }                   // LOGGING-TYPE
+	, { 0x26ace4eb, 202 }                   // RESTART-NOTIFICATION-RECIPIENTS
+	, { 0x7e7e0db5, 203 }                   // TIME-OF-DEVICE-RESTART
+	, { 0x85f4b60b, 204 }                   // TIME-SYNCHRONIZATION-INTERVAL
+	, { 0xea9dc67e, 205 }                   // TRIGGER
+	, { 0x2bce783a, 206 }                   // UTC-TIME-SYNCHRONIZATION-RECIPIENTS
+	, { 0xede99158, 207 }                   // NODE-SUBTYPE
+	, { 0x058a200b, 208 }                   // NODE-TYPE
+	, { 0x59ff7dd7, 209 }                   // STRUCTURED-OBJECT-LIST
+	, { 0x0a7701f7, 210 }                   // SUBORDINATE-ANNOTATIONS
+	, { 0x977f09bd, 211 }                   // SUBORDINATE-LIST
+	, { 0xc0be1af3, 212 }                   // ACTUAL-SHED-LEVEL
+	, { 0xcce95635, 213 }                   // DUTY-WINDOW
+	, { 0x1882a7a0, 214 }                   // EXPECTED-SHED-LEVEL
+	, { 0x2b4e7142, 215 }                   // FULL-DUTY-BASELINE
+	// 216 and 217 are listed in the comments are redundant definitions for node-type and node-subtype
+	, { 0xba1cc33f, 218 }                   // REQUESTED-SHED-LEVEL
+	, { 0x0d0c847c, 219 }                   // SHED-DURATION
+	, { 0x80855c05, 220 }                   // SHED-LEVEL-DESCRIPTIONS
+	, { 0x3537dc1c, 221 }                   // SHED-LEVELS
+	// STATE-DESCRIPTION                   = 222, in comments, but not in definition
+	, { 0x053cb6b9, 226 }                   // DOOR-ALARM-STATE
+	, { 0x2c25b4c1, 227 }                   // DOOR-EXTENDED-PULSE-TIME
+	, { 0xa87f337d, 228 }                   // DOOR-MEMBERS
+	, { 0xbd649ff8, 229 }                   // DOOR-OPEN-TOO-LONG-TIME
+	, { 0xaf368b47, 230 }                   // DOOR-PULSE-TIME
+	, { 0x29c0ccd7, 231 }                   // DOOR-STATUS
+	, { 0xf80242be, 232 }                   // DOOR-UNLOCK-DELAY-TIME
+	, { 0xf1a90477, 233 }                   // LOCK-STATUS
+	, { 0xe6020cc0, 234 }                   // MASKED-ALARM-VALUES
+	, { 0x46d0b485, 235 }                   // SECURED-STATUS
 	, { 0, 0 }
 	};
 
