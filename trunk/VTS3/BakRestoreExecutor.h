@@ -27,7 +27,7 @@ enum ReinitializedStateOfDevice
 	ENDBACKUP		= 3,
 	STARTRESTORE	= 4,
 	ENDRESTORE		= 5,
-	ABORTSTORE		= 6
+	ABORTRESTORE	= 6
 };
 
 class BakRestoreExecutor : public BACnetTask  

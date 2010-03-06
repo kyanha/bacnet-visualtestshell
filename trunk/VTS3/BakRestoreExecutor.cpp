@@ -1140,8 +1140,8 @@ void BakRestoreExecutor::DoAuxiliaryTest_2()
 		throw("Wrong Error Code\n");
 	}
 
-  m_pOutputDlg->OutMessage("Transmit ABORTSTORE...", FALSE);
-  if (!SendExpectReinitialize(ABORTSTORE))
+  m_pOutputDlg->OutMessage("Transmit ABORTRESTORE...", FALSE);
+  if (!SendExpectReinitialize(ABORTRESTORE))
 	{
 		throw("Unable to abot a restore procedure\n");
 	}
@@ -1258,8 +1258,8 @@ void BakRestoreExecutor::DoAuxiliaryTest_4()
 		throw("Wrong Error Code\n");
 	}
 
-  m_pOutputDlg->OutMessage("Transmit ABORTSTORE...", FALSE);
-  if (!SendExpectReinitialize(ABORTSTORE))
+  m_pOutputDlg->OutMessage("Transmit ABORTRESTORE...", FALSE);
+  if (!SendExpectReinitialize(ABORTRESTORE))
 	{
 		throw("Unable to abort a restore procedure\n");
 	}
@@ -1389,7 +1389,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
   }
 
 	m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to abort restore...", FALSE);
-	if (!SendExpectReinitialize(ABORTSTORE))
+	if (!SendExpectReinitialize(ABORTRESTORE))
 	{
 		throw("Unable to abort a backup procedure\n");
 	}
@@ -1683,7 +1683,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_12(BACnetObjectIdentifier& devObjID)
 	}
 	m_pOutputDlg->OutMessage("OK, Sending an Abort Restore ...", FALSE);
 
-  if (!SendExpectReinitialize(ABORTSTORE))
+  if (!SendExpectReinitialize(ABORTRESTORE))
 	{
 		m_pOutputDlg->OutMessage("Failed");
 		Msg("Can not start Backup procedure");
