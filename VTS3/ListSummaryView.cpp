@@ -803,6 +803,10 @@ void CListSummaryView::OnCustomdrawList ( NMHDR* pNMHDR, LRESULT* pResult )
 		}
 		else
 		{
+			// TODO: wouldn't it be more useful to set color
+			// by PDU type, and/or distinguish PDUs from
+			// VTS scripting messages?
+			// Also, since Find finds substring, the separate compares for -ack are silly.
 			if ( serviceText.Find("readproperty,") > -1)
 				crText = SUMMARY_PACKET_COLOR[0];
 			else if ( serviceText.Find("readproperty-ack") > -1)
