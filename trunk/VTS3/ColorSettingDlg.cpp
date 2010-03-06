@@ -70,15 +70,36 @@ END_MESSAGE_MAP()
 BOOL CColorSettingDlg::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
-	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
+	int i;
 	
-//	// TODO: Add extra initialization here
+	// TODO: Why not use CColorDialog to select ARBITRARY colors?
+	// Replace the Combo boxes with buttons, each showing the current color.
+	// Pressing the button invokes CColorDialog.
+
 	m_imageList.Create(IDB_COLOR, 16, 1, RGB(255, 255, 255));
 
+	COMBOBOXEXITEM     cbi;
+	memset( &cbi, 0, sizeof(cbi) );
+	cbi.mask = CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;		
+
+	// Fill the combo boxes with our color choices
 	for(i = 0; i < COLOR_PDU_COUNT; i++)
 	{
 		m_ctrl[i].SetImageList(&m_imageList);
 
+		cbi.iItem = i;
+		cbi.iImage = i;
+		cbi.iSelectedImage = i;
+		
+		for(int j = 0; j < COLOR_PDU_COUNT; j++)
+		{
+			int at = m_ctrl[j].InsertItem(&cbi);
+		}
+	}	
+
+	// Show the current color selection
+	for(i = 0; i < COLOR_PDU_COUNT; i++)
+	{
 		for(int j = 0; j < COLOR_PDU_COUNT; j++)
 		{
 			if(SUMMARY_PACKET_COLOR[i] == COLOR_DEFINITION[j])
@@ -87,19 +108,6 @@ BOOL CColorSettingDlg::OnInitDialog()
 				break;
 			}
 		}
-	}	
-
-	COMBOBOXEXITEM     cbi;
-	cbi.mask = CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;		
-
-	for(i = 0; i < COLOR_PDU_COUNT; i++)
-	{
-		cbi.iItem = i;
-		cbi.iImage = i;
-		cbi.iSelectedImage = i;
-		
-		for(int j = 0; j < COLOR_PDU_COUNT; j++)
-			m_ctrl[j].SetItem(&cbi);
 	}	
 
 	return TRUE;  // return TRUE unless you set the focus to a control
