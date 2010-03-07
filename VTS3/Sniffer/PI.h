@@ -210,17 +210,23 @@ Change log
 #define MAX_INT_LINE    550             /* maximum width of a detail line */ // Increased line to allow 255 bytes
 #define MAX_INT_LINES   5000            /* maximum detail lines per packet */
 
+// Used to control/suggest how detail lines are displayed and expanded
+enum PID_NODE_TYPE
+{
+	NT_NORMAL,		// normal line, let view categorize it
+	NT_ITEM_HEAD,	// "head" of an item.  May be used as a hint by view
+	NT_OPEN_TAG,	// Beginning of a context-tagged sequence.  Used by view to control expansion
+	NT_ROOT,		// Reset to root of tree
+	NT_ERROR		// Indicate an error line
+};
+
 struct BACnetPIDetail {
 	int			piOffset;
 	int			piLen;
 	char		piLine[MAX_INT_LINE];
 
-	int			piNodeType;				/*	the AL Detail Node Type, added by Lei Chengxin, 2003-7-22
-											value 0 means the normal tree node; 
-											1 means the new tree node with less tag information;
-											2 means the sub new tree node;
-											3 means the detail line not related to any byte in the HexView. */
-	};
+	PID_NODE_TYPE	piNodeType;
+};
 
 typedef BACnetPIDetail *BACnetPIDetailPtr;
 
@@ -288,7 +294,7 @@ namespace NetworkSniffer {
 // sprintf of the byte at the current offset.
 // format string prstr should have %s for hdr, %u for the byte, and %s for valu
 // Offset pointer is advanced by one.
-void xsprintf( char *dst, char *prstr, char *hdr, char *valu );
+void xsprintf( char *dst, const char *prstr, const char *hdr, const char *valu );
 
 /*----------------------------------------------------------------------------
 
@@ -394,10 +400,15 @@ int		pif_show_flagmask(int ,int ,char *);
 // void	pif_show_flag_value (char, int, char *);
 // void	pif_show_2byte(char *);
 // int	pif_show_word(char *);
+
+// NOTE: at one time these functions did a hack compare
+// on the format string to see if they should print as
+// SIGNED values.  That capability has been removed.
 int		pif_show_word_hl(char *);
 long	pif_show_slong_hl(char *);  // 3 byte encoded
-long	pif_show_long(char *);
+long    pif_show_nbyte_uint(char *, int len);
 long	pif_show_long_hl(char *);
+
 // void	pif_show_4byte(char *);
 // void	pif_show_5byte(char *);
 // void	pif_show_6byte(char *);
@@ -418,8 +429,8 @@ char	*pif_off_endp (void);
 //char	*make_c_str(char *,char *,int ,int );
 //char	*format_date (unsigned long, struct date *, char []);
 
-char	*get_int_line (struct pi_data *, int offset, int length, int nodeType = 0);	/*	modified by Lei Chengxin 2003-7-22, add a new 
-																			parameter to classify the tree node type. */
+// Values for get_int_line node type
+char	*get_int_line (struct pi_data *, int offset, int length, PID_NODE_TYPE nodeType = NT_NORMAL);
 char	*get_sum_line (struct pi_data *);
 char	*get_cur_int_line( void ); /* JJB */
 
@@ -872,7 +883,7 @@ extern  char    *pif_line();            /* get a detail line buffer */
 // TODO: Turn these into real functions (perhaps inlined).
 // Otherwise calls like pif_get_byte( offset++ ) double increment
 // Bugs like that we don't need...
-#define pif_get_byte(n) (( pif_offset + (n) >= pif_end_offset) ? 0 : ((unsigned char)(*(msg_origin + pif_offset + (n)))))
+#define pif_get_byte(n) (( pif_offset + (int)(n) >= pif_end_offset) ? 0 : ((unsigned char)(*(msg_origin + pif_offset + (n)))))
 
 #if LITTLEENDIAN
 /*  These are little endian defines - JJB */
@@ -896,14 +907,14 @@ extern  char    *pif_line();            /* get a detail line buffer */
 #define pif_eof(n)           (pif_offset + n >= pif_end_offset)
 
 
-struct pi_trap {        /* setjmp/longjmp structure; used for end-of-frame trap */
-    int  jmp_buf[9];    /* retoff, retseg, sp, bp, si, di, ds, es, ss */
-};
-extern  struct pi_trap  *pi_trap_ptr;           /* ptr to pi setjmp trap */
-extern  struct pi_trap  *pi_trap_ptr_first;     /* ptr to first setjmp trap */
-extern  struct pi_trap  *pi_trap_ptr_last;      /* ptr to last setjmp trap */
-extern  boolean	near	pi_trap_active;			/* is the pi trap armed? */
-extern  boolean	near	iso_trap_active;		/* is the ISO trap armed? */
+//struct pi_trap {        /* setjmp/longjmp structure; used for end-of-frame trap */
+//    int  jmp_buf[9];    /* retoff, retseg, sp, bp, si, di, ds, es, ss */
+//};
+// extern  struct pi_trap  *pi_trap_ptr;           /* ptr to pi setjmp trap */
+// extern  struct pi_trap  *pi_trap_ptr_first;     /* ptr to first setjmp trap */
+// extern  struct pi_trap  *pi_trap_ptr_last;      /* ptr to last setjmp trap */
+// extern  boolean	near	pi_trap_active;			/* is the pi trap armed? */
+// extern  boolean	near	iso_trap_active;		/* is the ISO trap armed? */
 
 
 /*----------------------------------------------------------------------------
@@ -912,9 +923,9 @@ extern  boolean	near	iso_trap_active;		/* is the ISO trap armed? */
 
 -----------------------------------------------------------------------------*/
 
-#define LINE_OVERRUN 1
-#define GET_SUM_LINE (char *) 1
-#define GET_INT_LINE (char *) 2
+// #define LINE_OVERRUN 1
+// #define GET_SUM_LINE (char *) 1
+// #define GET_INT_LINE (char *) 2
 
 /*----------------------------------------------------------------------------
 
@@ -923,30 +934,30 @@ extern  boolean	near	iso_trap_active;		/* is the ISO trap armed? */
                 
 -----------------------------------------------------------------------------*/
 /* ===== Structure for %!h sprintf format ===== */
-typedef struct {
-   unsigned int  min_value;
-   unsigned int  max_value;
-   char         *string_loc;
-} PICK_STRING_INT_RANGE;   
+//typedef struct {
+//   unsigned int  min_value;
+//   unsigned int  max_value;
+//   char         *string_loc;
+//} PICK_STRING_INT_RANGE;   
    
 /* ===== Structure for %!i sprintf format ===== */
-typedef struct {
-   unsigned int  min_value;
-   unsigned int  max_value;
-   char         *strings[PICK_STRINGS_INT_SIZE];
-} PICK_STRINGS_INT;   
+//typedef struct {
+//   unsigned int  min_value;
+//   unsigned int  max_value;
+//   char         *strings[PICK_STRINGS_INT_SIZE];
+//} PICK_STRINGS_INT;   
    
 /* ===== Structure for %!j sprintf format ===== */
-typedef struct {
-   unsigned int  index_value;
-   char         *string_loc;
-} PICK_STRING_INT_VALUES;   
+//typedef struct {
+//   unsigned int  index_value;
+//   char         *string_loc;
+//} PICK_STRING_INT_VALUES;   
    
 /* ===== Structure for %k!j sprintf format ===== */
-typedef struct {
-   unsigned char  index_value;
-   char         *string_loc;
-} PICK_STRING_CHAR_VALUES;   
+//typedef struct {
+//   unsigned char  index_value;
+//   char         *string_loc;
+//} PICK_STRING_CHAR_VALUES;   
 
 /*-----------------------------------------------------------------------------
 
