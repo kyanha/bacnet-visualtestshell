@@ -25,8 +25,8 @@ public:
 	enum { IDD = IDD_INCONSISTENT_PARS_PROGRESS };
 	CButton	m_okCtrl;
 	CButton	m_killCtrl;
+	CEdit	m_editOutput;
 	//}}AFX_DATA
-	CRichEditCtrl	m_editOutput2;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
