@@ -80,7 +80,12 @@ bool BacParser::ParseTag()
    
 	m_pairedTag  = 0;
 	m_dataLength = (tagbuff & 0x07);
-	if (m_dataLength == 5)
+	if (!m_contextTag && (m_tagValue < 2))
+	{
+		// Application-tagged NULL or BOOLEAN: no length
+		m_dataLength = 0;
+	}
+	else if (m_dataLength == 5)
 	{
 		// Extended length in next byte
 		m_dataLength = pif_get_byte( m_offset );
@@ -648,10 +653,10 @@ void BACnetSequence::ClosingTag()
 			// Vet and show closing tag
 			if (Vet( pNest->m_tagValue, -1 ))
 			{
-// Don't show as a header line, since we are indenting this under the header for
-// the opening tag
-//				m_ok = show_head_context_tag( 0, pNest->m_pTitle, pNest->m_tagValue, false );
-//				if (m_ok)
+				// Don't show as a header line, since we are indenting this under the 
+				// header for the opening tag
+				// m_ok = show_head_context_tag( 0, pNest->m_pTitle, pNest->m_tagValue, false );
+				// if (m_ok)
 				{
 					// Deconstruct the closing tag and advance cursor
                     show_tag();
@@ -786,10 +791,14 @@ bool BACnetSequence::HasListElement()
 					}
 					else
 					{
-						// Show the closing tag, advance cursor, stop the loop
-						// TODO: should the last parm really be true?
-						// Should we call show_tag()?
-						m_ok = show_head_context_tag( 0, pNest->m_pTitle, tag, true );
+						// Don't show as a header line, since we are indenting this under the 
+						// header for the opening tag
+						// m_ok = show_head_context_tag( 0, pNest->m_pTitle, pNest->m_tagValue, false );
+						// if (m_ok)
+						{
+							// Deconstruct the closing tag and advance cursor
+				            show_tag();
+						}
 					}
 				}
 
@@ -812,6 +821,11 @@ bool BACnetSequence::Null( int theTag, const char *pTitle, BACnetSequenceParm th
 	bool retval = Vet( theTag, 0, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Null";
+		}
+		
 		if (theTag < 0)
 		{
 			// Application-tag
@@ -838,6 +852,11 @@ bool BACnetSequence::Boolean( int theTag, const char *pTitle, BACnetSequenceParm
 	bool retval = Vet( theTag, BOOLEAN, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Boolean";
+		}
+		
 		// The interest here is that app-tagged boolean has its value in
 		// the length field, while context tag has it as a value byte.
 		unsigned int boolVal;
@@ -873,6 +892,11 @@ bool BACnetSequence::Unsigned( int theTag, const char *pTitle, BACnetSequencePar
 	bool retval = Vet( theTag, UNSIGNED, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Unsigned";
+		}
+		
 		show_head_unsigned( 1, pTitle, theTag);
 		unsigned int len = show_tag();
 
@@ -907,6 +931,11 @@ bool BACnetSequence::Real( int theTag, const char *pTitle, BACnetSequenceParm th
 	bool retval = Vet( theTag, REAL, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Real";
+		}
+		
 		show_head_real( 1, pTitle, theTag);
 		unsigned int len = show_tag();
 		show_bac_real(len);
@@ -922,6 +951,11 @@ bool BACnetSequence::Double( int theTag, const char *pTitle, BACnetSequenceParm 
 	bool retval = Vet( theTag, DOUBLE, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Double";
+		}
+		
 		show_head_double( 0, pTitle, theTag);
 		unsigned int len = show_tag();
 		show_bac_double(len);
@@ -937,6 +971,11 @@ bool BACnetSequence::Date( int theTag, const char *pTitle, BACnetSequenceParm th
 	bool retval = Vet( theTag, DATE, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Date";
+		}
+		
 		show_head_date( 1, pTitle, theTag);
 		unsigned int len = show_tag();
 		show_bac_date(len);
@@ -952,6 +991,11 @@ bool BACnetSequence::Time( int theTag, const char *pTitle, BACnetSequenceParm th
 	bool retval = Vet( theTag, TIME, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Time";
+		}
+		
 		show_head_time( 1, pTitle, theTag);
 		unsigned int len = show_tag();
 		show_bac_time(len);
@@ -968,6 +1012,11 @@ bool BACnetSequence::PropertyArrayIndex( int theTag, const char *pTitle, BACnetS
 	bool retval = Vet( theTag, UNSIGNED, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Unsigned";
+		}
+		
 		show_head_unsigned( 1, pTitle, theTag);
 		unsigned int len = show_tag();
 
@@ -990,6 +1039,11 @@ bool BACnetSequence::Enumerated( int theTag, const char *pTitle,
 	bool retval = Vet( theTag, ENUMERATED, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Enumerated";
+		}
+		
 		const char* const *pTable = (pTheTable) ? pTheTable->m_pStrings : NULL;
 		unsigned int nStrings     = (pTheTable) ? pTheTable->m_nStrings : 0;
 		show_head_enumerated( 1, pTitle, theTag, pTable, nStrings );
@@ -1013,6 +1067,11 @@ bool BACnetSequence::PropertyIdentifier( int theTag, const char *pTitle, BACnetS
 	bool retval = Vet( theTag, ENUMERATED, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Enumerated";
+		}
+		
 		show_head_enumerated( 1, pTitle, theTag, 
 							  BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings, 
 							  BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings );
@@ -1037,6 +1096,11 @@ bool BACnetSequence::ObjectIdentifier( int theTag, const char *pTitle, BACnetSeq
 	bool retval = Vet( theTag, OBJECT_IDENTIFIER, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Object Identifier";
+		}
+		
 		show_head_obj_id(1, pTitle, theTag);
 		unsigned int len = show_tag();
 
@@ -1059,6 +1123,11 @@ bool BACnetSequence::BitString( int theTag, const char *pTitle,
 	bool retval = Vet( theTag, BIT_STRING, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Bit string";
+		}
+		
 		show_head_bit_string(0, pTitle, theTag);
 		unsigned int len = show_tag();
 
@@ -1121,6 +1190,11 @@ bool BACnetSequence::TextString( int theTag, const char *pTitle, BACnetSequenceP
 	bool retval = Vet( theTag, CHARACTER_STRING, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Character string";
+		}
+		
 		show_head_char_string(0, pTitle, theTag);
 		unsigned int len = show_tag();
 
@@ -1137,6 +1211,11 @@ bool BACnetSequence::OctetString( int theTag, const char *pTitle, BACnetSequence
 	bool retval = Vet( theTag, OCTET_STRING, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Octet string";
+		}
+		
 		show_head_octet_string(0, pTitle, theTag);
 		unsigned int len = show_tag();
 		show_bac_octetstring(len);
