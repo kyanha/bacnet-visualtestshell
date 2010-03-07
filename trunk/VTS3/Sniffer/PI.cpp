@@ -83,10 +83,13 @@ void BACnetPIInfo::SetPIMode( bool summary, bool detail )
 	NetworkSniffer::pi_data_Message->do_int = detail;
 }
 
+namespace NetworkSniffer {
+	void ShowDecoderException( const char *pMessage );
+};
+
 //
 //	BACnetPIInfo::Interpret
 //
-
 void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 {
 	// flush the current contents (if any)
@@ -140,8 +143,33 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 				NetworkSniffer::interp_BakRestoreMessage( header, length );
 		}
 	}
+	catch (int ex) {
+		CString str;
+		str.Format( "int(%u)", ex );
+		NetworkSniffer::ShowDecoderException( (LPCTSTR)str );
+	}
+	catch (const char *pEx) {
+		NetworkSniffer::ShowDecoderException( pEx );
+	}
+	catch (const CString &ex) {
+		NetworkSniffer::ShowDecoderException( (LPCTSTR)ex );
+	}
+	catch (const CObject &ex) {
+		CString str;
+		str.Format( "CObject (%p)", &ex );
+		NetworkSniffer::ShowDecoderException( (LPCTSTR)str );
+	}
+	catch (const void *pEx) {
+		CString str;
+		str.Format( "pointer(%p)", pEx );
+		NetworkSniffer::ShowDecoderException( (LPCTSTR)str );
+	}
 	catch (...) {
-		// if we run out of detail lines, get_int_line throws -1
+		// Null pointers and the like come here...
+		NetworkSniffer::ShowDecoderException( "..." );
+
+		// TODO: might look at SetUnhandledExceptionFilter or ThreadExceptionEventHandler
+		// to figure out WHAT was caught
 	}
 }
 
@@ -160,10 +188,10 @@ struct  pi_data		gPIData;	/* global pi_data */
 
 //-----
 
-struct  pi_data * near pif_pi;  /* Ptr to current pi */
-int     near pif_offset;        /* Current offset */
-int     near pif_end_offset;    /* Offset for last+1 byte */
-int     near pif_flagbit_indent;/* Number of blanks for flagbit */
+struct  pi_data * pif_pi;		/* Ptr to current pi */
+int     pif_offset;				/* Current offset */
+int     pif_end_offset;			/* Offset for last+1 byte */
+int     pif_flagbit_indent;		/* Number of blanks for flagbit */
 char    pif_header_msg[];       /* Saved header message */
 
 // char *  near dlc_header;        /* ptr to start of frame */
@@ -185,6 +213,34 @@ char *  near msg_origin;        /* ptr to start of frame or message */
 
 //-----
 
+// Show information about an exception
+void ShowDecoderException( const char *pMessage )
+{
+	// TODO: Add more text about how to report this error.
+	// - how to copy to clipboard
+	// - could we add a report-to-web feature?
+	CString str;
+	str.Format( "Exception during decoding: %s\n"
+				"\n"
+				"Near offset %d in PDU",
+				pMessage, pif_offset
+			  );
+	for (int ix=0; ix < pif_end_offset; ix++)
+	{
+		char buf[ 20 ];
+		if ((ix % 16) == 0)
+		{
+			sprintf( buf, "\n%4u)", ix );
+			str += buf;
+		}
+
+		sprintf( buf, " %02X", msg_origin[ix] & 0xFF );
+		str += buf;
+	}
+
+	::AfxMessageBox( str );
+}
+
 char *get_sum_line( struct pi_data * )
 {
 	// no more than one at a time
@@ -195,10 +251,9 @@ char *get_sum_line( struct pi_data * )
 }
 
 // Get a new BACnetPIDetail line.  Return text buffer in which to build
-char *get_int_line( struct pi_data *, int offset, int length, int nodeType )
+char *get_int_line( struct pi_data *, int offset, int length, PID_NODE_TYPE nodeType )
 {
-	BACnetPIDetailPtr	dp
-	;
+	BACnetPIDetailPtr	dp;
 	
 	// make sure we don't try and grab too many
 	if (gCurrentInfo->detailCount >= MAX_INT_LINES)
@@ -209,8 +264,7 @@ char *get_int_line( struct pi_data *, int offset, int length, int nodeType )
 	dp->piOffset = gCurrentInfo->piOffset + offset;
 	dp->piLen = length;
 	dp->piLine[0] = 0;
-
-	dp->piNodeType = nodeType;		// added by Lei Chengxin 2003-7-22
+	dp->piNodeType = nodeType;
 	
 	// return a pointer to the character buffer
 	return dp->piLine;
@@ -457,148 +511,67 @@ void pif_show_nbytes_hex( char *prstr, int byte_count )
 	sprintf( s, prstr, buff );
 }
 
+//
+//	pif_show_nbyte_uint
+//
+//  Show an N-byte integer from the current offset as a new detail line, 
+//  using the specified format string.  Advance offset pointer by N.
+long pif_show_nbyte_uint(char *prstr, int len)
+{
+	unsigned long val = 0;
+	for (int ix = 0; ix < len; ix++)
+	{
+		val = (val << 8) | pif_get_byte(ix);
+	}
+
+	// get a detail line
+	sprintf( get_int_line( pif_pi, pif_offset, len ), prstr, val );	
+
+	// update the offset
+	pif_offset += len;	
+	return val;
+}
 
 //
 //	pif_show_long_hl
 //
-
+//  Show a 4-byte unsigned integer from the current offset as a new detail line, 
+//  using the specified format string.  Advance offset pointer.
 long pif_show_long_hl( char *prstr )
 {
-	//Modifyed by Zhu Zhenhua 2003-7-22, the code to add "-" before the number if it is signed and negative
-	//else do as before	
-	CString str = prstr;
-	CString str1 = "Value (4-octet signed)";
-	unsigned char necValue = (0x80 & (unsigned char)pif_get_byte(0));
-	char			*s
-	;
-	unsigned long	arg
-	;
-	
-	// get a detail line
-	s = get_int_line( pif_pi, pif_offset, 4 );
-	
-	// get the long data and format it in the buffer
-	arg = pif_get_long_hl(0);
-	if(str.Find(str1)!= -1)
-		if(necValue)
-		{
-			int nIndex = str.Find("=")+2;
-			str.Insert(nIndex,'-');
-			unsigned long nValue = (unsigned short)(0x100000000 - arg);
-			strcpy(prstr,str);
-			sprintf(s,prstr,nValue);
-			pif_offset += 4;
-			return arg;
-		}
-	sprintf( s, prstr, arg );	
-
-	// update the offset
-	pif_offset += 4;	
-	return arg;
+	return pif_show_nbyte_uint(prstr, 4);
 }
 
-//
+// TODO: this isn't used anywhere
 //	pif_show_slong_hl
-//      LJT 10/11/2007 - added to fix handling of signed integers which encode to 3 bytes
-
+//
+//  Show a 3-byte unsigned integer from the current offset as a new detail line, 
+//  using the specified format string.  Advance offset pointer.
 long pif_show_slong_hl( char *prstr )
 {
-	//Modifyed by Zhu Zhenhua 2003-7-22, the code to add "-" before the number if it is signed and negative
-	//else do as before	
-	CString str = prstr;
-	CString str1 = "Value (3-octet signed)";
-	unsigned char necValue = (0x80 & (unsigned char)pif_get_byte(0));
-	char			*s
-	;
-	unsigned long	arg
-	;
-	
-	// get a detail line
-	s = get_int_line( pif_pi, pif_offset, 3 );
-	
-	// get the long data and format it in the buffer
-	arg = pif_get_long_hl(0);
-	arg = arg >>8;   // Note: the pif_get_long_hl read 4 bytes which is 1 too many so here we strip it back off.  LJT
-	if(str.Find(str1)!= -1)
-		if(necValue)
-		{
-			int nIndex = str.Find("=")+2;
-			str.Insert(nIndex,'-');
-			unsigned long nValue = (unsigned short)(0x100000000 - arg);
-			strcpy(prstr,str);
-			sprintf(s,prstr,nValue);
-			pif_offset += 3;
-			return arg;
-		}
-	sprintf( s, prstr, arg );	
-
-	// update the offset
-	pif_offset += 3;	
-	return arg;
+	return pif_show_nbyte_uint(prstr, 3);
 }
 
 //
 //	pif_show_word_hl
 //
+//  Show a 2-byte unsigned integer from the current offset as a new detail line, 
+//  using the specified format string.  Advance offset pointer.
 
 int pif_show_word_hl( char *prstr )
 {
-	//Modifyed by Zhu Zhenhua 2003-7-22, the code to add "-" before the number if it is signed and negative
-	//else do as before	
-	CString str = prstr;
-	CString str1 = "Value (2-octet signed)";
-	unsigned char necValue = (0x80 & (unsigned char)pif_get_byte(0));
-	char			*s
-		;
-	unsigned short	arg
-		;
-	
-	// get a detail line
-	s = get_int_line( pif_pi, pif_offset, 2 );
-	
-	// get the short data and format it in the buffer
-	arg = pif_get_word_hl(0);
-	if(str.Find(str1)!= -1)
-		if(necValue)
-		{	
-			int nIndex = str.Find("=")+2;
-			str.Insert(nIndex,'-');
-			unsigned short nValue = (unsigned short)(0x10000 - arg);
-			strcpy(prstr,str);
-			sprintf(s,prstr,nValue);
-			pif_offset += 2;
-			return arg;
-		}
-			
-		sprintf( s, prstr, arg );		
-		// update the offset
-		pif_offset += 2;	
-		return arg;
-
+	return (int)pif_show_nbyte_uint(prstr, 2);
 }
 
 //
 //	pif_show_byte
 //
+//  Show a 1-byteunsigned  integer from the current offset as a new detail line, 
+//  using the specified format string.  Advance offset pointer.
 
 int pif_show_byte( char *prstr )
 {
-	char			*s
-	;
-	unsigned char	arg
-	;
-	
-	// get a detail line
-	s = get_int_line( pif_pi, pif_offset, 1 );
-	
-	// get the long data and format it in the buffer
-	arg = pif_get_byte(0);
-	sprintf( s, prstr, arg );
-	
-	// update the offset
-	pif_offset += 1;
-	
-	return arg;
+	return (int)pif_show_nbyte_uint(prstr, 1);
 }
 
 //
@@ -758,7 +731,7 @@ void pif_show_space( void )
 //  format string prstr should have %s for hdr, %u for the byte, and %s for valu
 //  Offset pointer is advanced by one.
 //
-// Historical note: comment on the original function stated
+// Historical note:
 //	The sprintf() function in the real Sniffer (tm) has an extension to allow the 
 //	pif_offset to be updated as a side effect.  It takes the type of object 
 //	to know how far to update.  In the BACnet sniffer functions, only '%>ku'
@@ -768,7 +741,7 @@ void pif_show_space( void )
 //  This was just too disgusting, so I edited the 20 callers to just pass
 //  %u and eliminated the voodoo here.  Not like we are going back to Sniffer.
 //
-void xsprintf( char *dst, char *prstr, char *hdr, char *valu )
+void xsprintf( char *dst, const char *prstr, const char *hdr, const char *valu )
 {
 	// now use the real sprintf
 	sprintf( dst, prstr, hdr, (unsigned char)pif_get_byte(0), valu );

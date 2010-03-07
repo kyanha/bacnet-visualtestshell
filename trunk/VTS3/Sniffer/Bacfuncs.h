@@ -1,1558 +1,1175 @@
-   /*   ------ BACnet base type character arrays --------------- */
+// More BACnet decode and display
+
 // Revision: Sep 18 2001 added new properties published in Addendum 135b to ANSI/ASHRAE Standard 135-1995
 // Revision: Feb 3 2010  added new properties published ANSI/ASHRAE Standard 135-2008
+// Revision: March 5 2010: rewrote most of it.
+/**************************************************************************/
 
-char *BACnetAction[] = {
-   "DIRECT",
-   "REVERSE"
-   };
+// Parse BACnet tags
+class BacParser
+{
+public:
+	// Constructor takes the offset of the first tag from buffer cursor.
+	// Parses first tag
+	BacParser( int theOffset );
 
-char* BACnetActionList[] = {
-	"Action"
-};
-char *BACnetActionCommand[] = {
-   "Device Identifier",
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Property Value",
-   "Priority",
-   "Post Delay",
-   "Quit On Failure",
-   "Write Successful"
-   };
+	// Parse the next tag.  Return false for end of buffer, or
+	// illegal tag (application tag with paired delimiter etc)
+	// Upon return, offset points at first databyte, if any.
+	bool ParseTag();
 
-char *BACnetAddress[] = {
-   "Network number",
-   "MAC address"
-   };
+	// Consume the data for the current tag
+	bool EatData();
 
-char *BACnetAddressBinding[] ={
-   "Device Object Identifier",
-   "Device Address"
-};
+	// Is there more in the buffer?
+	bool HasMore() const;
 
-char *BACnetBinaryPV[] = {
-   "INACTIVE",
-   "ACTIVE"
-   };
+	// Synchronize with the cursor, reset offset to 0
+	void Synch();
 
-char *BACnetCalendarEntry[] = {
-   "Date",
-   "Date Range",
-   "WeekNDay"
-    };
+	// Get the components of the current tag
+	int			 Offset() const { return m_offset; }
+	unsigned int TagValue() const { return m_tagValue; }
+	unsigned int DataLength() const { return m_dataLength; }
+	bool		 ContextTag() const { return m_contextTag; }
+	bool		 FixedTag() const { return (m_pairedTag < 6); }
+	bool		 OpeningTag() const { return (m_pairedTag == 6); }
+	bool		 ClosingTag() const { return (m_pairedTag == 7); }
 
-char *BACnetClientCOV[] = {
-	"real-increment",
-	"default-increment"
+protected:
+	int			 m_offset;
+	unsigned int m_tagValue;
+	unsigned int m_dataLength;
+	bool		 m_contextTag;
+	int			 m_pairedTag;
 };
 
-char *BACnetScale[] = {
-	"floatScale",
-	"integerScale"
+BacParser::BacParser( int theOffset )
+: m_offset( theOffset )
+{
+	ParseTag();
+}
+
+// Is there more in the buffer?
+bool BacParser::HasMore() const
+{
+	return (pif_offset + (int)m_offset < pif_end_offset);
+}
+
+// Synchronize with the cursor, reset offset to 0
+void BacParser::Synch()
+{
+	m_offset = 0;
+}
+
+bool BacParser::ParseTag()
+{
+	bool retval = true;
+	
+	unsigned int tagbuff = pif_get_byte( m_offset );
+	m_offset += 1;
+	m_contextTag = (tagbuff & 0x08) != 0;
+	m_tagValue   = (tagbuff & 0xF0)>>4;
+	
+	if (m_tagValue >= 15)
+	{
+		// Extended tag in next byte
+		m_tagValue = pif_get_byte( m_offset );
+		m_offset += 1;
+	}
+   
+	m_pairedTag  = 0;
+	m_dataLength = (tagbuff & 0x07);
+	if (m_dataLength == 5)
+	{
+		// Extended length in next byte
+		m_dataLength = pif_get_byte( m_offset );
+		m_offset += 1;
+		if (m_dataLength == 254)
+		{
+			// Two-byte extension
+            m_dataLength = pif_get_word_hl( m_offset );
+			m_offset += 2;
+		}
+		else if (m_dataLength == 255)
+		{
+			// Four-byte extension
+            m_dataLength = (unsigned int)pif_get_long_hl( m_offset );
+			m_offset += 4;
+		}
+	}
+	else if (m_dataLength > 5)
+	{
+		// Paired tag
+		m_pairedTag  = m_dataLength;
+		m_dataLength = 0;
+
+		// paired tag MUST be a context tag
+		retval = m_contextTag;
+	}
+
+	if (retval)
+	{
+		// Are we still in the buffer?
+		// Allow one byte past the end so we can parse the final element
+		retval = (pif_offset + (int)m_offset <= pif_end_offset);
+	}
+
+	return retval;
+}
+
+// Consume the data for the current tag
+bool BacParser::EatData()
+{
+	bool retval = true;
+	if (m_pairedTag == 6)
+	{
+		// Opening tag.  Consume tagged items until the matching
+		// closing tag
+		unsigned int searchTag = m_tagValue;
+		while (retval)
+		{
+			// Save the location of the start of the next tag
+			unsigned int savedOffset = m_offset;
+			retval = ParseTag();
+			if (!retval)
+				break;
+			
+			if (ClosingTag() && (m_tagValue == searchTag))
+			{
+				// Matching closing tag.  Back off before the tag.
+				m_offset = savedOffset;
+				break;
+			}
+			else
+			{
+				// Opening or fixed tag.  Eat its contents
+				retval = EatData();
+			}
+		}
+	}
+	else
+	{
+		// Skip over the data.  (Includes closing tag, with length 0)
+		m_offset += m_dataLength;
+	}
+
+	return retval;
+}
+
+// Return a test buffer for short term use, such as as an argument
+// for sprintf.  Buffers are allocated from a small rotary set, so
+// long-term usage will result in the buffer being re-used.
+char* TempTextBuffer()
+{
+#define TEMP_TEST_N_BUFFERS 10
+#define TEMP_TEST_BUFFERLENGTH 100
+	static char buffers[TEMP_TEST_N_BUFFERS ][ TEMP_TEST_BUFFERLENGTH ];
+	static int ix;
+
+	ix = (ix + 1) % TEMP_TEST_N_BUFFERS;
+	return buffers[ix];
+}
+
+// Return a string containing text for the specified object type.
+// If the type is undefined or in the proprietary range, the
+// string will say that, and sow the numeric value
+const char* ObjectTypeString( int theObjectType )
+{
+	const char *pRet;	
+	if (theObjectType < BAC_STRTAB_BACnetObjectType.m_nStrings)
+	{
+		pRet = BAC_STRTAB_BACnetObjectType.m_pStrings[theObjectType];
+	}
+	else
+	{
+		char *pTxt = TempTextBuffer();
+        if (theObjectType < 128)
+			sprintf( pTxt, "Reserved_%d", theObjectType );
+		else
+			sprintf( pTxt, "Proprietary_%d", theObjectType );
+
+		pRet = pTxt;
+	}
+
+	return pRet;
+}
+
+// Return a string containing text for the specified property identifier.
+// If the proeprty is undefined or in the proprietary range, the
+// string will say that, and sow the numeric value
+const char* PropertyIdentifierString( int theIdentifier )
+{
+	const char *pRet;	
+	if (theIdentifier < BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings)
+	{
+		pRet = BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[theIdentifier];
+	}
+	else
+	{
+		char *pTxt = TempTextBuffer();
+        if (theIdentifier < 512)
+			sprintf( pTxt, "Reserved_%d", theIdentifier );
+		else
+			sprintf( pTxt, "Proprietary_%d", theIdentifier );
+
+		pRet = pTxt;
+	}
+
+	return pRet;
+}
+
+// For vsprintf
+#include <stdarg.h>
+
+// Show an error message, claiming current position and length 1 octet
+void ShowErrorDetail( const char *pFormat, ... )
+{ 
+	va_list args;
+	va_start( args, pFormat );
+	if (pFormat != NULL)
+	{
+		vsprintf( get_int_line(pi_data_current,pif_offset,1,NT_ERROR), 
+				  pFormat, args );
+	}
+	va_end(args);
+}
+
+enum BACnetSequenceParm
+{
+	BSQ_REQUIRED,
+	BSQ_OPTIONAL,
+	BSQ_CHOICE
 };
 
-char *BACnetDateRange[] = {
-   "Start Date",
-   "End Date"
-   };
+//=============================================================================
+// Class to simplify display of tagged PDUs
+class BACnetSequence
+{
+public:
+	BACnetSequence();
+	~BACnetSequence();
 
-char *BACnetDateTime[] = {
-   "Date",
-   "Time"
-   };
-char *BACnetTimeStamp[]= {
-   "Time",
-   "SequenceNumber",
-   "DateTime"
-   };
+	// Has an error been encountered?
+	bool IsOK() const { return m_ok; }
 
-char *BACnetDaysOfWeek[] = {
-   "Monday",
-   "Tuesday",
-   "Wednesday",
-   "Thursday",
-   "Friday",
-   "Saturday",
-   "Sunday"
-   };
+	// Force an error, stopping further decoding, return false
+	bool Fail( const char *pFormat, ... );
 
-char *BACnetDestination[] = {
-   "Valid Days",
-   "From Time",
-   "To Time",
-   "Recipient",
-   "Process Identifier",
-   "Issue Confirmed Notifications",
-   "Transitions"
-   };
+	// Get previously parsed Object Identitier, or ~0 if none parsed
+	unsigned int LastObjectIdentifier() const { return m_objectIdentifier; }
 
-char *BACnetDeviceObjectReference[] = {
-	"Device Identifier",
-	"Object Identifier"
-};
+	// Get previously parsed Object Type, or -1 if none parsed
+	int LastObjectType() const { return m_objectType; }
 
-//Added By Zhu Zhenhua, 2004-5-17
-char *BACnetDeviceObjectPropertyReference[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Device Identifier"
-   };
+	// Get previously parsed propertyID, or -1 if none parsed
+	int LastPropertyID() const { return m_propertyID; }
 
-char *BACnetDeviceObjectPropertyValue[] = {
-   "Device Identifier"
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Value"
-};
+	// Get previously parsed property index, or -1 if none parsed
+	int LastPropertyIndex() const { return m_propertyIndex; }
 
-char *BACnetDeviceStatus[] = {
-   "Operational",
-   "Operational-read-only",
-   "Download-required",
-   "Download-in-progress",
-   "Non-Operational",
-   "Backup-in-porgress"		// added by Jingbo Gao, Sep 20 2004
+	// Get previously parsed unsigned Boolean, or false if none parsed
+	bool LastBoolean() const { return m_lastBoolean; }
+
+	// Get previously parsed unsigned integer, or ~0 if none parsed
+	unsigned int LastUnsigned() const { return m_lastUnsigned; }
+	
+	// Get previously parsed enumeration, or ~0 if none parsed
+	unsigned int LastEnumeration() const { return m_lastEnumerated; }
+	
+	// Return true of the PDU has more data.
+	bool HasMore() const;
+	
+	// Parse the next tag if is has not already been parsed
+	void Parse();
+
+	// Synchronize the parser with the cursor
+	void Synch();
+	
+	// Validate the next item against tag, do choice logic
+	// if theTag >= 0: context tag, ignore theAppTag
+	// else application tag theAppTag
+	bool Vet( int theTag, int theAppTag = -1, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Get the parser for special low-level processing
+	BacParser& Parser();
+
+	// In the following methods, if m_ok is false, no
+	// actions are taken.  If the function returns bool, it is false.
+
+	// Begin a SEQUENCE OF wrapped in opening/closing tags.
+	// Returns true if the tag is found.  After decoding the contents,
+	// call ClosingTag() to declare the end of the sequence.
+	bool OpeningTag( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Decleare the end of a SEQUENCE OF.  Displays the closing tag.
+	void ClosingTag();
+
+	// Declare the beginning of a group of CHOICEs
+	void BeginChoice();
+
+	// Declare the end of a group of CHOICEs.
+	// If a choice has not been found, declare error and return false
+	bool EndChoice();
+
+	// Declare the beginning of a list.
+	// if theTag is >=0, parse as required opening tag, else list continues until end of PDU
+	// Folleowed by while (HasListElement()) to process the elements
+	bool ListOf( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Test for end of list (called from a while after ListOf)
+	bool HasListElement();
+
+	// Declare an Array.
+	// Folleowed by while (HasListElement()) to process the elements
+	// - if index is zero, decode and show unsigned array size, return false
+	// - if index is positive, HasListElement will return true once
+	// - if index is negative, list of all elements: HasListElement will return true for each element
+	bool ArrayOf( int theIndex );
+
+	// In the following methods:
+	// BSQ_REQUIRED: if tag is found, show error and set m_ok false;
+	// BSQ_OPTIONAL: if tag is found, show, return true; else show nothing and return false
+	// BSQ_CHOICE: if the tag is found, mark as choice, show, return true; else
+	//             show nothing and return false;  Also error if choice already found
+
+	// Parse and show a Null value.
+	bool Null( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show a Boolean value.
+	bool Boolean( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show a signed integer value.
+	bool Integer( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show an unsigned integer value.
+	bool Unsigned( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show a Real value.
+	bool Real( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show a Double value.
+	bool Double( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show an unsigned property array index.
+	bool PropertyArrayIndex( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show an enumerated value.  If table is NULL or tableLen is 0, show only numeric value.
+	bool Enumerated( int theTag, const char *pTitle, 
+					 BACnetStringTable *pTheTable = NULL,
+                     BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show a Property Identifier value.
+	bool PropertyIdentifier( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show a text string value.
+	bool TextString( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show an octet string value.
+	bool OctetString( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show a bit string value.
+	bool BitString( int theTag, const char *pTitle, 
+					BACnetStringTable *pTheTable = NULL,
+					BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show a Date value.
+	bool Date( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show a Time value.
+	bool Time( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show an Object Identifier value.
+	bool ObjectIdentifier( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Parse and show any tagged item
+	// if allowContext is false, Fail if a context tag is seen
+	// if allowContext is true, show single-delimiter tag as hex bytes,
+	// show paired-delimiter tags by recursive descent
+	bool AnyTaggedItem( bool allowContext = true);
+
+protected:
+
+	enum BACnetNestType
+	{
+		BNT_SEQUENCE,
+		BNT_CHOICE,
+		BNT_LIST
 	};
 
-char *BACnetDoorAlarmState[] = {
-	"normal",
-	"alarm",
-	"door-open-too-long",
-	"forced-open",
-	"tamper",
-	"door-fault",
-	"lock-down",
-	"free-access",
-	"egress-open"
+	struct Nester
+	{
+		Nester			*m_pNext;
+		BACnetNestType	m_nestType;
+		int				m_tagValue;
+		const char		*m_pTitle;
+		bool			m_foundChoice;
+	};
+
+	// Allocate and push a block on the stack
+	void Push( BACnetNestType theNestType, int theTagValue, const char *pTheTitle );
+
+	// Pop a block off the stack.  Fail if top of stack is of a different type
+	// Caller must delete the return item.
+	Nester* Pop( BACnetNestType theNestType );
+
+	bool		m_ok;
+	bool		m_parsed;
+	BacParser	m_parser;
+	Nester		*m_pStack;
+
+	// Saved values for use in property value decoding
+	unsigned int m_objectIdentifier;
+	int			m_objectType;
+	int			m_propertyID;
+	int			m_propertyIndex;
+	bool		m_lastBoolean;
+	unsigned int m_lastUnsigned;
+	unsigned int m_lastEnumerated;
 };
 
-char *BACnetDoorSecuredStatus[] = {
-	"secured",
-	"unsecured",
-	"unknown",
-};
-
-char *BACnetDoorStatus[] = {
-	"closed",
-	"open",
-	"unknown",
-};
-
-char *BACnetDoorValue[] = {
-	"lock",
-	"unlock",
-	"pulse-unlock",
-	"extended-pulse-unlock",
-};
-
-char *BACnetEngineeringUnits[] = {
-/* Area */
-   "Square-meters",             /* 0 */
-   "Square-feet",               /* 1 */
-
-/* Electrical */
-   "Milliamperes",              /* 2 */
-   "Amperes",                   /* 3 */
-   "Ohms",                      /* 4 */
-   "Volts",                     /* 5 */
-   "Kilovolts",                 /* 6 */
-   "Megavolts",                 /* 7 */
-   "Volt-amperes",              /* 8 */
-   "Kilovolt-amperes",          /* 9 */
-   "Megavolt-amperes",          /* 10 */
-   "Volt-amperes-reactive",     /* 11 */
-   "Kilovolt-amperes-reactive", /* 12 */
-   "Megavolt-amperes-reactive", /* 13 */
-   "Degrees phase",             /* 14 */
-   "Power factor",              /* 15 */
-
-/* Energy */
-   "Joules",                    /* 16 */
-   "Kilojoules",                /* 17 */
-   "Watt-hours",                /* 18 */
-   "Kilowatt-hours",            /* 19 */
-   "BTUs",                      /* 20 */
-   "Therms",                    /* 21 */
-   "Ton-hours",                 /* 22 */
-
-/* Enthalpy */
-   "Joules-per-kilogram-dry-air", /* 23 */
-   "BTUs-per-pound-dry-air",      /* 24 */
-
-/* Frequency */
-   "Cycles-per-hour",            /* 25 */
-   "Cycles-per-minute",          /* 26 */
-   "Hertz",                      /* 27 */
-
-/* Humidity */
-   "Grams-of-water-per-kilogram-dry-air", /* 28 */
-   "Percent-relative-humidity",           /* 29 */
-
-/* Length */
-   "Millimeter",                /* 30 */
-   "Meters",                    /* 31 */
-   "Inches",                    /* 32 */
-   "Feet",                      /* 33 */
-
-/* Light */
-   "Watts-per-square-foot",     /* 34 */
-   "Watts-per-square-meter",    /* 35 */
-   "Lumens",                    /* 36 */
-   "Luxes",                     /* 37 */
-   "Foot-candles",              /* 38 */
-
-/* Mass */
-   "Kilograms",                 /* 39 */
-   "Pounds-mass",               /* 40 */
-   "Tons",                      /* 41 */
-
-/* Mass Flow */
-   "Kilograms-per-second",      /* 42 */
-   "Kilograms-per-minute",      /* 43 */
-   "Kilograms-per-hour",        /* 44 */
-   "Pounds-mass-per-minute",    /* 45 */
-   "Pounds-mass-per-hour",      /* 46 */
-
-/* Power */
-   "Watts",                     /* 47 */
-   "Kilowatts",                 /* 48 */
-   "Megawatts",                 /* 49 */
-   "BTUs-per-hour",             /* 50 */
-   "Horsepower",                /* 51 */
-   "Tons (refrigeration)",      /* 52 */
-
-/* Pressure */
-   "Pascals",                      /* 53 */
-   "Kilopascals",                  /* 54 */
-   "Bars",                         /* 55 */
-   "Pounds-force-per-square-inch", /* 56 */
-   "Centimeters-of-water",         /* 57 */
-   "Inches-of-water",              /* 58 */
-   "Millimeters-of-mecury",        /* 59 */
-   "Centimeters-of-mecury",        /* 60 */
-   "Inches-of-mecury",             /* 61 */
-
-/* Temperature */
-   "Degrees-Celsius",           /* 62 */
-   "Degrees-Kelvin",            /* 63 */
-   "Degrees-Fahrenheit",        /* 64 */
-   "Degree-days-Celsius",       /* 65 */
-   "Degree-days-Fahrenheit",    /* 66 */
-
-/* Time */
-   "Years",   /* 67 */
-   "Months",  /* 68 */
-   "Weeks",   /* 69 */
-   "Days",    /* 70 */
-   "Hours",   /* 71 */
-   "Minutes", /* 72 */
-   "Seconds", /* 73 */
-
-/* Velocity */
-   "Meters-per-second",   /* 74 */
-   "Kilometers-per-hour", /* 75 */
-   "Feet-per-second",     /* 76 */
-   "Feet-per-minute",     /* 77 */
-   "Miles-per-hour",      /* 78 */
-
-/* Volume */
-   "Cubic-feet",        /* 79 */
-   "Cubic-meters",      /* 80 */
-   "Imperial-Gallons",  /* 81 */
-   "Liters",            /* 82 */
-   "US-Gallons",        /* 83 */
-
-/* Volumetric Flow */
-   "Cubic-feet-per-minute",        /* 84 */
-   "Cubic-meters-per-second",      /* 85 */
-   "Imperial-gallons-per minute",  /* 86 */
-   "Liters-per-second",            /* 87 */
-   "Liters-per-minute",            /* 88 */
-   "US-Gallons-per minute",        /* 89 */
-
-/* Other */
-   "Degrees-angular",               /* 90 */
-   "Degrees-Celcius-per-hour",      /* 91 */
-   "Degrees-Celcius-per-minute",    /* 92 */
-   "Degrees-Fahrenheit-per-hour",   /* 93 */
-   "Degrees-Fahrenheit-per-minute", /* 94 */
-   "No-units",                      /* 95 */
-   "Parts-per-million",             /* 96 */
-   "Parts-per-billion",             /* 97 */
-   "Percent",                       /* 98 */
-   "Percent-per-second",            /* 99 */
-   "Per-minute",                    /* 100 */
-   "Per-second",                    /* 101 */
-   "PSI-Per-Degree-Fahrenheit",     /* 102 */
-   "Radians",                       /* 103 */
-   "Revolutions-per-minute",        /* 104 */
-
-   /* added in second or third public review */
-   "Currency 1",        /* 105 */
-   "Currency 2",        /* 106 */
-   "Currency 3",        /* 107 */
-   "Currency 4",        /* 108 */
-   "Currency 5",        /* 109 */
-   "Currency 6",        /* 110 */
-   "Currency 7",        /* 111 */
-   "Currency 8",        /* 112 */
-   "Currency 9",        /* 113 */
-   "Currency 10",       /* 114 */
-
-   "square-inches",							/* 115 */
-   "square-centimeters",					/* 116 */
-   "btus-per-pound",						/* 117 */
-   "centimeters",							/* 118 */
-   "pounds-mass-per-second",				/* 119 */
-   "delta-degrees-Fahrenheit",				/* 120 */
-   "delta-degrees-Kelvin",					/* 121 */
-
-   "Kilohms",                              /* 122 */
-   "Megohms",                              /* 123 */
-   "Millivolts",                           /* 124 */
-   "Kilojoules-per-kilogram",              /* 125 */
-   "Megajoules",                           /* 126 */
-   "Joules-per-degree-Kelvin",             /* 127 */
-   "Joules-per-kilogram-degree-Kelvin",    /* 128 */
-   "Kilohertz",                            /* 129 */
-   "Megahertz",                            /* 130 */
-   "Per-hour",                             /* 131 */
-   "Milliwatts",                           /* 132 */
-   "Hectopascals",                         /* 133 */
-   "Millibars",                            /* 134 */
-   "Cubic-meters-per-hour",                /* 135 */
-   "Liters-per-hour",                      /* 136 */
-   "Kilowatt-hours-per-square-meter",      /* 137 */
-   "Kilowatt-hours-per-square-foot",       /* 138 */
-   "Megajoules-per-square-meter",          /* 139 */
-   "Megajoules-per-square-foot",           /* 140 */
-   "Watts-per-square-meter-degree-Kelvin", /* 141 */
-   // New units added 3/9/2008
-   "Cubic-feet-per-second",					/* 142 */
-   "Percent-obscuration-per-foot",			/* 143 */
-   "Percent-obscuration-per-meter", 		/* 144 */
-   "miliohms", 								/* 145 */
-   "megawatt-hours", 						/* 146 */
-   "kilo-btus",								/* 147 */
-   "mega-btus",								/* 148 */
-   "kilojoules-per-kilogram-dry-air",		/* 149 */
-   "megajoules-per-kilogram-dry-air",		/* 150 */
-   "kilojoules-per-degree-Kelvin",			/* 151 */
-   "megajoules-per-degree-Kelvin",			/* 152 */
-   "newton",								/* 153 */
-   "grams-per-second",						/* 154 */
-   "grams-per-minute",						/* 155 */
-   "tons-per-hour",							/* 156 */
-   "kilo-btus-per-hour",					/* 157 */
-   "Hundredths-seconds",					/* 158 */
-   "milliseconds",							/* 159 */
-   "newton-meters",							/* 160 */
-   "millimeters-per-second",				/* 161 */
-   "millimeters-per-minute", 				/* 162 */
-   "meters-per-minute",						/* 163 */
-   "meters-per-hour",						/* 164 */
-   "cubic-meters-per-minute",				/* 165 */
-   "meters-per-second-per-second",			/* 166 */
-   "amperes-per-meter",						/* 167 */
-   "amperes-per-square-meter",				/* 168 */
-   "ampere-square-meters",					/* 169 */
-   "farads",								/* 170 */
-   "henrys",								/* 171 */
-   "ohm-meters",							/* 172 */
-   "siemens",								/* 173 */
-   "siemens-per-meter",						/* 174 */
-   "teslas",								/* 175 */
-   "volts-per-degree-Kelvin",				/* 176 */
-   "volts-per-meter",						/* 177 */
-   "webers",								/* 178 */
-   "candelas",								/* 179 */
-   "candelas-per-square-meter",				/* 180 */
-   "degrees-Kelvin-per-hour",				/* 181 */
-   "degrees-Kelvin-per-minute",				/* 182 */
-	"joule-seconds",						/* 183 */
-	"radians-per-second",					/* 184 */
-	"square-meters-per-Newton",				/* 185 */
-	"kilograms-per-cubic-meter",			/* 186 */
-	"newton-seconds",						/* 187 */
-	"newtons-per-meter",					/* 188 */
-	"watts-per-meter-per-degree-Kelvin",	/* 189 last definition in 135-2008 */
-	// Added by Addenda H (135-2004)
-	"micro-siemens",                        /* 190 */
-	"cubic-feet-per-hour",                  /* 191 */
-	"us-gallons-per-hour",                  /* 192 */
-   };
-
-char *BACnetError[] = {
-/* Alarm and Event Services */
-   "AcknowledgeAlarm Error Choice",
-   "ConfirmedCOVNotification Error Choice",
-   "ConfirmedEventNotification Error Choice",
-   "GetAlarmSummary Error Choice",
-   "GetEnrollmentSummary Error Choice",
-   "SubscribeCOV Error Choice",
-
-/* File Access Services */
-   "AtomicReadFile Error Choice",
-   "AtomicWriteFile Error Choice",
-
-/* Object Access Services */
-   "AddListElement Error Choice",
-   "RemoveListElement Error Choice",
-   "CreateObject Error Choice",
-   "DeleteObject Error Choice",
-   "ReadProperty Error Choice",
-   "ReadPropertyConditional Error Choice",
-   "ReadPropertyMultiple Error Choice",
-   "WriteProperty Error Choice",
-   "WritePropertyMultiple Error Choice",
-
-/* Remote Device Management Services */
-   "DeviceCommunicationControl Error Choice",
-   "ConfirmedPrivateTransfer Error Choice",
-   "ConfirmedTextMessage Error Choice",
-   "ReinitializeDevice Error Choice",
-
-/* Virtual Terminal Services */
-   "VT-Open Error Choice",
-   "VT-Close Error Choice",
-   "VT-Data Error Choice",
-
-/* Security Services */
-   "Authenticate Error Choice",
-   "RequestKey Error Choice",
-
-/* services added after 1995 */
-	"ReadRange Error Choice",
-	"Life Safety Operation Error Choice",
-	"SubscribeCOVProperty Error Choice",
-	"GetEventInformation Error Choice",
-   };
-
-char *BACnetErrorClass[] = {
-   "Device",
-   "Object",
-   "Property",
-   "Resources",
-   "Security",
-   "Services",
-   "VT",
-   "Communication",
-   };
-
-char *BACnetErrorCode[] = {
-   "Other",                              /* 0 */
-   "Authentication-failed",              /* 1 */
-   "Configuration-in-progress",          /* 2 */
-   "Device-busy",                        /* 3 */
-   "Dynamic-creation-not-supported",     /* 4 */
-   "File-access-denied",                 /* 5 */
-   "Incompatible-security-levels",       /* 6 */
-   "Inconsistent-parameters",            /* 7 */
-   "Inconsistent-selection-criterion",   /* 8 */
-   "Invalid-data-type",                  /* 9 */
-   "Invalid-file-access-method",         /* 10 */
-   "Invalid-file-start-position",        /* 11 */
-   "Invalid-operator-name",              /* 12 */
-   "Invalid-parameter-data-type",        /* 13 */
-   "Invalid-time-stamp",                 /* 14 */
-   "Key-generation-error",               /* 15 */
-   "Missing-required-parameter",         /* 16 */
-   "No-objects-of-specified-type",       /* 17 */
-   "No-space-for-object",                /* 18 */
-   "No-space-to-add-list-element",       /* 19 */
-   "No-space-to-write-property",         /* 20 */
-   "No-vt-sessions-available",           /* 21 */
-   "Property-is-not-a-list",             /* 22 */
-   "Object-deletion-not-permitted",      /* 23 */
-   "Object-identifier-already-exists",   /* 24 */
-   "Operational-problem",                /* 25 */
-   "Password-failure",                   /* 26 */
-   "Read-access-denied",                 /* 27 */
-   "Security-not-supported",             /* 28 */
-   "Service-request-denied",             /* 29 */
-   "Timeout",                            /* 30 */
-   "Unknown-object",                     /* 31 */
-   "Unknown-property",                   /* 32 */
-   "Invalid Enumeration",                /* 33 */
-   "Unknown-vt-class",                   /* 34 */
-   "Unknown-vt-session",                 /* 35 */
-   "Unsupported-object-type",            /* 36 */
-   "Value-out-of-range",                 /* 37 */
-   "VT-session-already-closed",          /* 38 */
-   "VT-session-termination-failure",     /* 39 */
-   "Write-access-denied",                /* 40 */
-   "Character-set-not-supported",        /* 41 */
-   "Invalid-array-index",                /* 42 */
-   "Cov-subscription-failed",            /* 43 kare.sars@wapice.com */
-   "Not-cov-property",                   /* 44 | */
-   "Optional-functionality-not-supported",/*45 | */
-   "Invalid-configuration-data",         /* 46 | */
-   "Datatype-not-supported",             /* 47 | */
-   "Duplicate-name",                     /* 48 | */
-   "Duplicate-object-id",                /* 49 | */
-   "Property-is-not-an-array",           /* 50 kare.sars@wapice.com */
-   // Added by Addenda B PPR3 (135-2004)
-   "abort-buffer-overflow",              /* 51 */
-   "abort-invalid-apdu-in-this-state",
-   "abort-preempted-by-higher-priority-task",
-   "abort-segmentation-not-supported",
-   "abort-proprietary",
-   "abort-other",                        /* 56 */
-   "invalid-tag",
-   "network-down",
-   "reject-buffer-overflow",
-   "reject-inconsistent-parameters",
-   "reject-invalid-parameter-data-type",
-   "reject-invalid-tag",                 /* 62 */
-   "reject-missing-required-parameter",
-   "reject-parameter-out-of-range",
-   "reject-too-many-arguments",
-   "reject-undefined-enumeration",
-   "reject-unrecognized-service",        /* 67 */
-   "reject-proprietary",                 /* 68 */
-   "reject-other",
-   "unknown-device",
-   "unknown-route",
-   "value-not-totalized",                /* 72 */
-   // Added by Addenda D (135-2004)
-   "invalid-event-state",                /* 73 */
-   "no-alarm-configured",                /* 74 */
-   // added by Addenda B
-   "log-buffer-full",                    // 75
-   "logged-value-purged",                // 76
-   "no-property-specified",              // 77
-   "not-configured-for-triggered-logging", // 78
-   // added by Addenda H (135-2004)
-   "unknown-subscription",	             // 79
-   "error-80",                           // reserved in 135-2008
-   "error-81",
-   "error-82",
-   "communication-disabled",	         // 83 last value in 135-2008
-   };
-
-// Added Addendum B (135-2004)
-char *BACnetEventLogRecord[] = {
-	"timestamp",
-	"logDatum",
-	"log-status",
-	"notification",
-	"time-change"
-};
-
-//Modified by Zhu Zhenhua, 2004-5-20
-char *BACnetEventParameter[] = {
-   "Change of Bitstring",
-   "Change of State",
-   "Change of Value",
-   "Command Failure",
-   "Floating Limit",
-   "Out of Range",
-   "Complex",	
-   "Deprecated",
-   "Change of Life Safety",
-   "Extended",
-   "Buffer Ready",
-   "Unsigned Range",
-   "Change of status-flags",
-   };
-
-char *BACnetEventState[] = {
-   "NORMAL",
-   "FAULT",
-   "OFFNORMAL",
-   "HIGH-LIMIT",
-   "LOW-LIMIT",
-   "LIFE-SAFETY-ALARM",
-   };
-
-char *BACnetEventTransitionBits[] = {
-   "TO-OFFNORMAL",
-   "TO-FAULT",
-   "TO-NORMAL",
-   };
-
-//Modified by Zhu Zhenhua, 2004-5-17
-char *BACnetEventType[] = {
-   "CHANGE-OF-BITSTRING",
-   "CHANGE-OF-STATE",
-   "CHANGE-OF-VALUE",
-   "COMMAND-FAILURE",
-   "FLOATING-LIMIT",
-   "OUT-OF-RANGE",
-   "COMPLEX-EVENT-TYPE",   
-   "DEPRECATED",            
-   "CHANGE-OF-LIFE-SAFETY", 
-   "EXTENDED",			
-   "BUFFER-READY",
-   "UNSIGNED-RANGE",
-   "CHANGE-OF-STATUS-FLAGS",
-   };
-
-char *BACnetFileAccessMethod[] ={
-   "RECORD-ACCESS",
-   "STREAM-ACCESS",
-   "RECORD-AND-STREAM-ACCESS"	// note removed after 1995
-   };
-
-//Added by Zhu Zhenhua, 2004-5-25
-char *BACnetGetEventInfoACK[] = {
-   "List of Event summary",
-   "More Event"
-   };
-//Added by Zhu Zhenhua, 2004-5-25
-char *BACnetEventSummary[] = {
-   "Object Indentifier",
-   "Event State",
-   "Acknowledged Transitions",
-   "Event Time Stamps",
-   "Notify Type",
-   "Event Enable",
-   "Event Priorities"	
-   };
-///////////////////////////////////////////////////////////////////////////
-//Added by Zhu Zhenhua, 2004-6-14
-char *BACnetLifeSafetyMode[] = {
-   "off",
-   "on",
-   "test",
-   "manned",
-   "unmanned",
-   "armed",
-   "disarmed",
-   "prearmed",
-   "slow",
-   "fast",
-   "disconnected",
-   "enabled",
-   "disabled",
-   "automatic-release-disabled",
-   "default"
-   };
-char *BACnetLifeSafetyOperation[] = {
-   "none",
-   "silence",
-   "silence-audible",
-   "silence-visual",
-   "reset",
-   "reset-alarm",
-   "reset-fault",
-   "unsilence",
-   "unsilence-audible",
-   "unsilence-visual",
-   };
-char *BACnetLifeSafetyState[] = {
-   "quiet",
-   "pre-alarm",
-   "alarm",
-   "fault",
-   "fault-pre-alarm",
-   "fault-alarm",
-   "not-ready",
-   "active",
-   "tamper",
-   "test-alarm",
-   "test-active",
-   "test-fault",
-   "test-fault-alarm",
-   "holdup",
-   "duress",
-   "tamper-alarm",
-   "abnormal",
-   "emergency-power",
-   "delayed",
-   "blocked",
-   "local-alarm",
-   "general-alarm",
-   "supervisory",
-   "test-supervisory"
-   };
-
-char *BACnetAccumulatorStatus[] = {
-	"normal",
-	"starting",
-	"recovered",
-	"abnormal",
-    "failed"
-};
-
-char* BACnetMaintenance[] = {
-	"None",
-	"Periodic-test",
-	"Need-Service-Operational",
-	"Need-Service-Inoperative"
-};
-
-char* BACnetSilencedState[] = {
-	"Unsilenced",
-	"Audible-Silenced",
-	"Visible-Silenced",
-	"All-Silenced"
-};
-
-
-char *BACnetLimitEnable[] = {
-   "LOW-LIMIT-ENABLE",
-   "HIGH-LIMIT-ENABLE"
-   };
-
-char *BACnetLockStatus[] = {
-	"locked",
-	"unlocked",
-	"fault",
-	"unknown",
-};
-
-char *BACnetLogData[] = {
-	"Log-status",
-	"Log-Data",
-	"Time-Change",
-};
-
-char *BACnetLoggingType[] = {
-	"polled",
-	"cov",
-	"triggered",
-};
-
-char *BACnetLogMultipleRecord[] = {
-	"timestamp",
-	"logData",
-};
-
-char *BACnetLogRecord [] = {
-   "TimeStamp",
-   "LogDatum", 
-   "StatusFlags"
-   };
-
-char *BACnetLogStatus[] = {
-	"log-disabled",
-	"buffer-purged",
-	"log-interrupted",
-};
-
-char *BACnetNotifyType[] = {
-   "ALARM",
-   "EVENT",
-   "ACK_NOTIFICATION"
-   };
-
-char *BACnetObjectPropertyReference[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index"
-   };
-
-// Added addendum B (135-2004)
-char *BACnetPropertyAccessResult[] = {
-	"Object Identifier",
-	"Property Identifier",
-	"Property Array Index",
-	"Device Identifier",
-	"Access Result",
-};
-
-// Added from 135-2008
-char *BACnetShedLevel[] = {
-	"Percent",
-	"Level",
-	"Amount",
-};
-
-char *BACnetShedState[] = {
-	"shed-inactive",
-	"shed-request-pending",
-	"shed-compliant",
-	"shed-non-compliant",
-};
-
-char *BACnetReadRangeACK[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "ResultsFlag",
-   "ItemCount",
-   "ItemData",
-   "First Sequence Number",
-   };
-char *BACnetReadRangeRequest[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Reference Index",
-   "Reference Time",
-   "TimeRange"
-   };
-char *BACnetObjectPropertyValue[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Value",
-   "Priority"
-   };
-
-char *BACnetObjectType[] = {
-   "ANALOG-INPUT",          /* 0 */
-   "ANALOG-OUTPUT",         /* 1 */
-   "ANALOG-VALUE",          /* 2 */
-   "BINARY-INPUT",          /* 3 */
-   "BINARY-OUTPUT",         /* 4 */
-   "BINARY-VALUE",          /* 5 */
-   "CALENDAR",              /* 6 */
-   "COMMAND",               /* 7 */
-   "DEVICE",                /* 8 */
-   "EVENT-ENROLLMENT",      /* 9 */
-   "FILE",                  /* 10 */
-   "GROUP",                 /* 11 */
-   "LOOP",                  /* 12 */
-   "MULTISTATE-INPUT",      /* 13 */
-   "MULTISTATE-OUTPUT",     /* 14 */
-   "NOTIFICATION-CLASS",    /* 15 */
-   "PROGRAM",               /* 16 */
-   "SCHEDULE",              /* 17 */
-   "AVERAGING",             /* 18 */
-   "MULTISTATE-VALUE",      /* 19 */
-   "TREND-LOG" ,            /* 20 */		// msdanner 9/04, was "TRENDLOG"
-   "LIFE-SAFETY-POINT",	    /*21 Zhu Zhenhua 2003-7-24 */	 // msdanner 9/04, was "LIFESAFETYPOINT"
-   "LIFE-SAFETY-ZONE",	    /*22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
-   "ACCUMULATOR",           //23 Shiyuan Xiao 7/15/2005
-   "PULSE-CONVERTER",       //24 Shiyuan Xiao 7/15/2005
-   "EVENT-LOG",			  // 25	- Addendum B
-   "GLOBAL-GROUP",		  // 26 - Addendum B
-   "TREND-LOG-MULTIPLE",  // 27 - Addendum B
-   "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
-   "STRUCTURED-VIEW",     // 29 - Addendum D
-   "ACCESS-DOOR",		  // 30 Last in 135-2008
-   };
-
-char *BACnetObjectTypesSupported[] = {
-   "ANALOG-INPUT",          /* 0 */
-   "ANALOG-OUTPUT",         /* 1 */
-   "ANALOG-VALUE",          /* 2 */
-   "BINARY-INPUT",          /* 3 */
-   "BINARY-OUTPUT",         /* 4 */
-   "BINARY-VALUE",          /* 5 */
-   "CALENDAR",              /* 6 */
-   "COMMAND",               /* 7 */
-   "DEVICE",                /* 8 */
-   "EVENT-ENROLLMENT",      /* 9 */
-   "FILE",                  /* 10 */
-   "GROUP",                 /* 11 */
-   "LOOP",                  /* 12 */
-   "MULTISTATE-INPUT",      /* 13 */
-   "MULTISTATE-OUTPUT",     /* 14 */
-   "NOTIFICATION-CLASS",    /* 15 */
-   "PROGRAM",               /* 16 */
-   "SCHEDULE",              /* 17 */
-   "AVERAGING",             /* 18 */
-   "MULTISTATE-VALUE",      /* 19 */
-   "TREND-LOG",             /* 20 */	  // msdanner 9/04, was "TRENDLOG"
-   "LIFE-SAFETY-POINT",     /* 21 */	  // msdanner 9/04, added
-   "LIFE-SAFETY-ZONE",      /* 22 */	  // msdanner 9/04, added.  JLH: 1/25/2010 added missing comma
-   "ACCUMULATOR",           //23 Shiyuan Xiao 7/15/2005
-   "PULSE-CONVERTER",       //24 Shiyuan Xiao 7/15/2005
-   "EVENT-LOG",			  // 25	- Addendum B
-   "GLOBAL-GROUP",		  // 26 - Addendum B
-   "TREND-LOG-MULTIPLE",  // 27 - Addendum B
-   "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
-   "STRUCTURED-VIEW",     // 29 - Addendum D
-   "ACCESS-DOOR",			// 30 Last in 135-2008
-   };
-
-char *BACnetPolarity[] = {
-   "NORMAL",
-   "REVERSE"
-   };
-
-char *BACnetPrescale[] = {
-	"multiplier",
-	"moduleDivide",
-};
-
-char *BACnetProgramError[] = {
-   "NORMAL",
-   "LOAD-FAILED",
-   "INTERNAL",
-   "PROGRAM",
-   "OTHER"
-   };
-
-char *BACnetProgramRequest[] = {
-   "READY",
-   "LOAD",
-   "RUN",
-   "HALT",
-   "RESTART",
-   "UNLOAD"
-   };
-
-char *BACnetProgramState[] = {
-   "IDLE",
-   "LOADING",
-   "RUNNING",
-   "WAITING",
-   "HALTED",
-   "UNLOADING"
-   };   
-// MAX_PROP_ID = the number of elements in this array. It is located in Vts.h
-char *BACnetPropertyIdentifier[] = {
-   "Acked_Transitions  ",                /* 0 */
-   "Ack_Required ",                     /* 1 */
-   "Action ",                           /* 2 */
-   "Action_Text ",                      /* 3 */
-   "Active_Text ",                      /* 4 */
-   "Active_VT_Sessions ",               /* 5 */
-   "Alarm_Value ",                      /* 6 */
-   "Alarm_Values ",                     /* 7 */
-   "All ",                              /* 8 */
-   "All_Writes_Successful ",            /* 9 */
-   "APDU_Segment_Timeout ",             /* 10 */
-   "APDU_Timeout ",                     /* 11 */
-   "Application-software-version ",     /* 12 */
-   "Archive ",                          /* 13 */
-   "Bias ",                             /* 14 */
-   "Change_Of_State_Count ",            /* 15*/
-   "Change_Of_State_Time ",             /* 16 */
-   "Notification_Class ",               /* 17  renamed in 2nd public review*/
-   "Invalid  Enumeration",              /* 18*/
-   "Controlled_Variable_Reference ",    /* 19 */
-   "Controlled_Variable_Units ",        /* 20 */
-   "Controlled_Variable_Value ",        /* 21 */
-   "COV_Increment ",                    /* 22 */
-   "Date-list ",                        /* 23 */
-   "Daylight_Savings_Status ",          /* 24 */
-   "Deadband ",                         /* 25 */
-   "Derivative_Constant ",              /* 26 */
-   "Derivative_Constant_Units ",        /* 27 */
-   "Description ",                      /* 28 */
-   "Description_Of_Halt ",              /* 29 */
-   "Device_Address_Binding ",           /* 30 */
-   "Device_Type ",                      /* 31 */
-   "Effective_Period ",                 /* 32 */
-   "Elapsed_Active_Time ",              /* 33 */
-   "Error_Limit ",                      /* 34 */
-   "Event_Enable ",                     /* 35 */
-   "Event_State ",                      /* 36 */
-   "Event_Type ",                       /* 37 */
-   "Exception_Schedule ",               /* 38 */
-   "Fault_Values ",                     /* 39 */
-   "Feedback_Value ",                   /* 40 */
-   "File_Access_Method ",               /* 41 */
-   "File_Size ",                        /* 42 */
-   "File_Type ",                        /* 43 */
-   "Firmware_Revision ",                /* 44 */
-   "High_Limit ",                       /* 45 */
-   "Inactive_Text ",                    /* 46 */
-   "In_Process ",                       /* 47 */
-   "Instance_Of ",                      /* 48 */
-   "Integral_Constant ",                /* 49 */
-   "Integral_Constant_Units ",          /* 50 */
-   "unused-was-Issue_Confirmed_Notifications ",    /* 51 deleted in version 1 revision 4*/
-   "Limit_Enable ",                     /* 52 */
-   "List_Of_Group_Members ",            /* 53 */
-   "List_Of_Object_Property_References ",  /* 54 Zhu Zhenhua 2003-7-24 */
-   "List_Of_Session_Keys ",             /* 55 */
-   "Local_Date ",                       /* 56 */
-   "Local_Time ",                       /* 57 */
-   "Location ",                         /* 58 */
-   "Low_Limit ",                        /* 59 */
-   "Manipulated_Variable_Reference ",   /* 60 */
-   "Maximum_Output ",                   /* 61 */
-   "Max_Apdu_Length_Accepted ",         /* 62 */
-   "Max_Info_Frames ",                  /* 63 */
-   "Max_Master ",                       /* 64 */
-   "Max_Pres_Value ",                   /* 65 */
-   "Minimum_Off_Time ",                 /* 66 */
-   "Minimum_On_Time ",                  /* 67 */
-   "Minimum_Output ",                   /* 68 */
-   "Min_Pres_Value ",                   /* 69 */
-   "Model_Name ",                       /* 70 */
-   "Modification_Date ",                /* 71 */
-   "Notify_Type ",                      /* 72 */
-   "Number_Of_APDU_Retries",            /* 73 */
-   "Number_Of_States ",                 /* 74 */
-   "Object_Identifier ",                /* 75 */
-   "Object_List ",                      /* 76 */
-   "Object_Name ",                      /* 77 */
-   "Object_Property_Reference ",        /* 78 Zhu Zhenhua 2003-7-24 */
-   "Object_Type ",                      /* 79 */
-   "Optional ",                         /* 80 */
-   "Out_Of_Service ",                   /* 81 */
-   "Output_Units ",                     /* 82 */
-   "Event-Parameters ",                 /* 83 */
-   "Polarity ",                         /* 84 */
-   "Present_Value ",                    /* 85 */
-   "Priority ",                         /* 86 */
-   "Priority_Array ",                   /* 87 */
-   "Priority_For_Writing ",             /* 88 */
-   "Process_Identifier ",               /* 89 */
-   "Program_Change ",                   /* 90 */
-   "Program_Location ",                 /* 91 */
-   "Program_State ",                    /* 92 */
-   "Proportional_Constant ",            /* 93 */
-   "Proportional_Constant_Units ",      /* 94 */
-   "Protocol_Conformance_Class ",       /* 95 */
-   "Protocol_Object_Types_Supported ",  /* 96 */
-   "Protocol_Services_Supported ",      /* 97 */
-   "Protocol_Version ",                 /* 98 */
-   "Read_Only ",                        /* 99 */
-   "Reason_For_Halt ",                  /* 100 */
-   "Recipient ",                        /* 101 */
-   "Recipient_List ",                   /* 102 */
-   "Reliability ",                      /* 103 */
-   "Relinquish_Default ",               /* 104 */
-   "Required ",                         /* 105 */
-   "Resolution ",                       /* 106 */
-   "Segmentation_Supported ",           /* 107 */
-   "Setpoint ",                         /* 108 */
-   "Setpoint_Reference ",               /* 109 */
-   "State_Text ",                       /* 110 */
-   "Status_Flags ",                     /* 111 */
-   "System_Status ",                    /* 112 */
-   "Time_Delay ",                       /* 113 */
-   "Time_Of_Active_Time_Reset ",        /* 114 */
-   "Time_Of_State_Count_Reset ",        /* 115 */
-   "Time_Synchronization_Recipients ",  /* 116 */
-   "Units ",                            /* 117 */
-   "Update_Interval ",                  /* 118 */
-   "UTC_Offset ",                       /* 119 */
-   "Vendor_Identifier ",                /* 120 */
-   "Vendor_Name ",                      /* 121 */
-   "Vt_Classes_Supported ",             /* 122 */
-   "Weekly_Schedule ",                  /* 123 */   
-   "Attempted_Samples ",                /* 124 */
-   "Average_Value ",                    /* 125 */
-   "Buffer_Size ",                      /* 126 */
-   "Client_Cov_Increment ",             /* 127 */
-   "Cov_Resubscription_Interval ",      /* 128 */
-   "unused-was-Current_Notify_Time",    /* 129  Added by Zhu Zhenhua, 2004-5-11 deleded in version 1 rev 3 */
-   "Event_Time_Stamps ",                /* 130 */
-   "Log_Buffer ",                       /* 131 */
-   "Log_Device_Object_Property ",       /* 132 Zhu Zhenhua 2003-7-24 */
-   "Enable ",                           /* 133 changed from Log_Enable in 135-2004b-5 */
-   "Log_Interval ",                     /* 134 */
-   "Maximum_Value ",                    /* 135 */
-   "Minimum_Value ",                    /* 136 */
-   "Notification_Threshold ",           /* 137 */
-   "unused-was-Previous_Notify_Time",   /* 138   Added by Zhu Zhenhua, 2004-5-11 deleted in version 1 rev 3 */
-   "Protocol_Revision ",                /* 139 */
-   "Records_Since_Notification ",       /* 140 */
-   "Record_Count ",                     /* 141 */
-   "Start_Time ",                       /* 142 */
-   "Stop_Time ",                        /* 143 */
-   "Stop_When_Full ",                   /* 144 */
-   "Total_Record_Count ",               /* 145 */            
-   "Valid_Samples ",                    /* 146 */
-   "Window_Interval ",                  /* 147 */
-   "Window_Samples ",                   /* 148 */
-   "Maximum_Value_Timestamp ",          /* 149 */
-   "Minimum_value_Timestamp ",          /* 150 */
-   "Variance_Value ",                   /* 151 */
-   "Active_Cov_Subscription",           /* 152 Xiao Shiyuan 2002-7-18 */
-   "backup-failure-timeout",            /* 153 Xiao Shiyuan 2002-7-18 */		
-   "configuration-files",               /* 154 Xiao Shiyuan 2002-7-18 */
-   "database-revision",                 /* 155 Xiao Shiyuan 2002-7-18 */
-   "direct-reading",                    /* 156 Xiao Shiyuan 2002-7-18 */
-   "last-restore-time",					/* 157 Xiao Shiyuan 2002-7-18 */
-   "maintenance-required",				/* 158 Xiao Shiyuan 2002-7-18 */
-   "member-of",							/* 159 Xiao Shiyuan 2002-7-18 */
-   "mode",								/* 160 Xiao Shiyuan 2002-7-18 */
-   "operation-expected",				/* 161 Xiao Shiyuan 2002-7-18 */
-   "setting",							/* 162 Xiao Shiyuan 2002-7-18 */
-   "silenced",							/* 163 Xiao Shiyuan 2002-7-18 */
-   "tracking-value",					/* 164 Xiao Shiyuan 2002-7-18 */
-   "zone-members",						/* 165 Xiao Shiyuan 2002-7-18 */
-   "life-safety-alarm-values",			/* 166 Xiao Shiyuan 2002-7-18 */
-   "max-segments-accepted",				/* 167 Xiao Shiyuan 2002-7-18 */
-   "Profile_Name",                      /* 168 Xiao Shiyuan 2002-7-18 */
-   "auto-slave-discovery",				/* 169 LJT 2005-10-12   */
-   "manual-slave-address-binding",		/* 170 LJT 2005-10-12   */
-   "slave-address-binding",				/* 171 LJT 2005-10-12   */
-   "slave-proxy-enable",				/* 172 LJT 2005-10-12   */
-   "last_notify_record",				/* 173 Zhu Zhenhua  2004-5-11 */
-   "Schedule_Default",                 // 174 Shiyuan Xiao 7/15/2005
-   "Accepted_Modes",                   // 175 Shiyuan Xiao 7/15/2005
-   "Adjust_Value",                     // 176 Shiyuan Xiao 7/15/2005
-   "Count",                            // 177 Shiyuan Xiao 7/15/2005 
-   "Count_Before_Change",              // 178 Shiyuan Xiao 7/15/2005
-   "Count_Change_Time",                // 179 Shiyuan Xiao 7/15/2005		
-   "Cov_Period",                       // 180 Shiyuan Xiao 7/15/2005
-   "Input_Reference",                  // 181 Shiyuan Xiao 7/15/2005
-   "Limit_Monitoring_Interval",        // 182 Shiyuan Xiao 7/15/2005
-   "Logging_Device",                   // 183 Shiyuan Xiao 7/15/2005
-   "Logging_Record",                   // 184 Shiyuan Xiao 7/15/2005  
-   "Prescale",                         // 185 Shiyuan Xiao 7/15/2005  
-   "Pulse_Rate",                       // 186 Shiyuan Xiao 7/15/2005
-   "Scale",                            // 187 Shiyuan Xiao 7/15/2005
-   "Scale_Factor",                     // 188 Shiyuan Xiao 7/15/2005  
-   "Update_Time",                      // 189 Shiyuan Xiao 7/15/2005 
-   "Value_Before_Change",              // 190 Shiyuan Xiao 7/15/2005
-   "Value_Set",                        // 191 Shiyuan Xiao 7/15/2005
-   "Value_Change_Time",                 // 192 Shiyuan Xiao 7/15/2005
-   // added Addendum B (135-2004)
-	"Align_Intervals",					// 193
-	"Group_Members_Names",				// 194
-	"Interval_Offset",					// 195
-	"Last_Restart_Reason",				// 196
-	"Logging_Type",						// 197
-	"Member_Status_Flags",				// 198
-	"Notification_Period",				// 199
-	"Previous_Notify_Record",			// 200
-	"Requested_Update_Interval",		// 201
-	"Restart_Notification_Recipients",	// 202
-	"Time_Of_Device_Restart",			// 203
-	"Time_Synchronization_Interval",	// 204
-	"Trigger",							// 205
-	"Utc_Time_Syncrhonization_Recipients",  // 206
-	// Added by addenda D
-	"node-subtype", // 207
-	"node-type",   // 208
-	"structured-object-list",  // 209
-	"subordinate-annotation",  // 210
-	"subordinate-list", // 211
-	// added by addendum E 135-2004
-	"actual-shed-level",	// 212
-	"duty-window",			// 213
-	"expected-shed-level",	// 214
-	"full-duty-baseline",	// 215
-	"unknown-216",
-	"unknown-217",
-	"requested-shed-level",	// 218
-	"shed-duration",		// 219
-	"shed-level-descriptions", // 220
-	"shed-levels",			// 221
-	"state-description",	// 222
-	"unknown-223",
-	"unknown-224",
-	"unknown-225",
-	"door-alarm-state",		// 226
-	"door-extended-pulse-time",
-	"door-members",
-	"door-open-too-long-time",
-	"door-pulse-time",		// 230
-	"door-status",
-	"door-unlock-delay-time",
-	"lock-status",
-	"masked-alarm-values",
-	"secured-status",		// 235 last in 135-2008
-};
-
-// Added by Addenda D
-char *BACnetNodeType[] = {
-   "UNKNOWN",
-   "SYSTEM",
-   "NETWORK",
-   "DEVICE",
-   "ORGANIZATION",
-   "AREA",
-   "EQUIPMENT",
-   "POINT",
-   "COLLECTION",
-   "PROPERTY",
-   "FUNCTIONAL",
-   "OTHER"
-   };
-   
-char *BACnetPropertyReference[] = {
-   "Property Identifier",
-   "Property Array Index"
-   };
-
-char *BACnetPropertyStates[] = { 
-   "Boolean-value",
-   "Binary-value",
-   "Event-type",
-   "Polarity",
-   "Program-change",
-   "Program-state",
-   "Reason-for-halt",
-   "Reliability",
-   "State",
-   "System-status",
-   "Units",
-   "Unsigned-value",
-   "Life-safety-mode",
-   "Life-safety-state",
-   "Restart-reason",
-   "Door-alarm-state",
-   };
-
-char *BACnetPropertyValue[] = {
-   "Property Identifier",
-   "Property Array Index",
-   "Value",
-   "Priority"
-   };
-
-char *BACnetRecipient[] = {
-   "Device",
-   "Address"
-   };
-
-char *BACnetRecipientProcess[] = {
-   "Recipient",
-   "Process Identifier"
-   };
-
-char *BACnetReliability[] = {
-   "NO-FAULT-DETECTED",
-   "NO-SENSOR",
-   "OVER-RANGE",
-   "UNDER-RANGE",
-   "OPEN-LOOP",
-   "SHORTED-LOOP",
-   "NO-OUTPUT",
-   "UNRELIABLE-OTHER",
-   "PROCESS-ERROR",
-   "MULTI-STATE-FAULT",
-   "CONFIGURATION-ERROR", // 10
-   // added addendum B (135-2004)
-   "MEMBER-FAULT",
-   "COMMUNICATION-FAILURE",
-   };
-
-char *BACnetRestartReason[] = {
-	"unknown",
-	"coldstart",
-	"warmstart",
-	"detected-power-lost",
-	"detected-power-off",
-	"hardware-watchdog",
-	"software-watchdog",
-	"suspended",
-};
-
-char *BACnetSegmentation[] = {
-   "SEGMENTED-BOTH",
-   "SEGMENTED-TRANSMIT",
-   "SEGMENTED-RECEIVE",
-   "NO-SEGMENTATION"
-   };
-
-char *BACnetServicesSupported[] = {
-/* Alarm and Event Services */
-   "AcknowledgeAlarm",              /* 0 */
-   "ConfirmedCOVNotification",      /* 1 */
-   "ConfirmedEventNotification",    /* 2 */
-   "GetAlarmSummary",               /* 3 */
-   "GetEnrollmentSummary",          /* 4 */
-   "SubscribeCOV",                  /* 5 */
-
-/* File Access Services */
-   "AtomicReadFile",                /* 6 */
-   "AtomicWriteFile",               /* 7 */
-
-/* Object Access Services */
-   "AddListElement",                /* 8 */
-   "RemoveListElement",             /* 9 */
-   "CreateObject",                  /* 10 */
-   "DeleteObject",                  /* 11 */
-   "ReadProperty",                  /* 12 */
-   "ReadPropertyConditional",       /* 13 */
-   "ReadPropertyMultiple",          /* 14 */
-   "WriteProperty",                 /* 15 */
-   "WritePropertyMultiple",         /* 16 */
-
-/* Remote Device Management Services */
-   "DeviceCommunicationControl",    /* 17 */
-   "ConfirmedPrivateTransfer",      /* 18 */
-   "ConfirmedTextMessage",          /* 19 */
-   "ReinitializeDevice",            /* 20 */
-
-/* Virtual Terminal Services */
-   "VT-Open",                       /* 21 */
-   "VT-Close",                      /* 22 */
-   "VT-Data",                       /* 23 */
-
-/*  Security Services */
-   "Authenticate",                  /* 24 */
-   "RequestKey",                    /* 25 */
-
-/* Unconfirmed Services */
-   "I-Am",                          /* 26 */
-   "I-Have",                        /* 27 */
-   "UnconfirmedCOVNotification",    /* 28 */
-   "UnconfirmedEventNotification",  /* 29 */
-   "UnconfirmedPrivateTransfer",    /* 30 */
-   "UnconfirmedTextMessage",        /* 31 */
-   "TimeSynchronization",           /* 32 */
-   "Who-Has",                       /* 33 */
-   "Who-Is",                        /* 34 */
-
-/* Added after 1995 */
-   "ReadRange",                     /* 35 */
-   "UtcTimeSynchronization"  ,      /* 36 */
-   "LifeSafetyOperation",           /* 37 */
-   "SubscribeCOVProperty",          /* 38 */ 
-   "GetEventInformation"            /* 39 */
-   };                       
-
-char *BACnetSessionKey[] = {
-   "Session Key",
-   "Peer Address"
-   };
-
-char *BACnetSpecialEvent[] = {
-   "Period (CalendarEntry)",
-   "Period (CalendarReference)",
-   "ListOfTimeValues",
-   "EventPriority"
-   };
-
-char *BACnetStatusFlags[] = {
-   "IN-ALARM",
-   "FAULT",
-   "OVERRIDDEN",
-   "OUT_OF_SERVICE"
-   };
-char *BACnetResultFlags[] = {
-   "FIRSTITEM",
-   "LASTITEM",
-   "MOREITEMS"
-   };
-
-  char *BACnetVendorID[] = {
-   "ASHRAE",
-   "NIST",
-   "Trane",
-   "McQuay",
-   "PolarSoft",
-   "Johnson Controls",
-   "American Auto-Matrix",
-   "Staefa",
-   "Delta Controls",
-   "Landis & Gyr",
-   "Andover Controls",
-   "Siebe",
-   "Orion Analysis",
-   "Teletrol",
-   "Cimetrics Technology",
-   "Cornell University",
-   "Carrier",
-   "Honeywell",
-   "Alerton",
-   "Tour & Andersson",
-   "Hewlett-Packard",
-   "Dorsette's Inc.",
-   "Cerberus AG",
-   "York",
-   "Automated Logic",
-   "Control Systems International",
-   "Phoenix Controls Corporation",
-   "Innovex",
-   "KMC Controls",
-   // TODO add more here ...
-   };
-
-char *BACnetTimeValue[] = {
-   "Time",
-   "Value"
-   };
-
-char *BACnetVTClass[] ={
-   "Default Terminal class",
-   "ANSI X3.64 class",
-   "DEC VT52 class",
-   "DEC VT100 class",
-   "DEC VT220 class",
-   "HP 700/94 class",
-   "IBM 3130 class"
-   };
-
-char *BACnetVTSession[] = {
-   "Local VT-Session ID",
-   "Remote VT-Session ID",
-   "Remote VT-Address"
-   };
-
-//Xiao Shiyuan 2002-7-23
-char *BACnetCOVSubscription[] = {
-	"Recipient",
-    "Monitored Property Reference",
-	"Issue Confirmed Notifications",
-	"Time remaining",
-	"COV increment"
-};
-
-char *BACnetWeekNDay[] = {
-   "Month",
-   "Week of Month",
-   "Day of Week"
-   };
-
-char *day_of_week[] = {
-   "Invalid Day",  /* 0 */
-   "Monday",       /* 1 */
-   "Tuesday",      /* 2 */
-   "Wednesday",    /* 3 */
-   "Thursday",     /* 4 */
-   "Friday",       /* 5 */
-   "Saturday",     /* 6 */
-   "Sunday"        /* 7 */
-   };
-
-char *month[] = {
-   "Invalid Month", /* 0 */
-   "January",       /* 1 */
-   "February",      /* 2 */
-   "March",         /* 3 */
-   "April",         /* 4 */
-   "May",           /* 5 */
-   "June",          /* 6 */
-   "July",          /* 7 */
-   "August",        /* 8 */
-   "September",     /* 9 */
-   "October",       /* 10 */
-   "November",      /* 11 */
-   "December",      /* 12 */
-   "Odd",			/* 13 */
-   "Even"			/* 14 */
-   };
-
-char *PDU_types[] = {
-   "Confirmed Service",
-   "Unconfirmed Service",
-   "Simple ACK",
-   "Complex ACK",
-   "Segment ACK",
-   "Error",
-   "Reject",
-   "Abort"
-   };
-
-// madanner 11/12/02, added to support variable stuffing for PDU type,
-// values written to var must decode back into values
-
-char *PDU_typesENUM[] = {
-   "CONFIRMED-REQUEST",
-   "UNCONFIRMED-REQUEST",
-   "SIMPLEACK",
-   "COMPLEXACK",
-   "SEGMENTACK",
-   "ERROR",
-   "REJECT",
-   "ABORT"
-   };
-
-char *NL_msgs[] = {
-   "Who-Is-Router-To-Network",
-   "I-Am-Router-To-Network",
-   "I-Could-Be-Router-To-Network",
-   "Reject-Message-To-Network",
-   "Router-Busy-To-Network",
-   "Router-Available-To-Network",
-   "Initialize-Routing-Table",
-   "Initialize-Routing-Table-Ack",
-   "Establish-Connection-To-Network",
-   "Disconnect-Connection-To-Network",
-   "ASHRAE Reserved",
-   "Vendor Proprietary Message"
-   };
-
-char *BACnetReject[] = {
-   "Other",                              /*0*/
-   "Buffer-overflow",                    /*1*/
-   "Inconsistent-parameters",            /*2*/
-   "Invalid-parameter-datatype",         /*3*/
-   "Invalid-tag",                        /*4*/
-   "Missing-required-tag",               /*5*/
-   "Parameter-out-or-range",             /*6*/
-   "Too-many-arguments",                 /*7*/
-   "Undefined-enumeration",              /*8*/
-   "Unrecognized-service"                /*9*/
-   };
-
-char *BACnetAbort[] = {
-   "Other",                             /*0*/
-   "Buffer-overflow",                   /*1*/
-   "Invalid-APDU-in-this-state",        /*2*/
-   "Preempted-by-higher-priority-task", /*3*/
-   "Segmentation-not-supported"         /*4*/
-   };
-
-char *Relation_Specifier[] = {
-   "Equal (=)",
-   "Not Equal (!=)",
-   "Less Than (<)",
-   "Greater Than (>)",
-   "Less Than or Equal (<=)",
-   "Greater Than or Equal (>=)"
-   };
-
-char *BVLL_Function[] = {
-   "BVLC-Result",
-   "Write-Broadcast-Distribution-Table",
-   "Read-Broadcast-Distribution-Table",
-   "Read-Broadcast-Distribution-Table-Ack",
-   "Forwarded-NPDU",
-   "Register-Foreign-Device",
-   "Read-Foreign-Device-Table",
-   "Read-Foreign-Device-Table-Ack",
-   "Delete-Foreign-Device-Table-Entry",
-   "Distribute-Broadcast-To-Network",
-   "Original-Unicast-NPDU",
-   "Original-Broadcast-NPDU"
-   };
-
-char *BACnetConfirmedServiceChoice[] = {
-   "AcknowledgeAlarm",              /* 0 */
-   "ConfirmedCOVNotification",      /* 1 */
-   "ConfirmedEventNotification",    /* 2 */
-   "GetAlarmSummary",               /* 3 */
-   "GetEnrollmentSummary",          /* 4 */
-   "SubscribeCOV",                  /* 5 */
-   "AtomicReadFile",                /* 6 */
-   "AtomicWriteFile",               /* 7 */
-   "AddListElement",                /* 8 */
-   "RemoveListElement",             /* 9 */
-   "CreateObject",                  /* 10 */
-   "DeleteObject",                  /* 11 */
-   "ReadProperty",                  /* 12 */
-   "ReadPropertyConditional",       /* 13 */
-   "ReadPropertyMultiple",          /* 14 */
-   "WriteProperty",                 /* 15 */
-   "WritePropertyMultiple",         /* 16 */
-   "DeviceCommunicationControl",    /* 17 */
-   "ConfirmedPrivateTransfer",      /* 18 */
-   "ConfirmedTextMessage",          /* 19 */
-   "ReinitializeDevice",            /* 20 */
-   "VT-Open",                       /* 21 */
-   "VT-Close",                      /* 22 */
-   "VT-Data",                       /* 23 */
-   "Authenticate",                  /* 24 */
-   "RequestKey",                    /* 25 */
-   "ReadRange",                     /* 26 */
-   "LifeSafetyOperation",           /* 27 */
-   "SubscribeCOVProperty",          /* 28 */
-   "GetEventInformation"            /* 29 */
-   };                       
-
-char *BACnetUnconfirmedServiceChoice[] = {
-   "I-Am",                          /* 0 */
-   "I-Have",                        /* 1 */
-   "UnconfirmedCOVNotification",    /* 2 */
-   "UnconfirmedEventNotification",  /* 3 */
-   "UnconfirmedPrivateTransfer",    /* 4 */
-   "UnconfirmedTextMessage",        /* 5 */
-   "TimeSynchronization",           /* 6 */
-   "Who-Has",                       /* 7 */
-   "Who-Is",                        /* 8 */
-   "UTCTimeSynchronization"         /* 9 */
-   };                       
-
-char *BACnetReinitializedStateOfDevice[] = {
-	"coldstart",	/* 0 */
-	"warmstart",
-	"startbackup",
-	"endbackup",
-	"startrestore",
-	"endrestore",
-	"abortrestore"	/* 6 */
-};
+BACnetSequence::BACnetSequence()
+: m_ok(true)
+, m_parsed(true)	// because BacParser constructor parses
+, m_parser(0)
+, m_pStack(NULL)
+, m_objectIdentifier((unsigned int)(~0))
+, m_objectType(-1)
+, m_propertyID(-1)
+, m_propertyIndex(-1)
+, m_lastBoolean(false)
+, m_lastUnsigned((unsigned int)(~0))
+, m_lastEnumerated((unsigned int)(~0))
+{
+}
+
+BACnetSequence::~BACnetSequence()
+{
+	while (m_pStack != NULL)
+	{
+		Nester *pNext = m_pStack->m_pNext;
+		delete m_pStack;
+		m_pStack = pNext;
+	}
+}
+
+// Force an error, stopping further decoding
+bool BACnetSequence::Fail( const char *pFormat, ... )
+{ 
+	va_list args;
+	va_start( args, pFormat );
+	if (pFormat != NULL)
+	{
+		vsprintf( get_int_line(pi_data_current,pif_offset,1,NT_ERROR), 
+				  pFormat, args );
+	}
+	va_end(args);
+	
+	m_ok = false; 
+	return false;
+}
+
+// Return true of the PDU has more data.
+bool BACnetSequence::HasMore() const
+{
+	// True if we have an unprocessed tag, or more in the buffer
+	return (m_parsed || m_parser.HasMore());
+}
+
+// Parse the next tag if is has not already been parsed
+void BACnetSequence::Parse()
+{
+	if (m_ok && !m_parsed)
+	{
+		m_parser.ParseTag();
+		m_parsed = true;
+	}
+}
+
+// Get the parser for special low-level processing
+BacParser& BACnetSequence::Parser()
+{
+	return m_parser; 
+}
+
+// Synchronize the parser with the cursor
+void BACnetSequence::Synch()
+{
+	m_parser.Synch();
+	m_parsed = false;
+}
+
+// Push a block on the stack
+void BACnetSequence::Push( BACnetNestType theNestType, int theTagValue, const char *pTheTitle )
+{
+	Nester *pNest = new Nester;
+	pNest->m_pNext    = m_pStack;
+	pNest->m_nestType = theNestType;
+	pNest->m_tagValue = theTagValue;
+	pNest->m_pTitle   = pTheTitle;
+	pNest->m_foundChoice = false;
+
+	m_pStack = pNest;
+}
+
+// Pop a block off the stack.  Fail if top of stack is of a different type
+// Caller must delete the return item.
+BACnetSequence::Nester* BACnetSequence::Pop( BACnetNestType theNestType )
+{
+	Nester *pNest = m_pStack;
+	if (pNest != NULL)
+	{
+		if (pNest->m_nestType != theNestType)
+		{
+			// TODO: show the actual and desired nesting, and nesting strings
+			Fail( "Probable bug in VTS: decoder nesting wants %u, got %u", 
+				  pNest->m_nestType, theNestType );
+		}
+
+		m_pStack = pNest->m_pNext;
+	}
+	else
+	{
+		Fail( "Probable bug in VTS: decoder nesting stack underflow" );
+	}
+
+	return pNest;
+}
+
+// In the following methods:
+// BSQ_REQUIRED: if tag is found, show error and set m_ok false;
+// BSQ_OPTIONAL: if tag is found, show, return true; else show nothing and return false
+// BSQ_CHOICE: if the tag is found, mark as choice, show, return true; else
+//             show nothing and return false;  Also error if choice already found
+
+// Verify the tag and do choice logic
+bool BACnetSequence::Vet( int theTag, int theAppTag, BACnetSequenceParm theType )
+{
+	bool retval = IsOK();
+	if (retval)
+	{
+		if ((m_pStack != NULL) && (m_pStack->m_nestType == BNT_CHOICE) && 
+			(theType == BSQ_CHOICE) && (m_pStack->m_foundChoice))
+		{
+			// Already found our choice.  Don't process this item
+			retval = false;
+		}
+		else
+		{
+			Parse();
+			if (((theTag >= 0) && m_parser.ContextTag() && (theTag == (int)m_parser.TagValue()))
+					||
+				((theTag < 0) && !m_parser.ContextTag() && (theAppTag == (int)m_parser.TagValue())))
+			{
+				// Matches next tag
+				if ((m_pStack != NULL) && (m_pStack->m_nestType == BNT_CHOICE) && (theType == BSQ_CHOICE))
+				{
+					// Found the choice
+					m_pStack->m_foundChoice = true;
+				}
+			}
+			else if (theType == BSQ_REQUIRED)
+			{
+				// No match.  Fatal for REQUIRED
+				char *pExpected = TempTextBuffer();
+				if (theTag >= 0)
+				{
+					sprintf( pExpected, "[%u]", theTag );
+				}
+				else if (theAppTag <= 12)
+				{
+					sprintf( pExpected, "%s", ApplicationTypes[theAppTag] );
+				}
+				else
+				{
+					sprintf( pExpected, "Application-%u", theAppTag );
+				}
+				
+				char *pGot = TempTextBuffer();
+				unsigned int tag = m_parser.TagValue();
+				if (m_parser.ContextTag())
+				{
+					sprintf( pGot, "[%u]", tag );
+				}
+				else if (tag <= 12)
+				{
+					sprintf( pGot, "%s", ApplicationTypes[tag] );
+				}
+				else
+				{
+					sprintf( pExpected, "Application-%u", tag );
+				}
+				
+				retval = Fail("Missing required tag: expected %s got %s", pExpected, pGot);
+			}
+			else
+			{
+				// No match.  OK for OPTIONAL and CHOICE.
+				retval = false;
+			}
+		}
+	}
+
+	return retval;
+}
+
+// Begin a SEQUENCE OF wrapped in opening/closing tags.
+// Returns true if the tag is found.  After decoding the contents,
+// call ClosingTag() to declare the end of the sequence.
+bool BACnetSequence::OpeningTag( int theTag, const char *pTheTitle, BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, -1, theType );
+	if (retval)
+	{
+		// Got an opening tag.  Remember it, and its title, so we can show closing tag
+		Push( BNT_SEQUENCE, theTag, pTheTitle );
+
+		// Show the opening tag, but do not dump its value
+		retval = m_ok = show_head_context_tag( 0, pTheTitle, theTag, false );
+		if (m_ok)
+		{
+			// Deconstruct the opening tag and advance cursor
+			show_tag();
+		}
+		Synch();
+	}
+
+	return retval;
+}
+
+// Decleare the end of a SEQUENCE OF.  Displays the closing tag.
+void BACnetSequence::ClosingTag()
+{
+	if (IsOK())
+	{
+		Nester *pNest = Pop( BNT_SEQUENCE );
+		if (pNest != NULL)
+		{
+			// Vet and show closing tag
+			if (Vet( pNest->m_tagValue, -1 ))
+			{
+// Don't show as a header line, since we are indenting this under the header for
+// the opening tag
+//				m_ok = show_head_context_tag( 0, pNest->m_pTitle, pNest->m_tagValue, false );
+//				if (m_ok)
+				{
+					// Deconstruct the closing tag and advance cursor
+                    show_tag();
+				}
+				Synch();
+			}
+
+			delete pNest;
+		}
+	}
+}
+
+// Declare the beginning of a group of CHOICEs
+// TODO: some CHOICEs are context tagged, and all have titles.
+// Probably add a tag and title to this function
+void BACnetSequence::BeginChoice()
+{
+	if (IsOK())
+	{
+		Push( BNT_CHOICE, -1, "" );
+	}
+}
+
+// Declare the end of a group of CHOICEs.
+// If a choice has not been found, declare error and return false
+bool BACnetSequence::EndChoice()
+{
+	bool retval = IsOK();
+	if (retval)
+	{
+		Nester *pNest = Pop( BNT_CHOICE );
+		if (pNest != NULL)
+		{
+			if (!pNest->m_foundChoice)
+			{
+				retval = Fail("no valid choice");
+			}
+
+			delete pNest;
+		}
+	}
+
+	return retval;
+}
+
+// Declare the beginning of a list.
+// if theTag is >=0, parse as required opening tag
+bool BACnetSequence::ListOf( int theTagValue, const char *pTheTitle, BACnetSequenceParm theType )
+{
+	bool retval = IsOK();
+	if (retval)
+	{
+		Push( BNT_LIST, theTagValue, pTheTitle );
+
+		if (theTagValue < 0)
+		{
+			// Unwrapped list until end of PDU or until next closing tag.  
+			unsigned int len = pif_end_offset - pif_offset;
+			Parse();
+			while (m_parser.HasMore() && !m_parser.ClosingTag())
+			{
+				bool pair = m_parser.OpeningTag();
+				
+				// Eat single-delimiter item
+				// or open-tag and all data, but not close-tag
+				m_parser.EatData();
+				if (pair)
+				{
+					// Eat the closing tag as well
+					m_parser.ParseTag();
+					m_parser.EatData();
+				}
+				// Length until here (not including next tag)
+				len = m_parser.Offset();
+				m_parser.ParseTag();
+			}
+
+			// OPEN_TAG tells the detail tree to open this branch
+			if (pTheTitle && *pTheTitle)
+			{
+				sprintf(get_int_line(pi_data_current,pif_offset,len,NT_OPEN_TAG), 
+						pTheTitle);
+			}
+			Synch();
+		}
+		else
+		{
+			retval = Vet( theTagValue, -1, theType );
+			if (retval)
+			{
+				// Show the opening tag, but do not dump its value
+				retval = m_ok = show_head_context_tag( 0, pTheTitle, theTagValue, false );
+				if (m_ok)
+				{
+					// Deconstruct the closing tag and advance cursor
+					show_tag();
+				}
+				Synch();
+			}
+		}
+	}
+
+	return retval;
+}
+
+// Test for end of list (called from a while after ListOf)
+bool BACnetSequence::HasListElement()
+{
+	bool retval = IsOK();
+	if (retval)
+	{
+		Nester *pNest = m_pStack;
+		if (pNest != NULL)
+		{
+			// Look for closing tag or end of PDU
+			bool more = m_parser.HasMore();
+			if (more)
+			{
+				Parse();
+			}
+			int tag = pNest->m_tagValue;
+			if (!more || m_parser.ClosingTag())
+			{
+				// End of the list, expected or otherwise
+				if (tag >= 0)
+				{
+					// List must be enclosed by the specified tag pair
+					if (!more || (tag != m_parser.TagValue()))
+					{
+						Fail( "Missing or incorrect closing tag: expected [%u], got [%u]",
+							  tag, m_parser.TagValue() );
+					}
+					else
+					{
+						// Show the closing tag, advance cursor, stop the loop
+						// TODO: should the last parm really be true?
+						// Should we call show_tag()?
+						m_ok = show_head_context_tag( 0, pNest->m_pTitle, tag, true );
+					}
+				}
+
+				Synch();
+				pNest = Pop( BNT_LIST );
+				delete pNest;
+
+				// No more elements
+				retval = false;
+			}
+		}
+	}
+
+	return retval;
+}
+
+// Parse and show a Null value.
+bool BACnetSequence::Null( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, 0, theType );
+	if (retval)
+	{
+		if (theTag < 0)
+		{
+			// Application-tag
+			sprintf( get_int_line(pi_data_current, pif_offset, 1, NT_ITEM_HEAD), 
+					 "%s:  Null", pTitle );
+		}
+		else
+		{
+			// Context-tag
+			sprintf( get_int_line(pi_data_current, pif_offset, 1, NT_ITEM_HEAD), 
+					 "[%u] Null", theTag, pTitle );
+		}
+
+		show_tagged_data();
+		Synch();
+	}
+
+	return retval;
+}
+
+bool BACnetSequence::Boolean( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	m_lastBoolean = false;
+	bool retval = Vet( theTag, BOOLEAN, theType );
+	if (retval)
+	{
+		// The interest here is that app-tagged boolean has its value in
+		// the length field, while context tag has it as a value byte.
+		unsigned int boolVal;
+		if (theTag < 0)
+		{
+			// Application-tag: value is the length field
+			boolVal = m_parser.DataLength();
+			sprintf( get_int_line(pi_data_current, pif_offset, 1, NT_ITEM_HEAD), 
+					 "%s:  %s", pTitle, (boolVal) ? "TRUE" : "FALSE" );
+		}
+		else
+		{
+			// Context-tag: value octet follows
+			boolVal = get_bac_unsigned(1, m_parser.DataLength());
+			sprintf( get_int_line(pi_data_current, pif_offset, 2, NT_ITEM_HEAD), 
+					 "[%u] %s:  %s", theTag, pTitle, (boolVal) ? "TRUE" : "FALSE" );
+		}
+
+		// Save the value for use in special decoders
+		m_lastBoolean = (boolVal != 0);
+
+		// TODO: is this OK for context-tagged boolean?
+		show_tagged_data();
+		Synch();
+	}
+
+	return retval;
+}
+
+bool BACnetSequence::Unsigned( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	m_lastUnsigned = (unsigned int)(~0);
+	bool retval = Vet( theTag, UNSIGNED, theType );
+	if (retval)
+	{
+		show_head_unsigned( 1, pTitle, theTag);
+		unsigned int len = show_tag();
+
+		// Save the value for use in special decoders
+		m_lastUnsigned = get_bac_unsigned( 0, len );
+
+		show_bac_unsigned(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+bool BACnetSequence::Integer( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, SIGNED, theType );
+	if (retval)
+	{
+		show_head_signed( 1, pTitle, theTag);
+		unsigned int len = show_tag();
+
+		show_bac_signed(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show a Real value.
+bool BACnetSequence::Real( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, REAL, theType );
+	if (retval)
+	{
+		show_head_real( 1, pTitle, theTag);
+		unsigned int len = show_tag();
+		show_bac_real(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show a Double value.
+bool BACnetSequence::Double( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, DOUBLE, theType );
+	if (retval)
+	{
+		show_head_double( 0, pTitle, theTag);
+		unsigned int len = show_tag();
+		show_bac_double(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show a Date value.
+bool BACnetSequence::Date( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, DATE, theType );
+	if (retval)
+	{
+		show_head_date( 1, pTitle, theTag);
+		unsigned int len = show_tag();
+		show_bac_date(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show a Time value.
+bool BACnetSequence::Time( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, TIME, theType );
+	if (retval)
+	{
+		show_head_time( 1, pTitle, theTag);
+		unsigned int len = show_tag();
+		show_bac_time(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show an unsigned property array index.
+bool BACnetSequence::PropertyArrayIndex( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	m_propertyIndex = -1;
+	bool retval = Vet( theTag, UNSIGNED, theType );
+	if (retval)
+	{
+		show_head_unsigned( 1, pTitle, theTag);
+		unsigned int len = show_tag();
+
+		// Save the array index for use in property value decoding
+		m_propertyIndex = (int)get_bac_unsigned( 0, len );
+		
+		show_bac_unsigned(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show an enumerated value.  If table is NULL or tableLen is 0, show only numeric value.
+bool BACnetSequence::Enumerated( int theTag, const char *pTitle, 
+								 BACnetStringTable *pTheTable,
+                                 BACnetSequenceParm theType )
+{
+	m_lastEnumerated = (unsigned int) (~0);
+	bool retval = Vet( theTag, ENUMERATED, theType );
+	if (retval)
+	{
+		const char* const *pTable = (pTheTable) ? pTheTable->m_pStrings : NULL;
+		unsigned int nStrings     = (pTheTable) ? pTheTable->m_nStrings : 0;
+		show_head_enumerated( 1, pTitle, theTag, pTable, nStrings );
+
+		unsigned int len = show_tag();
+
+		// Save the value for use in special decoders
+		m_lastEnumerated = get_bac_unsigned( 0, len );
+
+		show_bac_enumerated(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show a Property Identifier value.
+bool BACnetSequence::PropertyIdentifier( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	m_propertyID = -1;
+	bool retval = Vet( theTag, ENUMERATED, theType );
+	if (retval)
+	{
+		show_head_enumerated( 1, pTitle, theTag, 
+							  BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings, 
+							  BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings );
+		
+		unsigned int len = show_tag();
+
+		// Save the ID for use in property value decoding
+		m_propertyID = (int)get_bac_unsigned( 0, len );
+
+		show_bac_enumerated(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show an Object Identifier value.
+bool BACnetSequence::ObjectIdentifier( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	m_objectIdentifier =(unsigned int)(~0);
+	m_objectType       = -1;
+	bool retval = Vet( theTag, OBJECT_IDENTIFIER, theType );
+	if (retval)
+	{
+		show_head_obj_id(1, pTitle, theTag);
+		unsigned int len = show_tag();
+
+		// Save the Object ID and type for use in property value decoding
+		m_objectIdentifier = get_bac_unsigned( 0, len );
+		m_objectType = (int)(m_objectIdentifier >> 22);
+
+		show_bac_object_identifier(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show a Bitstring value.
+bool BACnetSequence::BitString( int theTag, const char *pTitle, 
+								BACnetStringTable *pTheTable,
+							    BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, BIT_STRING, theType );
+	if (retval)
+	{
+		show_head_bit_string(0, pTitle, theTag);
+		unsigned int len = show_tag();
+
+		if (pTheTable == NULL)
+		{
+			// Just show the bitstring generically
+			show_bac_bitstring(len);
+		}
+		else
+		{
+			// Show a line with a string for each true bit
+			Synch();
+			int byteLength = m_parser.DataLength();
+			int unusedBits = pif_get_byte(0);
+			if ((byteLength < 2) || (unusedBits > 7))
+			{
+				return Fail("Error: bitstring claims %u bytes and %u unused bits", 
+							byteLength, unusedBits);
+			}
+
+			int val, jx = 0, mask = 0;
+			int bitLength = (byteLength - 1)*8 - unusedBits;
+			for (int ix = 0; ix < bitLength; ix++)
+			{
+				if (mask == 0)
+				{
+					mask = 0x80;
+					jx += 1;
+					val = pif_get_byte(jx);
+				}
+
+				if (val & mask)
+				{
+					if (ix < pTheTable->m_nStrings)
+					{
+						sprintf(get_int_line(pi_data_current,pif_offset+jx, 1), 
+				    			"%02X: %s", mask, pTheTable->m_pStrings[ix] );
+					}
+					else
+					{
+						sprintf(get_int_line(pi_data_current,pif_offset+jx, 1), 
+				    			"%02X", mask );
+					}
+				}
+				mask = mask >> 1;
+			}
+
+			pif_offset += jx+1;
+		}
+		
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show a Text string value.
+bool BACnetSequence::TextString( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, CHARACTER_STRING, theType );
+	if (retval)
+	{
+		show_head_char_string(0, pTitle, theTag);
+		unsigned int len = show_tag();
+
+        show_bac_charstring(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show an Octet string value.
+bool BACnetSequence::OctetString( int theTag, const char *pTitle, BACnetSequenceParm theType )
+{
+	bool retval = Vet( theTag, OCTET_STRING, theType );
+	if (retval)
+	{
+		show_head_octet_string(0, pTitle, theTag);
+		unsigned int len = show_tag();
+		show_bac_octetstring(len);
+		Synch();
+	}
+
+	return retval;
+}
+
+// Parse and show any tagged item
+// if allowContext is false, Fail if a context tag is seen
+// if allowContext is true, show single-delimiter tag as hex bytes,
+// show paired-delimiter tags by recursive descent
+bool BACnetSequence::AnyTaggedItem( bool allowContext )
+{
+	Parse();
+	bool retval = IsOK();
+	if (retval)
+	{
+		if (m_parser.ContextTag() && !allowContext)
+		{
+			Fail( "Unexpected Context tag [%u]", m_parser.TagValue() );
+		}
+		else
+		{
+			show_head_tagged_data();
+			show_tagged_data();
+			Synch();
+		}
+	}
+
+	return retval;
+}
 
 /**************************************************************************/
 /* The functions that follow are used to complement the PIF functions     */
@@ -1561,61 +1178,27 @@ char *BACnetReinitializedStateOfDevice[] = {
 /**************************************************************************/
 
 /*************************************************************************/
-void bac_show_byte ( const char *label, const char *format_str )
+// Show byte at cursor according to format string
+// Advance cursor
+void bac_show_byte( const char *label, const char *format_str )
 /*************************************************************************/
 /* Advantage: Allows FW alignment */
 {
-	//Modifyed by Zhu Zhenhua 2003-7-22, the code to add "-" before the number if it is signed and negative
-	//else do as before
-	CString str = label;
-	unsigned char necValue = (0x80 & (unsigned char)pif_get_byte(0));
-	if(str == "Value (1-octet signed)")	
-		if(necValue)
-		{
-			sprintf(outstr,"%"FW"s = -",label); 
-			strcat(outstr,format_str);
-			unsigned char nValue = (unsigned char)(0x100-(unsigned char)pif_get_byte(0));
-			sprintf(get_int_line(pi_data_current,pif_offset,1),outstr,nValue);
-			pif_offset += 1;
-			return;
-		}
-		
-		sprintf(outstr,"%"FW"s = ",label); /* Set up alignment of output */
-		strcat(outstr,format_str);
-		sprintf(get_int_line(pi_data_current,pif_offset,1),outstr,(unsigned char)pif_get_byte(0));
-		pif_offset += 1;
-}
-
-/**************************************************************************/
-void bac_show_unsigned ( const char *label, unsigned int len )
-/**************************************************************************/
-{
-   switch (len) {
-     case 1: bac_show_byte( label,"%u");
-        break;
-     case 2: sprintf(outstr,"%"FW"s = %%u", label );
-        pif_show_word_hl(outstr);
-        break;
-     case 3: sprintf(outstr,"%"FW"s = %%lu", label );
-        sprintf(get_int_line(pi_data_current,pif_offset,3),outstr,
-                (pif_get_long_hl(-1)&0x00FFFFFF));
-        pif_offset += 3;
-        break;
-     case 4: sprintf(outstr,"%"FW"s = %%lu", label );
-        pif_show_long_hl(outstr);
-     }
+	sprintf(outstr,"%"FW"s = ",label); /* Set up alignment of output */
+	strcat(outstr,format_str);
+	sprintf(get_int_line(pi_data_current,pif_offset,1),outstr,(unsigned char)pif_get_byte(0));
+	pif_offset += 1;
 }
 
 const char* LookupName( int net, const unsigned char *addr, int len );
 
 /*************************************************************************/
-void bac_show_enetaddr ( char *label )
+void bac_show_enetaddr( const char *label )
 /*************************************************************************/
 {
-   const unsigned char *addr = (const unsigned char *)msg_origin + pif_offset
-   ;
-   const char  *name
-   ;
+   const unsigned char *addr = (const unsigned char *)msg_origin + pif_offset;
+
+   const char  *name;
 
    /* check for a broadcast */
    if (memcmp(addr,"\377\377\377\377\377\377",6) == 0)
@@ -1638,7 +1221,7 @@ void bac_show_enetaddr ( char *label )
 }
 
 /*************************************************************************/
-void bac_show_bipaddr ( const char *label )
+void bac_show_bipaddr( const char *label )
 /*************************************************************************/
 {
    const char  *name = LookupName( 0, (const unsigned char *)msg_origin + pif_offset, 6 )
@@ -1658,38 +1241,20 @@ void bac_show_bipaddr ( const char *label )
 }
 
 /*************************************************************************/
-// TODO: called only from show_context_tag
-void bac_show_ctag_flag ( void )
-/*************************************************************************/
-/* Advantage: Allows FW alignment and extraction of tag value as [X] */
-{
-   unsigned char x;
-
-   x = pif_get_byte(0);
-   if((x & 0x06) == 0x06)  /* paired delimiter tag */
-      sprintf(outstr,"%"FW"s = X'%02X' = [%u]","PD Context Specific Tag",
-      x,((x&0xF0)>>4));
-   else  /* single delimiter tag */
-      sprintf(outstr,"%"FW"s = X'%02X' = [%u]","SD Context Specific Tag",
-      x,((x&0xF0)>>4));
-
-   sprintf(get_int_line(pi_data_current,pif_offset,1),outstr);
-   pif_flagbit_indent = strcspn(outstr,"=") - 10;
-   if (pif_flagbit_indent < 0) pif_flagbit_indent = 0;
-   pif_offset += 1;
-}
-
-/*************************************************************************/
-void bac_show_flag ( char outstr[80], unsigned char mask )
+// Mask the byte at the cursor and show it using the format string.
+// Set flag-bit indent 10 spaces left of the '=' in the format string
+// Advance the cursor.
+void bac_show_flag( const char *pStr, unsigned char mask )
 /*************************************************************************/
 /* Advantage: Allows flags to be shown with format specifiers other than
    just %d. Thus flags can be displayed in hex. */
 {
-   unsigned char x;
-   x = pif_get_byte(0) & mask;
-   sprintf(get_int_line(pi_data_current,pif_offset,1),outstr,x);
-   pif_flagbit_indent = strcspn(outstr,"=") - 10;
-   if (pif_flagbit_indent < 0) pif_flagbit_indent = 0;
+   unsigned char x = pif_get_byte(0) & mask;
+   sprintf(get_int_line(pi_data_current,pif_offset,1),pStr,x);
+
+   pif_flagbit_indent = strcspn(pStr,"=") - 10;
+   if (pif_flagbit_indent < 0) 
+	   pif_flagbit_indent = 0;
    pif_offset += 1;
 }
 
@@ -1704,7 +1269,7 @@ void bac_show_nbytes( unsigned int len, const char *str )
 }
 
 /*************************************************************************/
-void bac_show_word_hl ( const char *label, const char *format_str )
+void bac_show_word_hl( const char *label, const char *format_str )
 /*************************************************************************/
 /* Advantage: Allows FW alignment */
 {
@@ -1716,7 +1281,7 @@ void bac_show_word_hl ( const char *label, const char *format_str )
 }
 
 /*************************************************************************/
-void bac_show_long_hl ( const char *label, const char *format_str )
+void bac_show_long_hl( const char *label, const char *format_str )
 /*************************************************************************/
 /* Advantage: Allows FW alignment */
 {
@@ -1725,17 +1290,6 @@ void bac_show_long_hl ( const char *label, const char *format_str )
   sprintf(get_int_line(pi_data_current,pif_offset,4),outstr,
           pif_get_long_hl(0));
   pif_offset += 4;
-}
-
-/**************************************************************************/
-void float_to_ascii( double x, char *outstr)
-/**************************************************************************/
-{
-   // JLH let's try %g, so very large and very small numbers don't
-   // overfl000000000000000000000000000w the buffer...
-    // TODO: This function is not used anywhere: just do the sprintf in line  
-//   sprintf( outstr, "%3.1f", x );
-   sprintf( outstr, "%#g", x );
 }
 
 /*************************************************************************/
@@ -1747,6 +1301,10 @@ void show_str_eq_str ( const char *str1, const char *str2, unsigned int len )
 }
 
 /*************************************************************************/
+// TODO: this sucker is an amazing piece of work...
+// Used twice with mask F0 for tag value
+// Used four times with mask 07 for length.
+// Show the byte at cursor-1
 void bac_show_flagmask ( unsigned char mask, const char *str )
 /*************************************************************************/
 /* Advantage: Allows the value of the masked-off field to be displayed
@@ -1762,7 +1320,8 @@ void bac_show_flagmask ( unsigned char mask, const char *str )
 /* This part of the routine prepends blanks to the output string to line */
 /* things up with the previous pif_show_flagbit or pif_show_flagmask.    */
 
-   for (i=0;i<pif_flagbit_indent;i++) strvar[i] = ' ';
+   for (i=0;i<pif_flagbit_indent;i++) 
+	   strvar[i] = ' ';
 
 /* This part of the routine evaluates the mask and finds the position of */
 /* the starting '1' bit and the number of '1' bits. The MSB is bit 7.    */
@@ -1840,1164 +1399,934 @@ void bac_show_flagmask ( unsigned char mask, const char *str )
 }
 
 /**************************************************************************/
-void show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx)
-/**************************************************************************/
+// Show PDU bytes according to the specified propertyID, using
+// objectType and index as necessary.
+void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int prop_idx)
 {
-   unsigned char x, unused;
-   unsigned int len;
-   unsigned int i,j,len1;
-
-   x = pif_get_byte(0);
-   switch (prop_id) {
-      case ACKED_TRANSITIONS:  /* bit string */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1 
-		  
-		   //added by wkh on 2002-7-19
-		   show_application_tag(x);
-		   //----------------------------
-           show_bac_event_transitions_ackd();
-           break;
-      case ACK_REQUIRED:  /* bit string */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-		   //added by wkh on 2002-7-19
-		   show_application_tag(x);
-		   //----------------------------
-           show_bac_event_transitions_ackd();
-           break;
-      case ACTION: switch (obj_type) {
-//         Command Object: ARRAY OF (LIST OF BACnetActionCommands)
-                     case 7: //command object 
-                        if (prop_idx == 0) 
-						{
-                          pif_show_ascii(0,"Array Size");
-                          show_application_data(x);
-                        }
-						else if (prop_idx != -1 )
-						{
-							// only 1 index
-							show_bac_action_list();
-						}
-						else
-						{
-							while ((pif_get_byte(0) & 0x0f) != 0x0f) {
-								show_bac_action_list();
-								};
-						}
-                        break;
-
-                     case 12: /* loop object */
-                         len1 = show_application_tag(x);
-                         show_str_eq_str("Control Action",
-                         BACnetAction[pif_get_byte(0)],len1);
-                         pif_offset += len1;
-                     }
-              break;
-      case ACTION_TEXT:  /* ARRAY OF Character Strings */
-           if (prop_idx == 0) {
-             bac_show_unsigned("Array Size",show_application_tag(x));
-             }
-           else
-             while ((x&0x0f) != 0x0f) {
-               /* handles single element or entire array */
-               show_application_data(x);
-               x = pif_get_byte(0);
-               };
-           break;
-      case ACTIVE_TEXT:  /* Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case ACTIVE_VT_SESSIONS:
-           while ((pif_get_byte(0) & 0x0f) != 0x0f) show_bac_VT_session();
-           break;
-      case ALARM_VALUE:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case ALARM_VALUES:
-           while(x != 0x3f){
-			 show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-             show_application_data(x);
-             x = pif_get_byte(0);
-             };
-           break;
-      case ALL:  /* No Data */
-           break;
-      case ALL_WRITES_SUCCESSFUL:   /* Boolean  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case APDU_SEGMENT_TIMEOUT:  /* Unsigned */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case APDU_TIMEOUT:  /* Unsigned */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case APPLICATION_SOFTWARE_VERSION:  /* Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case ARCHIVE:  /* Boolean */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-		   
-           show_application_data(x);
-           break;
-      case BIAS:   /*  Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case CHANGE_OF_STATE_COUNT:  /*  Unsigned  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case CHANGE_OF_STATE_TIME:   /*  BACnet DateTime  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(pif_get_byte(0));
-           break;
-      case CONTROLLED_VARIABLE_REFERENCE: /*  BACnetObjectPropertyReference  */
-           show_bac_obj_prop_ref();
-           break;
-      case CONTROLLED_VARIABLE_UNITS: /*  BACnetEngineeringUnits  */
-           show_application_tag(x);
-           bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
-           break;
-      case CONTROLLED_VARIABLE_VALUE:  /*  Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-		   
-           show_application_data(x);
-           break;
-      case COV_INCREMENT:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-		   
-           show_application_data(x);
-           break;
-      case DATELIST:  /* List of BACnetCalendarEntry  */
-           while ((pif_get_byte(0) & 0x0f) != 0x0f) show_bac_calendar_entry();
-           break;
-      case DAYLIGHT_SAVINGS_STATUS:  /* Boolean  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1 
-
-           show_application_data(x);
-           break;
-      case DEADBAND:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case DERIVATIVE_CONSTANT: /* Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-		   
-           show_application_data(x);
-           break;
-      case DERIVATIVE_CONSTANT_UNITS: /* Enumeration  */
-           show_application_tag(x);
-           bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
-           break;
-      case DESCRIPTION: /* Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case DESCRIPTION_OF_HALT: /* Character String */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case DEVICE_TYPE: /*  Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-	  case SLAVE_ADDRESS_BINDING:
-	  case MANUAL_SLAVE_ADDRESS_BINDING:
-      case DEVICE_ADDRESS_BINDING:  /* sequence of BACnetAddressBinding */
-           while ((x & 0x0f) != 0x0f){
-			show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-            show_application_tag(x);
-            show_bac_object_identifier();
-            pif_show_space();
-//	        pif_show_ascii(0, "Device Address");    /*modified by Lei Chengxin 2003-9-1*/
-			show_head_ascii("Device Address");
-
-            show_bac_address();
-            x = pif_get_byte(0);
-           }
-           break;
-      case EFFECTIVE_PERIOD: /*  BACnetDateRAnge  */
-//	       pif_show_ascii(0,"Start Date");			/*modified by Lei Chengxin 2003-9-1*/
-		   show_head_ascii("Start Date");
-
-           show_application_data(x);
-           pif_show_space();
-//	       pif_show_ascii(0,"End Date");			/*modified by Lei Chengxin 2003-9-1*/
-		   show_head_ascii("End Date");
-
-           show_application_data(pif_get_byte(0));
-           break;
-      case ELAPSED_ACTIVE_TIME: /* Unsigned  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case ERROR_LIMIT:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case EVENT_ENABLE: /* Bitstring  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           len1 = show_application_tag(x);
-           unused = pif_get_byte(0);
-           bac_show_byte("Unused Bits in Last Octet","%u");
-           j=0;
-           for(i=0;i<((len1-1)*8-unused);i++) {
-             if(!(i%8)) {
-               x = pif_get_byte(0);
-               sprintf(outstr,"Bit String Octet [%u]",j++);
-               bac_show_byte(outstr,"X'%02X'");
-               }
-             sprintf(outstr,"   %s",BACnetEventTransitionBits[i]);
-             pif_offset--;
-             if(x&0x80)
-               show_str_eq_str(outstr,"TRUE",1);
-             else
-               show_str_eq_str(outstr,"FALSE",1);
-             pif_offset++;
-             x <<= 1;
-             }
-           break;
-      case EVENT_PARAMETERS: /* List of BACnetEventParameters  */
-             show_bac_event_parameters();
-           break;
-      case EVENT_STATE:  /*  BACnetEventState */
-           show_application_tag(x);
-           bac_show_byte(BACnetEventState[pif_get_byte(0)],"%u");
-           break;
-      case EVENT_TYPE: /* BACnetEventType  */
-           len1 = show_application_tag(x);
-           show_str_eq_str("Event Type",BACnetEventType[pif_get_byte(0)],len1);
-           pif_offset += len1;
-           break;
-      case EXCEPTION_SCHEDULE: /*  ARRAY of BACnet SpecialEvents  */
-           if (prop_idx == 0) {
-             bac_show_unsigned("Array Size",show_application_tag(x));
-             };
-           while ((pif_get_byte(0) & 0x0f) != 0x0f) {
-             show_bac_special_event();
-             };
-           break;
-      case FAULT_VALUES:
-          while(x != 0x3f){
-    	     show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-             show_application_data(x);
-             x = pif_get_byte(0);
-             };
-           break;
-      case FEEDBACK_VALUE:
-           show_application_tag(x);
-           bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
-           break;
-      case FILE_ACCESS_METHOD:  /* Enumerated  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case FILE_SIZE: /*  Unsigned  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case FILE_TYPE: /*  Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case FIRMWARE_REVISION: /* Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case HIGH_LIMIT:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case INACTIVE_TEXT: /*  Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case IN_PROCESS: /* Boolean  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case INSTANCE_OF: /* Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case INTEGRAL_CONSTANT: /* Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case INTEGRAL_CONSTANT_UNITS: /* Enumerated  */
-           show_application_tag(x);
-           bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
-           break;
-      case ISSUE_CONFIRMED_NOTIFICATIONS:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case LIMIT_ENABLE:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           len1 = show_application_tag(x);
-           unused = pif_get_byte(0);
-           bac_show_byte("Unused Bits in Last Octet","%u");
-           j=0;
-           for(i=0;i<((len1-1)*8-unused);i++) {
-             if(!(i%8)) {
-               x = pif_get_byte(0);
-               sprintf(outstr,"Bit String Octet [%u]",j++);
-               bac_show_byte(outstr,"X'%02X'");
-               }
-             sprintf(outstr,"   %s",BACnetLimitEnable[i]);
-             pif_offset--;
-             if(x&0x80)
-               show_str_eq_str(outstr,"TRUE",1);
-             else
-               show_str_eq_str(outstr,"FALSE",1);
-             pif_offset++;
-             x <<= 1;
-             }
-           break;
-      case LIST_OF_GROUP_MEMBERS:	/* list of read_access_specification */
-		    //Add handle code by Xu Yiping, 2002-9-28 
-			while ((pif_get_byte(0) & 0x0f) != 0x0f)
-				show_bac_read_access_spec();
-			break;
-      case LIST_OF_OBJ_PROP_REFERENCES: /* List of object_property_references  */
-           while ((pif_get_byte(0) & 0x0f) != 0x0f)
-			    //show_bac_read_access_spec();
-				show_bac_dev_obj_prop_ref();    //modified by Xu Yiping, 2002-9-28
-           break;
-/***/
-	  case LIST_OF_SESSION_KEYS:
-		   while ((pif_get_byte(0) & 0x0f) != 0x0f) //Added by Zhu ZHenhua, 2004-6-14
-		   {
-			   show_application_data(pif_get_byte(0));
-			   show_bac_address();
-		   }
-           break;
-      case LOCAL_DATE: /* Date */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case LOCAL_TIME: /*  Time  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case LOCATION: /* Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case LOW_LIMIT:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MANIPULATED_VARIABLE_REFERENCE:
-           show_bac_obj_prop_ref();
-           break;
-      case MAXIMUM_OUTPUT: /* Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MAX_APDU_LENGTH_ACCEPTED:  /* Unsigned  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MAX_PRES_VALUE:  /* Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MINIMUM_OFF_TIME: /* Unsigned 32 */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MINIMUM_ON_TIME: /* Unsigned 32 */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MINIMUM_OUTPUT: /* Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MIN_PRES_VALUE: /*  Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MODEL_NAME:  /* Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MODIFICATION_DATE:  /*  BACnetDateTime  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(pif_get_byte(0));
-           break;
-      case NOTIFICATION_CLASS:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case NOTIFY_TYPE:
-           show_application_tag(x);
-           bac_show_byte(BACnetNotifyType[pif_get_byte(0)],"%u");
-           break;
-      case NUMBER_OF_APDU_RETRIES:  /*  Unsigned  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case NUMBER_OF_STATES: /*  Unsigned  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case OBJECT_ID: /*  BACnetObjectIdentifier  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_tag(x);
-           show_bac_object_identifier();
-           break;
-      case OBJECT_LIST:
-           if (prop_idx == 0) {
-             bac_show_unsigned("Array Size",show_application_tag(x));
-             break;
-             };
-           while ((x & 0x0f) != 0x0f) {
-	    	   show_head_app_data();   //Added by Zhu Zhenhua,2004-12-21, to show object_list correctly
-             len = show_application_tag(x);
-             if(x != 0xc4){ /* invalid tag */
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Invalid Tag!");	/*modified by Lei Chengxin 2003-9-1*/
-			   show_head_ascii("Error: Invalid Tag!");
-               };
-             show_bac_object_identifier();
-             x = pif_get_byte(0);
-             };
-           break;
-      case OBJECT_NAME:  /* Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case OBJECT_PROPERTY_REFERENCE: /*  BACnetDeviceObjectPropertyReference Modified by Zhu Zhenhua, 2004-6-14*/ 
-           show_bac_dev_obj_prop_ref();
-           break;
-      case OBJECT_TYPE: /*  BACnetObjectType  */
-           show_application_tag(x);
-           bac_show_byte(BACnetObjectType[pif_get_byte(0)],"%u");
-           break;
-      case xOPTIONAL : break;  /* No data!  */
-      case OUT_OF_SERVICE: /* Boolean  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case OUTPUT_UNITS: /* BACnetEngineeringUnits  */
-           show_application_tag(x);
-           bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
-           break;
-      case POLARITY: /* BACnetPolarity  */
-           show_application_tag(x);
-           bac_show_byte(BACnetPolarity[pif_get_byte(0)],"%u");
-           break;
-      case PRESENT_VALUE: /*  Data Type depends on Object Type! */
-           switch (obj_type) {
-               case 0:  /* Analog_Input - Real */
-               case 1:  /* Analog_Output - Real */
-               case 2:  /* Analog_Value - Real */
-               case 6:  /* Calendar - BOOLEAN */
-			   case 7:  /* Command - Unsigned */
-			   case 12: /* Loop - Real */
-			   case 13: /* Multistate_Input - Unsigned */
-               case 14: /* Multistate_Output - Unsigned */
-               case 17: /* Schedule - ANY Primitive Type */
-               case 19: /* Multistate_Value - Unsigned */
-			   case 21: /* Enumerated    Life Safety Point*/
-			   case 23: /* Accumulator -  Unsigned */
-			   case 24: /* Pulse Converter - Real */
-                        show_head_app_data();	//added by Lei Chengxin 2003-9-1
-						
-						show_application_data(x);
-                        break;
-               case 3:  /* Binary_Input - BACnetBinaryPV */
-               case 4:  /* Binary_Output - BACnetBinaryPV */
-               case 5:  /* Binary_Value - BACnetBinaryPV */
-                        show_application_tag(x);
-                        if(x != 0x00){ /* not a NULL */
-                          bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
-                          };
-                        break;
-               //Modified by Yajun, Zhou 2002-8-1
-			   case 28: /* Load Control - Enumerated */
-		           show_application_tag(x);
-				   bac_show_byte(BACnetShedState[pif_get_byte(0)],"%u");
-				   break;
-			   case 30: /* Access Door - Enumerated */
-		           show_application_tag(x);
-				   bac_show_byte(BACnetDoorValue[pif_get_byte(0)],"%u");
-				   break;
-			   case 11: /* Group - List of Read Access Result */
-			   ////////////////////////////////////////////
-                       show_bac_read_access_result();
-                       break;
-			   // case 22: /* Life Safety Zone - No Present Value */
-			   // case 25: /* Event Log - No Present Value*/
-			   // case 26: /*  */
-			   // case 27: /*  Trend Log Multiple - No Present Value*/
-			   // case 29: /* Structured View - No Present Value */
-               default: pif_show_ascii(0,
-                  "Unknown Data - Object Type does not have Present Value Property!");
-               }
-           break;
-	   case SCHEDULE_DEFAULT:  // LJT
-            show_head_app_data();	
-			show_application_data(x);
-            break;
-
-      case PRIORITY:
-           if (prop_idx == 0) {
-             bac_show_unsigned("Array Size",show_application_tag(x));
-             break;
-             };
-           while ((x & 0x0f) != 0x0f) {
-             show_application_data(x);
-             x = pif_get_byte(0);
-             };
-           break;
-      case PRIORITY_ARRAY: /* BACnetPriorityArray  */
-           if (prop_idx == 0) {
-             bac_show_unsigned("Array Size",show_application_tag(x));
-        //     x = pif_get_byte(0);
-             break;
-             };
-	//	   x = pif_get_byte(0);
-           while (((x= pif_get_byte(0)) & 0x0F) != 0x0F) 
-		   {
-			   /* handles single element or entire array */
-			   if((obj_type == 4) || (obj_type == 5))
-			   { /* BO or BV */
-				   if(x == 0x00) /* null */
-					   show_application_data(x);
-				   else{
-					   show_application_tag(x);
-					   bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
-				   }
-               }
-			   else
-			   {
-				   if(x == 0x0E)
-				   {
-					   show_context_tag("constructed Value");  /* opening tag */
-					   show_head_app_data();		
-			//		   show_bac_ANY(0,162,0);
-					   show_context_tag("constructed Value");  /* closing tag */
-				   }
-				   else
-					   show_application_data(x);
-			   }
-			   x = pif_get_byte(0);
-		   }//;
-           break;
-      case PRIORITY_FOR_WRITING: /* Unsigned  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case PROCESS_IDENTIFIER:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case PROGRAM_CHANGE: /*  BACnetProgramRequest  */
-           show_application_tag(x);
-           bac_show_byte(BACnetProgramRequest[pif_get_byte(0)],"%u");
-           break;
-      case PROGRAM_LOCATION: /* Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case PROGRAM_STATE: /*  BACnetProgramState  */
-           show_application_tag(x);
-           bac_show_byte(BACnetProgramState[pif_get_byte(0)],"%u");
-           break;
-      case PROPORTIONAL_CONSTANT: /*  Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case PROPORTIONAL_CONSTANT_UNITS: /* BACnetEngineeringUnits  */
-           show_application_tag(x);
-           bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
-           break;
-      case PROTOCOL_CONFORMANCE_CLASS: /*  Unsigned  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case PROTOCOL_OBJECT_TYPES_SUPPORTED: /* BACnetObjectTypesSupported  */
-		   //show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           len1 = show_application_tag(x);
-           unused = pif_get_byte(0);
-           bac_show_byte("Unused Bits in Last Octet","%u");
-           j=0;
-           for(i=0;i<((len1-1)*8-unused);i++) {
-             if(!(i%8)) {
-               x = pif_get_byte(0);
-               sprintf(outstr,"Bit String Octet [%u]",j++);
-               bac_show_byte(outstr,"X'%02X'");
-               }
-             sprintf(outstr,"   %s",BACnetObjectTypesSupported[i]);
-             pif_offset--;
-             if(x&0x80)
-               show_str_eq_str(outstr,"Supported",1);
-             else
-               show_str_eq_str(outstr,"---------",1);
-             pif_offset++;
-             x <<= 1;
-             }
-           break;
-      case PROTOCOL_SERVICES_SUPPORTED: /* BACnetServicesSupported  */
-//		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           len1 = show_application_tag(x);
-           unused = pif_get_byte(0);
-           bac_show_byte("Unused Bits in Last Octet","%u");
-           j=0;
-           for(i=0;i<((len1-1)*8-unused);i++) {
-             if(!(i%8)) {
-               x = pif_get_byte(0);
-               sprintf(outstr,"Bit String Octet [%u]",j++);
-               bac_show_byte(outstr,"X'%02X'");
-               }
-             sprintf(outstr,"   %s",BACnetServicesSupported[i]);
-             pif_offset--;
-             if(x&0x80)
-               show_str_eq_str(outstr,"Supported",1);
-             else
-               show_str_eq_str(outstr,"---------",1);
-             pif_offset++;
-             x <<= 1;
-             }
-           break;
-      case PROTOCOL_VERSION: /*  Character String  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case READ_ONLY: /*  Boolean  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case REASON_FOR_HALT: /*  BACnetProgramError  */
-           show_application_tag(x);
-           bac_show_byte(BACnetProgramError[pif_get_byte(0)],"%u");
-           break;
-      case RECIPIENT:
-           show_bac_recipient();
-           break;
-      case RECIPIENT_LIST: // Added handle codes by xuyiping, 2002-9-28
-		  while((pif_get_byte(0)&0x0f)!=0x0f)
-			show_bac_destination();
-           break;
-      case RELIABILITY:
-           show_application_tag(x);
-           bac_show_byte(BACnetReliability[pif_get_byte(0)],"%u");
-           break;
-      case RELINQUISH_DEFAULT:  /* Data Type depends of Object Type! */
-           switch (obj_type) {
-              case 1:  /* Analog_Out */
-              case 2:  /* Analog_Value */
-              case 14: /* Multistate_Output */
-			  case 19: /* Multistate_Value */
-			  case 30: /* Access Door */
-					   show_head_app_data();	 //added by Lei Chengxin 2003-9-1
-
-                       show_application_data(x);
-                       break;
-              case 4:  /* Binary_Output */
-              case 5:  /* Binary_Value */
-                       show_application_tag(x);
-                       bac_show_byte(BACnetBinaryPV[pif_get_byte(0)],"%u");
-                       break;
-/*              default: pif_show_ascii(0,
-                "Unknown Data - Object Type has no Standard Commandable Properties!");
-*/
-			  default:		//modified by Lei Chengxin 2003-9-1
-				  show_head_ascii("Unknown Data - Object Type has no Standard Commandable Properties!");
-              }
-           break;
-      case REQUIRED:  break;  /*  No data! */
-      case RESOLUTION:  /* Real */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case SEGMENTATION_SUPPORTED:  /* BACnetSegmentation */
-           show_application_tag(x);
-           bac_show_byte(BACnetSegmentation[pif_get_byte(0)],"%u");
-           break;
-      case SETPOINT:  /* Real */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case SETPOINT_REFERENCE:  /*  BACnetObjectPropertyReference */
-		   //Added for parsing opening tag ,by xuyiping, 2002-8-14
-		   show_context_tag("BACnetObjectPropertyReference"); /* opening tag */
-           show_bac_obj_prop_ref();
-		     //Added for parsing closing tag ,by xuyiping, 2002-8-14
-		   show_context_tag("BACnetObjectPropertyReference"); /* closing tag */
-           break;
-      case STATE_TEXT :  /* Array of Character Strings */
-           if (prop_idx == 0) {
-             bac_show_unsigned("Array Size",show_application_tag(x));
-             }
-           else
-             while ((x & 0x0f) != 0x0f) {
-                show_application_data(x);
-                x = pif_get_byte(0);
-                };
-           break;
-      case STATUS_FLAGS:  /*  Bit String */
-           len = show_application_tag(x);
-           show_bac_status_flags(len);
-           break;
-      case SYSTEM_STATUS:  /* BACnetDeviceStatus */
-           show_application_tag(x);
-           bac_show_byte(BACnetDeviceStatus[pif_get_byte(0)],"%u");
-           break;
-      case TIME_DELAY:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case TIME_OF_ACTIVE_TIME_RESET:  /* BACnetDateTime   */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-		   
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(pif_get_byte(0));
-           break;
-      case TIME_OF_STATE_COUNT_RESET:  /* BACnetDateTime   */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-		   
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(pif_get_byte(0));
-           break;
-	  case TIME_SYNCHRONIZATION_RECIPIENTS:  //Added by xuyiping 2002-8-29
-		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
-				   show_bac_recipient();
-		   break;
-      case UNITS:  /* BACnetEngineering Units */
-           show_application_tag(x);
-           bac_show_byte(BACnetEngineeringUnits[pif_get_byte(0)],"%u");
-           break;
-      case UPDATE_INTERVAL:  /*  Unsigned */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case UTC_OFFSET:  /*  Real  */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-           show_application_data(x);
-
-           break;
-      case VENDOR_IDENTIFIER:
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-           show_application_data(x);
-
-           break;
-      case VENDOR_NAME:  /* Character String   */
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case VT_CLASSES_SUPPORTED:  /*  List of BACnet VT Classes */
-           while ((pif_get_byte(0) & 0x0f) != 0x0f)
-		   {	   
-			   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-			   
-			   show_application_data(pif_get_byte(0));
-		   }
-           break;
-      case WEEKLY_SCHEDULE:  /* ARRAY of BACnetTimeValue */
-           if (prop_idx == 0) {
-             bac_show_unsigned("Array Size",show_application_tag(x));
-             };
-		   while ((pif_get_byte(0) & 0x0f) != 0x0f) {
-			 
-			 show_context_tag("BACnetDailySchedule");  //added by xuyiping. 2002-9-24
-		   while ((pif_get_byte(0) & 0x0f) != 0x0f)    //Modified by Zhu Zhenhua, 2004-6-14
-             show_bac_time_value();
-			 show_context_tag("BACnetDailySchedule");  //added by xuyiping. 2002-9-24
-             };
-		   
-           break;
-      case ATTEMPTED_SAMPLES:             // Unsigned 32     
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-  
-           show_application_data(x);
-           break;
-      case AVERAGE_VALUE:                // Real         
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case BUFFER_SIZE:                   // Unsigned 32   
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-     
-           show_application_data(x);
-           break;
-      case CLIENT_COV_INCREMENT:          // BACnetClientCOV     
-           //break;
-      case COV_RESUBSCRIPTION_INTERVAL:     // Unsigned 32
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-//      case PREVIOUS_NOTIFY_TIME:            // BACnetDateTime
-           //break;
-//      case CURRENT_NOTIFY_TIME:             // BACnetDateTime
-//		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-//           show_application_data(x);
-		   
-//		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-//           show_application_data(pif_get_byte(0));
-//           break;
-      case EVENT_TIME_STAMPS:               // Array of BACnetTimeStamp
-             if (prop_idx == 0) {
-	             bac_show_unsigned("Array Size",show_application_tag(x));
-             }
-			 else if (prop_idx > 0)
-			{
-		          show_bac_timestamp();
-			}
-			else
-			{
-	         for(i=0; i<3; i++)
-		          show_bac_timestamp();
-			}
-           break;
-      case LOG_BUFFER:                      // List of BACnetLogRecord
-          show_log_buffer();
-          break;
-      case LOG_DEVICE_OBJECT_PROPERTY:      // BACnetDeviceObjectReferenceProperty
-           show_bac_dev_obj_prop_ref();
-           break;
-      case LOG_ENABLE:                    // Boolean    
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-         
-           show_application_data(x);
-           break;
-      case LOG_INTERVAL:                  // Unsigned    
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-        
-           show_application_data(x);
-           break;
-      case MAXIMUM_VALUE:                 // Real       
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-    
-           show_application_data(x);
-           break;
-      case MINIMUM_VALUE:                // Real
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case NOTIFICATION_THRESHOLD:          // Unsigned 32
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case PROTOCOL_REVISION:            // Unsigned 32
-
-           //break;
-      case RECORDS_SINCE_NOTIFICATION:      // Unsigned 32
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case RECORD_COUNT:                  // Unsigned 32       
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-     
-           show_application_data(x);
-           break;
-      case START_TIME:                   // BACnetDateTime     
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-       
-           show_application_data(x);
-		   
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(pif_get_byte(0));
-           break;
-      case STOP_TIME:                    //BACnetDateTime   
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-          
-           show_application_data(x);
-		   
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(pif_get_byte(0));
-           break;
-      case STOP_WHEN_FULL:               // Boolean        
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
- 
-           show_application_data(x);
-           break;
-      case TOTAL_RECORD_COUNT:           // Unsigned 32    
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-  
-           show_application_data(x);
-           break;
-      case VALID_SAMPLES:               // Unsigned 32
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case WINDOW_INTERVAL:             // Unsigned 32
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case WINDOW_SAMPLES:                 // Unsigned 32
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-      case MAXIMUM_VALUE_TIMESTAMP:        // BACnetDateTime
-           show_head_app_data();		 //added by Lei Chengxin 2003-9-1 
-		  
-		   show_application_data(x);
-
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-		   
-           show_application_data(pif_get_byte(0));
-           break;
-      case MINIMUM_VALUE_TIMESTAMP:        // BACnetDateTime
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1	
-
-           show_application_data(x);
-
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-		   
-           show_application_data(pif_get_byte(0));
-           break;
-      case VARIANCE_VALUE:                 // Real
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-
-           show_application_data(x);
-           break;
-
-	  case ACTIVE_COV_SUBSCRIPTIONS:       //Xiao Shiyuanc 2002-7-23  
-		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
-             show_bac_COV_Subscription();
-		   break;
-
-	  case PROFILE_NAME:                 //Xiao Shiyuanc 2002-7-23
-		   show_head_app_data();		 //added by Lei Chengxin 2003-9-1
-		  
-		   show_application_data(x);
-		   break;
-	  case MEMBER_OF:					//Zhu Zhenhua, 2004-6-14 
-		   show_bac_dev_obj_ref();		 
-		   break;
-	  case LAST_RESTORE_TIME:			//Jingbo Gao, 2005-8-17
-		   show_bac_timestamp();
-		   break;
-      case SLAVE_PROXY_ENABLE:
-	  case AUTO_SLAVE_DISCOVERY:
-		  break;
-	  case DATABASE_REVISION:		// added by LJT 2006-08-15
-		   show_head_app_data();	
-           show_application_data(x);
- 		  break;
-	  case SCALE:
-		  show_bac_scale();
-		  break;
-	  case DOOR_STATUS:
-           show_application_tag(x);
-		   bac_show_byte(BACnetDoorStatus[pif_get_byte(0)],"%u");
+	switch (prop_id) {
+    case ACKED_TRANSITIONS:  /* bit string */
+		seq.BitString( -1, "", &BAC_STRTAB_BACnetEventTransitionBits );
 		break;
-	  case LOCK_STATUS:
-           show_application_tag(x);
-		   bac_show_byte(BACnetLockStatus[pif_get_byte(0)],"%u");
-			break;
-	  case SECURED_STATUS:
-           show_application_tag(x);
-		   bac_show_byte(BACnetDoorSecuredStatus[pif_get_byte(0)],"%u");
-		  break;
-	  case DOOR_ALARM_STATE:
-           show_application_tag(x);
-		   bac_show_byte(BACnetDoorAlarmState[pif_get_byte(0)],"%u");
-		  break;
-	  case MAINTENANCE_REQUIRED:
-           show_application_tag(x);
-		   bac_show_byte(BACnetMaintenance[pif_get_byte(0)],"%u");
-		  break;
-	  case NODE_TYPE:
-           show_application_tag(x);
-		   bac_show_byte(BACnetNodeType[pif_get_byte(0)],"%u");
-		  break;
-	  case LOGGING_TYPE:
-           show_application_tag(x);
-		   bac_show_byte(BACnetLoggingType[pif_get_byte(0)],"%u");
-		  break;
-	  case ACTUAL_SHED_LEVEL:		// BACnetShedLevel
-	  case EXPECTED_SHED_LEVEL:		// BACnetShedLevel
-	  case REQUESTED_SHED_LEVEL:	// BACnetShedLevel
-		  show_bac_shed_level();
-		  break;
-	  case DOOR_MEMBERS:			// Array of BACnetDeviceObjectReference
-	  case SUBORDINATE_LIST:		// Array of BACnetDeviceObjectReference
-             if (prop_idx == 0) {
-	             bac_show_unsigned("Array Size",show_application_tag(x));
-             }
-			 else if (prop_idx > 0)
+	case ACK_REQUIRED:  /* bit string */
+		seq.BitString( -1, "", &BAC_STRTAB_BACnetEventTransitionBits );
+		break;
+	case ACTION: 
+		switch (obj_type) {
+		case 7: // Command Object: ARRAY OF (LIST OF BACnetActionCommands)
+			if (prop_idx == 0) 
 			{
-		          show_bac_dev_obj_ref();
+				// Size of the array
+				seq.Unsigned( -1, "ArraySize" );
+			}
+			else if (prop_idx != -1)
+			{
+				// only 1 element
+				show_bac_action_list(seq);
 			}
 			else
 			{
-	         for(i=0; i<3; i++)
-		          show_bac_dev_obj_ref();
-			}
-		  break;
-      case SUBORDINATE_ANNOTATIONS:	 // Array of Character Strings
-	  case SHED_LEVEL_DESCRIPTIONS:  // Array of Character Strings
-           if (prop_idx == 0) {
-             bac_show_unsigned("Array Size",show_application_tag(x));
-             }
-			 else if (prop_idx > 0)
-			{
- 				show_application_data(x);
-			}
-           else
-             while ((x & 0x0f) != 0x0f) 
-			 {
-                show_application_data(x);
-                x = pif_get_byte(0);
-             };
-           break;
-		  break;
-	  case SHED_LEVELS:				// Array of Unsigned
-             if (prop_idx == 0) {
-	             bac_show_unsigned("Array Size",show_application_tag(x));
-             }
-			 else if (prop_idx > 0)
-			{
-		          bac_show_unsigned("Shed Level", show_application_tag(x));
-			}
-			else
-			{
-				while ((x & 0x0f) != 0x0f)
-				{
-		            bac_show_unsigned("Shed Level", show_application_tag(x));
-					x = pif_get_byte(0);
+				// Entire array
+				seq.ListOf( -1, "" );
+				while (seq.HasListElement()) {
+					show_bac_action_list(seq);
 				}
 			}
-		  break;
-	  default:
-//	       bac_show_byte("Error: Unknown Property Identifier","%u");
-		   show_head_app_data();		 //modified by Lei Chengxin 2003-9-8
-		   show_application_data(x);
-		   if ((pif_get_byte(0) & 0x0F) != 0x0F)
-		   {
-			   bac_show_byte("Error: Closing Tag Expected!","'%02X'");
-			   pif_end_offset = pif_offset;
-		   }
-	   }
-}
-
-/**************************************************************************/
-int bac_extract_obj_type( void )
-/**************************************************************************/
- /* This function extracts the object type information from an object
-    identifer and returns the integer value of the enumeration. */
-{ 
-#if 0
-  union 
-  {
-    struct 
-    {
-      unsigned char lo;
-      unsigned char hi;
-      } byte;
-      int word;
-  } object_type;
-
-  object_type.byte.hi = (pif_get_byte(0) & 0x40)>>6;
-  object_type.byte.lo = pif_get_byte(1)>>6 | pif_get_byte(0)<<2;
-
-  return (object_type.word);
-#else
-   long  obj_id;
-   
-   for (int i = 0; i < 4; i++)
-      obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i );
-   
-   return (obj_id >> 22) & 0x000003FF;
-#endif
+			break;
+        case 12: // loop object: enumeration BACnetAction
+			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetAction );
+	        break;
+		}
+		break;
+	case ACTION_TEXT:  /* ARRAY OF Character Strings */
+		if (prop_idx == 0) 
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			seq.TextString( -1, "" );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				seq.TextString( -1, "" );
+			}
+		}
+        break;
+	case ACTIVE_TEXT:  /* Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case ACTIVE_VT_SESSIONS:
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement()) {
+			show_bac_VT_session(seq);
+		}
+        break;
+	case ALARM_VALUE:
+		// BinaryPV for BI, BV
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetBinaryPV );
+		break;
+	case ALARM_VALUES:			// 7
+	case FAULT_VALUES:
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement()) {
+			switch (obj_type) {
+			case 21: // LIFE_SAFETY_POINT
+			case 22: // LIFE_SAFETY_ZONE
+				// List of BACnetLifeSafetyState
+				seq.Enumerated( -1, "", &BAC_STRTAB_BACnetLifeSafetyState );
+				break;
+			case 30: // ACCESS_DOOR
+				// List of BACnetDoorAlarmState
+				seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDoorAlarmState );
+				break;
+			default: // Multistate input and value
+				// List Unsigned for MI, MV
+				seq.Unsigned( -1, "" );
+				break;
+			}
+		}
+		break;
+	case ALL:
+		seq.Fail( "Illegal data claims to be ALL" );
+		break;
+	case ALL_WRITES_SUCCESSFUL:		/* Boolean  */
+		seq.Boolean( -1, "" );
+		break;
+	case APDU_SEGMENT_TIMEOUT:		/* 10 Unsigned */
+		seq.Unsigned( -1, "" );
+		break;
+	case APDU_TIMEOUT:				/* Unsigned */
+		seq.Unsigned( -1, "" );
+		break;
+	case APPLICATION_SOFTWARE_VERSION:  /* Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case ARCHIVE:  /* Boolean */
+		seq.Boolean( -1, "" );
+		break;
+	case BIAS:   /*  Real  */
+		seq.Real( -1, "" );
+		break;
+	case CHANGE_OF_STATE_COUNT:		/* 15 Unsigned  */
+		seq.Unsigned( -1, "" );
+		break;
+	case CHANGE_OF_STATE_TIME:		/* 16 BACnet DateTime  */
+		seq.Date( -1, "" );
+		seq.Time( -1, "" );
+		break;
+	case CONTROLLED_VARIABLE_REFERENCE: /* 19 BACnetObjectPropertyReference  */
+		show_bac_object_property_reference(seq);
+        break;
+	case CONTROLLED_VARIABLE_UNITS: /* 20 BACnetEngineeringUnits  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEngineeringUnits );
+		break;
+	case CONTROLLED_VARIABLE_VALUE:  /*  Real  */
+		seq.Real( -1, "" );
+		break;
+	case COV_INCREMENT:			// 22
+		seq.Real( -1, "" );
+		break;
+	case DATELIST:  /* List of BACnetCalendarEntry  */
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement()) {
+			show_calendar_entry( seq );
+		}
+		break;
+	case DAYLIGHT_SAVINGS_STATUS:  /* Boolean  */
+		seq.Boolean( -1, "" );
+		break;
+	case DEADBAND:					// 25
+		seq.Real( -1, "" );
+		break;
+	case DERIVATIVE_CONSTANT: /* Real  */
+		seq.Real( -1, "" );
+		break;
+	case DERIVATIVE_CONSTANT_UNITS: /* Enumeration  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEngineeringUnits );
+		break;
+	case DESCRIPTION:		/* 28 Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case DESCRIPTION_OF_HALT: /* Character String */
+		seq.TextString( -1, "" );
+		break;
+	case SLAVE_ADDRESS_BINDING:
+	case MANUAL_SLAVE_ADDRESS_BINDING:
+	case DEVICE_ADDRESS_BINDING:  /* sequence of BACnetAddressBinding */
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement()) {
+		   show_bacnet_address( seq, -1, "" );
+		}
+	   break;
+	case DEVICE_TYPE: /*  Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case EFFECTIVE_PERIOD: /*  BACnetDateRange  */
+		seq.Date( -1, "startDate" );
+		seq.Date( -1, "endDate" );
+		break;
+	case ELAPSED_ACTIVE_TIME: /* Unsigned  */
+		seq.Unsigned( -1, "" );
+		break;
+	case ERROR_LIMIT:
+		seq.Real( -1, "" );
+		break;
+	case EVENT_ENABLE: /* Bitstring  */
+		seq.BitString( -1, "", &BAC_STRTAB_BACnetEventTransitionBits );
+		break;
+	case EVENT_PARAMETERS: /* List of BACnetEventParameters  */
+		show_bac_event_parameters(seq);
+		break;
+	case EVENT_STATE:  /*  BACnetEventState */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEventState );
+		break;
+	case EVENT_TYPE: /* BACnetEventType  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEventType );
+		break;
+	case EXCEPTION_SCHEDULE: /*  ARRAY of BACnet SpecialEvents  */
+		if (prop_idx == 0) 
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			show_bac_special_event(seq);
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				show_bac_special_event(seq);
+			}
+		}
+		break;
+//	case FAULT_VALUES:  see "ALARM_VALUES" case above
+	case FEEDBACK_VALUE:
+		// BinaryPV for binary output, Unsigned for multistate output
+		if (obj_type == 4)
+		{
+			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetBinaryPV );
+		}
+		else
+		{
+			seq.Unsigned( -1, "" );
+		}
+		break;
+	case FILE_ACCESS_METHOD:  /* Enumerated  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetFileAccessMethod );
+		break;
+	case FILE_SIZE: /*  Unsigned  */
+		seq.Unsigned( -1, "" );
+		break;
+	case FILE_TYPE: /*  Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case FIRMWARE_REVISION: /* Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case HIGH_LIMIT:
+		switch (obj_type) {
+		case 23: // ACCUMULATOR
+			seq.Unsigned( -1, "" );
+			break;
+		default: // Analog, pulse converter
+			seq.Real( -1, "" );
+			break;
+		}
+		break;
+	case INACTIVE_TEXT: /*  Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case IN_PROCESS: /* Boolean  */
+		seq.Boolean( -1, "" );
+		break;
+	case INSTANCE_OF: /* Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case INTEGRAL_CONSTANT: /* Real  */
+		seq.Real( -1, "" );
+		break;
+	case INTEGRAL_CONSTANT_UNITS: /* Enumerated  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEngineeringUnits );
+		break;
+	case LIMIT_ENABLE:
+		seq.BitString( -1, "", &BAC_STRTAB_BACnetLimitEnable );
+		break;
+	case LIST_OF_GROUP_MEMBERS:	/* list of ReadAccessSpecification */
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement())
+		{
+			show_read_access_spec(seq);
+		}
+		break;
+	case LIST_OF_OBJ_PROP_REFERENCES: /* List of object_property_references  */
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement())
+		{
+			show_bac_dev_obj_prop_ref(seq);
+		}
+		break;
+	case LIST_OF_SESSION_KEYS:
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement())
+		{
+			seq.OctetString( -1, "sessionKey" );
+			show_bacnet_address( seq, -1, "peerAddress" );
+		}
+		break;
+	case LOCAL_DATE: /* Date */
+		seq.Date( -1, "" );
+		break;
+	case LOCAL_TIME: /*  Time  */
+		seq.Time( -1, "" );
+		break;
+	case LOCATION: /* Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case LOW_LIMIT:
+		switch (obj_type) {
+		case 23: // ACCUMULATOR
+			seq.Unsigned( -1, "" );
+			break;
+		default: // Analog, pulse converter
+			seq.Real( -1, "" );
+			break;
+		}
+		break;
+	case MANIPULATED_VARIABLE_REFERENCE:
+		show_bac_object_property_reference(seq);
+		break;
+	case MAXIMUM_OUTPUT: /* Real  */
+		seq.Real( -1, "" );
+		break;
+	case MAX_APDU_LENGTH_ACCEPTED:  /* Unsigned  */
+		seq.Unsigned( -1, "" );
+		break;
+	case MAX_PRES_VALUE:  /* Real  */
+		seq.Real( -1, "" );
+		break;
+	case MINIMUM_OFF_TIME: /* Unsigned 32 */
+		seq.Unsigned( -1, "" );
+		break;
+	case MINIMUM_ON_TIME: /* Unsigned 32 */
+		seq.Unsigned( -1, "" );
+		break;
+	case MINIMUM_OUTPUT: /* Real  */
+		seq.Real( -1, "" );
+		break;
+	case MIN_PRES_VALUE: /*  Real  */
+		seq.Real( -1, "" );
+		break;
+	case MODEL_NAME:  /* Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case MODIFICATION_DATE:  /*  BACnetDateTime  */
+		seq.Date( -1, "" );
+		seq.Time( -1, "" );
+		break;
+	case NOTIFICATION_CLASS:
+		seq.Unsigned( -1, "" );
+		break;
+	case NOTIFY_TYPE:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetNotifyType );
+		break;
+	case NUMBER_OF_APDU_RETRIES:  /*  Unsigned  */
+		seq.Unsigned( -1, "" );
+		break;
+	case NUMBER_OF_STATES: /*  Unsigned  */
+		seq.Unsigned( -1, "" );
+		break;
+	case OBJECT_ID: /*  BACnetObjectIdentifier  */
+		seq.ObjectIdentifier( -1, "" );
+		break;
+	case OBJECT_LIST:
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			seq.ObjectIdentifier( -1, "" );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				seq.ObjectIdentifier( -1, "" );
+			}
+		}
+        break;
+	case OBJECT_NAME:  /* Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case OBJECT_PROPERTY_REFERENCE: /*  BACnetDeviceObjectPropertyReference */ 
+		show_bac_object_property_reference(seq);
+		break;
+	case OBJECT_TYPE: /*  BACnetObjectType  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetObjectType );
+		break;
+	case xOPTIONAL: 
+		seq.Fail( "Illegal data claims to be OPTIONAL" );
+		break;
+	case OUT_OF_SERVICE: /* Boolean  */
+		seq.Boolean( -1, "" );
+		break;
+	case OUTPUT_UNITS: /* BACnetEngineeringUnits  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEngineeringUnits );
+		break;
+	case POLARITY: /* BACnetPolarity  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetPolarity );
+		break;
+	case PRESENT_VALUE: /*  Data Type depends on Object Type! */
+		switch (obj_type) {
+        case 0:  /* Analog_Input - Real */
+        case 1:  /* Analog_Output - Real */
+        case 2:  /* Analog_Value - Real */
+		case 12: /* Loop - Real */
+		case 24: /* Pulse Converter - Real */
+			seq.Real( -1, "" );
+			break;
+        case 6:  /* Calendar - BOOLEAN */
+			seq.Boolean( -1, "" );
+			break;
+		case 7:  /* Command - Unsigned */
+		case 13: /* Multistate_Input - Unsigned */
+        case 14: /* Multistate_Output - Unsigned */
+        case 19: /* Multistate_Value - Unsigned */
+		case 23: /* Accumulator -  Unsigned */
+			seq.Unsigned( -1, "" );
+			break;
+        case 17: /* Schedule - ANY Primitive Type */
+			seq.AnyTaggedItem(false);
+			break;
+		case 21: // LIFE_SAFETY_POINT
+		case 22: // LIFE_SAFETY_ZONE
+			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetLifeSafetyState );
+            break;
+		case 3:  /* Binary_Input - BACnetBinaryPV */
+        case 4:  /* Binary_Output - BACnetBinaryPV */
+        case 5:  /* Binary_Value - BACnetBinaryPV */
+			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetBinaryPV );
+            break;
+		case 28: /* Load Control - Enumerated */
+			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetShedState );
+			break;
+		case 30: /* Access Door - Enumerated */
+			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDoorValue );
+			break;
+		case 11: /* Group - List of Read Access Result */
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement())
+			{
+				show_read_access_result( seq );
+			}
+			break;
+		// case 22: /* Life Safety Zone - No Present Value */
+		// case 25: /* Event Log - No Present Value*/
+		// case 26: /*  */
+		// case 27: /* Trend Log Multiple - No Present Value*/
+		// case 29: /* Structured View - No Present Value */
+        default: 
+			// We don't know what this is.
+			// MAY be illegal, but it might also be
+			// - a new object type we don't know
+			// - some case where we haven't been given the object type,
+			//   such as the parameters for ReadConditional
+			seq.AnyTaggedItem(true);
+			break;
+		}
+		break;
+	case PRIORITY:
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			seq.Unsigned( -1, "" );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				seq.Unsigned( -1, "" );
+			}
+		}
+        break;
+	case PRIORITY_ARRAY: /* BACnetPriorityArray  */
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			show_bac_priority_array( seq );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				show_bac_priority_array( seq );
+			}
+		}
+        break;
+	case PRIORITY_FOR_WRITING: /* Unsigned  */
+		seq.Unsigned( -1, "" );
+		break;
+	case PROCESS_IDENTIFIER:
+		seq.Unsigned( -1, "" );
+		break;
+	case PROGRAM_CHANGE: /*  BACnetProgramRequest  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetProgramRequest );
+		break;
+	case PROGRAM_LOCATION: /* Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case PROGRAM_STATE: /*  BACnetProgramState  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetProgramState );
+		break;
+	case PROPORTIONAL_CONSTANT: /*  Real  */
+		seq.Real( -1, "" );
+		break;
+	case PROPORTIONAL_CONSTANT_UNITS: /* BACnetEngineeringUnits  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEngineeringUnits );
+		break;
+	case PROTOCOL_CONFORMANCE_CLASS: /*  Unsigned  */
+		seq.Unsigned( -1, "" );
+		break;
+	case PROTOCOL_OBJECT_TYPES_SUPPORTED: /* BACnetObjectTypesSupported  */
+		seq.BitString( -1, "", &BAC_STRTAB_BACnetObjectTypesSupported );
+		break;
+	case PROTOCOL_SERVICES_SUPPORTED: /* BACnetServicesSupported  */
+		seq.BitString( -1, "", &BAC_STRTAB_BACnetServicesSupported );
+		break;
+	case PROTOCOL_VERSION: /*  Character String  */
+		seq.TextString( -1, "" );
+		break;
+	case READ_ONLY: /*  Boolean  */
+		seq.Boolean( -1, "" );
+		break;
+	case REASON_FOR_HALT: /*  BACnetProgramError  */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetProgramError );
+		break;
+	case RECIPIENT_LIST:	// SEQEUNCE OF BACnetDestination
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement())
+		{
+			show_bac_destination( seq );
+		}
+		break;
+	case RELIABILITY:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetReliability );
+		break;
+	case RELINQUISH_DEFAULT:  /* Data Type depends of Object Type! */
+        switch (obj_type) {
+        case 1:  /* Analog_Out */
+        case 2:  /* Analog_Value */
+        case 14: /* Multistate_Output */
+		case 19: /* Multistate_Value */
+		case 30: /* Access Door */
+			seq.Real( -1, "" );
+			break;
+		case 4:  /* Binary_Output */
+        case 5:  /* Binary_Value */
+			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetBinaryPV );
+			break;
+		default:
+			// We don't know what this is.
+			// MAY be illegal, but it might also be
+			// - a new object type we don't know
+			// - some case where we haven't been given the object type,
+			//   such as the parameters for ReadConditional
+			seq.AnyTaggedItem(true);
+			break;
+		}
+		break;
+	case REQUIRED:  
+		seq.Fail( "Illegal data claims to be REQUIRED" );
+		break;
+	case RESOLUTION:  /* Real */
+		seq.Real( -1, "" );
+		break;
+	case SCHEDULE_DEFAULT:
+		seq.AnyTaggedItem( false );
+		break;
+	case SEGMENTATION_SUPPORTED:  /* BACnetSegmentation */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetSegmentation );
+		break;
+	case SETPOINT:  /* Real */
+		seq.Real( -1, "" );
+		break;
+	case SETPOINT_REFERENCE:  /* [0] BACnetObjectPropertyReference */
+		if (seq.OpeningTag( 0, "setpointReference", BSQ_OPTIONAL ))
+		{
+			show_bac_object_property_reference( seq );
+			seq.ClosingTag();
+		}
+		break;
+	case STATE_TEXT :  /* Array of Character Strings */
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			seq.TextString( -1, "" );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				seq.TextString( -1, "" );
+			}
+		}
+		break;
+	case STATUS_FLAGS:  /*  Bit String */
+		seq.BitString( -1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+		break;
+	case SYSTEM_STATUS:  /* BACnetDeviceStatus */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDeviceStatus );
+		break;
+	case TIME_DELAY:
+		seq.Unsigned( -1, "" );
+		break;
+	case TIME_OF_ACTIVE_TIME_RESET:  /* BACnetDateTime   */
+	case TIME_OF_STATE_COUNT_RESET:  /* BACnetDateTime   */
+		seq.Date( -1, "" );
+		seq.Time( -1, "" );
+		break;
+	case TIME_SYNCHRONIZATION_RECIPIENTS:  // SEQUENCE OF BACnetRecipient
+	case UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
+	case RESTART_NOTIFICATION_RECIPIENTS:
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement())
+		{
+			show_bac_recipient( seq );
+		}
+		break;
+	case UNITS:  /* BACnetEngineering Units */
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEngineeringUnits );
+		break;
+	case UPDATE_INTERVAL:  /*  Unsigned */
+		seq.Unsigned( -1, "" );
+		break;
+	case UTC_OFFSET:  /*  Real  */
+		seq.Real( -1, "" );
+		break;
+	case VENDOR_IDENTIFIER:
+		seq.Unsigned( -1, "" );
+		break;
+	case VENDOR_NAME:  /* Character String   */
+		seq.TextString( -1, "" );
+		break;
+	case VT_CLASSES_SUPPORTED:  /*  List of BACnet VT Classes */
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement())
+		{
+			seq.Enumerated( -1, "vtCalss", &BAC_STRTAB_BACnetVTClass );
+		}
+        break;
+	case WEEKLY_SCHEDULE:  /* ARRAY of BACnetTimeValue */
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			show_bac_time_value( seq );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				show_bac_time_value( seq );
+			}
+		}
+		break;
+	case ATTEMPTED_SAMPLES:             // Unsigned 32     
+		seq.Unsigned( -1, "" );
+		break;
+	case AVERAGE_VALUE:					// Real         
+		seq.Real( -1, "" );
+		break;
+	case BUFFER_SIZE:                   // Unsigned 32   
+		seq.Unsigned( -1, "" );
+		break;
+	case CLIENT_COV_INCREMENT:          // BACnetClientCOV  
+		seq.BeginChoice();
+		seq.Real( -1, "real-increment", BSQ_CHOICE );
+		seq.Null( -1, "default-increment", BSQ_CHOICE );
+		seq.EndChoice();
+		break;
+	case COV_RESUBSCRIPTION_INTERVAL:	// Unsigned 32
+		seq.Unsigned( -1, "" );
+		break;
+	case EVENT_TIME_STAMPS:               // Array of BACnetTimeStamp
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			show_time_stamp( seq, -1, "" );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				show_time_stamp( seq, -1, "" );
+			}
+		}
+		break;
+	case LOG_BUFFER:                      // List of BACnetLogRecord
+		show_log_buffer( seq );
+		break;
+	case LOG_DEVICE_OBJECT_PROPERTY:
+		if (obj_type == 20)
+		{
+			// Trend object: BACnetDeviceObjectPropertyReference
+			show_bac_dev_obj_prop_ref( seq );
+		}
+		else
+		{
+			// Trend-Multiple object: ARRAY of BACnetDeviceObjectPropertyReference
+			if (prop_idx == 0)
+			{
+				// Size of the array
+				seq.Unsigned( -1, "ArraySize" );
+			}
+			else if (prop_idx != -1)
+			{
+				// only 1 element
+				show_bac_dev_obj_prop_ref( seq );
+			}
+			else
+			{
+				// Entire array
+				seq.ListOf( -1, "" );
+				while (seq.HasListElement()) {
+					show_bac_dev_obj_prop_ref( seq );
+				}
+			}
+		}
+		break;
+	case LOG_ENABLE:                    // Boolean    
+		seq.Boolean( -1, "" );
+		break;
+	case LOG_INTERVAL:                  // Unsigned    
+		seq.Unsigned( -1, "" );
+		break;
+	case MAXIMUM_VALUE:                 // Real       
+		seq.Real( -1, "" );
+		break;
+	case MINIMUM_VALUE:					// Real
+		seq.Real( -1, "" );
+		break;
+	case NOTIFICATION_THRESHOLD:        // Unsigned 32
+		seq.Unsigned( -1, "" );
+		break;
+	case PROTOCOL_REVISION:				// Unsigned 32
+		seq.Unsigned( -1, "" );
+		break;
+	case RECORDS_SINCE_NOTIFICATION:	// Unsigned 32
+		seq.Unsigned( -1, "" );
+		break;
+	case RECORD_COUNT:					// Unsigned 32       
+		seq.Unsigned( -1, "" );
+		break;
+	case START_TIME:					// BACnetDateTime     
+		seq.Date( -1, "" );
+		seq.Time( -1, "" );
+		break;
+	case STOP_TIME:						// BACnetDateTime   
+		seq.Date( -1, "" );
+		seq.Time( -1, "" );
+		break;
+	case STOP_WHEN_FULL:               // Boolean        
+		seq.Boolean( -1, "" );
+		break;
+	case TOTAL_RECORD_COUNT:           // Unsigned 32    
+		seq.Unsigned( -1, "" );
+		break;
+	case VALID_SAMPLES:               // Unsigned 32
+		seq.Unsigned( -1, "" );
+		break;
+	case WINDOW_INTERVAL:             // Unsigned 32
+		seq.Unsigned( -1, "" );
+		break;
+	case WINDOW_SAMPLES:                 // Unsigned 32
+		seq.Unsigned( -1, "" );
+		break;
+	case MAXIMUM_VALUE_TIMESTAMP:        // BACnetDateTime
+	case MINIMUM_VALUE_TIMESTAMP:        // BACnetDateTime
+		seq.Date( -1, "" );
+		seq.Time( -1, "" );
+		break;
+	case VARIANCE_VALUE:                 // Real
+		seq.Real( -1, "" );
+		break;
+	case ACTIVE_COV_SUBSCRIPTIONS:
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement()) {
+			show_bac_COV_Subscription( seq );
+		}
+	   break;
+	case PROFILE_NAME:                 // 168
+		seq.TextString( -1, "" );
+		break;
+	case MEMBER_OF:
+		show_bac_dev_obj_prop_ref(seq);		 
+		break;
+	case LAST_RESTORE_TIME:
+		show_time_stamp( seq, -1, "" );
+		break;
+	case SLAVE_PROXY_ENABLE:
+	case AUTO_SLAVE_DISCOVERY: // ARRAY OF BOOLEAN
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			seq.Boolean( -1, "" );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				seq.Boolean( -1, "" );
+			}
+		}
+		break;
+	case DATABASE_REVISION:
+		seq.Unsigned( -1, "" );
+ 		break;
+	case SCALE:					// BACnetScale
+		show_bac_scale( seq );
+		break;
+	case DOOR_STATUS:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDoorStatus );
+		break;
+	case LOCK_STATUS:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetLockStatus );
+		break;
+	case SECURED_STATUS:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDoorSecuredStatus );
+		break;
+	case DOOR_ALARM_STATE:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDoorAlarmState );
+		break;
+	case MAINTENANCE_REQUIRED:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetMaintenance );
+		break;
+	case NODE_TYPE:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetNodeType );
+		break;
+	case LOGGING_TYPE:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetLoggingType );
+		break;
+	case ACTUAL_SHED_LEVEL:			// BACnetShedLevel
+	case EXPECTED_SHED_LEVEL:		// BACnetShedLevel
+	case REQUESTED_SHED_LEVEL:		// BACnetShedLevel
+		show_bac_shed_level( seq );
+		break;
+	case DOOR_MEMBERS:			// Array of BACnetDeviceObjectReference
+	case SUBORDINATE_LIST:		// Array of BACnetDeviceObjectReference
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			show_bac_dev_obj_ref( seq );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				show_bac_dev_obj_ref( seq );
+			}
+		}
+		break;
+	case SUBORDINATE_ANNOTATIONS:	 // Array of Character Strings
+	case SHED_LEVEL_DESCRIPTIONS:  // Array of Character Strings
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			seq.TextString( -1, "" );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				seq.TextString( -1, "" );
+			}
+		}
+		break;
+	case SHED_LEVELS:				// Array of Unsigned
+		if (prop_idx == 0)
+		{
+			// Size of the array
+			seq.Unsigned( -1, "ArraySize" );
+		}
+		else if (prop_idx != -1)
+		{
+			// only 1 element
+			seq.Unsigned( -1, "" );
+		}
+		else
+		{
+			// Entire array
+			seq.ListOf( -1, "" );
+			while (seq.HasListElement()) {
+				seq.Unsigned( -1, "" );
+			}
+		}
+		break;
+	default:
+		// Show as a sequence of anything, terminated by closing tag
+		seq.ListOf( -1, "" );
+		while (seq.HasListElement()) {
+			seq.AnyTaggedItem();
+		}
+		break;
+	}
 }

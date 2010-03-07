@@ -9,12 +9,6 @@
 /*                   H. Michael Newman, Cornell                         */
 /*                   Joel Bender, Cornell                               */
 /* -------------------------------------------------------------------- */
-/* Application layer summary line added to show APDU and service type.  */
-/* Corrected show_bac_unsigned to allow for 3-byte integers.            */
-/* Added display of Device IDs to summary line for Who-Is and I-Am.     */
-/* Added display of Invoke ID and, conditionally, SEG, MOR, SA, NAK,    */
-/* SRV, and SEQ to the various PDU summary lines.                       */
-/* -------------------------------------------------------------------- */
 
 /*------------------------------------------------------------------------------
 module:		BACSN015.cpp
@@ -22,19 +16,34 @@ last edit:	03-Sep-03 [002] LCX add new lines in the Detail View to display less 
 								information,but more actual data within each context or 
 								application tagged section.
 			16-Jul-03 [001] LCX add more AL information to the summary line.
+			 5-Mar-10 JLH: rework and cleanup
+
+TODO:
+- Use a fixed width font in the detail tree to line up the indentations?
+- Use color in the detail tree to highlight errors?
+- In CListSummaryView::OnCustomdrawList, VTSPacketPtr::bErrorDecode true changes to error color
+  AND: does (gag) string searches for "readproperty" etc. to set other colors.
+  At least the search is case insensitive (the hard way)
+  There seems to be no other use of SUMMARY_PACKET_COLOR[]
+  SILLY COLOR USE: would seem to make more sense to distinguish between
+  - lines output by the script
+  - failures detected by the scripts
+  - PDU types - Conf, Unconf, SimpleAck etc.
+  - PDUs with encoding errors
+  Would also let the colors be shared by the detail tree if desired.
 -----------------------------------------------------------------------------*/ 
 
 #include "stdafx.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "pi.h"
 
+#include "StringTables.h"
+
 //madanner 9/04, added hack to build RP and RPM obj/prop/values for EPICS panel
 extern void EPICS_AddRPValue(long obj_id, int prop_id, char * pbuffer, int nLen );
-
 
 namespace NetworkSniffer {
 
@@ -42,7 +51,10 @@ namespace NetworkSniffer {
 
 #define max_confirmed_services 30   //Modified by Zhu Zhenhua, 2004-5-25
 #define max_unconfirmed_services 10
+
+// TODO: this is WRONG, and defined elsewhere anyway
 #define max_property_id 123
+
 #define FW "-27"
 #define ARC 0
 
@@ -62,10 +74,14 @@ extern struct pi_data *pi_data_Message;         /* Pointer to PI data structure 
 
 struct pi_data *pi_data_current;     /* Current ptr for BAC_SHOW functions */
 
-#include "bacfuncs.h"
-
+// TODO: as of 27 Feb 2010, this isn't used anywhere.
+// Perhaps a predecessor of EPICS_AddRPValue?
+//
 // madanner 9/04, added global flag for RPAck hack
 bool gfRPAck = false;
+
+#include "bacfuncs.h"
+
 
 /**************************************************************************/
 int interp_bacnet_IP( char *header, int length)  /* IP interpreter */
@@ -315,8 +331,10 @@ int interp_bacnet_MSTP( char *header, int length)  /* MS/TP interpreter */
          else
             bac_show_word_hl("Error: Data CRC Failure","%04X");
          }; /* end of if(data_length>0) */
-      if(pif_offset < pif_end_offset) bac_show_byte("Padding Octet","%02X");
-      };   /* End of Detail Lines */
+      
+      if(pif_offset < pif_end_offset) 
+         bac_show_byte("Padding Octet","%02X");
+   };   /* End of Detail Lines */
    return length;
 }
 
@@ -896,7 +914,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 			 return length;
 		 }
 		 else
-         if(nlMsgID > (sizeof(NL_msgs)/sizeof(char*)) && nlMsgID < 0x80)
+         if ((nlMsgID > (int)BAC_STRTAB_NL_msgs.m_nStrings) && (nlMsgID < 0x80))
          {
 			 strcpy( get_sum_line(pi_data_bacnet_NL), "ASHRAE Reserves The Network Layer Message Type" );
 			 return length;
@@ -1182,6 +1200,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
    unsigned char x,ID,SEG,MOR,SA,SEQ,NAK,SRV;
    unsigned char pdu_type;
    unsigned char service_choice;
+   unsigned int len, tagbuff;
 
    char moreDetail[500];
 
@@ -1191,15 +1210,19 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
       pdu_type = pif_get_byte(0)>>4; /*Get APDU type */
       x = (pif_get_byte(0)&0x08)>>3; /* x = 1 implies header is 2 bytes longer */
    /* Set up to do cool stuff in summary based on PDU type and service choice */
-      switch (pdu_type) {																		   //  ***001 begin
+	  // TODO: could I buy somebody a function-per-case here?  Please?
+ 	  // TODO: do the 3+x*2 schtick ONCE and let everyone start at the tagged PDU.
+	  // Update each service to use "tagged", then ditch "x"
+	  unsigned int tagged; // offset to first tagged byte
+      switch (pdu_type) {																	   //  ***001 begin
         case 0: /* Confirmed service request */
                 service_choice = pif_get_byte(3+x*2);
+				tagged         = 4 + 2*x;
                 ID = pif_get_byte(2);
-                SEG = x;                                  
+                SEG = x;
 				switch (service_choice){
 				case 0:	 /* Acknowledge Alarm Request */
 					{
-						int len,tagbuff;
 						tagbuff = pif_get_byte( 3+x*2 +1 );
 						len = tagbuff & 0x07;
 						unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
@@ -1213,18 +1236,11 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						obj_type = (obj_id >> 22) & 0x000003FF;
 						obj_instance = (obj_id & 0x003FFFFF);
-										
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%lu, %u_%lu", nValue, obj_type, obj_instance);
-						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%lu, %s_%lu", nValue, BACnetObjectType[obj_type], obj_instance);
-						}
+						sprintf(moreDetail, "%lu, %s_%lu", nValue, ObjectTypeString(obj_type), obj_instance);
 					}
 					break;
 				case 1: /* Confirmed COV Notification Request */
 					{
-						int len,tagbuff;
 						tagbuff = pif_get_byte( 3+x*2 +1 );
 						len = tagbuff & 0x07;
 						unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
@@ -1244,14 +1260,13 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						obj_type = (obj_id >> 22) & 0x000003FF;
 						obj_instance = (obj_id & 0x003FFFFF);
-						
-						sprintf(moreDetail,"%lu, %s_%lu, %s_%lu", nValue, BACnetObjectType[device_type], device_instance, 
-							BACnetObjectType[obj_type], obj_instance);
+						sprintf(moreDetail,"%lu, %s_%lu, %s_%lu", nValue, 
+								ObjectTypeString(device_type), device_instance, 
+								ObjectTypeString(obj_type), obj_instance);
 					}
 					break;
 				case 2: /* Confirmed Event Notification Request */
 					{
-						int len,tagbuff;
 						tagbuff = pif_get_byte( 3+x*2 +1 );
 						len = tagbuff & 0x07;
 						unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
@@ -1272,13 +1287,13 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						obj_type = (obj_id >> 22) & 0x000003FF;
 						obj_instance = (obj_id & 0x003FFFFF);
 						
-						sprintf(moreDetail,"%lu, %s_%lu, %s_%lu", nValue, BACnetObjectType[device_type], device_instance, 
-							BACnetObjectType[obj_type], obj_instance);
+						sprintf(moreDetail,"%lu, %s_%lu, %s_%lu", nValue, 
+								ObjectTypeString(device_type), device_instance, 
+							    ObjectTypeString(obj_type), obj_instance);
 					}
 					break;
 				case 5: /* Subscribe COV Request */
 					{
-						int len,tagbuff;
 						tagbuff = pif_get_byte( 3+x*2 +1 );
 						len = tagbuff & 0x07;
 						unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
@@ -1305,12 +1320,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 							sprintf(strBool, "Error");
 						}
 
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%lu, %u_%lu, %s", nValue, obj_type, obj_instance, strBool);
-						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%lu, %s_%lu, %s", nValue, BACnetObjectType[obj_type], obj_instance, strBool);
-						}
+						sprintf(moreDetail, "%lu, %s_%lu, %s", nValue, 
+								ObjectTypeString(obj_type), obj_instance, strBool);
 					}
 					break;
 				case 6: /* Atomic Readfile Request */
@@ -1324,13 +1335,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						obj_type = (obj_id >> 22) & 0x000003FF;
 						obj_instance = (obj_id & 0x003FFFFF);
-						
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%u_%lu", obj_type, obj_instance);
-						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%s_%lu", BACnetObjectType[obj_type], obj_instance);
-						}
+						sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
 					}
 					break;
 				case 7: /* Atomic Writeflle Request */
@@ -1344,13 +1349,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						obj_type = (obj_id >> 22) & 0x000003FF;
 						obj_instance = (obj_id & 0x003FFFFF);
-						
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%u_%lu", obj_type, obj_instance);
-						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%s_%lu", BACnetObjectType[obj_type], obj_instance);
-						}
+						sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
 					}
 					break;
 				case 8: /* Add List Element Request */
@@ -1367,23 +1366,14 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						int pID = pif_get_byte(10+x*2);
 						
-						if(pif_get_byte(9+x*2)&0x07 != 1)
+						// TODO: wtf?
+						if((pif_get_byte(9+x*2)&0x07) != 1)
 						{
-							if(obj_type > 63){ /* proprietary object type */
-								sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
-							}
-							else{ /* standard object type */
-								sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
-							}
+							sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
 						}
 						else
 						{
-							if(obj_type > 63){ /* proprietary object type */
-								sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
-							}
-							else{ /* standard object type */
-								sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
-							}
+							sprintf(moreDetail, "%s_%lu, Vendor", ObjectTypeString(obj_type), obj_instance);
 						}
 					}
 					break;
@@ -1401,29 +1391,19 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						
 						int pID = pif_get_byte(10+x*2);
 						
-						if(pif_get_byte(9+x*2)&0x07 != 1)
+						if((pif_get_byte(9+x*2)&0x07) != 1)
 						{
-							if(obj_type > 63){ /* proprietary object type */
-								sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
-							}
-							else{ /* standard object type */
-								sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
-							}
+							sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
 						}
 						else
 						{
-							if(obj_type > 63){ /* proprietary object type */
-								sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
-							}
-							else{ /* standard object type */
-								sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
-							}
+							sprintf(moreDetail, "%s_%lu, Vendor", ObjectTypeString(obj_type), obj_instance);
 						}
 					}
 					break;
-				case 10: /* Creae Object Request */
+				case 10: /* Create Object Request */
 					{
-						int len,tagbuff,tagval;
+						int tagval;
 						tagbuff = pif_get_byte( 3+x*2 +2 );
 						len = tagbuff & 0x07;
 						tagval = (tagbuff&0xF0)>>4;
@@ -1432,7 +1412,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						case 0:
 							{
 								unsigned long nType = get_bac_unsigned( 3+x*2+3, len );
-								sprintf(moreDetail, "%s", BACnetObjectType[nType]);
+								sprintf(moreDetail, "%s", ObjectTypeString(nType));
 							}
 							break;
 						case 1:
@@ -1447,12 +1427,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 								obj_type = (obj_id >> 22) & 0x000003FF;
 								obj_instance = (obj_id & 0x003FFFFF);
 								
-								if(obj_type > 63){ /* proprietary object type */
-									sprintf(moreDetail, "%u_%lu", obj_type, obj_instance);
-								}
-								else{ /* standard object type */
-									sprintf(moreDetail, "%s_%lu", BACnetObjectType[obj_type], obj_instance);
-								}
+								sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
 							}
 							break;
 						default:
@@ -1465,132 +1440,97 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					break;
 				case 11: /* Delete Object Request */
 					{
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
+						// "tagged" is offset of first tag byte
+						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+						unsigned obj_instance = (obj_id & 0x003FFFFF);
 						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+2 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%u_%lu", obj_type, obj_instance);
-						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%s_%lu", BACnetObjectType[obj_type], obj_instance);
-						}
+						sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
 					}
 					break;
 				case 12: /* Read Property Request */
 					{
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
+						// "tagged" is offset of first tag byte
+						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+						unsigned obj_instance = (obj_id & 0x003FFFFF);
+						tagged += 5;
 						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+5+x*2 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						
-						int pID = pif_get_byte(10+x*2);
-						
-						if(pif_get_byte(9+x*2)&0x07 != 1)
-						{
-							if(obj_type > 63){ /* proprietary object type */
-								sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
-							}
-							else{ /* standard object type */
-								sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
-							}
+						len = pif_get_byte( tagged ) & 0x07;
+						unsigned int pID = get_bac_unsigned( tagged+1, len );
+						tagged += 1+len;
+
+						tagbuff = pif_get_byte(tagged);
+						if((tagbuff & 0xF8) == 0x28) {
+							len = tagbuff & 0x07;
+							unsigned int index = get_bac_unsigned(tagged+1, len);
+							tagged += 1+len;
+							sprintf(moreDetail, "%s_%u, %s, Index = %u", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID),index);
 						}
-						else
-						{
-							if(obj_type > 63){ /* proprietary object type */
-								sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
-							}
-							else{ /* standard object type */
-								sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
-							}
+						else {
+							sprintf(moreDetail, "%s_%u, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
 						}
 					}
 					break;
 				case 15: /* Write Property Request */
-						//Modified by Zhu Zhenhua, 2004-12-21, for task #544511
-						{
-							long	obj_id;
-							int		obj_type;
-							long	obj_instance;
-							unsigned char tagbuffs,tagvals,pid_index;
-							int lentemp;
-							for (int i = 0; i < 4; i++)
-								obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+5+x*2 );
-							
-							obj_type = (obj_id >> 22) & 0x000003FF;
-							obj_instance = (obj_id & 0x003FFFFF);
-							
-							int pID = pif_get_byte(10+x*2);
+					//Modified by Zhu Zhenhua, 2004-12-21, for task #544511
+					{
+						// "tagged" is offset of first tag byte
+						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+						unsigned obj_instance = (obj_id & 0x003FFFFF);
+						tagged += 5;
 
-							tagbuffs = pif_get_byte(11 +x*2);
-							tagvals = (tagbuffs&0xF0)>>4;
-							if((tagvals == 2)&&(tagbuffs & 0x08))
-							{
-								pid_index = pif_get_byte(12 +x*2);
-							}
-							else
-								pid_index = 0;
-							if(pif_get_byte(9+x*2)&0x07 != 1)
-							{
-								
-								if(obj_type > 63){ /* proprietary object type */
-									if(!pid_index)
-										lentemp = sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
-									else
-										lentemp = sprintf(moreDetail, "%u_%lu, %s, Index = %lu,", obj_type, obj_instance, BACnetPropertyIdentifier[pID],pid_index);
-								}
-								else{ /* standard object type */
-									if(!pid_index)
-										lentemp = sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
-									else
-										lentemp = sprintf(moreDetail, "%s_%lu, %s, Index = %lu", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID],pid_index);
-								}
-							}
-							else
-							{
-								if(obj_type > 63){ /* proprietary object type */
-									lentemp = sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
-								}
-								else{ /* standard object type */
-									lentemp = sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
-								}
-							}	
-							if(!pid_index)
-							pif_offset = 12 +x*2;
-							else
-							pif_offset = 14 +x*2;
-							show_bac_ANY(obj_type,pID,pid_index);
-								bool showvalue = false;
-							CString temp(gCurrentInfo->detailLine[0]->piLine);
-							CString apptagstr(gCurrentInfo->detailLine[1]->piLine);
-							if(apptagstr.Find("Application Tag", 0) != -1)
-							{   
-								if(temp.Find(':')!=-1)
-									temp = temp.Right(temp.GetLength()-temp.Find(':')-1);
-								showvalue = true;
-							}
-							else
-								if(apptagstr.Find("Enumerated", 0) != -1)
-								{   
-									CString temps(gCurrentInfo->detailLine[4]->piLine);	
-									temp = temps.Left(temps.Find('='));
-									showvalue = true;
-								}
-							if(showvalue)
-							sprintf(moreDetail + lentemp, "=%s", temp.GetBuffer(0));										
+						len = pif_get_byte( tagged ) & 0x07;
+						unsigned int pID = get_bac_unsigned( tagged+1, len );
+						tagged += 1+len;
+
+						int lentemp;
+						int pid_index;
+						tagbuff = pif_get_byte(tagged);
+						if((tagbuff & 0xF8) == 0x28) {
+							len = tagbuff & 0x07;
+							pid_index = (int)get_bac_unsigned(tagged+1, len);
+							tagged += 1+len;
+							lentemp = sprintf(moreDetail, "%s_%u, %s, Index %d", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID),pid_index);
 						}
-						break;
+						else {
+							lentemp = sprintf(moreDetail, "%s_%u, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
+							pid_index = -1;
+						}
+
+						// Skip over opening [3]
+						pif_offset = tagged + 1;
+							
+						// TODO: this dumps a bunch of lines into the detailLine, and then
+						// roots through them below.  Seems fragile: any change to string
+						// format will break the code.
+						BACnetSequence seq;
+						show_bac_ANY(seq, obj_type, pID, pid_index);
+// TODO: original code, broken because of our more compact detail format
+//						bool showvalue = false;
+//						CString temp(gCurrentInfo->detailLine[0]->piLine);
+//						CString apptagstr(gCurrentInfo->detailLine[1]->piLine);
+//
+//						if(apptagstr.Find("Application Tag", 0) != -1)
+//						{   
+//							if(temp.Find(':')!=-1)
+//								temp = temp.Right(temp.GetLength()-temp.Find(':')-1);
+//							showvalue = true;
+//						}
+//						else if(apptagstr.Find("Enumerated", 0) != -1)
+//						{   
+//							CString temps(gCurrentInfo->detailLine[4]->piLine);	
+//							temp = temps.Left(temps.Find('='));
+//							showvalue = true;
+//						}
+//							
+//						if(showvalue)
+//							sprintf(moreDetail + lentemp, ", Value %s", temp.GetBuffer(0));										
+// Simpler version: just show the first line
+						sprintf(moreDetail + lentemp, ", Value %s", gCurrentInfo->detailLine[0]->piLine);											
+					}
+					break;
 				case 18: /* Confirmed Private Transfer Request */
 					{
 						int len1,len2,tagbuff;
@@ -1617,12 +1557,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						obj_type = (obj_id >> 22) & 0x000003FF;
 						obj_instance = (obj_id & 0x003FFFFF);
 						
-						if(obj_type > 63){ /* proprietary object type */
-							sprintf(moreDetail, "%u_%lu", obj_type, obj_instance);
-						}
-						else{ /* standard object type */
-							sprintf(moreDetail, "%s_%lu", BACnetObjectType[obj_type], obj_instance);
-						}
+						sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
 					}
 					break;
 				case 23: /* VT Data Request */
@@ -1639,11 +1574,12 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					sprintf(moreDetail, "");
 					break;
 				}
-               if (SEG) {   
+               
+				if (SEG) {
 					MOR = (pif_get_byte(0)&0x04)>>2;
 					SA  = (pif_get_byte(0)&0x02)>>1;
 					SEQ = pif_get_byte(3);
-					if(!strcmp(moreDetail,"")){
+					if(moreDetail[0] == 0){
 						sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SA=%u, SEQ=%u",
 							BACnetConfirmedServiceChoice[service_choice],
 							ID, SEG, MOR, SA, SEQ);
@@ -1655,7 +1591,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					}
 				}
                 else{
-					if(!strcmp(moreDetail,"")){
+					if(moreDetail[0] == 0){
 						sprintf(outstr,"%s, ID=%u",
 							BACnetConfirmedServiceChoice[service_choice],
 							ID);
@@ -1669,6 +1605,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
                 break;
         case 1: /* Unconfirmed service request */
                 service_choice = pif_get_byte(1);
+				tagged         = 2;
                 switch (service_choice) {
                   case 0: /* I-Am */
 					  {
@@ -1681,13 +1618,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  
 						  obj_type = (obj_id >> 22) & 0x000003FF;
 						  obj_instance = (obj_id & 0x003FFFFF);
-						  
-						  if(obj_type > 63){ /* proprietary object type */
-							  sprintf(moreDetail, "%u_%lu", obj_type, obj_instance);
-						  }
-						  else{ /* standard object type */
-							  sprintf(moreDetail, "%s_%lu", BACnetObjectType[obj_type], obj_instance);
-						  }
+						  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
 					  }
 					  sprintf(outstr,"%s, %s", BACnetUnconfirmedServiceChoice[service_choice], moreDetail);
 					  
@@ -1713,7 +1644,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  obj_instance = (obj_id & 0x003FFFFF);
 						  
 						  sprintf(outstr,"%s, %s_%lu, %s_%lu", BACnetUnconfirmedServiceChoice[service_choice],
-							  BACnetObjectType[device_type], device_instance, BACnetObjectType[obj_type], obj_instance);
+							  ObjectTypeString(device_type), device_instance, 
+							  ObjectTypeString(obj_type), obj_instance);
 					  }
 					  break;
 				  case 2: /* Unconfirmed COV Notification  Request */
@@ -1740,7 +1672,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  obj_instance = (obj_id & 0x003FFFFF);
 						  
 						  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", BACnetUnconfirmedServiceChoice[service_choice], nValue, 
-							  BACnetObjectType[device_type], device_instance, BACnetObjectType[obj_type], obj_instance);
+							  ObjectTypeString(device_type), device_instance, 
+							  ObjectTypeString(obj_type), obj_instance);
 					  }
 					  break;
 				  case 3: /* Unconfirmed Event Notification Request */
@@ -1767,7 +1700,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  obj_instance = (obj_id & 0x003FFFFF);
 						  
 						  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", BACnetUnconfirmedServiceChoice[service_choice], nValue, 
-							  BACnetObjectType[device_type], device_instance, BACnetObjectType[obj_type], obj_instance);
+							  ObjectTypeString(device_type), device_instance, 
+							  ObjectTypeString(obj_type), obj_instance);
 					  }
 					  break;
 				  case 4: /* Unconfirmed Private Transfer Request */
@@ -1798,7 +1732,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  obj_instance = (obj_id & 0x003FFFFF);
 
 						  sprintf(outstr, "%s, %s_%lu", BACnetUnconfirmedServiceChoice[service_choice],
-							  BACnetObjectType[obj_type], obj_instance);
+							  ObjectTypeString(obj_type), obj_instance);
 					  }
 					  break;
 				  case 7: /* Who-Has */
@@ -1852,21 +1786,11 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 									  
 									  if(flag)
 									  {
-										  if(obj_type > 63){ /* proprietary object type */
-											  sprintf(moreDetail, "%s, %u_%lu", temp, obj_type, obj_instance);
-										  }
-										  else{ /* standard object type */
-											  sprintf(moreDetail, "%s, %s_%lu", temp, BACnetObjectType[obj_type], obj_instance);
-										  }
+										  sprintf(moreDetail, "%s, %s_%lu", temp, ObjectTypeString(obj_type), obj_instance);
 									  }
 									  else
 									  {
-										  if(obj_type > 63){ /* proprietary object type */
-											  sprintf(moreDetail, "%u_%lu", obj_type, obj_instance);
-										  }
-										  else{ /* standard object type */
-											  sprintf(moreDetail, "%s_%lu", BACnetObjectType[obj_type], obj_instance);
-										  }
+										  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
 									  }
 								  }
 								  break;
@@ -1947,11 +1871,12 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 			}
                 break;
         case 3: /* Complex ACK */
-			{   
+			{
 				ID = pif_get_byte(1);
-				int nService = pif_get_byte(2);
+				int nService = pif_get_byte(2 + 2*x);
+				tagged = 3 + 2*x;
                 SEG = x;                                  
-                if (SEG) {   
+                if (SEG) {
 					MOR = (pif_get_byte(0)&0x04)>>2;
 					SEQ = pif_get_byte(2);
 					sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SEQ=%u",
@@ -1963,75 +1888,61 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					//Modified by Zhu Zhenhua, 2004-12-21, for task #544511
 					case 12: /* Read Property Ack */   
 						{
-							long	obj_id;
-							int		obj_type;
-							long	obj_instance;
-							unsigned char tagbuffs,tagvals,pid_index;
-							int lentemp;
-							for (int i = 0; i < 4; i++)
-								obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+4+x*2 );
-							
-							obj_type = (obj_id >> 22) & 0x000003FF;
-							obj_instance = (obj_id & 0x003FFFFF);
-							
-							int pID = pif_get_byte(9+x*2);
+							// "tagged" is offset of first tag byte
+							unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+							unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+							unsigned obj_instance = (obj_id & 0x003FFFFF);
+							tagged += 5;
+						
+							len = pif_get_byte( tagged ) & 0x07;
+							unsigned int pID = get_bac_unsigned( tagged+1, len );
+							tagged += 1+len;
 
-							tagbuffs = pif_get_byte(10 +x*2);
-							tagvals = (tagbuffs&0xF0)>>4;
-							if((tagvals == 2)&&(tagbuffs & 0x08))
-							{
-								pid_index = pif_get_byte(11 +x*2);
+							int lentemp;
+							int pid_index = -1;
+							tagbuff = pif_get_byte(tagged);
+							if((tagbuff & 0xF8) == 0x28) {
+								len = tagbuff & 0x07;
+								pid_index = (int)get_bac_unsigned(tagged+1, len);
+								tagged += 1+len;
+								lentemp = sprintf(moreDetail, "%s_%u, %s, Index = %d", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID),pid_index);
 							}
-							else
-								pid_index = 0;
-							if(pif_get_byte(8+x*2)&0x07 != 1)
-							{
-								
-								if(obj_type > 63){ /* proprietary object type */
-									if(!pid_index)
-										lentemp = sprintf(moreDetail, "%u_%lu, %s", obj_type, obj_instance, BACnetPropertyIdentifier[pID]);
-									else
-										lentemp = sprintf(moreDetail, "%u_%lu, %s, Index = %lu,", obj_type, obj_instance, BACnetPropertyIdentifier[pID],pid_index);
-								}
-								else{ /* standard object type */
-									if(!pid_index)
-										lentemp = sprintf(moreDetail, "%s_%lu, %s", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID]);
-									else
-										lentemp = sprintf(moreDetail, "%s_%lu, %s, Index = %lu", BACnetObjectType[obj_type], obj_instance, BACnetPropertyIdentifier[pID],pid_index);
-								}
+							else {
+								lentemp = sprintf(moreDetail, "%s_%u, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
+								pid_index = -1;
 							}
-							else
-							{
-								if(obj_type > 63){ /* proprietary object type */
-									lentemp = sprintf(moreDetail, "%u_%lu, Vendor", obj_type, obj_instance);
-								}
-								else{ /* standard object type */
-									lentemp = sprintf(moreDetail, "%s_%lu, Vendor", BACnetObjectType[obj_type], obj_instance);
-								}
-							}	
-							if(!pid_index)
-							pif_offset = 11 +x*2;
-							else
-							pif_offset = 13 +x*2;
-							show_bac_ANY(obj_type,pID,pid_index);
-							bool showvalue = false;
-							CString temp(gCurrentInfo->detailLine[0]->piLine);
-							CString apptagstr(gCurrentInfo->detailLine[1]->piLine);
-							if(apptagstr.Find("Application Tag", 0) != -1)
-							{   
-								if(temp.Find(':')!=-1)
-									temp = temp.Right(temp.GetLength()-temp.Find(':')-1);
-								showvalue = true;
-							}
-							else
-								if(apptagstr.Find("Enumerated", 0) != -1)
-								{   
-									CString temps(gCurrentInfo->detailLine[4]->piLine);	
-									temp = temps.Left(temps.Find('='));
-									showvalue = true;
-								}
-							if(showvalue)
-							sprintf(moreDetail + lentemp, "=%s", temp.GetBuffer(0));											
+
+							// Bypass the opening [3]
+							pif_offset = tagged + 1;
+
+							// TODO: this dumps a bunch of lines into the detailLine
+							BACnetSequence seq;
+							show_bac_ANY(seq, obj_type, pID, pid_index);
+// TODO: original code, broken because of our more compact detail format
+//							bool showvalue = false;
+//							CString temp(gCurrentInfo->detailLine[0]->piLine);
+//							CString apptagstr(gCurrentInfo->detailLine[1]->piLine);
+//							// TODO: does this hack still work?
+//							// Did it EVER work?  the value lines are wrapped in the [3] lines.
+//							if(apptagstr.Find("Application Tag", 0) != -1)
+//							{   
+//								if(temp.Find(':')!=-1)
+//									temp = temp.Right(temp.GetLength()-temp.Find(':')-1);
+//								showvalue = true;
+//							}
+//							else
+//							{
+//								if(apptagstr.Find("Enumerated", 0) != -1)
+//								{   
+//									CString temps(gCurrentInfo->detailLine[4]->piLine);	
+//									temp = temps.Left(temps.Find('='));
+//									showvalue = true;
+//								}
+//							}
+//							if(showvalue)
+//								sprintf(moreDetail + lentemp, "=%s", temp.GetBuffer(0));											
+// Simpler version: just show the first line
+							sprintf(moreDetail + lentemp, ", Value %s", gCurrentInfo->detailLine[0]->piLine);											
 						}
 						break;
 					default:
@@ -2060,6 +1971,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
             {
 				ID = pif_get_byte(1);
 				int error_type = pif_get_byte(2);
+				tagged         = 3;
 				sprintf(moreDetail, "%s", BACnetError[error_type]);
                 sprintf(outstr,"%s, ID=%u, %s",PDU_types[pdu_type], ID, moreDetail);
 			}
@@ -2126,17 +2038,6 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
      default: bac_show_byte("Error: Unknown PDU Type","%u");
    };
    pif_show_space();
-#if 0
-   sprintf (
-      get_int_line (pi_data_bacnet_AL,
-      header - dlc_header,
-      length
-      ),
-       "[%d octets of BACnet application layer data ]",
-       length
-       );
-   pif_show_space();
-#endif
    }   /* End of Detail Lines */
 
    return length;
@@ -2153,13 +2054,13 @@ int interp_Message( char *header, int length)  /* message interpreter */
 
    /* Detail line? */
    if (pi_data_bacnet_IP->do_int) {
-      pif_init (pi_data_Message, header, length);
-      pif_header (length, "Message Detail");
-     bac_show_byte("Severity Code","%u");
-     bac_show_long_hl("Script Line","%u");
-     pif_show_nbytes_hex( "Digest                      = %s", 16 );
+      pif_init(pi_data_Message, header, length);
+      pif_header(length, "Message Detail");
+      bac_show_byte("Severity Code","%u");
+      bac_show_long_hl("Script Line","%u");
+      pif_show_nbytes_hex( "Digest                      = %s", 16 );
       pif_show_space();
-     pif_show_ascii( strlen(pif_get_addr()), "%s" );
+      pif_show_ascii( strlen(pif_get_addr()), "%s" );
       pif_show_space();
    }
 
@@ -2225,7 +2126,7 @@ void show_confirmed( unsigned char x )
       show_requestKey,                  /* 25 */
       show_ReadRange,                   /* 26 */
       NULL,								/* 27 TODO: implement show_LifeSafetyOperation */
-	  NULL,								/* 28 TODO: implement show_SubscribeCOVProperty */
+	  show_subscribeCOV_Property,		/* 28 */
 	  show_getEventInformation          /* 29 Added by Zhu Zhenhua, 2004-5-25*/
    };
 
@@ -2237,6 +2138,7 @@ void show_confirmed( unsigned char x )
    pif_show_flagbit(0x08,"Segmented Message","Unsegmented Message");
    pif_show_flagbit(0x04,"More Follows","No More Follows");
    pif_show_flagbit(0x03,"Segmented Resp Accepted","Segmented Resp not Accepted");
+   
    sprintf(outstr,"%"FW"s = X'%%02X'","Maximum APDU Response Accepted");
    bac_show_flag(outstr,0xFF);
 
@@ -2248,6 +2150,7 @@ void show_confirmed( unsigned char x )
    pif_show_flagmask(0x70, 0x05,"32 segments accepted");
    pif_show_flagmask(0x70, 0x06,"64 segments accepted");
    pif_show_flagmask(0x70, 0x07,"More than segments accepted");
+   
    pif_show_flagmask(0x0F, 0x00,"Up to 50 Octets");
    pif_show_flagmask(0x0F, 0x01,"Up to 128 Octets");
    pif_show_flagmask(0x0F, 0x02,"Up to 206 Octets");
@@ -2293,34 +2196,37 @@ void show_unconfirmed( unsigned char )
    switch(pif_get_byte(1))																		   //  ***002 begin
    {
    case 0:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "I-Am Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "I-Am Request");
 	   break;
    case 1:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "I-Have Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "I-Have Request");
 	   break;
    case 2:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "Unconfirmed COV Notification Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed COV Notification Request");
 	   break;
    case 3:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "Unconfirmed Event Notification Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed Event Notification Request");
 	   break;
    case 4:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "Unconfirmed Private Transfer Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed Private Transfer Request");
 	   break;
    case 5:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "Unconfirmed Text Message Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed Text Message Request");
 	   break;
    case 6:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "Time Synchronization Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Time Synchronization Request");
 	   break;
    case 7:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "Who-Has Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Who-Has Request");
 	   break;
    case 8:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "Who-Is Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Who-Is Request");
 	   break;
    case 9:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1), "UTC Time Synchronization Request");
+	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "UTC Time Synchronization Request");
+	   break;
+   default:
+	   // TODO: complain?
 	   break;
    }																							   //  ***002 end
 
@@ -2328,6 +2234,7 @@ void show_unconfirmed( unsigned char )
    bac_show_flag(outstr,0xFF);
    pif_show_flagmask(0xF0,0x10,"BACnet-Unconfirmed-Request-PDU");
    pif_show_flagbit(0x0F,"Unused",NULLP);
+   
    pif_show_space();
    /* call the unconfirmed service interpreter function */
    if (pif_get_byte(0) >= max_unconfirmed_services)
@@ -2414,6 +2321,7 @@ void show_segment_ack( unsigned char )
    pif_show_flagmask(0xF0,0x40,"BACnet-SegmentACK-PDU");
    pif_show_flagbit(0x0e,"Unused",NULLP);
    pif_show_flagbit(0x01,"Ack From Server","Ack From Client");
+   
    bac_show_byte("Original Invoke ID","%d");
    bac_show_byte("Sequence Number","%d");
    bac_show_byte("Actual Window Size","%d");
@@ -2457,6 +2365,7 @@ void show_error( unsigned char x )
    pif_show_flagbit(0x08,"Segmented Message","Unsegmented Message");
    pif_show_flagbit(0x04,"More Follows","No More Follows");
    pif_show_flagbit(0x03,"Unused",NULLP);
+   
    bac_show_byte("Invoke ID","%d");
    if (x & 0x08) /* SEG = 1 */ {
      bac_show_byte   ("Sequence Number","%d");
@@ -2491,9 +2400,10 @@ void show_reject( unsigned char )
    bac_show_flag(outstr,0xFF);
    pif_show_flagmask(0xF0,0x60,"BACnet-Reject-PDU");
    pif_show_flagbit(0x0F,"Unused",NULLP);
+   
    bac_show_byte("Original Invoke ID","%d");
    sprintf(outstr,"%"FW"s = %s = (%%u)","Reject Reason",
-      BACnetReject[pif_get_byte(0)]);
+           BACnetReject[pif_get_byte(0)]);
    pif_show_byte(outstr);
 }
 
@@ -2506,10 +2416,339 @@ void show_abort( unsigned char )
    pif_show_flagmask(0xF0,0x70,"BACnet-Abort-PDU");
    pif_show_flagbit(0x0E,"Unused",NULLP);
    pif_show_flagbit(0x01,"Abort From Server","Abort From Client");
+   
    bac_show_byte("Original Invoke ID","%d");
    sprintf(outstr,"%"FW"s = %s = (%%u)","Abort Reason",
-      BACnetAbort[pif_get_byte(0)]);
+           BACnetAbort[pif_get_byte(0)]);
    pif_show_byte(outstr);
+}
+
+/**************************************************************************/
+// Show a timestamp
+// If theTag is < 0, show unwrapped
+// TODO: but may show untagged named?
+void show_time_stamp( BACnetSequence &theSeq, int theTag, const char *pTheTitle )
+{
+	if (theTag >= 0)
+	{
+		theSeq.OpeningTag( theTag, pTheTitle );
+	}
+
+	theSeq.BeginChoice();
+	theSeq.Time(           0, "time", BSQ_CHOICE );
+	theSeq.Unsigned(       1, "sequenceNumber", BSQ_CHOICE );
+	if (theSeq.OpeningTag( 2, "dateTime", BSQ_CHOICE ))
+	{
+		theSeq.Date( -1, "date", BSQ_CHOICE );
+		theSeq.Time( -1, "time", BSQ_CHOICE );
+		theSeq.ClosingTag();
+	}
+	theSeq.EndChoice();
+
+	if (theTag >= 0)
+	{
+		theSeq.ClosingTag();
+	}
+}
+
+/*************************************************************************/
+// Show an Error
+void show_error( BACnetSequence &theSeq )
+{
+	theSeq.Enumerated( -2, "error-class", &BAC_STRTAB_BACnetErrorClass );
+	theSeq.Enumerated( -2, "error-code",  &BAC_STRTAB_BACnetErrorCode );
+}
+
+/*************************************************************************/
+// Show an Error, wrapped in context tag
+// Default tag is [0].  Default string is "errorType"
+void show_wrapped_error( BACnetSequence &theSeq, int theTag, const char *pTheString )
+{
+	if (pTheString == NULL)
+	{
+		pTheString = "errorType";
+	}
+	
+	if (theSeq.OpeningTag( theTag, pTheString ))
+	{
+		show_error( theSeq );
+		theSeq.ClosingTag();
+	}
+}
+
+/*************************************************************************/
+// Show a BACnetPropertyReference
+void show_bac_property_reference( BACnetSequence &theSeq )
+{
+	theSeq.PropertyIdentifier( 0, "propertyIdentifier" );
+	theSeq.PropertyArrayIndex( 1, "propertyArrayIndex", BSQ_OPTIONAL );
+}
+
+/*************************************************************************/
+// Show a BACnetObjectPropertyReference
+void show_bac_object_property_reference( BACnetSequence &theSeq )
+{
+	theSeq.ObjectIdentifier(   0, "objectIdentifier" );
+	theSeq.PropertyIdentifier( 1, "propertyIdentifier" );
+	theSeq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+}
+
+/*************************************************************************/
+// Show a BACnetPropertyValue
+void show_bac_property_value( BACnetSequence &theSeq, int theObjectType )
+{
+	theSeq.PropertyIdentifier( 0, "propertyIdentifier" );
+	theSeq.PropertyArrayIndex( 1, "propertyArrayIndex", BSQ_OPTIONAL );
+	if (theSeq.OpeningTag(     2, "value" ))
+	{
+		show_bac_ANY( theSeq, theObjectType, theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
+		theSeq.ClosingTag();
+	}
+
+	theSeq.Unsigned(           3, "priority", BSQ_OPTIONAL );
+}
+
+/*************************************************************************/
+// Show a BACnetObjectPropertyValue
+void show_bac_object_property_value( BACnetSequence &theSeq, int theObjectType )
+{
+	theSeq.ObjectIdentifier(   0, "objectIdentifier" );
+	theSeq.PropertyIdentifier( 1, "propertyIdentifier" );
+	theSeq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+	if (theSeq.OpeningTag(     3, "value" ))
+	{
+		show_bac_ANY( theSeq, theSeq.LastObjectType(), theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
+		theSeq.ClosingTag();
+	}
+
+	theSeq.Unsigned(           4, "priority", BSQ_OPTIONAL );
+}
+
+/*************************************************************************/
+// Show a WriteAccessSpecification
+void show_write_access_specification( BACnetSequence &theSeq )
+{
+	theSeq.ObjectIdentifier( 0, "objectIdentifier" );
+	int objectType = theSeq.LastObjectType();
+	theSeq.ListOf(           1, "listOfPropertyReferences" );
+	while (theSeq.HasListElement())
+	{
+		show_bac_property_value( theSeq, objectType );
+	}
+}
+
+/*************************************************************************/
+// Show a ReadAccessSpecification
+void show_read_access_spec( BACnetSequence &theSeq )
+{
+	theSeq.ObjectIdentifier( 0, "objectIdentifier" );
+	theSeq.ListOf(           1, "listOfPropertyReferences" );
+	while (theSeq.HasListElement())
+	{
+		show_bac_property_reference( theSeq );
+	}
+}
+
+/*************************************************************************/
+// Show a ReadAccessResult
+void show_read_access_result( BACnetSequence &theSeq )
+{
+	theSeq.ObjectIdentifier( 0, "objectIdentifier" );
+
+	// Save the object, since ANY parsing might overwrite the seq members
+	unsigned int objectID = theSeq.LastObjectIdentifier();
+	int objectType = theSeq.LastObjectType();
+	
+	theSeq.ListOf(           1, "listOfResults" );
+	while (theSeq.HasListElement())
+	{
+		theSeq.PropertyIdentifier( 2, "propertyIdentifier" );
+		theSeq.PropertyArrayIndex( 3, "propertyArrayIndex", BSQ_OPTIONAL );
+		theSeq.BeginChoice();
+		if (theSeq.OpeningTag( 4, "propertyValue", BSQ_CHOICE ))
+		{
+			// TODO: is this really the best way to do this?
+			// For one thing, we don't really even know which DEVICE this
+			// response is from.
+			// Defined in EPICSTreeView.cpp.  Active only if the EPICS tree is open.
+			//	
+			// madanner 9/04 add calls to EPICS read property tracker
+			// can't support indexes at this time
+			if (theSeq.LastPropertyIndex() == -1)
+			{
+				::EPICS_AddRPValue( theSeq.LastObjectIdentifier(), theSeq.LastPropertyID(), 
+									pif_get_addr(), pif_end_offset - pif_offset);
+			}
+
+			show_bac_ANY( theSeq, objectType, theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
+			theSeq.ClosingTag();
+		}
+		if (theSeq.OpeningTag( 5, "propertyAccessError", BSQ_CHOICE ))
+		{
+			theSeq.Enumerated( -2, "error-class", &BAC_STRTAB_BACnetErrorClass );
+			theSeq.Enumerated( -2, "error-code",  &BAC_STRTAB_BACnetErrorCode );
+			theSeq.ClosingTag();
+		}
+	}
+}
+
+/**************************************************************************/
+// Show a BACnetDeviceObjectPropertyReference
+void show_bac_dev_obj_prop_ref( BACnetSequence &theSeq )
+{
+	theSeq.ObjectIdentifier(   0, "objectIdentifier" );
+	theSeq.PropertyIdentifier( 1, "propertyIdentifier" );
+	theSeq.PropertyArrayIndex( 2, "arrayIndex", BSQ_OPTIONAL );
+	theSeq.ObjectIdentifier(   3, "deviceIdentifier", BSQ_OPTIONAL );
+}
+
+/**************************************************************************/
+// Show a BACnetDeviceObjectPropertyValue
+void show_bac_dev_obj_prop_val( BACnetSequence &theSeq )
+{
+	theSeq.ObjectIdentifier(   0, "deviceIdentifier" );
+	theSeq.ObjectIdentifier(   1, "objectIdentifier" );
+	theSeq.PropertyIdentifier( 2, "propertyIdentifier" );
+	theSeq.PropertyArrayIndex( 3, "arrayIndex", BSQ_OPTIONAL );
+	if (theSeq.OpeningTag(     4, "value" ))
+	{
+		show_bac_ANY( theSeq, theSeq.LastObjectType(), theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
+		theSeq.ClosingTag();
+	}
+}
+
+/**************************************************************************/
+// Show a BACnetAddress
+void show_bacnet_address( BACnetSequence &theSeq, int theTag, const char *pTheTitle )
+{
+	if (theTag >= 0)
+	{
+		theSeq.OpeningTag( theTag, pTheTitle );
+	}
+	else
+	{
+		// TODO: when we DON'T have a wrapping tag, how do we
+		// know what to highlight in the detail view in order to get
+		// proper nesting? Options are
+		// - Add methods EatAppTag and EatContextTag to BACnetSequence.
+		//   Call them for each enclosed item.  Then call another
+		//   method to get the length from the BacParser and use it
+		//   in the title.
+		// - OR: remember the index into the detail array.
+		//   After showing the enclosed items, go back and fix up
+		//   the length in the title's array entry.
+		// The latter method is easier to use, and avoids an
+		// extra parse of the data, but it relies on knowing the
+		// layout of the detail information.
+		// COULD use it for all our nested stuff: context pairs,
+		// loops, and untagged titles.
+		//
+		sprintf(get_int_line(pi_data_current,pif_offset,1,NT_OPEN_TAG), 
+				pTheTitle);
+	}
+	theSeq.Unsigned(    -1, "network-number" );
+	theSeq.OctetString( -1, "mac-address" );
+	if (theTag >= 0)
+	{
+		theSeq.ClosingTag();
+	}
+}
+
+static const char* weeks[] =
+{
+	"invalid",	// 0
+	"1st",
+	"2nd",
+	"3rd",
+	"4th",
+	"5th",
+	"last"		// 6
+};
+
+/**************************************************************************/
+// Show a BACnetCalendarEntry
+void show_calendar_entry( BACnetSequence &theSeq )
+{
+	theSeq.BeginChoice();
+	theSeq.Date(           0, "date", BSQ_CHOICE );
+	if (theSeq.OpeningTag( 1, "dateRange", BSQ_CHOICE ))
+	{
+		theSeq.Date( -1, "startDate" );
+		theSeq.Date( -1, "endDate" );
+		theSeq.ClosingTag();
+	}
+	if (theSeq.Vet(        2, -1, BSQ_CHOICE ))
+	{
+		// Encoding is as an octet-string.  But we want to show 3 bytes:
+		// - month 1-12, odd, even, any
+		// - week of month (1-7), (8-14), (15-21), (22-28), (29-31), (last 7), or any
+		// - day 1 to 7 or any
+		theSeq.Parse();
+		BacParser &par = theSeq.Parser();
+		unsigned int len = par.DataLength();
+		if (len != 3)
+		{
+			theSeq.Fail( "Expected BACnetWeekNDay.  Got length %u", len );
+		}
+		else
+		{
+			char *pStr = outstr;
+			unsigned int offset = par.Offset();
+			unsigned int x = pif_get_byte( offset );
+			if (x == 255)
+				pStr += sprintf(pStr,"any month, ");
+			else if (x < 15)
+				pStr += sprintf(pStr,"%s, ", month[x]);
+			else
+				theSeq.Fail( "Expected BACnetWeekNDay: got month %u", x );
+
+			x = pif_get_byte( offset+1 );
+			if (x == 255)
+				pStr += sprintf(pStr,"any week, ");
+			else if (x <= 6)
+				pStr += sprintf(pStr,"%s week, ",weeks[x]);
+			else
+				theSeq.Fail( "Expected BACnetWeekNDay: got week %u", x );
+
+			x = pif_get_byte( offset+2 );
+			if (x == 255)
+				sprintf(pStr,"any day");
+			else if (x < 8)
+				sprintf(pStr,day_of_week[x]);
+			else
+				theSeq.Fail( "Expected BACnetWeekNDay: got day %u", x );
+
+			if (theSeq.IsOK())
+			{
+				sprintf(get_int_line(pi_data_current,pif_offset, offset + 3, NT_ITEM_HEAD), 
+					    "[2] weekNDay: %s", outstr);
+
+				// Show the octet version
+				unsigned int len = show_tag();
+				show_bac_octetstring(len);
+				theSeq.Synch();
+			}
+		}
+	}
+
+	theSeq.EndChoice();
+}
+
+/**************************************************************************/
+// Show a BACnetPriorityValue
+void show_bac_priority_array( BACnetSequence &theSeq )
+{
+	theSeq.BeginChoice();
+	theSeq.Null( -1, "null", BSQ_CHOICE );
+	theSeq.Real( -1, "real", BSQ_CHOICE );
+	theSeq.Enumerated( -1, "binary", &BAC_STRTAB_BACnetBinaryPV, BSQ_CHOICE );
+	theSeq.Unsigned( -1, "integer", BSQ_CHOICE );
+	if (theSeq.OpeningTag( 0, "constructedValue", BSQ_CHOICE ))
+	{
+		// TODO: show ANY
+		theSeq.ClosingTag();
+	}
+	theSeq.EndChoice();
 }
 
 /**************************************************************************/
@@ -2517,80 +2756,30 @@ void show_acknowledgeAlarm( void )
 /**************************************************************************/
   /* This function interprets AcknowledgeAlarm service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   unsigned int event_state;
+	bac_show_byte("Acknowledge Alarm Request","%u");
+	BACnetSequence seq;
+	seq.Unsigned(         0, "acknowledgingProcessIdentifier" );
+	seq.ObjectIdentifier( 1, "eventObjectIdentifier" );
+	seq.Enumerated(       2, "eventStateAcknowledged", &BAC_STRTAB_BACnetEventState );
+	show_time_stamp( seq, 3, "timeStamp" );
+	seq.TextString(       4, "acknowledgementSource" );
+	show_time_stamp( seq, 5, "timeOfAcknowledgement" );
+}
 
-   bac_show_byte("Acknowledge Alarm Request","%u");
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {
-    switch(tagval) {
-       case 0:  
-		   show_head_unsigned(1, "Acknowledging Process Identifier", tagval);					   //  ***002
-		   len = show_context_tag("Acknowledging Process Identifier");
-           show_bac_unsigned(len);
-           break;
-       case 1:  
-		   show_head_obj_id(1, "Event Object Identifier", tagval);								   //  ***002	
-		   show_context_tag("Event Object Identifier");
-           show_bac_object_identifier();
-           break;
-       case 2:  
-		   event_state = pif_get_byte(1);														   //  ***002 begin
-		   if(event_state <= 4)
-			   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-				   "[%u] Event State Acknowledged:  %s", tagval, BACnetEventState[event_state]);
-		   else{
-			   if(event_state < 64) /* reserved range */
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-				       "Error - Invalid Event State:  %u", event_state);
-			   else
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-				       "[%u] Proprietary Event State:  %u", tagval, event_state);
-		   }																					   //  ***002 end
-		   show_context_tag("Event State Acknowledged");
-           event_state = pif_get_byte(0);
-           if(event_state <= 4)
-             bac_show_byte(BACnetEventState[pif_get_byte(0)],"%u");
-           else {
-             if(event_state < 64) /* reserved range */
-                bac_show_byte("Error - Invalid Event State", "%u");
-             else
-                bac_show_byte("Proprietary Event State", "%u");
-             };
-           break;
-       case 3:  show_context_tag("Time Stamp");
-		   // TODO: wtf? this isn't a list, and it IS required
-		   //Added by Yajun Zhou, 2002-9-18
-		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
-		   //////////////////////////////
-				show_bac_timestamp();
-           show_context_tag("Time Stamp");  /* closing tag */
-           break;
-       case 4:
-		   show_head_char_string(0, "Acknowledgement Source", tagval);							   //  ***002
-		   len = show_context_tag("Acknowledgement Source");
-           show_bac_charstring(len);
-           break;
-       case 5:  show_context_tag("Time of Acknowledgement");
-		   // TODO: wtf? this isn't a list, and it IS required
-		   //Added by Yajun Zhou, 2002-9-18
-		   while ((pif_get_byte(0) & 0x0f) != 0x0f)
-		   //////////////////////////////
-				show_bac_timestamp();
-           show_context_tag("Time of Acknowledgement");  /* closing tag */
-           break;
-       default: len = show_context_tag("Unknown tag");
-           bac_show_nbytes(len,"Unknown data");
-    }
-      }
-// TODO: the indenting on this leads me to wonder what was intended
-      else
-		 show_head_app_data();																	   //  ***002
-         show_application_data(tagbuff);
-   }
+/**************************************************************************/
+void show_COVNotification( void )
+{
+	BACnetSequence seq;
+	seq.Unsigned(         0, "subscriberProcessIdentifier" );
+	seq.ObjectIdentifier( 1, "initiatingDeviceIdentifier" );
+	seq.ObjectIdentifier( 2, "monitoredObjectIdentifier" );
+	int objectType = seq.LastObjectType();
+	seq.Unsigned(         3, "timeRemaining (seconds)" );
+	seq.ListOf(           4, "listOfValues" ); 
+	while (seq.HasListElement())
+	{
+		show_bac_property_value( seq, objectType );
+	}
 }
 
 /**************************************************************************/
@@ -2598,767 +2787,186 @@ void show_confirmedCOVNotification( void )
 /**************************************************************************/
   /* This function interprets ConfirmedCOVNotification requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
+	bac_show_byte("Confirmed COV Notification Request","%u");
+	show_COVNotification();
+}
 
-   bac_show_byte("Confirmed COV Notification Request","%u");
+/**************************************************************************/
+void show_EventNotification( void )
+{
+	BACnetSequence seq;
+	seq.Unsigned(         0, "processIdentifier" );
+	seq.ObjectIdentifier( 1, "initiatingDeviceIdentifier" );
+	int objectType = seq.LastObjectType();
+	seq.ObjectIdentifier( 2, "eventObjectIdentifier" );
+	show_time_stamp( seq,   3, "timeStamp" );
 
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 0){
-	  show_head_unsigned(1, "Subscriber Process Identifier", tagval);							   //  ***002
-      len = show_context_tag("Subscriber Process Identifier");
-      show_bac_unsigned(len);
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-	  show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
-      };
+	seq.Unsigned(   4, "notificationClass" );
+	seq.Unsigned(   5, "priority" );
+	seq.Enumerated( 6, "eventType", &BAC_STRTAB_BACnetEventType );
+	seq.TextString( 7, "messageText", BSQ_OPTIONAL );
 
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 1){
-	  show_head_obj_id(1, "Initiating Device Identifier", tagval);								   //  ***002
-      len = show_context_tag("Initiating Device Identifier");
-      show_bac_object_identifier();
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-	  show_head_ascii("Error: Context Tag 1 Expected!");										   //  ***002
-      };
+	seq.Enumerated( 8, "notifyType", &BAC_STRTAB_BACnetNotifyType );
+	unsigned int notify_type = seq.LastEnumeration();
 
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 2){
-	  show_head_obj_id(1, "Monitored Object Identifier", tagval);								   //  ***002
-      show_context_tag("Monitored Object Identifier");
-      show_bac_object_identifier();
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-	  show_head_ascii("Error: Context Tag 2 Expected!");										   //  ***002
-      };
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 3){
-	  show_head_unsigned(1, "Time Remaining (seconds)", tagval);								   //  ***002
-      len = show_context_tag("Time Remaining (seconds)");
-      show_bac_unsigned(len);
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-	  show_head_ascii("Error: Context Tag 3 Expected!");										   //  ***002
-      };
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 4){
-      show_context_tag("List of Values");  /* opening tag */
-      while(pif_offset < (pif_end_offset-1))
-         show_bac_property_value();
-      show_context_tag("List of Values");  /* closing tag */
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 4 Expected!");
-	  show_head_ascii("Error: Context Tag 4 Expected!");										   //  ***002
-      };
+	bool gotOpt = seq.Boolean( 9, "ackRequired", BSQ_OPTIONAL );
+	gotOpt &= seq.Enumerated( 10, "fromState", &BAC_STRTAB_BACnetEventState, BSQ_OPTIONAL );
+    if (!gotOpt && (notify_type != 2))
+	{
+		 seq.Fail("Missing required notification parameters");
+    }
+
+	seq.Enumerated( 11, "toState", &BAC_STRTAB_BACnetEventState );
+
+	if (seq.OpeningTag( 12, "eventValues", BSQ_OPTIONAL ))
+	{
+		seq.BeginChoice();
+		if (seq.OpeningTag( 0, "Change of Bitstring parameters", BSQ_CHOICE ))
+		{
+			seq.BitString( 0, "referencedBitstring" );
+			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+ 			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 1, "Change of State parameters", BSQ_CHOICE ))
+		{
+			if (seq.OpeningTag( 0, "newState" ))
+			{
+				show_bac_property_states(seq);
+				seq.ClosingTag();
+			}
+
+			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 2, "Change of Value parameters", BSQ_CHOICE ))
+		{
+			if (seq.OpeningTag( 0, "newValue" ))
+			{
+				seq.BeginChoice();
+				seq.BitString( 0, "changedBits", NULL, BSQ_CHOICE );
+				seq.Real(      1, "changedValue", BSQ_CHOICE );
+				seq.EndChoice();
+				seq.ClosingTag();
+			}
+
+			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 3, "Command Fail parameters", BSQ_CHOICE ))
+		{
+			if (seq.Vet( 0 ))
+			{
+				// Dump the tag and its contents
+				if (!show_head_context_tag( 0, "commandValue", 0, true ))
+					seq.Fail(NULL);
+				seq.Synch();
+			}
+
+			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+			if (seq.Vet( 2 ))
+			{
+				// Dump the tag and its contents
+				if (!show_head_context_tag( 0, "feedbackValue", 2, true ))
+					seq.Fail(NULL);
+				seq.Synch();
+			}
+
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 4, "Floating Limit parameters", BSQ_CHOICE ))
+		{
+			seq.Real( 0, "referencedValue" );
+			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+			seq.Real( 2, "setpointValue" );
+			seq.Real( 3, "errorLimit" );
+
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 5, "Out of Range parameters", BSQ_CHOICE ))
+		{
+			seq.Real( 0, "exceedingValue" );
+			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+			seq.Real( 2, "deadband" );
+			seq.Real( 3, "exceededLimit" );
+
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 6, "Complex Event parameters", BSQ_CHOICE ))
+		{
+			seq.ListOf( -1, "values" );
+			while (seq.HasListElement())
+			{
+				show_bac_property_value( seq, objectType );
+			}
+
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 8, "Change of Life Safety parameters", BSQ_CHOICE ))
+		{
+			seq.Enumerated( 0, "newState", &BAC_STRTAB_BACnetLifeSafetyState );
+			seq.Enumerated( 1, "newMode", &BAC_STRTAB_BACnetLifeSafetyMode );
+
+			seq.BitString(  2, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+			seq.Enumerated( 3, "operationExpected", &BAC_STRTAB_BACnetLifeSafetyOperation );
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 9, "Extended Notification Parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(   0, "vendor-id" );
+			seq.Unsigned(   1, "extended-event-type" );
+			seq.ListOf(     2, "parameters" );
+			while (seq.HasListElement())
+			{
+				seq.BeginChoice();
+				seq.Null( -1, "null", BSQ_CHOICE );
+				seq.Real( -1, "real", BSQ_CHOICE );
+				seq.Unsigned( -1, "integer", BSQ_CHOICE );
+				seq.Boolean( -1, "boolean", BSQ_CHOICE );
+				seq.Double( -1, "double", BSQ_CHOICE );
+				seq.OctetString( -1, "octet", BSQ_CHOICE );
+				seq.BitString( -1, "bitstring", NULL, BSQ_CHOICE );
+				seq.Enumerated( -1, "enumerated", NULL, BSQ_CHOICE );
+				if (seq.OpeningTag( 0, "PropertyValue", BSQ_CHOICE ))
+				{
+					show_bac_dev_obj_prop_val( seq );
+					seq.ClosingTag();
+				}
+				seq.EndChoice();
+			}
+
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 10, "Buffer-Ready Notification Parameters", BSQ_CHOICE ))
+		{
+			if (seq.OpeningTag( 0, "buffer-property", BSQ_CHOICE ))
+			{
+				show_bac_dev_obj_prop_ref( seq );
+				seq.ClosingTag();
+			}
+			seq.Unsigned( 1, "previous-notification" );
+			seq.Unsigned( 2, "current-notification" );
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 11, "Unsigned-range Notification Parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(  0, "exceeding-value" );
+			seq.BitString( 1, "status-flags", &BAC_STRTAB_BACnetStatusFlags );
+			seq.Unsigned(  2, "exceeded-limit" );
+			seq.ClosingTag();
+		}
+
+		seq.EndChoice();
+		seq.ClosingTag();
+	}
 }
 
 /**************************************************************************/
 void show_confirmedEventNotification( void )
 /**************************************************************************/
-  /* This function interprets ConfirmedEventNotification service requests */
+/* This function interprets ConfirmedEventNotification service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len, notify_type;
-
-   bac_show_byte("Confirmed Event Notification","%u");
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 0)){
-	  show_head_unsigned(1, "Process Identifier", tagval);										   //  ***002
-      len = show_context_tag("Process Identifier");
-      show_bac_unsigned(len);
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-	  show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 1)){
-	  show_head_obj_id(1, "Initiating Device Identifier", tagval);								   //  ***002
-      show_context_tag("Initiating Device Identifier");
-      show_bac_object_identifier();
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-	  show_head_ascii("Error: Context Tag 1 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 2)){
-	  show_head_obj_id(1, "Event Object Identifier", tagval);									   //  ***002
-      show_context_tag("Event Object Identifier");
-      show_bac_object_identifier();
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-	  show_head_ascii("Error: Context Tag 2 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 3)){
-      show_context_tag("Time Stamp");
-      show_bac_timestamp();
-      show_context_tag("Time Stamp");  /* show closing tag */
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-	  show_head_ascii("Error: Context Tag 3 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 4)){
-	  show_head_unsigned(1, "Notification Class", tagval);										   //  ***002
-      show_context_tag("Notification Class");
-      bac_show_byte("Class (1..255)","%u");
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 4 Expected!");
-	  show_head_ascii("Error: Context Tag 4 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 5)){
-	  show_head_unsigned(1, "Priority", tagval);												   //  ***002
-      show_context_tag("Priority");
-      bac_show_byte("Priority (1..255)","%u");
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 5 Expected!");
-	  show_head_ascii("Error: Context Tag 5 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 6)){
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),										   //  ***002
-		  "[%u] Event Type:  %s", tagval, BACnetEventType[pif_get_byte(1)]);
-      show_context_tag("Event Type");
-      bac_show_byte(BACnetEventType[pif_get_byte(0)],"%u");
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 6 Expected!");
-	  show_head_ascii("Error: Context Tag 6 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 7)){
-	  show_head_char_string(0, "Message Text", tagval);											   //  ***002
-      len = show_context_tag("Message Text");
-      show_bac_charstring(len);
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 8)){
-      sprintf(get_int_line(pi_data_current,pif_offset,2,1),										   //  ***002
-		  "[%u] Notify Type:  %s", tagval, BACnetNotifyType[pif_get_byte(1)]);
-      show_context_tag("Notify Type");
-      notify_type = pif_get_byte(0);
-      bac_show_byte(BACnetNotifyType[pif_get_byte(0)],"%u");
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 8 Expected!");
-	  show_head_ascii("Error: Context Tag 8 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 9)){
-	  if(pif_get_byte(1)) /* TRUE */
-		  sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-		      "[%u] Acknowledgement Required:  TRUE", tagval);
-	  else
-		  sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-		      "[%u] Acknowledgement Required:  FALSE", tagval);
-      show_context_tag("Acknowledgement Required");
-      tagbuff = pif_get_byte(0);
-      if(tagbuff)  /* TRUE */
-         xsprintf(get_int_line(pi_data_current,pif_offset,1),
-         "%"FW"s = %u %s", "Acknowledgement Required","(TRUE)");
-      else
-         xsprintf(get_int_line(pi_data_current,pif_offset,1),
-         "%"FW"s = %u %s", "Acknowledgement Required","(FALSE)");
-      pif_show_space();
-      }
-   else{ /* required for alarm or event notifications */
-      if(notify_type != 2){
-         pif_show_space();
-//	     pif_show_ascii(0, "Error: Context Tag 9 Expected!");
-		 show_head_ascii("Error: Context Tag 9 Expected!");										   //  ***002
-         };
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 10)){
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),										   //  ***002
-		  "[%u] From State:  %s", tagval, BACnetEventState[pif_get_byte(1)]);
-      show_context_tag("From State");
-      bac_show_byte(BACnetEventState[pif_get_byte(0)], "%u");
-      }
-   else{  /* required for alarm or event notifications */
-      if(notify_type != 2){
-         pif_show_space();
-//	     pif_show_ascii(0, "Error: Context Tag 10 Expected!");
-		 show_head_ascii("Error: Context Tag 10 Expected!");									   //  ***002
-         };
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 11)){
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),										   //  ***002
-		  "[%u] To State:  %s", tagval, BACnetEventState[pif_get_byte(1)]);
-      show_context_tag("To State");
-      bac_show_byte(BACnetEventState[pif_get_byte(0)], "%u");
-      }
-   else{  /* required for alarm or event notifications */
-      if(notify_type != 2){
-         pif_show_space();
-//	     pif_show_ascii(0, "Error: Context Tag 11 Expected!");
-		 show_head_ascii("Error: Context Tag 11 Expected!");									   //  ***002
-         };
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 12)){
-      show_context_tag("Event Values");
-      tagbuff = pif_get_byte(0);
-      tagval= (tagbuff&0xF0)>>4;
-      switch(tagval){
-         case 0:/* change of bitstring */
-            show_context_tag("Change of Bitstring Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_bit_string(0, "Referenced Bitstring", tagval);							   //  ***002
-
-               len = show_context_tag("Referenced Bitstring");
-               show_bac_bitstring(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len = show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            show_context_tag("Change of Bitstring Notification Parameters");  /* closing tag */
-            break;
-         case 1: /* change of state */
-            show_context_tag("Change of State Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-               show_context_tag("New State");
-               show_bac_property_states();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len = show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            show_context_tag("Change of State Notification Parameters");  /* closing tag */
-            break;
-         case 2: /* change of value */
-            show_context_tag("Change of Value Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-               show_context_tag("New Value");         /* opening tag */
-               tagbuff = pif_get_byte(0);
-               tagval = (tagbuff&0xF0)>>4;
-               switch(tagval){
-                  case 0:
-					 show_head_bit_string(0, "Changed Bits", tagval);							   //  ***002
-
-                     len = show_context_tag("Changed Bits");
-                     show_bac_bitstring(len);
-                     break;
-                  case 1:
-					 show_head_real(1, "Changed Value", tagval);								   //  ***002
-
-                     show_context_tag("Changed Value");
-                     show_bac_real();
-                     break;
-                  default:
-                     pif_show_space();
-//	                 pif_show_ascii(0, "Error: Context Tag 0 or 1 Expected!");
-					 show_head_ascii("Error: Context Tag 0 or 1 Expected!");					   //  ***002
-                     break;
-                  };
-               show_context_tag("New Value");         /* closing tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len=show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-            show_context_tag("Change of Value Notification Parameters");  /* closing tag */
-            break;
-         case 3: /* command failure */
-            show_context_tag("Command Failure Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-               show_context_tag("Command Value"); /* opening tag */
-
-               tagbuff = pif_get_byte(0);
-               if((tagbuff & 0x08) && ((tagbuff&0x0f) != 0x0e)){ /* SD context tag */
-                  len = show_context_tag("Unknown Context");
-                  bac_show_nbytes(len,"Unknown Data");
-                  };
-
-               if((tagbuff & 0x08) && ((tagbuff&0x0f) == 0x0e)){ /* PD context tag */
-                  show_context_tag("Unknown Context"); /* opening tag */
-                  len = 0;
-                  tagbuff = tagbuff | 0x01; /* set patern for closing tag */
-                  while(pif_get_byte(len) != tagbuff) len++;
-                  bac_show_nbytes(len+1,"Unknown Data");
-                  show_context_tag("Unknown Context"); /* closing tag */
-                  };
-
-               /* normal case */
-			   show_head_app_data();															   //  ***002
-               show_application_data(tagbuff);
-               show_context_tag("Command Value"); /* closing tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len=show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-               show_context_tag("Feedback Value");
-
-               tagbuff = pif_get_byte(0);
-               if((tagbuff & 0x08) && ((tagbuff&0x0f) != 0x0e)){ /* SD context tag */
-                  len = show_context_tag("Unknown Context");
-                  bac_show_nbytes(len,"Unknown Data");
-                  };
-
-               if((tagbuff & 0x08) && ((tagbuff&0x0f) == 0x0e)){ /* PD context tag */
-                  show_context_tag("Unknown Context"); /* opening tag */
-                  len = 0;
-                  tagbuff = tagbuff | 0x01; /* set patern for closing tag */
-                  while(pif_get_byte(len) != tagbuff) len++;
-                  bac_show_nbytes(len+1,"Unknown Data");
-                  show_context_tag("Unknown Context"); /* closing tag */
-                  };
-
-               /* normal case */
-			   show_head_app_data();															   //  ***002
-               show_application_data(tagbuff);
-               show_context_tag("Command Value"); /* closing tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
-               };
-
-            show_context_tag("Command Failure Notification Parameters");  /* closing tag */
-            break;
-         case 4: /* floating limit */
-            show_context_tag("Floating Limit Notification Parameters");  /* opening tag */
-/*
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-               len = show_context_tag("Referenced Bitstring");
-               show_bac_bitstring(len);
-               }
-            else{
-               pif_show_space();
-               pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-               };
-*/
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_real(1, "Referenced Value", tagval);									   //  ***002
-
-               show_context_tag("Referenced Value");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len=show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-			   show_head_real(1, "Setpoint Value", tagval);										   //  ***002
-
-               show_context_tag("Setpoint Value");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 3)){
-			   show_head_real(1, "Error Limit", tagval);										   //  ***002
-
-               show_context_tag("Error Limit");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-			   show_head_ascii("Error: Context Tag 3 Expected!");								   //  ***002
-               };
-
-            show_context_tag("Floating Limit Notification Parameters");  /* closing tag */
-            break;
-         case 5: /* out of range */
-            show_context_tag("Out of Range Notification Parameters");  /* opening tag */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_real(1, "Exceding Value", tagval);										   //  ***002
-
-               show_context_tag("Exceding Value");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len = show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-			   show_head_real(1, "Deadband", tagval);											   //  ***002
-
-               show_context_tag("Deadband");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 3)){
-			   show_head_real(1, "Exceeded Limit", tagval);										   //  ***002
-
-               show_context_tag("Exceeded Limit");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-			   show_head_ascii("Error: Context Tag 3 Expected!");								   //  ***002
-               };
-
-            show_context_tag("Out of Range Notification Parameters");  /* closing tag */
-            break;
-         case 6: /* complex event type */
-            show_context_tag("Complex Notification Parameters");  /* opening tag */
-            while(pif_offset < (pif_end_offset-2))
-               show_bac_property_value();
-            show_context_tag("Complex Notification Parameters");  /* closing tag */
-            break;
-		 case 8:
-            show_context_tag("Change of Life Safety Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-               show_context_tag("New State");
-               show_bac_life_safety_state();
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len = show_context_tag("New Mode");
-               show_bac_life_safety_mode();
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 1 Expected!");
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-               len = show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 2 Expected!");
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 3)){
-               len = show_context_tag("Operation Expected");
-               show_bac_life_safety_operation();
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 3 Expected!");					
-               };
-
-            show_context_tag("Change of Life Safety Notification Parameters");  /* closing tag */
-			 break;
-		 case 9:
-            show_context_tag("Extended Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_unsigned(1, "VendorId", tagval);
-               len = show_context_tag("VendorId");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 0 Expected!");						
-               };
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-			   show_head_unsigned(1, "Extended Event Type", tagval);
-               len = show_context_tag("Extended Event Type");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 1 Expected!");						
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-	            while(pif_offset < (pif_end_offset-2))
-				{
-					tagbuff = pif_get_byte(0);
-					tagval = (tagbuff&0xF0)>>4;
-					if((tagbuff & 0x08) && (tagval == 0)){
-						show_context_tag("PropertyValue");  /* opening tag */
-						show_bac_devobj_prop_val();
-						show_context_tag("PropertyValue");  /* closing tag */			
-					}
-					else
-					{
-						pif_offset++;  // don't have a clue how to decode any basic structure
-						// could be null, unsigned, real, etc.
-						// need to advance the offset so we don't get stuck in a looop.
-					}
-				}
-			};
-
-			show_context_tag("Extended Notification Parameters");  /* closing tag */
-			 break;
-		 case 11:
-            show_context_tag("Unsigned Range Notification Parameters");  /* opening tag */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_unsigned(1, "Exceeding Value", tagval);
-               len = show_context_tag("Exceeding Value");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 0 Expected!");						
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len = show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 1 Expected!");
-               };
-            
-			tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-			   show_head_unsigned(1, "Exceeded Limit", tagval);
-               len = show_context_tag("Exceeded Limit");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   
-               };
-
-            show_context_tag("Unsigned Range Notification Parameters");  /* closing tag */
-			 break;
-		 //Added by Zhu Zhenhua, 2004-5-17
-		 case 10: /*buffer ready*/	
-            show_context_tag("Buffer ready Notification Parameters");  /* opening tag */
-			show_context_tag("Buffer-Property");  /* opening tag */
-			show_bac_devobj_prop_ref();
-			show_context_tag("Buffer-Property");  /* closing tag */			
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-			   show_head_unsigned(1, "previous-notification", tagval);											   //  ***002
-               len = show_context_tag("previous-notification");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***001
-               };
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-			   show_head_unsigned(1, "current-notification", tagval);											 
-               len = show_context_tag("current-notification");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   
-               };
-            show_context_tag("Buffer ready Notification Parameters");  /* closing tag */
-			break;
-         default:
-            pif_show_space();
-            bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 11)!");
-            break;
-         };
-      show_context_tag("Event Values");  /* closing tag */
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 12 Expected!");
-	  show_head_ascii("Error: Context Tag 12 Expected!");										   //  ***002
-      };
+	bac_show_byte("Confirmed Event Notification","%u");
+	show_EventNotification();
 }
 
 /**************************************************************************/
@@ -3366,7 +2974,7 @@ void show_getAlarmSummary( void )
 /**************************************************************************/
   /* This function interprets GetAlarmSummary service requests */
 {
-   bac_show_byte("Get Alarm Summary Request","%u");
+	bac_show_byte("Get Alarm Summary Request","%u");
 }
 
 //Added by Zhu Zhenhua, 2004-5-25
@@ -3375,215 +2983,43 @@ void show_getEventInformation( void )
 /**************************************************************************/
   /* This function interprets GetEventInformation service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
 	bac_show_byte("Get Event Information Request","%u");
-	if(pif_offset < pif_end_offset) 
-	{
-		tagbuff = pif_get_byte(0);
-		tagval = (tagbuff&0xF0)>>4;
-		if((tagbuff & 0x08) && (tagval == 0)){
-			show_head_obj_id(1, "Last Received Object Identifier", tagval);								   //  ***002
-			show_context_tag("Last Received Object Identifier");
-			show_bac_object_identifier();
-		}
-		else{
-			pif_show_space();
-			show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
-		};
-   }
+	BACnetSequence seq;
+	seq.ObjectIdentifier( 0, "Last Received Object Identifier", BSQ_OPTIONAL );
 }
+
 //Added by Zhu Zhenhua, 2004-5-25
 /**************************************************************************/
 void show_getEventInformationACK( void )
 /**************************************************************************/
-  /* This function interprets GetEventInformationACK service requests */
+/* This function interprets GetEventInformationACK service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-  bac_show_byte("Get EventInformation Acknowledgement","%u");
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {  /* context tag */
-     if(tagval > 1) {
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 1)!");
-       goto exit;
-       };
-
-     if(tagval == 0){ /* list of event summary */
-       show_context_tag(BACnetGetEventInfoACK[tagval]);  /* opening tag */
-       while ((pif_get_byte(0) & 0x0f) != 0x0f) show_event_summary();
-       show_context_tag(BACnetGetEventInfoACK[0]);  /* closing tag */
-       tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-       }
-     else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 0 Expected");
-       goto exit;
-       };    
-   if(tagval == 1){
-	   if(pif_get_byte(1)) /* TRUE */
-		   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-		   "[%u] More Event:  TRUE", tagval);
-	   else
-		   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-		   "[%u] More Event:  FALSE", tagval);
-	   show_context_tag("More Event");
-	   tagbuff = pif_get_byte(0);
-	   if(tagbuff)  /* TRUE */
-		   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-		   "%"FW"s = %u %s", "More Event","(TRUE)");
-	   else
-		   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-		   "%"FW"s = %u %s", "More Event","(FALSE)");
-	   pif_show_space();
-   }
-   else{ 
-	   pif_show_space();
-	   show_head_ascii("Error: Context Tag 1 Expected!");										   //  ***002
-   }
-}
-   exit:;
-}
-//Added by Zhu Zhenhua, 2004-5-25
-void show_event_summary( void )
-{
-
-  unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len, notify_type;
-   
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {  /* context tag */
-     if(tagval > 6) {
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 6)!");
-       goto exit;
-       };
-
-     if(tagval == 0){
-	   show_head_obj_id(1, BACnetEventSummary[tagval], tagval);									   //  ***002
-       show_context_tag(BACnetEventSummary[tagval]);
-       show_bac_object_identifier();
-	   tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-       }     
-	 else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 0 Expected");
-       goto exit;
-       };
-
-     if(tagval == 1){
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),										   //  ***002
-		  "[%u] Event State:  %s", tagval, BACnetEventState[pif_get_byte(1)]);
-      show_context_tag(BACnetEventSummary[tagval]);
-      bac_show_byte(BACnetEventState[pif_get_byte(0)], "%u");
-	   tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-      }    
-	 else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 1 Expected");
-       goto exit;
-       };
-     if(tagval == 2){												 
-		 int len,count,i,j;
-		 char* bitStr;
-		 len = pif_get_byte(0)&0x07;
-		 count = pif_get_byte(1);
-		 bitStr = new char[8-count+1];
-		 int bitHex[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-		 for( i=0,j=7; i<(8-count); i++,j-- )
-		 {
-			 sprintf(bitStr+i, "%u", (pif_get_byte(2)&bitHex[i])>>j);
-		 }
-		 bitStr[8-count+1] = '\0';
-		 sprintf(get_int_line(pi_data_current,pif_offset,1+len,1), 
-			 "[%u] Acknowledged Transitions:  '%s'", tagval, bitStr);												 
-		 show_context_tag(BACnetEventSummary[tagval]);
-		 show_bac_event_transitions_ackd();
-	   tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-      }    
-	 else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 2 Expected");
-       goto exit;
-       };
-	 
-     if(tagval == 3){ /* list of time values */
-       show_context_tag(BACnetEventSummary[tagval]);  /* opening tag */
-       while ((pif_get_byte(0) & 0x0f) != 0x0f) show_bac_timestamp();
-       show_context_tag(BACnetEventSummary[3]);  /* closing tag */
-       tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-       }
-     else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 3 Expected");
-       goto exit;
-       };
-       
-     if(tagval == 4){ /* Notify Type */
-      sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		  "[%u] Notify Type:  %s", tagval, BACnetNotifyType[pif_get_byte(1)]);					   //  ***002
-
-      show_context_tag("Notify Type");
-      notify_type = pif_get_byte(0);
-      bac_show_byte(BACnetNotifyType[pif_get_byte(0)],"%u");
-	   tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-       }
-     else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 4 Expected");
-       goto exit;
-       };
-     if(tagval == 5){												   //  ***002 begin
-		 int len,count,i,j;
-		 char* bitStr;
-		 len = pif_get_byte(0)&0x07;
-		 count = pif_get_byte(1);
-		 bitStr = new char[8-count+1];
-		 int bitHex[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-		 for( i=0,j=7; i<(8-count); i++,j-- )
-		 {
-			 sprintf(bitStr+i, "%u", (pif_get_byte(2)&bitHex[i])>>j);
-		 }
-		 bitStr[8-count+1] = '\0';
-		 sprintf(get_int_line(pi_data_current,pif_offset,1+len,1), 
-			 "[%u] Event Enable:  '%s'", tagval, bitStr);												   //  ***002 end
-		 show_context_tag(BACnetEventSummary[tagval]);
-		 show_bac_event_transitions_ackd();
-	   tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;		 
-      }    
-	 else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 5 Expected");
-       goto exit;
-       };
-  if(tagval == 6){ /* list of time values */
-       show_context_tag(BACnetEventSummary[tagval]);  /* opening tag */
-       while ((pif_get_byte(0) & 0x0f) != 0x0f)
-	   {
-		len = show_application_tag(pif_get_byte(0));
-		show_bac_unsigned(len);
-	   }
-       show_context_tag(BACnetEventSummary[6]);  /* closing tag */
-       }
-     else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 6 Expected");
-       goto exit;
-       };
-     }
-   else {  /* application tag */
-     pif_show_space();
-     bac_show_nbytes(1,"Error: Context Tag expected!");
-     }
-   exit:;
+	bac_show_byte("Get Event Information Ack","%u");
+	BACnetSequence seq;
+	seq.ListOf( 0, BACnetGetEventInfoACK[0] );
+	while (seq.HasListElement())
+	{
+		seq.ObjectIdentifier( 0, "Object Identifier" );
+		seq.Enumerated(       1, "Event State", &BAC_STRTAB_BACnetEventState );
+		seq.BitString(        2, "Acknowledged Transitions", &BAC_STRTAB_BACnetEventTransitionBits );
+		if (seq.OpeningTag(   3, "Event Time Stamps" ))
+		{
+			show_time_stamp( seq, -1, "to-off-normal time" );
+			show_time_stamp( seq, -1, "to-fault time" );
+			show_time_stamp( seq, -1, "to-normal time" );
+			seq.ClosingTag();
+		}
+		seq.Enumerated( 4, "Notify Type", &BAC_STRTAB_BACnetNotifyType );
+		seq.BitString(  5, "Event Enable", &BAC_STRTAB_BACnetEventTransitionBits );
+		if (seq.OpeningTag( 6, "Event Priorities" ))
+		{
+			seq.Unsigned( -1, "to-off-normal" );
+			seq.Unsigned( -1, "to-fault" );
+			seq.Unsigned( -1, "to-normal" );
+			seq.ClosingTag();
+		}
+	}
+	seq.Boolean( 1, "more events" );
 }
 
 /**************************************************************************/
@@ -3591,248 +3027,71 @@ void show_getEnrollmentSummary( void )
 /**************************************************************************/
   /* This function interprets GetEnrollment service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Get Enrollment Summary Request","%u");
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {
-        switch(tagval) {
-           case 0:  
-			   switch (pif_get_byte(1)) {														   //  ***002 begin
-                  case 0: 
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-						  "[%u] Acknowledgement Filter:  Select ALL", tagval);
-                      break;
-                  case 1: 
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-						  "[%u] Acknowledgement Filter:  Select ACK'ed", tagval);
-                      break;
-                  case 2: 
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-						  "[%u] Acknowledgement Filter:  Select NOT ACK'ed", tagval);
-                      break;
-                 } /* end of switch */															   //  ***002 end
-			   
-			   show_context_tag("Acknowledgement Filter");
-               switch (pif_get_byte(0)) {
-                  case 0: bac_show_byte("Select ALL","%u");
-                          break;
-                  case 1: bac_show_byte("Select ACK'ed","%u");
-                          break;
-                  case 2: bac_show_byte("Select NOT ACK'ed","%u");
-                          break;
-                  default: bac_show_byte("Error: Unknown enumeration","%u");
-                  } /* end of switch */
-               break;
-           case 1: show_context_tag("Enrollment Filter"); /* opening tag */
-               show_bac_recipient_process();
-               show_context_tag("Enrollment Filter");     /* closing tag */
-               break;
-           case 2:  
-			   switch (pif_get_byte(1)) {														   //  ***002 begin
-                  case 0: 
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-						  "[%u] Event State Filter:  Select OFFNORMAL", tagval);
-                      break;
-                  case 1: 
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-						  "[%u] Event State Filter:  Select FAULT", tagval);
-                      break;
-                  case 2: 
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-						  "[%u] Event State Filter:  Select NORMAL", tagval);
-                      break;
-                  case 3: 
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-						  "[%u] Event State Filter:  Select ALL", tagval);
-                      break;
-                  case 4: 
-					  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-						  "[%u] Event State Filter:  Select ACTIVE", tagval);
-                      break;
-                 } /* end of switch */															   //  ***002
-			   
-			   show_context_tag("Event State Filter");
-               switch (pif_get_byte(0)) {
-                  case 0: bac_show_byte("Select OFFNORMAL", "%u");
-                          break;
-                  case 1: bac_show_byte("Select FAULT","%u");
-                          break;
-                  case 2: bac_show_byte("Select NORMAL","%u");
-                          break;
-                  case 3: bac_show_byte("Select ALL","%u");
-                          break;
-                  case 4: bac_show_byte("Select ACTIVE","%u");
-                          break;
-                  default: bac_show_byte("Error: Unknown enumeration","%u");
-                  } /* end of switch */
-               break;
-           case 3: 
-			   sprintf(get_int_line(pi_data_current,pif_offset,2,1),							   //  ***002
-				   "[%u] Event Type Filter:  %s", tagval, BACnetEventType[pif_get_byte(1)]);
-			   show_context_tag("Event Type Filter");
-               bac_show_byte(BACnetEventType[pif_get_byte(0)],"%u");
-               break;
-           case 4:  
-			   show_context_tag("Event Priority Filter");
-			   show_head_unsigned(1, "Minimum Priority", -1);									   //  ***002
-               len = show_context_tag("Minimum Priority");
-               show_bac_unsigned(len);
-			   show_head_unsigned(1, "Maximum Priority", -1);									   //  ***002
-               len = show_context_tag("Maximum Priority");
-               show_bac_unsigned(len);
-               show_context_tag("Event Priority Filter");  /* closing tag */
-               break;
-           case 5:  
-			   show_head_unsigned(1, "Notification Class Filter", tagval);						   //  ***002
-			   len = show_context_tag("Notification Class Filter");
-               show_bac_unsigned(len);
-               break;
-           default: 
-			   len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      }  /* end of while */
+	bac_show_byte("Get Enrollment Summary Request","%u");
+	BACnetSequence seq;
+	seq.Enumerated( 0, "acknowledgementFilter", &BAC_STRTAB_Acknowledgement_Filter );
+	if (seq.OpeningTag( 1, "enrollmentFilter", BSQ_OPTIONAL ))
+	{
+		show_bac_recipient_process( seq );
+		seq.ClosingTag();
+	}
+	seq.Enumerated( 2, "eventStateFilter Filter", &BAC_STRTAB_EventState_Filter, BSQ_OPTIONAL );
+	seq.Enumerated( 3, "eventTypeFilter", &BAC_STRTAB_BACnetEventType, BSQ_OPTIONAL );
+	if (seq.OpeningTag( 4, "priorityFilter", BSQ_OPTIONAL ))
+	{
+		seq.Unsigned( 0, "minPriority" );
+		seq.Unsigned( 1, "maxPriority" );
+		seq.ClosingTag();
+	}
+	seq.Unsigned(   5, "notificationClassFilter", BSQ_OPTIONAL );
 }
 
 /**************************************************************************/
 void show_subscribeCOV( void )
 /**************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
+	bac_show_byte("Subscribe COV Request","%u");
+	BACnetSequence seq;
+	seq.Unsigned(             0, "subscriberProcessIdentifier" );
+	seq.ObjectIdentifier(     1, "monitoredObjectIdentifier" );
+	bool conf = seq.Boolean(  2, "issueConfirmedNotifications", BSQ_OPTIONAL );
+	bool life = seq.Unsigned( 3, "lifetime", BSQ_OPTIONAL );
+	if (!life && !conf)
+	{
+		show_head_ascii("Subscription Cancellation Request");
+	}
+	else if (life && !conf)
+	{
+		ShowErrorDetail("Error: missing issueConfirmedNotifications");
+	}
+}
 
-   bac_show_byte("Subscribe COV Request","%u");
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) { /* context tag found */
-      if (tagval == 0){
-		show_head_unsigned(1, "Subscriber Process Identifier", tagval);							   //  ***002
+/**************************************************************************/
+void show_subscribeCOV_Property( void )
+/**************************************************************************/
+{
+	bac_show_byte("Subscribe COV Property Request","%u");
+	BACnetSequence seq;
+	seq.Unsigned(             0, "subscriberProcessIdentifier" );
+	seq.ObjectIdentifier(     1, "monitoredObjectIdentifier" );
+	bool conf = seq.Boolean(  2, "issueConfirmedNotifications", BSQ_OPTIONAL );
+	bool life = seq.Unsigned( 3, "lifetime", BSQ_OPTIONAL );
+	if (!life && !conf)
+	{
+		show_head_ascii("Subscription Cancellation Request");
+	}
+	else if (life && !conf)
+	{
+		ShowErrorDetail("Error: missing issueConfirmedNotifications");
+	}
 
-        len = show_context_tag("Subscriber Process Identifier");
-        show_bac_unsigned(len);
-        }
-      else {
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-		show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }
-      }
-      else{  /* application tag  */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
+	if (seq.OpeningTag( 4, "monitoredPropertyIdentifier" ))
+	{
+		show_bac_property_reference( seq);
+		seq.ClosingTag();
+	}
 
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) { /* context tag found */
-      if (tagval == 1){
-		 show_head_obj_id(1, "Monitored Object Identifier", tagval);							   //  ***002
-
-         show_context_tag("Monitored Object Identifier");
-         show_bac_object_identifier();
-         }
-      else {
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-		show_head_ascii("Error: Context Tag 1 Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }
-      }
-      else{  /* application tag  */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }
-
-   //Xiao Shiyuan 2005-1-19
-   //If Lifetime is present, Issue Confirmed Notifications should be present                                        
-   if (pif_offset < pif_end_offset) { 
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) { /* context tag found */
-         if (tagval == 2){
-			if(pif_get_byte(1))  /* TRUE */														   //  ***002 begin
-				sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-					"[%u] Issue Confirmed Notifications: TRUE", tagval);
-			else
-				sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-					"[%u] Issue Confirmed Notifications: FALSE", tagval);						   //  ***002 end
-
-            show_context_tag("Issue Confirmed Notifications");
-            tagbuff = pif_get_byte(0);
-            if(tagbuff)  /* TRUE */
-               xsprintf(get_int_line(pi_data_current,pif_offset,1),
-               "%"FW"s = %u %s", "Issue Confirmed Notifications","(TRUE)");
-            else
-               xsprintf(get_int_line(pi_data_current,pif_offset,1),
-               "%"FW"s = %u %s", "Issue Confirmed Notifications","(FALSE)");
-            pif_show_space();
-            }
-         else {
-           pif_show_space();
-//	       pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-		   show_head_ascii("Error: Context Tag 2 Expected!");									   //  ***002
-           pif_offset = pif_end_offset;
-           }
-         }
-      else{  /* application tag  */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }	  
-
-	  if (pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) { /* context tag found */
-         if (tagval == 3){
-			show_head_unsigned(1, "Lifetime (seconds)", tagval);								   //  ***002
-
-            len = show_context_tag("Lifetime (seconds)");
-            if(pif_get_byte(0)) /* non zero value means a finite lifetime */
-               show_bac_unsigned(len);
-            else {
-               show_bac_unsigned(len);
-//	           pif_show_ascii(0, "Indefinite Lifetime Requested");
-			   show_head_ascii("Indefinite Lifetime Requested");								   //  ***002
-               }
-            }
-         else {
-           pif_show_space();
-//	       pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-		   show_head_ascii("Error: Context Tag 3 Expected!");									   //  ***002
-           pif_offset = pif_end_offset;
-           }
-         }
-         else{  /* application tag  */
-           pif_show_space();
-//	       pif_show_ascii(0, "Error: Context Tag Expected!");
-		   show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-           pif_offset = pif_end_offset;
-           }
-		}
-      }
-   else { /* this is a cancellation */
-      pif_show_space();
-//	  pif_show_ascii(0, "Subscription Cancellation Request");
-	  show_head_ascii("Subscription Cancellation Request");										   //  ***002
-      }
+	seq.Real( 5, "covIncrement", BSQ_OPTIONAL );
 }
 
 /**************************************************************************/
@@ -3840,69 +3099,23 @@ void show_atomicReadFile( void )
 /**************************************************************************/
   /* This function interprets AtomicReadFile service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Atomic Read File Request","%u");
-   pif_show_space();
-//   pif_show_ascii(0,"File Name Object Identifier");
-   show_head_obj_id(1, "File Name Object Identifier", -1);										   //  ***002
-
-   show_application_data(pif_get_byte(0));
-   pif_show_space();
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        switch (tagval) {
-           case 0:  
-			   pif_show_space();
-//               pif_show_ascii(0,"Access Method");
-               show_context_tag("Stream Access");  /* opening tag */
-               pif_show_space();
-//               pif_show_ascii(0,"File Start Position");
-
-			   show_head_unsigned(1, "File Start Position", -1);								   //  ***002
-
-               show_application_data(pif_get_byte(0));
-               pif_show_space();
-//               pif_show_ascii(0,"Requested Octet Count");
-
-			   show_head_unsigned(1, "Requested Octet Count", -1);								   //  ***002
-
-               show_application_data(pif_get_byte(0));
-               show_context_tag("Stream Access");  /* closing tag */
-               break;
-           case 1:  
-			   pif_show_space();
-//               pif_show_ascii(0,"Access Method");
-               show_context_tag("Record Access");  /* opening tag */
-               pif_show_space();
-//               pif_show_ascii(0,"File Start Record");
-
-			   show_head_unsigned(1, "File Start Record", -1);									   //  ***002
-
-               show_application_data(pif_get_byte(0));
-               pif_show_space();
-//               pif_show_ascii(0,"Requested Record Count");
-			   
-			   show_head_unsigned(1, "Requested Record Count", -1);								   //  ***002
-
-               show_application_data(pif_get_byte(0));
-               show_context_tag("Record Access");  /* closing tag */
-               break;
-           default: 
-			   len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }  /* end of switch */
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      }  /* end of while */
+	bac_show_byte("Atomic Read File Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier( -1, "fileIdentifier" );
+	seq.BeginChoice();
+	if (seq.OpeningTag( 0, "streamAccess", BSQ_CHOICE ))
+	{
+		seq.Integer(  -1, "fileStartPosition" );
+		seq.Unsigned( -1, "requestedOctetCount" );
+		seq.ClosingTag();
+	}
+	if (seq.OpeningTag( 1, "recordAccess", BSQ_CHOICE ))
+	{
+		seq.Integer(  -1, "fileStartRecord" );
+		seq.Unsigned( -1, "requestedRecordCount" );
+		seq.ClosingTag();
+	}
+	seq.EndChoice();
 }
     
 /**************************************************************************/
@@ -3910,142 +3123,28 @@ void show_atomicWriteFile( void )
 /**************************************************************************/
   /* This function interprets AtomicWriteFile service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   int	flag;
-   char* dataStr;
-
-   bac_show_byte("Atomic Write File Request","%u");
-   pif_show_space();
-//   pif_show_ascii(0,"File Name Object Identifier");
-   show_head_obj_id(1, "File Name Object Identifier", -1);										   //  ***002
-
-   show_application_data(pif_get_byte(0));
-   pif_show_space();
-   while(pif_offset < pif_end_offset) {  
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        switch (tagval) {
-           case 0: pif_show_space();
-//	           pif_show_ascii(0,"Access Method");
-               show_context_tag("Stream Access");  /* opening tag */
-               pif_show_space();
-//	           pif_show_ascii(0,"File Start Position");
-
-               /* -- check for append special case -- */
-               if(pif_get_byte(1) == 0xff){
-                 show_application_tag(pif_get_byte(0));
-                 sprintf(outstr,"%"FW"s = `%%s'","Append to End-of-File");
-                 pif_show_nbytes_hex(outstr, 1);
-                 }
-               else{
-				 show_head_unsigned(1, "File Start Position", -1);								   //  ***002
-
-                 show_application_data(pif_get_byte(0));
-               }
-
-               pif_show_space();
-//	           pif_show_ascii(0,"File Data");
-			   len = pif_get_byte(0)&0x07;														   //  ***002 begin
-			   flag = 0;
-			   if(len == 5){
-				   len = pif_get_byte(1);
-				   flag = 1;
-			   }
-			   dataStr = new char[len*2+1];
-			   if(len){
-				   for(int i=0; i<(int)len; i++)
-				   {
-					   sprintf(dataStr+i*2, "%02X", pif_get_byte(1+i+flag));
-				   }
-
-				   if (len > 254)
-					dataStr[254*2+1] = '\0';   // truncate the line so it is not too large to display
-				  else
-					dataStr[len*2+1] = '\0';
-
-				   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
-					   "File Data (%u Octets):  X'%s'", len, dataStr);
-
-			   }
-			   else{
-				   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
-					   "File Data (%u Octet)", len);
-			   }																				   //  ***002 end
-			   
-               show_application_data(pif_get_byte(0));
-               show_context_tag("Stream Access");  /* closing tag */
-               break;
-           case 1: pif_show_space();
-//	           pif_show_ascii(0,"Access Method");
-               show_context_tag("Record Access");  /* opening tag */
-               pif_show_space();
-//	           pif_show_ascii(0,"File Start Record");
-
-               /* -- check for append special case -- */
-               if(pif_get_byte(1) == 0xff){
-                 show_application_tag(pif_get_byte(0));
-                 sprintf(outstr,"%"FW"s = `%%s'","Append to End-of-File");
-                 pif_show_nbytes_hex(outstr, 1);
-                 }
-               else{
-				 show_head_unsigned(1, "File Start Record", -1);								   //  ***002
-
-                 show_application_data(pif_get_byte(0));
-               }
-
-               pif_show_space();
-//	           pif_show_ascii(0,"Record Count");
-			   
-			   show_head_unsigned(1, "Record Count", -1);										   //  ***002
-			   
-               show_application_data(pif_get_byte(0));
-               pif_show_space();
-//	           pif_show_ascii(0,"File Record Data");
-               tagbuff = pif_get_byte(0);														   //  ***002 begin
-               while((tagbuff & 0x0f) != 0x0f){
-				   len = pif_get_byte(0)&0x07;
-				   flag = 0;
-				   if(len == 5){
-					   len = pif_get_byte(1);
-					   flag = 1;
-				   }
-				   dataStr = new char[len*2+1];
-				   if(len){
-					   for(int i=0; i<(int)len; i++)
-					   {
-						   sprintf(dataStr+i*2, "%02X", pif_get_byte(1+i+flag));
-					   }
-					  if (len > 254)
-						dataStr[254*2+1] = '\0';   // truncate the line so it is not too large to display
-					  else
-						dataStr[len*2+1] = '\0';
-					   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
-						   "File Record Data (%u Octets):  X'%s'", len, dataStr);
-				   }
-				   else{
-					   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
-						   "File Record Data (%u Octet)", len);
-				   }																			   //  ***002 end
-				   
-                  show_application_data(pif_get_byte(0));
-                  tagbuff = pif_get_byte(0);
-                  }
-               show_context_tag("Record Access");  /* closing tag */
-               break;
-
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }  /* end of switch */
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      }  /* end of while */
+	bac_show_byte("Atomic Write File Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier( -1, "fileIdentifier" );
+	seq.BeginChoice();
+	if (seq.OpeningTag( 0, "streamAccess", BSQ_CHOICE ))
+	{
+		seq.Integer(     -1, "fileStartPosition" );
+		seq.OctetString( -1, "fileData" );
+		seq.ClosingTag();
+	}
+	if (seq.OpeningTag( 1, "recordAccess", BSQ_CHOICE ))
+	{
+		seq.Integer(  -1, "fileStartRecord" );
+		seq.Unsigned( -1, "recordCount" );
+		seq.ListOf(   -1, "fileRecordData" );
+		while (seq.HasListElement())
+		{
+			seq.OctetString( -1, "record" );
+		}
+		seq.ClosingTag();
+	}
+	seq.EndChoice();
 }
 
 /**************************************************************************/
@@ -4053,76 +3152,16 @@ void show_addListElement( void )
 /*************************************************************************/
   /* This function interprets AddListElement service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   int obj_type,prop_idx,prop_id, vendor_id;
-   unsigned int len;
-
-   bac_show_byte("Add List Element Request","%u");
-   obj_type = prop_idx = prop_id = vendor_id = -1;
-   while(pif_offset < pif_end_offset) { 
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        switch(tagval) {
-           case 0: 
-			   show_head_obj_id(1, "Object Identifier", tagval);								   //  ***002
-			   
-			   show_context_tag("Object Identifier");
-               obj_type = bac_extract_obj_type();  
-               vendor_id = pif_get_byte(0) & 0x80;
-               show_bac_object_identifier();
-               break;
-           case 1: 
-			   show_head_property_ID(1, "Property Identifier", tagval);							   //  ***002
-
-			   len = show_context_tag("Property Identifier");
-               if (len == 1)
-                 prop_id = (int)pif_get_byte(0);
-               else
-                 prop_id = (int)pif_get_word_hl(0);
-               show_bac_property_identifier(len);
-               break;
-           case 2:  
-			   show_head_unsigned(1, "Property Array Index", tagval);							   //  ***002
-			   
-			   show_context_tag("Property Array Index");
-               prop_idx = pif_get_byte(0);
-               bac_show_byte("Property Array Index","%u");
-               break;
-           case 3:  /* List of Elements */
-               /* determine length of data */
-               lenexp = 0;
-               while (tagbuff != 0x3f){ /* search for matching closing tag */
-                  lenexp += 1;
-                  tagbuff = pif_get_byte(lenexp);
-                  if (tagbuff == 0x3e){ /* nested opening tag 3 */
-                     while (tagbuff != 0x3f){/* search for matching closing tag */
-                        lenexp += 1;
-                        tagbuff = pif_get_byte(lenexp);
-                        }
-                     };
-                  }
-
-               show_context_tag("List of Elements");  /* opening tag */
-               if (vendor_id != 0)
-                 bac_show_nbytes(lenexp,"SEQUENCE OF ANY "
-                 "(Interpretable only if Object Type is known)");
-               else 
-                 while (pif_offset<(pif_end_offset-1))  
-                   show_bac_ANY(obj_type,prop_id,prop_idx);
-               show_context_tag("List of Elements");  /* closing tag */
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }  /* end of switch */
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      }  /* end of while */
+	bac_show_byte("Add List Element Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier(   0, "objectIdentifier" );
+	seq.PropertyIdentifier( 1, "propertyIdentifier" );
+	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+	if (seq.OpeningTag(     3, "listOfElements" ))
+	{
+		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+		seq.ClosingTag();
+	}
 }
 
 /*************************************************************************/
@@ -4130,76 +3169,16 @@ void show_removeListElement( void )
 /*************************************************************************/
   /* This function interprets RemoveListElement service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   int obj_type,prop_idx,prop_id,vendor_id;
-   unsigned int len;
-
-   bac_show_byte("Remove List Element Request","%u");
-   obj_type = prop_idx = prop_id = vendor_id = -1;
-   while(pif_offset < pif_end_offset) { 
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        switch(tagval) {
-           case 0: 
-			   show_head_obj_id(1, "Object Identifier", tagval);								   //  ***002
-			   
-			   show_context_tag("Object Identifier");
-               obj_type = bac_extract_obj_type();  
-               vendor_id = pif_get_byte(0) & 0x80;
-               show_bac_object_identifier();
-               break;
-           case 1: 
-			   show_head_property_ID(1, "Property Identifier", tagval);							   //  ***002
-			   
-			   len = show_context_tag("Property Identifier");
-               if (len == 1)
-                 prop_id = (int)pif_get_byte(0);
-               else
-                 prop_id = (int)pif_get_word_hl(0);
-               show_bac_property_identifier(len);
-               break;
-           case 2:  
-			   show_head_unsigned(1, "Property Array Index", tagval);							   //  ***002
-			   
-			   show_context_tag("Property Array Index");
-               prop_idx = pif_get_byte(0);
-               bac_show_byte("Property Array Index","%u");
-               break;
-           case 3:  /* List of Elements */
-               /* determine length of data */
-               lenexp = 0;
-               while (tagbuff != 0x3f){ /* search for matching closing tag */
-                  lenexp += 1;
-                  tagbuff = pif_get_byte(lenexp);
-                  if (tagbuff == 0x3e){ /* nested opening tag 3 */
-                     while (tagbuff != 0x3f){/* search for matching closing tag */
-                        lenexp += 1;
-                        tagbuff = pif_get_byte(lenexp);
-                        }
-                     };
-                  }
-
-               show_context_tag("List of Elements");  /* opening tag */
-               if (vendor_id != 0)
-                 bac_show_nbytes(lenexp,"SEQUENCE OF ANY "
-                 "(Interpretable only if Object Type is known)");
-               else 
-                 while (pif_offset<(pif_end_offset-1))  
-                   show_bac_ANY(obj_type,prop_id,prop_idx);
-               show_context_tag("List of Elements");  /* closing tag */
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }  /* end of switch */
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      }  /* end of while */
+	bac_show_byte("Remove List Element Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier(   0, "objectIdentifier" );
+	seq.PropertyIdentifier( 1, "propertyIdentifier" );
+	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+	if (seq.OpeningTag(     3, "listOfElements" ))
+	{
+		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+		seq.ClosingTag();
+	}
 }
 
 /*************************************************************************/
@@ -4207,66 +3186,29 @@ void show_createObject( void )
 /*************************************************************************/
   /* This function interprets CreateObject service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   /* unsigned int len;
-    * int obj_type;
-    */
+	bac_show_byte("Create Object Request","%u");
+	int objectType = -1;
+	BACnetSequence seq;
+	seq.OpeningTag( 0, "objectSpecifier" );
+	seq.BeginChoice();
+	if (seq.Enumerated(       0, "objectType", &BAC_STRTAB_BACnetObjectType, BSQ_CHOICE))
+	{
+		objectType = seq.LastEnumeration();
+	}
+	if (seq.ObjectIdentifier( 1, "objectIdentifier", BSQ_CHOICE ))
+	{
+		objectType = seq.LastObjectType();
+	}
+	seq.EndChoice();
+	seq.ClosingTag();
 
-   bac_show_byte("Create Object Request","%u");
-   pif_show_space();
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 0)){
-      show_context_tag("Object Specifier");
-
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      switch(tagval){
-         case 0: /* object type choice */
-			sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-				"Object Type :  %s", BACnetObjectType[pif_get_byte(1)]);						   //  ***002
-
-            show_context_tag("Object Type");
-            bac_show_byte(BACnetObjectType[pif_get_byte(0)],"%u");
-            break;
-         case 1:/* object identifier choice */
-			show_head_obj_id(1, "Object Identifier", -1);										   //  ***002
-
-            show_context_tag("Object Identifier");
-            show_bac_object_identifier();
-            break;
-         default:
-            pif_show_space();
-//	        pif_show_ascii(0, "Error: Context Tag 0 or 1 Expected!");
-			show_head_ascii("Error: Context Tag 0 or 1 Expected!");								   //  ***002
-            pif_offset = pif_end_offset;
-         };  /* end switch */
-
-      show_context_tag("Object Specifier");
-      }
-   else {
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-	  show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
-      pif_offset = pif_end_offset;
-      }
-            
-   if (pif_offset < pif_end_offset){
-      tagbuff = pif_get_byte(0);
-      if (tagbuff==0x1e){                  /* list of initial values */
-         show_context_tag("List of Initial Values");  /* opening tag */
-         while(pif_offset < (pif_end_offset-1))
-            show_bac_property_value();
-         show_context_tag("List of Initial Values");  /* closing tag */
-         }
-      else{
-         pif_show_space();
-//	     pif_show_ascii(0, "Error: Context Opening Tag 1 Expected!");
-		 show_head_ascii("Error: Context Opening Tag 1 Expected!");								   //  ***002
-         pif_offset = pif_end_offset;
-         }
-      };  /* end of list of initial values if */
+	if (seq.ListOf( 1, "listOfInitialValues", BSQ_OPTIONAL ))
+	{
+		while (seq.HasListElement())
+		{
+			show_bac_property_value( seq, objectType );
+		}
+	}
 }
 
 /*************************************************************************/
@@ -4275,10 +3217,8 @@ void show_deleteObject( void )
   /* This function interprets DeleteObject service requests */
 {
 	bac_show_byte("Delete Object Request","%u");
-	
-	show_head_app_data();																		   //  ***002
-
-	show_application_data(pif_get_byte(0));
+	BACnetSequence seq;
+	seq.OpeningTag( 0, "objectIdentifier" );
 }
 
 /*************************************************************************/
@@ -4286,51 +3226,11 @@ void show_readProperty( void )
 /*************************************************************************/
   /* This function interprets ReadProperty service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Read Property Request","%u");
-   tagbuff = pif_get_byte(0);
-   while(pif_offset < pif_end_offset) {
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        if(tagval > 2) {
-          pif_show_space();
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 2)!");
-          goto exit;
-          }
-
-        switch (tagval) {																		   //  ***002 begin
-		case 0:
-			show_head_obj_id(1, BACnetObjectPropertyReference[tagval], tagval);
-			break;
-		case 1:
-			show_head_property_ID(1, BACnetObjectPropertyReference[tagval], tagval);
-			break;
-		case 2:
-			show_head_unsigned(1, BACnetObjectPropertyReference[tagval], tagval);
-			break;
-		}																						   //  ***002 end
-
-        len = show_context_tag(BACnetObjectPropertyReference[tagval]);
-        switch (tagval) {
-          case 0:  show_bac_object_identifier();
-                   break;
-          case 1:  show_bac_property_identifier(len);
-                   break;
-          case 2:  show_bac_unsigned(len);  /* array index */
-                   break;
-          }
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      tagbuff = pif_get_byte(0);
-      }  /* end of while loop */
-   exit:;
+	bac_show_byte("Read Property Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier(   0, BACnetObjectPropertyReference[0] );
+	seq.PropertyIdentifier( 1, BACnetObjectPropertyReference[1] );
+	seq.PropertyArrayIndex( 2, BACnetObjectPropertyReference[2], BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
@@ -4338,85 +3238,35 @@ void show_readPropertyConditional( void )
 /*************************************************************************/
   /* This function interprets ReadPropertyConditional service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
+	bac_show_byte("Read Property Conditional Request","%u");
+	BACnetSequence seq;
+	if (seq.OpeningTag( 0, "objectSelectionCriteria" ))
+	{
+		seq.Enumerated( 0, "selectionLogic", &BAC_STRTAB_Selection_Logic );
+		if (seq.ListOf( 1, "listOfSelectionCriteria", BSQ_OPTIONAL ))
+		{
+			while (seq.HasListElement())
+			{
+				seq.PropertyIdentifier( 0, "propertyIdentifier" );
+				seq.PropertyArrayIndex( 1, "propertyArrayIndex", BSQ_OPTIONAL );
+				seq.Enumerated(         2, "relationSpecifier", &BAC_STRTAB_Relation_Specifier );
+				if (seq.OpeningTag(     3, "comparisonValue" ))
+				{
+					// TODO: this won't work correctly for those properties
+					// which depend on object type
+					show_bac_ANY( seq, -1, seq.LastPropertyID(), seq.LastPropertyIndex() );
+					seq.ClosingTag();
+				}
+			}
+		}
+		seq.ClosingTag();
+	}
 
-   bac_show_byte("Read Property Conditional Request","%u");
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {
-        switch(tagval) {
-           case 0: show_context_tag("Object Selection Criteria");  /* opening tag */
-               tagbuff = pif_get_byte(0);
-               tagval = (tagbuff&0xF0)>>4;
-               while (tagbuff != 0x0f) {  /* loop until closing tag */
-                 switch(tagval){
-                    case 0: show_context_tag("Selection Logic");
-                       switch (pif_get_byte(0)) {
-                          case 0: bac_show_byte("Logical AND","%u");
-                                  break;
-                          case 1: bac_show_byte("Logical OR","%u");
-                                  break;
-                          case 2: bac_show_byte("Select ALL","%u");
-                                  break;
-                          default: bac_show_byte(
-                                  "Error: Invalid enumeration (>2)!","%u");
-                          }
-                       break;
-                    case 1: show_context_tag("List of Selection Criteria");  /* opening tag */
-                       tagbuff = pif_get_byte(0);
-                       while (tagbuff != 0x1f) {  /* loop until closing tag */
-                         switch((pif_get_byte(0)&0xf0)>>4) {
-                            case 0: show_head_obj_id(1, "Property Identifier", 0);				   //  ***002
-									len = show_context_tag("Property Identifier");
-                                    show_bac_property_identifier(len);
-                                    break;
-                            case 1: show_head_unsigned(1, "Property Array Index", 1);			   //  ***002
-									len = show_context_tag("Property Array Index");
-                                    show_bac_unsigned(len);
-                                    break;
-                            case 2: sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-										"[2] Relation Specifier :  %s", Relation_Specifier[pif_get_byte(1)]);   //  ***002
-									show_context_tag("Relation Specifier");
-                                    bac_show_byte(Relation_Specifier[pif_get_byte(0)],"%u");
-                                    break;
-                            case 3: show_context_tag("Comparison Value");  /* opening tag */
-									show_head_app_data();										   //  ***002
-                                    show_application_data(pif_get_byte(0));
-                                    show_context_tag("Comparison Value");  /* closing tag */
-                                    break;
-                            default: bac_show_byte(
-                                    "Error: Invalid Context Tag!","%u");
-                            } /*End SWITCH*/
-                         tagbuff = pif_get_byte(0);
-                         } /*End WHILE*/
-                       show_context_tag("List of Selection Criteria");  /* closing tag */
-                       break;
-                    }  /* end of switch */
-                 tagbuff = pif_get_byte(0);
-                 tagval = (tagbuff&0xF0)>>4;
-                 }  /* end while */
-               show_context_tag("Object Selection Criteria");  /* closing tag */
-               break;
-           case 1: show_context_tag("List of Property References");  /* opening tag */
-               while(tagbuff != 0x1f){
-                  show_bac_property_ref();
-                  tagbuff = pif_get_byte(0);
-                  }
-               show_context_tag("List of Property References");  /* closing tag */
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }  /* end switch */
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      }  /* end while */
+	if (seq.OpeningTag( 0, "listOfPropertyReferences" , BSQ_OPTIONAL))
+	{
+		show_bac_property_reference(seq);
+		seq.ClosingTag();
+	}
 }
 
 /*************************************************************************/
@@ -4424,9 +3274,13 @@ void show_readPropertyMultiple( void )
 /*************************************************************************/
   /* This function interprets ReadPropertyMultiple service requests */
 {
-   bac_show_byte("Read Property Multiple Request","%u");
-   while(pif_offset < pif_end_offset)
-     show_bac_read_access_spec();
+	bac_show_byte("Read Property Multiple Request","%u");
+	BACnetSequence seq;
+	seq.ListOf( -1, "listOfReadAccessSpecs" );
+	while (seq.HasListElement())
+	{
+		show_read_access_spec( seq );
+	}
 }
 
 /*************************************************************************/
@@ -4434,63 +3288,15 @@ void show_writeProperty( void )
 /*************************************************************************/
   /* This function interprets WriteProperty service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   int obj_type, prop_idx, prop_id;
-
-   bac_show_byte("Write Property Request","%u");
-   prop_idx = -1;
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {
-        switch(tagval) {
-           case 0:  
-			   show_head_obj_id(1, "Object Identifier", tagval);								   //  ***002
-
-			   show_context_tag("Object Identifier");
-			   obj_type = bac_extract_obj_type();
-			   show_bac_object_identifier();
-			   break;
-           case 1:  
-			   show_head_property_ID(1, "Property Identifier", tagval);							   //  ***002
-
-			   len = show_context_tag("Property Identifier");
-               if (len == 1)
-                 prop_id = (int)pif_get_byte(0);
-               else
-                 prop_id = (int)pif_get_word_hl(0);
-               show_bac_property_identifier(len);
-               break;
-           case 2:  
-			   show_head_unsigned(1, "Property Array Index", tagval);							   //  ***002
-
-			   len = show_context_tag("Property Array Index");
-               prop_idx = pif_get_byte(0);
-               show_bac_unsigned(len);
-               break;
-           case 3:  
-			   show_context_tag("Property Value"); /* opening tag */
-               show_bac_ANY(obj_type,prop_id,prop_idx);
-               show_context_tag("Property Value"); /* closing tag */
-               break;
-           case 4:  
-			   show_head_unsigned(1, "Priority", tagval);										   //  ***002
-			   
-			   len = show_context_tag("Priority");
-               show_bac_unsigned(len);
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }  /* end switch */
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      }  /* end while */
+	bac_show_byte("Write Property Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier(   0, "Object Identifier", BSQ_REQUIRED );
+	seq.PropertyIdentifier( 1, "Property Identifier", BSQ_REQUIRED );
+	seq.PropertyArrayIndex( 2, "Property Array Index", BSQ_OPTIONAL );
+	seq.OpeningTag(         3, "PropertyValue" );
+		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+	seq.ClosingTag();
+	seq.Unsigned(           4, "Priority", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
@@ -4498,159 +3304,42 @@ void show_writePropertyMultiple( void )
 /*************************************************************************/
   /* This function interprets WritePropertyMultiple service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   int obj_type, prop_idx;
-
-   bac_show_byte("Write Property Multiple Request","%u");
-   obj_type = prop_idx = -1;
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        switch(tagval) {
-           case 0:  
-			   show_head_obj_id(1, "Object Identifier", tagval);								   //  ***002
-			   
-			   show_context_tag("Object Identifier");
-               obj_type = bac_extract_obj_type();
-               show_bac_object_identifier();
-               break;
-           case 1:  /* List of Properties */
-               show_context_tag("List of Properties");  /* opening tag */
-               show_bac_property_value();
-               show_context_tag("List of Properties");  /* closing tag */
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-               break;
-           }  /* end of switch */
-        }  /* end of if branch */
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      };  /* end of while */
+	bac_show_byte("Write Property Multiple Request","%u");
+	BACnetSequence seq;
+	seq.ListOf( -1, "listOfWriteAccessSpecifications" );
+	while (seq.HasListElement())
+	{
+		show_write_access_specification( seq );
+	}
 }
 
 /*************************************************************************/
 void show_deviceCommunicationControl( void )
 /*************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
+	bac_show_byte("Device Communication Control Request","%u");
+	BACnetSequence seq;
+	seq.Unsigned(   0, "timeDuration", BSQ_OPTIONAL );
+	seq.Enumerated( 1, "enable-disable", &BAC_STRTAB_DeviceCommControl_Command );
+	seq.TextString( 2, "password", BSQ_OPTIONAL );
+}
 
-   bac_show_byte("Device Communication Control Request","%u");
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        switch(tagval){																			   //  ***002 begin
-           case 0:
-			   {
-				   len = pif_get_byte(0)&0x07;
-				   long unsigned value = get_bac_unsigned(1, len);
-				   sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-					   "[%d] Time Duration (minutes):  %lu", tagval, value);
-			   }
-               break;
-           case 1:
-			   {
-				   if(pif_get_byte(1) == 1)
-					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-					       "[%d] Device Communication Status:  DISABLED", tagval);
-				   else if(pif_get_byte(1) == 0)
-					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-					       "[%d] Device Communication Status:  ENABLED", tagval);
-				   else if(pif_get_byte(1) == 2)
-					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-					       "[%d] Device Communication Status:  DISABLE-INIT", tagval);
-			   }
-               break;
-           case 2:
-			   {
-				   int tmpLen,tagbuff,flag,strLength;
-				   tagbuff = pif_get_byte(0);
-				   tmpLen = tagbuff & 0x07;
-				   flag = 1;
-				   if(tmpLen == 5){
-					   tmpLen = pif_get_byte(1);
-					   flag = 2;
-				   }
-				   strLength = tmpLen;
-				   char strBuff[MAX_INT_LINE];
-				   switch(pif_get_byte(flag)){
-				   case 0: /* ASCII */
-					   pif_get_ascii(flag+1, strLength-1, strBuff);
-					   break;
-				   case 1: /* MS DBCS */
-					   {
-						   static char	hex[] = "0123456789ABCDEF";
-						   char *dst;
-						   dst = strBuff;
-						   tmpLen-=1;
-						   int i = flag+1;
-						   while (tmpLen--) {
-							   int x = pif_get_byte(i);
-							   *dst++ = hex[ (x >> 4) & 0x0F ];
-							   *dst++ = hex[ x & 0x0F ];
-							   i++;
-						   }
-						   *dst = 0;
-					   }
-					   break;
-				   default:
-					   sprintf(strBuff, "");
-					   break;
-				   }
-				   // ensure we do not run over our length of detail line during the sprintf operation.
-				   if (strLength > 529)
-					   strBuff[530] = '\0';
-				   else
-					   strBuff[strLength+1]='\0';
+/*************************************************************************/
+// Show a private transfer.
+// Used to show Confirmed-Request, Confirmed-ACK, and Unconfirmed
+void show_private_transfer( void )
+{
+	BACnetSequence seq;
+	seq.Unsigned(   0, "vendorID" );
+	seq.Unsigned(   1, "serviceNumber" );
+	seq.Parse();
 
-				   sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
-					   "[%d] Password:  '%s'", tagval, strBuff);
-			   }
-               break;
-           }																					   //  ***002 end
-
-        switch(tagval) {
-           case 0:  len = show_context_tag("Time Duration (minutes)");
-               show_bac_unsigned(len);
-               break;
-           case 1:  /* enable/disable flag */
-               show_context_tag("Enable/Disable Flag");
-               tagbuff = pif_get_byte(0);
-               if(tagbuff == 1)  /* DISABLED */
-                 xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %u %s", "Device Communication Status","(DISABLED)");
-               else if(tagbuff == 2)  /* DISABLED-INIT */
-                 xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %u %s", "Device Communication Status","(DISABLE-INITIATION)");
-			   else
-                 xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %u %s", "Device Communication Status","(ENABLED)");
-               pif_show_space();
-               break;
-           case 2:  /* password */
-               len = show_context_tag("Password");
-               show_bac_charstring(len);
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-               break;
-           }  /* end of switch */
-        }  /* end of if branch */
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }
-      };  /* end of while */
+	if (seq.Vet(    2, -1, BSQ_OPTIONAL ))
+	{
+		// Show the tag and its contents
+		show_head_context_tag( 0, "serviceParameters", 2, true );
+		seq.Synch();
+	}
 }
 
 /*************************************************************************/
@@ -4658,224 +3347,34 @@ void show_privateTransfer( void )
 /*************************************************************************/
   /* This function interprets ConfirmedPrivateTransfer service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
+	bac_show_byte("Private Transfer Request","%u");
+	show_private_transfer();
+}
 
-   bac_show_byte("Private Transfer Request","%u");
+/*************************************************************************/
+void show_textMessage( void )
+{
+	BACnetSequence seq;
+	seq.ObjectIdentifier( 0, "textMessageSource" );
+	if (seq.OpeningTag(   1, "messageClass", BSQ_OPTIONAL ))
+	{
+		seq.BeginChoice();
+		seq.Unsigned(   0, "numeric", BSQ_CHOICE );
+		seq.TextString( 1, "character", BSQ_CHOICE );
+		seq.EndChoice();
+		seq.ClosingTag();
+	}
 
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff & 0xF0) >> 4;
-   if ((tagval == 0) && (tagbuff & 0x08)) {
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-        "[%d] Vendor ID:  %s", tagval, BACnetVendorID[pif_get_byte(1)]);						   //  ***002
-      len = show_context_tag("Vendor ID");
-      bac_show_byte(BACnetVendorID[pif_get_byte(0)], "%u");
-   /*   show_bac_unsigned(len); */
-      }
-   else {
-      pif_show_space();
-//	  pif_show_ascii(0, " Error: Context Tag 0 expected !");
-	  show_head_ascii(" Error: Context Tag 0 expected !");										   //  ***002
-      }
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff & 0xF0) >> 4;
-   if ((tagval == 1) && (tagbuff & 0x08)) {
-	  show_head_unsigned(1, "Service Number", tagval);											   //  ***002
-
-      len = show_context_tag("Service Number");
-      show_bac_unsigned(len);
-      }
-   else {
-      pif_show_space();
-//	  pif_show_ascii(0, " Error: Context Tag 1 expected !");
-	  show_head_ascii(" Error: Context Tag 1 expected !");										   //  ***002
-      }
-
-   if(pif_offset < pif_end_offset) { /* optional service parameters */
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff & 0xF0) >> 4;
-      if ((tagval == 2) && (tagbuff & 0x08)) {
-         show_context_tag("Service Parameters");  /* opening tag */
-
-         while (pif_offset < (pif_end_offset-1)) 
-		 {
-			 show_head_app_data();																   //  ***002
-			 show_application_data( pif_get_byte(0) );
-		 }
-
-         /*
-            len = pif_end_offset - pif_offset - 1;
-            sprintf(outstr,"Service Parameters (%u Octets)",len);
-            bac_show_nbytes(len,outstr);
-         */
-
-         show_context_tag("Service Parameters");  /* closing tag */
-         }
-      else {
-         pif_show_space();
-//	     pif_show_ascii(0, " Error: Context Tag 2 expected !");
-		 show_head_ascii(" Error: Context Tag 2 expected !");									   //  ***002
-         }
-      };
+	seq.Enumerated( 2, "messagePriority", &BAC_STRTAB_TextMessage_Priority );
+	seq.TextString( 3, "message" );
 }
 
 /*************************************************************************/
 void show_confirmedTextMessage( void )
 /*************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Confirmed Text Message Request","%u");
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {
-        switch(tagval) {
-           case 0:  
-			   { 
-				   show_head_obj_id(1, "Text Message Source Device", tagval);					   //  ***002
-				   
-				   show_context_tag("Text Message Source Device");
-				   show_bac_object_identifier();
-               }
-			   break;
-           case 1:  show_context_tag("Message Class");  /* opening tag */
-               switch((pif_get_byte(0)&0xF0)>>4) {
-                  case 0: 
-					  {
-						  show_head_unsigned(1, "Numeric Class", -1);							   //  ***002
-
-						  len = show_context_tag("Numeric Class");
-						  show_bac_unsigned(len);
-					  }
-                      break;
-                  case 1: 
-					  {
-						  int tmpLen,tagbuff,flag,strLength;									   //  ***002 begin
-						  tagbuff = pif_get_byte(0);
-						  tmpLen = tagbuff & 0x07;
-						  flag = 1;
-						  if(tmpLen == 5){
-							  tmpLen = pif_get_byte(1);
-							  flag = 2;
-						  }
-						  strLength = tmpLen;
-						  char strBuff[MAX_INT_LINE];
-						  switch(pif_get_byte(flag)){
-						  case 0: /* ASCII */
-							  pif_get_ascii(flag+1, strLength-1, strBuff);
-							  break;
-						  case 1: /* MS DBCS */
-							  {
-								  static char	hex[] = "0123456789ABCDEF";
-								  char *dst;
-								  dst = strBuff;
-								  tmpLen-=1;
-								  int i = flag+1;
-								  while (tmpLen--) {
-									  int x = pif_get_byte(i);
-									  *dst++ = hex[ (x >> 4) & 0x0F ];
-									  *dst++ = hex[ x & 0x0F ];
-									  i++;
-								  }
-								  *dst = 0;
-							  }
-							  break;
-						  default:
-							  sprintf(strBuff, "");
-							  break;
-						  }
-						   // ensure we do not run over our length of detail line during the sprintf operation.
-						   if (strLength > 529)
-							   strBuff[530] = '\0';
-						   else
-							   strBuff[strLength+1]='\0';
-
-						  sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
-							  "Character Class:  '%s'", strBuff);								   //  ***002 end		  
-						  
-						  len = show_context_tag("Character Class");
-                          show_bac_charstring(len);
-					  }
-			   }
-               show_context_tag("Message Class");  /* opening tag */
-               break;
-           case 2:  
-			   if(!pif_get_byte(1))																   //  ***002 begin
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
-				       "[%d] Message Priority:  Normal=%d", tagval, pif_get_byte(1));
-			   else
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
-				       "[%d] Message Priority:  Urgent=%d", tagval, pif_get_byte(1));			   //  ***002 end
-			   
-			   show_context_tag("Message Priority");
-               if(!pif_get_byte(0))
-                  bac_show_byte("Normal","%u");
-               else
-                  bac_show_byte("Urgent","%u");
-               break;
-           case 3:  
-			   {
-				   int tmpLen,tagbuff,flag,strLength;											   //  ***002 begin
-				   tagbuff = pif_get_byte(0);
-				   tmpLen = tagbuff & 0x07;
-				   flag = 1;
-				   if(tmpLen == 5){
-					   tmpLen = pif_get_byte(1);
-					   flag = 2;
-				   }
-				   strLength = tmpLen;
-				   char strBuff[MAX_INT_LINE];
-				   switch(pif_get_byte(flag)){
-				   case 0: /* ASCII */
-					   pif_get_ascii(flag+1, strLength-1, strBuff);
-					   break;
-				   case 1: /* MS DBCS */
-					   {
-						   static char	hex[] = "0123456789ABCDEF";
-						   char *dst;
-						   dst = strBuff;
-						   tmpLen-=1;
-						   int i = flag+1;
-						   while (tmpLen--) {
-							   int x = pif_get_byte(i);
-							   *dst++ = hex[ (x >> 4) & 0x0F ];
-							   *dst++ = hex[ x & 0x0F ];
-							   i++;
-						   }
-						   *dst = 0;
-					   }
-					   break;
-				   default:
-					   sprintf(strBuff, "");
-					   break;
-				   }
-				   // ensure we do not run over our length of detail line during the sprintf operation.
-				   if (strLength > (MAX_INT_LINE-21))      // note 21 is size of displayed text below.
-					   strBuff[MAX_INT_LINE-20] = '\0';
-				   else
-					   strBuff[strLength+1]='\0';
-
-				   sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
-					   "[%d] Message:  '%s'", tagval, strBuff);									   //  ***002 end
-				   
-				   len = show_context_tag("Message");
-				   show_bac_charstring(len);
-			   }
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      } /* end of while */
+	bac_show_byte("Confirmed Text Message Request","%u");
+	show_textMessage();
 }
 
 /*************************************************************************/
@@ -4883,55 +3382,10 @@ void show_reinitializeDevice( void )
 /*************************************************************************/
   /* This function interprets ReinitializeDevice service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Reinitialize Device Request","%u");
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) { /* context tag */
-		  int choice = pif_get_byte(1);
-
-		  switch(tagval){																		   //  ***002 begin
-		  case 0:
-			  {
-				  if (choice < 7 ) // m_nBACnetSizeOfReinitializedStateOfDevice
-					sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
-					  "[%d] Reinitialized State of Device:  %s=%u", tagval, BACnetReinitializedStateOfDevice[choice], choice);
-				  else
-					sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
-					  "[%d] Reinitialized State of Device:  Unknown=%u", tagval, choice);
-			  }
-			  break;
-		  case 1:
-			  {
-				  show_head_char_string(0, "Password", tagval);
-			  }
-			  break;
-		  }																						   //  ***002 end
-
-        switch(tagval) {
-           case 0:  show_context_tag("Reinitialized State of Device");
-			  if (choice < 7 ) // m_nBACnetSizeOfReinitializedStateOfDevice
-				  bac_show_byte( BACnetReinitializedStateOfDevice[choice], "%u");
-			  else
-				  bac_show_byte( "Unknown", "%u");
-               break;
-           case 1:  len = show_context_tag("Password");
-               show_bac_charstring(len);
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      }  /* end while */
+	bac_show_byte("Reinitialize Device Request","%u");
+	BACnetSequence seq;
+	seq.Enumerated( 0, "reinitializedStateOfDevice", &BAC_STRTAB_BACnetReinitializedStateOfDevice );
+	seq.TextString( 1, "password", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
@@ -4939,22 +3393,10 @@ void show_vtOpen( void )
 /*************************************************************************/
   /* This function interprets VT-Open service requests */
 {
-   bac_show_byte("VT-Open Request","%u");
-   pif_show_space();
-//   pif_show_ascii(0,"VT Class");
-
-   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-	   "VT Class:  %s", BACnetVTClass[pif_get_byte(1)]);										   //  ***002
-
-   show_application_tag(pif_get_byte(0));
-   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-           "%"FW"s = %u %s", "VT Class Enumeration",
-            BACnetVTClass[pif_get_byte(0)]);
-
-   show_head_unsigned(1, "Local VT Session Id", -1);											   //  ***002
-
-   show_application_tag(pif_get_byte(0));
-   bac_show_byte("Local VT Session Id","%u");
+	bac_show_byte("VT-Open Request","%u");
+	BACnetSequence seq;
+	seq.Enumerated( -1, "vtCalss", &BAC_STRTAB_BACnetVTClass );
+	seq.Unsigned(   -1, "localVTSessionIdentifier" );
 }
 
 /*************************************************************************/
@@ -4962,20 +3404,13 @@ void show_vtClose( void )
 /*************************************************************************/
   /* This function interprets VT-Close service requests */
 {
-   bac_show_byte("VT-Close Request","%u");
-//   pif_show_ascii(0,"List of Remote VT Session Identifiers");
-   int len = pif_end_offset-pif_offset;
-   if(len)
-      sprintf(get_int_line(pi_data_current,pif_offset,len,1),
-		  "List of Remote VT Session Identifiers");												   //  ***002
-   
-   while(pif_offset < pif_end_offset) {
-      sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		  "Session ID:  %u", pif_get_byte(1));													   //  ***002
-
-      show_application_tag(pif_get_byte(0));
-      bac_show_byte("Session ID","%u");
-   }
+	bac_show_byte("VT-Close Request","%u");
+	BACnetSequence seq;
+	seq.ListOf( -1, "listOfRemoteVTSessionIdentifiers" );
+	while (seq.HasListElement())
+	{
+		seq.Unsigned( -1, "sessionID" );
+	}
 }
 
 /*************************************************************************/
@@ -4983,212 +3418,36 @@ void show_vtData( void )
 /*************************************************************************/
   /* This function interprets VT-Data service requests */
 {
-   unsigned int len;
-
-   bac_show_byte("VT Data Request","%u");
-
-   show_head_unsigned(1, "VT Session ID", -1);													   //  ***002
-   
-   show_application_tag(pif_get_byte(0));
-   bac_show_byte("VT Session ID","%u");
-
-   pif_show_space();
-//   pif_show_ascii(0, "New VT Data");
-
-   /* verify that vt data is an octet string */
-   if((pif_get_byte(0) & 0xf0) != (OCTET_STRING * 16))
-//	   pif_show_ascii(0, "Error: Octet String expected");
-	   show_head_ascii("Error: Octet String expected");											   //  ***002
-
-   len = pif_get_byte(0)&0x07;																	   //  ***002 begin
-   int flag = 0;
-   if(len == 5){
-	   len = pif_get_byte(1);
-	   flag = 1;
-   }
-   char* dataStr;
-   dataStr = new char[len*2+1];
-   if(len){
-	   for(int i=0; i<(int)len; i++)
-	   {
-		   sprintf(dataStr+i*2, "%02X", pif_get_byte(1+i+flag));
-	   }
-	   // ensure we do not run over our detail line length (550) during the sprintf operation.
-	   if (len > 254)
-		   dataStr[254*2+1] = '\0';
-	   else
-			dataStr[len*2+1] = '\0';
-
-	   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
-		   "VT New Data (%u Octets):  X'%s'", len, dataStr);
-   }
-   else{
-	   sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
-		   "VT New Data (%u Octet)", len);
-   }																							   //  ***002 end
-
-   pif_show_space();
-   len = show_application_tag(pif_get_byte(0));
-   sprintf(outstr,"VT New Data (%u Octets)",len);
-   bac_show_nbytes(len,outstr);
-
-   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-	   "VT Data Flag:  %u", pif_get_byte(1));													   //  ***002
-   
-   pif_show_space();
-   show_application_tag(pif_get_byte(0));
-   bac_show_byte("VT Data Flag (0/1)","%u");
-
+	bac_show_byte("VT Data Request","%u");
+	BACnetSequence seq;
+	seq.Unsigned(    -1, "vtSessionIdentifier" );
+	seq.OctetString( -1, "vtNewData" );
+	seq.Unsigned(    -1, "vtDataFlag" );
 }
 
 /**************************************************************************/
 void show_authenticate( void )
 /**************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Authenticate Request","%u");
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) { /* context tag */
-        switch(tagval) {
-           case 0:  
-			   show_head_unsigned(1, "Pseudo Random Number", tagval);							   //  ***002
-			   len = show_context_tag("Pseudo Random Number");
-               show_bac_unsigned(len);
-               break;
-           case 1:  
-			   show_head_unsigned(1, "Expected Invoke ID", tagval);								   //  ***002
-			   len = show_context_tag("Expected Invoke ID");
-               show_bac_unsigned(len);
-               break;
-           case 2:  
-			   show_head_char_string(0, "Operator Name", tagval);								   //  ***002
-			   len = show_context_tag("Operator Name");
-               show_bac_charstring(len);
-               break;
-           case 3:  
-			   show_head_char_string(0, "Operator Password", tagval);							   //  ***002
-			   len = show_context_tag("Operator Password");
-               show_bac_charstring(len);
-               break;
-           case 4:  /* start enciphered session flag */
-               show_context_tag("Start Enciphered Session Flag");
-               tagbuff = pif_get_byte(0);
-               if(tagbuff)  /* TRUE */
-                 xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %u %s", "Start Enciphered Session","(TRUE)");
-               else
-                 xsprintf(get_int_line(pi_data_current,pif_offset,1),
-                   "%"FW"s = %u %s", "Start Enciphered Session","(FALSE)");
-               pif_show_space();
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-      }  /* end while */
-
+	bac_show_byte("Authenticate Request","%u");
+	BACnetSequence seq;
+	seq.Unsigned(   0, "pseudoRandomNumber" );
+	seq.Unsigned(   1, "expectedInvokeID", BSQ_OPTIONAL );
+	seq.TextString( 2, "operatorName", BSQ_OPTIONAL );
+	seq.TextString( 3, "operatorPassword", BSQ_OPTIONAL );
+	seq.Boolean(    4, "startEncipheredSession", BSQ_OPTIONAL );
 }
 
 /**************************************************************************/
 void show_requestKey( void )
 /**************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Request Key Request","%u");
-
-   /* requesting device identifier */
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) { /* context tag found */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Application Tag Expected!");
-		show_head_ascii("Error: Application Tag Expected!");									   //  ***002
-        pif_offset = pif_end_offset;
-        }
-      else {  /* application tag  */
-        if (tagval == 12){
-          pif_show_space();
-//	      pif_show_ascii(0, "Requesting DeviceIdentifier");
-		  show_head_obj_id(1, "Requesting DeviceIdentifier", tagval);							   //  ***002
-          len =  show_application_tag(pif_get_byte(0));
-          show_bac_object_identifier();
-          }
-        else {
-          pif_show_space();
-//	      pif_show_ascii(0, "Error: Application Tag 12 Expected!");
-		  show_head_ascii("Error: Application Tag 12 Expected!");								   //  ***002
-          pif_offset = pif_end_offset;
-          }
-      }
-
-   /* requesting device address */
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) { /* context tag found */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Application Tag Expected!");
-		show_head_ascii("Error: Application Tag Expected!");									   //  ***002
-        pif_offset = pif_end_offset;
-        }
-      else {  /* application tag  */
-        pif_show_space();
-//	    pif_show_ascii(0, "Requesting Device Address");
-		show_head_ascii("Requesting Device Address");											   //  ***002
-        show_bac_address();
-        }
-
-   /* remote device identifer */
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) { /* context tag found */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Application Tag Expected!");
-		show_head_ascii("Error: Application Tag Expected!");									   //  ***002
-        pif_offset = pif_end_offset;
-        }
-      else {  /* application tag  */
-        if (tagval == 12){
-          pif_show_space();
-//	      pif_show_ascii(0, "Remote Device Identifier");
-		  show_head_obj_id(1, "Remote Device Identifier", tagval);								   //  ***002
-          len =  show_application_tag(pif_get_byte(0));
-          show_bac_object_identifier();
-          }
-        else {
-          pif_show_space();
-//	      pif_show_ascii(0, "Error: Application Tag 12 Expected!");
-		  show_head_ascii("Error: Application Tag 12 Expected!");								   //  ***002
-          pif_offset = pif_end_offset;
-          }
-      }
-
-   /* remote device address */
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) { /* context tag found */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Application Tag Expected!");
-		show_head_ascii("Error: Application Tag Expected!");									   //  ***002
-        pif_offset = pif_end_offset;
-        }
-      else {  /* application tag  */
-        pif_show_space();
-//	    pif_show_ascii(0, "Remote Device Address");
-		show_head_ascii("Remote Device Address");												   //  ***002
-        show_bac_address();
-        }
+	bac_show_byte("Request Key Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier(     -1, "requestingDeviceIdentifier" );
+	show_bacnet_address( seq, -1, "requestingDeviceAddress" );
+	seq.ObjectIdentifier(     -1, "remoteDeviceIdentifier" );
+	show_bacnet_address( seq, -1, "remoteDeviceAddress" );
 }
 
 /*************************************************************************/
@@ -5196,48 +3455,12 @@ void show_iAm( void )
 /*************************************************************************/
   /* This function interprets I-Am service requests */
 {
-   unsigned int len;
-
-   bac_show_byte("I-Am Request","%u");
-
-//   pif_show_ascii(0,"I-Am Device Identifier");
-
-   show_head_obj_id(1, "I-Am Device Identifier", -1);											   //  ***002
-
-   show_application_tag(pif_get_byte(0));
-   show_bac_object_identifier();
-
-   pif_show_space();
-//   pif_show_ascii(0,"Maximum APDU Length Accepted");
-
-   show_head_unsigned(1, "Maximum APDU Length Accepted", -1);									   //  ***002
-
-   len = show_application_tag(pif_get_byte(0));
-   show_bac_unsigned(len);
-
-   /******* old version using header mapping approach
-   if(len == 1)
-     bac_show_byte("Max APDU Length Supported","%u");
-   else
-     bac_show_word_hl("Max APDU Length Supported","%u");
-   *****************************/
-
-   pif_show_space();
-//   pif_show_ascii(0,"Segmentation Supported");
-   len = pif_get_byte(0)&0x07;
-   sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-	   "Segmentation Supported:  %s", BACnetSegmentation[pif_get_byte(1)]);						   //  ***002
-   show_application_tag(pif_get_byte(0));
-   bac_show_byte(BACnetSegmentation[pif_get_byte(0)],"%u");
-
-   pif_show_space();
-//   pif_show_ascii(0,"BACnet Vendor ID");
-
-   show_head_unsigned(1, "BACnet Vendor ID", -1);												   //  ***002
-
-   len = show_application_tag(pif_get_byte(0));
-/*   show_bac_unsigned(len); */
-   bac_show_byte(BACnetVendorID[pif_get_byte(0)], "%u");
+	bac_show_byte("I-Am Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier( -1, "iAmDeviceIdentifier" );
+	seq.Unsigned(         -1, "maxAPDULengthAccepted" );
+	seq.Enumerated(       -1, "segmentationSupported", &BAC_STRTAB_BACnetSegmentation );
+	seq.Unsigned(         -1, "vendorID" );
 }
 
 /*************************************************************************/
@@ -5245,63 +3468,11 @@ void show_iHave( void )
 /*************************************************************************/
   /* This function interprets I-Have service requests */
 {
-   bac_show_byte("I-Have Request","%u");
-   pif_show_space();
-//   pif_show_ascii(0,"Device Identifier");
-
-   show_head_obj_id(1, "Device Identifier", -1);												   //  ***002
-
-   show_application_tag(pif_get_byte(0));
-   show_bac_object_identifier();
-
-   pif_show_space();
-//   pif_show_ascii(0,"Object Identifier");
-   
-   show_head_obj_id(1, "Object Identifier", -1);												   //  ***002
-
-   show_application_tag(pif_get_byte(0));
-   show_bac_object_identifier();
-
-   pif_show_space();
-//   pif_show_ascii(0,"Object Name");
-   int tmpLen,tagbuff,flag,strLength;															   //  ***002 begin
-   tagbuff = pif_get_byte(0);
-   tmpLen = tagbuff & 0x07;
-   flag = 1;
-   if(tmpLen == 5){
-	   tmpLen = pif_get_byte(1);
-	   flag = 2;
-   }
-   strLength = tmpLen;
-   char strBuff[MAX_INT_LINE];
-   switch(pif_get_byte(flag)){
-   case 0: /* ASCII */
-	   pif_get_ascii(flag+1, strLength-1, strBuff);
-	   break;
-   case 1: /* MS DBCS */
-	   {
-		   static char	hex[] = "0123456789ABCDEF";
-		   char *dst;
-		   dst = strBuff;
-		   tmpLen-=1;
-		   int i = flag+1;
-		   while (tmpLen--) {
-			   int x = pif_get_byte(i);
-			   *dst++ = hex[ (x >> 4) & 0x0F ];
-			   *dst++ = hex[ x & 0x0F ];
-			   i++;
-		   }
-		   *dst = 0;
-	   }
-	   break;
-   default:
-	   sprintf(strBuff, "");
-	   break;
-   }
-   sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
-	   "Object Name:  '%s'", strBuff);															   //  ***002 end
-
-   show_application_data(pif_get_byte(0));
+	bac_show_byte("I-Have Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier( -1, "deviceIdentifier" );
+	seq.ObjectIdentifier( -1, "objectIdentifier" );
+	seq.TextString(       -1, "objectName" );
 }
 
 /**************************************************************************/
@@ -5309,74 +3480,8 @@ void show_unconfirmedCOVNotification( void )
 /**************************************************************************/
   /* This function interprets unconfirmedCOVNotification requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Unconfirmed COV Notification Request","%u");
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 0){
-	  show_head_unsigned(1, "Subscriber Process Identifier", tagval);							   //  ***002
-      len = show_context_tag("Subscriber Process Identifier");
-      show_bac_unsigned(len);
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-	  show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 1){
-	  show_head_obj_id(1, "Initiating Device Identifier", tagval);								   //  ***002
-      len = show_context_tag("Initiating Device Identifier");
-      show_bac_object_identifier();
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-	  show_head_ascii("Error: Context Tag 1 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 2){
-	  show_head_obj_id(1, "Monitored Object Identifier", tagval);								   //  ***002
-      show_context_tag("Monitored Object Identifier");
-      show_bac_object_identifier();
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-	  show_head_ascii("Error: Context Tag 2 Expected!");										   //  ***002
-      };
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 3){
-	  show_head_unsigned(1, "Time Remaining (seconds)", tagval);								   //  ***002
-      len = show_context_tag("Time Remaining (seconds)");
-      show_bac_unsigned(len);
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-	  show_head_ascii("Error: Context Tag 3 Expected!");										   //  ***002
-      };
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if(tagval == 4){
-      show_context_tag("List of Values");  /* opening tag */
-      while(pif_offset < (pif_end_offset-1))
-         show_bac_property_value();
-      show_context_tag("List of Values");  /* closing tag */
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 4 Expected!");
-	  show_head_ascii("Error: Context Tag 4 Expected!");										   //  ***002
-      };
+	bac_show_byte("Unconfirmed COV Notification Request","%u");
+	show_COVNotification();
 }
 
 /*************************************************************************/
@@ -5384,525 +3489,8 @@ void show_unconfEventNotification( void )
 /*************************************************************************/
   /* This function interprets UnconfirmedEventNotification service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len, notify_type;
-
-   bac_show_byte("Unconfirmed Event Notification Request","%u");
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 0)){
-	  show_head_unsigned(1, "Process Identifier", tagval);										   //  ***002
-
-      len = show_context_tag("Process Identifier");
-      show_bac_unsigned(len);
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-	  show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 1)){
-	  show_head_obj_id(1, "Initiating Device Identifier", tagval);								   //  ***002
-
-      show_context_tag("Initiating Device Identifier");
-      show_bac_object_identifier();
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-	  show_head_ascii("Error: Context Tag 1 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 2)){
-	  show_head_obj_id(1, "Event Object Identifier", tagval);									   //  ***002
-
-      show_context_tag("Event Object Identifier");
-      show_bac_object_identifier();
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-	  show_head_ascii("Error: Context Tag 2 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 3)){
-      show_context_tag("Time Stamp");
-      show_bac_timestamp();
-      show_context_tag("Time Stamp");  /* show closing tag */
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-	  show_head_ascii("Error: Context Tag 3 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 4)){
-	  show_head_unsigned(1, "Notification Class", tagval);										   //  ***002
-
-      show_context_tag("Notification Class");
-      bac_show_byte("Class (1..255)","%u");
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 4 Expected!");
-	  show_head_ascii("Error: Context Tag 4 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 5)){
-	  show_head_unsigned(1, "Priority", tagval);												   //  ***002
-
-      show_context_tag("Priority");
-      bac_show_byte("Priority (1..255)","%u");
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 5 Expected!");
-	  show_head_ascii("Error: Context Tag 5 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 6)){
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		  "[%u] Event Type:  %s", tagval, BACnetEventType[pif_get_byte(1)]);					   //  ***002
-
-      show_context_tag("Event Type");
-      bac_show_byte(BACnetEventType[pif_get_byte(0)],"%u");
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 6 Expected!");
-	  show_head_ascii("Error: Context Tag 6 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 7)){
-	  show_head_char_string(0, "Message Text", tagval);											   //  ***002
-
-      len = show_context_tag("Message Text");
-      show_bac_charstring(len);
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 8)){
-      sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		  "[%u] Notify Type:  %s", tagval, BACnetNotifyType[pif_get_byte(1)]);					   //  ***002
-
-      show_context_tag("Notify Type");
-      notify_type = pif_get_byte(0);
-      bac_show_byte(BACnetNotifyType[pif_get_byte(0)],"%u");
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 8 Expected!");
-	  show_head_ascii("Error: Context Tag 8 Expected!");										   //  ***002
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 9)){
-	  if(pif_get_byte(1)) /* TRUE */															   //  ***002
-		  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		      "[%u] Acknowledgement Required:  TRUE", tagval);	
-	  else
-		  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		      "[%u] Acknowledgement Required:  FALSE", tagval);
-
-      show_context_tag("Acknowledgement Required");
-      tagbuff = pif_get_byte(0);
-      if(tagbuff)  /* TRUE */
-         xsprintf(get_int_line(pi_data_current,pif_offset,1),
-         "%"FW"s = %u %s", "Acknowledgement Required","(TRUE)");
-      else
-         xsprintf(get_int_line(pi_data_current,pif_offset,1),
-         "%"FW"s = %u %s", "Acknowledgement Required","(FALSE)");
-      pif_show_space();
-      }
-   else{ /* required for alarm or event notifications */
-      if(notify_type != 2){
-         pif_show_space();
-//	     pif_show_ascii(0, "Error: Context Tag 9 Expected!");
-		 show_head_ascii("Error: Context Tag 9 Expected!");										   //  ***002
-         };
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 10)){
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		  "[%u] From State:  %s", tagval, BACnetEventState[pif_get_byte(1)]);					   //  ***002
-
-      show_context_tag("From State");
-      bac_show_byte(BACnetEventState[pif_get_byte(0)], "%u");
-      }
-   else{  /* required for alarm or event notifications */
-      if(notify_type != 2){
-         pif_show_space();
-//	     pif_show_ascii(0, "Error: Context Tag 10 Expected!");
-		 show_head_ascii("Error: Context Tag 10 Expected!");									   //  ***002
-         };
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 11)){
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		  "[%u] To State:  %s", tagval, BACnetEventState[pif_get_byte(1)]);						   //  ***002
-
-      show_context_tag("To State");
-      bac_show_byte(BACnetEventState[pif_get_byte(0)], "%u");
-      }
-   else{  /* required for alarm or event notifications */
-      if(notify_type != 2){
-         pif_show_space();
-//	     pif_show_ascii(0, "Error: Context Tag 11 Expected!");
-		 show_head_ascii("Error: Context Tag 11 Expected!");									   //  ***002
-         };
-      };
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if((tagbuff & 0x08) && (tagval == 12)){
-      show_context_tag("Event Values");
-      tagbuff = pif_get_byte(0);
-      tagval= (tagbuff&0xF0)>>4;
-      switch(tagval){
-         case 0:/* change of bitstring */
-            show_context_tag("Change of Bitstring Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_bit_string(0, "Referenced Bitstring", tagval);							   //  ***002
-
-               len = show_context_tag("Referenced Bitstring");
-               show_bac_bitstring(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len=show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            show_context_tag("Change of Bitstring Notification Parameters");  /* closing tag */
-            break;
-         case 1: /* change of state */
-            show_context_tag("Change of State Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-               show_context_tag("New State");
-               show_bac_property_states();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len=show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            show_context_tag("Change of State Notification Parameters");  /* closing tag */
-            break;
-         case 2: /* change of value */
-            show_context_tag("Change of Value Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-               show_context_tag("New Value");
-               tagbuff = pif_get_byte(0);
-               tagval = (tagbuff&0xF0)>>4;
-               switch(tagval){
-                  case 0:
-					 show_head_bit_string(0, "Changed Bits", tagval);							   //  ***002
-
-                     len = show_context_tag("Changed Bits");
-                     show_bac_bitstring(len);
-                     break;
-                  case 1:
-					 show_head_real(1, "Changed Value", tagval);								   //  ***002
-
-                     show_context_tag("Changed Value");
-                     show_bac_real();
-                     break;
-                  default:
-                     pif_show_space();
-//	                 pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-					 show_head_ascii("Error: Context Tag 1 Expected!");							   //  ***002
-                     break;
-                  };
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len=show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-            show_context_tag("Change of Value Notification Parameters");  /* closing tag */
-            break;
-         case 3: /* command failure */
-            show_context_tag("Command Failure Notification Parameters");  /* opening tag */
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-               show_context_tag("Command Value"); /* opening tag */
-
-               tagbuff = pif_get_byte(0);
-               if((tagbuff & 0x08) && ((tagbuff&0x0f) != 0x0e)){ /* SD context tag */
-                  len = show_context_tag("Unknown Context");
-                  bac_show_nbytes(len,"Unknown Data");
-                  };
-
-               if((tagbuff & 0x08) && ((tagbuff&0x0f) == 0x0e)){ /* PD context tag */
-                  show_context_tag("Unknown Context"); /* opening tag */
-                  len = 0;
-                  tagbuff = tagbuff | 0x01; /* set patern for closing tag */
-                  while(pif_get_byte(len) != tagbuff) len++;
-                  bac_show_nbytes(len+1,"Unknown Data");
-                  show_context_tag("Unknown Context"); /* closing tag */
-                  };
-
-               /* normal case */
-			   show_head_app_data();															   //  ***002
-               show_application_data(tagbuff);
-               show_context_tag("Command Value"); /* closing tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len=show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-               show_context_tag("Feedback Value");
-
-               tagbuff = pif_get_byte(0);
-               if((tagbuff & 0x08) && ((tagbuff&0x0f) != 0x0e)){ /* SD context tag */
-                  len = show_context_tag("Unknown Context");
-                  bac_show_nbytes(len,"Unknown Data");
-                  };
-
-               if((tagbuff & 0x08) && ((tagbuff&0x0f) == 0x0e)){ /* PD context tag */
-                  show_context_tag("Unknown Context"); /* opening tag */
-                  len = 0;
-                  tagbuff = tagbuff | 0x01; /* set patern for closing tag */
-                  while(pif_get_byte(len) != tagbuff) len++;
-                  bac_show_nbytes(len+1,"Unknown Data");
-                  show_context_tag("Unknown Context"); /* closing tag */
-                  };
-
-               /* normal case */
-			   show_head_app_data();															   //  ***002
-               show_application_data(tagbuff);
-               show_context_tag("Command Value"); /* closing tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
-               };
-
-            show_context_tag("Command Failure Notification Parameters");  /* closing tag */
-            break;
-         case 4: /* floating limit */
-            show_context_tag("Floating Limit Notification Parameters");  /* opening tag */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_bit_string(0, "Referenced Bitstring", tagval);							   //  ***002
-
-               len = show_context_tag("Referenced Bitstring");
-               show_bac_bitstring(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len=show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-            show_context_tag("Floating Limit Notification Parameters");  /* closing tag */
-            break;
-         case 5: /* out of range */
-            show_context_tag("Out of Range Notification Parameters");  /* opening tag */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_real(1, "Exceeding Value", tagval);									   //  ***002
-
-               show_context_tag("Exceeding Value");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len = show_context_tag("Status Flags");
-               show_bac_status_flags(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-			   show_head_real(1, "Deadband", tagval);											   //  ***002
-
-               show_context_tag("Deadband");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 3)){
-			   show_head_real(1, "Exceeded Limit", tagval);										   //  ***002
-
-               show_context_tag("Exceeded Limit");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-			   show_head_ascii("Error: Context Tag 3 Expected!");								   //  ***002
-               };
-
-            show_context_tag("Out of Range Notification Parameters");  /* closing tag */
-            break;
-         case 6: /* complex event type */
-            show_context_tag("Complex Notification Parameters");  /* opening tag */
-            while(pif_offset < (pif_end_offset-2))
-               show_bac_property_value();
-            show_context_tag("Complex Notification Parameters");  /* closing tag */
-            break;
-		 //Added by Zhu Zhenhua, 2004-5-17
-		 case 10: /*buffer ready*/	
-            show_context_tag("Buffer ready Notification Parameters");  /* opening tag */
-			show_context_tag("Buffer-Property");  /* opening tag */
-			show_bac_devobj_prop_ref();
-			show_context_tag("Buffer-Property");  /* closing tag */			
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-			   show_head_unsigned(1, "previous-notification", tagval);											   //  ***002
-               len = show_context_tag("previous-notification");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***001
-               };
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-			   show_head_unsigned(1, "current-notification", tagval);											   //  ***002
-               len = show_context_tag("current-notification");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
-               };
-            show_context_tag("Buffer ready Notification Parameters");  /* closing tag */
-			break;
-         default:
-            pif_show_space();
-            bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 10)!");
-            break;
-         };
-      show_context_tag("Event Values");  /* closing tag */
-      }
-   else{
-      pif_show_space();
-//	  pif_show_ascii(0, "Error: Context Tag 12 Expected!");
-	  show_head_ascii("Error: Context Tag 12 Expected!");										   //  ***002
-      };
+	bac_show_byte("Unconfirmed Event Notification Request","%u");
+	show_EventNotification();
 }
 
 /*************************************************************************/
@@ -5910,140 +3498,16 @@ void show_unconfPrivateTransfer( void )
 /*************************************************************************/
   /* This function interprets UnconfirmedPrivateTransfer service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Private Transfer Request","%u");
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff & 0xF0) >> 4;
-   if ((tagval == 0) && (tagbuff & 0x08)) {
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
- 	    "[%d] Vendor ID:  %S", tagval, BACnetVendorID[pif_get_byte(1)]);						   //  ***002
-      len = show_context_tag("Vendor ID");
-      bac_show_byte(BACnetVendorID[pif_get_byte(0)], "%u");
-   /*   show_bac_unsigned(len); */
-      }
-   else {
-      pif_show_space();
-//	  pif_show_ascii(0, " Error: Context Tag 0 expected !");
-	  show_head_ascii(" Error: Context Tag 0 expected !");										   //  ***002
-      }
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff & 0xF0) >> 4;
-   if ((tagval == 1) && (tagbuff & 0x08)) {
-	  show_head_unsigned(1, "Service Number", tagval);											   //  ***002
-      len = show_context_tag("Service Number");
-      show_bac_unsigned(len);
-      }
-   else {
-      pif_show_space();
-//	  pif_show_ascii(0, " Error: Context Tag 1 expected !");
-	  show_head_ascii(" Error: Context Tag 1 expected !");										   //  ***002
-      }
-
-   if(pif_offset < pif_end_offset) { /* optional service parameters */
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff & 0xF0) >> 4;
-      if ((tagval == 2) && (tagbuff & 0x08)) {
-         show_context_tag("Service Parameters");  /* opening tag */
-
-//         while (pif_offset < (pif_end_offset-1)) 
-//		 {
-//			 show_head_app_data();																   //  ***002
-//			 show_application_data( pif_get_byte(0) );
-//		 }
-         
-            len = pif_end_offset - pif_offset - 1;
-            sprintf(outstr,"Service Parameters (%u Octets)",len);
-            bac_show_nbytes(len,outstr);
-         
-
-         show_context_tag("Service Parameters");  /* closing tag */
-         }
-      else {
-         pif_show_space();
-//	     pif_show_ascii(0, " Error: Context Tag 2 expected !");
-	     show_head_ascii(" Error: Context Tag 2 expected !");									   //  ***002
-         }
-      };
+	bac_show_byte("Unconfirmed Private Transfer Request","%u");
+	show_private_transfer();
 }
 
 /*************************************************************************/
 void show_unconfTextMessage( void )
 /*************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Unconfirmed Text Message Request","%u");
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {
-        switch(tagval) {
-           case 0:  
-			   {
-				   show_head_obj_id(1, "Text Message Source Device", tagval);					   //  ***002
-
-				   show_context_tag("Text Message Source Device");
-				   show_bac_object_identifier();
-			   }
-               break;
-           case 1:  show_context_tag("Message Class");  /* opening tag */
-               switch((pif_get_byte(0)&0xF0)>>4) {
-                  case 0: 
-					  {
-						  show_head_unsigned(1, "Numeric Class", -1);							   //  ***002
-
-						  len = show_context_tag("Numeric Class");
-                          show_bac_unsigned(len);
-					  }
-					  break;
-                  case 1: 
-					  {
-						  show_head_char_string(0, "Character Class", tagval);					   //  ***002
-
-						  len = show_context_tag("Character Class");
-                          show_bac_charstring(len);
-					  }
-			   }
-               show_context_tag("Message Class");  /* opening tag */
-               break;
-           case 2:  
-			   if(!pif_get_byte(1))																   //  ***002
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
-				       "[%d] Message Priority:  Normal=%u", tagval, pif_get_byte(1));
-			   else
-				   sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
-				       "[%d] Message Priority:  Urgent=%u", tagval, pif_get_byte(1));			   
-			   
-			   show_context_tag("Message Priority");
-               if(!pif_get_byte(0))
-                  bac_show_byte("Normal","%u");
-               else
-                  bac_show_byte("Urgent","%u");
-               break;
-           case 3:  
-			   {
-				   show_head_char_string(0, "Message", tagval);									   //  ***002
-				   
-				   len = show_context_tag("Message");
-				   show_bac_charstring(len);
-			   }
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }
-        }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-    }  /* end while */
+	bac_show_byte("Unconfirmed Text Message Request","%u");
+	show_textMessage();
 }
 
 /*************************************************************************/
@@ -6051,109 +3515,42 @@ void show_timeSynchronization( void )
 /*************************************************************************/
   /* This function interprets Time Synchronization requests */
 {
-   bac_show_byte("Time Synchronization Request","%u");
-   show_application_data(pif_get_byte(0)); /*Date*/
-   show_head_time(1, "Time", -1);																   //  ***002
-   show_application_data(pif_get_byte(0)); /*Time*/
+	bac_show_byte("Time Synchronization Request","%u");
+	BACnetSequence seq;
+	seq.Date( -1, "date" );
+	seq.Time( -1, "time" );
 }
 /*************************************************************************/
   /* This function interprets UTC Time Synchronization requests */
 
 void show_UTCtimeSynchronization( void )
 {
- //  unsigned int len,x;
-
-   bac_show_byte("UTC Time Synchronization Request","%u");
-   show_application_data(pif_get_byte(0)); /*Date*/
-   show_head_time(1, "Time", -1);																   //  ***002
-   show_application_data(pif_get_byte(0)); /*Time*/
-
-
- //Modifyed by Zhu Zhenhua 2003-7-22, Remove the extra fileds from UTCtimeSynchronization 
- /*
-   len = show_context_tag("UTC_Offset");   UTC _Offst   show_bac_signed(len);
-  
-     len = show_context_tag("DaylightSavingsStatus");   DaylightSavingsStatus   x = pif_get_byte(-1);
-     if(x & 0x0F)
-        bac_show_nbytes(len, "TRUE");
-     else
-        bac_show_nbytes(len,"FALSE");*/
- 
+	bac_show_byte("UTC Time Synchronization Request","%u");
+	BACnetSequence seq;
+	seq.Date( -1, "date" );
+	seq.Time( -1, "time" );
 }
+
 /*************************************************************************/
 void show_whoHas( void )
 /*************************************************************************/
   /* This function interprets Who-Has service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
+	bac_show_byte("Who-Has Request","%u");
+	BACnetSequence seq;
+	// TODO: untagged optional sequence "limits"
+	bool gotLow  = seq.Unsigned( 0, "deviceInstanceRangeLowLimit", BSQ_OPTIONAL );
+	bool gotHigh = seq.Unsigned( 1, "deviceInstanceRangeHighLimit", BSQ_OPTIONAL );
+	if (gotLow ^ gotHigh)
+	{
+		seq.Fail( "Error: must have BOTH low and high range limit or NEITHER" );
+	}
 
-   bac_show_byte("Who-Has Request","%u");
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-
-   if (tagbuff & 0x08) { /* context tag */
-      if(tagval == 0){ /* device instance range expected */
-
-		 len = (tagbuff & 0x07);
-		 unsigned long value = get_bac_unsigned(1, len);
-		  
-		 sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-		    "[%u] Device Instance Range Low Limit = %lu", tagval, value);						   //  ***002
-
-		 len = show_context_tag("Device Instance Range Low Limit");
-         show_bac_unsigned(len);
-         tagbuff = pif_get_byte(0);
-         tagval = (tagbuff&0xF0)>>4;
-
-         if((tagbuff & 0x08) && (tagval == 1)){ /* range high limit tag */
-
-		    len = (tagbuff & 0x07);
-		    unsigned long value = get_bac_unsigned(1, len);
-		  
-		    sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-			   "[%u] Device Instance Range High Limit = %lu", tagval, value);					   //  ***002
-
-            len = show_context_tag("Device Instance Range High Limit");
-            show_bac_unsigned(len);
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            }
-         else{
-            pif_show_space();
-//	        pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			show_head_ascii("Error: Context Tag 1 Expected!");									   //  ***002
-            pif_offset = pif_end_offset;
-            };
-         };
-
-      switch(tagval) {
-	     case 2:
-			 {
-				 show_head_obj_id(1, "Object Identifier", tagval);								   //  ***002
-				 
-				 show_context_tag("Object Identifier");
-				 show_bac_object_identifier();
-			 }
-             break;
-         case 3: /* object name */
-			 {
-				 show_head_char_string(0, "Object Name", tagval);								   //  ***002
-
-				 len = show_context_tag("Object Name");
-				 show_bac_charstring(len);
-             }
-			 break;
-         default: len = show_context_tag("Invalid Context Tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-         };
-      }
-   else{  /* application tag */
-     pif_show_space();
-//	 pif_show_ascii(0, "Error: Context Tag Expected!");
-	 show_head_ascii("Error: Context Tag Expected!");											   //  ***002
-     pif_offset = pif_end_offset;
-     };
+	// TODO: untagged optional sequence "object"
+	seq.BeginChoice();
+	seq.ObjectIdentifier( 2, "objectIdentifier", BSQ_CHOICE );
+	seq.TextString(       3, "objectName", BSQ_CHOICE );
+	seq.EndChoice();
 }
 
 /*************************************************************************/
@@ -6161,56 +3558,14 @@ void show_whoIs( void )
 /*************************************************************************/
   /* This function interprets Who-Is service requests */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Who-Is Request","%u");
-   if (pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-
-      if(tagval == 0){
-		  len = (tagbuff & 0x07);
-		  unsigned long value = get_bac_unsigned(1, len);
-		  
-		  sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-			  "[%u] Device Instance Range Low Limit = %lu", tagval, value);						   //  ***002
-		  
-		  pif_show_space();
-		  len = show_context_tag("Device Instance Range Low Limit");
-		  show_bac_unsigned(len);
-	  }
-      else{
-//	    pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-		show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        };
-
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-
-      if(tagval == 1){
-		  len = (tagbuff & 0x07);
-		  unsigned long value = get_bac_unsigned(1, len);
-		  
-		  sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-			  "[%u] Device Instance Range High Limit = %lu", tagval, value);					   //  ***002
-		  
-		  pif_show_space();
-		  len = show_context_tag("Device Instance Range High Limit");
-		  show_bac_unsigned(len);
-	  }
-      else{
-//	    pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-		show_head_ascii("Error: Context Tag 1 Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        };
-
-      }
-   else{
-//		pif_show_ascii(0,"Request for ALL Devices!");
-		show_head_ascii("Request for ALL Devices!");	   
-   }
+	bac_show_byte("Who-Is Request","%u");
+	BACnetSequence seq;
+	bool gotLow  = seq.Unsigned( 0, "deviceInstanceRangeLowLimit", BSQ_OPTIONAL );
+	bool gotHigh = seq.Unsigned( 1, "deviceInstanceRangeHighLimit", BSQ_OPTIONAL );
+	if (gotLow ^ gotHigh)
+	{
+		seq.Fail( "Error: must have BOTH low and high range limit or NEITHER" );
+	}
 }
 
 /*************************************************************************/
@@ -6218,39 +3573,15 @@ void show_getAlarmSummaryACK( void )
 /*************************************************************************/
   /* This function interprets GetAlarmSummary acknowledgements */
 {
-   bac_show_byte("Get Alarm Summary Acknowledgement","%u");
-   while(pif_offset<pif_end_offset) {
-      pif_show_space();
-//	  pif_show_ascii(0,"Object Identifier");
-	  show_head_obj_id(1, "Object Identifier", -1);												   //  ***002
-      show_application_tag(pif_get_byte(0));
-      show_bac_object_identifier();
-
-      pif_show_space();
-//	  pif_show_ascii(0,"Alarm State");
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1), 
-	      "Alarm State:  %s", BACnetEventState[pif_get_byte(1)]);								   //  ***002
-      show_application_tag(pif_get_byte(0));
-      bac_show_byte(BACnetEventState[pif_get_byte(0)],"%u");
-
-      pif_show_space();
-//	  pif_show_ascii(0,"Acknowledged States");													   //  ***002 begin
-	  int len,count,i,j;
-	  char* bitStr;
-	  len = pif_get_byte(0)&0x07;
-	  count = pif_get_byte(1);
-	  bitStr = new char[8-count+1];
-	  int bitHex[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-	  for( i=0,j=7; i<(8-count); i++,j-- )
-	  {
-		  sprintf(bitStr+i, "%u", (pif_get_byte(2)&bitHex[i])>>j);
-	  }
-	  bitStr[8-count+1] = '\0';
-	  sprintf(get_int_line(pi_data_current,pif_offset,1+len,1), 
-	      "Acknowledged States:  '%s'", bitStr);												   //  ***002 end
-      show_application_tag(pif_get_byte(0));
-      show_bac_event_transitions_ackd();
-   }
+	bac_show_byte("Get Alarm Summary Acknowledgement","%u");
+	BACnetSequence seq;
+	seq.ListOf( -1, "sequence of" );
+	while (seq.HasListElement())
+	{
+		seq.ObjectIdentifier( -1, "objectIdentifier" );
+		seq.Enumerated(       -1, "alarmState", &BAC_STRTAB_BACnetEventState );
+		seq.BitString(        -1, "acknowledgedTransitions", &BAC_STRTAB_BACnetEventTransitionBits );
+	}
 }
 
 /*************************************************************************/
@@ -6258,49 +3589,17 @@ void show_getEnrollmentSummaryACK( void )
 /*************************************************************************/
   /* This function interprets GetEnrollmentSummary acknowledgements */
 {
-   unsigned char tagbuff, tagclass; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Get Enrollment Summary Acknowledgement","%u");
-   while(pif_offset<pif_end_offset) {
-      pif_show_space();
-//	  pif_show_ascii(0,"Object Identifier");
-	  show_head_obj_id(1, "Object Identifier", -1);												   //  ***002
-      show_application_tag(pif_get_byte(0));
-      show_bac_object_identifier();
-
-      pif_show_space();
-//	  pif_show_ascii(0,"Event Type");
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		  "Event Type:  %s", BACnetEventType[pif_get_byte(1)]);									   //  ***002
-      show_application_tag(pif_get_byte(0));
-      bac_show_byte(BACnetEventType[pif_get_byte(0)],"%u");
-
-      pif_show_space();
-//	  pif_show_ascii(0,"Event State");
-	  sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-		  "Event State:  %s", BACnetEventState[pif_get_byte(1)]);								   //  ***002
-      show_application_tag(pif_get_byte(0));
-      bac_show_byte(BACnetEventState[pif_get_byte(0)],"%u");
-
-      pif_show_space();
-//	  pif_show_ascii(0,"Priority");
-	  show_head_unsigned(1, "Priority", -1);													   //  ***002
-      len = show_application_tag(pif_get_byte(0));
-      show_bac_unsigned(len);
-
-      if (pif_offset<pif_end_offset) {
-         tagbuff = pif_get_byte(0);
-         tagclass = (tagbuff&0xf0)>>4;
-         if (tagclass == 2) {
-            pif_show_space();
-//	        pif_show_ascii(0,"Notification Class");
-			show_head_unsigned(1, "Notification Class", -1);									   //  ***002
-            len = show_application_tag(pif_get_byte(0));
-            show_bac_unsigned(len);
-       }
-     }
-   }
+	bac_show_byte("Get Enrollment Summary Acknowledgement","%u");
+	BACnetSequence seq;
+	seq.ListOf( -1, "sequence of" );
+	while (seq.HasListElement())
+	{
+		seq.ObjectIdentifier( -1, "objectIdentifier" );
+		seq.Enumerated(       -1, "eventType", &BAC_STRTAB_BACnetEventType );
+		seq.Enumerated(       -1, "eventState", &BAC_STRTAB_BACnetEventState );
+		seq.Unsigned(         -1, "priority" );
+		seq.Unsigned(         -1, "notificationClass", BSQ_OPTIONAL );
+	}
 }
 
 /*************************************************************************/
@@ -6308,100 +3607,28 @@ void show_atomicReadFileACK( void )
 /*************************************************************************/
   /* This function interprets AtomicReadFile acknowledgements */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   int	flag;
-   char* dataStr;
-
-   bac_show_byte("Atomic Read File Acknowledgement","%u");
-   pif_show_space();
-   if(pif_get_byte(0)&0x07)
-      show_str_eq_str("End of File","TRUE",1);
-   else
-      show_str_eq_str("End of File","FALSE",1);
-   pif_offset++;
-   while(pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {
-        switch(tagval) {
-           case 0:
-               if((tagbuff & 0x0f) == 0x0e){
-                  show_context_tag("Stream Access"); /* opening tag */
-                  pif_show_space();
-//	              pif_show_ascii(0,"File Start Position");
-				  
-				  show_head_unsigned(1, "File Start Position", -1);								   //  ***002
-
-                  show_application_data(pif_get_byte(0));
-                  pif_show_space();
-//	              pif_show_ascii(0,"File Data");
-				  /* OCTET STRING follows */
-			   }
-               else
-                  show_context_tag("Stream Access");  /* closing tag */
-               break;
-           case 1:
-               if((tagbuff & 0x0f) == 0x0e){
-                  show_context_tag("Record Access");  /* opening tag */
-                  pif_show_space();
-//	              pif_show_ascii(0,"File Start Record");
-				  
-				  show_head_unsigned(1, "File Start Record", -1);								   //  ***002
-
-                  show_application_data(pif_get_byte(0));
-                  pif_show_space();
-//	              pif_show_ascii(0,"Returned Record Count");
-				  
-				  show_head_unsigned(1, "Returned Record Count", -1);							   //  ***002
-
-                  show_application_data(pif_get_byte(0));
-                  pif_show_space();
-//	              pif_show_ascii(0,"File Record Data");
-                  /* Sequence of OCTET STRINGS follows */
-               }
-               else
-                  show_context_tag("Record Access");  /* closing tag */
-               break;
-           default: len = show_context_tag("Unknown tag");
-               bac_show_nbytes(len,"Error: Unknown data");
-           }
-        }
-      else{
-		  if((pif_get_byte(0)&0xf0)>>4 == 6){													   //  ***002 begin
-			  len = pif_get_byte(0)&0x07;
-			  flag = 0;
-			  if(len == 5){
-				  len = pif_get_byte(1);
-				  flag = 1;
-					if (len == 254)
-					{
-						len = pif_get_word_hl(flag+1);
-						flag = 3;
-					}
-			  }
-			  dataStr = new char[len*2+1];
-			  if(len){
-				  for(int i=0; i<(int)len; i++)
-				  {
-					  sprintf(dataStr+i*2, "%02X", pif_get_byte(1+i+flag));
-				  }
-				  if (len > 254)
-					dataStr[254*2+1] = '\0';   // truncate the line so it is not too large to display
-				  else
-					dataStr[len*2+1] = '\0';
-				  sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
-					  "File Data (%u Octets):  X'%s'", len, dataStr);
-			  }
-			  else{
-				  sprintf(get_int_line(pi_data_current,pif_offset,len+flag+1,1),
-					  "File Data (%u Octet)", len);
-			  }
-		  }																						   //  ***002 end
-		  show_application_data(tagbuff);
-		  pif_offset += len+flag+1;
-      }
-   }
+	bac_show_byte("Atomic Read File Acknowledgement","%u");
+	BACnetSequence seq;
+	seq.Boolean( -1, "endOfFile" );
+	seq.BeginChoice();
+	if (seq.OpeningTag( 0, "streamAccess", BSQ_CHOICE ))
+	{
+		seq.Integer(     -1, "fileStartPosition" );
+		seq.OctetString( -1, "fileData" );
+		seq.ClosingTag();
+	}
+	if (seq.OpeningTag( 1, "recordAccess", BSQ_CHOICE ))
+	{
+		seq.Integer(  -1, "fileStartRecord" );
+		seq.Unsigned( -1, "returnedRecordCount" );
+		seq.ListOf(   -1, "fileRecordData" );
+		while (seq.HasListElement())
+		{
+			seq.OctetString( -1, "record" );
+		}
+		seq.ClosingTag();
+	}
+	seq.EndChoice();
 }
 
 /*************************************************************************/
@@ -6409,27 +3636,12 @@ void show_atomicWriteFileACK( void )
 /*************************************************************************/
   /* This function interprets AtomicWriteFile acknowledgements */
 {
-   unsigned int len;
-   unsigned long value;
-
-   bac_show_byte("Atomic Write File Acknowledgement","%u");
-   switch((pif_get_byte(0)&0xf0)>>4) {
-      case 0: 
-		 len = pif_get_byte(0)&0x07;
-		 value = get_bac_unsigned(1, len);
-		 sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-		     "[0] File Start Position:  %lu", value);											   //  ***002
-		 len = show_context_tag("File Start Position");
-         show_bac_unsigned(len);
-         break;
-      case 1: 
-		 len = pif_get_byte(0)&0x07;
-		 value = get_bac_unsigned(1, len);
-		 sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-		     "[1] File Start Record:  %lu", value);												   //  ***002
-		 len = show_context_tag("File Start Record");
-         show_bac_unsigned(len);
-   }
+	bac_show_byte("Atomic Write File Acknowledgement","%u");
+   	BACnetSequence seq;
+	seq.BeginChoice();
+	seq.Integer( 0, "fileStartPosition", BSQ_CHOICE );
+	seq.Integer( 0, "fileStartRecord", BSQ_CHOICE );
+	seq.EndChoice();
 }
 
 /*************************************************************************/
@@ -6437,11 +3649,9 @@ void show_createObjectACK( void )
 /*************************************************************************/
   /* This function interprets CreateObject acknowledgements */
 {
-   bac_show_byte("CreateObject Acknowledgement","%u");
-
-   show_head_obj_id(1, "BACnet Object Identifier", -1);											   //  ***002
-
-   show_application_data(pif_get_byte(0));
+	bac_show_byte("CreateObject Acknowledgement","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier(   0, "objectIdentifier" );
 }
 
 /*************************************************************************/
@@ -6449,91 +3659,39 @@ void show_readPropertyACK( void )
 /*************************************************************************/
   /* This function interprets ReadProperty acknowledgements */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   long  obj_id = 0;
-   int obj_type,prop_idx,prop_id;
-
-   prop_idx = -1;  /* initialize to indicate no array index present */
-
-   bac_show_byte("Read Property Acknowledgement","%u");
-
-   while (pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (tagbuff & 0x08) {
-    if(tagval > 4) {
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 4)!");
-       goto exit;
-    }
-    switch(tagval) {
-       case 0:  
-		   show_head_obj_id(1, "Object Identifier", tagval);									   //  ***002
-		   
-		   show_context_tag("Object Identifier");
-
-		   //madanner 9/04, global hack for intercepting RP in EPICS view
-		   {
-			for (int j = 0; j < 4; j++)
-				obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j );
-		   }
-
-           obj_type = bac_extract_obj_type();
-           show_bac_object_identifier();
-           break;
-       case 1:  
-		   show_head_property_ID(1, "Property Identifier", tagval);								   //  ***002
-		   
-		   len = show_context_tag("Property Identifier");
-           if (len == 1)
-             prop_id = (int)pif_get_byte(0);
-           else
-             prop_id = (int)pif_get_word_hl(0);
-           show_bac_property_identifier(len);
-           break;
-       case 2:  
-		   show_head_unsigned(1, "Property Array Index", tagval);								   //  ***002
-		   
-		   len = show_context_tag("Property Array Index");
-           prop_idx = pif_get_byte(0);
-           show_bac_unsigned(len);
-           break;
-	   case 3:
-		   show_context_tag("Property Value");  /* opening tag */
-
-		   //madanner 9/04 add calls to EPICS read property tracker
-		   //can't support indexes at this time
-		   if ( prop_idx == -1 )
-			   ::EPICS_AddRPValue(obj_id, prop_id, pif_get_addr(), pif_end_offset - pif_offset);
-
-           show_bac_ANY(obj_type,prop_id,prop_idx);
-
-           show_context_tag("Property Value");  /* closing tag */
-           break;
-       default: len = show_context_tag("Unknown tag");
-           bac_show_nbytes(len,"Error: Unknown data");
-    }
-      }
-      else{  /* application tag */
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag Expected!");
-		show_head_ascii("Error: Context Tag Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }  
-   }
-exit:;
+	bac_show_byte("Read Property ACK","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier( 0, "Object Identifier", BSQ_REQUIRED );
+	seq.PropertyIdentifier( 1, "Property Identifier", BSQ_REQUIRED );
+	seq.PropertyArrayIndex( 2, "Property Array Index", BSQ_OPTIONAL );
+	if (seq.OpeningTag( 3, "PropertyValue" ))
+	{
+		// TODO: is this really the best way to do this?
+		// For one thing, we don't really even know which DEVICE this
+		// response is from.
+		// Defined in EPICSTreeView.cpp.  Active only if the EPICS tree is open.
+		//	
+		// madanner 9/04 add calls to EPICS read property tracker
+		// can't support indexes at this time
+		if (seq.LastPropertyIndex() == -1)
+		{
+			::EPICS_AddRPValue( seq.LastObjectIdentifier(), seq.LastPropertyID(), 
+								pif_get_addr(), pif_end_offset - pif_offset);
+		}
+	
+		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+		seq.ClosingTag();
+	}
 }
-
-
 
 /*************************************************************************/
 void show_readPropertyConditionalACK( void )
 /*************************************************************************/
   /* This function interprets ReadPropertyConditional acknowledgements */
 {
-   bac_show_byte("Read Property Conditional Acknowledgement","%u");
-   show_bac_read_access_result();
+	bac_show_byte("Read Property Conditional Acknowledgement","%u");
+	BACnetSequence seq;
+	show_read_access_result( seq );
 }
 
 /*************************************************************************/
@@ -6541,8 +3699,9 @@ void show_readPropertyMultipleACK( void )
 /*************************************************************************/
   /* This function interprets ReadPropertyMultiple acknowledgements */
 {
-   bac_show_byte("Read Property Multiple Acknowledgement","%u");
-   show_bac_read_access_result();
+	bac_show_byte("Read Property Multiple Acknowledgement","%u");
+	BACnetSequence seq;
+	show_read_access_result( seq );
 }
 
 /*************************************************************************/
@@ -6550,63 +3709,8 @@ void show_conf_PrivateTransferACK( void )
 /*************************************************************************/
   /* This function interprets ConfirmedPrivateTransfer acknowledgements */
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   bac_show_byte("Private Transfer Acknowledgement","%u");
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff & 0xF0) >> 4;
-   if ((tagval == 0) && (tagbuff & 0x08)) {
-      len = show_context_tag("Vendor ID");
-      bac_show_byte(BACnetVendorID[pif_get_byte(0)], "%u");
-   /*   show_bac_unsigned(len); */
-      }
-   else {
-      pif_show_space();
-//	  pif_show_ascii(0, " Error: Context Tag 0 expected !");
-	  show_head_ascii(" Error: Context Tag 0 expected !");										   //  ***002
-      }
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff & 0xF0) >> 4;
-   if ((tagval == 1) && (tagbuff & 0x08)) {
-	  show_head_unsigned(1, "Service Number", tagval);											   //  ***002
-
-      len = show_context_tag("Service Number");
-      show_bac_unsigned(len);
-      }
-   else {
-      pif_show_space();
-//	  pif_show_ascii(0, " Error: Context Tag 1 expected !");
-	  show_head_ascii(" Error: Context Tag 1 expected !");										   //  ***002
-      }
-
-   if(pif_offset < pif_end_offset) { /* optional service parameters */
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff & 0xF0) >> 4;
-      if ((tagval == 2) && (tagbuff & 0x08)) {
-         show_context_tag("Result Block");  /* opening tag */
-
-         while (pif_offset < (pif_end_offset-1)) 
-         {
-			 show_head_app_data();																   //  ***002
-			 show_application_data( pif_get_byte(0) );
-		 }
-         /*
-            len = pif_end_offset - pif_offset - 1;
-            sprintf(outstr,"Service Parameters (%u Octets)",len);
-            bac_show_nbytes(len,outstr);
-         */
-
-         show_context_tag("Result Block");  /* closing tag */
-         }
-      else {
-         pif_show_space();
-//	     pif_show_ascii(0, " Error: Context Tag 2 expected !");
-	 	 show_head_ascii(" Error: Context Tag 2 expected !");									   //  ***002
-         }
-      };
+	bac_show_byte("Private Transfer Acknowledgement","%u");
+	show_private_transfer();
 }
 
 /*************************************************************************/
@@ -6614,12 +3718,9 @@ void show_vtOpenACK( void )
 /*************************************************************************/
   /* This function interprets VT-Open acknowledgements */
 {
-   bac_show_byte("VT Open Acknowledgement","%u");
-
-   show_head_unsigned(1, "Remote VT Session Id", -1);											   //  ***002
-   
-   show_application_tag(pif_get_byte(0));
-   bac_show_byte("Remote VT Session Id","%u");
+	bac_show_byte("VT Open Acknowledgement","%u");
+	BACnetSequence seq;
+	seq.Unsigned( -1, "remoteVTSessionIdentifier" );
 }
 
 /*************************************************************************/
@@ -6627,173 +3728,66 @@ void show_vtDataACK( void )
 /*************************************************************************/
   /* This function interprets VT-Data acknowledgements */
 {
-   unsigned int len;
-   unsigned char tagbuff;
+	bac_show_byte("VT Data Acknowledgement","%u");
+	BACnetSequence seq;
+	seq.Boolean( -1, "allNewDataAccepted" );
+	bool allAccepted = seq.LastBoolean();
+	bool gotCount = seq.Unsigned( -1, "acceptedOctetCount", BSQ_OPTIONAL );
 
-   bac_show_byte("VT Data Acknowledgement","%u");
-
-   int tagval = (pif_get_byte(0)&0xf0)>>4;
-   if(pif_get_byte(1))																			   //  ***002
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-	       "[%d] All New Data Accepted:  TRUE", tagval);
-   else
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,1),
-	       "[%d] All New Data Accepted:  FALSE", tagval);
-
-   show_context_tag("All New Data Accepted");
-   tagbuff = pif_get_byte(0);
-   if(tagbuff)  /* TRUE */
-     xsprintf(get_int_line(pi_data_current,pif_offset,1),
-       "%"FW"s = %u %s", "All New Data Accepted","(TRUE)");
-   else
-     xsprintf(get_int_line(pi_data_current,pif_offset,1),
-       "%"FW"s = %u %s", "All New Data Accepted","(FALSE)");
-   pif_show_space();
-   if(pif_end_offset != pif_offset){ /* display accepted octet count if present */
-	   len = pif_get_byte(0)&0x07;
-	   tagval = (pif_get_byte(0)&0xf0)>>4;
-	   unsigned long value = get_bac_unsigned(1, len);
-	   sprintf(get_int_line(pi_data_current,pif_offset,1+len,1),
-		   "[%d] Accepted Octet Count:  %lu", tagval, value);									   //  ***002
-	   
-	   len = show_context_tag("Accepted Octet Count");
-	   show_bac_unsigned(len);
-   }
+	if (allAccepted ^ gotCount)
+	{
+		seq.Fail( "acceptedOctetCount must be present if and only if allNewDataAccepted is false" );
+	}
 }
 
 /*************************************************************************/
 void show_authenticateACK( void )
 /*************************************************************************/
-  /* This function interprets Authenticate acknowledgements */
+/* This function interprets Authenticate acknowledgements */
 {
-   bac_show_byte("Authenticate Acknowledgement","%u");
-   pif_show_space();
-   pif_show_ascii(0,"Modified Random Number");
-   show_application_data(pif_get_byte(0));
+	bac_show_byte("Authenticate Acknowledgement","%u");
+	BACnetSequence seq;
+	seq.Unsigned( -1, "modifiedRandomNumber" );
 }
+
 /*************************************************************************/
 // This function displays the ReadRange Request
 //
 void show_ReadRange ( void )
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   int prop_idx;
+	bac_show_byte("Read Range Request","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier(   0, "objectIdentifier" );
+	seq.PropertyIdentifier( 1, "propertyIdentifier" );
+	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
 
-   prop_idx = -1;  /* initialize to indicate no array index present */
-
-   bac_show_byte("Read Range Request","%u");
-   tagbuff = pif_get_byte(0);
-   while(pif_offset < pif_end_offset) 
-   {
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) 
-      {  /* context tag */
-        if(tagval > 7)
-      {
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 7)!");
-          goto exit;
-      }
-        pif_show_space();
-        switch (tagval)
-          {
-          case 0:  
-			    show_head_obj_id(1, "Object Identifier", tagval);								   //  ***002 
-
-			    len = show_context_tag("Object Identifier");
-                show_bac_object_identifier();
-          break;
-          case 1:
-			    show_head_property_ID(1, "Property Identifier", tagval);						   //  ***002
-
-                len = show_context_tag("Property Identifier");
-                show_bac_property_identifier(len);
-          break;
-          case 2: 
-			    show_head_unsigned(1, "Array Index", tagval);									   //  ***002
-
-                len = show_context_tag("Array Index ");
-                show_bac_unsigned(len);                       /* array index */
-          break;
-          case 3:
-				show_context_tag("By Position");			// opening tag					
-			  
-			    show_head_unsigned(1, "Reference Index", -1);									   //  ***002
-
-                show_context_tag("Reference Index");
-                show_bac_unsigned(len);                     /* ByPosition */
-                
-				show_head_signed(1, "Count", -1);												   //  ***002
-
-				len = show_context_tag("Count");
-                show_bac_signed(len);
-
-				show_context_tag("By Position");			// closing tag
-          break;
-          case 4:
-                show_context_tag("Reference Time(Be deprecated in 2001)");    // Opening Tag
-                   tagbuff = pif_get_byte(0);
-                   while ((tagbuff & 0x0f) != 0x0f)
-               {
-                     show_head_app_data();														   //  ***002
-					   
-					 show_application_data(tagbuff);
-                     tagbuff = pif_get_byte(0);
-               };
-                   //show_context_tag("Reference Time");      // Closing Tag
-
-               len = show_context_tag("Count");
-               show_bac_signed(len);  /* ItemCount */
-        break;
-          case 5:  
-                show_context_tag("TimeRange(Be deprecated in 2001)");           // Opening Tag
-                   tagbuff = pif_get_byte(0);
-                   while ((tagbuff & 0x0f) != 0x0f)
-               {
-                     show_head_app_data();														   //  ***002
-					   
-					 show_application_data(tagbuff);
-                     tagbuff = pif_get_byte(0);
-               };
-                   show_context_tag("TimeRange");           // Closing Tag
-          break;
-		//Modified by Zhu Zhenhua, 2004-5-22
-		  case 6:
-				show_context_tag("By SequenceNumber");			// opening tag					
-			  
-			    show_head_unsigned(1, "Reference Index", -1);									  
-
-                show_context_tag("Reference Index");
-                show_bac_unsigned(len);                     /* By SequenceNumber */
-                
-				show_head_signed(1, "Count", -1);												  
-
-				len = show_context_tag("Count");
-                show_bac_signed(len);
-
-				show_context_tag("By SequenceNumber");			// closing tag
-		  break;
-          case 7:                                              /* By Time */
-                show_context_tag("Reference Time");    // Opening Tag
-                   tagbuff = pif_get_byte(0);
-                   while ((tagbuff & 0x0f) != 0x0f)          
-               {
-                     show_head_app_data();														 
-					   
-					 show_application_data(tagbuff);
-                     tagbuff = pif_get_byte(0);
-               };
-                   //show_context_tag("Reference Time");      // Closing Tag
-
-               len = show_context_tag("Count");
-               show_bac_signed(len);  /* ItemCount */
-        break;
-        }   // end switch
-      }   // end if closing tag
-     tagbuff = pif_get_byte(0);
-   }  /* end of while loop */
-
-exit:;
+	// This entire thing is OPTIONAL
+	if (seq.HasMore())
+	{
+		// TODO: untagged choice "range"
+		seq.BeginChoice();
+		if (seq.OpeningTag(     3, "byPosition", BSQ_CHOICE ))
+		{
+			seq.Unsigned( -1, "referenceIndex" );
+			seq.Integer(  -1, "count" );
+			seq.ClosingTag();
+		}
+		if (seq.OpeningTag(     6, "bySequenceNumber", BSQ_CHOICE ))
+		{
+			seq.Unsigned( -1, "referenceIndex" );
+			seq.Integer(  -1, "count" );
+			seq.ClosingTag();
+		}
+		if (seq.OpeningTag(     7, "byTime", BSQ_CHOICE ))
+		{
+			// TODO: untagged sequence "referenceTime"
+			seq.Date( -1, "referenceDate" );
+			seq.Time( -1, "referenceTime" );
+			seq.Integer(  -1, "count" );
+			seq.ClosingTag();
+		}
+		seq.EndChoice();
+	}
 }
 
 /*************************************************************************/
@@ -6801,159 +3795,74 @@ exit:;
 //
 void show_ReadRangeACK ( void )
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   int prop_idx;
-   
-   prop_idx = -1;  /* initialize to indicate no array index present */
-   bac_show_byte("Read Range Acknowledgement","%u");
-   tagbuff = pif_get_byte(0);
+	bac_show_byte("Read Range Acknowledgement","%u");
+	BACnetSequence seq;
+	seq.ObjectIdentifier(   0, "objectIdentifier" );
+	seq.PropertyIdentifier( 1, "propertyIdentifier" );
+	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+	seq.BitString(          3, "resultFlags", &BAC_STRTAB_BACnetResultFlags );
+	seq.Unsigned(           4, "itemCount" );
+	seq.ListOf(             5, "itemData" );
+	while (seq.HasListElement())
+	{
+		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+	}
 
-   while(pif_offset < pif_end_offset) 
-   {
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) 
-      {  /* context tag */
-        if(tagval > 6)  // changed to handle new context 6 LJT 12/12/2005
-      {
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 6)!");
-          goto exit;
-      }
-        pif_show_space();
-        len = show_context_tag(BACnetReadRangeACK[tagval]);
-        switch (tagval)
-          {
-          case 0:  show_bac_object_identifier();
-                   break;
-          case 1:  show_bac_property_identifier(len);
-                   break;
-          case 2:  show_bac_unsigned(len);  /* array index */
-                   break;
-          case 3:  show_bac_result_flags(len );  /* BacnetResultsFlag */
-                   break;
-          case 4:  show_bac_unsigned(len);  /* ItemCount */
-                   break;
-          case 5:  show_log_buffer();
-				   break;
-		  //Modified by Zhu Zhenhua, 2004-5-22
-		  case 6:  show_bac_unsigned(len);  /* first sequence number */
-				   goto exit;
-                   break;
-        }
-      }
-        tagbuff = pif_get_byte(0);
-  }  /* end of while loop */
-
-exit:;
-
+	seq.Unsigned(           6, "firstSequenceNumber", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
+// Display CreateObject error.
+// Also used for ChangeList-Error (AddListElement and RemoveListElement)
 void show_createObjectError( void )
-/*************************************************************************/
-  /* This function displays CreateObject errors, AddListElement errors and
-     RemoveListElement errors */
 {
-  unsigned int len;
-
-  show_context_tag("Error");  /* opening tag */
-  show_error_codes();
-  show_context_tag("Error");  /* closing tag */
-
-  len = pif_get_byte(0)&0x07;
-  unsigned long value = get_bac_unsigned(1, len);
-				
-  sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-	  "First Failed Element Number : %lu", value);												   //  ***002
-
-  len = show_context_tag("First Failed Element Number");
-  show_bac_unsigned(len);
+	BACnetSequence seq;
+	show_wrapped_error( seq, 0 );
+	seq.Unsigned( 1, "firstFailedElementNumber" );
 }
 
 /*************************************************************************/
+// Show an unwrapped Error
+// Called directly from Error PDU dispatch table
 void show_error_codes( void )
-/*************************************************************************/
-  /* This function displays Error Codes and Classes */
-{  /* unsigned service;
-      service = pif_get_byte(-1);
-      show_context_tag(BACnetError[service]);  /* opening tag */
-
-//   pif_show_ascii(0,"Error Class");
-    unsigned int len = pif_get_byte(0) & 0x07;
-    unsigned long value = get_bac_unsigned(1, len);
-
-	if ( value < 8 )
-	{
-		sprintf(get_int_line(pi_data_current, pif_offset, 2, 1), "Error Class:  %s", BACnetErrorClass[value]); //  ***002
-		show_application_tag(pif_get_byte(0));
-		bac_show_byte(BACnetErrorClass[value], "%u");
-	}
-	else
-	{
-		sprintf(get_int_line(pi_data_current, pif_offset, len+1, 1), "Error Class: %d", value);
-		show_application_tag(pif_get_byte(0));
-		bac_show_unsigned(BACnetErrorClass[value], len);
-	}
-    //   pif_show_ascii(0,"Error Code");
-
-    len = pif_get_byte(0) & 0x07;
-    value = get_bac_unsigned(1, len);
-
-	if ( value < 80 )
-	{
-	    sprintf(get_int_line(pi_data_current, pif_offset, len+1, 1), "Error Code:  %s", BACnetErrorCode[value]); //  ***002
-		show_application_tag(pif_get_byte(0));
-		bac_show_byte(BACnetErrorCode[value], "%u");
-	}
-	else
-	{
-	    sprintf(get_int_line(pi_data_current, pif_offset, len+1, 1), "Error Code:  %d", value); //  ***002
-		show_application_tag(pif_get_byte(0));
-		bac_show_unsigned(BACnetErrorCode[value], len);
-	}
-
-   /* show_context_tag(BACnetError[service]);  /* closing tag */
+{
+	BACnetSequence seq;
+	show_error( seq );
 }
 
 /*************************************************************************/
 void show_writePropertyMultipleError( void )
 /*************************************************************************/
-  /* This function interprets WritePropertyMultiple errors */
+/* This function interprets WritePropertyMultiple errors */
 {
-   show_context_tag("Error Type"); /* opening tag */
-   show_error_codes();
-   show_context_tag("Error Type"); /* closing tag */
-
-   show_context_tag("First Failed Write Access Specification"); /* opening tag */
-   show_bac_obj_prop_ref();
-   show_context_tag("First Failed Write Access Specification"); /* closing tag */
+	BACnetSequence seq;
+	show_wrapped_error( seq, 0 );
+	if (seq.OpeningTag( 1, "firstFailedWriteAttempt" ))
+	{
+		show_bac_object_property_reference(seq);
+		seq.ClosingTag();
+	}
 }
 
 /*************************************************************************/
 void show_vtCloseError( void )
 /*************************************************************************/
-  /* This function interprets VT-Close errors */
+/* This function interprets VT-Close errors */
 {
-   show_context_tag("Error Type"); /* opening tag */
-   show_error_codes();
-   show_context_tag("Error Type"); /* closing tag */
-
-   show_context_tag("List of VT Session IDs");  /* opening tag */
-   while (pif_offset<pif_end_offset-1) {
-	  show_head_unsigned(1, "Unclosable VT Session ID", -1);									   //  ***002
-
-      show_application_tag(pif_get_byte(0));
-      bac_show_byte("Unclosable VT Session ID","%u");
-   }
-   show_context_tag("List of VT Session IDs");  /* closing tag */
+	BACnetSequence seq;
+	show_wrapped_error( seq, 0 );
+	seq.ListOf( 1, "listOfVTSessionIdentifiers", BSQ_OPTIONAL );
+	while (seq.HasListElement())
+	{
+		seq.Unsigned( -1, "uncloseable sessions ID" );
+	}
 }
 
 /**************************************************************************/
-/* The functions that follow are used to display BACnet application
-   (primitive) data     */
+/* The functions that follow are used to display BACnet application data   */
 /* types. They may be called following context tags where the IMPLICIT     */
 /* keyword is presumed (and therefore no primitive tag is available to     */
-/* determine length or data type) or from show_application_tag().          */
+/* determine length or data type) or from show_tag().                      */
 /**************************************************************************/
 
 /**************************************************************************/
@@ -6961,57 +3870,57 @@ void show_bac_bitstring( unsigned int len )
 /**************************************************************************/
 /* Displays a bit string with no interpretation of the bit semantics */
 {
-   unsigned int i;
-
-   /* the tag should be displayed before calling this function */
-   bac_show_byte("Number of unused bits","%u");
-   sprintf(outstr,"%"FW"s = X'%%02X'","Bitstring Values");
-   for(i=0; i<len-1; i++){
-     bac_show_flag(outstr,0xFF);
-     pif_show_flagbit(0x80,"","");
-     pif_show_flagbit(0x40,"","");
-     pif_show_flagbit(0x20,"","");
-     pif_show_flagbit(0x10,"","");
-     pif_show_flagbit(0x08,"","");
-     pif_show_flagbit(0x04,"","");
-     pif_show_flagbit(0x02,"","");
-     pif_show_flagbit(0x01,"","");
-     };
+	unsigned int i;
+	
+	/* the tag should be displayed before calling this function */
+	bac_show_byte("Number of unused bits","%u");
+	sprintf(outstr,"%"FW"s = X'%%02X'","Bitstring Values");
+	for (i=0; i<len-1; i++) {
+		bac_show_flag(outstr,0xFF);
+		pif_show_flagbit(0x80,"","");
+		pif_show_flagbit(0x40,"","");
+		pif_show_flagbit(0x20,"","");
+		pif_show_flagbit(0x10,"","");
+		pif_show_flagbit(0x08,"","");
+		pif_show_flagbit(0x04,"","");
+		pif_show_flagbit(0x02,"","");
+		pif_show_flagbit(0x01,"","");
+	};
 }
 
-void pif_get_hex(unsigned int len, char* str, unsigned int flag, unsigned int offset)
-{
-	static char	hex[] = "0123456789ABCDEF";
-	char *dst;
-	dst = str;
-	len-=1;
-	int i = flag+1;
-	while (len--) {
-		int x = pif_get_byte(i+offset);
-		*dst++ = hex[ (x >> 4) & 0x0F ];
-		*dst++ = hex[ x & 0x0F ];
-		i++;
-	}
-	*dst = 0;
-}
-
-void get_bac_charstring(unsigned int len, char* str, unsigned int flag, unsigned int offset )
+// Append len PDU bytes beginning at flat+offset to string data to *pOut.
+// First byte is character-set specifier
+void get_bac_charstring(unsigned int len, char *pOut, unsigned int flag, unsigned int offset )
 {
 	char c = pif_get_byte(flag+offset);
 	switch(c)
 	{
 	case 0: /* ASCII */
     case 5: /* ISO 8859-1 */
-		pif_get_ascii(flag+1+offset, len-1, str);
+		// Append as characters
+		pif_get_ascii(flag+1+offset, len-1, pOut);
 		break;
+
 	case 1: /* MS DBCS */
     case 2: /* JIS C 6226 */
     case 3: /* ISO 10646(UCS-4) */
     case 4: /* ISO 10646(UCS-2) */
-		pif_get_hex( len, str, flag, offset );
+		// Append as a lump of hex
+		{
+			static char	hex[] = "0123456789ABCDEF";
+			int i = flag+1;
+			while (--len) {
+				int x = pif_get_byte(i+offset);
+				*pOut++ = hex[ (x >> 4) & 0x0F ];
+				*pOut++ = hex[ x & 0x0F ];
+				i++;
+			}
+			*pOut = 0;
+		}
 		break;
+
 	default:
-		sprintf(str, "Error: unknown character set %u", c);
+		sprintf(pOut, "Error: unknown character set %u", c);
 		break;
 	}
 }
@@ -7055,108 +3964,215 @@ void show_bac_charstring( unsigned int len)
              pif_show_nbytes_hex(outstr, len-1);
              break;
       default:  /* invalid character set */
-             sprintf(pif_line(1),"Error: unknown chacter Set %u", charset);
+             ShowErrorDetail("Error: unknown character set %u", charset);
       };
 }
 
-
 /**************************************************************************/
-void show_bac_date( void )
+void show_bac_octetstring( unsigned int len )
 /**************************************************************************/
 {
-   unsigned char x;
+	sprintf(outstr,"%"FW"s = X'%%s'","Octet string");
+	pif_show_nbytes_hex(outstr,len);
+}
 
-   x = pif_get_byte(0);
-   if (x == 255)
-      sprintf(outstr,"Unspecified");
-   else
-      sprintf(outstr,"%u",1900+x);
-   show_str_eq_str("Year",outstr,1);
-   pif_offset++;
+/**************************************************************************/
+// Convert four bytes at offset to a date in pOut
+// Format is YYYY/MON/DOM,DOW
+void date_as_string( char *pOut, int offset )
+{
+    // Year
+	int x = pif_get_byte(offset);
+	pOut += sprintf( pOut, (x == 255) ? "XXXX/" : "%u/", 1900+x );
+	
+	// Month
+	x = pif_get_byte(1+offset);
+	if (x == 255) {
+		pOut += sprintf( pOut, "XXX/" );
+	}
+	else if ((x>0) && (x<15)) {
+		pOut += sprintf( pOut, "%s/", month[x]);
+	}
+	else {
+		pOut += sprintf( pOut, "Invalid:%u/", x);
+	}
+	
+	// Day of month
+	x = pif_get_byte(2+offset);
+	if (x == 255) {
+		pOut += sprintf( pOut, "XX, " );
+	}
+	else if (x == 32) {
+		pOut += sprintf( pOut, "last-day, " );
+	}
+	else {
+		pOut += sprintf( pOut, "%02u, ", x );
+	}
+	
+	// Day of week
+	x = pif_get_byte(3+offset);
+	if (x == 255) {
+		sprintf( pOut, "XXX" );
+	}
+	else if ((x>0) && (x<8)) {
+		sprintf( pOut, day_of_week[x] );
+	}
+	else {
+		sprintf( pOut, "Invalid:%u", x );
+	}
+}
 
-   x = pif_get_byte(0);
-   if (x == 255)
-      sprintf(outstr,"Unspecified");
-   else {
-      if ((x>0) && (x<15)) sprintf(outstr,month[x]);
-      else sprintf(outstr,month[0]);
-      }
-   show_str_eq_str("Month",outstr,1);
-   pif_offset++;
+/**************************************************************************/
+// Show a BACnet DATE.
+void show_bac_date( unsigned int len )
+/**************************************************************************/
+{
+	if (len != 4)
+	{
+		ShowErrorDetail("Error: expected date, but length is %u", len);
+		return;
+	}
 
-   x = pif_get_byte(0);
-   if (x == 255)
-      sprintf(outstr,"Unspecified");
-   else
-      sprintf(outstr,"%u",x);
-   show_str_eq_str("Day of Month",outstr,1);
-   pif_offset++;
+	int x = pif_get_byte(0);
+	if (x == 255)
+		sprintf(outstr,"Unspecified");
+	else
+		sprintf(outstr,"%u",1900+x);
+	show_str_eq_str("Year",outstr,1);
+	pif_offset++;
 
-   x = pif_get_byte(0);
-   if (x == 255)
-      sprintf(outstr,"Unspecified");
-   else {
-      if ((x>0) && (x<8)) sprintf(outstr,day_of_week[x]);
-      else sprintf(outstr,day_of_week[0]);
+	x = pif_get_byte(0);
+	if (x == 255)
+		sprintf(outstr,"Unspecified");
+	else {
+		if ((x>0) && (x<15)) 
+			sprintf(outstr,month[x]);
+		else 
+			sprintf(outstr,month[0]);
+	}
+	show_str_eq_str("Month",outstr,1);
+	pif_offset++;
+
+	x = pif_get_byte(0);
+	if (x == 255)
+		sprintf(outstr,"Unspecified");
+	else if (x == 32)
+		sprintf(outstr,"Last Day");
+	else
+		sprintf(outstr,"%u",x);
+	show_str_eq_str("Day of Month",outstr,1);
+	pif_offset++;
+
+	x = pif_get_byte(0);
+	if (x == 255)
+		sprintf(outstr,"Unspecified");
+	else {
+		if ((x>0) && (x<8)) 
+			sprintf(outstr,day_of_week[x]);
+		else 
+			sprintf(outstr,day_of_week[0]);
+	}
+	show_str_eq_str("Day of Week",outstr,1);
+	pif_offset++;
+}
+
+/**************************************************************************/
+void show_bac_double( unsigned int len )
+/**************************************************************************/
+{
+   double dx;
+   unsigned char fstr[8];
+   char double_str[60];
+   unsigned int i;
+
+   if (len != 8)
+   {
+      ShowErrorDetail("Error: expected double, but length is %u", len);
+	  return;
    }
-   show_str_eq_str("Day of Week",outstr,1);
-   pif_offset++;
+
+#if LITTLEENDIAN
+   for (i=0;i<8;i++) 
+	   fstr[i] = pif_get_byte(7-i);
+#else
+   for (i=0;i<8;i++) 
+	   fstr[i] = pif_get_byte(i);
+#endif
+   dx = *(double*)fstr;
+
+   sprintf(double_str, "%#g", dx );
+   sprintf(outstr,"%"FW"s = %%s","Value of double");
+   sprintf(get_int_line(pi_data_current,pif_offset,8),outstr,double_str);
+   pif_offset += 8;
 }
 
 /**************************************************************************/
-void show_bac_double( void )
-/**************************************************************************/
-{  /*  add interpreter code for double precision reals */
-}
-
-/**************************************************************************/
-void show_bac_real( void )
+void show_bac_real( unsigned int len )
 /**************************************************************************/
 {
    double dx;
    unsigned char fstr[4];
-   char float_str[40];  // changed from 20 to 40 to fix buffer overrun #1606486 Buddy Lott
+   char float_str[40];
    unsigned int i;
 
-   for (i=0;i<4;i++) fstr[i] = pif_get_byte(3-i);
-     dx = (double)(*(float *)fstr);
-     float_to_ascii(dx,float_str);
-     sprintf(outstr,"%"FW"s = %%s","Value of float");
-     sprintf(get_int_line(pi_data_bacnet_AL,
-        pif_offset,4),
-        outstr,float_str);
-     pif_offset += 4;
+   if (len != 4)
+   {
+      ShowErrorDetail("Error: expected real, but length is %u", len);
+	  return;
+   }
+
+#if LITTLEENDIAN
+   for (i=0;i<4;i++) 
+	   fstr[i] = pif_get_byte(3-i);
+#else
+   for (i=0;i<4;i++) 
+	   fstr[i] = pif_get_byte(i);
+#endif   
+   dx = (double)(*(float *)fstr);
+
+   sprintf(float_str, "%#g", dx );
+   sprintf(outstr,"%"FW"s = %%s","Value of float");
+   sprintf(get_int_line(pi_data_current,pif_offset,4),outstr,float_str);
+   pif_offset += 4;
 }
 
 /**************************************************************************/
 void show_bac_signed ( unsigned int len )
 /**************************************************************************/
 {
-   switch (len) {
-     case 1: bac_show_byte("Value (1-octet signed)","%d");
-        break;
-     case 2: sprintf(outstr,"%"FW"s = %%d",
-           "Value (2-octet signed)");
-        pif_show_word_hl(outstr);
-        break;
+	unsigned int val = 0;
+	if (pif_get_byte(0) & 0x80)
+	{
+		// Value is negative: fill with ones
+		val = (unsigned int)-1;
+	}
 
-	 case 3:
-		sprintf(outstr, "%" FW "s = %%ld", "Value (3-octet signed)");
-		pif_show_slong_hl(outstr);
-		break;
+	for (unsigned int ix = 0; ix < len; ix++)
+	{
+		val = (val << 8) | pif_get_byte(ix);
+	}
 
-     case 4: sprintf(outstr,"%"FW"s = %%ld",
-           "Value (4-octet signed)");
-        pif_show_long_hl(outstr);
-   }
+	sprintf(outstr,"%"FW"s = %%d", "Value (%u-octet signed)");
+
+	// get a detail line
+	sprintf( get_int_line( pif_pi, pif_offset, len ), outstr, len, val );
+
+	// update the offset
+	pif_offset += len;
 }
 
 /**************************************************************************/
-void show_bac_time( void )
+void show_bac_time( unsigned int len )
 /**************************************************************************/
 {
    unsigned char x;
    char tempstr[80];
+
+   if (len != 4)
+   {
+      ShowErrorDetail("Error: expected time, but length is %u", len);
+	  return;
+   }
 
    x = pif_get_byte(0);
    if (x == 255)
@@ -7194,32 +4210,38 @@ void show_bac_time( void )
 }
 
 /**************************************************************************/
+// Show an unsigned integer and advance the cursor
 void show_bac_unsigned( unsigned int len )
 /**************************************************************************/
 {
-   switch (len) {
-     case 1: bac_show_byte("Value (1-octet unsigned)","%u");
-        break;
-     case 2: sprintf(outstr,"%"FW"s = %%u",
-        "Value (2-octet unsigned)");
-        pif_show_word_hl(outstr);
-        break;
-     case 3: sprintf(outstr,"%"FW"s = %%lu",
-        "Value (3-octet unsigned)");
-        sprintf(get_int_line(pi_data_current,pif_offset,3),outstr,
-                (pif_get_long_hl(-1)&0x00FFFFFF));
-      pif_offset += 3;
-        break;
-     case 4: sprintf(outstr,"%"FW"s = %%lu",
-        "Value (4-octet unsigned)");
-        pif_show_long_hl(outstr);
-     }
+	unsigned int value = get_bac_unsigned( 0, len );
+	sprintf(outstr, "%"FW"s (%u-octet unsigned) = %%u", "Value", len);
+	if (len <= 4)
+	{
+		sprintf(get_int_line(pi_data_current,pif_offset,len),outstr, value);
+	}
+	pif_offset += len;
 }
 
 /**************************************************************************/
-unsigned long get_bac_unsigned( int delta, int len )
+// Show an enumerated value as an integer and advance the cursor
+void show_bac_enumerated( unsigned int len )
 /**************************************************************************/
-/* Returns as an unsigned long any 1,2,3, or 4-octed unsigned integer     */
+{
+	unsigned int value = get_bac_unsigned( 0, len );
+	sprintf(outstr, "%"FW"s (%u-octet enumeration) = %%u", "Value", len);
+	if (len <= 4)
+	{
+		sprintf(get_int_line(pi_data_current,pif_offset,len),outstr, value);
+	}
+	pif_offset += len;
+}
+
+/**************************************************************************/
+unsigned int get_bac_unsigned( int delta, int len )
+/**************************************************************************/
+/* Returns as an unsigned long any 1,2,3, or 4-octed unsigned integer.
+ * Does not advance byte cursor */
 {
    switch (len) {
      case 1: return (long)pif_get_byte(delta);
@@ -7230,7 +4252,9 @@ unsigned long get_bac_unsigned( int delta, int len )
 
      case 4: return pif_get_long_hl(delta);
      }
-   return (long)0;
+
+     ShowErrorDetail("Error: expected unsigned, but length is %u", len);
+     return 0;
 }
 
 /*************************************************************************/
@@ -7238,297 +4262,227 @@ unsigned long get_bac_unsigned( int delta, int len )
 /* tags.                                                                  */
 /*************************************************************************/
 
-/*************************************************************************/
-unsigned int show_context_tag( const char *tagstr )
-/*************************************************************************/
+/**************************************************************************/
+// Show tagged value.
+// Returns the length of the data, with cursor pointing to next tag or end of PDU.
+// 
+// Show deconstructed tag, optionally followed by value
+unsigned int show_tagged_data( bool showData )
 {
-   unsigned char tagbuff;    /* a buffer for tags */
-   unsigned char lloc;       /* length location flag */
-   unsigned char tloc;       /* tag location flag */
-   unsigned char type;       /* tag type */
-   unsigned int len;         /* tag length */
-   unsigned int x;           /* temp variable */
-
-   tagbuff = pif_get_byte(0);
-   pif_show_space();
-   type = (tagbuff & 0xF0)>>4;
-   if (type <  15)    /* extended length? */
-      tloc = 0;       /* no tag extension */
-   else {
-      tloc = 1;       /* tag extension */
-      type = pif_get_byte(1);
-   }
-   len = (tagbuff & 0x07);
-   if(len == 5)
-      lloc = 1;   /* length follows tag */
-   else
-      lloc = 0; 
-
-   bac_show_ctag_flag();
-   if(type < 15) {
-      bac_show_flagmask(0xF0,tagstr);
-      pif_show_flagbit(0x08, "Context Specific Tag", "Application Tag");
-
-      if(len < 5)    bac_show_flagmask(0x07,"Length = %d");
-      if(len == 5) pif_show_flagmask(0x07, 0x05, "Extended Length");
-      if(len == 6) pif_show_flagmask(0x07, 0x06, "Opening Tag");
-      if(len == 7) pif_show_flagmask(0x07, 0x07, "Closing Tag");
-
-      }
-   else {
-      bac_show_flagmask(0xF0,"Extended Tag = %d");
-      if(len < 5)    bac_show_flagmask(0x07,"Length = %d");
-      if(len == 5) pif_show_flagmask(0x07, 0x05, "Extended Length");
-      if(len == 6) pif_show_flagmask(0x07, 0x06, "Opening Tag");
-      if(len == 7) pif_show_flagmask(0x07, 0x07, "Closing Tag");
-
-      pif_show_byte("Non-standard type           = %u");
-   };
-   if(lloc == 1) {
-      x = pif_get_byte(0);
-      switch(x) {
-         case 254: pif_show_byte("Length in next 2 octets");
-                   len = pif_get_word_hl(0);
-                   pif_show_word_hl("Length of data              = %u");
-                   break;
-/* I'm commenting this out for now since it is a bit ludicrous and requires
-   returning a LONG INT ...
-         case 255: pif_show_byte("Length in next 4 octets");
-                   len = pif_get_long_hl(0);
-         pif_show_long_hl("Length of data              = %lu");
-         break;                   */
-         default:  len = x;
-         pif_show_byte("Length of data              = %u");
-      }
-   }
-   return(len);
-}
-
-/**************************************************************************/
-void check_ctag_length( unsigned char tag, unsigned int expected, unsigned int actual )
-/**************************************************************************/
-{
-   if (expected != actual) {
-      pif_show_space();
-      sprintf(pif_line(0),"Error: Invalid Context Tag Length!");
-      sprintf(outstr,"%"FW"s  = %%u","     Tag [%u] length");
-      sprintf(pif_line(0),outstr,tag,expected);
-      sprintf(outstr,"%"FW"s = %%u","     Actual data length");
-      sprintf(pif_line(0),outstr,actual);
-   }
-}
-
-/**************************************************************************/
-unsigned int show_application_data ( unsigned char tagbuff )
-/**************************************************************************/
-{
-   unsigned int len;
-   unsigned char type;
-   unsigned char lloc,tloc;
-
-
-   type = (tagbuff & 0xF0)>>4;
-   if (type < 15)                   /* Extended type? */
-     tloc = 0;                      /* Type in tag octet */  
-   else {
-     tloc = 1;                      /* Type in first octet following */
-     type = pif_get_byte(1); 
-   }
-   len = (tagbuff & 0x07);
-   if (len == 5)                     /* Extended length? */
-     lloc = 1;             /* Length follows tag  */
-   else
-     lloc = 0;             /* Length in tag octet */
-
-   pif_show_space();
-   sprintf(outstr,"%"FW"s = X'%%02X' = [%u]","Application Tag",
-      ((tagbuff&0xF0)>>4));
-   
-   bac_show_flag(outstr,0xFF);
-   // Mask of F8 will ignore context tags
-   pif_show_flagmask(0xF8,0,"Null");
-   pif_show_flagmask(0xF8,BOOLEAN*16,"Boolean");
-   pif_show_flagmask(0xF8,UNSIGNED*16,"Unsigned Integer");
-   pif_show_flagmask(0xF8,SIGNED*16,"Signed Integer");
-   pif_show_flagmask(0xF8,REAL*16,"IEEE Floating Point");
-   pif_show_flagmask(0xF8,DOUBLE*16,"IEEE Double Floating Point");
-   pif_show_flagmask(0xF8,OCTET_STRING*16,"Octet String");
-   pif_show_flagmask(0xF8,CHARACTER_STRING*16,"Character String");
-   pif_show_flagmask(0xF8,BIT_STRING*16,"Bit String");
-   pif_show_flagmask(0xF8,ENUMERATED*16,"Enumerated");
-   pif_show_flagmask(0xF8,DATE*16,"Date");
-   pif_show_flagmask(0xF8,TIME*16,"Time");
-   pif_show_flagmask(0xF8,OBJECT_IDENTIFIER*16,"Object Identifier");
-   pif_show_flagmask(0xF8,0x0d*16,"Reserved for ASHRAE");
-   pif_show_flagmask(0xF8,0x0e*16,"Reserved for ASHRAE");
-   pif_show_flagmask(0xF8,0x0f*16,"Non-standard type");
-   pif_show_flagbit(0x08,"Context Specific Tag","Application Tag");
-
-   if ((tagbuff & 0x08) != 0)
-   {
-	   // CLASS = 1 and therefore IMPLICIT context tag used, we don't know type
-	   type = 15; 
-	   if (len > 5)
-	   {
-		   type = 0; // either open or closing tag ignore this guy
-	   }
-   }
-
-   switch (type) {
-       case 0: pif_show_flagbit(0x07,"Unused","Unused");
-             len = 0;
-             break;
-       case 1: pif_show_flagbit(0x07,"TRUE","FALSE");
-             len = 0;
-             break;
-       default: if (len < 5)
-                 bac_show_flagmask(0x07,"Length = %d");
-              else
-                 pif_show_flagmask(0x07,0x05, "Extended Length");
+	unsigned int lloc,tloc;
+	unsigned int tagbuff = pif_get_byte(0);
+	bool contextTag = (tagbuff & 0x08) != 0;
+	bool pairedTag  = (tagbuff & 0x07) > 5;
+	unsigned int type = (tagbuff & 0xF0) >> 4;
+	if (type < 15)
+		tloc = 0;           /* Type in tag octet */  
+	else {
+		tloc = 1;           /* Extended type in first octet following */
+		type = pif_get_byte(1);
 	}
-   if (tloc == 1) bac_show_byte("Non-standard type","%u");
-   if ((lloc != 0) && (type > 1)) {
-      switch (len = pif_get_byte(0)) {
-        case 254: pif_show_byte("Length in next 2 octets");
-                  len = pif_get_word_hl(0);
-                  sprintf(outstr,"%"FW"s = %%u","Length of data");
-                  pif_show_word_hl(outstr);
-                  break;
+	
+	unsigned int len = (tagbuff & 0x07);
+	if (len == 5)			/* Extended length? */
+		lloc = 1;			/* Length follows tag */
+	else
+		lloc = 0;           /* Length in tag octet */
+	
+	if (contextTag)
+	{
+		// Context tag
+		sprintf( outstr,"%"FW"s = X'%%02X'",
+				 (len == 6) ? "Opening Context Tag" : 
+				 (len == 7) ? "Closing Context Tag" : 
+				 "SD Context Tag" );
+		bac_show_flag(outstr,0xFF);		// Show tag byte, advance cursor
 
-        /* Again, I'm commenting out this case...
-        case 255: pif_show_byte("Length in next 4 octets");
-                  len = pif_get_long_hl(0);
-                  sprintf(outstr,"%"FW"s = %%lu","Length of data");
-                  pif_show_long_hl(outstr);
-                  break;                        */
+		sprintf( outstr, 
+				 (tloc) ? "[extended]" : "[%u]", 
+				 type );
+		pif_show_flagbit( 0xF0, outstr, NULL ); // Show top 4 bits of tag byte (cursor-1)
+	}
+	else
+	{
+		// Application tag
+		sprintf(outstr,"%"FW"s = X'%%02X'","Application Tag");
+		bac_show_flag(outstr,0xFF);		// Show tag byte, advance cursor
+		
+		pif_show_flagmask(0xF0,0x00,"Null");
+		pif_show_flagmask(0xF0,BOOLEAN*16,"Boolean");
+		pif_show_flagmask(0xF0,UNSIGNED*16,"Unsigned Integer");
+		pif_show_flagmask(0xF0,SIGNED*16,"Signed Integer");
+		pif_show_flagmask(0xF0,REAL*16,"IEEE Floating Point");
+		pif_show_flagmask(0xF0,DOUBLE*16,"IEEE Double Floating Point");
+		pif_show_flagmask(0xF0,OCTET_STRING*16,"Octet String");
+		pif_show_flagmask(0xF0,CHARACTER_STRING*16,"Character String");
+		pif_show_flagmask(0xF0,BIT_STRING*16,"Bit String");
+		pif_show_flagmask(0xF0,ENUMERATED*16,"Enumerated");
+		pif_show_flagmask(0xF0,DATE*16,"Date");
+		pif_show_flagmask(0xF0,TIME*16,"Time");
+		pif_show_flagmask(0xF0,OBJECT_IDENTIFIER*16,"Object Identifier");
+		pif_show_flagmask(0xF0,0x0d*16,"Reserved for ASHRAE");
+		pif_show_flagmask(0xF0,0x0e*16,"Reserved for ASHRAE");
+		pif_show_flagmask(0xF0,0x0f*16,"Non-standard type");
+	}
+	
+	pif_show_flagbit(0x08,"Context Specific Tag","Application Tag");
+	
+	switch (type + ((contextTag) ? 1000 : 0)) {
+	case 0:  // Null tag
+		pif_show_flagbit(0x07,"Unused","Unused");
+		len = 0;
+		break;
+	case BOOLEAN:
+		pif_show_flagbit(0x07,"TRUE","FALSE");
+		len = 0;
+		break;
+	default:
+		if (len < 5) {
+			bac_show_flagmask(0x07,"Length = %d");
+		}
+		else {
+            pif_show_flagmask(0x07, 0x05, "Extended Length");
+			pif_show_flagmask(0x07, 0x06, "Opening Tag");
+			pif_show_flagmask(0x07, 0x07, "Closing Tag");
+		}
+		break;
+	}
+	
+	if (tloc == 1)
+	{
+		// Show extedned tag, move cursor
+		bac_show_byte("Extended tag type","[%u]");
+	}
+	
+	if (lloc != 0) {
+		len = pif_get_byte(0);
+		switch (len) {
+        case 254: 
+			pif_show_byte("Length in next 2 octets");
+            len = pif_get_word_hl(0);
+            sprintf(outstr,"%"FW"s = %%u","Length of data");
+            pif_show_word_hl(outstr);
+            break;
+			
+        case 255: 
+			pif_show_byte("Length in next 4 octets");
+            len = pif_get_long_hl(0);
+            sprintf(outstr,"%"FW"s = %%lu","Length of data");
+            pif_show_long_hl(outstr);
+            break;
+			
+        default: 
+			bac_show_byte("Length of data","%u");
+			break;
+		}
+	}
+	
+	if (showData)
+	{
+		if (!contextTag)
+		{
+			// Application tag
+			switch (type) {
+			case 0:        
+				break; // value shown above: changes len
+			case BOOLEAN:  
+				break; // value shown above: changes len
+			case UNSIGNED: 
+				show_bac_unsigned(len);
+				break;
+			case SIGNED:   
+				show_bac_signed(len);
+				break;
+			case REAL:     
+				show_bac_real(len);
+				break;
+			case DOUBLE:   
+				show_bac_double(len);
+				break;
+			case BIT_STRING:
+				// TODO: show as bits?
+				sprintf(outstr,"%"FW"s = %%s","Bit string");
+				pif_show_nbytes_hex(outstr,len);
+				break;
+			case CHARACTER_STRING:
+				show_bac_charstring(len);
+				break;
+			case OCTET_STRING:
+				sprintf(outstr,"%"FW"s = X'%%s'","Octet string");
+				pif_show_nbytes_hex(outstr,len);
+				break;
+			case ENUMERATED:
+				show_bac_enumerated(len);
+				break;
+			case DATE:     
+				show_bac_date(len);
+				break;
+			case TIME:     
+				show_bac_time(len);
+				break;
+			case OBJECT_IDENTIFIER:
+				show_bac_object_identifier(len);
+				break;
+			default:       /* non-standard */
+				sprintf(outstr,"%"FW"s = X'%%s'","Unknown Type: ");
+				pif_show_nbytes_hex(outstr, len);
+			}  /* end of type switch */
+		}
+		else
+		{
+			// Context tag
+			if (!pairedTag) {
+				if (len > 0) {
+					// Don't know what this really is, so show hex bytes
+					sprintf(outstr,"%"FW"s = X'%%s'", "tagged data: " );
+					pif_show_nbytes_hex(outstr, len);
+				}
+			}
+			else {
+				if (len == 6) {
+					// Opening tag.  Recursively call ourself until
+					// the closing tag, or the end of the PDU.
+					unsigned int firstContent = pif_offset;
+					while (pif_offset < pif_end_offset) {
+						tagbuff = pif_get_byte(0);
+						unsigned int nextType = (tagbuff & 0xF0)>>4;
+						if (nextType >= 15) {
+							nextType = pif_get_byte(1); 
+						}
 
-        default: bac_show_byte("Length of data","%u");
-       }
-   }
-   if (type <= 15) {
-     switch (type) {
-       case UNSIGNED: show_bac_unsigned(len);
-                      break;
-       case SIGNED:   show_bac_signed(len);
-                      break;
-       case REAL:     show_bac_real();
-                      break;
-       case DOUBLE:   show_bac_double();
-                      break;
-       case BIT_STRING:
-                      sprintf(outstr,"%"FW"s = %%s","Bit string");
-                      pif_show_nbytes_hex(outstr,len);
-                      break;
-       case CHARACTER_STRING:
-                      show_bac_charstring(len);
-                      break;
-       case OCTET_STRING:
-                      sprintf(outstr,"%"FW"s = X'%%s'","Octet string");
-                      pif_show_nbytes_hex(outstr,len);
-                      break;
-       case ENUMERATED:
-                      switch (len) {
-                         case 1: bac_show_byte("Enumeration","%d");
-                                 break;
-                         case 2: sprintf(outstr,"%"FW"s = %%d","Enumeration");
-                                 pif_show_word_hl(outstr);
-                                 break;
-                      }
-                      break;
-       case DATE:     show_bac_date();
-                      break;
-       case TIME:     show_bac_time();
-                      break;
-       case OBJECT_IDENTIFIER:
-                      show_bac_object_identifier();
-                      break;
-       case 13: case 14:  /* reserved */
-                      pif_show_ascii(0,"The tag value is reserved for ASHRAE");
-                      break;
-       case 15:       /* non-standard */
-                      sprintf(outstr,"%"FW"s = X'%%s'","Unknown Type: ");
-                      //bac_show_nbytes(len, outstr);
-					  pif_show_nbytes_hex(outstr, len);
-     }  /* end of type switch */
-   }    /* end of if(type) */
-   return(len);
-}  
+						len = (tagbuff & 0x07);
+						if ((nextType == type) && (len == 7)) {
+							// Matching closing tag
+							break;
+						}
+
+						// Call ourself to decode and display this item as our child
+						show_head_tagged_data();
+						show_tagged_data();
+					}
+
+					// Return value is the number of bytes eaten as "data"
+					// for the initial tag
+					len = pif_offset - firstContent;
+				}
+				else {
+					// Closing tag.  No data follows.
+					len = 0;
+				}
+			}
+		}
+	}
+
+	return len;
+}
 
 /**************************************************************************/
-// Show application tag.
-// Return length of data
-unsigned int show_application_tag( unsigned char tagbuff )
-/**************************************************************************/
+// Show deconstructed tag, whether application or contest
+// Returns length of tag data
+// Advances cursor past tag byte(s)
+unsigned int show_tag(void)
 {
-   unsigned int len;
-   unsigned char type;
-   unsigned char lloc,tloc;
-
-   type = (tagbuff & 0xF0)>>4;
-   if (type < 15)                   /* Extended type? */
-     tloc = 0;                      /* Type in tag octet */  
-   else {
-     tloc = 1;                      /* Type in first octet following */
-     type = pif_get_byte(1); 
-   }
-   len = (tagbuff & 0x07);
-   if (len == 5)                     /* Extended length? */
-     lloc = 1;             /* Length follows tag */
-   else
-     lloc = 0;             /* Length in tag octet */
-
-   sprintf(outstr,"%"FW"s = X'%%02X'","Application Tag");
-   bac_show_flag(outstr,0xFF);
-   pif_show_flagmask(0xF0,0x00,"Null");
-   pif_show_flagmask(0xF0,BOOLEAN*16,"Boolean");
-   pif_show_flagmask(0xF0,UNSIGNED*16,"Unsigned Integer");
-   pif_show_flagmask(0xF0,SIGNED*16,"Signed Integer");
-   pif_show_flagmask(0xF0,REAL*16,"IEEE Floating Point");
-   pif_show_flagmask(0xF0,DOUBLE*16,"IEEE Double Floating Point");
-   pif_show_flagmask(0xF0,OCTET_STRING*16,"Octet String");
-   pif_show_flagmask(0xF0,CHARACTER_STRING*16,"Character String");
-   pif_show_flagmask(0xF0,BIT_STRING*16,"Bit String");
-   pif_show_flagmask(0xF0,ENUMERATED*16,"Enumerated");
-   pif_show_flagmask(0xF0,DATE*16,"Date");
-   pif_show_flagmask(0xF0,TIME*16,"Time");
-   pif_show_flagmask(0xF0,OBJECT_IDENTIFIER*16,"Object Identifier");
-   pif_show_flagmask(0xF0,0x0d*16,"Reserved for ASHRAE");
-   pif_show_flagmask(0xF0,0x0e*16,"Reserved for ASHRAE");
-   pif_show_flagmask(0xF0,0x0f*16,"Non-standard type");
-   pif_show_flagbit(0x08,"Context Specific Tag","Application Tag");
-
-   switch (type) {
-     case 0:  pif_show_flagbit(0x07,"Unused","Unused");
-         len = 0;
-         break;
-     case BOOLEAN:  pif_show_flagbit(0x07,"TRUE","FALSE");
-         len = 0;
-         break;
-     default: if (len < 5)
-                bac_show_flagmask(0x07,"Length = %d");
-              else
-                pif_show_flagmask(0x07,0x05, "Extended Length");
-   }
-   if (tloc == 1) bac_show_byte("Non-standard type","%u");
-   if ((lloc != 0) && (type > 1)) {
-      switch (len = pif_get_byte(0)) {
-        case 254: pif_show_byte("Length in next 2 octets");
-                  len = pif_get_word_hl(0);
-                  sprintf(outstr,"%"FW"s = %%u","Length of data");
-                  pif_show_word_hl(outstr);
-                  break;
-
-        // This works just fine unless you are compiling for 16-bit DOS...
-        case 255: pif_show_byte("Length in next 4 octets");
-                  len = pif_get_long_hl(0);
-                  sprintf(outstr,"%"FW"s = %%lu","Length of data");
-                  pif_show_long_hl(outstr);
-                  break;
-
-        default: bac_show_byte("Length of data","%u");
-      }
-   }
-   return(len);
+	return show_tagged_data( false );
 }
 
 /*************************************************************************/
@@ -7537,669 +4491,201 @@ unsigned int show_application_tag( unsigned char tagbuff )
 /*************************************************************************/
 
 /**************************************************************************/
-void show_bac_action_command( unsigned int len )
+// Show BACnetActionCommand
+void show_bac_action_command( BACnetSequence &seq )
 /**************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int end;
-   int obj_type,prop_idx,prop_id;
+	seq.ObjectIdentifier(   0, "deviceIdentifier", BSQ_OPTIONAL );
+	seq.ObjectIdentifier(   1, "objectIdentifier" );
+	seq.PropertyIdentifier( 2, "propertyIdentifier" );
+	seq.PropertyArrayIndex( 3, "propertyArrayIndex", BSQ_OPTIONAL );
 
-   // TODO: this end test is nuts.  This is tagged data: length isn't known.
-   // Caller passes in a constant "80"
-   end = pif_offset+len;
-   while((unsigned int)pif_offset < end) 
-   {
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if (!(tagbuff & 0x08)) 
-	  {
-		pif_show_space();
-		bac_show_nbytes(1,"Error: Context Tag expected!");
-		goto exit;
-      }
-      if (tagbuff & 0x08) 
-	  {
-		if(tagval > 8) 
-		{
-			pif_show_space();
-			bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 8)!");
-			goto exit;
-		}
-		switch (tagval) {
-		   case 0:  
-		{
-		   show_head_obj_id(1, BACnetActionCommand[tagval], tagval);									   //  ***002
-		   show_context_tag(BACnetActionCommand[tagval]);
-		   show_bac_object_identifier();
-		   tagbuff = pif_get_byte(0);
-		   tagval = (tagbuff&0xF0)>>4;
-		   }     
-			   break;
-			case 1:  
-			   show_head_obj_id(1, BACnetActionCommand[tagval], tagval);									   //  ***002		   
-			   show_context_tag(BACnetActionCommand[tagval]);
-			   obj_type = bac_extract_obj_type();
-			   show_bac_object_identifier();
-			   break;
-		   case 2:  
-			   show_head_property_ID(1, "Property Identifier", tagval);								   //  ***002		   
-			   len = show_context_tag("Property Identifier");
-			   if (len == 1)
-				 prop_id = (int)pif_get_byte(0);
-			   else
-				 prop_id = (int)pif_get_word_hl(0);
-			   show_bac_property_identifier(len);
-			   break;
-
-		   case 3:  
-			   show_head_unsigned(1, "Property Array Index", tagval);								   //  ***002	   
-			   len = show_context_tag("Property Array Index");
-			   prop_idx = pif_get_byte(0);
-			   show_bac_unsigned(len);
-			   break;
-		   case 4: 
-			   show_context_tag("Property Value");  /* opening tag */
-			   show_bac_ANY(obj_type,prop_id,prop_idx);
-			   show_context_tag("Property Value");  /* closing tag */
-			   break;
-		   case 5:  
-			   show_head_unsigned(1, "Priority", tagval);								   //  ***002	   
-			   len = show_context_tag("Priority");
-			   show_bac_unsigned(len);
-			   break;
-		   case 6:  
-			   show_head_unsigned(1, "Post Delay", tagval);								   //  ***002	   
-			   len = show_context_tag("Post Delay");
-			   show_bac_unsigned(len);
-			   break;
-		   case 7: 
-			   {
-				   if(pif_get_byte(1)) /* TRUE */
-					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-					   "[%u] QuitOnFailure:  TRUE", tagval);
-				   else
-					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-					   "[%u] QuitOnFailure:  FALSE", tagval);
-				   show_context_tag("QuitOnFailure");
-				   tagbuff = pif_get_byte(0);
-				   if(tagbuff)  /* TRUE */
-					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-					   "%"FW"s = %u %s", "QuitOnFailure","(TRUE)");
-				   else
-					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-					   "%"FW"s = %u %s", "QuitOnFailure","(FALSE)");
-				   pif_show_space();
-			   }
-			   break;
-		   case 8:
-			   {
-				   if(pif_get_byte(1)) /* TRUE */
-					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-					   "[%u] WriteSuccessul:  TRUE", tagval);
-				   else
-					   sprintf(get_int_line(pi_data_current,pif_offset,2,1),									   //  ***002
-					   "[%u] WriteSuccessul:  FALSE", tagval);
-				   show_context_tag("WriteSuccessul");
-				   tagbuff = pif_get_byte(0);
-				   if(tagbuff)  /* TRUE */
-					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-					   "%"FW"s = %u %s", "WriteSuccessul","(TRUE)");
-				   else
-					   xsprintf(get_int_line(pi_data_current,pif_offset,1),
-					   "%"FW"s = %u %s", "WriteSuccessul","(FALSE)");
-				   pif_show_space();
-			   }
-			   goto exit;
-
-
-		}
-      }
-      else 
-	  {
-	    pif_show_space();
-	    bac_show_nbytes(1,"Error: Context Tag expected!");
-      }
-   }
-   exit:;
-}
-void show_bac_action_list()
-{
-	unsigned int len=80;  // changed from 1 to 80 to account for all possible tags in ActionCommand.  ActionCommand exists when it sees context tag 8 which is required.
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) 
-   {  /* context tag */
-     if(tagval == 0)
-	 { /* actionlist */
-       show_context_tag(BACnetActionList[0]);  /* opening tag */
-	   int x = pif_get_byte(0);
-       while ((x & 0x0f) != 0x0f) 
-	   {
-		   show_bac_action_command(len);
-		   x = pif_get_byte(0);
-	   }
-       show_context_tag(BACnetActionList[0]);  /* closing tag */
-       tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-    }
-	else
+	if (seq.OpeningTag(     4, "propertyValue" ))
 	{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 1)!");
-       goto exit;
-    }
-   }
-   exit:;	
+		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+		seq.ClosingTag();
+	}
+	seq.Unsigned(           5, "priority", BSQ_OPTIONAL );
+	seq.Unsigned(           6, "postDelay", BSQ_OPTIONAL );
+	seq.Boolean(            7, "quitOnFailure" );
+	seq.Boolean(            8, "writeSuccessful" );
 }
+
 /**************************************************************************/
-void show_bac_address( void )
+// Show BACnetActionList
+void show_bac_action_list( BACnetSequence &seq )
+{
+	seq.ListOf( 0, "action" );
+	while (seq.HasListElement())
+	{
+		show_bac_action_command( seq );
+	}
+}
+
+/**************************************************************************/
+// Show BACnetScale
+void show_bac_scale( BACnetSequence &seq )
+{
+	seq.BeginChoice();
+	seq.Real(    0, "floatingScale", BSQ_CHOICE );
+	seq.Integer( 1, "integerScale", BSQ_CHOICE );
+	seq.EndChoice();
+}
+
+/**************************************************************************/
+// Show list of BACnetEventParameter
+void show_bac_event_parameters( BACnetSequence &seq )
 /**************************************************************************/
 {
-   unsigned int         net = 0, len;
-   const char        *name;
-   unsigned int         i;
+	seq.ListOf( -1, "" );
+	while (seq.HasListElement())
+	{
+		seq.BeginChoice();
+		if (seq.OpeningTag( 0, "Change of Bitstring parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(  0, "time-delay" );
+			seq.BitString( 1, "bitmask" );
+			seq.ListOf(    2, "list-of-bitstring-values" );
+			while (seq.HasListElement())
+			{
+				seq.BitString( -1, "value" );
+			}
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 1, "Change of State parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(  0, "time-delay" );
+			seq.ListOf(    1, "list-of-values" );
+			while (seq.HasListElement())
+			{
+				show_bac_property_states(seq);
+			}
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 2, "Change of Value parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(       0, "time-delay" );
+			if (seq.OpeningTag( 1, "cov-criteria" ))
+			{
+				seq.BeginChoice();
+				seq.BitString( 0, "bitmask", NULL, BSQ_CHOICE );
+				seq.Real(      1, "referenced-property-increment", BSQ_CHOICE );
+				seq.ClosingTag();
+			}
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 3, "Command Fail parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(       0, "time-delay" );
+			if (seq.OpeningTag( 1, "feedback-property-reference" ))
+			{
+				show_bac_dev_obj_prop_ref( seq );
+				seq.ClosingTag();
+			}
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 4, "Floating Limit parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(       0, "time-delay" );
+			if (seq.OpeningTag( 1, "setpoint-reference" ))
+			{
+				show_bac_dev_obj_prop_ref( seq );
+				seq.ClosingTag();
+			}
+			seq.Real(           2, "low-diff-limit" );
+			seq.Real(           3, "high-diff-limit" );
+			seq.Real(           4, "deadband" );
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 5, "Out of Range parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(       0, "time-delay" );
+			seq.Real(           1, "low-limit" );
+			seq.Real(           2, "high-limit" );
+			seq.Real(           3, "deadband" );
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 8, "Change of Life Safety parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(       0, "time-delay" );
+			seq.ListOf(         1, "list-of-life-safety-alarm-values" );
+			while (seq.HasListElement())
+			{
+				seq.Enumerated( -1, "value", &BAC_STRTAB_BACnetLifeSafetyState );
+			}
 
-//   pif_show_ascii(0,"Network Number");			/*modified by Lei Chengxin 2003-9-1*/
-   show_head_unsigned(1, "Network Number", -1);
+			seq.ListOf(         2, "list-of-life-safety-alarm-values" );
+			while (seq.HasListElement())
+			{
+				seq.Enumerated( -1, "value", &BAC_STRTAB_BACnetLifeSafetyState );
+			}
+			
+			if (seq.OpeningTag( 3, "mode-property-reference" ))
+			{
+				show_bac_dev_obj_prop_ref( seq );
+				seq.ClosingTag();
+			}
 
-   len = show_application_tag(pif_get_byte(0));
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 9, "Extended Notification Parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(   0, "vendor-id" );
+			seq.Unsigned(   1, "extended-event-type" );
+			seq.ListOf(     2, "parameters" );
+			while (seq.HasListElement())
+			{
+				seq.BeginChoice();
+				seq.Null( -1, "null", BSQ_CHOICE );
+				seq.Real( -1, "real", BSQ_CHOICE );
+				seq.Unsigned( -1, "integer", BSQ_CHOICE );
+				seq.Boolean( -1, "boolean", BSQ_CHOICE );
+				seq.Double( -1, "double", BSQ_CHOICE );
+				seq.OctetString( -1, "octet", BSQ_CHOICE );
+				seq.BitString( -1, "bitstring", NULL, BSQ_CHOICE );
+				seq.Enumerated( -1, "enumerated", NULL, BSQ_CHOICE );
+				if (seq.OpeningTag( 0, "PropertyValue", BSQ_CHOICE ))
+				{
+					show_bac_dev_obj_prop_ref( seq );
+					seq.ClosingTag();
+				}
+				seq.EndChoice();
+			}
 
-   /* extract the network number and save it */
-   for (i = 0; i < len; i++)
-      net = (net << 8) + pif_get_byte(i);
-   show_bac_unsigned(len);
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 10, "Buffer-Ready Notification Parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned( 0, "notification-threshold" );
+			seq.Unsigned( 1, "previous-notification-count" );
+			seq.ClosingTag();
+		}
+		else if (seq.OpeningTag( 11, "Unsigned-range Notification Parameters", BSQ_CHOICE ))
+		{
+			seq.Unsigned(  0, "time-delay" );
+			seq.Unsigned(  1, "low-limit" );
+			seq.Unsigned(  2, "high-limit" );
+			seq.ClosingTag();
+		}
 
-//   pif_show_ascii(0,"MAC Address");				/*modified by Lei Chengxin 2003-9-1*/
-   show_head_ascii("MAC Address");
-
-   len = show_application_tag(pif_get_byte(0));
-
-   name = LookupName( net, (const unsigned char *)msg_origin + pif_offset, len );
-   pif_show_nbytes_hex("MAC address        = X'%s'",len);
-
-   if (name) pif_append_ascii( ", %s", name );
+		seq.EndChoice();
+	}
 }
 
 /**************************************************************************/
-void show_bac_calendar_entry( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {
-      if (tagval > 2) {
-         pif_show_space();
-         bac_show_nbytes(1,"Error: Invalid Choice (should be 0,1 or 2)!");
-         goto exit;
-         };
-      show_context_tag(BACnetCalendarEntry[tagval]);
-      switch (tagval) {
-         case 0: show_bac_date();
-                 break;
-         case 1: show_head_ascii(BACnetDateRange[0]);											   //  ***002
-//				 pif_show_ascii(0,BACnetDateRange[0]);
-				 show_head_app_data();															   //  ***002
-                 show_application_data(pif_get_byte(0));
-                 pif_show_space();
-//	             pif_show_ascii(0,BACnetDateRange[1]);
-				 show_head_ascii(BACnetDateRange[1]);											   //  ***002
-				 show_head_app_data();															   //  ***002
-                 show_application_data(pif_get_byte(0));
-                 show_context_tag(BACnetCalendarEntry[tagval]); /* closing tag */
-                 break;
-         case 2: 
-			 show_bac_weeknday();
-			 break;
-         }
-      }
-   else {
-      pif_show_space();
-      bac_show_nbytes(1,"Error: Context Tag expected!");
-      }
-   exit:;
-}
-
-void show_bac_scale( void )
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {
-      if (tagval > 1) {
-         pif_show_space();
-         bac_show_nbytes(1,"Error: Invalid Choice (should be 0, or 1)!");
-         goto exit;
-         };
-      show_context_tag(BACnetScale[tagval]);
-      switch (tagval) {
-         case 0: show_bac_real();
-                 break;
-         case 1: 
-		          int len = show_context_tag("Signed-Value");
-				  show_bac_signed(len);
-			     break;
-         }
-      }
-   else {
-      pif_show_space();
-      bac_show_nbytes(1,"Error: Context Tag expected!");
-      }
-   exit:;
-}
-
-
-/**************************************************************************/
-void show_bac_event_parameters( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {
-      if (tagval > 10) {
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Invalid Tag Number (should be 0-10)!");
-        goto exit;
-        };
-      len = show_context_tag(BACnetEventParameter[tagval]); /* opening tag */
-      switch (tagval) {
-         case 0: /* change of bitstring */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_unsigned(1, "Time Delay", tagval);										   //  ***002
-               len = show_context_tag("Time Delay");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-			   show_head_bit_string(0, "Bitmask", tagval);										   //  ***002
-               len = show_context_tag("Bitmask");
-               show_bac_bitstring(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-               show_context_tag("List of Bitstring Values");  /* opening tag */
-               while(tagbuff != 0x2f){
-				  show_head_app_data();															   //  ***002
-                  len = show_application_tag(pif_get_byte(0));
-                  show_bac_bitstring(len);
-                  tagbuff = pif_get_byte(0);
-                  };
-               show_context_tag("List of Bitstring Values");  /* closing tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
-               };
-            break;
-
-         case 1: /* change of state */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_unsigned(1, "Time Delay", tagval);										   //  ***002
-               len = show_context_tag("Time Delay");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len = show_context_tag("List of Values"); /* opening tag */
-               while(tagbuff != 0x1f){
-                  show_bac_property_states();
-                  tagbuff = pif_get_byte(0);
-                  };
-               len = show_context_tag("List of Values"); /* opening tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-            break;
-
-         case 2: /* change of value */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_unsigned(1, "Time Delay", tagval);										   //  ***002
-               len = show_context_tag("Time Delay");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               len = show_context_tag("COV Criteria");  /* opening tag */
-               tagbuff = pif_get_byte(0);
-               tagval = (tagbuff&0xF0)>>4;
-               switch(tagval){
-                  case 0:  /* bitmask */
-					 show_head_bit_string(0, "Bitmask", tagval);								   //  ***002
-                     len = show_context_tag("Bitmask");
-                     show_bac_bitstring(len);
-                     break;
-                  case 1:  /* referenced property increment */
-					 show_head_real(1, "Referenced Property Increment", tagval);				   //  ***002
-                     show_context_tag("Referenced Property Increment");
-                     show_bac_real();
-                     break;
-                  default:
-                     pif_show_space();
-//	                 pif_show_ascii(0, "Error: Context Tag 0 or 1 Expected!");
-					 show_head_ascii("Error: Context Tag 0 or 1 Expected!");					   //  ***002
-                     break;
-                  };  /* end of cov criteria switch */
-               len = show_context_tag("COV Criteria");  /* closing tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-            break;
-
-         case 3: /* command failure */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_unsigned(1, "Time Delay", tagval);										   //  ***002
-               len = show_context_tag("Time Delay");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               show_context_tag("Feedback Property Reference"); /* opening tag */
-               show_bac_obj_prop_ref();
-               show_context_tag("Feedback Property Reference"); /* closing tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-            break;
-
-         case 4: /* floating limit */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_unsigned(1, "Time Delay", tagval);										   //  ***002
-               len = show_context_tag("Time Delay");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-               show_context_tag("Setpoint Reference"); /* opening tag */
-               show_bac_obj_prop_ref();
-               show_context_tag("Setpoint Reference"); /* closing tag */
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-			   show_head_real(1, "Low Diff Limit", tagval);										   //  ***002
-               show_context_tag("Low Diff Limit");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 3)){
-			   show_head_real(1, "High Diff Limit", tagval);									   //  ***002
-               show_context_tag("High Diff Limit");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-			   show_head_ascii("Error: Context Tag 3 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 4)){
-			   show_head_real(1, "Deadband", tagval);											   //  ***002
-               show_context_tag("Deadband");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 4 Expected!");
-			   show_head_ascii("Error: Context Tag 4 Expected!");								   //  ***002
-               };
-            break;
-
-         case 5: /* out of range */
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_unsigned(1, "Time Delay", tagval);										   //  ***002
-               len = show_context_tag("Time Delay");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");								   //  ***002
-               };
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-			   show_head_real(1, "Low Limit", tagval);											   //  ***002
-               show_context_tag("Low Limit");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 2)){
-			   show_head_real(1, "High Limit", tagval);											   //  ***002
-               show_context_tag("High Limit");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 2 Expected!");
-			   show_head_ascii("Error: Context Tag 2 Expected!");								   //  ***002
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 3)){
-			   show_head_real(1, "Deadband", tagval);											   //  ***002
-               show_context_tag("Deadband");
-               show_bac_real();
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 3 Expected!");
-			   show_head_ascii("Error: Context Tag 3 Expected!");								   //  ***002
-               };
-            break;
-
-      case 10: /* buffer ready */		//Added By Zhu Zhenhua, 2004-5-20
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 0)){
-			   show_head_unsigned(1, "notification-threshold", tagval);										  
-               len = show_context_tag("notification-threshold");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-			   show_head_ascii("Error: Context Tag 0 Expected!");							
-               };
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if((tagbuff & 0x08) && (tagval == 1)){
-			   show_head_unsigned(1, "previous-notification-count", tagval);										   //  ***002
-               len = show_context_tag("previous-notification-count");
-               show_bac_unsigned(len);
-               }
-            else{
-               pif_show_space();
-//	           pif_show_ascii(0, "Error: Context Tag 1 Expected!");
-			   show_head_ascii("Error: Context Tag 1 Expected!");								  
-               };
-            break;
-         }
-      len = show_context_tag(BACnetEventParameter[tagval]); /* closing tag */
-   }
-   else {
-      pif_show_space();
-	  bac_show_nbytes(1,"Error: Context Tag expected!");
-   }
-   exit:;
-}
-
-
-/**************************************************************************/
-void  show_bac_event_transitions_ackd( void )
-/**************************************************************************/
-{
-
-// show_application_tag(pif_get_byte(0)); - already called this!
-   bac_show_byte("Number of unused bits","%u");
-   sprintf(outstr,"%"FW"s = X'%%02X'","Event States Acknowledged");
-   bac_show_flag(outstr,0xFF);
-   pif_show_flagbit(0x80,"TO-OFFNORMAL transition acknowledged","TO-OFFNORMAL transition unacknowledged");
-   pif_show_flagbit(0x40,"TO-FAULT transition acknowledged","TO-FAULT transition unacknowledged");
-   pif_show_flagbit(0x20,"TO-NORMAL transition acknowledged","TO-NORMAL transition unacknowledged");
-   /*
-   pif_show_flagbit(0x10,"Unused bit","Unused bit");
-   pif_show_flagbit(0x08,"Unused bit","Unused bit");
-   pif_show_flagbit(0x04,"Unused bit","Unused bit");
-   pif_show_flagbit(0x02,"Unused bit","Unused bit");
-   pif_show_flagbit(0x01,"Unused bit","Unused bit");
-   */
-}
-
-/**************************************************************************/
-void show_bac_object_identifier( void )
+void show_bac_object_identifier( unsigned int len )
 /**************************************************************************/
 {  /* Display and interpret a BACnet Object Identifier */
-#if 0
-   typedef union {
-     struct {
-       unsigned char lo;
-       unsigned char hi;
-       } byte;
-       int word;
-   } ureg;
-
-   typedef union {
-      struct {
-         ureg lo_w;
-         ureg hi_w;
-      } word;
-      unsigned long lword;
-   } l_ureg;
-
-   unsigned char obj_id[4];
-   ureg obj_type;
-   l_ureg instance;
-
-   obj_id[0] = pif_get_byte(0);
-   obj_id[1] = pif_get_byte(1);
-   obj_id[2] = pif_get_byte(2);
-   obj_id[3] = pif_get_byte(3);
-
-   obj_type.byte.hi = obj_id[0]>>6;
-   obj_type.byte.lo = obj_id[1]>>6 | obj_id[0]<<2;
-
-   instance.word.hi_w.byte.hi = 0;
-   instance.word.hi_w.byte.lo = obj_id[1] & 0x3f;
-   instance.word.lo_w.byte.hi = obj_id[2];
-   instance.word.lo_w.byte.lo = obj_id[3];
-   
-   bac_show_nbytes(4,"BACnet Object Identifier");
-
-   if(obj_type.word > 63){ /* proprietary object type */
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
-         "               Proprietary Object Type");
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
-         "               Object Type = %u",obj_type.word);
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
-         "               Instance Number = %lu",instance.lword);
-      }
-   else{ /* standard object type */
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
-         "               Standard Object Type");
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
-         "               Object Type = %s",BACnetObjectType[obj_type.word]);
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
-         "               Instance Number = %lu",instance.lword);
-      };
-#else
    long  obj_id;
-   int      obj_type;
+   int   obj_type;
    long  obj_instance;
    
+   if (len != 4)
+   {
+      ShowErrorDetail("Error: expected object identifier, but length is %u", len);
+	  return;
+   }
+
    for (int i = 0; i < 4; i++)
       obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i );
    
@@ -8208,1241 +4694,216 @@ void show_bac_object_identifier( void )
    
    bac_show_nbytes( 4, "BACnet Object Identifier" );
    
+   // TODO: 
    if(obj_type > 63) { /* proprietary object type */
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+      sprintf(get_int_line(pi_data_current, pif_offset - 4, 4),
          "               Proprietary Object Type");
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+      sprintf(get_int_line(pi_data_current, pif_offset - 4, 4),
          "               Object Type = %u", obj_type );
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+      sprintf(get_int_line(pi_data_current, pif_offset - 4, 4),
          "               Instance Number = %lu", obj_instance );
    } else { /* standard object type */
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+      sprintf(get_int_line(pi_data_current, pif_offset - 4, 4),
          "               Standard Object Type");
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
-         "               Object Type = %s",BACnetObjectType[obj_type]);
-      sprintf(get_int_line(pi_data_current, pif_offset, 0),
+      sprintf(get_int_line(pi_data_current, pif_offset - 4, 4),
+         "               Object Type = %s",ObjectTypeString(obj_type));
+      sprintf(get_int_line(pi_data_current, pif_offset - 4, 4),
          "               Instance Number = %lu", obj_instance );
    }
-#endif
-
 }
 
 /**************************************************************************/
-void show_bac_obj_prop_ref( void )
+// Show a BACnetDeviceObjectReference
+void show_bac_dev_obj_ref( BACnetSequence &seq )
 /**************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   tagbuff = pif_get_byte(0);
-  
-    while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        if(tagval > 2) {
-          pif_show_space();
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 2)!");
-          goto exit;
-		}
-		
-        switch (tagval) {																		   //  ***002 begin
-		case 0:
-			{
-				len = pif_get_byte(0)&0x07;
-				long  obj_id;
-				int      obj_type;
-				long  obj_instance;
-				
-				for (int i = 0; i < 4; i++)
-					obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+1 );
-				
-				obj_type = (obj_id >> 22) & 0x000003FF;
-				obj_instance = (obj_id & 0x003FFFFF);
-				
-				if(obj_type > 63){ /* proprietary object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %u,%lu", tagval, BACnetObjectPropertyReference[tagval], obj_type, obj_instance);
-				}
-				else{ /* standard object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %s,%lu", tagval, BACnetObjectPropertyReference[tagval], BACnetObjectType[obj_type], obj_instance);
-				}
-			}
-			break;
-		case 1:
-			{
-				len = pif_get_byte(0)&0x07;
-				
-				unsigned int x;
-				switch (len) {
-				case 1:  
-					x = (unsigned int)pif_get_byte(1);
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %s", tagval, BACnetObjectPropertyReference[tagval], BACnetPropertyIdentifier[x]);
-					break;
-				case 2:  
-					x = pif_get_word_hl(1);
-					if(x>max_property_id)
-					{	
-						sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-							"Unknown Property Identifier:  %u", x);
-					}
-					else
-					{	
-						sprintf(get_int_line(pi_data_current,pif_offset,len,1), 
-							"[%u] %s:  %s", tagval, BACnetObjectPropertyReference[tagval], BACnetPropertyIdentifier[x]);
-					}
-					break;
-				default: 
-					sprintf(get_int_line(pi_data_current,pif_offset,len,1), 
-						"Error: Invalid Property Identifier!");
-				}
-			}
-			break;
-		case 2:
-			{
-				len = pif_get_byte(0)&0x07;
-				unsigned long value = get_bac_unsigned(1, len);
-				
-				sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-					"[%u] %s:  %lu", tagval, BACnetObjectPropertyReference[tagval], value);
-			}
-			break;
-		}																						   //  ***002 end
-
-        len = show_context_tag(BACnetObjectPropertyReference[tagval]);
-        switch (tagval) {
-          case 0:  show_bac_object_identifier();
-                   break;
-          case 1:  show_bac_property_identifier(len);
-                   break;
-          case 2:  show_bac_unsigned(len);  /* array index */
-                   break;
-          }
-        }
-      else {  /* application tag */
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Context Tag expected!");
-        }
-      tagbuff = pif_get_byte(0);
-      }  /* end of while loop */
-
-    exit:;
+	seq.ObjectIdentifier( 0, "deviceIdentifier", BSQ_OPTIONAL );
+	seq.ObjectIdentifier( 1, "objectIdentifier" );
 }
 
-//Added by Zhu Zhenhua, 2004-6-14
 /**************************************************************************/
-void show_bac_dev_obj_prop_ref( void )
+// Show BACnetPropertyStates
+void show_bac_property_states( BACnetSequence &seq )
 /**************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
+	seq.BeginChoice();
+	seq.Boolean( 0, "boolean-value", BSQ_CHOICE );
+	seq.Enumerated( 1, "binary-value",		&BAC_STRTAB_BACnetBinaryPV, BSQ_CHOICE );
+	seq.Enumerated( 2, "event-type",		&BAC_STRTAB_BACnetEventType, BSQ_CHOICE );
+	seq.Enumerated( 3, "polarity",			&BAC_STRTAB_BACnetPolarity, BSQ_CHOICE );
+	seq.Enumerated( 4, "program-change",	&BAC_STRTAB_BACnetProgramRequest, BSQ_CHOICE );
+	seq.Enumerated( 5, "program-state",		&BAC_STRTAB_BACnetProgramState, BSQ_CHOICE );
+	seq.Enumerated( 6, "reason-for-halt",	&BAC_STRTAB_BACnetProgramError, BSQ_CHOICE );
+	seq.Enumerated( 7, "reliability",		&BAC_STRTAB_BACnetReliability, BSQ_CHOICE );
+	seq.Enumerated( 8, "state",				&BAC_STRTAB_BACnetEventState, BSQ_CHOICE );
+	seq.Enumerated( 9, "system-status",		&BAC_STRTAB_BACnetDeviceStatus, BSQ_CHOICE );
+	seq.Enumerated( 10, "units",			&BAC_STRTAB_BACnetEngineeringUnits, BSQ_CHOICE );
+	seq.Unsigned(   11, "unsigned-value",	BSQ_CHOICE );
 
-   tagbuff = pif_get_byte(0);
-  
-    while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        if(tagval > 3) {
-          pif_show_space();
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 3)!");
-          goto exit;
-		}
-		
-        switch (tagval) {																		   //  ***002 begin
-		case 0:
-			{
-				len = pif_get_byte(0)&0x07;
-				long  obj_id;
-				int      obj_type;
-				long  obj_instance;
-				
-				for (int i = 0; i < 4; i++)
-					obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+1 );
-				
-				obj_type = (obj_id >> 22) & 0x000003FF;
-				obj_instance = (obj_id & 0x003FFFFF);
-				
-				if(obj_type > 63){ /* proprietary object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %u,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], obj_type, obj_instance);
-				}
-				else{ /* standard object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %s,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetObjectType[obj_type], obj_instance);
-				}
-			}
-			break;
-		case 1:
-			{
-				len = pif_get_byte(0)&0x07;
-				
-				unsigned int x;
-				switch (len) {
-				case 1:  
-					x = (unsigned int)pif_get_byte(1);
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %s", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetPropertyIdentifier[x]);
-					break;
-				case 2:  
-					x = pif_get_word_hl(1);
-					if(x>max_property_id)
-					{	
-						sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-							"Unknown Property Identifier:  %u", x);
-					}
-					else
-					{	
-						sprintf(get_int_line(pi_data_current,pif_offset,len,1), 
-							"[%u] %s:  %s", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetPropertyIdentifier[x]);
-					}
-					break;
-				default: 
-					sprintf(get_int_line(pi_data_current,pif_offset,len,1), 
-						"Error: Invalid Property Identifier!");
-				}
-			}
-			break;
-		case 2:
-			{
-				len = pif_get_byte(0)&0x07;
-				unsigned long value = get_bac_unsigned(1, len);
-				
-				sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-					"[%u] %s:  %lu", tagval, BACnetDeviceObjectPropertyReference[tagval], value);
-			}
-			break;
-		case 3:
-			{
-				len = pif_get_byte(0)&0x07;
-				long  obj_id;
-				int      obj_type;
-				long  obj_instance;
-				
-				for (int i = 0; i < 4; i++)
-					obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+1 );
-				
-				obj_type = (obj_id >> 22) & 0x000003FF;
-				obj_instance = (obj_id & 0x003FFFFF);
-				
-				if(obj_type > 63){ /* proprietary object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %u,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], obj_type, obj_instance);
-				}
-				else{ /* standard object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %s,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetObjectType[obj_type], obj_instance);
-				}
-			}
-			break;
-		}																						   //  ***002 end
-
-        len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
-        switch (tagval) {
-          case 0:  show_bac_object_identifier();
-                   break;
-          case 1:  show_bac_property_identifier(len);
-                   break;
-          case 2:  show_bac_unsigned(len);  /* array index */
-                   break;
-          case 3:  show_bac_object_identifier();
-                   break;
-          }
-        }
-      else {  /* application tag */
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Context Tag expected!");
-        }
-      tagbuff = pif_get_byte(0);
-      }  /* end of while loop */
-
-    exit:;
+	seq.Enumerated( 12, "life-safety-mode", &BAC_STRTAB_BACnetLifeSafetyMode, BSQ_CHOICE );
+	seq.Enumerated( 13, "life-safety-state", &BAC_STRTAB_BACnetLifeSafetyState, BSQ_CHOICE );
+	seq.Enumerated( 14, "restart-reason",	&BAC_STRTAB_BACnetRestartReason, BSQ_CHOICE );
+	seq.Enumerated( 15, "door-alarm-state", &BAC_STRTAB_BACnetDoorAlarmState, BSQ_CHOICE );
+	seq.EndChoice();
 }
 
-//Added by Zhu Zhenhua, 2004-6-14
 /**************************************************************************/
-void show_bac_dev_obj_ref( void )
+// Show a BACnetRecipient
+void show_bac_recipient( BACnetSequence &seq )
 /**************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   tagbuff = pif_get_byte(0);
-  
-    while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        if(tagval > 1) {
-          pif_show_space();
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 1)!");
-          goto exit;
-		}
-		
-        switch (tagval) {																		   //  ***002 begin
-		case 0:
-			{
-				len = pif_get_byte(0)&0x07;
-				long  obj_id;
-				int      obj_type;
-				long  obj_instance;
-				
-				for (int i = 0; i < 4; i++)
-					obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+1 );
-				
-				obj_type = (obj_id >> 22) & 0x000003FF;
-				obj_instance = (obj_id & 0x003FFFFF);
-				
-				if(obj_type > 63){ /* proprietary object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %u,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], obj_type, obj_instance);
-				}
-				else{ /* standard object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %s,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetObjectType[obj_type], obj_instance);
-				}
-			}
-			break;
-		case 1:
-			{
-				len = pif_get_byte(0)&0x07;
-				long  obj_id;
-				int      obj_type;
-				long  obj_instance;
-				
-				for (int i = 0; i < 4; i++)
-					obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+1 );
-				
-				obj_type = (obj_id >> 22) & 0x000003FF;
-				obj_instance = (obj_id & 0x003FFFFF);
-				
-				if(obj_type > 63){ /* proprietary object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %u,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], obj_type, obj_instance);
-				}
-				else{ /* standard object type */
-					sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-						"[%u] %s:  %s,%lu", tagval, BACnetDeviceObjectPropertyReference[tagval], BACnetObjectType[obj_type], obj_instance);
-				}
-			}
-			break;
-		}																						   //  ***002 end
-
-        len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
-        switch (tagval) {
-          case 0:  show_bac_object_identifier();
-                   break;
-          case 1:  show_bac_object_identifier();
-                   break;
-          }
-        }
-      else {  /* application tag */
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Context Tag expected!");
-        }
-      tagbuff = pif_get_byte(0);
-      }  /* end of while loop */
-
-    exit:;
-}
-/**************************************************************************/
-void show_bac_obj_prop_value( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   tagbuff = pif_get_byte(0);
-   while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        if(tagval > 4) {
-          pif_show_space();
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 4)!");
-          goto exit;
-          }
-        len = show_context_tag(BACnetObjectPropertyValue[tagval]);
-        switch (tagval) {
-          case 0:  show_bac_object_identifier();
-                   break;
-          case 1:  show_bac_property_identifier(len);
-                   break;
-          case 2:  show_bac_unsigned(len);  /* array index */
-                   break;
-          case 3:  show_application_data(pif_get_byte(0));  /* value */
-                   tagbuff = pif_get_byte(0);  /* show closing PD tag */
-                   tagval = (tagbuff&0xF0)>>4;
-                   show_context_tag(BACnetObjectPropertyValue[tagval]);
-                   break;
-          case 4:  show_bac_unsigned(len);  /* priority */
-          }
-        }
-      else {  /* application tag */
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Context Tag expected!");
-        }
-      tagbuff = pif_get_byte(0);
-      }  /* end of while loop */
-   exit:;
+	seq.BeginChoice();
+	seq.ObjectIdentifier( 0, "device", BSQ_CHOICE );
+	if (seq.OpeningTag(   1, "address", BSQ_CHOICE ))
+	{
+		seq.Unsigned(    -1, "network-number" );
+		seq.OctetString( -1, "mac-address" );
+	}
+	seq.EndChoice();
 }
 
-/**************************************************************************/
-void show_bac_object_type( void )
-/**************************************************************************/
-{
-   unsigned char x;
-   x = pif_get_byte(0);
-   bac_show_byte(BACnetObjectType[x],"%u");
-}
-
-
-/**************************************************************************/
-void show_bac_life_safety_state( void )
-/**************************************************************************/
-{
-   unsigned int x;
-   x = (unsigned int)pif_get_byte(0);
-   bac_show_byte(BACnetLifeSafetyState[x],"%u");
-}
-
-/**************************************************************************/
-void show_bac_life_safety_mode( void )
-/**************************************************************************/
-{
-   unsigned int x;
-   x = (unsigned int)pif_get_byte(0);
-   bac_show_byte(BACnetLifeSafetyMode[x],"%u");
-}
-
-/**************************************************************************/
-void show_bac_life_safety_operation( void )
-/**************************************************************************/
-{
-   unsigned int x;
-   x = (unsigned int)pif_get_byte(0);
-   bac_show_byte(BACnetLifeSafetyOperation[x],"%u");
-}
-
-
-/**************************************************************************/
-void show_bac_property_identifier( unsigned int len )
-/**************************************************************************/
-{
-   unsigned int x;
-   switch (len) {
-      case 1:  x = (unsigned int)pif_get_byte(0);
-          bac_show_byte(BACnetPropertyIdentifier[x],"%u");
-          break;
-      case 2:  x = pif_get_word_hl(0);
-          if(x>max_property_id)
-        bac_show_word_hl("Unknown Property Identifier","%u");
-          else
-        bac_show_word_hl(BACnetPropertyIdentifier[x],"%u");
-          break;
-      default: bac_show_nbytes(len,"Error: Invalid Property Identifier!");
-   }
-}
-
-/**************************************************************************/
-void show_bac_property_ref( void )
-/**************************************************************************/
-
-   /* This function displays only one parameter per call.  The calling
-      routine must do the looping.  */
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-
-   switch(tagval){																				   //  ***002 begin
-      case 0:
-		  show_head_property_ID(1, BACnetPropertyReference[tagval], tagval);
-		  break;
-	  case 1:
-		  show_head_unsigned(1, BACnetPropertyReference[tagval], tagval);
-		  break;
-	  default:
-		  break;
-   }																							   //  ***002 end
-
-   if (tagbuff & 0x08) {  /* context tag */
-      len = show_context_tag(BACnetPropertyReference[tagval]);
-      switch (tagval) {
-         case 0: show_bac_property_identifier(len);
-                 break;
-         case 1: show_bac_unsigned(len);
-                 break;
-         default: pif_show_space();
-            bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 1)!");
-            goto exit;
-         }
-      }
-   else { /* application tag */
-      pif_show_space();
-      bac_show_nbytes(1,"Error: Context Tag expected!");
-      }
-   exit:;
-}
-
-/**************************************************************************/
-void show_bac_property_states( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len, val;
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) { /* context tag */
-     if (tagval > 10) {
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Invalid Choice (should be 0-10)!");
-       goto exit;
-       }
-     len = show_context_tag(BACnetPropertyStates[tagval]);
-     if(tagval>0) {
-       if(len>1)
-         val = pif_get_word_hl(0);
-       else
-         val = pif_get_byte(0);
-       }
-     switch (tagval) {
-       case 0: /* BOOLEAN case */
-               if(val == 0)
-                  bac_show_nbytes(len,"FALSE");
-               else
-                  bac_show_nbytes(len, "TRUE");
-			   show_head_app_data();															   //  ***002
-			   show_application_data(pif_get_byte(0));
-               break;
-       case 1: bac_show_nbytes(len,BACnetBinaryPV[val]);
-               break;
-       case 2: bac_show_nbytes(len,BACnetEventType[val]);;
-               break;
-       case 3: bac_show_nbytes(len,BACnetPolarity[val]);
-               break;
-       case 4: bac_show_nbytes(len,BACnetProgramRequest[val]);
-               break;
-       case 5: bac_show_nbytes(len,BACnetProgramState[val]);
-               break;
-       case 6: bac_show_nbytes(len,BACnetProgramError[val]);
-               break;
-       case 7: bac_show_nbytes(len,BACnetReliability[val]);
-               break;
-       case 8: bac_show_nbytes(len,BACnetEventState[val]);
-               break;
-       case 9: bac_show_nbytes(len,BACnetDeviceStatus[val]);
-               break;
-       case 10: bac_show_nbytes(len,BACnetEngineeringUnits[val]);
-       }  /* end switch */
-     }  /* end if context tag */
-   else {  /* application tag */
-      pif_show_space();
-      bac_show_nbytes(1,"Error: Context Tag expected!");
-      }
-   exit:;
-}
-
-/**************************************************************************/
-void show_bac_property_value( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   unsigned int pid;
-   int pidx = -1;
-   unsigned int obj_type = 0;
-
-   tagbuff = pif_get_byte(0);
-   while ((tagbuff & 0x0f) != 0x0f) 
-   {  /* closing PD tag not yet found */
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) 
-	  {  /* context tag */
-        if(tagval > 3) 
-		{
-          pif_show_space();
-          bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 3)!");
-          goto exit;
-        }
-        
-		switch (tagval) 
-		{																		   //  ***002 begin
-		case 0:
-			show_head_property_ID(1, BACnetPropertyValue[tagval], tagval);
-			break;
-		case 1:
-			show_head_unsigned(1, BACnetPropertyValue[tagval], tagval);
-			break;
-		case 2:
-			break;
-		case 3:
-			show_head_unsigned(1, BACnetPropertyValue[tagval], tagval);
-			break;
-		}																						   //  ***002 end
-		
-		len = show_context_tag(BACnetPropertyValue[tagval]);
-        switch (tagval) 
-		{
-          case 0:
-			  if ( len == 1 )
-				pid = pif_get_byte(0);
-			  else
-				pid = pif_get_word_hl(0);
-			  show_bac_property_identifier(len);
-			  // need to extract the property Id here to be used in case 2
-                   break;
-          case 1:  
-			  pidx = pif_get_byte(0);
-			  show_bac_unsigned(len);  /* array index */
-			  // need to extract the property index to be used in case 2
-                   break;
-          case 2:  //show_head_app_data();														   //  ***002
-			  // repeat until end of tag is found 0x2f
-			  while (true) 
-			  {
-				  // show_application_data(pif_get_byte(0));  /* value */
-				  // need to figure out how to get the object type and property id here!!!!  TODO: for LJT 806427
-				   show_bac_ANY( obj_type, pid, pidx);  // obj_type, prop_id, prop_idx
-				   
-				   tagbuff = pif_get_byte(0);
-				   // if closing tag and context is 2 go ahead and end processing before we read more so we don't lose data
-				   if ((tagbuff & 0x0f ) == 0x0F)
-				   {
-						if ((tagbuff&0xf0)>>4 == 2 )
-							break;
-				   }
-			  }
-              show_context_tag(BACnetPropertyValue[tagval]);  /* closing tag */
-              break;
-          case 3:  show_bac_unsigned(len);  /* priority */
-          }
-        }
-      else {  /* application tag */
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Context Tag expected!");
-        }
-      tagbuff = pif_get_byte(0);
-      }  /* end of while loop */
-   exit:;
-}
-
-/**************************************************************************/
-void show_bac_read_access_result( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   long obj_id;
-   int obj_type, prop_idx, prop_id;
-
-   prop_idx = -1;    /* initialize to indicate no array index present */
-
-   while (pif_offset < pif_end_offset) {
-      tagbuff = pif_get_byte(0);
-	  if((tagbuff&0x0F) == 0x0F)     //Modified by Zhu Zhenhua, 2004-6-14
-	    goto exit;
-      tagval = (tagbuff&0xF0)>>4;
-      if ((tagbuff & 0x08) && (tagval == 0)){
-		 show_head_obj_id(1, "Object Identifier", tagval);										   //  ***002
-
-         show_context_tag("Object Identifier");
-
-		 obj_id = 0;
-		 //madanner 9/04, global hack for intercepting RP in EPICS view
-		 {
-			for (int j = 0; j < 4; j++)
-				obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j );
-		 }
-
-		 obj_type = bac_extract_obj_type();
-         show_bac_object_identifier();
-         }
-      else{
-         pif_show_space();
-         bac_show_nbytes(1, "Error: Context Tag 0 expected!");
-         }
-
-      tagbuff = pif_get_byte(0);
-      tagval = (tagbuff&0xF0)>>4;
-      if ((tagbuff & 0x08) && (tagval == 1)){
-         show_context_tag("List of Results");     /* opening tag */
-
-         while((pif_offset<(pif_end_offset-1))&&((pif_get_byte(0)&0x0F)!=0x0F)){
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if ((tagbuff & 0x08) && (tagval == 2)){
-			   show_head_property_ID(1, "Property Identifier", tagval);							   //  ***002
-
-               len = show_context_tag("Property Identifier");
-               if (len == 1)
-                  prop_id = (int)pif_get_byte(0);
-               else
-                  prop_id = (int)pif_get_word_hl(0);
-               show_bac_property_identifier(len);
-               }
-            else {
-               pif_show_space();
-               bac_show_nbytes(1, "Error: Context Tag 2 exptected!");
-               }   
-
-            tagbuff = pif_get_byte(0);
-            tagval = (tagbuff&0xF0)>>4;
-            if ((tagbuff & 0x08) && (tagval == 3)){
-			   show_head_unsigned(1, "Property Array Index", tagval);							   //  ***002
-
-               len = show_context_tag("Property Array Index");
-               prop_idx = pif_get_byte(0);
-               show_bac_unsigned(len);
-
-               tagbuff = pif_get_byte(0);
-               tagval = (tagbuff&0xF0)>>4;
-               }
-
-            switch(tagval){
-               case 4 : show_context_tag("Property Value");
-
-					   //madanner 9/04 add calls to EPICS read property tracker
-					   //can't support indexes at this time
-					   if ( prop_idx == -1 )
-						   ::EPICS_AddRPValue(obj_id, prop_id, pif_get_addr(), pif_end_offset - pif_offset);
-
-                        show_bac_ANY(obj_type, prop_id, prop_idx);
-                        show_context_tag("Property Value");
-                        break;
-               case 5 : show_context_tag("Property Access Error");  /* opening tag */
-                        show_error_codes();
-                        show_context_tag("Property Access Error");  /* closing tag */
-                        break;
-               default: pif_show_space();
-                        bac_show_nbytes(1, "Error: Context Tag 4 or 5 expected!");
-                        break;
-               } /* switch */
-            } /* while */
-
-         show_context_tag("List of Results");     /* closing tag */
-         }
-      else{
-         pif_show_space();
-         bac_show_nbytes(1,"Error: Context Tag 1 expected!");
-         }
-      } /* while */
-   exit:;
-}
-
-/**************************************************************************/
-void show_bac_read_access_spec( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {  /* context tag */
-     if(tagval == 0){
-	   show_head_obj_id(1, "Object Identifier", tagval);										   //  ***002
-
-       show_context_tag("Object Identifier");
-       show_bac_object_identifier();
-       }
-     else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 0 expected!");
-       }
-     tagbuff = pif_get_byte(0);
-     show_context_tag("List of Property References");  /* opening tag */
-     while(tagbuff != 0x1f){
-       show_bac_property_ref();
-       tagbuff = pif_get_byte(0);
-     
-      } 
-     show_context_tag("List of Property References");  /* closing tag */
-     }
-   else {
-     pif_show_space();
-     bac_show_nbytes(1,"Error: Context Tag expected!");
-     }
-}
-
-/**************************************************************************/
-void  show_bac_recipient( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {  /* context tag */
-     switch (tagval) {
-        case 0: 
-		   show_head_obj_id(1, "Device", -1);													   //  ***002
-		   show_context_tag("Device");
-           show_bac_object_identifier();
-           break;
-        case 1:  
-		   show_context_tag("Address");  /* opening Tag */
-           show_bac_address();
-           show_context_tag("Address");  /* closing Tag */
-           break;
-        default: pif_show_space();
-//	       pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-		   show_head_ascii("Error: Context Tag 0 Expected!");
-        }
-
-     }
-   else{  /* application tag */
-     pif_show_space();
-//	 pif_show_ascii(0, "Error: Context Tag Expected!");
-	 show_head_ascii("Error: Context Tag Expected!");
-     pif_offset = pif_end_offset;
-     }  
-}
 /****************************************************************************************
 This function is used to decode and display the results of a read range or read property
 result that is constructed similarly.
+List of BACnetLogRecord, as property from ANY
 *****************************************************************************************/ 
-void show_log_buffer( void )
+void show_log_buffer( BACnetSequence &seq )
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int ui_count,x,len;
-   ui_count = 0;
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   // Changed to while instead of do/while so that we handle empty buffer too.
-   while((tagbuff!=0x3F) && (tagbuff!=0x4F) && (tagbuff!=0x5F)&& (++ui_count<100))
-   {
-     show_context_tag("TimeStamp");  // Opening Tag
-     x = pif_get_byte(0);
-     while ((x & 0x0f) != 0x0f)
-      {
-		show_head_app_data();																	   //  ***002
-        show_application_data(x);
-        x = pif_get_byte(0);
-      };
-     show_context_tag("TimeStamp");  // Closing Tag
-     show_context_tag("ItemData");  /* Opening Tag */
-     show_logDatum_choice();                    
-     show_context_tag("ItemData");  /* Closing Tag */
-     tagbuff = pif_get_byte(0);
-     if (((tagbuff&0xF0)>>4)==2) // The Status Flag are optional
-     {
-       len = show_context_tag("StatusFlag");
-       show_bac_status_flags(len);
-     }
-     tagbuff = pif_get_byte(0);
-   }
-   // need to read the closing tag out of buffer so that next processing is correct
-   show_context_tag("ItemData");  /* Closing Tag */		// modified LJT 12/12/2005
-}
-/**************************************************************************/
-void show_logDatum_choice( void )
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int x,len;
-   
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   x = pif_get_byte(0);
-     switch (tagval) 
-     {
-      case 0:  //BACnet LogSatus
-		  show_head_bit_string(0, "Log-Status", tagval);											   //  ***002
-          len = show_context_tag("Log-Status");
-          show_bac_bitstring(len);
-       break;
-      case 1:  //Boolean
-          len = show_context_tag("Boolean-Value");				
-        show_application_data(x);
-       break;
-      case 2:  //Real-Value
-		  show_head_real(1, "Real-Value", tagval);												   //  ***002
-          len = show_context_tag("Real-Value");
-        show_bac_real();
-       break;
-      case 3:  //Enumerated
-		  show_head_app_data();																	   //  ***002
-          len = show_context_tag("Enumerated-Value");
-          bac_show_byte("Emumeration","%u");
-       break;
-      case 4:  //Unsigned
-		  show_head_unsigned(1, "Unsigned-Value", tagval);										   //  ***002
-          len = show_context_tag("Unsigned-Value");
-        show_bac_unsigned(len);
-       break;
-      case 5:  //Intiger
-		  show_head_signed(1, "Signed-Value", tagval);											   //  ***002
-          len = show_context_tag("Signed-Value");
-        show_bac_signed(len);
-       break;
-      case 6:  //Bit String
-		  show_head_bit_string(0, "BitString-Value", tagval);									   //  ***002
-          len = show_context_tag("BitString-Value");
-          show_bac_bitstring(len);
-       break;
-      case 7:  //NULL
-          len = show_context_tag("NULL-Value");
-//        bac_show_byte("NULL:","%u");					//modified by LeiChengxin
-       break;
-      case 8:  //Error 
-          len = show_context_tag("Failure");
-		  show_error_codes();
-			//bac_show_byte("Error:","%u");
-		  pif_offset += 1;  // remove the closing tag 8F
-       break;
-      case 9:  //Time-Change
-		   show_head_real(1, "Time-Change", tagval);											   //  ***002
-           len = show_context_tag("Time-Change");
-         show_bac_real();
-       break;
-      case 10:  //Any-Value
-           len = show_context_tag("Any-Value");	
-		   show_head_app_data();																   //  ***002
-         show_application_data(x);  // I don't know how to handle this
-       break;
-       default: 
-            bac_show_nbytes(1,"Error:[logDatum_choice] Context Tag 0 to 10 expected!");
-    }
+	seq.ListOf( -1, "listOfRecords" );
+	while (seq.HasListElement())
+	{
+		if (seq.OpeningTag( 0, "timeStamp" ))
+		{
+			seq.Date( -1, "date" );
+			seq.Time( -1, "time" );
+			seq.ClosingTag();
+		}
+
+		if (seq.OpeningTag( 1, "logDatum" ))
+		{
+			seq.BeginChoice();
+			seq.BitString(  0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
+			seq.Boolean(    1, "boolean-value", BSQ_CHOICE );
+			seq.Real(       2, "real-value", BSQ_CHOICE );
+			seq.Enumerated( 3, "enum-value", NULL, BSQ_CHOICE );
+			seq.Unsigned(   4, "unsigned-value", BSQ_CHOICE );
+			seq.Integer(    5, "signed-value", BSQ_CHOICE );
+			seq.BitString(  6, "bitstring-value", NULL, BSQ_CHOICE );
+			seq.Null(       7, "null-value", BSQ_CHOICE );
+			if (seq.OpeningTag( 8, "failure", BSQ_CHOICE ))
+			{
+				show_error( seq );
+				seq.ClosingTag();
+			}
+			seq.Real(           9, "time-change", BSQ_CHOICE );
+			if (seq.OpeningTag( 10, "any-value", BSQ_CHOICE ))
+			{
+				// Allow an arbitrary sequence of tagged items until closing tag
+				seq.AnyTaggedItem();
+				seq.ClosingTag();
+			}
+
+			seq.EndChoice();
+			seq.ClosingTag();
+		}
+
+		seq.BitString( 2, "statusFlags", &BAC_STRTAB_BACnetStatusFlags, BSQ_OPTIONAL );
+	}
 }
 
 /**************************************************************************/
-void  show_bac_recipient_process( void )
-/**************************************************************************/
+// Show BACnetRecipientProcess
+void show_bac_recipient_process( BACnetSequence &seq )
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagval == 0){
-      show_context_tag("Recipient");  /* opening tag */
-      show_bac_recipient();
-      show_context_tag("Recipient");  /* closing tag */
-      }
-   else {
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag 0 Expected!");
-		show_head_ascii("Error: Context Tag 0 Expected!");										   //  ***002
-        pif_offset = pif_end_offset;
-        }
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagval == 1){
-      pif_show_space();
-	  show_head_unsigned(1, "Process Identifier", -1);											   //  ***002
-      len = show_context_tag("Process Identifier");
-      show_bac_unsigned(len);
-      }
-   else {
-        pif_show_space();
-//	    pif_show_ascii(0, "Error: Context Tag 1 Expected!");									   //  ***002
-		show_head_ascii("Error: Context Tag 1 Expected!");
-        pif_offset = pif_end_offset;
-        }
+	if (seq.OpeningTag( 0, "recipient" ))
+	{
+		show_bac_recipient( seq );
+		seq.ClosingTag();
+	}
+	seq.Unsigned(       1, "processIdentifier" );
 }
 
 /**************************************************************************/
-void show_bac_special_event( void )
-/**************************************************************************/
+// Show BACnetSpecialEvent
+void show_bac_special_event( BACnetSequence &seq )
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {  /* context tag */
-     if(tagval > 3) {
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 3)!");
-       goto exit;
-       };
-     if((tagval != 0) && (tagval != 1)){
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 0 or 1 Expected");
-       goto exit;
-       };
+	// TODO: untagged named "period"
+	seq.BeginChoice();
+	if (seq.OpeningTag( 0, "calendarEntry", BSQ_CHOICE ))
+	{
+		show_calendar_entry( seq );
+		seq.ClosingTag();
+	}
+	seq.ObjectIdentifier( 1, "calendarReference", BSQ_CHOICE );
+	seq.EndChoice();
 
-     if(tagval == 0){
-       show_context_tag(BACnetSpecialEvent[tagval]);
-       show_bac_calendar_entry();
-       show_context_tag(BACnetSpecialEvent[tagval]);  /* closing tag */
-       tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-       };
+	seq.ListOf( 2, "listOfTimeValues" );
+	while (seq.HasListElement())
+	{
+		show_bac_time_value( seq );
+	}
 
-     if(tagval == 1){
-	   show_head_obj_id(1, BACnetSpecialEvent[tagval], tagval);									   //  ***002
-       show_context_tag(BACnetSpecialEvent[tagval]);
-       show_bac_object_identifier();
-	   tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-       };
-
-     if(tagval == 2){ /* list of time values */
-       show_context_tag(BACnetSpecialEvent[tagval]);  /* opening tag */
-       while ((pif_get_byte(0) & 0x0f) != 0x0f) show_bac_time_value();
-       show_context_tag(BACnetSpecialEvent[2]);  /* closing tag */
-       tagbuff = pif_get_byte(0);
-       tagval = (tagbuff&0xF0)>>4;
-       }
-     else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 2 Expected");
-       goto exit;
-       };
-       
-     if(tagval == 3){ /* Event Priority */
-	   show_head_unsigned(1, BACnetSpecialEvent[tagval], tagval);								   //  ***002
-       len = show_context_tag(BACnetSpecialEvent[tagval]);
-       show_bac_unsigned(len);
-       }
-     else{
-       pif_show_space();
-       bac_show_nbytes(1,"Error: Context Tag 3 Expected");
-       goto exit;
-       };
-     }
-   else {  /* application tag */
-     pif_show_space();
-     bac_show_nbytes(1,"Error: Context Tag expected!");
-     }
-   exit:;
-}
-/**************************************************************************/
-void show_bac_status_flags( unsigned int len )
-/**************************************************************************/
-{
-   unsigned char x;
-   unsigned int i,j, unused;
-
-           /* len = show_application_tag(x); */
-           unused = pif_get_byte(0);
-           bac_show_byte("Unused Bits in Last Octet","%u");
-           j=0;
-           for(i=0;i<((len-1)*8-unused);i++) {
-             if(!(i%8)) {
-               x = pif_get_byte(0);
-               sprintf(outstr,"Bit String Octet [%u]",j++);
-               bac_show_byte(outstr,"X'%02X'");
-               }
-             sprintf(outstr,"   %s",BACnetStatusFlags[i]);
-             pif_offset--;
-             if(x&0x80)
-               show_str_eq_str(outstr,"TRUE",1);
-             else
-               show_str_eq_str(outstr,"FALSE",1);
-             pif_offset++;
-             x <<= 1;
-             }
+	seq.Unsigned( 3, "eventPriority" );
 }
 
 /**************************************************************************/
-void show_bac_result_flags( unsigned int len )
+// BACnetShedLevel
+void show_bac_shed_level( BACnetSequence &seq )
 /**************************************************************************/
 {
-   unsigned char x;
-   unsigned int i,j, unused;
-
-           /* len = show_application_tag(x); */
-           unused = pif_get_byte(0);
-           bac_show_byte("Unused Bits in Last Octet","%u");
-           j=0;
-           for(i=0;i<((len-1)*8-unused);i++) {
-             if(!(i%8)) {
-               x = pif_get_byte(0);
-               sprintf(outstr,"Bit String Octet [%u]",j++);
-               bac_show_byte(outstr,"X'%02X'");
-               }
-             sprintf(outstr,"   %s",BACnetResultFlags[i]);
-             pif_offset--;
-             if(x&0x80)
-               show_str_eq_str(outstr,"TRUE",1);
-             else
-               show_str_eq_str(outstr,"FALSE",1);
-             pif_offset++;
-             x <<= 1;
-             }
+	seq.BeginChoice();
+	seq.Unsigned( 0, "percent", BSQ_CHOICE );
+	seq.Unsigned( 1, "level", BSQ_CHOICE );
+	seq.Real(     2, "amount", BSQ_CHOICE );
+	seq.EndChoice();
 }
 
 /**************************************************************************/
-void show_bac_timestamp( void )
-/**************************************************************************/
+// Show a BACnetTimeValue
+void show_bac_time_value( BACnetSequence &theSeq )
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
+	theSeq.Time( -1, "time" );
 
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {  /* context tag */
-      if (tagval > 2) {
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Invalid Context Tag (should be 0,1 or 2)!");
-        goto exit;
-        }
-//	  len = show_context_tag(BACnetTimeStamp[tagval]);
-      switch (tagval) {
-        case 0: 
-				show_head_time(1, "Time", tagval);												   //  ***002
-				len = show_context_tag(BACnetTimeStamp[tagval]);
-				show_bac_time();
-                break;
-        case 1: 
-				show_head_unsigned(1, BACnetTimeStamp[tagval], tagval);							   //  ***002
-				len = show_context_tag(BACnetTimeStamp[tagval]);
-				show_bac_unsigned(len);
-                break;
-        case 2:  /* Primitive date and time follow */
-				len = show_context_tag(BACnetTimeStamp[tagval]);
-                show_application_data(pif_get_byte(0)); /*Date*/
-				show_head_time(1, "Time", -1);													   //  ***002
-                show_application_data(pif_get_byte(0)); /*Time*/
-                show_context_tag(BACnetTimeStamp[tagval]); /* closing tag */
-        }  /* end of switch */
-     }
-   else {  /* application tag */
-      pif_show_space();
-      bac_show_nbytes(1,"Error: Context Tag expected!");
-   }
-exit:;
+	// Any primitive type
+	// TODO: should be labeled "value"
+	theSeq.AnyTaggedItem( false );
 }
 
 /**************************************************************************/
-void show_bac_shed_level( void )
-//	[0] percent Unsigned
-//	[1] level	Unsigned
-//	[2] amount	Real
+// Show BACnetVtSession
+void show_bac_VT_session( BACnetSequence &theSeq )
 /**************************************************************************/
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   tagbuff = pif_get_byte(0);
-   tagval = (tagbuff&0xF0)>>4;
-   if (tagbuff & 0x08) {  /* context tag */
-      if (tagval > 2) {
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Invalid Context Tag (should be 0,1 or 2)!");
-        goto exit;
-        }
-      switch (tagval) {
-        case 0: 
-				show_head_unsigned(1, BACnetShedLevel[tagval], tagval);							   
-				len = show_context_tag(BACnetShedLevel[tagval]);
-				show_bac_unsigned(len);
-                break;
-        case 1: 
-				show_head_unsigned(1, BACnetShedLevel[tagval], tagval);							   
-				len = show_context_tag(BACnetShedLevel[tagval]);
-				show_bac_unsigned(len);
-                break;
-        case 2:  
-				show_head_real(1, BACnetShedLevel[tagval], tagval);							   
-				len = show_context_tag(BACnetShedLevel[tagval]);
-				show_bac_unsigned(len);
-				break;
-        }  /* end of switch */
-     }
-   else {  /* application tag */
-      pif_show_space();
-      bac_show_nbytes(1,"Error: Context Tag expected!");
-   }
-exit:;
+	theSeq.Unsigned( -1, "local-vtSessionID" );
+	theSeq.Unsigned( -1, "remote-vtSessionID" );
+	show_bacnet_address( theSeq, -1, "remote-vtAddress" );
 }
-
-/**************************************************************************/
-void show_bac_time_value( void )
-/**************************************************************************/
-{
-   pif_show_space();
-   show_application_tag(pif_get_byte(0));
-   show_bac_time();
-
-   pif_show_space();
-//   pif_show_ascii(0,BACnetTimeValue[1]);
-   show_head_ascii(BACnetTimeValue[1]);															   //  ***002
-   show_head_app_data();																		   //  ***002
-   show_application_data(pif_get_byte(0));
-}
-
-/**************************************************************************/
-void show_bac_VT_session( void )
-/**************************************************************************/
-{
-//   pif_show_ascii(0,BACnetVTSession[0]);
-   show_head_ascii(BACnetVTSession[0]);															   //  ***002
-   show_head_app_data();																		   //  ***002
-   show_application_data(pif_get_byte(0));
-//   pif_show_ascii(0,BACnetVTSession[1]);
-   show_head_ascii(BACnetVTSession[1]);															   //  ***002
-   show_head_app_data();																		   //  ***002
-   show_application_data(pif_get_byte(0));
-}
-
-/**************************************************************************/
-void show_bac_weeknday( void )
-/**************************************************************************/
-{
-	int x = pif_get_byte(0);
-
-   if (pif_get_byte(0) == 255)
-      sprintf(outstr,"Unspecified");
-   else
-      sprintf(outstr,month[pif_get_byte(0)]);
-   show_str_eq_str("Month",outstr,1);
-   pif_offset++;
-
-   if (pif_get_byte(0) == 255)
-      sprintf(outstr,"Unspecified");
-   else
-      sprintf(outstr,"%u",pif_get_byte(0));
-   show_str_eq_str("Week of Month",outstr,1);
-   pif_offset++;
-
-   if (pif_get_byte(0) == 255)
-      sprintf(outstr,"Unspecified");
-   else
-      sprintf(outstr,day_of_week[pif_get_byte(0)]);
-   show_str_eq_str("Day of Week",outstr,1);
-   pif_offset++;   
-}
-
 
 //Lei Chengxin 2003-7-25
 void show_head_obj_id( unsigned int offset , const char* type , int tagval )
 {
-	int len = pif_get_byte(offset-1)&0x07;
-	long		obj_id;
-	int		obj_type;
-	long		obj_instance;
+	unsigned int len = pif_get_byte(offset-1) & 0x07;
+	if (len != 4)
+	{
+		ShowErrorDetail("Error: expected object identifier, but length is %u", len);
+		return;
+	}
+
+	unsigned long obj_id = get_bac_unsigned(offset, len);
+	unsigned int  obj_type = (obj_id >> 22) & 0x000003FF;
+	unsigned int  obj_instance = (obj_id & 0x003FFFFF);
 	
-	for (int i = 0; i < 4; i++)
-		obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+offset );
-	
-	obj_type = (obj_id >> 22) & 0x000003FF;
-	obj_instance = (obj_id & 0x003FFFFF);
+	sprintf( outstr, "%s,%lu", ObjectTypeString(obj_type), obj_instance );
 	
 	if(tagval == -1)
 	{
-		if(obj_type > 63){ /* proprietary object type */
-			sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-				"%s:  %u,%lu", type, obj_type, obj_instance);
-		}
-		else{ /* standard object type */
-			sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-				"%s:  %s,%lu", type, BACnetObjectType[obj_type], obj_instance);
-		}
+		sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
+				"%s:  %s", type, outstr);
 	}
 	else
 	{
-		if(obj_type > 63){ /* proprietary object type */
-			sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-				"[%u] %s:  %u,%lu", tagval, type, obj_type, obj_instance);
-		}
-		else{ /* standard object type */
-			sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-				"[%u] %s:  %s,%lu", tagval, type, BACnetObjectType[obj_type], obj_instance);
-		}
+		sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
+				"[%u] %s:  %s", tagval, type, outstr);
 	}
 }
 
@@ -9452,45 +4913,75 @@ void show_head_unsigned(unsigned int offset, const char* type, int tagval)
 	int len = pif_get_byte(offset-1)&0x07;
 	unsigned long value = get_bac_unsigned(offset, len);
 	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,len+offset,1), 
+		sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
 			"%s:  %lu", type, value);
 	else
-		sprintf(get_int_line(pi_data_current,pif_offset,len+offset,1), 
+		sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
 			"[%u] %s:  %lu", tagval, type, value);
+}
+
+// Show an enumeration using the table, or numerically if out of
+// range of the table, or no table provided
+void show_head_enumerated(unsigned int offset, const char* type, int tagval, 
+						  const char* const table[], unsigned int tableLen)
+{
+	int len = pif_get_byte(offset-1)&0x07;
+	unsigned long value = get_bac_unsigned(offset, len);
+	if ((table != NULL) && (value < tableLen))
+	{
+		if(tagval == -1)
+			sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
+					"%s:  %s (%u)", type, table[value], value);
+		else
+			sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
+					"[%u] %s:  %s (%u)", tagval, type, table[value], value);
+	}
+	else
+	{
+		show_head_unsigned( offset, type, tagval );
+	}
 }
 
 //Lei Chengxin 2003-7-31
 void show_head_ascii(const char* type)
 {
-	sprintf(get_int_line(pi_data_current,pif_offset,0,3), "%s", type);
+	sprintf(get_int_line(pi_data_current,pif_offset,0,NT_ITEM_HEAD), "%s", type);
 }
 
-//Lei Chengxin 2003-7-31
 void show_head_char_string(unsigned int offset, const char* type, int tagval)
 {
-	int tmpLen,tagbuff,flag,strLength;
-	tagbuff = pif_get_byte(offset);
-	tmpLen = tagbuff & 0x07;
-	flag = 1;
-	if(tmpLen == 5)
-	{
-		tmpLen = pif_get_byte(1+offset);
-		flag = 2;
-		if (tmpLen == 254)
-		{
-			tmpLen = pif_get_word_hl(flag+offset);
-			flag=4;
-		}
-	}
-	strLength = tmpLen;
+	// Reparse the tag, since we may have extended length
+	BacParser parser( offset );
+	int strLength = parser.DataLength();
+	offset = parser.Offset();
+	
 	char strBuff[MAX_INT_LINE];
-    get_bac_charstring( strLength, strBuff, flag, offset );
-	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
-			"%s:  '%s'", type, strBuff);
+    get_bac_charstring( strLength, strBuff, 0, offset );
+	if (tagval == -1)
+		sprintf(get_int_line(pi_data_current, pif_offset, offset+strLength, NT_ITEM_HEAD), 
+			    "%s:  '%s'", type, strBuff);
 	else
-		sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
-			"[%d] %s:  '%s'", tagval, type, strBuff);
+		sprintf(get_int_line(pi_data_current, pif_offset, offset+strLength, NT_ITEM_HEAD), 
+			    "[%d] %s:  '%s'", tagval, type, strBuff);
+}
+
+void show_head_date(unsigned int offset, const char* type, int tagval)
+{
+	unsigned int len = pif_get_byte(offset-1)&0x07;
+	if (len != 4)
+	{
+		ShowErrorDetail("Error: expected date, but length is %u", len);
+		return;
+	}
+
+	date_as_string( outstr, offset );
+	
+	if(tagval == -1)
+		sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
+			"%s:  %s", type, outstr);
+	else
+		sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
+			"[%d] %s:  %s", tagval, type, outstr);
 }
 
 //Lei Chengxin 2003-7-31
@@ -9498,7 +4989,14 @@ void show_head_time(unsigned int offset, const char* type, int tagval)
 {
 	unsigned char x;
 	char tempstr[80];
-	
+
+	unsigned int len = pif_get_byte(offset-1)&0x07;
+	if (len != 4)
+	{
+		ShowErrorDetail("Error: expected time, but length is %u", len);
+		return;
+	}
+
 	x = pif_get_byte(offset);
 	if (x == 255)
 		sprintf(outstr,"XX:");
@@ -9529,195 +5027,201 @@ void show_head_time(unsigned int offset, const char* type, int tagval)
 		strcat(outstr,tempstr);
 	}
 	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,5,1), 
+		sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
 			"%s:  %s", type, outstr);
 	else
-		sprintf(get_int_line(pi_data_current,pif_offset,5,1), 
+		sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
 			"[%d] %s:  %s", tagval, type, outstr);
 }
 
 //Lei Chengxin 2003-7-31
+// Offset points at first data byte
 void show_head_property_ID( unsigned int offset , const char* type , int tagval )
 {
-	char len = pif_get_byte(offset-1)&0x07;
-				
-	unsigned int x;
-	switch (len) {
-	case 1:  
-		x = (unsigned int)pif_get_byte(offset);
-		sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-			"[%u] %s:  %s", tagval, type, BACnetPropertyIdentifier[x]);
-		break;
-	case 2:  
-		x = pif_get_word_hl(offset);
-		if(x>max_property_id)
-		{	
-			sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-				"Unknown Property Identifier:  %u", x);
-		}
-		else
-		{	
-			sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-				"[%u] %s:  %s", tagval, type, BACnetPropertyIdentifier[x]);
-		}
-		break;
-	default: 
-		sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-			"Error: Invalid Property Identifier!");
-		break;
-	}
+	show_head_enumerated( offset, type, tagval, 
+						  BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings, 
+						  BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings );
 }
 
-
-//Lei Chengxin 2003-8-23
-// TODO: this is called for context tags as well.
-// Probably should rename the function.
-//
 // Show the tag and value of an item.
 // Does not affect the cursor.
-void show_head_app_data( void )
+void show_head_tagged_data( void )
 {
-	unsigned char dataType,len;
+	unsigned char tagbuff;
+	unsigned int dataType, len, val;
 	
-	dataType = (pif_get_byte(0) & 0xF0)>>4;
+	tagbuff = pif_get_byte(0);
+	bool contextTag = (tagbuff & 0x08) != 0;
+	dataType = tagbuff>>4;
+
+	// Note that datatypes that may have more than 4 bytes of data
+	// will need to reparse the full length.
 	len = pif_get_byte(0) & 0x07;
 
-	if (dataType < 15) {
+	if (!contextTag) {
 		switch (dataType) {
+		case 0:
+			sprintf(get_int_line(pi_data_current,pif_offset,1,NT_ITEM_HEAD), "NULL");
+			break;
 		case BOOLEAN:
-			if( pif_get_byte(0) & 0x07 )
-				sprintf(get_int_line(pi_data_current,pif_offset,1,1), "[%d] BACnet Boolean:  TRUE", BOOLEAN);
-			else
-				sprintf(get_int_line(pi_data_current,pif_offset,1,1), "[%d] BACnet Boolean:  FALSE", BOOLEAN);
+			val = pif_get_byte(0) & 0x07;
+			sprintf(get_int_line(pi_data_current,pif_offset,1,NT_ITEM_HEAD), "Boolean: %s",
+				    (val == 0) ? "FALSE" :
+					(val == 1) ? "TRUE" :
+					"Illegal value");
 			break;
 		case UNSIGNED: 
-			show_head_unsigned(1, "BACnet Unsigned", UNSIGNED);
+			show_head_unsigned(1, "Unsigned", -1 ); // UNSIGNED);
 			break;
 		case SIGNED: 
-			show_head_signed(1, "BACnet Signed", SIGNED);
+			show_head_signed(1, "Signed", -1 ); // SIGNED);
 			break;
 		case REAL: 
-			show_head_real(1, "BACnet Real", REAL);
+			show_head_real(1, "Real", -1 ); // REAL);
 			break;
 		case DOUBLE: 
+			show_head_double(0, "Double", -1 ); // DOUBLE);
 			break;
 		case BIT_STRING:
-			show_head_bit_string(0, "BACnet Bit String", BIT_STRING);
+			show_head_bit_string(0, "Bit String", -1 ); // BIT_STRING);
 			break;
 		case CHARACTER_STRING:
-			show_head_char_string(0, "BACnet Character String", CHARACTER_STRING);
+			show_head_char_string(0, "Character String", -1 ); // CHARACTER_STRING);
 			break;
 		case OCTET_STRING:
-			show_head_octet_string(0, "BACnet Octet String", OCTET_STRING);
+			show_head_octet_string(0, "Octet String", -1 ); // OCTET_STRING);
 			break;
 		case ENUMERATED:
-			if(len <= 2)
-				show_head_unsigned(1, "BACnet Enumerated", ENUMERATED);
+			show_head_unsigned(1, "Enumerated", -1 ); // ENUMERATED);
 			break;
-		case DATE: 
+		case DATE:
+			show_head_date(1, "Date", -1 ); // DATE);
 			break;
 		case TIME: 
-			show_head_time(1, "BACnet Time", TIME);
+			show_head_time(1, "Time", -1 ); // TIME);
 			break;
 		case OBJECT_IDENTIFIER:
-			show_head_obj_id(1, "BACnet Object Identifier", OBJECT_IDENTIFIER);
+			show_head_obj_id(1, "Object Identifier", -1 ); // OBJECT_IDENTIFIER);
 			break;
-		case 13: case 14:  /* reserved */
-			break;
-		case 15:       /* non-standard */
+		default: 
+			ShowErrorDetail("Error: claimed application tag %u", dataType );
 			break;
 		}  /* end of type switch */
-	}    /* end of if(type) */
+	}
+    else 
+	{
+		// Context tagged item
+		// Show as level 1 item
+		// - if fixed-length, highlight that length
+		// - if paired, highlight up until the closing tag
+
+		// Reparse, since we may have extended tag value or length
+		BacParser parser(0);
+		if (parser.FixedTag())
+		{
+			// Fixed-delimiter item.  
+			// Show it as hex (since we don't know the actual type)
+			// and highlight all of its data
+			if (parser.DataLength() > 0)
+			{
+				char *pStr = outstr;
+				pStr += sprintf( pStr, "hex data:" );
+				for (unsigned int ix = 0; ix < parser.DataLength(); ix++)
+				{
+					if (ix >= MAX_SUM_LINE/3)
+					{
+						// Limit the length
+						pStr += sprintf( pStr, "..." );
+						break;
+					}
+					pStr += sprintf( pStr, " %02X", pif_get_byte(parser.Offset()+ix) );
+				}
+				*pStr = 0;
+			}
+			else
+			{
+				strcpy( outstr, "no data" );
+			}
+			
+			parser.EatData();
+			sprintf( get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_ITEM_HEAD),
+			         "[%u] Context tag with %s", 
+					 parser.TagValue(), outstr );
+		}
+		else if (parser.OpeningTag())
+		{
+			// Opening tag
+			unsigned int tagValue = parser.TagValue();
+			parser.EatData();	// bypass the contents
+			parser.ParseTag();	// bypass the closing tag, so Offset() includes it
+
+			// Show using NT_OPEN_TAG so tree can auto-expand
+			sprintf( get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_OPEN_TAG),
+			         "[%u] Opening Context tag", 
+					 tagValue );
+		}
+		else
+		{
+			// Closing tag.
+			sprintf( get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_ITEM_HEAD),
+			         "[%u] Closing Context tag", 
+					 parser.TagValue() );
+		}
+	}
 }
 
 //Lei Chengxin 2003-8-23
+// offset points at tag octet
 void show_head_octet_string( unsigned int offset , const char* type , int tagval )
 {
-	int tmpLen,tagbuff,flag,strLength;
-	tagbuff = pif_get_byte(offset);
-	tmpLen = tagbuff & 0x07;
-	flag = 1;
-	if(tmpLen == 5){
-		tmpLen = pif_get_byte(offset+1);
-		flag = 2;
-		if (tmpLen == 254)
-		{
-			tmpLen = pif_get_word_hl(flag+offset);
-			flag=4;
-		}
-	}
-	strLength = tmpLen;
-	char outputStr[500],tempStr[10];
-	strcpy(outputStr, "");
-	for(int i = 0; i < strLength; i++)
+	// Reparse the tag, since we may have extended length
+	BacParser parser( offset );
+	int strLength = parser.DataLength();
+	offset = parser.Offset();
+
+	char *pStr = outstr;
+	*pStr = 0;
+	for (int i = 0; i < strLength; i++)
 	{
-		sprintf(tempStr, "%02X", pif_get_byte(offset+flag+i));
-		strcat(outputStr, tempStr);
+		if ((pStr - outstr) >= MAX_SUM_LINE)
+		{
+			// Limit the length
+			strcpy( pStr, "..." );
+			break;
+		}
+		pStr += sprintf( pStr, "%02X", pif_get_byte(offset+i) );
 	}
 
 	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
-			"%s:  0X'%s'", type, outputStr);
+		sprintf(get_int_line(pi_data_current,pif_offset, offset + strLength, NT_ITEM_HEAD), 
+			    "%s:  X'%s'", type, outstr);
 	else
-		sprintf(get_int_line(pi_data_current,pif_offset,strLength+flag,1), 
-			"[%d] %s:  0X'%s'", tagval, type, outputStr);
+		sprintf(get_int_line(pi_data_current,pif_offset, offset + strLength, NT_ITEM_HEAD), 
+			    "[%d] %s:  X'%s'", tagval, type, outstr);
 }
 
 //Lei Chengxin 2003-8-23
+// offset points at first data octet
 void show_head_signed( unsigned int offset , const char* type , int tagval )
 {
-	int tmpLen;
-	unsigned char necValue;
-	tmpLen = pif_get_byte(offset-1) & 0x07;
-	switch(tmpLen){
-	case 1:
-		{
-			necValue = (0x80 & (unsigned char)pif_get_byte(offset));
-			if(necValue)
-			{
-				unsigned char nValue = (unsigned char)(0x100-(unsigned char)pif_get_byte(offset));
-				sprintf(outstr, "-%u",nValue);
-			}
-			else
-				sprintf(outstr, "%u", pif_get_byte(offset));
-		}
-		break;
-	case 2:
-		{
-			necValue = (0x80 & (unsigned char)pif_get_byte(offset));
-			unsigned short arg = pif_get_word_hl(offset);
-			if(necValue)
-			{	
-				unsigned short nValue = (unsigned short)(0x10000 - arg);
-				sprintf(outstr, "-%u", nValue);
-			}
-			else
-				sprintf(outstr, "%u", arg);
-		}
-		break;
-	case 4:
-		{
-			necValue = (0x80 & (unsigned char)pif_get_byte(0));
-			unsigned long arg = pif_get_long_hl(0);
-			if(necValue)
-			{
-				unsigned long nValue = (unsigned short)(0x100000000 - arg);
-				sprintf(outstr, "-%ld", nValue);
-			}
-			else
-				sprintf(outstr, "%ld", arg);
-		}
-		break;
-	default:
-		return;
+	int len = pif_get_byte(offset-1) & 0x07;
+	unsigned int val = 0;
+	if (pif_get_byte(offset) & 0x80)
+	{
+		val = (unsigned int)-1;
+	}
+
+	for (int ix = 0; ix < len; ix++)
+	{
+		val = (val << 8) | pif_get_byte(offset + ix);
 	}
 
 	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,tmpLen+1,1), 
-			"%s:  %s", type, outstr);
+		sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
+			"%s:  %d", type, (int)val);
 	else
-		sprintf(get_int_line(pi_data_current,pif_offset,tmpLen+1,1), 
-			"[%d] %s:  %s", tagval, type, outstr);
+		sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
+			"[%d] %s:  %d", tagval, type, (int)val);
 }
 
 //Lei Chengxin 2003-8-23
@@ -9726,273 +5230,199 @@ void show_head_real( unsigned int offset , const char* type , int tagval )
 	double dx;
 	unsigned char fstr[4];
 	unsigned int i;
+
+	unsigned int len = pif_get_byte(offset-1)&0x07;
+	if (len != 4)
+	{
+		ShowErrorDetail("Error: expected real, but length is %u", len);
+		return;
+	}
 	   
+#if LITTLEENDIAN
 	for (i=0;i<4;i++) 
 		fstr[i] = pif_get_byte(offset+3-i);
+#else
+	for (i=0;i<4;i++) 
+		fstr[i] = pif_get_byte(offset+i);
+#endif
 	dx = (double)(*(float *)fstr);
 
+	// Change from %f to %g to avoid l000000000000000ng strings and buffer overflow
 	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,4+1,1), 
-			"%s:  %3.1f", type, dx);
+		sprintf(get_int_line(pi_data_current,pif_offset,4+1,NT_ITEM_HEAD), 
+		        "%s:  %#g", type, dx);
 	else
-		sprintf(get_int_line(pi_data_current,pif_offset,4+1,1), 
-			"[%d] %s:  %3.1f", tagval, type, dx);
+		sprintf(get_int_line(pi_data_current,pif_offset,4+1,NT_ITEM_HEAD), 
+		        "[%d] %s:  %#g", tagval, type, dx);
 }
 
-//Lei Chengxin 2003-8-23
-void show_head_bit_string( unsigned int offset , const char* type , int tagval )
+// offset points at tag octet
+void show_head_double( unsigned int offset, const char* type , int tagval )
 {
-	  int len,count,i,j;
-	  char* bitStr;
-	  len = pif_get_byte(offset)&0x07;
-	  count = pif_get_byte(offset+1);
-	  if ( count > 8 ) 
-		  count = 8;  // temporary
-	  bitStr = new char[8-count+1];
-	  int bitHex[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-	  for( i=0,j=7; i<(8-count); i++,j-- )
-	  {
-		  sprintf(bitStr+i, "%u", (pif_get_byte(2+offset)&bitHex[i])>>j);
-	  }
-	  bitStr[8-count+1] = '\0';
+	double dx;
+	unsigned char fstr[8];
+	unsigned int i;
 
+	// Reparse the tag, since we may have extended length
+	BacParser parser( offset );
+	if (parser.DataLength() != 8)
+	{
+		ShowErrorDetail("Error: expected double, but length is %u", parser.DataLength());
+		return;
+	}
+	offset = parser.Offset();
+	   
+#if LITTLEENDIAN
+	for (i=0;i<8;i++) 
+		fstr[i] = pif_get_byte(offset+7-i);
+#else
+	for (i=0;i<8;i++) 
+		fstr[i] = pif_get_byte(offset+i);
+#endif
+	dx = *(double*)fstr;
+
+	// Change from %f to %g to avoid l000000000000000ng strings and buffer overflow
 	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-			"%s:  '%s'", type, bitStr);
+		sprintf(get_int_line(pi_data_current,pif_offset,offset+8,NT_ITEM_HEAD), 
+		        "%s:  %#g", type, dx);
 	else
-		sprintf(get_int_line(pi_data_current,pif_offset,len+1,1), 
-			"[%d] %s:  '%s'", tagval, type, bitStr);
+		sprintf(get_int_line(pi_data_current,pif_offset,offset+8,NT_ITEM_HEAD), 
+		        "[%d] %s:  %#g", tagval, type, dx);
 }
 
-//Xiao Shiyuan 2002-7-23
-void show_bac_COV_Subscription( void )
+// offset points at tag octet
+void show_head_bit_string( unsigned int offset, const char* type, int tagval )
 {
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   unsigned int val = 0;
+	// Reparse the tag, since we may have extended length
+	BacParser parser( offset );
+	offset = parser.Offset();
+	int byteLength = parser.DataLength();
+	int unusedBits = pif_get_byte(offset);
+	if ((byteLength < 2) || (unusedBits > 7))
+	{
+		ShowErrorDetail("Error: bitstring claims %u bytes with %u unused bits", 
+						byteLength, unusedBits);
+		return;
+	}
 
-   tagbuff = pif_get_byte(0);
-   while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        if(tagval > 4) {
-          pif_show_space();
-          bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 4)!");
-          goto exit;
-          }
-        len = show_context_tag(BACnetCOVSubscription[tagval]);
-        switch (tagval) {
-          case 0:  show_bac_recipient_process();
-			       show_context_tag(BACnetCOVSubscription[0]);/* closing tag */
-			       tagbuff = pif_get_byte(0);
-				   tagval = (tagbuff&0xF0)>>4;
-                   break;
-          case 1:  show_bac_obj_prop_ref();  
-			       show_context_tag(BACnetCOVSubscription[1]);/* closing tag */
-			       tagbuff = pif_get_byte(0);
-				   tagval = (tagbuff&0xF0)>>4;
-                   break;
-          case 2:  if(val == 0)
-					 bac_show_nbytes(len,"FALSE");
-				   else
-					 bac_show_nbytes(len, "TRUE");
-                   break;
-          case 3:  show_bac_unsigned(len);
-				   break;
-          case 4:  show_bac_real();
-				   break;
-          }
-        }
-      else {  /* application tag */
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Context Tag expected!");
-        }
-      tagbuff = pif_get_byte(0);
-      }  /* end of while loop */
-   exit:;
-}
-
-//Xuyiping 2002-9-28
-void show_bac_destination( void )
-{
-
-	unsigned int len;
-	   
-	show_bac_bitstring_value(&BACnetDaysOfWeek[0]);
-   
-	pif_show_space();
-	len = show_application_tag(pif_get_byte(0));
-    show_bac_time();
-	len = show_application_tag(pif_get_byte(0));
-    show_bac_time();
-   
-	pif_show_space();
-	show_bac_recipient();  
-   
-	pif_show_space();
-	len = show_application_tag(pif_get_byte(0));
-	show_bac_unsigned(len);
- 
-	pif_show_space();
-	len = show_application_tag(pif_get_byte(0));
-
-
-	pif_show_space();
-
-	show_bac_bitstring_value(&BACnetEventTransitionBits[0]);
-	  
-}
-
-//Added By Zhu Zhenhua, 2004-5-17
-/**************************************************************************/
-void show_bac_devobj_prop_ref( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-
-   tagbuff = pif_get_byte(0);
-   while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        if(tagval > 3) {
-          pif_show_space();
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 3)!");
-          goto exit;
-          }
-//       len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
-        switch (tagval) {
-          case 0:  
-			show_head_obj_id(1, BACnetObjectPropertyReference[tagval], tagval);
-			len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
-			show_bac_object_identifier();
-                   break;
-          case 1:
-			  len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]); 
-			  show_bac_property_identifier(len);
-                   break;
-          case 2:
-			  len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]); 
-			  show_bac_unsigned(len);  /* array index */
-                   break;
-          case 3:  
-			show_head_obj_id(1, BACnetObjectPropertyReference[tagval], tagval);
-			len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
-			show_bac_object_identifier(); /* device Identifier*/
-                   break;
-          }
-        }
-      else {  /* application tag */
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Context Tag expected!");
-        }
-      tagbuff = pif_get_byte(0);
-      }  /* end of while loop */
-   exit:;
-}
-
-/**************************************************************************/
-void show_bac_devobj_prop_val( void )
-/**************************************************************************/
-{
-   unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-   unsigned int len;
-   int obj_type, prop_id, prop_idx;
-
-   tagbuff = pif_get_byte(0);
-   while ((tagbuff & 0x0f) != 0x0f) {  /* closing PD tag not yet found */
-      tagval = (tagbuff&0xf0)>>4;
-      if (tagbuff & 0x08) {  /* context tag */
-        if(tagval > 4) {
-          pif_show_space();
-         bac_show_nbytes(1,"Error: Invalid Context Tag (should be <= 4)!");
-          goto exit;
-          }
-        switch (tagval) {
-          case 0:  
-			show_head_obj_id(1, BACnetObjectPropertyValue[tagval], tagval);
-			len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
-			show_bac_object_identifier();
-                   break;
-          case 1:  
-			show_head_obj_id(1, BACnetObjectPropertyValue[tagval], tagval);
-			len = show_context_tag(BACnetDeviceObjectPropertyReference[tagval]);
-            obj_type = bac_extract_obj_type();
-
-			show_bac_object_identifier();
-                   break;
-          case 2:
-			  len = show_context_tag(BACnetDeviceObjectPropertyValue[tagval]); 
-	           if (len == 1)
-		         prop_id = (int)pif_get_byte(0);
-			   else
-				 prop_id = (int)pif_get_word_hl(0);
-
-			  show_bac_property_identifier(len);
-                   break;
-          case 3:
-			  len = show_context_tag(BACnetDeviceObjectPropertyValue[tagval]); 
-	           prop_idx = pif_get_byte(0);
-			  show_bac_unsigned(len);  /* array index */
-                   break;
-          case 4:  
-			len = show_context_tag(BACnetDeviceObjectPropertyValue[tagval]);
-	        show_bac_ANY(obj_type,prop_id,prop_idx);
-            break;
-          }
-        }
-      else {  /* application tag */
-        pif_show_space();
-        bac_show_nbytes(1,"Error: Context Tag expected!");
-        }
-      tagbuff = pif_get_byte(0);
-      }  /* end of while loop */
-   exit:;
-}
-
-void show_bac_bitstring_value(char** c)
-{
-   unsigned char tagbuff,x; /* buffers for tags and tag values */
-   unsigned int unused,len;
-   unsigned int i,j;
-   
-   tagbuff = pif_get_byte(0);
-
-   len = tagbuff&0x0f;
-
-   if ((tagbuff & 0xf8) != 0x80) { 
-        pif_show_space();
-        bac_show_nbytes(1,"Error: bitstring expected!"); 
-   }
-   else
-   {
-	   pif_show_space();
-	   show_application_tag(pif_get_byte(0));
-	   
-	   unused = pif_get_byte(0);
-	   bac_show_byte("Unused Bits in Last Octet","%u");
-	  
-	   j=0;
-	   for(i=0;i<((len-1)*8-unused);i++) {
-			if(!(i%8)) {
-				x = pif_get_byte(0);
-				sprintf(outstr,"Bit String Octet [%u]",j++);
-				bac_show_byte(outstr,"X'%02X'");
-			}
-			sprintf(outstr,"   %s",c[i]);
-			pif_offset--;
-			if(x & 0x80)
-				 show_str_eq_str(outstr,"TRUE",1);
-			else
-				 show_str_eq_str(outstr,"FALSE",1);
-			pif_offset++;
-			x <<= 1;
+	int val, jx = 1, mask = 0;
+	int bitLength = (byteLength - 1)*8 - unusedBits;
+	char *pStr = outstr;
+	for (int ix = 0; ix < bitLength; ix++)
+	{
+		if ((pStr - outstr) >= MAX_SUM_LINE)
+		{
+			// Limit the length
+			pStr += sprintf( pStr, "..." );
+			break;
 		}
-   }
+
+		if (mask == 0)
+		{
+			mask = 0x80;
+			val = pif_get_byte(offset + jx);
+			jx += 1;
+			if (ix != 0)
+				*pStr++ = ' ';
+		}
+
+		*pStr++ = (val & mask) ? 'T' : 'F';
+		mask = mask >> 1;
+	}
+	*pStr = 0;
+
+	if(tagval == -1)
+		sprintf(get_int_line(pi_data_current,pif_offset, offset+byteLength, NT_ITEM_HEAD), 
+			    "%s:  {%s}", type, outstr);
+	else
+		sprintf(get_int_line(pi_data_current,pif_offset, offset+byteLength, NT_ITEM_HEAD), 
+			    "[%d] %s:  {%s}", tagval, type, outstr);
+}
+
+// Show an opening or closing context tag by name.
+// If showContent is true,
+// - show the tagging
+// - show the contents
+// - show the closing context tag, using the same name
+// - advance cursor past the closing tag
+// Else the cursor is not moved
+//
+// Return true if the specified context tag is found, else false
+//
+bool show_head_context_tag( unsigned int offset, const char* type, int tagval, bool showContent )
+{
+	// Reparse the tag, since we may have extended length
+	BacParser parser( offset );
+	if (parser.TagValue() != (unsigned int)tagval)
+	{
+		ShowErrorDetail("Error: expected tag %u (%s), got %u", 
+				tagval, type, parser.TagValue());
+		return false;
+	}
+
+	bool isOpening = parser.OpeningTag();
+
+	// Bypass the item, so we can highlight it
+	parser.EatData();
+
+	if (isOpening)
+	{
+		// Parse closing tag, so we highlight its length with our own
+		parser.ParseTag();
+
+		// Use NT_OPEN_TAG, so this can be auto-expanded in the view tree
+		sprintf(get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_OPEN_TAG), 
+				"[%d] %s:  Paired tag", tagval, type);
+		if (showContent)
+		{
+			// Deconstruct the tag and show the contents, advancing cursor
+			show_tagged_data();
+
+			// Show the closing tag (recursively)
+			show_head_context_tag(0, type, tagval, true);
+		}
+	}
+	else
+	{
+		sprintf(get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_ITEM_HEAD), 
+				"[%d] %s:  Closing tag", tagval, type);
+		if (showContent)
+		{
+			// Deconstruct the tag and show the contents, advancing cursor
+			show_tagged_data();
+		}
+	}
+
+	return true;
+}
+
+// Show a BACnetCOVSubscription
+void show_bac_COV_Subscription( BACnetSequence &seq )
+{
+	if (seq.OpeningTag( 0, "recipient" ))
+	{
+		show_bac_recipient_process( seq );
+		seq.ClosingTag();
+	}
+	if (seq.OpeningTag( 1, "monitoredPropertyReference" ))
+	{
+		show_bac_object_property_reference( seq );
+		seq.ClosingTag();
+	}
+	seq.Boolean(        2, "issueConfirmedNotifications" );
+	seq.Unsigned(       3, "timeRemaining" );
+	seq.Real(           4, "covIncrement", BSQ_OPTIONAL );
+}
+
+// Show a BACnetDestination
+void show_bac_destination( BACnetSequence &seq )
+{
+	seq.BitString( -1, "validDays" );
+	seq.Time( -1, "fromTime" );
+	seq.Time( -1, "toTime" );
+	show_bac_recipient(seq);
+	seq.Unsigned( -1, "processIdentifier" );
+	seq.BitString( -1, "transitions", &BAC_STRTAB_BACnetEventTransitionBits );
+}
 
 }
-}
-
-
-
-

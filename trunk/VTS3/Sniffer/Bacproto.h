@@ -1,6 +1,8 @@
 /*  This version of BACPROTO.H is compatible with BACSN015.C  */
 // Revision: Sep 18 2001 added new properties published in Addendum 135b to ANSI/ASHRAE Standard 135-1995
 
+class BACnetSequence;
+
 /* ---- primitive data type constants ---- */
 /*#define NULL             0 */
 #define BOOLEAN            1   
@@ -278,8 +280,8 @@ void    show_getAlarmSummary(void);
 void    show_getEnrollmentSummary(void);
 void    show_getEventInformation(void); //Added by Zhu Zhenhua, 2004-5-25
 void    show_getEventInformationACK(void); //Added by Zhu Zhenhua, 2004-5-25
-void	show_event_summary(void); //Added by Zhu Zhenhua, 2004-5-25
 void    show_subscribeCOV(void);
+void    show_subscribeCOV_Property(void);
 void    show_atomicReadFile(void);
 void    show_atomicWriteFile(void);
 void    show_addListElement(void);
@@ -330,6 +332,7 @@ void     show_authenticateACK(void);
 void     show_ReadRangeACK(void);
 /* ----- prototypes for error interpreter functions ----- */
 
+void	 show_wrapped_error( BACnetSequence &theSeq, int theTag = 0, const char *pTheString = NULL );
 void     show_error_codes(void);
 void     show_createObjectError(void);
 void     show_writePropertyMultipleError(void);
@@ -338,96 +341,87 @@ void     show_vtCloseError(void);
 /*  ----- prototypes for general purpose pif routines ----- */
 
 void     bac_show_byte(const char *,const char *);
-void     bac_show_unsigned(const char *,unsigned int);
 void     bac_show_bipaddr(const char *);
-void     bac_show_flag(char *outstr, unsigned char);
-void     bac_show_ctag_flag(void);
+void     bac_show_flag(const char *, unsigned char);
 void     bac_show_flagmask (unsigned char, const char *);
 void     bac_show_nbytes(unsigned int, const char *);
 void     bac_show_word_hl(const char *, const char *);
 void     bac_show_long_hl(const char *, const char *);
-void     float_to_ascii(double, char *outstr);
 void     show_str_eq_str(const char *, const char *, unsigned int);
-unsigned long get_bac_unsigned(int offset, int length);
+unsigned int get_bac_unsigned(int offset, int length);
 
 /*  ----- prototypes for displaying other PDU components ----- */
 
-void     check_ctag_length(unsigned char, unsigned int, unsigned int);
-unsigned int show_context_tag(const char *);
-unsigned int show_application_data(unsigned char);
-unsigned int show_application_tag(unsigned char);
+void ShowErrorDetail( const char *pFormat = NULL, ... );
+
+// Show deconstructed tag followed by value
+unsigned int show_tagged_data( bool showData = true );
+
+// Show deconstructed tag, whether application or contest
+// Returns length of tag data
+// Advances cursor past tag byte(s)
+unsigned int show_tag(void);
 
 /*  ----- prototypes for displaying primitive data types ----- */
 
-void     show_bac_ANY( int obj_type, unsigned int prop_id, int prop_idx );
+void     show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int prop_idx );
 void     show_bac_bitstring(unsigned int);
-void     show_bac_charstring(unsigned int len);
+void     show_bac_charstring(unsigned int);
 void     show_bac_octetstring(unsigned int);
-void     show_bac_date(void);
-void     show_bac_double(void);
-void     show_bac_object_identifier(void);
-void     show_bac_real(void);
-void     show_bac_signed(unsigned int len);
-void     show_bac_time(void);
-void     show_bac_unsigned(unsigned int len);
+void     show_bac_date(unsigned int len);
+void     show_bac_double(unsigned int len);
+void     show_bac_object_identifier(unsigned int len);
+void     show_bac_real(unsigned int len);
+void     show_bac_signed(unsigned int);
+void     show_bac_time(unsigned int len);
+void     show_bac_unsigned(unsigned int);
+void	 show_bac_enumerated( unsigned int len );
 
 /*  ----- prototypes for displaying BACnet base types ----- */
 
-void	show_bac_action_list(void);		//Added by Zhu Zhenhua, 2004-6-14
-void     show_bac_action_command(unsigned int);
-void     show_bac_address(void);
-void     show_bac_calendar_entry(void);
-void     show_bac_event_parameters(void);
-void     show_bac_event_transitions_ackd(void);
-void     show_bac_obj_prop_ref(void);
-void     show_bac_dev_obj_prop_ref(void); //Added by Zhu Zhenhua, 2004-6-14
-void     show_bac_dev_obj_ref(void); //Added by Zhu Zhenhua, 2004-6-14
-void     show_bac_obj_prop_value(void);
-void     show_bac_object_type(void);
-void     show_bac_property_identifier(unsigned int);
-void     show_bac_property_ref(void);
-void     show_bac_property_states(void);
-void     show_bac_property_value(void);
-void     show_bac_read_access_result(void);
-void     show_bac_read_access_spec(void);
-void     show_bac_recipient(void);
-void     show_bac_recipient_process(void);
-void     show_bac_special_event(void);
-void     show_bac_status_flags(unsigned int);
-void     show_bac_timestamp(void);
-void	 show_bac_shed_level(void);
-void     show_bac_time_value(void);
-void     show_bac_VT_session(void);
-void     show_bac_weeknday(void);
-void     show_log_buffer( void );
-void     show_logDatum_choice( void );
-void     show_bac_result_flags( unsigned int);
-void     show_bac_COV_Subscription(); //Xiao Shiyuan 2002-7-23
-void     show_bac_destination(void); //Xu yiping 2002-9-28
-void	 show_bac_bitstring_value(char**c);	//Xu yiping 2002-9-28
-void	 show_bac_devobj_prop_ref(); //Added by Zhu Zhenhua, 2004-5-17
-void	 show_bac_devobj_prop_val(); //Added by Zhu Zhenhua, 2004-5-17
-void	 show_bac_scale(void);
-void	show_bac_life_safety_mode();
-void	show_bac_life_safety_state();
-void	show_bac_life_safety_operation();
+void	 show_bac_action_list( BACnetSequence &seq );
+void     show_bac_action_command( BACnetSequence &seq );
+void	 show_bacnet_address( BACnetSequence &theSeq, int theTag, const char *pTheTitle );
+void     show_bac_event_parameters( BACnetSequence &seq );
+void     show_bac_dev_obj_ref( BACnetSequence &theSeq );
+void	 show_read_access_spec( BACnetSequence &theSeq );
+void	 show_read_access_result( BACnetSequence &theSeq );
+void	 show_bac_object_property_reference( BACnetSequence &theSeq );
+void     show_bac_property_states( BACnetSequence &theSeq );
+void	 show_bac_recipient( BACnetSequence &theSeq );
+void     show_bac_recipient_process( BACnetSequence &theSeq );
+void     show_bac_special_event( BACnetSequence &theSeq );
+void	 show_bac_shed_level( BACnetSequence &theSeq );
+void	 show_bac_time_value( BACnetSequence &theSeq );
+void     show_bac_VT_session( BACnetSequence &theSeq );
+void     show_log_buffer( BACnetSequence &theSeq );
+void     show_bac_COV_Subscription( BACnetSequence &theSeq );
+void     show_bac_destination( BACnetSequence &theSeq );
+void	 show_bac_priority_array( BACnetSequence &theSeq );
+void	 show_time_stamp( BACnetSequence &theSeq, int theTag, const char *pTheTitle );
+
+void	 show_bac_dev_obj_prop_ref( BACnetSequence &theSeq );
+void	 show_bac_dev_obj_prop_val( BACnetSequence &theSeq );
+void	 show_calendar_entry( BACnetSequence &theSeq );
+void	 show_bac_scale( BACnetSequence &theSeq );
 
 /*  ----- functions to add new tree node to the detail view ----- */
 
 void	 show_head_obj_id( unsigned int , const char* , int );		// Lei Chengxin 2003-7-25		
 void	 show_head_unsigned( unsigned int offset, const char* type, int tagval);		// Lei Chengxin 2003-7-30
+void	 show_head_enumerated(unsigned int offset, const char* type, int tagval, 
+							  const char* const table[], unsigned int tableLen);
+
 void	 show_head_ascii( const char* );								// Lei Chengxin 2003-7-31
 void	 show_head_char_string( unsigned int , const char* , int );	// Lei Chengxin 2003-7-31
 void	 show_head_time( unsigned int , const char* , int );			// Lei Chengxin 2003-7-31
 void	 show_head_date( unsigned int , const char* , int );
 void	 show_head_property_ID( unsigned int , const char* , int );	// Lei Chengxin 2003-7-31
-void     show_head_app_data( void );							// Lei Chengxin 2003-8-23
+void     show_head_tagged_data( void );
 void	 show_head_octet_string( unsigned int , const char* , int );	// Lei Chengxin 2003-8-23
 void	 show_head_signed( unsigned int , const char* , int );		// Lei Chengxin 2003-8-23
 void	 show_head_real( unsigned int , const char* , int );			// Lei Chengxin 2003-8-23
 void	 show_head_double( unsigned int , const char* , int );
 void     show_head_bit_string( unsigned int , const char* , int );	// Lei Chengxin 2003-8-23
 
-/*  ----- prototypes extracting information from object identifiers ----- */
-int      bac_extract_obj_type(void);
-
+bool     show_head_context_tag( unsigned int offset, const char* type, int tagval, bool showContent );
