@@ -70,6 +70,11 @@ BACnetAPDUEncoder::~BACnetAPDUEncoder( void )
 
 void BACnetAPDUEncoder::SetBuffer( const BACnetOctet *buffer, int len )
 {
+	if ((pktBuffer != NULL) && (pktBuffSize != 0))
+	{
+		delete[] pktBuffer;
+	}
+	
 	pktBuffSize = 0;
 	pktBuffer = (BACnetOctetPtr)buffer;		// cast away const
 	pktLength  = len;
