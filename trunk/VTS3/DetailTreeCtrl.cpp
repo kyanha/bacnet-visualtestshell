@@ -59,205 +59,246 @@ void CDetailTreeCtrl::ContextChange( CFrameContext::Signal s )
 	}
 }
 
-/*
-	Modified by Lei Chengxin   2003-7-21
-	  to hide the tagging information and display more decoded information
-*/
+// Structure to control nesting of elements
+struct TreeNester
+{
+	HTREEITEM	m_hItem;
+	int			m_offset;
+	int			m_endOffset;
+	bool		m_autoExpand;
+
+	TreeNester();
+	void Set( HTREEITEM theItem, BACnetPIDetail *pTheDetail, bool autoExpand );
+};
+
+TreeNester::TreeNester()
+: m_hItem(0)
+, m_offset(0)
+, m_endOffset(0)
+, m_autoExpand(false)
+{
+}
+
+void TreeNester::Set( HTREEITEM theItem, BACnetPIDetail *pTheDetail, bool autoExpand )
+{
+	m_hItem = theItem;
+	m_offset = pTheDetail->piOffset; 
+	m_endOffset = pTheDetail->piOffset + pTheDetail->piLen;
+	m_autoExpand = autoExpand;
+}
+
+#define MAX_NEST 30
+
 void CDetailTreeCtrl::ShowDetail()
 {
 	SetRedraw(FALSE);
 	DeleteAllItems();
-	
-	int currentToken=0;
-	bool inParsing=false;
 
-	bool ALdetail = false;		// added by Lei Chengxin, true if it has AL detail
-
-	int lastOffset=0,lastLen=0,endOffset=0;
 	TVINSERTSTRUCT tvInsert;
-	HTREEITEM hLastRoot=NULL;
-	HTREEITEM hLastALRoot=NULL;
 
-	HTREEITEM hLastParentRoot=NULL;
-	HTREEITEM hLastChildRoot=NULL;
-	HTREEITEM hLastNode=NULL;
+	int sp = 0;
+	TreeNester nesting[ MAX_NEST ];
+	TreeNester last;
+	
+	HTREEITEM hItem;
+	HTREEITEM hDLItem = NULL;
+	HTREEITEM hNLItem = NULL;
+	HTREEITEM hALItem = NULL;
+	bool sawHeader = false;
 
-	int index=0;
-	HTREEITEM hDLItem = NULL,hALItem = NULL;
 	for(int i=0;i<m_FrameContext->m_PacketInfo.detailCount;i++)
 	{
 		CString temp(m_FrameContext->m_PacketInfo.detailLine[i]->piLine);
 	
-		tvInsert.hParent = NULL;
+		tvInsert.hParent      = NULL;
 		tvInsert.hInsertAfter = NULL;
-		tvInsert.item.mask = TVIF_TEXT;
-		tvInsert.item.pszText = _T(temp.GetBuffer(0));
+		tvInsert.item.mask    = TVIF_TEXT;
+		tvInsert.item.pszText = temp.GetBuffer(0);
 
-		if(temp=="----- IP Frame Detail -----")
+		// TODO: there must be a better way to do this than
+		// string compares.  At very least, make the strings into
+		// symbols exported by their place or origin, so that change
+		// to them don't break the view.
+		// Possibly nodeType NT_ROOT, or some new value like NT_DATALINK?
+		if((temp=="----- IP Frame Detail -----") ||
+		   (temp=="----- Ethernet Frame Detail -----") ||
+		   (temp=="----- ARCNET Frame Detail -----") ||
+		   (temp=="----- BACnet MS/TP Frame Detail -----") ||
+		   (temp=="----- BACnet PTP Frame Detail -----"))
 		{
-			hLastRoot =InsertItem(&tvInsert);
-			SetItemData(hLastRoot,index++);
-			hDLItem=hLastRoot; 
+			// Datalink header
+			hDLItem = InsertItem(&tvInsert);
+			SetItemData(hDLItem,i);
+
+			sp = 0;
+			last.Set( hDLItem, m_FrameContext->m_PacketInfo.detailLine[i], true );
+			nesting[0] = last;
+			sawHeader = true;
 			continue;
 		}
 
-		if(temp=="----- Ethernet Frame Detail -----")
+		if (temp=="----- BACnet Virtual Link Layer Detail -----")
 		{
-			hLastRoot =InsertItem(&tvInsert);
-			SetItemData(hLastRoot,index++);
-			hDLItem=hLastRoot; 
-			continue;
-		}
+			hItem = InsertItem(&tvInsert);
+			SetItemData(hItem,i);
 
-		if(temp=="----- ARCNET Frame Detail -----")
-		{
-			hLastRoot =InsertItem(&tvInsert);
-			SetItemData(hLastRoot,index++);
-			hDLItem=hLastRoot; 
-			continue;
-		}
-
-		if(temp=="----- BACnet MS/TP Frame Detail -----")
-		{
-			hLastRoot =InsertItem(&tvInsert);
-			SetItemData(hLastRoot,index++);
-			hDLItem=hLastRoot; 
-			continue;
-		}
-
-		if(temp=="----- BACnet PTP Frame Detail -----")
-		{
-			hLastRoot =InsertItem(&tvInsert);
-			SetItemData(hLastRoot,index++);
-			hDLItem=hLastRoot; 
-			continue;
-		}
-	
-		if(temp=="----- BACnet Virtual Link Layer Detail -----")
-		{
-			hLastRoot =InsertItem(&tvInsert);
-			SetItemData(hLastRoot,index++);
+			sp = 0;
+			last.Set( hItem, m_FrameContext->m_PacketInfo.detailLine[i], true );
+			nesting[0] = last;
+			sawHeader = true;
 			continue;
 		}
 		
-		if(temp=="----- BACnet Network Layer Detail -----")
+		if (temp=="----- BACnet Network Layer Detail -----")
 		{
-			hLastRoot =InsertItem(&tvInsert);
-			SetItemData(hLastRoot,index++);
-			inParsing=true;
+			hNLItem = InsertItem(&tvInsert);
+			SetItemData(hNLItem,i);
+			
+			sp = 0;
+			last.Set( hNLItem, m_FrameContext->m_PacketInfo.detailLine[i], true );
+			nesting[0] = last;
+			sawHeader = true;
 			continue;
 		}
 				
-		if(temp=="----- BACnet Application Layer Detail -----")
+		if (temp=="----- BACnet Application Layer Detail -----")
 		{
-			hLastRoot =InsertItem(&tvInsert);
-			SetItemData(hLastRoot,index++);
-			inParsing=true;
-			hALItem=hLastRoot;
-			ALdetail = true;
-			hLastNode = hLastRoot;
+			hALItem = InsertItem(&tvInsert);
+			SetItemData(hALItem,i);
+
+			sp = 0;
+			last.Set( hALItem, m_FrameContext->m_PacketInfo.detailLine[i], true );
+			nesting[0] = last;
+			sawHeader = true;
 			continue;
 		}
 
-		if(hLastRoot!=NULL)
+		if (sawHeader)
 		{
-			if(inParsing)
+			// Everything under a header nests
+
+			// If this is an opening tag, expand the children
+			bool expandMe  = m_FrameContext->m_PacketInfo.detailLine[i]->piNodeType == NT_OPEN_TAG;
+			int offset = m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
+			int length = m_FrameContext->m_PacketInfo.detailLine[i]->piLen;
+			int end    = offset + length;
+			if (length == 0)
 			{
-				if(ALdetail)
+				// Information-only line
+				// Insert under last header
+				tvInsert.hParent = nesting[sp].m_hItem;
+				hItem = InsertItem(&tvInsert);
+				SetItemData( hItem, i );
+
+				// Ignore the "position" and zero length of the item:
+				// mucks up subsequent nesting.
+				//
+				// Ideally, change generators not to SPECIFY length of zero:
+				// pretty much everything IS tied to the PDU.
+				//
+				// Failing that, bring forward the position of the previous item.
+				// Never expand this item - it can't be a header
+				last.m_hItem = hItem;
+				last.m_autoExpand = false;
+			}
+			else if (offset == last.m_offset)
+			{
+				if ((end < last.m_endOffset) ||
+				    (nesting[sp].m_offset != offset) ||
+				    (nesting[sp].m_endOffset != end))
 				{
-					if(m_FrameContext->m_PacketInfo.detailLine[i]->piNodeType == 1)
+					// Sub-part of previous item, or first amplification line 
+					// Insert as child of previous item
+//					if (end == last.m_endOffset)
+//					{
+//						// First amplification line: this is usually trivial stuff
+//						// like tag bits.  DON'T auto expand the parent.
+//						last.m_autoExpand = false;
+//					}
+					
+					if (sp < MAX_NEST-1)
 					{
-						tvInsert.hParent = hLastRoot;
-						hLastParentRoot = InsertItem(&tvInsert);
-						SetItemData( hLastParentRoot , index++ );
-						hLastNode = hLastParentRoot;
-						endOffset = m_FrameContext->m_PacketInfo.detailLine[i]->piOffset
-							+m_FrameContext->m_PacketInfo.detailLine[i]->piLen;
+						sp += 1;
 					}
-					else if(m_FrameContext->m_PacketInfo.detailLine[i]->piNodeType == 2)
-					{
-						tvInsert.hParent = hLastParentRoot;
-						hLastChildRoot = InsertItem(&tvInsert);
-						SetItemData( hLastChildRoot , index++ );
-						hLastNode = hLastChildRoot;
-						endOffset = m_FrameContext->m_PacketInfo.detailLine[i]->piOffset
-							+m_FrameContext->m_PacketInfo.detailLine[i]->piLen;
-					}
-					else
-					{
-						if(m_FrameContext->m_PacketInfo.detailLine[i]->piOffset==lastOffset)
-						{
-							tvInsert.hParent=hLastALRoot;
-							HTREEITEM temp=InsertItem(&tvInsert);
-							SetItemData(temp,index++);
-							lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
-						}
-						else 
-							if(m_FrameContext->m_PacketInfo.detailLine[i]->piLen!=0)
-							{
-								if(m_FrameContext->m_PacketInfo.detailLine[i]->piOffset < endOffset)
-									tvInsert.hParent=hLastNode;
-								else
-									tvInsert.hParent=hLastRoot;
-								hLastALRoot=InsertItem(&tvInsert);
-								SetItemData(hLastALRoot,index++);
-								lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
-							}	
-							else{
-								if(m_FrameContext->m_PacketInfo.detailLine[i]->piNodeType == 3)
-									tvInsert.hParent=hLastRoot;
-								else
-									tvInsert.hParent=hLastNode;
-								HTREEITEM temp=InsertItem(&tvInsert);
-								SetItemData(temp,index++);
-							}
-					}
+					nesting[sp] = last;
+					
+					tvInsert.hParent = nesting[sp].m_hItem;
+					hItem = InsertItem(&tvInsert);
+					SetItemData( hItem, i );
+					last.Set( hItem, m_FrameContext->m_PacketInfo.detailLine[i], expandMe );
 				}
 				else
 				{
-					if(m_FrameContext->m_PacketInfo.detailLine[i]->piOffset==lastOffset)
-					{
-						tvInsert.hParent=hLastALRoot;
-						HTREEITEM temp=InsertItem(&tvInsert);
-						SetItemData(temp,index++);
-						lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
-					}
-					else 
-						if(m_FrameContext->m_PacketInfo.detailLine[i]->piLen!=0)
-						{
-							tvInsert.hParent=hLastRoot;
-							hLastALRoot=InsertItem(&tvInsert);
-							SetItemData(hLastALRoot,index++);
-							lastOffset=m_FrameContext->m_PacketInfo.detailLine[i]->piOffset;
-						}	
-						else{
-							tvInsert.hParent=hLastRoot;
-							HTREEITEM temp=InsertItem(&tvInsert);
-							SetItemData(temp,index++);
-						}
+					// Same range as previous item
+					// Insert under last header
+					tvInsert.hParent = nesting[sp].m_hItem;
+					hItem = InsertItem(&tvInsert);
+					SetItemData( hItem, i );
+					last.Set( hItem, m_FrameContext->m_PacketInfo.detailLine[i], expandMe );
 				}
 			}
 			else
 			{
-				tvInsert.hParent=hLastRoot;
-				HTREEITEM temp=InsertItem(&tvInsert);
-				SetItemData(temp,index++);
+				// New starting location.  Pop stack to find an enclosing parent.
+				while ((offset >= nesting[sp].m_endOffset) && (sp > 0))
+				{
+					// TODO: as we unwind the stack, we could implement a variable
+					// auto-expand: expand the first N levels.
+					// Probably a different value of N for DL, BVLL, NL, AL
+					// See repeat of this code after tne end of the line loop
+					if (nesting[sp].m_autoExpand && (sp <= 5))
+					{
+						Expand( nesting[sp].m_hItem, TVE_EXPAND );
+					}
+					
+					sp -= 1;
+				}
+				
+				tvInsert.hParent = nesting[sp].m_hItem;
+				hItem = InsertItem(&tvInsert);
+				SetItemData( hItem, i );
+				last.Set( hItem, m_FrameContext->m_PacketInfo.detailLine[i], expandMe );
 			}
 		}
 		else
 		{
-			HTREEITEM temp1=InsertItem(&tvInsert);
-			SetItemData(temp1,index++);
+			// Item without a header.  Just show lines
+			hItem = InsertItem(&tvInsert);
+			SetItemData( hItem, i );
+		}
+		
+		if (m_FrameContext->m_PacketInfo.detailLine[i]->piNodeType == NT_ERROR)
+		{
+			// Error line: expand all parents, to be sure the line is visible
+			for (int ix = sp; ix >= 0; ix--)
+			{
+				Expand( nesting[ix].m_hItem, TVE_EXPAND );
+			}
 		}
 	}
-	
-	if(!ALdetail){
-		Expand(hLastRoot,TVE_EXPAND);
+
+	// If the stack isn't empty, do expansions
+	while (sp > 0)
+	{
+		if (nesting[sp].m_autoExpand && (sp <= 5))
+		{
+			Expand( nesting[sp].m_hItem, TVE_EXPAND );
+		}
+					
+		sp -= 1;
 	}
-  if(hDLItem)
-	  Expand(hDLItem,TVE_EXPAND);
-  if(hALItem)
-	  Expand(hALItem,TVE_EXPAND);
+	
+	// TODO: might want a user option to auto-expand datalink
+	if (hDLItem)
+		Expand(hDLItem, TVE_EXPAND);
+
+	// TODO: might want a user option to auto-expand network
+//	if (hNLItem)
+//		Expand(hNLItem, TVE_EXPAND);
+	
+	if (hALItem)
+		Expand(hALItem,TVE_EXPAND);
+
 	SetRedraw(TRUE);
 }
 
