@@ -52,9 +52,6 @@ namespace NetworkSniffer {
 #define max_confirmed_services 30   //Modified by Zhu Zhenhua, 2004-5-25
 #define max_unconfirmed_services 10
 
-// TODO: this is WRONG, and defined elsewhere anyway
-#define max_property_id 123
-
 #define FW "-27"
 #define ARC 0
 
@@ -2854,21 +2851,17 @@ void show_EventNotification( void )
 		}
 		else if (seq.OpeningTag( 3, "Command Fail parameters", BSQ_CHOICE ))
 		{
-			if (seq.Vet( 0 ))
+			seq.ListOf(    0, "commandValue" );
+			while (seq.HasListElement())
 			{
-				// Dump the tag and its contents
-				if (!show_head_context_tag( 0, "commandValue", 0, true ))
-					seq.Fail(NULL);
-				seq.Synch();
+				seq.AnyTaggedItem();
 			}
 
 			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
-			if (seq.Vet( 2 ))
+			seq.ListOf(    2, "feedbackValue" );
+			while (seq.HasListElement())
 			{
-				// Dump the tag and its contents
-				if (!show_head_context_tag( 0, "feedbackValue", 2, true ))
-					seq.Fail(NULL);
-				seq.Synch();
+				seq.AnyTaggedItem();
 			}
 
 			seq.ClosingTag();
@@ -5378,8 +5371,10 @@ bool show_head_context_tag( unsigned int offset, const char* type, int tagval, b
 			// Deconstruct the tag and show the contents, advancing cursor
 			show_tagged_data();
 
-			// Show the closing tag (recursively)
-			show_head_context_tag(0, type, tagval, true);
+			// Don't show as a header line, since we are indenting this under the 
+			//   show_head_context_tag(0, type, tagval, true);
+			// Deconstruct the closing tag and advance cursor
+			show_tag();
 		}
 	}
 	else
