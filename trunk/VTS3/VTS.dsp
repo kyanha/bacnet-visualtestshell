@@ -768,6 +768,10 @@ SOURCE=.\StdAfx.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Sniffer\StringTables.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SummaryView.cpp
 # End Source File
 # Begin Source File
@@ -1992,6 +1996,10 @@ SOURCE=.\DUDAPI\Stdobjpr.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Sniffer\StringTables.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SummaryView.h
 # End Source File
 # Begin Source File
@@ -2678,7 +2686,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                      $(InputPath)                                                      $(OutDir)\ 
+	copy                                                       $(InputPath)                                                       $(OutDir)\ 
 
 # End Custom Build
 
@@ -2689,7 +2697,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                      $(InputPath)                                                      $(OutDir)\ 
+	copy                                                       $(InputPath)                                                       $(OutDir)\ 
 
 # End Custom Build
 
