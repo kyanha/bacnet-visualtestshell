@@ -209,13 +209,6 @@ void CDetailTreeCtrl::ShowDetail()
 				{
 					// Sub-part of previous item, or first amplification line 
 					// Insert as child of previous item
-//					if (end == last.m_endOffset)
-//					{
-//						// First amplification line: this is usually trivial stuff
-//						// like tag bits.  DON'T auto expand the parent.
-//						last.m_autoExpand = false;
-//					}
-					
 					if (sp < MAX_NEST-1)
 					{
 						sp += 1;
