@@ -1,0 +1,333 @@
+--------------  S C R I P T   V E R S I O N   I N F O   -----------------------
+;
+; Version 1      2010-01-28   By John Hartman
+;
+---------------------- S C R I P T   H E A D E R ------------------------------
+;
+; Script: Datatests
+;
+; Purpose: Test various datatypes in the decoder, and in the script parser
+;
+---------------------- S C R I P T   B O D Y ----------------------------------
+
+INCLUDE "BACnetIP.vts"
+INCLUDE "BACnetEnumerations.vts"
+
+OBJECT1 = (SCHEDULE, 1)
+
+SECTION General tests of the detail decoder
+-------------------------------------------------------------------------------
+TEST Application and Context tagged Primitives and constructed data
+DEPENDENCIES None
+REFERENCE None
+
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+      Unsigned 1, 666
+      OpenTag 2
+         NULL
+         NULL = 5
+
+         boolean = T
+         boolean = true
+         boolean = 1, false
+
+         UNSIGNED = 66
+         unsigned = 6, 66
+
+         integer = 77
+         integer = 7, 77    
+
+         real = 3.131
+         real = 8, 3.131
+
+         double = 3.131
+         double = 8, 3.131
+
+         octetstring = X'010203'
+         octetstring = 0, X'010203'
+
+         characterstring = "hi"
+         characterstring = 9, "hi"
+
+         bitstring = B'1010'
+         bitstring = 10, B'1010'
+         bitstring = [{T,F,T,F}]
+         bitstring = 10, [{T,F,T,F}]
+-- These are interpreted as ONE BIT bitstrings because of commas
+--         bitstring = T,F,T,F
+--         bitstring = 4, 0,1,0
+-- These get "value expected"
+--         bitstring = (T,F,T,F)
+--         bitstring = {T,F,T,F}
+-- bit list expected
+--         bitstring = [T,F,T,F]
+-- This gets "missing reference"
+--         bitstring = {(T,F,T,F)}
+
+         enumerated = 6
+         enumerated = 10, 6
+
+-- 135.1-2007 says it should be parenthesis
+--         date = (FRIDAY,1/29/2010)
+--         date = [FRIDAY,1/29/2010]
+         date = [(FRIDAY,1/29/2010)]
+         date = 11, [(FRIDAY 1/29/2010)]
+         date = [(*,1/29/2010)]
+         date = [(*,*/*/*)]
+
+-- 135.1-2007 does not enclose time in brackets of any kind
+--         time = 8:36:12.*
+         time = [8:36:12.*]
+         time = 12, [8:36:12.*]
+         time = [*:*:*.*]
+
+-- 135.1-2007 enclosed object identifiers on parenthesis
+--         objectidentifier = (analog-output, 5)
+         objectidentifier = analog-output, 5
+         objectidentifier = 13, analog-output, 5
+
+-- Some structure
+      OpenTag 0
+         enumerated = 6
+         enumerated = 10, 6
+         OpenTag 2
+            enumerated = 6
+         CloseTag 2
+      CloseTag 0
+
+      CloseTag 2
+    )
+
+TEST Tags with extended length, extended tag number, or both
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+      Unsigned 1, 666
+      OpenTag 2
+         -- Octetstring with no length extension octet.
+         AL = X'6411223344'
+
+         -- Octetstring with 1 length extension octet.
+         -- (This isn't proper encoding, as the minimum tag ought to be used, but
+         -- it serves as a test of the decoder.)
+         AL = X'650411223344'
+
+         -- Octetstring with 2 length extension octets.
+         -- (This isn't proper encoding, as the minimum tag ought to be used, but
+         -- it serves as a test of the decoder.)
+         AL = X'65FE000411223344'
+
+         -- Octetstring with 4 length extension octets.
+         -- (This isn't proper encoding, as the minimum tag ought to be used, but
+         -- it serves as a test of the decoder.)
+         AL = X'65FF0000000411223344'
+
+         -- Context tag value of 15 (extended)
+         AL = X'FC0F11223344'
+
+         -- Context tag value of 16 (extended)
+         AL = X'FC1011223344'
+
+         -- Context tag value of 254(extended)
+         AL = X'FCFE11223344'
+
+         -- Context tag 16 AND 1 length extension octet.
+         -- (This isn't proper encoding, as the minimum tag ought to be used, but
+         -- it serves as a test of the decoder.)
+         AL = X'FD100411223344'
+
+         -- Context tag 16 AND 2 length extension octets.
+         -- (This isn't proper encoding, as the minimum tag ought to be used, but
+         -- it serves as a test of the decoder.)
+         AL = X'FD10FE000411223344'
+
+         -- Context tag 16 AND 4 length extension octets.
+         -- (This isn't proper encoding, as the minimum tag ought to be used, but
+         -- it serves as a test of the decoder.)
+         AL = X'FD10FF0000000411223344'
+
+      CloseTag 2
+    )
+
+TEST Empty parameter block
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+      Unsigned 1, 666
+      OpenTag 2
+      CloseTag 2
+    )
+
+TEST No parameter block (it's optional)
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+      Unsigned 1, 666
+    )
+
+TEST Missing tag
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+--      Unsigned 1, 666
+      OpenTag 2
+      CloseTag 2
+    )
+
+TEST Missing tag at end of PDU
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+--      Unsigned 1, 666
+    )
+
+TEST Incorrect tag (app instead of context)
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+      Unsigned 666
+    )
+
+TEST Illegal application tag
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+      Unsigned 1, 666
+      OpenTag 2
+
+      -- Reserved tag value 13
+      AL = X'D155'
+
+      -- Extended app tag 16
+      AL = X'F11055'
+      CloseTag 2
+    )
+
+TEST Orphan Opening tag
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+      Unsigned 1, 666
+      OpenTag 2
+      Unsigned 0, 333
+    )
+
+TEST Orphan Closing tag
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
+      PDU = Confirmed-Request
+      Service = ConfirmedPrivateTransfer
+      Unsigned 0, 300
+      Unsigned 1, 666
+      CloseTag 2
+      Unsigned 0, 333
+    )
+
