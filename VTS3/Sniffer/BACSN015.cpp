@@ -71,14 +71,7 @@ extern struct pi_data *pi_data_Message;         /* Pointer to PI data structure 
 
 struct pi_data *pi_data_current;     /* Current ptr for BAC_SHOW functions */
 
-// TODO: as of 27 Feb 2010, this isn't used anywhere.
-// Perhaps a predecessor of EPICS_AddRPValue?
-//
-// madanner 9/04, added global flag for RPAck hack
-bool gfRPAck = false;
-
 #include "bacfuncs.h"
-
 
 /**************************************************************************/
 int interp_bacnet_IP( char *header, int length)  /* IP interpreter */
@@ -707,7 +700,7 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
       
       switch (pif_get_byte(0)) {
          case 0x01:
-			 // TODO: this is an error here: BACnet WITHOUT BVLL
+			// TODO: this is an error here: BACnet WITHOUT BVLL
             interp_bacnet_NL( header, length );
             break;
          case 0x81:
@@ -1361,9 +1354,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						obj_type = (obj_id >> 22) & 0x000003FF;
 						obj_instance = (obj_id & 0x003FFFFF);
 						
+						// TODO: it would be nice to cope with multi-byte propertyID, etc.
 						int pID = pif_get_byte(10+x*2);
-						
-						// TODO: wtf?
 						if((pif_get_byte(9+x*2)&0x07) != 1)
 						{
 							sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
@@ -1386,8 +1378,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						obj_type = (obj_id >> 22) & 0x000003FF;
 						obj_instance = (obj_id & 0x003FFFFF);
 						
+						// TODO: it would be nice to cope with multi-byte propertyID, etc.
 						int pID = pif_get_byte(10+x*2);
-						
 						if((pif_get_byte(9+x*2)&0x07) != 1)
 						{
 							sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
@@ -1500,32 +1492,16 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						pif_offset = tagged + 1;
 							
 						// TODO: this dumps a bunch of lines into the detailLine, and then
-						// roots through them below.  Seems fragile: any change to string
-						// format will break the code.
+						// assumes that the first value line will be of the form
+						// "some text: value" and show the part to the right of the colon.
+						// Seems fragile: any change to string format will break the code.
 						BACnetSequence seq;
 						show_bac_ANY(seq, obj_type, pID, pid_index);
-// TODO: original code, broken because of our more compact detail format
-//						bool showvalue = false;
-//						CString temp(gCurrentInfo->detailLine[0]->piLine);
-//						CString apptagstr(gCurrentInfo->detailLine[1]->piLine);
-//
-//						if(apptagstr.Find("Application Tag", 0) != -1)
-//						{   
-//							if(temp.Find(':')!=-1)
-//								temp = temp.Right(temp.GetLength()-temp.Find(':')-1);
-//							showvalue = true;
-//						}
-//						else if(apptagstr.Find("Enumerated", 0) != -1)
-//						{   
-//							CString temps(gCurrentInfo->detailLine[4]->piLine);	
-//							temp = temps.Left(temps.Find('='));
-//							showvalue = true;
-//						}
-//							
-//						if(showvalue)
-//							sprintf(moreDetail + lentemp, ", Value %s", temp.GetBuffer(0));										
-// Simpler version: just show the first line
-						sprintf(moreDetail + lentemp, ", Value %s", gCurrentInfo->detailLine[0]->piLine);											
+						const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
+						if (pValue != NULL)
+						{   
+							sprintf(moreDetail + lentemp, ",%s", pValue+1);											
+						}
 					}
 					break;
 				case 18: /* Confirmed Private Transfer Request */
@@ -1912,34 +1888,17 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 							// Bypass the opening [3]
 							pif_offset = tagged + 1;
 
-							// TODO: this dumps a bunch of lines into the detailLine
+							// TODO: this dumps a bunch of lines into the detailLine, and then
+							// assumes that the first value line will be of the form
+							// "some text: value" and show the part to the right of the colon.
+							// Seems fragile: any change to string format will break the code.
 							BACnetSequence seq;
 							show_bac_ANY(seq, obj_type, pID, pid_index);
-// TODO: original code, broken because of our more compact detail format
-//							bool showvalue = false;
-//							CString temp(gCurrentInfo->detailLine[0]->piLine);
-//							CString apptagstr(gCurrentInfo->detailLine[1]->piLine);
-//							// TODO: does this hack still work?
-//							// Did it EVER work?  the value lines are wrapped in the [3] lines.
-//							if(apptagstr.Find("Application Tag", 0) != -1)
-//							{   
-//								if(temp.Find(':')!=-1)
-//									temp = temp.Right(temp.GetLength()-temp.Find(':')-1);
-//								showvalue = true;
-//							}
-//							else
-//							{
-//								if(apptagstr.Find("Enumerated", 0) != -1)
-//								{   
-//									CString temps(gCurrentInfo->detailLine[4]->piLine);	
-//									temp = temps.Left(temps.Find('='));
-//									showvalue = true;
-//								}
-//							}
-//							if(showvalue)
-//								sprintf(moreDetail + lentemp, "=%s", temp.GetBuffer(0));											
-// Simpler version: just show the first line
-							sprintf(moreDetail + lentemp, ", Value %s", gCurrentInfo->detailLine[0]->piLine);											
+							const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
+							if (pValue != NULL)
+							{   
+								sprintf(moreDetail + lentemp, ",%s", pValue+1);											
+							}
 						}
 						break;
 					default:
@@ -2230,7 +2189,7 @@ void show_unconfirmed( unsigned char )
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
    pif_show_flagmask(0xF0,0x10,"BACnet-Unconfirmed-Request-PDU");
-   pif_show_flagbit(0x0F,"Unused",NULLP);
+   pif_show_flagbit(0x0F,"Unused",NULL);
    
    pif_show_space();
    /* call the unconfirmed service interpreter function */
@@ -2247,7 +2206,7 @@ void show_simple_ack( unsigned char )
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
    pif_show_flagmask(0xF0,0x20,"BACnet-SimpleACK-PDU");
-   pif_show_flagbit(0x0F,"Unused",NULLP);
+   pif_show_flagbit(0x0F,"Unused",NULL);
    bac_show_byte("Invoke ID","%d");
    // Had BACnetServicesSupported - wrong for anything above 25
    bac_show_byte(BACnetConfirmedServiceChoice[pif_get_byte(0)],"%d");
@@ -2286,7 +2245,7 @@ void show_complex_ack( unsigned char x )
    pif_show_flagmask(0xF0,0x30,"BACnet-ComplexACK-PDU");
    pif_show_flagbit(0x08,"Segmented Message","Unsegmented Message");
    pif_show_flagbit(0x04,"More Follows","No More Follows");
-   pif_show_flagbit(0x03,"Unused",NULLP);
+   pif_show_flagbit(0x03,"Unused",NULL);
    
    pif_show_byte("Invoke ID                   = %d");
    if (x & 0x08) /* SEG = 1 */ {
@@ -2316,7 +2275,7 @@ void show_segment_ack( unsigned char )
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
    pif_show_flagmask(0xF0,0x40,"BACnet-SegmentACK-PDU");
-   pif_show_flagbit(0x0e,"Unused",NULLP);
+   pif_show_flagbit(0x0e,"Unused",NULL);
    pif_show_flagbit(0x01,"Ack From Server","Ack From Client");
    
    bac_show_byte("Original Invoke ID","%d");
@@ -2361,7 +2320,7 @@ void show_error( unsigned char x )
    pif_show_flagmask(0xF0,0x50,"BACnet-Error-PDU");
    pif_show_flagbit(0x08,"Segmented Message","Unsegmented Message");
    pif_show_flagbit(0x04,"More Follows","No More Follows");
-   pif_show_flagbit(0x03,"Unused",NULLP);
+   pif_show_flagbit(0x03,"Unused",NULL);
    
    bac_show_byte("Invoke ID","%d");
    if (x & 0x08) /* SEG = 1 */ {
@@ -2396,7 +2355,7 @@ void show_reject( unsigned char )
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
    pif_show_flagmask(0xF0,0x60,"BACnet-Reject-PDU");
-   pif_show_flagbit(0x0F,"Unused",NULLP);
+   pif_show_flagbit(0x0F,"Unused",NULL);
    
    bac_show_byte("Original Invoke ID","%d");
    sprintf(outstr,"%"FW"s = %s = (%%u)","Reject Reason",
@@ -2411,7 +2370,7 @@ void show_abort( unsigned char )
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
    pif_show_flagmask(0xF0,0x70,"BACnet-Abort-PDU");
-   pif_show_flagbit(0x0E,"Unused",NULLP);
+   pif_show_flagbit(0x0E,"Unused",NULL);
    pif_show_flagbit(0x01,"Abort From Server","Abort From Client");
    
    bac_show_byte("Original Invoke ID","%d");
@@ -2422,13 +2381,20 @@ void show_abort( unsigned char )
 
 /**************************************************************************/
 // Show a timestamp
-// If theTag is < 0, show unwrapped
-// TODO: but may show untagged named?
+// If theTag is >= 0, show wrapped in context tag
+// If theTag is < 0, and title provided, show wrapped in title
+// Else do not wrap
 void show_time_stamp( BACnetSequence &theSeq, int theTag, const char *pTheTitle )
 {
+	bool named = (pTheTitle != NULL) && (*pTheTitle != 0);
+	
 	if (theTag >= 0)
 	{
 		theSeq.OpeningTag( theTag, pTheTitle );
+	}
+	else if (named)
+	{
+		theSeq.BeginWrap( pTheTitle );
 	}
 
 	theSeq.BeginChoice();
@@ -2445,6 +2411,10 @@ void show_time_stamp( BACnetSequence &theSeq, int theTag, const char *pTheTitle 
 	if (theTag >= 0)
 	{
 		theSeq.ClosingTag();
+	}
+	else if (named)
+	{
+		theSeq.EndWrap();
 	}
 }
 
@@ -2616,39 +2586,17 @@ void show_bac_dev_obj_prop_val( BACnetSequence &theSeq )
 
 /**************************************************************************/
 // Show a BACnetAddress
-void show_bacnet_address( BACnetSequence &theSeq, int theTag, const char *pTheTitle )
+void show_bacnet_address( BACnetSequence &theSeq, const char *pTheTitle )
 {
-	if (theTag >= 0)
+	if ((pTheTitle == NULL) || (*pTheTitle == 0))
 	{
-		theSeq.OpeningTag( theTag, pTheTitle );
+		pTheTitle = "BACnetAddress";
 	}
-	else
-	{
-		// TODO: when we DON'T have a wrapping tag, how do we
-		// know what to highlight in the detail view in order to get
-		// proper nesting? Options are
-		// - Add methods EatAppTag and EatContextTag to BACnetSequence.
-		//   Call them for each enclosed item.  Then call another
-		//   method to get the length from the BacParser and use it
-		//   in the title.
-		// - OR: remember the index into the detail array.
-		//   After showing the enclosed items, go back and fix up
-		//   the length in the title's array entry.
-		// The latter method is easier to use, and avoids an
-		// extra parse of the data, but it relies on knowing the
-		// layout of the detail information.
-		// COULD use it for all our nested stuff: context pairs,
-		// loops, and untagged titles.
-		//
-		sprintf(get_int_line(pi_data_current,pif_offset,1,NT_OPEN_TAG), 
-				pTheTitle);
-	}
+	
+	theSeq.BeginWrap( pTheTitle );
 	theSeq.Unsigned(    -1, "network-number" );
 	theSeq.OctetString( -1, "mac-address" );
-	if (theTag >= 0)
-	{
-		theSeq.ClosingTag();
-	}
+	theSeq.EndWrap();
 }
 
 static const char* weeks[] =
@@ -2733,7 +2681,7 @@ void show_calendar_entry( BACnetSequence &theSeq )
 
 /**************************************************************************/
 // Show a BACnetPriorityValue
-void show_bac_priority_array( BACnetSequence &theSeq )
+void show_bac_priority_value( BACnetSequence &theSeq )
 {
 	theSeq.BeginChoice();
 	theSeq.Null( -1, "null", BSQ_CHOICE );
@@ -2742,7 +2690,7 @@ void show_bac_priority_array( BACnetSequence &theSeq )
 	theSeq.Unsigned( -1, "integer", BSQ_CHOICE );
 	if (theSeq.OpeningTag( 0, "constructedValue", BSQ_CHOICE ))
 	{
-		// TODO: show ANY
+		theSeq.AnyTaggedItem();
 		theSeq.ClosingTag();
 	}
 	theSeq.EndChoice();
@@ -2884,15 +2832,12 @@ void show_EventNotification( void )
 
 			seq.ClosingTag();
 		}
-		else if (seq.OpeningTag( 6, "Complex Event parameters", BSQ_CHOICE ))
+		else if (seq.ListOf( 6, "Complex Event parameters", BSQ_CHOICE ))
 		{
-			seq.ListOf( -1, "values" );
 			while (seq.HasListElement())
 			{
 				show_bac_property_value( seq, objectType );
 			}
-
-			seq.ClosingTag();
 		}
 		else if (seq.OpeningTag( 8, "Change of Life Safety parameters", BSQ_CHOICE ))
 		{
@@ -3130,7 +3075,7 @@ void show_atomicWriteFile( void )
 	{
 		seq.Integer(  -1, "fileStartRecord" );
 		seq.Unsigned( -1, "recordCount" );
-		seq.ListOf(   -1, "fileRecordData" );
+		seq.ListOf(       "fileRecordData" );
 		while (seq.HasListElement())
 		{
 			seq.OctetString( -1, "record" );
@@ -3269,7 +3214,7 @@ void show_readPropertyMultiple( void )
 {
 	bac_show_byte("Read Property Multiple Request","%u");
 	BACnetSequence seq;
-	seq.ListOf( -1, "listOfReadAccessSpecs" );
+	seq.ListOf( "listOfReadAccessSpecs" );
 	while (seq.HasListElement())
 	{
 		show_read_access_spec( seq );
@@ -3299,7 +3244,7 @@ void show_writePropertyMultiple( void )
 {
 	bac_show_byte("Write Property Multiple Request","%u");
 	BACnetSequence seq;
-	seq.ListOf( -1, "listOfWriteAccessSpecifications" );
+	seq.ListOf( "listOfWriteAccessSpecifications" );
 	while (seq.HasListElement())
 	{
 		show_write_access_specification( seq );
@@ -3325,13 +3270,10 @@ void show_private_transfer( void )
 	BACnetSequence seq;
 	seq.Unsigned(   0, "vendorID" );
 	seq.Unsigned(   1, "serviceNumber" );
-	seq.Parse();
-
-	if (seq.Vet(    2, -1, BSQ_OPTIONAL ))
+	seq.ListOf(     2, "serviceParameters", BSQ_OPTIONAL );
+	while (seq.HasListElement())
 	{
-		// Show the tag and its contents
-		show_head_context_tag( 0, "serviceParameters", 2, true );
-		seq.Synch();
+		seq.AnyTaggedItem();
 	}
 }
 
@@ -3399,7 +3341,7 @@ void show_vtClose( void )
 {
 	bac_show_byte("VT-Close Request","%u");
 	BACnetSequence seq;
-	seq.ListOf( -1, "listOfRemoteVTSessionIdentifiers" );
+	seq.ListOf( "listOfRemoteVTSessionIdentifiers" );
 	while (seq.HasListElement())
 	{
 		seq.Unsigned( -1, "sessionID" );
@@ -3438,9 +3380,9 @@ void show_requestKey( void )
 	bac_show_byte("Request Key Request","%u");
 	BACnetSequence seq;
 	seq.ObjectIdentifier(     -1, "requestingDeviceIdentifier" );
-	show_bacnet_address( seq, -1, "requestingDeviceAddress" );
+	show_bacnet_address( seq, "requestingDeviceAddress" );
 	seq.ObjectIdentifier(     -1, "remoteDeviceIdentifier" );
-	show_bacnet_address( seq, -1, "remoteDeviceAddress" );
+	show_bacnet_address( seq, "remoteDeviceAddress" );
 }
 
 /*************************************************************************/
@@ -3531,7 +3473,6 @@ void show_whoHas( void )
 {
 	bac_show_byte("Who-Has Request","%u");
 	BACnetSequence seq;
-	// TODO: untagged optional sequence "limits"
 	bool gotLow  = seq.Unsigned( 0, "deviceInstanceRangeLowLimit", BSQ_OPTIONAL );
 	bool gotHigh = seq.Unsigned( 1, "deviceInstanceRangeHighLimit", BSQ_OPTIONAL );
 	if (gotLow ^ gotHigh)
@@ -3539,7 +3480,6 @@ void show_whoHas( void )
 		seq.Fail( "Error: must have BOTH low and high range limit or NEITHER" );
 	}
 
-	// TODO: untagged optional sequence "object"
 	seq.BeginChoice();
 	seq.ObjectIdentifier( 2, "objectIdentifier", BSQ_CHOICE );
 	seq.TextString(       3, "objectName", BSQ_CHOICE );
@@ -3568,7 +3508,7 @@ void show_getAlarmSummaryACK( void )
 {
 	bac_show_byte("Get Alarm Summary Acknowledgement","%u");
 	BACnetSequence seq;
-	seq.ListOf( -1, "sequence of" );
+	seq.ListOf( "sequence of" );
 	while (seq.HasListElement())
 	{
 		seq.ObjectIdentifier( -1, "objectIdentifier" );
@@ -3584,7 +3524,7 @@ void show_getEnrollmentSummaryACK( void )
 {
 	bac_show_byte("Get Enrollment Summary Acknowledgement","%u");
 	BACnetSequence seq;
-	seq.ListOf( -1, "sequence of" );
+	seq.ListOf( "sequence of" );
 	while (seq.HasListElement())
 	{
 		seq.ObjectIdentifier( -1, "objectIdentifier" );
@@ -3614,7 +3554,7 @@ void show_atomicReadFileACK( void )
 	{
 		seq.Integer(  -1, "fileStartRecord" );
 		seq.Unsigned( -1, "returnedRecordCount" );
-		seq.ListOf(   -1, "fileRecordData" );
+		seq.ListOf(       "fileRecordData" );
 		while (seq.HasListElement())
 		{
 			seq.OctetString( -1, "record" );
@@ -3757,7 +3697,6 @@ void show_ReadRange ( void )
 	// This entire thing is OPTIONAL
 	if (seq.HasMore())
 	{
-		// TODO: untagged choice "range"
 		seq.BeginChoice();
 		if (seq.OpeningTag(     3, "byPosition", BSQ_CHOICE ))
 		{
@@ -3773,7 +3712,6 @@ void show_ReadRange ( void )
 		}
 		if (seq.OpeningTag(     7, "byTime", BSQ_CHOICE ))
 		{
-			// TODO: untagged sequence "referenceTime"
 			seq.Date( -1, "referenceDate" );
 			seq.Time( -1, "referenceTime" );
 			seq.Integer(  -1, "count" );
@@ -4393,7 +4331,8 @@ unsigned int show_tagged_data( bool showData )
 				show_bac_double(len);
 				break;
 			case BIT_STRING:
-				// TODO: show as bits?
+				// This doesn't add anything useful, so just show the hex
+				// show_bac_bitstring(len);
 				sprintf(outstr,"%"FW"s = %%s","Bit string");
 				pif_show_nbytes_hex(outstr,len);
 				break;
@@ -4445,7 +4384,8 @@ unsigned int show_tagged_data( bool showData )
 
 						len = (tagbuff & 0x07);
 						if ((nextType == type) && (len == 7)) {
-							// Matching closing tag
+							// Matching closing tag.  Show it and return
+							show_tagged_data();
 							break;
 						}
 
@@ -4530,7 +4470,7 @@ void show_bac_scale( BACnetSequence &seq )
 void show_bac_event_parameters( BACnetSequence &seq )
 /**************************************************************************/
 {
-	seq.ListOf( -1, "" );
+	seq.ListOf();
 	while (seq.HasListElement())
 	{
 		seq.BeginChoice();
@@ -4762,7 +4702,7 @@ List of BACnetLogRecord, as property from ANY
 *****************************************************************************************/ 
 void show_log_buffer( BACnetSequence &seq )
 {
-	seq.ListOf( -1, "listOfRecords" );
+	seq.ListOf( "listOfRecords" );
 	while (seq.HasListElement())
 	{
 		if (seq.OpeningTag( 0, "timeStamp" ))
@@ -4820,7 +4760,6 @@ void show_bac_recipient_process( BACnetSequence &seq )
 // Show BACnetSpecialEvent
 void show_bac_special_event( BACnetSequence &seq )
 {
-	// TODO: untagged named "period"
 	seq.BeginChoice();
 	if (seq.OpeningTag( 0, "calendarEntry", BSQ_CHOICE ))
 	{
@@ -4858,8 +4797,9 @@ void show_bac_time_value( BACnetSequence &theSeq )
 	theSeq.Time( -1, "time" );
 
 	// Any primitive type
-	// TODO: should be labeled "value"
+	theSeq.BeginWrap( "value" );
 	theSeq.AnyTaggedItem( false );
+	theSeq.EndWrap();
 }
 
 /**************************************************************************/
@@ -4869,7 +4809,7 @@ void show_bac_VT_session( BACnetSequence &theSeq )
 {
 	theSeq.Unsigned( -1, "local-vtSessionID" );
 	theSeq.Unsigned( -1, "remote-vtSessionID" );
-	show_bacnet_address( theSeq, -1, "remote-vtAddress" );
+	show_bacnet_address( theSeq, "remote-vtAddress" );
 }
 
 //Lei Chengxin 2003-7-25
@@ -5371,9 +5311,9 @@ bool show_head_context_tag( unsigned int offset, const char* type, int tagval, b
 			// Deconstruct the tag and show the contents, advancing cursor
 			show_tagged_data();
 
+			// Deconstruct the closing tag and advance cursor
 			// Don't show as a header line, since we are indenting this under the 
 			//   show_head_context_tag(0, type, tagval, true);
-			// Deconstruct the closing tag and advance cursor
 			show_tag();
 		}
 	}

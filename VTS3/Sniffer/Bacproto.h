@@ -381,7 +381,7 @@ void	 show_bac_enumerated( unsigned int len );
 
 void	 show_bac_action_list( BACnetSequence &seq );
 void     show_bac_action_command( BACnetSequence &seq );
-void	 show_bacnet_address( BACnetSequence &theSeq, int theTag, const char *pTheTitle );
+void	 show_bacnet_address( BACnetSequence &theSeq, const char *pTheTitle );
 void     show_bac_event_parameters( BACnetSequence &seq );
 void     show_bac_dev_obj_ref( BACnetSequence &theSeq );
 void	 show_read_access_spec( BACnetSequence &theSeq );
@@ -397,7 +397,7 @@ void     show_bac_VT_session( BACnetSequence &theSeq );
 void     show_log_buffer( BACnetSequence &theSeq );
 void     show_bac_COV_Subscription( BACnetSequence &theSeq );
 void     show_bac_destination( BACnetSequence &theSeq );
-void	 show_bac_priority_array( BACnetSequence &theSeq );
+void	 show_bac_priority_value( BACnetSequence &theSeq );
 void	 show_time_stamp( BACnetSequence &theSeq, int theTag, const char *pTheTitle );
 
 void	 show_bac_dev_obj_prop_ref( BACnetSequence &theSeq );

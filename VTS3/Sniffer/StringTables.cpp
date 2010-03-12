@@ -1005,8 +1005,9 @@ STRING_TABLE BACnetProgramState[] = {
 BAC_STRINGTABLE(BACnetProgramState);
 
 // MAX_PROP_ID = the number of elements in this array. It is located in Vts.h
+// TODO: Do these REALLY need spaces after them?
 STRING_TABLE BACnetPropertyIdentifier[] = {
-   "Acked_Transitions  ",               /* 0 */
+   "Acked_Transitions ",                /* 0 */
    "Ack_Required ",                     /* 1 */
    "Action ",                           /* 2 */
    "Action_Text ",                      /* 3 */

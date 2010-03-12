@@ -104,6 +104,14 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 	// set the context
 	gCurrentInfo = this;
 
+	if ((header == NULL) || (length == 0))
+	{
+		// TODO: Not sure why, but after changing log file, we get called with a
+		// null packet.  A real fix would avoid GETTING the packet.
+		// For now, just return, lest decoding it throw an exception.
+		return;
+	}
+
 	// set the beginning of the buffers
 	piBuffer = header;
 	piLen = length;
@@ -143,6 +151,14 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 				NetworkSniffer::interp_BakRestoreMessage( header, length );
 		}
 	}
+
+	// NOTE: The original code just caught (...) and did {}.
+	// Since most such exceptions indicate the presence of a bug in the
+	// decoder, it seems preferable to SEE the problem.
+	//
+	// The ideal case would be to know who is THROWING the exception.
+	// One might look at SetUnhandledExceptionFilter or ThreadExceptionEventHandler
+	// to see that would help figure out WHAT was caught
 	catch (int ex) {
 		CString str;
 		str.Format( "int(%u)", ex );
@@ -167,9 +183,6 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 	catch (...) {
 		// Null pointers and the like come here...
 		NetworkSniffer::ShowDecoderException( "..." );
-
-		// TODO: might look at SetUnhandledExceptionFilter or ThreadExceptionEventHandler
-		// to figure out WHAT was caught
 	}
 }
 
@@ -194,22 +207,7 @@ int     pif_end_offset;			/* Offset for last+1 byte */
 int     pif_flagbit_indent;		/* Number of blanks for flagbit */
 char    pif_header_msg[];       /* Saved header message */
 
-// char *  near dlc_header;        /* ptr to start of frame */
 char *  near msg_origin;        /* ptr to start of frame or message */
-// int     near offset_src_addr;   /* offset to frame source address */
-// int     near offset_dst_addr;   /* offset to frame destination address */
-// int     near size_dlc_addr;     /* size in bytes of DLC addresses */
-// int     near bytes_not_present; /* Bytes not in frame due to Truncation */
-// int     near true_size;         /* True original size of the frame */
-// FRNUM   near pi_frame;          /* the current frame number */
-// char *  near pi_frame_data;     /* ptr to data space in the frame header */
-// int     near disp_base;         /* the number display base, when variable */
-// int     near data_version;      /* sequence number for capture data */
-// int          names_version;     /* sequence number for names table */
-// boolean near do_prescan;        /* are we doing a prescan of frames? */
-// int     near n_summary_lines;   /* no of summary lines currently used */
-// int		near embedded_addrtype; /* if sync, type of embedded DLC addr */
-// boolean near dlc_error;			/* CRC or other data link error */
 
 //-----
 
@@ -230,7 +228,7 @@ void ShowDecoderException( const char *pMessage )
 		char buf[ 20 ];
 		if ((ix % 16) == 0)
 		{
-			sprintf( buf, "\n%4u)", ix );
+			sprintf( buf, "\n" );
 			str += buf;
 		}
 
@@ -275,6 +273,28 @@ char *get_cur_int_line( void )
 {
 	return gCurrentInfo->detailLine[gCurrentInfo->detailCount-1]->piLine;
 }
+
+// Get the index of the next detail line
+// Used to fix up the length of previous detail lines after subsequent
+// items have been parsed.  Simplifies various wrapping items.
+int get_next_detail_index( void )
+{
+	return gCurrentInfo->detailCount;
+}
+
+// Set the data length of the specified detail line to theOffset.
+// Used to fix up the length of previous detail lines after subsequent
+// items have been parsed.  Simplifies various wrapping items.
+void set_detail_line_length( int theLine, int theOffset )
+{
+	if ((theLine >= 0) && (theLine < gCurrentInfo->detailCount))
+	{
+		gCurrentInfo->detailLine[theLine]->piLen = 
+			gCurrentInfo->piOffset + theOffset - 
+			gCurrentInfo->detailLine[theLine]->piOffset;
+	}
+}
+
 
 //-----
 

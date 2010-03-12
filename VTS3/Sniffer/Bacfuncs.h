@@ -285,8 +285,9 @@ public:
 	// Return true of the PDU has more data.
 	bool HasMore() const;
 	
-	// Parse the next tag if is has not already been parsed
-	void Parse();
+	// Parse the next tag if is has not already been parsed.
+	// Return false if end of buffer or tag encoding error
+	bool Parse();
 
 	// Synchronize the parser with the cursor
 	void Synch();
@@ -301,6 +302,20 @@ public:
 
 	// In the following methods, if m_ok is false, no
 	// actions are taken.  If the function returns bool, it is false.
+
+	// Begin a titled sequence not delimited by tags, as when a name is given
+	// to a SEQUENCE.  
+	// Returns true if no error has been encountered.
+	// Call EndWrap() to declare the end of the sequence.
+	//
+	// Effects are:
+	// - Shows the title as a header line in the detail
+	// - Highlights data in the hex view until EndWrap
+	bool BeginWrap( const char *pTitle );
+
+	// Declare the end of a wrapped region.
+	// The only visible effect it to end the highlighting of data in the hex view.
+	void EndWrap();
 
 	// Begin a SEQUENCE OF wrapped in opening/closing tags.
 	// Returns true if the tag is found.  After decoding the contents,
@@ -317,20 +332,28 @@ public:
 	// If a choice has not been found, declare error and return false
 	bool EndChoice();
 
-	// Declare the beginning of a list.
-	// if theTag is >=0, parse as required opening tag, else list continues until end of PDU
-	// Folleowed by while (HasListElement()) to process the elements
+	// Declare the beginning of a list wrapped context tags.
+	// Parse theTag as required opening tag
+	// Followed by while (HasListElement()) to process the elements
 	bool ListOf( int theTag, const char *pTitle, BACnetSequenceParm theType = BSQ_REQUIRED );
+
+	// Declare the beginning of a list not wrapped in context tags.
+	// The Title detail line selects the entire list in the hex view.
+	// Followed by while (HasListElement()) to process the elements until closing tag or end of PDU
+	bool ListOf( const char *pTitle );
+
+	// Declare the beginning of an untitled list not wrapped in context tags.
+	// Followed by while (HasListElement()) to process the elements until closing tag or end of PDU
+	bool ListOf();
 
 	// Test for end of list (called from a while after ListOf)
 	bool HasListElement();
 
-	// Declare an Array.
-	// Folleowed by while (HasListElement()) to process the elements
+	// Use "while (ArrayOf())" to process an array property:
 	// - if index is zero, decode and show unsigned array size, return false
-	// - if index is positive, HasListElement will return true once
-	// - if index is negative, list of all elements: HasListElement will return true for each element
-	bool ArrayOf( int theIndex );
+	// - if index is positive, return true once, (and modify theIndex as a flag)
+	// - if index is -1, begin all elements list: return true for each element (and modify theIndex as a flag)
+	bool ArrayOf( int &theIndex );
 
 	// In the following methods:
 	// BSQ_REQUIRED: if tag is found, show error and set m_ok false;
@@ -399,7 +422,8 @@ protected:
 	{
 		BNT_SEQUENCE,
 		BNT_CHOICE,
-		BNT_LIST
+		BNT_LIST,
+		BNT_WRAP
 	};
 
 	struct Nester
@@ -407,8 +431,9 @@ protected:
 		Nester			*m_pNext;
 		BACnetNestType	m_nestType;
 		int				m_tagValue;
-		const char		*m_pTitle;
+//		const char		*m_pTitle;
 		bool			m_foundChoice;
+		int             m_firstLineIndex;
 	};
 
 	// Allocate and push a block on the stack
@@ -482,13 +507,14 @@ bool BACnetSequence::HasMore() const
 }
 
 // Parse the next tag if is has not already been parsed
-void BACnetSequence::Parse()
+bool BACnetSequence::Parse()
 {
 	if (m_ok && !m_parsed)
 	{
-		m_parser.ParseTag();
-		m_parsed = true;
+		m_parsed = m_parser.ParseTag();
 	}
+
+	return m_parsed;
 }
 
 // Get the parser for special low-level processing
@@ -511,8 +537,9 @@ void BACnetSequence::Push( BACnetNestType theNestType, int theTagValue, const ch
 	pNest->m_pNext    = m_pStack;
 	pNest->m_nestType = theNestType;
 	pNest->m_tagValue = theTagValue;
-	pNest->m_pTitle   = pTheTitle;
+//	pNest->m_pTitle   = pTheTitle;
 	pNest->m_foundChoice = false;
+	pNest->m_firstLineIndex = get_next_detail_index();
 
 	m_pStack = pNest;
 }
@@ -526,7 +553,6 @@ BACnetSequence::Nester* BACnetSequence::Pop( BACnetNestType theNestType )
 	{
 		if (pNest->m_nestType != theNestType)
 		{
-			// TODO: show the actual and desired nesting, and nesting strings
 			Fail( "Probable bug in VTS: decoder nesting wants %u, got %u", 
 				  pNest->m_nestType, theNestType );
 		}
@@ -618,6 +644,44 @@ bool BACnetSequence::Vet( int theTag, int theAppTag, BACnetSequenceParm theType 
 	return retval;
 }
 
+// Begin a titled sequence not delimited by tags, as when a name is given
+// to a SEQUENCE.  
+// Returns true if no error has been encountered.
+// Call EndWrap() to declare the end of the sequence.
+//
+// Effects are:
+// - Shows the title as a header line in the detail
+// - Highlights data in the hex view until EndWrap
+bool BACnetSequence::BeginWrap( const char *pTheTitle )
+{
+	bool retval = IsOK();
+	if (retval)
+	{
+		// Push a marker
+		Push( BNT_WRAP, -1, pTheTitle );
+
+		sprintf(get_int_line(pi_data_current,pif_offset,1,NT_OPEN_TAG), pTheTitle);
+	}
+
+	return retval;
+}
+
+// Declare the end of a wrapped region.
+// The only visible effect it to end the highlighting of data in the hex view.
+void BACnetSequence::EndWrap()
+{
+	if (IsOK())
+	{
+		Nester *pNest = Pop( BNT_WRAP );
+		if (pNest != NULL)
+		{
+			// Set the length of the wrap's start line
+			set_detail_line_length( pNest->m_firstLineIndex, pif_offset );
+			delete pNest;
+		}
+	}
+}
+
 // Begin a SEQUENCE OF wrapped in opening/closing tags.
 // Returns true if the tag is found.  After decoding the contents,
 // call ClosingTag() to declare the end of the sequence.
@@ -671,7 +735,7 @@ void BACnetSequence::ClosingTag()
 
 // Declare the beginning of a group of CHOICEs
 // TODO: some CHOICEs are context tagged, and all have titles.
-// Probably add a tag and title to this function
+// Should we add a tag and title to this function?
 void BACnetSequence::BeginChoice()
 {
 	if (IsOK())
@@ -702,61 +766,55 @@ bool BACnetSequence::EndChoice()
 	return retval;
 }
 
-// Declare the beginning of a list.
-// if theTag is >=0, parse as required opening tag
+// Declare the beginning of a list wrapped context tags.
+// Parse theTag as required opening tag
+// Followed by while (HasListElement()) to process the elements
 bool BACnetSequence::ListOf( int theTagValue, const char *pTheTitle, BACnetSequenceParm theType )
 {
-	bool retval = IsOK();
+	bool retval = Vet( theTagValue, -1, theType );
 	if (retval)
 	{
 		Push( BNT_LIST, theTagValue, pTheTitle );
 
-		if (theTagValue < 0)
+		// Show the opening tag, but do not dump its value
+		retval = m_ok = show_head_context_tag( 0, pTheTitle, theTagValue, false );
+		if (m_ok)
 		{
-			// Unwrapped list until end of PDU or until next closing tag.  
-			unsigned int len = pif_end_offset - pif_offset;
-			Parse();
-			while (m_parser.HasMore() && !m_parser.ClosingTag())
-			{
-				bool pair = m_parser.OpeningTag();
-				
-				// Eat single-delimiter item
-				// or open-tag and all data, but not close-tag
-				m_parser.EatData();
-				if (pair)
-				{
-					// Eat the closing tag as well
-					m_parser.ParseTag();
-					m_parser.EatData();
-				}
-				// Length until here (not including next tag)
-				len = m_parser.Offset();
-				m_parser.ParseTag();
-			}
+			// Deconstruct the tag and advance cursor
+			show_tag();
+		}
+		Synch();
+	}
 
-			// OPEN_TAG tells the detail tree to open this branch
-			if (pTheTitle && *pTheTitle)
-			{
-				sprintf(get_int_line(pi_data_current,pif_offset,len,NT_OPEN_TAG), 
-						pTheTitle);
-			}
-			Synch();
-		}
-		else
-		{
-			retval = Vet( theTagValue, -1, theType );
-			if (retval)
-			{
-				// Show the opening tag, but do not dump its value
-				retval = m_ok = show_head_context_tag( 0, pTheTitle, theTagValue, false );
-				if (m_ok)
-				{
-					// Deconstruct the closing tag and advance cursor
-					show_tag();
-				}
-				Synch();
-			}
-		}
+	return retval;
+}
+
+// Declare the beginning of a list not wrapped in context tags.
+// Followed by while (HasListElement()) to process the elements until closing tag or end of PDU
+bool BACnetSequence::ListOf( const char *pTheTitle )
+{
+	bool retval = IsOK();
+	if (retval)
+	{
+		// HasListElement uses tag value to control highlighting of text
+		Push( BNT_LIST, -1, pTheTitle );
+
+		// NT_OPEN_TAG tells the detail tree to open this branch
+		sprintf(get_int_line(pi_data_current,pif_offset,1,NT_OPEN_TAG), pTheTitle);
+	}
+
+	return retval;
+}
+
+// Declare the beginning of an untitled list not wrapped in context tags.
+// Followed by while (HasListElement()) to process the elements until closing tag or end of PDU
+bool BACnetSequence::ListOf()
+{
+	bool retval = IsOK();
+	if (retval)
+	{
+		// HasListElement uses tag value to control highlighting of text
+		Push( BNT_LIST, -2, NULL );
 	}
 
 	return retval;
@@ -772,19 +830,15 @@ bool BACnetSequence::HasListElement()
 		if (pNest != NULL)
 		{
 			// Look for closing tag or end of PDU
-			bool more = m_parser.HasMore();
-			if (more)
-			{
-				Parse();
-			}
-			int tag = pNest->m_tagValue;
+			bool more = Parse();
 			if (!more || m_parser.ClosingTag())
 			{
 				// End of the list, expected or otherwise
+				int tag = pNest->m_tagValue;
 				if (tag >= 0)
 				{
 					// List must be enclosed by the specified tag pair
-					if (!more || (tag != m_parser.TagValue()))
+					if (!more || (tag != (int)m_parser.TagValue()))
 					{
 						Fail( "Missing or incorrect closing tag: expected [%u], got [%u]",
 							  tag, m_parser.TagValue() );
@@ -804,6 +858,12 @@ bool BACnetSequence::HasListElement()
 
 				Synch();
 				pNest = Pop( BNT_LIST );
+				if ((pNest != NULL) && (pNest->m_tagValue != -2))
+				{
+					// Set the length of the wrap's start line
+					// (tag of -2 means unwrapped, untitled list)
+					set_detail_line_length( pNest->m_firstLineIndex, pif_offset );
+				}
 				delete pNest;
 
 				// No more elements
@@ -811,6 +871,44 @@ bool BACnetSequence::HasListElement()
 			}
 		}
 	}
+
+	return retval;
+}
+
+// Use "while (ArrayOf())" to process an array property:
+// - if index is zero, decode and show unsigned array size, return false
+// - if index is positive, return true once, (and modify theIndex as a flag)
+// - if index is -1, begin all-elements list: return true for each element (and modify theIndex as a flag)
+// - other negative index values are used as control values by ArrayOf, and should not be passed
+//   in on an initial call.
+bool BACnetSequence::ArrayOf( int &theIndex )
+{
+	bool retval = false;
+
+	if (theIndex == 0)
+	{
+		// Element 0: decode and show size, return false
+		Unsigned( -1, "ArraySize" );
+	}
+	else if (theIndex > 0)
+	{
+		// Single element: return true ONCE
+		theIndex = -3;
+		retval = true;
+	}
+	else if (theIndex == -1)
+	{
+		// All elements: begin list, test for first element
+		theIndex = -2;
+		ListOf();
+		retval = HasListElement();
+	}
+	else if (theIndex == -2)
+	{
+		// Subsequent elements of all-elements
+		retval = HasListElement();
+	}
+	// Any other index value returns false.
 
 	return retval;
 }
@@ -878,7 +976,7 @@ bool BACnetSequence::Boolean( int theTag, const char *pTitle, BACnetSequenceParm
 		// Save the value for use in special decoders
 		m_lastBoolean = (boolVal != 0);
 
-		// TODO: is this OK for context-tagged boolean?
+		// This isn't ideal for context-tagged boolean: shows "tagged data X'01'"
 		show_tagged_data();
 		Synch();
 	}
@@ -1131,51 +1229,54 @@ bool BACnetSequence::BitString( int theTag, const char *pTitle,
 		show_head_bit_string(0, pTitle, theTag);
 		unsigned int len = show_tag();
 
-		if (pTheTable == NULL)
+		int byteLength = m_parser.DataLength();
+		int unusedBits = pif_get_byte(0);
+		if ((byteLength < 2) || (unusedBits > 7))
 		{
-			// Just show the bitstring generically
-			show_bac_bitstring(len);
+			return Fail("Error: bitstring claims %u bytes and %u unused bits", 
+						byteLength, unusedBits);
 		}
-		else
-		{
-			// Show a line with a string for each true bit
-			Synch();
-			int byteLength = m_parser.DataLength();
-			int unusedBits = pif_get_byte(0);
-			if ((byteLength < 2) || (unusedBits > 7))
-			{
-				return Fail("Error: bitstring claims %u bytes and %u unused bits", 
-							byteLength, unusedBits);
-			}
 
+		// Show the byte data (after unused-bits)
+		pif_offset += 1;
+		byteLength -= 1;
+		sprintf(outstr,"%"FW"s = %%s","Bit string data");
+		pif_show_nbytes_hex(outstr, byteLength);
+
+		if (pTheTable != NULL)
+		{
+			// Backup the cursor to point at the data
+			pif_offset -= byteLength;
+			
+			// Show a line with a string for each true bit
 			int val, jx = 0, mask = 0;
-			int bitLength = (byteLength - 1)*8 - unusedBits;
+			int bitLength = byteLength*8 - unusedBits;
 			for (int ix = 0; ix < bitLength; ix++)
 			{
 				if (mask == 0)
 				{
 					mask = 0x80;
-					jx += 1;
 					val = pif_get_byte(jx);
+					jx += 1;
 				}
 
 				if (val & mask)
 				{
 					if (ix < pTheTable->m_nStrings)
 					{
-						sprintf(get_int_line(pi_data_current,pif_offset+jx, 1), 
-				    			"%02X: %s", mask, pTheTable->m_pStrings[ix] );
+						sprintf(get_int_line(pi_data_current,pif_offset, byteLength), 
+				    			"%u: %s = TRUE", ix, pTheTable->m_pStrings[ix] );
 					}
 					else
 					{
-						sprintf(get_int_line(pi_data_current,pif_offset+jx, 1), 
-				    			"%02X", mask );
+						sprintf(get_int_line(pi_data_current,pif_offset, byteLength), 
+				    			"%u = TRUE", ix );
 					}
 				}
 				mask = mask >> 1;
 			}
 
-			pif_offset += jx+1;
+			pif_offset += byteLength;
 		}
 		
 		Synch();
@@ -1381,8 +1482,7 @@ void show_str_eq_str ( const char *str1, const char *str2, unsigned int len )
 
 /*************************************************************************/
 // TODO: this sucker is an amazing piece of work...
-// Used twice with mask F0 for tag value
-// Used four times with mask 07 for length.
+// Used once times with mask 07 for length from show_tagged_data
 // Show the byte at cursor-1
 void bac_show_flagmask ( unsigned char mask, const char *str )
 /*************************************************************************/
@@ -1492,23 +1592,9 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case ACTION: 
 		switch (obj_type) {
 		case 7: // Command Object: ARRAY OF (LIST OF BACnetActionCommands)
-			if (prop_idx == 0) 
+			while (seq.ArrayOf(prop_idx)) 
 			{
-				// Size of the array
-				seq.Unsigned( -1, "ArraySize" );
-			}
-			else if (prop_idx != -1)
-			{
-				// only 1 element
 				show_bac_action_list(seq);
-			}
-			else
-			{
-				// Entire array
-				seq.ListOf( -1, "" );
-				while (seq.HasListElement()) {
-					show_bac_action_list(seq);
-				}
 			}
 			break;
         case 12: // loop object: enumeration BACnetAction
@@ -1517,31 +1603,18 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		}
 		break;
 	case ACTION_TEXT:  /* ARRAY OF Character Strings */
-		if (prop_idx == 0) 
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			seq.TextString( -1, "" );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				seq.TextString( -1, "" );
-			}
 		}
         break;
 	case ACTIVE_TEXT:  /* Character String  */
 		seq.TextString( -1, "" );
 		break;
 	case ACTIVE_VT_SESSIONS:
-		seq.ListOf( -1, "" );
-		while (seq.HasListElement()) {
+		seq.ListOf();
+		while (seq.HasListElement()) 
+		{
 			show_bac_VT_session(seq);
 		}
         break;
@@ -1551,7 +1624,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		break;
 	case ALARM_VALUES:			// 7
 	case FAULT_VALUES:
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement()) {
 			switch (obj_type) {
 			case 21: // LIFE_SAFETY_POINT
@@ -1611,7 +1684,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.Real( -1, "" );
 		break;
 	case DATELIST:  /* List of BACnetCalendarEntry  */
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement()) {
 			show_calendar_entry( seq );
 		}
@@ -1637,9 +1710,9 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case SLAVE_ADDRESS_BINDING:
 	case MANUAL_SLAVE_ADDRESS_BINDING:
 	case DEVICE_ADDRESS_BINDING:  /* sequence of BACnetAddressBinding */
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement()) {
-		   show_bacnet_address( seq, -1, "" );
+		   show_bacnet_address( seq, "" );
 		}
 	   break;
 	case DEVICE_TYPE: /*  Character String  */
@@ -1668,23 +1741,9 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEventType );
 		break;
 	case EXCEPTION_SCHEDULE: /*  ARRAY of BACnet SpecialEvents  */
-		if (prop_idx == 0) 
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			show_bac_special_event(seq);
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				show_bac_special_event(seq);
-			}
 		}
 		break;
 //	case FAULT_VALUES:  see "ALARM_VALUES" case above
@@ -1740,25 +1799,25 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.BitString( -1, "", &BAC_STRTAB_BACnetLimitEnable );
 		break;
 	case LIST_OF_GROUP_MEMBERS:	/* list of ReadAccessSpecification */
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement())
 		{
 			show_read_access_spec(seq);
 		}
 		break;
 	case LIST_OF_OBJ_PROP_REFERENCES: /* List of object_property_references  */
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement())
 		{
 			show_bac_dev_obj_prop_ref(seq);
 		}
 		break;
 	case LIST_OF_SESSION_KEYS:
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement())
 		{
 			seq.OctetString( -1, "sessionKey" );
-			show_bacnet_address( seq, -1, "peerAddress" );
+			show_bacnet_address( seq, "peerAddress" );
 		}
 		break;
 	case LOCAL_DATE: /* Date */
@@ -1827,23 +1886,9 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.ObjectIdentifier( -1, "" );
 		break;
 	case OBJECT_LIST:
-		if (prop_idx == 0)
+		while (seq.ArrayOf( prop_idx )) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			seq.ObjectIdentifier( -1, "" );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				seq.ObjectIdentifier( -1, "" );
-			}
 		}
         break;
 	case OBJECT_NAME:  /* Character String  */
@@ -1905,7 +1950,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDoorValue );
 			break;
 		case 11: /* Group - List of Read Access Result */
-			seq.ListOf( -1, "" );
+			seq.ListOf();
 			while (seq.HasListElement())
 			{
 				show_read_access_result( seq );
@@ -1927,43 +1972,15 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		}
 		break;
 	case PRIORITY:
-		if (prop_idx == 0)
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			seq.Unsigned( -1, "" );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				seq.Unsigned( -1, "" );
-			}
 		}
         break;
 	case PRIORITY_ARRAY: /* BACnetPriorityArray  */
-		if (prop_idx == 0)
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
-			show_bac_priority_array( seq );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				show_bac_priority_array( seq );
-			}
+			show_bac_priority_value( seq );
 		}
         break;
 	case PRIORITY_FOR_WRITING: /* Unsigned  */
@@ -2006,7 +2023,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetProgramError );
 		break;
 	case RECIPIENT_LIST:	// SEQEUNCE OF BACnetDestination
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement())
 		{
 			show_bac_destination( seq );
@@ -2061,23 +2078,9 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		}
 		break;
 	case STATE_TEXT :  /* Array of Character Strings */
-		if (prop_idx == 0)
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			seq.TextString( -1, "" );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				seq.TextString( -1, "" );
-			}
 		}
 		break;
 	case STATUS_FLAGS:  /*  Bit String */
@@ -2097,7 +2100,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case TIME_SYNCHRONIZATION_RECIPIENTS:  // SEQUENCE OF BACnetRecipient
 	case UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
 	case RESTART_NOTIFICATION_RECIPIENTS:
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement())
 		{
 			show_bac_recipient( seq );
@@ -2119,30 +2122,16 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.TextString( -1, "" );
 		break;
 	case VT_CLASSES_SUPPORTED:  /*  List of BACnet VT Classes */
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement())
 		{
 			seq.Enumerated( -1, "vtCalss", &BAC_STRTAB_BACnetVTClass );
 		}
         break;
 	case WEEKLY_SCHEDULE:  /* ARRAY of BACnetTimeValue */
-		if (prop_idx == 0)
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			show_bac_time_value( seq );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				show_bac_time_value( seq );
-			}
 		}
 		break;
 	case ATTEMPTED_SAMPLES:             // Unsigned 32     
@@ -2164,23 +2153,9 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.Unsigned( -1, "" );
 		break;
 	case EVENT_TIME_STAMPS:               // Array of BACnetTimeStamp
-		if (prop_idx == 0)
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			show_time_stamp( seq, -1, "" );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				show_time_stamp( seq, -1, "" );
-			}
 		}
 		break;
 	case LOG_BUFFER:                      // List of BACnetLogRecord
@@ -2195,23 +2170,9 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		else
 		{
 			// Trend-Multiple object: ARRAY of BACnetDeviceObjectPropertyReference
-			if (prop_idx == 0)
+			while (seq.ArrayOf(prop_idx)) 
 			{
-				// Size of the array
-				seq.Unsigned( -1, "ArraySize" );
-			}
-			else if (prop_idx != -1)
-			{
-				// only 1 element
 				show_bac_dev_obj_prop_ref( seq );
-			}
-			else
-			{
-				// Entire array
-				seq.ListOf( -1, "" );
-				while (seq.HasListElement()) {
-					show_bac_dev_obj_prop_ref( seq );
-				}
 			}
 		}
 		break;
@@ -2271,7 +2232,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.Real( -1, "" );
 		break;
 	case ACTIVE_COV_SUBSCRIPTIONS:
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement()) {
 			show_bac_COV_Subscription( seq );
 		}
@@ -2287,23 +2248,9 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		break;
 	case SLAVE_PROXY_ENABLE:
 	case AUTO_SLAVE_DISCOVERY: // ARRAY OF BOOLEAN
-		if (prop_idx == 0)
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			seq.Boolean( -1, "" );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				seq.Boolean( -1, "" );
-			}
 		}
 		break;
 	case DATABASE_REVISION:
@@ -2340,69 +2287,27 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		break;
 	case DOOR_MEMBERS:			// Array of BACnetDeviceObjectReference
 	case SUBORDINATE_LIST:		// Array of BACnetDeviceObjectReference
-		if (prop_idx == 0)
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			show_bac_dev_obj_ref( seq );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				show_bac_dev_obj_ref( seq );
-			}
 		}
 		break;
 	case SUBORDINATE_ANNOTATIONS:	 // Array of Character Strings
 	case SHED_LEVEL_DESCRIPTIONS:  // Array of Character Strings
-		if (prop_idx == 0)
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			seq.TextString( -1, "" );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				seq.TextString( -1, "" );
-			}
 		}
 		break;
 	case SHED_LEVELS:				// Array of Unsigned
-		if (prop_idx == 0)
+		while (seq.ArrayOf(prop_idx)) 
 		{
-			// Size of the array
-			seq.Unsigned( -1, "ArraySize" );
-		}
-		else if (prop_idx != -1)
-		{
-			// only 1 element
 			seq.Unsigned( -1, "" );
-		}
-		else
-		{
-			// Entire array
-			seq.ListOf( -1, "" );
-			while (seq.HasListElement()) {
-				seq.Unsigned( -1, "" );
-			}
 		}
 		break;
 	default:
 		// Show as a sequence of anything, terminated by closing tag
-		seq.ListOf( -1, "" );
+		seq.ListOf();
 		while (seq.HasListElement()) {
 			seq.AnyTaggedItem();
 		}
