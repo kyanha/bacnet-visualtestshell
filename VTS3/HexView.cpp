@@ -327,65 +327,45 @@ void CHexView::OnKillFocus(CWnd* pNewWnd)
 
 CString* CHexView::GetLineData(int lineNo)
 {
-	CString*	pString = new CString()
-	;
-	int			bCount
-	;
-	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
-	
-	// figure out how many bytes are available
-//MAD_DB	bCount = m_FrameContext->m_Packet.packetLen - (lineNo * 16);
-	bCount = (m_FrameContext->GetCurrentPacket() != NULL ? m_FrameContext->GetCurrentPacket()->packetLen : 0) - (lineNo * 16);
-	if (bCount > 16) bCount = 16;
+	CString *pString = new CString();
+	if (m_FrameContext->GetCurrentPacket() != NULL)
+	{
+		// figure out how many bytes are available
+		int bCount = m_FrameContext->GetCurrentPacket()->packetLen - (lineNo * 16);
+		if (bCount > 16) bCount = 16;
 
-	//
-	// Get 16 bytes and format them for output.
-	//
-    BYTE b[17];
-    ::FillMemory (b, 16, 32);
+		if (bCount > 0)
+		{
+		    BYTE b[16];
+			memcpy( b, m_FrameContext->GetCurrentPacket()->packetData + (lineNo * 16), bCount );
 
-	// get 16 bytes out of the packet
-//MAD_DB	memcpy( b, m_FrameContext->m_Packet.packetData + (lineNo * 16), 16	);
-	memcpy( b, m_FrameContext->GetCurrentPacket()->packetData + (lineNo * 16), 16 );
+			// Output is 3 char per hex value, two spaces, characters, then null
+			char buf[16*3 + 2 + 16 + 1];
+			char *pStr = buf;
+			int ix;
+			for (ix = 0; ix < 16; ix++)
+			{
+				if (ix < bCount)
+				{
+					pStr += sprintf( pStr, " %02X", b[ix] );
+				}
+				else
+				{
+					pStr += sprintf( pStr, "   " );
+				}
+			}
 
-	// format the result
-    pString->Format( _T( "%0.4X  %0.2X %0.2X %0.2X %0.2X %0.2X %0.2X " \
-	        "%0.2X %0.2X %0.2X %0.2X %0.2X %0.2X %0.2X %0.2X %0.2X " \
-		    "%0.2X  ")
-		, lineNo * 16
-        , b[0], b[1],  b[2],  b[3],  b[4],  b[5],  b[6],  b[7]
-        , b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]
-		);
-
-	//
-	// Replace non-printable characters with periods.
-	//
-    for (i=0; i<bCount; i++) {
-//		if (!::IsCharAlphaNumeric(b[i]))
-//			b[i] = 0x2E;
-		if ((b[i] < ' ') || (b[i] > '~'))
-			b[i] = 0x2E;
-    }
-
-	//
-	// If less than 16 bytes were retrieved, erase to the end of the line.
-	//
-    b[bCount] = 0;
-    *pString += (CString)b;
-
-	// wipe out invalid data
-    if (bCount < 16) {
-        int pos1 = 51;
-        int pos2 = 52;
-        int j = 16 - bCount;
-
-        for (i=0; i<j; i++) {
-            pString->SetAt (pos1, _T (' '));
-            pString->SetAt (pos2, _T (' '));
-            pos1 -= 3;
-            pos2 -= 3;
-        }
-    }
+			pStr += sprintf( pStr, "  " );
+			for (ix = 0; ix < bCount; ix++)
+			{
+				*pStr++ = ((b[ix] >= ' ') && (b[ix] <= '~')) ? b[ix] : '.';
+			}
+			
+			*pStr = 0;
+			
+			pString->Format( _T("%0.4X %s"), lineNo * 16, buf );
+		}
+	}
 	
 	return pString;
 }
