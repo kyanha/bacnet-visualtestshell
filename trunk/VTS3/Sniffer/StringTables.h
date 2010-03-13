@@ -1,7 +1,18 @@
 /*  ------ BACnet string table s--------------- */
 
+#ifndef BACNET_STRING_TABLE_INCLUDED
+#define BACNET_STRING_TABLE_INCLUDED
+
+class CComboBox;
+
 //#include "BACnetStringTables.h"
 namespace NetworkSniffer {
+
+// Return a test buffer for short term use, such as as an argument
+// for sprintf.  Buffers are allocated from a small rotary set, so
+// long-term usage will result in the buffer being re-used.
+char* TempTextBuffer();
+
 
 // To safely export string tables, we export them as structs
 // containing a pointer to the table, and a count of elements
@@ -9,6 +20,13 @@ struct BACnetStringTable
 {
 	const char*	 const* m_pStrings;
 	int					m_nStrings;
+
+	// Return a string containing text for the specified enumerated value.
+	// If the value is undefined, the string will show the pUndefined title and the numeric value
+	const char* EnumString( int theIndex, const char *pUndefined = NULL ) const;
+
+	// Fill a CComboBox with the contents of the string table
+	void FillCombo( CComboBox &theCombo ) const;
 };
 
 // TODO: Eventually replace the macro by "const char* const"
@@ -19,16 +37,17 @@ struct BACnetStringTable
 #define BAC_STRINGTABLE(name) BACnetStringTable BAC_STRTAB_##name = {name, sizeof(name)/sizeof(name[0])}
 
 // Export a BACnetStringTable, and the table itself
-// TODO: eventually DON'T export the table, since it isn't safe without knowning its size
+// TODO: eventually DON'T export the table, since it isn't safe without knowing its size
+// Convert all users to use BACnetStringTable and BAC_STRTAB_XXX instead
+//	extern STRING_TABLE name[];
 #define EXPORT_STRINGTABLE(name) \
-	extern STRING_TABLE name[]; \
 	extern BACnetStringTable BAC_STRTAB_##name
 
+EXPORT_STRINGTABLE(FalseTrue);
 EXPORT_STRINGTABLE(ApplicationTypes);
 EXPORT_STRINGTABLE(BACnetAction);
 EXPORT_STRINGTABLE(BACnetActionList);
 EXPORT_STRINGTABLE(BACnetActionCommand);
-EXPORT_STRINGTABLE(BACnetAddress);
 EXPORT_STRINGTABLE(BACnetAddressBinding);
 EXPORT_STRINGTABLE(BACnetBinaryPV);
 EXPORT_STRINGTABLE(BACnetCalendarEntry);
@@ -59,7 +78,6 @@ EXPORT_STRINGTABLE(BACnetEventType);
 EXPORT_STRINGTABLE(Acknowledgement_Filter);
 EXPORT_STRINGTABLE(EventState_Filter);
 EXPORT_STRINGTABLE(BACnetFileAccessMethod);
-EXPORT_STRINGTABLE(BACnetGetEventInfoACK);
 EXPORT_STRINGTABLE(BACnetEventSummary);
 EXPORT_STRINGTABLE(BACnetLifeSafetyMode);
 EXPORT_STRINGTABLE(BACnetLifeSafetyOperation);
@@ -75,7 +93,6 @@ EXPORT_STRINGTABLE(BACnetLogMultipleRecord);
 EXPORT_STRINGTABLE(BACnetLogRecord);
 EXPORT_STRINGTABLE(BACnetLogStatus);
 EXPORT_STRINGTABLE(BACnetNotifyType);
-EXPORT_STRINGTABLE(BACnetObjectPropertyReference);
 EXPORT_STRINGTABLE(BACnetPropertyAccessResult);
 EXPORT_STRINGTABLE(BACnetShedLevel);
 EXPORT_STRINGTABLE(BACnetShedState);
@@ -127,3 +144,5 @@ EXPORT_STRINGTABLE(DeviceCommControl_Command);
 EXPORT_STRINGTABLE(TextMessage_Priority);
 
 } // end namespace NetworkSniffer
+
+#endif

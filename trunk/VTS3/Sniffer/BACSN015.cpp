@@ -49,7 +49,7 @@ namespace NetworkSniffer {
 
 #include "bacproto.h"
 
-#define max_confirmed_services 30   //Modified by Zhu Zhenhua, 2004-5-25
+#define max_confirmed_services   30
 #define max_unconfirmed_services 10
 
 #define FW "-27"
@@ -713,7 +713,19 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
                   interp_bacnet_NL( header + 4, length - 4 );
                   break;
                default:
-                  strcpy( get_sum_line(pi_data_bacnet_BVLL), BVLL_Function[pif_get_byte(1)] );
+				  {
+                     char *pStr = get_sum_line(pi_data_bacnet_BVLL);
+					 int fn = pif_get_byte(1);
+					 if (fn < BAC_STRTAB_BVLL_Function.m_nStrings)
+					 {
+						strcpy( pStr, BAC_STRTAB_BVLL_Function.m_pStrings[fn] );
+					 }
+					 else
+					 {
+						 sprintf( pStr, "Unknown BVLL function %u", fn );
+					 }
+				  }
+				  break;
             }
             break;
       }
@@ -896,15 +908,8 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          else
             pif_skip(1);
 
-		 int	nlMsgID = pif_get_byte(0); //Point to MessageType
-		 //Xiao SHiyuan 2002-5-17
-		 if (nlMsgID < 0)
-		 {		 
-			 strcpy( get_sum_line(pi_data_bacnet_NL), "Error: Network Layer Message Type" );
-			 return length;
-		 }
-		 else
-         if ((nlMsgID > (int)BAC_STRTAB_NL_msgs.m_nStrings) && (nlMsgID < 0x80))
+		 int nlMsgID = pif_get_byte(0) & 0xFF; //Point to MessageType
+         if ((nlMsgID >= BAC_STRTAB_NL_msgs.m_nStrings) && (nlMsgID < 0x80))
          {
 			 strcpy( get_sum_line(pi_data_bacnet_NL), "ASHRAE Reserves The Network Layer Message Type" );
 			 return length;
@@ -918,18 +923,10 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 		 }
 	     else
 		 {
-		    strcpy( get_sum_line(pi_data_bacnet_NL), NL_msgs[pif_get_byte(0)] );
-/*
-         sprintf (get_sum_line (pi_data_bacnet_NL),
-            "BACnet NL (%s)",NL_msgs[pif_get_byte(0)]);
-*/
+		    strcpy( get_sum_line(pi_data_bacnet_NL), BAC_STRTAB_NL_msgs.EnumString( pif_get_byte(0), "NL" ) );
 		 }
       }
       else {
-/*
-         sprintf (get_sum_line (pi_data_bacnet_NL),
-            "BACnet NL (APDU)");
-*/
 		 //contain BACnet APDU
          //Xiao Shiyuan 2002-5-19. BEGIN
          apdu_length = length - npdu_length;
@@ -1554,24 +1551,24 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					SEQ = pif_get_byte(3);
 					if(moreDetail[0] == 0){
 						sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SA=%u, SEQ=%u",
-							BACnetConfirmedServiceChoice[service_choice],
+							BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
 							ID, SEG, MOR, SA, SEQ);
 					}
 					else{
 						sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SA=%u, SEQ=%u, %s",
-							BACnetConfirmedServiceChoice[service_choice],
+							BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
 							ID, SEG, MOR, SA, SEQ, moreDetail);
 					}
 				}
                 else{
 					if(moreDetail[0] == 0){
 						sprintf(outstr,"%s, ID=%u",
-							BACnetConfirmedServiceChoice[service_choice],
+							BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
 							ID);
 					}
 					else{
 						sprintf(outstr,"%s, ID=%u, %s",
-							BACnetConfirmedServiceChoice[service_choice],
+							BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
 							ID, moreDetail);
 					}
                 }
@@ -1593,7 +1590,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  obj_instance = (obj_id & 0x003FFFFF);
 						  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
 					  }
-					  sprintf(outstr,"%s, %s", BACnetUnconfirmedServiceChoice[service_choice], moreDetail);
+					  sprintf(outstr,"%s, %s", 
+							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
+							  moreDetail);
 					  
 //                    sprintf(outstr,"%s, %lu",BACnetUnconfirmedServiceChoice[service_choice], 
 //                           pif_get_long_hl(3)&0x003FFFFF);
@@ -1616,7 +1615,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  obj_type = (obj_id >> 22) & 0x000003FF;
 						  obj_instance = (obj_id & 0x003FFFFF);
 						  
-						  sprintf(outstr,"%s, %s_%lu, %s_%lu", BACnetUnconfirmedServiceChoice[service_choice],
+						  sprintf(outstr,"%s, %s_%lu, %s_%lu", 
+							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
 							  ObjectTypeString(device_type), device_instance, 
 							  ObjectTypeString(obj_type), obj_instance);
 					  }
@@ -1644,7 +1644,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  obj_type = (obj_id >> 22) & 0x000003FF;
 						  obj_instance = (obj_id & 0x003FFFFF);
 						  
-						  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", BACnetUnconfirmedServiceChoice[service_choice], nValue, 
+						  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", 
+							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
+							  nValue, 
 							  ObjectTypeString(device_type), device_instance, 
 							  ObjectTypeString(obj_type), obj_instance);
 					  }
@@ -1672,7 +1674,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  obj_type = (obj_id >> 22) & 0x000003FF;
 						  obj_instance = (obj_id & 0x003FFFFF);
 						  
-						  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", BACnetUnconfirmedServiceChoice[service_choice], nValue, 
+						  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", 
+							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
+							  nValue, 
 							  ObjectTypeString(device_type), device_instance, 
 							  ObjectTypeString(obj_type), obj_instance);
 					  }
@@ -1688,7 +1692,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  len2 = tagbuff & 0x07;
 						  unsigned long nValue2 = get_bac_unsigned( 4+len1, len2 );
 
-						  sprintf(outstr, "%s, %lu, %lu", BACnetUnconfirmedServiceChoice[service_choice],
+						  sprintf(outstr, "%s, %lu, %lu", 
+							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
 							  nValue1, nValue2);
 					  }
 					  break;
@@ -1704,7 +1709,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  obj_type = (obj_id >> 22) & 0x000003FF;
 						  obj_instance = (obj_id & 0x003FFFFF);
 
-						  sprintf(outstr, "%s, %s_%lu", BACnetUnconfirmedServiceChoice[service_choice],
+						  sprintf(outstr, "%s, %s_%lu", 
+							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
 							  ObjectTypeString(obj_type), obj_instance);
 					  }
 					  break;
@@ -1820,27 +1826,31 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 							  sprintf(moreDetail, "Error!");
 						  }
 						  
-						  sprintf(outstr,"%s, %s",BACnetUnconfirmedServiceChoice[service_choice], moreDetail);
+						  sprintf(outstr,"%s, %s",
+							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
+							  moreDetail);
 					  }
 					  break;
                   case 8: /* Who-Is */
                     if (pif_offset+2>=pif_end_offset)
-                      sprintf(outstr,"%s, All Devices",BACnetUnconfirmedServiceChoice[service_choice]);
+                      sprintf(outstr,"%s, All Devices",BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ));
                     else {
-                      sprintf(outstr,"%s, %lu-%lu",BACnetUnconfirmedServiceChoice[service_choice],
+                      sprintf(outstr,"%s, %lu-%lu",BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
                       get_bac_unsigned(3,pif_get_byte(2)&0x07),
                       get_bac_unsigned(3+(pif_get_byte(2)&0x07)+1,pif_get_byte(3+(pif_get_byte(2)&0x07))&0x07));
                     }
                     break;  
-                  default: sprintf(outstr,"%s",BACnetUnconfirmedServiceChoice[service_choice]);
+                  default: 
+					sprintf(outstr,"%s",BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ));
+					break;
                 }
                 break;
         case 2: /* Simple ACK */
             {   
 				ID = pif_get_byte(1);
 				int service_type = pif_get_byte(2);
-				sprintf(moreDetail, "%s ACK", BACnetConfirmedServiceChoice[service_type]);
-                sprintf(outstr,"%s, ID=%u, %s",PDU_types[pdu_type],ID,moreDetail);
+				sprintf(moreDetail, "%s ACK", BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_type, "SimpleAck"));
+                sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type, "PDU_Type"),ID,moreDetail);
 			}
                 break;
         case 3: /* Complex ACK */
@@ -1853,8 +1863,8 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					MOR = (pif_get_byte(0)&0x04)>>2;
 					SEQ = pif_get_byte(2);
 					sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SEQ=%u",
-						PDU_types[pdu_type],
-						ID, SEG, MOR, SEQ);
+							BAC_STRTAB_PDU_types.EnumString(pdu_type, "PDU_Type"),
+							ID, SEG, MOR, SEQ);
 				}
                 else{
 					switch(nService){
@@ -1902,7 +1912,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						}
 						break;
 					default:
-						sprintf(moreDetail, "%s-ACK", BACnetConfirmedServiceChoice[nService]);
+						sprintf(moreDetail, "%s-ACK", BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(nService,"ConfRq"));
 						break;
 					}
 /*
@@ -1911,7 +1921,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 												ID, moreDetail);*/
 						
                     sprintf(outstr,"%s-ACK, ID=%u, %s",
-						BACnetConfirmedServiceChoice[nService],
+						BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(nService,"ConfRQ"),
 						ID, moreDetail);
 				}
 			}
@@ -1921,31 +1931,31 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
                 NAK = (pif_get_byte(0)&0x02)>>1UL;
                 SRV = pif_get_byte(0)&0x01;
                 sprintf(outstr,"%s, ID=%u, NAK=%u, SRV=%u",
-                PDU_types[pdu_type], ID, NAK, SRV);
+						BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, NAK, SRV);
                 break;
         case 5: /* Error */
             {
 				ID = pif_get_byte(1);
 				int error_type = pif_get_byte(2);
 				tagged         = 3;
-				sprintf(moreDetail, "%s", BACnetError[error_type]);
-                sprintf(outstr,"%s, ID=%u, %s",PDU_types[pdu_type], ID, moreDetail);
+				sprintf(moreDetail, "%s", BAC_STRTAB_BACnetError.EnumString(error_type,"Error"));
+                sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
 			}
                 break;
         case 6: /* Reject */
             {
 				ID = pif_get_byte(1);
 				int reject_type = pif_get_byte(2);
-				sprintf(moreDetail, "%s", BACnetReject[reject_type]);
-                sprintf(outstr,"%s, ID=%u, %s",PDU_types[pdu_type], ID, moreDetail);
+				sprintf(moreDetail, "%s", BAC_STRTAB_BACnetReject.EnumString(reject_type,"Reject"));
+                sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
 			}
                 break;
         case 7: /* Abort */
             {
 				ID = pif_get_byte(1);
 				int abort_type = pif_get_byte(2);
-				sprintf(moreDetail, "%s", BACnetAbort[abort_type]);
-                sprintf(outstr,"%s, ID=%u, %s",PDU_types[pdu_type], ID, moreDetail);
+				sprintf(moreDetail, "%s", BAC_STRTAB_BACnetAbort.EnumString(abort_type,"Abort"));
+                sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
 			}
                 break;
       }
@@ -2208,8 +2218,7 @@ void show_simple_ack( unsigned char )
    pif_show_flagmask(0xF0,0x20,"BACnet-SimpleACK-PDU");
    pif_show_flagbit(0x0F,"Unused",NULL);
    bac_show_byte("Invoke ID","%d");
-   // Had BACnetServicesSupported - wrong for anything above 25
-   bac_show_byte(BACnetConfirmedServiceChoice[pif_get_byte(0)],"%d");
+   bac_show_byte( BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(pif_get_byte(0), "ConfRq"),"%d");
 }
 
 /*************************************************************************/
@@ -2331,8 +2340,8 @@ void show_error( unsigned char x )
    if ((pif_get_byte(0) < max_confirmed_services) &&
 	   (show_confirmed_service_error[pif_get_byte(0)] != NULL))
    {
-      // Had BACnetServicesSupported - wrong for anything above 25
-   	  sprintf(outstr,"%s Service Error",BACnetConfirmedServiceChoice[pif_get_byte(0)]);
+   	  sprintf(outstr,"%s Service Error",
+			  BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(pif_get_byte(0), "ConfRq"));
       bac_show_byte(outstr,"%u");
       (*show_confirmed_service_error[pif_get_byte(-1)])();
    }
@@ -2359,7 +2368,7 @@ void show_reject( unsigned char )
    
    bac_show_byte("Original Invoke ID","%d");
    sprintf(outstr,"%"FW"s = %s = (%%u)","Reject Reason",
-           BACnetReject[pif_get_byte(0)]);
+           BAC_STRTAB_BACnetReject.EnumString(pif_get_byte(0), "Reject"));
    pif_show_byte(outstr);
 }
 
@@ -2375,7 +2384,7 @@ void show_abort( unsigned char )
    
    bac_show_byte("Original Invoke ID","%d");
    sprintf(outstr,"%"FW"s = %s = (%%u)","Abort Reason",
-           BACnetAbort[pif_get_byte(0)]);
+           BAC_STRTAB_BACnetAbort.EnumString(pif_get_byte(0), "Abort"));
    pif_show_byte(outstr);
 }
 
@@ -2643,7 +2652,7 @@ void show_calendar_entry( BACnetSequence &theSeq )
 			if (x == 255)
 				pStr += sprintf(pStr,"any month, ");
 			else if (x < 15)
-				pStr += sprintf(pStr,"%s, ", month[x]);
+				pStr += sprintf(pStr,"%s, ", BAC_STRTAB_month.EnumString(x));
 			else
 				theSeq.Fail( "Expected BACnetWeekNDay: got month %u", x );
 
@@ -2651,7 +2660,7 @@ void show_calendar_entry( BACnetSequence &theSeq )
 			if (x == 255)
 				pStr += sprintf(pStr,"any week, ");
 			else if (x <= 6)
-				pStr += sprintf(pStr,"%s week, ",weeks[x]);
+				pStr += sprintf(pStr,"%s week, ", weeks[x]);
 			else
 				theSeq.Fail( "Expected BACnetWeekNDay: got week %u", x );
 
@@ -2659,7 +2668,7 @@ void show_calendar_entry( BACnetSequence &theSeq )
 			if (x == 255)
 				sprintf(pStr,"any day");
 			else if (x < 8)
-				sprintf(pStr,day_of_week[x]);
+				sprintf(pStr,BAC_STRTAB_day_of_week.EnumString(x));
 			else
 				theSeq.Fail( "Expected BACnetWeekNDay: got day %u", x );
 
@@ -2934,7 +2943,7 @@ void show_getEventInformationACK( void )
 {
 	bac_show_byte("Get Event Information Ack","%u");
 	BACnetSequence seq;
-	seq.ListOf( 0, BACnetGetEventInfoACK[0] );
+	seq.ListOf( 0, "List of Event Summary" );
 	while (seq.HasListElement())
 	{
 		seq.ObjectIdentifier( 0, "Object Identifier" );
@@ -3166,9 +3175,9 @@ void show_readProperty( void )
 {
 	bac_show_byte("Read Property Request","%u");
 	BACnetSequence seq;
-	seq.ObjectIdentifier(   0, BACnetObjectPropertyReference[0] );
-	seq.PropertyIdentifier( 1, BACnetObjectPropertyReference[1] );
-	seq.PropertyArrayIndex( 2, BACnetObjectPropertyReference[2], BSQ_OPTIONAL );
+	seq.ObjectIdentifier(   0, "objectIdentifier" );
+	seq.PropertyIdentifier( 1, "propertyIdentifier" );
+	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
@@ -3573,7 +3582,7 @@ void show_atomicWriteFileACK( void )
    	BACnetSequence seq;
 	seq.BeginChoice();
 	seq.Integer( 0, "fileStartPosition", BSQ_CHOICE );
-	seq.Integer( 0, "fileStartRecord", BSQ_CHOICE );
+	seq.Integer( 1, "fileStartRecord", BSQ_CHOICE );
 	seq.EndChoice();
 }
 
@@ -3584,7 +3593,7 @@ void show_createObjectACK( void )
 {
 	bac_show_byte("CreateObject Acknowledgement","%u");
 	BACnetSequence seq;
-	seq.ObjectIdentifier(   0, "objectIdentifier" );
+	seq.ObjectIdentifier( 0, "objectIdentifier" );
 }
 
 /*************************************************************************/
@@ -3594,10 +3603,10 @@ void show_readPropertyACK( void )
 {
 	bac_show_byte("Read Property ACK","%u");
 	BACnetSequence seq;
-	seq.ObjectIdentifier( 0, "Object Identifier", BSQ_REQUIRED );
+	seq.ObjectIdentifier(   0, "Object Identifier", BSQ_REQUIRED );
 	seq.PropertyIdentifier( 1, "Property Identifier", BSQ_REQUIRED );
 	seq.PropertyArrayIndex( 2, "Property Array Index", BSQ_OPTIONAL );
-	if (seq.OpeningTag( 3, "PropertyValue" ))
+	if (seq.OpeningTag(     3, "PropertyValue" ))
 	{
 		// TODO: is this really the best way to do this?
 		// For one thing, we don't really even know which DEVICE this
@@ -3922,7 +3931,7 @@ void date_as_string( char *pOut, int offset )
 		pOut += sprintf( pOut, "XXX/" );
 	}
 	else if ((x>0) && (x<15)) {
-		pOut += sprintf( pOut, "%s/", month[x]);
+		pOut += sprintf( pOut, "%s/", BAC_STRTAB_month.EnumString(x));
 	}
 	else {
 		pOut += sprintf( pOut, "Invalid:%u/", x);
@@ -3946,7 +3955,7 @@ void date_as_string( char *pOut, int offset )
 		sprintf( pOut, "XXX" );
 	}
 	else if ((x>0) && (x<8)) {
-		sprintf( pOut, day_of_week[x] );
+		sprintf( pOut, BAC_STRTAB_day_of_week.EnumString(x) );
 	}
 	else {
 		sprintf( pOut, "Invalid:%u", x );
@@ -3977,9 +3986,9 @@ void show_bac_date( unsigned int len )
 		sprintf(outstr,"Unspecified");
 	else {
 		if ((x>0) && (x<15)) 
-			sprintf(outstr,month[x]);
+			sprintf(outstr,BAC_STRTAB_month.EnumString(x));
 		else 
-			sprintf(outstr,month[0]);
+			sprintf(outstr,BAC_STRTAB_month.EnumString(0));
 	}
 	show_str_eq_str("Month",outstr,1);
 	pif_offset++;
@@ -3999,9 +4008,9 @@ void show_bac_date( unsigned int len )
 		sprintf(outstr,"Unspecified");
 	else {
 		if ((x>0) && (x<8)) 
-			sprintf(outstr,day_of_week[x]);
+			sprintf(outstr,BAC_STRTAB_day_of_week.EnumString(x));
 		else 
-			sprintf(outstr,day_of_week[0]);
+			sprintf(outstr,BAC_STRTAB_day_of_week.EnumString(0));
 	}
 	show_str_eq_str("Day of Week",outstr,1);
 	pif_offset++;

@@ -5,6 +5,61 @@
 
 namespace NetworkSniffer {
 
+// Return a test buffer for short term use, such as as an argument
+// for sprintf.  Buffers are allocated from a small rotary set, so
+// long-term usage will result in the buffer being re-used.
+char* TempTextBuffer()
+{
+#define TEMP_TEST_N_BUFFERS 10
+#define TEMP_TEST_BUFFERLENGTH 100
+	static char buffers[TEMP_TEST_N_BUFFERS ][ TEMP_TEST_BUFFERLENGTH ];
+	static int ix;
+
+	ix = (ix + 1) % TEMP_TEST_N_BUFFERS;
+	return buffers[ix];
+}
+
+
+// Return a string containing text for the specified enumerated value.
+// If the value is undefined, the string will show the pUndefined title and the numeric value
+const char* BACnetStringTable::EnumString( int theIndex, const char *pUndefined /* = NULL */ ) const
+{
+	const char *pRet;	
+	if (theIndex < m_nStrings)
+	{
+		pRet = m_pStrings[ theIndex ];
+	}
+	else
+	{
+		if (pUndefined == NULL)
+		{
+			pUndefined = "";
+		}
+
+		char *pTxt = TempTextBuffer();
+		sprintf( pTxt, "%s%d", pUndefined, theIndex );
+		pRet = pTxt;
+	}
+
+	return pRet;
+}
+
+// Fill a CComboBox with the contents of the string table
+void BACnetStringTable::FillCombo( CComboBox &theCombo ) const
+{
+	for (int ix = 0; ix < m_nStrings; ix++)
+	{
+		theCombo.AddString( m_pStrings[ ix ] );
+	}
+}
+
+
+STRING_TABLE FalseTrue[] = {
+	"False",
+	"True"
+};
+BAC_STRINGTABLE(FalseTrue);
+
 STRING_TABLE ApplicationTypes[] = {
    "Null",				// 0
    "Boolean",
@@ -45,12 +100,6 @@ STRING_TABLE BACnetActionCommand[] = {
    "Write Successful"
    };
 BAC_STRINGTABLE(BACnetActionCommand);
-
-STRING_TABLE BACnetAddress[] = {
-   "Network number",
-   "MAC address"
-   };
-BAC_STRINGTABLE(BACnetAddress);
 
 STRING_TABLE BACnetAddressBinding[] = {
    "Device Object Identifier",
@@ -669,13 +718,6 @@ STRING_TABLE BACnetFileAccessMethod[] = {
 BAC_STRINGTABLE(BACnetFileAccessMethod);
 
 //Added by Zhu Zhenhua, 2004-5-25
-STRING_TABLE BACnetGetEventInfoACK[] = {
-   "List of Event summary",
-   "More Event"
-};
-BAC_STRINGTABLE(BACnetGetEventInfoACK);
-
-//Added by Zhu Zhenhua, 2004-5-25
 STRING_TABLE BACnetEventSummary[] = {
    "Object Indentifier",
    "Event State",
@@ -830,13 +872,6 @@ STRING_TABLE BACnetNotifyType[] = {
    };
 BAC_STRINGTABLE(BACnetNotifyType);
 
-STRING_TABLE BACnetObjectPropertyReference[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index"
-   };
-BAC_STRINGTABLE(BACnetObjectPropertyReference);
-
 // Added addendum B (135-2004)
 STRING_TABLE BACnetPropertyAccessResult[] = {
 	"Object Identifier",
@@ -915,18 +950,21 @@ STRING_TABLE BACnetObjectType[] = {
    "AVERAGING",             /* 18 */
    "MULTISTATE-VALUE",      /* 19 */
    "TREND-LOG" ,            /* 20 */		// msdanner 9/04, was "TRENDLOG"
-   "LIFE-SAFETY-POINT",	    /*21 Zhu Zhenhua 2003-7-24 */	 // msdanner 9/04, was "LIFESAFETYPOINT"
-   "LIFE-SAFETY-ZONE",	    /*22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
-   "ACCUMULATOR",           //23 Shiyuan Xiao 7/15/2005
-   "PULSE-CONVERTER",       //24 Shiyuan Xiao 7/15/2005
+   "LIFE-SAFETY-POINT",	    /* 21 Zhu Zhenhua 2003-7-24 */	 // msdanner 9/04, was "LIFESAFETYPOINT"
+   "LIFE-SAFETY-ZONE",	    /* 22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
+   "ACCUMULATOR",           // 23 Shiyuan Xiao 7/15/2005
+   "PULSE-CONVERTER",       // 24 Shiyuan Xiao 7/15/2005
    "EVENT-LOG",			  // 25	- Addendum B
    "GLOBAL-GROUP",		  // 26 - Addendum B
    "TREND-LOG-MULTIPLE",  // 27 - Addendum B
    "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
    "STRUCTURED-VIEW",     // 29 - Addendum D
    "ACCESS-DOOR",		  // 30 Last in 135-2008
+   // CAUTION: if you add a type here, you must also change MAX_DEFINED_OBJ
+   // (which is actually max-plus-one: the NUMBER of defined object types)
 };
 BAC_STRINGTABLE(BACnetObjectType);
+
 
 STRING_TABLE BACnetObjectTypesSupported[] = {
    "ANALOG-INPUT",          /* 0 */
@@ -1246,6 +1284,8 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
 	"lock-status",
 	"masked-alarm-values",
 	"secured-status",		// 235 last in 135-2008
+	// CAUTION: if you add a property here, you must also change MAX_PROPID
+	// (which is actually max-plus-one: the NUMBER of defined properties)
 };
 BAC_STRINGTABLE(BACnetPropertyIdentifier);
 
@@ -2068,6 +2108,8 @@ STRING_TABLE BACnetConfirmedServiceChoice[] = {
    "LifeSafetyOperation",           /* 27 */
    "SubscribeCOVProperty",          /* 28 */
    "GetEventInformation"            /* 29 */
+   // CAUTION: if you add a service here, you must also change max_confirmed_services
+   // (which is actually max-plus-one: the NUMBER of defined services)
 };                       
 BAC_STRINGTABLE(BACnetConfirmedServiceChoice);
 
@@ -2082,6 +2124,8 @@ STRING_TABLE BACnetUnconfirmedServiceChoice[] = {
    "Who-Has",                       /* 7 */
    "Who-Is",                        /* 8 */
    "UTCTimeSynchronization"         /* 9 */
+   // CAUTION: if you add a service here, you must also change max_unconfirmed_services
+   // (which is actually max-plus-one: the NUMBER of defined services)
 };                       
 BAC_STRINGTABLE(BACnetUnconfirmedServiceChoice);
 
