@@ -162,23 +162,9 @@ bool BacParser::EatData()
 	return retval;
 }
 
-// Return a test buffer for short term use, such as as an argument
-// for sprintf.  Buffers are allocated from a small rotary set, so
-// long-term usage will result in the buffer being re-used.
-char* TempTextBuffer()
-{
-#define TEMP_TEST_N_BUFFERS 10
-#define TEMP_TEST_BUFFERLENGTH 100
-	static char buffers[TEMP_TEST_N_BUFFERS ][ TEMP_TEST_BUFFERLENGTH ];
-	static int ix;
-
-	ix = (ix + 1) % TEMP_TEST_N_BUFFERS;
-	return buffers[ix];
-}
-
 // Return a string containing text for the specified object type.
 // If the type is undefined or in the proprietary range, the
-// string will say that, and sow the numeric value
+// string will say that, and show the numeric value
 const char* ObjectTypeString( int theObjectType )
 {
 	const char *pRet;	
@@ -607,13 +593,9 @@ bool BACnetSequence::Vet( int theTag, int theAppTag, BACnetSequenceParm theType 
 				{
 					sprintf( pExpected, "[%u]", theTag );
 				}
-				else if (theAppTag <= 12)
+				else 
 				{
-					sprintf( pExpected, "%s", ApplicationTypes[theAppTag] );
-				}
-				else
-				{
-					sprintf( pExpected, "Application-%u", theAppTag );
+					strcpy( pExpected, BAC_STRTAB_ApplicationTypes.EnumString( theAppTag, "Application" ) );
 				}
 				
 				char *pGot = TempTextBuffer();
@@ -622,13 +604,9 @@ bool BACnetSequence::Vet( int theTag, int theAppTag, BACnetSequenceParm theType 
 				{
 					sprintf( pGot, "[%u]", tag );
 				}
-				else if (tag <= 12)
-				{
-					sprintf( pGot, "%s", ApplicationTypes[tag] );
-				}
 				else
 				{
-					sprintf( pExpected, "Application-%u", tag );
+					strcpy( pGot, BAC_STRTAB_ApplicationTypes.EnumString( tag, "Application" ) );
 				}
 				
 				retval = Fail("Missing required tag: expected %s got %s", pExpected, pGot);
