@@ -2431,8 +2431,8 @@ void show_time_stamp( BACnetSequence &theSeq, int theTag, const char *pTheTitle 
 // Show an Error
 void show_error( BACnetSequence &theSeq )
 {
-	theSeq.Enumerated( -2, "error-class", &BAC_STRTAB_BACnetErrorClass );
-	theSeq.Enumerated( -2, "error-code",  &BAC_STRTAB_BACnetErrorCode );
+	theSeq.Enumerated( -1, "error-class", &BAC_STRTAB_BACnetErrorClass );
+	theSeq.Enumerated( -1, "error-code",  &BAC_STRTAB_BACnetErrorCode );
 }
 
 /*************************************************************************/
