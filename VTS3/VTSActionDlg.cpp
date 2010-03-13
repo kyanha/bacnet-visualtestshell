@@ -10,9 +10,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetAction[];
-}
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSActionDlg dialog
@@ -21,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSActionDlg::VTSActionDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSActionDlg::IDD, pParent)
-	, m_actcombo( this, IDC_ACTIONCOMBO, NetworkSniffer::BACnetAction, 2, true )
+	, m_actcombo( this, IDC_ACTIONCOMBO, NetworkSniffer::BAC_STRTAB_BACnetAction, true )
 {	
 //	m_actcombo.ctrlNull = true;
 	//{{AFX_DATA_INIT(VTSActionDlg)

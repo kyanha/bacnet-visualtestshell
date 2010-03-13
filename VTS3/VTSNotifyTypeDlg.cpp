@@ -11,9 +11,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetNotifyType[];
-}
 /////////////////////////////////////////////////////////////////////////////
 // VTSNotifyTypeDlg dialog
 
@@ -21,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSNotifyTypeDlg::VTSNotifyTypeDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSNotifyTypeDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetNotifyType, 3, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetNotifyType, true )
 {
 	//{{AFX_DATA_INIT(VTSNotifyTypeDlg)
 		// NOTE: the ClassWizard will add member initialization here

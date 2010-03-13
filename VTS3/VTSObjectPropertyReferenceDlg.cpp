@@ -10,9 +10,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
 /////////////////////////////////////////////////////////////////////////////
 // VTSObjectPropertyReferenceDlg dialog
 
@@ -21,7 +18,7 @@ namespace NetworkSniffer {
 VTSObjectPropertyReferenceDlg::VTSObjectPropertyReferenceDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSObjectPropertyReferenceDlg::IDD, pParent)
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 {
 	//{{AFX_DATA_INIT(VTSObjectPropertyReferenceDlg)

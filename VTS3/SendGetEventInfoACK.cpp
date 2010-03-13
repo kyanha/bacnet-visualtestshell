@@ -11,11 +11,7 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetEventState[];
-	extern char	*BACnetNotifyType[];
-	extern char	*BACnetObjectType[];
-}
+
 BACnetAPDUEncoder	CSendGetEventInfoACK::pageContents;
 IMPLEMENT_DYNCREATE( CSendGetEventInfoACK, CPropertyPage )
 /////////////////////////////////////////////////////////////////////////////
@@ -74,12 +70,10 @@ BOOL CSendGetEventInfoACK::OnInitDialog()
 	m_EventSumListCtrl.InsertColumn( 4, "Event Enable", LVCFMT_LEFT, 82 );
 	// load the enumeration tables
 	cbp = (CComboBox *)GetDlgItem( IDC_EVENTSTATECOMBO );
-	for (int i = 0; i < 6; i++)
-		cbp->AddString( NetworkSniffer::BACnetEventState[i] );
+	NetworkSniffer::BAC_STRTAB_BACnetEventState.FillCombo( *cbp );
 
 	cbp = (CComboBox *)GetDlgItem( IDC_NOTIFYTYPECOMBO );
-	for (int j = 0; j < 5; j++)
-		cbp->AddString( NetworkSniffer::BACnetNotifyType[j] );
+	NetworkSniffer::BAC_STRTAB_BACnetNotifyType.FillCombo( *cbp );
 
 	return TRUE;
 }
@@ -227,8 +221,8 @@ void CSendGetEventInfoACK::OnMoreevent()
 
 EventSummaryElem::EventSummaryElem( CSendPagePtr wp )
 	: m_ObjectID( wp, IDC_OBJECTID )
-	, eseEventStateCombo( wp, IDC_EVENTSTATECOMBO, NetworkSniffer::BACnetEventState, 5, true )
-	, eseNotifyTypeCombo( wp, IDC_NOTIFYTYPECOMBO, NetworkSniffer::BACnetNotifyType, 6, true )
+	, eseEventStateCombo( wp, IDC_EVENTSTATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetEventState, true )
+	, eseNotifyTypeCombo( wp, IDC_NOTIFYTYPECOMBO, NetworkSniffer::BAC_STRTAB_BACnetNotifyType, true )
 	, esackOffnormal( wp, IDC_OFFNORMAL, true )
 	, esackFault( wp, IDC_FAULT, true )
 	, esackNormal( wp, IDC_NORMAL, true )
@@ -465,17 +459,19 @@ void EventSummaryList::OnChangeObjectID( void )
 			int		objType = (eslCurElem->m_ObjectID.objID >> 22)
 			,		instanceNum = (eslCurElem->m_ObjectID.objID & 0x003FFFFF)
 			;
-			char	buff[32], *s
-			,		typeBuff[32]
-			;
+			const char *s;
+			char	buff[32], typeBuff[32];
 
-			if (objType < MAX_DEFINED_OBJ /* sizeof(NetworkSniffer::BACnetObjectType) */)
-				s = NetworkSniffer::BACnetObjectType[objType];
+			if (objType < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings)
+				s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[objType];
 			else
-			if (objType < 128)
-				sprintf( s = typeBuff, "RESERVED %d", objType );
-			else
-				sprintf( s = typeBuff, "VENDOR %d", objType );
+			{
+				s = typeBuff;
+				if (objType < 128)
+					sprintf( typeBuff, "RESERVED %d", objType );
+				else
+					sprintf( typeBuff, "VENDOR %d", objType );
+			}
 
 			// format the result
 			sprintf( buff, "%s, %d", s, instanceNum );
@@ -519,7 +515,7 @@ void EventSummaryList::OnSelchangeEventStateCombo( void )
 			eslPagePtr->m_EventSumListCtrl.SetItemText( eslCurElemIndx, 1, "" );
 		else
 			eslPagePtr->m_EventSumListCtrl.SetItemText( eslCurElemIndx, 1
-				, NetworkSniffer::BACnetEventState[ eslCurElem->eseEventStateCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetEventState.m_pStrings[ eslCurElem->eseEventStateCombo.enumValue ]
 				);
 	}
 }
@@ -538,7 +534,7 @@ void EventSummaryList::OnSelchangeNotifyTypeCombo( void )
 			eslPagePtr->m_EventSumListCtrl.SetItemText( eslCurElemIndx, 2, "" );
 		else
 			eslPagePtr->m_EventSumListCtrl.SetItemText( eslCurElemIndx, 2
-				, NetworkSniffer::BACnetNotifyType[ eslCurElem->eseNotifyTypeCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetNotifyType.m_pStrings[ eslCurElem->eseNotifyTypeCombo.enumValue ]
 				);
 	}
 }

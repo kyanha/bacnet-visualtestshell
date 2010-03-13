@@ -10,9 +10,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
 /////////////////////////////////////////////////////////////////////////////
 // VTSPropertyIdentifierDlg dialog
 
@@ -20,7 +17,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSPropertyIdentifierDlg::VTSPropertyIdentifierDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSPropertyIdentifierDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetPropertyIdentifier, 174, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 {
 	//{{AFX_DATA_INIT(VTSPropertyIdentifierDlg)
 		// NOTE: the ClassWizard will add member initialization here

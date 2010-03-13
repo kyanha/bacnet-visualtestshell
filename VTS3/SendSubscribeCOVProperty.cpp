@@ -27,7 +27,7 @@ CSendSubscribeCOVProperty::CSendSubscribeCOVProperty()
 , m_Lifetime( this, IDC_LIFETIME )
 , m_ArrayIndex( this, IDC_ARRAYINDEX )
 , m_COVIncrement( this, IDC_REAL )
-, m_property( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+, m_property( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 
 {
 }

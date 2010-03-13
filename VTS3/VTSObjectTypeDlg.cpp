@@ -10,17 +10,13 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetObjectType[];
-}
 /////////////////////////////////////////////////////////////////////////////
 // VTSObjectTypeDlg dialog
-
 
 #pragma warning( disable : 4355 )
 VTSObjectTypeDlg::VTSObjectTypeDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSObjectTypeDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetObjectType, MAX_DEFINED_OBJ, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetObjectType, true )
 {
 	//{{AFX_DATA_INIT(VTSObjectTypeDlg)
 		// NOTE: the ClassWizard will add member initialization here

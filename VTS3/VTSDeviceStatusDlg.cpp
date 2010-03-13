@@ -10,9 +10,7 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetDeviceStatus[];
-}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSDeviceStatusDlg dialog
 
@@ -20,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSDeviceStatusDlg::VTSDeviceStatusDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSDeviceStatusDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetDeviceStatus, 6, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetDeviceStatus, true )
 {
 	//{{AFX_DATA_INIT(VTSDeviceStatusDlg)
 		// NOTE: the ClassWizard will add member initialization here

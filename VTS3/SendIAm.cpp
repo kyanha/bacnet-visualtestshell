@@ -15,10 +15,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetSegmentation[];
-}
-
 BACnetAPDUEncoder CSendIAm::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -31,7 +27,7 @@ CSendIAm::CSendIAm( void )
 	: CSendPage( CSendIAm::IDD )
 	, m_DeviceID( this, IDC_DEVICEID )
 	, m_MaxAPDULength( this, IDC_MAXAPDULENGTH )
-	, m_SegmentationCombo( this, IDC_SEGMENTATIONCOMBO, NetworkSniffer::BACnetSegmentation, 4, true )
+	, m_SegmentationCombo( this, IDC_SEGMENTATIONCOMBO, NetworkSniffer::BAC_STRTAB_BACnetSegmentation, true )
 	, m_VendorID( this, IDC_VENDORID )
 {
 	//{{AFX_DATA_INIT(CSendIAm)

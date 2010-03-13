@@ -15,10 +15,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-
 BACnetAPDUEncoder CSendRemoveListElement::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -30,7 +26,7 @@ IMPLEMENT_DYNCREATE( CSendRemoveListElement, CPropertyPage )
 CSendRemoveListElement::CSendRemoveListElement( void )
 	: CSendPage( CSendRemoveListElement::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 	, m_Value(this)			// for proper parent control
 {

@@ -8,6 +8,7 @@
 #include "VTSDevicesTreeObjPage.h"
 
 #include "bacnet.hpp"
+#include "StringTables.h"
 
 //namespace PICS {
 //#include "db.h" 
@@ -101,13 +102,9 @@ END_MESSAGE_MAP()
 BOOL VTSDevicesTreeObjPage::OnSetActive() 
 {
 	m_ObjTypeCombo.ResetContent();
-	for( int i = 0; i < MAX_DEFINED_OBJ; i++)
-	{
-		m_ObjTypeCombo.AddString( NetworkSniffer::BACnetObjectType[i] );
-	}
+	NetworkSniffer::BAC_STRTAB_BACnetObjectType.FillCombo( m_ObjTypeCombo );
 	m_ObjTypeCombo.AddString("Reserved");
 	m_ObjTypeCombo.AddString("Vendor");
-
 	
 	m_pdevobject = (VTSDevObject *) RetrieveCurrentData();
 	if ( m_pdevobject != NULL &&  !m_pdevobject->IsKindOf(RUNTIME_CLASS(VTSDevObject)) )
@@ -148,18 +145,28 @@ void VTSDevicesTreeObjPage::ObjToCtrl( VTSDevObject * pdevobject )
 	m_nObjType = pdevobject->GetType();
 	m_nInstance = pdevobject->GetInstance();
 
-	// check for known values [MAX_DEFINED_OBJ is defined in VTS.h
-	if ( (m_nObjType >= MAX_DEFINED_OBJ) && (m_nObjType < 128))
+	// The combo was populated with NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings
+	// strings from the enum table, plus "Reserved" and "Vendor"
+	const char *pString;
+	int nStrings = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings;
+	if (m_nObjType < nStrings)
+	{
+		pString = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[m_nObjType];
+	}
+	else if (m_nObjType < 128)
 	{
 		m_nReserved = m_nObjType;
-		m_nObjType = MAX_DEFINED_OBJ;
+		m_nObjType = nStrings;
+		pString = "Reserved";
 	}
-	else if ( m_nObjType >= 128 )
+	else
 	{
 		m_nVendor = m_nObjType;
-		m_nObjType = MAX_DEFINED_OBJ + 1; //was 19, 		// vendor type
+		m_nObjType = nStrings + 1;
+		pString = "Vendor";
 	}
-	m_ObjTypeCombo.SelectString( 0, NetworkSniffer::BACnetObjectType[m_nObjType] );
+
+	m_ObjTypeCombo.SelectString( 0, pString );
 }
 
 
@@ -178,8 +185,12 @@ void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
 	int nObjID = m_nObjType;
 	switch(m_nObjType)
 	{
-		case MAX_DEFINED_OBJ:	nObjID = m_nReserved; break;
-		case MAX_DEFINED_OBJ + 1:	nObjID = m_nVendor;
+		case MAX_DEFINED_OBJ:
+			nObjID = m_nReserved; 
+			break;
+		case MAX_DEFINED_OBJ + 1:	
+			nObjID = m_nVendor;
+			break;
 	}
 
 	unsigned oldID = pdevobject->GetID();

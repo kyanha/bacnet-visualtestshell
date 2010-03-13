@@ -9,9 +9,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
 /////////////////////////////////////////////////////////////////////////////
 // VTSPropertyValueDlg dialog
 
@@ -19,7 +16,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSPropertyValueDlg::VTSPropertyValueDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSPropertyValueDlg::IDD, pParent)
-	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 	, m_priority( this, IDC_PROPVALUE_PRIORITY )
 {

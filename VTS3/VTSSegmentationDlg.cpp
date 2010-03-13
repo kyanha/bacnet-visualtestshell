@@ -11,9 +11,7 @@
 static char 
 THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetSegmentation[];
-}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSSegmentationDlg dialog
 
@@ -21,7 +19,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSSegmentationDlg::VTSSegmentationDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSSegmentationDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetSegmentation, 4, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetSegmentation, true )
 {
 	//{{AFX_DATA_INIT(VTSSegmentationDlg)
 		// NOTE: the ClassWizard will add member initialization here

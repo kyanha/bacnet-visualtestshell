@@ -20,7 +20,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSBinaryPVDlg::VTSBinaryPVDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSBinaryPVDlg::IDD, pParent)
-	, m_BinaryPVmbo( this, IDC_BINARYPVCOMBO, NetworkSniffer::BACnetBinaryPV, 2, true )
+	, m_BinaryPVmbo( this, IDC_BINARYPVCOMBO, NetworkSniffer::BAC_STRTAB_BACnetBinaryPV, true )
 {
 	//{{AFX_DATA_INIT(VTSBinaryPVDlg)
 		// NOTE: the ClassWizard will add member initialization here

@@ -21,10 +21,6 @@ extern WPMRPMListList glWPMRPMListList[5]; //Xiao Shiyuan 2002-12-2
 extern int glWPMRPMHistoryCount;
 extern int glCurWPMRPMHistory;
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-
 void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 
 BACnetAPDUEncoder CSendWritePropMult::pageContents;
@@ -394,7 +390,7 @@ void CSendWritePropMult::ForceValues(BACnetObjectIdentifier * pObjectID, int apP
 //
 
 WritePropElem::WritePropElem( CSendPagePtr wp )
-	: wpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	: wpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, wpeArrayIndex( wp, IDC_ARRAYINDEX )
 	, wpePriority( wp, IDC_PRIORITYX )
 	, wpeValue(wp)			// for proper parent control
@@ -525,7 +521,7 @@ void WritePropList::Bind( void )
 		;
 
 		wplPagePtr->m_PropList.InsertItem( i
-			, NetworkSniffer::BACnetPropertyIdentifier[ wpep->wpePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ wpep->wpePropCombo.enumValue ]
 			);
 		if (wpep->wpeArrayIndex.ctrlNull)
 			wplPagePtr->m_PropList.SetItemText( i, 1, "" );
@@ -596,7 +592,7 @@ void WritePropList::AddButtonClick( void )
 	wplCurElemIndx = listLen;
 
 	// madanner, 8/26/02.  Sourceforge bug #472392
-	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings
 	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
 	// if list is altered.
 
@@ -769,7 +765,7 @@ void WritePropList::OnSelchangePropCombo( void )
 		if ( wplCurElem->wpePropCombo.enumValue < 512 )
 		{
 			wplPagePtr->m_PropList.SetItemText( wplCurElemIndx, 0
-				, NetworkSniffer::BACnetPropertyIdentifier[ wplCurElem->wpePropCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ wplCurElem->wpePropCombo.enumValue ]
 				);
 		}
 		else

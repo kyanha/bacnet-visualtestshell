@@ -12,11 +12,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetLifeSafetyState[];
-	extern char *BACnetLifeSafetyMode[];
-	extern char *BACnetLifeSafetyOperation[];
-}
 /////////////////////////////////////////////////////////////////////////////
 // VTSNotifyBufferReady property page
 
@@ -25,9 +20,9 @@ IMPLEMENT_DYNCREATE(VTSNotifyChgLifeSafety, CPropertyPage)
 #pragma warning( disable : 4355 )
 VTSNotifyChgLifeSafety::VTSNotifyChgLifeSafety()
 	: CPropertyPage(VTSNotifyChgLifeSafety::IDD)
-	, m_LSState( this, IDC_LS_STATE, NetworkSniffer::BACnetLifeSafetyState, 25, true )
-	, m_LSMode( this, IDC_LS_MODE, NetworkSniffer::BACnetLifeSafetyMode, 15, true )
-	, m_LSOperation( this, IDC_LS_OPERATION, NetworkSniffer::BACnetLifeSafetyOperation, 10, true )
+	, m_LSState( this, IDC_LS_STATE, NetworkSniffer::BAC_STRTAB_BACnetLifeSafetyState, true )
+	, m_LSMode( this, IDC_LS_MODE, NetworkSniffer::BAC_STRTAB_BACnetLifeSafetyMode, true )
+	, m_LSOperation( this, IDC_LS_OPERATION, NetworkSniffer::BAC_STRTAB_BACnetLifeSafetyOperation, true )
 	, m_StatusFlags( this )
 {
 	//{{AFX_DATA_INIT(VTSNotifyBufferReady)

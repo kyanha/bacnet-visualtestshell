@@ -11,10 +11,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetReject[];
-}
-
 BACnetAPDUEncoder CSendReject::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +22,7 @@ IMPLEMENT_DYNCREATE( CSendReject, CPropertyPage )
 CSendReject::CSendReject( void )
 	: CSendPage( CSendReject::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
-	, m_RejectCombo( this, IDC_REJECTCOMBO, NetworkSniffer::BACnetReject, 10, true )
+	, m_RejectCombo( this, IDC_REJECTCOMBO, NetworkSniffer::BAC_STRTAB_BACnetReject, true )
 {
 	//{{AFX_DATA_INIT(CSendReject)
 	//}}AFX_DATA_INIT

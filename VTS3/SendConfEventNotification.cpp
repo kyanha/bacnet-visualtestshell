@@ -17,11 +17,6 @@ static char THIS_FILE[] = __FILE__;
 
 BACnetAPDUEncoder CSendConfEventNotification::pageContents;
 
-namespace NetworkSniffer {
-	extern char *BACnetEventState[];
-	extern char *BACnetNotifyType[];
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // CSendConfEventNotification dialog
 
@@ -36,10 +31,10 @@ CSendConfEventNotification::CSendConfEventNotification( void )
 	, m_NotifyClass( this, IDC_NOTIFYCLASS )
 	, m_Priority( this, IDC_PRIORITY )
 	, m_MessageText( this, IDC_MESSAGETEXT )
-	, m_NotifyTypeCombo( this, IDC_NOTIFYTYPECOMBO, NetworkSniffer::BACnetNotifyType, 3, true )
+	, m_NotifyTypeCombo( this, IDC_NOTIFYTYPECOMBO, NetworkSniffer::BAC_STRTAB_BACnetNotifyType, true )
 	, m_AckRequired( this, IDC_ACKREQUIRED, true )
-	, m_FromStateCombo( this, IDC_FROMSTATECOMBO, NetworkSniffer::BACnetEventState, 5, true )
-	, m_ToStateCombo( this, IDC_TOSTATECOMBO, NetworkSniffer::BACnetEventState, 5, true )
+	, m_FromStateCombo( this, IDC_FROMSTATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetEventState, true )
+	, m_ToStateCombo( this, IDC_TOSTATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetEventState, true )
 	, m_EventValues( "Notification Parameters", this )			// added parent for proper send dlg function
 	, m_TimeStamp(this)			// added parent for proper send dlg function
 {

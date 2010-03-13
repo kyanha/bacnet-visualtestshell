@@ -13,24 +13,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetEventType[];
-}
-
-char *BACnetAcknowledgementFilter[] =
-	{ "All"
-	, "Acked"
-	, "Not-acked"
-	};
-
-char *BACnetEventStateFilter[] =
-	{ "Offnormal"
-	, "Fault"
-	, "Normal"
-	, "All"
-	, "Active"
-	};
-
 BACnetAPDUEncoder	CSendGetEnrollmentSummary::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -41,10 +23,10 @@ IMPLEMENT_DYNCREATE( CSendGetEnrollmentSummary, CPropertyPage )
 #pragma warning( disable : 4355 )
 CSendGetEnrollmentSummary::CSendGetEnrollmentSummary( void )
 	: CSendPage( CSendGetEnrollmentSummary::IDD )
-	, m_AckFilterCombo( this, IDC_ACKFILTERCOMBO, BACnetAcknowledgementFilter, 3, true )
+	, m_AckFilterCombo( this, IDC_ACKFILTERCOMBO, NetworkSniffer::BAC_STRTAB_Acknowledgement_Filter, true )
 	, m_RecipientProcess( this )
-	, m_EventStateCombo( this, IDC_EVENTSTATECOMBO, BACnetEventStateFilter, 5, true )
-	, m_EventTypeCombo( this, IDC_EVENTTYPECOMBO, NetworkSniffer::BACnetEventType, 6, true )
+	, m_EventStateCombo( this, IDC_EVENTSTATECOMBO, NetworkSniffer::BAC_STRTAB_Acknowledgement_Filter, true )
+	, m_EventTypeCombo( this, IDC_EVENTTYPECOMBO, NetworkSniffer::BAC_STRTAB_BACnetEventType, true )
 	, m_MinPriority( this, IDC_MINPRIORITY )
 	, m_MaxPriority( this, IDC_MAXPRIORITY )
 	, m_NotificationClass( this, IDC_NOTIFICATIONCLASS )

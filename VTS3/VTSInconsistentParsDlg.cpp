@@ -14,10 +14,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // VTSInconsistentParsDlg dialog
 
@@ -29,7 +25,7 @@ VTSInconsistentParsDlg::VTSInconsistentParsDlg(const VTSNames& names, const VTSP
 	  m_names(names),
 	  m_ports(ports)
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 {
 	//{{AFX_DATA_INIT(VTSInconsistentParsDlg)
 	m_nFunction = -1;

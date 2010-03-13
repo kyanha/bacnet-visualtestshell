@@ -14,10 +14,6 @@ static char THIS_FILE[] = __FILE__;
 
 BACnetAPDUEncoder	CSendAbort::pageContents;
 
-namespace NetworkSniffer {
-	extern char *BACnetAbort[];
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // CSendAbort dialog
 
@@ -27,7 +23,7 @@ IMPLEMENT_DYNCREATE( CSendAbort, CPropertyPage )
 CSendAbort::CSendAbort( void )
 	: CSendPage( CSendAbort::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
-	, m_AbortCombo( this, IDC_ABORTCOMBO, NetworkSniffer::BACnetAbort, 5, true )
+	, m_AbortCombo( this, IDC_ABORTCOMBO, NetworkSniffer::BAC_STRTAB_BACnetAbort, true )
 {
 	//{{AFX_DATA_INIT(CSendAbort)
 	//}}AFX_DATA_INIT

@@ -17,10 +17,6 @@ static char THIS_FILE[] = __FILE__;
 
 BACnetAPDUEncoder	CSendAckAlarm::pageContents;
 
-namespace NetworkSniffer {
-	extern char *BACnetEventState[];
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // CSendAckAlarm dialog
 
@@ -31,7 +27,7 @@ CSendAckAlarm::CSendAckAlarm( void )
 	: CSendPage( CSendAckAlarm::IDD )
 	, m_AckProcessID( this, IDC_ACKPROCESSID )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_EventStateCombo( this, IDC_EVENTSTATECOMBO, NetworkSniffer::BACnetEventState, 5, true )
+	, m_EventStateCombo( this, IDC_EVENTSTATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetEventState, true )
 	, m_AckSource( this, IDC_ACKSOURCE )
 	, m_TimeStamp(this)			// added parent wnd for modeless send dlg
 	, m_TimeOfAck(this)			// added parent wnd for modeless send dlg

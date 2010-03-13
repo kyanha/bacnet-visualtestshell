@@ -55,6 +55,7 @@
 #include "ScriptEdit.h"
 #include "ScriptFrame.h"
 #include "GoToLineDlg.h"
+#include "StringTables.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -62,15 +63,9 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-//Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
-
 #define MARGIN_3			25
 #define CHAR_HEIGHT			16
 #define LIMITTEXT			0x000FFFFF
-#define MAX_PROPID			174  //Modified by Zhu Zhenhua, 2004-5-11
 /////////////////////////////////////////////////////////////////////////////
 // ScriptEdit
 
@@ -216,38 +211,20 @@ void ScriptEdit::OnInitialUpdate()
 	m_nTempDigit = 3;
 	m_nLineCount = m_pEdit->GetLineCount();
 
-//Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
+//Added by Zhu Zhenhua, 2003-12-25, to help tester in inputting 
 	
-	for(int i = 0; i < MAX_PROPID; i ++)
+	CString strprop;
+	int i;
+	for(i = 0; i < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; i++)
 	{	
-		CString strprop;
-		strprop = NetworkSniffer::BACnetPropertyIdentifier[i];
+		strprop = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[i];
 		AddInputHelpString(strprop);
 	}
+
+	for(i = 0; i < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings; i++)
 	{
-		AddInputHelpString("analog-INPUT");
-		AddInputHelpString("analog-OUTPUT");
-		AddInputHelpString("analog-VALUE");
-		AddInputHelpString("binary-INPUT");
-		AddInputHelpString("binary-OUTPUT");
-		AddInputHelpString("binary-VALUE");
-		AddInputHelpString("Calendar");
-		AddInputHelpString("Command");
-		AddInputHelpString("Device");					
-		AddInputHelpString("event-ENROLLMENT");
-		AddInputHelpString("File");
-		AddInputHelpString("Group");
-		AddInputHelpString("Loop");
-		AddInputHelpString("multistate-INPUT");
-		AddInputHelpString("multistate-OUTPUT");
-		AddInputHelpString("notification-CLASS");
-		AddInputHelpString("Program");
-		AddInputHelpString("Schedule");
-		AddInputHelpString("Averaging");
-		AddInputHelpString("multistate-VALUE");
-		AddInputHelpString("Trendlog");
-		AddInputHelpString("Lifesafety-POINT");
-		AddInputHelpString("Lifesafety-ZONE");								
+		strprop = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[i];
+		AddInputHelpString(strprop);
 	}
 
 }

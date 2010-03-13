@@ -10,9 +10,7 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetProgramError[];
-}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSProgramErrorDlg dialog
 
@@ -20,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSProgramErrorDlg::VTSProgramErrorDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSProgramErrorDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetProgramError, 5, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetProgramError, true )
 {
 	//{{AFX_DATA_INIT(VTSProgramErrorDlg)
 		// NOTE: the ClassWizard will add member initialization here

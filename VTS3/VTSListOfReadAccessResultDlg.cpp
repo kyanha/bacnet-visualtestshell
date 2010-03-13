@@ -14,12 +14,6 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSListOfReadAccessResultDlg dialog
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-	extern char *BACnetErrorClass[];
-	extern char *BACnetErrorCode[];
-}
-
 void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 
 BACnetAPDUEncoder VTSListOfReadAccessResultDlg::pageContents;
@@ -142,18 +136,15 @@ BOOL VTSListOfReadAccessResultDlg::OnInitDialog()
 	
 	// load the property enumeration table
 	cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (i = 0; i < MAX_PROP_ID; i++)		  //MAX_PROP_ID is located in 
-		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
+	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
 
 	// load the error class enumeration table
 	cbp = (CComboBox *)GetDlgItem( IDC_ERRORCLASSCOMBO );
-	for (int j = 0; j < 7; j++)
-		cbp->AddString( NetworkSniffer::BACnetErrorClass[j] );
+	NetworkSniffer::BAC_STRTAB_BACnetErrorClass.FillCombo( *cbp );
 
 	// load the error code enumeration table
 	cbp = (CComboBox *)GetDlgItem( IDC_ERRORCODECOMBO );
-	for (int k = 0; k < 43; k++)
-		cbp->AddString( NetworkSniffer::BACnetErrorCode[k] );
+	NetworkSniffer::BAC_STRTAB_BACnetErrorCode.FillCombo( *cbp );
 
 	for(int m = 0; m < m_PropListList.GetCount(); m++)
 	{	
@@ -285,10 +276,10 @@ void VTSListOfReadAccessResultDlg::OnDropdownPropcombo()
 //
 
 ListOfResults::ListOfResults( VTSListOfReadAccessResultDlgPtr wp )
-	: rpaePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	: rpaePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, rpaeArrayIndex( wp, IDC_ARRAYINDEX )
-	, rpaeClassCombo( wp, IDC_ERRORCLASSCOMBO, NetworkSniffer::BACnetErrorClass, 7, true )
-	, rpaeCodeCombo( wp, IDC_ERRORCODECOMBO, NetworkSniffer::BACnetErrorCode, 43, true )
+	, rpaeClassCombo( wp, IDC_ERRORCLASSCOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorClass, true )
+	, rpaeCodeCombo( wp, IDC_ERRORCODECOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorCode, true )
 	, rpaeValue(wp)
 {
 	// controls start out disabled
@@ -477,7 +468,7 @@ void ReadAccessResult::Bind( void )
 		;
 
 		rpalPagePtr->m_PropList.InsertItem( i
-			, NetworkSniffer::BACnetPropertyIdentifier[ rpaep->rpaePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rpaep->rpaePropCombo.enumValue ]
 			);
 		if (rpaep->rpaeArrayIndex.ctrlNull)
 			rpalPagePtr->m_PropList.SetItemText( i, 1, "" );
@@ -547,7 +538,7 @@ void ReadAccessResult::AddButtonClick( void )
 	rpalCurElemIndx = listLen;
 
 	// madanner, 8/26/02.  Sourceforge bug #472392
-	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings
 	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
 	// if list is altered.
 
@@ -718,7 +709,7 @@ void ReadAccessResult::OnSelchangePropCombo( void )
 	
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 0
-			, NetworkSniffer::BACnetPropertyIdentifier[ rpalCurElem->rpaePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rpalCurElem->rpaePropCombo.enumValue ]
 			);
 	}
 }
@@ -777,7 +768,7 @@ void ReadAccessResult::OnSelchangeClassCombo( void )
 	
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 3
-			, NetworkSniffer::BACnetErrorClass[ rpalCurElem->rpaeClassCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetErrorClass.m_pStrings[ rpalCurElem->rpaeClassCombo.enumValue ]
 			);
 	}
 }
@@ -793,7 +784,7 @@ void ReadAccessResult::OnSelchangeCodeCombo( void )
 	
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 4
-			, NetworkSniffer::BACnetErrorCode[ rpalCurElem->rpaeCodeCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetErrorCode.m_pStrings[ rpalCurElem->rpaeCodeCombo.enumValue ]
 			);
 	}
 }

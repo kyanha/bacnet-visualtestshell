@@ -509,7 +509,7 @@ void BakRestoreExecutor::DoBackupTest()
 		BACnetUnsigned(nFileInstance).Encode(chEnc);
 
 		nStart = sprintf(buffer, "%s, ", chEnc);
-		nStart +=  sprintf(buffer+nStart, "%s, ", NetworkSniffer::BACnetFileAccessMethod[fileAccessMethod.enumValue]);
+		nStart +=  sprintf(buffer+nStart, "%s, ", NetworkSniffer::BAC_STRTAB_BACnetFileAccessMethod.m_pStrings[fileAccessMethod.enumValue]);
 		fileSize.Encode(chEnc);
 		nStart += sprintf(buffer+nStart, "%s, ", chEnc);
 		// add record count to index file if and only if RECORD_ACCESS type.

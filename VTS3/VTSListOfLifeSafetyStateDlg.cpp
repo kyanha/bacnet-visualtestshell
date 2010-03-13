@@ -10,9 +10,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetLifeSafetyState[];
-}
 
 //////////////////////////////////////////////////////////////////////////
 // VTSListOfLifeSafetyStateDlg dialog
@@ -125,7 +122,7 @@ void VTSListOfLifeSafetyStateDlg::OnDropdownEnumvalue()
 }
 ////////////////////////////////////////////////////////////////////////////////////////////
 EnumElem::EnumElem( VTSListOfLifeSafetyStateDlg* wp )
-	:m_enumvalue( wp, IDC_ENUMVALUE, NetworkSniffer::BACnetLifeSafetyState, 24, true )
+	:m_enumvalue( wp, IDC_ENUMVALUE, NetworkSniffer::BAC_STRTAB_BACnetLifeSafetyState, true )
 {	
 	// controls start out disabled
 	m_enumvalue.ctrlEnabled = false;

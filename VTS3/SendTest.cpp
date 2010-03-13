@@ -13,10 +13,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetEngineeringUnits[];
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // CSendTest dialog
 
@@ -27,8 +23,8 @@ CSendTest::CSendTest( void )
 	: CSendPage( CSendTest::IDD )
 	, m_Boolean( this, IDC_BOOLEAN )
 	, m_BooleanCheck( this, IDC_BOOLEANCHECK, true )
-	, m_Enumerated( this, IDC_ENUMERATED, NetworkSniffer::BACnetEngineeringUnits, 142 )
-	, m_EnumeratedCombo( this, IDC_ENUMERATEDCOMBO, NetworkSniffer::BACnetEngineeringUnits, 142, true )
+	, m_Enumerated( this, IDC_ENUMERATED, NetworkSniffer::BAC_STRTAB_BACnetEngineeringUnits )
+	, m_EnumeratedCombo( this, IDC_ENUMERATEDCOMBO, NetworkSniffer::BAC_STRTAB_BACnetEngineeringUnits, true )
 	, m_Unsigned( this, IDC_UNSIGNED )
 	, m_Integer( this, IDC_INTEGER )
 	, m_Real( this, IDC_REAL )

@@ -12,6 +12,7 @@
 
 
 #include "PI.h"
+#include "StringTables.h"
 
 #include "BACnetIP.hpp"
 
@@ -49,28 +50,6 @@ extern PICS::PICSdb *gPICSdb;
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
-
-
-// MAX_PROP_ID = the number of elements in this array. It is located in Vts.h
-#define PDUTYPE_MAX   8
-#define CONFSVC_MAX   30
-#define UNCONFSVC_MAX 10
-#define REJECT_MAX    10
-#define ABORT_MAX     5
-#define BVLL_MAX	  12
-#define NLMSG_MAX     12
-
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-	extern char *PDU_typesENUM[];
-	extern char *BACnetConfirmedServiceChoice[];
-	extern char *BACnetUnconfirmedServiceChoice[];
-	extern char *BACnetReject[];
-	extern char *BACnetAbort[];
-	extern char *BVLL_Function[];
-	extern char *NL_msgs[];
-}
-
 
 // global defines
 
@@ -4963,7 +4942,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 						throw ExecError( "Undefined script variable for BVLCI assignment", bipMsg->exprLine );
 
 					bipMsgID = *dec.pktBuffer;
-					BACnetEnumerated  bacnetMsg(bipMsgID, (const char **) NetworkSniffer::BVLL_Function, BVLL_MAX);
+					BACnetEnumerated  bacnetMsg(bipMsgID, NetworkSniffer::BAC_STRTAB_BVLL_Function);
 					StuffScriptParameter( bacnetMsg, pScriptParm, bipMsg->exprValue);
 				}
 				else if ( bipMsg->IsDontCare() )
@@ -5200,7 +5179,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 					throw ExecError( "Undefined script variable for network message assignment", nlMsg->exprLine );
 
 				nlMsgID = *dec.pktBuffer;
-				BACnetEnumerated  bacnetMsg(nlMsgID, (const char **) NetworkSniffer::NL_msgs, NLMSG_MAX);
+				BACnetEnumerated  bacnetMsg(nlMsgID, NetworkSniffer::BAC_STRTAB_NL_msgs);
 				StuffScriptParameter( bacnetMsg, pScriptParm, nlMsg->exprValue);
 			}
 			else if ( nlMsg->IsDontCare() )
@@ -5287,7 +5266,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
 				// get the stream's version of what msg ID this is...
 				alMsgID = *dec.pktBuffer >> 4;
-				BACnetEnumerated  bacnetMsg(alMsgID, (const char **) NetworkSniffer::PDU_typesENUM, PDUTYPE_MAX);
+				BACnetEnumerated  bacnetMsg(alMsgID, NetworkSniffer::BAC_STRTAB_PDU_typesENUM);
 				StuffScriptParameter( bacnetMsg, pScriptParm, alMsg->exprValue);
 			}
 //			else if ( nlMsg != NULL && nlMsg->IsDontCare() )	madanner 6/03, shouldn't this be alMsg?
@@ -6611,7 +6590,7 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 		// test operator for PDU expression...
 		// madanner 11/12/02, added to support assignment in PDU
 
-		BACnetEnumerated  bacnetAPDUData(apdu.apduType, (const char **) NetworkSniffer::PDU_typesENUM, PDUTYPE_MAX);
+		BACnetEnumerated  bacnetAPDUData(apdu.apduType, NetworkSniffer::BAC_STRTAB_PDU_typesENUM);
 		MatchEnumExpression( kwPDU, bacnetAPDUData, ScriptALMsgTypeMap, "PDU type mismatch: " );
 
 		// get some interesting keywords that might match
@@ -6713,7 +6692,7 @@ void ScriptExecutor::TestOrAssign( ScriptPacketExprPtr pScriptExpr, BACnetEncode
 void ScriptExecutor::ExpectDevConfirmedRequest( const BACnetAPDU &apdu )
 {
 	// get the service choice
-	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice );
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Confirmed Request Service mismatch: " );
 
 	// expect the rest
@@ -6764,7 +6743,7 @@ void ScriptExecutor::MatchBoolExpression( int nKeyword, BACnetBoolean &rbacnetDa
 void ScriptExecutor::ExpectDevUnconfirmedRequest( const BACnetAPDU &apdu )
 {
 	// get the service choice
-	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetUnconfirmedServiceChoice, UNCONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, NetworkSniffer::BAC_STRTAB_BACnetUnconfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALUnconfirmedServiceMap, "Unconfirmed Request Service mismatch: " );
 
 	// expect the rest
@@ -6780,7 +6759,7 @@ void ScriptExecutor::ExpectDevUnconfirmedRequest( const BACnetAPDU &apdu )
 void ScriptExecutor::ExpectDevSimpleACK( const BACnetAPDU &apdu )
 {
 	// get the service choice
-	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Simple Ack Service mismatch: " );
 
 	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Simple Ack InvokeID mismatch: " );
@@ -6793,7 +6772,7 @@ void ScriptExecutor::ExpectDevSimpleACK( const BACnetAPDU &apdu )
 void ScriptExecutor::ExpectDevComplexACK( const BACnetAPDU &apdu )
 {
 	// get the service choice
-	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Complex Ack Service mismatch: " );
 
 	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Complex Ack InvokeID mismatch: " );
@@ -6827,7 +6806,7 @@ void ScriptExecutor::ExpectDevSegmentACK( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevError( const BACnetAPDU &apdu )
 {
-	BACnetEnumerated  bacnetServiceData(apdu.apduService, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(apdu.apduService, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Error Service mismatch: " );
 
 	// get the service choice
@@ -6847,7 +6826,7 @@ void ScriptExecutor::ExpectDevReject( const BACnetAPDU &apdu )
 {
 	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Reject InvokeID mismatch: " );
 
-	BACnetEnumerated  bacnetRejectData(apdu.apduAbortRejectReason, (const char **) NetworkSniffer::BACnetReject, REJECT_MAX);
+	BACnetEnumerated  bacnetRejectData(apdu.apduAbortRejectReason, NetworkSniffer::BAC_STRTAB_BACnetReject);
 	MatchEnumExpression( kwREJECTREASON, bacnetRejectData, ScriptALRejectReasonMap, "Reject Reason mismatch: " );
 }
 
@@ -6864,7 +6843,7 @@ void ScriptExecutor::ExpectDevAbort( const BACnetAPDU &apdu )
 	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Abort InvokeID mismatch: " );
 
 	// get the service choice
-	BACnetEnumerated  bacnetAbortData(apdu.apduAbortRejectReason, (const char **) NetworkSniffer::BACnetAbort, ABORT_MAX);
+	BACnetEnumerated  bacnetAbortData(apdu.apduAbortRejectReason, NetworkSniffer::BAC_STRTAB_BACnetAbort);
 	MatchEnumExpression( kwABORTREASON, bacnetAbortData, ScriptALAbortReasonMap, "Abort Reason mismatch: " );
 }
 
@@ -6957,7 +6936,7 @@ void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(valu, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Service mismatch: " );
 
 	// expect the rest
@@ -7011,7 +6990,7 @@ void ScriptExecutor::ExpectUnconfirmedRequest( BACnetAPDUDecoder &dec )
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetUnconfirmedServiceChoice, UNCONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(valu, NetworkSniffer::BAC_STRTAB_BACnetUnconfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALUnconfirmedServiceMap, "Service mismatch: " );
 
 	// expect the rest
@@ -7037,7 +7016,7 @@ void ScriptExecutor::ExpectSimpleACK( BACnetAPDUDecoder &dec )
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(valu, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Service mismatch: " );
 }
 
@@ -7074,7 +7053,7 @@ void ScriptExecutor::ExpectComplexACK( BACnetAPDUDecoder &dec )
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(valu, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Service mismatch: " );
 
 	// expect the rest
@@ -7106,7 +7085,7 @@ void ScriptExecutor::ExpectSegmentACK( BACnetAPDUDecoder &dec )
 
 	// extract the service choice
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-	BACnetEnumerated  bacnetServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	BACnetEnumerated  bacnetServiceData(valu, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Service mismatch: " );
 
 	// extract the sequence number
@@ -7140,11 +7119,11 @@ void ScriptExecutor::ExpectError( BACnetAPDUDecoder &dec )
 	valu = (dec.pktLength--,*dec.pktBuffer++);
 
 	// get the Error Choice
-	BACnetEnumerated  bacnetErrorServiceData(valu, (const char **) NetworkSniffer::BACnetConfirmedServiceChoice, CONFSVC_MAX);
+	BACnetEnumerated  bacnetErrorServiceData(valu, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwERRORCHOICE, bacnetErrorServiceData, ScriptALConfirmedServiceMap, "Error Service mismatch: " );
 //	pErrorService = execPacket->packetExprList.Find( kwERRORCHOICE );
 //	errorService=pErrorService->exprValue;
-//	if(errorService.CompareNoCase(CString(NetworkSniffer::BACnetConfirmedServiceChoice[valu])))
+//	if(errorService.CompareNoCase(CString(NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice.m_pStrings[valu])))
 //	 		 throw ExecError( "Error Service mismatch", pErrorService->exprLine );
 
 	//extract AL data,including the Error Class & Code Nmu
@@ -7171,7 +7150,7 @@ void ScriptExecutor::ExpectReject( BACnetAPDUDecoder &dec )
 
 	// extract the reject reason
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-	BACnetEnumerated  bacnetRejectData(valu, (const char **) NetworkSniffer::BACnetReject, REJECT_MAX);
+	BACnetEnumerated  bacnetRejectData(valu, NetworkSniffer::BAC_STRTAB_BACnetReject);
 	MatchEnumExpression( kwREJECTREASON, bacnetRejectData, ScriptALRejectReasonMap, "Reject Reason mismatch: " );
 }
 
@@ -7197,7 +7176,7 @@ void ScriptExecutor::ExpectAbort( BACnetAPDUDecoder &dec )
 
 	// extract the abort reason
 	valu = (dec.pktLength--,*dec.pktBuffer++);
-	BACnetEnumerated  bacnetAbortData(valu, (const char **) NetworkSniffer::BACnetAbort, ABORT_MAX);
+	BACnetEnumerated  bacnetAbortData(valu, NetworkSniffer::BAC_STRTAB_BACnetAbort);
 	MatchEnumExpression( kwABORTREASON, bacnetAbortData, ScriptALAbortReasonMap, "Abort Reason mismatch: " );
 }
 
@@ -8241,7 +8220,7 @@ void ScriptExecutor::ExpectALDeviceIdentifier( ScriptPacketExprPtr spep, BACnetA
 void ScriptExecutor::ExpectALPropertyIdentifier( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
 	int					indx, context = kAppContext, valu;
-	BACnetEnumerated	enumData(0, (const char **) NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID);
+	BACnetEnumerated	enumData(0, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier);
 	ScriptTokenList		tlist;
 	ScriptParmPtr		pScriptParm = NULL;
 
@@ -8263,7 +8242,7 @@ void ScriptExecutor::ExpectALPropertyIdentifier( ScriptPacketExprPtr spep, BACne
 	else if (!tlist[indx].IsInteger( valu, ScriptPropertyMap ))
 		throw "Property name expected";
 
-	CompareAndThrowError(enumData, BACnetEnumerated(valu, (const char **) NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID), spep->exprOp, IDS_SCREX_COMPFAILPROP);
+	CompareAndThrowError(enumData, BACnetEnumerated(valu, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier), spep->exprOp, IDS_SCREX_COMPFAILPROP);
 }
 
 //

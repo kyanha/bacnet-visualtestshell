@@ -10,9 +10,7 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetReliability[];
-}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSReliabilityDlg dialog
 
@@ -20,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSReliabilityDlg::VTSReliabilityDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSReliabilityDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetReliability, 10, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetReliability, true )
 {
 	//{{AFX_DATA_INIT(VTSReliabilityDlg)
 		// NOTE: the ClassWizard will add member initialization here

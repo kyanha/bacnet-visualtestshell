@@ -10,13 +10,7 @@
 
 #include "stdafx.h"
 #include "vts.h"
-
-
-namespace NetworkSniffer {
-//	extern char *BACnetPropertyIdentifier[];
-	extern char *BACnetObjectType[];
-	extern char *BACnetSegmentation[] ;
-}
+#include "StringTables.h"
 
 ///////////////////////////////
 namespace PICS {
@@ -830,16 +824,18 @@ void VTSDevicesTreeDlg::OnExport()
 		fprintf(mfile, "\tmax-apdu-length-accepted: %d\n", p->m_nMaxAPDUSize);
 		fprintf(mfile, "\tmax-segments-accepted: %d\n", p->m_nSegmentSize);
 		fprintf(mfile, "\tvendor-identifier: %d\n", p->m_nVendorID);
-		fprintf(mfile, "\tsegmentation-supported: %s\n", NetworkSniffer::BACnetSegmentation[p->m_segmentation]);
+		fprintf(mfile, "\tsegmentation-supported: %s\n", NetworkSniffer::BAC_STRTAB_BACnetSegmentation.m_pStrings[p->m_segmentation]);
 		fprintf(mfile, "\t}\n");
-
 
 		for ( j = 0, pobjects = p->GetObjects(); pobjects != NULL && j < pobjects->GetSize(); j++ )
 		{
 			// TODO: now write the object information
 			fprintf(mfile, "\t{\n");
-			fprintf(mfile, "\tobject-identifier: (%s, %d)\n", NetworkSniffer::BACnetObjectType[(*pobjects)[j]->GetID()>>22], (*pobjects)[j]->GetInstance());
-			fprintf(mfile, "\tobject-type: %s\n", NetworkSniffer::BACnetObjectType[(*pobjects)[j]->GetID()>>22]);
+			fprintf(mfile, "\tobject-identifier: (%s, %d)\n", 
+					NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[(*pobjects)[j]->GetID()>>22], 
+					(*pobjects)[j]->GetInstance());
+			fprintf(mfile, "\tobject-type: %s\n", 
+					NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[(*pobjects)[j]->GetID()>>22]);
 
 			for ( k = 0, pproperties = (*pobjects)[j]->GetProperties(); pproperties != NULL && k < pproperties->GetSize(); k++ )
 			{
