@@ -7,6 +7,8 @@
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
+#include "StringTables.h"
+
 
 #ifdef _MSC_VER
 #define ENDIAN_SWAP     1
@@ -977,14 +979,23 @@ IMPLEMENT_DYNAMIC(BACnetEnumerated, BACnetEncodeable)
 //	BACnetEnumerated
 //
 
-BACnetEnumerated::BACnetEnumerated( int evalu /* = 0*/, const char ** papNameList /* = NULL */, int nListSize /* = 0 */ )
-	: enumValue( evalu ), m_papNameList(papNameList), m_nListSize(nListSize)
+BACnetEnumerated::BACnetEnumerated( int evalu, NetworkSniffer::BACnetStringTable &nameList )
+: enumValue( evalu )
+, m_papNameList(nameList.m_pStrings)
+, m_nListSize(nameList.m_nStrings)
 {
 }
 
+BACnetEnumerated::BACnetEnumerated( int evalu /* = 0*/, const char* const *papNameList /* = NULL */, int nListSize /* = 0 */ )
+: enumValue( evalu )
+, m_papNameList(papNameList)
+, m_nListSize(nListSize)
+{
+}
 
 BACnetEnumerated::BACnetEnumerated( BACnetAPDUDecoder & dec )
-				 :m_papNameList(NULL), m_nListSize(0)
+: m_papNameList(NULL)
+, m_nListSize(0)
 {
 	Decode(dec);
 }
@@ -1049,7 +1060,7 @@ void BACnetEnumerated::Encode( char *enc ) const
 	Encode( enc, m_papNameList, m_nListSize );
 }
 
-void BACnetEnumerated::Encode( char *enc, const char **table, int tsize ) const
+void BACnetEnumerated::Encode( char *enc, const char * const *table, int tsize ) const
 {
 	int		valu = enumValue
 	;
@@ -1065,7 +1076,7 @@ void BACnetEnumerated::Decode( const char *dec )
 	Decode( dec, m_papNameList, m_nListSize );
 }
 
-void BACnetEnumerated::Decode( const char *dec, const char **table, int tsize )
+void BACnetEnumerated::Decode( const char *dec, const char * const *table, int tsize )
 {
 	if (isdigit(*dec)) {										// explicit number
 		// integer encoding
@@ -5199,18 +5210,21 @@ void BACnetObjectIdentifier::Encode( char *enc ) const
 	int		objType = (objID >> 22)
 	,		instanceNum = (objID & 0x003FFFFF)
 	;
-	char	typeBuff[32], *s
-	;
+	char	typeBuff[32];
+	const char *s;
 
 #if VTSScanner
-	if (objType < MAX_DEFINED_OBJ /* sizeof(NetworkSniffer::BACnetObjectType) */)
-		s = NetworkSniffer::BACnetObjectType[objType];
+	if (objType < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings)
+		s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[objType];
 	else
 #endif
-	if (objType < 128)
-		sprintf( s = typeBuff, "RESERVED %d", objType );
-	else
-		sprintf( s = typeBuff, "proprietary %d", objType );
+	{
+		s = typeBuff;
+		if (objType < 128)
+			sprintf( typeBuff, "RESERVED %d", objType );
+		else
+			sprintf( typeBuff, "proprietary %d", objType );
+	}
 
 	// changed this back because it broke the Send Dialog VTSANY entry of ObjId 3/10/2006
 //	sprintf( enc, "%s, %d", s, instanceNum );
