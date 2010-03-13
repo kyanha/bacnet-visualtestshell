@@ -10,9 +10,7 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetProgramRequest[];
-}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSProgramRequestDlg dialog
 
@@ -20,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSProgramRequestDlg::VTSProgramRequestDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSProgramRequestDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetProgramRequest, 6, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetProgramRequest, true )
 {
 	//{{AFX_DATA_INIT(VTSProgramRequestDlg)
 		// NOTE: the ClassWizard will add member initialization here

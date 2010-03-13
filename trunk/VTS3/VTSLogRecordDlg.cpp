@@ -10,10 +10,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetErrorClass[];
-	extern char *BACnetErrorCode[];
-}
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSLogRecordDlg dialog
@@ -32,8 +28,8 @@ VTSLogRecordDlg::VTSLogRecordDlg(CWnd* pParent /*=NULL*/)
 	, m_uintValue(this, IDC_UNSIGNEDVALUE)
 	, m_intValue(this, IDC_INTERGERVALUE)
 	, m_bitstringValue(this, IDC_BITSTRINGVALUE)
-	, m_errorClass( this, IDC_ERRORCLASS, NetworkSniffer::BACnetErrorClass, 7, true )
-	, m_errorCode( this, IDC_ERRORCODE, NetworkSniffer::BACnetErrorCode, 42, true )
+	, m_errorClass( this, IDC_ERRORCLASS, NetworkSniffer::BAC_STRTAB_BACnetErrorClass, true )
+	, m_errorCode( this, IDC_ERRORCODE, NetworkSniffer::BAC_STRTAB_BACnetErrorCode, true )
 	, m_TimeChange(this, IDC_TIMECHANGE)
 	, m_StatusFlags( this )
 {

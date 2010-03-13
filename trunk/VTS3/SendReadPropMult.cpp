@@ -268,8 +268,7 @@ BOOL CSendReadPropMult::OnInitDialog()
 	
 	// load the enumeration table
 //	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-//	for (i = 0; i < MAX_PROP_ID; i++)
-//		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
+//	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
 
 	//Xiao Shiyuan 2002-12-5
 	//madanner 9/04 - converted to StringArray
@@ -386,7 +385,7 @@ void CSendReadPropMult::ForceValues(BACnetObjectIdentifier * pObjectID, int apPr
 //
 
 ReadPropElem::ReadPropElem( CSendPagePtr wp )
-	: rpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	: rpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, rpeArrayIndex( wp, IDC_ARRAYINDEX )
 {
 	// controls start out disabled
@@ -493,7 +492,7 @@ void ReadPropList::Bind( void )
 		;
 
 		rplPagePtr->m_PropList.InsertItem( i
-			, NetworkSniffer::BACnetPropertyIdentifier[ rpep->rpePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rpep->rpePropCombo.enumValue ]
 			);
 		if (rpep->rpeArrayIndex.ctrlNull)
 			rplPagePtr->m_PropList.SetItemText( i, 1, "" );
@@ -556,7 +555,7 @@ void ReadPropList::AddButtonClick( void )
 	rplCurElemIndx = listLen;
 
 	// madanner, 8/26/02.  Sourceforge bug #472392
-	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings
 	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
 	// if list is altered.
 
@@ -710,7 +709,7 @@ void ReadPropList::OnSelchangePropCombo( void )
 		if (rplCurElem->rpePropCombo.enumValue < 512 )
 		{
 			rplPagePtr->m_PropList.SetItemText( rplCurElemIndx, 0
-				, NetworkSniffer::BACnetPropertyIdentifier[ rplCurElem->rpePropCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rplCurElem->rpePropCombo.enumValue ]
 				);
 		}
 		else

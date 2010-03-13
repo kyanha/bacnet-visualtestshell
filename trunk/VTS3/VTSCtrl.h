@@ -3,6 +3,7 @@
 
 #include "BACnet.hpp"
 #include "BACnetIP.hpp"
+#include "StringTables.h"
 
 //
 //	VTSCtrl
@@ -226,12 +227,16 @@ typedef VTSBooleanCtrl *VTSBooleanCtrlPtr;
 class VTSEnumeratedCtrl : public VTSCtrl, public BACnetEnumerated {
 	public:
 		bool	m_bHaveDropDown;				//true is user have dropdown before updatedata,  Added by Zhu Zhenhua 2003-22
-		char	**m_Table;						// ptr to list of char*
+		const char* const *m_Table;						// ptr to list of char*
 		int		m_TableSize;					// number of enumeration values
 		bool	m_bCombo;						// true iff ctrl is a combo
 		int  	m_nObjType;						//the Object Type when propCombo			 	 Added by Zhu Zhenhua 2003-22
 		int		m_SelectValue;					//the Selecct Indext of PropList				 Added by Zhu Zhenhua 2003-22
 		int		m_VendorPropID;					// the ID of Vendor Property when propCombo		 Added by Zhu Zhenhua 2003-22	    
+
+		VTSEnumeratedCtrl( const CWnd* wp, int id, NetworkSniffer::BACnetStringTable &table, bool isCombo = false );	// bind to window and control
+
+		// Old-style constructor, deprecated in favor of the constructor taking NetworkSniffer::BACnetStringTable
 		VTSEnumeratedCtrl( const CWnd* wp, int id, char **table, int tableSize, bool isCombo = false );	// bind to window and control
 
 		void LoadCombo( void );					// initialize combo list

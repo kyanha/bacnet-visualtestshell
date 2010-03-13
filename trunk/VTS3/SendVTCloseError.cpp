@@ -11,12 +11,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetServicesSupported[];
-	extern char *BACnetErrorClass[];
-	extern char *BACnetErrorCode[];
-}
-
 BACnetAPDUEncoder CSendVTCloseError::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -28,9 +22,9 @@ IMPLEMENT_DYNCREATE( CSendVTCloseError, CPropertyPage )
 CSendVTCloseError::CSendVTCloseError( void )
 	: CSendPage( CSendVTCloseError::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
-	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BACnetServicesSupported, 26, true )
-	, m_ErrorClassCombo( this, IDC_ERRORCLASSCOMBO, NetworkSniffer::BACnetErrorClass, 7, true )
-	, m_ErrorCodeCombo( this, IDC_ERRORCODECOMBO, NetworkSniffer::BACnetErrorCode, 43, true )
+	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice, true )
+	, m_ErrorClassCombo( this, IDC_ERRORCLASSCOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorClass, true )
+	, m_ErrorCodeCombo( this, IDC_ERRORCODECOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorCode, true )
 {
 	//{{AFX_DATA_INIT(CSendVTCloseError)
 	//}}AFX_DATA_INIT

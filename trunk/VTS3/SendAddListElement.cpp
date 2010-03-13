@@ -17,10 +17,6 @@ static char THIS_FILE[] = __FILE__;
 
 BACnetAPDUEncoder CSendAddListElement::pageContents;
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // CSendAddListElement dialog
 
@@ -30,7 +26,7 @@ IMPLEMENT_DYNCREATE( CSendAddListElement, CPropertyPage )
 CSendAddListElement::CSendAddListElement( void )
 	: CSendPage( CSendAddListElement::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 	, m_Value(this)			// for proper parent control
 {

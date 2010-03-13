@@ -10,9 +10,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetSilencedState[];
-}
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSSilenceStateDlg dialog
@@ -21,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSSilenceStateDlg::VTSSilenceStateDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSSilenceStateDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetSilencedState, 4, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetSilencedState, true )
 {
 	//{{AFX_DATA_INIT(VTSSilenceStateDlg)
 		// NOTE: the ClassWizard will add member initialization here

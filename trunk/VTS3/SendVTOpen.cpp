@@ -13,10 +13,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetVTClass[];
-}
-
 BACnetAPDUEncoder CSendVTOpen::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +23,7 @@ IMPLEMENT_DYNCREATE( CSendVTOpen, CPropertyPage )
 #pragma warning( disable : 4355 )
 CSendVTOpen::CSendVTOpen( void )
 	: CSendPage( CSendVTOpen::IDD )
-	, m_VTClassCombo( this, IDC_VTCLASSCOMBO, NetworkSniffer::BACnetVTClass, 7, true )
+	, m_VTClassCombo( this, IDC_VTCLASSCOMBO, NetworkSniffer::BAC_STRTAB_BACnetVTClass, true )
 	, m_SessionID( this, IDC_SESSIONID )
 {
 	//{{AFX_DATA_INIT(CSendVTOpen)

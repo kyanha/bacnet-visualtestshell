@@ -11,10 +11,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetServicesSupported[];
-}
-
 BACnetAPDUEncoder CSendSimpleACK::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +22,7 @@ IMPLEMENT_DYNCREATE( CSendSimpleACK, CPropertyPage )
 CSendSimpleACK::CSendSimpleACK( void )
 	: CSendPage( CSendSimpleACK::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
-	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BACnetServicesSupported, 26, true )
+	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice, true )
 {
 	//{{AFX_DATA_INIT(CSendSimpleACK)
 	//}}AFX_DATA_INIT

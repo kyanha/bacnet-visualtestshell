@@ -10,14 +10,6 @@
 #include "VTSCtrl.h"
 #include "VTSNotifyPage.h"
 
-struct VTSPropertyState {
-	char	*psName;
-	char	**psTable;
-	int		psTableLen;
-	};
-
-typedef VTSPropertyState *VTSPropertyStatePtr;
-
 /////////////////////////////////////////////////////////////////////////////
 // VTSNotifyState dialog
 

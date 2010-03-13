@@ -15,10 +15,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-
 BACnetAPDUEncoder CSendWriteProp::pageContents[glMaxHistoryCount];
 int CSendWriteProp::historyCount = 0;           //Xiao Shiyuan 2002-12-5
 int CSendWriteProp::curHistoryIndex = 0;        //Xiao Shiyuan 2002-12-5
@@ -31,7 +27,7 @@ IMPLEMENT_DYNCREATE( CSendWriteProp, CPropertyPage )
 CSendWriteProp::CSendWriteProp( void )
 	: CSendPage( CSendWriteProp::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 	, m_Priority( this, IDC_PRIORITYX )
 	, m_Value(this)			// for proper parent control

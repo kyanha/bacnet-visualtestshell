@@ -17,10 +17,6 @@ static char THIS_FILE[] = __FILE__;
 
 BACnetAPDUEncoder CSendConfCOVNotification::pageContents;
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-
 void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 
 /////////////////////////////////////////////////////////////////////////////
@@ -201,8 +197,7 @@ BOOL CSendConfCOVNotification::OnInitDialog()
 
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (int i = 0; i < MAX_PROP_ID; i++)
-		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
+	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
 
 	return TRUE;
 }
@@ -314,7 +309,7 @@ void CSendConfCOVNotification::OnChangePriority()
 //
 
 COVNotificationElem::COVNotificationElem( CSendPagePtr wp )
-	: cnePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	: cnePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, cneArrayIndex( wp, IDC_ARRAYINDEX )
 	, cnePriority( wp, IDC_PRIORITYX )
 	, cneValue(wp)		// added parent for send page
@@ -437,7 +432,7 @@ void COVNotificationList::AddButtonClick( void )
 	cnlCurElemIndx = listLen;
 
 	// madanner, 9/3/02
-	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier
 	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
 	// if list is altered.
 
@@ -502,7 +497,7 @@ void COVNotificationList::OnSelchangePropCombo( void )
 		cnlPagePtr->UpdateEncoded();
 
 		cnlPagePtr->m_PropListCtrl.SetItemText( cnlCurElemIndx, 0
-			, NetworkSniffer::BACnetPropertyIdentifier[ cnlCurElem->cnePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ cnlCurElem->cnePropCombo.enumValue ]
 			);
 	}
 }

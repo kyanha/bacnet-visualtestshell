@@ -10,10 +10,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetObjectType[];
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // VTSObjectIdentifierDialog dialog
 
@@ -59,10 +55,7 @@ BOOL VTSObjectIdentifierDialog::OnInitDialog()
 
 
 	m_ObjTypeCombo.ResetContent();
-	for( int i = 0; i < MAX_DEFINED_OBJ; i++)
-	{
-		m_ObjTypeCombo.AddString( NetworkSniffer::BACnetObjectType[i] );
-	}
+	NetworkSniffer::BAC_STRTAB_BACnetObjectType.FillCombo( m_ObjTypeCombo );
 	m_ObjTypeCombo.AddString("Reserved");
 	m_ObjTypeCombo.AddString("Vendor");
 		
@@ -273,16 +266,19 @@ void VTSObjectIdentifierDialog::UpdateEncoding( bool valid )
 		validObjID = false;
 		objID = 0;
 	} else {
-		char	typeBuff[32], *s
-		;
+		char	typeBuff[32];
+		const char *s;
 
-		if (objType < MAX_DEFINED_OBJ /* sizeof(NetworkSniffer::BACnetObjectType) */)
-			s = NetworkSniffer::BACnetObjectType[objType];
+		if (objType < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings)
+			s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[objType];
 		else
-		if (objType < 128)
-			sprintf( s = typeBuff, "RESERVED %d", objType );
-		else
-			sprintf( s = typeBuff, "VENDOR %d", objType );
+		{
+			s = typeBuff;
+			if (objType < 128)
+				sprintf( typeBuff, "RESERVED %d", objType );
+			else
+				sprintf( typeBuff, "VENDOR %d", objType );
+		}
 
 		m_Encoded.Format( "%s, %d", s, instance );
 

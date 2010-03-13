@@ -10,9 +10,7 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetBinaryPV[];
-}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSPriorityValueDlg dialog
 
@@ -20,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSPriorityValueDlg::VTSPriorityValueDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSPriorityValueDlg::IDD, pParent)
-	, m_BinaryPV( this, IDC_BINARYPV, NetworkSniffer::BACnetBinaryPV, 2, true )
+	, m_BinaryPV( this, IDC_BINARYPV, NetworkSniffer::BAC_STRTAB_BACnetBinaryPV, true )
     , m_RealCtrl(this,IDC_REALVALUE)
 	, m_IntCtrl(this,IDC_INTEGER)
 {

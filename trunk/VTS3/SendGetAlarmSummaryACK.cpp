@@ -15,11 +15,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetEventState[];
-	extern char	*BACnetObjectType[];
-}
-
 void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 
 BACnetAPDUEncoder CSendGetAlarmSummaryACK::pageContents;
@@ -156,8 +151,7 @@ BOOL CSendGetAlarmSummaryACK::OnInitDialog()
 
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_EVENTSTATECOMBO );
-	for (int i = 0; i < 5; i++)
-		cbp->AddString( NetworkSniffer::BACnetEventState[i] );
+	NetworkSniffer::BAC_STRTAB_BACnetEventState.FillCombo( *cbp );
 
 	return TRUE;
 }
@@ -213,7 +207,7 @@ void CSendGetAlarmSummaryACK::OnToNormal()
 
 AlarmSummaryElem::AlarmSummaryElem( CSendPagePtr wp )
 	: aseObjectID( wp, IDC_OBJECTID )
-	, aseEventStateCombo( wp, IDC_EVENTSTATECOMBO, NetworkSniffer::BACnetEventState, 5, true )
+	, aseEventStateCombo( wp, IDC_EVENTSTATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetEventState, true )
 	, aseToOffnormal( wp, IDC_TOOFFNORMAL, true )
 	, aseToFault( wp, IDC_TOFAULT, true )
 	, aseToNormal( wp, IDC_TONORMAL, true )
@@ -409,17 +403,19 @@ void AlarmSummaryList::OnChangeObjectID( void )
 			int		objType = (aslCurElem->aseObjectID.objID >> 22)
 			,		instanceNum = (aslCurElem->aseObjectID.objID & 0x003FFFFF)
 			;
-			char	buff[32], *s
-			,		typeBuff[32]
-			;
+			const char *s;
+			char	buff[32], typeBuff[32];
 
-			if (objType < MAX_DEFINED_OBJ /* sizeof(NetworkSniffer::BACnetObjectType) */)
-				s = NetworkSniffer::BACnetObjectType[objType];
+			if (objType < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings)
+				s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[objType];
 			else
-			if (objType < 128)
-				sprintf( s = typeBuff, "RESERVED %d", objType );
-			else
-				sprintf( s = typeBuff, "VENDOR %d", objType );
+			{
+				s = typeBuff;
+				if (objType < 128)
+					sprintf( typeBuff, "RESERVED %d", objType );
+				else
+					sprintf( typeBuff, "VENDOR %d", objType );
+			}
 
 			// format the result
 			sprintf( buff, "%s, %d", s, instanceNum );
@@ -464,7 +460,7 @@ void AlarmSummaryList::OnSelchangeEventStateCombo( void )
 			aslPagePtr->m_AlarmSumListCtrl.SetItemText( aslCurElemIndx, 1, "" );
 		else
 			aslPagePtr->m_AlarmSumListCtrl.SetItemText( aslCurElemIndx, 1
-				, NetworkSniffer::BACnetEventState[ aslCurElem->aseEventStateCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetEventState.m_pStrings[ aslCurElem->aseEventStateCombo.enumValue ]
 				);
 	}
 }

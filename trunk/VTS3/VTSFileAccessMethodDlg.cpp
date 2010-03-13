@@ -10,9 +10,7 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetFileAccessMethod[];
-}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSFileAccessMethodDlg dialog
 
@@ -20,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSFileAccessMethodDlg::VTSFileAccessMethodDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSFileAccessMethodDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetFileAccessMethod, 2, true )	
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetFileAccessMethod, true )	
 {
 	//{{AFX_DATA_INIT(VTSFileAccessMethodDlg)
 		// NOTE: the ClassWizard will add member initialization here

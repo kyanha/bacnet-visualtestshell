@@ -1567,6 +1567,18 @@ void VTSBooleanCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 //	VTSEnumeratedCtrl
 //
 
+VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, NetworkSniffer::BACnetStringTable &table, bool isCombo )
+: VTSCtrl( wp, id )
+, m_Table(table.m_pStrings)
+, m_TableSize(table.m_nStrings)
+, m_bCombo(isCombo)
+{
+	m_nObjType = -1;
+	m_VendorPropID = -1;
+	m_bHaveDropDown = false;
+}
+
+// Old-style constructor, deprecated in favor of the constructor taking NetworkSniffer::BACnetStringTable
 VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, char **table, int tableSize, bool isCombo )
 	: VTSCtrl( wp, id )
 	, m_Table(table), m_TableSize(tableSize), m_bCombo(isCombo)
@@ -1588,7 +1600,9 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 	if (!m_bCombo)
 		return;
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
-	if(cbp->GetCount() != 0 && m_nObjType != -1 && m_nObjType < MAX_DEFINED_OBJ)
+
+	// TODO: object-type code
+	if ((cbp->GetCount() != 0) && (m_nObjType != -1) && (m_nObjType < MAX_DEFINED_OBJ))
 	{
 		cbp->Clear();
 		cbp->ResetContent();

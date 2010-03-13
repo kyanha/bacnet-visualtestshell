@@ -14,13 +14,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetServicesSupported[];
-	extern char *BACnetErrorClass[];
-	extern char *BACnetErrorCode[];
-	extern char *BACnetPropertyIdentifier[];
-}
-
 BACnetAPDUEncoder CSendWritePropMultError::pageContents[glMaxHistoryCount];
 int CSendWritePropMultError::historyCount = 0;           //Xiao Shiyuan 2002-12-5
 int CSendWritePropMultError::curHistoryIndex = 0;        //Xiao Shiyuan 2002-12-5
@@ -34,11 +27,11 @@ IMPLEMENT_DYNCREATE( CSendWritePropMultError, CPropertyPage )
 CSendWritePropMultError::CSendWritePropMultError( void )
 	: CSendPage( CSendWritePropMultError::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
-	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BACnetServicesSupported, 26, true )
-	, m_ErrorClassCombo( this, IDC_ERRORCLASSCOMBO, NetworkSniffer::BACnetErrorClass, 7, true )
-	, m_ErrorCodeCombo( this, IDC_ERRORCODECOMBO, NetworkSniffer::BACnetErrorCode, 43, true )
+	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice, true )
+	, m_ErrorClassCombo( this, IDC_ERRORCLASSCOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorClass, true )
+	, m_ErrorCodeCombo( this, IDC_ERRORCODECOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorCode, true )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_PropertyID( this, IDC_PROPERTYID, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, false )
+	, m_PropertyID( this, IDC_PROPERTYID, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, false )
 	, m_Index( this, IDC_INDEX )
 {
 	//{{AFX_DATA_INIT(CSendWritePropMultError)

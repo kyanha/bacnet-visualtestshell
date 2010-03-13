@@ -10,9 +10,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetLifeSafetyOperation[];
-}
 /////////////////////////////////////////////////////////////////////////////
 // VTSLifeSafetyOperationDlg dialog
 
@@ -20,7 +17,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSLifeSafetyOperationDlg::VTSLifeSafetyOperationDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSLifeSafetyOperationDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetLifeSafetyOperation, 7, true )	
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetLifeSafetyOperation, true )	
 {
 	//{{AFX_DATA_INIT(VTSLifeSafetyOperationDlg)
 		// NOTE: the ClassWizard will add member initialization here

@@ -14,10 +14,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // VTSObjPropDialog dialog
 
@@ -89,8 +85,7 @@ BOOL VTSObjPropDialog::OnInitDialog()
 	m_PropList.InsertColumn( 1, _T("Value"), LVCFMT_LEFT, 192 );
 
 	// load the drop-down
-	for (i = 0; i < MAX_PROP_ID; i++)
-		m_PropCombo.AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
+	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
 
 	// make sure at least eight lines are visible
 	::SetDropDownSize( m_PropCombo, 8 );
@@ -164,10 +159,10 @@ void VTSObjPropDialog::SetObjSelection( int indx )
 		VTSObjectPropDesc desc = m_dPropList[i];
 
 		// translate the property ID into some kind of description
-		if (desc.propID >= MAX_PROP_ID)
+		if (desc.propID >= NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings)
 			propDesc.Format( _T("%d"), desc.propID );
 		else
-			propDesc = NetworkSniffer::BACnetPropertyIdentifier[ desc.propID ];
+			propDesc = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ desc.propID ];
 		m_PropList.InsertItem( i, propDesc );
 		m_PropList.SetItemText( i, 1, desc.propValue );
 	}
@@ -481,7 +476,7 @@ void VTSObjPropDialog::OnAddProperty()
 
 	// add an item to the list
 	m_PropList.InsertItem( i
-		, NetworkSniffer::BACnetPropertyIdentifier[ desc.propID ]
+		, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ desc.propID ]
 		);
 	m_PropList.SetItemText( i, 1, desc.propValue );
 
@@ -652,7 +647,7 @@ void VTSObjPropDialog::OnSelchangePropcombo()
 	m_dPropList.Move( curProp, newProp );
 
 	// change the list version
-	m_PropList.SetItemText( m_iSelectedProp, 0, NetworkSniffer::BACnetPropertyIdentifier[newProp] );
+	m_PropList.SetItemText( m_iSelectedProp, 0, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[newProp] );
 
 	// change the decimal version
 	m_PropID.Format( _T("%d"), newProp );
@@ -732,9 +727,9 @@ void VTSObjPropDialog::OnChangePropID()
 	m_dPropList.Move( curProp, newProp );
 
 	// change the list version
-	if (newProp < MAX_PROP_ID) {
+	if (newProp < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings) {
 		m_PropCombo.SetCurSel( newProp );
-		m_PropList.SetItemText( m_iSelectedProp, 0, NetworkSniffer::BACnetPropertyIdentifier[newProp] );
+		m_PropList.SetItemText( m_iSelectedProp, 0, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[newProp] );
 	} else {
 		m_PropCombo.SetCurSel( -1 );
 		m_PropList.SetItemText( m_iSelectedProp, 0, m_PropID );

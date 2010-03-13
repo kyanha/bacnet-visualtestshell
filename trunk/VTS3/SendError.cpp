@@ -11,12 +11,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetServicesSupported[];
-	extern char *BACnetErrorClass[];
-	extern char *BACnetErrorCode[];
-}
-
 BACnetAPDUEncoder CSendError::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -28,10 +22,9 @@ IMPLEMENT_DYNCREATE( CSendError, CPropertyPage )
 CSendError::CSendError( void )
 	: CSendPage( CSendError::IDD )
 	, m_InvokeID( this, IDC_INVOKEID )
-	// TODO: These combos need to get their size from somewhere rather than be hard coded.
-	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BACnetServicesSupported, 40, true )
-	, m_ErrorClassCombo( this, IDC_ERRORCLASSCOMBO, NetworkSniffer::BACnetErrorClass, 8, true )
-	, m_ErrorCodeCombo( this, IDC_ERRORCODECOMBO, NetworkSniffer::BACnetErrorCode, 80, true )
+	, m_ServiceCombo( this, IDC_SERVICECOMBO, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice, true )
+	, m_ErrorClassCombo( this, IDC_ERRORCLASSCOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorClass, true )
+	, m_ErrorCodeCombo( this, IDC_ERRORCODECOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorCode, true )
 {
 	//{{AFX_DATA_INIT(CSendError)
 	//}}AFX_DATA_INIT

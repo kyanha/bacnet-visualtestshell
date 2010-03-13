@@ -15,11 +15,6 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-
 //=================================================================================
 
 
@@ -235,7 +230,17 @@ CString VTSDevProperty::GetDescription( void )
 
 LPCSTR VTSDevProperty::GetDescription( unsigned int nPropID )
 {
-	return (LPCSTR) NetworkSniffer::BACnetPropertyIdentifier[nPropID];
+	LPCSTR pRet;
+	if (nPropID < (unsigned int)NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings)
+	{
+		pRet = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[nPropID];
+	}
+	else
+	{
+		pRet = "unknown-property";
+	}
+
+	return pRet;
 }
 
 

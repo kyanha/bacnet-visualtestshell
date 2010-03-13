@@ -15,12 +15,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char	*BACnetObjectType[];
-	extern char *BACnetEventState[];
-	extern char *BACnetEventType[];
-}
-
 BACnetAPDUEncoder CSendGetEnrollmentSummaryACK::pageContents;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -158,12 +152,10 @@ BOOL CSendGetEnrollmentSummaryACK::OnInitDialog()
 
 	// load the enumeration tables
 	cbp = (CComboBox *)GetDlgItem( IDC_EVENTTYPECOMBO );
-	for (int i = 0; i < 6; i++)
-		cbp->AddString( NetworkSniffer::BACnetEventType[i] );
+	NetworkSniffer::BAC_STRTAB_BACnetEventType.FillCombo( *cbp );
 
 	cbp = (CComboBox *)GetDlgItem( IDC_EVENTSTATECOMBO );
-	for (int j = 0; j < 5; j++)
-		cbp->AddString( NetworkSniffer::BACnetEventState[j] );
+	NetworkSniffer::BAC_STRTAB_BACnetEventState.FillCombo( *cbp );
 
 	return TRUE;
 }
@@ -219,8 +211,8 @@ void CSendGetEnrollmentSummaryACK::OnChangeNotificationClass()
 
 EnrollmentSummaryElem::EnrollmentSummaryElem( CSendPagePtr wp )
 	: eseObjectID( wp, IDC_OBJECTID )
-	, eseEventTypeCombo( wp, IDC_EVENTTYPECOMBO, NetworkSniffer::BACnetEventState, 6, true )
-	, eseEventStateCombo( wp, IDC_EVENTSTATECOMBO, NetworkSniffer::BACnetEventState, 5, true )
+	, eseEventTypeCombo( wp, IDC_EVENTTYPECOMBO, NetworkSniffer::BAC_STRTAB_BACnetEventState, true )
+	, eseEventStateCombo( wp, IDC_EVENTSTATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetEventState, true )
 	, esePriority( wp, IDC_PRIORITY )
 	, eseNotificationClass( wp, IDC_NOTIFICATIONCLASS )
 {
@@ -422,17 +414,21 @@ void EnrollmentSummaryList::OnChangeObjectID( void )
 			int		objType = (eslCurElem->eseObjectID.objID >> 22)
 			,		instanceNum = (eslCurElem->eseObjectID.objID & 0x003FFFFF)
 			;
-			char	buff[32], *s
-			,		typeBuff[32]
-			;
-
-			if (objType < MAX_DEFINED_OBJ /* sizeof(NetworkSniffer::BACnetObjectType) */)
-				s = NetworkSniffer::BACnetObjectType[objType];
+			char	buff[32], typeBuff[32];
+			const char *s;
+			
+			if (objType < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings)
+			{
+				s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[objType];
+			}
 			else
-			if (objType < 128)
-				sprintf( s = typeBuff, "RESERVED %d", objType );
-			else
-				sprintf( s = typeBuff, "VENDOR %d", objType );
+			{
+				s = typeBuff;
+				if (objType < 128)
+					sprintf( typeBuff, "RESERVED %d", objType );
+				else
+					sprintf( typeBuff, "VENDOR %d", objType );
+			}
 
 			// format the result
 			sprintf( buff, "%s, %d", s, instanceNum );
@@ -477,7 +473,7 @@ void EnrollmentSummaryList::OnSelchangeEventTypeCombo( void )
 			eslPagePtr->m_EnrollmentSumListCtrl.SetItemText( eslCurElemIndx, 1, "" );
 		else
 			eslPagePtr->m_EnrollmentSumListCtrl.SetItemText( eslCurElemIndx, 1
-				, NetworkSniffer::BACnetEventType[ eslCurElem->eseEventTypeCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetEventType.m_pStrings[ eslCurElem->eseEventTypeCombo.enumValue ]
 				);
 	}
 }
@@ -496,7 +492,7 @@ void EnrollmentSummaryList::OnSelchangeEventStateCombo( void )
 			eslPagePtr->m_EnrollmentSumListCtrl.SetItemText( eslCurElemIndx, 2, "" );
 		else
 			eslPagePtr->m_EnrollmentSumListCtrl.SetItemText( eslCurElemIndx, 2
-				, NetworkSniffer::BACnetEventState[ eslCurElem->eseEventStateCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetEventState.m_pStrings[ eslCurElem->eseEventStateCombo.enumValue ]
 				);
 	}
 }

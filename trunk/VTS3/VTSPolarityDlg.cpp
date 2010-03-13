@@ -10,9 +10,6 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-namespace NetworkSniffer {
-	extern char *BACnetPolarity[];
-}
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSPolarityDlg dialog
@@ -21,7 +18,7 @@ namespace NetworkSniffer {
 #pragma warning( disable : 4355 )
 VTSPolarityDlg::VTSPolarityDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSPolarityDlg::IDD, pParent)
-	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BACnetPolarity, 2, true )
+	, m_enumcombo( this, IDC_ENUMRATECOMBO, NetworkSniffer::BAC_STRTAB_BACnetPolarity, true )
 {
 	//{{AFX_DATA_INIT(VTSPolarityDlg)
 		// NOTE: the ClassWizard will add member initialization here

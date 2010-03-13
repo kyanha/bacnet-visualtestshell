@@ -13,10 +13,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
-}
-
 void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 
 /////////////////////////////////////////////////////////////////////////////
@@ -130,7 +126,7 @@ BOOL VTSNotifyComplex::OnInitDialog()
 		;
 
 		m_PropListCtrl.InsertItem( i
-			, NetworkSniffer::BACnetPropertyIdentifier[ coep->coePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ coep->coePropCombo.enumValue ]
 			);
 		if (coep->coeArrayIndex.ctrlNull)
 			m_PropListCtrl.SetItemText( i, 1, "" );
@@ -154,8 +150,7 @@ BOOL VTSNotifyComplex::OnInitDialog()
 
 	// load the enumeration table
 	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	for (i = 0; i < MAX_PROP_ID; i++)
-		cbp->AddString( NetworkSniffer::BACnetPropertyIdentifier[i] );
+	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
 
 	return TRUE;
 }
@@ -200,7 +195,7 @@ void VTSNotifyComplex::OnChangePriority()
 //
 
 ComplexObjectElem::ComplexObjectElem( VTSNotifyComplexPtr wp )
-	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BACnetPropertyIdentifier, MAX_PROP_ID, true )
+	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
 	, coeArrayIndex( wp, IDC_ARRAYINDEX )
 	, coePriority( wp, IDC_PRIORITYX )
 	, coeValue(wp)		// added for proper parent dialog chain
@@ -329,7 +324,7 @@ void ComplexObjectList::AddButtonClick( void )
 	colCurElemIndx = listLen;
 
 	// madanner, 9/3/02
-	// Init property with 'Present_Value' from NetworkSniffer::BACnetPropertyIdentifier
+	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings
 	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
 	// if list is altered.
 
@@ -393,7 +388,7 @@ void ComplexObjectList::OnSelchangePropCombo( void )
 //		colPagePtr->UpdateEncoded();
 
 		colPagePtr->m_PropListCtrl.SetItemText( colCurElemIndx, 0
-			, NetworkSniffer::BACnetPropertyIdentifier[ colCurElem->coePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ colCurElem->coePropCombo.enumValue ]
 			);
 	}
 }

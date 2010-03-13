@@ -13,39 +13,27 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetPropertyIdentifier[];
+#include "StringTables.h"
 
-	extern char *BACnetBinaryPV[];
-	extern char *BACnetEventType[];
-	extern char *BACnetPolarity[];
-	extern char *BACnetProgramRequest[];
-	extern char *BACnetProgramState[];
-	extern char *BACnetProgramError[];
-	extern char *BACnetReliability[];
-	extern char *BACnetEventState[];
-	extern char *BACnetDeviceStatus[];
-	extern char *BACnetEngineeringUnits[];
-}
-
-char *gBACnetBoolean[] =
-	{ "False"
-	, "True"
+struct VTSPropertyState {
+	const char* psName;
+	NetworkSniffer::BACnetStringTable *m_table;
 	};
 
 VTSPropertyState gPropertyState[] =
-	{ { "Boolean-value",		gBACnetBoolean,							2 }
-	, { "Binary-value",			NetworkSniffer::BACnetBinaryPV,			2 }
-	, { "Event-Type",			NetworkSniffer::BACnetEventType,		6 }
-	, { "Polarity",				NetworkSniffer::BACnetPolarity,			2 }
-	, { "Program-request",		NetworkSniffer::BACnetProgramRequest,	6 }
-	, { "Program-state",		NetworkSniffer::BACnetProgramState,		6 }
-	, { "Program-error",		NetworkSniffer::BACnetProgramError,		5 }
-	, { "Reliabilty",			NetworkSniffer::BACnetReliability,		9 }
-	, { "Event-state",			NetworkSniffer::BACnetEventState,		5 }
-	, { "Device-status",		NetworkSniffer::BACnetDeviceStatus,		5 }
-	, { "Engineering-units",	NetworkSniffer::BACnetEngineeringUnits,	142 }
-	};
+{ 
+	{ "Boolean-value",			&NetworkSniffer::BAC_STRTAB_FalseTrue }
+	, { "Binary-value",			&NetworkSniffer::BAC_STRTAB_BACnetBinaryPV }
+	, { "Event-Type",			&NetworkSniffer::BAC_STRTAB_BACnetEventType }
+	, { "Polarity",				&NetworkSniffer::BAC_STRTAB_BACnetPolarity }
+	, { "Program-request",		&NetworkSniffer::BAC_STRTAB_BACnetProgramRequest }
+	, { "Program-state",		&NetworkSniffer::BAC_STRTAB_BACnetProgramState }
+	, { "Program-error",		&NetworkSniffer::BAC_STRTAB_BACnetProgramError }
+	, { "Reliabilty",			&NetworkSniffer::BAC_STRTAB_BACnetReliability }
+	, { "Event-state",			&NetworkSniffer::BAC_STRTAB_BACnetEventState }
+	, { "Device-status",		&NetworkSniffer::BAC_STRTAB_BACnetDeviceStatus }
+	, { "Engineering-units",	&NetworkSniffer::BAC_STRTAB_BACnetEngineeringUnits }
+};
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSNotifyState property page
@@ -106,12 +94,14 @@ BOOL VTSNotifyState::OnInitDialog()
 	// initialize the type combo
 	for (int i = 0; i < sizeof(gPropertyState)/sizeof(VTSPropertyState); i++)
 		m_TypeCombo.AddString( gPropertyState[i].psName );
+	
 	m_TypeCombo.SetCurSel( m_Type );
 	SetDropDownSize( m_TypeCombo, 8 );
 
 	// initialize the value combo
-	for (int j = 0; j < gPropertyState[m_Type].psTableLen; j++)
-		m_ValueCombo.AddString( gPropertyState[m_Type].psTable[j] );
+	for (int j = 0; j < gPropertyState[m_Type].m_table->m_nStrings; j++)
+		m_ValueCombo.AddString( gPropertyState[m_Type].m_table->m_pStrings[j] );
+	
 	m_ValueCombo.SetCurSel( m_Value );
 	SetDropDownSize( m_ValueCombo, 8 );
 
@@ -169,8 +159,8 @@ void VTSNotifyState::OnSelchangeTypeCombo()
 		m_ValueCombo.DeleteString( 0 );
 
 	// make the new values available
-	for (int j = 0; j < gPropertyState[newSel].psTableLen; j++)
-		m_ValueCombo.AddString( gPropertyState[newSel].psTable[j] );
+	for (int j = 0; j < gPropertyState[newSel].m_table->m_nStrings; j++)
+		m_ValueCombo.AddString( gPropertyState[newSel].m_table->m_pStrings[j] );
 
 	// make the first one the current selection
 	m_Value = 0;
