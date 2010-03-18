@@ -2137,7 +2137,26 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		}
 		break;
 	case LOG_BUFFER:                      // List of BACnetLogRecord
-		show_log_buffer( seq );
+		switch (obj_type)
+		{
+		case 20:
+			show_log_buffer( seq );				// TrendLog
+			break;
+		case 25:
+			show_event_log_buffer( seq );		// EventLog
+			break;
+		case 27:
+			show_log_multiple_buffer( seq );	// TrendLogMultiple
+			break;
+		default:
+			// Object we don't know.
+			// Show as a sequence of anything, terminated by closing tag
+			seq.ListOf();
+			while (seq.HasListElement()) {
+				seq.AnyTaggedItem();
+			}
+			break;
+		}
 		break;
 	case LOG_DEVICE_OBJECT_PROPERTY:
 		if (obj_type == 20)

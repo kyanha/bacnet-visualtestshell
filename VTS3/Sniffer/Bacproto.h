@@ -395,6 +395,8 @@ void	 show_bac_shed_level( BACnetSequence &theSeq );
 void	 show_bac_time_value( BACnetSequence &theSeq );
 void     show_bac_VT_session( BACnetSequence &theSeq );
 void     show_log_buffer( BACnetSequence &theSeq );
+void	 show_event_log_buffer( BACnetSequence &theSeq );
+void	 show_log_multiple_buffer( BACnetSequence &theSeq );
 void     show_bac_COV_Subscription( BACnetSequence &theSeq );
 void     show_bac_destination( BACnetSequence &theSeq );
 void	 show_bac_priority_value( BACnetSequence &theSeq );
