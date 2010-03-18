@@ -4753,6 +4753,85 @@ void show_log_buffer( BACnetSequence &seq )
 	}
 }
 
+// BACnetEventLogRecord
+void show_event_log_buffer( BACnetSequence &seq )
+{
+	seq.ListOf( "listOfRecords" );
+	while (seq.HasListElement())
+	{
+		if (seq.OpeningTag( 0, "timeStamp" ))
+		{
+			seq.Date( -1, "date" );
+			seq.Time( -1, "time" );
+			seq.ClosingTag();
+		}
+
+		if (seq.OpeningTag( 1, "logDatum" ))
+		{
+			seq.BeginChoice();
+			seq.BitString(      0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
+			if (seq.OpeningTag( 1, "notification", BSQ_CHOICE ))
+			{
+				show_EventNotification();
+				seq.ClosingTag();
+			}
+			seq.Real(           2, "time-change", BSQ_CHOICE );
+			seq.EndChoice();
+			seq.ClosingTag();
+		}
+	}
+}
+
+// BACnetLogMultipleRecord
+void show_log_multiple_buffer( BACnetSequence &seq )
+{
+	seq.ListOf( "listOfRecords" );
+	while (seq.HasListElement())
+	{
+		seq.BeginChoice();
+		if (seq.OpeningTag( 0, "timeStamp", BSQ_CHOICE ))
+		{
+			seq.Date( -1, "date" );
+			seq.Time( -1, "time" );
+			seq.ClosingTag();
+		}
+
+		if (seq.OpeningTag( 1, "logData", BSQ_CHOICE ))
+		{
+			seq.BeginChoice();
+			seq.BitString(  0, "log-status", &BAC_STRTAB_BACnetLogStatus );
+			seq.ListOf(     1, "log-data" );
+			while (seq.HasListElement())
+			{
+				seq.BeginChoice();
+				seq.Boolean(    0, "boolean-value", BSQ_CHOICE );
+				seq.Real(       1, "real-value", BSQ_CHOICE );
+				seq.Enumerated( 2, "enum-value", NULL, BSQ_CHOICE );
+				seq.Unsigned(   3, "unsigned-value", BSQ_CHOICE );
+				seq.Integer(    4, "signed-value", BSQ_CHOICE );
+				seq.BitString(  5, "bitstring-value", NULL, BSQ_CHOICE );
+				seq.Null(       6, "null-value", BSQ_CHOICE );
+				if (seq.OpeningTag( 7, "failure", BSQ_CHOICE ))
+				{
+					show_error( seq );
+					seq.ClosingTag();
+				}
+				if (seq.OpeningTag( 8, "any-value", BSQ_CHOICE ))
+				{
+					// Allow an arbitrary sequence of tagged items until closing tag
+					seq.AnyTaggedItem();
+					seq.ClosingTag();
+				}
+				seq.EndChoice();
+			}
+
+			seq.ClosingTag();
+		}
+		seq.Real(           2, "time-change", BSQ_CHOICE );
+		seq.EndChoice();
+	}
+}
+
 /**************************************************************************/
 // Show BACnetRecipientProcess
 void show_bac_recipient_process( BACnetSequence &seq )
