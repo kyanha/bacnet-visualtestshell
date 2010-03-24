@@ -1,5 +1,7 @@
 // VTSDevicesDlg.cpp : implementation file
 //
+// NOTE: This file is no longer part of VTS.
+// It has been superceded by VTSDevicesTreeDevPage.
 
 #include "stdafx.h"
 #include "vts.h"
@@ -423,7 +425,7 @@ void VTSDevicesDlg::CtrlToDevice( VTSDevice * pdevice )
 	pdevice->m_nAPDURetries = m_nAPDURetries;
 	pdevice->m_nVendorID = m_nVendorID;
 
-	pdevice->m_segmentation;				// supports segments requests
+	pdevice->m_segmentation = m_Segmentation;				// supports segments requests
 }
 
 //

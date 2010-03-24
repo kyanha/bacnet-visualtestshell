@@ -9,6 +9,9 @@
 
 #include "VTSDoc.h"
 
+// NOTE: This file is no longer part of VTS.
+// It has been superceded by VTSDevicesTreeDevPage.
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSDevicesDlg dialog
 
