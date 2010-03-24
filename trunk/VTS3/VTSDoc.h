@@ -300,6 +300,51 @@ class VTSNames : public CTypedPtrArray<CPtrArray, VTSName *>
 		LPCSTR AddrToName( const BACnetAddress &addr, VTSPort * pport );
 };
 
+// Class to hold information parsed from a VTSPacket
+// Used by filtering, and by segmented message assembly
+class VTSFilterInfo
+{
+public:
+	VTSFilterInfo();
+	bool Parse( const VTSPacket &packet );
+
+	bool			m_hasSegment;
+	bool			m_moreFollows;
+	int				m_fnGroup;
+	int				m_cursor;
+	int				m_length;
+	BACnetAddress	m_srcAddr;
+	BACnetAddress	m_destAddr;
+	int				m_pduType;
+	int				m_sequence;
+	int				m_service;
+	int				m_invokeID;
+};
+
+// Class to hold information about a series of VTSPacket segments
+// Used to accumulate an entire message
+class VTSSegmentAccumulator
+{
+public:
+	VTSSegmentAccumulator( const VTSPacket &packet, VTSFilterInfo &theInfo );
+
+	// Return true if the packet matches this accumulator
+	bool IsMatch( const VTSPacket &packet, VTSFilterInfo &theInfo ) const;
+
+	// Add the packet to the accumulator
+	// Return true if the final segment has been added
+	bool AddPacket( const VTSPacket &packet, VTSFilterInfo &theInfo );
+
+	DWORD			m_startTime;
+	VTSPacket		m_packet;
+	BACnetAddress	m_srcAddr;
+	BACnetAddress	m_destAddr;
+	int				m_pduType;
+	int				m_sequence;
+	int				m_service;
+	int				m_invokeID;
+};
+
 class VTSFilter : public CObject							// serializable filter element
 {
 	private:
@@ -345,8 +390,9 @@ class VTSFilters : public CTypedPtrArray<CPtrArray, VTSFilter *>
 		void Remove( int i );							// remove a filter
 
 		bool TestPacket( const VTSPacket& packet );
-		int ConfirmedServiceFnGroup( int service );
-		int UnconfirmedServiceFnGroup( int service );
+		bool TestPacket( const VTSPacket& packet, VTSFilterInfo &theInfo );
+		static int ConfirmedServiceFnGroup( int service );
+		static int UnconfirmedServiceFnGroup( int service );
 
 		DECLARE_SERIAL(VTSFilters)
 };
@@ -482,6 +528,8 @@ class VTSDevice : public CObject
 		void IAm( void );								// ask the client to send out an I-Am
 		void Activate( void );
 		void Deactivate( void );
+
+		void CopyToLive();								// copy data to live device
 
 		LPCSTR GetName(void) { return m_strName; }
 		CString GetDescription(void);
@@ -678,6 +726,12 @@ public:
 #endif
 
 protected:
+	// Process the packet as a possible message segment
+	void ProcessMessageSegment( const VTSPacket &pkt, VTSFilterInfo &theInfo );
+
+	// Segmentation data
+	VTSSegmentAccumulator   *m_pSegmentAccumulator[ 10 ];
+
 	CCriticalSection		m_FrameContextsCS;
 	CFrameContextPtr		m_FrameContexts;
 
