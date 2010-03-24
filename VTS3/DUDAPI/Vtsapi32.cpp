@@ -716,6 +716,7 @@ static bibbdef BIBBs[]={
              },								
 			};  
 
+// TODO: Duplicate of NetworkSniffer::BACnetServicesSupported
 // The order and position of elements in this array is important!
 // It must correspond with the bit positions defined by BACnetServicesSupported
 // in section 21 of the BACnet standard.  
@@ -762,6 +763,9 @@ static char *StandardServices[]={
 			"GetEventInformation"                     //39
 			};
 
+// TODO: Near duplicate of NetworkSniffer::BACnetObjectType, except that table
+// is upper case with hyphens instead of spaces.
+//
 // The order and position of elements in this array is important!
 // It must correspond with the definition of BACnetObjectType in section 21 
 // of the BACnet standard.  
