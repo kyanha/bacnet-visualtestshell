@@ -97,6 +97,11 @@ VTSDoc::VTSDoc()
 
 //	m_pStatitiscsDlg=&dlg;
 //	m_pStatitiscsDlg->m_pDoc=this;
+
+	for (int ix = 0; ix < sizeof(m_pSegmentAccumulator)/sizeof(m_pSegmentAccumulator[0]); ix++)
+	{
+		m_pSegmentAccumulator[ix] = NULL;
+	}
 }
 
 //
@@ -120,6 +125,12 @@ VTSDoc::~VTSDoc()
 	_CrtMemDifference( &s3, &s1, &s2 );
 	_CrtMemDumpStatistics( &s3 );
 #endif
+
+	for (int ix = 0; ix < sizeof(m_pSegmentAccumulator)/sizeof(m_pSegmentAccumulator[0]); ix++)
+	{
+		delete m_pSegmentAccumulator[ix];
+		m_pSegmentAccumulator[ix] = NULL;
+	}
 }
 
 
@@ -835,8 +846,10 @@ int VTSDoc::WritePacket( VTSPacket & pkt )
 
 	m_FrameContextsCS.Lock();
 
-	// make sure packet passes
-	if (m_captureFilters.TestPacket( pkt )) {
+	// Parse the packet, both for filtering and for segmentation
+	VTSFilterInfo info;
+	info.Parse( pkt );
+	if (m_captureFilters.TestPacket( pkt, info )) {
 		// save it in the database
 		m_PacketDB.WritePacket(pkt);
 
@@ -867,6 +880,9 @@ int VTSDoc::WritePacket( VTSPacket & pkt )
 
 			schedule = true;
 		}
+
+		// Process as a possible message segment
+		ProcessMessageSegment( pkt, info );
 	}
 
 	// release the list back to other threads
@@ -2718,6 +2734,276 @@ bool VTSFilter::TestAddress( const BACnetAddress &addr )
 	return false;
 }
 
+// Class to hold information parsed from a VTSPacket
+// Used by filtering, and by segmented message assembly
+VTSFilterInfo::VTSFilterInfo()
+: m_hasSegment(false)
+, m_moreFollows(false)
+, m_fnGroup(0)
+, m_length(0)
+, m_cursor(0)
+, m_service(0)
+, m_sequence(0)
+, m_invokeID(0)
+{
+}
+
+// Parse the packet.  
+// Return true to bypass filtering and accept the packet.
+// Return false to use the parsed-out packet information for further filtering
+bool VTSFilterInfo::Parse( const VTSPacket &packet )
+{
+	m_hasSegment = m_moreFollows = false;
+
+	// always accept script messages
+	if (packet.packetHdr.packetType == msgData)
+		return true;
+
+	m_fnGroup  = 0;
+	m_cursor   = 0;
+	m_length   = packet.packetLen;
+	m_srcAddr  = packet.packetHdr.packetSource;
+	m_destAddr = packet.packetHdr.packetDestination;
+
+	BACnetOctet *pData = packet.packetData;
+
+	// find the first octet in the packet
+	switch ((BACnetPIInfo::ProtocolType)packet.packetHdr.packetProtocolID) 
+	{
+		case BACnetPIInfo::ipProtocol:
+			// skip the fake ip header, address (4), and port (2)
+			m_cursor += 6;
+
+			// check for a BVLL header
+			if (pData[ m_cursor ] == 0x81) 
+			{
+				m_cursor++;
+
+				// extract the function
+				int bipFn = pData[ m_cursor++ ];
+
+				// extract the length
+				int len = pData[ m_cursor++ ];
+				len = (len << 8) + pData[ m_cursor++ ];
+
+				// set the function group
+				switch ((BVLCFunction)bipFn) {
+					case bvlcResult:
+					case blvcWriteBroadcastDistributionTable:
+					case blvcReadBroadcastDistributionTable:
+					case blvcReadBroadcastDistributionTableAck:
+					case bvlcRegisterForeignDevice:
+					case bvlcReadForeignDeviceTable:
+					case bvlcReadForeignDeviceTableAck:
+					case bvlcDeleteForeignDeviceTableEntry:
+						m_fnGroup = 1;
+						break;
+
+					case blvcForwardedNPDU:
+						// extract the original source
+						m_srcAddr.addrType = localStationAddr;
+						memcpy( m_srcAddr.addrAddr, &pData[ m_cursor ], 6 );
+						m_srcAddr.addrLen = 6;
+						m_cursor += 6;
+						break;
+
+						// dig deeper into these
+					case bvlcDistributeBroadcastToNetwork:
+					case bvlcOriginalUnicastNPDU:
+					case bvlcOriginalBroadcastNPDU:
+						break;
+				}
+			}
+			break;
+
+		case BACnetPIInfo::ethernetProtocol:
+			// skip over source (6), destination (6), length (2), and SAP (3)
+			m_cursor += 17;
+			break;
+
+		case BACnetPIInfo::arcnetProtocol:
+			// skip over source (1), destination (1), SAP (3), LLC (1)
+			m_cursor += 6;
+			break;
+
+		case BACnetPIInfo::mstpProtocol:
+			// skip over preamble
+			m_cursor += 2;
+
+			// look at the frame type
+			switch (pData[ m_cursor++ ]) {
+				case 0x00:		// Token Frame
+				case 0x01:		// Poll For Master Frame
+				case 0x02:		// Reply To Poll For Master Frame
+				case 0x03:		// Test Request Frame
+				case 0x04:		// Test Response Frame
+				case 0x07:		// Reply Postponed Frame
+					m_fnGroup = 2;
+					break;
+
+				case 0x05:		// Data Expecting Reply Frame
+				case 0x06:		// Data Not Expecting Reply Frame
+					break;
+			};
+
+			// Skip over destination (1), source (1), length (2) and HCRC (1)
+			m_cursor += 5;
+			break;
+
+		case BACnetPIInfo::ptpProtocol:
+			// ### interpreter is painful
+			m_fnGroup = 3;
+			break;
+
+		default:
+			// Remove the header, leaving length remaining
+			m_length = packet.packetLen - m_cursor;
+			return true;
+	}
+
+	// if the function group hasn't been set, dig into the NPCI header
+	if (m_fnGroup == 0) 
+	{
+		// Remove the header, leaving length remaining
+		m_length = packet.packetLen - m_cursor;
+		if (m_length < 2)
+			return true;	// invalid length
+		
+		// Only version 1 messages supported
+		if (pData[ m_cursor++ ] != 0x01)
+			return true;	// version 1 only
+		
+		// Extract the flags
+		int netFn = pData[ m_cursor++ ];
+		int netLayerMessage = (netFn & 0x80);
+		int dnetPresent = (netFn & 0x20);
+		int snetPresent = (netFn & 0x08);
+//		expectingReply  = (netFn  & 0x04);			// might be nice to check these someday
+//		networkPriority = (netFn & 0x03);		// perhaps filter all critical messages?
+		
+		// Extract the destination address
+		if (dnetPresent) 
+		{
+			int dnet = pData[ m_cursor++ ];
+			dnet = (dnet << 8) + pData[ m_cursor++ ];
+			int dlen = pData[ m_cursor++ ];
+			
+			if (dlen == 0) {
+				if (dnet == 0xFFFF)
+					m_destAddr.GlobalBroadcast();
+				else {
+					m_destAddr.RemoteBroadcast( dnet );
+				}
+			}
+			else {
+				m_destAddr.RemoteStation( dnet, &pData[ m_cursor ], dlen );
+				m_cursor += dlen;
+			}
+		}
+		
+		// Extract the source address, or copy the one from the endpoint
+		if (snetPresent) 
+		{
+			int snet = pData[ m_cursor++ ];
+			snet = (snet << 8) + pData[ m_cursor++ ];
+			int slen = pData[ m_cursor++ ];
+			
+			m_srcAddr.RemoteStation( snet, &pData[ m_cursor ], slen );
+			m_cursor += slen;
+		}
+		
+		// Skip the hop count
+		if (dnetPresent)
+			m_cursor += 1;
+		
+		// All done for network layer messages
+		if (netLayerMessage)
+			m_fnGroup = 4;
+	}
+
+	if (m_fnGroup == 0) 
+	{
+		int apduFn = pData[ m_cursor ];
+		m_pduType = (apduFn >> 4);
+		switch (m_pduType)
+		{
+		case confirmedRequestPDU:
+			m_invokeID =  pData[ m_cursor + 2];
+			if (apduFn & 0x08)
+			{
+				m_hasSegment  = true;
+				m_moreFollows = (apduFn & 0x04) != 0;
+				m_sequence = pData[ m_cursor + 3];
+				m_service  = pData[ m_cursor + 5];
+				m_cursor  += 6;
+			}
+			else
+			{
+				m_sequence = -1;
+				m_service  = pData[ m_cursor + 3];
+				m_cursor  += 4;
+			}
+			m_fnGroup = VTSFilters::ConfirmedServiceFnGroup( m_service );
+			break;
+
+		case unconfirmedRequestPDU:
+			m_service = pData[ m_cursor + 1];
+			m_cursor += 2;
+			m_fnGroup = VTSFilters::UnconfirmedServiceFnGroup( m_service );
+			break;
+
+		case simpleAckPDU:
+			m_invokeID = pData[ m_cursor + 1];
+			m_service  = pData[ m_cursor + 2];
+			m_cursor  += 3;
+			m_fnGroup  = VTSFilters::ConfirmedServiceFnGroup( m_service );
+			break;
+
+		case complexAckPDU:
+			m_invokeID = pData[ m_cursor + 1];
+			if (apduFn & 0x08)
+			{
+				m_hasSegment  = true;
+				m_moreFollows = (apduFn & 0x04) != 0;
+				m_sequence = pData[ m_cursor + 2];
+				m_service  = pData[ m_cursor + 4];
+				m_cursor  += 5;
+			}
+			else
+			{
+				m_sequence = -1;
+				m_service  = pData[ m_cursor + 2];
+				m_cursor  += 3;
+			}
+			m_fnGroup = VTSFilters::ConfirmedServiceFnGroup( m_service );
+			break;
+
+		case segmentAckPDU:
+			// Not a part of a function group
+			break;
+
+		case errorPDU:
+			m_invokeID = pData[ m_cursor + 1];
+			m_service  = pData[ m_cursor + 2];
+			m_cursor  += 3;
+			m_fnGroup  = VTSFilters::ConfirmedServiceFnGroup( m_service );
+			break;
+
+		case rejectPDU:
+		case abortPDU:
+			m_invokeID = pData[ m_cursor + 1];
+			m_service  = pData[ m_cursor + 2];
+			m_cursor  += 3;
+			m_fnGroup  = 10;
+			break;
+		}
+	}
+
+	// Remove the header, leaving length remaining
+	m_length = packet.packetLen - m_cursor;
+	return false;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // VTSFilters
 
@@ -2815,218 +3101,25 @@ bool VTSFilters::TestPacket( const VTSPacket& packet )
 	if (GetSize() == 0)
 		return true;
 
-	// always accept script messages
-	if (packet.packetHdr.packetType == msgData)
+	VTSFilterInfo info;
+	return TestPacket( packet, info );
+}
+
+// This version saves a bit of time if the packet has already
+// been parsed
+bool VTSFilters::TestPacket( const VTSPacket& packet, VTSFilterInfo &theInfo )
+{
+	// Accept the packet if there are no filters
+	if (GetSize() == 0)
 		return true;
 
-	// get ready to dig into packet
-	int				pktLen = packet.packetLen
-	,				pktFnGroup = 0
-	;
-	BACnetOctet		*pktData = packet.packetData
-	;
-	BACnetAddress	pktSrcAddr = packet.packetHdr.packetSource
-	,				pktDestAddr = packet.packetHdr.packetDestination
-	;
-
-	// find the first octet in the packet
-	switch ((BACnetPIInfo::ProtocolType)packet.packetHdr.packetProtocolID) {
-		case BACnetPIInfo::ipProtocol:
-			// skip the fake ip header, address (4), and port (2)
-			pktData += 6;
-			pktLen -= 6;
-
-			// check for a BVLL header
-			if (*pktData == 0x81) {
-				pktLen--,pktData++;
-
-				// extract the function
-				int bipFn = (pktLen--,*pktData++);
-
-				// extract the length
-				int len = (pktLen--,*pktData++);
-				len = (len << 8) + (pktLen--,*pktData++);
-
-				// set the function group
-				switch ((BVLCFunction)bipFn) {
-					case bvlcResult:
-					case blvcWriteBroadcastDistributionTable:
-					case blvcReadBroadcastDistributionTable:
-					case blvcReadBroadcastDistributionTableAck:
-					case bvlcRegisterForeignDevice:
-					case bvlcReadForeignDeviceTable:
-					case bvlcReadForeignDeviceTableAck:
-					case bvlcDeleteForeignDeviceTableEntry:
-						pktFnGroup = 1;
-						break;
-
-					case blvcForwardedNPDU:
-						// extract the original source
-						pktSrcAddr.addrType = localStationAddr;
-						memcpy( pktSrcAddr.addrAddr, pktData, 6 );
-						pktSrcAddr.addrLen = 6;
-
-						pktData += 6;
-						pktLen -= 6;
-						break;
-
-						// dig deeper into these
-					case bvlcDistributeBroadcastToNetwork:
-					case bvlcOriginalUnicastNPDU:
-					case bvlcOriginalBroadcastNPDU:
-						break;
-				}
-			}
-			break;
-
-		case BACnetPIInfo::ethernetProtocol:
-			// skip over source (6), destination (6), length (2), and SAP (3)
-			pktData += 17;
-			pktLen -= 17;
-			break;
-
-		case BACnetPIInfo::arcnetProtocol:
-			// skip over source (1), destination (1), SAP (3), LLC (1)
-			pktData += 6;
-			pktLen -= 6;
-			break;
-
-		case BACnetPIInfo::mstpProtocol:
-			// skip over preamble
-			pktData += 2;
-			pktLen -= 2;
-
-			// look at the frame type
-			switch (pktLen--,*pktData++) {
-				case 0x00:		// Token Frame
-				case 0x01:		// Poll For Master Frame
-				case 0x02:		// Reply To Poll For Master Frame
-				case 0x03:		// Test Request Frame
-				case 0x04:		// Test Response Frame
-				case 0x07:		// Reply Postponed Frame
-					pktFnGroup = 2;
-					break;
-
-				case 0x05:		// Data Expecting Reply Frame
-				case 0x06:		// Data Not Expecting Reply Frame
-					break;
-			};
-
-			// skip over destination (1), source (1), length (2) and CRC (1)
-			pktData += 5;
-			pktLen -= 5;
-			break;
-
-		case BACnetPIInfo::ptpProtocol:
-			// ### interpreter is painful
-			pktFnGroup = 3;
-			break;
-
-		default:
-			return true;
-	}
-
-	// if the function group hasn't been set, dig into the NPCI header
-	if (pktFnGroup == 0) {
-		int					netLayerMessage, dnetPresent, snetPresent
-		;
-
-		// check the length
-		if (pktLen < 2)
-			return true;	// invalid length
-		
-		// only version 1 messages supported
-		if (*pktData++ != 0x01)
-			return true;	// version 1 only
-		
-		// extract the flags
-		netLayerMessage = (*pktData & 0x80);
-		dnetPresent = (*pktData & 0x20);
-		snetPresent = (*pktData & 0x08);
-//		expectingReply = (*pktData & 0x04);			// might be nice to check these someday
-//		networkPriority = (*pktData & 0x03);		// perhaps filter all critical messages?
-		pktData += 1;
-		pktLen -= 1;
-		
-		// extract the destination address
-		if (dnetPresent) {
-			int		dnet, dlen
-			;
-			
-			dnet = (pktLen--,*pktData++);
-			dnet = (dnet << 8) + (pktLen--,*pktData++);
-			dlen = (pktLen--,*pktData++);
-			
-			if (dnet == 0xFFFF)
-				pktDestAddr.GlobalBroadcast();
-			else {
-				if (dlen == 0)
-					pktDestAddr.RemoteBroadcast( dnet );
-				else {
-					pktDestAddr.RemoteStation( dnet, pktData, dlen );
-					pktData += dlen;
-				}
-			}
-		}
-		
-		// extract the source address, or copy the one from the endpoint
-		if (snetPresent) {
-			int		snet, slen
-			;
-			
-			snet = (pktLen--,*pktData++);
-			snet = (snet << 8) + (pktLen--,*pktData++);
-			slen = (pktLen--,*pktData++);
-			
-			pktSrcAddr.RemoteStation( snet, pktData, slen );
-			pktData += slen;
-		}
-		
-		// skip the hop count
-		if (dnetPresent)
-			pktLen--, pktData++;
-		
-		// all done for network layer messages
-		if (netLayerMessage)
-			pktFnGroup = 4;
-	}
-
-	// if the function group hasn't been set, dig into the application layer
-	if (pktFnGroup == 0) {
-		switch ((BACnetAPDUType)((*pktData) >> 4)) {
-			case confirmedRequestPDU:
-				pktFnGroup = ConfirmedServiceFnGroup( (pktData[0] & 0x08) ? pktData[5] : pktData[3] );
-				break;
-			case unconfirmedRequestPDU:
-				pktFnGroup = UnconfirmedServiceFnGroup( pktData[1] );
-				break;
-			case simpleAckPDU:
-				pktFnGroup = ConfirmedServiceFnGroup( pktData[2] );
-				break;
-			case complexAckPDU:
-				pktFnGroup = ConfirmedServiceFnGroup( (pktData[0] & 0x08) ? pktData[4] : pktData[2] );
-				break;
-
-			case segmentAckPDU:
-				// not a part of a function group
-				break;
-
-			case errorPDU:
-				pktFnGroup = ConfirmedServiceFnGroup( pktData[2] );
-				break;
-
-			case rejectPDU:
-			case abortPDU:
-				pktFnGroup = 10;
-				break;
-		}
-	}
-
+	// Dig into packet.  (Return here means NOT an APDU)
+	if (theInfo.Parse( packet ))
+		return true;
 
 	// look through the filters
 	for ( int i = 0; i < GetSize(); i++ ) {
-		VTSFilter	*fp = (VTSFilter *)GetAt(i)
-		;
+		VTSFilter *fp = (VTSFilter *)GetAt(i);
 
 		// check the port
 		if ((strlen(fp->m_strPortNameTemp) != 0) && (strcmp(fp->m_strPortNameTemp,packet.packetHdr.m_szPortName) != 0))
@@ -3035,18 +3128,18 @@ bool VTSFilters::TestPacket( const VTSPacket& packet )
 		// check address
 		if (fp->m_addr != 0) {
 			if (fp->m_addr == 1) {
-				if (!fp->TestAddress(pktSrcAddr))	// if source doesn't match, try next filter
+				if (!fp->TestAddress(theInfo.m_srcAddr))	// if source doesn't match, try next filter
 					continue;
 			} else
 			if (fp->m_addr == 2) {
-				if (!fp->TestAddress(pktDestAddr))	// if destination doesn't match, try next filter
+				if (!fp->TestAddress(theInfo.m_destAddr))	// if destination doesn't match, try next filter
 					continue;
 			} else
 			if (fp->m_addr == 3) {
-				if (fp->TestAddress(pktSrcAddr))	// if source matches, ok
+				if (fp->TestAddress(theInfo.m_srcAddr))		// if source matches, ok
 					;
 				else
-				if (fp->TestAddress(pktDestAddr))	// if destination matches, ok
+				if (fp->TestAddress(theInfo.m_destAddr))	// if destination matches, ok
 					;
 				else
 					continue;						// try next filter
@@ -3055,7 +3148,7 @@ bool VTSFilters::TestPacket( const VTSPacket& packet )
 		}
 
 		// check function group
-		if (fp->m_fnGroup && (fp->m_fnGroup != pktFnGroup))
+		if (fp->m_fnGroup && (fp->m_fnGroup != theInfo.m_fnGroup))
 			continue;
 
 		// everything matched, accept or reject it
@@ -4042,20 +4135,36 @@ IMPLEMENT_SERIAL(VTSDevice, CObject, 1);
 VTSDevice::VTSDevice()
 	: devClient(this), devServer(this)
 {
-	m_strName = "Untitled";
-	m_nInstance = 0;
-	m_fRouter = FALSE;
-	m_segmentation = noSegmentation;
-	m_nSegmentSize = 1024;
-	m_nWindowSize = 1;
-	m_nMaxAPDUSize = 1024;
+	// These member variables were introduced in version 1.5.
+	// They are almost all DUPLICATES of members of members of BACnetDevice
+	// and BACnetDeviceInfo, and THOSE are the values actually USED when
+	// sending and receiving.
+	// Between versions 1.5 and 3.5.3 inclusive, the m_ members are:
+	// - editable in the Device dialog
+	// - saved to disk in the Serialize methods
+	// - accessible via InternalReadProperty and InternalWriteProperty
+	// - used in WhoIs and IAm processing
+	// - NOT USED IN ANY COMMUNICATIONS
+	//
+	// This makes NO sense to me, as it means that there is no way to 
+	// adjust the parameters when the device is used for communications.
+	//
+	// Rather than back out the redundant variables, I have added CopyToLive(),
+	// called as appropriate during creation and update.
+	m_strName		= "Untitled";
+	m_nInstance		= 0;
+	m_fRouter		= FALSE;
+	m_segmentation	= noSegmentation;
+	m_nSegmentSize	= 1024;
+	m_nWindowSize	= 1;
+	m_nMaxAPDUSize	= 1024;
 	m_nNextInvokeID = 0;
-	m_nAPDUTimeout = 5000;
+	m_nAPDUTimeout	= 5000;
 	m_nAPDUSegmentTimeout = 1000;
-	m_nAPDURetries = 3;
-	m_nVendorID = 15;				// default to Cornell
+	m_nAPDURetries	= 3;
+	m_nVendorID		= 260;			// BACnet Stack at SourceForge
 
-	m_nEvents = 3;
+	m_nEvents		= 3;
 	m_services_supported = BACnetBitString(40);
 
 	// Set basic services supported
@@ -4066,13 +4175,35 @@ VTSDevice::VTSDevice()
 	m_services_supported.SetBit(0);	  // acknowledgeAlarm
 	m_services_supported.SetBit(1);	  // confirmedCOVNotification
 	m_services_supported.SetBit(2);	  // confirmedEventNotification
-	m_services_supported.SetBit(14);  // readPropertyMultiple -- Does not really support!!!!
+//	m_services_supported.SetBit(14);  // readPropertyMultiple -- Does not really support!!!!
 
 	devPort = NULL;
 	devPortEndpoint = NULL;
 //MAD_DB	devObjPropValueList = NULL;
+
+	// Copy to live objects
+	CopyToLive();
 }
 
+// Copy data to live device
+void VTSDevice::CopyToLive()
+{
+	// BACnetDevice	members
+	devDevice.deviceAPDUTimeout		= m_nAPDUTimeout;
+	devDevice.deviceAPDUSegmentTimeout = m_nAPDUSegmentTimeout;
+	devDevice.deviceAPDURetries		= m_nAPDURetries;
+	devDevice.deviceInst			= m_nInstance;
+	devDevice.deviceSegmentation	= (BACnetSegmentation)m_segmentation;
+	devDevice.deviceSegmentSize		= m_nSegmentSize;
+	devDevice.deviceWindowSize		= m_nWindowSize;
+	devDevice.deviceMaxAPDUSize		= m_nMaxAPDUSize;
+	devDevice.deviceNextInvokeID	= m_nNextInvokeID;
+//	devDevice.deviceVendorID		= m_nVendorID;
+
+	// BACnetRouter	devRouter;
+	// This is never set, and seems not to be used
+	// ? = m_fRouter;
+}
 
 void VTSDevice::Activate()
 {
@@ -4309,6 +4440,9 @@ void VTSDevice::Serialize(CArchive& ar)
 		}
 */
 	}
+
+	// Copy to live objects
+	CopyToLive();
 
 	m_devobjects.Serialize(ar);
 }
@@ -5233,3 +5367,120 @@ void VTSDoc::DeleteSelPacket(int index)
 
 	m_FrameContextsCS.Unlock();
 }
+
+// Process the packet as a possible message segment
+void VTSDoc::ProcessMessageSegment( const VTSPacket &pkt, VTSFilterInfo &theInfo )
+{
+	if (theInfo.m_hasSegment)
+	{
+		// Message segment
+		DWORD now = ::GetTickCount();
+		int ixFree = -1;
+		bool processed = false;
+
+		for (int ix = 0; ix < sizeof(m_pSegmentAccumulator)/sizeof(m_pSegmentAccumulator[0]); ix++)
+		{
+			if (m_pSegmentAccumulator[ix] != NULL)
+			{
+				if (m_pSegmentAccumulator[ix]->IsMatch( pkt, theInfo ))
+				{
+					if (m_pSegmentAccumulator[ix]->AddPacket( pkt, theInfo ))
+					{
+						// Last segment:  Add to the doc
+						WritePacket( m_pSegmentAccumulator[ix]->m_packet );
+
+						delete m_pSegmentAccumulator[ix];
+						m_pSegmentAccumulator[ix] = NULL;
+					}
+					processed = true;
+					break;
+				}
+				else if (m_pSegmentAccumulator[ix]->m_startTime - now > 60000)
+				{
+					// Context is more than 60 seconds old.  Delete it
+					delete m_pSegmentAccumulator[ix];
+					m_pSegmentAccumulator[ix] = NULL;
+					ixFree = ix;
+				}
+			}
+			else if (ixFree < 0)
+			{
+				ixFree = ix;
+			}
+		}
+
+		if (!processed && (ixFree >= 0))
+		{
+			// Start a segmentation sequence
+			m_pSegmentAccumulator[ixFree] = new VTSSegmentAccumulator( pkt, theInfo );
+		}
+	}
+}
+
+// Class to hold information about a series of VTSPacket segments
+// Used to accumulate an entire message
+VTSSegmentAccumulator::VTSSegmentAccumulator( const VTSPacket &packet, VTSFilterInfo &theInfo )
+: m_startTime( ::GetTickCount() )
+, m_packet(packet)
+, m_srcAddr(theInfo.m_srcAddr)
+, m_destAddr(theInfo.m_destAddr)
+, m_pduType(theInfo.m_pduType)
+, m_sequence(theInfo.m_sequence + 1)
+, m_service(theInfo.m_service)
+, m_invokeID(theInfo.m_invokeID)
+{
+	// m_packet contains a packet with the segmentation flags.
+	// We need to remove the two extra bytes (sequence number and window size)
+	// and recode the APDU header so that it will display correctly.
+
+	BACnetOctet *pTags = m_packet.packetData + theInfo.m_cursor;
+	BACnetOctet *pApduHeader = pTags;
+	if (m_pduType == confirmedRequestPDU)
+	{
+		pApduHeader -= 6;
+		pApduHeader[0] = (BACnetOctet)(pApduHeader[0] & 0xF3); // turn off SEG and MOR
+		pApduHeader[3] = (BACnetOctet)m_service;
+		pApduHeader += 4;
+	}
+	else
+	{
+		pApduHeader -= 5;
+		pApduHeader[0] = (BACnetOctet)(pApduHeader[0] & 0xF3); // turn off SEG and MOR
+		pApduHeader[2] = (BACnetOctet)m_service;
+		pApduHeader += 3;
+	}
+
+	memcpy( pApduHeader, pTags, theInfo.m_length-2 );
+	m_packet.packetLen -= 2;
+}
+
+bool VTSSegmentAccumulator::IsMatch( const VTSPacket &packet, VTSFilterInfo &theInfo ) const
+{
+	// Compare the integers first for speed of mismatch
+	return ((m_invokeID == theInfo.m_invokeID) &&
+			(m_pduType == theInfo.m_pduType) &&
+			(m_service == theInfo.m_service) &&
+			(m_srcAddr == theInfo.m_srcAddr) &&
+			(m_destAddr == theInfo.m_destAddr));
+}
+
+// Add the packet to the accumulator
+// Return true if the final segment has been added
+bool VTSSegmentAccumulator::AddPacket( const VTSPacket &packet, VTSFilterInfo &theInfo )
+{
+	if (theInfo.m_sequence == m_sequence)
+	{
+		// Expected segment.  Append its data
+		int newLen = m_packet.packetLen + theInfo.m_length;
+		BACnetOctetPtr pData = new BACnetOctet[ newLen ];
+
+		memcpy( pData, m_packet.packetData, m_packet.packetLen );
+		memcpy( pData + m_packet.packetLen, packet.packetData + theInfo.m_cursor, theInfo.m_length );
+
+		m_packet.NewDataRef( pData, newLen, true );
+		m_sequence++;
+	}
+
+	return !theInfo.m_moreFollows;
+}
+

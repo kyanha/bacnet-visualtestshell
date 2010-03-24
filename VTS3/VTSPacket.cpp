@@ -350,7 +350,7 @@ CString VTSPacket::GetSADRString(VTSDoc * pdoc, BOOL bAlias)
 	unsigned char slen = packetData[npduindex + index];
 
 	if(slen == 0)
-		return "";
+		return "broadcast - illegal";
 
 	if ( slen > 7 )
 		return "BAD07";    // error string can not be larger than this
@@ -411,7 +411,7 @@ CString VTSPacket::GetDADRString(VTSDoc * pdoc, BOOL bAlias)
 	unsigned char dlen = packetData[npduindex + 4];
 
 	if(dlen == 0)
-		return "";	
+		return "broadcast";
 
 	if (dlen > 7 )
 		return "BAD07";  // probably bad packet do not parse any more of the addressing
