@@ -87,6 +87,7 @@ void BACnetServerTSM::Confirmation( const BACnetAPDU &apdu )
 {
 	switch (apdu.apduType) {
 		case unconfirmedRequestPDU:
+			// TODO: wtf?
 			// allow server objects to send unconfirmed requests (usually these are 
 			// sent from a BACnetClient)
 			Response( apdu );
@@ -95,18 +96,34 @@ void BACnetServerTSM::Confirmation( const BACnetAPDU &apdu )
 		case confirmedRequestPDU:
 		case segmentAckPDU:
 			throw_(1); // ###
+			break;
 		
 		case complexAckPDU:
 			// initialize the segmentation support and size from the device
 			tsmSegmentation = tsmDevice->deviceSegmentation;
 			tsmSegmentSize = tsmDevice->deviceSegmentSize;
 
-			// compute the segment count
-			tsmSegmentCount = (apdu.pktLength + tsmSegmentSize - 4) / tsmSegmentSize;
+			// Compute the segment count:
+			// BACnetAPDUSegment::operator[] chops by tsmSegmentSize
+			// - A SEGMENTED ComplexAck header is 5 bytes
+			// - An UNSEGMENTED ComplexAck header is 3 bytes, 
+			// So an unsegmented message can have two more bytes of tagged data
+			if (apdu.pktLength <= tsmSegmentSize + 2)
+			{
+				tsmSegmentCount = 1;
+			}
+			else
+			{
+				tsmSegmentCount = (apdu.pktLength + (tsmSegmentSize - 1)) / tsmSegmentSize;
+			}
 			
 			// might not need segmentation
-			if (tsmSegmentCount <= 1)
-				goto fini;
+			if (tsmSegmentCount <= 1) {
+				StopTimer();
+				Response( apdu );
+				SetState( tsmIdle );
+				break;
+			}
 			
 			// verify request said the device supports a segmented reply
 			if (	(tsmSegmentation == segmentedTransmit)
@@ -120,6 +137,10 @@ void BACnetServerTSM::Confirmation( const BACnetAPDU &apdu )
 			}
 			
 			// prepare for segmented response
+			if (tsmSeg != NULL)
+			{
+				delete tsmSeg;
+			}
 			tsmSeg = new BACnetAPDUSegment( apdu, this );
 			
 			tsmSegmentsSent = 0;
@@ -136,13 +157,10 @@ void BACnetServerTSM::Confirmation( const BACnetAPDU &apdu )
 		case errorPDU:
 		case rejectPDU:
 		case abortPDU:
-fini:		StopTimer();
-			SetState( tsmIdle );
+		default:
+			StopTimer();
 			Response( apdu );
-			if (tsmSeg) {
-				delete tsmSeg;
-				tsmSeg = 0;
-			}
+			SetState( tsmIdle );
 			break;
 	}
 }
@@ -212,6 +230,10 @@ void BACnetServerTSM::Idle( const BACnetAPDU &apdu )
 				break;
 			}
 			
+			if (tsmSeg != NULL)
+			{
+				delete tsmSeg;
+			}
 			tsmSeg = new BACnetAPDUSegment( 2560, this );
 			tsmSeg->AddSegment( apdu );
 			
@@ -276,12 +298,8 @@ void BACnetServerTSM::SegmentedRequest( const BACnetAPDU &apdu )
 			// must be segmented
 			if (!apdu.apduSeg) {
 				StopTimer();
-				SetState( tsmIdle );
-				if (tsmSeg) {
-					delete tsmSeg;
-					tsmSeg = 0;
-				}
 				Response( BACnetAbortAPDU( tsmAddr, 1, tsmInvokeID, invalidAPDUInThisStateAbort ) );
+				SetState( tsmIdle );
 				break;
 			}
 			
@@ -296,12 +314,8 @@ void BACnetServerTSM::SegmentedRequest( const BACnetAPDU &apdu )
 			// will it fit?
 			if (tsmSeg->AddSegment( apdu ) != 0) {
 				StopTimer();
-				SetState( tsmIdle );
-				if (tsmSeg) {
-					delete tsmSeg;
-					tsmSeg = 0;
-				}
 				Response( BACnetAbortAPDU( tsmAddr, 1, tsmInvokeID, bufferOverflowAbort ) );
+				SetState( tsmIdle );
 			}
 			tsmLastSequenceNumber = (tsmLastSequenceNumber + 1) % 256;
 			
@@ -312,12 +326,14 @@ void BACnetServerTSM::SegmentedRequest( const BACnetAPDU &apdu )
 				// send an ack to the server
 				Response( BACnetSegmentAckAPDU( tsmAddr, tsmInvokeID, 0, 1, tsmLastSequenceNumber, tsmActualWindowSize ) );
 				
+				// TODO: is it really safe to change state BEFORE calling Request?
+
 				// make the state transition.  It is possible that the server will satisify 
 				// the request right off, and the response is going to be stored in the 
 				// tsmSeg ptr.
-				SetState( tsmAwaitResponse );
 				tempSeg = tsmSeg;
 				tsmSeg = 0;
+				SetState( tsmAwaitResponse );
 				
 				// send complete apdu to the workstation
 				Request( tempSeg->ResultAPDU() );
@@ -347,10 +363,6 @@ void BACnetServerTSM::SegmentedRequest( const BACnetAPDU &apdu )
 		case abortPDU:
 			StopTimer();
 			SetState( tsmIdle );
-			if (tsmSeg) {
-				delete tsmSeg;
-				tsmSeg = 0;
-			}
 			break;
 	}
 }
@@ -364,16 +376,12 @@ void BACnetServerTSM::SegmentedRequestTimeout( void )
 #if _TSMDebug
 	cout << "[BACnetServerTSM::SegmentedRequestTimeout]" << endl;
 #endif
-
-	// return to idle
-	SetState( tsmIdle );
-	if (tsmSeg) {
-		delete tsmSeg;
-		tsmSeg = 0;
-	}
 	
 	// send an error message back to the device
 	Response( BACnetAbortAPDU( tsmAddr, 1, tsmInvokeID, apduTimeoutAbort ) );
+
+	// return to idle
+	SetState( tsmIdle );
 }
 
 //
@@ -404,13 +412,9 @@ void BACnetServerTSM::AwaitResponse( const BACnetAPDU &apdu )
 			
 		case abortPDU:
 			StopTimer();
-			SetState( tsmIdle );
-			if (tsmSeg) {
-				delete tsmSeg;
-				tsmSeg = 0;
-			}
 			// forward a copy to the server
 			Request( apdu );
+			SetState( tsmIdle );
 			break;
 	}
 }
@@ -442,12 +446,9 @@ void BACnetServerTSM::SegmentedResponse( const BACnetAPDU &apdu )
 			// add how many packets were accepted
 			tsmSegmentsSent += (apdu.apduSeq + 256 - tsmInitialSequenceNumber) % 256 + 1;
 			if (tsmSegmentsSent == tsmSegmentCount) {
+				// All done
 				StopTimer();
 				SetState( tsmIdle );
-				if (tsmSeg) {
-					delete tsmSeg;
-					tsmSeg = 0;
-				}
 				break;
 			}
 			
@@ -463,10 +464,6 @@ void BACnetServerTSM::SegmentedResponse( const BACnetAPDU &apdu )
 		case abortPDU:
 			StopTimer();
 			SetState( tsmIdle );
-			if (tsmSeg) {
-				delete tsmSeg;
-				tsmSeg = 0;
-			}
 			break;
 	}
 }
@@ -488,9 +485,5 @@ void BACnetServerTSM::SegmentedResponseTimeout( void )
 	} else {
 		// return to idle
 		SetState( tsmIdle );
-		if (tsmSeg) {
-			delete tsmSeg;
-			tsmSeg = 0;
-		}
 	}
 }

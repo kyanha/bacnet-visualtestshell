@@ -28,7 +28,8 @@ static char THIS_FILE[] = __FILE__;
 //
 
 BACnetAPDUSegment::BACnetAPDUSegment( const BACnetAPDU &apdu, BACnetTSMPtr tp )
-	: segTSMPtr(tp)
+: segAPDU(0)	// no apdu buffer yet
+, segTSMPtr(tp)
 {
 	segAPDU.apduAddr				= apdu.apduAddr;
 	segAPDU.apduType				= apdu.apduType;
@@ -65,7 +66,8 @@ BACnetAPDUSegment::BACnetAPDUSegment( const BACnetAPDU &apdu, BACnetTSMPtr tp )
 //
 
 BACnetAPDUSegment::BACnetAPDUSegment( int ssize, BACnetTSMPtr tp )
-	: segTSMPtr(tp)
+: segAPDU(0)	// no apdu buffer yet
+, segTSMPtr(tp)
 {
 	segBuff = new BACnetOctet[ssize];
 	segBuffSize = ssize;
@@ -96,6 +98,7 @@ const BACnetAPDU& BACnetAPDUSegment::operator[](const int indx)
 	
 	// clear the contents
 	segAPDU.pktLength = 0;
+	int len;
 	
 	switch (segAPDU.apduType) {
 		case confirmedRequestPDU:
@@ -108,9 +111,11 @@ const BACnetAPDU& BACnetAPDUSegment::operator[](const int indx)
 				segAPDU.apduMor = (indx < (segTSMPtr->tsmSegmentCount - 1)); // more follows
 				segAPDU.apduSeq = indx % 256;						// sequence number
 				segAPDU.apduWin = segTSMPtr->tsmActualWindowSize;	// window size
+				len = (segAPDU.apduMor) ? segSize : (segLen % segSize);
 			} else {
 				segAPDU.apduSeg = false;
 				segAPDU.apduMor = false;
+				len = segLen;
 			}
 			
 			// segmented response accepted?
@@ -119,9 +124,7 @@ const BACnetAPDU& BACnetAPDUSegment::operator[](const int indx)
 					);
 			
 			// reference the content
-			segAPDU.SetBuffer( segBuff + (indx * segSize)
-				, (indx < (segLen / segSize)) ? segSize : (segLen % segSize)
-				);
+			segAPDU.SetBuffer( segBuff + (indx * segSize), len );
 			break;
 		
 		case complexAckPDU:
@@ -133,15 +136,15 @@ const BACnetAPDU& BACnetAPDUSegment::operator[](const int indx)
 				segAPDU.apduMor = (indx < (segTSMPtr->tsmSegmentCount - 1)); // more follows
 				segAPDU.apduSeq = indx % 256;						// sequence number
 				segAPDU.apduWin = segTSMPtr->tsmActualWindowSize;	// window size
+				len = (segAPDU.apduMor) ? segSize : (segLen % segSize);
 			} else {
 				segAPDU.apduSeg = false;
 				segAPDU.apduMor = false;
+				len = segLen;
 			}
 			
 			// reference the content
-			segAPDU.SetBuffer( segBuff + (indx * segSize)
-				, (indx < (segLen / segSize)) ? segSize : (segLen % segSize)
-				);
+			segAPDU.SetBuffer( segBuff + (indx * segSize), len );
 			break;
 		
 		default:
@@ -175,20 +178,31 @@ int BACnetAPDUSegment::AddSegment( const BACnetAPDU &apdu )
 		segAPDU.apduNetworkPriority		= apdu.apduNetworkPriority;
 		segAPDU.apduExpectingReply		= apdu.apduExpectingReply;
 
-		segAPDU.pktBuffer = segBuff;
-		segAPDU.pktLength = 0;
+		// DO NOT set these here: let operator[] or ResultAPDU do it
+//		segAPDU.pktBuffer = segBuff;
+//		segAPDU.pktLength = 0;
 	}
-	
-	// check for enough space
+
 	if ((segLen + apdu.pktLength) > segBuffSize)
-		return -1 /* out of buffer space */;
+	{
+		// Allocate extra space: twice as much as we need
+		segBuffSize = 2*(segLen + apdu.pktLength);
+		if (segBuffSize < 1024) 
+			segBuffSize = 1024;
+		
+		BACnetOctet *pNew = new BACnetOctet[ segBuffSize ];
+		memcpy( pNew, segBuff, segLen );
+		delete[] segBuff;
+		segBuff = pNew;
+	}
 	
 	// copy variable part of APDU into buffer
 	memcpy( segBuff + segLen, apdu.pktBuffer, (size_t)apdu.pktLength );
 	segLen += apdu.pktLength;
 	
-	// set the length, might be the last one
-	segAPDU.pktLength = segLen;
+	// DO NOT set this: use segLen (as from BACnetClientTSM::AwaitConfirmationTimeout)
+	// or let operator[] or ResultAPDU set the APDU when needed
+//	segAPDU.pktLength = segLen;
 	
 	return 0;
 }
@@ -199,5 +213,7 @@ int BACnetAPDUSegment::AddSegment( const BACnetAPDU &apdu )
 
 const BACnetAPDU& BACnetAPDUSegment::ResultAPDU( void )
 {
+	// Set buffer to the entire multi-segment data
+	segAPDU.SetBuffer( segBuff, segLen );
 	return segAPDU;
 }

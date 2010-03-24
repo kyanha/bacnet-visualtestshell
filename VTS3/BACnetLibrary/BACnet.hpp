@@ -2156,6 +2156,7 @@ class BACnetAPDU : public BACnetAPDUEncoder  {
 		BACnetAPDU( int initBuffSize = kDefaultBufferSize );		// new buffer
 		BACnetAPDU( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
 		BACnetAPDU( const BACnetAPDU &pdu );						// copy constructor
+		~BACnetAPDU();
 
 		void Encode( BACnetAPDUEncoder& enc ) const;				// encode
 		void Decode( const BACnetAPDUDecoder& dec );				// decode
@@ -2372,14 +2373,14 @@ enum BACnetSegmentation {
 
 class BACnetDeviceInfo {
 	public:
-		unsigned int	deviceInst;
+		unsigned int			deviceInst;
 		BACnetAddress			deviceAddr;
 		BACnetSegmentation		deviceSegmentation;			// supports segments requests
 		int						deviceSegmentSize;			// how to divide up chunks
 		int						deviceWindowSize;			// how many to send
 		int						deviceMaxAPDUSize;			// maximum APDU size
 		int						deviceNextInvokeID;			// next invoke ID for client
-		int						deviceVendorID;				// which vendor is this
+//		int						deviceVendorID;				// which vendor is this
 		
 		BACnetDeviceInfo		*deviceNext;				// list of information blocks
 	};
@@ -2435,13 +2436,8 @@ typedef BACnetTSM *BACnetTSMPtr;
 
 class BACnetAPDUSegment {
 	public:
-		BACnetTSMPtr			segTSMPtr;				// invoke ID, seg size, window stuff
-		
 		BACnetAPDU				segAPDU;				// returned PDU
-		BACnetOctet				*segBuff;				// pointer to buffer
-		int						segBuffSize;			// allocated size
-		int						segLen;					// current length
-		
+	
 		BACnetAPDUSegment( const BACnetAPDU &apdu, BACnetTSMPtr tp );
 		BACnetAPDUSegment( int ssize, BACnetTSMPtr tp );
 		~BACnetAPDUSegment( void );
@@ -2450,6 +2446,14 @@ class BACnetAPDUSegment {
 		int AddSegment( const BACnetAPDU &apdu );		// add on end
 		
 		const BACnetAPDU &ResultAPDU( void );			// return complete message
+
+		int TotalLength() const { return segLen; }
+
+	protected:
+		BACnetTSMPtr			segTSMPtr;				// invoke ID, seg size, window stuff
+		BACnetOctet				*segBuff;				// pointer to buffer
+		int						segBuffSize;			// allocated size
+		int						segLen;					// current length
 	};
 
 typedef BACnetAPDUSegment *BACnetAPDUSegmentPtr;
@@ -2506,22 +2510,8 @@ class BACnetTSM : public BACnetTask {
 		void FillWindow( int seqNum );
 		int InWindow( int seqNum, int initSeqNum );
 		
-#if _TSMDebug
 	protected:
-		inline void SetState( BACnetTSMState newState )
-		{
-			cout << (unsigned long)this
-				<< " from " << tsmState << " to " << newState
-				<< endl;
-			tsmState = newState;
-		}
-#else
-	protected:
-		inline void SetState( BACnetTSMState newState )
-		{
-			tsmState = newState;
-		}
-#endif
+		void SetState( BACnetTSMState newState );
 	};
 
 //
