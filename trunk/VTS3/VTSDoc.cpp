@@ -3335,6 +3335,12 @@ void VTSServer::Indication( const BACnetAPDU &apdu )
 			case iAm:
 				IAm( apdu );
 				break;
+			
+			// NOTE: if you add a service here, be sure to update the
+			// associated services-supported bit in VTSDevice::VTSDevice()
+
+			default:
+				break;
 		}
 	} else
 	if (apdu.apduType == confirmedRequestPDU) {
@@ -3366,6 +3372,10 @@ void VTSServer::Indication( const BACnetAPDU &apdu )
 			case acknowledgeAlarm:
 				AcknowledgeAlarm(apdu);
 				break;
+			
+			// NOTE: if you add a service here, be sure to update the
+			// associated services-supported bit in VTSDevice::VTSDevice()
+
 			default:
 				// madanner 5/03, needs address for return
 				{
@@ -3375,6 +3385,7 @@ void VTSServer::Indication( const BACnetAPDU &apdu )
 				Response(rejectNoService);
 //				Response( BACnetRejectAPDU( apdu.apduInvokeID, unrecognizedService ) );
 				}
+				break;
 		}
 	} else
 		;
@@ -3480,7 +3491,9 @@ void VTSServer::ReadProperty( const BACnetAPDU &apdu )
 			arryIndx.Decode( dec );
 		}
 
-		TRACE3( "ReadProperty %d, %d, %d\n", objId.objID, propId.enumValue, arryIndx.uintValue );
+		TRACE( "ReadProperty %d-%d, %d, %d\n", 
+			   objId.GetObjectType(), objId.GetObjectInstance(), 
+			   propId.enumValue, arryIndx.uintValue );
 
 		// build an ack
 		BACnetComplexAckAPDU	ack( readProperty, apdu.apduInvokeID );
@@ -3675,7 +3688,9 @@ void VTSServer::WriteProperty( const BACnetAPDU &apdu )
 			dec.ExamineTag( t );
 		}
 
-		TRACE3( "WriteProperty %d, %d, %d\n", objId.objID, propId.enumValue, arryIndx.uintValue );
+		TRACE( "WriteProperty %d-%d, %d, %d\n", 
+			   objId.GetObjectType(), objId.GetObjectInstance(), 
+			   propId.enumValue, arryIndx.uintValue );
 
 		// build an ack
 		BACnetSimpleAckAPDU	ack( writeProperty, apdu.apduInvokeID );
@@ -4168,14 +4183,18 @@ VTSDevice::VTSDevice()
 	m_services_supported = BACnetBitString(40);
 
 	// Set basic services supported
-	m_services_supported.SetBit(12);  // readProperty,
-	m_services_supported.SetBit(17);  // deviceCommunicationControl
-	m_services_supported.SetBit(20);  // reinitializeDevice
-	m_services_supported.SetBit(34);  // who-is
 	m_services_supported.SetBit(0);	  // acknowledgeAlarm
 	m_services_supported.SetBit(1);	  // confirmedCOVNotification
 	m_services_supported.SetBit(2);	  // confirmedEventNotification
+	m_services_supported.SetBit(3);	  // getAlarmSummary
+	m_services_supported.SetBit(12);  // readProperty,
 //	m_services_supported.SetBit(14);  // readPropertyMultiple -- Does not really support!!!!
+	m_services_supported.SetBit(15);  // writeProperty,
+	m_services_supported.SetBit(17);  // deviceCommunicationControl
+	m_services_supported.SetBit(20);  // reinitializeDevice
+	m_services_supported.SetBit(26);  // i-am
+	m_services_supported.SetBit(34);  // who-is
+	m_services_supported.SetBit(39);  // getEventInformation
 
 	devPort = NULL;
 	devPortEndpoint = NULL;
@@ -5450,7 +5469,7 @@ VTSSegmentAccumulator::VTSSegmentAccumulator( const VTSPacket &packet, VTSFilter
 		pApduHeader += 3;
 	}
 
-	memcpy( pApduHeader, pTags, theInfo.m_length-2 );
+	memcpy( pApduHeader, pTags, theInfo.m_length );
 	m_packet.packetLen -= 2;
 }
 
