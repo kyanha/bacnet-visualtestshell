@@ -149,6 +149,10 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 				break;
 			case bakRestoreMsgProtocol:			// added by Jingbo Gao, Sep 20 2004
 				NetworkSniffer::interp_BakRestoreMessage( header, length );
+				break;
+			default:
+				throw( "unknown protocol" );
+				break;
 		}
 	}
 

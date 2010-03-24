@@ -1184,7 +1184,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
   /* This function is the Application Layer interpreter for BACnet  */
 {
    unsigned char buff;   /* 1 octet buffer for manipulation */
-   unsigned char x,ID,SEG,MOR,SA,SEQ,NAK,SRV;
+   unsigned char x,ID,SEG,MOR,SEQ,NAK,SRV;
    unsigned char pdu_type;
    unsigned char service_choice;
    unsigned int len, tagbuff;
@@ -1207,6 +1207,13 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 				tagged         = 4 + 2*x;
                 ID = pif_get_byte(2);
                 SEG = x;
+                if (SEG) {
+					MOR = (pif_get_byte(0)&0x04)>>2;
+					SEQ = pif_get_byte(3);
+					sprintf(moreDetail,"Segment %u %s", SEQ, (MOR) ? "More follows" : "Final segment" );
+				}
+                else {
+
 				switch (service_choice){
 				case 0:	 /* Acknowledge Alarm Request */
 					{
@@ -1541,37 +1548,13 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					}
 					break;
 				default:
-					sprintf(moreDetail, "");
+					moreDetail[0] = 0;
 					break;
 				}
-               
-				if (SEG) {
-					MOR = (pif_get_byte(0)&0x04)>>2;
-					SA  = (pif_get_byte(0)&0x02)>>1;
-					SEQ = pif_get_byte(3);
-					if(moreDetail[0] == 0){
-						sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SA=%u, SEQ=%u",
-							BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
-							ID, SEG, MOR, SA, SEQ);
-					}
-					else{
-						sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SA=%u, SEQ=%u, %s",
-							BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
-							ID, SEG, MOR, SA, SEQ, moreDetail);
-					}
 				}
-                else{
-					if(moreDetail[0] == 0){
-						sprintf(outstr,"%s, ID=%u",
-							BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
-							ID);
-					}
-					else{
-						sprintf(outstr,"%s, ID=%u, %s",
-							BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
-							ID, moreDetail);
-					}
-                }
+				sprintf(outstr,"%s, ID=%u %s",
+						BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
+						ID, moreDetail);
                 break;
         case 1: /* Unconfirmed service request */
                 service_choice = pif_get_byte(1);
@@ -1862,12 +1845,10 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
                 if (SEG) {
 					MOR = (pif_get_byte(0)&0x04)>>2;
 					SEQ = pif_get_byte(2);
-					sprintf(outstr,"%s, ID=%u, SEG=%u, MOR=%u, SEQ=%u",
-							BAC_STRTAB_PDU_types.EnumString(pdu_type, "PDU_Type"),
-							ID, SEG, MOR, SEQ);
+					sprintf(moreDetail,"Segment %u %s", SEQ, (MOR) ? "More follows" : "Final segment" );
 				}
-                else{
-					switch(nService){
+                else {
+					switch(nService) {
 					//Modified by Zhu Zhenhua, 2004-12-21, for task #544511
 					case 12: /* Read Property Ack */   
 						{
@@ -1912,26 +1893,23 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						}
 						break;
 					default:
-						sprintf(moreDetail, "%s-ACK", BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(nService,"ConfRq"));
+						moreDetail[0] = 0;
 						break;
 					}
-/*
-						                    sprintf(outstr,"%s, ID=%u, %s",
-												PDU_types[pdu_type],
-												ID, moreDetail);*/
+				}
 						
-                    sprintf(outstr,"%s-ACK, ID=%u, %s",
+				sprintf(outstr,"%s-ACK, ID=%u, %s",
 						BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(nService,"ConfRQ"),
 						ID, moreDetail);
-				}
 			}
 			break;
         case 4: /* Segment ACK */
                 ID = pif_get_byte(1);
-                NAK = (pif_get_byte(0)&0x02)>>1UL;
-                SRV = pif_get_byte(0)&0x01;
-                sprintf(outstr,"%s, ID=%u, NAK=%u, SRV=%u",
-						BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, NAK, SRV);
+                NAK = (pif_get_byte(0) & 0x02) >> 1;
+                SRV = pif_get_byte(0) & 0x01;
+                sprintf(outstr,"%s ID=%u NAK=%u SRV=%u SEQ=%u",
+						BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), 
+						ID, NAK, SRV, pif_get_byte(2));
                 break;
         case 5: /* Error */
             {
@@ -2128,16 +2106,25 @@ void show_confirmed( unsigned char x )
    if (x & 0x08)  {               /* SEG = 1 */
      bac_show_byte("Sequence Number","%d");
      bac_show_byte("Proposed Window Size","%d");
+
+	 int service_type = pif_get_byte(0);
+	 sprintf(get_int_line(pi_data_current,pif_offset,1), "Service Choice %s",
+		     BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_type, "ConfRq"));
+	 pif_offset++;
+
+     bac_show_nbytes( pif_end_offset - pif_offset, "[segmented data]" );
    }
-   
-   pif_show_space();
-   if ((pif_get_byte(0) >= max_confirmed_services) ||
-	   (show_confirmed_service[pif_get_byte(0)] == NULL)) 
+   else
    {
-      bac_show_byte("Error: Unsupported Confirmed Service","%u");
-   }
-   else {
-      (*show_confirmed_service[pif_get_byte(0)])(); /* call the service interpreter function */
+      pif_show_space();
+      if ((pif_get_byte(0) >= max_confirmed_services) ||
+	      (show_confirmed_service[pif_get_byte(0)] == NULL)) 
+	  {
+         bac_show_byte("Error: Unsupported Confirmed Service","%u");
+	  }
+      else {
+         (*show_confirmed_service[pif_get_byte(0)])(); /* call the service interpreter function */
+	  }
    }
 }
 
@@ -2260,20 +2247,24 @@ void show_complex_ack( unsigned char x )
    if (x & 0x08) /* SEG = 1 */ {
      pif_show_byte   ("Sequence Number             = %d");
      bac_show_byte("Proposed Window Size","%d");
-   }
-   pif_show_space();
-   /* call the confirmed service ACK interpreter function */
-   if ((pif_get_byte(0) >= max_confirmed_services) ||
-	   (show_confirmed_service_ACK[pif_get_byte(0)] == NULL)) 
-   {
-      bac_show_byte("Error: Unsupported Complex ACK Type","%u");
-   }
-   else if (x & 0x08) /* SEG = 1 */ 
-   {
-     pif_show_space();
+
+	 int service_type = pif_get_byte(0);
+	 sprintf(get_int_line(pi_data_current,pif_offset,1), "Service Choice %s",
+		     BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_type, "ConfRq"));
+	 pif_offset++;
+
      bac_show_nbytes( pif_end_offset - pif_offset, "[segmented data]" );
-   } else {
-      (*show_confirmed_service_ACK[pif_get_byte(0)])();
+   }
+   else {
+      /* call the confirmed service ACK interpreter function */
+      if ((pif_get_byte(0) >= max_confirmed_services) ||
+   	      (show_confirmed_service_ACK[pif_get_byte(0)] == NULL)) 
+	  {
+         bac_show_byte("Error: Unsupported Complex ACK Type","%u");
+	  }
+      else {
+         (*show_confirmed_service_ACK[pif_get_byte(0)])();
+	  }
    }
 }
 
