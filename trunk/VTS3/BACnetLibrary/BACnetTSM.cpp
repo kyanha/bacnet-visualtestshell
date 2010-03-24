@@ -35,6 +35,10 @@ BACnetTSM::BACnetTSM( BACnetDevicePtr dp )
 
 BACnetTSM::~BACnetTSM( void )
 {
+	if (tsmSeg != NULL)
+	{
+		TRACE( "tsmSeg %p not NULL", tsmSeg );
+	}
 }
 
 //
@@ -103,4 +107,20 @@ void BACnetTSM::FillWindow( int seqNum )
 int BACnetTSM::InWindow( int seqNum, int initSeqNum )
 {
 	return ((((seqNum + 256 - initSeqNum) % 256) < tsmActualWindowSize) ? 1 : 0);
+}
+
+void BACnetTSM::SetState( BACnetTSMState newState )
+{
+#if _TSMDebug
+	cout << (unsigned long)this
+		 << " from " << tsmState << " to " << newState
+		 << endl;
+#endif
+	if ((newState == tsmIdle) && (tsmSeg != NULL))
+	{
+		delete tsmSeg;
+		tsmSeg = NULL;
+	}
+	
+	tsmState = newState;
 }

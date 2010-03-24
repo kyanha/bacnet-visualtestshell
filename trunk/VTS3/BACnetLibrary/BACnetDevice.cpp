@@ -24,18 +24,18 @@ BACnetDevice::BACnetDevice( void )
 	: deviceClients(0), deviceServers(0)
 {
 	// defaults
-	deviceSegmentation = segmentedBoth;		// supports segments requests
-	deviceWindowSize = 5;					// how many to send
-	deviceNextInvokeID = 1;					// next invoke ID for client
-	deviceNext = 0;							// empty list of known devices
+	deviceSegmentation	= segmentedBoth;	// supports segments requests
+	deviceWindowSize	= 5;				// how many to send
+	deviceNextInvokeID	= 1;				// next invoke ID for client
+	deviceNext			= 0;				// empty list of known devices
 	
 	// these parameters should come from the endpoint somehow
-	deviceSegmentSize = 1024;				// how big to divide up chunks
-	deviceMaxAPDUSize = 1024;				// maximum APDU size
+	deviceSegmentSize	= 1024;				// how big to divide up chunks
+	deviceMaxAPDUSize	= 1024;				// maximum APDU size
 	
-	deviceAPDUTimeout = 3000;				// how long to wait for ack
+	deviceAPDUTimeout	= 3000;				// how long to wait for ack
 	deviceAPDUSegmentTimeout = 1000;		// how long to wait between segments
-	deviceAPDURetries = 5;					// how many retries are acceptable
+	deviceAPDURetries	= 5;				// how many retries are acceptable
 }
 
 //
@@ -303,7 +303,7 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 			
 			// find the client
 			while (cp)
-				if ((cp->clientTSM.tsmInvokeID == apdu.apduInvokeID) && (cp->clientTSM.tsmInvokeID != tsmIdle)) {
+				if ((cp->clientTSM.tsmInvokeID == apdu.apduInvokeID) && (cp->clientTSM.tsmState != tsmIdle)) {
 					cp->clientTSM.Confirmation( apdu );
 					break;
 				} else
@@ -321,7 +321,7 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 			
 			// find the client
 			while (cp)
-				if ((cp->clientTSM.tsmInvokeID == apdu.apduInvokeID) && (cp->clientTSM.tsmInvokeID != tsmIdle)) {
+				if ((cp->clientTSM.tsmInvokeID == apdu.apduInvokeID) && (cp->clientTSM.tsmState != tsmIdle)) {
 					cp->clientTSM.Confirmation( apdu );
 					break;
 				} else
@@ -346,7 +346,7 @@ void BACnetDevice::Confirmation( const BACnetNPDU &npdu )
 			if (apdu.apduSrv) {
 				// server sent the abort, find the client
 				while (cp)
-					if ((cp->clientTSM.tsmInvokeID == apdu.apduInvokeID) && (cp->clientTSM.tsmInvokeID != tsmIdle)) {
+					if ((cp->clientTSM.tsmInvokeID == apdu.apduInvokeID) && (cp->clientTSM.tsmState != tsmIdle)) {
 						cp->clientTSM.Confirmation( apdu );
 						break;
 					} else

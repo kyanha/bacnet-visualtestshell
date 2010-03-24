@@ -128,7 +128,7 @@ void BACnetAPDUEncoder::CheckSpace( int len )
 		throw_(2);
 	
 	// copy the old data
-	memcpy( newBuffer, pktBuffer, pktBuffSize );
+	memcpy( newBuffer, pktBuffer, pktLength );
 	pktBuffSize = newSize;
 	
 	// delete the old buffer, use the new one

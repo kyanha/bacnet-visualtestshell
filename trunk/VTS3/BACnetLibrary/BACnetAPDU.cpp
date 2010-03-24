@@ -59,6 +59,10 @@ BACnetAPDU::BACnetAPDU( const BACnetAPDU &pdu )
 {
 }
 
+BACnetAPDU::~BACnetAPDU()
+{
+}
+
 //
 //	BACnetAPDU::Encode
 //

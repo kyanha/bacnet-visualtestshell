@@ -257,7 +257,12 @@ void BACnetRouter::ProcessNPDU( BACnetRouterAdapterPtr adapter, const BACnetNPDU
 			if (!dnetPresent) {
 				// it could be local and the device is local
 				passItOn = (srcAddr.addrType == localStationAddr)
-					&& (deviceLocalNetwork == kBACnetRouterLocalNetwork)
+					// JLH 3/18/2010 kBACnetRouterLocalNetwork is zero, which means
+					// reception by the Device worked on if its Port was set on
+					// Network 0.
+					// Changed to "source network must match the device"
+//					&& (deviceLocalNetwork == kBACnetRouterLocalNetwork)
+					&& (srcAddr.addrNet == deviceLocalNetwork)
 					;
 				// it could be remote and it matches the device's network (it was sent as a local broadcast)
 				passItOn |= (srcAddr.addrType == remoteStationAddr);
