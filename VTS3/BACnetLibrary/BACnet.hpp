@@ -660,7 +660,8 @@ class BACnetObjectIdentifier : public BACnetEncodeable {
 		void Decode( BACnetAPDUDecoder& dec );								// decode
 		void Encode( char *enc ) const;
 		void Decode( const char *dec );
-		unsigned int GetObjectType() const{ return (objID>> 22)&0x000003ff;} //Added by Zhu Zhenhua 2003-7-22, to Get Object Type
+		unsigned int GetObjectType() const{ return (objID>> 22) & 0x000003ff;} //Added by Zhu Zhenhua 2003-7-22, to Get Object Type
+		unsigned int GetObjectInstance() const{ return objID & 0x003fffff;}
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
