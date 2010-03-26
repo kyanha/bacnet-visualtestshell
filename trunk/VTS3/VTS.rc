@@ -2501,8 +2501,8 @@ BEGIN
                     7,136,185,WS_EX_DLGMODALFRAME
     CONTROL         "",IDC_DEVTREEHOLDER,"Static",SS_BLACKFRAME | 
                     WS_DISABLED | WS_GROUP,150,7,215,167
-    PUSHBUTTON      "Import",IDC_DEVIMPORT,149,178,50,14,WS_GROUP
-    PUSHBUTTON      "Export",IDC_DEVEXPORT,204,178,50,14,NOT WS_TABSTOP
+    PUSHBUTTON      "&Import",IDC_DEVIMPORT,149,178,50,14,WS_GROUP
+    PUSHBUTTON      "&Export",IDC_DEVEXPORT,204,178,50,14,NOT WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,260,178,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,315,178,50,14,NOT WS_TABSTOP
 END
@@ -2643,26 +2643,26 @@ FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
 END
 
-IDD_DEVTREEOBJ DIALOG  0, 0, 212, 94
+IDD_DEVTREEOBJ DIALOGEX 0, 0, 212, 94
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "Object ID"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "An object identifier is made of two components: an object type and an instance number.",
-                    IDC_STATIC,57,72,150,17
-    LTEXT           "Object Type:",IDC_STATIC,5,7,42,8
-    LTEXT           "Instance:",IDC_STATIC,5,23,30,8
-    LTEXT           "Reserved Type:",IDC_STATIC,5,39,52,8
-    LTEXT           "Vendor Type:",IDC_STATIC,5,55,44,8
-    LTEXT           "Range: 0...4194303",IDC_STATIC,107,23,67,10
-    CONTROL         "Range: 22...127",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | 
-                    WS_GROUP,107,39,67,10
-    LTEXT           "Range: 128..1023",IDC_STATIC,107,55,67,10
+    LTEXT           "&Object Type:",IDC_STATIC,5,7,42,8
     COMBOBOX        IDC_OBJTYPECOMBO,60,5,100,80,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Instance:",IDC_STATIC,5,23,30,8
     EDITTEXT        IDC_INSTANCE,60,21,43,12,ES_AUTOHSCROLL
+    LTEXT           "Range: 0...4194303",IDC_STATIC,107,23,67,10
+    LTEXT           "&Reserved Type:",IDC_STATIC,5,39,52,8
     EDITTEXT        IDC_RESERVED,60,37,43,12,ES_AUTOHSCROLL | WS_DISABLED
+    CONTROL         "Range: 22...127",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | 
+                    WS_GROUP,107,39,67,10
+    LTEXT           "&Vendor Type:",IDC_STATIC,5,55,44,8
     EDITTEXT        IDC_VENDOR,60,53,43,12,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Range: 128..1023",IDC_STATIC,107,55,67,10
+    LTEXT           "An object identifier is made of two components: an object type and an instance number.",
+                    IDC_STATIC,57,72,150,17
 END
 
 IDD_DEVTREEPROP DIALOGEX 0, 0, 198, 42
@@ -2671,28 +2671,28 @@ STYLE DS_SETFONT | WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CAPTION |
 CAPTION "Property"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "Description:",IDC_STATIC,7,8,40,10
-    LTEXT           "ID:",IDC_STATIC,7,23,10,8
+    LTEXT           "&Description:",IDC_STATIC,7,8,40,10
     COMBOBOX        IDC_PROPCOMBO,52,5,136,108,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_GROUP | WS_TABSTOP
+    LTEXT           "&ID:",IDC_STATIC,7,23,10,8
     EDITTEXT        IDC_PROPID,51,20,30,12,ES_AUTOHSCROLL
-    CONTROL         "Treat Value(s) As Array",IDC_PROPISARRAY,"Button",
+    CONTROL         "Treat Value(s) as &Array",IDC_PROPISARRAY,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,99,23,89,10
 END
 
-IDD_DEVTREEVALUE DIALOG  0, 0, 191, 138
+IDD_DEVTREEVALUE DIALOGEX 0, 0, 191, 138
 STYLE DS_SETFONT | WS_CHILD | WS_VISIBLE | WS_DISABLED | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Value"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "Data Type:",IDC_STATIC,3,7,36,10
-    LTEXT           "Context:",IDC_STATIC,3,22,36,10
+    LTEXT           "Data &Type:",IDC_STATIC,3,7,36,10
+    COMBOBOX        IDC_TYPECOMBO,45,4,100,140,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_GROUP | WS_TABSTOP
+    LTEXT           "&Context:",IDC_STATIC,3,22,36,10
+    EDITTEXT        IDC_CONTEXT,45,20,35,12,ES_AUTOHSCROLL
     CONTROL         "",IDC_TYPESHEETHOLDER,"Static",SS_BLACKFRAME,4,38,182,
                     95
-    COMBOBOX        IDC_TYPECOMBO,45,4,100,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_CONTEXT,45,20,35,12,ES_AUTOHSCROLL
 END
 
 IDD_BTYPEGENERIC DIALOG  0, 0, 212, 94
@@ -3338,12 +3338,12 @@ BEGIN
                     WS_TABSTOP,15,51,40,10
 END
 
-IDD_DEVICESTATUS DIALOG  0, 0, 144, 83
+IDD_DEVICESTATUS DIALOGEX 0, 0, 144, 83
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "BACnet DeviceStatus"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,16,58,46,15
+    DEFPUSHBUTTON   "OK",IDOK,16,59,46,15
     PUSHBUTTON      "Cancel",IDCANCEL,79,59,46,15
     COMBOBOX        IDC_ENUMRATECOMBO,65,19,61,50,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
@@ -4712,19 +4712,19 @@ BEGIN
     EDITTEXT        IDC_EXLIMIT,87,92,76,12,ES_AUTOHSCROLL
 END
 
-IDD_DEVTREEOPT DIALOG  0, 0, 186, 166
+IDD_DEVTREEOPT DIALOGEX 0, 0, 186, 166
 STYLE DS_SETFONT | WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Options"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    CONTROL         "Supports Alarm Summary",IDC_SASUM,"Button",
+    CONTROL         "Supports &Alarm Summary",IDC_SASUM,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,22,94,10
-    CONTROL         "Supports Event Summary",IDC_SESUM,"Button",
+    CONTROL         "Supports Event &Summary",IDC_SESUM,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,34,95,10
-    CONTROL         "Supports Event Information",IDC_SINFO,"Button",
+    CONTROL         "Supports Event &Information",IDC_SINFO,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,47,101,10
     EDITTEXT        IDC_EVENTS,7,63,25,14,ES_AUTOHSCROLL
-    LTEXT           "Number of Events",IDC_STATIC,44,65,68,10
+    LTEXT           "&Number of Events",IDC_STATIC,44,65,68,10
 END
 
 IDD_INCONSISTENT_PARS DIALOG  0, 0, 206, 190
@@ -7122,7 +7122,7 @@ BEGIN
     IDS_BTYPE5              "Input format:  00.00000"
     IDS_BTYPE6              "Octet format:  X'hhhh'  or hhhh where 'h' is a hex digit."
     IDS_BTYPE7              "Enter a character string without quotes.  If quotes are used they will be a part of the character string."
-    IDS_BTYPE8              "BitString format:  0001101101 or B'10110101'"
+    IDS_BTYPE8              "BitString format:  {T,F,T,T,F,T,F,T} or B'10110101'"
     IDS_BTYPE9              "Enter an integer for the enumeration value."
 END
 
