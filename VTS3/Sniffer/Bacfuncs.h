@@ -991,6 +991,11 @@ bool BACnetSequence::Integer( int theTag, const char *pTitle, BACnetSequenceParm
 	bool retval = Vet( theTag, SIGNED, theType );
 	if (retval)
 	{
+		if ((pTitle == NULL) || (*pTitle == 0))
+		{
+			pTitle = "Integer";
+		}
+		
 		show_head_signed( 1, pTitle, theTag);
 		unsigned int len = show_tag();
 
@@ -1690,7 +1695,8 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case DEVICE_ADDRESS_BINDING:  /* sequence of BACnetAddressBinding */
 		seq.ListOf();
 		while (seq.HasListElement()) {
-		   show_bacnet_address( seq, "" );
+			seq.ObjectIdentifier( -1, "deviceObjectIdentifier" );
+			show_bacnet_address( seq, "deviceAddress" );
 		}
 	   break;
 	case DEVICE_TYPE: /*  Character String  */
@@ -1958,7 +1964,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case PRIORITY_ARRAY: /* BACnetPriorityArray  */
 		while (seq.ArrayOf(prop_idx)) 
 		{
-			show_bac_priority_value( seq );
+			show_bac_priority_value( seq, obj_type );
 		}
         break;
 	case PRIORITY_FOR_WRITING: /* Unsigned  */
@@ -1992,7 +1998,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.BitString( -1, "", &BAC_STRTAB_BACnetServicesSupported );
 		break;
 	case PROTOCOL_VERSION: /*  Character String  */
-		seq.TextString( -1, "" );
+		seq.Unsigned( -1, "" );
 		break;
 	case READ_ONLY: /*  Boolean  */
 		seq.Boolean( -1, "" );
@@ -2010,28 +2016,8 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case RELIABILITY:
 		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetReliability );
 		break;
-	case RELINQUISH_DEFAULT:  /* Data Type depends of Object Type! */
-        switch (obj_type) {
-        case 1:  /* Analog_Out */
-        case 2:  /* Analog_Value */
-        case 14: /* Multistate_Output */
-		case 19: /* Multistate_Value */
-		case 30: /* Access Door */
-			seq.Real( -1, "" );
-			break;
-		case 4:  /* Binary_Output */
-        case 5:  /* Binary_Value */
-			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetBinaryPV );
-			break;
-		default:
-			// We don't know what this is.
-			// MAY be illegal, but it might also be
-			// - a new object type we don't know
-			// - some case where we haven't been given the object type,
-			//   such as the parameters for ReadConditional
-			seq.AnyTaggedItem(true);
-			break;
-		}
+	case RELINQUISH_DEFAULT:  /* Data Type depends on Object Type! */
+		show_bac_commandable_value( seq, obj_type );
 		break;
 	case REQUIRED:  
 		seq.Fail( "Illegal data claims to be REQUIRED" );
@@ -2090,8 +2076,8 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case UPDATE_INTERVAL:  /*  Unsigned */
 		seq.Unsigned( -1, "" );
 		break;
-	case UTC_OFFSET:  /*  Real  */
-		seq.Real( -1, "" );
+	case UTC_OFFSET:  /*  Signed Integer  */
+		seq.Integer( -1, "" );
 		break;
 	case VENDOR_IDENTIFIER:
 		seq.Unsigned( -1, "" );
@@ -2109,7 +2095,11 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case WEEKLY_SCHEDULE:  /* ARRAY of BACnetTimeValue */
 		while (seq.ArrayOf(prop_idx)) 
 		{
-			show_bac_time_value( seq );
+			seq.ListOf( 0, "day-schedule" );
+			while (seq.HasListElement())
+			{
+				show_bac_time_value( seq );
+			}
 		}
 		break;
 	case ATTEMPTED_SAMPLES:             // Unsigned 32     

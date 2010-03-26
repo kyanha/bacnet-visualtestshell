@@ -2552,10 +2552,11 @@ void show_read_access_result( BACnetSequence &theSeq )
 		}
 		if (theSeq.OpeningTag( 5, "propertyAccessError", BSQ_CHOICE ))
 		{
-			theSeq.Enumerated( -2, "error-class", &BAC_STRTAB_BACnetErrorClass );
-			theSeq.Enumerated( -2, "error-code",  &BAC_STRTAB_BACnetErrorCode );
+			theSeq.Enumerated( -1, "error-class", &BAC_STRTAB_BACnetErrorClass );
+			theSeq.Enumerated( -1, "error-code",  &BAC_STRTAB_BACnetErrorCode );
 			theSeq.ClosingTag();
 		}
+		theSeq.EndChoice();
 	}
 }
 
@@ -2680,20 +2681,52 @@ void show_calendar_entry( BACnetSequence &theSeq )
 }
 
 /**************************************************************************/
-// Show a BACnetPriorityValue
-void show_bac_priority_value( BACnetSequence &theSeq )
+// Show a commandable value.  Used for Priority_Array element, and Relinquish_Default
+void show_bac_commandable_value( BACnetSequence &seq, int theObjectType )
 {
-	theSeq.BeginChoice();
-	theSeq.Null( -1, "null", BSQ_CHOICE );
-	theSeq.Real( -1, "real", BSQ_CHOICE );
-	theSeq.Enumerated( -1, "binary", &BAC_STRTAB_BACnetBinaryPV, BSQ_CHOICE );
-	theSeq.Unsigned( -1, "integer", BSQ_CHOICE );
-	if (theSeq.OpeningTag( 0, "constructedValue", BSQ_CHOICE ))
-	{
-		theSeq.AnyTaggedItem();
-		theSeq.ClosingTag();
+	switch (theObjectType) {
+    case 1:  /* Analog_Out */
+    case 2:  /* Analog_Value */
+		seq.Real( -1, "" );
+		break;
+	case 4:  /* Binary_Output */
+    case 5:  /* Binary_Value */
+		seq.Enumerated( -1, "BACnetBinaryPV", &BAC_STRTAB_BACnetBinaryPV );
+		break;
+	case 14: /* Multistate_Output */
+	case 19: /* Multistate_Value */
+		seq.Unsigned( -1, "" );
+		break;
+	case 30: /* Access Door - Enumerated */
+		seq.Enumerated( -1, "BACnetDoorValue", &BAC_STRTAB_BACnetDoorValue );
+		break;
+	case -1:
+		// We don't have an object type to determine WHAT this is.
+		seq.AnyTaggedItem(true);
+		break;
+	default:
+		if (seq.OpeningTag( 0, "constructedValue" ))
+		{
+			seq.AnyTaggedItem();
+			seq.ClosingTag();
+		}
+		break;
 	}
-	theSeq.EndChoice();
+}
+
+/**************************************************************************/
+// Show a BACnetPriorityValue
+void show_bac_priority_value( BACnetSequence &theSeq, int theObjectType )
+{
+	theSeq.Parse();
+	if ((theSeq.Parser().TagValue() == 0) && (theSeq.Parser().FixedTag()))
+	{
+		theSeq.Null( -1, "null" );
+	}
+	else
+	{
+		show_bac_commandable_value( theSeq, theObjectType );
+	}
 }
 
 /**************************************************************************/
@@ -3270,10 +3303,12 @@ void show_private_transfer( void )
 	BACnetSequence seq;
 	seq.Unsigned(   0, "vendorID" );
 	seq.Unsigned(   1, "serviceNumber" );
-	seq.ListOf(     2, "serviceParameters", BSQ_OPTIONAL );
-	while (seq.HasListElement())
+	if (seq.ListOf( 2, "serviceParameters", BSQ_OPTIONAL ))
 	{
-		seq.AnyTaggedItem();
+		while (seq.HasListElement())
+		{
+			seq.AnyTaggedItem();
+		}
 	}
 }
 
@@ -3782,10 +3817,12 @@ void show_vtCloseError( void )
 {
 	BACnetSequence seq;
 	show_wrapped_error( seq, 0 );
-	seq.ListOf( 1, "listOfVTSessionIdentifiers", BSQ_OPTIONAL );
-	while (seq.HasListElement())
+	if (seq.ListOf( 1, "listOfVTSessionIdentifiers", BSQ_OPTIONAL ))
 	{
-		seq.Unsigned( -1, "uncloseable sessions ID" );
+		while (seq.HasListElement())
+		{
+			seq.Unsigned( -1, "uncloseable sessions ID" );
+		}
 	}
 }
 
@@ -4503,6 +4540,7 @@ void show_bac_event_parameters( BACnetSequence &seq )
 				seq.BeginChoice();
 				seq.BitString( 0, "bitmask", NULL, BSQ_CHOICE );
 				seq.Real(      1, "referenced-property-increment", BSQ_CHOICE );
+				seq.EndChoice();
 				seq.ClosingTag();
 			}
 			seq.ClosingTag();
@@ -4779,47 +4817,48 @@ void show_log_multiple_buffer( BACnetSequence &seq )
 	seq.ListOf( "listOfRecords" );
 	while (seq.HasListElement())
 	{
-		seq.BeginChoice();
-		if (seq.OpeningTag( 0, "timeStamp", BSQ_CHOICE ))
+		if (seq.OpeningTag( 0, "timeStamp" ))
 		{
 			seq.Date( -1, "date" );
 			seq.Time( -1, "time" );
 			seq.ClosingTag();
 		}
 
-		if (seq.OpeningTag( 1, "logData", BSQ_CHOICE ))
+		if (seq.OpeningTag( 1, "logData" ))
 		{
 			seq.BeginChoice();
-			seq.BitString(  0, "log-status", &BAC_STRTAB_BACnetLogStatus );
-			seq.ListOf(     1, "log-data" );
-			while (seq.HasListElement())
+			seq.BitString(  0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
+			if (seq.ListOf( 1, "log-data", BSQ_CHOICE ))
 			{
-				seq.BeginChoice();
-				seq.Boolean(    0, "boolean-value", BSQ_CHOICE );
-				seq.Real(       1, "real-value", BSQ_CHOICE );
-				seq.Enumerated( 2, "enum-value", NULL, BSQ_CHOICE );
-				seq.Unsigned(   3, "unsigned-value", BSQ_CHOICE );
-				seq.Integer(    4, "signed-value", BSQ_CHOICE );
-				seq.BitString(  5, "bitstring-value", NULL, BSQ_CHOICE );
-				seq.Null(       6, "null-value", BSQ_CHOICE );
-				if (seq.OpeningTag( 7, "failure", BSQ_CHOICE ))
+				while (seq.HasListElement())
 				{
-					show_error( seq );
-					seq.ClosingTag();
+					seq.BeginChoice();
+					seq.Boolean(    0, "boolean-value", BSQ_CHOICE );
+					seq.Real(       1, "real-value", BSQ_CHOICE );
+					seq.Enumerated( 2, "enum-value", NULL, BSQ_CHOICE );
+					seq.Unsigned(   3, "unsigned-value", BSQ_CHOICE );
+					seq.Integer(    4, "signed-value", BSQ_CHOICE );
+					seq.BitString(  5, "bitstring-value", NULL, BSQ_CHOICE );
+					seq.Null(       6, "null-value", BSQ_CHOICE );
+					if (seq.OpeningTag( 7, "failure", BSQ_CHOICE ))
+					{
+						show_error( seq );
+						seq.ClosingTag();
+					}
+					if (seq.OpeningTag( 8, "any-value", BSQ_CHOICE ))
+					{
+						// Allow an arbitrary sequence of tagged items until closing tag
+						seq.AnyTaggedItem();
+						seq.ClosingTag();
+					}
+					seq.EndChoice();
 				}
-				if (seq.OpeningTag( 8, "any-value", BSQ_CHOICE ))
-				{
-					// Allow an arbitrary sequence of tagged items until closing tag
-					seq.AnyTaggedItem();
-					seq.ClosingTag();
-				}
-				seq.EndChoice();
 			}
-
+	
+			seq.Real(       2, "time-change", BSQ_CHOICE );
+			seq.EndChoice();
 			seq.ClosingTag();
 		}
-		seq.Real(           2, "time-change", BSQ_CHOICE );
-		seq.EndChoice();
 	}
 }
 
@@ -5431,11 +5470,12 @@ void show_bac_COV_Subscription( BACnetSequence &seq )
 // Show a BACnetDestination
 void show_bac_destination( BACnetSequence &seq )
 {
-	seq.BitString( -1, "validDays" );
-	seq.Time( -1, "fromTime" );
-	seq.Time( -1, "toTime" );
+	seq.BitString( -1, "validDays", &BAC_STRTAB_BACnetDaysOfWeek );
+	seq.Time(      -1, "fromTime" );
+	seq.Time(      -1, "toTime" );
 	show_bac_recipient(seq);
-	seq.Unsigned( -1, "processIdentifier" );
+	seq.Unsigned(  -1, "processIdentifier" );
+	seq.Boolean(   -1, "issueConfirmedNotifications" );
 	seq.BitString( -1, "transitions", &BAC_STRTAB_BACnetEventTransitionBits );
 }
 
