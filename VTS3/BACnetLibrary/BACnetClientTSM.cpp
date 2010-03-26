@@ -93,16 +93,23 @@ void BACnetClientTSM::Indication( const BACnetAPDU &apdu )
 				tsmSegmentSize = dip->deviceMaxAPDUSize;
 			
 			// Compute the segment count:
-			// BACnetAPDUSegment::operator[] chops by tsmSegmentSize
+			// ASHRAE 135.1 clause 9.20.1.12 calculation shows that max_APDU INCLUDES 
+			// the APDU header.  VTS formerly calculated using only the tagged portion,
+			// leading to segments that were 6 bytes oversize.
 			// - A SEGMENTED ConfRq header is 6 bytes
 			// - An UNSEGMENTED ConfRq header is 4 bytes, 
 			// So an unsegmented message can have two more bytes of tagged data
-			if (apdu.pktLength <= tsmSegmentSize + 2)
+			//
+			// BACnetAPDUSegment::operator[] chops by tsmSegmentSize, so we
+			// adjust tsmSegmentSize as appropriate
+			if (apdu.pktLength <= tsmSegmentSize - 4)
 			{
+				tsmSegmentSize -= 4;
 				tsmSegmentCount = 1;
 			}
 			else
 			{
+				tsmSegmentSize -= 6;
 				tsmSegmentCount = (apdu.pktLength + (tsmSegmentSize - 1)) / tsmSegmentSize;
 			}
 			
@@ -452,16 +459,23 @@ void BACnetClientTSM::AwaitConfirmationTimeout( void )
 			tsmSegmentSize = dip->deviceMaxAPDUSize;
 		
 		// Compute the segment count:
-		// BACnetAPDUSegment::operator[] chops by tsmSegmentSize
+		// ASHRAE 135.1 clause 9.20.1.12 calculation shows that max_APDU INCLUDES 
+		// the APDU header.  VTS formerly calculated using only the tagged portion,
+		// leading to segments that were 6 bytes oversize.
 		// - A SEGMENTED ConfRq header is 6 bytes
 		// - An UNSEGMENTED ConfRq header is 4 bytes, 
 		// So an unsegmented message can have two more bytes of tagged data
-		if (tsmSeg->TotalLength() <= tsmSegmentSize + 2)
+		//
+		// BACnetAPDUSegment::operator[] chops by tsmSegmentSize, so we
+		// adjust tsmSegmentSize as appropriate
+		if (tsmSeg->TotalLength() <= tsmSegmentSize - 4)
 		{
+			tsmSegmentSize -= 4;
 			tsmSegmentCount = 1;
 		}
 		else
 		{
+			tsmSegmentSize -= 6;
 			tsmSegmentCount = (tsmSeg->TotalLength() + (tsmSegmentSize - 1)) / tsmSegmentSize;
 		}
 		
