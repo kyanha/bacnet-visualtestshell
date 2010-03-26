@@ -2124,7 +2124,7 @@ void VTSRealCtrl::ObjToCtrl( void )
 	// values are normalized to decimal
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 16 ) );
+		Encode( str.GetBuffer( 32 ) );
 		str.ReleaseBuffer();
 	}
 
@@ -2218,7 +2218,7 @@ void VTSDoubleCtrl::ObjToCtrl( void )
 	// values are normalized to decimal
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 16 ) );
+		Encode( str.GetBuffer( 64 ) );
 		str.ReleaseBuffer();
 	}
 
@@ -2437,7 +2437,9 @@ void VTSOctetStringCtrl::ObjToCtrl( void )
 
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( strLen * 2 + 4 ) );
+		// Encoded as two hex characters per byte, no separators.
+		// Add slop for the NEXT time the quoting changes...
+		Encode( str.GetBuffer( strLen * 2 + 10 ) );
 		str.ReleaseBuffer();
 	}
 
@@ -2539,7 +2541,9 @@ void VTSBitStringCtrl::ObjToCtrl( void )
 	// loop through the bits
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( bitLen + 4 ) );
+		// The encoding now puts a comma between values
+		// Add slop for the NEXT time the quoting changes...
+		Encode( str.GetBuffer( bitLen*2 + 10 ) );
 		str.ReleaseBuffer();
 	}
 
@@ -2831,7 +2835,7 @@ void VTSObjectIdentifierCtrl::ObjToCtrl( void )
 
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 32 ) );
+		Encode( str.GetBuffer( 64 ) );
 		str.ReleaseBuffer();
 	}
 
