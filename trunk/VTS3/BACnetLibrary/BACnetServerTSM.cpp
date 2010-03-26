@@ -104,16 +104,23 @@ void BACnetServerTSM::Confirmation( const BACnetAPDU &apdu )
 			tsmSegmentSize = tsmDevice->deviceSegmentSize;
 
 			// Compute the segment count:
-			// BACnetAPDUSegment::operator[] chops by tsmSegmentSize
+			// ASHRAE 135.1 clause 9.20.1.12 calculation shows that max_APDU INCLUDES 
+			// the APDU header.  VTS formerly calculated using only the tagged portion,
+			// leading to segments that were 5 bytes oversize.
 			// - A SEGMENTED ComplexAck header is 5 bytes
 			// - An UNSEGMENTED ComplexAck header is 3 bytes, 
-			// So an unsegmented message can have two more bytes of tagged data
-			if (apdu.pktLength <= tsmSegmentSize + 2)
+			// So an unsegmented response can have two more bytes of tagged data
+			//
+			// BACnetAPDUSegment::operator[] chops by tsmSegmentSize, so we
+			// adjust tsmSegmentSize as appropriate
+			if (apdu.pktLength <= tsmSegmentSize - 3)
 			{
+				tsmSegmentSize -= 3;
 				tsmSegmentCount = 1;
 			}
 			else
 			{
+				tsmSegmentSize -= 5;
 				tsmSegmentCount = (apdu.pktLength + (tsmSegmentSize - 1)) / tsmSegmentSize;
 			}
 			

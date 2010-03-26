@@ -89,8 +89,7 @@ BACnetAPDUSegment::~BACnetAPDUSegment( void )
 
 const BACnetAPDU& BACnetAPDUSegment::operator[](const int indx)
 {
-	int				segSize = segTSMPtr->tsmSegmentSize
-	;
+	int	 segSize = segTSMPtr->tsmSegmentSize;
 	
 #if _TSMDebug
 	cout << "[BACnetAPDUSegment: building segment " << indx << "]" << endl;
