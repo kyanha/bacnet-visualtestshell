@@ -399,7 +399,8 @@ void	 show_event_log_buffer( BACnetSequence &theSeq );
 void	 show_log_multiple_buffer( BACnetSequence &theSeq );
 void     show_bac_COV_Subscription( BACnetSequence &theSeq );
 void     show_bac_destination( BACnetSequence &theSeq );
-void	 show_bac_priority_value( BACnetSequence &theSeq );
+void	 show_bac_commandable_value( BACnetSequence &theSeq, int theObjectType );
+void	 show_bac_priority_value( BACnetSequence &theSeq, int theObjectType );
 void	 show_time_stamp( BACnetSequence &theSeq, int theTag, const char *pTheTitle );
 
 void	 show_bac_dev_obj_prop_ref( BACnetSequence &theSeq );
