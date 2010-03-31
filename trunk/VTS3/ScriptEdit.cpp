@@ -1116,8 +1116,9 @@ void ScriptTemplateLibrary::RemoveAll()
 	{
 		ScriptTemplateCollection *pCollection = m_collections[ix];
 		delete pCollection;
-		m_collections[ix] = NULL;
 	}
+
+	m_collections.RemoveAll();
 }
 
 //=============================================================================
