@@ -139,7 +139,7 @@ protected:
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	afx_msg void OnEditRepeat();
 	afx_msg void OnSetTemplateFile();
-	afx_msg void OnTemplate(int nID);
+	afx_msg void OnTemplate(UINT nID);
 	afx_msg void OnEditAutoObject();
 	afx_msg void OnUpdateEditAutoObject(CCmdUI* pCmdUI);
 	afx_msg void OnEditAutoProperty();

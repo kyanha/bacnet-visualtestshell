@@ -335,8 +335,16 @@ void ScriptEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 void ScriptEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
+	// TODO: if nChar is TAB or Shift-TAB, and one or more entire lines are selected,
+	// indent or undent the selection, and DON'T call CEditView::OnChar
+//	int startChar, endChar;
+//	m_pEdit->GetSel( startChar, endChar );
+//	int startLine = m_pEdit->LineFromChar( startChar );
+//	int EndLine   = m_pEdit->LineFromChar( endChar );
+
+
 	CEditView::OnChar(nChar, nRepCnt, nFlags);
-	if((nChar >= 65 && nChar <= 90) || (nChar>= 97 && nChar <= 122) || (nChar == 95 || nChar == 45))
+	if((nChar >= 'A' && nChar <= 'Z') || (nChar >= 'a' && nChar <= 'z') || (nChar == '_' || nChar == '-'))
 	{
 		OnHelpInput(nChar, nRepCnt, nFlags);
 //Added by Zhu Zhenhua, 2003-12-25, to help tester in inputing 
@@ -345,7 +353,23 @@ void ScriptEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 	if(nChar == VK_RETURN)
 	{
 		UpdateEditArea();
-		GetCurLineIndex();
+		int curLine = GetCurLineIndex();
+
+		// Auto-indent to the level of the previous line
+		if (curLine > 0)
+		{
+			CString prevLine;
+			int max = m_pEdit->GetLine( curLine-1, prevLine.GetBuffer(100), 100 );
+			if (max > 0)
+			{
+				prevLine.ReleaseBufferSetLength(max);
+				CString white = prevLine.SpanIncluding( " \t" );
+				if (!white.IsEmpty())
+				{
+					m_pEdit->ReplaceSel( white, TRUE );
+				}
+			}
+		}
 	}
 }
 
@@ -502,14 +526,12 @@ int ScriptEdit::GetCurLineIndex()
 	}
 	//End for BUG_1
 
-	CString str;
-	str.Format(" Ln: %d",nLineIndex);
-
-//madanner, 5/03
-//	CMainFrame* pFrm = (CMainFrame*) AfxGetMainWnd();
-//	pFrm->SetLnPaneText(str);
 	if ( m_pframe != NULL )
+	{
+		CString str;
+		str.Format(" Ln: %d",nLineIndex);
 		m_pframe->SetLnPaneText(str);
+	}
 
 	return m_nCurrentLine;
 }
@@ -899,16 +921,17 @@ void ScriptEdit::FillInsertMenu()
 	}
 }
 
-void ScriptEdit::OnTemplate(int nID)
+void ScriptEdit::OnTemplate(UINT nID)
 {
-	int ix = nID - ID_SCRIPT_TEMPLATE_0;
+	UINT ix = nID - ID_SCRIPT_TEMPLATE_0;
 	SelectTemplateDlg dlg( s_templateLibrary.Collection( ix ) );
 	if (dlg.DoModal() == IDOK)
 	{
-		// Insert the text
+		// Insert the text for the selected template
 		int sel = dlg.GetTemplateIndex();
 		if (sel >= 0)
 		{
+			// TODO: Should observe auto-indent, perhaps by inserting as insert as characters?
 			m_pEdit->ReplaceSel( s_templateLibrary.Collection( ix ).TemplateBody( sel ) );
 		}
 	}
@@ -1000,7 +1023,12 @@ void ScriptTemplateLibrary::ReadFile( const char *pTheFileName )
 				else
 				{
 					// Append to definition
-					templ.m_body += line + "\r\n";
+					if (!templ.m_body.IsEmpty())
+					{
+						// non-initial line.
+						templ.m_body += "\r\n";
+					}
+					templ.m_body += line;
 				}
 			}
 			else
