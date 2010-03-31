@@ -1893,6 +1893,28 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="SelectTemplateDlg.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="Send.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -7078,6 +7100,9 @@
 			</File>
 			<File
 				RelativePath="ScrollLineView.h">
+			</File>
+			<File
+				RelativePath="SelectTemplateDlg.h">
 			</File>
 			<File
 				RelativePath="Send.h">

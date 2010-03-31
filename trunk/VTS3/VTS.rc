@@ -228,10 +228,14 @@ BEGIN
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
         MENUITEM "&Delete",                     ID_EDIT_DELETE
+        MENUITEM SEPARATOR
         MENUITEM "Go to &Line...\tCtrl+G",      IDC_EDIT_GOTOLINE
         MENUITEM "&Find...\tCtrl+F",            ID_EDIT_FIND
         MENUITEM "Find Ne&xt\tF3",              ID_EDIT_REPEAT
         MENUITEM "&Replace...\tCtrl+H",         ID_EDIT_REPLACE
+        MENUITEM SEPARATOR
+        MENUITEM "Auto-type &Object Types",     ID_EDIT_AUTO_OBJECT
+        MENUITEM "Auto-type Property &Identifiers", ID_EDIT_AUTO_PROPERTY
     END
     POPUP "&Script"
     BEGIN
@@ -251,6 +255,11 @@ BEGIN
     BEGIN
         MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
         MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+    END
+    POPUP "&Insert"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "&Set template file...",       ID_SET_TEMPLATE_FILE
     END
     POPUP "&Help"
     BEGIN
@@ -390,6 +399,22 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Delete &All Packets",         ID_EDIT_DELETE
         MENUITEM "&Delete selected packet",     ID_EDIT_DELETESEL
+    END
+END
+
+IDR_SCRIPT_CONTEXT MENU DISCARDABLE 
+BEGIN
+    POPUP "Context"
+    BEGIN
+        MENUITEM "Undo\tCtrl+Z",                ID_EDIT_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cut\tCtrl+X",                 ID_EDIT_CUT
+        MENUITEM "Copy\tCtrl+C",                ID_EDIT_COPY
+        MENUITEM "Paste\tCtrl+V",               ID_EDIT_PASTE
+        MENUITEM "Delete",                      ID_EDIT_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Select All\tCtrl+A",          ID_EDIT_SELECT_ALL
+        MENUITEM SEPARATOR
     END
 END
 
@@ -667,7 +692,7 @@ END
 IDD_SENDVENDORNPDU DIALOGEX 0, 0, 300, 234
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Vendor NPDU"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Message Type",IDC_STATIC,10,12,50,8
     EDITTEXT        IDC_MSGTYPE,65,10,45,12,ES_AUTOHSCROLL
@@ -1621,7 +1646,7 @@ IDD_NAMES DIALOGEX 0, 0, 312, 193
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "Names"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_NAMELIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_GROUP | 
@@ -2279,7 +2304,7 @@ END
 IDD_SCRIPTPARMUPDATE DIALOGEX 0, 0, 233, 106
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Script Parameter Update"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Parameter Name",IDC_STATIC,10,10,55,8
     LTEXT           "Name",IDC_PARMNAME,75,10,150,10,0,WS_EX_STATICEDGE
@@ -2593,7 +2618,7 @@ END
 IDD_DEVTREEDEV DIALOGEX 0, 0, 197, 150
 STYLE WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Device"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Name:",IDC_STATIC,4,8,25,10
     LTEXT           "Instance:",IDC_STATIC,4,21,34,10
@@ -2637,7 +2662,7 @@ END
 IDD_DEVTREENULL DIALOGEX 0, 0, 196, 152
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "Options"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
 END
 
@@ -2751,7 +2776,7 @@ END
 IDD_PORTPAGE_MSTP DIALOGEX 0, 0, 204, 113
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "MSTP"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "MAC Address:",IDC_STATIC,4,6,58,10,0,WS_EX_RIGHT
     EDITTEXT        IDC_MSTPMAC,65,4,34,12,ES_AUTOHSCROLL | WS_GROUP
@@ -2996,7 +3021,7 @@ END
 IDD_DESTINATION DIALOGEX 0, 0, 322, 209
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "BACnet Destination"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "device",IDC_DESTINATION_DEVICE,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,17,25,40,10
@@ -3087,7 +3112,7 @@ END
 IDD_EPICSVIEW DIALOGEX 0, 0, 280, 193
 STYLE WS_CHILD
 EXSTYLE WS_EX_STATICEDGE
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Load...",IDC_EPICSV_LOAD,2,2,30,12
     EDITTEXT        IDC_EPICSV_FILENAME,35,2,241,12,ES_AUTOHSCROLL | 
@@ -3287,7 +3312,7 @@ END
 IDD_BINARYPV DIALOGEX 0, 0, 143, 88
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "BACnet BinaryPV"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,20,65,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,78,65,50,14
@@ -4509,7 +4534,7 @@ END
 IDD_BACKUP_RESTORE DIALOGEX 0, 0, 333, 191
 STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Backup/Restore a BACnet Device"
-FONT 8, "MS Shell Dlg", 400
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     LTEXT           "&Port:",IDC_STATIC,10,11,18,8
     COMBOBOX        IDC_PORTCOMBO,33,9,77,49,CBS_DROPDOWNLIST | CBS_SORT | 
@@ -4561,7 +4586,7 @@ END
 IDD_COLOR DIALOGEX 0, 0, 237, 215
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Color Setting Dialog"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     GROUPBOX        "Correct PDU",IDC_STATIC,7,13,223,146
     LTEXT           "ReadProperty(Ack)",IDC_STATIC,17,31,74,12
@@ -4617,7 +4642,7 @@ IDD_BACKUP_RESTORE_PROGRESS DIALOGEX 0, 0, 219, 175
 STYLE WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
 CAPTION "Progress of Backup and Restore Test"
-FONT 8, "MS Sans Serif", 400
+FONT 8, "MS Sans Serif", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&Close",IDOK,123,154,50,14
     PUSHBUTTON      "Cancel",IDC_BACKUP_RESTORE_KILL,35,154,50,14
@@ -4708,7 +4733,7 @@ END
 IDD_DEVTREEOPT DIALOGEX 0, 0, 186, 166
 STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Options"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "Supports &Alarm Summary",IDC_SASUM,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,22,94,10
@@ -4753,12 +4778,23 @@ END
 IDD_INCONSISTENT_PARS_PROGRESS DIALOGEX 0, 0, 244, 202
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Progress of Inconsistent Parameter Test"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,25,178,67,17
     DEFPUSHBUTTON   "Close",IDOK,122,178,67,17
     EDITTEXT        IDC_EDIT1,7,7,230,164,ES_MULTILINE | WS_VSCROLL | 
                     WS_HSCROLL
+END
+
+IDD_SELECT_TEMPLATE DIALOG DISCARDABLE  0, 0, 186, 230
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Select Template to Insert"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,36,211,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,98,211,50,14
+    LISTBOX         IDC_LIST1,4,4,177,201,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
 END
 
 
@@ -6338,6 +6374,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 195
     END
+
+    IDD_SELECT_TEMPLATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 223
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -7096,6 +7140,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_EDIT_LOGFILE         "Closes the current logfile and opens a new packet logfile"
+    ID_EDIT_AUTO_OBJECT     "If checked, suggests object-types while you type"
+    ID_EDIT_AUTO_PROPERTY   "If checked, suggests property identifiers while you type"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -7105,6 +7151,7 @@ BEGIN
     ID_EDIT_SENDPACKET      "Send selected packet in the current log\nSend selected packet"
     ID_EDIT_QUICKSAVE       "Closes the current logfile and opens another packet logfile quickly\nChange logfile quickly"
     ID_EDIT_AUTOSCROLL      "Enable auto scroll"
+    ID_SET_TEMPLATE_FILE    "Specify the file from which text templates are loaded"
 END
 
 STRINGTABLE DISCARDABLE 
