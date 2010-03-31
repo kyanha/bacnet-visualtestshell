@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
+// Microsoft Developer Studio generated include file.
 // Used by VTS.rc
 //
 #define ID_NEWNAME                      3
@@ -267,6 +267,8 @@
 #define IDD_DEVTREEOPT                  378
 #define IDD_INCONSISTENT_PARS           379
 #define IDD_INCONSISTENT_PARS_PROGRESS  380
+#define IDD_SELECT_TEMPLATE             381
+#define IDR_SCRIPT_CONTEXT              382
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -945,6 +947,7 @@
 #define IDC_TOOMANYARGS                 1558
 #define IDC_CHECK9                      1559
 #define IDC_CHECK10                     1560
+#define IDC_LIST1                       1560
 #define IDC_CHECK11                     1561
 #define IDC_CHECK12                     1562
 #define IDC_CHECK13                     1563
@@ -1055,7 +1058,14 @@
 #define ID_COMBOBOX_SEPARATOR           32873
 #define ID_EDIT_QUICKSAVE               32874
 #define ID_EDIT_AUTOSCROLL              32875
-#define ID_EDIT_LOGFILE                 32900
+#define ID_SET_TEMPLATE_FILE            32877
+#define ID_SCRIPT_TEMPLATE_0            32878
+#define ID_SCRIPT_TEMPLATE_10           32888
+#define ID_SCRIPT_TEMPLATE_20           32898
+#define ID_SCRIPT_TEMPLATE_29           32907
+#define ID_EDIT_LOGFILE                 32908
+#define ID_EDIT_AUTO_OBJECT             32909
+#define ID_EDIT_AUTO_PROPERTY           32910
 #define IDS_BTYPE0                      32950
 #define IDS_BTYPE1                      32951
 #define IDS_BTYPE2                      32952
@@ -1147,9 +1157,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        381
-#define _APS_NEXT_COMMAND_VALUE         32877
-#define _APS_NEXT_CONTROL_VALUE         1560
+#define _APS_NEXT_RESOURCE_VALUE        383
+#define _APS_NEXT_COMMAND_VALUE         32911
+#define _APS_NEXT_CONTROL_VALUE         1561
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

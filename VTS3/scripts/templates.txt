@@ -1,0 +1,142 @@
+; Script templates fot VTS
+; Each SECTION becomes a choice on the Insert menu.
+; Each ITEM becomes a choice in the template selection dialog.
+; The text lines between ITEM and ENDITEM are inserted into the script.
+SECTION Service templates
+
+ITEM ReadProperty
+  SEND (
+    DA = IUT_IP
+    PDU = Confirmed-Request
+    Service = ReadProperty
+    Object = 0, object-type, instance
+    Property = 1, property_id
+    Unsigned = 2, index_if_you_need_it
+  )
+
+  EXPECT (
+    SA  = IUT_IP   
+    PDU = ComplexAck
+    Service = ReadProperty
+    Object = 0, OBJECT1
+    Property = 1, Object-Identifier
+    Unsigned = 2, index_if_you_need_it
+    OpenTag 3
+      -- your data here
+    CloseTag 3
+  )
+ENDITEM
+
+ITEM WriteProperty
+  SEND (
+    DA = IUT_IP
+    PDU = Confirmed-Request
+    Service = WriteProperty
+    Object = 0, object-type, instance
+    Property = 1, property_id
+    Unsigned = 2, index_if_you_need_it
+    OpenTag 3
+      -- your data here
+    CloseTag 3
+    Unsigned = 4, priority_if_you_need_it
+  )
+
+  EXPECT (
+    SA  = IUT_IP   
+    PDU = SimpleAck
+    Service = WriteProperty
+  )
+ENDITEM
+
+SECTION Datatypes
+
+ITEM Paired Context Tag 0
+    OpenTag 0
+    CloseTag 0
+ENDITEM
+
+ITEM Paired Context Tag 1
+    OpenTag 1
+    CloseTag 1
+ENDITEM
+
+ITEM Paired Context Tag 2
+    OpenTag 2
+    CloseTag 2
+ENDITEM
+
+ITEM Paired Context Tag 3
+    OpenTag 3
+    CloseTag 3
+ENDITEM
+
+ITEM Paired Context Tag 4
+    OpenTag 4
+    CloseTag 4
+ENDITEM
+
+ITEM Paired Context Tag 5
+    OpenTag 5
+    CloseTag 5
+ENDITEM
+
+ITEM Paired Context Tag 6
+    OpenTag 6
+    CloseTag 6
+ENDITEM
+
+ITEM Paired Context Tag 7
+    OpenTag 7
+    CloseTag 7
+ENDITEM
+
+ITEM Paired Context Tag 8
+    OpenTag 8
+    CloseTag 8
+ENDITEM
+
+ITEM Paired Context Tag 9
+    OpenTag 9
+    CloseTag 9
+ENDITEM
+
+ITEM CalendarEntry - date CHOICE
+    OpenTag 0
+      Date [(Thursday,2/4/2010)]
+    CloseTag 0
+ENDITEM
+
+ITEM CalendarEntry - date range CHOICE
+    OpenTag 1
+      Date [(Thursday,2/4/2010)]
+      Date [(Tuesday,2/16/2010)]
+    CloseTag 1
+ENDITEM
+
+ITEM CalendarEntry - WeekNDay CHOICE
+    OpenTag 2
+      -- Month 1-12, 13=odd, 14=even or 0xFF; Week 1-5, 6=last or 0xFF; Day 1-7 or 0xFF
+      Octetstring X'000000'
+    CloseTag 2
+ENDITEM
+
+ITEM DailySchedule
+    OpenTag 0
+      -- Zero or more TimeValues
+    CloseTag 0
+ENDITEM
+
+ITEM TimeValue - BinaryPV CHOICE
+    Time [8:00:00.0]
+    Enumerated 0
+ENDITEM
+
+ITEM TimeValue - Real CHOICE
+    Time [8:00:00.0]
+    Real 0.0
+ENDITEM
+
+ITEM TimeValue - Unsigned CHOICE
+    Time [8:00:00.0]
+    Unsigned 0
+ENDITEM

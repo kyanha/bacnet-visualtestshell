@@ -17,6 +17,50 @@ class ScriptFrame;
 // ScriptEdit view
 #include "LineNumCtrl.h"
 
+// Hold a Template name and body
+struct ScriptTemplate
+{
+	CString		m_name;
+	CString		m_body;
+};
+
+// Set of Templates
+class ScriptTemplateCollection
+{
+public:
+	ScriptTemplateCollection( const char *pTheTitle );
+	~ScriptTemplateCollection();
+	
+	void Add( ScriptTemplate &theTemplate );
+
+	int Size() const { return m_templates.GetSize(); }
+	LPCTSTR Title() const { return m_title; }
+	LPCTSTR TemplateName( int theIndex ) const { return m_templates[theIndex].m_name; }
+	LPCTSTR TemplateBody( int theIndex ) const { return m_templates[theIndex].m_body; }
+
+protected:
+	CString m_title;
+	CArray<ScriptTemplate, ScriptTemplate&>  m_templates;
+};
+
+// Group of template collections
+class ScriptTemplateLibrary
+{
+public:
+	ScriptTemplateLibrary();
+	~ScriptTemplateLibrary();
+
+	void ReadFile( const char *pTheFileName );
+	void RemoveAll();
+	void FillMenu( CMenu &theMenu, bool atEnd );
+
+	LPCTSTR SectionTitle( int theIndex );
+	const ScriptTemplateCollection& Collection( int theIndex );
+
+protected:
+	CArray<ScriptTemplateCollection*, ScriptTemplateCollection*> m_collections;
+};
+
 class ScriptEdit : public CEditView
 {
 private:			
@@ -59,6 +103,9 @@ protected:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
+	void FillAutoType();
+	void FillInsertMenu();
+
 	// Generated message map functions
 protected:
 	int m_nTempDigit;
@@ -86,12 +133,20 @@ protected:
 	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg void OnVscroll();
 	afx_msg void OnEditCut();
+	afx_msg void OnEditClear();
 	afx_msg void OnEditPaste();
 	afx_msg void OnEditUndo();
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	afx_msg void OnEditRepeat();
+	afx_msg void OnSetTemplateFile();
+	afx_msg void OnTemplate(int nID);
+	afx_msg void OnEditAutoObject();
+	afx_msg void OnUpdateEditAutoObject(CCmdUI* pCmdUI);
+	afx_msg void OnEditAutoProperty();
+	afx_msg void OnUpdateEditAutoProperty(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+
 private:
 	CLineNumCtrl m_LineNumCtrl;
 	CPoint m_ptCurPoint;
@@ -105,6 +160,13 @@ private:
 	int m_nVisibleLnCount;
 	int m_nLineCount;
 	CStringList m_strList; //the help string list, Added by Zhu Zhenhua, 2003-12-25
+
+	CString						m_templateFileName;
+	int							m_autoObjectType;
+	int							m_autoPropertyID;
+
+	static bool					s_templateFileLoaded;
+	static ScriptTemplateLibrary s_templateLibrary;
 };
 
 /////////////////////////////////////////////////////////////////////////////

@@ -56,6 +56,7 @@
 #include "ScriptFrame.h"
 #include "GoToLineDlg.h"
 #include "StringTables.h"
+#include "SelectTemplateDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -66,10 +67,23 @@ static char THIS_FILE[] = __FILE__;
 #define MARGIN_3			25
 #define CHAR_HEIGHT			16
 #define LIMITTEXT			0x000FFFFF
+
+static const char s_registrySection[] = "ScriptEditor";
+static const char s_registryKeyTemplate[] = "TemplateFile";
+static const char s_registryKeyAutoObject[] = "AutoObject";
+static const char s_registryKeyAutoProperty[] = "AutoProperty";
+
+
+
 /////////////////////////////////////////////////////////////////////////////
 // ScriptEdit
 
 IMPLEMENT_DYNCREATE(ScriptEdit, CEditView)
+
+// static 
+bool				ScriptEdit::s_templateFileLoaded;
+ScriptTemplateLibrary	ScriptEdit::s_templateLibrary;
+
 
 ScriptEdit::ScriptEdit()
 {
@@ -82,6 +96,14 @@ ScriptEdit::ScriptEdit()
 	m_ptCurPoint.y	= 0;
 
 	m_pframe = NULL; 
+	
+	// Default template directory is where the app lives
+	CString str( AfxGetApp()->m_pszHelpFilePath );
+	int slash = str.ReverseFind( '\\' );
+	m_templateFileName = str.Left( slash ) + "\\templates.txt";
+
+	m_autoObjectType = 1;
+	m_autoPropertyID = 1;
 }
 
 ScriptEdit::~ScriptEdit()
@@ -107,11 +129,18 @@ BEGIN_MESSAGE_MAP(ScriptEdit, CEditView)
 	ON_WM_VSCROLL()
 	ON_CONTROL_REFLECT(EN_VSCROLL, OnVscroll)
 	ON_COMMAND(ID_EDIT_CUT, OnEditCut)
+	ON_COMMAND(ID_EDIT_DELETE, OnEditClear)
 	ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
 	ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
-	ON_COMMAND(ID_EDIT_REPEAT, OnEditRepeat)
 	ON_WM_CONTEXTMENU()
+	ON_COMMAND(ID_EDIT_REPEAT, OnEditRepeat)
+	ON_COMMAND(ID_SET_TEMPLATE_FILE, OnSetTemplateFile)
+	ON_COMMAND(ID_EDIT_AUTO_OBJECT, OnEditAutoObject)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_AUTO_OBJECT, OnUpdateEditAutoObject)
+	ON_COMMAND(ID_EDIT_AUTO_PROPERTY, OnEditAutoProperty)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_AUTO_PROPERTY, OnUpdateEditAutoProperty)
 	//}}AFX_MSG_MAP
+	ON_COMMAND_RANGE( ID_SCRIPT_TEMPLATE_0, ID_SCRIPT_TEMPLATE_0+35, OnTemplate )
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -211,22 +240,8 @@ void ScriptEdit::OnInitialUpdate()
 	m_nTempDigit = 3;
 	m_nLineCount = m_pEdit->GetLineCount();
 
-//Added by Zhu Zhenhua, 2003-12-25, to help tester in inputting 
-	
-	CString strprop;
-	int i;
-	for(i = 0; i < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; i++)
-	{	
-		strprop = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[i];
-		AddInputHelpString(strprop);
-	}
-
-	for(i = 0; i < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings; i++)
-	{
-		strprop = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[i];
-		AddInputHelpString(strprop);
-	}
-
+	FillAutoType();
+	FillInsertMenu();
 }
 
 void ScriptEdit::OnPaint() 
@@ -365,6 +380,13 @@ void ScriptEdit::OnEditCut()
 	UpdateEditArea();	
 }
 
+void ScriptEdit::OnEditClear() 
+{
+	CEditView::OnEditClear();
+	GetCurLineIndex();
+	UpdateEditArea();	
+}
+
 void ScriptEdit::OnEditPaste() 
 {
 	CEditView::OnEditPaste();
@@ -438,11 +460,22 @@ void ScriptEdit::OnReplaceAll(LPCTSTR lpszFind, LPCTSTR lpszReplace, BOOL bCase 
 
 void ScriptEdit::OnContextMenu(CWnd* pWnd, CPoint point) 
 {
-	// TODO: Add your message handler code here
-	CEditView::OnContextMenu(pWnd, point);
+//	CEditView::OnContextMenu(pWnd, point);
+	CMenu menu;
+	if (menu.LoadMenu( IDR_SCRIPT_CONTEXT ))
+	{
+		CMenu* pPopup = menu.GetSubMenu(0);
+		s_templateLibrary.FillMenu( *pPopup, true );
+
+		pPopup->TrackPopupMenu( TPM_LEFTALIGN | TPM_RIGHTBUTTON,
+								point.x, point.y,
+								GetParentFrame() );
+	}
+
 	GetCurLineIndex();
 	UpdateEditArea();		
 }
+
 //******************************************************************
 //	Author:		Yajun Zhou
 //	Date:		2002-4-22
@@ -778,3 +811,355 @@ void ScriptEdit::OnHelpInput(UINT nChar, UINT nRepCnt, UINT nFlags)
 		}
 	}
 }
+
+void ScriptEdit::OnEditAutoObject() 
+{
+	m_autoObjectType = (m_autoObjectType == 0);
+	AfxGetApp()->WriteProfileInt( s_registrySection, s_registryKeyAutoObject, m_autoObjectType );
+	FillAutoType();
+}
+
+void ScriptEdit::OnUpdateEditAutoObject(CCmdUI* pCmdUI) 
+{
+	pCmdUI->SetCheck( m_autoObjectType );
+}
+
+void ScriptEdit::OnEditAutoProperty() 
+{
+	m_autoPropertyID = (m_autoPropertyID == 0);
+	AfxGetApp()->WriteProfileInt( s_registrySection, s_registryKeyAutoProperty, m_autoPropertyID );
+	FillAutoType();
+}
+
+void ScriptEdit::OnUpdateEditAutoProperty(CCmdUI* pCmdUI) 
+{
+	pCmdUI->SetCheck( m_autoPropertyID );
+}
+
+void ScriptEdit::OnSetTemplateFile() 
+{
+	CFileDialog dlg( TRUE, "*.txt", (LPCTSTR)m_templateFileName, 0, 
+					 "Template Text Files (*.txt)|*.txt|All Files (*.*)|*.*||" );
+	if (dlg.DoModal() == IDOK)
+	{
+		m_templateFileName = dlg.GetPathName();
+		AfxGetApp()->WriteProfileString( s_registrySection, s_registryKeyTemplate, m_templateFileName );
+
+		// Load the new file
+		s_templateFileLoaded = false;
+		FillInsertMenu();
+	}
+}
+
+void ScriptEdit::FillAutoType()
+{
+	CString strprop;
+	int i;
+	m_autoPropertyID = AfxGetApp()->GetProfileInt( s_registrySection, s_registryKeyAutoProperty, m_autoPropertyID );
+	if (m_autoPropertyID)
+	{
+		for(i = 0; i < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; i++)
+		{	
+			strprop = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[i];
+			AddInputHelpString(strprop);
+		}
+	}
+
+	m_autoObjectType = AfxGetApp()->GetProfileInt( s_registrySection, s_registryKeyAutoObject, m_autoObjectType );
+	if (m_autoObjectType)
+	{
+		for(i = 0; i < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings; i++)
+		{
+			strprop = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[i];
+			AddInputHelpString(strprop);
+		}
+	}
+}
+
+void ScriptEdit::FillInsertMenu()
+{
+	m_templateFileName = AfxGetApp()->GetProfileString( s_registrySection, s_registryKeyTemplate, m_templateFileName );
+	if (!s_templateFileLoaded)
+	{
+		s_templateLibrary.ReadFile( m_templateFileName );
+		s_templateFileLoaded = true;
+	}
+
+	// Find the "Insert" menu and populate it
+	CMenu *pMenu = GetParentFrame()->GetMenu();
+	CString str;
+	for (int ix = 0; ix < 20; ix++)
+	{
+		pMenu->GetMenuString( ix, str, MF_BYPOSITION );
+		if (str == "&Insert")
+		{
+			s_templateLibrary.FillMenu( *pMenu->GetSubMenu( ix ), false );
+			break;
+		}
+	}
+}
+
+void ScriptEdit::OnTemplate(int nID)
+{
+	int ix = nID - ID_SCRIPT_TEMPLATE_0;
+	SelectTemplateDlg dlg( s_templateLibrary.Collection( ix ) );
+	if (dlg.DoModal() == IDOK)
+	{
+		// Insert the text
+		int sel = dlg.GetTemplateIndex();
+		if (sel >= 0)
+		{
+			m_pEdit->ReplaceSel( s_templateLibrary.Collection( ix ).TemplateBody( sel ) );
+		}
+	}
+}
+
+//=============================================================================
+//=============================================================================
+// Set of templates
+ScriptTemplateCollection::ScriptTemplateCollection( const char *pTheTitle )
+: m_title(pTheTitle)
+{
+}
+
+//=============================================================================
+ScriptTemplateCollection::~ScriptTemplateCollection()
+{
+}
+
+void ScriptTemplateCollection::Add( ScriptTemplate &theTemplate )
+{
+	m_templates.Add( theTemplate );
+};
+
+//=============================================================================
+//=============================================================================
+// Group of template collections
+ScriptTemplateLibrary::ScriptTemplateLibrary()
+{
+}
+
+//=============================================================================
+ScriptTemplateLibrary::~ScriptTemplateLibrary()
+{
+	RemoveAll();
+}
+
+//=============================================================================
+// Load the templatefile
+void ScriptTemplateLibrary::ReadFile( const char *pTheFileName )
+{
+	// Delete old contents
+	RemoveAll();
+
+	CString str;
+	ScriptTemplateCollection *pCollection = NULL;
+	ScriptTemplate templ;
+	bool defining = false;
+
+	// Create sections from the propertyID and object-type enumerations
+	pCollection = new ScriptTemplateCollection( "Object Types" );
+	int ix;
+	for(ix = 0; ix < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings; ix++)
+	{
+		templ.m_name = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[ix];
+		templ.m_body = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[ix];
+		pCollection->Add( templ );
+	}
+	m_collections.Add( pCollection );
+	
+	pCollection = new ScriptTemplateCollection( "Property Identifiers" );
+	for(ix = 0; ix < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; ix++)
+	{
+		templ.m_name = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ix];
+		templ.m_body = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ix];
+		pCollection->Add( templ );
+	}
+	m_collections.Add( pCollection );
+	pCollection = NULL;
+
+	// Read the file
+	CStdioFile templateFile;
+	if (templateFile.Open( pTheFileName, CFile::modeRead ))
+	{
+		CString line;
+		int lineNumber = 0;
+		while (templateFile.ReadString( line ))
+		{
+			lineNumber++;
+			if (defining)
+			{
+				// Line of a definition
+				if (line.Left(7).Compare( "ENDITEM" ) == 0)
+				{
+					defining = false;
+					
+					// Add the template 
+					pCollection->Add( templ );
+				}
+				else
+				{
+					// Append to definition
+					templ.m_body += line + "\r\n";
+				}
+			}
+			else
+			{
+				if (line.Left(5).Compare( "ITEM " ) == 0)
+				{
+					// Begin defining a template
+					templ.m_name = line.Mid( 5 );
+					templ.m_name.TrimLeft();
+					if (templ.m_name.IsEmpty())
+					{
+						str.Format( "Template without a name on line %i of template file %s", 
+									lineNumber, pTheFileName );
+						AfxMessageBox( str, MB_OK | MB_ICONERROR );
+						break;
+					}
+					
+					if (pCollection == NULL)
+					{
+						str.Format( "Template %s defined outside a section on line %i of template file %s", 
+									(LPCTSTR)templ.m_name, lineNumber, pTheFileName );
+						AfxMessageBox( str, MB_OK | MB_ICONERROR );
+						break;
+					}
+					
+					templ.m_body.Empty();
+					defining = true;
+				}
+				else if (line.Left(8).Compare( "SECTION " ) == 0)
+				{
+					// Add the previous collection to the library
+					if (pCollection != NULL)
+					{
+						m_collections.Add( pCollection );
+					}
+					
+					str = line.Mid( 8 );
+					str.TrimLeft();
+					if (str.IsEmpty())
+					{
+						str.Format( "Section without a name on line %i of template file %s", 
+									lineNumber, pTheFileName );
+						AfxMessageBox( str, MB_OK | MB_ICONERROR );
+						break;
+					}
+					
+					// Begin defining a collection of templates
+					pCollection = new ScriptTemplateCollection( str );
+				}
+				else if ((line.GetLength() == 0) || (line[0] == ';'))
+				{
+					// Empty line or comment is ignored
+				}
+				else
+				{
+					str.Format( "Unknown command on line %i of template file %s: %s", 
+								lineNumber, pTheFileName, (LPCTSTR)line );
+					AfxMessageBox( str, MB_OK | MB_ICONERROR );
+					break;
+				}
+			}
+		}
+		
+		if (defining)
+		{
+			str.Format( "Unexpected end of file %s while defining %s", 
+						pTheFileName, (LPCTSTR)templ.m_name );
+			AfxMessageBox( str, MB_OK | MB_ICONERROR );
+		}
+		
+		// Add any open collection to the library
+		if (pCollection != NULL)
+		{
+			m_collections.Add( pCollection );
+		}
+		templateFile.Close();
+	}
+}
+
+//=============================================================================
+// Delete all templates
+void ScriptTemplateLibrary::RemoveAll()
+{
+	for (int ix = 0; ix < m_collections.GetSize(); ix++)
+	{
+		ScriptTemplateCollection *pCollection = m_collections[ix];
+		delete pCollection;
+		m_collections[ix] = NULL;
+	}
+}
+
+//=============================================================================
+// Fill the specified menu with our template sections
+void ScriptTemplateLibrary::FillMenu( CMenu &theMenu, bool atEnd )
+{
+	int ix;
+
+	// shortcuts for template sections
+	static char shortcuts[] = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	// Remove any previous menu items
+	for (ix = 0; ix < 20; ix++)
+	{
+		theMenu.DeleteMenu( ID_SCRIPT_TEMPLATE_0+ix, MF_BYCOMMAND );
+	}
+	
+	// Build the new menu
+	for (ix = 0; ix < m_collections.GetSize(); ix++)
+	{
+		ScriptTemplateCollection *pCollection = m_collections[ix];
+		CString name;
+
+		char sh[3];
+		if (ix < 36)
+		{
+			sh[0] = '&';
+			sh[1] = shortcuts[ix];
+			sh[2] = 0;
+		}
+		else
+		{
+			sh[0] = ' ';
+			sh[1] = ' ';
+			sh[2] = 0;
+		}
+
+		name.Format( "%s %s...", sh, pCollection->Title() );
+		if (atEnd)
+		{
+			// Add at the end of the menu
+			theMenu.AppendMenu( MF_STRING, ID_SCRIPT_TEMPLATE_0+ix, name );
+		}
+		else
+		{
+			// Add at the top of the menu
+			theMenu.InsertMenu( ix, MF_BYPOSITION, ID_SCRIPT_TEMPLATE_0+ix, name );
+		}
+	}
+}
+
+//=============================================================================
+LPCTSTR ScriptTemplateLibrary::SectionTitle( int theIndex )
+{
+	LPCTSTR pName = "unknown";
+	if (theIndex < m_collections.GetSize())
+	{
+		pName = m_collections[theIndex]->Title();
+	}
+
+	return pName;
+}
+
+//=============================================================================
+const ScriptTemplateCollection& ScriptTemplateLibrary::Collection( int theIndex )
+{
+	if (theIndex >= m_collections.GetSize())
+	{
+		theIndex = 0;
+	}
+	return *m_collections[theIndex];
+}
+
