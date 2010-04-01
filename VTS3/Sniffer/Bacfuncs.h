@@ -1595,10 +1595,12 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.TextString( -1, "" );
 		break;
 	case ACTIVE_VT_SESSIONS:
-		seq.ListOf();
-		while (seq.HasListElement()) 
+		if (seq.ListOf())
 		{
-			show_bac_VT_session(seq);
+			while (seq.HasListElement()) 
+			{
+				show_bac_VT_session(seq);
+			}
 		}
         break;
 	case ALARM_VALUE:
@@ -1607,22 +1609,24 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		break;
 	case ALARM_VALUES:			// 7
 	case FAULT_VALUES:
-		seq.ListOf();
-		while (seq.HasListElement()) {
-			switch (obj_type) {
-			case 21: // LIFE_SAFETY_POINT
-			case 22: // LIFE_SAFETY_ZONE
-				// List of BACnetLifeSafetyState
-				seq.Enumerated( -1, "", &BAC_STRTAB_BACnetLifeSafetyState );
-				break;
-			case 30: // ACCESS_DOOR
-				// List of BACnetDoorAlarmState
-				seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDoorAlarmState );
-				break;
-			default: // Multistate input and value
-				// List Unsigned for MI, MV
-				seq.Unsigned( -1, "" );
-				break;
+		if (seq.ListOf())
+		{
+			while (seq.HasListElement()) {
+				switch (obj_type) {
+				case 21: // LIFE_SAFETY_POINT
+				case 22: // LIFE_SAFETY_ZONE
+					// List of BACnetLifeSafetyState
+					seq.Enumerated( -1, "", &BAC_STRTAB_BACnetLifeSafetyState );
+					break;
+				case 30: // ACCESS_DOOR
+					// List of BACnetDoorAlarmState
+					seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDoorAlarmState );
+					break;
+				default: // Multistate input and value
+					// List Unsigned for MI, MV
+					seq.Unsigned( -1, "" );
+					break;
+				}
 			}
 		}
 		break;
@@ -1667,9 +1671,11 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.Real( -1, "" );
 		break;
 	case DATELIST:  /* List of BACnetCalendarEntry  */
-		seq.ListOf();
-		while (seq.HasListElement()) {
-			show_calendar_entry( seq );
+		if (seq.ListOf())
+		{
+			while (seq.HasListElement()) {
+				show_calendar_entry( seq );
+			}
 		}
 		break;
 	case DAYLIGHT_SAVINGS_STATUS:  /* Boolean  */
@@ -1693,10 +1699,12 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case SLAVE_ADDRESS_BINDING:
 	case MANUAL_SLAVE_ADDRESS_BINDING:
 	case DEVICE_ADDRESS_BINDING:  /* sequence of BACnetAddressBinding */
-		seq.ListOf();
-		while (seq.HasListElement()) {
-			seq.ObjectIdentifier( -1, "deviceObjectIdentifier" );
-			show_bacnet_address( seq, "deviceAddress" );
+		if (seq.ListOf())
+		{
+			while (seq.HasListElement()) {
+				seq.ObjectIdentifier( -1, "deviceObjectIdentifier" );
+				show_bacnet_address( seq, "deviceAddress" );
+			}
 		}
 	   break;
 	case DEVICE_TYPE: /*  Character String  */
@@ -1783,25 +1791,31 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.BitString( -1, "", &BAC_STRTAB_BACnetLimitEnable );
 		break;
 	case LIST_OF_GROUP_MEMBERS:	/* list of ReadAccessSpecification */
-		seq.ListOf();
-		while (seq.HasListElement())
+		if (seq.ListOf())
 		{
-			show_read_access_spec(seq);
+			while (seq.HasListElement())
+			{
+				show_read_access_spec(seq);
+			}
 		}
 		break;
 	case LIST_OF_OBJ_PROP_REFERENCES: /* List of object_property_references  */
-		seq.ListOf();
-		while (seq.HasListElement())
+		if (seq.ListOf())
 		{
-			show_bac_dev_obj_prop_ref(seq);
+			while (seq.HasListElement())
+			{
+				show_bac_dev_obj_prop_ref(seq);
+			}
 		}
 		break;
 	case LIST_OF_SESSION_KEYS:
-		seq.ListOf();
-		while (seq.HasListElement())
+		if (seq.ListOf())
 		{
-			seq.OctetString( -1, "sessionKey" );
-			show_bacnet_address( seq, "peerAddress" );
+			while (seq.HasListElement())
+			{
+				seq.OctetString( -1, "sessionKey" );
+				show_bacnet_address( seq, "peerAddress" );
+			}
 		}
 		break;
 	case LOCAL_DATE: /* Date */
@@ -1934,10 +1948,12 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 			seq.Enumerated( -1, "", &BAC_STRTAB_BACnetDoorValue );
 			break;
 		case 11: /* Group - List of Read Access Result */
-			seq.ListOf();
-			while (seq.HasListElement())
+			if (seq.ListOf())
 			{
-				show_read_access_result( seq );
+				while (seq.HasListElement())
+				{
+					show_read_access_result( seq );
+				}
 			}
 			break;
 		// case 22: /* Life Safety Zone - No Present Value */
@@ -2007,10 +2023,12 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetProgramError );
 		break;
 	case RECIPIENT_LIST:	// SEQEUNCE OF BACnetDestination
-		seq.ListOf();
-		while (seq.HasListElement())
+		if (seq.ListOf())
 		{
-			show_bac_destination( seq );
+			while (seq.HasListElement())
+			{
+				show_bac_destination( seq );
+			}
 		}
 		break;
 	case RELIABILITY:
@@ -2064,10 +2082,12 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 	case TIME_SYNCHRONIZATION_RECIPIENTS:  // SEQUENCE OF BACnetRecipient
 	case UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
 	case RESTART_NOTIFICATION_RECIPIENTS:
-		seq.ListOf();
-		while (seq.HasListElement())
+		if (seq.ListOf())
 		{
-			show_bac_recipient( seq );
+			while (seq.HasListElement())
+			{
+				show_bac_recipient( seq );
+			}
 		}
 		break;
 	case UNITS:  /* BACnetEngineering Units */
@@ -2086,19 +2106,23 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.TextString( -1, "" );
 		break;
 	case VT_CLASSES_SUPPORTED:  /*  List of BACnet VT Classes */
-		seq.ListOf();
-		while (seq.HasListElement())
+		if (seq.ListOf())
 		{
-			seq.Enumerated( -1, "vtCalss", &BAC_STRTAB_BACnetVTClass );
+			while (seq.HasListElement())
+			{
+				seq.Enumerated( -1, "vtCalss", &BAC_STRTAB_BACnetVTClass );
+			}
 		}
         break;
 	case WEEKLY_SCHEDULE:  /* ARRAY of BACnetTimeValue */
 		while (seq.ArrayOf(prop_idx)) 
 		{
-			seq.ListOf( 0, "day-schedule" );
-			while (seq.HasListElement())
+			if (seq.ListOf( 0, "day-schedule" ))
 			{
-				show_bac_time_value( seq );
+				while (seq.HasListElement())
+				{
+					show_bac_time_value( seq );
+				}
 			}
 		}
 		break;
@@ -2141,9 +2165,11 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		default:
 			// Object we don't know.
 			// Show as a sequence of anything, terminated by closing tag
-			seq.ListOf();
-			while (seq.HasListElement()) {
-				seq.AnyTaggedItem();
+			if (seq.ListOf())
+			{
+				while (seq.HasListElement()) {
+					seq.AnyTaggedItem();
+				}
 			}
 			break;
 		}
@@ -2219,9 +2245,11 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.Real( -1, "" );
 		break;
 	case ACTIVE_COV_SUBSCRIPTIONS:
-		seq.ListOf();
-		while (seq.HasListElement()) {
-			show_bac_COV_Subscription( seq );
+		if (seq.ListOf())
+		{
+			while (seq.HasListElement()) {
+				show_bac_COV_Subscription( seq );
+			}
 		}
 	   break;
 	case PROFILE_NAME:                 // 168
@@ -2294,9 +2322,11 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		break;
 	default:
 		// Show as a sequence of anything, terminated by closing tag
-		seq.ListOf();
-		while (seq.HasListElement()) {
-			seq.AnyTaggedItem();
+		if (seq.ListOf())
+		{
+			while (seq.HasListElement()) {
+				seq.AnyTaggedItem();
+			}
 		}
 		break;
 	}

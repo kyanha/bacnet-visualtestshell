@@ -151,6 +151,8 @@ STRING_TABLE BACnetTimeStamp[]= {
 };
 BAC_STRINGTABLE(BACnetTimeStamp);
 
+// Used for bitstring BACnetDaysOfWeek, where Monday == 0
+// See also day_of_week
 STRING_TABLE BACnetDaysOfWeek[] = {
    "Monday",
    "Tuesday",
@@ -1945,6 +1947,8 @@ STRING_TABLE BACnetWeekNDay[] = {
 };
 BAC_STRINGTABLE(BACnetWeekNDay);
 
+// Used for Date etc., where Monday == 1
+// See also BACnetDaysOfWeek
 STRING_TABLE day_of_week[] = {
    "Invalid Day",  /* 0 */
    "Monday",       /* 1 */
