@@ -471,15 +471,22 @@ void ReadPropACKElem::Encode( BACnetAPDUEncoder& enc )
 
 		rpaeValue.Encode( enc, 4 );
 	} else {
-		if (rpaeClassCombo.ctrlNull)
-			throw "Error class required with no value";
-		if (rpaeCodeCombo.ctrlNull)
-			throw "Error code required with no value";
+		if (rpaeClassCombo.ctrlNull && rpaeCodeCombo.ctrlNull)
+		{
+			// Allow empty value: some properties are List-Of, with empty list allowed
+		}
+		else
+		{
+			if (rpaeClassCombo.ctrlNull)
+				throw "Error class required with error code";
+			if (rpaeCodeCombo.ctrlNull)
+				throw "Error code required with error class";
 
-		BACnetOpeningTag().Encode( enc, 5 );
-		rpaeClassCombo.Encode( enc );
-		rpaeCodeCombo.Encode( enc );
-		BACnetClosingTag().Encode( enc, 5 );
+			BACnetOpeningTag().Encode( enc, 5 );
+			rpaeClassCombo.Encode( enc );
+			rpaeCodeCombo.Encode( enc );
+			BACnetClosingTag().Encode( enc, 5 );
+		}
 	}
 }
 
