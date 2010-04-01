@@ -72,7 +72,7 @@ static const char s_registrySection[] = "ScriptEditor";
 static const char s_registryKeyTemplate[] = "TemplateFile";
 static const char s_registryKeyAutoObject[] = "AutoObject";
 static const char s_registryKeyAutoProperty[] = "AutoProperty";
-
+static const char s_registryKeyTabWidth[] = "TabWidth";
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -104,6 +104,7 @@ ScriptEdit::ScriptEdit()
 
 	m_autoObjectType = 1;
 	m_autoPropertyID = 1;
+	m_tabWidth = 3;
 }
 
 ScriptEdit::~ScriptEdit()
@@ -209,7 +210,7 @@ void ScriptEdit::OnSize(UINT nType, int cx, int cy)
 	
 	UpdateEditArea();
 
-	TRACE("cx = %d, cy = %d\n", cx,cy);
+//	TRACE("cx = %d, cy = %d\n", cx,cy);
 }
 
 HBRUSH ScriptEdit::CtlColor(CDC* pDC, UINT nCtlColor) 
@@ -242,6 +243,8 @@ void ScriptEdit::OnInitialUpdate()
 
 	FillAutoType();
 	FillInsertMenu();
+
+	m_tabWidth = AfxGetApp()->GetProfileInt( s_registrySection, s_registryKeyTabWidth, m_tabWidth );
 }
 
 void ScriptEdit::OnPaint() 
@@ -260,7 +263,7 @@ void ScriptEdit::OnPaint()
 	m_nFirstVisibleLn = m_pEdit->GetFirstVisibleLine();
 	int nCurrentY;
 	nCurrentY = (m_nCurrentLine - m_nFirstVisibleLn) * CHAR_HEIGHT;
-	TRACE("m_nCurrentLine = %d, m_nFirstVisibleLn = %d, nCurrentY = %d\n",m_nCurrentLine, m_nFirstVisibleLn, nCurrentY);
+//	TRACE("m_nCurrentLine = %d, m_nFirstVisibleLn = %d, nCurrentY = %d\n",m_nCurrentLine, m_nFirstVisibleLn, nCurrentY);
 	
 	memDC.FillSolidRect( rcClient, RGB(255,255,255) );
 	
@@ -335,13 +338,57 @@ void ScriptEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 void ScriptEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
-	// TODO: if nChar is TAB or Shift-TAB, and one or more entire lines are selected,
+	// If nChar is TAB or Shift-TAB, and one or more entire lines are selected,
 	// indent or undent the selection, and DON'T call CEditView::OnChar
-//	int startChar, endChar;
-//	m_pEdit->GetSel( startChar, endChar );
-//	int startLine = m_pEdit->LineFromChar( startChar );
-//	int EndLine   = m_pEdit->LineFromChar( endChar );
+	if (nChar == '\t')
+	{
+		CString tab( ' ', m_tabWidth );
 
+		int startChar, endChar;
+		m_pEdit->GetSel( startChar, endChar );
+		int startLine = m_pEdit->LineFromChar( startChar );
+		int	prevLine  = m_pEdit->LineFromChar( startChar - 1 );
+		int endLine   = m_pEdit->LineFromChar( endChar );
+		int endPrevLine = m_pEdit->LineFromChar( endChar - 1 );
+		if ((startLine != endLine) &&							// at least one line selected
+			((startChar == 0) || (startLine != prevLine)) &&	// begin at start of a line
+			(endLine != endPrevLine))							// end at start of a line
+		{
+			bool shift = GetKeyState( VK_SHIFT ) < 0;
+			CString newText, str;
+			for (int ix = startLine; ix < endLine; ix++)
+			{
+				int len = m_pEdit->GetLine( ix, str.GetBuffer(1000), 1000 );
+				str.ReleaseBuffer( len );
+				if (shift)
+				{
+					if (str.Find( tab ) == 0)
+					{
+						str = str.Mid( m_tabWidth );
+					}
+					else if (str.Find( '\t' ) == 0)
+					{
+						str = str.Mid( 1 );
+					}
+				}
+				else
+				{
+					newText += tab;
+				}
+				newText += str + "\r\n";
+			}
+			m_pEdit->ReplaceSel( newText, TRUE );
+			m_pEdit->SetSel( startChar, startChar + newText.GetLength() );
+		}
+		else
+		{
+			// Just insert a tab's worth of spaces
+			m_pEdit->ReplaceSel( tab, TRUE );
+		}
+		UpdateEditArea();
+		GetCurLineIndex();
+		return;
+	}
 
 	CEditView::OnChar(nChar, nRepCnt, nFlags);
 	if((nChar >= 'A' && nChar <= 'Z') || (nChar >= 'a' && nChar <= 'z') || (nChar == '_' || nChar == '-'))
