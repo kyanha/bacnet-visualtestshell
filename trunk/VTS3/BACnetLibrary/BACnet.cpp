@@ -106,6 +106,34 @@ bool ValuesEqual( int v1, int v2 );
 bool ValuesGreater( int v1, int v2 );
 bool ValuesLess( int v1, int v2 );
 
+// Case insensitive compare to string.
+// If match, return true and bypass the string
+// Else return false and cursor unchanged
+//
+// if theAbbrevLen is > 0, also accept a match to that length.
+// Thus, December or Dec, etc.
+static bool MatchAndEat( const char* &theCursor, const char* theMatchString, int theAbbrevLen = -1 )
+{
+	int len = strlen( theMatchString );
+	bool retval = strnicmp( theCursor, theMatchString, len ) == 0;
+	if (retval)
+	{
+		// Matches full string
+		theCursor += len;
+	}
+	else if ((theAbbrevLen > 0) && (theAbbrevLen < len))
+	{
+		retval = strnicmp( theCursor, theMatchString, theAbbrevLen ) == 0;
+		if (retval)
+		{
+			// Matches abbreviated string
+			theCursor += theAbbrevLen;
+		}
+	}
+
+	return retval;
+}
+
 
 //
 //	BACnetAddress
@@ -2785,7 +2813,6 @@ BACnetWeekNDay::BACnetWeekNDay()
 }
 
 
-
 BACnetWeekNDay::BACnetWeekNDay( int nMonth, int nWeekOfMonth, int nDayOfWeek )
 			   :BACnetOctetString(3)
 {
@@ -2806,9 +2833,10 @@ void BACnetWeekNDay::Initialize( int nMonth, int nWeekOfMonth, int nDayOfWeek )
 	m_nWeekOfMonth = nWeekOfMonth;
 	m_nDayOfWeek = nDayOfWeek;
 
-	ASSERT( (nMonth > 0 && nMonth < 13) || nMonth == 0xFF );
-	ASSERT( (nWeekOfMonth > 0 && nWeekOfMonth < 7) || nWeekOfMonth == 0xFF );
-	ASSERT( (nDayOfWeek > 0 && nDayOfWeek < 8) || nDayOfWeek == 0xFF );
+	// Allow even/odd months
+	ASSERT( (nMonth >= 1 && nMonth <= 14) || (nMonth == 0xFF) );
+	ASSERT( (nWeekOfMonth >= 1 && nWeekOfMonth <= 6) || (nWeekOfMonth == 0xFF) );
+	ASSERT( (nDayOfWeek >= 1 && nDayOfWeek <= 7) || (nDayOfWeek == 0xFF) );
 	LoadBuffer();
 }
 
@@ -3485,10 +3513,12 @@ bool BACnetDate::IsValid()
 	if ( dayOfWeek != DATE_DONT_CARE && dayOfWeek != DATE_SHOULDNT_CARE && (dayOfWeek < 1 || dayOfWeek > 7) )
 		return false;
 
-	if ( day != DATE_DONT_CARE && day != DATE_SHOULDNT_CARE && (day < 1 || day > 31) )
+	// Accept LAST, ODD, and EVEN
+	if ( day != DATE_DONT_CARE && day != DATE_SHOULDNT_CARE && (day < 1 || day > 34) )
 		return false;
 
-	if ( month != DATE_DONT_CARE && month != DATE_SHOULDNT_CARE && (month < 1 || month > 12 ))
+	// Accept ODD and EVEN
+	if ( month != DATE_DONT_CARE && month != DATE_SHOULDNT_CARE && (month < 1 || month > 14 ))
 		return false;
 
 	if ( year != DATE_DONT_CARE && year != DATE_SHOULDNT_CARE && (year < 0 || year > 255))
@@ -3503,29 +3533,16 @@ bool BACnetDate::IsValid()
 
 void BACnetDate::CalcDayOfWeek( void )
 {
-//	int		a, b, c, y, m;
-	
-	// dont even try with "unspecified" or "don't care" values
-	if ((year == DATE_DONT_CARE) || (month == DATE_DONT_CARE) || (day == DATE_DONT_CARE) ||
-	    (year == DATE_SHOULDNT_CARE) || (month == DATE_SHOULDNT_CARE) || (day == DATE_SHOULDNT_CARE)) {
+	// Don't try with "unspecified", "don't care", or other special values
+	if ((year == DATE_DONT_CARE) || (year == DATE_SHOULDNT_CARE) || 
+		(month > 12) || (day > 31)) 
+	{
 		dayOfWeek = DATE_DONT_CARE;
 		return;
 	}
 
 	// CTime version says 1 = Sunday...  Oops... Convert to 1 = Monday
 	dayOfWeek = (Convert().GetDayOfWeek() + 5) % 7 + 1;
-	
-	// thanks Dr McKenna!
-//	a = (month <= 2) ? 1 : 0;
-//	y = year + 1900 - a;
-//	m = month + 10 * a - 2 * (1 - a);
-//	c = y / 100;
-//	a = y % 100;
-//	b = ((13 * m - 1) / 5) + (a / 4) + (c / 4);
-//	dayOfWeek = (b + a + day - 2 * c) % 7;		// 0=Sunday, ...
-	
-	// translate to BACnet order, 1=Monday, ...
-//	dayOfWeek = (dayOfWeek + 6) % 7 + 1;
 }
 
 void BACnetDate::Encode( BACnetAPDUEncoder& enc, int context )
@@ -3571,71 +3588,55 @@ void BACnetDate::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetDate::Encode( char *enc ) const
 {
-	static char *dow[] = { "", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
-	;
-
 	// Date is complex data structure... must use brackets to enclose data
 	*enc++ = '(';  // LJT changed from [ to (
 
 	// day of week
-	if (dayOfWeek == DATE_DONT_CARE)
-		*enc++ = '*';	// LJT changed from ? to *
-	else if (dayOfWeek == DATE_SHOULDNT_CARE)
+	if ((dayOfWeek == DATE_DONT_CARE) || (dayOfWeek == DATE_SHOULDNT_CARE))
 		*enc++ = '*';
-	else if ((dayOfWeek > 0) && (dayOfWeek < 8)) {
-		strcpy( enc, dow[dayOfWeek] );
-		enc += strlen(dow[dayOfWeek]);
-	} else
-		*enc++ = '*';   // LJT changed from ? to *
+	else {
+		// Shows illegal values numerically as "DOWnn"
+		enc += sprintf( enc, NetworkSniffer::BAC_STRTAB_day_of_week.EnumString( dayOfWeek, "DOW" ) );
+	}
 
 	*enc++ = ',';
 
 	// month
-	if (month == DATE_DONT_CARE)
-		*enc++ = '*';	// LJT changed from ? to *
-	else if (month == DATE_SHOULDNT_CARE)
+	if ((month == DATE_DONT_CARE) || (month == DATE_SHOULDNT_CARE))
 		*enc++ = '*';
-	else
-	{
-		sprintf( enc, "%d", month );
-		while (*enc) enc++;
+	else {
+		// Handles normal months, EVEN, ODD.  Shows numeric for anything else
+		enc += sprintf( enc, NetworkSniffer::BAC_STRTAB_month.EnumString( month ) );
 	}
 
 	*enc++ = '/';  // LJT changed from / to -
 
-	// day
-	if (day == DATE_DONT_CARE)
-		*enc++ = '*';   // LJT changed from ? to *
-	else if (day == DATE_SHOULDNT_CARE)
+	// day of month
+	if ((day == DATE_DONT_CARE) || (day == DATE_SHOULDNT_CARE))
 		*enc++ = '*';
-	else {
-		sprintf( enc, "%d", day );
-		while (*enc) enc++;
-	}
+	else if (day == 32)
+		enc += sprintf( enc, "LAST" );
+	else if (day == 33)
+		enc += sprintf( enc, "ODD" );
+	else if (day == 34)
+		enc += sprintf( enc, "EVEN" );
+	else
+		enc += sprintf( enc, "%d", day );
 
 	*enc++ = '/';  // LJT changed from / to -
 
 	// year
-	if (year == DATE_DONT_CARE) {
-		*enc++ = '*';	// LJT changed from ? to *
-		*enc = 0;
-	} else if (year == DATE_SHOULDNT_CARE) {
+	if ((year == DATE_DONT_CARE) || (year == DATE_SHOULDNT_CARE))
 		*enc++ = '*';
-		*enc = 0;
-	} else
-		sprintf( enc, "%d", year + 1900 );
+	else
+		enc += sprintf( enc, "%d", year + 1900 );
 
 	// Date is complex data type so must enclose in brackets for proper parsing
-	strcat(enc, ")");	// LJT changed from ] to )
+	sprintf(enc, ")");	// LJT changed from ] to )
 }
 
 void BACnetDate::Decode( const char *dec )
 {
-	static char *dow[] = { "", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY" }
-	;
-	char		dowBuff[10]
-	;
-
 	// initialize everything to don't care
 	dayOfWeek = month = day = year = DATE_DONT_CARE;
 
@@ -3645,9 +3646,22 @@ void BACnetDate::Decode( const char *dec )
 	// script calls will have the square brackets as well
 	if ( *dec == '[' ) dec++;
 
-	// Date is complex data type so must enclose in brackets
+	// Date is complex data type so must enclose in parenthesis
 	if ( *dec++ != '(' )
-		throw_(110);			// missing start bracket for complex data structures
+		throw_(110);			// missing start parenthesis for complex data structures
+
+	// The EPICS format is (Wednesday, 31-January-2010)
+	// - allows the DOW to be omitted entirely.
+	// - allows any field to be wildcarded as *
+	// - doesn't talk about even, odd, last
+	//
+	// The format here up to 3.5.3 was (Wednesday, 1-31-2010) or (Wednesday, 1/31/2010),
+	// allowing * or ? in any position, but not allowing even, odd, or last
+	//
+	// Current format (deviating from EPICS for backward compatibility)
+	// - Require DOW (or * or ?)
+	// - order is month/day/year
+	// - also accept month=13 or "odd", 14 or "even"; and day=32 or "last", 33 or "odd", or 34 or "even"
 
 	// check for dow
 	if ( *dec == '*' )
@@ -3656,31 +3670,27 @@ void BACnetDate::Decode( const char *dec )
 		dec += 1;
 	}
 	else if ( *dec == '?' )
+	{
 		dec += 1;
-	else if (isalpha(*dec)) {
+	}
+	else if (isalpha(*dec)) 
+	{
 		// They've provided a day...  read it and test for validity
-
-		for (int j = 0; (j < 9) && isalpha(*dec); j++)
+		for (int i = 1; (i < NetworkSniffer::BAC_STRTAB_day_of_week.m_nStrings); i++)
 		{
-			if ( *dec == ' ' || *dec == ',' )
-				break;
-			dowBuff[j] = toupper(*dec++);
-		}
-		dowBuff[j] = 0;
-
-		for (int i = 1; i < 8 && dayOfWeek == DATE_DONT_CARE; i++)
-			if (strcmp(dowBuff,dow[i]) == 0)
+			if (MatchAndEat(dec, NetworkSniffer::BAC_STRTAB_day_of_week.m_pStrings[i], 3)) {
 				dayOfWeek = i;
+				break;
+			}
+		}
 
 		// scanned through... test for validity
 		if ( dayOfWeek == DATE_DONT_CARE )
 			throw_(91);									// code for bad supplied day (interpreted in caller's context)
-
-		while (*dec!=',' && !isspace(*dec)) dec++;    //Modified by Liangping Xu
 	}
-	while (*dec && isspace(*dec)) dec++;
-
+	
 	// skip over comma and more space
+	while (*dec && isspace(*dec)) dec++;
 	if (*dec == ',') {
 		dec += 1;
 		while (*dec && isspace(*dec)) dec++;
@@ -3693,51 +3703,99 @@ void BACnetDate::Decode( const char *dec )
 		dec += 1;
 	}
 	else if ( *dec == '?' )
+	{
 		dec += 1;
-	else {
-		for (month = 0; isdigit(*dec); dec++)
-			month = (month * 10) + (*dec - '0');
-
-		// they've supplied a month (I think)
-		if ( month < 1 || month > 12)
-			throw_(92);								// code for bad month, , interpreted in caller's context
 	}
-	while (*dec && isspace(*dec)) dec++;
+	else 
+	{
+		if (isdigit(*dec))
+		{
+			// Numeric month
+			for (month = 0; isdigit(*dec); dec++)
+				month = (month * 10) + (*dec - '0');
+		}
+		else
+		{
+			// Month names, abbreviations, ODD and EVEN
+			for (int ix = 1; ix < NetworkSniffer::BAC_STRTAB_month.m_nStrings; ix++)
+			{
+				if (MatchAndEat( dec, NetworkSniffer::BAC_STRTAB_month.m_pStrings[ix], 3 ))
+				{
+					month = ix;
+				}
+			}
+		}
+		
+		// Allow ODD=13 and EVEN=14
+		if ( month < 1 || month > 14)
+			throw_(92);								// code for bad month, interpreted in caller's context
+	}
 	
 	// skip over slash and more space
 	// make sure slash is there... or (-)
-	if (*dec == '/' || *dec == '-') {
+	while (*dec && isspace(*dec)) dec++;
+	if (*dec == '/' || *dec == '-') 
+	{
 		dec += 1;
 		while (*dec && isspace(*dec)) dec++;
 	}
 	else
+	{
 		throw_(93);									// code for bad date separator, interpreted in caller's context
+	}
 
-	// check for day
+	// check for day of month
 	if ( *dec == '*' )
 	{
 		day = DATE_SHOULDNT_CARE;
 		dec += 1;
 	}
 	else if ( *dec == '?' )
+	{
 		dec += 1;
-	else {
-		for (day = 0; isdigit(*dec); dec++)
-			day = (day * 10) + (*dec - '0');
+	}
+	else 
+	{
+		if (isdigit(*dec))
+		{
+			// Numeric month
+			for (day = 0; isdigit(*dec); dec++)
+				day = (day * 10) + (*dec - '0');
+		}
+		else
+		{
+			// Allow LAST, EVEN or ODD
+			if (MatchAndEat( dec, "LAST" ))
+			{
+				day = 32;
+			}
+			else if (MatchAndEat( dec, "ODD" ))
+			{
+				day = 33;
+			}
+			else if (MatchAndEat( dec, "EVEN" ))
+			{
+				day = 34;
+			}
+		}
 
 		// they've supplied a day (I think)
-		if ( day < 1 || day > 31)					// doesn't account for month/day invalids (feb 30)
+		// Allow LAST=32 ODD=33 and EVEN=34
+		if ( day < 1 || day > 34)					// doesn't account for month/day invalids (feb 30)
 			throw_(94);								// code for bad day, interpreted in caller's context
 	}
-	while (*dec && isspace(*dec)) dec++;
 	
 	// skip over slash and more space
-	if (*dec == '/' || *dec == '-') {
+	while (*dec && isspace(*dec)) dec++;
+	if (*dec == '/' || *dec == '-') 
+	{
 		dec += 1;
 		while (*dec && isspace(*dec)) dec++;
 	}
 	else
+	{
 		throw_(93);									// code for bad date separator, interpreted in caller's context
+	}
 
 	// check for year
 	if ( *dec == '*' )
@@ -3746,8 +3804,11 @@ void BACnetDate::Decode( const char *dec )
 		dec += 1;
 	}
 	else if ( *dec == '?' )
+	{
 		dec += 1;
-	else {
+	}
+	else 
+	{
 		int	yr = -1;			// start with no supplied year
 
 		// if they've supplied any number we'll go through this once at least...
@@ -3930,6 +3991,7 @@ CTime BACnetDate::Convert() const
 {
 	ASSERT( year != DATE_DONT_CARE  && month != DATE_DONT_CARE && day != DATE_DONT_CARE);
 	ASSERT( year != DATE_SHOULDNT_CARE  && month != DATE_SHOULDNT_CARE && day != DATE_SHOULDNT_CARE);
+	ASSERT( (month >= 1) && (month <= 12) && (day >= 1) && (day <= 31));
 	return CTime(year + 1900, month, day, 0, 0, 0);
 }
 
@@ -3965,7 +4027,7 @@ bool BACnetDate::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)));
 
-//  Won't work due to don't care cases
+//  Won't work due to don't care and special (even/odd) cases
 //	CTime dateThis(year + 1900, month + 1, day + 1, 0, 0, 0);
 //	CTime dateThat(((BACnetDate &) rbacnet).year + 1900, ((BACnetDate &) rbacnet).month + 1, ((BACnetDate &) rbacnet).day + 1, 0, 0, 0);
 
