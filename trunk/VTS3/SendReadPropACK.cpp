@@ -114,8 +114,9 @@ void CSendReadPropACK::EncodePage( CByteArray* contents )
 		m_ArrayIndex.Encode( enc, 2 );
 
 	// do the value
-	if (m_Value.m_anyList.Length() < 1)
-		throw "Value required";
+	// Allow empty value: some properties are List-Of, with empty list allowed
+//	if (m_Value.m_anyList.Length() < 1)
+//		throw "Value required";
 	m_Value.Encode( enc, 3 );
 
 	// copy the encoding into the byte array

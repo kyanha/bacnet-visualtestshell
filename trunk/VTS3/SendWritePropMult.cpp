@@ -453,8 +453,9 @@ void WritePropElem::Encode( BACnetAPDUEncoder& enc )
 		wpeArrayIndex.Encode( enc, 1 );
 
 	// do the value
-	if (wpeValue.m_anyList.Length() < 1)
-		throw "Value required";
+	// Allow empty value: some properties are List-Of, with empty list allowed
+//	if (wpeValue.m_anyList.Length() < 1)
+//		throw "Value required";
 	wpeValue.Encode( enc, 2 );
 
 	// encode the (optional) priority

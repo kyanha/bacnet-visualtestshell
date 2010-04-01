@@ -342,8 +342,9 @@ void CreateObjectElem::Encode( BACnetAPDUEncoder& enc )
 		coeArrayIndex.Encode( enc, 1 );
 
 	// do the value
-	if (coeValue.m_anyList.Length() < 1)
-		throw "Value required";
+	// Allow empty value: some properties are List-Of, with empty list allowed
+//	if (coeValue.m_anyList.Length() < 1)
+//		throw "Value required";
 	coeValue.Encode( enc, 2 );
 
 	// encode the (optional) priority
