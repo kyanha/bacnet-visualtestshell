@@ -161,11 +161,12 @@ private:
 	int m_nLineCount;
 	CStringList m_strList; //the help string list, Added by Zhu Zhenhua, 2003-12-25
 
-	CString						m_templateFileName;
-	int							m_autoObjectType;
-	int							m_autoPropertyID;
+	CString	m_templateFileName;
+	int		m_autoObjectType;
+	int		m_autoPropertyID;
+	int		m_tabWidth;
 
-	static bool					s_templateFileLoaded;
+	static bool					 s_templateFileLoaded;
 	static ScriptTemplateLibrary s_templateLibrary;
 };
 
