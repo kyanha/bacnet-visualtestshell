@@ -502,11 +502,14 @@ void VTSAny::OnValueIDButton()
 	if (m_iSelectedElem < 0)
 		return;
 
-		VTSAnyElementPtr	curElem = m_anyList[m_iSelectedElem];
+	VTSAnyElementPtr	curElem = m_anyList[m_iSelectedElem];
 
 	BACnetAPDUDecoder	dec( curElem->elemEncoder.pktBuffer, curElem->elemEncoder.pktLength );
 	curElem->elemEncoder.Flush();
 	
+	// TODO: in a sane world, each of these cases would become a virtual method of
+	// BACnetEncodeable, and we could eliminate the coupling between these files.
+	//
 	// depending on the type, encode the value
 	switch (curElem->elemType) 
 	{
@@ -603,8 +606,8 @@ void VTSAny::OnValueIDButton()
 			}
 			break;
 		}
-	//MOdified by Zhu Zhenhua , 2004-6-14
-case 19: //action
+		//MOdified by Zhu Zhenhua , 2004-6-14
+		case 19: //action
 		{
 			VTSActionDlg dlg(this);
 			
@@ -621,7 +624,7 @@ case 19: //action
 			}
 			break;
 		}
-case 20: //actionCommand
+		case 20: //actionCommand
 		{
 			VTSActionCommandDlg dlg(this);
 			
@@ -638,7 +641,7 @@ case 20: //actionCommand
 			}
 			break;
 		}
-case 21: //actionList
+		case 21: //actionList
 		{
 			VTSActionListDlg dlg(this);
 			
@@ -655,7 +658,7 @@ case 21: //actionList
 			}
 			break;
 		}
-case 22: //BinaryPV
+		case 22: //BinaryPV
 		{
 			VTSBinaryPVDlg dlg(this);
 			
@@ -706,7 +709,7 @@ case 22: //BinaryPV
 			}
 			break;
 		}
-case 25: //dailySchedule
+		case 25: //dailySchedule
 		{
 			VTSDailyScheduleDlg dlg(this);
 			
@@ -723,7 +726,7 @@ case 25: //dailySchedule
 			}
 			break;
 		}
-case 26: //daysofWeek
+		case 26: //daysofWeek
 		{
 			VTSDaysOfWeekDlg dlg(this);
 			
@@ -740,7 +743,7 @@ case 26: //daysofWeek
 			}
 			break;
 		}
-case 27: //destination
+		case 27: //destination
 		{
 			VTSDestinationDlg dlg(this);
 			
@@ -757,7 +760,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 28://Device Status
+		case 28://Device Status
 		{	
 			VTSDeviceStatusDlg dlg(this);
 			try{
@@ -773,7 +776,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 29://DeviceObjectPropertyReference
+		case 29://DeviceObjectPropertyReference
 		{	
 			VTSDeviceObjectPropertyReferenceDlg dlg(this);
 			try{
@@ -805,7 +808,7 @@ case 27: //destination
 			}
 			break;
 		}	
-	case 31://EngineeringUnits
+		case 31://EngineeringUnits
 		{	
 			VTSEngineeringUnitsDlg dlg(this);
 			try{
@@ -821,7 +824,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 32://EventParameter
+		case 32://EventParameter
 		{	
 
 			VTSEventParameterDlg dlg(this);
@@ -839,7 +842,7 @@ case 27: //destination
 			
 			break;
 		}
-	case 33://EventState
+		case 33://EventState
 		{	
 			VTSEventStateDlg dlg(this);
 			try{
@@ -855,7 +858,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 34://EventTransitionBits
+		case 34://EventTransitionBits
 		{	
 			VTSEventTransitionBitsDlg dlg(this);
 			try{
@@ -871,7 +874,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 35://EventType
+		case 35://EventType
 		{	
 			VTSEventTypeDlg dlg(this);
 			try{
@@ -887,7 +890,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 36://FileAccessMethod
+		case 36://FileAccessMethod
 		{	
 			VTSFileAccessMethodDlg dlg(this);
 			try{
@@ -903,7 +906,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 37://LifeSafetyMode
+		case 37://LifeSafetyMode
 		{	
 			VTSLifeSafetyModeDlg dlg(this);
 			try{
@@ -919,7 +922,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 38://LifeSafetyOperation
+		case 38://LifeSafetyOperation
 		{	
 			VTSLifeSafetyOperationDlg dlg(this);
 			try{
@@ -935,7 +938,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 39://LifeSafetyState
+		case 39://LifeSafetyState
 		{	
 			VTSLifeSafetyStateDlg dlg(this);
 			try{
@@ -951,7 +954,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 40://LimitEnable
+		case 40://LimitEnable
 		{	
 			VTSLimitEnableDlg dlg(this);
 			try{
@@ -967,7 +970,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 41://LogRecord
+		case 41://LogRecord
 		{	
 			VTSLogRecordDlg dlg(this);
 			try{
@@ -999,7 +1002,7 @@ case 27: //destination
 			}
 			break;
 		}	
-	case 43://Maintenance
+		case 43://Maintenance
 		{	
 			VTSMaintenanceDlg dlg(this);
 			try{
@@ -1015,7 +1018,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 44://NotifyType
+		case 44://NotifyType
 		{	
 			VTSNotifyTypeDlg dlg(this);
 			try{
@@ -1031,7 +1034,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 45://ObjectPropertyReference
+		case 45://ObjectPropertyReference
 		{	
 			VTSObjectPropertyReferenceDlg dlg(this);
 			try{
@@ -1047,7 +1050,7 @@ case 27: //destination
 			}
 			break;
 		}	
-	case 46://ObjectPropertyValue
+		case 46://ObjectPropertyValue
 		{	
 			VTSObjectPropertyValueDlg dlg(this);
 			try{
@@ -1063,7 +1066,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 47://ObjecTtype
+		case 47://ObjecTtype
 		{	
 			VTSObjectTypeDlg dlg(this);
 			try{
@@ -1079,7 +1082,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 48://ObectTypesSupported
+		case 48://ObectTypesSupported
 		{	
 			VTSObjectTypesSupportedDlg dlg(this);
 			try{
@@ -1095,7 +1098,7 @@ case 27: //destination
 				}		
 			break;
 		}
-	case 49://Polarity 
+		case 49://Polarity 
 		{	
 			VTSPolarityDlg dlg(this);
 			try{
@@ -1111,7 +1114,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 50://PriorityArray
+		case 50://PriorityArray
 		{	
 			VTSPriorityArrayDlg dlg(this);
 			try{
@@ -1127,7 +1130,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 51://PriorityValue
+		case 51://PriorityValue
 		{	
 			VTSPriorityValueDlg dlg(this);
 			try{
@@ -1143,7 +1146,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 52://ProgramError   
+		case 52://ProgramError   
 		{	
 			VTSProgramErrorDlg dlg(this);
 			try{
@@ -1159,7 +1162,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 53://ProgramRequest 
+		case 53://ProgramRequest 
 		{	
 			VTSProgramRequestDlg dlg(this);
 			try{
@@ -1175,7 +1178,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 54://ProgramState
+		case 54://ProgramState
 		{	
 			VTSProgramStateDlg dlg(this);
 			try{
@@ -1191,7 +1194,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 55://PropertyIdentifier  
+		case 55://PropertyIdentifier  
 		{	
 			VTSPropertyIdentifierDlg dlg(this);
 			try{
@@ -1207,7 +1210,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 56://PropertyReference
+		case 56://PropertyReference
 		{	
 			VTSPropertyReferenceDlg dlg(this);
 			try{
@@ -1223,7 +1226,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 57://PropertyStates 
+		case 57://PropertyStates 
 		{	
 			VTSPropertyStatesDlg dlg(this);
 			try{
@@ -1239,7 +1242,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 58://PropertyValue
+		case 58://PropertyValue
 		{	
 			VTSPropertyValueDlg dlg(this);
 			try{
@@ -1255,7 +1258,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 59://Recipient
+		case 59://Recipient
 		{	
 			VTSRecipientDlg dlg(this);
 			try{
@@ -1271,7 +1274,7 @@ case 27: //destination
 			}
 			break;
 		}	
-	case 60://RecipientProcess
+		case 60://RecipientProcess
 		{	
 			VTSRecipientProcess dlg(this);
 			try{
@@ -1309,7 +1312,7 @@ case 27: //destination
 			}
 			break;
 		}	
-	case 62://ResultFlags
+		case 62://ResultFlags
 		{	
 			VTSResultFlasDlg dlg(this);
 			try{
@@ -1358,7 +1361,7 @@ case 27: //destination
 			
 			break;
 		}
-	case 65://SessionKey
+		case 65://SessionKey
 		{	
 			VTSSessionKeyDlg dlg(this);
 			try{
@@ -1472,7 +1475,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 72://VTClass 
+		case 72://VTClass 
 		{	
 			VTSVTClassDlg dlg(this);
 			try{
@@ -1488,7 +1491,7 @@ case 27: //destination
 			}
 			break;
 		}	
-	case 73://VTSession
+		case 73://VTSession
 		{	
 			VTSVTSessionDlg dlg(this);
 			try{
@@ -1504,7 +1507,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 74://WeekNDay
+		case 74://WeekNDay
 		{	
 			VTSWeekNDayDlg dlg(this);
 			try{
@@ -1520,7 +1523,7 @@ case 27: //destination
 			}
 			break;
 		}
-	case 75://list of Destination
+		case 75://list of Destination
 		{	
 			VTSListOfDestinationDlg dlg(0, this);
 			try{
