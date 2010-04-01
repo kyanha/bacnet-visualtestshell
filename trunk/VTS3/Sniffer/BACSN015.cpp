@@ -1501,10 +1501,13 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						// Seems fragile: any change to string format will break the code.
 						BACnetSequence seq;
 						show_bac_ANY(seq, obj_type, pID, pid_index);
-						const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
-						if (pValue != NULL)
-						{   
-							sprintf(moreDetail + lentemp, ",%s", pValue+1);											
+						if (gCurrentInfo->detailCount > 0)
+						{
+							const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
+							if (pValue != NULL)
+							{   
+								sprintf(moreDetail + lentemp, ",%s", pValue+1);											
+							}
 						}
 					}
 					break;
@@ -1885,10 +1888,13 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 							// Seems fragile: any change to string format will break the code.
 							BACnetSequence seq;
 							show_bac_ANY(seq, obj_type, pID, pid_index);
-							const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
-							if (pValue != NULL)
-							{   
-								sprintf(moreDetail + lentemp, ",%s", pValue+1);											
+							if (gCurrentInfo->detailCount > 0)
+							{
+								const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
+								if (pValue != NULL)
+								{   
+									sprintf(moreDetail + lentemp, ",%s", pValue+1);											
+								}
 							}
 						}
 						break;
@@ -3973,6 +3979,12 @@ void date_as_string( char *pOut, int offset )
 	else if (x == 32) {
 		pOut += sprintf( pOut, "last-day, " );
 	}
+	else if (x == 33) {
+		pOut += sprintf( pOut, "odd-days, " );
+	}
+	else if (x == 34) {
+		pOut += sprintf( pOut, "even-days, " );
+	}
 	else {
 		pOut += sprintf( pOut, "%02u, ", x );
 	}
@@ -4026,6 +4038,10 @@ void show_bac_date( unsigned int len )
 		sprintf(outstr,"Unspecified");
 	else if (x == 32)
 		sprintf(outstr,"Last Day");
+	else if (x == 33)
+		sprintf(outstr,"Odd Days");
+	else if (x == 34)
+		sprintf(outstr,"Even Days");
 	else
 		sprintf(outstr,"%u",x);
 	show_str_eq_str("Day of Month",outstr,1);
