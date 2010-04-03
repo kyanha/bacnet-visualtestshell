@@ -407,9 +407,9 @@ void ScriptEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 		{
 			CString prevLine;
 			int max = m_pEdit->GetLine( curLine-1, prevLine.GetBuffer(100), 100 );
+			prevLine.ReleaseBuffer(max);
 			if (max > 0)
 			{
-				prevLine.ReleaseBufferSetLength(max);
 				CString white = prevLine.SpanIncluding( " \t" );
 				if (!white.IsEmpty())
 				{
