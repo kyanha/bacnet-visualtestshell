@@ -1058,6 +1058,9 @@ propdescriptor	DVprops[]={
 	"slave-address-binding", SLAVE_ADDRESS_BINDING, oo(device, slave_add_bind), dabind, 0, 0, O,
 	"manual-slave-address-binding", MANUAL_SLAVE_ADDRESS_BINDING, oo(device, manual_slave_add_bind), dabind, 0, 0, O,
 
+// Added by Tom Brennan, 1-Apr-2010
+    "structured-object-list",	STRUCTURED_OBJECT_LIST,	oo(device,structured_object_list),	looref,	0,	0,	O|IsArray,
+
 	"profile-name",			PROFILE_NAME,       oo(device,go.profile_name), s132,	Last,		0,	 O 
 };
 
@@ -1751,12 +1754,12 @@ typedef struct {
 
 typedef struct {
     word	npt;								//number of string pointers which follow
-    defparsetypes dpt[146];						//the default parse types
+    defparsetypes dpt[147];						//the default parse types
     } dpttable;
 
 //Special table for default parse types
 static dpttable dParseTypes={
-                146,							//135 parse types						
+                147,							//147 parse types						
                 {
                 {ACKED_TRANSITIONS,bits,eiEvTr,0},
                 {ACK_REQUIRED,bits,eiEvTr,0},
@@ -1903,7 +1906,8 @@ static dpttable dParseTypes={
                 {VT_CLASSES_SUPPORTED,vtcl,0,0},
                 {WEEKLY_SCHEDULE,wsched,0,IsArray},
                 {WINDOW_INTERVAL,uw,0,0},
-                {WINDOW_SAMPLES,uw,0,0}}
+                {WINDOW_SAMPLES,uw,0,0},
+				{STRUCTURED_OBJECT_LIST,none,0,IsArray} }
                 };
 
 #endif //__STDOBJPR_H_INCLUDED
