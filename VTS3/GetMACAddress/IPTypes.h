@@ -95,7 +95,11 @@ typedef struct _IP_ADAPTER_INFO {
 //
 // The following types require Winsock2.
 //
-
+#ifdef _NLDEF_
+// Is already defined in microsoft sdks\windows\v6.0a\include\nldef.h
+// Support our old names for these enums
+#define IP_PREFIX_ORIGIN NL_PREFIX_ORIGIN
+#else
 typedef enum {
     IpPrefixOriginOther = 0,
     IpPrefixOriginManual,
@@ -103,7 +107,11 @@ typedef enum {
     IpPrefixOriginDhcp,
     IpPrefixOriginRouterAdvertisement,
 } IP_PREFIX_ORIGIN;
+#endif
 
+#ifdef _NLDEF_
+#define IP_SUFFIX_ORIGIN NL_SUFFIX_ORIGIN
+#else
 typedef enum {
     IpSuffixOriginOther = 0,
     IpSuffixOriginManual,
@@ -112,7 +120,11 @@ typedef enum {
     IpSuffixOriginLinkLayerAddress,
     IpSuffixOriginRandom,
 } IP_SUFFIX_ORIGIN;
+#endif
 
+#ifdef _NLDEF_
+#define IP_DAD_STATE NL_DAD_STATE
+#else
 typedef enum {
     IpDadStateInvalid    = 0,
     IpDadStateTentative,
@@ -120,6 +132,7 @@ typedef enum {
     IpDadStateDeprecated,
     IpDadStatePreferred,
 } IP_DAD_STATE;
+#endif
 
 typedef struct _IP_ADAPTER_UNICAST_ADDRESS {
     union {
@@ -192,7 +205,9 @@ typedef struct _IP_ADAPTER_DNS_SERVER_ADDRESS {
 
 //
 // OperStatus values from RFC 2863
+// Unless they are defined in microsoft sdks\windows\v6.0a\include\ifdef.h
 //
+#ifndef _IFDEF_
 typedef enum {
     IfOperStatusUp = 1,
     IfOperStatusDown,
@@ -202,6 +217,7 @@ typedef enum {
     IfOperStatusNotPresent,
     IfOperStatusLowerLayerDown
 } IF_OPER_STATUS;
+#endif
 
 typedef struct _IP_ADAPTER_ADDRESSES {
     union {
