@@ -2302,9 +2302,9 @@ void show_error( unsigned char x )
       show_error_codes,	// 5
       show_error_codes,
       show_error_codes,
-      show_createObjectError,  /* 8 change list error */
-      show_createObjectError,  /* 9 change list error */
-      show_createObjectError, // 10
+      show_createObjectError,  /* 8 change list error - same as CreateObjectError*/
+      show_createObjectError,  /* 9 change list error - same as CreateObjectError*/
+      show_createObjectError, // 10 CreateObjectError
       show_error_codes,
       show_error_codes,
       show_error_codes,
@@ -2622,14 +2622,14 @@ static const char* weeks[] =
 void show_calendar_entry( BACnetSequence &theSeq )
 {
 	theSeq.BeginChoice();
-	theSeq.Date(           0, "date", BSQ_CHOICE );
-	if (theSeq.OpeningTag( 1, "dateRange", BSQ_CHOICE ))
+	theSeq.Date(             0, "date", BSQ_CHOICE );
+	if (theSeq.OpeningTag(   1, "dateRange", BSQ_CHOICE ))
 	{
 		theSeq.Date( -1, "startDate" );
 		theSeq.Date( -1, "endDate" );
 		theSeq.ClosingTag();
 	}
-	if (theSeq.Vet(        2, -1, BSQ_CHOICE ))
+	if (theSeq.VetPrimitive( 2, -1, BSQ_CHOICE ))
 	{
 		// Encoding is as an octet-string.  But we want to show 3 bytes:
 		// - month 1-12, odd, even, any
@@ -3195,7 +3195,7 @@ void show_deleteObject( void )
 {
 	bac_show_byte("Delete Object Request","%u");
 	BACnetSequence seq;
-	seq.OpeningTag( 0, "objectIdentifier" );
+	seq.ObjectIdentifier( -1, "objectIdentifier" );
 }
 
 /*************************************************************************/
@@ -3625,7 +3625,7 @@ void show_createObjectACK( void )
 {
 	bac_show_byte("CreateObject Acknowledgement","%u");
 	BACnetSequence seq;
-	seq.ObjectIdentifier( 0, "objectIdentifier" );
+	seq.ObjectIdentifier( -1, "objectIdentifier" );
 }
 
 /*************************************************************************/

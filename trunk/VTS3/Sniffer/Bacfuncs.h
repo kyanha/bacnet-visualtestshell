@@ -5,6 +5,7 @@
 // Revision: March 5 2010: rewrote most of it.
 /**************************************************************************/
 
+
 // Parse BACnet tags
 class BacParser
 {
@@ -24,24 +25,31 @@ public:
 	// Is there more in the buffer?
 	bool HasMore() const;
 
+	// Is the last tag parsed valid?
+	bool IsValid() const { return m_isValid; }
+
 	// Synchronize with the cursor, reset offset to 0
 	void Synch();
+
+	enum TagType { TAG_PRIMITIVE, TAG_OPEN, TAG_CLOSE };
 
 	// Get the components of the current tag
 	int			 Offset() const { return m_offset; }
 	unsigned int TagValue() const { return m_tagValue; }
 	unsigned int DataLength() const { return m_dataLength; }
 	bool		 ContextTag() const { return m_contextTag; }
-	bool		 FixedTag() const { return (m_pairedTag < 6); }
-	bool		 OpeningTag() const { return (m_pairedTag == 6); }
-	bool		 ClosingTag() const { return (m_pairedTag == 7); }
+	bool		 FixedTag() const { return (m_tagType == TAG_PRIMITIVE); }
+	bool		 OpeningTag() const { return (m_tagType == TAG_OPEN); }
+	bool		 ClosingTag() const { return (m_tagType == TAG_CLOSE); }
+	TagType      GetTagType() const { return m_tagType; }
 
 protected:
 	int			 m_offset;
 	unsigned int m_tagValue;
 	unsigned int m_dataLength;
 	bool		 m_contextTag;
-	int			 m_pairedTag;
+	bool		 m_isValid;
+	TagType		 m_tagType;
 };
 
 /* Suppress 289 pointless warnings of:
@@ -71,71 +79,84 @@ void BacParser::Synch()
 
 bool BacParser::ParseTag()
 {
-	bool retval = true;
-	
-	unsigned int tagbuff = pif_get_byte( m_offset );
-	m_offset += 1;
-	m_contextTag = (tagbuff & 0x08) != 0;
-	m_tagValue   = (tagbuff & 0xF0)>>4;
-	
-	if (m_tagValue >= 15)
+	// Must have at least one byte for the tag
+	m_isValid = HasMore();
+	if (m_isValid)
 	{
-		// Extended tag in next byte
-		m_tagValue = pif_get_byte( m_offset );
+		unsigned int tagbuff = pif_get_byte( m_offset );
 		m_offset += 1;
+		m_contextTag = (tagbuff & 0x08) != 0;
+		m_tagValue   = (tagbuff & 0xF0)>>4;
+
+		if (m_tagValue >= 15)
+		{
+			// Extended tag in next byte
+			m_tagValue = pif_get_byte( m_offset );
+			m_offset += 1;
+		}
+
+		m_tagType = TAG_PRIMITIVE;
+		// Get the Length/Value/Type field
+		m_dataLength = (tagbuff & 0x07);
+		if (!m_contextTag && (m_tagValue < 2))	// is a "Value", no following bytes
+		{
+			// Application-tagged NULL or BOOLEAN: no length
+			m_dataLength = 0;
+		}
+		else if (m_dataLength == 5)
+		{
+			// Extended length in next byte
+			m_dataLength = pif_get_byte( m_offset );
+			m_offset += 1;
+			if (m_dataLength == 254)
+			{
+				// Two-byte extension
+				m_dataLength = pif_get_word_hl( m_offset );
+				m_offset += 2;
+			}
+			else if (m_dataLength == 255)
+			{
+				// Four-byte extension
+				m_dataLength = (unsigned int)pif_get_long_hl( m_offset );
+				m_offset += 4;
+			}
+		}
+		else if (m_dataLength > 5)		// is a "Type"
+		{
+			// Paired tag
+			m_tagType = (m_dataLength == 6) ? TAG_OPEN : TAG_CLOSE;
+			m_dataLength = 0;
+
+			// Paired tag MUST be a context tag
+			m_isValid = m_contextTag;
+		}
+
+		if (m_isValid)
+		{
+			// Are we still in the buffer?
+			// Allow one byte past the end so we can parse the final element
+			m_isValid = (pif_offset + (int)m_offset <= pif_end_offset);
+		}
 	}
-   
-	m_pairedTag  = 0;
-	// Get the Length/Value/Type field
-	m_dataLength = (tagbuff & 0x07);
-	if (!m_contextTag && (m_tagValue < 2))	// is a "Value", no following bytes
+
+	if (!m_isValid)
 	{
-		// Application-tagged NULL or BOOLEAN: no length
+		// Buffer doesn't have enough data for this tag.  
+		// Set bogus tag values so they don't match anything
+		m_tagValue = ~0;
+		m_contextTag = true;
+		m_tagType    = TAG_PRIMITIVE;
 		m_dataLength = 0;
 	}
-	else if (m_dataLength == 5)
-	{
-		// Extended length in next byte
-		m_dataLength = pif_get_byte( m_offset );
-		m_offset += 1;
-		if (m_dataLength == 254)
-		{
-			// Two-byte extension
-            m_dataLength = pif_get_word_hl( m_offset );
-			m_offset += 2;
-		}
-		else if (m_dataLength == 255)
-		{
-			// Four-byte extension
-            m_dataLength = (unsigned int)pif_get_long_hl( m_offset );
-			m_offset += 4;
-		}
-	}
-	else if (m_dataLength > 5)		// is a "Type"
-	{
-		// Paired tag
-		m_pairedTag  = m_dataLength;
-		m_dataLength = 0;
 
-		// paired tag MUST be a context tag
-		retval = m_contextTag;
-	}
-
-	if (retval)
-	{
-		// Are we still in the buffer?
-		// Allow one byte past the end so we can parse the final element
-		retval = (pif_offset + (int)m_offset <= pif_end_offset);
-	}
-
-	return retval;
+	return m_isValid;
 }
 
 // Consume the data for the current tag
 bool BacParser::EatData()
 {
 	bool retval = true;
-	if (m_pairedTag == 6)
+	if (m_tagType == TAG_OPEN)
 	{
 		// Opening tag.  Consume tagged items until the matching
 		// closing tag
@@ -286,10 +307,10 @@ public:
 	// Synchronize the parser with the cursor
 	void Synch();
 	
-	// Validate the next item against tag, do choice logic
+	// Validate the next item as a primitive against tag, do choice logic
 	// if theTag >= 0: context tag, ignore theAppTag
 	// else application tag theAppTag
-	bool Vet( int theTag, int theAppTag = -1, BACnetSequenceParm theType = BSQ_REQUIRED );
+	bool VetPrimitive( int theTag, int theAppTag = -1, BACnetSequenceParm theType = BSQ_REQUIRED );
 
 	// Get the parser for special low-level processing
 	BacParser& Parser();
@@ -430,6 +451,13 @@ protected:
 		int             m_firstLineIndex;
 	};
 
+	// Validate the next item against tag, do choice logic
+	// if theTag >= 0: context tag, ignore theAppTag
+	// else application tag theAppTag
+	// theTagType is 0 for primitive tag, 6 for open tag, 7 for close tag
+	bool Vet( int theTag, int theAppTag, 
+			  BacParser::TagType theTagType, BACnetSequenceParm theType = BSQ_REQUIRED );
+
 	// Allocate and push a block on the stack
 	void Push( BACnetNestType theNestType, int theTagValue, const char *pTheTitle );
 
@@ -561,14 +589,44 @@ BACnetSequence::Nester* BACnetSequence::Pop( BACnetNestType theNestType )
 	return pNest;
 }
 
+// Return a string describing the tag
+static const char* WhatWeGot( const BacParser &theParser )
+{
+	char *pGot = TempTextBuffer();
+	unsigned int tag = theParser.TagValue();
+	if (!theParser.IsValid())
+	{
+		pGot = "end of buffer";
+	}
+	else if (theParser.ContextTag())
+	{
+		sprintf( pGot, "[%u]", tag );
+	}
+	else
+	{
+		strcpy( pGot, BAC_STRTAB_ApplicationTypes.EnumString( tag, "Application" ) );
+	}
+
+	return pGot;
+}
+
 // In the following methods:
 // BSQ_REQUIRED: if tag is found, show error and set m_ok false;
 // BSQ_OPTIONAL: if tag is found, show, return true; else show nothing and return false
 // BSQ_CHOICE: if the tag is found, mark as choice, show, return true; else
 //             show nothing and return false;  Also error if choice already found
 
+// Validate the next item as a primitive against tag, do choice logic
+// if theTag >= 0: context tag, ignore theAppTag
+// else application tag theAppTag
+bool BACnetSequence::VetPrimitive( int theTag, int theAppTag, BACnetSequenceParm theType )
+{
+	return Vet( theTag, theAppTag, BacParser::TAG_PRIMITIVE, theType );
+}
+
 // Verify the tag and do choice logic
-bool BACnetSequence::Vet( int theTag, int theAppTag, BACnetSequenceParm theType )
+bool BACnetSequence::Vet( int theTag, int theAppTag, 
+						  BacParser::TagType theTagType, BACnetSequenceParm theType )
 {
 	bool retval = IsOK();
 	if (retval)
@@ -581,8 +639,9 @@ bool BACnetSequence::Vet( int theTag, int theAppTag, BACnetSequenceParm theType 
 		}
 		else
 		{
-			Parse();
-			if (((theTag >= 0) && m_parser.ContextTag() && (theTag == (int)m_parser.TagValue()))
+			retval = Parse();
+			if (((theTag >= 0) && m_parser.ContextTag() && (theTag == (int)m_parser.TagValue()) && 
+				 (theTagType == m_parser.GetTagType()))
 					||
 				((theTag < 0) && !m_parser.ContextTag() && (theAppTag == (int)m_parser.TagValue())))
 			{
@@ -606,18 +665,7 @@ bool BACnetSequence::Vet( int theTag, int theAppTag, BACnetSequenceParm theType 
 					strcpy( pExpected, BAC_STRTAB_ApplicationTypes.EnumString( theAppTag, "Application" ) );
 				}
 				
-				char *pGot = TempTextBuffer();
-				unsigned int tag = m_parser.TagValue();
-				if (m_parser.ContextTag())
-				{
-					sprintf( pGot, "[%u]", tag );
-				}
-				else
-				{
-					strcpy( pGot, BAC_STRTAB_ApplicationTypes.EnumString( tag, "Application" ) );
-				}
-				
-				retval = Fail("Missing required tag: expected %s got %s", pExpected, pGot);
+				retval = Fail("Missing required tag: expected %s got %s", pExpected, WhatWeGot( m_parser ) );
 			}
 			else
 			{
@@ -673,7 +721,7 @@ void BACnetSequence::EndWrap()
 // call ClosingTag() to declare the end of the sequence.
 bool BACnetSequence::OpeningTag( int theTag, const char *pTheTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, -1, theType );
+	bool retval = Vet( theTag, -1, BacParser::TAG_OPEN, theType );
 	if (retval)
 	{
 		// Got an opening tag.  Remember it, and its title, so we can show closing tag
@@ -701,7 +749,7 @@ void BACnetSequence::ClosingTag()
 		if (pNest != NULL)
 		{
 			// Vet and show closing tag
-			if (Vet( pNest->m_tagValue, -1, BSQ_REQUIRED ))
+			if (Vet( pNest->m_tagValue, -1, BacParser::TAG_CLOSE, BSQ_REQUIRED ))
 			{
 				// Don't show as a header line, since we are indenting this under the 
 				// header for the opening tag
@@ -757,7 +805,7 @@ bool BACnetSequence::EndChoice()
 // Followed by while (HasListElement()) to process the elements
 bool BACnetSequence::ListOf( int theTagValue, const char *pTheTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTagValue, -1, theType );
+	bool retval = Vet( theTagValue, -1, BacParser::TAG_OPEN, theType );
 	if (retval)
 	{
 		Push( BNT_LIST, theTagValue, pTheTitle );
@@ -826,8 +874,8 @@ bool BACnetSequence::HasListElement()
 					// List must be enclosed by the specified tag pair
 					if (!more || (tag != (int)m_parser.TagValue()))
 					{
-						Fail( "Missing or incorrect closing tag: expected [%u], got [%u]",
-							  tag, m_parser.TagValue() );
+						Fail( "Missing or incorrect closing tag: expected [%u], got %s",
+							  tag, WhatWeGot( m_parser ) );
 					}
 					else
 					{
@@ -902,7 +950,7 @@ bool BACnetSequence::ArrayOf( int &theIndex )
 // Parse and show a Null value.
 bool BACnetSequence::Null( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, 0, theType );
+	bool retval = VetPrimitive( theTag, 0, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -933,7 +981,7 @@ bool BACnetSequence::Null( int theTag, const char *pTitle, BACnetSequenceParm th
 bool BACnetSequence::Boolean( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
 	m_lastBoolean = false;
-	bool retval = Vet( theTag, BOOLEAN, theType );
+	bool retval = VetPrimitive( theTag, BOOLEAN, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -973,7 +1021,7 @@ bool BACnetSequence::Boolean( int theTag, const char *pTitle, BACnetSequenceParm
 bool BACnetSequence::Unsigned( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
 	m_lastUnsigned = (unsigned int)(~0);
-	bool retval = Vet( theTag, UNSIGNED, theType );
+	bool retval = VetPrimitive( theTag, UNSIGNED, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -996,7 +1044,7 @@ bool BACnetSequence::Unsigned( int theTag, const char *pTitle, BACnetSequencePar
 
 bool BACnetSequence::Integer( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, SIGNED, theType );
+	bool retval = VetPrimitive( theTag, SIGNED, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1017,7 +1065,7 @@ bool BACnetSequence::Integer( int theTag, const char *pTitle, BACnetSequenceParm
 // Parse and show a Real value.
 bool BACnetSequence::Real( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, REAL, theType );
+	bool retval = VetPrimitive( theTag, REAL, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1037,7 +1085,7 @@ bool BACnetSequence::Real( int theTag, const char *pTitle, BACnetSequenceParm th
 // Parse and show a Double value.
 bool BACnetSequence::Double( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, DOUBLE, theType );
+	bool retval = VetPrimitive( theTag, DOUBLE, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1057,7 +1105,7 @@ bool BACnetSequence::Double( int theTag, const char *pTitle, BACnetSequenceParm 
 // Parse and show a Date value.
 bool BACnetSequence::Date( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, DATE, theType );
+	bool retval = VetPrimitive( theTag, DATE, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1077,7 +1125,7 @@ bool BACnetSequence::Date( int theTag, const char *pTitle, BACnetSequenceParm th
 // Parse and show a Time value.
 bool BACnetSequence::Time( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, TIME, theType );
+	bool retval = VetPrimitive( theTag, TIME, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1098,10 +1146,7 @@ bool BACnetSequence::Time( int theTag, const char *pTitle, BACnetSequenceParm th
 bool BACnetSequence::PropertyArrayIndex( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
 	m_propertyIndex = -1;
-	bool retval = Vet( theTag, UNSIGNED, theType );
-	// Screen out the End of Sequence case
-	if ( retval && m_parser.ClosingTag() )
-		retval = false;
+	bool retval = VetPrimitive( theTag, UNSIGNED, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1128,7 +1173,7 @@ bool BACnetSequence::Enumerated( int theTag, const char *pTitle,
                                  BACnetSequenceParm theType )
 {
 	m_lastEnumerated = (unsigned int) (~0);
-	bool retval = Vet( theTag, ENUMERATED, theType );
+	bool retval = VetPrimitive( theTag, ENUMERATED, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1156,7 +1201,7 @@ bool BACnetSequence::Enumerated( int theTag, const char *pTitle,
 bool BACnetSequence::PropertyIdentifier( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
 	m_propertyID = -1;
-	bool retval = Vet( theTag, ENUMERATED, theType );
+	bool retval = VetPrimitive( theTag, ENUMERATED, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1185,7 +1230,7 @@ bool BACnetSequence::ObjectIdentifier( int theTag, const char *pTitle, BACnetSeq
 {
 	m_objectIdentifier =(unsigned int)(~0);
 	m_objectType       = -1;
-	bool retval = Vet( theTag, OBJECT_IDENTIFIER, theType );
+	bool retval = VetPrimitive( theTag, OBJECT_IDENTIFIER, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1212,7 +1257,7 @@ bool BACnetSequence::BitString( int theTag, const char *pTitle,
 								BACnetStringTable *pTheTable,
 							    BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, BIT_STRING, theType );
+	bool retval = VetPrimitive( theTag, BIT_STRING, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1282,7 +1327,7 @@ bool BACnetSequence::BitString( int theTag, const char *pTitle,
 // Parse and show a Text string value.
 bool BACnetSequence::TextString( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, CHARACTER_STRING, theType );
+	bool retval = VetPrimitive( theTag, CHARACTER_STRING, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1303,7 +1348,7 @@ bool BACnetSequence::TextString( int theTag, const char *pTitle, BACnetSequenceP
 // Parse and show an Octet string value.
 bool BACnetSequence::OctetString( int theTag, const char *pTitle, BACnetSequenceParm theType )
 {
-	bool retval = Vet( theTag, OCTET_STRING, theType );
+	bool retval = VetPrimitive( theTag, OCTET_STRING, theType );
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1332,7 +1377,7 @@ bool BACnetSequence::AnyTaggedItem( bool allowContext )
 	{
 		if (m_parser.ContextTag() && !allowContext)
 		{
-			Fail( "Unexpected Context tag [%u]", m_parser.TagValue() );
+			Fail( "Unexpected %s", WhatWeGot( m_parser ) );
 		}
 		else
 		{
