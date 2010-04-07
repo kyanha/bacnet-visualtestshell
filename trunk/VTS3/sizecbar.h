@@ -36,6 +36,15 @@
 #pragma once
 #endif // _MSC_VER >= 1000
 
+// In VC2005, Micro$@%#^&*oft changed the return type for OnNcHitTest from
+// UINT to LRESULT.  Since we want to be compatible with older compilers,
+// we define a bogus type
+#if _MSC_VER >= 1400
+  #define VTS_NC_HIT_TYPE LRESULT
+#else
+  #define VTS_NC_HIT_TYPE UINT
+#endif
+
 
 #if defined(_SCB_MINIFRAME_CAPTION) && !defined(_SCB_REPLACE_MINIFRAME)
     #error "_SCB_MINIFRAME_CAPTION requires _SCB_REPLACE_MINIFRAME"
@@ -166,7 +175,7 @@ protected:
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnNcPaint();
     afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS FAR* lpncsp);
-    afx_msg UINT OnNcHitTest(CPoint point);
+	afx_msg VTS_NC_HIT_TYPE OnNcHitTest(CPoint point);
     afx_msg void OnCaptureChanged(CWnd *pWnd);
     afx_msg void OnSettingChange(UINT uFlags, LPCTSTR lpszSection);
     afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
