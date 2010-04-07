@@ -499,7 +499,7 @@
 #define IDC_RECIPIENTPROCESS            1146
 #define IDC_ENROLLMENTSUMLIST           1147
 #define IDC_CONFIG                      1148
-#define IDC_SOCKET                      1149
+#define IDC_UDP_PORT                    1149
 #define IDC_COLOR                       1149
 #define IDC_ADAPTERCOMBO                1150
 #define IDC_PROMISCUOUS                 1151
@@ -926,7 +926,7 @@
 #define IDC_DNETCHECK                   1536
 #define IDC_DELAY                       1543
 #define IDC_BACKUPTIMEOUT               1544
-#define IDC_COMBO1                      1550
+#define IDC_INTERFACE                   1550
 #define IDC_EVENTTYPE                   1551
 #define IDC_EXVALUE                     1552
 #define IDC_RADIO1                      1552
@@ -1159,7 +1159,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        383
 #define _APS_NEXT_COMMAND_VALUE         32911
-#define _APS_NEXT_CONTROL_VALUE         1561
+#define _APS_NEXT_CONTROL_VALUE         1576
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

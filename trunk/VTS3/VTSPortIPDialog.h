@@ -27,7 +27,8 @@ public:
 // Dialog Data
 	//{{AFX_DATA(VTSPortIPDialog)
 	enum { IDD = IDD_PORTPAGE_IP };
-	CString	m_Socket;
+	CComboBox m_interfaceCombo;
+	CString	m_UDP_Port;
 	CString	m_HostAddr;
 	CString	m_TTL;
 	int		m_nPortType;
@@ -42,6 +43,7 @@ public:
 	virtual BOOL OnKillActive();
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual BOOL OnInitDialog();
 	//}}AFX_VIRTUAL
 
 // Implementation

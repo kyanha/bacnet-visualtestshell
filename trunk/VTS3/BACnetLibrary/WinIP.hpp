@@ -16,19 +16,20 @@ class WinIP : public BACnetPort {
 		friend UINT WinIPThreadFunc( LPVOID pParam );
 
 	protected:
-		short					m_Port;
+		u_short					m_udpPort;
 		bool					m_Continue;
-		SOCKET					sock;						// the real socket
+		SOCKET					m_socket;						// the real socket
 		CWinThread				*m_Thread;
 		int						m_ReceiveError;
 		
-		void InitPort( short socket );
+		void InitPort( const char *pInterface, u_short udpPort );
 
 	public:
-		static void StringToHostPort( char *str, u_long *hostp, u_long *maskp, u_short *portp );
+		// Fill a combo with the list of available IP interfaces
+		static void FillInterfaceCombo( CComboBox &theCombo );
 		
-		WinIP( short port = kDefaultPort );
-		WinIP( const char *port );
+		WinIP( const char *pInterface, u_short udpPort );
+		WinIP( const char *pPortAndInterface );
 		~WinIP( void );
 
 		void Indication( const BACnetNPDU &pdu );
