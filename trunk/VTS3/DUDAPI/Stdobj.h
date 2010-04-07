@@ -308,6 +308,8 @@ enum BACnetSegmentation		segmentation_supported;
 	BACnetAddressBinding far *slave_add_bind;
 	BooleanList          far *auto_slave_disc;    // SEQ of boolean
 	BooleanList          far *slave_proxy_enable; // SEQ of boolean
+	// added by Tom Brennan, 1-Apr-2010
+    BACnetObjectIdentifier	far	*structured_object_list;	//object list of Structured Views
 
    } device_obj_type;
 

@@ -3282,7 +3282,11 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
-		default:
+      case STRUCTURED_OBJECT_LIST:
+			pbacnetAnyValue->SetObject(lobj, CreateObjectList(pObj->structured_object_list));
+			break;
+
+	  default:
 			TRACE("INVALID TYPE in DE_CreateProperty");
 			ASSERT(0);
 	}
@@ -5903,6 +5907,7 @@ bool DE_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case SLAVE_ADDRESS_BINDING:
 		case SLAVE_PROXY_ENABLE:
 		case AUTO_SLAVE_DISCOVERY:
+		case STRUCTURED_OBJECT_LIST:
 				return true;
 		default:
 				return false;
