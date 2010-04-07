@@ -73,6 +73,13 @@ namespace PICS {									//									***016
 #include "EPICSConsCheck.h"
 #include "dudapi.h"
 	
+/* Suppress pointless warnings of:
+ *		warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. 
+ *      To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.	
+ */
+#pragma warning( disable : 4996 )
+
+
 ///////////////////////////////////////////////////////////////////////
 //	function prototypes
 BOOL ParseLogRec(BACnetLogRecord *);
@@ -1398,8 +1405,14 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			vp=((BooleanList *)vp)->next;
 			free(vq);
 		}
-
+		vp=((device_obj_type *)p)->structured_object_list;
+		while(vp!=NULL)
+		{	vq=vp;
+			vp=((BACnetObjectIdentifier *)vp)->next;
+			free(vq);
+		}
 		break; 
+
 	case EVENT_ENROLLMENT: 
 		vp=((ee_obj_type *)p)->parameter_list.list_bitstring_value;
 		while(vp!=NULL)
@@ -2353,8 +2366,8 @@ nextobject:										//										***012
 				pobj=NULL;
 				while (true)					//(lp!=NULL)							***006
 				{	
-					ReadNext();					//point to next token					***008
-					if (*lp=='}'||lp==NULL) break;	//done with this object
+					lp = ReadNext();					//point to next token					***008
+					if ((lp==NULL) || (*lp=='}')) break;	//done with this object
 					if (objtype==0xFFFF)		//										***012
 						goto nextobject;		//once we find a bogus object type, we skip the rest of the object def
 					if (*lp)					//ignore blank lines
@@ -8415,6 +8428,7 @@ bool FindObjectInObjectList(PICSdb *pd, dword ObjectID)
          return TRUE;
       pObjectID = pObjectID->next;
    }
+   // TODO: Add check of structured_object_list here?
    return FALSE;
 }
 
