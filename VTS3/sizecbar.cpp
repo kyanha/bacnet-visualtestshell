@@ -110,14 +110,7 @@ BEGIN_MESSAGE_MAP(CSizingControlBar, baseCSizingControlBar)
     ON_WM_LBUTTONDBLCLK()
     ON_WM_RBUTTONDOWN()
     ON_WM_NCMOUSEMOVE()
-	// ON_WM_NCHITTEST() 
-	// The macro above causes this error (for VS2008):
-	// vts3\scbarg.cpp(57) : erro C2440: 'static_cast' : cannot convert from 'UINT (__thiscall CSizingControlBarG::* )(CPoint)' to 'LRESULT (__thiscall CWnd::* )(CPoint)'
-	// Prototype for function invoked by the macro is afx_msg LRESULT OnNcHitTest( CPoint point );
-	// And the LRESULT is one of the Mouse Enumerated Values, like HTBOTTOMLEFT
-	// This handler is invoked "every time the mouse is moved", but the "NC" implies "in a non-client area"
-	// So substituting this compatible macro as a (hopefully) similar substitute 
-	ON_WM_NCMOUSEMOVE()
+	ON_WM_NCHITTEST() 
     ON_WM_CLOSE()
     ON_WM_SIZE()
     //}}AFX_MSG_MAP
@@ -588,7 +581,7 @@ void CSizingControlBar::OnPaint()
     CPaintDC dc(this);
 }
 
-UINT CSizingControlBar::OnNcHitTest(CPoint point)
+VTS_NC_HIT_TYPE CSizingControlBar::OnNcHitTest(CPoint point)
 {
     CRect rcBar, rcEdge;
     GetWindowRect(rcBar);
