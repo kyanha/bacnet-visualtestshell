@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "VTS.h"
 #include "VTSDoc.h"
+#include "WinIP.hpp"
 
 #include "VTSPortIPDialog.h"
 
@@ -24,7 +25,7 @@ VTSPortIPDialog::VTSPortIPDialog( VTSPageCallbackInterface * pparent )
 	//{{AFX_DATA_INIT(VTSPortEthernetDialog)
 	m_HostAddr = _T("");
 	m_TTL = _T("");
-	m_nPortType = -1;
+	m_nPortType = 3;		// Default is simple B/IP
 	//}}AFX_DATA_INIT
 
 	m_pstrConfigParms = NULL;
@@ -45,11 +46,23 @@ void VTSPortIPDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(VTSPortIPDialog)
-	DDX_Text(pDX, IDC_SOCKET, m_Socket);
+	DDX_Control(pDX, IDC_INTERFACE, m_interfaceCombo);
+	DDX_Text(pDX, IDC_UDP_PORT, m_UDP_Port);
 	DDX_Text(pDX, IDC_HOSTADDR, m_HostAddr);
 	DDX_Text(pDX, IDC_TTL, m_TTL);
 	DDX_Radio(pDX, IDC_RAW, m_nPortType);
 	//}}AFX_DATA_MAP
+}
+
+BOOL VTSPortIPDialog::OnInitDialog() 
+{
+	BOOL retval = CPropertyPage::OnInitDialog();
+	if (retval)
+	{
+		WinIP::FillInterfaceCombo( m_interfaceCombo );
+	}
+	
+	return retval;
 }
 
 BEGIN_MESSAGE_MAP(VTSPortIPDialog, VTSPropertyPage)
@@ -61,9 +74,10 @@ BEGIN_MESSAGE_MAP(VTSPortIPDialog, VTSPropertyPage)
 	ON_BN_CLICKED(IDC_BBMD, OnDataChange)
 	ON_BN_CLICKED(IDC_BIP, OnDataChange)
 	ON_BN_CLICKED(IDC_FOREIGN, OnDataChange)
-	ON_EN_CHANGE(IDC_SOCKET, OnDataChange)
+	ON_EN_CHANGE(IDC_UDP_PORT, OnDataChange)
 	ON_EN_CHANGE(IDC_HOSTADDR, OnDataChange)
 	ON_EN_CHANGE(IDC_TTL, OnDataChange)
+	ON_CBN_SELCHANGE(IDC_INTERFACE, OnDataChange)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -99,10 +113,6 @@ BOOL VTSPortIPDialog::OnKillActive()
 }
 
 
-//
-//	VTSPortIPDialog::OnPortType
-//
-
 void VTSPortIPDialog::OnDataChange() 
 {
 	// sync the member variables with the dialog controls
@@ -111,8 +121,6 @@ void VTSPortIPDialog::OnDataChange()
 	SynchControls(m_pstrConfigParms != NULL);
 	NotifyOfDataChange();
 }
-
-
 
 void VTSPortIPDialog::SynchControls( int fEnable /* = true */ )
 {
@@ -137,22 +145,38 @@ void VTSPortIPDialog::ObjToCtrl()
 		strcpy( config, "0xBAC0" );
 	else
 		strcpy( config, p );
+
 	for (src = config; *src; ) {
 		argv[argc++] = src;
 		while (*src && (*src != ','))
 			src++;
+
 		if (*src == ',')
 			*src++ = 0;
 	}
+
 	for (int i = argc; i < 16; i++)
 		argv[i] = src;
 
-	// set the socket
-	m_Socket = argv[0];
+	// For backwards compatibility, the text before the first comma
+	// is "port;adapter"
+	char *pIface = strchr( argv[0], ';' );
+	if (pIface)
+		*pIface++ = 0;	// terminate port, point at interface
 
-	// if that's the only thing, that's OK
-	if (argc == 1)
-		m_nPortType = 0;
+	// set the UDP port to the string up until the semicolon (or entire string)
+	m_UDP_Port = argv[0];
+
+	// set the interface to the string after the semicolon, or first entry
+	if (pIface)
+		m_interfaceCombo.SelectString( 0, pIface );
+	else
+		m_interfaceCombo.SetCurSel( 0 );
+
+	if (argc == 1) {
+		// if that's the only thing, that's OK: set to simple B/IP
+		m_nPortType = 3;
+	}
 	else {
 		m_nPortType = atoi( argv[1] );
 		switch (m_nPortType) {
@@ -179,11 +203,19 @@ void VTSPortIPDialog::CtrlToObj()
 	if ( m_pstrConfigParms == NULL )
 		return;
 
-	*m_pstrConfigParms = m_Socket;
+	*m_pstrConfigParms = m_UDP_Port;
+	*m_pstrConfigParms += ';';
+
+	// Can't call GetWindowText, as we may be called by notification
+	// BEFORE the combo's visible text changes.
+	CString str;
+	m_interfaceCombo.GetLBText( m_interfaceCombo.GetCurSel(), str );
+	*m_pstrConfigParms += str;
 
 	switch (m_nPortType)
 	{
 		case 0:				// Raw
+			*m_pstrConfigParms += ",0";
 			break;
 
 		case 1:				// BTR [, ipaddr ]*

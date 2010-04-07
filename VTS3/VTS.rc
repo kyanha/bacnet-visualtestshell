@@ -600,25 +600,25 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,209,6,50,14,WS_GROUP
 END
 
-IDD_PORT DIALOG  0, 0, 290, 267
+IDD_PORT DIALOGEX 0, 0, 290, 280
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Port Configuration"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     CONTROL         "List1",IDC_PORTLIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
                     WS_BORDER | WS_GROUP | WS_TABSTOP,7,7,217,80
-    LTEXT           "Name:",IDC_STATIC,7,97,30,10
+    LTEXT           "&Name:",IDC_STATIC,7,97,30,10
     EDITTEXT        IDC_PORTNAME,39,95,140,12,ES_AUTOHSCROLL | WS_DISABLED | 
                     WS_GROUP
-    CONTROL         "Enable",IDC_ENABLEPORT,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Enable",IDC_ENABLEPORT,"Button",BS_AUTOCHECKBOX | 
                     WS_DISABLED | WS_GROUP | WS_TABSTOP,187,96,38,10
-    LTEXT           "Network:",IDC_STATIC,7,112,30,10
+    LTEXT           "Net&work:",IDC_STATIC,7,112,30,10
     EDITTEXT        IDC_NETWORK2,39,110,30,12,ES_AUTOHSCROLL | WS_DISABLED
     COMBOBOX        IDC_DEVICECOMBO,81,110,98,65,CBS_DROPDOWNLIST | 
                     WS_DISABLED | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_PORTPAGE_HOLDER,"Static",SS_BLACKFRAME,7,131,216,
-                    128
+    CONTROL         "",IDC_PORTPAGE_HOLDER,"Static",SS_BLACKFRAME,6,131,277,
+                    142
     PUSHBUTTON      "New",IDC_NEWPORT,233,7,50,15,WS_GROUP
     PUSHBUTTON      "Delete",ID_DELETE,233,25,50,15,NOT WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,233,57,50,14,WS_GROUP
@@ -2264,15 +2264,15 @@ BEGIN
     EDITTEXT        IDC_PRIORITYX,179,210,26,12,ES_AUTOHSCROLL
 END
 
-IDD_PORTPAGE_ENET DIALOG  0, 0, 185, 65
+IDD_PORTPAGE_ENET DIALOGEX 0, 0, 275, 65
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "Ethernet"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     LTEXT           "The drop-down list below contains the names of the Ethernet adapters that are available through the WinPCap driver.",
-                    IDC_STATIC,4,3,177,25
+                    IDC_STATIC,4,7,265,17
     LTEXT           "Adapter",IDC_STATIC,4,35,25,10
-    COMBOBOX        IDC_ADAPTERCOMBO,35,33,135,50,CBS_DROPDOWNLIST | 
+    COMBOBOX        IDC_ADAPTERCOMBO,35,33,237,82,CBS_DROPDOWNLIST | 
                     CBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
     CONTROL         "Promiscuous mode",IDC_PROMISCUOUS,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,35,51,95,10
@@ -2731,40 +2731,43 @@ BEGIN
                     WS_TABSTOP,40,1,43,10
 END
 
-IDD_PORTPAGE_IP DIALOG  0, 0, 204, 113
+IDD_PORTPAGE_IP DIALOGEX 0, 0, 275, 128
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "IP"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "UDP Socket:",IDC_STATIC,4,7,45,10
-    EDITTEXT        IDC_SOCKET,52,4,54,12,ES_AUTOHSCROLL | WS_GROUP
-    LTEXT           "0xBAC0 (47808) Reserved\n0 = dynamically assigned",
-                    IDC_STATIC,109,3,91,17
-    CONTROL         "Raw",IDC_RAW,"Button",BS_AUTORADIOBUTTON | WS_GROUP | 
-                    WS_TABSTOP,4,23,96,8
-    CONTROL         "BTR (Annex-H)",IDC_BTR,"Button",BS_AUTORADIOBUTTON,4,35,
-                    96,8
-    CONTROL         "BBMD (Annex-J)",IDC_BBMD,"Button",BS_AUTORADIOBUTTON,4,
-                    47,96,8
-    CONTROL         "B/IP (Annex-J)",IDC_BIP,"Button",BS_AUTORADIOBUTTON,4,
-                    60,96,8
-    CONTROL         "Foreign Device (Annex-J)",IDC_FOREIGN,"Button",
-                    BS_AUTORADIOBUTTON,4,72,96,8
-    PUSHBUTTON      "BTR Peers...",ID_BTRPEERS,101,34,54,10,WS_DISABLED | 
+    LTEXT           "&Interface",IDC_STATIC,4,6,34,10
+    COMBOBOX        IDC_INTERFACE,40,3,232,76,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&UDP Port:",IDC_STATIC,4,25,34,10
+    EDITTEXT        IDC_UDP_PORT,40,22,54,12,ES_AUTOHSCROLL | WS_GROUP
+    LTEXT           "Usually 0xBAC0 (47808)\n0 = dynamically assigned",
+                    IDC_STATIC,101,21,91,17
+    CONTROL         "&Raw",IDC_RAW,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | 
+                    WS_GROUP | WS_TABSTOP,4,38,96,8
+    CONTROL         "BTR (Annex-&H)",IDC_BTR,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,4,50,96,8
+    CONTROL         "BBMD (Annex-&J)",IDC_BBMD,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,4,62,96,8
+    CONTROL         "&B/IP (Annex-J)",IDC_BIP,"Button",BS_AUTORADIOBUTTON,4,
+                    75,96,8
+    CONTROL         "&Foreign Device (Annex-J)",IDC_FOREIGN,"Button",
+                    BS_AUTORADIOBUTTON,4,87,96,8
+    PUSHBUTTON      "BTR &Peers...",ID_BTRPEERS,101,49,54,10,WS_DISABLED | 
                     WS_GROUP
-    PUSHBUTTON      "BBMD Peers...",ID_BBMDPEERS,101,46,54,10,WS_DISABLED | 
+    PUSHBUTTON      "BB&MD Peers...",ID_BBMDPEERS,101,61,54,10,WS_DISABLED | 
                     NOT WS_TABSTOP
-    LTEXT           "Host:",IDC_STATIC,18,86,19,10
-    EDITTEXT        IDC_HOSTADDR,38,84,71,12,ES_AUTOHSCROLL | WS_GROUP
-    LTEXT           "Time-to-live:",IDC_STATIC,119,87,41,10
-    EDITTEXT        IDC_TTL,162,84,33,12,ES_AUTOHSCROLL
-    LTEXT           "x.x.x.x[/mask][:port]",IDC_STATIC,42,99,63,10
+    LTEXT           "H&ost:",IDC_STATIC,18,101,19,10
+    EDITTEXT        IDC_HOSTADDR,40,99,72,12,ES_AUTOHSCROLL | WS_GROUP
+    LTEXT           "&Time-to-live:",IDC_STATIC,119,101,41,10
+    EDITTEXT        IDC_TTL,162,99,37,12,ES_AUTOHSCROLL
+    LTEXT           "x.x.x.x[/mask][:port]",IDC_STATIC,42,114,63,10
 END
 
-IDD_PORTPAGE_NULL DIALOG  0, 0, 204, 113
+IDD_PORTPAGE_NULL DIALOGEX 0, 0, 275, 128
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "Null"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     LTEXT           "No port specific parameters.",IDC_STATIC,7,7,89,8
 END
@@ -4891,7 +4894,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 283
         TOPMARGIN, 7
-        BOTTOMMARGIN, 260
+        BOTTOMMARGIN, 273
     END
 
     IDD_SENDIP, DIALOG
@@ -5434,7 +5437,7 @@ BEGIN
     IDD_PORTPAGE_ENET, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 181
+        RIGHTMARGIN, 271
         TOPMARGIN, 3
         BOTTOMMARGIN, 61
     END
@@ -5598,17 +5601,17 @@ BEGIN
     IDD_PORTPAGE_IP, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 200
-        TOPMARGIN, 4
-        BOTTOMMARGIN, 109
+        RIGHTMARGIN, 271
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 124
     END
 
     IDD_PORTPAGE_NULL, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 139
+        RIGHTMARGIN, 210
         TOPMARGIN, 7
-        BOTTOMMARGIN, 32
+        BOTTOMMARGIN, 47
     END
 
     IDD_PORTPAGE_ARCNET, DIALOG

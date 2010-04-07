@@ -193,6 +193,8 @@ BOOL VTSPortDlg::OnInitDialog()
 	else
 		ResetSelection();
 
+	m_PortList.SetItemState( m_iSelectedPort, LVIS_SELECTED, LVIS_SELECTED );
+
 	SynchronizeControls();
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
