@@ -44,6 +44,13 @@ protected:
 	int			 m_pairedTag;
 };
 
+/* Suppress 289 pointless warnings of:
+ *		warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. 
+ *      To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.	
+ *		c:\src\vts\vts3\sniffer\bacfuncs.h	180	VTS
+ */
+#pragma warning( disable : 4996 )
+
 BacParser::BacParser( int theOffset )
 : m_offset( theOffset )
 {
@@ -79,8 +86,9 @@ bool BacParser::ParseTag()
 	}
    
 	m_pairedTag  = 0;
+	// Get the Length/Value/Type field
 	m_dataLength = (tagbuff & 0x07);
-	if (!m_contextTag && (m_tagValue < 2))
+	if (!m_contextTag && (m_tagValue < 2))	// is a "Value", no following bytes
 	{
 		// Application-tagged NULL or BOOLEAN: no length
 		m_dataLength = 0;
@@ -103,7 +111,7 @@ bool BacParser::ParseTag()
 			m_offset += 4;
 		}
 	}
-	else if (m_dataLength > 5)
+	else if (m_dataLength > 5)		// is a "Type"
 	{
 		// Paired tag
 		m_pairedTag  = m_dataLength;
@@ -693,7 +701,7 @@ void BACnetSequence::ClosingTag()
 		if (pNest != NULL)
 		{
 			// Vet and show closing tag
-			if (Vet( pNest->m_tagValue, -1 ))
+			if (Vet( pNest->m_tagValue, -1, BSQ_REQUIRED ))
 			{
 				// Don't show as a header line, since we are indenting this under the 
 				// header for the opening tag
@@ -807,9 +815,9 @@ bool BACnetSequence::HasListElement()
 		Nester *pNest = m_pStack;
 		if (pNest != NULL)
 		{
-			// Look for closing tag or end of PDU
-			bool more = Parse();
-			if (!more || m_parser.ClosingTag())
+			// Parse this byte and look for closing tag or end of PDU
+			bool more = Parse();		// see if we reached the end 
+			if ( !more || m_parser.ClosingTag() )
 			{
 				// End of the list, expected or otherwise
 				int tag = pNest->m_tagValue;
@@ -1091,6 +1099,9 @@ bool BACnetSequence::PropertyArrayIndex( int theTag, const char *pTitle, BACnetS
 {
 	m_propertyIndex = -1;
 	bool retval = Vet( theTag, UNSIGNED, theType );
+	// Screen out the End of Sequence case
+	if ( retval && m_parser.ClosingTag() )
+		retval = false;
 	if (retval)
 	{
 		if ((pTitle == NULL) || (*pTitle == 0))
@@ -1884,6 +1895,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.ObjectIdentifier( -1, "" );
 		break;
 	case OBJECT_LIST:
+	case STRUCTURED_OBJECT_LIST:		/* Array of Structured View object IDs */
 		while (seq.ArrayOf( prop_idx )) 
 		{
 			seq.ObjectIdentifier( -1, "" );
