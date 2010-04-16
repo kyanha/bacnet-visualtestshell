@@ -102,16 +102,17 @@ void WinBACnetTaskManager::InstallTask( BACnetTaskPtr tp )
 {
 	// see if application is confused
 	if (tp->isActive)
+	{
+		TRACE( "InstallTask %p already active.\n", tp ); 
 		return;
+	}
 	
-	CSingleLock		lock( &mgrCS )
-	;
+	CSingleLock	lock( &mgrCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
 
-	WinTaskEntryPtr		newTask, cur, *prev
-	;
+	WinTaskEntryPtr	newTask, cur, *prev;
 	
 	// new entry
 	newTask = new WinTaskEntry();
@@ -150,14 +151,12 @@ void WinBACnetTaskManager::SuspendTask( BACnetTaskPtr tp )
 	if (!tp->isActive)
 		return;
 	
-	CSingleLock		lock( &mgrCS )
-	;
+	CSingleLock		lock( &mgrCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
 
-	WinTaskEntryPtr		cur, *prev
-	;
+	WinTaskEntryPtr		cur, *prev;
 	
 	prev = &gBACnetWinTaskList;
 	for (cur = gBACnetWinTaskList; cur; cur = cur->taskNext) {
@@ -241,23 +240,29 @@ void WinBACnetTaskManager::ProcessTasks( void )
 		
 		// let non-recurring tasks know they are NOT scheduled
 		if (curTask->taskPtr->taskType != BACnetTask::recurringTask)
+		{
 			curTask->taskPtr->isActive = 0;
+		}
 
 		// ok for other threads (and this one) to change the list
 		lock.Unlock();
 
-		// given the task a chance to do something
+		// give the task a chance to do something
+#ifdef _DEBUG
+		// During debugging, this lets us SEE who blew cookies
+		curTask->taskPtr->ProcessTask();
+#else
 		try
 		{
 			curTask->taskPtr->ProcessTask();
 		}
-		catch(...)
-		{
-			AfxMessageBox(IDS_ERR_TASKERROR, MB_ICONHAND);
+		catch (...) {
+			AfxMessageBox( IDS_ERR_TASKERROR, MB_ICONHAND);
+
 			// Set task type to oneShotTask so this will kill itself
 			curTask->taskPtr->taskType = BACnetTask::oneShotTask;
 		}
-		
+#endif		
 		// lock it back down
 		lock.Lock();
 

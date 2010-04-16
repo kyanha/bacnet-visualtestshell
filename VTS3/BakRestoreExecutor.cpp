@@ -12,10 +12,6 @@
 #include "BakRestoreExecutor.h"
 #include "PI.h"
 
-namespace NetworkSniffer {
-	extern char *BACnetFileAccessMethod[];
-}
-
 namespace PICS {
 #include "db.h"
 #include "service.h"
@@ -169,9 +165,7 @@ void BakRestoreExecutor::ExecuteTest()
 	}
 
 	// install the task
-	taskType = oneShotTask;
-	taskInterval = 0;
-	InstallTask();
+	InstallTask( oneShotTask, 0 );
 
 	lock.Unlock();
 

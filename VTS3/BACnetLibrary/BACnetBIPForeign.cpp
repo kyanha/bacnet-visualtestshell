@@ -46,8 +46,7 @@ void BACnetBIPForeign::Register( unsigned long ipAddr, unsigned short port, int 
 	foreignBBMDAddr.Pack( ipAddr, port );
 	
 	// while we're alive, send registration requests at this interval
-	taskInterval = foreignTimeToLive * 1000;
-	InstallTask();
+	InstallTask( recurringTask, foreignTimeToLive * 1000 );
 	
 	// send off one right now while we're at it
 	ProcessTask();

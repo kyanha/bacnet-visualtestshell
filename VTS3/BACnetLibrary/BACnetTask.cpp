@@ -58,6 +58,19 @@ void BACnetTask::InstallTask(void)
 	gTaskManager->InstallTask( this );
 }
 
+
+// Install, rescheduling if necessary
+void BACnetTask::InstallTask( BACnetTaskType theType, long theInterval )
+{
+	if (isActive)
+		gTaskManager->SuspendTask( this );
+
+	taskType = theType;
+	taskInterval = theInterval;
+
+	gTaskManager->InstallTask( this );
+}
+
 //
 //	BACnetTask::SuspendTask
 //

@@ -3,13 +3,15 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+// I know it is generally poor form to reformat source code to meet one's 
+// personal preferences, but some of these function were so mangled with random tab/space
+// indenting and 50-line if-following-if-following-for that I found
+// it both incomprehensible and dangerous to modify.  Sorry if you are offended...
 
 #include "stdafx.h"
 #include "VTS.h"
 #include "VTSDoc.h"
 #include "VTSQueue.h"
-
-
 
 #include "PI.h"
 #include "StringTables.h"
@@ -464,7 +466,7 @@ void ScriptExecutor::Setup( VTSDocPtr vdp, ScriptDocumentPtr sdp, ScriptTestPtr 
 {
 	// if the executor is already initialized, exit
 	if (execState != execIdle) {
-		TRACE0( "ScriptExecutor::Setup() error, not idle\n" );
+		TRACE( "ScriptExecutor::Setup() error, not idle\n" );
 		return;
 	}
 
@@ -496,34 +498,34 @@ void ScriptExecutor::Setup( VTSDocPtr vdp, ScriptDocumentPtr sdp, ScriptTestPtr 
 
 void ScriptExecutor::Cleanup( void )
 {
-	TRACE0( "Executor::Cleanup()\n" );
+	TRACE( "Executor::Cleanup()\n" );
 
 	// make sure we don't get rescheduled
 	SuspendTask();
 
 	// check to run the next test
-	if (execAllTests && execTest->testNext) {
+	if (execAllTests && execTest->testNext) 
+	{
 		// move to the next test
 		execTest = execTest->testNext;
 		execPacket = 0;
 		execCommand = NULL;
 
 		// install the task
-		taskType = oneShotTask;
-		taskInterval = 0;
-		InstallTask();
-	}  else 
+		InstallTask( oneShotTask, 0 );
+	}  
+	else 
 	{	
-
-	// Added by Zhu Zhenhua, 2003-12-18, to run all sections
+		// Added by Zhu Zhenhua, 2003-12-18, to run all sections
 		bool bOtherSectionTest = false;
-		if(execAllTests&&(!execDoc->m_pSelectedSection))
+		if (execAllTests && (!execDoc->m_pSelectedSection))
 		{
 			ScriptBasePtr sbp = execDoc->m_pContentTree->m_pScriptContent;
 			for (int i = 0; i < sbp->Length(); i++)
 			{
 				ScriptSectionPtr ssp = (ScriptSectionPtr)sbp->Child( i );
-				if(execTest == (ScriptTestPtr)( ssp->Child( ssp->Length() -1)) &&( i < sbp->Length()-1) )
+				if(execTest == (ScriptTestPtr)( ssp->Child( ssp->Length() -1)) && (i < sbp->Length()-1))
+				{
 					if (sbp->Child( i+1 )->Length() != 0)
 					{	
 						bOtherSectionTest = true;
@@ -531,21 +533,22 @@ void ScriptExecutor::Cleanup( void )
 						execPacket = 0;
 						execCommand = NULL;						
 						// install the task
-						taskType = oneShotTask;
-						taskInterval = 0;
-						InstallTask();
+						InstallTask( oneShotTask, 0 );
 						break;					
 					}
+				}
 			}	
 		}
 		
-		if(!bOtherSectionTest)
+		if (!bOtherSectionTest)
 		{
 			// release from the document
 			execDoc->UnbindExecutor();
 			
-			if ( execCommand && execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket &&
-				((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL  && ((ScriptPacketPtr) execCommand)->m_pcmdMake->IsUp() )
+			if (execCommand && (execCommand->baseType == ScriptBase::scriptPacket) && 
+				(((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket) &&
+				(((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL) &&
+				((ScriptPacketPtr) execCommand)->m_pcmdMake->IsUp())
 			{
 				// It's still up... Kill it with a success regardless of whether or not this one failed...
 				((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
@@ -612,12 +615,10 @@ bool ScriptExecutor::IsBound( VTSDocPtr vdp )
 void ScriptExecutor::Msg( int sc, int line, const char *msg )
 {
 	// JLH 26 January 2010: room for longer message
-	unsigned char	buff[1024], *dst
-	;
-	VTSPacket		pkt
-	;
+	unsigned char	buff[1024], *dst;
+	VTSPacket		pkt;
 	
-	TRACE3( "[%d:%d] %s\n", sc, line, msg );
+	TRACE( "[%d:%d] %s\n", sc, line, msg );
 
 	// save the severity code
 	buff[0] = sc;
@@ -634,14 +635,7 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 	// for test level messages start with test name
 	dst = buff + 21;
 	if (sc == 1) {
-		strcpy( (char *)dst, "Test " );
-		dst += 5;
-
-		strcpy( (char *)dst, execTest->baseLabel );
-		while (*dst) dst++;
-
-		// add a space
-		*dst++ = ' ';
+		dst += sprintf( (char*)dst, "Test %s ", (LPCTSTR)execTest->baseLabel );
 	}
 
 	// JLH 26 January 2010: don't let msg overflow the buffer
@@ -698,7 +692,7 @@ void ScriptExecutor::Run( void )
 
 	// verify the correct state
 	if (execState != execIdle) {
-		TRACE0( "Error: invalid executor state\n" );
+		TRACE( "Error: invalid executor state\n" );
 		return;
 	}
 
@@ -706,9 +700,7 @@ void ScriptExecutor::Run( void )
 	execSingleStep = false;
 
 	// install the task
-	taskType = oneShotTask;
-	taskInterval = 0;
-	InstallTask();
+	InstallTask( oneShotTask, 0 );
 
 	// unlock
 	lock.Unlock();
@@ -728,7 +720,7 @@ void ScriptExecutor::Halt( void )
 
 	// verify the correct state
 	if (execState != execRunning) {
-		TRACE0( "Error: invalid executor state\n" );
+		TRACE( "Error: invalid executor state\n" );
 		return;
 	}
 
@@ -759,7 +751,7 @@ void ScriptExecutor::Step( void )
 
 	// verify the correct state
 	if (execState == execRunning) {
-		TRACE0( "Error: invalid executor state\n" );
+		TRACE( "Error: invalid executor state\n" );
 		return;
 	}
 
@@ -770,9 +762,7 @@ void ScriptExecutor::Step( void )
 	execPending = false;
 
 	// install the task
-	taskType = oneShotTask;
-	taskInterval = 0;
-	InstallTask();
+	InstallTask( oneShotTask, 0 );
 
 	// unlock
 	lock.Unlock();
@@ -792,7 +782,7 @@ void ScriptExecutor::Step( bool pass )
 
 	// verify the correct state
 	if (execState != execStopped) {
-		TRACE0( "Error: invalid executor state\n" );
+		TRACE( "Error: invalid executor state\n" );
 		return;
 	}
 
@@ -807,9 +797,7 @@ void ScriptExecutor::Step( bool pass )
 	execStepForced = (pass ? 1 : 2);
 
 	// install the task
-	taskType = oneShotTask;
-	taskInterval = 0;
-	InstallTask();
+	InstallTask( oneShotTask, 0 );
 
 	// unlock
 	lock.Unlock();
@@ -829,7 +817,7 @@ void ScriptExecutor::Resume( void )
 
 	// verify the correct state
 	if (execState != execStopped) {
-		TRACE0( "Error: invalid executor state\n" );
+		TRACE( "Error: invalid executor state\n" );
 		return;
 	}
 
@@ -840,9 +828,7 @@ void ScriptExecutor::Resume( void )
 	execPending = false;
 
 	// install the task
-	taskType = oneShotTask;
-	taskInterval = 0;
-	InstallTask();
+	InstallTask( oneShotTask, 0 );
 
 	// unlock
 	lock.Unlock();
@@ -862,7 +848,7 @@ void ScriptExecutor::Kill( void )
 
 	// verify the correct state
 	if (execState == execIdle) {
-		TRACE0( "Error: invalid executor state\n" );
+		TRACE( "Error: invalid executor state\n" );
 		return;
 	}
 
@@ -908,260 +894,295 @@ ScriptExecMsg * ScriptExecutor::ReadMsg( void )
 //	should do something that it was scheduled to do.  In the case of 
 //	the executor, this means that a timer has expired and a receive 
 //	packet attempt has failed.
-//
 
 void ScriptExecutor::ProcessTask( void )
 {
-  int now = ::GetTickCount();
-  CSingleLock lock(&execCS);
+	int now = ::GetTickCount();
+	CSingleLock lock(&execCS);
 
-  // lock to prevent multiple thread access
-  lock.Lock();
+	// lock to prevent multiple thread access
+	lock.Lock();
 
-  // if no test, get the first one
-  if (!execTest) {
-    // must be bound to a document
-    if (!execDoc) {
-      // alert the user
-      TRACE0( "***** No document bound" );
-      return;
-    }
+	// if no test, get the first one
+	if (!execTest) 
+	{
+		// must be bound to a document
+		if (!execDoc) 
+		{
+			// alert the user
+			TRACE( "***** No document bound" );
+			return;
+		}
 
-    // make sure the document has content
-    if (!execDoc->m_pContentTree || !execDoc->m_pContentTree->m_pScriptContent) {
-      // alert the user
-      Msg( 2, 0, "No test to run, check syntax" );
+		// make sure the document has content
+		if (!execDoc->m_pContentTree || !execDoc->m_pContentTree->m_pScriptContent) 
+		{
+			// alert the user
+			Msg( 2, 0, "No test to run, check syntax" );
 
-      // go back to idle
-      Cleanup();
-      return;
-    }
+			// go back to idle
+			Cleanup();
+			return;
+		}
 
-    // find the first test of section that has one
-    ScriptBasePtr sbp = execDoc->m_pContentTree->m_pScriptContent;
+		// find the first test of section that has one
+		ScriptBasePtr sbp = execDoc->m_pContentTree->m_pScriptContent;
 
-// Added by Zhu Zhenhua, 2003-12-18, to run select section
-    if(execDoc->m_pSelectedSection)
-    { 
-      ScriptSectionPtr ssp = execDoc->m_pSelectedSection;
-      if (ssp->Length() != 0)
-      {
-        execTest = (ScriptTestPtr)ssp->Child( 0 );
-      }     
-    }
-    else
-    for (int i = 0; i < sbp->Length(); i++) {
-      ScriptSectionPtr ssp = (ScriptSectionPtr)sbp->Child( i );
-      if (ssp->Length() != 0) 
-      {
-        execTest = (ScriptTestPtr)ssp->Child( 0 );
-        break;
-      }
-    }
-    if (!execTest) {
-//    if (!execCommand) {
-      // alert the user
-      Msg( 2, 0, "No test to run, check syntax" );
+		// Added by Zhu Zhenhua, 2003-12-18, to run select section
+		if (execDoc->m_pSelectedSection)
+		{ 
+			ScriptSectionPtr ssp = execDoc->m_pSelectedSection;
+			if (ssp->Length() != 0)
+			{
+				execTest = (ScriptTestPtr)ssp->Child( 0 );
+			}     
+		}
+		else
+		{
+			for (int i = 0; i < sbp->Length(); i++) 
+			{
+				ScriptSectionPtr ssp = (ScriptSectionPtr)sbp->Child( i );
+				if (ssp->Length() != 0) 
+				{
+					execTest = (ScriptTestPtr)ssp->Child( 0 );
+					break;
+				}
+			}
+		}
+			
+		if (!execTest) 
+		{
+			// alert the user
+			Msg( 2, 0, "No test to run, check syntax" );
 
-      // go back to idle
-      Cleanup();
-      return;
-    }
-  }
+			// go back to idle
+			Cleanup();
+			return;
+		}
+	}
 
-  // if no packet, get first one
-//  if (!execPacket) {
-  if (!execCommand) {
-    // reset the test
-    ResetTest( execTest );
+	// if no packet, get first one
+	if (!execCommand) 
+	{
+		// reset the test
+		ResetTest( execTest );
 
-    // calculate the new status
-    int newStatus = CalcTestStatus( execTest );
-    if (newStatus) {
-      // alert the user
-      Msg( 1, execTest->baseLineStart, "failed, check dependencies" );
+		// calculate the new status
+		int newStatus = CalcTestStatus( execTest );
+		if (newStatus) 
+		{
+			// alert the user
+			Msg( 1, execTest->baseLineStart, "failed, check dependencies" );
 
-      // set the status
-      SetTestStatus( execTest, newStatus );
+			// set the status
+			SetTestStatus( execTest, newStatus );
 
-      // go back to idle
-      Cleanup();
-      return;
-    }
+			// go back to idle
+			Cleanup();
+			return;
+		}
 
-    // extract the first packet
-//    execPacket = execTest->testFirstPacket;
-    execCommand = execTest->testFirstCommand;
+		// extract the first packet
+		execCommand = execTest->testFirstCommand;
 
-    // if no packets in test, it succeeds easily
-//    if (!execPacket) {
-    if (!execCommand) {
-      // alert the user
-      Msg( 1, execTest->baseLineStart, "trivial test successful" );
+		// if no packets in test, it succeeds easily
+		if (!execCommand) 
+		{
+			// alert the user
+			Msg( 1, execTest->baseLineStart, "trivial test successful" );
 
-      // set the status
-      SetTestStatus( execTest, 1 );
+			// set the status
+			SetTestStatus( execTest, 1 );
 
-      // go back to idle
-      Cleanup();
-      return;
-    }
+			// go back to idle
+			Cleanup();
+			return;
+		}
 
-    // message to the database
-    Msg( 1, execTest->baseLineStart, "started" );
-    Msg( 3, execTest->baseLineStart, execDoc->GetPathName() );
+		// message to the database
+		Msg( 1, execTest->baseLineStart, "started" );
+		Msg( 3, execTest->baseLineStart, execDoc->GetPathName() );
 
-    // set the test status to running
-    SetTestStatus( execTest, 2 );
+		// set the test status to running
+		SetTestStatus( execTest, 2 );
 
-    // if single stepping, go to stopped
-    if (execSingleStep) {
-      // set the packet status to running
-//      SetPacketStatus( execPacket, 2 );
-      SetPacketStatus( execCommand, 2 );
+		// if single stepping, go to stopped
+		if (execSingleStep) 
+		{
+			// set the packet status to running
+			SetPacketStatus( execCommand, 2 );
 
-      execState = execStopped;
-      return;
-    }
-  }
+			execState = execStopped;
+			return;
+		}
+	}
 
-  // executor running
-  execState = execRunning;
+	// executor running
+	execState = execRunning;
 
 keepGoing:
-  // execute the current packet
-  if (execStepForced == 1) {
-    execStepForced = 0;
-    NextPacket( true );
-  }
-  else if (execStepForced == 2) {
-    execStepForced = 0;
-    NextPacket( false );
-  } 
-//  else if (execPacket->packetType == ScriptPacket::sendPacket) {
-  else if (execCommand->baseType == ScriptBase::scriptPacket && 
-           ((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::sendPacket)
-  {
-    execPacket = (ScriptPacketPtr) execCommand;
-    if (execPending || (execPacket->packetDelay == 0)) {
-      execPending = false;
+	// execute the current packet
+	if (execStepForced == 1) 
+	{
+		execStepForced = 0;
+		NextPacket( true );
+	}
+	else if (execStepForced == 2) 
+	{
+		execStepForced = 0;
+		NextPacket( false );
+	} 
+	else if ((execCommand->baseType == ScriptBase::scriptPacket) && 
+			 (((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::sendPacket))
+	{
 
-      // do the packet
-      NextPacket( SendPacket() );
+		execPacket = (ScriptPacketPtr) execCommand;
+		if (execPending || (execPacket->packetDelay == 0)) 
+		{
+			execPending = false;
 
-      // might be more to do.  The goto sucks, but rather than reschedule with 
-      // a zero delay, keep the executor locked down until the transition to 
-      // the next packet can be completed.  This prevents packets that come in 
-      // faster than the reschedule from being processed by ReceiveNPDU.
-//      if (execPacket)
-      if (execCommand)
-        goto keepGoing;
-    } 
-    else {
-      if (execPacket->packetSubtype == ScriptPacket::rootPacket) {
-        TRACE2( "Send %08X root time %d\n", execPacket, now );
-        execRootTime = now;
-      }
+			// do the packet
+			NextPacket( SendPacket() );
 
-      int delay = execPacket->packetDelay - (now - execRootTime);
+			// might be more to do.  The goto sucks, but rather than reschedule with 
+			// a zero delay, keep the executor locked down until the transition to 
+			// the next packet can be completed.  This prevents packets that come in 
+			// faster than the reschedule from being processed by ReceiveNPDU.
+			if (execCommand)
+				goto keepGoing;
+		} 
+		else 
+		{
+			if (execPacket->packetSubtype == ScriptPacket::rootPacket) 
+			{
+				TRACE( "ProcessTask %p Send %08X root time %d\n", this, execPacket, now );
+				execRootTime = now;
+			}
 
-      // proposed delay may have expired
-      if (delay < 0) {
-        TRACE1( "Send delay expired %d (2)\n", delay );
-        Msg( 3, execPacket->baseLineStart, "Delay expired" );
-        NextPacket( false );
-      }
-      else {
-        // set the status pending
-        SetPacketStatus( execPacket, 2 );
+			int delay = execPacket->packetDelay - (now - execRootTime);
 
-        // come back later
-        TRACE1( "Send delay %d (2)\n", delay );
-        execPending = true;
-        taskType = oneShotTask;
-        taskInterval = delay;
-        InstallTask();
-      }
-    }
-  } 
-//  else if (execPacket->packetType == ScriptPacket::expectPacket)
-  else if (execCommand->baseType == ScriptBase::scriptPacket && 
-      ((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::expectPacket)
-  {
+			// proposed delay may have expired
+			if (delay < 0) 
+			{
+				TRACE( "Send delay expired %d (2) %d\n", delay, now );
+				Msg( 3, execPacket->baseLineStart, "Delay expired" );
+				NextPacket( false );
+			}
+			else 
+			{
+
+				// set the status pending
+				SetPacketStatus( execPacket, 2 );
+
+				// come back later
+				TRACE( "Send delay %d (2)\n", delay );
+				execPending = true;
+				InstallTask( oneShotTask, delay );
+			}
+		}
+	}
+	else if ((execCommand->baseType == ScriptBase::scriptPacket) && 
+			 (((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::expectPacket))
+	{
+
 		execPacket = (ScriptPacketPtr) execCommand;
 		if (execPending) 
-		if ( execPacket->packetType == ScriptPacket::expectPacket && execPacket->bpacketNotExpect)	//Modified by Zhu Zhenhua, 2003-11-25
-			 NextPacket(true);							//add to meet "EXPECT NOT" or "EXPECT BEFORE (value) NOT"instead of "CHECK" sometimes				
-		else{			
-			bool gotOne = false;
-			// delay timer if necessary
-			if ( execPacket->m_pcmdMake != NULL )
+		{
+			if ((execPacket->packetType == ScriptPacket::expectPacket) && execPacket->bpacketNotExpect)	
 			{
-				if ( execPacket->m_pcmdMake->IsUp() )		// if dialog still pending... don't start timers yet
-					execRootTime = now;
-				else if ( !execPacket->m_pcmdMake->IsSuccess() )
-				{
-					CString strError;
-
-					SetPacketStatus(execPacket->m_pcmdMake, 3);
-					strError.Format("MAKE \"%s\" aborted by user", execPacket->m_pcmdMake->baseLabel );
-					Msg( 3, execPacket->m_pcmdMake->baseLineStart, strError );
-
-					// shouldn't chain to next packet... already did.  Fail all these guys.
-					// This will short circuit all th timer stuff and fail all of the pending
-					// expect chains.
-
-					execRootTime = 0;
-				}
-				else
-				{
-					SetPacketStatus(execPacket->m_pcmdMake, 1);
-				}
+				//Modified by Zhu Zhenhua, 2003-11-25
+				//add to meet "EXPECT NOT" or "EXPECT BEFORE (value) NOT"instead of "CHECK" sometimes				
+				NextPacket(true);							
 			}
-			// fail all the packets that have expired and min delay of rest
-			int minDelay1 = kMaxPacketDelay + 1;
-			for (ScriptPacketPtr pp1 = execPacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
-				if (pp1->baseStatus == 2 && pp1->baseType == ScriptBase::scriptPacket)
-					if (pp1->packetDelay <= (now - execRootTime))
-						SetPacketStatus( pp1, 3 );
-					else {
-						gotOne = true;
-						minDelay1 = (pp1->packetDelay < minDelay1 ? pp1->packetDelay : minDelay1);
+			else
+			{
+				bool gotOne = false;
+				// delay timer if necessary
+				if (execPacket->m_pcmdMake != NULL)
+				{
+					if (execPacket->m_pcmdMake->IsUp())
+					{
+						// if dialog still pending... don't start timers yet
+						execRootTime = now;
 					}
-			// still one that hasn't failed?
-			if (!gotOne) {
-				Msg( 1, execTest->baseLineStart, "failed" );
-				SetTestStatus( execTest, 3 );
+					else if (!execPacket->m_pcmdMake->IsSuccess())
+					{
+						CString strError;
 
-				// go back to idle
-				Cleanup();
-			} else {
-				// subtract time already expired
-				minDelay1 -= (now - execRootTime);
+						SetPacketStatus(execPacket->m_pcmdMake, 3);
+						strError.Format("MAKE \"%s\" aborted by user", execPacket->m_pcmdMake->baseLabel );
+						Msg( 3, execPacket->m_pcmdMake->baseLineStart, strError );
 
-				// If there is a modeless MAKE dialog UP... come back as soon as possible and keep checking
-				// it's status to delay the timer...
+						// shouldn't chain to next packet... already did.  Fail all these guys.
+						// This will short circuit all th timer stuff and fail all of the pending
+						// expect chains.
 
-				if ( execPacket->m_pcmdMake != NULL  && execPacket->m_pcmdMake->IsUp() )
-					minDelay1 = 180;
+						execRootTime = 0;
+					}
+					else
+					{
+						SetPacketStatus(execPacket->m_pcmdMake, 1);
+					}
+				}
 
-				// schedule for the next delay
-				TRACE1( "Expect more delay %d\n", minDelay1 );
-				execPending = true;
-				taskType = oneShotTask;
-				taskInterval = minDelay1;
-				InstallTask();
-			}
-		} else {
+				// fail all the packets that have expired and min delay of rest
+				int minDelay1 = kMaxPacketDelay + 1;
+
+
+				for (ScriptPacketPtr pp1 = execPacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
+				{
+					if ((pp1->baseStatus == 2) && (pp1->baseType == ScriptBase::scriptPacket))
+					{
+						if (pp1->packetDelay <= (now - execRootTime))
+						{
+							SetPacketStatus( pp1, 3 );
+						}
+						else 
+						{
+							gotOne = true;
+							minDelay1 = (pp1->packetDelay < minDelay1 ? pp1->packetDelay : minDelay1);
+						}
+					}
+				}
+						
+				// still one that hasn't failed?
+				if (!gotOne) 
+				{
+					Msg( 1, execTest->baseLineStart, "failed" );
+					SetTestStatus( execTest, 3 );
+
+					// go back to idle
+					Cleanup();
+				} 
+				else 
+				{
+					// subtract time already expired
+					minDelay1 -= (now - execRootTime);
+
+					// If there is a modeless MAKE dialog UP... come back as soon as possible and keep checking
+					// it's status to delay the timer...
+					if ((execPacket->m_pcmdMake != NULL) && execPacket->m_pcmdMake->IsUp())
+						minDelay1 = 180;
+
+					// schedule for the next delay
+					TRACE( "ProcessTask %p Expect more delay %d %d\n", this, minDelay1, now );
+					execPending = true;
+					InstallTask( oneShotTask, minDelay1 );
+				}
+			} 
+		}
+		else 
+		{
 			// set the root time, always a root packet here
-			TRACE2( "Expect %08X root time %d\n", execPacket, now );
+			TRACE( "Expect %08X root time %d\n", execPacket, now );
 			execRootTime = now;
-			
+
 			// set all the packets pending and find min delay
 			int minDelay2 = kMaxPacketDelay + 1;
-//			for (ScriptPacketPtr pp2 = execPacket; pp2; pp2 = pp2->packetFail) {
-			for (ScriptPacketPtr pp2 = execPacket; pp2; pp2 = (ScriptPacketPtr) pp2->m_pcmdFail) {
-				if ( pp2->baseType == ScriptBase::scriptPacket ) {
+			for (ScriptPacketPtr pp2 = execPacket; pp2; pp2 = (ScriptPacketPtr) pp2->m_pcmdFail) 
+			{
+				if (pp2->baseType == ScriptBase::scriptPacket)
+				{
 					SetPacketStatus( pp2, 2 );
 					minDelay2 = (pp2->packetDelay < minDelay2 ? pp2->packetDelay : minDelay2);
 				}
@@ -1170,23 +1191,23 @@ keepGoing:
 			// If there is a modeless MAKE dialog up... come back as soon as possible and keep checking
 			// it's status to delay the timer...
 
-			if ( execPacket->m_pcmdMake != NULL )
+			if (execPacket->m_pcmdMake != NULL)
 				minDelay2 = 180;
 
 			// schedule for the next delay
-			TRACE1( "Expect delay %d\n", minDelay2 );
+			TRACE( "ProcessTask %p Expect delay %d %d\n", this, minDelay2, now );
 			execPending = true;
-			taskType = oneShotTask;
-			taskInterval = minDelay2;
-			InstallTask();
+			InstallTask( oneShotTask, minDelay2 );
 		}
-	} else
-	if (execCommand->baseType == ScriptBase::scriptMake) {
+	}
+	else if (execCommand->baseType == ScriptBase::scriptMake) 
+	{
+
 		execPending = false;
 		SetPacketStatus( execCommand, 2 );
 
 		CString strError;
-		// Setup the queue needed by this guy to fire off message for handling
+		// Set up the queue needed by this guy to fire off message for handling
 		// modeless dialogs to main app.  Sorry.  It's weird, I know.
 
 		((ScriptMAKECommand *) execCommand)->SetQueue(&execMsgQueue);
@@ -1197,41 +1218,56 @@ keepGoing:
 			Msg( 3, execCommand->baseLineStart, strError);
 
 		NextPacket(fCmdResult, ((ScriptMAKECommand *) execCommand)->m_fHanging );
-	} else
-	if (execCommand->baseType == ScriptBase::scriptCheck ) {
+	} 
+	else if (execCommand->baseType == ScriptBase::scriptCheck)
+	{
+
 		execPending = false;
 		SetPacketStatus( execCommand, 2 );
 
 		CString strError;
 		bool fCmdResult = execCommand->Execute(&strError);
 
-		if ( !fCmdResult )
+		if (!fCmdResult)
 			Msg( 3, execCommand->baseLineStart, strError);
 
 		NextPacket(fCmdResult);
 	}
- else
-	if (execCommand->baseType == ScriptBase::scriptAssign ) { //Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
+	else if (execCommand->baseType == ScriptBase::scriptAssign ) 
+	{
+
+		//Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
 		execPending = false;
 		SetPacketStatus( execCommand, 2 );		
 		CString strError;
 		bool fCmdResult = execCommand->Execute(&strError);
-		if ( !fCmdResult )
+		if (!fCmdResult)
 			Msg( 3, execCommand->baseLineStart, strError);
 
 		NextPacket(fCmdResult);
 	}
-else
-	if (execCommand->baseType == ScriptBase::scriptWait ) { //Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
+	else if (execCommand->baseType == ScriptBase::scriptWait)
+	{
+
+		//Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
 		execPending = false;
 		SetPacketStatus( execCommand, 2 );		
 		CString strError;
 		bool fCmdResult = execCommand->Execute(&strError);
-		if ( !fCmdResult )
+		if (!fCmdResult)
 			Msg( 3, execCommand->baseLineStart, strError);
 
 		NextPacket(fCmdResult);
 	}
+	else
+	{
+		TRACE( "ProcessTask %p unknown baseType = %d %d\n", this, execCommand->baseType, now );
+	}
+
+	// Since the whole point os CSingleLock is to unlock
+	// in its destructor, and since we have a half-dozen return
+	// statements prior to here, this seems a bit silly...
+	//
 	// unlock
 	lock.Unlock();
 }
@@ -1242,8 +1278,9 @@ else
 
 void ScriptExecutor::NextPacket( bool okPacket, bool fHanging /* = false */ )
 {
-//	TRACE2( "Packet %08X %s\n", execPacket, (okPacket ? "succeeded" : "failed") );
-	TRACE2( "Packet %08X %s\n", execCommand, (fHanging ? "hanging" : (okPacket ? "succeeded" : "failed")) );
+	TRACE( "NextPacket %p %08X %s %d\n", this, execCommand, 
+		   (fHanging ? "hanging" : (okPacket ? "succeeded" : "failed")),
+		   GetTickCount() );
 
 	// set the current packet status
 	if ( !fHanging )
@@ -1251,10 +1288,13 @@ void ScriptExecutor::NextPacket( bool okPacket, bool fHanging /* = false */ )
 
 	// Test to see if the one we're finished with is an EXPECT with a MAKE in front of it that is still up
 
-	if ( execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket &&
-		((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL  && ((ScriptPacketPtr) execCommand)->m_pcmdMake->IsUp() )
+	if ( (execCommand->baseType == ScriptBase::scriptPacket) && 
+		 (((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket) &&
+		 (((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL) && 
+		 (((ScriptPacketPtr) execCommand)->m_pcmdMake->IsUp()) )
 	{
 		// It's still up... Kill it with a success regardless of whether or not this one failed...
+
 		((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
 		SetPacketStatus(((ScriptPacketPtr) execCommand)->m_pcmdMake, 1);
 	}
@@ -1280,13 +1320,11 @@ void ScriptExecutor::NextPacket( bool okPacket, bool fHanging /* = false */ )
 		SetPacketStatus( execCommand, 2 );
 
 		// if the user is single stepping, stop
-		if (execSingleStep)
+		if (execSingleStep) {
 			execState = execStopped;
-		else {
+		} else {
 			// schedule it to keep running
-			taskType = oneShotTask;
-			taskInterval = 0;
-			InstallTask();
+			InstallTask( oneShotTask, 0 );
 		}
 	}
 }
@@ -1880,7 +1918,7 @@ bool ScriptExecutor::SendPacket( void )
 
 			// look for optional network layer data
 			if (GetKeywordValue( NULL, kwNLDATA, nlData ) || GetKeywordValue( NULL, kwNL, nlData )) {
-				TRACE0( "Got additional network layer octet string\n" );
+				TRACE( "Got additional network layer octet string\n" );
 				for (int i = 0; i < nlData.strLen; i++)
 					packet.Add( nlData.strBuff[i] );
 			}
@@ -1985,7 +2023,7 @@ void ScriptExecutor::SendBVLCResult( ScriptTokenList &tlist, CByteArray &packet 
 	int		valu
 	;
 
-	TRACE0( "SendBVLCResult\n" );
+	TRACE( "SendBVLCResult\n" );
 
 	switch (tlist.Length()) {
 		case 1:
@@ -2577,8 +2615,7 @@ void ScriptExecutor::SendEstablishConnectionToNetwork( ScriptTokenList &tlist, C
 
 void ScriptExecutor::SendDisconnectConnectionToNetwork( ScriptTokenList &tlist, CByteArray &packet )
 {
-	int		valu
-	;
+	int		valu;
 
 	TRACE0( "SendDisconnectConnectionToNetwork\n" );
 
@@ -2627,12 +2664,10 @@ void ScriptExecutor::SendDevPacket( void )
 	alMsg = execPacket->packetExprList.Find( kwPDU );
 
 	// make sure we have a device
-//MAD_DB	if (gMasterDeviceList.Length() == 0)
 	if ( execDB->GetDevices()->GetSize() == 0)
 		throw ExecError( "No defined devices", alMsg->exprLine );
 
 	// make it an error to have more than one for now
-//MAD_DB	if (gMasterDeviceList.Length() > 1)
 	if ( execDB->GetDevices()->GetSize() > 1)
 		throw ExecError( "Too many defined devices, there can be only one", alMsg->exprLine );
 
@@ -2641,24 +2676,14 @@ void ScriptExecutor::SendDevPacket( void )
 	// would normally be sent as a global broadcast will be sent directly to
 	// the IUT).
 	nlDA = execPacket->packetExprList.Find( kwDA );
-	if (!nlDA) {
-/* MAD_DB
-		for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-			VTSNameDesc		nameDesc;
-
-			execDB->m_Names.ReadName( i, &nameDesc );
-			if (stricmp(nameDesc.nameName,"IUT") == 0) {
-				nlDestAddr = nameDesc.nameAddr;
-				break;
-			}
-		}
-		if (i >= execDB->m_Names.Length())
-*/
+	if (!nlDA) 
+	{
 		if ( !execDB->LoadNamedAddress(&nlDestAddr, "IUT") )
 			throw ExecError( "Default destination address IUT not found", execPacket->baseLineStart );
-	} else {
-		ScriptTokenList			daList
-		;
+	} 
+	else 
+	{
+		ScriptTokenList	daList;
 
 		// resolve the expressions
 		ResolveExpr( nlDA->exprValue, nlDA->exprLine, daList );
@@ -2669,61 +2694,65 @@ void ScriptExecutor::SendDevPacket( void )
 		const ScriptToken &t = daList[0];
 
 		// check to see if this is a keyword
-		if (t.tokenType == scriptKeyword) {
+		if (t.tokenType == scriptKeyword) 
+		{
 			if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
+			{
 				nlDestAddr.LocalBroadcast();
+			}
 			else
-			if (t.tokenSymbol == kwREMOTEBROADCAST) {
-				if (daList.Length() == 1)
-					throw ExecError( "DNET expected", nlDA->exprLine );
+			{
+				if (t.tokenSymbol == kwREMOTEBROADCAST) 
+				{
+					if (daList.Length() == 1)
+						throw ExecError( "DNET expected", nlDA->exprLine );
 
-				const ScriptToken &dnet = daList[1];
+					const ScriptToken &dnet = daList[1];
 
-				if (dnet.tokenType != scriptValue)
-					throw "DNET expected";
-				if (!dnet.IsInteger(valu))
-					throw "DNET invalid format, integer required";
-				if ((valu < 0) || (valu > 65534))
-					throw "DNET out of range (0..65534)";
+					if (dnet.tokenType != scriptValue)
+						throw "DNET expected";
+					if (!dnet.IsInteger(valu))
+						throw "DNET invalid format, integer required";
+					if ((valu < 0) || (valu > 65534))
+						throw "DNET out of range (0..65534)";
 
-				nlDestAddr.RemoteBroadcast( valu );
-			} else
-			if (t.tokenSymbol == kwGLOBALBROADCAST)
-				nlDestAddr.GlobalBroadcast();
-			else
-				throw ExecError( "Unrecognized keyword", nlDA->exprLine );
-		} else
-		if (daList.Length() == 1) {
-			// it might be a name
-			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
-/* MAD_DB
-				CString tvalu = t.RemoveQuotes();
-				for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-					VTSNameDesc		nameDesc;
-
-					execDB->m_Names.ReadName( i, &nameDesc );
-					if (stricmp(nameDesc.nameName,tvalu) == 0) {
-						nlDestAddr = nameDesc.nameAddr;
-						break;
-					}
+					nlDestAddr.RemoteBroadcast( valu );
+				} 
+				else
+				{
+					if (t.tokenSymbol == kwGLOBALBROADCAST)
+						nlDestAddr.GlobalBroadcast();
+					else
+						throw ExecError( "Unrecognized keyword", nlDA->exprLine );
 				}
-				if (i >= execDB->m_Names.Length())
-*/
+			}
+		} 
+		else if (daList.Length() == 1) 
+		{
+			// it might be a name
+			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) 
+			{
 				if ( !execDB->LoadNamedAddress(&nlDestAddr, t.RemoveQuotes()) )
 					throw ExecError( "Destination address name not found", nlDA->exprLine );
-			} else
-			// it might be an IP address
-			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
+			} 
+			else if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) 
+			{
+				// it might be an IP address
 				BACnetIPAddr nlIPAddr( t.tokenValue );
 				nlDestAddr = nlIPAddr;
-			} else
-			// it might be an explicit octet string
-			if (t.IsEncodeable( nlDest )) {
+			} 
+			else if (t.IsEncodeable( nlDest )) 
+			{
+				// it might be an explicit octet string
 				nlDestAddr.LocalStation( nlDest.strBuff, nlDest.strLen );
-			} else
+			} 
+			else
+			{
 				throw ExecError( "Destination address expected", nlDA->exprLine );
-		} else
-		if (daList.Length() == 2) {
+			}
+		} 
+		else if (daList.Length() == 2) 
+		{
 			if (t.tokenType != scriptValue)
 				throw "DNET expected";
 			if (!t.IsInteger(valu))
@@ -2734,20 +2763,28 @@ void ScriptExecutor::SendDevPacket( void )
 			const ScriptToken &dadr = daList[1];
 
 			// it might be an IP address
-			if ((dadr.tokenType == scriptValue) && (dadr.tokenEnc == scriptIPEnc)) {
+			if ((dadr.tokenType == scriptValue) && (dadr.tokenEnc == scriptIPEnc)) 
+			{
 				BACnetIPAddr nlIPAddr( dadr.tokenValue );
 				nlDestAddr = nlIPAddr;
-			} else
-			// it might be an explicit octet string
-			if (dadr.IsEncodeable( nlDest )) {
+			} 
+			else if (dadr.IsEncodeable( nlDest )) 
+			{
+				// it might be an explicit octet string
 				nlDestAddr.LocalStation( nlDest.strBuff, nlDest.strLen );
-			} else
+			} 
+			else
+			{
 				throw ExecError( "Destination address expected", nlDA->exprLine );
+			}
 
 			nlDestAddr.addrType = remoteStationAddr;
 			nlDestAddr.addrNet = valu;
-		} else
+		} 
+		else
+		{
 			throw ExecError( "Destination address expected", nlDA->exprLine );
+		}
 	}
 
 	// copy the destination address into the apdu
@@ -2765,12 +2802,16 @@ void ScriptExecutor::SendDevPacket( void )
 	const ScriptToken &t = alList[0];
 
 	// check to see if this is a keyword
-	if (t.tokenType == scriptKeyword) {
+	if (t.tokenType == scriptKeyword) 
+	{
 		alMsgID = t.Lookup( t.tokenSymbol, ScriptALMsgTypeMap );
 		if (alMsgID < 0)
 			throw ExecError( "Unrecognized keyword", alMsg->exprLine );
-	} else
+	} 
+	else
+	{
 		throw ExecError( "Keyword expected", alMsg->exprLine );
+	}
 
 	// based on the number, check for other parameters
 	try {
@@ -2814,6 +2855,7 @@ void ScriptExecutor::SendDevPacket( void )
 	pPriority	= GetKeywordValue( NULL, kwPRIORITY, nlPriority );
 	if (!pPriority)
 		pPriority = GetKeywordValue( NULL, kwPRIO, nlPriority );
+	
 	if (pPriority) {
 		if ((nlPriority.intValue < 0) || (nlPriority.intValue > 3))
 			throw ExecError( "Priority out of range 0..3", pPriority->exprLine );
@@ -2821,6 +2863,7 @@ void ScriptExecutor::SendDevPacket( void )
 	}
 
 	// pass along to the device object
+	TRACE( "SendAPDU %p at %u\n", this, GetTickCount() );
 	(*execDB->GetDevices())[0]->SendAPDU( apdu );
 }
 
@@ -4732,7 +4775,9 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				StuffScriptParameter( nlNetwork, pScriptParmNetwork, pNet->exprValue);
 			}
 			else if ( pNet->IsDontCare() )
+			{
 				sfp = fp;
+			}
 			else
 			{
              	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
@@ -4757,24 +4802,14 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
 		// get the source
 		nlSA = execPacket->packetExprList.Find( kwSA );
-		if (!nlSA) {
-/* MAD_DB
-			for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-				VTSNameDesc		nameDesc;
-
-				execDB->m_Names.ReadName( i, &nameDesc );
-				if (stricmp(nameDesc.nameName,"IUT") == 0) {
-					nlSrcAddr = nameDesc.nameAddr;
-					break;
-				}
-			}
-			if (i >= execDB->m_Names.Length())
-*/
+		if (!nlSA) 
+		{
 			if ( !execDB->LoadNamedAddress(&nlSrcAddr, "IUT") )
 				throw ExecError( "Default source address IUT not found", execPacket->baseLineStart );
-		} else {
-			ScriptTokenList			saList
-			;
+		} 
+		else 
+		{
+			ScriptTokenList	saList;
 
 			if ((nlSA->exprOp != '=') && (!nlSA->IsAssignment()) && (!nlSA->IsDontCare() ))
 				throw ExecError( "Equality or assignment operator required for source address keyword", nlSA->exprLine );
@@ -4797,9 +4832,6 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				// that name (in quotes) for stuffing the parameter.
 				// If not... stuff the parameter with the encoded (ASCII) address... it has to be decodeable
 				// for use in other SEND statements.
-
-//MAD_DB		VTSNameDesc		nameDesc;
-//MAD_DB		int nNameIndex;
 				LPCSTR lpszName;
 
 				switch( npdu.pduAddr.addrType )
@@ -4816,14 +4848,9 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
 					default:
 
-//MAD_DB				for (nNameIndex = 0; nNameIndex < execDB->m_Names.Length() && !(npdu.pduAddr == nameDesc.nameAddr); nNameIndex++ )
-//MAD_DB					execDB->m_Names.ReadName( nNameIndex, &nameDesc );
-
-//MAD_DB				if ( nNameIndex < execDB->m_Names.Length() )
 						if ( (lpszName = execDB->AddrToName(npdu.pduAddr)) != NULL )
 						{
 							// found a name in our table that matches this address... encode the name into the variable
-//MAD_DB					StuffScriptParameter( BACnetCharacterString(nameDesc.nameName), pScriptParm, nlSA->exprValue);
 							StuffScriptParameter( BACnetCharacterString(lpszName), pScriptParm, nlSA->exprValue);
 						}
 						else
@@ -4849,33 +4876,26 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 						throw ExecError( "Unrecognized keyword supplied for SA", nlSA->exprLine );
 				} else
 				// it might be a name
-				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
-/* MAD_DB
-					CString tvalu = t.RemoveQuotes();
-					for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-						VTSNameDesc		nameDesc;
-
-						execDB->m_Names.ReadName( i, &nameDesc );
-						if (stricmp(nameDesc.nameName,tvalu) == 0) {
-							nlSrcAddr = nameDesc.nameAddr;
-							break;
-						}
-					}
-					if (i >= execDB->m_Names.Length())
-*/
+				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) 
+				{
 					if ( !execDB->LoadNamedAddress(&nlSrcAddr, t.RemoveQuotes()) )
 						throw ExecError( "Source address name not found", nlSA->exprLine );
-				} else
-				// it might be an IP address
-				if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) {
+				} 
+				else if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) 
+				{
+					// it might be an IP address
 					BACnetIPAddr nlIPAddr( t.tokenValue );
 					nlSrcAddr = nlIPAddr;
-				} else
-				// it might be an explicit octet string
-				if (t.IsEncodeable( nlSrc )) {
+				}
+				else if (t.IsEncodeable( nlSrc )) 
+				{
+					// it might be an explicit octet string
 					nlSrcAddr.LocalStation( nlSrc.strBuff, nlSrc.strLen );
-				} else
+				} 
+				else
+				{
 					throw ExecError( "Source address expected", nlSA->exprLine );
+				}
 			}
 		}
 
@@ -5257,21 +5277,21 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 			// get a reference to the first parameter
 			const ScriptToken &t = alList[0];
 
-
-//			if (nlMsg != NULL && nlMsg->IsAssignment() )		madanner 6/03, shouldn't this be alMsg?
+			int pktMsgID = *dec.pktBuffer >> 4;
 			if ( alMsg->IsAssignment() )
 			{
 				if ( pScriptParm == NULL )
 					throw ExecError( "Undefined script variable for PDU assignment", alMsg->exprLine );
 
 				// get the stream's version of what msg ID this is...
-				alMsgID = *dec.pktBuffer >> 4;
+				alMsgID = pktMsgID;
 				BACnetEnumerated  bacnetMsg(alMsgID, NetworkSniffer::BAC_STRTAB_PDU_typesENUM);
 				StuffScriptParameter( bacnetMsg, pScriptParm, alMsg->exprValue);
 			}
-//			else if ( nlMsg != NULL && nlMsg->IsDontCare() )	madanner 6/03, shouldn't this be alMsg?
 			else if ( alMsg->IsDontCare() )
-				alMsgID = *dec.pktBuffer >> 4;
+			{
+				alMsgID = pktMsgID;
+			}
 			else
 			{
 				// check to see if this is a keyword
@@ -5279,13 +5299,24 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 					alMsgID = t.Lookup( t.tokenSymbol, ScriptALMsgTypeMap );
 					if (alMsgID < 0)
 						throw ExecError( "AL Unrecognized keyword", alMsg->exprLine );
-				} else
+
+					if (pktMsgID != alMsgID)
+					{
+						CString strError;
+                        strError.Format("Expected PDU type %s; got %s.", 
+							NetworkSniffer::BAC_STRTAB_PDU_typesENUM.EnumString( alMsgID, "PDU_Type"),
+							NetworkSniffer::BAC_STRTAB_PDU_typesENUM.EnumString( pktMsgID, "PDU_Type") );
+						throw ExecError( strError, alMsg->exprLine );
+					}
+				} else {
 					throw ExecError( "AL Keyword expected", alMsg->exprLine );
+				}
 			}
 
 			// based on the number, check for other parameters
+			// (This formerly vetted bits based on the PDU we WANT - not the one we GOT)
 			try {
-				switch (alMsgID) {
+				switch (pktMsgID) {
 					case 0:						// CONFIRMED-REQUEST
 						ThrowPDUBitsError( *dec.pktBuffer & 0x01, "Confirmed-Request", alMsg );	// section 20.1.2.11
 						ExpectConfirmedRequest( dec );
@@ -6451,29 +6482,15 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 		// packet should match.  Hunt through the gMasterDevice list for the 
 		// one specified.
 
-		// Get the source.  The IUT will be the default for all inbound messages.
-		nlSA = execPacket->packetExprList.Find( kwDA );
+		nlSA = execPacket->packetExprList.Find( kwSA );
 		if (!nlSA) {
-/* MAD_DB
-			for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-				VTSNameDesc		nameDesc;
-
-				execDB->m_Names.ReadName( i, &nameDesc );
-				if (stricmp(nameDesc.nameName,"IUT") == 0) {
-					nlSourceAddr = nameDesc.nameAddr;
-					break;
-				}
-			}
-			if (i >= execDB->m_Names.Length())
-*/
 			if ( !execDB->LoadNamedAddress(&nlSourceAddr, "IUT") )
 				throw ExecError( "Default source address IUT not found", execPacket->baseLineStart );
 		} else {
 			if (nlSA->exprOp != '='  &&  !nlSA->IsAssignment() )
 				throw ExecError( "Equality or assignment operator required for source address", nlSA->exprLine );
 			
-			ScriptTokenList			saList
-			;
+			ScriptTokenList	saList;
 
 			// resolve the expressions
 			pScriptParm = NULL;
@@ -6495,18 +6512,11 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 				// If not... stuff the parameter with the encoded (ASCII) address... it has to be decodeable
 				// for use in other SEND statements.
 
-//MAD_DB		VTSNameDesc		nameDesc;
-//MAD_DB		int nNameIndex;
 				LPCSTR lpszName;
 
-//MAD_DB		for (nNameIndex = 0; nNameIndex < execDB->m_Names.Length() && !(apdu.apduAddr == nameDesc.nameAddr); nNameIndex++ )
-//MAD_DB			execDB->m_Names.ReadName( nNameIndex, &nameDesc );
-
-//MAD_DB		if ( nNameIndex < execDB->m_Names.Length() )
 				if ( (lpszName = execDB->AddrToName(apdu.apduAddr)) != NULL )
 				{
 					// found a name in our table that matches this address... encode the name into the variable
-//MAD_DB			StuffScriptParameter( BACnetCharacterString(nameDesc.nameName), pScriptParm, nlSA->exprValue);
 					StuffScriptParameter( BACnetCharacterString(lpszName), pScriptParm, nlSA->exprValue);
 				}
 				else
@@ -6518,22 +6528,10 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 			else
 			{
 				// check for name or octet string
-				if (saList.Length() == 1) {
+				if (saList.Length() == 1) 
+				{
 					// it might be a name
 					if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
-/*MAD_DB
-						CString tvalu = t.RemoveQuotes();
-						for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-							VTSNameDesc		nameDesc;
-
-							execDB->m_Names.ReadName( i, &nameDesc );
-							if (stricmp(nameDesc.nameName,tvalu) == 0) {
-								nlSourceAddr = nameDesc.nameAddr;
-								break;
-							}
-						}
-						if (i >= execDB->m_Names.Length())
-*/
 						if ( !execDB->LoadNamedAddress(&nlSourceAddr, t.RemoveQuotes()) )
 							throw ExecError( "Destination address name not found", nlSA->exprLine );
 					} else
@@ -6547,8 +6545,9 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 						nlSourceAddr.LocalStation( nlSource.strBuff, nlSource.strLen );
 					} else
 						throw ExecError( "Source address expected", nlSA->exprLine );
-				} else
-				if (saList.Length() == 2) {
+				} 
+				else if (saList.Length() == 2) 
+				{
 					if (t.tokenType != scriptValue)
 						throw "SNET expected";
 					if (!t.IsInteger(valu))
@@ -6562,27 +6561,35 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 					if ((sadr.tokenType == scriptValue) && (sadr.tokenEnc == scriptIPEnc)) {
 						BACnetIPAddr nlIPAddr( sadr.tokenValue );
 						nlSourceAddr = nlIPAddr;
-					} else
-					// it might be an explicit octet string
-					if (sadr.IsEncodeable( nlSource )) {
+					} 
+					else if (sadr.IsEncodeable( nlSource )) 
+					{
+						// it might be an explicit octet string
 						nlSourceAddr.LocalStation( nlSource.strBuff, nlSource.strLen );
-					} else
+					} 
+					else
+					{
 						throw ExecError( "Source address expected", nlSA->exprLine );
+					}
 
 					nlSourceAddr.addrType = remoteStationAddr;
 					nlSourceAddr.addrNet = valu;
-				} else
+				} 
+				else
+				{
 					throw ExecError( "Source address expected", nlSA->exprLine );
+				}
 			}
 		}
 
 		// make sure the addresses match
 		// but only if we're not assigning
 
-		if (  (!nlSA || !nlSA->IsAssignment()) && !(apdu.apduAddr == nlSourceAddr))
+		if ((!nlSA || !nlSA->IsAssignment()) && !(apdu.apduAddr == nlSourceAddr))
+		{
 			throw ExecError( "Source address mismatch"
-					, (nlSA ? nlSA->exprLine : execPacket->baseLineStart)
-					);
+					, (nlSA ? nlSA->exprLine : execPacket->baseLineStart) );
+		}
 
 		// force property references to fail until context established
 		execObjID = 0xFFFFFFFF;
@@ -8667,8 +8674,7 @@ void ScriptExecutor::SendNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu )
 
 void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu )
 {
-	CSingleLock		lock( &execCS )
-	;
+	CSingleLock		lock( &execCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
@@ -8677,57 +8683,74 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 	if (execState != execRunning)
 		return;
 
-	TRACE1( "Got an NPDU on %s\n", fp->filterName );
+	TRACE( "ScriptExecutor::ReceiveNPDU %p: Got an NPDU on %s at %u\n", this, fp->filterName, GetTickCount() );
 
 	// if we're not expecting something, toss it
 	if (!execPending) {
-		TRACE0( "(not expecting a packet)\n" );
+		TRACE( "(not expecting a packet)\n" );
 		Msg( 3, 0, "Executor not expecting a packet" );
 		return;
 	}
+
+	// TODO: We get null here when running a sequence of tests.
+	// Is this enough protection, or is there other stuff to clean up?
+	if (execPacket == NULL) {
+		TRACE( "ScriptExecutor::ReceiveNPDU: execPacket is NULL. \n" );
+		return;
+	}
+	
 	if (execPacket->packetType != ScriptPacket::expectPacket) {
-		TRACE0( "(not pointing to an expect packet)\n" );
+		TRACE( "(not pointing to an expect packet)\n" );
 		Msg( 3, 0, "Executor not pointing to an EXPECT packet" );
 		return;
 	}
+	
 	// match against the pending tests
-//	for (ScriptPacketPtr pp = execPacket; pp; pp = pp->packetFail)
 	for (ScriptPacketPtr pp = execPacket; pp; pp = (ScriptPacketPtr) pp->m_pcmdFail)
-//		if (pp->baseStatus == 2) {
-		if (pp->baseStatus == 2 && pp->baseType == ScriptBase::scriptPacket) {
+	{
+		if ((pp->baseStatus == 2) && (pp->baseType == ScriptBase::scriptPacket))
+		{
 			// this test is still pending, stash the execPacket
 			ScriptPacketPtr savePacket = execPacket;
 			execPacket = pp;
 			execCommand = pp;  // added by LJT
 			
 			//Modified by Zhu Zhenhua, 2003-11-25
-			if(ExpectPacket(fp,npdu)) {
-				if(!pp->bpacketNotExpect)
+			if (ExpectPacket(fp,npdu)) 
+			{
+				if (!pp->bpacketNotExpect)
 				{
-				
-				// test was successful, reset all pending packets to unprocessed
-//				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = pp1->packetFail)
-//					if ((pp1->baseStatus == 2) && (pp1 != pp))
-				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
-					if (pp1->baseStatus == 2 && pp1->baseType == ScriptBase::scriptPacket && pp1 != pp)
-						SetPacketStatus( pp1, 0 );
+					// test was successful, reset all pending packets to unprocessed
+					for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
+					{
+						if ((pp1->baseStatus == 2) && (pp1->baseType == ScriptBase::scriptPacket) && (pp1 != pp))
+						{
+							SetPacketStatus( pp1, 0 );
+						}
+					}
 
-				// move on to next statement
-				NextPacket( true );
-				break;
+					// move on to next statement
+					NextPacket( true );
+					break;
 				}
 				else
 				{
 					for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
-						if (pp1->baseStatus == 2 && pp1->baseType == ScriptBase::scriptPacket && pp1 != pp)
+					{
+						if ((pp1->baseStatus == 2) && (pp1->baseType == ScriptBase::scriptPacket) && (pp1 != pp))
+						{
 							SetPacketStatus( pp1, 0 );				
+						}
+						
 						// move on to next statement
 						NextPacket( false );
 						break;
+					}
 				}
 			}
 			execPacket = savePacket;
 		}
+	}
 
 	// unlock
 	lock.Unlock();
@@ -8742,8 +8765,7 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 
 void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 {
-	CSingleLock		lock( &execCS )
-	;
+	CSingleLock		lock( &execCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
@@ -8752,36 +8774,49 @@ void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 	if (execState != execRunning)
 		return;
 
-	TRACE0( "Got some APDU!\n" );
+	TRACE( "ScriptExecutor::ReceiveAPDU %p: Got an APDU at %u\n", this, GetTickCount() );
 
 	// if we're not expecting something, toss it
 	if (!execPending) {
-		TRACE0( "(not expecting a packet)\n" );
+		TRACE( "(not expecting a packet)\n" );
 		Msg( 3, 0, "Executor not expecting a packet" );
 		return;
 	}
+
+	// TODO: We get null here when running a sequence of tests.
+	// Is this enough protection, or is there other stuff to clean up?
+	if (execPacket == NULL) {
+		TRACE( "ScriptExecutor::ReceiveAPDU: execPacket is NULL. \n" );
+		return;
+	}
+	
 	if (execPacket->packetType != ScriptPacket::expectPacket) {
-		TRACE0( "(not pointing to an expect packet)\n" );
+		TRACE( "(not pointing to an expect packet)\n" );
 		Msg( 3, 0, "Executor not pointing to an EXPECT packet" );
 		return;
 	}
 
 	// match against the pending tests
-//	for (ScriptPacketPtr pp = execPacket; pp; pp = pp->packetFail)
-//		if (pp->baseStatus == 2) {
 	for (ScriptPacketPtr pp = execPacket; pp; pp = (ScriptPacketPtr) pp->m_pcmdFail)
-		if (pp->baseStatus == 2 && pp->baseType == ScriptBase::scriptPacket) {
+	{
+		if ((pp->baseStatus == 2) && (pp->baseType == ScriptBase::scriptPacket))
+		{
 			// this test is still pending, stash the execPacket
 			ScriptPacketPtr savePacket = execPacket;
 			execPacket = pp;
 			execCommand = pp;
-			if (ExpectDevPacket(apdu)) {
+			if (ExpectDevPacket(apdu)) 
+			{
 				// test was successful, reset all pending packets to unprocessed
-//				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = pp1->packetFail)
-//					if ((pp1->baseStatus == 2) && (pp1 != pp))
 				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
-					if (pp1->baseStatus == 2 && pp1->baseType == ScriptBase::scriptPacket && pp1 != pp)
+				{
+					if ((pp1->baseStatus == 2) && 
+						(pp1->baseType == ScriptBase::scriptPacket) && 
+						(pp1 != pp))
+					{
 						SetPacketStatus( pp1, 0 );
+					}
+				}
 
 				// move on to next statement
 				NextPacket( true );
@@ -8790,6 +8825,7 @@ void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 			execPacket = savePacket;
 			execCommand = savePacket;
 		}
+	}
 
 	// unlock
 	lock.Unlock();
