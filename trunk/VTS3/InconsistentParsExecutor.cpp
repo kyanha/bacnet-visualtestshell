@@ -109,9 +109,7 @@ void InconsistentParsExecutor::ExecuteTest()
 	}
 
 	// install the task
-	taskType = oneShotTask;
-	taskInterval = 0;
-	InstallTask();
+	InstallTask( oneShotTask, 0 );
 
 	lock.Unlock();
 

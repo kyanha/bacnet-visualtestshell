@@ -47,14 +47,8 @@ BACnetTSM::~BACnetTSM( void )
 
 void BACnetTSM::StartTimer( int msecs )
 {
-	// if this is active, pull it
-	if (isActive)
-		SuspendTask();
-	
 	// now install this
-	taskType = oneShotTask;
-	taskInterval = msecs;
-	InstallTask();
+	InstallTask( oneShotTask, msecs );
 }
 
 //
@@ -72,13 +66,7 @@ void BACnetTSM::StopTimer( void )
 
 void BACnetTSM::RestartTimer( int msecs )
 {
-	// if this is active, pull it
-	if (isActive)
-		SuspendTask();
-	
-	taskType = oneShotTask;
-	taskInterval = msecs;
-	InstallTask();
+	InstallTask( oneShotTask, msecs );
 }
 
 //

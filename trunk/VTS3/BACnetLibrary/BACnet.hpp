@@ -2064,6 +2064,10 @@ class BACnetTask {
 		virtual ~BACnetTask(void);
 		
 		void InstallTask(void);			 		// install into queue
+
+		// Install, rescheduling if necessary
+		void InstallTask( BACnetTaskType theType, long theInterval );
+
 		void SuspendTask(void);					// remove from execution queue
 		void ResumeTask(void);					// put back in
 		
