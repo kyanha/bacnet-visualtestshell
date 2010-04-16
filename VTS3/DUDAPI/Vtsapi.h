@@ -54,11 +54,16 @@ typedef struct {
 } defaultrangelimits;
 
 
-typedef	struct {
-	char	VendorName[64];
-	char	ProductName[128];
-	char	ProductModelNumber[64];
-	char	ProductDescription[128];
+struct PICSdb {
+	PICSdb();
+	~PICSdb();
+
+	char	*VendorName;
+	char	*ProductName;
+	char	*ProductModelNumber;
+	char	*ProductDescription;
+	char    dummy;
+	
 	word	BACnetConformanceClass;
 	word	MaxAPDUSize;
 	octet	SegmentedRequestWindow;
@@ -79,8 +84,8 @@ typedef	struct {
     defaultrangelimits defaultlimits;	//msdanner 9/2004: default limits section,  
 	generic_object far *Database;
 	octet   BBMD;                       //msdanner 9/2004: indicates support for BBMD functionality
-   device_obj_type *pDeviceObject;     //msdanner 9/2004: points to parsed Device Object.  Only valid after parsing database.
-	} PICSdb;
+	device_obj_type *pDeviceObject;     //msdanner 9/2004: points to parsed Device Object.  Only valid after parsing database.
+};
 
 //bits in RouterFunctions
 #define		rfNotSupported			0

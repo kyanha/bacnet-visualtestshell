@@ -4,9 +4,11 @@
 module:		VTSAPI32.C
 desc:		BACnet Standard Objects DLL v2.15
 authors:	David M. Fisher, Jack R. Neyer
-last edit: 07-SEP-2004 MSD implemented BIBBs section,
+last edit: 
+			16-Apr-2010 JLH Allow for longer strings in various sections
+			07-SEP-2004 MSD implemented BIBBs section,
                135.1-2003 consistency tests.
-         01-MAR-04 [020] GJB
+			01-MAR-04 [020] GJB
 				1. add a function: preprocstr
 				2. modify the string array SectionNames
 				3. modify a function: whatischoice
@@ -224,6 +226,41 @@ void preprocstr(char *str);					//                                      ***020
 #define	badobjid					0xFFFFFFFF	//we presume that no one will use this as a valid object identifier
 #define	BeginPics	                &EndPics[7]
 
+// Initialize string pointers to an empty string,
+// in case the values are referenced without being set.
+PICSdb::PICSdb()
+: VendorName(&dummy)
+, ProductName(&dummy)
+, ProductModelNumber(&dummy)
+, ProductDescription(&dummy)
+, dummy(0)
+{
+}
+
+PICSdb::~PICSdb()
+{
+	// Free any allocated string memory
+	if (VendorName != &dummy)
+	{
+		delete[] VendorName;
+	}
+
+	if (ProductName != &dummy)
+	{
+		delete[] ProductName;
+	}
+
+	if (ProductModelNumber != &dummy)
+	{
+		delete[] ProductModelNumber;
+	}
+
+	if (ProductDescription != &dummy)
+	{
+		delete[] ProductDescription;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////
 // global variables
 octet EPICSLengthProtocolServicesSupportedBitstring;    //msdanner 9/2004 - used by test 135.1-2003 (k)
@@ -296,7 +333,7 @@ static char *SectionNames[]={
 			"List of Objects in test device",                     //10
 			"Character Sets Supported",                           //11				***006
 			"Fail Times",                                         //12				***019
-         "BIBBs Supported",                                    //13  msdanner 8/31/04: added
+			"BIBBs Supported",                                    //13  msdanner 8/31/04: added
 			"Default Property Value Restrictions"                 //14  msdanner 8/31/04: added
 			};
 static namedw FunctionalGroups[]={
@@ -1809,23 +1846,34 @@ bool APIENTRY ReadTextPICS(
 			}
 			else
 			{	*lp++=0;						//make asciz section name and lp points to args
-			for (i=0;i<(sizeof(SectionNames)/sizeof(SectionNames[0]));i++) {
+				for (i=0;i<(sizeof(SectionNames)/sizeof(SectionNames[0]));i++) {
 				  // preprocessing, replace score and underscore with whitespace
 				  preprocstr(lb);				// remove score and underscore		***020
 				  if (stricmp(lb,SectionNames[i])==0)	//we found a matching section name
-				  {	switch(i)
+				  {	
+					switch(i)
 					{
+					int nameLen;
 					case 0:
-						if (setstring(pd->VendorName,sizeof(pd->VendorName),lp)) goto rtpclose;
+						// Allocate as much space as we need (actually, more than enough due to quoting)
+						nameLen = strlen(lp) + 1;
+						pd->VendorName = new char[nameLen];
+						if (setstring(pd->VendorName,nameLen,lp)) goto rtpclose;
 						break;
 					case 1:
-						if (setstring(pd->ProductName,sizeof(pd->ProductName),lp)) goto rtpclose;
+						nameLen = strlen(lp) + 1;
+						pd->ProductName = new char[nameLen];
+						if (setstring(pd->ProductName,nameLen,lp)) goto rtpclose;
 						break;
 					case 2:
-						if(setstring(pd->ProductModelNumber,sizeof(pd->ProductModelNumber),lp)) goto rtpclose;
+						nameLen = strlen(lp) + 1;
+						pd->ProductModelNumber = new char[nameLen];
+						if(setstring(pd->ProductModelNumber,nameLen,lp)) goto rtpclose;
 						break;
 					case 3:
-						if (setstring(pd->ProductDescription,sizeof(pd->ProductDescription),lp)) goto rtpclose;
+						nameLen = strlen(lp) + 1;
+						pd->ProductDescription = new char[nameLen];
+						if (setstring(pd->ProductDescription,nameLen,lp)) goto rtpclose;
 						break;
 					case 4:
 						skipwhitespace();							//			***008
@@ -1859,7 +1907,7 @@ bool APIENTRY ReadTextPICS(
 					case 12:
 						if (ReadFailTimes(pd)) goto rtpclose;	//					***019
 						break;
-               case 13: // BIBBs supported
+					case 13: // BIBBs supported
 						if (ReadBIBBSupported(pd)) goto rtpclose;
 						break;
 					//case 14: // TODO:  Default Property Value Restrictions
@@ -2333,7 +2381,7 @@ BOOL ReadFailTimes(PICSdb *pd)
 BOOL ReadObjects(PICSdb *pd)
 {	
 	char	*pn;							//property name pointer
-	char	objname[32];
+	char	objname[512];
 	BOOL	WeKnowObjectType;
 	word	objtype;						//enumeration value for object type
 	dword	objid;							//object identifier
@@ -3819,7 +3867,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 	word			pindex,ub,i;
 	void 		far	*pstruc;
 	dword			dw;
-	char			b[64],q;
+	char			b[512],q;
 	octet			db,dm;
 	etable 			*ep;
 	float		far	*fp;
@@ -7122,24 +7170,36 @@ BOOL setstring(char *p,word ps, char *param)
 	char	q;
 	word	i;
 
+	// TODO: a GLOBAL pointer???  Is its value used after we return?
+	// Search shows that ALL calls to setstring pass lp as param...
 	lp = param;									//									***008
 	skipwhitespace();
 	q = *lp++;
-	if (q == singlequote || q == doublequote || q == accentgrave)
+	if ((q == doublequote) || (q == singlequote) || (q == accentgrave))
 	{
-		for (i = 0; i < (ps-1); i++)					//copy until end of line, end of string or ps chars copied
+		// 135.1 clause 4.3 says that strings
+		// - may be enclosed by double quotes
+		// - may be enclosed by single quotes
+		// - may be enclosed between an accent grave and a single quote
+		// - ends at the end of the line, regardless of quoting
+		if (q == accentgrave)
+			q = singlequote;
+		
+		for (i = 0; i < (ps-1); i++)			//copy until end of line, end of string or ps chars copied
 		{
-			if (*lp == q )
+			if (*lp == q)
 			{	
-				lp++;								//skip trailing quote
+				lp++;							//skip trailing quote
 				break;
 			}
-			else if (*lp == 0 || *lp == 0x0a)		//0x0a, the end of the line
+			else if (*lp == 0 || *lp == 0x0a)	//0x0a, the end of the line
 			{
-				break;								//found end of line
+				break;							//found end of line
 			}
 			else
+			{
 				*p++ = *lp++;
+			}
 		}
 
 		*p=0;									//mark end with asciz
