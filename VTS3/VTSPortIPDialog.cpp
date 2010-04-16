@@ -209,7 +209,10 @@ void VTSPortIPDialog::CtrlToObj()
 	// Can't call GetWindowText, as we may be called by notification
 	// BEFORE the combo's visible text changes.
 	CString str;
-	m_interfaceCombo.GetLBText( m_interfaceCombo.GetCurSel(), str );
+	int sel = m_interfaceCombo.GetCurSel();
+	if (sel < 0)
+		sel = 0;
+	m_interfaceCombo.GetLBText( sel, str );
 	*m_pstrConfigParms += str;
 
 	switch (m_nPortType)
