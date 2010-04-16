@@ -14,15 +14,8 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // VTSNamesDlg dialog
 
-
-
-//VTSNamesDlg::VTSNamesDlg( VTSNameListPtr nlp, VTSPortListPtr plp )
-// MAD_DB
 VTSNamesDlg::VTSNamesDlg(  VTSNames * pnames, VTSPorts * pports, CWnd* pParent /* = NULL */ )
 	: CDialog( VTSNamesDlg::IDD, pParent )
-//MAD_DB	, m_pNameList( nlp ), m_pPortList( plp )
-//MAD_DB	, m_pPortList( plp )
-//MAD_DB	, m_iSelectedName( -1 )
 {
 	// duplicate the member initalization that the class 'wizard' adds
 	m_Name = _T("");
@@ -86,9 +79,18 @@ BOOL VTSNamesDlg::OnInitDialog()
 	InitPortList();					// get the ports from the database
 	InitNameList();					// fill in the table from the database
 
-	ResetSelection();				// nothing selected by default
+	if (m_names.GetSize() > 0)
+	{
+		m_iSelectedName = 0;
+		NameToCtrl( (VTSName *)m_names[m_iSelectedName] );
+		m_NameList.SetItemState( 0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED );
+	}
+	else
+	{
+		ResetSelection();
+	}
 	
-	return TRUE;  // return TRUE  unless you set the focus to a control
+	return FALSE;  // return TRUE  unless you set the focus to a control
 }
 
 void VTSNamesDlg::InitPortList()
@@ -106,16 +108,16 @@ void VTSNamesDlg::InitPortList()
 
 void VTSNamesDlg::InitNameList()
 {
-//MAD_DB
-//	VTSNameDesc		name;
-	//int				len = m_pNameList->Length();
-	int				len = m_names.GetSize();
+	int	len = m_names.GetSize();
 
 	// only allow one selected name at a time
 	m_NameList.m_nFlags |= LVS_SINGLESEL;
 
 	// do not sort the list
 	m_NameList.m_nFlags &= ~LBS_SORT;
+
+	// Select full row (default is just the first column)
+	m_NameList.SetExtendedStyle( LVS_EX_FULLROWSELECT );
 
 	// add columns.
 	m_NameList.InsertColumn (0, _T("Name"), LVCFMT_LEFT, 96 );
@@ -129,11 +131,6 @@ void VTSNamesDlg::InitNameList()
 		// make a placeholder for the item
 		m_NameList.InsertItem( i, _T("") );
 
-		// read the name from the database
-//MAD_DB		m_pNameList->ReadName( i, &name );
-
-		// transfer the record contents to the list
-//		NameToList( name, i );
 		VTSName * p = (VTSName *) m_names[i];
 		NameToList( (VTSName *) m_names[i], i );
 	}
@@ -205,80 +202,69 @@ void VTSNamesDlg::SynchronizeControls()
 //	VTSNamesDlg::NameToList
 //
 
-//MAD_DB void VTSNamesDlg::NameToList( const VTSNameDesc &name, int elem )
 void VTSNamesDlg::NameToList( const VTSName * pname, int elem )
 {
-	CString		netStr, addrStr;
+	CString	netStr, addrStr;
 
 	ASSERT(pname != NULL);
 
 	// update the display list
-//MAD_DB	m_NameList.SetItemText( elem, 0, name.nameName );
 	m_NameList.SetItemText( elem, 0, pname->m_strName );
 
-	if ( pname->m_pportLink == NULL )
+	bool showAsIP = false;
+	if (pname->m_pportLink == NULL)
+	{
 		m_NameList.SetItemText( elem, 1, _T("*") );
-	else
-		m_NameList.SetItemText( elem, 1, _T(pname->m_pportLink->GetName()) );
-
-	// check the port
-
-/* MAD_DB
-	if (name.namePort == 0)
-		m_NameList.SetItemText( elem, 1, _T("*") );
+	}
 	else
 	{
-		VTSPortPtr	curPort;
+		m_NameList.SetItemText( elem, 1, _T(pname->m_pportLink->GetName()) );
 
-		// look for the matching ID
-		for (int i = 0; i < m_pPortList->Length(); i++)
-		{
-			// get a pointer to the ith port
-			curPort = (*m_pPortList)[i];
-
-			if ( name.namePort == curPort->portDescID) {
-				m_NameList.SetItemText( elem, 1, curPort->portDesc.portName );
-				break;
-			}
-		}
+		showAsIP = (pname->m_pportLink->m_nPortType == ipPort) &&
+				   (pname->m_bacnetaddr.addrType == localStationAddr);
 	}
-*/
 
 	// check for some remote broadcast or remote station
-//MAD_DB
-//	if ((name.nameAddr.addrType == remoteBroadcastAddr) || (name.nameAddr.addrType == remoteStationAddr))
-//		netStr.Format( "%d", name.nameAddr.addrNet );
-	if ((pname->m_bacnetaddr.addrType == remoteBroadcastAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr))
+	if ((pname->m_bacnetaddr.addrType == remoteBroadcastAddr) || 
+		(pname->m_bacnetaddr.addrType == remoteStationAddr))
+	{
 		netStr.Format( "%d", pname->m_bacnetaddr.addrNet );
-	else
-		netStr = _T("");
+	}
 	m_NameList.SetItemText( elem, 2, netStr );
 
 	// check for local or remote station
-//MAD_DB	if ((name.nameAddr.addrType == localStationAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
-	if ((pname->m_bacnetaddr.addrType == localStationAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr)) {
-		static const char	hex[] = "0123456789ABCDEF"
-		;
-		char	buff[kMaxAddressLen * 3], *s = buff
-		;
+	if ((pname->m_bacnetaddr.addrType == localStationAddr) || 
+		(pname->m_bacnetaddr.addrType == remoteStationAddr)) 
+	{
+		if (showAsIP)
+		{
+			// Show as a B/IP address, to avoid the nuisance of hex entry
+			addrStr.Format( "%u.%u.%u.%u:%u",
+				pname->m_bacnetaddr.addrAddr[0],
+				pname->m_bacnetaddr.addrAddr[1],
+				pname->m_bacnetaddr.addrAddr[2],
+				pname->m_bacnetaddr.addrAddr[3],
+				(pname->m_bacnetaddr.addrAddr[4] << 8) + pname->m_bacnetaddr.addrAddr[5] );
 
-		// clear the buffer
-		buff[0] = 0;
-
-		// encode the address
-//MAD_DB		for (int i = 0; i < name.nameAddr.addrLen; i++) {
-		for (int i = 0; i < pname->m_bacnetaddr.addrLen; i++) {
-			if (i) *s++ = '-';
-//			*s++ = hex[ name.nameAddr.addrAddr[i] >> 4 ];
-//			*s++ = hex[ name.nameAddr.addrAddr[i] & 0x0F ];
-			*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] >> 4 ];
-			*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] & 0x0F ];
 		}
-		*s = 0;
-
-		addrStr = buff;
-	} else
-		addrStr = _T("");
+		else
+		{
+			static const char	hex[] = "0123456789ABCDEF";
+			char	buff[kMaxAddressLen * 3], *s = buff;
+			
+			// clear the buffer
+			buff[0] = 0;
+			
+			// encode the address
+			for (int i = 0; i < pname->m_bacnetaddr.addrLen; i++) {
+				if (i) *s++ = '-';
+				*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] >> 4 ];
+				*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] & 0x0F ];
+			}
+			*s = 0;
+			addrStr = buff;
+		}
+	} 
 	m_NameList.SetItemText( elem, 3, addrStr );
 }
 
@@ -286,66 +272,58 @@ void VTSNamesDlg::NameToList( const VTSName * pname, int elem )
 //	VTSNamesDlg::NameToCtrl
 //
 
-//MAD_DB void VTSNamesDlg::NameToCtrl( const VTSNameDesc &name )
 void VTSNamesDlg::NameToCtrl( const VTSName * pname )
 {
 	// set the contents of the member vars from the record
 	m_Name = pname->m_strName;
 	m_AddrType = pname->m_bacnetaddr.addrType;
 
+	m_Network = _T("");
 	m_Address = _T("");
 
-	if ((pname->m_bacnetaddr.addrType == remoteBroadcastAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr))
-		m_Network.Format( "%d", pname->m_bacnetaddr.addrNet );
-	else
-		m_Network = _T("");
-
-	if ((pname->m_bacnetaddr.addrType == localStationAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr)) {
-		static const char	hex[] = "0123456789ABCDEF"
-		;
-		char	buff[kMaxAddressLen * 3], *s = buff
-		;
-
-		// clear the buffer
-		buff[0] = 0;
-
-		// encode the address
-		for (int i = 0; i < pname->m_bacnetaddr.addrLen; i++) {
-			if (i) *s++ = '-';
-			*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] >> 4 ];
-			*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] & 0x0F ];
-		}
-		*s = 0;
-
-		m_Address = buff;
-	} else
-		m_Address = _T("");
-
-
-	m_PortCombo.SelectString(0, pname->m_pportLink == NULL ? "(any port)" : pname->m_pportLink->GetName());
-
-/*
-MAD_DB
-
-	//fixed bug 598977, by xuyiping, 2002-9-24
-	if (name.namePort == 0)
-		m_PortCombo.SetCurSel(0);
-	else
+	if ((pname->m_bacnetaddr.addrType == remoteBroadcastAddr) || 
+		(pname->m_bacnetaddr.addrType == remoteStationAddr))
 	{
-		VTSPortPtr	curPort	;
+		m_Network.Format( "%d", pname->m_bacnetaddr.addrNet );
+	}
 
-		// look for the matching ID
-		for (int i = 0; i < m_pPortList->Length(); i++) {
-			// get a pointer to the ith port
-			curPort = (*m_pPortList)[i];
-			if (name.namePort == curPort->portDescID) {
-				m_PortCombo.SetCurSel(i+1);
-				break;
+	if ((pname->m_bacnetaddr.addrType == localStationAddr) || 
+		(pname->m_bacnetaddr.addrType == remoteStationAddr)) 
+	{
+		if ((pname->m_pportLink != NULL) &&
+			(pname->m_pportLink->m_nPortType == ipPort) &&
+			(pname->m_bacnetaddr.addrType == localStationAddr))
+		{
+			// Show as a B/IP address, to avoid the nuisance of hex entry
+			m_Address.Format( "%u.%u.%u.%u:%u",
+						pname->m_bacnetaddr.addrAddr[0],
+						pname->m_bacnetaddr.addrAddr[1],
+						pname->m_bacnetaddr.addrAddr[2],
+						pname->m_bacnetaddr.addrAddr[3],
+						(pname->m_bacnetaddr.addrAddr[4] << 8) + pname->m_bacnetaddr.addrAddr[5] );
+
+		}
+		else
+		{
+			static const char	hex[] = "0123456789ABCDEF";
+			char	buff[kMaxAddressLen * 3], *s = buff;
+			
+			// clear the buffer
+			buff[0] = 0;
+			
+			// encode the address
+			for (int i = 0; i < pname->m_bacnetaddr.addrLen; i++) {
+				if (i) *s++ = '-';
+				*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] >> 4 ];
+				*s++ = hex[ pname->m_bacnetaddr.addrAddr[i] & 0x0F ];
 			}
+			*s = 0;
+			
+			m_Address = buff;
 		}
 	}
-	//End fixed
-*/
+
+	m_PortCombo.SelectString(0, (pname->m_pportLink == NULL) ? "(any port)" : pname->m_pportLink->GetName());
 
 	// sync the controls
 	SynchronizeControls();
@@ -358,15 +336,11 @@ MAD_DB
 //	VTSNamesDlg::CtrlToName
 //
 
-//MAD_DB void VTSNamesDlg::CtrlToName( VTSNameDesc &name )
 void VTSNamesDlg::CtrlToName( VTSName * pname )
 {
-	int			valu = 0
-	;
-	LPCSTR		s
-	;
-	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PORTCOMBO )
-	;
+	LPCSTR		s;
+	char        *pNext;
+	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PORTCOMBO );
 
 	// sync the member variables with the dialog controls
 	UpdateData( true );
@@ -375,21 +349,14 @@ void VTSNamesDlg::CtrlToName( VTSName * pname )
 	SynchronizeControls();
 
 	// copy the vars into the name
-//	strcpy( name.nameName, m_Name );
 	pname->m_strName = m_Name;
 
 	// do the address type
-//	name.nameAddr.addrType = (BACnetAddressType)m_AddrType;
 	pname->m_bacnetaddr.addrType = (BACnetAddressType)m_AddrType;
 
-	// check the port
-//	valu = cbp->GetCurSel();
-//	name.namePort = (valu == 0 ? 0 : (*m_pPortList)[valu - 1]->portDescID);
-
-	// must do more than assing pointer link... we've got to setup the name as well
+	// must do more than assign pointer link... we've got to set up the name as well
 	// so if the ports are changed this NAME object can relink when ports dialog is used.
-
-	if ( cbp->GetCurSel() == 0 )
+	if (cbp->GetCurSel() == 0)
 	{
 		pname->m_pportLink = NULL;
 		pname->m_strPortNameTemp.Empty();
@@ -400,58 +367,66 @@ void VTSNamesDlg::CtrlToName( VTSName * pname )
 		pname->m_strPortNameTemp = pname->m_pportLink->GetName();
 	}
 
-
 	// check for some remote broadcast or remote station
-//	if ((name.nameAddr.addrType == remoteBroadcastAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
-	if ((pname->m_bacnetaddr.addrType == remoteBroadcastAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr)) {
-		s = m_Network;
-
-		if ((s[0] == '0') && ((s[1] == 'x') || (s[1] == 'X'))) {
-			s += 2;
-			for (valu = 0; isxdigit(*s); s++)
-				valu = (valu << 4) + (isdigit(*s) ? (*s - '0') : (toupper(*s) - 'A' + 10));
-		} else {
-			for (valu = 0; isdigit(*s); s++)
-				valu = (valu *10) + (*s - '0');
-		}
-
-//		name.nameAddr.addrNet = valu;
-		pname->m_bacnetaddr.addrNet = valu;
+	if ((pname->m_bacnetaddr.addrType == remoteBroadcastAddr) || 
+		(pname->m_bacnetaddr.addrType == remoteStationAddr)) 
+	{
+		pname->m_bacnetaddr.addrNet = (UINT)strtoul( m_Network, &pNext, 0 );
 	}
 
 	// check for local or remote station
-//	if ((name.nameAddr.addrType == localStationAddr) || (name.nameAddr.addrType == remoteStationAddr)) {
-	if ((pname->m_bacnetaddr.addrType == localStationAddr) || (pname->m_bacnetaddr.addrType == remoteStationAddr)) {
-		int			upperNibble, lowerNibble
-		;
-		char		c
-		;
-
+	if ((pname->m_bacnetaddr.addrType == localStationAddr) || 
+		(pname->m_bacnetaddr.addrType == remoteStationAddr)) 
+	{
 		s = m_Address;
+		if (strchr( s, '.' ))
+		{
+			// Enter as dotted-decimal IP address, colon, UDP port
+			UINT a=0, b=0, c=0, d=0, e=0;
+			pname->m_bacnetaddr.addrLen = 0;
+			if ((sscanf( s, "%u.%u.%u.%u:%u", &a,&b,&c,&d,&e ) >= 1) &&
+				(a < 256) && (b < 256) && (c < 256) && (d < 256) && (e < 65536))
+			{
+				pname->m_bacnetaddr.addrAddr[ 0 ] = (unsigned char)a;
+				pname->m_bacnetaddr.addrAddr[ 1 ] = (unsigned char)b;
+				pname->m_bacnetaddr.addrAddr[ 2 ] = (unsigned char)c;
+				pname->m_bacnetaddr.addrAddr[ 3 ] = (unsigned char)d;
+				pname->m_bacnetaddr.addrAddr[ 4 ] = (unsigned char)(e >> 8);
+				pname->m_bacnetaddr.addrAddr[ 5 ] = (unsigned char)e;
+				pname->m_bacnetaddr.addrLen = 6;
+			}
+			else
+			{
+				// Not a legal IP address
+				MessageBeep(-1);
+			}
+		}
+		else
+		{
+			// Enter as a string of hex bytes separated by dashes
+			int ix;
+			for (ix = 0; *s && (ix < kMaxAddressLen); ix++) 
+			{
+				UINT valu = (UINT)strtoul( s, &pNext, 16 );
+				if (valu > 255)
+				{
+					MessageBeep(-1);
+					break;
+				}
 
-		// remove contents
-//		name.nameAddr.addrLen = 0;
-		pname->m_bacnetaddr.addrLen = 0;
-
-		// translate the text into octets
-		for (;;) {
-			// look for a hex digit
-			while ((c = toupper(*s++)) && !isxdigit(c))
-				;
-			if (!c) break;
-			upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
-
-			// look for another hex digit
-			while ((c = toupper(*s++)) && !isxdigit(c))
-				;
-			if (!c) break;
-			lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
-
-			// add the byte
-//			if (name.nameAddr.addrLen < kMaxAddressLen)
-//				name.nameAddr.addrAddr[ name.nameAddr.addrLen++ ] = (upperNibble << 4) + lowerNibble;
-			if (pname->m_bacnetaddr.addrLen < kMaxAddressLen)
-				pname->m_bacnetaddr.addrAddr[ pname->m_bacnetaddr.addrLen++ ] = (upperNibble << 4) + lowerNibble;
+				pname->m_bacnetaddr.addrAddr[ ix ] = (unsigned char)valu;
+				s = pNext;
+				if ((*s == '-') || (*s == ':'))
+				{
+					s = s + 1;
+				}
+				else if (*s != 0)
+				{
+					MessageBeep(-1);
+					break;
+				}
+			}
+			pname->m_bacnetaddr.addrLen = ix;
 		}
 	}
 }
@@ -470,8 +445,10 @@ void VTSNamesDlg::OnOK()
 	{
 		VTSName * pname = (VTSName *) m_names[n];
 
-		if ( (pname->m_bacnetaddr.addrType == localStationAddr  || pname->m_bacnetaddr.addrType == remoteStationAddr)
-			 &&  pname->m_bacnetaddr.addrLen != 1 && pname->m_bacnetaddr.addrLen != 6 )
+		if ( ((pname->m_bacnetaddr.addrType == localStationAddr) || 
+			  (pname->m_bacnetaddr.addrType == remoteStationAddr))
+			 &&  
+			 (pname->m_bacnetaddr.addrLen != 1) && (pname->m_bacnetaddr.addrLen != 6) )
 		{
 			// select the item in the list...  then change focus to address edit control
 
@@ -515,9 +492,6 @@ void VTSNamesDlg::OnCancel()
 
 void VTSNamesDlg::OnNew() 
 {
-//	int		listLen = m_pNameList->Length();
-//	VTSNameDesc		name;
-
 	int listLen = m_names.GetSize();
 	VTSName * pname = new VTSName();
 
@@ -529,18 +503,12 @@ void VTSNamesDlg::OnNew()
 	}
 	
 	// create a new name
-//	m_pNameList->Add();
 	m_names.Add(pname);
 
-	// read the name from the database
-//	m_pNameList->ReadName( listLen, &name );
-
 	// make a placeholder for the item
-//	m_NameList.InsertItem( listLen, _T("") );
 	m_NameList.InsertItem( listLen, _T(pname->m_strName) );
 
 	// copy the contents to the list
-//	NameToList( name, listLen );
 	NameToList( pname, listLen );
 
 	// make sure it is visible and selected, this also transfers the info to the ctrls
@@ -574,7 +542,6 @@ void VTSNamesDlg::OnDelete()
 	m_NameList.DeleteItem( nItem );
 
 	// delete the name from the database
-//	m_pNameList->Remove( nItem );
 	m_names.Remove( nItem );
 
 	// now select the next item if there is one... select the previous item if not... until null
@@ -607,10 +574,9 @@ void VTSNamesDlg::OnExportNames()
 
 void VTSNamesDlg::OnItemchangingNamelist(NMHDR* pNMHDR, LRESULT* pResult) 
 {
-//	VTSNameDesc		name	;
 	NM_LISTVIEW*	pNMListView = (NM_LISTVIEW*)pNMHDR;
 	
-#if 1
+#if 0
 	TRACE3( "Item %d from %d to %d\n"
 		, pNMListView->iItem
 		, pNMListView->uOldState
@@ -625,16 +591,12 @@ void VTSNamesDlg::OnItemchangingNamelist(NMHDR* pNMHDR, LRESULT* pResult)
 	if ((pNMListView->uNewState & LVIS_SELECTED) != 0) {
 		m_iSelectedName = pNMListView->iItem;
 
-		// read the name from the database
-//		m_pNameList->ReadName( m_iSelectedName, &name );
-
 		// transfer the values to the controls
-//		NameToCtrl( name );
 		NameToCtrl( (VTSName *) m_names[m_iSelectedName]);
 
-	} else {
-		if (pNMListView->iItem == m_iSelectedName)
-			ResetSelection();
+//	} else {
+//		if (pNMListView->iItem == m_iSelectedName)
+//			ResetSelection();
 	}
 
 	*pResult = 0;
@@ -659,53 +621,33 @@ void VTSNamesDlg::OnDblclkNamelist(NMHDR* pNMHDR, LRESULT* pResult)
 
 void VTSNamesDlg::SaveChanges()
 {
-//	VTSNameDesc		name;
-
-	// read the name from the database
-//	m_pNameList->ReadName( m_iSelectedName, &name );
-
 	// transfer the contents of the controls to the record
-//	CtrlToName( name );
 	CtrlToName( (VTSName *) m_names[m_iSelectedName] );
 
-	// save the updated record
-//	m_pNameList->WriteName( m_iSelectedName, &name );
-
 	// bring the list up-to-date
-//	NameToList( name, m_iSelectedName );
 	NameToList( (VTSName *) m_names[m_iSelectedName], m_iSelectedName );
 }
 
-//Xiao Shiyuan 2002-12-25
 void VTSNamesDlg::OnKillfocusAddress() 
 {
-//	VTSNameDesc		name;
-
-	//Xiao Shiyuan 2005-1-18
 	if ( m_iSelectedName == -1 || m_iSelectedName > m_names.GetSize() - 1)
 		return;
 
 	VTSName * pname = (VTSName *) m_names[m_iSelectedName];
 
-	// MAG 06JUN06 fix lost focus crash bug
 	CWnd *cwt;
 	int nFocusID=0;
 
 	cwt = GetFocus();
 	if(cwt != NULL)
 		nFocusID = cwt->GetDlgCtrlID();  // GetFocus() sometimes returns NULL, i.e. when new focus is not VTS
-	// MAG 06JUN06 end modifications
-
-	// read the name from the database
-//	m_pNameList->ReadName( m_iSelectedName, &name );
-
-//	if(name.nameAddr.addrLen != 1 && name.nameAddr.addrLen != 6)
 
 	// Check for validity and warn if we haven't already warned and they didn't 
 	// press the cancel or delete key...
 
-	if(    pname->m_bacnetaddr.addrLen != 1 && pname->m_bacnetaddr.addrLen != 6
-		&& nFocusID != GetDlgItem(IDCANCEL)->GetDlgCtrlID()  &&  nFocusID != GetDlgItem(ID_DELETENAME)->GetDlgCtrlID() )
+	if ((pname->m_bacnetaddr.addrLen != 1) && (pname->m_bacnetaddr.addrLen != 6) && 
+		(nFocusID != GetDlgItem(IDCANCEL)->GetDlgCtrlID()) &&  
+		(nFocusID != GetDlgItem(ID_DELETENAME)->GetDlgCtrlID()))
 	{
 		if ( !m_fWarnedAlready )
 		{

@@ -142,6 +142,7 @@ BOOL VTSPortDlg::OnInitDialog()
 	m_sheet.SetWindowPos( NULL, rcSheet.left-7, rcSheet.top-7, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE );
 
 	// initialize the port list
+	m_PortList.SetExtendedStyle( LVS_EX_FULLROWSELECT ); // Select full row (default is just the first column)
 	m_PortList.m_nFlags |= LVS_SINGLESEL;
 	m_PortList.InsertColumn( 0, _T("Name"), LVCFMT_LEFT, 96 );
 	m_PortList.InsertColumn( 1, _T("Type"), LVCFMT_LEFT, 64 );
