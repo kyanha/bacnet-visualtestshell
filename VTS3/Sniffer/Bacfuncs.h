@@ -990,12 +990,13 @@ bool BACnetSequence::Boolean( int theTag, const char *pTitle, BACnetSequenceParm
 		}
 		
 		// The interest here is that app-tagged boolean has its value in
-		// the length field, while context tag has it as a value byte.
+		// the bottom three bits of the tag, while context tag has it as a value byte.
 		unsigned int boolVal;
 		if (theTag < 0)
 		{
-			// Application-tag: value is the length field
-			boolVal = m_parser.DataLength();
+			// Application-tag: value is the length/value field.
+			// (NOT available from parser.DataLength(), which says length is 0)
+			boolVal = pif_get_byte(0) & 0x01;
 			sprintf( get_int_line(pi_data_current, pif_offset, 1, NT_ITEM_HEAD), 
 					 "%s:  %s", pTitle, (boolVal) ? "TRUE" : "FALSE" );
 		}
