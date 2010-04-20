@@ -1629,7 +1629,7 @@ propdescriptor ADProps[] =
 
 propdescriptor SVProps[] = 
 {
-	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
+	//	"property name",		property identifier,	      struc offset,				parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(sv,  go.object_id),   	   ob_id,    0,      0,       R,
     "object-name",  			OBJECT_NAME, 			      oo(sv,  go.object_name),     s32,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(sv,  go.object_type), 	   et,       0,      0,       R,
@@ -1637,7 +1637,7 @@ propdescriptor SVProps[] =
 	"node-type",				NODE_TYPE,					  oo(sv,  node_type),			et,		 0,	eiNodeType,	  R,
 	"node-subtype",				NODE_SUBTYPE,				  oo(sv,  node_subtype),        s132,	 0,      0,       O,
 	"subordinate-list",         SUBORDINATE_LIST,             oo(sv,  subordinate_list),   lodoref,	 0,		 0,		  R|IsArray,  
-	"subordinate-annotations",  SUBORDINATE_ANNOTATIONS,		  oo(sv,  subordinate_annotations), statext, 0,	 0,		  O|IsArray,
+	"subordinate-annotations",  SUBORDINATE_ANNOTATIONS,	  oo(sv,  subordinate_annotations), statext, 0,	 0,		  O|IsArray,
 	"profile-name",				PROFILE_NAME,				  oo(sv,  go.profile_name),	   s132,	 Last,	 0,       O
 };
 

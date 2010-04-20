@@ -3699,7 +3699,7 @@ void MSI_CreateProperty( mi_obj_type far * pObj, BACnetPropertyIdentifier proper
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->num_of_states));
 			break;
 		case STATE_TEXT:
-			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->state_text, 32));
+			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->state_text, MAX_STATE_TEXTS));
 			break;
 		case TIME_DELAY:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->time_delay));
@@ -3788,7 +3788,7 @@ void MSO_CreateProperty( mo_obj_type far * pObj, BACnetPropertyIdentifier proper
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->num_of_states));
 			break;
 		case STATE_TEXT:
-			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->state_text, 32));
+			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->state_text, MAX_STATE_TEXTS));
 			break;
 		case PRIORITY_ARRAY:    
 			pbacnetAnyValue->SetObject(pau, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL, false));
@@ -3877,7 +3877,7 @@ void MSV_CreateProperty( msv_obj_type far * pObj, BACnetPropertyIdentifier prope
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->number_of_states));
 			break;
 		case STATE_TEXT:
-			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->state_text));
+			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->state_text, MAX_STATE_TEXTS));
 			break;
 		case PRIORITY_ARRAY:    
 			pbacnetAnyValue->SetObject(pau, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL, false));
