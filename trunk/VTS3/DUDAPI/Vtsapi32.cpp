@@ -1115,7 +1115,7 @@ static void print_debug(char *fmt, ...)
 
 //======================
 // Setup global error file:
-FILE * pfileError = NULL;  
+static FILE * pfileError = NULL;  
 
 
 ///////////////////////////////////////////////////////////////////////				***007 Begin
@@ -1497,7 +1497,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 
 		break; 
 	case MULTI_STATE_INPUT: 
-		for (i=0;i<32;i++)
+		for (i=0;i<MAX_STATE_TEXTS;i++)
 		{	if (((mi_obj_type *)p)->state_text[i]!=NULL)
 				free(((mi_obj_type *)p)->state_text[i]);
 		}
@@ -1523,7 +1523,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 		break; 
 	case MULTI_STATE_OUTPUT: 
-		for (i=0;i<32;i++)
+		for (i=0;i<MAX_STATE_TEXTS;i++)
 		{	if (((mo_obj_type *)p)->state_text[i]!=NULL)
 				free(((mo_obj_type *)p)->state_text[i]);
 		}
@@ -1630,7 +1630,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 		break;
 	  case MULTI_STATE_VALUE: // msdanner 9/2004
-		for (i=0;i<32;i++)
+		for (i=0;i<MAX_STATE_TEXTS;i++)
 		{	if (((msv_obj_type *)p)->state_text[i]!=NULL)
 				free(((msv_obj_type *)p)->state_text[i]);
 		}
@@ -1786,8 +1786,8 @@ bool APIENTRY ReadTextPICS(
 	
 	//madanner 6/03: wasn't ini tializing cancel
 	cancel = false;
-	::DeleteFile("c:\\EPICSConsChk.txt");		//madanner 4/4
-	pfileError = fopen("c:\\EPICSConsChk.txt","a+");
+	::DeleteFile( FILE_CHECK_EPICS_CONS );		//madanner 4/4
+	pfileError = fopen( FILE_CHECK_EPICS_CONS,"a+");
 
 // looks to be a duplicate of the below therefore did not enable this line.  LJT 8/31/2005	
 //	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported // added by Kare Sars
@@ -1968,7 +1968,10 @@ rtpexit:
 	print_debug("End database printout.\n");
 
 	if ( pfileError != NULL )		// Close main error file
+	{
+		fflush( pfileError );
 		fclose(pfileError);
+	}
 	pfileError = NULL;
 
 	return !cancel;
@@ -4125,11 +4128,11 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 				case statext:					//state text array
 				case actext:					//action_text array
 					cp=(char **)pstruc;
-					for (i=0;i<32;i++) cp[i]=NULL;	//init all slots to NULL values	***011
+					for (i=0;i<MAX_STATE_TEXTS;i++) cp[i]=NULL;	//init all slots to NULL values	***011
 					i=0;
 					if ((lp=openarray(lp))==NULL) return true;
 					
-					while (*lp&&i<32)
+					while (*lp && (i<MAX_STATE_TEXTS) )
 					{	if (setstring(b,32,lp)) return true;	//put string in buffer b
 						if (b[0])				//if string isn't null
 						{	ub=strlen(b)+1;   //reqd length

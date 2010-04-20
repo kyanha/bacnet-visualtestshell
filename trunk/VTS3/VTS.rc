@@ -2564,7 +2564,7 @@ BEGIN
     LISTBOX         IDC_EPICSCONSRESULT,22,28,244,87,LBS_MULTIPLESEL | 
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Output Report File:c:\\EPICSConsChk.txt",IDC_STATIC,22,
+    LTEXT           "Output Report File:c:\\temp\\EPICSConsChk.txt",IDC_STATIC,22,
                     13,243,11
 END
 

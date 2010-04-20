@@ -47,11 +47,11 @@ BOOL CCheckEPICSCons::OnInitDialog()
 	 BOOL nLine=0;
      char fbuf[256];
 	 char outMsg[200];
-	//Load c:\EPICSConsChk.txt,then used listbox to show EPICS Cons Check Results
+	//Load c:\temp\EPICSConsChk.txt,then used listbox to show EPICS Cons Check Results
 	// TODO: Add extra initialization here
 	CListBox *pLB=(CListBox *)GetDlgItem(IDC_EPICSCONSRESULT);
 	pLB->SetHorizontalExtent(1500);
-	mfile=fopen("c:\\EPICSConsChk.txt","r");
+	mfile=fopen( FILE_CHECK_EPICS_CONS,"r");
 	if(mfile==NULL)
     	pLB->InsertString(-1,"EPICS Cons Check Report File  open error!");
 	else{

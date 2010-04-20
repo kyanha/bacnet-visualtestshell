@@ -128,7 +128,7 @@ void CEPICSViewNodeRoot::LoadErrorFile( CEPICSViewInfoPanel * ppanel )
 
 	try
 	{
-		fileErr.Open("c:\\EPICSConsChk.txt", CFile::modeRead | CFile::shareDenyNone);
+		fileErr.Open( FILE_CHECK_EPICS_CONS, CFile::modeRead | CFile::shareDenyNone);
 		int n = 0;
 		while ( fileErr.ReadString(str) )
 		{

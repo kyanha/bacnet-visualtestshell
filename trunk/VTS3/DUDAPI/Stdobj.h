@@ -392,6 +392,7 @@ enum BACnetNotifyType		notify_type;
     BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } loop_obj_type;
 
+#define MAX_STATE_TEXTS 128		/* 32 was too small */
 //Multi-state Input Object
 //-------------------------------------------------------
 typedef struct {
@@ -403,7 +404,7 @@ enum BACnetEventState		state;
 enum BACnetReliability		reliability;
     boolean					out_of_service;
     octet					num_of_states;
-    char				far	*state_text[32];
+    char				far	*state_text[MAX_STATE_TEXTS];
     word					time_delay;
     word					notification_class;
     UnsignedList		far *alarm_values;
@@ -425,7 +426,7 @@ enum BACnetEventState		state;
 enum BACnetReliability		reliability;
     boolean					out_of_service;
     word					num_of_states;
-    char				far	*state_text[32];
+    char				far	*state_text[MAX_STATE_TEXTS];
     word					priority_array[16];
     word					relinquish_default;
     word					time_delay;
@@ -513,7 +514,7 @@ typedef struct {
     word				    number_of_states;
 	// msdanner 9/2004
     //char					state_text[64];
-    char				far	*state_text[32];
+    char				far	*state_text[MAX_STATE_TEXTS];
     word				    priority_array[16];                        
     word				    relinquish_default;
     word				    time_delay;
