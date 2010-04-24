@@ -603,7 +603,7 @@ END
 IDD_PORT DIALOGEX 0, 0, 290, 280
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Port Configuration"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_PORTLIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
@@ -1646,7 +1646,7 @@ IDD_NAMES DIALOGEX 0, 0, 312, 201
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "Names"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_NAMELIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_GROUP | 
@@ -2268,7 +2268,7 @@ END
 IDD_PORTPAGE_ENET DIALOGEX 0, 0, 275, 65
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "Ethernet"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "The drop-down list below contains the names of the Ethernet adapters that are available through the WinPCap driver.",
                     IDC_STATIC,4,7,265,17
@@ -2564,8 +2564,8 @@ BEGIN
     LISTBOX         IDC_EPICSCONSRESULT,22,28,244,87,LBS_MULTIPLESEL | 
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Output Report File:c:\\temp\\EPICSConsChk.txt",IDC_STATIC,22,
-                    13,243,11
+    LTEXT           "Output Report File:c:\\temp\\EPICSConsChk.txt",
+                    IDC_STATIC,22,13,243,11
 END
 
 IDD_SCRIPTMAKE DIALOGEX 0, 0, 204, 46
@@ -2731,7 +2731,7 @@ END
 IDD_PORTPAGE_IP DIALOGEX 0, 0, 275, 128
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "IP"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "&Interface",IDC_STATIC,4,6,34,10
     COMBOBOX        IDC_INTERFACE,40,3,232,76,CBS_DROPDOWN | WS_VSCROLL | 
@@ -2764,7 +2764,7 @@ END
 IDD_PORTPAGE_NULL DIALOGEX 0, 0, 275, 128
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | WS_SYSMENU
 CAPTION "Null"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "No port specific parameters.",IDC_STATIC,7,7,89,8
 END
@@ -2924,7 +2924,7 @@ END
 IDD_ANY DIALOGEX 0, 0, 247, 197
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ABSTRACT-SYNTAX.&Type"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_ELEMLIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | 
@@ -4622,22 +4622,22 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Edit and send packet"
 FONT 8, "Microsoft Sans Serif"
 BEGIN
-    LTEXT           "Destination:",IDC_STATIC,13,11,38,8
+    LTEXT           "D&estination:",IDC_STATIC,13,11,38,8
     COMBOBOX        IDC_DESCOMBO,77,11,104,97,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     GROUPBOX        "",IDC_STATIC,7,28,190,76
-    CONTROL         "SNET and SADR present",IDC_SNETCHECK,"Button",
+    CONTROL         "&SNET and SADR present",IDC_SNETCHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,13,38,97,10
-    LTEXT           "SNET:",IDC_STATIC,13,55,22,8
+    LTEXT           "SNET (decimal):",IDC_STATIC,13,56,52,12
     EDITTEXT        IDC_SNET,77,55,104,12,ES_AUTOHSCROLL
-    LTEXT           "SADR(hex):",IDC_STATIC,13,83,38,8
+    LTEXT           "SADR (hex):",IDC_STATIC,13,84,40,8
     EDITTEXT        IDC_SADR,77,83,104,12,ES_AUTOHSCROLL
     GROUPBOX        "",IDC_STATIC,7,112,190,83
-    CONTROL         "DNET and DADR present",IDC_DNETCHECK,"Button",
+    CONTROL         "&DNET and DADR present",IDC_DNETCHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,13,127,98,10
-    LTEXT           "DNET:",IDC_STATIC,13,146,43,8
+    LTEXT           "DNET (decimal):",IDC_STATIC,13,147,59,8
     EDITTEXT        IDC_DNET,77,146,104,12,ES_AUTOHSCROLL
-    LTEXT           "DADR(hex):",IDC_STATIC,13,174,39,8
+    LTEXT           "DADR (hex):",IDC_STATIC,13,175,41,8
     EDITTEXT        IDC_DADR,77,174,104,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "Send",IDOK,46,202,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,107,202,50,14

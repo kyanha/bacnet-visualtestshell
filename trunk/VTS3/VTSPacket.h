@@ -36,7 +36,6 @@ enum VTSPacketType
 	};
 
 struct VTSPacketHeader {
-// MAD_DB	objId			packetPortID;				// port identifier
 	char		    m_szPortName[32];			// store name for associated port
 	int				packetProtocolID;			// protocol identifier for decoding
 	int				packetFlags;				// protocol specific flags
@@ -44,9 +43,8 @@ struct VTSPacketHeader {
 	VTSPacketType	packetType;					// path as above
 	BACnetAddress	packetSource;				// source address
 	BACnetAddress	packetDestination;			// destination address
-// MAD_DB	objId			packetDataID;				// objId of packet contents
 
-	VTSPacketHeader::VTSPacketHeader( void );
+	VTSPacketHeader( void );
 };
 
 typedef VTSPacketHeader *VTSPacketHeaderPtr;
@@ -70,8 +68,10 @@ public:
 	BOOL    bErrorDecode;  //add: 2004/11/10 author:Xiao Shiyuan purpose:
 	
 	VTSPacket( int len = 0, BACnetOctetPtr data = 0 );
-	//VTSPacket(); //add: 3/2/2005 author:Xiao Shiyuan purpose:
 	~VTSPacket( void );
+
+	VTSPacket( const VTSPacket& );
+	void operator =( const VTSPacket& pkt);
 	
 	void NewData( BACnetOctetPtr data, int len );		// flush old, copy new (owned)
 	void NewDataRef( BACnetOctetPtr data, int len, bool fOwned = false );	// flush old, reference new (not owned)
@@ -79,26 +79,27 @@ public:
 	LPCSTR GetTimeStampString(void);
 	
 	//modified: 2004/11/01 author:Xiao Shiyuan			
-	LPCSTR GetAddressString( VTSDoc * pdoc, BOOL bSource=TRUE, int nLen = -1 );	
-	BOOL GetSNET(unsigned short& snet);              //2004/11/01 author:Xiao Shiyuan return value: FALSE SNET doesn't exist	
-	CString VTSPacket::GetSADRString(VTSDoc * pdoc, BOOL bAlias=TRUE); //2004/11/01 author:Xiao Shiyuan return value: FALSE SNET doesn't exist		
+	LPCSTR GetAddressString( VTSDoc * pdoc, bool bSource, bool bIncludeNetwork = true ) const;
+
+	bool GetNetworkSource( BACnetAddress &theAddress ) const;
+	bool GetNetworkDestination( BACnetAddress &theAddress ) const;
+
+	BOOL GetSNET(unsigned short& snet) const;              //2004/11/01 author:Xiao Shiyuan return value: FALSE SNET doesn't exist
+	CString GetSADRString(VTSDoc * pdoc, BOOL bAlias=TRUE) const;
 	
-	BOOL GetDNET(unsigned short& dnet);              //2004/11/02 author:Xiao Shiyuan return value: FALSE SNET doesn't exist	
-	CString VTSPacket::GetDADRString(VTSDoc * pdoc, BOOL bAlias=TRUE); //2004/11/02 author:Xiao Shiyuan return value: FALSE SNET doesn't exist		
-	
-	VTSPacket( const VTSPacket& );				// disable copy constructor
-	void operator =( const VTSPacket& pkt);		// disable assignment operator
+	BOOL GetDNET(unsigned short& dnet) const;              //2004/11/02 author:Xiao Shiyuan return value: FALSE SNET doesn't exist
+	CString GetDADRString(VTSDoc * pdoc, BOOL bAlias=TRUE) const;
 	
 	BOOL SetDesAddress(BACnetAddress& addr);
 	BOOL SetSNET(unsigned short snet, BOOL bReserveSnet=TRUE);
 	BOOL SetDNET(unsigned short dnet, BOOL bReserveDnet=TRUE);
 	
-	BOOL SetDADR(unsigned char *dadr, unsigned char len);
-	BOOL SetSADR(unsigned char *sadr, unsigned char len);	
+	BOOL SetDADR(unsigned char *dadr, unsigned int len);
+	BOOL SetSADR(unsigned char *sadr, unsigned int len);	
 
 private:
 	//modified: 2004/12/02 author:Xiao Shiyuan	purpose:
-	void FindNPDUStartPos(int& npduindex);
+	void FindNPDUStartPos(int& npduindex) const;
 };
 
 typedef VTSPacket *VTSPacketPtr;

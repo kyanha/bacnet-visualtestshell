@@ -106,21 +106,22 @@ void CListSummaryView::Dump(CDumpContext& dc) const
 #endif //_DEBUG
 
 /////////////////////////////////////////////////////////////////////////////
-// CListSummaryView frame context listner methods
+// CListSummaryView frame context listener methods
 void CListSummaryView::ContextChange( CFrameContext::Signal s )
 {
 	switch (s) {
 		case CFrameContext::eNewPacketCount:
 			{
-				CListCtrl& m_ElemList=GetListCtrl();
+				CListCtrl& elemList=GetListCtrl();
 				
 				if ( m_FrameContext->m_PacketCount == 0 )
 				{
-					m_ElemList.DeleteAllItems();
+					elemList.DeleteAllItems();
 					m_cache.InitCache();
 				}
-				else{
-					int curCount=m_ElemList.GetItemCount();
+				else
+				{
+					int curCount=elemList.GetItemCount();
 					for(int i=curCount;i< m_FrameContext->m_PacketCount;i++)
 						AddLine(i);
 
@@ -146,8 +147,8 @@ void CListSummaryView::ContextChange( CFrameContext::Signal s )
 						SetSelectedLine( index );
 						break;
 					}
-				}				
-			}			
+				}
+			}
 			break;
 
 		case CFrameContext::eUpdatePrefs:
@@ -165,7 +166,6 @@ void CListSummaryView::ContextChange( CFrameContext::Signal s )
 // CListSummaryView message handlers
 BOOL CListSummaryView::PreCreateWindow(CREATESTRUCT& cs) 
 {
-	// TODO: Add your specialized code here and/or call the base class
 	cs.style |= LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS;
 
 	return CListView::PreCreateWindow(cs);
@@ -176,39 +176,37 @@ int CListSummaryView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CListView::OnCreate(lpCreateStruct) == -1)
 		return -1;
 	
-	// TODO: Add your specialized creation code here
 	SetContext( gNewFrameContext );
 
-	CListCtrl& m_ElemList = GetListCtrl();
+	CListCtrl& elemList = GetListCtrl();
 //	DWORD dwStyle = GetWindowLong(this->GetSafeHwnd(), GWL_STYLE); 
 //	SetWindowLong(this->GetSafeHwnd(), GWL_STYLE, dwStyle | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS);
-	m_ElemList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
+	elemList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 
 	m_iconList.Create(16, 16, ILC_MASK, 2, 2);
 	m_iconList.Add(AfxGetApp()->LoadIcon(IDI_SENDPKT));
 	m_iconList.Add(AfxGetApp()->LoadIcon(IDI_RECVPKT));
-	m_ElemList.SetImageList(&m_iconList, LVSIL_SMALL);
+	elemList.SetImageList(&m_iconList, LVSIL_SMALL);
 
-	// column hiding not available yet...
-	//m_ElemList.m_nFlags |= LVS_REPORT;
-	m_ElemList.InsertColumn( 0, _T("No."), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(0) );
-	m_ElemList.InsertColumn( 1, _T("TimeStamp"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(1) );
-	m_ElemList.InsertColumn( 2, _T("Port"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(2) );
+	//elemList.m_nFlags |= LVS_REPORT;
+	elemList.InsertColumn( 0, _T("No."),			LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(0) );
+	elemList.InsertColumn( 1, _T("TimeStamp"),	LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(1) );
+	elemList.InsertColumn( 2, _T("Port"),			LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(2) );
 	//Xiao Shiyuan 2004-Sep-17
-	m_ElemList.InsertColumn( 3, _T("Source"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(3) );	
-	m_ElemList.InsertColumn( 4, _T("Destination"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(4) );
-	m_ElemList.InsertColumn( 5, _T("SNET"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(5) );	
-	m_ElemList.InsertColumn( 6, _T("SADDR"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(6) );
-	m_ElemList.InsertColumn( 7, _T("DNET"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(7) );	
-	m_ElemList.InsertColumn( 8, _T("DADDR"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(8) );
-	m_ElemList.InsertColumn( 9, _T("Service Type"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(9) );
+	elemList.InsertColumn( 3, _T("Source"),		LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(3) );	
+	elemList.InsertColumn( 4, _T("Destination"),	LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(4) );
+	elemList.InsertColumn( 5, _T("SNET"),			LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(5) );	
+	elemList.InsertColumn( 6, _T("SADDR"),		LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(6) );
+	elemList.InsertColumn( 7, _T("DNET"),			LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(7) );	
+	elemList.InsertColumn( 8, _T("DADDR"),		LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(8) );
+	elemList.InsertColumn( 9, _T("Service Type"), LVCFMT_LEFT, gVTSPreferences.SView_GetColumnWidth(9) );
 	//Xiao Shiyuan 2004-Sep-17
 
 	// now refresh with column sizes set to zero if they are not supposed to be visible. LJT 10/1/2005
-	for(int id=0; id < 10; id++)
+	for (int id=0; id < 10; id++)
 	{
 		if ( !gVTSPreferences.SView_IsColumnOn(id) )
-    		m_ElemList.SetColumnWidth(id, 0);
+    		elemList.SetColumnWidth(id, 0);
 	}
 
 
@@ -219,9 +217,9 @@ int CListSummaryView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// Start timer for auto-scroll mode... 5 seconds to start
 	if ( gVTSPreferences.Setting_GetAutoscrollTimeout() != 0 )
 		SetTimer(2, 1000 * gVTSPreferences.Setting_GetAutoscrollTimeout(), NULL);
+
 	return 0;
 }
-
 
 
 void CListSummaryView::OnTimer(UINT nIDEvent) 
@@ -245,7 +243,7 @@ void CListSummaryView::OnDestroy()
 	{
 		// update our internal list here, the saveReg will update the preferences dialog later
 		// only update if the column is visible, we don't want to set width to 0.
-		if ( m_bColumn[i] == 1 )
+		if (m_bColumn[i])
 			m_columnWidth[i] = GetListCtrl().GetColumnWidth(i);
 //		gVTSPreferences.SView_SetColumnWidth(i, GetListCtrl().GetColumnWidth(i) );
 	}
@@ -260,7 +258,6 @@ void CListSummaryView::OnDestroy()
 void CListSummaryView::OnItemchanging(NMHDR* pNMHDR, LRESULT* pResult) 
 {
 	HD_NOTIFY *phdn = (HD_NOTIFY *) pNMHDR;
-	// TODO: Add your control notification handler code here
 
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 
@@ -282,7 +279,7 @@ void CListSummaryView::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 
 	CListCtrl& listCtrl = GetListCtrl();
 
-	// forget messages that dont change the state
+	// forget messages that don't change the state
 	if (pNMListView->uOldState == pNMListView->uNewState)
 		return;
 
@@ -316,12 +313,11 @@ void CListSummaryView::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 
 void CListSummaryView::OnLButtonDblClk(UINT nFlags, CPoint point) 
 {
-	// TODO: Add your message handler code here and/or call default
 	CWnd*	parent = GetParentFrame();
 
 	//notify other view to display proper packet's info
-	if(! ((CChildFrame*)parent)->m_pwndDetailViewBar->IsVisible())
-			((CChildFrame*)parent)->ShowControlBar( ((CChildFrame*)parent)->m_pwndDetailViewBar, TRUE, FALSE);
+	if (! ((CChildFrame*)parent)->m_pwndDetailViewBar->IsVisible())
+		((CChildFrame*)parent)->ShowControlBar( ((CChildFrame*)parent)->m_pwndDetailViewBar, TRUE, FALSE);
 
 	CListView::OnLButtonDblClk(nFlags, point);
 }
@@ -329,7 +325,6 @@ void CListSummaryView::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 void CListSummaryView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
-	// TODO: Add your message handler code here and/or call default
 	if ((nChar == 0x09) && (m_pTabRing))
 		m_pTabRing->SetFocus();
 
@@ -340,18 +335,18 @@ void CListSummaryView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 void CListSummaryView::SetSelectedLine(int currentLineNo)
 {
-	CListCtrl& m_ElemList=GetListCtrl();
-	m_ElemList.SetItemState(currentLineNo,LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
+	CListCtrl& elemList=GetListCtrl();
+	elemList.SetItemState(currentLineNo,LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
 
 	//scroll the content
 	RECT area;
-	m_ElemList.GetItemRect(0,&area,LVIR_BOUNDS );
-	int visible=m_ElemList.GetCountPerPage();
-	int top=m_ElemList.GetTopIndex();
+	elemList.GetItemRect(0,&area,LVIR_BOUNDS );
+	int visible=elemList.GetCountPerPage();
+	int top=elemList.GetTopIndex();
 	if (currentLineNo>top+visible)
-		m_ElemList.Scroll(CSize(0,2*(area.bottom-area.top)*(currentLineNo-top-visible)));
+		elemList.Scroll(CSize(0,2*(area.bottom-area.top)*(currentLineNo-top-visible)));
     if (currentLineNo<top)
-		m_ElemList.Scroll(CSize(0,2*(area.top-area.bottom)*(top-currentLineNo)));
+		elemList.Scroll(CSize(0,2*(area.top-area.bottom)*(top-currentLineNo)));
 }
 
 
@@ -391,7 +386,7 @@ void CListSummaryView::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
 	LV_DISPINFO * pDispInfo = (LV_DISPINFO*) pNMHDR;
 	LV_ITEM * pItem= &(pDispInfo)->item;
 
-	// We only have to support handline of text and state messages...
+	// We only have to support handling of text and state messages...
 	// Others are needed if we do images, columns, lParam data or anything else
 
 	if (pItem->mask & LVIF_TEXT)
@@ -405,6 +400,7 @@ void CListSummaryView::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
 		LVCachedItem	cacheditem;
 		CacheItem(nPacket, &cacheditem);
 
+		// cchTextMax has max size of pszText.  We observe 250 bytes
 		strcpy(pItem->pszText, cacheditem.pszColumnData[pItem->iSubItem]);
 	}
 	
@@ -436,37 +432,6 @@ void CListSummaryView::AddLine(int lineNo)
 	VTSPacketPtr ppkt = m_FrameContext->m_pDoc->GetPacket(lineNo);
 	GetListCtrl().InsertItem( lineNo, columnText, ppkt->packetHdr.packetType);	
 	GetListCtrl().SetItemData(lineNo, lineNo);
-/*
-	char sztemp[200];
-
-	VTSPacketPtr ppkt = m_FrameContext->m_pDoc->GetPacket(lineNo);
-
-	if ( ppkt == NULL )
-		return;
-
-	CListCtrl& m_ElemList=GetListCtrl();
-	sprintf(temp,"%d",lineNo+1);
-	m_ElemList.InsertItem( lineNo, (LPCTSTR)sztemp);
-
-	m_ElemList.SetItemText(lineNo,1, ppkt->GetTimeStampString() );
-	m_ElemList.SetItemText(lineNo, 2, ppkt->packetHdr.m_szPortName );
-
-	if ( ppkt->packetHdr.packetType == msgData )
-		m_ElemList.SetItemText(lineNo, 3, "VTS Message" );
-	else
-	{
-		CString str = ppkt->GetAddressString(m_FrameContext->m_pDoc, ppkt->packetHdr.packetType);		// no length
-		if ( ppkt->packetHdr.packetType == rxData )
-			str = "  -> " + str;
-
-		m_ElemList.SetItemText(lineNo, 3, str );
-	}
-
-	BACnetPIInfo	summary( true, false );
-	summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
-
-	m_ElemList.SetItemText(lineNo, 4, summary.summaryLine );
-*/
 }
 
 
@@ -482,87 +447,86 @@ char * CListSummaryView::FillColumnData( int nColumn, char * pszFill, VTSPacket 
 		nColumn = -1;
 	}
 
-	switch(nColumn)
+	unsigned short net = 0;
+	switch (nColumn)
 	{
-		case 0:		// Packet Number:  cheating... just fill in the number
-					sprintf(pszFill, "%d", (UINT) ppkt);
-					break;
+		case 0:		
+			// Packet Number:  cheating... just fill in the number
+			// (Our caller gives us an integer cast to pointer for this column)
+			sprintf(pszFill, "%d", (UINT) ppkt);
+			break;
 
-		case 1:		// Time Stamp
-					lstrcpy(pszFill, ppkt->GetTimeStampString());
-					break;
+		case 1:
+			// Time Stamp
+			lstrcpy(pszFill, ppkt->GetTimeStampString());
+			break;
 
-		case 2:		// Port Name
-					lstrcpy(pszFill, ppkt->packetHdr.m_szPortName);
-					break;
+		case 2:
+			// Port Name
+			lstrcpy(pszFill, ppkt->packetHdr.m_szPortName);
+			break;
 
-        //Xiao Shiyuan 2004-Sep-20 Separate source columns
-		case 3:		// Source
-					if ( ppkt->packetHdr.packetType == msgData )
-						lstrcpy(pszFill, "VTS Message" );
-					else
-					{
-						if( ppkt->packetHdr.packetType == rxData)
-							lstrcpy(pszFill, ppkt->GetAddressString(m_FrameContext->m_pDoc));
-					}
-					break;					
+		case 3:
+			// Source
+			if (ppkt->packetHdr.packetType == msgData)
+			{
+				lstrcpy(pszFill, "VTS Message" );
+			}
+			else if (ppkt->packetHdr.packetType == rxData)
+			{
+				// if m_bColumn[6], then SADDR is visible.  Show only MAC address here.
+				// else look for network layer and show ORIGINAL source
+				lstrcpy(pszFill, ppkt->GetAddressString(m_FrameContext->m_pDoc, true, !m_bColumn[6]));
+			}
+			break;					
 		
 		case 4:		
-					//destination
-					if( ppkt->packetHdr.packetType == txData)
-						lstrcpy(pszFill, ppkt->GetAddressString(m_FrameContext->m_pDoc, FALSE));					
-			        break;	
+			// destination
+			if (ppkt->packetHdr.packetType == txData)
+			{
+				// if m_bColumn[8], then DADDR is visible.  Show only MAC address here.
+				// else look for network layer and show FINAL destination
+				lstrcpy(pszFill, ppkt->GetAddressString(m_FrameContext->m_pDoc, false, !m_bColumn[8]));					
+			}
+			break;	
 
 		case 5:		
-					//SNET
-					{
-						unsigned short snet = 0;
-						if(ppkt->GetSNET(snet))
-						{
-							CString str;
-							str.Format("%d", snet);
-							lstrcpy(pszFill, (LPCTSTR)str);
-						}						
-					}				
-			        break;
+			// SNET
+			if (ppkt->GetSNET(net))
+			{
+				sprintf(pszFill, "%d", net);
+			}						
+			break;
 					
 		case 6:					
-					//SADDR
-					{						
-						CString sadrStr = ppkt->GetSADRString(m_FrameContext->m_pDoc);
-												
-						lstrcpy(pszFill, (LPCTSTR)sadrStr);						
-					}
-			        break;
+			// SADDR
+			lstrcpy(pszFill, (LPCTSTR)ppkt->GetSADRString(m_FrameContext->m_pDoc) );						
+			break;
 
 		case 7:		
-					//DNET
-					{	
-						unsigned short dnet = 0;
-						if(ppkt->GetDNET(dnet))
-						{
-							CString str;
-							str.Format("%d", dnet);
-							lstrcpy(pszFill, (LPCTSTR)str);
-						}
-					}
-					break;
+			// DNET
+			if (ppkt->GetDNET(net))
+			{
+				if (net == 65535)
+					sprintf(pszFill, "broadcast");
+				else
+					sprintf(pszFill, "%d", net);
+			}
+			break;
 
 		case 8:
-					//DADDR
-					{
-						CString dadrStr = ppkt->GetDADRString(m_FrameContext->m_pDoc);
-							
-						lstrcpy(pszFill, (LPCTSTR)dadrStr);						
-					}
-			        break;
+			// DADDR
+			lstrcpy(pszFill, (LPCTSTR)ppkt->GetDADRString(m_FrameContext->m_pDoc) );						
+			break;
 
 		case 9:
-					//Type of BACnet message
-					m_summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
-					lstrcpy(pszFill, m_summary.summaryLine );
-			        break;
-		//Xiao Shiyuan 2004-Sep-20
+			// Type of BACnet message
+			m_summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
+			lstrcpy(pszFill, m_summary.summaryLine );
+			break;
+
+		default:
+			break;
 	}
 
 	return pszFill;
@@ -649,9 +613,9 @@ char * CListSummaryView::FillColumnData( int nColumn, char * pszFill, VTSPacket 
 	summary.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen);
 
 // added madanner 5/03
-	m_ElemList.SetItemText(lineNo,1, ppkt->GetTimeStampString(ppkt) );
-	m_ElemList.SetItemText(lineNo,2,nameBuff);
-	m_ElemList.SetItemText(lineNo,3,summary.summaryLine);
+	elemList.SetItemText(lineNo,1, ppkt->GetTimeStampString(ppkt) );
+	elemList.SetItemText(lineNo,2,nameBuff);
+	elemList.SetItemText(lineNo,3,summary.summaryLine);
 }
 */
 
@@ -771,18 +735,18 @@ CString* CListSummaryView::GetLineData(int lineNo)
 void CListSummaryView::OnCustomdrawList ( NMHDR* pNMHDR, LRESULT* pResult )
 {
 	NMLVCUSTOMDRAW* pLVCD = reinterpret_cast<NMLVCUSTOMDRAW*>( pNMHDR );
-
+	
     // Take the default processing unless we set this to something else below.
     *pResult = 0;
-
+	
     // First thing - check the draw stage. If it's the control's prepaint
     // stage, then tell Windows we want messages for every item.
-    if ( CDDS_PREPAINT == pLVCD->nmcd.dwDrawStage )
-        {
+	if (CDDS_PREPAINT == pLVCD->nmcd.dwDrawStage)
+	{
         *pResult = CDRF_NOTIFYITEMDRAW;
-        }
-    else if ( CDDS_ITEMPREPAINT == pLVCD->nmcd.dwDrawStage )
-        {
+    }
+    else if (CDDS_ITEMPREPAINT == pLVCD->nmcd.dwDrawStage)
+    {
         // This is the prepaint stage for an item. Here's where we set the
         // item's text color. Our return value will tell Windows to draw the
         // item itself, but it will use the new color we set here.
@@ -791,13 +755,13 @@ void CListSummaryView::OnCustomdrawList ( NMHDR* pNMHDR, LRESULT* pResult )
         CString serviceText;
 		
 		int nPacket = (int)GetListCtrl().GetItemData(pLVCD->nmcd.dwItemSpec);
-
+		
 		VTSPacketPtr ptr = m_FrameContext->m_pDoc->GetPacket(nPacket);
-
+		
 		serviceText = GetListCtrl().GetItemText(pLVCD->nmcd.dwItemSpec, 9);
 		serviceText.MakeLower();
 		
-		if(ptr->bErrorDecode)
+		if (ptr->bErrorDecode)
 		{
 			crText = SUMMARY_PACKET_COLOR[5];
 		}
@@ -826,25 +790,23 @@ void CListSummaryView::OnCustomdrawList ( NMHDR* pNMHDR, LRESULT* pResult )
 			else
 				crText = RGB(0,0,0);
 		}
-
+		
         // Store the color back in the NMLVCUSTOMDRAW struct.
         pLVCD->clrText = crText;
-
+		
         // Tell Windows to paint the control itself.
         *pResult = CDRF_DODEFAULT;
-        }
+	}
 }
 
 void CListSummaryView::OnViewColor() 
 {
-	// TODO: Add your command handler code here
 	CColorSettingDlg dlg;
 	if( dlg.DoModal() == IDOK )
 		RedrawWindow();
 }
 
-int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, 
-   LPARAM lParamSort)
+int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {	
 	int result = 0;
 	ListSortParam* pSortParam = (ListSortParam*)lParamSort;
@@ -876,7 +838,6 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2,
 void CListSummaryView::OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult) 
 {
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
-	// TODO: Add your control notification handler code here
 
 	//pNMListView->iSubItem indicates which column is clicked
 	if(pNMListView->iSubItem == m_sortColumn)
@@ -916,7 +877,6 @@ void CListSummaryView::RelayEvent(UINT message, WPARAM wParam, LPARAM lParam)
 
 void CListSummaryView::OnMouseMove(UINT nFlags, CPoint point) 
 {
-	// TODO: Add your message handler code here and/or call default
 	CListCtrl& listCtrl = GetListCtrl();
 
 	int nItem = listCtrl.HitTest(point, &nFlags);
@@ -952,7 +912,6 @@ void CListSummaryView::OnInitialUpdate()
 {
 	CListView::OnInitialUpdate();
 	
-	// TODO: Add your specialized code here and/or call the base class
 	CListCtrl& listCtrl = GetListCtrl();	
 	listCtrl.SetExtendedStyle( LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES );	
 	
@@ -961,85 +920,28 @@ void CListSummaryView::OnInitialUpdate()
 
 void CListSummaryView::ReadReg()
 {
-
-// fill in data from the preferences dialog
-   for(int index = 0; index < 10; index++)
-   {
-	   m_columnWidth[index] = 	gVTSPreferences.SView_GetColumnWidth(index);
-	   m_bColumn[index] = gVTSPreferences.SView_IsColumnOn(index);
-
-   }
-// removed the actual read from registry for column width because the preferences dialog 
-// is doing this now.  LJT 10/1/2005
-/*
-	CRegKey regKey;
-	long lRet = regKey.Open(HKEY_LOCAL_MACHINE,
-		"Software\\vts3\\Columns");
-	if(lRet != ERROR_SUCCESS)
+	// fill in data from the preferences dialog
+	for (int index = 0; index < 10; index++)
 	{
-		regKey.Create(HKEY_LOCAL_MACHINE,
-		"Software\\vts3\\Columns");
+		m_columnWidth[index] = 	gVTSPreferences.SView_GetColumnWidth(index);
+		m_bColumn[index] = gVTSPreferences.SView_IsColumnOn(index);
+
 	}
-	else
-	{
-		CString keyName;
-		DWORD keyValue;
-		for(int index = 0; index < 10; index++)
-		{
-			keyName.Format("%d", index);
-			regKey.QueryValue(keyValue, keyName);
-			m_bColumn[index] = keyValue > 0;
-
-			keyName.Format("width%d", index);
-			regKey.QueryValue(keyValue, keyName);
-			m_columnWidth[index] = keyValue;
-		}		
-	}	
-	regKey.Close();
-*/
 }
 
 void CListSummaryView::SaveReg()
 {
 	// save current settings to our preferences dialog
-	for(int index = 0; index < 10; index++)
+	for (int index = 0; index < 10; index++)
 	{
 		gVTSPreferences.SView_SetColumnOn(index, m_bColumn[index]==1);
 		if ( m_columnWidth[index] != 0 )  // only save if not zero (although should never be zero)
 			gVTSPreferences.SView_SetColumnWidth(index, m_columnWidth[index]);
 	}
-/*
-	CRegKey regKey;
-	CString keyName;
-	DWORD keyValue;
-
-	// msdanner 4/8/2005:  added protection against trying to save
-	// keys that do not already exist.  This can happen on the initial upgrade
-	// to the first version of VTS that preserves column settings. 
-	if (regKey.Open(HKEY_LOCAL_MACHINE,	"Software\\vts3\\Columns") == ERROR_SUCCESS)
-	{
-		for(int index = 0; index < 10; index++)
-		{
-			keyName.Format("%d", index);
-			if(m_bColumn[index])
-				keyValue = 1;
-			else
-				keyValue = 0;
-
-			regKey.SetValue(keyValue, keyName);		
-
-			keyName.Format("width%d", index);
-			keyValue = m_columnWidth[index];
-			regKey.SetValue(keyValue, keyName);		
-		}	
-		regKey.Close();
-	}
-*/
 }
 
 void CListSummaryView::OnRButtonDown(UINT nFlags, CPoint point) 
 {
-	// TODO: Add your message handler code here and/or call default
 	CListCtrl& listCtrl = GetListCtrl();	
 	
 	CMenu menu;	
@@ -1059,45 +961,83 @@ void CListSummaryView::OnRButtonDown(UINT nFlags, CPoint point)
 
 void CListSummaryView::OnShowColumns(UINT nID) 
 {
-	// TODO: Add your command handler code here
 	int index = nID - ID_SW_NO;
 	m_bColumn[index] = !m_bColumn[index];
 
 	CListCtrl& listCtrl = GetListCtrl();
 
-	if(m_bColumn[index])
+	if (m_bColumn[index])
 	{
+		// Show the column (make sure it has a visible width)
+		if (m_columnWidth[index] < 10)
+			m_columnWidth[index] = 10;
+		
 		listCtrl.SetColumnWidth(index, m_columnWidth[index]);		
 	}
 	else
 	{
+		// Remember the column's width
 		m_columnWidth[index] = listCtrl.GetColumnWidth(index);
+		// hide the column by setting its width to zero
 		listCtrl.SetColumnWidth(index, 0);
 	}		
+
+	// Reshow the window, as a column has changed and the contents of
+	// some columns may change.
+	m_cache.InitCache();
+	Invalidate();
 }
 
 void CListSummaryView::OnUpdateColumns(CCmdUI* pCmdUI) 
 {
-	// TODO: Add your command update UI handler code here
 	int index = pCmdUI->m_nID - ID_SW_NO;
 
 	pCmdUI->ContinueRouting();
 	pCmdUI->SetCheck(m_bColumn[index]);	
 }
 
-//prevent changing the width of the columns which are hiden
+// prevent changing the width of the columns which are hidden
 BOOL CListSummaryView::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult) 
 {
-	// TODO: Add your specialized code here and/or call the base class
 	HD_NOTIFY *pHDN = (HD_NOTIFY*)lParam;
+	
+	// I don't understand why, but at least on my PC I get wide-character notifications
+	// (HDN_BEGINTRACKW) even though we are building ASCII (that is, 
+	// HDN_BEGINTRACK == HDN_BEGINTRACKA).  So handle both excplicitly
 
-	//prevent changing the width of the columns which are hiden 
-	if( (pHDN->hdr.code == HDN_BEGINTRACKW || pHDN->hdr.code == HDN_BEGINTRACKA)
-		&& !m_bColumn[pHDN->iItem]) 
-	{		
-		*pResult = TRUE; 
-		return TRUE; 
-	} 
+// Returning TRUE here makes the list IGNORE the attempt to resize a column.
+// This is annoying to the user: if they click just a little too far
+// to the right on a column boundary, drag does nothing.  Certainly bugged me.
+//
+// If we really want to remove columns, we need to remove them from the
+// CListCtrl, but that would change the column numbers, causing various complications.
+//
+// Personally, I think that resize-to-zero-to-hide / resize-nonzero-to-show below is
+// more convenient than the context menu anyway.
+//
+//	if (((pHDN->hdr.code == HDN_BEGINTRACKW) || (pHDN->hdr.code == HDN_BEGINTRACKA)) &&
+//		(!m_bColumn[pHDN->iItem])
+//	{		
+//		*pResult = TRUE; 
+//		return TRUE; 
+//	}
+
+	if ((pHDN->hdr.code == HDN_ENDTRACKW) || (pHDN->hdr.code == HDN_ENDTRACKA))
+	{
+		// If the width is zero, hide the column.  If non-zero, show it.
+		// (Actually, Windows takes care of hide/show, but m_bColumn is used
+		// to control the display logic)
+		bool show = (GetListCtrl().GetColumnWidth(pHDN->iItem) != 0);
+		if (show != m_bColumn[pHDN->iItem])
+		{
+			m_bColumn[pHDN->iItem] = show;
+
+			// Reshow the window, as a column has changed and the contents of
+			// some columns may change.
+			m_cache.InitCache();
+			Invalidate();
+		}
+	}
 
 	return CListView::OnNotify(wParam, lParam, pResult);
 }
@@ -1105,7 +1045,6 @@ BOOL CListSummaryView::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 // 2/25/05 Shiyuan Xiao. Delete selected packet
 void CListSummaryView::OnEditDeleteSel() 
 {
-	// TODO: Add your command handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 
 	POSITION pos = listCtrl.GetFirstSelectedItemPosition();
@@ -1120,10 +1059,10 @@ void CListSummaryView::OnEditDeleteSel()
 	m_FrameContext->m_pDoc->DeleteSelPacket(nPacket);
 
 	//update packet index
-	for(int i = 0; i < listCtrl.GetItemCount(); i++)
+	for (int i = 0; i < listCtrl.GetItemCount(); i++)
 	{
 		int tempPktIndex = (int)listCtrl.GetItemData(i);	
-		if(tempPktIndex > nPacket)
+		if (tempPktIndex > nPacket)
 		{
 			tempPktIndex--;
 			listCtrl.SetItemData(i, tempPktIndex);
@@ -1137,7 +1076,6 @@ void CListSummaryView::OnEditDeleteSel()
 
 void CListSummaryView::OnUpdateEditDeleteSel(CCmdUI* pCmdUI) 
 {
-	// TODO: Add your command update UI handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 
 	POSITION pos = listCtrl.GetFirstSelectedItemPosition();
@@ -1148,13 +1086,11 @@ void CListSummaryView::OnUpdateEditDeleteSel(CCmdUI* pCmdUI)
 
 void CListSummaryView::OnEditAutoScroll() 
 {
-	// TODO: Add your command handler code here
 	gVTSPreferences.Setting_SetAutoScroll(!gVTSPreferences.Setting_IsAutoScroll());
 }
 
 void CListSummaryView::OnUpdateEditAutoScroll(CCmdUI* pCmdUI) 
 {
-	// TODO: Add your command update UI handler code here
 	if(gVTSPreferences.Setting_IsAutoScroll())
 		pCmdUI->SetCheck(TRUE);
 	else
@@ -1163,13 +1099,11 @@ void CListSummaryView::OnUpdateEditAutoScroll(CCmdUI* pCmdUI)
 
 void CListSummaryView::OnEditReceivePkt() 
 {
-	// TODO: Add your command handler code here
 	gVTSPreferences.Setting_SetRecvPkt(!gVTSPreferences.Setting_IsRecvPkt());
 }
 
 void CListSummaryView::OnUpdateEditReceivePkt(CCmdUI* pCmdUI) 
 {
-	// TODO: Add your command update UI handler code here
 	if(gVTSPreferences.Setting_IsRecvPkt())
 		pCmdUI->SetCheck(TRUE);
 	else
@@ -1178,13 +1112,11 @@ void CListSummaryView::OnUpdateEditReceivePkt(CCmdUI* pCmdUI)
 
 void CListSummaryView::OnEditSaveSentPkt() 
 {
-	// TODO: Add your command handler code here
 	gVTSPreferences.Setting_SetSaveSentPkt(!gVTSPreferences.Setting_IsSaveSentPkt());
 }
 
 void CListSummaryView::OnUpdateEditSaveSentPkt(CCmdUI* pCmdUI) 
 {
-	// TODO: Add your command update UI handler code here
 	if(gVTSPreferences.Setting_IsSaveSentPkt())
 		pCmdUI->SetCheck(TRUE);
 	else
@@ -1194,12 +1126,11 @@ void CListSummaryView::OnUpdateEditSaveSentPkt(CCmdUI* pCmdUI)
 
 void CListSummaryView::OnEditSendPacket() 
 {
-	// TODO: Add your command handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 
 	POSITION pos = listCtrl.GetFirstSelectedItemPosition();
 	int nItem = -1;
-	if( pos )
+	if (pos)
 		nItem = listCtrl.GetNextSelectedItem(pos);
 	else
 		return;
@@ -1216,7 +1147,7 @@ void CListSummaryView::OnEditSendPacket()
 	}
 
 	VTSPort *pPort = (*pports)[gSelectedPort];
-	if( pPort->m_strName.CompareNoCase(ptr->packetHdr.m_szPortName) == 0 )
+	if (pPort->m_strName.CompareNoCase(ptr->packetHdr.m_szPortName) == 0)
 	{
 		pPort->SendData(ptr->packetData, ptr->packetLen);
 	}
@@ -1228,13 +1159,14 @@ void CListSummaryView::OnEditSendPacket()
 
 void CListSummaryView::OnUpdateEditSendPacket(CCmdUI* pCmdUI) 
 {
-	// TODO: Add your command update UI handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 
 	POSITION pos = listCtrl.GetFirstSelectedItemPosition();
 	int nItem = -1;
-	if( pos )
+	if (pos)
+	{
 		nItem = listCtrl.GetNextSelectedItem(pos);
+	}
 	else
 	{
 		pCmdUI->Enable(FALSE);
@@ -1257,7 +1189,6 @@ void CListSummaryView::OnUpdateEditSendPacket(CCmdUI* pCmdUI)
 
 void CListSummaryView::OnDblClk(NMHDR* pNMHDR, LRESULT* pResult) 
 {
-	// TODO: Add your control notification handler code here
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	int nItem = pNMListView->iItem;
 
@@ -1273,7 +1204,6 @@ void CListSummaryView::OnDblClk(NMHDR* pNMHDR, LRESULT* pResult)
 
 void CListSummaryView::OnEditColumnValue() 
 {
-	// TODO: Add your command handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 
 	POSITION pos = listCtrl.GetFirstSelectedItemPosition();
@@ -1287,7 +1217,7 @@ void CListSummaryView::OnEditColumnValue()
 
 	VTSPacketPtr ppkt = m_FrameContext->m_pDoc->GetPacket(nPacket);
 	
-	if(ppkt == NULL)
+	if (ppkt == NULL)
 		return;
 
 	CString packetDesName = 
@@ -1295,7 +1225,7 @@ void CListSummaryView::OnEditColumnValue()
 		ppkt->packetHdr.m_szPortName);
 
 	VTSNames * pnames = ((VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace())->GetNames();
-	if ( pnames == NULL )
+	if (pnames == NULL)
 	{
 		return;
 	}
@@ -1309,7 +1239,7 @@ void CListSummaryView::OnEditColumnValue()
 	}
 
 	VTSPort *pPort = (*pports)[gSelectedPort];
-	if( pPort->m_strName.CompareNoCase(ppkt->packetHdr.m_szPortName) != 0 )	
+	if ( pPort->m_strName.CompareNoCase(ppkt->packetHdr.m_szPortName) != 0 )	
 	{
 		MessageBox("Please choose the same port to send this packet!");
 		return;
@@ -1317,16 +1247,21 @@ void CListSummaryView::OnEditColumnValue()
 	
 	CEditResentPktDlg dlg;
 
-	for(int index = 0; index < pnames->GetSize(); index++)
+	for (int index = 0; index < pnames->GetSize(); index++)
 	{
 		VTSName *pname = (*pnames)[index];
 
-		if(pname->m_pportLink != NULL)
+		if (pname->m_pportLink != NULL)
 		{
 			if( (pname->m_pportLink->m_nPortType == ipPort
-				&& ppkt->packetHdr.packetType == BACnetPIInfo::ipProtocol) ||
+				&& ppkt->packetHdr.packetType == BACnetPIInfo::ipProtocol) 
+					||
 				(pname->m_pportLink->m_nPortType == ethernetPort
-				&& ppkt->packetHdr.packetType == BACnetPIInfo::ethernetProtocol) ||
+				&& ppkt->packetHdr.packetType == BACnetPIInfo::ethernetProtocol) 
+					||
+				(pname->m_pportLink->m_nPortType == mstpPort
+				&& ppkt->packetHdr.packetType == BACnetPIInfo::mstpProtocol) 
+					||
 				(pname->m_pportLink->m_nPortType == ptpPort
 				&& ppkt->packetHdr.packetType == BACnetPIInfo::ptpProtocol) )
 			{
@@ -1343,31 +1278,28 @@ void CListSummaryView::OnEditColumnValue()
 		}		
 	}	
 
-	unsigned short snet = 0;
-	if( ppkt->GetSNET(snet) )
+	BACnetAddress remoteAddr;
+	if (ppkt->GetNetworkSource(remoteAddr))
 	{
 		dlg.m_bSnet = TRUE;
-		dlg.m_snet = snet;
-		dlg.m_sadr = ppkt->GetSADRString(m_FrameContext->m_pDoc, FALSE);
+		dlg.m_remoteSource = remoteAddr;
 	}
 	else
 	{
 		dlg.m_bSnet = FALSE;
 	}
 
-	unsigned short dnet = 0;
-	if( ppkt->GetDNET(dnet) )
+	if (ppkt->GetNetworkDestination(remoteAddr))
 	{
 		dlg.m_bDnet = TRUE;
-		dlg.m_dnet = dnet;
-		dlg.m_dadr = ppkt->GetDADRString(m_FrameContext->m_pDoc, FALSE);
+		dlg.m_remoteDestination = remoteAddr;
 	}
 	else
 	{
 		dlg.m_bDnet = FALSE;
 	}
 
-	if(dlg.DoModal() == IDOK)
+	if (dlg.DoModal() == IDOK)
 	{
 		VTSName *pname = (*pnames)[dlg.m_desArray.GetAt(dlg.m_desArray.FindIndex(dlg.m_desIndex)).m_index];
 
@@ -1375,25 +1307,20 @@ void CListSummaryView::OnEditColumnValue()
 		//change destination address
 		packet.SetDesAddress(pname->m_bacnetaddr);
 
-		if(dlg.m_bDnet)
+		if (dlg.m_bDnet)
 		{
-			packet.SetDNET(dlg.m_dnet);
-
-			BACnetOctetString str;
-			HEXSTR_TO_OCTETSTRING(dlg.m_dadr, str);			
-			packet.SetDADR(str.strBuff, str.strLen);
+			packet.SetDNET(dlg.m_remoteDestination.addrNet);
+			packet.SetDADR(dlg.m_remoteDestination.addrAddr, dlg.m_remoteDestination.addrLen);
 		}
 		else
 		{
 			packet.SetDNET(0, FALSE);
 		}
 
-		if(dlg.m_bSnet)
+		if (dlg.m_bSnet)
 		{			
-			packet.SetSNET(dlg.m_snet);
-			BACnetOctetString str;
-			HEXSTR_TO_OCTETSTRING(dlg.m_sadr, str);
-			packet.SetSADR(str.strBuff, str.strLen);
+			packet.SetSNET(dlg.m_remoteSource.addrNet);
+			packet.SetSADR(dlg.m_remoteSource.addrAddr, dlg.m_remoteSource.addrLen);
 		}
 		else
 		{
@@ -1410,13 +1337,14 @@ void CListSummaryView::OnEditColumnValue()
 
 void CListSummaryView::OnUpdateEditColumnValue(CCmdUI* pCmdUI) 
 {
-	// TODO: Add your command update UI handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 
 	POSITION pos = listCtrl.GetFirstSelectedItemPosition();
 	int nItem = -1;
 	if( pos )
+	{
 		nItem = listCtrl.GetNextSelectedItem(pos);
+	}
 	else	
 	{
 		pCmdUI->Enable(FALSE);
@@ -1439,7 +1367,6 @@ void CListSummaryView::OnUpdateEditColumnValue(CCmdUI* pCmdUI)
 
 void CListSummaryView::OnEditSendAllPacket() 
 {
-	// TODO: Add your command handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 
 	VTSPorts * pports = ((VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace())->GetPorts();
@@ -1451,17 +1378,17 @@ void CListSummaryView::OnEditSendAllPacket()
 	VTSPort *pPort = (*pports)[gSelectedPort];
 	
 	int count = listCtrl.GetItemCount();
-	for(int nItem = 0; nItem < count; nItem++)
+	for (int nItem = 0; nItem < count; nItem++)
 	{
 		int nPacket = (int)listCtrl.GetItemData(nItem);
 
 		VTSPacketPtr ptr = m_FrameContext->m_pDoc->GetPacket(nPacket);
 		ASSERT(ptr != NULL);
 
-		if( ptr->packetHdr.packetType != txData )
+		if (ptr->packetHdr.packetType != txData)
 			continue;
 
-		if( pPort->m_strName.CompareNoCase(ptr->packetHdr.m_szPortName) == 0 )
+		if (pPort->m_strName.CompareNoCase(ptr->packetHdr.m_szPortName) == 0)
 		{
 			if( gVTSPreferences.Setting_GetResendInterval() > 0 )
 			{
@@ -1475,7 +1402,6 @@ void CListSummaryView::OnEditSendAllPacket()
 
 void CListSummaryView::OnUpdateEditSendAllPacket(CCmdUI* pCmdUI) 
 {
-	// TODO: Add your command update UI handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 	
 	VTSPorts * pports = ((VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace())->GetPorts();
@@ -1489,7 +1415,6 @@ void CListSummaryView::OnUpdateEditSendAllPacket(CCmdUI* pCmdUI)
 
 void CListSummaryView::OnEditEditSendAllPkt() 
 {
-	// TODO: Add your command handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 
 	VTSNames * pnames = ((VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace())->GetNames();
@@ -1526,7 +1451,7 @@ void CListSummaryView::OnEditEditSendAllPkt()
 		}		
 	}	
 
-	if(dlg.DoModal() == IDOK)
+	if (dlg.DoModal() == IDOK)
 	{
 		for(int nItem = 0; nItem < listCtrl.GetItemCount(); nItem++)
 		{
@@ -1543,25 +1468,20 @@ void CListSummaryView::OnEditEditSendAllPkt()
 			//change destination address
 			packet.SetDesAddress(pname->m_bacnetaddr);
 			
-			if(dlg.m_bDnet)
+			if (dlg.m_bDnet)
 			{
-				packet.SetDNET(dlg.m_dnet);
-				
-				BACnetOctetString str;
-				HEXSTR_TO_OCTETSTRING(dlg.m_dadr, str);			
-				packet.SetDADR(str.strBuff, str.strLen);
+				packet.SetDNET(dlg.m_remoteDestination.addrNet);
+				packet.SetDADR(dlg.m_remoteDestination.addrAddr, dlg.m_remoteDestination.addrLen);
 			}
 			else
 			{
 				packet.SetDNET(0, FALSE);
 			}
-			
-			if(dlg.m_bSnet)
+
+			if (dlg.m_bSnet)
 			{			
-				packet.SetSNET(dlg.m_snet);
-				BACnetOctetString str;
-				HEXSTR_TO_OCTETSTRING(dlg.m_sadr, str);
-				packet.SetSADR(str.strBuff, str.strLen);
+				packet.SetSNET(dlg.m_remoteSource.addrNet);
+				packet.SetSADR(dlg.m_remoteSource.addrAddr, dlg.m_remoteSource.addrLen);
 			}
 			else
 			{
@@ -1576,15 +1496,10 @@ void CListSummaryView::OnEditEditSendAllPkt()
 			pPort->SendData(packet.packetData, packet.packetLen);
 		}
 	}
-	else
-	{
-		
-	}
 }
 
 void CListSummaryView::OnUpdateEditEditSendAllPkt(CCmdUI* pCmdUI) 
 {
-	// TODO: Add your command update UI handler code here
 	CListCtrl& listCtrl = GetListCtrl();
 	
 	VTSPorts * pports = ((VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace())->GetPorts();

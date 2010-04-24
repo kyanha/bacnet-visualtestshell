@@ -205,6 +205,81 @@ BACnetAddress & BACnetAddress::operator =( const BACnetAddress &arg )
 	return *this;
 }
 
+// Show just a hex MAC address, without network
+CString BACnetAddress::MacAddress() const
+{
+	CString str;
+	if (addrLen == 0)
+	{
+		str = "broadcast";
+	}
+	else
+	{
+		// 12-34-56-78
+		char buf[4];
+		for (UINT ix = 0; ix < addrLen; ix++)
+		{
+			if (ix > 0)
+				str += '-';
+			
+			sprintf( buf, "%02X", addrAddr[ix] );
+			str += buf;
+		}
+	}
+
+	return str;
+}
+
+// Convert string with or without dashes, to MAC address
+// DOES NOT change addrType
+bool BACnetAddress::SetMacAddress( const char *addrString )
+{
+	bool retval = true;
+	if ((strcmp( addrString, "*" ) == 0) || (stricmp( addrString, "broadcast" ) == 0))
+	{
+		addrLen = 0;
+	}
+	else
+	{
+		// Optionally, as X'123456'
+		bool quoted = (addrString[0] == 'X') && (addrString[1] == '\'');
+		if (quoted)
+			addrString += 2;
+
+		unsigned int len = 0;
+		while (*addrString && (len < 8))
+		{
+			unsigned int val, nchar = 0;
+			retval = (sscanf( addrString, "%02X%n", &val, &nchar ) >= 1) && (nchar == 2);
+			if (!retval)
+				break;
+
+			addrAddr[len++] = val;
+			addrString += 2;
+
+			// Optional - or colon
+			if (!quoted && ((*addrString == '-') || (*addrString == ':')))
+				addrString += 1;
+
+			if (quoted && (*addrString == '\''))
+				break;
+		}
+
+		if (retval)
+		{
+			retval = (quoted) ? ((addrString[0] == '\'') && (addrString[1] == 0))
+							  : (addrString[0] == 0);
+		}
+		
+		if (retval)
+		{
+			addrLen = len;
+		}
+	}
+
+	return retval;
+}
+
 int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 {
 	int			i

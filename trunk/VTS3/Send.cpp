@@ -367,7 +367,7 @@ void CSend::InitPages( void )
 	GetEventInformationPage.pageParent =  this;    //Added by Zhu Zhenhua, 2004-5-25
 	GetEventInformationACKPage.pageParent =  this;   //Added by Zhu Zhenhua, 2004-5-25
 	SubscribeCOVPage.pageParent = this;
-  SubscribeCOVPropertyPage.pageParent = this;
+	SubscribeCOVPropertyPage.pageParent = this;
 	ReadFilePage.pageParent = this;
 	ReadFileACKPage.pageParent = this;
 	WriteFilePage.pageParent = this;

@@ -1035,7 +1035,6 @@ keepGoing:
 	else if ((execCommand->baseType == ScriptBase::scriptPacket) && 
 			 (((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::sendPacket))
 	{
-
 		execPacket = (ScriptPacketPtr) execCommand;
 		if (execPending || (execPacket->packetDelay == 0)) 
 		{
@@ -1070,7 +1069,6 @@ keepGoing:
 			}
 			else 
 			{
-
 				// set the status pending
 				SetPacketStatus( execPacket, 2 );
 
@@ -1127,7 +1125,6 @@ keepGoing:
 
 				// fail all the packets that have expired and min delay of rest
 				int minDelay1 = kMaxPacketDelay + 1;
-
 
 				for (ScriptPacketPtr pp1 = execPacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
 				{

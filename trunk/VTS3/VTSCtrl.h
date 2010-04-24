@@ -71,7 +71,7 @@ class VTSAddrComboCtrl : public VTSCtrl, public BACnetAddress
 		VTSAddrComboCtrl( const CWnd* wp, int cid, int tid );	// bind to window and control
 
 		void LoadCombo( VTSNames * pnames, VTSPort * pport, bool okBroadcast = false );
-		virtual bool IsNameMatch( VTSName * pname, bool okBroadcast );
+		virtual bool IsNameMatch( VTSName * pname, VTSPort * pport, bool okBroadcast ) const;
 
 		void Selchange( void );							// combo selection changed
 		virtual void AssignAddress(VTSName * pname) = 0;
@@ -180,7 +180,7 @@ class VTSRemoteAddrCtrl : public VTSAddrComboCtrl
 		VTSRemoteAddrCtrl( const CWnd* wp, VTSIntegerCtrl *icp, int cid, int tid );	// bind to window and controls
 
 //MAD_DB	void LoadCombo( VTSNameList *nameList, unsigned int portID, bool okBroadcast );	// load the names
-		virtual bool IsNameMatch( VTSName * pname, bool okBroadcast );
+		virtual bool IsNameMatch( VTSName * pname, VTSPort * pport, bool okBroadcast ) const;
 
 		virtual void AssignAddress(VTSName * pname);
 

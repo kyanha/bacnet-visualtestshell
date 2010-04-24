@@ -48,7 +48,14 @@ enum BACnetAddressType
 	};
 
 struct BACnetAddress {
+	// TODO: aside from nullAddr, the type is redundant.
+	// Eliminating it (or replacing it with a method that derives the type)
+	// would simplify various code.
+	// - if addrLen == 0, then the address is a broadcast, else "station"
+	// - if addrNet is 0xFFFF, then global (must be broadcast)
+	// - if addrNet is "this network", then local, else remote
 	BACnetAddressType	addrType;
+
 	unsigned short		addrNet;
 	unsigned short		addrLen;
 	unsigned char		addrAddr[kMaxAddressLen];
@@ -64,6 +71,9 @@ struct BACnetAddress {
 	void LocalBroadcast( void );
 	void RemoteBroadcast( const short net );
 	void GlobalBroadcast( void );
+
+	CString MacAddress() const;
+	bool SetMacAddress( const char *addrString );
 	};
 
 typedef BACnetAddress *BACnetAddressPtr;

@@ -272,8 +272,10 @@ void VTSAddrComboCtrl::LoadCombo( VTSNames *pnames, VTSPort * pport, bool okBroa
 	{
 		pname = (VTSName *) (*m_pnamesCtrl)[i];
 
-		// if it matches our port, save the name and index
-		if ( pname->m_pportLink == pport || pname->m_pportLink == NULL  &&  IsNameMatch(pname, okBroadcast) )
+		// if it matches our port, and the shape of our address, save the name and index
+		if (((pname->m_pportLink == pport) || (pname->m_pportLink == NULL)) 
+				&& 
+			(IsNameMatch(pname, pport, okBroadcast)))
 		{
 			indx = cbp->AddString( pname->m_strName );
 			if ( indx == CB_ERR || indx == CB_ERRSPACE )
@@ -285,10 +287,15 @@ void VTSAddrComboCtrl::LoadCombo( VTSNames *pnames, VTSPort * pport, bool okBroa
 }
 
 
-bool VTSAddrComboCtrl::IsNameMatch( VTSName * pname, bool okBroadcast )
+bool VTSAddrComboCtrl::IsNameMatch( VTSName * pname, VTSPort * pport, bool okBroadcast ) const
 {
-	return ( (pname->m_bacnetaddr.addrType == localStationAddr && pname->m_bacnetaddr.addrLen == 6)
-				|| pname->m_bacnetaddr.addrType == localBroadcastAddr );
+	// The Name's address must either be the same length as ours, or be a broadcast
+	return ((pname->m_bacnetaddr.addrType == localStationAddr) && 
+			(pname->m_bacnetaddr.addrLen == pport->portEndpoint->portLocalAddr.addrLen))
+				||
+			(okBroadcast && (pname->m_bacnetaddr.addrType == localBroadcastAddr))
+				|| 
+			(okBroadcast && (pname->m_bacnetaddr.addrType == globalBroadcastAddr));
 }
 
 
@@ -1099,11 +1106,11 @@ VTSRemoteAddrCtrl::VTSRemoteAddrCtrl( const CWnd* wp, VTSIntegerCtrl *icp, int c
 }
 
 
-bool VTSRemoteAddrCtrl::IsNameMatch( VTSName * pname, bool okBroadcast )
+bool VTSRemoteAddrCtrl::IsNameMatch( VTSName * pname, VTSPort * /*pport*/, bool okBroadcast ) const
 {
-	return (   pname->m_bacnetaddr.addrType == remoteStationAddr
-		    || (okBroadcast && pname->m_bacnetaddr.addrType == remoteBroadcastAddr)
-			|| (okBroadcast && pname->m_bacnetaddr.addrType == globalBroadcastAddr) );
+	return (   (pname->m_bacnetaddr.addrType == remoteStationAddr)
+		    || (okBroadcast && (pname->m_bacnetaddr.addrType == remoteBroadcastAddr))
+			|| (okBroadcast && (pname->m_bacnetaddr.addrType == globalBroadcastAddr)) );
 }
 
 

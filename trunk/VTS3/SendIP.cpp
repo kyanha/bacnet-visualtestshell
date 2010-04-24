@@ -58,11 +58,10 @@ BOOL CSendIP::OnInitDialog()
 
 	CPropertyPage::OnInitDialog();
 	
-	// load the address combo
-//MAD_DB	m_DADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID );
+	// load the address combo, include broadcast addresses
 	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 	if ( pdoc )
-		m_DADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
+		m_DADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort, true );
 	m_DADR.FindName( "IUT" );
 	
 	return TRUE;

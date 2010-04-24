@@ -56,7 +56,6 @@ BOOL CSendDeleteFDTEntry::OnInitDialog()
 	CPropertyPage::OnInitDialog();
 	
 	// load the name list
-//MAD_DB	m_ADDR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID );
 	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 	if ( pdoc )
 		m_ADDR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );

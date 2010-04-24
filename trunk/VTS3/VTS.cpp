@@ -11,7 +11,6 @@
 #include "VTSDoc.h"
 #include "VTSView.h"
 
-#include "SummaryView.h"
 #include "DetailView.h"
 #include "HexView.h"
 #include "ListSummaryView.h"

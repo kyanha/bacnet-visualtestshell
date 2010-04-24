@@ -13,45 +13,6 @@ static char THIS_FILE[] = __FILE__;
 
 /////////////////////////////////////////////////////////////////////////////
 // CEditResentPktDlg dialog
-BOOL IF_HEX_FORMAT(CString valueStr)
-{
-	int length = valueStr.GetLength();
-	if(length & 1) //The length of hex string is odd
-		return FALSE;
-
-	for(int index = 0; index < length; index++)
-	{
-		if(!isxdigit(valueStr.GetAt(index)))
-			return FALSE;
-	}
-
-	return TRUE;
-}
-
-BOOL HEXSTR_TO_OCTETSTRING(CString valueStr, BACnetOctetString&str)
-{
-	int length = valueStr.GetLength();
-	
-	if(length & 1) //The length of hex str is odd
-		return FALSE;	
-
-	str.Flush();	
-	
-	for(int index = 0; index < length; index += 2)
-	{
-		BACnetOctet temp;
-		char c1 = valueStr.GetAt(index);
-		char c2 = valueStr.GetAt(index + 1);
-		if(!isxdigit(c1) || !isxdigit(c2))
-			return FALSE;
-
-		temp = (isdigit(c1) ? (c1 - '0') : (toupper(c1) - 'A' + 10));
-		temp = (temp << 4) + (isdigit(c2) ? (c2 - '0') : (toupper(c2) - 'A' + 10));
-		str.Append(temp);
-	}
-	
-	return TRUE;
-}
 
 CEditResentPktDlg::CEditResentPktDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CEditResentPktDlg::IDD, pParent)
@@ -104,12 +65,22 @@ END_MESSAGE_MAP()
 
 BOOL CEditResentPktDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	if (m_bDnet)
+	{
+		m_dnet = m_remoteDestination.addrNet;
+		m_dadr = m_remoteDestination.MacAddress();
+	}
 	
-	// TODO: Add extra initialization here
+	if (m_bSnet)
+	{
+		m_snet = m_remoteSource.addrNet;
+		m_sadr = m_remoteSource.MacAddress();
+	}
+
+	CDialog::OnInitDialog();
+
 	m_dnetCtrl.EnableWindow(m_bDnet);
 	m_dadrCtrl.EnableWindow(m_bDnet);
-
 	m_snetCtrl.EnableWindow(m_bSnet);
 	m_sadrCtrl.EnableWindow(m_bSnet);
 
@@ -127,7 +98,6 @@ BOOL CEditResentPktDlg::OnInitDialog()
 
 void CEditResentPktDlg::OnDnetCheck() 
 {
-	// TODO: Add your control notification handler code here
 	UpdateData(TRUE);
 
 	m_dnetCtrl.EnableWindow(m_bDnet);
@@ -136,7 +106,6 @@ void CEditResentPktDlg::OnDnetCheck()
 
 void CEditResentPktDlg::OnSnetCheck() 
 {
-	// TODO: Add your control notification handler code here
 	UpdateData(TRUE);
 
 	m_snetCtrl.EnableWindow(m_bSnet);
@@ -145,25 +114,26 @@ void CEditResentPktDlg::OnSnetCheck()
 
 void CEditResentPktDlg::OnOK() 
 {
-	// TODO: Add extra validation here
 	UpdateData(TRUE);
 
-	if(m_bSnet)
+	if (m_bSnet)
 	{
-		if( !IF_HEX_FORMAT(m_sadr) )
+		if (!m_remoteSource.SetMacAddress( m_sadr ))
 		{
 			MessageBox("Please input SADR in hex.", "Warning");
 			return;
 		}
+		m_remoteSource.addrNet = m_snet;
 	}
 
-	if(m_bDnet)
+	if (m_bDnet)
 	{
-		if( !IF_HEX_FORMAT(m_dadr) )
+		if (!m_remoteDestination.SetMacAddress( m_dadr ))
 		{
 			MessageBox("Please input DADR in hex.", "Warning");
 			return;
 		}
+		m_remoteDestination.addrNet = m_dnet;
 	}
 
 	CDialog::OnOK();

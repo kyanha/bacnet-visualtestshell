@@ -5,7 +5,9 @@
 #pragma once
 #endif // _MSC_VER > 1000
 // SummaryView.h : header file
-//
+
+This file is obsolete - replaced by CListSummaryView
+
 
 #include "VTSDoc.h"
 #include "FrameContext.h"
