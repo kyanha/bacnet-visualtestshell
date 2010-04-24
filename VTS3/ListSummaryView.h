@@ -58,7 +58,7 @@ private:
 
 	CImageList          m_iconList;    // 2/17/2005 Shiyuan Xiao
 
-	BOOL                m_bColumn[10]; //Added: 2004/11/23 author:Xiao Shiyuan	purpose: customize columns
+	bool                m_bColumn[10]; //Added: 2004/11/23 author:Xiao Shiyuan	purpose: customize columns
 	int                 m_columnWidth[10];
 	void ReadReg();
 	void SaveReg();

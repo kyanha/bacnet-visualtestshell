@@ -18,7 +18,6 @@
 #include "VdbPrint.h"
 /////////////////////////////////
 // forward definitions
-class CSummaryView;
 class CDetailView;
 class CHexView;
 class CListSummaryView;

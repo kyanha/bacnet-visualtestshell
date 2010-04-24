@@ -64,15 +64,13 @@ BOOL CSendEnet::OnInitDialog()
 	
 	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 
-	// load the combos
-//MAD_DB	m_SADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID );
+	// Load the combos.  Allow broadcast destination
 	if ( pdoc )
 		m_SADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
 	m_SADR.FindName( "TD" );
 
-//MAD_DB	m_DADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID );
 	if ( pdoc )
-		m_DADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
+		m_DADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort, true );
 	m_DADR.FindName( "IUT" );
 
 	return TRUE;

@@ -8,7 +8,6 @@
 //
 #include "BACnetLibrary/BACnet.hpp"
 
-extern BOOL HEXSTR_TO_OCTETSTRING(CString valueStr, BACnetOctetString&str);
 /////////////////////////////////////////////////////////////////////////////
 class DesName
 {
@@ -23,6 +22,9 @@ class CEditResentPktDlg : public CDialog
 // Construction
 public:
 	CEditResentPktDlg(CWnd* pParent = NULL);   // standard constructor
+
+	BACnetAddress m_remoteDestination;
+	BACnetAddress m_remoteSource;
 
 // Dialog Data
 	//{{AFX_DATA(CEditResentPktDlg)

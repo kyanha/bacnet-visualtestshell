@@ -22,7 +22,10 @@ static char THIS_FILE[]=__FILE__;
 VTSPreferences::VTSPreferences()
 {
 	// Initialize all fields on
+	// TODO: Since Source and Destination now show network portion is SADDR/DADDR are disabled,
+	// we might change this to 0x21F, turning off SNET/SADDR/DNET/DADDR
 	m_nSummaryFields = 0x3FF;				// bit mask of display options, LJT 5/22/2006 changed from 0xff to 0x3ff to include all fields
+
 	m_nSummaryColumnWidth[0] = 42;//25;			// Number
 	m_nSummaryColumnWidth[1] = 78;//50;			// timestamp
 	m_nSummaryColumnWidth[2] = 32;//30;			// port
@@ -35,6 +38,7 @@ VTSPreferences::VTSPreferences()
 	m_nSummaryColumnWidth[8] = 50; //50;	        // daddr
 	m_nSummaryColumnWidth[9] = 363; //150;			// service type
 	//Xiao Shiyuan 2004-Sep-17
+
 	m_nInvokeID = 0;
 	m_nTimeFormat = 0;
 	m_nCachePacketCount = 5000;				// start with about 1M of memory

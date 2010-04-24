@@ -209,22 +209,11 @@ void BACnetIPAddr::StringToHostPort( const char *str, unsigned long *hostp, unsi
 char * BACnetIPAddr::AddressToString( void )
 {
 	return AddressToString(addrAddr);
-
-/* MAD_DB
-	static char	buff[64];
-	
-	sprintf( buff, "%d.%d.%d.%d:%d"
-		, addrAddr[0], addrAddr[1], addrAddr[2], addrAddr[3]
-		, (addrAddr[4] * 256) + addrAddr[5]
-		);
-	
-	return buff;
-*/
 }
 
 
 // Static version
-char * BACnetIPAddr::AddressToString( unsigned char * paddr )
+char * BACnetIPAddr::AddressToString( const unsigned char * paddr )
 {
 	static char	buff[64];
 	

@@ -85,7 +85,7 @@ void CListSummaryCache::InitCache()
 }
 
 
-// The guy returns the cached item if found...  if not it returns the stucts
+// The guy returns the cached item if found...  if not it returns the structs
 // to load the cached item.
 // false is returned if an empty slot is given back
 // true is returned with the cached data

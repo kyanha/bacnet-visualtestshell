@@ -1,5 +1,6 @@
 // SummaryView.cpp : implementation file
-//
+
+This file is obsolete - replaced by CListSummaryView
 
 #include "stdafx.h"
 #include "VTS.h"

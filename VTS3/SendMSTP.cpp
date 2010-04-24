@@ -145,13 +145,13 @@ BOOL CSendMSTP::OnInitDialog()
 	
 	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 
-	// load the combos
+	// load the combos, include broadcast destination
 	if ( pdoc )
 		m_SADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
 	m_SADR.FindName( "TD" );
 
 	if ( pdoc )
-		m_DADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
+		m_DADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort, true );
 	m_DADR.FindName( "IUT" );
 
 	CComboBox * pcomboFrameType = (CComboBox *) GetDlgItem(IDC_MSTPFRTYPECOMBO);

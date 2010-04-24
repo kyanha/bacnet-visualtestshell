@@ -67,11 +67,10 @@ BOOL CSendBVLCI::OnInitDialog()
 
 	CPropertyPage::OnInitDialog();
 	
-	// load the combo
-//MAD_DB	m_OADR.LoadCombo( &pageParent->m_pPort->portDoc->m_Names, pageParent->m_pPort->portDescID );
+	// load the combo, include broadcast addresses
 	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 	if ( pdoc )
-		m_OADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort );
+		m_OADR.LoadCombo( pdoc->GetNames(), pageParent->m_pPort, true );
 	
 	return TRUE;
 }

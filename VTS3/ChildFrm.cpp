@@ -9,7 +9,6 @@
 #include "ChildFrm.h"
 #include "MainFrm.h"
 
-#include "SummaryView.h"
 #include "ListSummaryView.h"
 
 #include "DetailView.h"
@@ -835,10 +834,10 @@ void CChildFrame::OnFileExport()
 			str.Format("Time:        %s\n", ppkt->GetTimeStampString());
 			exportFile.WriteString(str);
 
-			str.Format("Source:      %s\n", ppkt->GetAddressString(m_frameContext->m_pDoc, rxData));
+			str.Format("Source:      %s\n", ppkt->GetAddressString(m_frameContext->m_pDoc, true));
 			exportFile.WriteString(str);
 
-			str.Format("Destination: %s\n", ppkt->GetAddressString(m_frameContext->m_pDoc, txData));
+			str.Format("Destination: %s\n", ppkt->GetAddressString(m_frameContext->m_pDoc, false));
 			exportFile.WriteString(str);
 			
 			NetworkSniffer::SetLookupContext( ppkt->packetHdr.m_szPortName );
@@ -921,10 +920,10 @@ void CChildFrame::OnFilePrint()
 			str.Format("Time:        %s", ppkt->GetTimeStampString());
 			m_printer.Print(hFont, str, FORMAT_NORMAL);
 
-			str.Format("Source:      %s", ppkt->GetAddressString(m_frameContext->m_pDoc, rxData));
+			str.Format("Source:      %s", ppkt->GetAddressString(m_frameContext->m_pDoc, true));
 			m_printer.Print(hFont, str, FORMAT_NORMAL);
 
-			str.Format("Destination: %s", ppkt->GetAddressString(m_frameContext->m_pDoc, txData));
+			str.Format("Destination: %s", ppkt->GetAddressString(m_frameContext->m_pDoc, false));
 			m_printer.Print(hFont, str, FORMAT_NORMAL);
 			
 			NetworkSniffer::SetLookupContext( ppkt->packetHdr.m_szPortName );

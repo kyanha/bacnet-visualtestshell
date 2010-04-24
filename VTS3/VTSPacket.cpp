@@ -29,13 +29,11 @@ static char THIS_FILE[]=__FILE__;
 //
 
 VTSPacketHeader::VTSPacketHeader( void )
-//MAD_DB	: packetPortID(0)				// port identifier
 	: packetProtocolID(0)			// protocol identifier for decoding
 	, packetFlags(0)				// protocol specific flags
 	, packetType(txData)			// not really transmit
 	, packetSource(nullAddr)		// source address
 	, packetDestination(nullAddr)	// destination address
-//MAD_DB	, packetDataID(0)				// no assigned data (yet)
 {
     ::GetSystemTimeAsFileTime( &packetTime );	// gets current time
 	memset(m_szPortName, 0, sizeof(m_szPortName));
@@ -72,14 +70,6 @@ VTSPacket::VTSPacket( int len, BACnetOctetPtr data )
 }
 
 
-/*
-VTSPacket::VTSPacket()
-{
-	ownData = false;
-	packetLen = 0;
-	packetData = NULL;
-}
-*/
 //
 //	VTSPacket::~VTSPacket
 //
@@ -176,26 +166,56 @@ LPCSTR VTSPacket::GetTimeStampString()
 }
 
 
-LPCSTR VTSPacket::GetAddressString( VTSDoc * pdoc, BOOL bSource, int nLen /* = -1 */ )
+LPCSTR VTSPacket::GetAddressString( VTSDoc *pdoc, bool bSource, bool bIncludeNetwork ) const
 {
-	static char szNameBuff[128];		// ought to be large enough?
-	LPCSTR		pszName = NULL;
+	static CString nameBuffer;
 
-	BACnetAddress * paddr = bSource ? &packetHdr.packetSource : &packetHdr.packetDestination;
+	nameBuffer.Empty();
+	if (bIncludeNetwork)
+	{
+		// If the packet was routed, get the remote destination
+		BACnetAddress remoteAddr;
+		bool hasNetwork = false;
+		if (bSource)
+		{
+			// Look for SNET/SADDR
+			hasNetwork = GetNetworkSource( remoteAddr );
+		}
+		else
+		{
+			// Look for DNET/DADDR
+			hasNetwork = GetNetworkDestination( remoteAddr );
+		}
 
-	memset(szNameBuff, 0, sizeof(szNameBuff));
+		if (hasNetwork)
+		{
+			// Look for Name for remoteAddress
+			if (pdoc != NULL)
+				nameBuffer = pdoc->AddrToName( remoteAddr, packetHdr.m_szPortName );
+			
+			if (nameBuffer.IsEmpty())
+			{
+				// Show network and MAC
+				nameBuffer.Format( "(%d, %s)", remoteAddr.addrNet, remoteAddr.MacAddress() );
+			}
 
-	
+			nameBuffer += " via ";
+		}
+	}
+
+	const BACnetAddress *paddr = bSource ? &packetHdr.packetSource : &packetHdr.packetDestination;
+
 	// attempt to resolve name... if no doc supplied, we can't, but no harm done.
-	if ( pdoc != NULL )
-		pszName = pdoc->AddrToName( *paddr, packetHdr.m_szPortName );
+	CString str;
+	if (pdoc != NULL)
+		str = pdoc->AddrToName( *paddr, packetHdr.m_szPortName );
 
-	if ( pszName == NULL )
+	if (str.IsEmpty())
 	{
 		switch(packetHdr.packetProtocolID)
 		{
 			case BACnetPIInfo::ipProtocol:		
-				pszName = BACnetIPAddr::AddressToString(paddr->addrAddr);
+				str = BACnetIPAddr::AddressToString(paddr->addrAddr);
 				break;
 
 			case BACnetPIInfo::ethernetProtocol:
@@ -204,22 +224,18 @@ LPCSTR VTSPacket::GetAddressString( VTSDoc * pdoc, BOOL bSource, int nLen /* = -
 			case BACnetPIInfo::ptpProtocol:
 			case BACnetPIInfo::msgProtocol:
 			default:
-				{
-					BACnetAddr bacnetAddr(paddr);
-					pszName = bacnetAddr.ToString();
-				}
-			}
+				str = paddr->MacAddress();
+				break;
 		}
+	}
 
-	if ( nLen != -1 )
-		sprintf( szNameBuff, "%-*.*s", nLen+1, nLen, pszName );
-	else
-		strcpy(szNameBuff, pszName);	
-
-	return szNameBuff;
+	// Warning... must do something with this before calling this method again
+	// or data will be overwritten
+	nameBuffer += str;
+	return (LPCSTR)nameBuffer;
 }
 
-void VTSPacket::FindNPDUStartPos(int& npduindex)
+void VTSPacket::FindNPDUStartPos(int& npduindex) const
 {
 	if ( packetData == NULL )
 		return;
@@ -301,21 +317,75 @@ void VTSPacket::FindNPDUStartPos(int& npduindex)
 	}
 }
 
-BOOL VTSPacket::GetSNET(unsigned short& snet)
+// Get SNET and SADDR, else return false
+bool VTSPacket::GetNetworkSource( BACnetAddress &theAddress ) const
 {
-	int npduindex = 0;	
+	int ix = 0;
+	FindNPDUStartPos(ix);
+
+	if (packetLen - ix < 2)
+		return false;
+
+	if (!(packetData[ix + 1] & 0x08)) // SNET doesn't exist
+		return false;
+
+	if (packetData[ix + 1] & 0x20)
+	{
+		// Skip over DNET/DADR
+		ix = ix + 3 + packetData[ix + 4]; 		
+	}
+
+	ix += 2;
+	theAddress.addrNet = (packetData[ix] << 8) | packetData[ix + 1];
+
+	int len = packetData[ ix + 2 ];
+	theAddress.addrLen = len;
+	memcpy( theAddress.addrAddr, packetData + ix + 3, len );		
+
+	theAddress.addrType = (len == 0) ? remoteBroadcastAddr : remoteStationAddr;
+	
+	return true;
+}
+
+// Get DNET and DADDR, else return false
+bool VTSPacket::GetNetworkDestination( BACnetAddress &theAddress ) const
+{
+	int ix = 0;
+	FindNPDUStartPos(ix);
+
+	if (packetLen - ix < 2)
+		return false;
+
+	if (!(packetData[ix + 1] & 0x20)) // DNET doesn't exist
+		return false;
+
+	ix += 2;
+	theAddress.addrNet = (packetData[ix] << 8) | packetData[ix + 1];
+
+	int len = packetData[ ix + 2 ];
+	theAddress.addrLen = len;
+	memcpy( theAddress.addrAddr, packetData + ix + 3, len );		
+
+	theAddress.addrType = (len == 0) ? remoteBroadcastAddr : remoteStationAddr;
+	
+	return true;
+}
+
+BOOL VTSPacket::GetSNET(unsigned short& snet) const
+{
+	int npduindex = 0;
 
 	FindNPDUStartPos(npduindex);
 
-	if(packetLen - npduindex < 2)
+	if (packetLen - npduindex < 2)
 		return FALSE;
 
-	if(!(packetData[npduindex + 1] & 0x08)) //SNET doesn't exist
+	if (!(packetData[npduindex + 1] & 0x08)) //SNET doesn't exist
 		return FALSE;
 
 	int index = 2;
 
-	if(packetData[npduindex + 1] & 0x20) //DNET and DADR exist
+	if (packetData[npduindex + 1] & 0x20) //DNET and DADR exist
 	{
 		index = index + 3 + packetData[npduindex + 4]; 		
 	}
@@ -326,52 +396,28 @@ BOOL VTSPacket::GetSNET(unsigned short& snet)
 	return TRUE;
 }
 
-CString VTSPacket::GetSADRString(VTSDoc * pdoc, BOOL bAlias)
+CString VTSPacket::GetSADRString(VTSDoc * pdoc, BOOL bAlias) const
 {
 	CString sadrStr;
 	BACnetAddress sadr;
-	int npduindex = 0;
 
-	FindNPDUStartPos(npduindex);
-
-	if(packetLen - npduindex < 2)
-		return "";
-
-	if(!(packetData[npduindex + 1] & 0x08)) //SADR doesn't exist
-		return "";
-
-	int index = 4;
-
-	if(packetData[npduindex + 1] & 0x20) //DNET and DADR exist
+	if (GetNetworkDestination( sadr ))
 	{
-		index = index + 3 + packetData[npduindex + 4]; 		
+		if (pdoc != NULL && bAlias)
+			sadrStr = pdoc->AddrToName(sadr, packetHdr.m_szPortName);
+
+		if (sadrStr == "")
+		{
+			// The original called BACnetAddr::ToString.
+			// But that shows as {net,mac}, and we want only the MAC here
+			sadrStr = sadr.MacAddress();
+		}
 	}
 
-	unsigned char slen = packetData[npduindex + index];
-
-	if(slen == 0)
-		return "broadcast - illegal";
-
-	if ( slen > 7 )
-		return "BAD07";    // error string can not be larger than this
-	
-	sadr.addrType = localStationAddr;
-	sadr.addrLen = slen;
-	memcpy(sadr.addrAddr, packetData + npduindex + index + 1, slen);		
-	
-	if ( pdoc != NULL && bAlias )
-		sadrStr = pdoc->AddrToName(sadr, packetHdr.m_szPortName);
-
-	if ( sadrStr == "" )
-	{
-		BACnetAddr bacnetAddr(&sadr);
-		sadrStr = bacnetAddr.ToString();		
-	}
-	
 	return sadrStr;
 }
 
-BOOL VTSPacket::GetDNET(unsigned short& dnet)
+BOOL VTSPacket::GetDNET(unsigned short& dnet) const
 {
 	CString str;
 	BACnetAddress dadr;
@@ -391,42 +437,22 @@ BOOL VTSPacket::GetDNET(unsigned short& dnet)
 	return TRUE;
 }
 
-CString VTSPacket::GetDADRString(VTSDoc * pdoc, BOOL bAlias)	
+CString VTSPacket::GetDADRString(VTSDoc * pdoc, BOOL bAlias) const
 {
 	CString dadrStr;
 	BACnetAddress dadr;
-	int npduindex = 0;
 
-	FindNPDUStartPos(npduindex);
-
-	if (npduindex == -1)
-		return "";	// do not contain NPDU
-
-	if(packetLen - npduindex< 2)
-		return "";		
-
-	if( !(packetData[npduindex + 1] & 0x20) ) //DNET and DADR don't exist
-		return "";
-
-	unsigned char dlen = packetData[npduindex + 4];
-
-	if(dlen == 0)
-		return "broadcast";
-
-	if (dlen > 7 )
-		return "BAD07";  // probably bad packet do not parse any more of the addressing
-
-	dadr.addrType = localStationAddr;
-	dadr.addrLen = dlen;
-	memcpy(dadr.addrAddr, packetData + npduindex + 5, dlen);		
-	
-	if ( pdoc != NULL && bAlias )
-		dadrStr = pdoc->AddrToName(dadr, packetHdr.m_szPortName);
-
-	if ( dadrStr == "" )
+	if (GetNetworkSource( dadr ))
 	{
-		BACnetAddr bacnetAddr(&dadr);
-		dadrStr = bacnetAddr.ToString();		
+		if (pdoc != NULL && bAlias)
+			dadrStr = pdoc->AddrToName(dadr, packetHdr.m_szPortName);
+
+		if (dadrStr == "")
+		{
+			// The original called BACnetAddr::ToString.
+			// But that shows as {net,mac}, and we want only the MAC here
+			dadrStr = dadr.MacAddress();
+		}
 	}
 
 	return dadrStr;
@@ -437,12 +463,10 @@ BOOL VTSPacket::SetDesAddress(BACnetAddress& addr)
 	switch(packetHdr.packetProtocolID)
 	{
 	case BACnetPIInfo::ipProtocol:
-		{
-			if(addr.addrLen != 6)
-				return FALSE;
+		if(addr.addrLen != 6)
+			return FALSE;
 			
-			memcpy(packetData, addr.addrAddr, 6);
-		}
+		memcpy(packetData, addr.addrAddr, 6);
 		break;
 
 	case BACnetPIInfo::ethernetProtocol:
@@ -572,7 +596,6 @@ BOOL VTSPacket::SetSNET(unsigned short snet, BOOL bReserveSnet)
 			}
 		}
 	}
-	
 
 	return TRUE;
 }
@@ -676,7 +699,7 @@ BOOL VTSPacket::SetDNET(unsigned short dnet, BOOL bReserveDnet)
 	return TRUE;
 }
 
-BOOL VTSPacket::SetDADR(unsigned char *dadr, unsigned char len)
+BOOL VTSPacket::SetDADR(unsigned char *dadr, unsigned int len)
 {
 	int npduindex = 0;
 
@@ -711,7 +734,7 @@ BOOL VTSPacket::SetDADR(unsigned char *dadr, unsigned char len)
 	return TRUE;
 }
 
-BOOL VTSPacket::SetSADR(unsigned char *sadr, unsigned char len)
+BOOL VTSPacket::SetSADR(unsigned char *sadr, unsigned int len)
 {
 	int npduindex = 0;
 

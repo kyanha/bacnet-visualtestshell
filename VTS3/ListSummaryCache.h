@@ -22,17 +22,17 @@ typedef struct
 
 typedef struct
 {
-	char	szColumn0[10];			// data for number
-	char	szColumn1[20];			// data for timestamp
-	char	szColumn2[30];			// data for port name
+	char szColumn0[10];			// data for number
+	char szColumn1[20];			// data for timestamp
+	char szColumn2[30];			// data for port name
 	//Xiao Shiyuan 2004-sep-20
-	char	szColumn3[40];			// data for source 
-	char	szColumn4[40];			// data for destination
-	char	szColumn5[10];			// data for snet 
-	char	szColumn6[20];			// data for saddr 
-	char	szColumn7[10];			// data for dnet 
-	char	szColumn8[20];			// data for daddr 	
-	char	szColumn9[80];			// data for BACnet message summary
+	char szColumn3[100];		// data for source (may include device name AND router info)
+	char szColumn4[100];		// data for destination (may include device name AND router info)
+	char szColumn5[20];			// data for snet 
+	char szColumn6[100];		// data for saddr
+	char szColumn7[20];			// data for dnet 
+	char szColumn8[100];		// data for daddr 	
+	char szColumn9[200];		// data for BACnet message summary
 	//Xiao Shiyuan 2004-sep-20
 } LVCacheData;
 
