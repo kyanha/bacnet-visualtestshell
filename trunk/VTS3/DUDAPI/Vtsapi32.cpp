@@ -61,6 +61,7 @@ last edit:
 #include <ctype.h>
 #include <sys\stat.h>
 #include <sys\types.h>
+#include <assert.h>
 
 
 namespace PICS {									//									***016
@@ -113,7 +114,7 @@ BOOL ParseRecipientList(BACnetRecipient **);
 BOOL ParseEventParameter(BACnetEventParameter *);
 BOOL ParseSessionKeyList(BACnetSessionKey **);
 BOOL ParseRefList(BACnetDeviceObjectPropertyReference	**);
-BOOL ParseDevObjList(BACnetDeviceObjectReference **);
+BOOL ParseDevObjList(BACnetDeviceObjectReference **,word );
 BOOL ParsePrescale(BACnetPrescale* pt);
 BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt);
 BACnetRecipient *ParseRecipient(BACnetRecipient *);
@@ -1342,6 +1343,8 @@ int SelectCBListItem(HWND hWnd,int index)
 void  APIENTRY DeletePICSObject(generic_object *p)
 {	word	i;
 	void *vp,*vq,*vr;
+	char errMsg[300];
+    // TCHAR szMessage[300];
 
 	switch(p->object_type)						//release this object's special fields
 	{
@@ -1354,7 +1357,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 		break; 
 	case COMMAND:
-		for (i=0;i<32;i++)
+		for (i=0;i<MAX_ACTION_TEXTS;i++)
 		{	vp=((command_obj_type *)p)->action[i];
 			while(vp!=NULL)
 			{	vq=vp;
@@ -1767,6 +1770,32 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 		break;
 
+	  case STRUCTURED_VIEW:
+		vp=((sv_obj_type *)p)->subordinate_list;
+		while(vp!=NULL)
+		{
+			vq=vp;
+			vp=((BACnetDeviceObjectReference *)vp)->next;
+			free(vq);
+		}
+		vp=((sv_obj_type *)p)->subordinate_annotations;
+		for (i=0; i < MAX_SV_ANNOTATIONS; i++)
+		{	
+			if (((sv_obj_type *)p)->subordinate_annotations[i]!=NULL)
+				free(((sv_obj_type *)p)->subordinate_annotations[i]);
+		}
+		break;
+
+	  default:
+		  // Someone forgot to implement delete code for this object type
+		  sprintf( errMsg, "**WARNING**: No delete code for this object %s (type = %d), will probably leak \n", 
+					p->object_name, p->object_type ); 
+		  // tperror( errMsg, true);
+		  // PrintToFile( errMsg );
+		  OutputDebugString( _T( errMsg ) );
+		  // assert(false);		// upside the head for developers
+		  // Attempt the deletion anyway
+		  break;
 	}
 	free(p);									//and the object itself					***008 End
 }
@@ -3954,7 +3983,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                     ParseDevObjPropReference((BACnetDeviceObjectPropertyReference *)pstruc);
 					break;
 				case lodoref:
-					ParseDevObjList((BACnetDeviceObjectReference **)pstruc);
+					ParseDevObjList((BACnetDeviceObjectReference **)pstruc, (word) pd->PropID );
 					break;
 				case recip:						//recipient
 					ParseRecipient((BACnetRecipient *)pstruc);						//				***012
@@ -4128,12 +4157,21 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 				case statext:					//state text array
 				case actext:					//action_text array
 					cp=(char **)pstruc;
-					for (i=0;i<MAX_STATE_TEXTS;i++) cp[i]=NULL;	//init all slots to NULL values	***011
+					// Here, the PropET table property gives the number of array entries
+					assert( pd->PropET > 0 );
+					for (i=0; i < pd->PropET; i++) 
+						cp[i]=NULL;	//init all slots to NULL values	***011
 					i=0;
 					if ((lp=openarray(lp))==NULL) return true;
+					// Allow empty first line, after the bracket
+					if (*lp==0) 
+						if (ReadNext()==NULL) break;
 					
-					while (*lp && (i<MAX_STATE_TEXTS) )
-					{	if (setstring(b,32,lp)) return true;	//put string in buffer b
+					while (*lp && (i < pd->PropET) )
+					{	
+						// Allow up to 80 chars (was 32) since b[] is 512 bytes, and
+						// we'll malloc the string storage below to fit the actual size.
+						if (setstring(b,80,lp)) return true;	//put string in buffer b
 						if (b[0])				//if string isn't null
 						{	ub=strlen(b)+1;   //reqd length
 							if ((cp[i]=(char *)malloc(ub))==NULL)
@@ -5073,15 +5111,28 @@ tvx:
 	return tvfail;								//									***008 End
 }
 
-BOOL ParseDevObjList(BACnetDeviceObjectReference **refp)
+// Added the propID argument to distinguish between Lists and Arrays when parsing
+// The handling of BACnetListOfDeviceObjectReference[] is implemented the same
+// here whether a list or array, so we can get away with this as long as we cover it
+// in parsing.
+BOOL ParseDevObjList(BACnetDeviceObjectReference **refp, word propID)
 {
 	BACnetDeviceObjectReference	*fp=NULL,*p=NULL,*q=NULL;
-	BOOL				reffail=true;				
+	BOOL				reffail=true;
+	char openChar  = '(';  // starts with '('  SEQ OF lists are enclosed by ()
+	char closeChar = ')';
 				
 	*refp=NULL;									//initially there is no list
 	skipwhitespace();
 
-	if (MustBe('(')) return true; // starts with '('  SEQ OF lists are enclosed by ()
+	// Adjust for the property(s) that are actually Arrays, not Lists
+	if ( propID == SUBORDINATE_LIST )
+	{
+		openChar  = '{';		// Arrays open with brace
+		closeChar = '}';
+	}
+
+	if ( MustBe( openChar ) ) return true; 
 	while(true)
 	{   //here lp must point to:
 		//1. a comma or whitespace which we ignore as a separator between list elements.
@@ -5092,7 +5143,7 @@ BOOL ParseDevObjList(BACnetDeviceObjectReference **refp)
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
 		if (*lp==0) 
 			if (ReadNext()==NULL) break;
-		if (*lp==')') // found empty list
+		if (*lp== closeChar) // found empty list
 		{	lp++;
 			break;								//close this list out
 		}

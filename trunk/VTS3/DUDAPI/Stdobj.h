@@ -240,6 +240,7 @@ typedef struct {
     BACnetDestination	far	*recipient_list;
    } nc_obj_type;
 
+#define MAX_ACTION_TEXTS 32		
 //Command Object
 //-------------------------------------------------------
 typedef struct {
@@ -248,8 +249,8 @@ typedef struct {
     boolean					in_process;
     boolean					all_writes_successful;
     word					num_actions;
-    BACnetActionCommand	far	*action[32];
-    char				far	*action_text[32];
+    BACnetActionCommand	far	*action[MAX_ACTION_TEXTS];
+    char				far	*action_text[MAX_ACTION_TEXTS];
    } command_obj_type;
 
 //Device Object
@@ -392,7 +393,7 @@ enum BACnetNotifyType		notify_type;
     BACnetTimeStamp	        far *event_time_stamps[3];  //madanner 6/03, added
    } loop_obj_type;
 
-#define MAX_STATE_TEXTS 128		/* 32 was too small */
+#define MAX_STATE_TEXTS 128		/* Array size; 32 was too small */
 //Multi-state Input Object
 //-------------------------------------------------------
 typedef struct {
@@ -692,6 +693,7 @@ enum BACnetReliability	           reliability;
     BACnetTimeStamp	 	           far *event_time_stamps[3];
 } pulseconverter_obj_type;
 
+#define MAX_SHED_LEVELS 255
 typedef struct
 {
     generic_object		           go;
@@ -704,7 +706,7 @@ enum BACnetReliability	           reliability;
     BACnetShedLevel					expected_shed_level;
 	BACnetShedLevel					actual_shed_level;
 	UnsignedList				far *shed_levels;
-	char						far	*shed_level_descriptions[255];
+	char						far	*shed_level_descriptions[MAX_SHED_LEVELS];
      boolean					   log_enable;                   
 	BACnetDateTime                 start_time;
      word						    	   	notification_class;
@@ -753,13 +755,15 @@ enum BACnetReliability		reliability;
 
 } ad_obj_type;
 
+#define MAX_SV_ANNOTATIONS 255
+// Structured-View
 typedef struct
 {
     generic_object		           go;
 	enum BACnetNodeType				node_type;
 	char							node_subtype[132];
 	BACnetDeviceObjectReference far *subordinate_list;
-	char						far *subordinate_annotations;
+	char						far *subordinate_annotations[MAX_SV_ANNOTATIONS];
 } sv_obj_type;
 
 typedef struct

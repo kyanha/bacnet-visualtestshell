@@ -722,7 +722,7 @@ typedef struct {
     word	StrucOffset;
     octet	ParseType;
     octet	PropGroup;
-    word	PropET;
+    word	PropET;		// One of the property table defines (eg, eiEvState) or else (fixed max) array size for select properties
     word	PropFlags;
     } propdescriptor;
 
@@ -978,10 +978,10 @@ propdescriptor	CMprops[]={
     "in-process",			IN_PROCESS,			oo(command,in_process),	ebool,  0,    	eiTF,	R,
     "all-writes-successful",ALL_WRITES_SUCCESSFUL,oo(command,
     											all_writes_successful),	ebool,  0,    	eiTF,	R,
-    "action",				ACTION,				oo(command,action),		act,	0,	       0,	R|IsArray,
+    "action",				ACTION,				oo(command,action),		act,	0, MAX_ACTION_TEXTS, R|IsArray,
 //    "action-text",			ACTION_TEXT,		oo(command,action_text),actext,	Last,	   0,	O|IsArray
 //modified by Jingbo Gao, 2003-9-1
-    "action-text",			ACTION_TEXT,		oo(command,action_text),actext,	0,	   0,	O|IsArray,
+    "action-text",			ACTION_TEXT,		oo(command,action_text),actext,	0, MAX_ACTION_TEXTS, O|IsArray,
 //Added by Jingbo Gao, 2003-9-1
 	"profile-name",			PROFILE_NAME,       oo(command,go.profile_name), s132,	Last,	0,	 O  
 };
@@ -1196,7 +1196,7 @@ propdescriptor	MIprops[]={
     "reliability",			RELIABILITY,		oo(mi,reliability),		et,		0,	  eiReli,	O,
     "out-of-service",		OUT_OF_SERVICE,		oo(mi,out_of_service),	ebool,  0,		eiTF,	R,
     "number-of-states",		NUMBER_OF_STATES,	oo(mi,num_of_states),	uw,		0,	       0,	R,
-    "state-text",			STATE_TEXT,			oo(mi,state_text),		statext,0,	       0,	O|IsArray,
+    "state-text",			STATE_TEXT,			oo(mi,state_text),		statext,0, MAX_STATE_TEXTS,	O|IsArray,
     "time-delay",			TIME_DELAY,			oo(mi,time_delay),		uw,		Intr,	   0,	O|WithService,
     "notification-class",	NOTIFICATION_CLASS,	oo(mi,notification_class),uw,	Intr,	   0,	O|WithService,
     "alarm-values",			ALARM_VALUES,		oo(mi,alarm_values),	stavals,Intr,	   0,	O|WithService,
@@ -1225,7 +1225,7 @@ propdescriptor	MOprops[]={
     "reliability",			RELIABILITY,		oo(mo,reliability),		et,		0,	  eiReli,	O,
     "out-of-service",		OUT_OF_SERVICE,		oo(mo,out_of_service),	ebool,  0,		eiTF,	R,
     "number-of-states",		NUMBER_OF_STATES,	oo(mo,num_of_states),	uw,		0,	       0,	R,
-    "state-text",			STATE_TEXT,			oo(mo,state_text),		statext,0,	       0,	O|IsArray,
+    "state-text",			STATE_TEXT,			oo(mo,state_text),		statext,0, MAX_STATE_TEXTS,	O|IsArray,
     "priority-array",		PRIORITY_ARRAY,		oo(mo,priority_array),	pau,	0,	       0,	R|IsArray,
     "relinquish-default",	RELINQUISH_DEFAULT,	oo(mo,relinquish_default), uw,	0,	       0,	R,
     "time-delay",			TIME_DELAY,			oo(mo,time_delay),		uw,		Intr,	   0,	O|WithService,
@@ -1350,7 +1350,7 @@ propdescriptor	MVprops[]={
     "reliability",			RELIABILITY,		oo(msv,reliability),	    et,		 0,	  eiReli,	    O,
     "out-of-service",		OUT_OF_SERVICE,		oo(msv,out_of_service),	    ebool,   0,		eiTF,	    R,
     "number-of-states",		NUMBER_OF_STATES,	oo(msv,number_of_states),   uw,		 0,	       0,	    R,
-    "state-text",			STATE_TEXT,			oo(msv,state_text),		    statext, 0,	       0,	    O|IsArray,
+    "state-text",			STATE_TEXT,			oo(msv,state_text),		    statext, 0, MAX_STATE_TEXTS, O|IsArray,
 // msdanner 9/2004 - these properties are not required for multi-state values.
 //    "priority-array",		PRIORITY_ARRAY,		oo(msv,priority_array),	    pau,	 0,	       0,	    R|IsArray,
 //    "relinquish-default",	RELINQUISH_DEFAULT,	oo(msv,relinquish_default),  uw,	 0,	       0,	    R,
@@ -1580,7 +1580,7 @@ propdescriptor LCProps[] =
     "expected-shed-level",      EXPECTED_SHED_LEVEL,		oo(lc, expected_shed_level),	shedlevel,  0,   0,			R,	
     "actual-shed-level",        ACTUAL_SHED_LEVEL,			oo(lc, actual_shed_level),		shedlevel,  0,   0,			R,
     "shed-levels",              SHED_LEVELS,				oo(lc, shed_levels),			stavals,	0,		0,		W|IsArray,	
-    "shed-level-descriptions",   SHED_LEVEL_DESCRIPTIONS,	oo(lc, shed_level_descriptions), statext,		0,		0,	R|IsArray,
+    "shed-level-descriptions",   SHED_LEVEL_DESCRIPTIONS,	oo(lc, shed_level_descriptions), statext,	0, MAX_SHED_LEVELS,	R|IsArray,
 	"notification-class",	    NOTIFICATION_CLASS,	          oo(lc,  notification_class),	uw,	     Intr,	     0,  	  O|WithService,
 	"time-delay",               TIME_DELAY,                   oo(lc,  time_delay),			uw,	     Intr,	     0,  	  O|WithService,		
 	"event-enable",  			EVENT_ENABLE,  			      oo(lc,  event_enable),  		bits,     Intr,      0,       O|WithService,
@@ -1636,8 +1636,9 @@ propdescriptor SVProps[] =
 	"description",  			DESCRIPTION,  			      oo(sv,  go.description),     s132,     0,      0,       O,
 	"node-type",				NODE_TYPE,					  oo(sv,  node_type),			et,		 0,	eiNodeType,	  R,
 	"node-subtype",				NODE_SUBTYPE,				  oo(sv,  node_subtype),        s132,	 0,      0,       O,
+	// Even though subordinate-list is an array, re-use the "list of device object reference" type here; we'll catch the difference when parsing.
 	"subordinate-list",         SUBORDINATE_LIST,             oo(sv,  subordinate_list),   lodoref,	 0,		 0,		  R|IsArray,  
-	"subordinate-annotations",  SUBORDINATE_ANNOTATIONS,	  oo(sv,  subordinate_annotations), statext, 0,	 0,		  O|IsArray,
+	"subordinate-annotations",  SUBORDINATE_ANNOTATIONS,	  oo(sv,  subordinate_annotations), statext, 0,	MAX_SV_ANNOTATIONS,	O|IsArray,
 	"profile-name",				PROFILE_NAME,				  oo(sv,  go.profile_name),	   s132,	 Last,	 0,       O
 };
 
