@@ -3101,7 +3101,7 @@ void CO_CreateProperty( command_obj_type far * pObj, BACnetPropertyIdentifier pr
 			//msg->Num= Obj->num_actions;
 			break;
 		case ACTION_TEXT:
-			pbacnetAnyValue->SetObject(actext, new BACnetTextArray(pObj->action_text, 32));
+			pbacnetAnyValue->SetObject(actext, new BACnetTextArray(pObj->action_text, MAX_ACTION_TEXTS ));
 			break;
       case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
@@ -5154,7 +5154,7 @@ void SV_CreateProperty( sv_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 		pbacnetAnyValue->SetObject(lodoref, CreateDeviceObjectList(pObj->subordinate_list));
 		break;
 	case SUBORDINATE_ANNOTATIONS:
-		pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->subordinate_annotations));
+		pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->subordinate_annotations, MAX_SV_ANNOTATIONS));
 		break;
 	case PROFILE_NAME:
 		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
