@@ -696,10 +696,10 @@ enum BACnetReliability	           reliability;
 #define MAX_SHED_LEVELS 255
 typedef struct
 {
-    generic_object		           go;
-	octet					       status_flags;
-enum BACnetEventState	           event_state;
-enum BACnetReliability	           reliability;
+    generic_object					go;
+	octet							status_flags;
+enum BACnetEventState				event_state;
+enum BACnetReliability				reliability;
 	BACnetShedLevel					requested_shed_level;
 	DWORD							shed_duration;
 	DWORD							duty_window;
@@ -707,14 +707,14 @@ enum BACnetReliability	           reliability;
 	BACnetShedLevel					actual_shed_level;
 	UnsignedList				far *shed_levels;
 	char						far	*shed_level_descriptions[MAX_SHED_LEVELS];
-     boolean					   log_enable;                   
-	BACnetDateTime                 start_time;
-     word						    	   	notification_class;
-     octet						    		event_enable;
-     octet						    		acked_transitions;
-     enum BACnetNotifyType		    		notify_type;
-     BACnetTimeStamp			            far *event_time_stamps[3];
-    word				    time_delay;
+    boolean							log_enable;                   
+	BACnetDateTime					start_time;
+    word						    notification_class;
+    octet						    event_enable;
+    octet						    acked_transitions;
+    enum BACnetNotifyType		    notify_type;
+    BACnetTimeStamp			        far *event_time_stamps[3];
+    word							time_delay;
 	enum BACnetShedState			present_value;
     char 							state_description[132];
 	float							full_duty_baseline;
@@ -728,11 +728,11 @@ typedef struct
 enum BACnetEventState		event_state;
 enum BACnetReliability		reliability;
     boolean					out_of_service;
-     word					notification_class;
-     octet					event_enable;
-     octet					acked_transitions;
-     enum BACnetNotifyType	notify_type;
-     BACnetTimeStamp		far *event_time_stamps[3];
+    word					notification_class;
+    octet					event_enable;
+    octet					acked_transitions;
+    enum BACnetNotifyType	notify_type;
+    BACnetTimeStamp		far *event_time_stamps[3];
     word				    time_delay;
     BACnetEnumList		far *alarm_values;
     BACnetEnumList		far	*fault_values;
@@ -751,8 +751,6 @@ enum BACnetReliability		reliability;
 	enum BACnetDoorAlarmState	door_alarm_state;
 	BACnetEnumList			far *masked_alarm_values; //enum BACnetDoorAlarmState	
 	enum BACnetMaintenance	maintenance_required;
-
-
 } ad_obj_type;
 
 #define MAX_SV_ANNOTATIONS 255
