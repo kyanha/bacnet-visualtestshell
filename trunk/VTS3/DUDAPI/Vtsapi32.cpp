@@ -4,6 +4,24 @@
 module:		VTSAPI32.C
 desc:		BACnet Standard Objects DLL v2.15
 authors:	David M. Fisher, Jack R. Neyer
+
+  
+-- NOTE: 135.1 doesn't say how to encode missing OPTIONAL items in a SEQUENCE: 
+-- should there be an emtpy pair of commas, or should the item and any comma be
+-- omitted?  I believe that the comma MUST be maintained - else there is no
+-- way to tell whether the item is present or not, unless it may be discerned
+-- from the following item (if any), which isn't always possible.
+-- If this interpretation is wrong, this decoder and the samepl EPICS
+-- may need to be changed.
+
+135.1 clause 4.4 says
+- constructed items are enclosed by curly brackets { } with elements separated by commas
+- CHOICE of application-tagged items are represented as such
+- CHOICE of context-tagged items are represented by [n] followed by the item
+- SEQUENCE-OF (list) are enclosed in parenthesis, with items separated by commas
+- Array values are enclosed in curly brackets, with items separated by commas
+
+	  
 last edit: 
 			16-Apr-2010 JLH Allow for longer strings in various sections
 			07-SEP-2004 MSD implemented BIBBs section,
@@ -1474,6 +1492,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 
 		break; 
+	case FILE_O:
+        break;   
+
 	case GROUP:
 		vr=((group_obj_type *)p)->list_of_group_members;
 		while(vr!=NULL)
@@ -1538,6 +1559,8 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 
 		break; 
+	case PROGRAM:
+		break;
 	case NOTIFICATIONCLASS: 
 		vp=((nc_obj_type *)p)->recipient_list;
 		while(vp!=NULL)
@@ -1665,7 +1688,6 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			if ( ((trend_obj_type *)p)->event_time_stamps[i]!=NULL)
 				free(((trend_obj_type *)p)->event_time_stamps[i]);
 		}
-
         break;
 	  case LIFE_SAFETY_POINT:
 		vp=((lifesafetypoint_obj_type *)p)->event_time_stamps;
@@ -1778,11 +1800,89 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			vp=((BACnetDeviceObjectReference *)vp)->next;
 			free(vq);
 		}
-		vp=((sv_obj_type *)p)->subordinate_annotations;
+
 		for (i=0; i < MAX_SV_ANNOTATIONS; i++)
 		{	
 			if (((sv_obj_type *)p)->subordinate_annotations[i]!=NULL)
 				free(((sv_obj_type *)p)->subordinate_annotations[i]);
+		}
+		break;
+
+      case TREND_LOG_MULTIPLE:
+		for(i=0; i<3; i++)
+		{
+			if (((tlm_obj_type *)p)->event_time_stamps[i]!=NULL)
+				free(((tlm_obj_type *)p)->event_time_stamps[i]);
+		}
+        break;
+
+      case EVENT_LOG:
+		for(i=0; i<3; i++)
+		{
+			if (((el_obj_type *)p)->event_time_stamps[i]!=NULL)
+				free(((el_obj_type *)p)->event_time_stamps[i]);
+		}
+        break;
+
+      case LOAD_CONTROL:
+		for(i=0; i<MAX_SHED_LEVELS; i++)
+		{
+			if (((lc_obj_type *)p)->shed_level_descriptions[i]!=NULL)
+				free(((lc_obj_type *)p)->shed_level_descriptions[i]);
+		}
+
+		vp = ((lc_obj_type *)p)->shed_levels;
+		while (vp != NULL)
+		{
+			vq = vp;
+			vp = ((UnsignedList *)vp)->next;
+			free(vq);
+		}
+		
+		for(i=0; i<3; i++)
+		{
+			if (((lc_obj_type *)p)->event_time_stamps[i]!=NULL)
+				free(((lc_obj_type *)p)->event_time_stamps[i]);
+		}
+        break;
+
+	  case ACCESS_DOOR:
+		vp = ((ad_obj_type *)p)->alarm_values;
+		while (vp != NULL)
+		{
+			vq = vp;
+			vp = ((BACnetEnumList*)vp)->next;
+			free(vq);
+		}
+
+		vp = ((ad_obj_type *)p)->fault_values;
+		while (vp != NULL)
+		{
+			vq = vp;
+			vp = ((BACnetEnumList*)vp)->next;
+			free(vq);
+		}
+
+		vp = ((ad_obj_type *)p)->door_members;
+		while (vp != NULL)
+		{
+			vq = vp;
+			vp = ((BACnetDeviceObjectReference*)vp)->next;
+			free(vq);
+		}
+
+		vp = ((ad_obj_type *)p)->masked_alarm_values;
+		while (vp != NULL)
+		{
+			vq = vp;
+			vp = ((BACnetEnumList*)vp)->next;
+			free(vq);
+		}
+		
+		for(i=0; i<3; i++)
+		{
+			if (((ad_obj_type *)p)->event_time_stamps[i]!=NULL)
+				free(((ad_obj_type *)p)->event_time_stamps[i]);
 		}
 		break;
 
@@ -1809,7 +1909,7 @@ bool APIENTRY ReadTextPICS(
         int *errc, // error counter
         int *errPICS) // returns the error
 {	
-  int			i,j;
+	int			i,j;
 	generic_object *pd2;  // line added by MAG for debug only
 	lPICSErr=-1;
 	
@@ -2636,24 +2736,24 @@ nextobject:										//										***012
 						return true;			//fail
 					}
 					po=pd->Database;			//check for uniqueness of objid
-               polast = NULL;          
+					polast = NULL;          
 					while (po!=NULL)
-					{	if (objid==po->object_id)	//oops, we already have this one!
+					{	
+						if (objid==po->object_id)	//oops, we already have this one!
 						{	tperror("Object Identifier is not unique!",true);
 							free(pobj);		//toss allocated object
 							return true;		//fail
 						}
-                  polast = po;  // msdanner 9/2004 - remember the last object in the list
+						polast = po;  // msdanner 9/2004 - remember the last object in the list
 						po=(generic_object *)po->next;			//try next one
 					}
-               // msdanner 9/2004 - add new objects to the end instead of the beginning
+					// msdanner 9/2004 - add new objects to the end instead of the beginning
 					//pobj->next=pd->Database;	//link it in
 					//pd->Database=pobj;
-               if (polast)
-                  polast->next = pobj;  // add new object after the last one
-               else
-                  pd->Database = pobj;  // This is the first object, so set head pointer.
-
+					if (polast)
+						polast->next = pobj;  // add new object after the last one
+					else
+						pd->Database = pobj;  // This is the first object, so set head pointer.
 				}								//									***012 End
 			}
 			else								//anything else is junk
@@ -4110,12 +4210,17 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					break;
 				case act:						//action array
 					acp=(BACnetActionCommand **)pstruc;
-					for (i=0;i<32;i++) acp[i]=NULL;	//init all slots to NULL values ***011
+					// Here, the PropET table property gives the number of array entries
+					assert( pd->PropET > 0 );
+					for (i=0; i<pd->PropET; i++) 
+						acp[i]=NULL;	//init all slots to NULL values ***011
+					
 					i=0;
 					if ((lp=openarray(lp))==NULL) return true;
 					
-					while (i<32)				//									***008 Begin
-					{	if ((acp[i]=ReadActionCommands())==NULL) return true;	//failed for some reason	
+					while (i < pd->PropET)	//									***008 Begin
+					{	
+						if ((acp[i]=ReadActionCommands())==NULL) return true;	//failed for some reason	
 						i++;					//									***011 Begin
 						while (*lp==space||*lp==',') lp++;	//skip separation between list elements
 						if (*lp==0) 
@@ -4416,7 +4521,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 						if (*lp == '[')
 						{
 							lp++;
-							pshedlevel->choice = ReadDW();
+							pshedlevel->choice = (unsigned char)ReadDW();
 							// lp++;  // skip over ']'
 						}
 						float val =(float)atof(lp);
@@ -4633,21 +4738,25 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
 }
 
 // LJT 10/10/2005 -- added to reduce code redundancy
-BOOL validatePropertyNameAndIndexCode(dword dw, unsigned long *propId, unsigned short *index)
+// Return a pointer to the propdescriptor for the property, or NULL if none found
+// Assumes either
+// - "property-identifier,index" if an index is specified, or
+// - "property-identifier," if no index is specifed (i.e., not an array, or "all elements)
+// See the NOTE at the top of this file for a discussion of this encoding, with
+// the comma REQUIRED to encode the presence or absence of the optional index
+//
+// Called from
+// - ParseRASlist (BACnetReadAccessSpecifications) - all-elements is quite legal
+// - ParseReference (BACnetObjectPropertyReference) - all-elements is unlikely
+// - ParseDevObjPropReference (BACnetDeviceObjectPropertyReference) - all-elements is unlikely
+// - ReadActionCommands (BACnetActionCommand) - all-elements is unlikely
+//
+propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId, unsigned short *index)
 {
 	char				pn[40];
 	propdescriptor		*pd;
 
 	// isolate property name
-//	while(*lp&&*lp!=','&&*lp!=')'&&*lp!='}'&&*lp!='['&&i<39)
-//		pn[i++]=*lp++;
-//	pn[i]=0;								//force it to be asciz
-//	rtrim(&pn[0]);							//										***006 Begin
-//	while(i)								//force _ and spaces to dashes
-//	{	if (pn[i]==space||pn[i]=='_') pn[i]='-';
-//		i--;
-//	}										//										***006 End
-
 	int i=0;
 	while(*lp&&*lp!=','&&*lp!=space&&*lp!=')'&&*lp!='}'&&*lp!='['&&i<39)
 	{	
@@ -4655,6 +4764,7 @@ BOOL validatePropertyNameAndIndexCode(dword dw, unsigned long *propId, unsigned 
 		pn[i++]=*lp++;
 	}
 	pn[i]=0;								//force it to be asciz
+
 	pd=StdObjects[(word)(dw>>22)].sotProps;	//point to property descriptor table for this object type
 	do
 	{	
@@ -4665,29 +4775,48 @@ BOOL validatePropertyNameAndIndexCode(dword dw, unsigned long *propId, unsigned 
 		}
 		if (pd->PropGroup&Last)
 		{	
-			tperror("Invalid Property Name",true);
-			return true;  // return error
+			tperror("Unknown Property Name",true);
+			return NULL;  // return NOT FOUND
 		}
 		pd++;								//advance to next table entry
 	}
 	while(true);
 
-	*index=NotAnArray;
-	if (pd->PropFlags&IsArray)
-	{	
-    	skipwhitespace();
-		if ( MustBe(',') ) return true;  // error occurred  // require index field
+	*index = NotAnArray;
 
-		*index=ReadW();
-		if (*(lp-1) == ')' || *(lp-1) == '}' || *(lp-1) == ',')
-			lp--;  // backup one we went too far // todo: really need to fix ReadW
+   	skipwhitespace();
+	if (*lp == ',')
+	{
+		// Comma must be followed by an index, or by another separator
+		// if the index is omitted
+		++lp;
+		skipwhitespace();
+		int hasIndex = isdigit( *lp );
+		if (hasIndex)
+		{
+			*index = ReadW();
+			if (*(lp-1) == ')' || *(lp-1) == '}' || *(lp-1) == ',')
+				lp--;  // backup one we went too far // todo: really need to fix ReadW
+		
+			// It is (at least in some cases) OK to specify an array without an index
+			// to denote the entire array.
+			// It is NOT OK to specify an index for a non-array
+			if ((pd->PropFlags & IsArray) == 0)
+			{
+				tperror("Index specified for non-array property",true);
+				return NULL;  // error:
+			}
+		}
 	}
-	return false;
+	
+	return pd;
 }
 
 ///////////////////////////////////////////////////////////////////////				***008 Begin
 //	read a list BACnetReadAccessSpecifications from the buffer lp points to
-//	(((objtype,instance),propid,propid[arindex]),((objtype,instance),propid,propid),((objtype,instance),propid,propid)...)
+//	  (((objtype,instance),propid,,propid,arindex),((objtype,instance),propid,,propid,),((objtype,instance),propid,,propid,)...)
+//  See the NOTE at the top of this file for a discussion of this encoding, with
+//  the comma REQUIRED to encode the presence or absence of the optional index
 //in:	lp		points to current position in buffer lb
 //		rasp	points to a variable which should point to a list of BACnetReadAccessSpecifications
 //out:	true	if an error occurred
@@ -4698,10 +4827,7 @@ BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
 {	
 	BACnetReadAccessSpecification	*fp=NULL,*p=NULL,*q=NULL;
 	BACnetPropertyReference			*pp=NULL, *pq=NULL;
-//	propdescriptor		*pd;
-//	word				i;
 	dword				dw;
-//	char				pn[40];
 	BOOL				rasfail=true;				
 				
 	*rasp=NULL;									//initially there is no list
@@ -4761,39 +4887,10 @@ BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
 
 			if(*lp == '(') lp++; // MAG added to skip leading '('
 
-// validate property name and index code here
-			if ( validatePropertyNameAndIndexCode(dw, &(pq->property_id), &(pq->pa_index) ) )
+			// validate property name and optional index code here
+			if (validatePropertyNameAndIndexCode(dw, &(pq->property_id), &(pq->pa_index) ) == NULL)
 				goto rasx;  // error end here
-/*
-			i=0;
-			if(*lp == '(') lp++; // MAG added to skip leading '('
-			while(*lp&&*lp!=','&&*lp!=space&&*lp!=')'&&*lp!='['&&i<39)
-			{	if (*lp=='_') *lp='-';				//change _ to -
-				pn[i++]=*lp++;
-			}
-			pn[i]=0;								//force it to be asciz
-			pd=StdObjects[(word)(dw>>22)].sotProps;	//point to property descriptor table for this object type
-			do
-			{	if (stricmp(pn,pd->PropertyName)==0)	//found this property name
-		        {	pq->property_id=pd->PropID;
-		        	break;
-				}
-				if (pd->PropGroup&Last)
-				{	tperror("Invalid Property Name",true);
-					goto rasx;
-				}
-				pd++;								//advance to next table entry
-			}
-			while(true);
-	
-			pq->pa_index=NotAnArray;
-			if (pd->PropFlags&IsArray)
-			{	if (MustBe('[')) goto rasx; 
-				pq->pa_index=ReadW();
-			}
-*/			
-// validate property name and index code here
-	
+
 			pq->next=NULL;							//link onto the list
 			if (q->list_of_prop_ref==NULL)
 				q->list_of_prop_ref=pq;				//remember first guy we made
@@ -5218,7 +5315,10 @@ refx:
 
 ///////////////////////////////////////////////////////////////////////
 //	read a BACnetObjectPropertyReference from the buffer lp points to
-//	((objtype,instance),propertyname[arrayindex])  or ?
+//	  ((objtype,instance),propertyname,arrayindex) or
+//	  ((objtype,instance),propertyname,) or ?
+//  See the NOTE at the top of this file for a discussion of this encoding, with
+//  the comma REQUIRED to encode the presence or absence of the optional index
 //in:	lp		points to current position in buffer lb
 //		inq		points to a BACnetObjectPropertyReference to be filled in (or NULL)
 //out:	NULL	if an error occurred
@@ -5227,10 +5327,7 @@ refx:
 
 BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference	*inq)
 {	BACnetObjectPropertyReference	*q=NULL;
-//	propdescriptor		*pd;
 	dword	dw;
-//	word	i;
-//	char	pn[40];
 	char    openChar = ' ';
 	
 	bool    isSetpointRef = false;
@@ -5281,49 +5378,9 @@ BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference	*inq
 	if ( MustBe(',')) goto oprfail;
 	skipwhitespace();						//										***006
 
-// validate property name and index code here
-	if ( validatePropertyNameAndIndexCode(dw, &q->property_id, &q->pa_index ) )
+	// validate property name and index code here
+	if (validatePropertyNameAndIndexCode(dw, &q->property_id, &q->pa_index ) == NULL)
 		goto oprfail;
-/*
-	i=0;
-	// isolate property name
-	while(*lp&&*lp!=','&&*lp!=')'&&*lp!='}'&&*lp!='['&&i<39)
-		pn[i++]=*lp++;
-	pn[i]=0;								//force it to be asciz
-	rtrim(&pn[0]);							//										***006 Begin
-	while(i)								//force _ and spaces to dashes
-	{	if (pn[i]==space||pn[i]=='_') pn[i]='-';
-		i--;
-	}										//										***006 End
-	pd=StdObjects[(word)(dw>>22)].sotProps;	//point to property descriptor table for this object type
-	do
-	{	
-		if (stricmp(pn,pd->PropertyName)==0)	//found this property name
-        {	
-			q->property_id=pd->PropID;
-        	break;
-		}
-		if (pd->PropGroup&Last)
-		{	
-			tperror("Invalid Property Name",true);
-			break;
-		}
-		pd++;								//advance to next table entry
-	}
-	while(true);
-
-	q->pa_index=NotAnArray;
-	if (pd->PropFlags&IsArray)
-	{	
-    	skipwhitespace();
-		if ( MustBe(',') ) goto oprfail;         // require index field
-
-		q->pa_index=ReadW();
-		if (*(lp-1) == ')' || *(lp-1) == '}' || *(lp-1) == ',')
-			lp--;  // backup one we went too far // todo: really need to fix ReadW
-	}
-*/
-// validate property name and index code here
 	
 	if ( openChar != ' ' )  // meaning we opened with this character
 	{
@@ -5349,7 +5406,10 @@ oprfail:
 
 ///////////////////////////////////////////////////////////////////////
 //	read a BACnetDeviceObjectPropertyReference from the buffer lp points to
-//	((objtype,instance),propertyname[arrayindex])  or ?
+//	  ((objtype,instance),propertyname,arrayindex) or
+//	  ((objtype,instance),propertyname,) or ?
+//  See the NOTE at the top of this file for a discussion of this encoding, with
+//  the comma REQUIRED to encode the presence or absence of the optional index
 //in:	lp		points to current position in buffer lb
 //		inq		points to a BACnetDeviceObjectPropertyReference to be filled in (or NULL)
 //out:	NULL	if an error occurred
@@ -5358,13 +5418,9 @@ oprfail:
 
 BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference	*inq)
 {	BACnetDeviceObjectPropertyReference	*q=NULL;
-//	propdescriptor		*pd;
 	dword	dw,objId_Ref;
-//	word	objtype_Ref;
-//	word    i;
-//	char	pn[40];
 	
-	//here we have ((objtype,instance),propertyname[arrayindex])...
+	//here we have ((objtype,instance),propertyname,arrayindex)...
 	skipwhitespace();
 	if (*lp=='?') return NULL;
 	if ( *lp=='{' || (*lp=='(' && *(lp+1)!='(') )
@@ -5373,15 +5429,18 @@ BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObject
 		return NULL;
 
 	if (inq==NULL)
-	{	if ((q=(BACnetDeviceObjectPropertyReference *)malloc(sizeof(BACnetDeviceObjectPropertyReference)))==NULL)
-		{	tperror("Can't Get Object Space!",true);
+	{	
+		if ((q=(BACnetDeviceObjectPropertyReference *)malloc(sizeof(BACnetDeviceObjectPropertyReference)))==NULL)
+		{	
+			tperror("Can't Get Object Space!",true);
 			return NULL;
 		}
 		print_debug("LJT: DeviceObjectPropertyReference=%x\n",q);
-
 	}
 	else
+	{
 		q=inq;
+	}
 
     //initial the Values
     q->DeviceObj =0xffffffff;
@@ -5420,41 +5479,9 @@ propcheck:
 
 	skipwhitespace();
 
-//*****check out the Property referred	
-// validate property name and index here
-	if ( validatePropertyNameAndIndexCode(dw, &q->wPropertyid, &q->ulIndex ) )
+	// validate property name and index here
+	if (validatePropertyNameAndIndexCode(dw, &q->wPropertyid, &q->ulIndex ) == NULL)
 		goto oprfail;
-/*
-	i=0;
-	while(*lp&&*lp!=','&&*lp!='}'&&*lp!='['&&i<39)
-		pn[i++]=*lp++;
-	pn[i]=0;								//force it to be asciz
-	rtrim(&pn[0]);							//										***006 Begin
-	while(i)								//force _ and spaces to dashes
-	{	if (pn[i]==space||pn[i]=='_') pn[i]='-';
-		i--;
-	}										//										***006 End
-	pd=StdObjects[(word)(objId_Ref>>22)].sotProps;	//point to property descriptor table for this object type
-	do
-	{	if (stricmp(pn,pd->PropertyName)==0)	//found this property name
-        {	q->wPropertyid=pd->PropID;
-        	break;
-		}
-		if (pd->PropGroup&Last)
-		{	tperror("Invalid Property Name",true);
-			break;
-		}
-		pd++;								//advance to next table entry
-	}
-	while(true);
-
-	q->ulIndex=NotAnArray;
-	if (pd->PropFlags&IsArray)
-	{	if (MustBe('[')) goto oprfail;		//require [arrayindex]					***012 Begin
-		q->ulIndex=ReadW();
-	}
-// validate property name and index here
-*/
 
 	// need to read device ObjId here OPTIONAL
     skipwhitespace();
@@ -6218,14 +6245,14 @@ BOOL ParsePrescale(BACnetPrescale* pt)
 
 	if (MustBe('{')) 
 		return true;
-	pt->multiplier = ReadDW();
+	pt->multiplier = ReadW();
 	lp--;
 	
 	if (MustBe(',')) 
 		return true;
 
 	skipwhitespace();	
-    pt->moduloDivide = ReadDW();
+    pt->moduloDivide = ReadW();
 	lp--;
 
 	skipwhitespace();
@@ -6251,51 +6278,64 @@ BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
 		return true;
 
 	skipwhitespace();
-	pt->presentValue = ReadDW();
+	pt->presentValue = ReadW();
 
 	skipwhitespace();
-	pt->accumulatedValue = ReadDW();
+	pt->accumulatedValue = ReadW();
 
     pt->accumulatorStatus = ReadEnum(&etAccumulatorStatus);
 	
 	return false;
 }
 ///////////////////////////////////////////////////////////////////////
-//	read a list BACnetActionCommands from the buffer lp points to
-//	((actioncommand),(actioncommand),(actioncommand)...)
+//	read an array of BACnetActionCommands from the buffer lp points to
+//  ({actioncommand},{actioncommand},{actioncommand}...)
 //in:	lp		points to current position in buffer lb
 //out:	NULL	if an error occurred
 //		else	pointer to a list of BACnetActionCommands
-//		lp		points past the delimiter ) unless it was the end of the buffer
-
+//		lp		points past the delimiter } unless it was the end of the buffer
+//
+// - BACnetActionList is a list of BACnetActionCommand
+// - 135.1 4.4.1 c says that lists are enclosed in parenthesis, with
+//   elements separated by commas
+// - each BACnetActionCommand is a SEQUENCE
+// - 135.1 4.4 says that SEQUENCE are enclosed curly brackets
+//
 BACnetActionCommand *ReadActionCommands()
 {	BACnetActionCommand	*firstp=NULL,*p=NULL,*q=NULL;
 	propdescriptor		*pd;
-//	word				i;
 	dword				dw;
-//	char				pn[40];				
-				
+
+	// List is enclosed by parenthesis
 	skipwhitespace();							//									***008
-	if (MustBe('(')) return NULL;
-	while(true)
-	{   //here lp must point to:
-		//1. a comma or whitespace which we ignore as a separator between list elements.
-		//   Note that we require "empty" list elements to use proper syntax (...),(),(...)
-		//   but (...),,(...) is treated the same as (...),(...)
-		//2. (	i.e. the beginning of a new BACnetActionCommand in the list
-		//3. )				i.e. the closing part of the list
+	if (MustBe('('))
+		return NULL;
+	
+	while (true)
+	{   
+		// here lp must point to:
+		// 1. a comma or whitespace which we ignore as a separator between list elements.
+		//    Note that we require "empty" list elements to use proper syntax (...),(),(...)
+		//    but (...),,(...) is treated the same as (...),(...)
+		// 2. (	i.e. the beginning of a new BACnetActionCommand in the list
+		// 3. )				i.e. the closing part of the list
 		while (*lp==space||*lp==',') lp++;		//skip separation between list elements
+		
 		if (*lp==0) 
 			if (ReadNext()==NULL) break;		//									***008
+		
 		if (*lp==')') 
-		{	lp++;
+		{	
+			lp++;
 			break;								//close this list out
 		}
-		if (MustBe('(')) break;
+		
+		if (MustBe('{')) break;
 
-		//here we have (BACnetActionCommand)...
+		// here we have (BACnetActionCommand)...
 		if ((q=(tagActionCommand *)malloc(sizeof(BACnetActionCommand)))==NULL)
-		{	tperror("Can't Get Object Space!",true);
+		{	
+			tperror("Can't Get Object Space!",true);
 			break;
 		}
 		print_debug("LJT: ActionCommand=%x\n",q);
@@ -6304,77 +6344,62 @@ BACnetActionCommand *ReadActionCommands()
 		if (*lp!=',')							//									***008 Begin
 		{	dw=ReadObjID();
 			if ((word)(dw>>22)!=DEVICE)
-			{	if (tperror("Must use a Device Object Identifier here!",true))
+			{	
+				if (tperror("Must use a Device Object Identifier here!",true))
 					break;
 			}
 			q->device_id=dw;
 			if ((strdelim(","))==NULL) goto acprem;
 		}
 		else
+		{
 			lp++;								//skip comma						***008 End
+		}
+		
 		dw=ReadObjID();
 		if (dw==badobjid)
-		{	if (tperror("Must use an Object Identifier here!",true))
+		{	
+			if (tperror("Must use an Object Identifier here!",true))
 				break;
 		}
 		q->object_id=dw;
 		if ((strdelim(","))==NULL) goto acprem;
 		skipwhitespace();					//									***008
-// validate property name and index here
-		if ( validatePropertyNameAndIndexCode(dw, &q->property_id, &q->pa_index) )
-			break;  //????
-		pd=StdObjects[(word)(dw>>22)].sotProps;	//point to property descriptor table for this object type
-/*
-		i=0;
-		while(*lp&&*lp!=','&&*lp!=space&&*lp!=')'&&i<39)
-		{	if (*lp=='_') *lp='-';				//change _ to -						***008
-			pn[i++]=*lp++;
-		}
-		pn[i]=0;								//force it to be asciz
-		pd=StdObjects[(word)(dw>>22)].sotProps;	//point to property descriptor table for this object type
-		do
-		{	if (stricmp(pn,pd->PropertyName)==0)	//found this property name
-	        {	q->property_id=pd->PropID;
-	        	break;
-			}
-			if (pd->PropGroup&Last)
-			{	tperror("Invalid Property Name",true);
-				break;
-			}
-			pd++;								//advance to next table entry
-		}
-		while(true);
+		
+		// validate property name and index here
+		pd = validatePropertyNameAndIndexCode(dw, &q->property_id, &q->pa_index);
+		if (pd == NULL)
+			break;  // Error already output
 
-		if ((strdelim(","))==NULL) goto acprem;
-		q->pa_index=NotAnArray;
-		if (pd->PropFlags&IsArray)
-		{	if (MustBe('[')) break;				//								***012 Begin
-			q->pa_index=ReadW();
-		}
-// validate property name and index here
-*/
 		if ((strdelim(","))==NULL) goto acprem;	//								***012 End
 		if (pd->ParseType==flt)					//it's a floating value
-		{	q->value_type=FLT;
+		{	
+			q->value_type=FLT;
 			q->av.fproperty_value=(float)atof(lp);
 			if ((strdelim(","))==NULL) goto acprem;
 		}
 		else if (pd->PropET==eiBPV)				//it's a BPV
-		{	q->value_type=BPV;
+		{	
+			q->value_type=BPV;
 			q->av.bproperty_value=INACTIVE;		//assume inactive
 			if (*lp=='a'||*lp=='A')
 				q->av.bproperty_value=ACTIVE;
 			if ((strdelim(","))==NULL) goto acprem;
 		}
 		else									//must be unsigned
-		{	q->value_type=UNS;
+		{	
+			q->value_type=UNS;
 			q->av.uproperty_value=ReadW();
 		}
+		
+		// TODO: should we require the comma even
+		// for non-commandable properties?
 		if (pd->PropFlags&IsCommandable)		//only need priority for commandables	***008 Begin
 			q->priority=ReadB(0,16);
 		else
 			if ((strdelim(","))==NULL) goto acprem;	//							***008 End
-		q->post_delay=ReadW();
+		
+		q->post_delay=ReadW();			// OPTIONAL
 		q->quit_on_failure=ReadBool();
 		q->write_successful=ReadBool();
 		if (lp[-1]!='}')
@@ -6429,7 +6454,7 @@ BOOL ParseBooleanList( BooleanList **elp )
 
 		if ((value=ReadBool())!=0xFFFF)
 		{	
-			q->value=value;
+			q->value = (unsigned char)value;
          //msdanner 9/2004 - new items now added to the end, not beginning
          if (p)
          {
@@ -7462,7 +7487,7 @@ dword ReadObjID()
 	{
 		lp += strlen("proprietary");
 		skipwhitespace();
-		objtype = ReadDW();		
+		objtype = ReadW();		
 	}
 	else 
 	if ((objtype=ReadEnum(&etObjectTypes))==0xFFFF)

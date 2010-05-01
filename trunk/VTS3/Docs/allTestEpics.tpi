@@ -102,82 +102,82 @@ BIBBs Supported:
 
 BACnet Standard Application Services Supported:
 {
-  AcknowledgeAlarm                	Initiate Execute
-  ConfirmedCOVNotification        	Initiate Execute
-  UnconfirmedCOVNotification      	Initiate Execute
-  ConfirmedEventNotification      	Initiate Execute
-  UnconfirmedEventNotification    	Initiate Execute
-  GetAlarmSummary                 	Initiate Execute
-  GetEventInformation             	Initiate Execute
-  GetEnrollmentSummary                  Initiate Execute
-  SubscribeCOV                    	Initiate Execute
-  SubscribeCOVProperty                  Initiate Execute
-  lifeSafetyOperation                   Initiate Execute
-  AtomicReadFile                  	Initiate Execute
-  AtomicWriteFile                 	Initiate Execute
-  AddListElement                  	Initiate Execute
-  RemoveListElement               	Initiate Execute
-  CreateObject                          Initiate Execute
-  deleteObject                          Initiate Execute
-  ReadProperty                    	Initiate Execute
-  ReadPropertyConditional               Initiate Execute
-  ReadPropertyMultiple            	Initiate Execute
-  ReadRange                       	Initiate Execute
-  WriteProperty                   	Initiate Execute
-  WritePropertyMultiple           	Initiate Execute
-  DeviceCommunicationControl      	Initiate Execute
-  ConfirmedPrivateTransfer        	Initiate Execute
-  UnconfirmedPrivateTransfer      	Initiate Execute
-  confirmedTextMessage                  Initiate Execute
-  UnconfirmedTextMessage                Initiate Execute
-  ReinitializeDevice              	Initiate Execute
-  TimeSynchronization             	Initiate Execute
-  UTCTimeSynchronization          	Initiate Execute
-  Who-Has                         	Initiate Execute
-  I-Have                          	Initiate Execute
-  Who-Is                          	Initiate Execute
-  I-Am                            	Initiate Execute
-  VT-Open				Initiate Execute
-  VT-Close				Initiate Execute
-  VT-Data				Initiate Execute
-  authenticate				Initiate Execute
-  requestKey				Initiate Execute
-  UnconfirmedCOVNotification		Initiate Execute
+  AcknowledgeAlarm                Initiate Execute
+  ConfirmedCOVNotification        Initiate Execute
+  UnconfirmedCOVNotification      Initiate Execute
+  ConfirmedEventNotification      Initiate Execute
+  UnconfirmedEventNotification    Initiate Execute
+  GetAlarmSummary                 Initiate Execute
+  GetEventInformation             Initiate Execute
+  GetEnrollmentSummary            Initiate Execute
+  SubscribeCOV                    Initiate Execute
+  SubscribeCOVProperty            Initiate Execute
+  lifeSafetyOperation             Initiate Execute
+  AtomicReadFile                  Initiate Execute
+  AtomicWriteFile                 Initiate Execute
+  AddListElement                  Initiate Execute
+  RemoveListElement               Initiate Execute
+  CreateObject                    Initiate Execute
+  deleteObject                    Initiate Execute
+  ReadProperty                    Initiate Execute
+  ReadPropertyConditional         Initiate Execute
+  ReadPropertyMultiple            Initiate Execute
+  ReadRange                       Initiate Execute
+  WriteProperty                   Initiate Execute
+  WritePropertyMultiple           Initiate Execute
+  DeviceCommunicationControl      Initiate Execute
+  ConfirmedPrivateTransfer        Initiate Execute
+  UnconfirmedPrivateTransfer      Initiate Execute
+  confirmedTextMessage            Initiate Execute
+  UnconfirmedTextMessage          Initiate Execute
+  ReinitializeDevice              Initiate Execute
+  TimeSynchronization             Initiate Execute
+  UTCTimeSynchronization          Initiate Execute
+  Who-Has                         Initiate Execute
+  I-Have                          Initiate Execute
+  Who-Is                          Initiate Execute
+  I-Am                            Initiate Execute
+  VT-Open                         Initiate Execute
+  VT-Close                        Initiate Execute
+  VT-Data                         Initiate Execute
+  authenticate                    Initiate Execute
+  requestKey                      Initiate Execute
+  UnconfirmedCOVNotification      Initiate Execute
 }
 
 Standard Object-Types Supported:
 {
   Accumulator
-  Analog Input                    	
-  Analog Output                   	
-  Analog Value   
-  Averaging                 	
-  Binary Input                    	
-  Binary Output                   	
-  Binary Value                    	
-  Calendar  
-  Command                      	
-  Device    
-  Event Enrollment                      	
-  File 
+  Analog Input
+  Analog Output
+  Analog Value
+  Averaging
+  Binary Input
+  Binary Output
+  Binary Value
+  Calendar
+  Command
+  Device
+  Event Enrollment
+  File
   Group
   Life Safety Point
   Life Safety Zone
   Loop
   Multi-State Input
   Multi-State Output
-  Multi-State Value               	
-  Notification Class              	
-  Program         
-  Pulse Converter                	
-  Schedule                        	
+  Multi-State Value
+  Notification Class
+  Program
+  Pulse Converter
+  Schedule
   Trend Log
--- new objects           
-  Event Log   
+-- new objects
+  Event Log
   Trend Log Multiple
   Load Control
   Structured View
-  Access Door         	
+  Access Door
 }
 
 -- VTS 3.4.9 does not recognize the items commented out below.
@@ -221,7 +221,7 @@ Character Sets Supported:
 
 Special Functionality:
 {
-  Maximum APDU size in octets: 480	
+  Maximum APDU size in octets: 480
 }
 
 List of Objects in Test Device:
@@ -271,10 +271,10 @@ List of Objects in Test Device:
      (trend-log,1),
 -- new objects added 
      (event-log,1),
-      (trend-log-multiple,1),
-      (load-control,1),
-      (structured-view,1),
-      (access-door,1)
+     (trend-log-multiple,1),
+     (load-control,1),
+     (structured-view,1),
+     (access-door,1)
     }
     max-apdu-length-accepted: 480
     segmentation-supported: no-segmentation
@@ -571,11 +571,24 @@ List of Objects in Test Device:
     Present-Value: 1 w
     In-Process:	FALSE
     All-Writes-Successful: TRUE
-    Action: ?
---    Action:	{({,(analog-value,1),present-value,,65.0,,,TRUE,TRUE},
---	          {,(binary-output,1),Present-Value,,INACTIVE,8,1,TRUE,TRUE}),
---	         ({,(analog-value,5),Present-Value,,72.0,,,TRUE,TRUE}, 
---	          {,(binary-output,3),Present-Value,,ACTIVE,8,2,TRUE,TRUE})}
+--    Action: ?
+-- NOTE: 135.1 doesn't say how to encode missing OPTIONAL items in a SEQUENCE: 
+-- should there be an emtpy pair of commas, or should the item and any comma be
+-- omitted?  I believe that the comma MUST be maintained - else there is no
+-- way to tell whether the item is present or not, unless it may be discerned
+-- from the following item (if any), which isn't always possible.
+-- If this interpretation is wrong, this EPICS and the VTS decoder for it
+-- may need to be changed.
+--
+-- Action is an array of BACnetActionList
+-- - 135.1 4.4.1 d says that arrays are enclosed in curly brackets, with
+--   elements separated by commas
+-- - 135.1 4.4.1 c says that lists are enclosed in parenthesis, with
+--   elements separated by commas
+    Action:	{({,(analog-value,1),present-value,,65.0,,,TRUE,TRUE},
+	          {,(binary-output,1),Present-Value,,INACTIVE,8,1,TRUE,TRUE}),
+	         ({,(analog-value,5),Present-Value,,72.0,,,TRUE,TRUE}, 
+	          {,(binary-output,3),Present-Value,,ACTIVE,8,2,TRUE,TRUE})}
     Action-Text: {"Unoccupied", "Occupied"}
     profile-name: "command"
   }
