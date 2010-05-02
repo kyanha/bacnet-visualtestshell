@@ -56,31 +56,27 @@ END_MESSAGE_MAP()
 BOOL CReadAllPropSettingsDlg::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
-	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
+	int i;
 
 	CComboBox * pComboBox =(CComboBox*)GetDlgItem(IDC_RPALL_NETWORK);
 
-//	VTSPortPtr	curPort;
 	VTSDoc * pdoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 	VTSPorts * pports = pdoc == NULL ? NULL : pdoc->GetPorts();
 	VTSNames * pnames = pdoc == NULL ? NULL : pdoc->GetNames();
 
-//MAD_DB	for (int i = 0; i < gMasterPortList.Length(); i++)
 	for (i = 0; pports != NULL && i < pports->GetSize(); i++)
 	{
 		// get a pointer to the ith port
-//		curPort = gMasterPortList[i];
-//		pComboBox->AddString( curPort->portDesc.portName );
 		pComboBox->AddString( (*pports)[i]->GetName() );
 	}
+	pComboBox->SetCurSel(0);
 
 	// Now setup the names...
-
-	pComboBox->SetCurSel(0);
-	
 	pComboBox =(CComboBox*)GetDlgItem(IDC_RPALL_DA);
 	CComboBox* pComboDNET = (CComboBox*)GetDlgItem(IDC_RPALL_DNET_DADR);		//****001
 
+	// TODO: if we require named destinations, we don't NEED both
+	// addresses: use routing.
 	for (i = 0; pnames != NULL && i < pnames->GetSize(); i++)
 	{
 		pComboBox->AddString((*pnames)[i]->GetName());
