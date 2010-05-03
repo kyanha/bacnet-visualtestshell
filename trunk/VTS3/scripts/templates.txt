@@ -1,12 +1,127 @@
 ; Script templates fot VTS
 ; Each SECTION becomes a choice on the Insert menu.
-; Each ITEM becomes a choice in the template selection dialog.
+; Each ITEM becomes a choice in the template selection dialog for its SECTION.
 ; The text lines between ITEM and ENDITEM are inserted into the script.
+
+
+SECTION Script File Elements
+ITEM Header for a test file
+;-------------------------------------------------------------------------------------
+;
+; Script:  yourtext
+;
+; Version: yourtext
+;
+; Purpose: yourtext
+;
+; (This template for a script file is read from the same directory as vts.exe.
+; Feel free to edit this file to meet your needs)
+;
+;-------------------------------------------------------------------------------------
+SETUP yourtext
+SECTION yourtext
+ENDITEM
+
+ITEM Test - Basic test header
+;-------------------------------------------------------------------------------------
+TEST yourtext
+DEPENDENCIES None
+REFERENCE None
+ENDITEM
+
+
+ITEM MAKE Dialog (show text and an OK button)
+MAKE "Title for the Make Dialog" (
+  "Your text here"
+  "as many lines as you want"
+)
+ENDITEM
+
+ITEM CHECK Dialog (show text, and Pass and Fail buttons)
+CHECK "Title for the Check Dialog" (
+  "Your text here"
+  "as many lines as you want"
+)
+ENDITEM
+
 SECTION Service templates
+
+ITEM AcknowledgeAlarm-Request
+  SEND (
+    DA = "IUT"
+    PDU = Confirmed-Request
+    Service = AcknowledgeAlarm
+    Unsigned 0,         your_acknowledgingProcessIdentifier
+    ObjectIdentifier 1, your_eventObjectIdentifier
+    Enumerated 2,       your_eventStateAcknowledged
+    OpenTag 3
+      OpenTag 2
+        date = [(FRIDAY,1/29/2010)]
+        time = [8:36:12.0]
+      CloseTag 2
+    CloseTag 3
+    Characterstring 4,  your_acknowledgmentSource
+    OpenTag 5
+      OpenTag 2
+        date = [(MONDAY,4/26/2010)]
+        time = [8:36:12.0]
+      CloseTag 2
+    CloseTag 5
+  )
+
+  EXPECT (
+    SA  = "IUT"
+    PDU = ComplexAck
+    Service = AcknowledgeAlarm
+    Object = <object>
+  )
+ENDITEM
+
+ITEM CreateObject - ObjectType CHOICE
+  SEND (
+    DA = "IUT"
+    PDU = Confirmed-Request
+    Service = CreateObject
+    OpenTag 0
+      Enum = 0, ANALOG_INPUT
+    CloseTag 0
+--    OpenTag 1
+--      <Optional list of BACnetPropertyValue>
+--    CloseTag 1
+  )
+
+  EXPECT (
+    SA  = "IUT"
+    PDU = ComplexAck
+    Service = CreateObject
+    Object = <object>
+  )
+ENDITEM
+
+ITEM CreateObject - ObjectIdentifier CHOICE
+  SEND (
+    DA = "IUT"
+    PDU = Confirmed-Request
+    Service = CreateObject
+    OpenTag 0
+      Object = 1, object-type, instance
+    CloseTag 0
+--    OpenTag 1
+--      <Optional list of BACnetPropertyValue>
+--    CloseTag 1
+  )
+
+  EXPECT (
+    SA  = "IUT"   
+    PDU = ComplexAck
+    Service = CreateObject
+    Object = <object>
+  )
+ENDITEM
 
 ITEM ReadProperty
   SEND (
-    DA = IUT_IP
+    DA = "IUT"
     PDU = Confirmed-Request
     Service = ReadProperty
     Object = 0, object-type, instance
@@ -15,7 +130,7 @@ ITEM ReadProperty
   )
 
   EXPECT (
-    SA  = IUT_IP   
+    SA  = "IUT"   
     PDU = ComplexAck
     Service = ReadProperty
     Object = 0, OBJECT1
@@ -29,7 +144,7 @@ ENDITEM
 
 ITEM WriteProperty
   SEND (
-    DA = IUT_IP
+    DA = "IUT"
     PDU = Confirmed-Request
     Service = WriteProperty
     Object = 0, object-type, instance
@@ -42,13 +157,157 @@ ITEM WriteProperty
   )
 
   EXPECT (
-    SA  = IUT_IP   
+    SA  = "IUT"   
     PDU = SimpleAck
     Service = WriteProperty
   )
 ENDITEM
 
+ITEM AtomicReadFile - Stream Access
+  SEND (
+    DA = "IUT"
+    PDU = Confirmed-Request
+    Service = AtomicReadFile
+    Object = object-type, instance
+    OpenTag 0
+      Integer   fileStartPosition
+      Unsigned  requestedOctetCount
+    CloseTag 0
+  )
+
+  EXPECT (
+    SA  = "IUT"   
+    PDU = ComplexAck
+    Service = AtomicReadFile
+    Boolean     ? -- endOfFile
+    OpenTag 0
+      Integer      ? -- fileStartPosition
+      OctetString  ? -- fileData
+    CloseTag 0
+  )
+ENDITEM
+
+ITEM AtomicReadFile - Record Access
+  SEND (
+    DA = "IUT"
+    PDU = Confirmed-Request
+    Service = AtomicReadFile
+    Object = object-type, instance
+    OpenTag 1
+      Integer   fileStartRecord
+      Unsigned  requestedRecordCount
+    CloseTag 1
+  )
+
+  EXPECT (
+    SA  = "IUT"   
+    PDU = ComplexAck
+    Service = AtomicReadFile
+    Boolean     ? -- endOfFile
+    OpenTag 1
+      Integer      ? -- fileStartRecord
+      Unsigned     ? -- returnedRecordCount
+      OctetString  ? -- fileData1 - first record
+      OctetString  ? -- fileDataN - as many records as you want
+    CloseTag 1
+  )
+ENDITEM
+
+ITEM AtomicWriteFile - Stream Access
+  SEND (
+    DA = "IUT"
+    PDU = Confirmed-Request
+    Service = AtomicWriteFile
+    Object = object-type, instance
+    OpenTag 0
+      Integer      fileStartPosition
+      OctetString  fileData
+    CloseTag 0
+  )
+
+  EXPECT (
+    SA  = "IUT"   
+    PDU = ComplexAck
+    Service = AtomicWriteFile
+    Integer 0, ? -- fileStartPosition
+  )
+ENDITEM
+
+ITEM AtomicWriteFile - Record Access
+  SEND (
+    DA = "IUT"
+    PDU = Confirmed-Request
+    Service = AtomicWriteFile
+    Object = object-type, instance
+    OpenTag 1
+      Integer      fileStartRecord
+      OctetString  ? -- fileData1 - first record
+      OctetString  ? -- fileDataN - as many records as you want
+    CloseTag 1
+  )
+
+  EXPECT (
+    SA  = "IUT"   
+    PDU = ComplexAck
+    Service = AtomicWriteFile
+    Integer 1, ? -- fileStartRecord
+  )
+ENDITEM
+
+
 SECTION Datatypes
+
+ITEM NULL
+NULL
+ENDITEM
+
+ITEM Boolean
+boolean = T
+ENDITEM
+
+ITEM Unsigned
+UNSIGNED = 6
+ENDITEM
+
+ITEM Signed Integer
+integer = 7
+ENDITEM
+
+ITEM Real
+real = 3.14
+ENDITEM
+
+ITEM Double
+double = 3.14
+ENDITEM
+
+ITEM Octet String
+octetstring = X'010203'
+ENDITEM
+
+ITEM Character String
+characterstring = "hi"
+ENDITEM
+
+ITEM Bit String
+bitstring = [{T,F,T,F}]
+ENDITEM
+
+ITEM Enumerated
+enumerated = 6
+ENDITEM
+
+ITEM Date
+date = [(FRIDAY,1/29/2010)]
+ENDITEM
+
+ITEM Time
+time = [8:36:12.00]
+ENDITEM
+
+ITEM Object Identifier
+objectidentifier = analog-input, 1
+ENDITEM
 
 ITEM Paired Context Tag 0
     OpenTag 0
