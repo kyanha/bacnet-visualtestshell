@@ -684,8 +684,7 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 
 void ScriptExecutor::Run( void )
 {
-	CSingleLock		lock( &execCS )
-	;
+	CSingleLock		lock( &execCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
@@ -712,8 +711,7 @@ void ScriptExecutor::Run( void )
 
 void ScriptExecutor::Halt( void )
 {
-	CSingleLock		lock( &execCS )
-	;
+	CSingleLock		lock( &execCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
@@ -724,7 +722,10 @@ void ScriptExecutor::Halt( void )
 		return;
 	}
 
-	Msg( 1, execTest->baseLineStart, "Halt" );
+	// "Halt" might sound like "halt forever".
+	// "Suspend" is clearly temporary
+	// I'm too lazy to change the method names...
+	Msg( 1, execTest->baseLineStart, "Suspended" );
 
 	// change the state to stopped
 	execState = execStopped;
@@ -743,8 +744,7 @@ void ScriptExecutor::Halt( void )
 
 void ScriptExecutor::Step( void )
 {
-	CSingleLock		lock( &execCS )
-	;
+	CSingleLock		lock( &execCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
@@ -774,8 +774,7 @@ void ScriptExecutor::Step( void )
 
 void ScriptExecutor::Step( bool pass )
 {
-	CSingleLock		lock( &execCS )
-	;
+	CSingleLock		lock( &execCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
@@ -809,8 +808,7 @@ void ScriptExecutor::Step( bool pass )
 
 void ScriptExecutor::Resume( void )
 {
-	CSingleLock		lock( &execCS )
-	;
+	CSingleLock		lock( &execCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
@@ -838,10 +836,9 @@ void ScriptExecutor::Resume( void )
 //	ScriptExecutor::Kill
 //
 
-void ScriptExecutor::Kill( void )
+void ScriptExecutor::Kill( bool closingDoc )
 {
-	CSingleLock		lock( &execCS )
-	;
+	CSingleLock		lock( &execCS );
 
 	// lock to prevent multiple thread access
 	lock.Lock();
@@ -853,7 +850,7 @@ void ScriptExecutor::Kill( void )
 	}
 
 	// tell the database the test was killed
-	Msg( 1, execTest->baseLineStart, "Kill" );
+	Msg( 1, execTest->baseLineStart, "Terminated" );
 
 	// pull the task from the installed list (effecively canceling a timer)
 	SuspendTask();
@@ -868,8 +865,27 @@ void ScriptExecutor::Kill( void )
 	if ( execCommand->baseType == ScriptBase::scriptPacket && ((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL )
 		((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
 
+	// If we don't do this, "Kill" just aborts one test and goes on to the
+	// next one.  We have FAIL and PASS for that.
+	// Force the entire suite (if any) to fail.
+	execAllTests = false;
+
 	// make sure the doc knows we're done
 	Cleanup();
+
+	if (closingDoc)
+	{
+		// SetTestStatus sends WM_VTS_EXECMSG to the script window, but
+		// it uses the document, which may be closed before ther message is
+		// processed when Kill is called from close processing.
+		// We need to ensure that gExecutor.ReadMsg() will return NULL
+		//
+		ScriptExecMsg *pMsg;
+		while ((pMsg = ReadMsg()) != NULL)
+		{
+			delete pMsg;
+		}
+	}
 
 	// unlock
 	lock.Unlock();
