@@ -142,11 +142,11 @@ BEGIN
     BUTTON      ID_SCRIPT_RESET
     SEPARATOR
     BUTTON      ID_SCRIPT_RUN
+    BUTTON      ID_SCRIPT_KILL
     BUTTON      ID_SCRIPT_HALT
     BUTTON      ID_SCRIPT_STEP
     BUTTON      ID_SCRIPT_STEPPASS
     BUTTON      ID_SCRIPT_STEPFAIL
-    BUTTON      ID_SCRIPT_KILL
 END
 
 IDR_GLOBALBAR TOOLBAR MOVEABLE PURE  16, 15
@@ -240,16 +240,16 @@ BEGIN
     POPUP "&Script"
     BEGIN
         MENUITEM "&Check Syntax",               ID_SCRIPT_CHECK_SYNTAX
-        MENUITEM "&Environment",                ID_SCRIPT_ENV
+        MENUITEM "En&vironment",                ID_SCRIPT_ENV
         MENUITEM SEPARATOR
-        MENUITEM "&Run\tF5",                    ID_SCRIPT_RUN
-        MENUITEM "&Halt",                       ID_SCRIPT_HALT
+        MENUITEM "&Run / resume\tF5",           ID_SCRIPT_RUN
+        MENUITEM "Suspen&d",                    ID_SCRIPT_HALT
         MENUITEM "&Step\tF6",                   ID_SCRIPT_STEP
         MENUITEM "Step &Pass",                  ID_SCRIPT_STEPPASS
         MENUITEM "Step &Fail",                  ID_SCRIPT_STEPFAIL
-        MENUITEM "&Kill\tF8",                   ID_SCRIPT_KILL
+        MENUITEM "&Terminate\tF8",              ID_SCRIPT_KILL
         MENUITEM SEPARATOR
-        MENUITEM "Rese&t",                      ID_SCRIPT_RESET
+        MENUITEM "R&eset Parameters",           ID_SCRIPT_RESET
     END
     POPUP "&View"
     BEGIN
@@ -7074,11 +7074,11 @@ BEGIN
     ID_EDIT_PREFERENCES     "Edit application preferences"
     ID_EDIT_DELETE          "Delete all packets in the current log\nDelete All Packets"
     ID_SCRIPT_CHECK_SYNTAX  "Check the syntax of the script.\nCheck Syntax"
-    ID_SCRIPT_RUN           "Execute the selected test or all tests.\nExecute script"
-    ID_SCRIPT_HALT          "Stop the currently running script.\nHalt script execution"
+    ID_SCRIPT_RUN           "Execute the selected test or all tests.\nExecute or resume script"
+    ID_SCRIPT_HALT          "Suspend the currently running script.\nSuspend script execution"
     ID_SCRIPT_STEP          "Execute a single step of the selected test.\nSingle step"
     ID_SCRIPT_RESET         "Return the parameter values to the script definition.\nParameter value reset"
-    ID_SCRIPT_KILL          "Force the running or halted test to fail.\nForce fail"
+    ID_SCRIPT_KILL          "Terminate the running or suspended script.\nTerminate script"
     ID_SCRIPT_STEPPASS      "Pass the current SEND/EXPECT and continue.\nBypass with PASS"
     ID_SCRIPT_STEPFAIL      "Fail the current SEND/EXPECT and continue.\nBypass with FAIL"
     ID_SEND_NEWPACKET       "Create a new packet to send"

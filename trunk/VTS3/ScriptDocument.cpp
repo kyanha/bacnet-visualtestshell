@@ -92,7 +92,7 @@ void ScriptDocument::OnCloseDocument( void )
 {
 	// if there is a test running (or halted) kill it
 	if (m_bExecBound)
-		gExecutor.Kill();
+		gExecutor.Kill( true );
 
 	// let the base class continue
 	CDocument::OnCloseDocument();

@@ -377,7 +377,7 @@ void VTSDoc::OnCloseDocument()
 
 	// if the executor is associated with this document, kill it
 	if (gExecutor.IsBound(this))
-		gExecutor.Kill();
+		gExecutor.Kill( true );
 
 	// unload the port list
 //	m_Ports.Unload();
@@ -1664,6 +1664,9 @@ void VTSPort::Refresh( void )
 		// default bind point is the filter
 		portBindPoint = portFilter;
 
+		// TODO: apparently we can't do any of the portEndpoint stuff (like SENDING) 
+		// on any Port that isn't IP?
+
 		// if this is an IP port, we have more work to do
 //		if (portDesc.portType == ipPort) {
 		if ( m_nPortType == ipPort ) {
@@ -2503,7 +2506,9 @@ void VTSNames::InitializeTD( VTSPort * pport, const BACnetOctet *addr, int len )
 	int i = FindIndex(pnameNew->m_strName);
 	
 	if ( i == -1 )
+	{
 		Add(pnameNew);
+	}
 	else
 	{
 		delete (VTSName *) GetAt(i);

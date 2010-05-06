@@ -565,7 +565,7 @@ void ScriptFrame::OnScriptKill()
 	}
 
 	// kill the test, executor returns to idle
-	gExecutor.Kill();
+	gExecutor.Kill( false );
 }
 
 //

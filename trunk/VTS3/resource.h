@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
+// Microsoft Developer Studio generated include file.
 // Used by VTS.rc
 //
 #define ID_NEWNAME                      3
@@ -1158,7 +1158,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        383
-#define _APS_NEXT_COMMAND_VALUE         32911
+#define _APS_NEXT_COMMAND_VALUE         32912
 #define _APS_NEXT_CONTROL_VALUE         1576
 #define _APS_NEXT_SYMED_VALUE           112
 #endif

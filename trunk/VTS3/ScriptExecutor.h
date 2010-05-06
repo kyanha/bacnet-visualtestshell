@@ -408,7 +408,7 @@ class ScriptExecutor : public BACnetTask {
 		void Step( void );						// exec current packet, set up next one
 		void Step( bool pass );					// act like packet being processed
 		void Resume( void );					// go back to running
-		void Kill( void );						// fail test and exit
+		void Kill( bool closingDoc );			// fail test and exit
 
 		ScriptExecMsg * ReadMsg( void );		// read a message from the queue
 
