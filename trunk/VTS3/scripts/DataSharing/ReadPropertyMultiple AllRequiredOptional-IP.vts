@@ -1,22 +1,23 @@
 -----------------------------------------------------------------------------
  SETUP ReadPropertyMultiple Service Execution Tests
-  IUT_IP = 10.10.10.100:0xBAC0
-  
-  OBJECT1 = Device, 1967	; DEVICE OBJECT
-  OBJECT2 = analog-VALUE, 1	; Object which is the subject of the Read Prop tests
-  OBJECT3 = analog-VALUE, 2	; Object which is the subject of the Read Prop tests
-  OBJECT4 = File, 104		; Object which is the subject of the Read Prop tests
+  IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
 
-  INDEX0 = 0		; Index used in any test to read array length
-  INDEX1 = 1		; Array index for test #1g "Read a Single Element of an Array"
-  INDEX2 = 4		; Array index for test #1j "Read Property - Read Null Values"
+  OBJECT1 = Device, 47814   ; DEVICE OBJECT
+  OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
+  OBJECT3 = analog-VALUE, 2 ; Object which is the subject of the Read Prop tests
+  OBJECT4 = File, 104       ; Object which is the subject of the Read Prop tests
+
+  INDEX0 = 0        ; Index used in any test to read array length
+  INDEX1 = 1        ; Array index for test #1g "Read a Single Element of an Array"
+  INDEX2 = 4        ; Array index for test #1j "Read Property - Read Null Values"
 
 ;-----------------------------------------------------------------------------
 
  SECTION ReadPropertyMultiple All/Required/Optional Service Execution Tests
 
 
-;NOte:Here take Object Type of Device as Example   
+;NOte:Here take Object Type of Device as Example
 
 
 ;-------------------------------------------------------------------------------------
@@ -25,20 +26,20 @@
   -- Purpose: This test case verifies the ability to read all properties of a
   -- single object.
 
-  -- Test Concept: A ReadPropertyMultiple service request is made with the special 
+  -- Test Concept: A ReadPropertyMultiple service request is made with the special
   -- Property ID of "ALL". The returned properties for the object are verified manually.
 
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadPropertyMultiple Service and (T) Reading ALL Properties
-  
+
   -- Step #1: Send ReadPropertyMultiple request for all properties
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
       PDU = Confirmed-Request
       SegMsg = 0
@@ -54,7 +55,7 @@
   -- Step #2 & #3: Receive ReadPropertyMultiple ACK and verify manually
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -62,117 +63,117 @@
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1                       ;OBJECTX,here give Device_Obj as example
       OpenTag 1
-         Property = 2, Object-Identifier;ALL			; verify returned properties manually    
-           OpenTag 4				;  or else enter list of properties here		
+         Property = 2, Object-Identifier;ALL            ; verify returned properties manually
+           OpenTag 4                ;  or else enter list of properties here
               AL = {Object-Identifier}
-	   CloseTag 4
-	 Property = 2, Object-Name  
+       CloseTag 4
+     Property = 2, Object-Name
            OpenTag 4
-	      AL = {Object-Name}
-	   CloseTag 4
-	 Property = 2, Object-Type
-	   OpenTag 4
-	      AL = {Object-Type}
+          AL = {Object-Name}
+       CloseTag 4
+     Property = 2, Object-Type
+       OpenTag 4
+          AL = {Object-Type}
          CloseTag 4
         Property = 2, System-Status
-	   OpenTag 4
-	      AL = {System-Status}
+       OpenTag 4
+          AL = {System-Status}
          CloseTag 4
         Property = 2, Vendor-Name
-	   OpenTag 4
-	      AL = {Vendor-Name}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Vendor-Name}
+         CloseTag 4
         Property = 2, Vendor-Identifier
-	   OpenTag 4
-	      AL = {Vendor-Identifier}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Vendor-Identifier}
+         CloseTag 4
         Property = 2, Model-Name
-	   OpenTag 4
-	      AL = {Model-Name}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Model-Name}
+         CloseTag 4
         Property = 2,FIRMWARE-REVISION
-	   OpenTag 4
-	      AL = {Firmware-revision}
-         CloseTag 4         
-        Property = 2,Application-Software-Version 
-	   OpenTag 4
-	      AL = {Application-Software-Version}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Firmware-revision}
+         CloseTag 4
+        Property = 2,Application-Software-Version
+       OpenTag 4
+          AL = {Application-Software-Version}
+         CloseTag 4
         Property = 2, Location
-	   OpenTag 4
-	      AL = {Location}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Location}
+         CloseTag 4
        Property = 2, Description
-	   OpenTag 4
-	      AL = {Description}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Description}
+         CloseTag 4
        Property = 2, Protocol-Version
-	   OpenTag 4
-	      AL = {Protocol-Version}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Protocol-Version}
+         CloseTag 4
        Property = 2,PROTOCOL-REVISION
         OpenTag 4
          Unsigned =1
         CloseTag 4
        Property = 2, Protocol-Conformance-Class
-	 OpenTag 4
-	      AL = {Protocol-Conformance-Class}
-         CloseTag 4         
+     OpenTag 4
+          AL = {Protocol-Conformance-Class}
+         CloseTag 4
        Property = 2, protocol-services-supported
-	   OpenTag 4
-	      AL = {protocol-services-supported}
-         CloseTag 4         
+       OpenTag 4
+          AL = {protocol-services-supported}
+         CloseTag 4
        Property = 2, Protocol-object-Types-Supported
-	   OpenTag 4
-	      AL = {Protocol-object-Types-Supported}
-         CloseTag 4   
+       OpenTag 4
+          AL = {Protocol-object-Types-Supported}
+         CloseTag 4
        Property = 2,Object-List
-       	 OpenTag 4
-	      AL = {Object-List}
-         CloseTag 4   
+         OpenTag 4
+          AL = {Object-List}
+         CloseTag 4
        Property = 2,Max-APDU-Length-Accepted
-	   OpenTag 4
-	      AL = {Max-APDU-Length-Accepted}
-         CloseTag 4   
+       OpenTag 4
+          AL = {Max-APDU-Length-Accepted}
+         CloseTag 4
        Property = 2,Segmentation-Supported
-       	 OpenTag 4
-	      AL = {segmentation-supported}
-         CloseTag 4   
+         OpenTag 4
+          AL = {segmentation-supported}
+         CloseTag 4
        Property = 2,local-time
-       	 OpenTag 4
-	      AL = {local-time}
-         CloseTag 4   
+         OpenTag 4
+          AL = {local-time}
+         CloseTag 4
        Property = 2,Local-date
-       	 OpenTag 4
-	      AL = {Local-date}
-         CloseTag 4   
+         OpenTag 4
+          AL = {Local-date}
+         CloseTag 4
        Property = 2,utc-offset
-       	 OpenTag 4
-	      AL = {utc-offset}
-         CloseTag 4   
+         OpenTag 4
+          AL = {utc-offset}
+         CloseTag 4
        Property = 2,daylight-savings-status
-       	 OpenTag 4
-	      AL = {daylight-savings-status}
-         CloseTag 4   
+         OpenTag 4
+          AL = {daylight-savings-status}
+         CloseTag 4
        Property = 2,apdu-segment-timeout
-       	 OpenTag 4
-	      AL = {apdu-segment-timeout}
-         CloseTag 4   
+         OpenTag 4
+          AL = {apdu-segment-timeout}
+         CloseTag 4
        Property = 2,apdu-timeout
-       	 OpenTag 4
-	      AL = {apdu-timeout}
-         CloseTag 4   
+         OpenTag 4
+          AL = {apdu-timeout}
+         CloseTag 4
        Property = 2,number-of-APDU-retries
-       	 OpenTag 4
-	      AL = {number-of-APDU-retries}
-         CloseTag 4   
+         OpenTag 4
+          AL = {number-of-APDU-retries}
+         CloseTag 4
        Property = 2,device-address-binding
-       	 OpenTag 4
-	;      AL = {device-address-binding}
-         CloseTag 4   
+         OpenTag 4
+    ;      AL = {device-address-binding}
+         CloseTag 4
        Property = 2,152
-       	 OpenTag 4
-	 CloseTag 4   
+         OpenTag 4
+     CloseTag 4
       CloseTag 1
   )
   ;-------------------------------------------------------------------------------------
@@ -183,34 +184,34 @@
   -- Purpose: This test case verifies the ability to read all required properties of
   -- a single object.
 
-  -- Test Concept: A ReadPropertyMultiple service request is made with the special 
+  -- Test Concept: A ReadPropertyMultiple service request is made with the special
   -- Property ID of "REQUIRED". The returned properties for the object are verified
   -- manually.
 
   -- Test Steps:
   --  1. TRANSMIT ReadPropertyMultiple-Request,
-  --	'Object Identifier' = ObjectX,
-  --	'Property Identifier' =	REQUIRED
+  --    'Object Identifier' = ObjectX,
+  --    'Property Identifier' = REQUIRED
   --  2. RECEIVE ReadPropertyMultiple-ACK,
-  --	'Object Identifier' = ObjectX,
-  --	REPEAT P = (each property supported by Object1) DO{
-  --		'Property Identifier' =	P,
-  --		'Property Value' = (the value of P specified in the EPICS)
+  --    'Object Identifier' = ObjectX,
+  --    REPEAT P = (each property supported by Object1) DO{
+  --        'Property Identifier' = P,
+  --        'Property Value' = (the value of P specified in the EPICS)
   --  3. Manually verify returned properties for ObjectX
 
-  -- Passing Result: All returned properties for the specified object-type shall 
-  -- match the EPICS. 
+  -- Passing Result: All returned properties for the specified object-type shall
+  -- match the EPICS.
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadPropertyMultiple Service and (T) Reading REQUIRED Properties
-  
+
   -- Step #1: Send ReadPropertyMultiple request for all required properties
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
       PDU = Confirmed-Request
       SegMsg = 0
@@ -226,7 +227,7 @@
   -- Step #2 & #3: Receive ReadPropertyMultiple ACK and verify manually
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -234,86 +235,86 @@
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1                       ;OBJECTX,here give Device_Obj as example
       OpenTag 1
-         Property = 2, Object-Identifier;ALL			; verify returned properties manually    
-           OpenTag 4				;  or else enter list of properties here		
+         Property = 2, Object-Identifier;ALL            ; verify returned properties manually
+           OpenTag 4                ;  or else enter list of properties here
               AL = {Object-Identifier}
-	   CloseTag 4
-	 Property = 2, Object-Name  
+       CloseTag 4
+     Property = 2, Object-Name
            OpenTag 4
-	      AL = {Object-Name}
-	   CloseTag 4
-	 Property = 2, Object-Type
-	   OpenTag 4
-	      AL = {Object-Type}
+          AL = {Object-Name}
+       CloseTag 4
+     Property = 2, Object-Type
+       OpenTag 4
+          AL = {Object-Type}
          CloseTag 4
         Property = 2, System-Status
-	   OpenTag 4
-	      AL = {System-Status}
+       OpenTag 4
+          AL = {System-Status}
          CloseTag 4
         Property = 2, Vendor-Name
-	   OpenTag 4
-	      AL = {Vendor-Name}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Vendor-Name}
+         CloseTag 4
         Property = 2, Vendor-Identifier
-	   OpenTag 4
-	      AL = {Vendor-Identifier}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Vendor-Identifier}
+         CloseTag 4
         Property = 2, Model-Name
-	   OpenTag 4
-	      AL = {Model-Name}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Model-Name}
+         CloseTag 4
         Property = 2,FIRMWARE-REVISION
-	   OpenTag 4
-	      AL = {FIRMWARE-REVISION}
-         CloseTag 4         
-        Property = 2,Application-Software-Version 
-	   OpenTag 4
-	      AL = {Application-Software-Version}
-         CloseTag 4         
+       OpenTag 4
+          AL = {FIRMWARE-REVISION}
+         CloseTag 4
+        Property = 2,Application-Software-Version
+       OpenTag 4
+          AL = {Application-Software-Version}
+         CloseTag 4
        Property = 2, Protocol-Version
-	   OpenTag 4
-	      AL = {Protocol-Version}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Protocol-Version}
+         CloseTag 4
        Enumerated = 2,139
         OpenTag 4
          Unsigned =1
         CloseTag 4
        Property = 2, Protocol-Conformance-Class
-	 OpenTag 4
-	      AL = {Protocol-Conformance-Class}
-         CloseTag 4         
+     OpenTag 4
+          AL = {Protocol-Conformance-Class}
+         CloseTag 4
        Property = 2, protocol-services-supported
-	   OpenTag 4
-	      AL = {protocol-services-supported}
-         CloseTag 4         
+       OpenTag 4
+          AL = {protocol-services-supported}
+         CloseTag 4
        Property = 2, Protocol-Object-Types-Supported
-	   OpenTag 4
-	      AL = {Protocol-Object-Types-Supported}
-         CloseTag 4   
+       OpenTag 4
+          AL = {Protocol-Object-Types-Supported}
+         CloseTag 4
        Property = 2,Object-List
-       	 OpenTag 4
-	      AL = {Object-List}
-         CloseTag 4   
+         OpenTag 4
+          AL = {Object-List}
+         CloseTag 4
        Property = 2,Max-APDU-Length-Accepted
-	   OpenTag 4
-	      AL = {Max-APDU-Length-Accepted}
-         CloseTag 4   
+       OpenTag 4
+          AL = {Max-APDU-Length-Accepted}
+         CloseTag 4
        Property = 2,Segmentation-Supported
-       	 OpenTag 4
-	      AL = {segmentation-supported}
-         CloseTag 4   
+         OpenTag 4
+          AL = {segmentation-supported}
+         CloseTag 4
        Property = 2,apdu-timeout
-       	 OpenTag 4
-	      AL = {apdu-timeout}
-         CloseTag 4   
+         OpenTag 4
+          AL = {apdu-timeout}
+         CloseTag 4
        Property = 2,number-of-APDU-retries
-       	 OpenTag 4
-	      AL = {number-of-APDU-retries}
-         CloseTag 4   
+         OpenTag 4
+          AL = {number-of-APDU-retries}
+         CloseTag 4
        Property = 2,device-address-binding
-       	 OpenTag 4
-	;      AL = {device-address-binding}
-         CloseTag 4   
+         OpenTag 4
+    ;      AL = {device-address-binding}
+         CloseTag 4
       CloseTag 1
   )
 
@@ -324,19 +325,19 @@
   -- Purpose: This test case verifies the ability to read all optional properties of a
   -- single object.
 
-  -- Test Concept: A ReadPropertyMultiple service request is made with the special 
+  -- Test Concept: A ReadPropertyMultiple service request is made with the special
   -- Property ID of "OPTIONAL". The returned properties for the object are verified
   -- manually.
 
   -- Test Steps:
   --  1. TRANSMIT ReadPropertyMultiple-Request,
-  --	'Object Identifier' = ObjectX,
-  --	'Property Identifier' =	OPTIONAL
+  --    'Object Identifier' = ObjectX,
+  --    'Property Identifier' = OPTIONAL
   --  2. RECEIVE ReadPropertyMultiple-ACK,
-  --	'Object Identifier' = ObjectX,
-  --	REPEAT P = (each property supported by Object1) DO{
-  --		'Property Identifier' =	P,
-  --		'Property Value' = (the value of P specified in the EPICS)
+  --    'Object Identifier' = ObjectX,
+  --    REPEAT P = (each property supported by Object1) DO{
+  --        'Property Identifier' = P,
+  --        'Property Value' = (the value of P specified in the EPICS)
   --  3. Manually verify returned properties for ObjectX
 
   -- Passing Result: If no optional properties are supported then an empty 'List of
@@ -347,15 +348,15 @@
   REFERENCE (B) ReadPropertyMultiple Service and (T) Reading ALL Properties
 
   -- Step #1: Send ReadPropertyMultiple request for Optional properties
-    
+
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
+      SegMsg = TRUE
+      SegResp = TRUE
       MaxResp = 1476
       InvokeID = 1
       Service = ReadPropertyMultiple
@@ -367,7 +368,7 @@
   -- Step #2 & #3: Receive ReadPropertyMultiple ACK and verify manually
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -376,36 +377,36 @@
       Object = 0, OBJECT1                       ;OBJECTX,here give Device_Obj as example
       OpenTag 1
         Property = 2, Location
-	   OpenTag 4
-	      AL = {Location}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Location}
+         CloseTag 4
        Property = 2, Description
-	   OpenTag 4
-	      AL = {Description}
-         CloseTag 4         
+       OpenTag 4
+          AL = {Description}
+         CloseTag 4
        Property = 2,local-time
-       	 OpenTag 4
-	      AL = {local-time}
-         CloseTag 4   
+         OpenTag 4
+          AL = {local-time}
+         CloseTag 4
        Property = 2,Local-date
-       	 OpenTag 4
-	      AL = {Local-date}
-         CloseTag 4   
+         OpenTag 4
+          AL = {Local-date}
+         CloseTag 4
        Property = 2,utc-offset
-       	 OpenTag 4
-	      AL = {utc-offset}
-         CloseTag 4   
+         OpenTag 4
+          AL = {utc-offset}
+         CloseTag 4
        Property = 2,daylight-savings-status
-       	 OpenTag 4
-	      AL = {daylight-savings-status}
-         CloseTag 4   
+         OpenTag 4
+          AL = {daylight-savings-status}
+         CloseTag 4
        Property = 2,apdu-segment-timeout
-       	 OpenTag 4
-	      AL = {apdu-segment-timeout}
-         CloseTag 4   
+         OpenTag 4
+          AL = {apdu-segment-timeout}
+         CloseTag 4
        Property = 2,152
-       	 OpenTag 4
-	 CloseTag 4   
+         OpenTag 4
+     CloseTag 4
       CloseTag 1
   )
   ;-------------------------------------------------------------------------------------

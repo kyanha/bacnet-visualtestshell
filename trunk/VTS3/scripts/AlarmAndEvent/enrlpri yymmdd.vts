@@ -27,7 +27,8 @@
 SETUP Object Support Tests - Priority Filter test
 
   ;--------------------------------------------------------------
-   IUT_IP = 208.6.162.35
+   IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;            CHANGE: MY_MAC address and "Untitled"
@@ -55,7 +56,7 @@ SETUP Object Support Tests - Priority Filter test
   ;IUT_IP =  0040ae000d71  -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,700                -- Device object instance for IUT.
+  DEVICE_ID = DEVICE,47813                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object
   MONITORED_ID = MULTISTATE-INPUT, 1    -- the monitored object, same as above 
@@ -130,7 +131,7 @@ SETUP Object Support Tests - Priority Filter test
   --        'MaxPriority' = 0
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -154,7 +155,7 @@ SETUP Object Support Tests - Priority Filter test
   --                                              range)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -172,7 +173,7 @@ SETUP Object Support Tests - Priority Filter test
   --        'MaxPriority' = 255
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -196,7 +197,7 @@ SETUP Object Support Tests - Priority Filter test
   --                                               range)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -214,7 +215,7 @@ SETUP Object Support Tests - Priority Filter test
   --        'MaxPriority' = XHIGH
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -238,7 +239,7 @@ SETUP Object Support Tests - Priority Filter test
   --                                               range)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -256,7 +257,7 @@ SETUP Object Support Tests - Priority Filter test
   --        'MaxPriority' = 128
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -280,7 +281,7 @@ SETUP Object Support Tests - Priority Filter test
   --                                               range)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = TRUE

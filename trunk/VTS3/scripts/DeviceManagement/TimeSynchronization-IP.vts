@@ -27,9 +27,10 @@
   ; TD_CONFIG  All objects and properties are listed here including notes on there use
   ;
 
-	TD_IP = 10.10.10.2
+	TD_IP  = "TD_IP"
+	TD_PORT = "bip"
 
-	OBJECT1 = Device, 245146
+	OBJECT1 = Device, 47814
 
 ;  TESTDATE = MON, JANUARY 01, 2001
 ;  TESTTIME = 01:02:03.00 AM
@@ -48,7 +49,7 @@
   ; IUT_CONFIG
   ;
   
-	IUT_IP = 208.6.162.35
+	IUT_IP = "IUT_IP"
 				                            
   ;-------------------------------------------------------------------------------------
   
@@ -138,7 +139,7 @@
   -- Step #1 & 2: Verify (read) device's local date
 
     SEND (
-	Network = "Untitled"
+	NETWORK = TD_PORT
 	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
 	DER = TRUE
@@ -153,7 +154,7 @@
    )
 
     EXPECT (
-	Network = "Untitled"
+	NETWORK = TD_PORT
 	DA = TD_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -163,14 +164,14 @@
 	Object = 0, OBJECT1
 	Property = 1, Local-Date
 	OpenTag 3
-         	AL != X'0000000000'
+         	ALDATA !=  X'0000000000'
 	CloseTag 3
     )
 
   -- Step #3 & 4: Verify (read) device's local time
 
     SEND (
-	Network = "Untitled"
+	NETWORK = TD_PORT
 	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
 	DER = TRUE
@@ -185,7 +186,7 @@
     )
 
     EXPECT (
-	Network = "Untitled"
+	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
 	DER = FALSE
@@ -201,7 +202,7 @@
   -- Step #5 & 6: Verify (read) device's UTC offset
 
     SEND (
-	Network = "Untitled"
+	NETWORK = TD_PORT
 	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
 	DER = TRUE
@@ -216,7 +217,7 @@
     )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	DER = FALSE
@@ -232,7 +233,7 @@
   -- Step #7 & 8: Verify (read) device's daylight savings status
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -247,7 +248,7 @@
     )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
 	DA = TD_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -264,7 +265,7 @@
   -- Step #9: Transmit via local broadcast new time & date
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = BROADCAST
       	SA = TD_IP
 	bvlci =ORIGINAL-BROADCAST-NPDU
@@ -281,7 +282,7 @@
   -- Step #10 & 11: Verify (read) device's new local date
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -296,7 +297,7 @@
    )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = TD_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -313,7 +314,7 @@
   -- Step #12 & 13: Verify (read) device's new local time
 
       SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -328,7 +329,7 @@
     )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	DER = FALSE
@@ -361,7 +362,7 @@
   -- Step #1 & 2: Verify (read) device's local date
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
 	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -376,7 +377,7 @@
    )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = TD_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -393,7 +394,7 @@
   -- Step #3 & 4: Verify (read) device's local time
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -408,7 +409,7 @@
     )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
 	DER = FALSE
@@ -424,7 +425,7 @@
   -- Step #5 & 6: Verify (read) device's UTC offset
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -439,7 +440,7 @@
     )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	DER = FALSE
@@ -455,7 +456,7 @@
   -- Step #7 & 8: Verify (read) device's daylight savings status
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -470,7 +471,7 @@
     )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = TD_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -487,7 +488,7 @@
   -- Step #9: Transmit new time & date direct to IUT
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	SA = TD_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
@@ -504,7 +505,7 @@
   -- Step #10 & 11: Verify (read) device's new local date
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -519,7 +520,7 @@
    )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = TD_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -536,7 +537,7 @@
   -- Step #12 & 13: Verify (read) device's new local time
 
     SEND (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -551,7 +552,7 @@
     )
 
     EXPECT (
-      	Network = "Untitled"
+      	NETWORK = TD_PORT
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	DER = FALSE

@@ -30,10 +30,10 @@ SETUP Schedule Object Tests
 
 ;NET_1 = 1, ETHERNET, 0 ; Net 1, type Ethernet, Port 0 ; Do not change
 
---IUT_IP =10.10.10.100
-IUT_IP = 208.6.162.35
-TD_IP = 10.10.10.36
-
+--IUT_IP = "IUT_IP"
+IUT_IP = "IUT_IP"
+TD_IP  = "TD_IP"
+TD_PORT = "bip"
 ;-------------------------------------------------------------------------
 ;Routing Setup by default IUT and TD are on the same Ethernet segment
 ;-------------------------------------------------------------------------
@@ -259,7 +259,7 @@ TEST #1  Effective_Period Property Test
 -- Step #1: Configure the Schedule object's Effective_Period property
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -272,15 +272,15 @@ TEST #1  Effective_Period Property Test
       Object = 0, SCHEDULE_1
       Property = 1, Effective-Period
       OpenTag 3
-        DATE = Sunday, 1/2/2000
+        DATE = [Sunday, 1/2/2000]
         --AL = X'A464010207'
-         DATE = Thursday, 1/6/2000
+         DATE = [Thursday, 1/6/2000]
         --AL = X'A464010604'
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -291,7 +291,7 @@ TEST #1  Effective_Period Property Test
 -- Step #2: Configure the Schedule object's Weekly_Schedule property
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -305,37 +305,37 @@ TEST #1  Effective_Period Property Test
       Property = 1, Weekly-Schedule
       OpenTag 3
         OpenTag 0	 -- Mon
-          Time = 00:00:00.00 
+          Time = [00:00:00.00] 
           ;REAL = WEEKDAYVAL_MON
           ENUM = INACTIVE
         CloseTag 0
         OpenTag 0  -- Tue
-          Time = 00:00:00.00 	 -- D1 (midnight)
+          Time = [00:00:00.00] 	 -- D1 (midnight)
           ;REAL = WEEKDAYVAL_TUE	 -- V1
           ENUM = INACTIVE
         CloseTag 0
         OpenTag 0	 -- WedVR
-          Time = 00:00:00.00 
+          Time = [00:00:00.00] 
           ;REAL = WEEKDAYVAL_WED
           ENUM = INACTIVE
         CloseTag 0
         OpenTag 0	 -- Thu
-          Time = 00:00:00.00 
+          Time = [00:00:00.00] 
           ;REAL = WEEKDAYVAL_THU
           ENUM = ACTIVE
         CloseTag 0
         OpenTag 0	 -- Fri
-          Time = 00:00:00.00 	 -- D2 (midnight)
+          Time = [00:00:00.00] 	 -- D2 (midnight)
           ;REAL = WEEKDAYVAL_FRI     	 -- V2
           ENUM = ACTIVE
         CloseTag 0
         OpenTag 0	 -- Sat
-          Time = 00:00:00.00 
+          Time = [00:00:00.00] 
           ;REAL = WEEKDAYVAL_SAT
           ENUM = ACTIVE
         CloseTag 0
         OpenTag 0	 -- Sun
-          Time = 00:00:00.00 	 -- (midnight)
+          Time = [00:00:00.00] 	 -- (midnight)
           ;REAL = WEEKDAYVAL_SUN	 -- initial value
           ENUM = ACTIVE
         CloseTag 0
@@ -343,7 +343,7 @@ TEST #1  Effective_Period Property Test
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -374,15 +374,15 @@ TEST #1  Effective_Period Property Test
 -- Step #4: Set date before D1 to set initial value
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SUN, 1/2/2000
-      Time = 01:02:03.11 
+      Date = [SUN, 1/2/2000]
+      Time = [01:02:03.11] 
       )
 
 Test #1.1 (Wait Schedule Evaluation Time before proceeding)
@@ -395,7 +395,7 @@ Test #1.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #5: Verify Schedule Object's Present_Value != value V1 (i.e. == initial value)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -410,7 +410,7 @@ Test #1.1 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -427,15 +427,15 @@ Test #1.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #6: Set date to D1
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = TUE, 1/4/2000
-      Time = 01:02:03.12 
+      Date = [TUE, 1/4/2000]
+      Time = [01:02:03.12] 
       )
 
 Test #1.2 (Wait Schedule Evaluation Time before proceeding)
@@ -444,7 +444,7 @@ Test #1.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #7: Verify Schedule Object's Present_Value == value V1
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -459,7 +459,7 @@ Test #1.2 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -476,15 +476,15 @@ Test #1.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #8: Set date to D2
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da =IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = FRI, 1/7/2000              ;JANUARY 07, 2000
-      Time = 01:02:03.13 
+      Date = [FRI, 1/7/2000]              ;1/ 07, 2000
+      Time = [01:02:03.13] 
       )
 
 Test #1.3 (Wait Schedule Evaluation Time before proceeding)
@@ -493,7 +493,7 @@ Test #1.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #9: Verify Schedule Object's Present_Value != value V2
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -508,7 +508,7 @@ Test #1.3 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -548,7 +548,7 @@ TEST #2  Weekly_Schedule Property Test
 --          This step simply clears Test #1 Effective_Period
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -561,15 +561,15 @@ TEST #2  Weekly_Schedule Property Test
       Object = 0, SCHEDULE_1
       Property = 1, Effective-Period
       OpenTag 3
-         DATE = Monday, 1/1/1900 ;January 01, 1900
+         DATE = [Monday, 1/1/1900] ;January 01, 1900
         --AL = X'A400010101'
-         DATE = Friday, 1/1/2100;January 01, 2100
+         DATE = [Friday, 1/1/2100];January 01, 2100
         --AL = X'A4C8010105'
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -580,15 +580,15 @@ TEST #2  Weekly_Schedule Property Test
 -- Step #2: Set date to D7 (something other than D1)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SUN, 1/2/2000;JANUARY 02, 2000
-      Time = 01:02:03.21 
+      Date = [SUN, 1/2/2000];JANUARY 02, 2000
+      Time = [01:02:03.21] 
       )
 
 Test #2.1 (Wait Schedule Evaluation Time before proceeding)
@@ -597,7 +597,7 @@ Test #2.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #3: Verify Schedule Object's Present_Value != value V1
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -612,7 +612,7 @@ Test #2.1 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -630,15 +630,15 @@ Test #2.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #2: Set date to D7 (something other than D1)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SUN, 1/2/2000;JANUARY 02, 2000
-      Time = 01:02:03.22 
+      Date = [SUN, 1/2/2000];JANUARY 02, 2000
+      Time = [01:02:03.22] 
       )
 
 Test #2.1 (Wait Schedule Evaluation Time before proceeding)
@@ -647,7 +647,7 @@ Test #2.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #3: Verify Schedule Object's Present_Value != value V1
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -662,7 +662,7 @@ Test #2.1 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -684,15 +684,15 @@ Test #2.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #4: Set date to D1
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = MON, 1/3/2000;JANUARY 03, 2000
-      Time = 01:02:03.23 
+      Date = [MON, 1/3/2000];JANUARY 03, 2000
+      Time = [01:02:03.23] 
       )
 
 Test #2.2 (Wait Schedule Evaluation Time before proceeding)
@@ -701,7 +701,7 @@ Test #2.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #5: Verify Schedule Object's Present_Value == value V1
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -716,7 +716,7 @@ Test #2.2 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -733,15 +733,15 @@ Test #2.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #6: Set date to D2
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = TUE, 1/4/2000;JANUARY 04, 2000
-      Time = 01:02:03.24 
+      Date = [TUE, 1/4/2000];JANUARY 04, 2000
+      Time = [01:02:03.24] 
       )
 
 Test #2.3 (Wait Schedule Evaluation Time before proceeding)
@@ -750,7 +750,7 @@ Test #2.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #7: Verify Schedule Object's Present_Value == value V2
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -765,7 +765,7 @@ Test #2.3 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -782,15 +782,15 @@ Test #2.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #8: Set date to D3
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = WED, 1/5/2000;JANUARY 05, 2000
-      Time = 01:02:03.25 
+      Date = [WED, 1/5/2000];JANUARY 05, 2000
+      Time = [01:02:03.25] 
       )
 
 Test #2.4 (Wait Schedule Evaluation Time before proceeding)
@@ -799,7 +799,7 @@ Test #2.4 (Wait Schedule Evaluation Time before proceeding)
 -- Step #9: Verify Schedule Object's Present_Value == value V3
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -814,7 +814,7 @@ Test #2.4 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -831,15 +831,15 @@ Test #2.4 (Wait Schedule Evaluation Time before proceeding)
 -- Step #10: Set date to D4
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = THU, 1/6/2000;JANUARY 06, 2000
-      Time = 01:02:03.26 
+      Date = [THU, 1/6/2000];JANUARY 06, 2000
+      Time = [01:02:03.26] 
       )
 
 Test #2.5 (Wait Schedule Evaluation Time before proceeding)
@@ -848,7 +848,7 @@ Test #2.5 (Wait Schedule Evaluation Time before proceeding)
 -- Step #11: Verify Schedule Object's Present_Value == value V4
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -863,7 +863,7 @@ Test #2.5 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -880,15 +880,15 @@ Test #2.5 (Wait Schedule Evaluation Time before proceeding)
 -- Step #12: Set date to D5
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = FRI, 1/7/2000;JANUARY 07, 2000
-      Time = 01:02:03.27 
+      Date = [FRI, 1/7/2000];JANUARY 07, 2000
+      Time = [01:02:03.27] 
       )
 
 Test #2.6 (Wait Schedule Evaluation Time before proceeding)
@@ -897,7 +897,7 @@ Test #2.6 (Wait Schedule Evaluation Time before proceeding)
 -- Step #11: Verify Schedule Object's Present_Value == value V5
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -912,7 +912,7 @@ Test #2.6 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -929,15 +929,15 @@ Test #2.6 (Wait Schedule Evaluation Time before proceeding)
 -- Step #12: Set date to D6
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SAT, 1/8/2000;JANUARY 08, 2000
-      Time = 01:02:03.28 
+      Date = [SAT, 1/8/2000];JANUARY 08, 2000
+      Time = [01:02:03.28] 
       )
 
 Test #2.7 (Wait Schedule Evaluation Time before proceeding)
@@ -946,7 +946,7 @@ Test #2.7 (Wait Schedule Evaluation Time before proceeding)
 -- Step #13: Verify Schedule Object's Present_Value == value V6
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -961,7 +961,7 @@ Test #2.7 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -978,15 +978,15 @@ Test #2.7 (Wait Schedule Evaluation Time before proceeding)
 -- Step #14: Set date to D7
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP;BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SUN, 1/9/2000;JANUARY 09, 2000
-      Time = 01:02:03.29 
+      Date = [SUN, 1/9/2000];JANUARY 09, 2000
+      Time = [01:02:03.29] 
       )
 
 Test #2.8 (Wait Schedule Evaluation Time before proceeding)
@@ -995,7 +995,7 @@ Test #2.8 (Wait Schedule Evaluation Time before proceeding)
 -- Step #15: Verify Schedule Object's Present_Value == value V7
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -1010,7 +1010,7 @@ Test #2.8 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      

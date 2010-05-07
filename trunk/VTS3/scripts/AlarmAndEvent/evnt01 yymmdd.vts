@@ -31,7 +31,8 @@
 SETUP ChangeofBitstring
 
   ;--------------------------------------------------------------
-    IUT_IP = 208.6.162.35
+    IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;
@@ -59,7 +60,7 @@ SETUP ChangeofBitstring
   ;IUT_IP = 0040ae000e3a   -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,245146                -- Device object instance for IUT.
+  DEVICE_ID = DEVICE,47813                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object E1
   EVENT_ID2 = EVENT-ENROLLMENT, 2       -- the event generating object E2
@@ -67,7 +68,7 @@ SETUP ChangeofBitstring
                                         -- above if intrinsic
   MONITORED_ID2 = ANALOG-VALUE, 2   -- a second monitored object.
   ANALOG_ID = ANALOG_VARIABLE, 1        -- a third monitored object. 
-  MONITORED_PROP = Present-Value        -- the monitored property, 
+  MONITORED_PROP = status-flags        -- the monitored property, 
                                         -- present-value if intrinsic
 
   EVENT_TYPE = EVENT_TYPE_OUT_OF_RANGE  -- the alg used by the IUT
@@ -201,7 +202,7 @@ SETUP ChangeofBitstring
   -- 1. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -216,7 +217,7 @@ SETUP ChangeofBitstring
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -238,7 +239,7 @@ SETUP ChangeofBitstring
   --               the List_Of_Bitstring_Values after the bitmask is applied)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -256,8 +257,16 @@ SETUP ChangeofBitstring
       CloseTag 3
       )
 
-  -- 3. WAIT Time_Delay
+    EXPECT(
+      NETWORK = TD_PORT
+      SA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      DER = FALSE
+      PDU = SimpleAck
+      Service = WriteProperty
+      )
 
+  -- 3. WAIT Time_Delay
   -- 4. BEFORE Notification Fail Time
   --        RECEIVE ConfirmedEventNotification-Request,
   --            'Process Identifier' = (any valid process ID),
@@ -275,9 +284,15 @@ SETUP ChangeofBitstring
   --            'To State' = OFFNORMAL,
   --            'Event Values' = referenced-bitstring, Status_Flags
 
-    AND (
-      NETWORK = "Untitled"
-      DER = FALSE
+    Send (
+      NETWORK = TD_PORT
+      DA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 480
+      InVokeID = 3
+      DER = TRUE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
       INTEGER = 0, 3;PROCESS_ID
@@ -285,7 +300,7 @@ SETUP ChangeofBitstring
       Object = 2, EVENT_ID
       OpenTag 3
         ;OpenTag 0
-          Time = 0,*:*:*.*
+          Time = 0,[*:*:*.*]
         ;CloseTag 0
       CloseTag 3
       INTEGER = 4, NOTIFICATION_CLASS
@@ -310,7 +325,7 @@ SETUP ChangeofBitstring
 
     ;SEND (
     EXPECT(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -321,7 +336,7 @@ SETUP ChangeofBitstring
   -- 6. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -336,7 +351,7 @@ SETUP ChangeofBitstring
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -352,7 +367,7 @@ SETUP ChangeofBitstring
   -- 7. VERIFY Event_State = OFFNORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -367,7 +382,7 @@ SETUP ChangeofBitstring
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -391,7 +406,7 @@ SETUP ChangeofBitstring
   --              corresponds to a normal state)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -428,7 +443,7 @@ SETUP ChangeofBitstring
   --            'Event Values' = referenced-bitstring, Status_Flags
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
@@ -462,7 +477,7 @@ SETUP ChangeofBitstring
 
     ;SEND (
     EXPECT(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -473,7 +488,7 @@ SETUP ChangeofBitstring
   -- 13. VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -488,7 +503,7 @@ SETUP ChangeofBitstring
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -504,7 +519,7 @@ SETUP ChangeofBitstring
   -- 14. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -519,7 +534,7 @@ SETUP ChangeofBitstring
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE

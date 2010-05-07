@@ -9,57 +9,58 @@
 
    SETUP Negative WriteProperty Tests
 
-  ;------------------------------------------------------------------------------------- 
-  ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties 
-  ; Items marked and found with *** are hardcoded or the error messages must be manually verified in the trace. 
+  ;-------------------------------------------------------------------------------------
+  ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties
+  ; Items marked and found with *** are hardcoded or the error messages must be manually verified in the trace.
   ;
   ;
   ;--------------------------------------------------------------------------------
   ;
   ;  TD_CONFIG    All objects and properties are listed here including notes on there use
    -- TEST #1a - Writting NON-ARRAY Properties with an ARRAY Index
-              -- MANUAL SEND AND RECEIVE  NONE 
-              -- BODY CHANGE  NONE 
+              -- MANUAL SEND AND RECEIVE  NONE
+              -- BODY CHANGE  NONE
 
   -- TEST #1b - Writting ARRAY Properties with Array Index that is out of Range
-              -- MANUAL SEND AND RECEIVE   NONE 
-              -- BODY CHANGE  NONE 
+              -- MANUAL SEND AND RECEIVE   NONE
+              -- BODY CHANGE  NONE
 
   -- TEST #1c - Writting with a Property Value Having the Wrong Datatype
-              -- MANUAL SEND AND RECEIVE   NONE 
-              -- BODY CHANGE  NONE 
+              -- MANUAL SEND AND RECEIVE   NONE
+              -- BODY CHANGE  NONE
 
   -- TEST #1d - Writing with a Property Value that is out of Range
-              -- MANUAL SEND AND RECEIVE   NONE 
-              -- BODY CHANGE  NONE 
-                         
+              -- MANUAL SEND AND RECEIVE   NONE
+              -- BODY CHANGE  NONE
+
   ;--------------------------------------------------------------------------------
   ;
-   IUT_IP = 208.6.162.35
-   TD_IP = 10.10.10.36:0xBAC0  
+   IUT_IP = "IUT_IP"
+  TD_IP  = "TD_IP"
+   TD_PORT = "bip"
 
-   OBJECT1 = device, 245146        -- Device ID for the IUT
+   OBJECT1 = device, 47814        -- Device ID for the IUT
    OBJECT2 = ANALOG-VALUE, 1
-  ;-------------------------------------------------------------------------------- 
+  ;--------------------------------------------------------------------------------
 
    SECTION WriteProperty Service Execution Test (negative)
 
    --- Reference (T) Negative WriteProperty Service Execution Tests
-   --- Configuration Requirements: IUT is on the same network as TD.     
+   --- Configuration Requirements: IUT is on the same network as TD.
   ;--------------------------------------------------------------------------------
  TEST #1a - Writting NON-ARRAY Properties with an ARRAY Index
 
-   --- This test case verifies that the IUT can execute WriteProperty Service 
+   --- This test case verifies that the IUT can execute WriteProperty Service
    --- Request when the Property value is not an array but an array index is
    --- included in the Service Request.
 
 DEPENDENCIES None
- 
+
 REFERENCE (B) WriteProperty Service and (T) 9.19.2.1
 
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -67,7 +68,7 @@ REFERENCE (B) WriteProperty Service and (T) 9.19.2.1
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, LOCATION
@@ -78,14 +79,14 @@ REFERENCE (B) WriteProperty Service and (T) 9.19.2.1
    )
 
  EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Error
       ERROR-Choice = WriteProperty
-      ENUMERATED = 5 ; SERVICE
-      ENUMERATED = 7 ; INCONSISTENT_PARAMETERS
+      ENUMERATED = 2 ; SERVICE
+      ENUMERATED = 50 ; INCONSISTENT_PARAMETERS
    )
 
 -- VERIFY (Object1), P1 = (The value defined for this Property in the EPICS)
@@ -100,12 +101,12 @@ TEST #1b - Writting ARRAY Properties with Array Index that is out of Range
    --- out of range.
 
 DEPENDENCIES None
- 
+
 REFERENCE (B) WriteProperty Service and (T)9.19.2.2
 
 
  SEND (
-   NETWORK = "Untitled"
+   NETWORK = TD_PORT
    DA = IUT_IP
    DER = TRUE
    BVLCI = ORIGINAL-UNICAST-NPDU
@@ -113,37 +114,37 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.2
    SegMsg = 0
    SegResp = 0
    MaxResp = 1476
-   InvokeID = 2      
+   InvokeID = 2
    Service = WriteProperty
    Object = 0, Object2
    Property = 1, PRIORITY-ARRAY
    Unsigned = 2, 99
    OPENTAG 3
-    BOOLEAN = 0
+    REAL = 0
    CLOSETAG 3
    )
 
  EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Error
       ERROR-Choice = WriteProperty
       ENUMERATED = 2   ; PROPERTY,
       ENUMERATED = 42  ; INVALID_ARRAY_INDEX
    )
   OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Error
       ERROR-Choice = WriteProperty
       ENUMERATED = 2 ; Property
       ENUMERATED = 40 ; write-access-denied
 
-    ) 
+    )
 
  -- VERIFY (Object1), P1 = (The value defined for this Property in the EPICS)
 
@@ -156,11 +157,11 @@ TEST #1c - Writting with a Property Value Having the Wrong Datatype
    --- a property value that has an invalid datatype.
 
 DEPENDENCIES None
- 
+
 REFERENCE (B) WriteProperty Service and (T)9.19.2.3
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -168,20 +169,20 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.3
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, LOCATION
       OPENTAG 3
        UNSIGNED = 1    ; 'Property Value'       = (Any value with an invalid datatype)
-      CLOSETAG 3   
+      CLOSETAG 3
    )
 
  EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Error
       ERROR-Choice = WriteProperty
       ENUMERATED = 2          ; PROPERTY
@@ -197,15 +198,15 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.3
 TEST #1d - Writing with a Property Value that is out of Range
 
    --- This test case verifies that the IUT can execute WriteProperty Service
-   --- Request when an attempt is made to write a value that is outside of the 
+   --- Request when an attempt is made to write a value that is outside of the
    --- supported range.
 
 DEPENDENCIES None
- 
+
 REFERENCE (B) WriteProperty Service and (T)9.19.2.4
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -213,7 +214,7 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.4
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 4      
+      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT2                       ;(Object1, any object with writable properties)
       Property = 1, PRESENT-VALUE               ;(P1, any Property with a restricted range of value)
@@ -223,10 +224,10 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.4
    )
 
  EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Error
       ERROR-Choice = WriteProperty
       ENUMERATED = 2    ; PROPERTY
@@ -234,19 +235,19 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.4
    )
 
  OR (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Reject
       REJECT-REASON = 6 ; PARAMETER_OUT_OF_RANGE
    )
 --no writable Property with a restricted range of value  from Object1
 OR (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
       Service = WriteProperty
    )
@@ -254,7 +255,7 @@ OR (
 
 --Write EPICS Value back to the Property
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -262,7 +263,7 @@ OR (
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 4      
+      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT2                       ;(Object1, any object with writable properties)
       Property = 1, PRESENT-VALUE               ;(P1, any Property with a restricted range of value)
@@ -272,10 +273,10 @@ OR (
    )
 
   Expect(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
       Service = WriteProperty
 

@@ -3,61 +3,62 @@
   ;    Draft
   ;  WPM MAX yymmdd.vts
   ;
-  ;	Ver 1.0		10/19/01	BradSp  	Initial Version
-  ;	
-  ;  Purpose: This test case verifies that IUT does not arbitrarily restrict the number 
-  ;           of properties that can be written to it using a single WritePropertyMultiple request.
-  
+  ; Ver 1.0     10/19/01    BradSp      Initial Version
   ;
-  ;  In the REFERENCE section "(B)" refers to the BACnet standard and "(T)" refers 
-  ;	to the testing addendum.
+  ;  Purpose: This test case verifies that IUT does not arbitrarily restrict the number
+  ;           of properties that can be written to it using a single WritePropertyMultiple request.
+
+  ;
+  ;  In the REFERENCE section "(B)" refers to the BACnet standard and "(T)" refers
+  ; to the testing addendum.
   ;-------------------------------------------------------------------------------------
-  
+
   SETUP Positive ReadProperty Tests
 
-  ;------------------------------------------------------------------------------------- 
-  ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties 
-  ; Items marked and found with *** are hardcoded or the error messages must be manually verified in the trace. 
+  ;-------------------------------------------------------------------------------------
+  ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties
+  ; Items marked and found with *** are hardcoded or the error messages must be manually verified in the trace.
   ;
   ;
   ;-------------------------------------------------------------------------------------
   ;
   ; TD_CONFIG  All objects and properties are listed here including notes on there use
   ;
-   IUT_IP = 10.10.10.100:0xBAC0
-   TD_IP = 10.10.10.36:0xBAC0  
+   IUT_IP = "IUT_IP"
+  TD_IP  = "TD_IP"
+   TD_PORT = "bip"
 
   -- BOOLEAN TEST
-  OBJECT1 = Device, 1967		; Object which is the subject of the WPMMAX TEST
-  OBJECT2 = ANALOG-INPUT, 1	; Object which is the subject of the WPMMAX TEST
+  OBJECT1 = Device, 47814       ; Object which is the subject of the WPMMAX TEST
+  OBJECT2 = ANALOG-INPUT, 1 ; Object which is the subject of the WPMMAX TEST
 
   -- CHARACTER STRING TEST
-  TESTVALUE1 = ANSI,"A"    ; CHARACTER STRING VALUE TO BE WRITTEN 
-  
+  TESTVALUE1 = ANSI,"A"    ; CHARACTER STRING VALUE TO BE WRITTEN
+
   TESTVALUE2 = 0              ; BOOLEAN VALUE
-  
+
   PROP1 = LOCATION              ; CHARACTER PROPERTY USED FOR WRITING
-  PROP2 = OUT-OF-SERVICE              ; BOOLEAN PROPERTY USED FOR WRITING 
+  PROP2 = OUT-OF-SERVICE              ; BOOLEAN PROPERTY USED FOR WRITING
 
-  
 
-  ;TESTVALUE1 = ANSI X3.4,"A"    ; CHARACTER STRING VALUE TO BE WRITTEN 
+
+  ;TESTVALUE1 = ANSI X3.4,"A"    ; CHARACTER STRING VALUE TO BE WRITTEN
 
   ;-------------------------------------------------------------------------------------
   ;-------------------------------------------------------------------------------------
   ;
   ;  Routing_Config
-  ;  
+  ;
 
   -- DNET_MSTP = 20001, MS/TP     ; Sets the DNET of the remote MSTP network (Comment if no routing)
 
   ;-----IUT and TD are on the same Ethernet segment
-  ;   DESTINATION = IUT_MAC 
+  ;   DESTINATION = IUT_MAC
   ;-----IUT is on an MSTP segment and TD is on an Ethernet segment
   ;   DA = Broadcast
   ;   DNET = DNET_MSTP
   ;   DADR = IUT_MAC
-  ;------------------------------------------------------------------------------------ 
+  ;------------------------------------------------------------------------------------
   SECTION ReadProperty Service Execution Tests
 
   -- Reference (T) Positive ReadProperty Service Execution Tests
@@ -66,38 +67,38 @@
 
 
 
- -- Test Concept: A writable property is written to an object in the IUT as many times as can be 
- -- conveyed in the largest request accepted by the IUT. The calculation of the maximum request 
+ -- Test Concept: A writable property is written to an object in the IUT as many times as can be
+ -- conveyed in the largest request accepted by the IUT. The calculation of the maximum request
  -- size shall be based on the IUTs MaxAPDU size and maximum segments per request.
 
 -- Test Steps:
 
- -- 1.	TRANSMIT WritePropertyMultiple-Request,
- --		'Object Identifier' =	(the IUT's device object),
- --		'Property Identifier' =	P1,
- --		'Array Index' = 		A1, 	-- only if required
- --		'Priority' =		PRIO	-- only if required
- --		'Property Value' = 	V1,
- --		…
- --		'Property Identifier' =	P1,
- --		'Array Index' = 		A1, 	-- only if required
- --		'Priority' =		PRIO	-- only if required
- --		'Property Value' = 	V1
- -- 2.	RECEIVE Simple-ACK
+ -- 1.  TRANSMIT WritePropertyMultiple-Request,
+ --     'Object Identifier' =   (the IUT's device object),
+ --     'Property Identifier' = P1,
+ --     'Array Index' =         A1,     -- only if required
+ --     'Priority' =        PRIO    -- only if required
+ --     'Property Value' =  V1,
+ --     …
+ --     'Property Identifier' = P1,
+ --     'Array Index' =         A1,     -- only if required
+ --     'Priority' =        PRIO    -- only if required
+ --     'Property Value' =  V1
+ -- 2.  RECEIVE Simple-ACK
  -- 3.     VERIFY(P1 = V1)
-      
-   
 
- TEST #1a 9.20.1.X6 Writing Maximum Multiple properties 
+
+
+ TEST #1a 9.20.1.X6 Writing Maximum Multiple properties
 
        DEPENDENCIES None
 
        REFERENCE (B) ReadPropertyMultiple Service and (T) Reading a Single Property of a Single Object
 
---The max BVLCI Length is about 1482 
+--The max BVLCI Length is about 1482
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -105,11 +106,11 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = WritePropertyMultiple
       Object = 0, OBJECT2
       OpenTag 1
-       
+
 Property = 0, PROP2            ; 1
 OpenTag 2
 BOOLEAN = TESTVALUE2
@@ -1283,16 +1284,16 @@ OpenTag 2
 BOOLEAN = TESTVALUE2
 CloseTag 2
 
-CloseTag 1                                   
+CloseTag 1
     )
 
   -- Step 2 Receive a simple Ack
 
  EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
@@ -1300,7 +1301,7 @@ CloseTag 1
 -- Step 3 Verify the written value from step 1
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = False
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1308,73 +1309,73 @@ SEND (
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = ReadProperty
       Object = 0, OBJECT2
-      Property = 1,  PROP2     
+      Property = 1,  PROP2
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, PROP2
      OpenTag 3
-         BOOLEAN = TESTVALUE2 
-     CloseTag 3                                   
-    )       
-    
-
-
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
+         BOOLEAN = TESTVALUE2
+     CloseTag 3
+    )
 
 
 
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
 
 
 
 
-TEST #1B 9.20.1.X6 Writing Maximum Multiple properties 
+
+
+
+TEST #1B 9.20.1.X6 Writing Maximum Multiple properties
 
        DEPENDENCIES None
 
@@ -1383,7 +1384,7 @@ TEST #1B 9.20.1.X6 Writing Maximum Multiple properties
  --The max BVLCI Length is about 1480
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1391,11 +1392,11 @@ TEST #1B 9.20.1.X6 Writing Maximum Multiple properties
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
-       
+
 Property = 0, PROP1            ; 1
 OpenTag 2
 CHARSTRING = TESTVALUE1
@@ -2233,21 +2234,21 @@ OpenTag 2
 CHARSTRING = TESTVALUE1
 CloseTag 2
 
-CloseTag 1                                   
+CloseTag 1
     )
 
  -- Step 2 Receive a simple Ack
 
  EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2258,7 +2259,7 @@ CloseTag 1
        Enum = 40              ;Write-Access-Denied
       CloseTag 0
       OpenTag 1
-       Object = 0,OBJECT1  
+       Object = 0,OBJECT1
        Property = 1,Location
       CloseTag 1
     )
@@ -2266,7 +2267,7 @@ CloseTag 1
 -- Step 3 Verify the written value from step 1
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2274,17 +2275,17 @@ SEND (
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1,  PROP1     
+      Property = 1,  PROP1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -2292,5 +2293,5 @@ SEND (
      OpenTag 3
 --         CHARSTRING = TESTVALUE1            ;if Property Write Successful
            AL = {Location}
-     CloseTag 3                                   
-    )       
+     CloseTag 3
+    )

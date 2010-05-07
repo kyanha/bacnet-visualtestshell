@@ -30,7 +30,8 @@
 SETUP Object Support Tests - successful alarm acknowledgment of confirmed event notifications using the Sequence Number form of the "Time of Acknowledgment" parameter Tests
 
   ;--------------------------------------------------------------
-    IUT_IP = 208.6.162.35
+    IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;            CHANGE: MY_MAC address and "Untitled"
@@ -85,7 +86,7 @@ Section 9.1.1.2 Successful Alarm Acknowledgment of Confirmed Event Notifications
 -- 1. MAKE (a change that triggers the detection of an alarm event in the IUT)
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -104,7 +105,7 @@ SEND (
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
@@ -155,7 +156,7 @@ SEND (
   --    Acked_Transitions = B'011'
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -170,7 +171,7 @@ SEND (
       )
 
     EXPECT ( 
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -206,7 +207,7 @@ SEND (
   --                                             Sequence Number format)
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -265,7 +266,7 @@ SEND (
 -- 6. RECEIVE BACnet-Simple-ACK-PDU
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DA = IUT_IP
@@ -337,7 +338,7 @@ SEND (
   Test #9 Verify Acked Transitions
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -352,7 +353,7 @@ SEND (
       )
 
     EXPECT ( 
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE

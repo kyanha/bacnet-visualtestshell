@@ -28,7 +28,8 @@
   ;
 
   
-  TD_IP = 10.10.10.2
+  TD_IP  = "TD_IP"
+  TD_PORT = "bip"
 
   SERVICES = 5			; Error class: Services
   MISSING_PARAMETER = 16	; Error code: Missing Required Parameter
@@ -59,7 +60,7 @@
   ; IUT_CONFIG
   ;
   
-  IUT_IP = 208.6.162.35			; Address of IUT
+  IUT_IP = "IUT_IP"			; Address of IUT
 
   PASSWORD = ANSI,"Test"		; Password, replace with vendor's re-init password
   BADPASSWORD = ANSI,"AA"
@@ -117,7 +118,7 @@
   -- Step #1: Transmit Reinitialize Device service request
 
    SEND (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     DA = IUT_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     DER = TRUE
@@ -133,7 +134,7 @@
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    Network = "Untitled"
+    NETWORK = TD_PORT
     DA = TD_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     SA = IUT_IP
@@ -145,7 +146,7 @@
   -- Step #3: Check for indication of IUT coldstart or receive an error
 
   OR (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     DER = FALSE
     PDU = Error
     Error-Choice = ReinitializeDevice
@@ -154,7 +155,7 @@
     )
 
   OR (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     DER = FALSE
     PDU = Error
     Error-Choice = ReinitializeDevice
@@ -193,7 +194,7 @@
   -- Step #1: Transmit Reinitialize Device service request with password
 
    SEND (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     DA = IUT_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     DER = TRUE
@@ -210,7 +211,7 @@
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    Network = "Untitled"
+    NETWORK = TD_PORT
     DA = TD_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     SA = IUT_IP
@@ -253,7 +254,7 @@
   -- Step #1: Transmit Reinitialize Device service request
 
    SEND (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     DA = IUT_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     DER = TRUE
@@ -269,7 +270,7 @@
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    Network = "Untitled"
+    NETWORK = TD_PORT
     DA = TD_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     SA = IUT_IP
@@ -281,7 +282,7 @@
   -- Step #3: Check for indication of IUT warmstart or receive an error
 
   OR (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     bvlci =ORIGINAL-UNICAST-NPDU
     SA = IUT_IP
     DER = FALSE
@@ -292,7 +293,7 @@
     )
 
   OR (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     bvlci =ORIGINAL-UNICAST-NPDU
     SA = IUT_IP
     DER = FALSE
@@ -333,7 +334,7 @@
   -- Step #1: Transmit Reinitialize Device service request with password
 
    SEND (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     DA = IUT_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     DER = TRUE
@@ -350,7 +351,7 @@
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    Network = "Untitled"
+    NETWORK = TD_PORT
     DA = TD_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     SA = IUT_IP
@@ -384,7 +385,7 @@
  REFERENCE (B) ReinitializeDevice Service and (T)9.24.2.1
 
  SEND (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     DA = IUT_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     DER = TRUE
@@ -399,7 +400,7 @@
     )
 
 EXPECT (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     bvlci =ORIGINAL-UNICAST-NPDU
     SA = IUT_IP
     DER = FALSE
@@ -426,7 +427,7 @@ EXPECT (
  REFERENCE (B) ReinitializeDevice Service and (T)9.24.2.2
 
  SEND (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     DA = IUT_IP
     bvlci =ORIGINAL-UNICAST-NPDU
     DER = TRUE
@@ -441,7 +442,7 @@ EXPECT (
     )
 
 EXPECT (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     bvlci =ORIGINAL-UNICAST-NPDU
     SA = IUT_IP
     DER = FALSE

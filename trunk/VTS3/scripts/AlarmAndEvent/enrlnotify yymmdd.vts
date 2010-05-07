@@ -26,7 +26,8 @@
 SETUP Object Support Tests - Notification Class Filter test
 
   ;--------------------------------------------------------------
-   IUT_IP = 208.6.162.35
+   IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;            CHANGE: MY_MAC address and "Untitled"
@@ -54,7 +55,7 @@ SETUP Object Support Tests - Notification Class Filter test
   ;IUT_IP =  0040ae000d71  -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,700                -- Device object instance for IUT.
+  DEVICE_ID = DEVICE,47813                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object
   MONITORED_ID = MULTISTATE-INPUT, 1    -- the monitored object, same as above
@@ -62,7 +63,7 @@ SETUP Object Support Tests - Notification Class Filter test
   MONITORED_PROP = Present-Value        -- the monitored property, present-value 
                                         -- if intrinsic
 
-  NOTIFICATION_CLASS = 5        -- the notification class used by the event 
+  NOTIFICATION_CLASS = 1        -- the notification class used by the event 
                                 -- generating object
 
   NORMAL_PRIORITY = 170         -- the priority at which normal transitions will 
@@ -123,7 +124,7 @@ SETUP Object Support Tests - Notification Class Filter test
   --                                       classes)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -143,7 +144,7 @@ SETUP Object Support Tests - Notification Class Filter test
   --                                               specified notification class)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = TRUE

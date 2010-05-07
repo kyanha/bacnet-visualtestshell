@@ -31,7 +31,8 @@
 SETUP AlarmSummaries
 
   ;--------------------------------------------------------------
-   IUT_IP = 208.6.162.35
+   IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;
@@ -52,14 +53,14 @@ SETUP AlarmSummaries
   ;
   ; IUT_CONFIG
   ;
-  TEST_YEAR   = 2000            -- the year the test is executed
+  TEST_YEAR   = 2007            -- the year the test is executed
   TEST_MONTH  = XX              -- the month the test is executed
   TEST_DAY    = XX              -- the day the test is executed
 
   ;IUT_MAC = 0040ae000e3a   -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,700                -- Device object instance for IUT.
+  DEVICE_ID = DEVICE,47814                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object E1
   EVENT_ID2 = EVENT-ENROLLMENT, 2       -- the event generating object E2
@@ -187,7 +188,7 @@ SETUP AlarmSummaries
   -- 1. TRANSMIT GetAlarmSummary-Request
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -203,7 +204,7 @@ SETUP AlarmSummaries
   --      'List of Alarm Summaries' = (an empty list)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -224,7 +225,7 @@ SETUP AlarmSummaries
   -- 1. TRANSMIT GetAlarmSummary-Request
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -243,7 +244,7 @@ SETUP AlarmSummaries
   -- CHANGE: Set the alarm type as required.
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -268,7 +269,7 @@ SETUP AlarmSummaries
   -- 1. TRANSMIT GetAlarmSummary-Request
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -287,7 +288,7 @@ SETUP AlarmSummaries
   -- CHANGE: Set the alarm type as required.
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE

@@ -22,7 +22,8 @@
   ; TD_CONFIG
   ;
 
-  TD_IP = 10.10.10.2
+  TD_IP  = "TD_IP"
+TD_PORT = "bip"
 
   LOOP_OBJECT = Loop, 1		; Loop object being tested
   REF_OBJECT = Analog-Value, 1	; Object referenced by the loop object's...
@@ -36,7 +37,7 @@
   ; IUT_CONFIG
   ;
 
-  IUT_IP = 208.6.162.35	; Address of IUT
+  IUT_IP = "IUT_IP"	; Address of IUT
 
   ;-------------------------------------------------------------------------------------
 
@@ -88,7 +89,7 @@
   -- Steps #1 & #2: Read the loop object's Setpoint-Reference property
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -103,7 +104,7 @@
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	PDU = ComplexAck
@@ -124,7 +125,7 @@
   -- Steps #3 & #4: Read the loop object's Setpoint property
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -139,7 +140,7 @@
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	PDU = ComplexAck
@@ -161,7 +162,7 @@
   -- property = the Setpoint value from Step #4 (S_VAL)
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -176,7 +177,7 @@
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	PDU = ComplexAck
@@ -199,7 +200,7 @@
   -- the setpoint read in Step #5.
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -217,7 +218,7 @@
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	DER = FALSE
@@ -234,7 +235,7 @@
   -- the referenced property (S_NEW)
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -249,7 +250,7 @@
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
 	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	PDU = ComplexAck

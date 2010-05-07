@@ -24,8 +24,9 @@ SETUP Calendar Object Tests
 ;NET_1 = 1, ETHERNET, 0 ; Net 1, type Ethernet, Port 0 ; Do not change
 
 --IUT_IP = 10.10.10.100
-IUT_IP = 208.6.162.35
-TD_IP = 10.10.10.36
+IUT_IP = "IUT_IP"
+TD_IP  = "TD_IP"
+TD_PORT = "bip"
 
 ;-------------------------------------------------------------------------
 ;Routing Setup by default IUT and TD are on the same Ethernet segment
@@ -111,7 +112,7 @@ TEST #1  Single Date Rollover Test
 -- Step #1: Configure the Calendar object's Date_List property
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -122,15 +123,15 @@ TEST #1  Single Date Rollover Test
       InVokeID = 1
       Service = WriteProperty
       Object = 0, CALENDAR_1
-      Property = 1, DateList
+      Property = 1, Date-List
       OpenTag 3
-        DATE = Sunday, Jan/02/2000
+        DATE = 0, [MON 1/01/2001]
         --AL = X'0C64010207'
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -147,15 +148,15 @@ TEST #1  Single Date Rollover Test
 -- it.
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-BROADCAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SAT, Jan/01/2000
-      Time = 11:59:00.10 		-- BBBBB (1 min + SchedEvalTime before)
+      Date = [SUN, 12/31/2000]
+      Time = [23:59:00.10]		-- BBBBB (1 min + SchedEvalTime before)
       )
 
 
@@ -168,7 +169,7 @@ Test #1.1 (Wait Schedule Evaluation Time, but not past "midnight" before proceed
 -- Step #3: Verify Calendar Object's Present_Value == FALSE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -183,7 +184,7 @@ Test #1.1 (Wait Schedule Evaluation Time, but not past "midnight" before proceed
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -203,7 +204,7 @@ Test #1.2 (Wait Schedule Evaluation Time + 2 minutes)
 -- Step #3: Verify Calendar Object's Present_Value == TRUE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -217,7 +218,7 @@ Test #1.2 (Wait Schedule Evaluation Time + 2 minutes)
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -259,7 +260,7 @@ Test #1.2 (Wait Schedule Evaluation Time + 2 minutes)
 -- Step #1: Configure the Calendar object's Date_List property
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -269,20 +270,20 @@ Test #1.2 (Wait Schedule Evaluation Time + 2 minutes)
       MaxResp = 1476
       InVokeID = 5
       Service = WriteProperty
-      Object = 0, SCHEDULE_1
-      Property = 1, DateList
+      Object = 0, CALENDAR_1
+      Property = 1, Date-List
       OpenTag 3
         -- dateRange [1] BACnetDateRange
         OpenTag 1
-          -- DATE = Sunday, January/16/2000
-          AL = X'0C64011007'
-          -- DATE = Monday, January/17/2000
-          AL = X'0C64011101'  -- VTS2.29 error, wants "A4" tag; doesn't write correctly
+          DATE = [TUE, 1/16/2001]
+          -- AL = X'0C64011007'
+          DATE = [WED, 1/17/2001]
+          -- AL = X'0C64011101'  -- VTS2.29 error, wants "A4" tag; doesn't write correctly
         CloseTag 1
       CloseTag 3
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -297,15 +298,15 @@ Test #1.2 (Wait Schedule Evaluation Time + 2 minutes)
 -- Step #2: Set date to (day before DateRange active)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-BROADCAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SAT, Jan/15/2000
-      Time = 01:02:03.21 
+      Date = [WED, 1/15/2001]
+      Time = [01:02:03.21] 
       )
 
 Test #2.1 (Wait Schedule Evaluation Time before proceeding)
@@ -314,7 +315,7 @@ Test #2.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #3: Verify Calendar Object's Present_Value == FALSE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -328,7 +329,7 @@ Test #2.1 (Wait Schedule Evaluation Time before proceeding)
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -344,15 +345,15 @@ Test #2.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #4: Set date to D1
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-BROADCAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SUN, Jan/16/2000
-      Time = 01:02:03.22 
+      Date = [WED, 1/16/2001]
+      Time = [01:02:03.22] 
       )
 
 Test #2.2 (Wait Schedule Evaluation Time before proceeding)
@@ -361,7 +362,7 @@ Test #2.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #5: Verify Calendar Object's Present_Value == TRUE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -375,7 +376,7 @@ Test #2.2 (Wait Schedule Evaluation Time before proceeding)
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -391,15 +392,15 @@ Test #2.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #6: Set date to D1'
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-BROADCAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = MON, JANUARY/17/2000
-      Time = 01:02:03.23 
+      Date = [THU, 1/17/2001]
+      Time = [01:02:03.23]
       )
 
 Test #2.3 (Wait Schedule Evaluation Time before proceeding)
@@ -408,7 +409,7 @@ Test #2.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #7: Verify Calendar Object's Present_Value == TRUE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -422,7 +423,7 @@ Test #2.3 (Wait Schedule Evaluation Time before proceeding)
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -438,15 +439,15 @@ Test #2.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #8: Set date to D2 (day after DateRange active)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-BROADCAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = TUE, Jan/18/2000
-      Time = 01:02:03.24 
+      Date = [FRI, 1/18/2001]
+      Time = [01:02:03.24]
       )
 
 Test #2.4 (Wait Schedule Evaluation Time before proceeding)
@@ -455,7 +456,7 @@ Test #2.4 (Wait Schedule Evaluation Time before proceeding)
 -- Step #9: Verify Calendar Object's Present_Value == FALSE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -469,7 +470,7 @@ Test #2.4 (Wait Schedule Evaluation Time before proceeding)
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -510,7 +511,7 @@ TEST #3  WeekNDay Test
 -- Step #1: Configure the Calendar object's Date_List property
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -521,7 +522,7 @@ TEST #3  WeekNDay Test
       InVokeID = 10
       Service = WriteProperty
       Object = 0, CALENDAR_1
-      Property = 1, DateList
+      Property = 1, Date-List
       OpenTag 3
         -- dateRange [2] BACnetWeekNDay
         --OpenTag 0
@@ -531,7 +532,7 @@ TEST #3  WeekNDay Test
       CloseTag 3
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -546,15 +547,15 @@ TEST #3  WeekNDay Test
 -- Step #2: Set date to match WeekNDay
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-BROADCAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SAT, Nov/24/2001
-      Time = 01:00:00.31 
+      Date = [SAT, 11/24/2001]
+      Time = [01:00:00.31] 
       )
 
 Test #3.1 (Wait Schedule Evaluation Time before proceeding)
@@ -563,7 +564,7 @@ Test #3.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #3: Verify Calendar Object's Present_Value == TRUE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -577,7 +578,7 @@ Test #3.1 (Wait Schedule Evaluation Time before proceeding)
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -593,15 +594,15 @@ Test #3.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #4: Set date so month only doesn't match WeekNDay
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-BROADCAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SAT, Oct/27/2001
-      Time = 01:00:00.32 
+      Date = [SAT, 10/27/2001]
+      Time = [01:00:00.32] 
       )
 
 Test #3.2 (Wait Schedule Evaluation Time before proceeding)
@@ -610,7 +611,7 @@ Test #3.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #5: Verify Calendar Object's Present_Value == FALSE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -624,7 +625,7 @@ Test #3.2 (Wait Schedule Evaluation Time before proceeding)
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -633,22 +634,22 @@ Test #3.2 (Wait Schedule Evaluation Time before proceeding)
       Object = 0, CALENDAR_1
       Property = 1, Present-Value
       OpenTag 3
-         BOOLEAN = TRUE
+         BOOLEAN = FALSE
       CloseTag 3
       )
 
 -- Step #6: Set date so "last 7 days" only doesn't match WeekNDay
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-BROADCAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SAT, Nov/17/2001
-      Time = 01:00:00.33
+      Date = [SAT, 11/17/2001]
+      Time = [01:00:00.33]
       )
 
 Test #3.3 (Wait Schedule Evaluation Time before proceeding)
@@ -657,7 +658,7 @@ Test #3.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #7: Verify Calendar Object's Present_Value == FALSE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -671,7 +672,7 @@ Test #3.3 (Wait Schedule Evaluation Time before proceeding)
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -687,15 +688,15 @@ Test #3.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #8: Set date so "day of week" only doesn't match WeekNDay
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = BROADCAST
       SA = TD_IP
       Der = FALSE
       BVLCI = ORIGINAL-BROADCAST-NPDU      
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
-      Date = SUN, Nov/25/2001
-      Time = 01:00:00.34
+      Date = [SUN, 11/25/2001]
+      Time = [01:00:00.34]
       )
 
 Test #3.4 (Wait Schedule Evaluation Time before proceeding)
@@ -704,7 +705,7 @@ Test #3.4 (Wait Schedule Evaluation Time before proceeding)
 -- Step #9: Verify Calendar Object's Present_Value == FALSE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -718,7 +719,7 @@ Test #3.4 (Wait Schedule Evaluation Time before proceeding)
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      

@@ -16,7 +16,7 @@ TD_PORT  = 'MyIP'
 
 ; If the IUT is on IP, IUT_IP defines its address
 ; If the IUT is on a network routed from IP, IUT_IP defines the router's address
-IUT_IP   = 127.0.0.1:0xBAC0
+IUT_IP   = 10.240.80.7:0xBAC0
 
 ; If IUT_DNET is zero, tests will be to IUT_IP
 ; Else tests will be to (IUT_DNET, IUT_DADR), reached via IUT_IP

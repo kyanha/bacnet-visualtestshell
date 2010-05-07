@@ -20,8 +20,9 @@ SETUP Number_Of_States and State_Text
 ;IUT_MAC = 05
 ;MY_MAC  = 000000B0D0E911F6
 
- IUT_IP = 10.10.10.100
- TD_IP = 10.10.10.36
+ IUT_IP = "IUT_IP"
+TD_IP  = "TD_IP"
+TD_PORT = "bip"
 
 ;IUT_MAC = <address> ; MAC Address of the device you are testing.
 ;MY_MAC  = <address> ; MAC Address of your VTS test machine.
@@ -96,7 +97,7 @@ SETUP Number_Of_States and State_Text
 ;MULTISTATE_OBJECT_1 = <object>,<instance>
 
 ---------------------------------------------------------------
-MULTISTATE_OBJECT_1 = MULTISTATE-INPUT,1
+MULTISTATE_OBJECT_1 = MULTISTATE-VALUE,1
 ---------------------------------------------------------------
 
 ; Replace <object> with MULTISTATE-OUTPUT or MULTISTATE-VALUE
@@ -141,7 +142,7 @@ REFERENCE (B) 12.15.11, 12.15.12 (T) 7.3.2.16.2
 -- Step #1: TRANSMIT ReadProperty-Request
 
     SEND (
-      Network = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -163,7 +164,7 @@ REFERENCE (B) 12.15.11, 12.15.12 (T) 7.3.2.16.2
 -- Step #2: RECEIVE ReadProperty-ACK
 
    EXPECT (  
-      Network = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       ;DA = Broadcast
       SA = IUT-IP
@@ -186,7 +187,7 @@ Test #1.3 Step #3: VERIFY State_Text = (the number of states from step 2),
 --          ARRAY INDEX = 0
 
     SEND (
-      Network = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -207,7 +208,7 @@ Test #1.3 Step #3: VERIFY State_Text = (the number of states from step 2),
       )
 
     EXPECT (     
-      Network = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       ;DA = BROADCAST
       SA = IUT_IP
