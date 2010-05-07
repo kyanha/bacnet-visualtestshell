@@ -32,7 +32,8 @@
   SETUP FloatingLimit
 
   ;--------------------------------------------------------------
-    IUT_IP = 10.10.10.100
+    IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;
@@ -60,7 +61,7 @@
   ;IUT_IP = 0040ae000e65   -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,700                -- Device object instance for IUT.
+  DEVICE_ID = DEVICE,47813                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object E1
   EVENT_ID2 = EVENT-ENROLLMENT, 2       -- the event generating object E2
@@ -232,7 +233,7 @@
   -- 1. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -247,7 +248,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -270,7 +271,7 @@
 --               (Setpoint_Reference + High_Diff_Limit))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -288,7 +289,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -301,7 +302,7 @@
   -- 4. CHECK (verify that no notification message is transmitted)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       )
@@ -309,7 +310,7 @@
   -- 5. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -324,7 +325,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -345,7 +346,7 @@
   --               (Setpoint_Reference + High_Diff_Limit))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -363,7 +364,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -394,7 +395,7 @@
   --                             error-limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
@@ -429,7 +430,7 @@
   -- 9. TRANSMIT BACnet-SimpleAck-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
       PDU = SimpleAck
@@ -439,7 +440,7 @@
   -- 10. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -454,7 +455,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = ComplexAck
       Service = ReadProperty
@@ -468,7 +469,7 @@
   -- 11. VERIFY Event_State = HIGH_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -483,7 +484,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -509,7 +510,7 @@
   --               (Setpoint_Reference + High_Diff_Limit))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -527,7 +528,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -540,13 +541,13 @@
   -- 15. CHECK (verify that no notification message has been transmitted)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       )
 
   -- 16. VERIFY Event_State = HIGH_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -561,7 +562,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -584,7 +585,7 @@
 --               (Setpoint_Reference + High_Diff_Limit - Deadband))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -602,7 +603,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -633,7 +634,7 @@
   --                             error-limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
@@ -668,7 +669,7 @@
   -- 20. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
       PDU = SimpleAck
@@ -678,7 +679,7 @@
   -- 21. VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -693,7 +694,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -709,7 +710,7 @@
   -- 22. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -724,7 +725,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -751,7 +752,7 @@
 --               (Setpoint_Reference - High_Diff_Limit + Deadband))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -769,7 +770,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -782,13 +783,13 @@
   -- 26. CHECK (verify that no notification message has been transmitted)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       )
 
   -- 27. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -803,7 +804,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -824,7 +825,7 @@
 --               (Setpoint_Reference - Low_Diff_Limit))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -842,7 +843,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -873,7 +874,7 @@
   --                             error-limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
@@ -908,7 +909,7 @@
   -- 31. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
       PDU = SimpleAck
@@ -918,7 +919,7 @@
   -- 32. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -933,7 +934,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -949,7 +950,7 @@
   -- 33. VERIFY Event_State = LOW_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -964,7 +965,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -991,7 +992,7 @@
 --               (Setpoint_Reference - Low_Limit + Deadband))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1009,7 +1010,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -1022,7 +1023,7 @@
   -- 37. CHECK (verify that no notification message has been transmitted)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       )
@@ -1030,7 +1031,7 @@
   -- 38. VERIFY Event_State = Low_Limit
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1045,7 +1046,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -1068,7 +1069,7 @@
 --               (Setpoint_Reference + High_Limit - Deadband))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1086,7 +1087,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -1117,7 +1118,7 @@
   --                             error-limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
@@ -1152,7 +1153,7 @@
   -- 42. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
       PDU = SimpleAck
@@ -1162,7 +1163,7 @@
   -- 43. VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1177,7 +1178,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -1193,7 +1194,7 @@
   -- 44. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1208,7 +1209,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE

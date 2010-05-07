@@ -22,7 +22,8 @@
   ; TD_CONFIG
   ;
 
-  TD_IP = 10.10.10.2
+  TD_IP  = "TD_IP"
+TD_PORT = "bip"
 
 
   LOOP_OBJECT = Loop, 1		; Loop object being tested
@@ -36,7 +37,7 @@
   ; IUT_CONFIG
   ;
 
-  IUT_IP = 10.10.10.100	; Address of IUT
+  IUT_IP = "IUT_IP"	; Address of IUT
 
   ;-------------------------------------------------------------------------------------
 
@@ -81,7 +82,7 @@
   -- Steps #1 & #2: Read the loop object's Controlled-Variable-Reference property
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -96,7 +97,7 @@
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	PDU = ComplexAck
       	bvlci =ORIGINAL-UNICAST-NPDU
       	SA = IUT_IP
@@ -117,7 +118,7 @@
   -- Steps #3 & #4: Read the loop object's Controlled-Variable-Value property
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -132,7 +133,7 @@
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
       	SA = IUT_IP
       	PDU = ComplexAck
@@ -154,7 +155,7 @@
   -- property = the Controlled_Variable_Value (from step 4)
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -169,7 +170,7 @@
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
       	SA = IUT_IP
       	PDU = ComplexAck

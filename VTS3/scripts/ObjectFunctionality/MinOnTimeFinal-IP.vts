@@ -25,8 +25,9 @@ SETUP Minimum On Time Functionality
 ;MAC Address Setup
 ;-------------------------------------------------------------------------
 
-IUT_IP = 208.6.162.35
-TD_IP = 10.10.10.36
+IUT_IP = "IUT_IP"
+TD_IP  = "TD_IP"
+TD_PORT = "bip"
 
 ;IUT_MAC = 05
 ;MY_MAC  = 000000B0D0E911F6
@@ -190,7 +191,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
 -- less than 7 have a value of NULL.
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -212,7 +213,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       CloseTag 3
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -222,7 +223,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       )
       
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -245,7 +246,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 1 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       SA = IUT_IP
       Der = FALSE
@@ -255,7 +256,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -278,7 +279,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 2 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -289,7 +290,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
 
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -312,7 +313,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 3 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -322,7 +323,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -345,7 +346,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 4 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -355,7 +356,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -378,7 +379,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 5 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -388,7 +389,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -411,7 +412,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 7 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -421,7 +422,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -444,7 +445,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 6 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -464,7 +465,7 @@ Test #1 Write PV
 -- Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -487,7 +488,7 @@ Test #1 Write PV
       Unsigned = 4, 7 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -499,7 +500,7 @@ Test #1 Write PV
 -- Step #2: VERIFY Present_Value = ACTIVE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -518,7 +519,7 @@ Test #1 Write PV
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -535,7 +536,7 @@ Test #1 Write PV
 -- Step #3: VERIFY Priority_Array = ACTIVE, ARRAY_INDEX = 6
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -555,7 +556,7 @@ Test #1 Write PV
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -577,7 +578,7 @@ Test #4 WAIT (MINIMUM_ON_TIME_90_PERCENT) then run
 -- Step #5: VERIFY Priority_Array = ACTIVE, ARRAY_INDEX = 6
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -597,7 +598,7 @@ Test #4 WAIT (MINIMUM_ON_TIME_90_PERCENT) then run
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -619,7 +620,7 @@ Test #5 WAIT (MINIMUM_ON_FAIL_TIME)
 -- Step #7: VERIFY Priority_Array = NULL, ARRAY INDEX = 6
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -639,7 +640,7 @@ Test #5 WAIT (MINIMUM_ON_FAIL_TIME)
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -695,7 +696,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
 -- less than 7 have a value of NULL.
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -718,7 +719,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 1 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -728,7 +729,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -751,7 +752,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 2 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -762,7 +763,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
 
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -785,7 +786,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 3 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -795,7 +796,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -818,7 +819,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 4 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -828,7 +829,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -851,7 +852,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 5 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -861,7 +862,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -884,7 +885,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 7 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -894,7 +895,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -917,7 +918,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 6 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -936,7 +937,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
 Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -959,7 +960,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
       Unsigned = 4, 7 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -971,7 +972,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 -- Step #2: VERIFY Present_Value = ACTIVE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -990,7 +991,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -1007,7 +1008,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 -- Step #3: VERIFY Priority_Array = ACTIVE, ARRAY_INDEX = 6
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -1027,7 +1028,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -1050,7 +1051,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
    ; no wait should be necessary
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -1073,7 +1074,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
       Unsigned = 4, 5 ;priority
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -1085,7 +1086,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 -- Step #5: VERIFY Present_Value = INACTIVE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -1104,7 +1105,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE
@@ -1121,7 +1122,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 -- Step #6: VERIFY Priority_Array = INACTIVE, ARRAY_INDEX = 6
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -1141,7 +1142,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA =BROADCAST 
       Sa = IUT_IP
       Der = FALSE

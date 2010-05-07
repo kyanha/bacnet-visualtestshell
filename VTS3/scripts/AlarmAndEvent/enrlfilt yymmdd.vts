@@ -27,7 +27,8 @@
 SETUP Object Support Tests - Enrollment Filter test
 
   ;--------------------------------------------------------------
-   IUT_IP = 208.6.162.35
+   IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;            CHANGE: MY_MAC address and "Untitled"
@@ -55,7 +56,8 @@ SETUP Object Support Tests - Enrollment Filter test
   ;IUT_IP =  0040ae000d71  -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,700                -- Device object instance for IUT.
+  TC_DEVICE = Device, 1000
+  DEVICE_ID = DEVICE,47814                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object
   MONITORED_ID = MULTISTATE-INPUT, 1    -- the monitored object, same as above
@@ -69,6 +71,7 @@ SETUP Object Support Tests - Enrollment Filter test
   OFFNORMAL_PRIORITY = 90       -- the priority at which offnormal transitions 
                                 -- will be generated
   
+  PROCESS_ID = 10
 
   ;--------------------------------------------------------------
   ; BACnet enumerated values
@@ -89,6 +92,12 @@ SETUP Object Support Tests - Enrollment Filter test
   ACK_FILTER_ALL = 0
   ACK_FILTER_ACKED = 1
   ACK_FILTER_NOT_ACKED = 2
+
+  EVENT_FILTER_OFFNORMAL = 0
+  EVENT_FILTER_FAULT     = 1
+  EVENT_FILTER_NORMAL    = 2
+  EVENT_FILTER_ALL       = 3
+  EVENT_FILTER_ACTIVE    = 4
 
   ;--------------------------------------------------------------
 
@@ -116,7 +125,7 @@ SETUP Object Support Tests - Enrollment Filter test
   --                                    test)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -126,14 +135,15 @@ SETUP Object Support Tests - Enrollment Filter test
       DER = TRUE
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
-      ENUM = 0, ACK_FILTER_ALL
-      OpenTag 0
-        OpenTag 0
-          Object = 0, DEVICE_ID
+      ENUM = 0, ACK_FILTER_ALL  -- acknowledgmentFilter
+     OpenTag 1                 -- enrollment filter (BacnetRecipientProcess)
+       OpenTag 0                  -- recipient
+         Object = 0, TC_DEVICE  -- device
           -- Address = 1, IUT_IP  --CHANGE: MUST BE CONFIGURED FOR APPROPRIATE DEVICE
         CloseTag 0
-      CloseTag 0
-      INTEGER = 1, PROCESS_ID
+        integer = 1, PROCESS_ID 
+      CloseTag 1
+      ENUM = 2, EVENT_FILTER_ALL -- event-state-filter
       )
 
   -- 2. RECEIVE GetEnrollmentSummary-ACK,
@@ -142,7 +152,7 @@ SETUP Object Support Tests - Enrollment Filter test
   --                                                Process Identifier) pair)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = TRUE

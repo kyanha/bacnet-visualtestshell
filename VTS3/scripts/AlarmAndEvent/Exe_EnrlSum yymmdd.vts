@@ -30,7 +30,8 @@
 SETUP EnrollmentSummaries
 
   ;--------------------------------------------------------------
-     IUT_IP = 208.6.162.35
+     IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;
@@ -58,7 +59,7 @@ SETUP EnrollmentSummaries
   ;IUT_MAC = 0040ae000e3a   -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,700                -- Device object instance for IUT.
+  DEVICE_ID = DEVICE,47813                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object E1
   EVENT_ID2 = EVENT-ENROLLMENT, 2       -- the event generating object E2
@@ -204,7 +205,7 @@ SETUP EnrollmentSummaries
   --      'Acknowledgement Filter' = ALL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -223,7 +224,7 @@ SETUP EnrollmentSummaries
   --      'List of Alarm Summaries' = (an empty list)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -247,7 +248,7 @@ SETUP EnrollmentSummaries
   --      'Acknowledgement Filter' = ACKED
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -270,7 +271,7 @@ SETUP EnrollmentSummaries
   -- CHANGE: The type of event to filter on.
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -298,7 +299,7 @@ SETUP EnrollmentSummaries
   --      'Acknowledgment Filter' = NOT-ACKED
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -321,7 +322,7 @@ SETUP EnrollmentSummaries
   -- CHANGE: The type of event to filter on.
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -349,7 +350,7 @@ SETUP EnrollmentSummaries
   --      'Acknowledgement Filter' = ALL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -369,7 +370,7 @@ SETUP EnrollmentSummaries
   --                                         in 9.5.1.2 and 9.5.1.3)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE

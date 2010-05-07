@@ -1,30 +1,31 @@
   ;-------------------------------------------------------------------------------------
   ;  Positive RemoveListElement Service Execution Tests
   ;
-  ;  RemoveListElement.vts	remlistmmddyy.vts
+  ;  RemoveListElement.vts  remlistmmddyy.vts
   ;
-  ;  Ver 1.0	03/02/01	P. Bowen
+  ;  Ver 1.0    03/02/01    P. Bowen
   ;
   ;  Purpose: This test group will verify correct execution of RemoveListElement
-  ;	      service requests under circumstances where the service is expected
-  ;	      to be successfully completed.
+  ;       service requests under circumstances where the service is expected
+  ;       to be successfully completed.
   ;
   ;  In the REFERENCE section "(B)" refers to the BACnet standard and
   ;  "(T)" refers to the testing addendum.
   ;-------------------------------------------------------------------------------------
   SETUP Positive RemoveListElement Service Execution Tests
-  
-  IUT_IP = 10.10.10.100:0xBAC0
-  TD_IP  = 10.10.10.36:0XBAC0 
-  
-  OBJECT1 = Device, 1967	; DEVICE OBJECT
-  OBJECT2 = analog-VALUE, 1	; Object which is the subject of the Read Prop tests
-  OBJECT3 = analog-VALUE, 2	; Object which is the subject of the Read Prop tests
-  OBJECT4 = File, 104		; Object which is the subject of the Read Prop tests
 
-  INDEX0 = 0		; Index used in any test to read array length
-  INDEX1 = 1		; Array index for test #1g "Read a Single Element of an Array"
-  INDEX2 = 2		; Array index for test #1j "Read Property - Read Null Values"
+  IUT_IP = "IUT_IP"
+  TD_IP  = "TD_IP"
+   TD_PORT = "bip"
+
+  OBJECT1 = Device, 47814   ; DEVICE OBJECT
+  OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
+  OBJECT3 = analog-VALUE, 2 ; Object which is the subject of the Read Prop tests
+  OBJECT4 = File, 104       ; Object which is the subject of the Read Prop tests
+
+  INDEX0 = 0        ; Index used in any test to read array length
+  INDEX1 = 1        ; Array index for test #1g "Read a Single Element of an Array"
+  INDEX2 = 2        ; Array index for test #1j "Read Property - Read Null Values"
   INDEX3 = 3
   INDEX4 = 4
  ;-------------------------------------------------------------------------------------
@@ -43,7 +44,7 @@
 
   -- Step #1: Verify (read) the Time-Synchronization-Recipients property for the Device object
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -58,7 +59,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -67,12 +68,12 @@
       Object = 0, OBJECT1
       Property = 1, Time-Synchronization-Recipients
       OpenTag 3
-         AL = X'0C02001F410C02001F42'	; test passes if list contains objects
-      CloseTag 3			; written in AddListElement test
+         AL = X'0C02001F410C02001F42'   ; test passes if list contains objects
+      CloseTag 3            ; written in AddListElement test
     )
 
   OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -85,7 +86,7 @@
   -- property value and receive a simple acknowledgement
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -98,21 +99,21 @@
       Object = 0, OBJECT1
       Property = 1, Time-Synchronization-Recipients
       OpenTag 3
- 	BACnetObjectIdentifier = OBJECT2   ;, OBJECT3 ; this statement doesn't work in VTS V2.27
+    BACnetObjectIdentifier = OBJECT2   ;, OBJECT3 ; this statement doesn't work in VTS V2.27
       CloseTag 3
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
       PDU = SimpleAck
       Service = RemoveListElement
       )
- 
+
  OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -127,7 +128,7 @@
  -- Step #4: Verify that the list elements have been removed
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -142,21 +143,21 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Time-Synchronization-Recipients
       OpenTag 3
-       AL = X'3E3F'		; test passes if Time-Synchronization-Recipients list is empty
+       AL = X'3E3F'     ; test passes if Time-Synchronization-Recipients list is empty
       CloseTag 3
     )
 
   OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE

@@ -33,7 +33,8 @@
   ; TD_CONFIG  All objects and properties are listed here including notes on there use
   ;
 
-  TD_IP = 10.10.10.2
+  TD_IP  = "TD_IP"
+TD_PORT = "bip"
 
   OBJECT1 = BINARY-VALUE, 3		; Object which is the subject of the Read Prop tests
 
@@ -49,7 +50,7 @@
   ; IUT_CONFIG
   ;
 
-  IUT_IP = 208.6.162.35	; Address of IUT
+  IUT_IP = "IUT_IP"	; Address of IUT
 
   ;-------------------------------------------------------------------------------------
 
@@ -129,7 +130,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -147,7 +148,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -159,7 +160,7 @@ SEND (
 -- STEP 2.	VERIFY Out_Of_Service = TRUE
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -174,7 +175,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -190,7 +191,7 @@ SEND (
 -- STEP 3.	VERIFY Status_Flags = (?, FALSE, ?, TRUE) ; MANUALLY VERIFY EXPECT
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -205,7 +206,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -222,7 +223,7 @@ SEND (
 -- STEP 4.	REPEAT X = (all values meeting the functional range requirements of 7.2.1) DO { WRITE Present_Value = X VERIFY Present_Value = X
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -240,7 +241,7 @@ SEND (
      )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -252,7 +253,7 @@ SEND (
    
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -268,7 +269,7 @@ SEND (
     )
 
   EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -283,7 +284,7 @@ SEND (
 
     ------------------------------
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -301,7 +302,7 @@ SEND (
      )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -313,7 +314,7 @@ SEND (
    
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -329,7 +330,7 @@ SEND (
     )
 
   EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -361,7 +362,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
 -- STEP 6.	IF (Reliability is writable)...
 --RELIABILITY 1--------------------------------
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -379,7 +380,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -390,7 +391,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -405,7 +406,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -419,7 +420,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -434,7 +435,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -448,7 +449,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -466,7 +467,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -477,7 +478,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -492,7 +493,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -506,7 +507,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -524,7 +525,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -538,7 +539,7 @@ SEND (
     )
 --RELIABILITY 2--------------------------------
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -556,7 +557,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -567,7 +568,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -582,7 +583,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -596,7 +597,7 @@ SEND (
     )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -614,7 +615,7 @@ SEND (
     )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -628,7 +629,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -646,7 +647,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -657,7 +658,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -672,7 +673,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -686,7 +687,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -704,7 +705,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -720,7 +721,7 @@ SEND (
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -738,7 +739,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -749,7 +750,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -764,7 +765,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -777,7 +778,7 @@ SEND (
       CloseTag 3
     )
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -794,7 +795,7 @@ SEND (
       CloseTag 3
     )
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -808,7 +809,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -826,7 +827,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -837,7 +838,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -852,7 +853,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -866,7 +867,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -884,7 +885,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -901,7 +902,7 @@ SEND (
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -919,7 +920,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -930,7 +931,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -945,7 +946,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -959,7 +960,7 @@ SEND (
     )
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -976,7 +977,7 @@ SEND (
       CloseTag 3
     )
        EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -990,7 +991,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1008,7 +1009,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1019,7 +1020,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1034,7 +1035,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1048,7 +1049,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1066,7 +1067,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1081,7 +1082,7 @@ SEND (
 --RELIABILITY 5--------------------------------
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1099,7 +1100,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1110,7 +1111,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1125,7 +1126,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1138,7 +1139,7 @@ SEND (
       CloseTag 3
     )
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1155,7 +1156,7 @@ SEND (
       CloseTag 3
     )
        EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1169,7 +1170,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1187,7 +1188,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1198,7 +1199,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1213,7 +1214,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1227,7 +1228,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1245,7 +1246,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1260,7 +1261,7 @@ SEND (
 --RELIABILITY 6--------------------------------
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1278,7 +1279,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1289,7 +1290,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1304,7 +1305,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1317,7 +1318,7 @@ SEND (
       CloseTag 3
     )
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1335,7 +1336,7 @@ SEND (
     )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1349,7 +1350,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1367,7 +1368,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1378,7 +1379,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1393,7 +1394,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1407,7 +1408,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1425,7 +1426,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1442,7 +1443,7 @@ SEND (
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1460,7 +1461,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1471,7 +1472,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1486,7 +1487,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1500,7 +1501,7 @@ SEND (
     )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1518,7 +1519,7 @@ SEND (
     )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1532,7 +1533,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1550,7 +1551,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1561,7 +1562,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1576,7 +1577,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1590,7 +1591,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1608,7 +1609,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1625,7 +1626,7 @@ SEND (
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1643,7 +1644,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1654,7 +1655,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1669,7 +1670,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1683,7 +1684,7 @@ SEND (
     )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1701,7 +1702,7 @@ SEND (
     )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1715,7 +1716,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1733,7 +1734,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1744,7 +1745,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1759,7 +1760,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1773,7 +1774,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1791,7 +1792,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1807,7 +1808,7 @@ SEND (
 
  
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1825,7 +1826,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1842,7 +1843,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
 -- STEP 7.	PUT Out_Of_Service BACK TO FALSE STATE
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1857,7 +1858,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE

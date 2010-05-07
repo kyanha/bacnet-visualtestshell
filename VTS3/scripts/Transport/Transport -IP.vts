@@ -9,10 +9,11 @@
   ;	to the testing addendum.
   ;-------------------------------------------------------------------------------------
   SETUP Positive ReadProperty Tests
-   IUT_IP = 10.10.10.100:0xBAC0
-   TD_IP  = 10.10.10.36:0XBAC0 
+   IUT_IP = "IUT_IP"
+   TD_IP  = "TD_IP" 
+   TD_PORT = "bip"
   
-   OBJECT1 = Device, 1967	; DEVICE OBJECT
+   OBJECT1 = Device, 47814	; DEVICE OBJECT
    OBJECT2 = analog-input, 1	; Object which is the subject of the Read Prop tests
    OBJECT3 = analog-VALUE, 1	; Object which is the subject of the Read Prop tests
    OBJECT4 = File, 104		; Object which is the subject of the Read Prop tests
@@ -372,7 +373,7 @@ EXPECT(
  TEST #0 ACKNOWLEDGE ALARM confirmed Services that are not supported 
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -395,7 +396,7 @@ EXPECT(
        )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -406,7 +407,7 @@ EXPECT(
  TEST #1 CONFIRMEDCOVNOTIFICATION confirmed Services that are not supported 
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -429,7 +430,7 @@ EXPECT(
        )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -442,7 +443,7 @@ EXPECT(
 TEST #2 CONFIRMEDEVENTNOTIFICATION confirmed Services that are not supported DEBUG
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -478,7 +479,7 @@ TEST #2 CONFIRMEDEVENTNOTIFICATION confirmed Services that are not supported DEB
      )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -492,7 +493,7 @@ TEST #2 CONFIRMEDEVENTNOTIFICATION confirmed Services that are not supported DEB
  TEST #3 GETALARMSUMMARY confirmed Services that are not supported 
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -505,7 +506,7 @@ TEST #2 CONFIRMEDEVENTNOTIFICATION confirmed Services that are not supported DEB
       )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -514,7 +515,7 @@ TEST #2 CONFIRMEDEVENTNOTIFICATION confirmed Services that are not supported DEB
 ;--------------------------------------------------------------------------------------
 TEST #4 GETENROLLMENTSUMMARY confirmed Services that are not supported
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -534,7 +535,7 @@ TEST #4 GETENROLLMENTSUMMARY confirmed Services that are not supported
       )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -544,7 +545,7 @@ TEST #4 GETENROLLMENTSUMMARY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
 TEST #5 SUBSCRIBECOV confirmed Services that are not supported 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -561,7 +562,7 @@ TEST #5 SUBSCRIBECOV confirmed Services that are not supported
       )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -574,7 +575,7 @@ TEST #5 SUBSCRIBECOV confirmed Services that are not supported
  TEST #6 ATOMICREADFILE confirmed Services that are not supported 
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -594,7 +595,7 @@ TEST #5 SUBSCRIBECOV confirmed Services that are not supported
       )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -605,7 +606,7 @@ TEST #5 SUBSCRIBECOV confirmed Services that are not supported
 TEST #7 ATOMICWRITEFILE confirmed Services that are not supported 
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -623,7 +624,7 @@ TEST #7 ATOMICWRITEFILE confirmed Services that are not supported
          )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -634,7 +635,7 @@ TEST #7 ATOMICWRITEFILE confirmed Services that are not supported
 TEST #8 ADDLISTELEMENT confirmed Services that are not supported 
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -656,7 +657,7 @@ TEST #8 ADDLISTELEMENT confirmed Services that are not supported
       )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -672,7 +673,7 @@ OpenTag 0
 TEST #9 REMOVELISTELEMENT confirmed Services that are not supported 
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -694,7 +695,7 @@ TEST #9 REMOVELISTELEMENT confirmed Services that are not supported
       )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -710,7 +711,7 @@ TEST #9 REMOVELISTELEMENT confirmed Services that are not supported
 TEST #10 CREATEOBJECT confirmed Services that are not supported
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -726,7 +727,7 @@ TEST #10 CREATEOBJECT confirmed Services that are not supported
       )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -736,7 +737,7 @@ TEST #10 CREATEOBJECT confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
 TEST #11 DELETEOBJECT confirmed Services that are not supported
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -750,7 +751,7 @@ TEST #11 DELETEOBJECT confirmed Services that are not supported
       )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -761,7 +762,7 @@ TEST #11 DELETEOBJECT confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
 TEST #12 READPROPERTY confirmed Services that are not supported
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -775,7 +776,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
       Property = 1, Object-Identifier	; Type BACnetObjectIdentifier      
     )
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -787,7 +788,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
  TEST #13 READPROPERTYCONDITIONAL confirmed Services that are not supported  
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -810,7 +811,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -820,7 +821,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
  TEST #14 READPROPERTYMULTIPLE confirmed Services that are not supported  (OK)
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -841,7 +842,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -854,7 +855,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
   TEST #15 WRITEPROPERTY confirmed Services that are not supported  
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -872,7 +873,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -884,7 +885,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
  TEST #16 WRITEPROPERTYMULTIPLE confirmed Services that are not supported  (OK)
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -904,7 +905,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -924,7 +925,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
  TEST #17 DEVICECOMMUNICATIONCONTROL confirmed Services that are not supported 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -940,7 +941,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = FALSE
@@ -949,7 +950,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
  ;--------------------------------------------------------------------------------------
  TEST #18 CONFIRMEDPRIVATETRANSFER confirmed Services that are not supported  (OK)
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -965,7 +966,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = False
@@ -975,7 +976,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
  TEST #19 CONFIRMEDTEXTMESSAGE confirmed Services that are not supported  (OK)
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -991,7 +992,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
  EXPECT (
-  NETWORK = "Untitled"
+  NETWORK = TD_PORT
   BVLCI = ORIGINAL-UNICAST-NPDU
   Sa = IUT_IP
   DER = False
@@ -1002,7 +1003,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
  TEST #20 REINITIALIZEDEVICE confirmed Services that are not supported 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -1016,7 +1017,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
    EXPECT (
-   NETWORK = "Untitled"
+   NETWORK = TD_PORT
    BVLCI = ORIGINAL-UNICAST-NPDU
    Sa = IUT_IP
    DER = False
@@ -1028,7 +1029,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
   TEST #21 VTOPEN confirmed Services that are not supported  (OK)
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -1044,7 +1045,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
    EXPECT (
-   NETWORK = "Untitled"
+   NETWORK = TD_PORT
    BVLCI = ORIGINAL-UNICAST-NPDU
    Sa = IUT_IP
    DER = False
@@ -1054,7 +1055,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
   TEST #22 VTCLOSE confirmed Services that are not supported  (OK)
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -1069,7 +1070,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
      )
 
    EXPECT (
-   NETWORK = "Untitled"
+   NETWORK = TD_PORT
    BVLCI = ORIGINAL-UNICAST-NPDU
    Sa = IUT_IP
    DER = False
@@ -1079,7 +1080,7 @@ TEST #12 READPROPERTY confirmed Services that are not supported
 ;--------------------------------------------------------------------------------------
 TEST #23 VTDATA confirmed Services that are not supported  (OK)   
   SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -1096,7 +1097,7 @@ TEST #23 VTDATA confirmed Services that are not supported  (OK)
      )
 
    EXPECT (
-   NETWORK = "Untitled"
+   NETWORK = TD_PORT
    BVLCI = ORIGINAL-UNICAST-NPDU
    Sa = IUT_IP
    DER = False
@@ -1106,7 +1107,7 @@ TEST #23 VTDATA confirmed Services that are not supported  (OK)
 ;--------------------------------------------------------------------------------------
 TEST #24 AUTHENTICATE confirmed Services that are not supported  (OK)
   SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -1124,7 +1125,7 @@ TEST #24 AUTHENTICATE confirmed Services that are not supported  (OK)
      )
 
    EXPECT (
-   NETWORK = "Untitled"
+   NETWORK = TD_PORT
    BVLCI = ORIGINAL-UNICAST-NPDU
    Sa = IUT_IP
    DER = False
@@ -1134,7 +1135,7 @@ TEST #24 AUTHENTICATE confirmed Services that are not supported  (OK)
 ;--------------------------------------------------------------------------------------
 TEST #25 REQUESTKEY confirmed Services that are not supported (OK)
   SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -1153,7 +1154,7 @@ TEST #25 REQUESTKEY confirmed Services that are not supported (OK)
      )
 
    EXPECT (
-   NETWORK = "Untitled"
+   NETWORK = TD_PORT
    BVLCI = ORIGINAL-UNICAST-NPDU
    Sa = IUT_IP
    DER = False
@@ -1180,7 +1181,7 @@ Reference 5.4.5.3
 -- and a response would be larger than 1 segment.  
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -1399,7 +1400,7 @@ Closetag 1
 
       
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       SA = IUT_IP
       BVLCI = ORIGINAL-UNICAST-NPDU

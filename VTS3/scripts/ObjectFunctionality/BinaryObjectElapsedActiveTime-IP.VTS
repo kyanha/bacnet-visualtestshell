@@ -20,8 +20,9 @@
 ; MAC Address Setup
 ; -------------------------------------------------------------------------------------
  
- IUT_IP = 208.6.162.35
- TD_IP = 10.10.10.36
+ IUT_IP = "IUT_IP"
+TD_IP  = "TD_IP"
+TD_PORT = "bip"
    
 	;IUT_MAC = <mac address of device>	   ; --- Place the MAC Address of the device you are testing here. Replace mac address of device" with the devices mac
 	;MY_MAC = <mac address of VTS machine>      ;  ---Place the MAC Address of your VTS test machine below. Replace mac address of VTS machine" with the VTS mac
@@ -60,7 +61,7 @@
   ;DEVOBJ  = <0>, <DEVICE>, <100>                 ; Device object
 
   OBJECT1 = Binary-Value,1
-  DEVOBJ = 0,DEVICE,245146
+  DEVOBJ = 0,DEVICE,47814
     
                     
 --------------------------SECTION (A) Set PV to inactive and verify elapsed time--------
@@ -223,7 +224,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -242,7 +243,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -251,7 +252,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -265,7 +266,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
       Property = 1, ELAPSED-ACTIVE-TIME	
     )
 EXPECT(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -304,7 +305,7 @@ Dependencies NONE   ; ReadProperty Service Execution Tests  9.15 ; WriteProperty
 Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -318,7 +319,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
       Property = 1, ELAPSED-ACTIVE-TIME	 
     )
 EXPECT(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -340,7 +341,7 @@ Dependencies NONE ; ReadProperty Service Execution Tests
 Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -359,7 +360,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -369,7 +370,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -385,7 +386,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
   EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -418,7 +419,7 @@ Dependencies NONE ; ReadProperty Service Execution Tests  9.15; WriteProperty Se
 Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -434,7 +435,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
 EXPECT(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -454,7 +455,7 @@ Dependencies NONE ; ReadProperty Service Execution Tests  9.15; WriteProperty Se
 Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -473,7 +474,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -483,7 +484,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -499,7 +500,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
   EXPECT (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     Sa = IUT_IP
     Der = FALSE
     BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -513,7 +514,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
   )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -531,7 +532,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -541,7 +542,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -557,7 +558,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
   EXPECT (
-    NETWORK = "Untitled"
+    NETWORK = TD_PORT
     Sa = IUT_IP
     Der = FALSE
     BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -581,7 +582,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -596,7 +597,7 @@ SEND (
 )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      
@@ -611,7 +612,7 @@ SEND (
 )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU      

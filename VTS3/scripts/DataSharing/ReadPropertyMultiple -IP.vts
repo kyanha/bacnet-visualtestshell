@@ -1,16 +1,17 @@
 ;-----------------------------------------------------------------------------
  SETUP ReadPropertyMultiple Service Execution Tests
-  
-  DIP = 10.10.10.100:0xBAC0
-  
-  OBJECT1 = Device, 1967	; DEVICE OBJECT
-  OBJECT2 = analog-VALUE, 1	; Object which is the subject of the Read Prop tests
-  OBJECT3 = analog-VALUE, 2	; Object which is the subject of the Read Prop tests
-  OBJECT4 = File, 104		; Object which is the subject of the Read Prop tests
 
-  INDEX0 = 0		; Index used in any test to read array length
-  INDEX1 = 1		; Array index for test #1g "Read a Single Element of an Array"
-  INDEX2 = 4		; Array index for test #1j "Read Property - Read Null Values"
+  DIP = "IUT_IP"
+   TD_PORT = "bip"
+
+  OBJECT1 = Device, 47814   ; DEVICE OBJECT
+  OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
+  OBJECT3 = analog-VALUE, 2 ; Object which is the subject of the Read Prop tests
+  OBJECT4 = File, 104       ; Object which is the subject of the Read Prop tests
+
+  INDEX0 = 0        ; Index used in any test to read array length
+  INDEX1 = 1        ; Array index for test #1g "Read a Single Element of an Array"
+  INDEX2 = 4        ; Array index for test #1j "Read Property - Read Null Values"
 
 ;-----------------------------------------------------------------------------
 
@@ -19,20 +20,20 @@
 ;----------------------------------------------------------------------------
 
 ;-------------------------------------------------------------------------------------
-  TEST #1a Reading a Single Property from a Single Object 
+  TEST #1a Reading a Single Property from a Single Object
 
   -- Purpose: This test case verifies the ability to read a single property from a
   -- single object.
 
-  -- Test Concept: A single supported property is read from the Device object. The 
+  -- Test Concept: A single supported property is read from the Device object. The
   -- property is selected by the TD and is designated as P1 in the test description.
 
   -- Test Steps:
   --  1. TRANSMIT ReadPropertyMultiple-Request,
-  --	'Object Identifier' = Object1 | Object2, 'Property Identifier' = P1
+  --    'Object Identifier' = Object1 | Object2, 'Property Identifier' = P1
   --  2. RECEIVE ReadPropertyMultiple-ACK,
-  --	'Object Identifier' = (the object selected in step 1), 'Property Identifier' = P1,
-  --	'Property Value' = (the value of P1 specified in the EPICS)
+  --    'Object Identifier' = (the object selected in step 1), 'Property Identifier' = P1,
+  --    'Property Value' = (the value of P1 specified in the EPICS)
 
   DEPENDENCIES None
 
@@ -41,7 +42,7 @@
   -- Step #1: Send ReadPropertyMultiple request for a single property, single object
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = DIP
       BVLCI=ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -60,7 +61,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -82,17 +83,17 @@
   TEST #1b Reading Multiple properties from a Single Object.
 
   -- Purpose: This test case verifies the ability to read multiple properties from a
-  --	single object.
+  --    single object.
 
   -- Test Steps:
   --  1. TRANSMIT ReadPropertyMultiple-Request,
-  --	'Object Identifier' = Object1 | Object2, 'Property Identifier' = P1, 'Property 
-  --		Identifier' = P2, 'Property Identifier' = P3
+  --    'Object Identifier' = Object1 | Object2, 'Property Identifier' = P1, 'Property
+  --        Identifier' = P2, 'Property Identifier' = P3
   --  2. RECEIVE ReadPropertyMultiple-ACK,
-  --	'Object Identifier' = (the object selected in step 1), 'Property Identifier' = P1,
-  --	'Property Value' = (the value of P1 specified in the EPICS), 'Property Identifier' = P2,
-  --	'Property Value' = (the value of P2 specified in the EPICS), 'Property Identifier' = P3,
-  --	'Property Value' = (the value of P3 specified in the EPICS)
+  --    'Object Identifier' = (the object selected in step 1), 'Property Identifier' = P1,
+  --    'Property Value' = (the value of P1 specified in the EPICS), 'Property Identifier' = P2,
+  --    'Property Value' = (the value of P2 specified in the EPICS), 'Property Identifier' = P3,
+  --    'Property Value' = (the value of P3 specified in the EPICS)
 
   DEPENDENCIES None
 
@@ -101,7 +102,7 @@
   -- Step #1: Send ReadPropertyMultiple request for multiple properties, single object
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = DIP
       BVLCI=ORIGINAL-UNICAST-NPDU
       DER = TRUE
@@ -115,14 +116,14 @@
       OpenTag 1
          Property = 0, Object-Name
          Property = 0, Vendor-Name
-         Property = 0, Model-Name  
+         Property = 0, Model-Name
          CloseTag 1
     )
 
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -150,27 +151,27 @@
 ;-------------------------------------------------------------------------------------
   TEST #1c Reading a Single Property from Multiple Objects
 
-  -- Purpose: This test case verifies the ability to read a single property from 
-  --	multiple objects.
+  -- Purpose: This test case verifies the ability to read a single property from
+  --    multiple objects.
 
   -- Test Steps:
   --  1. TRANSMIT ReadPropertyMultiple-Request,
-  --	'Object Identifier' = Object1, 'Property Identifier' = P1,
-  --	'Object Identifier' = Object2, 'Property Identifier' = P2
+  --    'Object Identifier' = Object1, 'Property Identifier' = P1,
+  --    'Object Identifier' = Object2, 'Property Identifier' = P2
   --  2. RECEIVE ReadPropertyMultiple-ACK,
-  --	'Object Identifier' = Object1, 'Property Identifier' = P1, 'Property Value' =
-  --		(the value of P1 specified in the EPICS),
-  --	'Object Identifier' = Object2, 'Property Identifier' = P2, 'Property Value' =
-  --		(the value of P2 specified in the EPICS)
+  --    'Object Identifier' = Object1, 'Property Identifier' = P1, 'Property Value' =
+  --        (the value of P1 specified in the EPICS),
+  --    'Object Identifier' = Object2, 'Property Identifier' = P2, 'Property Value' =
+  --        (the value of P2 specified in the EPICS)
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadPropertyMultiple Service and (T) Reading a Single Property from Multiple Objects
-   
+
   -- Step #1: Send ReadPropertyMultiple request to multiple objects, single property
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -193,7 +194,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -220,32 +221,32 @@
 ;----------------------------------------------------------------------------
   TEST #1d Reading Multiple Properties from Multiple Objects
 
-  -- Purpose: This test case verifies the ability to read multiple properties from 
-  --	multiple objects.
+  -- Purpose: This test case verifies the ability to read multiple properties from
+  --    multiple objects.
 
   -- Test Steps:
   --  1. TRANSMIT ReadPropertyMultiple-Request,
-  --	'Object Identifier' = Object1,
-  --	'Property Identifier' = P1, 'Property Identifier' = P2, 'Property Identifier' =	P3,
-  --	'Object Identifier' = Object2,
-  --	'Property Identifier' = P4, 'Property Identifier' = P5,	'Property Identifier' =	P6,
+  --    'Object Identifier' = Object1,
+  --    'Property Identifier' = P1, 'Property Identifier' = P2, 'Property Identifier' = P3,
+  --    'Object Identifier' = Object2,
+  --    'Property Identifier' = P4, 'Property Identifier' = P5, 'Property Identifier' = P6,
   --  2. RECEIVE ReadPropertyMultiple-ACK,
-  --	'Object Identifier' = Object1,
-  --	'Property Identifier' =	P1, 'Property Value' = (the value of P1 specified in the EPICS),
-  --	'Property Identifier' =	P2, 'Property Value' = (the value of P2 specified in the EPICS),
-  --	'Property Identifier' =	P3, 'Property Value' = (the value of P3 specified in the EPICS),
-  --	'Object Identifier' = Object2,
-  --	'Property Identifier' =	P4, 'Property Value' = (the value of P4 specified in the EPICS),
-  --	'Property Identifier' =	P5, 'Property Value' = (the value of P5 specified in the EPICS),
-  --	'Property Identifier' =	P6, 'Property Value' = (the value of P6 specified in the EPICS)
+  --    'Object Identifier' = Object1,
+  --    'Property Identifier' = P1, 'Property Value' = (the value of P1 specified in the EPICS),
+  --    'Property Identifier' = P2, 'Property Value' = (the value of P2 specified in the EPICS),
+  --    'Property Identifier' = P3, 'Property Value' = (the value of P3 specified in the EPICS),
+  --    'Object Identifier' = Object2,
+  --    'Property Identifier' = P4, 'Property Value' = (the value of P4 specified in the EPICS),
+  --    'Property Identifier' = P5, 'Property Value' = (the value of P5 specified in the EPICS),
+  --    'Property Identifier' = P6, 'Property Value' = (the value of P6 specified in the EPICS)
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadPropertyMultiple Service and (T) Reading Multiple Properties from Multiple Objects
-   
+
   -- Step #1: Send ReadPropertyMultiple request for multiple properties, multiple objects
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -266,14 +267,14 @@
          Property = 0, Object-Name
          Property = 0, Object-Type
          Property = 0, Object-Identifier
-      CloseTag 1      
-      
+      CloseTag 1
+
     )
 
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -322,9 +323,9 @@
   -- service requests when the requested property is of type BACnetObjectIdentifier.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any value of type BACnetObjectIdentifier)
- 
-  -- Passing Result: The IUT shall respond as indicated conveying the value 
+  --    1. VERIFY (Object, X), property value = (any value of type BACnetObjectIdentifier)
+
+  -- Passing Result: The IUT shall respond as indicated conveying the value
   -- specified in the EPICS.
 
   DEPENDENCIES None
@@ -332,7 +333,7 @@
   REFERENCE (B) ReadProperty Service and (T) Reading Object Identifiers
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -344,12 +345,12 @@
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
-         Property = 0, Object-Identifier	; BACnetObjectIdentifier
+         Property = 0, Object-Identifier    ; BACnetObjectIdentifier
       CloseTag 1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -372,9 +373,9 @@
   -- service requests when the requested property is of type Enumerated.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any value of type Enumerated)
- 
-  -- Passing Result: The IUT shall respond as indicated conveying the value 
+  --    1. VERIFY (Object, X), property value = (any value of type Enumerated)
+
+  -- Passing Result: The IUT shall respond as indicated conveying the value
   -- specified in the EPICS.
 
   DEPENDENCIES None
@@ -382,7 +383,7 @@
   REFERENCE (B) ReadProperty Service and (T) Reading Enumerated Values
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -399,7 +400,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -422,9 +423,9 @@
   -- service requests when the requested property is of type CharacterString.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any value of type CharacterString)
- 
-  -- Passing Result: The IUT shall respond as indicated conveying the value 
+  --    1. VERIFY (Object, X), property value = (any value of type CharacterString)
+
+  -- Passing Result: The IUT shall respond as indicated conveying the value
   -- specified in the EPICS.
 
   DEPENDENCIES None
@@ -432,7 +433,7 @@
   REFERENCE (B) ReadProperty Service and (T) Reading CharacterString Values
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -449,7 +450,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -473,16 +474,16 @@
   -- service requests when the requested property is of type Unsigned.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any value of type Unsigned)
- 
-  -- Passing Result: The IUT shall respond as indicated conveying the value 
+  --    1. VERIFY (Object, X), property value = (any value of type Unsigned)
+
+  -- Passing Result: The IUT shall respond as indicated conveying the value
   -- specified in the EPICS.
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadProperty Service and (T) Reading Unsigned Values
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -494,12 +495,12 @@
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
-         Property = 0, Vendor-Identifier	; Vendor-Identifier is of type Unsigned
+         Property = 0, Vendor-Identifier    ; Vendor-Identifier is of type Unsigned
       CloseTag 1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -520,15 +521,15 @@ TEST #1i - Read Property Multiple, Read an Entire Array
   -- service requests when the requested property is of type Entire Array.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any value of type Entire Array)
- 
+  --    1. VERIFY (Object, X), property value = (any value of type Entire Array)
+
   -- Passing Result: The IUT shall respond as indicated conveying values specified
   -- in the EPICS. If segmentation is not supported and the object list is too long
   -- to return without segmentation an abort message indicating "segmentation not
   -- supported" is a passing result. If an abort message is received and the IUT
-  -- has another array that is small enough to read in its entirety without 
-  -- segmentation, then this test shall be repeated using that array. A passing 
-  -- result in that case is that the entire array is returned in response to the 
+  -- has another array that is small enough to read in its entirety without
+  -- segmentation, then this test shall be repeated using that array. A passing
+  -- result in that case is that the entire array is returned in response to the
   -- ReadPropertyMultiple request.
 
   DEPENDENCIES None
@@ -536,7 +537,7 @@ TEST #1i - Read Property Multiple, Read an Entire Array
   REFERENCE (B) ReadProperty Service and (T) Reading an Entire Array
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -548,18 +549,18 @@ TEST #1i - Read Property Multiple, Read an Entire Array
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
-         Property = 0, Priority-Array		; HARDCODE Read entire Object-List array
+         Property = 0, Priority-Array       ; HARDCODE Read entire Object-List array
       CloseTag 1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = error
      Error-choice = ReadPropertyMultiple
-     Enum = 2         
+     Enum = 2
      Enum = 32
 
     )
@@ -575,16 +576,16 @@ TEST #1i - Read Property Multiple, Read an Entire Array
 --   the array is read.
 
 --   Test Steps:
---  	1. VERIFY (Object, X), property value = (the array length)
- 
---  Passing Result: The IUT shall respond as indicated conveying the array length 
---   as specified in the EPICS. 
-  
+--      1. VERIFY (Object, X), property value = (the array length)
+
+--  Passing Result: The IUT shall respond as indicated conveying the array length
+--   as specified in the EPICS.
+
   DEPENDENCIES None
 
   REFERENCE (B) ReadProperty Service and (T) Reading the Size of an Array
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -597,12 +598,12 @@ TEST #1i - Read Property Multiple, Read an Entire Array
       Object = 0, OBJECT1
       OpenTag 1
          Property = 0, Object-List
-	 Unsigned = 1, INDEX0
+     Unsigned = 1, INDEX0
       CloseTag 1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -611,33 +612,33 @@ TEST #1i - Read Property Multiple, Read an Entire Array
       Object = 0, OBJECT1
       OpenTag 1
          Property = 2, Object-List
-	 Unsigned = 3, INDEX0			; get "unrecognized packet keyword" error
+     Unsigned = 3, INDEX0           ; get "unrecognized packet keyword" error
          OpenTag 4
             AL = {Object-List}
          CloseTag 4
-      CloseTag 1     
+      CloseTag 1
     )
 
 ;-------------------------------------------------------------------------------------
- 
+
  TEST #1k - MANAUL Read Property Multiple, Read a Single Element of an Array
 
   -- Purpose: This test case verifies that the IUT can execute ReadPropertyMultiple
   -- service requests when the requested property is of type Array and a single element
   -- of the array is read.
-  
+
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (the value of the Yth element of 
+  --    1. VERIFY (Object, X), property value = (the value of the Yth element of
   -- the array)
- 
- -- Passing Result: The IUT shall respond as indicated conveying the value of the 
+
+ -- Passing Result: The IUT shall respond as indicated conveying the value of the
   -- Yth element as specified in the EPICS.
-  
+
 DEPENDENCIES None
 
 REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -649,13 +650,13 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
-        Property = 0, Object-List            
-        Unsigned = 1,INDEX1			
+        Property = 0, Object-List
+        Unsigned = 1,INDEX1
         CloseTag 1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -663,10 +664,10 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
-         Property = 2, Object-List            
-        Unsigned = 3, INDEX1			
+         Property = 2, Object-List
+        Unsigned = 3, INDEX1
         OpenTag 4
-           AL = {Object-List}               
+           AL = {Object-List}
          CloseTag 4
       CloseTag 1
     )
@@ -678,17 +679,17 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
   -- service requests when the requested property is of type Bitstring.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any value of type Bitstring)
- 
+  --    1. VERIFY (Object, X), property value = (any value of type Bitstring)
+
   -- Passing Result: The IUT shall respond as indicated conveying the value of
   -- the bitstring as specified in the EPICS.
 
   DEPENDENCIES None
 
-  REFERENCE (B) ReadProperty Service and (T) Reading Bitstring Values   
-  
+  REFERENCE (B) ReadProperty Service and (T) Reading Bitstring Values
+
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -705,7 +706,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -716,7 +717,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
        Property = 2,Status-Flags
        OpenTag 4
         AL = {Status-Flags}
-       CloseTag 4 
+       CloseTag 4
       CloseTag 1
     )
  ;-------------------------------------------------------------------------------------
@@ -729,17 +730,17 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
   -- is an entire list.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (an entire list)
- 
+  --    1. VERIFY (Object, X), property value = (an entire list)
+
  -- Passing Result: The IUT shall respond as indicated conveying the values in the
   -- list as specified in the EPICS.
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadProperty Service and (T) TBD
-  
+
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -756,7 +757,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -767,7 +768,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
        Property = 2,Device-Address-Binding
        OpenTag 4
 --        AL = {Device-Address-Binding}
-       CloseTag 4 
+       CloseTag 4
       CloseTag 1
     )
  ;-------------------------------------------------------------------------------------
@@ -777,20 +778,20 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
   TEST #1o - Read Property Multiple, Type Boolean
 
   -- Purpose: This test case verifies that the IUT can execute ReadPropertyMultiple
-  -- service requests when the requested property is of type Boolean. 
+  -- service requests when the requested property is of type Boolean.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (one of either TRUE or FALSE)
- 
+  --    1. VERIFY (Object, X), property value = (one of either TRUE or FALSE)
+
   -- Passing Result: The IUT shall respond with the value of either TRUE or FALSE.
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadProperty Service and (T) TBD
 
-  
+
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -802,12 +803,12 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
       Service = ReadPropertyMultiple
       Object = 0, OBJECT2
       OpenTag 1
-       Property = 0, OUT-OF-SERVICE	    ; HARDCODE Optional property of type Boolean
+       Property = 0, OUT-OF-SERVICE     ; HARDCODE Optional property of type Boolean
       CloseTag 1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -818,26 +819,26 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
        Property = 2,OUT-OF-SERVICE
        OpenTag 4
         AL = {OUT-OF-SERVICE}
-       CloseTag 4 
+       CloseTag 4
       CloseTag 1
     )
  ;-------------------------------------------------------------------------------------
 TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
 
   -- Purpose: This test case verifies that the IUT can execute ReadPropertyMultiple
-  -- service requests when the requested property is of type Signed. 
+  -- service requests when the requested property is of type Signed.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any valid Signed value)
- 
+  --    1. VERIFY (Object, X), property value = (any valid Signed value)
+
   -- Passing Result: Passing Result: The IUT shall respond with a valid Signed value.
 
   DEPENDENCIES None
   REFERENCE (B) ReadProperty Service and (T) TBD
 
-  
+
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -854,7 +855,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -865,7 +866,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
        Property = 2,Utc-Offset
        OpenTag 4
         AL = {Utc-Offset}
-       CloseTag 4 
+       CloseTag 4
       CloseTag 1
     )
  ;-------------------------------------------------------------------------------------
@@ -875,17 +876,17 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
   -- service requests when the requested property is of type Real.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any valid Real value)
- 
+  --    1. VERIFY (Object, X), property value = (any valid Real value)
+
   -- Passing Result: The IUT shall respond with any valid value of type Real.
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadProperty Service and (T) TBD
 
-  
+
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -902,7 +903,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -913,7 +914,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
        Property = 2,Present-Value
        OpenTag 4
         AL = {Present-Value}
-       CloseTag 4 
+       CloseTag 4
       CloseTag 1
     )
  ;-------------------------------------------------------------------------------------
@@ -922,20 +923,20 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
   TEST #1r - Read Property Multiple, Type Time
 
   -- Purpose: This test case verifies that the IUT can execute ReadPropertyMultiple
-  -- service requests when the requested property is of type Time. 
+  -- service requests when the requested property is of type Time.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any valid Time value)
- 
+  --    1. VERIFY (Object, X), property value = (any valid Time value)
+
   -- Passing Result: The IUT shall respond with any valid value of type Time.
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadProperty Service and (T) TBD
 
-  
+
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -952,7 +953,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -963,7 +964,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
        Property = 2,Local-Time
        OpenTag 4
         AL = {Local-Time}
-       CloseTag 4 
+       CloseTag 4
       CloseTag 1
     )
  ;-------------------------------------------------------------------------------------
@@ -972,20 +973,20 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
   TEST #1s - Read Property Multiple, Type Date
 
   -- Purpose: This test case verifies that the IUT can execute ReadPropertyMultiple
-  -- service requests when the requested property is of type Date. 
+  -- service requests when the requested property is of type Date.
 
   -- Test Steps:
-  --	1. VERIFY (Object, X), property value = (any valid Date value)
- 
+  --    1. VERIFY (Object, X), property value = (any valid Date value)
+
   -- Passing Result: The IUT shall respond with any valid value of type Date.
 
   DEPENDENCIES None
 
   REFERENCE (B) ReadProperty Service and (T) TBD
 
-  
+
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = TRUE
       Da = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1002,7 +1003,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       Sa = DIP
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1013,7 +1014,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
        Property = 2,Local-Date
        OpenTag 4
         AL = {Local-Date}
-       CloseTag 4 
+       CloseTag 4
       CloseTag 1
     )
  ;-------------------------------------------------------------------------------------

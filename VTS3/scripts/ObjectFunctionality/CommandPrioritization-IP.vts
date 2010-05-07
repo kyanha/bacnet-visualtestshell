@@ -23,7 +23,8 @@
   ; TD_CONFIG
   ;
   
-  TD_IP = 10.10.10.2
+  TD_IP  = "TD_IP"
+TD_PORT = "bip"
 	
   OBJECT1 = Analog-Value, 1	; object under test, type AO, AV, BO, BV, MO, or MV
 
@@ -42,7 +43,7 @@
   ; IUT_CONFIG
   ;
   
-  IUT_IP = 208.6.162.35			; Address of IUT
+  IUT_IP = "IUT_IP"			; Address of IUT
 				                            
   ;-------------------------------------------------------------------------------------
 
@@ -110,7 +111,7 @@
   -- Step #1: Write Present-Value = Vlow, priority = Plow
 
     SEND (
-       	NETWORK = "Untitled"
+       	NETWORK = TD_PORT
        	DA = IUT_IP
        	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -125,11 +126,11 @@
       	OpenTag 3
         	REAL = V_LOW
       	CloseTag 3
-     	Priority = 3, P_LOW		
+     	Unsigned = 4, P_LOW		
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -140,7 +141,7 @@
   -- Step #2: Verify (read) the object's Present-Value property
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -155,7 +156,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -176,7 +177,7 @@
   -- Step #3: Read object's Priority-Array, index = Plow
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -192,7 +193,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -202,7 +203,7 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_LOW
       OpenTag 3
-         Null ;REAL = V_LOW			; Verfiy that Priority-Array[P_LOW] = V_LOW
+         REAL = V_LOW			; Verfiy that Priority-Array[P_LOW] = V_LOW
       CloseTag 3
     )
 
@@ -214,7 +215,7 @@
   -- Step #4: Read object's Priority-Array indeces 1 - 5 not equal to P_LOW
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -230,7 +231,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -240,12 +241,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P1
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P1] should = NULL
+          NULL
+         ;AL = X'00'			; compare: Priority-Array[P1] should = NULL
       CloseTag 3
     )
 
    SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -261,7 +263,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -271,12 +273,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_HIGH
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P_HIGH] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P_HIGH] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -292,7 +295,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -302,12 +305,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_MED
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P_MED] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P_MED] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -323,7 +327,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -333,7 +337,8 @@
       Property = 1, Priority-Array
       Unsigned = 2, P5
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P5] should = NULL
+          NULL
+         ;AL = X'00'			; compare: Priority-Array[P5] should = NULL
       CloseTag 3
     )
 
@@ -345,7 +350,7 @@
   -- Step #5: Write Present-Value = Vhigh, priority = Phigh
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
 	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -360,11 +365,11 @@
       	OpenTag 3
         	REAL = V_HIGH
       	CloseTag 3
-     	Priority = 3, P_HIGH		
+     	Unsigned = 4, P_HIGH		
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -375,7 +380,7 @@
   -- Step #6: Verify (read) the object's Present-Value property
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -390,7 +395,7 @@
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
       	SA = IUT_IP
       	PDU = ComplexAck
@@ -411,7 +416,7 @@
   -- Step #7: Read object's Priority-Array, index = Phigh
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -427,7 +432,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -437,7 +442,7 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_HIGH
       OpenTag 3
-         Null        ;REAL = V_HIGH			; Verfiy that Priority-Array[P_HIGH] = V_HIGH
+         REAL = V_HIGH			; Verfiy that Priority-Array[P_HIGH] = V_HIGH
       CloseTag 3
     )
 
@@ -449,7 +454,7 @@
   -- Step #8: Read object's Priority-Array indeces 1 - 5 not equal to P_LOW or P_HIGH
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -465,7 +470,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -475,12 +480,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P1
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P1] should = NULL
+          NULL
+         ;AL = X'00'			; compare: Priority-Array[P1] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -496,7 +502,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -506,12 +512,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_MED
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P_MED] should = NULL
+          NULL
+         ;AL = X'00'			; compare: Priority-Array[P_MED] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -527,7 +534,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -537,7 +544,8 @@
       Property = 1, Priority-Array
       Unsigned = 2, P5
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P5] should = NULL
+          NULL
+         ;AL = X'00'			; compare: Priority-Array[P5] should = NULL
       CloseTag 3
     )
 
@@ -549,7 +557,7 @@
   -- Step #9: Write Present-Value = Vmed, priority = Pmed
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
 	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -564,11 +572,11 @@
       	OpenTag 3
         	REAL = V_MED
       	CloseTag 3
-     	Priority = 3, P_MED		
+     	Unsigned = 4, P_MED		
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -579,7 +587,7 @@
   -- Step #10: Verify (read) the object's Present-Value property
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -594,7 +602,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -603,7 +611,7 @@
       Object = 0, OBJECT1
       Property = 1, Present-Value
       OpenTag 3		
-         REAL = V_MED			; compare: Present-Value should = V_MED
+         REAL = V_HIGH			; compare: Present-Value should = HIGH
       CloseTag 3
     )
 
@@ -615,7 +623,7 @@
   -- Step #11: Read object's Priority-Array, index = Pmed
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -631,7 +639,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -654,7 +662,7 @@
   -- indeces not equal to P_LOW, P_MED or P_HIGH
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -670,7 +678,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -680,12 +688,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P1
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P1] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P1] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -701,7 +710,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -711,7 +720,8 @@
       Property = 1, Priority-Array
       Unsigned = 2, P5
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P5] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P5] should = NULL
       CloseTag 3
     )
 
@@ -723,7 +733,7 @@
   -- Step #13: Write Present-Value = NULL, priority = Phigh
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
 	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -736,13 +746,14 @@
       	Object = 0, OBJECT1
       	Property = 1, Present-Value
       	OpenTag 3
-        AL = X'00'			; write Present-Value = NULL
+        NULL
+         ;AL = X'00'			; write Present-Value = NULL
       	CloseTag 3
-     	Priority = 3, P_HIGH		
+     	Unsigned = 4, P_HIGH		
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -753,7 +764,7 @@
   -- Step #14: Verify (read) the object's Present-Value property
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -768,7 +779,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -790,7 +801,7 @@
   -- indeces not equal to P_LOW or P_MED
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -806,7 +817,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -816,12 +827,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P1
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P1] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P1] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -837,7 +849,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -847,12 +859,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_HIGH
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P_HIGH] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P_HIGH] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -868,7 +881,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -878,7 +891,8 @@
       Property = 1, Priority-Array
       Unsigned = 2, P5
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P5] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P5] should = NULL
       CloseTag 3
     )
 
@@ -890,7 +904,7 @@
   -- Step #16: Write Present-Value = NULL, priority = Pmed
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
 	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -903,13 +917,14 @@
       	Object = 0, OBJECT1
       	Property = 1, Present-Value
       	OpenTag 3
-        	AL = X'00'			; write Present-Value = NULL
+        	NULL
+         ;AL = X'00'			; write Present-Value = NULL
       	CloseTag 3
-     	Priority = 3, P_MED		
+     	Unsigned = 4, P_MED		
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -920,7 +935,7 @@
   -- Step #17: Verify (read) the object's Present-Value property
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -935,7 +950,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -956,7 +971,7 @@
   -- Step #18: Read object's Priority-Array indeces 1 - 5, index not equal to P_LOW
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -972,7 +987,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -982,12 +997,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P1
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P1] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P1] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1003,7 +1019,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -1013,12 +1029,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_HIGH
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P_HIGH] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P_HIGH] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1034,7 +1051,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -1044,12 +1061,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_MED
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P_MED] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P_MED] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1065,7 +1083,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -1075,7 +1093,8 @@
       Property = 1, Priority-Array
       Unsigned = 2, P5
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P5] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P5] should = NULL
       CloseTag 3
     )
 
@@ -1087,7 +1106,7 @@
   -- Step #19: Write Present-Value = NULL, priority = Plow
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
 	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1100,13 +1119,14 @@
       	Object = 0, OBJECT1
       	Property = 1, Present-Value
       	OpenTag 3
-        	AL = X'00'			; write Present-Value = NULL
+        	NULL
+         ;AL = X'00'			; write Present-Value = NULL
       	CloseTag 3
-     	Priority = 3, P_LOW		
+     	Unsigned = 4, P_LOW		
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -1122,7 +1142,7 @@
   -- Step #20: Read object's Priority-Array indeces 1 - 5
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1138,7 +1158,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -1148,12 +1168,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P1
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P1] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P1] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1169,7 +1190,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -1179,12 +1200,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_HIGH
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P_HIGH] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P_HIGH] should = NULL
       CloseTag 3
     )
 
     SEND (
-     	NETWORK = "Untitled"
+     	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1200,7 +1222,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -1210,12 +1232,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_MED
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P_MED] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P_MED] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1231,7 +1254,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -1241,12 +1264,13 @@
       Property = 1, Priority-Array
       Unsigned = 2, P_LOW
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P_LOW] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P_LOW] should = NULL
       CloseTag 3
     )
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1262,7 +1286,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       PDU = ComplexAck
@@ -1272,6 +1296,7 @@
       Property = 1, Priority-Array
       Unsigned = 2, P5
       OpenTag 3
-         AL = X'00'			; compare: Priority-Array[P5] should = NULL
+         NULL
+         ;AL = X'00'			; compare: Priority-Array[P5] should = NULL
       CloseTag 3
     )

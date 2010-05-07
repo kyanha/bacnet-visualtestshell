@@ -34,7 +34,8 @@
   SETUP ChangeofState
 
   ;--------------------------------------------------------------
-    IUT_IP = 10.10.10.100
+    IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;
@@ -62,7 +63,7 @@
   ;IUT_IP = 0040ae000e65   -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,700                -- Device object instance for IUT.
+  DEVICE_ID = DEVICE,47813                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object E1
   EVENT_ID2 = EVENT-ENROLLMENT, 2       -- the event generating object E2
@@ -212,7 +213,7 @@
   -- 1. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -227,7 +228,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -250,7 +251,7 @@
   --               objects)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -288,7 +289,7 @@
   --            'Event Values' = Present_Value, Status_Flags
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
@@ -321,7 +322,7 @@
   -- 5. TRANSMIT BACnet-SimpleAck-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
       PDU = SimpleAck
@@ -331,7 +332,7 @@
   -- 6. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -346,7 +347,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -362,7 +363,7 @@
   -- 7. VERIFY Event_State = OFFNORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -377,7 +378,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -401,7 +402,7 @@
   --              corresponds to a normal state)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -440,7 +441,7 @@
   --            'Event Values' = Present_Value, Status_Flags
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
@@ -473,7 +474,7 @@
   -- 12. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
       PDU = SimpleAck
@@ -483,7 +484,7 @@
   -- 13. VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -498,7 +499,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -514,7 +515,7 @@
   -- 14. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -529,7 +530,7 @@
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -558,7 +559,7 @@
   -- CHANGE: Uncomment 17 - 30 if intrinsic reporting is supported
 
 --    SEND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DA = IUT_IP
 --      DER = TRUE
 --      PDU = Confirmed-Request
@@ -590,7 +591,7 @@
   --                'Event Values' = Present-Value, Status_Flags
 
 --    AND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DER = FALSE
 --      PDU = Confirmed-Request
 --      Service = UnconfirmedEventNotification
@@ -623,17 +624,17 @@
   -- 20.     TRANSMIT BACnet-SimpleACK-PDU
 
 --    SEND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DA = IUT_IP
 --      DER = FALSE
---      PDU = Simple-Ack
+--      PDU = SimpleAck
 --      Service = UnconfirmedEventNotification
 --      )
 
   -- 21.     VERIFY Status_Flags = (FALSE, TRUE, FALSE, FALSE)
 
 --    SEND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DA = IUT_IP
 --      DER = TRUE
 --      PDU = Confirmed-Request
@@ -643,7 +644,7 @@
 --      )
 
 --    EXPECT (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DER = FALSE
 --      PDU = ComplexAck
 --      Service = ReadProperty
@@ -657,7 +658,7 @@
   -- 22.     VERIFY Event_State = FALSE
 
 --    SEND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DA = IUT_IP
 --      DER = TRUE
 --      PDU = Confirmed-Request
@@ -667,7 +668,7 @@
 --      )
 
 --    EXPECT (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DER = FALSE
 --      PDU = ComplexAck
 --      Service = ReadProperty
@@ -691,7 +692,7 @@
   --                   a NORMAL state)
 
 --    SEND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DA = IUT_IP
 --      DER = TRUE
 --      PDU = Confirmed-Request
@@ -723,7 +724,7 @@
   --                'Event Values' = Present-Value, Status_Flags
 
 --    AND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DER = FALSE
 --      PDU = Confirmed-Request
 --      Service = UnconfirmedEventNotification
@@ -756,17 +757,17 @@
   -- 27.     TRANSMIT BACnet-SimpleACK-PDU
 
 --    SEND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DA = IUT_IP
 --      DER = FALSE
---      PDU = Simple-Ack
+--      PDU = SimpleAck
 --      Service = UnconfirmedEventNotification
 --      )
 
   -- 28.     VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
 --    SEND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DA = IUT_IP
 --      DER = TRUE
 --      PDU = Confirmed-Request
@@ -776,7 +777,7 @@
 --      )
 
 --    EXPECT (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DER = FALSE
 --      PDU = ComplexAck
 --      Service = ReadProperty
@@ -790,7 +791,7 @@
   -- 29.     VERIFY Event_State = NORMAL
 
 --    SEND (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DA = IUT_IP
 --      DER = TRUE
 --      PDU = Confirmed-Request
@@ -800,7 +801,7 @@
 --      )
 
 --    EXPECT (
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      DER = FALSE
 --      PDU = ComplexAck
 --      Service = ReadProperty

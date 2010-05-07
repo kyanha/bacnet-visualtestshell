@@ -23,19 +23,20 @@
   ; TD_CONFIG   All objects and properties are listed here including notes on there use
   ;
 	
-  TD_IP = 10.10.10.2
-	
+  TD_IP  = "TD_IP"
+  TD_PORT = "bip"
+  	
   
   ;-------------------------------------------------------------------------------------
   ;
   ; IUT_CONFIG
   ;
   
-  IUT_IP = 208.6.162.35			; Address of IUT
+  IUT_IP = "IUT_IP"			; Address of IUT
 
  -- Global variables
           PASSW = ANSI,"aaa"       ; Password if needed
-          OBJECT1 = Device, 245146 	; Specify the device object
+          OBJECT1 = Device, 47814 	; Specify the device object
           OBJTYPE = 0                   ; 0 = ANALOG-INPUT (SEE BACNET STANDARD PG 374 BIT STRING - BACNETOBJECTTYPESSUPPORTED)
  ;---------------------  
  -- TEST #1  9.13.1.1 Creating Objects by Specifying the Object Type with no Initial Values 
@@ -151,7 +152,7 @@
  -- Step #1: TRANSMIT CreateObject-Request
 
  SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -169,7 +170,7 @@
  -- Step #2: Receive CreateObject-ACK
 
   EXPECT (
-    	Network = "Untitled"
+    	NETWORK = TD_PORT
     	DA = TD_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -184,7 +185,7 @@
  -- Step #4: VERIFY (the IUT's Device object), Object_List = (any object list containing the newly created object)
 
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       PDU = Confirmed-Request
@@ -193,7 +194,7 @@
       Property = 1, OBJECT-LIST 	; Read entire Object-List array
     ) 
    -- EXPECT (  ; MANUAL *** THE EXPECT MUST BE MANUALLY VERIFIED SINCE THE NEW OBJECT-LIST WILL NOT MATCH THE EPICS
-   --   NETWORK = "Untitled"
+   --   NETWORK = TD_PORT
    --   PDU = ComplexAck
    --   DER = FALSE
    --   Service = ReadProperty
@@ -229,7 +230,7 @@
  -- Step #1: TRANSMIT CreateObject-Request
 
  SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -247,7 +248,7 @@
  -- Step #2: Receive CreateObject-ACK
 
   EXPECT (
-    	Network = "Untitled"
+    	NETWORK = TD_PORT
     	DA = TD_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -259,7 +260,7 @@
  -- Step #3: VERIFY (the object identifier of the newly created object)
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -274,7 +275,7 @@
     )
 
    -- EXPECT (
-   --   NETWORK = "Untitled"
+   --   NETWORK = TD_PORT
    --   DER = FALSE
    --   PDU = ComplexAck
    --   Service = ReadProperty
@@ -288,7 +289,7 @@
  -- Step #4: VERIFY (the IUT's Device object), Object_List = (any object list containing the newly created object)
 
    SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -302,7 +303,7 @@
       	Property = 1, OBJECT-LIST 	; Read entire Object-List array
     ) 
  --   EXPECT (  ; MANUAL *** THE EXPECT MUST BE MANUALLY VERIFIED SINCE THE NEW OBJECT-LIST WILL NOT MATCH THE EPICS
- --     NETWORK = "Untitled"
+ --     NETWORK = TD_PORT
  --     PDU = ComplexAck
  --     DER = FALSE
  --     Service = ReadProperty
@@ -341,7 +342,7 @@
 
  -- Step #1: TRANSMIT CreateObject-Request
  SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -375,7 +376,7 @@
 -- Step #2: Receive CreateObject-ACK
 
   EXPECT (
-    	Network = "Untitled"
+    	NETWORK = TD_PORT
     	DA = TD_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -389,7 +390,7 @@
  --	                }
  
  -- SEND (                                       
- --     NETWORK = "Untitled"
+ --     NETWORK = TD_PORT
  --     DA = IUT_IP
  --     DER = TRUE
  --     PDU = Confirmed-Request
@@ -399,7 +400,7 @@
  --   )
 
  --   EXPECT (
- --     NETWORK = "Untitled"
+ --     NETWORK = TD_PORT
  --     DER = FALSE
  --     PDU = ComplexAck
  --     Service = ReadProperty
@@ -413,7 +414,7 @@
 
  -- Step #4: VERIFY (the IUT's Device object), Object_List = (any object list containing the newly created object)
   SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -427,7 +428,7 @@
       	Property = 1, OBJECT-LIST 	; Read entire Object-List array
     ) 
 -- EXPECT (  ; MANUAL *** THE EXPECT MUST BE MANUALLY VERIFIED SINCE THE NEW OBJECT-LIST WILL NOT MATCH THE EPICS
-   --   NETWORK = "Untitled"
+   --   NETWORK = TD_PORT
    --   PDU = ComplexAck
    --   DER = FALSE
    --   Service = ReadProperty
@@ -467,7 +468,7 @@
 	
 -- Step #1: TRANSMIT CreateObject-Request
  SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -501,7 +502,7 @@
 -- Step #2: Receive CreateObject-ACK
 
   EXPECT (
-    	Network = "Untitled"
+    	NETWORK = TD_PORT
     	DA = TD_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -515,7 +516,7 @@
  --	                }
  
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -530,7 +531,7 @@
     )
 
     EXPECT (
-     	 NETWORK = "Untitled"
+     	 NETWORK = TD_PORT
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	DER = FALSE
@@ -544,7 +545,7 @@
     )
 
 SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -559,7 +560,7 @@ SEND (
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	DER = FALSE
@@ -574,7 +575,7 @@ SEND (
 
  -- Step #4: VERIFY (the IUT's Device object), Object_List = (any object list containing the newly created object)
 SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -588,7 +589,7 @@ SEND (
       	Property = 1, OBJECT-LIST 	; Read entire Object-List array
     ) 
 -- EXPECT (  ; MANUAL *** THE EXPECT MUST BE MANUALLY VERIFIED SINCE THE NEW OBJECT-LIST WILL NOT MATCH THE EPICS
-   --   NETWORK = "Untitled"
+   --   NETWORK = TD_PORT
    --   PDU = ComplexAck
    --   DER = FALSE
    --   Service = ReadProperty
@@ -626,7 +627,7 @@ SEND (
  -- Step #1: TRANSMIT CreateObject-Request
 
  SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -644,7 +645,7 @@ SEND (
  -- Step #2: RECEIVE CreateObject-Error
 
 EXPECT (
-  	NETWORK     = "Untitled"
+  	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
   	DER         = FALSE
@@ -680,7 +681,7 @@ EXPECT (
  -- Step #1: TRANSMIT CreateObject-Request
 
 SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -698,7 +699,7 @@ SEND (
  -- Step #2: RECEIVE CreateObject-Error
 
  EXPECT (
-  	NETWORK     = "Untitled"
+  	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
   	DER         = FALSE
@@ -735,7 +736,7 @@ SEND (
  -- Step #1: TRANSMIT CreateObject-Request
 
 SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -753,7 +754,7 @@ SEND (
  -- Step #2: RECEIVE CreateObject-Error
 
  EXPECT (
-  	NETWORK     = "Untitled"
+  	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
   	DER         = FALSE
@@ -767,7 +768,7 @@ SEND (
  -- STEP 4:  VERIFY (X), Object_List = (any object list that does not contain X)
 
  SEND (                                 ; MANUAL - VERIFY THAT THE NEW OBJECT DOES NOT EXIST IN THE OBJECT LIST USING THE VTS TRACE WINDOW
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
      	DA = IUT_IP
       	DER = TRUE
       	PDU = Confirmed-Request
@@ -781,7 +782,7 @@ SEND (
     )
 
   --  EXPECT (                         ; MANUAL - THE OBJECT-LIST HAS CHANGED FROM PREVIOUS TESTS SO THE DEVICES OBJ LIST IS NOT CONSISTANT WITH THE EPICS
-  --    NETWORK = "Untitled"
+  --    NETWORK = TD_PORT
   --    PDU = ComplexAck
   --    DER = FALSE
   --    Service = ReadProperty
@@ -817,7 +818,7 @@ TEST #8n  9.13.2.4  Attempting to Create an Object with an Object Type Specifier
  -- Step #1: TRANSMIT CreateObject-Request
 
 SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -849,7 +850,7 @@ SEND (
  -- Step #2: RECEIVE CreateObject-Error
 
  EXPECT (
-  	NETWORK     = "Untitled"
+  	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
   	DER         = FALSE
@@ -861,7 +862,7 @@ SEND (
  )
 
 OR(
-  	NETWORK     = "Untitled"
+  	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
   	DER         = FALSE
@@ -901,7 +902,7 @@ TEST #9n  9.13.2.5  Attempting to Create an Object with an Object Identifier and
  -- Step #1: TRANSMIT CreateObject-Request
 
 SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -933,7 +934,7 @@ SEND (
  -- Step #2: RECEIVE CreateObject-Error
 
  EXPECT (
-  	NETWORK     = "Untitled"
+  	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
   	DER         = FALSE
@@ -945,7 +946,7 @@ SEND (
  )
 
 OR(
-  	NETWORK     = "Untitled"
+  	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
   	DER         = FALSE
@@ -959,7 +960,7 @@ OR(
  -- Step #3: VERIFY (X), Object_List = (any object list that does not contain X)
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	DER = TRUE
       	PDU = Confirmed-Request
@@ -973,7 +974,7 @@ OR(
     )
 
 --    EXPECT (                        ; MANAUL - THE NEW OBJECT IS NOT IN THE EPICS. SEE TRACE
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      PDU = ComplexAck
 --      DER = FALSE
 --      Service = ReadProperty
@@ -1016,7 +1017,7 @@ TEST #10  9.14.1.1  Successful Deletion of an Object
  -- TEST SETUP NOT PART OF THE TEST STEPS IN TEST 10
 
 SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1034,7 +1035,7 @@ SEND (
  -- TEST SETUP NOT PART OF THE TEST STEPS IN TEST 10
 
   EXPECT (
-    	Network = "Untitled"
+    	NETWORK = TD_PORT
     	DA = TD_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -1046,7 +1047,7 @@ SEND (
  -- Step #1: VERIFY (X), Object_Name = (the Object_Name specified in the EPICS)
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1061,7 +1062,7 @@ SEND (
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
       	DER = FALSE
@@ -1077,7 +1078,7 @@ SEND (
  -- Step #2: TRANSMIT DeleteObject-Request,
 
 SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1093,7 +1094,7 @@ SEND (
  -- Step #3: RECEIVE BACnet-Simple-ACK-PDU
 
   EXPECT (
-    	Network = "Untitled"
+    	NETWORK = TD_PORT
     	DA = TD_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
@@ -1106,7 +1107,7 @@ SEND (
  -- Step #4: VERIFY (X), Object_Name = (the Object_Name specified in the EPICS)
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1123,7 +1124,7 @@ SEND (
  -- Step #5: RECEIVE BACnet-Error-PDU
 
  EXPECT (
-  	NETWORK     = "Untitled"
+  	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
   	DER         = False
@@ -1136,7 +1137,7 @@ SEND (
 -- Step #6: VERIFY (X), Object_List = (any object list that does not contain X)
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1151,7 +1152,7 @@ SEND (
     )
 
 --    EXPECT (                        ; MANAUL - THE NEW OBJECT IS NOT IN THE EPICS. SEE TRACE
---      NETWORK = "Untitled"
+--      NETWORK = TD_PORT
 --      PDU = ComplexAck
 --      DER = FALSE
 --      Service = ReadProperty
@@ -1192,7 +1193,7 @@ TEST #11  9.14.2.1 Attempting to Delete an Object that is not Deletable
 
  
 SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1208,7 +1209,7 @@ SEND (
  -- Step #2 RECEIVE BACnet-Error-PDU
 
    EXPECT (
-   	NETWORK     = "Untitled"
+   	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
    	DER         = False
@@ -1221,7 +1222,7 @@ SEND (
  -- Step #3 VERIFY (X), Object_Name = (the Object_Name specified in the EPICS)
 
   SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	DER = TRUE
       	PDU = Confirmed-Request
@@ -1235,7 +1236,7 @@ SEND (
     )
 
     -- EXPECT (
-    --  NETWORK = "Untitled"
+    --  NETWORK = TD_PORT
     --  DER = FALSE
     --  PDU = ComplexAck
     --  Service = ReadProperty
@@ -1249,7 +1250,7 @@ SEND (
  -- Step #4 VERIFY (X), Object_List = (any object list that contains X)
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	DER = TRUE
       	PDU = Confirmed-Request
@@ -1263,7 +1264,7 @@ SEND (
     )
 
   --  EXPECT (
-  --    NETWORK = "Untitled"
+  --    NETWORK = TD_PORT
   --    PDU = ComplexAck
   --    DER = FALSE
   --    Service = ReadProperty
@@ -1300,7 +1301,7 @@ TEST #12  9.14.2.2 Attempting to Delete an Object that does not Exist
  -- Step #1 TRANSMIT DeleteObject-Request
 
  SEND (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
     	DA = IUT_IP
     	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -1317,7 +1318,7 @@ TEST #12  9.14.2.2 Attempting to Delete an Object that does not Exist
  -- Step #2 RECEIVE BACnet-Error-PDU
 
  EXPECT (
-  	NETWORK     = "Untitled"
+  	NETWORK     = "bip"
     	bvlci =ORIGINAL-UNICAST-NPDU
 	SA = IUT_IP
   	DER         = False

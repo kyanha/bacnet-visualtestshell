@@ -1,14 +1,14 @@
 ;-------------------------------------------------------------------------------------
-  ;  Positive WriteProperty Service Execution Tests  
+  ;  Positive WriteProperty Service Execution Tests
   ;  "DRAFT COPY--- DO NOT DISTRIBUTE"
-  ;  PosWriteProperty.vts	"WP yymmdd.vts"
+  ;  PosWriteProperty.vts   "WP yymmdd.vts"
   ;
-  ;  Ver 1.0	02/04/01	P. Bowen	Original version
-  ;  Ver 1.1	02/25/01	P. Bowen	Fixed readprop in test #1h
-  ;  Ver 1.2    03/12/01	B. Zamojcin	Commented out Error paths in Test Cases
-  ;  Ver 1.3	08/15/01	P. Bowen	Add tests 1j - 1t to cover additional datatypes
-  ;  Ver 1.4	09/08/01	P. Bowen	Debugged tests #1l, 1p & 1q; removed error paths
-  ;  Ver 1.5    09/17/01        Bradsp          Marked with easy change symbols and Routing sections 
+  ;  Ver 1.0    02/04/01    P. Bowen    Original version
+  ;  Ver 1.1    02/25/01    P. Bowen    Fixed readprop in test #1h
+  ;  Ver 1.2    03/12/01    B. Zamojcin Commented out Error paths in Test Cases
+  ;  Ver 1.3    08/15/01    P. Bowen    Add tests 1j - 1t to cover additional datatypes
+  ;  Ver 1.4    09/08/01    P. Bowen    Debugged tests #1l, 1p & 1q; removed error paths
+  ;  Ver 1.5    09/17/01        Bradsp          Marked with easy change symbols and Routing sections
   ;
   ;  Purpose: This test group will verify correct execution of WriteProperty
   ;  service requests under circumstances where the service is expected to be
@@ -17,33 +17,34 @@
   ;  In the REFERENCE section "(B)" refers to the BACnet standard and
   ;  "(T)" refers to the testing addendum.
   ;-------------------------------------------------------------------------------------
-  
+
     SETUP Positive WriteProperty Tests
-  ;------------------------------------------------------------------------------------- 
-  ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties 
-  ; Items marked and found with *** are hardcoded or the error messages must be manually verified in the trace. 
+  ;-------------------------------------------------------------------------------------
+  ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties
+  ; Items marked and found with *** are hardcoded or the error messages must be manually verified in the trace.
   ;
   ;-------------------------------------------------------------------------------------
-   IUT_IP = 10.10.10.100:0xBAC0
-   TD_IP = 10.10.10.36:0xBAC0  
+   IUT_IP = "IUT_IP"
+   TD_IP = 10.61.2.1:0xBAC0
+   TD_PORT = "bip"
 
-  OBJECT1 = Device, 1967                 ; This must be the device object of the IUT
-  OBJECT2 = Analog-Value, 1		; 
-  OBJECT3 = Binary-Value, 1		; 
-  OBJECT4 = Notification-Class, 1701	; 
-  OBJECT5 = Event-Enrollment, 1	; 
-  OBJECT6 = Binary-Value, 1		; 
-  OBJECT7 = Schedule, 1			; 
+  OBJECT1 = Device, 47814                 ; This must be the device object of the IUT
+  OBJECT2 = Analog-Value, 1     ;
+  OBJECT3 = Binary-Value, 1     ;
+  OBJECT4 = Notification-Class, 5    ;
+  OBJECT5 = Event-Enrollment, 1 ;
+  OBJECT6 = Binary-Value, 1     ;
+  OBJECT7 = Schedule, 1         ;
 
-  OBJECTA = ANALOG-INPUT, 1             ; object id to be changed
-  OBJECT8 = ANALOG-INPUT, 2		; New Object-ID for test #1a
+  OBJECTA = ANALOG-INPUT, 4             ; object id to be changed
+  OBJECT8 = ANALOG-INPUT, 5     ; New Object-ID for test #1a
 
   ;TESTOBJECT = Device, 24006            ; renamed object
   TESTOBJECT = ANALOG-INPUT, 2
   TESTVAL1 = 2.25
   TESTVAL2 = 55.00
   TESTVAL3 = 58
-  TESTVAL4 = -5				; Value to be used in Signed test #1m
+  TESTVAL4 = -5             ; Value to be used in Signed test #1m
   TESTSIZE = 129
   RETRY_VALUE = 3
   PRIORITYVAL1 = 33
@@ -55,91 +56,91 @@
   INDEX1 = 2
   INDEX3 = 16
 
-  ERROR_CLASS = 2			; Error class for write property failure
-  ERROR_CODE = 40			; Error code = write access denied
+  ERROR_CLASS = 2           ; Error class for write property failure
+  ERROR_CODE = 40           ; Error code = write access denied
 
-  -- TEST #1a Writing Object Identifiers - (commented) (Step #1 hc, Steps #2 and #3 hc, Steps #4 and #5 hc) 
-              -- MANUAL SEND AND RECEIVE none  
+  -- TEST #1a Writing Object Identifiers - (commented) (Step #1 hc, Steps #2 and #3 hc, Steps #4 and #5 hc)
+              -- MANUAL SEND AND RECEIVE none
               -- BODY CHANGE  none The hex hard coded object name may need to be done
 
   -- Test #1b Writing Enumerated Values (Steps #2 and #3 hc, Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- Test #1c Writing CharacterString Values ( Step #1 hc, Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- TEST #1d Writing Unsigned Values
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- TEST #1e Writing Entire Arrays (Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- TEST #1f Writing the Array Size (Step #1 hc, Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- TEST #1g Writing a Single Array Element (Step #1 hc, Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- TEST #1h Writing a Commandable Property Without a Priority (Step #1 hc, Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- TEST #1i Writing Bitstring Values (Steps #2 and #3 hc, Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- Test #1j - Writing to a Whole List (Steps #2 and #3 hc, Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- Test #1k - Writing Property of Type Null (Step #1 hc, Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- Test #1l - Writing Property of Type Boolean (Step #1 hc, Step #2 & 3 hc, Step #4 hc)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- Test #1m - Writing Property of Type Signed - (commented)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- Test #1n - Writing Property of Type Real
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- Test #1o - Writing Property of Type Double - (commented)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
-  -- Test #1p - Writing Property of Type Time 
+  -- Test #1p - Writing Property of Type Time
               -- MANUAL SEND AND RECEIVE   Manually verify present time - the written time is auto verified
               -- BODY CHANGE  none
 
-  -- Test #1q - Writing Property of Type Date 
+  -- Test #1q - Writing Property of Type Date
               -- MANUAL SEND AND RECEIVE   Manually verify present date- the written date is auto verified
               -- BODY CHANGE  none
 
   -- Test #1r - Writing Property of Type Octet String - (commented)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- Test #1s - Writing Property of Type Proprietary Values - (commented)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
   -- Test #1t - Writing Property of Type Constructed Values - (commented)
-              -- MANUAL SEND AND RECEIVE   
-              -- BODY CHANGE  
+              -- MANUAL SEND AND RECEIVE
+              -- BODY CHANGE
 
-  
-  ;------------------------------------------------------------------------------------- 
+
+  ;-------------------------------------------------------------------------------------
 
   SECTION Positive WriteProperty Service Execution Tests
 
@@ -154,22 +155,22 @@
   REFERENCE (B) WriteProperty Service and (T) Writing Object Identifiers
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property given in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' = P1
-  --		'Property Value' = (any unique Object_Identifier, Object2, of the 
-  --		 same object type as Object1 subject to any restrictions on the 
-  --		 permitted instance numbers)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object2), P1 = (the value used in step 2)
-  --	5. VERIFY (the IUT's Device object), Object_List = (any object list that
-  --	   contains Object2 but not Object1)
-   
+  --    1. VERIFY (Object1), P1 = (the value defined for this property given in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = (any unique Object_Identifier, Object2, of the
+  --         same object type as Object1 subject to any restrictions on the
+  --         permitted instance numbers)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object2), P1 = (the value used in step 2)
+  --    5. VERIFY (the IUT's Device object), Object_List = (any object list that
+  --       contains Object2 but not Object1)
+
   -- Step #1: Verify (read) property P1 of the selected object
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -177,14 +178,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECTA
-      Property = 1, Object-Identifier	; Verify property of type BACnetObjectIdentifier
+      Property = 1, Object-Identifier   ; Verify property of type BACnetObjectIdentifier
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -196,11 +197,11 @@
          AL = {Object-Identifier}
       CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -208,17 +209,17 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
-      Object = 0, OBJECTA 
+      Object = 0, OBJECTA
       Property = 1, Object-Identifier
      OpenTag 3
-      ObjectIdentifier = TESTOBJECT	;
-     CloseTag 3		
+      ObjectIdentifier = TESTOBJECT ;
+     CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -226,7 +227,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -239,7 +240,7 @@
   -- Steps #4 and #5: Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -247,15 +248,15 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT8
       Property = 1, Object-Identifier
     )
 
     EXPECT (
-      NETWORK = "Untitled"
-      SA = IUT_IP      
+      NETWORK = TD_PORT
+      SA = IUT_IP
       DER = FALSE
       PDU = ComplexAck
       Service = ReadProperty
@@ -264,11 +265,11 @@
       OpenTag 3
        ObjectIdentifier = TESTOBJECT
        --AL = {Object-Identifier}
-       --   AL = X'C402005DC6'		; hardcode may need to be done here
+       --   AL = X'C402005DC6'      ; hardcode may need to be done here
       CloseTag 3
     )
   OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -285,18 +286,18 @@
   REFERENCE (B) WriteProperty Service and (T) Writing Enumerated Values
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,.'Property Identifier' = P1,
-  --		'Property Value' = (any Enumerated value defined for this property 
-  --		 subject to the restrictions specified in the EPICS, except the value
-  --		 verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,.'Property Identifier' = P1,
+  --        'Property Value' = (any Enumerated value defined for this property
+  --         subject to the restrictions specified in the EPICS, except the value
+  --         verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) property P1 of the selected object
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -304,14 +305,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, System-Status	; Verify property of type ENUM
+      Property = 1, System-Status   ; Verify property of type ENUM
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -321,13 +322,13 @@
       Property = 1, System-Status
       OpenTag 3
         AL = {System-Status}
-      CloseTag 3                                   
+      CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -335,17 +336,17 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, System-Status
       OpenTag 3
-       AL = X'9104'			; Write P1 = non-operational
+       AL = X'9104'         ; Write P1 = non-operational
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -353,7 +354,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -365,7 +366,7 @@
   -- Steps #4 and #5: Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -373,14 +374,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, System-Status
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -389,8 +390,8 @@
       Object = 0, OBJECT1
       Property = 1, System-Status
       OpenTag 3
-        AL = {System-Status}	; not changed because the property can't be accessed by write
-      CloseTag 3                                   
+        AL = {System-Status}    ; not changed because the property can't be accessed by write
+      CloseTag 3
     )
   ;-------------------------------------------------------------------------------------
   Test #1c Writing CharacterString Values
@@ -400,19 +401,19 @@
   REFERENCE (B) WriteProperty Service and (T) Writing CharacterString Values
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request, 'Object Identifier' = Object1,
-  --		'Property Identifier' = P1,
-  --		'Property Value' = (any CharacterString value defined for this property subject to the restrictions
-  --		specified in the EPICS as defined in 4.4.2, except the value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
-  
+  --    1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request, 'Object Identifier' = Object1,
+  --        'Property Identifier' = P1,
+  --        'Property Value' = (any CharacterString value defined for this property subject to the restrictions
+  --        specified in the EPICS as defined in 4.4.2, except the value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
+
   -- Configuration Requirements: make sure property P1 is Null (empty string) before
   -- running this test case.
   -- Step #1: Verify (read) property P1 of the selected object
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -420,14 +421,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, Location		; Verify property of type CharacterString
+      Property = 1, Location        ; Verify property of type CharacterString
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -436,15 +437,15 @@
       Object = 0, OBJECT1
       Property = 1, Location
       OpenTag 3
-  	AL = {Location}			; Get unknown packet keyword error in VTS
-        --AL = X'7100'			; Confirm property P1 = "" (empty string)
-      CloseTag 3                                   
+    AL = {Location}         ; Get unknown packet keyword error in VTS
+        --AL = X'7100'          ; Confirm property P1 = "" (empty string)
+      CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -452,17 +453,17 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Location
       OpenTag 3
-        CHARSTRING = "Test"		; VTS limitation - can't use declared constant
-      CloseTag 3			;  in this statement so hardcode test string
+        CHARSTRING = "Test"     ; VTS limitation - can't use declared constant
+      CloseTag 3            ;  in this statement so hardcode test string
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -470,7 +471,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -483,7 +484,7 @@
   -- Steps #4 and #5: Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -491,14 +492,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, Location			
+      Property = 1, Location
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -507,9 +508,8 @@
       Object = 0, OBJECT1
       Property = 1, Location
       OpenTag 3
-        AL = {Location}		; wrtie-access-denied
-        --AL = X'75050054657374'		; Confirm property P1 = "Test"
-      CloseTag 3                                   
+        CHARSTRING = "Test"     ; VTS limitation - can't use declared constant
+      CloseTag 3
     )
   ;-------------------------------------------------------------------------------------
   TEST #1d Writing Unsigned Values
@@ -519,18 +519,18 @@
   REFERENCE (B) WriteProperty Service and (T) Writing Unsigned Values
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' = P1,
-  --		'Property Value' = (any Unsigned value defined for this property 
-  --		 subject to the restrictions specified in the EPICS, except the 
-  --		 value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1,
+  --        'Property Value' = (any Unsigned value defined for this property
+  --         subject to the restrictions specified in the EPICS, except the
+  --         value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
   -- Step #1: Verify (read) property P1 of the selected object
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -538,14 +538,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT2
-      Property = 1, Time-Delay		; Verify property of type Unsigned
+      Property = 1, Time-Delay      ; Verify property of type Unsigned
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -558,7 +558,7 @@
       CloseTag 3
     )
     OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -567,11 +567,11 @@
       Enum = 2               ;Property
       Enum = 32              ;Unknown-Property
     )
-  
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -579,7 +579,7 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT2
       Property = 1, Time-Delay
@@ -589,15 +589,15 @@
    )
 
     EXPECT (
-      NETWORK = "Untitled"
-      SA = IUT_IP      
+      NETWORK = TD_PORT
+      SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
       Service = WriteProperty
     )
     OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -609,7 +609,7 @@
   -- Steps #4 and #5: Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -617,14 +617,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Time-Delay
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       PDU = ComplexAck
@@ -632,11 +632,11 @@
       Object = 0, OBJECT2
       Property = 1, Time-Delay
       OpenTag 3
-         UNSIGNED = TESTVAL3			; Confirm property value = TESTVAL3
+         UNSIGNED = TESTVAL3            ; Confirm property value = TESTVAL3
       CloseTag 3
     )
     OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -653,18 +653,18 @@
   REFERENCE (B) WriteProperty Service and (T) Writing Entire Arrays
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1, 'Property Identifier' = P1,
-  --		'Property Value' = (any array of the same size and datatype as the 
-  --		 value defined for this property in the EPICS subject to the 
-  --		restrictions specified in the EPICS, except the value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1, 'Property Identifier' = P1,
+  --        'Property Value' = (any array of the same size and datatype as the
+  --         value defined for this property in the EPICS subject to the
+  --        restrictions specified in the EPICS, except the value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) property P1 of the selected object
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -672,15 +672,15 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT4
-      Property = 1, Priority		; Verify property of type Array
+      Property = 1, Priority        ; Verify property of type Array
     )
 
     EXPECT (
-      NETWORK = "Untitled"
-      SA = IUT_IP      
+      NETWORK = TD_PORT
+      SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
@@ -688,14 +688,14 @@
       Object = 0, OBJECT4
       Property = 1, Priority
       OpenTag 3
-        AL = {Priority}			; Verify initial value of P1 = value in EPICS
-     CloseTag 3                                  
+        AL = {Priority}         ; Verify initial value of P1 = value in EPICS
+     CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -703,18 +703,18 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT4
       Property = 1, Priority
       Unsigned = 2, 1
       OpenTag 3
-        UNSIGNED = PRIORITYVAL1		; Write new value to P1[1] = PRIORITYVAL1
+        UNSIGNED = PRIORITYVAL1     ; Write new value to P1[1] = PRIORITYVAL1
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -722,7 +722,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -733,7 +733,7 @@
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -741,18 +741,18 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = WriteProperty
       Object = 0, OBJECT4
       Property = 1, Priority
       Unsigned = 2, 2
       OpenTag 3
-        UNSIGNED = PRIORITYVAL2		; Write new value to P1[2] = PRIORITYVAL2
+        UNSIGNED = PRIORITYVAL2     ; Write new value to P1[2] = PRIORITYVAL2
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -760,7 +760,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -771,7 +771,7 @@
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -779,18 +779,18 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 4      
+      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT4
       Property = 1, Priority
       Unsigned = 2, 3
       OpenTag 3
-        UNSIGNED = PRIORITYVAL3		; Write new value to P1[3] = PRIORITYVAL3
+        UNSIGNED = PRIORITYVAL3     ; Write new value to P1[3] = PRIORITYVAL3
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -798,7 +798,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -811,7 +811,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -819,14 +819,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 5      
+      InvokeID = 5
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Priority
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -836,8 +836,8 @@
       Property = 1, Priority
       OpenTag 3
         AL = {Priority}
-        --AL = X'2121212C2137'		; Confirm P1 = {PRIORITYVAL1, PRIORITYVAL2, PRIORITYVAL3}
-      CloseTag 3                                  
+        --AL = X'2121212C2137'      ; Confirm P1 = {PRIORITYVAL1, PRIORITYVAL2, PRIORITYVAL3}
+      CloseTag 3
     )
   ;-------------------------------------------------------------------------------------
   TEST #1f Writing the Array Size
@@ -847,52 +847,52 @@
   REFERENCE (B) WriteProperty Service and (T) TBD
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this array property given
-  --	   in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request, 'Object Identifier' = Object1,
-  --		'Property Identifier' =	P1, 
-  --		'Property Array Index' = 0 (array[0] contains the size of an array)
-  --		'Property Value' = (any value of the correct datatype for this array 
-  --		except the value verified for this element in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2), ARRAY INDEX = 0
-   
-   -- Step #1: Verify (read) property P1 of the selected object
-    SEND (
-      NETWORK = "Untitled"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1      
-      Service = ReadProperty
-      Object = 0, OBJECT4
-      Property = 1, Priority		; Verify Array size
-      Unsigned = 2, INDEX0
-    )
+  --    1. VERIFY (Object1), P1 = (the value defined for this array property given
+  --       in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request, 'Object Identifier' = Object1,
+  --        'Property Identifier' = P1,
+  --        'Property Array Index' = 0 (array[0] contains the size of an array)
+  --        'Property Value' = (any value of the correct datatype for this array
+  --        except the value verified for this element in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2), ARRAY INDEX = 0
 
-    EXPECT (
-      NETWORK = "Untitled"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      PDU = ComplexAck
-      Service = ReadProperty
-      Object = 0, OBJECT4
-      Property = 1, Priority
-      Unsigned = 2, INDEX0
-      OpenTag 3
-        AL != X'0000'			; Confirm array size is not Null
-      CloseTag 3                                  
-    )
-   
+   -- Step #1: Verify (read) property P1 of the selected object
+    --SEND (
+    --  NETWORK = TD_PORT
+     -- DA = IUT_IP
+     -- DER = TRUE
+     -- BVLCI = ORIGINAL-UNICAST-NPDU
+     -- PDU = Confirmed-Request
+     -- SegMsg = 0
+    --  SegResp = 0
+    --  MaxResp = 1476
+    --  InvokeID = 1
+    --  Service = ReadProperty
+    --  Object = 0, OBJECT4
+    --  Property = 1, Priority        ; Verify Array size
+    --  Unsigned = 2, INDEX0
+    --)
+
+   -- EXPECT (
+    --  NETWORK = TD_PORT
+   --   SA = IUT_IP
+   --  DER = FALSE
+   --  BVLCI = ORIGINAL-UNICAST-NPDU
+    --  PDU = ComplexAck
+    --  Service = ReadProperty
+    --  Object = 0, OBJECT4
+    --  Property = 1, Priority
+    --  Unsigned = 2, INDEX0
+    --  OpenTag 3
+ --       ALDATA != X'0000'           ; Confirm array size is not Null
+ --     CloseTag 3
+ --   )
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -900,18 +900,18 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT4
       Property = 1, Priority
       Unsigned = 2, INDEX0
       OpenTag 3
-        UNSIGNED = TESTSIZE		; Wite new array size = TESTSIZE
+        UNSIGNED = TESTSIZE     ; Wite new array size = TESTSIZE
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -919,7 +919,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -932,7 +932,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -940,7 +940,7 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Priority
@@ -948,7 +948,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -958,8 +958,8 @@
       Property = 1, Priority
       Unsigned = 2, INDEX0
       OpenTag 3
-       AL = X'2103'			; Confirm new array size = TESTSIZE
-      CloseTag 3                                  
+       AL = X'2103'         ; Confirm new array size = TESTSIZE
+      CloseTag 3
     )
 
   ;-------------------------------------------------------------------------------------
@@ -970,18 +970,18 @@
   REFERENCE (B) WriteProperty Service and (T) Writing a Single Element of an Array
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this array property given
-  --	   in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request, 'Object Identifier' = Object1,
-  --		'Property Identifier' =	P1, 
-  --		'Property Array Index' = (any value N <> 0: 1 £ N £ the size of the array)
-  --		'Property Value' = (any value of the correct datatype for this array 
-  --		except the value verified for this element in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2), ARRAY INDEX = N <> 0
+  --    1. VERIFY (Object1), P1 = (the value defined for this array property given
+  --       in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request, 'Object Identifier' = Object1,
+  --        'Property Identifier' = P1,
+  --        'Property Array Index' = (any value N <> 0: 1 £ N £ the size of the array)
+  --        'Property Value' = (any value of the correct datatype for this array
+  --        except the value verified for this element in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2), ARRAY INDEX = N <> 0
 -- Step #1: Verify (read) property P1 of the selected object
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -989,15 +989,15 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT4
-      Property = 1, Priority		
+      Property = 1, Priority
       Unsigned = 2, INDEX1; Verify array element P1[INDEX1]
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1008,13 +1008,13 @@
       Unsigned = 2, INDEX1
       OpenTag 3
         AL != X'0000'
-      CloseTag 3                                  
+      CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1022,18 +1022,18 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT4
       Property = 1, Priority
       Unsigned = 2, INDEX1
       OpenTag 3
-        UNSIGNED = PRIORITYVAL4		; Write new array element = PRIORITYVAL4
+        UNSIGNED = PRIORITYVAL4     ; Write new array element = PRIORITYVAL4
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1041,7 +1041,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1054,7 +1054,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1062,7 +1062,7 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Priority
@@ -1070,7 +1070,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1080,8 +1080,8 @@
       Property = 1, Priority
       Unsigned = 2, INDEX1
       OpenTag 3
-       AL = X'2102'			; Confirm P1[INDEX1] = PRIORITYVAL4
-      CloseTag 3                                  
+       AL = X'2102'         ; Confirm P1[INDEX1] = PRIORITYVAL4
+      CloseTag 3
     )
 
   ;------------------------------------------------------------------
@@ -1092,20 +1092,20 @@
   REFERENCE (B) WriteProperty Service and (T) Writing a Commandable Property Without a Priority
 
   -- Test Steps:
-  --	1. VERIFY (Object1), Priority_Array = (the value defined for this property in 
-  --	   the EPICS), ARRAY INDEX = 16
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' =	Object1,
-  --		'Property Identifier' =	Present_Value,
-  --		'Property Value' = (any value of the correct datatype for this property
-  --		 except the value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), Priority_Array = (the value used in step 2), ARRAY INDEX = 16
+  --    1. VERIFY (Object1), Priority_Array = (the value defined for this property in
+  --       the EPICS), ARRAY INDEX = 16
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' =   Object1,
+  --        'Property Identifier' = Present_Value,
+  --        'Property Value' = (any value of the correct datatype for this property
+  --         except the value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), Priority_Array = (the value used in step 2), ARRAY INDEX = 16
 
   -- Step #1: Verify (read) the value at Priority-Array[16] for the Analog Output object
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1113,15 +1113,15 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT6
       Property = 1, Priority-Array
-      Unsigned = 2, 16			; Read Priority-Array[16]
+      Unsigned = 2, 16          ; Read Priority-Array[16]
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1131,16 +1131,16 @@
       Property = 1, Priority-Array
       Unsigned = 2, 16
       OpenTag 3
-         AL = X'9101'			; Verify Priority-Array[16] = NULL
-       --  AL = X'00'			; Verify Priority-Array[16] = NULL
-      Enum = 1
+         AL = X'0000'           ; Verify Priority-Array[16] = NULL
+       --  AL = X'00'           ; Verify Priority-Array[16] = NULL
+      -- Enum = 1
       CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1148,23 +1148,23 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT6
       Property = 1, Present-Value
       OpenTag 3
 
-        Enum = 0			; Write new Present-Value = TESTVAL2
+        Enum = 0            ; Write new Present-Value = TESTVAL2
 
-        ;REAL = TESTVAL2			; Write new Present-Value = TESTVAL2
-        Enum = 1         
+        ;REAL = TESTVAL2            ; Write new Present-Value = TESTVAL2
+        Enum = 1
 
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
-      SA = IUT_IP      
+      NETWORK = TD_PORT
+      SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
@@ -1174,7 +1174,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1182,15 +1182,15 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT6
       Property = 1, Priority-Array
-      Unsigned = 2, 16			; Read Priority-Array[16]
+      Unsigned = 2, 16          ; Read Priority-Array[16]
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1216,18 +1216,18 @@
   REFERENCE (B) WriteProperty Service and (T) Writing Bitstring Values
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' = P1,
-  --		'Property Value' = (any Bitstring value defined for this property 
-  --		 except the value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1,
+  --        'Property Value' = (any Bitstring value defined for this property
+  --         except the value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) the value of property P1
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1235,14 +1235,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT2
-      Property = 1, Status-Flags	; Verify property of type BITSTRING
+      Property = 1, Status-Flags    ; Verify property of type BITSTRING
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1252,13 +1252,13 @@
       Property = 1, Status-Flags
       OpenTag 3
         AL = {Status-Flags}
-      CloseTag 3                                   
+      CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1266,18 +1266,18 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT2
       Property = 1, Status-Flags
       OpenTag 3
-         AL = X'8204F0'			; X'8204F0' = {True,True,True,True}
---	 BITSTRING = T,T,T,T		; This construct doesn't work in VTS V2.26
+         AL = X'8204F0'         ; X'8204F0' = {True,True,True,True}
+--   BITSTRING = T,T,T,T        ; This construct doesn't work in VTS V2.26
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1288,7 +1288,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1296,26 +1296,26 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Status-Flags
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
-      Property = 1, Status-Flags		
+      Property = 1, Status-Flags
       OpenTag 3
-        AL = X'8204F0'			; Confirm P1 = {TRUE, TRUE, TRUE, TRUE}		
-      CloseTag 3                                   
+        AL = X'8204F0'          ; Confirm P1 = {TRUE, TRUE, TRUE, TRUE}
+      CloseTag 3
     )
-    
+
   ;-------------------------------------------------------------------------------------
   Test #1j - Writing to a Whole List
 
@@ -1324,20 +1324,20 @@
   REFERENCE (B) WriteProperty Service and (T) TBD
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the array value defined for this property in 
-  --	   the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' =	Object1,
-  --		'Property Identifier' =	P1
-  --		'Property Value' = (any value of the correct datatype for this property
-  --		 except the value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the array value defined for this property in
+  --       the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' =   Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = (any value of the correct datatype for this property
+  --         except the value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) the value of the list P1
-        
+
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1345,14 +1345,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
      Object = 0, OBJECT4
-     Property = 1, Recipient-List	; Verify property of datatype List
+     Property = 1, Recipient-List   ; Verify property of datatype List
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1362,14 +1362,14 @@
      Property = 1, Recipient-List
      OpenTag 3
       -- AL = {Recipient-List}
-        AL = X'8201FEB400000011B4173B3B630C020766872101118205E0'      
-     CloseTag 3                                   
+        AL = X'8201FEB400000011B4173B3B630C020766872101118205E0'
+     CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1377,9 +1377,9 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
-      Object = 0, OBJECT4 
+      Object = 0, OBJECT4
       Property = 1, Recipient-List
       OpenTag 3
          AL = X'8201FEB400000000B4173B3B630C020766872101118205E0' ; Write new value to P1
@@ -1387,7 +1387,7 @@
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1398,7 +1398,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1406,14 +1406,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Recipient-List
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1423,10 +1423,10 @@
       Property = 1, Recipient-List
       OpenTag 3
          AL = X'8201FEB400000000B4173B3B630C020766872101118205E0' ; Verify new P1
-      CloseTag 3                                   
+      CloseTag 3
     )
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1434,9 +1434,9 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
-      Object = 0, OBJECT4 
+      Object = 0, OBJECT4
       Property = 1, Recipient-List
       OpenTag 3
          AL =X'8201FEB400000011B4173B3B630C020766872101118205E0'
@@ -1444,7 +1444,7 @@
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1456,23 +1456,23 @@
   Test #1k - Writing Property of Type Null
 
   -- Purpose: This test case verifies that the IUT can execute WriteProperty service
-  -- requests when the requested property type is NULL. 
+  -- requests when the requested property type is NULL.
 
   -- Test Step:
-  --	1. VERIFY (Object1), P1 = (the property value defined for this property in 
-  --	   the EPICS) not equal to NULL
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' =	Object1,
-  --		'Property Identifier' =	P1
-  --		'Property Value' = NULL (0x00)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = NULL
- 
+  --    1. VERIFY (Object1), P1 = (the property value defined for this property in
+  --       the EPICS) not equal to NULL
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' =   Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = NULL (0x00)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = NULL
+
   -- Passing Result: The IUT shall respond with a Null value.
 
  -- Step #1: Verify (read) property P1 for the selected object
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1480,7 +1480,7 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Priority-Array
@@ -1488,7 +1488,7 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1498,14 +1498,14 @@
       Property = 1, Priority-Array
       Unsigned = 2, INDEX3
       OpenTag 3
-        AL != X'4400000000'		; so hardcode test to verify Priority-Array[INDEX3] <> NULL
+        AL != X'4400000000'     ; so hardcode test to verify Priority-Array[INDEX3] <> NULL
       CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1513,7 +1513,7 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT2
       Property = 1, Priority-Array
@@ -1524,7 +1524,7 @@
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1532,7 +1532,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1545,7 +1545,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1553,7 +1553,7 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Priority-Array
@@ -1561,8 +1561,8 @@
     )
 
     EXPECT (
-      NETWORK = "Untitled"
-      SA = IUT_IP      
+      NETWORK = TD_PORT
+      SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
@@ -1571,28 +1571,28 @@
       Property = 1, Priority-Array
       Unsigned = 2, INDEX3
       OpenTag 3
-	--NULL
-       AL = {Priority-Array} 
+    --NULL
+       AL = {Priority-Array}
       CloseTag 3
     )
 
   ;-------------------------------------------------------------------------------------
   Test #1l - Writing Property of Type Boolean
- 
+
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (one of either TRUE or FALSE as defined in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' = P1,
-  --		'Property Value' = (one of either TRUE or FALSE except the 
-  --		 value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value of either TRUE or FALSE as used in step 2)
+  --    1. VERIFY (Object1), P1 = (one of either TRUE or FALSE as defined in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1,
+  --        'Property Value' = (one of either TRUE or FALSE except the
+  --         value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value of either TRUE or FALSE as used in step 2)
 
   -- Step #1: Verify (read) property P1 for the selected object
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1600,14 +1600,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT2
-      Property = 1, Out-of-Service	; Verify property of type Boolean
+      Property = 1, Out-of-Service  ; Verify property of type Boolean
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1616,14 +1616,14 @@
       Object = 0, OBJECT2
       Property = 1, Out-of-Service
       OpenTag 3
-        AL = {Out-of-Service}		;  using this construct fails in VTS
+        AL = {Out-of-Service}       ;  using this construct fails in VTS
       CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1631,18 +1631,18 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT2
       Property = 1, Out-of-Service
 
       OpenTag 3
-        BOOLEAN = TRUE		; This construct fails in VTS
+        BOOLEAN = TRUE      ; This construct fails in VTS
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1653,7 +1653,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1661,28 +1661,28 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Out-of-Service
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
-      Property = 1, Out-of-Service	; Verify new property value
+      Property = 1, Out-of-Service  ; Verify new property value
       OpenTag 3
-        BOOLEAN = TRUE		;  using this construct fails in VTS
+        BOOLEAN = TRUE      ;  using this construct fails in VTS
       CloseTag 3
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1690,18 +1690,18 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT2
       Property = 1, Out-of-Service
 
       OpenTag 3
-        BOOLEAN = False		; Write back with initial value
+        BOOLEAN = False     ; Write back with initial value
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1711,24 +1711,24 @@
 
 
  ;-------------------------------------------------------------------------------------
- ; Note: Support for Test #1m 
+ ; Note: Support for Test #1m
  ;-------------------------------------------------------------------------------------
   Test #1m - Writing Property of Type Signed
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (any valid Signed value as defined in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' = P1,
-  --		'Property Value' = (any valid value of datatype Signed except the 
-  --		 value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (any valid Signed value as used in step 2)
+  --    1. VERIFY (Object1), P1 = (any valid Signed value as defined in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1,
+  --        'Property Value' = (any valid value of datatype Signed except the
+  --         value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (any valid Signed value as used in step 2)
 
   -- Step #1: Verify (read) property P1 for the selected object
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1736,30 +1736,30 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, UTC_Offset	; Verify property P1 of type Signed
+      Property = 1, UTC_Offset  ; Verify property P1 of type Signed
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, UTC_Offset	
+      Property = 1, UTC_Offset
       OpenTag 3
         AL = {UTC_Offset}
-      CloseTag 3                                   
+      CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1767,17 +1767,17 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
      Object = 0, OBJECT1
       Property = 1, UTC_Offset
       OpenTag 3
-        SIGNED = TESTVAL4		; Write new value to property P1
+        INTEGER= TESTVAL4       ; Write new value to property P1
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1785,7 +1785,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1798,7 +1798,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1806,23 +1806,23 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, UTC_Offset
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      BVLCI = ORIGINAL-UNICAST-NPDU
      PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, UTC_Offset	
+      Property = 1, UTC_Offset
       OpenTag 3
-	AL={UTC_Offset}		; Write-Access-Denied
+    AL={UTC_Offset}     ; Write-Access-Denied
       CloseTag 3
     )
 
@@ -1834,18 +1834,18 @@
   REFERENCE (B) WriteProperty Service and (T) TBD
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the Real value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' =	P1
-  --		'Property Value' = (any valid value of datatype Real except the 
-  --		value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the Real value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = (any valid value of datatype Real except the
+  --        value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) the value of the property P1
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1853,14 +1853,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT2
-      Property = 1, Present-Value		; Verify property of type Real
+      Property = 1, Present-Value       ; Verify property of type Real
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1870,13 +1870,13 @@
       Property = 1, Present-Value
       OpenTag 3
        AL = {Present-Value}
-      CloseTag 3                                   
+      CloseTag 3
     )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1884,17 +1884,17 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT2
       Property = 1, Present-Value
       OpenTag 3
-         REAL = TESTVAL2		; Write a new value of type Real to property P1
+         REAL = TESTVAL2        ; Write a new value of type Real to property P1
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1905,7 +1905,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1913,14 +1913,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Present-Value
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1929,11 +1929,11 @@
       Object = 0, OBJECT2
       Property = 1, Present-Value
       OpenTag 3
-         REAL = TESTVAL2		; Confirm new value of type Real
-      CloseTag 3                                   
+         REAL = TESTVAL2        ; Confirm new value of type Real
+      CloseTag 3
     )
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1941,17 +1941,17 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT2
       Property = 1, Present-Value
       OpenTag 3
-         REAL = 19.5		; Write back to value in EPICS
+         REAL = 19.5        ; Write back to value in EPICS
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1969,14 +1969,14 @@
 --  REFERENCE (B) WriteProperty Service and (T) TBD
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' =	P1
-  --		'Property Value' = (any valid value of datatype Double except the
-  --		value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = (any valid value of datatype Double except the
+  --        value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) the value of the property P1
 
@@ -1987,7 +1987,7 @@
 --    PDU = Confirmed-Request
 --    Service = ReadProperty
 --    Object = 0, object
---    Property = 1, property		; Verify TBD property of type Double
+--    Property = 1, property        ; Verify TBD property of type Double
 --  )
 
 --  EXPECT (
@@ -1999,11 +1999,11 @@
 --    Property = 1, property
 --    OpenTag 3
 --       AL = {property}
---    CloseTag 3                                   
+--    CloseTag 3
 --  )
 
   -- Steps #2 & 3: Write new value to property P1 and receive ACK
- 
+
 --    SEND (
 --      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
@@ -2013,7 +2013,7 @@
 --     Object = 0, object
 --      Property = 1, property
 --      OpenTag 3
---        Double = TESTVALx		; Write new value of type Double to property P1
+--        Double = TESTVALx     ; Write new value of type Double to property P1
 --      CloseTag 3
 --    )
 
@@ -2042,9 +2042,9 @@
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, object
---      Property = 1, property	
+--      Property = 1, property
 --      OpenTag 3
---	 Double = TESTVALx		; Verify new value of type Double
+--   Double = TESTVALx      ; Verify new value of type Double
 --      CloseTag 3
 --    )
 
@@ -2052,19 +2052,19 @@
   Test #1p - Writing Property of Type Time
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the Time value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' =	P1
-  --		'Property Value' = (any valid value of datatype Time except the 
-  --		value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the Time value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = (any valid value of datatype Time except the
+  --        value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) the value of the property P1
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2072,14 +2072,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, Local-Time		; Verify property of type Time
+      Property = 1, Local-Time      ; Verify property of type Time
     )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2088,14 +2088,14 @@
       Object = 0, OBJECT1
       Property = 1, Local-Time
       OpenTag 3
-        AL = {Local-Time}		; 
-      CloseTag 3			;                                
-    )  
-   
+        AL = {Local-Time}       ;
+      CloseTag 3            ;
+    )
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2103,17 +2103,17 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Local-Time
       OpenTag 3
-        TIME = 5:35:12.12  
+        TIME = 5:35:12.12
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2121,7 +2121,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2134,7 +2134,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2142,14 +2142,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, Local-Time		; Required property of type Time
+      Property = 1, Local-Time      ; Required property of type Time
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2158,26 +2158,26 @@
       Object = 0, OBJECT1
       Property = 1, Local-Time
       OpenTag 3
-	 --TIME = 5:35:12.12 
+     --TIME = 5:35:12.12
         Time = *:34:56.78
-      CloseTag 3			                                       
+      CloseTag 3
     )
 ;-------------------------------------------------------------------------------------
   Test #1q - Writing Property of Type Date
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the Date value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' =	P1
-  --		'Property Value' = (any valid value of datatype Date except the 
-  --		value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the Date value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = (any valid value of datatype Date except the
+  --        value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) the value of the property P1
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2185,15 +2185,15 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 1      
+      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, Local-Date		; Verify property of datatype Date
+      Property = 1, Local-Date      ; Verify property of datatype Date
     )
 
     EXPECT (
-      NETWORK = "Untitled"
-      Sa = IUT_IP 
+      NETWORK = TD_PORT
+      Sa = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
@@ -2201,14 +2201,14 @@
       Object = 0, OBJECT1
       Property = 1, Local-Date
     OpenTag 3
-	AL = {Local-Date}		; Test will fail using this script segment
-    CloseTag 3			;  in VTS V2.28 so verify date manually                               
+    AL = {Local-Date}       ; Test will fail using this script segment
+    CloseTag 3          ;  in VTS V2.28 so verify date manually
    )
-   
+
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2216,17 +2216,17 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 2      
+      InvokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Local-Date
       OpenTag 3
-         DATE = Sunday, January 01, 2000		; 
+         DATE = Sunday, January 01, 2000        ;
       CloseTag 3
    )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2234,7 +2234,7 @@
       Service = WriteProperty
     )
    OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2247,7 +2247,7 @@
   -- Steps #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2255,14 +2255,14 @@
       SegMsg = 0
       SegResp = 0
       MaxResp = 1476
-      InvokeID = 3      
+      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Local-Date
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2271,9 +2271,9 @@
       Object = 0, OBJECT1
       Property = 1, Local-Date
      OpenTag 3
-	--DATE = Sunday, January 01, 2000
+    --DATE = Sunday, January 01, 2000
          AL ={Local-Date}                      ;Property Write not supported
-     CloseTag 3			                             
+     CloseTag 3
     )
   ;-------------------------------------------------------------------------------------
  Test #1r - Writing Property of Type Octet String
@@ -2283,14 +2283,14 @@
 --  REFERENCE (B) WriteProperty Service and (T) TBD
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' =	P1
-  --		'Property Value' = (any valid value of datatype Octet String except
-  --		 the value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = (any valid value of datatype Octet String except
+  --         the value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) the value of the property P1
 
@@ -2301,7 +2301,7 @@
 --    PDU = Confirmed-Request
 --    Service = ReadProperty
 --    Object = 0, object
---    Property = 1, property		; Verify TBD property of type Octet String
+--    Property = 1, property        ; Verify TBD property of type Octet String
 --  )
 
 --  EXPECT (
@@ -2313,11 +2313,11 @@
 --    Property = 1, property
 --    OpenTag 3
 --       AL = {property}
---    CloseTag 3                                   
+--    CloseTag 3
 --  )
 
   -- Steps #2 & 3: Write new value to property P1 and receive ACK
- 
+
 --    SEND (
 --      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
@@ -2327,7 +2327,7 @@
 --     Object = 0, object
 --      Property = 1, property
 --      OpenTag 3
---        Double = TESTVALx		; Write new value of type Octet String to P1
+--        Double = TESTVALx     ; Write new value of type Octet String to P1
 --      CloseTag 3
 --    )
 
@@ -2356,9 +2356,9 @@
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, object
---      Property = 1, property	
+--      Property = 1, property
 --      OpenTag 3
---	 Double = TESTVALx		; Verify new value of type Octet String
+--   Double = TESTVALx      ; Verify new value of type Octet String
 --      CloseTag 3
 --    )
 
@@ -2370,14 +2370,14 @@
 --  REFERENCE (B) WriteProperty Service and (T) TBD
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' =	P1
-  --		'Property Value' = (any valid value of datatype Proprietary Values
-  --		 except the value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = (any valid value of datatype Proprietary Values
+  --         except the value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) the value of the property P1
 
@@ -2388,7 +2388,7 @@
 --    PDU = Confirmed-Request
 --    Service = ReadProperty
 --    Object = 0, object
---    Property = 1, property		; Verify TBD property of type Proprietary Values
+--    Property = 1, property        ; Verify TBD property of type Proprietary Values
 --  )
 
 --  EXPECT (
@@ -2400,11 +2400,11 @@
 --    Property = 1, property
 --    OpenTag 3
 --       AL = {property}
---    CloseTag 3                                   
+--    CloseTag 3
 --  )
 
   -- Steps #2 & 3: Write new value to property P1 and receive ACK
- 
+
 --    SEND (
 --      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
@@ -2414,7 +2414,7 @@
 --     Object = 0, object
 --      Property = 1, property
 --      OpenTag 3
---        Double = TESTVALx		; Write new value of type Proprietary Values to P1
+--        Double = TESTVALx     ; Write new value of type Proprietary Values to P1
 --      CloseTag 3
 --    )
 
@@ -2443,9 +2443,9 @@
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, object
---      Property = 1, property	
+--      Property = 1, property
 --      OpenTag 3
---	 Double = TESTVALx		; Verify new value of type Proprietary Values
+--   Double = TESTVALx      ; Verify new value of type Proprietary Values
 --      CloseTag 3
 --    )
 
@@ -2456,14 +2456,14 @@
 --  REFERENCE (B) WriteProperty Service and (T) TBD
 
   -- Test Steps:
-  --	1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
-  --	2. TRANSMIT WriteProperty-Request,
-  --		'Object Identifier' = Object1,
-  --		'Property Identifier' =	P1
-  --		'Property Value' = (any valid value of datatype Constructed Values
-  --		 except the value verified in step 1)
-  --	3. RECEIVE Simple-ACK-PDU
-  --	4. VERIFY (Object1), P1 = (the value used in step 2)
+  --    1. VERIFY (Object1), P1 = (the value defined for this property in the EPICS)
+  --    2. TRANSMIT WriteProperty-Request,
+  --        'Object Identifier' = Object1,
+  --        'Property Identifier' = P1
+  --        'Property Value' = (any valid value of datatype Constructed Values
+  --         except the value verified in step 1)
+  --    3. RECEIVE Simple-ACK-PDU
+  --    4. VERIFY (Object1), P1 = (the value used in step 2)
 
   -- Step #1: Verify (read) the value of the property P1
 
@@ -2474,7 +2474,7 @@
 --    PDU = Confirmed-Request
 --    Service = ReadProperty
 --    Object = 0, object
---    Property = 1, property		; Verify TBD property of type Constructed Values
+--    Property = 1, property        ; Verify TBD property of type Constructed Values
 --  )
 
 --  EXPECT (
@@ -2486,11 +2486,11 @@
 --    Property = 1, property
 --    OpenTag 3
 --       AL = {property}
---    CloseTag 3                                   
+--    CloseTag 3
 --  )
 
   -- Steps #2 & 3: Write new value to property P1 and receive ACK
- 
+
 --    SEND (
 --      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
@@ -2500,7 +2500,7 @@
 --     Object = 0, object
 --      Property = 1, property
 --      OpenTag 3
---        Double = TESTVALx		; Write new value of type Constructed Values to P1
+--        Double = TESTVALx     ; Write new value of type Constructed Values to P1
 --      CloseTag 3
 --    )
 
@@ -2529,8 +2529,8 @@
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, object
---      Property = 1, property	
+--      Property = 1, property
 --      OpenTag 3
---	 Double = TESTVALx		; Verify new value of type Constructed Values
+--   Double = TESTVALx      ; Verify new value of type Constructed Values
 --      CloseTag 3
 --    )

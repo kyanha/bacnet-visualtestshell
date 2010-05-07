@@ -1,57 +1,60 @@
   ;-------------------------------------------------------------------------------------
   ;  Unsubscribed, Unconfirmed COV Notification Service Initiation Tests
-  ;	COV Notification from Loop Object Present Value property
+  ; COV Notification from Loop Object Present Value property
   ;
-  ;  UUnconfirmedCOV_LPV.vts	UUnCOVddmmyy-07.vts
+  ;  UUnconfirmedCOV_LPV.vts    UUnCOVddmmyy-07.vts
   ;
-  ;  Ver 1.0   05/27/01    P. Bowen	Initial version
+  ;  Ver 1.0   05/27/01    P. Bowen Initial version
   ;
   ;  Purpose:  This test case verifies that the IUT can initiate a Unsubscribed,
-  ;	UnconfirmedCOVNotification service requests conveying a change of the 
-  ;	Present_Value property of a loop object.
-  ;  
+  ; UnconfirmedCOVNotification service requests conveying a change of the
+  ; Present_Value property of a loop object.
+  ;
   ;  Note - the following tests should be executed before running this test case:
-  ;	ReadProperty Service Execution Tests
-  ;	WriteProperty Service Execution Tests
+  ; ReadProperty Service Execution Tests
+  ; WriteProperty Service Execution Tests
   ;
   ;  In the REFERENCE section "(B)" refers to the BACnet standard and
   ;  "(T)" refers to the testing addendum.
   ;-------------------------------------------------------------------------------------
-  
+
   SETUP Unsubscribed, Unconfirmed COV Notification Test - Loop Object Present Value Property
 
 --  IUT_IP = 10.10.10.100
-  IUT_IP = 208.6.162.35
-  TD_IP = 10.10.10.36
+  IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
+ TD_IP  = "TD_IP"
 
-  OBJECT1 = Loop, 1		; Object which is the subject of the COV test
+  OBJECT1 = Loop, 1     ; Object which is the subject of the COV test
 
-  WRITE_PRIORITY = 1		; Priority for writing changes
+  WRITE_PRIORITY = 1        ; Priority for writing changes
 
-  PV_LT_COV_INCREMENT = 100.5	; Test Value < Present Value + COV Increment
-  PV_GT_COV_INCREMENT = 110.0	; Test Value > Present Value + COV Increment
+  PV_LT_COV_INCREMENT = 100.5   ; Test Value < Present Value + COV Increment
+  PV_GT_COV_INCREMENT = 110.0   ; Test Value > Present Value + COV Increment
+  PID = 10          ; Subscriber Process Identifier
+  LIFETIME = 0          ; Subscription lifetime in secs (0 = indefinite)
 
   ;-------------------------------------------------------------------------------------
- 
+
    SECTION Unsubscribed, Unconfirmed COV Notification Test - Loop Object Present Value Property
 
   -- This test takes place across test #1a - #1e so the TD can be manually paused
-  -- between tests. This is necessary since a time delay is needed in this test 
+  -- between tests. This is necessary since a time delay is needed in this test
   -- case and VTS doesn't provide a means for doing this within the script.
 
-  -- Configuration Requirements: At the beginning of the test, the Out_Of_Service 
+  -- Configuration Requirements: At the beginning of the test, the Out_Of_Service
   -- property shall have a value of FALSE.
 
   -- Test Concept: No subscription for unconfirmed COV notifications is established.
   -- The Present_Value of the monitored object is changed by an amount less than the
-  -- COV increment and it is verified that no Unconfirmed COV notification is 
+  -- COV increment and it is verified that no Unconfirmed COV notification is
   -- received. The Present_Value property is then changed by an amount greater than
-  -- the COV increment and an Unconfirmed COV notification shall be received. 
+  -- the COV increment and an Unconfirmed COV notification shall be received.
 
-  -- The Present_Value may be changed by placing the Loop Out_Of_Service and writing 
-  -- directly to the Present_Value. For implementations where this option is not 
-  -- possible an alternative trigger mechanism shall be provided to accomplish this 
-  -- task, such as changing the Setpoint or the Setpoint_Reference. All of these 
+  -- The Present_Value may be changed by placing the Loop Out_Of_Service and writing
+  -- directly to the Present_Value. For implementations where this option is not
+  -- possible an alternative trigger mechanism shall be provided to accomplish this
+  -- task, such as changing the Setpoint or the Setpoint_Reference. All of these
   -- methods are equally acceptable.
 
   -- Note: The object identifier of the Loop object being tested is designated as L
@@ -59,63 +62,88 @@
 
   -- Test Steps:
   -- 1. TRANSMIT ReadProperty-Request,
-  --		'Object Identifier' = L,
-  --		'Property Identifier' =	COV_Increment
-  -- 2.	RECEIVE BACnet-ComplexACK-PDU,
-  --		'Object Identifier' = L,
-  --		'Property Identifier' =	COV_Increment,
-  --		'Property Value' = (a value "increment" that will be used below)
-  -- 3.	IF (Out_Of_Service is writable) THEN
-  --		WRITE X, Out_Of_Service = TRUE
+  --        'Object Identifier' = L,
+  --        'Property Identifier' = COV_Increment
+  -- 2. RECEIVE BACnet-ComplexACK-PDU,
+  --        'Object Identifier' = L,
+  --        'Property Identifier' = COV_Increment,
+  --        'Property Value' = (a value "increment" that will be used below)
+  -- 3. IF (Out_Of_Service is writable) THEN
+  --        WRITE X, Out_Of_Service = TRUE
   -- 4. RECEIVE BACnet-SimpleACK-PDU
-  -- 5. BEFORE Notification Fail Time 
-  --	 RECEIVE UnconfirmedCOVNotification-Request,
-  --		 'Subscriber Process Identifier' = 0,
-  --		 'Initiating Device Identifier' = IUT,
-  --		 'Monitored Object Identifier' = L,
-  --		 'Time Remaining' = 0,
-  --		 'List of Values' = (the initial Present_Value, new Status_Flags, 
-  --		  initial Setpoint, and initial Controlled_Variable_Value)
+  -- 5. BEFORE Notification Fail Time
+  --     RECEIVE UnconfirmedCOVNotification-Request,
+  --         'Subscriber Process Identifier' = 0,
+  --         'Initiating Device Identifier' = IUT,
+  --         'Monitored Object Identifier' = L,
+  --         'Time Remaining' = 0,
+  --         'List of Values' = (the initial Present_Value, new Status_Flags,
+  --          initial Setpoint, and initial Controlled_Variable_Value)
   -- 6. IF (Present_Value is now writable) THEN
-  --		WRITE X, Present_Value = (any value that differs from "initial 
-  --		 Present_Value" by less than "increment")
-  --		RECEIVE BACnet-SimpleACK-PDU
-  --	 ELSE
-  --		MAKE (Present_Value  = any value that differs from "initial 
-  --		 Present_Value" by less than "increment")
+  --        WRITE X, Present_Value = (any value that differs from "initial
+  --         Present_Value" by less than "increment")
+  --        RECEIVE BACnet-SimpleACK-PDU
+  --     ELSE
+  --        MAKE (Present_Value  = any value that differs from "initial
+  --         Present_Value" by less than "increment")
   -- 7. WAIT NotificationFailTime
   -- 8. CHECK (verify that no COV notification was transmitted)
   -- 9. IF (Present_Value is now writable) THEN
-  --		WRITE X, Present_Value = (any value that differs from "initial 
-  --		 Present_Value" by an amount greater than "increment")
-  --		RECEIVE BACnet-SimpleACK-PDU
-  --	 ELSE
-  --		MAKE (Present_Value  = any value that differs from "initial 
-  --		 Present_Value" by an amount greater than "increment")
+  --        WRITE X, Present_Value = (any value that differs from "initial
+  --         Present_Value" by an amount greater than "increment")
+  --        RECEIVE BACnet-SimpleACK-PDU
+  --     ELSE
+  --        MAKE (Present_Value  = any value that differs from "initial
+  --         Present_Value" by an amount greater than "increment")
   -- 10. BEFORE NotificationFailTime
-  --	  RECEIVE UnconfirmedCOVNotification-Request,
-  --		'Subscriber Process Identifier' = 0,
-  --		'Initiating Device Identifier' = IUT,
-  --		'Monitored Object Identifier' =	L,
-  --		'Time Remaining' = 0,
-  --		'List of Values' = (the new Present_Value, new Status_Flags,
-  --		 initial Setpoint, and initial Controlled_Variable_Value)
+  --      RECEIVE UnconfirmedCOVNotification-Request,
+  --        'Subscriber Process Identifier' = 0,
+  --        'Initiating Device Identifier' = IUT,
+  --        'Monitored Object Identifier' = L,
+  --        'Time Remaining' = 0,
+  --        'List of Values' = (the new Present_Value, new Status_Flags,
+  --         initial Setpoint, and initial Controlled_Variable_Value)
   -- 11. IF (Out_Of_Service is writable) THEN
-  --		WRITE L, Out_Of_Service = FALSE
+  --        WRITE L, Out_Of_Service = FALSE
   -- 12. RECEIVE BACnet-SimpleACK-PDU
-  
+
  ;-------------------------------------------------------------------------------------
   TEST #1a Verify (read) the COV-Increment property for the Loop object
 
   DEPENDENCIES None
 
   -- Step #1: Verify (read) the COV-Increment property
-
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = Confirmed-Request
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 1476
+      InVokeID = 1
+      Service = SubscribeCOV
+      Unsigned = 0, PID         ; Process-Identifier = PID
+      Object = 1, OBJECT1       ; Object-Identifier = OBJECT1
+      Boolean = 2, FALSE        ; Request unconfirmed notifications
+      Unsigned = 3, LIFETIME        ; Subscribe for LIFETIME seconds
+    )
+
+    EXPECT (
+      NETWORK = TD_PORT
+      Sa = IUT_IP
+      Der = FALSE
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = SimpleAck
+      Service = SubscribeCOV
+    )
+
+    SEND (
+      NETWORK = TD_PORT
+      Da = IUT_IP
+      Der = TRUE
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       SegMsg = 0
       SegResp = 0
@@ -123,25 +151,25 @@
       InVokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
-      Property = 1, COV-Increment	; Read COV-Increment property
+      Property = 1, COV-Increment   ; Read COV-Increment property
     )
 
   -- Step #2: Receive Complex ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, COV-Increment
- ;     OpenTag 3			; this should work but test for returned 
- ;        REAL = {COV-Increment}	; value will fail so wait for VTS bug to
- ;     CloseTag 3			; be fixed...
+ ;     OpenTag 3            ; this should work but test for returned
+ ;        REAL = {COV-Increment}    ; value will fail so wait for VTS bug to
+ ;     CloseTag 3           ; be fixed...
     )
- 
+
   ;-------------------------------------------------------------------------------------
   TEST #1b Make Out-of-Service = TRUE and Receive COV Notification Request
 
@@ -150,10 +178,10 @@
   -- Steps #3 & 4: Make Out-of-Service = TRUE and Receive Simple ACK
 
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       SegMsg = 0
       SegResp = 0
@@ -163,25 +191,25 @@
       Object = 0, OBJECT1
       Property = 1, Out-of-Service
       OpenTag 3
-        BOOLEAN = TRUE			; Put OBJECT1 out of service
+        BOOLEAN = TRUE          ; Put OBJECT1 out of service
       CloseTag 3
-      Unsigned = 4, WRITE_PRIORITY	; Set Out-of-Service write priority
+      Unsigned = 4, WRITE_PRIORITY  ; Set Out-of-Service write priority
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
       Service = WriteProperty
     )
 
   -- Step #5: Receive Unconfirmed COV Notification Request
 
-  --  AND (				; Can't control the timing of the IUT's
-  --    NETWORK = NET_1			; COV Notification Request so TD can't
-  --    DER = FALSE			; use this EXPECT statement
+  --  AND (             ; Can't control the timing of the IUT's
+  --    NETWORK = NET_1         ; COV Notification Request so TD can't
+  --    DER = FALSE         ; use this EXPECT statement
   --    PDU = Confirmed-Request
   --    Service = UnconfirmedCOVNotification
   --  )
@@ -194,10 +222,10 @@
   -- Step #6: Make PV < PV + COV Increment and Receive Simple ACK
 
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       SegMsg = 0
       SegResp = 0
@@ -207,16 +235,16 @@
       Object = 0, OBJECT1
       Property = 1, Present-Value
       OpenTag 3
-        REAL = PV_LT_COV_INCREMENT	; Make PV < PV + COV Increment
+        REAL = PV_LT_COV_INCREMENT  ; Make PV < PV + COV Increment
       CloseTag 3
-      Unsigned = 4, WRITE_PRIORITY	; Set PV write priority
+      Unsigned = 4, WRITE_PRIORITY  ; Set PV write priority
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
       Service = WriteProperty
     )
@@ -232,10 +260,10 @@
   -- Step #9: Trigger COV message by making PV > PV + COV Increment and Receive Simple ACK
 
   SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       SegMsg = 0
       SegResp = 0
@@ -245,41 +273,41 @@
       Object = 0, OBJECT1
       Property = 1, Present-Value
       OpenTag 3
-        REAL = PV_GT_COV_INCREMENT	; Make PV > PV + COV Increment
+        REAL = PV_GT_COV_INCREMENT  ; Make PV > PV + COV Increment
       CloseTag 3
-      Unsigned = 4, WRITE_PRIORITY	; Set PV write priority
+      Unsigned = 4, WRITE_PRIORITY  ; Set PV write priority
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
       Service = WriteProperty
     )
 
   -- Step #10: Receive Unconfirmed COV Notification Request
- 
-  --  AND (				; Can't control the timing of the IUT's
-  --    NETWORK = NET_1			; COV Notification Request so TD can't
-  --    DER = FALSE			; use this EXPECT statement
+
+  --  AND (             ; Can't control the timing of the IUT's
+  --    NETWORK = NET_1         ; COV Notification Request so TD can't
+  --    DER = FALSE         ; use this EXPECT statement
   --    PDU = Confirmed-Request
   --    Service = UnconfirmedCOVNotification
   --  )
- 
+
   ;-------------------------------------------------------------------------------------
   TEST #1e Make Out-of-Service = FALSE
 
   DEPENDENCIES None
 
-   -- Step #11: Return point to service (make Out-of-Service = FALSE) 
+   -- Step #11: Return point to service (make Out-of-Service = FALSE)
 
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Da = IUT_IP
       Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       SegMsg = 0
       SegResp = 0
@@ -289,18 +317,18 @@
       Object = 0, OBJECT1
       Property = 1, Out-of-Service
       OpenTag 3
-         BOOLEAN = FALSE		; Put OBJECT1 back in service
+         BOOLEAN = FALSE        ; Put OBJECT1 back in service
       CloseTag 3
-      Unsigned = 4, WRITE_PRIORITY	; Set Out-of-Service write priority
+      Unsigned = 4, WRITE_PRIORITY  ; Set Out-of-Service write priority
     )
 
   -- Step #12: Receive Simple ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       Sa = IUT_IP
       Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = SimpleAck
       Service = WriteProperty
     )

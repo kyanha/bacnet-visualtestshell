@@ -25,15 +25,9 @@ TEST 0 Change of bitstring
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 0
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -68,15 +62,9 @@ TEST 1.1 Change of state - BOOLEAN
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 1
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -109,15 +97,9 @@ TEST 1.2 Change of state - BinaryPV
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 2
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -150,15 +132,9 @@ TEST 1.3 Change of state - Unsigned
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 3
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -191,15 +167,9 @@ TEST 2.1 Change of value - BITSTRING
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 4
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -234,15 +204,9 @@ TEST 2.2 Change of value - REAL
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 5
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -277,15 +241,9 @@ TEST 3.1 command failure analog
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 6
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -323,15 +281,9 @@ TEST 3.2 command failure binaryPV
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 7
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -369,15 +321,9 @@ TEST 3.3 command failure boolean
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 8
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -415,15 +361,9 @@ TEST 3.4 command failure unsigned
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 9
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -462,15 +402,9 @@ TEST 4 floating limit
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 10
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -508,15 +442,9 @@ TEST 5 Out of Range
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 11
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -552,15 +480,9 @@ TEST 6 Complex event type
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 12
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -603,15 +525,9 @@ TEST 8.1 Change of life safety - low values
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 13
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -647,15 +563,9 @@ TEST 8.2 Change of life safety - high values
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 14
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -691,15 +601,9 @@ TEST 9 Extended
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 15
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -752,15 +656,9 @@ TEST 10.1 Buffer Ready with device
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 16
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -800,15 +698,9 @@ TEST 10.2 Buffer Ready without device
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 17
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -846,15 +738,9 @@ TEST 11 unsigned range
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 18
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -890,15 +776,9 @@ TEST N ACK Notification
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      InvokeID = 0
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT

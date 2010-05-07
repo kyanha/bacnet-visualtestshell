@@ -26,12 +26,13 @@
   ; TD_CONFIG  All objects and properties are listed here including notes on there use
   ;
 	
-  TD_IP = 10.10.10.2
+  TD_IP  = "TD_IP"
+TD_PORT = "bip"
 
 
   --------- Global Variables ---------
   OBJECT1 = Binary-VALUE, 3		; Object which is the subject of the Binary Object Change tests
-  DEVOBJ  = 0, DEVICE, 245146                 ; Device object
+  DEVOBJ  = 0, DEVICE, 47814                 ; Device object
   
 
     
@@ -82,7 +83,7 @@
   ; IUT_CONFIG
   ;
 
-  IUT_IP = 208.6.162.35		; Address of IUT
+  IUT_IP = "IUT_IP"		; Address of IUT
 
   ;-------------------------------------------------------------------------------------
 
@@ -218,7 +219,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
    SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -236,7 +237,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -245,7 +246,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -286,7 +287,7 @@ Dependencies NONE ; ReadProperty Service Execution Tests  9.15; WriteProperty Se
 Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -310,7 +311,7 @@ Dependencies NONE ; ReadProperty Service Execution Tests
 Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -328,7 +329,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -338,7 +339,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -354,7 +355,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
   EXPECT (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
       	SA = IUT_IP
     	DER = FALSE
@@ -387,7 +388,7 @@ Dependencies NONE ; ReadProperty Service Execution Tests  9.15; WriteProperty Se
 Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -410,7 +411,7 @@ Dependencies NONE ; ReadProperty Service Execution Tests  9.15; WriteProperty Se
 Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -428,7 +429,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       bvlci =ORIGINAL-UNICAST-NPDU
       SA = IUT_IP
       DER = FALSE
@@ -438,7 +439,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -454,7 +455,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
   EXPECT (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
       	SA = IUT_IP
     	DER = FALSE
@@ -468,7 +469,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
   )
 
  SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -486,7 +487,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
     )
 
     EXPECT (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
       	SA = IUT_IP
       	DER = FALSE
@@ -496,7 +497,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
     SEND (
-      	NETWORK = "Untitled"
+      	NETWORK = TD_PORT
       	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -512,7 +513,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
   EXPECT (
-    	NETWORK = "Untitled"
+    	NETWORK = TD_PORT
       	bvlci =ORIGINAL-UNICAST-NPDU
       	SA = IUT_IP
     	DER = FALSE
@@ -536,7 +537,7 @@ Reference 12.4.17, 12.4.18, 12.5.17, 12.5.18, 12.6.15, and 12.6.16
 
 
 SEND (
-	NETWORK = "Untitled"
+	NETWORK = TD_PORT
 	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -551,7 +552,7 @@ SEND (
 )
 
 SEND (
-	NETWORK = "Untitled"
+	NETWORK = TD_PORT
 	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE
@@ -566,7 +567,7 @@ SEND (
 )
 
 SEND (
-	NETWORK = "Untitled"
+	NETWORK = TD_PORT
 	DA = IUT_IP
       	bvlci =ORIGINAL-UNICAST-NPDU
       	DER = TRUE

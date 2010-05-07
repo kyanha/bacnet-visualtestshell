@@ -42,7 +42,8 @@
 SETUP ConfirmedEventNotification - Out Of Range Tests
 
   ;--------------------------------------------------------------
-     IUT_IP = 208.6.162.35
+     IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
   ;
@@ -70,10 +71,12 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   ;IUT_IP = 0040ae000e3a   -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,700                -- Device object instance for IUT.
+  DEVICE_ID = DEVICE,47813                -- Device object instance for IUT.
+  TARGET_DEVICE_ID = DEVICE,1000                -- Device object instance for IUT.
 
+  Notify1 = Notification-Class,5 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object
-  MONITORED_ID = MULTISTATE-INPUT, 1    -- the monitored object, same as above
+  MONITORED_ID = ANALOG_VALUE, 1    -- the monitored object, same as above
                                         -- if intrinsic
   MONITORED_PROP = Present-Value        -- the monitored property, present-value
                                         -- if intrinsic
@@ -90,7 +93,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   LOW_LIMIT_DB_VALUE = 11       -- a value in the low deadband range
   HI_LIMIT_DB_VALUE = 89        -- a value in the hi deadband range
 
-  NOTIFICATION_CLASS = 5        -- the notification class used by the event
+  NOTIFICATION_CLASS1 = 5        -- the notification class used by the event
                                 -- generating object
 
   NORMAL_PRIORITY = 170         -- the priority at which normal transitions will
@@ -99,8 +102,8 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
                                 -- be generated
   OFFNORMAL_PRIORITY = 90       -- the priority at which offnormal transitions
                                 -- will be generated
-
-  NOTIFY_TYPE = NOTIFY_TYPE_ALARM   -- the notify type of the event to be
+  PROCESS_ID1 = 10
+  NOTIFY_TYPE1 = NOTIFY_TYPE_ALARM   -- the notify type of the event to be
                                     -- generated
 
   OFFNORMAL_ACK_REQUIRED = TRUE -- whether the OFFNORMAL transition will require
@@ -152,6 +155,118 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
 
   SECTION 8.3.6 ConfirmedEventNotification Tests - Out Of Range Test
 
+  TEST #1 Set up the Notification Class 1
+  DEPENDENCIES References Notify 1 object
+  REFERENCE (B) Notify Recipient List
+    SEND (
+      NETWORK = TD_PORT 
+      DA = IUT_IP
+      DER = TRUE
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = Confirmed-Request
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 1476
+      InvokeID = 2
+      Service = WriteProperty
+      Object = 0, Notify1
+      Property = 1, Recipient_list
+      OpenTag 3
+            BitString = t, t, t, t, t, t , t     -- mtwtf !ss
+            TIME = [00:00:04]
+            Time = [23:59:58.57]
+            object = 0,TARGET_DEVICE_ID  
+            Unsigned = PROCESS_ID1               -- processIdentifier
+            Bool = True                         -- issueConfirmedNotificatons
+            BitString = t, f, t                 -- transitions BACnetEventTranswitionBits off, flt, normal
+
+--            BitString = t, f, f, f, f, f, f     -- mtwtf !ss
+--            TIME = [08:00:04]
+--            Time = [17:00:00]
+--            object = 0,WS_DEVICE
+--            Unsigned = 4                        -- processIdentifier
+--            Bool = True                         -- issueConfirmedNotificatons
+--            BitString = t, f, f                 -- transitions BACnetEventTranswitionBits off, flt, normal
+     CloseTag 3
+   )
+
+   EXPECT (
+      NETWORK = TD_PORT 
+      SA = IUT_IP
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = SimpleAck
+      Service = WriteProperty
+    )
+
+  TEST #2 Setup Event-Enrollment-1 for OUT-OF-RANGE
+    SEND (
+      NETWORK = TD_PORT 
+      DA = IUT_IP
+      DER = TRUE
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = Confirmed-Request
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 1476
+      InvokeID = 41
+      Service = WritePropertyMultiple
+      Object = 0, EVENT_ID 
+      OpenTag 1
+        Property = 0, Object-Name
+        OpenTag 2
+            CharString = "change-of-state event"
+        CloseTag 2
+        Property = 0, Description
+        OpenTag 2
+            CharString = ANSI, "Event out-of-range  w/o Delay"
+        CloseTag 2
+        -- Property = 0,Event_Type      Generated from Event_Parameters
+        Property = 0, Notify_Type
+        OpenTag 2
+            Enum = 0        -- 0=alarm, 1=event, 2=ack-notify
+        CloseTag 2
+        Property = 0, Event_Parameters
+      OpenTag 2      
+      OpenTag 5
+            Unsigned = 0,1
+      	    Real = 1, LOW_LIMIT
+            Real = 2, HI_LIMIT
+            Real = 3, DEADBAND
+      CloseTag 5
+      CloseTag 2      
+        Property = 0, Object_Property_Reference
+        --- unsigned 1, arrayIndex
+        OpenTag 2
+             Object   = 0, MONITORED_ID 
+             Property = 1, MONITORED_PROP 
+             -- unsigned = 2, arrayIndex
+             -- Object = 3, Device, 570001
+        CloseTag 2
+        --- unsigned 3, 16      priority
+        -- Property = 0,Event_State
+        -- Property = 0, Acked_Transitions ; only writable internally
+        ;OpenTag 2
+        ;    BitString = T, F, T    -- To: off, fault, normal
+        ;CloseTag 2
+        Property = 0, Event_Enable
+        OpenTag 2
+            BitString = T, F, T
+        CloseTag 2
+        Property = 0, Notification_Class
+        OpenTag 2
+            Unsigned = Notification_Class1
+        CloseTag 2
+        -- Property = 0, Event_Time_Stamps
+       CloseTag 1
+    )
+
+   EXPECT (
+      NETWORK = TD_PORT 
+      SA = IUT_IP
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = SimpleAck
+      Service = WritePropertyMultiple
+    )
   TEST #8.3.6
 
   DEPENDENCIES Read Property Service Execution Tests, 9.15; Write Property  Service Execution Tests, 9.19;
@@ -192,7 +307,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 1. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -207,7 +322,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -230,7 +345,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- CHANGE: if the monitored property is not writable comment this step out
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -243,16 +358,16 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       Object = 0, MONITORED_ID
       Property = 1, MONITORED_PROP
       OpenTag 3
-        UNSIGNED = HI_LIMIT_DB_VALUE   -- should be REAL
+        Real = HI_LIMIT_DB_VALUE   -- should be REAL
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty                      
       )
 
@@ -261,13 +376,15 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 4. CHECK (verify that no notification has been transmitted)
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
+      SA = IUT_IP
+      bvlci =ORIGINAL-UNICAST-NPDU
       )
 
   -- 5. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -282,7 +399,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -303,7 +420,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- CHANGE: if the monitored property is not writable comment this step out
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -341,16 +458,16 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   --                            High_Limit
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty                      
       )
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
@@ -376,7 +493,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       CloseTag 3
       -- CHANGE: comment out the next line if the IUT does not use notification
       -- classes
-      INTEGER = 4,NOTIFICATION_CLASS
+      INTEGER = 4,NOTIFICATION_CLASS1
       INTEGER = 5,OFFNORMAL_PRIORITY
       ENUM = 6,EVENT_TYPE_OUT_OF_RANGE                           -- Out Of Range
       CHARSTRING = 7,HILIMIT_TEXT
@@ -397,17 +514,17 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 9.  TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = ConfirmedEventNotification
       )
 
   -- 10. VERIFY Status_Flags = (TRUE, FALSE, ?, ?)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -422,7 +539,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -438,7 +555,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 11. VERIFY Event_State = HIGH_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -453,7 +570,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -466,7 +583,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       CloseTag 3                                   
       )
 
-  -- 12. IF (Protocol_Version > 1 | Protocol_Revision ³ 1) THEN
+  -- 12. IF (Protocol_Version > 1 | Protocol_Revision 1) THEN
   --       VERIFY Event_Time_Stamps = (the timestamp in step 8, *, *)
     -- cannot do such tests in this language
 
@@ -481,7 +598,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- CHANGE: if the monitored property is not writable comment this step out
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -499,11 +616,11 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty                      
       )
 
@@ -511,13 +628,13 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 15. CHECK (verify that no notification message has been transmitted)
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       )
 
   -- 16. VERIFY Event_State = HIGH_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -532,7 +649,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -556,7 +673,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- CHANGE: if the monitored property is not writable comment this step out
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -574,11 +691,11 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty                      
       )
 
@@ -604,7 +721,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   --                             High_Limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
@@ -628,7 +745,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       CloseTag 3
       -- CHANGE: comment out the next line if the IUT does not use notification
       -- classes
-      INTEGER = 4,NOTIFICATION_CLASS
+      INTEGER = 4,NOTIFICATION_CLASS1
       INTEGER = 5,NORMAL_PRIORITY
       ENUM = 6,EVENT_TYPE_OUT_OF_RANGE
       CHARSTRING = 7,NORMAL_TEXT
@@ -650,17 +767,17 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 20. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = ConfirmedEventNotification
       )
 
   -- 21. VERIFY Status_Flags = (FALSE, FALSE, ?, ?)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -675,7 +792,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -692,7 +809,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 22. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -707,7 +824,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -720,7 +837,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       CloseTag 3                                   
       )
 
-  -- 23. IF (Protocol_Version > 1 | Protocol_Revision ³ 1) THEN
+  -- 23. IF (Protocol_Version > 1 | Protocol_Revision 1) THEN
   --       VERIFY Event_Time_Stamps = (the timestamp in step 8, *, the timestamp
   --                                   in step 19)
     -- cannot do such tests in this language
@@ -735,7 +852,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- CHANGE: if the monitored property is not writable comment this step out
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -754,11 +871,11 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty                      
       )
 
@@ -766,13 +883,13 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 26. CHECK (verify that no notification message has been transmitted)
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       )
 
   -- 27. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -787,7 +904,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -808,7 +925,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- CHANGE: if the monitored property is not writable comment this step out
   
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -826,11 +943,11 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty                      
       )
 
@@ -858,7 +975,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- 'EXPECT'
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
@@ -882,7 +999,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       CloseTag 3
       -- CHANGE: comment out the next line if the IUT does not use notification
       -- classes
-      INTEGER = 4,NOTIFICATION_CLASS
+      INTEGER = 4,NOTIFICATION_CLASS1
       INTEGER = 5,OFFNORMAL_PRIORITY
       ENUM = 6,EVENT_TYPE_OUT_OF_RANGE
       CHARSTRING = 7,LOWLIMIT_TEXT
@@ -903,17 +1020,17 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 31. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = ConfirmedEventNotification
       )
 
   -- 32. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -928,7 +1045,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -944,7 +1061,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 33. VERIFY Event_State = LOW_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -959,7 +1076,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -972,7 +1089,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       CloseTag 3                                   
       )
 
-  -- 34. IF (Protocol_Version > 1 | Protocol_Revision ³ 1) THEN
+  -- 34. IF (Protocol_Version > 1 | Protocol_Revision 1) THEN
   --     VERIFY Event_Time_Stamps = (the timestamp in step 30, *, the timestamp
   --                                 in step 19)
 
@@ -988,7 +1105,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- CHANGE: if the monitored property is not writable comment this step out
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1006,11 +1123,11 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty                      
       )
 
@@ -1021,13 +1138,13 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- 'EXPECT'
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       )
 
   -- 38. VERIFY Event_State = LOW_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1042,7 +1159,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -1065,7 +1182,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
     -- CHANGE: if the monitored property is not writable comment this step out
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1083,11 +1200,11 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty                      
       )
 
@@ -1112,7 +1229,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   --                             Low_Limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
@@ -1136,7 +1253,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       CloseTag 3
       -- CHANGE: comment out the next line if the IUT does not use notification
       -- classes
-      INTEGER = 4,NOTIFICATION_CLASS
+      INTEGER = 4,NOTIFICATION_CLASS1
       INTEGER = 5,NORMAL_PRIORITY
       ENUM = 6,EVENT_TYPE_OUT_OF_RANGE
       CHARSTRING = 7,NORMAL_TEXT
@@ -1157,17 +1274,17 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 42. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = ConfirmedEventNotification
       )
 
   -- 43. VERIFY Status_Flags = (FALSE, FALSE, ?, ?)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1182,7 +1299,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -1198,7 +1315,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
   -- 44. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1213,7 +1330,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -1226,7 +1343,7 @@ SETUP ConfirmedEventNotification - Out Of Range Tests
       CloseTag 3                                   
       )
 
-  -- 45. IF (Protocol_Version > 1 | Protocol_Revision ³ 1) THEN
+  -- 45. IF (Protocol_Version > 1 | Protocol_Revision 1) THEN
   --       VERIFY Event_Time_Stamps = (the timestamp in step 30, *, the
   --                                   timestamp in step 41)
     -- cannot do such tests in this language

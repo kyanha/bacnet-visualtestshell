@@ -26,13 +26,14 @@
   ; TD_CONFIG
   ; All objects and properties are listed here including notes on there use
 
-	TD_IP = 10.10.10.2
+	TD_IP  = "TD_IP"
+	TD_PORT = "bip"
 
-  	DEVICE_ID = 1967
-  	OBJECT1 = Device, 1967	; Device object used for Who-Is service requests
+  	DEVICE_ID = 47814
+  	OBJECT1 = Device, 47814	; Device object used for Who-Is service requests
   
-  	LOW_LIMIT = 1900		; Low limit of a device range that will include the IUT.
-  	HIGH_LIMIT = 2000   	; High limit of a device range that will include the IUT.
+  	LOW_LIMIT = 40000		; Low limit of a device range that will include the IUT.
+  	HIGH_LIMIT = 50000   	; High limit of a device range that will include the IUT.
 
   	OUTSIDE_LOW = 1990		; Low limit of a device range that won't include the IUT.
   	OUTSIDE_HIGH = 2000		; High limit of a device range that won't include the IUT.
@@ -68,7 +69,7 @@
   ;                     
   ;-------------------------------------------------------------------------------------
 
-	IUT_IP = 10.10.10.100
+	IUT_IP = "IUT_IP"
  
   ;-------------------------------------------------------------------------------------
   ;
@@ -113,7 +114,7 @@
   -- Transmit local broadcast "Who-Is" message
 
     SEND (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST
       bvlci =ORIGINAL-BROADCAST-NPDU
       SA = TD_IP
@@ -125,9 +126,10 @@
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST		; IUT returns either local broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU
+      SA = IUT_IP
       DER = FALSE
       PDU = Unconfirmed-Request
       Service = I-Am
@@ -138,7 +140,7 @@
     )
 
     OR (					
-      Network = "Untitled"
+      Network = TD_PORT
       DNET = 65535
       DA = BROADCAST		; or IUT returns a global broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU
@@ -176,7 +178,7 @@
   -- Transmit global broadcast "Who-Is" message
 
     SEND (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST
       bvlci =ORIGINAL-BROADCAST-NPDU
       DNET = 65535
@@ -189,7 +191,7 @@
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST		; IUT returns either local broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU
       DER = FALSE
@@ -202,7 +204,7 @@
     )
 
     OR (					
-      Network = "Untitled"
+      Network = TD_PORT
       DNET = 65535
       DA = BROADCAST		; or IUT returns a global broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU
@@ -238,7 +240,7 @@
   REFERENCE (B) Who-Is and I-Am Services (T) Local Broadcast, Specific Device Inquiry with IUT Outside of the Device Range
 
     SEND (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST		; Local broadcast message of Who-Is service
       bvlci =ORIGINAL-BROADCAST-NPDU
       SA = TD_IP
@@ -252,7 +254,7 @@
   -- The IUT should not respond
 
     EXPECT (                                  
-      Network = "Untitled"
+      Network = TD_PORT
       bvlci =ORIGINAL-BROADCAST-NPDU
       SA = IUT_IP
     )
@@ -282,7 +284,7 @@
   REFERENCE (B) Who-Is and I-Am Services (T) Local Broadcast, Specific Device Inquiry with IUT Device Instance Equal to Low Limit of Device Range
 
     SEND (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST		; Local broadcast message of Who-Is service
       bvlci =ORIGINAL-BROADCAST-NPDU
       SA = TD_IP
@@ -296,7 +298,7 @@
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST		; IUT returns either local broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU
       SA = IUT_IP
@@ -310,7 +312,7 @@
     )
 
     OR (					
-      Network = "Untitled"
+      Network = TD_PORT
       DNET = 65535
       DA = BROADCAST		; or IUT returns a global broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU
@@ -349,7 +351,7 @@
   REFERENCE (B) Who-Is and I-Am Services (T) Local Broadcast, Specific Device Inquiry with IUT Device Instance Equal to High Limit of Device Range
 
     SEND (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST		; Local broadcast message of Who-Is service
       bvlci =ORIGINAL-BROADCAST-NPDU
       SA = TD_IP
@@ -363,7 +365,7 @@
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST		; IUT returns either local broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU
       SA = IUT_IP
@@ -377,7 +379,7 @@
     )
 
     OR (					
-      Network = "Untitled"
+      Network = TD_PORT
       DNET = 65535
       DA = BROADCAST		; or IUT returns a global broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU
@@ -417,7 +419,7 @@
   REFERENCE (B) Who-Is and I-Am Services (T) Local Broadcast, Specific Device Inquiry with IUT Inside of the Device Range
 
     SEND (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST		; Local broadcast message of Who-Is service
       bvlci =ORIGINAL-BROADCAST-NPDU
       SA = TD_IP
@@ -431,7 +433,7 @@
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = "Untitled"
+      Network = TD_PORT
       DA = BROADCAST		; IUT returns either local broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU
       SA = IUT_IP
@@ -445,7 +447,7 @@
     )
 
     OR (					
-      Network = "Untitled"
+      Network = TD_PORT
       DNET = 65535
       DA = BROADCAST		; or IUT returns a global broadcast response
       bvlci =ORIGINAL-BROADCAST-NPDU

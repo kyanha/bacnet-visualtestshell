@@ -33,10 +33,11 @@
   ; TD_CONFIG  All objects and properties are listed here including notes on there use
   ;
 
-   IUT_IP = 10.10.10.100:0xBAC0
-   TD_IP = 10.10.10.36:0xBAC0  
+   IUT_IP = "IUT_IP"
+  TD_IP  = "TD_IP"  
+TD_PORT = "bip"
 
-   OBJECT1 = ANALOG-INPUT, 1		; Object which is the subject of the Read Prop tests
+   OBJECT1 = MULTISTATE-VALUE, 4		; Object which is the subject of the Read Prop tests
 
 
    HIGHVAL = 9
@@ -113,7 +114,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -131,7 +132,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -143,7 +144,7 @@ SEND (
 -- STEP 2.	VERIFY Out_Of_Service = TRUE
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -158,7 +159,7 @@ SEND (
     )
 
  EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -174,7 +175,7 @@ SEND (
 -- STEP 3.	VERIFY Status_Flags = (?, FALSE, ?, TRUE) ; MANUALLY VERIFY EXPECT
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -189,7 +190,7 @@ SEND (
     )
 
 EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -207,7 +208,7 @@ EXPECT (
 -- STEP 4.	REPEAT X = (all values meeting the functional range requirements of 7.2.1) DO { WRITE Present_Value = X VERIFY Present_Value = X
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -225,7 +226,7 @@ EXPECT (
      )
 
  EXPECT (
-       NETWORK = "Untitled"
+       NETWORK = TD_PORT
        SA = IUT_IP
        DER = FALSE
        BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -237,7 +238,7 @@ EXPECT (
    
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -253,7 +254,7 @@ EXPECT (
     )
 
   EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -269,7 +270,7 @@ EXPECT (
  TEST #3
     ------------------------------
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -287,7 +288,7 @@ EXPECT (
      )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -299,7 +300,7 @@ EXPECT (
    
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -315,7 +316,7 @@ EXPECT (
     )
 
   EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -331,7 +332,7 @@ EXPECT (
  TEST #4
 -----------------------------------
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -349,7 +350,7 @@ EXPECT (
      )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -358,7 +359,7 @@ EXPECT (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -374,7 +375,7 @@ EXPECT (
     )
 
   EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -390,7 +391,7 @@ EXPECT (
  TEST #5
 ----------------------------
    SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -408,7 +409,7 @@ EXPECT (
      )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -418,7 +419,7 @@ EXPECT (
       
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -434,7 +435,7 @@ EXPECT (
     )
 
   EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -467,7 +468,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
 -- STEP 6.	IF (Reliability is writable)...
 --RELIABILITY 1--------------------------------
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -485,7 +486,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
      )
 
   EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -493,7 +494,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
       Service = WriteProperty
      )
   OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -504,7 +505,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
    )
 
   SEND(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -519,7 +520,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -534,7 +535,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -549,7 +550,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -563,7 +564,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -581,7 +582,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -590,7 +591,7 @@ SEND (
      )
 
   OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -602,7 +603,7 @@ SEND (
 
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -617,7 +618,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -631,7 +632,7 @@ SEND (
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -646,7 +647,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -662,7 +663,7 @@ SEND (
 
 --RELIABILITY 2--------------------------------
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -680,7 +681,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -688,7 +689,7 @@ SEND (
       Service = WriteProperty
      )
   OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -700,7 +701,7 @@ SEND (
 
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -715,7 +716,7 @@ SEND (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -730,7 +731,7 @@ SEND (
     )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -745,7 +746,7 @@ SEND (
     )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -760,7 +761,7 @@ SEND (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -778,7 +779,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -786,7 +787,7 @@ SEND (
       Service = WriteProperty
      )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -797,7 +798,7 @@ OR(
    )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -812,7 +813,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -826,7 +827,7 @@ OR(
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -841,7 +842,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -858,7 +859,7 @@ OR(
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -876,7 +877,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -884,7 +885,7 @@ SEND (
       Service = WriteProperty
      )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -895,7 +896,7 @@ OR(
    )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -910,7 +911,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -925,7 +926,7 @@ OR(
     )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -940,7 +941,7 @@ OR(
     )
 
  EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -955,7 +956,7 @@ OR(
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -973,7 +974,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -981,7 +982,7 @@ SEND (
       Service = WriteProperty
      )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -993,7 +994,7 @@ OR(
 
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1008,7 +1009,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1022,7 +1023,7 @@ OR(
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1037,7 +1038,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1055,7 +1056,7 @@ OR(
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1073,7 +1074,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1081,7 +1082,7 @@ SEND (
       Service = WriteProperty
      )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1093,7 +1094,7 @@ OR(
 
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1108,7 +1109,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1123,7 +1124,7 @@ OR(
     )
 
      SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1138,7 +1139,7 @@ OR(
     )
 
 EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1153,7 +1154,7 @@ EXPECT (
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1171,7 +1172,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1179,7 +1180,7 @@ SEND (
       Service = WriteProperty
     )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1190,7 +1191,7 @@ OR(
    )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1205,7 +1206,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1219,7 +1220,7 @@ OR(
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1234,7 +1235,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1250,7 +1251,7 @@ OR(
 --RELIABILITY 5--------------------------------
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1268,7 +1269,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1277,7 +1278,7 @@ SEND (
      )
 
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1288,7 +1289,7 @@ OR(
    )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1303,7 +1304,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1318,7 +1319,7 @@ OR(
     )
  
  SEND (
-       NETWORK = "Untitled"
+       NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1333,7 +1334,7 @@ OR(
     )
  
  EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1348,7 +1349,7 @@ OR(
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1366,7 +1367,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1374,7 +1375,7 @@ SEND (
       Service = WriteProperty
      )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1385,7 +1386,7 @@ OR(
    )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1400,7 +1401,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1414,7 +1415,7 @@ OR(
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1429,7 +1430,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1445,7 +1446,7 @@ OR(
 --RELIABILITY 6--------------------------------
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1463,7 +1464,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1471,7 +1472,7 @@ SEND (
       Service = WriteProperty
     )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1482,7 +1483,7 @@ OR(
    )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1497,7 +1498,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1512,7 +1513,7 @@ OR(
     )
  
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1527,7 +1528,7 @@ OR(
     )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1542,7 +1543,7 @@ OR(
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1560,7 +1561,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1568,7 +1569,7 @@ SEND (
       Service = WriteProperty
      )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1580,7 +1581,7 @@ OR(
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1595,7 +1596,7 @@ SEND (
     )
 
 EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1609,7 +1610,7 @@ EXPECT (
     )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1624,7 +1625,7 @@ EXPECT (
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1642,7 +1643,7 @@ EXPECT (
 
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1660,7 +1661,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1668,7 +1669,7 @@ SEND (
       Service = WriteProperty
      )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1679,7 +1680,7 @@ OR(
    )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1694,7 +1695,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1709,7 +1710,7 @@ OR(
     )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1724,7 +1725,7 @@ OR(
     )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1739,7 +1740,7 @@ OR(
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1757,7 +1758,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1766,7 +1767,7 @@ SEND (
      )
 
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1777,7 +1778,7 @@ OR(
    )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1792,7 +1793,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1806,7 +1807,7 @@ OR(
     )
 
   SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1821,7 +1822,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1837,7 +1838,7 @@ OR(
 --RELIABILITY 8--------------------------------
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1855,7 +1856,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1863,7 +1864,7 @@ SEND (
       Service = WriteProperty
     )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1875,7 +1876,7 @@ OR(
 
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1890,7 +1891,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1905,7 +1906,7 @@ OR(
     )
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1920,7 +1921,7 @@ OR(
     )
 
    EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1935,7 +1936,7 @@ OR(
     )
 
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1953,7 +1954,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1961,7 +1962,7 @@ SEND (
       Service = WriteProperty
     )
 OR(
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -1973,7 +1974,7 @@ OR(
 
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -1988,7 +1989,7 @@ OR(
     )
 
   EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -2002,7 +2003,7 @@ OR(
     )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2017,7 +2018,7 @@ OR(
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -2034,7 +2035,7 @@ OR(
 
  
 SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2052,7 +2053,7 @@ SEND (
      )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 
@@ -2069,7 +2070,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
 -- STEP 7.	PUT Out_Of_Service BACK TO FALSE STATE
 
  SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = TRUE
       BVLCI = ORIGINAL-UNICAST-NPDU
@@ -2084,7 +2085,7 @@ Reference 12.1.10, 12.2.10, 12.3.9, 12.4.10, 12.5.10, 12.6.9, 12.14.10, and 12.1
     )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       DER = FALSE
       BVLCI = ORIGINAL-UNICAST-NPDU 

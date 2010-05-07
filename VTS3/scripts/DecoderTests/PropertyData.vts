@@ -12,15 +12,8 @@ SECTION WriteMultiples to show various property datatypes
 Test 1 write various properties of Point objects
 
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = WritePropertyMultiple
       Object = 0, ANALOG-VALUE, 1
       OpenTag 1
@@ -107,15 +100,8 @@ Send (
 Test 2 write various properties of Device object
 
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = WritePropertyMultiple
       Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
@@ -226,15 +212,8 @@ Send (
 SECTION WriteProperties to show various property datatypes
 Test 1 write various properties of Point objects
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = WriteProperty
       Object = 0, ANALOG-VALUE, 1
       Property = 1, Object-Name
@@ -245,15 +224,8 @@ Send (
 
 Test 2 write various properties of Point objects
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = WriteProperty
       Object = 0, ANALOG-VALUE, 1
       Property = 1, Present-Value
@@ -266,15 +238,8 @@ Send (
 SECTION ReadPropertyAcks to show various property datatypes
 Test 1 write various properties of Point objects
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = ReadProperty
       Object = 0, ANALOG-VALUE, 1
       Property = 1, Object-Name
@@ -285,15 +250,8 @@ Send (
 
 Test 2 write various properties of Point objects
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = ReadProperty
       Object = 0, ANALOG-VALUE, 1
       Property = 1, Present-Value
@@ -303,15 +261,8 @@ Send (
     )
 
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT
       Property = 1, PROTOCOL_SERVICES_SUPPORTED
@@ -321,15 +272,8 @@ Send (
 )
 
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT
         Property = 1, Status-Flags
@@ -338,15 +282,8 @@ Send (
         CloseTag 3
 )
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT
         Property = 1, Object-List
@@ -359,15 +296,8 @@ Send (
 )
 
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT
         Property = 1, MANUAL_SLAVE_ADDRESS_BINDING
@@ -378,16 +308,10 @@ Send (
            OctetString X'34'
         CloseTag 3
 )
+
 Send (
-      NETWORK = TD_PORT
       DA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
       PDU = ComplexAck
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2      
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT
         Property = 1, DEVICE_ADDRESS_BINDING

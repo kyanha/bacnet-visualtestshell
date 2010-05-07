@@ -28,8 +28,9 @@ SETUP Polarity Functionality
 ;IUT_MAC = 02
 ;MY_MAC  = 0x000000B0D0E911F6
 
- IUT_IP = 10.10.10.100
- TD_IP = 10.10.10.36
+ IUT_IP = "IUT_IP"
+TD_IP  = "TD_IP"
+TD_PORT = "bip"
  
 ;IUT_MAC = <address> ; MAC Address of the device you are testing.
 ;MY_MAC  = <address> ; MAC Address of your VTS test machine.
@@ -162,7 +163,7 @@ REFERENCE (B) 12.4.11
 -- Step #1: ReadProperty-Request
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -184,7 +185,7 @@ REFERENCE (B) 12.4.11
 -- Step #2 ReadProperty-ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -203,7 +204,7 @@ REFERENCE (B) 12.4.11
 -- Step #3: ReadProperty-Request
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -225,7 +226,7 @@ REFERENCE (B) 12.4.11
 -- Step #4 ReadProperty-ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -250,7 +251,7 @@ REFERENCE (B) 12.4.11
 --		VERIFY Polarity = REVERSE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -274,7 +275,7 @@ REFERENCE (B) 12.4.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -284,7 +285,7 @@ REFERENCE (B) 12.4.11
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -304,7 +305,7 @@ REFERENCE (B) 12.4.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -323,7 +324,7 @@ REFERENCE (B) 12.4.11
 --		VERIFY Polarity = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -347,7 +348,7 @@ REFERENCE (B) 12.4.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -357,7 +358,7 @@ REFERENCE (B) 12.4.11
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -377,7 +378,7 @@ REFERENCE (B) 12.4.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -398,7 +399,7 @@ REFERENCE (B) 12.4.11
 --	IF (the Present_Value in step 4 was ACTIVE) THEN
 --		VERIFY Present_Value = INACTIVE
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -418,7 +419,7 @@ REFERENCE (B) 12.4.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -436,7 +437,7 @@ REFERENCE (B) 12.4.11
 --		VERIFY Present_Value = ACTIVE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -456,7 +457,7 @@ REFERENCE (B) 12.4.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -505,7 +506,7 @@ REFERENCE (B) 12.5.11
 -- Step #1: ReadProperty-Request
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -527,7 +528,7 @@ REFERENCE (B) 12.5.11
 -- Step #2 ReadProperty-ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -546,7 +547,7 @@ REFERENCE (B) 12.5.11
 -- Step #3: ReadProperty-Request
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -568,7 +569,7 @@ REFERENCE (B) 12.5.11
 -- Step #4 ReadProperty-ACK
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -596,7 +597,7 @@ REFERENCE (B) 12.5.11
 --		VERIFY Polarity = REVERSE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -620,7 +621,7 @@ REFERENCE (B) 12.5.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -630,7 +631,7 @@ REFERENCE (B) 12.5.11
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -650,7 +651,7 @@ REFERENCE (B) 12.5.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -669,7 +670,7 @@ REFERENCE (B) 12.5.11
 --		VERIFY Polarity = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -693,7 +694,7 @@ REFERENCE (B) 12.5.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -703,7 +704,7 @@ REFERENCE (B) 12.5.11
       )
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -723,7 +724,7 @@ REFERENCE (B) 12.5.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -744,7 +745,7 @@ REFERENCE (B) 12.5.11
 --	IF (the Present_Value in step 4 was ACTIVE) THEN
 --		VERIFY Present_Value = INACTIVE
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -764,7 +765,7 @@ REFERENCE (B) 12.5.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE
@@ -782,7 +783,7 @@ REFERENCE (B) 12.5.11
 --		VERIFY Present_Value = ACTIVE
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ; Every SEND block within the script must contain 
       ; either DESTINATION or DA,DNET,DADR
       DA = IUT_IP
@@ -802,7 +803,7 @@ REFERENCE (B) 12.5.11
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       ;DA =BROADCAST 
       SA = IUT_IP
       DER = FALSE

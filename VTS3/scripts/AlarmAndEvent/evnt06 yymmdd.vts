@@ -30,7 +30,8 @@
 SETUP FloatingLimit
 
   ;--------------------------------------------------------------
-     IUT_IP = 208.6.162.35
+     IUT_IP = "IUT_IP"
+   TD_PORT = "bip"
   
   ;--------------------------------------------------------------
  ;
@@ -58,13 +59,15 @@ SETUP FloatingLimit
   ;IUT_IP = 0040ae000e65   -- MAC address of IUT
                            -- replace with your IUT address
                             
-  DEVICE_ID = DEVICE,700                -- Device object instance for IUT.
+  DEVICE_ID = DEVICE,47814                -- Device object instance for IUT.
+  TARGET_DEVICE_ID = DEVICE,1000                -- Device object instance for IUT.
 
+  Notify1 = Notification-Class,5 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object E1
   EVENT_ID2 = EVENT-ENROLLMENT, 2       -- the event generating object E2
-  MONITORED_ID = MULTISTATE-INPUT, 1    -- the monitored object, same as 
+  MONITORED_ID = MULTISTATE-VALUE, 1    -- the monitored object, same as 
                                         -- above if intrinsic
-  MONITORED_ID2 = MULTISTATE-INPUT, 2   -- a second monitored object.
+  MONITORED_ID2 = ANALOG-VALUE, 2   -- a second monitored object.
   ANALOG_ID = ANALOG_VARIABLE, 1        -- a third monitored object. 
   MULTIVAR_ID = MULTISTATE-VARIABLE, 1  --
 
@@ -112,7 +115,7 @@ SETUP FloatingLimit
   REFERENCE_VALUE_AND_INCREMENT = 11
   REFERENCE_VALUE_EXCEEDS_INCREMENT = 15
 
-  NOTIFICATION_CLASS = 5        -- the notification class used by the event
+  NOTIFICATION_CLASS1 = 5        -- the notification class used by the event
                                 -- generating object
 
   NORMAL_PRIORITY = 170         -- the priority at which normal transitions will
@@ -121,8 +124,8 @@ SETUP FloatingLimit
                                 -- be generated
   OFFNORMAL_PRIORITY = 90       -- the priority at which offnormal transitions
                                 -- will be generated
-
-  NOTIFY_TYPE = NOTIFY_TYPE_ALARM   -- the notify type of the event to be
+  PROCESS_ID1 = 10
+  NOTIFY_TYPE1 = NOTIFY_TYPE_ALARM   -- the notify type of the event to be
                                     -- generated
 
   OFFNORMAL_ACK_REQUIRED = TRUE
@@ -193,6 +196,122 @@ SETUP FloatingLimit
 
   SECTION 8.3.5 FloatingLimit Test
 
+  TEST #1 Set up the Notification Class 1
+  DEPENDENCIES References Notify 1 object
+  REFERENCE (B) Notify Recipient List
+    SEND (
+      NETWORK = TD_PORT 
+      DA = IUT_IP
+      DER = TRUE
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = Confirmed-Request
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 1476
+      InvokeID = 2
+      Service = WriteProperty
+      Object = 0, Notify1
+      Property = 1, Recipient_list
+      OpenTag 3
+            BitString = t, t, t, t, t, t , t     -- mtwtf !ss
+            TIME = [00:00:04]
+            Time = [23:59:58.57]
+            object = 0,TARGET_DEVICE_ID  
+            Unsigned = PROCESS_ID1               -- processIdentifier
+            Bool = True                         -- issueConfirmedNotificatons
+            BitString = t, f, t                 -- transitions BACnetEventTranswitionBits off, flt, normal
+
+--            BitString = t, f, f, f, f, f, f     -- mtwtf !ss
+--            TIME = [08:00:04]
+--            Time = [17:00:00]
+--            object = 0,WS_DEVICE
+--            Unsigned = 4                        -- processIdentifier
+--            Bool = True                         -- issueConfirmedNotificatons
+--            BitString = t, f, f                 -- transitions BACnetEventTranswitionBits off, flt, normal
+     CloseTag 3
+   )
+
+   EXPECT (
+      NETWORK = TD_PORT 
+      SA = IUT_IP
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = SimpleAck
+      Service = WriteProperty
+    )
+
+  TEST #2 Setup Event-Enrollment-1 for command-failure
+    SEND (
+      NETWORK = TD_PORT 
+      DA = IUT_IP
+      DER = TRUE
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = Confirmed-Request
+      SegMsg = 0
+      SegResp = 0
+      MaxResp = 1476
+      InvokeID = 41
+      Service = WritePropertyMultiple
+      Object = 0, EVENT_ID 
+      OpenTag 1
+        Property = 0, Object-Name
+        OpenTag 2
+            CharString = "change-of-state event"
+        CloseTag 2
+        Property = 0, Description
+        OpenTag 2
+            CharString = ANSI, "Event Change_Of_State  w/o Delay"
+        CloseTag 2
+        -- Property = 0,Event_Type      Generated from Event_Parameters
+        Property = 0, Notify_Type
+        OpenTag 2
+            Enum = 0        -- 0=alarm, 1=event, 2=ack-notify
+        CloseTag 2
+        Property = 0, Event_Parameters
+      OpenTag 2      
+      OpenTag 4
+            Unsigned = 0,1
+      OpenTag 1
+            Object   = 0, MONITORED_ID2
+            Property = 1, MONITORED_PROP 			
+      CloseTag 1
+      	    Real = 2, LOW_DIFF_LIMIT
+            Real = 3, HI_DIFF_LIMIT
+            Real = 4, LOW_FLOAT_VALUE_DEADBAND
+      CloseTag 4
+      CloseTag 2      
+        Property = 0, Object_Property_Reference
+        --- unsigned 1, arrayIndex
+        OpenTag 2
+             Object   = 0, MONITORED_ID 
+             Property = 1, MONITORED_PROP 
+             -- unsigned = 2, arrayIndex
+             -- Object = 3, Device, 570001
+        CloseTag 2
+        --- unsigned 3, 16      priority
+        -- Property = 0,Event_State
+        -- Property = 0, Acked_Transitions ; only writable internally
+        ;OpenTag 2
+        ;    BitString = T, F, T    -- To: off, fault, normal
+        ;CloseTag 2
+        Property = 0, Event_Enable
+        OpenTag 2
+            BitString = T, F, T
+        CloseTag 2
+        Property = 0, Notification_Class
+        OpenTag 2
+            Unsigned = Notification_Class1
+        CloseTag 2
+        -- Property = 0, Event_Time_Stamps
+       CloseTag 1
+    )
+
+   EXPECT (
+      NETWORK = TD_PORT 
+      SA = IUT_IP
+      BVLCI = ORIGINAL-UNICAST-NPDU
+      PDU = SimpleAck
+      Service = WritePropertyMultiple
+    )
   TEST #8.3.5
 
   DEPENDENCIES ReadProperty Service Execution Tests, 9.15;
@@ -229,7 +348,7 @@ SETUP FloatingLimit
   -- 1. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -244,7 +363,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -267,7 +386,7 @@ SETUP FloatingLimit
 --               (Setpoint_Reference + High_Diff_Limit))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -280,16 +399,16 @@ SETUP FloatingLimit
       Object = 0, MONITORED_ID
       Property = 1, MONITORED_PROP
       OpenTag 3
-        UNSIGNED = HI_FLOAT_VALUE_DEADBAND
+        Real = HI_FLOAT_VALUE_DEADBAND
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty
       )
 
@@ -298,7 +417,7 @@ SETUP FloatingLimit
   -- 4. CHECK (verify that no notification message is transmitted)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       )
@@ -306,7 +425,7 @@ SETUP FloatingLimit
   -- 5. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -321,7 +440,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -342,7 +461,7 @@ SETUP FloatingLimit
   --               (Setpoint_Reference + High_Diff_Limit))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -355,16 +474,16 @@ SETUP FloatingLimit
       Object = 0, MONITORED_ID
       Property = 1, MONITORED_PROP
       OpenTag 3
-        UNSIGNED = HI_DIFF_LIMIT
+        Real = HI_DIFF_LIMIT
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty
       )
 
@@ -391,7 +510,7 @@ SETUP FloatingLimit
   --                             error-limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
@@ -426,17 +545,17 @@ SETUP FloatingLimit
   -- 9. TRANSMIT BACnet-SimpleAck-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = ConfirmedEventNotification
       )
 
   -- 10. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -451,7 +570,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -467,7 +586,7 @@ SETUP FloatingLimit
   -- 11. VERIFY Event_State = HIGH_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -482,7 +601,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -508,7 +627,7 @@ SETUP FloatingLimit
   --               (Setpoint_Reference + High_Diff_Limit))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -526,11 +645,11 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty
       )
 
@@ -539,7 +658,7 @@ SETUP FloatingLimit
   -- 15. CHECK (verify that no notification message has been transmitted)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       )
@@ -547,7 +666,7 @@ SETUP FloatingLimit
   -- 16. VERIFY Event_State = HIGH_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -562,7 +681,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -585,7 +704,7 @@ SETUP FloatingLimit
 --               (Setpoint_Reference + High_Diff_Limit - Deadband))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -603,11 +722,11 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty
       )
 
@@ -634,7 +753,7 @@ SETUP FloatingLimit
   --                             error-limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
@@ -669,17 +788,17 @@ SETUP FloatingLimit
   -- 20. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = ConfirmedEventNotification
       )
 
   -- 21. VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -694,7 +813,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -710,7 +829,7 @@ SETUP FloatingLimit
   -- 22. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -725,7 +844,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -752,7 +871,7 @@ SETUP FloatingLimit
 --               (Setpoint_Reference - High_Diff_Limit + Deadband))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -770,11 +889,11 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty
       )
 
@@ -783,7 +902,7 @@ SETUP FloatingLimit
   -- 26. CHECK (verify that no notification message has been transmitted)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       )
@@ -791,7 +910,7 @@ SETUP FloatingLimit
   -- 27. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -806,7 +925,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -827,7 +946,7 @@ SETUP FloatingLimit
 --               (Setpoint_Reference - Low_Diff_Limit))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -845,11 +964,11 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty
       )
 
@@ -876,7 +995,7 @@ SETUP FloatingLimit
   --                             error-limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
@@ -911,17 +1030,17 @@ SETUP FloatingLimit
   -- 31. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = ConfirmedEventNotification
       )
 
   -- 32. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -936,7 +1055,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -952,7 +1071,7 @@ SETUP FloatingLimit
   -- 33. VERIFY Event_State = LOW_LIMIT
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -967,7 +1086,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -994,7 +1113,7 @@ SETUP FloatingLimit
 --               (Setpoint_Reference - Low_Limit + Deadband))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1012,11 +1131,11 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty
       )
 
@@ -1025,7 +1144,7 @@ SETUP FloatingLimit
   -- 37. CHECK (verify that no notification message has been transmitted)
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       )
@@ -1033,7 +1152,7 @@ SETUP FloatingLimit
   -- 38. VERIFY Event_State = Low_Limit
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1048,7 +1167,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -1071,7 +1190,7 @@ SETUP FloatingLimit
 --               (Setpoint_Reference + High_Limit - Deadband))
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1089,11 +1208,11 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = WriteProperty
       )
 
@@ -1120,7 +1239,7 @@ SETUP FloatingLimit
   --                             error-limit
 
     AND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
@@ -1155,17 +1274,17 @@ SETUP FloatingLimit
   -- 42. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       DER = FALSE
-      PDU = Simple-Ack
+      PDU = SimpleAck
       Service = ConfirmedEventNotification
       )
 
   -- 43. VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1180,7 +1299,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
@@ -1196,7 +1315,7 @@ SETUP FloatingLimit
   -- 44. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       DA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       SegMsg = 0
@@ -1211,7 +1330,7 @@ SETUP FloatingLimit
       )
 
     EXPECT (
-      NETWORK = "Untitled"
+      NETWORK = TD_PORT
       SA = IUT_IP
       bvlci =ORIGINAL-UNICAST-NPDU
       DER = FALSE
