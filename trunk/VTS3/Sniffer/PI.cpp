@@ -37,7 +37,9 @@ namespace NetworkSniffer {
 BACnetPIInfo::BACnetPIInfo( bool summary, bool detail )
 {
 	summaryLine[0] = 0;
+	detailLine = NULL;
 	detailCount = 0;
+	detailMax = 0;
 
 	SetPIMode( summary, detail );
 }
@@ -50,8 +52,9 @@ BACnetPIInfo::~BACnetPIInfo( void )
 {
 	// toss any detail lines allocated
 	for (int i = 0; i < detailCount; i++ )
-		if (detailLine[i])
-			delete detailLine[i];
+		delete detailLine[i];
+
+	delete[] detailLine;
 }
 
 //
@@ -94,8 +97,7 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 {
 	// flush the current contents (if any)
 	for (int i = 0; i < detailCount; i++ )
-		if (detailLine[i])
-			delete detailLine[i];
+		delete detailLine[i];
 
 	// reset the output
 	summaryLine[0] = 0;
@@ -119,14 +121,15 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 	// set the PI mode to match the settings for this
 	SetPIMode( doSummary, doDetail );
 
-	if(doDetail)//only create space for timestamp, do not print any information here
-	{
-		gCurrentInfo->detailCount=1;
-		gCurrentInfo->detailLine[0]=0;
-		NetworkSniffer::pif_show_space();
-	}
+//	if (doDetail)//only create space for timestamp, do not print any information here
+//	{
+//		gCurrentInfo->detailCount=1;
+//		gCurrentInfo->detailLine[0]=0;
+//		NetworkSniffer::pif_show_space();
+//	}
 	
-	try {
+	try 
+	{
 		// call one of the known interpreters
 		switch (proto) {
 			case ipProtocol:
@@ -257,9 +260,21 @@ char *get_int_line( struct pi_data *, int offset, int length, PID_NODE_TYPE node
 {
 	BACnetPIDetailPtr	dp;
 	
-	// make sure we don't try and grab too many
-	if (gCurrentInfo->detailCount >= MAX_INT_LINES)
-		throw (-1);
+	if (gCurrentInfo->detailCount >= gCurrentInfo->detailMax)
+	{
+		// Expand the array
+		gCurrentInfo->detailMax += 2000;
+		BACnetPIDetailPtr *pOld = gCurrentInfo->detailLine;
+		gCurrentInfo->detailLine = new BACnetPIDetailPtr[ gCurrentInfo->detailMax ];
+
+		// Copy any previous lines into the new array
+		for (int ix = 0; ix < gCurrentInfo->detailCount; ix++)
+		{
+			gCurrentInfo->detailLine[ix] = pOld[ix];
+		}
+
+		delete[] pOld;
+	}
 	
 	// allocate a new detail line buffer
 	gCurrentInfo->detailLine[gCurrentInfo->detailCount++] = dp = new BACnetPIDetail;
@@ -395,10 +410,7 @@ void pif_header( int len, char *header_string )
 
 char *pif_line( int len )
 {
-	char	*s
-	;
-	
-	s = get_int_line( pif_pi, pif_offset, len );
+	char *s = get_int_line( pif_pi, pif_offset, len );
 	
 	pif_offset += len;
 	return s;

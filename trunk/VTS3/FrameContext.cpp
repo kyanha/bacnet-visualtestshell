@@ -143,43 +143,19 @@ void CFrameContext::SetCurrentPacket( int packetNum )
 	m_CurrentPacket = packetNum;			// neccessary for GetCurrentPacket to work properly
 
 	VTSPacketPtr ppkt = GetCurrentPacket();
-
-//	if (packetNum != -1) {		MAD_DB
-	if ( ppkt != NULL )
+	if (ppkt != NULL)
 	{
-		// read it out of the database
-//MAD_DB m_pDoc->m_pDB->ReadPacket( packetNum, m_Packet );
-
 		// set globals so name lookups have somewhere to go
-//MAD_DB		NetworkSniffer::SetLookupContext( m_Packet.packetHdr.packetPortID, &this->m_pDoc->m_pDB->dbNameList );
 		NetworkSniffer::SetLookupContext( ppkt->packetHdr.m_szPortName );
 
-		// pick the interpreter based on the protocol id
-//MAD_DB m_PacketInfo.Interpret( (BACnetPIInfo::ProtocolType)m_Packet.packetHdr.packetProtocolID
-//		, (char *)m_Packet.packetData, m_Packet.packetLen
-//			);
-
-		//MAD_DB
 		m_PacketInfo.Interpret( (BACnetPIInfo::ProtocolType) ppkt->packetHdr.packetProtocolID, (char *) ppkt->packetData, ppkt->packetLen );
-
-/* Added timestamp string, madanner 5/03		
-		// add timestamp info in detail view
-		FILETIME	locFileTime;
-		SYSTEMTIME	st;
-		char		theTime[16];
-
-		::FileTimeToLocalFileTime( &m_Packet.packetHdr.packetTime, &locFileTime );
-		::FileTimeToSystemTime( &locFileTime, &st );
-
-		sprintf( theTime, "%02d:%02d:%02d.%03d "
-			, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
-*/
-
-		gCurrentInfo->detailLine[0] = new BACnetPIDetail;
-		gCurrentInfo->detailLine[0]->piOffset = 0;
-		gCurrentInfo->detailLine[0]->piLen = 0;
-		gCurrentInfo->detailLine[0]->piNodeType = NT_NORMAL;
-		sprintf(gCurrentInfo->detailLine[0]->piLine,"Timestamp : %s", ppkt->GetTimeStampString());
+		if ((gCurrentInfo->detailLine != NULL) && (gCurrentInfo->detailLine[0] != NULL))
+		{
+			gCurrentInfo->detailLine[0]->piOffset = 0;
+			gCurrentInfo->detailLine[0]->piLen = 0;
+			gCurrentInfo->detailLine[0]->piNodeType = NT_NORMAL;
+			sprintf(gCurrentInfo->detailLine[0]->piLine,"Timestamp : %s", ppkt->GetTimeStampString());
+		}
 	}
 
 	// tell the listeners that the packet changed, come and get the new contents
