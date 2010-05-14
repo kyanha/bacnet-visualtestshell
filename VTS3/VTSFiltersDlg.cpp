@@ -434,10 +434,10 @@ void VTSFiltersDlg::CtrlToFilter( VTSFilter * pfilter )
 
 		if ((s[0] == '0') && ((s[1] == 'x') || (s[1] == 'X'))) {
 			s += 2;
-			for (valu = 0; isxdigit(*s); s++)
-				valu = (valu << 4) + (isdigit(*s) ? (*s - '0') : (toupper(*s) - 'A' + 10));
+			for (valu = 0; IsXDigit(*s); s++)
+				valu = (valu << 4) + (IsDigit(*s) ? (*s - '0') : (ToUpper(*s) - 'A' + 10));
 		} else {
-			for (valu = 0; isdigit(*s); s++)
+			for (valu = 0; IsDigit(*s); s++)
 				valu = (valu *10) + (*s - '0');
 		}
 
@@ -459,16 +459,16 @@ void VTSFiltersDlg::CtrlToFilter( VTSFilter * pfilter )
 		// translate the text into octets
 		for (;;) {
 			// look for a hex digit
-			while ((c = toupper(*s++)) && !isxdigit(c))
+			while ((c = ToUpper(*s++)) && !IsXDigit(c))
 				;
 			if (!c) break;
-			upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+			upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 			// look for another hex digit
-			while ((c = toupper(*s++)) && !isxdigit(c))
+			while ((c = ToUpper(*s++)) && !IsXDigit(c))
 				;
 			if (!c) break;
-			lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+			lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 			// add the byte
 			if (pfilter->m_filteraddr.addrLen < kMaxAddressLen)

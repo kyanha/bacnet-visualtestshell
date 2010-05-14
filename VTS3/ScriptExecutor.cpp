@@ -4088,34 +4088,38 @@ void ScriptExecutor::SendALDouble( ScriptPacketExprPtr spep, CByteArray &packet 
 
 void ScriptExecutor::SendALOctetString( ScriptPacketExprPtr spep, CByteArray &packet )
 {
-	int					indx, context = kAppContext
-	;
-	BACnetOctetString	ostrData
-	;
-	BACnetAPDUEncoder	enc
-	;
-	ScriptTokenList		tlist
-	;
+	int					indx, context = kAppContext	;
+	BACnetOctetString	ostrData;
+	BACnetAPDUEncoder	enc;
+	ScriptTokenList		tlist;
 
 	// translate the expression, resolve parameter names into values
 	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
 
 	// tag is optional
-	if (tlist.Length() == 1) {
+	if (tlist.Length() == 1) 
+	{
 		indx = 0;
-	} else
-	if (tlist.Length() == 2) {
+	} 
+	else if (tlist.Length() == 2) 
+	{
 		if (!tlist[0].IsInteger( context ))
 			throw "Tag number expected";
 		indx = 1;
-	} else
+	} 
+	else 
+	{
 		throw "OctetString keyword requires 1 or 2 parameters";
+	}
 
-	// no references
 	if (tlist[indx].tokenType == scriptReference)
+	{
 		throw "Octet string property references not supported";
-	if (!tlist[indx].IsEncodeable( ostrData ))
+	}
+	else if (!tlist[indx].IsEncodeable( ostrData ))
+	{
 		throw "Octet string expected";
+	}
 
 	// encode it
 	ostrData.Encode( enc, context );
@@ -7415,15 +7419,19 @@ void ScriptExecutor::StuffScriptParameter(BACnetEncodeable &rbacnet, ScriptParmP
 {
 //	ASSERT(pp != NULL);
 
-	if ( pp == NULL)
+	if (pp == NULL)
 	{
 		CString str;
 		str.Format(IDS_SCREX_ASGN_UNDEFVAR, lpstrValue);
 		throw CString(str);
 	}
 
-	// assign extracted bool value to parm
-	rbacnet.Encode(pp->parmValue.GetBuffer(1024));
+	// assign extracted value to parm
+	// TODO: Dies miserably if the Encoded data is longer than 1024 characters.
+	// The correct solution is to change BACnetEncodeable::Encode(char*) to BACnetEncodeable::Encode(CString&)
+	// There are about 32 instances, most of which are sprintf that could easily use CString::Format
+//	rbacnet.Encode(pp->parmValue.GetBuffer(1024));
+	rbacnet.Encode(pp->parmValue.GetBuffer(16384));
 	pp->parmValue.ReleaseBuffer();
 
 	// Make the special call from the executor thread...  This posts the update, not sends.

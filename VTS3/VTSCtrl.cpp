@@ -393,20 +393,20 @@ void VTSAddrComboCtrl::CtrlToAddress( LPCTSTR s )
 	// translate the text into octets
 	for (;;) {
 		// look for a hex digit
-		while ((c = toupper(*s++)) && !isxdigit(c));
+		while ((c = ToUpper(*s++)) && !IsXDigit(c));
 
 		if (!c)
 			break;
 
-		upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		// look for another hex digit
-		while ((c = toupper(*s++)) && !isxdigit(c));
+		while ((c = ToUpper(*s++)) && !IsXDigit(c));
 
 		if (!c)
 			break;
 
-		lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		// add the byte
 		if (addrLen < sizeof(addrAddr))
@@ -647,16 +647,16 @@ void VTSEnetAddrCtrl::CtrlToObj( void )
 	// translate the text into octets
 	for (;;) {
 		// look for a hex digit
-		while ((c = toupper(*s++)) && !isxdigit(c))
+		while ((c = ToUpper(*s++)) && !IsXDigit(c))
 			;
 		if (!c) break;
-		upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		// look for another hex digit
-		while ((c = toupper(*s++)) && !isxdigit(c))
+		while ((c = ToUpper(*s++)) && !IsXDigit(c))
 			;
 		if (!c) break;
-		lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		// add the byte
 		if (addrLen < sizeof(addrAddr))
@@ -1350,16 +1350,16 @@ void VTSRemoteAddrCtrl::CtrlToObj( void )
 	// translate the text into octets
 	for (;;) {
 		// look for a hex digit
-		while ((c = toupper(*s++)) && !isxdigit(c))
+		while ((c = ToUpper(*s++)) && !IsXDigit(c))
 			;
 		if (!c) break;
-		upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		// look for another hex digit
-		while ((c = toupper(*s++)) && !isxdigit(c))
+		while ((c = ToUpper(*s++)) && !IsXDigit(c))
 			;
 		if (!c) break;
-		lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		// add the byte
 		if (addrLen < sizeof(addrAddr))

@@ -143,16 +143,16 @@ void CSendWriteFile::EncodePage( CByteArray* contents )
 			// translate the text into octets
 			for (;;) {
 				// look for a hex digit
-				while ((c = toupper(*txt++)) && !isxdigit(c))
+				while ((c = ToUpper(*txt++)) && !IsXDigit(c))
 					;
 				if (!c) break;
-				upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+				upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 				// look for another hex digit
-				while ((c = toupper(*txt++)) && !isxdigit(c))
+				while ((c = ToUpper(*txt++)) && !IsXDigit(c))
 					;
 				if (!c) break;
-				lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+				lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 				// add the byte
 				ostr.Append( (upperNibble << 4) + lowerNibble );

@@ -33,6 +33,22 @@
  */
 #pragma warning( disable : 4996 )
 
+// Replacements for character classification functions that can handle ISO-8859-1 character 
+// values, which appear as values -128 to -1, since char is signed.
+// Microsoft's debug versions of the "normal" versions assert on int values >255 or less than 0.
+// The release versions index into a table.  Either way, we need to deal with it by using
+// these replacement functions.
+// We find experimentally that sscanf, strtoul, atoi, atof and strtok are safe
+int IsSpace( int theChar );
+int IsDigit( int theChar );
+int IsXDigit( int theChar );
+int IsAlpha( int theChar );
+int IsAlnum( int theChar );
+int IsUpper( int theChar );
+int IsLower( int theChar );
+int ToUpper( int theChar );
+int ToLower( int theChar );
+
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 

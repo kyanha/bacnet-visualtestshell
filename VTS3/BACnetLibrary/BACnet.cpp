@@ -36,6 +36,70 @@ int cvt$convert_float( const void *, int, void *, int, int );
 }
 #endif
 
+// Replacements for character classification functions that can handle character values above 127
+// (Microsoft's debug versions assert on >255 or less than 0, which is a problem for
+// ISO 8859-1 since char is signed)
+int IsSpace( int theChar )
+{
+	return isspace( theChar & 0xFF );
+}
+
+int IsAlpha( int theChar )
+{
+	return (((theChar >= 'A') && (theChar <= 'Z')) ||
+		    ((theChar >= 'a') && (theChar <= 'z')));
+}
+
+int IsDigit( int theChar )
+{
+	return ((theChar >= '0') && (theChar <= '9'));
+}
+
+int IsXDigit( int theChar )
+{
+	return (((theChar >= 'A') && (theChar <= 'F')) ||
+		    ((theChar >= 'a') && (theChar <= 'f')) ||
+			((theChar >= '0') && (theChar <= '9')));
+}
+
+int IsAlnum( int theChar )
+{
+	return (((theChar >= 'A') && (theChar <= 'Z')) ||
+		    ((theChar >= 'a') && (theChar <= 'z')) ||
+			((theChar >= '0') && (theChar <= '9')));
+}
+
+int IsUpper( int theChar )
+{
+	return ((theChar >= 'A') && (theChar <= 'Z'));
+}
+
+int IsLower( int theChar )
+{
+	return ((theChar >= 'a') && (theChar <= 'z'));
+}
+
+int ToUpper( int theChar )
+{
+	if (IsLower(theChar))
+	{
+		theChar -= ('a' - 'A');
+	}
+
+	return theChar;
+}
+
+int ToLower( int theChar )
+{
+	if (IsUpper(theChar))
+	{
+		theChar += ('a' - 'A');
+	}
+
+	return theChar;
+}
+
+
 //madanner 9/04
 namespace PICS {
 #include "vtsapi.h"
@@ -59,7 +123,7 @@ int stricmp( const char *, const char * );
 int stricmp( const char *a, const char *b )
 {
 	while (*a && *b) {
-		int cmp = (tolower(*b++) - tolower(*a++));
+		int cmp = (ToLower(*b++) - ToLower(*a++));
 		if (cmp != 0)
 			return (cmp < 0 ? -1 : 1);
 	}
@@ -1181,10 +1245,10 @@ void BACnetEnumerated::Decode( const char *dec )
 
 void BACnetEnumerated::Decode( const char *dec, const char * const *table, int tsize )
 {
-	if (isdigit(*dec)) {										// explicit number
+	if (IsDigit(*dec)) {										// explicit number
 		// integer encoding
 		for (enumValue = 0; *dec; dec++)
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw_(12) /* invalid character */;
 			else
 				enumValue = (enumValue * 10) + (*dec - '0');
@@ -1432,10 +1496,10 @@ void BACnetUnsigned::Decode( const char *dec )
 	// figure out what encoding to use
 	//Moved by Yajun Zhou, 2002-8-16
 	//Moved to line 647
-	//	if (isdigit(*dec)) {										// nnn
+	//	if (IsDigit(*dec)) {										// nnn
 	//		// integer encoding
 	//		for (uintValue = 0; *dec; dec++)
-	//			if (!isdigit(*dec))
+	//			if (!IsDigit(*dec))
 	//				throw_(16) /* invalid character */;
 	//			else
 	//				uintValue = (uintValue * 10) + (*dec - '0');
@@ -1449,15 +1513,15 @@ void BACnetUnsigned::Decode( const char *dec )
 		if (((strlen(dec) - 1) % 3) != 0)			// must be triplet
 			throw_(17) /* must be triplet */;
 		for (uintValue = 0; *dec != '\''; ) {
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw_(18) /* invalid character */;
 			t = (*dec++ - '0');
 
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw_(19) /* invalid character */;
 			t = (t * 10) + (*dec++ - '0');
 
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw_(20) /* invalid character */;
 			t = (t * 10) + (*dec++ - '0');
 
@@ -1473,9 +1537,9 @@ void BACnetUnsigned::Decode( const char *dec )
 		// hex encoding
 		dec += 2;
 		for (uintValue = 0; *dec && (*dec != '\''); dec++) {
-			if (!isxdigit(*dec))
+			if (!IsXDigit(*dec))
 				throw_(21) /* invalid character */;
-			uintValue = (uintValue * 16) + (isdigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
+			uintValue = (uintValue * 16) + (IsDigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
 		}
 	} else
 	if ( ((dec[0] == '0') && (dec[1] == 'o'))
@@ -1510,10 +1574,10 @@ void BACnetUnsigned::Decode( const char *dec )
 		}
 	} else
 	//Moved by Yajun Zhou, 2002-8-16
-	if (isdigit(*dec)) {										// nnn
+	if (IsDigit(*dec)) {										// nnn
 		// integer encoding
 		for (uintValue = 0; *dec; dec++)
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw_(16) /* invalid character */;
 			else
 				uintValue = (uintValue * 10) + (*dec - '0');
@@ -1656,10 +1720,10 @@ void BACnetInteger::Decode( const char *dec )
 	// figure out what encoding to use
 	//Moved by Yajun Zhou, 2002-8-17
 	//Moved to line 834
-	//	if (isdigit(*dec)) {										// nnn
+	//	if (IsDigit(*dec)) {										// nnn
 	//		// integer encoding
 	//		for (intValue = 0; *dec; dec++)
-	//			if (!isdigit(*dec))
+	//			if (!IsDigit(*dec))
 	//				throw_(25) /* invalid character */;
 	//			else
 	//				intValue = (intValue * 10) + (*dec - '0');
@@ -1673,15 +1737,15 @@ void BACnetInteger::Decode( const char *dec )
 		if (((strlen(dec) - 1) % 3) != 0)			// must be triplet
 			throw_(26) /* must be triplet */;
 		for (intValue = 0; *dec != '\''; ) {
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw_(27) /* invalid character */;
 			t = (*dec++ - '0');
 
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw_(28) /* invalid character */;
 			t = (t * 10) + (*dec++ - '0');
 
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw_(29) /* invalid character */;
 			t = (t * 10) + (*dec++ - '0');
 
@@ -1697,9 +1761,9 @@ void BACnetInteger::Decode( const char *dec )
 		// hex encoding
 		dec += 2;
 		for (intValue = 0; *dec && (*dec != '\''); dec++) {
-			if (!isxdigit(*dec))
+			if (!IsXDigit(*dec))
 				throw_(30) /* invalid character */;
-			intValue = (intValue * 16) + (isdigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
+			intValue = (intValue * 16) + (IsDigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
 		}
 	} else
 	if ( ((dec[0] == '0') && (dec[1] == 'o'))					// 0o377, O'377', &O377
@@ -1734,10 +1798,10 @@ void BACnetInteger::Decode( const char *dec )
 		}
 	} else
 	//Moved by Yajun Zhou, 2002-8-17
-	if (isdigit(*dec)) {										// nnn
+	if (IsDigit(*dec)) {										// nnn
 		// integer encoding
 		for (intValue = 0; *dec; dec++)
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw_(25) /* invalid character */;
 			else
 				intValue = (intValue * 10) + (*dec - '0');
@@ -2151,7 +2215,7 @@ bool BACnetCharacterString::Equals( const char *valu )
 
 	// case insensitive, strBuff is not null-terminated
 	for (unsigned i = 0; i < strLen; i++)
-		if (strBuff == NULL || tolower(strBuff[i]) != tolower(valu[i]))
+		if (strBuff == NULL || ToLower(strBuff[i]) != ToLower(valu[i]))
 			return false;
 
 	// success
@@ -2293,7 +2357,7 @@ void BACnetCharacterString::Decode( const char *dec )
 		src = dec;
 		while (*src && (*src != c)) {
 			if (*src == '\\') {
-				if (tolower(*(src+1)) == 'x')
+				if (ToLower(*(src+1)) == 'x')
 					src += 4;
 				else
 					src += 2;
@@ -2312,11 +2376,11 @@ void BACnetCharacterString::Decode( const char *dec )
 		dst = (char *)strBuff;
 		while (*src && (*src != c) && dst != NULL)
 			if (*src == '\\') {
-				if (tolower(*(src+1)) == 'x') {
+				if (ToLower(*(src+1)) == 'x') {
 					src += 2;
-					*dst = (isdigit(*src) ? *src - '0' : (toupper(*src) - 'A') + 10) << 4;
+					*dst = (IsDigit(*src) ? *src - '0' : (ToUpper(*src) - 'A') + 10) << 4;
 					src += 1;
-					*dst++ += (isdigit(*src) ? *src - '0' : (toupper(*src) - 'A') + 10);
+					*dst++ += (IsDigit(*src) ? *src - '0' : (ToUpper(*src) - 'A') + 10);
 					src += 1;
 				} else {
 					src += 1;
@@ -2831,15 +2895,15 @@ void BACnetOctetString::Decode( const char *dec )
 		dec += 2;
 
 	while (*dec && (*dec != '\'')) {
-		c = toupper( *dec++ );
-		if (!isxdigit(c))
+		c = ToUpper( *dec++ );
+		if (!IsXDigit(c))
 			throw_(46) /* invalid character */;
-		upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
-		c = toupper( *dec++ );
-		if (!isxdigit(c))
+		c = ToUpper( *dec++ );
+		if (!IsXDigit(c))
 			throw_(47) /* invalid character */;
-		lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		// stick this on the end
 		Append( (upperNibble << 4) + lowerNibble );
@@ -3716,7 +3780,7 @@ void BACnetDate::Decode( const char *dec )
 	dayOfWeek = month = day = year = DATE_DONT_CARE;
 
 	// skip blank on front
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// script calls will have the square brackets as well
 	if ( *dec == '[' ) dec++;
@@ -3748,7 +3812,7 @@ void BACnetDate::Decode( const char *dec )
 	{
 		dec += 1;
 	}
-	else if (isalpha(*dec)) 
+	else if (IsAlpha(*dec)) 
 	{
 		// They've provided a day...  read it and test for validity
 		for (int i = 1; (i < NetworkSniffer::BAC_STRTAB_day_of_week.m_nStrings); i++)
@@ -3765,10 +3829,10 @@ void BACnetDate::Decode( const char *dec )
 	}
 	
 	// skip over comma and more space
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	if (*dec == ',') {
 		dec += 1;
-		while (*dec && isspace(*dec)) dec++;
+		while (*dec && IsSpace(*dec)) dec++;
 	}
 
 	// check for month
@@ -3783,10 +3847,10 @@ void BACnetDate::Decode( const char *dec )
 	}
 	else 
 	{
-		if (isdigit(*dec))
+		if (IsDigit(*dec))
 		{
 			// Numeric month
-			for (month = 0; isdigit(*dec); dec++)
+			for (month = 0; IsDigit(*dec); dec++)
 				month = (month * 10) + (*dec - '0');
 		}
 		else
@@ -3808,11 +3872,11 @@ void BACnetDate::Decode( const char *dec )
 	
 	// skip over slash and more space
 	// make sure slash is there... or (-)
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	if (*dec == '/' || *dec == '-') 
 	{
 		dec += 1;
-		while (*dec && isspace(*dec)) dec++;
+		while (*dec && IsSpace(*dec)) dec++;
 	}
 	else
 	{
@@ -3831,10 +3895,10 @@ void BACnetDate::Decode( const char *dec )
 	}
 	else 
 	{
-		if (isdigit(*dec))
+		if (IsDigit(*dec))
 		{
 			// Numeric month
-			for (day = 0; isdigit(*dec); dec++)
+			for (day = 0; IsDigit(*dec); dec++)
 				day = (day * 10) + (*dec - '0');
 		}
 		else
@@ -3861,11 +3925,11 @@ void BACnetDate::Decode( const char *dec )
 	}
 	
 	// skip over slash and more space
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	if (*dec == '/' || *dec == '-') 
 	{
 		dec += 1;
-		while (*dec && isspace(*dec)) dec++;
+		while (*dec && IsSpace(*dec)) dec++;
 	}
 	else
 	{
@@ -3887,8 +3951,8 @@ void BACnetDate::Decode( const char *dec )
 		int	yr = -1;			// start with no supplied year
 
 		// if they've supplied any number we'll go through this once at least...
-		if ( isdigit(*dec) )
-			for (yr = 0; isdigit(*dec); dec++)
+		if ( IsDigit(*dec) )
+			for (yr = 0; IsDigit(*dec); dec++)
 				yr = (yr * 10) + (*dec - '0');
 
 		// 0..40 -> 2000..2040, 41.. -> 1941..
@@ -3907,7 +3971,7 @@ void BACnetDate::Decode( const char *dec )
 	}
 
 	// clear white space and look for close bracket
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	if ( *dec++ != ')' )
 		throw_(111);									// missing close bracket code
 
@@ -3929,7 +3993,7 @@ void BACnetDate::Decode( const char *dec )
 	dayOfWeek = month = day = year = DATE_DONT_CARE;
 
 	// skip blank on front
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// Date is complex data type so must enclose in brackets
 	if ( *dec++ != '[' )
@@ -3943,11 +4007,11 @@ void BACnetDate::Decode( const char *dec )
 	}
 	else if ( *dec == '?' )
 		dec += 1;
-	else if (isalpha(*dec)) {
+	else if (IsAlpha(*dec)) {
 		// They've provided a 3 char day...  read it and test for validity
 
-		for (int j = 0; (j < 3) && isalpha(*dec); j++)
-			dowBuff[j] = toupper(*dec++);
+		for (int j = 0; (j < 3) && IsAlpha(*dec); j++)
+			dowBuff[j] = ToUpper(*dec++);
 		dowBuff[3] = 0;
 
 		for (int i = 1; i < 8 && dayOfWeek == DATE_DONT_CARE; i++)
@@ -3958,14 +4022,14 @@ void BACnetDate::Decode( const char *dec )
 		if ( dayOfWeek == DATE_DONT_CARE )
 			throw_(91);									// code for bad supplied day (interpreted in caller's context)
 
-		while (*dec!=',' && !isspace(*dec)) dec++;    //Modified by Liangping Xu
+		while (*dec!=',' && !IsSpace(*dec)) dec++;    //Modified by Liangping Xu
 	}
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// skip over comma and more space
 	if (*dec == ',') {
 		dec += 1;
-		while (*dec && isspace(*dec)) dec++;
+		while (*dec && IsSpace(*dec)) dec++;
 	}
 
 	// check for month
@@ -3977,20 +4041,20 @@ void BACnetDate::Decode( const char *dec )
 	else if ( *dec == '?' )
 		dec += 1;
 	else {
-		for (month = 0; isdigit(*dec); dec++)
+		for (month = 0; IsDigit(*dec); dec++)
 			month = (month * 10) + (*dec - '0');
 
 		// they've supplied a month (I think)
 		if ( month < 1 || month > 12)
 			throw_(92);								// code for bad month, , interpreted in caller's context
 	}
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	
 	// skip over slash and more space
 	// make sure slash is there... or (-)
 	if (*dec == '/' || *dec == '-') {
 		dec += 1;
-		while (*dec && isspace(*dec)) dec++;
+		while (*dec && IsSpace(*dec)) dec++;
 	}
 	else
 		throw_(93);									// code for bad date separator, interpreted in caller's context
@@ -4004,19 +4068,19 @@ void BACnetDate::Decode( const char *dec )
 	else if ( *dec == '?' )
 		dec += 1;
 	else {
-		for (day = 0; isdigit(*dec); dec++)
+		for (day = 0; IsDigit(*dec); dec++)
 			day = (day * 10) + (*dec - '0');
 
 		// they've supplied a day (I think)
 		if ( day < 1 || day > 31)					// doesn't account for month/day invalids (feb 30)
 			throw_(94);								// code for bad day, interpreted in caller's context
 	}
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	
 	// skip over slash and more space
 	if (*dec == '/' || *dec == '-') {
 		dec += 1;
-		while (*dec && isspace(*dec)) dec++;
+		while (*dec && IsSpace(*dec)) dec++;
 	}
 	else
 		throw_(93);									// code for bad date separator, interpreted in caller's context
@@ -4033,8 +4097,8 @@ void BACnetDate::Decode( const char *dec )
 		int	yr = -1;			// start with no supplied year
 
 		// if they've supplied any number we'll go through this once at least...
-		if ( isdigit(*dec) )
-			for (yr = 0; isdigit(*dec); dec++)
+		if ( IsDigit(*dec) )
+			for (yr = 0; IsDigit(*dec); dec++)
 				yr = (yr * 10) + (*dec - '0');
 
 		// 0..40 -> 2000..2040, 41.. -> 1941..
@@ -4053,7 +4117,7 @@ void BACnetDate::Decode( const char *dec )
 	}
 
 	// clear white space and look for close bracket
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	if ( *dec++ != ']' )
 		throw_(111);									// missing close bracket code
 
@@ -4522,7 +4586,7 @@ void BACnetTime::Decode( const char *dec )
 	hour = minute = second = hundredths = DATE_DONT_CARE;
 
 	// skip blank on front
-	while (*dec && isspace(*dec)) dec++;   //add by xlp
+	while (*dec && IsSpace(*dec)) dec++;   //add by xlp
 
 	// Time is complex data type so must enclose in brackets
 	if ( *dec == '[' ) dec++;
@@ -4539,8 +4603,8 @@ void BACnetTime::Decode( const char *dec )
 		// dont' care not specified, they MUST specify hours...
 		hour = -1;
 		
-		if ( isdigit(*dec) )
-			for (hour = 0; isdigit(*dec); dec++)
+		if ( IsDigit(*dec) )
+			for (hour = 0; IsDigit(*dec); dec++)
 				hour = (hour * 10) + (*dec - '0');
 
 		// test validity and report
@@ -4548,7 +4612,7 @@ void BACnetTime::Decode( const char *dec )
 			throw_(101);									// invalid hour specification, interpreted by caller's context
 	}
 	// add by xlp
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	if (*dec == ':')
 		dec += 1;
@@ -4556,7 +4620,7 @@ void BACnetTime::Decode( const char *dec )
 		throw_(102);										// bad time separator, (used to be 55 invalid character)
 
 	// add by xlp
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// check for minute
 	if ( *dec == '*' ) 
@@ -4570,8 +4634,8 @@ void BACnetTime::Decode( const char *dec )
 		// MUST now supply minute value
 		minute = -1;
 		
-		if ( isdigit(*dec) )
-			for (minute = 0; isdigit(*dec); dec++)
+		if ( IsDigit(*dec) )
+			for (minute = 0; IsDigit(*dec); dec++)
 				minute = (minute * 10) + (*dec - '0');
 
 		// test validity and report
@@ -4579,7 +4643,7 @@ void BACnetTime::Decode( const char *dec )
 			throw_(103);									// invalid minute specification, interpreted by caller's context
 	}
 	// add by xlp
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	if (*dec == ':')
 		dec += 1;
@@ -4587,7 +4651,7 @@ void BACnetTime::Decode( const char *dec )
 		throw_(102);										// bad time separator, (used to be 56 invalid character)
 
 	// add by xlp
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// check for second
 	if ( *dec == '*' )
@@ -4601,8 +4665,8 @@ void BACnetTime::Decode( const char *dec )
 		// MUST now supply the second value
 		second = -1;
 		
-		if ( isdigit(*dec) )
-			for (second = 0; isdigit(*dec); dec++)
+		if ( IsDigit(*dec) )
+			for (second = 0; IsDigit(*dec); dec++)
 				second = (second * 10) + (*dec - '0');
 
 		// test validity and report
@@ -4610,7 +4674,7 @@ void BACnetTime::Decode( const char *dec )
 			throw_(104);									// invalid second specification, interpreted by caller's context
 	}
 	// add by xlp
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// hundredths specification is optional...
 	if (*dec == '.')
@@ -4618,7 +4682,7 @@ void BACnetTime::Decode( const char *dec )
 		dec += 1;
 
 		// so we're now scanning for a valid hundredth number
-		while (*dec && isspace(*dec)) dec++;
+		while (*dec && IsSpace(*dec)) dec++;
 
 		if ( *dec == '*' )
 		{
@@ -4631,8 +4695,8 @@ void BACnetTime::Decode( const char *dec )
 			// MUST now supply the hundredth value
 			hundredths = -1;
 		
-			if ( isdigit(*dec) )
-				for (hundredths = 0; isdigit(*dec); dec++)
+			if ( IsDigit(*dec) )
+				for (hundredths = 0; IsDigit(*dec); dec++)
 					hundredths = (hundredths * 10) + (*dec - '0');
 
 			// test validity and report
@@ -4642,7 +4706,7 @@ void BACnetTime::Decode( const char *dec )
 	}
 
 	// clear white space and look for close bracket
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	if ( *dec == ']' ) dec++;
 	//		throw_(111);									// missing close bracket code
 }
@@ -4943,7 +5007,7 @@ void BACnetDateTime::Encode( char *enc ) const
 void BACnetDateTime::Decode( const char *dec )
 {
 	// skip blank on front
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// Whole thing  is complex data type so must enclose in brackets
 	if ( *dec++ != '{' )	// LJT changed from [ to {
@@ -4952,7 +5016,7 @@ void BACnetDateTime::Decode( const char *dec )
 	bacnetDate.Decode(dec);
 
 	// skip blank on front
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// skip over comma and more space
 	if (*dec++ != ',')
@@ -4961,7 +5025,7 @@ void BACnetDateTime::Decode( const char *dec )
 	bacnetTime.Decode(dec);
 
 	// clear white space and look for close bracket
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	if ( *dec++ != '}' )	// LJT changed from ] to }
 		throw_(111);									// missing close bracket code
 }
@@ -5134,7 +5198,7 @@ void BACnetDateRange::Encode( char *enc ) const
 void BACnetDateRange::Decode( const char *dec )
 {
 	// skip blank on front
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// Whole thing  is complex data type so must enclose in brackets
 	if ( *dec++ != '{' )	// LJT changed from [ to {
@@ -5143,7 +5207,7 @@ void BACnetDateRange::Decode( const char *dec )
 	bacnetDateStart.Decode(dec);
 
 	// skip blank on front
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 
 	// skip over comma and more space
 	if (*dec++ != ',')
@@ -5152,7 +5216,7 @@ void BACnetDateRange::Decode( const char *dec )
 	bacnetDateEnd.Decode(dec);
 
 	// clear white space and look for close bracket
-	while (*dec && isspace(*dec)) dec++;
+	while (*dec && IsSpace(*dec)) dec++;
 	if ( *dec++ != '}' )	// LJT changed from ] to }
 		throw_(111);									// missing close bracket code
 }

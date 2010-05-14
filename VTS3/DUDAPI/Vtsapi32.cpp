@@ -4791,7 +4791,7 @@ propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId
 		// if the index is omitted
 		++lp;
 		skipwhitespace();
-		int hasIndex = isdigit( *lp );
+		int hasIndex = IsDigit( *lp );
 		if (hasIndex)
 		{
 			*index = ReadW();
@@ -4997,7 +4997,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 				q->u.weekNday.month=dontcare;
 				q->u.weekNday.day=dontcare;
 				q->u.weekNday.week=dontcare;
-				if (isdigit(*lp))				//use numeric form of month
+				if (IsDigit(*lp))				//use numeric form of month
 				    q->u.weekNday.month=ReadB(1,12);
 				else							//use monthname
 			    {	for (i=0;i<14;i++)
@@ -5013,7 +5013,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 				}
 				else
 					q->u.weekNday.week=ReadB(1,6);
-				if (isdigit(*lp))				//use numeric form of dayofweek		***013 Begin
+				if (IsDigit(*lp))				//use numeric form of dayofweek		***013 Begin
 					q->u.weekNday.day=ReadB(1,7);
 				else
 			    {	for(i=0;i<7;i++)
@@ -5887,7 +5887,7 @@ int getDayOfWeek(char* tok)  // returns 0 if not day of week, -1 if any
 	int i = 0;
 	lp = tok;
 	skipwhitespace();
-	if ( tok[0] != '*' && isalpha(tok[0]) )
+	if ( tok[0] != '*' && IsAlpha(tok[0]) )
 	{
 	   for(i=0;i<7;i++)
 	   {
@@ -7079,7 +7079,7 @@ BACnetRecipient *ParseRecipient(BACnetRecipient *inq)
 	q->next=NULL;
 
 	//here we have (device,instance) or network,macaddr ...
-	if (isdigit(*lp))						//must be network,macaddress
+	if (IsDigit(*lp))						//must be network,macaddress
 	{	
 		q->choice=1;						//address
         q->u.address.network_number=ReadW();
@@ -7301,7 +7301,7 @@ dword ReadDW()
 	char	c;
 
 	skipwhitespace();
-	while( isdigit( c = *(lp++) ) )  
+	while( IsDigit( c = *(lp++) ) )  
 	{
 		d = (d*10L)+(c-'0');	
 	}
@@ -7350,7 +7350,7 @@ octet ReadB(octet lb,octet ub)
 
 	print_debug("RB: Enter ReadB lp = '%s'\n",lp);
 	skipwhitespace();
-	while (isdigit(c=*lp++))
+	while (IsDigit(c=*lp++))
 		d=(d*10)+(c-'0');
 	if (c=='?') 
 	{	c=*lp++;								//pretend ? is a valid digit
@@ -7411,7 +7411,7 @@ word ReadEnum(etable *etp)
 	while (c=*lp)								//until the end of the buffer
 	{	lp++;									//advance scan
 		if (c=='_'||c==space) c='-';			//convert underscore or space to dash	***006
-		if (c=='?'||c=='-'||isalnum(c))			//if its a valid part of an enumeration name
+		if (c=='?'||c=='-'||IsAlnum(c))			//if its a valid part of an enumeration name
 		{	if (i<32) e[i++]=c;}				//save this character
 		else									//found the delimiter
 			break;
@@ -7725,17 +7725,17 @@ void preprocstr(char *str)
 //		dst		points to octet to receive the value
 //out:	ptr to 1st non-hex char, or 2 past src
 char *cvhex(char *src,octet *dst)
-{	if (!isxdigit(*src))
+{	if (!IsXDigit(*src))
 	{	*dst=0;									//assume none
 		return src;
 	}
-	if (isdigit(*src))
+	if (IsDigit(*src))
 		*dst=*src-'0';
 	else
 		*dst=(*src&0xDF)-55;
 	src++;
-	if (!isxdigit(*src)) return src;
-	if (isdigit(*src))
+	if (!IsXDigit(*src)) return src;
+	if (IsDigit(*src))
 		*dst=(*dst<<4)+(*src-'0');
 	else
 		*dst=(*dst<<4)+((*src&0xDF)-55);

@@ -287,15 +287,15 @@ void ScriptWaitCommand::StringToValue( const char *dec )
 		if (((strlen(dec) - 1) % 3) != 0)			// must be triplet
 			throw "The string for wait time value must be triplet.";
 		for (m_nwaittime = 0; *dec != '\''; ) {
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw "There's a invalid character for wait time value parm.";
 			t = (*dec++ - '0');
 
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw "There's a invalid character for wait time value parm.";
 			t = (t * 10) + (*dec++ - '0');
 
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw "There's a invalid character for wait time value parm.";
 			t = (t * 10) + (*dec++ - '0');
 
@@ -311,9 +311,9 @@ void ScriptWaitCommand::StringToValue( const char *dec )
 		// hex encoding
 		dec += 2;
 		for (m_nwaittime = 0; *dec && (*dec != '\''); dec++) {
-			if (!isxdigit(*dec))
+			if (!IsXDigit(*dec))
 				throw "There's a invalid character for wait time value parm.";
-			m_nwaittime = (m_nwaittime * 16) + (isdigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
+			m_nwaittime = (m_nwaittime * 16) + (IsDigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
 		}
 	} else
 	if ( ((dec[0] == '0') && (dec[1] == 'o'))					// 0o377, O'377', &O377
@@ -345,10 +345,10 @@ void ScriptWaitCommand::StringToValue( const char *dec )
 			m_nwaittime = (m_nwaittime * 2) + (*dec - '0');
 		}
 	} else
-	if (isdigit(*dec)) {										// nnn
+	if (IsDigit(*dec)) {										// nnn
 		// integer encoding
 		for (m_nwaittime = 0; *dec; dec++)
-			if (!isdigit(*dec))
+			if (!IsDigit(*dec))
 				throw "There's a invalid character for wait time value parm.";
 			else
 				m_nwaittime = (m_nwaittime * 10) + (*dec - '0');

@@ -58,7 +58,6 @@ ScriptDocument::ScriptDocument()
 	, m_pSelectedSection(0) // Added by Zhu Zhenhua, 2003-12-18, to run select section
 	, m_bExecBound(false)
 {
-	// TODO: add one-time construction code here
 }
 
 //
@@ -418,15 +417,15 @@ BOOL ScriptDocument::CheckSyntax( void )
 
 
 				case kwINCLUDE:
-
+					{
 					// make sure we allow the slash '\'...
+					bool saveEscape = tok.m_fIgnoreEscape;
 					tok.m_fIgnoreEscape = true;
 					scannerStack[scannerStack.GetSize()-1]->Next( tok );
 
 					if ( tok.tokenType != scriptValue || tok.tokenEnc != scriptASCIIEnc )
 						throw "INCLUDE statement requires \"include_filename.vts\" following keyword";
 
-					{
 					CString strFile = tok.RemoveQuotes();
 					TRACE1( "RELATIVE INCLUDE [%s]\n", (LPCSTR) strFile );
 
@@ -448,8 +447,8 @@ BOOL ScriptDocument::CheckSyntax( void )
 					// throws if error
 					scannerStack.Add(new ScriptScanner(pfileInclude));
 
-					//put ignore escape condition back (because I'm not sure what's coming next)
-					tok.m_fIgnoreEscape = false;
+					// restore ignore escape condition (because I'm not sure what's coming next)
+					tok.m_fIgnoreEscape = saveEscape;
 					}
 					break;
 
@@ -782,7 +781,7 @@ BOOL ScriptDocument::CheckSyntax( void )
 					;
 
 					for (src = tok.tokenValue; *src; src++)
-						if (!isalnum(*src) && (*src != '.')) {
+						if (!IsAlnum(*src) && (*src != '.')) {
 							delete newCase;
 							throw "Invalid character in case label";
 						}

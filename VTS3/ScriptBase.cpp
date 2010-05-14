@@ -251,10 +251,10 @@ bool ScriptToken::IsInteger( int &valu, ScriptParmListPtr parms ) const
 
       src++;
 
-      if (!isdigit(*src))
+      if (!IsDigit(*src))
         return false;
 
-      for (valu = 0; isdigit(*src), *src != '}'; *src++)
+      for (valu = 0; IsDigit(*src), *src != '}'; *src++)
         {
           valu = (valu * 10) + (*src - '0');
         }
@@ -291,7 +291,7 @@ bool ScriptToken::IsInteger( int &valu, ScriptParmListPtr parms ) const
 		case scriptHexEnc:								// 0xFF, X'FF', &xFF
 			src += 2;
 			for (valu = 0; *src && (*src != '\''); src++)
-				valu = (valu * 16) + (isdigit(*src) ? (*src - '0') : (*src - 'A' + 10));
+				valu = (valu * 16) + (IsDigit(*src) ? (*src - '0') : (*src - 'A' + 10));
 			break;
 
 		case scriptOctalEnc:							// 0o377, O'377', &O377
@@ -652,9 +652,11 @@ void ScriptScanner::FormatError( ScriptToken &tok, char *msg )
 
 CString ScriptScanner::GetPathName(void)
 {
+	// First level include: the document
 	if ( m_pdocSource != NULL )
 		return m_pdocSource->GetPathName();
 
+	// Nested include: the current include file
 	if ( m_fileSource != NULL )
 		return m_fileSource->GetFilePath();
 
@@ -751,7 +753,7 @@ void ScriptScanner::Next( ScriptToken& tok )
 		// look for a word
 		while (*scanSrc) {
 			// copy the word
-			while (*scanSrc && (!isspace(*scanSrc)))
+			while (*scanSrc && (!IsSpace(*scanSrc)))
 				*dst++ = *scanSrc++;
 
 			Deblank();
@@ -776,7 +778,7 @@ void ScriptScanner::Next( ScriptToken& tok )
 	tok.tokenType = scriptError;
 
 	// copy at least the first char
-	*dst++ = c = toupper(*scanSrc++);
+	*dst++ = c = ToUpper(*scanSrc++);
 	*dst = 0;
 
 	// special chars are the next easiest
@@ -841,18 +843,18 @@ void ScriptScanner::Next( ScriptToken& tok )
 			// Added by Yajun Zhou, 2002-9-4
 			if(*scanSrc == '&')
 			{
-				*dst++ = c = toupper(*scanSrc++);
+				*dst++ = c = ToUpper(*scanSrc++);
 				*dst = 0;
 				goto FORMAT1;
 			}
-			if(*scanSrc == '0' && !isdigit(*(scanSrc+1)))
+			if(*scanSrc == '0' && !IsDigit(*(scanSrc+1)))
 			{
-				*dst++ = c = toupper(*scanSrc++);
+				*dst++ = c = ToUpper(*scanSrc++);
 				*dst = 0;
 				break;
 			}
 			//////////////////////////////////////
-			if (!isdigit(*scanSrc))
+			if (!IsDigit(*scanSrc))
 				FormatError( tok, "Invalid character in numeric constant" );
 			break;
 
@@ -861,7 +863,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 				tok.tokenType = scriptValue;
 				tok.tokenEnc = scriptDecimalEnc;
 				*dst++ = *scanSrc++;
-				while (isdigit(*scanSrc))
+				while (IsDigit(*scanSrc))
 					*dst++ = *scanSrc++;
 			} else
 			//Modified by Yajun Zhou, 2002-8-16
@@ -871,7 +873,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 				tok.tokenType = scriptValue;
 				tok.tokenEnc = scriptHexEnc;
 				*dst++ = *scanSrc++;
-				while (isxdigit(*scanSrc))
+				while (IsXDigit(*scanSrc))
 					*dst++ = *scanSrc++;
 			} else
 			if (*scanSrc == 'B') {
@@ -889,7 +891,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 					*dst++ = *scanSrc++;
 			} else
 				;
-			if (isalnum(*scanSrc))
+			if (IsAlnum(*scanSrc))
 				FormatError( tok, "Invalid character in constant" );
 			*dst = 0;
 			break;
@@ -963,10 +965,10 @@ FORMAT1:	if (*scanSrc == 'D') {
 			char* pTempBuff;
 			pTemp = scanSrc;
 			pTempBuff = dst;
-			while (isalpha(*scanSrc) || isdigit(*scanSrc) || (*scanSrc == '-') || (*scanSrc == '_')) {
+			while (IsAlpha(*scanSrc) || IsDigit(*scanSrc) || (*scanSrc == '-') || (*scanSrc == '_')) {
 				if ((*scanSrc == '-') && (*(scanSrc+1) == '-'))
 					break;
-				c = toupper(*scanSrc++);
+				c = ToUpper(*scanSrc++);
 				*dst++ = (c == '_' ? '-' : c);
 			}
 			if (!scanValueBuffer[1])
@@ -1017,14 +1019,14 @@ FORMAT1:	if (*scanSrc == 'D') {
 		tok.tokenEnc = scriptHexEnc;
 		*dst++ = 'x';
 		scanSrc += 1;
-		while (isxdigit(*scanSrc))
-			*dst++ = toupper(*scanSrc++);
+		while (IsXDigit(*scanSrc))
+			*dst++ = ToUpper(*scanSrc++);
 		*dst = 0;
 
 		tok.tokenLength = (scanSrc - tStart);
 		if (scanValueBuffer[2] == 0)
 			FormatError( tok, "Hex digit expected" );
-		if (isalnum(*scanSrc))
+		if (IsAlnum(*scanSrc))
 			FormatError( tok, "Invalid character in hex constant" );
 
 		tok.tokenValue = scanValueBuffer;
@@ -1048,7 +1050,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 		tok.tokenLength = (scanSrc - tStart);
 		if (scanValueBuffer[2] == 0)
 			FormatError( tok, "Binary digit expected" );
-		if (isalnum(*scanSrc))
+		if (IsAlnum(*scanSrc))
 			FormatError( tok, "Invalid character in binary constant" );
 
 		tok.tokenValue = scanValueBuffer;
@@ -1072,7 +1074,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 		tok.tokenLength = (scanSrc - tStart);
 		if (scanValueBuffer[2] == 0)
 			FormatError( tok, "Octal digit expected" );
-		if (isalnum(*scanSrc))
+		if (IsAlnum(*scanSrc))
 			FormatError( tok, "Invalid character in octal constant" );
 
 		tok.tokenValue = scanValueBuffer;
@@ -1080,7 +1082,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 	}
 
 	// check for an IP address
-	if (isdigit(c)) {
+	if (IsDigit(c)) {
 		int			valu = (c - '0')
 		;
 		const char	*saveSrc = scanSrc
@@ -1098,7 +1100,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 		// check for four dotted octets
 		for (int i = 0; i < 4; i++, valu = 0) {
 			// copy the integer portion
-			while (isdigit(*scanSrc)) {
+			while (IsDigit(*scanSrc)) {
 				valu = (valu * 10) + (*scanSrc - '0');
 				*dst++ = *scanSrc++;
 			}
@@ -1116,20 +1118,20 @@ FORMAT1:	if (*scanSrc == 'D') {
 		// check for network size
 		if (validIP && (*scanSrc == '/')) {
 			*dst++ = *scanSrc++;
-			while (isdigit(*scanSrc))
+			while (IsDigit(*scanSrc))
 				*dst++ = *scanSrc++;
 		}
 
 		// check for port (allow 0xBAC0 encoding)
 		if (validIP && (*scanSrc == ':')) {
 			*dst++ = *scanSrc++;
-			if ((*scanSrc == '0') && (tolower(*(scanSrc+1)) == 'x')) {
+			if ((*scanSrc == '0') && (ToLower(*(scanSrc+1)) == 'x')) {
 				*dst++ = *scanSrc++;
 				*dst++ = *scanSrc++;
-				while (isxdigit(*scanSrc))
+				while (IsXDigit(*scanSrc))
 					*dst++ = *scanSrc++;
 			} else
-				while (isdigit(*scanSrc))
+				while (IsDigit(*scanSrc))
 					*dst++ = *scanSrc++;
 		}
 
@@ -1148,12 +1150,12 @@ FORMAT1:	if (*scanSrc == 'D') {
 	}
 
 	// look for a number
-	if (isdigit(c) || (signFound && isdigit(*scanSrc))) {
+	if (IsDigit(c) || (signFound && IsDigit(*scanSrc))) {
 		tok.tokenType = scriptValue;
 		tok.tokenEnc = scriptIntegerEnc;
 
 		// copy the rest of the integer portion
-		while (isdigit(*scanSrc))
+		while (IsDigit(*scanSrc))
 			*dst++ = *scanSrc++;
 
 		// check for float
@@ -1161,10 +1163,10 @@ FORMAT1:	if (*scanSrc == 'D') {
 			tok.tokenEnc = scriptFloatEnc;
 			*dst++ = *scanSrc++;
 
-			if (!isdigit(*scanSrc))
+			if (!IsDigit(*scanSrc))
 				FormatError( tok, "Invalid number format" );
 
-			while (isdigit(*scanSrc))
+			while (IsDigit(*scanSrc))
 				*dst++ = *scanSrc++;
 
 		}
@@ -1177,10 +1179,10 @@ FORMAT1:	if (*scanSrc == 'D') {
 			if (*scanSrc == '-')
 				*dst++ = *scanSrc++;
 
-			if (!isdigit(*scanSrc))
+			if (!IsDigit(*scanSrc))
 				FormatError( tok, "Invalid number format" );
 
-			while (isdigit(*scanSrc))
+			while (IsDigit(*scanSrc))
 				*dst++ = *scanSrc++;
 		}
 
@@ -1188,7 +1190,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 		*dst = 0;
 
 		// no other alpha chars please
-		if (isalpha(*scanSrc))
+		if (IsAlpha(*scanSrc))
 			FormatError( tok, "Invalid number format" );
 
 		tok.tokenLength = (scanSrc - tStart);
@@ -1204,17 +1206,17 @@ FORMAT1:	if (*scanSrc == 'D') {
 	}
 
 	// toss all non-alphas
-	if (!isalpha(c)) {
+	if (!IsAlpha(c)) {
 		scanSrc -= 1;
 		FormatError( tok, "Invalid character" );
 	}
 
 	// copy the rest and normalize
 	tok.tokenType = scriptKeyword;
-	while (isalpha(*scanSrc) || isdigit(*scanSrc) || (*scanSrc == '-') || (*scanSrc == '_')) {
+	while (IsAlpha(*scanSrc) || IsDigit(*scanSrc) || (*scanSrc == '-') || (*scanSrc == '_')) {
 		if ((*scanSrc == '-') && (*(scanSrc+1) == '-'))
 			break;
-		c = toupper(*scanSrc++);
+		c = ToUpper(*scanSrc++);
 		*dst++ = (c == '_' ? '-' : c);
 	}
 	*dst = 0;
@@ -1243,7 +1245,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 		// look for a word
 		while (*scanSrc) {
 			// copy the word
-			while (*scanSrc && (!isspace(*scanSrc)))
+			while (*scanSrc && (!IsSpace(*scanSrc)))
 				*dst++ = *scanSrc++;
 
 			Deblank();
@@ -1273,8 +1275,8 @@ FORMAT1:	if (*scanSrc == 'D') {
 		tok.tokenEnc = scriptHexEnc;
 
 		*dst++ = *scanSrc++;
-		while (isxdigit(*scanSrc))
-			*dst++ = toupper(*scanSrc++);
+		while (IsXDigit(*scanSrc))
+			*dst++ = ToUpper(*scanSrc++);
 
 		// set the length and check for close quote
 		if (dst == scanValueBuffer + 2)
@@ -1384,7 +1386,7 @@ void ScriptScanner::ScanIndexTokens( ScriptToken & tok )
 
 void ScriptScanner::Deblank()
 {
-	while (*scanSrc && isspace(*scanSrc))
+	while (*scanSrc && IsSpace(*scanSrc))
 		scanSrc += 1;
 }
 
@@ -1427,7 +1429,7 @@ void ScriptScanner::NextTitle( ScriptToken& tok )
 	tok.tokenLine = scanLine;
 
 	// deblank
-	while (*scanSrc && isspace(*scanSrc))
+	while (*scanSrc && IsSpace(*scanSrc))
 		scanSrc += 1;
 
 	// check for end-of-line
@@ -1449,11 +1451,11 @@ void ScriptScanner::NextTitle( ScriptToken& tok )
 	// look for a word
 	while (*scanSrc) {
 		// copy the word
-		while (*scanSrc && (!isspace(*scanSrc)))
+		while (*scanSrc && (!IsSpace(*scanSrc)))
 			*dst++ = *scanSrc++;
 
 		// deblank
-		while (*scanSrc && isspace(*scanSrc))
+		while (*scanSrc && IsSpace(*scanSrc))
 			scanSrc += 1;
 
 		// check for end-of-line
