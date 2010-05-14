@@ -2319,28 +2319,33 @@ void show_error( unsigned char x )
       show_vtCloseError, // 22
       show_error_codes,
       show_error_codes,
-      show_error_codes   //25
+      show_error_codes,  //25
+      show_error_codes,  //26 ReadRange
+      show_error_codes,  //27 life safety
+      show_error_codes,  //28 subscribe COV
+      show_error_codes   //29 get event info
    };
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
    pif_show_flagmask(0xF0,0x50,"BACnet-Error-PDU");
-   pif_show_flagbit(0x08,"Segmented Message","Unsegmented Message");
-   pif_show_flagbit(0x04,"More Follows","No More Follows");
-   pif_show_flagbit(0x03,"Unused",NULL);
+   pif_show_flagbit(0x0F,"Unused",NULL);
    
    bac_show_byte("Invoke ID","%d");
-   if (x & 0x08) /* SEG = 1 */ {
-     bac_show_byte   ("Sequence Number","%d");
-     bac_show_byte("Proposed Window Size","%d");
-   }
    pif_show_space();
-   if ((pif_get_byte(0) < max_confirmed_services) &&
-	   (show_confirmed_service_error[pif_get_byte(0)] != NULL))
+   int service = pif_get_byte(0);
+   if (service < max_confirmed_services)
    {
    	  sprintf(outstr,"%s Service Error",
 			  BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(pif_get_byte(0), "ConfRq"));
       bac_show_byte(outstr,"%u");
-      (*show_confirmed_service_error[pif_get_byte(-1)])();
+	  if (show_confirmed_service_error[service] != NULL)
+	  {
+	     (*show_confirmed_service_error[service])();
+	  }
+	  else
+	  {
+         show_error_codes();
+	  }
    }
    else {
       if (pif_get_byte(0) == 0) {
