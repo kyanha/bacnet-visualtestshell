@@ -2,7 +2,6 @@
   SETUP Positive ReadProperty Tests
   INCLUDE "..\config.vts"
 
-  OBJECT1 = DEVICE,47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
   OBJECT3 = analog-INPUT, 1     ; Object which is the subject of the Read Prop tests
   OBJECT4 = File, 104       ; Object which is the subject of the Read Prop tests
@@ -37,7 +36,7 @@ SECTION ReadProperty Service Execution Tests
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Object-Identifier   ; Type BACnetObjectIdentifier
     )
 
@@ -45,11 +44,11 @@ SECTION ReadProperty Service Execution Tests
       Sa  = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Object-Identifier
       OpenTag 3
       --   AL = {Object-Identifier}
-      OBJECTIDENTIFIER = OBJECT1     ; {Object-Identifier}
+      OBJECTIDENTIFIER = IUT_DEVICE_OBJECT     ; {Object-Identifier}
       CloseTag 3
     )
 
@@ -74,7 +73,7 @@ SECTION ReadProperty Service Execution Tests
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Object-Type
     )
 
@@ -82,7 +81,7 @@ SECTION ReadProperty Service Execution Tests
       Sa  = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Object-Type
       OpenTag 3
         AL = {Object-Type}
@@ -109,7 +108,7 @@ Test #1c - Read Property of Type CharacterString
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Vendor-Name
     )
 
@@ -117,7 +116,7 @@ Test #1c - Read Property of Type CharacterString
       PDU = ComplexAck
       sa = IUT_ADDR
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Vendor-Name
       OpenTag 3
         AL = {Vendor-Name}
@@ -145,7 +144,7 @@ Test #1c - Read Property of Type CharacterString
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Vendor-Identifier
     )
 
@@ -153,7 +152,7 @@ Test #1c - Read Property of Type CharacterString
       Sa=IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Vendor-Identifier
       OpenTag 3
         AL = {Vendor-Identifier}
@@ -224,7 +223,7 @@ Test #1c - Read Property of Type CharacterString
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Object-List
       Unsigned = 2,INDEX0
     )
@@ -233,7 +232,7 @@ Test #1c - Read Property of Type CharacterString
       Sa=IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Object-List
       Unsigned = 2,INDEX0
       OpenTag 3
@@ -262,7 +261,7 @@ Test #1c - Read Property of Type CharacterString
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Object-List
       Unsigned = 2, INDEX1
     )
@@ -271,7 +270,7 @@ Test #1c - Read Property of Type CharacterString
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Object-List
       Unsigned = 2, INDEX1
       OpenTag 3
@@ -334,7 +333,7 @@ Test #1c - Read Property of Type CharacterString
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Device-Address-Binding
     )
 
@@ -342,7 +341,7 @@ Test #1c - Read Property of Type CharacterString
       Sa=IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1,Device-Address-Binding
       OpenTag 3
         --AL = {Device-Address-Binding}
@@ -433,7 +432,7 @@ Test #1c - Read Property of Type CharacterString
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, UTC-OFFSET
      )
 
@@ -441,11 +440,10 @@ Test #1c - Read Property of Type CharacterString
       Sa=IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, UTC-OFFSET
       OpenTag 3
         AL ={UTC-OFFSET}
-       --  AL = X'32012C'
       CloseTag 3
     )
 ;-------------------------------------------------------------------------------------
@@ -498,7 +496,7 @@ Test #10 - Read Property of Type Time ;
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time
      )
 
@@ -506,11 +504,10 @@ Test #10 - Read Property of Type Time ;
       Sa=IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time
       OpenTag 3
        AL ={Local-Time}
-       --AL = X'B40C22384E'
       CloseTag 3
     )
  ;-------------------------------------------------------------------------------------
@@ -532,7 +529,7 @@ Test #10 - Read Property of Type Time ;
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Date
      )
 
@@ -540,10 +537,9 @@ Test #10 - Read Property of Type Time ;
       Sa=IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Date
       OpenTag 3
         AL ={Local-Date}
-     --AL = X'A4600A0506'
       CloseTag 3
     )

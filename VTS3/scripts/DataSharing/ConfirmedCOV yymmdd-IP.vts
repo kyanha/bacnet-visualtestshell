@@ -108,7 +108,7 @@
     PDU = Confirmed-Request
     Service = ConfirmedCOVNotification
     Unsigned = 0, PID         ; Process-Identifier = PID
-    Object = 1, Device,47814
+    Object = 1, IUT_DEVICE_OBJECT
   )
 
   OR (

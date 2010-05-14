@@ -26,7 +26,6 @@
   SETUP Positive WriteProperty Tests
   INCLUDE "..\config.vts"
 
-  OBJECT1 = Device, 47814                 ; This must be the device object of the IUT
   OBJECT2 = Analog-Value, 1     ;
   OBJECT3 = Binary-Value, 1     ;
   OBJECT4 = Notification-Class, 5    ;
@@ -37,7 +36,6 @@
   OBJECTA = ANALOG-INPUT, 4             ; object id to be changed
   OBJECT8 = ANALOG-INPUT, 5     ; New Object-ID for test #1a
 
-  ;TESTOBJECT = Device, 24006            ; renamed object
   TESTOBJECT = ANALOG-INPUT, 2
   TESTVAL1 = 2.25
   TESTVAL2 = 55.00
@@ -231,7 +229,6 @@
       OpenTag 3
        ObjectIdentifier = TESTOBJECT
        --AL = {Object-Identifier}
-       --   AL = X'C402005DC6'      ; hardcode may need to be done here
       CloseTag 3
     )
   OR(
@@ -263,7 +260,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, System-Status   ; Verify property of type ENUM
     )
 
@@ -271,7 +268,7 @@
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, System-Status
       OpenTag 3
         AL = {System-Status}
@@ -284,10 +281,11 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, System-Status
       OpenTag 3
-       AL = X'9104'         ; Write P1 = non-operational
+       -- AL = X'9104'         ; Write P1 = non-operational
+       Enum = 4
       CloseTag 3
    )
 
@@ -309,7 +307,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, System-Status
     )
 
@@ -317,7 +315,7 @@
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, System-Status
       OpenTag 3
         AL = {System-Status}    ; not changed because the property can't be accessed by write
@@ -346,7 +344,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Location        ; Verify property of type CharacterString
     )
 
@@ -354,11 +352,11 @@
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Location
       OpenTag 3
-    AL = {Location}         ; Get unknown packet keyword error in VTS
-        --AL = X'7100'          ; Confirm property P1 = "" (empty string)
+      AL = {Location}         ; Get unknown packet keyword error in VTS
+      --AL = X'7100'          ; Confirm property P1 = "" (empty string)
       CloseTag 3
     )
 
@@ -368,7 +366,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Location
       OpenTag 3
         CHARSTRING = "Test"     ; VTS limitation - can't use declared constant
@@ -394,7 +392,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Location
     )
 
@@ -402,7 +400,7 @@
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Location
       OpenTag 3
         CHARSTRING = "Test"     ; VTS limitation - can't use declared constant
@@ -855,8 +853,7 @@
       Property = 1, Priority-Array
       Unsigned = 2, 16
       OpenTag 3
-         AL = X'0000'           ; Verify Priority-Array[16] = NULL
-       --  AL = X'00'           ; Verify Priority-Array[16] = NULL
+         Null          ; Verify Priority-Array[16] = NULL
       -- Enum = 1
       CloseTag 3
     )
@@ -870,12 +867,8 @@
       Object = 0, OBJECT6
       Property = 1, Present-Value
       OpenTag 3
-
         Enum = 0            ; Write new Present-Value = TESTVAL2
-
         ;REAL = TESTVAL2            ; Write new Present-Value = TESTVAL2
-        Enum = 1
-
       CloseTag 3
    )
 
@@ -904,11 +897,7 @@
       Property = 1, Priority-Array
       Unsigned = 2, 16
       OpenTag 3
-
          Enum = 0
-
-        Enum = 1
-
       CloseTag 3
     )
 
@@ -950,7 +939,6 @@
     )
 
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
-
     SEND (
       DA = IUT_ADDR
       PDU = Confirmed-Request
@@ -958,8 +946,7 @@
       Object = 0, OBJECT2
       Property = 1, Status-Flags
       OpenTag 3
-         AL = X'8204F0'         ; X'8204F0' = {True,True,True,True}
---   BITSTRING = T,T,T,T        ; This construct doesn't work in VTS V2.26
+         BITSTRING = [{T,T,T,T}]
       CloseTag 3
    )
 
@@ -986,7 +973,7 @@
       Object = 0, OBJECT2
       Property = 1, Status-Flags
       OpenTag 3
-        AL = X'8204F0'          ; Confirm P1 = {TRUE, TRUE, TRUE, TRUE}
+        BITSTRING = [{T,T,T,T}] ; Confirm P1 = {TRUE, TRUE, TRUE, TRUE}
       CloseTag 3
     )
 
@@ -1292,7 +1279,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, UTC_Offset  ; Verify property P1 of type Signed
     )
 
@@ -1300,7 +1287,7 @@
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, UTC_Offset
       OpenTag 3
         AL = {UTC_Offset}
@@ -1313,7 +1300,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
-     Object = 0, OBJECT1
+     Object = 0, IUT_DEVICE_OBJECT
       Property = 1, UTC_Offset
       OpenTag 3
         INTEGER= TESTVAL4       ; Write new value to property P1
@@ -1339,18 +1326,18 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, UTC_Offset
     )
 
     EXPECT (
       SA = IUT_ADDR
-     PDU = ComplexAck
+      PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, UTC_Offset
       OpenTag 3
-    AL={UTC_Offset}     ; Write-Access-Denied
+         AL={UTC_Offset}     ; Write-Access-Denied
       CloseTag 3
     )
 
@@ -1543,7 +1530,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time      ; Verify property of type Time
     )
 
@@ -1551,7 +1538,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time
       OpenTag 3
         AL = {Local-Time}       ;
@@ -1564,7 +1551,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time
       OpenTag 3
         TIME = 5:35:12.12
@@ -1590,7 +1577,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time      ; Required property of type Time
     )
 
@@ -1598,7 +1585,7 @@
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time
       OpenTag 3
      --TIME = 5:35:12.12
@@ -1623,7 +1610,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Date      ; Verify property of datatype Date
     )
 
@@ -1631,11 +1618,11 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Date
-    OpenTag 3
-    AL = {Local-Date}       ; Test will fail using this script segment
-    CloseTag 3          ;  in VTS V2.28 so verify date manually
+      OpenTag 3
+        AL = {Local-Date}       ; Test will fail using this script segment
+      CloseTag 3          ;  in VTS V2.28 so verify date manually
    )
 
   -- Steps #2 and #3: Write a new value to P1 and receive a simple ACK
@@ -1644,7 +1631,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Date
       OpenTag 3
          DATE = Sunday, January 01, 2000        ;
@@ -1670,7 +1657,7 @@
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Date
     )
 
@@ -1678,7 +1665,7 @@
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Date
      OpenTag 3
     --DATE = Sunday, January 01, 2000

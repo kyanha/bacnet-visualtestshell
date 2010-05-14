@@ -26,10 +26,8 @@
   ; TD_CONFIG
   ; All objects and properties are listed here including notes on there use
 
-      OBJECT1 = Device, 47814    ; Device object used for Who-Is service requests
-  
       LOW_LIMIT = 40000        ; Low limit of a device range that will include the IUT.
-      HIGH_LIMIT = 50000       ; High limit of a device range that will include the IUT.
+      HIGH_LIMIT = 2000000     ; High limit of a device range that will include the IUT.
 
       OUTSIDE_LOW = 1990        ; Low limit of a device range that won't include the IUT.
       OUTSIDE_HIGH = 2000        ; High limit of a device range that won't include the IUT.
@@ -98,7 +96,7 @@
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV
@@ -110,7 +108,7 @@
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV
@@ -152,7 +150,7 @@
       DA = BROADCAST        ; IUT returns either local broadcast response
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV
@@ -164,7 +162,7 @@
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV
@@ -244,7 +242,7 @@
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV
@@ -256,7 +254,7 @@
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV
@@ -301,7 +299,7 @@
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV
@@ -313,7 +311,7 @@
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV
@@ -359,7 +357,7 @@
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV
@@ -371,7 +369,7 @@
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1            ; Get Object Identifier
+      Object = IUT_DEVICE_OBJECT      ; Get Object Identifier
       AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
       AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
       AL = {Vendor-Identifier}        ; Get Vendor-ID PV

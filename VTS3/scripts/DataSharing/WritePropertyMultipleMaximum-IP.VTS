@@ -27,7 +27,6 @@
   ;
 
   -- BOOLEAN TEST
-  OBJECT1 = Device, 47814       ; Object which is the subject of the WPMMAX TEST
   OBJECT2 = ANALOG-INPUT, 1 ; Object which is the subject of the WPMMAX TEST
 
   -- CHARACTER STRING TEST
@@ -1349,7 +1348,7 @@ TEST #1B 9.20.1.X6 Writing Maximum Multiple properties
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WritePropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
 
 Property = 0, PROP1            ; 1
@@ -2208,7 +2207,7 @@ CloseTag 1
        Enum = 40              ;Write-Access-Denied
       CloseTag 0
       OpenTag 1
-       Object = 0,OBJECT1
+       Object = 0,IUT_DEVICE_OBJECT
        Property = 1,Location
       CloseTag 1
     )
@@ -2219,7 +2218,7 @@ SEND (
       DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1,  PROP1
     )
 
@@ -2227,7 +2226,7 @@ SEND (
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, PROP1
      OpenTag 3
 --         CHARSTRING = TESTVALUE1            ;if Property Write Successful

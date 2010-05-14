@@ -2,7 +2,6 @@
  SETUP ReadPropertyMultiple Service Execution Tests
  INCLUDE "..\config.vts"
 
-  OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
   OBJECT3 = analog-VALUE, 2 ; Object which is the subject of the Read Prop tests
   OBJECT4 = File, 104       ; Object which is the subject of the Read Prop tests
@@ -39,7 +38,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0,OBJECT1       ; OBJECTX
+      Object = 0,IUT_DEVICE_OBJECT       ; OBJECTX
       OpenTag 1
          Property = 0, ALL
       CloseTag 1
@@ -50,7 +49,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1                       ;OBJECTX,here give Device_Obj as example
+      Object = 0, IUT_DEVICE_OBJECT                       ;OBJECTX,here give Device_Obj as example
       OpenTag 1
          Property = 2, Object-Identifier;ALL            ; verify returned properties manually
            OpenTag 4                ;  or else enter list of properties here
@@ -183,7 +182,7 @@
   --    'Property Identifier' = REQUIRED
   --  2. RECEIVE ReadPropertyMultiple-ACK,
   --    'Object Identifier' = ObjectX,
-  --    REPEAT P = (each property supported by Object1) DO{
+  --    REPEAT P = (each property supported by IUT_DEVICE_OBJECT) DO{
   --        'Property Identifier' = P,
   --        'Property Value' = (the value of P specified in the EPICS)
   --  3. Manually verify returned properties for ObjectX
@@ -201,7 +200,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, REQUIRED
       CloseTag 1
@@ -212,7 +211,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1                       ;OBJECTX,here give Device_Obj as example
+      Object = 0, IUT_DEVICE_OBJECT                       ;OBJECTX,here give Device_Obj as example
       OpenTag 1
          Property = 2, Object-Identifier;ALL            ; verify returned properties manually
            OpenTag 4                ;  or else enter list of properties here
@@ -314,7 +313,7 @@
   --    'Property Identifier' = OPTIONAL
   --  2. RECEIVE ReadPropertyMultiple-ACK,
   --    'Object Identifier' = ObjectX,
-  --    REPEAT P = (each property supported by Object1) DO{
+  --    REPEAT P = (each property supported by IUT_DEVICE_OBJECT) DO{
   --        'Property Identifier' = P,
   --        'Property Value' = (the value of P specified in the EPICS)
   --  3. Manually verify returned properties for ObjectX
@@ -332,7 +331,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, OPTIONAL
       CloseTag 1
@@ -343,7 +342,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1                       ;OBJECTX,here give Device_Obj as example
+      Object = 0, IUT_DEVICE_OBJECT                       ;OBJECTX,here give Device_Obj as example
       OpenTag 1
         Property = 2, Location
        OpenTag 4

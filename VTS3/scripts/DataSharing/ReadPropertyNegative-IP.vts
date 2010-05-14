@@ -17,7 +17,6 @@
    SETUP Positive ReadProperty Tests
   INCLUDE "..\config.vts"
 
-   OBJECT1 = Device, 47814  ; DEVICE OBJECT
    OBJECT2 = analog-VALUE, 1    ; Object which is the subject of the Read Prop tests
    OBJECT3 = analog-VALUE, 2    ; Object which is the subject of the Read Prop tests
    OBJECT4 = File, 104      ; Object which is the subject of the Read Prop tests
@@ -51,7 +50,7 @@ REFERENCE (B)15.5,15.5.1.1.1; (T)9.15.2.1
     DA = IUT_ADDR
     PDU  = Confirmed_Request
     SERVICE = ReadProperty
-    OBJECT      = 0, OBJECT1
+    OBJECT      = 0, IUT_DEVICE_OBJECT
     PROPERTY    = 1, model-name           ; (Device-model_Name or other property that is not an array)
     Unsigned    = 2, INDEX1         ; Array[1] reads array one
     )
@@ -90,7 +89,7 @@ TEST #n1b
     DA = IUT_ADDR
     PDU  = Confirmed_Request
     SERVICE = ReadProperty
-    OBJECT      = 0, OBJECT1
+    OBJECT      = 0, IUT_DEVICE_OBJECT
     PROPERTY    = 1, object-list                        ; (Device Object-list or other array)
     Unsigned    = 2, 300                       ; Array[max_array_index+1]
     )

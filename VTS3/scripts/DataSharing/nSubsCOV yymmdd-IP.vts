@@ -22,8 +22,6 @@
   ; TD_CONFIG
   ;
 
-  OBJECT1 = DEVICE,47814  ; Any object that does not support COV notifications
-
   PID = 41          ; Any valid process identifier
   LIFETIME = 60         ; Subscription lifetime in secs (0 = indefinite)
 
@@ -66,7 +64,7 @@
       PDU = Confirmed-Request
       Service = SubscribeCOV
       Unsigned = 0, PID         ; Process-Identifier = PID
-      Object = 1, OBJECT1       ; Object-Identifier = OBJECT1
+      Object = 1, TD_DEVICE_OBJECT       ; Object-Identifier = TD_DEVICE_OBJECT
       Boolean = 2, TRUE         ; Request confirmed notifications
       Unsigned = 3, LIFETIME        ; Subscribe for LIFETIME seconds
     )

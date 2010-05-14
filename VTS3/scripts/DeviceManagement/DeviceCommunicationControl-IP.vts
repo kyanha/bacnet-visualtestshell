@@ -23,7 +23,6 @@
    
   -- Global variables
      PASSW = ANSI,"123"       ; Password, replace with vendor's re-init AND DEV-COMM password
-     OBJECT1 = Device, 47814        ; DEVICE OBJ
 
      WARMSTART = 1      
 
@@ -115,9 +114,9 @@
         DA = IUT_ADDR
           PDU = Confirmed-Request
         Service = DeviceCommunicationControl
-    --     Object = 0, OBJECT1
+    --     Object = 0, IUT_DEVICE_OBJECT
         UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
-    ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
+        ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
         CHARACTERSTRING = 2, PASSW          ; PASSWORD (Device should ignore if it does not support passwords)             
     )
 
@@ -140,7 +139,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -176,7 +175,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -184,7 +183,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier
           OpenTag 3
              AL = {Object-Identifier}
@@ -229,7 +228,7 @@
         DA = IUT_ADDR
           PDU = Confirmed-Request
         Service = DeviceCommunicationControl
-    --     Object = 0, OBJECT1
+    --     Object = 0, IUT_DEVICE_OBJECT
         UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
         ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is Disabled)
     --     CHARACTERSTRING = 2, "PASSWORD"          ; PASSWORD (Device should ignore if it does not support passwords)             
@@ -253,7 +252,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier        ; Type BACnetObjectIdentifier
     )
 
@@ -299,7 +298,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -307,7 +306,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier
           OpenTag 3
              AL = {Object-Identifier}
@@ -379,7 +378,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -415,7 +414,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -423,7 +422,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier
           OpenTag 3
              AL = {Object-Identifier}
@@ -493,7 +492,7 @@ TEST #4 (A) 9.21.1.2    Indefinite Time Duration Restored by ReinitializeDevice
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -535,7 +534,7 @@ TEST #4 (A) 9.21.1.2    Indefinite Time Duration Restored by ReinitializeDevice
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -543,7 +542,7 @@ TEST #4 (A) 9.21.1.2    Indefinite Time Duration Restored by ReinitializeDevice
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier
           OpenTag 3
              AL = {Object-Identifier}
@@ -611,7 +610,7 @@ TEST #5 9.21.1.3    Finite Time Duration
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier        ; Type BACnetObjectIdentifier
     )
 
@@ -634,7 +633,7 @@ TEST #5 9.21.1.3    Finite Time Duration
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -642,7 +641,7 @@ TEST #5 9.21.1.3    Finite Time Duration
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier
           OpenTag 3
              AL = {Object-Identifier}
@@ -701,7 +700,7 @@ TEST #6 9.21.2.1    Invalid Password
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -709,7 +708,7 @@ TEST #6 9.21.2.1    Invalid Password
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier
           OpenTag 3
              AL = {Object-Identifier}
@@ -778,7 +777,7 @@ TEST #7 9.21.2.2  Missing Password
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
@@ -786,7 +785,7 @@ TEST #7 9.21.2.2  Missing Password
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Object-Identifier
           OpenTag 3
              AL = {Object-Identifier}

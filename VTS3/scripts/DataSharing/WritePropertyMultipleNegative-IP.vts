@@ -37,7 +37,6 @@ INCLUDE "..\config.vts"
     C = ANSI, "test2written"
     D = ANSI, "test3written"
 
-  OBJECT3 = Device, 47814   ; Device object (supported)
   OBJECT2 = Analog-Input, 77    ; this object should not exist in the device
   OBJECT1  Analog-Value, 1      ; Test 1 Object
 

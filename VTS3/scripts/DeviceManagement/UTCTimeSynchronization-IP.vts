@@ -22,8 +22,6 @@
   ; TD_CONFIG
   ;
 
-      OBJECT1 = Device, 47814
-
   ;TESTDATE = MON, JANUARY 01, 2001
   ;TESTTIME = 01:02:03.00 AM
   
@@ -103,7 +101,7 @@
     DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Date
    )
 
@@ -112,7 +110,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Date
           OpenTag 3
              AL != X'0000000000'
@@ -125,7 +123,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Time
     )
 
@@ -133,7 +131,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Time
           OpenTag 3
             AL != X'0000000000'
@@ -146,7 +144,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, UTC-Offset
     )
 
@@ -154,7 +152,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, UTC-Offset
           OpenTag 3
             AL != X'000000'
@@ -167,7 +165,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Daylight-Savings-Status
     )
 
@@ -176,7 +174,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Daylight-Savings-Status
           OpenTag 3
              AL != X'00'
@@ -201,7 +199,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Date
    )
 
@@ -210,7 +208,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Date
           OpenTag 3
              AL != X'0000000000'
@@ -223,7 +221,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Time
     )
 
@@ -231,7 +229,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Time
           OpenTag 3
              AL != X'0000000000'
@@ -261,7 +259,7 @@
     DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Date
    )
 
@@ -270,7 +268,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Date
           OpenTag 3
              AL != X'0000000000'
@@ -283,7 +281,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Time
     )
 
@@ -291,7 +289,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Time
           OpenTag 3
              AL != X'0000000000'
@@ -304,7 +302,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, UTC-Offset
     )
 
@@ -312,7 +310,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, UTC-Offset
           OpenTag 3
              AL != X'000000'
@@ -325,7 +323,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Daylight-Savings-Status
     )
 
@@ -334,7 +332,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Daylight-Savings-Status
           OpenTag 3
              AL != X'00'
@@ -357,7 +355,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Date
    )
 
@@ -366,7 +364,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Date
           OpenTag 3
              AL != X'0000000000'
@@ -379,7 +377,7 @@
           DA = IUT_ADDR
           PDU = Confirmed-Request
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Time
     )
 
@@ -387,7 +385,7 @@
     SA = IUT_ADDR
           PDU = ComplexAck
           Service = ReadProperty
-          Object = 0, OBJECT1
+          Object = 0, IUT_DEVICE_OBJECT
           Property = 1, Local-Time
           OpenTag 3
              AL != X'0000000000'

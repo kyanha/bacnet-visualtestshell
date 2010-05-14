@@ -16,6 +16,15 @@
 SETUP BACnet Who-Has Service Execution
 INCLUDE "..\config.vts"
   
+  LOW_LIMIT = 40000        ; Low limit of a device range that will include the IUT.
+  HIGH_LIMIT = 2000000       ; High limit of a device range that will include the IUT.
+
+  OUTSIDE_LOW = 1990        ; Low limit of a device range that won't include the IUT.
+  OUTSIDE_HIGH = 2000        ; High limit of a device range that won't include the IUT.
+
+  SOUGHT_OBJECT = (ANALOG-INPUT, 1)
+  SOUGHT_OBJECT_NAME = "Dummy"   ; This value must be changed
+  
   ;------------------------------------------------------------------------------------- 
    -- TEST #1a  Object ID version, no device range.
               -- MANUAL SEND AND RECEIVE   None
@@ -72,35 +81,45 @@ INCLUDE "..\config.vts"
 
   ;--------------------------------------------------------------
   ;                           
-    OBJECT_IDENTIFIER = Device, 47814 
-
-      LOW_LIMIT = 40000        ; Low limit of a device range that will include the IUT.
-      HIGH_LIMIT = 50000       ; High limit of a device range that will include the IUT.
-
-      OUTSIDE_LOW = 1990        ; Low limit of a device range that won't include the IUT.
-      OUTSIDE_HIGH = 2000        ; High limit of a device range that won't include the IUT.
-
-    OBJECT_NAME = ANSI,"BAC_47813"   ; This value must be changed
 
   ;------------------------------------------------------------------------------------ 
 
 SECTION Testing the execution of the Who-Has service
+
+  TEST #1.0  Read the name of the object
+  DEPENDENCIES none
+    SEND (
+    DA = IUT_ADDR
+    PDU = Confirmed-Request
+    Service = ReadProperty
+    Object = 0, SOUGHT_OBJECT
+    Property = 1, object-name
+  )
+
+  EXPECT (
+    SA  = IUT_ADDR   
+    PDU = ComplexAck
+    Service = ReadProperty
+    Object = 0, SOUGHT_OBJECT
+    Property = 1, object-name
+    OpenTag 3
+      characterstring >> SOUGHT_OBJECT_NAME 
+    CloseTag 3
+  )
 
   ;--------------------------------------------------------------
   ; Test group 1 verifies correct response to messages originating from
   ; the local network.
 
   TEST #1a  Object ID version, no device range.
-
   DEPENDENCIES none
-
   REFERENCE (B)16.8.1,16.8.2,16.8.4,  (T)9.29.1.1
 
   SEND (
     DA = BROADCAST
     PDU = Unconfirmed-Request
     Service = Who-Has
-    Object = 2, OBJECT_IDENTIFIER
+    Object = 2, SOUGHT_OBJECT
     )
 
   -- The IUT should send a local broadcast I-Have or a global broadcast
@@ -112,8 +131,8 @@ SECTION Testing the execution of the Who-Has service
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -123,8 +142,8 @@ SECTION Testing the execution of the Who-Has service
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
 TEST #1b Object Name version, no device range.
@@ -137,7 +156,7 @@ SEND (
     DA = BROADCAST
     PDU = Unconfirmed-Request
     Service = Who-Has
-    CharacterString = 3, OBJECT_NAME
+    CharacterString = 3, SOUGHT_OBJECT_NAME
     )
 
   --- The IUT should send a local broadcast I-Have or a global broadcast
@@ -149,8 +168,8 @@ SEND (
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -160,8 +179,8 @@ SEND (
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
 TEST #1c Object ID version, inside device range.
@@ -176,7 +195,7 @@ TEST #1c Object ID version, inside device range.
     Service = Who-Has
     Unsigned = 0, LOW_LIMIT                 ;Device Range low limit
     Unsigned = 1, HIGH_LIMIT                ;Device Range high limit
-    Object = 2, OBJECT_IDENTIFIER
+    Object = 2, SOUGHT_OBJECT
     )
 
   --- The IUT should send a local broadcast I-Have or a global broadcast
@@ -188,8 +207,8 @@ TEST #1c Object ID version, inside device range.
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -199,8 +218,8 @@ TEST #1c Object ID version, inside device range.
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
 TEST #1d Object ID version, outside device range.
@@ -215,7 +234,7 @@ TEST #1d Object ID version, outside device range.
     Service = Who-Has
     Unsigned = 0, OUTSIDE_LOW               ;Device Range low limit
     Unsigned = 1, OUTSIDE_HIGH              ;Device Range high limit
-    Object = 2, OBJECT_IDENTIFIER
+    Object = 2, SOUGHT_OBJECT
     )
 
   --- The IUT should not respond.
@@ -236,7 +255,7 @@ TEST #1e Object Name version, inside device range.
     Service = Who-Has
     Unsigned = 0, LOW_LIMIT                 ;Device Range low limit
     Unsigned = 1, HIGH_LIMIT                ;Device Range high limit
-    CharacterString = 3, OBJECT_NAME
+    CharacterString = 3, SOUGHT_OBJECT_NAME
     )
 
   --- The IUT should send a local broadcast I-Have or a global broadcast
@@ -248,8 +267,8 @@ TEST #1e Object Name version, inside device range.
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -259,8 +278,8 @@ TEST #1e Object Name version, inside device range.
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
 TEST #1f Object Name version, outside device range.
@@ -275,7 +294,7 @@ TEST #1f Object Name version, outside device range.
     Service = Who-Has
     Unsigned = 0, OUTSIDE_LOW               ;Device Range low limit
     Unsigned = 1, OUTSIDE_HIGH              ;Device Range high limit
-    CharacterString = 3, OBJECT_NAME
+    CharacterString = 3, SOUGHT_OBJECT_NAME
     )
 
   --- The IUT should not respond.
@@ -296,7 +315,7 @@ TEST #1g Object ID version, device object instance =  device range.high limit
     Service = Who-Has
     Unsigned = 0, LOW_LIMIT                 ;Device Range low limit
     Unsigned = 1, IUT_DEVICE_INSTANCE                    ;Device Range high limit using device id
-    Object = 2, OBJECT_IDENTIFIER
+    Object = 2, SOUGHT_OBJECT
     )
 
   --- The IUT should send a local broadcast I-Have or a global broadcast
@@ -308,8 +327,8 @@ TEST #1g Object ID version, device object instance =  device range.high limit
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -319,8 +338,8 @@ TEST #1g Object ID version, device object instance =  device range.high limit
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
 TEST #1h Object ID version, device object instance =  device range.low limit
@@ -335,7 +354,7 @@ TEST #1h Object ID version, device object instance =  device range.low limit
     Service = Who-Has
     Unsigned = 0, IUT_DEVICE_INSTANCE                 ;Device Range low limit using device id
     Unsigned = 1, HIGH_LIMIT                ;Device Range high limit
-    Object = 2, OBJECT_IDENTIFIER
+    Object = 2, SOUGHT_OBJECT
     )
 
   --- The IUT should send a local broadcast I-Have or a global broadcast
@@ -347,8 +366,8 @@ TEST #1h Object ID version, device object instance =  device range.low limit
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -358,8 +377,8 @@ TEST #1h Object ID version, device object instance =  device range.low limit
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
 TEST #1i Object Name version, device object instance =  device range.high limit
@@ -374,7 +393,7 @@ TEST #1i Object Name version, device object instance =  device range.high limit
     Service = Who-Has
     Unsigned = 0, LOW_LIMIT                 ;Device Range low limit
     Unsigned = 1, IUT_DEVICE_INSTANCE                    ;Device Range high limit using device id
-    CharacterString = 3, OBJECT_NAME
+    CharacterString = 3, SOUGHT_OBJECT_NAME
     )
 
   --- The IUT should send a local broadcast I-Have or a global broadcast
@@ -386,8 +405,8 @@ TEST #1i Object Name version, device object instance =  device range.high limit
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -396,9 +415,9 @@ TEST #1i Object Name version, device object instance =  device range.high limit
     SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE, IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = IUT_DEVICE_OBJECT
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
 TEST #1j Object Name version, device object instance =  device range.low limit
@@ -413,7 +432,7 @@ TEST #1j Object Name version, device object instance =  device range.low limit
     Service = Who-Has
     Unsigned = 0, IUT_DEVICE_INSTANCE                 ;Device Range low limit using device id
     Unsigned = 1, HIGH_LIMIT                ;Device Range high limit
-    CharacterString = 3, OBJECT_NAME
+    CharacterString = 3, SOUGHT_OBJECT_NAME
     )
 
   --- The IUT should send a local broadcast I-Have or a global broadcast
@@ -425,8 +444,8 @@ TEST #1j Object Name version, device object instance =  device range.low limit
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -436,8 +455,8 @@ TEST #1j Object Name version, device object instance =  device range.low limit
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
 TEST #1k Object Name version, directed to a specific MAC address
@@ -450,7 +469,7 @@ TEST #1k Object Name version, directed to a specific MAC address
     DA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = Who-Has
-    CharacterString = 3, OBJECT_NAME
+    CharacterString = 3, SOUGHT_OBJECT_NAME
     )
 
   --- The IUT should send a local broadcast I-Have or a global broadcast
@@ -462,8 +481,8 @@ TEST #1k Object Name version, directed to a specific MAC address
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -473,8 +492,8 @@ TEST #1k Object Name version, directed to a specific MAC address
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
   ;--------------------------------------------------------------
@@ -491,7 +510,7 @@ TEST #2a Object ID version, global broadcast from remote network
     DA = BROADCAST
     PDU = Unconfirmed-Request
     Service = Who-Has
-    Object = 2, OBJECT_IDENTIFIER
+    Object = 2, SOUGHT_OBJECT
     )
 
   --- The IUT should send a remote broadcast I-Have or a global broadcast
@@ -504,8 +523,8 @@ TEST #2a Object ID version, global broadcast from remote network
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharacterString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -515,8 +534,8 @@ TEST #2a Object ID version, global broadcast from remote network
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
 
 TEST #2b Object ID version, remote broadcast.
@@ -529,7 +548,7 @@ TEST #2b Object ID version, remote broadcast.
     DA = BROADCAST
     PDU = Unconfirmed-Request
     Service = Who-Has
-    Object = 2, OBJECT_IDENTIFIER
+    Object = 2, SOUGHT_OBJECT
     )
 
   --- The IUT should send a remote broadcast I-Have or a global broadcast
@@ -542,8 +561,8 @@ TEST #2b Object ID version, remote broadcast.
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
@@ -553,7 +572,7 @@ TEST #2b Object ID version, remote broadcast.
     PDU = Unconfirmed-Request
     Service = I-Have
     Object = IUT_DEVICE_OBJECT
-    Object = OBJECT_IDENTIFIER
-    CharString = OBJECT_NAME
+    Object = SOUGHT_OBJECT
+    CharString = SOUGHT_OBJECT_NAME
     )
   
