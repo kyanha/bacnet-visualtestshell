@@ -136,10 +136,13 @@ VTSDoc::~VTSDoc()
 
 // switch CWD to path supplied by relative...  Even if we're not doing relative paths
 // the CWD doesn't matter...
-
 void VTSDoc::ChangeCWDToWorkspace( LPCSTR lpszWksFile /* = NULL */ )
 {
-	CString strPath = lpszWksFile;
+	CString strPath;
+	if (lpszWksFile)
+	{
+		strPath = lpszWksFile;
+	}
 	
 	StripToPath(&strPath);
 
@@ -147,10 +150,6 @@ void VTSDoc::ChangeCWDToWorkspace( LPCSTR lpszWksFile /* = NULL */ )
 	if ( !strPath.IsEmpty() )
 		_chdir(strPath);
 }
-
-
-
-
 
 LPCSTR VTSDoc::StripToPath( CString * pstr )
 {
