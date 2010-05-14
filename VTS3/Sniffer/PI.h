@@ -20,7 +20,6 @@
 //
 #define MAX_SUM_LINE    143             /* maximum width of a summary line */
 #define MAX_INT_LINE    550             /* maximum width of a detail line */ // Increased line to allow 255 bytes
-#define MAX_INT_LINES   5000            /* maximum detail lines per packet */
 
 // Used to control/suggest how detail lines are displayed and expanded
 enum PID_NODE_TYPE
@@ -66,8 +65,10 @@ class BACnetPIInfo {
 		bool				doDetail;		// generate detail lines
 
 		char				summaryLine[MAX_SUM_LINE];
-		BACnetPIDetailPtr	detailLine[MAX_INT_LINES];
+
+		BACnetPIDetailPtr	*detailLine;
 		int					detailCount;
+		int					detailMax;
 
 		BACnetPIInfo( bool summary = false, bool detail = false );
 		~BACnetPIInfo( void );
