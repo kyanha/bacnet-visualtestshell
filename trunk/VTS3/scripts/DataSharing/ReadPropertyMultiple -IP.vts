@@ -4,7 +4,6 @@
 
   IUT_ADDR = "IUT"
 
-  OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
   OBJECT3 = analog-VALUE, 2 ; Object which is the subject of the Read Prop tests
   OBJECT4 = File, 104       ; Object which is the subject of the Read Prop tests
@@ -45,7 +44,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Object-Name
       CloseTag 1
@@ -57,7 +56,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Object-Name
          OpenTag 4
@@ -95,7 +94,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Object-Name
          Property = 0, Vendor-Name
@@ -109,7 +108,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Object-Name
          OpenTag 4
@@ -154,7 +153,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Object-Name
       CloseTag 1
@@ -170,7 +169,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Object-Name
          OpenTag 4
@@ -219,7 +218,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Object-Name
          Property = 0, Object-Type
@@ -240,7 +239,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Object-Name
          OpenTag 4
@@ -296,7 +295,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Object-Identifier    ; BACnetObjectIdentifier
       CloseTag 1
@@ -306,7 +305,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Object-Identifier
          OpenTag 4
@@ -336,7 +335,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Object-Type
       CloseTag 1
@@ -346,7 +345,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Object-Type
          OpenTag 4
@@ -376,7 +375,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Description
       CloseTag 1
@@ -386,7 +385,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Description
          OpenTag 4
@@ -416,7 +415,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Vendor-Identifier    ; Vendor-Identifier is of type Unsigned
       CloseTag 1
@@ -426,7 +425,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Vendor-Identifier
          OpenTag 4
@@ -460,7 +459,7 @@ TEST #1i - Read Property Multiple, Read an Entire Array
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Priority-Array       ; HARDCODE Read entire Object-List array
       CloseTag 1
@@ -498,7 +497,7 @@ TEST #1i - Read Property Multiple, Read an Entire Array
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Object-List
      Unsigned = 1, INDEX0
@@ -509,7 +508,7 @@ TEST #1i - Read Property Multiple, Read an Entire Array
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Object-List
      Unsigned = 3, INDEX0           ; get "unrecognized packet keyword" error
@@ -541,7 +540,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
         Property = 0, Object-List
         Unsigned = 1,INDEX1
@@ -552,7 +551,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Object-List
         Unsigned = 3, INDEX1
@@ -623,7 +622,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
        Property = 0, Device-Address-Binding     ; MANUAL
       CloseTag 1
@@ -633,7 +632,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
        Property = 2,Device-Address-Binding
        OpenTag 4
@@ -701,7 +700,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
        Property = 0, Utc-Offset
       CloseTag 1
@@ -711,7 +710,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
        Property = 2,Utc-Offset
        OpenTag 4
@@ -779,7 +778,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
        Property = 0, Local-Time
       CloseTag 1
@@ -789,7 +788,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
        Property = 2,Local-Time
        OpenTag 4
@@ -819,7 +818,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
        Property = 0, Local-Date
       CloseTag 1
@@ -829,7 +828,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
        Property = 2,Local-Date
        OpenTag 4

@@ -1085,7 +1085,9 @@
       Object = 0, OBJECT3
       OpenTag 1
          Property = 0, Object-Identifier
-         AL = X'2EC402005DC62F'   ; Context tag 2, appl tag 12, ObjectID = (Device,24006)
+         OpenTag 2
+            AL = X'C402005DC6'   ; appl tag 12, ObjectID = (Device,24006)
+         CloseTag 2
       CloseTag 1
     )
 
@@ -1125,7 +1127,7 @@
       Object = 0, TESTOBJECT        ; Reference temp ObjectID used in this test
       Property = 1, Object-Identifier
       OpenTag 3
-         BACnetObjectIdentifier = TESTOBJECT    ; This construct doesn't work in VTS
+         ObjectIdentifier = TESTOBJECT
     --     AL={Object-Identifier}                 ;if Property Write failed
       CloseTag 3
     )
@@ -1209,7 +1211,7 @@
       OpenTag 1
          Property = 0, System-Status
          OpenTag 2
-            AL = X'9104'            ; Write P1 = "non-operational"
+            Enum = 4         ; Write P1 = "non-operational"
          CloseTag 2
       CloseTag 1
     )
@@ -1250,7 +1252,7 @@
       Object = 0, OBJECT3
       Property = 1, System-Status
       OpenTag 3
---        AL = X'9104'          ; Confirm P1 = "non-operational"
+--          Enum = 4         ; Confirm P1 = "non-operational"
           AL = {System-Status}          ;if Property Write failed
       CloseTag 3
     )
@@ -1264,7 +1266,7 @@
       Object = 0, OBJECT3
       Property = 1, System-Status
       OpenTag 3
-       AL = X'9100'         ; Write initial value back to P1
+        Enum = 0    ; Write initial value back to P1
       CloseTag 3
     )
 
@@ -1317,7 +1319,7 @@
       Object = 0, OBJECT3
       Property = 1, Location
       OpenTag 3
-    AL = {Location}         ; Get unknown packet keyword error in VTS
+         AL = {Location}         ; Get unknown packet keyword error in VTS
 --        AL = X'7100'          ; Confirm property P1 = "" (empty string)
       CloseTag 3
     )

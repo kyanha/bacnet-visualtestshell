@@ -15,7 +15,6 @@
   SETUP Positive RemoveListElement Service Execution Tests
   INCLUDE "..\config.vts"
 
-  OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
   OBJECT3 = analog-VALUE, 2 ; Object which is the subject of the Read Prop tests
   OBJECT4 = File, 104       ; Object which is the subject of the Read Prop tests
@@ -44,7 +43,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Time-Synchronization-Recipients
     )
 
@@ -52,7 +51,7 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Time-Synchronization-Recipients
       OpenTag 3
          AL = X'0C02001F410C02001F42'   ; test passes if list contains objects
@@ -73,7 +72,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = RemoveListElement
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Time-Synchronization-Recipients
       OpenTag 3
     BACnetObjectIdentifier = OBJECT2   ;, OBJECT3 ; this statement doesn't work in VTS V2.27
@@ -102,7 +101,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Time-Synchronization-Recipients
     )
 
@@ -110,10 +109,9 @@
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Time-Synchronization-Recipients
-      OpenTag 3
-       AL = X'3E3F'     ; test passes if Time-Synchronization-Recipients list is empty
+      OpenTag 3   ; test passes if Time-Synchronization-Recipients list is empty
       CloseTag 3
     )
 

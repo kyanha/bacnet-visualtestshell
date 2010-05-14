@@ -59,8 +59,8 @@ Test 1 write property of Dev_Obj
          CloseTag 4
          Property = 2, UTC-Offset
          OpenTag 4
---           AL = {UTC-Offset}
-             AL = X'31F6'
+           AL = {UTC-Offset}
+--         Integer AL = -360
          CloseTag 4
 
       CloseTag 1
@@ -82,9 +82,7 @@ Test 1 write property of Dev_Obj
         OpenTag 2
            Integer = TESTVAL2       ; Write new value to P1 using WPM service
         CloseTag 2
-
       CloseTag 1
-
        )
 
   EXPECT(

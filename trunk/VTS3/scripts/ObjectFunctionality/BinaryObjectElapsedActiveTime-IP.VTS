@@ -24,11 +24,8 @@
 ; Each object and instance below must match the object or property in the EPICS. These variables are referenced within the body of this script.
 
   ;OBJECT1 = <Binary-OUTPUT>, <9>         ; Object which is the subject of the Binary Object Change tests
-  ;DEVOBJ  = <0>, <DEVICE>, <100>                 ; Device object
 
   OBJECT1 = Binary-Value,1
-  DEVOBJ = 0,DEVICE,47814
-    
                     
 --------------------------SECTION (A) Set PV to inactive and verify elapsed time--------
 -- steps 1-3 run here
@@ -451,7 +448,7 @@ SEND (
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = DEVOBJ
+      Object = IUT_DEVICE_OBJECT
       Property = 1, Local-Date        ; Required property of type Date
 )
 
@@ -459,7 +456,7 @@ SEND (
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      Object = DEVOBJ
+      Object = IUT_DEVICE_OBJECT
       Property = 1, Local-time        ; Required property of type Date
 )
 

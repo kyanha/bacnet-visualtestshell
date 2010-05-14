@@ -15,7 +15,6 @@
   SETUP Positive ReadProperty Tests
   INCLUDE "..\config.vts"
 
-  OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
   OBJECT3 = analog-VALUE, 2 ; Object which is the subject of the Read Prop tests
   OBJECT4 = File, 104       ; Object which is the subject of the Read Prop tests
@@ -61,7 +60,7 @@ SEND (
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
 Property = 0, Object-Identifier ;1
 Property = 0, Object-Identifier ;2
@@ -236,7 +235,7 @@ CloseTag 1
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
 Property = 2, Object-Identifier    ;1
 OpenTag 4
@@ -895,7 +894,7 @@ SEND (
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
 Property = 0, Object-Identifier ;1
 Property = 0, Object-Identifier ;2
@@ -1071,7 +1070,7 @@ CloseTag 1
       Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
 Property = 2, Object-Identifier    ;1
 OpenTag 4

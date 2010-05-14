@@ -19,7 +19,6 @@
 
   --------- Global Variables ---------
   OBJECT1 = Binary-VALUE, 1        ; Object which is the subject of the Binary Object Change tests
-  DEVOBJ1  = 0, DEVICE, 47814                ; Device object
   STEP5OV = 1                           ; This number must be the opposite of what is in ther epics for the binary objects present value
 
                         
@@ -252,7 +251,7 @@ SEND (
     DA = IUT_ADDR
           PDU = Confirmed-Request
     Service = ReadProperty
-    Object = DEVOBJ1
+    Object = IUT_DEVICE_OBJECT
     Property = 1, Local-time        ; Required property of type Date
 )
 
@@ -260,7 +259,7 @@ SEND (
     DA = IUT_ADDR
           PDU = Confirmed-Request
     Service = ReadProperty
-    Object = DEVOBJ1
+    Object = IUT_DEVICE_OBJECT
     Property = 1, Local-Date        ; Required property of type Date
 )
 
@@ -376,7 +375,7 @@ SEND (
     DA = IUT_ADDR
           PDU = Confirmed-Request
     Service = ReadProperty
-    Object = DEVOBJ1
+    Object = IUT_DEVICE_OBJECT
     Property = 1, Local-time        ; Required property of type Date
 )
 

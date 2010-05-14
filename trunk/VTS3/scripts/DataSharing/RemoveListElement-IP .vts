@@ -21,7 +21,6 @@
   ; TD_CONFIG
   ;
 
-  OBJECT1 = Device, 47814
   OBJECT2 = Device, 8001
   OBJECT3 = Device, 8002
 
@@ -44,7 +43,7 @@
         DA = IUT_ADDR
         PDU = Confirmed-Request
         Service = ReadProperty
-        Object = 0, OBJECT1
+        Object = 0, IUT_DEVICE_OBJECT
         Property = 1, Time-Synchronization-Recipients
     )
 
@@ -52,7 +51,7 @@
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Time-Synchronization-Recipients
       OpenTag 3
          AL = X'0C02001F410C02001F42'   ; test passes if list contains objects
@@ -66,7 +65,7 @@
         DA = IUT_ADDR
         PDU = Confirmed-Request
         Service = RemoveListElement
-        Object = 0, OBJECT1
+        Object = 0, IUT_DEVICE_OBJECT
         Property = 1, Time-Synchronization-Recipients
         AL = X'3E0C02001F410C02001F423F'    ; remove objects (Device, 8001), (Device, 8002))
  ;      OpenTag 3
@@ -84,9 +83,9 @@
 
     SEND (
         DA = IUT_ADDR
-    PDU = Confirmed-Request
+        PDU = Confirmed-Request
         Service = ReadProperty
-        Object = 0, OBJECT1
+        Object = 0, IUT_DEVICE_OBJECT
         Property = 1, Time-Synchronization-Recipients
     )
 
@@ -94,7 +93,8 @@
       SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Time-Synchronization-Recipients
-      AL = X'3E3F'      ; test passes if Time-Synchronization-Recipients list is empty
+      OpenTag 3   ; test passes if Time-Synchronization-Recipients list is empty
+      CloseTag 3
     )

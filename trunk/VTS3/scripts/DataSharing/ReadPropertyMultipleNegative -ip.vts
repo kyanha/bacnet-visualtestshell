@@ -19,7 +19,6 @@
   SETUP Negative ReadPropertyMultiple Service Execution Tests
   INCLUDE "..\config.vts"
 
-  OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
   OBJECT3 = analog-VALUE, 2 ; Object which is the subject of the Read Prop tests
   OBJECT4 = File, 1       ; Object which is the subject of the Read Prop tests
@@ -82,7 +81,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1           ; Supported object
+      Object = 0, IUT_DEVICE_OBJECT           ; Supported object
       OpenTag 1
          Property = 0, Location         ; IUT supported property
          Property = 0, Description      ; IUT supported property
@@ -97,7 +96,7 @@
       sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1           ; Supported object
+      Object = 0, IUT_DEVICE_OBJECT           ; Supported object
       OpenTag 1
          Property = 2, Location     ; IUT supported property
          OpenTag 4
@@ -171,7 +170,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1           ; Supported object
+      Object = 0, IUT_DEVICE_OBJECT           ; Supported object
       OpenTag 1
          Property = 0, LOCATION             ; IUT supported property
          Property = 0, Vendor-Name      ; IUT supported property
@@ -192,7 +191,7 @@
       sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1           ; Supported object
+      Object = 0, IUT_DEVICE_OBJECT           ; Supported object
       OpenTag 1
           Property = 2, Location        ; Supported property
          OpenTag 4
@@ -257,7 +256,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1           ; Supported object
+      Object = 0, IUT_DEVICE_OBJECT           ; Supported object
       OpenTag 1
          Property = 0, Location         ; IUT supported property
          Property = 0, UNSUPPROP                  ; Unsupported property should be here
@@ -271,7 +270,7 @@
       sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1           ;supported object here
+      Object = 0, IUT_DEVICE_OBJECT           ;supported object here
       OpenTag 1
          Property = 2, Location               ;Supported Properties
          OpenTag 4
@@ -323,7 +322,7 @@
       Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1           ; Supported object
+      Object = 0, IUT_DEVICE_OBJECT           ; Supported object
       OpenTag 1
          Property = 0, UNSUPPROP        ; IUT supported property
          Property = 0, UNSUPPROP                  ; Unsupported property should be here
