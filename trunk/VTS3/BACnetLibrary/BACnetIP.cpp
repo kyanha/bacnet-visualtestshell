@@ -157,7 +157,7 @@ void BACnetIPAddr::StringToHostPort( const char *str, unsigned long *hostp, unsi
 	// first four decimals
 	for (int i = 0; i < 4; i++ ) {
 		BACnetOctet	byte = 0;
-		while (*str && isdigit(*str))
+		while (*str && IsDigit(*str))
 			byte = (byte * 10) + (*str++ - '0');
 		host = (host << 8) + byte;
 		
@@ -170,9 +170,9 @@ void BACnetIPAddr::StringToHostPort( const char *str, unsigned long *hostp, unsi
 		str += 1;
 		
 		// next is mask number
-		if (isdigit(*str)) {
+		if (IsDigit(*str)) {
 			n = 0;
-			while (*str && isdigit(*str))
+			while (*str && IsDigit(*str))
 				n = (n * 10) + (*str++ - '0');
 			
 			if ((n > 0) && (n < 32))
@@ -185,13 +185,13 @@ void BACnetIPAddr::StringToHostPort( const char *str, unsigned long *hostp, unsi
 		str += 1;
 		
 		// next is port number
-		if (isdigit(*str))
-			if (toupper(*(str+1)) == 'X') {
+		if (IsDigit(*str))
+			if (ToUpper(*(str+1)) == 'X') {
 				str += 2;
-				for (port = 0; isxdigit(*str); str++)
-					port = (port << 4) + (isdigit(*str) ? (*str - '0') : (toupper(*str) - 'A' + 10));
+				for (port = 0; IsXDigit(*str); str++)
+					port = (port << 4) + (IsDigit(*str) ? (*str - '0') : (ToUpper(*str) - 'A' + 10));
 			} else {
-				for (port = 0; isdigit(*str); str++)
+				for (port = 0; IsDigit(*str); str++)
 					port = (port * 10) + (*str - '0');
 			}
 	}

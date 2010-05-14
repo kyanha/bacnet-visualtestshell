@@ -465,10 +465,10 @@ void VTSAny::OnChangeContext()
 		// check for hex notation
 		if ((s[0] == '0') && ((s[1] == 'x') || (s[1] == 'X'))) {
 			s += 2;
-			for (intValue = 0; isxdigit(*s); s++)
-				intValue = (intValue << 4) + (isdigit(*s) ? (*s - '0') : (toupper(*s) - 'A' + 10));
+			for (intValue = 0; IsXDigit(*s); s++)
+				intValue = (intValue << 4) + (IsDigit(*s) ? (*s - '0') : (ToUpper(*s) - 'A' + 10));
 		} else {
-			for (intValue = 0; isdigit(*s); s++)
+			for (intValue = 0; IsDigit(*s); s++)
 				intValue = (intValue *10) + (*s - '0');
 		}
 
@@ -1656,15 +1656,15 @@ void DecoderFromHex( CString &str, BACnetAPDUEncoder &dec )
 	// encode the content
 	for (int i = 0; i < str.GetLength(); i++) 
 	{
-		c = toupper( str.GetAt(i) );
-		if (!isxdigit(c))
+		c = ToUpper( str.GetAt(i) );
+		if (!IsXDigit(c))
 			throw_(46) /* invalid character */;
-		upperNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
-		c = toupper( str.GetAt(++i) );
-		if (!isxdigit(c))
+		c = ToUpper( str.GetAt(++i) );
+		if (!IsXDigit(c))
 			throw_(47) /* invalid character */;
-		lowerNibble = (isdigit(c) ? (c - '0') : (c - 'A' + 10));
+		lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
 		// stick this on the end
 		dec.pktBuffer[dec.pktLength++] = (upperNibble << 4) + lowerNibble;

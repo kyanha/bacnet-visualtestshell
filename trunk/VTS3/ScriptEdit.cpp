@@ -856,7 +856,7 @@ void ScriptEdit::OnHelpInput(UINT nChar, UINT nRepCnt, UINT nFlags)
 	sBuffer = sBufferLine.Left((nstar - nBegin));
 	nLen = sBuffer.GetLength();
 	for( x=sBuffer.GetLength(); x>0; x-- )
-		if( isspace( sBuffer.GetAt(x-1)))
+		if( IsSpace( sBuffer.GetAt(x-1)))
 			break;
 	nLastSpace = x-1;
 	if( nLastSpace >= 0 )
@@ -955,15 +955,24 @@ void ScriptEdit::FillInsertMenu()
 	}
 
 	// Find the "Insert" menu and populate it
-	CMenu *pMenu = GetParentFrame()->GetMenu();
-	CString str;
-	for (int ix = 0; ix < 20; ix++)
+	// If an error is detected in an INCLUDE, this dialog will be invoked as a CScriptEditIncludeDlg
+	// without a parent frame or menu.
+	CFrameWnd *pFrame = GetParentFrame();
+	if (pFrame)
 	{
-		pMenu->GetMenuString( ix, str, MF_BYPOSITION );
-		if (str == "&Insert")
+		CMenu *pMenu = pFrame->GetMenu();
+		if (pMenu)
 		{
-			s_templateLibrary.FillMenu( *pMenu->GetSubMenu( ix ), false );
-			break;
+			CString str;
+			for (int ix = 0; ix < 20; ix++)
+			{
+				pMenu->GetMenuString( ix, str, MF_BYPOSITION );
+				if (str == "&Insert")
+				{
+					s_templateLibrary.FillMenu( *pMenu->GetSubMenu( ix ), false );
+					break;
+				}
+			}
 		}
 	}
 }

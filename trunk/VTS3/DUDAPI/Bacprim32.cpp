@@ -2352,7 +2352,7 @@ word  APIENTRY eTextMessageService(octet *op,word opmax,word confirmed,dword dev
 	{	*op++=0x1E;									//PD open tag 1
 		cp=msgclass;								//first see if we have only digits
 		while(*cp)
-		{	if (isdigit(*cp))
+		{	if (IsDigit(*cp))
 				cp++;
 			else
 				break;
@@ -3505,17 +3505,17 @@ dword APIENTRY vbOBJECTID(word otype,dword oinst)
 //	of the same project, so I picked this one to go.    - JJB
 //
 char *cvhex(char *src,byte *dst)		//									***019
-{	if (!isxdigit(*src))
+{	if (!IsXDigit(*src))
 	{	*dst=0;									//assume none
 		return src;
 	}
-	if (isdigit(*src))
+	if (IsDigit(*src))
 		*dst=*src-'0';
 	else
 		*dst=(*src&0xDF)-55;
 	src++;
-	if (!isxdigit(*src)) return src;
-	if (isdigit(*src))
+	if (!IsXDigit(*src)) return src;
+	if (IsDigit(*src))
 		*dst=(*dst<<4)+(*src-'0');
 	else
 		*dst=(*dst<<4)+((*src&0xDF)-55);
