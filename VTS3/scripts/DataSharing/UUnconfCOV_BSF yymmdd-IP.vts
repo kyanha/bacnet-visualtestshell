@@ -21,11 +21,7 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Unsubscribed, Unconfirmed COV Notification Test - Binary Object Status Flags Property
-
-  --IUT_IP = 10.10.10.100
-  IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
- TD_IP  = "TD_IP"
+  INCLUDE "..\config.vts"
    PID = 10
    LIFETIME = 200
   OBJECT1 = Binary-Value, 1 ; Object which is the subject of the status flag tests
@@ -77,15 +73,8 @@
 
   -- Step #1 & 2: Make Out-of-Service = TRUE and Receive Simple ACK
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = SubscribeCOV
       Unsigned = 0, PID         ; Process-Identifier = PID
       Object = 1, OBJECT1       ; Object-Identifier = OBJECT1
@@ -94,24 +83,14 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = SubscribeCOV
     )
 
    SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Out-of-Service
@@ -122,10 +101,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
@@ -133,8 +109,6 @@
   -- Step #3: Before NotificationFailTime Receive Unconfirmed COV Notification Request
 
   --  AND (             ; Can't control the timing of the IUT's
-  --    NETWORK = NET_1         ; COV Notification Request so TD can't
-  --    DER = FALSE         ; use this EXPECT statement
   --    PDU = Confirmed-Request
   --    Service = UnconfirmedCOVNotification
   --  )
@@ -147,15 +121,8 @@
   -- Step #4: Make Out-of-Service = FALSE
 
    SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 2
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Out-of-Service
@@ -166,10 +133,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )

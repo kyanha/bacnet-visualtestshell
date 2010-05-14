@@ -1,6 +1,6 @@
   ; Testing Support for Executing the BACnet Who-Has Service
   ;  "DRAFT COPY--- DO NOT DISTRIBUTE"
-  ; whohas.vts	dobmmddyy.vts
+  ; whohas.vts    dobmmddyy.vts
   ; Version 2.0
   ;
   ;       written by Steven T. Bushby, 09/13/96
@@ -14,6 +14,8 @@
   ;--------------------------------------------------------------
 
 SETUP BACnet Who-Has Service Execution
+INCLUDE "..\config.vts"
+  
   ;------------------------------------------------------------------------------------- 
    -- TEST #1a  Object ID version, no device range.
               -- MANUAL SEND AND RECEIVE   None
@@ -70,22 +72,15 @@ SETUP BACnet Who-Has Service Execution
 
   ;--------------------------------------------------------------
   ;                           
-	IUT_IP = "IUT_IP"
-	TD_IP  = "TD_IP"
-  
-	DEVICE_ID = Device, 47814          -- Device object instance for IUT.
-	DEVNUM = 47813                      -- The number of the device
-	TD_PORT = "bip"
-	
-	OBJECT_IDENTIFIER = Device, 47814 
+    OBJECT_IDENTIFIER = Device, 47814 
 
-  	LOW_LIMIT = 40000		; Low limit of a device range that will include the IUT.
-  	HIGH_LIMIT = 50000   	; High limit of a device range that will include the IUT.
+      LOW_LIMIT = 40000        ; Low limit of a device range that will include the IUT.
+      HIGH_LIMIT = 50000       ; High limit of a device range that will include the IUT.
 
-  	OUTSIDE_LOW = 1990		; Low limit of a device range that won't include the IUT.
-  	OUTSIDE_HIGH = 2000		; High limit of a device range that won't include the IUT.
+      OUTSIDE_LOW = 1990        ; Low limit of a device range that won't include the IUT.
+      OUTSIDE_HIGH = 2000        ; High limit of a device range that won't include the IUT.
 
-	OBJECT_NAME = ANSI,"BAC_47813"   ; This value must be changed
+    OBJECT_NAME = ANSI,"BAC_47813"   ; This value must be changed
 
   ;------------------------------------------------------------------------------------ 
 
@@ -102,10 +97,7 @@ SECTION Testing the execution of the Who-Has service
   REFERENCE (B)16.8.1,16.8.2,16.8.4,  (T)9.29.1.1
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     Object = 2, OBJECT_IDENTIFIER
@@ -115,28 +107,22 @@ SECTION Testing the execution of the Who-Has service
   -- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -148,10 +134,7 @@ TEST #1b Object Name version, no device range.
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T)9.27.1.2
 
 SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     CharacterString = 3, OBJECT_NAME
@@ -161,28 +144,22 @@ SEND (
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -194,10 +171,7 @@ TEST #1c Object ID version, inside device range.
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T)9.27.1.3
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     Unsigned = 0, LOW_LIMIT                 ;Device Range low limit
@@ -209,28 +183,22 @@ TEST #1c Object ID version, inside device range.
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -242,10 +210,7 @@ TEST #1d Object ID version, outside device range.
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T)9.27.1.4
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     Unsigned = 0, OUTSIDE_LOW               ;Device Range low limit
@@ -256,9 +221,7 @@ TEST #1d Object ID version, outside device range.
   --- The IUT should not respond.
 
   EXPECT (                                  
-    Network = TD_PORT
-    SA = IUT_IP
-    bvlci =ORIGINAL-BROADCAST-NPDU
+    SA = IUT_ADDR
      )
 
 TEST #1e Object Name version, inside device range.
@@ -268,10 +231,7 @@ TEST #1e Object Name version, inside device range.
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T)9.27.1.5
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     Unsigned = 0, LOW_LIMIT                 ;Device Range low limit
@@ -283,28 +243,22 @@ TEST #1e Object Name version, inside device range.
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
     DA = BROADCAST
-    SA = IUT_IP
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    SA = IUT_IP
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -316,10 +270,7 @@ TEST #1f Object Name version, outside device range.
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T)9.27.1.6
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     Unsigned = 0, OUTSIDE_LOW               ;Device Range low limit
@@ -330,9 +281,7 @@ TEST #1f Object Name version, outside device range.
   --- The IUT should not respond.
 
   EXPECT (                               
-    Network = TD_PORT
-    SA = IUT_IP
-    bvlci =ORIGINAL-BROADCAST-NPDU
+    SA = IUT_ADDR
      )
 
 TEST #1g Object ID version, device object instance =  device range.high limit
@@ -342,14 +291,11 @@ TEST #1g Object ID version, device object instance =  device range.high limit
   REFERENCE (B)6.8.1,16.8.2,16.8.4, (T)9.27.1.7
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     Unsigned = 0, LOW_LIMIT                 ;Device Range low limit
-    Unsigned = 1, DEVNUM                    ;Device Range high limit using device id
+    Unsigned = 1, IUT_DEVICE_INSTANCE                    ;Device Range high limit using device id
     Object = 2, OBJECT_IDENTIFIER
     )
 
@@ -357,28 +303,22 @@ TEST #1g Object ID version, device object instance =  device range.high limit
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
     DA = BROADCAST
-    SA = IUT_IP
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -390,13 +330,10 @@ TEST #1h Object ID version, device object instance =  device range.low limit
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T)9.27.1.8
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
-    Unsigned = 0, DEVNUM                 ;Device Range low limit using device id
+    Unsigned = 0, IUT_DEVICE_INSTANCE                 ;Device Range low limit using device id
     Unsigned = 1, HIGH_LIMIT                ;Device Range high limit
     Object = 2, OBJECT_IDENTIFIER
     )
@@ -405,28 +342,22 @@ TEST #1h Object ID version, device object instance =  device range.low limit
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -438,14 +369,11 @@ TEST #1i Object Name version, device object instance =  device range.high limit
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T)9.27.1.9
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     Unsigned = 0, LOW_LIMIT                 ;Device Range low limit
-    Unsigned = 1, DEVNUM                    ;Device Range high limit using device id
+    Unsigned = 1, IUT_DEVICE_INSTANCE                    ;Device Range high limit using device id
     CharacterString = 3, OBJECT_NAME
     )
 
@@ -453,28 +381,22 @@ TEST #1i Object Name version, device object instance =  device range.high limit
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE, DEVICE_ID
+    Object = DEVICE, IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -486,13 +408,10 @@ TEST #1j Object Name version, device object instance =  device range.low limit
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T)9.27.1.10
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
-    Unsigned = 0, DEVNUM                 ;Device Range low limit using device id
+    Unsigned = 0, IUT_DEVICE_INSTANCE                 ;Device Range low limit using device id
     Unsigned = 1, HIGH_LIMIT                ;Device Range high limit
     CharacterString = 3, OBJECT_NAME
     )
@@ -501,28 +420,22 @@ TEST #1j Object Name version, device object instance =  device range.low limit
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -534,10 +447,7 @@ TEST #1k Object Name version, directed to a specific MAC address
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T) 9.27.1.11
 
   SEND (
-    Network = TD_PORT
-    DA = IUT_IP
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
+    DA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = Who-Has
     CharacterString = 3, OBJECT_NAME
@@ -547,28 +457,22 @@ TEST #1k Object Name version, directed to a specific MAC address
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -584,10 +488,7 @@ TEST #2a Object ID version, global broadcast from remote network
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T)9.27.2.1
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     Object = 2, OBJECT_IDENTIFIER
@@ -597,30 +498,23 @@ TEST #2a Object ID version, global broadcast from remote network
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
-    DA = MY_MAC
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     DNET = NET_X
     DADR = BROADCAST
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharacterString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )
@@ -632,10 +526,7 @@ TEST #2b Object ID version, remote broadcast.
   REFERENCE (B)16.8.1,16.8.2,16.8.4, (T) 9.27.2.2
 
   SEND (
-    Network = TD_PORT
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
     PDU = Unconfirmed-Request
     Service = Who-Has
     Object = 2, OBJECT_IDENTIFIER
@@ -645,30 +536,23 @@ TEST #2b Object ID version, remote broadcast.
   --- I-Have in response.
 
   EXPECT (                                  ;local broadcast response
-    Network = TD_PORT
-    DA = MY_MAC
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     DNET = NET_X
     DADR = MY_MAC
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
      )
 
   OR (                                      ;global broadcast response
-    Network = TD_PORT
     DNET = 0xffff
     DA = BROADCAST
-    bvlci =ORIGINAL-BROADCAST-NPDU
-    DER = FALSE
-    SA = IUT_IP
+    SA = IUT_ADDR
     PDU = Unconfirmed-Request
     Service = I-Have
-    Object = DEVICE_ID
+    Object = IUT_DEVICE_OBJECT
     Object = OBJECT_IDENTIFIER
     CharString = OBJECT_NAME
     )

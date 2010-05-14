@@ -17,12 +17,12 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Unconfirmed COV Notification Test Case
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ;
   ; TD_CONFIG
   ;
- TD_IP  = "TD_IP"
 
  OBJECT1 = Analog-Value, 1 ; Object which is the subject of this test case
  MONITORED_DEVICE  = Device, 47814
@@ -30,14 +30,6 @@
   PID = 51          ; Subscriber Process Identifier
   LIFETIME = 200        ; Subscription lifetime in seconds
 
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-
-  --IUT_IP = 10.10.10.100
-  IUT_IP = "IUT_IP"
-  TD_PORT = "bip"
   ERROR_CLASS = 5       ; Error class SERVICES
   ERROR_CODE1 = 0       ; Error code = OTHER
   ERROR_CODE2 = 29      ; Error code = SERVICE_REQUEST_DENIED
@@ -91,15 +83,8 @@
   -- Step #1 & 2: Subscribe to COV and Receive Simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = SubscribeCOV
       Unsigned = 0, PID         ; Process-Identifier = PID
       Object = 1, OBJECT1       ; Object-Identifier = OBJECT1
@@ -108,10 +93,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = SubscribeCOV
     )
@@ -124,10 +106,7 @@
   -- Step #4: Receive Unconfirmed COV Notification Request or ERROR
 
   EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = UnconfirmedCOVNotification
       Unsigned = 0, PID         ; Process-Identifier = PID
@@ -137,10 +116,7 @@
   )
 
   OR (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = Error
       ERROR-CHOICE = SubscribeCOV
       ENUMERATED = ERROR_CLASS      ; class = SERVICES
@@ -148,10 +124,7 @@
   )
 
   OR (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = Error
       ERROR-CHOICE = SubscribeCOV
       ENUMERATED = ERROR_CLASS      ; class = SERVICES

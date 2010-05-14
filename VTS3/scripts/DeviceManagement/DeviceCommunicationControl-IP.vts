@@ -3,7 +3,7 @@
   ;  "DRAFT COPY--- DO NOT DISTRIBUTE"
   ;  DCC yymmdd.vts
   ;
-  ;  Ver 1.0   10/09/01           BradSp	Initial version
+  ;  Ver 1.0   10/09/01           BradSp    Initial version
   ;   
   ;  Purpose:  This test case verifies the correct execution of the DeviceCommunicationControl request service procedure when a finite     time duration is specified and communication is restored using the DeviceCommunicationControl service.
   ;  
@@ -12,6 +12,7 @@
   ;-------------------------------------------------------------------------------------
   
   SETUP DeviceCommunicationControl Service Execution Tests
+  INCLUDE "..\config.vts"
 
   ;------------------------------------------------------------------------------------- 
   ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties 
@@ -19,45 +20,17 @@
   ; Items Marked with MANUAL must be manually verified or sent.
   ;
   ;-------------------------------------------------------------------------------------
-  ;
-  ; TD_CONFIG   All objects and properties are listed here including notes on there use
-  ;
-
-
-  TD_IP  = "TD_IP"
-  TD_PORT = "bip"
-	
-  ;-------------------------------------------------------------------------------------
-  ;
-  ;  Routing_Config
-  ;  
-
-  -- DNET_MSTP = 20001, MS/TP     ; Sets the DNET of the remote MSTP network (Comment if no routing) ***
-
-  ;-----IUT and TD are on the same Ethernet segment
-  ;   DA = IUT_IP 
-  ;-----IUT is on an MSTP segment and TD is on an Ethernet segment
-  ;   DA = Broadcast
-  ;   DNET = DNET_MSTP
-  ;   DADR = IUT_IP
-  ;---------------------------------------- 
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-  
-   IUT_IP = "IUT_IP"		; Address of IUT
-
+   
   -- Global variables
      PASSW = ANSI,"123"       ; Password, replace with vendor's re-init AND DEV-COMM password
-     OBJECT1 = Device, 47814 	   ; DEVICE OBJ
+     OBJECT1 = Device, 47814        ; DEVICE OBJ
 
-     WARMSTART = 1	  
+     WARMSTART = 1      
 
  -- TEST #1 Finite Time Duration Restored by DeviceCommunicationControl
                       -- MANUAL SEND AND RECEIVE 
                                 --  Step #6 Manually Verify VTS Trace CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
-		      -- BODY CHANGE  (NONE)
+              -- BODY CHANGE  (NONE)
                                     
 
  -- TEST #2(a) Finite Time Duration Restored by ReinitializeDevice
@@ -65,7 +38,7 @@
                                 -- Step #4: Manually Verify VTS Trace ReadProperty-Request (There should be no response to this read)
                                 -- Step #6  Manually Verify VTS Trace CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
                                 -- STEP #9: Manually Verify physical device CHECK (Make sure that the IUT performs a COLDSTART reboot?) 
-		      -- BODY CHANGE  (NONE)
+              -- BODY CHANGE  (NONE)
                                                                
 
                       -- TEST #2(B) CAUTION - WAIT FOR THE DEVICE TO RENINITIALIZE  - TEST #2(a) Finite Time Duration Restored by ReinitializeDevice
@@ -77,20 +50,20 @@
                       -- BODY CHANGE  (NONE)
                       -- TEST #3 (B) 9.21.1.1 Indefinite Time Duration Restored by DeviceCommunicationControl 
 
- -- TEST #4 (A) 9.21.1.2	Indefinite Time Duration Restored by ReinitializeDevice
+ -- TEST #4 (A) 9.21.1.2    Indefinite Time Duration Restored by ReinitializeDevice
                       -- MANUAL SEND AND RECEIVE     
                       -- BODY CHANGE  (NONE)
 
-                      -- TEST #4 (B) 9.21.1.2	Indefinite Time Duration Restored by ReinitializeDevice
-                      --  Manually Verify VTS Trace Step #6	CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2. - See VTS trace)
+                      -- TEST #4 (B) 9.21.1.2    Indefinite Time Duration Restored by ReinitializeDevice
+                      --  Manually Verify VTS Trace Step #6    CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2. - See VTS trace)
                       --  MANUALLY CHECK the physical device Step #9 (Did the IUT perform a COLDSTART reboot?)
                      
- -- TEST #5 9.21.1.3	Finite Time Duration
+ -- TEST #5 9.21.1.3    Finite Time Duration
                       -- Manually wait for the device to reenable before starting 5 (B)
                       -- Make sure that the device does not send while disabled
                       -- BODY CHANGE  (NONE)
 
- -- TEST #6 9.21.2.1	Invalid Password
+ -- TEST #6 9.21.2.1    Invalid Password
                       -- MANUAL SEND AND RECEIVE (None)
                       -- BODY CHANGE  (NONE)
 
@@ -112,23 +85,23 @@
   TEST #1 Finite Time Duration Restored by DeviceCommunicationControl
   -- Test Steps:
 
-  --	TRANSMIT DeviceCommunicationControl-Request,
+  --    TRANSMIT DeviceCommunicationControl-Request,
   --        ‘Time Duration’ = (a value T > 1, in minutes, selected by the tester).
   --         ‘Enable/Disable’ = DISABLE,
   --         ‘Password’ = (any appropriate password as described in the Test Concept)
-  --	RECEIVE BACnet-SimpleACK-PDU
-  --	WAIT Internal Processing Fail Time
-  -- 	TRANSMIT ReadProperty-Request,
+  --    RECEIVE BACnet-SimpleACK-PDU
+  --    WAIT Internal Processing Fail Time
+  --     TRANSMIT ReadProperty-Request,
   --         ‘Object Identifier’ = (Device, X),
   --         ‘Property Identifier’ = (any required non-array property of the Device object)
-  --	WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the            
+  --    WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the            
   --    DeviceCommunicationControl-Request)
-  --	CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
-  --	TRANSMIT DeviceCommunicationControl-Request,
+  --    CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
+  --    TRANSMIT DeviceCommunicationControl-Request,
   --         ‘Enable/Disable’ = ENABLE,
   --         ‘Password’ = (any appropriate password as described in the Configuration Requirements)
-  --	RECEIVE BACnet-Simple-ACK-PDU
-  --	VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the Configuration             
+  --    RECEIVE BACnet-Simple-ACK-PDU
+  --    VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the Configuration             
   --    Requirements)
 
 
@@ -139,32 +112,22 @@
   -- Step #1: DeviceCommunicationControl service request
 
   SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = DeviceCommunicationControl
-    -- 	Object = 0, OBJECT1
-    	UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
-	ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
-    	CHARACTERSTRING = 2, PASSW          ; PASSWORD (Device should ignore if it does not support passwords)			 
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = DeviceCommunicationControl
+    --     Object = 0, OBJECT1
+        UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
+    ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
+        CHARACTERSTRING = 2, PASSW          ; PASSWORD (Device should ignore if it does not support passwords)             
     )
 
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    	Network = TD_PORT
-    	DA = TD_IP
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-    	DER = FALSE
-    	PDU = SimpleAck
-    	Service = DeviceCommunicationControl 
+        DA = TD_ADDR
+    SA = IUT_ADDR
+        PDU = SimpleAck
+        Service = DeviceCommunicationControl 
     )
 
 
@@ -174,85 +137,58 @@
  -- Step #4: TRANSMIT ReadProperty-Request (There should be no response to this read)
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
- --  Step #5	WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
+ --  Step #5    WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
  --             DeviceCommunicationControl-Request) (Find how to do this)
 
    
- -- Step #6	CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
+ -- Step #6    CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
 
  
- -- Step #7 	TRANSMIT DeviceCommunicationControl-Request, Device is placed back into operation
+ -- Step #7     TRANSMIT DeviceCommunicationControl-Request, Device is placed back into operation
 
   SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = DeviceCommunicationControl
-    	UNSIGNED = 0, 0                        ; Time-Duration (Is set back in service)
-    	ENUMERATED = 1, 0                        ; ENABLE(0)/DIASABLE(1) (Device is Enabled)
-    	CHARACTERSTRING = 2, PASSW                   ; PASSWORD (Device should ignore if it does not support passwords)			 
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = DeviceCommunicationControl
+        UNSIGNED = 0, 0                        ; Time-Duration (Is set back in service)
+        ENUMERATED = 1, 0                        ; ENABLE(0)/DIASABLE(1) (Device is Enabled)
+        CHARACTERSTRING = 2, PASSW                   ; PASSWORD (Device should ignore if it does not support passwords)             
     )
 
   EXPECT (
-    	Network = TD_PORT
-    	DA = TD_IP
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-    	DER = FALSE
-    	PDU = SimpleAck
-    	Service = DeviceCommunicationControl
+        DA = TD_ADDR
+    SA = IUT_ADDR
+        PDU = SimpleAck
+        Service = DeviceCommunicationControl
     )
 
- --  Step #9 	VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the Configuration     
+ --  Step #9     VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the Configuration     
  --             Requirements)
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier
-      	OpenTag 3
-         	AL = {Object-Identifier}
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier
+          OpenTag 3
+             AL = {Object-Identifier}
+          CloseTag 3
     )
 
  -- ----------------------------------------------------------------------------------------------------
@@ -264,24 +200,24 @@
 
  --      Test Steps:
 
- --      1.	TRANSMIT DeviceCommunicationControl-Request,
+ --      1.    TRANSMIT DeviceCommunicationControl-Request,
  --               ‘Time Duration’ = (a value T > 1, in minutes, selected by the tester).
  --               ‘Enable/Disable’ = DISABLE,
  --               ‘Password’ = (any appropriate password as described in the Test Concept)
- --      2.	RECEIVE BACnet-SimpleACK-PDU
- --      3.	WAIT Internal Processing Fail Time
- --      4.	TRANSMIT ReadProperty-Request,
+ --      2.    RECEIVE BACnet-SimpleACK-PDU
+ --      3.    WAIT Internal Processing Fail Time
+ --      4.    TRANSMIT ReadProperty-Request,
  --               ‘Object Identifier’ = (Device, X),
  --               ‘Property Identifier’ = (any required non-array property of the Device object)
- --      5.	WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the             
+ --      5.    WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the             
  --               DeviceCommunicationControl-Request)
- --      6.	CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
- --      7.	TRANSMIT ReinitializeDevice-Request,
+ --      6.    CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
+ --      7.    TRANSMIT ReinitializeDevice-Request,
  --                Reinitialize State of Device’ = WARMSTART,
  --                ‘Password’ = (any appropriate password as described in the Test Concept)
- --      8.	RECEIVE BACnet-Simple-ACK-PDU
- --      9.	CHECK (Did the IUT perform a COLDSTART reboot?)
- --      10.	VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the EPICS)
+ --      8.    RECEIVE BACnet-Simple-ACK-PDU
+ --      9.    CHECK (Did the IUT perform a COLDSTART reboot?)
+ --      10.    VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the EPICS)
 
  DEPENDENCIES None
 
@@ -290,32 +226,22 @@
   -- Step #1: DeviceCommunicationControl service request
 
   SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = DeviceCommunicationControl
-    -- 	Object = 0, OBJECT1
-    	UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
-    	ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is Disabled)
-    -- 	CHARACTERSTRING = 2, "PASSWORD"          ; PASSWORD (Device should ignore if it does not support passwords)			 
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = DeviceCommunicationControl
+    --     Object = 0, OBJECT1
+        UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
+        ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is Disabled)
+    --     CHARACTERSTRING = 2, "PASSWORD"          ; PASSWORD (Device should ignore if it does not support passwords)             
     )
 
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    	Network = TD_PORT
-    	DA = TD_IP
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-    	DER = FALSE
-    	PDU = SimpleAck
-    	Service = DeviceCommunicationControl 
+        DA = TD_ADDR
+    SA = IUT_ADDR
+        PDU = SimpleAck
+        Service = DeviceCommunicationControl 
     )
  
  --  Step #3 WAIT Internal Processing Fail Time (This can be run without a time check since the downtime is set to one minute)
@@ -324,53 +250,36 @@
  -- Step #4: TRANSMIT ReadProperty-Request (There should be no response to this read)
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier		; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier        ; Type BACnetObjectIdentifier
     )
 
- --  Step #5	WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
+ --  Step #5    WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
  --             DeviceCommunicationControl-Request) (Find how to do this)
 
    
- -- Step #6	CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
+ -- Step #6    CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
 
- -- Step #7	TRANSMIT ReinitializeDevice-Request
+ -- Step #7    TRANSMIT ReinitializeDevice-Request
 
   SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = ReinitializeDevice
-    	ENUM = 0, WARMSTART			; Request a WARMSTART W/ NO PASSWORD
-    	CHARACTERSTRING = 1, PASSW
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = ReinitializeDevice
+        ENUM = 0, WARMSTART            ; Request a WARMSTART W/ NO PASSWORD
+        CHARACTERSTRING = 1, PASSW
     )
 
  -- Step #8: Receive Simple ACK
 
   EXPECT (
-    	Network = TD_PORT
-    	DA = TD_IP
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-    	DER = FALSE
-    	PDU = SimpleAck
-    	Service = ReinitializeDevice
+        DA = TD_ADDR
+    SA = IUT_ADDR
+        PDU = SimpleAck
+        Service = ReinitializeDevice
     )
 
  -- STEP #9 CHECK (Did the IUT perform a COLDSTART reboot?) MANUAL
@@ -387,32 +296,22 @@
   REFERENCE (B) DeviceCommunicationControl and (T) DeviceCommunicationControl Service Execution Tests
 
    SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier
-      	OpenTag 3
-         	AL = {Object-Identifier}
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier
+          OpenTag 3
+             AL = {Object-Identifier}
+          CloseTag 3
     )
 
  -- ----------------------------------------------------------------------------------------------------
@@ -429,22 +328,22 @@
 
  --      Test Steps:
 
- --      1.	TRANSMIT DeviceCommunicationControl-Request,
- --		'Enable/Disable' =	DISABLE,
- --		'Password' =	(any appropriate password as described in the Test Concept)
- --      2.	RECEIVE BACnet-Simple-ACK-PDU
- --      3. 	WAIT Internal Processing Fail Time
- --      4.	TRANSMIT ReadProperty-Request,
- --     	'Object Identifier' =	(Device, X),
- --		'Property Identifier' =	(any required non-array property of the Device object)
- --      5.	WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester)
- --      6.	CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
- --      7.	TRANSMIT DeviceCommunicationControl-Request,
- --		'Enable/Disable' =	ENABLE,
- --		'Password' =	(any appropriate password as described in the Configuration Requirements)
- --      8.	RECEIVE BACnet-Simple-ACK-PDU
- --      9.	VERIFY (Device, X), 
- --		(any required non-array property) = (the value for this property specified in the EPICS)
+ --      1.    TRANSMIT DeviceCommunicationControl-Request,
+ --        'Enable/Disable' =    DISABLE,
+ --        'Password' =    (any appropriate password as described in the Test Concept)
+ --      2.    RECEIVE BACnet-Simple-ACK-PDU
+ --      3.     WAIT Internal Processing Fail Time
+ --      4.    TRANSMIT ReadProperty-Request,
+ --         'Object Identifier' =    (Device, X),
+ --        'Property Identifier' =    (any required non-array property of the Device object)
+ --      5.    WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester)
+ --      6.    CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
+ --      7.    TRANSMIT DeviceCommunicationControl-Request,
+ --        'Enable/Disable' =    ENABLE,
+ --        'Password' =    (any appropriate password as described in the Configuration Requirements)
+ --      8.    RECEIVE BACnet-Simple-ACK-PDU
+ --      9.    VERIFY (Device, X), 
+ --        (any required non-array property) = (the value for this property specified in the EPICS)
 
 
 
@@ -455,30 +354,20 @@
   -- Step #1: DeviceCommunicationControl service request
 
  SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = DeviceCommunicationControl
-    	ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
-    	CHARACTERSTRING = 2, PASSW 	        ; PASSWORD (Device should ignore if it does not support passwords)			 
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = DeviceCommunicationControl
+        ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
+        CHARACTERSTRING = 2, PASSW             ; PASSWORD (Device should ignore if it does not support passwords)             
     )
 
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    	Network = TD_PORT
-    	DA = TD_IP
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-    	DER = FALSE
-    	PDU = SimpleAck
-    	Service = DeviceCommunicationControl 
+        DA = TD_ADDR
+    SA = IUT_ADDR
+        PDU = SimpleAck
+        Service = DeviceCommunicationControl 
     )
 
  --  Step #3 WAIT Internal Processing Fail Time (This can be run without a time check since the downtime is set to one minute)
@@ -487,85 +376,58 @@
  -- Step #4: TRANSMIT ReadProperty-Request (There should be no response to this read)
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
- --  Step #5	WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
+ --  Step #5    WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
  --             DeviceCommunicationControl-Request) 
 
     TEST #3 (B) 9.21.1.1 Indefinite Time Duration Restored by DeviceCommunicationControl
 
- -- Step #6	CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2. - See VTS trace)
+ -- Step #6    CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2. - See VTS trace)
 
  
- -- Step #7 	TRANSMIT DeviceCommunicationControl-Request, Device is placed back into operation
+ -- Step #7     TRANSMIT DeviceCommunicationControl-Request, Device is placed back into operation
 
   SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = DeviceCommunicationControl
-    	ENUMERATED = 1, 0                        ; ENABLE(0)/DIASABLE(1) (Device is Enabled)
-    	CHARACTERSTRING = 2, PASSW                   ; PASSWORD (Device should ignore if it does not support passwords)			 
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = DeviceCommunicationControl
+        ENUMERATED = 1, 0                        ; ENABLE(0)/DIASABLE(1) (Device is Enabled)
+        CHARACTERSTRING = 2, PASSW                   ; PASSWORD (Device should ignore if it does not support passwords)             
     )
 
   EXPECT (
-    	Network = TD_PORT
-    	DA = TD_IP
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-    	DER = FALSE
-    	PDU = SimpleAck
-    	Service = DeviceCommunicationControl
+        DA = TD_ADDR
+    SA = IUT_ADDR
+        PDU = SimpleAck
+        Service = DeviceCommunicationControl
     )
 
- --  Step #9 	VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the Configuration     
+ --  Step #9     VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the Configuration     
  --             Requirements)
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier
-      	OpenTag 3
-         	AL = {Object-Identifier}
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier
+          OpenTag 3
+             AL = {Object-Identifier}
+          CloseTag 3
     )
 
  -- ----------------------------------------------------------------------------------------------------
@@ -573,29 +435,29 @@
  
 
 
-TEST #4 (A) 9.21.1.2	Indefinite Time Duration Restored by ReinitializeDevice
+TEST #4 (A) 9.21.1.2    Indefinite Time Duration Restored by ReinitializeDevice
 
  --     Purpose: This test case verifies the correct execution of the DeviceCommunicationControl request service procedure when indefinite  --     time duration is specified and communication is restored using the ReinitializeDevice service.
 
  --      Test Steps:
 
- --     1.	TRANSMIT DeviceCommunicationControl-Request,
- --		'Enable/Disable' =	DISABLE,
- --		'Password' =	(any appropriate password as described in the Test Concept)
- --     2.	RECEIVE BACnet-Simple-ACK-PDU
- --     3. 	WAIT Internal Processing Fail Time
- --     4.	TRANSMIT ReadProperty-Request,
- --  		'Object Identifier' =	(Device, X),
- --		'Property Identifier' =	(any required non-array property of the Device object)
- --     5.	WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester)
- --     6.	CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
- --     7.	TRANSMIT ReinitializeDevice-Request,
- -- 		Reinitialized State of Device' =	WARMSTART,
- --		'Password' =			(any appropriate password as described in the Test Concept)
- --     8.	RECEIVE BACnet-Simple-ACK-PDU
- --     9.	CHECK (Did the IUT perform a COLDSTART reboot?)
- --     10.	VERIFY (Device, X), 
- --		(any required non-array property) = (the value for this property specified in the EPICS)
+ --     1.    TRANSMIT DeviceCommunicationControl-Request,
+ --        'Enable/Disable' =    DISABLE,
+ --        'Password' =    (any appropriate password as described in the Test Concept)
+ --     2.    RECEIVE BACnet-Simple-ACK-PDU
+ --     3.     WAIT Internal Processing Fail Time
+ --     4.    TRANSMIT ReadProperty-Request,
+ --          'Object Identifier' =    (Device, X),
+ --        'Property Identifier' =    (any required non-array property of the Device object)
+ --     5.    WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester)
+ --     6.    CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2.)
+ --     7.    TRANSMIT ReinitializeDevice-Request,
+ --         Reinitialized State of Device' =    WARMSTART,
+ --        'Password' =            (any appropriate password as described in the Test Concept)
+ --     8.    RECEIVE BACnet-Simple-ACK-PDU
+ --     9.    CHECK (Did the IUT perform a COLDSTART reboot?)
+ --     10.    VERIFY (Device, X), 
+ --        (any required non-array property) = (the value for this property specified in the EPICS)
 
 
   DEPENDENCIES ReinitializeDevice Service Execution Tests, 9.24
@@ -605,30 +467,20 @@ TEST #4 (A) 9.21.1.2	Indefinite Time Duration Restored by ReinitializeDevice
   -- Step #1: TRANSMIT DeviceCommunicationControl-Request,
 
  SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = DeviceCommunicationControl
-    	ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
-    	CHARACTERSTRING = 2, PASSW          ; PASSWORD (Device should ignore if it does not support passwords)			 
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = DeviceCommunicationControl
+        ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
+        CHARACTERSTRING = 2, PASSW          ; PASSWORD (Device should ignore if it does not support passwords)             
     )
 
  -- Step #2: Receive Simple ACK
 
   EXPECT (
-    	Network = TD_PORT
-    	DA = TD_IP
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-    	DER = FALSE
-    	PDU = SimpleAck
-    	Service = DeviceCommunicationControl 
+        DA = TD_ADDR
+    SA = IUT_ADDR
+        PDU = SimpleAck
+        Service = DeviceCommunicationControl 
     )
 
 
@@ -638,117 +490,90 @@ TEST #4 (A) 9.21.1.2	Indefinite Time Duration Restored by ReinitializeDevice
  --  Step #4: TRANSMIT ReadProperty-Request (There should be no response to this read)
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
- TEST #4 (B) 9.21.1.2	Indefinite Time Duration Restored by ReinitializeDevice
+ TEST #4 (B) 9.21.1.2    Indefinite Time Duration Restored by ReinitializeDevice
 
- --  Step #5	WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
+ --  Step #5    WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
  --             DeviceCommunicationControl-Request) (Find how to do this)
 
    
- --  Step #6	CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2. - See VTS trace)
+ --  Step #6    CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2. - See VTS trace)
 
  
- --  Step #7	TRANSMIT ReinitializeDevice-Request
+ --  Step #7    TRANSMIT ReinitializeDevice-Request
 
   SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = ReinitializeDevice
-    	ENUM = 0, WARMSTART			; Request a WARMSTART W/ NO PASSWORD
-    	CHARACTERSTRING = 1, PASSW
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = ReinitializeDevice
+        ENUM = 0, WARMSTART            ; Request a WARMSTART W/ NO PASSWORD
+        CHARACTERSTRING = 1, PASSW
     )
 
  -- Step #8: Receive Simple ACK
 
   EXPECT (
-    	Network = TD_PORT
-    	DA = TD_IP
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-    	DER = FALSE
-    	PDU = SimpleAck
-    	Service = ReinitializeDevice
+        DA = TD_ADDR
+    SA = IUT_ADDR
+        PDU = SimpleAck
+        Service = ReinitializeDevice
     )
 
- --  Step #9 	MANUAL CHECK (Did the IUT perform a COLDSTART reboot?)
+ --  Step #9     MANUAL CHECK (Did the IUT perform a COLDSTART reboot?)
 
 
  --  Step #9 VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the Configuration  
  --  Requirements)
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier
-      	OpenTag 3
-         	AL = {Object-Identifier}
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier
+          OpenTag 3
+             AL = {Object-Identifier}
+          CloseTag 3
     )
 
  -- ----------------------------------------------------------------------------------------------------
  -- ----------------------------------------------------------------------------------------------------
  
 
-TEST #5 9.21.1.3	Finite Time Duration
+TEST #5 9.21.1.3    Finite Time Duration
 
  --     Purpose: This test case verifies the correct execution of the DeviceCommunicationControl request service procedure when finite time   --     duration is specified. 
 
  --      Test Steps:
 
- --     1.	TRANSMIT DeviceCommunicationControl-Request,
- --		'Time Duration' =	(a value T > 1, in minutes, selected by the tester).
- --		'Enable/Disable' =	DISABLE,
- --		'Password' =	(any appropriate password as described in the Test Concept)
- --     2.	RECEIVE BACnet-Simple-ACK-PDU
- --     3. 	WAIT Internal Processing Fail Time
- --     4.	TRANSMIT ReadProperty-Request,
- --		'Object Identifier' =	(Device, X),
- --		'Property Identifier' =	(any required non-array property of the Device object)
- --     5.	WAIT T 
- --     6.	CHECK (Verify that the IUT did not transmitted any messages between the acknowledgment in step 2
- --		and expiration of timer T.)
- --     7.	VERIFY (Device, X), 
- --		(any required non-array property) = (the value for this property specified in the EPICS)
+ --     1.    TRANSMIT DeviceCommunicationControl-Request,
+ --        'Time Duration' =    (a value T > 1, in minutes, selected by the tester).
+ --        'Enable/Disable' =    DISABLE,
+ --        'Password' =    (any appropriate password as described in the Test Concept)
+ --     2.    RECEIVE BACnet-Simple-ACK-PDU
+ --     3.     WAIT Internal Processing Fail Time
+ --     4.    TRANSMIT ReadProperty-Request,
+ --        'Object Identifier' =    (Device, X),
+ --        'Property Identifier' =    (any required non-array property of the Device object)
+ --     5.    WAIT T 
+ --     6.    CHECK (Verify that the IUT did not transmitted any messages between the acknowledgment in step 2
+ --        and expiration of timer T.)
+ --     7.    VERIFY (Device, X), 
+ --        (any required non-array property) = (the value for this property specified in the EPICS)
 
 
 
@@ -759,31 +584,21 @@ TEST #5 9.21.1.3	Finite Time Duration
   -- Step #1: TRANSMIT DeviceCommunicationControl-Request,
 
  SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = DeviceCommunicationControl
-    	UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
-    	ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
-    	CHARACTERSTRING = 2, PASSW          ; PASSWORD (Device should ignore if it does not support passwords)			 
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = DeviceCommunicationControl
+        UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
+        ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
+        CHARACTERSTRING = 2, PASSW          ; PASSWORD (Device should ignore if it does not support passwords)             
     )
 
  -- Step #2: Receive Simple ACK
 
   EXPECT (
-    	Network = TD_PORT
-    	DA = TD_IP
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-    	DER = FALSE
-    	PDU = SimpleAck
-    	Service = DeviceCommunicationControl 
+        DA = TD_ADDR
+    SA = IUT_ADDR
+        PDU = SimpleAck
+        Service = DeviceCommunicationControl 
     )
 
 
@@ -793,25 +608,18 @@ TEST #5 9.21.1.3	Finite Time Duration
  --  Step #4: TRANSMIT ReadProperty-Request (There should be no response to this read)
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier		; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier        ; Type BACnetObjectIdentifier
     )
 
- --  Step #5	WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
+ --  Step #5    WAIT (an arbitrary time > Internal Processing Fail Time selected by the tester, and < T as specified in the  
  --             DeviceCommunicationControl-Request) 
 
    
- --  Step #6	MANUAL CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2. - See VTS trace)
+ --  Step #6    MANUAL CHECK (Verify that the IUT has not transmitted any messages since the acknowledgment in step 2. - See VTS trace)
 
  TEST #5(B)9.21.1.3 CAUTION - WAIT ONE MINUTE FOR THE DEVICE TO REENABLE  - TEST #2(a) Finite Time Duration
  
@@ -823,32 +631,22 @@ TEST #5 9.21.1.3	Finite Time Duration
   REFERENCE (B) DeviceCommunicationControl and (T) DeviceCommunicationControl Service Execution Tests
 
    SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier
-      	OpenTag 3
-         	AL = {Object-Identifier}
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier
+          OpenTag 3
+             AL = {Object-Identifier}
+          CloseTag 3
     )
 
  -- ----------------------------------------------------------------------------------------------------
@@ -857,20 +655,20 @@ TEST #5 9.21.1.3	Finite Time Duration
 
 
 
-TEST #6 9.21.2.1	Invalid Password
+TEST #6 9.21.2.1    Invalid Password
 
  --     Purpose: This test case verifies the correct execution of DeviceCommunicationControl service procedure when an invalid password is     --     provided. If the IUT does not provide password protection this test case shall be omitted.
 
  --     Test Steps:
  
- --     1.	TRANSMIT DeviceCommunicationControl-Request,
- --		'Enable/Disable' =	DISABLE,
- --		'Password' =	(any invalid password)
- --     2.	RECEIVE BACnet-Error-PDU,
- --		Error Class =	SECURITY,
- --		Error Code =	PASSWORD_FAILURE
- --     3.	VERIFY (Device, X), 
- --		(any required non-array property) = (the value for this property specified in the EPICS)
+ --     1.    TRANSMIT DeviceCommunicationControl-Request,
+ --        'Enable/Disable' =    DISABLE,
+ --        'Password' =    (any invalid password)
+ --     2.    RECEIVE BACnet-Error-PDU,
+ --        Error Class =    SECURITY,
+ --        Error Code =    PASSWORD_FAILURE
+ --     3.    VERIFY (Device, X), 
+ --        (any required non-array property) = (the value for this property specified in the EPICS)
 
   DEPENDENCIES None
 
@@ -880,62 +678,42 @@ TEST #6 9.21.2.1	Invalid Password
  -- Step #1: TRANSMIT DeviceCommunicationControl-Request,
 
  SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = DeviceCommunicationControl
-    	UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
-	ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
-    	CHARACTERSTRING = 2, PASSW               ; PASSWORD (Device should ignore if it does not support passwords)			 
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = DeviceCommunicationControl
+        UNSIGNED = 0, 1                        ; Time-Duration (is set out of service for 1 minute)
+    ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
+        CHARACTERSTRING = 2, PASSW               ; PASSWORD (Device should ignore if it does not support passwords)             
     )
 
  -- Step #2: RECEIVE BACnet-Error-PDU,
 
  EXPECT  (
-  	NETWORK     = TD_PORT
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-  	DER         = FALSE
-  	PDU         = ERROR
-  	ERROR-CHoice = ReadProperty
-  	ENUMERATED = 4                       ;  4  = error class SECURITY  pg 363 in the bacnet standard
-  	ENUMERATED = 26	               ;  26 = PASSWORD_FAILURE 
+    SA = IUT_ADDR
+      PDU         = ERROR
+      ERROR-CHoice = ReadProperty
+      ENUMERATED = 4                       ;  4  = error class SECURITY  pg 363 in the bacnet standard
+      ENUMERATED = 26                   ;  26 = PASSWORD_FAILURE 
 )
  -- Step #3 VERIFY (Device, X), 
 
  SEND (
-     	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier
-      	OpenTag 3
-         	AL = {Object-Identifier}
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier
+          OpenTag 3
+             AL = {Object-Identifier}
+          CloseTag 3
     )
 
  -- ----------------------------------------------------------------------------------------------------
@@ -949,16 +727,16 @@ TEST #7 9.21.2.2  Missing Password
 
  --     Test Steps:
 
- --     1.	TRANSMIT DeviceCommunicationControl-Request,
- --		'Enable/Disable' =	DISABLE,
- --     2.	(RECEIVE BACnet-Error-PDU,
- --		Error Class =	SECURITY,
- --		Error Code =	PASSWORD_FAILURE)
- --	        (RECEIVE BACnet-Error-PDU,
- --		Error Class =	SERVICES,
- --		Error Code =	MISSING_REQUIRED_PARAMETER)
- --     3.	VERIFY (Device, X), 
- --		(any required non-array property) = (the value for this property specified in the EPICS)
+ --     1.    TRANSMIT DeviceCommunicationControl-Request,
+ --        'Enable/Disable' =    DISABLE,
+ --     2.    (RECEIVE BACnet-Error-PDU,
+ --        Error Class =    SECURITY,
+ --        Error Code =    PASSWORD_FAILURE)
+ --            (RECEIVE BACnet-Error-PDU,
+ --        Error Class =    SERVICES,
+ --        Error Code =    MISSING_REQUIRED_PARAMETER)
+ --     3.    VERIFY (Device, X), 
+ --        (any required non-array property) = (the value for this property specified in the EPICS)
 
 
   DEPENDENCIES None
@@ -969,70 +747,48 @@ TEST #7 9.21.2.2  Missing Password
 -- Step #1: TRANSMIT DeviceCommunicationControl-Request,
 
  SEND (
-    	NETWORK = TD_PORT
-    	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-    	Service = DeviceCommunicationControl
-    	ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
-    		 
+        DA = IUT_ADDR
+          PDU = Confirmed-Request
+        Service = DeviceCommunicationControl
+        ENUMERATED = 1, 1                        ; ENABLE(0)/DIASABLE(1) (Device is disabled)
+             
     )
 
  -- Step #2: RECEIVE BACnet-Error-PDU
 
  EXPECT (
-  	NETWORK     = TD_PORT
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-  	DER         = FALSE
-  	PDU         = ERROR
-  	ERROR-CHoice = ReadProperty
-  	ENUMERATED = 4                       ;  4  = error class SECURITY  pg 363 in the bacnet standard
-  	ENUMERATED = 26	               ;  26 = PASSWORD_FAILURE 
+    SA = IUT_ADDR
+      PDU         = ERROR
+      ERROR-CHoice = ReadProperty
+      ENUMERATED = 4                       ;  4  = error class SECURITY  pg 363 in the bacnet standard
+      ENUMERATED = 26                   ;  26 = PASSWORD_FAILURE 
  )
 
   OR (
-  NETWORK     = TD_PORT
-  DER         = FALSE
   PDU         = ERROR
   ERROR-CHoice = ReadProperty
   ENUMERATED = 5                       ;  5 = error class services  pg 363 in the bacnet standard
-  ENUMERATED = 16	               ;  16 = error code MISSING-REQUIRED-Parameters 
+  ENUMERATED = 16                   ;  16 = error code MISSING-REQUIRED-Parameters 
  )  
 
 
  --  Step #3 VERIFY (Device,X), (any required non-array property)=(the value for this property as described in the Configuration  --   --          Requirements)
 
   SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier	; Type BACnetObjectIdentifier
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier    ; Type BACnetObjectIdentifier
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-    	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Object-Identifier
-      	OpenTag 3
-         	AL = {Object-Identifier}
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Object-Identifier
+          OpenTag 3
+             AL = {Object-Identifier}
+          CloseTag 3
     )

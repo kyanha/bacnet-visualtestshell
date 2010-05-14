@@ -19,70 +19,7 @@
 ;---------------
 
 SETUP Polarity Functionality
-
-;-------------------------------------------------------------------------
-;MAC Address Setup
-;-------------------------------------------------------------------------
-
-
-;IUT_MAC = 02
-;MY_MAC  = 0x000000B0D0E911F6
-
- IUT_IP = "IUT_IP"
-TD_IP  = "TD_IP"
-TD_PORT = "bip"
- 
-;IUT_MAC = <address> ; MAC Address of the device you are testing.
-;MY_MAC  = <address> ; MAC Address of your VTS test machine.
-; Replace <address> with the actual MAC address
-; ARCNET MAC is 2 bytes
-; MS/TP MAC is 2 bytes
-; ETHERNET MAC is 16 bytes
-; VTS2 requires an even number of hex characters.
-; VTS3 requires a valid C-style constant (hex is 0x01, for example)
-
-;VTS2
-;NET_1 = 1, ETHERNET, 0 ;Network setup for VTS Test Machine - Net, Type, Port
-;Type can be ARCNET, MS/TP, ETHERNET
-;VTS3
------------------------------------------------------------------------------
-;NET_1 = "TD"
------------------------------------------------------------------------------
-;NET_1 = <"name"> ;Network setup for VTS Test Machine - Net, Type, Port
-; Replace <name> with the name of a port that is user defined in VTS3
-
-;-------------------------------------------------------------------------
-;Routing Setup
-;  by default IUT and TD are on the same Ethernet segment
-;------------------------------------------------------------------------- 
-;
-; Set the DNET of the remote network 
-; Comment out the following line if there is no routing (place a -- before it)
--- DNET_REMOTE_NET  = <DNET>,<type>     
-
-;DNET_REMOTE_NET = 3,ARCNET     
-
-; Replace <DNET> with the destination network number
-; Replace <type> with ARCNET, MS/TP, ETHERNET
-;
-; Every SEND block within the script must contain 
-; either Option 1: or Option 2: 
-; (See Script Customization help for more inforamtion)
-;
-;    Option 1:  Both the Device being tested and the VTS machine 
-;               are on the same segment
-; DESTINATION = IUT_MAC        
-;
-;   
-;    Option 2:  Device being tested is on an MSTP segment and the 
-;               VTS machine is on an Ethernet segment
-; DA = Broadcast
-; DNET = DNET_REMOTE_NET
-; DADR = IUT_MAC
-;
-;------------------------------------------------------------------------ 
-
-
+INCLUDE "..\config.vts"
 ;-------------------------------------------------------------------------
 ; Variable Setup and TEST NOTES (Combined with Test Notes)
 ;------------------------------------------------------------------------- 
@@ -163,20 +100,8 @@ REFERENCE (B) 12.4.11
 -- Step #1: ReadProperty-Request
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Polarity
@@ -185,18 +110,14 @@ REFERENCE (B) 12.4.11
 -- Step #2 ReadProperty-ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Polarity
       OpenTag 3
         ; store the value in a temp 
-	; so that we can use it for step 5 and 6
+    ; so that we can use it for step 5 and 6
         Enumerated = 0
       CloseTag 3
       )
@@ -204,20 +125,8 @@ REFERENCE (B) 12.4.11
 -- Step #3: ReadProperty-Request
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 2
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Present-Value
@@ -226,18 +135,14 @@ REFERENCE (B) 12.4.11
 -- Step #4 ReadProperty-ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Present-Value
       OpenTag 3
         ; store the value in a temp 
-	; so that we can use it for step 5 and 6
+        ; so that we can use it for step 5 and 6
         Enumerated = 0 ;BACnetBinaryPV InActive
         ;Enumerated = 1 ;BACnetBinaryPV Active
       CloseTag 3
@@ -246,25 +151,13 @@ REFERENCE (B) 12.4.11
 -- Step #5 IF () THEN
 -- Note to tester -- how do I get IF/THEN functionality in VTS?
 
---	IF (the Polarity value in step 2 was NORMAL) THEN
---		WRITE Polarity = REVERSE
---		VERIFY Polarity = REVERSE
+--    IF (the Polarity value in step 2 was NORMAL) THEN
+--        WRITE Polarity = REVERSE
+--        VERIFY Polarity = REVERSE
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 3
       Service = WriteProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Polarity
@@ -275,41 +168,21 @@ REFERENCE (B) 12.4.11
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 4
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Polarity
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
@@ -319,25 +192,13 @@ REFERENCE (B) 12.4.11
       CloseTag 3
       )
 
---	ELSE
---		WRITE Polarity = NORMAL
---		VERIFY Polarity = NORMAL
+--    ELSE
+--        WRITE Polarity = NORMAL
+--        VERIFY Polarity = NORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 5
       Service = WriteProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Polarity
@@ -348,41 +209,21 @@ REFERENCE (B) 12.4.11
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 6
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Polarity
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
@@ -396,34 +237,18 @@ REFERENCE (B) 12.4.11
 -- Step #6 IF () THEN
 -- Note to tester -- how do I get this functionality in VTS?
 
---	IF (the Present_Value in step 4 was ACTIVE) THEN
---		VERIFY Present_Value = INACTIVE
+--    IF (the Present_Value in step 4 was ACTIVE) THEN
+--        VERIFY Present_Value = INACTIVE
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 7
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
@@ -433,35 +258,19 @@ REFERENCE (B) 12.4.11
       CloseTag 3
       )
 
---	ELSE
---		VERIFY Present_Value = ACTIVE
+--    ELSE
+--        VERIFY Present_Value = ACTIVE
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 8
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_INPUT_OBJECT
@@ -506,20 +315,8 @@ REFERENCE (B) 12.5.11
 -- Step #1: ReadProperty-Request
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 9
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Polarity
@@ -528,18 +325,14 @@ REFERENCE (B) 12.5.11
 -- Step #2 ReadProperty-ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Polarity
       OpenTag 3
         ; store the value in a temp 
-	; so that we can use it for step 5 and 6
+    ; so that we can use it for step 5 and 6
         Enumerated = 0
       CloseTag 3
       )
@@ -547,20 +340,8 @@ REFERENCE (B) 12.5.11
 -- Step #3: ReadProperty-Request
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 10
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Present-Value
@@ -569,18 +350,14 @@ REFERENCE (B) 12.5.11
 -- Step #4 ReadProperty-ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Present-Value
       OpenTag 3
         ; store the value in a temp 
-	; so that we can use it for step 5 and 6
+    ; so that we can use it for step 5 and 6
         Enumerated = 0 ;BACnetBinaryPV InActive
         ;Enumerated = 1 ;BACnetBinaryPV Active
       CloseTag 3
@@ -592,25 +369,13 @@ REFERENCE (B) 12.5.11
 -- Step #6 IF () THEN
 -- Note to tester -- how do I get IF/THEN functionality in VTS?
 
---	IF (the Polarity value in step 2 was NORMAL) THEN
---		WRITE Polarity = REVERSE
---		VERIFY Polarity = REVERSE
+--    IF (the Polarity value in step 2 was NORMAL) THEN
+--        WRITE Polarity = REVERSE
+--        VERIFY Polarity = REVERSE
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 11
       Service = WriteProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Polarity
@@ -621,41 +386,21 @@ REFERENCE (B) 12.5.11
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 12
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Polarity
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
@@ -665,25 +410,13 @@ REFERENCE (B) 12.5.11
       CloseTag 3
       )
 
---	ELSE
---		WRITE Polarity = NORMAL
---		VERIFY Polarity = NORMAL
+--    ELSE
+--        WRITE Polarity = NORMAL
+--        VERIFY Polarity = NORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 13
       Service = WriteProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Polarity
@@ -694,41 +427,21 @@ REFERENCE (B) 12.5.11
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 14
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Polarity
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
@@ -742,34 +455,18 @@ REFERENCE (B) 12.5.11
 -- Step #7 IF () THEN
 -- Note to tester -- how do I get this functionality in VTS?
 
---	IF (the Present_Value in step 4 was ACTIVE) THEN
---		VERIFY Present_Value = INACTIVE
+--    IF (the Present_Value in step 4 was ACTIVE) THEN
+--        VERIFY Present_Value = INACTIVE
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 15
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
@@ -779,35 +476,19 @@ REFERENCE (B) 12.5.11
       CloseTag 3
       )
 
---	ELSE
---		VERIFY Present_Value = ACTIVE
+--    ELSE
+--        VERIFY Present_Value = ACTIVE
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      ;DNET = 65535                                   ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 16
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      ;DA =BROADCAST 
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OUTPUT_OBJECT

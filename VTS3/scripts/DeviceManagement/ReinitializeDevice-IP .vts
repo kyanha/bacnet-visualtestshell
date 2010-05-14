@@ -3,19 +3,20 @@
   ;  "DRAFT COPY--- DO NOT DISTRIBUTE"
   ;  ReInitmmddyy.vts
   ;
-  ;  Ver 1.0   03/31/01    P. Bowen	Initial version
+  ;  Ver 1.0   03/31/01    P. Bowen    Initial version
   ;  Ver 1.1   09/17/01    Bradsp     Marked with easy change symbols and Routing sections  
   ;  vER 1.2   10/10/01    Bradsp     Corrected multiple Simple-Ack to VTS wording SimpleAck
   ;  VER 1.3   11/01/01    BRADSP     FIXES TO TEST 2, A AND B
   ;  Purpose:  The purpose of this test group is to verify correct execution of  
-  ;	ReinitializeDevice service requests under circumstances where the service
-  ;	is expected to be successfully completed.
+  ;    ReinitializeDevice service requests under circumstances where the service
+  ;    is expected to be successfully completed.
   ;  
   ;  In the REFERENCE section "(B)" refers to the BACnet standard and
   ;  "(T)" refers to the testing addendum.
   ;-------------------------------------------------------------------------------------
   
   SETUP ReinitializeDevice Service Execution Tests
+  INCLUDE "..\config.vts"
 
   ;------------------------------------------------------------------------------------- 
   ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties 
@@ -27,16 +28,12 @@
   ; TD_CONFIG   All objects and properties are listed here including notes on there use
   ;
 
+  SERVICES = 5            ; Error class: Services
+  MISSING_PARAMETER = 16    ; Error code: Missing Required Parameter
+  PASSWORD_FAILURE = 26        ; Error code: Password Failure
   
-  TD_IP  = "TD_IP"
-  TD_PORT = "bip"
-
-  SERVICES = 5			; Error class: Services
-  MISSING_PARAMETER = 16	; Error code: Missing Required Parameter
-  PASSWORD_FAILURE = 26		; Error code: Password Failure
-  
-  COLDSTART = 0			; Coldstart constant
-  WARMSTART = 1			; Warmstart constant
+  COLDSTART = 0            ; Coldstart constant
+  WARMSTART = 1            ; Warmstart constant
 
   -- TEST #1 COLDSTART with no Password
               -- MANUAL SEND AND RECEIVE   
@@ -60,30 +57,13 @@
   ; IUT_CONFIG
   ;
   
-  IUT_IP = "IUT_IP"			; Address of IUT
-
-  PASSWORD = ANSI,"Test"		; Password, replace with vendor's re-init password
+  PASSWORD = ANSI,"Test"        ; Password, replace with vendor's re-init password
   BADPASSWORD = ANSI,"AA"
   ;-------------------------------------------------------------------------------------
  
    SECTION ReinitializeDevice Service Execution Tests
 
   -- Configuration Requirements: IUT is on the same network as the TD.
-
-  ;-------------------------------------------------------------------------------------
-  ;
-  ;  Routing_Config
-  ;  
-
-  -- DNET_MSTP = 20001, MS/TP     ; Sets the DNET of the remote MSTP network (Comment if no routing) ***
-
-  ;-----IUT and TD are on the same Ethernet segment
-  ;   DESTINATION = IUT_MAC 
-  ;-----IUT is on an MSTP segment and TD is on an Ethernet segment
-  ;   DA = Broadcast
-  ;   DNET = DNET_MSTP
-  ;   DADR = IUT_MAC
-  ;---------------------------------------- 
 
   ;-------------------------------------------------------------------------------------
   TEST #1 COLDSTART with no Password
@@ -94,15 +74,15 @@
 
   -- Test Steps:
   --  1. TRANSMIT ReinitializeDevice-Request,
-  --		'Reinitialized State of Device' = COLDSTART
+  --        'Reinitialized State of Device' = COLDSTART
   --  2. (RECEIVE BACnet-SimpleAck-PDU
   --  3. CHECK (Did the IUT perform a COLDSTART reboot?) or
-  --		(RECEIVE BACnet-Error-PDU,
-  --			Error Class = SECURITY, 
-  --			Error Code = PASSWORD_FAILURE) or
-  --		(RECEIVE BACnet-Error-PDU,
-  --			Error Class = SERVICES,
-  --			Error Code = MISSING_REQUIRED_PARAMETER)
+  --        (RECEIVE BACnet-Error-PDU,
+  --            Error Class = SECURITY, 
+  --            Error Code = PASSWORD_FAILURE) or
+  --        (RECEIVE BACnet-Error-PDU,
+  --            Error Class = SERVICES,
+  --            Error Code = MISSING_REQUIRED_PARAMETER)
 
   -- Passing Result: Two cases are possible. If the IUT requires the use of a
   -- password one of the specified errors shall be returned. If the IUT does not
@@ -118,27 +98,17 @@
   -- Step #1: Transmit Reinitialize Device service request
 
    SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
+    DA = IUT_ADDR
     PDU = Confirmed-Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InVokeID = 3
     Service = ReinitializeDevice
-    ENUM = 0, COLDSTART			; Request a coldstart, no password
+    ENUM = 0, COLDSTART            ; Request a coldstart, no password
     )
 
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    NETWORK = TD_PORT
-    DA = TD_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    DA = TD_ADDR
+    SA = IUT_ADDR
     PDU = SimpleAck
     Service = ReinitializeDevice
     )
@@ -146,21 +116,17 @@
   -- Step #3: Check for indication of IUT coldstart or receive an error
 
   OR (
-    NETWORK = TD_PORT
-    DER = FALSE
     PDU = Error
     Error-Choice = ReinitializeDevice
-    ENUM = 5    ;SERVICES			; Error class: Services
-    ENUM = 26   ;PASSWORD_FAILURE		; Error code: Password Failure
+    ENUM = 5    ;SERVICES            ; Error class: Services
+    ENUM = 26   ;PASSWORD_FAILURE        ; Error code: Password Failure
     )
 
   OR (
-    NETWORK = TD_PORT
-    DER = FALSE
     PDU = Error
     Error-Choice = ReinitializeDevice
-    ENUM = 5    ; SERVICES			; Error class: Services
-    ENUM = 16   ; MISSING_PARAMETER		; Error code: Missing Required Parameter
+    ENUM = 5    ; SERVICES            ; Error class: Services
+    ENUM = 16   ; MISSING_PARAMETER        ; Error code: Missing Required Parameter
     )
 
   ;-------------------------------------------------------------------------------------
@@ -178,8 +144,8 @@
 
   -- Test Steps:
   --  1. TRANSMIT ReinitializeDevice-Request,
-  --		'Reinitialized State of Device' = COLDSTART
-  --		'Password' = (any appropriate password as described in the Test Concept)
+  --        'Reinitialized State of Device' = COLDSTART
+  --        'Password' = (any appropriate password as described in the Test Concept)
   --  2. (RECEIVE BACnet-SimpleAck-PDU
   --  3. CHECK (Did the IUT perform a COLDSTART reboot?) 
  
@@ -194,28 +160,18 @@
   -- Step #1: Transmit Reinitialize Device service request with password
 
    SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
+    DA = IUT_ADDR
     PDU = Confirmed-Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InVokeID = 3
     Service = ReinitializeDevice
-    ENUM = 0, COLDSTART			; Request a coldstart
-    CHARSTRING = PASSWORD		; With password
+    ENUM = 0, COLDSTART            ; Request a coldstart
+    CHARSTRING = PASSWORD        ; With password
     )
 
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    NETWORK = TD_PORT
-    DA = TD_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    DA = TD_ADDR
+    SA = IUT_ADDR
     PDU = SimpleAck
     Service = ReinitializeDevice
     )
@@ -230,15 +186,15 @@
 
   -- Test Steps:
   --  1. TRANSMIT ReinitializeDevice-Request,
-  --		'Reinitialized State of Device' = WARMSTART
+  --        'Reinitialized State of Device' = WARMSTART
   --  2. (RECEIVE BACnet-Simple-ACK-PDU
   --  3. CHECK (Did the IUT perform a WARMSTART reboot?) or
-  --		(RECEIVE BACnet-Error-PDU,
-  --			Error Class = SECURITY, 
-  --			Error Code = PASSWORD_FAILURE) or
-  --		(RECEIVE BACnet-Error-PDU,
-  --			Error Class = SERVICES,
-  --			Error Code = MISSING_REQUIRED_PARAMETER)
+  --        (RECEIVE BACnet-Error-PDU,
+  --            Error Class = SECURITY, 
+  --            Error Code = PASSWORD_FAILURE) or
+  --        (RECEIVE BACnet-Error-PDU,
+  --            Error Class = SERVICES,
+  --            Error Code = MISSING_REQUIRED_PARAMETER)
 
   -- Passing Result: Two cases are possible. If the IUT requires the use of a password
   -- one of the specified errors shall be returned. If the IUT does not require the 
@@ -254,27 +210,17 @@
   -- Step #1: Transmit Reinitialize Device service request
 
    SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
+    DA = IUT_ADDR
     PDU = Confirmed-Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InVokeID = 3
     Service = ReinitializeDevice
-    ENUM = 0, WARMSTART			; Request a warmstart, no password
+    ENUM = 0, WARMSTART            ; Request a warmstart, no password
     )
 
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    NETWORK = TD_PORT
-    DA = TD_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    DA = TD_ADDR
+    SA = IUT_ADDR
     PDU = SimpleAck
     Service = ReinitializeDevice
     )
@@ -282,25 +228,19 @@
   -- Step #3: Check for indication of IUT warmstart or receive an error
 
   OR (
-    NETWORK = TD_PORT
-    bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    SA = IUT_ADDR
     PDU = Error
     Error-Choice = ReinitializeDevice
-    ENUM = 5			; Error class: Services
-    ENUM = 26		; Error code: Password Failure
+    ENUM = 5            ; Error class: Services
+    ENUM = 26        ; Error code: Password Failure
     )
 
   OR (
-    NETWORK = TD_PORT
-    bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    SA = IUT_ADDR
     PDU = Error
     Error-Choice = ReinitializeDevice
-    ENUM = 5   ; SERVICES			; Error class: Services
-    ENUM = 16  ; MISSING_PARAMETER		; Error code: Missing Required Parameter
+    ENUM = 5   ; SERVICES            ; Error class: Services
+    ENUM = 16  ; MISSING_PARAMETER        ; Error code: Missing Required Parameter
     )
 
   ;-------------------------------------------------------------------------------------
@@ -318,8 +258,8 @@
 
   -- Test Steps:
   --  1. TRANSMIT ReinitializeDevice-Request,
-  --		'Reinitialized State of Device' = WARMSTART
-  --		'Password' = (any appropriate password as described in the Test Concept)
+  --        'Reinitialized State of Device' = WARMSTART
+  --        'Password' = (any appropriate password as described in the Test Concept)
   --  2. (RECEIVE BACnet-Simple-ACK-PDU
   --  3. CHECK (Did the IUT perform a WARMSTART reboot?) 
  
@@ -334,28 +274,18 @@
   -- Step #1: Transmit Reinitialize Device service request with password
 
    SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
+    DA = IUT_ADDR
     PDU = Confirmed-Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InVokeID = 3
     Service = ReinitializeDevice
-    ENUM = 0, WARMSTART			; Request a warmstart
-    CHARSTRING = 1, PASSWORD		; With password
+    ENUM = 0, WARMSTART            ; Request a warmstart
+    CHARSTRING = 1, PASSWORD        ; With password
     )
 
   -- Step #2: Receive Simple ACK
 
   EXPECT (
-    NETWORK = TD_PORT
-    DA = TD_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    DA = TD_ADDR
+    SA = IUT_ADDR
     PDU = SimpleAck
     Service = ReinitializeDevice
     )
@@ -385,25 +315,15 @@
  REFERENCE (B) ReinitializeDevice Service and (T)9.24.2.1
 
  SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
+    DA = IUT_ADDR
     PDU = Confirmed-Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InVokeID = 3
     Service = ReinitializeDevice
     ENUM = 0, COLDSTART ; Request a COLDSTART
     CHARSTRING = 1, BADPASSWORD         ; With BAD password
     )
 
 EXPECT (
-    NETWORK = TD_PORT
-    bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    SA = IUT_ADDR
     PDU = Error
     Error-Choice = ReinitializeDevice
     ENUM = 4   ; SECURITY
@@ -427,25 +347,15 @@ EXPECT (
  REFERENCE (B) ReinitializeDevice Service and (T)9.24.2.2
 
  SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
+    DA = IUT_ADDR
     PDU = Confirmed-Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InVokeID = 3
     Service = ReinitializeDevice
     ENUM = 0, WARMSTART   ; Request a WARMSTART
     CHARSTRING = 1, BADPASSWORD         ; With BAD password
     )
 
 EXPECT (
-    NETWORK = TD_PORT
-    bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
-    DER = FALSE
+    SA = IUT_ADDR
     PDU = Error
     Error-Choice = ReinitializeDevice
     ENUM = 4   ; SECURITY

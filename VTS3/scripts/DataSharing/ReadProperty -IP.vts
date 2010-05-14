@@ -1,9 +1,6 @@
 
   SETUP Positive ReadProperty Tests
-
-
-  IUT_IP = "IUT_IP"
-  TD_PORT = "bip"
+  INCLUDE "..\config.vts"
 
   OBJECT1 = DEVICE,47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
@@ -37,26 +34,16 @@ SECTION ReadProperty Service Execution Tests
   REFERENCE (B) ReadProperty Service and (T) Reading Object Identifiers
 
   SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      DER = TRUE
-      bvlci =ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1470
-      InvokeID = 1
       Object = 0, OBJECT1
       Property = 1, Object-Identifier   ; Type BACnetObjectIdentifier
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa  = IUT_IP
+      Sa  = IUT_ADDR
       PDU = ComplexAck
-      bvlci =ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Object-Identifier
@@ -84,25 +71,15 @@ SECTION ReadProperty Service Execution Tests
   REFERENCE (B) ReadProperty Service and (T) Reading Enumerated Values
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI =ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1470
-      InvokeID = 2
       Object = 0, OBJECT1
       Property = 1, Object-Type
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      BVLCI =ORIGINAL-UNICAST-NPDU
-      Sa  = IUT_IP
+      Sa  = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -129,26 +106,16 @@ Test #1c - Read Property of Type CharacterString
 
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      bvlci =ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 3
       Object = 0, OBJECT1
       Property = 1, Vendor-Name
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
       PDU = ComplexAck
-      sa = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
+      sa = IUT_ADDR
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Vendor-Name
@@ -175,26 +142,16 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading Unsigned Values
 
     SEND (
-      NETWORK = TD_PORT
-      bvlci=ORIGINAL-UNICAST-NPDU
-      Da = IUT_IP
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=4
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Vendor-Identifier
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      DER = FALSE
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      bvlci=ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Vendor-Identifier
@@ -227,26 +184,16 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading Entire Arrays
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      DER = TRUE
-      BVLCI=ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=5
       Service = ReadProperty
       Object = 0, OBJECT5
       Property = 1, Priority-Array
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      BVLCI=ORIGINAL-UNICAST-NPDU
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      DER = FALSE
       Service = ReadProperty
       Object = 0, OBJECT5
       Property = 1, Priority-Array
@@ -274,15 +221,8 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading the Size of an Array
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      DER = TRUE
-      BVLCI=ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=6
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Object-List
@@ -290,11 +230,8 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      BVLCI=ORIGINAL-UNICAST-NPDU
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      DER = FALSE
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Object-List
@@ -322,15 +259,8 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
 
     SEND (
-      NETWORK =TD_PORT
-      Da = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 7
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Object-List
@@ -338,11 +268,8 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
-     DER = FALSE
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Object-List
@@ -369,26 +296,16 @@ Test #1c - Read Property of Type CharacterString
   REFERENCE (B) ReadProperty Service and (T) Reading Bitstring Values
 
   SEND (
-      NETWORK = TD_PORT
-      bvlci=ORIGINAL-UNICAST-NPDU
-      Da = IUT_IP
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=8
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Status-Flags
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      DER = FALSE
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      bvlci=ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Status-Flags
@@ -414,26 +331,16 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD
    SEND (
-      NETWORK = TD_PORT
-      bvlci=ORIGINAL-UNICAST-NPDU
-      Da = IUT_IP
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=9
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Device-Address-Binding
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      DER = FALSE
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      bvlci=ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1,Device-Address-Binding
@@ -456,15 +363,8 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD
  SEND (
-      NETWORK = TD_PORT
-      bvlci=ORIGINAL-UNICAST-NPDU
-      Da = IUT_IP
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=10
       Service = ReadProperty
       Object = 0, OBJECT5
       Property = 1, Priority-Array
@@ -472,11 +372,8 @@ Test #1c - Read Property of Type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      DER = FALSE
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      bvlci=ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT5
       Property = 1, Priority-Array
@@ -501,26 +398,16 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD
    SEND (
-      NETWORK = TD_PORT
-      bvlci=ORIGINAL-UNICAST-NPDU
-      Da = IUT_IP
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=11
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, OUT-OF-SERVICE
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      DER = FALSE
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      bvlci=ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, OUT-OF-SERVICE
@@ -543,26 +430,16 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD
    SEND (
-      NETWORK = TD_PORT
-      bvlci=ORIGINAL-UNICAST-NPDU
-      Da = IUT_IP
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=12
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, UTC-OFFSET
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      DER = FALSE
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      bvlci=ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, UTC-OFFSET
@@ -586,26 +463,16 @@ Test #1c - Read Property of Type CharacterString
 
   REFERENCE (B) ReadProperty Service and (T) TBD
   SEND (
-      NETWORK = TD_PORT
-      bvlci=ORIGINAL-UNICAST-NPDU
-      Da = IUT_IP
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=13
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Present-Value
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      DER = FALSE
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      bvlci=ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Present-Value
@@ -628,26 +495,16 @@ Test #10 - Read Property of Type Time ;
 
  REFERENCE (B) ReadProperty Service and (T) TBD
   SEND (
-      NETWORK = TD_PORT
-      bvlci=ORIGINAL-UNICAST-NPDU
-      Da = IUT_IP
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=14
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Local-Time
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      DER = FALSE
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      bvlci=ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Local-Time
@@ -672,26 +529,16 @@ Test #10 - Read Property of Type Time ;
   REFERENCE (B) ReadProperty Service and (T) TBD
 
   SEND (
-      NETWORK = TD_PORT
-      bvlci=ORIGINAL-UNICAST-NPDU
-      Da = IUT_IP
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg=0
-      SegResp=0
-      MaxResp=1476
-      InvokeID=16
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Local-Date
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa=IUT_IP
-      DER = FALSE
+      Sa=IUT_ADDR
       PDU = ComplexAck
-      bvlci=ORIGINAL-UNICAST-NPDU
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Local-Date

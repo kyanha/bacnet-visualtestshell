@@ -10,10 +10,13 @@
 ;
 ---------------------- S C R I P T   B O D Y ----------------------------------
 
-INCLUDE "BACnetIP.vts"
-INCLUDE "BACnetEnumerations.vts"
+SETUP
+INCLUDE "..\config.vts"
 
 OBJECT1 = (SCHEDULE, 1)
+
+BYTES = X'650411223344'
+
 
 SECTION General tests of the detail decoder
 -------------------------------------------------------------------------------
@@ -22,7 +25,7 @@ DEPENDENCIES None
 REFERENCE None
 
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300
@@ -49,6 +52,7 @@ REFERENCE None
 
          octetstring = X'010203' -- verify comment here
          octetstring = 0, X'010203' -- verify comment here
+         octetstring = BYTES -- verify comment here
 
          characterstring = "hi" -- verify comment here
          characterstring = 9, "hi" -- verify comment here
@@ -112,7 +116,7 @@ TEST Tags with extended length, extended tag number, or both
 DEPENDENCIES None
 REFERENCE None
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300
@@ -159,6 +163,9 @@ REFERENCE None
          -- (This isn't proper encoding, as the minimum tag ought to be used, but
          -- it serves as a test of the decoder.)
          AL = X'FD10FF0000000411223344'
+         
+         -- value from a variable
+         AL = BYTES
 
       CloseTag 2
     )
@@ -167,7 +174,7 @@ TEST Empty parameter block
 DEPENDENCIES None
 REFERENCE None
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300
@@ -180,7 +187,7 @@ TEST No parameter block (it's optional)
 DEPENDENCIES None
 REFERENCE None
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300
@@ -191,7 +198,7 @@ TEST Missing tag
 DEPENDENCIES None
 REFERENCE None
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300
@@ -204,7 +211,7 @@ TEST Missing tag at end of PDU
 DEPENDENCIES None
 REFERENCE None
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300
@@ -215,7 +222,7 @@ TEST Incorrect tag (app instead of context)
 DEPENDENCIES None
 REFERENCE None
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300
@@ -226,7 +233,7 @@ TEST Illegal application tag
 DEPENDENCIES None
 REFERENCE None
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300
@@ -245,7 +252,7 @@ TEST Orphan Opening tag
 DEPENDENCIES None
 REFERENCE None
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300
@@ -258,7 +265,7 @@ TEST Orphan Closing tag
 DEPENDENCIES None
 REFERENCE None
     SEND (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedPrivateTransfer
       Unsigned 0, 300

@@ -13,10 +13,7 @@
   ;  "(T)" refers to the testing addendum.
   ;-------------------------------------------------------------------------------------
   SETUP Positive RemoveListElement Service Execution Tests
-
-  IUT_IP = "IUT_IP"
-  TD_IP  = "TD_IP"
-   TD_PORT = "bip"
+  INCLUDE "..\config.vts"
 
   OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
@@ -44,25 +41,15 @@
 
   -- Step #1: Verify (read) the Time-Synchronization-Recipients property for the Device object
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Time-Synchronization-Recipients
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -73,10 +60,7 @@
     )
 
   OR(
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = Error
      Error-Choice = ReadProperty
      Enum = 2                  ;Error Class: Property
@@ -86,15 +70,8 @@
   -- property value and receive a simple acknowledgement
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = RemoveListElement
       Object = 0, OBJECT1
       Property = 1, Time-Synchronization-Recipients
@@ -104,19 +81,13 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = RemoveListElement
       )
 
  OR(
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = Error
      Error-Choice = RemoveListElement
     OpenTag 0
@@ -128,25 +99,15 @@
  -- Step #4: Verify that the list elements have been removed
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Time-Synchronization-Recipients
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -157,10 +118,7 @@
     )
 
   OR(
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = Error
      Error-Choice = ReadProperty
      Enum = 2                  ;Error Class: Property

@@ -3,10 +3,10 @@
   ;
   ; Unevnt06mmddyy.vts
   ;
-  ;   Ver 0.0   01/30/01	Anthony Makela	Initial version
-  ;   Ver 0.1	05/28/01	P. Bowen	Changed confirmed to unconfirmed
-  ;						event notification service and
-  ;						updated documentation as required
+  ;   Ver 0.0   01/30/01    Anthony Makela    Initial version
+  ;   Ver 0.1    05/28/01    P. Bowen    Changed confirmed to unconfirmed
+  ;                        event notification service and
+  ;                        updated documentation as required
   ;
   ;  In the REFERENCE sections "(B)" refers to the BACnet standard and
   ;  "(T)" refers to the testing addendum.
@@ -30,26 +30,8 @@
   ;--------------------------------------------------------------
 
   SETUP FloatingLimit
-
-  ;--------------------------------------------------------------
-    IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
+  INCLUDE "..\config.vts"
   
-  ;--------------------------------------------------------------
-  ;
-  ; TD_CONFIG
-  ;
-  ;"Untitled" = 1, ETHERNET, 0
-  -- The network which is directly-connected to the TD
-  -- and can be used to reach the IUT.
-  -- Adjust the parameters as needed to reflect the actual
-  -- physical environment. The first value represents the 
-  -- physical network number, the second value the physical 
-  -- network type and the third value the physical port.
-
-  ;MY_MAC = 00d0b77347fc    -- MAC address of the TD
-                           -- replace with your TD address
-
   ;--------------------------------------------------------------
   ;
   ; IUT_CONFIG
@@ -57,11 +39,6 @@
   TEST_YEAR   = 2000            -- the year the test is executed
   TEST_MONTH  = XX              -- the month the test is executed
   TEST_DAY    = XX              -- the day the test is executed
-
-  ;IUT_IP = 0040ae000e65   -- MAC address of IUT
-                           -- replace with your IUT address
-                            
-  DEVICE_ID = DEVICE,47813                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object E1
   EVENT_ID2 = EVENT-ENROLLMENT, 2       -- the event generating object E2
@@ -233,14 +210,7 @@
   -- 1. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -248,10 +218,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -271,14 +238,7 @@
 --               (Setpoint_Reference + High_Diff_Limit))
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -289,10 +249,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -302,22 +259,13 @@
   -- 4. CHECK (verify that no notification message is transmitted)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       )
 
   -- 5. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -325,10 +273,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -346,14 +291,7 @@
   --               (Setpoint_Reference + High_Diff_Limit))
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -364,10 +302,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -395,12 +330,10 @@
   --                             error-limit
 
     AND (
-      NETWORK = TD_PORT
-      DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
-      INTEGER = 0, PROCESS_ID
-      Object = 1, DEVICE_ID
+      INTEGER = 0, TD_PROCESS_ID
+      Object = 1, IUT_DEVICE_OBJECT
       Object = 2, MONITORED_ID
       OpenTag 3
         OpenTag 0
@@ -430,9 +363,7 @@
   -- 9. TRANSMIT BACnet-SimpleAck-PDU
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = FALSE
+      DA = IUT_ADDR
       PDU = SimpleAck
       Service = UnconfirmedEventNotification
       )
@@ -440,14 +371,7 @@
   -- 10. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -455,8 +379,6 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -469,14 +391,7 @@
   -- 11. VERIFY Event_State = HIGH_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -484,10 +399,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -510,14 +422,7 @@
   --               (Setpoint_Reference + High_Diff_Limit))
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -528,10 +433,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -541,20 +443,12 @@
   -- 15. CHECK (verify that no notification message has been transmitted)
 
     EXPECT (
-      NETWORK = TD_PORT
       )
 
   -- 16. VERIFY Event_State = HIGH_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -562,10 +456,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -585,14 +476,7 @@
 --               (Setpoint_Reference + High_Diff_Limit - Deadband))
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -603,10 +487,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -634,12 +515,10 @@
   --                             error-limit
 
     AND (
-      NETWORK = TD_PORT
-      DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
-      INTEGER = 0, PROCESS_ID
-      Object = 1, DEVICE_ID
+      INTEGER = 0, TD_PROCESS_ID
+      Object = 1, IUT_DEVICE_OBJECT
       Object = 2, MONITORED_ID
       OpenTag 3
         OpenTag 0
@@ -669,9 +548,7 @@
   -- 20. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = FALSE
+      DA = IUT_ADDR
       PDU = SimpleAck
       Service = UnconfirmedEventNotification
       )
@@ -679,14 +556,7 @@
   -- 21. VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -694,10 +564,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -710,14 +577,7 @@
   -- 22. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -725,10 +585,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -752,14 +609,7 @@
 --               (Setpoint_Reference - High_Diff_Limit + Deadband))
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -770,10 +620,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -783,20 +630,12 @@
   -- 26. CHECK (verify that no notification message has been transmitted)
 
     EXPECT (
-      NETWORK = TD_PORT
       )
 
   -- 27. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -804,10 +643,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -825,14 +661,7 @@
 --               (Setpoint_Reference - Low_Diff_Limit))
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -843,10 +672,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -874,12 +700,10 @@
   --                             error-limit
 
     AND (
-      NETWORK = TD_PORT
-      DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
-      INTEGER = 0, PROCESS_ID
-      Object = 1, DEVICE_ID
+      INTEGER = 0, TD_PROCESS_ID
+      Object = 1, IUT_DEVICE_OBJECT
       Object = 2, MONITORED_ID
       OpenTag 3
         OpenTag 0
@@ -909,9 +733,7 @@
   -- 31. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = FALSE
+      DA = IUT_ADDR
       PDU = SimpleAck
       Service = UnconfirmedEventNotification
       )
@@ -919,14 +741,7 @@
   -- 32. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -934,10 +749,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -950,14 +762,7 @@
   -- 33. VERIFY Event_State = LOW_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -965,10 +770,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -992,14 +794,7 @@
 --               (Setpoint_Reference - Low_Limit + Deadband))
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -1010,10 +805,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -1023,22 +815,13 @@
   -- 37. CHECK (verify that no notification message has been transmitted)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       )
 
   -- 38. VERIFY Event_State = Low_Limit
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -1046,10 +829,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -1069,14 +849,7 @@
 --               (Setpoint_Reference + High_Limit - Deadband))
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -1087,10 +860,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -1118,12 +888,10 @@
   --                             error-limit
 
     AND (
-      NETWORK = TD_PORT
-      DER = FALSE
       PDU = Confirmed-Request
       Service = UnconfirmedEventNotification
-      INTEGER = 0, PROCESS_ID
-      Object = 1, DEVICE_ID
+      INTEGER = 0, TD_PROCESS_ID
+      Object = 1, IUT_DEVICE_OBJECT
       Object = 2, MONITORED_ID
       OpenTag 3
         OpenTag 0
@@ -1153,9 +921,7 @@
   -- 42. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = FALSE
+      DA = IUT_ADDR
       PDU = SimpleAck
       Service = UnconfirmedEventNotification
       )
@@ -1163,14 +929,7 @@
   -- 43. VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -1178,10 +937,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -1194,14 +950,7 @@
   -- 44. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -1209,10 +958,7 @@
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID

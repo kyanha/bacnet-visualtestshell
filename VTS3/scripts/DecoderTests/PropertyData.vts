@@ -4,15 +4,15 @@
 
 ;--------------------------------------------------------------------------------
 ;
-INCLUDE "BACnetIP.vts"
-INCLUDE "BACnetEnumerations.vts"
+SETUP
+INCLUDE "..\config.vts"
 
 ;--------------------------------------------------------------------------------
 SECTION WriteMultiples to show various property datatypes
 Test 1 write various properties of Point objects
 
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WritePropertyMultiple
       Object = 0, ANALOG-VALUE, 1
@@ -100,7 +100,7 @@ Send (
 Test 2 write various properties of Device object
 
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WritePropertyMultiple
       Object = 0, IUT_DEVICE_OBJECT
@@ -212,7 +212,7 @@ Send (
 SECTION WriteProperties to show various property datatypes
 Test 1 write various properties of Point objects
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, ANALOG-VALUE, 1
@@ -224,7 +224,7 @@ Send (
 
 Test 2 write various properties of Point objects
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, ANALOG-VALUE, 1
@@ -238,7 +238,7 @@ Send (
 SECTION ReadPropertyAcks to show various property datatypes
 Test 1 write various properties of Point objects
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, ANALOG-VALUE, 1
@@ -250,7 +250,7 @@ Send (
 
 Test 2 write various properties of Point objects
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, ANALOG-VALUE, 1
@@ -261,7 +261,7 @@ Send (
     )
 
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT
@@ -272,7 +272,7 @@ Send (
 )
 
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT
@@ -282,7 +282,7 @@ Send (
         CloseTag 3
 )
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT
@@ -296,7 +296,7 @@ Send (
 )
 
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT
@@ -310,7 +310,7 @@ Send (
 )
 
 Send (
-      DA = IUT_IP
+      DA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, IUT_DEVICE_OBJECT

@@ -1,8 +1,8 @@
 ;-----------------------------------------------------------------------------
  SETUP ReadPropertyMultiple Service Execution Tests
+ INCLUDE "..\config.vts"
 
-  DIP = "IUT_IP"
-   TD_PORT = "bip"
+  IUT_ADDR = "IUT"
 
   OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
@@ -42,15 +42,8 @@
   -- Step #1: Send ReadPropertyMultiple request for a single property, single object
 
     SEND (
-      NETWORK = TD_PORT
-      Da = DIP
-      BVLCI=ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -61,10 +54,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -102,15 +92,8 @@
   -- Step #1: Send ReadPropertyMultiple request for multiple properties, single object
 
     SEND (
-      NETWORK = TD_PORT
-      Da = DIP
-      BVLCI=ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -123,10 +106,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -171,15 +151,8 @@
   -- Step #1: Send ReadPropertyMultiple request to multiple objects, single property
 
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp =1476
-      InvokeID = 3
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -194,10 +167,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -246,15 +216,8 @@
 
   -- Step #1: Send ReadPropertyMultiple request for multiple properties, multiple objects
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp =1476
-      InvokeID = 4
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -274,10 +237,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -333,15 +293,8 @@
   REFERENCE (B) ReadProperty Service and (T) Reading Object Identifiers
 
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 5
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -350,10 +303,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -383,15 +333,8 @@
   REFERENCE (B) ReadProperty Service and (T) Reading Enumerated Values
 
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 6
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -400,10 +343,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -433,15 +373,8 @@
   REFERENCE (B) ReadProperty Service and (T) Reading CharacterString Values
 
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 7
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -450,10 +383,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -483,15 +413,8 @@
 
   REFERENCE (B) ReadProperty Service and (T) Reading Unsigned Values
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 8
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -500,10 +423,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -537,15 +457,8 @@ TEST #1i - Read Property Multiple, Read an Entire Array
   REFERENCE (B) ReadProperty Service and (T) Reading an Entire Array
 
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 9
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -554,10 +467,7 @@ TEST #1i - Read Property Multiple, Read an Entire Array
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-     BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = error
      Error-choice = ReadPropertyMultiple
      Enum = 2
@@ -585,15 +495,8 @@ TEST #1i - Read Property Multiple, Read an Entire Array
 
   REFERENCE (B) ReadProperty Service and (T) Reading the Size of an Array
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 10
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -603,10 +506,7 @@ TEST #1i - Read Property Multiple, Read an Entire Array
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -638,15 +538,8 @@ DEPENDENCIES None
 
 REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 11
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -656,10 +549,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -689,15 +579,8 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
   REFERENCE (B) ReadProperty Service and (T) Reading Bitstring Values
 
    SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 12
       Service = ReadPropertyMultiple
       Object = 0, OBJECT2
       OpenTag 1
@@ -706,10 +589,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT2
@@ -740,15 +620,8 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
   REFERENCE (B) ReadProperty Service and (T) TBD
 
    SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 13
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -757,10 +630,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -791,15 +661,8 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
 
 
    SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 15
       Service = ReadPropertyMultiple
       Object = 0, OBJECT2
       OpenTag 1
@@ -808,10 +671,7 @@ REFERENCE (B) ReadProperty Service and (T) Reading a Single Element of an Array
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT2
@@ -838,15 +698,8 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
 
 
    SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 16
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -855,10 +708,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -886,15 +736,8 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
 
 
    SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 17
       Service = ReadPropertyMultiple
       Object = 0, OBJECT2
       OpenTag 1
@@ -903,10 +746,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT2
@@ -936,15 +776,8 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
 
 
    SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 18
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -953,10 +786,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -986,15 +816,8 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
 
 
    SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 19
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -1003,10 +826,7 @@ TEST #1p - Read Property Multiple, Type Signed--Verified by Manual  test
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = DIP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1

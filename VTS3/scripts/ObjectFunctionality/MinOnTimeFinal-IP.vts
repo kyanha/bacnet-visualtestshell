@@ -20,68 +20,7 @@
 ;---------------
 
 SETUP Minimum On Time Functionality
-
-;-------------------------------------------------------------------------
-;MAC Address Setup
-;-------------------------------------------------------------------------
-
-IUT_IP = "IUT_IP"
-TD_IP  = "TD_IP"
-TD_PORT = "bip"
-
-;IUT_MAC = 05
-;MY_MAC  = 000000B0D0E911F6
-
-;IUT_MAC = <address> ; MAC Address of the device you are testing.
-;MY_MAC  = <address> ; MAC Address of your VTS test machine.
-; Replace <address> with the actual MAC address
-; ARCNET MAC is 2 bytes
-; MS/TP MAC is 2 bytes
-; ETHERNET MAC is 16 bytes
-; VTS2 requires an even number of hex characters.
-; VTS3 requires a valid C-style constant (hex is 0x01, for example)
-
-;VTS2
-
-;NET_1 = 1, ETHERNET, 0 ;Network setup for VTS Test Machine - Net, Type, Port
-
-;Type can be ARCNET, MS/TP, ETHERNET
-;VTS3
-;NET_1 = "TD"
-;NET_1 = <"name"> ;Network setup for VTS Test Machine - Net, Type, Port
-; Replace <name> with the name of a port that is user defined in VTS3
-
-;-------------------------------------------------------------------------
-;Routing Setup
-;  by default IUT and TD are on the same Ethernet segment
-;------------------------------------------------------------------------- 
-;
-; Set the DNET of the remote network 
-; Comment out the following line if there is no routing (place a -- before it)
--- DNET_REMOTE_NET  = <DNET>,<type>     
-
-;DNET_REMOTE_NET = 4885, MS/TP    
-
-; Replace <DNET> with the destination network number
-; Replace <type> with ARCNET, MS/TP, ETHERNET
-;
-; Every SEND block within the script must contain 
-; either Option 1: or Option 2: 
-; (See Script Customization help for more inforamtion)
-;
-;    Option 1:  Both the Device being tested and the VTS machine 
-;               are on the same segment
-; DESTINATION = IUT_MAC        
-;
-;   
-;    Option 2:  Device being tested is on an MSTP segment and the 
-;               VTS machine is on an Ethernet segment
-; DA = Broadcast
-; DNET = DNET_REMOTE_NET
-; DADR = IUT_MAC
-;
-;------------------------------------------------------------------------ 
-
+INCLUDE "..\config.vts"
 
 ;-------------------------------------------------------------------------
 ; Variable Setup and TEST NOTES (Combined with Test Notes)
@@ -191,20 +130,8 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
 -- less than 7 have a value of NULL.
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 15
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -213,30 +140,14 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       CloseTag 3
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
       
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -246,30 +157,14 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 1 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      SA = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 2
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -279,31 +174,15 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 2 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 3
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -313,30 +192,14 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 3 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 4
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -346,30 +209,14 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 4 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 5
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -379,30 +226,14 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 5 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 15
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -412,30 +243,14 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 7 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 15
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -445,11 +260,7 @@ REFERENCE (B) 12.5.20, 12.6.18, 19.3, and Annex I (T) 7.3.1.5
       Unsigned = 4, 6 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -465,20 +276,8 @@ Test #1 Write PV
 -- Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 6
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -488,11 +287,7 @@ Test #1 Write PV
       Unsigned = 4, 7 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -500,30 +295,14 @@ Test #1 Write PV
 -- Step #2: VERIFY Present_Value = ACTIVE
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 7
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
@@ -536,31 +315,15 @@ Test #1 Write PV
 -- Step #3: VERIFY Priority_Array = ACTIVE, ARRAY_INDEX = 6
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 8
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Priority-Array
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
@@ -578,31 +341,15 @@ Test #4 WAIT (MINIMUM_ON_TIME_90_PERCENT) then run
 -- Step #5: VERIFY Priority_Array = ACTIVE, ARRAY_INDEX = 6
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 9
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Priority-Array
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
@@ -620,31 +367,15 @@ Test #5 WAIT (MINIMUM_ON_FAIL_TIME)
 -- Step #7: VERIFY Priority_Array = NULL, ARRAY INDEX = 6
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 10
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Priority-Array
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
@@ -696,20 +427,8 @@ REFERENCE (B) 19 (T) 7.3.1.6
 -- less than 7 have a value of NULL.
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 11
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -719,30 +438,14 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 1 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 12
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -752,31 +455,15 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 2 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 13
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -786,30 +473,14 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 3 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 14
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -819,30 +490,14 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 4 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 15
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -852,30 +507,14 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 5 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 15
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -885,30 +524,14 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 7 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 15
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -918,11 +541,7 @@ REFERENCE (B) 19 (T) 7.3.1.6
       Unsigned = 4, 6 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -937,20 +556,8 @@ REFERENCE (B) 19 (T) 7.3.1.6
 Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 16
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -960,11 +567,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
       Unsigned = 4, 7 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -972,30 +575,14 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 -- Step #2: VERIFY Present_Value = ACTIVE
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 17
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
@@ -1008,31 +595,15 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 -- Step #3: VERIFY Priority_Array = ACTIVE, ARRAY_INDEX = 6
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 18
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Priority-Array
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
@@ -1051,20 +622,8 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
    ; no wait should be necessary
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 19
       Service = WriteProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
@@ -1074,11 +633,7 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
       Unsigned = 4, 5 ;priority
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -1086,30 +641,14 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 -- Step #5: VERIFY Present_Value = INACTIVE
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 20
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Present-Value
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
@@ -1122,31 +661,15 @@ Test #2 Step #1: WRITE Present_Value = ACTIVE, PRIORITY = 7
 -- Step #6: VERIFY Priority_Array = INACTIVE, ARRAY_INDEX = 6
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 21
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1
       Property = 1, Priority-Array
       Unsigned = 2, 6 ; array index 
       )
     EXPECT (
-      NETWORK = TD_PORT
-      DA =BROADCAST 
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, BINARY_OBJECT_1

@@ -1,7 +1,6 @@
 -----------------------------------------------------------------------------
  SETUP ReadPropertyMultiple Service Execution Tests
-  IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
+ INCLUDE "..\config.vts"
 
   OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
@@ -37,15 +36,8 @@
   -- Step #1: Send ReadPropertyMultiple request for all properties
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0,OBJECT1       ; OBJECTX
       OpenTag 1
@@ -55,10 +47,7 @@
   -- Step #2 & #3: Receive ReadPropertyMultiple ACK and verify manually
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1                       ;OBJECTX,here give Device_Obj as example
@@ -209,15 +198,8 @@
   -- Step #1: Send ReadPropertyMultiple request for all required properties
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -227,10 +209,7 @@
   -- Step #2 & #3: Receive ReadPropertyMultiple ACK and verify manually
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1                       ;OBJECTX,here give Device_Obj as example
@@ -350,15 +329,8 @@
   -- Step #1: Send ReadPropertyMultiple request for Optional properties
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = TRUE
-      SegResp = TRUE
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -368,10 +340,7 @@
   -- Step #2 & #3: Receive ReadPropertyMultiple ACK and verify manually
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1                       ;OBJECTX,here give Device_Obj as example

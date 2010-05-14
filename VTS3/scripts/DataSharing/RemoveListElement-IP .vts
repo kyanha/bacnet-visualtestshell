@@ -14,25 +14,16 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Positive RemoveListElement Service Execution Tests
+  INCLUDE "..\config.vts"     ; Address of the IUT
 
   ;-------------------------------------------------------------------------------------
   ;
   ; TD_CONFIG
   ;
-  TD_IP  = "TD_IP"
-
 
   OBJECT1 = Device, 47814
   OBJECT2 = Device, 8001
   OBJECT3 = Device, 8002
-
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-
-  IUT_IP = "IUT_IP"     ; Address of the IUT
-   TD_PORT = "bip"
 
   ;-------------------------------------------------------------------------------------
 
@@ -50,14 +41,7 @@
   -- Step #1: Verify (read) the Time-Synchronization-Recipients property for the Device object
 
     SEND (
-        NETWORK = TD_PORT
-        DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
-        SegMsg = 0
-        SegResp = 0
-        MaxResp = 1476
-    InVokeID = 3
+        DA = IUT_ADDR
         PDU = Confirmed-Request
         Service = ReadProperty
         Object = 0, OBJECT1
@@ -65,10 +49,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SA = IUT_IP
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -82,14 +63,7 @@
   -- property value and receive a simple acknowledgement
 
     SEND (
-        NETWORK = TD_PORT
-        DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
-        SegMsg = 0
-        SegResp = 0
-        MaxResp = 1476
-    InVokeID = 3
+        DA = IUT_ADDR
         PDU = Confirmed-Request
         Service = RemoveListElement
         Object = 0, OBJECT1
@@ -101,10 +75,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SA = IUT_IP
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = RemoveListElement
       )
@@ -112,15 +83,7 @@
  -- Step #4: Verify that the list elements have been removed
 
     SEND (
-        NETWORK = TD_PORT
-        DA = IUT_IP
-        DER = TRUE
-        bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
-        SegMsg = 0
-        SegResp = 0
-        MaxResp = 1476
-    InVokeID = 3
+        DA = IUT_ADDR
     PDU = Confirmed-Request
         Service = ReadProperty
         Object = 0, OBJECT1
@@ -128,10 +91,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SA = IUT_IP
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1

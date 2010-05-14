@@ -7,7 +7,8 @@
   ;  "(T)" refers to the testing addendum.
   ;--------------------------------------------------------------------------------
 
-   SETUP Negative WriteProperty Tests
+  SETUP Negative WriteProperty Tests
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties
@@ -35,11 +36,7 @@
 
   ;--------------------------------------------------------------------------------
   ;
-   IUT_IP = "IUT_IP"
-  TD_IP  = "TD_IP"
-   TD_PORT = "bip"
 
-   OBJECT1 = device, 47814        -- Device ID for the IUT
    OBJECT2 = ANALOG-VALUE, 1
   ;--------------------------------------------------------------------------------
 
@@ -60,17 +57,10 @@ REFERENCE (B) WriteProperty Service and (T) 9.19.2.1
 
 
  SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = WriteProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, LOCATION
       Unsigned = 2, 2
       OPENTAG 3
@@ -79,10 +69,7 @@ REFERENCE (B) WriteProperty Service and (T) 9.19.2.1
    )
 
  EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = Error
       ERROR-Choice = WriteProperty
       ENUMERATED = 2 ; SERVICE
@@ -106,15 +93,8 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.2
 
 
  SEND (
-   NETWORK = TD_PORT
-   DA = IUT_IP
-   DER = TRUE
-   BVLCI = ORIGINAL-UNICAST-NPDU
+   DA = IUT_ADDR
    PDU = Confirmed-Request
-   SegMsg = 0
-   SegResp = 0
-   MaxResp = 1476
-   InvokeID = 2
    Service = WriteProperty
    Object = 0, Object2
    Property = 1, PRIORITY-ARRAY
@@ -125,20 +105,14 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.2
    )
 
  EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = Error
       ERROR-Choice = WriteProperty
       ENUMERATED = 2   ; PROPERTY,
       ENUMERATED = 42  ; INVALID_ARRAY_INDEX
    )
   OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = Error
       ERROR-Choice = WriteProperty
       ENUMERATED = 2 ; Property
@@ -161,17 +135,10 @@ DEPENDENCIES None
 REFERENCE (B) WriteProperty Service and (T)9.19.2.3
 
  SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = WriteProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, LOCATION
       OPENTAG 3
        UNSIGNED = 1    ; 'Property Value'       = (Any value with an invalid datatype)
@@ -179,10 +146,7 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.3
    )
 
  EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = Error
       ERROR-Choice = WriteProperty
       ENUMERATED = 2          ; PROPERTY
@@ -206,15 +170,8 @@ DEPENDENCIES None
 REFERENCE (B) WriteProperty Service and (T)9.19.2.4
 
  SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT2                       ;(Object1, any object with writable properties)
       Property = 1, PRESENT-VALUE               ;(P1, any Property with a restricted range of value)
@@ -224,10 +181,7 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.4
    )
 
  EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = Error
       ERROR-Choice = WriteProperty
       ENUMERATED = 2    ; PROPERTY
@@ -235,19 +189,13 @@ REFERENCE (B) WriteProperty Service and (T)9.19.2.4
    )
 
  OR (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = Reject
       REJECT-REASON = 6 ; PARAMETER_OUT_OF_RANGE
    )
 --no writable Property with a restricted range of value  from Object1
 OR (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
    )
@@ -255,15 +203,8 @@ OR (
 
 --Write EPICS Value back to the Property
  SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT2                       ;(Object1, any object with writable properties)
       Property = 1, PRESENT-VALUE               ;(P1, any Property with a restricted range of value)
@@ -273,10 +214,7 @@ OR (
    )
 
   Expect(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
 

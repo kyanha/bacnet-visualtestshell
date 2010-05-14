@@ -48,7 +48,7 @@ SECTION Service templates
 
 ITEM AcknowledgeAlarm-Request
   SEND (
-    DA = "IUT"
+    DA = IUT_ADDR
     PDU = Confirmed-Request
     Service = AcknowledgeAlarm
     Unsigned 0,         your_acknowledgingProcessIdentifier
@@ -70,7 +70,7 @@ ITEM AcknowledgeAlarm-Request
   )
 
   EXPECT (
-    SA  = "IUT"
+    SA  = IUT_ADDR
     PDU = ComplexAck
     Service = AcknowledgeAlarm
     Object = <object>
@@ -79,7 +79,7 @@ ENDITEM
 
 ITEM CreateObject - ObjectType CHOICE
   SEND (
-    DA = "IUT"
+    DA = IUT_ADDR
     PDU = Confirmed-Request
     Service = CreateObject
     OpenTag 0
@@ -91,7 +91,7 @@ ITEM CreateObject - ObjectType CHOICE
   )
 
   EXPECT (
-    SA  = "IUT"
+    SA  = IUT_ADDR
     PDU = ComplexAck
     Service = CreateObject
     Object = <object>
@@ -100,7 +100,7 @@ ENDITEM
 
 ITEM CreateObject - ObjectIdentifier CHOICE
   SEND (
-    DA = "IUT"
+    DA = IUT_ADDR
     PDU = Confirmed-Request
     Service = CreateObject
     OpenTag 0
@@ -112,7 +112,7 @@ ITEM CreateObject - ObjectIdentifier CHOICE
   )
 
   EXPECT (
-    SA  = "IUT"   
+    SA  = IUT_ADDR   
     PDU = ComplexAck
     Service = CreateObject
     Object = <object>
@@ -121,7 +121,7 @@ ENDITEM
 
 ITEM ReadProperty
   SEND (
-    DA = "IUT"
+    DA = IUT_ADDR
     PDU = Confirmed-Request
     Service = ReadProperty
     Object = 0, object-type, instance
@@ -130,7 +130,7 @@ ITEM ReadProperty
   )
 
   EXPECT (
-    SA  = "IUT"   
+    SA  = IUT_ADDR   
     PDU = ComplexAck
     Service = ReadProperty
     Object = 0, OBJECT1
@@ -144,7 +144,7 @@ ENDITEM
 
 ITEM WriteProperty
   SEND (
-    DA = "IUT"
+    DA = IUT_ADDR
     PDU = Confirmed-Request
     Service = WriteProperty
     Object = 0, object-type, instance
@@ -157,7 +157,7 @@ ITEM WriteProperty
   )
 
   EXPECT (
-    SA  = "IUT"   
+    SA  = IUT_ADDR   
     PDU = SimpleAck
     Service = WriteProperty
   )
@@ -165,7 +165,7 @@ ENDITEM
 
 ITEM AtomicReadFile - Stream Access
   SEND (
-    DA = "IUT"
+    DA = IUT_ADDR
     PDU = Confirmed-Request
     Service = AtomicReadFile
     Object = object-type, instance
@@ -176,7 +176,7 @@ ITEM AtomicReadFile - Stream Access
   )
 
   EXPECT (
-    SA  = "IUT"   
+    SA  = IUT_ADDR   
     PDU = ComplexAck
     Service = AtomicReadFile
     Boolean     ? -- endOfFile
@@ -189,7 +189,7 @@ ENDITEM
 
 ITEM AtomicReadFile - Record Access
   SEND (
-    DA = "IUT"
+    DA = IUT_ADDR
     PDU = Confirmed-Request
     Service = AtomicReadFile
     Object = object-type, instance
@@ -200,7 +200,7 @@ ITEM AtomicReadFile - Record Access
   )
 
   EXPECT (
-    SA  = "IUT"   
+    SA  = IUT_ADDR   
     PDU = ComplexAck
     Service = AtomicReadFile
     Boolean     ? -- endOfFile
@@ -215,7 +215,7 @@ ENDITEM
 
 ITEM AtomicWriteFile - Stream Access
   SEND (
-    DA = "IUT"
+    DA = IUT_ADDR
     PDU = Confirmed-Request
     Service = AtomicWriteFile
     Object = object-type, instance
@@ -226,7 +226,7 @@ ITEM AtomicWriteFile - Stream Access
   )
 
   EXPECT (
-    SA  = "IUT"   
+    SA  = IUT_ADDR   
     PDU = ComplexAck
     Service = AtomicWriteFile
     Integer 0, ? -- fileStartPosition
@@ -235,7 +235,7 @@ ENDITEM
 
 ITEM AtomicWriteFile - Record Access
   SEND (
-    DA = "IUT"
+    DA = IUT_ADDR
     PDU = Confirmed-Request
     Service = AtomicWriteFile
     Object = object-type, instance
@@ -247,7 +247,7 @@ ITEM AtomicWriteFile - Record Access
   )
 
   EXPECT (
-    SA  = "IUT"   
+    SA  = IUT_ADDR   
     PDU = ComplexAck
     Service = AtomicWriteFile
     Integer 1, ? -- fileStartRecord

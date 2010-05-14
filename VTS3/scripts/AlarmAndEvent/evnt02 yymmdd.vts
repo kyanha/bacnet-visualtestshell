@@ -1,7 +1,7 @@
 ;--------------------------------------------------------------
   ; Testing Support for CHANGE_OF_STATE Test
   ;
-  ; Exec_EventType_ChangeofState.vts	evnt02mmddyy.vts
+  ; Exec_EventType_ChangeofState.vts    evnt02mmddyy.vts
   ; 8.3.2
   ;   Ver 0.0   01/30/01    Anthony Makela
   ;
@@ -29,26 +29,8 @@
 
 
 SETUP ChangeofState
-
-  ;--------------------------------------------------------------
-    IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
+INCLUDE "..\config.vts"
   
-  ;--------------------------------------------------------------
-  ;
-  ; TD_CONFIG
-  ;
-  ;"Untitled" = 1, ETHERNET, 0
-  -- The network which is directly-connected to the TD
-  -- and can be used to reach the IUT.
-  -- Adjust the parameters as needed to reflect the actual
-  -- physical environment. The first value represents the 
-  -- physical network number, the second value the physical 
-  -- network type and the third value the physical port.
-
-  ;MY_MAC = 00d0b77347fc    -- MAC address of the TD
-                           -- replace with you TD address
-
   ;--------------------------------------------------------------
   ;
   ; IUT_CONFIG
@@ -56,12 +38,6 @@ SETUP ChangeofState
   TEST_YEAR   = 2000            -- the year the test is executed
   TEST_MONTH  = XX              -- the month the test is executed
   TEST_DAY    = XX              -- the day the test is executed
-
-  ;IUT_IP = 0040ae000e65   -- MAC address of IUT
-                           -- replace with your IUT address
-                            
-  DEVICE_ID = DEVICE,47814                -- Device object instance for IUT.
-  TARGET_DEVICE_ID = DEVICE,1000                -- Device object instance for IUT.
 
   Notify1 = Notification-Class,5 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object E1
@@ -111,7 +87,6 @@ SETUP ChangeofState
                                 -- be generated
   OFFNORMAL_PRIORITY = 90       -- the priority at which offnormal transitions
                                 -- will be generated
-  PROCESS_ID1 = 10
   NOTIFY_TYPE1 = NOTIFY_TYPE_ALARM   -- the notify type of the event to be
                                     -- generated
 
@@ -178,15 +153,8 @@ SETUP ChangeofState
 
   Test #1 Set-up the multistate-object
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WriteProperty
       Object = 0, MONITORED_ID
       Property = 1, number-of-states
@@ -196,10 +164,7 @@ SETUP ChangeofState
    )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
@@ -208,15 +173,8 @@ SETUP ChangeofState
   DEPENDENCIES References Notify 1 object
   REFERENCE (B) Notify Recipient List
     SEND (
-      NETWORK = TD_PORT 
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WriteProperty
       Object = 0, Notify1
       Property = 1, Recipient_list
@@ -224,8 +182,8 @@ SETUP ChangeofState
             BitString = t, t, t, t, t, t , t     -- mtwtf !ss
             TIME = [00:00:04]
             Time = [23:59:58.57]
-            object = 0,TARGET_DEVICE_ID  
-            Unsigned = PROCESS_ID1               -- processIdentifier
+            object = 0,TD_DEVICE_OBJECT  
+            Unsigned = TD_PROCESS_ID               -- processIdentifier
             Bool = True                         -- issueConfirmedNotificatons
             BitString = t, f, t                 -- transitions BACnetEventTranswitionBits off, flt, normal
 
@@ -240,24 +198,15 @@ SETUP ChangeofState
    )
 
    EXPECT (
-      NETWORK = TD_PORT 
-      SA = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
 
   TEST #3 Setup Event-Enrollment-1 for change of state
     SEND (
-      NETWORK = TD_PORT 
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 41
       Service = WritePropertyMultiple
       Object = 0, EVENT_ID 
       OpenTag 1
@@ -317,9 +266,7 @@ SETUP ChangeofState
     )
 
    EXPECT (
-      NETWORK = TD_PORT 
-      SA = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
@@ -358,14 +305,7 @@ SETUP ChangeofState
   -- 1. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, MONITORED_ID
@@ -373,10 +313,7 @@ SETUP ChangeofState
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, MONITORED_ID
@@ -396,14 +333,7 @@ SETUP ChangeofState
   --               objects)
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -414,10 +344,7 @@ SETUP ChangeofState
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -443,13 +370,11 @@ SETUP ChangeofState
   --            'Event Values' = Present_Value, Status_Flags
 
     Expect (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      INTEGER = 0, PROCESS_ID1
-      Object = 1, DEVICE_ID
+      INTEGER = 0, TD_PROCESS_ID
+      Object = 1, IUT_DEVICE_OBJECT
       Object = 2, EVENT_ID
       OpenTag 3
         OpenTag 0
@@ -476,10 +401,7 @@ SETUP ChangeofState
   -- 5. TRANSMIT BACnet-SimpleAck-PDU
 
 --    SEND (
---      NETWORK = TD_PORT
---      DA = IUT_IP
---      bvlci =ORIGINAL-UNICAST-NPDU
---      DER = FALSE
+--      DA = IUT_ADDR
 --      PDU = SimpleAck
 --      Service = ConfirmedEventNotification
 --      )
@@ -487,14 +409,7 @@ SETUP ChangeofState
   -- 6. VERIFY Status_Flags = (TRUE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -502,10 +417,7 @@ SETUP ChangeofState
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -518,14 +430,7 @@ SETUP ChangeofState
   -- 7. VERIFY Event_State = OFFNORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, MONITORED_ID
@@ -533,10 +438,7 @@ SETUP ChangeofState
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, MONITORED_ID
@@ -557,14 +459,7 @@ SETUP ChangeofState
   --              corresponds to a normal state)
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, MONITORED_ID
@@ -596,12 +491,10 @@ SETUP ChangeofState
   --            'Event Values' = Present_Value, Status_Flags
 
     AND (
-      NETWORK = TD_PORT
-      DER = FALSE
       PDU = Confirmed-Request
       Service = ConfirmedEventNotification
-      INTEGER = 0, PROCESS_ID
-      Object = 1, DEVICE_ID
+      INTEGER = 0, TD_PROCESS_ID
+      Object = 1, IUT_DEVICE_OBJECT
       Object = 2, EVENT_ID
       OpenTag 3
         OpenTag 0
@@ -629,9 +522,7 @@ SETUP ChangeofState
   -- 12. TRANSMIT BACnet-SimpleACK-PDU
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = FALSE
+      DA = IUT_ADDR
       PDU = SimpleAck
       Service = ConfirmedEventNotification
       )
@@ -639,14 +530,7 @@ SETUP ChangeofState
   -- 13. VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -654,10 +538,7 @@ SETUP ChangeofState
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, EVENT_ID
@@ -670,14 +551,7 @@ SETUP ChangeofState
   -- 14. VERIFY Event_State = NORMAL
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = ReadProperty
       Object = 0, MONITORED_ID
@@ -685,10 +559,7 @@ SETUP ChangeofState
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, MONITORED_ID
@@ -714,9 +585,7 @@ SETUP ChangeofState
   -- CHANGE: Uncomment 17 - 30 if intrinsic reporting is supported
 
 --    SEND (
---      NETWORK = TD_PORT
---      DA = IUT_IP
---      DER = TRUE
+--      DA = IUT_ADDR
 --      PDU = Confirmed-Request
 --      Service = WriteProperty
 --      Object = 0, MONITORED_ID
@@ -746,12 +615,10 @@ SETUP ChangeofState
   --                'Event Values' = Present-Value, Status_Flags
 
 --    AND (
---      NETWORK = TD_PORT
---      DER = FALSE
 --      PDU = Confirmed-Request
 --      Service = ConfirmedEventNotification
---      INTEGER = 0, PROCESS_ID
---      Object = 1, DEVICE_ID
+--      INTEGER = 0, TD_PROCESS_ID
+--      Object = 1, IUT_DEVICE_OBJECT
 --      Object = 2, MONITORED_ID
 --      OpenTag 3
 --        OpenTag 0
@@ -779,9 +646,7 @@ SETUP ChangeofState
   -- 20.     TRANSMIT BACnet-SimpleACK-PDU
 
 --    SEND (
---      NETWORK = TD_PORT
---      DA = IUT_IP
---      DER = FALSE
+--      DA = IUT_ADDR
 --      PDU = SimpleAck
 --      Service = ConfirmedEventNotification
 --      )
@@ -789,9 +654,7 @@ SETUP ChangeofState
   -- 21.     VERIFY Status_Flags = (FALSE, TRUE, FALSE, FALSE)
 
 --    SEND (
---      NETWORK = TD_PORT
---      DA = IUT_IP
---      DER = TRUE
+--      DA = IUT_ADDR
 --      PDU = Confirmed-Request
 --      Service = ReadProperty
 --      Object = 0, EVENT_ID
@@ -799,8 +662,6 @@ SETUP ChangeofState
 --      )
 
 --    EXPECT (
---      NETWORK = TD_PORT
---      DER = FALSE
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, EVENT_ID
@@ -813,9 +674,7 @@ SETUP ChangeofState
   -- 22.     VERIFY Event_State = FALSE
 
 --    SEND (
---      NETWORK = TD_PORT
---      DA = IUT_IP
---      DER = TRUE
+--      DA = IUT_ADDR
 --      PDU = Confirmed-Request
 --      Service = ReadProperty
 --      Object = 0, MONITORED_ID
@@ -823,8 +682,6 @@ SETUP ChangeofState
 --      )
 
 --    EXPECT (
---      NETWORK = TD_PORT
---      DER = FALSE
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, MONITORED_ID
@@ -847,9 +704,7 @@ SETUP ChangeofState
   --                   a NORMAL state)
 
 --    SEND (
---      NETWORK = TD_PORT
---      DA = IUT_IP
---      DER = TRUE
+--      DA = IUT_ADDR
 --      PDU = Confirmed-Request
 --      Service = WriteProperty
 --      Object = 0, MONITORED_ID
@@ -879,12 +734,10 @@ SETUP ChangeofState
   --                'Event Values' = Present-Value, Status_Flags
 
 --    AND (
---      NETWORK = TD_PORT
---      DER = FALSE
 --      PDU = Confirmed-Request
 --      Service = ConfirmedEventNotification
---      INTEGER = 0, PROCESS_ID
---      Object = 1, DEVICE_ID
+--      INTEGER = 0, TD_PROCESS_ID
+--      Object = 1, IUT_DEVICE_OBJECT
 --      Object = 2, MONITORED_ID
 --      OpenTag 3
 --        OpenTag 0
@@ -912,9 +765,7 @@ SETUP ChangeofState
   -- 27.     TRANSMIT BACnet-SimpleACK-PDU
 
 --    SEND (
---      NETWORK = TD_PORT
---      DA = IUT_IP
---      DER = FALSE
+--      DA = IUT_ADDR
 --      PDU = SimpleAck
 --      Service = ConfirmedEventNotification
 --      )
@@ -922,9 +773,7 @@ SETUP ChangeofState
   -- 28.     VERIFY Status_Flags = (FALSE, FALSE, FALSE, FALSE)
 
 --    SEND (
---      NETWORK = TD_PORT
---      DA = IUT_IP
---      DER = TRUE
+--      DA = IUT_ADDR
 --      PDU = Confirmed-Request
 --      Service = ReadProperty
 --      Object = 0, EVENT_ID
@@ -932,8 +781,6 @@ SETUP ChangeofState
 --      )
 
 --    EXPECT (
---      NETWORK = TD_PORT
---      DER = FALSE
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, EVENT_ID
@@ -946,9 +793,7 @@ SETUP ChangeofState
   -- 29.     VERIFY Event_State = NORMAL
 
 --    SEND (
---      NETWORK = TD_PORT
---      DA = IUT_IP
---      DER = TRUE
+--      DA = IUT_ADDR
 --      PDU = Confirmed-Request
 --      Service = ReadProperty
 --      Object = 0, MONITORED_ID
@@ -956,8 +801,6 @@ SETUP ChangeofState
 --      )
 
 --    EXPECT (
---      NETWORK = TD_PORT
---      DER = FALSE
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, MONITORED_ID
