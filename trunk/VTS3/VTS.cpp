@@ -1790,15 +1790,21 @@ BOOL VTSApp::PreTranslateMessage(MSG* pMsg)
 		// ### we really need a mechanism to make sure that the lParam
 		// is a VTSDocPtr without dereferencing it.
 
+		// TODO: unless we go MDI, how about
+		VTSDocPtr pMsgDoc = (VTSDocPtr)(pMsg->lParam);
+		CDocument *pDoc = GetWorkspace();
+		bool ourDoc = (pMsgDoc == pDoc);
+
 		switch (pMsg->message)
 		{
 			case WM_VTS_RCOUNT:
+				if (!ourDoc)
+					TRACE( "PreTranslate for different documents" );
 //MAD_DB		((VTSDocPtr)(pMsg->lParam))->NewPacketCount();
-				((VTSDocPtr)(pMsg->lParam))->ProcessPacketStoreChange();
+				pMsgDoc->ProcessPacketStoreChange();
 				break;
 
 			case WM_VTS_MAXPACKETS:
-
 				// maximum packets have been reached... we're here because the main app thread
 				// has to tell us about it...
 
@@ -1806,53 +1812,54 @@ BOOL VTSApp::PreTranslateMessage(MSG* pMsg)
 				break;
 
 			case WM_VTS_PORTSTATUS:
-				((VTSDocPtr)(pMsg->lParam))->PortStatusChange();
+				if (!ourDoc)
+					TRACE( "PreTranslate for different documents" );
+				pMsgDoc->PortStatusChange();
 				break;
 
 			case WM_VTS_EXECMSG:
 				{
-				ScriptExecMsg * pexecmsg;
-
-				while ((pexecmsg = gExecutor.ReadMsg()) != NULL)
-				{
-					switch( pexecmsg->GetType() )
+					ScriptExecMsg * pexecmsg;
+					while ((pexecmsg = gExecutor.ReadMsg()) != NULL)
 					{
+						switch (pexecmsg->GetType())
+						{
 						case ScriptExecMsg::msgStatus:
-
 							{
-							ScriptMsgStatus * pmsgstatus = (ScriptMsgStatus *) pexecmsg;
-							pmsgstatus->m_pdoc->SetImageStatus( pmsgstatus->m_pbase, pmsgstatus->m_nStatus );
+								ScriptMsgStatus * pmsgstatus = (ScriptMsgStatus *) pexecmsg;
+								pmsgstatus->m_pdoc->SetImageStatus( pmsgstatus->m_pbase, pmsgstatus->m_nStatus );
 							}
 							break;
 
 						case ScriptExecMsg::msgMakeDlg:
-
 							{
-							ScriptMsgMake * pmsgmake = (ScriptMsgMake *) pexecmsg;
-
-							switch( pmsgmake->m_maketype )
-							{
+								ScriptMsgMake * pmsgmake = (ScriptMsgMake *) pexecmsg;
+								switch (pmsgmake->m_maketype)
+								{
 								case ScriptMsgMake::msgmakeCreate:
-
 									pmsgmake->m_pdlg->DoModeless();
 									break;
 
 								case ScriptMsgMake::msgmakeDestroy:
-
 									pmsgmake->m_pdlg->DestroyWindow();
 									delete pmsgmake->m_pdlg;
-							}
+								}
 							}
 							break;
 
 						default:
 							TRACE("UNKOWN Exec Msg type");
 							ASSERT(0);
-					}
+						}
 
-					delete pexecmsg;
+						delete pexecmsg;
+					}
 				}
-				}
+				break;
+			
+			default:
+				// pass along to regular processing
+				return CWinApp::PreTranslateMessage(pMsg);
 		}
 
 		// we completely processed this message
