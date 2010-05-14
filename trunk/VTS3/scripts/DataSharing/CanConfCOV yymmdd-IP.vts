@@ -17,31 +17,16 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Canceling COV Subscriptions Test Case
+  INCLUDE "..\config.vts"
 
-  ;-------------------------------------------------------------------------------------
-   IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
-   --IUT_IP = 10.10.10.100
   ;--------------------------------------------------------------
   ;
   ; TD_CONFIG
   ;
-
-  ;"bip" = 1, ETHERNET, 0   ; Net 1, type Ethernet, Port 0  which connects the TD and IUT
-
-  ;MY_MAC = 000102B22D5C        ; MAC address of the TD
-
   OBJECT1 = Analog-Value, 1 ; Object which is the subject of this test case
 
   PID = 10          ; Same PID as in Confirmed COV Notifications Test Case
   WRITE_PRIORITY = 1        ; Priority for writing changes
-
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-
-  ;IUT_IP = 0040AE001360    ; Address of IUT
 
   ;-------------------------------------------------------------------------------------
 
@@ -80,14 +65,7 @@
   -- Step #1 & 2: Send Unsubscribe COV Request to IUT and Receive Simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = SubscribeCOV        ; Cancel COV Subscription request
       Unsigned = 0, PID         ; Process-Identifier = PID
@@ -95,10 +73,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = SubscribeCOV
     )
@@ -112,14 +87,7 @@
   -- COV Notification is issued
 
    SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = WriteProperty
       Object = 0, OBJECT1
@@ -131,10 +99,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )

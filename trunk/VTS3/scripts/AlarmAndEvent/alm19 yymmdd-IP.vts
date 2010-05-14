@@ -1,7 +1,7 @@
 ;--------------------------------------------------------------
   ; Testing Support for GetAlarmSummary Service Execution Tests
   ;
-  ; Exec_AlarmSummary_None_One_Multiple_ActiveAlarms.vts	alm19mmddyy.vts
+  ; Exec_AlarmSummary_None_One_Multiple_ActiveAlarms.vts    alm19mmddyy.vts
   ; 9.4.1 thru 9.4.3
   ;   Ver 0.0   02/07/01    Anthony Makela
   ;
@@ -29,26 +29,8 @@
 
 
 SETUP AlarmSummaries
-
-  ;--------------------------------------------------------------
-   IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
+INCLUDE "..\config.vts"
   
-  ;--------------------------------------------------------------
-  ;
-  ; TD_CONFIG
-  ;
-  ;"Untitled" = 1, ETHERNET, 0
-  -- The network which is directly-connected to the TD
-  -- and can be used to reach the IUT.
-  -- Adjust the parameters as needed to reflect the actual
-  -- physical environment. The first value represents the 
-  -- physical network number, the second value the physical 
-  -- network type and the third value the physical port.
-
-  ;MY_MAC = 0050dafdecaa    -- MAC address of the TD
-                           -- replace with you TD address
-
   ;--------------------------------------------------------------
   ;
   ; IUT_CONFIG
@@ -57,14 +39,9 @@ SETUP AlarmSummaries
   TEST_MONTH  = XX              -- the month the test is executed
   TEST_DAY    = XX              -- the day the test is executed
 
-  ;IUT_MAC = 0040ae000e3a   -- MAC address of IUT
-                           -- replace with your IUT address
-                            
-  DEVICE_ID = DEVICE,47814                -- Device object instance for IUT.
-
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object E1
   EVENT_ID2 = EVENT-ENROLLMENT, 2       -- the event generating object E2
-  MONITORED_ID = BINARY-VALUE,1		;MULTISTATE-INPUT, 1    -- the monitored object, same as 
+  MONITORED_ID = BINARY-VALUE,1        ;MULTISTATE-INPUT, 1    -- the monitored object, same as 
                                         -- above if intrinsic
   MONITORED_ID2 = BINARY-VALUE,2   -- a second monitored object. 
   MONITORED_PROP = Present-Value        -- the monitored property, 
@@ -188,14 +165,7 @@ SETUP AlarmSummaries
   -- 1. TRANSMIT GetAlarmSummary-Request
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = FALSE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GetAlarmSummary
       )
@@ -204,10 +174,7 @@ SETUP AlarmSummaries
   --      'List of Alarm Summaries' = (an empty list)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = GetAlarmSummary
       )
@@ -225,14 +192,7 @@ SETUP AlarmSummaries
   -- 1. TRANSMIT GetAlarmSummary-Request
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = FALSE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GetAlarmSummary
       )
@@ -244,15 +204,12 @@ SETUP AlarmSummaries
   -- CHANGE: Set the alarm type as required.
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = GetAlarmSummary
       Object = MONITORED_ID
       ENUM = EVENT_STATE_OFFNORMAL
-      BITSTRING = T,F,F		;T,T,T,T
+      BITSTRING = T,F,F        ;T,T,T,T
       )
 
 
@@ -269,14 +226,7 @@ SETUP AlarmSummaries
   -- 1. TRANSMIT GetAlarmSummary-Request
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = FALSE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GetAlarmSummary
       )
@@ -288,10 +238,7 @@ SETUP AlarmSummaries
   -- CHANGE: Set the alarm type as required.
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = GetAlarmSummary
       Object = MONITORED_ID2

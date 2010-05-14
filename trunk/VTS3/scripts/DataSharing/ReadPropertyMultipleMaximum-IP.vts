@@ -13,9 +13,7 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Positive ReadProperty Tests
-
-  IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
+  INCLUDE "..\config.vts"
 
   OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
@@ -60,15 +58,8 @@
 
 --step 1:test pass if not above maximum
 SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0           ;not One Segment of a Confirmed-Service Request
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -242,10 +233,7 @@ CloseTag 1
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -904,15 +892,8 @@ CloseTag 1
     )
 --step 2:verified if above maximum
 SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0           ;not One Segment of a Confirmed-Service Request
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -1087,10 +1068,7 @@ CloseTag 1
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1
@@ -1753,10 +1731,7 @@ CloseTag 1
     )
 
 OR (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      Sa = IUT_ADDR
       PDU = Abort
       Service = ReadPropertyMultiple
       Abort-Reason = 4              ;Segment-not-supported

@@ -16,26 +16,18 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Finite Lifetime Subscriptions Test Case
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ;
   ; TD_CONFIG
   ;
- TD_IP  = "TD_IP"
 
   OBJECT1 = Analog-Value, 1 ; Object which is the subject of the COV tests
 
   PID = 60          ; Subscriber Process Identifier
   LIFETIME = 120        ; Subscription lifetime in seconds
   WRITE_PRIORITY = 1
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-
---  IUT_IP = 10.10.10.100
-  IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
   ;-------------------------------------------------------------------------------------
 
    SECTION Finite Lifetime Subscriptions Test Case
@@ -120,15 +112,8 @@
   -- Steps #1 & 2: Subscribe to COV and Receive Simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = SubscribeCOV
       Unsigned = 0, PID         ; Process-Identifier = PID
       Object = 1, OBJECT1       ; Object-Identifier = OBJECT1
@@ -137,10 +122,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = SubscribeCOV
     )
@@ -153,10 +135,7 @@
   -- Step #4: Receive Confirmed COV Notification Request
 
   EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedCOVNotification
   )
@@ -167,15 +146,8 @@
   -- Step #5: Make Out-of-Service = TRUE and Cause a COV Notification to be issued
 
    SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Out-of-Service
@@ -186,10 +158,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
@@ -200,10 +169,7 @@
   -- Step #6: Receive Confirmed COV Notification Request
 
   EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedCOVNotification
   )
@@ -220,15 +186,8 @@
   -- Step #8: Make Out-of-Service = FALSE and Cause a COV Notification to be issued
 
    SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Out-of-Service
@@ -239,10 +198,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )

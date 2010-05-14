@@ -10,9 +10,8 @@
 ; Purpose: Test the various flavors of BACnetEventNotification
 ;
 ---------------------- S C R I P T   B O D Y ----------------------------------
-
-INCLUDE "BACnetIP.vts"
-INCLUDE "BACnetEnumerations.vts"
+SETUP Test the various flavors of BACnetEventNotification
+INCLUDE "..\config.vts"
 
 OBJECT1 = (ANALOG-INPUT, 1)
 OBJECT2 = (ANALOG-OUTPUT, 1)
@@ -25,9 +24,9 @@ TEST 0 Change of bitstring
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -62,9 +61,9 @@ TEST 1.1 Change of state - BOOLEAN
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -97,9 +96,9 @@ TEST 1.2 Change of state - BinaryPV
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -132,9 +131,9 @@ TEST 1.3 Change of state - Unsigned
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -167,9 +166,9 @@ TEST 2.1 Change of value - BITSTRING
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -204,9 +203,9 @@ TEST 2.2 Change of value - REAL
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -241,9 +240,9 @@ TEST 3.1 command failure analog
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -281,9 +280,9 @@ TEST 3.2 command failure binaryPV
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -321,9 +320,9 @@ TEST 3.3 command failure boolean
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -361,9 +360,9 @@ TEST 3.4 command failure unsigned
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -402,9 +401,9 @@ TEST 4 floating limit
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -442,9 +441,9 @@ TEST 5 Out of Range
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -480,9 +479,9 @@ TEST 6 Complex event type
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -525,9 +524,9 @@ TEST 8.1 Change of life safety - low values
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -563,9 +562,9 @@ TEST 8.2 Change of life safety - high values
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -601,9 +600,9 @@ TEST 9 Extended
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -656,9 +655,9 @@ TEST 10.1 Buffer Ready with device
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -698,9 +697,9 @@ TEST 10.2 Buffer Ready without device
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -738,9 +737,9 @@ TEST 11 unsigned range
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT
@@ -776,9 +775,9 @@ TEST N ACK Notification
 DEPENDENCIES None
 REFERENCE None
    SEND (
-      DA = IUT_IP
-      PDU = Confirmed-Request
-      Service = ConfirmedEventNotification
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedEventNotification
 
       Unsigned = 0, 123456
       Object = 1, IUT_DEVICE_OBJECT

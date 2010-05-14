@@ -8,15 +8,10 @@
   ;  "(T)" refers to the testing addendum.
   ;--------------------------------------------------------------------------------
 
-   SETUP Add Scripts for Device245146
+  SETUP Add Scripts for Device245146
+  INCLUDE "..\config.vts"
 
   ;--------------------------------------------------------------------------------
-  ;
-   IUT_IP = "IUT_IP"
-  TD_IP  = "TD_IP"
-   TD_PORT = "bip"
-
-   OBJECT1 = device, 47814        -- Device ID for the IUT
    OBJECT2 = ANALOG-VALUE, 1
    OBJECT3 = BINARY-VALUE,1
    OBJECT4 = NOTIFICATION-CLASS,1
@@ -41,17 +36,10 @@ Test 1 write property of Dev_Obj
  ;Step 1: Read Properties Initial Values from EPICS
 
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp =1476
-      InvokeID = 4
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Location
          Property = 0, UTC-Offset
@@ -60,13 +48,10 @@ Test 1 write property of Dev_Obj
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Location
          OpenTag 4
@@ -84,17 +69,10 @@ Test 1 write property of Dev_Obj
  ;Step 2: Write Test Values to those Property
 
   Send (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
         Property = 0, Location
         OpenTag 2
@@ -110,10 +88,7 @@ Test 1 write property of Dev_Obj
        )
 
   EXPECT(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SIMPLEACK
       SERVICE = WritePropertyMultiple
        )
@@ -122,17 +97,10 @@ Test 1 write property of Dev_Obj
  ;Step 3: Read those Properties and Verified those new test values
 
     SEND (
-      NETWORK = TD_PORT
-      DER = TRUE
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp =1476
-      InvokeID = 4
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 0, Location
          Property = 0, UTC-Offset
@@ -141,13 +109,10 @@ Test 1 write property of Dev_Obj
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      DER = FALSE
-      Sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
          Property = 2, Location
          OpenTag 4
@@ -164,17 +129,10 @@ Test 1 write property of Dev_Obj
  ;Step 4: Write initial Values back to those Properties
 
   Send (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       OpenTag 1
         Property = 0, Location
         OpenTag 2
@@ -190,10 +148,7 @@ Test 1 write property of Dev_Obj
        )
 
   EXPECT(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SIMPLEACK
       SERVICE = WRITEPROPERTYMULTIPLE
        )
@@ -203,55 +158,35 @@ Test 2 Write Property of Local-Time
 
 --Step1: Write new value to property
   Send(
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WriteProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time
       OpenTag 3
        Time = 12:34:56.78
       CloseTag 3
      )
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
 
 --Step2:Read the property and verified the last test
   Send(
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
-      Object = 0, OBJECT1
+      Object = 0, IUT_DEVICE_OBJECT
       Property = 1, Local-Time
       OpenTag 3
        Time = 12:34:?.?           ;RRT(Round Trip Time) is 2 second or so

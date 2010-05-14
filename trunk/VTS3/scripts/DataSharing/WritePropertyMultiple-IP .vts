@@ -18,6 +18,7 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP WritePropertyMultiple Tests
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties
@@ -27,9 +28,6 @@
   ;
   ; TD_CONFIG   All objects and properties are listed here including notes on there use
   ;
-   IUT_IP = "IUT_IP"
-  TD_IP  = "TD_IP"
-   TD_PORT = "bip"
 
   OBJECT1 = Analog-Value, 1
   OBJECT2 = Analog-Value, 2
@@ -166,21 +164,6 @@
 
   ;-------------------------------------------------------------------------------------
 
-  ;-------------------------------------------------------------------------------------
-  ;
-  ;  Routing_Config
-  ;
-
-  -- DNET_MSTP = 20001, MS/TP     ; Sets the DNET of the remote MSTP network (Comment if no routing) ***
-
-  ;-----IUT and TD are on the same Ethernet segment
-  ;   DESTINATION = IUT_MAC
-  ;-----IUT is on an MSTP segment and TD is on an Ethernet segment
-  ;   DA = Broadcast
-  ;   DNET = DNET_MSTP
-  ;   DADR = IUT_MAC
-  ;-------------------------------------------------------------------------------------
-
   SECTION Positive WritePropertyMultiple Service Execution Tests
 
   -- Configuration Requirements:
@@ -215,25 +198,15 @@
   -- Step #1: Verify the current value of property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Relinquish-Default
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -246,15 +219,8 @@
   -- Steps #2 and #3: Write a new value to property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -266,18 +232,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -293,25 +253,15 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Relinquish-Default
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -325,15 +275,8 @@
   -- Optional Final Step: Write initial value back to property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -345,18 +288,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -397,25 +334,15 @@
   -- Step #1: Verify the current value of property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Relinquish-Default
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -428,25 +355,15 @@
   -- Step #2: Verify (read) the current value of property P2
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, COV-Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -459,15 +376,8 @@
   -- Steps #3 and #4: Write new values to P1 and P2 using WPM service
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -483,18 +393,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -510,25 +414,15 @@
   -- Step #5: Verify the current value of property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Relinquish-Default
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -542,25 +436,15 @@
    -- Step #6: Verify the current value of property P2
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 5
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, COV-Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -574,15 +458,8 @@
   -- Optional Final Step: Write initial values back to P1 and P2
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 6
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -598,18 +475,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -651,25 +522,15 @@
   -- Step #1: Verify the current value of property P1 for Object #1
 
    SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, COV-Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -682,25 +543,15 @@
   -- Step #2: Verify (read) the current value of property P2 for Object #2
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, COV-Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
@@ -711,10 +562,7 @@
     )
 
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = ReadProperty
        Enum = 1               ;Object
@@ -724,15 +572,8 @@
   -- property P2 for Object #2 using WPM service
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -751,18 +592,12 @@
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -778,25 +613,15 @@
   -- Step #5: Verify the current value of property P1 for object #1
 
    SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, COV-Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -810,25 +635,15 @@
   -- Step #6: Verify the current value of property P2 for Object #2
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 5
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, COV-Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
@@ -838,10 +653,7 @@
       CloseTag 3
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = ReadProperty
        Enum = 1               ;Object
@@ -853,15 +665,8 @@
   -- property P2 for Object #2
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 6
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -880,18 +685,12 @@
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -946,25 +745,15 @@
   -- Step #1: Verify the current values of properties P1 & P2 for Object #1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Relinquish-Default
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -975,25 +764,15 @@
     )
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, COV-Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -1006,25 +785,15 @@
   -- Step #2: Verify the current values of properties P3 & P4 for Object #2
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, COV-Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
@@ -1034,10 +803,7 @@
       CloseTag 3
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = ReadProperty
        Enum = 1               ;Object
@@ -1045,25 +811,15 @@
   )
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Deadband
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
@@ -1073,10 +829,7 @@
       CloseTag 3
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = ReadProperty
        Enum = 1               ;Object
@@ -1087,15 +840,8 @@
   -- and properties P3 & P4 for Object #2 using WPM service
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 5
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -1122,18 +868,12 @@
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -1148,25 +888,15 @@
   -- Step #5: Verify the current value of property P1 for Object #1
 
    SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 6
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Relinquish-Default
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -1180,25 +910,15 @@
   -- Step #6: Verify the current value of property P2 for Object #1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 7
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, COV-Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -1212,25 +932,15 @@
   -- Step #7: Verify the current values of property P3 for Object #2
 
    SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 8
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, COV_Increment
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
@@ -1240,10 +950,7 @@
       CloseTag 3
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = ReadProperty
        Enum = 1               ;Object
@@ -1253,25 +960,15 @@
   -- Step #8: Verify the current value of property P4 for Object #2
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 9
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1, Deadband
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
@@ -1281,10 +978,7 @@
       CloseTag 3
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = ReadProperty
        Enum = 1               ;Object
@@ -1295,15 +989,8 @@
   -- Object #1 and properties P3 & P4 for Object2
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 10
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -1330,18 +1017,12 @@
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -1376,25 +1057,15 @@
   -- Step #1: Verify (read) property P1 of the selected object
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, Object-Identifier   ; Verify property of type BACnetObjectIdentifier
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -1408,15 +1079,8 @@
   -- and receive simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT3
       OpenTag 1
@@ -1426,18 +1090,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -1453,25 +1111,15 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, TESTOBJECT        ; Reference temp ObjectID used in this test
       Property = 1, Object-Identifier
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, TESTOBJECT        ; Reference temp ObjectID used in this test
@@ -1482,10 +1130,7 @@
       CloseTag 3
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = ReadProperty
        Enum = 1               ;Object
@@ -1495,15 +1140,8 @@
   -- Optional Final Step: Write initial value back to property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WriteProperty
       Object = 0, TESTOBJECT        ; Reference temp ObjectID used in this test
       Property = 1, Object-Identifier
@@ -1511,18 +1149,12 @@
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WriteProperty
        Enum = 1               ;Object
@@ -1549,25 +1181,15 @@
   -- Step #1: Verify property P1 of the selected object
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, System-Status   ; Verify property of datatype ENUM
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -1580,15 +1202,8 @@
   -- Steps #2 and #3: Write new value to P1 using WPM service and receive a simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT3
       OpenTag 1
@@ -1600,18 +1215,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -1627,25 +1236,15 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, System-Status
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -1659,15 +1258,8 @@
   -- Optional Final Step: Write initial value back to P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT3
       Property = 1, System-Status
@@ -1677,18 +1269,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WriteProperty
        Enum = 2               ;Property
@@ -1717,25 +1303,15 @@
   -- Step #1: Verify (read) property P1 of the selected object
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, Location        ; Verify property of type CharacterString
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -1749,15 +1325,8 @@
   -- Steps #2 and #3: Write new value to P1 using WPM service and receive a simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT3
       OpenTag 1
@@ -1769,18 +1338,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -1796,25 +1359,15 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, Location
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -1828,15 +1381,8 @@
   -- Optional Final Step: Write inital value back to property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT3
       Property = 1, Location
@@ -1846,18 +1392,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WriteProperty
        Enum = 2               ;property
@@ -1885,25 +1425,15 @@
   -- Step #1: Verify (read) property P1 for the selected object
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Time-Delay      ; Verify property of type Unsigned
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -1913,10 +1443,7 @@
       CloseTag 3
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = ReadProperty
        Enum = 2               ;Property
@@ -1926,15 +1453,8 @@
   -- Steps #2 & 3: Write new value to property P1 using WPM service and receive ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -1946,18 +1466,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -1973,25 +1487,15 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Time-Delay
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -2001,10 +1505,7 @@
       CloseTag 3
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = ReadProperty
        Enum = 2               ;Property
@@ -2014,15 +1515,8 @@
    -- Optional Final Step: Write back in initial value to P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Time-Delay
@@ -2032,19 +1526,13 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
 
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WriteProperty
        Enum = 2               ;Property
@@ -2071,25 +1559,15 @@
  -- Step #1: Verify (read) the array value of property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Priority        ; Verify property of type Array
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT4
@@ -2102,15 +1580,8 @@
   -- Steps #2 and #3: Write new array property value and receive a simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT4
       OpenTag 1
@@ -2139,18 +1610,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -2167,25 +1632,15 @@
     -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Priority
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT4
@@ -2199,15 +1654,8 @@
   -- Optional Final Step: Restore initial array property values
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WritePropertyMultiple
       Object = 0, OBJECT4
       OpenTag 1
@@ -2236,18 +1684,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -2282,15 +1724,8 @@
   -- Step #1: Verify (read) the first array element (size) of array P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Priority        ; Verify Array size (index 0)
@@ -2298,10 +1733,7 @@
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT4
@@ -2314,15 +1746,8 @@
   -- Steps #2 and #3: Write new array size using WPM service and receive ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT4
       OpenTag 1
@@ -2335,18 +1760,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -2363,15 +1782,8 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Priority
@@ -2379,10 +1791,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT4
@@ -2397,15 +1806,8 @@
   -- Optional Final Step: Restore array size to initial value
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WritePropertyMultiple
       Object = 0, OBJECT4
       OpenTag 1
@@ -2418,18 +1820,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -2466,15 +1862,8 @@
   -- Step #1: Verify (read) an element of array P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Priority
@@ -2482,10 +1871,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT4
@@ -2499,15 +1885,8 @@
   -- Steps #2 and #3: Write new value to P1 using WPM service and receive ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT4
       OpenTag 1
@@ -2520,18 +1899,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -2548,15 +1921,8 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Priority
@@ -2564,10 +1930,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT4
@@ -2582,15 +1945,8 @@
   -- Optional Final Step: Restore array element to initial value
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WritePropertyMultiple
       Object = 0, OBJECT4
       OpenTag 1
@@ -2603,18 +1959,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -2649,15 +1999,8 @@
   -- Step #1: Verify (read) the value at Priority-Array[16] for Object1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT5
       Property = 1, Priority-Array
@@ -2665,10 +2008,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT5
@@ -2683,15 +2023,8 @@
   -- and receive a simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT5
       OpenTag 1
@@ -2703,18 +2036,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -2730,15 +2057,8 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT5
       Property = 1, Priority-Array
@@ -2746,10 +2066,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT5
@@ -2780,25 +2097,15 @@
   -- Step #1: Verify (read) the value of property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Status-Flags    ; Verify property of type BITSTRING
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -2811,15 +2118,8 @@
   -- Steps #2 and #3: Write new value to property P1 using WPM service and receive ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -2831,18 +2131,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -2858,25 +2152,15 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Status-Flags
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -2908,25 +2192,15 @@
   -- Step #1: Verify (read) the value of the list P1
 
  SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
     Service = ReadProperty
     Object = 0, OBJECT4
     Property = 1, Recipient-List    ; Read property of datatype List
   )
 
   EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
     PDU = ComplexAck
     Service = ReadProperty
     Object = 0, OBJECT4
@@ -2940,15 +2214,8 @@
   -- Steps #2 and #3: Write new value to property P1 using WPM service and receive ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT4
       OpenTag 1
@@ -2960,10 +2227,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
@@ -2971,25 +2235,15 @@
   -- Steps #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT4
       Property = 1, Recipient-List
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT4
@@ -2999,15 +2253,8 @@
       CloseTag 3
     )
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT4
       OpenTag 1
@@ -3019,10 +2266,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
@@ -3048,15 +2292,8 @@
  -- Step #1: Verify (read) property P1 for the selected object
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Priority-Array
@@ -3064,10 +2301,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -3081,15 +2315,8 @@
   -- Steps #2 & 3: Write new value to property P1 using WPM service and receive ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -3102,18 +2329,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -3130,15 +2351,8 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Priority-Array
@@ -3146,10 +2360,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -3176,25 +2387,15 @@
   -- Step #1: Verify (read) property P1 for the selected object
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Out-of-Service  ; Read property of type Boolean
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -3208,15 +2409,8 @@
   -- Steps #2 & 3: Write new value to property P1 using WPM service and receive ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -3229,10 +2423,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
@@ -3240,25 +2431,15 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Out-of-Service
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -3272,15 +2453,8 @@
   -- Optional Final Step: Return P1 to value found in EPICS
 
      SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Out-of-Service
@@ -3288,10 +2462,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
@@ -3315,25 +2486,15 @@
   -- Step #1: Verify (read) property P1 for the selected object
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, UTC_Offset  ; Read property P1 of type Signed
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -3346,15 +2507,8 @@
   -- Steps #2 & 3: Write new value to property P1 using WPM service and receive ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT3
     OpenTag 1
@@ -3366,18 +2520,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -3393,25 +2541,15 @@
   -- Step #4: Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, UTC_Offset
     )
 
    EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -3441,25 +2579,15 @@
   -- Step #1: Verify (read) the value of the property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Present-Value       ; Read property of type Real
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -3472,15 +2600,8 @@
    -- Steps #2 and #3: Write a new P1 using WPM service and receive simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -3492,10 +2613,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
@@ -3503,25 +2621,15 @@
   -- Step #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Present-Value
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -3534,15 +2642,8 @@
   -- Optional Final Step: Return P1 to value found in EPICs
 
       SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = WriteProperty
       Object = 0, OBJECT1
       Property = 1, Present-Value
@@ -3552,10 +2653,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
     )
@@ -3582,9 +2680,7 @@
   -- Step #1: Verify (read) the value of the property P1
 
 --  SEND (
---    NETWORK = NET_1
 --    DESTINATION = IUT_MAC
---    DER = TRUE
 --    PDU = Confirmed-Request
 --    Service = ReadProperty
 --    Object = 0, object
@@ -3592,8 +2688,6 @@
 --  )
 
 --  EXPECT (
---    NETWORK = NET_1
---    DER = FALSE
 --    PDU = ComplexAck
 --    Service = ReadProperty
 --    Object = 0, object
@@ -3606,10 +2700,7 @@
   -- Steps #2 & 3: Write new value to property P1 and receive ACK
 
 --    SEND (
---      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
---      DER = TRUE
---      BVLCI = ORIGINAL-UNICAST-NPDU
 --      PDU = Confirmed-Request
 --      Service = WritePropertyMultiple
 --      Object = 0, object
@@ -3622,8 +2713,6 @@
 --    )
 
 --    EXPECT (
---      NETWORK = NET_1
---      DER = FALSE
 --      PDU = SimpleAck
 --      Service = WritePropertyMultiple
 --    )
@@ -3631,9 +2720,7 @@
   -- Step #4: Verify the value written to the IUT
 
 --    SEND (
---      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
---      DER = TRUE
 --      PDU = Confirmed-Request
 --      Service = ReadProperty
 --      Object = 0, object
@@ -3641,9 +2728,6 @@
 --    )
 
 --    EXPECT (
---      NETWORK = NET_1
---      DER = FALSE
---      BVLCI = ORIGINAL-UNICAST-NPDU
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, object
@@ -3669,25 +2753,15 @@
   -- Step #1: Verify (read) the value of the property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, Local-Time      ; Read property of type Time
     )
 
     EXPECT (
-      NETWORK ="bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -3700,15 +2774,8 @@
    -- Steps #2 and #3: Write a new P1 using WPM service and receive a simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = WritePropertyMultiple
       Object = 0, OBJECT3
       OpenTag 1
@@ -3720,18 +2787,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -3747,25 +2808,15 @@
   -- Step #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, Local-Time      ; Required property of type Time
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -3791,25 +2842,15 @@
   -- Step #1: Verify (read) the value of the property P1
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, Local-Date      ; Read property of datatype Date
     )
 
     EXPECT (
-      NETWORK ="bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT3
@@ -3822,15 +2863,8 @@
    -- Steps #2 and #3: Write new P1 using WPM service and receive simple ACK
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT3
       OpenTag 1
@@ -3842,18 +2876,12 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -3869,24 +2897,14 @@
   -- Step #4 : Verify the value written to the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT3
       Property = 1, Local-Date
     )
 
 --    EXPECT (
---      NETWORK = NET_1
---      DER = FALSE
---      BVLCI = ORIGINAL-UNICAST-NPDU
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, OBJECT3
@@ -3916,10 +2934,7 @@
   -- Step #1: Verify (read) the value of the property P1
 
 --  SEND (
---    NETWORK = NET_1
 --    DESTINATION = IUT_MAC
---    DER = TRUE
---    BVLCI = ORIGINAL-UNICAST-NPDU
 --    PDU = Confirmed-Request
 --    Service = ReadProperty
 --    Object = 0, object
@@ -3927,9 +2942,6 @@
 --  )
 
 --  EXPECT (
---    NETWORK = NET_1
---    DER = FALSE
---    BVLCI = ORIGINAL-UNICAST-NPDU
 --    PDU = ComplexAck
 --    Service = ReadProperty
 --    Object = 0, object
@@ -3942,10 +2954,7 @@
   -- Steps #2 & 3: Write new value to property P1 using WPM service and receive ACK
 
 --    SEND (
---      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
---      DER = TRUE
---      BVLCI = ORIGINAL-UNICAST-NPDU
 --      PDU = Confirmed-Request
 --      Service = WritePropertyMultiple
 --     Object = 0, object
@@ -3956,8 +2965,6 @@
 --    )
 
 --    EXPECT (
---      NETWORK = NET_1
---      DER = FALSE
 --      PDU = SimpleAck
 --      Service = WritePropertyMultiple
 --    )
@@ -3965,9 +2972,7 @@
   -- Step #4: Verify the value written to the IUT
 
 --    SEND (
---      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
---      DER = TRUE
 --      PDU = Confirmed-Request
 --      Service = ReadProperty
 --      Object = 0, object
@@ -3975,9 +2980,6 @@
 --    )
 
 --    EXPECT (
---      NETWORK = NET_1
---      DER = FALSE
---      BVLCI = ORIGINAL-UNICAST-NPDU
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, object
@@ -4007,10 +3009,7 @@ Test #1W - Writing Property of Type Constructed Values
   -- Step #1: Verify (read) the value of the property P1
 
 --  SEND (
---    NETWORK = NET_1
 --    DESTINATION = IUT_MAC
---    DER = TRUE
---    BVLCI = ORIGINAL-UNICAST-NPDU
 --    PDU = Confirmed-Request
 --    Service = ReadProperty
 --    Object = 0, object
@@ -4018,9 +3017,6 @@ Test #1W - Writing Property of Type Constructed Values
 --  )
 
 --  EXPECT (
---    NETWORK = NET_1
---    DER = FALSE
---    BVLCI = ORIGINAL-UNICAST-NPDU
 --    PDU = ComplexAck
 --    Service = ReadProperty
 --    Object = 0, object
@@ -4033,9 +3029,7 @@ Test #1W - Writing Property of Type Constructed Values
   -- Steps #2 & 3: Write new value to property P1 and receive ACK
 
 --    SEND (
---      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
---      DER = TRUE
 --      PDU = Confirmed-Request
 --      Service = WritePropertyMultiple
 --     Object = 0, object
@@ -4046,8 +3040,6 @@ Test #1W - Writing Property of Type Constructed Values
 --    )
 
 --    EXPECT (
---      NETWORK = NET_1
---      DER = FALSE
 --      PDU = SimpleAck
 --      Service = WritePropertyMultiple
 --    )
@@ -4055,10 +3047,7 @@ Test #1W - Writing Property of Type Constructed Values
   -- Step #4: Verify the value written to the IUT
 
 --    SEND (
---      NETWORK = NET_1
 --      DESTINATION = IUT_MAC
---      DER = TRUE
---      BVLCI = ORIGINAL-UNICAST-NPDU
 --      PDU = Confirmed-Request
 --      Service = ReadProperty
 --      Object = 0, object
@@ -4066,9 +3055,6 @@ Test #1W - Writing Property of Type Constructed Values
 --    )
 
 --    EXPECT (
---      NETWORK = NET_1
---      DER = FALSE
---      BVLCI = ORIGINAL-UNICAST-NPDU
 --      PDU = ComplexAck
 --      Service = ReadProperty
 --      Object = 0, object

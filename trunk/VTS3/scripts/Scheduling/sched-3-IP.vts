@@ -1,7 +1,7 @@
 ;---------------
 ; Schedule Object Tests
 ;
-; Ver 1.0	5/14/2002	W.Swan	Initial version
+; Ver 1.0    5/14/2002    W.Swan    Initial version
 ;     1.1       5/22/2002       W.Swan  Test 7 added
 ;
 ; Purpose: (From 135.1P, 7.3.2.20)  The Schedule object has no properties
@@ -19,41 +19,7 @@
 ;---------------
 
 SETUP Schedule Object Tests
-
-
-;-------------------------------------------------------------------------
-;MAC Address Setup
-;-------------------------------------------------------------------------
-
-;IUT_MAC = 00602D000D0D ; MAC Address of the device you are testing.
-;MY_MAC  = 0010A4E6ED1C ; MAC Address of your VTS test machine.
-
-;NET_1 = 1, ETHERNET, 0 ; Net 1, type Ethernet, Port 0 ; Do not change
-
---IUT_IP = "IUT_IP"
-IUT_IP = "IUT_IP"
-TD_IP  = "TD_IP"
-TD_PORT = "bip"
-
-;-------------------------------------------------------------------------
-;Routing Setup by default IUT and TD are on the same Ethernet segment
-;-------------------------------------------------------------------------
--- DNET_MSTP = <DNET>, MS/TP ; Sets the DNET of the remote MSTP network
-; Replace <DNET> with the destination network number
-;
-;Every SEND block within the script must contain either Option 1: or Option 2:
-;(See Script Customization help for more information)
-;
-;Option 1: Both the Device being tested and the VTS machine are on the same
-;          segment
-; DESTINATION = IUT_MAC
-;
-;Option 2: Device being tested is on MS/TP and the VTS machine is on Ethernet
-; DA = Broadcast
-; DNET = DNET_MSTP
-; DADR = IUT_MAC
-;------------------------------------------------------------------------
-
+INCLUDE "..\config.vts"
 
 ;-----------------------------------------------------------------------
 ; Variable Setup (Combined with Test Notes)
@@ -90,25 +56,25 @@ TD_PORT = "bip"
 ;
 ; Group2:
 ;   3f:  1/24 [1/25...1/31] 2/01  (last 7 days of month)
-;   3g:  1/22 [1/23] 1/24	  (Sunday)
-;   3h:  [1/30]			  (intersection of 3f and 3g)
-;   3i:  [1/12]			  (outside both 3f and 3g)
-;   4:   [1/12]			  (3i + weekly schedule)
+;   3g:  1/22 [1/23] 1/24      (Sunday)
+;   3h:  [1/30]              (intersection of 3f and 3g)
+;   3i:  [1/12]              (outside both 3f and 3g)
+;   4:   [1/12]              (3i + weekly schedule)
 ;   5:   [1/12]
 ;
 ;
 ;
-SCHED_EVAL_TIME = 3000		;Schedule Evaluation Fail Time (doesn't work)
+SCHED_EVAL_TIME = 3000        ;Schedule Evaluation Fail Time (doesn't work)
 
-;SCHEDULE_1  = Schedule, 9	; Schedule object to be tested
+;SCHEDULE_1  = Schedule, 9    ; Schedule object to be tested
 
- SCHEDULE_1  = Schedule, 1	; Schedule object to be tested
+ SCHEDULE_1  = Schedule, 1    ; Schedule object to be tested
  
 
-	; The following values must be different for each day of the week.
-	; These values are used in nearly all the tests as a check that
-	; exception schedules override daily schedules, so that values
-	; defined for subsequent tests must be different from these.
+    ; The following values must be different for each day of the week.
+    ; These values are used in nearly all the tests as a check that
+    ; exception schedules override daily schedules, so that values
+    ; defined for subsequent tests must be different from these.
 
 ACTIVE = 1
 INACTIVE = 0
@@ -119,14 +85,14 @@ INACTIVE = 0
 
 -- TEST #3  Exception_Schedule Property Tests
 
-;CALENDAR_3  = Calendar, 0	; Calendar object referenced by Schedule object
+;CALENDAR_3  = Calendar, 0    ; Calendar object referenced by Schedule object
 
-CALENDAR_3  = Calendar, 1	; Calendar object referenced by Schedule object
+CALENDAR_3  = Calendar, 1    ; Calendar object referenced by Schedule object
 
 
 -- TEST #3g Calendar Entry WeekNDay Day Of Week Test
 
-CALENTRYDOWVAL  = 14.0			; Value V1
+CALENTRYDOWVAL  = 14.0            ; Value V1
 
 -- TEST #3h Event Priority Test
 
@@ -182,15 +148,8 @@ TEST #3g Calendar Entry WeekNDay Day Of Week Test
 ------------------------
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Effective-Period
@@ -203,25 +162,15 @@ TEST #3g Calendar Entry WeekNDay Day Of Week Test
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 -- Step #1: Configure the Schedule object's Exception_Schedule property
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 44
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Exception-Schedule
@@ -233,22 +182,19 @@ TEST #3g Calendar Entry WeekNDay Day Of Week Test
             -- WeekNDay = (any month), (any week), Sunday
             AL = X'2BFFFF07'
         CloseTag 0
-	-- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
-	OpenTag 2
+    -- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
+    OpenTag 2
           Time = [00:00:00.00]
           --REAL = CALENTRYDOWVAL
           ENUM = ACTIVE
-	CloseTag 2
-	-- eventPriority     [3] Unsigned (1..16)
+    CloseTag 2
+    -- eventPriority     [3] Unsigned (1..16)
         AL = X'390F'
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -260,11 +206,7 @@ TEST #3g Calendar Entry WeekNDay Day Of Week Test
 -- Step #2: Set date to (day before DOW active)
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                       ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                       ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [SAT, 1/22/2000]           ;JANUARY 22, 2000
@@ -273,15 +215,8 @@ TEST #3g Calendar Entry WeekNDay Day Of Week Test
 
 --   Set the schedule default to what the other test expect!
      SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 16
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Schedule_Default 
@@ -291,10 +226,7 @@ TEST #3g Calendar Entry WeekNDay Day Of Week Test
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -305,31 +237,21 @@ Test #3g.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #3: Verify Schedule Object's Present_Value != value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 45
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       OpenTag 3
-         --REAL == WEEKDAYVAL_SAT		-- value that should be present
+         --REAL == WEEKDAYVAL_SAT        -- value that should be present
           ENUM = INACTIVE
       CloseTag 3
       )
@@ -337,11 +259,7 @@ Test #3g.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #4: Set date to D1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                         ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                         ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [SUN, 1/23/2000]                       ;JANUARY 23, 2000
@@ -354,25 +272,15 @@ Test #3g.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #5: Verify Schedule Object's Present_Value == value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 46
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -386,11 +294,7 @@ Test #3g.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #6: Set date to D2 (day after DOW active)
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                  ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                  ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [MON, 1/24/2000]             ;JANUARY 24, 2000
@@ -403,31 +307,21 @@ Test #3g.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #7: Verify Schedule Object's Present_Value != value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 47
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       OpenTag 3
-         --REAL == WEEKDAYVAL_MON		-- value that should be present
+         --REAL == WEEKDAYVAL_MON        -- value that should be present
           ENUM = INACTIVE
       CloseTag 3
       )
@@ -451,15 +345,8 @@ TEST #3h Event Priority Test
 -- Step #1: Configure the Schedule object's Exception_Schedule property
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 48
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Exception-Schedule
@@ -472,36 +359,26 @@ TEST #3h Event Priority Test
               -- WeekNDay = (any month), (any week), Sunday
               AL = X'2BFFFF07'
            CloseTag 0
-    	  -- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
-	   OpenTag 2
+          -- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
+       OpenTag 2
              Time = [00:00:00.00] 
              --REAL = CALENTRYDOWVAL
              Enum = INACTIVE 
-	   CloseTag 2
-	     -- eventPriority     [3] Unsigned (1..16)
+       CloseTag 2
+         -- eventPriority     [3] Unsigned (1..16)
            AL = X'390F'
          CloseTag 3
      )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 48
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Exception-Schedule
@@ -514,22 +391,19 @@ TEST #3h Event Priority Test
               -- WeekNDay = (any month), (last 7 days), (any day of week)
               AL = X'2BFF06FF'
             CloseTag 0
-	     -- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
-	    OpenTag 2
+         -- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
+        OpenTag 2
               Time = [00:00:00.00] 
               --REAL = CALENTRYLASTVAL
               ENUM = ACTIVE
-	    CloseTag 2
-	     -- eventPriority     [3] Unsigned (1..16)
+        CloseTag 2
+         -- eventPriority     [3] Unsigned (1..16)
              AL = X'3910'
         CloseTag 3
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -541,11 +415,7 @@ TEST #3h Event Priority Test
 -- Step #2: Set date to D1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP              ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR              ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [SUN, 1/30/2000]                     ;JANUARY 30, 2000
@@ -558,25 +428,15 @@ Test #3h.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #3: Verify Schedule Object's Present_Value == value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 49
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -607,15 +467,8 @@ TEST #3i  List of BACnetTimeValue Test
 -- Step #1: Configure the Schedule object's Exception_Schedule property
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 50
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Exception-Schedule
@@ -626,25 +479,22 @@ TEST #3i  List of BACnetTimeValue Test
           -- [0] DATE = Wednesday, January 12, 2000
           AL = X'0C64010C03'
         CloseTag 0
-	-- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
-	OpenTag 2
+    -- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
+    OpenTag 2
           Time = [01:00:00.00] 
           --REAL = TIMEVAL1
           ENUM = ACTIVE
           Time = [13:00:00.00] 
           --REAL = TIMEVAL2
           ENUM = INACTIVE
-	CloseTag 2
-	-- eventPriority     [3] Unsigned (1..16)
+    CloseTag 2
+    -- eventPriority     [3] Unsigned (1..16)
         AL = X'3910'
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -656,11 +506,7 @@ TEST #3i  List of BACnetTimeValue Test
 -- Step #2: Set date and time after 1st entry
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                 ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                 ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [WED, 1/12/2000]              ;JANUARY 12, 2000
@@ -673,25 +519,15 @@ Test #3i.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #3: Verify Schedule Object's Present_Value == value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 51
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -705,11 +541,7 @@ Test #3i.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #4: Set time after 2nd entry
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                    ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                    ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [WED, 1/12/2000]                 ;JANUARY 12, 2000
@@ -722,25 +554,15 @@ Test #3i.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #5: Verify Schedule Object's Present_Value == value V2
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 52
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -775,62 +597,52 @@ TEST #4  Weekly_Schedule and Exception_Schedule Interaction Test
 -- Step #1: Configure the Schedule object's Weekly_Schedule property
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 53
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Weekly-Schedule
       OpenTag 3
-        OpenTag 0	 -- Mon
-          Time = [00:00:00.00] 	
-          --REAL = WEEKDAYVAL_MON		
+        OpenTag 0     -- Mon
+          Time = [00:00:00.00]     
+          --REAL = WEEKDAYVAL_MON        
           ENUM = INACTIVE 
         CloseTag 0
         OpenTag 0  -- Tue
-          Time = [00:00:00.00] 	 -- D1 (midnight)
-          --REAL = WEEKDAYVAL_TUE	 -- V1
+          Time = [00:00:00.00]      -- D1 (midnight)
+          --REAL = WEEKDAYVAL_TUE     -- V1
           ENUM = INACTIVE
         CloseTag 0
-        OpenTag 0	 -- Wed
+        OpenTag 0     -- Wed
           Time = [00:00:00.00] 
-          --REAL = WEEKDAYVAL_WED		
+          --REAL = WEEKDAYVAL_WED        
           ENUM = INACTIVE
         CloseTag 0
-        OpenTag 0	 -- Thu
-          Time = [00:00:00.00] 	
-          --REAL = WEEKDAYVAL_THU		
+        OpenTag 0     -- Thu
+          Time = [00:00:00.00]     
+          --REAL = WEEKDAYVAL_THU        
           ENUM = ACTIVE
         CloseTag 0
-        OpenTag 0	 -- Fri
-          Time = [00:00:00.00] 	 -- D2 (midnight)
-          --REAL = WEEKDAYVAL_FRI     	 -- V2
+        OpenTag 0     -- Fri
+          Time = [00:00:00.00]      -- D2 (midnight)
+          --REAL = WEEKDAYVAL_FRI          -- V2
           ENUM = ACTIVE
         CloseTag 0
-        OpenTag 0	 -- Sat
-          Time = [00:00:00.00] 	
-          --REAL = WEEKDAYVAL_SAT		
+        OpenTag 0     -- Sat
+          Time = [00:00:00.00]     
+          --REAL = WEEKDAYVAL_SAT        
           ENUM = ACTIVE
         CloseTag 0
-        OpenTag 0	 -- Sun
-          Time = [00:00:00.00] 	 -- (midnight)
-          --REAL = WEEKDAYVAL_SUN	 -- initial value
+        OpenTag 0     -- Sun
+          Time = [00:00:00.00]      -- (midnight)
+          --REAL = WEEKDAYVAL_SUN     -- initial value
           ENUM = ACTIVE
         CloseTag 0
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -838,15 +650,8 @@ TEST #4  Weekly_Schedule and Exception_Schedule Interaction Test
 -- Step #2: Configure the Schedule object's Exception_Schedule property
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 54
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Exception-Schedule
@@ -856,25 +661,22 @@ TEST #4  Weekly_Schedule and Exception_Schedule Interaction Test
           -- [0] DATE = [Wednesday, January 12, 2000]
           AL = X'0C64010C03'
         CloseTag 0
-	-- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
-	OpenTag 2
+    -- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
+    OpenTag 2
           Time = [01:00:00.00] 
           --REAL = TIMEVAL1
           ENUM = INACTIVE        
           Time = [13:00:00.00] 
           --REAL = TIMEVAL2
           ENUM = ACTIVE
-	CloseTag 2
-	-- eventPriority     [3] Unsigned (1..16)
+    CloseTag 2
+    -- eventPriority     [3] Unsigned (1..16)
         AL = X'3910'
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -886,11 +688,7 @@ TEST #4  Weekly_Schedule and Exception_Schedule Interaction Test
 -- Step #3: Set date and time after 1st SpecialEvent entry
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                       ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                       ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [WED, 1/12/2000]                     ;JANUARY 12, 2000
@@ -903,25 +701,15 @@ Test #4.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #4: Verify Schedule Object's Present_Value == value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 55
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -935,11 +723,7 @@ Test #4.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #5: Set time after 2nd entry
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                       ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                       ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [WED, 1/12/2000]                    ;JANUARY 12, 2000
@@ -952,25 +736,15 @@ Test #4.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #6: Verify Schedule Object's Present_Value == value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 56
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -1003,15 +777,8 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.5
 -- Step #1: Configure the Schedule object's Exception_Schedule property
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 57
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Exception-Schedule
@@ -1021,25 +788,22 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.5
           -- [0] DATE = [Wednesday, January 12, 2000]
           AL = X'0C64010C03'
         CloseTag 0
-	-- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
-	OpenTag 2
+    -- listOfTimeValues  [2] SEQUENCE OF BACnetTimeValue
+    OpenTag 2
           Time = [01:00:00.00] 
           --REAL = TIMEVAL1
           ENUM = INACTIVE
           Time = [13:00:00.00] 
           --REAL = TIMEVAL2
           ENUM = ACTIVE
-	CloseTag 2
-	-- eventPriority     [3] Unsigned (1..16)
+    CloseTag 2
+    -- eventPriority     [3] Unsigned (1..16)
         AL = X'3910'
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -1051,11 +815,7 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.5
 -- Step #2: Set before 1st entry
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                  ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                  ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [WED, 1/12/2000]                   ;JANUARY 12, 2000
@@ -1068,25 +828,15 @@ Test #5.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #3: Verify Schedule Object's Present_Value == value V2
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 58
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -1098,11 +848,7 @@ Test #5.1 (Wait Schedule Evaluation Time before proceeding)
       )
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                  ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                  ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [WED, 1/12/2000]                   ;JANUARY 12, 2000
@@ -1114,25 +860,15 @@ Test #5.2 (RESET IUT NOW)
 -- Step #4: Verify Schedule Object's Present_Value == value V2
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 59
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -1173,167 +909,157 @@ TEST #6  Weekly_Schedule Restoration Test
 -- Step #1: Configure the Schedule object's Weekly_Schedule property
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 60
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Weekly-Schedule
       OpenTag 3
-        OpenTag 0	 -- Mon
-          Time = [11:00:00.00] 	
-          --REAL = WEEKDAYVAL_MON_1		
+        OpenTag 0     -- Mon
+          Time = [11:00:00.00]     
+          --REAL = WEEKDAYVAL_MON_1        
           ENUM = INACTIVE
-          Time = [13:00:00.00] 	
-          --REAL = WEEKDAYVAL_MON_2		
+          Time = [13:00:00.00]     
+          --REAL = WEEKDAYVAL_MON_2        
           ENUM = INACTIVE
-          Time = [15:00:00.00] 	
-          --REAL = WEEKDAYVAL_MON_3		
+          Time = [15:00:00.00]     
+          --REAL = WEEKDAYVAL_MON_3        
           ENUM = INACTIVE
-          Time = [17:00:00.00] 	
-          --REAL = WEEKDAYVAL_MON_4		
+          Time = [17:00:00.00]     
+          --REAL = WEEKDAYVAL_MON_4        
           ENUM = INACTIVE
           Time = [19:00:00.00] 
-          --REAL = WEEKDAYVAL_MON_5		
+          --REAL = WEEKDAYVAL_MON_5        
           ENUM = INACTIVE
           Time = [23:00:00.00] 
-          --REAL = WEEKDAYVAL_MON_6		
+          --REAL = WEEKDAYVAL_MON_6        
           ENUM = INACTIVE
         CloseTag 0
         OpenTag 0  -- Tue
-          Time = [11:00:00.00] 	
-          --REAL = WEEKDAYVAL_TUE_1		
+          Time = [11:00:00.00]     
+          --REAL = WEEKDAYVAL_TUE_1        
           ENUM = INACTIVE
           Time = [13:00:00.00] 
-          --REAL = WEEKDAYVAL_TUE_2		
+          --REAL = WEEKDAYVAL_TUE_2        
           ENUM = INACTIVE
           Time = [16:00:00.00] 
-          --REAL = WEEKDAYVAL_TUE_3		
+          --REAL = WEEKDAYVAL_TUE_3        
           ENUM = INACTIVE
           Time = [17:00:00.00] 
-          --REAL = WEEKDAYVAL_TUE_4		
+          --REAL = WEEKDAYVAL_TUE_4        
           ENUM = INACTIVE
-          Time = [19:00:00.00] 	
-          --REAL = WEEKDAYVAL_TUE_5		
+          Time = [19:00:00.00]     
+          --REAL = WEEKDAYVAL_TUE_5        
           ENUM = INACTIVE
           Time = [23:00:00.00] 
-          --REAL = WEEKDAYVAL_TUE_6		
+          --REAL = WEEKDAYVAL_TUE_6        
           ENUM = INACTIVE
         CloseTag 0
-        OpenTag 0	 -- Wed
-          Time = [11:00:00.00] 	
-          --REAL = WEEKDAYVAL_WED_1		
+        OpenTag 0     -- Wed
+          Time = [11:00:00.00]     
+          --REAL = WEEKDAYVAL_WED_1        
           ENUM = INACTIVE
-          Time = [13:00:00.00] 	
-          --REAL = WEEKDAYVAL_WED_2		
+          Time = [13:00:00.00]     
+          --REAL = WEEKDAYVAL_WED_2        
           ENUM = INACTIVE
           Time = [15:00:00.00] 
-          --REAL = WEEKDAYVAL_WED_3		
+          --REAL = WEEKDAYVAL_WED_3        
           ENUM = INACTIVE
-          Time = [17:00:00.00] 	
-          --REAL = WEEKDAYVAL_WED_4		
+          Time = [17:00:00.00]     
+          --REAL = WEEKDAYVAL_WED_4        
           ENUM = INACTIVE
-          Time = [19:00:00.00] 	
-          --REAL = WEEKDAYVAL_WED_5		
+          Time = [19:00:00.00]     
+          --REAL = WEEKDAYVAL_WED_5        
           ENUM = INACTIVE
-          Time = [23:00:00.00] 	
-          --REAL = WEEKDAYVAL_WED_6		
+          Time = [23:00:00.00]     
+          --REAL = WEEKDAYVAL_WED_6        
           ENUM = INACTIVE
         CloseTag 0
-        OpenTag 0	 -- Thu
+        OpenTag 0     -- Thu
           Time = [11:00:00.00] 
-          --REAL = WEEKDAYVAL_THU_1		
+          --REAL = WEEKDAYVAL_THU_1        
           ENUM = ACTIVE
-          Time = [13:00:00.00] 	
-          --REAL = WEEKDAYVAL_THU_2		
+          Time = [13:00:00.00]     
+          --REAL = WEEKDAYVAL_THU_2        
           ENUM = ACTIVE
           Time = [15:00:00.00] 
-          --REAL = WEEKDAYVAL_THU_3		
+          --REAL = WEEKDAYVAL_THU_3        
           ENUM = ACTIVE
-          Time = [17:00:00.00] 	
-          --REAL = WEEKDAYVAL_THU_4		
+          Time = [17:00:00.00]     
+          --REAL = WEEKDAYVAL_THU_4        
           ENUM = ACTIVE
-          Time = [19:00:00.00] 	
-          --REAL = WEEKDAYVAL_THU_5		
+          Time = [19:00:00.00]     
+          --REAL = WEEKDAYVAL_THU_5        
           ENUM = ACTIVE
-          Time = [23:00:00.00] 	
+          Time = [23:00:00.00]     
           --REAL = WEEKDAYVAL_THU_6
           ENUM = ACTIVE
         CloseTag 0
-        OpenTag 0	 -- Fri
+        OpenTag 0     -- Fri
           Time = [11:00:00.00] 
-          --REAL = WEEKDAYVAL_FRI_1		
+          --REAL = WEEKDAYVAL_FRI_1        
           ENUM = ACTIVE
-          Time = [13:00:00.00] 	
-          --REAL = WEEKDAYVAL_FRI_2		
+          Time = [13:00:00.00]     
+          --REAL = WEEKDAYVAL_FRI_2        
           ENUM = ACTIVE
-          Time = [15:00:00.00] 	
+          Time = [15:00:00.00]     
           --REAL = WEEKDAYVAL_FRI_3
-          ENUM = ACTIVE		
-          Time = [17:00:00.00] 	
-          --REAL = WEEKDAYVAL_FRI_4		
+          ENUM = ACTIVE        
+          Time = [17:00:00.00]     
+          --REAL = WEEKDAYVAL_FRI_4        
           ENUM = ACTIVE
-          Time = [19:00:00.00] 	
-          --REAL = WEEKDAYVAL_FRI_5		
+          Time = [19:00:00.00]     
+          --REAL = WEEKDAYVAL_FRI_5        
           ENUM = ACTIVE
           Time = [23:00:00.00] 
-          --REAL = WEEKDAYVAL_FRI_6		
+          --REAL = WEEKDAYVAL_FRI_6        
           ENUM = ACTIVE
         CloseTag 0
-        OpenTag 0	 -- Sat
-          Time = [11:00:00.00] 	
-          --REAL = WEEKDAYVAL_SAT_1		
+        OpenTag 0     -- Sat
+          Time = [11:00:00.00]     
+          --REAL = WEEKDAYVAL_SAT_1        
           ENUM = ACTIVE
-          Time = [13:00:00.00] 	
-          --REAL = WEEKDAYVAL_SAT_2		
+          Time = [13:00:00.00]     
+          --REAL = WEEKDAYVAL_SAT_2        
           ENUM = ACTIVE
-          Time = [15:00:00.00] 	
-          --REAL = WEEKDAYVAL_SAT_3		
+          Time = [15:00:00.00]     
+          --REAL = WEEKDAYVAL_SAT_3        
           ENUM = ACTIVE
-          Time = [17:00:00.00] 	
-          --REAL = WEEKDAYVAL_SAT_4		
+          Time = [17:00:00.00]     
+          --REAL = WEEKDAYVAL_SAT_4        
           ENUM = ACTIVE
-          Time = [19:00:00.00] 	
-          --REAL = WEEKDAYVAL_SAT_5		
+          Time = [19:00:00.00]     
+          --REAL = WEEKDAYVAL_SAT_5        
           ENUM = ACTIVE
           Time = [23:00:00.00]
-          --REAL = WEEKDAYVAL_SAT_6		
+          --REAL = WEEKDAYVAL_SAT_6        
           ENUM = ACTIVE
         CloseTag 0
-        OpenTag 0	 -- Sun
-          Time = [11:00:00.00] 	
-          --REAL = WEEKDAYVAL_SUN_1		
+        OpenTag 0     -- Sun
+          Time = [11:00:00.00]     
+          --REAL = WEEKDAYVAL_SUN_1        
           ENUM = ACTIVE
           Time = [13:00:00.00] 
-          --REAL = WEEKDAYVAL_SUN_2		
+          --REAL = WEEKDAYVAL_SUN_2        
           ENUM = ACTIVE
-          Time = [15:00:00.00] 	
-          --REAL = WEEKDAYVAL_SUN_3		
+          Time = [15:00:00.00]     
+          --REAL = WEEKDAYVAL_SUN_3        
           ENUM = ACTIVE
           Time = [17:00:00.00] 
-          --REAL = WEEKDAYVAL_SUN_4		
+          --REAL = WEEKDAYVAL_SUN_4        
           ENUM = ACTIVE
-          Time = [19:00:00.00] 	
-          --REAL = WEEKDAYVAL_SUN_5		
+          Time = [19:00:00.00]     
+          --REAL = WEEKDAYVAL_SUN_5        
           ENUM = ACTIVE
-          Time = [23:00:00.00] 	
-         -- REAL = WEEKDAYVAL_SUN_6		
+          Time = [23:00:00.00]     
+         -- REAL = WEEKDAYVAL_SUN_6        
           ENUM = ACTIVE
         CloseTag 0
       CloseTag 3
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -1342,15 +1068,8 @@ TEST #6  Weekly_Schedule Restoration Test
 --          (Optional after preceding test 5, but done just in case)
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 61
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Exception-Schedule
@@ -1359,10 +1078,7 @@ TEST #6  Weekly_Schedule Restoration Test
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -1374,11 +1090,7 @@ TEST #6  Weekly_Schedule Restoration Test
 -- Step #4: Set before 1st entry
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                  ; BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                  ; BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [FRI, 1/14/2000]               ;JANUARY 14, 2000
@@ -1391,31 +1103,21 @@ Test #6.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #5: Verify Schedule Object's Present_Value == last value for day
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 62
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       OpenTag 3
-         --REAL == WEEKDAYVAL_FRI_6	
+         --REAL == WEEKDAYVAL_FRI_6    
           ENUM = INACTIVE 
       CloseTag 3
       )
@@ -1425,31 +1127,21 @@ Test #6.2 (RESET IUT NOW)
 -- Step #7: Verify Schedule Object's Present_Value == last value for day
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 63
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       OpenTag 3
-         --REAL == WEEKDAYVAL_FRI_6	
+         --REAL == WEEKDAYVAL_FRI_6    
           ENUM = ACTIVE
       CloseTag 3
       )
@@ -1482,15 +1174,8 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.X1 (BTL Phase 3 Report - Scheduling - 5)
 --          This step simply clears Test #1 Effective_Period
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 64
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Effective-Period
@@ -1503,10 +1188,7 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.X1 (BTL Phase 3 Report - Scheduling - 5)
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -1514,15 +1196,8 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.X1 (BTL Phase 3 Report - Scheduling - 5)
 -- Step #2: Configure the Schedule object's Weekly_Schedule property
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 65
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Weekly-Schedule
@@ -1566,10 +1241,7 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.X1 (BTL Phase 3 Report - Scheduling - 5)
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -1577,15 +1249,8 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.X1 (BTL Phase 3 Report - Scheduling - 5)
 -- Step #3: Clear the Schedule object's Exception_Schedule property
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 66
       Service = WriteProperty
       Object = 0, SCHEDULE_1
       Property = 1, Exception-Schedule
@@ -1594,10 +1259,7 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.X1 (BTL Phase 3 Report - Scheduling - 5)
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = WriteProperty
       )
@@ -1605,11 +1267,7 @@ REFERENCE (B) 12.18  (T) 7.3.2.20.X1 (BTL Phase 3 Report - Scheduling - 5)
 -- Step #4: Set date prior to D1 to set initial value
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                     ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                     ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [SUN, 1/2/2000]                        ;JANUARY 02, 2000
@@ -1626,11 +1284,7 @@ Test #1.1 (Wait Schedule Evaluation Time before proceeding)
 -- Step #5: Set date to D1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                  ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                  ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [TUE, 1/4/2000]           ;JANUARY 04, 2000
@@ -1643,25 +1297,15 @@ Test #1.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #6: Verify Schedule Object's Present_Value == value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 67
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -1680,15 +1324,8 @@ Test #1.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #7a: Verify first referenced object's property == value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 68
       Service = ReadProperty
       Object = 0, OBJREF_1            ;OBJREF_A
       -- Property = 1, PROPREF_A
@@ -1696,10 +1333,7 @@ Test #1.2 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJREF_1               ;OBJREF_A
@@ -1714,15 +1348,8 @@ Test #1.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #7b: Verify second referenced object's property == value V1
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 69
       Service = ReadProperty
       Object = 0, OBJREF_1            ;OBJREF_B
       -- Property = 1, PROPREF_B
@@ -1731,10 +1358,7 @@ Test #1.2 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJREF_1                   ;OBJREF_B
@@ -1749,11 +1373,7 @@ Test #1.2 (Wait Schedule Evaluation Time before proceeding)
 -- Step #8: Set date to D2
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP                      ;BROADCAST
-      SA = TD_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR                      ;BROADCAST
       PDU = Unconfirmed-Request
       Service = TimeSynchronization
       Date = [FRI, 1/7/2000]               ;JANUARY 07, 2000
@@ -1766,25 +1386,15 @@ Test #1.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #9: Verify Schedule Object's Present_Value == value V2
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 70
       Service = ReadProperty
       Object = 0, SCHEDULE_1
       Property = 1, Present-Value
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, SCHEDULE_1
@@ -1803,15 +1413,8 @@ Test #1.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #10a: Verify first referenced object's property == value V2
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 71
       Service = ReadProperty
       Object = 0, OBJREF_1                    ;OBJREF_A
       -- Property = 1, PROPREF_A
@@ -1819,10 +1422,7 @@ Test #1.3 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJREF_1              ;OBJREF_A
@@ -1837,15 +1437,8 @@ Test #1.3 (Wait Schedule Evaluation Time before proceeding)
 -- Step #10b: Verify second referenced object's property == value V2
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 72
       Service = ReadProperty
       Object = 0, OBJREF_1                ;OBJREF_B
       -- Property = 1, PROPREF_B
@@ -1853,10 +1446,7 @@ Test #1.3 (Wait Schedule Evaluation Time before proceeding)
       )
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU      
+      Sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0,OBJREF_1                       ; OBJREF_B

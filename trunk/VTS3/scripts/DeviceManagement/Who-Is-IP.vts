@@ -1,11 +1,11 @@
   ;-------------------------------------------------------------------------------------
   ;  Who-Is Service Execution Tests
   ;  "DRAFT COPY--- DO NOT DISTRIBUTE"
-  ;	Execution of Who-Is Service Requests Originating from the Local Network
+  ;    Execution of Who-Is Service Requests Originating from the Local Network
   ;
-  ;  WhoIs.vts	ddbmmddyy.vts	
+  ;  WhoIs.vts    ddbmmddyy.vts    
   ;
-  ;  Ver 1.0	03/04/01	P. Bowen	Initial version
+  ;  Ver 1.0    03/04/01    P. Bowen    Initial version
   ;  Ver 1.1    09/17/01        Bradsp          Marked with easy change symbols and Routing sections
   ;  The purpose of this test group is to verify the correct execution of the Who-Is
   ;  request service procedure for messages originating from the local network.  
@@ -15,28 +15,24 @@
   ;-------------------------------------------------------------------------------------
   
   SETUP Who-Is Service Execution (Local Network)
+  INCLUDE "..\config.vts"
 
   ;------------------------------------------------------------------------------------- 
   ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties 
   ; Items marked and found with *** are hardcoded or the error messages must be manually verified in the trace. 
-  ;
   ;
   ;-------------------------------------------------------------------------------------
   ;
   ; TD_CONFIG
   ; All objects and properties are listed here including notes on there use
 
-	TD_IP  = "TD_IP"
-	TD_PORT = "bip"
-
-  	DEVICE_ID = 47814
-  	OBJECT1 = Device, 47814	; Device object used for Who-Is service requests
+      OBJECT1 = Device, 47814    ; Device object used for Who-Is service requests
   
-  	LOW_LIMIT = 40000		; Low limit of a device range that will include the IUT.
-  	HIGH_LIMIT = 50000   	; High limit of a device range that will include the IUT.
+      LOW_LIMIT = 40000        ; Low limit of a device range that will include the IUT.
+      HIGH_LIMIT = 50000       ; High limit of a device range that will include the IUT.
 
-  	OUTSIDE_LOW = 1990		; Low limit of a device range that won't include the IUT.
-  	OUTSIDE_HIGH = 2000		; High limit of a device range that won't include the IUT.
+      OUTSIDE_LOW = 1990        ; Low limit of a device range that won't include the IUT.
+      OUTSIDE_HIGH = 2000        ; High limit of a device range that won't include the IUT.
 
   -- TEST #1a Local Broadcast, General Inquiry
               -- MANUAL SEND AND RECEIVE   NONE
@@ -62,30 +58,6 @@
               -- MANUAL SEND AND RECEIVE   NONE
               -- BODY CHANGE  NONE
 
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ; 
-  ;                     
-  ;-------------------------------------------------------------------------------------
-
-	IUT_IP = "IUT_IP"
- 
-  ;-------------------------------------------------------------------------------------
-  ;
-  ;  Routing_Config
-  ;  
-
-  -- DNET_MSTP = 20001, MS/TP     ; Sets the DNET of the remote MSTP network (Comment if no routing) ***
-
-  ;-----IUT and TD are on the same Ethernet segment
-  ;   DESTINATION = IUT_MAC 
-  ;-----IUT is on an MSTP segment and TD is on an Ethernet segment
-  ;   DA = Broadcast
-  ;   DNET = DNET_MSTP
-  ;   DADR = IUT_MAC
-  ;------------------------------------------------------------------------------------- 
-
   SECTION Who-Is Service Execution (Local Network)
 
   -- Configuration Requirements: IUT is on the same network as the TD
@@ -97,15 +69,15 @@
   -- broadcast Who-Is service request that does not restrict device ranges.
   --
   -- Test Steps:
-  -- 1.	TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
-  -- 2.	WAIT Internal Processing Fail Time
-  -- 3.	RECEIVE
-  --	DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
-  --	I-Am-Request,
-  --	'I Am Device Identifier' = (the IUT's Device object),
-  --	'Max APDU Length Accepted' = (the value specified in the EPICS),
-  --	'Segmentation Supported' = (the value specified in the EPICS),
-  --	'Vendor Identifier' = (the identifier registered for this vendor)
+  -- 1.    TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
+  -- 2.    WAIT Internal Processing Fail Time
+  -- 3.    RECEIVE
+  --    DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
+  --    I-Am-Request,
+  --    'I Am Device Identifier' = (the IUT's Device object),
+  --    'Max APDU Length Accepted' = (the value specified in the EPICS),
+  --    'Segmentation Supported' = (the value specified in the EPICS),
+  --    'Vendor Identifier' = (the identifier registered for this vendor)
 
   DEPENDENCIES None
 
@@ -114,11 +86,7 @@
   -- Transmit local broadcast "Who-Is" message
 
     SEND (
-      Network = TD_PORT
       DA = BROADCAST
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = TD_IP
-      DER = FALSE
       PDU = Unconfirmed-Request
       Service = Who-Is
     )
@@ -126,32 +94,26 @@
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = TD_PORT
-      DA = BROADCAST		; IUT returns either local broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      DA = BROADCAST        ; IUT returns either local broadcast response
+      SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )
 
-    OR (					
-      Network = TD_PORT
+    OR (                    
       DNET = 65535
-      DA = BROADCAST		; or IUT returns a global broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      DA = BROADCAST        ; or IUT returns a global broadcast response
+      SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )
 
   ;-------------------------------------------------------------------------------------
@@ -161,15 +123,15 @@
   -- global broadcast Who-Is service request that does not restrict device ranges.
   --
   -- Test Steps:
-  -- 1.	TRANSMIT DESTINATION = GLOBAL BROADCAST, Who-Is
-  -- 2.	WAIT Internal Processing Fail Time
-  -- 3.	RECEIVE
-  --	DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
-  --	I-Am-Request,
-  --	'I Am Device Identifier' = (the IUT's Device object),
-  --	'Max APDU Length Accepted' = (the value specified in the EPICS),
-  --	'Segmentation Supported' = (the value specified in the EPICS),
-  --	'Vendor Identifier' = (the identifier registered for this vendor)
+  -- 1.    TRANSMIT DESTINATION = GLOBAL BROADCAST, Who-Is
+  -- 2.    WAIT Internal Processing Fail Time
+  -- 3.    RECEIVE
+  --    DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
+  --    I-Am-Request,
+  --    'I Am Device Identifier' = (the IUT's Device object),
+  --    'Max APDU Length Accepted' = (the value specified in the EPICS),
+  --    'Segmentation Supported' = (the value specified in the EPICS),
+  --    'Vendor Identifier' = (the identifier registered for this vendor)
 
   DEPENDENCIES None
 
@@ -178,12 +140,8 @@
   -- Transmit global broadcast "Who-Is" message
 
     SEND (
-      Network = TD_PORT
       DA = BROADCAST
-      bvlci =ORIGINAL-BROADCAST-NPDU
       DNET = 65535
-      SA = TD_IP
-      DER = FALSE
       PDU = Unconfirmed-Request
       Service = Who-Is
     )
@@ -191,31 +149,25 @@
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = TD_PORT
-      DA = BROADCAST		; IUT returns either local broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      DER = FALSE
+      DA = BROADCAST        ; IUT returns either local broadcast response
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )
 
-    OR (					
-      Network = TD_PORT
+    OR (                    
       DNET = 65535
-      DA = BROADCAST		; or IUT returns a global broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      DA = BROADCAST        ; or IUT returns a global broadcast response
+      SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )
 
   ;-------------------------------------------------------------------------------------
@@ -225,14 +177,14 @@
   -- excluded from the specified device range
   --
   -- Test Steps:
-  -- 1.	TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
-  --	'Device Instance Low Limit' =	(any value > 0 such that the Device object 
-  --	   instance number does not fall in the range between Device Instance Low Limit
-  --	   and Device Instance High Limit),
-  --	'Device Instance High Limit' =	(any value > Device Instance Low Limit such that
-  --	   the Device object instance number does not fall in the range between Device 
-  --	   Instance Low Limit and Device Instance High Limit)
-  -- 2.	WAIT Internal Processing Fail Time
+  -- 1.    TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
+  --    'Device Instance Low Limit' =    (any value > 0 such that the Device object 
+  --       instance number does not fall in the range between Device Instance Low Limit
+  --       and Device Instance High Limit),
+  --    'Device Instance High Limit' =    (any value > Device Instance Low Limit such that
+  --       the Device object instance number does not fall in the range between Device 
+  --       Instance Low Limit and Device Instance High Limit)
+  -- 2.    WAIT Internal Processing Fail Time
   -- Passing Result: The IUT shall not respond.
 
   DEPENDENCIES None
@@ -240,23 +192,17 @@
   REFERENCE (B) Who-Is and I-Am Services (T) Local Broadcast, Specific Device Inquiry with IUT Outside of the Device Range
 
     SEND (
-      Network = TD_PORT
-      DA = BROADCAST		; Local broadcast message of Who-Is service
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = TD_IP
-      DER = FALSE
+      DA = BROADCAST        ; Local broadcast message of Who-Is service
       PDU = Unconfirmed-Request
       Service = Who-Is
-      Unsigned = 0, OUTSIDE_LOW		; Device identifier outside range low limit
-      Unsigned = 1, OUTSIDE_HIGH	; Device identifier outside range high limit
+      Unsigned = 0, OUTSIDE_LOW        ; Device identifier outside range low limit
+      Unsigned = 1, OUTSIDE_HIGH    ; Device identifier outside range high limit
     )
 
   -- The IUT should not respond
 
     EXPECT (                                  
-      Network = TD_PORT
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
+      SA = IUT_ADDR
     )
 
   ;-------------------------------------------------------------------------------------
@@ -266,64 +212,54 @@
   -- of the specified device range.
   --
   -- Test Steps:
-  -- 1.	TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
-  --	'Device Instance Range Low Limit' = (The Device object instance number of the IUT),
-  --	'Device Instance Range High Limit' = (any value H, such that H > the Device 
-  --	   object instance number of the IUT)
-  -- 2.	WAIT Internal Processing Fail Time
-  -- 3.	RECEIVE
-  --	DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
-  --	I-Am-Request,
-  --	'I Am Device Identifier' = (the IUT's Device object),
-  --	'Max APDU Length Accepted' = (the value specified in the EPICS),
-  --	'Segmentation Supported' = (the value specified in the EPICS),
-  --	'Vendor Identifier' = (the identifier registered for this vendor)
+  -- 1.    TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
+  --    'Device Instance Range Low Limit' = (The Device object instance number of the IUT),
+  --    'Device Instance Range High Limit' = (any value H, such that H > the Device 
+  --       object instance number of the IUT)
+  -- 2.    WAIT Internal Processing Fail Time
+  -- 3.    RECEIVE
+  --    DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
+  --    I-Am-Request,
+  --    'I Am Device Identifier' = (the IUT's Device object),
+  --    'Max APDU Length Accepted' = (the value specified in the EPICS),
+  --    'Segmentation Supported' = (the value specified in the EPICS),
+  --    'Vendor Identifier' = (the identifier registered for this vendor)
 
   DEPENDENCIES None
 
   REFERENCE (B) Who-Is and I-Am Services (T) Local Broadcast, Specific Device Inquiry with IUT Device Instance Equal to Low Limit of Device Range
 
     SEND (
-      Network = TD_PORT
-      DA = BROADCAST		; Local broadcast message of Who-Is service
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = TD_IP
-      DER = FALSE
+      DA = BROADCAST        ; Local broadcast message of Who-Is service
       PDU = Unconfirmed-Request
       Service = Who-Is
-      Unsigned = 0, DEVICE_ID		; Low limit = Device identifier
-      Unsigned = 1, HIGH_LIMIT		; Device identifier range high limit
+      Unsigned = 0, IUT_DEVICE_INSTANCE        ; Low limit = Device identifier
+      Unsigned = 1, HIGH_LIMIT        ; Device identifier range high limit
     )
 
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = TD_PORT
-      DA = BROADCAST		; IUT returns either local broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      DA = BROADCAST        ; IUT returns either local broadcast response
+      SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )
 
-    OR (					
-      Network = TD_PORT
+    OR (                    
       DNET = 65535
-      DA = BROADCAST		; or IUT returns a global broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      DA = BROADCAST        ; or IUT returns a global broadcast response
+      SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )
 
   ;-------------------------------------------------------------------------------------
@@ -333,64 +269,54 @@
   -- of the specified device range.
   --
   -- Test Steps:
-  -- 1.	TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
-  --	'Device Instance Range Low Limit' = (any value L, such that 0 £ L < the Device 
-  --	  object instance number of the IUT),
-  --	'Device Instance Range High Limit' = (the Device object instance number of the IUT)
-  -- 2.	WAIT Internal Processing Fail Time
-  -- 3.	RECEIVE
-  --	DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
-  --	I-Am-Request,
-  --	'I Am Device Identifier' = (the IUT's Device object),
-  --	'Max APDU Length Accepted' = (the value specified in the EPICS),
-  --	'Segmentation Supported' = (the value specified in the EPICS),
-  --	'Vendor Identifier' = (the identifier registered for this vendor)
+  -- 1.    TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
+  --    'Device Instance Range Low Limit' = (any value L, such that 0 £ L < the Device 
+  --      object instance number of the IUT),
+  --    'Device Instance Range High Limit' = (the Device object instance number of the IUT)
+  -- 2.    WAIT Internal Processing Fail Time
+  -- 3.    RECEIVE
+  --    DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
+  --    I-Am-Request,
+  --    'I Am Device Identifier' = (the IUT's Device object),
+  --    'Max APDU Length Accepted' = (the value specified in the EPICS),
+  --    'Segmentation Supported' = (the value specified in the EPICS),
+  --    'Vendor Identifier' = (the identifier registered for this vendor)
 
   DEPENDENCIES None
 
   REFERENCE (B) Who-Is and I-Am Services (T) Local Broadcast, Specific Device Inquiry with IUT Device Instance Equal to High Limit of Device Range
 
     SEND (
-      Network = TD_PORT
-      DA = BROADCAST		; Local broadcast message of Who-Is service
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = TD_IP
-      DER = FALSE
+      DA = BROADCAST        ; Local broadcast message of Who-Is service
       PDU = Unconfirmed-Request
       Service = Who-Is
-      Unsigned = 0, LOW_LIMIT		; Device identifier range low limit
-      Unsigned = 1, DEVICE_ID		; High limit = Device identifier
+      Unsigned = 0, LOW_LIMIT        ; Device identifier range low limit
+      Unsigned = 1, IUT_DEVICE_INSTANCE        ; High limit = Device identifier
     )
 
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = TD_PORT
-      DA = BROADCAST		; IUT returns either local broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      DA = BROADCAST        ; IUT returns either local broadcast response
+      SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )
 
-    OR (					
-      Network = TD_PORT
+    OR (                    
       DNET = 65535
-      DA = BROADCAST		; or IUT returns a global broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      DA = BROADCAST        ; or IUT returns a global broadcast response
+      SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )
 
   ;-------------------------------------------------------------------------------------
@@ -400,63 +326,53 @@
   -- is included within the specified device range.
   --
   -- Test Steps:
-  -- 1.	TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
-  --	'Device Instance Range Low Limit' = (any value L, such that 0 £ L < the Device
-  --	   object instance number of the IUT),
-  --	'Device Instance Range High Limit' = (any value H, such that H > the Device object
-  --	   instance number of the IUT)
-  -- 2.	WAIT Internal Processing Fail Time
-  -- 3.	RECEIVE
-  --	DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
-  --	I-Am-Request,
-  --	'I Am Device Identifier' = (the IUT's Device object),
-  --	'Max APDU Length Accepted' = (the value specified in the EPICS),
-  --	'Segmentation Supported' = (the value specified in the EPICS),
-  --	'Vendor Identifier' = (the identifier registered for this vendor)
+  -- 1.    TRANSMIT DESTINATION = LOCAL BROADCAST, Who-Is
+  --    'Device Instance Range Low Limit' = (any value L, such that 0 £ L < the Device
+  --       object instance number of the IUT),
+  --    'Device Instance Range High Limit' = (any value H, such that H > the Device object
+  --       instance number of the IUT)
+  -- 2.    WAIT Internal Processing Fail Time
+  -- 3.    RECEIVE
+  --    DESTINATION = GLOBAL BROADCAST | LOCAL BROADCAST
+  --    I-Am-Request,
+  --    'I Am Device Identifier' = (the IUT's Device object),
+  --    'Max APDU Length Accepted' = (the value specified in the EPICS),
+  --    'Segmentation Supported' = (the value specified in the EPICS),
+  --    'Vendor Identifier' = (the identifier registered for this vendor)
 
   DEPENDENCIES None
 
   REFERENCE (B) Who-Is and I-Am Services (T) Local Broadcast, Specific Device Inquiry with IUT Inside of the Device Range
 
     SEND (
-      Network = TD_PORT
-      DA = BROADCAST		; Local broadcast message of Who-Is service
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = TD_IP
-      DER = FALSE
+      DA = BROADCAST        ; Local broadcast message of Who-Is service
       PDU = Unconfirmed-Request
       Service = Who-Is
-      Unsigned = 0, LOW_LIMIT		; Range low limit < Device Identifier
-      Unsigned = 1, HIGH_LIMIT		; Range high limit > Device identifier
+      Unsigned = 0, LOW_LIMIT        ; Range low limit < Device Identifier
+      Unsigned = 1, HIGH_LIMIT        ; Range high limit > Device identifier
     )
 
   -- The IUT replys with either a local broadcast or a global broadcast "I-Am"
 
     EXPECT (
-      Network = TD_PORT
-      DA = BROADCAST		; IUT returns either local broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      DA = BROADCAST        ; IUT returns either local broadcast response
+      SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )
 
-    OR (					
-      Network = TD_PORT
+    OR (                    
       DNET = 65535
-      DA = BROADCAST		; or IUT returns a global broadcast response
-      bvlci =ORIGINAL-BROADCAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      DA = BROADCAST        ; or IUT returns a global broadcast response
+      SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
-      Object = OBJECT1			; Get Object Identifier
-      AL = {Max-APDU-Length-Accepted}	; Get Max-APDU-Length-Accepted PV
-      AL = {Segmentation-Supported}	; Get Segmentation-Supported PV
-      AL = {Vendor-Identifier}		; Get Vendor-ID PV
+      Object = OBJECT1            ; Get Object Identifier
+      AL = {Max-APDU-Length-Accepted}    ; Get Max-APDU-Length-Accepted PV
+      AL = {Segmentation-Supported}    ; Get Segmentation-Supported PV
+      AL = {Vendor-Identifier}        ; Get Vendor-ID PV
     )

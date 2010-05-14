@@ -14,25 +14,15 @@
   ;-----------------
 
   SETUP Positive AddListElement Service Execution Tests
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ;
   ; TD_CONFIG
   ;
-
-  TD_IP  = "TD_IP"
-  TD_PORT = "bip"
-
   OBJECT1 = DEVICE,47814
   OBJECT2 = Device, 8001
   OBJECT3 = Device, 8002
-
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-
-  IUT_IP = "IUT_IP"     ; Address of the IUT
 
   ;-------------------------------------------------------------------------------------
 
@@ -50,14 +40,7 @@
   -- Step #1: Verify (read) the Time-Synchronization-Recipients property for the Device object
 
     SEND (
-        NETWORK = TD_PORT
-        DA = IUT_IP
-    bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
-        SegMsg = 0
-        SegResp = 0
-        MaxResp = 480
-    InVokeID = 3
+        DA = IUT_ADDR
         PDU = Confirmed-Request
         Service = ReadProperty
         Object = 0, OBJECT1
@@ -65,10 +48,7 @@
     )
 
     EXPECT (
-        NETWORK = TD_PORT
-        DER = FALSE
-    bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
+    SA = IUT_ADDR
         PDU = ComplexAck
         Service = ReadProperty
         Object = 0, OBJECT1
@@ -82,14 +62,7 @@
   -- property value and receive a simple acknowledgement
 
     SEND (
-        NETWORK = TD_PORT
-        DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
-        SegMsg = 0
-        SegResp = 0
-        MaxResp = 1476
-    InVokeID = 3
+        DA = IUT_ADDR
         PDU = Confirmed-Request
         Service = AddListElement
         Object = 0, OBJECT1
@@ -101,10 +74,7 @@
     )
 
     EXPECT (
-        NETWORK = TD_PORT
-        bvlci =ORIGINAL-UNICAST-NPDU
-    SA = IUT_IP
-        DER = FALSE
+    SA = IUT_ADDR
         PDU = SimpleAck
         Service = AddListElement
       )
@@ -112,14 +82,7 @@
   -- Step #4: Verify the values written to the IUT
 
     SEND (
-        NETWORK = TD_PORT
-        DA = IUT_IP
-        bvlci =ORIGINAL-UNICAST-NPDU
-    DER = TRUE
-        SegMsg = 0
-        SegResp = 0
-        MaxResp = 1476
-    InVokeID = 3
+        DA = IUT_ADDR
         PDU = Confirmed-Request
         Service = ReadProperty
         Object = 0, OBJECT1
@@ -127,10 +90,7 @@
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SA = IUT_IP
-      DER = FALSE
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1

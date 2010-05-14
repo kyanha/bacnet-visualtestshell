@@ -15,9 +15,7 @@
   ; ------------------------------------------------------------------------------
   ; ------------------------------------------------------------------------------
    SETUP Positive ReadProperty Tests
-
-    IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
+  INCLUDE "..\config.vts"
 
    OBJECT1 = Device, 47814  ; DEVICE OBJECT
    OBJECT2 = analog-VALUE, 1    ; Object which is the subject of the Read Prop tests
@@ -50,16 +48,8 @@ DEPENDENCIES none
 REFERENCE (B)15.5,15.5.1.1.1; (T)9.15.2.1
 
   SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER  = True
-    DER  = True
+    DA = IUT_ADDR
     PDU  = Confirmed_Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InvokeID = 1
     SERVICE = ReadProperty
     OBJECT      = 0, OBJECT1
     PROPERTY    = 1, model-name           ; (Device-model_Name or other property that is not an array)
@@ -67,30 +57,21 @@ REFERENCE (B)15.5,15.5.1.1.1; (T)9.15.2.1
     )
 
   EXPECT (
-    NETWORK = TD_PORT
-    sa = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER   = FALSE
+    sa = IUT_ADDR
     PDU   = ERROR
     ERROR-CHoice = ReadProperty
     ENUMERATED = 5                       ;  5 = error class services  pg 363 in the bacnet standard
     ENUMERATED = 7                 ;  7 = error code Inconsistent-Parameters
    )
   OR (
-    NETWORK     = "bip"
-    sa = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER         = FALSE
+    sa = IUT_ADDR
     PDU         = ERROR
     ERROR-CHoice = ReadProperty
     ENUMERATED = 2                      ;  5 = error class services  pg 363 in the bacnet standard
     ENUMERATED = 42               ;  42 = invaid array index
    )
   OR (
-    NETWORK     = "bip"
-    sa = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER         = FALSE
+    sa = IUT_ADDR
     PDU         = reject
     Reject-Reason = 2                   ; reject-reason = Inconsistent-Parameters
 
@@ -106,15 +87,8 @@ TEST #n1b
  --    ; DEPENDENCIES (B)12.9.16, 15.5; (T)9.15.2.2
 
   SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER  = True
+    DA = IUT_ADDR
     PDU  = Confirmed_Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InvokeID = 1
     SERVICE = ReadProperty
     OBJECT      = 0, OBJECT1
     PROPERTY    = 1, object-list                        ; (Device Object-list or other array)
@@ -122,10 +96,7 @@ TEST #n1b
     )
 
   EXPECT (
-    NETWORK = TD_PORT
-    sa = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER   = FALSE
+    sa = IUT_ADDR
     PDU   = ERROR
     ERROR-CHoice = ReadProperty
     ENUMERATED = 2                       ; 2 = property
@@ -143,25 +114,15 @@ TEST #n1c
 
 
   SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER  = True
+    DA = IUT_ADDR
     PDU  = Confirmed_Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InvokeID = 1
     SERVICE = ReadProperty
     OBJECT      = 0, object4                             --- (Any standard Object not contained in the IUT's Database)
     PROPERTY    = 1, object-list                         --- (Any Property defined for the specified Object)
    )
 
   EXPECT (
-    NETWORK = TD_PORT
-    sa = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER   = FALSE
+    sa = IUT_ADDR
     PDU   = ERROR
     ERROR-CHoice = ReadProperty
     ENUMERATED = 1                      ; 1 = object error class
@@ -177,25 +138,15 @@ TEST #n1d
 
 
   SEND (
-    NETWORK = TD_PORT
-    DA = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER  = True
+    DA = IUT_ADDR
     PDU  = Confirmed_Request
-    SegMsg = 0
-    SegResp = 0
-    MaxResp = 1476
-    InvokeID = 1
     SERVICE = ReadProperty
     OBJECT      = 0, object1                             --- (Any standard Object not contained in the IUT's Database)
     PROPERTY    = 1, 60                           --- (Any Property not defined for Device Object - this value may need to change)
    )
 
   EXPECT (
-    NETWORK = TD_PORT
-    sa = IUT_IP
-    BVLCI = ORIGINAL-UNICAST-NPDU
-    DER   = FALSE
+    sa = IUT_ADDR
     PDU   = ERROR
     ERROR-CHoice = ReadProperty
     ENUMERATED = 2

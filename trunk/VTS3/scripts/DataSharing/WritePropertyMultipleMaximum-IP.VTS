@@ -14,6 +14,7 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Positive ReadProperty Tests
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties
@@ -24,9 +25,6 @@
   ;
   ; TD_CONFIG  All objects and properties are listed here including notes on there use
   ;
-   IUT_IP = "IUT_IP"
-  TD_IP  = "TD_IP"
-   TD_PORT = "bip"
 
   -- BOOLEAN TEST
   OBJECT1 = Device, 47814       ; Object which is the subject of the WPMMAX TEST
@@ -40,24 +38,8 @@
   PROP1 = LOCATION              ; CHARACTER PROPERTY USED FOR WRITING
   PROP2 = OUT-OF-SERVICE              ; BOOLEAN PROPERTY USED FOR WRITING
 
-
-
   ;TESTVALUE1 = ANSI X3.4,"A"    ; CHARACTER STRING VALUE TO BE WRITTEN
 
-  ;-------------------------------------------------------------------------------------
-  ;-------------------------------------------------------------------------------------
-  ;
-  ;  Routing_Config
-  ;
-
-  -- DNET_MSTP = 20001, MS/TP     ; Sets the DNET of the remote MSTP network (Comment if no routing)
-
-  ;-----IUT and TD are on the same Ethernet segment
-  ;   DESTINATION = IUT_MAC
-  ;-----IUT is on an MSTP segment and TD is on an Ethernet segment
-  ;   DA = Broadcast
-  ;   DNET = DNET_MSTP
-  ;   DADR = IUT_MAC
   ;------------------------------------------------------------------------------------
   SECTION ReadProperty Service Execution Tests
 
@@ -98,15 +80,8 @@
 --The max BVLCI Length is about 1482
 
  SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = WritePropertyMultiple
       Object = 0, OBJECT2
       OpenTag 1
@@ -1290,10 +1265,7 @@ CloseTag 1
   -- Step 2 Receive a simple Ack
 
  EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
@@ -1301,25 +1273,15 @@ CloseTag 1
 -- Step 3 Verify the written value from step 1
 
 SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = False
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = ReadProperty
       Object = 0, OBJECT2
       Property = 1,  PROP2
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT2
@@ -1384,15 +1346,8 @@ TEST #1B 9.20.1.X6 Writing Maximum Multiple properties
  --The max BVLCI Length is about 1480
 
  SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -2240,18 +2195,12 @@ CloseTag 1
  -- Step 2 Receive a simple Ack
 
  EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Service = WritePropertyMultiple
     )
    OR(
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -2267,25 +2216,15 @@ CloseTag 1
 -- Step 3 Verify the written value from step 1
 
 SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1,  PROP1
     )
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1

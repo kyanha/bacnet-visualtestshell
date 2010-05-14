@@ -11,7 +11,8 @@
   ;  the testing addendum.
   ;-------------------------------------------------------------------------------------
 
-   SETUP Negative WritePropertyMultiple Service Execution Tests
+  SETUP Negative WritePropertyMultiple Service Execution Tests
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ; Notes on Hardcoding and other changes needing to be made outside of the setup section including hard coded objects and properties
@@ -23,8 +24,6 @@
 
   ;-------------------------------------------------------------------------------------
 
-   IUT_IP = "IUT_IP"
-  TD_IP  = "TD_IP"
 
     C = ANSI, "XX"            ; Change This initial value in EPICS
     B = "Desired Temperature"         ; Newly written value
@@ -54,23 +53,6 @@
   -- TEST #1C   Writing Multiple Properties with a Write Access Error (commented)
               -- MANUAL SEND AND RECEIVE   - MANUALLY VERIFY ERROR IN STEP 4
               -- BODY CHANGE
-
-  ;-------------------------------------------------------------------------------------
-  ;-------------------------------------------------------------------------------------
-  ;
-  ;  Routing_Config
-  ;
-
-  -- DNET_MSTP = 20001, MS/TP     ; Sets the DNET of the remote MSTP network (Comment if no routing)
-
-  ;-----IUT and TD are on the same Ethernet segment
-  ;   DESTINATION = IUT_MAC
-  ;-----IUT is on an MSTP segment and TD is on an Ethernet segment
-  ;   DA = Broadcast
-  ;   DNET = DNET_MSTP
-  ;   DADR = IUT_MAC
-  ;-------------------------------------------------------------------------------------
-
 
   SECTION Negative WritePropertyMultiple Service Execution Tests
 
@@ -114,25 +96,15 @@ TEST #1A Writing Multiple Properties with a Property Access Error
   -- Step #1: Verify (read) the current value of the supported property
 
     SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Description                       ; Variable
     )
 
     EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -145,15 +117,8 @@ TEST #1A Writing Multiple Properties with a Property Access Error
  --  2. TRANSMIT WritePropertyMultiple-Request, (P1 will work and P2 will fail with an error code)
 
     SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -171,10 +136,7 @@ TEST #1A Writing Multiple Properties with a Property Access Error
  --  3. RECEIVE WritePropertyMultiple-Error,   ; *** Fail - The Expect is incorrect here Must read manually
 
   EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -191,25 +153,15 @@ TEST #1A Writing Multiple Properties with a Property Access Error
   --  4.    VERIFY (Object1), P1 = (the value specified for P1 in step 3)
 
     SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Description
     )
 
     EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -253,25 +205,15 @@ TEST #1B    Writing Multiple Properties with an Object Access Error
 
 
     SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Description                       ; Variable
     )
 
     EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -285,15 +227,8 @@ TEST #1B    Writing Multiple Properties with an Object Access Error
 --  2.  TRANSMIT WritePropertyMultiple-Request,
 
       SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -315,10 +250,7 @@ TEST #1B    Writing Multiple Properties with an Object Access Error
 --  3.  RECEIVE WritePropertyMultiple-Error    ; *** This expect fails; Must read manually
 
    EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -333,25 +265,15 @@ TEST #1B    Writing Multiple Properties with an Object Access Error
 
       --  4. VERIFY (Object1), P1 = (the value specified for P1 in step 2)
   SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Description                       ; Variable
     )
 
     EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -396,25 +318,15 @@ TEST #1C    Writing Multiple Properties with a Write Access Error
 --      Step #1  VERIFY (Object1), P1 = (the value specified for this property in the EPICS)
 
 SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Description
     )
 
     EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -427,25 +339,15 @@ SEND (
 --   Step #2    VERIFY (Object1), P2 = (the value specified for this property in the EPICS)
 
     SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, object-type
     )
 
     EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -458,15 +360,8 @@ SEND (
 --    Step #3   TRANSMIT WritePropertyMultiple-Request,
 
 SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 3
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -485,10 +380,7 @@ SEND (
 --      Step #4 RECEIVE WritePropertyMultiple-Error,
 
   EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = error
       Error-Choice = WritePropertyMultiple
       OpenTag 0
@@ -504,25 +396,15 @@ SEND (
 --  Step #5  VERIFY (Object1), P1 =     (the value specified for P1 in step 3)
 
 SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 4
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, Description
     )
 
     EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -535,25 +417,15 @@ SEND (
 --  Step #6  VERIFY (Object1), P2 =     (the value specified for this property in the EPICS)
 
  SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 5
       Service = ReadProperty
       Object = 0, OBJECT1
       Property = 1, object-type
     )
 
     EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, OBJECT1
@@ -565,15 +437,8 @@ SEND (
 
 Test #1D Write init Value to the property
     SEND (
-      NETWORK = "bip"
-      DA = IUT_IP
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 2
       Service = WritePropertyMultiple
       Object = 0, OBJECT1
       OpenTag 1
@@ -586,10 +451,7 @@ Test #1D Write init Value to the property
 
 
   EXPECT (
-      NETWORK = "bip"
-      SA = IUT_IP
-      DER = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      SA = IUT_ADDR
       PDU = SimpleAck
       Error-Choice = WritePropertyMultiple
      )

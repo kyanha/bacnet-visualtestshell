@@ -2,7 +2,7 @@
   ; Testing Support for the Event Type Filter test
   ; 
   ;
-  ; Exec_GetEnrollmentSummary_EventTypeFilter.vts	enrltypemmddyy.vts
+  ; Exec_GetEnrollmentSummary_EventTypeFilter.vts    enrltypemmddyy.vts
   ; 9.5.2.3
   ;   Ver 0.0   02/21/01    Steve Gillingham
   ;
@@ -24,38 +24,15 @@
 
 
 SETUP Object Support Tests - Event Type Filter test
-
-  ;--------------------------------------------------------------
-    IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
+INCLUDE "..\config.vts"
   
   ;--------------------------------------------------------------
-  ;            CHANGE: MY_MAC address and "Untitled"
-  ; TD_CONFIG
-  ;
-  ;"Untitled" = 1, ETHERNET, 0
-  -- The network which is directly-connected to the TD
-  -- and can be used to reach the IUT.
-  -- Adjust the parameters as needed to reflect the actual
-  -- physical environment. The first value represents the 
-  -- physical network number, the second value the physical 
-  -- network type and the third value the physical port.
-
-  ;MY_MAC = 0000e8863bf9    -- MAC address of the TD
-                           -- replace with you TD address
-
-  ;--------------------------------------------------------------
-  ;              CHANGE:  IUT_IP, and DEVICE_ID
+  ;              CHANGE:  IUT_ADDR, and IUT_DEVICE_OBJECT
   ; IUT_CONFIG
   ;
   TEST_YEAR   = XX              -- the year the test is executed
   TEST_MONTH  = XX              -- the month the test is executed
   TEST_DAY    = XX              -- the day the test is executed
-
-  ;IUT_IP =  0040ae000d71  -- MAC address of IUT
-                           -- replace with your IUT address
-                            
-  DEVICE_ID = DEVICE,47813                -- Device object instance for IUT.
 
   EVENT_ID = EVENT-ENROLLMENT, 1        -- the event generating object
   MONITORED_ID = MULTISTATE-INPUT, 1    -- the monitored object, same as above
@@ -132,14 +109,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = CHANGE_OF_BITSTRING
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -153,10 +123,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                                CHANGE_OF_BITSTRING)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID
@@ -171,14 +138,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = CHANGE_OF_STATE
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -192,10 +152,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                                CHANGE_OF_STATE)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID
@@ -210,14 +167,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = CHANGE_OF_VALUE
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -230,10 +180,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                              (Event_Type = CHANGE_OF_VALUE)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID
@@ -249,14 +196,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = FLOATING_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -269,10 +209,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                              (Event_Type = FLOATING_LIMIT)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID
@@ -288,14 +225,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = FLOATING_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -308,10 +238,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                              (Event_Type = FLOATING_LIMIT)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID
@@ -327,14 +254,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = FLOATING_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -347,10 +267,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                              (Event_Type = FLOATING_LIMIT)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID
@@ -366,14 +283,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = FLOATING_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -386,10 +296,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                              (Event_Type = FLOATING_LIMIT)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID
@@ -406,14 +313,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = FLOATING_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -426,10 +326,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                              (Event_Type = FLOATING_LIMIT)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID
@@ -445,14 +342,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = FLOATING_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -465,10 +355,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                              (Event_Type = FLOATING_LIMIT)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID
@@ -484,14 +371,7 @@ SETUP Object Support Tests - Event Type Filter test
   --        'Event Type Filter' = FLOATING_LIMIT
 
     SEND (
-      NETWORK = TD_PORT
-      DA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 480
-      InVokeID = 3
-      DER = TRUE
+      DA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       ENUM = 0, ACK_FILTER_ALL
@@ -504,10 +384,7 @@ SETUP Object Support Tests - Event Type Filter test
   --                                              (Event_Type = FLOATING_LIMIT)
 
     EXPECT (
-      NETWORK = TD_PORT
-      SA = IUT_IP
-      bvlci =ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      SA = IUT_ADDR
       PDU = Confirmed-Request
       Service = GETENROLLMENTSUMMARY
       Object EVENT_ID

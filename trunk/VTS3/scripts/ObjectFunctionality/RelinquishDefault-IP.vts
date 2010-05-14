@@ -3,13 +3,13 @@
   ;
   ;  RelDefmmddyy.vts
   ;
-  ;  Ver 0.1	03/08/01	P. Bowen	
+  ;  Ver 0.1    03/08/01    P. Bowen    
   ;
   ;  Purpose: This test case verifies that the Present_Value property takes on the 
-  ;	value of Relinquish_Default when all prioritized commands have been 
-  ;	relinquished. This test applies to Analog Output, Analog Value, Binary Output,
-  ;	Binary Value, Multi-state Output, and Multi-state Value objects that are 
-  ;	commandable.
+  ;    value of Relinquish_Default when all prioritized commands have been 
+  ;    relinquished. This test applies to Analog Output, Analog Value, Binary Output,
+  ;    Binary Value, Multi-state Output, and Multi-state Value objects that are 
+  ;    commandable.
   ;
   ;  Dependencies: ReadProperty and WriteProperty Service Execution Tests
   ;
@@ -18,26 +18,11 @@
   ;-------------------------------------------------------------------------------------
   
   SETUP Relinquish Default Test
-
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; TD_CONFIG
-  ;
-  
-  TD_IP  = "TD_IP"
-TD_PORT = "bip"
+  INCLUDE "..\config.vts"
 
   OBJECT1 = analog-value, 1
-
   TESTVAL1 = 99.9
 
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-  
-  IUT_IP = "IUT_IP"		; Address of IUT
-				                            
   ;-------------------------------------------------------------------------------------
 
   SECTION Relinquish Default Test
@@ -47,33 +32,33 @@ TD_PORT = "bip"
   -- properties.
 
   -- Configuration Requirements: 
-  --	a) The object to be tested shall be configured such that all slots in the 
-  --	   Priority_Array have a value of NULL and no internal algorithms are issuing
-  --	   prioritized commands to this object. 
-  --	b) IUT is on the same network as TD
+  --    a) The object to be tested shall be configured such that all slots in the 
+  --       Priority_Array have a value of NULL and no internal algorithms are issuing
+  --       prioritized commands to this object. 
+  --    b) IUT is on the same network as TD
 
   -- Test Concept: A pre-requisite to this test is that an object has been provided
-  --	for which all prioritized commands have been relinquished and any minimum 
-  --	on/off time has been accounted for. The Present_Value is compared to the value
-  --	of Relinquish_Default to ensure that they are the same. If possible, the value
-  --	of Relinquish_Default is changed to verify that Present_Value tracks the changes.
+  --    for which all prioritized commands have been relinquished and any minimum 
+  --    on/off time has been accounted for. The Present_Value is compared to the value
+  --    of Relinquish_Default to ensure that they are the same. If possible, the value
+  --    of Relinquish_Default is changed to verify that Present_Value tracks the changes.
 
   -- Test Steps:
   --
-  --	1. VERIFY Priority_Array = (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-  --		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
-  --	2. TRANSMIT ReadProperty-Request,
-  --		'Object Identifier' =	(the object being tested),
-  --		'Property Identifier' =	Present_Value
-  --	3. RECEIVE ReadProperty-ACK,
-  --		'Object Identifier' =	(the object being tested),
-  --		'Property Identifier' =	Present_Value
-  --		'Property Value' =	(any valid value, X)
-  --	4. VERIFY Relinquish_Default = X
-  --	5. IF (Relinquish_Default is writable) THEN
-  --		WRITE Relinquish_Default = (any valid value, Y, other than the one
-  --		returned in step 4)
-  --	6. VERIFY Present_Value = Y
+  --    1. VERIFY Priority_Array = (NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+  --        NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+  --    2. TRANSMIT ReadProperty-Request,
+  --        'Object Identifier' =    (the object being tested),
+  --        'Property Identifier' =    Present_Value
+  --    3. RECEIVE ReadProperty-ACK,
+  --        'Object Identifier' =    (the object being tested),
+  --        'Property Identifier' =    Present_Value
+  --        'Property Value' =    (any valid value, X)
+  --    4. VERIFY Relinquish_Default = X
+  --    5. IF (Relinquish_Default is writable) THEN
+  --        WRITE Relinquish_Default = (any valid value, Y, other than the one
+  --        returned in step 4)
+  --    6. VERIFY Present_Value = Y
 
   -- REFERENCE (B) Relinquish_Default and (T) Relinquish Default Test
 
@@ -87,63 +72,43 @@ TD_PORT = "bip"
   -- Step #1: Verify (read) the object's Priority-Array
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Priority-Array
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Priority-Array
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	SA = IUT_IP
-      	PDU = ComplexAck
-      	DER = FALSE
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Priority-Array
-      	OpenTag 3
-         	AL = {Priority-Array}
-      	CloseTag 3
+          SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Priority-Array
+          OpenTag 3
+             AL = {Priority-Array}
+          CloseTag 3
     )
 
   -- Steps #2 and #3: Read the object's Present-Value property
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Present-Value
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Present-Value
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	SA = IUT_IP
-      	PDU = ComplexAck
-      	DER = FALSE
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Present-Value
-      	OpenTag 3
-         	AL = {Present-Value}
-      	CloseTag 3
+          SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Present-Value
+          OpenTag 3
+             AL = {Present-Value}
+          CloseTag 3
     )
 
   ;-------------------------------------------------------------------------------------
@@ -156,32 +121,22 @@ TD_PORT = "bip"
  -- Step #4: Verify that the Relinquish-Default property = Present-Value
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Relinquish-Default
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Relinquish-Default
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	SA = IUT_IP
-      	PDU = ComplexAck
-      	DER = FALSE
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Relinquish-Default
-      	OpenTag 3
-         	AL = {Relinquish-Default}
-     	CloseTag 3
+          SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Relinquish-Default
+          OpenTag 3
+             AL = {Relinquish-Default}
+         CloseTag 3
     )
 
   ;-------------------------------------------------------------------------------------
@@ -195,30 +150,20 @@ TD_PORT = "bip"
   -- Step #5: Write new Relinquish-Default value
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = WriteProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Relinquish-Default
-      	OpenTag 3
-        	REAL = TESTVAL1	
-      	CloseTag 3
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = WriteProperty
+          Object = 0, OBJECT1
+          Property = 1, Relinquish-Default
+          OpenTag 3
+            REAL = TESTVAL1    
+          CloseTag 3
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	SA = IUT_IP
-      	DER = FALSE
-      	PDU = SimpleAck
-      	Service = WriteProperty
+          SA = IUT_ADDR
+          PDU = SimpleAck
+          Service = WriteProperty
     )
 
   ;-------------------------------------------------------------------------------------
@@ -231,31 +176,21 @@ TD_PORT = "bip"
   -- Step #6: Verify that Present-Value equals the new Relinquish-Default value
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Present-Value
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Present-Value
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	bvlci =ORIGINAL-UNICAST-NPDU
-      	SA = IUT_IP
-      	PDU = ComplexAck
-      	DER = FALSE
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Present-Value
-      	OpenTag 3
-         	REAL = TESTVAL1
-      	CloseTag 3
+          SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Present-Value
+          OpenTag 3
+             REAL = TESTVAL1
+          CloseTag 3
     )
  

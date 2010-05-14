@@ -13,68 +13,7 @@
 ;---------------
 
 SETUP Number_Of_States and State_Text
-
-;-------------------------------------------------------------------------
-;MAC Address Setup
-;-------------------------------------------------------------------------
-;IUT_MAC = 05
-;MY_MAC  = 000000B0D0E911F6
-
- IUT_IP = "IUT_IP"
-TD_IP  = "TD_IP"
-TD_PORT = "bip"
-
-;IUT_MAC = <address> ; MAC Address of the device you are testing.
-;MY_MAC  = <address> ; MAC Address of your VTS test machine.
-; Replace <address> with the actual MAC address
-; ARCNET MAC is 2 bytes
-; MS/TP MAC is 2 bytes
-; ETHERNET MAC is 16 bytes
-; VTS2 requires an even number of hex characters.
-; VTS3 requires a valid C-style constant (hex is 0x01, for example)
-;VTS2
-
-;NET_1 = 1, ETHERNET, 0 ;Network setup for VTS Test Machine - Net, Type, Port
-
-;Type can be ARCNET, MS/TP, ETHERNET
-;VTS3
-;NET_1 = "TD"
-;NET_1 = <"name"> ;Network setup for VTS Test Machine - Net, Type, Port
-; Replace <name> with the name of a port that is user defined in VTS3
-
-;-------------------------------------------------------------------------
-;Routing Setup
-;  by default IUT and TD are on the same Ethernet segment
-;------------------------------------------------------------------------- 
-;
-; Set the DNET of the remote network 
-; Comment out the following line if there is no routing (place a -- before it)
--- DNET_REMOTE_NET  = <DNET>,<type>     
-
--------------------------------------------------------------------------
-;DNET_REMOTE_NET = 4885, MS/TP      
--------------------------------------------------------------------------
-
-; Replace <DNET> with the destination network number
-; Replace <type> with ARCNET, MS/TP, ETHERNET
-;
-; Every SEND block within the script must contain 
-; either Option 1: or Option 2: 
-; (See Script Customization help for more inforamtion)
-;
-;    Option 1:  Both the Device being tested and the VTS machine 
-;               are on the same segment
-; DESTINATION = IUT_MAC        
-;
-;   
-;    Option 2:  Device being tested is on an MSTP segment and the 
-;               VTS machine is on an Ethernet segment
-; DA = Broadcast
-; DNET = DNET_REMOTE_NET
-; DADR = IUT_MAC
-;
-;------------------------------------------------------------------------ 
-
+INCLUDE "..\config.vts"
 
 ;-------------------------------------------------------------------------
 ; Variable Setup and TEST NOTES (Combined with Test Notes)
@@ -142,20 +81,8 @@ REFERENCE (B) 12.15.11, 12.15.12 (T) 7.3.2.16.2
 -- Step #1: TRANSMIT ReadProperty-Request
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      DER = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      ;DNET =65535                         ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = ReadProperty
       Object = 0, MULTISTATE_OBJECT_1
       Property = 1, Number-Of-States
@@ -164,11 +91,7 @@ REFERENCE (B) 12.15.11, 12.15.12 (T) 7.3.2.16.2
 -- Step #2: RECEIVE ReadProperty-ACK
 
    EXPECT (  
-      NETWORK = TD_PORT
-      DER = FALSE
-      ;DA = Broadcast
       SA = IUT-IP
-      BVLCI = ORIGINAL-UNICAST-NPDU 
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, MULTISTATE_OBJECT_1
@@ -187,20 +110,8 @@ Test #1.3 Step #3: VERIFY State_Text = (the number of states from step 2),
 --          ARRAY INDEX = 0
 
     SEND (
-      NETWORK = TD_PORT
-      ; Every SEND block within the script must contain 
-      ; either DESTINATION or DA,DNET,DADR
-      DA = IUT_IP
-      ;DA = Broadcast
-      BVLCI = ORIGINAL-UNICAST-NPDU 
-      DER = TRUE
-      ;DNET = 65535                       ;DNET_REMOTE_NET
-      ;DADR = IUT_MAC
+      DA = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 2
       Service = ReadProperty
       Object = 0, MULTISTATE_OBJECT_1
       Property = 1, State-Text
@@ -208,11 +119,7 @@ Test #1.3 Step #3: VERIFY State_Text = (the number of states from step 2),
       )
 
     EXPECT (     
-      NETWORK = TD_PORT
-      DER = FALSE
-      ;DA = BROADCAST
-      SA = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU 
+      SA = IUT_ADDR
       PDU = ComplexAck
       Service = ReadProperty
       Object = 0, MULTISTATE_OBJECT_1

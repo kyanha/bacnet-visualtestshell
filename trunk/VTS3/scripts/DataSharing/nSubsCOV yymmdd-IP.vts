@@ -15,26 +15,17 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Negative SubscribeCOV Service Execution Test
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ;
   ; TD_CONFIG
   ;
- TD_IP  = "TD_IP"
 
   OBJECT1 = DEVICE,47814  ; Any object that does not support COV notifications
 
   PID = 41          ; Any valid process identifier
   LIFETIME = 60         ; Subscription lifetime in secs (0 = indefinite)
-
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-
-  --IUT_IP = 10.10.10.100
-   IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
 
   ERROR_CLASS = 5       ; Error class SERVICES
   ERROR_CODE1 = 0       ; Error code = OTHER
@@ -71,15 +62,8 @@
   -- Step #1: Transmit Subscribe COV Request
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = SubscribeCOV
       Unsigned = 0, PID         ; Process-Identifier = PID
       Object = 1, OBJECT1       ; Object-Identifier = OBJECT1
@@ -90,10 +74,7 @@
   -- Step #2: Receive Error Response "OTHER" or "SERVICE_REQUEST_DENIED"
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = Error
       ERROR-CHOICE = SubscribeCOV
       ENUMERATED = ERROR_CLASS      ; class = SERVICES
@@ -101,10 +82,7 @@
     )
 
     OR (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = Error
       ERROR-CHOICE = SubscribeCOV
       ENUMERATED = ERROR_CLASS      ; class = SERVICES

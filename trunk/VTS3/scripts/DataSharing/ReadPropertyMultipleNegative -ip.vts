@@ -17,9 +17,7 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Negative ReadPropertyMultiple Service Execution Tests
-
-  IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
+  INCLUDE "..\config.vts"
 
   OBJECT1 = Device, 47814   ; DEVICE OBJECT
   OBJECT2 = analog-VALUE, 1 ; Object which is the subject of the Read Prop tests
@@ -81,15 +79,8 @@
   -- single supported object, with a single property not supported by the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1           ; Supported object
       OpenTag 1
@@ -103,10 +94,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1           ; Supported object
@@ -180,15 +168,8 @@
   -- two different objects, both supported and not supported by by the IUT
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1           ; Supported object
       OpenTag 1
@@ -208,10 +189,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1           ; Supported object
@@ -276,15 +254,8 @@
   -- Step #1: TRANSMIT ReadPropertyMultiple-Request
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1           ; Supported object
       OpenTag 1
@@ -297,10 +268,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
    EXPECT (
-      NETWORK = TD_PORT
-      sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      sa = IUT_ADDR
       PDU = ComplexAck
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1           ;supported object here
@@ -352,15 +320,8 @@
   -- Step #1: TRANSMIT ReadPropertyMultiple-Request
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = TRUE
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InvokeID = 1
       Service = ReadPropertyMultiple
       Object = 0, OBJECT1           ; Supported object
       OpenTag 1
@@ -382,10 +343,7 @@
   -- Step #2: Receive ReadPropertyMultiple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      sa = IUT_IP
-      BVLCI = ORIGINAL-UNICAST-NPDU
-      DER = FALSE
+      sa = IUT_ADDR
       PDU = ERROR
       Error-Choice = ReadPropertyMultiple
       Enum = 5

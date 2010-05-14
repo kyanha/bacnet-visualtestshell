@@ -16,28 +16,17 @@
   ;-------------------------------------------------------------------------------------
 
   SETUP Updating Existing Subscriptions Test Case
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ;
   ; TD_CONFIG
   ;
-
- TD_IP  = "TD_IP"
-
   OBJECT1 = Analog-Value, 1 ; Object which is the subject of the COV tests
 
   PID = 70          ; Subscriber Process Identifier
   LIFETIME1 = 60        ; First subscription lifetime in seconds
   LIFETIME2 = 240       ; Second subscription lifetime in seconds
-
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-
-  --IUT_IP = 10.10.10.100
-  IUT_IP = "IUT_IP"
-   TD_PORT = "bip"
 
   ;-------------------------------------------------------------------------------------
 
@@ -123,15 +112,8 @@
   -- Step #1: Subscribe to COV with lifetime = LIFETIME1 secs
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = SubscribeCOV
       Unsigned = 0, PID         ; Process-Identifier = PID
       Object = 1, OBJECT1       ; Object-Identifier = OBJECT1
@@ -142,10 +124,7 @@
   -- Step #2:  Receive Simple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = SubscribeCOV
     )
@@ -158,10 +137,7 @@
   -- Step #4: Receive Confirmed COV Notification Request
 
   EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedCOVNotification
   )
@@ -172,15 +148,8 @@
    -- Step #5: Subscribe to COV with lifetime = LIFETIME2 secs
 
     SEND (
-      NETWORK = TD_PORT
-      Da = IUT_IP
-      Der = TRUE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Da = IUT_ADDR
       PDU = Confirmed-Request
-      SegMsg = 0
-      SegResp = 0
-      MaxResp = 1476
-      InVokeID = 1
       Service = SubscribeCOV
       Unsigned = 0, PID         ; Process-Identifier = PID
       Object = 1, OBJECT1       ; Object-Identifier = OBJECT1
@@ -191,10 +160,7 @@
   -- Step #6: Receive Simple ACK
 
     EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = SimpleAck
       Service = SubscribeCOV
     )
@@ -207,10 +173,7 @@
   -- Step #8: Receive Confirmed COV Notification Request
 
   EXPECT (
-      NETWORK = TD_PORT
-      Sa = IUT_IP
-      Der = FALSE
-      BVLCI = ORIGINAL-UNICAST-NPDU
+      Sa = IUT_ADDR
       PDU = Confirmed-Request
       Service = ConfirmedCOVNotification
   )

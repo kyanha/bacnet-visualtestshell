@@ -1,10 +1,10 @@
   ;-------------------------------------------------------------------------------------
   ;  Positive UTC Time Synchronization Service Execution Tests
   ;
-  ;  PosUTCTimeSynch.vts	utcmmddyy.vts
+  ;  PosUTCTimeSynch.vts    utcmmddyy.vts
   ;
-  ;  Ver 0.1	02/06/01	P. Bowen
-  ;  Ver 0.2	03/04/01	P. Bowen	Added SA address to time synch Xmit
+  ;  Ver 0.1    02/06/01    P. Bowen
+  ;  Ver 0.2    03/04/01    P. Bowen    Added SA address to time synch Xmit
   ;
   ;  The purpose of this test group is to verify correct execution of 
   ;  the UTC Time Synchronization service requests under circumstances 
@@ -15,26 +15,18 @@
   ;-------------------------------------------------------------------------------------
   
   SETUP Positive UTC Time Synchronization Service Execution Tests
+  INCLUDE "..\config.vts"
 
   ;-------------------------------------------------------------------------------------
   ;
   ; TD_CONFIG
   ;
-	TD_IP  = "TD_IP"
 
-  	OBJECT1 = Device, 47814
+      OBJECT1 = Device, 47814
 
   ;TESTDATE = MON, JANUARY 01, 2001
   ;TESTTIME = 01:02:03.00 AM
   
-  ;-------------------------------------------------------------------------------------
-  ;
-  ; IUT_CONFIG
-  ;
-  
-	IUT_IP = "IUT_IP"
-	TD_PORT = "bip"
-				                            
   ;-------------------------------------------------------------------------------------
 
   SECTION Positive UTC Time Synchronization Service Execution Tests
@@ -51,55 +43,55 @@
   REFERENCE (B) UTC Time Synchronization Service and (T) Local Broadcast
 
   -- Test Steps:
-  --	1. TRANSMIT ReadProperty-Request,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Local_Date
-  --	2. RECEIVE ReadProperty-ACK,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Local_Date,
-  --		'Property Value' = (any valid date referred to as InitialDate below)
-  --	3. TRANSMIT ReadProperty-Request,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Local_Time
-  --	4. RECEIVE ReadProperty-ACK,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Local_Time,
-  --		'Property Value' = (any valid time referred to as InitialTime below)
-  --	5. TRANSMIT ReadProperty-Request,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	UTC_Offset
-  --	6. RECEIVE ReadProperty-ACK,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	UTC_Offset,
-  --		'Property Value' = (any valid offset referred to as InitialUTC_Offset below)
-  --	7. TRANSMIT ReadProperty-Request,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Daylight_Savings_Status
-  --	8. RECEIVE ReadProperty-ACK,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Daylight_Savings_Status,
-  --		'Property Value' = (any valid status referred to as InitialDaylight_Savings_Status below)
-  --	9. TRANSMIT 
-  --		DA = LOCAL BROADCAST,
-  --		SA = TD, 
-  --		BACnet-Unconfirmed-Request-PDU,
-  --  		'Service Choice' = UTCTimeSynchronization-Request,
-  --		date = (any date other than InitialDate),
-  --		time = (any time that does not correspond to InitialTime)
-  --	10. TRANSMIT ReadProperty-Request,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Local_Date
-  --	11. RECEIVE ReadProperty-ACK,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Local_Date,
-  --		'Property Value' = (the date specified in step 9)
-  --	12. TRANSMIT ReadProperty-Request,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Local_Time
-  --	13. RECEIVE ReadProperty-ACK,
-  --		'Object Identifier' = (the IUT's Device object),
-  --		'Property Identifier' =	Local_Time,
-  --		'Property Value' = (the time specified in step 9)
+  --    1. TRANSMIT ReadProperty-Request,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Local_Date
+  --    2. RECEIVE ReadProperty-ACK,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Local_Date,
+  --        'Property Value' = (any valid date referred to as InitialDate below)
+  --    3. TRANSMIT ReadProperty-Request,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Local_Time
+  --    4. RECEIVE ReadProperty-ACK,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Local_Time,
+  --        'Property Value' = (any valid time referred to as InitialTime below)
+  --    5. TRANSMIT ReadProperty-Request,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    UTC_Offset
+  --    6. RECEIVE ReadProperty-ACK,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    UTC_Offset,
+  --        'Property Value' = (any valid offset referred to as InitialUTC_Offset below)
+  --    7. TRANSMIT ReadProperty-Request,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Daylight_Savings_Status
+  --    8. RECEIVE ReadProperty-ACK,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Daylight_Savings_Status,
+  --        'Property Value' = (any valid status referred to as InitialDaylight_Savings_Status below)
+  --    9. TRANSMIT 
+  --        DA = LOCAL BROADCAST,
+  --        SA = TD, 
+  --        BACnet-Unconfirmed-Request-PDU,
+  --          'Service Choice' = UTCTimeSynchronization-Request,
+  --        date = (any date other than InitialDate),
+  --        time = (any time that does not correspond to InitialTime)
+  --    10. TRANSMIT ReadProperty-Request,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Local_Date
+  --    11. RECEIVE ReadProperty-ACK,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Local_Date,
+  --        'Property Value' = (the date specified in step 9)
+  --    12. TRANSMIT ReadProperty-Request,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Local_Time
+  --    13. RECEIVE ReadProperty-ACK,
+  --        'Object Identifier' = (the IUT's Device object),
+  --        'Property Identifier' =    Local_Time,
+  --        'Property Value' = (the time specified in step 9)
 
   -- Note: If the time returned by the IUT indicates that a small amount of 
   -- time has passed (< 1 second) since the UTC Time Synchronization request 
@@ -108,206 +100,142 @@
   -- Step #1 & 2: Verify (read) device's local date
 
     SEND (
-      	NETWORK = TD_PORT
-	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Date
+    DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Date
    )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	DA = TD_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Date
-      	OpenTag 3
-         	AL != X'0000000000'
-      	CloseTag 3
+          DA = TD_ADDR
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Date
+          OpenTag 3
+             AL != X'0000000000'
+          CloseTag 3
     )
 
   -- Step #3 & 4: Verify (read) device's local time
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Time
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Time
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Time
-      	OpenTag 3
-        	AL != X'0000000000'
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Time
+          OpenTag 3
+            AL != X'0000000000'
+          CloseTag 3
     )
 
   -- Step #5 & 6: Verify (read) device's UTC offset
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, UTC-Offset
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, UTC-Offset
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, UTC-Offset
-      	OpenTag 3
-        	AL != X'000000'
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, UTC-Offset
+          OpenTag 3
+            AL != X'000000'
+          CloseTag 3
     )
  
   -- Step #7 & 8: Verify (read) device's daylight savings status
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Daylight-Savings-Status
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Daylight-Savings-Status
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	DA = TD_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Daylight-Savings-Status
-      	OpenTag 3
-         	AL != X'00'
-      	CloseTag 3
+          DA = TD_ADDR
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Daylight-Savings-Status
+          OpenTag 3
+             AL != X'00'
+          CloseTag 3
     )
 
   -- Step #9: Transmit via local broadcast new time & date
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = BROADCAST
-      	SA = TD_IP
-	bvlci =ORIGINAL-BROADCAST-NPDU
-      	DER = FALSE
-      	PDU = Unconfirmed-Request
-      	Service = UTCTimeSynchronization
-      	Date = MONDAY, 1/1/2001
-      	Time = 01:02:03.00
---    Date = TESTDATE			; V2.26 won't accept (load) this statement
---    Time = TESTTIME			; V2.26 won't accept (load) this statement
+          DA = BROADCAST
+          PDU = Unconfirmed-Request
+          Service = UTCTimeSynchronization
+          Date = MONDAY, 1/1/2001
+          Time = 01:02:03.00
+--    Date = TESTDATE            ; V2.26 won't accept (load) this statement
+--    Time = TESTTIME            ; V2.26 won't accept (load) this statement
     )
 
   -- Step #10 & 11: Verify (read) device's new local date
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Date
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Date
    )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	DA = TD_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Date
-      	OpenTag 3
-         	AL != X'0000000000'
-      	CloseTag 3
+          DA = TD_ADDR
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Date
+          OpenTag 3
+             AL != X'0000000000'
+          CloseTag 3
     )
    
   -- Step #12 & 13: Verify (read) device's new local time
 
       SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Time
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Time
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Time
-      	OpenTag 3
-         	AL != X'0000000000'
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Time
+          OpenTag 3
+             AL != X'0000000000'
+          CloseTag 3
     )
 
   ;-------------------------------------------------------------------------------------
@@ -330,202 +258,138 @@
   -- Step #1 & 2: Verify (read) device's local date
 
     SEND (
-      	NETWORK = TD_PORT
-	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Date
+    DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Date
    )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	DA = TD_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Date
-      	OpenTag 3
-         	AL != X'0000000000'
-      	CloseTag 3
+          DA = TD_ADDR
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Date
+          OpenTag 3
+             AL != X'0000000000'
+          CloseTag 3
     )
 
   -- Step #3 & 4: Verify (read) device's local time
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Time
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Time
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Time
-      	OpenTag 3
-         	AL != X'0000000000'
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Time
+          OpenTag 3
+             AL != X'0000000000'
+          CloseTag 3
     )
 
   -- Step #5 & 6: Verify (read) device's UTC offset
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, UTC-Offset
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, UTC-Offset
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, UTC-Offset
-      	OpenTag 3
-         	AL != X'000000'
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, UTC-Offset
+          OpenTag 3
+             AL != X'000000'
+          CloseTag 3
     )
  
   -- Step #7 & 8: Verify (read) device's daylight savings status
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Daylight-Savings-Status
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Daylight-Savings-Status
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	DA = TD_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Daylight-Savings-Status
-      	OpenTag 3
-         	AL != X'00'
-      	CloseTag 3
+          DA = TD_ADDR
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Daylight-Savings-Status
+          OpenTag 3
+             AL != X'00'
+          CloseTag 3
     )
 
   -- Step #9: Transmit via local broadcast new time & date
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-      	SA = TD_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = FALSE
-      	PDU = Unconfirmed-Request
-      	Service = UTCTimeSynchronization
-      	Date = MONDAY, 1/1/2001
-      	Time = 01:02:03.00
+          DA = IUT_ADDR
+          PDU = Unconfirmed-Request
+          Service = UTCTimeSynchronization
+          Date = MONDAY, 1/1/2001
+          Time = 01:02:03.00
     )
 
   -- Step #10 & 11: Verify (read) device's new local date
 
     SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Date
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Date
    )
 
     EXPECT (
-      	NETWORK = TD_PORT
-      	DA = TD_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Date
-      	OpenTag 3
-         	AL != X'0000000000'
-      	CloseTag 3
+          DA = TD_ADDR
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Date
+          OpenTag 3
+             AL != X'0000000000'
+          CloseTag 3
     )
    
   -- Step #12 & 13: Verify (read) device's new local time
 
       SEND (
-      	NETWORK = TD_PORT
-      	DA = IUT_IP
-	bvlci =ORIGINAL-UNICAST-NPDU
-      	DER = TRUE
-      	PDU = Confirmed-Request
-	SegMsg = 0
-      	SegResp = 0
-      	MaxResp = 1476
-	InVokeID = 3
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Time
+          DA = IUT_ADDR
+          PDU = Confirmed-Request
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Time
     )
 
     EXPECT (
-      	NETWORK = TD_PORT
-	bvlci =ORIGINAL-UNICAST-NPDU
-	SA = IUT_IP
-      	DER = FALSE
-      	PDU = ComplexAck
-      	Service = ReadProperty
-      	Object = 0, OBJECT1
-      	Property = 1, Local-Time
-      	OpenTag 3
-         	AL != X'0000000000'
-      	CloseTag 3
+    SA = IUT_ADDR
+          PDU = ComplexAck
+          Service = ReadProperty
+          Object = 0, OBJECT1
+          Property = 1, Local-Time
+          OpenTag 3
+             AL != X'0000000000'
+          CloseTag 3
     )
