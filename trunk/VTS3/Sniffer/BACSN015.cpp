@@ -4750,6 +4750,7 @@ void show_bac_recipient( BACnetSequence &seq )
 	{
 		seq.Unsigned(    -1, "network-number" );
 		seq.OctetString( -1, "mac-address" );
+		seq.ClosingTag();
 	}
 	seq.EndChoice();
 }
