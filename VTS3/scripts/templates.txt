@@ -200,7 +200,7 @@ EXPECT (
    SA  = IUT_ADDR
    PDU = ComplexAck
    Service = CreateObject
-   Object = <object>
+   Object = your_object
 )
 
 ENDITEM
@@ -223,7 +223,7 @@ EXPECT (
    SA  = IUT_ADDR   
    PDU = ComplexAck
    Service = CreateObject
-   Object = <object>
+   Object = your_object
 )
 
 ENDITEM
@@ -687,9 +687,121 @@ SEND (
 
 EXPECT (
    SA  = IUT_ADDR
-   PDU = ComplexAck
+   PDU = SimpleAck
    Service = AcknowledgeAlarm
-   Object = <object>
+   Object = your_object
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM GetAlarmSummary
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = GetAlarmSummary
+)
+
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = ComplexAck
+   Service = GetAlarmSummary
+
+   -- list of zero or more items:
+   Object = your_object
+   enum   = your_BACnetEventState
+   bitstring = [{T,F,T,F}]  ; BACnetEventTransitionBits
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM GetEnrollmentSummary
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = GetEnrollmentSummary
+   enum     = 0, your_optional_ackFilter -- 0=all, 1=acked, 2=not-acked
+   OpenTag    1
+      -- BACnetRecipientProcess
+      OpenTag    0
+         -- CHOICE of [0] device or [1] BAcnetAddress
+         Object = 0, your_device
+;;         OpenTag  1
+;;            Unsigned    your_network
+;;            OctetString your_mac_address
+;;         CloseTag 1
+      CloseTag   0
+      Unsigned = 1, your_processID
+   CloseTag   1
+   enum     = 2, your_optional_stateFilter -- 0=offnormal, 1=fault, 2=normal, 3=all, 4=active
+   enum     = 3, your_optional_eventTypeFilter
+   OpenTag    4 -- optional priority Filter
+      Unsigned = 0, your_minPriority
+      Unsigned = 1, your_maxPriority
+   CloseTag   4
+   Unsigned = 5, your_optionalNotificationClassFilter
+)
+
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = ComplexAck
+   Service = GetEnrollmentSummary
+   
+   -- list of zero or more items:
+   Object = your_object
+   enum   = your_eventType
+   enum   = your_eventState
+   Unsigned = your_priority
+   Unsigned = your_optional_notificationClass
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM GetEventInformation
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = GetEventInformation
+   Object = 0, your_optional_last_object_received
+)
+
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = ComplexAck
+   Service = GetEventInformation
+   
+   -- list of zero or more items:
+   OpenTag 0
+      Object    = 0, your_object
+      enum      = 1, your_BACnetEventState
+      bitstring = 2, [{T,F,T,F}]  ; BACnetEventTransitionBits
+      OpenTag     3
+         -- 3 BACnetTimeStamps.  Using DateTime here.
+         OpenTag 2
+            date = [(FRIDAY,1/29/2010)]
+            time = [8:36:12.00]
+         CloseTag 2
+         OpenTag 2
+            date = [(FRIDAY,1/29/2010)]
+            time = [8:36:12.00]
+         CloseTag 2
+         OpenTag 2
+            date = [(FRIDAY,1/29/2010)]
+            time = [8:36:12.00]
+         CloseTag 2
+      CloseTag    3
+      enum      = 4, your_BACnetNotifyType
+      bitstring = 5, [{T,F,T,F}]  ; your_eventEnable
+      OpenTag     6
+         Unsigned your_eventPriority1
+         Unsigned your_eventPriority2
+         Unsigned your_eventPriority3
+      CloseTag    6
+   CloseTag 0
+
+   boolean = 1, ?   ; more_events
 )
 
 ENDITEM
