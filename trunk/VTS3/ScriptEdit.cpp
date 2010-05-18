@@ -987,8 +987,34 @@ void ScriptEdit::OnTemplate(UINT nID)
 		int sel = dlg.GetTemplateIndex();
 		if (sel >= 0)
 		{
-			// TODO: Should observe auto-indent, perhaps by inserting as insert as characters?
-			m_pEdit->ReplaceSel( s_templateLibrary.Collection( ix ).TemplateBody( sel ) );
+			// Auto-indent to the level of the current line
+			CString white;
+//			UpdateEditArea();
+			int curLine = GetCurLineIndex();
+			if (curLine >= 0)
+			{
+				CString lineText;
+				int max = m_pEdit->GetLine( curLine, lineText.GetBuffer(100), 100 );
+				lineText.ReleaseBuffer(max);
+				if (max > 0)
+				{
+					white = lineText.SpanIncluding( " \t" );
+				}
+			}
+
+			CString text;
+			LPCTSTR pText = s_templateLibrary.Collection( ix ).TemplateBody( sel );
+			while (*pText)
+			{
+				TCHAR ch = *pText++;
+				text += ch;
+				if ((ch == '\n') && !white.IsEmpty())
+				{
+					text += white;
+				}
+			}
+
+			m_pEdit->ReplaceSel( text );
 		}
 	}
 }
@@ -1037,9 +1063,18 @@ void ScriptTemplateLibrary::ReadFile( const char *pTheFileName )
 	bool defining = false;
 
 	// Create sections from the propertyID and object-type enumerations
-	pCollection = new ScriptTemplateCollection( "Object Types" );
+	pCollection = new ScriptTemplateCollection( "Property Identifiers" );
 	int ix;
-	for(ix = 0; ix < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings; ix++)
+	for (ix = 0; ix < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; ix++)
+	{
+		templ.m_name = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ix];
+		templ.m_body = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ix];
+		pCollection->Add( templ );
+	}
+	m_collections.Add( pCollection );
+
+	pCollection = new ScriptTemplateCollection( "Object Types" );
+	for (ix = 0; ix < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings; ix++)
 	{
 		templ.m_name = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[ix];
 		templ.m_body = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[ix];
@@ -1047,14 +1082,6 @@ void ScriptTemplateLibrary::ReadFile( const char *pTheFileName )
 	}
 	m_collections.Add( pCollection );
 	
-	pCollection = new ScriptTemplateCollection( "Property Identifiers" );
-	for(ix = 0; ix < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; ix++)
-	{
-		templ.m_name = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ix];
-		templ.m_body = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ix];
-		pCollection->Add( templ );
-	}
-	m_collections.Add( pCollection );
 	pCollection = NULL;
 
 	// Read the file
@@ -1201,12 +1228,14 @@ void ScriptTemplateLibrary::FillMenu( CMenu &theMenu, bool atEnd )
 		char sh[3];
 		if (ix < 36)
 		{
+			// Shortcut 1-9, A-Z
 			sh[0] = '&';
 			sh[1] = shortcuts[ix];
 			sh[2] = 0;
 		}
 		else
 		{
+			// No shortcut
 			sh[0] = ' ';
 			sh[1] = ' ';
 			sh[2] = 0;

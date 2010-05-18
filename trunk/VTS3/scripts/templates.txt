@@ -3,7 +3,801 @@
 ; Each ITEM becomes a choice in the template selection dialog for its SECTION.
 ; The text lines between ITEM and ENDITEM are inserted into the script.
 
+;===============================================================================
+;===============================================================================
+SECTION Datatypes
 
+ITEM NULL
+NULL
+ENDITEM
+
+;===============================================================================
+ITEM Boolean
+boolean = T
+ENDITEM
+
+;===============================================================================
+ITEM Unsigned
+UNSIGNED = 6
+ENDITEM
+
+;===============================================================================
+ITEM Signed Integer
+integer = 7
+ENDITEM
+
+;===============================================================================
+ITEM Real
+real = 3.14
+ENDITEM
+
+;===============================================================================
+ITEM Double
+double = 3.14
+ENDITEM
+
+;===============================================================================
+ITEM Octet String
+octetstring = X'010203'
+ENDITEM
+
+;===============================================================================
+ITEM Character String
+characterstring = "hi"
+ENDITEM
+
+;===============================================================================
+ITEM Bit String
+bitstring = [{T,F,T,F}]
+ENDITEM
+
+;===============================================================================
+ITEM Enumerated
+enumerated = 6
+ENDITEM
+
+;===============================================================================
+ITEM Date
+date = [(FRIDAY,1/29/2010)]
+ENDITEM
+
+;===============================================================================
+ITEM Time
+time = [8:36:12.00]
+ENDITEM
+
+;===============================================================================
+ITEM Object Identifier
+objectidentifier = analog-input, 1
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 0
+OpenTag 0
+CloseTag 0
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 1
+OpenTag 1
+CloseTag 1
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 2
+OpenTag 2
+CloseTag 2
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 3
+OpenTag 3
+CloseTag 3
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 4
+OpenTag 4
+CloseTag 4
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 5
+OpenTag 5
+CloseTag 5
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 6
+OpenTag 6
+CloseTag 6
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 7
+OpenTag 7
+CloseTag 7
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 8
+OpenTag 8
+CloseTag 8
+ENDITEM
+
+;===============================================================================
+ITEM Paired Context Tag 9
+OpenTag 9
+CloseTag 9
+ENDITEM
+
+;===============================================================================
+ITEM CalendarEntry - date CHOICE
+OpenTag 0
+   Date [(Thursday,2/4/2010)]
+CloseTag 0
+ENDITEM
+
+;===============================================================================
+ITEM CalendarEntry - date range CHOICE
+OpenTag 1
+   Date [(Thursday,2/4/2010)]
+   Date [(Tuesday,2/16/2010)]
+CloseTag 1
+ENDITEM
+
+;===============================================================================
+ITEM CalendarEntry - WeekNDay CHOICE
+OpenTag 2
+   -- Month 1-12, 13=odd, 14=even or 0xFF; Week 1-5, 6=last or 0xFF; Day 1-7 or 0xFF
+   Octetstring X'000000'
+CloseTag 2
+ENDITEM
+
+;===============================================================================
+ITEM DailySchedule
+OpenTag 0
+   -- Zero or more TimeValues
+CloseTag 0
+ENDITEM
+
+;===============================================================================
+ITEM TimeValue - BinaryPV CHOICE
+Time [8:00:00.0]
+Enumerated 0
+ENDITEM
+
+;===============================================================================
+ITEM TimeValue - Real CHOICE
+Time [8:00:00.0]
+Real 0.0
+ENDITEM
+
+;===============================================================================
+ITEM TimeValue - Unsigned CHOICE
+Time [8:00:00.0]
+Unsigned 0
+ENDITEM
+
+;===============================================================================
+;===============================================================================
+SECTION Object Access Service templates
+
+ITEM CreateObject by ObjectType
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = CreateObject
+   OpenTag 0
+      Enum = 0, ANALOG_INPUT
+   CloseTag 0
+--    OpenTag 1
+--      <Optional list of BACnetPropertyValue>
+--    CloseTag 1
+)
+
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = ComplexAck
+   Service = CreateObject
+   Object = <object>
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM CreateObject by ObjectIdentifier
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = CreateObject
+   OpenTag 0
+      Object = 1, object-type, instance
+   CloseTag 0
+--   OpenTag 1
+--      <Optional list of BACnetPropertyValue>
+--   CloseTag 1
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = ComplexAck
+   Service = CreateObject
+   Object = <object>
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM DeleteObject
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = DeleteObject
+   Object  = object-type, instance
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = SimpleAck
+   Service = DeleteObject
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM ReadProperty
+SEND (
+   DA  = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = ReadProperty
+   Object = 0, object-type, instance
+   Property = 1, property_id
+   Unsigned = 2, index_if_you_need_it
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = ComplexAck
+   Service = ReadProperty
+   Object = 0, OBJECT1
+   Property = 1, Object-Identifier
+   Unsigned = 2, index_if_you_need_it
+   OpenTag 3
+      -- your property value here
+   CloseTag 3
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM ReadPropertyMultiple
+SEND (
+   DA  = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = ReadPropertyMultiple
+   
+   -- repeat this section for each object
+   Object = 0, object-type, instance
+   OpenTag 1
+      -- repeat this section for each property
+      Property = 1, Object-Identifier
+      Unsigned = 2, index_if_you_need_it
+   CloseTag 1
+)
+
+EXPECT (
+   SA = IUT_ADDR
+   PDU = ComplexAck
+   Service = ReadPropertyMultiple
+
+   -- repeat this section for each object
+   Object = 0, object-type, instance
+   OpenTag 1
+      -- repeat this section for each property
+      Property = 1, Object-Identifier
+      Unsigned = 2, index_if_you_need_it
+      OpenTag 4
+         -- your property value here
+      CloseTag 4
+   CloseTag 1
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM ReadRange by Position
+SEND (
+   DA  = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = ReadRange
+   Object   = 0, object-type, instance
+   Property = 1, Object-Identifier
+   Unsigned = 2, index_if_you_need_it
+   
+   -- byPosition
+   OpenTag 3
+      Unsigned your_referenceIndex
+      Integer  your-count
+   CloseTag 3
+)
+
+EXPECT (
+   SA = IUT_ADDR
+   PDU = ComplexAck
+   Service = ReadRange
+
+   Object   = 0, object-type, instance
+   Property = 1, Object-Identifier
+   Unsigned = 2, index_if_you_need_it
+   Bitstring = 3, your_result_flags
+   Unsigned = 4, your_item_count
+   OpenTag 5
+      -- your list pf property values here
+   CloseTag 5
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM ReadRange by SequenceNumber
+SEND (
+   DA  = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = ReadRange
+   Object   = 0, object-type, instance
+   Property = 1, Object-Identifier
+   Unsigned = 2, index_if_you_need_it
+   
+   -- bySequenceNumber
+   OpenTag 6
+      Unsigned your_referenceIndex
+      Integer  your-count
+   CloseTag 6
+)
+
+EXPECT (
+   SA = IUT_ADDR
+   PDU = ComplexAck
+   Service = ReadRange
+
+   Object   = 0, object-type, instance
+   Property = 1, Object-Identifier
+   Unsigned = 2, index_if_you_need_it
+   Bitstring = 3, your_result_flags
+   Unsigned = 4, your_item_count
+   OpenTag 5
+      -- your list pf property values here
+   CloseTag 5
+   Unsigned = 6, your_first_sequence_number
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM ReadRange by Time
+SEND (
+   DA  = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = ReadRange
+   Object   = 0, object-type, instance
+   Property = 1, Object-Identifier
+   Unsigned = 2, index_if_you_need_it
+   
+   -- byTime
+   OpenTag 7
+      Date     your_referenceDate
+      Time     your_referenceTime
+      Integer  your-count
+   CloseTag 7
+)
+
+EXPECT (
+   SA = IUT_ADDR
+   PDU = ComplexAck
+   Service = ReadRange
+
+   Object   = 0, object-type, instance
+   Property = 1, Object-Identifier
+   Unsigned = 2, index_if_you_need_it
+   Bitstring = 3, your_result_flags
+   Unsigned = 4, your_item_count
+   OpenTag 5
+      -- your list pf property values here
+   CloseTag 5
+   Unsigned = 6, your_first_sequence_number
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM WriteProperty
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = WriteProperty
+   Object   = 0, object-type, instance
+   Property = 1, property_id
+   Unsigned = 2, index_if_you_need_it
+   OpenTag 3
+      -- your data here
+   CloseTag 3
+   Unsigned = 4, priority_if_you_need_it
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = SimpleAck
+   Service = WriteProperty
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM AddListElement
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = AddListElement
+   Object   = 0, object-type, instance
+   Property = 1, property_id
+   Unsigned = 2, index_if_you_need_it
+   OpenTag 3
+      -- one or more list-element data here
+   CloseTag 3
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = SimpleAck
+   Service = AddListElement
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM RemoveListElement
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = RemoveListElement
+   Object   = 0, object-type, instance
+   Property = 1, property_id
+   Unsigned = 2, index_if_you_need_it
+   OpenTag 3
+      -- one or more list-element data here
+   CloseTag 3
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = SimpleAck
+   Service = RemoveListElement
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM WritePropertyMultiple
+SEND (
+   DA  = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = WritePropertyMultiple
+   
+   -- repeat this section for each object
+   Object = 0, object-type, instance
+   OpenTag 1
+      -- repeat this section for each property
+      Property = 0, Object-Identifier
+      Unsigned = 1, index_if_you_need_it
+      OpenTag 2
+         -- your property value here
+      CloseTag 2
+      Unsigned = 3, priority_if_you_need_it
+   CloseTag 1
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = SimpleAck
+   Service = WritePropertyMultiple
+)
+
+ENDITEM
+
+;===============================================================================
+;===============================================================================
+SECTION Device Management Service templates
+
+;===============================================================================
+ITEM DeviceCommunicationControl
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = DeviceCommunicationControl
+   Unsigned        = 0, optional_duration
+   enum            = 1, your_enable -- 0=enable, 1=disable, 2=disable-initiation
+   characterstring = 2, optional_password
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = SimpleAck
+   Service = DeviceCommunicationControl
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM ReinitializeDevice
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = ReinitializeDevice
+   enum            = 0, your_state 
+   -- 0=coldstart, 1=warmstart, 2=startbackup, 3=endbackup
+   -- 4=startrestore, 5=endrestore, 6=abortrestore
+   characterstring = 1, optional_password
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = SimpleAck
+   Service = DeviceCommunicationControl
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM Who-Is
+SEND (
+   -- use broadcast without quotes for local broadcast
+   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
+   -- you have defined a Name for GlobalBroadcast
+   DA = "GlobalBroadcast"
+   PDU = Unconfirmed-Request
+   Service = Who-Is
+   Unsigned = 0, optional_low_limit  ; Device identifier low limit
+   Unsigned = 1, optional_high_limit ; Device identifier high limit
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM I-Am
+SEND (
+   -- use broadcast without quotes for local broadcast
+   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
+   -- you have defined a Name for GlobalBroadcast
+   DA = "GlobalBroadcast"
+   PDU = Unconfirmed-Request
+   Service = I-Am
+   Object   = DEVICE, your_instance
+   Unsigned = your_max_APDU
+   enum     = your_segmentation ; 0=seg-both, 1=seg-tx, 2=seg-rx, 3=no-seg
+   Unsigned = your_vendorID
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM Who-Has by ObjectIdentifier
+SEND (
+   -- use broadcast without quotes for local broadcast
+   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
+   -- you have defined a Name for GlobalBroadcast
+   DA = "GlobalBroadcast"
+   PDU = Unconfirmed-Request
+   Service = Who-Has
+   Unsigned = 0, optional_low_limit  ; Device identifier low limit
+   Unsigned = 1, optional_high_limit ; Device identifier high limit
+   Object   = 2, your_object_type, your_object_instance
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM Who-Has by Object Name
+SEND (
+   -- use broadcast without quotes for local broadcast
+   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
+   -- you have defined a Name for GlobalBroadcast
+   DA = "GlobalBroadcast"
+   PDU = Unconfirmed-Request
+   Service = Who-Has
+   Unsigned = 0, optional_low_limit  ; Device identifier low limit
+   Unsigned = 1, optional_high_limit ; Device identifier high limit
+   characterstring = 3, your_object_name
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM I-Have
+SEND (
+   -- use broadcast without quotes for local broadcast
+   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
+   -- you have defined a Name for GlobalBroadcast
+   DA = "GlobalBroadcast"
+   PDU = Unconfirmed-Request
+   Service = I-Have
+   Object   = DEVICE, your_device_instance
+   Object   = your_object_type, your_object_instance
+   characterstring = your_object_name
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM TimeSynchronization
+SEND (
+   -- use broadcast without quotes for local broadcast
+   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
+   -- you have defined a Name for GlobalBroadcast
+   DA = "GlobalBroadcast"
+   PDU = Unconfirmed-Request
+   Service = TimeSynchronization
+   date = [(FRIDAY,1/29/2010)]
+   time = [8:36:12.00]
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM UTCTimeSynchronization
+SEND (
+   -- use broadcast without quotes for local broadcast
+   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
+   -- you have defined a Name for GlobalBroadcast
+   DA = "GlobalBroadcast"
+   PDU = Unconfirmed-Request
+   Service = UTCTimeSynchronization
+   date = [(FRIDAY,1/29/2010)]
+   time = [8:36:12.00]
+)
+
+ENDITEM
+
+;===============================================================================
+;===============================================================================
+SECTION Alarm and Event Service templates
+
+ITEM AcknowledgeAlarm-Request
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = AcknowledgeAlarm
+   Unsigned 0,         your_acknowledgingProcessIdentifier
+   ObjectIdentifier 1, your_eventObjectIdentifier
+   Enumerated 2,       your_eventStateAcknowledged
+   OpenTag 3
+      OpenTag 2
+         date = [(FRIDAY,1/29/2010)]
+         time = [8:36:12.0]
+      CloseTag 2
+   CloseTag 3
+   Characterstring 4,  your_acknowledgmentSource
+   OpenTag 5
+      OpenTag 2
+         date = [(MONDAY,4/26/2010)]
+         time = [8:36:12.0]
+      CloseTag 2
+   CloseTag 5
+)
+
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = ComplexAck
+   Service = AcknowledgeAlarm
+   Object = <object>
+)
+
+ENDITEM
+
+;===============================================================================
+;===============================================================================
+SECTION Other Service templates
+
+ITEM AtomicReadFile - Stream Access
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = AtomicReadFile
+   Object = object-type, instance
+   OpenTag 0
+      Integer   your_fileStartPosition
+      Unsigned  your_requestedOctetCount
+   CloseTag 0
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = ComplexAck
+   Service = AtomicReadFile
+   Boolean     your_endOfFile
+   OpenTag 0
+      Integer      your_fileStartPosition
+      OctetString  your_fileData
+   CloseTag 0
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM AtomicReadFile - Record Access
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = AtomicReadFile
+   Object = object-type, instance
+   OpenTag 1
+      Integer   your_fileStartRecord
+      Unsigned  your_requestedRecordCount
+   CloseTag 1
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = ComplexAck
+   Service = AtomicReadFile
+   Boolean     your_endOfFile
+   OpenTag 1
+      Integer      your_fileStartRecord
+      Unsigned     your_returnedRecordCount
+      OctetString  your_fileData1 -- first record
+      OctetString  your_fileDataN -- as many records as you want
+   CloseTag 1
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM AtomicWriteFile - Stream Access
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = AtomicWriteFile
+   Object = object-type, instance
+   OpenTag 0
+      Integer      your_fileStartPosition
+      OctetString  your_fileData
+   CloseTag 0
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = ComplexAck
+   Service = AtomicWriteFile
+   Integer 0, your_fileStartPosition
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM AtomicWriteFile - Record Access
+SEND (
+   DA = IUT_ADDR
+   PDU = Confirmed-Request
+   Service = AtomicWriteFile
+   Object = object-type, instance
+   OpenTag 1
+      Integer      your_fileStartRecord
+      OctetString  your_fileData1 -- first record
+      OctetString  your_fileDataN -- as many records as you want
+   CloseTag 1
+)
+
+EXPECT (
+   SA  = IUT_ADDR   
+   PDU = ComplexAck
+   Service = AtomicWriteFile
+   Integer 1, your_fileStartRecord
+)
+
+ENDITEM
+
+;===============================================================================
+;===============================================================================
 SECTION Script File Elements
 ITEM Header for a test file
 ;-------------------------------------------------------------------------------------
@@ -19,383 +813,34 @@ ITEM Header for a test file
 ;
 ;-------------------------------------------------------------------------------------
 SETUP yourtext
+INCLUDE "..\config.vts"
 SECTION yourtext
+
 ENDITEM
 
+;===============================================================================
 ITEM Test - Basic test header
 ;-------------------------------------------------------------------------------------
 TEST yourtext
 DEPENDENCIES None
 REFERENCE None
+
 ENDITEM
 
-
+;===============================================================================
 ITEM MAKE Dialog (show text and an OK button)
-MAKE "Title for the Make Dialog" (
+MAKE "Your title for the Make Dialog" (
   "Your text here"
   "as many lines as you want"
 )
+
 ENDITEM
 
+;===============================================================================
 ITEM CHECK Dialog (show text, and Pass and Fail buttons)
-CHECK "Title for the Check Dialog" (
+CHECK "Your title for the Check Dialog" (
   "Your text here"
   "as many lines as you want"
 )
-ENDITEM
 
-SECTION Service templates
-
-ITEM AcknowledgeAlarm-Request
-  SEND (
-    DA = IUT_ADDR
-    PDU = Confirmed-Request
-    Service = AcknowledgeAlarm
-    Unsigned 0,         your_acknowledgingProcessIdentifier
-    ObjectIdentifier 1, your_eventObjectIdentifier
-    Enumerated 2,       your_eventStateAcknowledged
-    OpenTag 3
-      OpenTag 2
-        date = [(FRIDAY,1/29/2010)]
-        time = [8:36:12.0]
-      CloseTag 2
-    CloseTag 3
-    Characterstring 4,  your_acknowledgmentSource
-    OpenTag 5
-      OpenTag 2
-        date = [(MONDAY,4/26/2010)]
-        time = [8:36:12.0]
-      CloseTag 2
-    CloseTag 5
-  )
-
-  EXPECT (
-    SA  = IUT_ADDR
-    PDU = ComplexAck
-    Service = AcknowledgeAlarm
-    Object = <object>
-  )
-ENDITEM
-
-ITEM CreateObject - ObjectType CHOICE
-  SEND (
-    DA = IUT_ADDR
-    PDU = Confirmed-Request
-    Service = CreateObject
-    OpenTag 0
-      Enum = 0, ANALOG_INPUT
-    CloseTag 0
---    OpenTag 1
---      <Optional list of BACnetPropertyValue>
---    CloseTag 1
-  )
-
-  EXPECT (
-    SA  = IUT_ADDR
-    PDU = ComplexAck
-    Service = CreateObject
-    Object = <object>
-  )
-ENDITEM
-
-ITEM CreateObject - ObjectIdentifier CHOICE
-  SEND (
-    DA = IUT_ADDR
-    PDU = Confirmed-Request
-    Service = CreateObject
-    OpenTag 0
-      Object = 1, object-type, instance
-    CloseTag 0
---    OpenTag 1
---      <Optional list of BACnetPropertyValue>
---    CloseTag 1
-  )
-
-  EXPECT (
-    SA  = IUT_ADDR   
-    PDU = ComplexAck
-    Service = CreateObject
-    Object = <object>
-  )
-ENDITEM
-
-ITEM ReadProperty
-  SEND (
-    DA = IUT_ADDR
-    PDU = Confirmed-Request
-    Service = ReadProperty
-    Object = 0, object-type, instance
-    Property = 1, property_id
-    Unsigned = 2, index_if_you_need_it
-  )
-
-  EXPECT (
-    SA  = IUT_ADDR   
-    PDU = ComplexAck
-    Service = ReadProperty
-    Object = 0, OBJECT1
-    Property = 1, Object-Identifier
-    Unsigned = 2, index_if_you_need_it
-    OpenTag 3
-      -- your data here
-    CloseTag 3
-  )
-ENDITEM
-
-ITEM WriteProperty
-  SEND (
-    DA = IUT_ADDR
-    PDU = Confirmed-Request
-    Service = WriteProperty
-    Object = 0, object-type, instance
-    Property = 1, property_id
-    Unsigned = 2, index_if_you_need_it
-    OpenTag 3
-      -- your data here
-    CloseTag 3
-    Unsigned = 4, priority_if_you_need_it
-  )
-
-  EXPECT (
-    SA  = IUT_ADDR   
-    PDU = SimpleAck
-    Service = WriteProperty
-  )
-ENDITEM
-
-ITEM AtomicReadFile - Stream Access
-  SEND (
-    DA = IUT_ADDR
-    PDU = Confirmed-Request
-    Service = AtomicReadFile
-    Object = object-type, instance
-    OpenTag 0
-      Integer   fileStartPosition
-      Unsigned  requestedOctetCount
-    CloseTag 0
-  )
-
-  EXPECT (
-    SA  = IUT_ADDR   
-    PDU = ComplexAck
-    Service = AtomicReadFile
-    Boolean     ? -- endOfFile
-    OpenTag 0
-      Integer      ? -- fileStartPosition
-      OctetString  ? -- fileData
-    CloseTag 0
-  )
-ENDITEM
-
-ITEM AtomicReadFile - Record Access
-  SEND (
-    DA = IUT_ADDR
-    PDU = Confirmed-Request
-    Service = AtomicReadFile
-    Object = object-type, instance
-    OpenTag 1
-      Integer   fileStartRecord
-      Unsigned  requestedRecordCount
-    CloseTag 1
-  )
-
-  EXPECT (
-    SA  = IUT_ADDR   
-    PDU = ComplexAck
-    Service = AtomicReadFile
-    Boolean     ? -- endOfFile
-    OpenTag 1
-      Integer      ? -- fileStartRecord
-      Unsigned     ? -- returnedRecordCount
-      OctetString  ? -- fileData1 - first record
-      OctetString  ? -- fileDataN - as many records as you want
-    CloseTag 1
-  )
-ENDITEM
-
-ITEM AtomicWriteFile - Stream Access
-  SEND (
-    DA = IUT_ADDR
-    PDU = Confirmed-Request
-    Service = AtomicWriteFile
-    Object = object-type, instance
-    OpenTag 0
-      Integer      fileStartPosition
-      OctetString  fileData
-    CloseTag 0
-  )
-
-  EXPECT (
-    SA  = IUT_ADDR   
-    PDU = ComplexAck
-    Service = AtomicWriteFile
-    Integer 0, ? -- fileStartPosition
-  )
-ENDITEM
-
-ITEM AtomicWriteFile - Record Access
-  SEND (
-    DA = IUT_ADDR
-    PDU = Confirmed-Request
-    Service = AtomicWriteFile
-    Object = object-type, instance
-    OpenTag 1
-      Integer      fileStartRecord
-      OctetString  ? -- fileData1 - first record
-      OctetString  ? -- fileDataN - as many records as you want
-    CloseTag 1
-  )
-
-  EXPECT (
-    SA  = IUT_ADDR   
-    PDU = ComplexAck
-    Service = AtomicWriteFile
-    Integer 1, ? -- fileStartRecord
-  )
-ENDITEM
-
-
-SECTION Datatypes
-
-ITEM NULL
-NULL
-ENDITEM
-
-ITEM Boolean
-boolean = T
-ENDITEM
-
-ITEM Unsigned
-UNSIGNED = 6
-ENDITEM
-
-ITEM Signed Integer
-integer = 7
-ENDITEM
-
-ITEM Real
-real = 3.14
-ENDITEM
-
-ITEM Double
-double = 3.14
-ENDITEM
-
-ITEM Octet String
-octetstring = X'010203'
-ENDITEM
-
-ITEM Character String
-characterstring = "hi"
-ENDITEM
-
-ITEM Bit String
-bitstring = [{T,F,T,F}]
-ENDITEM
-
-ITEM Enumerated
-enumerated = 6
-ENDITEM
-
-ITEM Date
-date = [(FRIDAY,1/29/2010)]
-ENDITEM
-
-ITEM Time
-time = [8:36:12.00]
-ENDITEM
-
-ITEM Object Identifier
-objectidentifier = analog-input, 1
-ENDITEM
-
-ITEM Paired Context Tag 0
-    OpenTag 0
-    CloseTag 0
-ENDITEM
-
-ITEM Paired Context Tag 1
-    OpenTag 1
-    CloseTag 1
-ENDITEM
-
-ITEM Paired Context Tag 2
-    OpenTag 2
-    CloseTag 2
-ENDITEM
-
-ITEM Paired Context Tag 3
-    OpenTag 3
-    CloseTag 3
-ENDITEM
-
-ITEM Paired Context Tag 4
-    OpenTag 4
-    CloseTag 4
-ENDITEM
-
-ITEM Paired Context Tag 5
-    OpenTag 5
-    CloseTag 5
-ENDITEM
-
-ITEM Paired Context Tag 6
-    OpenTag 6
-    CloseTag 6
-ENDITEM
-
-ITEM Paired Context Tag 7
-    OpenTag 7
-    CloseTag 7
-ENDITEM
-
-ITEM Paired Context Tag 8
-    OpenTag 8
-    CloseTag 8
-ENDITEM
-
-ITEM Paired Context Tag 9
-    OpenTag 9
-    CloseTag 9
-ENDITEM
-
-ITEM CalendarEntry - date CHOICE
-    OpenTag 0
-      Date [(Thursday,2/4/2010)]
-    CloseTag 0
-ENDITEM
-
-ITEM CalendarEntry - date range CHOICE
-    OpenTag 1
-      Date [(Thursday,2/4/2010)]
-      Date [(Tuesday,2/16/2010)]
-    CloseTag 1
-ENDITEM
-
-ITEM CalendarEntry - WeekNDay CHOICE
-    OpenTag 2
-      -- Month 1-12, 13=odd, 14=even or 0xFF; Week 1-5, 6=last or 0xFF; Day 1-7 or 0xFF
-      Octetstring X'000000'
-    CloseTag 2
-ENDITEM
-
-ITEM DailySchedule
-    OpenTag 0
-      -- Zero or more TimeValues
-    CloseTag 0
-ENDITEM
-
-ITEM TimeValue - BinaryPV CHOICE
-    Time [8:00:00.0]
-    Enumerated 0
-ENDITEM
-
-ITEM TimeValue - Real CHOICE
-    Time [8:00:00.0]
-    Real 0.0
-ENDITEM
-
-ITEM TimeValue - Unsigned CHOICE
-    Time [8:00:00.0]
-    Unsigned 0
 ENDITEM
