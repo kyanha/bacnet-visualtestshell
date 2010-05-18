@@ -482,7 +482,6 @@ protected:
 
 BACnetSequence::BACnetSequence()
 : m_ok(true)
-, m_parsed(true)	// because BacParser constructor parses
 , m_parser(0)
 , m_pStack(NULL)
 , m_objectIdentifier((unsigned int)(~0))
@@ -493,6 +492,7 @@ BACnetSequence::BACnetSequence()
 , m_lastUnsigned((unsigned int)(~0))
 , m_lastEnumerated((unsigned int)(~0))
 {
+	m_parsed = m_parser.IsValid();	// because BacParser constructor parses
 }
 
 BACnetSequence::~BACnetSequence()
