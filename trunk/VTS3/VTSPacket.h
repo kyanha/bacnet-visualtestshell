@@ -98,8 +98,7 @@ public:
 	BOOL SetSADR(unsigned char *sadr, unsigned int len);	
 
 private:
-	//modified: 2004/12/02 author:Xiao Shiyuan	purpose:
-	void FindNPDUStartPos(int& npduindex) const;
+	int FindNPDUStartPos() const;
 };
 
 typedef VTSPacket *VTSPacketPtr;

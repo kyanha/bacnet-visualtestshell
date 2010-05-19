@@ -614,11 +614,13 @@ bool ScriptExecutor::IsBound( VTSDocPtr vdp )
 
 void ScriptExecutor::Msg( int sc, int line, const char *msg )
 {
-	// JLH 26 January 2010: room for longer message
-	unsigned char	buff[1024], *dst;
 	VTSPacket		pkt;
-	
 	TRACE( "[%d:%d] %s\n", sc, line, msg );
+
+	int len = strlen( msg );
+
+	// Header, plus test name, plus msg
+	unsigned char *buff = new unsigned char[ 21 + 256 + len+1 ];
 
 	// save the severity code
 	buff[0] = sc;
@@ -632,27 +634,16 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 	// save the digest
 	memcpy( buff+5, execDoc->m_digest, 16 );
 
-	// for test level messages start with test name
-	dst = buff + 21;
+	// for test level messages start with test name (up to 256 characters)
+	unsigned char *dst = buff + 21;
 	if (sc == 1) {
-		dst += sprintf( (char*)dst, "Test %s ", (LPCTSTR)execTest->baseLabel );
+		dst += sprintf( (char*)dst, "Test %.256s ", (LPCTSTR)execTest->baseLabel );
 	}
 
-	// JLH 26 January 2010: don't let msg overflow the buffer
-//	strcpy( (char *)dst, msg );
-//	while (*dst) dst++;
-	int remains = sizeof(buff) - (dst - buff) - 1;
-	int len = strlen( msg );
-	if (len > remains)
-	{
-		len = remains;
-	}
-	memcpy( dst, msg, len );
+	strcpy( (char *)dst, msg );
 	dst += len;
-	*dst = 0;
 
 	// fill in the packet header
-//MAD_DB	pkt.packetHdr.packetPortID = 0;
 	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::msgProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = msgData;
@@ -661,17 +652,9 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 	pkt.NewDataRef( buff, (dst - buff) + 1 );
 
 	// save it in the database;
-//	execDB->m_pDB->WritePacket( -1, pkt );			// MAD_DB
 	execDB->WritePacket( pkt );
 
-//MAD_DB  This is now called from the Doc's WritePacket
-/*
-	// tell the application
-	if (execDB->m_postMessages)
-		::PostThreadMessage( AfxGetApp()->m_nThreadID
-			, WM_VTS_RCOUNT, (WPARAM)0, (LPARAM)execDB
-			);
-*/
+	delete[] buff;
 }
 
 //

@@ -258,7 +258,7 @@ int     interp_bacnet_BVLL( char *header, int length);
 int     interp_bacnet_NL( char *header, int length);
 int     interp_bacnet_AL( char *header, int length );
 int     interp_Message( char *header, int length);
-int     interp_BakRestoreMessage( char *header, int length);	// Added by Jingbo Gao, Sep 20 2004
+int     interp_TextMessage( char *header, int length);
 
 /* ----- prototypes for interpreters of the 8 PDU types ----- */
 
