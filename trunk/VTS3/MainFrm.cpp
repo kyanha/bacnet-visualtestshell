@@ -86,7 +86,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;      // fail to create
 	}
 	
-	int COMBOBOX_WIDTH = 180; //the width of the combo box
+	int COMBOBOX_WIDTH = 600; //the width of the combo box
     
     //First get the index of the placeholder's position in the toolbar
     int index = 0;
@@ -100,12 +100,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_wndToolBar.GetItemRect(index, &rect);
 
     //expand the rectangle to allow the combo box room to drop down
-    
-    rect.bottom += 200;
+    rect.bottom += 300;
 
-    // then .Create the combo box and show it
+    // then create the combo box and show it
     if (!m_wndFileCombo.Create(WS_CHILD|WS_VISIBLE | CBS_AUTOHSCROLL | CBS_DROPDOWN |
-		CBS_HASSTRINGS, rect, &m_wndToolBar, ID_COMBOBOX_SEPARATOR))
+							   CBS_HASSTRINGS, rect, &m_wndToolBar, ID_COMBOBOX_SEPARATOR))
     {
        TRACE0("Failed to create combo-box\n");
        return FALSE;
@@ -129,6 +128,9 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	DockControlBar( &m_wndToolBar );	
 	
 /////////////////////////////////////////////////////
+	// TODO: does anyone know WHY these buttons are nominally on the toolbar,
+	// but we show grayed-out arrows instead?
+	// The control IDs aren't used anywhere else
 	DWORD dwExStyle = TBSTYLE_EX_DRAWDDARROWS;
 	m_wndToolBar.GetToolBarCtrl().SendMessage(TB_SETEXTENDEDSTYLE, 0, (LPARAM)dwExStyle);
 
@@ -136,6 +138,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	dwStyle |= TBSTYLE_DROPDOWN;
 	m_wndToolBar.SetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_RUN1), dwStyle);
 	m_wndToolBar.GetToolBarCtrl().SendMessage(TB_SETEXTENDEDSTYLE, 0, (LPARAM)dwExStyle);
+
 	dwStyle = m_wndToolBar.GetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_CHECK_SYNTAX1));
 	dwStyle |= TBSTYLE_DROPDOWN;
 	m_wndToolBar.SetButtonStyle(m_wndToolBar.CommandToIndex(ID_SCRIPT_CHECK_SYNTAX1), dwStyle);
@@ -480,7 +483,6 @@ CMDIChildWnd* CMainFrame::GetChildFrame(CRuntimeClass *pClass, int nNum)
 			}
 			if(bNumadd)
 				i++;
-			
 		}
 	}
 	return NULL;
