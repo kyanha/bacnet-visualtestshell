@@ -53,8 +53,8 @@ class BACnetPIInfo {
 			, arcnetProtocol
 			, mstpProtocol
 			, ptpProtocol
-			, msgProtocol					// message from application
-			, bakRestoreMsgProtocol			// added by Jingbo Gao, Sep 20 2004
+			, msgProtocol		// message from application with severity code, line number, digest, and text
+			, textMsgProtocol	// message from application, text only
 			};
 
 		char				*piBuffer;		// beginning of buffer

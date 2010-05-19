@@ -17,7 +17,7 @@ namespace NetworkSniffer {
 	int interp_bacnet_NL( char *, int );
 	int interp_bacnet_AL( char *, int );
 	int interp_Message( char *, int );
-	int interp_BakRestoreMessage( char *, int );	// added by Jingbo Gao, Sep 20 2004
+	int interp_TextMessage( char *, int );
 
 	struct pi_data pi_data_bacnet_IPRec, *pi_data_bacnet_IP = &pi_data_bacnet_IPRec;
 	struct pi_data pi_data_bacnet_ETHERNETRec, *pi_data_bacnet_ETHERNET = &pi_data_bacnet_ETHERNETRec;
@@ -121,11 +121,15 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 	// set the PI mode to match the settings for this
 	SetPIMode( doSummary, doDetail );
 
+	// TODO: This doesn't seem to be necessary
 //	if (doDetail)//only create space for timestamp, do not print any information here
 //	{
-//		gCurrentInfo->detailCount=1;
-//		gCurrentInfo->detailLine[0]=0;
-//		NetworkSniffer::pif_show_space();
+//		if (gCurrentInfo->detailCount == 0)
+//		{
+//			// Allocate an initial entry
+//			NetworkSniffer::get_int_line( NULL, 0, 0 );
+//		}
+//		gCurrentInfo->detailLine[0]->piLine[0] = 0;
 //	}
 	
 	try 
@@ -150,8 +154,8 @@ void BACnetPIInfo::Interpret( ProtocolType proto, char *header, int length )
 			case msgProtocol:
 				NetworkSniffer::interp_Message( header, length );
 				break;
-			case bakRestoreMsgProtocol:			// added by Jingbo Gao, Sep 20 2004
-				NetworkSniffer::interp_BakRestoreMessage( header, length );
+			case textMsgProtocol:
+				NetworkSniffer::interp_TextMessage( header, length );
 				break;
 			default:
 				throw( "unknown protocol" );
@@ -290,6 +294,13 @@ char *get_int_line( struct pi_data *, int offset, int length, PID_NODE_TYPE node
 // Get a pointer to the current detail line
 char *get_cur_int_line( void )
 {
+	if ((gCurrentInfo->detailCount == 0) || 
+		(gCurrentInfo->detailLine == NULL) ||
+		(gCurrentInfo->detailLine[gCurrentInfo->detailCount-1] == NULL))
+	{
+		throw("Bug: no current detail line");
+	}
+
 	return gCurrentInfo->detailLine[gCurrentInfo->detailCount-1]->piLine;
 }
 

@@ -2006,30 +2006,30 @@ int interp_Message( char *header, int length)  /* message interpreter */
    if (pi_data_bacnet_IP->do_int) {
       pif_init(pi_data_Message, header, length);
       pif_header(length, "Message Detail");
-      bac_show_byte("Severity Code","%u");
-      bac_show_long_hl("Script Line","%u");
-      pif_show_nbytes_hex( "Digest                      = %s", 16 );
+      bac_show_byte("Severity Code","%u");				// 1 byte
+      bac_show_long_hl("Script Line","%u");				// 4 bytes
+      pif_show_nbytes_hex( "Digest                      = %s", 16 ); // 16 bytes
       pif_show_space();
-      pif_show_ascii( strlen(pif_get_addr()), "%s" );
+      pif_show_ascii( strlen(pif_get_addr()), "%s" );	// offset 21
       pif_show_space();
    }
 
    return length;
 }
 
-// Jingbo Gao, Sep 20 2004
 /**************************************************************************/
-int interp_BakRestoreMessage( char *header, int length)  /* message interpreter */
+// Simple text message
+int interp_TextMessage( char *header, int length)  /* message interpreter */
 /**************************************************************************/
 {
 	/* Summary line? */
 	if (pi_data_Message->do_sum)
-		strcpy( get_sum_line(pi_data_Message), header + 21 );
+		strcpy( get_sum_line(pi_data_Message), header );
 	
 	/* Detail line? */
 	if (pi_data_bacnet_IP->do_int) {
-		pif_init (pi_data_Message, header, length);
-		pif_header (length, "Message Detail");
+		pif_init(pi_data_Message, header, length);
+		pif_header(length, "Message Detail");
 		pif_show_space();
 		pif_show_ascii( strlen(pif_get_addr()), "%s" );
 		pif_show_space();

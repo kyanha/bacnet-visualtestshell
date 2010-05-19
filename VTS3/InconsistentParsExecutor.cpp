@@ -138,14 +138,14 @@ void InconsistentParsExecutor::ProcessTask()
 	try	{
 		if ( !m_pPort || !m_pName )
 		{
-			throw("VTSPort or IUT not specified\n");
+			throw("VTSPort or IUT not specified");
 		}
 
 		m_IUTAddr = m_pName->m_bacnetaddr;
 		if (m_IUTAddr.addrType != localStationAddr &&
 			m_IUTAddr.addrType != remoteStationAddr)
 		{
-			throw("The IUT's address can only be local station or remote station\n");
+			throw("The IUT's address can only be local station or remote station");
 		}
 
 		m_execState = execRunning;
@@ -161,15 +161,15 @@ void InconsistentParsExecutor::ProcessTask()
 		{
 		case INVALID_TAG_TEST:
 			DoInvalidTagTest();
-			Msg("13.4.3: Invalid Tag test has been sucessfully completed!\n");
+			Msg("13.4.3: Invalid Tag test has been sucessfully completed!");
 			break;
 		case MISSING_REQUIRED_TEST:
 			DoMissingRequiredTest();
-			Msg("13.4.4: Missing Required test has been sucessfully completed!\n");
+			Msg("13.4.4: Missing Required test has been sucessfully completed!");
 			break;
 		case TOO_MANY_ARGS_TEST:
 			DoTooManyArgsTest();
-			Msg("13.4.5: Too Many Args test has been sucessfully completed!\n");
+			Msg("13.4.5: Too Many Args test has been sucessfully completed!");
 			break;
 		default:
 			DoInvalidTagTest();
@@ -184,7 +184,7 @@ void InconsistentParsExecutor::ProcessTask()
 	}
 	catch (...) {
 		bSuccess = FALSE;
-		Msg("Decoding error! Maybe received uncorrect packet!\n");
+		Msg("Decoding error! Maybe received uncorrect packet!");
 	}
 
 	m_execState = execIdle;
@@ -202,7 +202,7 @@ void InconsistentParsExecutor::ProcessTask()
 	else
 	{
 		m_pOutputDlg->OutMessage("Failed",TRUE);	// begin a new line
-		m_pOutputDlg->OutMessage("Error occurs during the test");
+		m_pOutputDlg->OutMessage("Error occured during the test");
 	}
 
 	m_pOutputDlg->EndTestProcess();
@@ -234,7 +234,7 @@ void InconsistentParsExecutor::DoInvalidTagTest()
 
 	if (!SendReadPropertyExpectReject(&enc, expectedErrors, 5))
 	{
-		throw("Incorrect Error Code returned by IUT\n");
+		throw("Incorrect Error Code returned by IUT");
 	}
 	m_pOutputDlg->OutMessage("OK");
 
@@ -259,7 +259,7 @@ void InconsistentParsExecutor::DoMissingRequiredTest()
 
 	if (!SendReadPropertyExpectReject(&enc, expectedErrors, 2))
 	{
-		throw("Incorrect Error Code returned by IUT\n");
+		throw("Incorrect Error Code returned by IUT");
 	}
 	m_pOutputDlg->OutMessage("OK");
 
@@ -289,7 +289,7 @@ void InconsistentParsExecutor::DoTooManyArgsTest()
 
 	if (!SendReadPropertyExpectReject(&enc, expectedErrors, 2))
 	{
-		throw("Incorrect Error Code returned by IUT\n");
+		throw("Incorrect Error Code returned by IUT");
 	}
 	m_pOutputDlg->OutMessage("OK");
 
@@ -533,19 +533,19 @@ BOOL InconsistentParsExecutor::SendExpectPacket(CByteArray& contents)
 		if (m_bUserCancelled)
 		{
 			m_bUserCancelled = FALSE;	// reset
-			throw("the backup restore process has been cancelled by user\n");
+			throw("The test process has been cancelled by user");
 		}
 		if (m_event.Lock(nAPDUTimeOut))
 		{
 			if (m_bUserCancelled)
 			{
-				throw("the backup restore process has been cancelled by user\n");
+				throw("The test process has been cancelled by user");
 			}
 			bReceived = TRUE;
 			if (m_bAbort == TRUE)
 			{
 				m_bAbort = FALSE;		// reset
-				throw("receive a Result(-) response from IUT\n");
+				throw("Received a Result(-) response from IUT");
 			}
 			break;
 		}
@@ -630,7 +630,7 @@ void InconsistentParsExecutor::FindRouterAddress()
 void InconsistentParsExecutor::Msg(const char* errMsg)
 {
 	VTSPacket pkt;
-	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::bakRestoreMsgProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::textMsgProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = msgData;
 	BACnetOctet* buff = new BACnetOctet[strlen(errMsg)+1];

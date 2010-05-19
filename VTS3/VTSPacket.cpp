@@ -235,10 +235,14 @@ LPCSTR VTSPacket::GetAddressString( VTSDoc *pdoc, bool bSource, bool bIncludeNet
 	return (LPCSTR)nameBuffer;
 }
 
-void VTSPacket::FindNPDUStartPos(int& npduindex) const
+int VTSPacket::FindNPDUStartPos() const
 {
-	if ( packetData == NULL )
-		return;
+	int retval = 0;
+	if (packetData == NULL)
+	{
+		// Claim end of PDU: caller will say "not enough data" and bail
+		return packetLen;
+	}
 
 	switch ((BACnetPIInfo::ProtocolType)packetHdr.packetProtocolID)
 	{
@@ -247,27 +251,27 @@ void VTSPacket::FindNPDUStartPos(int& npduindex) const
 			// the start of the NPDU.  Submitted in #1261344 by dmrichards on 8/19/2005
 			// skip the fake ip header, address (4), and port (2) 
 //			{ 
-//			   npduindex += 6; //BVLC 
-//			   if (packetData && packetData[npduindex] == 0x81) 
+//			   retval += 6; //BVLC 
+//			   if (packetData && packetData[retval] == 0x81) 
 //			   { 
-//			      npduindex += (packetData[npduindex+2]*256 + packetData[npduindex+3]); 
+//			      retval += (packetData[retval+2]*256 + packetData[retval+3]); 
 //				} 
 //			} 
 //			break; 
 
 			// skip the fake ip header, address (4), and port (2)
 			{
-				npduindex += 6;
+				retval += 6;
 			
 				//BVLC
-				if (packetData[npduindex] == 0x81)
+				if (packetData[retval] == 0x81)
 				{
-					npduindex++;
+					retval++;
 
 					// extract the function
-					int func = packetData[npduindex];
+					int func = packetData[retval];
 
-					npduindex += 3; //BVLC Function: 1 bytes; BVLC Length: 2 bytes
+					retval += 3; //BVLC Function: 1 bytes; BVLC Length: 2 bytes
 
 					// set the function group
 					switch ((BVLCFunction)func)
@@ -283,8 +287,8 @@ void VTSPacket::FindNPDUStartPos(int& npduindex) const
 							break;
 
 						case blvcForwardedNPDU:
-						npduindex += 6;
-						break;
+							retval += 6;
+							break;
 
 						// dig deeper into these
 						case bvlcDistributeBroadcastToNetwork:
@@ -298,31 +302,32 @@ void VTSPacket::FindNPDUStartPos(int& npduindex) const
 
 		case BACnetPIInfo::ethernetProtocol:
 			// skip over source (6), destination (6), length (2), and SAP (3)
-			npduindex += 17;			
+			retval += 17;			
 			break;
 
 		case BACnetPIInfo::arcnetProtocol:
 			// skip over source (1), destination (1), SAP (3), LLC (1)
-			npduindex += 6;			
+			retval += 6;			
 			break;
 
 		case BACnetPIInfo::mstpProtocol:
 			// skip over preamble
-			npduindex += 2;			
+			retval += 2;			
 			break;
 		case BACnetPIInfo::msgProtocol:
-		case BACnetPIInfo::bakRestoreMsgProtocol:
-			npduindex = -1;		// just VTS message, do not contain npdu
+		case BACnetPIInfo::textMsgProtocol:
+			// Claim end of PDU: caller will say "not enough data" and bail
+			retval = packetLen;		// just VTS message, do not contain npdu
 			break;
 	}
+
+	return retval;
 }
 
 // Get SNET and SADDR, else return false
 bool VTSPacket::GetNetworkSource( BACnetAddress &theAddress ) const
 {
-	int ix = 0;
-	FindNPDUStartPos(ix);
-
+	int ix = FindNPDUStartPos();
 	if (packetLen - ix < 2)
 		return false;
 
@@ -350,9 +355,7 @@ bool VTSPacket::GetNetworkSource( BACnetAddress &theAddress ) const
 // Get DNET and DADDR, else return false
 bool VTSPacket::GetNetworkDestination( BACnetAddress &theAddress ) const
 {
-	int ix = 0;
-	FindNPDUStartPos(ix);
-
+	int ix = FindNPDUStartPos();
 	if (packetLen - ix < 2)
 		return false;
 
@@ -373,10 +376,7 @@ bool VTSPacket::GetNetworkDestination( BACnetAddress &theAddress ) const
 
 BOOL VTSPacket::GetSNET(unsigned short& snet) const
 {
-	int npduindex = 0;
-
-	FindNPDUStartPos(npduindex);
-
+	int npduindex = FindNPDUStartPos();
 	if (packetLen - npduindex < 2)
 		return FALSE;
 
@@ -421,11 +421,9 @@ BOOL VTSPacket::GetDNET(unsigned short& dnet) const
 {
 	CString str;
 	BACnetAddress dadr;
-	int npduindex = 0;
-
-	FindNPDUStartPos(npduindex);
-
-	if(packetLen - npduindex< 2)
+	
+	int npduindex = FindNPDUStartPos();
+	if (packetLen - npduindex< 2)
 		return FALSE;		
 
 	if( !(packetData[npduindex + 1] & 0x20) ) //DNET and DADR don't exist
@@ -484,11 +482,8 @@ BOOL VTSPacket::SetSNET(unsigned short snet, BOOL bReserveSnet)
 	BOOL bDnet = FALSE;
 	BOOL bSnet = FALSE;
 	
-	int npduindex = 0;	
-
-	FindNPDUStartPos(npduindex);
-
-	if(packetLen - npduindex < 2)
+	int npduindex = FindNPDUStartPos();
+	if (packetLen - npduindex < 2)
 		return FALSE;
 
 	if(!(packetData[npduindex + 1] & 0x08)) //SNET doesn't exist
@@ -606,13 +601,11 @@ BOOL VTSPacket::SetDNET(unsigned short dnet, BOOL bReserveDnet)
 {
 	CString str;
 	BACnetAddress dadr;
-	int npduindex = 0;
 	BOOL bDnet = FALSE;
 	BOOL bSnet = FALSE;
 
-	FindNPDUStartPos(npduindex);
-
-	if(packetLen - npduindex< 2)
+	int npduindex = FindNPDUStartPos();
+	if (packetLen - npduindex< 2)
 		return FALSE;		
 
 	if( !(packetData[npduindex + 1] & 0x20) ) 
@@ -701,11 +694,8 @@ BOOL VTSPacket::SetDNET(unsigned short dnet, BOOL bReserveDnet)
 
 BOOL VTSPacket::SetDADR(unsigned char *dadr, unsigned int len)
 {
-	int npduindex = 0;
-
-	FindNPDUStartPos(npduindex);
-
-	if(packetLen - npduindex< 2)
+	int npduindex = FindNPDUStartPos();
+	if (packetLen - npduindex< 2)
 		return FALSE;		
 
 	if( !(packetData[npduindex + 1] & 0x20) ) //DNET and DADR don't exist
@@ -736,11 +726,8 @@ BOOL VTSPacket::SetDADR(unsigned char *dadr, unsigned int len)
 
 BOOL VTSPacket::SetSADR(unsigned char *sadr, unsigned int len)
 {
-	int npduindex = 0;
-
-	FindNPDUStartPos(npduindex);
-
-	if(packetLen - npduindex < 2)
+	int npduindex = FindNPDUStartPos();
+	if (packetLen - npduindex < 2)
 		return FALSE;
 
 	if(!(packetData[npduindex + 1] & 0x08)) //SADR doesn't exist
