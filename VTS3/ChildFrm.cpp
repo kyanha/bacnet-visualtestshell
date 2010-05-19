@@ -1175,13 +1175,13 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 			}
 
 			// Use the name in quotes: send will get datalink, network, and segmentation details
-			str.Format( "  IUT_DA = \"%s\"\n", (LPCTSTR)pdlg->m_strIUTIP );
+			str.Format( "  IUT_ADDR = \"%s\"\n", (LPCTSTR)pdlg->m_strIUTIP );
 		}
 		else
 		{
 			// String isn't a known Name. interpret it as an address.
 			// NOT quoted, or script engine demands a name.
-			str.Format("  IUT_DA = %s\n", (LPCTSTR)pdlg->m_strIUTIP );
+			str.Format("  IUT_ADDR = %s\n", (LPCTSTR)pdlg->m_strIUTIP );
 		}
 		pscript->WriteString(str);
 		
@@ -1263,7 +1263,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 						pscript->WriteString( "\tNETWORK = ACTIVENET\n" );
 					}
 
-					pscript->WriteString( "\tDA = IUT_DA\n"); 
+					pscript->WriteString( "\tDA = IUT_ADDR\n"); 
 
 					if (pdlg->m_bDNET) 
 					{
@@ -1308,7 +1308,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 						pscript->WriteString( "\tNETWORK = ACTIVENET\n" );
 					}
 
-					pscript->WriteString( "\tSA = IUT_DA\n" ); 
+					pscript->WriteString( "\tSA = IUT_ADDR\n" ); 
 
 					if (pdlg->m_bDNET) 
 					{
