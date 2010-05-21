@@ -17,12 +17,13 @@ static char THIS_FILE[] = __FILE__;
 //  Funny lookup table for Maximum APDU Length
 
 char *MaxAPDULen[] =
-		{ "50 (MinimumMessageSize)"
-		, "128"
-		, "206 (LonTalk)"
-		, "480 (ARCNET)"
-		, "1024"
-		, "1476 (ISO 8802-3)"
+		{ "50 (MinimumMessageSize)"		// 0
+		, "128"							// 1
+		, "206 (LonTalk)"				// 2
+		, "480 (MS/TP, PTP, ARCNET)"	// 3
+#define DEFAULT_MAX_APDU_LEN 3
+		, "1024"						// 4
+		, "1476 (ISO 8802-3)"			// 5
 		, "Reserved (6)"
 		, "Reserved (7)"
 		, "Reserved (8)"
@@ -34,6 +35,7 @@ char *MaxAPDULen[] =
 		, "Reserved (14)"
 		, "Reserved (15)"
 		};
+
 
 BACnetAPDUEncoder CSendConfirmedRequest::pageContents;
 
@@ -137,7 +139,7 @@ void CSendConfirmedRequest::InitPage( void )
 	m_SeqNumber.ctrlNull = true;
 	m_WindowSize.ctrlNull = true;
 	m_MaxAPDULen.ctrlNull = false;
-	m_MaxAPDULen.enumValue = 0;
+	m_MaxAPDULen.enumValue = DEFAULT_MAX_APDU_LEN;
 	m_InvokeID.ctrlNull = false;
 	m_InvokeID.intValue = gVTSPreferences.Send_GetInvokeID();
 
