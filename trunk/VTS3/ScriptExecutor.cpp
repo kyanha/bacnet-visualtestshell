@@ -1619,13 +1619,37 @@ bool ScriptExecutor::SendPacket( void )
 			const ScriptToken &t = daList[0];
 
 			// check to see if this is a keyword
-			if (t.tokenType == scriptKeyword) {
+			if (t.tokenType == scriptKeyword) 
+			{
 				if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
+				{
 					nlDestAddr.LocalBroadcast();
-				else if( t.tokenSymbol == kwGLOBALBROADCAST)  //Modified by Zhu Zhenhua , 2003-12-12
+				}
+				else if ((t.tokenSymbol == kwGLOBALBROADCAST) || (t.tokenSymbol == kwGLOBAL_BROADCAST))
+				{
 					nlDestAddr.GlobalBroadcast();
+				}
+				else if (t.tokenSymbol == kwREMOTEBROADCAST) 
+				{
+					if (daList.Length() == 1)
+						throw ExecError( "DNET expected", nlDA->exprLine );
+
+					const ScriptToken &dnet = daList[1];
+
+					int valu;
+					if (dnet.tokenType != scriptValue)
+						throw "DNET expected";
+					if (!dnet.IsInteger(valu))
+						throw "DNET invalid format, integer required";
+					if ((valu < 0) || (valu > 65534))
+						throw "DNET out of range (0..65534)";
+
+					nlDestAddr.RemoteBroadcast( valu );
+				} 
 				else
+				{
 					throw ExecError( "Unrecognized keyword", nlDA->exprLine );
+				}
 			} else
 			// it might be a name
 			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
@@ -2696,31 +2720,29 @@ void ScriptExecutor::SendDevPacket( void )
 			{
 				nlDestAddr.LocalBroadcast();
 			}
+			else if ((t.tokenSymbol == kwGLOBALBROADCAST) || (t.tokenSymbol == kwGLOBAL_BROADCAST))
+			{
+				nlDestAddr.GlobalBroadcast();
+			}
+			else if (t.tokenSymbol == kwREMOTEBROADCAST) 
+			{
+				if (daList.Length() == 1)
+					throw ExecError( "DNET expected", nlDA->exprLine );
+
+				const ScriptToken &dnet = daList[1];
+
+				if (dnet.tokenType != scriptValue)
+					throw "DNET expected";
+				if (!dnet.IsInteger(valu))
+					throw "DNET invalid format, integer required";
+				if ((valu < 0) || (valu > 65534))
+					throw "DNET out of range (0..65534)";
+
+				nlDestAddr.RemoteBroadcast( valu );
+			} 
 			else
 			{
-				if (t.tokenSymbol == kwREMOTEBROADCAST) 
-				{
-					if (daList.Length() == 1)
-						throw ExecError( "DNET expected", nlDA->exprLine );
-
-					const ScriptToken &dnet = daList[1];
-
-					if (dnet.tokenType != scriptValue)
-						throw "DNET expected";
-					if (!dnet.IsInteger(valu))
-						throw "DNET invalid format, integer required";
-					if ((valu < 0) || (valu > 65534))
-						throw "DNET out of range (0..65534)";
-
-					nlDestAddr.RemoteBroadcast( valu );
-				} 
-				else
-				{
-					if (t.tokenSymbol == kwGLOBALBROADCAST)
-						nlDestAddr.GlobalBroadcast();
-					else
-						throw ExecError( "Unrecognized keyword", nlDA->exprLine );
-				}
+				throw ExecError( "Unrecognized keyword", nlDA->exprLine );
 			}
 		} 
 		else if (daList.Length() == 1) 
@@ -3717,6 +3739,12 @@ void ScriptExecutor::SendALData( CByteArray &packet )
 				case 17:							// CLOSINGTAG
 					SendALClosingTag( spep, packet );
 					break;
+				case 18:							// ANY
+					SendALAny( spep, packet );
+					break;
+				default:
+					throw "Invalid keyword";
+					break;
 			}
 		}
 		catch (const char *errMsg) {
@@ -4701,6 +4729,16 @@ void ScriptExecutor::SendALClosingTag( ScriptPacketExprPtr spep, CByteArray &pac
 }
 
 //
+//	ScriptExecutor::SendALAny
+//
+
+void ScriptExecutor::SendALAny( ScriptPacketExprPtr spep, CByteArray &packet )
+{
+	// ANY tagged element.  Can't send it
+	throw "Cannot send ANY";
+}
+
+//
 //	ScriptExecutor::ExpectPacket
 //
 
@@ -4870,7 +4908,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				if (t.tokenType == scriptKeyword) {
 					if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
 						nlSrcAddr.LocalBroadcast();
-					else if(t.tokenSymbol == kwGLOBALBROADCAST) //Modified by Zhu Zhenhua , 2003-12-12
+					else if ((t.tokenSymbol == kwGLOBALBROADCAST) || (t.tokenSymbol == kwGLOBAL_BROADCAST))
 						nlSrcAddr.GlobalBroadcast();
 					else
 						throw ExecError( "Unrecognized keyword supplied for SA", nlSA->exprLine );
@@ -7314,6 +7352,12 @@ void ScriptExecutor::ExpectALData( BACnetAPDUDecoder &dec )
 				case 17:							// CLOSINGTAG
 					ExpectALClosingTag( spep, dec );
 					break;
+				case 18:							// ANY
+					ExpectALAny( spep, dec );
+					break;
+				default:
+					throw "Invalid keyword";
+					break;
 			}
 		}
 		catch (const char *errMsg) {
@@ -8322,6 +8366,27 @@ void ScriptExecutor::ExpectALClosingTag( ScriptPacketExprPtr spep, BACnetAPDUDec
 
 	// decode it
 	closeTag.Decode( dec );
+}
+
+//
+//	ScriptExecutor::ExpectALAny
+//
+// ANY tagged item until the next unmatched closing tag or the end of the APDU
+//
+void ScriptExecutor::ExpectALAny( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
+{
+	BACnetANY			any;
+	ScriptTokenList		tlist;
+	BACnetAPDUTag		tag;
+	
+	// extract the tag
+	tag.Peek( dec );
+
+	// translate the expression, resolve parameter names into values
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+
+	// decode it
+	any.Decode( dec );
 }
 
 //

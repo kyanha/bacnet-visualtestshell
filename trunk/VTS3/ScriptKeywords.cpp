@@ -255,6 +255,7 @@ ScriptTranslateTable ScriptALMap[] =
 	, { kwCLOSE,				17 }
 	, { kwCLOSETAG,				17 }
 	, { kwCLOSINGTAG,			17 }
+	, { kwANY,					18 }
 	, { 0, 0 }
 	};
 
@@ -771,6 +772,7 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	, { kwENUMERATED,				 16 }
 	, { kwDATE,						 17 }
 	, { kwTIME,						 18 }
+	, { kwANY,						 19 }
 	, { 0, 0 }
 	};	
 

@@ -1831,6 +1831,24 @@ class BACnetClosingTag : public BACnetEncodeable {
 		void Encode( char *enc ) const;
 	};
 
+// Handle decoding of arbitrary tagged items in an APDU
+class BACnetANY: public BACnetEncodeable {
+	public:
+		int				spaceLen;		// size of buffer
+		int				dataLen;		// number of octets
+		BACnetOctet		*dataBuff;		// pointer to data
+
+		BACnetANY();
+		~BACnetANY();
+		
+		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
+		void Decode( BACnetAPDUDecoder& dec );					// decode
+
+		void Encode( char *enc ) const;
+
+		DECLARE_DYNAMIC(BACnetANY)
+	};
+
 //
 //	BACnetAPDUTag
 //

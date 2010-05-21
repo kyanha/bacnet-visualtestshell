@@ -144,20 +144,20 @@ ScriptAssignCommand::ScriptAssignCommand( ScriptIfdefHandler & ifdefHandler, Scr
 	baseLineStart = tok.tokenLine;
 	scan.Next( tok );
 	if ( tok.tokenType != scriptValue || tok.tokenEnc != scriptASCIIEnc )
-		throw "ASSIGEN statement requires \"Title Text\" following keyword";
+		throw "ASSIGN statement requires \"Title Text\" following keyword";
 	
 	baseLabel = tok.RemoveQuotes();
 	Parse(ifdefHandler, scan, tok);
 	baseLineCount = baseLineStart - tok.tokenLine;
 
-	CString str = "Need 'PASSED' or 'FAILED' follow ASSIGN !";
+	CString str = "Need 'PASSED' or 'FAILED' following ASSIGN !";
 	m_assigntext = baseLabel;
 	if(m_assigntext != "PASSED" && m_assigntext != "FAILED")
 		AfxMessageBox(str);
 	// set the image list offset and status
 	baseImage = 22;
-
 }
+
 ScriptAssignCommand::~ScriptAssignCommand()
 {
 }
@@ -186,19 +186,13 @@ void ScriptAssignCommand::Parse( ScriptIfdefHandler & ifdefHandler, ScriptScanne
 
 bool ScriptAssignCommand::Execute(CString * pstrError)
 {
-	CString strFullText = "ASSIGN must meet 'FAILED' or 'PASSED' ";
-	if(m_assigntext == "PASSED")
+	if (m_assigntext == "PASSED")
+	{
 		return true;
-	else
-		if(m_assigntext == "PASSED")
-		{
-			return false;
-		}
-		else
-		{
-			*pstrError = strFullText;
-			return false;
-		}
+	}
+
+	*pstrError =  "FAIL by ASSIGN statement";
+	return false;
 }
 
 //Class ScriptWaitCommand Added by Zhu Zhenhua, 2003-12-31, to WAIT statement

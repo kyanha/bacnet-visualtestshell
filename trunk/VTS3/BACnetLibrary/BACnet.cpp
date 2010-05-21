@@ -6719,9 +6719,94 @@ void BACnetClosingTag::Decode( BACnetAPDUDecoder& dec )
 			throw_(76) /* not enough data */;
 		dec.pktLength -= 1;
 	}
+
+	// TODO: shouldn't we check the tag value?
 }
 
+// Handle decoding of arbitrary tagged items in an APDU
+IMPLEMENT_DYNAMIC(BACnetANY, BACnetEncodeable)
 
+BACnetANY::BACnetANY()
+: spaceLen(0)
+, dataLen(0)
+, dataBuff(NULL)
+{
+}
+
+BACnetANY::~BACnetANY()
+{
+	delete[] dataBuff;
+}
+
+void BACnetANY::Encode( BACnetAPDUEncoder& enc, int context )
+{
+	// Copy raw bytes into the APDU
+	if (dataBuff)
+	{
+		enc.Append( dataBuff, dataLen );
+	}
+}
+
+void BACnetANY::Decode( BACnetAPDUDecoder& dec )
+{
+	int nesting = 0;
+	BACnetAPDUTag taggy( 0 );
+
+	const BACnetOctet *pStart = dec.pktBuffer;
+	while (dec.pktLength > 0)
+	{
+		int saveLen = dec.pktLength;
+		const BACnetOctet *saveBuff = dec.pktBuffer;
+		
+		taggy.Decode( dec );
+		if (taggy.tagClass == openingTagClass)
+		{
+			// Opening tag
+			nesting += 1;
+		}
+		else if (taggy.tagClass == closingTagClass)
+		{
+			// Closing tag
+			nesting -= 1;
+			if (nesting < 0)
+			{
+				// Back up to the closing tag so they token after us can parse it
+				dec.pktLength = saveLen;
+				dec.pktBuffer = saveBuff;
+				break;
+			}
+		}
+		else if ((taggy.tagClass != applicationTagClass) || (taggy.tagNumber != booleanAppTag))
+		{
+			// Bypass tag data
+			dec.pktLength -= taggy.tagLVT;
+			dec.pktBuffer += taggy.tagLVT;
+		}
+	}
+
+	// Copy the data bytes
+	int len = dec.pktBuffer - pStart;
+	if (len > spaceLen)
+	{
+		delete[] dataBuff;
+		dataBuff = new BACnetOctet[ len ];
+        spaceLen = len;
+	}
+
+	dataLen = len;
+	if (len > 0)
+	{
+		memcpy( dataBuff, pStart, len );
+	}
+}
+
+void BACnetANY::Encode( char *enc ) const
+{
+	// TODO: when the parameter becomes a CString, then MAYBE implement this
+	// Format X'12345678'
+	// Also add Decode( char* )
+	throw_(76);
+}
 
 IMPLEMENT_DYNAMIC(BACnetBinaryPriV, BACnetEnumerated)
 
@@ -7018,7 +7103,7 @@ void BACnetCalendarEntry::Encode( BACnetAPDUEncoder& enc, int context)
 		pbacnetTypedValue->Encode(enc, 2);
 		break;
 	default:
-		throw "Unknow choice.";
+		throw "Unknown choice.";
 		break;
 	}
 }
@@ -7043,7 +7128,7 @@ void BACnetCalendarEntry::Decode( BACnetAPDUDecoder& dec )
 		SetObject( new BACnetWeekNDay(dec) );
 		break;
 	default:
-		throw "Unknow choice.";
+		throw "Unknown choice.";
 		break;
 	}
 }
