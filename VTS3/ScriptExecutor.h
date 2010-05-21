@@ -302,6 +302,7 @@ class ScriptExecutor : public BACnetTask {
 		void SendALPropertyIdentifier( ScriptPacketExprPtr spep, CByteArray &packet );
 		void SendALOpeningTag( ScriptPacketExprPtr spep, CByteArray &packet );
 		void SendALClosingTag( ScriptPacketExprPtr spep, CByteArray &packet );
+		void SendALAny( ScriptPacketExprPtr spep, CByteArray &packet );
 
 		bool ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu );	// match execPacket, return true iff success
 
@@ -361,6 +362,7 @@ class ScriptExecutor : public BACnetTask {
 		void ExpectALPropertyIdentifier( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec );
 		void ExpectALOpeningTag( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec );
 		void ExpectALClosingTag( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec );
+		void ExpectALAny( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec );
 
 		// madanner 9/25/02
 		void GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny, int nIndex = -1 );

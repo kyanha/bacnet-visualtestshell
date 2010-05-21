@@ -51,6 +51,7 @@
 <li><a href="#DEVICEIDENTIFIER">DEVICEIDENTIFIER</a>
 <li><a href="#PROPERTYIDENTIFIER">PROPERTYIDENTIFIER</a>
 <li><a href="#TAG">OPENINGTAG, CLOSINGTAG</a>
+<li><a href="#ANY">ANY</a>
 </ul>
 </ul>
 <li><a href="#alp">Application Layer Packets</a>
@@ -208,7 +209,9 @@ equals is assumed.</p>
 
 <h3><a name="ll">Link Layer</a></h3>
 
-<p>The link layer specifies the network or port, source and/or destination addresses.</p>
+<p>The link layer specifies the network or port, source and/or destination addresses.
+See also <a href="#alp">Application Layer Packets</a> for an explanation of how
+most of these parameters can be omitted.</p>
 
 <blockquote><table width="80%" cellpadding="0" cellspacing="0" border="0" bgcolor="#DDFFDD">
 <tr><td>SEND (</td></tr>
@@ -390,7 +393,9 @@ layer message.</p>
 
 <h3><a name="nl">Network Layer</a></h3>
 
-<p>The network layer provides NPCI parameters.</p>
+<p>The network layer provides NPCI parameters.
+See also <a href="#alp">Application Layer Packets</a> for an explanation of how
+most of these parameters can be omitted.</p>
 
 <blockquote><table width="80%" cellpadding="0" cellspacing="0" border="0" bgcolor="#DDFFDD">
 <tr><td>SEND (</td></tr>
@@ -528,7 +533,10 @@ parameter which will be appended to the APCI:</p>
 <p>The maximum response size is specified as an integer value, which is translated into the 
 correct small integer.</p>
 
-<p>If the message is segmented the <code>SEQUENCENR</code> and <code>WINDOWSIZE</code> are required parameters.</p>
+<p>The <code>SEQUENCENR</code> and <code>WINDOWSIZE</code> are used for segmented messages.</p>
+
+<p>See <a href="#alp">Application Layer Packets</a> for an explanation of how
+most of the parameters above can be omitted.</p>
 
 <p>The <code>SERVICE</code> parameter is required, and <b>service</b> must be one of the following keywords: 
 ACKNOWLEDGEALARM, CONFIRMEDCOVNOTIFICATION, 
@@ -888,6 +896,26 @@ The entire time string must be enclosed in square brackets: [8:36:12.*]</p>
 
 <p>The <b>context</b> is a required integer value.  The <b>op</b> operator is ignored.</p>
 
+<h4><a name="ANY">ANY</a></h4>
+
+<blockquote><table width="80%" cellpadding="0" cellspacing="0" border="0" bgcolor="#DDFFDD">
+<tr><td>EXPECT (</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;...</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;OPENINGTAG <b>[</b> op <b>]</b> context</td></tr>
+<tr><td bgcolor="#AAFFAA">&nbsp;&nbsp;&nbsp;&nbsp;ANY</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;CLOSINGTAG <b>[</b> op <b>]</b> context</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;...</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;)</td></tr>
+</table></blockquote>
+
+<p>ANY is used in EXPECT clauses to decode and discard arbitrary tagged data.
+Decoding stops when it reaches the end of the APDU, or an unmatched closing tag, 
+whichever occurs first.  ANY will typically be used to deal with lists of
+unknown length and complex datatypes that do not need to be compared by the
+script.  For primitive data, you can use the "?" value instead of ANY.
+
+<p>There are no parameters.</p>
+
 <h2><a name="alp">Application Layer Packets</a></h2>
 
 <p>VTS3 may be configured with a device object which can be used as a context for sending and receiving data.  When 
@@ -926,15 +954,15 @@ Segmentation is supported by the device object directly, and it has a built-in i
 unique for each request.</p>
 
 <p>There are also more options to describe the destination of a packet.  Where a <code>NETWORK</code> is specified, the 
-only <code>DA</code> options are a specific station address and local broadcast.  As seen by a built-in device 
-object, the <code>DA</code> can take any of the following forms:</p>
+only <code>DA</code> options are a specific station address and local broadcast.  But when <code>NETWORK</code> is 
+not specified, the <code>DA</code> can take any of the following forms:</p>
 
 <blockquote><table width="80%" cellpadding="0" cellspacing="0" border="0" bgcolor="#DDFFDD">
 <tr><td>SEND (</td></tr>
 <tr><td bgcolor="#AAFFAA">&nbsp;&nbsp;&nbsp;&nbsp;DA = name</td></tr>
 <tr><td bgcolor="#AAFFAA">&nbsp;&nbsp;&nbsp;&nbsp;DA = <b>[</b> BROADCAST <b>|</b> LOCALBROADCAST <b>]</b></td></tr>
-<tr><td bgcolor="#AAFFAA">&nbsp;&nbsp;&nbsp;&nbsp;DA = REMOTEBROADCAST, dnet</td></tr>
-<tr><td bgcolor="#AAFFAA">&nbsp;&nbsp;&nbsp;&nbsp;DA = GLOBALBROADCAST</td></tr>
+<tr><td bgcolor="#AAFFAA">&nbsp;&nbsp;&nbsp;&nbsp;DA = <b>[</b> GLOBAL_BROADCAST <b>|</b> GLOBALBROADCAST <b>]</b></td></tr>
+<tr><td bgcolor="#AAFFAA">&nbsp;&nbsp;&nbsp;&nbsp;DA = REMOTE_BROADCAST, dnet</td></tr>
 <tr><td bgcolor="#AAFFAA">&nbsp;&nbsp;&nbsp;&nbsp;DA = dnet, addr</td></tr>
 <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;...</td></tr>
 <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;)</td></tr>
