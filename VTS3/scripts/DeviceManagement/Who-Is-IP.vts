@@ -103,8 +103,7 @@
     )
 
     OR (                    
-      DNET = 65535
-      DA = BROADCAST        ; or IUT returns a global broadcast response
+      DA = GLOBAL-BROADCAST        ; or IUT returns a global broadcast response
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
@@ -138,8 +137,7 @@
   -- Transmit global broadcast "Who-Is" message
 
     SEND (
-      DA = BROADCAST
-      DNET = 65535
+      DA = GLOBAL-BROADCAST
       PDU = Unconfirmed-Request
       Service = Who-Is
     )
@@ -157,8 +155,7 @@
     )
 
     OR (                    
-      DNET = 65535
-      DA = BROADCAST        ; or IUT returns a global broadcast response
+      DA = GLOBAL-BROADCAST
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
@@ -306,8 +303,7 @@
     )
 
     OR (                    
-      DNET = 65535
-      DA = BROADCAST        ; or IUT returns a global broadcast response
+      DA = GLOBAL-BROADCAST
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am
@@ -364,8 +360,7 @@
     )
 
     OR (                    
-      DNET = 65535
-      DA = BROADCAST        ; or IUT returns a global broadcast response
+      DA = GLOBAL-BROADCAST
       SA = IUT_ADDR
       PDU = Unconfirmed-Request
       Service = I-Am

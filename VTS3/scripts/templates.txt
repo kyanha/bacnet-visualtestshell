@@ -1,11 +1,12 @@
 ; Script templates fot VTS
-; Each SECTION becomes a choice on the Insert menu.
+;
+; Each SECTION becomes a choice on the script editor's Insert menu.
 ; Each ITEM becomes a choice in the template selection dialog for its SECTION.
 ; The text lines between ITEM and ENDITEM are inserted into the script.
 
 ;===============================================================================
 ;===============================================================================
-SECTION Datatypes
+SECTION Primitive Datatypes
 
 ITEM NULL
 NULL
@@ -13,62 +14,62 @@ ENDITEM
 
 ;===============================================================================
 ITEM Boolean
-boolean = T
+Boolean = T
 ENDITEM
 
 ;===============================================================================
 ITEM Unsigned
-UNSIGNED = 6
+Unsigned = 6
 ENDITEM
 
 ;===============================================================================
 ITEM Signed Integer
-integer = 7
+Integer = 7
 ENDITEM
 
 ;===============================================================================
 ITEM Real
-real = 3.14
+Real = 3.14
 ENDITEM
 
 ;===============================================================================
 ITEM Double
-double = 3.14
+Double = 3.14
 ENDITEM
 
 ;===============================================================================
 ITEM Octet String
-octetstring = X'010203'
+Octetstring = X'010203'
 ENDITEM
 
 ;===============================================================================
 ITEM Character String
-characterstring = "hi"
+Characterstring = "hi"
 ENDITEM
 
 ;===============================================================================
 ITEM Bit String
-bitstring = [{T,F,T,F}]
+Bitstring = [{T,F,T,F}]
 ENDITEM
 
 ;===============================================================================
 ITEM Enumerated
-enumerated = 6
+Enumerated = 6
 ENDITEM
 
 ;===============================================================================
 ITEM Date
-date = [(FRIDAY,1/29/2010)]
+Date = [(FRIDAY,1/29/2010)]
 ENDITEM
 
 ;===============================================================================
 ITEM Time
-time = [8:36:12.00]
+Time = [8:36:12.00]
 ENDITEM
 
 ;===============================================================================
 ITEM Object Identifier
-objectidentifier = analog-input, 1
+ObjectIdentifier = analog-input, 1
 ENDITEM
 
 ;===============================================================================
@@ -132,14 +133,17 @@ CloseTag 9
 ENDITEM
 
 ;===============================================================================
-ITEM CalendarEntry - date CHOICE
+;===============================================================================
+SECTION Constructed Datatypes
+
+ITEM BACnetCalendarEntry - date CHOICE
 OpenTag 0
    Date [(Thursday,2/4/2010)]
 CloseTag 0
 ENDITEM
 
 ;===============================================================================
-ITEM CalendarEntry - date range CHOICE
+ITEM BACnetCalendarEntry - date range CHOICE
 OpenTag 1
    Date [(Thursday,2/4/2010)]
    Date [(Tuesday,2/16/2010)]
@@ -147,7 +151,7 @@ CloseTag 1
 ENDITEM
 
 ;===============================================================================
-ITEM CalendarEntry - WeekNDay CHOICE
+ITEM BACnetCalendarEntry - WeekNDay CHOICE
 OpenTag 2
    -- Month 1-12, 13=odd, 14=even or 0xFF; Week 1-5, 6=last or 0xFF; Day 1-7 or 0xFF
    Octetstring X'000000'
@@ -155,28 +159,105 @@ CloseTag 2
 ENDITEM
 
 ;===============================================================================
-ITEM DailySchedule
+ITEM BACnetDailySchedule
 OpenTag 0
-   -- Zero or more TimeValues
+   -- Zero or more BACnetTimeValues
 CloseTag 0
 ENDITEM
 
 ;===============================================================================
-ITEM TimeValue - BinaryPV CHOICE
+ITEM BACnetTimeValue - BinaryPV CHOICE
 Time [8:00:00.0]
 Enumerated 0
 ENDITEM
 
 ;===============================================================================
-ITEM TimeValue - Real CHOICE
+ITEM BACnetTimeValue - Real CHOICE
 Time [8:00:00.0]
 Real 0.0
 ENDITEM
 
 ;===============================================================================
-ITEM TimeValue - Unsigned CHOICE
+ITEM BACnetTimeValue - Unsigned CHOICE
 Time [8:00:00.0]
 Unsigned 0
+ENDITEM
+
+;===============================================================================
+ITEM BACnetAddress
+Unsigned your_network_number
+Octetstring your_mac_address
+ENDITEM
+
+;===============================================================================
+ITEM BACnetObjectPropertyReference
+Object   = 0, object-type, instance
+Property = 1, your_property
+Unsigned = 2, index_if_you_need_it
+ENDITEM
+
+;===============================================================================
+ITEM BACnetObjectPropertyValue
+Object   = 0, object-type, instance
+Property = 1, your_property
+Unsigned = 2, index_if_you_need_it
+OpenTag    3
+   -- <your_value_here>
+CloseTag   3
+Unsigned = 4, priority_if_you_need_it
+ENDITEM
+
+;===============================================================================
+ITEM BACnetPropertyReference
+Property = 0, your_property
+Unsigned = 1, index_if_you_need_it
+ENDITEM
+
+;===============================================================================
+ITEM BACnetPropertyValue
+Property = 0, your_property
+Unsigned = 1, index_if_you_need_it
+OpenTag    2
+   -- <your_value_here>
+CloseTag   2
+Unsigned = 3, priority_if_you_need_it
+ENDITEM
+
+;===============================================================================
+ITEM ReadAccessResult
+Object   = 0, object-type, instance
+OpenTag    1 -- listOfResults
+   -- sequence of results with [4] value or [5] Error
+   Property = 2, your_property
+   Unsigned = 3, index_if_you_need_it
+   OpenTag    4
+      -- <your_value_here>
+   CloseTag   4
+CloseTag   1
+ENDITEM
+
+;===============================================================================
+ITEM ReadAccessSpecification
+Object   = 0, object-type, instance
+OpenTag    1 -- listOfPropertyReferences
+   -- sequence of BACnetPropertyReference
+   Property = 0, your_property
+   Unsigned = 1, index_if_you_need_it
+CloseTag   1
+ENDITEM
+
+;===============================================================================
+ITEM WriteAccessSpecification
+Object   = 0, object-type, instance
+OpenTag    1 -- listOfProperties
+   -- sequence of BACnetPropertyValue
+   Property = 0, your_property
+   Unsigned = 1, index_if_you_need_it
+   OpenTag    2
+      -- <your_value_here>
+   CloseTag   2
+   Unsigned = 3, priority_if_you_need_it
+CloseTag   1
 ENDITEM
 
 ;===============================================================================
@@ -189,11 +270,16 @@ SEND (
    PDU = Confirmed-Request
    Service = CreateObject
    OpenTag 0
-      Enum = 0, ANALOG_INPUT
+      Enum = 0, your_object_type
    CloseTag 0
---    OpenTag 1
---      <Optional list of BACnetPropertyValue>
---    CloseTag 1
+   OpenTag 1 -- Optional list of BACnetPropertyValue
+      Property = 0, your_property
+      Unsigned = 1, index_if_you_need_it
+      OpenTag    2
+         -- <your_value_here>
+      CloseTag   2
+      Unsigned = 3, priority_if_you_need_it
+   CloseTag 1
 )
 
 EXPECT (
@@ -214,9 +300,14 @@ SEND (
    OpenTag 0
       Object = 1, object-type, instance
    CloseTag 0
---   OpenTag 1
---      <Optional list of BACnetPropertyValue>
---   CloseTag 1
+   OpenTag 1 -- Optional list of BACnetPropertyValue
+      Property = 0, your_property
+      Unsigned = 1, index_if_you_need_it
+      OpenTag    2
+         -- <your_value_here>
+      CloseTag   2
+      Unsigned = 3, priority_if_you_need_it
+   CloseTag 1
 )
 
 EXPECT (
@@ -252,7 +343,7 @@ SEND (
    PDU = Confirmed-Request
    Service = ReadProperty
    Object = 0, object-type, instance
-   Property = 1, property_id
+   Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
 )
 
@@ -260,8 +351,8 @@ EXPECT (
    SA  = IUT_ADDR   
    PDU = ComplexAck
    Service = ReadProperty
-   Object = 0, OBJECT1
-   Property = 1, Object-Identifier
+   Object = 0, object-type, instance
+   Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    OpenTag 3
       -- your property value here
@@ -281,8 +372,8 @@ SEND (
    Object = 0, object-type, instance
    OpenTag 1
       -- repeat this section for each property
-      Property = 1, Object-Identifier
-      Unsigned = 2, index_if_you_need_it
+      Property = 0, your_property
+      Unsigned = 1, index_if_you_need_it
    CloseTag 1
 )
 
@@ -294,9 +385,9 @@ EXPECT (
    -- repeat this section for each object
    Object = 0, object-type, instance
    OpenTag 1
-      -- repeat this section for each property
-      Property = 1, Object-Identifier
-      Unsigned = 2, index_if_you_need_it
+      -- repeat this section for each property, or replace with ANY
+      Property = 2, your_property
+      Unsigned = 3, index_if_you_need_it
       OpenTag 4
          -- your property value here
       CloseTag 4
@@ -312,7 +403,7 @@ SEND (
    PDU = Confirmed-Request
    Service = ReadRange
    Object   = 0, object-type, instance
-   Property = 1, Object-Identifier
+   Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    
    -- byPosition
@@ -328,7 +419,7 @@ EXPECT (
    Service = ReadRange
 
    Object   = 0, object-type, instance
-   Property = 1, Object-Identifier
+   Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    Bitstring = 3, your_result_flags
    Unsigned = 4, your_item_count
@@ -346,7 +437,7 @@ SEND (
    PDU = Confirmed-Request
    Service = ReadRange
    Object   = 0, object-type, instance
-   Property = 1, Object-Identifier
+   Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    
    -- bySequenceNumber
@@ -362,7 +453,7 @@ EXPECT (
    Service = ReadRange
 
    Object   = 0, object-type, instance
-   Property = 1, Object-Identifier
+   Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    Bitstring = 3, your_result_flags
    Unsigned = 4, your_item_count
@@ -381,7 +472,7 @@ SEND (
    PDU = Confirmed-Request
    Service = ReadRange
    Object   = 0, object-type, instance
-   Property = 1, Object-Identifier
+   Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    
    -- byTime
@@ -398,7 +489,7 @@ EXPECT (
    Service = ReadRange
 
    Object   = 0, object-type, instance
-   Property = 1, Object-Identifier
+   Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    Bitstring = 3, your_result_flags
    Unsigned = 4, your_item_count
@@ -488,7 +579,7 @@ SEND (
    Object = 0, object-type, instance
    OpenTag 1
       -- repeat this section for each property
-      Property = 0, Object-Identifier
+      Property = 0, your_property
       Unsigned = 1, index_if_you_need_it
       OpenTag 2
          -- your property value here
@@ -535,7 +626,8 @@ SEND (
    PDU = Confirmed-Request
    Service = ReinitializeDevice
    enum            = 0, your_state 
-   -- 0=coldstart, 1=warmstart, 2=startbackup, 3=endbackup
+   -- 0=coldstart, 1=warmstart, 
+   -- 2=startbackup, 3=endbackup
    -- 4=startrestore, 5=endrestore, 6=abortrestore
    characterstring = 1, optional_password
 )
@@ -543,7 +635,7 @@ SEND (
 EXPECT (
    SA  = IUT_ADDR   
    PDU = SimpleAck
-   Service = DeviceCommunicationControl
+   Service = ReinitializeDevice
 )
 
 ENDITEM
@@ -551,10 +643,8 @@ ENDITEM
 ;===============================================================================
 ITEM Who-Is
 SEND (
-   -- use broadcast without quotes for local broadcast
-   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
-   -- you have defined a Name for GlobalBroadcast
-   DA = "GlobalBroadcast"
+   -- use broadcast for local broadcast, or globalBroadcast for global broadcast
+   DA  = GlobalBroadcast
    PDU = Unconfirmed-Request
    Service = Who-Is
    Unsigned = 0, optional_low_limit  ; Device identifier low limit
@@ -566,10 +656,8 @@ ENDITEM
 ;===============================================================================
 ITEM I-Am
 SEND (
-   -- use broadcast without quotes for local broadcast
-   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
-   -- you have defined a Name for GlobalBroadcast
-   DA = "GlobalBroadcast"
+   -- use broadcast for local broadcast, or globalBroadcast for global broadcast
+   DA  = GlobalBroadcast
    PDU = Unconfirmed-Request
    Service = I-Am
    Object   = DEVICE, your_instance
@@ -583,10 +671,8 @@ ENDITEM
 ;===============================================================================
 ITEM Who-Has by ObjectIdentifier
 SEND (
-   -- use broadcast without quotes for local broadcast
-   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
-   -- you have defined a Name for GlobalBroadcast
-   DA = "GlobalBroadcast"
+   -- use broadcast for local broadcast, or globalBroadcast for global broadcast
+   DA  = GlobalBroadcast
    PDU = Unconfirmed-Request
    Service = Who-Has
    Unsigned = 0, optional_low_limit  ; Device identifier low limit
@@ -599,10 +685,8 @@ ENDITEM
 ;===============================================================================
 ITEM Who-Has by Object Name
 SEND (
-   -- use broadcast without quotes for local broadcast
-   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
-   -- you have defined a Name for GlobalBroadcast
-   DA = "GlobalBroadcast"
+   -- use broadcast for local broadcast, or globalBroadcast for global broadcast
+   DA  = GlobalBroadcast
    PDU = Unconfirmed-Request
    Service = Who-Has
    Unsigned = 0, optional_low_limit  ; Device identifier low limit
@@ -615,10 +699,8 @@ ENDITEM
 ;===============================================================================
 ITEM I-Have
 SEND (
-   -- use broadcast without quotes for local broadcast
-   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
-   -- you have defined a Name for GlobalBroadcast
-   DA = "GlobalBroadcast"
+   -- use broadcast for local broadcast, or globalBroadcast for global broadcast
+   DA  = GlobalBroadcast
    PDU = Unconfirmed-Request
    Service = I-Have
    Object   = DEVICE, your_device_instance
@@ -631,10 +713,8 @@ ENDITEM
 ;===============================================================================
 ITEM TimeSynchronization
 SEND (
-   -- use broadcast without quotes for local broadcast
-   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
-   -- you have defined a Name for GlobalBroadcast
-   DA = "GlobalBroadcast"
+   -- use broadcast for local broadcast, or globalBroadcast for global broadcast
+   DA  = GlobalBroadcast
    PDU = Unconfirmed-Request
    Service = TimeSynchronization
    date = [(FRIDAY,1/29/2010)]
@@ -646,10 +726,8 @@ ENDITEM
 ;===============================================================================
 ITEM UTCTimeSynchronization
 SEND (
-   -- use broadcast without quotes for local broadcast
-   -- use "GlobalBroadcast" with quotes for global broadcast, presuming that
-   -- you have defined a Name for GlobalBroadcast
-   DA = "GlobalBroadcast"
+   -- use broadcast for local broadcast, or globalBroadcast for global broadcast
+   DA  = GlobalBroadcast
    PDU = Unconfirmed-Request
    Service = UTCTimeSynchronization
    date = [(FRIDAY,1/29/2010)]
