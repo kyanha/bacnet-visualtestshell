@@ -8343,13 +8343,16 @@ void CheckPICSCons2003A(PICSdb *pd)
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbT_ATR_A);
 				break;
 			case bibbDM_ANM_A:
-				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDM_DDB_B);
+				// 17-May-2010 DDO removed erroneous Dependency upon DM_DDB_B
+				// CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDM_DDB_B);
 				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDM_DDB_A);
 				break;
 			case bibbDM_ADM_A:
-				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_AV_A);
+				// 17-May-2010 DDO removed erroneous Dependency upon DS_AV_A
+				// replacing it with correct Dependency upon DS_RP_A
+				CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
 				break;
-         }
+		 }
       }
    }
 
