@@ -600,7 +600,10 @@ static const char* WhatWeGot( const BacParser &theParser )
 	}
 	else if (theParser.ContextTag())
 	{
-		sprintf( pGot, "[%u]", tag );
+		sprintf( pGot, "%s [%u]",
+				 (theParser.GetTagType() == BacParser::TAG_OPEN) ? "opening" :
+				 (theParser.GetTagType() == BacParser::TAG_CLOSE) ? "closing" :
+				 "primitive", tag );
 	}
 	else
 	{
@@ -658,7 +661,10 @@ bool BACnetSequence::Vet( int theTag, int theAppTag,
 				char *pExpected = TempTextBuffer();
 				if (theTag >= 0)
 				{
-					sprintf( pExpected, "[%u]", theTag );
+					sprintf( pExpected, "%s [%u]",
+							 (theTagType == BacParser::TAG_OPEN) ? "(opening)" :
+							 (theTagType == BacParser::TAG_CLOSE) ? "(closing)" :
+							 "primitive", theTag );
 				}
 				else 
 				{
@@ -1376,7 +1382,7 @@ bool BACnetSequence::AnyTaggedItem( bool allowContext )
 	bool retval = IsOK();
 	if (retval)
 	{
-		if (m_parser.ContextTag() && !allowContext)
+		if (!allowContext && m_parser.ContextTag())
 		{
 			Fail( "Unexpected %s", WhatWeGot( m_parser ) );
 		}
