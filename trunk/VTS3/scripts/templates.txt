@@ -44,7 +44,7 @@ ENDITEM
 
 ;===============================================================================
 ITEM Character String
-Characterstring = "hi"
+Characterstring = "your_text"
 ENDITEM
 
 ;===============================================================================
@@ -191,14 +191,14 @@ ENDITEM
 
 ;===============================================================================
 ITEM BACnetObjectPropertyReference
-Object   = 0, object-type, instance
+Object   = 0, your_object_id__or_type_and_instance
 Property = 1, your_property
 Unsigned = 2, index_if_you_need_it
 ENDITEM
 
 ;===============================================================================
 ITEM BACnetObjectPropertyValue
-Object   = 0, object-type, instance
+Object   = 0, your_object_id__or_type_and_instance
 Property = 1, your_property
 Unsigned = 2, index_if_you_need_it
 OpenTag    3
@@ -225,7 +225,7 @@ ENDITEM
 
 ;===============================================================================
 ITEM ReadAccessResult
-Object   = 0, object-type, instance
+Object   = 0, your_object_id__or_type_and_instance
 OpenTag    1 -- listOfResults
    -- sequence of results with [4] value or [5] Error
    Property = 2, your_property
@@ -238,7 +238,7 @@ ENDITEM
 
 ;===============================================================================
 ITEM ReadAccessSpecification
-Object   = 0, object-type, instance
+Object   = 0, your_object_id__or_type_and_instance
 OpenTag    1 -- listOfPropertyReferences
    -- sequence of BACnetPropertyReference
    Property = 0, your_property
@@ -248,7 +248,7 @@ ENDITEM
 
 ;===============================================================================
 ITEM WriteAccessSpecification
-Object   = 0, object-type, instance
+Object   = 0, your_object_id__or_type_and_instance
 OpenTag    1 -- listOfProperties
    -- sequence of BACnetPropertyValue
    Property = 0, your_property
@@ -298,7 +298,7 @@ SEND (
    PDU = Confirmed-Request
    Service = CreateObject
    OpenTag 0
-      Object = 1, object-type, instance
+      Object = 1, your_object_id__or_type_and_instance
    CloseTag 0
    OpenTag 1 -- Optional list of BACnetPropertyValue
       Property = 0, your_property
@@ -325,7 +325,7 @@ SEND (
    DA = IUT_ADDR
    PDU = Confirmed-Request
    Service = DeleteObject
-   Object  = object-type, instance
+   Object  = your_object_id__or_type_and_instance
 )
 
 EXPECT (
@@ -342,7 +342,7 @@ SEND (
    DA  = IUT_ADDR
    PDU = Confirmed-Request
    Service = ReadProperty
-   Object = 0, object-type, instance
+   Object = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
 )
@@ -351,7 +351,7 @@ EXPECT (
    SA  = IUT_ADDR   
    PDU = ComplexAck
    Service = ReadProperty
-   Object = 0, object-type, instance
+   Object = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    OpenTag 3
@@ -369,7 +369,7 @@ SEND (
    Service = ReadPropertyMultiple
    
    -- repeat this section for each object
-   Object = 0, object-type, instance
+   Object = 0, your_object_id__or_type_and_instance
    OpenTag 1
       -- repeat this section for each property
       Property = 0, your_property
@@ -383,7 +383,7 @@ EXPECT (
    Service = ReadPropertyMultiple
 
    -- repeat this section for each object
-   Object = 0, object-type, instance
+   Object = 0, your_object_id__or_type_and_instance
    OpenTag 1
       -- repeat this section for each property, or replace with ANY
       Property = 2, your_property
@@ -402,7 +402,7 @@ SEND (
    DA  = IUT_ADDR
    PDU = Confirmed-Request
    Service = ReadRange
-   Object   = 0, object-type, instance
+   Object   = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    
@@ -418,7 +418,7 @@ EXPECT (
    PDU = ComplexAck
    Service = ReadRange
 
-   Object   = 0, object-type, instance
+   Object   = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    Bitstring = 3, your_result_flags
@@ -436,7 +436,7 @@ SEND (
    DA  = IUT_ADDR
    PDU = Confirmed-Request
    Service = ReadRange
-   Object   = 0, object-type, instance
+   Object   = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    
@@ -452,7 +452,7 @@ EXPECT (
    PDU = ComplexAck
    Service = ReadRange
 
-   Object   = 0, object-type, instance
+   Object   = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    Bitstring = 3, your_result_flags
@@ -471,7 +471,7 @@ SEND (
    DA  = IUT_ADDR
    PDU = Confirmed-Request
    Service = ReadRange
-   Object   = 0, object-type, instance
+   Object   = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    
@@ -488,7 +488,7 @@ EXPECT (
    PDU = ComplexAck
    Service = ReadRange
 
-   Object   = 0, object-type, instance
+   Object   = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
    Bitstring = 3, your_result_flags
@@ -507,7 +507,7 @@ SEND (
    DA = IUT_ADDR
    PDU = Confirmed-Request
    Service = WriteProperty
-   Object   = 0, object-type, instance
+   Object   = 0, your_object_id__or_type_and_instance
    Property = 1, property_id
    Unsigned = 2, index_if_you_need_it
    OpenTag 3
@@ -530,7 +530,7 @@ SEND (
    DA = IUT_ADDR
    PDU = Confirmed-Request
    Service = AddListElement
-   Object   = 0, object-type, instance
+   Object   = 0, your_object_id__or_type_and_instance
    Property = 1, property_id
    Unsigned = 2, index_if_you_need_it
    OpenTag 3
@@ -552,7 +552,7 @@ SEND (
    DA = IUT_ADDR
    PDU = Confirmed-Request
    Service = RemoveListElement
-   Object   = 0, object-type, instance
+   Object   = 0, your_object_id__or_type_and_instance
    Property = 1, property_id
    Unsigned = 2, index_if_you_need_it
    OpenTag 3
@@ -576,7 +576,7 @@ SEND (
    Service = WritePropertyMultiple
    
    -- repeat this section for each object
-   Object = 0, object-type, instance
+   Object = 0, your_object_id__or_type_and_instance
    OpenTag 1
       -- repeat this section for each property
       Property = 0, your_property
@@ -893,7 +893,7 @@ SEND (
    DA = IUT_ADDR
    PDU = Confirmed-Request
    Service = AtomicReadFile
-   Object = object-type, instance
+   Object = your_object_id__or_type_and_instance
    OpenTag 0
       Integer   your_fileStartPosition
       Unsigned  your_requestedOctetCount
@@ -919,7 +919,7 @@ SEND (
    DA = IUT_ADDR
    PDU = Confirmed-Request
    Service = AtomicReadFile
-   Object = object-type, instance
+   Object = your_object_id__or_type_and_instance
    OpenTag 1
       Integer   your_fileStartRecord
       Unsigned  your_requestedRecordCount
@@ -947,7 +947,7 @@ SEND (
    DA = IUT_ADDR
    PDU = Confirmed-Request
    Service = AtomicWriteFile
-   Object = object-type, instance
+   Object = your_object_id__or_type_and_instance
    OpenTag 0
       Integer      your_fileStartPosition
       OctetString  your_fileData
@@ -969,7 +969,7 @@ SEND (
    DA = IUT_ADDR
    PDU = Confirmed-Request
    Service = AtomicWriteFile
-   Object = object-type, instance
+   Object = your_object_id__or_type_and_instance
    OpenTag 1
       Integer      your_fileStartRecord
       OctetString  your_fileData1 -- first record
@@ -990,28 +990,25 @@ ENDITEM
 ;===============================================================================
 SECTION Script File Elements
 ITEM Header for a test file
-;-------------------------------------------------------------------------------------
+;-------------------------------------------------------------------------------
 ;
-; Script:  yourtext
+; Script:  your_text
 ;
-; Version: yourtext
+; Version: your_text
 ;
-; Purpose: yourtext
+; Purpose: your_text
 ;
-; (This template for a script file is read from the same directory as vts.exe.
-; Feel free to edit this file to meet your needs)
-;
-;-------------------------------------------------------------------------------------
-SETUP yourtext
+;-------------------------------------------------------------------------------
+SETUP
 INCLUDE "..\config.vts"
-SECTION yourtext
+SECTION your_text
 
 ENDITEM
 
 ;===============================================================================
 ITEM Test - Basic test header
-;-------------------------------------------------------------------------------------
-TEST yourtext
+;-------------------------------------------------------------------------------
+TEST your_text
 DEPENDENCIES None
 REFERENCE None
 
@@ -1027,7 +1024,7 @@ MAKE "Your title for the Make Dialog" (
 ENDITEM
 
 ;===============================================================================
-ITEM CHECK Dialog (show text, and Pass and Fail buttons)
+ITEM CHECK Dialog (show text and Pass and Fail buttons)
 CHECK "Your title for the Check Dialog" (
   "Your text here"
   "as many lines as you want"
