@@ -6500,24 +6500,14 @@ bool EL_CheckProperty(BACnetPropertyIdentifier propertyID)
 	}
 }
 
-bool SV_CheckProperty(BACnetPropertyIdentifier propertyID)
+// structuredView Property List
+BACnetPropertyIdentifier structuredView_PL[] =
 {
-	switch ( propertyID )
-	{
-		case OBJECT_IDENTIFIER:
-		case OBJECT_NAME:
-		case OBJECT_TYPE:
-		case DESCRIPTION:
-		case NODE_TYPE:
-		case NODE_SUBTYPE:
-		case SUBORDINATE_LIST:
-		case SUBORDINATE_ANNOTATIONS:
-		case PROFILE_NAME:
-			return true;
-		default:
-			return false;
-	}
-}
+	OBJECT_IDENTIFIER,	OBJECT_NAME,	OBJECT_TYPE,	DESCRIPTION,
+	NODE_TYPE,		NODE_SUBTYPE,	SUBORDINATE_LIST,	SUBORDINATE_ANNOTATIONS,
+	PROFILE_NAME
+};
+
 
 bool TLM_CheckProperty(BACnetPropertyIdentifier propertyID)
 {
@@ -6634,8 +6624,93 @@ bool LC_CheckProperty(BACnetPropertyIdentifier propertyID)
 	}
 }
 
+//lightingOutput:
+//accessCredential:
+//accessPoint:
+//accessRights:
+//accessUser:
+//accessZone:
+//authenticationFactorInput:
+//mysterious_object_type:
+
+//bitstringValue Property List
+BACnetPropertyIdentifier bitstringValue_PL[] =
+{
+	OBJECT_IDENTIFIER,	OBJECT_NAME,	OBJECT_TYPE,	PRESENT_VALUE, BIT_TEXT,
+	DESCRIPTION,		STATUS_FLAGS,	EVENT_STATE,	RELIABILITY,
+	OUT_OF_SERVICE,		PRIORITY_ARRAY,	RELINQUISH_DEFAULT,	TIME_DELAY,
+	NOTIFICATION_CLASS,	ALARM_VALUES,	BIT_MASK,		EVENT_ENABLE,	
+	ACKED_TRANSITIONS,	NOTIFY_TYPE,	EVENT_TIME_STAMPS,
+	PROFILE_NAME
+};
+
+//characterstringValue Property List
+BACnetPropertyIdentifier characterstringValue_PL[] =
+{
+	OBJECT_IDENTIFIER,	OBJECT_NAME,	OBJECT_TYPE,	PRESENT_VALUE,
+	DESCRIPTION,		STATUS_FLAGS,	EVENT_STATE,	RELIABILITY,
+	OUT_OF_SERVICE,		PRIORITY_ARRAY,	RELINQUISH_DEFAULT,	TIME_DELAY,
+	NOTIFICATION_CLASS,	ALARM_VALUES,	FAULT_VALUES,	EVENT_ENABLE,	
+	ACKED_TRANSITIONS,	NOTIFY_TYPE,	EVENT_TIME_STAMPS,
+	PROFILE_NAME
+};
+
+
+//dateValue:	(all have the same Property List)
+//datePatternValue:
+//octetstringValue:
+//timePatternValue:
+//timeValue:
+BACnetPropertyIdentifier dateValue_PL[] =
+{
+	OBJECT_IDENTIFIER,	OBJECT_NAME,	OBJECT_TYPE,	PRESENT_VALUE,
+	DESCRIPTION,		STATUS_FLAGS,	EVENT_STATE,	RELIABILITY,
+	OUT_OF_SERVICE,		PRIORITY_ARRAY,	RELINQUISH_DEFAULT,	
+	PROFILE_NAME
+};
+
+//datetimePatternValue: (both have the same Property List)
+//datetimeValue:
+BACnetPropertyIdentifier dateTimeValue_PL[] =
+{
+	OBJECT_IDENTIFIER,	OBJECT_NAME,	OBJECT_TYPE,	PRESENT_VALUE,
+	DESCRIPTION,		STATUS_FLAGS,	EVENT_STATE,	RELIABILITY,
+	OUT_OF_SERVICE,		PRIORITY_ARRAY,	RELINQUISH_DEFAULT,	IS_UTC,
+	PROFILE_NAME
+};
+
+//integerValue: (all have the same Property List)
+//largeAnalogValue:
+//positiveIntegerValue:
+BACnetPropertyIdentifier integerValue_PL[] =
+{
+	OBJECT_IDENTIFIER,	OBJECT_NAME,	OBJECT_TYPE,	PRESENT_VALUE,
+	DESCRIPTION,		STATUS_FLAGS,	EVENT_STATE,	RELIABILITY,
+	OUT_OF_SERVICE,		UNITS,			PRIORITY_ARRAY,	
+	RELINQUISH_DEFAULT,	COV_INCREMENT,	TIME_DELAY,
+	NOTIFICATION_CLASS,	HIGH_LIMIT, LOW_LIMIT, DEADBAND, EVENT_ENABLE,	
+	ACKED_TRANSITIONS,	NOTIFY_TYPE,	EVENT_TIME_STAMPS,
+	PROFILE_NAME
+};
+
+/** Just run through the Object's list of Properties and see if we get a hit. */
+bool CheckPropertyList(BACnetPropertyIdentifier propertyID, 
+						BACnetPropertyIdentifier *propList, size_t length )
+{
+	for ( uint i = 0; i < length; i++ )
+	{
+		if ( propList[i] == propertyID )
+			return true;
+	}
+	return false;
+}
+
 } // end of PICS namespace
 
+
+// Pretty up the code with this macro (also more fool proof)
+// eg, expands to "PICS::structuredView_PL, sizeof( PICS::structuredView_PL )"
+#define PROPLIST_ARGS(x) PICS::x, sizeof( PICS::x )
 
 // Added by Zhu Zhenhua 2003-7-22
 // To check whether the propertyID is one of the Object's standard properties 
@@ -6698,12 +6773,45 @@ bool Check_Obj_Prop(int ObjType, unsigned int propertyID)
 		return PICS::EL_CheckProperty(propID);
 	case trendlogmultiple:
 		return PICS::TLM_CheckProperty(propID);
-	case structuredview:
-		return PICS::SV_CheckProperty(propID);
-	case accessdoor:
-		return PICS::AD_CheckProperty(propID);
 	case loadcontrol:
 		return PICS::LC_CheckProperty(propID);
+	case structuredView:
+		return PICS::CheckPropertyList(propID, PROPLIST_ARGS( structuredView_PL ) );
+	case accessdoor:
+		return PICS::AD_CheckProperty(propID);
+
+	case lightingOutput:
+	case accessCredential:
+	case accessPoint:
+	case accessRights:
+	case accessUser:
+	case accessZone:
+	case authenticationFactorInput:
+	case mysterious_object_type:
+		return false;
+
+	case bitstringValue:
+		return PICS::CheckPropertyList(propID, PROPLIST_ARGS( bitstringValue_PL ) );
+
+	case characterstringValue:
+		return PICS::CheckPropertyList(propID, PROPLIST_ARGS( characterstringValue_PL ) );
+
+	case datePatternValue:
+	case dateValue:				// All have the same Property List
+	case octetstringValue:
+	case timePatternValue:
+	case timeValue:
+		return PICS::CheckPropertyList(propID, PROPLIST_ARGS( dateValue_PL ) );
+
+	case datetimePatternValue:	// Both have the same Property List
+	case datetimeValue:
+		return PICS::CheckPropertyList(propID, PROPLIST_ARGS( dateTimeValue_PL ) );
+
+	case integerValue:			// All have the same Property List
+	case largeAnalogValue:
+	case positiveIntegerValue:
+		return PICS::CheckPropertyList(propID, PROPLIST_ARGS( integerValue_PL ) );
+
 	default:
 		return false;
 	}

@@ -242,8 +242,11 @@ enum BACnetPropertyIdentifier
 		DOOR_UNLOCK_DELAY_TIME,			// 232
 		LOCK_STATUS,					// 233
 		MASKED_ALARM_VALUES,			// 234
-		SECURED_STATUS					// 235
-
+		SECURED_STATUS,					// 235
+		// Addendum 2008-w
+		BIT_MASK = 342,
+		BIT_TEXT,						// 343
+		IS_UTC							// 344
 	};
 
 #endif
