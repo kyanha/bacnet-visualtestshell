@@ -649,8 +649,28 @@ enum BACnetObjectType {
 		globalgroup						= 26,
 		trendlogmultiple				= 27,
 		loadcontrol						= 28,
-		structuredview					= 29,
-		accessdoor						= 30
+		structuredView					= 29,
+		accessdoor						= 30,
+		lightingOutput					= 31,
+		accessCredential				= 32,
+		accessPoint						= 33,
+		accessRights					= 34,
+		accessUser						= 35,
+		accessZone						= 36,
+		authenticationFactorInput		= 37,	/* credential-data-input */
+		mysterious_object_type			= 38,	/* can't find anything assigned to this */
+		bitstringValue					= 39,		/* addendum 2008-w */
+		characterstringValue			= 40,
+		datePatternValue				= 41,
+		dateValue						= 42,
+		datetimePatternValue			= 43,
+		datetimeValue					= 44,
+		integerValue					= 45,
+		largeAnalogValue				= 46,
+		octetstringValue				= 47,
+		positiveIntegerValue			= 48,
+		timePatternValue				= 49,
+		timeValue						= 50
 		};
 
 class BACnetObjectIdentifier : public BACnetEncodeable {
