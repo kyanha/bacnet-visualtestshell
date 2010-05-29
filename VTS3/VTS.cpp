@@ -59,7 +59,7 @@ ScriptDebugNetFilter	gDebug2( "_2" );
 // If that code is ever re-enabled, then figure out how the versioning needs to work.
 extern const int kVTSDBMajorVersion = 3;			// current version
 extern const int kVTSDBMinorVersion = 5;
-const int kReleaseVersion = 4;
+const int kReleaseVersion = 5;
 
 extern CWinThread	*gBACnetWinTaskThread;
 
