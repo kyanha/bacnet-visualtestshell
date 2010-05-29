@@ -1651,7 +1651,26 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //		
 //		3.5.3	October 21, 2009
 //			Added Inconsistent Parameters tests (13.4.3, 13.4.4, 13.4.5)
-
+//
+//		3.5.4	May 30, 2010
+//		   Rewrote much of the sniffer, to simplify the coding of new messages and datatypes
+//         Revised the sniffer detail view to indent items enclosed in paired tags (similar to WireShark)
+//         Completed/fixed segmentation and network support in scripting
+//         Changed IP code to use the appropriate subnet broadcast rather than hard-coded /24
+//         Removed some string-length restrictions in the EPICS reader
+//         Added template insertion and find/replace to the script editor
+//         Made it possible to stop a running script entirely, and possible to close a running script without crashing VTS
+//         Started a “Survival Guide” to help people start using VTS (the QuickStart, at half a meg doesn’t really do this) 
+//         Cleaned up the scripts using 
+//		        Submission from Buddy Lott (ID 1704394 and 1704507)
+//				Cleanup to use generic “DA” rather than specifying BVLL etc.  This allows scripts to be reused on different networks simply by changing Name or config values.  It also allows script messages to be segmented.  (Thanks to my buddies grep and sed for this effort…)
+//              Replaced some AL=hex-string with current encoding for bitstrings etc. that were formerly not encodable
+//
+//			Known bugs fixed:
+//				1592644		Scripting does not like Accumulator object identifiers
+//				2979777		Netmask for B/IP is hardcoded
+//				2415662		Array bounds exceeded
+//
 			
 			
 			class CAboutDlg : public CDialog
