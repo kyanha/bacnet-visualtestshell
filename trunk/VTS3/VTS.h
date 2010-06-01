@@ -14,8 +14,8 @@
 
 #include "resource.h"       // main symbols
 
-#define MAX_DEFINED_OBJ	  31	// This is one more than defined BACnetObjectType :Modifyed Shiyuan Xiao 7/14/2005
-#define MAX_PROP_ID	      236	// BACnetPropertyIdentifier, Modified by Zhu Zhenhua, 2004-5-11
+#define MAX_DEFINED_OBJ	  51	// This is one more than defined BACnetObjectType :Modifyed Shiyuan Xiao 7/14/2005
+#define MAX_PROP_ID	      345	// Currently IS_UTC, +1
 #define MAX_SERVS_SUPP     50        
 
 #define	DEVICE_LOOPBACK		1		// set to zero to disable "looped" messages

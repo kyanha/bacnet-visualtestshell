@@ -2001,6 +2001,8 @@ int VTSAny::GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
 		case ssint:							//short (2-byte) signed integer  MAG 13 FEB 2001
 		case sw:			return 3;		//signed word, BACnetInteger
 
+		case ptInt32:		return 3;		// signed long
+
 		case s10:							//char [10]
 		case s32:							//char [32]
 		case s64:							//char [64]
@@ -2017,6 +2019,8 @@ int VTSAny::GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
 		case paf:							//priority array flt
 		case pab:							//priority array bpv
 		case pau:			return 50;		//priority array uw, BACnetPriorityArray
+		case ptPai:			return 50;		// priority array long
+
 
 		case dtrange:		return 16;		//range of dates, BACnetDateRange
 

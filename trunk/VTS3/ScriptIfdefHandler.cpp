@@ -300,6 +300,7 @@ BACnetEncodeable * ScriptIfdefExpr::CreateOperand( ScriptToken & token )
 					break;
 				case ssint:		// short signed int -----------------------		// actually the same type
 				case sw:		// signed word ----------------------------
+				case ptInt32:
 					return new BACnetInteger( ((BACnetInteger *) bacnetEPICSProperty.GetObject())->intValue );
 					break;
 				case ebool:

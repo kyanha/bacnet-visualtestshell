@@ -41,6 +41,7 @@ octet far* ePAB(octet far* p, const word far* pv, int ArrayIndex= -1, int TagNr=
 //*****Ended by Liangping Xu, 2002-8-5*****//
 
 octet far* ePAU(octet far* p, const word far* pv, int ArrayIndex= -1, int TagNr= -1);
+octet far* ePADW(octet far* p, const dword far* pv, int ArrayIndex= -1, int TagNr= -1);
 octet far* eUWARR(octet far* p, const word far* pv, int num, int ArrayIndex= -1, int TagNr= -1);
 octet far* eACTEXT(octet far* p, char far** pv, int num, int ArrayIndex= -1, int TagNr= -1);
 octet far* eACT(octet far* p, BACnetActionCommand far** pv, int num, int ArrayIndex= -1, int TagNr= -1);

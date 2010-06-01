@@ -647,6 +647,7 @@ int GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
 
 		case ssint:							//short (2-byte) signed integer  MAG 13 FEB 2001
 		case sw:			return 3;		//signed word, BACnetInteger
+		case ptInt32:		return 3;
 
 		case flt:			return 4;		//float / real, BACnetReal (changed 2005 by kare.sars@wapice.com)
 //		case flt:			return 5;		//float / double, BACnetDouble

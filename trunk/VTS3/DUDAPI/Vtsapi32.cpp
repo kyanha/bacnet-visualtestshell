@@ -330,7 +330,11 @@ static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
    25,  /* Protocol_Revision = 4 */ // LJT updated 3/27/2007
    30,  /* Protocol_Revision = 5 */
    31,  /* Protocol_Revision = 6 */
-   31,  /* protocol_revision = 7 */ // 135-2008	
+   31,  /* protocol_revision = 7 */ // 135-2008
+   31,  /* protocol_revision = 8 */ // 135-2008 added objects?
+   31,  /* protocol_revision = 9 */ // 135-2008 added objects?
+   51,  /* protocol_revision = 10 */ // 135-2008w
+
 };
 
 //---------------------------------------------------------------------
@@ -863,8 +867,28 @@ static char *StandardObjects[]={
 			"Trend Log Multiple",
 			"Load Control",
 			"Structured View",
-			"Access Door"
-			};
+			"Access Door",
+			"Lighting Output",
+			"Access Credential",
+			"Access Point",
+			"Access Rights",
+			"Access User",
+			"Access Zone",
+			"Authentication Factor Input", 	/* credential-data-input */
+			"mysterious_object_type",		/* 37 can't find anything assigned to this */
+			"Bitstring Value",				/* addendum 2008-w */
+			"Characterstring Value",
+			"Date Pattern Value",
+			"Date Value",
+			"Datetime Pattern Value",
+			"Datetime Value",
+			"Integer Value",
+			"Large Analog Value",
+			"Octetstring Value",
+			"Positive Integer Value",
+			"Time Pattern Value",
+			"Time Value"					// 50
+		};
 
 
 // The order of these is important.  New ones should be added to the end, or
@@ -3998,7 +4022,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 {	propdescriptor *pd,*newpd;
 	word			pindex,ub,i;
 	void 		far	*pstruc;
-	dword			dw;
+	dword			dw, *dwp;
 	char			b[512],q;
 	octet			db,dm;
 	etable 			*ep;
@@ -4348,6 +4372,32 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 						}						//									***011 End
 					}
 					break;
+				case ptPai:						//priority array int32
+					dwp=(dword *)pstruc;
+					for (i=0;i<16;i++) dwp[i]=upaNULL; //init all slots to NULL values	***011
+					i=0;
+					if ((lp=openarray(lp))==NULL) return true;
+					
+					while (*lp&&i<16)
+					{	if (*lp=='n'||*lp=='N')	//we'll assume he means 'NULL'
+						{	*dwp++=upaNULL;		//									***013 Begin
+							while (*lp&&*lp!=space&&*lp!=','&&*lp!='}') lp++; //skip rest of NULL ***014
+						}						//									***013 End
+						else					//we'll assume there's a number here
+						{
+							*dwp++=ReadDW();
+							if ( *(lp-1)=='}' ) lp--;  // put back last read char.
+						}
+						i++;					//									***011 Begin
+						while (*lp==space||*lp==',') lp++; //skip separation between list elements
+						if (*lp==0) 
+							if (ReadNext()==NULL) break;
+						if (*lp=='}') 
+						{	lp++;
+							break;				//close this array out
+						}						//									***011 End
+					}
+					break;
 				case paf:						//priority array flt
 					fp=(float *)pstruc;
 					for (i=0;i<16;i++) fp[i]=fpaNULL; //init all slots to NULL values	***011
@@ -4434,6 +4484,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 						*(word *)pstruc=ReadW();
 					break;
 				case ud:						//unsigned dword
+				case ptInt32:					// signed long
 					*(dword *)pstruc=ReadDW();
 					break;
 				case u16:						//1..16

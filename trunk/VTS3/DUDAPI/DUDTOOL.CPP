@@ -142,6 +142,12 @@ word gTestPAU[nTEST][nPRIO]= {
 								{16,15,14,13,12,11,10,9,1,2,3,4,5,6,7,8}
 							 };
 
+dword gTestPADW[nTEST][nPRIO]= { 
+								{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16},
+								{16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1},
+								{16,15,14,13,12,11,10,9,1,2,3,4,5,6,7,8}
+							 };
+
 BACnetDateRange gTestDTRange[nTEST]= { 
 										{ {96,5,20,0xFF}, {96,5,22,0xFF} },
 										{ {95,4,19,0xFF}, {97,6,24,0xFF} },
@@ -1019,6 +1025,33 @@ octet far* ePAU(octet far* p, const word far* pv, int ArrayIndex, int TagNr)
   return p;
 }
 
+// encode dw priority array
+octet far* ePADW(octet far* p, const dword far* pv, int ArrayIndex, int TagNr)
+{ int i;
+  if (pv==NULL) return p;
+
+  switch(ArrayIndex)
+    { 
+      case -1: // all elements
+        for (i=0; i<nPRIO; i++)
+          { 
+            if (pv[i]!=upaNULL) p= eINT(p,pv[i]);
+            else p= eNULL(p);
+          }
+        break;  
+          
+      case 0:  // number of elements
+        p= eUINT(p,nPRIO);
+        break;
+        
+      default: // ArrayIndex element     
+        if ((ArrayIndex>0)&&(ArrayIndex<=nPRIO))
+          p= eINT(p,pv[ArrayIndex-1]);
+        break;
+    }
+  return p;
+}
+
 // encode uw array  
 octet far* eUWARR(octet far* p, const word far* pv, int num, int ArrayIndex, int TagNr)
 { int i;
@@ -1718,6 +1751,7 @@ octet far* eASN_1_AnyType(octet far* p, PVMessage far* msg)
        break;
        
      case sw:   // signed word ------------------------------------------
+	 case ptInt32:		// signed long, too
        switch(msg->Action)
          {
            case SETPROP:
@@ -1861,6 +1895,20 @@ octet far* eASN_1_AnyType(octet far* p, PVMessage far* msg)
              break;
            case RND_ENCODEPROP: // encode a test value 
              p= ePAU(p,gTestPAU[i]);
+             break;
+         }    
+       break;
+
+	 case ptPai: // priority array dw (int32)
+       switch(msg->Action)
+         {
+           case SETPROP:
+             break;
+           case ENCODEPROP: // encode from database
+             p= ePADW(p,(dword far*)msg->pv,msg->ArrayIndex);
+             break;
+           case RND_ENCODEPROP: // encode a test value 
+             p= ePADW(p,gTestPADW[i]);
              break;
          }    
        break;
@@ -6710,7 +6758,7 @@ bool CheckPropertyList(BACnetPropertyIdentifier propertyID,
 
 // Pretty up the code with this macro (also more fool proof)
 // eg, expands to "PICS::structuredView_PL, sizeof( PICS::structuredView_PL )"
-#define PROPLIST_ARGS(x) PICS::x, sizeof( PICS::x )
+#define PROPLIST_ARGS(x) PICS::x, (sizeof( PICS::x ) / sizeof(BACnetPropertyIdentifier))
 
 // Added by Zhu Zhenhua 2003-7-22
 // To check whether the propertyID is one of the Object's standard properties 

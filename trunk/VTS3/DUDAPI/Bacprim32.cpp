@@ -1890,6 +1890,14 @@ sstring:
 		break;
     case TSTMP:
         break;
+	case ptInt32:		//signed long
+	case ptPai:		// priority array long
+		max=0x7FFFFFFF;
+		min=-max -1;
+		msize=5;
+		tag=0x30;		// hope that's right
+		goto svals;
+
 //																						***020 End	
 
 // --below this line cannot be modified!
