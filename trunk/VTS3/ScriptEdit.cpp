@@ -66,7 +66,7 @@ static char THIS_FILE[] = __FILE__;
 
 #define MARGIN_3			25
 #define CHAR_HEIGHT			16
-#define LIMITTEXT			0x000FFFFF
+#define LIMITTEXT			0xFFFFFFFF
 
 static const char s_registrySection[] = "ScriptEditor";
 static const char s_registryKeyTemplate[] = "TemplateFile";
@@ -190,6 +190,7 @@ int ScriptEdit::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_LineNumCtrl.SetDefaultFont();
 	m_LineNumCtrl.SetReadOnly(true);
 	m_LineNumCtrl.EnableWindow(false);
+
 
 	m_pEdit->SetLimitText(LIMITTEXT);
 
