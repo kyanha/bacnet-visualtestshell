@@ -404,6 +404,8 @@ afx_msg void ScriptFrame::OnUpdateScriptReset(CCmdUI* pCmdUI)
 
 void ScriptFrame::OnScriptCheckSyntax() 
 {
+	// This may take a while for large scripts
+	CWaitCursor cur;
 	m_bSyntaxOK = m_pDoc->CheckSyntax();
 }
 
