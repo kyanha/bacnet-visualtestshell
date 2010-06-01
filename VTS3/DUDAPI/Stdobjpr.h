@@ -21,8 +21,9 @@ typedef struct {
     
 //------------------------------------------------------
 //	Special Enumeration Tables
+#define NUM_DEFINED_OBJECTS 51
 static etable etObjectTypes={
-            128,1024,31, 
+            128,1024, NUM_DEFINED_OBJECTS, 
             "analog-input",       //0
             "analog-output",       
             "analog-value",     
@@ -53,8 +54,28 @@ static etable etObjectTypes={
 			"trend-log-multiple",
 			"load-control",			// Addendum e, 135-2004
 			"structured-view",
-			"access-door"
-            };
+			"access-door",
+			"Lighting-Output",
+			"Access-Credential",
+			"Access-Point",
+			"Access-Rights",
+			"Access-User",
+			"Access-Zone",
+			"Authentication-Factor-Input",
+			"object-of-mystery",
+			"Bitstring-Value",
+			"Characterstring-Value",
+			"Date-Pattern-Value",
+			"Date-Value",
+			"Datetime-Pattern-Value",
+			"Datetime-Value",
+			"Integer-Value",
+			"Large-Analog-Value",
+			"Octetstring-Value",
+			"Positive-Integer-Value",
+			"Time-Pattern-Value",
+			"Time-Value"
+         };
 static etable etTF={0,0,2,"False","True"};
 static etable etYN={0,0,2,"No","Yes"};
 static etable etReli={
@@ -1705,7 +1726,89 @@ propdescriptor TLMProps[] =
 	"profile-name",				PROFILE_NAME,				  oo(tlm,  go.profile_name),	   s132,	 Last,	 0,       O
 };
 
-stdobjtype	StdObjects[]={
+// Until *someone* fleshs out the real properties for a new object type
+// The generic object properties - always supported
+propdescriptor PlaceholderProps[] = 
+{
+	//	"property name",		property identifier,	struc offset,						parse,	group,  table,   qualifiers
+    "object-identifier",  		OBJECT_IDENTIFIER,  	oo(placeholder,  go.object_id),   	ob_id,    0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			oo(placeholder,  go.object_name),   s32,      0,      0,       R,
+    "object-type",  			OBJECT_TYPE, 			oo(placeholder,  go.object_type), 	et,       0,      0,       R,
+	"description",  			DESCRIPTION,  			oo(placeholder,  go.description),   s132,     0,      0,       O,
+	// <Your properties here>
+	"profile-name",				PROFILE_NAME,			oo(placeholder,  go.profile_name),	s132,	 Last,	 0,       O
+};
+
+propdescriptor	CharstringProps[]={
+//	"property name",		property identifier,	struc offset,					parse,	group,	table,	    qualifiers
+    "object-identifier",	OBJECT_IDENTIFIER,	oo(charstring,go.object_id),	    ob_id,	 0,	       0,	    R,
+    "object-name",			OBJECT_NAME,		oo(charstring,go.object_name),	    s32,	 0,	       0,	    R,
+    "object-type",			OBJECT_TYPE,		oo(charstring,go.object_type),	    et,		 0,  eiObjectTypes,  R,
+    "present-value",		PRESENT_VALUE,		oo(charstring,present_value),	    s132,	 0,	       0,	    W|IsCommandable,
+    "description",			DESCRIPTION,		oo(charstring,go.description),	    s132,	 0,	       0,	    O,
+    "status-flags",			STATUS_FLAGS,		oo(charstring,status_flags),	    bits,	 0,	       0,	    R,
+    "event-state",			EVENT_STATE,		oo(charstring,event_state),			et,		 0,  eiEvState,	    R,
+    "reliability",			RELIABILITY,		oo(charstring,reliability),			et,		 0,	  eiReli,	    O,
+    "out-of-service",		OUT_OF_SERVICE,		oo(charstring,out_of_service),	    ebool,   0,		eiTF,	    R,
+//  "priority-array",		PRIORITY_ARRAY,		oo(charstring,priority_array),	    pa??,	 3,	       0,	    O|IsArray|WithGroup,
+    "relinquish-default",	RELINQUISH_DEFAULT,	oo(charstring,relinquish_default),  s132,	 3,	       0,	    O|WithGroup,
+    "time-delay",			TIME_DELAY,			oo(charstring,time_delay),		    uw,		 Intr,	   0,	    O|WithService,
+    "notification-class",	NOTIFICATION_CLASS,	oo(charstring,notification_class),	uw,	     Intr,	   0,	    O|WithService,
+    "alarm-values",			ALARM_VALUES,		oo(charstring,alarm_values),	    actext,  Intr,	MAX_FAULT_STRINGS, O|IsArray|WithService,
+    "fault-values",			FAULT_VALUES,		oo(charstring,fault_values),	    actext,  Intr,	MAX_FAULT_STRINGS, O|IsArray|WithService,
+     "event-enable",  		EVENT_ENABLE,  		oo(charstring,event_enable),  	    bits,    Intr,     0,       O|WithService,
+     "acked-transitions",  	ACKED_TRANSITIONS,  oo(charstring,acked_transitions),	bits,    Intr,     eiEvTr,  O|WithService,
+     "notify-type",  		NOTIFY_TYPE,  		oo(charstring,notify_type),  	    et,      Intr,     eiNT,    O|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(charstring,event_time_stamps),	TSTMParr, Intr,    0,       O|IsArray|WithService,
+	"profile-name",		    PROFILE_NAME,       oo(charstring,go.profile_name),		s132,	Last,	   0,		O  
+};
+
+propdescriptor	IntegerProps[]={
+//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
+    "object-identifier",	OBJECT_IDENTIFIER,	oo(integer,go.object_id),	ob_id,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(integer,go.object_name),	s32,	0,	       0,	R,
+    "object-type",			OBJECT_TYPE,		oo(integer,go.object_type),	et,		0,eiObjectTypes,R,
+    "present-value",		PRESENT_VALUE,		oo(integer,present_value),	ptInt32,0,	       0,	W|IsCommandable,
+    "description",			DESCRIPTION,		oo(integer,go.description),	s132,	0,	       0,	O,
+    "status-flags",			STATUS_FLAGS,		oo(integer,status_flags),	bits,	0,	   eiStF,	R,
+    "event-state",			EVENT_STATE,		oo(integer,state),			et,		0,eiEvState,	R,
+    "reliability",			RELIABILITY,		oo(integer,reliability),	et,		0,	 eiReli,	O,
+    "out-of-service",		OUT_OF_SERVICE,		oo(integer,out_of_service),	ebool,  0,		eiTF,	R,
+    "units",				UNITS,				oo(integer,units),			et,		0,	    eiEU,	R,
+    "priority-array",		PRIORITY_ARRAY,		oo(integer,priority_array),	ptPai,	1,		   0,	O|WithGroup|IsArray,
+    "relinquish-default",	RELINQUISH_DEFAULT,	oo(integer,relinquish_default), ptInt32,	1,		   0,	O|WithGroup,
+    "cov-increment",		COV_INCREMENT,		oo(integer,cov_increment),	ptInt32,	COV,	   0,	O|WithService,
+    "time-delay",			TIME_DELAY,			oo(integer,time_delay),		uw,		Intr,	   0,	O|WithService,
+    "notification-class",	NOTIFICATION_CLASS,	oo(integer,notification_class),uw,	Intr,	   0,	O|WithService,
+    "high-limit",			HIGH_LIMIT,			oo(integer,high_limit),		ptInt32,	Intr,	   0,	O|WithService,
+    "low-limit",			LOW_LIMIT,			oo(integer,low_limit),		ptInt32,	Intr,	   0,	O|WithService,
+    "deadband",				DEADBAND,			oo(integer,deadband),		ud,	Intr,	   0,	O|WithService,
+    "limit-enable",			LIMIT_ENABLE,		oo(integer,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
+    "event-enable",			EVENT_ENABLE,		oo(integer,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
+    "acked-transitions",	ACKED_TRANSITIONS,	oo(integer,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
+    "notify-type",			NOTIFY_TYPE,		oo(integer,notify_type),		et,		Intr,	eiNT,	O|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(integer,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
+	"profile-name",			PROFILE_NAME,       oo(integer,go.profile_name), s132,	Last,     0,	 O  
+};
+
+propdescriptor	DateTimeValueProps[]={
+//	"property name",		property identifier,	struc offset,					parse,	group,	table,	qualifiers
+    "object-identifier",	OBJECT_IDENTIFIER,	oo(datetimevalue,go.object_id),		ob_id,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(datetimevalue,go.object_name),	s32,	0,	       0,	R,
+    "object-type",			OBJECT_TYPE,		oo(datetimevalue,go.object_type),	et,		0,eiObjectTypes,R,
+    "present-value",		PRESENT_VALUE,		oo(datetimevalue,present_value),	dt,		0,	       0,	W|IsCommandable,
+    "description",			DESCRIPTION,		oo(datetimevalue,go.description),	s132,	0,	       0,	O,
+    "status-flags",			STATUS_FLAGS,		oo(datetimevalue,status_flags),		bits,	0,	   eiStF,	R,
+    "event-state",			EVENT_STATE,		oo(datetimevalue,state),			et,		0,eiEvState,	R,
+    "reliability",			RELIABILITY,		oo(datetimevalue,reliability),		et,		0,	 eiReli,	O,
+    "out-of-service",		OUT_OF_SERVICE,		oo(datetimevalue,out_of_service),	ebool,  0,		eiTF,	R,
+//  "priority-array",		PRIORITY_ARRAY,		oo(datetimevalue,priority_array),	ptPa??,	1,		   0,	O|WithGroup|IsArray,
+    "relinquish-default",	RELINQUISH_DEFAULT,	oo(datetimevalue,relinquish_default), dt,	1,		   0,	O|WithGroup,
+    "is-utc",				IS_UTC,				oo(datetimevalue,is_utc),			ebool,  0,		eiTF,	R,
+	"profile-name",			PROFILE_NAME,       oo(datetimevalue,go.profile_name),	s132,	Last,     0,	 O  
+};
+
+stdobjtype	StdObjects[NUM_DEFINED_OBJECTS]={
     sizeof(ai_obj_type),					AIprops,
     sizeof(ao_obj_type),					AOprops,
     sizeof(av_obj_type),					AVprops,
@@ -1732,11 +1835,31 @@ stdobjtype	StdObjects[]={
 	sizeof(accumulator_obj_type),           ACProps,   //Shiyuan Xiao 7/13/2005
 	sizeof(pulseconverter_obj_type),        PCProps,   //Shiyuan Xiao 7/13/2005
 	sizeof(el_obj_type),					ELProps,
-	sizeof(el_obj_type),					ELProps,   // place holder for global group
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // place holder for global group
 	sizeof(tlm_obj_type),					TLMProps,
 	sizeof(lc_obj_type),					LCProps,
 	sizeof(sv_obj_type),					SVProps,
 	sizeof(ad_obj_type),					ADProps,
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Lighting-Output",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Credential",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Point",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Rights",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-User",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Zone",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Authentication-Factor-Input",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "object-of-mystery",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Bitstring-Value",
+	sizeof(charstring_obj_type),			CharstringProps,    // "Characterstring-Value",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Date-Pattern-Value",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Date-Value",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Datetime-Pattern-Value",
+	sizeof(datetimevalue_obj_type),			DateTimeValueProps,   // "Datetime-Value",
+	sizeof(integer_obj_type),				IntegerProps,	    // "Integer-Value",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Large-Analog-Value",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Octetstring-Value",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Positive-Integer-Value",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Time-Pattern-Value",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Time-Value"
     };
 
 #else

@@ -567,6 +567,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 
 		case ssint:		// short signed int -----------------------		// actually the same type
 		case sw:		// signed word ----------------------------
+		case ptInt32:
 
 			return new BACnetInteger(dec);
 			break;
@@ -579,6 +580,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 		case pab:		// priority array bpv ---------------------		deal with index cases (-1=all, 0=element count, base 1=index
 		case paf:		// priority array flt ---------------------
 		case pau:		// priority array unsigned ----------------
+		case ptPai:		// signed long
 
 			return new BACnetPriorityArray(dec);
 			break;
@@ -8580,6 +8582,7 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 
 			case ssint:		// short signed int -----------------------		// actually the same type
 			case sw:		// signed word ----------------------------
+			case ptInt32:
 
 				BACnetInteger(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
@@ -8592,6 +8595,7 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 			case pab:		// priority array bpv ---------------------		deal with index cases (-1=all, 0=element count, base 1=index
 			case paf:		// priority array flt ---------------------
 			case pau:		// priority array unsigned ----------------
+			case ptPai:		// priority array long
 
 				BACnetPriorityArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;

@@ -248,5 +248,6 @@ enum BACnetPropertyIdentifier
 		BIT_TEXT,						// 343
 		IS_UTC							// 344
 	};
-
+// If you add more properties here, increase
+// MAX_PROP_ID to one more than the last property
 #endif

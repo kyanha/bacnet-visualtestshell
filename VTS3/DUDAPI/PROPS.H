@@ -73,6 +73,10 @@
 #define eprescl    61   // BACnetPrescale Shiyuan Xiao 7/15/2005
 #define eaclr      62     // BACnetAccumulatorRecord Shiyuan Xiao 7/15/2005
 
+#define ptInt32	   63	// Signed Int32
+#define ptPai	   64	// Priority Array of Int32
+
+
 #define ptDate 200  // parsetype BACnetDate
 #define ptTime 201  // parsetype BACnetTime
 #define lobj   202  // array of objects, (parse type)

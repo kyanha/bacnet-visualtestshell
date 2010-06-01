@@ -39,6 +39,8 @@ typedef struct
 	int            allowedValues;
 } ObjPropValueLimit; //Default property value restriction
 
+#define MAX_TEXT_STRING 132		// our commonly used value
+
 //Generic Object type structure common to all Std Objects
 //-------------------------------------------------------
 typedef struct {
@@ -816,5 +818,77 @@ enum BACnetReliability		reliability;
      enum BACnetNotifyType		    		notify_type;
      BACnetTimeStamp			            far *event_time_stamps[3];
 } tlm_obj_type;
+
+// --------------------------------------------------------
+// A placeholder until *someone* fleshs out the real  
+// properties of a new Object Type.
+//-------------------------------------------------------
+typedef struct {
+    generic_object			go;
+} placeholder_obj_type;
+
+#define MAX_FAULT_STRINGS 8
+// --------------------------------------------------------
+//Characterstring Value Object
+//-------------------------------------------------------
+typedef struct {
+    generic_object			go;
+    char				    present_value[MAX_TEXT_STRING];
+    octet					status_flags;
+    enum BACnetEventState	event_state;
+    enum BACnetReliability	reliability;
+    bool					out_of_service;
+    word				    priority_array[16];                        
+    char				    relinquish_default[MAX_TEXT_STRING];
+    word				    time_delay;
+    word				    notification_class;
+    char					*alarm_values[MAX_FAULT_STRINGS];
+    char					*fault_values[MAX_FAULT_STRINGS];
+    octet					event_enable;
+    octet					acked_transitions;
+    enum BACnetNotifyType	notify_type;
+    BACnetTimeStamp		far *event_time_stamps[3];
+   } charstring_obj_type;
+
+//-------------------------------------------------------
+//Integer Value Object
+//-------------------------------------------------------
+typedef struct {
+    generic_object			go;
+    int						present_value;
+    octet					status_flags;
+enum BACnetEventState		state;
+enum BACnetReliability		reliability;
+    boolean					out_of_service;
+enum BACnetEngineeringUnits units;
+    int						priority_array[16];
+    int						relinquish_default;
+    int						cov_increment;
+    word					time_delay;
+    word					notification_class;
+    int						high_limit;
+    int						low_limit;
+    unsigned int			deadband;
+    octet					limit_enable;
+    octet					event_enable;
+    octet					acked_transitions;
+enum BACnetNotifyType		notify_type;
+     BACnetTimeStamp	    far *event_time_stamps[3];  //Added by xuyiping 2002-8-29
+   } integer_obj_type;
+
+//-------------------------------------------------------
+//DateTime Value Object
+//-------------------------------------------------------
+typedef struct {
+    generic_object			go;
+    BACnetDateTime			present_value;
+    octet					status_flags;
+enum BACnetEventState		state;
+enum BACnetReliability		reliability;
+    boolean					out_of_service;
+    BACnetDateTime			priority_array[16];
+    BACnetDateTime			relinquish_default;
+    bool					is_utc;
+   } datetimevalue_obj_type;
 
 #endif //__STDOBJ_H_INCLUDED
