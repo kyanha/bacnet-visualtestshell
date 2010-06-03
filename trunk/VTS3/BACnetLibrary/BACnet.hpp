@@ -559,6 +559,10 @@ class BACnetDateTime : public BACnetEncodeable
 
 		BACnetDateTime(void);
 		BACnetDateTime( int y, int m, int d, int hr, int mn, int sc, int hun = 0);
+		BACnetDateTime( const BACnetDateTime &orig );
+		// Lets add to the enjoyment of having a structure with the same name as a class
+		// and give it its own copy constructor
+		BACnetDateTime( const PICS::BACnetDateTime &orig );
 		BACnetDateTime( BACnetAPDUDecoder& dec );
 
 		BACnetDateTime &operator =( const BACnetDateTime & arg );
@@ -652,14 +656,14 @@ enum BACnetObjectType {
 		structuredView					= 29,
 		accessdoor						= 30,
 		lightingOutput					= 31,
-		accessCredential				= 32,
+		accessCredential				= 32,	/* addendum 2008-j */
 		accessPoint						= 33,
 		accessRights					= 34,
 		accessUser						= 35,
 		accessZone						= 36,
-		authenticationFactorInput		= 37,	/* credential-data-input */
-		mysterious_object_type			= 38,	/* can't find anything assigned to this */
-		bitstringValue					= 39,		/* addendum 2008-w */
+		credentialDataInput				= 37,	/* authentication-factor-input */
+		networkSecurity					= 38,	/* addendum 2008-g */
+		bitstringValue					= 39,	/* addendum 2008-w */
 		characterstringValue			= 40,
 		datePatternValue				= 41,
 		dateValue						= 42,

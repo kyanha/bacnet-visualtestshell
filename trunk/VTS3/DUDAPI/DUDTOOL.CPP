@@ -26,6 +26,7 @@ namespace NetworkSniffer {
 namespace PICS {															// ***002
 
 #include "db.h"       // contains BACnet datatypes
+#include "stdobjpr.h"
 #include "vtsapi.h" 
 #include "bacprim.h"  // contains basic encoding functions
 
@@ -98,7 +99,12 @@ void AD_CreateProperty( ad_obj_type * pObj, BACnetPropertyIdentifier PropId, BAC
 void SV_CreateProperty( sv_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
 void EL_CreateProperty( el_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
 void TLM_CreateProperty( tlm_obj_type * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
-             
+
+bool CreateGenericProperty( generic_object far * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
+bool CreateCommonProperty(  generic_object far * pObj, BACnetPropertyIdentifier PropId, BACnetAnyValue * pbacnetAnyValue );
+
+void CharStr_CreateProperty( charstring_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
+void Integer_CreateProperty( integer_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
 
 octet gTestStavals[nTESTLIST][4]= { {1,2,3,0}, {4,0,0,0}, {0,0,0,0}, {5,0,0,0} };
 
@@ -2349,6 +2355,27 @@ extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId
 	  case LOAD_CONTROL:			LC_CreateProperty( (lc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  case STRUCTURED_VIEW:			SV_CreateProperty( (sv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  case ACCESS_DOOR:				AD_CreateProperty( (ad_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+		  // Until real object property handling is implemented, just do the generic here
+	  case LIGHTING_OUTPUT:			CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case ACCESS_CREDENTIAL:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case ACCESS_POINT:			CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case ACCESS_RIGHTS:			CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case ACCESS_USER:				CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case ACCESS_ZONE:				CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case CREDENTIAL_DATA_INPUT:	CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case NETWORK_SECURITY:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;	
+	  case BITSTRING_VALUE:			CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;		
+	  case CHARACTERSTRING_VALUE:	CharStr_CreateProperty( (charstring_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case DATE_PATTERN_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case DATE_VALUE:				CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case DATETIME_PATTERN_VALUE:	CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case DATETIME_VALUE:			CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case INTEGER_VALUE:			Integer_CreateProperty( (integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+	  case LARGE_ANALOG_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case OCTETSTRING_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case POSITIVE_INTEGER_VALUE:	CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case TIME_PATTERN_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case TIME_VALUE:				CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;		
 	  default:
 		  //TRACE("CreatePropertyFromDB called for unknown object type");
 		  //ASSERT(0);
@@ -2610,47 +2637,15 @@ void AO_CreateProperty( ao_obj_type far * pObj, BACnetPropertyIdentifier propert
 
 void AV_CreateProperty( av_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
-   etable *petable;
 	ASSERT(pbacnetAnyValue != NULL);
+
+	if ( CreateGenericProperty( &pObj->go, propertyID, pbacnetAnyValue ) )
+		return;		// Already handled, so we are done
 
 	switch ( propertyID )
 	{
-		case OBJECT_IDENTIFIER:
-			pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->go.object_id));
-			break;
-		case OBJECT_NAME:
-			pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
-			break;
-		case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
 		case PRESENT_VALUE:
 			pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->pv));
-			break;
-		case DESCRIPTION:
-			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
-			break;
-		case STATUS_FLAGS:
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
-			break;
-		case EVENT_STATE:
-         petable = (etable *)PICS::GetEnumTable(eiEvState);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
-		case RELIABILITY:
-         petable = (etable *)PICS::GetEnumTable(eiReli);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
-		case OUT_OF_SERVICE:
-			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
 			break;
 		case PRIORITY_ARRAY:    
 			pbacnetAnyValue->SetObject(paf, new BACnetPriorityArray(pObj->priority_array, nPRIO, fpaNULL));
@@ -2661,12 +2656,6 @@ void AV_CreateProperty( av_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case COV_INCREMENT:
 			pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->cov_increment));
 			break;
-		case TIME_DELAY:
-			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->time_delay));
-			break;
-		case NOTIFICATION_CLASS:
-			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
-			break;
 		case HIGH_LIMIT:
 			pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->high_limit));
 			break;
@@ -2676,33 +2665,22 @@ void AV_CreateProperty( av_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case DEADBAND:	
 			pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->deadband));
 			break;
-		case LIMIT_ENABLE:
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(2, &pObj->limit_enable));
-			break;
+
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
 		case EVENT_ENABLE:	
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
-			break;
 		case ACKED_TRANSITIONS:
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
-			break;
 		case NOTIFY_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiNT);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
-			break;
+		case LIMIT_ENABLE:
 		case UNITS:
-         petable = (etable *)PICS::GetEnumTable(eiEU);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->units,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+			CreateCommonProperty( (generic_object *) pObj, propertyID, pbacnetAnyValue );
 			break;
-      case PROFILE_NAME:
-			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
-			break;
+
 		default:
 			TRACE("INVALID TYPE in AV_CreateProperty");
 			ASSERT(0);
@@ -3880,46 +3858,15 @@ void MSO_CreateProperty( mo_obj_type far * pObj, BACnetPropertyIdentifier proper
 
 void MSV_CreateProperty( msv_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
-   etable *petable;
 	ASSERT(pbacnetAnyValue != NULL);
+
+	if ( CreateGenericProperty( &pObj->go, propertyID, pbacnetAnyValue ) )
+		return;		// Already handled, so we are done
 
 	switch ( propertyID )
 	{
-		case OBJECT_IDENTIFIER:
-			pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->go.object_id));
-			break;
-		case OBJECT_NAME:
-			pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
-			break;
-		case OBJECT_TYPE:
-			petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
-		case DESCRIPTION:
-			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
-			break;
 		case PRESENT_VALUE:
 			pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->present_value));
-			break;
-		case STATUS_FLAGS:
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
-			break;
-		case EVENT_STATE:
-			petable = (etable *)PICS::GetEnumTable(eiEvState);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->event_state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
-		case RELIABILITY:
-         petable = (etable *)PICS::GetEnumTable(eiReli);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
-		case OUT_OF_SERVICE:
-			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
 			break;
 		case NUMBER_OF_STATES:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->number_of_states));
@@ -3927,17 +3874,11 @@ void MSV_CreateProperty( msv_obj_type far * pObj, BACnetPropertyIdentifier prope
 		case STATE_TEXT:
 			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->state_text, MAX_STATE_TEXTS));
 			break;
-		case PRIORITY_ARRAY:    
-			pbacnetAnyValue->SetObject(pau, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL, false));
-			break;
 		case RELINQUISH_DEFAULT:
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->relinquish_default));
 			break;
-		case TIME_DELAY:
-			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->time_delay));
-			break;
-		case NOTIFICATION_CLASS:
-			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
+		case PRIORITY_ARRAY:    
+			pbacnetAnyValue->SetObject(pau, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL, false));
 			break;
 		case ALARM_VALUES:					// array of words...  was 'uw' type (I think by mistake)
 			pbacnetAnyValue->SetObject(stavals, new BACnetUnsignedArray(pObj->alarm_values));
@@ -3945,24 +3886,20 @@ void MSV_CreateProperty( msv_obj_type far * pObj, BACnetPropertyIdentifier prope
 		case FAULT_VALUES:					// array of words   was 'uw' type (I think by mistake)
 			pbacnetAnyValue->SetObject(stavals, new BACnetUnsignedArray(pObj->fault_values));
 			break;         	       
+
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
 		case EVENT_ENABLE:	
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
-			break;
 		case ACKED_TRANSITIONS:
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
-			break;
 		case NOTIFY_TYPE:
-			petable = (etable *)PICS::GetEnumTable(eiNT);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
 		case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
+			CreateCommonProperty( (generic_object *) pObj, propertyID, pbacnetAnyValue );
 			break;
-		case PROFILE_NAME:
-			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
-			break;
+
 		default:
 			TRACE("INVALID TYPE in MSV_CreateProperty");
 			ASSERT(0);
@@ -4964,13 +4901,13 @@ void LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 	case REQUESTED_SHED_LEVEL:
 		switch( pObj->requested_shed_level.choice )
 		{
-		// TODO: warnings here about converting unsigned long to float.
-		// What's up with that?
+		// Removed warnings here about converting unsigned long to float
+		// just by casting, since they end up as ushorts anyway (so there's enough precision)
 		case 0:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, pObj->requested_shed_level.sl.uproperty_value));
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, (float) pObj->requested_shed_level.sl.uproperty_value));
 		break;
 		case 1:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, pObj->requested_shed_level.sl.uproperty_value));
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, (float) pObj->requested_shed_level.sl.uproperty_value));
 		break;
 		case 2:
 		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, pObj->requested_shed_level.sl.fproperty_value));
@@ -4995,10 +4932,10 @@ void LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 		switch( pObj->expected_shed_level.choice )
 		{
 		case 0:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, pObj->expected_shed_level.sl.uproperty_value));
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, (float) pObj->expected_shed_level.sl.uproperty_value));
 		break;
 		case 1:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, pObj->expected_shed_level.sl.uproperty_value));
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, (float) pObj->expected_shed_level.sl.uproperty_value));
 		break;
 		case 2:
 		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, pObj->expected_shed_level.sl.fproperty_value));
@@ -5009,10 +4946,10 @@ void LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 		switch( pObj->actual_shed_level.choice )
 		{
 		case 0:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, pObj->actual_shed_level.sl.uproperty_value));
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, (float) pObj->actual_shed_level.sl.uproperty_value));
 		break;
 		case 1:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, pObj->actual_shed_level.sl.uproperty_value));
+		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, (float) pObj->actual_shed_level.sl.uproperty_value));
 		break;
 		case 2:
 		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, pObj->actual_shed_level.sl.fproperty_value));
@@ -5169,25 +5106,12 @@ void SV_CreateProperty( sv_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 {
 	etable *petable;
 	ASSERT(pbacnetAnyValue != NULL);
-	
+
+	if ( CreateGenericProperty( &pObj->go, propertyID, pbacnetAnyValue ) )
+		return;		// Already handled, so we are done
+
 	switch ( propertyID )
 	{
-	case OBJECT_IDENTIFIER:
-		pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->go.object_id));
-		break;
-	case OBJECT_NAME:
-		pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
-		break;
-	case OBJECT_TYPE:
-		petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-		
-		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-			(const char **)petable->estrings,
-			petable->nes) );
-		break;
-	case DESCRIPTION:
-		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
-		break;
 	case NODE_TYPE:
 		petable = (etable *)PICS::GetEnumTable(eiNodeType);  
 		
@@ -5204,10 +5128,12 @@ void SV_CreateProperty( sv_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 	case SUBORDINATE_ANNOTATIONS:
 		pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->subordinate_annotations, MAX_SV_ANNOTATIONS));
 		break;
-	case PROFILE_NAME:
-		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
-		break;
+
+//	case EVENT_TIME_STAMPS:		-- no common properties for SV
+//		CreateCommonProperty( (generic_object *) pObj, propertyID, pbacnetAnyValue );
+//		break;
 	}
+
 }
 
 void EL_CreateProperty( el_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
@@ -5432,6 +5358,274 @@ void TLM_CreateProperty( tlm_obj_type * pObj, BACnetPropertyIdentifier propertyI
 			break;
 	}
 }
+
+/** Handle the creation of generic properties for any Object type that uses the generic_object structure.
+ * @return True if property was created, else False (someone else needs to handle it).
+ */
+bool CreateGenericProperty( generic_object far * pGenObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
+{
+	bool bHandled = true;
+    etable *petable;
+	ASSERT(pbacnetAnyValue != NULL);
+
+	switch ( propertyID )
+	{
+		case OBJECT_IDENTIFIER:
+			pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pGenObj->object_id));
+			break;
+		case OBJECT_NAME:
+			pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pGenObj->object_name));
+			break;
+		case OBJECT_TYPE:
+			petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pGenObj->object_type, 
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+		case DESCRIPTION:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pGenObj->description));
+			break;
+		case PROFILE_NAME:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pGenObj->profile_name));
+			break;
+		default:
+			bHandled = false;		// If we get here, wasn't handled.
+			break;
+	}
+	return bHandled;
+}
+
+/** Handle the creation of common properties for all Object types.
+ * Just deals with the properties of known (fixed) data types.
+ * @return True if property was created, else False (someone else needs to handle it).
+ */
+bool CreateCommonProperty( generic_object far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
+{
+	bool bHandled = false;
+    etable *petable;
+	ASSERT(pbacnetAnyValue != NULL);
+	propdescriptor *props, *pd;
+	unsigned char *pProp;
+	word propsSize, i;
+	word objType = pObj->object_type;
+	if( ( objType >= NUM_DEFINED_OBJECTS ) || ( objType < 0 ) )
+	{
+		ASSERT( false );
+		return bHandled;
+	}
+	
+	// First, check that this Object Type supports the property, and get its description
+	props = StdObjects[objType].sotProps;
+	propsSize = PICS::StdObjects[objType].sotSize;
+	for ( i = 0; i < propsSize; i++ )
+	{
+		if ( props[i].PropID == propertyID )
+			break;
+	}
+	if ( i == propsSize )
+		return bHandled;		// no luck finding it here
+	// else, point to our property's description
+	pd = &props[i];
+	// Do some pointer math:
+	pProp = (unsigned char *)pObj + (size_t) pd->StrucOffset;		// point to the right field inside our object structure
+
+	// Now see if this function handles the Property (assume True to start with)
+	bHandled = true;
+	switch ( propertyID )
+	{
+		case STATUS_FLAGS:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, pProp));
+			break;
+		case EVENT_STATE:
+			petable = (etable *)PICS::GetEnumTable(eiEvState);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(octet *) pProp,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+		case RELIABILITY:
+			petable = (etable *)PICS::GetEnumTable(eiReli);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(enum BACnetEventState *) pProp,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+		case OUT_OF_SERVICE:
+			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean( *(enum BACnetReliability *) pProp));
+			break;
+
+		case TIME_DELAY:
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned( *(word *) pProp) );
+			break;
+		case NOTIFICATION_CLASS:
+			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned( *(word *) pProp) );
+			break;
+
+		case EVENT_ENABLE:	
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, pProp));
+			break;
+		case ACKED_TRANSITIONS:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, pProp));
+			break;
+		case NOTIFY_TYPE:
+			petable = (etable *)PICS::GetEnumTable(eiNT);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(enum BACnetNotifyType *) pProp,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+		case EVENT_TIME_STAMPS:		
+			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray( (BACnetTimeStamp **) pProp, 3));
+			break;
+
+		case LIMIT_ENABLE:
+			pbacnetAnyValue->SetObject(bits, new BACnetBitString(2, pProp) );
+			break;
+		case UNITS:
+            petable = (etable *)PICS::GetEnumTable(eiEU);  
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(int *) pProp,
+                                                               (const char **)petable->estrings,
+                                                               petable->nes) );
+			break;
+
+		default:
+			ASSERT( false );		// How did this happen?
+			bHandled = false;
+			break;
+	}
+	return bHandled;
+}
+
+
+void CharStr_CreateProperty( charstring_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
+{
+	ASSERT(pbacnetAnyValue != NULL);
+
+	if ( CreateGenericProperty( &pObj->go, propertyID, pbacnetAnyValue ) )
+		return;		// Already handled, so we are done
+
+	switch ( propertyID )
+	{
+		case PRESENT_VALUE:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString( pObj->present_value));
+			break;
+		case RELINQUISH_DEFAULT:
+			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->relinquish_default));
+			break;
+		case PRIORITY_ARRAY:    
+//			pbacnetAnyValue->SetObject(pa??, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL, false));
+			break;
+		case ALARM_VALUES:					// array of words...  was 'uw' type (I think by mistake)
+			pbacnetAnyValue->SetObject(actext, new BACnetTextArray(pObj->alarm_values, MAX_FAULT_STRINGS));
+			break;
+		case FAULT_VALUES:					// array of words   was 'uw' type (I think by mistake)
+			pbacnetAnyValue->SetObject(actext, new BACnetTextArray(pObj->fault_values, MAX_FAULT_STRINGS));
+			break;         	       
+
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:		
+			CreateCommonProperty( (generic_object *) pObj, propertyID, pbacnetAnyValue );
+			break;
+
+		default:
+			TRACE("INVALID TYPE in CharStr_CreateProperty");
+			ASSERT(0);
+	}
+}
+
+void Integer_CreateProperty( integer_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
+{
+	ASSERT(pbacnetAnyValue != NULL);
+
+	if ( CreateGenericProperty( &pObj->go, propertyID, pbacnetAnyValue ) )
+		return;		// Already handled, so we are done
+
+	switch ( propertyID )
+	{
+		case PRESENT_VALUE:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->present_value ));
+			break;
+		case PRIORITY_ARRAY:    
+//			pbacnetAnyValue->SetObject(ptPai, new BACnetPriorityArray(pObj->priority_array, nPRIO, fpaNULL));
+			break;
+		case RELINQUISH_DEFAULT:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->relinquish_default));
+			break;
+		case COV_INCREMENT:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->cov_increment));
+			break;
+		case HIGH_LIMIT:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->high_limit));
+			break;
+		case LOW_LIMIT:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->low_limit));
+			break;
+		case DEADBAND:	
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->deadband));
+			break;
+
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:		
+		case LIMIT_ENABLE:
+		case UNITS:
+			CreateCommonProperty( (generic_object *) pObj, propertyID, pbacnetAnyValue );
+			break;
+
+		default:
+			TRACE("INVALID TYPE in Integer_CreateProperty");
+			ASSERT(0);
+	}
+}
+
+
+void DateTime_CreateProperty( datetimevalue_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
+{
+	ASSERT(pbacnetAnyValue != NULL);
+
+	if ( CreateGenericProperty( &pObj->go, propertyID, pbacnetAnyValue ) )
+		return;		// Already handled, so we are done
+
+	switch ( propertyID )
+	{
+		case PRESENT_VALUE:
+			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime( pObj->present_value ) );
+			break;
+		case PRIORITY_ARRAY:    
+//			pbacnetAnyValue->SetObject(ptPai, new BACnetPriorityArray(pObj->priority_array, nPRIO, fpaNULL));
+			break;
+		case RELINQUISH_DEFAULT:
+			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime( pObj->relinquish_default ) );
+			break;
+		case IS_UTC:
+			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean( (int) pObj->is_utc));
+			break;
+
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+			CreateCommonProperty( (generic_object *) pObj, propertyID, pbacnetAnyValue );
+			break;
+
+		default:
+			TRACE("INVALID TYPE in DateTime_CreateProperty");
+			ASSERT(0);
+	}
+}
+
 
 // Create separate function to hide the nasty internal EPICS structures until we can 
 // replace them with BACnet objects
@@ -5956,6 +6150,7 @@ bool DE_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case SLAVE_PROXY_ENABLE:
 		case AUTO_SLAVE_DISCOVERY:
 		case STRUCTURED_OBJECT_LIST:
+		case IS_UTC:
 				return true;
 		default:
 				return false;
@@ -6679,7 +6874,7 @@ bool LC_CheckProperty(BACnetPropertyIdentifier propertyID)
 //accessUser:
 //accessZone:
 //authenticationFactorInput:
-//mysterious_object_type:
+//networkSecurity:
 
 //bitstringValue Property List
 BACnetPropertyIdentifier bitstringValue_PL[] =
@@ -6834,8 +7029,8 @@ bool Check_Obj_Prop(int ObjType, unsigned int propertyID)
 	case accessRights:
 	case accessUser:
 	case accessZone:
-	case authenticationFactorInput:
-	case mysterious_object_type:
+	case credentialDataInput:
+	case networkSecurity:
 		return false;
 
 	case bitstringValue:

@@ -180,13 +180,15 @@ Standard Object-Types Supported:
   Access Door
 -- new objects
 --  Lighting Output
+-- Addendum 2008-j
 --  Access Credential
 --  Access Point
 --  Access Rights
 --  Access User
 --  Access Zone
---  Authentication Factor Input 	-- credential-data-input
---  mysterious_object_type		-- 37 can't find anything assigned to this 
+--  Credential Data Input 	
+-- Addendum 2008-g
+--  Network Security
 -- Addendum 2008-w objects:
 --  Bitstring Value				
   Characterstring Value
@@ -273,7 +275,7 @@ List of Objects in Test Device:
         T,T,F,T,   --  Pulse Converter, Event Log, Global Group, Trend Log Multiple,
         T,T,T,F,   --  Load Control, Structured-View, Access Door, Lighting Output,
         F,F,F,F,   --  Access Credential, Access Point, Access Rights, Access User,
-        F,F,F,F,   --  Access Zone, Authentication Factor Input, ??, Bitstring Value,
+        F,F,F,F,   --  Access Zone, Credential Data Input, Network Security, Bitstring Value,
         T,F,F,F,   --  Characterstring Value, Date Pattern Value, Date Value, Datetime Pattern Value,
         T,T,F,F,   --  Datetime Value, Integer Value, Large Analog Value, Octetstring Value
 		F,F,F      --  Positive Integer Value, Time Pattern, Time Value

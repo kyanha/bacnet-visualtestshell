@@ -18,7 +18,7 @@
 #define	s64					10					//char [64]
 #define	s132				11					//char [132]
 #define	propref				12					//obj property reference
-#define	dt					13					//date/time
+#define	dt					13					//BACnetDateTime
 #define	calist				14					//list of calendarentry
 #define	act					15					//action array
 #define	actext				16					//action_text array
