@@ -4970,6 +4970,17 @@ BACnetDateTime::BACnetDateTime( int y, int m, int d, int hr, int mn, int sc, int
 {
 }
 
+BACnetDateTime::BACnetDateTime( const BACnetDateTime &orig )
+	:bacnetDate(orig.bacnetDate.year, orig.bacnetDate.month, orig.bacnetDate.day), 
+	 bacnetTime(orig.bacnetTime.hour, orig.bacnetTime.minute, orig.bacnetTime.second, orig.bacnetTime.hundredths )
+{
+}
+
+BACnetDateTime::BACnetDateTime( const PICS::BACnetDateTime &orig )
+	:bacnetDate(orig.date.year, orig.date.month, orig.date.day_of_month), 
+	 bacnetTime(orig.time.hour, orig.time.minute, orig.time.second, orig.time.hundredths  )
+{
+}
 
 BACnetDateTime::BACnetDateTime( BACnetAPDUDecoder & dec )
 			   :bacnetDate(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE), bacnetTime(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE)
@@ -7369,9 +7380,9 @@ void BACnetPrescale::Decode( BACnetAPDUDecoder& dec )
 {	
 	BACnetUnsigned value1(dec);
 	BACnetUnsigned value2(dec);
-
-	multiplier = value1.uintValue;
-	moduloDivide = value2.uintValue;
+	// Tamp down the warnings with casts
+	multiplier = (unsigned short) value1.uintValue;
+	moduloDivide = (unsigned short) value2.uintValue;
 }
 
 void BACnetPrescale::Encode( char *enc ) const
@@ -7502,12 +7513,12 @@ void BACnetShedLevel::Decode( BACnetAPDUDecoder& dec )
 	if (context == 0)
 	{
 		BACnetUnsigned u1(dec); 
-		this->percent = u1.uintValue;
+		this->percent = (unsigned short) u1.uintValue;
 	}
 	else if (context == 1)
 	{
 		BACnetUnsigned u1(dec); 
-		this->level = u1.uintValue;
+		this->level = (unsigned short) u1.uintValue;
 	}
 	else if (context == 2)
 	{

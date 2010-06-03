@@ -332,8 +332,8 @@ static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
    31,  /* Protocol_Revision = 6 */
    31,  /* protocol_revision = 7 */ // 135-2008
    31,  /* protocol_revision = 8 */ // 135-2008 added objects?
-   31,  /* protocol_revision = 9 */ // 135-2008 added objects?
-   51,  /* protocol_revision = 10 */ // 135-2008w
+   38,  /* protocol_revision = 9 */  // 135-2008j added objects 32-37
+   51,  /* protocol_revision = 10 */ // 135-2008w added 39-50
 
 };
 
@@ -869,13 +869,13 @@ static char *StandardObjects[]={
 			"Structured View",
 			"Access Door",
 			"Lighting Output",
-			"Access Credential",
+			"Access Credential",			/* Addendum 2008-j */
 			"Access Point",
 			"Access Rights",
 			"Access User",
 			"Access Zone",
-			"Authentication Factor Input", 	/* credential-data-input */
-			"mysterious_object_type",		/* 37 can't find anything assigned to this */
+			"Credential Data Input", 		
+			"Network Security",				/* addendum 2008-g */
 			"Bitstring Value",				/* addendum 2008-w */
 			"Characterstring Value",
 			"Date Pattern Value",

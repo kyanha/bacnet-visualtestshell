@@ -21,7 +21,6 @@ typedef struct {
     
 //------------------------------------------------------
 //	Special Enumeration Tables
-#define NUM_DEFINED_OBJECTS 51
 static etable etObjectTypes={
             128,1024, NUM_DEFINED_OBJECTS, 
             "analog-input",       //0
@@ -61,8 +60,8 @@ static etable etObjectTypes={
 			"Access-Rights",
 			"Access-User",
 			"Access-Zone",
-			"Authentication-Factor-Input",
-			"object-of-mystery",
+			"Credential-Data-Input",
+			"Network-Security",
 			"Bitstring-Value",
 			"Characterstring-Value",
 			"Date-Pattern-Value",
@@ -1846,8 +1845,8 @@ stdobjtype	StdObjects[NUM_DEFINED_OBJECTS]={
 	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Rights",
 	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-User",
 	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Zone",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Authentication-Factor-Input",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "object-of-mystery",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Credential-Data-Input",
+	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Network-Security",
 	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Bitstring-Value",
 	sizeof(charstring_obj_type),			CharstringProps,    // "Characterstring-Value",
 	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Date-Pattern-Value",

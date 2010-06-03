@@ -17,7 +17,7 @@ typedef struct {
 	word	propes;								//proprietary enumerations begin at this value
 	dword	propmaxes;							//max value for proprietary+1
 	word	nes;								//number of string pointers which follow
-	char	*estrings[1];						//table of pointers to strings
+	char	*estrings[500];						//table of pointers to strings
 	} etable;
 #define _etable 0
 #endif
