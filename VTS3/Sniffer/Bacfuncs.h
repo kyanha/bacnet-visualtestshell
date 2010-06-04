@@ -2020,6 +2020,17 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 				}
 			}
 			break;
+		case 40: // characterstringValue - BACnetCharacterString
+			seq.TextString( -1, "" );
+			break;
+		case 44:	// datetimeValue BACnetDateTime  
+			seq.Date( -1, "" );
+			seq.Time( -1, "" );
+			break;
+		case 45:	// integerValue:
+			seq.Integer( -1, "" );
+			break;
+
 		// case 22: /* Life Safety Zone - No Present Value */
 		// case 25: /* Event Log - No Present Value*/
 		// case 26: /*  */
