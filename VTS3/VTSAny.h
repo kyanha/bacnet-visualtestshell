@@ -18,19 +18,21 @@ void EncoderToHex( const BACnetAPDUEncoder &enc, CString &str );
 //	VTSAnyElement
 //
 
-//struct VTSAnyElement {
-//	int					elemType;
-//	int					elemContext;
-//	BACnetAPDUEncoder	elemEncoder;
-//	};
-
 //madanner 9/04, changed to class for proper destructors
 class VTSAnyElement
 {
 public:
+	VTSAnyElement();
+	VTSAnyElement( const VTSAnyElement &theElement );
+	~VTSAnyElement();
+
 	int					elemType;
 	int					elemContext;
 	BACnetAPDUEncoder	elemEncoder;
+
+private:
+	// Private to prevent copy
+	operator=( VTSAnyElement const & );
 };
 
 typedef VTSAnyElement *VTSAnyElementPtr;
@@ -39,18 +41,23 @@ typedef VTSAnyElement *VTSAnyElementPtr;
 //	VTSAnyList
 //
 
-class VTSAnyList : public CList<VTSAnyElementPtr,VTSAnyElementPtr> {
-	public:
-		VTSAnyList( void );
-		~VTSAnyList( void );
+class VTSAnyList : public CList<VTSAnyElementPtr,VTSAnyElementPtr> 
+{
+public:
+	VTSAnyList( void );
+	~VTSAnyList( void );
 
-		void Add( void );								// add a new element on the end
-		void Remove( int i );							// remove an element
-		void KillAll(void);
+	void Add( void );								// add a new element on the end
+	void Remove( int i );							// remove an element
+	void KillAll(void);
 
-		int Length( void );								// number of defined elements
-		VTSAnyElementPtr operator []( int i );			// index into element list
-	};
+	int Length( void );								// number of defined elements
+	VTSAnyElementPtr operator []( int i );			// index into element list
+
+private:
+	// Private to prevent copy
+	operator=( VTSAnyList const &);
+};
 
 typedef VTSAnyList *VTSAnyListPtr;
 

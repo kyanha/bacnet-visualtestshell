@@ -74,7 +74,6 @@ bool Match( int op, int a, int b );
 bool Match( int op, unsigned long a, unsigned long b );
 bool Match( int op, float a, float b );
 bool Match( int op, double a, double b );
-bool Match( int op, CTime &timeThis, CTime &timeThat );
 LPCSTR OperatorToString(int iOperator);
 
 
@@ -7454,12 +7453,7 @@ void ScriptExecutor::StuffScriptParameter(BACnetEncodeable &rbacnet, ScriptParmP
 	}
 
 	// assign extracted value to parm
-	// TODO: Dies miserably if the Encoded data is longer than 1024 characters.
-	// The correct solution is to change BACnetEncodeable::Encode(char*) to BACnetEncodeable::Encode(CString&)
-	// There are about 32 instances, most of which are sprintf that could easily use CString::Format
-//	rbacnet.Encode(pp->parmValue.GetBuffer(1024));
-	rbacnet.Encode(pp->parmValue.GetBuffer(16384));
-	pp->parmValue.ReleaseBuffer();
+	rbacnet.Encode(pp->parmValue);
 
 	// Make the special call from the executor thread...  This posts the update, not sends.
 	execDoc->m_pParmList->UpdateParameterVisual(pp);
@@ -8457,7 +8451,7 @@ ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( ScriptParmPtr * ppScriptPar
 		if (bacnetEPICSProperty.GetType() == 0) {
 			throw ExecError( "Invalid EPICS reference", pep->exprLine );
 		}
-		char value[1024];		//large enough to avoid overflow
+		CString value;
 		(bacnetEPICSProperty.GetObject())->Encode(value);
 		enc.Decode(value);
 	}else if ((t.tokenType == scriptKeyword) && tp) {		
@@ -9002,6 +8996,7 @@ bool Match( int op, double a, double b )
 		//case '<=': return (a <= b);
 		//case '>=': return (a >= b);
 		//case '!=': return (a != b);
+		case '?=':	return true;	// don't care case
 		case '=': return (fabs(a - b) < DOUBLE_EPSINON);
 		case '<': return (a < b && fabs(a - b) > DOUBLE_EPSINON);
 		case '>': return (a > b && fabs(a - b) > DOUBLE_EPSINON);
@@ -9013,26 +9008,6 @@ bool Match( int op, double a, double b )
 
 	return false;
 }
-
-
-bool Match( int op, CTime &timeThis, CTime &timeThat )
-{
-	switch(op)
-	{
-		case '?=':	return true;	// don't care case
-		case '=':	return (timeThis == timeThat) != 0;		// stop crazy Microsoft BOOL warning
-		case '<':	return (timeThis < timeThat) != 0;
-		case '>':	return (timeThis > timeThat) != 0;
-		case '<=':	return (timeThis <= timeThat) != 0;
-		case '>=':	return (timeThis >= timeThat) != 0;
-		case '!=':	return (timeThis != timeThat) != 0;
-		default:
-			ASSERT(0);
-	}
-	return false;
-}
-
-
 
 
 /*

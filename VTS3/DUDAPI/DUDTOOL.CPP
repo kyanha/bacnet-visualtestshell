@@ -4845,80 +4845,80 @@ void LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 		petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
 		
 		pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-			(const char **)petable->estrings,
-			petable->nes) );
+								   (const char **)petable->estrings,
+                                   petable->nes) );
 		break;
 	case DESCRIPTION:
-			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
-			break;
+		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
+		break;
 	case PRESENT_VALUE:
-         petable = (etable *)PICS::GetEnumTable(eiShedState);  
- 		 pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->present_value,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+        petable = (etable *)PICS::GetEnumTable(eiShedState);  
+ 		pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->present_value,
+                                                            (const char **)petable->estrings,
+                                                            petable->nes) );
 		break;
 	case STATE_DESCRIPTION:
-			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->state_description));
+		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->state_description));
 		break;
 	case STATUS_FLAGS:
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
-			break;
+		pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
+		break;
 	case EVENT_STATE:
-         petable = (etable *)PICS::GetEnumTable(eiEvState);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->event_state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
+        petable = (etable *)PICS::GetEnumTable(eiEvState);  
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->event_state,
+                                                            (const char **)petable->estrings,
+                                                            petable->nes) );
+		break;
 	case RELIABILITY:
-         petable = (etable *)PICS::GetEnumTable(eiReli);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
+        petable = (etable *)PICS::GetEnumTable(eiReli);  
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
+                                                            (const char **)petable->estrings,
+                                                            petable->nes) );
+		break;
 	case LOG_ENABLE:  			     
 		pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->log_enable));
 		break;
 	case NOTIFICATION_CLASS:
-			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
-			break;
+		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
+		break;
 	case EVENT_ENABLE:	
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
-			break;
+		pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
+		break;
 	case ACKED_TRANSITIONS:
-			pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
-			break;
+		pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
+		break;
 	case NOTIFY_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiNT);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
-			break;
+        petable = (etable *)PICS::GetEnumTable(eiNT);  
+		pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
+                                                            (const char **)petable->estrings,
+                                                             petable->nes) );
+		break;
 	case EVENT_TIME_STAMPS:		
-			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
-			break;
+		pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
+		break;
 	case PROFILE_NAME:
-			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
-			break;
+		pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
+		break;
 	case REQUESTED_SHED_LEVEL:
 		switch( pObj->requested_shed_level.choice )
 		{
 		// Removed warnings here about converting unsigned long to float
 		// just by casting, since they end up as ushorts anyway (so there's enough precision)
 		case 0:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, (float) pObj->requested_shed_level.sl.uproperty_value));
-		break;
+			pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, (float)pObj->requested_shed_level.sl.uproperty_value));
+			break;
 		case 1:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, (float) pObj->requested_shed_level.sl.uproperty_value));
-		break;
+			pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, (float)pObj->requested_shed_level.sl.uproperty_value));
+			break;
 		case 2:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, pObj->requested_shed_level.sl.fproperty_value));
-		break;
+			pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->requested_shed_level.choice, pObj->requested_shed_level.sl.fproperty_value));
+			break;
 		}
 		break;
 	case START_TIME:
-			pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->start_time.date.year, pObj->start_time.date.month, 
-													pObj->start_time.date.day_of_month, pObj->start_time.time.hour, 
-													pObj->start_time.time.minute, pObj->start_time.time.second));
+		pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->start_time.date.year, pObj->start_time.date.month, 
+								   pObj->start_time.date.day_of_month, pObj->start_time.time.hour, 
+								   pObj->start_time.time.minute, pObj->start_time.time.second));
 		break;
 	case SHED_DURATION:
 		pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->shed_duration));
@@ -4933,35 +4933,35 @@ void LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 		switch( pObj->expected_shed_level.choice )
 		{
 		case 0:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, (float) pObj->expected_shed_level.sl.uproperty_value));
-		break;
+			pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, (float)pObj->expected_shed_level.sl.uproperty_value));
+			break;
 		case 1:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, (float) pObj->expected_shed_level.sl.uproperty_value));
-		break;
+			pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, (float)pObj->expected_shed_level.sl.uproperty_value));
+			break;
 		case 2:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, pObj->expected_shed_level.sl.fproperty_value));
-		break;
+			pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->expected_shed_level.choice, pObj->expected_shed_level.sl.fproperty_value));
+			break;
 		}
 		break;
 	case ACTUAL_SHED_LEVEL:
 		switch( pObj->actual_shed_level.choice )
 		{
 		case 0:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, (float) pObj->actual_shed_level.sl.uproperty_value));
-		break;
+			pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, (float)pObj->actual_shed_level.sl.uproperty_value));
+			break;
 		case 1:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, (float) pObj->actual_shed_level.sl.uproperty_value));
-		break;
+			pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, (float)pObj->actual_shed_level.sl.uproperty_value));
+			break;
 		case 2:
-		pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, pObj->actual_shed_level.sl.fproperty_value));
-		break;
+			pbacnetAnyValue->SetObject(shedlevel, new ::BACnetShedLevel(pObj->actual_shed_level.choice, pObj->actual_shed_level.sl.fproperty_value));
+			break;
 		}
 		break;
 	case SHED_LEVELS:
 		pbacnetAnyValue->SetObject(stavals, new BACnetUnsignedArray(pObj->shed_levels));
 		break;
 	case SHED_LEVEL_DESCRIPTIONS:
-			pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->shed_level_descriptions, 255));
+		pbacnetAnyValue->SetObject(statext, new BACnetTextArray(pObj->shed_level_descriptions, 255));
 		break;
 	}
 }

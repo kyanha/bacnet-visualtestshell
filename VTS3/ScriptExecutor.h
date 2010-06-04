@@ -71,7 +71,6 @@ class ScriptFilter {
 	};
 
 typedef ScriptFilter *ScriptFilterPtr;
-const int kScriptFilterSize = sizeof( ScriptFilter );
 
 //
 //	ScriptFilterList
@@ -95,7 +94,6 @@ class ScriptFilterList : public CList<ScriptFilterPtr,ScriptFilterPtr> {
 	};
 
 typedef ScriptFilterList *ScriptFilterListPtr;
-const int kScriptFilterListSize = sizeof( ScriptFilterList );
 
 extern ScriptFilterList	gMasterFilterList;						// global list of all filters
 
@@ -113,7 +111,6 @@ class ScriptNetFilter : public ScriptFilter, public BACnetNetClient, public BACn
 	};
 
 typedef ScriptNetFilter *ScriptNetFilterPtr;
-const int kScriptNetFilterSize = sizeof( ScriptNetFilter );
 
 //
 //	ScriptNetPacket
@@ -138,7 +135,6 @@ class ScriptNetPacket : public BACnetTask {
 	};
 
 typedef ScriptNetPacket *ScriptNetPacketPtr;
-const int kScriptNetPacketSize = sizeof( ScriptNetPacket );
 
 //
 //	ScriptDebugNetFilter
@@ -155,7 +151,6 @@ class ScriptDebugNetFilter : public ScriptFilter, public BACnetNetServer {
 	};
 
 typedef ScriptDebugNetFilter *ScriptDebugNetFilterPtr;
-const int kScriptDebugNetFilterSize = sizeof( ScriptDebugNetFilter );
 
 void Bind( ScriptDebugNetFilterPtr fp1, ScriptDebugNetFilterPtr fp2 );
 
@@ -173,7 +168,6 @@ class ScriptAppFilter : public ScriptFilter, public BACnetAppClient, public BACn
 	};
 
 typedef ScriptAppFilter *ScriptAppFilterPtr;
-const int kScriptAppFilterSize = sizeof( ScriptAppFilter );
 
 //
 //	ScriptAppPacket
@@ -196,7 +190,6 @@ class ScriptAppPacket : public BACnetTask {
 	};
 
 typedef ScriptAppPacket *ScriptAppPacketPtr;
-const int kScriptAppPacketSize = sizeof( ScriptAppPacket );
 
 //
 //	ScriptExecutor
@@ -427,7 +420,6 @@ class ScriptExecutor : public BACnetTask {
 	};
 
 typedef ScriptExecutor *ScriptExecutorPtr;
-const int kScriptExecutorSize = sizeof( ScriptExecutor );
 
 extern ScriptExecutor	gExecutor;
 

@@ -31,7 +31,6 @@ class ScriptParm {
 	};
 
 typedef ScriptParm *ScriptParmPtr;
-const int kScriptParmSize = sizeof( ScriptParm );
 
 //
 // ScriptParmList
@@ -113,7 +112,6 @@ protected:
 };
 
 typedef ScriptParmList *ScriptParmListPtr;
-const int kScriptParmListSize = sizeof( ScriptParmList );
 
 //
 //	ScriptParmListList
@@ -132,9 +130,6 @@ class ScriptParmListList : public CList<ScriptParmListPtr,ScriptParmListPtr> {
 	};
 
 typedef ScriptParmListList *ScriptParmListListPtr;
-const int kScriptParmListListSize = sizeof( ScriptParmListList );
-
-//
 
 extern ScriptParmList		*gCurrentEnv;					// points to current environment
 extern ScriptParmListList	gScriptParmLists;				// list of parameter lists

@@ -89,7 +89,6 @@ protected:
 };
 
 typedef ScriptDocument *ScriptDocumentPtr;
-const int kScriptDocumentSize = sizeof( ScriptDocument );
 
 /////////////////////////////////////////////////////////////////////////////
 

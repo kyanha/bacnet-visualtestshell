@@ -1223,8 +1223,9 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
 		for ( nObjNum = 1, pDatabase = gPICSdb->Database;  pDatabase != NULL;  pDatabase = (PICS::generic_object *) pDatabase->next, nObjNum++ )
 		{
 			BACnetObjectIdentifier	bacnetObjID((unsigned int) pDatabase->object_id);
-			bacnetObjID.Encode(szTemp);
-			str.Format("  OBJECT%d = %s\n", nObjNum, szTemp);
+			CString oid;
+			bacnetObjID.Encode(oid);
+			str.Format("  OBJECT%d = %s\n", nObjNum, (LPCTSTR)oid);
 			pscript->WriteString(str);
 		}
 

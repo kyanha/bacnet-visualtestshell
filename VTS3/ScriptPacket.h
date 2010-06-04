@@ -52,9 +52,6 @@ class ScriptPacketExpr {
 	};
 
 
-
-const int kScriptPacketExprSize = sizeof( ScriptPacketExpr );
-
 //
 //	ScriptPacketExprList
 //
@@ -76,8 +73,6 @@ class ScriptPacketExprList : public CList<ScriptPacketExprPtr,ScriptPacketExprPt
 
 		int FirstData( void );							// index of first app layer elem
 	};
-
-const int kScriptPacketExprListSize = sizeof( ScriptPacketExprList );
 
 
 // madanner 6/03: Extended to two minutes for calendar objects, as per feature request 681223.
@@ -136,7 +131,5 @@ class ScriptPacket : public ScriptCommand {
 
 		bool Execute(CString * pstrError);
 	};
-
-const int kScriptPacketSize = sizeof( ScriptPacket );
 
 #endif // !defined(AFX_SCRIPTPACKET_H__AC59C5B1_BAFF_11D4_BEF7_00A0C95A9812__INCLUDED_)

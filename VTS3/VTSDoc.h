@@ -765,7 +765,6 @@ class VTSDocList : public CList<VTSDocPtr,VTSDocPtr> {
 	};
 
 typedef VTSDocList *VTSDocListPtr;
-const int kVTSDocListSize = sizeof( VTSDocList );
 
 extern VTSDocList gDocList;							// list of all documents
 */

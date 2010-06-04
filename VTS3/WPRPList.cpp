@@ -28,14 +28,17 @@ WPMRPMList::~WPMRPMList()
 void WPMRPMList::DeleteAllObjects(void)
 {
 	for (POSITION pos = GetHeadPosition(); pos != NULL; )
+	{
 		delete GetNext( pos );
+	}
+
+	RemoveAll();
 }
 
 
 void WPMRPMList::KillAll(void)
 {
 	DeleteAllObjects();
-	RemoveAll();
 }
 
 
@@ -47,14 +50,15 @@ WPMRPMListList::~WPMRPMListList()
 void WPMRPMListList::DeleteAllObjects(void)
 {
 	for (POSITION pos = GetHeadPosition(); pos != NULL; )
+	{
 		delete GetNext( pos );
+	}
+
+	RemoveAll();
 }
 
 
 void WPMRPMListList::KillAll(void)
 {
 	DeleteAllObjects();
-	RemoveAll();
 }
-
-
