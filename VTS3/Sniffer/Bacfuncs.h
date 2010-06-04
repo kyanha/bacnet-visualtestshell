@@ -194,10 +194,10 @@ bool BacParser::EatData()
 // Return a string containing text for the specified object type.
 // If the type is undefined or in the proprietary range, the
 // string will say that, and show the numeric value
-const char* ObjectTypeString( int theObjectType )
+const char* ObjectTypeString( unsigned int theObjectType )
 {
 	const char *pRet;	
-	if (theObjectType < BAC_STRTAB_BACnetObjectType.m_nStrings)
+	if (theObjectType < (unsigned int)BAC_STRTAB_BACnetObjectType.m_nStrings)
 	{
 		pRet = BAC_STRTAB_BACnetObjectType.m_pStrings[theObjectType];
 	}
@@ -218,10 +218,10 @@ const char* ObjectTypeString( int theObjectType )
 // Return a string containing text for the specified property identifier.
 // If the proeprty is undefined or in the proprietary range, the
 // string will say that, and sow the numeric value
-const char* PropertyIdentifierString( int theIdentifier )
+const char* PropertyIdentifierString( unsigned int theIdentifier )
 {
 	const char *pRet;	
-	if (theIdentifier < BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings)
+	if (theIdentifier < (unsigned int)BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings)
 	{
 		pRet = BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[theIdentifier];
 	}
@@ -497,6 +497,17 @@ BACnetSequence::BACnetSequence()
 
 BACnetSequence::~BACnetSequence()
 {
+	if (m_ok)
+	{
+		int leftOver = pif_end_offset - pif_offset;
+		if (leftOver > 0)
+		{
+			// Unparsed stuff at the end of the APDU
+			sprintf( get_int_line(pi_data_current, pif_offset, leftOver, NT_ERROR), 
+					 "%d unexpected bytes at end of APDU", leftOver );
+		}
+	}
+
 	while (m_pStack != NULL)
 	{
 		Nester *pNext = m_pStack->m_pNext;
