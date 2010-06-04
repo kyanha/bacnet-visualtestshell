@@ -988,6 +988,10 @@ STRING_TABLE BACnetObjectType[] = {
 };
 BAC_STRINGTABLE(BACnetObjectType);
 
+// Note: Some one of these lists of Object types (who can tell which one?) 
+// is coordinated with the icons in the EpicsTree view,
+// IDB_EPICSTREE           BITMAP                  "res\\epicstree.bmp"
+// So if you add or implement new Objects, you'll need to do some artwork there
 
 STRING_TABLE BACnetObjectTypesSupported[] = {
    "ANALOG-INPUT",          /* 0 */

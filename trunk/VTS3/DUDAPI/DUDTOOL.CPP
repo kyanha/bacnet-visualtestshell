@@ -105,6 +105,7 @@ bool CreateCommonProperty(  generic_object far * pObj, BACnetPropertyIdentifier 
 
 void CharStr_CreateProperty( charstring_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
 void Integer_CreateProperty( integer_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
+void DateTime_CreateProperty( datetimevalue_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
 
 octet gTestStavals[nTESTLIST][4]= { {1,2,3,0}, {4,0,0,0}, {0,0,0,0}, {5,0,0,0} };
 
@@ -2369,7 +2370,7 @@ extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId
 	  case DATE_PATTERN_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  case DATE_VALUE:				CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  case DATETIME_PATTERN_VALUE:	CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
-	  case DATETIME_VALUE:			CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case DATETIME_VALUE:			DateTime_CreateProperty( (datetimevalue_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  case INTEGER_VALUE:			Integer_CreateProperty( (integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
 	  case LARGE_ANALOG_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  case OCTETSTRING_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
