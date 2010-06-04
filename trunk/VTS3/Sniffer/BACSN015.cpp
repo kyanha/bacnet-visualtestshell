@@ -1348,50 +1348,36 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					break;
 				case 8: /* Add List Element Request */
 					{
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
+						// "tagged" is offset of first tag byte
+						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+						unsigned obj_instance = (obj_id & 0x003FFFFF);
+						tagged += 5;
 						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+5+x*2 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						
-						// TODO: it would be nice to cope with multi-byte propertyID, etc.
-						int pID = pif_get_byte(10+x*2);
-						if((pif_get_byte(9+x*2)&0x07) != 1)
-						{
-							sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
-						}
-						else
-						{
-							sprintf(moreDetail, "%s_%lu, Vendor", ObjectTypeString(obj_type), obj_instance);
-						}
+						len = pif_get_byte( tagged ) & 0x07;
+						unsigned int propID = get_bac_unsigned( tagged+1, len );
+						tagged += 1+len;
+
+						// TODO: show optional index?
+
+						sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(propID));
 					}
 					break;
 				case 9: /* Remove List Element Request */
 					{
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
+						// "tagged" is offset of first tag byte
+						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+						unsigned obj_instance = (obj_id & 0x003FFFFF);
+						tagged += 5;
 						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+5+x*2 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						
-						// TODO: it would be nice to cope with multi-byte propertyID, etc.
-						int pID = pif_get_byte(10+x*2);
-						if((pif_get_byte(9+x*2)&0x07) != 1)
-						{
-							sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
-						}
-						else
-						{
-							sprintf(moreDetail, "%s_%lu, Vendor", ObjectTypeString(obj_type), obj_instance);
-						}
+						len = pif_get_byte( tagged ) & 0x07;
+						unsigned int propID = get_bac_unsigned( tagged+1, len );
+						tagged += 1+len;
+
+						// TODO: show optional index?
+
+						sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(propID));
 					}
 					break;
 				case 10: /* Create Object Request */
@@ -1479,7 +1465,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						tagged += 1+len;
 
 						int lentemp;
-						int pid_index;
+						unsigned int pid_index;
 						tagbuff = pif_get_byte(tagged);
 						if((tagbuff & 0xF8) == 0x28) {
 							len = tagbuff & 0x07;
@@ -1493,6 +1479,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						}
 
 						// Skip over opening [3]
+						// DO NOT parse it: we want this first line of decoding to be the VALUE
 						pif_offset = tagged + 1;
 							
 						// TODO: this dumps a bunch of lines into the detailLine, and then
@@ -1509,6 +1496,10 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 								sprintf(moreDetail + lentemp, ",%s", pValue+1);											
 							}
 						}
+
+						// Eat the closing tag, else ~BACnetSequence complains 
+						// about unparsed APDU
+						pif_offset += 1;
 					}
 					break;
 				case 18: /* Confirmed Private Transfer Request */
@@ -1565,9 +1556,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
                 switch (service_choice) {
                   case 0: /* I-Am */
 					  {
-						  long	obj_id;
-						  int	obj_type;
-						  long	obj_instance;
+						  unsigned obj_id;
+						  unsigned obj_type;
+						  unsigned obj_instance;
 						  
 						  for (int i = 0; i < 4; i++)
 							  obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3 );
@@ -1585,9 +1576,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
                     break;
 				  case 1: /* I-Have */
 					  {
-						  long	device_id, obj_id;
-						  int	device_type, obj_type;
-						  long	device_instance, obj_instance;
+						  unsigned device_id, obj_id;
+						  unsigned device_type, obj_type;
+						  unsigned device_instance, obj_instance;
 						  
 						  for (int i = 0; i < 4; i++)
 							  device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+3 );
@@ -1614,9 +1605,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  len = tagbuff & 0x07;
 						  unsigned long nValue = get_bac_unsigned( 3, len );
 						  
-						  long	device_id, obj_id;
-						  int	device_type, obj_type;
-						  long	device_instance, obj_instance;
+						  unsigned device_id, obj_id;
+						  unsigned device_type, obj_type;
+						  unsigned device_instance, obj_instance;
 						  
 						  for (int i = 0; i < 4; i++)
 							  device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+len );
@@ -1644,9 +1635,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 						  len = tagbuff & 0x07;
 						  unsigned long nValue = get_bac_unsigned( 3, len );
 						  
-						  long	device_id, obj_id;
-						  int	device_type, obj_type;
-						  long	device_instance, obj_instance;
+						  unsigned device_id, obj_id;
+						  unsigned device_type, obj_type;
+						  unsigned device_instance, obj_instance;
 						  
 						  for (int i = 0; i < 4; i++)
 							  device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+len );
@@ -1685,9 +1676,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 					  break;
 				  case 5: /* Unconfirmed Text Message Request */
 					  {
-						  long	obj_id;
-						  int	obj_type;
-						  long	obj_instance;
+						  unsigned obj_id;
+						  unsigned obj_type;
+						  unsigned obj_instance;
 						  
 						  for (int i = 0; i < 4; i++)
 							  obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3 );
@@ -1733,9 +1724,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 							  switch(tagval) {
 							  case 2: /* object Identifier*/
 								  {
-									  long	obj_id;
-									  int	obj_type;
-									  long	obj_instance;
+									  unsigned	obj_id;
+									  unsigned	obj_type;
+									  unsigned	obj_instance;
 									  int	nOffset;
 									  
 									  if(flag)
@@ -1866,7 +1857,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 							tagged += 1+len;
 
 							int lentemp;
-							int pid_index = -1;
+							unsigned int pid_index = -1;
 							tagbuff = pif_get_byte(tagged);
 							if((tagbuff & 0xF8) == 0x28) {
 								len = tagbuff & 0x07;
@@ -1880,6 +1871,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 							}
 
 							// Bypass the opening [3]
+							// DO NOT parse it: we want this first line of decoding to be the VALUE
 							pif_offset = tagged + 1;
 
 							// TODO: this dumps a bunch of lines into the detailLine, and then
@@ -1896,6 +1888,10 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 									sprintf(moreDetail + lentemp, ",%s", pValue+1);											
 								}
 							}
+
+							// Eat the closing tag, else ~BACnetSequence complains 
+							// about unparsed APDU
+							pif_offset += 1;
 						}
 						break;
 					default:
@@ -1987,6 +1983,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
         break;
      default: bac_show_byte("Error: Unknown PDU Type","%u");
    };
+
    pif_show_space();
    }   /* End of Detail Lines */
 
@@ -2781,9 +2778,8 @@ void show_confirmedCOVNotification( void )
 }
 
 /**************************************************************************/
-void show_EventNotification( void )
+void show_EventNotification( BACnetSequence &seq )
 {
-	BACnetSequence seq;
 	seq.Unsigned(         0, "processIdentifier" );
 	seq.ObjectIdentifier( 1, "initiatingDeviceIdentifier" );
 	int objectType = seq.LastObjectType();
@@ -2948,7 +2944,8 @@ void show_confirmedEventNotification( void )
 /* This function interprets ConfirmedEventNotification service requests */
 {
 	bac_show_byte("Confirmed Event Notification","%u");
-	show_EventNotification();
+	BACnetSequence seq;
+	show_EventNotification( seq );
 }
 
 /**************************************************************************/
@@ -3471,7 +3468,8 @@ void show_unconfEventNotification( void )
   /* This function interprets UnconfirmedEventNotification service requests */
 {
 	bac_show_byte("Unconfirmed Event Notification Request","%u");
-	show_EventNotification();
+	BACnetSequence seq;
+	show_EventNotification( seq );
 }
 
 /*************************************************************************/
@@ -4823,7 +4821,7 @@ void show_event_log_buffer( BACnetSequence &seq )
 			seq.BitString(      0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
 			if (seq.OpeningTag( 1, "notification", BSQ_CHOICE ))
 			{
-				show_EventNotification();
+				show_EventNotification( seq );
 				seq.ClosingTag();
 			}
 			seq.Real(           2, "time-change", BSQ_CHOICE );
