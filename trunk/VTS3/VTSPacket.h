@@ -48,7 +48,6 @@ struct VTSPacketHeader {
 };
 
 typedef VTSPacketHeader *VTSPacketHeaderPtr;
-const int kVTSPacketHeaderSize = sizeof( VTSPacketHeader );
 
 class VTSPort;
 class VTSDoc;

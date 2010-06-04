@@ -142,10 +142,6 @@ int stricmp( const char *a, const char *b )
 
 #if VTSScanner
 
-namespace NetworkSniffer {
-	extern char *BACnetObjectType[];
-}
-
 #include "VTS.h"
 #include "ScriptBase.h"
 #include "ScriptKeywords.h"
@@ -162,7 +158,6 @@ bool Match( int op, int a, int b );
 bool Match( int op, unsigned long a, unsigned long b );
 bool Match( int op, float a, float b );
 bool Match( int op, double a, double b );
-bool Match( int op, CTime &timeThis, CTime &timeThat );
 LPCSTR OperatorToString(int iOperator);
 
 
@@ -442,9 +437,9 @@ BACnetEncodeable::BACnetEncodeable()
 }
 
 
-void BACnetEncodeable::Encode( char * enc ) const
+void BACnetEncodeable::Encode( CString &enc ) const
 {
-	strcpy(enc, this->GetRuntimeClass()->m_lpszClassName);
+	enc = this->GetRuntimeClass()->m_lpszClassName;
 }
 
 
@@ -487,14 +482,17 @@ void BACnetEncodeable::Peek( BACnetAPDUDecoder& dec )
 
 const char * BACnetEncodeable::ToString() const
 {
-	// User internal buffer and return to caller...  Data won't last too long so if you're going to use
-	// more than one of these in calling parameters... Use:  CString(this->ToString()) so the data
-	// will be allocated and copied out before the next call blows away the string.
-
-	static char buffer[1000];		// should be enough for primitive values
-	memset(buffer, 0, sizeof(buffer));
-	Encode(buffer);
-	return buffer;
+	// Use internal buffer and return to caller.
+	//
+	// The original version had only one static CString, so caller had to
+	// copy data out before calling us again.
+	// We now use a rota of 8 strings, easing life for our callers
+	static ix = 0;
+	static CString str[8];
+	ix = (ix + 1) % 8;		// next string
+	
+	Encode(str[ix]);
+	return (const char*)(LPCTSTR)str[ix];
 }
 
 
@@ -505,25 +503,25 @@ BACnetEncodeable * BACnetEncodeable::clone()
 	return NULL;
 }
 
-
+// ?= and >> are ALWAYS true
 bool BACnetEncodeable::PreMatch(int iOperator )
 {
-	return iOperator == '?=' || iOperator == '>>';
+	return (iOperator == '?=') || (iOperator == '>>');
 }
 
 
 
-// Match is called by default from most all of the classes.  It really just fails and formats the error
-
+// Base class Match is called by default from most all of the classes.  It really just fails and formats the error
 bool BACnetEncodeable::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	CString strError;
-
 	if ( pstrError != NULL )
 	{
 		CString str1(ToString());	// have to do this because ToString uses a static buff... call it twice and you're hosed
 
+		CString strError;
 		strError.Format(IDS_SCREX_COMPFAILTYPE, str1, OperatorToString(iOperator), rbacnet.ToString() );
+
+		// TODO: do we really want to APPEND the error message?
 		*pstrError += strError;
 	}
 
@@ -536,7 +534,7 @@ bool BACnetEncodeable::Match( BACnetEncodeable &rbacnet, int iOperator, CString 
 
 bool BACnetEncodeable::EqualityRequiredFailure( BACnetEncodeable & rbacnet, int iOperator, CString * pstrError )
 {
-	if ( iOperator != '!=' && iOperator != '=' )
+	if ( (iOperator != '!=') && (iOperator != '=') )
 	{
 		CString strError, str1(ToString());
 		strError.Format(IDS_SCREX_COMPEQREQ, rbacnet.ToString(), OperatorToString(iOperator), str1);
@@ -818,9 +816,9 @@ void BACnetNull::Decode( BACnetAPDUDecoder &dec )
 		throw_(5) /* mismatched data type */;
 }
 
-void BACnetNull::Encode( char *enc ) const
+void BACnetNull::Encode( CString &enc ) const
 {
-	strcpy( enc, ToString() );
+	enc = ToString();
 }
 
 void BACnetNull::Decode( const char *dec )
@@ -918,36 +916,27 @@ void BACnetAddr::Decode( BACnetAPDUDecoder& dec )
 }
 
 
-void BACnetAddr::Encode( char *enc ) const
+void BACnetAddr::Encode( CString &enc ) const
 {
-	char * addr = enc;
-	//sprintf( addr, "{" );   // LJT changed from [ to {
-	strcat( addr, "{");
-	addr++;
-	char tmp[50];
-	sprintf( tmp, "%d", m_bacnetAddress.addrNet );
-	strcat( addr, tmp );
-	addr += strlen(tmp);
-	strcat( addr, "," );
-	addr++;
-	if ( m_bacnetAddress.addrLen > 0 )
+	enc.Format( "{%d,", m_bacnetAddress.addrNet );
+	if (m_bacnetAddress.addrLen > 0)
 	{
-		strcat( addr, "X\'" );   // LJT changed from 0x to X'
-		addr += 2;
+		enc += "X\'";
+		for (int i = 0; i < m_bacnetAddress.addrLen; i++)
+		{
+			char buf[3];
+			sprintf( buf, "%02X", m_bacnetAddress.addrAddr[i] );
+			enc += buf;
+		}
+		enc += '\'';
 	}
-	for (int i = 0; i < m_bacnetAddress.addrLen; i++)
+	else
 	{
-		sprintf( addr, "%02X", m_bacnetAddress.addrAddr[i] );
-		addr += 2;
+		// Broadcast
+		enc += '*';
 	}
-	if ( m_bacnetAddress.addrLen > 0 )
-	{
-		strcat( addr, "\'" );   // LJT added '
-		addr += 1;
-	}
-	strcat( addr, "}" );      // LJT changed from ] to }
+	enc += '}';
 }
-
 
 
 void BACnetAddr::AssignAddress(unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen )
@@ -1065,9 +1054,9 @@ void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
 }
 
 
-void BACnetBoolean::Encode( char *enc ) const
+void BACnetBoolean::Encode( CString &enc ) const
 {
-	strcpy( enc, ToString() );
+	enc = ToString();
 }
 
 
@@ -1224,20 +1213,20 @@ void BACnetEnumerated::Decode( BACnetAPDUDecoder& dec )
 	enumValue = rslt;
 }
 
-void BACnetEnumerated::Encode( char *enc ) const
+void BACnetEnumerated::Encode( CString &enc ) const
 {
 	Encode( enc, m_papNameList, m_nListSize );
 }
 
-void BACnetEnumerated::Encode( char *enc, const char * const *table, int tsize ) const
+// TODO: use the string tables to avoid explicit size?
+void BACnetEnumerated::Encode( CString &enc, const char * const *table, int tsize ) const
 {
-	int		valu = enumValue
-	;
+	int	valu = enumValue;
 
 	if ((enumValue < 0) || !table || (enumValue >= tsize))
-		sprintf( enc, "%d", valu );
+		enc.Format( "%d", valu );
 	else
-		strcpy( enc, table[enumValue] );
+		enc = table[enumValue];
 }
 
 void BACnetEnumerated::Decode( const char *dec )
@@ -1481,12 +1470,9 @@ void BACnetUnsigned::Decode( BACnetAPDUDecoder& dec )
 	uintValue = rslt;
 }
 
-void BACnetUnsigned::Encode( char *enc ) const
+void BACnetUnsigned::Encode( CString &enc ) const
 {
-	// simple, effective
-	// madanner 9/24/02, changed to handle unsigned long case
-//	sprintf( enc, "%u", uintValue );
-	sprintf( enc, "%lu", uintValue );
+	enc.Format( "%lu", uintValue );
 }
 
 
@@ -1698,10 +1684,9 @@ void BACnetInteger::Decode( BACnetAPDUDecoder& dec )
 	intValue = rslt;
 }
 
-void BACnetInteger::Encode( char *enc ) const
+void BACnetInteger::Encode( CString &enc ) const
 {
-	// simple, effective
-	sprintf( enc, "%d", intValue );
+	enc.Format( "%d", intValue );
 }
 
 void BACnetInteger::Decode( const char *dec )
@@ -1927,13 +1912,13 @@ void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetReal::Encode( char *enc ) const
+void BACnetReal::Encode( CString &enc ) const
 {
 	// simple, effective
 //	sprintf( enc, "%f", realValue );
-   // JLH .... and wr000000000000000000000000000000ng for 
-   // very large and very small numbers. Use %g to avoid buffer overrun
-   sprintf( enc, "%#g", realValue );
+	// JLH .... and wr000000000000000000000000000000ng for 
+	// very large and very small numbers. Use %g to avoid buffer overrun
+	enc.Format( "%#g", realValue );
 }
 
 void BACnetReal::Decode( const char *dec )
@@ -2076,13 +2061,13 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetDouble::Encode( char *enc ) const
+void BACnetDouble::Encode( CString &enc ) const
 {
 	// simple, effective
 //	sprintf( enc, "%lf", doubleValue );
     // JLH .... and wr000000000000000000000000000000ng for 
     // very large and very small numbers. Use %g to avoid buffer overrun
-	sprintf( enc, "%#lg", doubleValue );
+	enc.Format( "%#lg", doubleValue );
 }
 
 void BACnetDouble::Decode( const char *dec )
@@ -2277,63 +2262,76 @@ void BACnetCharacterString::Decode( BACnetAPDUDecoder& dec )
 	dec.pktLength -= strLen;
 }
 
-void BACnetCharacterString::Encode( char *enc ) const
+void BACnetCharacterString::Encode( CString &enc ) const
 {
-	static char hex[] = "0123456789ABCDEF"
-	;
+	char buff[10];
 
 	// check for the simple case
-	if (strEncoding == 0) {
-		*enc++ = '"';
+	if (strEncoding == 0) 
+	{
+		// ANSI (or UTF-8 in latter years...), shown in double quotes
+		enc = '"';
 
-		// simple contents
 		const char *src = (char *)strBuff;
-		for (unsigned i = 0; i < strLen && src != NULL; i++, src++)
-			if (*src < ' ') {
-				*enc++ = '\\';
-				*enc++ = 'x';
-				*enc++ = hex[ *src >> 4 ];
-				*enc++ = hex[ *src & 0x0F ];
-			} else
-			if (*src == '\"') {
-				*enc++ = '\\';
-				*enc++ = '\"';
-			} else
-				*enc++ = *src;
-
-		*enc++ = '"';
-		*enc = 0;
-	} else {
-		switch (strEncoding) {
-			case 1:
-				strcpy( enc, "IBM-MICROSOFT-DBCS, X'" );
+		for (unsigned i = 0; i < strLen; i++)
+		{
+			TCHAR ch = (TCHAR)strBuff[i];
+			if (ch == 0) 
+			{
 				break;
-			case 2:
-				strcpy( enc, "JIS-C-6226, X'" );
-				break;
-			case 3:
-				strcpy( enc, "UCS-4, X'" );
-				break;
-			case 4:
-				strcpy( enc, "UCS-2, X'" );
-				break;
-			case 5:
-				strcpy( enc, "ISO-8859-1, X'" );
-				break;
-			default:
-				sprintf( enc, "%d, X'", strEncoding );
-				break;
+			}
+			else if (ch < ' ') 
+			{
+				// TODO: should we use \r \n \t for the common ones?
+				// Does 135.1 say?
+				sprintf( buff, "\\x%02X", ch );
+				enc += buff;
+			} 
+			else if (ch == '\"') 
+			{
+				enc += "\\\"";
+			} 
+			else
+			{
+				enc += ch;
+			}
 		}
-		while (*enc) enc++;
+
+		enc += '"';
+	} 
+	else 
+	{
+		// Some other character set
+		switch (strEncoding) 
+		{
+		case 1:
+			enc = "IBM-MICROSOFT-DBCS, X'";
+			break;
+		case 2:
+			enc = "JIS-C-6226, X'";
+			break;
+		case 3:
+			enc = "UCS-4, X'";
+			break;
+		case 4:
+			enc = "UCS-2, X'";
+			break;
+		case 5:
+			enc = "ISO-8859-1, X'";
+			break;
+		default:
+			enc.Format( "%d, X'", strEncoding );
+			break;
+		}
 
 		// encode the content
-		for (unsigned i = 0; i < strLen && strBuff != NULL; i++) {
-			*enc++ = hex[ strBuff[i] >> 4 ];
-			*enc++ = hex[ strBuff[i] & 0x0F ];
+		for (unsigned i = 0; i < strLen && strBuff != NULL; i++) 
+		{
+			sprintf( buff, "\\x%02X", strBuff[i] );
+			enc += buff;
 		}
 
-		*enc++ = '\'';
-		*enc = 0;
+		enc += '\'';
 	}
 }
 
@@ -2856,25 +2854,26 @@ void BACnetOctetString::Decode( BACnetAPDUDecoder& dec )
 	dec.pktLength -= tag.tagLVT;
 }
 
-void BACnetOctetString::Encode( char *enc ) const
+void BACnetOctetString::Encode( CString &enc ) const
 {
-	static char hex[] = "0123456789ABCDEF"
-	;
-
-	if ( !strBuff )
+	if (!strBuff)
+	{
+		// TODO: original had this, but should we show X'' instead?
+		enc.Empty();
 		return;
-
-	*enc++ = 'X';
-	*enc++ = '\'';
-
-	// encode the content
-	for (int i = 0; i < strLen; i++) {
-		*enc++ = hex[ strBuff[i] >> 4 ];
-		*enc++ = hex[ strBuff[i] & 0x0F ];
 	}
 
-	*enc++ = '\'';
-	*enc = 0;
+	enc = "X\'";
+
+	// encode the content
+	for (int i = 0; i < strLen; i++) 
+	{
+		char buf[3];
+		sprintf( buf, "%02X", strBuff[i] );
+		enc += buf;
+	}
+
+	enc += '\'';
 }
 
 void BACnetOctetString::Decode( const char *dec )
@@ -3015,10 +3014,10 @@ void BACnetWeekNDay::Decode( BACnetAPDUDecoder& dec )
 }
 
 
-void BACnetWeekNDay::Encode( char *enc ) const
+void BACnetWeekNDay::Encode( CString &enc ) const
 {
 //	sprintf(enc, "%d, %d, %d", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);   // changed for 135.1 compliance
-	sprintf(enc, "X\'%02X%02X%02X\'", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);
+	enc.Format( "X\'%02X%02X%02X\'", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek );
 }
 
 
@@ -3440,39 +3439,16 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetBitString::Encode( char *enc ) const
+void BACnetBitString::Encode( CString &enc ) const
 {
-	*enc++ = '{';   // LJT changed to 135.1 compliance  from B' to {
-//	*enc++ = '\'';
-
-/*	// encode the content
-	if (bitBuff) {
-		int bit = 0;
-		for (int i = 0; bit < bitLen; i++) {
-			int x = bitBuff[i];
-			for (int j = 0; (bit < bitLen) && (j < 32); j++) {
-				*enc++ = '0' + (x & 0x01);
-				x = (x >> 1);
-				bit += 1;
-			}
-		}
-	}
-*/
-/*	LJT changed to 135.1 compliance from 0110 to F,T,T,F
-	for (int i = 0; i < bitLen; i++)			// madanner 10/02
-		*enc++ = '0' + (int) GetBit(i);
-
-	*enc++ = '\'';
-*/
+	enc = '{';
 	for (int i = 0; i < bitLen; i++)		
 	{
-		*enc++ = (int) GetBit(i) ? 'T' : 'F';
-		if ( (i+1) < bitLen )
-			*enc++ = ',';
+		if (i > 0)
+			enc += ',';
+		enc += (GetBit(i) ? 'T' : 'F');
 	}
-	*enc++ = '}';
-
-	*enc = 0;
+	enc += '}';
 }
 
 // 135.1 wants bitstring as {T,F,F} in the EPICS
@@ -3727,53 +3703,76 @@ void BACnetDate::Decode( BACnetAPDUDecoder& dec )
 		throw_(90);		// invalid values in date
 }
 
-void BACnetDate::Encode( char *enc ) const
+void BACnetDate::Encode( CString &enc ) const
 {
-	// Date is complex data structure... must use brackets to enclose data
-	*enc++ = '(';  // LJT changed from [ to (
+	char buff[10];
+	
+	// 135.1 clause 4.4 says:
+	// "Dates are represented enclosed in parenthesis: (Monday, 24-January-1998). 
+	// Any "wild card" or unspecified field is shown by an asterisk (X'2A'): 
+	// (Monday, *-January-1998). The omission of day of week implies that the day is
+	// unspecified: (24-January-1998)"
+	enc = '(';
 
 	// day of week
 	if ((dayOfWeek == DATE_DONT_CARE) || (dayOfWeek == DATE_SHOULDNT_CARE))
-		*enc++ = '*';
-	else {
+	{
+		// This doesn't match 135.1, but it is how the previous version worked
+		enc += '*';
+	}
+	else 
+	{
 		// Shows illegal values numerically as "DOWnn"
-		enc += sprintf( enc, NetworkSniffer::BAC_STRTAB_day_of_week.EnumString( dayOfWeek, "DOW" ) );
+		enc += NetworkSniffer::BAC_STRTAB_day_of_week.EnumString( dayOfWeek, "DOW" );
 	}
 
-	*enc++ = ',';
+	enc += ',';
+
+	// 135.1 says day-month-year, but we have historically used m/d/y
 
 	// month
 	if ((month == DATE_DONT_CARE) || (month == DATE_SHOULDNT_CARE))
-		*enc++ = '*';
-	else {
+	{
+		enc += '*';
+	}
+	else 
+	{
 		// Handles normal months, EVEN, ODD.  Shows numeric for anything else
-		enc += sprintf( enc, NetworkSniffer::BAC_STRTAB_month.EnumString( month ) );
+		enc += NetworkSniffer::BAC_STRTAB_month.EnumString( month );
 	}
 
-	*enc++ = '/';  // LJT changed from / to -
+	enc += '/';
 
 	// day of month
 	if ((day == DATE_DONT_CARE) || (day == DATE_SHOULDNT_CARE))
-		*enc++ = '*';
+		enc += '*';
 	else if (day == 32)
-		enc += sprintf( enc, "LAST" );
+		enc += "LAST";
 	else if (day == 33)
-		enc += sprintf( enc, "ODD" );
+		enc += "ODD";
 	else if (day == 34)
-		enc += sprintf( enc, "EVEN" );
+		enc += "EVEN";
 	else
-		enc += sprintf( enc, "%d", day );
+	{
+		sprintf( buff, "%d", day );
+		enc += buff;
+	}
 
-	*enc++ = '/';  // LJT changed from / to -
+	enc += '/';
 
 	// year
 	if ((year == DATE_DONT_CARE) || (year == DATE_SHOULDNT_CARE))
-		*enc++ = '*';
+	{
+		enc += '*';
+	}
 	else
-		enc += sprintf( enc, "%d", year + 1900 );
+	{
+		sprintf( buff, "%d", year + 1900 );
+		enc += buff;
+	}
 
 	// Date is complex data type so must enclose in brackets for proper parsing
-	sprintf(enc, ")");	// LJT changed from ] to )
+	enc += ')';
 }
 
 void BACnetDate::Decode( const char *dec )
@@ -4528,57 +4527,51 @@ void BACnetTime::Decode( BACnetAPDUDecoder& dec )
 		throw_(100);					// code meaning invalid time values, interpreted by caller's context
 }
 
-void BACnetTime::Encode( char *enc ) const
+void BACnetTime::Encode( CString &enc ) const
 {
-	// Time is complex data structure... must use brackets to enclose data
-//	*enc++ = '[';		// LJT changed to comply with 135.1
-
+	char buff[10];
+	
 	// hour
 	if (hour == DATE_DONT_CARE)
-		*enc++ = '?';
+		enc = '?';
 	else if (hour == DATE_SHOULDNT_CARE)
-		*enc++ = '*';
+		enc = '*';
 	else {
-		sprintf( enc, "%02d", hour );
-		enc += 2;
+		enc.Format( "%02d", hour );
 	}
-	*enc++ = ':';
+	enc += ':';
 
 	// minute
 	if (minute == DATE_DONT_CARE)
-		*enc++ = '?';
+		enc += '?';
 	else if (minute == DATE_SHOULDNT_CARE)
-		*enc++ = '*';
+		enc += '*';
 	else {
-		sprintf( enc, "%02d", minute );
-		enc += 2;
+		sprintf( buff, "%02d", minute );
+		enc += buff;
 	}
-	*enc++ = ':';
+	enc += ':';
 
 	// second
 	if (second == DATE_DONT_CARE)
-		*enc++ = '?';
+		enc += '?';
 	else if (second == DATE_SHOULDNT_CARE)
-		*enc++ = '*';
+		enc += '*';
 	else {
-		sprintf( enc, "%02d", second );
-		enc += 2;
+		sprintf( buff, "%02d", second );
+		enc += buff;
 	}
-	*enc++ = '.';
+	enc += '.';
 
 	// hundredths
-	if (hundredths == DATE_DONT_CARE) {
-		*enc++ = '?';
-		*enc = 0;
-	} else if (hundredths == DATE_SHOULDNT_CARE) {
-		*enc++ = '*';
-		*enc = 0;
+	if (hundredths == DATE_DONT_CARE)
+		enc += '?';
+	else if (hundredths == DATE_SHOULDNT_CARE)
+		enc += '*';
+	else {
+		sprintf( buff, "%02d", hundredths );
+		enc += buff;
 	}
-	else 
-		sprintf( enc, "%02d", hundredths );
-
-	// Time is complex data type so must enclose in brackets for proper parsing
-//	strcat(enc, "]");
 }
 
 
@@ -4949,7 +4942,7 @@ IMPLEMENT_DYNAMIC(BACnetDateTime, BACnetEncodeable)
 
 BACnetDateTime::BACnetDateTime( void )
 {
-	ctime = CTime::GetCurrentTime();
+	CTime ctime = CTime::GetCurrentTime();
 
 	struct tm	*currtime = ctime.GetLocalTm(NULL);
 	
@@ -5004,16 +4997,17 @@ void BACnetDateTime::Decode( BACnetAPDUDecoder& dec )
 }
 
 
-void BACnetDateTime::Encode( char *enc ) const
+void BACnetDateTime::Encode( CString &enc ) const
 {
+	CString str;
 	// DateTime is complex data structure... must use brackets to enclose data
-	*enc++ = '{';	// LJT changed from [ to {
-
-	bacnetDate.Encode(enc);
-	strcat(enc, ", ");
-	bacnetTime.Encode(enc + strlen(enc));
-
-	strcat(enc, "}");	// LJT changed from ] to }
+	enc = '{';
+	bacnetDate.Encode(str);
+	enc += str;
+	enc += ", ";
+	bacnetTime.Encode(str);
+	enc += str;
+	enc += '}';
 }
 
 
@@ -5195,16 +5189,19 @@ void BACnetDateRange::Decode( BACnetAPDUDecoder& dec )
 }
 
 
-void BACnetDateRange::Encode( char *enc ) const
+void BACnetDateRange::Encode( CString &enc ) const
 {
+	CString str;
 	// DateRange is complex data structure... must use brackets to enclose data
-	*enc++ = '{';	// LJT changed from [ to {
+	enc = '{';
 
-	bacnetDateStart.Encode(enc);
-	strcat(enc, ", ");
-	bacnetDateEnd.Encode(enc + strlen(enc));
+	bacnetDateStart.Encode(str);
+	enc += str;
+	enc += ", ";
+	bacnetDateEnd.Encode(str);
+	enc += str;
 
-	strcat(enc, "}");	// LJT changed from ] to }
+	enc += '}';
 }
 
 
@@ -5419,30 +5416,21 @@ void BACnetObjectIdentifier::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetObjectIdentifier::Encode( char *enc ) const
+void BACnetObjectIdentifier::Encode( CString &enc ) const
 {
-	int		objType = (objID >> 22)
-	,		instanceNum = (objID & 0x003FFFFF)
-	;
-	char	typeBuff[32];
+	int	objType = (objID >> 22);
+	int instanceNum = (objID & 0x003FFFFF);
 	const char *s;
 
 #if VTSScanner
-	if (objType < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings)
-		s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[objType];
-	else
+	s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString( objType );
+#else
+	Hey! Do we really need to do this without strings?
 #endif
-	{
-		s = typeBuff;
-		if (objType < 128)
-			sprintf( typeBuff, "RESERVED %d", objType );
-		else
-			sprintf( typeBuff, "proprietary %d", objType );
-	}
 
 	// changed this back because it broke the Send Dialog VTSANY entry of ObjId 3/10/2006
 //	sprintf( enc, "%s, %d", s, instanceNum );
-	sprintf( enc, "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
+	enc.Format( "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
 }
 
 #if VTSScanner
@@ -5592,27 +5580,22 @@ void BACnetObjectPropertyReference::Decode(BACnetAPDUDecoder& dec)
 }
 
 
-void BACnetObjectPropertyReference::Encode( char *enc ) const
+void BACnetObjectPropertyReference::Encode( CString &enc ) const
 {
-	char szObject[100];
-	char szProp[20];
-	char szIndex[20];
+	CString obj;
+	CString prop;
 
-	m_objID.Encode(szObject);
-	m_bacnetenumPropID.Encode(szProp);
+	m_objID.Encode(obj);
+	m_bacnetenumPropID.Encode(prop);
 
-	if ( m_nIndex != -1 )
-		BACnetUnsigned(m_nIndex).Encode(szIndex);
-
-	sprintf(enc, "{%s, %s", szObject, szProp);	// LJT changed [ to {
-	if ( m_nIndex != -1  && m_nIndex != NotAnArray )
+	if ((m_nIndex >= 0) && (m_nIndex != NotAnArray))
 	{
-		strcat(enc, ",");		// LJT changed [ to ,
-		strcat(enc, szIndex);
-//		strcat(enc, "]");
+		enc.Format( "{%s, %s, %u}", (LPCTSTR)obj, (LPCTSTR)prop, m_nIndex );
 	}
-
-	strcat(enc, "}");		// LJT changed ] to }
+	else
+	{
+		enc.Format( "{%s, %s}", (LPCTSTR)obj, (LPCTSTR)prop );
+	}
 }
 
 
@@ -5702,38 +5685,33 @@ void BACnetDeviceObjectPropertyReference::Decode(BACnetAPDUDecoder& dec)
 }
 
 
-void BACnetDeviceObjectPropertyReference::Encode( char *enc ) const
+void BACnetDeviceObjectPropertyReference::Encode( CString &enc ) const
 {
-	char szObject[100];
-	char szProp[20];
-	char szIndex[20];
-	char szDevice[100];
+	CString obj;
+	CString prop;
 
-	m_objpropref.m_objID.Encode(szObject);
-	m_objpropref.m_bacnetenumPropID.Encode(szProp);
+	m_objpropref.m_objID.Encode(obj);
+	m_objpropref.m_bacnetenumPropID.Encode(prop);
 
-	if ( m_objpropref.m_nIndex != -1 )
-		BACnetUnsigned(m_objpropref.m_nIndex).Encode(szIndex);
-
-	sprintf(enc, "{%s, %s", szObject, szProp);		// LJT changed [ to {
-	if ( m_objpropref.m_nIndex != -1  && m_objpropref.m_nIndex != NotAnArray )
+	if ((m_objpropref.m_nIndex != -1) && (m_objpropref.m_nIndex != NotAnArray))
 	{
-//		strcat(enc, "[");
-		strcat(enc, ",");
-		strcat(enc, szIndex);
-//		strcat(enc, "]");
+		enc.Format( "{%s, %s, %u", (LPCTSTR)obj, (LPCTSTR)prop, m_objpropref.m_nIndex );
 	}
-	if ( m_unObjectID != 0xFFFFFFFF )
+	else
 	{
-		BACnetObjectIdentifier((unsigned int) m_unObjectID).Encode(szDevice);
-		strcat(enc, ", ");
-		strcat(enc, szDevice);
+		enc.Format( "{%s, %s", (LPCTSTR)obj, (LPCTSTR)prop );
 	}
 
-	strcat(enc, "}");		// LJT changed from ] to }
+	if (m_unObjectID != 0xFFFFFFFF)
+	{
+		CString device;
+		BACnetObjectIdentifier((unsigned int) m_unObjectID).Encode(device);
+		enc += ", ";
+		enc += device;
+	}
+
+	enc += '}';
 }
-
-
 
 int BACnetDeviceObjectPropertyReference::DataType()
 {
@@ -5818,26 +5796,22 @@ void BACnetDeviceObjectReference::Decode(BACnetAPDUDecoder& dec)
 }
 
 
-void BACnetDeviceObjectReference::Encode( char *enc ) const
+void BACnetDeviceObjectReference::Encode( CString &enc ) const
 {
-	char szObject[100];
-	char szDevice[100];
+	CString obj;
+	CString device;
 
-	sprintf(enc, "{" );	// LJT changed from [ to {
-	if ( m_undevID != 0xFFFFFFFF )
+	enc = '{';
+	if (m_undevID != 0xFFFFFFFF)
 	{
-		BACnetObjectIdentifier((unsigned int) m_undevID).Encode(szDevice);
-		strcat(enc, szDevice);
-		strcat(enc, ", ");
+		BACnetObjectIdentifier((unsigned int) m_undevID).Encode(device);
+		enc += device;
+		enc += ", ";
 	}
-	m_objID.Encode(szObject);
-
-//	strcat(enc, ", ");
-//	strcat(enc, szObject);
-
-	strcat(enc, "}");
+	m_objID.Encode(obj);
+	enc += obj;
+	enc += '}';
 }
-
 
 
 int BACnetDeviceObjectReference::DataType()
@@ -6048,13 +6022,16 @@ void BACnetAddressBinding::Encode( BACnetAPDUEncoder& enc, int context )
 	m_bacnetAddr.Encode(enc, context);
 }
 
-void BACnetAddressBinding::Encode( char *enc ) const
+void BACnetAddressBinding::Encode( CString &enc ) const
 {
-	strcat( enc, "{" );	// LJT added
-	m_bacnetObjectID.Encode( enc+1 );
-	strcat( enc, "," ); // LJT added
-	m_bacnetAddr.Encode( enc + strlen(enc) );
-	strcat( enc, "}" ); // LJT added
+	CString str;
+	enc = '{';
+	m_bacnetObjectID.Encode( str );
+	enc += str;
+	enc += ", ";
+	m_bacnetAddr.Encode( str );
+	enc += str;
+	enc += '}';
 }
 
 void BACnetAddressBinding::Decode( BACnetAPDUDecoder& dec )
@@ -6110,9 +6087,9 @@ bool BACnetAddressBinding::Match( BACnetEncodeable &rbacnet, int iOperator, CStr
 //	BACnetOpeningTag
 //
 
-void BACnetOpeningTag::Encode(char *enc) const
+void BACnetOpeningTag::Encode( CString &enc ) const
 {
-	*enc++ = '{';
+	enc += '{';
 }
 
 void BACnetOpeningTag::Encode( BACnetAPDUEncoder& enc, int context )
@@ -6286,16 +6263,24 @@ BACnetRecipient & BACnetRecipient::operator =( const BACnetRecipient & arg )
 	return *this;
 }
 
-void BACnetRecipient::Encode( char *enc ) const
+void BACnetRecipient::Encode( CString &enc ) const
 {
+	int tagval;
+	CString str;
+
 	// TODO: LJT add context tag in square brackets for 135.1 compliance ...
-	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
-		pbacnetTypedValue->Encode( enc );
+	if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
+	{
+		tagval = 0;
+		pbacnetTypedValue->Encode( str );
+	}
 	else
 	{
-//		sprintf( enc, "%d", pbacnetTypedValue->intValue );
-		pbacnetTypedValue->Encode( enc );
+		tagval = 1;
+		pbacnetTypedValue->Encode( str );
 	}
+
+	enc.Format( "[%d] %s", tagval, (LPCTSTR)str );
 }
 
 void BACnetRecipient::Encode(BACnetAPDUEncoder& enc, int context)
@@ -6408,13 +6393,16 @@ BACnetRecipientProcess & BACnetRecipientProcess::operator =( const BACnetRecipie
 	return *this;
 }
 
-void BACnetRecipientProcess::Encode( char *enc ) const
+void BACnetRecipientProcess::Encode( CString &enc ) const
 {
-	*enc++ = '{';	// LJT changed from [ to {
-	m_bacnetrecipient.Encode( enc );
-	strcat( enc, ", ");
-	m_bacnetunsignedID.Encode( enc+strlen(enc) );
-	strcat( enc, "}");	// LJT changed from ] to }
+	CString str;
+	enc = '{';
+	m_bacnetrecipient.Encode( str );
+	enc += str;
+	enc += ", ";
+	m_bacnetunsignedID.Encode( str );
+	enc += str;
+	enc += '}';
 }
 
 void BACnetRecipientProcess::Encode(BACnetAPDUEncoder& enc, int context)
@@ -6513,23 +6501,30 @@ BACnetCOVSubscription & BACnetCOVSubscription::operator =( const BACnetCOVSubscr
 //	return *newsub;
 }
 
-void BACnetCOVSubscription::Encode( char *enc ) const
+void BACnetCOVSubscription::Encode( CString &enc ) const
 {
-	*enc++ = '{';	// changed from [ to {
-	m_bacnetrecipprocess.Encode( enc );
-	strcat(enc,", ");
-	m_bacnetobjpropref.Encode( enc+strlen(enc) );
-	strcat(enc,", ");
-	m_bacnetboolNotification.Encode( enc+strlen(enc) );
-	strcat(enc,", ");
-	m_bacnetunsignedTimeRemaining.Encode( enc+strlen(enc) );
-	strcat(enc,", ");
-	if ( m_bacnetrealCOVIncrement.realValue > 0 )
-		m_bacnetrealCOVIncrement.Encode( enc+strlen(enc) );
-	else
-		strcat( enc, "0" );
-	strcat(enc,"}");	// changed from ] to }
+	CString str;
+	enc  = '{';
+	m_bacnetrecipprocess.Encode( str );
+	enc += str;
+	enc += ", ";
+	m_bacnetobjpropref.Encode( str );
+	enc += str;
+	enc += ", ";
+	m_bacnetboolNotification.Encode( str );
+	enc += str;
+	enc += ", ";
+	m_bacnetunsignedTimeRemaining.Encode( str );
+	enc += str;
+	enc += ", ";
 
+	if (m_bacnetrealCOVIncrement.realValue > 0)
+		m_bacnetrealCOVIncrement.Encode( str );
+	else
+		str = "0";
+	
+	enc += str;
+	enc += '}';
 }
 
 void BACnetCOVSubscription::Decode( const char *dec )
@@ -6694,9 +6689,9 @@ int BACnetDestination::DataType()
 //
 //	BACnetClosingTag
 //
-void BACnetClosingTag::Encode(char *enc) const
+void BACnetClosingTag::Encode( CString &enc ) const
 {
-	*enc++ = '}';
+	enc = '}';
 }
 
 void BACnetClosingTag::Encode( BACnetAPDUEncoder& enc, int context )
@@ -6813,7 +6808,7 @@ void BACnetANY::Decode( BACnetAPDUDecoder& dec )
 	}
 }
 
-void BACnetANY::Encode( char *enc ) const
+void BACnetANY::Encode( CString &enc ) const
 {
 	// TODO: when the parameter becomes a CString, then MAYBE implement this
 	// Format X'12345678'
@@ -6830,7 +6825,7 @@ BACnetBinaryPriV::BACnetBinaryPriV( int nValue )
 
 
 
-void BACnetBinaryPriV::Encode( char *enc ) const
+void BACnetBinaryPriV::Encode( CString &enc ) const
 {
 	BACnetEnumerated::Encode(enc, apszBinaryPVNames, 2);
 }
@@ -6877,14 +6872,14 @@ void BACnetObjectContainer::Encode( BACnetAPDUEncoder& enc, int context )
 }
 
 
-void BACnetObjectContainer::Encode( char *enc ) const
+void BACnetObjectContainer::Encode( CString &enc ) const
 {
 	ASSERT(pbacnetTypedValue != NULL);
 
-	if ( pbacnetTypedValue != NULL )
+	if (pbacnetTypedValue != NULL)
 		pbacnetTypedValue->Encode(enc);
 	else
-		enc[0] = 0;
+		enc.Empty();
 }
 
 
@@ -7022,7 +7017,7 @@ bool BACnetPriorityValue::Match( BACnetEncodeable &rbacnet, int iOperator, CStri
 	// Compare for inequality returns true if either
 	// - non-matching CHOICE (via GetRuntimeClass)
 	// - compare values
-	// Use OperatorToString to show oeprator
+	// Use OperatorToString to show operator
 	//
 	bool retval = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)) &&
 				  (pbacnetTypedValue != NULL) &&
@@ -7356,7 +7351,7 @@ BACnetPrescale::BACnetPrescale()
 {
 }
 
-BACnetPrescale::BACnetPrescale(unsigned short multiplier, unsigned short moduloDivide)
+BACnetPrescale::BACnetPrescale(unsigned multiplier, unsigned moduloDivide)
 {
 	this->multiplier = multiplier;
 	this->moduloDivide = moduloDivide;
@@ -7385,9 +7380,9 @@ void BACnetPrescale::Decode( BACnetAPDUDecoder& dec )
 	moduloDivide = (unsigned short) value2.uintValue;
 }
 
-void BACnetPrescale::Encode( char *enc ) const
+void BACnetPrescale::Encode( CString &enc ) const
 {
-	sprintf(enc, "{%d, %d}", multiplier, moduloDivide);
+	enc.Format( "{%d, %d}", multiplier, moduloDivide );
 }
 
 void BACnetPrescale::Decode( const char *dec )
@@ -7419,7 +7414,7 @@ BACnetAccumulatorRecord::BACnetAccumulatorRecord()
 }
 
 BACnetAccumulatorRecord::BACnetAccumulatorRecord(PICS::BACnetDateTime timestamp, 
-	unsigned short presentValue, unsigned short accumulatedValue, unsigned short accumulatorStatus)
+	unsigned presentValue, unsigned accumulatedValue, unsigned accumulatorStatus)
 {
 	this->timestamp = timestamp;
 	this->presentValue = presentValue;
@@ -7439,27 +7434,19 @@ void BACnetAccumulatorRecord::Encode( BACnetAPDUEncoder& enc, int context)
 {
 }
 
-void BACnetAccumulatorRecord::Encode( char *enc ) const
+void BACnetAccumulatorRecord::Encode( CString &enc ) const
 {
-	static char* statusstr[] = 
-	{
-		"normal",
-		"starting",
-		"recovered",
-		"abnormal",
-		"failed"	
-	};
-	static char* monthstr[] = {"Jan", "Feb", "March", "April", "May", "June", "July",
-		"August", "Sep", "Oct", "Nov", "Dec"};
-
-	sprintf(enc, "{{(%d-%s-%d), %d:%d:%d.%d},%d, %d, %s}", timestamp.date.day_of_month, timestamp.date.month == 0xFF ? "*" : monthstr[timestamp.date.month], 
-		timestamp.date.year + 1900, timestamp.time.hour, timestamp.time.minute, timestamp.time.second, timestamp.time.hundredths, 
-		presentValue, accumulatedValue, statusstr[accumulatorStatus]);	
-
-//	char timestampenc[50];
-//	timestamp.Encode(timestampenc);
-//	sprintf(enc, "{%s,%d, %d, %s}", timestampenc,
-//		presentValue, accumulatedValue, statusstr[accumulatorStatus]);	
+	// If this was a BACnet timestamp instead of a PICS::BACnetTimeStamp we could just
+	// use timestamp.Encode( str )
+	enc.Format( "{{(%d-%s-%d), %d:%d:%d.%d},%d, %d, %s}", 
+		timestamp.date.day_of_month, 
+		timestamp.date.month == 0xFF ? "*" : 
+			NetworkSniffer::BAC_STRTAB_month.EnumString( timestamp.date.month ),
+		timestamp.date.year + 1900, 
+		timestamp.time.hour, timestamp.time.minute, timestamp.time.second, timestamp.time.hundredths, 
+		presentValue, accumulatedValue, 
+		NetworkSniffer::BAC_STRTAB_BACnetAccumulatorStatus.EnumString( accumulatorStatus, "BACnetAccumulatorStatus:" )
+		);
 }
 
 void BACnetAccumulatorRecord::Decode( const char *dec )
@@ -7487,18 +7474,15 @@ bool BACnetAccumulatorRecord::Match( BACnetEncodeable &rbacnet, int iOperator, C
 //====================================================================
 IMPLEMENT_DYNAMIC(BACnetShedLevel, BACnetEncodeable)
 BACnetShedLevel::BACnetShedLevel()		
+: context(0)
+, value(0.0f)
 {
 }
 
-BACnetShedLevel::BACnetShedLevel(unsigned short context, float value)
+BACnetShedLevel::BACnetShedLevel(unsigned a_context, float a_value)
+: context(a_context)
+, value(a_value)
 {
-	this->context = context;
-	if (context == 0)
-		this->percent = (unsigned short)value;
-	if (context == 1)
-		this->level = (unsigned short)value;
-	if (context == 2)
-		this->amount = value;
 }
 
 BACnetShedLevel::BACnetShedLevel( BACnetAPDUDecoder & dec )
@@ -7509,21 +7493,16 @@ void BACnetShedLevel::Decode( BACnetAPDUDecoder& dec )
 {
 	BACnetAPDUTag		tagTestType;	
 	dec.ExamineTag(tagTestType);	
-	this->context = tagTestType.tagNumber;
-	if (context == 0)
+	context = tagTestType.tagNumber;
+	if ((context == 0) || (context == 1))
 	{
 		BACnetUnsigned u1(dec); 
-		this->percent = (unsigned short) u1.uintValue;
-	}
-	else if (context == 1)
-	{
-		BACnetUnsigned u1(dec); 
-		this->level = (unsigned short) u1.uintValue;
+		value = (float)u1.uintValue;
 	}
 	else if (context == 2)
 	{
 		BACnetReal r1(dec);
-		this->amount = r1.realValue;
+		value = r1.realValue;
 	}
 	else
 	{
@@ -7534,27 +7513,23 @@ void BACnetShedLevel::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetShedLevel::Encode( BACnetAPDUEncoder& enc, int context)
 {
+	// TODO: needed?
 }
 
-void BACnetShedLevel::Encode( char *enc ) const
+void BACnetShedLevel::Encode( CString &enc ) const
 {
-	char value[20];
 	switch (context)
 	{
 	case 0:
-		sprintf( value, "%d", percent );
-		break;
 	case 1:
-		sprintf( value, "%d", level );
+		enc.Format( "[%u] %u", context, (unsigned)value );
 		break;
 	case 2:
-		sprintf( value, "%lf", amount );
+		enc.Format( "[2] %lf", value );
 		break;
 	default:
-		sprintf( value, "%s", "?");
+		enc.Format( "[%d] ?", context );
 	}
-	sprintf(enc, "[%d]%s", context, value);	
-
 }
 
 void BACnetShedLevel::Decode( const char *dec )
@@ -7569,18 +7544,12 @@ int BACnetShedLevel::DataType(void)
 
 BACnetEncodeable * BACnetShedLevel::clone(void)
 {
-	float value = 0;
-	if (context == 0)
-		value = percent;
-	if (context == 1)
-		value = level;
-	if (context == 2)
-		value = amount;
 	return new BACnetShedLevel(context, value); 
 }
 
 bool BACnetShedLevel::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
+	// TODO: this hardy seems correct
 	return true;
 }
 
@@ -7633,7 +7602,7 @@ void BACnetGenericArray::Encode( BACnetAPDUEncoder& enc, int context )
 }
 
 
-void BACnetGenericArray::Encode( char *enc ) const
+void BACnetGenericArray::Encode( CString &enc ) const
 {
 }
 

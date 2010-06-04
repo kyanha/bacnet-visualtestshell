@@ -195,13 +195,10 @@ void VTSAddrCtrl::CtrlToObj( void )
 
 void VTSAddrCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
-
+	CString	str;
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( strLen * 2 + 4 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 	}
 
 	// set the text
@@ -1506,8 +1503,7 @@ void VTSBooleanCtrl::CtrlToObj( void )
 
 void VTSBooleanCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString	str;
 
 	if (m_bCheckBox)
 		SetCheck(boolValue ? 1 : 0);		// madanner 9/4/02, new check method
@@ -1515,8 +1511,7 @@ void VTSBooleanCtrl::ObjToCtrl( void )
 		// values are normalized
 		if (!ctrlNull)
 		{
-			Encode( str.GetBuffer( 16 ) );
-			str.ReleaseBuffer();
+			Encode( str );
 		}
 
 		// set the text
@@ -1829,14 +1824,12 @@ void VTSEnumeratedCtrl::ObjToCtrl( void )
 		return;
 	}
 
-	CString		str
-	;
+	CString	str;
 
 	// values are normalized to decimal
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 256 ), (const char **)m_Table, m_TableSize );
-		str.ReleaseBuffer();
+		Encode( str, (const char **)m_Table, m_TableSize );
 	}
 
 #if 0
@@ -1935,14 +1928,12 @@ void VTSUnsignedCtrl::CtrlToObj( void )
 
 void VTSUnsignedCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString	str;
 
 	// values are normalized to decimal
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 16 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 	}
 
 	// set the text
@@ -2031,14 +2022,12 @@ void VTSIntegerCtrl::CtrlToObj( void )
 
 void VTSIntegerCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString	str;
 
 	// values are normalized to decimal
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 16 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 	}
 
 	// set the text
@@ -2125,14 +2114,12 @@ void VTSRealCtrl::CtrlToObj( void )
 
 void VTSRealCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString	str;
 
 	// values are normalized to decimal
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 32 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 	}
 
 	// set the text
@@ -2219,14 +2206,12 @@ void VTSDoubleCtrl::CtrlToObj( void )
 
 void VTSDoubleCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString	str;
 
 	// values are normalized to decimal
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 64 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 	}
 
 	// set the text
@@ -2439,15 +2424,11 @@ void VTSOctetStringCtrl::CtrlToObj( void )
 
 void VTSOctetStringCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString	str;
 
 	if (!ctrlNull)
 	{
-		// Encoded as two hex characters per byte, no separators.
-		// Add slop for the NEXT time the quoting changes...
-		Encode( str.GetBuffer( strLen * 2 + 10 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 	}
 
 	// set the text
@@ -2542,16 +2523,12 @@ void VTSBitStringCtrl::CtrlToObj( void )
 
 void VTSBitStringCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString	str;
 
 	// loop through the bits
 	if (!ctrlNull)
 	{
-		// The encoding now puts a comma between values
-		// Add slop for the NEXT time the quoting changes...
-		Encode( str.GetBuffer( bitLen*2 + 10 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 	}
 
 	// set the text
@@ -2640,13 +2617,11 @@ void VTSDateCtrl::CtrlToObj( void )
 
 void VTSDateCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString	str;
 
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 32 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 
 		// Encoding for complex types have brackets [] on the ends.  Encoding does not throw
 		// so we're pretty sure the brackets are there.
@@ -2740,12 +2715,11 @@ void VTSTimeCtrl::CtrlToObj( void )
 
 void VTSTimeCtrl::ObjToCtrl( void )
 {
-	CString		str;
+	CString	str;
 
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 32 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 
 		// Encoding for complex types have brackets [] on the ends.  Encoding does not throw
 		// so we're pretty sure the brackets are there.
@@ -2837,13 +2811,11 @@ void VTSObjectIdentifierCtrl::CtrlToObj( void )
 
 void VTSObjectIdentifierCtrl::ObjToCtrl( void )
 {
-	CString		str
-	;
+	CString	str;
 
 	if (!ctrlNull)
 	{
-		Encode( str.GetBuffer( 64 ) );
-		str.ReleaseBuffer();
+		Encode( str );
 	}
 
 	// set the text

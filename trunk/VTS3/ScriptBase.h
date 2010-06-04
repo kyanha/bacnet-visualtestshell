@@ -63,8 +63,6 @@ class ScriptBase : public CList<ScriptBasePtr,ScriptBasePtr> {
 		ScriptBasePtr Child( int indx );					// specific child
 	};
 
-const int kScriptBaseSize = sizeof( ScriptBase );
-
 //
 //	ScriptSection
 //
@@ -75,7 +73,6 @@ class ScriptSection : public ScriptBase {
 	};
 
 typedef ScriptSection *ScriptSectionPtr;
-const int kScriptSectionSize = sizeof( ScriptSection );
 
 //
 //	ScriptDependency
@@ -87,7 +84,6 @@ class ScriptDependency : public ScriptBase {
 	};
 
 typedef ScriptDependency *ScriptDependencyPtr;
-const int kScriptDependencySize = sizeof( ScriptDependency );
 
 
 //
@@ -100,7 +96,6 @@ class ScriptReference : public ScriptBase {
 	};
 
 typedef ScriptReference *ScriptReferencePtr;
-const int kScriptReferenceSize = sizeof( ScriptReference );
 
 //
 //	ScriptCase
@@ -115,7 +110,6 @@ class ScriptCase : public ScriptBase {
 	};
 
 typedef ScriptCase *ScriptCasePtr;
-const int kScriptCaseSize = sizeof( ScriptCase );
 
 //
 //	ScriptTest
@@ -134,7 +128,6 @@ class ScriptTest : public ScriptCase {
 	};
 
 typedef ScriptTest *ScriptTestPtr;
-const int kScriptTestSize = sizeof( ScriptTest );
 
 //
 //	ScriptToken
@@ -171,7 +164,6 @@ struct ScriptTranslateTable {
 	};
 
 typedef ScriptTranslateTable *ScriptTranslateTablePtr;
-const int kScriptTranslateTableSize = sizeof( ScriptTranslateTable );
 
 //
 //	ScriptToken
@@ -221,7 +213,6 @@ class ScriptToken {
 	};
 
 typedef ScriptToken *ScriptTokenPtr;
-const int kScriptTokenSize = sizeof( ScriptToken );
 
 //
 //	ScriptTokenList
@@ -240,7 +231,6 @@ class ScriptTokenList : public CList<ScriptTokenPtr,ScriptTokenPtr> {
 	};
 
 typedef ScriptTokenList *ScriptTokenListPtr;
-const int kScriptTokenListSize = sizeof( ScriptTokenList );
 
 //
 //	ScriptScanner
@@ -286,7 +276,6 @@ class ScriptScanner {
 };
 
 typedef ScriptScanner *ScriptScannerPtr;
-const int kScriptScannerSize = sizeof( ScriptScanner );
 
 typedef CTypedPtrArray<CPtrArray, ScriptScanner *> ScriptScanners;
 

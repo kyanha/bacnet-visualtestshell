@@ -122,16 +122,18 @@ CString VTSDevValue::GetDescription( void )
 
 	switch(m_nType)
 	{
-		case 13:	str = _T("OpeningTag");	break;
-		case 14:	str = _T("ClosingTag");	break;
-		default:	if ( pbacnet != NULL )
-					{
-						char * p = str.GetBuffer(100);
-						try {
-							pbacnet->Encode(p);
-						} catch(...) {}
-						str.ReleaseBuffer();
-					}
+	case 13:	str = _T("OpeningTag");	break;
+	case 14:	str = _T("ClosingTag");	break;
+	default:	
+		if (pbacnet != NULL)
+		{
+			try {
+				pbacnet->Encode(str);
+			} 
+			catch(...) {
+				str = _T("<Error during conversion to text>");
+			}
+		}
 	}
 
 	if ( pbacnet != NULL )
@@ -266,9 +268,7 @@ VTSDevObject::~VTSDevObject()
 CString VTSDevObject::GetDescription( void )
 {
 	CString buff;
-
-    BACnetObjectIdentifier(GetID()).Encode( buff.GetBuffer(32) );
-	buff.ReleaseBuffer();
+    BACnetObjectIdentifier(GetID()).Encode( buff );
 
 	return buff;
 }

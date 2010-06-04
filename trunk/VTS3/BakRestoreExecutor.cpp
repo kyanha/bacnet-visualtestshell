@@ -372,14 +372,13 @@ void BakRestoreExecutor::DoBackupTest()
 	}
 	m_pOutputDlg->OutMessage("OK");
 	// write to the .backupindex file
-  char chEnc[256];
-
-  devObjID.Encode(chEnc);
-	int nStart = sprintf(buffer, "(%s), ", chEnc);
+	CString chEnc;
+	devObjID.Encode(chEnc);
+	int nStart = sprintf(buffer, "(%s), ", (LPCTSTR)chEnc);
 	maxAPDULenAccepted.Encode(chEnc);
-	nStart +=  sprintf(buffer+nStart, "%s, ", chEnc);
+	nStart +=  sprintf(buffer+nStart, "%s, ", (LPCTSTR)chEnc);
 	lastRestoreTime.pbacnetTypedValue->Encode(chEnc);
-	nStart += sprintf(buffer+nStart, "%s\n", chEnc);
+	nStart += sprintf(buffer+nStart, "%s\n", (LPCTSTR)chEnc);
 	backupIndexFile.Write(buffer, strlen(buffer));
 
 	m_pOutputDlg->OutMessage("Write to the Device/Backup_Failure_Timeout...", FALSE);
@@ -502,18 +501,18 @@ void BakRestoreExecutor::DoBackupTest()
 		m_pOutputDlg->OutMessage("Write to backup index file...", FALSE);
 		BACnetUnsigned(nFileInstance).Encode(chEnc);
 
-		nStart = sprintf(buffer, "%s, ", chEnc);
+		nStart = sprintf(buffer, "%s, ", (LPCTSTR)chEnc);
 		nStart +=  sprintf(buffer+nStart, "%s, ", NetworkSniffer::BAC_STRTAB_BACnetFileAccessMethod.m_pStrings[fileAccessMethod.enumValue]);
 		fileSize.Encode(chEnc);
-		nStart += sprintf(buffer+nStart, "%s, ", chEnc);
+		nStart += sprintf(buffer+nStart, "%s, ", (LPCTSTR)chEnc);
 		// add record count to index file if and only if RECORD_ACCESS type.
 		if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
 		{
 			recordCount.Encode(chEnc);
-			nStart += sprintf(buffer+nStart, "%s, ", chEnc);
+			nStart += sprintf(buffer+nStart, "%s, ", (LPCTSTR)chEnc);
 		}
 		objName.Encode(chEnc);
-		nStart += sprintf(buffer+nStart, "%s, ", chEnc);
+		nStart += sprintf(buffer+nStart, "%s, ", (LPCTSTR)chEnc);
 		nStart += sprintf(buffer+nStart, "%s\n", (LPCSTR)strDataFileName);
 		backupIndexFile.Write(buffer, strlen(buffer));
 

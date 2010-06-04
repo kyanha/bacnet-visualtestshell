@@ -120,8 +120,7 @@ BOOL VTSListOfReadAccessSpecDlg::OnInitDialog()
 	{	
 		ReadAccessSpecPtr wpmrplistPtr = m_PropListList.GetAt(m_PropListList.FindIndex(m));		
 		CString str;
-		wpmrplistPtr->rplObjID.Encode( str.GetBuffer( 32 ) );
-		str.ReleaseBuffer();
+		wpmrplistPtr->rplObjID.Encode( str );
 		m_strList.AddTail(str);	
 		wpmrplistPtr->Bind();
 		for(int n = 0; n < wpmrplistPtr->GetCount(); n++)

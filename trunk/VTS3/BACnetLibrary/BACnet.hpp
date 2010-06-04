@@ -21,8 +21,8 @@ typedef unsigned char	BACnetOctet, *BACnetOctetPtr;	// unsigned character
 //	General Constants
 //
 
-const unsigned short	kVendorID = 15;					// Cornell vendor ID
-const int				kMaxAddressLen = 8;				// longest address supported
+const unsigned 	kVendorID = 15;					// Cornell vendor ID
+const int		kMaxAddressLen = 8;				// longest address supported
 
 
 #define DATE_DONT_CARE	    0xFF				// indicates any value is OK
@@ -77,7 +77,6 @@ struct BACnetAddress {
 	};
 
 typedef BACnetAddress *BACnetAddressPtr;
-const int kBACnetAddressSize = sizeof( BACnetAddress );
 
 int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 );
 #if _TSMDebug
@@ -109,7 +108,7 @@ protected:
 		virtual void Decode( BACnetAPDUDecoder& dec );
 		void Peek( BACnetAPDUDecoder& dec );
 
-		virtual void Encode( char *enc ) const;
+		virtual void Encode( CString &enc ) const;
 		virtual void Decode( const char *dec );
 
 		virtual int DataType(void) {return 0;}
@@ -145,7 +144,7 @@ class BACnetAddr : public BACnetEncodeable
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
 		void Decode( BACnetAPDUDecoder& dec );
-		void Encode( char * enc ) const;
+		void Encode( CString &enc ) const;
 
 		virtual BACnetEncodeable * clone(void);
 
@@ -166,7 +165,7 @@ class BACnetNull : public BACnetEncodeable {
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual int DataType(void);
@@ -188,7 +187,7 @@ class BACnetBoolean : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		BACnetBoolean & operator =( const BACnetBoolean & arg );
@@ -219,10 +218,10 @@ class BACnetEnumerated : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
-		void Encode( char *enc, const char* const *table, int tsize ) const;
+		void Encode( CString &enc, const char* const *table, int tsize ) const;
 		void Decode( const char *dec, const char* const *table, int tsize );
 
 		BACnetEnumerated & operator =( const BACnetEnumerated & arg );
@@ -248,7 +247,7 @@ class BACnetUnsigned : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual int DataType(void);
@@ -272,7 +271,7 @@ class BACnetInteger : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual int DataType(void);
@@ -291,7 +290,7 @@ class BACnetReal : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual int DataType(void);
@@ -310,7 +309,7 @@ class BACnetDouble : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual int DataType(void);
@@ -351,7 +350,7 @@ class BACnetCharacterString : public BACnetEncodeable
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 		void KillBuffer(void);
 
@@ -389,7 +388,7 @@ class BACnetOctetString : public BACnetEncodeable {
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual BACnetEncodeable * clone(void);
@@ -414,7 +413,7 @@ class BACnetWeekNDay : public BACnetOctetString
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 
 		void Initialize( int nMonth, int nWeekOfMonth, int nDayOfWeek );
 		int GetMonth() { return m_nMonth; };
@@ -460,7 +459,7 @@ class BACnetBitString : public BACnetEncodeable {
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 		void KillBuffer(void);
 
@@ -496,7 +495,7 @@ class BACnetDate : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		CTime Convert(void) const;
@@ -533,7 +532,7 @@ class BACnetTime : public BACnetEncodeable {
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual int DataType(void);
@@ -550,9 +549,6 @@ class BACnetTime : public BACnetEncodeable {
 
 class BACnetDateTime : public BACnetEncodeable
 {
-	private:
-		CTime	ctime;		// holds date and time for comparisons, redundant with date/time BACnet objs.
-
 	public:
 		BACnetDate	bacnetDate;
 		BACnetTime	bacnetTime;
@@ -575,10 +571,10 @@ class BACnetDateTime : public BACnetEncodeable
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
 		void Decode( BACnetAPDUDecoder& dec );
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
-		CTime BACnetDateTime::Convert(void);
+		CTime Convert(void);
 
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
@@ -601,7 +597,7 @@ class BACnetDateRange : public BACnetEncodeable
 
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
 		void Decode( BACnetAPDUDecoder& dec );
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		BACnetDateRange &operator =( const BACnetDateRange & arg );
@@ -654,7 +650,7 @@ enum BACnetObjectType {
 		trendlogmultiple				= 27,
 		loadcontrol						= 28,
 		structuredView					= 29,
-		accessdoor						= 30,
+		accessdoor						= 30,	// Last object type in 135-2008
 		lightingOutput					= 31,
 		accessCredential				= 32,	/* addendum 2008-j */
 		accessPoint						= 33,
@@ -674,7 +670,7 @@ enum BACnetObjectType {
 		octetstringValue				= 47,
 		positiveIntegerValue			= 48,
 		timePatternValue				= 49,
-		timeValue						= 50
+		timeValue						= 50	// last in addendum 2008-w
 		};
 
 class BACnetObjectIdentifier : public BACnetEncodeable {
@@ -692,7 +688,7 @@ class BACnetObjectIdentifier : public BACnetEncodeable {
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 		unsigned int GetObjectType() const{ return (objID>> 22) & 0x000003ff;} //Added by Zhu Zhenhua 2003-7-22, to Get Object Type
 		unsigned int GetObjectInstance() const{ return objID & 0x003fffff;}
@@ -720,7 +716,7 @@ class BACnetObjectPropertyReference : public BACnetEncodeable
 		BACnetObjectPropertyReference &operator =( const BACnetObjectPropertyReference &arg );
 
 		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		virtual void Encode( char *enc ) const;
+		virtual void Encode( CString &enc ) const;
 		virtual void Decode(BACnetAPDUDecoder& dec);
 
 		virtual int DataType(void);
@@ -745,7 +741,7 @@ class BACnetDeviceObjectPropertyReference : public BACnetEncodeable
 		BACnetDeviceObjectPropertyReference &operator =( const BACnetDeviceObjectPropertyReference &arg );
 
 		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		virtual void Encode( char *enc ) const;
+		virtual void Encode( CString &enc ) const;
 		virtual void Decode(BACnetAPDUDecoder& dec);
 
 		virtual int DataType(void);
@@ -769,7 +765,7 @@ class BACnetDeviceObjectReference : public BACnetEncodeable
 		BACnetDeviceObjectReference &operator =( const BACnetDeviceObjectReference &arg );
 
 		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		virtual void Encode( char *enc ) const;
+		virtual void Encode( CString &enc ) const;
 		virtual void Decode(BACnetAPDUDecoder& dec);
 
 		virtual int DataType(void);
@@ -878,7 +874,7 @@ class BACnetAddressBinding : public BACnetEncodeable
 		
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
 		void Decode( BACnetAPDUDecoder& dec );
-		virtual void Encode( char *enc ) const;
+		virtual void Encode( CString &enc ) const;
 
 		BACnetAddressBinding &operator =( const BACnetAddressBinding & arg );
 
@@ -953,7 +949,7 @@ class BACnetBinaryPriV : public BACnetEnumerated
 		BACnetBinaryPriV( BACnetAPDUDecoder& dec );
 		BACnetBinaryPriV( int nValue = 0 );
 
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		DECLARE_DYNAMIC(BACnetBinaryPriV)
@@ -976,7 +972,7 @@ class BACnetObjectContainer : public BACnetEncodeable
 		// override these guys so they operate on held BACnet type not this.
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		bool IsObjectType( CRuntimeClass * pruntimeclass );
@@ -1081,7 +1077,7 @@ public:
 	BACnetRecipient( BACnetEncodeable * pbacnetEncodeable );	
 	void Encode(BACnetAPDUEncoder &enc, int Context = kAppContext);
 	void Decode(BACnetAPDUDecoder &dec);
-	void Encode( char *enc ) const;
+	void Encode( CString &enc ) const;
 	BACnetRecipient &operator = ( const BACnetRecipient &arg );
 	virtual int DataType(void);
 	virtual BACnetEncodeable * clone(void);
@@ -1104,7 +1100,7 @@ public:
 
 	void Encode(BACnetAPDUEncoder &enc, int Context = kAppContext);
 	void Decode(BACnetAPDUDecoder &dec);
-	void Encode( char *enc ) const;
+	void Encode( CString &enc ) const;
 
 	BACnetRecipientProcess &operator = ( const ::BACnetRecipientProcess &arg );
 
@@ -1135,7 +1131,7 @@ class BACnetCOVSubscription : public BACnetEncodeable
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
 		void Decode( BACnetAPDUDecoder& dec );
 
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		BACnetCOVSubscription &operator =( const BACnetCOVSubscription & arg );
@@ -1469,18 +1465,18 @@ class BACnetScale : public BACnetObjectContainer
 class BACnetPrescale : public BACnetEncodeable
 {
 	public:
-		unsigned short multiplier;
-		unsigned short moduloDivide;
+		unsigned multiplier;
+		unsigned moduloDivide;
 		
 		BACnetPrescale();		
-		BACnetPrescale(unsigned short multiplier, unsigned short moduloDivide);
+		BACnetPrescale(unsigned multiplier, unsigned moduloDivide);
 		BACnetPrescale( BACnetAPDUDecoder & dec );	
 
 		// override decode for special construction from stream
 		void Decode( BACnetAPDUDecoder& dec );								// decode
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual int DataType(void);
@@ -1495,20 +1491,20 @@ class BACnetAccumulatorRecord : public BACnetEncodeable
 {
 	public:
 		PICS::BACnetDateTime timestamp;
-		unsigned short presentValue;
-		unsigned short accumulatedValue;
-		unsigned short accumulatorStatus;
+		unsigned presentValue;
+		unsigned accumulatedValue;
+		unsigned accumulatorStatus;
 		
 		BACnetAccumulatorRecord();		
-		BACnetAccumulatorRecord(PICS::BACnetDateTime timestamp, unsigned short presentValue, 
-			unsigned short accumulatedValue, unsigned short accumulatorStatus);
+		BACnetAccumulatorRecord(PICS::BACnetDateTime timestamp, unsigned presentValue, 
+			unsigned accumulatedValue, unsigned accumulatorStatus);
 		BACnetAccumulatorRecord( BACnetAPDUDecoder & dec );	
 
 		// override decode for special construction from stream
 		void Decode( BACnetAPDUDecoder& dec );								// decode
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual int DataType(void);
@@ -1521,20 +1517,18 @@ class BACnetAccumulatorRecord : public BACnetEncodeable
 class BACnetShedLevel : public BACnetEncodeable
 {
 	public:
-		unsigned short context;
-		unsigned short percent;
-		unsigned short level;
-		float amount;
+		unsigned context;
+		float value;
 		
 		BACnetShedLevel();		
-		BACnetShedLevel(unsigned short context, float value);
+		BACnetShedLevel(unsigned context, float value);
 		BACnetShedLevel( BACnetAPDUDecoder & dec );	
 
 		// override decode for special construction from stream
 		void Decode( BACnetAPDUDecoder& dec );								// decode
 		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
 		virtual int DataType(void);
@@ -1562,7 +1556,7 @@ class BACnetGenericArray : public BACnetEncodeable
 		// override these guys so they operate on held BACnet type not this.
 		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
 		virtual void Decode( BACnetAPDUDecoder& dec );								// decode
-		virtual void Encode( char *enc ) const;
+		virtual void Encode( CString &enc ) const;
 		virtual void Decode( const char *dec );
 
 		virtual const char * ToString() const;
@@ -1844,7 +1838,7 @@ class BACnetOpeningTag : public BACnetEncodeable {
 		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
 		void Decode( BACnetAPDUDecoder& dec );					// decode
 
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 	};
 
 class BACnetClosingTag : public BACnetEncodeable {
@@ -1852,7 +1846,7 @@ class BACnetClosingTag : public BACnetEncodeable {
 		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
 		void Decode( BACnetAPDUDecoder& dec );					// decode
 
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 	};
 
 // Handle decoding of arbitrary tagged items in an APDU
@@ -1868,7 +1862,7 @@ class BACnetANY: public BACnetEncodeable {
 		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
 		void Decode( BACnetAPDUDecoder& dec );					// decode
 
-		void Encode( char *enc ) const;
+		void Encode( CString &enc ) const;
 
 		DECLARE_DYNAMIC(BACnetANY)
 	};
@@ -1949,6 +1943,7 @@ class BACnetAPDUEncoder {
 	public:
 		BACnetAPDUEncoder( int initBuffSize = kDefaultBufferSize );
 		BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
+		BACnetAPDUEncoder( const BACnetAPDUEncoder &theEncoder );
 		~BACnetAPDUEncoder( void );
 		
 		BACnetOctet			*pktBuffer;				// pointer to start of buffer
@@ -1961,10 +1956,13 @@ class BACnetAPDUEncoder {
 		void Append( BACnetOctet ch );				// simple copy, should be inline!
 		void Append( BACnetOctet *buff, int len );	// raw copy into buffer
 		void Flush( void );							// remove all contents
+
+	private:
+		// Private to prevent copy
+		operator=( BACnetAPDUEncoder const & );
 	};
 
 typedef BACnetAPDUEncoder *BACnetAPDUEncoderPtr;
-const int kBACnetAPDUEncoderSize = sizeof( BACnetAPDUEncoder );
 
 //
 //	BACnetAPDUDecoder
@@ -1997,7 +1995,6 @@ class BACnetAPDUDecoder {
 	};
 
 typedef BACnetAPDUDecoder *BACnetAPDUDecoderPtr;
-const int kBACnetAPDUDecoderSize = sizeof( BACnetAPDUDecoder );
 
 #if _TSMDebug
 ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec );

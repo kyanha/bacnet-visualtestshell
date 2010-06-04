@@ -7901,5 +7901,8 @@
 		</File>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="VTS.rc"/>
 	</Globals>
 </VisualStudioProject>

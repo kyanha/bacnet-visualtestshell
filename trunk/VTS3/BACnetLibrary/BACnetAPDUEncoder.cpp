@@ -40,10 +40,22 @@ BACnetAPDUEncoder::BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen )
 //
 
 BACnetAPDUEncoder::BACnetAPDUEncoder( int initBuffSize )
-	: pktBuffSize(initBuffSize), pktBuffer(0), pktLength(0)
+	: pktBuffSize(initBuffSize), pktBuffer(NULL), pktLength(0)
 {
 	if (initBuffSize != 0)
 		pktBuffer = new BACnetOctet[initBuffSize];
+}
+
+//
+//	BACnetAPDUEncoder::BACnetAPDUEncoder
+//
+// Copy constructor
+BACnetAPDUEncoder::BACnetAPDUEncoder( BACnetAPDUEncoder const &theEncoder )
+	: pktBuffSize(0), pktBuffer(NULL), pktLength(0)
+{
+	// Deep copy of data into new buffer
+	NewBuffer( theEncoder.pktBuffSize );
+	Append( theEncoder.pktBuffer, theEncoder.pktLength );
 }
 
 //
@@ -70,10 +82,9 @@ BACnetAPDUEncoder::~BACnetAPDUEncoder( void )
 
 void BACnetAPDUEncoder::SetBuffer( const BACnetOctet *buffer, int len )
 {
-	if ((pktBuffer != NULL) && (pktBuffSize != 0))
-	{
+	// delete the buffer if we own it
+	if (pktBuffSize != 0)
 		delete[] pktBuffer;
-	}
 	
 	pktBuffSize = 0;
 	pktBuffer = (BACnetOctetPtr)buffer;		// cast away const
@@ -120,10 +131,7 @@ void BACnetAPDUEncoder::CheckSpace( int len )
 		newSize += kDefaultBufferSize;
 	
 	// make a new bigger buffer
-	BACnetOctet		*newBuffer
-	;
-	
-	newBuffer = new BACnetOctet[ newSize ];
+	BACnetOctet	*newBuffer = new BACnetOctet[ newSize ];
 	if (!newBuffer)
 		throw_(2);
 	

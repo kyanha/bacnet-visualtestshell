@@ -82,6 +82,25 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+VTSAnyElement::VTSAnyElement()
+: elemType(0)
+, elemContext(0)
+, elemEncoder()
+{
+}
+
+VTSAnyElement::VTSAnyElement( const VTSAnyElement &theElement )
+: elemType(theElement.elemType)
+, elemContext(theElement.elemContext)
+, elemEncoder(theElement.elemEncoder)
+{
+}
+
+VTSAnyElement::~VTSAnyElement()
+{
+}
+
+
 //
 //	VTSAnyList::VTSAnyList
 //
@@ -104,7 +123,9 @@ VTSAnyList::~VTSAnyList( void )
 void VTSAnyList::KillAll()
 {
 	for ( POSITION ppos = GetHeadPosition(); ppos != NULL; )
-		delete (VTSAnyElementPtr)GetNext( ppos );
+	{
+		delete GetNext( ppos );
+	}
 
 	RemoveAll();
 }
@@ -116,11 +137,8 @@ void VTSAnyList::KillAll()
 
 void VTSAnyList::Add( void )
 {
-	VTSAnyElementPtr	cur
-	;
-
 	// create a new element
-	cur = new VTSAnyElement;
+	VTSAnyElementPtr cur = new VTSAnyElement;
 
 	// initialize the type and context
 	cur->elemType = 0;
@@ -200,11 +218,7 @@ VTSAny& VTSAny::operator = (const VTSAny& any)
 	   for(int index = 0; index < any.m_anyList.GetCount(); index++)
 	   {		    
 			VTSAnyElementPtr old_elemPtr = any.m_anyList.GetAt(any.m_anyList.FindIndex(index));
-			VTSAnyElementPtr elemPtr = new VTSAnyElement();
-			
-            elemPtr->elemContext = old_elemPtr->elemContext;
-			elemPtr->elemType = old_elemPtr->elemType;	
-			elemPtr->elemEncoder = old_elemPtr->elemEncoder;
+			VTSAnyElementPtr elemPtr = new VTSAnyElement( *old_elemPtr );
 			
 			m_anyList.AddTail(elemPtr);
 		}
