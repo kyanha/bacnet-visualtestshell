@@ -876,15 +876,15 @@ static char *StandardObjects[]={
 			"Access Zone",
 			"Credential Data Input", 		
 			"Network Security",				/* addendum 2008-g */
-			"Bitstring Value",				/* addendum 2008-w */
-			"Characterstring Value",
+			"BitString Value",				/* addendum 2008-w */
+			"CharacterString Value",
 			"Date Pattern Value",
 			"Date Value",
-			"Datetime Pattern Value",
-			"Datetime Value",
+			"DateTime Pattern Value",
+			"DateTime Value",
 			"Integer Value",
 			"Large Analog Value",
-			"Octetstring Value",
+			"OctetString Value",
 			"Positive Integer Value",
 			"Time Pattern Value",
 			"Time Value"					// 50
