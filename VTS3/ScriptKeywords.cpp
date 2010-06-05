@@ -82,142 +82,51 @@ ScriptTranslateTable ScriptALMsgTypeMap[] =
 //	AL Service Choices
 //
 
-ScriptTranslateTable ScriptALConfirmedServiceMap[] =
-	{ { 0xab6d1e6a,  0 }					// ACKNOWLEDGEALARM
-	, { 0x3cb39a42,  1 }					// CONFIRMEDCOVNOTIFICATION
-	, { 0xa3199d6d,  2 }					// CONFIRMEDEVENTNOTIFICATION
-	, { 0x82ef96f3,  3 }					// GETALARMSUMMARY
-	, { 0x215f7c25,  4 }					// GETENROLLMENTSUMMARY
-	, { 0xac01f937,  5 }					// SUBSCRIBECOV
-	, { 0x83874b40,  6 }					// ATOMICREADFILE
-	, { 0xced53372,  7 }					// ATOMICWRITEFILE
-	, { 0x14a62359,  8 }					// ADDLISTELEMENT
-	, { 0x3781ff05,  9 }					// REMOVELISTELEMENT
-	, { 0x9f0f989e, 10 }					// CREATEOBJECT
-	, { 0x130be39e, 11 }					// DELETEOBJECT
-	, { 0xc562eb57, 12 }					// READPROPERTY
-	, { 0x207267b4, 13 }					// READPROPERTYCONDITIONAL
-	, { 0x0f1b6c57, 14 }					// READPROPERTYMULTIPLE
-	, { 0xb988389a, 15 }					// WRITEPROPERTY
-	, { 0xeaf680ca, 16 }					// WRITEPROPERTYMULTIPLE
-	, { 0x3264db4b, 17 }					// DEVICECOMMUNICATIONCONTROL
-	, { 0x71e49612, 18 }					// CONFIRMEDPRIVATETRANSFER
-	, { 0x4f9f9daf, 19 }					// CONFIRMEDTEXTMESSAGE
-	, { 0x0b72caf4, 20 }					// REINITIALIZEDEVICE
-	, { 0xc48dddd0, 21 }					// VTOPEN
-	, { 0x7dd10cf5, 22 }					// VTCLOSE
-	, { 0x0fa4f51c, 23 }					// VTDATA
-	, { 0xd08d352b, 24 }					// AUTHENTICATE
-	, { 0x9c38b663, 25 }					// REQUESTKEY
-	, { 0x5F156F1A, 26 }					// READRANGE			added by xuyiping 2002-8-29
-	, { 0xe7bde28d, 27 }                    // LIFESAFETYOPERATION
-	, { 0x0971d2e9, 28 }                    // SUBSCRIBECOVPROPERTY
-	, { 0xBC29635E, 29 }					// GETEVENTINFORMATION  Added by Zhu Zhenhua, 2004-5-25
-	, { 0, 0 }
-	};
+// Built at runtime from the StringTable
+ScriptTranslateTable *ScriptALConfirmedServiceMap;
 
-ScriptTranslateTable ScriptALUnconfirmedServiceMap[] =
-	{ { 0xac8ab1d2, 0 }						// I-AM
-	, { 0x9e0420f5, 1 }						// I-HAVE
-	, { 0x1c25f7cd, 2 }						// UNCONFIRMEDCOVNOTIFICATION
-	, { 0x2c0a8678, 3 }						// UNCONFIRMEDEVENTNOTIFICATION
-	, { 0x38121a2f, 4 }						// UNCONFIRMEDPRIVATETRANSFER
-	, { 0x6cb62a04, 5 }						// UNCONFIRMEDTEXTMESSAGE
-	, { 0x64a09d6a, 6 }						// TIMESYNCHRONIZATION
-	, { 0x474218f1, 7 }						// WHO-HAS
-	, { 0xb0e1c86d, 8 }						// WHO-IS
-// Added by Yajun Zhou, 2002-7-11
-	, { 0xf908f2f1, 9 }						// UTCTIMESYNCHRONIZATION
-/////////////////////////////
-	, { 0, 0 }
-	};
+// Built at runtime from the StringTable
+ScriptTranslateTable *ScriptALUnconfirmedServiceMap;
 
 //
 //	Error and Abort Reasons
 //
 
-ScriptTranslateTable ScriptALRejectReasonMap[] = 
-	{ { 0xeba74173, 0 }						// OTHER
-	, { 0x54604281, 1 }						// BUFFER-OVERFLOW
-	, { 0xe74ff917, 2 }						// INCONSISTENT-PARAMETERS
-	, { 0x33d26973, 3 }						// INVALID-PARAMETER-DATA-TYPE
-	, { 0x67ec4254, 4 }						// INVALID-TAG
-	, { 0xf4bb55d8, 5 }						// MISSING-REQUIRED-PARAMETER
-	, { 0x7538b688, 6 }						// PARAMETER-OUT-OF-RANGE
-	, { 0x3e714c43, 7 }						// TOO-MANY-ARGUMENTS
-	, { 0x21565c48, 8 }						// UNDEFINED-ENUMERATION
-	, { 0x900c11d8, 9 }						// UNRECOGNIZED-SERVICE
-	, { 0, 0 }
-	};
+// Built at runtime from the StringTable
+ScriptTranslateTable *ScriptALRejectReasonMap;
 
-ScriptTranslateTable ScriptALAbortReasonMap[] = 
-	{ { 0xeba74173, 0 }						// OTHER
-	, { 0x54604281, 1 }						// BUFFER-OVERFLOW
-	, { 0x9cf0a085, 2 }						// INVALID-APDU-IN-THIS-STATE
-	, { 0xbd8da0ca, 3 }						// PREEMPTED-BY-HIGHER-PRIORITY-TASK
-	, { 0x8d1bd069, 4 }						// SEGMENTATION-NOT-SUPPORTED
-	, { 0, 0 }
-	};
+// Built at runtime from the StringTable
+ScriptTranslateTable *ScriptALAbortReasonMap;
 
-//
-//	Object Type Keywords
-//
+// Object Type Keywords, built at runtime from the StringTable
+// and the alias list below.
+ScriptTranslateTable *ScriptObjectTypeMap;
 
-ScriptTranslateTable ScriptObjectTypeMap[] =
-	{ { 0x7DE7AD77,  0 }					// ANALOG-INPUT
-	, { 0x4F4FB029,  0 }					// AI
-	, { 0xFEE3F6DF,  1 }					// ANALOG-OUTPUT
+// Alias list for object types.
+// These are largely historical, and the newer objects tend to be
+// obscure enough to argue against short aliases.
+// But AI/AO/AV etc to the point objects are convenient.
+const static ScriptTranslateTable ScriptObjectTypeMap_Aliases[] =
+{     { 0x4F4FB029,  0 }					// AI
 	, { 0x424AA5F5,  1 }					// AO
-	, { 0x6C124D20,  2 }					// ANALOG-VALUE
 	, { 0x086F6F63,  2 }					// AV
-	, { 0x4EEB918E,  3 }					// BINARY-INPUT
 	, { 0x4FAFB960,  3 }					// BI
-	, { 0xCFE7DAF6,  4 }					// BINARY-OUTPUT
 	, { 0x42AAAF2C,  4 }					// BO
-	, { 0x3D163137,  5 }					// BINARY-VALUE
 	, { 0x08CF789A,  5 }					// BV
-	, { 0x5C6CE8BA,  6 }					// CALENDAR
 	, { 0x80DDC343,  6 }					// CAL
-	, { 0x7580BFD3,  7 }					// COMMAND
 	, { 0x59EB1404,  7 }					// COM
-	, { 0xC6DBC30F,  8 }					// DEVICE
 	, { 0xCD8A8E14,  8 }					// DEV
-	, { 0x92858852,  9 }					// EVENT-ENROLLMENT
 	, { 0xBAB1FB08,  9 }					// EVE
-	, { 0xE9A3598C, 10 }					// FILE
-	, { 0xED2293C4, 11 }					// GROUP
-	, { 0x7A76AE6D, 12 }					// LOOP
-	, { 0x71B72EC4, 13 }					// MULTISTATE-INPUT
 	, { 0x53D01EBD, 13 }					// MI
-	, { 0x0FE88C80, 14 }					// MULTISTATE-OUTPUT
 	, { 0x46CB1489, 14 }					// MO
-	//, { 0xA22F2639, 15 }					// NOTIFICATION-CLASS
-	, { 0xC4C5900C, 15 }					//ADD BY Liangping Xu,2002-8
 	, { 0x61353228, 15 }					// NC
-	, { 0x3A980404, 16 }					// PROGRAM
 	, { 0x71D084EF, 16 }					// PRO
-	, { 0x105A8215, 17 }					// SCHEDULE
 	, { 0xFA230323, 17 }					// SCH
-	, { 0x3771A5E3, 18 }					// AVERAGING
 	, { 0x52B95396, 18 }					// AVG
-	, { 0xE83992C9, 19 }					// MULTISTATE-VALUE
 	, { 0x5D3473DF, 19 }					// MSV
-	, { 0xb6f0ce38, 20 }					// TREND-LOG    // fixed 1/5/2006
 	, { 0xC2E8CFF0, 20 }					// TR
-
-	// Added JLH 25-Jan-2010
-	, { 0x36c7b975, 21 }                    // LIFE-SAFETY-POINT
-	, { 0x5906dc54, 22 }                    // LIFE-SAFETY-ZONE
-	, { 0xb348f6a5, 23 }                    // ACCUMULATOR
-	, { 0x08ce27c5, 24}	                    // PULSE-CONVERTER
-	, { 0xde8871b7, 25 }                    // EVENT-LOG
-	, { 0x90cf9601, 26 }                    // GLOBAL-GROUP
-	, { 0xfdf5d47a, 27 }                    // TREND-LOG-MULTIPLE
-	, { 0xc5c4b5a2, 28 }                    // LOAD-CONTROL
-	, { 0x9f6849cd, 29 }                    // STRUCTURED-VIEW
-	, { 0x79d71549, 30 }                    // ACCESS-DOOR
 	, { 0, 0 }
-	};
+};
 
 //
 //	Application Layer Keywords
@@ -357,307 +266,12 @@ ScriptTranslateTable ScriptMonthMap[] =
 	, { 0, 0 }
 	};
 
-//
-//	Property Keywords
-//
+// Property Keywords, built at runtime from StringTable
+ScriptTranslateTable *ScriptPropertyMap;
 
-ScriptTranslateTable ScriptPropertyMap[] =
-	{ { 0xD2C8E5BA,   0 }					// ACKED-TRANSITIONS
-	, { 0x7B14B2C1,   1 }					// ACK-REQUIRED
-	, { 0x412831F6,   2 }					// ACTION
-	, { 0xD9B8BC52,   3 }					// ACTION-TEXT
-	, { 0x191D1621,   4 }					// ACTIVE-TEXT
-	, { 0x9EBC7807,   5 }					// ACTIVE-VT-SESSIONS
-	, { 0x6D6C0816,   6 }					// ALARM-VALUE
-	, { 0xFB3F577A,   7 }					// ALARM-VALUES
-	, { 0x92E9C8CB,   8 }					// ALL
-	, { 0x9EC2E38C,   9 }					// ALL-WRITES-SUCCESSFUL
-	, { 0x9C2F5CC2,  10 }					// APDU-SEGMENT-TIMEOUT
-	, { 0x61CAB451,  11 }					// APDU-TIMEOUT
-	, { 0xD2476890,  12 }					// APPLICATION-SOFTWARE-VERSION
-	, { 0xA3A2DE5E,  13 }					// ARCHIVE
-	, { 0xAC5F9EB9,  14 }					// BAIS
-	, { 0xDC62963D,  15 }					// CHANGE-OF-STATE-COUNT
-	, { 0x59DA69D0,  16 }					// CHANGE-OF-STATE-TIME
-//	, { 0xXXXXXXXX,  17 }					// see NOTIFICATION-CLASS
-//	, { 0xXXXXXXXX,  18 }					// deleted
-	, { 0x30ABA767,  19 }					// CONTROLLED-VARIABLE-REFERENCE
-	, { 0xE6E8E6CD,  20 }					// CONTROLLED-VARIABLE-UNITS
-	, { 0x5D8F717B,  21 }					// CONTROLLED-VARIABLE-VALUE
-	, { 0x533D4619,  22 }					// COV-INCREMENT
-	, { 0x5198af72,  23 }					// DATE-LIST     // fixed 1/5/2006
-// Modified by Yajun Zhou, 2002-7-10
-//	, { 0x549D27C7,  24 }					// DAYLIGHT-SAVINGS-TIME
-	, { 0x16B1C6EA,  24 }					// DAYLIGHT-SAVINGS-STATUS
-/////////////////////////////////////////////////////////
-	, { 0xFC57BCA5,  25 }					// DEADBAND
-	, { 0x50E4A6CC,  26 }					// DERIVATIVE-CONSTANT
-	, { 0x53A94439,  27 }					// DERIVATIVE-CONSTANT-UNITS
-	, { 0xFC4184B0,  28 }					// DESCRIPTION
-	, { 0x545345BD,  29 }					// DESCRIPTION-OF-HALT
-	, { 0x5B30BCF5,  30 }					// DEVICE-ADDRESS-BINDING
-	, { 0xA9D91124,  31 }					// DEVICE-TYPE
-	, { 0x7B9E250F,  32 }					// EFFECTIVE-PERIOD
-	, { 0x3749C65F,  33 }					// ELAPSED-ACTIVE-TIME
-	, { 0xEAB41C26,  34 }					// ERROR-LIMIT
-	, { 0xFCDAF7EA,  35 }					// EVENT-ENABLE
-	, { 0x8B3EDE45,  36 }					// EVENT-STATE
-	, { 0xA3512088,  37 }					// EVENT-TYPE
-	, { 0x14DCAFD3,  83 }					// EVENT-PARAMETERS
-	, { 0x1006DA3E,  38 }					// EXCEPTION-SCHEDULE
-	, { 0x5ECB0648,  39 }					// FAULT-VALUES
-	, { 0x56181F0D,  40 }					// FEEDBACK-VALUE
-	, { 0xFFB2BF6A,  41 }					// FILE-ACCESS-METHOD
-	, { 0xBBA878C9,  42 }					// FILE-SIZE
-	, { 0x75ACD62F,  43 }					// FILE-TYPE
-//	, { 0x994F7B6D,  44 }					// FIRMWARE-VERSION
-	, { 0x9BB4850F,  44 }					// FIRMWARE-REVISION
-	, { 0x33D5FACC,  45 }					// HIGH-LIMIT
-	, { 0x7BF647A4,  46 }					// INACTIVE-TEXT
-	, { 0x35640442,  47 }					// IN-PROCESS
-	, { 0xF762EB13,  48 }					// INSTANCE-OF
-	, { 0xB127830F,  49 }					// INTEGRAL-CONSTANT
-	, { 0xC99DB0A0,  50 }					// INTEGRAL-CONSTANT-UNITS
-	, { 0x2EB54B81,  51 }					// ISSUE-CONFIRMED-NOTIFICATIONS
-	, { 0x143F3245,  52 }					// LIMIT-ENABLE
-	, { 0x91B5E524,  53 }					// LIST-OF-GROUP-MEMBERS
-	, { 0xCF63D8A1,  54 }					// LIST-OF-OBJECT-PROPERTY-REFERENCES
-	, { 0xA1D61611,  55 }					// LIST-OF-SESSION-KEYS
-	, { 0x204D60D1,  56 }					// LOCAL-DATE
-	, { 0x96685458,  57 }					// LOCAL-TIME
-	, { 0x1D788616,  58 }					// LOCATION
-	, { 0xB87DC3B4,  59 }					// LOW-LIMIT
-	, { 0xEE9D6B1B,  60 }					// MANIPULATED-VARIABLE-REFERENCE
-	, { 0xC1CA1939,  61 }					// MAXIMUM-OUTPUT
-	, { 0x9BFEA8B6,  62 }					// MAX-APDU-LENGTH-ACCEPTED
-	, { 0x3F6E54AB,  63 }					// MAX-INFO-FRAMES
-	, { 0x3CB7BEB8,  64 }					// MAX-MASTER
-	, { 0xA963610B,  65 }					// MAX-PRES-VALUE
-	, { 0x01F908A7,  66 }					// MINIMUM-OFF-TIME
-	, { 0xB04C1D6D,  67 }					// MINIMUM-ON-TIME
-	, { 0x5B734337,  68 }					// MINIMUM-OUTPUT
-	, { 0x430C8B09,  69 }					// MIN-PRES-VALUE
-	, { 0x3B04506E,  70 }					// MODEL-NAME
-	, { 0xEFAFF308,  71 }					// MODIFICATION-DATE
-	, { 0xC4C5900C,  17 }					// NOTIFICATION-CLASS
-	, { 0x7B445305,  72 }					// NOTIFY-TYPE
-	, { 0xA274AE5F,  73 }					// NUMBER-OF-APDU-RETRIES
-	, { 0x53163088,  74 }					// NUMBER-OF-STATES
-	, { 0xEFD39023,  75 }					// OBJECT-IDENTIFIER
-	, { 0xE10A423A,  76 }					// OBJECT-LIST
-	, { 0x1C6E0833,  77 }					// OBJECT-NAME
-	, { 0xD4EC967F,  78 }					// OBJECT-PROPERTY-REFERENCE
-	, { 0x1204F8C9,  79 }					// OBJECT-TYPE
-	, { 0xE8B689C3,  80 }					// OPTIONAL
-	, { 0x8234FD41,  81 }					// OUT-OF-SERVICE
-	, { 0xCF5CB087,  82 }					// OUTPUT-UNITS
-//	, { 0xXXXXXXXX,  83 }					// see EVENT-PARAMETERS
-	, { 0x6EA83676,  84 }					// POLARITY
-	, { 0xC4FC82DB,  85 }					// PRESENT-VALUE
-	, { 0x45B0B875,  86 }					// PRIORITY
-	, { 0xBD86E34D,  87 }					// PRIORITY-ARRAY
-	, { 0xAAF64072,  88 }					// PRIORITY-FOR-WRITING
-	, { 0xFD38DEB6,  89 }					// PROCESS-IDENTIFIER
-	, { 0x84BD27B1,  90 }					// PROGRAM-CHANGE
-	, { 0xF6C4F02A,  91 }					// PROGRAM-LOCATION
-	, { 0x8F5C8F25,  92 }					// PROGRAM-STATE
-	, { 0x4264B4A4,  93 }					// PROPORTIONAL-CONSTANT
-	, { 0x0121A66D,  94 }					// PROPORTIONAL-CONSTANT-UNITS
-	, { 0x24FD3E1D,  95 }					// PROTOCOL-CONFORMANCE-CLASS
-	//, { 0x72D66985,  96 }					// PROTOCOL-TYPES-SUPPORTED
-	, { 0x1858a772,  96 }					// PROTOCOL-OBJECT-TYPES-SUPPORTED
-	, { 0xB4C9E525,  97 }					// PROTOCOL-SERVICES-SUPPORTED
-	, { 0x8187E6DB,  98 }					// PROTOCOL-VERSION
-	, { 0xD023E3E3,  99 }					// READ-ONLY
-	, { 0xC5611A2C, 100 }					// REASON-FOR-HALT
-	, { 0x788F1962, 101 }					// RECIPIENT
-	, { 0x47F52455, 102 }					// RECIPIENT-LIST
-	, { 0x77DB2094, 103 }					// RELIABILITY
-	, { 0x9B12078B, 104 }					// RELINQUISH-DEFAULT
-	, { 0x764659ED, 105 }					// REQUIRED
-	, { 0x50C6871E, 106 }					// RESOLUTION
-	, { 0x7053A72B, 107 }					// SEGMENTATION-SUPPORTED
-	, { 0xE3E4B784, 108 }					// SETPOINT
-	, { 0x04566513, 109 }					// SETPOINT-REFERENCE
-	, { 0xD7201E1B, 110 }					// STATE-TEXT
-	, { 0xDE1DCE4D, 111 }					// STATUS-FLAGS
-	, { 0x414C7A0F, 112 }					// SYSTEM-STATUS
-	, { 0x7405A2F0, 113 }					// TIME-DELAY
-	, { 0xCFC0E52D, 114 }					// TIME-OF-ACTIVE-TIME-RESET
-	, { 0x4819BCEE, 115 }					// TIME-OF-STATE-COUNT-RESET
-	, { 0xC6301FD8, 116 }					// TIME-SYNCHRONIZATION-RECIPIENTS
-	, { 0x6E680555, 117 }					// UNITS
-	, { 0x076DBEF9, 118 }					// UPDATE-INTERVAL
-	, { 0x967878D0, 119 }					// UTC-OFFSET
-	, { 0x1AD595F2, 120 }					// VENDOR-IDENTIFIER
-	, { 0x47700E02, 121 }					// VENDOR-NAME
-	, { 0x70A3D8F0, 122 }					// VT-CLASSES-SUPPORTED
-	, { 0x85001409, 123 }					// WEEKLY-SCHEDULE
+// Built at runtime from the StringTable
+ScriptTranslateTable *scriptStandardServicesMap;
 
-// added 1/5/2006 by Lori Tribble	
-	, { 0x145bdb7b, 124 }                   // ATTEMPTED-SAMPLES
-	, { 0x01e4cc31, 125 }                   // average-value
-	, { 0x519731fa, 126 }                   // buffer-size	
-	, { 0x4b7ec038, 127 }                   // client-cov-increment
-	, { 0x06f5a877, 128 }                   // cov-resubscription-interval
-	//, { 0x00000000, 129 }                   // unused,	current-notify-time was deleted in version 1 revision 3.
-	, { 0x4a7f3fcc, 130 }                   // event-time-stamps
-	, { 0x0ed94132, 131 }                   // log-buffer
-	, { 0xd8434882, 132 }                   // log-device-object-property
-	, { 0x9ce888d3, 133 }                   // log-enable
-	, { 0xe0c14afb, 134 }                   // log-interval
-	, { 0xe989f346, 135 }                   // maximum-value
-	, { 0x83331d44, 136 }                   // minimum-value
-	, { 0x6fcc3db4, 137 }                   // notification-threshold
-	//, { 0x00000000, 138 }                   // unused,	previous-notify-time was deleted in version 1 revision 3.
-	, { 0x27de87b0, 140 }                   // records-since-notification
-	, { 0x2cf137df, 141 }                   // record-count
-	, { 0xe1fa43f5, 142 }                   // start-time
-	, { 0xedf4c093, 143 }                   // stop-time
-	, { 0xe0148693, 144 }                   // stop-when-full
-	, { 0x8d399ad5, 145 }                   // total-record-count
-	, { 0x5eedfe6d, 146 }                   // valid-samples
-	, { 0x9fc09c84, 147 }                   // window-interval
-	, { 0x6d61b4e7, 148 }                   // window-samples
-	, { 0x2f122c55, 149 }                   // maximum-value-timestamp
-	, { 0xc8bb5653, 150 }                   // minimum-value-timestamp
-	, { 0x9bfe9805, 151 }                   // variance-value
-	, { 0X692957dd, 152 }					//ACTIVE_COV_SUBSCRIPTIONS
-	, { 0x122719fe, 153 }                   // backup-failure-timeout
-	, { 0x04c00e4e, 154 }                   // configuration-files
-	, { 0xb603fe6b, 156 }                   // direct-reading
-	, { 0xa32e8218, 157 }                   // last-restore-time
-	, { 0x91d29fa0, 158 }                   // maintenance-required
-	, { 0xb22fa708, 159 }                   // member-of
-	, { 0x79209a31, 160 }                   // mode
-	, { 0x430ee957, 161 }                   // operation-expected
-	, { 0x216df9e9, 162 }                   // setting
-	, { 0x42095de8, 163 }                   // silenced
-	, { 0x4fee86e7, 164 }                   // tracking-value
-	, { 0xa4fe6ece, 165 }                   // zone-members	
-	, { 0x81bfa098, 166 }                   // life-safety-alarm-values
-	, { 0xad4d0cb8, 168 }                   // profile-name	
-	, { 0xa27be56d, 169 }                   // auto-slave-discovery	
-	, { 0x79e33e4f, 170 }                   // manual-slave-address-binding
-	, { 0xf17261da, 171 }                   // slave-address-binding
-	, { 0x586535ab, 172 }                   // slave-proxy-enable
-	, { 0xb6ee1702, 173 }                   // last-notify-time
-	, { 0x50cb13c6, 174 }                   // schedule-default
-// above were added 1/5/2006 by Lori Tribble
-	, { 0x83ECF07D, 139 }					//PROTOCOL-REVISION
-	, { 0X684A30CD, 155 }					//DATABASE-REVISION    kare.sars@wapice.com 2005
-	, { 0X2DC1631D, 167 }					//MAX-SEGMENTS-ACCEPTED kare.sars@wapice.com 2005
-	, { 0xebbf5f06, 175 }                   // accepted-modes  added 2/15/2006 LJT
-
-	// JLH 25-January-2010
-	, { 0x256ace07, 176 }                   // ADJUST-VALUE
-	, { 0x14f48270, 177 }                   // COUNT
-	, { 0x6810ef08, 178 }                   // COUNT-BEFORE-CHANGE
-	, { 0x9f1e5f8e, 179 }                   // COUNT-CHANGE-TIME
-	, { 0xcb1e40b6, 180 }                   // COV-PERIOD
-	, { 0xbbfc7ff6, 181 }                   // INPUT-REFERENCE
-	, { 0x0a7ffe60, 182 }                   // LIMIT-MONITORING-INTERVAL
-	, { 0xbe59fa7e, 183 }                   // LOGGING-DEVICE
-	, { 0xcedcc298, 184 }                   // LOGGING-RECORD
-	, { 0x60bad11c, 185 }                   // PRESCALE
-	, { 0xf0a828a7, 186 }                   // PULSE-RATE
-	, { 0xa97b8ddf, 187 }                   // SCALE
-	, { 0xfcef704b, 188 }                   // SCALE-FACTOR
-	, { 0xb7844f1c, 189 }                   // UPDATE-TIME
-	, { 0x4f69a743, 190 }                   // VALUE-BEFORE-CHANGE
-	, { 0xb6bbf190, 191 }                   // VALUE-SET
-	, { 0x867717c9, 192 }                   // VALUE-CHANGE-TIME
-	// Added in 135-2008
-	, { 0xc72c8737, 193 }                   // ALIGN-INTERVALS
-	, { 0xca08d008, 195 }                   // INTERVAL-OFFSET
-	, { 0xce286d96, 196 }                   // LAST-RESTART-REASON
-	, { 0xc2016991, 197 }                   // LOGGING-TYPE
-	, { 0x26ace4eb, 202 }                   // RESTART-NOTIFICATION-RECIPIENTS
-	, { 0x7e7e0db5, 203 }                   // TIME-OF-DEVICE-RESTART
-	, { 0x85f4b60b, 204 }                   // TIME-SYNCHRONIZATION-INTERVAL
-	, { 0xea9dc67e, 205 }                   // TRIGGER
-	, { 0x2bce783a, 206 }                   // UTC-TIME-SYNCHRONIZATION-RECIPIENTS
-	, { 0xede99158, 207 }                   // NODE-SUBTYPE
-	, { 0x058a200b, 208 }                   // NODE-TYPE
-	, { 0x59ff7dd7, 209 }                   // STRUCTURED-OBJECT-LIST
-	, { 0x0a7701f7, 210 }                   // SUBORDINATE-ANNOTATIONS
-	, { 0x977f09bd, 211 }                   // SUBORDINATE-LIST
-	, { 0xc0be1af3, 212 }                   // ACTUAL-SHED-LEVEL
-	, { 0xcce95635, 213 }                   // DUTY-WINDOW
-	, { 0x1882a7a0, 214 }                   // EXPECTED-SHED-LEVEL
-	, { 0x2b4e7142, 215 }                   // FULL-DUTY-BASELINE
-	// 216 and 217 are listed in the comments are redundant definitions for node-type and node-subtype
-	, { 0xba1cc33f, 218 }                   // REQUESTED-SHED-LEVEL
-	, { 0x0d0c847c, 219 }                   // SHED-DURATION
-	, { 0x80855c05, 220 }                   // SHED-LEVEL-DESCRIPTIONS
-	, { 0x3537dc1c, 221 }                   // SHED-LEVELS
-	// STATE-DESCRIPTION                   = 222, in comments, but not in definition
-	, { 0x053cb6b9, 226 }                   // DOOR-ALARM-STATE
-	, { 0x2c25b4c1, 227 }                   // DOOR-EXTENDED-PULSE-TIME
-	, { 0xa87f337d, 228 }                   // DOOR-MEMBERS
-	, { 0xbd649ff8, 229 }                   // DOOR-OPEN-TOO-LONG-TIME
-	, { 0xaf368b47, 230 }                   // DOOR-PULSE-TIME
-	, { 0x29c0ccd7, 231 }                   // DOOR-STATUS
-	, { 0xf80242be, 232 }                   // DOOR-UNLOCK-DELAY-TIME
-	, { 0xf1a90477, 233 }                   // LOCK-STATUS
-	, { 0xe6020cc0, 234 }                   // MASKED-ALARM-VALUES
-	, { 0x46d0b485, 235 }                   // SECURED-STATUS
-	, { 0, 0 }
-	};
-
-
-	ScriptTranslateTable scriptStandardServicesMap[] =
-	{
-	/* Alarm and Event Services */
-	{ 0xAB6D1E6A,		 0 }			//AcknowledgeAlarm
-	, { 0x3CB39A42,		 1 }			//ConfirmedCOVNotification
-	, { 0xA3199D6D,		 2 }				//ConfirmedEventNotification
-	, { 0x82EF96F3,		 3 }				//GetAlarmSummary
-	, { 0x215F7C25,		 4 }				//GetEnrollmentSummary
-	, { 0xBC29635E,		 39 }				//GetEventInformation
-	, { 0xAC01F937,		 5 }				//SubscribeCOV
-	, { 0x971D2E9,		 38 }				//SubscribeCOVProperty
-	, { 0xE7BDE28D,		 37 }				//LifesafetyOperation
-	/* File Access Services */
-	, { 0x83874B40,		 6 }				//AtomicReadFile
-	, { 0xCED53372,		 7 }				//AtomicWriteFile
-	/* Object Access Services */
-	, { 0x14A62359,		 8 }				//AddListElement
-	, { 0x3781FF05,		 9 }				//RemoveListElement
-	, { 0x9F0F989E,		 10 }				//CreateObject
-	, { 0x130BE39E,		 11 }				//DeleteObject
-	, { 0xC562EB57,		 12 }				//ReadProperty
-	, { 0x207267B4,		 13 }				//ReadPropertyConditional	
-	, { 0xF1B6C57,		 14 }				//ReadPropertyMultiple
-	, { 0x5F156F1A,		 35 }				//ReadRange	
-	, { 0xB988389A,		 15 }				//WriteProperty	
-	, { 0xEAF680CA,		 16 }				//WritePropertyMultiple
-	/* Remote Device Management Services */
-	, { 0x3264DB4B,		 17   }				//DeviceCommunicationControl
-	, { 0x71E49612,		 18   }				//ConfirmedPrivateTransfer	
-	, { 0x4F9F9DAF,		 19   }				//ConfirmedTextMessage	
-	, { 0xB72CAF4,		 20   }				//ReinitializeDevice
-	/* Virtual Terminal Services */
-	, { 0xA95C324B,		 21   }				//VT-Open
-	, { 0xDFFA0FA8,		 22   }				//VT-Close	
-	, { 0x559A40DF,		 23   }				//VT-Data
-	/*  Security Services */
-	, { 0xD08D352B,		 24   }				//Authenticate	
-	, { 0x9C38B663,		 25   }				//RequestKey
-	/*  Unconfirmed Services */
-	, { 0xAC8AB1D2,		 26   }				//I-Am
-	, { 0x9E0420F5,		 27   }				//I-Have
-	, { 0x1C25F7CD,		 28   }				//UnConfirmedCOVNotification
-	, { 0x2C0A8678,		 29   }				//UnConfirmedEventNotification	
-	, { 0x38121A2F,		 30   }				//UnConfirmedPrivateTransfer
-	, { 0x6CB62A04,		 31   }				//UnconfirmedTextMessage	
-	, { 0x64A09D6A,		 32   }				//TimeSynchronization	
-	, { 0xF908F2F1,		 36   }				//UtcTimeSynchronization	
-	, { 0x474218F1,		 33   }				//Who-Has	
-	, { 0xB0E1C86D,		 34   }				//Who-Is	
-	, { 0, 0 }
-	};
-	
 	
 	ScriptTranslateTable scriptStandardServicesRequirementMap[] =
 	{ { 0xED940AA5,		 1 }			//	INITIATE
@@ -777,5 +391,130 @@ ScriptTranslateTable ScriptPropertyMap[] =
 	};	
 
 
+// In order to avoid the maintenance hassles of multiple, supposed-to-be-identical names
+// and hash values, we generate the token tables at runtime from the string tables in StringTables.cpp.
+//
+namespace PICS {
+	#include "db.h" 
+	#include "Stdobjpr.h"	// definition to etable, if needed
+}
 
+// Compare the st
+static void VetHash( NetworkSniffer::BACnetStringTable	&theStringTable,	// Master string table 
+					 ScriptTranslateTable				*pTheTranslateTable,// has table  to vet
+					 const char							*theStrings[] )		// optional string table to compare
+{
+	// Validate the strings
+	for (int ix = 0; ix < theStringTable.m_nStrings; ix++)
+	{
+		const char *pStringT = theStringTable.m_pStrings[ix];
+		const char *pString2 = (theStrings) ? theStrings[ix] : "no table";
+		if ((pString2 != NULL) && (*pString2 != 0))
+		{
+			// Normalize the strings
+			CString str1( pStringT );
+			str1.MakeUpper();
+			
+			CString str2( pString2 );
+			str2.MakeUpper();
+			str2.Replace( '_', '-' );
+
+			if (theStrings && (str1 != str2))
+			{
+				TRACE( "Val=%u: STRTAB=>%s< differs from string2=>%s<\n", ix, pStringT, pString2 );
+			}
+
+			int hash = ScriptToken::HashCode( (LPCTSTR)str1 );
+			int value = ScriptToken::Lookup( hash, pTheTranslateTable );
+			if (value < 0)
+			{
+				TRACE( "Val=%u: STRTAB=>%s< hash=%08X not in hash table\n", ix, pStringT, hash );
+			}
+			else if (value != ix)
+			{
+				TRACE( "Val=%u: STRTAB=>%s< hash=%08X table has value %u\n", ix, pStringT, hash, value );
+			}
+		}
+		else
+		{
+			TRACE( "Val=%u: STRTAB=>%s< missing string2\n", ix, pStringT );
+		}
+	}
+}
+
+static void MakeHash( ScriptTranslateTable				**ppTheTranslateTable,	// build this table 
+					  NetworkSniffer::BACnetStringTable &theStringTable,		// Master string table
+					  const ScriptTranslateTable		*pTheAliasTable )		// optional alias values
+{
+	// Basic table is N strings, plus a final NULL entry
+	int tableSize = theStringTable.m_nStrings + 1;
+
+	if (pTheAliasTable != NULL)
+	{
+		// Count the aliases
+		for (int ix = 0; pTheAliasTable[ix].scriptKeyword != 0; ix++)
+		{
+			tableSize += 1;
+		}
+	}
+
+	// Allocate the hash table
+	*ppTheTranslateTable = new ScriptTranslateTable[ tableSize ];
+
+	// Add the hash versions of the string-table entries
+	int hashIx = 0;
+	for (int ix = 0; ix < theStringTable.m_nStrings; ix++)
+	{
+		// Normalize the string
+		CString str( theStringTable.m_pStrings[ix] );
+		str.MakeUpper();
+		str.Replace( '_', '-' );
+
+		int hash = ScriptToken::HashCode( (LPCTSTR)str );
+		(*ppTheTranslateTable)[ hashIx   ].scriptKeyword = hash;
+		(*ppTheTranslateTable)[ hashIx++ ].scriptValue   = ix;
+	}
+
+	if (pTheAliasTable != NULL)
+	{
+		// Add the aliases
+		for (int ix = 0; pTheAliasTable[ix].scriptKeyword != 0; ix++)
+		{
+			(*ppTheTranslateTable)[ hashIx   ].scriptKeyword = pTheAliasTable[ix].scriptKeyword;
+			(*ppTheTranslateTable)[ hashIx++ ].scriptValue   = pTheAliasTable[ix].scriptValue;
+		}
+	}
+
+	// Final null entry
+	(*ppTheTranslateTable)[ hashIx ].scriptKeyword = 0;
+	(*ppTheTranslateTable)[ hashIx ].scriptValue   = 0;
+}
+
+// Called during initialization (VTSApp::InitInstance or equivalent) to build hash tables from enum strings.
+void MakeHashTables()
+{
+	MakeHash( &ScriptPropertyMap,  NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, NULL );
 	
+	MakeHash( &ScriptObjectTypeMap, NetworkSniffer::BAC_STRTAB_BACnetObjectType, ScriptObjectTypeMap_Aliases );
+	VetHash( NetworkSniffer::BAC_STRTAB_BACnetObjectType, ScriptObjectTypeMap, (const char**)PICS::etObjectTypes.estrings );
+
+	MakeHash( &ScriptALConfirmedServiceMap, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice, NULL );
+	MakeHash( &ScriptALUnconfirmedServiceMap, NetworkSniffer::BAC_STRTAB_BACnetUnconfirmedServiceChoice, NULL );
+
+	MakeHash( &ScriptALRejectReasonMap, NetworkSniffer::BAC_STRTAB_BACnetReject, NULL );
+	MakeHash( &ScriptALAbortReasonMap, NetworkSniffer::BAC_STRTAB_BACnetAbort, NULL );
+	MakeHash( &scriptStandardServicesMap, NetworkSniffer::BAC_STRTAB_BACnetServicesSupported, NULL );
+}
+
+// Called during shutdown (VTSApp::ExitInstance or equivalent) to free allocated hash tables
+void FreeHashTables()
+{
+	delete[] ScriptPropertyMap;
+	delete[] ScriptObjectTypeMap;
+	delete[] ScriptALConfirmedServiceMap;
+	delete[] ScriptALUnconfirmedServiceMap;
+
+	delete[] ScriptALRejectReasonMap;
+	delete[] ScriptALAbortReasonMap;
+	delete[] scriptStandardServicesMap;
+}

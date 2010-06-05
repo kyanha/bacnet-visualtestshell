@@ -2094,7 +2094,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 		seq.Unsigned( -1, "" );
 		break;
 	case PROTOCOL_OBJECT_TYPES_SUPPORTED: /* BACnetObjectTypesSupported  */
-		seq.BitString( -1, "", &BAC_STRTAB_BACnetObjectTypesSupported );
+		seq.BitString( -1, "", &BAC_STRTAB_BACnetObjectType );
 		break;
 	case PROTOCOL_SERVICES_SUPPORTED: /* BACnetServicesSupported  */
 		seq.BitString( -1, "", &BAC_STRTAB_BACnetServicesSupported );
