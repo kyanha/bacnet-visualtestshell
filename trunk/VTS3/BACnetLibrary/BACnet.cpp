@@ -5535,7 +5535,8 @@ BACnetObjectIdentifier & BACnetObjectIdentifier::operator =( const BACnetObjectI
 IMPLEMENT_DYNAMIC(BACnetObjectPropertyReference, BACnetEncodeable)
 
 BACnetObjectPropertyReference::BACnetObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index /* = -1 */)
-								: m_objID(obj_id), m_bacnetenumPropID(prop_id, stPropIDs, sizeof(stPropIDs)/sizeof(char *))
+: m_objID(obj_id)
+, m_bacnetenumPropID(prop_id, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier)
 {
 	m_nIndex = index;
 }
@@ -5543,7 +5544,7 @@ BACnetObjectPropertyReference::BACnetObjectPropertyReference( unsigned int obj_i
 
 
 BACnetObjectPropertyReference::BACnetObjectPropertyReference( BACnetAPDUDecoder & dec )
-								:m_bacnetenumPropID(0, stPropIDs, sizeof(stPropIDs)/sizeof(char *))
+: m_bacnetenumPropID(0, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier)
 {
 	Decode(dec);
 }

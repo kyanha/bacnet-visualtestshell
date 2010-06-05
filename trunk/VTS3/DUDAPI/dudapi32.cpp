@@ -14,6 +14,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "StringTables.h"
 
 namespace PICS {															// ***003
 
@@ -250,17 +251,17 @@ short APIENTRY GetEnumName(char far* Name, word objtype, dword PropId, word Enum
 //        PropName buffer to contain name of property
 // returns: >0 if ok, 0 else
 extern "C"
-short APIENTRY GetPropName(dword PropId, char far* PropName)	//	***002
+short APIENTRY GetPropName(dword PropId, char far* PropName)
 { 
-  dword count = 0;
-
-  while (stPropIDs[count]){count++;}
-  PropName[0]= 0;
-  if ((PropId>=0)&&(PropId<count)) 
-    { strcpy(PropName,stPropIDs[PropId]);		//			***001
-      return(strlen(PropName));							//			***001
-    }
-  else return(0);  
+	if ((PropId >= 0) && (PropId < (DWORD)NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings)) 
+	{ 
+		strcpy( PropName, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[PropId] );
+	}
+	else 
+	{
+		PropName[0]= 0;
+	}
+	return(strlen(PropName));
 }                                                   
 
 

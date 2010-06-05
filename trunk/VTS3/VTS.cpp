@@ -63,6 +63,9 @@ const int kReleaseVersion = 5;
 
 extern CWinThread	*gBACnetWinTaskThread;
 
+// Build Hash tables from enum strings
+extern void MakeHashTables();
+extern void FreeHashTables();
 
 //
 //	VTSApp
@@ -98,6 +101,9 @@ VTSApp::VTSApp(void)
 {
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
+
+	// Breakpoint on heap allocation to debug heap leaks
+//	_CrtSetBreakAlloc( 1638 );
 }
 
 
@@ -183,6 +189,9 @@ BOOL VTSApp::InitInstance()
 //	GetCurrentDirectory(200,temp.GetBuffer(200));
 //	temp.Format("%s%s",temp.GetBuffer(0),"\\vts.ini");
 //	m_pszProfileName=_tcsdup(temp.GetBuffer(0));
+
+	// Build Hash tables from enum strings
+	MakeHashTables();
 
 	LoadStdProfileSettings(5);  // Load standard INI file options (including MRU)
 	LoadWorkspaceMRU(5);
@@ -309,6 +318,8 @@ int VTSApp::ExitInstance()
 
 	if (m_pRecentWorkspaceList != NULL)
 		m_pRecentWorkspaceList->WriteList();
+
+	FreeHashTables();
 
 	// continue with normal egress
 	return CWinApp::ExitInstance();

@@ -184,19 +184,19 @@
 extern ScriptTranslateTable ScriptBIPMsgTypeMap[];
 extern ScriptTranslateTable ScriptNLMsgTypeMap[];
 extern ScriptTranslateTable ScriptALMsgTypeMap[];
-extern ScriptTranslateTable ScriptALConfirmedServiceMap[];
-extern ScriptTranslateTable ScriptALUnconfirmedServiceMap[];
-extern ScriptTranslateTable ScriptALRejectReasonMap[];
-extern ScriptTranslateTable ScriptALAbortReasonMap[];
-extern ScriptTranslateTable ScriptObjectTypeMap[];
+extern ScriptTranslateTable *ScriptALConfirmedServiceMap;
+extern ScriptTranslateTable *ScriptALUnconfirmedServiceMap;
+extern ScriptTranslateTable *ScriptALRejectReasonMap;
+extern ScriptTranslateTable *ScriptALAbortReasonMap;
+extern ScriptTranslateTable *ScriptObjectTypeMap;
 extern ScriptTranslateTable ScriptALMap[];
 extern ScriptTranslateTable ScriptBooleanMap[];
 extern ScriptTranslateTable ScriptCharacterTypeMap[];
 extern ScriptTranslateTable ScriptWeekdayMap[];
 extern ScriptTranslateTable ScriptMonthMap[];
-extern ScriptTranslateTable ScriptPropertyMap[];
+extern ScriptTranslateTable *ScriptPropertyMap;
 extern ScriptTranslateTable ScriptNONEMap[];
-extern ScriptTranslateTable scriptStandardServicesMap[];
+extern ScriptTranslateTable *scriptStandardServicesMap;
 extern ScriptTranslateTable scriptStandardServicesRequirementMap[];
 extern ScriptTranslateTable scriptFailTimesMap[];
 

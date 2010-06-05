@@ -53,7 +53,6 @@ void BACnetStringTable::FillCombo( CComboBox &theCombo ) const
 	}
 }
 
-
 STRING_TABLE FalseTrue[] = {
 	"False",
 	"True"
@@ -77,137 +76,37 @@ STRING_TABLE ApplicationTypes[] = {
    };
 BAC_STRINGTABLE(ApplicationTypes);
 
+// Not an explicit datatype: defined inline in BACnetAccumulatorRecord
+STRING_TABLE BACnetAccumulatorStatus[] = {
+	"normal",
+	"starting",
+	"recovered",
+	"abnormal",
+    "failed"
+};
+BAC_STRINGTABLE(BACnetAccumulatorStatus);
+
 STRING_TABLE BACnetAction[] = {
-   "DIRECT",
-   "REVERSE"
+   "direct",
+   "reverse"
    };
 BAC_STRINGTABLE(BACnetAction);
 
-STRING_TABLE BACnetActionList[] = {
-	"Action"
-};
-BAC_STRINGTABLE(BACnetActionList);
-
-STRING_TABLE BACnetActionCommand[] = {
-   "Device Identifier",
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Property Value",
-   "Priority",
-   "Post Delay",
-   "Quit On Failure",
-   "Write Successful"
-   };
-BAC_STRINGTABLE(BACnetActionCommand);
-
-STRING_TABLE BACnetAddressBinding[] = {
-   "Device Object Identifier",
-   "Device Address"
-};
-BAC_STRINGTABLE(BACnetAddressBinding);
-
 STRING_TABLE BACnetBinaryPV[] = {
-   "INACTIVE",
-   "ACTIVE"
+   "inactive",
+   "active"
    };
 BAC_STRINGTABLE(BACnetBinaryPV);
 
-STRING_TABLE BACnetCalendarEntry[] = {
-   "Date",
-   "Date Range",
-   "WeekNDay"
-    };
-BAC_STRINGTABLE(BACnetCalendarEntry);
-
-STRING_TABLE BACnetClientCOV[] = {
-	"real-increment",
-	"default-increment"
-};
-BAC_STRINGTABLE(BACnetClientCOV);
-
-STRING_TABLE BACnetScale[] = {
-	"floatScale",
-	"integerScale"
-};
-BAC_STRINGTABLE(BACnetScale);
-
-STRING_TABLE BACnetDateRange[] = {
-   "Start Date",
-   "End Date"
-};
-BAC_STRINGTABLE(BACnetDateRange);
-
-STRING_TABLE BACnetDateTime[] = {
-   "Date",
-   "Time"
-};
-BAC_STRINGTABLE(BACnetDateTime);
-
-STRING_TABLE BACnetTimeStamp[]= {
-   "Time",
-   "SequenceNumber",
-   "DateTime"
-};
-BAC_STRINGTABLE(BACnetTimeStamp);
-
-// Used for bitstring BACnetDaysOfWeek, where Monday == 0
-// See also day_of_week
-STRING_TABLE BACnetDaysOfWeek[] = {
-   "Monday",
-   "Tuesday",
-   "Wednesday",
-   "Thursday",
-   "Friday",
-   "Saturday",
-   "Sunday"
-};
-BAC_STRINGTABLE(BACnetDaysOfWeek);
-
-STRING_TABLE BACnetDestination[] = {
-   "Valid Days",
-   "From Time",
-   "To Time",
-   "Recipient",
-   "Process Identifier",
-   "Issue Confirmed Notifications",
-   "Transitions"
-};
-BAC_STRINGTABLE(BACnetDestination);
-
-STRING_TABLE BACnetDeviceObjectReference[] = {
-	"Device Identifier",
-	"Object Identifier"
-};
-BAC_STRINGTABLE(BACnetDeviceObjectReference);
-
-//Added By Zhu Zhenhua, 2004-5-17
-STRING_TABLE BACnetDeviceObjectPropertyReference[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Device Identifier"
-};
-BAC_STRINGTABLE(BACnetDeviceObjectPropertyReference);
-
-STRING_TABLE BACnetDeviceObjectPropertyValue[] = {
-   "Device Identifier"
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Value"
-};
-BAC_STRINGTABLE(BACnetDeviceObjectPropertyValue);
-
 STRING_TABLE BACnetDeviceStatus[] = {
-   "Operational",
-   "Operational-read-only",
-   "Download-required",
-   "Download-in-progress",
-   "Non-Operational",
-   "Backup-in-porgress"		// added by Jingbo Gao, Sep 20 2004
+   "operational",
+   "operational-read-only",
+   "download-required",
+   "download-in-progress",
+   "non-operational",
+   "backup-in-progress"		// added by Jingbo Gao, Sep 20 2004
 };
-BAC_STRINGTABLE(BACnetDeviceStatus);
+BAC_STRINGTABLE_EX(BACnetDeviceStatus, 64, 65536);
 
 STRING_TABLE BACnetDoorAlarmState[] = {
 	"normal",
@@ -220,7 +119,7 @@ STRING_TABLE BACnetDoorAlarmState[] = {
 	"free-access",
 	"egress-open"
 };
-BAC_STRINGTABLE(BACnetDoorAlarmState);
+BAC_STRINGTABLE_EX(BACnetDoorAlarmState, 256, 65536);
 
 STRING_TABLE BACnetDoorSecuredStatus[] = {
 	"secured",
@@ -480,7 +379,7 @@ STRING_TABLE BACnetEngineeringUnits[] = {
 	"cubic-feet-per-hour",                  /* 191 */
 	"us-gallons-per-hour",                  /* 192 */
 };
-BAC_STRINGTABLE(BACnetEngineeringUnits);
+BAC_STRINGTABLE_EX(BACnetEngineeringUnits, 256, 65536);
 
 STRING_TABLE BACnetError[] = {
 /* Alarm and Event Services */
@@ -530,69 +429,69 @@ STRING_TABLE BACnetError[] = {
 BAC_STRINGTABLE(BACnetError);
 
 STRING_TABLE BACnetErrorClass[] = {
-   "Device",
-   "Object",
-   "Property",
-   "Resources",
-   "Security",
-   "Services",
-   "VT",
-   "Communication",
+   "device",
+   "object",
+   "property",
+   "resources",
+   "security",
+   "services",
+   "vt",
+   "communication",
 };
-BAC_STRINGTABLE(BACnetErrorClass);
+BAC_STRINGTABLE_EX(BACnetErrorClass, 64, 65536);
 
 STRING_TABLE BACnetErrorCode[] = {
-   "Other",                              /* 0 */
-   "Authentication-failed",              /* 1 */
-   "Configuration-in-progress",          /* 2 */
-   "Device-busy",                        /* 3 */
-   "Dynamic-creation-not-supported",     /* 4 */
-   "File-access-denied",                 /* 5 */
-   "Incompatible-security-levels",       /* 6 */
-   "Inconsistent-parameters",            /* 7 */
-   "Inconsistent-selection-criterion",   /* 8 */
-   "Invalid-data-type",                  /* 9 */
-   "Invalid-file-access-method",         /* 10 */
-   "Invalid-file-start-position",        /* 11 */
-   "Invalid-operator-name",              /* 12 */
-   "Invalid-parameter-data-type",        /* 13 */
-   "Invalid-time-stamp",                 /* 14 */
-   "Key-generation-error",               /* 15 */
-   "Missing-required-parameter",         /* 16 */
-   "No-objects-of-specified-type",       /* 17 */
-   "No-space-for-object",                /* 18 */
-   "No-space-to-add-list-element",       /* 19 */
-   "No-space-to-write-property",         /* 20 */
-   "No-vt-sessions-available",           /* 21 */
-   "Property-is-not-a-list",             /* 22 */
-   "Object-deletion-not-permitted",      /* 23 */
-   "Object-identifier-already-exists",   /* 24 */
-   "Operational-problem",                /* 25 */
-   "Password-failure",                   /* 26 */
-   "Read-access-denied",                 /* 27 */
-   "Security-not-supported",             /* 28 */
-   "Service-request-denied",             /* 29 */
-   "Timeout",                            /* 30 */
-   "Unknown-object",                     /* 31 */
-   "Unknown-property",                   /* 32 */
-   "Invalid Enumeration",                /* 33 */
-   "Unknown-vt-class",                   /* 34 */
-   "Unknown-vt-session",                 /* 35 */
-   "Unsupported-object-type",            /* 36 */
-   "Value-out-of-range",                 /* 37 */
-   "VT-session-already-closed",          /* 38 */
-   "VT-session-termination-failure",     /* 39 */
-   "Write-access-denied",                /* 40 */
-   "Character-set-not-supported",        /* 41 */
-   "Invalid-array-index",                /* 42 */
-   "Cov-subscription-failed",            /* 43 kare.sars@wapice.com */
-   "Not-cov-property",                   /* 44 | */
-   "Optional-functionality-not-supported",/*45 | */
-   "Invalid-configuration-data",         /* 46 | */
-   "Datatype-not-supported",             /* 47 | */
-   "Duplicate-name",                     /* 48 | */
-   "Duplicate-object-id",                /* 49 | */
-   "Property-is-not-an-array",           /* 50 kare.sars@wapice.com */
+   "other",                              /* 0 */
+   "authentication-failed",              /* 1 */
+   "configuration-in-progress",          /* 2 */
+   "device-busy",                        /* 3 */
+   "dynamic-creation-not-supported",     /* 4 */
+   "file-access-denied",                 /* 5 */
+   "incompatible-security-levels",       /* 6 */
+   "inconsistent-parameters",            /* 7 */
+   "inconsistent-selection-criterion",   /* 8 */
+   "invalid-data-type",                  /* 9 */
+   "invalid-file-access-method",         /* 10 */
+   "invalid-file-start-position",        /* 11 */
+   "invalid-operator-name",              /* 12 */
+   "invalid-parameter-data-type",        /* 13 */
+   "invalid-time-stamp",                 /* 14 */
+   "key-generation-error",               /* 15 */
+   "missing-required-parameter",         /* 16 */
+   "no-objects-of-specified-type",       /* 17 */
+   "no-space-for-object",                /* 18 */
+   "no-space-to-add-list-element",       /* 19 */
+   "no-space-to-write-property",         /* 20 */
+   "no-vt-sessions-available",           /* 21 */
+   "property-is-not-a-list",             /* 22 */
+   "object-deletion-not-permitted",      /* 23 */
+   "object-identifier-already-exists",   /* 24 */
+   "operational-problem",                /* 25 */
+   "password-failure",                   /* 26 */
+   "read-access-denied",                 /* 27 */
+   "security-not-supported",             /* 28 */
+   "service-request-denied",             /* 29 */
+   "timeout",                            /* 30 */
+   "unknown-object",                     /* 31 */
+   "unknown-property",                   /* 32 */
+   "invalid enumeration",                /* 33 */
+   "unknown-vt-class",                   /* 34 */
+   "unknown-vt-session",                 /* 35 */
+   "unsupported-object-type",            /* 36 */
+   "value-out-of-range",                 /* 37 */
+   "vt-session-already-closed",          /* 38 */
+   "vt-session-termination-failure",     /* 39 */
+   "write-access-denied",                /* 40 */
+   "character-set-not-supported",        /* 41 */
+   "invalid-array-index",                /* 42 */
+   "cov-subscription-failed",            /* 43 kare.sars@wapice.com */
+   "not-cov-property",                   /* 44 | */
+   "optional-functionality-not-supported",/*45 | */
+   "invalid-configuration-data",         /* 46 | */
+   "datatype-not-supported",             /* 47 | */
+   "duplicate-name",                     /* 48 | */
+   "duplicate-object-id",                /* 49 | */
+   "property-is-not-an-array",           /* 50 kare.sars@wapice.com */
    // Added by Addenda B PPR3 (135-2004)
    "abort-buffer-overflow",              /* 51 */
    "abort-invalid-apdu-in-this-state",
@@ -619,7 +518,7 @@ STRING_TABLE BACnetErrorCode[] = {
    // Added by Addenda D (135-2004)
    "invalid-event-state",                /* 73 */
    "no-alarm-configured",                /* 74 */
-   // added by Addenda B
+   // added by addenda b
    "log-buffer-full",                    // 75
    "logged-value-purged",                // 76
    "no-property-specified",              // 77
@@ -631,70 +530,42 @@ STRING_TABLE BACnetErrorCode[] = {
    "error-82",
    "communication-disabled",	         // 83 last value in 135-2008
 };
-BAC_STRINGTABLE(BACnetErrorCode);
-
-// Added Addendum B (135-2004)
-STRING_TABLE BACnetEventLogRecord[] = {
-	"timestamp",
-	"logDatum",
-	"log-status",
-	"notification",
-	"time-change"
-};
-BAC_STRINGTABLE(BACnetEventLogRecord);
-
-//Modified by Zhu Zhenhua, 2004-5-20
-STRING_TABLE BACnetEventParameter[] = {
-   "Change of Bitstring",
-   "Change of State",
-   "Change of Value",
-   "Command Failure",
-   "Floating Limit",
-   "Out of Range",
-   "Complex",	
-   "Deprecated",
-   "Change of Life Safety",
-   "Extended",
-   "Buffer Ready",
-   "Unsigned Range",
-   "Change of status-flags",
-   };
-BAC_STRINGTABLE(BACnetEventParameter);
+BAC_STRINGTABLE_EX(BACnetErrorCode, 256, 65536);
 
 STRING_TABLE BACnetEventState[] = {
-   "NORMAL",
-   "FAULT",
-   "OFFNORMAL",
-   "HIGH-LIMIT",
-   "LOW-LIMIT",
-   "LIFE-SAFETY-ALARM",
+   "normal",
+   "fault",
+   "offnormal",
+   "high-limit",
+   "low-limit",
+   "life-safety-alarm",
    };
-BAC_STRINGTABLE(BACnetEventState);
+BAC_STRINGTABLE_EX(BACnetEventState, 64, 65536);
 
 STRING_TABLE BACnetEventTransitionBits[] = {
-   "TO-OFFNORMAL",
-   "TO-FAULT",
-   "TO-NORMAL",
+   "to-offnormal",
+   "to-fault",
+   "to-normal",
    };
 BAC_STRINGTABLE(BACnetEventTransitionBits);
 
 //Modified by Zhu Zhenhua, 2004-5-17
 STRING_TABLE BACnetEventType[] = {
-   "CHANGE-OF-BITSTRING",
-   "CHANGE-OF-STATE",
-   "CHANGE-OF-VALUE",
-   "COMMAND-FAILURE",
-   "FLOATING-LIMIT",
-   "OUT-OF-RANGE",
-   "COMPLEX-EVENT-TYPE",   
-   "DEPRECATED",            
-   "CHANGE-OF-LIFE-SAFETY", 
-   "EXTENDED",			
-   "BUFFER-READY",
-   "UNSIGNED-RANGE",
-   "CHANGE-OF-STATUS-FLAGS",
+   "change-of-bitstring",		// 0
+   "change-of-state",
+   "change-of-value",
+   "command-failure",
+   "floating-limit",
+   "out-of-range",				// 5
+   "complex-event-type",
+   "deprecated",
+   "change-of-life-safety",
+   "extended",
+   "buffer-ready",				// 10
+   "unsigned-range",			// 11 last in 135-2008
+   "change-of-status-flags",	// 12
    };
-BAC_STRINGTABLE(BACnetEventType);
+BAC_STRINGTABLE_EX(BACnetEventType, 64, 65536);
 
 STRING_TABLE Acknowledgement_Filter[] = {
    "all",
@@ -713,61 +584,48 @@ STRING_TABLE EventState_Filter[] = {
 BAC_STRINGTABLE(EventState_Filter);
 
 STRING_TABLE BACnetFileAccessMethod[] = {
-   "RECORD-ACCESS",
-   "STREAM-ACCESS",
-   "RECORD-AND-STREAM-ACCESS"	// note removed after 1995
+   "record-access",
+   "stream-access"
 };
 BAC_STRINGTABLE(BACnetFileAccessMethod);
-
-//Added by Zhu Zhenhua, 2004-5-25
-STRING_TABLE BACnetEventSummary[] = {
-   "Object Indentifier",
-   "Event State",
-   "Acknowledged Transitions",
-   "Event Time Stamps",
-   "Notify Type",
-   "Event Enable",
-   "Event Priorities"	
-};
-BAC_STRINGTABLE(BACnetEventSummary);
 
 ///////////////////////////////////////////////////////////////////////////
 //Added by Zhu Zhenhua, 2004-6-14
 STRING_TABLE BACnetLifeSafetyMode[] = {
-   "off",
+   "off",					// 0
    "on",
    "test",
    "manned",
    "unmanned",
-   "armed",
+   "armed",					// 5
    "disarmed",
    "prearmed",
    "slow",
    "fast",
-   "disconnected",
+   "disconnected",			// 10
    "enabled",
    "disabled",
    "automatic-release-disabled",
-   "default"
+   "default"				// 14 last in 135-2008
 };
-BAC_STRINGTABLE(BACnetLifeSafetyMode);
+BAC_STRINGTABLE_EX(BACnetLifeSafetyMode, 256, 65536);
 
 STRING_TABLE BACnetLifeSafetyOperation[] = {
-   "none",
+   "none",					// 0
    "silence",
    "silence-audible",
    "silence-visual",
    "reset",
-   "reset-alarm",
+   "reset-alarm",			// 5
    "reset-fault",
    "unsilence",
    "unsilence-audible",
-   "unsilence-visual",
+   "unsilence-visual",		// 9 last in 135-2008
 };
-BAC_STRINGTABLE(BACnetLifeSafetyOperation);
+BAC_STRINGTABLE_EX(BACnetLifeSafetyOperation, 64, 65536);
 
 STRING_TABLE BACnetLifeSafetyState[] = {
-   "quiet",
+   "quiet",					// 0
    "pre-alarm",
    "alarm",
    "fault",
@@ -777,7 +635,7 @@ STRING_TABLE BACnetLifeSafetyState[] = {
    "active",
    "tamper",
    "test-alarm",
-   "test-active",
+   "test-active",			// 10
    "test-fault",
    "test-fault-alarm",
    "holdup",
@@ -787,41 +645,16 @@ STRING_TABLE BACnetLifeSafetyState[] = {
    "emergency-power",
    "delayed",
    "blocked",
-   "local-alarm",
+   "local-alarm",			// 20
    "general-alarm",
    "supervisory",
-   "test-supervisory"
+   "test-supervisory"		// 23 last in 135-2008
 };
-BAC_STRINGTABLE(BACnetLifeSafetyState);
-
-STRING_TABLE BACnetAccumulatorStatus[] = {
-	"normal",
-	"starting",
-	"recovered",
-	"abnormal",
-    "failed"
-};
-BAC_STRINGTABLE(BACnetAccumulatorStatus);
-
-STRING_TABLE  BACnetMaintenance[] = {
-	"None",
-	"Periodic-test",
-	"Need-Service-Operational",
-	"Need-Service-Inoperative"
-};
-BAC_STRINGTABLE(BACnetMaintenance);
-
-STRING_TABLE  BACnetSilencedState[] = {
-	"Unsilenced",
-	"Audible-Silenced",
-	"Visible-Silenced",
-	"All-Silenced"
-};
-BAC_STRINGTABLE(BACnetSilencedState);
+BAC_STRINGTABLE_EX(BACnetLifeSafetyState, 256, 65536);
 
 STRING_TABLE BACnetLimitEnable[] = {
-   "LOW-LIMIT-ENABLE",
-   "HIGH-LIMIT-ENABLE"
+   "lowLimitEnable",
+   "highLimitEnable"
    };
 BAC_STRINGTABLE(BACnetLimitEnable);
 
@@ -833,13 +666,6 @@ STRING_TABLE BACnetLockStatus[] = {
 };
 BAC_STRINGTABLE(BACnetLockStatus);
 
-STRING_TABLE BACnetLogData[] = {
-	"Log-status",
-	"Log-Data",
-	"Time-Change",
-};
-BAC_STRINGTABLE(BACnetLogData);
-
 STRING_TABLE BACnetLoggingType[] = {
 	"polled",
 	"cov",
@@ -847,518 +673,392 @@ STRING_TABLE BACnetLoggingType[] = {
 };
 BAC_STRINGTABLE(BACnetLoggingType);
 
-STRING_TABLE BACnetLogMultipleRecord[] = {
-	"timestamp",
-	"logData",
-};
-BAC_STRINGTABLE(BACnetLogMultipleRecord);
-
-STRING_TABLE BACnetLogRecord [] = {
-   "TimeStamp",
-   "LogDatum", 
-   "StatusFlags"
-   };
-BAC_STRINGTABLE(BACnetLogRecord);
-
 STRING_TABLE BACnetLogStatus[] = {
 	"log-disabled",
 	"buffer-purged",
 	"log-interrupted",
 };
-BAC_STRINGTABLE(BACnetLogStatus);
+BAC_STRINGTABLE_EX(BACnetLogStatus, 64, 256);
 
+STRING_TABLE  BACnetMaintenance[] = {
+	"none",
+	"periodic-test",
+	"need-service-operational",
+	"need-service-inoperative"
+};
+BAC_STRINGTABLE_EX(BACnetMaintenance, 256, 65536);
+
+STRING_TABLE BACnetNodeType[] = {
+   "unknown",
+   "system",
+   "network",
+   "device",
+   "organization",
+   "area",
+   "equipment",
+   "point",
+   "collection",
+   "property",
+   "functional",
+   "other"
+};
+BAC_STRINGTABLE(BACnetNodeType);
+   
 STRING_TABLE BACnetNotifyType[] = {
-   "ALARM",
-   "EVENT",
-   "ACK_NOTIFICATION"
+   "alarm",
+   "event",
+   "ack-notification"
    };
 BAC_STRINGTABLE(BACnetNotifyType);
 
-// Added addendum B (135-2004)
-STRING_TABLE BACnetPropertyAccessResult[] = {
-	"Object Identifier",
-	"Property Identifier",
-	"Property Array Index",
-	"Device Identifier",
-	"Access Result",
-};
-BAC_STRINGTABLE(BACnetPropertyAccessResult);
-
-// Added from 135-2008
-STRING_TABLE BACnetShedLevel[] = {
-	"Percent",
-	"Level",
-	"Amount",
-};
-BAC_STRINGTABLE(BACnetShedLevel);
-
-STRING_TABLE BACnetShedState[] = {
-	"shed-inactive",
-	"shed-request-pending",
-	"shed-compliant",
-	"shed-non-compliant",
-};
-BAC_STRINGTABLE(BACnetShedState);
-
-STRING_TABLE BACnetReadRangeACK[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "ResultsFlag",
-   "ItemCount",
-   "ItemData",
-   "First Sequence Number",
-};
-BAC_STRINGTABLE(BACnetReadRangeACK);
-
-STRING_TABLE BACnetReadRangeRequest[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Reference Index",
-   "Reference Time",
-   "TimeRange"
-};
-BAC_STRINGTABLE(BACnetReadRangeRequest);
-
-STRING_TABLE BACnetObjectPropertyValue[] = {
-   "Object Identifier",
-   "Property Identifier",
-   "Property Array Index",
-   "Value",
-   "Priority"
-};
-BAC_STRINGTABLE(BACnetObjectPropertyValue);
-
+// This list is also used to create the hash table for scripting.
 STRING_TABLE BACnetObjectType[] = {
-   "ANALOG-INPUT",          /* 0 */
-   "ANALOG-OUTPUT",         /* 1 */
-   "ANALOG-VALUE",          /* 2 */
-   "BINARY-INPUT",          /* 3 */
-   "BINARY-OUTPUT",         /* 4 */
-   "BINARY-VALUE",          /* 5 */
-   "CALENDAR",              /* 6 */
-   "COMMAND",               /* 7 */
-   "DEVICE",                /* 8 */
-   "EVENT-ENROLLMENT",      /* 9 */
-   "FILE",                  /* 10 */
-   "GROUP",                 /* 11 */
-   "LOOP",                  /* 12 */
-   "MULTISTATE-INPUT",      /* 13 */
-   "MULTISTATE-OUTPUT",     /* 14 */
-   "NOTIFICATION-CLASS",    /* 15 */
-   "PROGRAM",               /* 16 */
-   "SCHEDULE",              /* 17 */
-   "AVERAGING",             /* 18 */
-   "MULTISTATE-VALUE",      /* 19 */
-   "TREND-LOG" ,            /* 20 */		// msdanner 9/04, was "TRENDLOG"
-   "LIFE-SAFETY-POINT",	    /* 21 Zhu Zhenhua 2003-7-24 */	 // msdanner 9/04, was "LIFESAFETYPOINT"
-   "LIFE-SAFETY-ZONE",	    /* 22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
-   "ACCUMULATOR",           // 23 Shiyuan Xiao 7/15/2005
-   "PULSE-CONVERTER",       // 24 Shiyuan Xiao 7/15/2005
-   "EVENT-LOG",			  // 25	- Addendum B
-   "GLOBAL-GROUP",		  // 26 - Addendum B
-   "TREND-LOG-MULTIPLE",  // 27 - Addendum B
-   "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
-   "STRUCTURED-VIEW",     // 29 - Addendum D
-   "ACCESS-DOOR",		  // 30 Last in 135-2008
-	"LIGHTING-OUTPUT",
-	"ACCESS-CREDENTIAL",	// Addendum 2008-j
-	"ACCESS-POINT",
-	"ACCESS-RIGHTS",
-	"ACCESS-USER",
-	"ACCESS-ZONE",
-	"CREDENTIAL-DATA-INPUT",
-	"NETWORK-SECURITY",		// 38 Addendum 2008-g
-	"BITSTRING-VALUE",		// Addendum 2008-w
-	"CHARACTERSTRING-VALUE",
-	"DATE-PATTERN-VALUE",
-	"DATE-VALUE",
-	"DATETIME-PATTERN-VALUE",
-	"DATETIME-VALUE",
-	"INTEGER-VALUE",
-	"LARGE-ANALOG-VALUE",
-	"OCTETSTRING-VALUE",
-	"POSITIVE-INTEGER-VALUE",
-	"TIME-PATTERN-VALUE",
-	"TIME-VALUE"		// 50 Last in 2008-w
+   "analog-input",          /* 0 */
+   "analog-output",         /* 1 */
+   "analog-value",          /* 2 */
+   "binary-input",          /* 3 */
+   "binary-output",         /* 4 */
+   "binary-value",          /* 5 */
+   "calendar",              /* 6 */
+   "command",               /* 7 */
+   "device",                /* 8 */
+   "event-enrollment",      /* 9 */
+   "file",                  /* 10 */
+   "group",                 /* 11 */
+   "loop",                  /* 12 */
+   "multi-state-input",     /* 13 */
+   "multi-state-output",    /* 14 */
+   "notification-class",    /* 15 */
+   "program",               /* 16 */
+   "schedule",              /* 17 */
+   "averaging",             /* 18 */
+   "multi-state-value",     /* 19 */
+   "trend-log" ,            /* 20 */		// msdanner 9/04, was "trendlog"
+   "life-safety-point",	    /* 21 Zhu Zhenhua 2003-7-24 */	 // msdanner 9/04, was "LIFESAFETYPOINT"
+   "life-safety-zone",	    /* 22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
+   "accumulator",           // 23 Shiyuan Xiao 7/15/2005
+   "pulse-converter",       // 24 Shiyuan Xiao 7/15/2005
+   "event-log",				// 25 - Addendum B
+   "global-group",			// 26 - Addendum B
+   "trend-log-multiple",	// 27 - Addendum B
+   "load-control",			// 28 - Addendum E 135-2004
+   "structured-view",		// 29 - Addendum D
+   "access-door",			// 30 Last in 135-2008
+   "lighting-output",		// 31
+   "access-credential",		// 32
+   "access-point",			// 33
+   "access-rights",			// 34
+   "access-user",			// 35
+   "access-zone",			// 36
+   "credential-data-input",	// 37
+   "network-security",		// 38 Addendum 2008-g
+   "bitstring-value",		// 39 Addendum 2008-w
+   "characterstring-value", // 40
+   "date-pattern-value",	// 41
+   "date-value",			// 42
+   "datetime-pattern-value",// 43
+   "datetime-value",		// 44
+   "integer-value",			// 45
+   "large-analog-value",	// 46
+   "octetstring-value",		// 47
+   "positive-integer-value",// 48
+   "time-pattern-value",	// 49
+   "time-value"				// 50 Last in 2008-w
 
-   // CAUTION: if you add a type here, you must also change MAX_DEFINED_OBJ
-   // (which is actually max-plus-one: the NUMBER of defined object types)
-};
-BAC_STRINGTABLE(BACnetObjectType);
-
-// Note: Some one of these lists of Object types (who can tell which one?) 
-// is coordinated with the icons in the EpicsTree view,
-// IDB_EPICSTREE           BITMAP                  "res\\epicstree.bmp"
-// So if you add or implement new Objects, you'll need to do some artwork there
-
-STRING_TABLE BACnetObjectTypesSupported[] = {
-   "ANALOG-INPUT",          /* 0 */
-   "ANALOG-OUTPUT",         /* 1 */
-   "ANALOG-VALUE",          /* 2 */
-   "BINARY-INPUT",          /* 3 */
-   "BINARY-OUTPUT",         /* 4 */
-   "BINARY-VALUE",          /* 5 */
-   "CALENDAR",              /* 6 */
-   "COMMAND",               /* 7 */
-   "DEVICE",                /* 8 */
-   "EVENT-ENROLLMENT",      /* 9 */
-   "FILE",                  /* 10 */
-   "GROUP",                 /* 11 */
-   "LOOP",                  /* 12 */
-   "MULTISTATE-INPUT",      /* 13 */
-   "MULTISTATE-OUTPUT",     /* 14 */
-   "NOTIFICATION-CLASS",    /* 15 */
-   "PROGRAM",               /* 16 */
-   "SCHEDULE",              /* 17 */
-   "AVERAGING",             /* 18 */
-   "MULTISTATE-VALUE",      /* 19 */
-   "TREND-LOG",             /* 20 */	  // msdanner 9/04, was "TRENDLOG"
-   "LIFE-SAFETY-POINT",     /* 21 */	  // msdanner 9/04, added
-   "LIFE-SAFETY-ZONE",      /* 22 */	  // msdanner 9/04, added.  JLH: 1/25/2010 added missing comma
-   "ACCUMULATOR",           //23 Shiyuan Xiao 7/15/2005
-   "PULSE-CONVERTER",       //24 Shiyuan Xiao 7/15/2005
-   "EVENT-LOG",			  // 25	- Addendum B
-   "GLOBAL-GROUP",		  // 26 - Addendum B
-   "TREND-LOG-MULTIPLE",  // 27 - Addendum B
-   "LOAD-CONTROL",		  // 28 - Addendum E 135-2004
-   "STRUCTURED-VIEW",     // 29 - Addendum D
-   "ACCESS-DOOR",			// 30 Last in 135-2008
-	"LIGHTING-OUTPUT",
-	"ACCESS-CREDENTIAL",
-	"ACCESS-POINT",			// Addendum 2008-j
-	"ACCESS-RIGHTS",
-	"ACCESS-USER",
-	"ACCESS-ZONE",
-	"CREDENTIAL-DATA-INPUT",
-	"NETWORK-SECURITY",		// 38 Addendum 2008-g
-	"BITSTRING-VALUE",		// Addendum 2008-w
-	"CHARACTERSTRING-VALUE",
-	"DATE-PATTERN-VALUE",
-	"DATE-VALUE",
-	"DATETIME-PATTERN-VALUE",
-	"DATETIME-VALUE",
-	"INTEGER-VALUE",
-	"LARGE-ANALOG-VALUE",
-	"OCTETSTRING-VALUE",
-	"POSITIVE-INTEGER-VALUE",
-	"TIME-PATTERN-VALUE",
-	"TIME-VALUE"		// 50 Last in 2008-w
+	// CAUTION: if you add a type here, you must also change MAX_DEFINED_OBJ 
+	// and NUM_DEFINED_OBJECTS
+	// (which are actually max-plus-one: the NUMBER of defined object types)
+	//
+	// And add to StandardObjects in Vtsapi32.cpp
+	// And other code, sprinkled throughout the universe...
+	//
+	// For each type, there is also an icon for use in the EpicsTree view,
+	// IDB_EPICSTREE  BITMAP "res\\epicstree.bmp"
+	// So if you add or implement new Objects, you need to do some artwork there.
 
 };
-BAC_STRINGTABLE(BACnetObjectTypesSupported);
+BAC_STRINGTABLE_EX(BACnetObjectType, 128, 1024);
 
 STRING_TABLE BACnetPolarity[] = {
-   "NORMAL",
-   "REVERSE"
+   "normal",
+   "reverse"
 };
 BAC_STRINGTABLE(BACnetPolarity);
 
-STRING_TABLE BACnetPrescale[] = {
-	"multiplier",
-	"moduleDivide",
-};
-BAC_STRINGTABLE(BACnetPrescale);
-
 STRING_TABLE BACnetProgramError[] = {
-   "NORMAL",
-   "LOAD-FAILED",
-   "INTERNAL",
-   "PROGRAM",
-   "OTHER"
+   "normal",
+   "load-failed",
+   "internal",
+   "program",
+   "other"
 };
-BAC_STRINGTABLE(BACnetProgramError);
+BAC_STRINGTABLE_EX(BACnetProgramError, 64, 65536);
 
 STRING_TABLE BACnetProgramRequest[] = {
-   "READY",
-   "LOAD",
-   "RUN",
-   "HALT",
-   "RESTART",
-   "UNLOAD"
+   "ready",
+   "load",
+   "run",
+   "halt",
+   "restart",
+   "unload"
 };
 BAC_STRINGTABLE(BACnetProgramRequest);
 
 STRING_TABLE BACnetProgramState[] = {
-   "IDLE",
-   "LOADING",
-   "RUNNING",
-   "WAITING",
-   "HALTED",
-   "UNLOADING"
+   "idle",
+   "loading",
+   "running",
+   "waiting",
+   "halted",
+   "unloading"
 };   
 BAC_STRINGTABLE(BACnetProgramState);
 
-// MAX_PROP_ID = the number of elements in this array. It is located in Vts.h
-// TODO: Do these REALLY need spaces after them?
+// This list is also used to create the hash table for scripting.
 STRING_TABLE BACnetPropertyIdentifier[] = {
-   "Acked_Transitions ",                /* 0 */
-   "Ack_Required ",                     /* 1 */
-   "Action ",                           /* 2 */
-   "Action_Text ",                      /* 3 */
-   "Active_Text ",                      /* 4 */
-   "Active_VT_Sessions ",               /* 5 */
-   "Alarm_Value ",                      /* 6 */
-   "Alarm_Values ",                     /* 7 */
-   "All ",                              /* 8 */
-   "All_Writes_Successful ",            /* 9 */
-   "APDU_Segment_Timeout ",             /* 10 */
-   "APDU_Timeout ",                     /* 11 */
-   "Application-software-version ",     /* 12 */
-   "Archive ",                          /* 13 */
-   "Bias ",                             /* 14 */
-   "Change_Of_State_Count ",            /* 15 */
-   "Change_Of_State_Time ",             /* 16 */
-   "Notification_Class ",               /* 17  renamed in 2nd public review*/
-   "Invalid Enumeration",               /* 18 */
-   "Controlled_Variable_Reference ",    /* 19 */
-   "Controlled_Variable_Units ",        /* 20 */
-   "Controlled_Variable_Value ",        /* 21 */
-   "COV_Increment ",                    /* 22 */
-   "Date-list ",                        /* 23 */
-   "Daylight_Savings_Status ",          /* 24 */
-   "Deadband ",                         /* 25 */
-   "Derivative_Constant ",              /* 26 */
-   "Derivative_Constant_Units ",        /* 27 */
-   "Description ",                      /* 28 */
-   "Description_Of_Halt ",              /* 29 */
-   "Device_Address_Binding ",           /* 30 */
-   "Device_Type ",                      /* 31 */
-   "Effective_Period ",                 /* 32 */
-   "Elapsed_Active_Time ",              /* 33 */
-   "Error_Limit ",                      /* 34 */
-   "Event_Enable ",                     /* 35 */
-   "Event_State ",                      /* 36 */
-   "Event_Type ",                       /* 37 */
-   "Exception_Schedule ",               /* 38 */
-   "Fault_Values ",                     /* 39 */
-   "Feedback_Value ",                   /* 40 */
-   "File_Access_Method ",               /* 41 */
-   "File_Size ",                        /* 42 */
-   "File_Type ",                        /* 43 */
-   "Firmware_Revision ",                /* 44 */
-   "High_Limit ",                       /* 45 */
-   "Inactive_Text ",                    /* 46 */
-   "In_Process ",                       /* 47 */
-   "Instance_Of ",                      /* 48 */
-   "Integral_Constant ",                /* 49 */
-   "Integral_Constant_Units ",          /* 50 */
-   "unused-was-Issue_Confirmed_Notifications ",    /* 51 deleted in version 1 revision 4*/
-   "Limit_Enable ",                     /* 52 */
-   "List_Of_Group_Members ",            /* 53 */
-   "List_Of_Object_Property_References ",  /* 54 Zhu Zhenhua 2003-7-24 */
-   "List_Of_Session_Keys ",             /* 55 */
-   "Local_Date ",                       /* 56 */
-   "Local_Time ",                       /* 57 */
-   "Location ",                         /* 58 */
-   "Low_Limit ",                        /* 59 */
-   "Manipulated_Variable_Reference ",   /* 60 */
-   "Maximum_Output ",                   /* 61 */
-   "Max_Apdu_Length_Accepted ",         /* 62 */
-   "Max_Info_Frames ",                  /* 63 */
-   "Max_Master ",                       /* 64 */
-   "Max_Pres_Value ",                   /* 65 */
-   "Minimum_Off_Time ",                 /* 66 */
-   "Minimum_On_Time ",                  /* 67 */
-   "Minimum_Output ",                   /* 68 */
-   "Min_Pres_Value ",                   /* 69 */
-   "Model_Name ",                       /* 70 */
-   "Modification_Date ",                /* 71 */
-   "Notify_Type ",                      /* 72 */
-   "Number_Of_APDU_Retries",            /* 73 */
-   "Number_Of_States ",                 /* 74 */
-   "Object_Identifier ",                /* 75 */
-   "Object_List ",                      /* 76 */
-   "Object_Name ",                      /* 77 */
-   "Object_Property_Reference ",        /* 78 Zhu Zhenhua 2003-7-24 */
-   "Object_Type ",                      /* 79 */
-   "Optional ",                         /* 80 */
-   "Out_Of_Service ",                   /* 81 */
-   "Output_Units ",                     /* 82 */
-   "Event-Parameters ",                 /* 83 */
-   "Polarity ",                         /* 84 */
-   "Present_Value ",                    /* 85 */
-   "Priority ",                         /* 86 */
-   "Priority_Array ",                   /* 87 */
-   "Priority_For_Writing ",             /* 88 */
-   "Process_Identifier ",               /* 89 */
-   "Program_Change ",                   /* 90 */
-   "Program_Location ",                 /* 91 */
-   "Program_State ",                    /* 92 */
-   "Proportional_Constant ",            /* 93 */
-   "Proportional_Constant_Units ",      /* 94 */
-   "Protocol_Conformance_Class ",       /* 95 */
-   "Protocol_Object_Types_Supported ",  /* 96 */
-   "Protocol_Services_Supported ",      /* 97 */
-   "Protocol_Version ",                 /* 98 */
-   "Read_Only ",                        /* 99 */
-   "Reason_For_Halt ",                  /* 100 */
-   "Recipient ",                        /* 101 */
-   "Recipient_List ",                   /* 102 */
-   "Reliability ",                      /* 103 */
-   "Relinquish_Default ",               /* 104 */
-   "Required ",                         /* 105 */
-   "Resolution ",                       /* 106 */
-   "Segmentation_Supported ",           /* 107 */
-   "Setpoint ",                         /* 108 */
-   "Setpoint_Reference ",               /* 109 */
-   "State_Text ",                       /* 110 */
-   "Status_Flags ",                     /* 111 */
-   "System_Status ",                    /* 112 */
-   "Time_Delay ",                       /* 113 */
-   "Time_Of_Active_Time_Reset ",        /* 114 */
-   "Time_Of_State_Count_Reset ",        /* 115 */
-   "Time_Synchronization_Recipients ",  /* 116 */
-   "Units ",                            /* 117 */
-   "Update_Interval ",                  /* 118 */
-   "UTC_Offset ",                       /* 119 */
-   "Vendor_Identifier ",                /* 120 */
-   "Vendor_Name ",                      /* 121 */
-   "Vt_Classes_Supported ",             /* 122 */
-   "Weekly_Schedule ",                  /* 123 */   
-   "Attempted_Samples ",                /* 124 */
-   "Average_Value ",                    /* 125 */
-   "Buffer_Size ",                      /* 126 */
-   "Client_Cov_Increment ",             /* 127 */
-   "Cov_Resubscription_Interval ",      /* 128 */
-   "unused-was-Current_Notify_Time",    /* 129  Added by Zhu Zhenhua, 2004-5-11 deleded in version 1 rev 3 */
-   "Event_Time_Stamps ",                /* 130 */
-   "Log_Buffer ",                       /* 131 */
-   "Log_Device_Object_Property ",       /* 132 Zhu Zhenhua 2003-7-24 */
-   "Enable ",                           /* 133 changed from Log_Enable in 135-2004b-5 */
-   "Log_Interval ",                     /* 134 */
-   "Maximum_Value ",                    /* 135 */
-   "Minimum_Value ",                    /* 136 */
-   "Notification_Threshold ",           /* 137 */
-   "unused-was-Previous_Notify_Time",   /* 138   Added by Zhu Zhenhua, 2004-5-11 deleted in version 1 rev 3 */
-   "Protocol_Revision ",                /* 139 */
-   "Records_Since_Notification ",       /* 140 */
-   "Record_Count ",                     /* 141 */
-   "Start_Time ",                       /* 142 */
-   "Stop_Time ",                        /* 143 */
-   "Stop_When_Full ",                   /* 144 */
-   "Total_Record_Count ",               /* 145 */            
-   "Valid_Samples ",                    /* 146 */
-   "Window_Interval ",                  /* 147 */
-   "Window_Samples ",                   /* 148 */
-   "Maximum_Value_Timestamp ",          /* 149 */
-   "Minimum_value_Timestamp ",          /* 150 */
-   "Variance_Value ",                   /* 151 */
-   "Active_Cov_Subscription",           /* 152 Xiao Shiyuan 2002-7-18 */
-   "backup-failure-timeout",            /* 153 Xiao Shiyuan 2002-7-18 */		
-   "configuration-files",               /* 154 Xiao Shiyuan 2002-7-18 */
-   "database-revision",                 /* 155 Xiao Shiyuan 2002-7-18 */
-   "direct-reading",                    /* 156 Xiao Shiyuan 2002-7-18 */
-   "last-restore-time",					/* 157 Xiao Shiyuan 2002-7-18 */
-   "maintenance-required",				/* 158 Xiao Shiyuan 2002-7-18 */
-   "member-of",							/* 159 Xiao Shiyuan 2002-7-18 */
-   "mode",								/* 160 Xiao Shiyuan 2002-7-18 */
-   "operation-expected",				/* 161 Xiao Shiyuan 2002-7-18 */
-   "setting",							/* 162 Xiao Shiyuan 2002-7-18 */
-   "silenced",							/* 163 Xiao Shiyuan 2002-7-18 */
-   "tracking-value",					/* 164 Xiao Shiyuan 2002-7-18 */
-   "zone-members",						/* 165 Xiao Shiyuan 2002-7-18 */
-   "life-safety-alarm-values",			/* 166 Xiao Shiyuan 2002-7-18 */
-   "max-segments-accepted",				/* 167 Xiao Shiyuan 2002-7-18 */
-   "Profile_Name",                      /* 168 Xiao Shiyuan 2002-7-18 */
-   "auto-slave-discovery",				/* 169 LJT 2005-10-12   */
-   "manual-slave-address-binding",		/* 170 LJT 2005-10-12   */
-   "slave-address-binding",				/* 171 LJT 2005-10-12   */
-   "slave-proxy-enable",				/* 172 LJT 2005-10-12   */
-   "last_notify_record",				/* 173 Zhu Zhenhua  2004-5-11 */
-   "Schedule_Default",                 // 174 Shiyuan Xiao 7/15/2005
-   "Accepted_Modes",                   // 175 Shiyuan Xiao 7/15/2005
-   "Adjust_Value",                     // 176 Shiyuan Xiao 7/15/2005
-   "Count",                            // 177 Shiyuan Xiao 7/15/2005 
-   "Count_Before_Change",              // 178 Shiyuan Xiao 7/15/2005
-   "Count_Change_Time",                // 179 Shiyuan Xiao 7/15/2005		
-   "Cov_Period",                       // 180 Shiyuan Xiao 7/15/2005
-   "Input_Reference",                  // 181 Shiyuan Xiao 7/15/2005
-   "Limit_Monitoring_Interval",        // 182 Shiyuan Xiao 7/15/2005
-   "Logging_Device",                   // 183 Shiyuan Xiao 7/15/2005
-   "Logging_Record",                   // 184 Shiyuan Xiao 7/15/2005  
-   "Prescale",                         // 185 Shiyuan Xiao 7/15/2005  
-   "Pulse_Rate",                       // 186 Shiyuan Xiao 7/15/2005
-   "Scale",                            // 187 Shiyuan Xiao 7/15/2005
-   "Scale_Factor",                     // 188 Shiyuan Xiao 7/15/2005  
-   "Update_Time",                      // 189 Shiyuan Xiao 7/15/2005 
-   "Value_Before_Change",              // 190 Shiyuan Xiao 7/15/2005
-   "Value_Set",                        // 191 Shiyuan Xiao 7/15/2005
-   "Value_Change_Time",                 // 192 Shiyuan Xiao 7/15/2005
-   // added Addendum B (135-2004)
-	"Align_Intervals",					// 193
-	"Group_Members_Names",				// 194
-	"Interval_Offset",					// 195
-	"Last_Restart_Reason",				// 196
-	"Logging_Type",						// 197
-	"Member_Status_Flags",				// 198
-	"Notification_Period",				// 199
-	"Previous_Notify_Record",			// 200
-	"Requested_Update_Interval",		// 201
-	"Restart_Notification_Recipients",	// 202
-	"Time_Of_Device_Restart",			// 203
-	"Time_Synchronization_Interval",	// 204
-	"Trigger",							// 205
-	"Utc_Time_Syncrhonization_Recipients",  // 206
-	// Added by addenda D
-	"node-subtype", // 207
-	"node-type",   // 208
-	"structured-object-list",  // 209
-	"subordinate-annotation",  // 210
-	"subordinate-list", // 211
-	// added by addendum E 135-2004
-	"actual-shed-level",	// 212
-	"duty-window",			// 213
-	"expected-shed-level",	// 214
-	"full-duty-baseline",	// 215
+   "acked-transitions",                /* 0 */
+   "ack-required",                     /* 1 */
+   "action",                           /* 2 */
+   "action-text",                      /* 3 */
+   "active-text",                      /* 4 */
+   "active-vt-sessions",               /* 5 */
+   "alarm-value",                      /* 6 */
+   "alarm-values",                     /* 7 */
+   "all",                              /* 8 */
+   "all-writes-successful",            /* 9 */
+   "apdu-segment-timeout",             /* 10 */
+   "apdu-timeout",                     /* 11 */
+   "application-software-version",     /* 12 */
+   "archive",                          /* 13 */
+   "bias",                             /* 14 */
+   "change-of-state-count",            /* 15 */
+   "change-of-state-time",             /* 16 */
+   "notification-class",               /* 17 renamed from "class" in 2nd public review */
+   "unused-propertyid-18",             /* 18 */
+   "controlled-variable-reference",    /* 19 */
+   "controlled-variable-units",        /* 20 */
+   "controlled-variable-value",        /* 21 */
+   "cov-increment",                    /* 22 */
+   "date-list",                        /* 23 */
+   "daylight-savings-status",          /* 24 */
+   "deadband",                         /* 25 */
+   "derivative-constant",              /* 26 */
+   "derivative-constant-units",        /* 27 */
+   "description",                      /* 28 */
+   "description-of-halt",              /* 29 */
+   "device-address-binding",           /* 30 */
+   "device-type",                      /* 31 */
+   "effective-period",                 /* 32 */
+   "elapsed-active-time",              /* 33 */
+   "error-limit",                      /* 34 */
+   "event-enable",                     /* 35 */
+   "event-state",                      /* 36 */
+   "event-type",                       /* 37 */
+   "exception-schedule",               /* 38 */
+   "fault-values",                     /* 39 */
+   "feedback-value",                   /* 40 */
+   "file-access-method",               /* 41 */
+   "file-size",                        /* 42 */
+   "file-type",                        /* 43 */
+   "firmware-revision",                /* 44 */
+   "high-limit",                       /* 45 */
+   "inactive-text",                    /* 46 */
+   "in-process",                       /* 47 */
+   "instance-of",                      /* 48 */
+   "integral-constant",                /* 49 */
+   "integral-constant-units",          /* 50 */
+   "unused-was-issue-confirmed-notifications",    /* 51 deleted in version 1 revision 4*/
+   "limit-enable",                     /* 52 */
+   "list-of-group-members",            /* 53 */
+   "list-of-object-property-references",  /* 54 zhu zhenhua 2003-7-24 */
+   "list-of-session-keys",             /* 55 */
+   "local-date",                       /* 56 */
+   "local-time",                       /* 57 */
+   "location",                         /* 58 */
+   "low-limit",                        /* 59 */
+   "manipulated-variable-reference",   /* 60 */
+   "maximum-output",                   /* 61 */
+   "max-apdu-length-accepted",         /* 62 */
+   "max-info-frames",                  /* 63 */
+   "max-master",                       /* 64 */
+   "max-pres-value",                   /* 65 */
+   "minimum-off-time",                 /* 66 */
+   "minimum-on-time",                  /* 67 */
+   "minimum-output",                   /* 68 */
+   "min-pres-value",                   /* 69 */
+   "model-name",                       /* 70 */
+   "modification-date",                /* 71 */
+   "notify-type",                      /* 72 */
+   "number-of-apdu-retries",           /* 73 */
+   "number-of-states",                 /* 74 */
+   "object-identifier",                /* 75 */
+   "object-list",                      /* 76 */
+   "object-name",                      /* 77 */
+   "object-property-reference",        /* 78 zhu zhenhua 2003-7-24 */
+   "object-type",                      /* 79 */
+   "optional",                         /* 80 */
+   "out-of-service",                   /* 81 */
+   "output-units",                     /* 82 */
+   "event-parameters",                 /* 83 */
+   "polarity",                         /* 84 */
+   "present-value",                    /* 85 */
+   "priority",                         /* 86 */
+   "priority-array",                   /* 87 */
+   "priority-for-writing",             /* 88 */
+   "process-identifier",               /* 89 */
+   "program-change",                   /* 90 */
+   "program-location",                 /* 91 */
+   "program-state",                    /* 92 */
+   "proportional-constant",            /* 93 */
+   "proportional-constant-units",      /* 94 */
+   "protocol-conformance-class",       /* 95 */
+   "protocol-object-types-supported",  /* 96 */
+   "protocol-services-supported",      /* 97 */
+   "protocol-version",                 /* 98 */
+   "read-only",                        /* 99 */
+   "reason-for-halt",                  /* 100 */
+   "recipient",                        /* 101 */
+   "recipient-list",                   /* 102 */
+   "reliability",                      /* 103 */
+   "relinquish-default",               /* 104 */
+   "required",                         /* 105 */
+   "resolution",                       /* 106 */
+   "segmentation-supported",           /* 107 */
+   "setpoint",                         /* 108 */
+   "setpoint-reference",               /* 109 */
+   "state-text",                       /* 110 */
+   "status-flags",                     /* 111 */
+   "system-status",                    /* 112 */
+   "time-delay",                       /* 113 */
+   "time-of-active-time-reset",        /* 114 */
+   "time-of-state-count-reset",        /* 115 */
+   "time-synchronization-recipients",  /* 116 */
+   "units",                            /* 117 */
+   "update-interval",                  /* 118 */
+   "utc-offset",                       /* 119 */
+   "vendor-identifier",                /* 120 */
+   "vendor-name",                      /* 121 */
+   "vt-classes-supported",             /* 122 */
+   "weekly-schedule",                  /* 123 */   
+   "attempted-samples",                /* 124 */
+   "average-value",                    /* 125 */
+   "buffer-size",                      /* 126 */
+   "client-cov-increment",             /* 127 */
+   "cov-resubscription-interval",      /* 128 */
+   "unused-was-current-notify-time",   /* 129  added by zhu zhenhua, 2004-5-11 deleded in version 1 rev 3 */
+   "event-time-stamps",                /* 130 */
+   "log-buffer",                       /* 131 */
+   "log-device-object-property",       /* 132 zhu zhenhua 2003-7-24 */
+   "enable",                           /* 133 changed from log-enable in 135-2004b-5 */
+   "log-interval",                     /* 134 */
+   "maximum-value",                    /* 135 */
+   "minimum-value",                    /* 136 */
+   "notification-threshold",           /* 137 */
+   "unused-was-previous-notify-time",  /* 138   added by zhu zhenhua, 2004-5-11 deleted in version 1 rev 3 */
+   "protocol-revision",                /* 139 */
+   "records-since-notification",       /* 140 */
+   "record-count",                     /* 141 */
+   "start-time",                       /* 142 */
+   "stop-time",                        /* 143 */
+   "stop-when-full",                   /* 144 */
+   "total-record-count",               /* 145 */            
+   "valid-samples",                    /* 146 */
+   "window-interval",                  /* 147 */
+   "window-samples",                   /* 148 */
+   "maximum-value-timestamp",          /* 149 */
+   "minimum-value-timestamp",          /* 150 */
+   "variance-value",                   /* 151 */
+   "active-cov-subscriptions",          /* 152 xiao shiyuan 2002-7-18 */
+   "backup-failure-timeout",            /* 153 xiao shiyuan 2002-7-18 */		
+   "configuration-files",               /* 154 xiao shiyuan 2002-7-18 */
+   "database-revision",                 /* 155 xiao shiyuan 2002-7-18 */
+   "direct-reading",                    /* 156 xiao shiyuan 2002-7-18 */
+   "last-restore-time",					/* 157 xiao shiyuan 2002-7-18 */
+   "maintenance-required",				/* 158 xiao shiyuan 2002-7-18 */
+   "member-of",							/* 159 xiao shiyuan 2002-7-18 */
+   "mode",								/* 160 xiao shiyuan 2002-7-18 */
+   "operation-expected",				/* 161 xiao shiyuan 2002-7-18 */
+   "setting",							/* 162 xiao shiyuan 2002-7-18 */
+   "silenced",							/* 163 xiao shiyuan 2002-7-18 */
+   "tracking-value",					/* 164 xiao shiyuan 2002-7-18 */
+   "zone-members",						/* 165 xiao shiyuan 2002-7-18 */
+   "life-safety-alarm-values",			/* 166 xiao shiyuan 2002-7-18 */
+   "max-segments-accepted",				/* 167 xiao shiyuan 2002-7-18 */
+   "profile-name",                      /* 168 xiao shiyuan 2002-7-18 */
+   "auto-slave-discovery",				/* 169 ljt 2005-10-12   */
+   "manual-slave-address-binding",		/* 170 ljt 2005-10-12   */
+   "slave-address-binding",				/* 171 ljt 2005-10-12   */
+   "slave-proxy-enable",				/* 172 ljt 2005-10-12   */
+   "last-notify-record",				/* 173 zhu zhenhua  2004-5-11 */
+   "schedule-default",                 // 174 shiyuan xiao 7/15/2005
+   "accepted-modes",                   // 175 shiyuan xiao 7/15/2005
+   "adjust-value",                     // 176 shiyuan xiao 7/15/2005
+   "count",                            // 177 shiyuan xiao 7/15/2005 
+   "count-before-change",              // 178 shiyuan xiao 7/15/2005
+   "count-change-time",                // 179 shiyuan xiao 7/15/2005		
+   "cov-period",                       // 180 shiyuan xiao 7/15/2005
+   "input-reference",                  // 181 shiyuan xiao 7/15/2005
+   "limit-monitoring-interval",        // 182 shiyuan xiao 7/15/2005
+   "logging-device",                   // 183 shiyuan xiao 7/15/2005
+   "logging-record",                   // 184 shiyuan xiao 7/15/2005  
+   "prescale",                         // 185 shiyuan xiao 7/15/2005  
+   "pulse-rate",                       // 186 shiyuan xiao 7/15/2005
+   "scale",                            // 187 shiyuan xiao 7/15/2005
+   "scale-factor",                     // 188 shiyuan xiao 7/15/2005  
+   "update-time",                      // 189 shiyuan xiao 7/15/2005 
+   "value-before-change",              // 190 shiyuan xiao 7/15/2005
+   "value-set",                        // 191 shiyuan xiao 7/15/2005
+   "value-change-time",                 // 192 shiyuan xiao 7/15/2005
+   // added addendum b (135-2004)
+	"align-intervals",					// 193
+	"group-members-names",				// 194
+	"interval-offset",					// 195
+	"last-restart-reason",				// 196
+	"logging-type",						// 197
+	"member-status-flags",				// 198
+	"notification-period",				// 199
+	"previous-notify-record",			// 200
+	"requested-update-interval",		// 201
+	"restart-notification-recipients",	// 202
+	"time-of-device-restart",			// 203
+	"time-synchronization-interval",	// 204
+	"trigger",							// 205
+	"utc-time-syncrhonization-recipients",  // 206
+	// added by addenda d
+	"node-subtype",						// 207
+	"node-type",						// 208
+	"structured-object-list",			// 209
+	"subordinate-annotation",			// 210
+	"subordinate-list",					// 211
+	// added by addendum e 135-2004
+	"actual-shed-level",				// 212
+	"duty-window",						// 213
+	"expected-shed-level",				// 214
+	"full-duty-baseline",				// 215
 	"unknown-216",
 	"unknown-217",
-	"requested-shed-level",	// 218
-	"shed-duration",		// 219
-	"shed-level-descriptions", // 220
-	"shed-levels",			// 221
-	"state-description",	// 222
+	"requested-shed-level",				// 218
+	"shed-duration",					// 219
+	"shed-level-descriptions",			// 220
+	"shed-levels",						// 221
+	"state-description",				// 222
 	"unknown-223",
 	"unknown-224",
 	"unknown-225",
-	"door-alarm-state",		// 226
+	"door-alarm-state",					// 226
 	"door-extended-pulse-time",
 	"door-members",
 	"door-open-too-long-time",
-	"door-pulse-time",		// 230
+	"door-pulse-time",					// 230
 	"door-status",
 	"door-unlock-delay-time",
 	"lock-status",
 	"masked-alarm-values",
-	"secured-status",		// 235 last in 135-2008
+	"secured-status",					// 235 last in 135-2008
 	// CAUTION: if you add a property here, you must also change MAX_PROPID
 	// (which is actually max-plus-one: the NUMBER of defined properties)
 };
-BAC_STRINGTABLE(BACnetPropertyIdentifier);
-
-// Added by Addenda D
-STRING_TABLE BACnetNodeType[] = {
-   "UNKNOWN",
-   "SYSTEM",
-   "NETWORK",
-   "DEVICE",
-   "ORGANIZATION",
-   "AREA",
-   "EQUIPMENT",
-   "POINT",
-   "COLLECTION",
-   "PROPERTY",
-   "FUNCTIONAL",
-   "OTHER"
-};
-BAC_STRINGTABLE(BACnetNodeType);
-   
-STRING_TABLE BACnetPropertyReference[] = {
-   "Property Identifier",
-   "Property Array Index"
-};
-BAC_STRINGTABLE(BACnetPropertyReference);
+BAC_STRINGTABLE_EX(BACnetPropertyIdentifier, 512, 0x7FFFFFFF);
 
 STRING_TABLE BACnetPropertyStates[] = {
    "Boolean-value",
@@ -1378,45 +1078,25 @@ STRING_TABLE BACnetPropertyStates[] = {
    "Restart-reason",
    "Door-alarm-state",
 };
-BAC_STRINGTABLE(BACnetPropertyStates);
-
-STRING_TABLE BACnetPropertyValue[] = {
-   "Property Identifier",
-   "Property Array Index",
-   "Value",
-   "Priority"
-};
-BAC_STRINGTABLE(BACnetPropertyValue);
-
-STRING_TABLE BACnetRecipient[] = {
-   "Device",
-   "Address"
-};
-BAC_STRINGTABLE(BACnetRecipient);
-
-STRING_TABLE BACnetRecipientProcess[] = {
-   "Recipient",
-   "Process Identifier"
-};
-BAC_STRINGTABLE(BACnetRecipientProcess);
+BAC_STRINGTABLE_EX(BACnetPropertyStates, 64, 256);
 
 STRING_TABLE BACnetReliability[] = {
-   "NO-FAULT-DETECTED",
-   "NO-SENSOR",
-   "OVER-RANGE",
-   "UNDER-RANGE",
-   "OPEN-LOOP",
-   "SHORTED-LOOP",
-   "NO-OUTPUT",
-   "UNRELIABLE-OTHER",
-   "PROCESS-ERROR",
-   "MULTI-STATE-FAULT",
-   "CONFIGURATION-ERROR", // 10
+   "no-fault-detected",
+   "no-sensor",
+   "over-range",
+   "under-range",
+   "open-loop",
+   "shorted-loop",
+   "no-output",
+   "unreliable-other",
+   "process-error",
+   "multi-state-fault",
+   "configuration-error", // 10
    // added addendum B (135-2004)
-   "MEMBER-FAULT",
-   "COMMUNICATION-FAILURE",
+   "member-fault",
+   "communication-failure",	// 12 last in 135-2008
 };
-BAC_STRINGTABLE(BACnetReliability);
+BAC_STRINGTABLE_EX(BACnetReliability, 64, 65536);
 
 STRING_TABLE BACnetRestartReason[] = {
 	"unknown",
@@ -1426,18 +1106,34 @@ STRING_TABLE BACnetRestartReason[] = {
 	"detected-power-off",
 	"hardware-watchdog",
 	"software-watchdog",
-	"suspended",
+	"suspended",			// 7 last in 135-2008
 };
-BAC_STRINGTABLE(BACnetRestartReason);
+BAC_STRINGTABLE_EX(BACnetRestartReason, 64, 256);
+
+STRING_TABLE BACnetResultFlags[] = {
+   "first-item",
+   "last-item",
+   "more-items"
+};
+BAC_STRINGTABLE(BACnetResultFlags);
+
+STRING_TABLE BACnetShedState[] = {
+	"shed-inactive",
+	"shed-request-pending",
+	"shed-compliant",
+	"shed-non-compliant",
+};
+BAC_STRINGTABLE(BACnetShedState);
 
 STRING_TABLE BACnetSegmentation[] = {
-   "SEGMENTED-BOTH",
-   "SEGMENTED-TRANSMIT",
-   "SEGMENTED-RECEIVE",
-   "NO-SEGMENTATION"
+   "segmented-both",
+   "segmented-transmit",
+   "segmented-receive",
+   "no-segmentation"
 };
 BAC_STRINGTABLE(BACnetSegmentation);
 
+// This list is also used to create the hash table for scripting.
 STRING_TABLE BACnetServicesSupported[] = {
 /* Alarm and Event Services */
    "AcknowledgeAlarm",              /* 0 */
@@ -1493,38 +1189,25 @@ STRING_TABLE BACnetServicesSupported[] = {
    "UtcTimeSynchronization"  ,      /* 36 */
    "LifeSafetyOperation",           /* 37 */
    "SubscribeCOVProperty",          /* 38 */ 
-   "GetEventInformation"            /* 39 */
+   "GetEventInformation"            /* 39 last in 135-2008 */
 };                       
 BAC_STRINGTABLE(BACnetServicesSupported);
 
-STRING_TABLE BACnetSessionKey[] = {
-   "Session Key",
-   "Peer Address"
+STRING_TABLE  BACnetSilencedState[] = {
+	"unsilenced",
+	"audible-silenced",
+	"visible-silenced",
+	"all-silenced"
 };
-BAC_STRINGTABLE(BACnetSessionKey);
-
-STRING_TABLE BACnetSpecialEvent[] = {
-   "Period (CalendarEntry)",
-   "Period (CalendarReference)",
-   "ListOfTimeValues",
-   "EventPriority"
-};
-BAC_STRINGTABLE(BACnetSpecialEvent);
+BAC_STRINGTABLE_EX(BACnetSilencedState, 64, 65536);
 
 STRING_TABLE BACnetStatusFlags[] = {
-   "IN-ALARM",
-   "FAULT",
-   "OVERRIDDEN",
-   "OUT-OF-SERVICE"
+   "in-alarm",
+   "fault",
+   "overridden",
+   "out-of-service"
 };
 BAC_STRINGTABLE(BACnetStatusFlags);
-
-STRING_TABLE BACnetResultFlags[] = {
-   "FIRST-ITEM",
-   "LAST-ITEM",
-   "MORE-ITEMS"
-};
-BAC_STRINGTABLE(BACnetResultFlags);
 
 STRING_TABLE BACnetVendorID[] = {
    "ASHRAE",				// 0
@@ -1950,48 +1633,31 @@ STRING_TABLE BACnetVendorID[] = {
    
    // TODO add more here ...
 };
-BAC_STRINGTABLE(BACnetVendorID);
-
-STRING_TABLE BACnetTimeValue[] = {
-   "Time",
-   "Value"
-};
-BAC_STRINGTABLE(BACnetTimeValue);
+BAC_STRINGTABLE_EX(BACnetVendorID, 0x7FFFFFFF, 0x7FFFFFFF);
 
 STRING_TABLE BACnetVTClass[] = {
-   "Default Terminal class",
-   "ANSI X3.64 class",
-   "DEC VT52 class",
-   "DEC VT100 class",
-   "DEC VT220 class",
-   "HP 700/94 class",
-   "IBM 3130 class"
+   "default-terminal",
+   "ansi-x3-64",
+   "dec-vt52",
+   "dec-vt100",
+   "dec-vt220",
+   "hp-700-94",
+   "ibm-3130"
 };
-BAC_STRINGTABLE(BACnetVTClass);
+BAC_STRINGTABLE_EX(BACnetVTClass, 64, 65536);
 
-STRING_TABLE BACnetVTSession[] = {
-   "Local VT-Session ID",
-   "Remote VT-Session ID",
-   "Remote VT-Address"
+// Used for bitstring BACnetDaysOfWeek, where Monday == 0
+// See also day_of_week
+STRING_TABLE BACnetDaysOfWeek[] = {
+   "monday",
+   "tuesday",
+   "wednesday",
+   "thursday",
+   "friday",
+   "saturday",
+   "sunday"
 };
-BAC_STRINGTABLE(BACnetVTSession);
-
-//Xiao Shiyuan 2002-7-23
-STRING_TABLE BACnetCOVSubscription[] = {
-	"Recipient",
-    "Monitored Property Reference",
-	"Issue Confirmed Notifications",
-	"Time remaining",
-	"COV increment"
-};
-BAC_STRINGTABLE(BACnetCOVSubscription);
-
-STRING_TABLE BACnetWeekNDay[] = {
-   "Month",
-   "Week of Month",
-   "Day of Week"
-};
-BAC_STRINGTABLE(BACnetWeekNDay);
+BAC_STRINGTABLE(BACnetDaysOfWeek);
 
 // Used for Date etc., where Monday == 1
 // See also BACnetDaysOfWeek
@@ -2064,33 +1730,35 @@ STRING_TABLE NL_msgs[] = {
    "Initialize-Routing-Table-Ack",
    "Establish-Connection-To-Network",
    "Disconnect-Connection-To-Network",
-   "ASHRAE Reserved",
-   "Vendor Proprietary Message"
+   "ASHRAE-Reserved",
+   "Vendor-Proprietary-Message"
 };
 BAC_STRINGTABLE(NL_msgs);
 
+// This list is also used to create the hash table for scripting.
 STRING_TABLE BACnetReject[] = {
-   "Other",                              /*0*/
-   "Buffer-overflow",                    /*1*/
-   "Inconsistent-parameters",            /*2*/
-   "Invalid-parameter-datatype",         /*3*/
-   "Invalid-tag",                        /*4*/
-   "Missing-required-tag",               /*5*/
-   "Parameter-out-or-range",             /*6*/
-   "Too-many-arguments",                 /*7*/
-   "Undefined-enumeration",              /*8*/
-   "Unrecognized-service"                /*9*/
+   "other",                              /*0*/
+   "buffer-overflow",                    /*1*/
+   "inconsistent-parameters",            /*2*/
+   "invalid-parameter-data-type",        /*3*/
+   "invalid-tag",                        /*4*/
+   "missing-required-parameter",         /*5*/
+   "parameter-out-of-range",             /*6*/
+   "too-many-arguments",                 /*7*/
+   "undefined-enumeration",              /*8*/
+   "unrecognized-service"                /*9*/
 };
-BAC_STRINGTABLE(BACnetReject);
+BAC_STRINGTABLE_EX(BACnetReject, 64, 256);
 
+// This list is also used to create the hash table for scripting.
 STRING_TABLE BACnetAbort[] = {
-   "Other",                             /*0*/
-   "Buffer-overflow",                   /*1*/
-   "Invalid-APDU-in-this-state",        /*2*/
-   "Preempted-by-higher-priority-task", /*3*/
-   "Segmentation-not-supported"         /*4*/
+   "other",                             /*0*/
+   "buffer-overflow",                   /*1*/
+   "invalid-apdu-in-this-state",        /*2*/
+   "preempted-by-higher-priority-task", /*3*/
+   "segmentation-not-supported"         /*4*/
 };
-BAC_STRINGTABLE(BACnetAbort);
+BAC_STRINGTABLE_EX(BACnetAbort, 64, 256);
 
 // Value for ReadPropertyConditionl selectionLogic
 STRING_TABLE Selection_Logic[] = {
@@ -2127,6 +1795,9 @@ STRING_TABLE BVLL_Function[] = {
 };
 BAC_STRINGTABLE(BVLL_Function);
 
+// These have initial upper case for nicer display, since they
+// are not actually used as an enumeration.
+// This list is used to create the hash table for scripting.
 STRING_TABLE BACnetConfirmedServiceChoice[] = {
    "AcknowledgeAlarm",              /* 0 */
    "ConfirmedCOVNotification",      /* 1 */
@@ -2149,9 +1820,9 @@ STRING_TABLE BACnetConfirmedServiceChoice[] = {
    "ConfirmedPrivateTransfer",      /* 18 */
    "ConfirmedTextMessage",          /* 19 */
    "ReinitializeDevice",            /* 20 */
-   "VT-Open",                       /* 21 */
-   "VT-Close",                      /* 22 */
-   "VT-Data",                       /* 23 */
+   "TtOpen",                        /* 21 */
+   "VtClose",                       /* 22 */
+   "VtData",                        /* 23 */
    "Authenticate",                  /* 24 */
    "RequestKey",                    /* 25 */
    "ReadRange",                     /* 26 */
@@ -2179,6 +1850,7 @@ STRING_TABLE BACnetUnconfirmedServiceChoice[] = {
 };                       
 BAC_STRINGTABLE(BACnetUnconfirmedServiceChoice);
 
+// Not an explicit datatype: defined inline in ReinitializeDevice-Request
 STRING_TABLE BACnetReinitializedStateOfDevice[] = {
 	"coldstart",	/* 0 */
 	"warmstart",
@@ -2190,6 +1862,7 @@ STRING_TABLE BACnetReinitializedStateOfDevice[] = {
 };
 BAC_STRINGTABLE(BACnetReinitializedStateOfDevice);
 
+// Not an explicit datatype: defined inline in DeviceCommunicationsControl-Request
 STRING_TABLE DeviceCommControl_Command[] = {
 	"enable",	/* 0 */
 	"disable",
@@ -2197,6 +1870,7 @@ STRING_TABLE DeviceCommControl_Command[] = {
 };
 BAC_STRINGTABLE(DeviceCommControl_Command);
 
+// Not an explicit datatype: defined inline in ConfirmedTextMessage-Request
 STRING_TABLE TextMessage_Priority[] = {
 	"normal",	/* 0 */
 	"urgent"

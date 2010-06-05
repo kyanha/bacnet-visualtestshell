@@ -60,38 +60,38 @@
 //Added by Zhu Zhen hua, 2003-9-4
 #define dsofweek            48			//BACnetDaysofWeek
 #define eventransbits		49			//BACnetEventTansitionBits
-//#define recipt				50			//BACnetRecipient  //madanner 9/04 should be recip
+//#define recipt			50			//BACnetRecipient  //madanner 9/04 should be recip
 #define destination         51			//BACnetDestination
 #define sequenceof			52			//BACnetSequenceOf
 #define listof				53			//BACnetListOf
 #define arrayof				54			//BACnetArrayOf
-#define lodoref           55          // List of BACnetDeviceObjectReference
-#define devobjref         56          // BACnetDeviceObjectReference
-#define eboollist         57          // list of boolean
+#define lodoref				55          // List of BACnetDeviceObjectReference
+#define devobjref			56          // BACnetDeviceObjectReference
+#define eboollist			57          // list of boolean
 
-#define escale    60   // BACnetScale    Shiyuan Xiao 7/15/2005
-#define eprescl    61   // BACnetPrescale Shiyuan Xiao 7/15/2005
-#define eaclr      62     // BACnetAccumulatorRecord Shiyuan Xiao 7/15/2005
+#define escale				60   // BACnetScale    Shiyuan Xiao 7/15/2005
+#define eprescl				61   // BACnetPrescale Shiyuan Xiao 7/15/2005
+#define eaclr				62   // BACnetAccumulatorRecord Shiyuan Xiao 7/15/2005
 
-#define ptInt32	   63	// Signed Int32
-#define ptPai	   64	// Priority Array of Int32
+#define ptInt32				63	// Signed Int32
+#define ptPai				64	// Priority Array of Int32
 
 
-#define ptDate 200  // parsetype BACnetDate
-#define ptTime 201  // parsetype BACnetTime
-#define lobj   202  // array of objects, (parse type)
-#define vtse   203  // list of active  vt sessions (parse type)
-#define uwarr  204  // array of uw
+#define ptDate				200  // parsetype BACnetDate
+#define ptTime				201  // parsetype BACnetTime
+#define lobj				202  // array of objects, (parse type)
+#define vtse				203  // list of active  vt sessions (parse type)
+#define uwarr				204  // array of uw
 
-#define lCOVSub 205		// List of BACnetCOVSubcription,   added Gingbo Gao, 2003-9-1
-#define TSTMParr 206	// array of BACnetTimeStamp  madanner 9/04
-#define dabindelem 207	// single BACnetDeviceAddressBinding madanner 9/04
-#define COVSub 208		// single BACnetCOVSubscription madanner 9/04
-#define recipproc 209	// singled BACnetRecipientProcess madanner 9/04
+#define lCOVSub				205		// List of BACnetCOVSubcription,   added Gingbo Gao, 2003-9-1
+#define TSTMParr			206	// array of BACnetTimeStamp  madanner 9/04
+#define dabindelem			207	// single BACnetDeviceAddressBinding madanner 9/04
+#define COVSub				208		// single BACnetCOVSubscription madanner 9/04
+#define recipproc			209	// singled BACnetRecipientProcess madanner 9/04
 
-#define etl 210         // enumeration table in a list ljt 9/05
-#define shedlevel	211  // BACnetShedLevel parse type  LJT 3/3/2009
-#define	pae			212		// priority-array of enum
+#define etl					210         // enumeration table in a list ljt 9/05
+#define shedlevel			211  // BACnetShedLevel parse type  LJT 3/3/2009
+#define	pae					212		// priority-array of enum
 
 ////
 //////////////////////////////////////////////
@@ -103,6 +103,7 @@
 static const char nullstring[5]={"null"};	//"null\0";			//	***001
 static const char anystring[4]={"any"};		//"any\0";			//	***001
 
+// TODO: Why is this table in an h file?  Used by Bacprim32.cpp and Vtsapi32.cpp
 static const char *stParseTypes[]={
 				"object ID",
 				"enumeration",
@@ -149,261 +150,7 @@ static const char *stParseTypes[]={
 				"short signed int",  //MAG added 13 FEB 2001
 				NULL /*always last*/
 				};
-//Special table for parse types
-static const char *stRelationTypes[]={
-				"==",
-				"!=",
-				"< ",
-				"> ",
-				"<=",
-				">=",
-				NULL /*always last*/
-				};
-//Special table for property ids
 
-static const char *stPropIDs[]={
-				"acked-transitions",
-				"ack-required",
-				"action",
-				"action-text",
-				"active-text",
-				"active-vt-sessions",
-				"alarm-value",
-				"alarm-values",
-				"all",
-				"all-writes-successful",
-				"apdu-segment-timout",
-				"apdu-timout",
-				"application-software-version",
-				"archive",
-				"bias",
-				"change-of-state-count",
-				"change-of-state-time",
-				"notification-class",
-				"reserved propertyID 18",
-				"controlled-variable-reference",
-				"controlled-variable-units",
-				"controlled-variable-value",
-				"cov-increment",
-				"date-list",
-				"daylight-savings-status",
-				"deadband",
-				"derivative-constant",
-				"derivative-constant-units",
-				"description",
-				"description-of-halt",
-				"device-address-binding",
-				"device-type",
-				"effective-period",
-				"elapsed-active-time",
-				"error-limit",
-				"event-enabled",
-				"event-state",
-				"event-type",
-				"exception-schedule",
-				"fault-values",
-				"feedback-value",
-				"file-access-method",
-				"file-size",
-				"file-type",
-				"firmware-revision",
-				"high-limit",
-				"inactive-text",
-				"in-process",
-				"instance-of",
-				"integral-constant",
-				"integral-constant-units",
-				"issue-confirmed-notifications",
-				"limit-enable",
-				"list-of-group-members",
-				"list-of-object-property-references",
-				"list-of-session-keys",
-				"local-date",
-				"local-time",
-				"location",
-				"low-limit",
-				"manipulated-variable-reference",
-				"maximum-output",
-				"max-apdu-length-accepted",
-				"max-info-frames",
-				"max-master",
-				"max-pres-value",
-				"minimum-off-time",
-				"minimum-on-time",
-				"minimum-output",
-				"min-pres-value",
-				"model-name",
-				"modification-date",
-				"notify-type",
-				"number-of-apdu-retries",
-				"number-of-states",
-				"object-identifier",
-				"object-list",
-				"object-name",
-				"object-property-reference",
-				"object-type",
-				"optional",
-				"out-of-service",
-				"output-units",
-				"event-parameters",
-				"polarity",
-				"present-value",
-				"priority",
-				"priority-array",
-				"priority-for-writing",
-				"process-identifier",
-				"program-change",
-				"program-location",
-				"program-state",
-				"proportional-constant",
-				"proportional-constant-units",
-				"protocol-conformance-class",
-				"protocol-object-types-supported",
-				"protocol-services-supported",
-				"protocol-version",
-				"read-only",
-				"reason-for-halt",
-				"recipient",
-				"recipient-list",
-				"reliability",
-				"relinquish-default",
-				"required",
-				"resolution",
-				"segmentation-supported",
-				"setpoint",
-				"setpoint-reference",
-				"state-text",
-				"status-flags",
-				"system-status",
-				"time-delay",
-				"time-of-active-time-reset",
-				"time-of-state-count-reset",
-				"time-synchronization-recipients",
-				"units",
-				"update-interval",
-				"utc-offset",
-				"vendor-identifier",
-				"vendor-name",
-				"vt-classes-supported",
-				"weekly-schedule",
-				"attempted_samples",                        
-				"average_value",                            
-				"buffer_size",                              
-				"client_cov_increment",                     
-				"cov_resubscription_interval",              
-//				"current_notify_time",                      
-                "unused129",
-				"event_time_stamps",                        
-				"log_buffer",                               
-				"log_device_object_property",               
-				"log_enable",                               
-				"log_interval",                             
-				"maximum_value",                            
-				"minimum_value",                            
-				"notification_threshold",                   
-			//	"previous_notify_time",  
-			    "unused138",   
-				"protocol_revision",                        
-				"records_since_notification",               
-				"record_count",                             
-				"start_time",                               
-				"stop_time",                                
-				"stop_when_full",                           
-				"total_record_count",                       
-				"valid_samples",                            
-				"window_interval",                          
-				"window_samples",                           
-				"maximum_value_timestamp",                  
-				"minimum_value_timestamp",                  
-				"variance_value", // 151
-				"active_cov_subscriptions",
-				"backup_failure_timeout",
-				"configuration_files",
-				"database_revision",  // 155
-				"direct_reading", 		//	(156),
-				"last_restore_time",	//	(157),
-				"maintenance_required", //	(158),
-				"member-of",			//	(159),
-				"mode",					//  (160),
-				"operation-expected", // 			(161),
-				"setting", //				(162),
-				"silenced", //				(163),
-				"tracking-value", //			(164),
-				"zone-members", //			(165),
-				"life-safety-alarm-values", //		(166),
-				"max-segments-accepted", //		(167),
-				"profile-name", //			(168),
-				"auto-slave-discovery", //			(169),
-				"manual-slave-address-binding", //	(170),
-				"slave-address-binding", //		(171),
-				"slave-proxy-enable", //			(172),
-				"last-notify-time", //			(173),
-				"schedule-default", //			(174),
-				"accepted-modes", //			(175),
-				"adjust-value", //				(176),
-				"count", //				(177),
-				"count-before-change", //			(178),
-				"count-change-time", //			(179),
-				"cov-period", //				(180),
-				"input-reference", //			(181),
-				"limit-monitoring-interval", //		(182),
-				"logging-device", //			(183),
-				"logging-record", //			(184),
-				"prescale", //				(185),
-				"pulse-rate", //				(186),
-				"scale", //				(187),
-				"scale-factor", //				(188),
-				"update-time", //			(189),
-				"value-before-change", //			(190),
-				"value-set", //				(191),
-				"value-change-time", //     (192)
-				// Added by addenda B
-				"align-intervals",					// 193
-				"group-members-names",				// 194
-				"interval-offset",					// 195
-				"last-restart-reason",				// 196
-				"logging_Type",						// 197
-				"member-status-flags",				// 198
-				"notification-period",				// 199
-				"previous-notify-record",			// 200
-				"requested-update-interval",		// 201
-				"restart-notification-recipients",	// 202
-				"time-of-device-restart",			// 203
-				"time-synchronization-interval",	// 204
-				"trigger",							// 205
-				"utc-time-syncrhonization-recipients",  // 206
-				// Added by addenda D
-				"node-subtype", // 207
-				"node-type",   // 208
-				"structured-object-list",  // 209
-				"subordinate-annotation",  // 210
-				"subordinate-list", // 211
-				"actual-shed-level", // 212
-				"duty-window", // 213
-				"expected-shed-level", //214
-				"full-duty-baseline",  // 215
-				"unknown-216",
-				"unknown-217",
-				"requested-shed-level", // 218
-				"shed-duration",	// 219
-				"shed-level-descriptions", //220
-				"shed-levels",	// 221
-				"state-description", // 222
-				"p223",
-				"p224",
-				"p225",
-				"door-alarm-state",
-				"door-extended-pulse-time",
-				"door-members",
-				"door-open-too-long-time",
-				"door-pulse-time",
-				"door-status",
-				"door-unlock-delay-time",
-				"lock-status",
-				"masked-alarm-values",
-				"secured-status",			// 235
-				NULL /*always last*/
-				};
 //qualifiers in PropFlags
 #define	O					0x0000				//optional
 #define	R					0x0001				//required

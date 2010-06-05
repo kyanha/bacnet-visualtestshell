@@ -66,6 +66,7 @@ last edit:	29-Jan-01 [238] JJB revise for C++, added PICS namespace and typecast
 #include <math.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "StringTables.h"
 
 namespace PICS {									//									***238
 
@@ -764,6 +765,17 @@ word ePropVal(octet *op,word opmax,word objtype,octet btag,char *pstr)
     return 0;															//can't buffer it all
 }
 
+//Special table for parse types
+static const char *stRelationTypes[]={
+				"==",
+				"!=",
+				"< ",
+				"> ",
+				"<=",
+				">=",
+				NULL /*always last*/
+				};
+
 /////////////////////////////////////////////////////////////////////// 				***015 Begin
 //	Encode a Selection Criterium as used in ReadConditional
 //in:	op			points to buffer to encode into 
@@ -832,16 +844,22 @@ getvp:	vp=strchr(pstr,fc);						//find first char of relation
 	}
 	
     if (cp=strchr(pstr,'['))						//we have an array index
-    {	*cp++=0;									//make pstr the propid
+    {	
+		*cp++=0;									//make pstr the propid
     	aryindex=atol(cp);							//get array index
     	ha=TRUE;
     }
-    for (i=0;stPropIDs[i];i++)
-	{	if (stricmp(pstr,stPropIDs[i])==0)
-		{	if ((word)(op-iop+2)>=opmax) return 0;			
+    
+	for (i=0; i < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; i++)
+	{	
+		if (stricmp(pstr,NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[i])==0)
+		{	
+			if ((word)(op-iop+2)>=opmax) return 0;			
+			
 			op=eDWORD(op,i,0x08,FALSE);				//context tag 0 property id
 			if (ha)	
-			{	if ((word)(op-iop+5)>=opmax) return 0;
+			{
+				if ((word)(op-iop+5)>=opmax) return 0;
 				op=eDWORD(op,aryindex,0x18,FALSE);	//optional context tag 1 array index
 			}			
 			if ((word)(op-iop+2)>=opmax) return 0;
@@ -849,12 +867,14 @@ getvp:	vp=strchr(pstr,fc);						//find first char of relation
 			if ((word)(op-iop+2)>=opmax) return 0;	//account for outer tags			
 			*op++=0x3E;								//open tag 3 comparison value
 			if ((ptype==et)||(ptype==pab))			//an enumeration table
-			{	if (opmax<5) return 0;
+			{	
+				if (opmax<5) return 0;
 				eval=atol(vp);
 				op=eDWORD(op,eval,0x90,FALSE);
 			}
 			else 
-			{	op=eAny(op,(word)(opmax-(op-iop)),ptype,0,ep,vp);	//								***023
+			{	
+				op=eAny(op,(word)(opmax-(op-iop)),ptype,0,ep,vp);	//								***023
 				if (op==0) return 0;
 			}
 			*op++=0x3F;								//close tag 3 comparison value
@@ -2576,15 +2596,21 @@ word  APIENTRY eReadPropConditionalService(octet *op,word opmax,word selectlogic
 	{	if ((word)(op-iop+2)>opmax) return 0;		//account for outer tags
 		*op++=0x1E;									//open tag 1 list of property refs
 		for (i=0;i<nv;i++)
-		{	GetListText(hrefs,i,(char *)p);			//get the property reference text to encode
-		    for (j=0;stPropIDs[j];j++)
-			{	if (stricmp((char *)p,stPropIDs[j])==0)
-				{	if ((word)(op-iop+2)>=opmax) return 0;			
+		{	
+			bool found = false;
+			GetListText(hrefs,i,(char *)p);			//get the property reference text to encode
+		    for (j=0; j < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; j++)
+			{	
+				if (stricmp((char *)p, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[j])==0)
+				{	
+					if ((word)(op-iop+2)>=opmax) return 0;
 					op=eDWORD(op,j,0x08,FALSE);		//context tag 0 property id
+					found = true;
 					break;
 				}
 			}
-			if (!stPropIDs[j]) return 0;   //if we didn't find it
+			
+			if (!found) return 0;   //if we didn't find it
 		}
 		*op++=0x1F;									//close tag 1 list of property refs
 	}

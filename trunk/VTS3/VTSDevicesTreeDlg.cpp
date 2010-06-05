@@ -846,7 +846,7 @@ void VTSDevicesTreeDlg::OnExport()
 				}
 				else
 				{
-					LPCSTR str = PICS::stPropIDs[(*pproperties)[k]->GetID()];
+					LPCSTR str = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( (*pproperties)[k]->GetID() );
 
 					fprintf(mfile, "\t%s: ", str );
 					for ( l = 0, pvalues = (*pproperties)[k]->GetValues(); pvalues != NULL && l < pvalues->GetSize(); l++ )
