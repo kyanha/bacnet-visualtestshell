@@ -430,7 +430,7 @@ static bibbdef BIBBs[]={
                { ssExecute,  asConfirmedCOVNotification    }, 
                { ssExecute,  asUnconfirmedCOVNotification  } 
              }, 
-         "DS-COV-B",						
+			"DS-COV-B",						
              { { ssExecute,  asSubscribeCOV               }, 
                { ssInitiate, asConfirmedCOVNotification   }, 
                { ssInitiate, asUnconfirmedCOVNotification } 
@@ -551,7 +551,7 @@ static bibbdef BIBBs[]={
 			"DM-DCC-B",						
              { { ssExecute,  asDeviceCommunicationControl } 
              }, 
-         "DM-PT-A",					
+			"DM-PT-A",					
 			    { { ssInitiate, asConfirmedPrivateTransfer     },
 			      { ssInitiate, asUnconfirmedPrivateTransfer   }
 			    },  					
@@ -814,7 +814,7 @@ static char *StandardServices[]={
 			"VT-Data",                                //23
 			"Authenticate",                           //24
 			"RequestKey",                             //25
-			"I-Am",									         //26   madanner 6/03: "I-AM"
+			"I-Am",                                   //26   madanner 6/03: "I-AM"
 			"I-Have",                                 //27
 			"UnconfirmedCOVNotification",             //28   msdanner 9/04: was "UnConfirmed..."
 			"UnconfirmedEventNotification",           //29   msdanner 9/04: was "UnConfirmed..."
@@ -823,10 +823,10 @@ static char *StandardServices[]={
 			"TimeSynchronization",                    //32
 			"Who-Has",                                //33
 			"Who-Is",                                 //34
-			"ReadRange",							         //35   madanner 6/03: "Read-Range"
-			"UTCTimeSynchronization",				      //36   madanner 6/03: "UTC-Time-Synchronization"
-			"LifeSafetyOperation",		               //37
-			"SubscribeCOVProperty",		               //38
+			"ReadRange",							  //35   madanner 6/03: "Read-Range"
+			"UTCTimeSynchronization",				  //36   madanner 6/03: "UTC-Time-Synchronization"
+			"LifeSafetyOperation",		              //37
+			"SubscribeCOVProperty",		              //38
 			"GetEventInformation"                     //39
 			};
 
@@ -1910,6 +1910,36 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 		break;
 
+	  case CHARACTERSTRING_VALUE:
+		 for(i=0; i<MAX_FAULT_STRINGS; i++)
+		 {
+			if ( ((charstring_obj_type *)p)->alarm_values[i]!=NULL)
+				free(((charstring_obj_type *)p)->alarm_values[i]);
+		 }
+		 for(i=0; i<MAX_FAULT_STRINGS; i++)
+		 {
+			if ( ((charstring_obj_type *)p)->fault_values[i]!=NULL)
+				free(((charstring_obj_type *)p)->fault_values[i]);
+		 }
+		 for(i=0; i<3; i++)
+		 {
+			if ( ((charstring_obj_type *)p)->event_time_stamps[i]!=NULL)
+				free(((charstring_obj_type *)p)->event_time_stamps[i]);
+		 }
+		 break; 
+
+	  case INTEGER_VALUE:
+		 for(i=0; i<3; i++)
+		 {
+			if ( ((integer_obj_type *)p)->event_time_stamps[i]!=NULL)
+				free(((integer_obj_type *)p)->event_time_stamps[i]);
+		 }
+		 break;
+
+	  case DATETIME_VALUE:
+		  // No allocations to clean up
+		  break;
+	
 	  default:
 		  // Someone forgot to implement delete code for this object type
 		  sprintf( errMsg, "**WARNING**: No delete code for this object %s (type = %d), will probably leak \n", 
