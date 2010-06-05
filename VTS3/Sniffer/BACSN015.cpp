@@ -3668,7 +3668,11 @@ void show_readPropertyConditionalACK( void )
 {
 	bac_show_byte("Read Property Conditional Acknowledgement","%u");
 	BACnetSequence seq;
-	show_read_access_result( seq );
+	seq.ListOf( "listOfReadAccessResults" );
+	while (seq.HasListElement())
+	{
+		show_read_access_result( seq );
+	}
 }
 
 /*************************************************************************/
@@ -3678,7 +3682,11 @@ void show_readPropertyMultipleACK( void )
 {
 	bac_show_byte("Read Property Multiple Acknowledgement","%u");
 	BACnetSequence seq;
-	show_read_access_result( seq );
+	seq.ListOf( "listOfReadAccessResults" );
+	while (seq.HasListElement())
+	{
+		show_read_access_result( seq );
+	}
 }
 
 /*************************************************************************/
