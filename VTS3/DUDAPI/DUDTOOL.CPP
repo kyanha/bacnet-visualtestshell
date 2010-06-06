@@ -5420,7 +5420,7 @@ bool CreateCommonProperty( generic_object far * pObj, BACnetPropertyIdentifier p
 	propsSize = PICS::StdObjects[objType].sotSize;
 	for ( i = 0; i < propsSize; i++ )
 	{
-		if ( props[i].PropID == propertyID )
+		if ( (BACnetPropertyIdentifier)props[i].PropID == propertyID )
 			break;
 	}
 	if ( i == propsSize )

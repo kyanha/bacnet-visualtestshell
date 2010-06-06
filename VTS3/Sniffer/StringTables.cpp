@@ -19,6 +19,27 @@ char* TempTextBuffer()
 	return buffers[ix];
 }
 
+// Constructor for non-extensible enumerations
+BACnetStringTable::BACnetStringTable( const char* const *pStrings,
+									  const int			nStrings )
+: m_pStrings(pStrings)
+, m_nStrings(nStrings)
+, m_nReserved(nStrings)
+, m_nMax(nStrings)
+{
+}
+	
+// Constructor for enumerations defined by BACnet as extensible
+BACnetStringTable::BACnetStringTable( const char* const *pStrings,
+									  const int		    nStrings,
+									  const int		    nReserved,
+									  const int		    nMax )
+: m_pStrings(pStrings)
+, m_nStrings(nStrings)
+, m_nReserved(nReserved)
+, m_nMax(nMax)
+{
+}
 
 // Return a string containing text for the specified enumerated value.
 // If the value is undefined, the string will show the pUndefined title and the numeric value

@@ -30,9 +30,9 @@
 #define		kwCASE					0x688ED7CA
 #define		kwENDCASE				0x011E6F49
 #define		kwCOMMENT				0xCDAB06AF
-#define     kwIFDEF					0xD8D27EFB
-#define		kwELSEDEF				0x7C1B022E
-#define     kwELSEIFDEF				0x7BC955DD
+#define     kwIFDEF					0xD8D27EFB	// the actual keyword is IF
+#define		kwELSEDEF				0x7C1B022E	// the actual keyword is ELSE
+#define     kwELSEIFDEF				0x7BC955DD	// the actual keyword is ELSEIF
 #define     kwENDIF					0x6CD21759
 #define		kwMAKE					0x06313E48
 #define		kwCHECK					0x7EF5647B
