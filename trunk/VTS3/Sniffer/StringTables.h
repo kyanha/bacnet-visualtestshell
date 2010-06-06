@@ -18,10 +18,19 @@ char* TempTextBuffer();
 // containing a pointer to the table, and a count of elements
 struct BACnetStringTable
 {
-	const char*	 const* m_pStrings;
-	const int			m_nStrings;		// number of strings in the table
-	const int			m_nReserved;	// max+1 value reserved for ASHRAE
-	const int			m_nMax;			// max+1 value allowed for proprietary extension
+	const char* const *m_pStrings;
+	const int		  m_nStrings;	// number of strings in the table
+	const int		  m_nReserved;	// max+1 value reserved for ASHRAE
+	const int		  m_nMax;		// max+1 value allowed for proprietary extension
+
+	// Constructors
+	BACnetStringTable( const char* const *pStrings,
+					   const int		  nStrings );
+	
+	BACnetStringTable( const char* const *pStrings,
+					   const int		  nStrings,
+					   const int		  nReserved,
+					   const int		  nMax );
 
 	// Return a string containing text for the specified enumerated value.
 	// If the value is undefined, the string will show the pUndefined title and the numeric value
@@ -34,10 +43,10 @@ struct BACnetStringTable
 #define STRING_TABLE const char* const
 
 // Define a BACnetStringTable, and declare the table itself
-#define BAC_STRINGTABLE(name) BACnetStringTable BAC_STRTAB_##name = {name, sizeof(name)/sizeof(name[0]), sizeof(name)/sizeof(name[0]), sizeof(name)/sizeof(name[0])}
+#define BAC_STRINGTABLE(name) BACnetStringTable BAC_STRTAB_##name(name, sizeof(name)/sizeof(name[0]))
 
 // Define a BACnetStringTable specifying limits for ASHRAE and proprietary extension
-#define BAC_STRINGTABLE_EX(name, nReserved, nMax) BACnetStringTable BAC_STRTAB_##name = {name, sizeof(name)/sizeof(name[0]), nReserved, nMax}
+#define BAC_STRINGTABLE_EX(name, nReserved, nMax) BACnetStringTable BAC_STRTAB_##name(name, sizeof(name)/sizeof(name[0]), nReserved, nMax)
 
 
 // Export a BACnetStringTable, and the table itself
