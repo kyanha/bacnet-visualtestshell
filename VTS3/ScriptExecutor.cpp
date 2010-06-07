@@ -9126,11 +9126,7 @@ template<class T>
 		// lock the queue
 		qCS.Lock();
 
-		// JLH TODO: VC++ 2003 gives warning C4345: behavior change: an object of POD 
-		// type constructed with an initializer of the form () will be default-initialized
-		VTSQueueElem	*cur = new VTSQueueElem()
-		;
-
+		VTSQueueElem *cur = new VTSQueueElem;
 		cur->qElem = tp;
 		cur->qNext = 0;
 
