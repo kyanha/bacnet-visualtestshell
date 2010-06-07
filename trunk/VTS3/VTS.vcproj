@@ -43,7 +43,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="version.lib macdll/PTP/debug/PTP.lib"
 				OutputFile=".\Debug/VTS.exe"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				IgnoreDefaultLibraryNames="LIBCMT"
 				GenerateDebugInformation="TRUE"
