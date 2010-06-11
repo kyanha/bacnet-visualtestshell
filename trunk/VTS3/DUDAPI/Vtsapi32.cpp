@@ -1967,10 +1967,15 @@ bool APIENTRY ReadTextPICS(
 	generic_object *pd2;  // line added by MAG for debug only
 	lPICSErr=-1;
 	
-	//madanner 6/03: wasn't ini tializing cancel
+	//madanner 6/03: wasn't initializing cancel
 	cancel = false;
-	::DeleteFile( FILE_CHECK_EPICS_CONS );		//madanner 4/4
-	pfileError = fopen( FILE_CHECK_EPICS_CONS,"a+");
+
+	CString fileName;
+	GetTempPath( MAX_PATH, fileName.GetBuffer( MAX_PATH ) );
+	fileName.ReleaseBuffer();
+	fileName += FILE_CHECK_EPICS_CONS;
+	
+	pfileError = fopen( fileName, "w");
 
 // looks to be a duplicate of the below therefore did not enable this line.  LJT 8/31/2005	
 //	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported // added by Kare Sars
@@ -1980,7 +1985,7 @@ bool APIENTRY ReadTextPICS(
 	memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));	//added by xlp,2002-11
 	// initialize to no BIBBs supported
 	memset(pd->BIBBSupported,0,sizeof(pd->BIBBSupported));	//default is not supported
-   memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported
+	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported
 	pd->BACnetFunctionalGroups=0;				//default is none
     // default is no data links supported
 	memset(pd->DataLinkLayerOptions, 0, sizeof(pd->DataLinkLayerOptions)); //default is none
