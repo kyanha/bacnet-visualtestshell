@@ -24,9 +24,8 @@
 #define MAX_BIBBS           100      //  msd 9/1/04 - added. Provides a little growing room.
 #define MAX_DATALINK_OPTIONS  30     //  msd 9/1/04 - added. Provide a little growing room.
 
-// TB 4/04: Not to root of C:, using C:\temp instead
-// (ever since a shareware package corrupted my HD by writing to root of C:)
-#define FILE_CHECK_EPICS_CONS "c:\\temp\\EPICSConsChk.txt"
+// Just the name.  Each usage must use GetTempPath for the path
+#define FILE_CHECK_EPICS_CONS "EPICSConsChk.txt"
 
 //
 //	VTSApp

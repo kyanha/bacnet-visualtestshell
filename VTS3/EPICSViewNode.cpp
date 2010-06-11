@@ -128,7 +128,12 @@ void CEPICSViewNodeRoot::LoadErrorFile( CEPICSViewInfoPanel * ppanel )
 
 	try
 	{
-		fileErr.Open( FILE_CHECK_EPICS_CONS, CFile::modeRead | CFile::shareDenyNone);
+		CString fileName;
+		GetTempPath( MAX_PATH, fileName.GetBuffer( MAX_PATH ) );
+		fileName.ReleaseBuffer();
+		fileName += FILE_CHECK_EPICS_CONS;
+		
+		fileErr.Open( fileName, CFile::modeRead | CFile::shareDenyNone);
 		int n = 0;
 		while ( fileErr.ReadString(str) )
 		{
