@@ -253,6 +253,7 @@ PICSdb::PICSdb()
 , ProductModelNumber(&dummy)
 , ProductDescription(&dummy)
 , dummy(0)
+, pDeviceObject(NULL)
 {
 }
 
@@ -430,7 +431,7 @@ static bibbdef BIBBs[]={
                { ssExecute,  asConfirmedCOVNotification    }, 
                { ssExecute,  asUnconfirmedCOVNotification  } 
              }, 
-			"DS-COV-B",						
+         "DS-COV-B",						
              { { ssExecute,  asSubscribeCOV               }, 
                { ssInitiate, asConfirmedCOVNotification   }, 
                { ssInitiate, asUnconfirmedCOVNotification } 
@@ -551,7 +552,7 @@ static bibbdef BIBBs[]={
 			"DM-DCC-B",						
              { { ssExecute,  asDeviceCommunicationControl } 
              }, 
-			"DM-PT-A",					
+         "DM-PT-A",					
 			    { { ssInitiate, asConfirmedPrivateTransfer     },
 			      { ssInitiate, asUnconfirmedPrivateTransfer   }
 			    },  					
@@ -814,7 +815,7 @@ static char *StandardServices[]={
 			"VT-Data",                                //23
 			"Authenticate",                           //24
 			"RequestKey",                             //25
-			"I-Am",                                   //26   madanner 6/03: "I-AM"
+			"I-Am",									         //26   madanner 6/03: "I-AM"
 			"I-Have",                                 //27
 			"UnconfirmedCOVNotification",             //28   msdanner 9/04: was "UnConfirmed..."
 			"UnconfirmedEventNotification",           //29   msdanner 9/04: was "UnConfirmed..."
@@ -823,10 +824,10 @@ static char *StandardServices[]={
 			"TimeSynchronization",                    //32
 			"Who-Has",                                //33
 			"Who-Is",                                 //34
-			"ReadRange",							  //35   madanner 6/03: "Read-Range"
-			"UTCTimeSynchronization",				  //36   madanner 6/03: "UTC-Time-Synchronization"
-			"LifeSafetyOperation",		              //37
-			"SubscribeCOVProperty",		              //38
+			"ReadRange",							         //35   madanner 6/03: "Read-Range"
+			"UTCTimeSynchronization",				      //36   madanner 6/03: "UTC-Time-Synchronization"
+			"LifeSafetyOperation",		               //37
+			"SubscribeCOVProperty",		               //38
 			"GetEventInformation"                     //39
 			};
 
@@ -926,6 +927,8 @@ static char *SpecialFunctionality[]={
 
 static nameoctet Charsets[]={						//								***006 Begin
 			"ANSI X3.4",							csANSI,
+			"ANSI X3.4/UTF-8",  					csANSI,
+			"ANSI X3.4 / UTF-8",					csANSI,
 			"IBM/Microsoft DBCS",					csDBCS,
 			"JIS C 6226",							csJIS,
 			"ISO 10646 (UCS-4)",					csUCS4,
@@ -939,7 +942,8 @@ static char *FailTimes[]={						//								***019 Begin
 			"Schedule Evaluation Fail Time",		
 			"External Command Fail Time",				
 			"Program Object State Change Fail Time",		
-			"Acknowledgement Fail Time",				
+			"Acknowledgement Fail Time",		
+			"Unconfirmed Response Fail Time",				
 			};										//								***019 End
 
 // 5/9/05 Shiyuan Xiao. Support 135.1-2003
@@ -1939,7 +1943,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 	  case DATETIME_VALUE:
 		  // No allocations to clean up
 		  break;
-	
+
 	  default:
 		  // Someone forgot to implement delete code for this object type
 		  sprintf( errMsg, "**WARNING**: No delete code for this object %s (type = %d), will probably leak \n", 
@@ -1967,15 +1971,10 @@ bool APIENTRY ReadTextPICS(
 	generic_object *pd2;  // line added by MAG for debug only
 	lPICSErr=-1;
 	
-	//madanner 6/03: wasn't initializing cancel
+	//madanner 6/03: wasn't ini tializing cancel
 	cancel = false;
-
-	CString fileName;
-	GetTempPath( MAX_PATH, fileName.GetBuffer( MAX_PATH ) );
-	fileName.ReleaseBuffer();
-	fileName += FILE_CHECK_EPICS_CONS;
-	
-	pfileError = fopen( fileName, "w");
+	::DeleteFile( FILE_CHECK_EPICS_CONS );		//madanner 4/4
+	pfileError = fopen( FILE_CHECK_EPICS_CONS,"a+");
 
 // looks to be a duplicate of the below therefore did not enable this line.  LJT 8/31/2005	
 //	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported // added by Kare Sars
@@ -1985,7 +1984,7 @@ bool APIENTRY ReadTextPICS(
 	memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));	//added by xlp,2002-11
 	// initialize to no BIBBs supported
 	memset(pd->BIBBSupported,0,sizeof(pd->BIBBSupported));	//default is not supported
-	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported
+   memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported
 	pd->BACnetFunctionalGroups=0;				//default is none
     // default is no data links supported
 	memset(pd->DataLinkLayerOptions, 0, sizeof(pd->DataLinkLayerOptions)); //default is none
@@ -4407,6 +4406,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 						}						//									***011 End
 					}
 					break;
+
 				case ptPai:						//priority array int32
 					dwp=(dword *)pstruc;
 					for (i=0;i<16;i++) dwp[i]=upaNULL; //init all slots to NULL values	***011
@@ -4433,6 +4433,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 						}						//									***011 End
 					}
 					break;
+
 				case paf:						//priority array flt
 					fp=(float *)pstruc;
 					for (i=0;i<16;i++) fp[i]=fpaNULL; //init all slots to NULL values	***011
@@ -5395,6 +5396,9 @@ BOOL ParseRefList(BACnetDeviceObjectPropertyReference **refp)
 	reffail=false;
 refx:
 	*refp=fp;
+	if (TRUE == reffail) {
+		tperror("Invalid List of DevObjPropReferences",true);
+	}
 	if (q!=NULL) free(q);						//don't lose this block!
 	return reffail;								//								***008 End
 }
@@ -8507,7 +8511,7 @@ void CheckPICSCons2003D(PICSdb *pd)
 // This function does not actually use the BIBBs for reference since
 // the consistency check between the BIBBS and the Application Services Supported
 // section has already been done. It runs a consistency check between the 
-// Application Services Supported section and the Application_Serices_Supported
+// Application Services Supported section and the Application_Services_Supported
 // property of the Device Object, but only for the "Execute" services.
 // 
 void CheckPICSCons2003E(PICSdb *pd)
@@ -8896,7 +8900,9 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
 
             case TIME_SYNCHRONIZATION_RECIPIENTS:
                // If supports DM-TS-A or DM-UTC-A, this must be present & WRITABLE!
-               if ( pd->BIBBSupported[bibbDM_TS_A] || pd->BIBBSupported[bibbDM_UTC_A] )
+               // If supports DM-ATS-A (but not for DM-MTS-A), also requires this present & WRITABLE!
+               if ( pd->BIBBSupported[bibbDM_TS_A] || pd->BIBBSupported[bibbDM_UTC_A]
+			    || pd->BIBBSupported[bibbDM_ATS_A] )
                   required = W;
                break;
 
