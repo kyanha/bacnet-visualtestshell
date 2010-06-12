@@ -238,7 +238,7 @@ static etable etEU={
             "currency9",						 //113
             "currency10",						 //114
         //Free
-            "square-inches"						 //115
+            "square-inches",					 //115
             "square-centimeters",				 //116
             "btus-per-pound",					 //117
             "centimeters",						 //118
