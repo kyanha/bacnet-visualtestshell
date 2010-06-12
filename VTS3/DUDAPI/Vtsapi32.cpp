@@ -431,7 +431,7 @@ static bibbdef BIBBs[]={
                { ssExecute,  asConfirmedCOVNotification    }, 
                { ssExecute,  asUnconfirmedCOVNotification  } 
              }, 
-         "DS-COV-B",						
+			"DS-COV-B",						
              { { ssExecute,  asSubscribeCOV               }, 
                { ssInitiate, asConfirmedCOVNotification   }, 
                { ssInitiate, asUnconfirmedCOVNotification } 
@@ -552,7 +552,7 @@ static bibbdef BIBBs[]={
 			"DM-DCC-B",						
              { { ssExecute,  asDeviceCommunicationControl } 
              }, 
-         "DM-PT-A",					
+			"DM-PT-A",					
 			    { { ssInitiate, asConfirmedPrivateTransfer     },
 			      { ssInitiate, asUnconfirmedPrivateTransfer   }
 			    },  					
@@ -815,7 +815,7 @@ static char *StandardServices[]={
 			"VT-Data",                                //23
 			"Authenticate",                           //24
 			"RequestKey",                             //25
-			"I-Am",									         //26   madanner 6/03: "I-AM"
+			"I-Am",                                   //26   madanner 6/03: "I-AM"
 			"I-Have",                                 //27
 			"UnconfirmedCOVNotification",             //28   msdanner 9/04: was "UnConfirmed..."
 			"UnconfirmedEventNotification",           //29   msdanner 9/04: was "UnConfirmed..."
@@ -824,10 +824,10 @@ static char *StandardServices[]={
 			"TimeSynchronization",                    //32
 			"Who-Has",                                //33
 			"Who-Is",                                 //34
-			"ReadRange",							         //35   madanner 6/03: "Read-Range"
-			"UTCTimeSynchronization",				      //36   madanner 6/03: "UTC-Time-Synchronization"
-			"LifeSafetyOperation",		               //37
-			"SubscribeCOVProperty",		               //38
+			"ReadRange",							  //35   madanner 6/03: "Read-Range"
+			"UTCTimeSynchronization",				  //36   madanner 6/03: "UTC-Time-Synchronization"
+			"LifeSafetyOperation",		              //37
+			"SubscribeCOVProperty",		              //38
 			"GetEventInformation"                     //39
 			};
 
@@ -1971,10 +1971,15 @@ bool APIENTRY ReadTextPICS(
 	generic_object *pd2;  // line added by MAG for debug only
 	lPICSErr=-1;
 	
-	//madanner 6/03: wasn't ini tializing cancel
+	//madanner 6/03: wasn't initializing cancel
 	cancel = false;
-	::DeleteFile( FILE_CHECK_EPICS_CONS );		//madanner 4/4
-	pfileError = fopen( FILE_CHECK_EPICS_CONS,"a+");
+
+	CString fileName;
+	GetTempPath( MAX_PATH, fileName.GetBuffer( MAX_PATH ) );
+	fileName.ReleaseBuffer();
+	fileName += FILE_CHECK_EPICS_CONS;
+	
+	pfileError = fopen( fileName, "w");
 
 // looks to be a duplicate of the below therefore did not enable this line.  LJT 8/31/2005	
 //	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported // added by Kare Sars
@@ -1984,7 +1989,7 @@ bool APIENTRY ReadTextPICS(
 	memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));	//added by xlp,2002-11
 	// initialize to no BIBBs supported
 	memset(pd->BIBBSupported,0,sizeof(pd->BIBBSupported));	//default is not supported
-   memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported
+	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported
 	pd->BACnetFunctionalGroups=0;				//default is none
     // default is no data links supported
 	memset(pd->DataLinkLayerOptions, 0, sizeof(pd->DataLinkLayerOptions)); //default is none
