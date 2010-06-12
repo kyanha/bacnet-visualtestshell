@@ -487,7 +487,7 @@ const char * BACnetEncodeable::ToString() const
 	// The original version had only one static CString, so caller had to
 	// copy data out before calling us again.
 	// We now use a rota of 8 strings, easing life for our callers
-	static ix = 0;
+	static int ix = 0;
 	static CString str[8];
 	ix = (ix + 1) % 8;		// next string
 	
