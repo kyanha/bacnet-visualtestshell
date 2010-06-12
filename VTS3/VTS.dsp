@@ -194,10 +194,6 @@ SOURCE=.\BakRestoreExecutor.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\CheckEPICSCons.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\ChildFrm.cpp
 # End Source File
 # Begin Source File
@@ -1385,10 +1381,6 @@ SOURCE=.\Sniffer\Bacproto.h
 # Begin Source File
 
 SOURCE=.\BakRestoreExecutor.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CheckEPICSCons.h
 # End Source File
 # Begin Source File
 
@@ -2686,7 +2678,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                         $(InputPath)                                                         $(OutDir)\ 
+	copy                                                          $(InputPath)                                                          $(OutDir)\ 
 
 # End Custom Build
 
@@ -2697,7 +2689,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                         $(InputPath)                                                         $(OutDir)\ 
+	copy                                                          $(InputPath)                                                          $(OutDir)\ 
 
 # End Custom Build
 
