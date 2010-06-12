@@ -32,7 +32,7 @@ public:
 
 private:
 	// Private to prevent copy
-	operator=( VTSAnyElement const & );
+	VTSAnyElement& operator=( VTSAnyElement const & );
 };
 
 typedef VTSAnyElement *VTSAnyElementPtr;
@@ -56,7 +56,7 @@ public:
 
 private:
 	// Private to prevent copy
-	operator=( VTSAnyList const &);
+	VTSAnyList& operator=( VTSAnyList const &);
 };
 
 typedef VTSAnyList *VTSAnyListPtr;
