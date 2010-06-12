@@ -1959,7 +1959,7 @@ class BACnetAPDUEncoder {
 
 	private:
 		// Private to prevent copy
-		operator=( BACnetAPDUEncoder const & );
+		BACnetAPDUEncoder& operator=( BACnetAPDUEncoder const & );
 	};
 
 typedef BACnetAPDUEncoder *BACnetAPDUEncoderPtr;
