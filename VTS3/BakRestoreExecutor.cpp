@@ -734,6 +734,7 @@ void BakRestoreExecutor::DoRestoreTest()
 		int nPos2 = strText.Find(',', nPos1);   //After Access type
 		strToken = strText.Mid(nPos1, nPos2 - nPos1);
 		strToken.TrimLeft();
+		strToken.MakeUpper();
 		BACnetEnumerated fileAccessMethod;
 		if (strToken == "RECORD-ACCESS")
 		{
