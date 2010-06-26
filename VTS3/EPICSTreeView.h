@@ -51,6 +51,8 @@ private:
 public:
 	void AddRPValue( long obj_id, int prop_id, char * pbuffer, int nLen );
 
+	static bool GetEpicsFilename( CString &theFilePath );
+
 protected:
 	CEPICSTreeView();           // protected constructor used by dynamic creation
 	DECLARE_DYNCREATE(CEPICSTreeView)

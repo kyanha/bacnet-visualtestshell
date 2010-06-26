@@ -97,10 +97,8 @@ ScriptEdit::ScriptEdit()
 
 	m_pframe = NULL; 
 	
-	// Default template directory is where the app lives
-	CString str( AfxGetApp()->m_pszHelpFilePath );
-	int slash = str.ReverseFind( '\\' );
-	m_templateFileName = str.Left( slash ) + "\\templates.txt";
+	// Default template document
+	((VTSApp*)AfxGetApp())->GetRelativeToExe( m_templateFileName, "scripts\\templates.txt" );
 
 	m_autoObjectType = 1;
 	m_autoPropertyID = 1;
@@ -908,7 +906,9 @@ void ScriptEdit::OnUpdateEditAutoProperty(CCmdUI* pCmdUI)
 
 void ScriptEdit::OnSetTemplateFile() 
 {
-	CFileDialog dlg( TRUE, "*.txt", (LPCTSTR)m_templateFileName, 0, 
+	// Don't change the current directory: template file shouldn't affect location of anything else
+	CFileDialog dlg( TRUE, "*.txt", (LPCTSTR)m_templateFileName, 
+					 OFN_NOCHANGEDIR, 
 					 "Template Text Files (*.txt)|*.txt|All Files (*.*)|*.*||" );
 	if (dlg.DoModal() == IDOK)
 	{

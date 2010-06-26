@@ -116,6 +116,48 @@ VTSApp::~VTSApp(void)
 		delete m_pRecentWorkspaceList;
 }
 
+// Get the full path of theDirectory relative to the executable
+void VTSApp::GetRelativeToExe( CString &thePath, LPCTSTR theDirectory ) const
+{
+	// During development, the executable is ...\debug\vts.exe or ...\release\vts.exe
+	// and "theDirectory" is a peer.
+	// As installed, the executable is ...\vts.exe
+	// and "theDirectory" is a subdirectory
+	CString base = m_pszHelpFilePath;
+	int pathLen = base.ReverseFind( '\\' );
+	if (pathLen >= 0)
+	{
+		// path without filename
+		base = base.Left( pathLen );
+	}
+	
+	CFileStatus status;
+	thePath = base + "\\" + theDirectory;
+	if (CFile::GetStatus( thePath, status ))
+	{
+		// found the directory below us
+	}
+	else 
+	{
+		pathLen = base.ReverseFind( '\\' );
+		if (pathLen >= 0)
+		{
+			// Go up a directory
+			base = base.Left( pathLen );
+		}
+		thePath = base + "\\" + theDirectory;
+		if (CFile::GetStatus( thePath, status ))
+		{
+			// found the directory as our peer
+		}
+		else
+		{
+			// Can't find the directory.  Just use our directory
+			thePath = base;
+		}
+	}
+}
+
 
 void VTSApp::AddToRecentWorkspaceList(LPCTSTR lpszPathName)
 {
@@ -150,7 +192,6 @@ void VTSApp::LoadWorkspaceMRU(UINT nMaxMRU)
 
 BOOL VTSApp::InitInstance()
 {
-
 	if (!AfxSocketInit())
 	{
 		AfxMessageBox(IDP_SOCKETS_INIT_FAILED);

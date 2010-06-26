@@ -1,9 +1,9 @@
-; Script templates fot VTS
+; Script templates fot VTS (selected on the script editor's Insert menu)
 ;
 ; Each SECTION becomes a choice on the script editor's Insert menu.
 ; Each ITEM becomes a choice in the template selection dialog for its SECTION.
 ; The text lines between ITEM and ENDITEM are inserted into the script.
-
+;
 ;===============================================================================
 ;===============================================================================
 SECTION Primitive Datatypes
