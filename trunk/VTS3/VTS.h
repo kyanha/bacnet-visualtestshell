@@ -41,6 +41,9 @@ class VTSApp : public CWinApp {
 		VTSApp(void);
 		virtual ~VTSApp(void);
 
+		// Get the full path of theDirectory relative to the executable
+		void GetRelativeToExe( CString &thePath, LPCTSTR theDirectory ) const;
+
 	// Overrides
 		// ClassWizard generated virtual function overrides
 		//{{AFX_VIRTUAL(VTSApp)

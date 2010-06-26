@@ -640,7 +640,7 @@ void CChildFrame::OnFileExport()
 	int nPacketCount = m_frameContext->m_pDoc->GetPacketCount();
 
 	// pop up dialog asking for export filename
-	CFileDialog exportFileDlg(FALSE,NULL,NULL,NULL,"TXT Files(*.txt)|*.txt||", NULL);
+	CFileDialog exportFileDlg(FALSE,NULL,NULL,NULL,"Text Files(*.txt)|*.txt||", NULL);
 	if ( exportFileDlg.DoModal() != IDOK )
 		return;
 
@@ -816,10 +816,11 @@ void CChildFrame::OnFilePrintSetup()
 
 void CChildFrame::OnEPICSLoad() 
 {
-	CFileDialog	fd( TRUE, "tpi", NULL, OFN_FILEMUSTEXIST, "EPICS (*.tpi)|*.tpi||" );
-	
-	if (fd.DoModal() == IDOK)
-		EPICSLoad(fd.GetPathName());
+	CString filePath;
+	if (CEPICSTreeView::GetEpicsFilename( filePath ))
+	{
+		EPICSLoad(filePath);
+	}
 }
 
 

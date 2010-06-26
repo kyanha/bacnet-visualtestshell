@@ -240,15 +240,40 @@ void CEPICSTreeView::OnEpicsReset()
 		EPICSLoad(str);
 }
 
+// Open a file dialog and get an EPICS file
+bool CEPICSTreeView::GetEpicsFilename( CString &theFilePath ) 
+{
+	// Start with the current EPICS (if any)
+	// Will override the default directory set below.
+	CString lastEpics = gVTSPreferences.Setting_GetLastEPICS();
+
+	// Don't change the current directory: EPICS file shouldn't affect location of anything else
+	CFileDialog	fd( TRUE, "tpi", lastEpics, 
+					OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR, 
+					"EPICS (*.tpi)|*.tpi||" );
+
+	// Default EPICS directory: there is a sample EPICS here
+	CString dir;
+	((VTSApp*)AfxGetApp())->GetRelativeToExe( dir, "Docs" );
+	fd.m_ofn.lpstrInitialDir = dir;
+	
+	bool retval = (fd.DoModal() == IDOK);
+	if (retval)
+	{
+		theFilePath = fd.GetPathName();
+	}
+
+	return retval;
+}
 
 void CEPICSTreeView::OnEpicsLoad() 
 {
-	CFileDialog	fd( TRUE, "tpi", NULL, OFN_FILEMUSTEXIST, "EPICS (*.tpi)|*.tpi||" );
-	
-	if (fd.DoModal() == IDOK)
-		EPICSLoad(fd.GetPathName());
+	CString filePath;
+	if (GetEpicsFilename( filePath ))
+	{
+		EPICSLoad(filePath);
+	}
 }
-
 
 void CEPICSTreeView::OnEpicsEdit() 
 {
@@ -257,6 +282,8 @@ void CEPICSTreeView::OnEpicsEdit()
 
 	if ( str.GetLength() != 0 )
 	{
+		// TODO: change this to use whatever is bound?
+		// Ideally whatever is bound to .txt, since they likely WON'T have a binding for .tpi
 		CString str2;
 		str2.Format("notepad.exe \"%s\"", str);
 		_spawnlp(_P_NOWAIT, "notepad.exe", str2, NULL);
