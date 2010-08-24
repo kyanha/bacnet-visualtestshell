@@ -3411,8 +3411,11 @@ void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 		SetSize( bLen );
 	tag.tagLVT -= 1;
 	
-	if (!bitBuff)
-		throw_(49) /* destination too small */;
+	// Don't throw here: SetSize sets the buffer size, but if the size is
+	// zero, and the buffer has not yet been allocated, null is OK here:
+	// the copy loop below won't do anything
+//	if (!bitBuff)
+//		throw_(49) /* destination too small */;
 	
 	// copy out the data
 #ifdef ENDIAN_SWAP
