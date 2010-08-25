@@ -4209,7 +4209,7 @@ void TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
 		case DESCRIPTION:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
 			break;
-		case LOG_ENABLE:  			     
+		case ENABLE:  			     
 			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->log_enable));
 			break;
 		case START_TIME:  	 		     
@@ -4875,7 +4875,7 @@ void LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID,
                                                             (const char **)petable->estrings,
                                                             petable->nes) );
 		break;
-	case LOG_ENABLE:  			     
+	case ENABLE:  			     
 		pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->log_enable));
 		break;
 	case NOTIFICATION_CLASS:
@@ -5175,7 +5175,7 @@ void EL_CreateProperty( el_obj_type * pObj, BACnetPropertyIdentifier propertyID,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
 			break;
-		case LOG_ENABLE:  			     
+		case ENABLE:  			     
 			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->log_enable));
 			break;
 		case START_TIME:  	 		     
@@ -5273,7 +5273,7 @@ void TLM_CreateProperty( tlm_obj_type * pObj, BACnetPropertyIdentifier propertyI
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
 			break;
-	case LOG_ENABLE:  			     
+	case ENABLE:  			     
 			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->log_enable));
 			break;
 	case START_TIME:  	 		     
@@ -6492,7 +6492,7 @@ bool TR_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case OBJECT_NAME:
 		case OBJECT_TYPE:
 		case DESCRIPTION:
-		case LOG_ENABLE:  			     
+		case ENABLE:  			     
 		case START_TIME:  	 		            	       
 		case STOP_TIME:  				          	       
 		case LOG_DEVICE_OBJECT_PROPERTY:          	       
@@ -6721,7 +6721,7 @@ bool EL_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case STATUS_FLAGS:
 		case EVENT_STATE:
 		case RELIABILITY:
-		case LOG_ENABLE:
+		case ENABLE:
 		case START_TIME:
 		case STOP_TIME:
 		case STOP_WHEN_FULL:
@@ -6764,7 +6764,7 @@ bool TLM_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case STATUS_FLAGS:
 		case EVENT_STATE:
 		case RELIABILITY:
-		case LOG_ENABLE:
+		case ENABLE:
 		case START_TIME:
 		case STOP_TIME:
 		case LOG_DEVICE_OBJECT_PROPERTY:
@@ -6849,7 +6849,7 @@ bool LC_CheckProperty(BACnetPropertyIdentifier propertyID)
 		case START_TIME:
 		case SHED_DURATION:
 		case DUTY_WINDOW:
-		case LOG_ENABLE:
+		case ENABLE:
 		case FULL_DUTY_BASELINE:
 		case EXPECTED_SHED_LEVEL:
 		case ACTUAL_SHED_LEVEL:

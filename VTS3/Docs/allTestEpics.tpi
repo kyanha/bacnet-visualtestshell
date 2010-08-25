@@ -963,7 +963,7 @@ List of Objects in Test Device:
     object-name: "trend_log_1"
     object-type: trend-log
     description: ""
-    log-enable: false w
+    enable: false w
     start-time: (6/10/2005,5),10:27:21.74
     stop-time: (6/10/2005,5),10:27:21.74
     log-device-object-property: {(analog-input,2),present-value}
@@ -993,7 +993,7 @@ List of Objects in Test Device:
     status-flags: (TRUE, FALSE, FALSE, FALSE)
     event-state: NORMAL
     reliability: no-fault-detected
-    log-enable: false w   -- same as enable
+    enable: false w   -- same as enable
     start-time: (6/10/2005,5),10:27:21.74
     stop-time: (6/10/2005,5),10:27:21.74
     buffer-size: 288
@@ -1018,7 +1018,7 @@ List of Objects in Test Device:
     status-flags: (F,F,F,F)
     event-state: normal
     reliability: no-fault-detected
-    log-enable: false w
+    enable: false w
     start-time: (6/10/2005,5),10:27:21.74
     stop-time: (6/10/2005,5),10:27:21.74
     log-device-object-property: {(analog-input,2),present-value}
@@ -1055,7 +1055,7 @@ List of Objects in Test Device:
     start-time: (6/10/2005,5),10:27:21.74 W
     shed-duration: 0 W
     duty-window: 0 W
-    log-enable: TRUE W
+    enable: TRUE W
     full-duty-baseline: 3.4
     expected-shed-level: [1]4
     actual-shed-level: [2]4.3

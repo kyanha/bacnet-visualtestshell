@@ -153,7 +153,7 @@ class BACnetSequence;
 #define EVENT_TIME_STAMPS                     130
 #define LOG_BUFFER                            131
 #define LOG_DEVICE_OBJECT_PROPERTY            132
-#define LOG_ENABLE                            133
+#define ENABLE							      133
 #define LOG_INTERVAL                          134
 #define MAXIMUM_VALUE 			              135
 #define MINIMUM_VALUE 			              136

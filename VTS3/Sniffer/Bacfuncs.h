@@ -2275,7 +2275,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 			}
 		}
 		break;
-	case LOG_ENABLE:                    // Boolean    
+	case ENABLE:						// Boolean    
 		seq.Boolean( -1, "" );
 		break;
 	case LOG_INTERVAL:                  // Unsigned    
