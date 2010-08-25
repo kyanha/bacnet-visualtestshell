@@ -851,7 +851,7 @@ typedef struct {
    } charstring_obj_type;
 
 //-------------------------------------------------------
-//Integer Value Object
+//Integer Value Object INTEGER_VALUE
 //-------------------------------------------------------
 typedef struct {
     generic_object			go;
@@ -875,6 +875,32 @@ enum BACnetEngineeringUnits units;
 enum BACnetNotifyType		notify_type;
      BACnetTimeStamp	    far *event_time_stamps[3];  //Added by xuyiping 2002-8-29
    } integer_obj_type;
+
+//-------------------------------------------------------
+//Positive Integer Value Object POSITIVE_INTEGER_VALUE
+//-------------------------------------------------------
+typedef struct {
+    generic_object			go;
+    int						present_value;
+    octet					status_flags;
+enum BACnetEventState		state;
+enum BACnetReliability		reliability;
+    boolean					out_of_service;
+enum BACnetEngineeringUnits units;
+    int						priority_array[16];
+    int						relinquish_default;
+    int						cov_increment;
+    word					time_delay;
+    word					notification_class;
+    int						high_limit;
+    int						low_limit;
+    unsigned int			deadband;
+    octet					limit_enable;
+    octet					event_enable;
+    octet					acked_transitions;
+enum BACnetNotifyType		notify_type;
+     BACnetTimeStamp	    far *event_time_stamps[3];  //Added by xuyiping 2002-8-29
+   } positive_integer_obj_type;
 
 //-------------------------------------------------------
 //DateTime Value Object

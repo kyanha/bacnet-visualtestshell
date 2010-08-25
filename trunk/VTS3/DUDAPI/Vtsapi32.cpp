@@ -1940,6 +1940,14 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		 }
 		 break;
 
+	  case POSITIVE_INTEGER_VALUE:
+		 for(i=0; i<3; i++)
+		 {
+			if ( ((positive_integer_obj_type *)p)->event_time_stamps[i]!=NULL)
+				free(((positive_integer_obj_type *)p)->event_time_stamps[i]);
+		 }
+		 break;
+
 	  case DATETIME_VALUE:
 		  // No allocations to clean up
 		  break;
