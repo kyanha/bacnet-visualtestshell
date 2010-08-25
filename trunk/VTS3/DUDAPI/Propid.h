@@ -137,7 +137,7 @@ enum BACnetPropertyIdentifier
         EVENT_TIME_STAMPS = 130,                       //130
         LOG_BUFFER,                              //131
         LOG_DEVICE_OBJECT_PROPERTY,              //132
-        LOG_ENABLE,                              //133
+        ENABLE,                                  //133
         LOG_INTERVAL,                            //134
         MAXIMUM_VALUE, 			                //135
         MINIMUM_VALUE, 			                //136
