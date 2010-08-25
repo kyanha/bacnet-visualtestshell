@@ -105,6 +105,7 @@ bool CreateCommonProperty(  generic_object far * pObj, BACnetPropertyIdentifier 
 
 void CharStr_CreateProperty( charstring_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
 void Integer_CreateProperty( integer_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
+void Pos_Int_CreateProperty( positive_integer_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
 void DateTime_CreateProperty( datetimevalue_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue );
 
 octet gTestStavals[nTESTLIST][4]= { {1,2,3,0}, {4,0,0,0}, {0,0,0,0}, {5,0,0,0} };
@@ -2374,7 +2375,7 @@ extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId
 	  case INTEGER_VALUE:			Integer_CreateProperty( (integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
 	  case LARGE_ANALOG_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  case OCTETSTRING_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
-	  case POSITIVE_INTEGER_VALUE:	CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
+	  case POSITIVE_INTEGER_VALUE:	Pos_Int_CreateProperty( (positive_integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  case TIME_PATTERN_VALUE:		CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;
 	  case TIME_VALUE:				CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );	break;		
 	  default:
@@ -5587,6 +5588,59 @@ void Integer_CreateProperty( integer_obj_type far * pObj, BACnetPropertyIdentifi
 
 		default:
 			TRACE("INVALID TYPE in Integer_CreateProperty");
+			ASSERT(0);
+	}
+}
+
+
+void Pos_Int_CreateProperty( positive_integer_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
+{
+	ASSERT(pbacnetAnyValue != NULL);
+
+	if ( CreateGenericProperty( &pObj->go, propertyID, pbacnetAnyValue ) )
+		return;		// Already handled, so we are done
+
+	switch ( propertyID )
+	{
+		case PRESENT_VALUE:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->present_value ));
+			break;
+		case PRIORITY_ARRAY:    
+//			pbacnetAnyValue->SetObject(ptPai, new BACnetPriorityArray(pObj->priority_array, nPRIO, fpaNULL));
+			break;
+		case RELINQUISH_DEFAULT:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->relinquish_default));
+			break;
+		case COV_INCREMENT:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->cov_increment));
+			break;
+		case HIGH_LIMIT:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->high_limit));
+			break;
+		case LOW_LIMIT:
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->low_limit));
+			break;
+		case DEADBAND:	
+			pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->deadband));
+			break;
+
+		case STATUS_FLAGS:
+		case EVENT_STATE:
+		case RELIABILITY:
+		case OUT_OF_SERVICE:
+		case TIME_DELAY:
+		case NOTIFICATION_CLASS:
+		case EVENT_ENABLE:	
+		case ACKED_TRANSITIONS:
+		case NOTIFY_TYPE:
+		case EVENT_TIME_STAMPS:		
+		case LIMIT_ENABLE:
+		case UNITS:
+			CreateCommonProperty( (generic_object *) pObj, propertyID, pbacnetAnyValue );
+			break;
+
+		default:
+			TRACE("INVALID TYPE in Pos_Int_CreateProperty");
 			ASSERT(0);
 	}
 }

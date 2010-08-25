@@ -1790,6 +1790,35 @@ propdescriptor	IntegerProps[]={
 	"profile-name",			PROFILE_NAME,       oo(integer,go.profile_name), s132,	Last,     0,	 O  
 };
 
+// parse type "ud" is unsigned double word, eg what would be Uint32
+propdescriptor	PositiveIntegerProps[]={
+//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
+    "object-identifier",	OBJECT_IDENTIFIER,	oo(integer,go.object_id),	ob_id,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(integer,go.object_name),	s32,	0,	       0,	R,
+    "object-type",			OBJECT_TYPE,		oo(integer,go.object_type),	et,		0,eiObjectTypes,R,
+    "present-value",		PRESENT_VALUE,		oo(integer,present_value),	ud,		0,	       0,	W|IsCommandable,
+    "description",			DESCRIPTION,		oo(integer,go.description),	s132,	0,	       0,	O,
+    "status-flags",			STATUS_FLAGS,		oo(integer,status_flags),	bits,	0,	   eiStF,	R,
+    "event-state",			EVENT_STATE,		oo(integer,state),			et,		0,eiEvState,	R,
+    "reliability",			RELIABILITY,		oo(integer,reliability),	et,		0,	 eiReli,	O,
+    "out-of-service",		OUT_OF_SERVICE,		oo(integer,out_of_service),	ebool,  0,		eiTF,	R,
+    "units",				UNITS,				oo(integer,units),			et,		0,	    eiEU,	R,
+    "priority-array",		PRIORITY_ARRAY,		oo(integer,priority_array),	ptPai,	1,		   0,	O|WithGroup|IsArray,
+    "relinquish-default",	RELINQUISH_DEFAULT,	oo(integer,relinquish_default), ud,	1,		   0,	O|WithGroup,
+    "cov-increment",		COV_INCREMENT,		oo(integer,cov_increment),	ud,		COV,	   0,	O|WithService,
+    "time-delay",			TIME_DELAY,			oo(integer,time_delay),		uw,		Intr,	   0,	O|WithService,
+    "notification-class",	NOTIFICATION_CLASS,	oo(integer,notification_class),uw,	Intr,	   0,	O|WithService,
+    "high-limit",			HIGH_LIMIT,			oo(integer,high_limit),		ud,		Intr,	   0,	O|WithService,
+    "low-limit",			LOW_LIMIT,			oo(integer,low_limit),		ud,		Intr,	   0,	O|WithService,
+    "deadband",				DEADBAND,			oo(integer,deadband),		ud,		Intr,	   0,	O|WithService,
+    "limit-enable",			LIMIT_ENABLE,		oo(integer,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
+    "event-enable",			EVENT_ENABLE,		oo(integer,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
+    "acked-transitions",	ACKED_TRANSITIONS,	oo(integer,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
+    "notify-type",			NOTIFY_TYPE,		oo(integer,notify_type),	et,		Intr,	eiNT,	O|WithService,
+	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(integer,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
+	"profile-name",			PROFILE_NAME,       oo(integer,go.profile_name), s132,	Last,     0,	 O  
+};
+
 propdescriptor	DateTimeValueProps[]={
 //	"property name",		property identifier,	struc offset,					parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(datetimevalue,go.object_id),		ob_id,	0,	       0,	R,
@@ -1856,7 +1885,7 @@ stdobjtype	StdObjects[NUM_DEFINED_OBJECTS]={
 	sizeof(integer_obj_type),				IntegerProps,	    // "Integer-Value",
 	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Large-Analog-Value",
 	sizeof(placeholder_obj_type),			PlaceholderProps,   // "OctetString-Value",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Positive-Integer-Value",
+	sizeof(positive_integer_obj_type),		PositiveIntegerProps,   // "Positive-Integer-Value",
 	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Time-Pattern-Value",
 	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Time-Value"
     };
