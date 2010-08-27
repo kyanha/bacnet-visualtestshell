@@ -1049,7 +1049,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
 	"node-subtype",						// 207
 	"node-type",						// 208
 	"structured-object-list",			// 209
-	"subordinate-annotation",			// 210
+	"subordinate-annotations",			// 210
 	"subordinate-list",					// 211
 	// added by addendum e 135-2004
 	"actual-shed-level",				// 212
