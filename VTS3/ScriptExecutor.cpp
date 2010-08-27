@@ -1367,6 +1367,9 @@ void ScriptExecutor::ResolveExpr( const char *expr, int exprLine, ScriptTokenLis
 						break;
 					}
 				}
+				// Else, fall through?
+				// TODO: Fall through here on purpose?
+				// FIXME: If so, say so; otherwise, looks like a coding error.
 
 			case scriptValue:
 				// save the value

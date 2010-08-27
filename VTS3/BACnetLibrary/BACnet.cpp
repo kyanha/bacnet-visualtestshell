@@ -8236,16 +8236,16 @@ BACnetDeviceObjectPropertyReference & BACnetListOfDeviceObjectPropertyReference:
 IMPLEMENT_DYNAMIC(BACnetListOfDeviceObjectReference, BACnetGenericArray)
 
 
-
+// These (lodoref) are arrays of devobjref: BACnetARRAY[N] of BACnetDeviceObjectReference
 BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference()
-									:BACnetGenericArray(propref)
+									:BACnetGenericArray(devobjref)
 {
 	m_nType = lodoref;
 }
 
 
 BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference( BACnetAPDUDecoder& dec )
-									:BACnetGenericArray(propref)
+									:BACnetGenericArray(devobjref)
 {
 	m_nType = lodoref;
 	Decode(dec);
@@ -8253,7 +8253,7 @@ BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference( BACnetAPDU
 
 
 BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference( PICS::BACnetDeviceObjectReference * pobjprops )
-									:BACnetGenericArray(propref)
+									:BACnetGenericArray(devobjref)
 {
 	m_nType = lodoref;
 	ClearArray();
@@ -8697,6 +8697,10 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
 			case recip:		 // recipient
 
 				BACnetRecipient(dec).Match(*GetObject(), iOperator, &strThrowMessage);
+				break;
+
+			case lodoref:	// BACnetARRAY[N] of BACnetDeviceObjectReference
+				BACnetListOfDeviceObjectReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
 				break;
 
 			default:
