@@ -5440,18 +5440,18 @@ bool CreateCommonProperty( generic_object far * pObj, BACnetPropertyIdentifier p
 			break;
 		case EVENT_STATE:
 			petable = (etable *)PICS::GetEnumTable(eiEvState);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(octet *) pProp,
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(enum BACnetEventState *) pProp,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
 			break;
 		case RELIABILITY:
 			petable = (etable *)PICS::GetEnumTable(eiReli);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(enum BACnetEventState *) pProp,
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(enum BACnetReliability *) pProp,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
 			break;
 		case OUT_OF_SERVICE:
-			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean( *(enum BACnetReliability *) pProp));
+			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean( *(bool *) pProp));
 			break;
 
 		case TIME_DELAY:
@@ -5482,7 +5482,7 @@ bool CreateCommonProperty( generic_object far * pObj, BACnetPropertyIdentifier p
 			break;
 		case UNITS:
             petable = (etable *)PICS::GetEnumTable(eiEU);  
-			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(int *) pProp,
+			pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(enum BACnetEngineeringUnits *) pProp,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
 			break;

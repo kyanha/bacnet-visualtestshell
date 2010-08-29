@@ -46,7 +46,7 @@ typedef struct
 typedef struct {
     void far				*next;
     dword					object_id;
-    char					object_name[32];    
+    char					object_name[64];    
     word					object_type;
 //enum BACnetObjectType		object_type;
     char 					description[132];
@@ -513,7 +513,7 @@ typedef struct {
     octet					status_flags;
     enum BACnetEventState	event_state;
     enum BACnetReliability	reliability;
-    bool					out_of_service;
+    boolean					out_of_service;
     word				    number_of_states;
 	// msdanner 9/2004
     //char					state_text[64];

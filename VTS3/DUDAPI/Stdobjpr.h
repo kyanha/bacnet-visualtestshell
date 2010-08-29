@@ -760,7 +760,7 @@ typedef struct {
 propdescriptor	AIprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(ai,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(ai,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(ai,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(ai,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(ai,pv),				flt,	0,		   0,	R|Woutofservice,
     "description",			DESCRIPTION,		oo(ai,go.description),	s132,	0,	       0,	O,
@@ -795,7 +795,7 @@ propdescriptor	AIprops[]={
 propdescriptor	AOprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(ao,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(ao,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(ao,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(ao,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(ao,pv),				flt,	0,	       0,	W|IsCommandable,
     "description",			DESCRIPTION,		oo(ao,go.description),	s132,	0,	       0,	O,
@@ -831,7 +831,7 @@ propdescriptor	AOprops[]={
 propdescriptor	AVprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(av,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(av,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(av,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(av,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(av,pv),				flt,	0,	       0,	W|IsCommandable,
     "description",			DESCRIPTION,		oo(av,go.description),	s132,	0,	       0,	O,
@@ -863,7 +863,7 @@ propdescriptor	AVprops[]={
 propdescriptor	BIprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(bi,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(bi,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(bi,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(bi,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(bi,pv),				et,		0,	   eiBPV,	R|Woutofservice,
     "description",			DESCRIPTION,		oo(bi,go.description),	s132,	0,	       0,	O,
@@ -899,7 +899,7 @@ propdescriptor	BIprops[]={
 propdescriptor	BOprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(bo,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(bo,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(bo,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(bo,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(bo,pv),				et,		0,	   eiBPV,	W|IsCommandable,
     "description",			DESCRIPTION,		oo(bo,go.description),	s132,	0,	       0,	O,
@@ -939,7 +939,7 @@ propdescriptor	BOprops[]={
 propdescriptor	BVprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(bv,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(bv,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(bv,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(bv,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(bv,pv),				et,		0,	   eiBPV,	R|Woutofservice|IsCommandable,
     "description",			DESCRIPTION,		oo(bv,go.description),	s132,	0,	       0,	O,
@@ -977,7 +977,7 @@ propdescriptor	BVprops[]={
 propdescriptor	CLprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(calendar,go.object_id),ob_id,0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(calendar,go.object_name),s32,0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(calendar,go.object_name),s64,0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(calendar,go.object_type),et,	0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(calendar,pv),		ebool,  0,    	eiTF,	R,
     "description",			DESCRIPTION,		oo(calendar,go.description),s132,0,	       0,	O,
@@ -991,7 +991,7 @@ propdescriptor	CLprops[]={
 propdescriptor	CMprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(command,go.object_id),ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(command,go.object_name),s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(command,go.object_name),s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(command,go.object_type),et,	0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(command,pv),			uw,		0,	       0,	W,
     "description",			DESCRIPTION,		oo(command,go.description),s132,0,	       0,	O,
@@ -1009,7 +1009,7 @@ propdescriptor	CMprops[]={
 propdescriptor	DVprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(device,go.object_id),ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(device,go.object_name),s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(device,go.object_name),s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(device,go.object_type),et,	0,eiObjectTypes,R,
     "system-status",		SYSTEM_STATUS,		oo(device,system_status),et,	0,	    eiDS,	R,
     "vendor-name",			VENDOR_NAME,		oo(device,vendor_name),	s64,	0,	       0,	R,
@@ -1087,7 +1087,7 @@ propdescriptor	DVprops[]={
 propdescriptor	EEprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(ee,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(ee,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(ee,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(ee,go.object_type),	et,		0,eiObjectTypes,R,
     "description",			DESCRIPTION,		oo(ee,go.description),	s132,	0,	       0,	O,
     "event-type",			EVENT_TYPE,			oo(ee,
@@ -1116,7 +1116,7 @@ propdescriptor	EEprops[]={
 propdescriptor	FLprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(file,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(file,go.object_name),s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(file,go.object_name),s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(file,go.object_type),et,		0,eiObjectTypes,R,
     "description",			DESCRIPTION,		oo(file,go.description),s132,	0,	       0,	O,
     "file-type",			FILE_TYPE,			oo(file,file_type),		s32,	0,	       0,	R,
@@ -1135,7 +1135,7 @@ propdescriptor	FLprops[]={
 propdescriptor	GRprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(group,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(group,go.object_name),s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(group,go.object_name),s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(group,go.object_type),et,	0,eiObjectTypes,R,
     "description",			DESCRIPTION,		oo(group,go.description),s132,	0,	       0,	O,
     "list-of-group-members",LIST_OF_GROUP_MEMBERS,oo(group,
@@ -1150,7 +1150,7 @@ propdescriptor	GRprops[]={
 propdescriptor	LPprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(loop,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(loop,go.object_name),s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(loop,go.object_name),s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(loop,go.object_type),et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(loop,pv),			flt,	0,	       0,	R,
     "description",			DESCRIPTION,		oo(loop,go.description),s132,	0,	       0,	O,
@@ -1206,7 +1206,7 @@ propdescriptor	LPprops[]={
 propdescriptor	MIprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(mi,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(mi,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(mi,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(mi,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(mi,pv),				uw,		0,		   0,	R|Woutofservice,
     "description",			DESCRIPTION,		oo(mi,go.description),	s132,	0,	       0,	O,
@@ -1235,7 +1235,7 @@ propdescriptor	MIprops[]={
 propdescriptor	MOprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(mo,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(mo,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(mo,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(mo,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(mo,pv),				uw,		0,	       0,	W|IsCommandable,
     "description",			DESCRIPTION,		oo(mo,go.description),	s132,	0,	       0,	O,
@@ -1265,7 +1265,7 @@ propdescriptor	MOprops[]={
 propdescriptor	NCprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(nc,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(nc,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(nc,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(nc,go.object_type),	et,		0,eiObjectTypes,R,
     "description",			DESCRIPTION,		oo(nc,go.description),	s132,	0,	       0,	O,
     "notification-class",	NOTIFICATION_CLASS,	oo(nc,notification_class), uw,	0,	       0,	R,
@@ -1281,7 +1281,7 @@ propdescriptor	NCprops[]={
 propdescriptor	PRprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(program,go.object_id),ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(program,go.object_name),s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(program,go.object_name),s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(program,go.object_type),et,	0,eiObjectTypes,R,
     "program-state",		PROGRAM_STATE,		oo(program,prog_state),	et,		0, eiPrState,	R,
     "program-change",		PROGRAM_CHANGE,		oo(program,prog_change),et,		0,	 eiPrChg,	W,
@@ -1304,7 +1304,7 @@ propdescriptor	PRprops[]={
 propdescriptor	SCprops[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(schedule,go.object_id),ob_id,0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(schedule,go.object_name),s32,0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(schedule,go.object_name),s64,0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(schedule,go.object_type),et,	0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(schedule,pv),		none,	0,	  	   0,	R,
     "description",			DESCRIPTION,		oo(schedule,go.description),s132,0,	       0,	O,
@@ -1334,7 +1334,7 @@ propdescriptor	SCprops[]={
 propdescriptor	AVGprops[]={
 //	"property name",		     property identifier,    	struc offset,		              parse,	group,	table,	qualifiers
     "object-identifier",	     OBJECT_IDENTIFIER,	        oo(avg,go.object_id),	           ob_id,	0,	       0,	R,
-    "object-name",			     OBJECT_NAME,		        oo(avg,go.object_name),	           s32,	    0,	       0,	R,
+    "object-name",			     OBJECT_NAME,		        oo(avg,go.object_name),	           s64,	    0,	       0,	R,
     "object-type",			     OBJECT_TYPE,		        oo(avg,go.object_type),	           et,		0,eiObjectTypes,R,
 // msdanner 9/2004, minimum-value was marked 'W' + commandable
     "minimum-value",		     MINIMUM_VALUE,		        oo(avg,minimum_value),			   flt,		0,	       0,	R,
@@ -1361,7 +1361,7 @@ propdescriptor	AVGprops[]={
 propdescriptor	MVprops[]={
 //	"property name",		property identifier,	struc offset,		    parse,	group,	table,	    qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(msv,go.object_id),	    ob_id,	 0,	       0,	    R,
-    "object-name",			OBJECT_NAME,		oo(msv,go.object_name),	    s32,	 0,	       0,	    R,
+    "object-name",			OBJECT_NAME,		oo(msv,go.object_name),	    s64,	 0,	       0,	    R,
     "object-type",			OBJECT_TYPE,		oo(msv,go.object_type),	    et,		 0,  eiObjectTypes,  R,
     "present-value",		PRESENT_VALUE,		oo(msv,present_value),	    uw,		 0,	       0,	    W|IsCommandable,
     "description",			DESCRIPTION,		oo(msv,go.description),	    s132,	 0,	       0,	    O,
@@ -1395,7 +1395,7 @@ propdescriptor	MVprops[]={
 propdescriptor	TRprops[]={
      //	"property name",		property identifier,	         struc offset,						  parse,	group,	table,	qualifiers
      "object-identifier",  			OBJECT_IDENTIFIER,  		  oo(trend,go.object_id),  			  ob_id,    0,      0,       R,
-     "object-name",  				OBJECT_NAME, 			      oo(trend,go.object_name),  		      s32,      0,      0,       R,
+     "object-name",  				OBJECT_NAME, 			      oo(trend,go.object_name),  		      s64,      0,      0,       R,
      "object-type",  				OBJECT_TYPE, 			      oo(trend,go.object_type), 		      et,       0,      0,       R,
      "description",  				DESCRIPTION,  			      oo(trend,go.description),  		      s132,     0,      0,       O,
      "enable",  					ENABLE,  					  oo(trend,log_enable),  			      ebool,    0,      eiTF,    W,
@@ -1436,7 +1436,7 @@ propdescriptor ProprietaryObjProps[] =
 {
 	 //	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
      "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(proprietary,  go.object_id),   	ob_id,    0,      0,       R,
-     "object-name",  			OBJECT_NAME, 			      oo(proprietary,  go.object_name),  	s32,      0,      0,       R,
+     "object-name",  			OBJECT_NAME, 			      oo(proprietary,  go.object_name),  	s64,      0,      0,       R,
      "object-type",  			OBJECT_TYPE, 			      oo(proprietary,  go.object_type), 	et,       Last,   0,       R,
 };
 
@@ -1444,7 +1444,7 @@ propdescriptor LFSPProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lifesafetypoint,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(lifesafetypoint,  go.object_name),  	s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(lifesafetypoint,  go.object_name),  	s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(lifesafetypoint,  go.object_type), 	et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			      oo(lifesafetypoint,  go.description),     s132,     0,      0,       O,
 	"present-value",		    PRESENT_VALUE,		          oo(lifesafetypoint,  present_value),	    et,		  0,      eiLifeSafetyState,	   R,
@@ -1479,7 +1479,7 @@ propdescriptor LFSZProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lifesafetyzone,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(lifesafetyzone,  go.object_name),  s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(lifesafetyzone,  go.object_name),  s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(lifesafetyzone,  go.object_type), 	et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			      oo(lifesafetyzone,  go.description),  s132,     0,      0,       O,
 	"present-value",		    PRESENT_VALUE,		          oo(lifesafetyzone,  present_value),	et,		  0,      eiLifeSafetyState,	   R,
@@ -1512,7 +1512,7 @@ propdescriptor ACProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(accumulator,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(accumulator,  go.object_name),  	s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(accumulator,  go.object_name),  	s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(accumulator,  go.object_type), 	et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			      oo(accumulator,  go.description),  	s132,     0,      0,       O,
 	"present-value",		    PRESENT_VALUE,		          oo(accumulator,  present_value),	    uw,		  0,      0,	   R,
@@ -1548,7 +1548,7 @@ propdescriptor PCProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(pulseconverter,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(pulseconverter,  go.object_name),     s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(pulseconverter,  go.object_name),     s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(pulseconverter,  go.object_type), 	   et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			      oo(pulseconverter,  go.description),     s132,     0,      0,       O,
 	"present-value",		    PRESENT_VALUE,		          oo(pulseconverter,  present_value),      flt,	     0,      0,	      R,
@@ -1583,7 +1583,7 @@ propdescriptor LCProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,				 parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lc,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(lc,  go.object_name),     s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(lc,  go.object_name),     s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(lc,  go.object_type), 	   et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			      oo(lc,  go.description),     s132,     0,      0,       O,
 	"present-value" ,           PRESENT_VALUE,                oo(lc,  present_value),	     et, 	 0,	eiShedState,  R,
@@ -1614,7 +1614,7 @@ propdescriptor ADProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(ad,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(ad,  go.object_name),     s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(ad,  go.object_name),     s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(ad,  go.object_type), 	   et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			      oo(ad,  go.description),     s132,     0,      0,       O,
 	"status-flags",			    STATUS_FLAGS,		          oo(ad,  status_flags),	bits,	  0,	  0,	   R,
@@ -1651,7 +1651,7 @@ propdescriptor SVProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,				parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(sv,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(sv,  go.object_name),     s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(sv,  go.object_name),     s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(sv,  go.object_type), 	   et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			      oo(sv,  go.description),     s132,     0,      0,       O,
 	"node-type",				NODE_TYPE,					  oo(sv,  node_type),			et,		 0,	eiNodeType,	  R,
@@ -1666,7 +1666,7 @@ propdescriptor ELProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(el,  go.object_id),   					ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(el,  go.object_name),					s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(el,  go.object_name),					s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(el,  go.object_type), 					et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			      oo(el,  go.description),					s132,     0,      0,       O,
 	"status-flags",			    STATUS_FLAGS,		          oo(el,  status_flags),					bits,	  0,	  0,	   R,
@@ -1694,7 +1694,7 @@ propdescriptor TLMProps[] =
 {
 	//	"property name",		property identifier,	      struc offset,					 parse,	  group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(tlm,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(tlm,  go.object_name),     s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			      oo(tlm,  go.object_name),     s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			      oo(tlm,  go.object_type), 	   et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			      oo(tlm,  go.description),     s132,     0,      0,       O,
 	"status-flags",			    STATUS_FLAGS,		          oo(tlm,  status_flags),	bits,	  0,	  0,	   R,
@@ -1731,7 +1731,7 @@ propdescriptor PlaceholderProps[] =
 {
 	//	"property name",		property identifier,	struc offset,						parse,	group,  table,   qualifiers
     "object-identifier",  		OBJECT_IDENTIFIER,  	oo(placeholder,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			oo(placeholder,  go.object_name),   s32,      0,      0,       R,
+    "object-name",  			OBJECT_NAME, 			oo(placeholder,  go.object_name),   s64,      0,      0,       R,
     "object-type",  			OBJECT_TYPE, 			oo(placeholder,  go.object_type), 	et,       0,      0,       R,
 	"description",  			DESCRIPTION,  			oo(placeholder,  go.description),   s132,     0,      0,       O,
 	// <Your properties here>
@@ -1741,7 +1741,7 @@ propdescriptor PlaceholderProps[] =
 propdescriptor	CharstringProps[]={
 //	"property name",		property identifier,	struc offset,					parse,	group,	table,	    qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(charstring,go.object_id),	    ob_id,	 0,	       0,	    R,
-    "object-name",			OBJECT_NAME,		oo(charstring,go.object_name),	    s32,	 0,	       0,	    R,
+    "object-name",			OBJECT_NAME,		oo(charstring,go.object_name),	    s64,	 0,	       0,	    R,
     "object-type",			OBJECT_TYPE,		oo(charstring,go.object_type),	    et,		 0,  eiObjectTypes,  R,
     "present-value",		PRESENT_VALUE,		oo(charstring,present_value),	    s132,	 0,	       0,	    W|IsCommandable,
     "description",			DESCRIPTION,		oo(charstring,go.description),	    s132,	 0,	       0,	    O,
@@ -1765,7 +1765,7 @@ propdescriptor	CharstringProps[]={
 propdescriptor	IntegerProps[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(integer,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(integer,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(integer,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(integer,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(integer,present_value),	ptInt32,0,	       0,	W|IsCommandable,
     "description",			DESCRIPTION,		oo(integer,go.description),	s132,	0,	       0,	O,
@@ -1794,7 +1794,7 @@ propdescriptor	IntegerProps[]={
 propdescriptor	PositiveIntegerProps[]={
 //	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(integer,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(integer,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(integer,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(integer,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(integer,present_value),	ud,		0,	       0,	W|IsCommandable,
     "description",			DESCRIPTION,		oo(integer,go.description),	s132,	0,	       0,	O,
@@ -1822,7 +1822,7 @@ propdescriptor	PositiveIntegerProps[]={
 propdescriptor	DateTimeValueProps[]={
 //	"property name",		property identifier,	struc offset,					parse,	group,	table,	qualifiers
     "object-identifier",	OBJECT_IDENTIFIER,	oo(datetimevalue,go.object_id),		ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(datetimevalue,go.object_name),	s32,	0,	       0,	R,
+    "object-name",			OBJECT_NAME,		oo(datetimevalue,go.object_name),	s64,	0,	       0,	R,
     "object-type",			OBJECT_TYPE,		oo(datetimevalue,go.object_type),	et,		0,eiObjectTypes,R,
     "present-value",		PRESENT_VALUE,		oo(datetimevalue,present_value),	dt,		0,	       0,	W|IsCommandable,
     "description",			DESCRIPTION,		oo(datetimevalue,go.description),	s132,	0,	       0,	O,

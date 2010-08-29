@@ -5,7 +5,6 @@
 // Revision: March 5 2010: rewrote most of it.
 /**************************************************************************/
 
-
 // Parse BACnet tags
 class BacParser
 {
@@ -223,6 +222,8 @@ const char* PropertyIdentifierString( unsigned int theIdentifier )
 	const char *pRet;	
 	if (theIdentifier < (unsigned int)BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings)
 	{
+		// A debug test (outputs to the VS Output window)
+	    // TRACE( "STRING_TABLE BACnetPropertyIdentifier[293] = %s \n", BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[293] );
 		pRet = BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[theIdentifier];
 	}
 	else
