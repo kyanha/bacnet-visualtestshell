@@ -1988,6 +1988,7 @@ bool APIENTRY ReadTextPICS(
 	fileName += FILE_CHECK_EPICS_CONS;
 	
 	pfileError = fopen( fileName, "w");
+	TRACE( "Errors logged to %s \n", fileName );
 
 // looks to be a duplicate of the below therefore did not enable this line.  LJT 8/31/2005	
 //	memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes));	//default is not supported // added by Kare Sars
