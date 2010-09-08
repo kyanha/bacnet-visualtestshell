@@ -4772,7 +4772,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 	ScriptParmPtr			pScriptParmNetwork = NULL, pScriptParm;
 
 	try {
-		// see if the netework is provided
+		// see if the network is provided
 		pNet = GetKeywordValue( &pScriptParmNetwork, kwNETWORK, nlNetwork );
 
 		// see if this should have a BVLCI header
@@ -8810,6 +8810,8 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 						
 						// move on to next statement
 						NextPacket( false );
+
+						// TODO: wtf?  Why the loop if we are going to exit first time round?
 						break;
 					}
 				}
