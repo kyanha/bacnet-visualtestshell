@@ -193,6 +193,21 @@ static bool MatchAndEat( const char* &theCursor, const char* theMatchString, int
 	return retval;
 }
 
+// Append bytes to X'1234' hex
+void AppendXhex( CString &theResult, const unsigned char *pTheData, int theLength )
+{
+	theResult += "X\'";
+
+	// encode the content
+	for (int i = 0; i < theLength; i++) 
+	{
+		char buf[3];
+		sprintf( buf, "%02X", pTheData[i] );
+		theResult += buf;
+	}
+
+	theResult += '\'';
+}
 
 //
 //	BACnetAddress
@@ -921,14 +936,7 @@ void BACnetAddr::Encode( CString &enc ) const
 	enc.Format( "{%d,", m_bacnetAddress.addrNet );
 	if (m_bacnetAddress.addrLen > 0)
 	{
-		enc += "X\'";
-		for (int i = 0; i < m_bacnetAddress.addrLen; i++)
-		{
-			char buf[3];
-			sprintf( buf, "%02X", m_bacnetAddress.addrAddr[i] );
-			enc += buf;
-		}
-		enc += '\'';
+		AppendXhex( enc, m_bacnetAddress.addrAddr, m_bacnetAddress.addrLen );
 	}
 	else
 	{
@@ -2863,17 +2871,8 @@ void BACnetOctetString::Encode( CString &enc ) const
 		return;
 	}
 
-	enc = "X\'";
-
-	// encode the content
-	for (int i = 0; i < strLen; i++) 
-	{
-		char buf[3];
-		sprintf( buf, "%02X", strBuff[i] );
-		enc += buf;
-	}
-
-	enc += '\'';
+	enc.Empty();
+	AppendXhex( enc, strBuff, strLen ); 
 }
 
 void BACnetOctetString::Decode( const char *dec )
@@ -3516,41 +3515,6 @@ void BACnetBitString::Decode( const char *dec )
 	}
 }
 
-/*  Replaced to match 135.1 formats
-void BACnetBitString::Decode( const char *dec )
-{
-	int		bit
-	;
-	char	c
-	;
-
-	// toss existing content
-	SetSize( 0 );
-
-	// skip preamble
-	if ( ((dec[0] == '0') && (dec[1] == 'b'))					// 0b1101, B'1101', &b1101
-		|| ((dec[0] == 'B') && (dec[1] == '\''))
-		|| ((dec[0] == 'b') && (dec[1] == '\''))
-		|| ((dec[0] == '&') && (dec[1] == 'b'))
-		|| ((dec[0] == '&') && (dec[1] == 'B'))
-		)
-		dec += 2;
-
-	bit = 0;
-	while (*dec && (*dec != '\'')) {
-		c = *dec++;
-		if (c == '0')
-			SetBit( bit, 0 );
-		else
-		if (c == '1')
-			SetBit( bit, 1 );
-		else
-			throw_(50); // invalid character 
-		bit += 1;
-	}
-}
-*/
-
 int BACnetBitString::DataType()
 {
 	return bits;
@@ -3587,6 +3551,10 @@ bool BACnetBitString::Match( BACnetEncodeable &rbacnet, int iOperator, CString *
 
 IMPLEMENT_DYNAMIC(BACnetDate, BACnetEncodeable)
 
+// Declare these here to avoid confusion and danger of general usage
+#define DATE_DONT_CARE	     0xFF		// BACnet don't-care value for Time and Date: appears on the wire
+#define DATE_IGNORE_ON_INPUT 0xFE		// "Don't care" value for receive to IGNORE an incoming value
+
 //
 //	BACnetDate::BACnetDate
 //
@@ -3616,7 +3584,7 @@ BACnetDate::BACnetDate( int y, int m, int d )
 	: year(y), month(m), day(d)
 {
 	if ( y == 0 && m == 0 && d == 0 )
-		year = month = day = DATE_DONT_CARE;
+		year = month = day = DATE_IGNORE_ON_INPUT;
 
 	CalcDayOfWeek();
 }
@@ -3630,18 +3598,18 @@ BACnetDate::BACnetDate( BACnetAPDUDecoder & dec )
 
 bool BACnetDate::IsValid()
 {
-	if ( dayOfWeek != DATE_DONT_CARE && dayOfWeek != DATE_SHOULDNT_CARE && (dayOfWeek < 1 || dayOfWeek > 7) )
+	if ( (dayOfWeek != DATE_DONT_CARE) && (dayOfWeek != DATE_IGNORE_ON_INPUT) && (dayOfWeek < 1 || dayOfWeek > 7) )
 		return false;
 
 	// Accept LAST, ODD, and EVEN
-	if ( day != DATE_DONT_CARE && day != DATE_SHOULDNT_CARE && (day < 1 || day > 34) )
+	if ( (day != DATE_DONT_CARE) && (day != DATE_IGNORE_ON_INPUT) && (day < 1 || day > 34) )
 		return false;
 
 	// Accept ODD and EVEN
-	if ( month != DATE_DONT_CARE && month != DATE_SHOULDNT_CARE && (month < 1 || month > 14 ))
+	if ( (month != DATE_DONT_CARE) && (month != DATE_IGNORE_ON_INPUT) && (month < 1 || month > 14 ))
 		return false;
 
-	if ( year != DATE_DONT_CARE && year != DATE_SHOULDNT_CARE && (year < 0 || year > 255))
+	if ( (year != DATE_DONT_CARE) && (year != DATE_IGNORE_ON_INPUT) && (year < 0 || year > 255))
 		return false;
 
 	return true;
@@ -3653,9 +3621,10 @@ bool BACnetDate::IsValid()
 
 void BACnetDate::CalcDayOfWeek( void )
 {
-	// Don't try with "unspecified", "don't care", or other special values
-	if ((year == DATE_DONT_CARE) || (year == DATE_SHOULDNT_CARE) || 
-		(month > 12) || (day > 31)) 
+	// Don't try with "don't care", "ignore", or other special values (last, even, odd)
+	if ((year == DATE_DONT_CARE)  || (year == DATE_IGNORE_ON_INPUT)  || 
+		(month == DATE_DONT_CARE) || (month == DATE_IGNORE_ON_INPUT) || (month > 12) || 
+		(day == DATE_DONT_CARE)   || (day == DATE_IGNORE_ON_INPUT)   || (day > 31)) 
 	{
 		dayOfWeek = DATE_DONT_CARE;
 		return;
@@ -3673,18 +3642,16 @@ void BACnetDate::Encode( BACnetAPDUEncoder& enc, int context )
 	else
 		BACnetAPDUTag( dateAppTag, 4 ).Encode( enc );
 	
-	// fill in the data
-	// JLH was copying 0xFE for DATE_SHOULDNT_CARE
-	enc.pktBuffer[enc.pktLength++] = (year < DATE_SHOULDNT_CARE) ? year : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (month < DATE_SHOULDNT_CARE) ? month : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (day < DATE_SHOULDNT_CARE) ? day : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (dayOfWeek < DATE_SHOULDNT_CARE) ? dayOfWeek: 0xFF;
+	// fill in the data, turning special values into 0xFF = "don't care" on the wire
+	enc.pktBuffer[enc.pktLength++] = (year < DATE_IGNORE_ON_INPUT) ? year : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (month < DATE_IGNORE_ON_INPUT) ? month : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (day < DATE_IGNORE_ON_INPUT) ? day : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (dayOfWeek < DATE_IGNORE_ON_INPUT) ? dayOfWeek: 0xFF;
 }
 
 void BACnetDate::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
+	BACnetAPDUTag	tag;
 		
 	// verify the tag can be extracted
 	tag.Decode( dec );
@@ -3718,14 +3685,18 @@ void BACnetDate::Encode( CString &enc ) const
 	enc = '(';
 
 	// day of week
-	if ((dayOfWeek == DATE_DONT_CARE) || (dayOfWeek == DATE_SHOULDNT_CARE))
+	if (dayOfWeek == DATE_DONT_CARE)
 	{
 		// This doesn't match 135.1, but it is how the previous version worked
 		enc += '*';
 	}
+	else if (dayOfWeek == DATE_IGNORE_ON_INPUT)
+	{
+		enc += '?';
+	}
 	else 
 	{
-		// Shows illegal values numerically as "DOWnn"
+		// Shows full day of week, illegal values numerically as "DOWnn"
 		enc += NetworkSniffer::BAC_STRTAB_day_of_week.EnumString( dayOfWeek, "DOW" );
 	}
 
@@ -3734,9 +3705,13 @@ void BACnetDate::Encode( CString &enc ) const
 	// 135.1 says day-month-year, but we have historically used m/d/y
 
 	// month
-	if ((month == DATE_DONT_CARE) || (month == DATE_SHOULDNT_CARE))
+	if (month == DATE_DONT_CARE)
 	{
 		enc += '*';
+	}
+	else if (month == DATE_IGNORE_ON_INPUT)
+	{
+		enc += '?';
 	}
 	else 
 	{
@@ -3747,8 +3722,10 @@ void BACnetDate::Encode( CString &enc ) const
 	enc += '/';
 
 	// day of month
-	if ((day == DATE_DONT_CARE) || (day == DATE_SHOULDNT_CARE))
+	if (day == DATE_DONT_CARE)
 		enc += '*';
+	else if (day == DATE_IGNORE_ON_INPUT)
+		enc += '?';
 	else if (day == 32)
 		enc += "LAST";
 	else if (day == 33)
@@ -3764,9 +3741,13 @@ void BACnetDate::Encode( CString &enc ) const
 	enc += '/';
 
 	// year
-	if ((year == DATE_DONT_CARE) || (year == DATE_SHOULDNT_CARE))
+	if (year == DATE_DONT_CARE)
 	{
 		enc += '*';
+	}
+	else if (year == DATE_IGNORE_ON_INPUT)
+	{
+		enc += '?';
 	}
 	else
 	{
@@ -3809,11 +3790,12 @@ void BACnetDate::Decode( const char *dec )
 	// check for dow
 	if ( *dec == '*' )
 	{
-		dayOfWeek = DATE_SHOULDNT_CARE;
+		dayOfWeek = DATE_DONT_CARE;
 		dec += 1;
 	}
 	else if ( *dec == '?' )
 	{
+		dayOfWeek = DATE_IGNORE_ON_INPUT;
 		dec += 1;
 	}
 	else if (IsAlpha(*dec)) 
@@ -3842,11 +3824,12 @@ void BACnetDate::Decode( const char *dec )
 	// check for month
 	if ( *dec == '*' )
 	{
-		month = DATE_SHOULDNT_CARE;
+		month = DATE_DONT_CARE;
 		dec += 1;
 	}
 	else if ( *dec == '?' )
 	{
+		month = DATE_IGNORE_ON_INPUT;
 		dec += 1;
 	}
 	else 
@@ -3890,11 +3873,12 @@ void BACnetDate::Decode( const char *dec )
 	// check for day of month
 	if ( *dec == '*' )
 	{
-		day = DATE_SHOULDNT_CARE;
+		day = DATE_DONT_CARE;
 		dec += 1;
 	}
 	else if ( *dec == '?' )
 	{
+		day = DATE_IGNORE_ON_INPUT;
 		dec += 1;
 	}
 	else 
@@ -3943,11 +3927,12 @@ void BACnetDate::Decode( const char *dec )
 	// check for year
 	if ( *dec == '*' )
 	{
-		year = DATE_SHOULDNT_CARE;
+		year = DATE_DONT_CARE;
 		dec += 1;
 	}
 	else if ( *dec == '?' )
 	{
+		year = DATE_IGNORE_ON_INPUT;
 		dec += 1;
 	}
 	else 
@@ -3985,155 +3970,11 @@ void BACnetDate::Decode( const char *dec )
 	// if we've gotten this far, all values have been read in and are correct
 }
 
-/*
-void BACnetDate::Decode( const char *dec )
-{
-	static char *dow[] = { "", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }
-	;
-	char		dowBuff[4]
-	;
-
-	// initialize everything to don't care
-	dayOfWeek = month = day = year = DATE_DONT_CARE;
-
-	// skip blank on front
-	while (*dec && IsSpace(*dec)) dec++;
-
-	// Date is complex data type so must enclose in brackets
-	if ( *dec++ != '[' )
-		throw_(110);			// missing start bracket for complex data structures
-
-	// check for dow
-	if ( *dec == '*' )
-	{
-		dayOfWeek = DATE_SHOULDNT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-		dec += 1;
-	else if (IsAlpha(*dec)) {
-		// They've provided a 3 char day...  read it and test for validity
-
-		for (int j = 0; (j < 3) && IsAlpha(*dec); j++)
-			dowBuff[j] = ToUpper(*dec++);
-		dowBuff[3] = 0;
-
-		for (int i = 1; i < 8 && dayOfWeek == DATE_DONT_CARE; i++)
-			if (strcmp(dowBuff,dow[i]) == 0)
-				dayOfWeek = i;
-
-		// scanned through... test for validity
-		if ( dayOfWeek == DATE_DONT_CARE )
-			throw_(91);									// code for bad supplied day (interpreted in caller's context)
-
-		while (*dec!=',' && !IsSpace(*dec)) dec++;    //Modified by Liangping Xu
-	}
-	while (*dec && IsSpace(*dec)) dec++;
-
-	// skip over comma and more space
-	if (*dec == ',') {
-		dec += 1;
-		while (*dec && IsSpace(*dec)) dec++;
-	}
-
-	// check for month
-	if ( *dec == '*' )
-	{
-		month = DATE_SHOULDNT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-		dec += 1;
-	else {
-		for (month = 0; IsDigit(*dec); dec++)
-			month = (month * 10) + (*dec - '0');
-
-		// they've supplied a month (I think)
-		if ( month < 1 || month > 12)
-			throw_(92);								// code for bad month, , interpreted in caller's context
-	}
-	while (*dec && IsSpace(*dec)) dec++;
-	
-	// skip over slash and more space
-	// make sure slash is there... or (-)
-	if (*dec == '/' || *dec == '-') {
-		dec += 1;
-		while (*dec && IsSpace(*dec)) dec++;
-	}
-	else
-		throw_(93);									// code for bad date separator, interpreted in caller's context
-
-	// check for day
-	if ( *dec == '*' )
-	{
-		day = DATE_SHOULDNT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-		dec += 1;
-	else {
-		for (day = 0; IsDigit(*dec); dec++)
-			day = (day * 10) + (*dec - '0');
-
-		// they've supplied a day (I think)
-		if ( day < 1 || day > 31)					// doesn't account for month/day invalids (feb 30)
-			throw_(94);								// code for bad day, interpreted in caller's context
-	}
-	while (*dec && IsSpace(*dec)) dec++;
-	
-	// skip over slash and more space
-	if (*dec == '/' || *dec == '-') {
-		dec += 1;
-		while (*dec && IsSpace(*dec)) dec++;
-	}
-	else
-		throw_(93);									// code for bad date separator, interpreted in caller's context
-
-	// check for year
-	if ( *dec == '*' )
-	{
-		year = DATE_SHOULDNT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-		dec += 1;
-	else {
-		int	yr = -1;			// start with no supplied year
-
-		// if they've supplied any number we'll go through this once at least...
-		if ( IsDigit(*dec) )
-			for (yr = 0; IsDigit(*dec); dec++)
-				yr = (yr * 10) + (*dec - '0');
-
-		// 0..40 -> 2000..2040, 41.. -> 1941..
-		// negative = error
-
-		if ( yr < 0 )
-			throw_(94);									// code for no supplied year, interpreted in caller's context
-		if (yr < 40)
-			year = yr + 100;
-		else if (yr < 100)
-			year = yr;
-		else if ((yr >= 1900) && (yr <= (1900 + 254)))
-			year = (yr - 1900);
-		else
-			throw_(95);									// code for bad year, interpreted in caller's context
-	}
-
-	// clear white space and look for close bracket
-	while (*dec && IsSpace(*dec)) dec++;
-	if ( *dec++ != ']' )
-		throw_(111);									// missing close bracket code
-
-	// if we've gotten this far, all values have been read in and are correct
-}
-*/
-
 
 CTime BACnetDate::Convert() const
 {
 	ASSERT( year != DATE_DONT_CARE  && month != DATE_DONT_CARE && day != DATE_DONT_CARE);
-	ASSERT( year != DATE_SHOULDNT_CARE  && month != DATE_SHOULDNT_CARE && day != DATE_SHOULDNT_CARE);
+	ASSERT( year != DATE_IGNORE_ON_INPUT  && month != DATE_IGNORE_ON_INPUT && day != DATE_IGNORE_ON_INPUT);
 	ASSERT( (month >= 1) && (month <= 12) && (day >= 1) && (day <= 31));
 	return CTime(year + 1900, month, day, 0, 0, 0);
 }
@@ -4170,10 +4011,6 @@ bool BACnetDate::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)));
 
-//  Won't work due to don't care and special (even/odd) cases
-//	CTime dateThis(year + 1900, month + 1, day + 1, 0, 0, 0);
-//	CTime dateThat(((BACnetDate &) rbacnet).year + 1900, ((BACnetDate &) rbacnet).month + 1, ((BACnetDate &) rbacnet).day + 1, 0, 0, 0);
-
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)) ||
 		 !Match((BACnetDate &) rbacnet, iOperator) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
@@ -4207,24 +4044,30 @@ bool BACnetDate::Match( BACnetDate & rdate, int iOperator )
 
 bool ValuesEqual( int v1, int v2 )
 {
-	// if neither of them are don't cares, then we should check their value... even if one of them
-	// is shouldn't care. 
-
-	if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&  v1 != v2 )
+	// True if either value is "ignore", or if the values are equal
+	return (v1 == DATE_IGNORE_ON_INPUT) || (v2 == DATE_IGNORE_ON_INPUT) || (v1 == v2);
+/*
+	// if neither of them are ignore-on-input, then we should check their value... even if one of them
+	// is don't care. 
+	if ((v1 != DATE_IGNORE_ON_INPUT) && (v2 != DATE_IGNORE_ON_INPUT) && (v1 != v2))
 		return false;
 
 	// OK... Now test for equality when one is don't care and other is shouldn't care
 
-	if ( (v1 == DATE_SHOULDNT_CARE && v2 != DATE_DONT_CARE && v2 != DATE_SHOULDNT_CARE ) || 
-		 (v2 == DATE_SHOULDNT_CARE && v1 != DATE_DONT_CARE && v1 != DATE_SHOULDNT_CARE ) )
+	if ( ((v1 == DATE_SHOULDNT_CARE) && (v2 != DATE_DONT_CARE) && (v2 != DATE_SHOULDNT_CARE)) || 
+		 ((v2 == DATE_SHOULDNT_CARE) && (v1 != DATE_DONT_CARE) && (v1 != DATE_SHOULDNT_CARE)) )
 		return false;
 
 	return true;
+*/
 }
 
 
 bool ValuesGreater( int v1, int v2 )
 {
+	// True if either value is "ignore", or if v1 > v2
+	return (v1 == DATE_IGNORE_ON_INPUT) || (v2 == DATE_IGNORE_ON_INPUT) || (v1 > v2);
+/*
 	if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&
 		 v1 != DATE_SHOULDNT_CARE  &&  v2 != DATE_SHOULDNT_CARE  &&  v1 > v2 )
 		return true;
@@ -4234,11 +4077,15 @@ bool ValuesGreater( int v1, int v2 )
 	// so we should just return false
 
 	return false;
+*/
 }
 
 
 bool ValuesLess( int v1, int v2 )
 {
+	// True if either value is "ignore", or if v1 < v2
+	return (v1 == DATE_IGNORE_ON_INPUT) || (v2 == DATE_IGNORE_ON_INPUT) || (v1 < v2);
+/*
 	if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&
 		 v1 != DATE_SHOULDNT_CARE  &&  v2 != DATE_SHOULDNT_CARE  &&  v1 < v2 )
 		return true;
@@ -4248,6 +4095,7 @@ bool ValuesLess( int v1, int v2 )
 	// so we should just return false
 
 	return false;
+*/
 }
 
 
@@ -4473,16 +4321,16 @@ BACnetTime::BACnetTime( BACnetAPDUDecoder & dec )
 
 bool BACnetTime::IsValid()
 {
-	if ( hour != DATE_DONT_CARE && hour != DATE_SHOULDNT_CARE && (hour < 0 || hour > 23) )
+	if ( hour != DATE_DONT_CARE && hour != DATE_IGNORE_ON_INPUT && (hour < 0 || hour > 23) )
 		return false;
 
-	if ( minute != DATE_DONT_CARE &&  minute != DATE_SHOULDNT_CARE  &&  (minute < 0 || minute > 59) )
+	if ( minute != DATE_DONT_CARE &&  minute != DATE_IGNORE_ON_INPUT  &&  (minute < 0 || minute > 59) )
 		return false;
 
-	if ( second != DATE_DONT_CARE &&  second != DATE_SHOULDNT_CARE &&  (second < 0 || second > 59 ))
+	if ( second != DATE_DONT_CARE &&  second != DATE_IGNORE_ON_INPUT &&  (second < 0 || second > 59 ))
 		return false;
 
-	if ( hundredths != DATE_DONT_CARE &&  hundredths != DATE_SHOULDNT_CARE &&  (hundredths < 0 ||  hundredths > 99))
+	if ( hundredths != DATE_DONT_CARE &&  hundredths != DATE_IGNORE_ON_INPUT &&  (hundredths < 0 ||  hundredths > 99))
 		return false;
 
 	return true;
@@ -4498,11 +4346,11 @@ void BACnetTime::Encode( BACnetAPDUEncoder& enc, int context )
 		BACnetAPDUTag( timeAppTag, 4 ).Encode( enc );
 	
 	// fill in the data
-	// JLH: ended up encoding * (DATE_SHOULDNT_CARE) as 0xFE
-	enc.pktBuffer[enc.pktLength++] = (hour < DATE_SHOULDNT_CARE) ? hour : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (minute < DATE_SHOULDNT_CARE) ? minute : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (second < DATE_SHOULDNT_CARE) ? second : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (hundredths < DATE_SHOULDNT_CARE) ? hundredths : 0xFF;
+	// JLH: ended up encoding * (DATE_IGNORE_ON_INPUT) as 0xFE
+	enc.pktBuffer[enc.pktLength++] = (hour < DATE_IGNORE_ON_INPUT) ? hour : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (minute < DATE_IGNORE_ON_INPUT) ? minute : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (second < DATE_IGNORE_ON_INPUT) ? second : 0xFF;
+	enc.pktBuffer[enc.pktLength++] = (hundredths < DATE_IGNORE_ON_INPUT) ? hundredths : 0xFF;
 }
 
 void BACnetTime::Decode( BACnetAPDUDecoder& dec )
@@ -4536,9 +4384,9 @@ void BACnetTime::Encode( CString &enc ) const
 	
 	// hour
 	if (hour == DATE_DONT_CARE)
-		enc = '?';
-	else if (hour == DATE_SHOULDNT_CARE)
 		enc = '*';
+	else if (hour == DATE_IGNORE_ON_INPUT)
+		enc = '?';
 	else {
 		enc.Format( "%02d", hour );
 	}
@@ -4546,9 +4394,9 @@ void BACnetTime::Encode( CString &enc ) const
 
 	// minute
 	if (minute == DATE_DONT_CARE)
-		enc += '?';
-	else if (minute == DATE_SHOULDNT_CARE)
 		enc += '*';
+	else if (minute == DATE_IGNORE_ON_INPUT)
+		enc += '?';
 	else {
 		sprintf( buff, "%02d", minute );
 		enc += buff;
@@ -4557,9 +4405,9 @@ void BACnetTime::Encode( CString &enc ) const
 
 	// second
 	if (second == DATE_DONT_CARE)
-		enc += '?';
-	else if (second == DATE_SHOULDNT_CARE)
 		enc += '*';
+	else if (second == DATE_IGNORE_ON_INPUT)
+		enc += '?';
 	else {
 		sprintf( buff, "%02d", second );
 		enc += buff;
@@ -4568,9 +4416,9 @@ void BACnetTime::Encode( CString &enc ) const
 
 	// hundredths
 	if (hundredths == DATE_DONT_CARE)
-		enc += '?';
-	else if (hundredths == DATE_SHOULDNT_CARE)
 		enc += '*';
+	else if (hundredths == DATE_IGNORE_ON_INPUT)
+		enc += '?';
 	else {
 		sprintf( buff, "%02d", hundredths );
 		enc += buff;
@@ -4592,11 +4440,14 @@ void BACnetTime::Decode( const char *dec )
 	// check for hour
 	if ( *dec == '*' )
 	{
-		hour = DATE_SHOULDNT_CARE;
+		hour = DATE_DONT_CARE;
 		dec += 1;
 	}
 	else if ( *dec == '?' )
+	{
+		hour = DATE_IGNORE_ON_INPUT;
 		dec += 1;
+	}
 	else {
 		// dont' care not specified, they MUST specify hours...
 		hour = -1;
@@ -4623,11 +4474,14 @@ void BACnetTime::Decode( const char *dec )
 	// check for minute
 	if ( *dec == '*' ) 
 	{
-		minute = DATE_SHOULDNT_CARE;
+		minute = DATE_DONT_CARE;
 		dec += 1;
 	}
 	else if ( *dec == '?' )
+	{
+		minute = DATE_IGNORE_ON_INPUT;
 		dec += 1;
+	}
 	else {
 		// MUST now supply minute value
 		minute = -1;
@@ -4654,11 +4508,14 @@ void BACnetTime::Decode( const char *dec )
 	// check for second
 	if ( *dec == '*' )
 	{
-		second = DATE_SHOULDNT_CARE;
+		second = DATE_DONT_CARE;
 		dec += 1;
 	}
 	else if ( *dec == '?' )
+	{
+		second = DATE_IGNORE_ON_INPUT;
 		dec += 1;
+	}
 	else {
 		// MUST now supply the second value
 		second = -1;
@@ -4684,11 +4541,14 @@ void BACnetTime::Decode( const char *dec )
 
 		if ( *dec == '*' )
 		{
-			hundredths = DATE_SHOULDNT_CARE;
+			hundredths = DATE_DONT_CARE;
 			dec += 1;
 		}
 		else if ( *dec == '?' )
+		{
+			hundredths = DATE_IGNORE_ON_INPUT;
 			dec += 1;
+		}
 		else {
 			// MUST now supply the hundredth value
 			hundredths = -1;
@@ -4979,7 +4839,8 @@ BACnetDateTime::BACnetDateTime( const PICS::BACnetDateTime &orig )
 }
 
 BACnetDateTime::BACnetDateTime( BACnetAPDUDecoder & dec )
-			   :bacnetDate(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE), bacnetTime(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE)
+			   :bacnetDate(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE), 
+			    bacnetTime(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE)
 {
 	Decode(dec);
 }
@@ -6812,12 +6673,51 @@ void BACnetANY::Decode( BACnetAPDUDecoder& dec )
 	}
 }
 
+// Encode as ASCII text X'123456'
 void BACnetANY::Encode( CString &enc ) const
 {
-	// TODO: when the parameter becomes a CString, then MAYBE implement this
-	// Format X'12345678'
-	// Also add Decode( char* )
-	throw_(76);
+	enc.Empty();
+	AppendXhex( enc, dataBuff, dataLen );
+}
+
+// Decode from ASCII text X'123456'
+void BACnetANY::Decode( const char *dec )
+{
+	int		upperNibble, lowerNibble, c;
+
+	// verify preamble
+	if ((dec[0] != 'X') || (dec[1] != '\''))
+		throw_(12) /* invalid character */;
+
+	dec += 2;
+
+	// Length in bytes, two characters each
+	int len = strlen( dec ) / 2;
+	if (len > spaceLen)
+	{
+		delete[] dataBuff;
+		dataBuff = new BACnetOctet[ len ];
+        spaceLen = len;
+	}
+
+	dataLen = len;
+
+	int ix = 0;
+	while (*dec && (*dec != '\'')) 
+	{
+		c = ToUpper( *dec++ );
+		if (!IsXDigit(c))
+			throw_(46) /* invalid character */;
+		upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
+
+		c = ToUpper( *dec++ );
+		if (!IsXDigit(c))
+			throw_(47) /* invalid character */;
+		lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
+
+		// stick this on the end
+		dataBuff[ix++] = (upperNibble << 4) + lowerNibble;
+	}
 }
 
 IMPLEMENT_DYNAMIC(BACnetBinaryPriV, BACnetEnumerated)
@@ -8829,7 +8729,7 @@ void BACnetAPDUTag::Encode( BACnetAPDUEncoder& enc, int )
 			enc.pktBuffer[enc.pktLength++] = tagLVT & 0x0FF;
 		} else {
 			// long lengths
-			enc.pktBuffer[enc.pktLength++] = DATE_DONT_CARE;
+			enc.pktBuffer[enc.pktLength++] = 255;
 			enc.pktBuffer[enc.pktLength++] = (tagLVT >> 24) & 0x0FF;
 			enc.pktBuffer[enc.pktLength++] = (tagLVT >> 16) & 0x0FF;
 			enc.pktBuffer[enc.pktLength++] = (tagLVT >>  8) & 0x0FF;
