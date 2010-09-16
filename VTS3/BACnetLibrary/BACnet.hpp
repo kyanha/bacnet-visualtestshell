@@ -21,12 +21,8 @@ typedef unsigned char	BACnetOctet, *BACnetOctetPtr;	// unsigned character
 //	General Constants
 //
 
-const unsigned 	kVendorID = 15;					// Cornell vendor ID
-const int		kMaxAddressLen = 8;				// longest address supported
-
-
-#define DATE_DONT_CARE	    0xFF				// indicates any value is OK
-#define DATE_SHOULDNT_CARE	0xFE				// should only be don't care value.  Get it?
+const unsigned 	kVendorID = 260;	// BACnet Stack at SourceForge Vendor ID
+const int		kMaxAddressLen = 8;		// longest address supported
 
 namespace PICS {
 #include "db.h"
@@ -1863,6 +1859,7 @@ class BACnetANY: public BACnetEncodeable {
 		void Decode( BACnetAPDUDecoder& dec );					// decode
 
 		void Encode( CString &enc ) const;
+		void Decode( const char *dec );
 
 		DECLARE_DYNAMIC(BACnetANY)
 	};
