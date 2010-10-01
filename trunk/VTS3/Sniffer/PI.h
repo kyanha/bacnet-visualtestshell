@@ -20,6 +20,7 @@
 //
 #define MAX_SUM_LINE    143             /* maximum width of a summary line */
 #define MAX_INT_LINE    550             /* maximum width of a detail line */ // Increased line to allow 255 bytes
+#define MAX_TEXT_ITEM   128				/* limit on strings within a line */
 
 // Used to control/suggest how detail lines are displayed and expanded
 enum PID_NODE_TYPE
@@ -130,7 +131,7 @@ typedef unsigned int PORT;				/* port type */
 /*  Function prototype declarations for Protocol Interpreters   */
 
 void	pif_init(struct pi_data *,void *,int );
-char	*pif_get_ascii(int ,int ,char *);
+char	*pif_get_ascii( int offset, int len, char result_str[], int max_chars );
 //char	*pif_get_ebcdic(int ,int ,char *);
 //char	*pif_get_lstring(int ,char *);
 char	*pif_line(int );
@@ -181,6 +182,14 @@ int get_next_detail_index( void );
 // Used to fix up the length of previous detail lines after subsequent
 // items have been parsed.  Simplifies various wrapping items.
 void set_detail_line_length( int theLine, int theOffset );
+
+// Safe strcpy that won't exceed maxLength (including null terminator)
+// (Note that strncpy is NOT equivalent, as it doesn't guarantee null terminated output)
+void SafeCopy( char *pDest, const char *pSource, int maxLength );
+
+// Safe strcat that won't exceed maxLength (including null terminator)
+void SafeAppend( char *pDest, const char *pSource, int maxLength );
+
 
 int		rev_word(int );
 long	rev_long(long );
@@ -238,7 +247,6 @@ extern  int     pif_flagbit_indent;/* Number of blanks for flagbit */
 extern  char    pif_header_msg[];       /* Saved header message */
 
 extern  long    rev_long();             /* Reverse a long word */
-extern  char    *pif_get_ascii();       /* move asciiz string */
 extern  char    *pif_line();            /* get a detail line buffer */
 #endif
 
