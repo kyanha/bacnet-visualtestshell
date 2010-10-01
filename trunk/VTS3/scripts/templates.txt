@@ -311,7 +311,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = ComplexAck
    Service = CreateObject
    Object = your_object
@@ -329,7 +329,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = SimpleAck
    Service = DeleteObject
 )
@@ -348,7 +348,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = ComplexAck
    Service = ReadProperty
    Object = 0, your_object_id__or_type_and_instance
@@ -367,7 +367,7 @@ SEND (
    DA  = IUT_ADDR
    PDU = Confirmed-Request
    Service = ReadPropertyMultiple
-   
+
    -- repeat this section for each object
    Object = 0, your_object_id__or_type_and_instance
    OpenTag 1
@@ -405,7 +405,7 @@ SEND (
    Object   = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
-   
+
    -- byPosition
    OpenTag 3
       Unsigned your_referenceIndex
@@ -439,7 +439,7 @@ SEND (
    Object   = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
-   
+
    -- bySequenceNumber
    OpenTag 6
       Unsigned your_referenceIndex
@@ -474,7 +474,7 @@ SEND (
    Object   = 0, your_object_id__or_type_and_instance
    Property = 1, your_property
    Unsigned = 2, index_if_you_need_it
-   
+
    -- byTime
    OpenTag 7
       Date     your_referenceDate
@@ -517,7 +517,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = SimpleAck
    Service = WriteProperty
 )
@@ -539,7 +539,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = SimpleAck
    Service = AddListElement
 )
@@ -561,7 +561,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = SimpleAck
    Service = RemoveListElement
 )
@@ -574,7 +574,7 @@ SEND (
    DA  = IUT_ADDR
    PDU = Confirmed-Request
    Service = WritePropertyMultiple
-   
+
    -- repeat this section for each object
    Object = 0, your_object_id__or_type_and_instance
    OpenTag 1
@@ -589,7 +589,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = SimpleAck
    Service = WritePropertyMultiple
 )
@@ -612,7 +612,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = SimpleAck
    Service = DeviceCommunicationControl
 )
@@ -625,15 +625,15 @@ SEND (
    DA = IUT_ADDR
    PDU = Confirmed-Request
    Service = ReinitializeDevice
-   enum            = 0, your_state 
-   -- 0=coldstart, 1=warmstart, 
+   enum            = 0, your_state
+   -- 0=coldstart, 1=warmstart,
    -- 2=startbackup, 3=endbackup
    -- 4=startrestore, 5=endrestore, 6=abortrestore
    characterstring = 1, optional_password
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = SimpleAck
    Service = ReinitializeDevice
 )
@@ -825,7 +825,7 @@ EXPECT (
    SA  = IUT_ADDR
    PDU = ComplexAck
    Service = GetEnrollmentSummary
-   
+
    -- list of zero or more items:
    Object = your_object
    enum   = your_eventType
@@ -849,7 +849,7 @@ EXPECT (
    SA  = IUT_ADDR
    PDU = ComplexAck
    Service = GetEventInformation
-   
+
    -- list of zero or more items:
    OpenTag 0
       Object    = 0, your_object
@@ -901,7 +901,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = ComplexAck
    Service = AtomicReadFile
    Boolean     your_endOfFile
@@ -927,7 +927,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = ComplexAck
    Service = AtomicReadFile
    Boolean     your_endOfFile
@@ -955,7 +955,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = ComplexAck
    Service = AtomicWriteFile
    Integer 0, your_fileStartPosition
@@ -978,7 +978,7 @@ SEND (
 )
 
 EXPECT (
-   SA  = IUT_ADDR   
+   SA  = IUT_ADDR
    PDU = ComplexAck
    Service = AtomicWriteFile
    Integer 1, your_fileStartRecord
@@ -1030,4 +1030,513 @@ CHECK "Your title for the Check Dialog" (
   "as many lines as you want"
 )
 
+ENDITEM
+
+;===============================================================================
+ITEM Expect Reject
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = Reject
+   Reject-Reason = your_reject_reason
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM Expect Abort
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = Abort
+   Abort-Reason = your_abort_reason
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM Expect Simple Error
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = Error
+   Service = your_service_choice
+   Enum = your_error_class
+   Enum = your_error_choice
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM Expect Create Error
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = Error
+   Service = CreateObject
+   OpenTag 0
+      Enum = your_error_class
+      Enum = your_error_choice
+   CloseTag 0
+   Unsigned = 1, index_of_first_failed_property
+)
+
+ENDITEM
+
+;===============================================================================
+ITEM Expect WritePropertyMultiple Error
+EXPECT (
+   SA  = IUT_ADDR
+   PDU = Error
+   Service = WritePropertyMultiple
+   OpenTag 0
+      Enum = your_error_class
+      Enum = your_error_choice
+   CloseTag 0
+   OpenTag 1
+      Object = 0, first_failed_object
+      Property = 1, first_failed_property
+   CloseTag 1
+)
+
+ENDITEM
+
+;===============================================================================
+;===============================================================================
+SECTION Error Class enumeration values
+
+ITEM ErrorClassDEVICE
+Enum 0 -- ErrorClass DEVICE
+ENDITEM
+
+ITEM ErrorClass OBJECT
+Enum 1 -- ErrorClass OBJECT
+ENDITEM
+
+ITEM ErrorClass PROPERTY
+Enum 2 -- ErrorClass PROPERTY
+ENDITEM
+
+ITEM ErrorClass RESOURCES
+Enum 3 -- ErrorClass RESOURCES
+ENDITEM
+
+ITEM ErrorClass SECURITY
+Enum 4 -- ErrorClass SECURITY
+ENDITEM
+
+ITEM ErrorClass SERVICES
+Enum 5 -- ErrorClass SERVICES
+ENDITEM
+
+ITEM ErrorClass VT
+Enum 6 -- ErrorClass VT
+ENDITEM
+
+ITEM ErrorClass COMMUNICATION
+Enum 7 -- ErrorClass COMMUNICATION
+ENDITEM
+
+;===============================================================================
+;===============================================================================
+SECTION Error Code enumeration values
+
+ITEM ErrorCode OTHER
+Enum 0 -- ErrorCode OTHER
+ENDITEM
+
+ITEM ErrorCode AUTHENTICATION_FAILED
+Enum 1 -- ErrorCode AUTHENTICATION_FAILED
+ENDITEM
+
+ITEM ErrorCode CONFIGURATION_IN_PROGRESS
+Enum 2 -- ErrorCode CONFIGURATION_IN_PROGRESS
+ENDITEM
+
+ITEM ErrorCode DEVICE_BUSY
+Enum 3 -- ErrorCode DEVICE_BUSY
+ENDITEM
+
+ITEM ErrorCode DYNAMIC_CREATION_NOT_SUPPORTED
+Enum 4 -- ErrorCode DYNAMIC_CREATION_NOT_SUPPORTED
+ENDITEM
+
+ITEM ErrorCode FILE_ACCESS_DENIED
+Enum 5 -- ErrorCode FILE_ACCESS_DENIED
+ENDITEM
+
+ITEM ErrorCode INCOMPATIBLE_SECURITY_LEVELS
+Enum 6 -- ErrorCode INCOMPATIBLE_SECURITY_LEVELS
+ENDITEM
+
+ITEM ErrorCode INCONSISTENT_PARAMETERS
+Enum 7 -- ErrorCode INCONSISTENT_PARAMETERS
+ENDITEM
+
+ITEM ErrorCode INCONSISTENT_SELECTION
+Enum 8 -- ErrorCode INCONSISTENT_SELECTION
+ENDITEM
+
+ITEM ErrorCode INVALID_DATA_TYPE
+Enum 9 -- ErrorCode INVALID_DATA_TYPE
+ENDITEM
+
+ITEM ErrorCode INVALID_FILE_ACCESS_METHOD
+Enum 10 -- ErrorCode INVALID_FILE_ACCESS_METHOD
+ENDITEM
+
+ITEM ErrorCode INVALID_FILE_START_POSITION
+Enum 11 -- ErrorCode INVALID_FILE_START_POSITION
+ENDITEM
+
+ITEM ErrorCode INVALID_OPERATOR_NAME
+Enum 12 -- ErrorCode INVALID_OPERATOR_NAME
+ENDITEM
+
+ITEM ErrorCode INVALID_PARAMETER_DATA_TYPE
+Enum 13 -- ErrorCode INVALID_PARAMETER_DATA_TYPE
+ENDITEM
+
+ITEM ErrorCode INVALID_TIME_STAMP
+Enum 14 -- ErrorCode INVALID_TIME_STAMP
+ENDITEM
+
+ITEM ErrorCode KEY_GENERATION_ERROR
+Enum 15 -- ErrorCode KEY_GENERATION_ERROR
+ENDITEM
+
+ITEM ErrorCode MISSING_REQUIRED_PARAMETER
+Enum 16 -- ErrorCode MISSING_REQUIRED_PARAMETER
+ENDITEM
+
+ITEM ErrorCode NO_OBJECTS_OF_SPECIFED_TYPE
+Enum 17 -- ErrorCode NO_OBJECTS_OF_SPECIFED_TYPE
+ENDITEM
+
+ITEM ErrorCode NO_SPACE_FOR_OBJECT
+Enum 18 -- ErrorCode NO_SPACE_FOR_OBJECT
+ENDITEM
+
+ITEM ErrorCode NO_SPACE_TO_ADD_LIST_ELEMENT
+Enum 19 -- ErrorCode NO_SPACE_TO_ADD_LIST_ELEMENT
+ENDITEM
+
+ITEM ErrorCode NO_SPACE_TO_WRITE_PROPERTY
+Enum 20 -- ErrorCode NO_SPACE_TO_WRITE_PROPERTY
+ENDITEM
+
+ITEM ErrorCode NO_VT_SESSIONS_AVAILABLE
+Enum 21 -- ErrorCode NO_VT_SESSIONS_AVAILABLE
+ENDITEM
+
+ITEM ErrorCode PROPERTY_IS_NOT_A_LIST
+Enum 22 -- ErrorCode PROPERTY_IS_NOT_A_LIST
+ENDITEM
+
+ITEM ErrorCode OBJECT_DELETION_NOT_PERMITTED
+Enum 23 -- ErrorCode OBJECT_DELETION_NOT_PERMITTED
+ENDITEM
+
+ITEM ErrorCode OBJECT_IDENTIFIER_EXISTS
+Enum 24 -- ErrorCode OBJECT_IDENTIFIER_EXISTS
+ENDITEM
+
+ITEM ErrorCode OPERATIONAL_PROBLEM
+Enum 25 -- ErrorCode OPERATIONAL_PROBLEM
+ENDITEM
+
+ITEM ErrorCode PASSWORD_FAILURE
+Enum 26 -- ErrorCode PASSWORD_FAILURE
+ENDITEM
+
+ITEM ErrorCode READ_ACCESS_DENIED
+Enum 27 -- ErrorCode READ_ACCESS_DENIED
+ENDITEM
+
+ITEM ErrorCode SECURITY_NOT_SUPPORTED
+Enum 28 -- ErrorCode SECURITY_NOT_SUPPORTED
+ENDITEM
+
+ITEM ErrorCode SERVICE_REQUEST_DENIED
+Enum 29 -- ErrorCode SERVICE_REQUEST_DENIED
+ENDITEM
+
+ITEM ErrorCode TIMEOUT
+Enum 30 -- ErrorCode TIMEOUT
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_OBJECT
+Enum 31 -- ErrorCode UNKNOWN_OBJECT
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_PROPERTY
+Enum 32 -- ErrorCode UNKNOWN_PROPERTY
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_SERVICE
+Enum 33 -- ErrorCode UNKNOWN_SERVICE removed in 135-2004
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_VT_CLASS
+Enum 34 -- ErrorCode UNKNOWN_VT_CLASS
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_VT_SESSION
+Enum 35 -- ErrorCode UNKNOWN_VT_SESSION
+ENDITEM
+
+ITEM ErrorCode UNSUPPORTED_OBJECT_TYPE
+Enum 36 -- ErrorCode UNSUPPORTED_OBJECT_TYPE
+ENDITEM
+
+ITEM ErrorCode VALUE_OUT_OF_RANGE
+Enum 37 -- ErrorCode VALUE_OUT_OF_RANGE
+ENDITEM
+
+ITEM ErrorCode VT_SESSION_ALREADY_CLOSED
+Enum 38 -- ErrorCode VT_SESSION_ALREADY_CLOSED
+ENDITEM
+
+ITEM ErrorCode VT_SESSION_TERMINATION_FAIL
+Enum 39 -- ErrorCode VT_SESSION_TERMINATION_FAIL
+ENDITEM
+
+ITEM ErrorCode WRITE_ACCESS_DENIED
+Enum 40 -- ErrorCode WRITE_ACCESS_DENIED
+ENDITEM
+
+ITEM ErrorCode CHAR_SET_NOT_SUPPORTED
+Enum 41 -- ErrorCode CHAR_SET_NOT_SUPPORTED
+ENDITEM
+
+ITEM ErrorCode INVALID_ARRAY_INDEX
+Enum 42 -- ErrorCode INVALID_ARRAY_INDEX
+ENDITEM
+
+ITEM ErrorCode COV_SUBSCRIPTION_FAILED
+Enum 43 -- ErrorCode COV_SUBSCRIPTION_FAILED
+ENDITEM
+
+ITEM ErrorCode NOT_COV_PROPERTY
+Enum 44 -- ErrorCode NOT_COV_PROPERTY
+ENDITEM
+
+ITEM ErrorCode OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED
+Enum 45 -- ErrorCode OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED
+ENDITEM
+
+ITEM ErrorCode INVALID_CONFIGURATION_DATA
+Enum 46 -- ErrorCode INVALID_CONFIGURATION_DATA
+ENDITEM
+
+ITEM ErrorCode DATATYPE_NOT_SUPPORTED
+Enum 47 -- ErrorCode DATATYPE_NOT_SUPPORTED
+ENDITEM
+
+ITEM ErrorCode DUPLICATE_NAME
+Enum 48 -- ErrorCode DUPLICATE_NAME
+ENDITEM
+
+ITEM ErrorCode DUPLICATE_OBJECT_ID
+Enum 49 -- ErrorCode DUPLICATE_OBJECT_ID
+ENDITEM
+
+ITEM ErrorCode PROPERTY_IS_NOT_AN_ARRAY
+Enum 50 -- ErrorCode PROPERTY_IS_NOT_AN_ARRAY
+ENDITEM
+
+ITEM ErrorCode ABORT_BUFFER_OVERFLOW
+Enum 51 -- ITEM ErrorCode ABORT_BUFFER_OVERFLOW
+ENDITEM
+
+ITEM ErrorCode ABORT_INVALID_APDU_IN_THIS_STATE
+Enum 52 -- ErrorCode ABORT_INVALID_APDU_IN_THIS_STATE
+ENDITEM
+
+ITEM ErrorCode ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK
+Enum 53 -- ErrorCode ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK
+ENDITEM
+
+ITEM ErrorCode ABORT_SEGMENTATION_NOT_SUPPORTED
+Enum 54 -- ErrorCode ABORT_SEGMENTATION_NOT_SUPPORTED
+ENDITEM
+
+ITEM ErrorCode ABORT_PROPRIETARY
+Enum 55 -- ErrorCode ABORT_PROPRIETARY
+ENDITEM
+
+ITEM ErrorCode ABORT_OTHER
+Enum 56 -- ErrorCode ABORT_OTHER
+ENDITEM
+
+ITEM ErrorCode INVALID_TAG
+Enum 57 -- ErrorCode INVALID_TAG
+ENDITEM
+
+ITEM ErrorCode NETWORK_DOWN
+Enum 58 -- ErrorCode NETWORK_DOWN
+ENDITEM
+
+ITEM ErrorCode REJECT_BUFFER_OVERFLOW
+Enum 59 -- ErrorCode REJECT_BUFFER_OVERFLOW
+ENDITEM
+
+ITEM ErrorCode REJECT_INCONSISTENT_PARAMETERS
+Enum 60 -- ErrorCode REJECT_INCONSISTENT_PARAMETERS
+ENDITEM
+
+ITEM ErrorCode REJECT_INVALID_PARAMETER_DATA_TYPE
+Enum 61 -- ErrorCode REJECT_INVALID_PARAMETER_DATA_TYPE
+ENDITEM
+
+ITEM ErrorCode REJECT_INVALID_TAG
+Enum 62 -- ErrorCode REJECT_INVALID_TAG
+ENDITEM
+
+ITEM ErrorCode REJECT_MISSING_REQUIRED_PARAMETER
+Enum 63 -- ErrorCode REJECT_MISSING_REQUIRED_PARAMETER
+ENDITEM
+
+ITEM ErrorCode REJECT_PARAMETER_OUT_OF_RANGE
+Enum 64 -- ErrorCode REJECT_PARAMETER_OUT_OF_RANGE
+ENDITEM
+
+ITEM ErrorCode REJECT_TOO_MANY_ARGUMENTS
+Enum 65 -- ErrorCode REJECT_TOO_MANY_ARGUMENTS
+ENDITEM
+
+ITEM ErrorCode REJECT_UNDEFINED_ENUMERATION
+Enum 66 -- ErrorCode REJECT_UNDEFINED_ENUMERATION
+ENDITEM
+
+ITEM ErrorCode REJECT_UNRECOGNIZED_SERVICE
+Enum 67 -- ErrorCode REJECT_UNRECOGNIZED_SERVICE
+ENDITEM
+
+ITEM ErrorCode REJECT_PROPRIETARY
+Enum 68 -- ErrorCode REJECT_PROPRIETARY
+ENDITEM
+
+ITEM ErrorCode REJECT_OTHER
+Enum 69 -- ErrorCode REJECT_OTHER
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_DEVICE
+Enum 70 -- ErrorCode UNKNOWN_DEVICE
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_ROUTE
+Enum 71 -- ErrorCode UNKNOWN_ROUTE
+ENDITEM
+
+ITEM ErrorCode VALUE_NOT_INITIALIZED
+Enum 72 -- ErrorCode VALUE_NOT_INITIALIZED
+ENDITEM
+
+ITEM ErrorCode INVALID_EVENT_STATE
+Enum 73 -- ErrorCode INVALID_EVENT_STATE
+ENDITEM
+
+ITEM ErrorCode NO_ALARM_CONFIGURED
+Enum 74 -- ErrorCode NO_ALARM_CONFIGURED
+ENDITEM
+
+ITEM ErrorCode LOG_BUFFER_FULL
+Enum 75 -- ErrorCode LOG_BUFFER_FULL
+ENDITEM
+
+ITEM ErrorCode LOGGED_VALUE_PURGED
+Enum 76 -- ErrorCode LOGGED_VALUE_PURGED
+ENDITEM
+
+ITEM ErrorCode NO_PROPERTY_SPECIFIED
+Enum 77 -- ErrorCode NO_PROPERTY_SPECIFIED
+ENDITEM
+
+ITEM ErrorCode NOT_CONFIGURED_FOR_TRIGGERED_LOGGING
+Enum 78 -- ErrorCode NOT_CONFIGURED_FOR_TRIGGERED_LOGGING
+ENDITEM
+
+ITEM ErrorCode COMMUNICATION_DISABLED
+Enum 83 -- ErrorCode COMMUNICATION_DISABLED
+ENDITEM
+
+;===============================================================================
+;===============================================================================
+SECTION Reject and Abort Reason enumeration values
+
+ITEM RejectReason OTHER
+Reject-Reason 0 -- OTHER
+ENDITEM
+
+ITEM RejectReason BUFFER_OVERFLOW
+Reject-Reason 1 -- BUFFER_OVERFLOW
+ENDITEM
+
+ITEM RejectReason INCONSISTENT_PARAMETERS
+Reject-Reason 2 -- INCONSISTENT_PARAMETERS
+ENDITEM
+
+ITEM RejectReason INVALID_PARAMETER_DATA_TYPE
+Reject-Reason 3 -- INVALID_PARAMETER_DATA_TYPE
+ENDITEM
+
+ITEM RejectReason INVALID_TAG
+Reject-Reason 4 -- INVALID_TAG
+ENDITEM
+
+ITEM RejectReason MISSING_REQUIRED_PARAMETER
+Reject-Reason 5 -- MISSING_REQUIRED_PARAMETER
+ENDITEM
+
+ITEM RejectReason PARAMETER_OUT_OF_RANGE
+Reject-Reason 6 -- PARAMETER_OUT_OF_RANGE
+ENDITEM
+
+ITEM RejectReason TOO_MANY_ARGUMENTS
+Reject-Reason 7 -- TOO_MANY_ARGUMENTS
+ENDITEM
+
+ITEM RejectReason UNDEFINED_ENUMERATION
+Reject-Reason 8 -- UNDEFINED_ENUMERATION
+ENDITEM
+
+ITEM RejectReason UNRECOGNIZED_SERVICE
+Reject-Reason  -- UNRECOGNIZED_SERVICE
+ENDITEM
+
+ITEM AbortReason OTHER
+Abort-Reason 0 -- OTHER
+ENDITEM
+
+ITEM AbortReason BUFFER_OVERFLOW
+Abort-Reason 1 -- BUFFER_OVERFLOW
+ENDITEM
+
+ITEM AbortReason INVALID_APDU_IN_THIS_STATE
+Abort-Reason 2 -- INVALID_APDU_IN_THIS_STATE
+ENDITEM
+
+ITEM AbortReason PREEMPTED_BY_HIGHER_PRIOR
+Abort-Reason 3 -- PREEMPTED_BY_HIGHER_PRIOR
+ENDITEM
+
+ITEM AbortReason SEGMENTATION_NOT_SUPPORTED
+Abort-Reason 4 -- SEGMENTATION_NOT_SUPPORTED
+ENDITEM
+
+ITEM AbortReason WINDOW_SIZE_OUT_OF_RANGE
+Abort-Reason 7 -- WINDOW_SIZE_OUT_OF_RANGE
+ENDITEM
+
+ITEM AbortReason APPLICATION_EXCEEDED_REPLY_TIMEOUT
+Abort-Reason 8 -- APPLICATION_EXCEEDED_REPLY_TIMEOUT
+ENDITEM
+
+ITEM AbortReason OUT_OF_RESOURCES
+Abort-Reason 9 -- OUT_OF_RESOURCES
+ENDITEM
+
+ITEM AbortReason TSM_TIMEOUT
+Abort-Reason 10 -- TSM_TIMEOUT
+ENDITEM
+
+ITEM AbortReason APDU_TOO_LONG
+Abort-Reason 11 -- APDU_TOO_LONG
 ENDITEM
