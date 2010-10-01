@@ -307,9 +307,6 @@ void CMainFrame::OnWindowNew()
 
 void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu) 
 {
-	static int		gCount = 0
-	;
-
 	CMDIFrameWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
 	
 	// skip all but the Send menu
