@@ -1854,12 +1854,17 @@ class BACnetANY: public BACnetEncodeable {
 
 		BACnetANY();
 		~BACnetANY();
+
+		// Set value from any other BACnetEncodeable
+		void SetValue( BACnetEncodeable &theEnc );
 		
+		// Overrides of base class methods
 		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
 		void Decode( BACnetAPDUDecoder& dec );					// decode
 
 		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
+		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
 		DECLARE_DYNAMIC(BACnetANY)
 	};

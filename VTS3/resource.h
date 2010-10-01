@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by VTS.rc
 //
 #define ID_NEWNAME                      3
@@ -1119,6 +1119,7 @@
 #define IDS_SCREX_ASGN_UNDEFVAR         33036
 #define IDS_SCREX_BADDATADATE           33037
 #define IDS_SCREX_BADDATATIME           33038
+#define IDS_SCREX_COMPFAILANY           33039
 #define IDS_ERR_FILEPKTOPEN             34000
 #define IDS_DEVTREE_CAPTION             34001
 #define IDS_ERR_FILENOTPKT              34002
