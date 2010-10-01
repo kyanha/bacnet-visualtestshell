@@ -106,8 +106,14 @@ void CDetailTreeCtrl::ShowDetail()
 	HTREEITEM hALItem = NULL;
 	bool sawHeader = false;
 
-	for(int i=0;i<m_FrameContext->m_PacketInfo.detailCount;i++)
+	for (int i=0; i<m_FrameContext->m_PacketInfo.detailCount; i++)
 	{
+		if ((m_FrameContext->m_PacketInfo.detailLine == NULL) ||
+			(m_FrameContext->m_PacketInfo.detailLine[i] == NULL))
+		{
+			throw( "NULL detail in CDetailTreeCtrl" );
+		}
+		
 		CString temp(m_FrameContext->m_PacketInfo.detailLine[i]->piLine);
 	
 		tvInsert.hParent      = NULL;
@@ -117,7 +123,7 @@ void CDetailTreeCtrl::ShowDetail()
 
 		// TODO: there must be a better way to do this than
 		// string compares.  At very least, make the strings into
-		// symbols exported by their place or origin, so that change
+		// symbols exported by their place of origin, so that change
 		// to them don't break the view.
 		// Possibly nodeType NT_ROOT, or some new value like NT_DATALINK?
 		if((temp=="----- IP Frame Detail -----") ||

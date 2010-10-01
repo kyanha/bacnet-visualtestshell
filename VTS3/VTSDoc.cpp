@@ -39,8 +39,6 @@
 //#include "VTSPortPTPDialog.h"
 #include "PropID.h"
 
-// Added by Jingbo Gao, Sep 20 2004
-#include "VTSBackupRestoreDlg.h"
 #include "BakRestoreExecutor.h"
 #include "InconsistentParsExecutor.h"
 #include "VTSInconsistentParsDlg.h"
@@ -4181,7 +4179,7 @@ VTSDevice::VTSDevice()
 	m_nAPDUTimeout	= 5000;
 	m_nAPDUSegmentTimeout = 1000;
 	m_nAPDURetries	= 3;
-	m_nVendorID		= 260;			// BACnet Stack at SourceForge
+	m_nVendorID		= kVendorID;	  // BACnet Stack at SourceForge
 
 	m_nEvents		= 3;
 	m_services_supported = BACnetBitString(40);
