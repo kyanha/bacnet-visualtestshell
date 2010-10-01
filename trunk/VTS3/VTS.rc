@@ -2112,10 +2112,10 @@ BEGIN
     EDITTEXT        IDC_PRIORITYX,185,86,26,12,ES_AUTOHSCROLL | WS_DISABLED
 END
 
-IDD_SENDGETENROLLMENTSUMMARY DIALOG  0, 0, 300, 234
+IDD_SENDGETENROLLMENTSUMMARY DIALOGEX 0, 0, 300, 234
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "GetEnrollmentSummary"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     LTEXT           "Minimum priority",IDC_STATIC,62,103,50,8
     EDITTEXT        IDC_MINPRIORITY,125,100,50,12,ES_AUTOHSCROLL
@@ -7107,6 +7107,7 @@ BEGIN
     IDS_SCREX_ASGN_UNDEFVAR "Script parameter expression (%s) undefined for assignment operator"
     IDS_SCREX_BADDATADATE   "Syntax Error: Invalid date supplied (%s) as format: [DAY M/D/YYYY]"
     IDS_SCREX_BADDATATIME   "Syntax Error: Invalid time supplied (%s) as format: [HH:MM:SS.hh]"
+    IDS_SCREX_COMPFAILANY   "ANY comparison failure: "
 END
 
 STRINGTABLE 

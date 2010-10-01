@@ -5292,9 +5292,17 @@ void BACnetObjectIdentifier::Encode( CString &enc ) const
 	Hey! Do we really need to do this without strings?
 #endif
 
-	// changed this back because it broke the Send Dialog VTSANY entry of ObjId 3/10/2006
-//	sprintf( enc, "%s, %d", s, instanceNum );
-	enc.Format( "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
+	// This is a mess:
+	// - EPICS format says to wrap objectID in parenthesis.
+	// - But the script parser takes the parenthesis as tokens, and won't accept and objectID in parenthesis.
+	// - This also means a script can't use >> to set a variable with an objectID read from a target device.
+	// - The code here has changed back and forth: with and without:
+	//   "changed this back (with parenthesis) because it broke the Send Dialog VTSANY entry of ObjId 3/10/2006"
+	// But, as of Sept 29, 2010, VTSANY and other send dialogs DON'T seem to require the parenthesis,
+	// so I have removed them again so that scripting will work.  
+	// If you find something that NEEDS the parenthesis, please let me know.  johnhartman.
+	enc.Format( "%s, %d", s, instanceNum );
+//	enc.Format( "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
 }
 
 #if VTSScanner
@@ -6611,6 +6619,29 @@ BACnetANY::~BACnetANY()
 	delete[] dataBuff;
 }
 
+// Set value from any other BACnetEncodeable
+void BACnetANY::SetValue( BACnetEncodeable &theEnc )
+{
+	// Encode the input as a BACnet stream
+	BACnetAPDUEncoder enc(100);
+	theEnc.Encode( enc );
+
+	// Copy the data into ourself
+	int len = enc.pktLength;
+	if (len > spaceLen)
+	{
+		delete[] dataBuff;
+		dataBuff = new BACnetOctet[ len ];
+        spaceLen = len;
+	}
+
+	dataLen = len;
+	if (len > 0)
+	{
+		memcpy( dataBuff, enc.pktBuffer, len );
+	}
+}
+
 void BACnetANY::Encode( BACnetAPDUEncoder& enc, int context )
 {
 	// Copy raw bytes into the APDU
@@ -6719,6 +6750,29 @@ void BACnetANY::Decode( const char *dec )
 		dataBuff[ix++] = (upperNibble << 4) + lowerNibble;
 	}
 }
+
+bool BACnetANY::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+	if ( PreMatch(iOperator) )
+		return true;		// ?= or ?
+
+	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+		return false;		// not = or !=
+
+	// Convert the input into a BACnetANY so we can compare to ANYTHING
+	BACnetANY right;
+	right.SetValue( rbacnet );
+
+	bool match = (dataLen == right.dataLen) && (memcmp( dataBuff, right.dataBuff, dataLen ) == 0);
+	if (iOperator == '!=')
+		match = !match;
+
+	if (match)
+		return true;
+
+	return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+}
+
 
 IMPLEMENT_DYNAMIC(BACnetBinaryPriV, BACnetEnumerated)
 

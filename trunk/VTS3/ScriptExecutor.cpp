@@ -4127,6 +4127,9 @@ void ScriptExecutor::SendALOctetString( ScriptPacketExprPtr spep, CByteArray &pa
 
 	if (tlist[indx].tokenType == scriptReference)
 	{
+		// Thus far, no object has a property that is an octetstring.
+		// If we need one, will need to add a ParseType for octetstring,
+		// and update various factories and switch statements.
 		throw "Octet string property references not supported";
 	}
 	else if (!tlist[indx].IsEncodeable( ostrData ))
@@ -4271,26 +4274,28 @@ void ScriptExecutor::SendALCharacterString( ScriptPacketExprPtr spep, CByteArray
 void ScriptExecutor::SendALBitString( ScriptPacketExprPtr spep, CByteArray &packet )
 {
 	int					indx, context = kAppContext, bit, i;
-	BACnetBitString		bstrData
-	;
-	BACnetAPDUEncoder	enc
-	;
-	ScriptTokenList		tlist
-	;
+	BACnetBitString		bstrData;
+	BACnetAPDUEncoder	enc;
+	ScriptTokenList		tlist;
 
 	// translate the expression, resolve parameter names into values
 	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
 
 	// tag is optional
-	if (tlist.Length() == 1) {
+	if (tlist.Length() == 1) 
+	{
 		indx = 0;
-	} else
-	if (tlist.Length() == 2) {
+	} 
+	else if (tlist.Length() == 2) 
+	{
 		if (!tlist[0].IsInteger( context ))
 			throw "Tag number expected";
 		indx = 1;
-	} else
+	} 
+	else
+	{
 		throw "Bitstring keyword requires 1 or 2 parameters";
+	}
 
 	const ScriptToken &data = tlist[indx];
 
@@ -4736,8 +4741,41 @@ void ScriptExecutor::SendALClosingTag( ScriptPacketExprPtr spep, CByteArray &pac
 
 void ScriptExecutor::SendALAny( ScriptPacketExprPtr spep, CByteArray &packet )
 {
-	// ANY tagged element.  Can't send it
-	throw "Cannot send ANY";
+	// ANY tagged element.
+	int					indx;
+	BACnetANY           anyData;
+	BACnetAPDUEncoder	enc;
+	ScriptTokenList		tlist;
+
+	// translate the expression, resolve parameter names into values
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+
+	// no tag allowed, value parameter required
+	if (tlist.Length() == 1) 
+	{
+		indx = 0;
+	} 
+	else 
+	{
+		throw "ANY keyword requires 1 parameter to specify value";
+	}
+
+	if (tlist[indx].tokenType == scriptReference)
+	{
+		BACnetAnyValue		bacnetEPICSProperty;
+		GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
+
+		// Set our data from the EPICS
+		anyData.SetValue( *bacnetEPICSProperty.GetObject() );
+	}
+	else if (!tlist[indx].IsEncodeable( anyData ))
+	{
+		throw "ANY data expected";
+	}
+
+	// copy the encoding into the byte array
+	for (int i = 0; i < anyData.dataLen; i++)
+		packet.Add( anyData.dataBuff[i] );
 }
 
 //
@@ -8372,18 +8410,42 @@ void ScriptExecutor::ExpectALClosingTag( ScriptPacketExprPtr spep, BACnetAPDUDec
 //
 void ScriptExecutor::ExpectALAny( ScriptPacketExprPtr spep, BACnetAPDUDecoder &dec )
 {
-	BACnetANY			any;
+	BACnetANY			anyData, scriptData;
 	ScriptTokenList		tlist;
 	BACnetAPDUTag		tag;
+	ScriptParmPtr		pScriptParm = NULL;
 	
 	// extract the tag
 	tag.Peek( dec );
 
 	// translate the expression, resolve parameter names into values
-	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
+	ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
+
+	// We have at most one parameter.  Tag is not allowed
+	int indx = CheckExpressionParams( 0, 1, tlist.Length(), "Any type");
 
 	// decode it
-	any.Decode( dec );
+	anyData.Decode( dec );
+	
+	if (indx >= 0)
+	{
+		// reference or real data?
+		if (tlist[indx].tokenType == scriptReference) {
+			BACnetAnyValue		bacnetEPICSProperty;
+			GetEPICSProperty( tlist[indx].tokenSymbol, &bacnetEPICSProperty, tlist[indx].m_nIndex);
+
+			// Set our data from the EPICS
+			scriptData.SetValue( *bacnetEPICSProperty.GetObject() );
+		}
+		else if ( spep->IsAssignment() )
+			StuffScriptParameter(anyData, pScriptParm, spep->exprValue);
+		else if ( tlist[indx].IsDontCare() || spep->IsDontCare() )
+			return;
+		else if (!tlist[indx].IsEncodeable( scriptData ))
+			throw "'Any' value expected";
+
+		CompareAndThrowError(anyData, scriptData, spep->exprOp, IDS_SCREX_COMPFAILANY);
+	}
 }
 
 //

@@ -107,6 +107,7 @@ void ScriptParmUpdate::OnUpdateParmValue()
 		return;
 	}
 	if ((tok.tokenType != scriptValue) && (tok.tokenType != scriptKeyword)) {
+		// What is the purpose of this?  Both values overwritten below
 		parmErrorCtrl->SetWindowText( "Value or keyword expected" );
 		m_ParmValueOK = false;
 	}
