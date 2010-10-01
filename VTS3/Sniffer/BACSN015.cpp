@@ -43,7 +43,7 @@ TODO:
 #include "StringTables.h"
 
 //madanner 9/04, added hack to build RP and RPM obj/prop/values for EPICS panel
-extern void EPICS_AddRPValue(long obj_id, int prop_id, char * pbuffer, int nLen );
+extern void EPICS_AddRPValue(long obj_id, int prop_id, int prop_index, char * pbuffer, int nLen );
 
 namespace NetworkSniffer {
 
@@ -380,7 +380,7 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
 	  int x2 = pif_offset; //xsy for test 2002-5-16
 	  
       if((length == 7) && (pif_get_byte(6) == 0x0d)){
-         pif_get_ascii(0, 6, result_str); //results are stored in "result_str"
+         pif_get_ascii(0, 6, result_str, 6); //results are stored in "result_str"
          if(strcmp(result_str, trigger) == 0)  /* trigger found */
             bac_show_nbytes(7,"`BACnet<CR>' Trigger Sequence Found");
          }
@@ -1493,7 +1493,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 							const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
 							if (pValue != NULL)
 							{   
-								sprintf(moreDetail + lentemp, ",%s", pValue+1);											
+								SafeCopy( moreDetail + lentemp, ",", sizeof(moreDetail) - lentemp );
+								lentemp += 1;
+								SafeCopy( moreDetail + lentemp, pValue+1, sizeof(moreDetail) - lentemp );
 							}
 						}
 
@@ -1765,7 +1767,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 									  char strBuff[MAX_INT_LINE];
 									  switch(pif_get_byte(nOffset)){
 									  case 0: /* ASCII */
-										  pif_get_ascii(nOffset+1, len-1, strBuff);
+										  pif_get_ascii(nOffset+1, len-1, strBuff, sizeof(strBuff)-1);
 										  break;
 									  case 1: /* MS DBCS */
 										  {
@@ -1885,7 +1887,9 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 								const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
 								if (pValue != NULL)
 								{   
-									sprintf(moreDetail + lentemp, ",%s", pValue+1);											
+									SafeCopy( moreDetail + lentemp, ",", sizeof(moreDetail) - lentemp );
+									lentemp += 1;
+									SafeCopy( moreDetail + lentemp, pValue+1, sizeof(moreDetail) - lentemp );
 								}
 							}
 
@@ -1948,7 +1952,7 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 		  outstr[MAX_SUM_LINE-2]='.';
 		  outstr[MAX_SUM_LINE-1]='\0';
 	  }
-     strcpy( get_sum_line(pi_data_bacnet_AL), outstr );											   //  ***001 end
+     SafeCopy( get_sum_line(pi_data_bacnet_AL), outstr, MAX_SUM_LINE );
 /*
       sprintf (get_sum_line (pi_data_bacnet_AL),
          "BACnet AL (%s)",outstr);
@@ -1997,7 +2001,7 @@ int interp_Message( char *header, int length)  /* message interpreter */
 {
    /* Summary line? */
    if (pi_data_Message->do_sum)
-      strcpy( get_sum_line(pi_data_Message), header + 21 );
+      SafeCopy( get_sum_line(pi_data_Message), header + 21, MAX_SUM_LINE );
 
    /* Detail line? */
    if (pi_data_bacnet_IP->do_int) {
@@ -2021,7 +2025,7 @@ int interp_TextMessage( char *header, int length)  /* message interpreter */
 {
 	/* Summary line? */
 	if (pi_data_Message->do_sum)
-		strcpy( get_sum_line(pi_data_Message), header );
+		SafeCopy( get_sum_line(pi_data_Message), header, MAX_SUM_LINE );
 	
 	/* Detail line? */
 	if (pi_data_bacnet_IP->do_int) {
@@ -2548,12 +2552,8 @@ void show_read_access_result( BACnetSequence &theSeq )
 			// Defined in EPICSTreeView.cpp.  Active only if the EPICS tree is open.
 			//	
 			// madanner 9/04 add calls to EPICS read property tracker
-			// can't support indexes at this time
-			if (theSeq.LastPropertyIndex() == -1)
-			{
-				::EPICS_AddRPValue( theSeq.LastObjectIdentifier(), theSeq.LastPropertyID(), 
-									pif_get_addr(), pif_end_offset - pif_offset);
-			}
+			::EPICS_AddRPValue( objectID, theSeq.LastPropertyID(), theSeq.LastPropertyIndex(),
+								pif_get_addr(), pif_end_offset - pif_offset);
 
 			show_bac_ANY( theSeq, objectType, theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
 			theSeq.ClosingTag();
@@ -3649,12 +3649,8 @@ void show_readPropertyACK( void )
 		// Defined in EPICSTreeView.cpp.  Active only if the EPICS tree is open.
 		//	
 		// madanner 9/04 add calls to EPICS read property tracker
-		// can't support indexes at this time
-		if (seq.LastPropertyIndex() == -1)
-		{
-			::EPICS_AddRPValue( seq.LastObjectIdentifier(), seq.LastPropertyID(), 
-								pif_get_addr(), pif_end_offset - pif_offset);
-		}
+		::EPICS_AddRPValue( seq.LastObjectIdentifier(), seq.LastPropertyID(), seq.LastPropertyIndex(),
+							pif_get_addr(), pif_end_offset - pif_offset);
 	
 		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
 		seq.ClosingTag();
@@ -3873,9 +3869,9 @@ void show_bac_bitstring( unsigned int len )
 	};
 }
 
-// Append len PDU bytes beginning at flat+offset to string data to *pOut.
+// Append len PDU bytes beginning at flag+offset to string data to *pOut.
 // First byte is character-set specifier
-void get_bac_charstring(unsigned int len, char *pOut, unsigned int flag, unsigned int offset )
+void get_bac_charstring(unsigned int tagLen, char *pOut, unsigned int bufLen, unsigned int flag, unsigned int offset )
 {
 	char c = pif_get_byte(flag+offset);
 	switch(c)
@@ -3883,7 +3879,14 @@ void get_bac_charstring(unsigned int len, char *pOut, unsigned int flag, unsigne
 	case 0: /* ASCII */
     case 5: /* ISO 8859-1 */
 		// Append as characters
-		pif_get_ascii(flag+1+offset, len-1, pOut);
+		{
+			// Limit to buffer length
+			if (tagLen >= bufLen)
+			{
+				tagLen = bufLen;
+			}
+			pif_get_ascii(flag+1+offset, tagLen-1, pOut, MAX_TEXT_ITEM);
+		}
 		break;
 
 	case 1: /* MS DBCS */
@@ -3894,7 +3897,13 @@ void get_bac_charstring(unsigned int len, char *pOut, unsigned int flag, unsigne
 		{
 			static char	hex[] = "0123456789ABCDEF";
 			int i = flag+1;
-			while (--len) {
+
+			// Limit to buffer length
+			if (tagLen >= bufLen)
+			{
+				tagLen = bufLen;
+			}
+			while (--tagLen) {
 				int x = pif_get_byte(i+offset);
 				*pOut++ = hex[ (x >> 4) & 0x0F ];
 				*pOut++ = hex[ x & 0x0F ];
@@ -5035,13 +5044,16 @@ void show_head_char_string(unsigned int offset, const char* type, int tagval)
 	offset = parser.Offset();
 	
 	char strBuff[MAX_INT_LINE];
-    get_bac_charstring( strLength, strBuff, 0, offset );
+    get_bac_charstring( strLength, strBuff, sizeof(strBuff), 0, offset );
+
+	char *pBuf = get_int_line(pi_data_current, pif_offset, offset+strLength, NT_ITEM_HEAD);
 	if (tagval == -1)
-		sprintf(get_int_line(pi_data_current, pif_offset, offset+strLength, NT_ITEM_HEAD), 
-			    "%s:  '%s'", type, strBuff);
+		strLength = sprintf(pBuf, "%s:  '", type);
 	else
-		sprintf(get_int_line(pi_data_current, pif_offset, offset+strLength, NT_ITEM_HEAD), 
-			    "[%d] %s:  '%s'", tagval, type, strBuff);
+		strLength = sprintf(pBuf, "[%d] %s:  '", tagval, type);
+
+	SafeCopy( pBuf + strLength, strBuff, MAX_INT_LINE - strLength );
+	SafeAppend( pBuf, "'", MAX_INT_LINE );
 }
 
 void show_head_date(unsigned int offset, const char* type, int tagval)

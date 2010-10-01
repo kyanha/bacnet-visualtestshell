@@ -47,16 +47,15 @@ static char THIS_FILE[] = __FILE__;
 
 CEPICSTreeView * g_pEPICSTreeView = NULL;
 
-void EPICS_AddRPValue(long obj_id, int prop_id, char * pbuffer, int nLen );
-
 // hack globals to build a list of obj/prop/values received from RP and RPM
-
-void EPICS_AddRPValue(long obj_id, int prop_id, char * pbuffer, int nLen )
+void EPICS_AddRPValue(long obj_id, int prop_id, int prop_index, char * pbuffer, int nLen )
 {
-	if ( g_pEPICSTreeView != NULL  )
+	// TODO: someday, nice to use the index to allow array properties
+	if ( (g_pEPICSTreeView != NULL) && (prop_index < 0) )
+	{
 		g_pEPICSTreeView->AddRPValue(obj_id, prop_id, pbuffer, nLen );
+	}
 }
-
 
 
 /////////////////////////////////////////////////////////////////////////////

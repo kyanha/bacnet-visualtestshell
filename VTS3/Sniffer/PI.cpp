@@ -432,16 +432,24 @@ char *pif_line( int len )
 //
 //  Copy len bytes of ASCII from the specified offset
 
-char *pif_get_ascii( int offset, int len, char result_str[] )
+char *pif_get_ascii( int offset, int len, char result_str[], int max_chars )
 {
-	char	c
-	,		*src = pif_get_addr() + offset
-	,		*dst = result_str
-	;
+	char	c;
+	char	*src = pif_get_addr() + offset;
+	char	*dst = result_str;
+	bool	truncated = (len > max_chars);
+	if (truncated)
+		max_chars -= 3;		// room for ...
 	
 	// transfer ASCII printable chars
-	while (len-- && ((c = *src++) != 0))
+	while (len-- && max_chars-- && ((c = *src++) != 0))
 		*dst++ = ((c >= ' ') && (c <= '~')) ? c : '.';
+
+	if (truncated)
+	{
+		strcpy( dst, "..." );
+		dst += 3;
+	}
 	
 	// null terminate the end and return a pointer to it
 	*dst = 0;
@@ -456,16 +464,23 @@ char *pif_get_ascii( int offset, int len, char result_str[] )
 
 void pif_show_ascii( int len, char *prstr )
 {
-	char	*s
-	,		buff[ MAX_INT_LINE ]
-	;
-	
+	char *s, buff[ MAX_INT_LINE ];
+	int spaceLeft = MAX_INT_LINE - strlen(prstr); // keeps track of how much of the buffer may be used.
+
 	// get a detail line
 	s = get_int_line( pif_pi, pif_offset, len );
-	
-	// get the ASCII data and format it in the buffer
-	pif_get_ascii( 0, len, buff );
-	sprintf( s, prstr, buff );
+
+	if (len <= spaceLeft)
+	{
+		// get the ASCII data and format it in the buffer (truncate as needed)
+		pif_get_ascii( 0, len, buff, MAX_INT_LINE-1 );
+		sprintf( s, prstr, buff );
+	}
+	else
+	{
+		// Buffer is FULL already.  Replace the last three characters with "...
+		sprintf( s + MAX_INT_LINE - 4, "..." );
+	}
 	
 	// update the offset
 	pif_offset += len;
@@ -475,11 +490,14 @@ void pif_show_ascii( int len, char *prstr )
 //	pif_append_ascii
 //
 //  Append ASCII to the current detail line using the specified format string
+//
+//  CAUTION: this function does not check for detail buffer overflow.
+//  It SHOULD NOT be used for strings decoded from the wire, etc. whose
+//  length may vary.  Or see pif_show_ascii for ideas on extending it.
 
 void pif_append_ascii( const char *fmt, const char *data )
 {
-	char	*s = get_cur_int_line()
-	;
+	char *s = get_cur_int_line();
 
 	sprintf( s + strlen(s), fmt, data );
 }
@@ -521,15 +539,15 @@ void pif_show_nbytes_hex( char *prstr, int byte_count )
 {
 	static char hex[] = "0123456789ABCDEF";
 	char *s, *dst
-	,	buff[ MAX_INT_LINE + 4]; /* use the extra 3 bytes for a '...' when data is dropped*/
+	,	buff[ MAX_TEXT_ITEM + 4]; /* use the extra 3 bytes for a '...' when data is dropped*/
 	
-	int spaceleft = MAX_INT_LINE - strlen(prstr); // keeps track of how much of the buffer should be used.
+	int spaceleft = MAX_TEXT_ITEM - strlen(prstr); // keeps track of how much of the buffer should be used.
 
 	// since each byte takes at least 2 characters, lets make sure that the space left is even
 	spaceleft = (spaceleft%2)?spaceleft-1:spaceleft;
 
 	// fill in the buffer '.' mark some dropped data!
-	memset(buff,'.',MAX_INT_LINE + 3);
+	memset(buff,'.',MAX_TEXT_ITEM + 3);
 
 	// get a detail line
 	s = get_int_line( pif_pi, pif_offset, byte_count );
@@ -795,6 +813,50 @@ void xsprintf( char *dst, const char *prstr, const char *hdr, const char *valu )
 	
 	// update passed the byte
 	pif_offset += 1;
+}
+
+// Safe strcpy that won't exceed maxLength (including null terminator)
+// (Note that strncpy is NOT equivalent, as it doesn't guarantee null terminated output)
+void SafeCopy( char *pDest, const char *pSource, int maxLength )
+{
+	if (maxLength > 0)
+	{
+		int len = strlen( pSource );
+		if (len < maxLength)
+		{
+			strcpy( pDest, pSource );
+		}
+		else
+		{
+			// Truncate, showing "..." as last characters in buffer
+			if (maxLength >= 4)
+			{
+				len = maxLength - 4;
+				if (len > 0)
+				{
+					memcpy( pDest, pSource, len );
+				}
+
+				strcpy( pDest + len, "..." );
+			}
+			else
+			{
+				// No room for ..., just ensure a null terminator
+				pDest[ maxLength - 1 ] = 0;
+			}
+		}
+	}
+}
+
+// Safe strcat that won't exceed maxLength (including null terminator)
+void SafeAppend( char *pDest, const char *pSource, int maxLength )
+{
+	int len = strlen( pDest );
+	if (len < maxLength-1)
+	{
+		// Append, up to what will fit
+		SafeCopy( pDest + len, pSource, maxLength - len );
+	}
 }
 
 // end of the namespace
