@@ -186,7 +186,7 @@ void CMainFrame::OnDestroy()
 	}
 
 	CString strText;
-	strText.Format("%04d %04d %04d %04d %1d %1d",
+	strText.Format("%ld %ld %ld %ld %d %d",
 	               wndpl.rcNormalPosition.left,
 	               wndpl.rcNormalPosition.top,
 	               wndpl.rcNormalPosition.right,
@@ -203,20 +203,20 @@ void CMainFrame::OnDestroy()
 // Read the window particulars from the INI/Registry
 void CMainFrame::RestorePosition()
 {
-	CString strText;
-	strText = AfxGetApp()->GetProfileString(s_profileHeading, s_profileFrame);
 	CRect rect;
-	BOOL bIconic = FALSE, bMaximized = FALSE;
-	if (!strText.IsEmpty()) 
-	{
-		rect.left = atoi((const char*) strText);
-		rect.top = atoi((const char*) strText + 5);
-		rect.right = atoi((const char*) strText + 10);
-		rect.bottom = atoi((const char*) strText + 15);
-		bIconic = atoi((const char*) strText + 20);
-		bMaximized = atoi((const char*) strText + 22);
-	}
-	else 
+	LONG bIconic = FALSE, bMaximized = FALSE;
+	CString strText = AfxGetApp()->GetProfileString(s_profileHeading, s_profileFrame);
+
+	// Original code looked at fixed offsets in the string.  This caused problems
+	// when negative values skewed the offsets, resulting in things like
+	// "Frame"="-32000 -32000 -31840 -31966 0 0"
+	// Use free-format parsing, and add sanity checks to repent of past sins
+	bool useDefaults = (sscanf( (const char*)strText, "%ld %ld %ld %ld %ld %ld",
+								&rect.left, &rect.top, &rect.right, &rect.bottom,
+								&bIconic, &bMaximized ) != 6) ||
+					   (rect.right < 0) || (rect.bottom < 0) ||
+                       (rect.right < rect.left) || (rect.bottom < rect.top);
+	if (useDefaults)
 	{
 		// Default is 2/3 the available height and width.
 		// Position is 1/6 from edges
