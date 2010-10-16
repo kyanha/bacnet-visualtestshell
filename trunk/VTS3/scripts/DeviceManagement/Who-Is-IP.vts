@@ -196,7 +196,7 @@
 
   -- The IUT should not respond
 
-    EXPECT (                                  
+    EXPECT NOT (                                  
       SA = IUT_ADDR
     )
 
