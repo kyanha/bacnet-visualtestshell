@@ -235,6 +235,8 @@ LPCSTR VTSPacket::GetAddressString( VTSDoc *pdoc, bool bSource, bool bIncludeNet
 	return (LPCSTR)nameBuffer;
 }
 
+// Return the offset to the NPDU.
+// If there is no NPDU, return packetData, causing caller to bail
 int VTSPacket::FindNPDUStartPos() const
 {
 	int retval = 0;
@@ -247,61 +249,59 @@ int VTSPacket::FindNPDUStartPos() const
 	switch ((BACnetPIInfo::ProtocolType)packetHdr.packetProtocolID)
 	{
 		case BACnetPIInfo::ipProtocol:
-			// new code is using the length specified in the BVLC packet to determine
-			// the start of the NPDU.  Submitted in #1261344 by dmrichards on 8/19/2005
-			// skip the fake ip header, address (4), and port (2) 
-//			{ 
-//			   retval += 6; //BVLC 
-//			   if (packetData && packetData[retval] == 0x81) 
-//			   { 
-//			      retval += (packetData[retval+2]*256 + packetData[retval+3]); 
-//				} 
-//			} 
-//			break; 
-
 			// skip the fake ip header, address (4), and port (2)
-			{
-				retval += 6;
+			retval += 6;
 			
-				//BVLC
-				if (packetData[retval] == 0x81)
+			// BVLC.  Must have room for 0x81, function byte, and 2 length bytes
+			if ((retval+4 < packetLen) && (packetData[retval] == 0x81))
+			{
+				retval++;
+
+				// extract the function
+				int func = packetData[retval];
+
+				retval += 3; //BVLC Function: 1 bytes; BVLC Length: 2 bytes
+
+				// set the function group
+				switch ((BVLCFunction)func)
 				{
-					retval++;
+					case bvlcDistributeBroadcastToNetwork:
+					case bvlcOriginalUnicastNPDU:
+					case bvlcOriginalBroadcastNPDU:
+						// These have an NPDU
+						break;
 
-					// extract the function
-					int func = packetData[retval];
+					case blvcForwardedNPDU:
+						// Has an NPDU just after the forwarded-from address
+						retval += 6;
+						break;
 
-					retval += 3; //BVLC Function: 1 bytes; BVLC Length: 2 bytes
-
-					// set the function group
-					switch ((BVLCFunction)func)
-					{
-						case bvlcResult:
-						case blvcWriteBroadcastDistributionTable:
-						case blvcReadBroadcastDistributionTable:
-						case blvcReadBroadcastDistributionTableAck:
-						case bvlcRegisterForeignDevice:
-						case bvlcReadForeignDeviceTable:
-						case bvlcReadForeignDeviceTableAck:
-						case bvlcDeleteForeignDeviceTableEntry:
-							break;
-
-						case blvcForwardedNPDU:
-							retval += 6;
-							break;
-
-						// dig deeper into these
-						case bvlcDistributeBroadcastToNetwork:
-						case bvlcOriginalUnicastNPDU:
-						case bvlcOriginalBroadcastNPDU:
-							break;
-					}
-				}			
+					case bvlcResult:
+					case blvcWriteBroadcastDistributionTable:
+					case blvcReadBroadcastDistributionTable:
+					case blvcReadBroadcastDistributionTableAck:
+					case bvlcRegisterForeignDevice:
+					case bvlcReadForeignDeviceTable:
+					case bvlcReadForeignDeviceTableAck:
+					case bvlcDeleteForeignDeviceTableEntry:
+					default:
+						// BVLC messages with no NPDU.
+						// Set bogus offset so caller will bail
+						retval = packetLen;
+						break;
+				}
+			}			
+			else
+			{
+				// Set bogus offset so caller will bail
+				retval = packetLen;
 			}
 			break;
 
 		case BACnetPIInfo::ethernetProtocol:
 			// skip over source (6), destination (6), length (2), and SAP (3)
+			// Our WinPCAP filter will give us only frames with proper
+			// BACnet DSAP, SSAP, and LLC, so this is safe
 			retval += 17;			
 			break;
 
@@ -312,12 +312,15 @@ int VTSPacket::FindNPDUStartPos() const
 
 		case BACnetPIInfo::mstpProtocol:
 			// skip over preamble
+			// TODO: if this really IS preamble, then need to bypass addresses,
+			// then look at frame type to be sure there is an NPDU
 			retval += 2;			
 			break;
+		
 		case BACnetPIInfo::msgProtocol:
 		case BACnetPIInfo::textMsgProtocol:
-			// Claim end of PDU: caller will say "not enough data" and bail
-			retval = packetLen;		// just VTS message, do not contain npdu
+			// Not a PDU. Claim end of PDU so caller will say "not enough data" and bail
+			retval = packetLen;
 			break;
 	}
 
@@ -401,7 +404,7 @@ CString VTSPacket::GetSADRString(VTSDoc * pdoc, BOOL bAlias) const
 	CString sadrStr;
 	BACnetAddress sadr;
 
-	if (GetNetworkDestination( sadr ))
+	if (GetNetworkSource( sadr ))
 	{
 		if (pdoc != NULL && bAlias)
 			sadrStr = pdoc->AddrToName(sadr, packetHdr.m_szPortName);
@@ -440,7 +443,7 @@ CString VTSPacket::GetDADRString(VTSDoc * pdoc, BOOL bAlias) const
 	CString dadrStr;
 	BACnetAddress dadr;
 
-	if (GetNetworkSource( dadr ))
+	if (GetNetworkDestination( dadr ))
 	{
 		if (pdoc != NULL && bAlias)
 			dadrStr = pdoc->AddrToName(dadr, packetHdr.m_szPortName);
