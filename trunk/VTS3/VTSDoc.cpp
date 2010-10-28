@@ -980,12 +980,15 @@ int VTSDoc::LoadPacketArray( void )
 		VTSPacketPtr ppkt = new VTSPacket();
 
 		// put everything into the packet list that matches the display filter
-		for ( ULONGLONG lNextPosition = 0; ppkt != NULL && (tempPosition = m_PacketDB.ReadNextPacket(*ppkt, lNextPosition)) != lNextPosition;  lNextPosition = tempPosition)
-      
+		for ( ULONGLONG lNextPosition = 0; 
+			  ppkt != NULL && (tempPosition = m_PacketDB.ReadNextPacket(*ppkt, lNextPosition)) > lNextPosition;  
+			  lNextPosition = tempPosition )
+		{
 			if (m_displayFilters.TestPacket(*ppkt)) {
 				m_apPackets.Add(ppkt);
 				ppkt = new VTSPacket();
 			}
+		}
 
 		// Always allocated one more than we needed... so kill it
 		if ( ppkt != NULL )
@@ -993,7 +996,7 @@ int VTSDoc::LoadPacketArray( void )
 	}
 	catch(CMemoryException *e)
 	{
-    e->Delete();
+		e->Delete();
 		AfxMessageBox(IDS_ERR_MAXPACKETS, MB_ICONSTOP | MB_OK);
 		m_fLoadPackets = false;
 	}
