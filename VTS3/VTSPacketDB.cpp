@@ -141,14 +141,14 @@ void VTSPacketDB::DeletePackets( void )
 
 
 
-// returns -1 if file problem or no more records
+// returns 0 if file problem or no more records
 
 ULONGLONG VTSPacketDB::ReadNextPacket(VTSPacket& pkt, ULONGLONG lPosition )
 {
 	ASSERT(m_pfilePackets != NULL && m_pfilePackets->m_hFile != CFile::hFileNull );
 
 	if ( m_pfilePackets == NULL || m_pfilePackets->m_hFile == CFile::hFileNull )
-		return lPosition;
+		return (ULONGLONG)0;
 
 	// make sure no other threads are mucking around
 	CSingleLock lock( &writeLock );
@@ -168,11 +168,14 @@ ULONGLONG VTSPacketDB::ReadNextPacket(VTSPacket& pkt, ULONGLONG lPosition )
 
 		// Attempt to read the packet header... throw exception if header isn't there
 		if ( m_pfilePackets->Read(&pkt.packetHdr, sizeof(pkt.packetHdr)) != sizeof(pkt.packetHdr) )
-			AfxThrowFileException(CFileException::endOfFile);
+			throw 0;
+			// Used to throw AfxThrowFileException(CFileException::endOfFile), but then the catch
+			// needs to delete them or we leak.  Since we don't LOOK at the exception,
+			// it doesn't matter WHAT we throw.
 
 		// Attempt to read the size of the octets... throw exception if size isn't there
 		if ( m_pfilePackets->Read(&pkt.packetLen, sizeof(int)) != sizeof(int) )
-			AfxThrowFileException(CFileException::endOfFile);
+			throw 0; // AfxThrowFileException(CFileException::endOfFile);
 
 		// OK...  See if there is any octet data.  If not, buffer will already be NULL
 		// and length will be zero.
@@ -183,10 +186,10 @@ ULONGLONG VTSPacketDB::ReadNextPacket(VTSPacket& pkt, ULONGLONG lPosition )
 			pbuffer = new BACnetOctet[pkt.packetLen];		// ought to be enough
 
 			if ( pbuffer == NULL )
-				AfxThrowFileException(CFileException::none);
+				throw 0; // AfxThrowFileException(CFileException::endOfFile);
 
 			if ( m_pfilePackets->Read(pbuffer, pkt.packetLen) != (UINT) pkt.packetLen )
-				AfxThrowFileException(CFileException::endOfFile);
+				throw 0; // AfxThrowFileException(CFileException::endOfFile);
 		}
 
 		// pull off remaining number of bytes read
@@ -211,8 +214,11 @@ ULONGLONG VTSPacketDB::ReadNextPacket(VTSPacket& pkt, ULONGLONG lPosition )
 			delete pbuffer;
 		}
 
-		// reset file pointer and return read error or end of file (-1)
-		nNewPosition = m_pfilePackets->Seek(nCurrentPosition, CFile::begin);
+		// reset file pointer
+		m_pfilePackets->Seek(nCurrentPosition, CFile::begin);
+
+		// return 0 to indicate nothing read
+		nNewPosition = (ULONGLONG)0;
 	}
 
 	// be nice and release it before returning
