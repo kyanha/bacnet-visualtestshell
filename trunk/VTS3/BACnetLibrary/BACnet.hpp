@@ -333,7 +333,7 @@ class BACnetCharacterString : public BACnetEncodeable
 		BACnetCharacterString( BACnetAPDUDecoder& dec );
 		virtual ~BACnetCharacterString( void );
 		
-		void SetValue( char *svalu, int enc = 0 );
+		void SetValue( const char *svalu, int enc = 0 );
 
 		bool Equals( const char *valu );	// true iff matches, must be ASCII encoding
 

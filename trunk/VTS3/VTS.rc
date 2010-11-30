@@ -7031,7 +7031,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_SCREX_COMPREAL      "Comparison failure: %s (%f) %s EPICS (%f)"
+    IDS_SCREX_COMPREAL      "Comparison failure: %s (%g) %s EPICS (%g)"
     IDS_SCREX_COMPEPICSNULL "Comparison failure:  %s value in EPICS is NULL"
     IDS_SCREX_COMPREALDATALEN 
                             "Comparison failure: Encoded %s value must contain 4 octets"
