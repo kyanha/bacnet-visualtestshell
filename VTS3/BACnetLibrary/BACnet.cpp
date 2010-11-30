@@ -1922,17 +1922,37 @@ void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetReal::Encode( CString &enc ) const
 {
-	// simple, effective
-//	sprintf( enc, "%f", realValue );
-	// JLH .... and wr000000000000000000000000000000ng for 
-	// very large and very small numbers. Use %g to avoid buffer overrun
+	// Use %g to avoid buffer overrun with very large and very small numbers.
+	// This shows +INF as "1.#INF0", -INF as "-1.#INF0", and our NAN as "1.#QNAN"
 	enc.Format( "%#g", realValue );
 }
 
 void BACnetReal::Decode( const char *dec )
 {
+	// Check for special values
+	// The "1.#INF0" styles are what Visual Studio shows for %g
+	UINT special;
+	if ((stricmp( dec, "INF" ) == 0) || (stricmp( dec, "1.#INF0" ) == 0))
+	{
+		// Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
+		special = 0x7F800000;
+		realValue = *(float*)&special;
+	}
+	else if ((stricmp( dec, "-INF" ) == 0) || (stricmp( dec, "-1.#INF0" ) == 0))
+	{
+		// Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
+		special = 0xFF800000;
+		realValue = *(float*)&special;
+	}
+	else if ((stricmp( dec, "NAN" ) == 0) || (stricmp( dec, "1.#QNAN" ) == 0) || (stricmp( dec, "1.#SNAN" ) == 0))
+	{
+		// Not a number: sign bit, 8 exponent bits, all set, 23 mantissa bits, not all 0
+		special = 0x7F800001;
+		realValue = *(float*)&special;
+	}
+
 	// check for valid format (also accepts 1e10 format)
-	if (sscanf( dec, "%f", &realValue ) != 1)
+	else if (sscanf( dec, "%f", &realValue ) != 1)
 		throw_(36) /* format error */;
 }
 
@@ -2134,9 +2154,13 @@ void BACnetCharacterString::Initialize( LPCSTR svalu )
 {
 	strLen = (svalu ? strlen(svalu) : 0);
 	if ( strLen )
+	{   delete[] strBuff;
 		strBuff = new BACnetOctet[strLen];
+	}
 	else
+	{
 		strBuff = NULL;
+	}
 
 	if (svalu && strBuff)
 		memcpy( strBuff, svalu, (size_t)strLen );
@@ -2183,7 +2207,7 @@ void BACnetCharacterString::KillBuffer(void)
 }
 
 
-void BACnetCharacterString::SetValue( char *svalu, int enc )
+void BACnetCharacterString::SetValue( const char *svalu, int enc )
 {
 	// toss the old stuff
 	KillBuffer();
