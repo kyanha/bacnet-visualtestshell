@@ -3654,8 +3654,26 @@ void BACnetDate::CalcDayOfWeek( void )
 		return;
 	}
 
-	// CTime version says 1 = Sunday...  Oops... Convert to 1 = Monday
-	dayOfWeek = (Convert().GetDayOfWeek() + 5) % 7 + 1;
+	// This originally used CTime.
+	// But CTime, mktime et al can't handle dates before 1 Jan 1970, while
+	// BACnet goes back to 1900.  Such dates have seen in the wild
+	// in ReadRange requests from certain BACnet workstations: they say 
+	// "give me your first 100 log entries on or after 1 Jan 1900".
+	// Thus, we use SYSTEMTIME, which is good back to 1600, instead of CTime.
+	SYSTEMTIME systime;
+	memset( &systime, 0, sizeof(systime) );
+	systime.wYear = year + 1900;
+	systime.wMonth = month;
+	systime.wDay = day;
+
+	// Convert to FILETIME, then back to SYSTIME to set day of week
+	FILETIME filetime;
+	::SystemTimeToFileTime( &systime, &filetime );
+	::FileTimeToSystemTime( &filetime, &systime );
+
+	// SYSTIME says 0 = Sunday, 1 = Monday.
+	// We need 1=Monday, ... 7 = Sunday
+	dayOfWeek = (systime.wDayOfWeek + 6) % 7 + 1;
 }
 
 void BACnetDate::Encode( BACnetAPDUEncoder& enc, int context )
@@ -3994,15 +4012,35 @@ void BACnetDate::Decode( const char *dec )
 	// if we've gotten this far, all values have been read in and are correct
 }
 
-
-CTime BACnetDate::Convert() const
+// Convert to integer time in 100 nsec ticks since 1 Jan 1600 (FILETIME)
+long long BACnetDate::AsInt(void) const
 {
 	ASSERT( year != DATE_DONT_CARE  && month != DATE_DONT_CARE && day != DATE_DONT_CARE);
 	ASSERT( year != DATE_IGNORE_ON_INPUT  && month != DATE_IGNORE_ON_INPUT && day != DATE_IGNORE_ON_INPUT);
 	ASSERT( (month >= 1) && (month <= 12) && (day >= 1) && (day <= 31));
-	return CTime(year + 1900, month, day, 0, 0, 0);
-}
 
+	// This originally used and returned CTime.
+	// But CTime, mktime et al can't handle dates before 1 Jan 1970, while
+	// BACnet goes back to 1900.  Such dates have seen in the wild
+	// in ReadRange requests from certain BACnet workstations: they say 
+	// "give me your first 100 log entries on or after 1 Jan 1900".
+	// Thus, we use SYSTEMTIME, which is good back to 1600, instead of CTime.
+	SYSTEMTIME systime;
+	memset( &systime, 0, sizeof(systime) );
+	systime.wYear = year + 1900;
+	systime.wMonth = month;
+	systime.wDay = day;
+
+	// Convert to FILETIME (nsec since 1 Jan 1600)
+	FILETIME filetime;
+	::SystemTimeToFileTime( &systime, &filetime );
+
+	LARGE_INTEGER largeINT;
+	largeINT.HighPart = filetime.dwHighDateTime;
+	largeINT.LowPart  = filetime.dwLowDateTime;
+
+	return (long long)largeINT.QuadPart;
+}
 
 
 BACnetDate & BACnetDate::operator =( const BACnetDate & arg )
@@ -4625,14 +4663,6 @@ bool BACnetTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)));
 
-	// must use computed value because CTime doesn't deal with hundredths...
-	// doesn't work due to DON'T CAREs
-//	long int ltimeThis = hour * 3600 + minute * 60 + second;
-//	long int ltimeThat = ((BACnetTime &) rbacnet).hour * 3600 + ((BACnetTime &) rbacnet).minute * 60 + ((BACnetTime &) rbacnet).second;
-
-//	ltimeThis = ltimeThis * 100 + hundredths;
-//	ltimeThat = ltimeThat * 100 + ((BACnetTime &) rbacnet).hundredths;
-
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)) ||
 	     !Match((BACnetTime &) rbacnet, iOperator) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
@@ -4829,17 +4859,18 @@ IMPLEMENT_DYNAMIC(BACnetDateTime, BACnetEncodeable)
 
 BACnetDateTime::BACnetDateTime( void )
 {
+	// Current time, so CTime is just fine
 	CTime ctime = CTime::GetCurrentTime();
 
 	struct tm	*currtime = ctime.GetLocalTm(NULL);
 	
-	bacnetTime.hour = currtime->tm_hour;
+	bacnetTime.hour   = currtime->tm_hour;
 	bacnetTime.minute = currtime->tm_min;
 	bacnetTime.second = currtime->tm_sec;
 	bacnetTime.hundredths = 0;
-	bacnetDate.year = currtime->tm_year;
+	bacnetDate.year  = currtime->tm_year;
 	bacnetDate.month = currtime->tm_mon + 1;
-	bacnetDate.day = currtime->tm_mday;
+	bacnetDate.day   = currtime->tm_mday;
 	bacnetDate.CalcDayOfWeek();
 }
 
@@ -4955,28 +4986,12 @@ bool BACnetDateTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * 
 
 	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)));
 
-	// CTimes don't work due to DONT_CARE value.  Too bad too.  CTime would work quite well
-//	CTime dateThis(bacnetDate.year + 1900, bacnetDate.month + 1, bacnetDate.day + 1, bacnetTime.hour, bacnetTime.minute, bacnetTime.second);
-//	CTime dateThat(((BACnetDateTime &) rbacnet).bacnetDate.year + 1900, ((BACnetDateTime &) rbacnet).bacnetDate.month + 1, ((BACnetDateTime &) rbacnet).bacnetDate.day + 1,
-//		           ((BACnetDateTime &) rbacnet).bacnetTime.hour, ((BACnetDateTime &) rbacnet).bacnetTime.minute, ((BACnetDateTime &) rbacnet).bacnetTime.second);
-
 	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)) ||
 		 !Match((BACnetDateTime &) rbacnet, iOperator) )
 		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
 	return true;
 }
-
-
-CTime BACnetDateTime::Convert()
-{
-	ASSERT( bacnetDate.year != DATE_DONT_CARE  && bacnetDate.month != DATE_DONT_CARE && bacnetDate.day != DATE_DONT_CARE);
-	ASSERT( bacnetTime.hour != DATE_DONT_CARE  && bacnetTime.minute != DATE_DONT_CARE && bacnetTime.second != DATE_DONT_CARE);
-
-	return CTime(bacnetDate.year + 1900, bacnetDate.month, bacnetDate.day, bacnetTime.hour, bacnetTime.minute, bacnetTime.second);
-}
-
-
 
 bool BACnetDateTime::Match( BACnetDateTime & rdatetime, int iOperator )
 {
@@ -5158,10 +5173,11 @@ BACnetDateRange & BACnetDateRange::operator =( const BACnetDateRange & arg )
 
 
 
-
-CTimeSpan BACnetDateRange::GetSpan() const
+// See comments near calls of GetSpan on why I think this
+// is silly.
+long long BACnetDateRange::GetSpan() const
 {
-	return (CTimeSpan) (bacnetDateEnd.Convert() - bacnetDateStart.Convert());
+	return (bacnetDateEnd.AsInt() - bacnetDateStart.AsInt());
 }
 
 
@@ -5188,37 +5204,41 @@ bool BACnetDateRange::Match( BACnetDateRange & rdaterange, int iOperator )
 
 bool BACnetDateRange::operator ==( const BACnetDateRange & arg )
 {
-	return bacnetDateStart == arg.bacnetDateStart && bacnetDateEnd == arg.bacnetDateEnd;
+	return (bacnetDateStart == arg.bacnetDateStart) && (bacnetDateEnd == arg.bacnetDateEnd);
 }
 
 
 bool BACnetDateRange::operator !=( const BACnetDateRange & arg )
 {
-	return bacnetDateStart != arg.bacnetDateStart && bacnetDateEnd != arg.bacnetDateEnd;
+	return (bacnetDateStart != arg.bacnetDateStart) || (bacnetDateEnd != arg.bacnetDateEnd);
 }
 
-
+// TODO: these comparisons are silly:
+// if arg1 = (Jan 1 2010 - Jan 2 2010) and arg2 = (Jan 1 1980 to Jan 10 1980),
+// span1 is 1 day, and span2 is 9 days.  But in what sense is arg1 LESS THAN arg2?
+// But maybe someone as a use, so we won't remove it now.
+// Updated to work with non-CTime implementation.
 bool BACnetDateRange::operator <=( const BACnetDateRange & arg )
 {
-	return (GetSpan() <= arg.GetSpan()) != 0;		// for stupid Microsoft BOOL
+	return (GetSpan() <= arg.GetSpan());
 }
 
 
 bool BACnetDateRange::operator <( const BACnetDateRange & arg )
 {
-	return GetSpan() < arg.GetSpan() != 0;		// for stupid Microsoft BOOL
+	return GetSpan() < arg.GetSpan();
 }
 
 
 bool BACnetDateRange::operator >=( const BACnetDateRange & arg )
 {
-	return GetSpan() >= arg.GetSpan() != 0;		// for stupid Microsoft BOOL
+	return GetSpan() >= arg.GetSpan();
 }
 
 
 bool BACnetDateRange::operator >( const BACnetDateRange & arg )
 {
-	return GetSpan() > arg.GetSpan() != 0;		// for stupid Microsoft BOOL
+	return GetSpan() > arg.GetSpan();
 }
 
 
