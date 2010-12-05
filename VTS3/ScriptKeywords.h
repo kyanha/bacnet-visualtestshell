@@ -111,7 +111,7 @@
 #define		kwERRORCHOICE			0xF59843C2		// ERROR-CHOICE
 #define		kwREJECTREASON			0x7BBAF9E6		// REJECT-REASON
 #define		kwABORTREASON			0x07930C3A		// ABORT-REASON
-#define		kwMAXSEGS				0x5812D5D		// Max_Segments_Accepted    GJB 12/16/2003 
+#define		kwMAXSEGS				0x05812D5D		// MAXSEGS
 
 
 //#define		kwDEST					0x7E44E545
