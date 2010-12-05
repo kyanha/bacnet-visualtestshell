@@ -494,7 +494,8 @@ class BACnetDate : public BACnetEncodeable {
 		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
-		CTime Convert(void) const;
+		// Convert to integer time in 100 nsec ticks since 1 Jan 1600 (FILETIME)
+		long long AsInt(void) const;
 
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
@@ -570,8 +571,6 @@ class BACnetDateTime : public BACnetEncodeable
 		void Encode( CString &enc ) const;
 		void Decode( const char *dec );
 
-		CTime Convert(void);
-
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
 		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
@@ -604,7 +603,7 @@ class BACnetDateRange : public BACnetEncodeable
 		bool operator <( const BACnetDateRange &arg );
 		bool operator >( const BACnetDateRange &arg );
 
-		CTimeSpan GetSpan(void) const;
+		long long GetSpan(void) const;
 
 		virtual int DataType(void);
 		virtual BACnetEncodeable * clone(void);
