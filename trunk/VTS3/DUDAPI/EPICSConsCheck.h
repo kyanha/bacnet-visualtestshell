@@ -30,14 +30,14 @@ TObjConsCHK  DevObjList[MAX_DEFINED_OBJ];
 
 ///////////////////////////////////////////////////////////////////////////////////
 /// Describe object type listed by protocol_object_supported property
-typedef struct tagDevProtocolSup{
-	octet *PropSupValue;            
+//typedef struct tagDevProtocolSup{
+//	octet *PropSupValue;            
     //octet  ProtocolSup[Max_ObjServ_Num]; 
-	word   ObjServNum;
-}DevProtocolSup;
+//	word   ObjServNum;
+//}DevProtocolSup;
 
-DevProtocolSup  ProtocolObjSup;
-DevProtocolSup  ProtocolServSup;
+//DevProtocolSup  ProtocolObjSup;
+//DevProtocolSup  ProtocolServSup;
 
 
 

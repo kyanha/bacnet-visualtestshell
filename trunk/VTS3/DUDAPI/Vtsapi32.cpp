@@ -204,7 +204,7 @@ void CheckPICSCons2003L(PICSdb *pd);
 
 
 void GetSequence(dword *,dword *,octet);
-void BitToArray(octet ObjServ[],DevProtocolSup *);
+//void BitToArray(octet ObjServ[],DevProtocolSup *);
 void PrintToFile(char *);
 //
 /////////////////////////////////////////////////////////////
@@ -2150,10 +2150,10 @@ rtpclose:
    }
 
     //clear the global variables
-	ProtocolServSup.PropSupValue=NULL;
-	ProtocolServSup.ObjServNum=0;
-	ProtocolObjSup.PropSupValue=NULL;
-	ProtocolObjSup.ObjServNum=0;
+//	ProtocolServSup.PropSupValue=NULL;
+//	ProtocolServSup.ObjServNum=0;
+//	ProtocolObjSup.PropSupValue=NULL;
+//	ProtocolObjSup.ObjServNum=0;
 	memset(ObjInTestDB,0,sizeof(ObjInTestDB));
 	memset(DevObjList,0,sizeof(DevObjList));
 //////////////////////////////////////////////////////////////
@@ -3705,6 +3705,7 @@ void CheckServConsI(PICSdb *pd)
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
 //out:
+/*
 void BitToArray(octet ObjServ[],DevProtocolSup *DevProp)
 {   octet  bitflag; 
     octet  byteNum;
@@ -3733,6 +3734,7 @@ void BitToArray(octet ObjServ[],DevProtocolSup *DevProp)
 	}
    return;
 }
+*/
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
@@ -4230,8 +4232,8 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					    &EPICSLengthProtocolServicesSupportedBitstring)) /* how many bits were parsed? */
 					    return true;
                EPICSLengthProtocolServicesSupportedBitstring++;  // zero-based correction
-					ProtocolServSup.ObjServNum=sizeof(StandardServices)/sizeof(StandardServices[0]);   
-					ProtocolServSup.PropSupValue=(octet *)pstruc; 
+//					ProtocolServSup.ObjServNum=sizeof(StandardServices)/sizeof(StandardServices[0]);   
+//					ProtocolServSup.PropSupValue=(octet *)pstruc; 
 					
 					break;
 				case pos:						//protocol objects supported bitstring
@@ -4242,8 +4244,8 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					    &EPICSLengthProtocolObjectTypesSupportedBitstring)) /* how many bits were parsed? */
 					    return true;
                EPICSLengthProtocolObjectTypesSupportedBitstring++;  // zero-based correction
-					ProtocolObjSup.PropSupValue=(octet *)pstruc;       
-					ProtocolObjSup.ObjServNum=sizeof(StandardObjects)/sizeof(StandardObjects[0]);   
+//					ProtocolObjSup.PropSupValue=(octet *)pstruc;       
+//					ProtocolObjSup.ObjServNum=sizeof(StandardObjects)/sizeof(StandardObjects[0]);   
 					break;
 				case dt:						//date/time
 					if (ParseDateTime((BACnetDateTime *)pstruc)) return true;
