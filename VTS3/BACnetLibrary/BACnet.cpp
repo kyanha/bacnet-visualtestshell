@@ -4013,7 +4013,7 @@ void BACnetDate::Decode( const char *dec )
 }
 
 // Convert to integer time in 100 nsec ticks since 1 Jan 1600 (FILETIME)
-long long BACnetDate::AsInt(void) const
+LONGLONG BACnetDate::AsInt(void) const
 {
 	ASSERT( year != DATE_DONT_CARE  && month != DATE_DONT_CARE && day != DATE_DONT_CARE);
 	ASSERT( year != DATE_IGNORE_ON_INPUT  && month != DATE_IGNORE_ON_INPUT && day != DATE_IGNORE_ON_INPUT);
@@ -4039,7 +4039,7 @@ long long BACnetDate::AsInt(void) const
 	largeINT.HighPart = filetime.dwHighDateTime;
 	largeINT.LowPart  = filetime.dwLowDateTime;
 
-	return (long long)largeINT.QuadPart;
+	return (LONGLONG)largeINT.QuadPart;
 }
 
 
@@ -5175,7 +5175,7 @@ BACnetDateRange & BACnetDateRange::operator =( const BACnetDateRange & arg )
 
 // See comments near calls of GetSpan on why I think this
 // is silly.
-long long BACnetDateRange::GetSpan() const
+LONGLONG BACnetDateRange::GetSpan() const
 {
 	return (bacnetDateEnd.AsInt() - bacnetDateStart.AsInt());
 }
