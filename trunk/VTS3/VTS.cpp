@@ -1723,18 +1723,60 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //				2979777		Netmask for B/IP is hardcoded
 //				2415662		Array bounds exceeded
 //
+//		3.5.5	January 30, 2011
+//			Known Bugs Fixed: 
+//				3163632	Units enumeartions above 120 incorrectly decoded
+//				3156501	ReadPropertyMultiple-ACK displayed wrong in details view
+//				3094189	Crash on BVLL functions
+//				3073740	How to configure any complex property value for VTS
+//				3046835	vts crashes when editing bit string value
+//				3063918	Still a problem with "VTS does not display in a Wind"
+//				3010449	EPICS consistency errors showing as msg box not in view
+//				3074176 Image for how to configure complex property value in VTS
+//				1592195	"File too large to load" message when "Read All Properties"
+// 
+//			Corrected the list of properties added by the real Appendix j, and 
+//				their associated strings.
+//			Fixed some of the template types used in CreateCommonProperty().
+//			Increased the object_name allocation in generic_object from 32 to 64 chars.
+//			Filled out a few more icons for the EPICS tree view. 
+// 
+//			Replace CTime in Date/Time encoders with SYSTEMTIME/FILETIME: CTime starts at 1970, BACnet at 1900.
+//			Correct and clean up time and date comparisons and use of * and ? fields 
+//			Use %g for all floating point output.Accept INF, 1.#INF0, NAN, 1.#QNAN etc. for floating point input  
+//			Avoid crash if filters are defined and packet file is missing or empty.
+//			Eliminate memory leak of CFileExecptions at end of file 
+//			Extend "any" keyword:- save or load from variable ot EPICS- compare 
+//			Add SafeCopy and SafeAppend, add maxlengths to avoid buffer overflows on long string data 
+//			Eliminated CheckEPICSCons dialog, which has been obsolete for some time.  This data is shown in the EPICS View pane 
+//			CR 3010449.  Use GetTempPath to get appropriate location for EPICS error temporary file 
+ 
+//			- Replace unsafe char* parameter in BACnet Encode(char*) with Encode(CString&)
+//			- eliminate heap crash due to lack of a copy constructor in WPM dialog (as invoked from EPICS viewer.  Did you know it could do that?)
+//			- remove "const int" defs for sizeof various classes.  Not used, and scary to think how they might be...
+//			- various small cleanup (sorry, I waited too long to check in, and things got intertwined) 
+ 
+//			Scripting uses hashes of keywords, including object-type, property-ids etc.  The precomputed values were several revisions behind.  
+//			Changed to COMPUTE the hash tables for object-types, property-ID, abort and reject reason, services - the enumerations that are expected to change most frequently
+
+//			Eliminate stPropIDs - use the StringTable version instead to reduce maintenance
+//			Eliminate unused tables from StringTables.cpp
+//			Make case and punctuation of strings in StringTables.cpp match 135-2008
+//			Add reserved and extension counts to StringTable, to allow eventual replacement of the redundant etables
+ 
+//			Change "log-enable" and "LOG_ENABLE" to "enable" and "ENABLE" per 135-2004b-5 
 			
 			
-			class CAboutDlg : public CDialog
-			{
-			public:
-				CAboutDlg();
+class CAboutDlg : public CDialog
+{
+	public:
+		CAboutDlg();
 			
-			// Dialog Data
-				//{{AFX_DATA(CAboutDlg)
+	// Dialog Data
+	//{{AFX_DATA(CAboutDlg)
 	enum { IDD = IDD_ABOUTBOX };
-				CString	m_Version;
-				//}}AFX_DATA
+	CString	m_Version;
+	//}}AFX_DATA
 			
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CAboutDlg)
