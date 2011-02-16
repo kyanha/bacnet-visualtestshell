@@ -24,10 +24,10 @@ IUT_ADDR = "IUT"
 FIND_ROUTER = 0
 
 ; Specify the Device ID of the IUT
-IUT_DEVICE_OBJECT = (device, 1170000)
+IUT_DEVICE_OBJECT = (device, 481641)
 
 ; Specify the Device instance of the IUT
-IUT_DEVICE_INSTANCE = 1170000
+IUT_DEVICE_INSTANCE = 481641
 
 ; TODO: Eventually we should define OBJECT1, OBJECT2 etc. here so that the scripts
 ; would not need to be modified at all.  But that may require a bit of refactoring
