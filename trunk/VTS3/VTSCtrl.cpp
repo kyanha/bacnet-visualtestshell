@@ -1575,8 +1575,11 @@ VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, NetworkSniffer::BA
 , m_TableSize(table.m_nStrings)
 , m_bCombo(isCombo)
 {
+	// TODO: in a sane universe, the propertyID control would be a subclass and these
+	// two members would belong to the subclass.  See related TODOs throughout.
 	m_nObjType = -1;
 	m_VendorPropID = -1;
+
 	m_bHaveDropDown = false;
 }
 
@@ -1590,10 +1593,12 @@ VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, char **table, int 
 	m_bHaveDropDown = false;
 }
 
+// Check whether propertyID is one of the Object's standard properties 
+extern bool Check_Obj_Prop(int ObjType, unsigned int propertyID);
+
 //
 //	VTSEnumeratedCtrl::LoadCombo
 //
-extern bool Check_Obj_Prop(int ObjType, unsigned int propertyID);
 void VTSEnumeratedCtrl::LoadCombo( void )
 {
 	//Modifyed by Zhu Zhenhua 2003-7-22
@@ -1603,28 +1608,39 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 		return;
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
 
-	// TODO: object-type code
+	// TODO: propertyID selection code
 	if ((cbp->GetCount() != 0) && (m_nObjType != -1) && (m_nObjType < MAX_DEFINED_OBJ))
 	{
+		// We may have changed object type, so delete the old content
 		cbp->Clear();
 		cbp->ResetContent();
 		m_bHaveDropDown = true;
 	}
+
 	if (cbp->GetCount() == 0)
 	{
-    	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
+    	int i;
 		for (i = 0; i < m_TableSize; i++)
 		{
+			// Add enum values from table
+			// TODO: propertyID selection code
 			if(m_nObjType != -1 && m_nObjType < MAX_DEFINED_OBJ)
 			{
+				// First pass: add the properties supported by this object type
 				if(Check_Obj_Prop(m_nObjType, (unsigned int) i))
 					cbp->AddString( m_Table[i] );
 			}
 			else
+			{
 				cbp->AddString( m_Table[i] );
+			}
 		}
+
+		// TODO: propertyID selection code
 		if(m_nObjType != -1 && m_nObjType < MAX_DEFINED_OBJ)
 		{
+			// If this is a property control for a standard object type, add a dashed line
+			// and ALL the defined BACnet properties
 			CString str = "------------------------------";
 			cbp->AddString(str);
 			for (i = 0; i < m_TableSize; i++)
@@ -1635,33 +1651,24 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 					cbp->AddString( m_Table[i] );;
 			}
 		}
+
+		// TODO: propertyID selection code
 		if(m_nObjType != -1)
 		{
-			CString str = "<proprietary>";
+			// If this is a property control, add item to allow arbitrary value.
+			CString str = "<enter numeric value>";
 			cbp->AddString(str);
 		}
+
 		// make sure at least eight lines are visible
-		SetDropDownSize( 8 );
+		SetDropDownSize( 16 );
 	}
 
 	// set up the first value
 	if (!ctrlNull)
 	{
 		EnumToSelect();
-		/* This code replaces the "<proprietary>" choice at the end of the list with
-		   the enumerated choice entered in the dialog.  I didn't like
-		   that behavior.  I think the choice "<proprietary>" should stay
-		   as it is.
-		if(enumValue > 511 && m_nObjType != -1)
-		{
-			CString text;
-			cbp->DeleteString(cbp->GetCount()-1);
-			text.Format("%d", enumValue);
-			cbp->AddString(text);
-			cbp->SetCurSel(cbp->GetCount() -1);
-		}
-		else  */
-			cbp->SetCurSel( m_SelectValue );
+		cbp->SetCurSel( m_SelectValue );
 	}
 }
 
@@ -1715,12 +1722,10 @@ void SetDropDownSize( CComboBox& box, UINT lines )
 //
 //	VTSEnumeratedCtrl::CtrlToObj
 //
-
 void VTSEnumeratedCtrl::CtrlToObj( void )
 {
 	if (m_bCombo) {
-		CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID )
-		;
+		CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
 
 		ctrlNull = false;
 
@@ -1734,25 +1739,26 @@ void VTSEnumeratedCtrl::CtrlToObj( void )
 
 		if(m_nObjType == -1)
 		{
+			// Not a propertyID selector
 			enumValue = m_SelectValue;
 			return;
 		}
+
+		// TODO: propertyID selection code
 		CString str;
 		CString strtemp = "------------------------------";
 		cbp->GetLBText(m_SelectValue,str);
 		if(!str.Compare(strtemp))
 			return;
-		if(OldSelectValue != m_SelectValue || m_bHaveDropDown)
-		SelectToEnum();
+		
+		if((OldSelectValue != m_SelectValue) || m_bHaveDropDown)
+			SelectToEnum();
 		return;
 	}
 
-	CEdit		*ctrl = (CEdit *)ctrlWindow->GetDlgItem( ctrlID )
-	;
-	CString		str
-	;
-	LPCTSTR		s
-	;
+	CEdit		*ctrl = (CEdit *)ctrlWindow->GetDlgItem( ctrlID );
+	CString		str;
+	LPCTSTR		s;
 
 	// get the text from the control
 	ctrl->GetWindowText( str );
@@ -3330,51 +3336,55 @@ void VTSEnumeratedCtrl::SelectToEnum()
 {
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
 	m_bHaveDropDown = false;
-	if(m_SelectValue == (cbp->GetCount() -1))
+	if (m_SelectValue == (cbp->GetCount() - 1))
 	{
+		// TODO: this is propertyID-specific code
+		// Selected last item in the list.  Show dialog to enter the property numerically.
 		VTSVendorPropIDDlg dlg;
 		if(m_VendorPropID != -1)
 			dlg.m_PropID = m_VendorPropID;
 		int res = dlg.DoModal();
-		if(res == IDOK)
+		if (res == IDOK)
 		{
 			m_VendorPropID = dlg.m_PropID;
 			enumValue = m_VendorPropID;
 		}
-		if(enumValue > 511)
+
+		if (enumValue >= m_TableSize)
 		{
+			// Show reserved or proprietary value numerically
 			CString text;
-			cbp->DeleteString(cbp->GetCount()-1);
+			cbp->DeleteString(cbp->GetCount() - 1);
 			text.Format("%d", enumValue);
 			cbp->AddString(text);
-			cbp->SetCurSel(cbp->GetCount() -1);
+			cbp->SetCurSel(cbp->GetCount() - 1 );
 			return;
 		}
 		else
 		{
+			// Show standard value as a string
 			EnumToSelect();
 			cbp->SetCurSel(m_SelectValue);
 		}
 	}
-	if(m_nObjType > MAX_DEFINED_OBJ)
+	
+	if (m_nObjType > MAX_DEFINED_OBJ)
 	{
 		enumValue = m_SelectValue;
 		return;
 	}
+
 	if (cbp->GetCount() != 0)
 	{
-    CString str;
-    LPTSTR lpStr;
-//			cbp->GetWindowText(str);
-    lpStr = str.GetBufferSetLength(cbp->GetLBTextLen(cbp->GetCurSel()+1));
-    str.ReleaseBuffer(-1);
-    cbp->GetLBText(cbp->GetCurSel(), str);
-
+		CString str;
+		cbp->GetWindowText(str);
 		for (int i = 0; i < m_TableSize; i++)
 		{
-			CString strtemp = m_Table[i];
-			if(!str.Compare(strtemp))
+			if (str.Compare(m_Table[i]) == 0)
+			{
 				enumValue = i;
+				break;
+			}
 		}
 	}
 
@@ -3385,20 +3395,23 @@ void VTSEnumeratedCtrl::SelectToEnum()
 void VTSEnumeratedCtrl::EnumToSelect()
 {
 	CComboBox	*cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
-	if(enumValue > 511 && m_nObjType != -1)
+	if(enumValue >= m_TableSize && m_nObjType != -1)
 	{
+		// Numeric propertyID
 		m_SelectValue = cbp->GetCount() - 1;
 		m_VendorPropID = enumValue;
 		return;
 	}
+	
 	if(m_nObjType == -1 || m_nObjType > MAX_DEFINED_OBJ)
 	{
+		// Proprietary value
 		m_SelectValue = enumValue;
 		return;
 	}
 	if (cbp->GetCount() != 0)
 	{
-			CString str = m_Table[enumValue];
-			m_SelectValue = cbp->FindString(-1, str);
+		CString str = m_Table[enumValue];
+		m_SelectValue = cbp->FindString(-1, str);
 	}
 }

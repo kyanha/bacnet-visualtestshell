@@ -95,6 +95,7 @@ BOOL VTSBackupRestoreDlg::OnInitDialog()
 	CString str;
 	str.Format( "%d", Delay );
 	m_Delay.SetWindowText( (LPCTSTR)str );
+
 	str.Format( "%d", timeout );
 	m_backup_timeout.SetWindowText( (LPCTSTR)str );
 

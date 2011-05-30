@@ -1,3 +1,4 @@
+#include "afxwin.h"
 #if !defined(AFX_VTSVENDORPROPIDDLG_H__8E8E5927_C06B_48DB_912B_5A7F2CC3B73B__INCLUDED_)
 #define AFX_VTSVENDORPROPIDDLG_H__8E8E5927_C06B_48DB_912B_5A7F2CC3B73B__INCLUDED_
 
@@ -45,6 +46,8 @@ protected:
 	virtual BOOL OnInitDialog();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+public:
+	CStatic m_captionStatic;
 };
 
 //{{AFX_INSERT_LOCATION}}
