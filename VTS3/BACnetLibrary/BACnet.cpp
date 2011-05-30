@@ -3825,7 +3825,7 @@ void BACnetDate::Decode( const char *dec )
 	// allowing * or ? in any position, but not allowing even, odd, or last
 	//
 	// Current format (deviating from EPICS for backward compatibility)
-	// - Require DOW (or * or ?)
+	// - Require DOW (or *, or ?, or even just a comma)
 	// - order is month/day/year
 	// - also accept month=13 or "odd", 14 or "even"; and day=32 or "last", 33 or "odd", or 34 or "even"
 

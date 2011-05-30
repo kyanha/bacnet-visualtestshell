@@ -200,7 +200,7 @@ public:
 	CSendGetEventInfo		 GetEventInformationPage;		//GetEventInformation        ,Added by Zhu Zhenhua, 2004-5-25
 	CSendGetEventInfoACK	 GetEventInformationACKPage;	//GetEventInformation-ACK    ,Added by Zhu Zhenhua, 2004-5-25
 	CSendSubscribeCOV		SubscribeCOVPage;		// SubscribeCOV
-  CSendSubscribeCOVProperty SubscribeCOVPropertyPage;  //SubscribeCOVProperty
+	CSendSubscribeCOVProperty SubscribeCOVPropertyPage;  //SubscribeCOVProperty
 
 	CSendReadFile			ReadFilePage;			// AtomicReadFile
 	CSendReadFileACK		ReadFileACKPage;		// AtomicReadFile-ACK
@@ -303,8 +303,8 @@ protected:
 	void OnSelchangePacketTree( NMHDR* pNotifyStruct, LRESULT* result );
 	void OnItemExpandedPacketTree( NMHDR* pNotifyStruct, LRESULT* result );
 	void OnSend();
-		 void OnTransmitClose();
-		 void OnOnlyClose();
+	void OnTransmitClose();
+	void OnOnlyClose();
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()

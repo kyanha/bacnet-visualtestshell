@@ -168,6 +168,9 @@ BACnetEncodeable * VTSDevValue::CreateBACnetObject( void )
 		case 12:	pbacnet = new BACnetObjectIdentifier(dec); break;
 		case 13:	pbacnet = new BACnetOpeningTag();	break;
 		case 14:	pbacnet = new BACnetClosingTag();	break;
+
+		// Let the user type in whatever they want as hex
+		case 15:	pbacnet = new BACnetANY();	break;
 	}
 	}
 	catch(...) {}

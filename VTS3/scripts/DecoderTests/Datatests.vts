@@ -1,12 +1,17 @@
 --------------  S C R I P T   V E R S I O N   I N F O   -----------------------
 ;
-; Version 1      2010-01-28   By John Hartman
+; Version 2      2010-12-06   By John Hartman
 ;
 ---------------------- S C R I P T   H E A D E R ------------------------------
 ;
 ; Script: Datatests
 ;
 ; Purpose: Test various datatypes in the decoder, and in the script parser
+;
+; These tests are not really intended to be sent to any IUT.
+; They were written to test the PDU decoding of VTS itself.
+; Various parts of this test might be harvested in order to test the
+; decoding capabilities of an IUT.
 ;
 ---------------------- S C R I P T   B O D Y ----------------------------------
 
@@ -26,8 +31,8 @@ REFERENCE None
 
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
       Unsigned 1, 666
       OpenTag 2
@@ -117,8 +122,8 @@ DEPENDENCIES None
 REFERENCE None
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
       Unsigned 1, 666
       OpenTag 2
@@ -175,8 +180,8 @@ DEPENDENCIES None
 REFERENCE None
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
       Unsigned 1, 666
       OpenTag 2
@@ -188,8 +193,8 @@ DEPENDENCIES None
 REFERENCE None
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
       Unsigned 1, 666
     )
@@ -199,8 +204,8 @@ DEPENDENCIES None
 REFERENCE None
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
 --      Unsigned 1, 666
       OpenTag 2
@@ -212,8 +217,8 @@ DEPENDENCIES None
 REFERENCE None
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
 --      Unsigned 1, 666
     )
@@ -223,8 +228,8 @@ DEPENDENCIES None
 REFERENCE None
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
       Unsigned 666
     )
@@ -234,8 +239,8 @@ DEPENDENCIES None
 REFERENCE None
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
       Unsigned 1, 666
       OpenTag 2
@@ -253,8 +258,8 @@ DEPENDENCIES None
 REFERENCE None
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
       Unsigned 1, 666
       OpenTag 2
@@ -266,11 +271,28 @@ DEPENDENCIES None
 REFERENCE None
     SEND (
       DA = IUT_ADDR
-      PDU = Confirmed-Request
-      Service = ConfirmedPrivateTransfer
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
       Unsigned 0, 300
       Unsigned 1, 666
       CloseTag 2
       Unsigned 0, 333
     )
 
+TEST Primitive with open tag (illegal)
+DEPENDENCIES None
+REFERENCE None
+    SEND (
+      DA = IUT_ADDR
+      PDU = Unconfirmed-Request
+      Service = UnconfirmedPrivateTransfer
+      Unsigned 0, 300
+      Unsigned 1, 666
+      OpenTag 2
+
+      -- Tag is 6 (octet string), length is SIX=open tag
+      -- (Length should be 5 in the tag octet, and then an extension)
+      AL = X'66010203040506'
+
+      CloseTag 2
+    )
