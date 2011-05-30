@@ -472,7 +472,7 @@ char * CListSummaryView::FillColumnData( int nColumn, char * pszFill, VTSPacket 
 			{
 				lstrcpy(pszFill, "VTS Message" );
 			}
-			else if (ppkt->packetHdr.packetType == rxData)
+			else if ((ppkt->packetHdr.packetType == txData) || (ppkt->packetHdr.packetType == rxData))
 			{
 				// if m_bColumn[6], then SADDR is visible.  Show only MAC address here.
 				// else look for network layer and show ORIGINAL source
@@ -481,8 +481,8 @@ char * CListSummaryView::FillColumnData( int nColumn, char * pszFill, VTSPacket 
 			break;					
 		
 		case 4:		
-			// destination
-			if (ppkt->packetHdr.packetType == txData)
+			// Destination
+			if ((ppkt->packetHdr.packetType == txData) || (ppkt->packetHdr.packetType == rxData))
 			{
 				// if m_bColumn[8], then DADDR is visible.  Show only MAC address here.
 				// else look for network layer and show FINAL destination
