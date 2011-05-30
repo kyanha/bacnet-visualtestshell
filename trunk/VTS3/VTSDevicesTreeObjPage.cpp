@@ -219,13 +219,14 @@ void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
 
 			BACnetAPDUEncoder	compEncoder;
 			BACnetCharacterString xx;
-			xx.SetValue( "objectname", 0);
+			CString str;
+			str.Format( "object %u-%u", m_nObjType, m_nInstance );
+			xx.SetValue( str, 0);
 			xx.Encode( compEncoder, pdevvalue->m_nContext);
 //			VTSCharacterStringCtrl m_CharStr(this, 0);
 //			m_CharStr.SetValue( "ObjectName", 0 );
 //			m_CharStr.Encode( compEncoder, pdevvalue->m_nContext );
 			memcpy( pdevvalue->m_abContent, compEncoder.pktBuffer, compEncoder.pktLength );
-
 		}
 	}
 /*
