@@ -85,6 +85,23 @@ void CEPICSTreeView::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 }
 
+void CEPICSTreeView::SetTreeImageList()
+{
+	// As of 30 May 2011, epicstree.bmp consists of
+	// - 10 images for top-level items, of which 8 are currently used, followed by
+	// - an image for each defined object type
+	// If you use both of the spare top-level images, you must insert space, and
+	// re-define this equate for the index of the first object type's image
+	//
+	// See test code in Refresh() to view all available images
+	//
+#define FIRST_OBJECT_IMAGE 10
+#define PROPRIETARY_OBJECT_IMAGE 7
+    m_imagelist.Create( IDB_EPICSTREE, 18, 2, RGB(255,0,255) );
+
+	CTreeCtrl * ptree = (CTreeCtrl *) GetDlgItem(IDC_EPICSV_TREE);
+	ptree->SetImageList( &m_imagelist, TVSIL_NORMAL );
+}
 
 BEGIN_MESSAGE_MAP(CEPICSTreeView, CFormView)
 	//{{AFX_MSG_MAP(CEPICSTreeView)
@@ -464,6 +481,31 @@ void CEPICSTreeView::Refresh()
 	// Create Special Functionality
 	htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T("Special Functionality"), 6, 6, 0, 0, (LPARAM) new CEPICSViewNodeSpecialFunctionality(this), htreeitemRoot, htreeitemLast );
 
+#if 0
+	// Test code: Show ALL icons in the list, to verify image/type matches when
+	// new object types are added
+	for (int ix=0; ix < 130; ix++)
+	{
+		CString str;
+		if (ix >= FIRST_OBJECT_IMAGE)
+		{
+			str.Format( "%d) type=%d %s", 
+						ix, ix - FIRST_OBJECT_IMAGE, 
+						(LPCTSTR)NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString( ix - FIRST_OBJECT_IMAGE ) );
+		}
+		else
+		{
+			str.Format( "%d ", ix );
+		}
+
+		if (ix >= m_imagelist.GetImageCount())
+		{
+			str += " no image";
+		}
+		htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, str, ix, ix, 0, 0, (LPARAM) new CEPICSViewNodeDataLink(this), htreeitemRoot, htreeitemLast );
+	}
+#endif
+
 	// select the first item in the tree
 	ptree->SelectItem(ptree->GetFirstVisibleItem());
 }
@@ -515,11 +557,16 @@ void CEPICSTreeView::LoadObjectNodes( HTREEITEM htreeitemParent )
 
 	while ( pObj != NULL )
 	{
-		//standard objects
-		if(pObj->object_type <= 128)
-			htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T(pObj->object_name), 7+(pObj->object_type), 7+(pObj->object_type), 0, 0, (LPARAM) new CEPICSViewNodeObject(this, pObj), htreeitemParent, htreeitemLast );
+		if(pObj->object_type < 128)
+		{
+			// Standard object
+			htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T(pObj->object_name), FIRST_OBJECT_IMAGE+(pObj->object_type), FIRST_OBJECT_IMAGE+(pObj->object_type), 0, 0, (LPARAM) new CEPICSViewNodeObject(this, pObj), htreeitemParent, htreeitemLast );
+		}
 		else
-			htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T(pObj->object_name), 32, 32, 0, 0, (LPARAM) new CEPICSViewNodeObject(this, pObj), htreeitemParent, htreeitemLast );
+		{
+			// Proprietary object
+			htreeitemLast = ptree->InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_PARAM | TVIF_SELECTEDIMAGE, _T(pObj->object_name), PROPRIETARY_OBJECT_IMAGE, PROPRIETARY_OBJECT_IMAGE, 0, 0, (LPARAM) new CEPICSViewNodeObject(this, pObj), htreeitemParent, htreeitemLast );
+		}
 
 		pObj = (PICS::generic_object *) pObj->next;
 	}
@@ -568,15 +615,6 @@ void CEPICSTreeView::WipeOut( CTreeCtrl * ptree, HTREEITEM htreeitem )
 CView * CEPICSTreeView::GetInfoPanel()
 {
 	return m_pnodeview;
-}
-
-
-void CEPICSTreeView::SetTreeImageList()
-{
-    m_imagelist.Create( IDB_EPICSTREE, 18, 2, RGB(255,0,255) );
-
-	CTreeCtrl * ptree = (CTreeCtrl *) GetDlgItem(IDC_EPICSV_TREE);
-	ptree->SetImageList( &m_imagelist, TVSIL_NORMAL );
 }
 
 

@@ -2638,7 +2638,7 @@ nextobject:										//										***012
 							if (stricmp(pn,"object-type")==0)
 							{	
 								lp[-1]=':';
-								if ( objtype <=etObjectTypes.propes && objtype!=ReadEnum(&etObjectTypes) )
+								if ((objtype < etObjectTypes.propes) && (objtype != ReadEnum(&etObjectTypes)))
 								{	
 									if (tperror("The object-type does not agree with the object-identifier!",true))
 										return true;
@@ -2745,14 +2745,14 @@ nextobject:										//										***012
 							if (WeKnowObjectType)		//just found out what type it is
 							{	
 								// 5-23-05 Shiyuan Xiao.
-//								if (objtype>=etObjectTypes.propes)	//this is a proprietary object type
+//								if (objtype >= etObjectTypes.propes)	//this is a proprietary object type
 //								{	
 //									tperror("Sorry, this version does not support Proprietary Objects in TextPICS!",true);
 //									objtype=0xFFFF;		//pretend objid was bad
 //									continue;
 //								}
 
-								if (objtype>=etObjectTypes.propes)
+								if (objtype >= etObjectTypes.propes)
 								{
 									if ((pobj=(generic_object *)malloc(sizeof(proprietary_obj_type)))==NULL)		//can't allocate space for it
 									{	
@@ -4088,7 +4088,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 
 	print_debug("PP: Enter ParseProperty, search for '%s' objtype %d\n",pn,objtype);	//MAG
 
-	if (objtype <= etObjectTypes.propes)
+	if (objtype < etObjectTypes.propes)
 	{
 		pd = StdObjects[objtype].sotProps;	//point to property descriptor table for this object type
 	}
@@ -4100,10 +4100,12 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 	pindex=0;
     do
 	{	if (stricmp(pn,pd->PropertyName)==0)	//found this property name
-		{	pstruc=(octet *)pobj+pd->StrucOffset;	//make pointer to where the value is stored
+		{	
+			pstruc=(octet *)pobj+pd->StrucOffset;	//make pointer to where the value is stored
 			
 			//Save the property name which parse type is none. *************017
-			if(pd->ParseType==none) strcpy(NoneTypePropName,pn);
+			if(pd->ParseType==none) 
+				strcpy(NoneTypePropName,pn);
 			
 			if(bNeedReset && bHasNoneType)
 			{
@@ -4122,8 +4124,10 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 			//if(strchr(p,42)||strchr(p,63))
 			if (*lp=='?'||*lp=='*')						//property value is unspecified
 ////////////////////////////////////////////////
-			{	pobj->propflags[pindex]|=ValueUnknown;	//we don't know what the value is
-				if(pd->ParseType == none) NoneTypeValue[0] = *lp;   //added for storeing the value of property,********017
+			{	
+				pobj->propflags[pindex]|=ValueUnknown;	//we don't know what the value is
+				if(pd->ParseType == none) 
+					NoneTypeValue[0] = *lp;   //added for storeing the value of property,********017
 				lp++;							//skip ?												***014
 			}
 			else								//has a property value									***013 End
@@ -4680,7 +4684,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 		}
 		if (pd->PropGroup&Last)
 		{
-			if (objtype <= etObjectTypes.propes)
+			if (objtype < etObjectTypes.propes)
 			{
 				return tperror("Invalid Property Name- Check Spelling",true); 
 			}
@@ -7560,7 +7564,9 @@ word ReadEnum(etable *etp)
 				tperror("Proprietary enumeration cannot use the reserved range for this property!",true);
 			}
 			else
+			{
 				tperror("This is not an extensible enumeration!",true);
+			}
 			return 0xFFFF;
 		}
 	}	
@@ -9001,7 +9007,7 @@ void CheckPICSCons2003I(PICSdb *pd)
       // check for required, conditionally required, and mandatory writable properties
 
 	  // 5-24-2005 Shiyuan Xiao. Ignore unstandard object
-	  if(obj->object_type <= etObjectTypes.propes)
+	  if(obj->object_type < etObjectTypes.propes)
 		  CheckPICSConsProperties(pd, obj); 
 	  
 	  obj=(generic_object *)obj->next;
