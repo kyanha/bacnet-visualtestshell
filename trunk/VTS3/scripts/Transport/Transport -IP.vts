@@ -29,7 +29,7 @@
 -------------------------------------------------------------------------------------------------------------
 -------------------------------------------------MISC-------------------------------------------------
  -- TEST #A READPROPERTY INCONSISTANT TEST 13.4.1 REFERENCES (T)9.15.2.1
- -- TEST #B - Writting with a Property Value Having the Wrong Datatype
+ -- TEST #B - Writing with a Property Value Having the Wrong Datatype
  -- TEST #C - READING WITH AN INVALID TAG
  -- TEST #D - MISSING REQUIRED PARAMETER
  -- TEST #E - TOO MANY PARAMETER
@@ -104,26 +104,35 @@ REFERENCE 13.4.2  SUBREF (B)15.5,15.5.1.1.1; (T)9.15.2.1
 SEND (
   DA = IUT_ADDR
   PDU    = Confirmed_Request
-  SERVICE     = ReadProperty
-  OBJECT = 0, OBJECT2           
-  PROPERTY    = 1, present-value           ; (Device-model_Name or other property that is not an array)
-  Unsigned    = 2, 9            ; Array[1] reads array one
+  SERVICE   = ReadProperty
+  OBJECT    = 0, OBJECT2           
+  PROPERTY  = 1, present-value    ; (Device-model_Name or other property that is not an array)
+  Unsigned  = 2, 9                ; Array[1] reads array one
   )
 
-EXPECT  (
-  Sa = IUT_ADDR
+-- Required for revision >= 4
+EXPECT (
+  SA = IUT_ADDR
+  PDU         = ERROR
+  ERROR-Choice = ReadProperty
+  ENUMERATED = 2                   ;  2 = error class property
+  ENUMERATED = 50                  ;  50 = property is not an array
+  ) 
+
+-- Required for revision < 4
+OR (
+  SA = IUT_ADDR
   PDU = REJECT
   Reject-Reason = 2       ;inconsistant-parameters
-    ) 
+  ) 
 
 OR(
-  Sa = IUT_ADDR
+  SA = IUT_ADDR
   PDU         = ERROR
-  ERROR-CHoice = ReadProperty
-  ENUMERATED = 2                      ;  5 = error class services  pg 363 in the bacnet standard
+  ERROR-Choice = ReadProperty
+  ENUMERATED = 2                   ;  5 = error class services
   ENUMERATED = 42                  ;  42 = invaid array index 
-    ) 
-
+  ) 
 
 ;--------------------------------------------------------------------------------------
 TEST #B - Writting with a Property Value Having the Wrong Datatype
@@ -139,26 +148,29 @@ SEND (
   DA = IUT_ADDR
   PDU    = Confirmed_Request
   SERVICE     = WriteProperty
-  OBJECT = 0, OBJECT2           
+  OBJECT      = 0, OBJECT2           
   PROPERTY    = 1, present-value           
   OPENTAG 3
-       BOOLEAN            = 1              ; USE INCORRECT DATATYPE
+       BOOLEAN  = 1              ; USE INCORRECT DATATYPE
   CLOSETAG 3
   )
 
+-- Required for revision >= 4
 EXPECT  (
-  Sa = IUT_ADDR
+  SA = IUT_ADDR
   PDU         = ERROR
   ERROR-CHoice = WriteProperty
   ENUMERATED = 2                       ; Property
   ENUMERATED = 9                   ;  9 = invalid_datatype_type
-    ) 
+  ) 
 
+-- Allowed for revision < 4
 OR(
-  Sa = IUT_ADDR
+  SA = IUT_ADDR
   PDU         = reject
   Reject-Reason =  3       ; INVALID_PARAMETER_DATATYPE
   ) 
+
 ;--------------------------------------------------------------------------------------
 TEST #C - READING WITH AN INVALID TAG
 
@@ -177,9 +189,29 @@ SEND (
   )
 
 EXPECT(
-  Sa = IUT_ADDR
+  SA = IUT_ADDR
+  PDU  = reject
+  Reject-Reason =  2    ;inconsistent-parameter2
+  ) 
+OR(
+  SA = IUT_ADDR
+  PDU  = reject
+  Reject-Reason =  3    ;invalid-parameter-data-type
+  ) 
+OR(
+  SA = IUT_ADDR
+  PDU  = reject
+  Reject-Reason =  4    ;invalid-tag
+  ) 
+OR(
+  SA = IUT_ADDR
   PDU  = reject
   Reject-Reason =  5    ;missing-required-parameter
+  ) 
+OR(
+  SA = IUT_ADDR
+  PDU  = reject
+  Reject-Reason =  7    ;too-many-arguments
   ) 
 ;--------------------------------------------------------------------------------------
 TEST #D - MISSING REQUIRED PARAMETER
@@ -198,9 +230,14 @@ SEND (
   )
 
 EXPECT(
-  Sa = IUT_ADDR
+  SA = IUT_ADDR
   PDU  = reject
-  Reject-Reason =  5
+  Reject-Reason =  4    ;invalid-tag
+  ) 
+OR(
+  SA = IUT_ADDR
+  PDU  = reject
+  Reject-Reason =  5    ;missing-required-parameter
   ) 
 ;--------------------------------------------------------------------------------------
 TEST #E - TOO MANY  Parms
@@ -209,8 +246,7 @@ TEST #E - TOO MANY  Parms
 
 DEPENDENCIES None
  
-REFERENCE (B) 13.4.4   
-
+REFERENCE (B) 13.4.5
 
 SEND (
   DA = IUT_ADDR
@@ -222,9 +258,14 @@ SEND (
   )
 
 EXPECT(
-  Sa = IUT_ADDR
+  SA = IUT_ADDR
   PDU  = reject
   Reject-Reason =  7           ;too-many-arguments
+  ) 
+OR(
+  SA = IUT_ADDR
+  PDU  = reject
+  Reject-Reason =  4    ;invalid-tag
   ) 
 ;--------------------------------------------------------------------------------------
 TEST #E1 - TOO MANY &Wrong Application Tag
@@ -233,7 +274,7 @@ TEST #E1 - TOO MANY &Wrong Application Tag
 
 DEPENDENCIES None
  
-REFERENCE (B) 13.4.4   
+REFERENCE (B) 13.4.5
 
 
 SEND (
@@ -249,6 +290,11 @@ EXPECT(
   Sa = IUT_ADDR
   PDU  = reject
   Reject-Reason =  7
+  ) 
+OR(
+  SA = IUT_ADDR
+  PDU  = reject
+  Reject-Reason =  4    ;invalid-tag
   ) 
 ;--------------------------------------------------------------------------------------
 TEST #E2 - Read Modle-Name Property Correctly
@@ -280,7 +326,9 @@ EXPECT(
 
 -------------------------------------------------------------------------------------------------------------
 -----------------------------------------------CONFIRMED-----------------------------------------------------
-
+;--------------------------------------------------------------------------------------
+ SECTION Unsupported Confirmed Services Tests
+;-------------------------------------------------------------------------------------
 
 -- Purpose: This test case verifies that the IUT will reject any confirmed services that it does not support.
 
@@ -303,16 +351,16 @@ EXPECT(
       OBJECTIDENTIFIER = 1, IUT_DEVICE_OBJECT  ; even obj id
       ENUMERATED = 2, 3                  ; eventstate ack
       OpenTag 3
-       TIME = 0,18:10:17.00            
+       TIME = 0,[18:10:17.00]
       CloseTag 3
       CHARACTERSTRING =4,ANSI, "AAA"
       OpenTag 5 
-       TIME = 0,18:10:17.00  ; OR 1 UNSIGNED
+       TIME = 0,[18:10:17.00]  ; OR 1 UNSIGNED
       CloseTag 5 
        )
 
  EXPECT (
-  Sa = IUT_ADDR
+  SA = IUT_ADDR
   PDU = Reject                ; 6 = Reject-PDU
   REJECT-REASON = 9
   )

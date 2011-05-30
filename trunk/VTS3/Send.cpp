@@ -13,6 +13,8 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+// TODO: shouldn't these be defined in resource.h, to ensure that
+// the ID values aren't re-used by one of the pages?
 #define	IDC_PORT		0x1001
 #define IDC_PACKETTREE	0x1002
 #define IDC_PACKETDATA	0x1003
@@ -34,8 +36,10 @@ CSendGroupItem gIPItemList[] =
 
 CSendGroup gIPGroup = { "IP", gIPItemList, (CSendPageMPtr)&CSend::IPPage, (CSendPageMPtr)&CSend::IPPage };
 
+// Exported to VTSDoc where VTSWinIPPort constructor specifies this list for IP port
 CSendGroupPtr gIPGroupList[] =
-	{ &gIPGroup, &gBVLLGroup
+	{ &gIPGroup
+	, &gBVLLGroup
 	, &gNetworkGroup
 	, &gAlarmEventAccessGroup
 	, &gFileAccessGroup
@@ -193,7 +197,7 @@ CSendGroupItem gAlarmEventItemList[] =
 	, { "GetEventInformation", (CSendPageMPtr)&CSend::GetEventInformationPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { "GetEventInformation-ACK", (CSendPageMPtr)&CSend::GetEventInformationACKPage, (CSendPageMPtr)&CSend::ComplexACKPage }
 	, { "SubscribeCOV", (CSendPageMPtr)&CSend::SubscribeCOVPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
-  , { "SubscribeCOVProperty", (CSendPageMPtr)&CSend::SubscribeCOVPropertyPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
+	, { "SubscribeCOVProperty", (CSendPageMPtr)&CSend::SubscribeCOVPropertyPage, (CSendPageMPtr)&CSend::ConfirmedRequestPage }
 	, { 0, 0, 0 }
 	};
 
@@ -441,8 +445,8 @@ BEGIN_MESSAGE_MAP(CSend, CPropertySheet)
 	ON_NOTIFY( TVN_ITEMEXPANDEDA, IDC_PACKETTREE, OnItemExpandedPacketTree)
 	ON_NOTIFY( TVN_ITEMEXPANDEDW, IDC_PACKETTREE, OnItemExpandedPacketTree)
 	ON_BN_CLICKED( IDC_SEND, OnSend )
-		 ON_BN_CLICKED( IDC_TRANSMIT_CLOSE, OnTransmitClose )
-		 ON_BN_CLICKED( IDC_CLOSE, OnOnlyClose )
+	ON_BN_CLICKED( IDC_TRANSMIT_CLOSE, OnTransmitClose )
+	ON_BN_CLICKED( IDC_CLOSE, OnOnlyClose )
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 // MAG 15AUG05 add on_bn_clicked for OnOnlyClose function
@@ -471,17 +475,20 @@ void CSend::UpdateEncoded( void )
 	for (lastPage = -1; m_pages[lastPage+1]; lastPage++)
 		;
 
-	// encode the pages
+	// encode the pages, high to low
 	try {
 		for (i = lastPage; i >= 0; i--)
 			m_pages[i]->EncodePage( &contents );
+		
+		// Message is complete.  Enable sending
 		m_send.EnableWindow( true );
-		 		 m_transmit_close.EnableWindow( true );
+		m_transmit_close.EnableWindow( true );
 	}
 	catch (char *errTxt) {
+		// Message is not yet complete.  Disable sending
 		m_packetData.SetWindowText( errTxt );
 		m_send.EnableWindow( false );
-		 		 m_transmit_close.EnableWindow( false );
+		m_transmit_close.EnableWindow( false );
 		return;
 	}
 
@@ -533,14 +540,11 @@ BOOL CSend::OnInitDialog()
 	ScreenToClient( &rectWnd );
 	CRect rectPort( rectWnd.right - kTreeWidth, 6, rectWnd.right - 10, rectWnd.bottom - 9 );
 	m_port.Create( CBS_DROPDOWNLIST
-		| WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | WS_VSCROLL
-		, rectPort, this, IDC_PORT
-		);
+				   | WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | WS_VSCROLL,
+				   rectPort, this, IDC_PORT );
 	
 	// define the ports
 	m_port.AddString( "(select a port)" );
-//MAD_DB	for (int i = 0; i < gMasterPortList.Length(); i++)
-//MAD_DB		m_port.AddString( gMasterPortList[i]->portDesc.portName );
 
 	for (int i = 0; pports != NULL && i < pports->GetSize(); i++)
 		m_port.AddString( (*pports)[i]->GetName() );
@@ -554,9 +558,8 @@ BOOL CSend::OnInitDialog()
 	ScreenToClient( &rectWnd );
 	CRect rectTree( rectWnd.right - kTreeWidth, 37, rectWnd.right - 10, rectWnd.bottom - 9 );
 	m_packetTree.Create( TVS_HASLINES
-		| WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP
-		, rectTree, this, IDC_PACKETTREE
-		);
+						 | WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+						 rectTree, this, IDC_PACKETTREE );
 	
 	// initialize the image list.
     m_packetTreeImageList.Create( IDB_PACKETTREE, 16, 1, RGB(255,0,255) );
@@ -590,47 +593,38 @@ BOOL CSend::OnInitDialog()
 	ScreenToClient( &rectWnd );
 	//int hmiddle = rectWnd.right - (kTreeWidth / 2);
 		 
-		 // MAG modify bottom parameters
-		 CRect rectSend( rectWnd.right - 120, rectWnd.bottom - 60
-		 		 , rectWnd.right - 10, rectWnd.bottom - 35
-		 		 );
-		 m_send.Create( "Send", BS_PUSHBUTTON
-		| WS_CHILD | WS_VISIBLE | WS_TABSTOP
-		, rectSend, this, IDC_SEND
-		 		 );
-		 // MAG add second button
-		 CRect rectSend2( rectWnd.right - 120, rectWnd.bottom - 30
-		 		 , rectWnd.right - 10, rectWnd.bottom - 5
-		 		 );
-		 m_transmit_close.Create( "Send && Close", BS_PUSHBUTTON
-		 		 | WS_CHILD | WS_VISIBLE | WS_TABSTOP
-		 		 , rectSend2, this, IDC_TRANSMIT_CLOSE
-		);
+	// MAG modify bottom parameters
+	CRect rectSend( rectWnd.right - 120, rectWnd.bottom - 60,
+		 		    rectWnd.right - 10, rectWnd.bottom - 35 );
+	m_send.Create( "Send", BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+					rectSend, this, IDC_SEND );
+	// MAG add second button
+	CRect rectSend2( rectWnd.right - 120, rectWnd.bottom - 30,
+		 		     rectWnd.right - 10, rectWnd.bottom - 5 );
+	m_transmit_close.Create( "Send && Close", 
+							 BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                             rectSend2, this, IDC_TRANSMIT_CLOSE );
 
-		// MAG 15AUG05 add 'Close' button
-		 CRect rectSend3( rectWnd.right - kTreeWidth, rectWnd.bottom - 30
-		 		 , rectWnd.right - kTreeWidth+90, rectWnd.bottom - 5
-		 		 );
-		 m_close.Create( "&Close", BS_PUSHBUTTON
-		 		 | WS_CHILD | WS_VISIBLE | WS_TABSTOP
-		 		 , rectSend3, this, IDC_CLOSE
-		);
+	// MAG 15AUG05 add 'Close' button
+	CRect rectSend3( rectWnd.right - kTreeWidth, rectWnd.bottom - 30,
+		 			 rectWnd.right - kTreeWidth+90, rectWnd.bottom - 5 );
+	m_close.Create( "&Close", BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+		 			rectSend3, this, IDC_CLOSE );
+	
 	// create the history combo box. Xiao Shiyuan
 	// MAG 15AUG05 move history combo box up 10px to make room for 'Close' button
 	GetWindowRect( rectWnd );
 	ScreenToClient( &rectWnd );
-	CRect rectHistory( rectWnd.right - kTreeWidth, rectWnd.bottom - 60
-		, rectWnd.right - kTreeWidth + 90, rectWnd.bottom + 40);
-	m_history.Create( CBS_DROPDOWNLIST
-		| WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | WS_VSCROLL
-		, rectHistory, this, IDC_HISTORY
-		);
+	CRect rectHistory( rectWnd.right - kTreeWidth, rectWnd.bottom - 60,
+					   rectWnd.right - kTreeWidth + 90, rectWnd.bottom + 40 );
+	m_history.Create( CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | WS_VSCROLL,
+					  rectHistory, this, IDC_HISTORY );
 	
 	//m_history.EnableWindow( FALSE);
 
 	// disable it until a port is selected
 	m_send.EnableWindow( false );
-		 m_transmit_close.EnableWindow( false );
+	m_transmit_close.EnableWindow( false );
 
 	// put it in the middle
 	CenterWindow();
@@ -692,7 +686,7 @@ void CSend::ChangePort( int indx )
 
 	// enable the send button if a port is selected
 	m_send.EnableWindow( indx != 0 );
-		 m_transmit_close.EnableWindow( indx != 0 );
+	m_transmit_close.EnableWindow( indx != 0 );
 	// return to a null page
 	SetNullPageList();
 
@@ -729,20 +723,23 @@ void CSend::ChangePort( int indx )
 	m_packetTree.DeleteAllItems();
 
 	// establish each group in the tree
-	for (int i = 0; m_groupList[i]; i++) {
+	for (int i = 0; m_groupList[i]; i++) 
+	{
 		curGrp = m_groupList[i];
 
 		// insert the item, set it to our special unused value
 		curParent = m_packetTree.InsertItem( curGrp->groupName, 0, 0 );
 		m_packetTree.SetItemData( curParent, kCSendPageUnused );
 
-		// if this has items then install them
+		// if this has sub-items then install them
 		if (curGrp->groupItemList)
+		{
 			for (int j = 0; curGrp->groupItemList[j].itemName; j++)
-				m_packetTree.SetItemData
-					( m_packetTree.InsertItem( curGrp->groupItemList[j].itemName, 2, 2, curParent )
-					, (i << 4) + j
-					);
+			{
+				HTREEITEM item = m_packetTree.InsertItem( curGrp->groupItemList[j].itemName, 2, 2, curParent );
+				m_packetTree.SetItemData( item, (i << 4) + j );
+			}
+		}
 	}
 }
 
@@ -786,11 +783,9 @@ void CSend::OnSelchangePacketTree( NMHDR* pNotifyStruct, LRESULT* result )
 
 void CSend::ChangePacketTree( int iGroup, int iItem )
 {
-	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
-	int				newLen = 0
-	;
-	HTREEITEM		curItem = 0
-	;
+	int			i;
+	int			newLen = 0;
+	HTREEITEM	curItem = 0;
 	
 	// shuffle along until we find the handle to the group
 	curItem = m_packetTree.GetNextItem( 0, TVGN_CHILD );
@@ -799,9 +794,7 @@ void CSend::ChangePacketTree( int iGroup, int iItem )
 		ASSERT( curItem != 0 );
 	}
 
-/////////////////////////////////////////////////////////////////////////////
-//Modified by Zhu Zhenhua 2003-9-3
-//use this Expand function instead of SetItemState to show the scroll bar of tree
+	// use this Expand function instead of SetItemState to show the scroll bar of tree
 	// make sure it is expanded
 	//m_packetTree.SetItemState( curItem, TVIS_EXPANDED, TVIS_EXPANDED );
 	m_packetTree.Expand(curItem,TVE_EXPAND);
@@ -824,13 +817,16 @@ void CSend::ChangePacketTree( int iGroup, int iItem )
 	m_currentItem = curItem;
 	m_packetTree.SetItemImage( m_currentItem, 3, 3 );
 
-	CSendPageMPtr	newPages[kCSendMaxPages]
-	;
+	CSendPageMPtr	newPages[kCSendMaxPages];
 
 	// add all of the followup pages
 	for (i = 0; i < iGroup; i++)
+	{
 		if (m_groupList[i]->groupFollowupPage)
+		{
 			newPages[newLen++] = m_groupList[i]->groupFollowupPage;
+		}
+	}
 
 	// add the base page
 	if (m_groupList[i]->groupBasePage)
@@ -854,8 +850,7 @@ void CSend::ChangePacketTree( int iGroup, int iItem )
 
 void CSend::OnItemExpandedPacketTree( NMHDR* pNotifyStruct, LRESULT* result )
 {
-	NMTREEVIEW		*pView = (NMTREEVIEW*)pNotifyStruct
-	;
+	NMTREEVIEW		*pView = (NMTREEVIEW*)pNotifyStruct;
 
 	if ((pView->itemNew.state & TVIS_EXPANDED) != 0)
 		m_packetTree.SetItemImage( pView->itemNew.hItem, 1, 1 );
@@ -908,19 +903,6 @@ void CSend::SetPageList( CSendPageMList lp )
 	for (k = 0; k < removeLen; k++)
 		RemovePage( removeList[k] );
 
-#if 0
-	// tell all the pages to reset themselves
-	for (k = 0; m_pages[k]; k++)
-		m_pages[k]->InitPage();
-
-	// tell all the pages to restore to the last saved contents
-	for (k = 0; m_pages[k]; k++)
-		m_pages[k]->RestorePage();
-
-	// set the first page as the active page
-	SetActivePage( 0 );
-#endif
-#if 1
 	TRACE0( "---------- Init Pages\n" );
 	// tell all the pages to reset themselves
 	for (k = 0; m_pages[k]; k++)
@@ -933,18 +915,22 @@ void CSend::SetPageList( CSendPageMList lp )
 
 	TRACE0( "---------- Set Pages Active\n" );
 	// set all the pages as active at least once
-	for (int p = 0; m_pages[p]; p++ ) {
-		SetActivePage( p );
+	for (k = 0; m_pages[k]; k++ ) {
+		SetActivePage( k );
 	}
 
 	TRACE0( "---------- Check for a confirmed request\n" );
 	m_isConfirmedRequest = false;
-	for (int q = 0; m_pages[q]; q++ )
-		if (m_pages[q] == &ConfirmedRequestPage)
+	for (k = 0; m_pages[k]; k++ )
+	{
+		if (m_pages[k] == &ConfirmedRequestPage)
+		{
 			m_isConfirmedRequest = true;
+			break;
+		}
+	}
 
 	TRACE0( "---------- Away we go...\n" );
-#endif
 
 	// Change Send Dialog title to match Active Page
 	CPropertyPage * activePage = GetActivePage();
@@ -1032,14 +1018,16 @@ void CSend::OnSend()
 
 // MAG 27 OCT 03 add subroutine to close send/transmit window when 'Transmit/Close' is pressed
 // SourceForge bug 444179
-void CSend::OnTransmitClose(){
-		 OnSend();
-		 this->PostNcDestroy();
+void CSend::OnTransmitClose()
+{
+	OnSend();
+	this->PostNcDestroy();
 }
 
 // MAG 15AUG05 add subroutine to close send/transmit window when 'Close' is pressed
-void CSend::OnOnlyClose(){
-		 this->PostNcDestroy();
+void CSend::OnOnlyClose()
+{
+	this->PostNcDestroy();
 }
 
 //Xiao Shiyuan 2002-12-5
@@ -1054,9 +1042,8 @@ void CSend::SetHistoryComboBox(int count)
 		m_history.AddString("History:" + indexStr);	
 	}
 	  
-
 	if(count > 0)
-     m_history.SetCurSel(0);
+		m_history.SetCurSel(0);
 }
 
 //Xiao Shiyuan 2002-12-5
