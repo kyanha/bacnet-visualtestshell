@@ -102,6 +102,12 @@ ScriptMsgStatus::ScriptMsgStatus( ScriptDocumentPtr pDoc, ScriptBasePtr pbase, i
 	m_nStatus = nStatus;
 }
 
+ScriptMsgStatus::~ScriptMsgStatus()
+{
+	// Invalidate all out pointers: we think someone is using us post mortem
+	m_pdoc = NULL;
+	m_pbase = NULL;
+}
 
 //
 //	ScriptFilter::ScriptFilter
@@ -2540,10 +2546,9 @@ void ScriptExecutor::SendRouterAvailableToNetwork( ScriptTokenList &tlist, CByte
 
 void ScriptExecutor::SendInitializeRoutingTable( ScriptTokenList &tlist, CByteArray &packet )
 {
-	int						valu
-	;
-	BACnetCharacterString	cstr
-	;
+	int						valu;
+	BACnetCharacterString	cstr;
+	BACnetOctetString	    ostr;
 
 	TRACE0( "SendInitializeRoutingTable[Ack]\n" );
 
@@ -2582,14 +2587,30 @@ void ScriptExecutor::SendInitializeRoutingTable( ScriptTokenList &tlist, CByteAr
 
 		if (portInfo.tokenType != scriptValue)
 			throw "Port information expected";
-		if (!portInfo.IsEncodeable( cstr ))
-			throw "Port information invalid format";
-		if (cstr.strEncoding != 0)
-			throw "Port information must be ASCII encoded";
 
-		packet.Add( cstr.strLen );
-		for (unsigned int j = 0; j < cstr.strLen; j++)
-			packet.Add( cstr.strBuff[j] );
+		// Original code demanded character string.
+		// But BACnet 6.4.7 says this is an octet string.
+		// We now accept either one.
+		
+		// Test octet-string first, as BACnetCharacterString will accept hex but encode it wrong
+		if (portInfo.IsEncodeable( ostr )) {
+			packet.Add( ostr.Length() );
+			for (int j = 0; j < ostr.Length(); j++) {
+				packet.Add( ostr[j] );
+			}
+		}
+		else if (portInfo.IsEncodeable( cstr )) {
+			if (cstr.strEncoding != 0)
+				throw "Port information must be ASCII encoded";
+
+			packet.Add( cstr.strLen );
+			for (unsigned int j = 0; j < cstr.strLen; j++) {
+				packet.Add( cstr.strBuff[j] );
+			}
+		}
+		else {
+			throw "Port information invalid format: must be ASCII or octet-string";
+		}
 	}
 }
 

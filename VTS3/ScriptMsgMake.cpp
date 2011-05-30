@@ -21,6 +21,8 @@ ScriptMsgMake::ScriptMsgMake(ScriptMsgMakeType nType, CScriptMakeDlg * pdlg)
 
 ScriptMsgMake::~ScriptMsgMake()
 {
+	// Invalidate all out pointers: we think someone is using us post mortem
+	m_pdlg = NULL;
 }
 
 

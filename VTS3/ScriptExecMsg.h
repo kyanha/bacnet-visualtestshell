@@ -15,8 +15,14 @@ class ScriptExecMsg : public CObject
 	public:
 		enum ScriptMsgType
 			{
-				msgStatus,
-				msgMakeDlg
+				// We see occasional crashes in PreTranslateMessage,
+				// probably due to accessing a ScriptExecMsg after
+				// it has been deleted.
+				// Until we can find the cause, assign fancy values
+				// to the message types to avoid doing much
+				msgDeleted = 0,
+				msgStatus  = 0x44444444,
+				msgMakeDlg = 0x55555555
 			};
 
 		ScriptMsgType	m_msgtype;
@@ -25,6 +31,7 @@ class ScriptExecMsg : public CObject
 		virtual ~ScriptExecMsg();
 
 		ScriptMsgType GetType(void);
+		DECLARE_DYNAMIC(ScriptExecMsg)
 };
 
 /////////////////////////////////////////////////////////////////////////////

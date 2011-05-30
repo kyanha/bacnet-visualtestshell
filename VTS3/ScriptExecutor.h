@@ -44,6 +44,7 @@ class ScriptMsgStatus : public ScriptExecMsg
 		int					m_nStatus;		// common status code
 
 		ScriptMsgStatus( ScriptDocumentPtr pDoc, ScriptBasePtr pbase, int nStatus );
+		virtual ~ScriptMsgStatus();
 };
 
 
