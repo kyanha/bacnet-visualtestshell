@@ -144,21 +144,21 @@ class BACnetSequence;
 #define VENDOR_NAME                           121
 #define VT_CLASSES_SUPPORTED                  122
 #define WEEKLY_SCHEDULE                       123
-#define ATTEMPTED_SAMPLES 		              124
-#define AVERAGE_VALUE 			              125
+#define ATTEMPTED_SAMPLES                     124
+#define AVERAGE_VALUE                         125
 #define BUFFER_SIZE                           126
 #define CLIENT_COV_INCREMENT                  127
 #define COV_RESUBSCRIPTION_INTERVAL           128
-//#define CURRENT_NOTIFY_TIME                   129
+//#define CURRENT_NOTIFY_TIME                 129
 #define EVENT_TIME_STAMPS                     130
 #define LOG_BUFFER                            131
 #define LOG_DEVICE_OBJECT_PROPERTY            132
-#define ENABLE							      133
+#define ENABLE	                              133
 #define LOG_INTERVAL                          134
-#define MAXIMUM_VALUE 			              135
-#define MINIMUM_VALUE 			              136
+#define MAXIMUM_VALUE                         135
+#define MINIMUM_VALUE                         136
 #define NOTIFICATION_THRESHOLD                137
-//#define PREVIOUS_NOTIFY_TIME                  138
+//#define PREVIOUS_NOTIFY_TIME                138
 #define PROTOCOL_REVISION                     139
 #define RECORDS_SINCE_NOTIFICATION            140
 #define RECORD_COUNT                          141
@@ -166,9 +166,9 @@ class BACnetSequence;
 #define STOP_TIME                             143
 #define STOP_WHEN_FULL                        144
 #define TOTAL_RECORD_COUNT                    145            
-#define VALID_SAMPLES 			              146
-#define WINDOW_INTERVAL 		              147
-#define WINDOW_SAMPLES 			              148
+#define VALID_SAMPLES                         146
+#define WINDOW_INTERVAL                       147
+#define WINDOW_SAMPLES                        148
 #define MAXIMUM_VALUE_TIMESTAMP               149
 #define MINIMUM_VALUE_TIMESTAMP               150
 #define VARIANCE_VALUE 			              151
@@ -246,6 +246,11 @@ class BACnetSequence;
 #define LOCK_STATUS							233
 #define	MASKED_ALARM_VALUES					234
 #define SECURED_STATUS						235
+
+#define BACKUP_AND_RESTORE_STATE       338
+#define BACKUP_PREPARATION_TIME        339
+#define RESTORE_COMPLETION_TIME        340
+#define RESTORE_PREPARATION_TIME       341
 
 /* ----- prototypes for interpreter functions ----- */
 
