@@ -88,9 +88,16 @@ BOOL VTSBackupRestoreDlg::OnInitDialog()
 		if (pPort->IsEnabled())
 		{
 			m_portCtrl.AddString( pPort->m_strName );
+			m_portCtrl.SelectString(-1, pPort->m_strName);
 		}
 	}
-		
+
+	CString str;
+	str.Format( "%d", Delay );
+	m_Delay.SetWindowText( (LPCTSTR)str );
+	str.Format( "%d", timeout );
+	m_backup_timeout.SetWindowText( (LPCTSTR)str );
+
 	m_funCtrl.SetCheck(2);
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
