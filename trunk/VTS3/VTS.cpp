@@ -53,13 +53,20 @@ ScriptDebugNetFilter	gDebug2( "_2" );
 #endif
 
 
-// Formerly redundantly (and DIFFERENTLY) defined in VTSDB.h
+// The version values below are currently used only by CAboutDlg.
+// They duplicate the information in the Version resource.
+//
+// Formerly redundantly (and DIFFERENTLY) defined in VTSDB.h,
 // but not used anywhere but here.
 // They show up in commented-out code in VTSDB.cpp.
-// If that code is ever re-enabled, then figure out how the versioning needs to work.
-extern const int kVTSDBMajorVersion = 3;			// current version
-extern const int kVTSDBMinorVersion = 5;
-const int kReleaseVersion = 5;
+// But it doesn't make sense to tie DATABASE version to CODE version anyway.
+//
+// We have changed CAboutDlg to get the version from the resource.
+// If we ever need to compute with the version, modify CFileVersionInfo 
+// to return integer versions, ans SET these variables at startup.
+//const int kVTSDBMajorVersion = X;			// current version
+//const int kVTSDBMinorVersion = X;
+//const int kReleaseVersion    = X;
 
 extern CWinThread	*gBACnetWinTaskThread;
 
@@ -1769,8 +1776,8 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 			
 class CAboutDlg : public CDialog
 {
-	public:
-		CAboutDlg();
+public:
+	CAboutDlg();
 			
 	// Dialog Data
 	//{{AFX_DATA(CAboutDlg)
@@ -1795,14 +1802,24 @@ protected:
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {
 	//{{AFX_DATA_INIT(CAboutDlg)
-//	m_Version = _T("");
+	m_Version = _T("?.?.?");
 	//}}AFX_DATA_INIT
 
-	m_Version.Format( "Visual Test Shell\nVersion %d.%d.%d"
-		, kVTSDBMajorVersion
-		, kVTSDBMinorVersion
-		, kReleaseVersion		// defined above
-		);
+	CString str( AfxGetApp()->m_pszHelpFilePath );
+	int dot = str.Find( ".HLP" );
+	if (dot >= 0)
+	{
+		str = str.Left( dot );
+		str += ".EXE";
+		// Get our version resource
+		CFileVersionInfo	m_info;
+		m_info.ReadVersionInfo( str );
+		if (m_info.IsValid())
+		{
+			CString version = m_info.GetFileVersionString();
+			m_Version.Format( "Visual Test Shell\nVersion %s", (LPCTSTR)version );
+		}
+	}
 }
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
@@ -1836,20 +1853,17 @@ void VTSApp::OnAppAbout()
 
 void VTSApp::CheckWinPcapVersion( void )
 {
-	CFileVersionInfo	m_info
-	;
+	CFileVersionInfo	m_info;
 
 #if 0
 	// get the information
+	// wtf? This isn't WinPCAP
 	m_info.ReadVersionInfo( "C:\\WINNT\\system32\\drivers\\bacmacnt.sys" );
 
 	if (m_info.IsValid())
 	{
-		CString version = m_info.GetFileVersionString()
-		;
-		int		ver = atoi(version)
-		;
-
+		CString version = m_info.GetFileVersionString();
+		int	ver = atoi(version);
 		if (ver < 3)
 			AfxMessageBox( _T("WARNING: Installed version of BACMACNT.SYS must be 3.0 or later.") );
 	}
@@ -1882,6 +1896,22 @@ int __cdecl VTSAllocHook(
 	return( TRUE );         // Allow the memory operation to proceed
 }
 #endif
+
+static void ShowTheBad( const char *theStr )
+{
+	// Set true if user tells us to not show any more messages
+	static bool shutup = false;
+	
+	TRACE( "%s\n", theStr );
+	if (!shutup)
+	{
+		CString str( theStr );
+		str += "\nDo you want to see more useless messages like this?";
+		shutup = AfxMessageBox( (LPCTSTR)str, MB_ICONEXCLAMATION | MB_YESNO )
+			     == IDNO;
+	}
+}
+
 
 //
 //	VTSApp::PreTranslateMessage
@@ -1935,36 +1965,85 @@ BOOL VTSApp::PreTranslateMessage(MSG* pMsg)
 					ScriptExecMsg * pexecmsg;
 					while ((pexecmsg = gExecutor.ReadMsg()) != NULL)
 					{
-						switch (pexecmsg->GetType())
+						if (pexecmsg->IsKindOf( RUNTIME_CLASS(ScriptExecMsg) ))
 						{
-						case ScriptExecMsg::msgStatus:
+							switch (pexecmsg->GetType())
 							{
-								ScriptMsgStatus * pmsgstatus = (ScriptMsgStatus *) pexecmsg;
-								pmsgstatus->m_pdoc->SetImageStatus( pmsgstatus->m_pbase, pmsgstatus->m_nStatus );
-							}
-							break;
-
-						case ScriptExecMsg::msgMakeDlg:
-							{
-								ScriptMsgMake * pmsgmake = (ScriptMsgMake *) pexecmsg;
-								switch (pmsgmake->m_maketype)
+							case ScriptExecMsg::msgStatus:
 								{
-								case ScriptMsgMake::msgmakeCreate:
-									pmsgmake->m_pdlg->DoModeless();
-									break;
-
-								case ScriptMsgMake::msgmakeDestroy:
-									pmsgmake->m_pdlg->DestroyWindow();
-									delete pmsgmake->m_pdlg;
+									ScriptMsgStatus * pmsgstatus = (ScriptMsgStatus *) pexecmsg;
+									// Do a sanity check
+									if ((pmsgstatus->m_pdoc != NULL) && (pmsgstatus->m_pbase != NULL))
+									{
+										pmsgstatus->m_pdoc->SetImageStatus( pmsgstatus->m_pbase, pmsgstatus->m_nStatus );
+									}
+									else
+									{
+										CString str;
+										str.Format("ScriptMsgStatus has doc=%X base=%X",
+												   pmsgstatus->m_pdoc, pmsgstatus->m_pbase );
+										ShowTheBad( str );
+										// DON'T delete this thing - it probably has been already
+										pexecmsg = NULL;
+									}
 								}
+								break;
+
+							case ScriptExecMsg::msgMakeDlg:
+								{
+									ScriptMsgMake * pmsgmake = (ScriptMsgMake *) pexecmsg;
+									if (pmsgmake->m_pdlg != NULL)
+									{
+										switch (pmsgmake->m_maketype)
+										{
+										case ScriptMsgMake::msgmakeCreate:
+											pmsgmake->m_pdlg->DoModeless();
+											break;
+
+										case ScriptMsgMake::msgmakeDestroy:
+											pmsgmake->m_pdlg->DestroyWindow();
+											delete pmsgmake->m_pdlg;
+											break;
+										default:
+											{
+												CString str;
+												str.Format("Unknown ScriptMsgMake type %X", pmsgmake->m_maketype);
+												ShowTheBad( str );
+												// DON'T delete this thing - it probably has been already
+												pexecmsg = NULL;
+											}
+											break;
+										}
+									}
+									else
+									{
+										CString str;
+										str.Format("ScriptMsgMake has dlg=%X",
+												   pmsgmake->m_pdlg );
+										ShowTheBad( str );
+										// DON'T delete this thing - it probably has been already
+										pexecmsg = NULL;
+									}
+								}
+								break;
+
+							default:
+								{
+									CString str;
+									str.Format("Unknown ScriptExecMsg type %X", pexecmsg->GetType());
+									ShowTheBad( str );
+								}
+								// DON'T delete this thing - it probably has been already
+								pexecmsg = NULL;
+								break;
 							}
-							break;
-
-						default:
-							TRACE("UNKOWN Exec Msg type");
-							ASSERT(0);
 						}
-
+						else
+						{
+							ShowTheBad("Supposed ScriptExecMsg isn't");
+							// DON'T delete this thing - it probably has been already
+							pexecmsg = NULL;
+						}
 						delete pexecmsg;
 					}
 				}
