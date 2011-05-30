@@ -5195,13 +5195,33 @@ void VTSWinIPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection d
 	pkt.packetHdr.packetType = (dir == portSending) ? txData : rxData;
 	
 	// parse the header and suck out the source or destination
-	if (dir == portSending)
+	if (dir == portSending) {
+		// Destination address from data
 		pkt.packetHdr.packetDestination.LocalStation( data, 6 );
-	else
-	if (dir == portReceiving) {
+
+		// Source address is us
+		pkt.packetHdr.packetSource.LocalStation( m_pPort->portEndpoint->portLocalAddr.addrAddr, 6 );
+	} else if (dir == portReceiving) {
+		// Source address from data
 		pkt.packetHdr.packetSource.LocalStation( data, 6 );
-	} else
-		;
+
+		// Destination is either our address or broadcast.  
+		// The IP stack won't tell us, so use the BVLL:
+		// if data[6] = 0x81 (BVLL type), look at data[7]
+		// If Original-broadcast (0x0B), show as broadcast
+		// If Forwarded-npdu, MAY be a broadcast, depending on whether the BBMD used
+		// one-hop or two-hop.  Since one-hop is rare, assume two-hop -> unicast
+		if ((data[6] == 0x81) && (data[7] == 0x0B))
+		{
+			// Broadcast (or a lame implementation that unicast in violation of Annex J)
+			pkt.packetHdr.packetDestination.LocalBroadcast();
+		}
+		else
+		{
+			// Unicast (or one-hop forwarding, or a violation of Annex J)
+			pkt.packetHdr.packetDestination.LocalStation( m_pPort->portEndpoint->portLocalAddr.addrAddr, 6 );
+		}
+	}
 
 	// let the packet refer to the pdu contents, cast away const
 	pkt.NewDataRef( data, len );
