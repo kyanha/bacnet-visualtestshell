@@ -219,6 +219,12 @@ void VTSBACnetTypeGenericPage::EncodeValue( void )
 					BACnetClosingTag().Encode( compEncoder, m_pdevvalue->m_nContext );
 					break;
 				}
+		case 15: {
+//					m_Unsigned.CtrlToObj();
+//					m_Unsigned.Encode( compEncoder, m_pdevvalue->m_nContext );
+					BACnetANY().Encode( compEncoder, m_pdevvalue->m_nContext );
+					break;
+				}
 		default:	;
 	}
 
