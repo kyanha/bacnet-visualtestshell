@@ -13,6 +13,7 @@ static char THIS_FILE[] = __FILE__;
 
 /////////////////////////////////////////////////////////////////////////////
 // ScriptExecMsg
+IMPLEMENT_DYNAMIC(ScriptExecMsg, CObject)
 
 ScriptExecMsg::ScriptExecMsg(ScriptMsgType msgtype)
 {
@@ -21,6 +22,9 @@ ScriptExecMsg::ScriptExecMsg(ScriptMsgType msgtype)
 
 ScriptExecMsg::~ScriptExecMsg()
 {
+	// Mark as deleted, in case some naughty boy accessess
+	// us after death...
+	m_msgtype = msgDeleted;
 }
 
 
