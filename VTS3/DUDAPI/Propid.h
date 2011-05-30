@@ -327,10 +327,7 @@ enum BACnetPropertyIdentifier
 		/* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
 		CHARACTER_SET = 312,
 		STRICT_CHARACTER_MODE = 313,
-		/* enumerations 314-316 are used in Addendum ? */
-		BACKUP_AND_RESTORE_STATE = 314,
-		BACKUP_PREPARATION_TIME = 315,
-		RESTORE_PREPARATION_TIME = 316,
+
 		/* enumerations 317-323 are used in Addendum j to ANSI/ASHRAE 135-2004 */
 		USER_NAME = 317,
 		USER_TYPE = 318,
@@ -344,6 +341,12 @@ enum BACnetPropertyIdentifier
 		BINARY_INACTIVE_VALUE = 325,
 		/* enumeration 326 is used in Addendum j to ANSI/ASHRAE 135-2004 */
 		VERIFICATION_TIME = 326,
+
+		/* enumerations 338-341 are used in Addendum n for ANSI/ASHRAE 135-2008 */
+		BACKUP_AND_RESTORE_STATE = 338,
+		BACKUP_PREPARATION_TIME  = 339,
+		RESTORE_COMPLETION_TIME  = 340,
+		RESTORE_PREPARATION_TIME = 341,
 		/* enumerations 342-344 are defined in Addendum 2008-w */
 		BIT_MASK = 342,
 		BIT_TEXT,						// 343

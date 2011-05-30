@@ -1097,7 +1097,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
 	"access-event-authentication-factor",
 	"access-event-credential",
 	"access-event-time",
-	"access-transaction–events",
+	"access-transaction-events",
 	"accompaniment",
 	"accompaniment-time",
 	"activation-time",
@@ -1161,11 +1161,13 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
 	/* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
 	"character-set",
 	"strict-character-mode",
-	/* enumerations 314-316 are used in Addendum ? */
-	"backup-and-restore-state",
-	"backup-preparation-time",
-	"restore-preparation-time",
-	/* enumerations 317-323 are used in Addendum j to ANSI/ASHRAE 135-2004 */
+
+   /* enumerations 314-316 are used in Addendum ? */
+   "prop-id-314",
+	"prop-id-315",
+	"prop-id-316",
+
+   /* enumerations 317-323 are used in Addendum j to ANSI/ASHRAE 135-2004 */
 	"user-name",
 	"user-type",
 	"uses-remaining",
@@ -1190,15 +1192,19 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
 	"prop-id-335",
 	"prop-id-336",
 	"prop-id-337",
-	"prop-id-338",
-	"prop-id-339",
-	"prop-id-340",
-	"prop-id-341",
-	/* enumerations 342-344 are defined in Addendum 2008-w */	
+
+	/* enumerations 338-341 are used in Addendum n to ANSI/ASHRAE 135-2008 */
+	"backup-and-restore-state",   // 338
+	"backup-preparation-time",
+	"restore-completion-time",
+	"restore-preparation-time",
+
+   /* enumerations 342-344 are defined in Addendum 2008-w */	
 	"bit-mask",
 	"bit-text",
 	"is-utc",		// 344
-	/* enumerations 345-xxx are used in Addendum ? */
+
+   /* enumerations 345-xxx are used in Addendum ? */
 	//"prop-id-345",
 	//"prop-id-346",
 	//"prop-id-347",
