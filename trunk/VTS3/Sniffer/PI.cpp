@@ -431,19 +431,41 @@ char *pif_line( int len )
 //	pif_get_ascii
 //
 //  Copy len bytes of ASCII from the specified offset
+//
+// TODO: Note that afer Addendum 135-2008k, this may get UTF-8 encoded strings.  
+// It would be nice to display them properly, along with 8859-1 and UNICODE.
+// This would involve
+// - place UTF-8 in the output buffer here
+// - modify the display windows to show the appropriate glyphs
+//
+// Ideally
+// - Combine all the replications of string-showing (BACnetCharacterString, by-hand 
+//   during decode, etc) into one place
+// - Pass in the encoding to the display function so we know how to interpret the data
+// Display
+// - If ANSI and 0 to 127: show it
+// - If 8859-1, show it
+// - If ANSI/UTF-8 and 128 to 255: decode as UTF-8.  If UNICODE equivalents are 0 to FF, show as 8859-1
+// - If UNICODE and 0 to FF, show as 8859-1
+// - COULD handle MBCS and JIS, but payback is low
+// - Show anything else in hex
 
 char *pif_get_ascii( int offset, int len, char result_str[], int max_chars )
 {
-	char	c;
+	unsigned char c;
 	char	*src = pif_get_addr() + offset;
 	char	*dst = result_str;
 	bool	truncated = (len > max_chars);
 	if (truncated)
 		max_chars -= 3;		// room for ...
 	
-	// transfer ASCII printable chars
-	while (len-- && max_chars-- && ((c = *src++) != 0))
-		*dst++ = ((c >= ' ') && (c <= '~')) ? c : '.';
+	// Transfer ASCII printable chars
+	// TODO: we can probably assume that 8859-1 is available.
+	// BUT: if we allow UTF-8 strings here, DON'T show them directly
+	while (len-- && max_chars-- && ((c = (unsigned char)*src++) != 0))
+	{
+		*dst++ = ((c >= ' ') && (c <= 0x7F)) ? c : '.';	// ASCII / ANSI X3.4
+	}
 
 	if (truncated)
 	{
@@ -461,6 +483,16 @@ char *pif_get_ascii( int offset, int len, char result_str[], int max_chars )
 //
 //  Show len bytes of ASCII from the current offset as a new detail line, using
 //  the specified format string.  Advance offset pointer.
+//
+// TODO: Note that afer Addendum 135-2008k, this may get UTF-8 encoded strings.  
+// It would be nice to display them properly, along with 8859-1 and UNICODE.
+// This would involve
+// - place UTF-8 in the output buffer here
+// - modify the display windows to show the appropriate glyphs
+//
+// Screwily, many calls to this function pass len=0 and DO NOT have anything to
+// decode from the buffer.  Make a new function for those guys, so we
+// can add a character set specifier parameter here.
 
 void pif_show_ascii( int len, char *prstr )
 {

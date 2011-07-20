@@ -1002,8 +1002,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
             name = 0;
 
          if(mac_length > 0){
-             pif_show_nbytes_hex
-             ("Destination MAC address        = X'%s'",mac_length);
+             pif_show_nbytes_hex("Destination MAC address        = X'%s'",mac_length);
              }
          else {  /* Broadcast MAC address (not shown in PDU) */
              pif_show_ascii(0,"Broadcast MAC address implied");
@@ -1022,8 +1021,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 
          name = LookupName( wbuff, (const unsigned char *)msg_origin + pif_offset, mac_length );
 
-         pif_show_nbytes_hex
-               ("Source MAC address             = X'%s'", mac_length);
+         pif_show_nbytes_hex("Source MAC address             = X'%s'", mac_length);
          if(mac_length <= 0)
             pif_show_ascii(0,"Invalid MAC address length!");
 
@@ -3879,14 +3877,18 @@ void get_bac_charstring(unsigned int tagLen, char *pOut, unsigned int bufLen, un
 	case 0: /* ASCII */
     case 5: /* ISO 8859-1 */
 		// Append as characters
+		// TODO: worry about bytes greater than 127 for ANSI/UTF-8, for 8859-1 depending on installed fonts
+		*pOut++ = '"';
 		{
 			// Limit to buffer length
-			if (tagLen >= bufLen)
+			if (tagLen >= bufLen-3)
 			{
-				tagLen = bufLen;
+				tagLen = bufLen-3;
 			}
-			pif_get_ascii(flag+1+offset, tagLen-1, pOut, MAX_TEXT_ITEM);
+			pOut = pif_get_ascii(flag+1+offset, tagLen-1, pOut, MAX_TEXT_ITEM);
 		}
+		*pOut++ = '"';
+		*pOut   = 0;
 		break;
 
 	case 1: /* MS DBCS */
@@ -3895,13 +3897,16 @@ void get_bac_charstring(unsigned int tagLen, char *pOut, unsigned int bufLen, un
     case 4: /* ISO 10646(UCS-2) */
 		// Append as a lump of hex
 		{
+			*pOut++ = 'X';
+			*pOut++ = '\'';
+
 			static char	hex[] = "0123456789ABCDEF";
 			int i = flag+1;
 
 			// Limit to buffer length
-			if (tagLen >= bufLen)
+			if (tagLen >= bufLen-3)
 			{
-				tagLen = bufLen;
+				tagLen = bufLen-3;
 			}
 			while (--tagLen) {
 				int x = pif_get_byte(i+offset);
@@ -3909,7 +3914,8 @@ void get_bac_charstring(unsigned int tagLen, char *pOut, unsigned int bufLen, un
 				*pOut++ = hex[ x & 0x0F ];
 				i++;
 			}
-			*pOut = 0;
+			*pOut++ = '\'';
+			*pOut   = 0;
 		}
 		break;
 
@@ -3928,33 +3934,33 @@ void show_bac_charstring( unsigned int len)
    charset = pif_get_byte(0);
    switch(charset){
       case 0: /* ASCII */
-             bac_show_byte("ASCII Character Encoding","%u");
+             bac_show_byte("ASCII/UTF-8 Character Encoding","%u");
              sprintf(outstr,"%"FW"s = %%s","Character string");
              pif_show_ascii(len-1, outstr);
              break;
       case 1: /* MS DBCS */
              bac_show_byte("MS Double Byte Character Encoding","%u");
-             sprintf(outstr,"%"FW"s = `%%s'","Character string");
+             sprintf(outstr,"%"FW"s = X'%%s'","Character string");
              pif_show_nbytes_hex(outstr, len-1);
              break;
       case 2: /* JIS C 6226 */
-             bac_show_byte("JIS C 6226","%u");
-             sprintf(outstr,"%"FW"s = `%%s'","Character string");
+             bac_show_byte("JIS X 0208","%u");
+             sprintf(outstr,"%"FW"s = X'%%s'","Character string");
              pif_show_nbytes_hex(outstr, len-1);
              break;
       case 3: /* ISO 10646(UCS-4) */
              bac_show_byte("ISO 10646(UCS-4)","%u");
-             sprintf(outstr,"%"FW"s = `%%s'","Character string");
+             sprintf(outstr,"%"FW"s = X'%%s'","Character string");
              pif_show_nbytes_hex(outstr, len-1);
              break;
       case 4: /* ISO 10646(UCS-2) */
              bac_show_byte("ISO 10646(UCS-2)","%u");
-             sprintf(outstr,"%"FW"s = `%%s'","Character string");
+             sprintf(outstr,"%"FW"s = X'%%s'","Character string");
              pif_show_nbytes_hex(outstr, len-1);
              break;
       case 5: /* ISO 8859-1 */
              bac_show_byte("ISO 8859-1","%u");
-             sprintf(outstr,"%"FW"s = `%%s'","Character string");
+             sprintf(outstr,"%"FW"s = X'%%s'","Character string");
              pif_show_nbytes_hex(outstr, len-1);
              break;
       default:  /* invalid character set */
@@ -5048,12 +5054,11 @@ void show_head_char_string(unsigned int offset, const char* type, int tagval)
 
 	char *pBuf = get_int_line(pi_data_current, pif_offset, offset+strLength, NT_ITEM_HEAD);
 	if (tagval == -1)
-		strLength = sprintf(pBuf, "%s:  '", type);
+		strLength = sprintf(pBuf, "%s:  ", type);
 	else
-		strLength = sprintf(pBuf, "[%d] %s:  '", tagval, type);
+		strLength = sprintf(pBuf, "[%d] %s:  ", tagval, type);
 
 	SafeCopy( pBuf + strLength, strBuff, MAX_INT_LINE - strLength );
-	SafeAppend( pBuf, "'", MAX_INT_LINE );
 }
 
 void show_head_date(unsigned int offset, const char* type, int tagval)
