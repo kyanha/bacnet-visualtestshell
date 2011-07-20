@@ -234,29 +234,33 @@ ScriptWaitCommand::ScriptWaitCommand( ScriptIfdefHandler & ifdefHandler, ScriptS
 	}
 	else if(tok.tokenType == scriptKeyword)
 	{	
-			ScriptParmPtr pParm;
-			// resolve the keyword as a parameter?
-			if ((pParm = pdoc->m_pParmList->LookupParm( tok.tokenSymbol )) != 0)
-			{	
-				char* pNum = pParm->parmValue.GetBuffer(0);
-				StringToValue(pNum);
-			}
-			else
+		ScriptParmPtr pParm;
+		// resolve the keyword as a parameter?
+		if ((pParm = pdoc->m_pParmList->LookupParm( tok.tokenSymbol )) != 0)
+		{	
+			char* pNum = pParm->parmValue.GetBuffer(0);
+			StringToValue(pNum);
+		}
+		else
+		{
 			throw "Can not find the wait value parm";
+		}
 	}
-	else
-		if(!tok.IsInteger(m_nwaittime))
+	else if(!tok.IsInteger(m_nwaittime))
+	{
 		throw "Packet Wait expected";
+	}
 
 	Parse(ifdefHandler, scan, tok);
 	baseLineCount = baseLineStart - tok.tokenLine;
 	CString str = "wait time can not be negative";
 	if(m_nwaittime < 0)
 		AfxMessageBox(str);
+
 	// set the image list offset and status
 	baseImage = 23;
-
 }
+
 void ScriptWaitCommand::StringToValue( const char *dec )
 {
 	BOOL				negValue = FALSE
