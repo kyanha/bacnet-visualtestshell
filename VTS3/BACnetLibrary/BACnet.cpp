@@ -2302,6 +2302,8 @@ void BACnetCharacterString::Encode( CString &enc ) const
 	if (strEncoding == 0) 
 	{
 		// ANSI (or UTF-8 in latter years...), shown in double quotes
+		// TODO: if there are characters above 127, show the string as hex, or
+		// at least show the UTF-8 groups in hex
 		enc = '"';
 
 		const char *src = (char *)strBuff;
@@ -2330,7 +2332,7 @@ void BACnetCharacterString::Encode( CString &enc ) const
 		}
 
 		enc += '"';
-	} 
+	}
 	else 
 	{
 		// Some other character set
@@ -2463,12 +2465,12 @@ void BACnetCharacterString::Decode( const char *dec )
 
 			// build a new buffer
 			KillBuffer();
+			strLen = ostr.strLen;
 			if ( strLen )
 				strBuff = new BACnetOctet[ strLen ];
 
-			strLen = ostr.strLen;
 			if ( strBuff != NULL )
-				memcpy( strBuff, ostr.strBuff, (size_t)strLen );
+				memcpy( strBuff, ostr.strBuff, strLen );
 		} else
 			throw_(43) /* ASCII or hex string expected */;
 #else
