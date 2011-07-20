@@ -190,6 +190,9 @@ ScriptTranslateTable ScriptBooleanMap[] =
 
 ScriptTranslateTable ScriptCharacterTypeMap[] =
 	{ { 0x34504ea6, 0 }						// ANSI
+	, { 0xd5c5606c, 0 }                     // ANSI-X3.4
+	, { 0x5329d445, 0 }                     // UTF-8
+    , { 0x998a0bda, 0 }                     // ISO-10646-UTF-8
 	, { 0xa30b8ce4, 1 }						// IBM
 	, { 0x3bc0262e, 1 }						// MICROSOFT
 	, { 0xb3b30c8b, 1 }						// DBCS
@@ -279,16 +282,19 @@ ScriptTranslateTable *scriptStandardServicesMap;
 	, { 0, 0 }
 	};
 
-	ScriptTranslateTable scriptFailTimesMap[] =
-	{ {0xCEE49250,	 0 }		 // NotificationFailTime
-	,{0x97AC3FDB,	 1 }		 // InternalProcessingFailTime
-	,{0xE6E9C002,	 2 }		 // MinimumON/OFFTime
-	,{0x95DAF86D,	 3 }		 // ScheduleEvaluationFailTime
-	,{0x43ED7A24,	 4 }		 // ExternalCommandFailTime
-	,{0xAA4790D0,	 5 }		 // ProgramObjectStateChangeFailTime
-	,{0x3D824098,	 6 }		 // AcknowledgementFailTime
+	// Strings defined by 135.1-2009 4.5.9
+	// Turned into keywords by removing spaces.  Really!
+	ScriptTranslateTable scriptFailTimesMap[] = // 
+	{ { 0xCEE49250,		 0 }		// NotificationFailTime
+	, { 0x97AC3FDB,		 1 }		// InternalProcessingFailTime
+	, { 0xE6E9C002,		 2 }		// MinimumON/OFFTime
+	, { 0x95DAF86D,		 3 }		// ScheduleEvaluationFailTime
+	, { 0x43ED7A24,		 4 }		// ExternalCommandFailTime
+	, { 0xAA4790D0,		 5 }		// ProgramObjectStateChangeFailTime
+	, { 0x3D824098,		 6 }		// AcknowledgementFailTime
+	, { 0x8F83F96F,		 7 }		// SlaveProxyConfirmInterval
+	, { 0, 0 }
 	};
-	
 
 	ScriptTranslateTable scriptGenKeywordMap[] =
 	{ { kwNET,			 1 }
