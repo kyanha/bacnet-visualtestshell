@@ -935,16 +935,18 @@ static nameoctet Charsets[]={						//								***006 Begin
 			"ISO 10646 (UCS-2)",					csUCS2,
 			"ISO 8859-1",                           cs8859 
 			};										//								***006 End
-static char *FailTimes[]={						//								***019 Begin
-			"Notification Fail Time",	
-			"Internal Processing Fail Time",		
-			"Minimum ON/OFF Time",						
-			"Schedule Evaluation Fail Time",		
-			"External Command Fail Time",				
-			"Program Object State Change Fail Time",		
-			"Acknowledgement Fail Time",		
-			"Unconfirmed Response Fail Time",				
-			};										//								***019 End
+
+static char *FailTimes[MAX_FAIL_TIMES]={			// as defined by 135.1-2009 4.5.9
+			"Notification Fail Time",				// 0
+			"Internal Processing Fail Time",		// 1
+			"Minimum ON/OFF Time",					// 2
+			"Schedule Evaluation Fail Time",		// 3
+			"External Command Fail Time",			// 4
+			"Program Object State Change Fail Time",// 5
+			"Acknowledgement Fail Time",			// 6
+			"Slave Proxy Confirm Interval",			// 7
+//			"Unconfirmed Response Fail Time",		// This isn't in 135.1-2009.  What is it?
+			};
 
 // 5/9/05 Shiyuan Xiao. Support 135.1-2003
 static char *MonthNames[] = {

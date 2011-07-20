@@ -476,23 +476,28 @@ BOOL ScriptDocument::CheckSyntax( void )
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
 						newPacket->packetDelay = 0;
 					else
-					if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwAFTER)) {
+					if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwAFTER)) 
+					{
 						// look for value
 						scannerStack[scannerStack.GetSize()-1]->Next( tok );
-						if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '{')){
+						if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '{'))
+						{
 							//get value from EPICS
 							CString strTime = "";
 							scannerStack[scannerStack.GetSize()-1]->Next( tok );
-							while ( !(tok.tokenType == scriptSymbol  &&  tok.tokenSymbol == '}') ) {
+							while ( !(tok.tokenType == scriptSymbol  &&  tok.tokenSymbol == '}') )
+							{
 								strTime += tok.tokenValue;
 								scannerStack[scannerStack.GetSize()-1]->Next( tok );
-								if (tok.tokenType == scriptEOL) {
+								if (tok.tokenType == scriptEOL)
+								{
 									throw "Close brace '}' expected";
 								}
 							}
 							int nCode = ScriptToken::HashCode(strTime);
 							int nIndex = ScriptToken::Lookup( nCode, scriptFailTimesMap );
-							if (nIndex == -1) {
+							if (nIndex == -1) 
+							{
 								throw "unknown Fail Time";
 							}
 							if (!gPICSdb)
@@ -502,17 +507,28 @@ BOOL ScriptDocument::CheckSyntax( void )
 								throw "This Fail Time is not support in EPICS database";
 							}
 							newPacket->packetDelay = nTime*1000;  // convert seconds into milliseconds
-						}else if (!tok.IsInteger(newPacket->packetDelay))
+						}
+
+						// TODO: should we test for scriptKeyword as WAIT does?
+
+						else if (!tok.IsInteger(newPacket->packetDelay))
+						{
 							throw "Packet delay expected";
+						}
+						
 						if (newPacket->packetDelay < 0)
 							throw "Delay must be a non-negative value";
 						if (newPacket->packetDelay > kMaxPacketDelay)
 							throw "Maximum delay exceeded";
+						
 						scannerStack[scannerStack.GetSize()-1]->Next( tok );
 						if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
 							throw "Open parenthesis '(' expected";
-					} else
+					}
+					else
+					{
 						throw "Open parenthesis '(' expected";
+					}
 					TRACE2( "Packet %08X (Send, %d)\n", newPacket, newPacket->packetDelay );
 
 					// now parse the contents
@@ -550,10 +566,14 @@ BOOL ScriptDocument::CheckSyntax( void )
 					if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '('))
 					{//Modified by Zhu Zhenhua, 2003-12-31, to load default time from EPICS database.
 						if (!gPICSdb)
+						{
 							newPacket->packetDelay = kDefaultPacketDelay;
+						}
 						else
 						{
-							int nTime = gPICSdb->BACnetFailTimes[1];
+							// TODO: "Internal Processing Fail Time" seems goofy as a
+							// communications timeout.
+							int nTime = gPICSdb->BACnetFailTimes[1];		// "Internal Processing Fail Time"
 							if (nTime != ftNotSupported)
 								newPacket->packetDelay = nTime*1000;		// convert seconds to milliseconds
 							else
@@ -574,20 +594,24 @@ BOOL ScriptDocument::CheckSyntax( void )
 						else if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwBEFORE)) {
 							// look for value
 							scannerStack[scannerStack.GetSize()-1]->Next( tok );
-							if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '{')){
+							if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == '{'))
+							{
 								//get value from EPICS
 								CString strTime = "";
 								scannerStack[scannerStack.GetSize()-1]->Next( tok );
-								while ( !(tok.tokenType == scriptSymbol  &&  tok.tokenSymbol == '}') ) {
+								while ( !(tok.tokenType == scriptSymbol  &&  tok.tokenSymbol == '}') ) 
+								{
 									strTime += tok.tokenValue;
 									scannerStack[scannerStack.GetSize()-1]->Next( tok );
-									if (tok.tokenType == scriptEOL) {
+									if (tok.tokenType == scriptEOL) 
+									{
 										throw "Close brace '}' expected";
 									}
 								}
 								int nCode = ScriptToken::HashCode(strTime);
 								int nIndex = ScriptToken::Lookup( nCode, scriptFailTimesMap );
-								if (nIndex == -1) {
+								if (nIndex == -1)
+								{
 									throw "unknown Fail Time";
 								}
 								if (!gPICSdb)
@@ -597,8 +621,12 @@ BOOL ScriptDocument::CheckSyntax( void )
 									throw "This Fail Time is not support in EPICS database";
 								}
 								newPacket->packetDelay = nTime*1000;		// convert seconds to milliseconds
-							}else if (!tok.IsInteger(newPacket->packetDelay))
+							}
+							else if (!tok.IsInteger(newPacket->packetDelay))
+							{
 								throw "Packet delay expected";
+							}
+							
 							if (newPacket->packetDelay < 0)
 								throw "Delay must be a non-negative value";
 							if (newPacket->packetDelay > kMaxPacketDelay)
@@ -612,8 +640,11 @@ BOOL ScriptDocument::CheckSyntax( void )
 							}
 							if ((tok.tokenType != scriptSymbol) || (tok.tokenSymbol != '('))
 								throw "Open parenthesis '(' expected";
-						} else
+						}
+						else
+						{
 							throw "Open parenthesis '(' expected";
+						}
 					}
 					TRACE2( "Packet %08X (Expect, %d)\n", newPacket, newPacket->packetDelay );
 
