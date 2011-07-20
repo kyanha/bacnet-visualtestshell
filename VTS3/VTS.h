@@ -20,7 +20,7 @@
 
 #define	DEVICE_LOOPBACK		1		// set to zero to disable "looped" messages
 
-#define MAX_FAIL_TIMES      7        //		add by GJB, 29/12/2003
+#define MAX_FAIL_TIMES      8        // Size of BACnetFailTimes array per 135.1-2009 4.5.9
 #define MAX_BIBBS           100      //  msd 9/1/04 - added. Provides a little growing room.
 #define MAX_DATALINK_OPTIONS  30     //  msd 9/1/04 - added. Provide a little growing room.
 
