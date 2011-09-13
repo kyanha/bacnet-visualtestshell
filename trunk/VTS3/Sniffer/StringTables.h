@@ -116,7 +116,7 @@ EXPORT_STRINGTABLE(BACnetUnconfirmedServiceChoice);
 EXPORT_STRINGTABLE(BACnetReinitializedStateOfDevice);
 EXPORT_STRINGTABLE(DeviceCommControl_Command);
 EXPORT_STRINGTABLE(TextMessage_Priority);
-
+EXPORT_STRINGTABLE(BACnetBackupState);
 } // end namespace NetworkSniffer
 
 #endif

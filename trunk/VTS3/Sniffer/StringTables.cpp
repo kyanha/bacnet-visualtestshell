@@ -2033,4 +2033,16 @@ STRING_TABLE TextMessage_Priority[] = {
 };
 BAC_STRINGTABLE(TextMessage_Priority);
 
+
+STRING_TABLE BACnetBackupState[] = {
+   "idle",
+   "preparing-for-backup",
+   "preparing-for-restore",
+   "performing-a-backup",
+   "performing-a-restore",
+   "backup-failure",
+   "restore-failure"
+};
+BAC_STRINGTABLE(BACnetBackupState);
+
 } // end namespace NetworkSniffer

@@ -2411,6 +2411,15 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
 			seq.Unsigned( -1, "" );
 		}
 		break;
+	case BACKUP_AND_RESTORE_STATE:
+		seq.Enumerated( -1, "", &BAC_STRTAB_BACnetBackupState );
+		break;
+	case BACKUP_PREPARATION_TIME:
+	case RESTORE_COMPLETION_TIME:
+	case RESTORE_PREPARATION_TIME:
+		seq.Unsigned( -1, "" );		// Unsigned seconds
+		break;
+
 	default:
 		// Show as a sequence of anything, terminated by closing tag
 		if (seq.ListOf())
