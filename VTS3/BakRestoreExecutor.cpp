@@ -122,7 +122,7 @@ void BakRestoreExecutor::ExecuteTest()
 	VTSPorts* pPorts = pVTSDoc->GetPorts();
 	VTSNames* pNames = pVTSDoc->GetNames();
 
-  VTSBackupRestoreDlg dlg(*pNames, *pPorts);
+	VTSBackupRestoreDlg dlg(*pNames, *pPorts);
 	if ( dlg.DoModal() == IDOK )
 	{
 		for ( int i = 0; i < pPorts->GetSize(); i++ )
@@ -400,15 +400,8 @@ void BakRestoreExecutor::DoBackupTest()
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-
-	if(m_Delay)
-	{
-		CString str;
-		str.Format("Waiting %d seconds", m_Delay);
-		m_pOutputDlg->OutMessage((LPCTSTR)str);
-
-		Sleep(m_Delay * 1000);
-	}
+	// Wait for backup preparation
+	Delay( m_Delay );
 
 	// Read array index zero of the Configuration_File property of the Device Object,
 	// and store it in a variable named NUM_FILES.
@@ -601,9 +594,7 @@ void BakRestoreExecutor::DoBackupTest()
 		throw("Cannot end backup process");
 	}
 	m_pOutputDlg->OutMessage("OK");
-
 }
-
 
 
 void BakRestoreExecutor::DoRestoreTest()
@@ -685,15 +676,8 @@ void BakRestoreExecutor::DoRestoreTest()
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-
-    if(m_Delay)
-	{
-      CString str;
-      str.Format("Waiting %d seconds", m_Delay);
-      m_pOutputDlg->OutMessage((LPCTSTR)str);
-
-      Sleep(m_Delay * 1000);
-	}
+	// Wait for restore preparation
+	Delay( m_Delay );
 
 	m_pOutputDlg->OutMessage("Use ReadProperty to read the Device/Object_List...", FALSE);
 	BACnetArrayOf<BACnetObjectIdentifier>	objList;
@@ -970,15 +954,17 @@ void BakRestoreExecutor::DoRestoreTest()
 	}
 
 	// close the .backupindex file
-	m_pOutputDlg->OutMessage("Transmit a ReinitializeDevice service to stop restore...", FALSE);
+	m_pOutputDlg->OutMessage("Transmit a ReinitializeDevice service to complete the restore...", FALSE);
 	if (!SendExpectReinitialize(ENDRESTORE))
 	{
 		throw("Cannot end restore process");
 	}
 	m_pOutputDlg->OutMessage("OK");
 
+	// Delay to let IUT recover.
+	// TODO: should check system-status and/or backup-restore-state
+	Delay( m_Delay );
 }
-
 
 
 void BakRestoreExecutor::DoAuxiliaryTest()
@@ -996,7 +982,7 @@ void BakRestoreExecutor::DoAuxiliaryTest()
 	}
 	else
 	{
-		m_pOutputDlg->OutMessage("Transmit a a unicast Who-Is message to the IUT's address...", FALSE);
+		m_pOutputDlg->OutMessage("Transmit a unicast Who-Is message to the IUT's address...", FALSE);
 		if (!SendExpectWhoIs(devObjID, maxAPDULenAccepted))
 		{
 			m_pOutputDlg->OutMessage("Failed");
@@ -1036,13 +1022,13 @@ void BakRestoreExecutor::DoAuxiliaryTest()
 	DoAuxiliaryTest_10(devObjID);
 	DoAuxiliaryTest_11(devObjID);
 	DoAuxiliaryTest_12(devObjID);
-
 }
 
 /*
 //Initiaing a backup procedure while already performing a backup procedure
 void BakRestoreExecutor::DoAuxiliaryTest_1()
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 1");
 	if (!SendExpectReinitialize(STARTBACKUP))
 	{
 		throw("Cannot start Backup procedure in the IUT");
@@ -1105,13 +1091,13 @@ void BakRestoreExecutor::DoAuxiliaryTest_1()
 	m_pPort = pPortTemp;
 	m_IUTAddr = IUTAddrTemp;
 	m_routerAddr = routerAddrTemp;
-
 }*/
 
 
 // Initiating a backup procedure while already performing a restore procedure
 void BakRestoreExecutor::DoAuxiliaryTest_2()
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 2");
 	m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start restore...", FALSE);
 	if (!SendExpectReinitialize(STARTRESTORE))
 	{
@@ -1119,14 +1105,8 @@ void BakRestoreExecutor::DoAuxiliaryTest_2()
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-  if(m_Delay)
-  {
-    CString str;
-    str.Format("Waiting %d seconds", m_Delay);
-    m_pOutputDlg->OutMessage((LPCTSTR)str);
-
-    Sleep(m_Delay * 1000);
-  }
+	// Wait for restore prep
+	Delay( m_Delay );
 
 	m_pOutputDlg->OutMessage("Transmit Reinitialize_Request to start backup...", FALSE);
 	BACnetEnumerated	errorClass;
@@ -1135,31 +1115,33 @@ void BakRestoreExecutor::DoAuxiliaryTest_2()
 	{
 		throw("Expected BACnetErrorAPDU");
 	}
-	m_pOutputDlg->OutMessage("OK");
-
 	if (errorClass.enumValue != ErrorClass::DEVICE)
 	{
 		throw("Wrong Error Class");
 	}
-
 	if (errorCode.enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
 	{
 		throw("Wrong Error Code");
 	}
+	m_pOutputDlg->OutMessage("OK: got expected error");
 
-  m_pOutputDlg->OutMessage("Transmit ABORTRESTORE...", FALSE);
-  if (!SendExpectReinitialize(ABORTRESTORE))
+	m_pOutputDlg->OutMessage("Transmit ABORTRESTORE...", FALSE);
+	if (!SendExpectReinitialize(ABORTRESTORE))
 	{
 		throw("Unable to abort a restore procedure");
 	}
 	m_pOutputDlg->OutMessage("OK");
 
+	// Delay to let IUT recover.
+	// TODO: should check system-status and/or backup-restore-state
+	Delay( m_Delay );
 }
 
 /*
 // Initiating a restore procedure while already performing a backup procedure
 void BakRestoreExecutor::DoAuxiliaryTest_3()
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 3");
 	if (!SendExpectReinitialize(STARTBACKUP))
 	{
 		throw("Cannot start Backup procedure in the IUT");
@@ -1222,13 +1204,13 @@ void BakRestoreExecutor::DoAuxiliaryTest_3()
 	m_pPort = pPortTemp;
 	m_IUTAddr = IUTAddrTemp;
 	m_routerAddr = routerAddrTemp;
-
 }
 */
 
 // Initiating a restore procedure while already performing a restore procedure
 void BakRestoreExecutor::DoAuxiliaryTest_4()
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 4");
 	m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start restore...", FALSE);
 	if (!SendExpectReinitialize(STARTRESTORE))
 	{
@@ -1236,47 +1218,43 @@ void BakRestoreExecutor::DoAuxiliaryTest_4()
 	}
 	m_pOutputDlg->OutMessage("OK");
 
+	// Wait for restore prep
+	Delay( m_Delay );
+
 	m_pOutputDlg->OutMessage("Transmit Reinitalize-Request to start restore...", FALSE);
 	BACnetEnumerated	errorClass;
 	BACnetEnumerated	errorCode;
-
-  if(m_Delay)
-  {
-    CString str;
-    str.Format("Waiting %d seconds", m_Delay);
-    m_pOutputDlg->OutMessage((LPCTSTR)str);
-
-    Sleep(m_Delay * 1000);
-  }
 
 	if (!SendExpectReinitializeNeg(STARTRESTORE, errorClass, errorCode))
 	{
 		throw("Expected BACnetErrorAPDU");
 	}
-	m_pOutputDlg->OutMessage("OK");
-
 	if (errorClass.enumValue != ErrorClass::DEVICE)
 	{
 		throw("Wrong Error Class");
 	}
-
 	if (errorCode.enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
 	{
 		throw("Wrong Error Code");
 	}
+	m_pOutputDlg->OutMessage("OK: got expected error");
 
-  m_pOutputDlg->OutMessage("Transmit ABORTRESTORE...", FALSE);
-  if (!SendExpectReinitialize(ABORTRESTORE))
+	m_pOutputDlg->OutMessage("Transmit ABORTRESTORE...", FALSE);
+	if (!SendExpectReinitialize(ABORTRESTORE))
 	{
 		throw("Unable to abort a restore procedure");
 	}
 	m_pOutputDlg->OutMessage("OK");
 
+	// Delay to let IUT recover.
+	// TODO: should check system-status and/or backup-restore-state
+	Delay( m_Delay );
 }
 
 // Ending backup and restore procedure via timeout
 void BakRestoreExecutor::DoAuxiliaryTest_5(BACnetObjectIdentifier& devObjID)
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 5");
 	m_pOutputDlg->OutMessage("Transmit WriteProperty-Request to write 30 to Backup_Failure_Timeout...", FALSE);
 	BACnetEnumerated propID(PICS::BACKUP_FAILURE_TIMEOUT);
 	BACnetUnsigned	backupFailureTimeout(30);
@@ -1306,8 +1284,9 @@ void BakRestoreExecutor::DoAuxiliaryTest_5(BACnetObjectIdentifier& devObjID)
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-	m_pOutputDlg->OutMessage("Wait 40 seconds");
-	Sleep(40000);
+	// We presume that recovery from a timeout in backup mode is easy.
+	// If not, add m_Delay as we do for Restore, below.
+	Delay(40);
 
 	m_pOutputDlg->OutMessage("Verify System_Status != BACKUP_IN_PROGRESS...", FALSE);
 	BACnetEnumerated	systemStatus;
@@ -1330,10 +1309,12 @@ void BakRestoreExecutor::DoAuxiliaryTest_5(BACnetObjectIdentifier& devObjID)
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-	m_pOutputDlg->OutMessage("Wait 40 seconds");
-	Sleep(40000);
+	// Originally waited 40 seconds here.
+	// But if IUT times out after the 30 seconds set above, it may take longer than
+	// 10 seconds to restore itself to operating condition.  So we add some delay.
+	Delay(40 + m_Delay);
 
-	m_pOutputDlg->OutMessage("Verify System_STatus != DOWNLOAD_IN_PROGRESS...", FALSE);
+	m_pOutputDlg->OutMessage("Verify System_status != DOWNLOAD_IN_PROGRESS...", FALSE);
 	if (!SendExpectReadProperty(devObjID, propID, propValue))
 	{
 		throw("Cannot read System_Status from the IUT");
@@ -1343,13 +1324,37 @@ void BakRestoreExecutor::DoAuxiliaryTest_5(BACnetObjectIdentifier& devObjID)
 		throw("The System_Status in the IUT's Device Object is still DOWNLOAD_IN_PROGRESS");
 	}
 	m_pOutputDlg->OutMessage("OK");
-
 }
 
 
 // Ending backup and restore procedures via abort
 void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 6");
+
+	// Restore backup time from dialog value m_Backup_Timeout
+	m_pOutputDlg->OutMessage("Transmit WriteProperty-Request to restore Backup_Failure_Timeout...", FALSE);
+	BACnetEnumerated propID(PICS::BACKUP_FAILURE_TIMEOUT);
+	BACnetUnsigned	backupFailureTimeout(m_Backup_Timeout);
+	AnyValue propValue;
+	propValue.SetObject(&backupFailureTimeout);
+	if (!SendExpectWriteProperty(devObjID, propID, propValue))
+	{
+		throw("Cannot write Backup_Failure_Timeout to the IUT");
+	}
+	m_pOutputDlg->OutMessage("OK");
+
+	m_pOutputDlg->OutMessage("Verify Backup_Failure_Timeout...", FALSE);
+	if (!SendExpectReadProperty(devObjID, propID, propValue))
+	{
+		throw("Cannot read Backup_Failure_Timeout from the IUT");
+	}
+	if (backupFailureTimeout.uintValue != m_Backup_Timeout)
+	{
+		throw("Verify Backup_Failure_Timeout in the IUT failed");
+	}
+	m_pOutputDlg->OutMessage("OK");
+
 	m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start backup...", FALSE);
 	if (!SendExpectReinitialize(STARTBACKUP))
 	{
@@ -1366,8 +1371,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
 
 	m_pOutputDlg->OutMessage("Verify System_Status != BACKUP_IN_PROGRESS...", FALSE);
 	BACnetEnumerated	systemStatus;
-	BACnetEnumerated	propID(PICS::SYSTEM_STATUS);
-	AnyValue	propValue;
+	propID = PICS::SYSTEM_STATUS;
 	propValue.SetObject(&systemStatus);
 	if (!SendExpectReadProperty(devObjID, propID, propValue))
 	{
@@ -1386,14 +1390,8 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-  if(m_Delay)
-  {
-    CString str;
-    str.Format("Waiting %d seconds", m_Delay);
-    m_pOutputDlg->OutMessage((LPCTSTR)str);
-
-    Sleep(m_Delay * 1000);
-  }
+	// Wait for restore prep
+	Delay( m_Delay );
 
 	m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to abort restore...", FALSE);
 	if (!SendExpectReinitialize(ABORTRESTORE))
@@ -1402,7 +1400,10 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-	m_pOutputDlg->OutMessage("Verify System_Status != DOWNLOAD_IN_PROGRESS...", FALSE);
+	// Delay to let IUT recover.
+	Delay( m_Delay );
+
+	m_pOutputDlg->OutMessage("Verify System_status != DOWNLOAD_IN_PROGRESS...", FALSE);
 	if (!SendExpectReadProperty(devObjID, propID, propValue))
 	{
 		throw("Cannot read System_Status from the IUT");
@@ -1412,12 +1413,12 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
 		throw("The System_Status in the IUT's Device Object is still DOWNLOAD_IN_PROGRESS");
 	}
 	m_pOutputDlg->OutMessage("OK");
-
 }
 
 // Initiating a backup procedure with an invalid password
 void BakRestoreExecutor::DoAuxiliaryTest_7()
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 7");
 	if (m_strPassword.IsEmpty())
 	{
 		Msg("no password is required, this test has been omitted");
@@ -1452,6 +1453,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_7()
 // Initiating a restore procedure with an invalid password
 void BakRestoreExecutor::DoAuxiliaryTest_8()
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 8");
 	if (m_strPassword.IsEmpty())
 	{
 		Msg("No password is required, this test has been omitted");
@@ -1486,6 +1488,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_8()
 // Initiating and ending a backup procedure when a password is not required
 void BakRestoreExecutor::DoAuxiliaryTest_9(BACnetObjectIdentifier& devObjID)
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 9");
 	if (!m_strPassword.IsEmpty())
 	{
 		Msg("A specific password is required, this test has been omitted");
@@ -1543,6 +1546,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_9(BACnetObjectIdentifier& devObjID)
 // Initiating and ending a restore procedure when a password is not required
 void BakRestoreExecutor::DoAuxiliaryTest_10(BACnetObjectIdentifier& devObjID)
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 10");
 	if (!m_strPassword.IsEmpty())
 	{
 		Msg("A specific password is required, this test has been omitted");
@@ -1562,14 +1566,8 @@ void BakRestoreExecutor::DoAuxiliaryTest_10(BACnetObjectIdentifier& devObjID)
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-  if(m_Delay)
-  {
-    CString str;
-    str.Format("Waiting %d seconds", m_Delay);
-    m_pOutputDlg->OutMessage((LPCTSTR)str);
-
-    Sleep(m_Delay * 1000);
-  }
+	// Wait for restore prep
+	Delay( m_Delay );
 
 	m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to end restore...", FALSE);
 	if (!SendExpectReinitialize(ENDRESTORE))
@@ -1580,6 +1578,9 @@ void BakRestoreExecutor::DoAuxiliaryTest_10(BACnetObjectIdentifier& devObjID)
 		return;
 	}
 	m_pOutputDlg->OutMessage("OK");
+
+	// Delay to let IUT recover.
+	Delay( m_Delay );
 
 	m_pOutputDlg->OutMessage("Verify system_status != DOWNLOAD_IN_PROGRESS");
 	BACnetEnumerated systemStatus;
@@ -1610,6 +1611,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_10(BACnetObjectIdentifier& devObjID)
 // System_Status during a backup procedure
 void BakRestoreExecutor::DoAuxiliaryTest_11(BACnetObjectIdentifier& devObjID)
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 11");
 	m_pOutputDlg->OutMessage("Transmit ReinitializeDevice request to start backup...", FALSE);
 	if (!SendExpectReinitialize(STARTBACKUP))
 	{
@@ -1639,19 +1641,19 @@ void BakRestoreExecutor::DoAuxiliaryTest_11(BACnetObjectIdentifier& devObjID)
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-  m_pOutputDlg->OutMessage("Transmit a ReinitalizeDevice service to End Backup...", FALSE);
+	m_pOutputDlg->OutMessage("Transmit a ReinitalizeDevice service to End Backup...", FALSE);
 	if (!SendExpectReinitialize(ENDBACKUP))
 	{
 		throw("Cannot end backup process");
 	}
 	m_pOutputDlg->OutMessage("OK");
-
 }
 
 
 // System_Status during a restore procedure
 void BakRestoreExecutor::DoAuxiliaryTest_12(BACnetObjectIdentifier& devObjID)
 {
+	m_pOutputDlg->OutMessage("Auxiliary Test 12");
 	m_pOutputDlg->OutMessage("Transmit ReinitializeDevice request to start backup...", FALSE);
 	if (!SendExpectReinitialize(STARTRESTORE))
 	{
@@ -1661,14 +1663,8 @@ void BakRestoreExecutor::DoAuxiliaryTest_12(BACnetObjectIdentifier& devObjID)
 	}
 	m_pOutputDlg->OutMessage("OK");
 
-  if(m_Delay)
-  {
-    CString str;
-    str.Format("Waiting %d seconds", m_Delay);
-    m_pOutputDlg->OutMessage((LPCTSTR)str);
-
-    Sleep(m_Delay * 1000);
-  }
+	// Wait for restore prep
+	Delay( m_Delay );
 
 	m_pOutputDlg->OutMessage("Verify system_status = DOWNLOAD_IN_PROGRESS");
 	BACnetEnumerated systemStatus;
@@ -1690,15 +1686,17 @@ void BakRestoreExecutor::DoAuxiliaryTest_12(BACnetObjectIdentifier& devObjID)
 	}
 	m_pOutputDlg->OutMessage("OK, Sending an Abort Restore ...", FALSE);
 
-  if (!SendExpectReinitialize(ABORTRESTORE))
+	if (!SendExpectReinitialize(ABORTRESTORE))
 	{
 		m_pOutputDlg->OutMessage("Failed");
 		Msg("Cannot start Backup procedure");
 		return;
 	}
+	m_pOutputDlg->OutMessage("OK");
 
-  m_pOutputDlg->OutMessage("OK");
-
+	// Delay to let IUT recover.
+	// TODO: should check system-status and/or backup-restore-state
+	Delay( m_Delay );
 }
 
 void BakRestoreExecutor::ReceiveNPDU(const BACnetNPDU& npdu)
@@ -2447,4 +2445,16 @@ void BakRestoreExecutor::Msg(const char* errMsg)
 	vdp->WritePacket( pkt );
 
 	delete []buff;
+}
+
+void BakRestoreExecutor::Delay( UINT delaySec )
+{
+	if (delaySec != 0)
+	{
+		CString str;
+		str.Format("Waiting %d seconds", delaySec);
+		m_pOutputDlg->OutMessage((LPCTSTR)str);
+
+		Sleep(delaySec * 1000);
+	}
 }

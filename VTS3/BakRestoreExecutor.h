@@ -160,7 +160,8 @@ private:
 	void FindRouterAddress(void);
 
 	void Msg(const char* errMsg);
-	
+
+	void Delay( UINT delaySec );
 };
 
 #endif // !defined(AFX_BAKRESTOREEXECUTOR_H__B11EB238_C49B_4046_84A9_0CF30BFD844B__INCLUDED_)
