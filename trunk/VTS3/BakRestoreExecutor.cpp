@@ -1,5 +1,7 @@
 // BakRestoreExecutor.cpp: implementation of the BakRestoreExecutor class.
 // Jingbo Gao, Sep 20 2004
+// John Hartman 2011: introduce the new concept of "functions" to replace
+// repeating large numbers of code lines...
 //////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
@@ -31,6 +33,16 @@ static char THIS_FILE[]=__FILE__;
 
 // global defines
 BakRestoreExecutor		gBakRestoreExecutor;
+
+// This function returns a new invokeID for each call.
+// VTS originally used invokeID = 1 for all messages.
+// If you want that behavior, simply remove the increment.
+BYTE InvokeID()
+{
+	static UINT invokeID;
+	return (BYTE)invokeID++;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -351,26 +363,10 @@ void BakRestoreExecutor::DoBackupTest()
 		}
 	}
 
-	m_pOutputDlg->OutMessage("Use ReadProperty requests to read Device/Database_Revision"
-							"and Device/Last_Restore_Time...",	FALSE);
-	// Use ReadProperty request to read the Device/Database_Revision and the
-	// Device/Last_Restore_Time and record these in the first line of the
-	propID.enumValue = PICS::DATABASE_REVISION;
-	AnyValue any;
 	BACnetUnsigned databaseRevision;
-	propValue.SetObject(&databaseRevision);
-	if (!SendExpectReadProperty(devObjID, propID, propValue))
-	{
-		throw("Cannot read DATABASE_REVISION from IUT");
-	}
-	propID.enumValue = PICS::LAST_RESTORE_TIME;
 	BACnetTimeStamp	lastRestoreTime;
-	propValue.SetObject(&lastRestoreTime);
-	if (!SendExpectReadProperty(devObjID, propID, propValue))
-	{
-		throw("Cannot read LAST_RESTORE_TIME from IUT");
-	}
-	m_pOutputDlg->OutMessage("OK");
+	ReadDatabaseRevAndRestoreTime( devObjID, databaseRevision, lastRestoreTime );
+
 	// write to the .backupindex file
 	CString chEnc;
 	devObjID.Encode(chEnc);
@@ -661,6 +657,11 @@ void BakRestoreExecutor::DoRestoreTest()
 			m_pOutputDlg->OutMessage("OK");
 		}
 	}
+
+	// Get database revision and last restore time before the restore
+	BACnetUnsigned databaseRevision;
+	BACnetTimeStamp	lastRestoreTime;
+	ReadDatabaseRevAndRestoreTime( devObjID, databaseRevision, lastRestoreTime );
 
 	// Read first line of the .backupindex file, do not used during the test
 	// ((DEVICE, 1170000)), 1024, {(Wednesday,December/31/1969), 18:00:00.00}
@@ -962,8 +963,12 @@ void BakRestoreExecutor::DoRestoreTest()
 	m_pOutputDlg->OutMessage("OK");
 
 	// Delay to let IUT recover.
-	// TODO: should check system-status and/or backup-restore-state
 	Delay( m_Delay );
+
+	// TODO: should check system-status and/or backup-restore-state
+
+	// Get database revision and last restore time before the restore
+	ReadDatabaseRevAndRestoreTime( devObjID, databaseRevision, lastRestoreTime );
 }
 
 
@@ -1849,7 +1854,7 @@ BOOL BakRestoreExecutor::SendExpectReadProperty(BACnetObjectIdentifier& objID, B
 		contents.Add( enc.pktBuffer[i] );
 	}
 	contents.InsertAt(0, (BYTE)0x0C);		// Service Choice = 12(ReadProperty-Request)
-	contents.InsertAt(0, (BYTE)0x01);		// Invoke ID = 1;
+	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
 	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
@@ -1898,7 +1903,7 @@ BOOL BakRestoreExecutor::SendExpectWriteProperty(BACnetObjectIdentifier& objID, 
 		contents.Add( enc.pktBuffer[i] );
 	}
 	contents.InsertAt(0, (BYTE)0x0F);		// Service Choice = 15(WriteProperty-Request)
-	contents.InsertAt(0, (BYTE)0x01);		// Invoke ID = 1;
+	contents.InsertAt(0, InvokeID());		// Invoke ID = 1;
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
 	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
@@ -1957,7 +1962,7 @@ BOOL BakRestoreExecutor::SendExpectReinitialize(ReinitializedStateOfDevice nRrei
 		contents.Add( enc.pktBuffer[i] );
 	}
 	contents.InsertAt(0, (BYTE)0x14);		// Service Choice = 20(ReinitializeDevice-Request)
-	contents.InsertAt(0, (BYTE)0x01);		// Invoke ID = 1;
+	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
 	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
@@ -1985,7 +1990,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Stream(BACnetObjectIdentifier&
 		contents.Add( enc.pktBuffer[i] );
 	}
 	contents.InsertAt(0, (BYTE)0x06);		// Service Choice = 06(AtomicReadFile-Request)
-	contents.InsertAt(0, (BYTE)0x01);		// Invoke ID = 1;
+	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
 	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
@@ -2036,7 +2041,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Record(BACnetObjectIdentifier&
 		contents.Add( enc.pktBuffer[i] );
 	}
 	contents.InsertAt(0, (BYTE)0x06);		// Service Choice = 6(AtomicReadFile-Request)
-	contents.InsertAt(0, (BYTE)0x01);		// Invoke ID = 1;
+	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
 	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
@@ -2098,7 +2103,7 @@ BOOL BakRestoreExecutor::SendExpectCreatObject(BACnetObjectIdentifier& objID,
 		contents.Add( enc.pktBuffer[i] );
 	}
 	contents.InsertAt(0, (BYTE)0x0A);		// Service Choice = 13(creatObject-Request)
-	contents.InsertAt(0, (BYTE)0x01);		// Invoke ID = 1;
+	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
 	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
@@ -2140,7 +2145,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Stream(BACnetObjectIdentifier
 		contents.Add( enc.pktBuffer[i] );
 	}
 	contents.InsertAt(0, (BYTE)0x07);		// Service Choice = 7(atomicWriteFile-Request)
-	contents.InsertAt(0, (BYTE)0x01);		// Invoke ID = 1;
+	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
 	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
@@ -2183,7 +2188,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Record(BACnetObjectIdentifier
 		contents.Add( enc.pktBuffer[i] );
 	}
 	contents.InsertAt(0, (BYTE)0x07);		// Service Choice = 7(atomicWriteFile-Request)
-	contents.InsertAt(0, (BYTE)0x01);		// Invoke ID = 1;
+	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
 	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
@@ -2225,7 +2230,7 @@ BOOL BakRestoreExecutor::SendExpectReinitializeNeg(ReinitializedStateOfDevice nR
 		contents.Add( enc.pktBuffer[i] );
 	}
 	contents.InsertAt(0, (BYTE)0x14);		// Service Choice = 20(ReinitializeDevice-Request)
-	contents.InsertAt(0, (BYTE)0x01);		// Invoke ID = 1;
+	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
 	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
@@ -2457,4 +2462,36 @@ void BakRestoreExecutor::Delay( UINT delaySec )
 
 		Sleep(delaySec * 1000);
 	}
+}
+
+void BakRestoreExecutor::ReadDatabaseRevAndRestoreTime(	BACnetObjectIdentifier &devObjID,
+													    BACnetUnsigned         &databaseRevision,
+                                                        BACnetTimeStamp	       &lastRestoreTime )
+{
+	BACnetEnumerated propID;
+	m_pOutputDlg->OutMessage("Use ReadProperty requests to read Device/Database_Revision"
+							 "and Device/Last_Restore_Time...",	FALSE);
+
+	// Use ReadProperty request to read the Device/Database_Revision and the
+	// Device/Last_Restore_Time and record these in the first line of the
+	propID.enumValue = PICS::DATABASE_REVISION;
+	AnyValue propValue;
+	propValue.SetObject(&databaseRevision);
+	if (!SendExpectReadProperty(devObjID, propID, propValue))
+	{
+		throw("Cannot read DATABASE_REVISION from IUT");
+	}
+
+	propID.enumValue = PICS::LAST_RESTORE_TIME;
+	propValue.SetObject(&lastRestoreTime);
+	if (!SendExpectReadProperty(devObjID, propID, propValue))
+	{
+		throw("Cannot read LAST_RESTORE_TIME from IUT");
+	}
+	m_pOutputDlg->OutMessage("OK");
+
+	CString str, rev;
+	databaseRevision.Encode(rev);
+	str.Format( "Database_Revision = %s", (LPCSTR)rev );
+	m_pOutputDlg->OutMessage( (LPCSTR)str );
 }
