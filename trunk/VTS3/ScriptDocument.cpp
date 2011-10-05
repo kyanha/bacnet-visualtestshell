@@ -192,10 +192,19 @@ BOOL ScriptDocument::CheckSyntax( void )
 				
 //				delete scannerStack[scannerStack.GetSize()-1];
 //				scannerStack.RemoveAt(scannerStack.GetSize()-1);
+
+#if 0
+	// JLH 9/13/2011: but this check means you can't do
+	//    IF (something)
+	//      INCLUDE file.vts
+	//    ENDIF
+	// which cripples scripting even more than it is already...
+	// And it seems to work just fine.
 //GJB  12/12/2003
 				// see if they've left a hanging IF...
 				if ( ifdefHandler.IsIfBlock() )
 					throw "EOF encountered without closing IF";
+#endif
 				ScriptScannerPtr pScan = scannerStack.GetAt( scannerStack.GetSize()-1 );
 				if ( pScan != NULL ) {
 					scannerStack.RemoveAt( scannerStack.GetSize()-1 );
@@ -1327,7 +1336,7 @@ ScriptCommandPtr ScriptDocument::SequenceLevel( ScriptBasePtr sbp, ScriptCommand
 
 			pCommand->m_pcmdPass = pPass;
 
-			// hook the things together if MAKE preceeds and EXPECT
+			// hook the things together if MAKE preceeds an EXPECT
 			// Don't worry about hooking AND/OR EXPECTS packets to root packet's hook... the root
 			// packet's hook will be used in calculating the timeouts during execution...
 
