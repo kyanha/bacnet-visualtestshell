@@ -83,6 +83,9 @@ public:
 	void ReceiveNPDU(const BACnetNPDU& npdu);
 	BOOL IsRunning(void) { return m_execState == execRunning; }
 	void DestoryOutputDlg(void) { m_pOutputDlg = NULL; }
+	void ReadDatabaseRevAndRestoreTime(	BACnetObjectIdentifier &devObjID,
+										BACnetUnsigned         &databaseRevision,
+                                        BACnetTimeStamp	       &lastRestoreTime );
 
 public:
 	BakRestoreExecutor();
