@@ -1082,34 +1082,32 @@ FORMAT1:	if (*scanSrc == 'D') {
 	}
 
 	// check for an IP address
-	if (IsDigit(c)) {
-		int			valu = (c - '0')
-		;
-		const char	*saveSrc = scanSrc
-		;
-		char		*dst = scanValueBuffer
-		;
-		bool		validIP = true
-		;
+	if (!signFound && IsDigit(c)) {
+		int			valu = (c - '0');
+		const char	*saveSrc = scanSrc;
+		char		*saveDst = dst;
+
+		char		*mydst = scanValueBuffer;
+		bool		validIP = true;
 
 		// assume the best
 		tok.tokenType = scriptValue;
 		tok.tokenEnc = scriptIPEnc;
-		*dst++ = c;
+		*mydst++ = c;
 
 		// check for four dotted octets
 		for (int i = 0; i < 4; i++, valu = 0) {
 			// copy the integer portion
 			while (IsDigit(*scanSrc)) {
 				valu = (valu * 10) + (*scanSrc - '0');
-				*dst++ = *scanSrc++;
+				*mydst++ = *scanSrc++;
 			}
 			if (valu > 255) {
 				// nope!
 				validIP = false;
 				break;
 			}
-			if ((i != 3) && ((*dst++ = *scanSrc++) != '.')) {
+			if ((i != 3) && ((*mydst++ = *scanSrc++) != '.')) {
 				validIP = false;
 				break;
 			}
@@ -1117,29 +1115,27 @@ FORMAT1:	if (*scanSrc == 'D') {
 
 		// check for network size
 		if (validIP && (*scanSrc == '/')) {
-			*dst++ = *scanSrc++;
+			*mydst++ = *scanSrc++;
 			while (IsDigit(*scanSrc))
-				*dst++ = *scanSrc++;
+				*mydst++ = *scanSrc++;
 		}
 
 		// check for port (allow 0xBAC0 encoding)
 		if (validIP && (*scanSrc == ':')) {
-			*dst++ = *scanSrc++;
+			*mydst++ = *scanSrc++;
 			if ((*scanSrc == '0') && (ToLower(*(scanSrc+1)) == 'x')) {
-				*dst++ = *scanSrc++;
-				*dst++ = *scanSrc++;
+				*mydst++ = *scanSrc++;
+				*mydst++ = *scanSrc++;
 				while (IsXDigit(*scanSrc))
-					*dst++ = *scanSrc++;
+					*mydst++ = *scanSrc++;
 			} else
 				while (IsDigit(*scanSrc))
-					*dst++ = *scanSrc++;
+					*mydst++ = *scanSrc++;
 		}
-
-		// null terminate the results
-		*dst = 0;
 
 		// if we made it this far, run with it
 		if (validIP) {
+			*mydst = 0;
 			tok.tokenLength = (scanSrc - tStart);
 			tok.tokenValue = scanValueBuffer;
 			return;
@@ -1147,6 +1143,7 @@ FORMAT1:	if (*scanSrc == 'D') {
 
 		// rewind
 		scanSrc = saveSrc;
+		dst = saveDst;
 	}
 
 	// look for a number
