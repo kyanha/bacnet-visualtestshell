@@ -1365,428 +1365,549 @@ STRING_TABLE BACnetStatusFlags[] = {
 };
 BAC_STRINGTABLE(BACnetStatusFlags);
 
+// Use the VTS utility VendorIdTable to update this table.
 STRING_TABLE BACnetVendorID[] = {
-   "ASHRAE",				// 0
-   "NIST",
-   "Trane",
-   "McQuay",
-   "PolarSoft",
-   "Johnson Controls",		// 5
-   "American Auto-Matrix",
-   "Staefa",
-   "Delta Controls",
-   "Landis & Gyr",
-   "Andover Controls",		// 10
-   "Siebe",
-   "Orion Analysis",
-   "Teletrol",
-   "Cimetrics Technology",
-   "Cornell University",	// 15
-   "Carrier",
-   "Honeywell",
-   "Alerton",
-   "Tour & Andersson",
-   "Hewlett-Packard",		// 20
-   "Dorsette's Inc.",
-   "Cerberus AG",
-   "York",
-   "Automated Logic",
-   "Control Systems International",	// 25
-   "Phoenix Controls Corporation",
-   "Innovex",
-   "KMC Controls",				// 28
-
-   "Xn Technologies, Inc.",		//29
-   "Hyundai Information Technology Co., Ltd.",    //30
-   "Tokimec Inc.",				//31
-   "Simplex",					//32
-   "North Building Technologies Limited",    //33
-   "Notifier",					//34
-   "Reliable Controls Corporation",    //35
-   "Tridium Inc.",				//36
-   "Sierra Monitor Corp.",		//37
-   "Silicon Energy",			//38
-   "Kieback & Peter GmbH & Co KG",    //39
-   "Anacon Systems, Inc.",		//40
-   "Systems Controls & Instruments, LLC",    //41
-   "Lithonia Lighting",			//42
-   "Micropower Manufacturing",	//43
-   "Matrix Controls",			//44
-   "METALAIRE",					//45
-   "ESS Engineering",			//46
-   "Sphere Systems Pty Ltd.",   //47
-   "Walker Technologies Corporation",    //48
-   "H I Solutions, Inc.",		//49
-   "MBS GmbH",					//50
-   "SAMSON AG",    //51
-   "Badger Meter Inc.",    //52
-   "DAIKIN Industries Ltd.",    //53
-   "NARA Controls Inc.",    //54
-   "Mammoth Inc.",    //55
-   "Liebert Corporation",    //56
-   "SEMCO Incorporated",    //57
-   "Air Monitor Corporation",    //58
-   "TRIATEK, LLC",    //59
-   "NexLight",    //60
-   "Multistack",    //61
-   "TSI Incorporated",    //62
-   "Weather-Rite, Inc.",    //63
-   "Dunham-Bush",    //64
-   "Reliance Electric",    //65
-   "LCS Inc.",    //66
-   "Regulator Australia PTY Ltd.",    //67
-   "Touch-Plate Lighting Controls",    //68
-   "Amann GmbH",    //69
-   "RLE Technologies",    //70
-   "Cardkey Systems",    //71
-   "SECOM Co., Ltd.",    //72
-   "ABB Gebäudetechnik AG Bereich NetServ",    //73
-   "KNX Association cvba",    //74
-   "Institute of Electrical Installation Engineers of Japan (IEIEJ)",    //75
-   "Nohmi Bosai, Ltd.",    //76
-   "Carel S.p.A.",    //77
-   "AirSense Technology, Inc.",    //78
-   "Hochiki Corporation",    //79
-   "Fr. Sauter AG",    //80
-   "Matsushita Electric Works, Ltd.",    //81
-   "Mitsubishi Electric Corporation, Inazawa Works",    //82
-   "Mitsubishi Heavy Industries, Ltd.",    //83
-   "ITT Bell & Gossett",    //84
-   "Yamatake Building Systems Co., Ltd.",    //85
-   "The Watt Stopper, Inc.",    //86
-   "Aichi Tokei Denki Co., Ltd.",    //87
-   "Activation Technologies, LLC",    //88
-   "Saia-Burgess Controls, Ltd.",    //89
-   "Hitachi, Ltd.",    //90
-   "Novar Corp./Trend Control Systems Ltd.",    //91
-   "Mitsubishi Electric Lighting Corporation",    //92
-   "Argus Control Systems, Ltd.",    //93
-   "Kyuki Corporation",    //94
-   "Richards-Zeta Building Intelligence, Inc.",    //95
-   "Scientech R&D, Inc.",    //96
-   "VCI Controls, Inc.",    //97
-   "Toshiba Corporation",    //98
-   "Mitsubishi Electric Corporation Air Conditioning & Refrigeration Systems Works",    //99
-   "Custom Mechanical Equipment, LLC",    //100
-   "ClimateMaster",    //101
-   "ICP Panel-Tec, Inc.",    //102
-   "D-Tek Controls",    //103
-   "NEC Engineering, Ltd.",    //104
-   "PRIVA BV",    //105
-   "Meidensha Corporation",    //106
-   "JCI Systems Integration Services",    //107
-   "Freedom Corporation",    //108
-   "Neuberger Gebäudeautomation GmbH",    //109
-   "Sitronix",    //110
-   "Leviton Manufacturing",    //111
-   "Fujitsu Limited",    //112
-   "Emerson Network Power",    //113
-   "S. A. Armstrong, Ltd.",    //114
-   "Visonet AG",    //115
-   "M&M Systems, Inc.",    //116
-   "Custom Software Engineering",    //117
-   "Nittan Company, Limited",    //118
-   "Elutions Inc. (Wizcon Systems SAS)",    //119
-   "Pacom Systems Pty., Ltd.",    //120
-   "Unico, Inc.",    //121
-   "Ebtron, Inc.",    //122
-   "Scada Engine",    //123
-   "AC Technology Corporation",    //124
-   "Eagle Technology",    //125
-   "Data Aire, Inc.",    //126
-   "ABB, Inc.",    //127
-   "Transbit Sp. z o. o.",    //128
-   "Toshiba Carrier Corporation",    //129
-   "Shenzhen Junzhi Hi-Tech Co., Ltd.",    //130
-   "Tokai Soft",    //131
-   "Blue Ridge Technologies",    //132
-   "Veris Industries",    //133
-   "Centaurus Prime",    //134
-   "Sand Network Systems",    //135
-   "Regulvar, Inc.",    //136
-   "Fastek International, Ltd.",    //137
-   "PowerCold Comfort Air Solutions, Inc.",    //138
-   "I Controls",    //139
-   "Viconics Electronics, Inc.",    //140
-   "Yaskawa Electric America, Inc.",    //141
-   "DEOS control systems GmbH",    //142
-   "Digitale Mess- und Steuersysteme AG",    //143
-   "Fujitsu General Limited",    //144
-   "Project Engineering S.r.l.",    //145
-   "Sanyo Electric Co., Ltd.",    //146
-   "Integrated Information Systems, Inc.",    //147
-   "Temco Controls, Ltd.",    //148
-   "Airtek Technologies, Inc.",    //149
-   "Advantech Corporation",    //150
-   "Titan Products, Ltd.",    //151
-   "Regel Partners",    //152
-   "National Environmental Product",    //153
-   "Unitec Corporation",    //154
-   "Kanden Engineering Company",    //155
-   "Messner Gebäudetechnik GmbH",    //156
-   "Integrated.CH",    //157
-   "EH Price Limited",    //158
-   "SE-Electronic GmbH",    //159
-   "Rockwell Automation",    //160
-   "Enflex Corp.",    //161
-   "ASI Controls",    //162
-   "SysMik GmbH Dresden",    //163
-   "HSC Regelungstechnik GmbH",    //164
-   "Smart Temp Australia Pty. Ltd.",    //165
-   "Cooper Controls",    //166
-   "Duksan Mecasys Co., Ltd.",    //167
-   "Fuji IT Co., Ltd.",    //168
-   "Vacon Plc",    //169
-   "Leader Controls",    //170
-   "Cylon Controls, Ltd.",    //171
-   "Compas",    //172
-   "Mitsubishi Electric Building Techno-Service Co., Ltd.",    //173
-   "Building Control Integrators",    //174
-   "ITG Worldwide (M) Sdn Bhd",    //175
-   "Lutron Electronics Co., Inc.",    //176
-   "Cooper-Atkins Corporation",    //177
-   "LOYTEC Electronics GmbH",    //178
-   "ProLon",    //179
-   "Mega Controls Limited",    //180
-   "Micro Control Systems, Inc.",    //181
-   "Kiyon, Inc.",    //182
-   "Dust Networks",    //183
-   "Advanced Building Automation Systems",    //184
-   "Hermos AG",    //185
-   "CEZIM",    //186
-   "Softing",    //187
-   "Lynxspring",    //188
-   "Schneider Toshiba Inverter Europe",    //189
-   "Danfoss Drives A/S",    //190
-   "Eaton Corporation",    //191
-   "Matyca S.A.",    //192
-   "Botech AB",    //193
-   "Noveo, Inc.",    //194
-   "AMEV",    //195
-   "Yokogawa Electric Corporation",    //196
-   "GFR Gesellschaft für Regelungstechnik",    //197
-   "Exact Logic",    //198
-   "Mass Electronics Pty Ltd dba Innotech Control Systems Australia",    //199
-   "Kandenko Co., Ltd.",    //200
-   "DTF, Daten-Technik Fries",    //201
-   "Klimasoft, Ltd.",    //202
-   "Toshiba Schneider Inverter Corporation",    //203
-   "Control Applications, Ltd.",    //204
-   "KDT Systems Co., Ltd.",    //205
-   "Onicon Incorporated",    //206
-   "Automation Displays, Inc.",    //207
-   "Control Solutions, Inc.",    //208
-   "Remsdaq Limited",    //209
-   "NTT Facilities, Inc.",    //210
-   "VIPA GmbH",    //211
-   "TSC21 Association of Japan",    //212
-   "BBP Energie Ltee",    //213
-   "HRW Limited",    //214
-   "Lighting Control & Design, Inc.",    //215
-   "Mercy Electronic and Electrical Industries",    //216
-   "Samsung SDS Co., Ltd",    //217
-   "Impact Facility Solutions, Inc.",    //218
-   "Aircuity",    //219
-   "Control Techniques, Ltd.",    //220
-   "OpenGeneral Pty., Ltd.",    //221
-   "WAGO Kontakttechnik GmbH & Co. KG",    //222
-   "Cerus Industrial",    //223
-   "Chloride Power Protection Company",    //224
-   "Computrols, Inc.",    //225
-   "Phoenix Contact GmbH & Co. KG",    //226
-   "Grundfos Management A/S",    //227
-   "Ridder Drive Systems",    //228
-   "Soft Device SDN BHD",    //229
-   "Integrated Control Technology Limited",    //230
-   "AIRxpert Systems, Inc.",    //231
-   "Microtrol Limited",    //232
-   "Red Lion Controls",    //233
-   "Digital Electronics Corporation",    //234
-   "Ennovatis GmbH",    //235
-   "Serotonin Software Technologies, Inc.",    //236
-   "LS Industrial Systems Co., Ltd.",    //237
-   "Square D Company",    //238
-   "S Squared Innovations, Inc.",    //239
-   "Aricent Ltd.",    //240
-   "EtherMetrics, LLC",    //241
-   "Industrial Control Communications, Inc.",    //242
-   "Paragon Controls, Inc.",    //243
-   "A. O. Smith Corporation",    //244
-   "Contemporary Control Systems, Inc.",    //245
-   "Intesis Software SL",    //246
-   "Ingenieurgesellschaft N. Hartleb mbH",    //247
-   "Heat-Timer Corporation",    //248
-   "Ingrasys Technology, Inc.",    //249
-   "Costerm Building Automation",    //250
-   "WILO SE",    //251
-   "Embedia Technologies Corp.",    //252
-   "Technilog",    //253
-   "HR Controls Ltd. & Co. KG",    //254
-   "Lennox International, Inc.",    //255
-   "RK-Tec Rauchklappen-Steuerungssysteme GmbH & Co. KG",    //256
-   "Thermomax, Ltd.",    //257
-   "ELCON Electronic Control, Ltd.",    //258
-   "Larmia Control AB",    //259
-   "BACnet Stack at SourceForge",    //260
-   "G4S Security Services A/S",    //261
-   "Sitek S.p.A.",    //262
-   "Cristal Controles",    //263
-   "Regin AB",    //264
-   "Dimension Software, Inc. ",    //265
-   "SynapSense Corporation",    //266
-   "Beijing Nantree Electronic Co., Ltd.",    //267
-   "Camus Hydronics Ltd.",    //268
-   "Kawasaki Heavy Industries, Ltd. ",    //269
-   "Critical Environment Technologies",    //270
-   "ILSHIN IBS Co., Ltd.",    //271
-   "ELESTA Energy Control AG",    //272
-   "KROPMAN Installatietechniek",    //273
-   "Baldor Electric Company",    //274
-   "INGA mbH",    //275
-   "GE Consumer & Industrial",    //276
-   "Functional Devices, Inc.",    //277
-   "ESAC",    //278
-   "M-System Co., Ltd.",    //279
-   "Yokota Co., Ltd.",    //280
-   "Hitranse Technology Co., LTD",    //281
-   "Federspiel Controls",    //282
-   "Kele, Inc.",    //283
-   "Opera Electronics, Inc.",    //284
-   "Gentec",    //285
-   "Embedded Science Labs, LLC",    //286
-   "Parker Hannifin Corporation",    //287
-   "MaCaPS International Limited",    //288
-   "Link4 Corporation",    //289
-   "Romutec Steuer-u. Regelsysteme GmbH ",    //290
-   "Pribusin, Inc.",    //291
-   "Advantage Controls",    //292
-   "Critical Room Control",    //293
-   "LEGRAND",    //294
-   "Tongdy Control Technology Co., Ltd. ",    //295
-   "ISSARO Integrierte Systemtechnik",    //296
-   "Pro-Dev Industries",    //297
-   "DRI-STEEM",    //298
-   "Creative Electronic GmbH",    //299
-   "Swegon AB",    //300
-   "Jan Brachacek",    //301
-   "Hitachi Appliances, Inc.",    //302
-   "Real Time Automation, Inc.",    //303
-   "ITEC Hankyu-Hanshin Co.",    //304
-   "Cyrus E&M Engineering Co., Ltd. ",    //305
-   "Racine Federated, Inc.",    //306
-   "Verari Systems, Inc. ",    //307
-   "Elesta GmbH Building Automation ",    //308
-   "Securiton",    //309
-   "OSlsoft, Inc.",    //310
-   "Hanazeder Electronic GmbH ",    //311
-   "Honeywell Security Deutschland, Novar GmbH",    //312
-   "Siemens Energy & Automation, Inc.",    //313
-   "ETM Professional Control GmbH",    //314
-   "Meitav-tec, Ltd.",    //315
-   "Janitza Electronics GmbH ",    //316
-   "MKS Nordhausen",    //317
-   "De Gier Drive Systems B.V. ",    //318
-   "Cypress Envirosystems",    //319
-   "SMARTron s.r.o.",    //320
-   "Verari Systems, Inc.",    //321
-   "K-W Electronic Service, Inc.",    //322
-   "ALFA-SMART Energy Management",    //323
-   "Telkonet, Inc.",    //324
-   "Securiton GmbH",    //325
-   "Cemtrex, Inc.",    //326
-   "Performance Technologies, Inc.",    //327
-   "Xtralis (Aust) Pty Ltd",    //328
-   "TROX GmbH",    //329
-   "Beijing Hysine Technology Co., Ltd",    //330
-   "RCK Controls, Inc.",    //331
-   "ACELIA",    //332
-   "Novar/Honeywell",    //333
-   "The S4 Group, Inc.",    //334
-   "Schneider Electric",    //335
-   "LHA Systems",    //336
-   "GHM engineering Group, Inc.",    //337
-   "Cllimalux S.A.",    //338
-   "VAISALA Oyj",    //339
-   "COMPLEX (Beijing) Technology, Co., LTD.",    //340
-   "SCADAmetrics",    //341
-   "POWERPEG NSI Limited",    //342
-   "BACnet Interoperability Testing Services, Inc.",    //343
-   "Teco a.s.",    //344
-   "Plexus Technology Limited",    //345
-   "Energy Focus, Inc.",    //346
-   "Powersmiths International Corp.",    //347
-   "Nichibei Co., Ltd.",    //348
-   "HKC Technology Ltd.",    //349
-   "Ovation Networks, Inc.",    //350
-   "Setra Systems",    //351
-   "AVG Automation",    //352
-   "ZXC Ltd.",    //353
-   "Byte Sphere",    //354
-   "Generiton Co., Ltd.",    //355
-   "Holter Regelarmaturen GmbH & Co. KG",    //356
-   "Bedford Instruments, LLC",    //357
-   "Standair Inc.",    //358
-   "WEG Automation - R&D",    //359
-   "Prolon Control Systems ApS",    //360
-   "Inneasoft",    //361
-   "ConneXSoft GmbH",    //362
-   "CEAG Notlichtsysteme GmbH",    //363
-   "Distech Controls, Inc.",    //364
-   "Industrial Technology Research Institute",    //365
-   "ICONICS, Inc.",    //366
-   "IQ Controls s.c.",    //367
-   "OJ Electronics A/S",    //368
-   "Rolbit Ltd.",    //369
-   "Synapsys Solutions Ltd.",    //370
-   "ACME Engineering Prod. Ltd.",    //371
-   "Zener Electric Pty, Ltd.",    //372
-   "Selectronix, Inc.",    //373
-   "Gorbet & Banerjee, LLC.",    //374
-   "IME",    //375
-   "Stephen H. Dawson Computer Service",    //376
-   "Accutrol, LLC",    //377
-   "Schneider Elektronik GmbH",    //378
-   "Alpha-Inno Tec GmbH",    //379
-   "ADMMicro, Inc.",    //380
-   "Greystone Energy Systems, Inc.",    //381
-   "CAP Technologie",    //382
-   "KeRo Systems",    //383
-   "Domat Control System s.r.o.",    //384
-   "Efektronics Pty. Ltd.",    //385
-   "Hekatron Vertriebs GmbH",    //386
-   "Securiton AG",    //387
-   "Carlo Gavazzi Controls SpA",    //388
-   "Chipkin Automation Systems",    //389
-   "Savant Systems, LLC",    //390
-   "Simmtronic Lighting Controls",    //391
-   "Abelko Innovation AB",    //392
-   "Seresco Technologies Inc.",    //393
-   "IT Watchdogs",    //394
-   "Automation Assist Japan Corp.",    //395
-   "Thermokon Sensortechnik GmbH",    //396
-   "EGauge Systems, LLC",    //397
-   "Quantum Automation (ASIA) PTE, Ltd.",    //398
-   "Toshiba Lighting & Technology Corp.",    //399
-   "SPIN Engenharia de Automação Ltda.",    //400
-   "Logistics Systems & Software Services India PVT. Ltd.",    //401
-   "Delta Controls Integration Products",    //402
-   "Focus Media",    //403
-   "LUMEnergi Inc.",    //404
-   "Kara Systems",    //405
-   "RF Code, Inc.",    //406
-   "Fatek Automation Corp.",    //407
-   "JANDA Software Company, LLC",    //408
-   "Open System Solutions Limited",    //409
-   "Intelec Systems PTY Ltd.",    //410
-   "Ecolodgix, LLC",    //411
-   "Douglas Lighting Controls",    //412
-   "Intelligente Sensoren Aktoren Tech",    //413
-   "AREAL",    //414
-   "Beckhoff Automation GmbH",    //415
-   "IPAS GmbH",    //416
-   "KE2 Therm Solutions"    //417
-   // Updated 27 Feb 2010 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
-   
+    "ASHRAE",                                                // 0
+    "NIST",                                                  // 1
+    "The Trane Company",                                     // 2
+    "McQuay International",                                  // 3
+    "PolarSoft",                                             // 4
+    "Johnson Controls, Inc.",                                // 5
+    "American Auto-Matrix",                                  // 6
+    "Siemens Building Technologies, Ltd., Landis  Staefa Division Europe", // 7
+    "Delta Controls",                                        // 8
+    "Siemens Building Technologies, Inc.",                   // 9
+    "Tour Andover Controls Corporation",                     // 10
+    "TAC",                                                   // 11
+    "Orion Analysis Corporation",                            // 12
+    "Teletrol Systems Inc.",                                 // 13
+    "Cimetrics Technology",                                  // 14
+    "Cornell University",                                    // 15
+    "United Technologies Carrier",                           // 16
+    "Honeywell Inc.",                                        // 17
+    "Alerton / Honeywell",                                   // 18
+    "TAC AB",                                                // 19
+    "Hewlett-Packard Company",                               // 20
+    "Dorsette’s Inc.",                                       // 21
+    "Cerberus AG",                                           // 22
+    "York Controls Group",                                   // 23
+    "Automated Logic Corporation",                           // 24
+    "CSI Control Systems International",                     // 25
+    "Phoenix Controls Corporation",                          // 26
+    "Innovex Technologies, Inc.",                            // 27
+    "KMC Controls, Inc.",                                    // 28
+    "Xn Technologies, Inc.",                                 // 29
+    "Hyundai Information Technology Co., Ltd.",              // 30
+    "Tokimec Inc.",                                          // 31
+    "Simplex",                                               // 32
+    "North Building Technologies Limited",                   // 33
+    "Notifier",                                              // 34
+    "Reliable Controls Corporation",                         // 35
+    "Tridium Inc.",                                          // 36
+    "Sierra Monitor Corp.",                                  // 37
+    "Silicon Energy",                                        // 38
+    "Kieback  Peter GmbH  Co KG",                            // 39
+    "Anacon Systems, Inc.",                                  // 40
+    "Systems Controls  Instruments, LLC",                    // 41
+    "Lithonia Lighting",                                     // 42
+    "Micropower Manufacturing",                              // 43
+    "Matrix Controls",                                       // 44
+    "METALAIRE",                                             // 45
+    "ESS Engineering",                                       // 46
+    "Sphere Systems Pty Ltd.",                               // 47
+    "Walker Technologies Corporation",                       // 48
+    "H I Solutions, Inc.",                                   // 49
+    "MBS GmbH",                                              // 50
+    "SAMSON AG",                                             // 51
+    "Badger Meter Inc.",                                     // 52
+    "DAIKIN Industries Ltd.",                                // 53
+    "NARA Controls Inc.",                                    // 54
+    "Mammoth Inc.",                                          // 55
+    "Liebert Corporation",                                   // 56
+    "SEMCO Incorporated",                                    // 57
+    "Air Monitor Corporation",                               // 58
+    "TRIATEK, LLC",                                          // 59
+    "NexLight",                                              // 60
+    "Multistack",                                            // 61
+    "TSI Incorporated",                                      // 62
+    "Weather-Rite, Inc.",                                    // 63
+    "Dunham-Bush",                                           // 64
+    "Reliance Electric",                                     // 65
+    "LCS Inc.",                                              // 66
+    "Regulator Australia PTY Ltd.",                          // 67
+    "Touch-Plate Lighting Controls",                         // 68
+    "Amann GmbH",                                            // 69
+    "RLE Technologies",                                      // 70
+    "Cardkey Systems",                                       // 71
+    "SECOM Co., Ltd.",                                       // 72
+    "ABB Gebäudetechnik AG Bereich NetServ",                 // 73
+    "KNX Association cvba",                                  // 74
+    "Institute of Electrical Installation Engineers of Japan (IEIEJ)", // 75
+    "Nohmi Bosai, Ltd.",                                     // 76
+    "Carel S.p.A.",                                          // 77
+    "AirSense Technology, Inc.",                             // 78
+    "Hochiki Corporation",                                   // 79
+    "Fr. Sauter AG",                                         // 80
+    "Matsushita Electric Works, Ltd.",                       // 81
+    "Mitsubishi Electric Corporation, Inazawa Works",        // 82
+    "Mitsubishi Heavy Industries, Ltd.",                     // 83
+    "ITT Bell  Gossett",                                     // 84
+    "Yamatake Building Systems Co., Ltd.",                   // 85
+    "The Watt Stopper, Inc.",                                // 86
+    "Aichi Tokei Denki Co., Ltd.",                           // 87
+    "Activation Technologies, LLC",                          // 88
+    "Saia-Burgess Controls, Ltd.",                           // 89
+    "Hitachi, Ltd.",                                         // 90
+    "Novar Corp./Trend Control Systems Ltd.",                // 91
+    "Mitsubishi Electric Lighting Corporation",              // 92
+    "Argus Control Systems, Ltd.",                           // 93
+    "Kyuki Corporation",                                     // 94
+    "Richards-Zeta Building Intelligence, Inc.",             // 95
+    "Scientech RD, Inc.",                                    // 96
+    "VCI Controls, Inc.",                                    // 97
+    "Toshiba Corporation",                                   // 98
+    "Mitsubishi Electric Corporation Air Conditioning  Refrigeration Systems Works", // 99
+    "Custom Mechanical Equipment, LLC",                      // 100
+    "ClimateMaster",                                         // 101
+    "ICP Panel-Tec, Inc.",                                   // 102
+    "D-Tek Controls",                                        // 103
+    "NEC Engineering, Ltd.",                                 // 104
+    "PRIVA BV",                                              // 105
+    "Meidensha Corporation",                                 // 106
+    "JCI Systems Integration Services",                      // 107
+    "Freedom Corporation",                                   // 108
+    "Neuberger Gebäudeautomation GmbH",                      // 109
+    "Sitronix",                                              // 110
+    "Leviton Manufacturing",                                 // 111
+    "Fujitsu Limited",                                       // 112
+    "Emerson Network Power",                                 // 113
+    "S. A. Armstrong, Ltd.",                                 // 114
+    "Visonet AG",                                            // 115
+    "MM Systems, Inc.",                                      // 116
+    "Custom Software Engineering",                           // 117
+    "Nittan Company, Limited",                               // 118
+    "Elutions Inc. (Wizcon Systems SAS)",                    // 119
+    "Pacom Systems Pty., Ltd.",                              // 120
+    "Unico, Inc.",                                           // 121
+    "Ebtron, Inc.",                                          // 122
+    "Scada Engine",                                          // 123
+    "AC Technology Corporation",                             // 124
+    "Eagle Technology",                                      // 125
+    "Data Aire, Inc.",                                       // 126
+    "ABB, Inc.",                                             // 127
+    "Transbit Sp. z o. o.",                                  // 128
+    "Toshiba Carrier Corporation",                           // 129
+    "Shenzhen Junzhi Hi-Tech Co., Ltd.",                     // 130
+    "Tokai Soft",                                            // 131
+    "Blue Ridge Technologies",                               // 132
+    "Veris Industries",                                      // 133
+    "Centaurus Prime",                                       // 134
+    "Sand Network Systems",                                  // 135
+    "Regulvar, Inc.",                                        // 136
+    "AFDtek Division of Fastek International Inc.",          // 137
+    "PowerCold Comfort Air Solutions, Inc.",                 // 138
+    "I Controls",                                            // 139
+    "Viconics Electronics, Inc.",                            // 140
+    "Yaskawa America, Inc.",                                 // 141
+    "DEOS control systems GmbH",                             // 142
+    "Digitale Mess- und Steuersysteme AG",                   // 143
+    "Fujitsu General Limited",                               // 144
+    "Project Engineering S.r.l.",                            // 145
+    "Sanyo Electric Co., Ltd.",                              // 146
+    "Integrated Information Systems, Inc.",                  // 147
+    "Temco Controls, Ltd.",                                  // 148
+    "Airtek International Inc.",                             // 149
+    "Advantech Corporation",                                 // 150
+    "Titan Products, Ltd.",                                  // 151
+    "Regel Partners",                                        // 152
+    "National Environmental Product",                        // 153
+    "Unitec Corporation",                                    // 154
+    "Kanden Engineering Company",                            // 155
+    "Messner Gebäudetechnik GmbH",                           // 156
+    "Integrated.CH",                                         // 157
+    "EH Price Limited",                                      // 158
+    "SE-Electronic GmbH",                                    // 159
+    "Rockwell Automation",                                   // 160
+    "Enflex Corp.",                                          // 161
+    "ASI Controls",                                          // 162
+    "SysMik GmbH Dresden",                                   // 163
+    "HSC Regelungstechnik GmbH",                             // 164
+    "Smart Temp Australia Pty.  Ltd.",                       // 165
+    "Cooper Controls",                                       // 166
+    "Duksan Mecasys Co., Ltd.",                              // 167
+    "Fuji IT Co., Ltd.",                                     // 168
+    "Vacon Plc",                                             // 169
+    "Leader Controls",                                       // 170
+    "Cylon Controls, Ltd.",                                  // 171
+    "Compas",                                                // 172
+    "Mitsubishi Electric Building Techno-Service Co., Ltd.", // 173
+    "Building Control Integrators",                          // 174
+    "ITG Worldwide (M) Sdn Bhd",                             // 175
+    "Lutron Electronics Co., Inc.",                          // 176
+    "Unknown-vendor-177",                                    // 177
+    "LOYTEC Electronics GmbH",                               // 178
+    "ProLon",                                                // 179
+    "Mega Controls Limited",                                 // 180
+    "Micro Control Systems, Inc.",                           // 181
+    "Kiyon, Inc.",                                           // 182
+    "Dust Networks",                                         // 183
+    "Advanced Building Automation Systems",                  // 184
+    "Hermos AG",                                             // 185
+    "CEZIM",                                                 // 186
+    "Softing",                                               // 187
+    "Lynxspring",                                            // 188
+    "Schneider Toshiba Inverter Europe",                     // 189
+    "Danfoss Drives A/S",                                    // 190
+    "Eaton Corporation",                                     // 191
+    "Matyca S.A.",                                           // 192
+    "Botech AB",                                             // 193
+    "Noveo, Inc.",                                           // 194
+    "AMEV",                                                  // 195
+    "Yokogawa Electric Corporation",                         // 196
+    "GFR Gesellschaft für Regelungstechnik",                 // 197
+    "Exact Logic",                                           // 198
+    "Mass Electronics Pty Ltd dba Innotech Control Systems Australia", // 199
+    "Kandenko Co., Ltd.",                                    // 200
+    "DTF, Daten-Technik Fries",                              // 201
+    "Klimasoft, Ltd.",                                       // 202
+    "Toshiba Schneider Inverter Corporation",                // 203
+    "Control Applications, Ltd.",                            // 204
+    "KDT Systems Co., Ltd.",                                 // 205
+    "Onicon Incorporated",                                   // 206
+    "Automation Displays, Inc.",                             // 207
+    "Control Solutions, Inc.",                               // 208
+    "Remsdaq Limited",                                       // 209
+    "NTT Facilities, Inc.",                                  // 210
+    "VIPA GmbH",                                             // 211
+    "TSC21 Association of Japan",                            // 212
+    "Strato Automation",                                     // 213
+    "HRW Limited",                                           // 214
+    "Lighting Control  Design, Inc.",                        // 215
+    "Mercy Electronic and Electrical Industries",            // 216
+    "Samsung SDS Co., Ltd",                                  // 217
+    "Impact Facility Solutions, Inc.",                       // 218
+    "Aircuity",                                              // 219
+    "Control Techniques, Ltd.",                              // 220
+    "OpenGeneral Pty., Ltd.",                                // 221
+    "WAGO Kontakttechnik GmbH  Co. KG",                      // 222
+    "Cerus Industrial",                                      // 223
+    "Chloride Power Protection Company",                     // 224
+    "Computrols, Inc.",                                      // 225
+    "Phoenix Contact GmbH  Co. KG",                          // 226
+    "Grundfos Management A/S",                               // 227
+    "Ridder Drive Systems",                                  // 228
+    "Soft Device SDN BHD",                                   // 229
+    "Integrated Control Technology Limited",                 // 230
+    "AIRxpert Systems, Inc.",                                // 231
+    "Microtrol Limited",                                     // 232
+    "Red Lion Controls",                                     // 233
+    "Digital Electronics Corporation",                       // 234
+    "Ennovatis GmbH",                                        // 235
+    "Serotonin Software Technologies, Inc.",                 // 236
+    "LS Industrial Systems Co., Ltd.",                       // 237
+    "Square D Company",                                      // 238
+    "S Squared Innovations, Inc.",                           // 239
+    "Aricent Ltd.",                                          // 240
+    "EtherMetrics, LLC",                                     // 241
+    "Industrial Control Communications, Inc.",               // 242
+    "Paragon Controls, Inc.",                                // 243
+    "A. O. Smith Corporation",                               // 244
+    "Contemporary Control Systems, Inc.",                    // 245
+    "Intesis Software SL",                                   // 246
+    "Ingenieurgesellschaft N. Hartleb mbH",                  // 247
+    "Heat-Timer Corporation",                                // 248
+    "Ingrasys Technology, Inc.",                             // 249
+    "Costerm Building Automation",                           // 250
+    "WILO SE",                                               // 251
+    "Embedia Technologies Corp.",                            // 252
+    "Technilog",                                             // 253
+    "HR Controls Ltd.  Co. KG",                              // 254
+    "Lennox International, Inc.",                            // 255
+    "RK-Tec Rauchklappen-Steuerungssysteme GmbH  Co. KG",    // 256
+    "Thermomax, Ltd.",                                       // 257
+    "ELCON Electronic Control, Ltd.",                        // 258
+    "Larmia Control AB",                                     // 259
+    "BACnet Stack at SourceForge",                           // 260
+    "G4S Security Services A/S",                             // 261
+    "Sitek S.p.A.",                                          // 262
+    "Cristal Controles",                                     // 263
+    "Regin AB",                                              // 264
+    "Dimension Software, Inc. ",                             // 265
+    "SynapSense Corporation",                                // 266
+    "Beijing Nantree Electronic Co., Ltd.",                  // 267
+    "Camus Hydronics Ltd.",                                  // 268
+    "Kawasaki Heavy Industries, Ltd. ",                      // 269
+    "Critical Environment Technologies",                     // 270
+    "ILSHIN IBS Co., Ltd.",                                  // 271
+    "ELESTA Energy Control AG",                              // 272
+    "KROPMAN Installatietechniek",                           // 273
+    "Baldor Electric Company",                               // 274
+    "INGA mbH",                                              // 275
+    "GE Consumer  Industrial",                               // 276
+    "Functional Devices, Inc.",                              // 277
+    "ESAC",                                                  // 278
+    "M-System Co., Ltd.",                                    // 279
+    "Yokota Co., Ltd.",                                      // 280
+    "Hitranse Technology Co., LTD",                          // 281
+    "Federspiel Controls",                                   // 282
+    "Kele, Inc.",                                            // 283
+    "Opera Electronics, Inc.",                               // 284
+    "Gentec",                                                // 285
+    "Embedded Science Labs, LLC",                            // 286
+    "Parker Hannifin Corporation",                           // 287
+    "MaCaPS International Limited",                          // 288
+    "Link4 Corporation",                                     // 289
+    "Romutec Steuer-u. Regelsysteme GmbH ",                  // 290
+    "Pribusin, Inc.",                                        // 291
+    "Advantage Controls",                                    // 292
+    "Critical Room Control",                                 // 293
+    "LEGRAND",                                               // 294
+    "Tongdy Control Technology Co., Ltd. ",                  // 295
+    "ISSARO Integrierte Systemtechnik",                      // 296
+    "Pro-Dev Industries",                                    // 297
+    "DRI-STEEM",                                             // 298
+    "Creative Electronic GmbH",                              // 299
+    "Swegon AB",                                             // 300
+    "Jan Brachacek",                                         // 301
+    "Hitachi Appliances, Inc.",                              // 302
+    "Real Time Automation, Inc.",                            // 303
+    "ITEC Hankyu-Hanshin Co.",                               // 304
+    "Cyrus EM Engineering Co., Ltd. ",                       // 305
+    "Racine Federated, Inc.",                                // 306
+    "Cirrascale Corporation",                                // 307
+    "Elesta GmbH Building Automation ",                      // 308
+    "Securiton",                                             // 309
+    "OSlsoft, Inc.",                                         // 310
+    "Hanazeder Electronic GmbH ",                            // 311
+    "Honeywell Security Deutschland, Novar GmbH",            // 312
+    "Siemens Energy  Automation, Inc.",                      // 313
+    "ETM Professional Control GmbH",                         // 314
+    "Meitav-tec, Ltd.",                                      // 315
+    "Janitza Electronics GmbH ",                             // 316
+    "MKS Nordhausen",                                        // 317
+    "De Gier Drive Systems B.V. ",                           // 318
+    "Cypress Envirosystems",                                 // 319
+    "SMARTron s.r.o.",                                       // 320
+    "Verari Systems, Inc.",                                  // 321
+    "K-W Electronic Service, Inc.",                          // 322
+    "ALFA-SMART Energy Management",                          // 323
+    "Telkonet, Inc.",                                        // 324
+    "Securiton GmbH",                                        // 325
+    "Cemtrex, Inc.",                                         // 326
+    "Performance Technologies, Inc.",                        // 327
+    "Xtralis (Aust) Pty Ltd",                                // 328
+    "TROX GmbH",                                             // 329
+    "Beijing Hysine Technology Co., Ltd",                    // 330
+    "RCK Controls, Inc.",                                    // 331
+    "Distech Controls SAS",                                  // 332
+    "Novar/Honeywell",                                       // 333
+    "The S4 Group, Inc.",                                    // 334
+    "Schneider Electric",                                    // 335
+    "LHA Systems",                                           // 336
+    "GHM engineering Group, Inc.",                           // 337
+    "Cllimalux S.A.",                                        // 338
+    "VAISALA Oyj",                                           // 339
+    "COMPLEX (Beijing) Technology, Co., LTD.",               // 340
+    "SCADAmetrics",                                          // 341
+    "POWERPEG NSI Limited",                                  // 342
+    "BACnet Interoperability Testing Services, Inc.",        // 343
+    "Teco a.s.",                                             // 344
+    "Plexus Technology Limited",                             // 345
+    "Energy Focus, Inc.",                                    // 346
+    "Powersmiths International Corp.",                       // 347
+    "Nichibei Co., Ltd.",                                    // 348
+    "HKC Technology Ltd.",                                   // 349
+    "Ovation Networks, Inc.",                                // 350
+    "Setra Systems",                                         // 351
+    "AVG Automation",                                        // 352
+    "ZXC Ltd.",                                              // 353
+    "Byte Sphere",                                           // 354
+    "Generiton Co., Ltd.",                                   // 355
+    "Holter Regelarmaturen GmbH  Co. KG",                    // 356
+    "Bedford Instruments, LLC",                              // 357
+    "Standair Inc.",                                         // 358
+    "WEG Automation - RD",                                   // 359
+    "Prolon Control Systems ApS",                            // 360
+    "Inneasoft",                                             // 361
+    "ConneXSoft GmbH",                                       // 362
+    "CEAG Notlichtsysteme GmbH",                             // 363
+    "Distech Controls Inc.",                                 // 364
+    "Industrial Technology Research Institute",              // 365
+    "ICONICS, Inc.",                                         // 366
+    "IQ Controls s.c.",                                      // 367
+    "OJ Electronics A/S",                                    // 368
+    "Rolbit Ltd.",                                           // 369
+    "Synapsys Solutions Ltd.",                               // 370
+    "ACME Engineering Prod. Ltd.",                           // 371
+    "Zener Electric Pty, Ltd.",                              // 372
+    "Selectronix, Inc.",                                     // 373
+    "Gorbet  Banerjee, LLC.",                                // 374
+    "IME",                                                   // 375
+    "Stephen H. Dawson Computer Service",                    // 376
+    "Accutrol, LLC",                                         // 377
+    "Schneider Elektronik GmbH",                             // 378
+    "Alpha-Inno Tec GmbH",                                   // 379
+    "ADMMicro, Inc.",                                        // 380
+    "Greystone Energy Systems, Inc.",                        // 381
+    "CAP Technologie",                                       // 382
+    "KeRo Systems",                                          // 383
+    "Domat Control System s.r.o.",                           // 384
+    "Efektronics Pty. Ltd.",                                 // 385
+    "Hekatron Vertriebs GmbH",                               // 386
+    "Securiton AG",                                          // 387
+    "Carlo Gavazzi Controls SpA",                            // 388
+    "Chipkin Automation Systems",                            // 389
+    "Savant Systems, LLC",                                   // 390
+    "Simmtronic Lighting Controls",                          // 391
+    "Abelko Innovation AB",                                  // 392
+    "Seresco Technologies Inc.",                             // 393
+    "IT Watchdogs",                                          // 394
+    "Automation Assist Japan Corp.",                         // 395
+    "Thermokon Sensortechnik GmbH",                          // 396
+    "EGauge Systems, LLC",                                   // 397
+    "Quantum Automation (ASIA) PTE, Ltd.",                   // 398
+    "Toshiba Lighting  Technology Corp.",                    // 399
+    "SPIN Engenharia de Automação Ltda.",                    // 400
+    "Logistics Systems  Software Services India PVT. Ltd.",  // 401
+    "Delta Controls Integration Products",                   // 402
+    "Focus Media",                                           // 403
+    "LUMEnergi Inc.",                                        // 404
+    "Kara Systems",                                          // 405
+    "RF Code, Inc.",                                         // 406
+    "Fatek Automation Corp.",                                // 407
+    "JANDA Software Company, LLC",                           // 408
+    "Open System Solutions Limited",                         // 409
+    "Intelec Systems PTY Ltd.",                              // 410
+    "Ecolodgix, LLC",                                        // 411
+    "Douglas Lighting Controls",                             // 412
+    "iSAtech GmbH intelligente Sensoren Aktoren technologie", // 413
+    "AREAL",                                                 // 414
+    "Beckhoff Automation GmbH",                              // 415
+    "IPAS GmbH",                                             // 416
+    "KE2 Therm Solutions",                                   // 417
+    "Base2Products",                                         // 418
+    "DTL Controls, LLC",                                     // 419
+    "INNCOM International, Inc.",                            // 420
+    "BTR Netcom GmbH",                                       // 421
+    "Greentrol Automation, Inc",                             // 422
+    "BELIMO Automation AG",                                  // 423
+    "Samsung Heavy Industries Co, Ltd",                      // 424
+    "Triacta Power Technologies, Inc.",                      // 425
+    "Globestar Systems",                                     // 426
+    "MLB Advanced Media, LP",                                // 427
+    "SWG Stuckmann Wirtschaftliche Gebäudesysteme GmbH",     // 428
+    "SensorSwitch",                                          // 429
+    "Multitek Power Limited",                                // 430
+    "Aquametro AG",                                          // 431
+    "LG Electronics Inc.",                                   // 432
+    "Electronic Theatre Controls, Inc.",                     // 433
+    "Mitsubishi Electric Corporation Nagoya Works",          // 434
+    "Delta Electronics, Inc.",                               // 435
+    "Elma Kurtalj, Ltd.",                                    // 436
+    "ADT Fire and Security Sp. A.o.o.",                      // 437
+    "Nedap Security Management",                             // 438
+    "ESC Automation Inc.",                                   // 439
+    "DSP4YOU Ltd.",                                          // 440
+    "GE Sensing and Inspection Technologies",                // 441
+    "Embedded Systems SIA",                                  // 442
+    "BEFEGA GmbH",                                           // 443
+    "Baseline Inc.",                                         // 444
+    "M2M Systems Integrators",                               // 445
+    "OEMCtrl",                                               // 446
+    "Clarkson Controls Limited",                             // 447
+    "Rogerwell Control System Limited",                      // 448
+    "SCL Elements",                                          // 449
+    "Hitachi Ltd.",                                          // 450
+    "Newron System SA",                                      // 451
+    "BEVECO Gebouwautomatisering BV",                        // 452
+    "Streamside Solutions",                                  // 453
+    "Yellowstone Soft",                                      // 454
+    "Oztech Intelligent Systems Pty Ltd.",                   // 455
+    "Novelan GmbH",                                          // 456
+    "Flexim Americas Corporation",                           // 457
+    "ICP DAS Co., Ltd.",                                     // 458
+    "CARMA Industries Inc.",                                 // 459
+    "Log-One Ltd.",                                          // 460
+    "TECO Electric  Machinery Co., Ltd.",                    // 461
+    "ConnectEx, Inc.",                                       // 462
+    "Turbo DDC Südwest",                                     // 463
+    "Quatrosense Environmental Ltd.",                        // 464
+    "Fifth Light Technology Ltd.",                           // 465
+    "Scientific Solutions, Ltd.",                            // 466
+    "Controller Area Network Solutions (M) Sdn Bhd",         // 467
+    "RESOL - Elektronische Regelungen GmbH",                 // 468
+    "RPBUS LLC",                                             // 469
+    "BRS Sistemas Eletronicos",                              // 470
+    "WindowMaster A/S",                                      // 471
+    "Sunlux Technologies Ltd.",                              // 472
+    "Measurlogic",                                           // 473
+    "Frimat GmbH",                                           // 474
+    "Spirax Sarco",                                          // 475
+    "Luxtron",                                               // 476
+    "Raypak Inc",                                            // 477
+    "Air Monitor Corporation",                               // 478
+    "Regler Och Webbteknik Sverige (ROWS)",                  // 479
+    "Intelligent Lighting Controls Inc.",                    // 480
+    "Sanyo Electric Industry Co., Ltd",                      // 481
+    "E-Mon Energy Monitoring Products",                      // 482
+    "Digital Control Systems",                               // 483
+    "ATI Airtest Technologies, Inc.",                        // 484
+    "SCS SA",                                                // 485
+    "HMS Industrial Networks AB",                            // 486
+    "Shenzhen Universal Intellisys Co Ltd",                  // 487
+    "EK Intellisys Sdn Bhd",                                 // 488
+    "SysCom",                                                // 489
+    "Firecom, Inc.",                                         // 490
+    "ESA Elektroschaltanlagen Grimma GmbH",                  // 491
+    "Kumahira Co Ltd",                                       // 492
+    "Hotraco",                                               // 493
+    "SABO Elektronik GmbH",                                  // 494
+    "Equip'Trans",                                           // 495
+    "TCS Basys Controls",                                    // 496
+    "FlowCon International A/S",                             // 497
+    "ThyssenKrupp Elevator Americas",                        // 498
+    "Abatement Technologies",                                // 499
+    "Continental Control Systems, LLC",                      // 500
+    "WISAG Automatisierungstechnik GmbH  Co KG",             // 501
+    "EasyIO",                                                // 502
+    "EAP-Electric GmbH",                                     // 503
+    "Hardmeier",                                             // 504
+    "Mircom Group of Companies",                             // 505
+    "Quest Controls",                                        // 506
+    "Mestek, Inc",                                           // 507
+    "Pulse Energy",                                          // 508
+    "Tachikawa Corporation",                                 // 509
+    "University of Nebraska-Lincoln",                        // 510
+    "Redwood Systems",                                       // 511
+    "PASStec Industrie-Elektronik GmbH",                     // 512
+    "NgEK, Inc.",                                            // 513
+    "FAW Electronics Ltd",                                   // 514
+    "Jireh Energy Tech Co., Ltd.",                           // 515
+    "Enlighted Inc.",                                        // 516
+    "El-Piast Sp. Z o.o",                                    // 517
+    "NetxAutomation Software GmbH",                          // 518
+    "Invertek Drives",                                       // 519
+    "Deutschmann Automation GmbH  Co. KG",                   // 520
+    "EMU Electronic AG",                                     // 521
+    "Phaedrus Limited",                                      // 522
+    "Sigmatek GmbH  Co KG",                                  // 523
+    "Marlin Controls",                                       // 524
+    "Circutor, SA",                                          // 525
+    "UTC Fire  Security",                                    // 526
+    "DENT Instruments, Inc.",                                // 527
+    "FHP Manufacturing Company - Bosch Group",               // 528
+    "GE Intelligent Platforms",                              // 529
+    "Inner Range Pty Ltd",                                   // 530
+    "GLAS Energy Technology",                                // 531
+    "MSR-Electronic-GmbH",                                   // 532
+    "Energy Control Systems, Inc.",                          // 533
+    "EMT Controls",                                          // 534
+    "Daintree Networks Inc.",                                // 535
+    "EURO ICC d.o.o",                                        // 536
+    "TE Connectivity Energy",                                // 537
+    "GEZE GmbH",                                             // 538
+   // Updated 13 Sept 2010 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+   // Use the VTS utility VendorIdTable to update this table.
    // TODO add more here ...
 };
 BAC_STRINGTABLE_EX(BACnetVendorID, 0x7FFFFFFF, 0x7FFFFFFF);
