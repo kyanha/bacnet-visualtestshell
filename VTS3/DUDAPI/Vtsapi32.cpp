@@ -464,6 +464,22 @@ static bibbdef BIBBs[]={
              { { ssInitiate, asConfirmedEventNotification    }, 
                { ssInitiate, asUnconfirmedEventNotification  } 
              }, 
+			"AE-EL-I-B",						
+             { { ssExecute,  asReadRange } 
+             }, 
+			"AE-EL-E-B",						
+             { { ssExecute, asConfirmedEventNotification    }, 
+               { ssExecute, asUnconfirmedEventNotification  }, 
+               { ssExecute,  asReadRange } 
+             }, 
+			"AE-ELV-A",						
+             { { ssInitiate,  asReadRange } 
+             }, 
+			"AE-ELVM-A",						
+             {	{ ssInitiate, asReadProperty },
+				   { ssInitiate, asWriteProperty },
+               { ssInitiate, asReadRange } 
+             }, 
 			"AE-ACK-A",						
              { { ssInitiate, asAcknowledgeAlarm } 
              }, 
