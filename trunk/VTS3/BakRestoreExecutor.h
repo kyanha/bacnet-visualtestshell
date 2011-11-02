@@ -111,7 +111,11 @@ private:
 	CEvent m_event;		// is uesed by the main thread that the packet has been correctly received
 	BACnetOctet* m_packetData;	// buffer used to hold the received packet
 	BOOL m_bUserCancelled;
-	
+	CByteArray m_segmentData; //Segment data
+
+	UINT m_maxAPDULen;
+
+
 	BOOL m_bExpectAPDU;		// if expect a APDU or not
 	BACnetAPDUType m_nExpectAPDUType;	// expected APDU type if expect a APDU
 	int m_nExpectAPDUServiceChoice;		// expected Service Choice if expect a APDU
@@ -157,7 +161,7 @@ private:
 	BOOL SendExpectReinitializeNeg(ReinitializedStateOfDevice nReinitState,
 								   BACnetEnumerated& errorClass, BACnetEnumerated& errorCode);
 	
-	BOOL SendExpectPacket(CByteArray& contents);
+	BOOL SendExpectPacket(CByteArray& contents, BOOL resp = TRUE);
 	void InsertMaxAPDULenAccepted(CByteArray& contents);
 //	void SetIUTAddress(VTSPort* pPort, VTSName* pName);
 	void FindRouterAddress(void);
