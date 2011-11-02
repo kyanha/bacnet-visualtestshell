@@ -31,6 +31,12 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
+#define SEGMENTED_APDU_HEADER_SIZE	6	//service choice + window size + sequence number + invokeID + APDU size + APDU tag
+#define NPDU_HEADER_BUFF			10	//Allow this amount of space for NPDU
+#define DEFAULT_BUFF_SIZE			0x400
+
+#define BACNET_OBJECTTYPE_FILE	0x02800000
+
 // global defines
 BakRestoreExecutor		gBakRestoreExecutor;
 
@@ -626,6 +632,8 @@ void BakRestoreExecutor::DoRestoreTest()
 		{
 			throw("Cannot read MAX_APDU_LENGTH_ACCEPTED value from IUT device object");
 		}
+
+		m_maxAPDULen = maxAPDULenAccepted.uintValue;
 		m_pOutputDlg->OutMessage("OK");
 	}
 	else
@@ -764,10 +772,14 @@ void BakRestoreExecutor::DoRestoreTest()
 
 		int nCount = objList.GetItemCount();
 		BOOL bFind = FALSE;
+		
+		//Find the file object of the correct instance
 		for (int i = 0; i < nCount; i++)
 		{
-			UINT nInstanceNum = (objList.GetElement(i)->objID) & 0x003fffff ;
-			if (nFileInstance == nInstanceNum)
+			UINT nObjectType = objList.GetElement(i)->GetObjectType();
+			UINT nInstanceNum = objList.GetElement(i)->GetObjectInstance();
+			
+			if (nObjectType == BACNET_OBJECTTYPE_FILE && nFileInstance == nInstanceNum)
 			{
 				bFind = TRUE;
 				break;
@@ -775,6 +787,7 @@ void BakRestoreExecutor::DoRestoreTest()
 		}
 
 		BACnetObjectIdentifier	fileID(file, nFileInstance);
+		bFind = true;
 		if (bFind)
 		{
 			if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
@@ -874,21 +887,10 @@ void BakRestoreExecutor::DoRestoreTest()
 				}
 				m_pOutputDlg->OutMessage("OK");
 	
-				// create a buffer max size TD's APDU size
-				// LJT: Note we assume here that the Record will fit in the MaxAPDU size and
-				//      therefore we create our buffer to the MaxAPDU size.
-				UINT nMWOC;
-				if (m_pPort->m_pdevice) 
-				{
-					UINT	nM1 = m_pPort->m_pdevice->m_nMaxAPDUSize;
-					UINT	nM2 = maxAPDULenAccepted.uintValue;
-					nMWOC = min(nM1, nM2); // - 21 + 3 //(octetstring header);				
-				}
-				else	
-				{	// if this port does not bind to a device
-					nMWOC = maxAPDULenAccepted.uintValue; // - 21 + 3 // (octetstring header);
-				}
-
+				// We cannot assume that record size < maxAPDU so give a rounded buffsize greater than the file size
+				UINT fSize = backupDataFile_record.GetLength();
+				UINT nMWOC = fSize + (DEFAULT_BUFF_SIZE - (fSize % DEFAULT_BUFF_SIZE) );
+				
 				BYTE* pBuffer = new BYTE[nMWOC];
 				int len_read = backupDataFile_record.Read(pBuffer, nMWOC);
 
@@ -1792,6 +1794,25 @@ void BakRestoreExecutor::ReceiveNPDU(const BACnetNPDU& npdu)
 	BACnetAPDU apdu;
 	apdu.Decode(dec);
 
+	//Is this a segmentAck?
+	if(apdu.apduType == segmentAckPDU)
+	{
+		//Check for a NAK
+		if(apdu.apduNak)
+		{
+			m_bAbort = TRUE;
+		}
+
+		//Only set the event if this the packet we were waiting for 
+		// (Wait for a complexAck instead of a segmentAck for the last segment)
+		if(m_nExpectAPDUType == segmentAckPDU)
+		{
+			m_event.SetEvent();
+		}
+
+		return;
+	}
+
 	if (apdu.apduType == errorPDU && m_nExpectAPDUType != errorPDU)
 	{
 		m_bAbort = TRUE;		// received a Result(-) response from the IUT, terminate the test
@@ -1814,6 +1835,7 @@ void BakRestoreExecutor::ReceiveNPDU(const BACnetNPDU& npdu)
 	{
 		delete m_pAPDU;
 	}
+
 	m_pAPDU = new BACnetAPDU(apdu);
 	if (apdu.pktLength > 0)
 	{
@@ -1989,6 +2011,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Stream(BACnetObjectIdentifier&
 	{
 		contents.Add( enc.pktBuffer[i] );
 	}
+	
 	contents.InsertAt(0, (BYTE)0x06);		// Service Choice = 06(AtomicReadFile-Request)
 	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
@@ -2026,7 +2049,11 @@ BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Record(BACnetObjectIdentifier&
 	m_nExpectAPDUServiceChoice = atomicReadFile;
 
 	CByteArray contents;
-	BACnetAPDUEncoder	enc;
+	CByteArray segmentAck;
+	BACnetAPDUEncoder enc;
+
+	int segmentCounter = 0, totalLen;
+	bool lastPacket = false;
 
 	fileID.Encode(enc);
 	// access method:	Stream Access
@@ -2043,11 +2070,71 @@ BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Record(BACnetObjectIdentifier&
 	contents.InsertAt(0, (BYTE)0x06);		// Service Choice = 6(AtomicReadFile-Request)
 	contents.InsertAt(0, InvokeID());		// Invoke ID
 	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
-	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
+	contents.InsertAt(0, (BYTE)0x02);		// PDU Type = 0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=1) //Support Segmentation
 
 	if (!SendExpectPacket(contents))
 	{
 		return FALSE;
+	}
+
+	/*  
+	 * Support segmented AtomicReadFile
+	 * This section handles the segmentAck and saves the data for each segment
+	 */
+
+	//Clear out the old
+	m_segmentData.RemoveAll();
+
+	while(m_pAPDU->apduSeg) 
+	{
+		//Check for the last segment
+		if(!m_pAPDU->apduMor)
+		{
+			lastPacket = true;
+		}
+
+		m_nExpectAPDUType = complexAckPDU;
+		m_nExpectAPDUServiceChoice = atomicReadFile;
+
+		//Build the segmentAck
+		segmentAck.RemoveAll();
+		segmentAck.InsertAt(0, 0x01);					//Window Size
+		segmentAck.InsertAt(0, m_pAPDU->apduSeq);		//Sequence Number
+		segmentAck.InsertAt(0, m_pAPDU->apduInvokeID);  //InvokeID
+		
+		//Send a NAK if the sequence is out of order
+		if(m_pAPDU->apduSeq == segmentCounter++)
+			segmentAck.InsertAt(0, 0x40);				//SegmentACK tag.
+		else
+			segmentAck.InsertAt(0, 0x42);				//SegmentNAK tag
+
+		//Copy the data
+		for(int i = 0; i < m_pAPDU->pktLength; i++)
+		{
+			m_segmentData.Add((BYTE)m_pAPDU->pktBuffer[i]);
+		}
+		
+		//Send the segmentAck
+		if( !SendExpectPacket(segmentAck, !lastPacket) )
+		{
+			return FALSE;
+		}
+		
+		//If we just sent the last packet, consolidate the data and leave
+		if(lastPacket)
+		{
+			delete[] m_packetData;
+			
+			totalLen = m_segmentData.GetCount();
+
+			//Add the data to the global BACnetAPDU
+			m_packetData = new BACnetOctet[totalLen];
+			m_pAPDU->pktBuffer = m_packetData;
+			m_pAPDU->pktLength = totalLen;
+			memcpy(m_pAPDU->pktBuffer, &m_segmentData[0], totalLen);
+
+			break;
+		}
 	}
 
 	BACnetAPDUDecoder dec(m_pAPDU->pktBuffer, m_pAPDU->pktLength);
@@ -2168,13 +2255,19 @@ BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Stream(BACnetObjectIdentifier
 BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Record(BACnetObjectIdentifier& fileID, BACnetInteger& fileStartRecord,
 														  BACnetOctetString& fileRecordData)
 {
+	CByteArray contents;
+	BACnetAPDUEncoder enc;
+	unsigned long segmentNum, segSize, dataPos;
+	BYTE invokeID;
+	BOOL lastSegment; 
+
 	m_bExpectAPDU = TRUE;
 	m_nExpectAPDUType = complexAckPDU;
 	m_nExpectAPDUServiceChoice = atomicWriteFile;
 
-	CByteArray contents;
-	BACnetAPDUEncoder	enc;
+	ASSERT(m_maxAPDULen != 0);
 
+	//Build the Encoder
 	fileID.Encode(enc);
 	BACnetOpeningTag().Encode(enc, 1);
 	fileStartRecord.Encode(enc);
@@ -2182,19 +2275,92 @@ BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Record(BACnetObjectIdentifier
 	returnedRecordCount.Encode(enc);
 	fileRecordData.Encode(enc);
 	BACnetClosingTag().Encode(enc, 1);
-	// copy the encoding into the byte array
-	for (int i = 0; i < enc.pktLength; i++)
+	
+	/*  
+	 * Support segmented AtomicWriteFile
+	 * Send the data in segments if a single record size > maxAPDU
+	 */
+	if( (enc.pktLength + SEGMENTED_APDU_HEADER_SIZE + NPDU_HEADER_BUFF ) > m_maxAPDULen)
 	{
-		contents.Add( enc.pktBuffer[i] );
-	}
-	contents.InsertAt(0, (BYTE)0x07);		// Service Choice = 7(atomicWriteFile-Request)
-	contents.InsertAt(0, InvokeID());		// Invoke ID
-	InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
-	contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
+		lastSegment = FALSE;
+		segmentNum = segSize = dataPos = 0;
+		
+		//Change the PDU type
+		m_nExpectAPDUType = segmentAckPDU;
+		
+		//Use single invokeID
+		invokeID = InvokeID();
 
-	if (!SendExpectPacket(contents))
+		//Calculate the size of the segment
+		segSize = m_maxAPDULen - SEGMENTED_APDU_HEADER_SIZE - NPDU_HEADER_BUFF;
+
+		while(true)
+		{
+			//copy the encoding into the byte array	
+			for (int i = 0; i < segSize; i++)
+			{
+				ASSERT(dataPos < enc.pktLength);
+				contents.Add( enc.pktBuffer[dataPos++] );
+			}
+
+			//APDU header
+			contents.InsertAt(0, (BYTE)0x07);			// Service Choice = 7(atomicWriteFile-Request)
+			contents.InsertAt(0, (BYTE)0x01);			// Window Size
+			contents.InsertAt(0, (BYTE)segmentNum++);	// Sequence number
+			contents.InsertAt(0, invokeID);				// Invoke ID
+			InsertMaxAPDULenAccepted(contents);			// Maximum APDU Size Accepted
+			if(lastSegment)
+				contents.InsertAt(0, (BYTE)0x08);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=1, MOR=0, SA=0)
+			else
+				contents.InsertAt(0, (BYTE)0x0C);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=1, MOR=1, SA=0)
+			
+			//If this is the last segment, we want a complexAck instead of a segmentAck
+			if(lastSegment)
+			{
+				m_nExpectAPDUType = complexAckPDU;
+			}
+
+			//Send the packet
+			if (!SendExpectPacket(contents))
+			{
+				return FALSE;
+			}
+
+			if(lastSegment)
+				break;
+			
+			//Prep the next packet
+			contents.RemoveAll();
+			
+			//Check for final segment
+			if( (enc.pktLength - dataPos) <= segSize )
+			{
+				//set the flag
+				lastSegment = TRUE;
+
+				//adjust segment size to be exact
+				segSize = enc.pktLength - dataPos;
+			}
+		}
+	}
+	else
 	{
-		return FALSE;
+		// copy the encoding into the byte array
+		for (int i = 0; i < enc.pktLength; i++)
+		{
+			contents.Add( enc.pktBuffer[i] );
+		}
+
+		contents.InsertAt(0, (BYTE)0x07);		// Service Choice = 7(atomicWriteFile-Request)
+		contents.InsertAt(0, InvokeID());		// Invoke ID
+		InsertMaxAPDULenAccepted(contents);		// Maximum APDU Size Accepted
+		contents.InsertAt(0, (BYTE)0x00);		// PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
+
+		if (!SendExpectPacket(contents))
+		{
+			return FALSE;
+		}
+
 	}
 
 	BACnetAPDUDecoder dec(m_pAPDU->pktBuffer, m_pAPDU->pktLength);
@@ -2247,7 +2413,7 @@ BOOL BakRestoreExecutor::SendExpectReinitializeNeg(ReinitializedStateOfDevice nR
 }
 
 
-BOOL BakRestoreExecutor::SendExpectPacket(CByteArray& contents)
+BOOL BakRestoreExecutor::SendExpectPacket(CByteArray& contents, BOOL resp/* = TRUE*/)
 {
 	// network layer
 	CByteArray buf;
@@ -2270,7 +2436,10 @@ BOOL BakRestoreExecutor::SendExpectPacket(CByteArray& contents)
 	}
 	else
 	{
-		buf.Add((BYTE)0x04);		// control
+		if(resp)
+			buf.Add((BYTE)0x04);		// control expect resp
+		else 
+			buf.Add((BYTE)0x00);		//control no resp
 	}
 	contents.InsertAt(0, &buf);
 	if (m_pPort->m_nPortType == ipPort)
@@ -2316,6 +2485,14 @@ BOOL BakRestoreExecutor::SendExpectPacket(CByteArray& contents)
 		m_pPort->portFilter->Indication(
 			BACnetNPDU(addr, contents.GetData(), contents.GetSize())
 			);
+
+		if(!resp)
+		{
+			//Not expecting a response. Leave
+			bReceived = true;
+			break;
+		}
+
 		if (m_bUserCancelled)
 		{
 			m_bUserCancelled = FALSE;	// reset
@@ -2327,6 +2504,7 @@ BOOL BakRestoreExecutor::SendExpectPacket(CByteArray& contents)
 			{
 				throw("The backup restore process has been cancelled by the user");
 			}
+
 			bReceived = TRUE;
 			if (m_bAbort == TRUE)
 			{
