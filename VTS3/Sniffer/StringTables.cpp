@@ -1906,7 +1906,26 @@ STRING_TABLE BACnetVendorID[] = {
     "EURO ICC d.o.o",                                        // 536
     "TE Connectivity Energy",                                // 537
     "GEZE GmbH",                                             // 538
-   // Updated 13 Sept 2010 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+    "NEC Corporation",                                       // 539
+    "Ho Cheung International Company Limited",               // 540
+    "Sharp Manufacturing Systems Corporation",               // 541
+    "DOT CONTROLS a.s.",                                     // 542
+    "BeaconMedæs",                                           // 543
+    "Midea Commercial Aircon",                               // 544
+    "WattMaster Controls",                                   // 545
+    "Kamstrup A/S",                                          // 546
+    "CA Computer Automation GmbH",                           // 547
+    "Laars Heating Systems Company",                         // 548
+    "Hitachi Systems, Ltd.",                                 // 549
+    "Fushan AKE Electronic Engineering Co., Ltd.",           // 550
+    "Toshiba International Corporation",                     // 551
+    "Starman Systems, LLC",                                  // 552
+    "Samsung Techwin Co., Ltd.",                             // 553
+    "ISAS-Integrated Switchgear and Systems P/L",            // 554
+    "BACnet Examples",                                       // 555
+    "Obvius",                                                // 556
+    "Marek Guzik"                                            // 557
+   // Updated 21 January 2012 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
    // Use the VTS utility VendorIdTable to update this table.
    // TODO add more here ...
 };

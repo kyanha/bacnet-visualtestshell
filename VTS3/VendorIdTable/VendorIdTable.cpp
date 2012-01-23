@@ -155,12 +155,28 @@ int _tmain(int argc, _TCHAR* argv[])
 						state = 2;
 					}
 
-					// The table is missing at least one code (at 177)
+					// The table is missing at least one code (at 177),
+					// plus one or more reserved by SSPC135
 					for ( ; nextID < vendorID; nextID++)
 					{
-						char buf[ 80 ];
-						sprintf (buf, "Unknown-vendor-%d", nextID );
-						OutputLine( pOutput, buf, nextID );
+						if (nextID == 555)
+						{
+							// SSPC135 has reserved this for use in examples, following
+							// the example of move phone numbers as 555-1234
+							OutputLine( pOutput, "BACnet Examples", nextID );
+						}
+						else if (nextID == 666)
+						{
+							// SSPC135 has reserved this for use in examples
+							// of badly-behaved devices
+							OutputLine( pOutput, "Beelzebub Controls", nextID );
+						}
+						else
+						{
+							char buf[ 80 ];
+							sprintf (buf, "Unknown-vendor-%d", nextID );
+							OutputLine( pOutput, buf, nextID );
+						}
 					}
 
 					if (vendorID != nextID)
