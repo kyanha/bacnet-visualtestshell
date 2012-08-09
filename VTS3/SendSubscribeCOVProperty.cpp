@@ -6,7 +6,6 @@
 #include "Send.h"
 #include "SendSubscribeCOVProperty.h"
 #include "VTSObjectIdentifierDialog.h"
-#include ".\sendsubscribecovproperty.h"
 
 namespace NetworkSniffer {
 	extern char *BACnetPropertyIdentifier[];
@@ -36,6 +35,20 @@ CSendSubscribeCOVProperty::CSendSubscribeCOVProperty()
 
 CSendSubscribeCOVProperty::~CSendSubscribeCOVProperty()
 {
+}
+
+//
+//	CSendSubscribeCOVProperty::OnInitDialog
+//
+
+BOOL CSendSubscribeCOVProperty::OnInitDialog() 
+{
+	CPropertyPage::OnInitDialog();
+	
+	// load the enumeration table
+	m_property.LoadCombo();   // needed to show text when refreshing the dlg
+	
+	return TRUE;
 }
 
 void CSendSubscribeCOVProperty::DoDataExchange(CDataExchange* pDX)
@@ -144,9 +157,9 @@ void CSendSubscribeCOVProperty::SavePage( void )
 
 	m_ProcessID.SaveCtrl( pageContents );
 	m_ObjectID.SaveCtrl( pageContents );
-  m_property.SaveCtrl( pageContents );
 	m_IssueConfirmed.SaveCtrl( pageContents );
 	m_Lifetime.SaveCtrl( pageContents );
+  m_property.SaveCtrl( pageContents );
   m_ArrayIndex.SaveCtrl( pageContents );
   m_COVIncrement.SaveCtrl( pageContents );
 }
@@ -166,11 +179,14 @@ void CSendSubscribeCOVProperty::RestorePage( int index )
 
 	m_ProcessID.RestoreCtrl( dec );
 	m_ObjectID.RestoreCtrl( dec );
-  m_property.RestoreCtrl( dec );
 	m_IssueConfirmed.RestoreCtrl( dec );
 	m_Lifetime.RestoreCtrl( dec );
+  m_property.RestoreCtrl( dec );
   m_ArrayIndex.RestoreCtrl( dec );
   m_COVIncrement.RestoreCtrl( dec );
+
+  if ( isShown )
+	  m_property.ObjToCtrl();
 
 }
 // CSendSubscribeCOVProperty message handlers
@@ -210,8 +226,6 @@ void CSendSubscribeCOVProperty::OnCbnDropdownPropcombo()
 {
   //Added by Zhu Zhenhua , 2003-7-22 
 //	to Load Standard property list for certain ObjectType
-  //Added by Zhu Zhenhua , 2003-7-22 
-//	to Load Standard property list for certain ObjectType
 	m_property.m_nObjType = m_ObjectID.GetObjectType();
 	m_property.LoadCombo();
 }
@@ -236,8 +250,8 @@ void CSendSubscribeCOVProperty::OnEnUpdateObjectid()
 
 void CSendSubscribeCOVProperty::OnCbnSelchangePropcombo()
 {
-  m_property.CtrlToObj();
   m_property.UpdateData();
+    SavePage();
 	UpdateEncoded();
 }
 
