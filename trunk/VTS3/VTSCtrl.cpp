@@ -3377,7 +3377,10 @@ void VTSEnumeratedCtrl::SelectToEnum()
 	if (cbp->GetCount() != 0)
 	{
 		CString str;
-		cbp->GetWindowText(str);
+		// According to Microsoft you can't use getWindowText when using CBN_SELCHANGE
+		//  I found that it worked on some dialogs but on others it did not work.
+		//cbp->GetWindowText(str);
+		cbp->GetLBText(m_SelectValue, str);
 		for (int i = 0; i < m_TableSize; i++)
 		{
 			if (str.Compare(m_Table[i]) == 0)
