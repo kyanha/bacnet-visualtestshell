@@ -243,8 +243,11 @@ void EnumList::RemoveButtonClick( void )
 
 	// delete the element
 	POSITION pos = FindIndex( curRow );
-	delete GetAt( pos );
-	RemoveAt( pos );
+	if ( pos != NULL )
+	{
+		delete GetAt( pos );
+		RemoveAt( pos );
+	}
 
 	// reselect a new row... just before the deleted one if any.
 	tsParentPtr->m_EnumListCtrl.SetItemState( curRow-1 < 0 ? 0 : curRow-1, LVIS_SELECTED, LVIS_SELECTED );
