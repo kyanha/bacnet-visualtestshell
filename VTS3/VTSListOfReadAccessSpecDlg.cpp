@@ -448,8 +448,11 @@ void ReadAccessSpec::RemoveButtonClick( void )
 
 	// delete the element
 	POSITION pos = FindIndex( curRow );
-	delete GetAt( pos );
-	RemoveAt( pos );
+	if ( pos != NULL )
+	{
+		delete GetAt( pos );
+		RemoveAt( pos );
+	}
 
 	// madanner 9/4/02
 	// reselect a new row... just before the deleted one if any.
@@ -751,8 +754,11 @@ void ReadAccessSpecList::RemoveButtonClick( void )
 
 	// delete the element
 	POSITION pos = FindIndex( curRow );
-	delete GetAt( pos );
-	RemoveAt( pos );
+	if ( pos != NULL )
+	{
+		delete GetAt( pos );
+		RemoveAt( pos );
+	}
 
 	// madanner 9/4/02
 	// reselect a new row... just before the deleted one if any.
