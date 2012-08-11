@@ -1058,6 +1058,10 @@ void CListSummaryView::OnEditDeleteSel()
 
 	m_FrameContext->m_pDoc->DeleteSelPacket(nPacket);
 
+	// added 8/11/2012 LJT - submitted by bobby vocque #1642104
+	if (m_FrameContext->m_PacketCount > 0)
+		m_FrameContext->m_PacketCount--; 
+
 	//update packet index
 	for (int i = 0; i < listCtrl.GetItemCount(); i++)
 	{
