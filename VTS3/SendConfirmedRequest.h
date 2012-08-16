@@ -27,6 +27,7 @@ public:
 	VTSIntegerCtrl		m_WindowSize;			// proposed window size
 	VTSEnumeratedCtrl	m_MaxAPDULen;			// maximum APDU length accepted
 	VTSIntegerCtrl		m_InvokeID;				// invoke ID
+	VTSEnumeratedCtrl	m_Max_Segments_Accepted;// max segments accepted
 
 	void SynchronizeControls( void );
 
@@ -68,6 +69,7 @@ protected:
 	afx_msg void OnChangeMaxAPDULen();
 	afx_msg void OnChangeInvokeID();
 	afx_msg void OnSelchangeMaxAPDULen();
+	afx_msg void OnSelchangeMaxSegmentsAccepted();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
