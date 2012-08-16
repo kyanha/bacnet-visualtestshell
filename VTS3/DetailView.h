@@ -33,6 +33,7 @@ public:
 	virtual void ContextChange( CFrameContext::Signal s );
 
 	CString* GetLineData(int lineNo);
+	virtual ~CDetailView();
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -45,7 +46,6 @@ public:
 
 // Implementation
 protected:
-	virtual ~CDetailView();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;

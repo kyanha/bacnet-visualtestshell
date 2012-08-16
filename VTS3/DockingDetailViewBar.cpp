@@ -18,7 +18,10 @@ CDockingDetailViewBar::CDockingDetailViewBar(CCreateContext* pContext)
 
 CDockingDetailViewBar::~CDockingDetailViewBar()
 {
-
+	if ( m_pDetailView )
+	{
+		delete m_pDetailView;
+	}
 }
 
 
