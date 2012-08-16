@@ -36,6 +36,27 @@ char *MaxAPDULen[] =
 		, "Reserved (15)"
 		};
 
+/* Max_Segments_Accepted
+000 unspecified
+001 2 segments accepted
+010 4 segments accepted
+011 8 segments accepted
+100 16 segments accepted
+101 32 segments accepted
+110 64 segments accepted
+111 greater than 64 segments accepted
+*/
+
+char *MaxSegsAccepted[] =
+{ "unspecified" // 0
+, "2 segments"  // 1
+, "4 segments"  // 2
+, "8 segments"  // 3
+, "16 segments"  // 4
+, "32 segments"  // 5
+, "64 segments"  // 6
+, "greater than 64"  // 7
+};
 
 BACnetAPDUEncoder CSendConfirmedRequest::pageContents;
 
@@ -56,6 +77,7 @@ CSendConfirmedRequest::CSendConfirmedRequest( void )
 	, m_WindowSize( this, IDC_WINDOWSIZE )
 	, m_MaxAPDULen( this, IDC_MAXAPDULEN, MaxAPDULen, 16, true )
 	, m_InvokeID( this, IDC_INVOKEID )
+	, m_Max_Segments_Accepted(this, IDC_MAX_SEGMENTS_ACCEPTED, MaxSegsAccepted, 8, true )
 {
 	//{{AFX_DATA_INIT(CSendConfirmedRequest)
 	m_Segmented = FALSE;
@@ -79,6 +101,7 @@ void CSendConfirmedRequest::DoDataExchange(CDataExchange* pDX)
 	m_WindowSize.UpdateData( pDX->m_bSaveAndValidate );
 	m_MaxAPDULen.UpdateData( pDX->m_bSaveAndValidate );
 	m_InvokeID.UpdateData( pDX->m_bSaveAndValidate );
+	m_Max_Segments_Accepted.UpdateData( pDX->m_bSaveAndValidate );
 }
 
 BEGIN_MESSAGE_MAP(CSendConfirmedRequest, CPropertyPage)
@@ -92,6 +115,7 @@ BEGIN_MESSAGE_MAP(CSendConfirmedRequest, CPropertyPage)
 	ON_EN_CHANGE(IDC_MAXAPDULEN, OnChangeMaxAPDULen)
 	ON_EN_CHANGE(IDC_INVOKEID, OnChangeInvokeID)
 	ON_CBN_SELCHANGE(IDC_MAXAPDULEN, OnSelchangeMaxAPDULen)
+	ON_CBN_SELCHANGE(IDC_MAX_SEGMENTS_ACCEPTED, OnSelchangeMaxSegmentsAccepted)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -108,7 +132,8 @@ BOOL CSendConfirmedRequest::OnInitDialog()
 
 	// load the enumeration table
 	m_MaxAPDULen.LoadCombo();
-	
+	m_Max_Segments_Accepted.LoadCombo();
+
 	// humm
 	SynchronizeControls();
 
@@ -124,6 +149,10 @@ void CSendConfirmedRequest::SynchronizeControls()
 	GetDlgItem( IDC_MOREFOLLOWS )->EnableWindow( m_Segmented );
 	GetDlgItem( IDC_SEQNUMBER )->EnableWindow( m_Segmented );
 	GetDlgItem( IDC_WINDOWSIZE )->EnableWindow( m_Segmented );
+// Not sure if we should reset the value of m_Max_Segments_Accepted here
+	if ( !m_SegResponse )
+		m_Max_Segments_Accepted.enumValue = 0;
+	GetDlgItem( IDC_MAX_SEGMENTS_ACCEPTED )->EnableWindow( m_SegResponse );
 }
 
 //
@@ -142,7 +171,7 @@ void CSendConfirmedRequest::InitPage( void )
 	m_MaxAPDULen.enumValue = DEFAULT_MAX_APDU_LEN;
 	m_InvokeID.ctrlNull = false;
 	m_InvokeID.intValue = gVTSPreferences.Send_GetInvokeID();
-
+	m_Max_Segments_Accepted.enumValue = 0;
 	// tell the NPCI this is expecting a reply
 	pageParent->NPCIPage.m_ExpectingReply = true;
 }
@@ -177,7 +206,9 @@ void CSendConfirmedRequest::EncodePage( CByteArray *contents )
 		throw "Max APDU length required";
 	if ((m_MaxAPDULen.enumValue < 0) || (m_MaxAPDULen.enumValue > 15))
 		throw "Max APDU length out of range 0..15";
-	header.Add( m_MaxAPDULen.enumValue );
+
+	int test = (m_Max_Segments_Accepted.enumValue <<4) + m_MaxAPDULen.enumValue;
+	header.Add( test );
 
 	// invoke ID
 	if (m_InvokeID.ctrlNull)
@@ -266,6 +297,7 @@ void CSendConfirmedRequest::SavePage( void )
 	m_WindowSize.SaveCtrl( pageContents );
 	m_MaxAPDULen.SaveCtrl( pageContents );
 	m_InvokeID.SaveCtrl( pageContents );
+	m_Max_Segments_Accepted.SaveCtrl( pageContents );
 
 	BACnetBoolean( m_Segmented ).Encode( pageContents );
 	BACnetBoolean( m_MoreFollows ).Encode( pageContents );
@@ -293,6 +325,7 @@ void CSendConfirmedRequest::RestorePage(  int index  )
 	m_WindowSize.RestoreCtrl( dec );
 	m_MaxAPDULen.RestoreCtrl( dec );
 	m_InvokeID.RestoreCtrl( dec );
+	m_Max_Segments_Accepted.RestoreCtrl( dec );
 
 	boolValue.Decode( dec );
 	m_Segmented = boolValue.boolValue;
@@ -333,6 +366,7 @@ void CSendConfirmedRequest::OnSegResponse()
 {
 	TRACE0( "CSendConfirmedRequest::OnSegResponse()\n" );
 	UpdateData();
+	SynchronizeControls();
 	SavePage();
 	UpdateEncoded();
 }
@@ -376,6 +410,15 @@ void CSendConfirmedRequest::OnChangeInvokeID()
 	// save the new invoke ID in the preferences
 	gVTSPreferences.Send_SetInvokeID(m_InvokeID.intValue);
 
+	SavePage();
+	UpdateEncoded();
+}
+
+
+void CSendConfirmedRequest::OnSelchangeMaxSegmentsAccepted() 
+{
+	TRACE0( "CSendConfirmedRequest::OnSelchangeMaxSegmentsAccepted()\n" );
+	m_Max_Segments_Accepted.UpdateData();
 	SavePage();
 	UpdateEncoded();
 }

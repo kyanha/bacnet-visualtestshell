@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
+// Microsoft Developer Studio generated include file.
 // Used by VTS.rc
 //
 #define ID_NEWNAME                      3
@@ -524,6 +524,7 @@
 #define IDC_ADDRCOMBO                   1170
 #define IDC_MAXAPDULEN                  1171
 #define IDC_VENDORNAME                  1172
+#define IDC_MAX_SEGMENTS_ACCEPTED       1172
 #define IDC_PRODUCTNAME                 1173
 #define IDC_DEVICECOMBO                 1173
 #define IDC_PRODUCTMODELNUMBER          1174

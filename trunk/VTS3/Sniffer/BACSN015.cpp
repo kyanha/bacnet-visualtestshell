@@ -2089,16 +2089,16 @@ void show_confirmed( unsigned char x )
    pif_show_flagbit(0x03,"Segmented Resp Accepted","Segmented Resp not Accepted");
    
    sprintf(outstr,"%"FW"s = X'%%02X'","Maximum APDU Response Accepted");
-   bac_show_flag(outstr,0xFF);
+   bac_show_flag(outstr,0x0F);
 
    pif_show_flagmask(0x70, 0x00,"Unspecified number of segments");
-   pif_show_flagmask(0x70, 0x01,"2 segments accepted");
-   pif_show_flagmask(0x70, 0x02,"4 segments accepted");
-   pif_show_flagmask(0x70, 0x03,"8 segments accepted");
-   pif_show_flagmask(0x70, 0x04,"16 segments accepted");
-   pif_show_flagmask(0x70, 0x05,"32 segments accepted");
-   pif_show_flagmask(0x70, 0x06,"64 segments accepted");
-   pif_show_flagmask(0x70, 0x07,"More than segments accepted");
+   pif_show_flagmask(0x70, 0x10,"2 segments accepted");
+   pif_show_flagmask(0x70, 0x20,"4 segments accepted");
+   pif_show_flagmask(0x70, 0x30,"8 segments accepted");
+   pif_show_flagmask(0x70, 0x40,"16 segments accepted");
+   pif_show_flagmask(0x70, 0x50,"32 segments accepted");
+   pif_show_flagmask(0x70, 0x60,"64 segments accepted");
+   pif_show_flagmask(0x70, 0x70,"More than segments accepted");
    
    pif_show_flagmask(0x0F, 0x00,"Up to 50 Octets");
    pif_show_flagmask(0x0F, 0x01,"Up to 128 Octets");
