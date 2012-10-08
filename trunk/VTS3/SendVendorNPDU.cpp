@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
+#include "Send.h"
 #include "SendVendorNPDU.h"
 
 #ifdef _DEBUG
@@ -60,6 +61,8 @@ void CSendVendorNPDU::InitPage( void )
 	m_MsgType.ctrlNull = true;
 	m_VendorID.ctrlNull = true;
 	m_Data.Flush();
+
+	pageParent->NPCIPage.m_isNetMessage = true;
 }
 
 //
