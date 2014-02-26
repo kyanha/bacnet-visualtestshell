@@ -2007,17 +2007,29 @@ ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec );
 //
 
 enum BACnetNetworkMessageType
-		{	WhoIsRouterToNetwork			= 0x00
-		,	IAmRouterToNetwork				= 0x01
-		,	ICouldBeRouterToNetwork			= 0x02
-		,	RejectMessageToNetwork			= 0x03
-		,	RouterBusyToNetwork				= 0x04
-		,	RouterAvailableToNetwork		= 0x05
-		,	InitializeRoutingTable			= 0x06
-		,	InitializeRoutingTableAck		= 0x07
-		,	EstablishConnectionToNetwork	= 0x08
-		,	DisconnectConnectionToNetwork	= 0x09
-		};
+      {	WhoIsRouterToNetwork			= 0x00
+      ,	IAmRouterToNetwork				= 0x01
+      ,	ICouldBeRouterToNetwork			= 0x02
+      ,	RejectMessageToNetwork			= 0x03
+      ,	RouterBusyToNetwork				= 0x04
+      ,	RouterAvailableToNetwork		= 0x05
+      ,	InitializeRoutingTable			= 0x06
+      ,	InitializeRoutingTableAck		= 0x07
+      ,	EstablishConnectionToNetwork	= 0x08
+      ,	DisconnectConnectionToNetwork	= 0x09
+
+      ,	ChallengeRequest				= 0x0A
+      ,	SecurityPayload					= 0x0B
+      ,	SecurityResponse				= 0x0C
+      ,	RequestKeyUpdate				= 0x0D
+      ,	UpdateKeySet					= 0x0E
+
+      ,	UpdateDistributionKey			= 0x0F
+      ,	RequestMasterKey				= 0x10
+      ,	SetMasterKey					= 0x11
+      ,	WhatIsNetworkNumber				= 0x12
+      ,	NetworkNumberIs					= 0x13
+      };
 
 class BACnetNetClient;
 typedef BACnetNetClient *BACnetNetClientPtr;

@@ -982,7 +982,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "start-time",                       /* 142 */
    "stop-time",                        /* 143 */
    "stop-when-full",                   /* 144 */
-   "total-record-count",               /* 145 */            
+   "total-record-count",               /* 145 */
    "valid-samples",                    /* 146 */
    "window-interval",                  /* 147 */
    "window-samples",                   /* 148 */
@@ -990,7 +990,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "minimum-value-timestamp",          /* 150 */
    "variance-value",                   /* 151 */
    "active-cov-subscriptions",          /* 152 xiao shiyuan 2002-7-18 */
-   "backup-failure-timeout",            /* 153 xiao shiyuan 2002-7-18 */		
+   "backup-failure-timeout",            /* 153 xiao shiyuan 2002-7-18 */
    "configuration-files",               /* 154 xiao shiyuan 2002-7-18 */
    "database-revision",                 /* 155 xiao shiyuan 2002-7-18 */
    "direct-reading",                    /* 156 xiao shiyuan 2002-7-18 */
@@ -1014,19 +1014,19 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "schedule-default",                 // 174 shiyuan xiao 7/15/2005
    "accepted-modes",                   // 175 shiyuan xiao 7/15/2005
    "adjust-value",                     // 176 shiyuan xiao 7/15/2005
-   "count",                            // 177 shiyuan xiao 7/15/2005 
+   "count",                            // 177 shiyuan xiao 7/15/2005
    "count-before-change",              // 178 shiyuan xiao 7/15/2005
-   "count-change-time",                // 179 shiyuan xiao 7/15/2005		
+   "count-change-time",                // 179 shiyuan xiao 7/15/2005
    "cov-period",                       // 180 shiyuan xiao 7/15/2005
    "input-reference",                  // 181 shiyuan xiao 7/15/2005
    "limit-monitoring-interval",        // 182 shiyuan xiao 7/15/2005
    "logging-device",                   // 183 shiyuan xiao 7/15/2005
-   "logging-record",                   // 184 shiyuan xiao 7/15/2005  
-   "prescale",                         // 185 shiyuan xiao 7/15/2005  
+   "logging-record",                   // 184 shiyuan xiao 7/15/2005
+   "prescale",                         // 185 shiyuan xiao 7/15/2005
    "pulse-rate",                       // 186 shiyuan xiao 7/15/2005
    "scale",                            // 187 shiyuan xiao 7/15/2005
-   "scale-factor",                     // 188 shiyuan xiao 7/15/2005  
-   "update-time",                      // 189 shiyuan xiao 7/15/2005 
+   "scale-factor",                     // 188 shiyuan xiao 7/15/2005
+   "update-time",                      // 189 shiyuan xiao 7/15/2005
    "value-before-change",              // 190 shiyuan xiao 7/15/2005
    "value-set",                        // 191 shiyuan xiao 7/15/2005
    "value-change-time",                 // 192 shiyuan xiao 7/15/2005
@@ -2026,6 +2026,19 @@ STRING_TABLE NL_msgs[] = {
    "Initialize-Routing-Table-Ack",
    "Establish-Connection-To-Network",
    "Disconnect-Connection-To-Network",
+
+   "Challenge-Request",
+   "Security-Payload",
+   "Security-Response",
+   "Request-Key-Update",
+   "Update-Key-Set",
+
+   "Update-Distribution-Key",
+   "Request-Master-Key",
+   "Set-Master-Key",
+   "What-Is-Network-Number",
+   "Network-Number-Is",
+
    "ASHRAE-Reserved",
    "Vendor-Proprietary-Message"
 };

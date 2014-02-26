@@ -912,18 +912,19 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          if ((nlMsgID >= BAC_STRTAB_NL_msgs.m_nStrings) && (nlMsgID < 0x80))
          {
 			 strcpy( get_sum_line(pi_data_bacnet_NL), "ASHRAE Reserves The Network Layer Message Type" );
+		     // TODO: show the message type
 			 return length;
          }
-		 else
-	     if( nlMsgID > 0x80 )
+		 else if( nlMsgID >= 0x80 )
 		 {	
-			 npdu_length += 2; //VendorID is present
+			 npdu_length += 2; //VendorID is present (TODO: we hope)
 			 //Proprietary Network Layer Message
 		     strcpy( get_sum_line(pi_data_bacnet_NL), "Proprietary Network Layer Message" );			
+		     // TODO: show the vendorID and the message type
 		 }
 	     else
 		 {
-		    strcpy( get_sum_line(pi_data_bacnet_NL), BAC_STRTAB_NL_msgs.EnumString( pif_get_byte(0), "NL" ) );
+		    strcpy( get_sum_line(pi_data_bacnet_NL), BAC_STRTAB_NL_msgs.EnumString( pif_get_byte(0), "NL:" ) );
 		 }
       }
       else {
@@ -943,12 +944,12 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
    /* Detail line? */
    if (pi_data_bacnet_NL->do_int) {      
 
-      pif_init (pi_data_bacnet_NL, header, length);
-      pif_header (length, "BACnet Network Layer Detail");
+      pif_init(pi_data_bacnet_NL, header, length);
+      pif_header(length, "BACnet Network Layer Detail");
 
 	  //Xiao Shiyuan 2002-5-19. BEGIN
 	  //if header is not NPDU
-	  if(length < 2)
+	  if (length < 2)
 	  {
 		  pif_show_ascii(0, "Error NPDU" );
 		  return length;			
@@ -1003,13 +1004,13 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 
          if(mac_length > 0){
              pif_show_nbytes_hex("Destination MAC address        = X'%s'",mac_length);
-             }
+         }
          else {  /* Broadcast MAC address (not shown in PDU) */
              pif_show_ascii(0,"Broadcast MAC address implied");
-             }
+         }
 
 		 if (name) pif_append_ascii( ", %s", name );
-         }
+      }
 
       /*  ----- show SNET, SLEN and SADR if present ----- */
       if (SOURCEmask == 1) {
@@ -1026,7 +1027,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
             pif_show_ascii(0,"Invalid MAC address length!");
 
 		 if (name) pif_append_ascii( ", %s", name );
-         }
+      }
 
       /*  ----- show Hop Count if DNET present ----- */
       if (DESTmask == 1) pif_show_byte("Hop Count                   = %d");
@@ -1047,7 +1048,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 
          return npdu_length
             + interp_bacnet_AL( header + npdu_length, length - npdu_length );
-         }  /* end of APDU present case */
+      }  /* end of APDU present case */
 
       else {   /* BACnet network control message */
 
@@ -1055,9 +1056,11 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 
         buff = pif_get_byte(0);
         if(buff >= 0x80){
-          pif_show_byte("Proprietary Message Type    = %u");
+          pif_show_byte(   "Proprietary Message Type    = %u");
           pif_show_word_hl("Vendor ID                   = %u");
-          }
+		  // TODO: instead, get the two-byte int and show the vendorID string?
+		  // pif_show_ascii( BAC_STRTAB_BACnetVendorID.EnumString( pif_get_byte(0), "vendor:" )
+        }
         else{
           switch (buff) {   /* show appropriate NL interpretation */
             case 0x00:  /* Who-Is-Router-To-Network */
@@ -1166,13 +1169,28 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
                           sprintf(outstr,"%"FW"s = %%u","Network Number");
                         pif_show_word_hl(outstr);
                         break;
+
+            /* 0x0A .. 0x11 to default */
+
+            case 0x12:  /* What is network number */
+                        pif_show_byte("Message Type                = %u  What-Is-Network-Number");
+                        break;
+            case 0x13:  /* Network-Number-Is*/
+                        pif_show_byte("Message Type                = %u  Network-Number-Is");
+                        sprintf(outstr,"%"FW"s = %%u","Network Number");
+                        pif_show_word_hl(outstr);
+                        if(pif_get_byte(0) == 0)
+                           pif_show_byte("learned: %u");
+                        else
+                           pif_show_byte("configured: %u");
+                        break;
             default:    pif_show_byte("Invalid Message Type        = %u");
             }  /* End of switch */
-          } /* End of if proprietary message type else branch */
+         } /* End of if proprietary message type else branch */
           
-          pif_show_space();
-		}  /* End of else network control message*/
-      }   /* End of Detail Lines */
+         pif_show_space();
+      }  /* End of else network control message*/
+   }   /* End of Detail Lines */
    return length;
 }
 
