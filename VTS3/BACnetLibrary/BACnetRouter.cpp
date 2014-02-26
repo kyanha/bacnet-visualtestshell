@@ -652,6 +652,36 @@ void BACnetRouter::ProcessNetMessage(
 		case DisconnectConnectionToNetwork:
 			break;
 			
+		case ChallengeRequest:
+			break;
+
+		case SecurityPayload:
+			break;
+
+		case SecurityResponse:
+			break;
+
+		case RequestKeyUpdate:
+			break;
+
+		case UpdateKeySet:
+			break;
+
+		case UpdateDistributionKey:
+			break;
+
+		case RequestMasterKey:
+			break;
+
+		case SetMasterKey:
+			break;
+
+		case WhatIsNetworkNumber:
+			break;
+
+		case NetworkNumberIs:
+			break;
+
 		default:
 			throw_(5); // unknown message type
 	}
