@@ -94,13 +94,6 @@ namespace PICS {									//									***016
 #include "EPICSConsCheck.h"
 #include "dudapi.h"
 	
-/* Suppress pointless warnings of:
- *		warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. 
- *      To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.	
- */
-#pragma warning( disable : 4996 )
-
-
 ///////////////////////////////////////////////////////////////////////
 //	function prototypes
 BOOL ParseLogRec(BACnetLogRecord *);
@@ -2036,7 +2029,7 @@ bool APIENTRY ReadTextPICS(
 	
 	lc=0;
 	readline(lb,8);								//read header line from the file		***008
-	if (strnicmp(lb,picshdr,6))				//invalid signature
+	if (_strnicmp(lb,picshdr,6))				//invalid signature
 	{	tperror("This file does not contain a supported form of Text PICS!",false);
 		goto rtpclose;
 	}
@@ -2046,7 +2039,7 @@ bool APIENTRY ReadTextPICS(
 	lp=&lb[0];
 	print_debug("RTP: rl1: Read line '%s'\n",lb);		// MAG
 
-	if (stricmp(lb,BeginPics))				//invalid signature
+	if (_stricmp(lb,BeginPics))				//invalid signature
 	{	tperror("Invalid Text PICS signature.",false);
 		goto rtpclose;
 	}
@@ -2056,7 +2049,7 @@ bool APIENTRY ReadTextPICS(
 		print_debug("RTP: rl2: Read line '%s'\n",lb);		// MAG
 
 		if (lb[0])								//not a blank line
-		{	if (stricmp(lb,EndPics)==0)		//found the end
+		{	if (_stricmp(lb,EndPics)==0)		//found the end
 				break;							//we're done
 			if ((lp=strchr(lb,':'))==NULL)		//must have a section name
 			{	lp=&lb[0];
@@ -2068,7 +2061,7 @@ bool APIENTRY ReadTextPICS(
 				for (i=0;i<(sizeof(SectionNames)/sizeof(SectionNames[0]));i++) {
 				  // preprocessing, replace score and underscore with whitespace
 				  preprocstr(lb);				// remove score and underscore		***020
-				  if (stricmp(lb,SectionNames[i])==0)	//we found a matching section name
+				  if (_stricmp(lb,SectionNames[i])==0)	//we found a matching section name
 				  {	
 					switch(i)
 					{
@@ -2213,7 +2206,7 @@ BOOL ReadFunctionalGroups(PICSdb *pd)
 	{	ReadNext();								//point to next token				***008
 		if (*lp=='}'||lp==NULL) break;			//return, we're done with these
  		for (i=0;i<(sizeof(FunctionalGroups)/sizeof(FunctionalGroups[0]));i++)
-		  if (stricmp(lp,FunctionalGroups[i].name)==0) //found it
+		  if (_stricmp(lp,FunctionalGroups[i].name)==0) //found it
 		  {	pd->BACnetFunctionalGroups|=FunctionalGroups[i].dwcons;
 			i=0;
 			break;
@@ -2245,7 +2238,7 @@ BOOL ReadCharsets(PICSdb *pd)
 		rtrim(lp);
 		if (*lp=='}'||lp==NULL) break;			//return, we're done with these
  		for (i=0;i<(sizeof(Charsets)/sizeof(Charsets[0]));i++)
-		  if (stricmp(lp,Charsets[i].name)==0) //found it
+		  if (_stricmp(lp,Charsets[i].name)==0) //found it
 		  {	pd->BACnetCharsets|=Charsets[i].octetcons;
 			i=0;
 			break;
@@ -2278,7 +2271,7 @@ BOOL ReadBIBBSupported(PICSdb *pd)
 		rtrim(lp);
 		if (*lp=='}'||lp==NULL) break;			//return, we're done with these
  		for (i=0;i<(sizeof(BIBBs)/sizeof(BIBBs[0]));i++)
-		  if (stricmp(lp,BIBBs[i].name)==0) //found it
+		  if (_stricmp(lp,BIBBs[i].name)==0) //found it
 		  {	pd->BIBBSupported[i] = 1;    	// Mark this BIBB supported
 			i=0;
 			break;
@@ -2313,7 +2306,7 @@ BOOL ReadStandardServices(PICSdb *pd)
 		if ((p=strchr(lp,space))!=NULL)			//find the delimiter for supported stuff
 		{	*p++=0;								//make service name be asciz
 	 		for (i=0;i<(sizeof(StandardServices)/sizeof(StandardServices[0]));i++)
-			  if (stricmp(lp,StandardServices[i])==0) //found it
+			  if (_stricmp(lp,StandardServices[i])==0) //found it
 			  {	if (strstr(p,"Initiate")!=NULL)	//supports initiate
 			  		pd->BACnetStandardServices[i]|=ssInitiate;
 				if (strstr(p,"Execute")!=NULL)	//supports execute
@@ -2364,7 +2357,7 @@ BOOL ReadStandardObjects(PICSdb *pd)
 		if (pdel!=NULL)	pdel[-1]=0;				//cheesy way to "remove" this from the string
 
  		for (i=0;i<(sizeof(StandardObjects)/sizeof(StandardObjects[0]));i++)
-			if (stricmp(lp,StandardObjects[i])==0) //found it
+			if (_stricmp(lp,StandardObjects[i])==0) //found it
 			{	pd->BACnetStandardObjects[i]=sup;
 				i=0;
 				break;
@@ -2411,7 +2404,7 @@ BOOL ReadDataLinkOptions(PICSdb *pd)
 			*p++=0;								//make it asciz there
 		rtrim(lp);								//trim trailing blanks				***006
  		for (i=0;i<(sizeof(StandardDataLinks)/sizeof(StandardDataLinks[0]));i++)
-		  if (stricmp(lp,StandardDataLinks[i])==0) //found it
+		  if (_stricmp(lp,StandardDataLinks[i])==0) //found it
 		  {	pd->DataLinkLayerOptions[i] = 1;    //mark this data link supported
 		  	switch(i)							//some of these need extra handling
 		  	{
@@ -2449,7 +2442,7 @@ rdlorates:		got9600=false;
 				}
 				else
 				{	skipwhitespace();
-					if (strnicmp(lp,"to",2)==0)
+					if (_strnicmp(lp,"to",2)==0)
 					{	lp+=2;					//skip over the 'to'
 						if ((pd->PTPAutoBaud[1]=ReadDW())==0)
 						{	if (tperror("Expected Autobaud range 'to baudrate' here!",true))
@@ -2500,7 +2493,7 @@ BOOL ReadSpecialFunctionality(PICSdb *pd)
 		if ((p=strchr(lp,':'))!=NULL)			//colon in this one
 			*p++=0;								//make it asciz there
  		for (i=0;i<(sizeof(SpecialFunctionality)/sizeof(SpecialFunctionality[0]));i++)
-		  if (stricmp(lp,SpecialFunctionality[i])==0) //found it
+		  if (_stricmp(lp,SpecialFunctionality[i])==0) //found it
 		  {	switch(i)
 		  	{
 		  	case 0:								//max apdu size
@@ -2573,7 +2566,7 @@ BOOL ReadFailTimes(PICSdb *pd)
 		flag = FALSE;
 		for (i=0;i<(sizeof(FailTimes)/sizeof(FailTimes[0]));i++)
 		{
-			if (stricmp(lp,FailTimes[i])==0)	//found Fail Time
+			if (_stricmp(lp,FailTimes[i])==0)	//found Fail Time
 			{
 				lp=p;							//point to argument(s)
 				p[-1]=':';
@@ -2653,7 +2646,7 @@ nextobject:										//										***012
 						*lp++=0;				//make property name asciz
 						if (WeKnowObjectType)
 						{	
-							if (stricmp(pn,"object-type")==0)
+							if (_stricmp(pn,"object-type")==0)
 							{	
 								lp[-1]=':';
 								if ((objtype < etObjectTypes.propes) && (objtype != ReadEnum(&etObjectTypes)))
@@ -2680,7 +2673,7 @@ nextobject:										//										***012
 									pobj->propflags[typeProp]|=PropIsWritable; //							***014 End
 								continue;
 							}
-							else if (stricmp(pn,"object-identifier")==0)
+							else if (_stricmp(pn,"object-identifier")==0)
 							{	
 								lp[-1]=':';
 								objid=ReadObjID();
@@ -2718,7 +2711,7 @@ nextobject:										//										***012
 						}
 						else							//don't know what kind of object this is yet
 						{	
-							if (stricmp(pn,"object-type")==0)
+							if (_stricmp(pn,"object-type")==0)
 							{	
 								lp[-1]=':';
 								if ((objtype=ReadEnum(&etObjectTypes))!=0xFFFF)
@@ -2731,7 +2724,7 @@ nextobject:										//										***012
 										fType|=PropIsWritable;			//									***014 End
 								}
 							}
-							else if (stricmp(pn,"object-identifier")==0)
+							else if (_stricmp(pn,"object-identifier")==0)
 							{	
 								lp[-1]=':';
 								if ((objid=ReadObjID())!=badobjid)
@@ -2745,7 +2738,7 @@ nextobject:										//										***012
 								else
 									objtype=0xFFFF;		//object identifier was bogus
 							}
-							else if (stricmp(pn,"object-name")==0)
+							else if (_stricmp(pn,"object-name")==0)
 							{	
 								lp[-1]=':';
 								if (setstring(objname,sizeof(objname),lp)) return true;
@@ -4117,7 +4110,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 	
 	pindex=0;
     do
-	{	if (stricmp(pn,pd->PropertyName)==0)	//found this property name
+	{	if (_stricmp(pn,pd->PropertyName)==0)	//found this property name
 		{	
 			pstruc=(octet *)pobj+pd->StrucOffset;	//make pointer to where the value is stored
 			
@@ -4893,7 +4886,7 @@ propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId
 	pd=StdObjects[(word)(dw>>22)].sotProps;	//point to property descriptor table for this object type
 	do
 	{	
-		if (stricmp(pn,pd->PropertyName)==0)	//found this property name
+		if (_stricmp(pn,pd->PropertyName)==0)	//found this property name
 		{	
 			*propId=pd->PropID;
 		    break;
@@ -5108,7 +5101,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 		//in either case dow must be separated from year by a space, or not be there at all
 		//The .. between dates in a daterange is significant and must be literally 2 dots in a row
 		
-		if (strnicmp(lp,"Calendar",8)==0)		//it's a calendar reference
+		if (_strnicmp(lp,"Calendar",8)==0)		//it's a calendar reference
 		{	q->choice=3;
 			lp--;								//ReadObjID needs to point to the (
 			q->u.calendar_ref.object_id=ReadObjID();
@@ -5126,7 +5119,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 				    q->u.weekNday.month=ReadB(1,12);
 				else							//use monthname
 			    {	for (i=0;i<14;i++)
-			    		if (strnicmp(lp,MonthNames[i],3)==0)
+			    		if (_strnicmp(lp,MonthNames[i],3)==0)
 			    		{	q->u.weekNday.month=(octet)i+1;	//months are 1-12
 			    			break;
 			    		}
@@ -5142,7 +5135,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 					q->u.weekNday.day=ReadB(1,7);
 				else
 			    {	for(i=0;i<7;i++)
-			    		if (strnicmp(lp,DOWNames[i],3)==0)
+			    		if (_strnicmp(lp,DOWNames[i],3)==0)
 			    		{	q->u.weekNday.day=(octet)i+1;		//days are 1-7
 			    			break;
 			    		}
@@ -6019,7 +6012,7 @@ int getDayOfWeek(char* tok)  // returns 0 if not day of week, -1 if any
 	{
 	   for(i=0;i<7;i++)
 	   {
-		if (strnicmp(DOWNames[i], tok, strlen(DOWNames[i])) == 0)
+		if (_strnicmp(DOWNames[i], tok, strlen(DOWNames[i])) == 0)
 		{	
 			return i+1;  // day of week is 1 - 7
 		}
@@ -6095,7 +6088,7 @@ BOOL ParseJustDatePart(BACnetDate *dtp, char* tok)
 		print_debug("PD: second set dash case\n");
 
 		for (i=0;i<12;i++)
-			if (strnicmp(lp,MonthNames[i],3)==0)  // only look at first 3 chars
+			if (_strnicmp(lp,MonthNames[i],3)==0)  // only look at first 3 chars
 			{	
 				dtp->month=(octet)i+1;			//months are 1-12
 				char* tmp = strchr(lp,'-');
@@ -7005,7 +6998,7 @@ BOOL normalBitstring(char *src)
 
 	for(int i=0; i<7; i++)
 	{
-		if (strnicmp(ep,DOWNames[i],3)==0)
+		if (_strnicmp(ep,DOWNames[i],3)==0)
 		{
 			found=true;
 			break;
@@ -7085,7 +7078,7 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 				if (*lp==')') break;				//done								***013
 				found_day = 0;  // MAG
 	    		for(i=0;i<7;i++)
-	    			if (strnicmp(lp,DOWNames[i],3)==0)
+	    			if (_strnicmp(lp,DOWNames[i],3)==0)
 	    			{	q->valid_days|=(octet)(0x80>>i);	//Monday is 80, Sunday is 2
 						while (*lp&&*lp!=' '&&*lp!=','&&*lp!=')') lp++;	//find delim	***014
 						found_day = 1;
@@ -7562,18 +7555,18 @@ word ReadEnum(etable *etp)
 		for (i=0;i<etp->nes;i++)
 		{	
 			if (etp->estrings[i])				//make sure it's not null			***006
-				if (stricmp(e,etp->estrings[i])==0)
+				if (_stricmp(e,etp->estrings[i])==0)
 				{	//matching enumeration
 					print_debug("RE: find match (%d)- return\n",i);
 					return i;
 				}
 		}
-		if (stricmp(e,"unknown")==0)
+		if (_stricmp(e,"unknown")==0)
 		{
 			i=(word)ReadDW();
 			return i;
 		}
-		if (stricmp(e,"proprietary")==0)
+		if (_stricmp(e,"proprietary")==0)
 		{	
 			if (etp->propes)
 			{	
@@ -7613,7 +7606,7 @@ dword ReadObjID()
 	}
 
 	// 5/19/2005 Shiyuan Xiao. Support proprietary object
-	if( strnicmp(lp, "proprietary", strlen("proprietary")) == 0 )
+	if( _strnicmp(lp, "proprietary", strlen("proprietary")) == 0 )
 	{
 		lp += strlen("proprietary");
 		skipwhitespace();
@@ -7627,7 +7620,7 @@ dword ReadObjID()
 	
 	print_debug("ROI: object type %s %d\n",etObjectTypes.estrings[objtype], objtype);
 	skipwhitespace();						//									***006 Begin
-	if (strnicmp(lp,"instance ",9)==0)		//ignore instance here
+	if (_strnicmp(lp,"instance ",9)==0)		//ignore instance here
 		lp+=9;									//									***006 End
 	id=ReadDW();
 	print_debug("ROI: object instance %d\n",id);

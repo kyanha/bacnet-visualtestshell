@@ -710,7 +710,7 @@ word ePropVal(octet *op,word opmax,word objtype,octet btag,char *pstr)
     for (i=0;i<n;i++)
 	{	pid=VTSAPIgetpropinfo(objtype,i,pn,&ptype,NULL,&pflags,&ep);	//get next property
 		//fprintf(op2,"ePV: check property %d '%s'\n",i,pn);
-		if(stricmp(pn,pstr)==0)
+		if(_stricmp(pn,pstr)==0)
 		{	//fprintf(op2,"ePV: find matching property ptype = %d.\n",ptype);
 			if ((word)(op-iop+2)>=opmax){ 
 				//fprintf(op2,"ePV: opmax size violation- return\n"); fclose(op2); 
@@ -734,7 +734,7 @@ word ePropVal(octet *op,word opmax,word objtype,octet btag,char *pstr)
 			//for(j=0;j<op-iop;j++) fprintf(op2,"%02X ",iop[j]);
 			//fprintf(op2,"\n");
 
-			if (stricmp(vp,nullstring)==0){ ptype=enull; /*fprintf(op2,"ePV: ptype = null\n");*/ }
+			if (_stricmp(vp,nullstring)==0){ ptype=enull; /*fprintf(op2,"ePV: ptype = null\n");*/ }
 			op=eAny(op,(word)(opmax-(op-iop)),ptype,pflags,ep,vp);
 			
 			//fprintf(op2,"ePV: after op=eAny length %d encoded sequence: ",op-iop);
@@ -807,7 +807,7 @@ word eSelCrit(octet *op,word opmax,char *pstr)
 		}
 		else return 0;								//									***023 End
 		for (i=0;stParseTypes[i];i++)
-		{	if (stricmp(stParseTypes[i],cp)==0)
+		{	if (_stricmp(stParseTypes[i],cp)==0)
 			{	ptype=i;							//parse type found
 				break;
 			}
@@ -852,7 +852,7 @@ getvp:	vp=strchr(pstr,fc);						//find first char of relation
     
 	for (i=0; i < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; i++)
 	{	
-		if (stricmp(pstr,NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[i])==0)
+		if (_stricmp(pstr,NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[i])==0)
 		{	
 			if ((word)(op-iop+2)>=opmax) return 0;			
 			
@@ -992,7 +992,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 			*vp++=0;
 			for (i=0;i<n;i++)
 			{	n=VTSAPIgetenumtable(eiCalType,i,NULL,NULL,ptext);	//get text for enumeration
-				if(stricmp(ptext,cp)==0) break;			//we got it
+				if(_stricmp(ptext,cp)==0) break;			//we got it
 			}
 			cp=vp;
 			if (i>=n) return 0;
@@ -1034,7 +1034,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 					nc=VTSAPIgetenumtable(eitbl[j],0,NULL,NULL,ptext);	//get number of enumerations this pointer
 					for (k=0;k<nc;k++)
 					{	n=VTSAPIgetenumtable(eitbl[j],k,NULL,NULL,ptext); //get text for enumeration
-						if(stricmp(ptext,cp)==0)				//we got it
+						if(_stricmp(ptext,cp)==0)				//we got it
 						{	if (k!=0) os[j]=(octet)k;
 							else os[j]=0xFF;
 							break;
@@ -1110,7 +1110,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 			n=VTSAPIgetenumtable(eiYN,0,NULL,NULL,ptext);		//get number of enumerations this pointer (n will always be 2!)
 			for (i=0;i<n;i++)
 			{	n=VTSAPIgetenumtable(eiYN,i,NULL,NULL,ptext);	//get text for enumeration
-				if(stricmp(ptext,cp)==0)				//we got it
+				if(_stricmp(ptext,cp)==0)				//we got it
 				{	op=eBOOL(op,(BOOL)i);
 					break;
 				}
@@ -1157,7 +1157,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
             	if (vp!=0) *vp++=0x00;				//we have an array index
 				for (i=0;i<n;i++)
 				{	pid=VTSAPIgetpropinfo(objtype,i,ptext,NULL,NULL,NULL,NULL);	//get next property
-					if(stricmp(ptext,cp)==0)
+					if(_stricmp(ptext,cp)==0)
 					{	
 //						*op++=0x0E;					//open context tag 0						***024 Begin
 //						op=eDWORD(op,pid,0x90,FALSE);
@@ -1207,7 +1207,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 		n=VTSAPIgetenumtable(eiCalType,0,NULL,NULL,ptext);	//get number of enumerations this pointer
 		for (i=0;i<n;i++)
 		{	n=VTSAPIgetenumtable(eiCalType,i,NULL,NULL,ptext);	//get text for enumeration
-			if(stricmp(ptext,cp)==0) break;			//we got it
+			if(_stricmp(ptext,cp)==0) break;			//we got it
 		}
 		cp=np;
 		np=strchr(cp,'|');
@@ -1253,7 +1253,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 					nc=VTSAPIgetenumtable(eitbl[j],0,NULL,NULL,ptext);	//get number of enumerations this pointer
 					for (k=0;k<nc;k++)
 					{	n=VTSAPIgetenumtable(eitbl[j],k,NULL,NULL,ptext); //get text for enumeration
-						if(stricmp(ptext,cp)==0)				//we got it
+						if(_stricmp(ptext,cp)==0)				//we got it
 						{	if (k!=0) os[j]=(octet)k;
 							else os[j]=0xFF;
 							break;
@@ -1324,7 +1324,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
             if (vp!=0) *vp++=0x00;					//we have an array index
 			for (i=0;i<n;i++)
 			{	pid=VTSAPIgetpropinfo(objtype,i,ptext,NULL,NULL,NULL,NULL);	//get next property
-				if(stricmp(ptext,cp)==0)
+				if(_stricmp(ptext,cp)==0)
 				{	
 					tp=(char *)op;
 					op=eDWORD(op,pid,0x28,FALSE);	//SD context tag 2
@@ -1379,7 +1379,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 			n=VTSAPIgetenumtable(eiYN,0,NULL,NULL,ptext);		//get number of enumerations this pointer (n will always be 2!)
 			for (i=0;i<n;i++)
 			{	n=VTSAPIgetenumtable(eiYN,i,NULL,NULL,ptext);	//get text for enumeration
-				if(stricmp(ptext,cp)==0)				//we got it
+				if(_stricmp(ptext,cp)==0)				//we got it
 				{	*op++=0x79;						//SD tag 7, always len 1			***030
 					*op++=(((BOOL)i) ?1:0);			//boolean value						***030
 					break;
@@ -1396,7 +1396,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 			n=VTSAPIgetenumtable(eiYN,0,NULL,NULL,ptext);		//get number of enumerations this pointer (n will always be 2!)
 			for (i=0;i<n;i++)
 			{	n=VTSAPIgetenumtable(eiYN,i,NULL,NULL,ptext);	//get text for enumeration
-				if(stricmp(ptext,np)==0)				//we got it
+				if(_stricmp(ptext,np)==0)				//we got it
 				{	*op++=0x89;						//SD tag 8, always len 1			***030
 					*op++=(((BOOL)i) ?1:0);			//boolean value						***030
 					break;
@@ -1424,7 +1424,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
 		n=VTSAPIgetenumtable(eiEvType,0,NULL,NULL,ptext);		//get number of enumerations this pointer (n will always be 2!)
 		for (i=0;i<n;i++)
 		{	n=VTSAPIgetenumtable(eiEvType,i,NULL,NULL,ptext);	//get text for enumeration
-			if(stricmp(ptext,pstr)==0) break;				//we got it
+			if(_stricmp(ptext,pstr)==0) break;				//we got it
 		}
 		*op++=0x0E+(octet)(i<<4);				//open tag
 		tp=(char *)op;
@@ -1522,7 +1522,7 @@ octet  *eAny (octet *op,word opmax,word ptype,word pflags,word ep,char *pstr)
             if (lp!=0) *lp++=0;
 			for (j=0;j<n;j++)
 			{	pid=VTSAPIgetpropinfo(objtype,j,ptext,NULL,NULL,NULL,NULL);	//get next property
-				if(stricmp(ptext,cp)==0)
+				if(_stricmp(ptext,cp)==0)
 				{	
 					tp=(char *)op;
 					op=eDWORD(op,pid,0x18,FALSE);		//SD context tag 1
@@ -1617,7 +1617,7 @@ dolims:		if (opmax<15) return 0;				//can't fit 3 floats
 		    if (n==0) return 0;						//should never happen
 			for (i=0;i<n;i++)
 			{	pid=VTSAPIgetpropinfo(objtype,i,ptext,NULL,NULL,NULL,NULL);	//get next property
-				if(stricmp(ptext,cp)==0)
+				if(_stricmp(ptext,cp)==0)
 				{	
 //					*op++=0x1E;						//open context tag 1				***024 Begin
 //					op=eDWORD(op,pid,0x90,FALSE);
@@ -1655,7 +1655,7 @@ dolims:		if (opmax<15) return 0;				//can't fit 3 floats
 	    	nc=cp-pstr;
 			for (i=0;i<n;i++)
 			{	n=VTSAPIgetenumtable(eiVTCls,i,NULL,NULL,ptext);	//get text for enumeration
-				if(strnicmp(ptext,pstr,nc)==0)			//we got it
+				if(_strnicmp(ptext,pstr,nc)==0)			//we got it
 				{	op=eDWORD(op,(dword)i,0x90,FALSE);
 					if (last) return op;
 					pstr=++cp;								//next comma-sep value
@@ -1825,7 +1825,7 @@ dolims:		if (opmax<15) return 0;				//can't fit 3 floats
 		n=VTSAPIgetenumtable(ep,0,NULL,NULL,ptext);		//get number of enumerations this pointer (n will always be 2!)
 		for (i=0;i<n;i++)
 		{	n=VTSAPIgetenumtable(ep,i,NULL,NULL,ptext);	//get text for enumeration
-			if(stricmp(ptext,pstr)==0)				//we got it
+			if(_stricmp(ptext,pstr)==0)				//we got it
 			{	op=eBOOL(op,(BOOL)i);
 				return op;
 			}
@@ -1956,7 +1956,7 @@ octet  *eObjId (octet *op,char *pstr,word *objtype)
 		n=VTSAPIgetenumtable(eiObjectTypes,0,NULL,NULL,ptext);		//get number of enumerations this pointer
 		for (i=0;i<n;i++)
 		{	n=VTSAPIgetenumtable(eiObjectTypes,i,NULL,NULL,ptext);	//get text for enumeration
-			if(strnicmp(ptext,cp,nc)==0)							//we got it
+			if(_strnicmp(ptext,cp,nc)==0)							//we got it
 			{	*objtype=i;
 				op=etagOBJECTID(op,0xC0,vbOBJECTID(i,inst));
 				return op;
@@ -1980,7 +1980,7 @@ octet  *eepENUM (octet *op,char *pstr,word ep)
 	n=VTSAPIgetenumtable(ep,0,NULL,NULL,ptext);		//get number of enumerations this pointer
 	for (i=0;i<n;i++)
 	{	n=VTSAPIgetenumtable(ep,i,NULL,NULL,ptext);	//get text for enumeration
-		if(stricmp(ptext,pstr)==0)				//we got it
+		if(_stricmp(ptext,pstr)==0)				//we got it
 		{	op=eDWORD(op,(dword)i,0x90,FALSE);
 			return op;
 		}
@@ -2185,7 +2185,7 @@ octet *atoeBITSTRING (octet *op,char *pstr,word ep)
 			dmask=0x80000000;					//bits are flipped in BACnet
 			for (i=0;i<n;i++)
 			{	n=VTSAPIgetenumtable(ep,i,NULL,NULL,ptext);	//get text for enumeration
-				if(stricmp(ptext,cp)==0)
+				if(_stricmp(ptext,cp)==0)
 				{	u.dw|=dmask;
 					break;
 				}
@@ -2244,14 +2244,14 @@ octet *atoeDATESTRING(octet *op,char *pstr)
     cp=pstr;
     np=strchr(pstr,',');
     *np++=0;
-	if(stricmp(cp,anystring)!=0) day=(octet)atoi(cp);	//get the day
+	if(_stricmp(cp,anystring)!=0) day=(octet)atoi(cp);	//get the day
 	cp=np;
     np=strchr(np,',');
     *np++=0;
 	n=VTSAPIgetenumtable(eiMon,0,NULL,NULL,ptext);		//get number of month strings
 	for (i=0;i<n;i++)
 	{	n=VTSAPIgetenumtable(eiMon,i,NULL,NULL,ptext);	//get text for enumeration
-		if(stricmp(ptext,cp)==0)						//we found the month
+		if(_stricmp(ptext,cp)==0)						//we found the month
 		{	if (i!=0) month=(octet)i;
 			break;
 		}
@@ -2259,12 +2259,12 @@ octet *atoeDATESTRING(octet *op,char *pstr)
 	cp=np;
     np=strchr(np,',');
     *np++=0;
-	if(stricmp(cp,anystring)!=0) year=atoi(cp);		//get the year
+	if(_stricmp(cp,anystring)!=0) year=atoi(cp);		//get the year
 	cp=np;
 	n=VTSAPIgetenumtable(eiAnyDOW,0,NULL,NULL,ptext);	//get number of dow strings
 	for (i=0;i<n;i++)
 	{	n=VTSAPIgetenumtable(eiAnyDOW,i,NULL,NULL,ptext);	//get text for enumeration
-		if(stricmp(ptext,cp)==0)						//we found the dow
+		if(_stricmp(ptext,cp)==0)						//we found the dow
 		{	if (i!=0) dow=(octet)i;
 			break;
 		}
@@ -2601,7 +2601,7 @@ word  APIENTRY eReadPropConditionalService(octet *op,word opmax,word selectlogic
 			GetListText(hrefs,i,(char *)p);			//get the property reference text to encode
 		    for (j=0; j < NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings; j++)
 			{	
-				if (stricmp((char *)p, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[j])==0)
+				if (_stricmp((char *)p, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[j])==0)
 				{	
 					if ((word)(op-iop+2)>=opmax) return 0;
 					op=eDWORD(op,j,0x08,FALSE);		//context tag 0 property id

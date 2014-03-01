@@ -282,9 +282,9 @@ void MSTPImp_NBLink::FormatNBLinkString( CString * pstrOut, LPCSTR lpszIPRemote,
 	//note that 76800 is not supported in the NB-Link
 	//we could also support 57600 and 115200 if we wanted to
 
-	if ( stricmp(lpszBaud, "19200") == 0 )
+	if ( _stricmp(lpszBaud, "19200") == 0 )
 		baud = NBBR19200;
-	else if ( stricmp(lpszBaud, "38400") == 0 )
+	else if ( _stricmp(lpszBaud, "38400") == 0 )
 		baud = NBBR38400;
 	else 
 		baud = NBBR9600;
@@ -423,7 +423,7 @@ bool MSTPImp_NBLink::CompareParameters( char * lpszParms, LPCSTR lpszIPThis )
 		return true;
 
 	p = strtok(NULL, ",");
-	if ( p == NULL || stricmp(p, lpszIPThis)  )				// Test where this NBLink thinks it should talk to
+	if ( p == NULL || _stricmp(p, lpszIPThis)  )				// Test where this NBLink thinks it should talk to
 		return true;
 
 	p = strtok(NULL, ",");

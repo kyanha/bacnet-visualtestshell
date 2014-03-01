@@ -5096,7 +5096,7 @@ void VTSWinWinPcapPort::FilterData( BACnetOctet *data, int len, BACnetPortDirect
 	pkt.packetHdr.packetType = (dir == portSending) ? txData : rxData;
 
 	// parse the source and destination addresses
-	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::ethernetProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ethernetProtocol;
 
 	// check for broadcast destination
 	if ((data[0] == 0xFF) && (data[1] == 0xFF) && (data[2] == 0xFF)
@@ -5190,7 +5190,7 @@ void VTSWinIPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection d
 //	pkt.packetHdr.packetPortID = m_pPort->portDescID;
 	strncpy(pkt.packetHdr.m_szPortName, m_pPort->GetName(), sizeof(pkt.packetHdr.m_szPortName)-1);
 
-	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::ipProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ipProtocol;
 	pkt.packetHdr.packetFlags = 0 /* (pdu.pduExpectingReply << 8) + pdu.pduNetworkPriority */;
 	pkt.packetHdr.packetType = (dir == portSending) ? txData : rxData;
 	

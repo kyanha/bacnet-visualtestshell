@@ -47,7 +47,7 @@ void VTSWinMSTPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection
 	// fill in the packet header
 	strncpy(pkt.packetHdr.m_szPortName, m_pPort->GetName(), sizeof(pkt.packetHdr.m_szPortName)-1 );
 
-	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::mstpProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::mstpProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = (dir == portSending) ? txData : rxData;
 	
@@ -86,7 +86,7 @@ void VTSWinMSTPPort::Msg( const char * msg )
 	while (*dst) dst++;
 
 	// fill in the packet header
-	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::msgProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::msgProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = msgData;
 

@@ -12,6 +12,9 @@
 
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 
+// We are old enough to use strcpy without hurting ourselves, than you very much
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 #include <afxdisp.h>        // MFC Automation classes
@@ -26,12 +29,6 @@
 #include "scbarg.h"
 #include "scbarcf.h"
 #include <afxdlgs.h>
-
-/* Suppress pointless warnings of:
- *		warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. 
- *      To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.	
- */
-#pragma warning( disable : 4996 )
 
 // Replacements for character classification functions that can handle ISO-8859-1 character 
 // values, which appear as values -128 to -1, since char is signed.

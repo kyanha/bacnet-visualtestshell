@@ -888,7 +888,7 @@ void BakRestoreExecutor::DoRestoreTest()
 				m_pOutputDlg->OutMessage("OK");
 	
 				// We cannot assume that record size < maxAPDU so give a rounded buffsize greater than the file size
-				UINT fSize = backupDataFile_record.GetLength();
+				UINT fSize = (UINT)backupDataFile_record.GetLength();
 				UINT nMWOC = fSize + (DEFAULT_BUFF_SIZE - (fSize % DEFAULT_BUFF_SIZE) );
 				
 				BYTE* pBuffer = new BYTE[nMWOC];
@@ -2125,7 +2125,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Record(BACnetObjectIdentifier&
 		{
 			delete[] m_packetData;
 			
-			totalLen = m_segmentData.GetCount();
+			totalLen = m_segmentData.GetSize();
 
 			//Add the data to the global BACnetAPDU
 			m_packetData = new BACnetOctet[totalLen];
@@ -2257,7 +2257,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Record(BACnetObjectIdentifier
 {
 	CByteArray contents;
 	BACnetAPDUEncoder enc;
-	unsigned long segmentNum, segSize, dataPos;
+	UINT segmentNum, segSize, dataPos;
 	BYTE invokeID;
 	BOOL lastSegment; 
 
@@ -2280,7 +2280,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Record(BACnetObjectIdentifier
 	 * Support segmented AtomicWriteFile
 	 * Send the data in segments if a single record size > maxAPDU
 	 */
-	if( (enc.pktLength + SEGMENTED_APDU_HEADER_SIZE + NPDU_HEADER_BUFF ) > m_maxAPDULen)
+	if( ((UINT)enc.pktLength + SEGMENTED_APDU_HEADER_SIZE + NPDU_HEADER_BUFF ) > m_maxAPDULen)
 	{
 		lastSegment = FALSE;
 		segmentNum = segSize = dataPos = 0;
@@ -2297,9 +2297,9 @@ BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Record(BACnetObjectIdentifier
 		while(true)
 		{
 			//copy the encoding into the byte array	
-			for (int i = 0; i < segSize; i++)
+			for (UINT i = 0; i < segSize; i++)
 			{
-				ASSERT(dataPos < enc.pktLength);
+				ASSERT(dataPos < (UINT)enc.pktLength);
 				contents.Add( enc.pktBuffer[dataPos++] );
 			}
 
@@ -2617,7 +2617,7 @@ void BakRestoreExecutor::FindRouterAddress()
 void BakRestoreExecutor::Msg(const char* errMsg)
 {
 	VTSPacket pkt;
-	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::textMsgProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::textMsgProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = msgData;
 	BACnetOctet* buff = new BACnetOctet[strlen(errMsg)+1];

@@ -500,7 +500,7 @@ void CSuperGridCtrl::DrawComboBox(CDC* pDC, CTreeItem *pSelItem, int nItem, int 
 	CItemInfo::CONTROLTYPE ctrlType;
 	if(pInfo->GetControlType(nColumn-1, ctrlType))
 	{
-		if(ctrlType == pInfo->CONTROLTYPE::combobox) 
+		if(ctrlType == pInfo->combobox) 
 		{
 			CRect rect;
 			GetSubItemRect(nItem, nColumn, LVIR_BOUNDS, rect);

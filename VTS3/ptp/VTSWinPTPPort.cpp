@@ -41,7 +41,7 @@ void VTSWinPTPPort::FilterData( BACnetOctet *data, int len, BACnetPortDirection 
 //MAD_DB	pkt.packetHdr.packetPortID = m_pPort->portDescID;
 	strncpy(pkt.packetHdr.m_szPortName, m_pPort->GetName(), sizeof(pkt.packetHdr.m_szPortName)-1 );
 
-	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::ptpProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ptpProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = (dir == portSending) ? txData : rxData;
 	

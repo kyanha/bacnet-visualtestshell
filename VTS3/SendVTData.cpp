@@ -63,7 +63,7 @@ void CSendVTData::InitPage( void )
 	m_ID.ctrlNull = true;
 	m_Data.ctrlNull = false;
 	m_DataFlag.ctrlNull = false;
-	m_DataFlag.boolValue = BACnetBoolean::eBACnetBoolean::bFalse;
+	m_DataFlag.boolValue = BACnetBoolean::bFalse;
 }
 
 //
