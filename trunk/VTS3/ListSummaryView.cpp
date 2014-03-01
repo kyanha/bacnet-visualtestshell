@@ -750,7 +750,6 @@ void CListSummaryView::OnCustomdrawList ( NMHDR* pNMHDR, LRESULT* pResult )
         // This is the prepaint stage for an item. Here's where we set the
         // item's text color. Our return value will tell Windows to draw the
         // item itself, but it will use the new color we set here.
-        // We'll cycle the colors through red, green, and light blue.
         COLORREF crText;
         CString serviceText;
 		
@@ -759,8 +758,10 @@ void CListSummaryView::OnCustomdrawList ( NMHDR* pNMHDR, LRESULT* pResult )
 		VTSPacketPtr ptr = m_FrameContext->m_pDoc->GetPacket(nPacket);
 		
 		serviceText = GetListCtrl().GetItemText(pLVCD->nmcd.dwItemSpec, 9);
-		serviceText.MakeLower();
 		
+		// TODO: this flag isn't included in the saved packet, so it won't be
+		// set in loaded packets.
+		// But that's OK since no code ever SETS the flag in the original packet anyway...
 		if (ptr->bErrorDecode)
 		{
 			crText = SUMMARY_PACKET_COLOR[5];
@@ -768,27 +769,36 @@ void CListSummaryView::OnCustomdrawList ( NMHDR* pNMHDR, LRESULT* pResult )
 		else
 		{
 			// TODO: wouldn't it be more useful to set color
-			// by PDU type, and/or distinguish PDUs from
-			// VTS scripting messages?
-			// Also, since Find finds substring, the separate compares for -ack are silly.
-			if ( serviceText.Find("readproperty,") > -1)
+			// by PDU type, and/or distinguish PDUs from VTS scripting messages?
+			// Might re-purpose the "packetFlags", which aren't currently used for anything.
+			// Thus, they will be 0 in any saved packet files.
+			//
+			// Colors might be
+			// - VTS informational messages (gray, or...)
+			// - Confirmed and unconfirmed services (black, or...)
+			// - Simple and complex ack services (...)
+			// - Error, Reject, and Abort services (pink...)
+			// - Packets with encoding errors (red...)
+			// - VTS failure messages (bright red)
+
+			// Since Find finds substring, these will pick up the xxx-ack messages as well
+			if ( serviceText.Find("ReadProperty") > -1)
 				crText = SUMMARY_PACKET_COLOR[0];
-			else if ( serviceText.Find("readproperty-ack") > -1)
-				crText = SUMMARY_PACKET_COLOR[0];
-			else if ( serviceText.Find("writeproperty,") > -1 )
+			else if ( serviceText.Find("WriteProperty") > -1 )
 				crText = SUMMARY_PACKET_COLOR[1];
-			else if ( serviceText.Find("writeproperty-ack") > -1 )
-				crText = SUMMARY_PACKET_COLOR[1];
-			else if ( serviceText.Find("readpropertymultiple,") > -1)
+			else if ( serviceText.Find("ReadPropertyMultiple") > -1)
 				crText = SUMMARY_PACKET_COLOR[2];
-			else if ( serviceText.Find("readpropertymultiple-ack") > -1)
-				crText = SUMMARY_PACKET_COLOR[2];
-			else if ( serviceText.Find("writepropertymultiple,") > -1)
+			else if ( serviceText.Find("WritePropertyMultiple") > -1)
 				crText = SUMMARY_PACKET_COLOR[3];
-			else if ( serviceText.Find("error,") > -1 )
+			else if ( serviceText.Find("Error") > -1 )
 				crText = SUMMARY_PACKET_COLOR[4];
 			else
 				crText = RGB(0,0,0);
+
+			// TODO: This is a hack to make VTS failure messages more visible.
+			// Works in conjunction with ScriptExecutor::Msg
+			if ( serviceText.Find("FAIL:") == 0 )
+				crText = SUMMARY_PACKET_COLOR[5];
 		}
 		
         // Store the color back in the NMLVCUSTOMDRAW struct.
