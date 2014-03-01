@@ -34,6 +34,11 @@
 #define nPRIO 16				    // size of priority arrays
 #endif
 
+// Status equates
+#define SCRIPT_STATUS_NONE 0
+#define SCRIPT_STATUS_OK   1
+#define SCRIPT_STATUS_WARN 2
+#define SCRIPT_STATUS_FAIL 3
 
 
 class ScriptMsgStatus : public ScriptExecMsg
@@ -397,7 +402,7 @@ class ScriptExecutor : public BACnetTask {
 		bool					execSingleStep;		// break after current packet
 		bool					execFailContinue;	// iff checking all tests and one failed, keep going anyway
 
-		void Msg( int sc, int line, const char *msg );	// save a message in the database
+		void Msg( int sc, int line, const char *msg, int testStatus = SCRIPT_STATUS_OK );	// save a message in the database
 
 		void Run( void );						// continue running
 		void Halt( void );						// set to not running

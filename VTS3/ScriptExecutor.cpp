@@ -557,7 +557,7 @@ void ScriptExecutor::Cleanup( void )
 			{
 				// It's still up... Kill it with a success regardless of whether or not this one failed...
 				((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
-				SetPacketStatus(((ScriptPacketPtr) execCommand)->m_pcmdMake, 1);
+				SetPacketStatus( ((ScriptPacketPtr) execCommand)->m_pcmdMake, SCRIPT_STATUS_OK );
 			}
 			
 			// clear all the rest of the execution vars
@@ -617,15 +617,16 @@ bool ScriptExecutor::IsBound( VTSDocPtr vdp )
 //		3	- script info (delay expired, parm mismatch)
 //
 
-void ScriptExecutor::Msg( int sc, int line, const char *msg )
+void ScriptExecutor::Msg( int sc, int line, const char *msg, int testStatus /*=SCRIPT_STATUS_OK*/ )
 {
 	VTSPacket		pkt;
-	TRACE( "[%d:%d] %s\n", sc, line, msg );
+	TRACE( "[%d:%d] %s stat=%d\n", sc, line, msg, testStatus );
 
 	int len = strlen( msg );
+	int failLen = ((sc == 1) && (testStatus == SCRIPT_STATUS_FAIL)) ? 6 : 0; // strlen("FAIL: ")
 
 	// Header, plus test name, plus msg
-	unsigned char *buff = new unsigned char[ 21 + 256 + len+1 ];
+	unsigned char *buff = new unsigned char[ 21 + failLen + 250+3 + len+1 ];
 
 	// save the severity code
 	buff[0] = sc;
@@ -638,18 +639,24 @@ void ScriptExecutor::Msg( int sc, int line, const char *msg )
 
 	// save the digest
 	memcpy( buff+5, execDoc->m_digest, 16 );
-
-	// for test level messages start with test name (up to 256 characters)
 	unsigned char *dst = buff + 21;
+
+	// for test level messages start with test name (up to 250 characters)
 	if (sc == 1) {
-		dst += sprintf( (char*)dst, "Test %.256s ", (LPCTSTR)execTest->baseLabel );
+		if (failLen)
+		{
+			// This is used as a flag by ListSummary to change the color of failure lines
+			strcpy( (char*)dst, "FAIL: " );
+			dst += failLen;
+		}
+		dst += sprintf( (char*)dst, "Test \"%.250s\" ", (LPCTSTR)execTest->baseLabel );
 	}
 
-	strcpy( (char *)dst, msg );
+	strcpy( (char*)dst, msg );
 	dst += len;
 
 	// fill in the packet header
-	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::msgProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::msgProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = msgData;
 
@@ -838,15 +845,15 @@ void ScriptExecutor::Kill( bool closingDoc )
 	}
 
 	// tell the database the test was killed
-	Msg( 1, execTest->baseLineStart, "Terminated" );
+	Msg( 1, execTest->baseLineStart, "Terminated", SCRIPT_STATUS_FAIL );
 
 	// pull the task from the installed list (effecively canceling a timer)
 	SuspendTask();
 
 	// set the status
-//	SetPacketStatus( execPacket, 3 );
-	SetPacketStatus( execCommand, 3 );
-	SetTestStatus( execTest, 3 );
+//	SetPacketStatus( execPacket, SCRIPT_STATUS_FAIL );
+	SetPacketStatus( execCommand, SCRIPT_STATUS_FAIL );
+	SetTestStatus( execTest, SCRIPT_STATUS_FAIL );
 
 	// Clean up left over popups...
 
@@ -922,7 +929,7 @@ void ScriptExecutor::ProcessTask( void )
 		if (!execDoc->m_pContentTree || !execDoc->m_pContentTree->m_pScriptContent) 
 		{
 			// alert the user
-			Msg( 2, 0, "No test to run, check syntax" );
+			Msg( 2, 0, "No test to run, check syntax", SCRIPT_STATUS_FAIL );
 
 			// go back to idle
 			Cleanup();
@@ -957,7 +964,7 @@ void ScriptExecutor::ProcessTask( void )
 		if (!execTest) 
 		{
 			// alert the user
-			Msg( 2, 0, "No test to run, check syntax" );
+			Msg( 2, 0, "No test to run, check syntax", SCRIPT_STATUS_FAIL );
 
 			// go back to idle
 			Cleanup();
@@ -976,7 +983,7 @@ void ScriptExecutor::ProcessTask( void )
 		if (newStatus) 
 		{
 			// alert the user
-			Msg( 1, execTest->baseLineStart, "failed, check dependencies" );
+			Msg( 1, execTest->baseLineStart, "failed, check dependencies", newStatus );
 
 			// set the status
 			SetTestStatus( execTest, newStatus );
@@ -996,7 +1003,7 @@ void ScriptExecutor::ProcessTask( void )
 			Msg( 1, execTest->baseLineStart, "trivial test successful" );
 
 			// set the status
-			SetTestStatus( execTest, 1 );
+			SetTestStatus( execTest, SCRIPT_STATUS_OK );
 
 			// go back to idle
 			Cleanup();
@@ -1008,13 +1015,13 @@ void ScriptExecutor::ProcessTask( void )
 		Msg( 3, execTest->baseLineStart, execDoc->GetPathName() );
 
 		// set the test status to running
-		SetTestStatus( execTest, 2 );
+		SetTestStatus( execTest, SCRIPT_STATUS_WARN );
 
 		// if single stepping, go to stopped
 		if (execSingleStep) 
 		{
 			// set the packet status to running
-			SetPacketStatus( execCommand, 2 );
+			SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
 
 			execState = execStopped;
 			return;
@@ -1074,7 +1081,7 @@ keepGoing:
 			else 
 			{
 				// set the status pending
-				SetPacketStatus( execPacket, 2 );
+				SetPacketStatus( execPacket, SCRIPT_STATUS_WARN );
 
 				// come back later
 				TRACE( "Send delay %d (2)\n", delay );
@@ -1086,8 +1093,9 @@ keepGoing:
 	else if ((execCommand->baseType == ScriptBase::scriptPacket) && 
 			 (((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::expectPacket))
 	{
-
 		execPacket = (ScriptPacketPtr) execCommand;
+		TRACE( "ProcessTask expectPacket execPending=%d bpacketNotExpect=%d root time %d\n", 
+			   execPending, execPacket->bpacketNotExpect, now );
 		if (execPending) 
 		{
 			if ((execPacket->packetType == ScriptPacket::expectPacket) && execPacket->bpacketNotExpect)	
@@ -1111,9 +1119,9 @@ keepGoing:
 					{
 						CString strError;
 
-						SetPacketStatus(execPacket->m_pcmdMake, 3);
+						SetPacketStatus(execPacket->m_pcmdMake, SCRIPT_STATUS_FAIL);
 						strError.Format("MAKE \"%s\" aborted by user", execPacket->m_pcmdMake->baseLabel );
-						Msg( 3, execPacket->m_pcmdMake->baseLineStart, strError );
+						Msg( 3, execPacket->m_pcmdMake->baseLineStart, strError, SCRIPT_STATUS_FAIL );
 
 						// shouldn't chain to next packet... already did.  Fail all these guys.
 						// This will short circuit all th timer stuff and fail all of the pending
@@ -1123,7 +1131,7 @@ keepGoing:
 					}
 					else
 					{
-						SetPacketStatus(execPacket->m_pcmdMake, 1);
+						SetPacketStatus(execPacket->m_pcmdMake, SCRIPT_STATUS_OK);
 					}
 				}
 
@@ -1132,11 +1140,11 @@ keepGoing:
 
 				for (ScriptPacketPtr pp1 = execPacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
 				{
-					if ((pp1->baseStatus == 2) && (pp1->baseType == ScriptBase::scriptPacket))
+					if ((pp1->baseStatus == SCRIPT_STATUS_WARN) && (pp1->baseType == ScriptBase::scriptPacket))
 					{
 						if (pp1->packetDelay <= (now - execRootTime))
 						{
-							SetPacketStatus( pp1, 3 );
+							SetPacketStatus( pp1, SCRIPT_STATUS_FAIL );
 						}
 						else 
 						{
@@ -1149,8 +1157,8 @@ keepGoing:
 				// still one that hasn't failed?
 				if (!gotOne) 
 				{
-					Msg( 1, execTest->baseLineStart, "failed" );
-					SetTestStatus( execTest, 3 );
+					Msg( 1, execTest->baseLineStart, "failed", SCRIPT_STATUS_FAIL );
+					SetTestStatus( execTest, SCRIPT_STATUS_FAIL );
 
 					// go back to idle
 					Cleanup();
@@ -1184,7 +1192,7 @@ keepGoing:
 			{
 				if (pp2->baseType == ScriptBase::scriptPacket)
 				{
-					SetPacketStatus( pp2, 2 );
+					SetPacketStatus( pp2, SCRIPT_STATUS_WARN );
 					minDelay2 = (pp2->packetDelay < minDelay2 ? pp2->packetDelay : minDelay2);
 				}
 			}
@@ -1203,9 +1211,8 @@ keepGoing:
 	}
 	else if (execCommand->baseType == ScriptBase::scriptMake) 
 	{
-
 		execPending = false;
-		SetPacketStatus( execCommand, 2 );
+		SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
 
 		CString strError;
 		// Set up the queue needed by this guy to fire off message for handling
@@ -1216,21 +1223,20 @@ keepGoing:
 		bool fCmdResult = execCommand->Execute(&strError);
 
 		if ( !fCmdResult && !((ScriptMAKECommand *) execCommand)->m_fHanging )
-			Msg( 3, execCommand->baseLineStart, strError);
+			Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN );
 
 		NextPacket(fCmdResult, ((ScriptMAKECommand *) execCommand)->m_fHanging );
 	} 
 	else if (execCommand->baseType == ScriptBase::scriptCheck)
 	{
-
 		execPending = false;
-		SetPacketStatus( execCommand, 2 );
+		SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
 
 		CString strError;
 		bool fCmdResult = execCommand->Execute(&strError);
 
 		if (!fCmdResult)
-			Msg( 3, execCommand->baseLineStart, strError);
+			Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN);
 
 		NextPacket(fCmdResult);
 	}
@@ -1239,11 +1245,11 @@ keepGoing:
 
 		//Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
 		execPending = false;
-		SetPacketStatus( execCommand, 2 );		
+		SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
 		CString strError;
 		bool fCmdResult = execCommand->Execute(&strError);
 		if (!fCmdResult)
-			Msg( 3, execCommand->baseLineStart, strError);
+			Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN);
 
 		NextPacket(fCmdResult);
 	}
@@ -1252,11 +1258,11 @@ keepGoing:
 
 		//Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
 		execPending = false;
-		SetPacketStatus( execCommand, 2 );		
+		SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
 		CString strError;
 		bool fCmdResult = execCommand->Execute(&strError);
 		if (!fCmdResult)
-			Msg( 3, execCommand->baseLineStart, strError);
+			Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN);
 
 		NextPacket(fCmdResult);
 	}
@@ -1285,7 +1291,7 @@ void ScriptExecutor::NextPacket( bool okPacket, bool fHanging /* = false */ )
 
 	// set the current packet status
 	if ( !fHanging )
-		SetPacketStatus( execCommand, okPacket ? 1 : 3 );
+		SetPacketStatus( execCommand, okPacket ? SCRIPT_STATUS_OK : SCRIPT_STATUS_FAIL );
 
 	// Test to see if the one we're finished with is an EXPECT with a MAKE in front of it that is still up
 
@@ -1297,7 +1303,7 @@ void ScriptExecutor::NextPacket( bool okPacket, bool fHanging /* = false */ )
 		// It's still up... Kill it with a success regardless of whether or not this one failed...
 
 		((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
-		SetPacketStatus(((ScriptPacketPtr) execCommand)->m_pcmdMake, 1);
+		SetPacketStatus(((ScriptPacketPtr) execCommand)->m_pcmdMake, SCRIPT_STATUS_OK);
 	}
 
 	// move to next packet
@@ -1307,18 +1313,18 @@ void ScriptExecutor::NextPacket( bool okPacket, bool fHanging /* = false */ )
 	if (!execCommand) {
 		// set the test status
 		if (okPacket) {
-			Msg( 1, execTest->baseLineStart, "passed" );
-			SetTestStatus( execTest, 1 );
+			Msg( 1, execTest->baseLineStart, "passed", SCRIPT_STATUS_OK );
+			SetTestStatus( execTest, SCRIPT_STATUS_OK );
 		} else {
-			Msg( 1, execTest->baseLineStart, "failed" );
-			SetTestStatus( execTest, 3 );
+			Msg( 1, execTest->baseLineStart, "failed", SCRIPT_STATUS_FAIL );
+			SetTestStatus( execTest, SCRIPT_STATUS_FAIL );
 		}
 
 		// go back to idle
 		Cleanup();
 	} else {
 		// set the current packet status to running
-		SetPacketStatus( execCommand, 2 );
+		SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
 
 		// if the user is single stepping, stop
 		if (execSingleStep) {
@@ -1478,7 +1484,9 @@ void ScriptExecutor::GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny, in
 	if ( nIndex != -1  &&  pbacnetarray->IsKindOf(RUNTIME_CLASS(BACnetGenericArray)) )
 	{
 		if ( nIndex == 0 )				// return number of elements only
+		{
 			pbacnetAny->SetObject(uw, new BACnetUnsigned(pbacnetarray->GetSize()) );
+		}
 		else
 		{
 			if ( nIndex > pbacnetarray->GetSize() )			// out of bounds?  Remember index is base 1
@@ -5302,7 +5310,9 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 				StuffScriptParameter( bacnetMsg, pScriptParm, nlMsg->exprValue);
 			}
 			else if ( nlMsg->IsDontCare() )
+			{
 				nlMsgID = *dec.pktBuffer;
+			}
 			else
 			{
 				// check to see if this is a keyword
@@ -5350,6 +5360,8 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 					case 9:						// DISCONNECT-CONNECTION-TO-NETWORK
 						ExpectDisconnectConnectionToNetwork( nlList, dec );
 						break;
+
+					// TODO: add a PROPRIETARY keyword, with parms for value and vendor ID
 				}
 			}
 			catch (const char *errMsg) {
@@ -6783,7 +6795,9 @@ void ScriptExecutor::TestOrAssign( ScriptPacketExprPtr pScriptExpr, BACnetEncode
 
 	// if script parm is not null, then we must want to assign this value instead of test it
 	if ( pScriptParm != NULL )
+	{
 		StuffScriptParameter( rbacnetData, pScriptParm, pScriptExpr->exprValue);
+	}
 	else if ( !rbacnetData.Match(rbacnetScript, pScriptExpr->exprOp, &strError) )
 	{
 		strError = pszErrorPrefix + strError;
@@ -6797,9 +6811,12 @@ void ScriptExecutor::TestOrAssign( ScriptPacketExprPtr pScriptExpr, BACnetEncode
 
 void ScriptExecutor::ExpectDevConfirmedRequest( const BACnetAPDU &apdu )
 {
-	// get the service choice
+	// Check the service choice
 	BACnetEnumerated  bacnetServiceData(apdu.apduService, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice );
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Confirmed Request Service mismatch: " );
+
+	// Check the invokeID
+	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Confirmed Request InvokeID mismatch: " );
 
 	// expect the rest
 	BACnetAPDUDecoder dec( apdu );
@@ -6864,10 +6881,11 @@ void ScriptExecutor::ExpectDevUnconfirmedRequest( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevSimpleACK( const BACnetAPDU &apdu )
 {
-	// get the service choice
+	// Check the service choice
 	BACnetEnumerated  bacnetServiceData(apdu.apduService, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Simple Ack Service mismatch: " );
 
+	// Check the invokeID
 	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Simple Ack InvokeID mismatch: " );
 }
 
@@ -6877,10 +6895,11 @@ void ScriptExecutor::ExpectDevSimpleACK( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevComplexACK( const BACnetAPDU &apdu )
 {
-	// get the service choice
+	// Check the service choice
 	BACnetEnumerated  bacnetServiceData(apdu.apduService, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Complex Ack Service mismatch: " );
 
+	// Check the invokeID
 	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Complex Ack InvokeID mismatch: " );
 
 	// expect the rest
@@ -6912,10 +6931,11 @@ void ScriptExecutor::ExpectDevSegmentACK( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevError( const BACnetAPDU &apdu )
 {
+	// Check the service choice
 	BACnetEnumerated  bacnetServiceData(apdu.apduService, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice);
 	MatchEnumExpression( kwSERVICE, bacnetServiceData, ScriptALConfirmedServiceMap, "Error Service mismatch: " );
 
-	// get the service choice
+	// Check the invokeID
 	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Error InvokeID mismatch: " );
 
 	// expect the rest
@@ -6942,10 +6962,10 @@ void ScriptExecutor::ExpectDevReject( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectDevAbort( const BACnetAPDU &apdu )
 {
-	// get the service choice
+	// Check the service choice
 	MatchBoolExpression( kwSERVER, BACnetBoolean(apdu.apduSrv), "Abort Server mismatch: " );
 
-	// get the service choice
+	// Check the invokeID
 	MatchEnumExpression( kwINVOKEID, BACnetEnumerated(apdu.apduInvokeID), NULL, "Abort InvokeID mismatch: " );
 
 	// get the service choice
@@ -7745,25 +7765,33 @@ void ScriptExecutor::ExpectALTag( BACnetAPDUDecoder &dec, ScriptToken * ptok, BA
 	BACnetAPDUTag		tag;
 	CString				strError;
 	
-	// extract the tag
-	tag.Peek( dec );
-
-	// tag is optional... but at least check the type of stream data if they've supplied a don't care context
-	if ( ptok == NULL  ||  (ptok != NULL && ptok->IsDontCare()) )
+	if (dec.pktLength < 1)
 	{
-		if (tag.tagClass)
-			strError.Format("Application tagged %s expected", pszDataType );
-		else if (tag.tagNumber != tagNumber)
-			strError.Format("Mismatched data type, %s expected", pszDataType);
+		// No data.  Avoid wild throw in Peek
+		strError.Format("Out of data.  Expected %s", pszDataType);
 	}
 	else
 	{
-		if ( !ptok->IsInteger(context) )
-			strError.Format("Tag number expected, (%s) supplied as tag parameter", ptok->tokenValue);
-		else if ( !tag.tagClass )
-			strError.Format("Context tagged %s expected", pszDataType);
-		else if ( tag.tagNumber != context )
-			strError.Format("Mismatched context tag value, %d supplied", context);
+		// extract the tag
+		tag.Peek( dec );
+
+		// tag is optional... but at least check the type of stream data if they've supplied a don't care context
+		if ( ptok == NULL  ||  (ptok != NULL && ptok->IsDontCare()) )
+		{
+			if (tag.tagClass)
+				strError.Format("Application tagged %s expected", pszDataType );
+			else if (tag.tagNumber != tagNumber)
+				strError.Format("Mismatched data type, %s expected", pszDataType);
+		}
+		else
+		{
+			if ( !ptok->IsInteger(context) )
+				strError.Format("Tag number expected, (%s) supplied as tag parameter", ptok->tokenValue);
+			else if ( !tag.tagClass )
+				strError.Format("Context tagged %s expected", pszDataType);
+			else if ( tag.tagNumber != context )
+				strError.Format("Mismatched context tag value, %d supplied", context);
+		}
 	}
 
 	if ( !strError.IsEmpty() )
@@ -8582,10 +8610,10 @@ ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( ScriptParmPtr * ppScriptPar
 void ScriptExecutor::ResetFamily( ScriptBasePtr sbp )
 {
 	// set the object status
-	sbp->baseStatus = 0;
+	sbp->baseStatus = SCRIPT_STATUS_NONE;
 
 	// tell the app to set the image list element to match
-	SetImageStatus( sbp, 0 );
+	SetImageStatus( sbp, SCRIPT_STATUS_NONE );
 
 	// change the children
 	for (POSITION xpos = sbp->GetHeadPosition(); xpos; )
@@ -8606,7 +8634,7 @@ void ScriptExecutor::ResetTest( ScriptTestPtr stp )
 	}
 
 	// change this test status (which can update the section)
-	SetTestStatus( stp, 0 );
+	SetTestStatus( stp, SCRIPT_STATUS_NONE );
 }
 
 //
@@ -8703,11 +8731,11 @@ int ScriptExecutor::CalcTestStatus( ScriptTestPtr stp )
 			case 0x00:		// no status for some
 			case 0x10:
 			case 0x01:
-				newStatus = 0;
+				newStatus = SCRIPT_STATUS_NONE;
 				break;
 
 			case 0x11:		// everything OK so far, stay green
-				newStatus = 1;
+				newStatus = SCRIPT_STATUS_OK;
 				break;
 
 			case 0x02:		// found (or had) a warning
@@ -8715,7 +8743,7 @@ int ScriptExecutor::CalcTestStatus( ScriptTestPtr stp )
 			case 0x20:
 			case 0x21:
 			case 0x22:
-				newStatus = 2;
+				newStatus = SCRIPT_STATUS_WARN;
 				break;
 
 			case 0x03:		// found (or had) a failure
@@ -8725,7 +8753,7 @@ int ScriptExecutor::CalcTestStatus( ScriptTestPtr stp )
 			case 0x31:
 			case 0x32:
 			case 0x33:
-				newStatus = 3;
+				newStatus = SCRIPT_STATUS_FAIL;
 				break;
 		}
 	}
@@ -8736,7 +8764,7 @@ int ScriptExecutor::CalcTestStatus( ScriptTestPtr stp )
 
 void ScriptExecutor::VerifySectionStatus( ScriptSectionPtr ssp )
 {
-	int			newStatus = 0
+	int			newStatus = SCRIPT_STATUS_NONE
 	,			len = ssp->Length()
 	;
 
@@ -8874,7 +8902,7 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 					{
 						if ((pp1->baseStatus == 2) && (pp1->baseType == ScriptBase::scriptPacket) && (pp1 != pp))
 						{
-							SetPacketStatus( pp1, 0 );
+							SetPacketStatus( pp1, SCRIPT_STATUS_NONE );
 						}
 					}
 
@@ -8888,7 +8916,7 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 					{
 						if ((pp1->baseStatus == 2) && (pp1->baseType == ScriptBase::scriptPacket) && (pp1 != pp))
 						{
-							SetPacketStatus( pp1, 0 );				
+							SetPacketStatus( pp1, SCRIPT_STATUS_NONE );
 						}
 						
 						// move on to next statement
@@ -8965,7 +8993,7 @@ void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 						(pp1->baseType == ScriptBase::scriptPacket) && 
 						(pp1 != pp))
 					{
-						SetPacketStatus( pp1, 0 );
+						SetPacketStatus( pp1, SCRIPT_STATUS_NONE );
 					}
 				}
 
