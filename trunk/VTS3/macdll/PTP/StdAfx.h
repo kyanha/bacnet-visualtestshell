@@ -12,6 +12,9 @@
 
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 
+// We are old enough to use strcpy without hurting ourselves, than you very much
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 

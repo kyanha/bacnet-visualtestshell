@@ -223,7 +223,7 @@ BOOL CSendReadFileACK::OnInitDialog()
 
 	// init the usual fields
 	m_EOF.ctrlNull = false;
-	m_EOF.boolValue = BACnetBoolean::eBACnetBoolean::bFalse;
+	m_EOF.boolValue = BACnetBoolean::bFalse;
 	m_StartPosition.ctrlNull = true;
 	m_Data.ctrlNull = true;
 	m_StartRecord.ctrlNull = true;

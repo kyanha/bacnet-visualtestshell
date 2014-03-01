@@ -806,7 +806,7 @@ void VTSMSTPAddrCtrl::ObjToCtrl( void )
 
 	txt[0] = 0;
 	if ( !ctrlNull )
-		itoa((int) addrAddr[0], txt, 10);
+		_itoa((int) addrAddr[0], txt, 10);
 
 	// set the text
 	((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->SetWindowText( txt );

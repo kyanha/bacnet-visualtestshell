@@ -45,7 +45,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	unsigned int numval = (unsigned int)atoi( argv[1] );
 	for (int ix = 2; ix < argc; ix++)
 	{
-		strupr( argv[ix] );
+		_strupr( argv[ix] );
 		printf( ", { 0x%08x, %u }                   // %s\n", HashCode( argv[ix] ), numval, argv[ix] );
 		numval += 1;
 	}

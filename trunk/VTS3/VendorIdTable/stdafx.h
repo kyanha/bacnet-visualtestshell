@@ -5,6 +5,8 @@
 
 #pragma once
 
+// We are old enough to use strcpy without hurting ourselves, than you very much
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <iostream>
 #include <tchar.h>

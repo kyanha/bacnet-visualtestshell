@@ -59,7 +59,7 @@ void CSendVTDataACK::InitPage( void )
 
 	// init the usual fields
 	m_AllDataFlag.ctrlNull = false;
-	m_AllDataFlag.boolValue = BACnetBoolean::eBACnetBoolean::bTrue;
+	m_AllDataFlag.boolValue = BACnetBoolean::bTrue;
 	m_AcceptedCount.ctrlNull = true;
 	m_AcceptedCount.ctrlEnabled = false;
 }

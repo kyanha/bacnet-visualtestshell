@@ -630,7 +630,7 @@ void InconsistentParsExecutor::FindRouterAddress()
 void InconsistentParsExecutor::Msg(const char* errMsg)
 {
 	VTSPacket pkt;
-	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::ProtocolType::textMsgProtocol;
+	pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::textMsgProtocol;
 	pkt.packetHdr.packetFlags = 0;
 	pkt.packetHdr.packetType = msgData;
 	BACnetOctet* buff = new BACnetOctet[strlen(errMsg)+1];

@@ -626,7 +626,7 @@ void ScriptEdit::DisplayLnNum()
 	m_LineNumCtrl.m_nLineCount = m_nLineCount;
 	
 	char buf[10];
-	itoa(nLastVisibleLn, buf, 10);
+	_itoa(nLastVisibleLn, buf, 10);
 	CString strLineNum = buf;
 	int nDigit = strLineNum.GetLength();
 	

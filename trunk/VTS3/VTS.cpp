@@ -543,7 +543,6 @@ BOOL VTSApp::OnOpenRecentWorkspace(UINT nID)
 //             MAX_PROP_ID
 //             MAX_SERVS_SUPP
 //
-//
 //	3.1.5
 //			Built in support for BACnet/IP endpoints to be managed automatically (the peer list 
 //			for BTR's and BBMD's have not been finished yet).  Added a new set of functions 

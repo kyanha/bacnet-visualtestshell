@@ -174,7 +174,7 @@ bool ValuesLess( int v1, int v2 );
 static bool MatchAndEat( const char* &theCursor, const char* theMatchString, int theAbbrevLen = -1 )
 {
 	int len = strlen( theMatchString );
-	bool retval = strnicmp( theCursor, theMatchString, len ) == 0;
+	bool retval = _strnicmp( theCursor, theMatchString, len ) == 0;
 	if (retval)
 	{
 		// Matches full string
@@ -182,7 +182,7 @@ static bool MatchAndEat( const char* &theCursor, const char* theMatchString, int
 	}
 	else if ((theAbbrevLen > 0) && (theAbbrevLen < len))
 	{
-		retval = strnicmp( theCursor, theMatchString, theAbbrevLen ) == 0;
+		retval = _strnicmp( theCursor, theMatchString, theAbbrevLen ) == 0;
 		if (retval)
 		{
 			// Matches abbreviated string
@@ -309,7 +309,7 @@ CString BACnetAddress::MacAddress() const
 bool BACnetAddress::SetMacAddress( const char *addrString )
 {
 	bool retval = true;
-	if ((strcmp( addrString, "*" ) == 0) || (stricmp( addrString, "broadcast" ) == 0))
+	if ((strcmp( addrString, "*" ) == 0) || (_stricmp( addrString, "broadcast" ) == 0))
 	{
 		addrLen = 0;
 	}
@@ -838,7 +838,7 @@ void BACnetNull::Encode( CString &enc ) const
 
 void BACnetNull::Decode( const char *dec )
 {
-	if (stricmp( dec, ToString()) != 0)
+	if (_stricmp( dec, ToString()) != 0)
 		throw_(6) /* null must be 'null' */;
 }
 
@@ -1259,7 +1259,7 @@ void BACnetEnumerated::Decode( const char *dec, const char * const *table, int t
 		while (enumValue < tsize) {
 			if (strncmp(dec,*table,strlen(dec)) == 0)
 				break;
-			if (stricmp(dec,*table) == 0)
+			if (_stricmp(dec,*table) == 0)
 				break;
 			table += 1;
 			enumValue += 1;
@@ -1932,19 +1932,19 @@ void BACnetReal::Decode( const char *dec )
 	// Check for special values
 	// The "1.#INF0" styles are what Visual Studio shows for %g
 	UINT special;
-	if ((stricmp( dec, "INF" ) == 0) || (stricmp( dec, "1.#INF0" ) == 0))
+	if ((_stricmp( dec, "INF" ) == 0) || (_stricmp( dec, "1.#INF0" ) == 0))
 	{
 		// Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
 		special = 0x7F800000;
 		realValue = *(float*)&special;
 	}
-	else if ((stricmp( dec, "-INF" ) == 0) || (stricmp( dec, "-1.#INF0" ) == 0))
+	else if ((_stricmp( dec, "-INF" ) == 0) || (_stricmp( dec, "-1.#INF0" ) == 0))
 	{
 		// Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
 		special = 0xFF800000;
 		realValue = *(float*)&special;
 	}
-	else if ((stricmp( dec, "NAN" ) == 0) || (stricmp( dec, "1.#QNAN" ) == 0) || (stricmp( dec, "1.#SNAN" ) == 0))
+	else if ((_stricmp( dec, "NAN" ) == 0) || (_stricmp( dec, "1.#QNAN" ) == 0) || (_stricmp( dec, "1.#SNAN" ) == 0))
 	{
 		// Not a number: sign bit, 8 exponent bits, all set, 23 mantissa bits, not all 0
 		special = 0x7F800001;
@@ -3726,7 +3726,7 @@ void BACnetDate::Encode( CString &enc ) const
 	// Any "wild card" or unspecified field is shown by an asterisk (X'2A'): 
 	// (Monday, *-January-1998). The omission of day of week implies that the day is
 	// unspecified: (24-January-1998)"
-	enc = '(';
+	enc = "[(";
 
 	// day of week
 	if (dayOfWeek == DATE_DONT_CARE)
@@ -3800,7 +3800,7 @@ void BACnetDate::Encode( CString &enc ) const
 	}
 
 	// Date is complex data type so must enclose in brackets for proper parsing
-	enc += ')';
+	enc += ")]";
 }
 
 void BACnetDate::Decode( const char *dec )
@@ -3815,8 +3815,7 @@ void BACnetDate::Decode( const char *dec )
 	if ( *dec == '[' ) dec++;
 
 	// Date is complex data type so must enclose in parenthesis
-	if ( *dec++ != '(' )
-		throw_(110);			// missing start parenthesis for complex data structures
+	if ( *dec == '(' ) dec++;
 
 	// The EPICS format is (Wednesday, 31-January-2010)
 	// - allows the DOW to be omitted entirely.
@@ -4005,9 +4004,8 @@ void BACnetDate::Decode( const char *dec )
 
 	// clear white space and look for close bracket
 	while (*dec && IsSpace(*dec)) dec++;
-	if ( *dec++ != ')' )
-		throw_(111);									// missing close bracket code
 
+	if ( *dec++ == ')' ) dec++;
 	// script calls will have the square brackets as well
 	if ( *dec == ']' ) dec++;
 
@@ -4445,14 +4443,18 @@ void BACnetTime::Decode( BACnetAPDUDecoder& dec )
 void BACnetTime::Encode( CString &enc ) const
 {
 	char buff[10];
-	
+
+	// Begin wrapping
+	enc = "[(";
+
 	// hour
 	if (hour == DATE_DONT_CARE)
-		enc = '*';
+		enc += '*';
 	else if (hour == DATE_IGNORE_ON_INPUT)
-		enc = '?';
+		enc += '?';
 	else {
-		enc.Format( "%02d", hour );
+		sprintf( buff, "%02d", hour );
+		enc += buff;
 	}
 	enc += ':';
 
@@ -4487,6 +4489,9 @@ void BACnetTime::Encode( CString &enc ) const
 		sprintf( buff, "%02d", hundredths );
 		enc += buff;
 	}
+
+	// End wrapping
+	enc += ")]";
 }
 
 
@@ -4498,8 +4503,10 @@ void BACnetTime::Decode( const char *dec )
 	// skip blank on front
 	while (*dec && IsSpace(*dec)) dec++;   //add by xlp
 
-	// Time is complex data type so must enclose in brackets
+	// Script may enclose in brackets
+	// Time is complex data type so must enclose in parenthesis
 	if ( *dec == '[' ) dec++;
+	if ( *dec == '(' ) dec++;
 
 	// check for hour
 	if ( *dec == '*' )
@@ -4629,8 +4636,9 @@ void BACnetTime::Decode( const char *dec )
 
 	// clear white space and look for close bracket
 	while (*dec && IsSpace(*dec)) dec++;
+
+	if ( *dec == ')' ) dec++;
 	if ( *dec == ']' ) dec++;
-	//		throw_(111);									// missing close bracket code
 }
 
 

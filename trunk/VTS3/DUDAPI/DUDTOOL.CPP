@@ -1567,6 +1567,9 @@ octet far* eTIMEVALUE(octet far* p, BACnetTimeValue far* ptv, int TagNr)
   while (ptv!=NULL)
     { *p++= 0xB4; // application tag
       memcpy(p,&ptv->time,4); p+=4;							//					***001
+	  // TODO: what about Boolean, other enum, and NULL?
+	  // value_type is the type of the REFERENCE - WON'T ever be null,
+	  // but a given TimeValue MAY be null.
       switch(ptv->value_type)
         { case BPV:
             p= eENUM(p,ptv->av.bproperty_value);
@@ -3320,6 +3323,7 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
 	}
 }
 
+// Event Enrollment
 void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
    etable *petable;
@@ -3334,7 +3338,7 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 			pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
 			break;
 		case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+			petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
 
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
                                                                (const char **)petable->estrings,
@@ -3344,13 +3348,13 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
 			break;
 		case EVENT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiEvType);  
+			petable = (etable *)PICS::GetEnumTable(eiEvType);  
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->parameter_list.event_type,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
 			break;
 		case NOTIFY_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiNT);  
+			petable = (etable *)PICS::GetEnumTable(eiNT);  
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
@@ -3369,12 +3373,10 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 			pbacnetAnyValue->SetObject(devobjpropref, new ::BACnetDeviceObjectPropertyReference(pObj->obj_prop_ref.Objid,
 						pObj->obj_prop_ref.wPropertyid,
 						pObj->obj_prop_ref.ulIndex,
-						pObj->obj_prop_ref.DeviceObj
-				
-																					));
+						pObj->obj_prop_ref.DeviceObj ));
 			break;
 		case EVENT_STATE:
-         petable = (etable *)PICS::GetEnumTable(eiEvState);  
+			petable = (etable *)PICS::GetEnumTable(eiEvState);  
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->state,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
@@ -3409,7 +3411,7 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
 		case EVENT_TIME_STAMPS:		
 			pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
 			break;
-      case PROFILE_NAME:
+		case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
@@ -3978,19 +3980,19 @@ void PR_CreateProperty( program_obj_type far * pObj, BACnetPropertyIdentifier pr
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
 			break;
 		case PROGRAM_STATE:
-         petable = (etable *)PICS::GetEnumTable(eiPrState);  
+			petable = (etable *)PICS::GetEnumTable(eiPrState);  
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->prog_state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                                (const char **)petable->estrings,
+                                                                petable->nes) );
 			break;
 		case PROGRAM_CHANGE:
-         petable = (etable *)PICS::GetEnumTable(eiPrChg);  
+			petable = (etable *)PICS::GetEnumTable(eiPrChg);  
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->prog_change,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                                (const char **)petable->estrings,
+                                                                petable->nes) );
 			break;
 		case REASON_FOR_HALT:
-         petable = (etable *)PICS::GetEnumTable(eiPrErr);  
+			petable = (etable *)PICS::GetEnumTable(eiPrErr);  
 			pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reason_for_halt,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
@@ -4016,7 +4018,7 @@ void PR_CreateProperty( program_obj_type far * pObj, BACnetPropertyIdentifier pr
 		case OUT_OF_SERVICE:
 			pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
 			break;
-      case PROFILE_NAME:
+		case PROFILE_NAME:
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.profile_name));
 			break;
 		default:
@@ -4050,6 +4052,12 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
 			pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
 			break;
 		case PRESENT_VALUE:
+			// TODO: what about Boolean, other enum, and NULL?
+			// value_type is the type of the REFERENCE - WON'T ever be null,
+			// but PresentValue MAY be null.
+			//
+			// TODO: value_type is a ActionValueType: BPV=0, UNS=1, FLT=2
+			// but et=1, uw=4, ftl=2.  WTF?
 			switch(pObj->value_type)
 			{
 				case et:		pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV(pObj->pv.bproperty_value));
@@ -4082,6 +4090,12 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
 			pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->priority_for_writing));
 			break;
 		case SCHEDULE_DEFAULT:
+			// TODO: what about Boolean, other enum, and NULL?
+			// value_type is the type of the REFERENCE - WON'T ever be null,
+			// but schedule-default MAY be null.
+			//
+			// TODO: value_type is a ActionValueType: BPV=0, UNS=1, FLT=2
+			// but et=1, uw=4, ftl=2.  WTF?
 			switch(pObj->value_type)
 			{
 				case et:	pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV(pObj->schedule_default.bproperty_value));
