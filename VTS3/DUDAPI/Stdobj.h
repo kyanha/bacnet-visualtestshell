@@ -463,7 +463,9 @@ typedef struct {
     generic_object			go;
 //enum ActionValueType		value_type;
 	dword					value_type;   //modified by xyp
-    union {
+	// TODO: what about the NULL, Boolean, enum, and perhaps other choices?
+	// Also, why not make this a typedef, shared with schedule_default
+	union {
         enum BACnetBinaryPV	bproperty_value; 	//binary value
         word				uproperty_value;	//unsigned word
         float				fproperty_value;	//float

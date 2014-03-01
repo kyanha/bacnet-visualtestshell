@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "vts.h"
+#include "Propid.h"
 
 #include "VTSPropValue.h"
 #include "VTSDevicesTreePropPage.h"

@@ -103,7 +103,7 @@ STRING_TABLE BACnetAccumulatorStatus[] = {
 	"starting",
 	"recovered",
 	"abnormal",
-    "failed"
+   "failed"
 };
 BAC_STRINGTABLE(BACnetAccumulatorStatus);
 
@@ -320,10 +320,10 @@ STRING_TABLE BACnetEngineeringUnits[] = {
 
    "square-inches",							/* 115 */
    "square-centimeters",					/* 116 */
-   "btus-per-pound",						/* 117 */
-   "centimeters",							/* 118 */
+   "btus-per-pound",						   /* 117 */
+   "centimeters",							   /* 118 */
    "pounds-mass-per-second",				/* 119 */
-   "delta-degrees-Fahrenheit",				/* 120 */
+   "delta-degrees-Fahrenheit",			/* 120 */
    "delta-degrees-Kelvin",					/* 121 */
 
    "Kilohms",                              /* 122 */
@@ -346,19 +346,20 @@ STRING_TABLE BACnetEngineeringUnits[] = {
    "Megajoules-per-square-meter",          /* 139 */
    "Megajoules-per-square-foot",           /* 140 */
    "Watts-per-square-meter-degree-Kelvin", /* 141 */
+
    // New units added 3/9/2008
-   "Cubic-feet-per-second",					/* 142 */
-   "Percent-obscuration-per-foot",			/* 143 */
-   "Percent-obscuration-per-meter", 		/* 144 */
+   "Cubic-feet-per-second",				/* 142 */
+   "Percent-obscuration-per-foot",		/* 143 */
+   "Percent-obscuration-per-meter", 	/* 144 */
    "miliohms", 								/* 145 */
    "megawatt-hours", 						/* 146 */
    "kilo-btus",								/* 147 */
    "mega-btus",								/* 148 */
-   "kilojoules-per-kilogram-dry-air",		/* 149 */
-   "megajoules-per-kilogram-dry-air",		/* 150 */
-   "kilojoules-per-degree-Kelvin",			/* 151 */
-   "megajoules-per-degree-Kelvin",			/* 152 */
-   "newton",								/* 153 */
+   "kilojoules-per-kilogram-dry-air",	/* 149 */
+   "megajoules-per-kilogram-dry-air",	/* 150 */
+   "kilojoules-per-degree-Kelvin",		/* 151 */
+   "megajoules-per-degree-Kelvin",		/* 152 */
+   "newton",								   /* 153 */
    "grams-per-second",						/* 154 */
    "grams-per-minute",						/* 155 */
    "tons-per-hour",							/* 156 */
@@ -371,34 +372,80 @@ STRING_TABLE BACnetEngineeringUnits[] = {
    "meters-per-minute",						/* 163 */
    "meters-per-hour",						/* 164 */
    "cubic-meters-per-minute",				/* 165 */
-   "meters-per-second-per-second",			/* 166 */
+   "meters-per-second-per-second",		/* 166 */
    "amperes-per-meter",						/* 167 */
-   "amperes-per-square-meter",				/* 168 */
+   "amperes-per-square-meter",			/* 168 */
    "ampere-square-meters",					/* 169 */
-   "farads",								/* 170 */
-   "henrys",								/* 171 */
-   "ohm-meters",							/* 172 */
-   "siemens",								/* 173 */
+   "farads",								   /* 170 */
+   "henrys",								   /* 171 */
+   "ohm-meters",							   /* 172 */
+   "siemens",								   /* 173 */
    "siemens-per-meter",						/* 174 */
-   "teslas",								/* 175 */
+   "teslas",								   /* 175 */
    "volts-per-degree-Kelvin",				/* 176 */
    "volts-per-meter",						/* 177 */
-   "webers",								/* 178 */
-   "candelas",								/* 179 */
-   "candelas-per-square-meter",				/* 180 */
+   "webers",								   /* 178 */
+   "candelas",								   /* 179 */
+   "candelas-per-square-meter",			/* 180 */
    "degrees-Kelvin-per-hour",				/* 181 */
-   "degrees-Kelvin-per-minute",				/* 182 */
-	"joule-seconds",						/* 183 */
-	"radians-per-second",					/* 184 */
-	"square-meters-per-Newton",				/* 185 */
-	"kilograms-per-cubic-meter",			/* 186 */
-	"newton-seconds",						/* 187 */
-	"newtons-per-meter",					/* 188 */
-	"watts-per-meter-per-degree-Kelvin",	/* 189 last definition in 135-2008 */
-	// Added by Addenda H (135-2004)
-	"micro-siemens",                        /* 190 */
-	"cubic-feet-per-hour",                  /* 191 */
-	"us-gallons-per-hour",                  /* 192 */
+   "degrees-Kelvin-per-minute",			/* 182 */
+   "joule-seconds",						   /* 183 */
+   "radians-per-second",					/* 184 */
+   "square-meters-per-Newton",			/* 185 */
+   "kilograms-per-cubic-meter",			/* 186 */
+   "newton-seconds",						   /* 187 */
+   "newtons-per-meter",					   /* 188 */
+   "watts-per-meter-per-degree-Kelvin",/* 189 last definition in 135-2008 */
+   // Added by Addenda H (135-2004)
+   "micro-siemens",                    /* 190 */
+   "cubic-feet-per-hour",              /* 191 */
+   "us-gallons-per-hour",              /* 192 */
+
+   // Added in 135-2012
+   "kilometers",                       /* 193 */
+   "micrometers",                      /* 194 */
+   "grams",                            /* 195 */
+   "milligrams",                       /* 196 */
+   "milliliters",                      /* 197 */
+   "milliliters-per-second",           /* 198 */
+   "decibels",                         /* 199 */
+   "decibels-millivolt",               /* 200 */
+   "decibels-volt",                    /* 201 */
+   "millisiemens",                     /* 202 */
+   "watt-hours-reactive",              /* 203 */
+   "kilowatt-hours-reactive",          /* 204 */
+   "megawatt-hours-reactive",          /* 205 */
+   "millimeters-of-water",             /* 206 */
+   "per-mille",                        /* 207 */
+   "grams-per-gram",                   /* 208 */
+   "kilograms-per-kilogram",           /* 209 */
+   "grams-per-kilogram",               /* 210 */
+   "milligrams-per-gram",              /* 211 */
+   "milligrams-per-kilogram",          /* 212 */
+   "grams-per-milliliter",             /* 213 */
+   "grams-per-liter",                  /* 214 */
+   "milligrams-per-liter",             /* 215 */
+   "micrograms-per-liter",             /* 216 */
+   "grams-per-cubic-meter",            /* 217 */
+   "milligrams-per-cubic-meter",       /* 218 */
+   "micrograms-per-cubic-meter",       /* 219 */
+   "nanograms-per-cubic-meter",        /* 220 */
+   "grams-per-cubic-centimeter",       /* 221 */
+   "becquerels",                       /* 222 */
+   "kilobecquerels",                   /* 223 */
+   "megabecquerels",                   /* 224 */
+   "gray",                             /* 225 */
+   "milligray",                        /* 226 */
+   "microgray",                        /* 227 */
+   "sieverts",                         /* 228 */
+   "millisieverts",                    /* 229 */
+   "microsieverts",                    /* 230 */
+   "microsieverts-per-hour",           /* 231 */
+   "decibels-a",                       /* 232 */
+   "nephelometric-turbidity-unit",     /* 233 */
+   "pH",                               /* 234 */
+   "grams-per-square-meter",           /* 235 */
+   "minutes-per-degree-kelvin",        /* 236 last definition in 135-2012 */
 };
 BAC_STRINGTABLE_EX(BACnetEngineeringUnits, 256, 65536);
 
@@ -546,10 +593,64 @@ STRING_TABLE BACnetErrorCode[] = {
    "not-configured-for-triggered-logging", // 78
    // added by Addenda H (135-2004)
    "unknown-subscription",	             // 79
-   "error-80",                           // reserved in 135-2008
-   "error-81",
-   "error-82",
-   "communication-disabled",	         // 83 last value in 135-2008
+
+   "parameter-out-of-range",	         // 80
+   "list-element-not-found",	         // 81
+   "busy",	                           // 82
+   "communication-disabled",	         // 83
+   "success",	                        // 84
+   "access-denied",	                  // 85
+   "bad-destination-address",	         // 86
+   "bad-destination-device-id",	      // 87
+   "bad-signature",	                  // 88
+   "bad-source-address",	            // 89
+   "bad-timestamp",	                  // 90
+   "cannot-use-key",	                  // 91
+   "cannot-verify-message-id",	      // 92
+   "correct-key-revision",	            // 93
+   "destination-device-id-required",	// 94
+   "duplicate-message",	               // 95
+   "encryption-not-configured",	      // 96
+   "encryption-required",	            // 97
+   "incorrect-key",	                  // 98
+   "invalid-key-data",	               // 99
+   "key-update-in-progress",	         // 100
+   "malformed-message",	               // 101
+   "not-key-server",	                  // 102
+   "security-not-configured",	         // 103
+   "source-security-required",	      // 104
+   "too-many-keys",	                  // 105
+   "unknown-authentication-type",	   // 106
+   "unknown-key",	                     // 107
+   "unknown-key-revision",	            // 108
+   "unknown-source-message",	         // 109
+   "not-router-to-dnet",	            // 110
+   "router-busy",	                     // 111
+   "unknown-network-message",	         // 112
+   "message-too-long",	               // 113
+   "security-error",	                  // 114
+   "addressing-error",	               // 115
+   "write-bdt-failed",	               // 116
+   "read-bdt-failed",	               // 117
+   "register-foreign-device-failed",	// 118
+   "read-fdt-failed",	               // 119
+   "delete-fdt-entry-failed",	         // 120
+   "distribute-broadcast-failed",	   // 121
+   "unknown-file-size",	               // 122
+   "abort-apdu-too-long",	            // 123
+   "abort-application-exceeded-reply-time", // 124
+   "abort-out-of-resources",	         // 125
+   "abort-tsm-timeout",	               // 126
+   "abort-window-size-out-of-range",	// 127
+   "file-full",	                     // 128
+   "inconsistent-configuration",	      // 129
+   "inconsistent-object-type",	      // 130
+   "internal-error",	                  // 131
+   "not-configured",	                  // 132
+   "out-of-memory",	                  // 133
+   "value-too-long",	                  // 134
+   "abort-insufficient-security",	   // 135
+   "abort-security-error",	            // 136 Last in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetErrorCode, 256, 65536);
 
@@ -583,9 +684,17 @@ STRING_TABLE BACnetEventType[] = {
    "change-of-life-safety",
    "extended",
    "buffer-ready",				// 10
-   "unsigned-range",			// 11 last in 135-2008
-   "change-of-status-flags",	// 12
-   };
+   "unsigned-range",			   // 11 last in 135-2008
+   "reserved",	               // 12
+   "access-event",	         // 13
+   "double-out-of-range",	   // 14
+   "signed-out-of-range",	   // 15
+   "unsigned-out-of-range",	// 16
+   "change-of-characterstring",// 17
+   "change-of-status-flags",	// 18
+   "change-of-reliability",	// 19
+   "none",	                  // 20 last in 135-2012
+};
 BAC_STRINGTABLE_EX(BACnetEventType, 64, 65536);
 
 STRING_TABLE Acknowledgement_Filter[] = {
@@ -603,6 +712,16 @@ STRING_TABLE EventState_Filter[] = {
    "active"
 };
 BAC_STRINGTABLE(EventState_Filter);
+
+STRING_TABLE BACnetFaultType[] = {
+   "none",
+   "fault-characterstring",
+   "fault-extended",
+   "fault-life-safety",
+   "fault-state",
+   "fault-status-flags"
+};
+BAC_STRINGTABLE(BACnetFaultType);
 
 STRING_TABLE BACnetFileAccessMethod[] = {
    "record-access",
@@ -672,6 +791,13 @@ STRING_TABLE BACnetLifeSafetyState[] = {
    "test-supervisory"		// 23 last in 135-2008
 };
 BAC_STRINGTABLE_EX(BACnetLifeSafetyState, 256, 65536);
+
+STRING_TABLE BACnetLightingTransition[] = {
+   "none",
+   "fade",
+   "ramp"
+   };
+BAC_STRINGTABLE_EX(BACnetLightingTransition, 64, 256);
 
 STRING_TABLE BACnetLimitEnable[] = {
    "lowLimitEnable",
@@ -764,7 +890,7 @@ STRING_TABLE BACnetObjectType[] = {
    "trend-log-multiple",	// 27 - Addendum B
    "load-control",			// 28 - Addendum E 135-2004
    "structured-view",		// 29 - Addendum D
-   "access-door",			// 30 Last in 135-2008
+   "access-door",			   // 30 Last in 135-2008
    "lighting-output",		// 31
    "access-credential",		// 32
    "access-point",			// 33
@@ -796,6 +922,8 @@ STRING_TABLE BACnetObjectType[] = {
 	// For each type, there is also an icon for use in the EpicsTree view,
 	// IDB_EPICSTREE  BITMAP "res\\epicstree.bmp"
 	// So if you add or implement new Objects, you need to do some artwork there.
+   //
+   // TODO: Missing type 51 through 54 from 135-2012
 
 };
 BAC_STRINGTABLE_EX(BACnetObjectType, 128, 1024);
@@ -888,11 +1016,11 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "instance-of",                      /* 48 */
    "integral-constant",                /* 49 */
    "integral-constant-units",          /* 50 */
-   "unused-was-issue-confirmed-notifications",    /* 51 deleted in version 1 revision 4*/
+   "unused-was-issue-confirmed-notifications",    /* 51 deleted in version 1 revision 4 */
    "limit-enable",                     /* 52 */
    "list-of-group-members",            /* 53 */
    "list-of-object-property-references",  /* 54 zhu zhenhua 2003-7-24 */
-   "list-of-session-keys",             /* 55 */
+   "list-of-session-keys",             /* 55 deleted in version 1 revision 11 */
    "local-date",                       /* 56 */
    "local-time",                       /* 57 */
    "location",                         /* 58 */
@@ -932,13 +1060,13 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "program-state",                    /* 92 */
    "proportional-constant",            /* 93 */
    "proportional-constant-units",      /* 94 */
-   "protocol-conformance-class",       /* 95 */
+   "was-protocol-conformance-class",   /* 95 removed in version 1 rev 2 */
    "protocol-object-types-supported",  /* 96 */
    "protocol-services-supported",      /* 97 */
    "protocol-version",                 /* 98 */
    "read-only",                        /* 99 */
    "reason-for-halt",                  /* 100 */
-   "recipient",                        /* 101 */
+   "was-recipient",                    /* 101 removed in version 1 rev 4 */
    "recipient-list",                   /* 102 */
    "reliability",                      /* 103 */
    "relinquish-default",               /* 104 */
@@ -966,7 +1094,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "buffer-size",                      /* 126 */
    "client-cov-increment",             /* 127 */
    "cov-resubscription-interval",      /* 128 */
-   "unused-was-current-notify-time",   /* 129  added by zhu zhenhua, 2004-5-11 deleded in version 1 rev 3 */
+   "was-current-notify-time",          /* 129 added by zhu zhenhua, 2004-5-11 deleded in version 1 rev 3 */
    "event-time-stamps",                /* 130 */
    "log-buffer",                       /* 131 */
    "log-device-object-property",       /* 132 zhu zhenhua 2003-7-24 */
@@ -975,7 +1103,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "maximum-value",                    /* 135 */
    "minimum-value",                    /* 136 */
    "notification-threshold",           /* 137 */
-   "unused-was-previous-notify-time",  /* 138   added by zhu zhenhua, 2004-5-11 deleted in version 1 rev 3 */
+   "was-previous-notify-time",         /* 138  added by zhu zhenhua, 2004-5-11 deleted in version 1 rev 3 */
    "protocol-revision",                /* 139 */
    "records-since-notification",       /* 140 */
    "record-count",                     /* 141 */
@@ -1029,18 +1157,18 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "update-time",                      // 189 shiyuan xiao 7/15/2005
    "value-before-change",              // 190 shiyuan xiao 7/15/2005
    "value-set",                        // 191 shiyuan xiao 7/15/2005
-   "value-change-time",                 // 192 shiyuan xiao 7/15/2005
+   "value-change-time",                // 192 shiyuan xiao 7/15/2005
    // added addendum b (135-2004)
 	"align-intervals",					// 193
-	"group-members-names",				// 194
+	"prop-id-194",				         // 194 undefined in 135-2012
 	"interval-offset",					// 195
 	"last-restart-reason",				// 196
 	"logging-type",						// 197
-	"member-status-flags",				// 198
-	"notification-period",				// 199
-	"previous-notify-record",			// 200
-	"requested-update-interval",		// 201
-	"restart-notification-recipients",	// 202
+	"prop-id-198",				         // 198 undefined in 135-2012
+	"prop-id-199",				         // 199 undefined in 135-2012
+	"prop-id-200",				         // 200 undefined in 135-2012
+	"prop-id-201",				         // 201 undefined in 135-2012
+   "restart-notification-recipients",	// 202
 	"time-of-device-restart",			// 203
 	"time-synchronization-interval",	// 204
 	"trigger",							// 205
@@ -1056,19 +1184,18 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
 	"duty-window",						// 213
 	"expected-shed-level",				// 214
 	"full-duty-baseline",				// 215
-    /* enumerations 216-217 are used in Addendum i to ANSI/ASHRAE 135-2004 */
-    "blink-priority-threshold",			// 216
-    "blink-time",						// 217
-	"requested-shed-level",				// 218
+   "prop-id-216",				         // 216 undefined in 135-2012
+	"prop-id-217",				         // 217 undefined in 135-2012
+   "requested-shed-level",				// 218
 	"shed-duration",					// 219
 	"shed-level-descriptions",			// 220
 	"shed-levels",						// 221
 	"state-description",				// 222
-	/* enumerations 223-225 are used in Addendum i to ANSI/ASHRAE 135-2004 */
-	"fade-time",
-	"lighting-command",
-	"lighting-command-priority",
-    /* enumerations 226-235 are used in Addendum f to ANSI/ASHRAE 135-2004 */
+ 	"prop-id-223",				         // 223 undefined in 135-2012
+	"prop-id-224",				         // 224 undefined in 135-2012
+	"prop-id-225",				         // 225 undefined in 135-2012
+
+   /* enumerations 226-235 are used in Addendum f to ANSI/ASHRAE 135-2004 */
 	"door-alarm-state",					// 226
 	"door-extended-pulse-time",
 	"door-members",
@@ -1080,17 +1207,18 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
 	"masked-alarm-values",
 	"secured-status",					// 235 last in 135-2008
 	// Contributions from the bacnet-stack project http://sourceforge.net/projects/bacnet/develop :
-	/* enumerations 236-243 are used in Addendum i to ANSI/ASHRAE 135-2004 */
-	"off-delay",
-	"on-delay",
-	"power",
-	"power-on-value",
-	"progress-value",
-	"ramp-rate",
-	"step-increment",
-	"system-failure-value",
-	/* enumerations 244-311 are used in Addendum j to ANSI/ASHRAE 135-2004 */
-	"absentee-limit",
+
+	"prop-id-236",				         // 236 undefined in 135-2012
+	"prop-id-237",				         // 237 undefined in 135-2012
+	"prop-id-238",				         // 238 undefined in 135-2012
+	"prop-id-239",				         // 239 undefined in 135-2012
+	"prop-id-240",				         // 240 undefined in 135-2012
+	"prop-id-241",				         // 241 undefined in 135-2012
+	"prop-id-242",				         // 242 undefined in 135-2012
+	"prop-id-243",				         // 243 undefined in 135-2012
+   
+   /* enumerations 244-311 are used in Addendum j to ANSI/ASHRAE 135-2004 */
+	"absentee-limit",             // 244
 	"access-alarm-events",
 	"access-doors",
 	"access-event",
@@ -1129,9 +1257,9 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
 	"last-credential-removed-time",
 	"last-use-time",
 	"lockout",
-	"lockout-relinquish-time",
-	"master-exemption",
-	"max-failed-attempts",
+	"lockout-relinquish-time",       // 283
+	"prop-id-283",				         // 284 undefined in 135-2012
+	"max-failed-attempts",           // 285
 	"members",
 	"muster-point",
 	"negative-access-rules",
@@ -1157,62 +1285,92 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
 	"trace-flag",
 	"transaction-notification-class",
 	"user-external-identifier",
-	"user-information-reference",
-	/* enumerations 312-313 are used in Addendum k to ANSI/ASHRAE 135-2004 */
-	"character-set",
-	"strict-character-mode",
-
-   /* enumerations 314-316 are used in Addendum ? */
+	"user-information-reference", // 311
+	/* enumerations 312-316 are unassigned in 135-2012 */
+   "prop-id-312",
+   "prop-id-313",
    "prop-id-314",
 	"prop-id-315",
 	"prop-id-316",
 
    /* enumerations 317-323 are used in Addendum j to ANSI/ASHRAE 135-2004 */
-	"user-name",
+	"user-name",         // 317
 	"user-type",
 	"uses-remaining",
 	"zone-from",
 	"zone-to",
 	"access-event-tag",
-	"global-identifier",
-	/* enumerations 324-325 are used in Addendum i to ANSI/ASHRAE 135-2004 */
-	"binary-active-value",
-	"binary-inactive-value",
+	"global-identifier", // 323
+
+   /* enumerations 324-325 are unassigned in 135-2012 */
+	"prop-id-324",
+	"prop-id-325",
     /* enumeration 326 is used in Addendum j to ANSI/ASHRAE 135-2004 */
-	"verification-time",
-	/* enumerations 327-341 are used in Addendum ? */
-	"prop-id-327",
-	"prop-id-328",
-	"prop-id-329",
-	"prop-id-330",
-	"prop-id-331",
-	"prop-id-332",
-	"prop-id-333",
-	"prop-id-334",
-	"prop-id-335",
-	"prop-id-336",
-	"prop-id-337",
+	"verification-time", // 326
 
-	/* enumerations 338-341 are used in Addendum n to ANSI/ASHRAE 135-2008 */
-	"backup-and-restore-state",   // 338
-	"backup-preparation-time",
-	"restore-completion-time",
-	"restore-preparation-time",
+   "base-device-security-policy",	// 327
+   "distribution-key-revision",	   // 328
+   "do-not-hide",	                  // 329
+   "key-sets",	                     // 330
+   "last-key-server",	            // 331
+   "network-access-security-policies",// 332
+   "packet-reorder-time",	         // 333
+   "security-pdu-timeout",	         // 334
+   "security-time-window",	         // 335
+   "supported-security-algorithms",	// 336
+   "update-key-set-timeout",	      // 337
+   "backup-and-restore-state",	   // 338
+   "backup-preparation-time",	      // 339
+   "restore-completion-time",	      // 340
+   "restore-preparation-time",	   // 341
+   "bit-mask",	                     // 342
+   "bit-text",	                     // 343
+   "is-utc",	                     // 344
+   "group-members",	               // 345
+   "group-member-names",	         // 346
+   "member-status-flags",	         // 347
+   "requested-update-interval",	   // 348
+   "covu-period",	                  // 349
+   "covu-recipients",	            // 350
+   "event-message-texts",	         // 351
+   "event-message-texts-config",	   // 352
+   "event-detection-enable",	      // 353
+   "event-algorithm-inhibit",	      // 354
+   "event-algorithm-inhibit-ref",	// 355
+   "time-delay-normal",	            // 356
+   "reliability-evaluation-inhibit",// 357
+   "fault-parameters",	            // 358
+   "fault-type",	                  // 359
+   "local-forwarding-only",	      // 360
+   "process-identifier-filter",	   // 361
+   "subscribed-recipients",	      // 362
+   "port-filter",	                  // 363
+   "authorization-exemptions",	   // 364
+   "allow-group-delay-inhibit",	   // 365
+   "channel-number",	               // 366
+   "control-groups",	               // 367
+   "execution-delay",	            // 368
+   "last-priority",	               // 369
+   "write-status",	               // 370
+   "property-list",	               // 371
+   "serial-number",	               // 372
+   "blink-warn-enable",	            // 373
+   "default-fade-time",	            // 374
+   "default-ramp-rate",	            // 375
+   "default-step-increment",	      // 376
+   "egress-time",	                  // 377
+   "in-progress",	                  // 378
+   "instantaneous-power",	         // 379
+   "lighting-command",	            // 380
+   "lighting-command-default-priority",// 381
+   "max-actual-value",	            // 382
+   "min-actual-value",	            // 383
+   "power",	                        // 384
+   "transition",	                  // 385
+   "egress-active",	               // 386 last in 135-2012
 
-   /* enumerations 342-344 are defined in Addendum 2008-w */	
-	"bit-mask",
-	"bit-text",
-	"is-utc",		// 344
-
-   /* enumerations 345-xxx are used in Addendum ? */
-	//"prop-id-345",
-	//"prop-id-346",
-	//"prop-id-347",
-	//"prop-id-348",
-	//"prop-id-349",
-
-	// CAUTION: if you add a property here, you must also change MAX_PROP_ID
-	// (which is actually max-plus-one: the NUMBER of defined properties)
+	// If you add a property here, you should also add it to Propid.h and
+   // the other locations indicated there.
 };
 BAC_STRINGTABLE_EX(BACnetPropertyIdentifier, 512, 0x7FFFFFFF);
 
@@ -1374,10 +1532,10 @@ STRING_TABLE BACnetVendorID[] = {
     "PolarSoft",                                             // 4
     "Johnson Controls, Inc.",                                // 5
     "American Auto-Matrix",                                  // 6
-    "Siemens Building Technologies, Ltd., Landis  Staefa Division Europe", // 7
+    "Siemens Schweiz AG (Formerly: Landis  Staefa Division Europe)", // 7
     "Delta Controls",                                        // 8
-    "Siemens Building Technologies, Inc.",                   // 9
-    "Tour Andover Controls Corporation",                     // 10
+    "Siemens Schweiz AG",                                    // 9
+    "Schneider Electric",                                    // 10
     "TAC",                                                   // 11
     "Orion Analysis Corporation",                            // 12
     "Teletrol Systems Inc.",                                 // 13
@@ -1389,7 +1547,7 @@ STRING_TABLE BACnetVendorID[] = {
     "TAC AB",                                                // 19
     "Hewlett-Packard Company",                               // 20
     "Dorsette’s Inc.",                                       // 21
-    "Cerberus AG",                                           // 22
+    "Siemens Schweiz AG (Formerly: Cerberus AG)",            // 22
     "York Controls Group",                                   // 23
     "Automated Logic Corporation",                           // 24
     "CSI Control Systems International",                     // 25
@@ -1404,7 +1562,7 @@ STRING_TABLE BACnetVendorID[] = {
     "Notifier",                                              // 34
     "Reliable Controls Corporation",                         // 35
     "Tridium Inc.",                                          // 36
-    "Sierra Monitor Corp.",                                  // 37
+    "Sierra Monitor Corporation/FieldServer Technologies",   // 37
     "Silicon Energy",                                        // 38
     "Kieback  Peter GmbH  Co KG",                            // 39
     "Anacon Systems, Inc.",                                  // 40
@@ -1525,8 +1683,8 @@ STRING_TABLE BACnetVendorID[] = {
     "Kanden Engineering Company",                            // 155
     "Messner Gebäudetechnik GmbH",                           // 156
     "Integrated.CH",                                         // 157
-    "EH Price Limited",                                      // 158
-    "SE-Electronic GmbH",                                    // 159
+    "Price Industries",                                      // 158
+    "SE-Elektronic GmbH",                                    // 159
     "Rockwell Automation",                                   // 160
     "Enflex Corp.",                                          // 161
     "ASI Controls",                                          // 162
@@ -1629,7 +1787,7 @@ STRING_TABLE BACnetVendorID[] = {
     "Larmia Control AB",                                     // 259
     "BACnet Stack at SourceForge",                           // 260
     "G4S Security Services A/S",                             // 261
-    "Sitek S.p.A.",                                          // 262
+    "Exor International S.p.A.",                             // 262
     "Cristal Controles",                                     // 263
     "Regin AB",                                              // 264
     "Dimension Software, Inc. ",                             // 265
@@ -1712,7 +1870,7 @@ STRING_TABLE BACnetVendorID[] = {
     "POWERPEG NSI Limited",                                  // 342
     "BACnet Interoperability Testing Services, Inc.",        // 343
     "Teco a.s.",                                             // 344
-    "Plexus Technology Limited",                             // 345
+    "Plexus Technology, Inc.",                               // 345
     "Energy Focus, Inc.",                                    // 346
     "Powersmiths International Corp.",                       // 347
     "Nichibei Co., Ltd.",                                    // 348
@@ -1780,7 +1938,7 @@ STRING_TABLE BACnetVendorID[] = {
     "Intelec Systems PTY Ltd.",                              // 410
     "Ecolodgix, LLC",                                        // 411
     "Douglas Lighting Controls",                             // 412
-    "iSAtech GmbH intelligente Sensoren Aktoren technologie", // 413
+    "iSAtech GmbH",                                          // 413
     "AREAL",                                                 // 414
     "Beckhoff Automation GmbH",                              // 415
     "IPAS GmbH",                                             // 416
@@ -1924,8 +2082,179 @@ STRING_TABLE BACnetVendorID[] = {
     "ISAS-Integrated Switchgear and Systems P/L",            // 554
     "BACnet Examples",                                       // 555
     "Obvius",                                                // 556
-    "Marek Guzik"                                            // 557
-   // Updated 21 January 2012 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+    "Marek Guzik",                                           // 557
+    "Vortek Instruments, LLC",                               // 558
+    "Universal Lighting Technologies",                       // 559
+    "Myers Power Products, Inc.",                            // 560
+    "Vector Controls GmbH",                                  // 561
+    "Crestron Electronics, Inc.",                            // 562
+    "AE Controls Limited",                                   // 563
+    "Projektomontaza A.D.",                                  // 564
+    "Freeaire Refrigeration",                                // 565
+    "Aqua Cooler Pty Limited",                               // 566
+    "Basic Controls",                                        // 567
+    "GE Measurement and Control Solutions Advanced Sensors", // 568
+    "EQUAL Networks",                                        // 569
+    "Millennial Net",                                        // 570
+    "APLI Ltd",                                              // 571
+    "Electro Industries/GaugeTech",                          // 572
+    "SangMyung University",                                  // 573
+    "Coppertree Analytics, Inc.",                            // 574
+    "CoreNetiX GmbH",                                        // 575
+    "Acutherm",                                              // 576
+    "Dr. Riedel Automatisierungstechnik GmbH",               // 577
+    "Shina System Co., Ltd",                                 // 578
+    "Iqapertus",                                             // 579
+    "PSE Technology",                                        // 580
+    "BA Systems",                                            // 581
+    "BTICINO",                                               // 582
+    "Monico, Inc.",                                          // 583
+    "iCue",                                                  // 584
+    "tekmar Control Systems Ltd.",                           // 585
+    "Control Technology Corporation",                        // 586
+    "GFAE GmbH",                                             // 587
+    "BeKa Software GmbH",                                    // 588
+    "Isoil Industria SpA",                                   // 589
+    "Home Systems Consulting SpA",                           // 590
+    "Socomec",                                               // 591
+    "Everex Communications, Inc.",                           // 592
+    "Ceiec Electric Technology",                             // 593
+    "Atrila GmbH",                                           // 594
+    "WingTechs",                                             // 595
+    "Shenzhen Mek Intellisys Pte Ltd.",                      // 596
+    "Nestfield Co., Ltd.",                                   // 597
+    "Swissphone Telecom AG",                                 // 598
+    "PNTECH JSC",                                            // 599
+    "Horner APG, LLC",                                       // 600
+    "PVI Industries, LLC",                                   // 601
+    "Ela-compil",                                            // 602
+    "Pegasus Automation International LLC",                  // 603
+    "Wight Electronic Services Ltd.",                        // 604
+    "Marcom",                                                // 605
+    "Exhausto A/S",                                          // 606
+    "Dwyer Instruments, Inc.",                               // 607
+    "Link GmbH",                                             // 608
+    "Oppermann Regelgerate GmbH",                            // 609
+    "NuAire, Inc.",                                          // 610
+    "Nortec Humidity, Inc.",                                 // 611
+    "Bigwood Systems, Inc.",                                 // 612
+    "Enbala Power Networks",                                 // 613
+    "Inter Energy Co., Ltd.",                                // 614
+    "ETC",                                                   // 615
+    "COMELEC S.A.R.L",                                       // 616
+    "Pythia Technologies",                                   // 617
+    "TrendPoint Systems, Inc.",                              // 618
+    "AWEX",                                                  // 619
+    "Eurevia",                                               // 620
+    "Kongsberg E-lon AS",                                    // 621
+    "FlaktWoods",                                            // 622
+    "E + E Elektronik GES M.B.H.",                           // 623
+    "ARC Informatique",                                      // 624
+    "SKIDATA AG",                                            // 625
+    "WSW Solutions",                                         // 626
+    "Trefon Electronic GmbH",                                // 627
+    "Dongseo System",                                        // 628
+    "Kanontec Intelligence Technology Co., Ltd.",            // 629
+    "EVCO S.p.A.",                                           // 630
+    "Accuenergy (CANADA) Inc.",                              // 631
+    "SoftDEL",                                               // 632
+    "Orion Energy Systems, Inc.",                            // 633
+    "Roboticsware",                                          // 634
+    "DOMIQ Sp. z o.o.",                                      // 635
+    "Solidyne",                                              // 636
+    "Elecsys Corporation",                                   // 637
+    "Conditionaire International Pty. Limited",              // 638
+    "Quebec, Inc.",                                          // 639
+    "Homerun Holdings",                                      // 640
+    "RFM, Inc.",                                             // 641
+    "Comptek",                                               // 642
+    "Westco Systems, Inc.",                                  // 643
+    "Advancis Software  Services GmbH",                      // 644
+    "Intergrid, LLC",                                        // 645
+    "Markerr Controls, Inc.",                                // 646
+    "Toshiba Elevator and Building Systems Corporation",     // 647
+    "Spectrum Controls, Inc.",                               // 648
+    "Mkservice",                                             // 649
+    "Fox Thermal Instruments",                               // 650
+    "SyxthSense Ltd",                                        // 651
+    "DUHA System S R.O.",                                    // 652
+    "NIBE",                                                  // 653
+    "Melink Corporation",                                    // 654
+    "Fritz-Haber-Institut",                                  // 655
+    "MTU Onsite Energy GmbH, Gas Power Systems",             // 656
+    "Omega Engineering, Inc.",                               // 657
+    "Avelon",                                                // 658
+    "Ywire Technologies, Inc.",                              // 659
+    "M.R. Engineering Co., Ltd.",                            // 660
+    "Lochinvar, LLC",                                        // 661
+    "Sontay Limited",                                        // 662
+    "GRUPA Slawomir Chelminski",                             // 663
+    "Arch Meter Corporation",                                // 664
+    "Senva, Inc.",                                           // 665
+    "Beelzebub Controls",                                    // 666
+    "FM-Tec",                                                // 667
+    "Systems Specialists, Inc.",                             // 668
+    "SenseAir",                                              // 669
+    "AB IndustrieTechnik Srl",                               // 670
+    "Cortland Research, LLC",                                // 671
+    "MediaView",                                             // 672
+    "VDA Elettronica",                                       // 673
+    "CSS, Inc.",                                             // 674
+    "Tek-Air Systems, Inc.",                                 // 675
+    "ICDT",                                                  // 676
+    "The Armstrong Monitoring Corporation",                  // 677
+    "DIXELL S.r.l",                                          // 678
+    "Lead System, Inc.",                                     // 679
+    "ISM EuroCenter S.A.",                                   // 680
+    "TDIS",                                                  // 681
+    "Trade FIDES",                                           // 682
+    "Knürr GmbH (Emerson Network Power)",                    // 683
+    "Resource Data Management",                              // 684
+    "Abies Technology, Inc.",                                // 685
+    "Amalva",                                                // 686
+    "MIRAE Electrical Mfg. Co., Ltd.",                       // 687
+    "HunterDouglas Architectural Projects Scandinavia ApS",  // 688
+    "RUNPAQ Group Co., Ltd",                                 // 689
+    "Unicard SA",                                            // 690
+    "IE Technologies",                                       // 691
+    "Ruskin Manufacturing",                                  // 692
+    "Calon Associates Limited",                              // 693
+    "Contec Co., Ltd.",                                      // 694
+    "iT GmbH",                                               // 695
+    "Autani Corporation",                                    // 696
+    "Christian Fortin",                                      // 697
+    "HDL",                                                   // 698
+    "IPID Sp. Z.O.O Limited",                                // 699
+    "Fuji Electric Co., Ltd",                                // 700
+    "View, Inc.",                                            // 701
+    "Samsung S1 Corporation",                                // 702
+    "New Lift",                                              // 703
+    "VRT Systems",                                           // 704
+    "Motion Control Engineering, Inc.",                      // 705
+    "Weiss Klimatechnik GmbH",                               // 706
+    "Elkon",                                                 // 707
+    "Eliwell Controls S.r.l.",                               // 708
+    "Japan Computer Technos Corp",                           // 709
+    "Rational Network ehf",                                  // 710
+    "Magnum Energy Solutions, LLC",                          // 711
+    "MelRok",                                                // 712
+    "VAE Group",                                             // 713
+    "LGCNS",                                                 // 714
+    "Berghof Automationstechnik GmbH",                       // 715
+    "Quark Communications, Inc.",                            // 716
+    "Sontex",                                                // 717
+    "mivune AG",                                             // 718
+    "Panduit",                                               // 719
+    "Smart Controls, LLC",                                   // 720
+    "Compu-Aire, Inc.",                                      // 721
+    "Sierra",                                                // 722
+    "ProtoSense Technologies",                               // 723
+    "Eltrac Technologies Pvt Ltd",                           // 724
+    "Bektas Invisible Controls GmbH",                        // 725
+    "Entelec",                                               // 726
+    "Innexiv",                                               // 727
+    "Covenant",                                              // 728
+   // Updated 26 February 2014 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
    // Use the VTS utility VendorIdTable to update this table.
    // TODO add more here ...
 };
@@ -1941,6 +2270,14 @@ STRING_TABLE BACnetVTClass[] = {
    "ibm-3130"
 };
 BAC_STRINGTABLE_EX(BACnetVTClass, 64, 65536);
+
+STRING_TABLE BACnetWriteStatus[] = {
+   "idle",
+   "in-progress",
+   "successful",
+   "failed"
+};
+BAC_STRINGTABLE(BACnetWriteStatus);
 
 // Used for bitstring BACnetDaysOfWeek, where Monday == 0
 // See also day_of_week
@@ -1983,8 +2320,8 @@ STRING_TABLE month[] = {
    "October",       /* 10 */
    "November",      /* 11 */
    "December",      /* 12 */
-   "Odd",			/* 13 */
-   "Even"			/* 14 */
+   "Odd",			  /* 13 */
+   "Even"			  /* 14 */
 };
 BAC_STRINGTABLE(month);
 
@@ -2016,7 +2353,7 @@ STRING_TABLE PDU_typesENUM[] = {
 BAC_STRINGTABLE(PDU_typesENUM);
 
 STRING_TABLE NL_msgs[] = {
-   "Who-Is-Router-To-Network",
+   "Who-Is-Router-To-Network",      // 0
    "I-Am-Router-To-Network",
    "I-Could-Be-Router-To-Network",
    "Reject-Message-To-Network",
@@ -2027,20 +2364,17 @@ STRING_TABLE NL_msgs[] = {
    "Establish-Connection-To-Network",
    "Disconnect-Connection-To-Network",
 
-   "Challenge-Request",
+   "Challenge-Request",          // 10
    "Security-Payload",
    "Security-Response",
    "Request-Key-Update",
    "Update-Key-Set",
-
    "Update-Distribution-Key",
    "Request-Master-Key",
    "Set-Master-Key",
-   "What-Is-Network-Number",
-   "Network-Number-Is",
 
-   "ASHRAE-Reserved",
-   "Vendor-Proprietary-Message"
+   "What-Is-Network-Number",     // 18
+   "Network-Number-Is"
 };
 BAC_STRINGTABLE(NL_msgs);
 
@@ -2156,6 +2490,7 @@ STRING_TABLE BACnetUnconfirmedServiceChoice[] = {
    "UTCTimeSynchronization"         /* 9 */
    // CAUTION: if you add a service here, you must also change max_unconfirmed_services
    // (which is actually max-plus-one: the NUMBER of defined services)
+   // TODO: needs writeGroup 10
 };                       
 BAC_STRINGTABLE(BACnetUnconfirmedServiceChoice);
 

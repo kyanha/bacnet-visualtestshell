@@ -79,7 +79,7 @@ int interp_bacnet_IP( char *header, int length)  /* IP interpreter */
 {
    /* Summary line? */
    if (pi_data_bacnet_IP->do_sum)
-     interp_bacnet_BVLL( header + 6, length - 6 );
+      interp_bacnet_BVLL( header + 6, length - 6 );
 
    /* Detail line? */
    if (pi_data_bacnet_IP->do_int) {
@@ -105,8 +105,11 @@ int interp_bacnet_ETHERNET( char *header, int length)  /* Ethernet interpreter *
    if (pi_data_bacnet_ETHERNET->do_sum) {
      if (pif_get_byte(17) == 0x01)
         interp_bacnet_NL( header + 17, len );
-     else
+     else {
+        // This is bogus - BVLL on Ethernet without IP?
+		  // interp_bacnet_BVLL( header + 17, len );
         interp_bacnet_BVLL( header + 17, len );
+     }
    } 
 
    /* Detail line? */
@@ -124,11 +127,12 @@ int interp_bacnet_ETHERNET( char *header, int length)  /* Ethernet interpreter *
       pif_show_space();
 
       if (pif_get_byte(0) == 0x01)
-        interp_bacnet_NL( header + 17, len );
-      else
-        // This is bogus - BVLL on Ethernet without IP?
-		// interp_bacnet_BVLL( header + 17, len );
-        pif_show_byte("Ethernet with BACnet LLC is not network version 1.  Has 0x%02X");
+         interp_bacnet_NL( header + 17, len );
+      else {
+         // This is bogus - BVLL on Ethernet without IP?
+		   // interp_bacnet_BVLL( header + 17, len );
+         pif_show_byte("Ethernet with BACnet LLC is not network version 1.  Has 0x%02X");
+      }
    }
 
    return length;
@@ -158,11 +162,12 @@ int interp_bacnet_ARCNET( char *header, int length)  /* ARCNET interpreter */
       pif_show_space();
 
       if (pif_get_byte(0) == 0x01)
-        interp_bacnet_NL( header + 6, length - 6 );
-      else
+         interp_bacnet_NL( header + 6, length - 6 );
+      else {
          // This is bogus - BVLL on ARCNET without IP?
-        // interp_bacnet_BVLL( header + 6, length - 6 );
-        pif_show_byte("ARCNET with BACnet LLC is not network version 1.  Has 0x%02X");
+         // interp_bacnet_BVLL( header + 6, length - 6 );
+         pif_show_byte("ARCNET with BACnet LLC is not network version 1.  Has 0x%02X");
+      }
    }
 
    return length;
@@ -189,7 +194,7 @@ int interp_bacnet_MSTP( char *header, int length)  /* MS/TP interpreter */
 
    /* Summary line? */
    if (pi_data_bacnet_MSTP->do_sum) {
-        interp_bacnet_NL( header + 8, length-10 );
+      interp_bacnet_NL( header + 8, length-10 );
 //      sprintf (get_sum_line (pi_data_bacnet_MSTP), "BACnet MS/TP Frame");
    }   /* End of Summary Line */
 
@@ -700,7 +705,7 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
       
       switch (pif_get_byte(0)) {
          case 0x01:
-			// TODO: this is an error here: BACnet WITHOUT BVLL
+			   // TODO: this is an error here: BACnet WITHOUT BVLL
             interp_bacnet_NL( header, length );
             break;
          case 0x81:
@@ -713,19 +718,19 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
                   interp_bacnet_NL( header + 4, length - 4 );
                   break;
                default:
-				  {
+				      {
                      char *pStr = get_sum_line(pi_data_bacnet_BVLL);
-					 int fn = pif_get_byte(1);
-					 if (fn < BAC_STRTAB_BVLL_Function.m_nStrings)
-					 {
-						strcpy( pStr, BAC_STRTAB_BVLL_Function.m_pStrings[fn] );
-					 }
-					 else
-					 {
-						 sprintf( pStr, "Unknown BVLL function %u", fn );
-					 }
-				  }
-				  break;
+	   				   int fn = pif_get_byte(1);
+		   			   if (fn < BAC_STRTAB_BVLL_Function.m_nStrings)
+			   		   {
+				   		   strcpy( pStr, BAC_STRTAB_BVLL_Function.m_pStrings[fn] );
+					      }
+					      else
+   					   {
+	   					   sprintf( pStr, "Unknown BVLL function %u", fn );
+		   			   }
+			   	   }
+				      break;
             }
             break;
       }
@@ -851,7 +856,6 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
 int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 /**************************************************************************/
 {
-   char *control;           /* pointer to the control octet */
    unsigned char buff;      /* 1 octet buffer for manipulation */
    unsigned short wbuff;    /* 2 octet buffer */
    unsigned char APDUmask;  /* APDU vs Network Layer flag mask */
@@ -865,103 +869,91 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
    int apdu_length;         //APDU length in octets. Xiao Shiyuan 2002-5-19
    int port_id;             /* port ID field */
    int port_info_length;    /* port information length in octets */
-   const char *name;		/* translated name */
-   char namebuff[80];		/* buffer to print translated name */
+   const char *name;		    /* translated name */
+   char namebuff[80];		 /* buffer to print translated name */
 
    pi_data_current = pi_data_bacnet_NL;
    npdu_length = 2;
-   control = header + 1;  /* initialize pointer to control octet */
    /* Summary line? */
    if (pi_data_bacnet_NL->do_sum) {   	   
-       /* Figure out length of NPCI */
-       pif_init (pi_data_bacnet_NL, header, length);
+      /* Figure out length of NPCI */
+      pif_init(pi_data_bacnet_NL, header, length);
 
-	   //Xiao Shiyuan 2002-5-19. BEGIN
-	   //if header is not NPDU
-	   if(length < 2)
-	   {
-		   strcpy( get_sum_line(pi_data_bacnet_NL), "Error NPDU" );
-		   return length;			
-	   }
-	   //Xiao Shiyuan 2002-5-19. END
+      if(length < 2)
+      {
+         strcpy( get_sum_line(pi_data_bacnet_NL), "Invalid NPDU (too short)" );
+         return length;			
+      }
 
-       pif_skip(1); /* Point to control octet */
-       buff = pif_get_byte(0);
-       DESTmask = (buff & 0x20 )>>5;   /* mask for DNET, DLEN, DADR, & Hop Count present switch */
-       SOURCEmask = (buff & 0x08)>>3;  /* mask for SNET, SLEN, and SADR present switch */
-       if (DESTmask == 1) {
-          npdu_length += 4; // DNET, DLEN, & Hop Count ARE present   
-          pif_skip(3);      /* Point to DLEN */      
-          npdu_length += pif_get_byte(0); /* Add length of DADR and skip over */
-          pif_skip(pif_get_byte(0));
-       }
-       if (SOURCEmask == 1) {
-          npdu_length += 3; // SNET, SLEN ARE present 
-          pif_skip(3);      // Point to SLEN 
-          npdu_length += pif_get_byte(0); //Add length of SADR and skip over
-          pif_skip(pif_get_byte(0));
-       }
+      buff = pif_get_byte(1);
+      pif_skip(2);                    /* Point after control octet */
+      DESTmask = (buff & 0x20 )>>5;   /* mask for DNET, DLEN, DADR, & Hop Count present switch */
+      SOURCEmask = (buff & 0x08)>>3;  /* mask for SNET, SLEN, and SADR present switch */
+      if (DESTmask == 1) {
+         npdu_length += 4; // DNET, DLEN, & Hop Count ARE present   
+         pif_skip(2);      /* Bypass DNET, point to DLEN */      
+         npdu_length += pif_get_byte(0); /* Add length of DADR and skip over */
+         pif_skip(1 + pif_get_byte(0));
+      }
+      if (SOURCEmask == 1) {
+         npdu_length += 3; // SNET, SLEN ARE present 
+         pif_skip(2);      // Bypass SNET, point to SLEN 
+         npdu_length += pif_get_byte(0); //Add length of SADR and skip over
+         pif_skip(1 + pif_get_byte(0));
+      }
 
-	   if (*control&0x80) { //does not contain BACnet APDU and MessageType is present
-         if (DESTmask == 1) /* Must skip over hop count too! */
-            pif_skip(2);
-         else
+      if (buff & 0x80) { 
+         // Network Message
+         if (DESTmask == 1) /* skip over hop count */
             pif_skip(1);
 
-		 int nlMsgID = pif_get_byte(0) & 0xFF; //Point to MessageType
-         if ((nlMsgID >= BAC_STRTAB_NL_msgs.m_nStrings) && (nlMsgID < 0x80))
+         int nlMsgID = pif_get_byte(0) & 0xFF; // MessageType
+         if (nlMsgID <= 0x80)
          {
-			 strcpy( get_sum_line(pi_data_bacnet_NL), "ASHRAE Reserves The Network Layer Message Type" );
-		     // TODO: show the message type
-			 return length;
+            // Show type from table, or "Unknown..." for values not in the table
+            strcpy( get_sum_line(pi_data_bacnet_NL), BAC_STRTAB_NL_msgs.EnumString( nlMsgID, "Unknown network message type:" ) );
          }
-		 else if( nlMsgID >= 0x80 )
-		 {	
-			 npdu_length += 2; //VendorID is present (TODO: we hope)
-			 //Proprietary Network Layer Message
-		     strcpy( get_sum_line(pi_data_bacnet_NL), "Proprietary Network Layer Message" );			
-		     // TODO: show the vendorID and the message type
-		 }
-	     else
-		 {
-		    strcpy( get_sum_line(pi_data_bacnet_NL), BAC_STRTAB_NL_msgs.EnumString( pif_get_byte(0), "NL:" ) );
-		 }
+         else
+         {	
+            // Proprietary network message must have vendor ID
+            UINT vendorID = pif_get_word_hl(1);
+            pif_skip(3);      // Point past message type and vendorID to data
+            npdu_length += 2;
+
+            sprintf( namebuff, "Proprietary network message %d (vendor %u)", nlMsgID, vendorID );
+            strcpy( get_sum_line(pi_data_bacnet_NL), namebuff );			
+         }
       }
       else {
-		 //contain BACnet APDU
+         // BACnet APDU
          //Xiao Shiyuan 2002-5-19. BEGIN
          apdu_length = length - npdu_length;
          if(apdu_length <= 0 || npdu_length > length || npdu_length > 1497) //npdu length error
-		 {
-			 strcpy( get_sum_line(pi_data_bacnet_NL), "Error: NPDU length" );
-			 return length;
-		 }
-		 //Xiao Shiyuan 2002-5-19. END
+         {
+            strcpy( get_sum_line(pi_data_bacnet_NL), "Error: NPDU length" );
+            return length;
+         }
+         //Xiao Shiyuan 2002-5-19. END
          return npdu_length + interp_bacnet_AL( header + npdu_length, length - npdu_length );
       }
    }   /* End of Summary Line */
 
    /* Detail line? */
-   if (pi_data_bacnet_NL->do_int) {      
-
+   if (pi_data_bacnet_NL->do_int) {
       pif_init(pi_data_bacnet_NL, header, length);
       pif_header(length, "BACnet Network Layer Detail");
 
-	  //Xiao Shiyuan 2002-5-19. BEGIN
-	  //if header is not NPDU
-	  if (length < 2)
-	  {
-		  pif_show_ascii(0, "Error NPDU" );
-		  return length;			
-	  }
-	  //Xiao Shiyuan 2002-5-19. END
+      if (length < 2)
+      {
+         pif_show_ascii(0, "Error NPDU" );
+         return length;			
+      }
 
       pif_show_byte("Protocol Version Number = %d");
 
       /* --- display the network control octet detail --- */
       buff = pif_get_byte(0);
-      //APDUmask = (buff & 0x80);       /* mask  APDU/Network control bit (7) */
-	  APDUmask = (buff & 0x80)>>7;       //mask  APDU/Network control bit (7).Xiao Shiyuan 2002-5-17
+      APDUmask = (buff & 0x80)>>7;       //mask  APDU/Network control bit (7).Xiao Shiyuan 2002-5-17
       RESV1mask = (buff & 0x40)>>6;   /* reserved mask */
       DESTmask = (buff & 0x20 )>>5;   /* mask for DNET, DLEN, DADR, & Hop Count present switch */
       RESV2mask = (buff & 0x10)>>4;   /* reserved mask */
@@ -986,13 +978,14 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
       if (DESTmask == 1) {
          wbuff = pif_get_word_hl(0);
          if(wbuff == 65535) {
-		   if ((name = LookupName( 65535, 0, 0 )) != 0) {
-			  sprintf( namebuff, "Global Broadcast DNET          = X'%%04X', %s", name );
-              pif_show_word_hl(namebuff);
-		   } else
-              pif_show_word_hl("Global Broadcast DNET          = X'%04X'");
-         } else
-           pif_show_word_hl("Destination Network Number     = %u");
+            if ((name = LookupName( 65535, 0, 0 )) != 0) {
+               sprintf( namebuff, "Global Broadcast DNET          = X'%%04X', %s", name );
+               pif_show_word_hl(namebuff);
+            } else
+               pif_show_word_hl("Global Broadcast DNET          = X'%04X'");
+         } else {
+            pif_show_word_hl("Destination Network Number     = %u");
+         }
 
          mac_length = pif_get_byte(0);
          pif_show_byte("Destination MAC address length = %u");
@@ -1002,14 +995,14 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          else
             name = 0;
 
-         if(mac_length > 0){
-             pif_show_nbytes_hex("Destination MAC address        = X'%s'",mac_length);
+         if(mac_length > 0) {
+            pif_show_nbytes_hex("Destination MAC address        = X'%s'",mac_length);
          }
          else {  /* Broadcast MAC address (not shown in PDU) */
-             pif_show_ascii(0,"Broadcast MAC address implied");
+            pif_show_ascii(0,"Broadcast MAC address implied");
          }
 
-		 if (name) pif_append_ascii( ", %s", name );
+         if (name) pif_append_ascii( ", %s", name );
       }
 
       /*  ----- show SNET, SLEN and SADR if present ----- */
@@ -1026,7 +1019,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          if(mac_length <= 0)
             pif_show_ascii(0,"Invalid MAC address length!");
 
-		 if (name) pif_append_ascii( ", %s", name );
+         if (name) pif_append_ascii( ", %s", name );
       }
 
       /*  ----- show Hop Count if DNET present ----- */
@@ -1037,49 +1030,47 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
          pif_show_space();
          npdu_length = pif_offset;
 
-		 //Xiao Shiyuan 2002-5-19. BEGIN
+         //Xiao Shiyuan 2002-5-19. BEGIN
          apdu_length = length - npdu_length;
          if(apdu_length <= 0 || npdu_length > length || npdu_length > 1497) //npdu length error
-		 {
-			 pif_show_ascii(0, "Error NPDU" );
-			 return length;
-		 }
-		 //Xiao Shiyuan 2002-5-19. END
+         {
+            pif_show_ascii(0, "Error NPDU" );
+            return length;
+         }
+         //Xiao Shiyuan 2002-5-19. END
 
-         return npdu_length
-            + interp_bacnet_AL( header + npdu_length, length - npdu_length );
+         return npdu_length + interp_bacnet_AL( header + npdu_length, length - npdu_length );
       }  /* end of APDU present case */
 
       else {   /* BACnet network control message */
 
-        /*  ----- show message type ----- */
-
-        buff = pif_get_byte(0);
-        if(buff >= 0x80){
-          pif_show_byte(   "Proprietary Message Type    = %u");
-          pif_show_word_hl("Vendor ID                   = %u");
-		  // TODO: instead, get the two-byte int and show the vendorID string?
-		  // pif_show_ascii( BAC_STRTAB_BACnetVendorID.EnumString( pif_get_byte(0), "vendor:" )
-        }
-        else{
-          switch (buff) {   /* show appropriate NL interpretation */
+         /*  ----- show message type ----- */
+         buff = pif_get_byte(0);
+         if(buff >= 0x80){
+            pif_show_byte(   "Proprietary Message Type    = %u");
+            pif_show_word_hl("Vendor ID                   = %u");
+            // TODO: instead, get the two-byte int and show the vendorID string?
+            // pif_show_ascii( BAC_STRTAB_BACnetVendorID.EnumString( pif_get_byte(0), "vendor:" )
+         }
+         else{
+            switch (buff) {   /* show appropriate NL interpretation */
             case 0x00:  /* Who-Is-Router-To-Network */
                         pif_show_byte("Message Type                = %u  Who-Is-Router-To-Network");
                         if(pif_offset < pif_end_offset) {   /* network address present */
                            sprintf(outstr,"%"FW"s = %%u","Network Number");
                            pif_show_word_hl(outstr);
-                           }
+                        }
                         break;
             case 0x01:  /*  I-Am-Router-To-Network  */
                         pif_show_byte("Message Type                = %u  I-Am-Router-To-Network");
                         while(pif_offset < pif_end_offset) { /* display network numbers */
                            sprintf(outstr,"%"FW"s = %%u","Network Number");
                            pif_show_word_hl(outstr);
-                           }
+                        }
                         break;
             case 0x02:  /*  I-Could-Be-Router-To-Network  */
                         pif_show_byte("Message Type                = %u  I-Could-Be-Router-To-Network");
-                          sprintf(outstr,"%"FW"s = %%u","Network Number");
+                        sprintf(outstr,"%"FW"s = %%u","Network Number");
                         pif_show_word_hl(outstr);
                         pif_show_byte("Performance Index           = %u");
                         break;
@@ -1097,52 +1088,53 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
             case 0x04:  /* Router-Busy-To-Network */
                         pif_show_byte("Message Type                = %u  Router-Busy-To-Network");
                         if (length > 3) {   /* DNET included */
-                          while(pif_offset < pif_end_offset) { /* display net numbers */
-                             sprintf(outstr,"%"FW"s = %%u","Network Number");
-                             pif_show_word_hl(outstr);
-                             }
-                          }
+                           while(pif_offset < pif_end_offset) { /* display net numbers */
+                              sprintf(outstr,"%"FW"s = %%u","Network Number");
+                              pif_show_word_hl(outstr);
+                           }
+                        }
                         else
                            sprintf(pif_line(0),"Busy to all networks");
                         break;
             case 0x05:  /* Router-Available-To-Network */
                         pif_show_byte("Message Type                = %u  Router-Available-To-Network");
                         if (length > 3) {   /* DNET included */
-                          while(pif_offset < pif_end_offset) { /* display net numbers */
-                             sprintf(outstr,"%"FW"s = %%u","Network Number");
-                             pif_show_word_hl(outstr);
-                             }
+                           while(pif_offset < pif_end_offset) { /* display net numbers */
+                              sprintf(outstr,"%"FW"s = %%u","Network Number");
+                              pif_show_word_hl(outstr);
                            }
+                        }
                         else
                            sprintf(pif_line(0), "Available to all networks");
                         break;
             case 0x06:  /* Initialize-Routing-Table */
                         pif_show_byte("Message Type                = %u  Initialize-Routing-Table");
-                          pif_show_byte("Number of Ports             = %u");
+                           pif_show_byte("Number of Ports             = %u");
                         if (pif_offset == pif_end_offset) {
                            pif_show_space();
                            pif_show_ascii(0, "Initialize-Routing-Table Query");
+                        }
+                        else {
+                           while(pif_offset < pif_end_offset) { /* process data */
+                              sprintf(outstr,"%"FW"s = %%u","Connected DNET");
+                              pif_show_word_hl(outstr);
+                              port_id = pif_get_byte(0);
+                              if(port_id == 0)
+                                 pif_show_byte("Port ID Number              = %u (remove entry)");
+                              else
+                                 pif_show_byte("Port ID Number              = %u");
+                              port_info_length = pif_get_byte(0);
+                              pif_show_byte("Port Info Length            = %u");
+                              bac_show_nbytes(port_info_length,"Port Information");
                            }
-                        else
-                        while(pif_offset < pif_end_offset) { /* process data */
-                           sprintf(outstr,"%"FW"s = %%u","Connected DNET");
-                           pif_show_word_hl(outstr);
-                           port_id = pif_get_byte(0);
-                           if(port_id == 0)
-                              pif_show_byte("Port ID Number              = %u (remove entry)");
-                           else
-                              pif_show_byte("Port ID Number              = %u");
-                           port_info_length = pif_get_byte(0);
-                           pif_show_byte("Port Info Length            = %u");
-                           bac_show_nbytes(port_info_length,"Port Information");
-                           }
+                        }
                         break;
             case 0x07:  /* Initialize-Routing-Table-Ack */
                         pif_show_byte("Message Type                = %u  Initialize-Routing-Table-Ack");
                         if (pif_offset == pif_end_offset) {
                            pif_show_space();
                            pif_show_ascii(0, "Simple Initialize-Routing-Table-Ack without data");
-                           }
+                        }
                         else {
                            pif_show_byte("Number of Ports             = %u");
                            while(pif_offset < pif_end_offset) { /* process data */
@@ -1152,12 +1144,12 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
                               port_info_length = pif_get_byte(0);
                               pif_show_byte("Port Info Length            = %u");
                               bac_show_nbytes(port_info_length,"Port Information");
-                              }
                            }
+                        }
                         break;
             case 0x08:  /* Establish-Connection-To-Network */
                         pif_show_byte("Message Type                = %u  Establish-Connection-To-Network");
-                          sprintf(outstr,"%"FW"s = %%u","Network Number");
+                        sprintf(outstr,"%"FW"s = %%u","Network Number");
                         pif_show_word_hl(outstr);
                         if(pif_get_byte(0) == 0)
                            pif_show_byte("Permanent Connection");
@@ -1166,11 +1158,12 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
                         break;
             case 0x09:  /* Disconnect-Connection-To-Network */
                         pif_show_byte("Message Type                = %u  Disconnect-Connection-To-Network");
-                          sprintf(outstr,"%"FW"s = %%u","Network Number");
+                        sprintf(outstr,"%"FW"s = %%u","Network Number");
                         pif_show_word_hl(outstr);
                         break;
 
-            /* 0x0A .. 0x11 to default */
+            // 0x0A through 0x11 are security messages, not yet decoded here.
+            // "default" below will at least show the message type
 
             case 0x12:  /* What is network number */
                         pif_show_byte("Message Type                = %u  What-Is-Network-Number");
@@ -1184,7 +1177,11 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
                         else
                            pif_show_byte("configured: %u");
                         break;
-            default:    pif_show_byte("Invalid Message Type        = %u");
+            default:    // Show type from table, or "Unknown..." for values not in the table
+                        sprintf(outstr,"%"FW"s = %%u", 
+                                BAC_STRTAB_NL_msgs.EnumString( buff, "Unknown network message type:" ));
+                        pif_show_byte(outstr);
+                        break;
             }  /* End of switch */
          } /* End of if proprietary message type else branch */
           
@@ -1197,7 +1194,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
 /**************************************************************************/
 int interp_bacnet_AL( char *header, int length )  /* Application Layer interpreter */
 /**************************************************************************/
-  /* This function is the Application Layer interpreter for BACnet  */
+/* This function is the Application Layer interpreter for BACnet  */
 {
    unsigned char buff;   /* 1 octet buffer for manipulation */
    unsigned char x,ID,SEG,MOR,SEQ,NAK,SRV;
@@ -1212,24 +1209,23 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
       pif_init (pi_data_bacnet_AL, header, length);
       pdu_type = pif_get_byte(0)>>4; /*Get APDU type */
       x = (pif_get_byte(0)&0x08)>>3; /* x = 1 implies header is 2 bytes longer */
-   /* Set up to do cool stuff in summary based on PDU type and service choice */
-	  // TODO: could I buy somebody a function-per-case here?  Please?
- 	  // TODO: do the 3+x*2 schtick ONCE and let everyone start at the tagged PDU.
-	  // Update each service to use "tagged", then ditch "x"
-	  unsigned int tagged; // offset to first tagged byte
+      /* Set up to do cool stuff in summary based on PDU type and service choice */
+	   // TODO: could I buy somebody a function-per-case here?  Please?
+ 	   // TODO: do the 3+x*2 schtick ONCE and let everyone start at the tagged PDU.
+	   // Update each service to use "tagged", then ditch "x"
+	   unsigned int tagged; // offset to first tagged byte
       switch (pdu_type) {																	   //  ***001 begin
-        case 0: /* Confirmed service request */
-                service_choice = pif_get_byte(3+x*2);
-				tagged         = 4 + 2*x;
-                ID = pif_get_byte(2);
-                SEG = x;
-                if (SEG) {
-					MOR = (pif_get_byte(0)&0x04)>>2;
-					SEQ = pif_get_byte(3);
-					sprintf(moreDetail,"Segment %u %s", SEQ, (MOR) ? "More follows" : "Final segment" );
-				}
-                else {
-
+      case 0: /* Confirmed service request */
+         service_choice = pif_get_byte(3+x*2);
+			tagged         = 4 + 2*x;
+         ID = pif_get_byte(2);
+         SEG = x;
+         if (SEG) {
+			   MOR = (pif_get_byte(0)&0x04)>>2;
+				SEQ = pif_get_byte(3);
+				sprintf(moreDetail,"Segment %u %s", SEQ, (MOR) ? "More follows" : "Final segment" );
+		   }
+         else {
 				switch (service_choice){
 				case 0:	 /* Acknowledge Alarm Request */
 					{
@@ -1853,13 +1849,13 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 				ID = pif_get_byte(1);
 				int nService = pif_get_byte(2 + 2*x);
 				tagged = 3 + 2*x;
-                SEG = x;                                  
-                if (SEG) {
+            SEG = x;                                  
+            if (SEG) {
 					MOR = (pif_get_byte(0)&0x04)>>2;
 					SEQ = pif_get_byte(2);
 					sprintf(moreDetail,"Segment %u %s", SEQ, (MOR) ? "More follows" : "Final segment" );
 				}
-                else {
+            else {
 					switch(nService) {
 					//Modified by Zhu Zhenhua, 2004-12-21, for task #544511
 					case 12: /* Read Property Ack */   
@@ -1921,43 +1917,43 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 				}
 						
 				sprintf(outstr,"%s-ACK, ID=%u, %s",
-						BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(nService,"ConfRQ"),
-						ID, moreDetail);
-			}
-			break;
+						  BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(nService,"ConfRQ"),
+						  ID, moreDetail);
+			   }
+			   break;
         case 4: /* Segment ACK */
-                ID = pif_get_byte(1);
-                NAK = (pif_get_byte(0) & 0x02) >> 1;
-                SRV = pif_get_byte(0) & 0x01;
-                sprintf(outstr,"%s ID=%u NAK=%u SRV=%u SEQ=%u",
-						BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), 
-						ID, NAK, SRV, pif_get_byte(2));
-                break;
+            ID = pif_get_byte(1);
+            NAK = (pif_get_byte(0) & 0x02) >> 1;
+            SRV = pif_get_byte(0) & 0x01;
+            sprintf(outstr,"%s ID=%u NAK=%u SRV=%u SEQ=%u",
+				        BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), 
+				        ID, NAK, SRV, pif_get_byte(2));
+            break;
         case 5: /* Error */
             {
 				ID = pif_get_byte(1);
 				int error_type = pif_get_byte(2);
 				tagged         = 3;
 				sprintf(moreDetail, "%s", BAC_STRTAB_BACnetError.EnumString(error_type,"Error"));
-                sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
-			}
-                break;
+            sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
+			   }
+            break;
         case 6: /* Reject */
             {
 				ID = pif_get_byte(1);
 				int reject_type = pif_get_byte(2);
 				sprintf(moreDetail, "%s", BAC_STRTAB_BACnetReject.EnumString(reject_type,"Reject"));
-                sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
-			}
-                break;
+            sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
+			   }
+            break;
         case 7: /* Abort */
             {
 				ID = pif_get_byte(1);
 				int abort_type = pif_get_byte(2);
 				sprintf(moreDetail, "%s", BAC_STRTAB_BACnetAbort.EnumString(abort_type,"Abort"));
-                sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
-			}
-                break;
+            sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
+			   }
+            break;
       }
 	  // LJT - Added check that our output string does not exceed our summary line maximum
 	  if ( strlen(outstr) >= MAX_SUM_LINE )
@@ -1980,31 +1976,32 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
 
    /* Detail line? */
    if (pi_data_bacnet_AL->do_int) {
-   pif_init (pi_data_bacnet_AL, header, length);
-   pif_header (length, "BACnet Application Layer Detail");
-   buff = pif_get_byte(0);
-   x = (buff & 0xF0)>>4;      /* mask header for APDU type */
-   switch (x) {
-     case 0: show_confirmed(buff);
-        break;
-     case 1: show_unconfirmed(buff);
-        break;
-     case 2: show_simple_ack(buff);
-        break;
-     case 3: show_complex_ack(buff);
-        break;
-     case 4: show_segment_ack(buff);
-        break;
-     case 5: show_error(buff);
-        break;
-     case 6: show_reject(buff);
-        break;
-     case 7: show_abort(buff);
-        break;
-     default: bac_show_byte("Error: Unknown PDU Type","%u");
-   };
+      pif_init (pi_data_bacnet_AL, header, length);
+      pif_header (length, "BACnet Application Layer Detail");
+      buff = pif_get_byte(0);
+      x = (buff & 0xF0)>>4;      /* mask header for APDU type */
+      switch (x) {
+      case 0: show_confirmed(buff);
+         break;
+      case 1: show_unconfirmed(buff);
+         break;
+      case 2: show_simple_ack(buff);
+         break;
+      case 3: show_complex_ack(buff);
+         break;
+      case 4: show_segment_ack(buff);
+         break;
+      case 5: show_error(buff);
+         break;
+      case 6: show_reject(buff);
+         break;
+      case 7: show_abort(buff);
+         break;
+      default: bac_show_byte("Error: Unknown PDU Type","%u");
+         break;
+      };
 
-   pif_show_space();
+      pif_show_space();
    }   /* End of Detail Lines */
 
    return length;
@@ -4336,18 +4333,18 @@ unsigned int show_tagged_data( bool showData )
 		bac_show_flag(outstr,0xFF);		// Show tag byte, advance cursor
 		
 		pif_show_flagmask(0xF0,0x00,"Null");
-		pif_show_flagmask(0xF0,BOOLEAN*16,"Boolean");
-		pif_show_flagmask(0xF0,UNSIGNED*16,"Unsigned Integer");
-		pif_show_flagmask(0xF0,SIGNED*16,"Signed Integer");
-		pif_show_flagmask(0xF0,REAL*16,"IEEE Floating Point");
-		pif_show_flagmask(0xF0,DOUBLE*16,"IEEE Double Floating Point");
-		pif_show_flagmask(0xF0,OCTET_STRING*16,"Octet String");
-		pif_show_flagmask(0xF0,CHARACTER_STRING*16,"Character String");
-		pif_show_flagmask(0xF0,BIT_STRING*16,"Bit String");
-		pif_show_flagmask(0xF0,ENUMERATED*16,"Enumerated");
-		pif_show_flagmask(0xF0,DATE*16,"Date");
-		pif_show_flagmask(0xF0,TIME*16,"Time");
-		pif_show_flagmask(0xF0,OBJECT_IDENTIFIER*16,"Object Identifier");
+		pif_show_flagmask(0xF0,PRIM_BOOLEAN*16,"Boolean");
+		pif_show_flagmask(0xF0,PRIM_UNSIGNED*16,"Unsigned Integer");
+		pif_show_flagmask(0xF0,PRIM_SIGNED*16,"Signed Integer");
+		pif_show_flagmask(0xF0,PRIM_REAL*16,"IEEE Floating Point");
+		pif_show_flagmask(0xF0,PRIM_DOUBLE*16,"IEEE Double Floating Point");
+		pif_show_flagmask(0xF0,PRIM_OCTET_STRING*16,"Octet String");
+		pif_show_flagmask(0xF0,PRIM_CHARACTER_STRING*16,"Character String");
+		pif_show_flagmask(0xF0,PRIM_BIT_STRING*16,"Bit String");
+		pif_show_flagmask(0xF0,PRIM_ENUMERATED*16,"Enumerated");
+		pif_show_flagmask(0xF0,PRIM_DATE*16,"Date");
+		pif_show_flagmask(0xF0,PRIM_TIME*16,"Time");
+		pif_show_flagmask(0xF0,PRIM_OBJECT_IDENTIFIER*16,"Object Identifier");
 		pif_show_flagmask(0xF0,0x0d*16,"Reserved for ASHRAE");
 		pif_show_flagmask(0xF0,0x0e*16,"Reserved for ASHRAE");
 		pif_show_flagmask(0xF0,0x0f*16,"Non-standard type");
@@ -4356,11 +4353,11 @@ unsigned int show_tagged_data( bool showData )
 	pif_show_flagbit(0x08,"Context Specific Tag","Application Tag");
 	
 	switch (type + ((contextTag) ? 1000 : 0)) {
-	case 0:  // Null tag
+	case PRIM_NULL:
 		pif_show_flagbit(0x07,"Unused","Unused");
 		len = 0;
 		break;
-	case BOOLEAN:
+	case PRIM_BOOLEAN:
 		pif_show_flagbit(0x07,"TRUE","FALSE");
 		len = 0;
 		break;
@@ -4369,7 +4366,7 @@ unsigned int show_tagged_data( bool showData )
 			bac_show_flagmask(0x07,"Length = %d");
 		}
 		else {
-            pif_show_flagmask(0x07, 0x05, "Extended Length");
+         pif_show_flagmask(0x07, 0x05, "Extended Length");
 			pif_show_flagmask(0x07, 0x06, "Opening Tag");
 			pif_show_flagmask(0x07, 0x07, "Closing Tag");
 		}
@@ -4385,21 +4382,21 @@ unsigned int show_tagged_data( bool showData )
 	if (lloc != 0) {
 		len = pif_get_byte(0);
 		switch (len) {
-        case 254: 
+      case 254: 
 			pif_show_byte("Length in next 2 octets");
-            len = pif_get_word_hl(0);
-            sprintf(outstr,"%"FW"s = %%u","Length of data");
-            pif_show_word_hl(outstr);
-            break;
+         len = pif_get_word_hl(0);
+         sprintf(outstr,"%"FW"s = %%u","Length of data");
+         pif_show_word_hl(outstr);
+         break;
 			
-        case 255: 
+      case 255: 
 			pif_show_byte("Length in next 4 octets");
-            len = pif_get_long_hl(0);
-            sprintf(outstr,"%"FW"s = %%lu","Length of data");
-            pif_show_long_hl(outstr);
-            break;
+         len = pif_get_long_hl(0);
+         sprintf(outstr,"%"FW"s = %%lu","Length of data");
+         pif_show_long_hl(outstr);
+         break;
 			
-        default: 
+      default: 
 			bac_show_byte("Length of data","%u");
 			break;
 		}
@@ -4411,45 +4408,45 @@ unsigned int show_tagged_data( bool showData )
 		{
 			// Application tag
 			switch (type) {
-			case 0:        
+			case PRIM_NULL:        
 				break; // value shown above: changes len
-			case BOOLEAN:  
+			case PRIM_BOOLEAN:  
 				break; // value shown above: changes len
-			case UNSIGNED: 
+			case PRIM_UNSIGNED: 
 				show_bac_unsigned(len);
 				break;
-			case SIGNED:   
+			case PRIM_SIGNED:   
 				show_bac_signed(len);
 				break;
-			case REAL:     
+			case PRIM_REAL:     
 				show_bac_real(len);
 				break;
-			case DOUBLE:   
+			case PRIM_DOUBLE:   
 				show_bac_double(len);
 				break;
-			case BIT_STRING:
+			case PRIM_BIT_STRING:
 				// This doesn't add anything useful, so just show the hex
 				// show_bac_bitstring(len);
 				sprintf(outstr,"%"FW"s = %%s","Bit string");
 				pif_show_nbytes_hex(outstr,len);
 				break;
-			case CHARACTER_STRING:
+			case PRIM_CHARACTER_STRING:
 				show_bac_charstring(len);
 				break;
-			case OCTET_STRING:
+			case PRIM_OCTET_STRING:
 				sprintf(outstr,"%"FW"s = X'%%s'","Octet string");
 				pif_show_nbytes_hex(outstr,len);
 				break;
-			case ENUMERATED:
+			case PRIM_ENUMERATED:
 				show_bac_enumerated(len);
 				break;
-			case DATE:     
+			case PRIM_DATE:     
 				show_bac_date(len);
 				break;
-			case TIME:     
+			case PRIM_TIME:     
 				show_bac_time(len);
 				break;
-			case OBJECT_IDENTIFIER:
+			case PRIM_OBJECT_IDENTIFIER:
 				show_bac_object_identifier(len);
 				break;
 			default:       /* non-standard */
@@ -4760,7 +4757,7 @@ void show_bac_property_states( BACnetSequence &seq )
 	seq.BeginChoice();
 	seq.Boolean( 0, "boolean-value", BSQ_CHOICE );
 	seq.Enumerated( 1, "binary-value",		&BAC_STRTAB_BACnetBinaryPV, BSQ_CHOICE );
-	seq.Enumerated( 2, "event-type",		&BAC_STRTAB_BACnetEventType, BSQ_CHOICE );
+	seq.Enumerated( 2, "event-type",		   &BAC_STRTAB_BACnetEventType, BSQ_CHOICE );
 	seq.Enumerated( 3, "polarity",			&BAC_STRTAB_BACnetPolarity, BSQ_CHOICE );
 	seq.Enumerated( 4, "program-change",	&BAC_STRTAB_BACnetProgramRequest, BSQ_CHOICE );
 	seq.Enumerated( 5, "program-state",		&BAC_STRTAB_BACnetProgramState, BSQ_CHOICE );
@@ -4768,7 +4765,7 @@ void show_bac_property_states( BACnetSequence &seq )
 	seq.Enumerated( 7, "reliability",		&BAC_STRTAB_BACnetReliability, BSQ_CHOICE );
 	seq.Enumerated( 8, "state",				&BAC_STRTAB_BACnetEventState, BSQ_CHOICE );
 	seq.Enumerated( 9, "system-status",		&BAC_STRTAB_BACnetDeviceStatus, BSQ_CHOICE );
-	seq.Enumerated( 10, "units",			&BAC_STRTAB_BACnetEngineeringUnits, BSQ_CHOICE );
+	seq.Enumerated( 10, "units",			   &BAC_STRTAB_BACnetEngineeringUnits, BSQ_CHOICE );
 	seq.Unsigned(   11, "unsigned-value",	BSQ_CHOICE );
 
 	seq.Enumerated( 12, "life-safety-mode", &BAC_STRTAB_BACnetLifeSafetyMode, BSQ_CHOICE );
@@ -5174,48 +5171,48 @@ void show_head_tagged_data( void )
 
 	if (!contextTag) {
 		switch (dataType) {
-		case 0:
+		case PRIM_NULL:
 			sprintf(get_int_line(pi_data_current,pif_offset,1,NT_ITEM_HEAD), "NULL");
 			break;
-		case BOOLEAN:
+		case PRIM_BOOLEAN:
 			val = pif_get_byte(0) & 0x07;
 			sprintf(get_int_line(pi_data_current,pif_offset,1,NT_ITEM_HEAD), "Boolean: %s",
 				    (val == 0) ? "FALSE" :
 					(val == 1) ? "TRUE" :
 					"Illegal value");
 			break;
-		case UNSIGNED: 
-			show_head_unsigned(1, "Unsigned", -1 ); // UNSIGNED);
+		case PRIM_UNSIGNED: 
+			show_head_unsigned(1, "Unsigned", -1 );
 			break;
-		case SIGNED: 
-			show_head_signed(1, "Signed", -1 ); // SIGNED);
+		case PRIM_SIGNED: 
+			show_head_signed(1, "Signed", -1 );
 			break;
-		case REAL: 
-			show_head_real(1, "Real", -1 ); // REAL);
+		case PRIM_REAL: 
+			show_head_real(1, "Real", -1 );
 			break;
-		case DOUBLE: 
-			show_head_double(0, "Double", -1 ); // DOUBLE);
+		case PRIM_DOUBLE: 
+			show_head_double(0, "Double", -1 );
 			break;
-		case BIT_STRING:
-			show_head_bit_string(0, "Bit String", -1 ); // BIT_STRING);
+		case PRIM_BIT_STRING:
+			show_head_bit_string(0, "Bit String", -1 );
 			break;
-		case CHARACTER_STRING:
-			show_head_char_string(0, "Character String", -1 ); // CHARACTER_STRING);
+		case PRIM_CHARACTER_STRING:
+			show_head_char_string(0, "Character String", -1 );
 			break;
-		case OCTET_STRING:
-			show_head_octet_string(0, "Octet String", -1 ); // OCTET_STRING);
+		case PRIM_OCTET_STRING:
+			show_head_octet_string(0, "Octet String", -1 );
 			break;
-		case ENUMERATED:
-			show_head_unsigned(1, "Enumerated", -1 ); // ENUMERATED);
+		case PRIM_ENUMERATED:
+			show_head_unsigned(1, "Enumerated", -1 );
 			break;
-		case DATE:
-			show_head_date(1, "Date", -1 ); // DATE);
+		case PRIM_DATE:
+			show_head_date(1, "Date", -1 );
 			break;
-		case TIME: 
-			show_head_time(1, "Time", -1 ); // TIME);
+		case PRIM_TIME: 
+			show_head_time(1, "Time", -1 );
 			break;
-		case OBJECT_IDENTIFIER:
-			show_head_obj_id(1, "Object Identifier", -1 ); // OBJECT_IDENTIFIER);
+		case PRIM_OBJECT_IDENTIFIER:
+			show_head_obj_id(1, "Object Identifier", -1 );
 			break;
 		default: 
 			ShowErrorDetail("Error: claimed application tag %u", dataType );

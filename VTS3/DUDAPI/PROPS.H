@@ -9,9 +9,9 @@
 #define	et					1					//an enumeration table
 #define	flt					2					//float
 #define	bits				3					//octet of T or F flags
-#define	uw					4					//unsigned word
-#define	ud					5					//unsigned dword
-#define	sw					6					//signed word
+#define	uw					4					//unsigned word (16 bits)
+#define	ud					5					//unsigned dword (32 bits)
+#define	sw					6					//signed word (16 bits)
 #define	u127				7					//1..127
 #define	s10					8					//char [10]
 #define	s32					9					//char [32]
@@ -33,7 +33,7 @@
 #define	paf					25					//priority array flt
 #define	statext				26					//state text array
 #define	pab					27					//priority array bpv
-#define	pau					28					//priority array uw
+#define	pau					28					//priority array uw (16 bits)
 #define	reciplist			29					//list of BACnetDestination
 #define	xsched				30					//exception schedule: array[] of specialevent
 #define	wsched				31					//weekly schedule: array[7] of list of timevalue
@@ -81,7 +81,7 @@
 #define ptTime				201  // parsetype BACnetTime
 #define lobj				202  // array of objects, (parse type)
 #define vtse				203  // list of active  vt sessions (parse type)
-#define uwarr				204  // array of uw
+#define uwarr				204  // array of uw (16 bits)
 
 #define lCOVSub				205		// List of BACnetCOVSubcription,   added Gingbo Gao, 2003-9-1
 #define TSTMParr			206	// array of BACnetTimeStamp  madanner 9/04
