@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "vts.h"
+#include "Propid.h"
 #include "VTSVendorPropIDDlg.h"
 
 #ifdef _DEBUG

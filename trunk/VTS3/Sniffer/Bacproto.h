@@ -1,258 +1,31 @@
 /*  This version of BACPROTO.H is compatible with BACSN015.C  */
-// Revision: Sep 18 2001 added new properties published in Addendum 135b to ANSI/ASHRAE Standard 135-1995
+// Revision: March 1 2014 Updated to 135-2012
 
 class BACnetSequence;
 
-/* ---- primitive data type constants ---- */
-/*#define NULL             0 */
-#define BOOLEAN            1   
-#define UNSIGNED           2
-#define SIGNED             3
-#define REAL               4
-#define DOUBLE             5
-#define OCTET_STRING       6
-#define CHARACTER_STRING   7
-#define BIT_STRING         8
-#define ENUMERATED         9
-#define DATE              10
-#define TIME              11
-#define OBJECT_IDENTIFIER 12
+// ---- primitive data type constants ----
+// To avoid collisions with C++ NULL, BACnetPropertyIdentifier OBJECT_IDENTIFIER
+// and suchlike, we have prepended PRIM_ to these
+#define PRIM_NULL               0
+#define PRIM_BOOLEAN            1   
+#define PRIM_UNSIGNED           2
+#define PRIM_SIGNED             3
+#define PRIM_REAL               4
+#define PRIM_DOUBLE             5
+#define PRIM_OCTET_STRING       6
+#define PRIM_CHARACTER_STRING   7
+#define PRIM_BIT_STRING         8
+#define PRIM_ENUMERATED         9
+#define PRIM_DATE              10
+#define PRIM_TIME              11
+#define PRIM_OBJECT_IDENTIFIER 12
+
 
 /* ----  property identifiers ---*/
-#define ACKED_TRANSITIONS                     0
-#define ACK_REQUIRED                          1
-#define ACTION                                2
-#define ACTION_TEXT                           3
-#define ACTIVE_TEXT                           4
-#define ACTIVE_VT_SESSIONS                    5
-#define ALARM_VALUE                           6
-#define ALARM_VALUES                          7
-#define ALL                                   8
-#define ALL_WRITES_SUCCESSFUL                 9
-#define APDU_SEGMENT_TIMEOUT                  10
-#define APDU_TIMEOUT                          11
-#define APPLICATION_SOFTWARE_VERSION          12
-#define ARCHIVE                               13
-#define BIAS                                  14
-#define CHANGE_OF_STATE_COUNT                 15
-#define CHANGE_OF_STATE_TIME                  16
-#define NOTIFICATION_CLASS                    17  /* renamed in 2nd public review */
-/* #define CONFIRMED_RECIPIENT_LIST           18  removed */
-#define CONTROLLED_VARIABLE_REFERENCE         19
-#define CONTROLLED_VARIABLE_UNITS             20
-#define CONTROLLED_VARIABLE_VALUE             21
-#define COV_INCREMENT                         22
-#define DATELIST                              23
-#define DAYLIGHT_SAVINGS_STATUS               24
-#define DEADBAND                              25
-#define DERIVATIVE_CONSTANT                   26
-#define DERIVATIVE_CONSTANT_UNITS             27
-#define DESCRIPTION                           28
-#define DESCRIPTION_OF_HALT                   29
-#define DEVICE_ADDRESS_BINDING                30
-#define DEVICE_TYPE                           31
-#define EFFECTIVE_PERIOD                      32
-#define ELAPSED_ACTIVE_TIME                   33
-#define ERROR_LIMIT                           34
-#define EVENT_ENABLE                          35
-#define EVENT_STATE                           36
-#define EVENT_TYPE                            37
-#define EXCEPTION_SCHEDULE                    38
-#define FAULT_VALUES                          39
-#define FEEDBACK_VALUE                        40
-#define FILE_ACCESS_METHOD                    41
-#define FILE_SIZE                             42
-#define FILE_TYPE                             43
-#define FIRMWARE_REVISION                     44
-#define HIGH_LIMIT                            45
-#define INACTIVE_TEXT                         46
-#define IN_PROCESS                            47
-#define INSTANCE_OF                           48
-#define INTEGRAL_CONSTANT                     49
-#define INTEGRAL_CONSTANT_UNITS               50
-#define ISSUE_CONFIRMED_NOTIFICATIONS         51
-#define LIMIT_ENABLE                          52
-#define LIST_OF_GROUP_MEMBERS                 53
-#define LIST_OF_OBJ_PROP_REFERENCES           54
-#define LIST_OF_SESSION_KEYS                  55
-#define LOCAL_DATE                            56
-#define LOCAL_TIME                            57
-#define LOCATION                              58
-#define LOW_LIMIT                             59
-#define MANIPULATED_VARIABLE_REFERENCE        60
-#define MAXIMUM_OUTPUT                        61
-#define MAX_APDU_LENGTH_ACCEPTED              62
-#define MAX_INFO_FRAMES                       63
-#define MAX_MASTER                            64
-#define MAX_PRES_VALUE                        65
-#define MINIMUM_OFF_TIME                      66
-#define MINIMUM_ON_TIME                       67
-#define MINIMUM_OUTPUT                        68
-#define MIN_PRES_VALUE                        69
-#define MODEL_NAME                            70
-#define MODIFICATION_DATE                     71
-#define NOTIFY_TYPE                           72
-#define NUMBER_OF_APDU_RETRIES                73
-#define NUMBER_OF_STATES                      74
-#define OBJECT_ID                             75
-#define OBJECT_LIST                           76
-#define OBJECT_NAME                           77
-#define OBJECT_PROPERTY_REFERENCE             78
-#define OBJECT_TYPE                           79
-// #define OPTIONAL                              80	// name collision with bogus MFC define
-#define xOPTIONAL                             80
-#define OUT_OF_SERVICE                        81
-#define OUTPUT_UNITS                          82
-#define EVENT_PARAMETERS                      83
-#define POLARITY                              84
-#define PRESENT_VALUE                         85
-#define PRIORITY                              86
-#define PRIORITY_ARRAY                        87
-#define PRIORITY_FOR_WRITING                  88
-#define PROCESS_IDENTIFIER                    89
-#define PROGRAM_CHANGE                        90
-#define PROGRAM_LOCATION                      91
-#define PROGRAM_STATE                         92
-#define PROPORTIONAL_CONSTANT                 93
-#define PROPORTIONAL_CONSTANT_UNITS           94
-#define PROTOCOL_CONFORMANCE_CLASS            95
-#define PROTOCOL_OBJECT_TYPES_SUPPORTED       96
-#define PROTOCOL_SERVICES_SUPPORTED           97
-#define PROTOCOL_VERSION                      98
-#define READ_ONLY                             99
-#define REASON_FOR_HALT                       100
-#define RECIPIENT                             101
-#define RECIPIENT_LIST                        102
-#define RELIABILITY                           103
-#define RELINQUISH_DEFAULT                    104
-#define REQUIRED                              105
-#define RESOLUTION                            106
-#define SEGMENTATION_SUPPORTED                107
-#define SETPOINT                              108
-#define SETPOINT_REFERENCE                    109
-#define STATE_TEXT                            110
-#define STATUS_FLAGS                          111
-#define SYSTEM_STATUS                         112
-#define TIME_DELAY                            113
-#define TIME_OF_ACTIVE_TIME_RESET             114
-#define TIME_OF_STATE_COUNT_RESET             115
-#define TIME_SYNCHRONIZATION_RECIPIENTS       116
-#define UNITS                                 117
-#define UPDATE_INTERVAL                       118
-#define UTC_OFFSET                            119
-#define VENDOR_IDENTIFIER                     120
-#define VENDOR_NAME                           121
-#define VT_CLASSES_SUPPORTED                  122
-#define WEEKLY_SCHEDULE                       123
-#define ATTEMPTED_SAMPLES                     124
-#define AVERAGE_VALUE                         125
-#define BUFFER_SIZE                           126
-#define CLIENT_COV_INCREMENT                  127
-#define COV_RESUBSCRIPTION_INTERVAL           128
-//#define CURRENT_NOTIFY_TIME                 129
-#define EVENT_TIME_STAMPS                     130
-#define LOG_BUFFER                            131
-#define LOG_DEVICE_OBJECT_PROPERTY            132
-#define ENABLE	                              133
-#define LOG_INTERVAL                          134
-#define MAXIMUM_VALUE                         135
-#define MINIMUM_VALUE                         136
-#define NOTIFICATION_THRESHOLD                137
-//#define PREVIOUS_NOTIFY_TIME                138
-#define PROTOCOL_REVISION                     139
-#define RECORDS_SINCE_NOTIFICATION            140
-#define RECORD_COUNT                          141
-#define START_TIME                            142
-#define STOP_TIME                             143
-#define STOP_WHEN_FULL                        144
-#define TOTAL_RECORD_COUNT                    145            
-#define VALID_SAMPLES                         146
-#define WINDOW_INTERVAL                       147
-#define WINDOW_SAMPLES                        148
-#define MAXIMUM_VALUE_TIMESTAMP               149
-#define MINIMUM_VALUE_TIMESTAMP               150
-#define VARIANCE_VALUE 			              151
-#define ACTIVE_COV_SUBSCRIPTIONS	          152  //Xiao Shiyuan 2002-7-23
-#define	BACKUP_FAILURE_TIMEOUT				  153 // Zhu Zhenhua  2003-11-21 
-#define	CONFIGURATION_FILES                   154 // Zhu Zhenhua  2003-11-21 
-#define	DATABASE_REVISION                     155 // Zhu Zhenhua  2003-11-21 
-#define	DIRECT_READING                        156 // Zhu Zhenhua  2003-11-21 
-#define	LAST_RESTORE_TIME  				      157 // Zhu Zhenhua  2003-11-21 
-#define	MAINTENANCE_REQUIRED 			      158 // Zhu Zhenhua  2003-11-21 
-#define	MEMBER_OF 						      159 // Zhu Zhenhua  2003-11-21 
-#define	MODE 							      160 // Zhu Zhenhua  2003-11-21 
-#define	OPERATION_EXPECTED  				  161 // Zhu Zhenhua  2003-11-21 
-#define	SETTING 						      162 // Zhu Zhenhua  2003-11-21 
-#define	SILENCED    					      163 // Zhu Zhenhua  2003-11-21 
-#define	TRACKING_VALUE  				      164 // Zhu Zhenhua  2003-11-21 
-#define	ZONE_MEMBERS 					      165 // Zhu Zhenhua  2003-11-21 
-#define	LIFE_SAFETY_ALARM_VALUES 		      166 // Zhu Zhenhua  2003-11-21 
-#define	MAX_SEGMENTS_ACCEPTED 			      167 // Zhu Zhenhua  2003-11-21 
-#define PROFILE_NAME                          168 //Xiao Shiyuan 2002-7-23
-#define AUTO_SLAVE_DISCOVERY                  169
-#define MANUAL_SLAVE_ADDRESS_BINDING          170
-#define SLAVE_ADDRESS_BINDING				  171
-#define SLAVE_PROXY_ENABLE					  172
-#define LAST_NOTIFY_RECORD					  173 //Zhu Zhenhua  2004-5-11
-#define SCHEDULE_DEFAULT					174
-#define ACCEPTED_MODES						175
-#define	ADJUST_VALUE						176
-#define	COUNT				177
-#define COUNT_BEFORE_CHANGE					178
-#define COUNT_CHANGE_TIME					179
-#define	COV_PERIOD							180
-#define INPUT_REFERENCE						181
-#define LIMIT_MONITORING_INTERVAL			182
-#define LOGGING_DEVICE						183
-#define LOGGING_RECORD						184
-#define PRESCALE							185
-#define PULSE_RATE							186
-#define SCALE								187
-#define	SCALE_FACTOR						188
-#define UPDATE_TIME							189
-#define VALUE_BEFORE_CHANGE					190
-#define VALUE_SET							191
-#define VALUE_CHANGE_TIME					192
-#define ALIGN_INTERVALS						193
-#define INTERVAL_OFFSET						195
-#define LAST_RESTART_REASON					196
-#define LOGGING_TYPE						197
-#define RESTART_NOTIFICATION_RECIPIENTS		202
-#define TIME_OF_DEVICE_RESTART				203
-#define TIME_SYNCHRONIZATION_INTERVAL		204
-#define TRIGGER								205
-#define UTC_TIME_SYNCHRONIZATION_RECIPIENTS 206
-#define NODE_SUBTYPE						207
-#define NODE_TYPE							208
-#define STRUCTURED_OBJECT_LIST				209
-#define SUBORDINATE_LIST					211
-#define SUBORDINATE_ANNOTATIONS				210
-#define ACTUAL_SHED_LEVEL					212
-#define DUTY_WINDOW							213
-#define EXPECTED_SHED_LEVEL					214
-#define FULL_DUTY_BASELINE					215
-#define REQUESTED_SHED_LEVEL				218
-#define SHED_DURATION						219
-#define	SHED_LEVEL_DESCRIPTIONS				220
-#define	SHED_LEVELS							221
-#define	STATE_DESCRIPTION					222
-#define DOOR_ALARM_STATE					226
-#define DOOR_EXTENDED_PULSE_TIME			227
-#define DOOR_MEMBERS						228
-#define	DOOR_OPEN_TOO_LONG_TIME				229
-#define	DOOR_PULSE_TIME						230
-#define DOOR_STATUS							231
-#define DOOR_UNLOCK_DELAY_TIME				232
-#define LOCK_STATUS							233
-#define	MASKED_ALARM_VALUES					234
-#define SECURED_STATUS						235
+// 1 March 2013: use this enum rather than (DOH!) defining AGAIN here
+#include <Propid.h>
 
-#define BACKUP_AND_RESTORE_STATE       338
-#define BACKUP_PREPARATION_TIME        339
-#define RESTORE_COMPLETION_TIME        340
-#define RESTORE_PREPARATION_TIME       341
-
-/* ----- prototypes for interpreter functions ----- */
+   /* ----- prototypes for interpreter functions ----- */
 
 int     interp_bacnet_IP( char *header, int length);
 int     interp_bacnet_ETHERNET( char *header, int length);
