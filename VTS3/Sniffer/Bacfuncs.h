@@ -2520,6 +2520,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
       break;
    case SERIAL_NUMBER:              // Device: character string
       seq.TextString( -1, "" );
+      break;
    case BLINK_WARN_ENABLE:	         // Lighting: BOOLEAN
       seq.Boolean( -1, "" );
       break;
