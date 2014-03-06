@@ -646,7 +646,6 @@ enum BACnetObjectType {
 		loadcontrol						= 28,
 		structuredView					= 29,
 		accessdoor						= 30,	// Last object type in 135-2008
-		lightingOutput					= 31,
 		accessCredential				= 32,	/* addendum 2008-j */
 		accessPoint						= 33,
 		accessRights					= 34,
@@ -665,7 +664,11 @@ enum BACnetObjectType {
 		octetstringValue				= 47,
 		positiveIntegerValue			= 48,
 		timePatternValue				= 49,
-		timeValue						= 50	// last in addendum 2008-w
+		timeValue						= 50, // last in addendum 2008-w
+		notificationForwarder		= 51,
+		alertEnrollment				= 52,
+		channel                    = 53,
+      lightingOutput					= 54  // last in 135-2012
 		};
 
 class BACnetObjectIdentifier : public BACnetEncodeable {
