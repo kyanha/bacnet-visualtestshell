@@ -11,12 +11,12 @@
 /* -------------------------------------------------------------------- */
 
 /*------------------------------------------------------------------------------
-module:		BACSN015.cpp
-last edit:	03-Sep-03 [002] LCX add new lines in the Detail View to display less tagging
-								information,but more actual data within each context or 
-								application tagged section.
-			16-Jul-03 [001] LCX add more AL information to the summary line.
-			 5-Mar-10 JLH: rework and cleanup
+module:     BACSN015.cpp
+last edit:  03-Sep-03 [002] LCX add new lines in the Detail View to display less tagging
+                        information,but more actual data within each context or 
+                        application tagged section.
+         16-Jul-03 [001] LCX add more AL information to the summary line.
+          5-Mar-10 JLH: rework and cleanup
 
 TODO:
 - Use a fixed width font in the detail tree to line up the indentations?
@@ -107,7 +107,7 @@ int interp_bacnet_ETHERNET( char *header, int length)  /* Ethernet interpreter *
         interp_bacnet_NL( header + 17, len );
      else {
         // This is bogus - BVLL on Ethernet without IP?
-		  // interp_bacnet_BVLL( header + 17, len );
+        // interp_bacnet_BVLL( header + 17, len );
         interp_bacnet_BVLL( header + 17, len );
      }
    } 
@@ -130,7 +130,7 @@ int interp_bacnet_ETHERNET( char *header, int length)  /* Ethernet interpreter *
          interp_bacnet_NL( header + 17, len );
       else {
          // This is bogus - BVLL on Ethernet without IP?
-		   // interp_bacnet_BVLL( header + 17, len );
+         // interp_bacnet_BVLL( header + 17, len );
          pif_show_byte("Ethernet with BACnet LLC is not network version 1.  Has 0x%02X");
       }
    }
@@ -380,10 +380,10 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
       ptp_header = header;
 
       /* ----- check for BACnet trigger sequence ----- */
-	  //0x0d == '\r'
-	  int x1 = *msg_origin; //xsy for test 2002-5-16
-	  int x2 = pif_offset; //xsy for test 2002-5-16
-	  
+     //0x0d == '\r'
+     int x1 = *msg_origin; //xsy for test 2002-5-16
+     int x2 = pif_offset; //xsy for test 2002-5-16
+     
       if((length == 7) && (pif_get_byte(6) == 0x0d)){
          pif_get_ascii(0, 6, result_str, 6); //results are stored in "result_str"
          if(strcmp(result_str, trigger) == 0)  /* trigger found */
@@ -392,18 +392,18 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
       else{ /* not a trigger sequence */
          /* ----- interpret PTP frame ----- */
          wbuff = pif_get_word_hl(0);
-		 x2 = pif_offset; //xsy for test 2002-5-16
+       x2 = pif_offset; //xsy for test 2002-5-16
          if(wbuff == 0x55FF)
             pif_show_word_hl("Preamble                        = X'%04X'"); //pif_offset adds 2
          else
-		 {
-		    pif_show_word_hl("Error: PTP Preamble (X'55FF') Expected.  X'%04X'");
-			return length; //when error occurs, return. xsy 2002-5-16
-		 }
+       {
+          pif_show_word_hl("Error: PTP Preamble (X'55FF') Expected.  X'%04X'");
+         return length; //when error occurs, return. xsy 2002-5-16
+       }
 
          /* frame type field */
          frame_type = pif_get_byte(0);
-		 x2 = pif_offset; //xsy for test 2002-5-16
+       x2 = pif_offset; //xsy for test 2002-5-16
          switch(frame_type){
             case 0x00: pif_show_byte("Heartbeat (XOFF) Frame          = X'%02X'");
                        break;
@@ -438,13 +438,13 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
             case 0x0F: pif_show_byte("Test Response Frame             = X'%02X'");
                        break;
             default:   {
-						pif_show_byte("Error: Invalid Frame Type       = X'%02X'");
-						return length; //when error occurs, return. xsy 2002-5-16
+                  pif_show_byte("Error: Invalid Frame Type       = X'%02X'");
+                  return length; //when error occurs, return. xsy 2002-5-16
                        }
             };
 
          // length field -- check for stuffed bytes, X'10' 
-		 //len means the length of length field
+       //len means the length of length field
          if(pif_get_byte(0) == 0x10){
             byte1_stuffed = TRUE;
             if(pif_get_byte(2) == 0x10)
@@ -493,7 +493,7 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
                         else{
                           sprintf(outstr, "Error: Invalid Data Length  = %u", data_length);
                           bac_show_nbytes(len, outstr);
-						  return length; //when error occurs, return. xsy 2002-5-16
+                    return length; //when error occurs, return. xsy 2002-5-16
                           };
                        break;
             /* frames with data */
@@ -506,7 +506,7 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
                         else{
                           sprintf(outstr, "Error: Invalid Data Length  = %u", data_length);
                           bac_show_nbytes(len, outstr);
-						  return length; //when error occurs, return. xsy 2002-5-16
+                    return length; //when error occurs, return. xsy 2002-5-16
                           };
                        break;
             };  /* end of frame_type switch */
@@ -531,14 +531,14 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
             if(pif_get_byte(0) == 0x10)
                bac_show_word_hl("Header CRC Verified", "%04X");
             else
-               bac_show_byte("Header CRC Verified","%02X");			   
+               bac_show_byte("Header CRC Verified","%02X");          
             }
          else{
             if(pif_get_byte(0) == 0x10)
                bac_show_word_hl("Header CRC Failure", "%04X");
             else
                bac_show_byte("Error: Header CRC Failure","%02X");
-			   return length; //when error occurs, return. xsy 2002-5-16
+            return length; //when error occurs, return. xsy 2002-5-16
             };
 
 
@@ -560,12 +560,11 @@ int interp_bacnet_PTP( char *header, int length)  /* PTP interpreter */
                }; /* end of for loop */
             crc_test = (crcValue == 0xf0b8);
 
-
          /* data field */
          if(data_length > 0){
             switch(frame_type){
                case 0x00: case 0x01: case 0x04: case 0x05: case 0x06: case 0x07:
-               case 0x08: case 0x09: case 0x0a: case 0x0d: 
+               case 0x08: case 0x09: case 0x0a: case 0x0d:
                           bac_show_nbytes(data_length,"Error: No data expected for this frame type.");
                           break;
                case 0x02: case 0x03: // call network layer interpreter 
@@ -705,7 +704,7 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
       
       switch (pif_get_byte(0)) {
          case 0x01:
-			   // TODO: this is an error here: BACnet WITHOUT BVLL
+            // TODO: this is an error here: BACnet WITHOUT BVLL
             interp_bacnet_NL( header, length );
             break;
          case 0x81:
@@ -718,19 +717,19 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
                   interp_bacnet_NL( header + 4, length - 4 );
                   break;
                default:
-				      {
+                  {
                      char *pStr = get_sum_line(pi_data_bacnet_BVLL);
-	   				   int fn = pif_get_byte(1);
-		   			   if (fn < BAC_STRTAB_BVLL_Function.m_nStrings)
-			   		   {
-				   		   strcpy( pStr, BAC_STRTAB_BVLL_Function.m_pStrings[fn] );
-					      }
-					      else
-   					   {
-	   					   sprintf( pStr, "Unknown BVLL function %u", fn );
-		   			   }
-			   	   }
-				      break;
+                     int fn = pif_get_byte(1);
+                     if (fn < BAC_STRTAB_BVLL_Function.m_nStrings)
+                     {
+                        strcpy( pStr, BAC_STRTAB_BVLL_Function.m_pStrings[fn] );
+                     }
+                     else
+                     {
+                        sprintf( pStr, "Unknown BVLL function %u", fn );
+                     }
+                  }
+                  break;
             }
             break;
       }
@@ -742,7 +741,7 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
 
       switch (pif_get_byte(0)) {
          case 0x01:
-			 // TODO: this is an error here: BACnet WITHOUT BVLL
+          // TODO: this is an error here: BACnet WITHOUT BVLL
 //            pif_show_ascii( 0, "Empty BVLL" );
             pif_show_space();
             return interp_bacnet_NL( header, length );
@@ -869,20 +868,20 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
    int apdu_length;         //APDU length in octets. Xiao Shiyuan 2002-5-19
    int port_id;             /* port ID field */
    int port_info_length;    /* port information length in octets */
-   const char *name;		    /* translated name */
-   char namebuff[80];		 /* buffer to print translated name */
+   const char *name;        /* translated name */
+   char namebuff[80];       /* buffer to print translated name */
 
    pi_data_current = pi_data_bacnet_NL;
    npdu_length = 2;
    /* Summary line? */
-   if (pi_data_bacnet_NL->do_sum) {   	   
+   if (pi_data_bacnet_NL->do_sum) {       
       /* Figure out length of NPCI */
       pif_init(pi_data_bacnet_NL, header, length);
 
       if(length < 2)
       {
          strcpy( get_sum_line(pi_data_bacnet_NL), "Invalid NPDU (too short)" );
-         return length;			
+         return length;       
       }
 
       buff = pif_get_byte(1);
@@ -914,14 +913,14 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
             strcpy( get_sum_line(pi_data_bacnet_NL), BAC_STRTAB_NL_msgs.EnumString( nlMsgID, "Unknown network message type:" ) );
          }
          else
-         {	
+         {  
             // Proprietary network message must have vendor ID
             UINT vendorID = pif_get_word_hl(1);
             pif_skip(3);      // Point past message type and vendorID to data
             npdu_length += 2;
 
             sprintf( namebuff, "Proprietary network message %d (vendor %u)", nlMsgID, vendorID );
-            strcpy( get_sum_line(pi_data_bacnet_NL), namebuff );			
+            strcpy( get_sum_line(pi_data_bacnet_NL), namebuff );        
          }
       }
       else {
@@ -946,7 +945,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
       if (length < 2)
       {
          pif_show_ascii(0, "Error NPDU" );
-         return length;			
+         return length;       
       }
 
       pif_show_byte("Protocol Version Number = %d");
@@ -1083,6 +1082,8 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
                         pif_show_flagmask(0x07, 0x02, "Router Busy");
                         pif_show_flagmask(0x07, 0x03, "Unknown Message Type");
                         pif_show_flagmask(0x07, 0x04, "Msg too long for this DNET");
+                        pif_show_flagmask(0x07, 0x05, "Security error");
+                        pif_show_flagmask(0x07, 0x06, "Address error in DADR or SADR");
                         pif_show_word_hl("Network Number              = %u");
                         break;
             case 0x04:  /* Router-Busy-To-Network */
@@ -1093,8 +1094,9 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
                               pif_show_word_hl(outstr);
                            }
                         }
-                        else
+                        else {
                            sprintf(pif_line(0),"Busy to all networks");
+                        }
                         break;
             case 0x05:  /* Router-Available-To-Network */
                         pif_show_byte("Message Type                = %u  Router-Available-To-Network");
@@ -1104,12 +1106,13 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
                               pif_show_word_hl(outstr);
                            }
                         }
-                        else
+                        else {
                            sprintf(pif_line(0), "Available to all networks");
+                        }
                         break;
             case 0x06:  /* Initialize-Routing-Table */
                         pif_show_byte("Message Type                = %u  Initialize-Routing-Table");
-                           pif_show_byte("Number of Ports             = %u");
+                        pif_show_byte("Number of Ports             = %u");
                         if (pif_offset == pif_end_offset) {
                            pif_show_space();
                            pif_show_ascii(0, "Initialize-Routing-Table Query");
@@ -1162,8 +1165,30 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
                         pif_show_word_hl(outstr);
                         break;
 
-            // 0x0A through 0x11 are security messages, not yet decoded here.
-            // "default" below will at least show the message type
+            case 0x0A:  pif_show_byte("Message Type                = %u  Challenge-Request");
+                        // TODO: Decode the body
+                        break;
+            case 0x0B:  pif_show_byte("Message Type                = %u  Security-Payload");
+                        // TODO: Decode the body
+                        break;
+            case 0x0C:  pif_show_byte("Message Type                = %u  Security-Response");
+                        // TODO: Decode the body
+                        break;
+            case 0x0D:  pif_show_byte("Message Type                = %u  Request-Key-Update");
+                        // TODO: Decode the body
+                        break;
+            case 0x0E:  pif_show_byte("Message Type                = %u  Update-Key-Set");
+                        // TODO: Decode the body
+                        break;
+            case 0x0F:  pif_show_byte("Message Type                = %u  Update-Distribution-Key");
+                        // TODO: Decode the body
+                        break;
+            case 0x10:  pif_show_byte("Message Type                = %u  Request-Master-Key");
+                        // TODO: Decode the body
+                        break;
+            case 0x11:  pif_show_byte("Message Type                = %u  Set-Master-Key");
+                        // TODO: Decode the body
+                        break;
 
             case 0x12:  /* What is network number */
                         pif_show_byte("Message Type                = %u  What-Is-Network-Number");
@@ -1210,767 +1235,768 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
       pdu_type = pif_get_byte(0)>>4; /*Get APDU type */
       x = (pif_get_byte(0)&0x08)>>3; /* x = 1 implies header is 2 bytes longer */
       /* Set up to do cool stuff in summary based on PDU type and service choice */
-	   // TODO: could I buy somebody a function-per-case here?  Please?
- 	   // TODO: do the 3+x*2 schtick ONCE and let everyone start at the tagged PDU.
-	   // Update each service to use "tagged", then ditch "x"
-	   unsigned int tagged; // offset to first tagged byte
-      switch (pdu_type) {																	   //  ***001 begin
+      // TODO: could I buy somebody a function-per-case here?  Please?
+      // TODO: do the 3+x*2 schtick ONCE and let everyone start at the tagged PDU.
+      // Update each service to use "tagged", then ditch "x"
+      unsigned int tagged; // offset to first tagged byte
+      switch (pdu_type) {                                                     //  ***001 begin
       case 0: /* Confirmed service request */
          service_choice = pif_get_byte(3+x*2);
-			tagged         = 4 + 2*x;
+         tagged         = 4 + 2*x;
          ID = pif_get_byte(2);
          SEG = x;
          if (SEG) {
-			   MOR = (pif_get_byte(0)&0x04)>>2;
-				SEQ = pif_get_byte(3);
-				sprintf(moreDetail,"Segment %u %s", SEQ, (MOR) ? "More follows" : "Final segment" );
-		   }
+            MOR = (pif_get_byte(0)&0x04)>>2;
+            SEQ = pif_get_byte(3);
+            sprintf(moreDetail,"Segment %u %s", SEQ, (MOR) ? "More follows" : "Final segment" );
+         }
          else {
-				switch (service_choice){
-				case 0:	 /* Acknowledge Alarm Request */
-					{
-						tagbuff = pif_get_byte( 3+x*2 +1 );
-						len = tagbuff & 0x07;
-						unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
+            switch (service_choice) {
+            case 0:   /* Acknowledge Alarm Request */
+               {
+                  tagbuff = pif_get_byte( 3+x*2 +1 );
+                  len = tagbuff & 0x07;
+                  unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
 
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
-						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+3+len );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						sprintf(moreDetail, "%lu, %s_%lu", nValue, ObjectTypeString(obj_type), obj_instance);
-					}
-					break;
-				case 1: /* Confirmed COV Notification Request */
-					{
-						tagbuff = pif_get_byte( 3+x*2 +1 );
-						len = tagbuff & 0x07;
-						unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
-						
-						long	device_id, obj_id;
-						int	device_type, obj_type;
-						long	device_instance, obj_instance;
-						
-						for (int i = 0; i < 4; i++)
-							device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+2*x+len+2 );
-						
-						device_type = (device_id >> 22) & 0x000003FF;
-						device_instance = (device_id & 0x003FFFFF);
-						
-						for (int j = 0; j < 4; j++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+4+2*x+len+2+5 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						sprintf(moreDetail,"%lu, %s_%lu, %s_%lu", nValue, 
-								ObjectTypeString(device_type), device_instance, 
-								ObjectTypeString(obj_type), obj_instance);
-					}
-					break;
-				case 2: /* Confirmed Event Notification Request */
-					{
-						tagbuff = pif_get_byte( 3+x*2 +1 );
-						len = tagbuff & 0x07;
-						unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
-						
-						long	device_id, obj_id;
-						int	device_type, obj_type;
-						long	device_instance, obj_instance;
-						
-						for (int i = 0; i < 4; i++)
-							device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+2*x+len+2 );
-						
-						device_type = (device_id >> 22) & 0x000003FF;
-						device_instance = (device_id & 0x003FFFFF);
-						
-						for (int j = 0; j < 4; j++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+4+2*x+len+2+5 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						
-						sprintf(moreDetail,"%lu, %s_%lu, %s_%lu", nValue, 
-								ObjectTypeString(device_type), device_instance, 
-							    ObjectTypeString(obj_type), obj_instance);
-					}
-					break;
-				case 5: /* Subscribe COV Request */
-					{
-						tagbuff = pif_get_byte( 3+x*2 +1 );
-						len = tagbuff & 0x07;
-						unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
+                  long  obj_id;
+                  int      obj_type;
+                  long  obj_instance;
+                  
+                  for (int i = 0; i < 4; i++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+3+len );
+                  
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+                  sprintf(moreDetail, "%lu, %s_%lu", nValue, ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 1: /* Confirmed COV Notification Request */
+               {
+                  tagbuff = pif_get_byte( 3+x*2 +1 );
+                  len = tagbuff & 0x07;
+                  unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
+                  
+                  long  device_id, obj_id;
+                  int   device_type, obj_type;
+                  long  device_instance, obj_instance;
+                  
+                  for (int i = 0; i < 4; i++)
+                     device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+2*x+len+2 );
+                  
+                  device_type = (device_id >> 22) & 0x000003FF;
+                  device_instance = (device_id & 0x003FFFFF);
+                  
+                  for (int j = 0; j < 4; j++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+4+2*x+len+2+5 );
+                  
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+                  sprintf(moreDetail,"%lu, %s_%lu, %s_%lu", nValue, 
+                          ObjectTypeString(device_type), device_instance, 
+                          ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 2: /* Confirmed Event Notification Request */
+               {
+                  tagbuff = pif_get_byte( 3+x*2 +1 );
+                  len = tagbuff & 0x07;
+                  unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
+                  
+                  long  device_id, obj_id;
+                  int   device_type, obj_type;
+                  long  device_instance, obj_instance;
+                  
+                  for (int i = 0; i < 4; i++)
+                     device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+2*x+len+2 );
 
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
-						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+3+len );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
+                  device_type = (device_id >> 22) & 0x000003FF;
+                  device_instance = (device_id & 0x003FFFFF);
+                  
+                  for (int j = 0; j < 4; j++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+4+2*x+len+2+5 );
+                  
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+                  
+                  sprintf(moreDetail,"%lu, %s_%lu, %s_%lu", nValue, 
+                          ObjectTypeString(device_type), device_instance, 
+                          ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 5: /* Subscribe COV Request */
+               {
+                  tagbuff = pif_get_byte( 3+x*2 +1 );
+                  len = tagbuff & 0x07;
+                  unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
 
-						int nBool = pif_get_byte( 3+x*2+3+len+5 );
-						char strBool[20];
-						if(nBool == 1){
-							sprintf(strBool, "TRUE");
-						}
-						else if(nBool == 0){
-							sprintf(strBool, "FALSE");
-						}
-						else{
-							sprintf(strBool, "Error");
-						}
+                  long  obj_id;
+                  int      obj_type;
+                  long  obj_instance;
+                  
+                  for (int i = 0; i < 4; i++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+3+len );
 
-						sprintf(moreDetail, "%lu, %s_%lu, %s", nValue, 
-								ObjectTypeString(obj_type), obj_instance, strBool);
-					}
-					break;
-				case 6: /* Atomic Readfile Request */
-					{
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
-						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+2 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
-					}
-					break;
-				case 7: /* Atomic Writeflle Request */
-					{
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
-						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+2 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
-					}
-					break;
-				case 8: /* Add List Element Request */
-					{
-						// "tagged" is offset of first tag byte
-						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
-						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
-						unsigned obj_instance = (obj_id & 0x003FFFFF);
-						tagged += 5;
-						
-						len = pif_get_byte( tagged ) & 0x07;
-						unsigned int propID = get_bac_unsigned( tagged+1, len );
-						tagged += 1+len;
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
 
-						// TODO: show optional index?
+                  int nBool = pif_get_byte( 3+x*2+3+len+5 );
+                  char strBool[20];
+                  if(nBool == 1){
+                     sprintf(strBool, "TRUE");
+                  }
+                  else if(nBool == 0){
+                     sprintf(strBool, "FALSE");
+                  }
+                  else{
+                     sprintf(strBool, "Error");
+                  }
 
-						sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(propID));
-					}
-					break;
-				case 9: /* Remove List Element Request */
-					{
-						// "tagged" is offset of first tag byte
-						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
-						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
-						unsigned obj_instance = (obj_id & 0x003FFFFF);
-						tagged += 5;
-						
-						len = pif_get_byte( tagged ) & 0x07;
-						unsigned int propID = get_bac_unsigned( tagged+1, len );
-						tagged += 1+len;
+                  sprintf(moreDetail, "%lu, %s_%lu, %s", nValue, 
+                          ObjectTypeString(obj_type), obj_instance, strBool);
+               }
+               break;
+            case 6: /* Atomic Readfile Request */
+               {
+                  long  obj_id;
+                  int      obj_type;
+                  long  obj_instance;
+                  
+                  for (int i = 0; i < 4; i++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+2 );
 
-						// TODO: show optional index?
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+                  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 7: /* Atomic Writeflle Request */
+               {
+                  long  obj_id;
+                  int      obj_type;
+                  long  obj_instance;
 
-						sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(propID));
-					}
-					break;
-				case 10: /* Create Object Request */
-					{
-						int tagval;
-						tagbuff = pif_get_byte( 3+x*2 +2 );
-						len = tagbuff & 0x07;
-						tagval = (tagbuff&0xF0)>>4;
+                  for (int i = 0; i < 4; i++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+2 );
+                  
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+                  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 8: /* Add List Element Request */
+               {
+                  // "tagged" is offset of first tag byte
+                  unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+                  unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+                  unsigned obj_instance = (obj_id & 0x003FFFFF);
+                  tagged += 5;
 
-						switch(tagval){
-						case 0:
-							{
-								unsigned long nType = get_bac_unsigned( 3+x*2+3, len );
-								sprintf(moreDetail, "%s", ObjectTypeString(nType));
-							}
-							break;
-						case 1:
-							{
-								long	obj_id;
-								int		obj_type;
-								long	obj_instance;
-								
-								for (int i = 0; i < 4; i++)
-									obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+3 );
-								
-								obj_type = (obj_id >> 22) & 0x000003FF;
-								obj_instance = (obj_id & 0x003FFFFF);
-								
-								sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
-							}
-							break;
-						default:
-							{
-								sprintf(moreDetail, "Error");
-							}
-							break;
-						}
-					}
-					break;
-				case 11: /* Delete Object Request */
-					{
-						// "tagged" is offset of first tag byte
-						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
-						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
-						unsigned obj_instance = (obj_id & 0x003FFFFF);
-						
-						sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
-					}
-					break;
-				case 12: /* Read Property Request */
-					{
-						// "tagged" is offset of first tag byte
-						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
-						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
-						unsigned obj_instance = (obj_id & 0x003FFFFF);
-						tagged += 5;
-						
-						len = pif_get_byte( tagged ) & 0x07;
-						unsigned int pID = get_bac_unsigned( tagged+1, len );
-						tagged += 1+len;
+                  len = pif_get_byte( tagged ) & 0x07;
+                  unsigned int propID = get_bac_unsigned( tagged+1, len );
+                  tagged += 1+len;
 
-						tagbuff = pif_get_byte(tagged);
-						if((tagbuff & 0xF8) == 0x28) {
-							len = tagbuff & 0x07;
-							unsigned int index = get_bac_unsigned(tagged+1, len);
-							tagged += 1+len;
-							sprintf(moreDetail, "%s_%u, %s, Index = %u", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID),index);
-						}
-						else {
-							sprintf(moreDetail, "%s_%u, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
-						}
-					}
-					break;
-				case 15: /* Write Property Request */
-					//Modified by Zhu Zhenhua, 2004-12-21, for task #544511
-					{
-						// "tagged" is offset of first tag byte
-						unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
-						unsigned obj_type = (obj_id >> 22) & 0x000003FF;
-						unsigned obj_instance = (obj_id & 0x003FFFFF);
-						tagged += 5;
+                  // TODO: show optional index?
 
-						len = pif_get_byte( tagged ) & 0x07;
-						unsigned int pID = get_bac_unsigned( tagged+1, len );
-						tagged += 1+len;
+                  sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(propID));
+               }
+               break;
+            case 9: /* Remove List Element Request */
+               {
+                  // "tagged" is offset of first tag byte
+                  unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+                  unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+                  unsigned obj_instance = (obj_id & 0x003FFFFF);
+                  tagged += 5;
+                  
+                  len = pif_get_byte( tagged ) & 0x07;
+                  unsigned int propID = get_bac_unsigned( tagged+1, len );
+                  tagged += 1+len;
 
-						int lentemp;
-						unsigned int pid_index;
-						tagbuff = pif_get_byte(tagged);
-						if((tagbuff & 0xF8) == 0x28) {
-							len = tagbuff & 0x07;
-							pid_index = (int)get_bac_unsigned(tagged+1, len);
-							tagged += 1+len;
-							lentemp = sprintf(moreDetail, "%s_%u, %s, Index %d", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID),pid_index);
-						}
-						else {
-							lentemp = sprintf(moreDetail, "%s_%u, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
-							pid_index = -1;
-						}
+                  // TODO: show optional index?
 
-						// Skip over opening [3]
-						// DO NOT parse it: we want this first line of decoding to be the VALUE
-						pif_offset = tagged + 1;
-							
-						// TODO: this dumps a bunch of lines into the detailLine, and then
-						// assumes that the first value line will be of the form
-						// "some text: value" and show the part to the right of the colon.
-						// Seems fragile: any change to string format will break the code.
-						BACnetSequence seq;
-						show_bac_ANY(seq, obj_type, pID, pid_index);
-						if (gCurrentInfo->detailCount > 0)
-						{
-							const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
-							if (pValue != NULL)
-							{   
-								SafeCopy( moreDetail + lentemp, ",", sizeof(moreDetail) - lentemp );
-								lentemp += 1;
-								SafeCopy( moreDetail + lentemp, pValue+1, sizeof(moreDetail) - lentemp );
-							}
-						}
+                  sprintf(moreDetail, "%s_%lu, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(propID));
+               }
+               break;
+            case 10: /* Create Object Request */
+               {
+                  int tagval;
+                  tagbuff = pif_get_byte( 3+x*2 +2 );
+                  len = tagbuff & 0x07;
+                  tagval = (tagbuff&0xF0)>>4;
 
-						// Eat the closing tag, else ~BACnetSequence complains 
-						// about unparsed APDU
-						pif_offset += 1;
-					}
-					break;
-				case 18: /* Confirmed Private Transfer Request */
-					{
-						int len1,len2,tagbuff;
-						tagbuff = pif_get_byte( 3+x*2 +1 );
-						len1 = tagbuff & 0x07;
-						unsigned long nValue1 = get_bac_unsigned( 3+x*2+2, len1 );
+                  switch(tagval){
+                  case 0:
+                     {
+                        unsigned long nType = get_bac_unsigned( 3+x*2+3, len );
+                        sprintf(moreDetail, "%s", ObjectTypeString(nType));
+                     }
+                     break;
+                  case 1:
+                     {
+                        long  obj_id;
+                        int      obj_type;
+                        long  obj_instance;
+                        
+                        for (int i = 0; i < 4; i++)
+                           obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+3 );
+                        
+                        obj_type = (obj_id >> 22) & 0x000003FF;
+                        obj_instance = (obj_id & 0x003FFFFF);
 
-						tagbuff = pif_get_byte( 3+x*2 +2+len1 );
-						len2 = tagbuff & 0x07;
-						unsigned long nValue2 = get_bac_unsigned( 3+x*2 +3+len1, len2 );
+                        sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
+                     }
+                     break;
+                  default:
+                     {
+                        sprintf(moreDetail, "Error");
+                     }
+                     break;
+                  }
+               }
+               break;
+            case 11: /* Delete Object Request */
+               {
+                  // "tagged" is offset of first tag byte
+                  unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+                  unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+                  unsigned obj_instance = (obj_id & 0x003FFFFF);
 
-						sprintf(moreDetail, "%lu, %lu", nValue1, nValue2);
-					}
-					break;
-				case 19: /* Confirmed Text Message Request */
-					{
-						long	obj_id;
-						int		obj_type;
-						long	obj_instance;
-						
-						for (int i = 0; i < 4; i++)
-							obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+2 );
-						
-						obj_type = (obj_id >> 22) & 0x000003FF;
-						obj_instance = (obj_id & 0x003FFFFF);
-						
-						sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
-					}
-					break;
-				case 23: /* VT Data Request */
-					{
-						int len,tagbuff;
-						tagbuff = pif_get_byte( 3+x*2 +1 );
-						len = tagbuff & 0x07;
-						unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
+                  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 12: /* Read Property Request */
+               {
+                  // "tagged" is offset of first tag byte
+                  unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+                  unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+                  unsigned obj_instance = (obj_id & 0x003FFFFF);
+                  tagged += 5;
+                  
+                  len = pif_get_byte( tagged ) & 0x07;
+                  unsigned int pID = get_bac_unsigned( tagged+1, len );
+                  tagged += 1+len;
 
-						sprintf(moreDetail, "%lu", nValue);
-					}
-					break;
-				default:
-					moreDetail[0] = 0;
-					break;
-				}
-				}
-				sprintf(outstr,"%s, ID=%u %s",
-						BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
-						ID, moreDetail);
-                break;
-        case 1: /* Unconfirmed service request */
-                service_choice = pif_get_byte(1);
-				tagged         = 2;
-                switch (service_choice) {
-                  case 0: /* I-Am */
-					  {
-						  unsigned obj_id;
-						  unsigned obj_type;
-						  unsigned obj_instance;
-						  
-						  for (int i = 0; i < 4; i++)
-							  obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3 );
-						  
-						  obj_type = (obj_id >> 22) & 0x000003FF;
-						  obj_instance = (obj_id & 0x003FFFFF);
-						  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
-					  }
-					  sprintf(outstr,"%s, %s", 
-							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
-							  moreDetail);
-					  
-//                    sprintf(outstr,"%s, %lu",BACnetUnconfirmedServiceChoice[service_choice], 
-//                           pif_get_long_hl(3)&0x003FFFFF);
-                    break;
-				  case 1: /* I-Have */
-					  {
-						  unsigned device_id, obj_id;
-						  unsigned device_type, obj_type;
-						  unsigned device_instance, obj_instance;
-						  
-						  for (int i = 0; i < 4; i++)
-							  device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+3 );
-						  
-						  device_type = (device_id >> 22) & 0x000003FF;
-						  device_instance = (device_id & 0x003FFFFF);
-						  
-						  for (int j = 0; j < 4; j++)
-							  obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+8 );
-						  
-						  obj_type = (obj_id >> 22) & 0x000003FF;
-						  obj_instance = (obj_id & 0x003FFFFF);
-						  
-						  sprintf(outstr,"%s, %s_%lu, %s_%lu", 
-							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
-							  ObjectTypeString(device_type), device_instance, 
-							  ObjectTypeString(obj_type), obj_instance);
-					  }
-					  break;
-				  case 2: /* Unconfirmed COV Notification  Request */
-					  {
-						  int len,tagbuff;
-						  tagbuff = pif_get_byte( 2 );
-						  len = tagbuff & 0x07;
-						  unsigned long nValue = get_bac_unsigned( 3, len );
-						  
-						  unsigned device_id, obj_id;
-						  unsigned device_type, obj_type;
-						  unsigned device_instance, obj_instance;
-						  
-						  for (int i = 0; i < 4; i++)
-							  device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+len );
-						  
-						  device_type = (device_id >> 22) & 0x000003FF;
-						  device_instance = (device_id & 0x003FFFFF);
-						  
-						  for (int j = 0; j < 4; j++)
-							  obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+4+len+5 );
-						  
-						  obj_type = (obj_id >> 22) & 0x000003FF;
-						  obj_instance = (obj_id & 0x003FFFFF);
-						  
-						  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", 
-							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
-							  nValue, 
-							  ObjectTypeString(device_type), device_instance, 
-							  ObjectTypeString(obj_type), obj_instance);
-					  }
-					  break;
-				  case 3: /* Unconfirmed Event Notification Request */
-					  {
-						  int len,tagbuff;
-						  tagbuff = pif_get_byte( 2 );
-						  len = tagbuff & 0x07;
-						  unsigned long nValue = get_bac_unsigned( 3, len );
-						  
-						  unsigned device_id, obj_id;
-						  unsigned device_type, obj_type;
-						  unsigned device_instance, obj_instance;
-						  
-						  for (int i = 0; i < 4; i++)
-							  device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+len );
-						  
-						  device_type = (device_id >> 22) & 0x000003FF;
-						  device_instance = (device_id & 0x003FFFFF);
-						  
-						  for (int j = 0; j < 4; j++)
-							  obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+4+len+5 );
-						  
-						  obj_type = (obj_id >> 22) & 0x000003FF;
-						  obj_instance = (obj_id & 0x003FFFFF);
-						  
-						  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", 
-							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
-							  nValue, 
-							  ObjectTypeString(device_type), device_instance, 
-							  ObjectTypeString(obj_type), obj_instance);
-					  }
-					  break;
-				  case 4: /* Unconfirmed Private Transfer Request */
-					  {
-						  int len1,len2,tagbuff;
-						  tagbuff = pif_get_byte( 2 );
-						  len1 = tagbuff & 0x07;
-						  unsigned long nValue1 = get_bac_unsigned( 3, len1 );
+                  tagbuff = pif_get_byte(tagged);
+                  if((tagbuff & 0xF8) == 0x28) {
+                     len = tagbuff & 0x07;
+                     unsigned int index = get_bac_unsigned(tagged+1, len);
+                     tagged += 1+len;
+                     sprintf(moreDetail, "%s_%u, %s, Index = %u", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID),index);
+                  }
+                  else {
+                     sprintf(moreDetail, "%s_%u, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
+                  }
+               }
+               break;
+            case 15: /* Write Property Request */
+               //Modified by Zhu Zhenhua, 2004-12-21, for task #544511
+               {
+                  // "tagged" is offset of first tag byte
+                  unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+                  unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+                  unsigned obj_instance = (obj_id & 0x003FFFFF);
+                  tagged += 5;
 
-						  tagbuff = pif_get_byte( 3+len1 );
-						  len2 = tagbuff & 0x07;
-						  unsigned long nValue2 = get_bac_unsigned( 4+len1, len2 );
+                  len = pif_get_byte( tagged ) & 0x07;
+                  unsigned int pID = get_bac_unsigned( tagged+1, len );
+                  tagged += 1+len;
 
-						  sprintf(outstr, "%s, %lu, %lu", 
-							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
-							  nValue1, nValue2);
-					  }
-					  break;
-				  case 5: /* Unconfirmed Text Message Request */
-					  {
-						  unsigned obj_id;
-						  unsigned obj_type;
-						  unsigned obj_instance;
-						  
-						  for (int i = 0; i < 4; i++)
-							  obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3 );
-						  
-						  obj_type = (obj_id >> 22) & 0x000003FF;
-						  obj_instance = (obj_id & 0x003FFFFF);
+                  int lentemp;
+                  unsigned int pid_index;
+                  tagbuff = pif_get_byte(tagged);
+                  if((tagbuff & 0xF8) == 0x28) {
+                     len = tagbuff & 0x07;
+                     pid_index = (int)get_bac_unsigned(tagged+1, len);
+                     tagged += 1+len;
+                     lentemp = sprintf(moreDetail, "%s_%u, %s, Index %d", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID),pid_index);
+                  }
+                  else {
+                     lentemp = sprintf(moreDetail, "%s_%u, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
+                     pid_index = -1;
+                  }
 
-						  sprintf(outstr, "%s, %s_%lu", 
-							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
-							  ObjectTypeString(obj_type), obj_instance);
-					  }
-					  break;
-				  case 7: /* Who-Has */
-					  {
-						  unsigned char tagbuff, tagval; /* buffers for tags and tag values */
-						  int len,newLen;
-						  char temp[200] = "";
-						  int flag = 0;
-						  
-						  tagbuff = pif_get_byte(2);
-						  tagval = (tagbuff&0xF0)>>4;
-						  
-						  if (tagbuff & 0x08) { /* context tag */
-							  if(tagval == 0){ /* device instance range expected */
-								  flag = 1;
-								  len = tagbuff & 0x07;
-								  unsigned long nLow = get_bac_unsigned( 3, len );
-								  tagbuff = pif_get_byte( 3+len );
-								  tagval = (tagbuff&0xF0)>>4;
-								  
-								  if( tagval == 1 ){
-									  newLen = tagbuff & 0x07;
-									  unsigned long nHigh = get_bac_unsigned( 4+len, newLen );
-									  tagbuff = pif_get_byte( 4+len+newLen );
-									  tagval = (tagbuff&0xF0)>>4;
-									  sprintf(temp, "%lu-%lu", nLow, nHigh);
-								  }
-								  else{
-									  sprintf(moreDetail, "Error!");
-								  }
-							  }
-							  
-							  switch(tagval) {
-							  case 2: /* object Identifier*/
-								  {
-									  unsigned	obj_id;
-									  unsigned	obj_type;
-									  unsigned	obj_instance;
-									  int	nOffset;
-									  
-									  if(flag)
-										  nOffset = 5+len+newLen;
-									  else
-										  nOffset = 3;
-									  
-									  for (int i = 0; i < 4; i++)
-										  obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+nOffset );
-									  
-									  obj_type = (obj_id >> 22) & 0x000003FF;
-									  obj_instance = (obj_id & 0x003FFFFF);
-									  
-									  if(flag)
-									  {
-										  sprintf(moreDetail, "%s, %s_%lu", temp, ObjectTypeString(obj_type), obj_instance);
-									  }
-									  else
-									  {
-										  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
-									  }
-								  }
-								  break;
-							  case 3: /* object name */
-								  {
-									  int nOffset;
-									  if(flag)
-										  nOffset = len+newLen+6;
-									  else
-										  nOffset = 4;
-									  
-									  len = tagbuff & 0x07;
-									  if(len == 5)
-										  len = pif_get_byte(nOffset-1);
+                  // Skip over opening [3]
+                  // DO NOT parse it: we want this first line of decoding to be the VALUE
+                  pif_offset = tagged + 1;
+                     
+                  // TODO: this dumps a bunch of lines into the detailLine, and then
+                  // assumes that the first value line will be of the form
+                  // "some text: value" and show the part to the right of the colon.
+                  // Seems fragile: any change to string format will break the code.
+                  BACnetSequence seq;
+                  show_bac_ANY(seq, obj_type, pID, pid_index);
+                  if (gCurrentInfo->detailCount > 0)
+                  {
+                     const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
+                     if (pValue != NULL)
+                     {   
+                        SafeCopy( moreDetail + lentemp, ",", sizeof(moreDetail) - lentemp );
+                        lentemp += 1;
+                        SafeCopy( moreDetail + lentemp, pValue+1, sizeof(moreDetail) - lentemp );
+                     }
+                  }
 
-									  char strBuff[MAX_INT_LINE];
-									  switch(pif_get_byte(nOffset)){
-									  case 0: /* ASCII */
-										  pif_get_ascii(nOffset+1, len-1, strBuff, sizeof(strBuff)-1);
-										  break;
-									  case 1: /* MS DBCS */
-										  {
-											  static char	hex[] = "0123456789ABCDEF";
-											  char *dst;
-											  dst = strBuff;
-											  len-=1;
-											  int i = nOffset+1;
-											  while (len--) {
-												  int x = pif_get_byte(i);
-												  *dst++ = hex[ (x >> 4) & 0x0F ];
-												  *dst++ = hex[ x & 0x0F ];
-												  i++;
-											  }
-											  *dst = 0;
-										  }
-										  break;
-									  default:
-										  sprintf(strBuff, "Error!");
-										  break;
-									  }
-									  
-									  if(flag)
-										  sprintf(moreDetail, "%s, %s", temp, strBuff);
-									  else
-										  sprintf(moreDetail, "%s", strBuff);
-								  }
-								  break;
-							  default: 
-								  sprintf(moreDetail, "Error!");
-								  break;
-							  }
-						  }
-						  else{
-							  sprintf(moreDetail, "Error!");
-						  }
-						  
-						  sprintf(outstr,"%s, %s",
-							  BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
-							  moreDetail);
-					  }
-					  break;
-                  case 8: /* Who-Is */
-                    if (pif_offset+2>=pif_end_offset)
-                      sprintf(outstr,"%s, All Devices",BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ));
-                    else {
-                      sprintf(outstr,"%s, %lu-%lu",BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
-                      get_bac_unsigned(3,pif_get_byte(2)&0x07),
-                      get_bac_unsigned(3+(pif_get_byte(2)&0x07)+1,pif_get_byte(3+(pif_get_byte(2)&0x07))&0x07));
-                    }
-                    break;  
-                  default: 
-					sprintf(outstr,"%s",BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ));
-					break;
+                  // Eat the closing tag, else ~BACnetSequence complains 
+                  // about unparsed APDU
+                  pif_offset += 1;
+               }
+               break;
+            case 18: /* Confirmed Private Transfer Request */
+               {
+                  int len1,len2,tagbuff;
+                  tagbuff = pif_get_byte( 3+x*2 +1 );
+                  len1 = tagbuff & 0x07;
+                  unsigned long nValue1 = get_bac_unsigned( 3+x*2+2, len1 );
+
+                  tagbuff = pif_get_byte( 3+x*2 +2+len1 );
+                  len2 = tagbuff & 0x07;
+                  unsigned long nValue2 = get_bac_unsigned( 3+x*2 +3+len1, len2 );
+
+                  sprintf(moreDetail, "%lu, %lu", nValue1, nValue2);
+               }
+               break;
+            case 19: /* Confirmed Text Message Request */
+               {
+                  long  obj_id;
+                  int      obj_type;
+                  long  obj_instance;
+                  
+                  for (int i = 0; i < 4; i++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3+x*2+2 );
+                  
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+                  
+                  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 23: /* VT Data Request */
+               {
+                  int len,tagbuff;
+                  tagbuff = pif_get_byte( 3+x*2 +1 );
+                  len = tagbuff & 0x07;
+                  unsigned long nValue = get_bac_unsigned( 3+x*2+2, len );
+
+                  sprintf(moreDetail, "%lu", nValue);
+               }
+               break;
+            default:
+               moreDetail[0] = 0;
+               break;
+            }     // End switch on confirmed service choice
+         }
+         sprintf(outstr,"%s, ID=%u %s",
+                 BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_choice, "ConfRQ" ),
+                 ID, moreDetail);
+         break;
+      case 1: /* Unconfirmed service request */
+            service_choice = pif_get_byte(1);
+            tagged         = 2;
+            switch (service_choice) {
+            case 0: /* I-Am */
+               {
+                  unsigned obj_id;
+                  unsigned obj_type;
+                  unsigned obj_instance;
+
+                  for (int i = 0; i < 4; i++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3 );
+
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+                  sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
+               }
+               sprintf(outstr,"%s, %s", 
+                       BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
+                       moreDetail);
+
+//             sprintf(outstr,"%s, %lu",BACnetUnconfirmedServiceChoice[service_choice], 
+//                     pif_get_long_hl(3)&0x003FFFFF);
+               break;
+            case 1: /* I-Have */
+               {
+                  unsigned device_id, obj_id;
+                  unsigned device_type, obj_type;
+                  unsigned device_instance, obj_instance;
+
+                  for (int i = 0; i < 4; i++)
+                     device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+3 );
+
+                  device_type = (device_id >> 22) & 0x000003FF;
+                  device_instance = (device_id & 0x003FFFFF);
+
+                  for (int j = 0; j < 4; j++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+8 );
+
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+
+                  sprintf(outstr,"%s, %s_%lu, %s_%lu", 
+                          BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
+                          ObjectTypeString(device_type), device_instance, 
+                          ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 2: /* Unconfirmed COV Notification  Request */
+               {
+                  int len,tagbuff;
+                  tagbuff = pif_get_byte( 2 );
+                  len = tagbuff & 0x07;
+                  unsigned long nValue = get_bac_unsigned( 3, len );
+
+                  unsigned device_id, obj_id;
+                  unsigned device_type, obj_type;
+                  unsigned device_instance, obj_instance;
+
+                  for (int i = 0; i < 4; i++)
+                     device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+len );
+
+                  device_type = (device_id >> 22) & 0x000003FF;
+                  device_instance = (device_id & 0x003FFFFF);
+
+                  for (int j = 0; j < 4; j++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+4+len+5 );
+
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+
+                  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", 
+                          BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
+                          nValue, 
+                          ObjectTypeString(device_type), device_instance, 
+                          ObjectTypeString(obj_type), obj_instance);
                 }
                 break;
-        case 2: /* Simple ACK */
-            {   
-				ID = pif_get_byte(1);
-				int service_type = pif_get_byte(2);
-				sprintf(moreDetail, "%s ACK", BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_type, "SimpleAck"));
-                sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type, "PDU_Type"),ID,moreDetail);
-			}
+            case 3: /* Unconfirmed Event Notification Request */
+               {
+                  int len,tagbuff;
+                  tagbuff = pif_get_byte( 2 );
+                  len = tagbuff & 0x07;
+                  unsigned long nValue = get_bac_unsigned( 3, len );
+
+                  unsigned device_id, obj_id;
+                  unsigned device_type, obj_type;
+                  unsigned device_instance, obj_instance;
+
+                  for (int i = 0; i < 4; i++)
+                     device_id = (device_id << 8) | (unsigned char)pif_get_byte( i+4+len );
+
+                  device_type = (device_id >> 22) & 0x000003FF;
+                  device_instance = (device_id & 0x003FFFFF);
+
+                  for (int j = 0; j < 4; j++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( j+4+len+5 );
+
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+
+                  sprintf(outstr, "%s, %lu, %s_%lu, %s_%lu", 
+                          BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
+                          nValue, 
+                          ObjectTypeString(device_type), device_instance, 
+                          ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 4: /* Unconfirmed Private Transfer Request */
+               {
+                  int len1,len2,tagbuff;
+                  tagbuff = pif_get_byte( 2 );
+                  len1 = tagbuff & 0x07;
+                  unsigned long nValue1 = get_bac_unsigned( 3, len1 );
+
+                  tagbuff = pif_get_byte( 3+len1 );
+                  len2 = tagbuff & 0x07;
+                  unsigned long nValue2 = get_bac_unsigned( 4+len1, len2 );
+
+                  sprintf(outstr, "%s, %lu, %lu", 
+                          BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
+                          nValue1, nValue2);
+               }
+               break;
+            case 5: /* Unconfirmed Text Message Request */
+               {
+                  unsigned obj_id;
+                  unsigned obj_type;
+                  unsigned obj_instance;
+
+                  for (int i = 0; i < 4; i++)
+                     obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+3 );
+
+                  obj_type = (obj_id >> 22) & 0x000003FF;
+                  obj_instance = (obj_id & 0x003FFFFF);
+
+                  sprintf(outstr, "%s, %s_%lu", 
+                          BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
+                          ObjectTypeString(obj_type), obj_instance);
+               }
+               break;
+            case 7: /* Who-Has */
+               {
+                  unsigned char tagbuff, tagval; /* buffers for tags and tag values */
+                  int len,newLen;
+                  char temp[200] = "";
+                  int flag = 0;
+
+                  tagbuff = pif_get_byte(2);
+                  tagval = (tagbuff&0xF0)>>4;
+
+                  if (tagbuff & 0x08) { /* context tag */
+                     if(tagval == 0){ /* device instance range expected */
+                        flag = 1;
+                        len = tagbuff & 0x07;
+                        unsigned long nLow = get_bac_unsigned( 3, len );
+                        tagbuff = pif_get_byte( 3+len );
+                        tagval = (tagbuff&0xF0)>>4;
+
+                        if( tagval == 1 ){
+                           newLen = tagbuff & 0x07;
+                           unsigned long nHigh = get_bac_unsigned( 4+len, newLen );
+                           tagbuff = pif_get_byte( 4+len+newLen );
+                           tagval = (tagbuff&0xF0)>>4;
+                           sprintf(temp, "%lu-%lu", nLow, nHigh);
+                        }
+                        else{
+                           sprintf(moreDetail, "Error!");
+                        }
+                     }
+
+                     switch(tagval) {
+                     case 2: /* object Identifier*/
+                        {
+                           unsigned  obj_id;
+                           unsigned  obj_type;
+                           unsigned  obj_instance;
+                           int nOffset;
+
+                           if(flag)
+                              nOffset = 5+len+newLen;
+                           else
+                              nOffset = 3;
+
+                           for (int i = 0; i < 4; i++)
+                              obj_id = (obj_id << 8) | (unsigned char)pif_get_byte( i+nOffset );
+
+                           obj_type = (obj_id >> 22) & 0x000003FF;
+                           obj_instance = (obj_id & 0x003FFFFF);
+
+                           if(flag)
+                           {
+                              sprintf(moreDetail, "%s, %s_%lu", temp, ObjectTypeString(obj_type), obj_instance);
+                           }
+                           else
+                           {
+                              sprintf(moreDetail, "%s_%lu", ObjectTypeString(obj_type), obj_instance);
+                           }
+                        }
+                        break;
+                     case 3: /* object name */
+                        {
+                           int nOffset;
+                           if(flag)
+                              nOffset = len+newLen+6;
+                           else
+                              nOffset = 4;
+
+                           len = tagbuff & 0x07;
+                           if(len == 5)
+                              len = pif_get_byte(nOffset-1);
+
+                           char strBuff[MAX_INT_LINE];
+                           switch(pif_get_byte(nOffset)){
+                           case 0: /* ASCII */
+                              pif_get_ascii(nOffset+1, len-1, strBuff, sizeof(strBuff)-1);
+                              break;
+                           case 1: /* MS DBCS */
+                              {
+                                 static char  hex[] = "0123456789ABCDEF";
+                                 char *dst;
+                                 dst = strBuff;
+                                 len-=1;
+                                 int i = nOffset+1;
+                                 while (len--) {
+                                    int x = pif_get_byte(i);
+                                    *dst++ = hex[ (x >> 4) & 0x0F ];
+                                    *dst++ = hex[ x & 0x0F ];
+                                    i++;
+                                 }
+                                 *dst = 0;
+                              }
+                              break;
+                           default:
+                              sprintf(strBuff, "Error!");
+                              break;
+                           }
+
+                           if(flag)
+                              sprintf(moreDetail, "%s, %s", temp, strBuff);
+                           else
+                              sprintf(moreDetail, "%s", strBuff);
+                        }
+                        break;
+                     default: 
+                        sprintf(moreDetail, "Error!");
+                        break;
+                     }
+                  }
+                  else{
+                     sprintf(moreDetail, "Error!");
+                  }
+
+                  sprintf(outstr,"%s, %s",
+                          BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ), 
+                          moreDetail);
+               }
+               break;
+            case 8: /* Who-Is */
+               if (pif_offset+2>=pif_end_offset)
+                  sprintf(outstr,"%s, All Devices",BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ));
+               else {
+                  sprintf(outstr,"%s, %lu-%lu",BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ),
+                  get_bac_unsigned(3,pif_get_byte(2)&0x07),
+                  get_bac_unsigned(3+(pif_get_byte(2)&0x07)+1,pif_get_byte(3+(pif_get_byte(2)&0x07))&0x07));
+                }
                 break;
-        case 3: /* Complex ACK */
-			{
-				ID = pif_get_byte(1);
-				int nService = pif_get_byte(2 + 2*x);
-				tagged = 3 + 2*x;
-            SEG = x;                                  
-            if (SEG) {
-					MOR = (pif_get_byte(0)&0x04)>>2;
-					SEQ = pif_get_byte(2);
-					sprintf(moreDetail,"Segment %u %s", SEQ, (MOR) ? "More follows" : "Final segment" );
-				}
-            else {
-					switch(nService) {
-					//Modified by Zhu Zhenhua, 2004-12-21, for task #544511
-					case 12: /* Read Property Ack */   
-						{
-							// "tagged" is offset of first tag byte
-							unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
-							unsigned obj_type = (obj_id >> 22) & 0x000003FF;
-							unsigned obj_instance = (obj_id & 0x003FFFFF);
-							tagged += 5;
-						
-							len = pif_get_byte( tagged ) & 0x07;
-							unsigned int pID = get_bac_unsigned( tagged+1, len );
-							tagged += 1+len;
-
-							int lentemp;
-							unsigned int pid_index = -1;
-							tagbuff = pif_get_byte(tagged);
-							if((tagbuff & 0xF8) == 0x28) {
-								len = tagbuff & 0x07;
-								pid_index = (int)get_bac_unsigned(tagged+1, len);
-								tagged += 1+len;
-								lentemp = sprintf(moreDetail, "%s_%u, %s, Index = %d", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID),pid_index);
-							}
-							else {
-								lentemp = sprintf(moreDetail, "%s_%u, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
-								pid_index = -1;
-							}
-
-							// Bypass the opening [3]
-							// DO NOT parse it: we want this first line of decoding to be the VALUE
-							pif_offset = tagged + 1;
-
-							// TODO: this dumps a bunch of lines into the detailLine, and then
-							// assumes that the first value line will be of the form
-							// "some text: value" and show the part to the right of the colon.
-							// Seems fragile: any change to string format will break the code.
-							BACnetSequence seq;
-							show_bac_ANY(seq, obj_type, pID, pid_index);
-							if (gCurrentInfo->detailCount > 0)
-							{
-								const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
-								if (pValue != NULL)
-								{   
-									SafeCopy( moreDetail + lentemp, ",", sizeof(moreDetail) - lentemp );
-									lentemp += 1;
-									SafeCopy( moreDetail + lentemp, pValue+1, sizeof(moreDetail) - lentemp );
-								}
-							}
-
-							// Eat the closing tag, else ~BACnetSequence complains 
-							// about unparsed APDU
-							pif_offset += 1;
-						}
-						break;
-					default:
-						moreDetail[0] = 0;
-						break;
-					}
-				}
-						
-				sprintf(outstr,"%s-ACK, ID=%u, %s",
-						  BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(nService,"ConfRQ"),
-						  ID, moreDetail);
-			   }
-			   break;
-        case 4: /* Segment ACK */
+            default: 
+               sprintf(outstr,"%s",BAC_STRTAB_BACnetUnconfirmedServiceChoice.EnumString( service_choice, "UnConf" ));
+               break;
+            }    // End switch on unconfirmed service choice
+            break;
+      case 2: /* Simple ACK */
+         {
             ID = pif_get_byte(1);
-            NAK = (pif_get_byte(0) & 0x02) >> 1;
-            SRV = pif_get_byte(0) & 0x01;
-            sprintf(outstr,"%s ID=%u NAK=%u SRV=%u SEQ=%u",
-				        BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), 
-				        ID, NAK, SRV, pif_get_byte(2));
-            break;
-        case 5: /* Error */
-            {
-				ID = pif_get_byte(1);
-				int error_type = pif_get_byte(2);
-				tagged         = 3;
-				sprintf(moreDetail, "%s", BAC_STRTAB_BACnetError.EnumString(error_type,"Error"));
+            int service_type = pif_get_byte(2);
+            sprintf(moreDetail, "%s ACK", BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_type, "SimpleAck"));
+            sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type, "PDU_Type"),ID,moreDetail);
+         }
+         break;
+      case 3: /* Complex ACK */
+         {
+            ID = pif_get_byte(1);
+            int nService = pif_get_byte(2 + 2*x);
+            tagged = 3 + 2*x;
+            SEG = x;
+            if (SEG) {
+               MOR = (pif_get_byte(0)&0x04)>>2;
+               SEQ = pif_get_byte(2);
+               sprintf(moreDetail,"Segment %u %s", SEQ, (MOR) ? "More follows" : "Final segment" );
+            }
+            else {
+               switch(nService) {
+               //Modified by Zhu Zhenhua, 2004-12-21, for task #544511
+               case 12: /* Read Property Ack */   
+                  {
+                     // "tagged" is offset of first tag byte
+                     unsigned obj_id = get_bac_unsigned( tagged+1, 4 );
+                     unsigned obj_type = (obj_id >> 22) & 0x000003FF;
+                     unsigned obj_instance = (obj_id & 0x003FFFFF);
+                     tagged += 5;
+
+                     len = pif_get_byte( tagged ) & 0x07;
+                     unsigned int pID = get_bac_unsigned( tagged+1, len );
+                     tagged += 1+len;
+
+                     int lentemp;
+                     unsigned int pid_index = -1;
+                     tagbuff = pif_get_byte(tagged);
+                     if((tagbuff & 0xF8) == 0x28) {
+                        len = tagbuff & 0x07;
+                        pid_index = (int)get_bac_unsigned(tagged+1, len);
+                        tagged += 1+len;
+                        lentemp = sprintf(moreDetail, "%s_%u, %s, Index = %d", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID),pid_index);
+                     }
+                     else {
+                        lentemp = sprintf(moreDetail, "%s_%u, %s", ObjectTypeString(obj_type), obj_instance, PropertyIdentifierString(pID));
+                        pid_index = -1;
+                     }
+
+                     // Bypass the opening [3]
+                     // DO NOT parse it: we want this first line of decoding to be the VALUE
+                     pif_offset = tagged + 1;
+
+                     // TODO: this dumps a bunch of lines into the detailLine, and then
+                     // assumes that the first value line will be of the form
+                     // "some text: value" and show the part to the right of the colon.
+                     // Seems fragile: any change to string format will break the code.
+                     BACnetSequence seq;
+                     show_bac_ANY(seq, obj_type, pID, pid_index);
+                     if (gCurrentInfo->detailCount > 0)
+                     {
+                        const char *pValue = strchr( gCurrentInfo->detailLine[0]->piLine, ':' );
+                        if (pValue != NULL)
+                        {   
+                           SafeCopy( moreDetail + lentemp, ",", sizeof(moreDetail) - lentemp );
+                           lentemp += 1;
+                           SafeCopy( moreDetail + lentemp, pValue+1, sizeof(moreDetail) - lentemp );
+                        }
+                     }
+
+                     // Eat the closing tag, else ~BACnetSequence complains 
+                     // about unparsed APDU
+                     pif_offset += 1;
+                  }
+                  break;
+               default:
+                  moreDetail[0] = 0;
+                  break;
+               }     // End switch on Complex-Ack service choice
+            }
+
+            sprintf(outstr,"%s-ACK, ID=%u, %s",
+                    BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(nService,"ConfRQ"),
+                    ID, moreDetail);
+         }
+         break;
+      case 4: /* Segment ACK */
+         ID = pif_get_byte(1);
+         NAK = (pif_get_byte(0) & 0x02) >> 1;
+         SRV = pif_get_byte(0) & 0x01;
+         sprintf(outstr,"%s ID=%u NAK=%u SRV=%u SEQ=%u",
+                 BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), 
+                 ID, NAK, SRV, pif_get_byte(2));
+         break;
+      case 5: /* Error */
+         {
+            ID = pif_get_byte(1);
+            int error_type = pif_get_byte(2);
+            tagged         = 3;
+            sprintf(moreDetail, "%s", BAC_STRTAB_BACnetError.EnumString(error_type,"Error"));
             sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
-			   }
-            break;
-        case 6: /* Reject */
-            {
-				ID = pif_get_byte(1);
-				int reject_type = pif_get_byte(2);
-				sprintf(moreDetail, "%s", BAC_STRTAB_BACnetReject.EnumString(reject_type,"Reject"));
+         }
+         break;
+      case 6: /* Reject */
+         {
+            ID = pif_get_byte(1);
+            int reject_type = pif_get_byte(2);
+            sprintf(moreDetail, "%s", BAC_STRTAB_BACnetReject.EnumString(reject_type,"Reject"));
             sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
-			   }
-            break;
-        case 7: /* Abort */
-            {
-				ID = pif_get_byte(1);
-				int abort_type = pif_get_byte(2);
-				sprintf(moreDetail, "%s", BAC_STRTAB_BACnetAbort.EnumString(abort_type,"Abort"));
+         }
+         break;
+      case 7: /* Abort */
+         {
+            ID = pif_get_byte(1);
+            int abort_type = pif_get_byte(2);
+            sprintf(moreDetail, "%s", BAC_STRTAB_BACnetAbort.EnumString(abort_type,"Abort"));
             sprintf(outstr,"%s, ID=%u, %s",BAC_STRTAB_PDU_types.EnumString(pdu_type,"PDU_Type"), ID, moreDetail);
-			   }
-            break;
+         }
+         break;
+      }  // End billion line switch on PDU type
+
+      // LJT - Added check that our output string does not exceed our summary line maximum
+      if ( strlen(outstr) >= MAX_SUM_LINE )
+      {
+         // truncate our outstr with '...' on the end
+         outstr[MAX_SUM_LINE-4]='.';
+         outstr[MAX_SUM_LINE-3]='.';
+         outstr[MAX_SUM_LINE-2]='.';
+         outstr[MAX_SUM_LINE-1]='\0';
       }
-	  // LJT - Added check that our output string does not exceed our summary line maximum
-	  if ( strlen(outstr) >= MAX_SUM_LINE )
-	  {
-		  // truncate our outstr with '...' on the end
-		  outstr[MAX_SUM_LINE-4]='.';
-		  outstr[MAX_SUM_LINE-3]='.';
-		  outstr[MAX_SUM_LINE-2]='.';
-		  outstr[MAX_SUM_LINE-1]='\0';
-	  }
-     SafeCopy( get_sum_line(pi_data_bacnet_AL), outstr, MAX_SUM_LINE );
+      SafeCopy( get_sum_line(pi_data_bacnet_AL), outstr, MAX_SUM_LINE );
 /*
       sprintf (get_sum_line (pi_data_bacnet_AL),
-         "BACnet AL (%s)",outstr);
+               "BACnet AL (%s)",outstr);
 */
    }   /* End of Summary Line */
-   
+
    /* Set up for get_int_line calls */
    pi_data_current = pi_data_bacnet_AL;
 
@@ -2005,7 +2031,6 @@ int interp_bacnet_AL( char *header, int length )  /* Application Layer interpret
    }   /* End of Detail Lines */
 
    return length;
-
 }  /* End of Application Layer Interpreter */
 
 /**************************************************************************/
@@ -2020,11 +2045,11 @@ int interp_Message( char *header, int length)  /* message interpreter */
    if (pi_data_bacnet_IP->do_int) {
       pif_init(pi_data_Message, header, length);
       pif_header(length, "Message Detail");
-      bac_show_byte("Severity Code","%u");				// 1 byte
-      bac_show_long_hl("Script Line","%u");				// 4 bytes
+      bac_show_byte("Severity Code","%u");            // 1 byte
+      bac_show_long_hl("Script Line","%u");           // 4 bytes
       pif_show_nbytes_hex( "Digest                      = %s", 16 ); // 16 bytes
       pif_show_space();
-      pif_show_ascii( strlen(pif_get_addr()), "%s" );	// offset 21
+      pif_show_ascii( strlen(pif_get_addr()), "%s" ); // offset 21
       pif_show_space();
    }
 
@@ -2036,20 +2061,20 @@ int interp_Message( char *header, int length)  /* message interpreter */
 int interp_TextMessage( char *header, int length)  /* message interpreter */
 /**************************************************************************/
 {
-	/* Summary line? */
-	if (pi_data_Message->do_sum)
-		SafeCopy( get_sum_line(pi_data_Message), header, MAX_SUM_LINE );
-	
-	/* Detail line? */
-	if (pi_data_bacnet_IP->do_int) {
-		pif_init(pi_data_Message, header, length);
-		pif_header(length, "Message Detail");
-		pif_show_space();
-		pif_show_ascii( strlen(pif_get_addr()), "%s" );
-		pif_show_space();
-	}
-	
-	return length;
+   /* Summary line? */
+   if (pi_data_Message->do_sum)
+      SafeCopy( get_sum_line(pi_data_Message), header, MAX_SUM_LINE );
+   
+   /* Detail line? */
+   if (pi_data_bacnet_IP->do_int) {
+      pif_init(pi_data_Message, header, length);
+      pif_header(length, "Message Detail");
+      pif_show_space();
+      pif_show_ascii( strlen(pif_get_addr()), "%s" );
+      pif_show_space();
+   }
+   
+   return length;
 }
 
 /***************************************************************************/
@@ -2089,9 +2114,9 @@ void show_confirmed( unsigned char x )
       show_authenticate,                /* 24 */
       show_requestKey,                  /* 25 */
       show_ReadRange,                   /* 26 */
-      NULL,								/* 27 TODO: implement show_LifeSafetyOperation */
-	  show_subscribeCOV_Property,		/* 28 */
-	  show_getEventInformation          /* 29 Added by Zhu Zhenhua, 2004-5-25*/
+      NULL,                      /* 27 TODO: implement show_LifeSafetyOperation */
+     show_subscribeCOV_Property,    /* 28 */
+     show_getEventInformation          /* 29 Added by Zhu Zhenhua, 2004-5-25*/
    };
 
    /* --- display the confirmed service header detail --- */
@@ -2127,10 +2152,10 @@ void show_confirmed( unsigned char x )
      bac_show_byte("Sequence Number","%d");
      bac_show_byte("Proposed Window Size","%d");
 
-	 int service_type = pif_get_byte(0);
-	 sprintf(get_int_line(pi_data_current,pif_offset,1), "Service Choice %s",
-		     BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_type, "ConfRq"));
-	 pif_offset++;
+    int service_type = pif_get_byte(0);
+    sprintf(get_int_line(pi_data_current,pif_offset,1), "Service Choice %s",
+           BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_type, "ConfRq"));
+    pif_offset++;
 
      bac_show_nbytes( pif_end_offset - pif_offset, "[segmented data]" );
    }
@@ -2138,13 +2163,13 @@ void show_confirmed( unsigned char x )
    {
       pif_show_space();
       if ((pif_get_byte(0) >= max_confirmed_services) ||
-	      (show_confirmed_service[pif_get_byte(0)] == NULL)) 
-	  {
+         (show_confirmed_service[pif_get_byte(0)] == NULL)) 
+     {
          bac_show_byte("Error: Unsupported Confirmed Service","%u");
-	  }
+     }
       else {
          (*show_confirmed_service[pif_get_byte(0)])(); /* call the service interpreter function */
-	  }
+     }
    }
 }
 
@@ -2166,42 +2191,42 @@ void show_unconfirmed( unsigned char )
       show_UTCtimeSynchronization       /* 9 */
    };
    
-   switch(pif_get_byte(1))																		   //  ***002 begin
+   switch(pif_get_byte(1))                                                       //  ***002 begin
    {
    case 0:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "I-Am Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "I-Am Request");
+      break;
    case 1:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "I-Have Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "I-Have Request");
+      break;
    case 2:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed COV Notification Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed COV Notification Request");
+      break;
    case 3:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed Event Notification Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed Event Notification Request");
+      break;
    case 4:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed Private Transfer Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed Private Transfer Request");
+      break;
    case 5:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed Text Message Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Unconfirmed Text Message Request");
+      break;
    case 6:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Time Synchronization Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Time Synchronization Request");
+      break;
    case 7:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Who-Has Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Who-Has Request");
+      break;
    case 8:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Who-Is Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "Who-Is Request");
+      break;
    case 9:
-	   sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "UTC Time Synchronization Request");
-	   break;
+      sprintf(get_int_line(pi_data_current,pif_offset,2,NT_ITEM_HEAD), "UTC Time Synchronization Request");
+      break;
    default:
-	   // TODO: complain?
-	   break;
-   }																							   //  ***002 end
+      // TODO: complain?
+      break;
+   }                                                                       //  ***002 end
 
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
@@ -2253,8 +2278,8 @@ void show_complex_ack( unsigned char x )
       show_authenticateACK,            /* 24 */
       0,
       show_ReadRangeACK,               /* 26 */
-	  0,0,
-	  show_getEventInformationACK	   /* 29 Added by Zhu Zhenhua, 2004-5-25*/
+     0,0,
+     show_getEventInformationACK    /* 29 Added by Zhu Zhenhua, 2004-5-25*/
    };
    sprintf(outstr,"%"FW"s = X'%%02X'","First Header Octet");
    bac_show_flag(outstr,0xFF);
@@ -2268,23 +2293,23 @@ void show_complex_ack( unsigned char x )
      pif_show_byte   ("Sequence Number             = %d");
      bac_show_byte("Proposed Window Size","%d");
 
-	 int service_type = pif_get_byte(0);
-	 sprintf(get_int_line(pi_data_current,pif_offset,1), "Service Choice %s",
-		     BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_type, "ConfRq"));
-	 pif_offset++;
+    int service_type = pif_get_byte(0);
+    sprintf(get_int_line(pi_data_current,pif_offset,1), "Service Choice %s",
+           BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(service_type, "ConfRq"));
+    pif_offset++;
 
      bac_show_nbytes( pif_end_offset - pif_offset, "[segmented data]" );
    }
    else {
       /* call the confirmed service ACK interpreter function */
       if ((pif_get_byte(0) >= max_confirmed_services) ||
-   	      (show_confirmed_service_ACK[pif_get_byte(0)] == NULL)) 
-	  {
+            (show_confirmed_service_ACK[pif_get_byte(0)] == NULL)) 
+     {
          bac_show_byte("Error: Unsupported Complex ACK Type","%u");
-	  }
+     }
       else {
          (*show_confirmed_service_ACK[pif_get_byte(0)])();
-	  }
+     }
    }
 }
 
@@ -2308,12 +2333,12 @@ void show_error( unsigned char x )
 /**************************************************************************/
 {
    void (*show_confirmed_service_error[max_confirmed_services])() = {
-      show_error_codes,	// 0
+      show_error_codes, // 0
       show_error_codes,
       show_error_codes,
       show_error_codes,
       show_error_codes,
-      show_error_codes,	// 5
+      show_error_codes, // 5
       show_error_codes,
       show_error_codes,
       show_createObjectError,  /* 8 change list error - same as CreateObjectError*/
@@ -2323,12 +2348,12 @@ void show_error( unsigned char x )
       show_error_codes,
       show_error_codes,
       show_error_codes,
-      show_error_codes,	// 15
+      show_error_codes, // 15
       show_writePropertyMultipleError, // 16
       show_error_codes,
       show_error_codes,
       show_error_codes,
-      show_error_codes,	 // 20
+      show_error_codes,  // 20
       show_error_codes,
       show_vtCloseError, // 22
       show_error_codes,
@@ -2349,17 +2374,17 @@ void show_error( unsigned char x )
    int service = pif_get_byte(0);
    if (service < max_confirmed_services)
    {
-   	  sprintf(outstr,"%s Service Error",
-			  BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(pif_get_byte(0), "ConfRq"));
+        sprintf(outstr,"%s Service Error",
+           BAC_STRTAB_BACnetConfirmedServiceChoice.EnumString(pif_get_byte(0), "ConfRq"));
       bac_show_byte(outstr,"%u");
-	  if (show_confirmed_service_error[service] != NULL)
-	  {
-	     (*show_confirmed_service_error[service])();
-	  }
-	  else
-	  {
+     if (show_confirmed_service_error[service] != NULL)
+     {
+        (*show_confirmed_service_error[service])();
+     }
+     else
+     {
          show_error_codes();
-	  }
+     }
    }
    else {
       if (pif_get_byte(0) == 0) {
@@ -2367,9 +2392,9 @@ void show_error( unsigned char x )
          show_error_codes();
       }
       else
-	  {
+     {
          bac_show_byte("Error: Unsupported Error Designation","%u");
-	  }
+     }
    }
 }
 
@@ -2411,44 +2436,44 @@ void show_abort( unsigned char )
 // Else do not wrap
 void show_time_stamp( BACnetSequence &theSeq, int theTag, const char *pTheTitle )
 {
-	bool named = (pTheTitle != NULL) && (*pTheTitle != 0);
-	
-	if (theTag >= 0)
-	{
-		theSeq.OpeningTag( theTag, pTheTitle );
-	}
-	else if (named)
-	{
-		theSeq.BeginWrap( pTheTitle );
-	}
+   bool named = (pTheTitle != NULL) && (*pTheTitle != 0);
+   
+   if (theTag >= 0)
+   {
+      theSeq.OpeningTag( theTag, pTheTitle );
+   }
+   else if (named)
+   {
+      theSeq.BeginWrap( pTheTitle );
+   }
 
-	theSeq.BeginChoice();
-	theSeq.Time(           0, "time", BSQ_CHOICE );
-	theSeq.Unsigned(       1, "sequenceNumber", BSQ_CHOICE );
-	if (theSeq.OpeningTag( 2, "dateTime", BSQ_CHOICE ))
-	{
-		theSeq.Date( -1, "date", BSQ_CHOICE );
-		theSeq.Time( -1, "time", BSQ_CHOICE );
-		theSeq.ClosingTag();
-	}
-	theSeq.EndChoice();
+   theSeq.BeginChoice();
+   theSeq.Time(           0, "time", BSQ_CHOICE );
+   theSeq.Unsigned(       1, "sequenceNumber", BSQ_CHOICE );
+   if (theSeq.OpeningTag( 2, "dateTime", BSQ_CHOICE ))
+   {
+      theSeq.Date( -1, "date", BSQ_CHOICE );
+      theSeq.Time( -1, "time", BSQ_CHOICE );
+      theSeq.ClosingTag();
+   }
+   theSeq.EndChoice();
 
-	if (theTag >= 0)
-	{
-		theSeq.ClosingTag();
-	}
-	else if (named)
-	{
-		theSeq.EndWrap();
-	}
+   if (theTag >= 0)
+   {
+      theSeq.ClosingTag();
+   }
+   else if (named)
+   {
+      theSeq.EndWrap();
+   }
 }
 
 /*************************************************************************/
 // Show an Error
 void show_error( BACnetSequence &theSeq )
 {
-	theSeq.Enumerated( -1, "error-class", &BAC_STRTAB_BACnetErrorClass );
-	theSeq.Enumerated( -1, "error-code",  &BAC_STRTAB_BACnetErrorCode );
+   theSeq.Enumerated( -1, "error-class", &BAC_STRTAB_BACnetErrorClass );
+   theSeq.Enumerated( -1, "error-code",  &BAC_STRTAB_BACnetErrorCode );
 }
 
 /*************************************************************************/
@@ -2456,298 +2481,298 @@ void show_error( BACnetSequence &theSeq )
 // Default tag is [0].  Default string is "errorType"
 void show_wrapped_error( BACnetSequence &theSeq, int theTag, const char *pTheString )
 {
-	if (pTheString == NULL)
-	{
-		pTheString = "errorType";
-	}
-	
-	if (theSeq.OpeningTag( theTag, pTheString ))
-	{
-		show_error( theSeq );
-		theSeq.ClosingTag();
-	}
+   if (pTheString == NULL)
+   {
+      pTheString = "errorType";
+   }
+   
+   if (theSeq.OpeningTag( theTag, pTheString ))
+   {
+      show_error( theSeq );
+      theSeq.ClosingTag();
+   }
 }
 
 /*************************************************************************/
 // Show a BACnetPropertyReference
 void show_bac_property_reference( BACnetSequence &theSeq )
 {
-	theSeq.PropertyIdentifier( 0, "propertyIdentifier" );
-	theSeq.PropertyArrayIndex( 1, "propertyArrayIndex", BSQ_OPTIONAL );
+   theSeq.PropertyIdentifier( 0, "propertyIdentifier" );
+   theSeq.PropertyArrayIndex( 1, "propertyArrayIndex", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
 // Show a BACnetObjectPropertyReference
 void show_bac_object_property_reference( BACnetSequence &theSeq )
 {
-	theSeq.ObjectIdentifier(   0, "objectIdentifier" );
-	theSeq.PropertyIdentifier( 1, "propertyIdentifier" );
-	theSeq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+   theSeq.ObjectIdentifier(   0, "objectIdentifier" );
+   theSeq.PropertyIdentifier( 1, "propertyIdentifier" );
+   theSeq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
 // Show a BACnetPropertyValue
 void show_bac_property_value( BACnetSequence &theSeq, int theObjectType )
 {
-	theSeq.PropertyIdentifier( 0, "propertyIdentifier" );
-	theSeq.PropertyArrayIndex( 1, "propertyArrayIndex", BSQ_OPTIONAL );
-	if (theSeq.OpeningTag(     2, "value" ))
-	{
-		show_bac_ANY( theSeq, theObjectType, theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
-		theSeq.ClosingTag();
-	}
+   theSeq.PropertyIdentifier( 0, "propertyIdentifier" );
+   theSeq.PropertyArrayIndex( 1, "propertyArrayIndex", BSQ_OPTIONAL );
+   if (theSeq.OpeningTag(     2, "value" ))
+   {
+      show_bac_ANY( theSeq, theObjectType, theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
+      theSeq.ClosingTag();
+   }
 
-	theSeq.Unsigned(           3, "priority", BSQ_OPTIONAL );
+   theSeq.Unsigned(           3, "priority", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
 // Show a BACnetObjectPropertyValue
 void show_bac_object_property_value( BACnetSequence &theSeq, int theObjectType )
 {
-	theSeq.ObjectIdentifier(   0, "objectIdentifier" );
-	theSeq.PropertyIdentifier( 1, "propertyIdentifier" );
-	theSeq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
-	if (theSeq.OpeningTag(     3, "value" ))
-	{
-		show_bac_ANY( theSeq, theSeq.LastObjectType(), theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
-		theSeq.ClosingTag();
-	}
+   theSeq.ObjectIdentifier(   0, "objectIdentifier" );
+   theSeq.PropertyIdentifier( 1, "propertyIdentifier" );
+   theSeq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+   if (theSeq.OpeningTag(     3, "value" ))
+   {
+      show_bac_ANY( theSeq, theSeq.LastObjectType(), theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
+      theSeq.ClosingTag();
+   }
 
-	theSeq.Unsigned(           4, "priority", BSQ_OPTIONAL );
+   theSeq.Unsigned(           4, "priority", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
 // Show a WriteAccessSpecification
 void show_write_access_specification( BACnetSequence &theSeq )
 {
-	theSeq.ObjectIdentifier( 0, "objectIdentifier" );
-	int objectType = theSeq.LastObjectType();
-	theSeq.ListOf(           1, "listOfPropertyReferences" );
-	while (theSeq.HasListElement())
-	{
-		show_bac_property_value( theSeq, objectType );
-	}
+   theSeq.ObjectIdentifier( 0, "objectIdentifier" );
+   int objectType = theSeq.LastObjectType();
+   theSeq.ListOf(           1, "listOfPropertyReferences" );
+   while (theSeq.HasListElement())
+   {
+      show_bac_property_value( theSeq, objectType );
+   }
 }
 
 /*************************************************************************/
 // Show a ReadAccessSpecification
 void show_read_access_spec( BACnetSequence &theSeq )
 {
-	theSeq.ObjectIdentifier( 0, "objectIdentifier" );
-	theSeq.ListOf(           1, "listOfPropertyReferences" );
-	while (theSeq.HasListElement())
-	{
-		show_bac_property_reference( theSeq );
-	}
+   theSeq.ObjectIdentifier( 0, "objectIdentifier" );
+   theSeq.ListOf(           1, "listOfPropertyReferences" );
+   while (theSeq.HasListElement())
+   {
+      show_bac_property_reference( theSeq );
+   }
 }
 
 /*************************************************************************/
 // Show a ReadAccessResult
 void show_read_access_result( BACnetSequence &theSeq )
 {
-	theSeq.ObjectIdentifier( 0, "objectIdentifier" );
+   theSeq.ObjectIdentifier( 0, "objectIdentifier" );
 
-	// Save the object, since ANY parsing might overwrite the seq members
-	unsigned int objectID = theSeq.LastObjectIdentifier();
-	int objectType = theSeq.LastObjectType();
-	
-	theSeq.ListOf(           1, "listOfResults" );
-	while (theSeq.HasListElement())
-	{
-		theSeq.PropertyIdentifier( 2, "propertyIdentifier" );
-		theSeq.PropertyArrayIndex( 3, "propertyArrayIndex", BSQ_OPTIONAL );
-		theSeq.BeginChoice();
-		if (theSeq.OpeningTag( 4, "propertyValue", BSQ_CHOICE ))
-		{
-			// TODO: is this really the best way to do this?
-			// For one thing, we don't really even know which DEVICE this
-			// response is from.
-			// Defined in EPICSTreeView.cpp.  Active only if the EPICS tree is open.
-			//	
-			// madanner 9/04 add calls to EPICS read property tracker
-			::EPICS_AddRPValue( objectID, theSeq.LastPropertyID(), theSeq.LastPropertyIndex(),
-								pif_get_addr(), pif_end_offset - pif_offset);
+   // Save the object, since ANY parsing might overwrite the seq members
+   unsigned int objectID = theSeq.LastObjectIdentifier();
+   int objectType = theSeq.LastObjectType();
+   
+   theSeq.ListOf(           1, "listOfResults" );
+   while (theSeq.HasListElement())
+   {
+      theSeq.PropertyIdentifier( 2, "propertyIdentifier" );
+      theSeq.PropertyArrayIndex( 3, "propertyArrayIndex", BSQ_OPTIONAL );
+      theSeq.BeginChoice();
+      if (theSeq.OpeningTag( 4, "propertyValue", BSQ_CHOICE ))
+      {
+         // TODO: is this really the best way to do this?
+         // For one thing, we don't really even know which DEVICE this
+         // response is from.
+         // Defined in EPICSTreeView.cpp.  Active only if the EPICS tree is open.
+         // 
+         // madanner 9/04 add calls to EPICS read property tracker
+         ::EPICS_AddRPValue( objectID, theSeq.LastPropertyID(), theSeq.LastPropertyIndex(),
+                        pif_get_addr(), pif_end_offset - pif_offset);
 
-			show_bac_ANY( theSeq, objectType, theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
-			theSeq.ClosingTag();
-		}
-		if (theSeq.OpeningTag( 5, "propertyAccessError", BSQ_CHOICE ))
-		{
-			theSeq.Enumerated( -1, "error-class", &BAC_STRTAB_BACnetErrorClass );
-			theSeq.Enumerated( -1, "error-code",  &BAC_STRTAB_BACnetErrorCode );
-			theSeq.ClosingTag();
-		}
-		theSeq.EndChoice();
-	}
+         show_bac_ANY( theSeq, objectType, theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
+         theSeq.ClosingTag();
+      }
+      if (theSeq.OpeningTag( 5, "propertyAccessError", BSQ_CHOICE ))
+      {
+         theSeq.Enumerated( -1, "error-class", &BAC_STRTAB_BACnetErrorClass );
+         theSeq.Enumerated( -1, "error-code",  &BAC_STRTAB_BACnetErrorCode );
+         theSeq.ClosingTag();
+      }
+      theSeq.EndChoice();
+   }
 }
 
 /**************************************************************************/
 // Show a BACnetDeviceObjectPropertyReference
 void show_bac_dev_obj_prop_ref( BACnetSequence &theSeq )
 {
-	theSeq.ObjectIdentifier(   0, "objectIdentifier" );
-	theSeq.PropertyIdentifier( 1, "propertyIdentifier" );
-	theSeq.PropertyArrayIndex( 2, "arrayIndex", BSQ_OPTIONAL );
-	theSeq.ObjectIdentifier(   3, "deviceIdentifier", BSQ_OPTIONAL );
+   theSeq.ObjectIdentifier(   0, "objectIdentifier" );
+   theSeq.PropertyIdentifier( 1, "propertyIdentifier" );
+   theSeq.PropertyArrayIndex( 2, "arrayIndex", BSQ_OPTIONAL );
+   theSeq.ObjectIdentifier(   3, "deviceIdentifier", BSQ_OPTIONAL );
 }
 
 /**************************************************************************/
 // Show a BACnetDeviceObjectPropertyValue
 void show_bac_dev_obj_prop_val( BACnetSequence &theSeq )
 {
-	theSeq.ObjectIdentifier(   0, "deviceIdentifier" );
-	theSeq.ObjectIdentifier(   1, "objectIdentifier" );
-	theSeq.PropertyIdentifier( 2, "propertyIdentifier" );
-	theSeq.PropertyArrayIndex( 3, "arrayIndex", BSQ_OPTIONAL );
-	if (theSeq.OpeningTag(     4, "value" ))
-	{
-		show_bac_ANY( theSeq, theSeq.LastObjectType(), theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
-		theSeq.ClosingTag();
-	}
+   theSeq.ObjectIdentifier(   0, "deviceIdentifier" );
+   theSeq.ObjectIdentifier(   1, "objectIdentifier" );
+   theSeq.PropertyIdentifier( 2, "propertyIdentifier" );
+   theSeq.PropertyArrayIndex( 3, "arrayIndex", BSQ_OPTIONAL );
+   if (theSeq.OpeningTag(     4, "value" ))
+   {
+      show_bac_ANY( theSeq, theSeq.LastObjectType(), theSeq.LastPropertyID(), theSeq.LastPropertyIndex() );
+      theSeq.ClosingTag();
+   }
 }
 
 /**************************************************************************/
 // Show a BACnetAddress
 void show_bacnet_address( BACnetSequence &theSeq, const char *pTheTitle )
 {
-	if ((pTheTitle == NULL) || (*pTheTitle == 0))
-	{
-		pTheTitle = "BACnetAddress";
-	}
-	
-	theSeq.BeginWrap( pTheTitle );
-	theSeq.Unsigned(    -1, "network-number" );
-	theSeq.OctetString( -1, "mac-address" );
-	theSeq.EndWrap();
+   if ((pTheTitle == NULL) || (*pTheTitle == 0))
+   {
+      pTheTitle = "BACnetAddress";
+   }
+   
+   theSeq.BeginWrap( pTheTitle );
+   theSeq.Unsigned(    -1, "network-number" );
+   theSeq.OctetString( -1, "mac-address" );
+   theSeq.EndWrap();
 }
 
 static const char* weeks[] =
 {
-	"invalid",	// 0
-	"1st",
-	"2nd",
-	"3rd",
-	"4th",
-	"5th",
-	"last"		// 6
+   "invalid",  // 0
+   "1st",
+   "2nd",
+   "3rd",
+   "4th",
+   "5th",
+   "last"      // 6
 };
 
 /**************************************************************************/
 // Show a BACnetCalendarEntry
 void show_calendar_entry( BACnetSequence &theSeq )
 {
-	theSeq.BeginChoice();
-	theSeq.Date(             0, "date", BSQ_CHOICE );
-	if (theSeq.OpeningTag(   1, "dateRange", BSQ_CHOICE ))
-	{
-		theSeq.Date( -1, "startDate" );
-		theSeq.Date( -1, "endDate" );
-		theSeq.ClosingTag();
-	}
-	if (theSeq.VetPrimitive( 2, -1, BSQ_CHOICE ))
-	{
-		// Encoding is as an octet-string.  But we want to show 3 bytes:
-		// - month 1-12, odd, even, any
-		// - week of month (1-7), (8-14), (15-21), (22-28), (29-31), (last 7), or any
-		// - day 1 to 7 or any
-		theSeq.Parse();
-		BacParser &par = theSeq.Parser();
-		unsigned int len = par.DataLength();
-		if (len != 3)
-		{
-			theSeq.Fail( "Expected BACnetWeekNDay.  Got length %u", len );
-		}
-		else
-		{
-			char *pStr = outstr;
-			unsigned int offset = par.Offset();
-			unsigned int x = pif_get_byte( offset );
-			if (x == 255)
-				pStr += sprintf(pStr,"any month, ");
-			else if (x < 15)
-				pStr += sprintf(pStr,"%s, ", BAC_STRTAB_month.EnumString(x));
-			else
-				theSeq.Fail( "Expected BACnetWeekNDay: got month %u", x );
+   theSeq.BeginChoice();
+   theSeq.Date(             0, "date", BSQ_CHOICE );
+   if (theSeq.OpeningTag(   1, "dateRange", BSQ_CHOICE ))
+   {
+      theSeq.Date( -1, "startDate" );
+      theSeq.Date( -1, "endDate" );
+      theSeq.ClosingTag();
+   }
+   if (theSeq.VetPrimitive( 2, -1, BSQ_CHOICE ))
+   {
+      // Encoding is as an octet-string.  But we want to show 3 bytes:
+      // - month 1-12, odd, even, any
+      // - week of month (1-7), (8-14), (15-21), (22-28), (29-31), (last 7), or any
+      // - day 1 to 7 or any
+      theSeq.Parse();
+      BacParser &par = theSeq.Parser();
+      unsigned int len = par.DataLength();
+      if (len != 3)
+      {
+         theSeq.Fail( "Expected BACnetWeekNDay.  Got length %u", len );
+      }
+      else
+      {
+         char *pStr = outstr;
+         unsigned int offset = par.Offset();
+         unsigned int x = pif_get_byte( offset );
+         if (x == 255)
+            pStr += sprintf(pStr,"any month, ");
+         else if (x < 15)
+            pStr += sprintf(pStr,"%s, ", BAC_STRTAB_month.EnumString(x));
+         else
+            theSeq.Fail( "Expected BACnetWeekNDay: got month %u", x );
 
-			x = pif_get_byte( offset+1 );
-			if (x == 255)
-				pStr += sprintf(pStr,"any week, ");
-			else if (x <= 6)
-				pStr += sprintf(pStr,"%s week, ", weeks[x]);
-			else
-				theSeq.Fail( "Expected BACnetWeekNDay: got week %u", x );
+         x = pif_get_byte( offset+1 );
+         if (x == 255)
+            pStr += sprintf(pStr,"any week, ");
+         else if (x <= 6)
+            pStr += sprintf(pStr,"%s week, ", weeks[x]);
+         else
+            theSeq.Fail( "Expected BACnetWeekNDay: got week %u", x );
 
-			x = pif_get_byte( offset+2 );
-			if (x == 255)
-				sprintf(pStr,"any day");
-			else if (x < 8)
-				sprintf(pStr,BAC_STRTAB_day_of_week.EnumString(x));
-			else
-				theSeq.Fail( "Expected BACnetWeekNDay: got day %u", x );
+         x = pif_get_byte( offset+2 );
+         if (x == 255)
+            sprintf(pStr,"any day");
+         else if (x < 8)
+            sprintf(pStr,BAC_STRTAB_day_of_week.EnumString(x));
+         else
+            theSeq.Fail( "Expected BACnetWeekNDay: got day %u", x );
 
-			if (theSeq.IsOK())
-			{
-				sprintf(get_int_line(pi_data_current,pif_offset, offset + 3, NT_ITEM_HEAD), 
-					    "[2] weekNDay: %s", outstr);
+         if (theSeq.IsOK())
+         {
+            sprintf(get_int_line(pi_data_current,pif_offset, offset + 3, NT_ITEM_HEAD), 
+                   "[2] weekNDay: %s", outstr);
 
-				// Show the octet version
-				unsigned int len = show_tag();
-				show_bac_octetstring(len);
-				theSeq.Synch();
-			}
-		}
-	}
+            // Show the octet version
+            unsigned int len = show_tag();
+            show_bac_octetstring(len);
+            theSeq.Synch();
+         }
+      }
+   }
 
-	theSeq.EndChoice();
+   theSeq.EndChoice();
 }
 
 /**************************************************************************/
 // Show a commandable value.  Used for Priority_Array element, and Relinquish_Default
 void show_bac_commandable_value( BACnetSequence &seq, int theObjectType )
 {
-	switch (theObjectType) {
+   switch (theObjectType) {
     case 1:  /* Analog_Out */
     case 2:  /* Analog_Value */
-		seq.Real( -1, "" );
-		break;
-	case 4:  /* Binary_Output */
+      seq.Real( -1, "" );
+      break;
+   case 4:  /* Binary_Output */
     case 5:  /* Binary_Value */
-		seq.Enumerated( -1, "BACnetBinaryPV", &BAC_STRTAB_BACnetBinaryPV );
-		break;
-	case 14: /* Multistate_Output */
-	case 19: /* Multistate_Value */
-		seq.Unsigned( -1, "" );
-		break;
-	case 30: /* Access Door - Enumerated */
-		seq.Enumerated( -1, "BACnetDoorValue", &BAC_STRTAB_BACnetDoorValue );
-		break;
-	case -1:
-		// We don't have an object type to determine WHAT this is.
-		seq.AnyTaggedItem(true);
-		break;
-	default:
-		if (seq.OpeningTag( 0, "constructedValue" ))
-		{
-			seq.AnyTaggedItem();
-			seq.ClosingTag();
-		}
-		break;
-	}
+      seq.Enumerated( -1, "BACnetBinaryPV", &BAC_STRTAB_BACnetBinaryPV );
+      break;
+   case 14: /* Multistate_Output */
+   case 19: /* Multistate_Value */
+      seq.Unsigned( -1, "" );
+      break;
+   case 30: /* Access Door - Enumerated */
+      seq.Enumerated( -1, "BACnetDoorValue", &BAC_STRTAB_BACnetDoorValue );
+      break;
+   case -1:
+      // We don't have an object type to determine WHAT this is.
+      seq.AnyTaggedItem(true);
+      break;
+   default:
+      if (seq.OpeningTag( 0, "constructedValue" ))
+      {
+         seq.AnyTaggedItem();
+         seq.ClosingTag();
+      }
+      break;
+   }
 }
 
 /**************************************************************************/
 // Show a BACnetPriorityValue
 void show_bac_priority_value( BACnetSequence &theSeq, int theObjectType )
 {
-	theSeq.Parse();
-	if ((theSeq.Parser().TagValue() == 0) && (theSeq.Parser().FixedTag()))
-	{
-		theSeq.Null( -1, "null" );
-	}
-	else
-	{
-		show_bac_commandable_value( theSeq, theObjectType );
-	}
+   theSeq.Parse();
+   if ((theSeq.Parser().TagValue() == 0) && (theSeq.Parser().FixedTag()))
+   {
+      theSeq.Null( -1, "null" );
+   }
+   else
+   {
+      show_bac_commandable_value( theSeq, theObjectType );
+   }
 }
 
 /**************************************************************************/
@@ -2755,30 +2780,30 @@ void show_acknowledgeAlarm( void )
 /**************************************************************************/
   /* This function interprets AcknowledgeAlarm service requests */
 {
-	bac_show_byte("Acknowledge Alarm Request","%u");
-	BACnetSequence seq;
-	seq.Unsigned(         0, "acknowledgingProcessIdentifier" );
-	seq.ObjectIdentifier( 1, "eventObjectIdentifier" );
-	seq.Enumerated(       2, "eventStateAcknowledged", &BAC_STRTAB_BACnetEventState );
-	show_time_stamp( seq, 3, "timeStamp" );
-	seq.TextString(       4, "acknowledgementSource" );
-	show_time_stamp( seq, 5, "timeOfAcknowledgement" );
+   bac_show_byte("Acknowledge Alarm Request","%u");
+   BACnetSequence seq;
+   seq.Unsigned(         0, "acknowledgingProcessIdentifier" );
+   seq.ObjectIdentifier( 1, "eventObjectIdentifier" );
+   seq.Enumerated(       2, "eventStateAcknowledged", &BAC_STRTAB_BACnetEventState );
+   show_time_stamp( seq, 3, "timeStamp" );
+   seq.TextString(       4, "acknowledgementSource" );
+   show_time_stamp( seq, 5, "timeOfAcknowledgement" );
 }
 
 /**************************************************************************/
 void show_COVNotification( void )
 {
-	BACnetSequence seq;
-	seq.Unsigned(         0, "subscriberProcessIdentifier" );
-	seq.ObjectIdentifier( 1, "initiatingDeviceIdentifier" );
-	seq.ObjectIdentifier( 2, "monitoredObjectIdentifier" );
-	int objectType = seq.LastObjectType();
-	seq.Unsigned(         3, "timeRemaining (seconds)" );
-	seq.ListOf(           4, "listOfValues" ); 
-	while (seq.HasListElement())
-	{
-		show_bac_property_value( seq, objectType );
-	}
+   BACnetSequence seq;
+   seq.Unsigned(         0, "subscriberProcessIdentifier" );
+   seq.ObjectIdentifier( 1, "initiatingDeviceIdentifier" );
+   seq.ObjectIdentifier( 2, "monitoredObjectIdentifier" );
+   int objectType = seq.LastObjectType();
+   seq.Unsigned(         3, "timeRemaining (seconds)" );
+   seq.ListOf(           4, "listOfValues" ); 
+   while (seq.HasListElement())
+   {
+      show_bac_property_value( seq, objectType );
+   }
 }
 
 /**************************************************************************/
@@ -2786,169 +2811,169 @@ void show_confirmedCOVNotification( void )
 /**************************************************************************/
   /* This function interprets ConfirmedCOVNotification requests */
 {
-	bac_show_byte("Confirmed COV Notification Request","%u");
-	show_COVNotification();
+   bac_show_byte("Confirmed COV Notification Request","%u");
+   show_COVNotification();
 }
 
 /**************************************************************************/
 void show_EventNotification( BACnetSequence &seq )
 {
-	seq.Unsigned(         0, "processIdentifier" );
-	seq.ObjectIdentifier( 1, "initiatingDeviceIdentifier" );
-	int objectType = seq.LastObjectType();
-	seq.ObjectIdentifier( 2, "eventObjectIdentifier" );
-	show_time_stamp( seq,   3, "timeStamp" );
+   seq.Unsigned(         0, "processIdentifier" );
+   seq.ObjectIdentifier( 1, "initiatingDeviceIdentifier" );
+   int objectType = seq.LastObjectType();
+   seq.ObjectIdentifier( 2, "eventObjectIdentifier" );
+   show_time_stamp( seq,   3, "timeStamp" );
 
-	seq.Unsigned(   4, "notificationClass" );
-	seq.Unsigned(   5, "priority" );
-	seq.Enumerated( 6, "eventType", &BAC_STRTAB_BACnetEventType );
-	seq.TextString( 7, "messageText", BSQ_OPTIONAL );
+   seq.Unsigned(   4, "notificationClass" );
+   seq.Unsigned(   5, "priority" );
+   seq.Enumerated( 6, "eventType", &BAC_STRTAB_BACnetEventType );
+   seq.TextString( 7, "messageText", BSQ_OPTIONAL );
 
-	seq.Enumerated( 8, "notifyType", &BAC_STRTAB_BACnetNotifyType );
-	unsigned int notify_type = seq.LastEnumeration();
+   seq.Enumerated( 8, "notifyType", &BAC_STRTAB_BACnetNotifyType );
+   unsigned int notify_type = seq.LastEnumeration();
 
-	bool gotOpt = seq.Boolean( 9, "ackRequired", BSQ_OPTIONAL );
-	gotOpt &= seq.Enumerated( 10, "fromState", &BAC_STRTAB_BACnetEventState, BSQ_OPTIONAL );
+   bool gotOpt = seq.Boolean( 9, "ackRequired", BSQ_OPTIONAL );
+   gotOpt &= seq.Enumerated( 10, "fromState", &BAC_STRTAB_BACnetEventState, BSQ_OPTIONAL );
     if (!gotOpt && (notify_type != 2))
-	{
-		 seq.Fail("Missing required notification parameters");
+   {
+       seq.Fail("Missing required notification parameters");
     }
 
-	seq.Enumerated( 11, "toState", &BAC_STRTAB_BACnetEventState );
+   seq.Enumerated( 11, "toState", &BAC_STRTAB_BACnetEventState );
 
-	if (seq.OpeningTag( 12, "eventValues", BSQ_OPTIONAL ))
-	{
-		seq.BeginChoice();
-		if (seq.OpeningTag( 0, "Change of Bitstring parameters", BSQ_CHOICE ))
-		{
-			seq.BitString( 0, "referencedBitstring" );
-			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
- 			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 1, "Change of State parameters", BSQ_CHOICE ))
-		{
-			if (seq.OpeningTag( 0, "newState" ))
-			{
-				show_bac_property_states(seq);
-				seq.ClosingTag();
-			}
+   if (seq.OpeningTag( 12, "eventValues", BSQ_OPTIONAL ))
+   {
+      seq.BeginChoice();
+      if (seq.OpeningTag( 0, "Change of Bitstring parameters", BSQ_CHOICE ))
+      {
+         seq.BitString( 0, "referencedBitstring" );
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 1, "Change of State parameters", BSQ_CHOICE ))
+      {
+         if (seq.OpeningTag( 0, "newState" ))
+         {
+            show_bac_property_states(seq);
+            seq.ClosingTag();
+         }
 
-			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 2, "Change of Value parameters", BSQ_CHOICE ))
-		{
-			if (seq.OpeningTag( 0, "newValue" ))
-			{
-				seq.BeginChoice();
-				seq.BitString( 0, "changedBits", NULL, BSQ_CHOICE );
-				seq.Real(      1, "changedValue", BSQ_CHOICE );
-				seq.EndChoice();
-				seq.ClosingTag();
-			}
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 2, "Change of Value parameters", BSQ_CHOICE ))
+      {
+         if (seq.OpeningTag( 0, "newValue" ))
+         {
+            seq.BeginChoice();
+            seq.BitString( 0, "changedBits", NULL, BSQ_CHOICE );
+            seq.Real(      1, "changedValue", BSQ_CHOICE );
+            seq.EndChoice();
+            seq.ClosingTag();
+         }
 
-			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 3, "Command Fail parameters", BSQ_CHOICE ))
-		{
-			seq.ListOf(    0, "commandValue" );
-			while (seq.HasListElement())
-			{
-				seq.AnyTaggedItem();
-			}
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 3, "Command Fail parameters", BSQ_CHOICE ))
+      {
+         seq.ListOf(    0, "commandValue" );
+         while (seq.HasListElement())
+         {
+            seq.AnyTaggedItem();
+         }
 
-			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
-			seq.ListOf(    2, "feedbackValue" );
-			while (seq.HasListElement())
-			{
-				seq.AnyTaggedItem();
-			}
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.ListOf(    2, "feedbackValue" );
+         while (seq.HasListElement())
+         {
+            seq.AnyTaggedItem();
+         }
 
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 4, "Floating Limit parameters", BSQ_CHOICE ))
-		{
-			seq.Real( 0, "referencedValue" );
-			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
-			seq.Real( 2, "setpointValue" );
-			seq.Real( 3, "errorLimit" );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 4, "Floating Limit parameters", BSQ_CHOICE ))
+      {
+         seq.Real( 0, "referencedValue" );
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.Real( 2, "setpointValue" );
+         seq.Real( 3, "errorLimit" );
 
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 5, "Out of Range parameters", BSQ_CHOICE ))
-		{
-			seq.Real( 0, "exceedingValue" );
-			seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
-			seq.Real( 2, "deadband" );
-			seq.Real( 3, "exceededLimit" );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 5, "Out of Range parameters", BSQ_CHOICE ))
+      {
+         seq.Real( 0, "exceedingValue" );
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.Real( 2, "deadband" );
+         seq.Real( 3, "exceededLimit" );
 
-			seq.ClosingTag();
-		}
-		else if (seq.ListOf( 6, "Complex Event parameters", BSQ_CHOICE ))
-		{
-			while (seq.HasListElement())
-			{
-				show_bac_property_value( seq, objectType );
-			}
-		}
-		else if (seq.OpeningTag( 8, "Change of Life Safety parameters", BSQ_CHOICE ))
-		{
-			seq.Enumerated( 0, "newState", &BAC_STRTAB_BACnetLifeSafetyState );
-			seq.Enumerated( 1, "newMode", &BAC_STRTAB_BACnetLifeSafetyMode );
+         seq.ClosingTag();
+      }
+      else if (seq.ListOf( 6, "Complex Event parameters", BSQ_CHOICE ))
+      {
+         while (seq.HasListElement())
+         {
+            show_bac_property_value( seq, objectType );
+         }
+      }
+      else if (seq.OpeningTag( 8, "Change of Life Safety parameters", BSQ_CHOICE ))
+      {
+         seq.Enumerated( 0, "newState", &BAC_STRTAB_BACnetLifeSafetyState );
+         seq.Enumerated( 1, "newMode", &BAC_STRTAB_BACnetLifeSafetyMode );
 
-			seq.BitString(  2, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
-			seq.Enumerated( 3, "operationExpected", &BAC_STRTAB_BACnetLifeSafetyOperation );
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 9, "Extended Notification Parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(   0, "vendor-id" );
-			seq.Unsigned(   1, "extended-event-type" );
-			seq.ListOf(     2, "parameters" );
-			while (seq.HasListElement())
-			{
-				seq.BeginChoice();
-				seq.Null( -1, "null", BSQ_CHOICE );
-				seq.Real( -1, "real", BSQ_CHOICE );
-				seq.Unsigned( -1, "integer", BSQ_CHOICE );
-				seq.Boolean( -1, "boolean", BSQ_CHOICE );
-				seq.Double( -1, "double", BSQ_CHOICE );
-				seq.OctetString( -1, "octet", BSQ_CHOICE );
-				seq.BitString( -1, "bitstring", NULL, BSQ_CHOICE );
-				seq.Enumerated( -1, "enumerated", NULL, BSQ_CHOICE );
-				if (seq.OpeningTag( 0, "PropertyValue", BSQ_CHOICE ))
-				{
-					show_bac_dev_obj_prop_val( seq );
-					seq.ClosingTag();
-				}
-				seq.EndChoice();
-			}
+         seq.BitString(  2, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.Enumerated( 3, "operationExpected", &BAC_STRTAB_BACnetLifeSafetyOperation );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 9, "Extended Notification Parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(   0, "vendor-id" );
+         seq.Unsigned(   1, "extended-event-type" );
+         seq.ListOf(     2, "parameters" );
+         while (seq.HasListElement())
+         {
+            seq.BeginChoice();
+            seq.Null( -1, "null", BSQ_CHOICE );
+            seq.Real( -1, "real", BSQ_CHOICE );
+            seq.Unsigned( -1, "integer", BSQ_CHOICE );
+            seq.Boolean( -1, "boolean", BSQ_CHOICE );
+            seq.Double( -1, "double", BSQ_CHOICE );
+            seq.OctetString( -1, "octet", BSQ_CHOICE );
+            seq.BitString( -1, "bitstring", NULL, BSQ_CHOICE );
+            seq.Enumerated( -1, "enumerated", NULL, BSQ_CHOICE );
+            if (seq.OpeningTag( 0, "PropertyValue", BSQ_CHOICE ))
+            {
+               show_bac_dev_obj_prop_val( seq );
+               seq.ClosingTag();
+            }
+            seq.EndChoice();
+         }
 
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 10, "Buffer-Ready Notification Parameters", BSQ_CHOICE ))
-		{
-			if (seq.OpeningTag( 0, "buffer-property", BSQ_CHOICE ))
-			{
-				show_bac_dev_obj_prop_ref( seq );
-				seq.ClosingTag();
-			}
-			seq.Unsigned( 1, "previous-notification" );
-			seq.Unsigned( 2, "current-notification" );
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 11, "Unsigned-range Notification Parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(  0, "exceeding-value" );
-			seq.BitString( 1, "status-flags", &BAC_STRTAB_BACnetStatusFlags );
-			seq.Unsigned(  2, "exceeded-limit" );
-			seq.ClosingTag();
-		}
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 10, "Buffer-Ready Notification Parameters", BSQ_CHOICE ))
+      {
+         if (seq.OpeningTag( 0, "buffer-property", BSQ_CHOICE ))
+         {
+            show_bac_dev_obj_prop_ref( seq );
+            seq.ClosingTag();
+         }
+         seq.Unsigned( 1, "previous-notification" );
+         seq.Unsigned( 2, "current-notification" );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 11, "Unsigned-range Notification Parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(  0, "exceeding-value" );
+         seq.BitString( 1, "status-flags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.Unsigned(  2, "exceeded-limit" );
+         seq.ClosingTag();
+      }
 
-		seq.EndChoice();
-		seq.ClosingTag();
-	}
+      seq.EndChoice();
+      seq.ClosingTag();
+   }
 }
 
 /**************************************************************************/
@@ -2956,9 +2981,9 @@ void show_confirmedEventNotification( void )
 /**************************************************************************/
 /* This function interprets ConfirmedEventNotification service requests */
 {
-	bac_show_byte("Confirmed Event Notification","%u");
-	BACnetSequence seq;
-	show_EventNotification( seq );
+   bac_show_byte("Confirmed Event Notification","%u");
+   BACnetSequence seq;
+   show_EventNotification( seq );
 }
 
 /**************************************************************************/
@@ -2966,7 +2991,7 @@ void show_getAlarmSummary( void )
 /**************************************************************************/
   /* This function interprets GetAlarmSummary service requests */
 {
-	bac_show_byte("Get Alarm Summary Request","%u");
+   bac_show_byte("Get Alarm Summary Request","%u");
 }
 
 //Added by Zhu Zhenhua, 2004-5-25
@@ -2975,9 +3000,9 @@ void show_getEventInformation( void )
 /**************************************************************************/
   /* This function interprets GetEventInformation service requests */
 {
-	bac_show_byte("Get Event Information Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier( 0, "Last Received Object Identifier", BSQ_OPTIONAL );
+   bac_show_byte("Get Event Information Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier( 0, "Last Received Object Identifier", BSQ_OPTIONAL );
 }
 
 //Added by Zhu Zhenhua, 2004-5-25
@@ -2986,32 +3011,32 @@ void show_getEventInformationACK( void )
 /**************************************************************************/
 /* This function interprets GetEventInformationACK service requests */
 {
-	bac_show_byte("Get Event Information Ack","%u");
-	BACnetSequence seq;
-	seq.ListOf( 0, "List of Event Summary" );
-	while (seq.HasListElement())
-	{
-		seq.ObjectIdentifier( 0, "Object Identifier" );
-		seq.Enumerated(       1, "Event State", &BAC_STRTAB_BACnetEventState );
-		seq.BitString(        2, "Acknowledged Transitions", &BAC_STRTAB_BACnetEventTransitionBits );
-		if (seq.OpeningTag(   3, "Event Time Stamps" ))
-		{
-			show_time_stamp( seq, -1, "to-off-normal time" );
-			show_time_stamp( seq, -1, "to-fault time" );
-			show_time_stamp( seq, -1, "to-normal time" );
-			seq.ClosingTag();
-		}
-		seq.Enumerated( 4, "Notify Type", &BAC_STRTAB_BACnetNotifyType );
-		seq.BitString(  5, "Event Enable", &BAC_STRTAB_BACnetEventTransitionBits );
-		if (seq.OpeningTag( 6, "Event Priorities" ))
-		{
-			seq.Unsigned( -1, "to-off-normal" );
-			seq.Unsigned( -1, "to-fault" );
-			seq.Unsigned( -1, "to-normal" );
-			seq.ClosingTag();
-		}
-	}
-	seq.Boolean( 1, "more events" );
+   bac_show_byte("Get Event Information Ack","%u");
+   BACnetSequence seq;
+   seq.ListOf( 0, "List of Event Summary" );
+   while (seq.HasListElement())
+   {
+      seq.ObjectIdentifier( 0, "Object Identifier" );
+      seq.Enumerated(       1, "Event State", &BAC_STRTAB_BACnetEventState );
+      seq.BitString(        2, "Acknowledged Transitions", &BAC_STRTAB_BACnetEventTransitionBits );
+      if (seq.OpeningTag(   3, "Event Time Stamps" ))
+      {
+         show_time_stamp( seq, -1, "to-off-normal time" );
+         show_time_stamp( seq, -1, "to-fault time" );
+         show_time_stamp( seq, -1, "to-normal time" );
+         seq.ClosingTag();
+      }
+      seq.Enumerated( 4, "Notify Type", &BAC_STRTAB_BACnetNotifyType );
+      seq.BitString(  5, "Event Enable", &BAC_STRTAB_BACnetEventTransitionBits );
+      if (seq.OpeningTag( 6, "Event Priorities" ))
+      {
+         seq.Unsigned( -1, "to-off-normal" );
+         seq.Unsigned( -1, "to-fault" );
+         seq.Unsigned( -1, "to-normal" );
+         seq.ClosingTag();
+      }
+   }
+   seq.Boolean( 1, "more events" );
 }
 
 /**************************************************************************/
@@ -3019,71 +3044,71 @@ void show_getEnrollmentSummary( void )
 /**************************************************************************/
   /* This function interprets GetEnrollment service requests */
 {
-	bac_show_byte("Get Enrollment Summary Request","%u");
-	BACnetSequence seq;
-	seq.Enumerated( 0, "acknowledgementFilter", &BAC_STRTAB_Acknowledgement_Filter );
-	if (seq.OpeningTag( 1, "enrollmentFilter", BSQ_OPTIONAL ))
-	{
-		show_bac_recipient_process( seq );
-		seq.ClosingTag();
-	}
-	seq.Enumerated( 2, "eventStateFilter Filter", &BAC_STRTAB_EventState_Filter, BSQ_OPTIONAL );
-	seq.Enumerated( 3, "eventTypeFilter", &BAC_STRTAB_BACnetEventType, BSQ_OPTIONAL );
-	if (seq.OpeningTag( 4, "priorityFilter", BSQ_OPTIONAL ))
-	{
-		seq.Unsigned( 0, "minPriority" );
-		seq.Unsigned( 1, "maxPriority" );
-		seq.ClosingTag();
-	}
-	seq.Unsigned(   5, "notificationClassFilter", BSQ_OPTIONAL );
+   bac_show_byte("Get Enrollment Summary Request","%u");
+   BACnetSequence seq;
+   seq.Enumerated( 0, "acknowledgementFilter", &BAC_STRTAB_Acknowledgement_Filter );
+   if (seq.OpeningTag( 1, "enrollmentFilter", BSQ_OPTIONAL ))
+   {
+      show_bac_recipient_process( seq );
+      seq.ClosingTag();
+   }
+   seq.Enumerated( 2, "eventStateFilter Filter", &BAC_STRTAB_EventState_Filter, BSQ_OPTIONAL );
+   seq.Enumerated( 3, "eventTypeFilter", &BAC_STRTAB_BACnetEventType, BSQ_OPTIONAL );
+   if (seq.OpeningTag( 4, "priorityFilter", BSQ_OPTIONAL ))
+   {
+      seq.Unsigned( 0, "minPriority" );
+      seq.Unsigned( 1, "maxPriority" );
+      seq.ClosingTag();
+   }
+   seq.Unsigned(   5, "notificationClassFilter", BSQ_OPTIONAL );
 }
 
 /**************************************************************************/
 void show_subscribeCOV( void )
 /**************************************************************************/
 {
-	bac_show_byte("Subscribe COV Request","%u");
-	BACnetSequence seq;
-	seq.Unsigned(             0, "subscriberProcessIdentifier" );
-	seq.ObjectIdentifier(     1, "monitoredObjectIdentifier" );
-	bool conf = seq.Boolean(  2, "issueConfirmedNotifications", BSQ_OPTIONAL );
-	bool life = seq.Unsigned( 3, "lifetime", BSQ_OPTIONAL );
-	if (!life && !conf)
-	{
-		show_head_ascii("Subscription Cancellation Request");
-	}
-	else if (life && !conf)
-	{
-		ShowErrorDetail("Error: missing issueConfirmedNotifications");
-	}
+   bac_show_byte("Subscribe COV Request","%u");
+   BACnetSequence seq;
+   seq.Unsigned(             0, "subscriberProcessIdentifier" );
+   seq.ObjectIdentifier(     1, "monitoredObjectIdentifier" );
+   bool conf = seq.Boolean(  2, "issueConfirmedNotifications", BSQ_OPTIONAL );
+   bool life = seq.Unsigned( 3, "lifetime", BSQ_OPTIONAL );
+   if (!life && !conf)
+   {
+      show_head_ascii("Subscription Cancellation Request");
+   }
+   else if (life && !conf)
+   {
+      ShowErrorDetail("Error: missing issueConfirmedNotifications");
+   }
 }
 
 /**************************************************************************/
 void show_subscribeCOV_Property( void )
 /**************************************************************************/
 {
-	bac_show_byte("Subscribe COV Property Request","%u");
-	BACnetSequence seq;
-	seq.Unsigned(             0, "subscriberProcessIdentifier" );
-	seq.ObjectIdentifier(     1, "monitoredObjectIdentifier" );
-	bool conf = seq.Boolean(  2, "issueConfirmedNotifications", BSQ_OPTIONAL );
-	bool life = seq.Unsigned( 3, "lifetime", BSQ_OPTIONAL );
-	if (!life && !conf)
-	{
-		show_head_ascii("Subscription Cancellation Request");
-	}
-	else if (life && !conf)
-	{
-		ShowErrorDetail("Error: missing issueConfirmedNotifications");
-	}
+   bac_show_byte("Subscribe COV Property Request","%u");
+   BACnetSequence seq;
+   seq.Unsigned(             0, "subscriberProcessIdentifier" );
+   seq.ObjectIdentifier(     1, "monitoredObjectIdentifier" );
+   bool conf = seq.Boolean(  2, "issueConfirmedNotifications", BSQ_OPTIONAL );
+   bool life = seq.Unsigned( 3, "lifetime", BSQ_OPTIONAL );
+   if (!life && !conf)
+   {
+      show_head_ascii("Subscription Cancellation Request");
+   }
+   else if (life && !conf)
+   {
+      ShowErrorDetail("Error: missing issueConfirmedNotifications");
+   }
 
-	if (seq.OpeningTag( 4, "monitoredPropertyIdentifier" ))
-	{
-		show_bac_property_reference( seq);
-		seq.ClosingTag();
-	}
+   if (seq.OpeningTag( 4, "monitoredPropertyIdentifier" ))
+   {
+      show_bac_property_reference( seq);
+      seq.ClosingTag();
+   }
 
-	seq.Real( 5, "covIncrement", BSQ_OPTIONAL );
+   seq.Real( 5, "covIncrement", BSQ_OPTIONAL );
 }
 
 /**************************************************************************/
@@ -3091,23 +3116,23 @@ void show_atomicReadFile( void )
 /**************************************************************************/
   /* This function interprets AtomicReadFile service requests */
 {
-	bac_show_byte("Atomic Read File Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier( -1, "fileIdentifier" );
-	seq.BeginChoice();
-	if (seq.OpeningTag( 0, "streamAccess", BSQ_CHOICE ))
-	{
-		seq.Integer(  -1, "fileStartPosition" );
-		seq.Unsigned( -1, "requestedOctetCount" );
-		seq.ClosingTag();
-	}
-	if (seq.OpeningTag( 1, "recordAccess", BSQ_CHOICE ))
-	{
-		seq.Integer(  -1, "fileStartRecord" );
-		seq.Unsigned( -1, "requestedRecordCount" );
-		seq.ClosingTag();
-	}
-	seq.EndChoice();
+   bac_show_byte("Atomic Read File Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier( -1, "fileIdentifier" );
+   seq.BeginChoice();
+   if (seq.OpeningTag( 0, "streamAccess", BSQ_CHOICE ))
+   {
+      seq.Integer(  -1, "fileStartPosition" );
+      seq.Unsigned( -1, "requestedOctetCount" );
+      seq.ClosingTag();
+   }
+   if (seq.OpeningTag( 1, "recordAccess", BSQ_CHOICE ))
+   {
+      seq.Integer(  -1, "fileStartRecord" );
+      seq.Unsigned( -1, "requestedRecordCount" );
+      seq.ClosingTag();
+   }
+   seq.EndChoice();
 }
     
 /**************************************************************************/
@@ -3115,28 +3140,28 @@ void show_atomicWriteFile( void )
 /**************************************************************************/
   /* This function interprets AtomicWriteFile service requests */
 {
-	bac_show_byte("Atomic Write File Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier( -1, "fileIdentifier" );
-	seq.BeginChoice();
-	if (seq.OpeningTag( 0, "streamAccess", BSQ_CHOICE ))
-	{
-		seq.Integer(     -1, "fileStartPosition" );
-		seq.OctetString( -1, "fileData" );
-		seq.ClosingTag();
-	}
-	if (seq.OpeningTag( 1, "recordAccess", BSQ_CHOICE ))
-	{
-		seq.Integer(  -1, "fileStartRecord" );
-		seq.Unsigned( -1, "recordCount" );
-		seq.ListOf(       "fileRecordData" );
-		while (seq.HasListElement())
-		{
-			seq.OctetString( -1, "record" );
-		}
-		seq.ClosingTag();
-	}
-	seq.EndChoice();
+   bac_show_byte("Atomic Write File Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier( -1, "fileIdentifier" );
+   seq.BeginChoice();
+   if (seq.OpeningTag( 0, "streamAccess", BSQ_CHOICE ))
+   {
+      seq.Integer(     -1, "fileStartPosition" );
+      seq.OctetString( -1, "fileData" );
+      seq.ClosingTag();
+   }
+   if (seq.OpeningTag( 1, "recordAccess", BSQ_CHOICE ))
+   {
+      seq.Integer(  -1, "fileStartRecord" );
+      seq.Unsigned( -1, "recordCount" );
+      seq.ListOf(       "fileRecordData" );
+      while (seq.HasListElement())
+      {
+         seq.OctetString( -1, "record" );
+      }
+      seq.ClosingTag();
+   }
+   seq.EndChoice();
 }
 
 /**************************************************************************/
@@ -3144,16 +3169,16 @@ void show_addListElement( void )
 /*************************************************************************/
   /* This function interprets AddListElement service requests */
 {
-	bac_show_byte("Add List Element Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier(   0, "objectIdentifier" );
-	seq.PropertyIdentifier( 1, "propertyIdentifier" );
-	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
-	if (seq.OpeningTag(     3, "listOfElements" ))
-	{
-		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
-		seq.ClosingTag();
-	}
+   bac_show_byte("Add List Element Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier(   0, "objectIdentifier" );
+   seq.PropertyIdentifier( 1, "propertyIdentifier" );
+   seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+   if (seq.OpeningTag(     3, "listOfElements" ))
+   {
+      show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+      seq.ClosingTag();
+   }
 }
 
 /*************************************************************************/
@@ -3161,16 +3186,16 @@ void show_removeListElement( void )
 /*************************************************************************/
   /* This function interprets RemoveListElement service requests */
 {
-	bac_show_byte("Remove List Element Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier(   0, "objectIdentifier" );
-	seq.PropertyIdentifier( 1, "propertyIdentifier" );
-	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
-	if (seq.OpeningTag(     3, "listOfElements" ))
-	{
-		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
-		seq.ClosingTag();
-	}
+   bac_show_byte("Remove List Element Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier(   0, "objectIdentifier" );
+   seq.PropertyIdentifier( 1, "propertyIdentifier" );
+   seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+   if (seq.OpeningTag(     3, "listOfElements" ))
+   {
+      show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+      seq.ClosingTag();
+   }
 }
 
 /*************************************************************************/
@@ -3178,29 +3203,29 @@ void show_createObject( void )
 /*************************************************************************/
   /* This function interprets CreateObject service requests */
 {
-	bac_show_byte("Create Object Request","%u");
-	int objectType = -1;
-	BACnetSequence seq;
-	seq.OpeningTag( 0, "objectSpecifier" );
-	seq.BeginChoice();
-	if (seq.Enumerated(       0, "objectType", &BAC_STRTAB_BACnetObjectType, BSQ_CHOICE))
-	{
-		objectType = seq.LastEnumeration();
-	}
-	if (seq.ObjectIdentifier( 1, "objectIdentifier", BSQ_CHOICE ))
-	{
-		objectType = seq.LastObjectType();
-	}
-	seq.EndChoice();
-	seq.ClosingTag();
+   bac_show_byte("Create Object Request","%u");
+   int objectType = -1;
+   BACnetSequence seq;
+   seq.OpeningTag( 0, "objectSpecifier" );
+   seq.BeginChoice();
+   if (seq.Enumerated(       0, "objectType", &BAC_STRTAB_BACnetObjectType, BSQ_CHOICE))
+   {
+      objectType = seq.LastEnumeration();
+   }
+   if (seq.ObjectIdentifier( 1, "objectIdentifier", BSQ_CHOICE ))
+   {
+      objectType = seq.LastObjectType();
+   }
+   seq.EndChoice();
+   seq.ClosingTag();
 
-	if (seq.ListOf( 1, "listOfInitialValues", BSQ_OPTIONAL ))
-	{
-		while (seq.HasListElement())
-		{
-			show_bac_property_value( seq, objectType );
-		}
-	}
+   if (seq.ListOf( 1, "listOfInitialValues", BSQ_OPTIONAL ))
+   {
+      while (seq.HasListElement())
+      {
+         show_bac_property_value( seq, objectType );
+      }
+   }
 }
 
 /*************************************************************************/
@@ -3208,9 +3233,9 @@ void show_deleteObject( void )
 /*************************************************************************/
   /* This function interprets DeleteObject service requests */
 {
-	bac_show_byte("Delete Object Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier( -1, "objectIdentifier" );
+   bac_show_byte("Delete Object Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier( -1, "objectIdentifier" );
 }
 
 /*************************************************************************/
@@ -3218,11 +3243,11 @@ void show_readProperty( void )
 /*************************************************************************/
   /* This function interprets ReadProperty service requests */
 {
-	bac_show_byte("Read Property Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier(   0, "objectIdentifier" );
-	seq.PropertyIdentifier( 1, "propertyIdentifier" );
-	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+   bac_show_byte("Read Property Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier(   0, "objectIdentifier" );
+   seq.PropertyIdentifier( 1, "propertyIdentifier" );
+   seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
@@ -3230,35 +3255,35 @@ void show_readPropertyConditional( void )
 /*************************************************************************/
   /* This function interprets ReadPropertyConditional service requests */
 {
-	bac_show_byte("Read Property Conditional Request","%u");
-	BACnetSequence seq;
-	if (seq.OpeningTag( 0, "objectSelectionCriteria" ))
-	{
-		seq.Enumerated( 0, "selectionLogic", &BAC_STRTAB_Selection_Logic );
-		if (seq.ListOf( 1, "listOfSelectionCriteria", BSQ_OPTIONAL ))
-		{
-			while (seq.HasListElement())
-			{
-				seq.PropertyIdentifier( 0, "propertyIdentifier" );
-				seq.PropertyArrayIndex( 1, "propertyArrayIndex", BSQ_OPTIONAL );
-				seq.Enumerated(         2, "relationSpecifier", &BAC_STRTAB_Relation_Specifier );
-				if (seq.OpeningTag(     3, "comparisonValue" ))
-				{
-					// TODO: this won't work correctly for those properties
-					// which depend on object type
-					show_bac_ANY( seq, -1, seq.LastPropertyID(), seq.LastPropertyIndex() );
-					seq.ClosingTag();
-				}
-			}
-		}
-		seq.ClosingTag();
-	}
+   bac_show_byte("Read Property Conditional Request","%u");
+   BACnetSequence seq;
+   if (seq.OpeningTag( 0, "objectSelectionCriteria" ))
+   {
+      seq.Enumerated( 0, "selectionLogic", &BAC_STRTAB_Selection_Logic );
+      if (seq.ListOf( 1, "listOfSelectionCriteria", BSQ_OPTIONAL ))
+      {
+         while (seq.HasListElement())
+         {
+            seq.PropertyIdentifier( 0, "propertyIdentifier" );
+            seq.PropertyArrayIndex( 1, "propertyArrayIndex", BSQ_OPTIONAL );
+            seq.Enumerated(         2, "relationSpecifier", &BAC_STRTAB_Relation_Specifier );
+            if (seq.OpeningTag(     3, "comparisonValue" ))
+            {
+               // TODO: this won't work correctly for those properties
+               // which depend on object type
+               show_bac_ANY( seq, -1, seq.LastPropertyID(), seq.LastPropertyIndex() );
+               seq.ClosingTag();
+            }
+         }
+      }
+      seq.ClosingTag();
+   }
 
-	if (seq.OpeningTag( 0, "listOfPropertyReferences" , BSQ_OPTIONAL))
-	{
-		show_bac_property_reference(seq);
-		seq.ClosingTag();
-	}
+   if (seq.OpeningTag( 0, "listOfPropertyReferences" , BSQ_OPTIONAL))
+   {
+      show_bac_property_reference(seq);
+      seq.ClosingTag();
+   }
 }
 
 /*************************************************************************/
@@ -3266,13 +3291,13 @@ void show_readPropertyMultiple( void )
 /*************************************************************************/
   /* This function interprets ReadPropertyMultiple service requests */
 {
-	bac_show_byte("Read Property Multiple Request","%u");
-	BACnetSequence seq;
-	seq.ListOf( "listOfReadAccessSpecs" );
-	while (seq.HasListElement())
-	{
-		show_read_access_spec( seq );
-	}
+   bac_show_byte("Read Property Multiple Request","%u");
+   BACnetSequence seq;
+   seq.ListOf( "listOfReadAccessSpecs" );
+   while (seq.HasListElement())
+   {
+      show_read_access_spec( seq );
+   }
 }
 
 /*************************************************************************/
@@ -3280,15 +3305,15 @@ void show_writeProperty( void )
 /*************************************************************************/
   /* This function interprets WriteProperty service requests */
 {
-	bac_show_byte("Write Property Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier(   0, "Object Identifier", BSQ_REQUIRED );
-	seq.PropertyIdentifier( 1, "Property Identifier", BSQ_REQUIRED );
-	seq.PropertyArrayIndex( 2, "Property Array Index", BSQ_OPTIONAL );
-	seq.OpeningTag(         3, "PropertyValue" );
-		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
-	seq.ClosingTag();
-	seq.Unsigned(           4, "Priority", BSQ_OPTIONAL );
+   bac_show_byte("Write Property Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier(   0, "Object Identifier", BSQ_REQUIRED );
+   seq.PropertyIdentifier( 1, "Property Identifier", BSQ_REQUIRED );
+   seq.PropertyArrayIndex( 2, "Property Array Index", BSQ_OPTIONAL );
+   seq.OpeningTag(         3, "PropertyValue" );
+      show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+   seq.ClosingTag();
+   seq.Unsigned(           4, "Priority", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
@@ -3296,24 +3321,24 @@ void show_writePropertyMultiple( void )
 /*************************************************************************/
   /* This function interprets WritePropertyMultiple service requests */
 {
-	bac_show_byte("Write Property Multiple Request","%u");
-	BACnetSequence seq;
-	seq.ListOf( "listOfWriteAccessSpecifications" );
-	while (seq.HasListElement())
-	{
-		show_write_access_specification( seq );
-	}
+   bac_show_byte("Write Property Multiple Request","%u");
+   BACnetSequence seq;
+   seq.ListOf( "listOfWriteAccessSpecifications" );
+   while (seq.HasListElement())
+   {
+      show_write_access_specification( seq );
+   }
 }
 
 /*************************************************************************/
 void show_deviceCommunicationControl( void )
 /*************************************************************************/
 {
-	bac_show_byte("Device Communication Control Request","%u");
-	BACnetSequence seq;
-	seq.Unsigned(   0, "timeDuration", BSQ_OPTIONAL );
-	seq.Enumerated( 1, "enable-disable", &BAC_STRTAB_DeviceCommControl_Command );
-	seq.TextString( 2, "password", BSQ_OPTIONAL );
+   bac_show_byte("Device Communication Control Request","%u");
+   BACnetSequence seq;
+   seq.Unsigned(   0, "timeDuration", BSQ_OPTIONAL );
+   seq.Enumerated( 1, "enable-disable", &BAC_STRTAB_DeviceCommControl_Command );
+   seq.TextString( 2, "password", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
@@ -3321,16 +3346,16 @@ void show_deviceCommunicationControl( void )
 // Used to show Confirmed-Request, Confirmed-ACK, and Unconfirmed
 void show_private_transfer( void )
 {
-	BACnetSequence seq;
-	seq.Unsigned(   0, "vendorID" );
-	seq.Unsigned(   1, "serviceNumber" );
-	if (seq.ListOf( 2, "serviceParameters", BSQ_OPTIONAL ))
-	{
-		while (seq.HasListElement())
-		{
-			seq.AnyTaggedItem();
-		}
-	}
+   BACnetSequence seq;
+   seq.Unsigned(   0, "vendorID" );
+   seq.Unsigned(   1, "serviceNumber" );
+   if (seq.ListOf( 2, "serviceParameters", BSQ_OPTIONAL ))
+   {
+      while (seq.HasListElement())
+      {
+         seq.AnyTaggedItem();
+      }
+   }
 }
 
 /*************************************************************************/
@@ -3338,34 +3363,34 @@ void show_privateTransfer( void )
 /*************************************************************************/
   /* This function interprets ConfirmedPrivateTransfer service requests */
 {
-	bac_show_byte("Private Transfer Request","%u");
-	show_private_transfer();
+   bac_show_byte("Private Transfer Request","%u");
+   show_private_transfer();
 }
 
 /*************************************************************************/
 void show_textMessage( void )
 {
-	BACnetSequence seq;
-	seq.ObjectIdentifier( 0, "textMessageSource" );
-	if (seq.OpeningTag(   1, "messageClass", BSQ_OPTIONAL ))
-	{
-		seq.BeginChoice();
-		seq.Unsigned(   0, "numeric", BSQ_CHOICE );
-		seq.TextString( 1, "character", BSQ_CHOICE );
-		seq.EndChoice();
-		seq.ClosingTag();
-	}
+   BACnetSequence seq;
+   seq.ObjectIdentifier( 0, "textMessageSource" );
+   if (seq.OpeningTag(   1, "messageClass", BSQ_OPTIONAL ))
+   {
+      seq.BeginChoice();
+      seq.Unsigned(   0, "numeric", BSQ_CHOICE );
+      seq.TextString( 1, "character", BSQ_CHOICE );
+      seq.EndChoice();
+      seq.ClosingTag();
+   }
 
-	seq.Enumerated( 2, "messagePriority", &BAC_STRTAB_TextMessage_Priority );
-	seq.TextString( 3, "message" );
+   seq.Enumerated( 2, "messagePriority", &BAC_STRTAB_TextMessage_Priority );
+   seq.TextString( 3, "message" );
 }
 
 /*************************************************************************/
 void show_confirmedTextMessage( void )
 /*************************************************************************/
 {
-	bac_show_byte("Confirmed Text Message Request","%u");
-	show_textMessage();
+   bac_show_byte("Confirmed Text Message Request","%u");
+   show_textMessage();
 }
 
 /*************************************************************************/
@@ -3373,10 +3398,10 @@ void show_reinitializeDevice( void )
 /*************************************************************************/
   /* This function interprets ReinitializeDevice service requests */
 {
-	bac_show_byte("Reinitialize Device Request","%u");
-	BACnetSequence seq;
-	seq.Enumerated( 0, "reinitializedStateOfDevice", &BAC_STRTAB_BACnetReinitializedStateOfDevice );
-	seq.TextString( 1, "password", BSQ_OPTIONAL );
+   bac_show_byte("Reinitialize Device Request","%u");
+   BACnetSequence seq;
+   seq.Enumerated( 0, "reinitializedStateOfDevice", &BAC_STRTAB_BACnetReinitializedStateOfDevice );
+   seq.TextString( 1, "password", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
@@ -3384,10 +3409,10 @@ void show_vtOpen( void )
 /*************************************************************************/
   /* This function interprets VT-Open service requests */
 {
-	bac_show_byte("VT-Open Request","%u");
-	BACnetSequence seq;
-	seq.Enumerated( -1, "vtCalss", &BAC_STRTAB_BACnetVTClass );
-	seq.Unsigned(   -1, "localVTSessionIdentifier" );
+   bac_show_byte("VT-Open Request","%u");
+   BACnetSequence seq;
+   seq.Enumerated( -1, "vtCalss", &BAC_STRTAB_BACnetVTClass );
+   seq.Unsigned(   -1, "localVTSessionIdentifier" );
 }
 
 /*************************************************************************/
@@ -3395,13 +3420,13 @@ void show_vtClose( void )
 /*************************************************************************/
   /* This function interprets VT-Close service requests */
 {
-	bac_show_byte("VT-Close Request","%u");
-	BACnetSequence seq;
-	seq.ListOf( "listOfRemoteVTSessionIdentifiers" );
-	while (seq.HasListElement())
-	{
-		seq.Unsigned( -1, "sessionID" );
-	}
+   bac_show_byte("VT-Close Request","%u");
+   BACnetSequence seq;
+   seq.ListOf( "listOfRemoteVTSessionIdentifiers" );
+   while (seq.HasListElement())
+   {
+      seq.Unsigned( -1, "sessionID" );
+   }
 }
 
 /*************************************************************************/
@@ -3409,36 +3434,36 @@ void show_vtData( void )
 /*************************************************************************/
   /* This function interprets VT-Data service requests */
 {
-	bac_show_byte("VT Data Request","%u");
-	BACnetSequence seq;
-	seq.Unsigned(    -1, "vtSessionIdentifier" );
-	seq.OctetString( -1, "vtNewData" );
-	seq.Unsigned(    -1, "vtDataFlag" );
+   bac_show_byte("VT Data Request","%u");
+   BACnetSequence seq;
+   seq.Unsigned(    -1, "vtSessionIdentifier" );
+   seq.OctetString( -1, "vtNewData" );
+   seq.Unsigned(    -1, "vtDataFlag" );
 }
 
 /**************************************************************************/
 void show_authenticate( void )
 /**************************************************************************/
 {
-	bac_show_byte("Authenticate Request","%u");
-	BACnetSequence seq;
-	seq.Unsigned(   0, "pseudoRandomNumber" );
-	seq.Unsigned(   1, "expectedInvokeID", BSQ_OPTIONAL );
-	seq.TextString( 2, "operatorName", BSQ_OPTIONAL );
-	seq.TextString( 3, "operatorPassword", BSQ_OPTIONAL );
-	seq.Boolean(    4, "startEncipheredSession", BSQ_OPTIONAL );
+   bac_show_byte("Authenticate Request","%u");
+   BACnetSequence seq;
+   seq.Unsigned(   0, "pseudoRandomNumber" );
+   seq.Unsigned(   1, "expectedInvokeID", BSQ_OPTIONAL );
+   seq.TextString( 2, "operatorName", BSQ_OPTIONAL );
+   seq.TextString( 3, "operatorPassword", BSQ_OPTIONAL );
+   seq.Boolean(    4, "startEncipheredSession", BSQ_OPTIONAL );
 }
 
 /**************************************************************************/
 void show_requestKey( void )
 /**************************************************************************/
 {
-	bac_show_byte("Request Key Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier(     -1, "requestingDeviceIdentifier" );
-	show_bacnet_address( seq, "requestingDeviceAddress" );
-	seq.ObjectIdentifier(     -1, "remoteDeviceIdentifier" );
-	show_bacnet_address( seq, "remoteDeviceAddress" );
+   bac_show_byte("Request Key Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier(     -1, "requestingDeviceIdentifier" );
+   show_bacnet_address( seq, "requestingDeviceAddress" );
+   seq.ObjectIdentifier(     -1, "remoteDeviceIdentifier" );
+   show_bacnet_address( seq, "remoteDeviceAddress" );
 }
 
 /*************************************************************************/
@@ -3446,12 +3471,12 @@ void show_iAm( void )
 /*************************************************************************/
   /* This function interprets I-Am service requests */
 {
-	bac_show_byte("I-Am Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier( -1, "iAmDeviceIdentifier" );
-	seq.Unsigned(         -1, "maxAPDULengthAccepted" );
-	seq.Enumerated(       -1, "segmentationSupported", &BAC_STRTAB_BACnetSegmentation );
-	seq.Unsigned(         -1, "vendorID" );
+   bac_show_byte("I-Am Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier( -1, "iAmDeviceIdentifier" );
+   seq.Unsigned(         -1, "maxAPDULengthAccepted" );
+   seq.Enumerated(       -1, "segmentationSupported", &BAC_STRTAB_BACnetSegmentation );
+   seq.Unsigned(         -1, "vendorID" );
 }
 
 /*************************************************************************/
@@ -3459,11 +3484,11 @@ void show_iHave( void )
 /*************************************************************************/
   /* This function interprets I-Have service requests */
 {
-	bac_show_byte("I-Have Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier( -1, "deviceIdentifier" );
-	seq.ObjectIdentifier( -1, "objectIdentifier" );
-	seq.TextString(       -1, "objectName" );
+   bac_show_byte("I-Have Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier( -1, "deviceIdentifier" );
+   seq.ObjectIdentifier( -1, "objectIdentifier" );
+   seq.TextString(       -1, "objectName" );
 }
 
 /**************************************************************************/
@@ -3471,8 +3496,8 @@ void show_unconfirmedCOVNotification( void )
 /**************************************************************************/
   /* This function interprets unconfirmedCOVNotification requests */
 {
-	bac_show_byte("Unconfirmed COV Notification Request","%u");
-	show_COVNotification();
+   bac_show_byte("Unconfirmed COV Notification Request","%u");
+   show_COVNotification();
 }
 
 /*************************************************************************/
@@ -3480,9 +3505,9 @@ void show_unconfEventNotification( void )
 /*************************************************************************/
   /* This function interprets UnconfirmedEventNotification service requests */
 {
-	bac_show_byte("Unconfirmed Event Notification Request","%u");
-	BACnetSequence seq;
-	show_EventNotification( seq );
+   bac_show_byte("Unconfirmed Event Notification Request","%u");
+   BACnetSequence seq;
+   show_EventNotification( seq );
 }
 
 /*************************************************************************/
@@ -3490,16 +3515,16 @@ void show_unconfPrivateTransfer( void )
 /*************************************************************************/
   /* This function interprets UnconfirmedPrivateTransfer service requests */
 {
-	bac_show_byte("Unconfirmed Private Transfer Request","%u");
-	show_private_transfer();
+   bac_show_byte("Unconfirmed Private Transfer Request","%u");
+   show_private_transfer();
 }
 
 /*************************************************************************/
 void show_unconfTextMessage( void )
 /*************************************************************************/
 {
-	bac_show_byte("Unconfirmed Text Message Request","%u");
-	show_textMessage();
+   bac_show_byte("Unconfirmed Text Message Request","%u");
+   show_textMessage();
 }
 
 /*************************************************************************/
@@ -3507,20 +3532,20 @@ void show_timeSynchronization( void )
 /*************************************************************************/
   /* This function interprets Time Synchronization requests */
 {
-	bac_show_byte("Time Synchronization Request","%u");
-	BACnetSequence seq;
-	seq.Date( -1, "date" );
-	seq.Time( -1, "time" );
+   bac_show_byte("Time Synchronization Request","%u");
+   BACnetSequence seq;
+   seq.Date( -1, "date" );
+   seq.Time( -1, "time" );
 }
 /*************************************************************************/
   /* This function interprets UTC Time Synchronization requests */
 
 void show_UTCtimeSynchronization( void )
 {
-	bac_show_byte("UTC Time Synchronization Request","%u");
-	BACnetSequence seq;
-	seq.Date( -1, "date" );
-	seq.Time( -1, "time" );
+   bac_show_byte("UTC Time Synchronization Request","%u");
+   BACnetSequence seq;
+   seq.Date( -1, "date" );
+   seq.Time( -1, "time" );
 }
 
 /*************************************************************************/
@@ -3528,19 +3553,19 @@ void show_whoHas( void )
 /*************************************************************************/
   /* This function interprets Who-Has service requests */
 {
-	bac_show_byte("Who-Has Request","%u");
-	BACnetSequence seq;
-	bool gotLow  = seq.Unsigned( 0, "deviceInstanceRangeLowLimit", BSQ_OPTIONAL );
-	bool gotHigh = seq.Unsigned( 1, "deviceInstanceRangeHighLimit", BSQ_OPTIONAL );
-	if (gotLow ^ gotHigh)
-	{
-		seq.Fail( "Error: must have BOTH low and high range limit or NEITHER" );
-	}
+   bac_show_byte("Who-Has Request","%u");
+   BACnetSequence seq;
+   bool gotLow  = seq.Unsigned( 0, "deviceInstanceRangeLowLimit", BSQ_OPTIONAL );
+   bool gotHigh = seq.Unsigned( 1, "deviceInstanceRangeHighLimit", BSQ_OPTIONAL );
+   if (gotLow ^ gotHigh)
+   {
+      seq.Fail( "Error: must have BOTH low and high range limit or NEITHER" );
+   }
 
-	seq.BeginChoice();
-	seq.ObjectIdentifier( 2, "objectIdentifier", BSQ_CHOICE );
-	seq.TextString(       3, "objectName", BSQ_CHOICE );
-	seq.EndChoice();
+   seq.BeginChoice();
+   seq.ObjectIdentifier( 2, "objectIdentifier", BSQ_CHOICE );
+   seq.TextString(       3, "objectName", BSQ_CHOICE );
+   seq.EndChoice();
 }
 
 /*************************************************************************/
@@ -3548,14 +3573,14 @@ void show_whoIs( void )
 /*************************************************************************/
   /* This function interprets Who-Is service requests */
 {
-	bac_show_byte("Who-Is Request","%u");
-	BACnetSequence seq;
-	bool gotLow  = seq.Unsigned( 0, "deviceInstanceRangeLowLimit", BSQ_OPTIONAL );
-	bool gotHigh = seq.Unsigned( 1, "deviceInstanceRangeHighLimit", BSQ_OPTIONAL );
-	if (gotLow ^ gotHigh)
-	{
-		seq.Fail( "Error: must have BOTH low and high range limit or NEITHER" );
-	}
+   bac_show_byte("Who-Is Request","%u");
+   BACnetSequence seq;
+   bool gotLow  = seq.Unsigned( 0, "deviceInstanceRangeLowLimit", BSQ_OPTIONAL );
+   bool gotHigh = seq.Unsigned( 1, "deviceInstanceRangeHighLimit", BSQ_OPTIONAL );
+   if (gotLow ^ gotHigh)
+   {
+      seq.Fail( "Error: must have BOTH low and high range limit or NEITHER" );
+   }
 }
 
 /*************************************************************************/
@@ -3563,15 +3588,15 @@ void show_getAlarmSummaryACK( void )
 /*************************************************************************/
   /* This function interprets GetAlarmSummary acknowledgements */
 {
-	bac_show_byte("Get Alarm Summary Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.ListOf( "sequence of" );
-	while (seq.HasListElement())
-	{
-		seq.ObjectIdentifier( -1, "objectIdentifier" );
-		seq.Enumerated(       -1, "alarmState", &BAC_STRTAB_BACnetEventState );
-		seq.BitString(        -1, "acknowledgedTransitions", &BAC_STRTAB_BACnetEventTransitionBits );
-	}
+   bac_show_byte("Get Alarm Summary Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.ListOf( "sequence of" );
+   while (seq.HasListElement())
+   {
+      seq.ObjectIdentifier( -1, "objectIdentifier" );
+      seq.Enumerated(       -1, "alarmState", &BAC_STRTAB_BACnetEventState );
+      seq.BitString(        -1, "acknowledgedTransitions", &BAC_STRTAB_BACnetEventTransitionBits );
+   }
 }
 
 /*************************************************************************/
@@ -3579,17 +3604,17 @@ void show_getEnrollmentSummaryACK( void )
 /*************************************************************************/
   /* This function interprets GetEnrollmentSummary acknowledgements */
 {
-	bac_show_byte("Get Enrollment Summary Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.ListOf( "sequence of" );
-	while (seq.HasListElement())
-	{
-		seq.ObjectIdentifier( -1, "objectIdentifier" );
-		seq.Enumerated(       -1, "eventType", &BAC_STRTAB_BACnetEventType );
-		seq.Enumerated(       -1, "eventState", &BAC_STRTAB_BACnetEventState );
-		seq.Unsigned(         -1, "priority" );
-		seq.Unsigned(         -1, "notificationClass", BSQ_OPTIONAL );
-	}
+   bac_show_byte("Get Enrollment Summary Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.ListOf( "sequence of" );
+   while (seq.HasListElement())
+   {
+      seq.ObjectIdentifier( -1, "objectIdentifier" );
+      seq.Enumerated(       -1, "eventType", &BAC_STRTAB_BACnetEventType );
+      seq.Enumerated(       -1, "eventState", &BAC_STRTAB_BACnetEventState );
+      seq.Unsigned(         -1, "priority" );
+      seq.Unsigned(         -1, "notificationClass", BSQ_OPTIONAL );
+   }
 }
 
 /*************************************************************************/
@@ -3597,28 +3622,28 @@ void show_atomicReadFileACK( void )
 /*************************************************************************/
   /* This function interprets AtomicReadFile acknowledgements */
 {
-	bac_show_byte("Atomic Read File Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.Boolean( -1, "endOfFile" );
-	seq.BeginChoice();
-	if (seq.OpeningTag( 0, "streamAccess", BSQ_CHOICE ))
-	{
-		seq.Integer(     -1, "fileStartPosition" );
-		seq.OctetString( -1, "fileData" );
-		seq.ClosingTag();
-	}
-	if (seq.OpeningTag( 1, "recordAccess", BSQ_CHOICE ))
-	{
-		seq.Integer(  -1, "fileStartRecord" );
-		seq.Unsigned( -1, "returnedRecordCount" );
-		seq.ListOf(       "fileRecordData" );
-		while (seq.HasListElement())
-		{
-			seq.OctetString( -1, "record" );
-		}
-		seq.ClosingTag();
-	}
-	seq.EndChoice();
+   bac_show_byte("Atomic Read File Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.Boolean( -1, "endOfFile" );
+   seq.BeginChoice();
+   if (seq.OpeningTag( 0, "streamAccess", BSQ_CHOICE ))
+   {
+      seq.Integer(     -1, "fileStartPosition" );
+      seq.OctetString( -1, "fileData" );
+      seq.ClosingTag();
+   }
+   if (seq.OpeningTag( 1, "recordAccess", BSQ_CHOICE ))
+   {
+      seq.Integer(  -1, "fileStartRecord" );
+      seq.Unsigned( -1, "returnedRecordCount" );
+      seq.ListOf(       "fileRecordData" );
+      while (seq.HasListElement())
+      {
+         seq.OctetString( -1, "record" );
+      }
+      seq.ClosingTag();
+   }
+   seq.EndChoice();
 }
 
 /*************************************************************************/
@@ -3626,12 +3651,12 @@ void show_atomicWriteFileACK( void )
 /*************************************************************************/
   /* This function interprets AtomicWriteFile acknowledgements */
 {
-	bac_show_byte("Atomic Write File Acknowledgement","%u");
-   	BACnetSequence seq;
-	seq.BeginChoice();
-	seq.Integer( 0, "fileStartPosition", BSQ_CHOICE );
-	seq.Integer( 1, "fileStartRecord", BSQ_CHOICE );
-	seq.EndChoice();
+   bac_show_byte("Atomic Write File Acknowledgement","%u");
+      BACnetSequence seq;
+   seq.BeginChoice();
+   seq.Integer( 0, "fileStartPosition", BSQ_CHOICE );
+   seq.Integer( 1, "fileStartRecord", BSQ_CHOICE );
+   seq.EndChoice();
 }
 
 /*************************************************************************/
@@ -3639,9 +3664,9 @@ void show_createObjectACK( void )
 /*************************************************************************/
   /* This function interprets CreateObject acknowledgements */
 {
-	bac_show_byte("CreateObject Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier( -1, "objectIdentifier" );
+   bac_show_byte("CreateObject Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier( -1, "objectIdentifier" );
 }
 
 /*************************************************************************/
@@ -3649,25 +3674,25 @@ void show_readPropertyACK( void )
 /*************************************************************************/
   /* This function interprets ReadProperty acknowledgements */
 {
-	bac_show_byte("Read Property ACK","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier(   0, "Object Identifier", BSQ_REQUIRED );
-	seq.PropertyIdentifier( 1, "Property Identifier", BSQ_REQUIRED );
-	seq.PropertyArrayIndex( 2, "Property Array Index", BSQ_OPTIONAL );
-	if (seq.OpeningTag(     3, "PropertyValue" ))
-	{
-		// TODO: is this really the best way to do this?
-		// For one thing, we don't really even know which DEVICE this
-		// response is from.
-		// Defined in EPICSTreeView.cpp.  Active only if the EPICS tree is open.
-		//	
-		// madanner 9/04 add calls to EPICS read property tracker
-		::EPICS_AddRPValue( seq.LastObjectIdentifier(), seq.LastPropertyID(), seq.LastPropertyIndex(),
-							pif_get_addr(), pif_end_offset - pif_offset);
-	
-		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
-		seq.ClosingTag();
-	}
+   bac_show_byte("Read Property ACK","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier(   0, "Object Identifier", BSQ_REQUIRED );
+   seq.PropertyIdentifier( 1, "Property Identifier", BSQ_REQUIRED );
+   seq.PropertyArrayIndex( 2, "Property Array Index", BSQ_OPTIONAL );
+   if (seq.OpeningTag(     3, "PropertyValue" ))
+   {
+      // TODO: is this really the best way to do this?
+      // For one thing, we don't really even know which DEVICE this
+      // response is from.
+      // Defined in EPICSTreeView.cpp.  Active only if the EPICS tree is open.
+      // 
+      // madanner 9/04 add calls to EPICS read property tracker
+      ::EPICS_AddRPValue( seq.LastObjectIdentifier(), seq.LastPropertyID(), seq.LastPropertyIndex(),
+                     pif_get_addr(), pif_end_offset - pif_offset);
+   
+      show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+      seq.ClosingTag();
+   }
 }
 
 /*************************************************************************/
@@ -3675,13 +3700,13 @@ void show_readPropertyConditionalACK( void )
 /*************************************************************************/
   /* This function interprets ReadPropertyConditional acknowledgements */
 {
-	bac_show_byte("Read Property Conditional Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.ListOf( "listOfReadAccessResults" );
-	while (seq.HasListElement())
-	{
-		show_read_access_result( seq );
-	}
+   bac_show_byte("Read Property Conditional Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.ListOf( "listOfReadAccessResults" );
+   while (seq.HasListElement())
+   {
+      show_read_access_result( seq );
+   }
 }
 
 /*************************************************************************/
@@ -3689,13 +3714,13 @@ void show_readPropertyMultipleACK( void )
 /*************************************************************************/
   /* This function interprets ReadPropertyMultiple acknowledgements */
 {
-	bac_show_byte("Read Property Multiple Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.ListOf( "listOfReadAccessResults" );
-	while (seq.HasListElement())
-	{
-		show_read_access_result( seq );
-	}
+   bac_show_byte("Read Property Multiple Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.ListOf( "listOfReadAccessResults" );
+   while (seq.HasListElement())
+   {
+      show_read_access_result( seq );
+   }
 }
 
 /*************************************************************************/
@@ -3703,8 +3728,8 @@ void show_conf_PrivateTransferACK( void )
 /*************************************************************************/
   /* This function interprets ConfirmedPrivateTransfer acknowledgements */
 {
-	bac_show_byte("Private Transfer Acknowledgement","%u");
-	show_private_transfer();
+   bac_show_byte("Private Transfer Acknowledgement","%u");
+   show_private_transfer();
 }
 
 /*************************************************************************/
@@ -3712,9 +3737,9 @@ void show_vtOpenACK( void )
 /*************************************************************************/
   /* This function interprets VT-Open acknowledgements */
 {
-	bac_show_byte("VT Open Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.Unsigned( -1, "remoteVTSessionIdentifier" );
+   bac_show_byte("VT Open Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.Unsigned( -1, "remoteVTSessionIdentifier" );
 }
 
 /*************************************************************************/
@@ -3722,16 +3747,16 @@ void show_vtDataACK( void )
 /*************************************************************************/
   /* This function interprets VT-Data acknowledgements */
 {
-	bac_show_byte("VT Data Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.Boolean( -1, "allNewDataAccepted" );
-	bool allAccepted = seq.LastBoolean();
-	bool gotCount = seq.Unsigned( -1, "acceptedOctetCount", BSQ_OPTIONAL );
+   bac_show_byte("VT Data Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.Boolean( -1, "allNewDataAccepted" );
+   bool allAccepted = seq.LastBoolean();
+   bool gotCount = seq.Unsigned( -1, "acceptedOctetCount", BSQ_OPTIONAL );
 
-	if (allAccepted ^ gotCount)
-	{
-		seq.Fail( "acceptedOctetCount must be present if and only if allNewDataAccepted is false" );
-	}
+   if (allAccepted ^ gotCount)
+   {
+      seq.Fail( "acceptedOctetCount must be present if and only if allNewDataAccepted is false" );
+   }
 }
 
 /*************************************************************************/
@@ -3739,9 +3764,9 @@ void show_authenticateACK( void )
 /*************************************************************************/
 /* This function interprets Authenticate acknowledgements */
 {
-	bac_show_byte("Authenticate Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.Unsigned( -1, "modifiedRandomNumber" );
+   bac_show_byte("Authenticate Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.Unsigned( -1, "modifiedRandomNumber" );
 }
 
 /*************************************************************************/
@@ -3749,37 +3774,37 @@ void show_authenticateACK( void )
 //
 void show_ReadRange ( void )
 {
-	bac_show_byte("Read Range Request","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier(   0, "objectIdentifier" );
-	seq.PropertyIdentifier( 1, "propertyIdentifier" );
-	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+   bac_show_byte("Read Range Request","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier(   0, "objectIdentifier" );
+   seq.PropertyIdentifier( 1, "propertyIdentifier" );
+   seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
 
-	// This entire thing is OPTIONAL
-	if (seq.HasMore())
-	{
-		seq.BeginChoice();
-		if (seq.OpeningTag(     3, "byPosition", BSQ_CHOICE ))
-		{
-			seq.Unsigned( -1, "referenceIndex" );
-			seq.Integer(  -1, "count" );
-			seq.ClosingTag();
-		}
-		if (seq.OpeningTag(     6, "bySequenceNumber", BSQ_CHOICE ))
-		{
-			seq.Unsigned( -1, "referenceIndex" );
-			seq.Integer(  -1, "count" );
-			seq.ClosingTag();
-		}
-		if (seq.OpeningTag(     7, "byTime", BSQ_CHOICE ))
-		{
-			seq.Date( -1, "referenceDate" );
-			seq.Time( -1, "referenceTime" );
-			seq.Integer(  -1, "count" );
-			seq.ClosingTag();
-		}
-		seq.EndChoice();
-	}
+   // This entire thing is OPTIONAL
+   if (seq.HasMore())
+   {
+      seq.BeginChoice();
+      if (seq.OpeningTag(     3, "byPosition", BSQ_CHOICE ))
+      {
+         seq.Unsigned( -1, "referenceIndex" );
+         seq.Integer(  -1, "count" );
+         seq.ClosingTag();
+      }
+      if (seq.OpeningTag(     6, "bySequenceNumber", BSQ_CHOICE ))
+      {
+         seq.Unsigned( -1, "referenceIndex" );
+         seq.Integer(  -1, "count" );
+         seq.ClosingTag();
+      }
+      if (seq.OpeningTag(     7, "byTime", BSQ_CHOICE ))
+      {
+         seq.Date( -1, "referenceDate" );
+         seq.Time( -1, "referenceTime" );
+         seq.Integer(  -1, "count" );
+         seq.ClosingTag();
+      }
+      seq.EndChoice();
+   }
 }
 
 /*************************************************************************/
@@ -3787,20 +3812,20 @@ void show_ReadRange ( void )
 //
 void show_ReadRangeACK ( void )
 {
-	bac_show_byte("Read Range Acknowledgement","%u");
-	BACnetSequence seq;
-	seq.ObjectIdentifier(   0, "objectIdentifier" );
-	seq.PropertyIdentifier( 1, "propertyIdentifier" );
-	seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
-	seq.BitString(          3, "resultFlags", &BAC_STRTAB_BACnetResultFlags );
-	seq.Unsigned(           4, "itemCount" );
-	seq.ListOf(             5, "itemData" );
-	while (seq.HasListElement())
-	{
-		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
-	}
+   bac_show_byte("Read Range Acknowledgement","%u");
+   BACnetSequence seq;
+   seq.ObjectIdentifier(   0, "objectIdentifier" );
+   seq.PropertyIdentifier( 1, "propertyIdentifier" );
+   seq.PropertyArrayIndex( 2, "propertyArrayIndex", BSQ_OPTIONAL );
+   seq.BitString(          3, "resultFlags", &BAC_STRTAB_BACnetResultFlags );
+   seq.Unsigned(           4, "itemCount" );
+   seq.ListOf(             5, "itemData" );
+   while (seq.HasListElement())
+   {
+      show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+   }
 
-	seq.Unsigned(           6, "firstSequenceNumber", BSQ_OPTIONAL );
+   seq.Unsigned(           6, "firstSequenceNumber", BSQ_OPTIONAL );
 }
 
 /*************************************************************************/
@@ -3808,9 +3833,9 @@ void show_ReadRangeACK ( void )
 // Also used for ChangeList-Error (AddListElement and RemoveListElement)
 void show_createObjectError( void )
 {
-	BACnetSequence seq;
-	show_wrapped_error( seq, 0 );
-	seq.Unsigned( 1, "firstFailedElementNumber" );
+   BACnetSequence seq;
+   show_wrapped_error( seq, 0 );
+   seq.Unsigned( 1, "firstFailedElementNumber" );
 }
 
 /*************************************************************************/
@@ -3818,8 +3843,8 @@ void show_createObjectError( void )
 // Called directly from Error PDU dispatch table
 void show_error_codes( void )
 {
-	BACnetSequence seq;
-	show_error( seq );
+   BACnetSequence seq;
+   show_error( seq );
 }
 
 /*************************************************************************/
@@ -3827,13 +3852,13 @@ void show_writePropertyMultipleError( void )
 /*************************************************************************/
 /* This function interprets WritePropertyMultiple errors */
 {
-	BACnetSequence seq;
-	show_wrapped_error( seq, 0 );
-	if (seq.OpeningTag( 1, "firstFailedWriteAttempt" ))
-	{
-		show_bac_object_property_reference(seq);
-		seq.ClosingTag();
-	}
+   BACnetSequence seq;
+   show_wrapped_error( seq, 0 );
+   if (seq.OpeningTag( 1, "firstFailedWriteAttempt" ))
+   {
+      show_bac_object_property_reference(seq);
+      seq.ClosingTag();
+   }
 }
 
 /*************************************************************************/
@@ -3841,15 +3866,15 @@ void show_vtCloseError( void )
 /*************************************************************************/
 /* This function interprets VT-Close errors */
 {
-	BACnetSequence seq;
-	show_wrapped_error( seq, 0 );
-	if (seq.ListOf( 1, "listOfVTSessionIdentifiers", BSQ_OPTIONAL ))
-	{
-		while (seq.HasListElement())
-		{
-			seq.Unsigned( -1, "uncloseable sessions ID" );
-		}
-	}
+   BACnetSequence seq;
+   show_wrapped_error( seq, 0 );
+   if (seq.ListOf( 1, "listOfVTSessionIdentifiers", BSQ_OPTIONAL ))
+   {
+      while (seq.HasListElement())
+      {
+         seq.Unsigned( -1, "uncloseable sessions ID" );
+      }
+   }
 }
 
 /**************************************************************************/
@@ -3864,80 +3889,80 @@ void show_bac_bitstring( unsigned int len )
 /**************************************************************************/
 /* Displays a bit string with no interpretation of the bit semantics */
 {
-	unsigned int i;
-	
-	/* the tag should be displayed before calling this function */
-	bac_show_byte("Number of unused bits","%u");
-	sprintf(outstr,"%"FW"s = X'%%02X'","Bitstring Values");
-	for (i=0; i<len-1; i++) {
-		bac_show_flag(outstr,0xFF);
-		pif_show_flagbit(0x80,"","");
-		pif_show_flagbit(0x40,"","");
-		pif_show_flagbit(0x20,"","");
-		pif_show_flagbit(0x10,"","");
-		pif_show_flagbit(0x08,"","");
-		pif_show_flagbit(0x04,"","");
-		pif_show_flagbit(0x02,"","");
-		pif_show_flagbit(0x01,"","");
-	};
+   unsigned int i;
+   
+   /* the tag should be displayed before calling this function */
+   bac_show_byte("Number of unused bits","%u");
+   sprintf(outstr,"%"FW"s = X'%%02X'","Bitstring Values");
+   for (i=0; i<len-1; i++) {
+      bac_show_flag(outstr,0xFF);
+      pif_show_flagbit(0x80,"","");
+      pif_show_flagbit(0x40,"","");
+      pif_show_flagbit(0x20,"","");
+      pif_show_flagbit(0x10,"","");
+      pif_show_flagbit(0x08,"","");
+      pif_show_flagbit(0x04,"","");
+      pif_show_flagbit(0x02,"","");
+      pif_show_flagbit(0x01,"","");
+   };
 }
 
 // Append len PDU bytes beginning at flag+offset to string data to *pOut.
 // First byte is character-set specifier
 void get_bac_charstring(unsigned int tagLen, char *pOut, unsigned int bufLen, unsigned int flag, unsigned int offset )
 {
-	char c = pif_get_byte(flag+offset);
-	switch(c)
-	{
-	case 0: /* ASCII */
+   char c = pif_get_byte(flag+offset);
+   switch(c)
+   {
+   case 0: /* ASCII */
     case 5: /* ISO 8859-1 */
-		// Append as characters
-		// TODO: worry about bytes greater than 127 for ANSI/UTF-8, for 8859-1 depending on installed fonts
-		*pOut++ = '"';
-		{
-			// Limit to buffer length
-			if (tagLen >= bufLen-3)
-			{
-				tagLen = bufLen-3;
-			}
-			pOut = pif_get_ascii(flag+1+offset, tagLen-1, pOut, MAX_TEXT_ITEM);
-		}
-		*pOut++ = '"';
-		*pOut   = 0;
-		break;
+      // Append as characters
+      // TODO: worry about bytes greater than 127 for ANSI/UTF-8, for 8859-1 depending on installed fonts
+      *pOut++ = '"';
+      {
+         // Limit to buffer length
+         if (tagLen >= bufLen-3)
+         {
+            tagLen = bufLen-3;
+         }
+         pOut = pif_get_ascii(flag+1+offset, tagLen-1, pOut, MAX_TEXT_ITEM);
+      }
+      *pOut++ = '"';
+      *pOut   = 0;
+      break;
 
-	case 1: /* MS DBCS */
+   case 1: /* MS DBCS */
     case 2: /* JIS C 6226 */
     case 3: /* ISO 10646(UCS-4) */
     case 4: /* ISO 10646(UCS-2) */
-		// Append as a lump of hex
-		{
-			*pOut++ = 'X';
-			*pOut++ = '\'';
+      // Append as a lump of hex
+      {
+         *pOut++ = 'X';
+         *pOut++ = '\'';
 
-			static char	hex[] = "0123456789ABCDEF";
-			int i = flag+1;
+         static char hex[] = "0123456789ABCDEF";
+         int i = flag+1;
 
-			// Limit to buffer length
-			if (tagLen >= bufLen-3)
-			{
-				tagLen = bufLen-3;
-			}
-			while (--tagLen) {
-				int x = pif_get_byte(i+offset);
-				*pOut++ = hex[ (x >> 4) & 0x0F ];
-				*pOut++ = hex[ x & 0x0F ];
-				i++;
-			}
-			*pOut++ = '\'';
-			*pOut   = 0;
-		}
-		break;
+         // Limit to buffer length
+         if (tagLen >= bufLen-3)
+         {
+            tagLen = bufLen-3;
+         }
+         while (--tagLen) {
+            int x = pif_get_byte(i+offset);
+            *pOut++ = hex[ (x >> 4) & 0x0F ];
+            *pOut++ = hex[ x & 0x0F ];
+            i++;
+         }
+         *pOut++ = '\'';
+         *pOut   = 0;
+      }
+      break;
 
-	default:
-		sprintf(pOut, "Error: unknown character set %u", c);
-		break;
-	}
+   default:
+      sprintf(pOut, "Error: unknown character set %u", c);
+      break;
+   }
 }
 
 /**************************************************************************/
@@ -3987,8 +4012,8 @@ void show_bac_charstring( unsigned int len)
 void show_bac_octetstring( unsigned int len )
 /**************************************************************************/
 {
-	sprintf(outstr,"%"FW"s = X'%%s'","Octet string");
-	pif_show_nbytes_hex(outstr,len);
+   sprintf(outstr,"%"FW"s = X'%%s'","Octet string");
+   pif_show_nbytes_hex(outstr,len);
 }
 
 /**************************************************************************/
@@ -3997,50 +4022,50 @@ void show_bac_octetstring( unsigned int len )
 void date_as_string( char *pOut, int offset )
 {
     // Year
-	int x = pif_get_byte(offset);
-	pOut += sprintf( pOut, (x == 255) ? "XXXX/" : "%u/", 1900+x );
-	
-	// Month
-	x = pif_get_byte(1+offset);
-	if (x == 255) {
-		pOut += sprintf( pOut, "XXX/" );
-	}
-	else if ((x>0) && (x<15)) {
-		pOut += sprintf( pOut, "%s/", BAC_STRTAB_month.EnumString(x));
-	}
-	else {
-		pOut += sprintf( pOut, "Invalid:%u/", x);
-	}
-	
-	// Day of month
-	x = pif_get_byte(2+offset);
-	if (x == 255) {
-		pOut += sprintf( pOut, "XX, " );
-	}
-	else if (x == 32) {
-		pOut += sprintf( pOut, "last-day, " );
-	}
-	else if (x == 33) {
-		pOut += sprintf( pOut, "odd-days, " );
-	}
-	else if (x == 34) {
-		pOut += sprintf( pOut, "even-days, " );
-	}
-	else {
-		pOut += sprintf( pOut, "%02u, ", x );
-	}
-	
-	// Day of week
-	x = pif_get_byte(3+offset);
-	if (x == 255) {
-		sprintf( pOut, "XXX" );
-	}
-	else if ((x>0) && (x<8)) {
-		sprintf( pOut, BAC_STRTAB_day_of_week.EnumString(x) );
-	}
-	else {
-		sprintf( pOut, "Invalid:%u", x );
-	}
+   int x = pif_get_byte(offset);
+   pOut += sprintf( pOut, (x == 255) ? "XXXX/" : "%u/", 1900+x );
+   
+   // Month
+   x = pif_get_byte(1+offset);
+   if (x == 255) {
+      pOut += sprintf( pOut, "XXX/" );
+   }
+   else if ((x>0) && (x<15)) {
+      pOut += sprintf( pOut, "%s/", BAC_STRTAB_month.EnumString(x));
+   }
+   else {
+      pOut += sprintf( pOut, "Invalid:%u/", x);
+   }
+   
+   // Day of month
+   x = pif_get_byte(2+offset);
+   if (x == 255) {
+      pOut += sprintf( pOut, "XX, " );
+   }
+   else if (x == 32) {
+      pOut += sprintf( pOut, "last-day, " );
+   }
+   else if (x == 33) {
+      pOut += sprintf( pOut, "odd-days, " );
+   }
+   else if (x == 34) {
+      pOut += sprintf( pOut, "even-days, " );
+   }
+   else {
+      pOut += sprintf( pOut, "%02u, ", x );
+   }
+   
+   // Day of week
+   x = pif_get_byte(3+offset);
+   if (x == 255) {
+      sprintf( pOut, "XXX" );
+   }
+   else if ((x>0) && (x<8)) {
+      sprintf( pOut, BAC_STRTAB_day_of_week.EnumString(x) );
+   }
+   else {
+      sprintf( pOut, "Invalid:%u", x );
+   }
 }
 
 /**************************************************************************/
@@ -4048,57 +4073,57 @@ void date_as_string( char *pOut, int offset )
 void show_bac_date( unsigned int len )
 /**************************************************************************/
 {
-	if (len != 4)
-	{
-		ShowErrorDetail("Error: expected date, but length is %u", len);
-		return;
-	}
+   if (len != 4)
+   {
+      ShowErrorDetail("Error: expected date, but length is %u", len);
+      return;
+   }
 
-	int x = pif_get_byte(0);
-	if (x == 255)
-		sprintf(outstr,"Unspecified");
-	else
-		sprintf(outstr,"%u",1900+x);
-	show_str_eq_str("Year",outstr,1);
-	pif_offset++;
+   int x = pif_get_byte(0);
+   if (x == 255)
+      sprintf(outstr,"Unspecified");
+   else
+      sprintf(outstr,"%u",1900+x);
+   show_str_eq_str("Year",outstr,1);
+   pif_offset++;
 
-	x = pif_get_byte(0);
-	if (x == 255)
-		sprintf(outstr,"Unspecified");
-	else {
-		if ((x>0) && (x<15)) 
-			sprintf(outstr,BAC_STRTAB_month.EnumString(x));
-		else 
-			sprintf(outstr,BAC_STRTAB_month.EnumString(0));
-	}
-	show_str_eq_str("Month",outstr,1);
-	pif_offset++;
+   x = pif_get_byte(0);
+   if (x == 255)
+      sprintf(outstr,"Unspecified");
+   else {
+      if ((x>0) && (x<15)) 
+         sprintf(outstr,BAC_STRTAB_month.EnumString(x));
+      else 
+         sprintf(outstr,BAC_STRTAB_month.EnumString(0));
+   }
+   show_str_eq_str("Month",outstr,1);
+   pif_offset++;
 
-	x = pif_get_byte(0);
-	if (x == 255)
-		sprintf(outstr,"Unspecified");
-	else if (x == 32)
-		sprintf(outstr,"Last Day");
-	else if (x == 33)
-		sprintf(outstr,"Odd Days");
-	else if (x == 34)
-		sprintf(outstr,"Even Days");
-	else
-		sprintf(outstr,"%u",x);
-	show_str_eq_str("Day of Month",outstr,1);
-	pif_offset++;
+   x = pif_get_byte(0);
+   if (x == 255)
+      sprintf(outstr,"Unspecified");
+   else if (x == 32)
+      sprintf(outstr,"Last Day");
+   else if (x == 33)
+      sprintf(outstr,"Odd Days");
+   else if (x == 34)
+      sprintf(outstr,"Even Days");
+   else
+      sprintf(outstr,"%u",x);
+   show_str_eq_str("Day of Month",outstr,1);
+   pif_offset++;
 
-	x = pif_get_byte(0);
-	if (x == 255)
-		sprintf(outstr,"Unspecified");
-	else {
-		if ((x>0) && (x<8)) 
-			sprintf(outstr,BAC_STRTAB_day_of_week.EnumString(x));
-		else 
-			sprintf(outstr,BAC_STRTAB_day_of_week.EnumString(0));
-	}
-	show_str_eq_str("Day of Week",outstr,1);
-	pif_offset++;
+   x = pif_get_byte(0);
+   if (x == 255)
+      sprintf(outstr,"Unspecified");
+   else {
+      if ((x>0) && (x<8)) 
+         sprintf(outstr,BAC_STRTAB_day_of_week.EnumString(x));
+      else 
+         sprintf(outstr,BAC_STRTAB_day_of_week.EnumString(0));
+   }
+   show_str_eq_str("Day of Week",outstr,1);
+   pif_offset++;
 }
 
 /**************************************************************************/
@@ -4113,15 +4138,15 @@ void show_bac_double( unsigned int len )
    if (len != 8)
    {
       ShowErrorDetail("Error: expected double, but length is %u", len);
-	  return;
+     return;
    }
 
 #if LITTLEENDIAN
    for (i=0;i<8;i++) 
-	   fstr[i] = pif_get_byte(7-i);
+      fstr[i] = pif_get_byte(7-i);
 #else
    for (i=0;i<8;i++) 
-	   fstr[i] = pif_get_byte(i);
+      fstr[i] = pif_get_byte(i);
 #endif
    dx = *(double*)fstr;
 
@@ -4143,15 +4168,15 @@ void show_bac_real( unsigned int len )
    if (len != 4)
    {
       ShowErrorDetail("Error: expected real, but length is %u", len);
-	  return;
+     return;
    }
 
 #if LITTLEENDIAN
    for (i=0;i<4;i++) 
-	   fstr[i] = pif_get_byte(3-i);
+      fstr[i] = pif_get_byte(3-i);
 #else
    for (i=0;i<4;i++) 
-	   fstr[i] = pif_get_byte(i);
+      fstr[i] = pif_get_byte(i);
 #endif   
    dx = (double)(*(float *)fstr);
 
@@ -4165,25 +4190,25 @@ void show_bac_real( unsigned int len )
 void show_bac_signed ( unsigned int len )
 /**************************************************************************/
 {
-	unsigned int val = 0;
-	if (pif_get_byte(0) & 0x80)
-	{
-		// Value is negative: fill with ones
-		val = (unsigned int)-1;
-	}
+   unsigned int val = 0;
+   if (pif_get_byte(0) & 0x80)
+   {
+      // Value is negative: fill with ones
+      val = (unsigned int)-1;
+   }
 
-	for (unsigned int ix = 0; ix < len; ix++)
-	{
-		val = (val << 8) | pif_get_byte(ix);
-	}
+   for (unsigned int ix = 0; ix < len; ix++)
+   {
+      val = (val << 8) | pif_get_byte(ix);
+   }
 
-	sprintf(outstr,"%"FW"s = %%d", "Value (%u-octet signed)");
+   sprintf(outstr,"%"FW"s = %%d", "Value (%u-octet signed)");
 
-	// get a detail line
-	sprintf( get_int_line( pif_pi, pif_offset, len ), outstr, len, val );
+   // get a detail line
+   sprintf( get_int_line( pif_pi, pif_offset, len ), outstr, len, val );
 
-	// update the offset
-	pif_offset += len;
+   // update the offset
+   pif_offset += len;
 }
 
 /**************************************************************************/
@@ -4196,7 +4221,7 @@ void show_bac_time( unsigned int len )
    if (len != 4)
    {
       ShowErrorDetail("Error: expected time, but length is %u", len);
-	  return;
+     return;
    }
 
    x = pif_get_byte(0);
@@ -4239,13 +4264,13 @@ void show_bac_time( unsigned int len )
 void show_bac_unsigned( unsigned int len )
 /**************************************************************************/
 {
-	unsigned int value = get_bac_unsigned( 0, len );
-	sprintf(outstr, "%"FW"s (%u-octet unsigned) = %%u", "Value", len);
-	if (len <= 4)
-	{
-		sprintf(get_int_line(pi_data_current,pif_offset,len),outstr, value);
-	}
-	pif_offset += len;
+   unsigned int value = get_bac_unsigned( 0, len );
+   sprintf(outstr, "%"FW"s (%u-octet unsigned) = %%u", "Value", len);
+   if (len <= 4)
+   {
+      sprintf(get_int_line(pi_data_current,pif_offset,len),outstr, value);
+   }
+   pif_offset += len;
 }
 
 /**************************************************************************/
@@ -4253,13 +4278,13 @@ void show_bac_unsigned( unsigned int len )
 void show_bac_enumerated( unsigned int len )
 /**************************************************************************/
 {
-	unsigned int value = get_bac_unsigned( 0, len );
-	sprintf(outstr, "%"FW"s (%u-octet enumeration) = %%u", "Value", len);
-	if (len <= 4)
-	{
-		sprintf(get_int_line(pi_data_current,pif_offset,len),outstr, value);
-	}
-	pif_offset += len;
+   unsigned int value = get_bac_unsigned( 0, len );
+   sprintf(outstr, "%"FW"s (%u-octet enumeration) = %%u", "Value", len);
+   if (len <= 4)
+   {
+      sprintf(get_int_line(pi_data_current,pif_offset,len),outstr, value);
+   }
+   pif_offset += len;
 }
 
 /**************************************************************************/
@@ -4294,213 +4319,213 @@ unsigned int get_bac_unsigned( int delta, int len )
 // Show deconstructed tag, optionally followed by value
 unsigned int show_tagged_data( bool showData )
 {
-	unsigned int lloc,tloc;
-	unsigned int tagbuff = pif_get_byte(0);
-	bool contextTag = (tagbuff & 0x08) != 0;
-	bool pairedTag  = (tagbuff & 0x07) > 5;
-	unsigned int type = (tagbuff & 0xF0) >> 4;
-	if (type < 15)
-		tloc = 0;           /* Type in tag octet */  
-	else {
-		tloc = 1;           /* Extended type in first octet following */
-		type = pif_get_byte(1);
-	}
-	
-	unsigned int len = (tagbuff & 0x07);
-	if (len == 5)			/* Extended length? */
-		lloc = 1;			/* Length follows tag */
-	else
-		lloc = 0;           /* Length in tag octet */
-	
-	if (contextTag)
-	{
-		// Context tag
-		sprintf( outstr,"%"FW"s = X'%%02X'",
-				 (len == 6) ? "Opening Context Tag" : 
-				 (len == 7) ? "Closing Context Tag" : 
-				 "SD Context Tag" );
-		bac_show_flag(outstr,0xFF);		// Show tag byte, advance cursor
+   unsigned int lloc,tloc;
+   unsigned int tagbuff = pif_get_byte(0);
+   bool contextTag = (tagbuff & 0x08) != 0;
+   bool pairedTag  = (tagbuff & 0x07) > 5;
+   unsigned int type = (tagbuff & 0xF0) >> 4;
+   if (type < 15)
+      tloc = 0;           /* Type in tag octet */  
+   else {
+      tloc = 1;           /* Extended type in first octet following */
+      type = pif_get_byte(1);
+   }
+   
+   unsigned int len = (tagbuff & 0x07);
+   if (len == 5)        /* Extended length? */
+      lloc = 1;         /* Length follows tag */
+   else
+      lloc = 0;           /* Length in tag octet */
+   
+   if (contextTag)
+   {
+      // Context tag
+      sprintf( outstr,"%"FW"s = X'%%02X'",
+             (len == 6) ? "Opening Context Tag" : 
+             (len == 7) ? "Closing Context Tag" : 
+             "SD Context Tag" );
+      bac_show_flag(outstr,0xFF);      // Show tag byte, advance cursor
 
-		sprintf( outstr, 
-				 (tloc) ? "[extended]" : "[%u]", 
-				 type );
-		pif_show_flagbit( 0xF0, outstr, NULL ); // Show top 4 bits of tag byte (cursor-1)
-	}
-	else
-	{
-		// Application tag
-		sprintf(outstr,"%"FW"s = X'%%02X'","Application Tag");
-		bac_show_flag(outstr,0xFF);		// Show tag byte, advance cursor
-		
-		pif_show_flagmask(0xF0,0x00,"Null");
-		pif_show_flagmask(0xF0,PRIM_BOOLEAN*16,"Boolean");
-		pif_show_flagmask(0xF0,PRIM_UNSIGNED*16,"Unsigned Integer");
-		pif_show_flagmask(0xF0,PRIM_SIGNED*16,"Signed Integer");
-		pif_show_flagmask(0xF0,PRIM_REAL*16,"IEEE Floating Point");
-		pif_show_flagmask(0xF0,PRIM_DOUBLE*16,"IEEE Double Floating Point");
-		pif_show_flagmask(0xF0,PRIM_OCTET_STRING*16,"Octet String");
-		pif_show_flagmask(0xF0,PRIM_CHARACTER_STRING*16,"Character String");
-		pif_show_flagmask(0xF0,PRIM_BIT_STRING*16,"Bit String");
-		pif_show_flagmask(0xF0,PRIM_ENUMERATED*16,"Enumerated");
-		pif_show_flagmask(0xF0,PRIM_DATE*16,"Date");
-		pif_show_flagmask(0xF0,PRIM_TIME*16,"Time");
-		pif_show_flagmask(0xF0,PRIM_OBJECT_IDENTIFIER*16,"Object Identifier");
-		pif_show_flagmask(0xF0,0x0d*16,"Reserved for ASHRAE");
-		pif_show_flagmask(0xF0,0x0e*16,"Reserved for ASHRAE");
-		pif_show_flagmask(0xF0,0x0f*16,"Non-standard type");
-	}
-	
-	pif_show_flagbit(0x08,"Context Specific Tag","Application Tag");
-	
-	switch (type + ((contextTag) ? 1000 : 0)) {
-	case PRIM_NULL:
-		pif_show_flagbit(0x07,"Unused","Unused");
-		len = 0;
-		break;
-	case PRIM_BOOLEAN:
-		pif_show_flagbit(0x07,"TRUE","FALSE");
-		len = 0;
-		break;
-	default:
-		if (len < 5) {
-			bac_show_flagmask(0x07,"Length = %d");
-		}
-		else {
+      sprintf( outstr, 
+             (tloc) ? "[extended]" : "[%u]", 
+             type );
+      pif_show_flagbit( 0xF0, outstr, NULL ); // Show top 4 bits of tag byte (cursor-1)
+   }
+   else
+   {
+      // Application tag
+      sprintf(outstr,"%"FW"s = X'%%02X'","Application Tag");
+      bac_show_flag(outstr,0xFF);      // Show tag byte, advance cursor
+      
+      pif_show_flagmask(0xF0,0x00,"Null");
+      pif_show_flagmask(0xF0,PRIM_BOOLEAN*16,"Boolean");
+      pif_show_flagmask(0xF0,PRIM_UNSIGNED*16,"Unsigned Integer");
+      pif_show_flagmask(0xF0,PRIM_SIGNED*16,"Signed Integer");
+      pif_show_flagmask(0xF0,PRIM_REAL*16,"IEEE Floating Point");
+      pif_show_flagmask(0xF0,PRIM_DOUBLE*16,"IEEE Double Floating Point");
+      pif_show_flagmask(0xF0,PRIM_OCTET_STRING*16,"Octet String");
+      pif_show_flagmask(0xF0,PRIM_CHARACTER_STRING*16,"Character String");
+      pif_show_flagmask(0xF0,PRIM_BIT_STRING*16,"Bit String");
+      pif_show_flagmask(0xF0,PRIM_ENUMERATED*16,"Enumerated");
+      pif_show_flagmask(0xF0,PRIM_DATE*16,"Date");
+      pif_show_flagmask(0xF0,PRIM_TIME*16,"Time");
+      pif_show_flagmask(0xF0,PRIM_OBJECT_IDENTIFIER*16,"Object Identifier");
+      pif_show_flagmask(0xF0,0x0d*16,"Reserved for ASHRAE");
+      pif_show_flagmask(0xF0,0x0e*16,"Reserved for ASHRAE");
+      pif_show_flagmask(0xF0,0x0f*16,"Non-standard type");
+   }
+   
+   pif_show_flagbit(0x08,"Context Specific Tag","Application Tag");
+   
+   switch (type + ((contextTag) ? 1000 : 0)) {
+   case PRIM_NULL:
+      pif_show_flagbit(0x07,"Unused","Unused");
+      len = 0;
+      break;
+   case PRIM_BOOLEAN:
+      pif_show_flagbit(0x07,"TRUE","FALSE");
+      len = 0;
+      break;
+   default:
+      if (len < 5) {
+         bac_show_flagmask(0x07,"Length = %d");
+      }
+      else {
          pif_show_flagmask(0x07, 0x05, "Extended Length");
-			pif_show_flagmask(0x07, 0x06, "Opening Tag");
-			pif_show_flagmask(0x07, 0x07, "Closing Tag");
-		}
-		break;
-	}
-	
-	if (tloc == 1)
-	{
-		// Show extedned tag, move cursor
-		bac_show_byte("Extended tag type","[%u]");
-	}
-	
-	if (lloc != 0) {
-		len = pif_get_byte(0);
-		switch (len) {
+         pif_show_flagmask(0x07, 0x06, "Opening Tag");
+         pif_show_flagmask(0x07, 0x07, "Closing Tag");
+      }
+      break;
+   }
+   
+   if (tloc == 1)
+   {
+      // Show extedned tag, move cursor
+      bac_show_byte("Extended tag type","[%u]");
+   }
+   
+   if (lloc != 0) {
+      len = pif_get_byte(0);
+      switch (len) {
       case 254: 
-			pif_show_byte("Length in next 2 octets");
+         pif_show_byte("Length in next 2 octets");
          len = pif_get_word_hl(0);
          sprintf(outstr,"%"FW"s = %%u","Length of data");
          pif_show_word_hl(outstr);
          break;
-			
+         
       case 255: 
-			pif_show_byte("Length in next 4 octets");
+         pif_show_byte("Length in next 4 octets");
          len = pif_get_long_hl(0);
          sprintf(outstr,"%"FW"s = %%lu","Length of data");
          pif_show_long_hl(outstr);
          break;
-			
+         
       default: 
-			bac_show_byte("Length of data","%u");
-			break;
-		}
-	}
-	
-	if (showData)
-	{
-		if (!contextTag)
-		{
-			// Application tag
-			switch (type) {
-			case PRIM_NULL:        
-				break; // value shown above: changes len
-			case PRIM_BOOLEAN:  
-				break; // value shown above: changes len
-			case PRIM_UNSIGNED: 
-				show_bac_unsigned(len);
-				break;
-			case PRIM_SIGNED:   
-				show_bac_signed(len);
-				break;
-			case PRIM_REAL:     
-				show_bac_real(len);
-				break;
-			case PRIM_DOUBLE:   
-				show_bac_double(len);
-				break;
-			case PRIM_BIT_STRING:
-				// This doesn't add anything useful, so just show the hex
-				// show_bac_bitstring(len);
-				sprintf(outstr,"%"FW"s = %%s","Bit string");
-				pif_show_nbytes_hex(outstr,len);
-				break;
-			case PRIM_CHARACTER_STRING:
-				show_bac_charstring(len);
-				break;
-			case PRIM_OCTET_STRING:
-				sprintf(outstr,"%"FW"s = X'%%s'","Octet string");
-				pif_show_nbytes_hex(outstr,len);
-				break;
-			case PRIM_ENUMERATED:
-				show_bac_enumerated(len);
-				break;
-			case PRIM_DATE:     
-				show_bac_date(len);
-				break;
-			case PRIM_TIME:     
-				show_bac_time(len);
-				break;
-			case PRIM_OBJECT_IDENTIFIER:
-				show_bac_object_identifier(len);
-				break;
-			default:       /* non-standard */
-				sprintf(outstr,"%"FW"s = X'%%s'","Unknown Type: ");
-				pif_show_nbytes_hex(outstr, len);
-			}  /* end of type switch */
-		}
-		else
-		{
-			// Context tag
-			if (!pairedTag) {
-				if (len > 0) {
-					// Don't know what this really is, so show hex bytes
-					sprintf(outstr,"%"FW"s = X'%%s'", "tagged data: " );
-					pif_show_nbytes_hex(outstr, len);
-				}
-			}
-			else {
-				if (len == 6) {
-					// Opening tag.  Recursively call ourself until
-					// the closing tag, or the end of the PDU.
-					unsigned int firstContent = pif_offset;
-					while (pif_offset < pif_end_offset) {
-						tagbuff = pif_get_byte(0);
-						unsigned int nextType = (tagbuff & 0xF0)>>4;
-						if (nextType >= 15) {
-							nextType = pif_get_byte(1); 
-						}
+         bac_show_byte("Length of data","%u");
+         break;
+      }
+   }
+   
+   if (showData)
+   {
+      if (!contextTag)
+      {
+         // Application tag
+         switch (type) {
+         case PRIM_NULL:        
+            break; // value shown above: changes len
+         case PRIM_BOOLEAN:  
+            break; // value shown above: changes len
+         case PRIM_UNSIGNED: 
+            show_bac_unsigned(len);
+            break;
+         case PRIM_SIGNED:   
+            show_bac_signed(len);
+            break;
+         case PRIM_REAL:     
+            show_bac_real(len);
+            break;
+         case PRIM_DOUBLE:   
+            show_bac_double(len);
+            break;
+         case PRIM_BIT_STRING:
+            // This doesn't add anything useful, so just show the hex
+            // show_bac_bitstring(len);
+            sprintf(outstr,"%"FW"s = %%s","Bit string");
+            pif_show_nbytes_hex(outstr,len);
+            break;
+         case PRIM_CHARACTER_STRING:
+            show_bac_charstring(len);
+            break;
+         case PRIM_OCTET_STRING:
+            sprintf(outstr,"%"FW"s = X'%%s'","Octet string");
+            pif_show_nbytes_hex(outstr,len);
+            break;
+         case PRIM_ENUMERATED:
+            show_bac_enumerated(len);
+            break;
+         case PRIM_DATE:     
+            show_bac_date(len);
+            break;
+         case PRIM_TIME:     
+            show_bac_time(len);
+            break;
+         case PRIM_OBJECT_IDENTIFIER:
+            show_bac_object_identifier(len);
+            break;
+         default:       /* non-standard */
+            sprintf(outstr,"%"FW"s = X'%%s'","Unknown Type: ");
+            pif_show_nbytes_hex(outstr, len);
+         }  /* end of type switch */
+      }
+      else
+      {
+         // Context tag
+         if (!pairedTag) {
+            if (len > 0) {
+               // Don't know what this really is, so show hex bytes
+               sprintf(outstr,"%"FW"s = X'%%s'", "tagged data: " );
+               pif_show_nbytes_hex(outstr, len);
+            }
+         }
+         else {
+            if (len == 6) {
+               // Opening tag.  Recursively call ourself until
+               // the closing tag, or the end of the PDU.
+               unsigned int firstContent = pif_offset;
+               while (pif_offset < pif_end_offset) {
+                  tagbuff = pif_get_byte(0);
+                  unsigned int nextType = (tagbuff & 0xF0)>>4;
+                  if (nextType >= 15) {
+                     nextType = pif_get_byte(1); 
+                  }
 
-						len = (tagbuff & 0x07);
-						if ((nextType == type) && (len == 7)) {
-							// Matching closing tag.  Show it and return
-							show_tagged_data();
-							break;
-						}
+                  len = (tagbuff & 0x07);
+                  if ((nextType == type) && (len == 7)) {
+                     // Matching closing tag.  Show it and return
+                     show_tagged_data();
+                     break;
+                  }
 
-						// Call ourself to decode and display this item as our child
-						show_head_tagged_data();
-						show_tagged_data();
-					}
+                  // Call ourself to decode and display this item as our child
+                  show_head_tagged_data();
+                  show_tagged_data();
+               }
 
-					// Return value is the number of bytes eaten as "data"
-					// for the initial tag
-					len = pif_offset - firstContent;
-				}
-				else {
-					// Closing tag.  No data follows.
-					len = 0;
-				}
-			}
-		}
-	}
+               // Return value is the number of bytes eaten as "data"
+               // for the initial tag
+               len = pif_offset - firstContent;
+            }
+            else {
+               // Closing tag.  No data follows.
+               len = 0;
+            }
+         }
+      }
+   }
 
-	return len;
+   return len;
 }
 
 /**************************************************************************/
@@ -4509,7 +4534,7 @@ unsigned int show_tagged_data( bool showData )
 // Advances cursor past tag byte(s)
 unsigned int show_tag(void)
 {
-	return show_tagged_data( false );
+   return show_tagged_data( false );
 }
 
 /*************************************************************************/
@@ -4522,41 +4547,41 @@ unsigned int show_tag(void)
 void show_bac_action_command( BACnetSequence &seq )
 /**************************************************************************/
 {
-	seq.ObjectIdentifier(   0, "deviceIdentifier", BSQ_OPTIONAL );
-	seq.ObjectIdentifier(   1, "objectIdentifier" );
-	seq.PropertyIdentifier( 2, "propertyIdentifier" );
-	seq.PropertyArrayIndex( 3, "propertyArrayIndex", BSQ_OPTIONAL );
+   seq.ObjectIdentifier(   0, "deviceIdentifier", BSQ_OPTIONAL );
+   seq.ObjectIdentifier(   1, "objectIdentifier" );
+   seq.PropertyIdentifier( 2, "propertyIdentifier" );
+   seq.PropertyArrayIndex( 3, "propertyArrayIndex", BSQ_OPTIONAL );
 
-	if (seq.OpeningTag(     4, "propertyValue" ))
-	{
-		show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
-		seq.ClosingTag();
-	}
-	seq.Unsigned(           5, "priority", BSQ_OPTIONAL );
-	seq.Unsigned(           6, "postDelay", BSQ_OPTIONAL );
-	seq.Boolean(            7, "quitOnFailure" );
-	seq.Boolean(            8, "writeSuccessful" );
+   if (seq.OpeningTag(     4, "propertyValue" ))
+   {
+      show_bac_ANY( seq, seq.LastObjectType(), seq.LastPropertyID(), seq.LastPropertyIndex() );
+      seq.ClosingTag();
+   }
+   seq.Unsigned(           5, "priority", BSQ_OPTIONAL );
+   seq.Unsigned(           6, "postDelay", BSQ_OPTIONAL );
+   seq.Boolean(            7, "quitOnFailure" );
+   seq.Boolean(            8, "writeSuccessful" );
 }
 
 /**************************************************************************/
 // Show BACnetActionList
 void show_bac_action_list( BACnetSequence &seq )
 {
-	seq.ListOf( 0, "action" );
-	while (seq.HasListElement())
-	{
-		show_bac_action_command( seq );
-	}
+   seq.ListOf( 0, "action" );
+   while (seq.HasListElement())
+   {
+      show_bac_action_command( seq );
+   }
 }
 
 /**************************************************************************/
 // Show BACnetScale
 void show_bac_scale( BACnetSequence &seq )
 {
-	seq.BeginChoice();
-	seq.Real(    0, "floatingScale", BSQ_CHOICE );
-	seq.Integer( 1, "integerScale", BSQ_CHOICE );
-	seq.EndChoice();
+   seq.BeginChoice();
+   seq.Real(    0, "floatingScale", BSQ_CHOICE );
+   seq.Integer( 1, "integerScale", BSQ_CHOICE );
+   seq.EndChoice();
 }
 
 /**************************************************************************/
@@ -4564,140 +4589,140 @@ void show_bac_scale( BACnetSequence &seq )
 void show_bac_event_parameters( BACnetSequence &seq )
 /**************************************************************************/
 {
-	seq.ListOf();
-	while (seq.HasListElement())
-	{
-		seq.BeginChoice();
-		if (seq.OpeningTag( 0, "Change of Bitstring parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(  0, "time-delay" );
-			seq.BitString( 1, "bitmask" );
-			seq.ListOf(    2, "list-of-bitstring-values" );
-			while (seq.HasListElement())
-			{
-				seq.BitString( -1, "value" );
-			}
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 1, "Change of State parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(  0, "time-delay" );
-			seq.ListOf(    1, "list-of-values" );
-			while (seq.HasListElement())
-			{
-				show_bac_property_states(seq);
-			}
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 2, "Change of Value parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(       0, "time-delay" );
-			if (seq.OpeningTag( 1, "cov-criteria" ))
-			{
-				seq.BeginChoice();
-				seq.BitString( 0, "bitmask", NULL, BSQ_CHOICE );
-				seq.Real(      1, "referenced-property-increment", BSQ_CHOICE );
-				seq.EndChoice();
-				seq.ClosingTag();
-			}
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 3, "Command Fail parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(       0, "time-delay" );
-			if (seq.OpeningTag( 1, "feedback-property-reference" ))
-			{
-				show_bac_dev_obj_prop_ref( seq );
-				seq.ClosingTag();
-			}
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 4, "Floating Limit parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(       0, "time-delay" );
-			if (seq.OpeningTag( 1, "setpoint-reference" ))
-			{
-				show_bac_dev_obj_prop_ref( seq );
-				seq.ClosingTag();
-			}
-			seq.Real(           2, "low-diff-limit" );
-			seq.Real(           3, "high-diff-limit" );
-			seq.Real(           4, "deadband" );
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 5, "Out of Range parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(       0, "time-delay" );
-			seq.Real(           1, "low-limit" );
-			seq.Real(           2, "high-limit" );
-			seq.Real(           3, "deadband" );
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 8, "Change of Life Safety parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(       0, "time-delay" );
-			seq.ListOf(         1, "list-of-life-safety-alarm-values" );
-			while (seq.HasListElement())
-			{
-				seq.Enumerated( -1, "value", &BAC_STRTAB_BACnetLifeSafetyState );
-			}
+   seq.ListOf();
+   while (seq.HasListElement())
+   {
+      seq.BeginChoice();
+      if (seq.OpeningTag( 0, "Change of Bitstring parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(  0, "time-delay" );
+         seq.BitString( 1, "bitmask" );
+         seq.ListOf(    2, "list-of-bitstring-values" );
+         while (seq.HasListElement())
+         {
+            seq.BitString( -1, "value" );
+         }
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 1, "Change of State parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(  0, "time-delay" );
+         seq.ListOf(    1, "list-of-values" );
+         while (seq.HasListElement())
+         {
+            show_bac_property_states(seq);
+         }
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 2, "Change of Value parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(       0, "time-delay" );
+         if (seq.OpeningTag( 1, "cov-criteria" ))
+         {
+            seq.BeginChoice();
+            seq.BitString( 0, "bitmask", NULL, BSQ_CHOICE );
+            seq.Real(      1, "referenced-property-increment", BSQ_CHOICE );
+            seq.EndChoice();
+            seq.ClosingTag();
+         }
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 3, "Command Fail parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(       0, "time-delay" );
+         if (seq.OpeningTag( 1, "feedback-property-reference" ))
+         {
+            show_bac_dev_obj_prop_ref( seq );
+            seq.ClosingTag();
+         }
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 4, "Floating Limit parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(       0, "time-delay" );
+         if (seq.OpeningTag( 1, "setpoint-reference" ))
+         {
+            show_bac_dev_obj_prop_ref( seq );
+            seq.ClosingTag();
+         }
+         seq.Real(           2, "low-diff-limit" );
+         seq.Real(           3, "high-diff-limit" );
+         seq.Real(           4, "deadband" );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 5, "Out of Range parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(       0, "time-delay" );
+         seq.Real(           1, "low-limit" );
+         seq.Real(           2, "high-limit" );
+         seq.Real(           3, "deadband" );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 8, "Change of Life Safety parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(       0, "time-delay" );
+         seq.ListOf(         1, "list-of-life-safety-alarm-values" );
+         while (seq.HasListElement())
+         {
+            seq.Enumerated( -1, "value", &BAC_STRTAB_BACnetLifeSafetyState );
+         }
 
-			seq.ListOf(         2, "list-of-life-safety-alarm-values" );
-			while (seq.HasListElement())
-			{
-				seq.Enumerated( -1, "value", &BAC_STRTAB_BACnetLifeSafetyState );
-			}
-			
-			if (seq.OpeningTag( 3, "mode-property-reference" ))
-			{
-				show_bac_dev_obj_prop_ref( seq );
-				seq.ClosingTag();
-			}
+         seq.ListOf(         2, "list-of-life-safety-alarm-values" );
+         while (seq.HasListElement())
+         {
+            seq.Enumerated( -1, "value", &BAC_STRTAB_BACnetLifeSafetyState );
+         }
+         
+         if (seq.OpeningTag( 3, "mode-property-reference" ))
+         {
+            show_bac_dev_obj_prop_ref( seq );
+            seq.ClosingTag();
+         }
 
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 9, "Extended Notification Parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(   0, "vendor-id" );
-			seq.Unsigned(   1, "extended-event-type" );
-			seq.ListOf(     2, "parameters" );
-			while (seq.HasListElement())
-			{
-				seq.BeginChoice();
-				seq.Null( -1, "null", BSQ_CHOICE );
-				seq.Real( -1, "real", BSQ_CHOICE );
-				seq.Unsigned( -1, "integer", BSQ_CHOICE );
-				seq.Boolean( -1, "boolean", BSQ_CHOICE );
-				seq.Double( -1, "double", BSQ_CHOICE );
-				seq.OctetString( -1, "octet", BSQ_CHOICE );
-				seq.BitString( -1, "bitstring", NULL, BSQ_CHOICE );
-				seq.Enumerated( -1, "enumerated", NULL, BSQ_CHOICE );
-				if (seq.OpeningTag( 0, "PropertyValue", BSQ_CHOICE ))
-				{
-					show_bac_dev_obj_prop_ref( seq );
-					seq.ClosingTag();
-				}
-				seq.EndChoice();
-			}
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 9, "Extended Notification Parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(   0, "vendor-id" );
+         seq.Unsigned(   1, "extended-event-type" );
+         seq.ListOf(     2, "parameters" );
+         while (seq.HasListElement())
+         {
+            seq.BeginChoice();
+            seq.Null( -1, "null", BSQ_CHOICE );
+            seq.Real( -1, "real", BSQ_CHOICE );
+            seq.Unsigned( -1, "integer", BSQ_CHOICE );
+            seq.Boolean( -1, "boolean", BSQ_CHOICE );
+            seq.Double( -1, "double", BSQ_CHOICE );
+            seq.OctetString( -1, "octet", BSQ_CHOICE );
+            seq.BitString( -1, "bitstring", NULL, BSQ_CHOICE );
+            seq.Enumerated( -1, "enumerated", NULL, BSQ_CHOICE );
+            if (seq.OpeningTag( 0, "PropertyValue", BSQ_CHOICE ))
+            {
+               show_bac_dev_obj_prop_ref( seq );
+               seq.ClosingTag();
+            }
+            seq.EndChoice();
+         }
 
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 10, "Buffer-Ready Notification Parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned( 0, "notification-threshold" );
-			seq.Unsigned( 1, "previous-notification-count" );
-			seq.ClosingTag();
-		}
-		else if (seq.OpeningTag( 11, "Unsigned-range Notification Parameters", BSQ_CHOICE ))
-		{
-			seq.Unsigned(  0, "time-delay" );
-			seq.Unsigned(  1, "low-limit" );
-			seq.Unsigned(  2, "high-limit" );
-			seq.ClosingTag();
-		}
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 10, "Buffer-Ready Notification Parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned( 0, "notification-threshold" );
+         seq.Unsigned( 1, "previous-notification-count" );
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 11, "Unsigned-range Notification Parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(  0, "time-delay" );
+         seq.Unsigned(  1, "low-limit" );
+         seq.Unsigned(  2, "high-limit" );
+         seq.ClosingTag();
+      }
 
-		seq.EndChoice();
-	}
+      seq.EndChoice();
+   }
 }
 
 /**************************************************************************/
@@ -4711,7 +4736,7 @@ void show_bac_object_identifier( unsigned int len )
    if (len != 4)
    {
       ShowErrorDetail("Error: expected object identifier, but length is %u", len);
-	  return;
+     return;
    }
 
    for (int i = 0; i < 4; i++)
@@ -4745,8 +4770,8 @@ void show_bac_object_identifier( unsigned int len )
 void show_bac_dev_obj_ref( BACnetSequence &seq )
 /**************************************************************************/
 {
-	seq.ObjectIdentifier( 0, "deviceIdentifier", BSQ_OPTIONAL );
-	seq.ObjectIdentifier( 1, "objectIdentifier" );
+   seq.ObjectIdentifier( 0, "deviceIdentifier", BSQ_OPTIONAL );
+   seq.ObjectIdentifier( 1, "objectIdentifier" );
 }
 
 /**************************************************************************/
@@ -4754,25 +4779,25 @@ void show_bac_dev_obj_ref( BACnetSequence &seq )
 void show_bac_property_states( BACnetSequence &seq )
 /**************************************************************************/
 {
-	seq.BeginChoice();
-	seq.Boolean( 0, "boolean-value", BSQ_CHOICE );
-	seq.Enumerated( 1, "binary-value",		&BAC_STRTAB_BACnetBinaryPV, BSQ_CHOICE );
-	seq.Enumerated( 2, "event-type",		   &BAC_STRTAB_BACnetEventType, BSQ_CHOICE );
-	seq.Enumerated( 3, "polarity",			&BAC_STRTAB_BACnetPolarity, BSQ_CHOICE );
-	seq.Enumerated( 4, "program-change",	&BAC_STRTAB_BACnetProgramRequest, BSQ_CHOICE );
-	seq.Enumerated( 5, "program-state",		&BAC_STRTAB_BACnetProgramState, BSQ_CHOICE );
-	seq.Enumerated( 6, "reason-for-halt",	&BAC_STRTAB_BACnetProgramError, BSQ_CHOICE );
-	seq.Enumerated( 7, "reliability",		&BAC_STRTAB_BACnetReliability, BSQ_CHOICE );
-	seq.Enumerated( 8, "state",				&BAC_STRTAB_BACnetEventState, BSQ_CHOICE );
-	seq.Enumerated( 9, "system-status",		&BAC_STRTAB_BACnetDeviceStatus, BSQ_CHOICE );
-	seq.Enumerated( 10, "units",			   &BAC_STRTAB_BACnetEngineeringUnits, BSQ_CHOICE );
-	seq.Unsigned(   11, "unsigned-value",	BSQ_CHOICE );
+   seq.BeginChoice();
+   seq.Boolean( 0, "boolean-value", BSQ_CHOICE );
+   seq.Enumerated( 1, "binary-value",     &BAC_STRTAB_BACnetBinaryPV, BSQ_CHOICE );
+   seq.Enumerated( 2, "event-type",       &BAC_STRTAB_BACnetEventType, BSQ_CHOICE );
+   seq.Enumerated( 3, "polarity",         &BAC_STRTAB_BACnetPolarity, BSQ_CHOICE );
+   seq.Enumerated( 4, "program-change",   &BAC_STRTAB_BACnetProgramRequest, BSQ_CHOICE );
+   seq.Enumerated( 5, "program-state",    &BAC_STRTAB_BACnetProgramState, BSQ_CHOICE );
+   seq.Enumerated( 6, "reason-for-halt",  &BAC_STRTAB_BACnetProgramError, BSQ_CHOICE );
+   seq.Enumerated( 7, "reliability",      &BAC_STRTAB_BACnetReliability, BSQ_CHOICE );
+   seq.Enumerated( 8, "state",            &BAC_STRTAB_BACnetEventState, BSQ_CHOICE );
+   seq.Enumerated( 9, "system-status",    &BAC_STRTAB_BACnetDeviceStatus, BSQ_CHOICE );
+   seq.Enumerated( 10, "units",           &BAC_STRTAB_BACnetEngineeringUnits, BSQ_CHOICE );
+   seq.Unsigned(   11, "unsigned-value",  BSQ_CHOICE );
 
-	seq.Enumerated( 12, "life-safety-mode", &BAC_STRTAB_BACnetLifeSafetyMode, BSQ_CHOICE );
-	seq.Enumerated( 13, "life-safety-state", &BAC_STRTAB_BACnetLifeSafetyState, BSQ_CHOICE );
-	seq.Enumerated( 14, "restart-reason",	&BAC_STRTAB_BACnetRestartReason, BSQ_CHOICE );
-	seq.Enumerated( 15, "door-alarm-state", &BAC_STRTAB_BACnetDoorAlarmState, BSQ_CHOICE );
-	seq.EndChoice();
+   seq.Enumerated( 12, "life-safety-mode", &BAC_STRTAB_BACnetLifeSafetyMode, BSQ_CHOICE );
+   seq.Enumerated( 13, "life-safety-state", &BAC_STRTAB_BACnetLifeSafetyState, BSQ_CHOICE );
+   seq.Enumerated( 14, "restart-reason",  &BAC_STRTAB_BACnetRestartReason, BSQ_CHOICE );
+   seq.Enumerated( 15, "door-alarm-state", &BAC_STRTAB_BACnetDoorAlarmState, BSQ_CHOICE );
+   seq.EndChoice();
 }
 
 /**************************************************************************/
@@ -4780,15 +4805,15 @@ void show_bac_property_states( BACnetSequence &seq )
 void show_bac_recipient( BACnetSequence &seq )
 /**************************************************************************/
 {
-	seq.BeginChoice();
-	seq.ObjectIdentifier( 0, "device", BSQ_CHOICE );
-	if (seq.OpeningTag(   1, "address", BSQ_CHOICE ))
-	{
-		seq.Unsigned(    -1, "network-number" );
-		seq.OctetString( -1, "mac-address" );
-		seq.ClosingTag();
-	}
-	seq.EndChoice();
+   seq.BeginChoice();
+   seq.ObjectIdentifier( 0, "device", BSQ_CHOICE );
+   if (seq.OpeningTag(   1, "address", BSQ_CHOICE ))
+   {
+      seq.Unsigned(    -1, "network-number" );
+      seq.OctetString( -1, "mac-address" );
+      seq.ClosingTag();
+   }
+   seq.EndChoice();
 }
 
 /****************************************************************************************
@@ -4798,160 +4823,160 @@ List of BACnetLogRecord, as property from ANY
 *****************************************************************************************/ 
 void show_log_buffer( BACnetSequence &seq )
 {
-	seq.ListOf( "listOfRecords" );
-	while (seq.HasListElement())
-	{
-		if (seq.OpeningTag( 0, "timeStamp" ))
-		{
-			seq.Date( -1, "date" );
-			seq.Time( -1, "time" );
-			seq.ClosingTag();
-		}
+   seq.ListOf( "listOfRecords" );
+   while (seq.HasListElement())
+   {
+      if (seq.OpeningTag( 0, "timeStamp" ))
+      {
+         seq.Date( -1, "date" );
+         seq.Time( -1, "time" );
+         seq.ClosingTag();
+      }
 
-		if (seq.OpeningTag( 1, "logDatum" ))
-		{
-			seq.BeginChoice();
-			seq.BitString(  0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
-			seq.Boolean(    1, "boolean-value", BSQ_CHOICE );
-			seq.Real(       2, "real-value", BSQ_CHOICE );
-			seq.Enumerated( 3, "enum-value", NULL, BSQ_CHOICE );
-			seq.Unsigned(   4, "unsigned-value", BSQ_CHOICE );
-			seq.Integer(    5, "signed-value", BSQ_CHOICE );
-			seq.BitString(  6, "bitstring-value", NULL, BSQ_CHOICE );
-			seq.Null(       7, "null-value", BSQ_CHOICE );
-			if (seq.OpeningTag( 8, "failure", BSQ_CHOICE ))
-			{
-				show_error( seq );
-				seq.ClosingTag();
-			}
-			seq.Real(           9, "time-change", BSQ_CHOICE );
-			if (seq.OpeningTag( 10, "any-value", BSQ_CHOICE ))
-			{
-				// Allow an arbitrary sequence of tagged items until closing tag
-				seq.AnyTaggedItem();
-				seq.ClosingTag();
-			}
+      if (seq.OpeningTag( 1, "logDatum" ))
+      {
+         seq.BeginChoice();
+         seq.BitString(  0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
+         seq.Boolean(    1, "boolean-value", BSQ_CHOICE );
+         seq.Real(       2, "real-value", BSQ_CHOICE );
+         seq.Enumerated( 3, "enum-value", NULL, BSQ_CHOICE );
+         seq.Unsigned(   4, "unsigned-value", BSQ_CHOICE );
+         seq.Integer(    5, "signed-value", BSQ_CHOICE );
+         seq.BitString(  6, "bitstring-value", NULL, BSQ_CHOICE );
+         seq.Null(       7, "null-value", BSQ_CHOICE );
+         if (seq.OpeningTag( 8, "failure", BSQ_CHOICE ))
+         {
+            show_error( seq );
+            seq.ClosingTag();
+         }
+         seq.Real(           9, "time-change", BSQ_CHOICE );
+         if (seq.OpeningTag( 10, "any-value", BSQ_CHOICE ))
+         {
+            // Allow an arbitrary sequence of tagged items until closing tag
+            seq.AnyTaggedItem();
+            seq.ClosingTag();
+         }
 
-			seq.EndChoice();
-			seq.ClosingTag();
-		}
+         seq.EndChoice();
+         seq.ClosingTag();
+      }
 
-		seq.BitString( 2, "statusFlags", &BAC_STRTAB_BACnetStatusFlags, BSQ_OPTIONAL );
-	}
+      seq.BitString( 2, "statusFlags", &BAC_STRTAB_BACnetStatusFlags, BSQ_OPTIONAL );
+   }
 }
 
 // BACnetEventLogRecord
 void show_event_log_buffer( BACnetSequence &seq )
 {
-	seq.ListOf( "listOfRecords" );
-	while (seq.HasListElement())
-	{
-		if (seq.OpeningTag( 0, "timeStamp" ))
-		{
-			seq.Date( -1, "date" );
-			seq.Time( -1, "time" );
-			seq.ClosingTag();
-		}
+   seq.ListOf( "listOfRecords" );
+   while (seq.HasListElement())
+   {
+      if (seq.OpeningTag( 0, "timeStamp" ))
+      {
+         seq.Date( -1, "date" );
+         seq.Time( -1, "time" );
+         seq.ClosingTag();
+      }
 
-		if (seq.OpeningTag( 1, "logDatum" ))
-		{
-			seq.BeginChoice();
-			seq.BitString(      0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
-			if (seq.OpeningTag( 1, "notification", BSQ_CHOICE ))
-			{
-				show_EventNotification( seq );
-				seq.ClosingTag();
-			}
-			seq.Real(           2, "time-change", BSQ_CHOICE );
-			seq.EndChoice();
-			seq.ClosingTag();
-		}
-	}
+      if (seq.OpeningTag( 1, "logDatum" ))
+      {
+         seq.BeginChoice();
+         seq.BitString(      0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
+         if (seq.OpeningTag( 1, "notification", BSQ_CHOICE ))
+         {
+            show_EventNotification( seq );
+            seq.ClosingTag();
+         }
+         seq.Real(           2, "time-change", BSQ_CHOICE );
+         seq.EndChoice();
+         seq.ClosingTag();
+      }
+   }
 }
 
 // BACnetLogMultipleRecord
 void show_log_multiple_buffer( BACnetSequence &seq )
 {
-	seq.ListOf( "listOfRecords" );
-	while (seq.HasListElement())
-	{
-		if (seq.OpeningTag( 0, "timeStamp" ))
-		{
-			seq.Date( -1, "date" );
-			seq.Time( -1, "time" );
-			seq.ClosingTag();
-		}
+   seq.ListOf( "listOfRecords" );
+   while (seq.HasListElement())
+   {
+      if (seq.OpeningTag( 0, "timeStamp" ))
+      {
+         seq.Date( -1, "date" );
+         seq.Time( -1, "time" );
+         seq.ClosingTag();
+      }
 
-		if (seq.OpeningTag( 1, "logData" ))
-		{
-			seq.BeginChoice();
-			seq.BitString(  0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
-			if (seq.ListOf( 1, "log-data", BSQ_CHOICE ))
-			{
-				while (seq.HasListElement())
-				{
-					seq.BeginChoice();
-					seq.Boolean(    0, "boolean-value", BSQ_CHOICE );
-					seq.Real(       1, "real-value", BSQ_CHOICE );
-					seq.Enumerated( 2, "enum-value", NULL, BSQ_CHOICE );
-					seq.Unsigned(   3, "unsigned-value", BSQ_CHOICE );
-					seq.Integer(    4, "signed-value", BSQ_CHOICE );
-					seq.BitString(  5, "bitstring-value", NULL, BSQ_CHOICE );
-					seq.Null(       6, "null-value", BSQ_CHOICE );
-					if (seq.OpeningTag( 7, "failure", BSQ_CHOICE ))
-					{
-						show_error( seq );
-						seq.ClosingTag();
-					}
-					if (seq.OpeningTag( 8, "any-value", BSQ_CHOICE ))
-					{
-						// Allow an arbitrary sequence of tagged items until closing tag
-						seq.AnyTaggedItem();
-						seq.ClosingTag();
-					}
-					seq.EndChoice();
-				}
-			}
-	
-			seq.Real(       2, "time-change", BSQ_CHOICE );
-			seq.EndChoice();
-			seq.ClosingTag();
-		}
-	}
+      if (seq.OpeningTag( 1, "logData" ))
+      {
+         seq.BeginChoice();
+         seq.BitString(  0, "log-status", &BAC_STRTAB_BACnetLogStatus, BSQ_CHOICE );
+         if (seq.ListOf( 1, "log-data", BSQ_CHOICE ))
+         {
+            while (seq.HasListElement())
+            {
+               seq.BeginChoice();
+               seq.Boolean(    0, "boolean-value", BSQ_CHOICE );
+               seq.Real(       1, "real-value", BSQ_CHOICE );
+               seq.Enumerated( 2, "enum-value", NULL, BSQ_CHOICE );
+               seq.Unsigned(   3, "unsigned-value", BSQ_CHOICE );
+               seq.Integer(    4, "signed-value", BSQ_CHOICE );
+               seq.BitString(  5, "bitstring-value", NULL, BSQ_CHOICE );
+               seq.Null(       6, "null-value", BSQ_CHOICE );
+               if (seq.OpeningTag( 7, "failure", BSQ_CHOICE ))
+               {
+                  show_error( seq );
+                  seq.ClosingTag();
+               }
+               if (seq.OpeningTag( 8, "any-value", BSQ_CHOICE ))
+               {
+                  // Allow an arbitrary sequence of tagged items until closing tag
+                  seq.AnyTaggedItem();
+                  seq.ClosingTag();
+               }
+               seq.EndChoice();
+            }
+         }
+   
+         seq.Real(       2, "time-change", BSQ_CHOICE );
+         seq.EndChoice();
+         seq.ClosingTag();
+      }
+   }
 }
 
 /**************************************************************************/
 // Show BACnetRecipientProcess
 void show_bac_recipient_process( BACnetSequence &seq )
 {
-	if (seq.OpeningTag( 0, "recipient" ))
-	{
-		show_bac_recipient( seq );
-		seq.ClosingTag();
-	}
-	seq.Unsigned(       1, "processIdentifier" );
+   if (seq.OpeningTag( 0, "recipient" ))
+   {
+      show_bac_recipient( seq );
+      seq.ClosingTag();
+   }
+   seq.Unsigned(       1, "processIdentifier" );
 }
 
 /**************************************************************************/
 // Show BACnetSpecialEvent
 void show_bac_special_event( BACnetSequence &seq )
 {
-	seq.BeginChoice();
-	if (seq.OpeningTag( 0, "calendarEntry", BSQ_CHOICE ))
-	{
-		show_calendar_entry( seq );
-		seq.ClosingTag();
-	}
-	seq.ObjectIdentifier( 1, "calendarReference", BSQ_CHOICE );
-	seq.EndChoice();
+   seq.BeginChoice();
+   if (seq.OpeningTag( 0, "calendarEntry", BSQ_CHOICE ))
+   {
+      show_calendar_entry( seq );
+      seq.ClosingTag();
+   }
+   seq.ObjectIdentifier( 1, "calendarReference", BSQ_CHOICE );
+   seq.EndChoice();
 
-	seq.ListOf( 2, "listOfTimeValues" );
-	while (seq.HasListElement())
-	{
-		show_bac_time_value( seq );
-	}
+   seq.ListOf( 2, "listOfTimeValues" );
+   while (seq.HasListElement())
+   {
+      show_bac_time_value( seq );
+   }
 
-	seq.Unsigned( 3, "eventPriority" );
+   seq.Unsigned( 3, "eventPriority" );
 }
 
 /**************************************************************************/
@@ -4959,23 +4984,23 @@ void show_bac_special_event( BACnetSequence &seq )
 void show_bac_shed_level( BACnetSequence &seq )
 /**************************************************************************/
 {
-	seq.BeginChoice();
-	seq.Unsigned( 0, "percent", BSQ_CHOICE );
-	seq.Unsigned( 1, "level", BSQ_CHOICE );
-	seq.Real(     2, "amount", BSQ_CHOICE );
-	seq.EndChoice();
+   seq.BeginChoice();
+   seq.Unsigned( 0, "percent", BSQ_CHOICE );
+   seq.Unsigned( 1, "level", BSQ_CHOICE );
+   seq.Real(     2, "amount", BSQ_CHOICE );
+   seq.EndChoice();
 }
 
 /**************************************************************************/
 // Show a BACnetTimeValue
 void show_bac_time_value( BACnetSequence &theSeq )
 {
-	theSeq.Time( -1, "time" );
+   theSeq.Time( -1, "time" );
 
-	// Any primitive type
-	theSeq.BeginWrap( "value" );
-	theSeq.AnyTaggedItem( false );
-	theSeq.EndWrap();
+   // Any primitive type
+   theSeq.BeginWrap( "value" );
+   theSeq.AnyTaggedItem( false );
+   theSeq.EndWrap();
 }
 
 /**************************************************************************/
@@ -4983,471 +5008,471 @@ void show_bac_time_value( BACnetSequence &theSeq )
 void show_bac_VT_session( BACnetSequence &theSeq )
 /**************************************************************************/
 {
-	theSeq.Unsigned( -1, "local-vtSessionID" );
-	theSeq.Unsigned( -1, "remote-vtSessionID" );
-	show_bacnet_address( theSeq, "remote-vtAddress" );
+   theSeq.Unsigned( -1, "local-vtSessionID" );
+   theSeq.Unsigned( -1, "remote-vtSessionID" );
+   show_bacnet_address( theSeq, "remote-vtAddress" );
 }
 
 //Lei Chengxin 2003-7-25
 void show_head_obj_id( unsigned int offset , const char* type , int tagval )
 {
-	unsigned int len = pif_get_byte(offset-1) & 0x07;
-	if (len != 4)
-	{
-		ShowErrorDetail("Error: expected object identifier, but length is %u", len);
-		return;
-	}
+   unsigned int len = pif_get_byte(offset-1) & 0x07;
+   if (len != 4)
+   {
+      ShowErrorDetail("Error: expected object identifier, but length is %u", len);
+      return;
+   }
 
-	unsigned long obj_id = get_bac_unsigned(offset, len);
-	unsigned int  obj_type = (obj_id >> 22) & 0x000003FF;
-	unsigned int  obj_instance = (obj_id & 0x003FFFFF);
-	
-	sprintf( outstr, "%s,%lu", ObjectTypeString(obj_type), obj_instance );
-	
-	if(tagval == -1)
-	{
-		sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
-				"%s:  %s", type, outstr);
-	}
-	else
-	{
-		sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
-				"[%u] %s:  %s", tagval, type, outstr);
-	}
+   unsigned long obj_id = get_bac_unsigned(offset, len);
+   unsigned int  obj_type = (obj_id >> 22) & 0x000003FF;
+   unsigned int  obj_instance = (obj_id & 0x003FFFFF);
+   
+   sprintf( outstr, "%s,%lu", ObjectTypeString(obj_type), obj_instance );
+   
+   if(tagval == -1)
+   {
+      sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
+            "%s:  %s", type, outstr);
+   }
+   else
+   {
+      sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
+            "[%u] %s:  %s", tagval, type, outstr);
+   }
 }
 
 //Lei Chengxin 2003-7-30
 void show_head_unsigned(unsigned int offset, const char* type, int tagval)
 {
-	int len = pif_get_byte(offset-1)&0x07;
-	unsigned long value = get_bac_unsigned(offset, len);
-	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
-			"%s:  %lu", type, value);
-	else
-		sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
-			"[%u] %s:  %lu", tagval, type, value);
+   int len = pif_get_byte(offset-1)&0x07;
+   unsigned long value = get_bac_unsigned(offset, len);
+   if(tagval == -1)
+      sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
+         "%s:  %lu", type, value);
+   else
+      sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
+         "[%u] %s:  %lu", tagval, type, value);
 }
 
 // Show an enumeration using the table, or numerically if out of
 // range of the table, or no table provided
 void show_head_enumerated(unsigned int offset, const char* type, int tagval, 
-						  const char* const table[], unsigned int tableLen)
+                    const char* const table[], unsigned int tableLen)
 {
-	int len = pif_get_byte(offset-1)&0x07;
-	unsigned long value = get_bac_unsigned(offset, len);
-	if ((table != NULL) && (value < tableLen))
-	{
-		if(tagval == -1)
-			sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
-					"%s:  %s (%u)", type, table[value], value);
-		else
-			sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
-					"[%u] %s:  %s (%u)", tagval, type, table[value], value);
-	}
-	else
-	{
-		show_head_unsigned( offset, type, tagval );
-	}
+   int len = pif_get_byte(offset-1)&0x07;
+   unsigned long value = get_bac_unsigned(offset, len);
+   if ((table != NULL) && (value < tableLen))
+   {
+      if(tagval == -1)
+         sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
+               "%s:  %s (%u)", type, table[value], value);
+      else
+         sprintf(get_int_line(pi_data_current,pif_offset,len+offset,NT_ITEM_HEAD), 
+               "[%u] %s:  %s (%u)", tagval, type, table[value], value);
+   }
+   else
+   {
+      show_head_unsigned( offset, type, tagval );
+   }
 }
 
 //Lei Chengxin 2003-7-31
 void show_head_ascii(const char* type)
 {
-	sprintf(get_int_line(pi_data_current,pif_offset,0,NT_ITEM_HEAD), "%s", type);
+   sprintf(get_int_line(pi_data_current,pif_offset,0,NT_ITEM_HEAD), "%s", type);
 }
 
 void show_head_char_string(unsigned int offset, const char* type, int tagval)
 {
-	// Reparse the tag, since we may have extended length
-	BacParser parser( offset );
-	int strLength = parser.DataLength();
-	offset = parser.Offset();
-	
-	char strBuff[MAX_INT_LINE];
+   // Reparse the tag, since we may have extended length
+   BacParser parser( offset );
+   int strLength = parser.DataLength();
+   offset = parser.Offset();
+   
+   char strBuff[MAX_INT_LINE];
     get_bac_charstring( strLength, strBuff, sizeof(strBuff), 0, offset );
 
-	char *pBuf = get_int_line(pi_data_current, pif_offset, offset+strLength, NT_ITEM_HEAD);
-	if (tagval == -1)
-		strLength = sprintf(pBuf, "%s:  ", type);
-	else
-		strLength = sprintf(pBuf, "[%d] %s:  ", tagval, type);
+   char *pBuf = get_int_line(pi_data_current, pif_offset, offset+strLength, NT_ITEM_HEAD);
+   if (tagval == -1)
+      strLength = sprintf(pBuf, "%s:  ", type);
+   else
+      strLength = sprintf(pBuf, "[%d] %s:  ", tagval, type);
 
-	SafeCopy( pBuf + strLength, strBuff, MAX_INT_LINE - strLength );
+   SafeCopy( pBuf + strLength, strBuff, MAX_INT_LINE - strLength );
 }
 
 void show_head_date(unsigned int offset, const char* type, int tagval)
 {
-	unsigned int len = pif_get_byte(offset-1)&0x07;
-	if (len != 4)
-	{
-		ShowErrorDetail("Error: expected date, but length is %u", len);
-		return;
-	}
+   unsigned int len = pif_get_byte(offset-1)&0x07;
+   if (len != 4)
+   {
+      ShowErrorDetail("Error: expected date, but length is %u", len);
+      return;
+   }
 
-	date_as_string( outstr, offset );
-	
-	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
-			"%s:  %s", type, outstr);
-	else
-		sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
-			"[%d] %s:  %s", tagval, type, outstr);
+   date_as_string( outstr, offset );
+   
+   if(tagval == -1)
+      sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
+         "%s:  %s", type, outstr);
+   else
+      sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
+         "[%d] %s:  %s", tagval, type, outstr);
 }
 
 //Lei Chengxin 2003-7-31
 void show_head_time(unsigned int offset, const char* type, int tagval)
 {
-	unsigned char x;
-	char tempstr[80];
+   unsigned char x;
+   char tempstr[80];
 
-	unsigned int len = pif_get_byte(offset-1)&0x07;
-	if (len != 4)
-	{
-		ShowErrorDetail("Error: expected time, but length is %u", len);
-		return;
-	}
+   unsigned int len = pif_get_byte(offset-1)&0x07;
+   if (len != 4)
+   {
+      ShowErrorDetail("Error: expected time, but length is %u", len);
+      return;
+   }
 
-	x = pif_get_byte(offset);
-	if (x == 255)
-		sprintf(outstr,"XX:");
-	else
-		sprintf(outstr,"%u:",x);
-	
-	x = pif_get_byte(1+offset);
-	if (x == 255)
-		strcat(outstr,"XX:");
-	else {
-		sprintf(tempstr,"%02u:",x);
-		strcat(outstr,tempstr);
-	}
-	
-	x = pif_get_byte(2+offset);
-	if (x == 255)
-		strcat(outstr,"XX.");
-	else {
-		sprintf(tempstr,"%02u.",x);
-		strcat(outstr,tempstr);
-	}
-	
-	x = pif_get_byte(3+offset);
-	if (x == 255)
-		strcat(outstr,"XX");
-	else {
-		sprintf(tempstr,"%02u",x);
-		strcat(outstr,tempstr);
-	}
-	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
-			"%s:  %s", type, outstr);
-	else
-		sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
-			"[%d] %s:  %s", tagval, type, outstr);
+   x = pif_get_byte(offset);
+   if (x == 255)
+      sprintf(outstr,"XX:");
+   else
+      sprintf(outstr,"%u:",x);
+   
+   x = pif_get_byte(1+offset);
+   if (x == 255)
+      strcat(outstr,"XX:");
+   else {
+      sprintf(tempstr,"%02u:",x);
+      strcat(outstr,tempstr);
+   }
+   
+   x = pif_get_byte(2+offset);
+   if (x == 255)
+      strcat(outstr,"XX.");
+   else {
+      sprintf(tempstr,"%02u.",x);
+      strcat(outstr,tempstr);
+   }
+   
+   x = pif_get_byte(3+offset);
+   if (x == 255)
+      strcat(outstr,"XX");
+   else {
+      sprintf(tempstr,"%02u",x);
+      strcat(outstr,tempstr);
+   }
+   if(tagval == -1)
+      sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
+         "%s:  %s", type, outstr);
+   else
+      sprintf(get_int_line(pi_data_current,pif_offset,5,NT_ITEM_HEAD), 
+         "[%d] %s:  %s", tagval, type, outstr);
 }
 
 //Lei Chengxin 2003-7-31
 // Offset points at first data byte
 void show_head_property_ID( unsigned int offset , const char* type , int tagval )
 {
-	show_head_enumerated( offset, type, tagval, 
-						  BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings, 
-						  BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings );
+   show_head_enumerated( offset, type, tagval, 
+                    BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings, 
+                    BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings );
 }
 
 // Show the tag and value of an item.
 // Does not affect the cursor.
 void show_head_tagged_data( void )
 {
-	unsigned char tagbuff;
-	unsigned int dataType, len, val;
-	
-	tagbuff = pif_get_byte(0);
-	bool contextTag = (tagbuff & 0x08) != 0;
-	dataType = tagbuff>>4;
+   unsigned char tagbuff;
+   unsigned int dataType, len, val;
+   
+   tagbuff = pif_get_byte(0);
+   bool contextTag = (tagbuff & 0x08) != 0;
+   dataType = tagbuff>>4;
 
-	// Note that datatypes that may have more than 4 bytes of data
-	// will need to reparse the full length.
-	len = pif_get_byte(0) & 0x07;
+   // Note that datatypes that may have more than 4 bytes of data
+   // will need to reparse the full length.
+   len = pif_get_byte(0) & 0x07;
 
-	if (!contextTag) {
-		switch (dataType) {
-		case PRIM_NULL:
-			sprintf(get_int_line(pi_data_current,pif_offset,1,NT_ITEM_HEAD), "NULL");
-			break;
-		case PRIM_BOOLEAN:
-			val = pif_get_byte(0) & 0x07;
-			sprintf(get_int_line(pi_data_current,pif_offset,1,NT_ITEM_HEAD), "Boolean: %s",
-				    (val == 0) ? "FALSE" :
-					(val == 1) ? "TRUE" :
-					"Illegal value");
-			break;
-		case PRIM_UNSIGNED: 
-			show_head_unsigned(1, "Unsigned", -1 );
-			break;
-		case PRIM_SIGNED: 
-			show_head_signed(1, "Signed", -1 );
-			break;
-		case PRIM_REAL: 
-			show_head_real(1, "Real", -1 );
-			break;
-		case PRIM_DOUBLE: 
-			show_head_double(0, "Double", -1 );
-			break;
-		case PRIM_BIT_STRING:
-			show_head_bit_string(0, "Bit String", -1 );
-			break;
-		case PRIM_CHARACTER_STRING:
-			show_head_char_string(0, "Character String", -1 );
-			break;
-		case PRIM_OCTET_STRING:
-			show_head_octet_string(0, "Octet String", -1 );
-			break;
-		case PRIM_ENUMERATED:
-			show_head_unsigned(1, "Enumerated", -1 );
-			break;
-		case PRIM_DATE:
-			show_head_date(1, "Date", -1 );
-			break;
-		case PRIM_TIME: 
-			show_head_time(1, "Time", -1 );
-			break;
-		case PRIM_OBJECT_IDENTIFIER:
-			show_head_obj_id(1, "Object Identifier", -1 );
-			break;
-		default: 
-			ShowErrorDetail("Error: claimed application tag %u", dataType );
-			break;
-		}  /* end of type switch */
-	}
+   if (!contextTag) {
+      switch (dataType) {
+      case PRIM_NULL:
+         sprintf(get_int_line(pi_data_current,pif_offset,1,NT_ITEM_HEAD), "NULL");
+         break;
+      case PRIM_BOOLEAN:
+         val = pif_get_byte(0) & 0x07;
+         sprintf(get_int_line(pi_data_current,pif_offset,1,NT_ITEM_HEAD), "Boolean: %s",
+                (val == 0) ? "FALSE" :
+               (val == 1) ? "TRUE" :
+               "Illegal value");
+         break;
+      case PRIM_UNSIGNED: 
+         show_head_unsigned(1, "Unsigned", -1 );
+         break;
+      case PRIM_SIGNED: 
+         show_head_signed(1, "Signed", -1 );
+         break;
+      case PRIM_REAL: 
+         show_head_real(1, "Real", -1 );
+         break;
+      case PRIM_DOUBLE: 
+         show_head_double(0, "Double", -1 );
+         break;
+      case PRIM_BIT_STRING:
+         show_head_bit_string(0, "Bit String", -1 );
+         break;
+      case PRIM_CHARACTER_STRING:
+         show_head_char_string(0, "Character String", -1 );
+         break;
+      case PRIM_OCTET_STRING:
+         show_head_octet_string(0, "Octet String", -1 );
+         break;
+      case PRIM_ENUMERATED:
+         show_head_unsigned(1, "Enumerated", -1 );
+         break;
+      case PRIM_DATE:
+         show_head_date(1, "Date", -1 );
+         break;
+      case PRIM_TIME: 
+         show_head_time(1, "Time", -1 );
+         break;
+      case PRIM_OBJECT_IDENTIFIER:
+         show_head_obj_id(1, "Object Identifier", -1 );
+         break;
+      default: 
+         ShowErrorDetail("Error: claimed application tag %u", dataType );
+         break;
+      }  /* end of type switch */
+   }
     else 
-	{
-		// Context tagged item
-		// Show as level 1 item
-		// - if fixed-length, highlight that length
-		// - if paired, highlight up until the closing tag
+   {
+      // Context tagged item
+      // Show as level 1 item
+      // - if fixed-length, highlight that length
+      // - if paired, highlight up until the closing tag
 
-		// Reparse, since we may have extended tag value or length
-		BacParser parser(0);
-		if (parser.FixedTag())
-		{
-			// Fixed-delimiter item.  
-			// Show it as hex (since we don't know the actual type)
-			// and highlight all of its data
-			if (parser.DataLength() > 0)
-			{
-				char *pStr = outstr;
-				pStr += sprintf( pStr, "hex data:" );
-				for (unsigned int ix = 0; ix < parser.DataLength(); ix++)
-				{
-					if (ix >= MAX_SUM_LINE/3)
-					{
-						// Limit the length
-						pStr += sprintf( pStr, "..." );
-						break;
-					}
-					pStr += sprintf( pStr, " %02X", pif_get_byte(parser.Offset()+ix) );
-				}
-				*pStr = 0;
-			}
-			else
-			{
-				strcpy( outstr, "no data" );
-			}
-			
-			parser.EatData();
-			sprintf( get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_ITEM_HEAD),
-			         "[%u] Context tag with %s", 
-					 parser.TagValue(), outstr );
-		}
-		else if (parser.OpeningTag())
-		{
-			// Opening tag
-			unsigned int tagValue = parser.TagValue();
-			parser.EatData();	// bypass the contents
-			parser.ParseTag();	// bypass the closing tag, so Offset() includes it
+      // Reparse, since we may have extended tag value or length
+      BacParser parser(0);
+      if (parser.FixedTag())
+      {
+         // Fixed-delimiter item.  
+         // Show it as hex (since we don't know the actual type)
+         // and highlight all of its data
+         if (parser.DataLength() > 0)
+         {
+            char *pStr = outstr;
+            pStr += sprintf( pStr, "hex data:" );
+            for (unsigned int ix = 0; ix < parser.DataLength(); ix++)
+            {
+               if (ix >= MAX_SUM_LINE/3)
+               {
+                  // Limit the length
+                  pStr += sprintf( pStr, "..." );
+                  break;
+               }
+               pStr += sprintf( pStr, " %02X", pif_get_byte(parser.Offset()+ix) );
+            }
+            *pStr = 0;
+         }
+         else
+         {
+            strcpy( outstr, "no data" );
+         }
+         
+         parser.EatData();
+         sprintf( get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_ITEM_HEAD),
+                  "[%u] Context tag with %s", 
+                parser.TagValue(), outstr );
+      }
+      else if (parser.OpeningTag())
+      {
+         // Opening tag
+         unsigned int tagValue = parser.TagValue();
+         parser.EatData(); // bypass the contents
+         parser.ParseTag();   // bypass the closing tag, so Offset() includes it
 
-			// Show using NT_OPEN_TAG so tree can auto-expand
-			sprintf( get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_OPEN_TAG),
-			         "[%u] Opening Context tag", 
-					 tagValue );
-		}
-		else
-		{
-			// Closing tag.
-			sprintf( get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_ITEM_HEAD),
-			         "[%u] Closing Context tag", 
-					 parser.TagValue() );
-		}
-	}
+         // Show using NT_OPEN_TAG so tree can auto-expand
+         sprintf( get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_OPEN_TAG),
+                  "[%u] Opening Context tag", 
+                tagValue );
+      }
+      else
+      {
+         // Closing tag.
+         sprintf( get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_ITEM_HEAD),
+                  "[%u] Closing Context tag", 
+                parser.TagValue() );
+      }
+   }
 }
 
 //Lei Chengxin 2003-8-23
 // offset points at tag octet
 void show_head_octet_string( unsigned int offset , const char* type , int tagval )
 {
-	// Reparse the tag, since we may have extended length
-	BacParser parser( offset );
-	int strLength = parser.DataLength();
-	offset = parser.Offset();
+   // Reparse the tag, since we may have extended length
+   BacParser parser( offset );
+   int strLength = parser.DataLength();
+   offset = parser.Offset();
 
-	char *pStr = outstr;
-	*pStr = 0;
-	for (int i = 0; i < strLength; i++)
-	{
-		if ((pStr - outstr) >= MAX_SUM_LINE)
-		{
-			// Limit the length
-			strcpy( pStr, "..." );
-			break;
-		}
-		pStr += sprintf( pStr, "%02X", pif_get_byte(offset+i) );
-	}
+   char *pStr = outstr;
+   *pStr = 0;
+   for (int i = 0; i < strLength; i++)
+   {
+      if ((pStr - outstr) >= MAX_SUM_LINE)
+      {
+         // Limit the length
+         strcpy( pStr, "..." );
+         break;
+      }
+      pStr += sprintf( pStr, "%02X", pif_get_byte(offset+i) );
+   }
 
-	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset, offset + strLength, NT_ITEM_HEAD), 
-			    "%s:  X'%s'", type, outstr);
-	else
-		sprintf(get_int_line(pi_data_current,pif_offset, offset + strLength, NT_ITEM_HEAD), 
-			    "[%d] %s:  X'%s'", tagval, type, outstr);
+   if(tagval == -1)
+      sprintf(get_int_line(pi_data_current,pif_offset, offset + strLength, NT_ITEM_HEAD), 
+             "%s:  X'%s'", type, outstr);
+   else
+      sprintf(get_int_line(pi_data_current,pif_offset, offset + strLength, NT_ITEM_HEAD), 
+             "[%d] %s:  X'%s'", tagval, type, outstr);
 }
 
 //Lei Chengxin 2003-8-23
 // offset points at first data octet
 void show_head_signed( unsigned int offset , const char* type , int tagval )
 {
-	int len = pif_get_byte(offset-1) & 0x07;
-	unsigned int val = 0;
-	if (pif_get_byte(offset) & 0x80)
-	{
-		val = (unsigned int)-1;
-	}
+   int len = pif_get_byte(offset-1) & 0x07;
+   unsigned int val = 0;
+   if (pif_get_byte(offset) & 0x80)
+   {
+      val = (unsigned int)-1;
+   }
 
-	for (int ix = 0; ix < len; ix++)
-	{
-		val = (val << 8) | pif_get_byte(offset + ix);
-	}
+   for (int ix = 0; ix < len; ix++)
+   {
+      val = (val << 8) | pif_get_byte(offset + ix);
+   }
 
-	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
-			"%s:  %d", type, (int)val);
-	else
-		sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
-			"[%d] %s:  %d", tagval, type, (int)val);
+   if(tagval == -1)
+      sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
+         "%s:  %d", type, (int)val);
+   else
+      sprintf(get_int_line(pi_data_current,pif_offset,len+1,NT_ITEM_HEAD), 
+         "[%d] %s:  %d", tagval, type, (int)val);
 }
 
 //Lei Chengxin 2003-8-23
 void show_head_real( unsigned int offset , const char* type , int tagval )
 {
-	double dx;
-	unsigned char fstr[4];
-	unsigned int i;
+   double dx;
+   unsigned char fstr[4];
+   unsigned int i;
 
-	unsigned int len = pif_get_byte(offset-1)&0x07;
-	if (len != 4)
-	{
-		ShowErrorDetail("Error: expected real, but length is %u", len);
-		return;
-	}
-	   
+   unsigned int len = pif_get_byte(offset-1)&0x07;
+   if (len != 4)
+   {
+      ShowErrorDetail("Error: expected real, but length is %u", len);
+      return;
+   }
+      
 #if LITTLEENDIAN
-	for (i=0;i<4;i++) 
-		fstr[i] = pif_get_byte(offset+3-i);
+   for (i=0;i<4;i++) 
+      fstr[i] = pif_get_byte(offset+3-i);
 #else
-	for (i=0;i<4;i++) 
-		fstr[i] = pif_get_byte(offset+i);
+   for (i=0;i<4;i++) 
+      fstr[i] = pif_get_byte(offset+i);
 #endif
-	dx = (double)(*(float *)fstr);
+   dx = (double)(*(float *)fstr);
 
-	// Change from %f to %g to avoid l000000000000000ng strings and buffer overflow
-	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,4+1,NT_ITEM_HEAD), 
-		        "%s:  %#g", type, dx);
-	else
-		sprintf(get_int_line(pi_data_current,pif_offset,4+1,NT_ITEM_HEAD), 
-		        "[%d] %s:  %#g", tagval, type, dx);
+   // Change from %f to %g to avoid l000000000000000ng strings and buffer overflow
+   if(tagval == -1)
+      sprintf(get_int_line(pi_data_current,pif_offset,4+1,NT_ITEM_HEAD), 
+              "%s:  %#g", type, dx);
+   else
+      sprintf(get_int_line(pi_data_current,pif_offset,4+1,NT_ITEM_HEAD), 
+              "[%d] %s:  %#g", tagval, type, dx);
 }
 
 // offset points at tag octet
 void show_head_double( unsigned int offset, const char* type , int tagval )
 {
-	double dx;
-	unsigned char fstr[8];
-	unsigned int i;
+   double dx;
+   unsigned char fstr[8];
+   unsigned int i;
 
-	// Reparse the tag, since we may have extended length
-	BacParser parser( offset );
-	if (parser.DataLength() != 8)
-	{
-		ShowErrorDetail("Error: expected double, but length is %u", parser.DataLength());
-		return;
-	}
-	offset = parser.Offset();
-	   
+   // Reparse the tag, since we may have extended length
+   BacParser parser( offset );
+   if (parser.DataLength() != 8)
+   {
+      ShowErrorDetail("Error: expected double, but length is %u", parser.DataLength());
+      return;
+   }
+   offset = parser.Offset();
+      
 #if LITTLEENDIAN
-	for (i=0;i<8;i++) 
-		fstr[i] = pif_get_byte(offset+7-i);
+   for (i=0;i<8;i++) 
+      fstr[i] = pif_get_byte(offset+7-i);
 #else
-	for (i=0;i<8;i++) 
-		fstr[i] = pif_get_byte(offset+i);
+   for (i=0;i<8;i++) 
+      fstr[i] = pif_get_byte(offset+i);
 #endif
-	dx = *(double*)fstr;
+   dx = *(double*)fstr;
 
-	// Change from %f to %g to avoid l000000000000000ng strings and buffer overflow
-	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset,offset+8,NT_ITEM_HEAD), 
-		        "%s:  %#g", type, dx);
-	else
-		sprintf(get_int_line(pi_data_current,pif_offset,offset+8,NT_ITEM_HEAD), 
-		        "[%d] %s:  %#g", tagval, type, dx);
+   // Change from %f to %g to avoid l000000000000000ng strings and buffer overflow
+   if(tagval == -1)
+      sprintf(get_int_line(pi_data_current,pif_offset,offset+8,NT_ITEM_HEAD), 
+              "%s:  %#g", type, dx);
+   else
+      sprintf(get_int_line(pi_data_current,pif_offset,offset+8,NT_ITEM_HEAD), 
+              "[%d] %s:  %#g", tagval, type, dx);
 }
 
 // offset points at tag octet
 void show_head_bit_string( unsigned int offset, const char* type, int tagval )
 {
-	// Reparse the tag, since we may have extended length
-	BacParser parser( offset );
-	offset = parser.Offset();
-	int byteLength = parser.DataLength();
-	int unusedBits = pif_get_byte(offset);
-	if ((byteLength < 2) || (unusedBits > 7))
-	{
-		ShowErrorDetail("Error: bitstring claims %u bytes with %u unused bits", 
-						byteLength, unusedBits);
-		return;
-	}
+   // Reparse the tag, since we may have extended length
+   BacParser parser( offset );
+   offset = parser.Offset();
+   int byteLength = parser.DataLength();
+   int unusedBits = pif_get_byte(offset);
+   if ((byteLength < 2) || (unusedBits > 7))
+   {
+      ShowErrorDetail("Error: bitstring claims %u bytes with %u unused bits", 
+                  byteLength, unusedBits);
+      return;
+   }
 
-	int val, jx = 1, mask = 0;
-	int bitLength = (byteLength - 1)*8 - unusedBits;
-	char *pStr = outstr;
-	for (int ix = 0; ix < bitLength; ix++)
-	{
-		if ((pStr - outstr) >= MAX_SUM_LINE)
-		{
-			// Limit the length
-			pStr += sprintf( pStr, "..." );
-			break;
-		}
+   int val, jx = 1, mask = 0;
+   int bitLength = (byteLength - 1)*8 - unusedBits;
+   char *pStr = outstr;
+   for (int ix = 0; ix < bitLength; ix++)
+   {
+      if ((pStr - outstr) >= MAX_SUM_LINE)
+      {
+         // Limit the length
+         pStr += sprintf( pStr, "..." );
+         break;
+      }
 
-		if (mask == 0)
-		{
-			mask = 0x80;
-			val = pif_get_byte(offset + jx);
-			jx += 1;
-			if (ix != 0)
-				*pStr++ = ' ';
-		}
+      if (mask == 0)
+      {
+         mask = 0x80;
+         val = pif_get_byte(offset + jx);
+         jx += 1;
+         if (ix != 0)
+            *pStr++ = ' ';
+      }
 
-		*pStr++ = (val & mask) ? 'T' : 'F';
-		mask = mask >> 1;
-	}
-	*pStr = 0;
+      *pStr++ = (val & mask) ? 'T' : 'F';
+      mask = mask >> 1;
+   }
+   *pStr = 0;
 
-	if(tagval == -1)
-		sprintf(get_int_line(pi_data_current,pif_offset, offset+byteLength, NT_ITEM_HEAD), 
-			    "%s:  {%s}", type, outstr);
-	else
-		sprintf(get_int_line(pi_data_current,pif_offset, offset+byteLength, NT_ITEM_HEAD), 
-			    "[%d] %s:  {%s}", tagval, type, outstr);
+   if(tagval == -1)
+      sprintf(get_int_line(pi_data_current,pif_offset, offset+byteLength, NT_ITEM_HEAD), 
+             "%s:  {%s}", type, outstr);
+   else
+      sprintf(get_int_line(pi_data_current,pif_offset, offset+byteLength, NT_ITEM_HEAD), 
+             "[%d] %s:  {%s}", tagval, type, outstr);
 }
 
 // Show an opening or closing context tag by name.
@@ -5462,81 +5487,81 @@ void show_head_bit_string( unsigned int offset, const char* type, int tagval )
 //
 bool show_head_context_tag( unsigned int offset, const char* type, int tagval, bool showContent )
 {
-	// Reparse the tag, since we may have extended length
-	BacParser parser( offset );
-	if (parser.TagValue() != (unsigned int)tagval)
-	{
-		ShowErrorDetail("Error: expected tag %u (%s), got %u", 
-				tagval, type, parser.TagValue());
-		return false;
-	}
+   // Reparse the tag, since we may have extended length
+   BacParser parser( offset );
+   if (parser.TagValue() != (unsigned int)tagval)
+   {
+      ShowErrorDetail("Error: expected tag %u (%s), got %u", 
+            tagval, type, parser.TagValue());
+      return false;
+   }
 
-	bool isOpening = parser.OpeningTag();
+   bool isOpening = parser.OpeningTag();
 
-	// Bypass the item, so we can highlight it
-	parser.EatData();
+   // Bypass the item, so we can highlight it
+   parser.EatData();
 
-	if (isOpening)
-	{
-		// Parse closing tag, so we highlight its length with our own
-		parser.ParseTag();
+   if (isOpening)
+   {
+      // Parse closing tag, so we highlight its length with our own
+      parser.ParseTag();
 
-		// Use NT_OPEN_TAG, so this can be auto-expanded in the view tree
-		sprintf(get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_OPEN_TAG), 
-				"[%d] %s:  Paired tag", tagval, type);
-		if (showContent)
-		{
-			// Deconstruct the tag and show the contents, advancing cursor
-			show_tagged_data();
+      // Use NT_OPEN_TAG, so this can be auto-expanded in the view tree
+      sprintf(get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_OPEN_TAG), 
+            "[%d] %s:  Paired tag", tagval, type);
+      if (showContent)
+      {
+         // Deconstruct the tag and show the contents, advancing cursor
+         show_tagged_data();
 
-			// Deconstruct the closing tag and advance cursor
-			// Don't show as a header line, since we are indenting this under the 
-			//   show_head_context_tag(0, type, tagval, true);
-			show_tag();
-		}
-	}
-	else
-	{
-		sprintf(get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_ITEM_HEAD), 
-				"[%d] %s:  Closing tag", tagval, type);
-		if (showContent)
-		{
-			// Deconstruct the tag and show the contents, advancing cursor
-			show_tagged_data();
-		}
-	}
+         // Deconstruct the closing tag and advance cursor
+         // Don't show as a header line, since we are indenting this under the 
+         //   show_head_context_tag(0, type, tagval, true);
+         show_tag();
+      }
+   }
+   else
+   {
+      sprintf(get_int_line(pi_data_current,pif_offset, parser.Offset(), NT_ITEM_HEAD), 
+            "[%d] %s:  Closing tag", tagval, type);
+      if (showContent)
+      {
+         // Deconstruct the tag and show the contents, advancing cursor
+         show_tagged_data();
+      }
+   }
 
-	return true;
+   return true;
 }
 
 // Show a BACnetCOVSubscription
 void show_bac_COV_Subscription( BACnetSequence &seq )
 {
-	if (seq.OpeningTag( 0, "recipient" ))
-	{
-		show_bac_recipient_process( seq );
-		seq.ClosingTag();
-	}
-	if (seq.OpeningTag( 1, "monitoredPropertyReference" ))
-	{
-		show_bac_object_property_reference( seq );
-		seq.ClosingTag();
-	}
-	seq.Boolean(        2, "issueConfirmedNotifications" );
-	seq.Unsigned(       3, "timeRemaining" );
-	seq.Real(           4, "covIncrement", BSQ_OPTIONAL );
+   if (seq.OpeningTag( 0, "recipient" ))
+   {
+      show_bac_recipient_process( seq );
+      seq.ClosingTag();
+   }
+   if (seq.OpeningTag( 1, "monitoredPropertyReference" ))
+   {
+      show_bac_object_property_reference( seq );
+      seq.ClosingTag();
+   }
+   seq.Boolean(        2, "issueConfirmedNotifications" );
+   seq.Unsigned(       3, "timeRemaining" );
+   seq.Real(           4, "covIncrement", BSQ_OPTIONAL );
 }
 
 // Show a BACnetDestination
 void show_bac_destination( BACnetSequence &seq )
 {
-	seq.BitString( -1, "validDays", &BAC_STRTAB_BACnetDaysOfWeek );
-	seq.Time(      -1, "fromTime" );
-	seq.Time(      -1, "toTime" );
-	show_bac_recipient(seq);
-	seq.Unsigned(  -1, "processIdentifier" );
-	seq.Boolean(   -1, "issueConfirmedNotifications" );
-	seq.BitString( -1, "transitions", &BAC_STRTAB_BACnetEventTransitionBits );
+   seq.BitString( -1, "validDays", &BAC_STRTAB_BACnetDaysOfWeek );
+   seq.Time(      -1, "fromTime" );
+   seq.Time(      -1, "toTime" );
+   show_bac_recipient(seq);
+   seq.Unsigned(  -1, "processIdentifier" );
+   seq.Boolean(   -1, "issueConfirmedNotifications" );
+   seq.BitString( -1, "transitions", &BAC_STRTAB_BACnetEventTransitionBits );
 }
 
 }
