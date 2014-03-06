@@ -262,7 +262,7 @@ enum BACnetPropertyIdentifier
    AUTHENTICATION_FACTORS =         257,
    AUTHENTICATION_POLICY_LIST =     258,
    AUTHENTICATION_POLICY_NAMES =    259,
-   AUTHORIZATION_STATUS =           260,
+   AUTHENTICATION_STATUS =          260,
    AUTHORIZATION_MODE =             261,
    BELONGS_TO =                     262,
    CREDENTIAL_DISABLE =             263,
@@ -389,13 +389,14 @@ enum BACnetPropertyIdentifier
    TRANSITION =                     385,
    EGRESS_ACTIVE =                  386, // Highest in 135-2012
 
-   MAX_PROP_ID           // Must be the same as MAX_PROP_ID
+   MAX_PROP_ID
 };
 // If you add or fill in more properties here, you must also
 // - add the name string to BAC_STRINGTABLE BACnetPropertyIdentifier
-// You SHOULD also
+// You should also
 // - add proper decode logic to show_bac_ANY in Bacfuncs.h
 // - add EPICS parsing to DUDTOOL.CPP
+// - add to the appropriate property-supported tables in DUDTOOL.CPP
 // - add VTS internal object support support to Stdobjpr.h
 
 #endif

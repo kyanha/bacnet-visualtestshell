@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
+#include "Propid.h"
 
 #include "Send.h"
 #include "SendConfCOVNotification.h"
@@ -431,12 +432,7 @@ void COVNotificationList::AddButtonClick( void )
 	cnlCurElem = new COVNotificationElem( cnlPagePtr );
 	cnlCurElemIndx = listLen;
 
-	// madanner, 9/3/02
-	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier
-	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
-	// if list is altered.
-
-	cnlCurElem->cnePropCombo.enumValue = 85;
+	cnlCurElem->cnePropCombo.enumValue = PRESENT_VALUE;
 
 	AddTail( cnlCurElem );
 
