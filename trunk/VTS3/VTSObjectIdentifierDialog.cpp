@@ -67,7 +67,8 @@ BOOL VTSObjectIdentifierDialog::OnInitDialog()
 	txt.Format( "%d", objType );
 
 	// check for known values [MAX_DEFINED_OBJ is defined in VTS.h
-	if (objType < MAX_DEFINED_OBJ) {
+   if (objType < MAX_DEFINED_OBJ)
+   {
 		// standard, known type
 		m_ObjTypeCombo.SetCurSel( objType );
 
@@ -75,8 +76,9 @@ BOOL VTSObjectIdentifierDialog::OnInitDialog()
 		m_Reserved.EnableWindow( true );
 		m_Vendor.SetWindowText( _T("") );
 		m_Vendor.EnableWindow( false );
-	} else
-	if ((objType >= MAX_DEFINED_OBJ) && (objType < 128)) {
+   }
+   else if (objType < 128)
+   {
 		// reserved type
 		m_ObjTypeCombo.SetCurSel( MAX_DEFINED_OBJ ); //was 18
 
@@ -84,8 +86,9 @@ BOOL VTSObjectIdentifierDialog::OnInitDialog()
 		m_Reserved.EnableWindow( true );
 		m_Vendor.SetWindowText( _T("") );
 		m_Vendor.EnableWindow( false );
-	} else
-	if (objType >= 128) {
+   }
+   else
+   {
 		// vendor type
 		m_ObjTypeCombo.SetCurSel( MAX_DEFINED_OBJ +1 ); //was 19
 
@@ -124,8 +127,8 @@ void VTSObjectIdentifierDialog::OnSelchangeObjTypeCombo()
 		m_Reserved.EnableWindow( true );
 		m_Vendor.SetWindowText( _T("") );
 		m_Vendor.EnableWindow( false );
-	} else
-	if (objType == MAX_DEFINED_OBJ) // was 18
+   }
+   else if (objType == MAX_DEFINED_OBJ)
 	{
 		// reserved type
 		txt.Format( "%d", objType );
@@ -134,8 +137,8 @@ void VTSObjectIdentifierDialog::OnSelchangeObjTypeCombo()
 		m_Reserved.EnableWindow( true );
 		m_Vendor.SetWindowText( _T("") );
 		m_Vendor.EnableWindow( false );
-	} else
-	if (objType == (MAX_DEFINED_OBJ +1) ) //was 19
+   }
+   else
 	{
 		// vendor type
 		objType = 128;
@@ -145,8 +148,7 @@ void VTSObjectIdentifierDialog::OnSelchangeObjTypeCombo()
 		m_Reserved.EnableWindow( false );
 		m_Vendor.SetWindowText( txt );
 		m_Vendor.EnableWindow( true );
-	} else
-		;
+   }
 
 	// update the encoded id
 	UpdateEncoding( true );
