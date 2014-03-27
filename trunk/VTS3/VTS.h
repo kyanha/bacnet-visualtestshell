@@ -14,17 +14,79 @@
 
 #include "resource.h"       // main symbols
 
-#define MAX_DEFINED_OBJ	  51	// This is one more than defined BACnetObjectType :Modifyed Shiyuan Xiao 7/14/2005
-#define MAX_SERVS_SUPP     50
-
-#define	DEVICE_LOOPBACK		1		// set to zero to disable "looped" messages
+#define MAX_SERVS_SUPP      50
+#define DEVICE_LOOPBACK		1		   // set to zero to disable "looped" messages
 
 #define MAX_FAIL_TIMES      8        // Size of BACnetFailTimes array per 135.1-2009 4.5.9
-#define MAX_BIBBS           100      //  msd 9/1/04 - added. Provides a little growing room.
-#define MAX_DATALINK_OPTIONS  30     //  msd 9/1/04 - added. Provide a little growing room.
+#define MAX_BIBBS           100      // msd 9/1/04 - added. Provides a little growing room.
+#define MAX_DATALINK_OPTIONS  30     // msd 9/1/04 - added. Provide a little growing room.
 
 // Just the name.  Each usage must use GetTempPath for the path
 #define FILE_CHECK_EPICS_CONS "EPICSConsChk.txt"
+
+// TODO: This COULD go into its a file of various BACnet enumerations.
+// Or they could all live HERE
+enum  BACnetObjectType
+{
+   OBJ_ANALOG_INPUT            = 0,
+   OBJ_ANALOG_OUTPUT           = 1,
+   OBJ_ANALOG_VALUE            = 2,
+   OBJ_BINARY_INPUT            = 3,
+   OBJ_BINARY_OUTPUT           = 4,
+   OBJ_BINARY_VALUE            = 5,
+   OBJ_CALENDAR                = 6,
+   OBJ_COMMAND                 = 7,
+   OBJ_DEVICE                  = 8,
+   OBJ_EVENT_ENROLLMENT        = 9,
+   OBJ_FILE                    = 10,
+   OBJ_GROUP                   = 11,
+   OBJ_LOOP                    = 12,
+   OBJ_MULTI_STATE_INPUT       = 13,
+   OBJ_MULTI_STATE_OUTPUT      = 14,
+   OBJ_NOTIFICATIONCLASS       = 15,
+   OBJ_PROGRAM                 = 16,
+   OBJ_SCHEDULE                = 17,
+   OBJ_AVERAGING               = 18,
+   OBJ_MULTI_STATE_VALUE       = 19,
+   OBJ_TREND_LOG               = 20,
+   OBJ_LIFE_SAFETY_POINT       = 21,
+   OBJ_LIFE_SAFETY_ZONE        = 22,
+   OBJ_ACCUMULATOR             = 23,
+   OBJ_PULSE_CONVERTER         = 24,
+   OBJ_EVENT_LOG               = 25,
+   OBJ_GLOBAL_GROUP            = 26,
+   OBJ_TREND_LOG_MULTIPLE      = 27,
+   OBJ_LOAD_CONTROL            = 28,
+   OBJ_STRUCTURED_VIEW         = 29,
+   OBJ_ACCESS_DOOR             = 30,
+   OBJ_UNUSED_OBJ_31           = 31, // Was lighting-output during early review
+   OBJ_ACCESS_CREDENTIAL       = 32, // Addendum 2008-j
+   OBJ_ACCESS_POINT            = 33,
+   OBJ_ACCESS_RIGHTS		       = 34, // avoid conflict with Windows typedef ACCESS_RIGHTS
+   OBJ_ACCESS_USER             = 35,
+   OBJ_ACCESS_ZONE             = 36,
+   OBJ_CREDENTIAL_DATA_INPUT   = 37,
+   OBJ_NETWORK_SECURITY        = 38, // 38 Addendum 2008-g
+   OBJ_BITSTRING_VALUE         = 39, // Addendum 2008_w
+   OBJ_CHARACTERSTRING_VALUE   = 40,
+   OBJ_DATE_PATTERN_VALUE      = 41,
+   OBJ_DATE_VALUE              = 42,
+   OBJ_DATETIME_PATTERN_VALUE  = 43,
+   OBJ_DATETIME_VALUE          = 44,
+   OBJ_INTEGER_VALUE           = 45,
+   OBJ_LARGE_ANALOG_VALUE      = 46,
+   OBJ_OCTETSTRING_VALUE       = 47,
+   OBJ_POSITIVE_INTEGER_VALUE  = 48,
+   OBJ_TIME_PATTERN_VALUE      = 49,
+   OBJ_TIME_VALUE              = 50, // 50 Last in 2008-w
+   OBJ_NOTIFICATION_FORWARDER  = 51,
+   OBJ_ALERT_ENROLLMENT        = 52,
+   OBJ_CHANNEL                 = 53,
+   OBJ_LIGHTING_OUTPUT         = 54, // last in 135-2012
+
+   // After the last object, determine size of the above
+   MAX_DEFINED_OBJ				// This is one more than the highest defined object type
+};
 
 //
 //	VTSApp
@@ -68,8 +130,8 @@ class VTSApp : public CWinApp {
 		afx_msg void OnUpdateRecentWorkspaceMenu(CCmdUI* pCmdUI);
 		afx_msg BOOL OnOpenRecentWorkspace(UINT nID);
 
-			// NOTE - the ClassWizard will add and remove member functions here.
-			//    DO NOT EDIT what you see in these blocks of generated code !
+		// NOTE - the ClassWizard will add and remove member functions here.
+		//    DO NOT EDIT what you see in these blocks of generated code !
 		//}}AFX_MSG
 		DECLARE_MESSAGE_MAP()
 	};

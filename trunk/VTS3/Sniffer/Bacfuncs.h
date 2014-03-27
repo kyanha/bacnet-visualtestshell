@@ -33,22 +33,22 @@ public:
    enum TagType { TAG_PRIMITIVE, TAG_OPEN, TAG_CLOSE };
 
    // Get the components of the current tag
-   int			 Offset() const { return m_offset; }
+   int          Offset() const { return m_offset; }
    unsigned int TagValue() const { return m_tagValue; }
    unsigned int DataLength() const { return m_dataLength; }
-   bool		 ContextTag() const { return m_contextTag; }
-   bool		 FixedTag() const { return (m_tagType == TAG_PRIMITIVE); }
-   bool		 OpeningTag() const { return (m_tagType == TAG_OPEN); }
-   bool		 ClosingTag() const { return (m_tagType == TAG_CLOSE); }
-   TagType   GetTagType() const { return m_tagType; }
+   bool         ContextTag() const { return m_contextTag; }
+   bool         FixedTag() const { return (m_tagType == TAG_PRIMITIVE); }
+   bool         OpeningTag() const { return (m_tagType == TAG_OPEN); }
+   bool         ClosingTag() const { return (m_tagType == TAG_CLOSE); }
+   TagType      GetTagType() const { return m_tagType; }
 
 protected:
-   int			 m_offset;
+   int          m_offset;
    unsigned int m_tagValue;
    unsigned int m_dataLength;
-   bool		    m_contextTag;
-   bool		    m_isValid;
-   TagType		 m_tagType;
+   bool         m_contextTag;
+   bool         m_isValid;
+   TagType      m_tagType;
 };
 
 BacParser::BacParser( int theOffset )
@@ -90,7 +90,7 @@ bool BacParser::ParseTag()
       m_tagType = TAG_PRIMITIVE;
       // Get the Length/Value/Type field
       m_dataLength = (tagbuff & 0x07);
-      if (!m_contextTag && (m_tagValue < 2))	// is a "Value", no following bytes
+      if (!m_contextTag && (m_tagValue < 2)) // is a "Value", no following bytes
       {
          // Application-tagged NULL or BOOLEAN: no length
          m_dataLength = 0;
@@ -113,7 +113,7 @@ bool BacParser::ParseTag()
             m_offset += 4;
          }
       }
-      else if (m_dataLength > 5)		// is a "Type"
+      else if (m_dataLength > 5)    // is a "Type"
       {
          // Paired tag
          m_tagType = (m_dataLength == 6) ? TAG_OPEN : TAG_CLOSE;
@@ -188,23 +188,7 @@ bool BacParser::EatData()
 // string will say that, and show the numeric value
 const char* ObjectTypeString( unsigned int theObjectType )
 {
-   const char *pRet;	
-   if (theObjectType < (unsigned int)BAC_STRTAB_BACnetObjectType.m_nStrings)
-   {
-      pRet = BAC_STRTAB_BACnetObjectType.m_pStrings[theObjectType];
-   }
-   else
-   {
-      char *pTxt = TempTextBuffer();
-        if (theObjectType < 128)
-         sprintf( pTxt, "Reserved_%d", theObjectType );
-      else
-         sprintf( pTxt, "Proprietary_%d", theObjectType );
-
-      pRet = pTxt;
-   }
-
-   return pRet;
+   return BAC_STRTAB_BACnetObjectType.EnumString( theObjectType );
 }
 
 // Return a string containing text for the specified property identifier.
@@ -212,25 +196,7 @@ const char* ObjectTypeString( unsigned int theObjectType )
 // string will say that, and sow the numeric value
 const char* PropertyIdentifierString( unsigned int theIdentifier )
 {
-   const char *pRet;	
-   if (theIdentifier < (unsigned int)BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings)
-   {
-      // A debug test (outputs to the VS Output window)
-       // TRACE( "STRING_TABLE BACnetPropertyIdentifier[293] = %s \n", BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[293] );
-      pRet = BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[theIdentifier];
-   }
-   else
-   {
-      char *pTxt = TempTextBuffer();
-        if (theIdentifier < 512)
-         sprintf( pTxt, "Reserved_%d", theIdentifier );
-      else
-         sprintf( pTxt, "Proprietary_%d", theIdentifier );
-
-      pRet = pTxt;
-   }
-
-   return pRet;
+   return BAC_STRTAB_BACnetPropertyIdentifier.EnumString( theIdentifier );
 }
 
 // For vsprintf
@@ -244,7 +210,7 @@ void ShowErrorDetail( const char *pFormat, ... )
    if (pFormat != NULL)
    {
       vsprintf( get_int_line(pi_data_current,pif_offset,1,NT_ERROR), 
-              pFormat, args );
+                pFormat, args );
    }
    va_end(args);
 }
@@ -437,12 +403,12 @@ protected:
 
    struct Nester
    {
-      Nester			*m_pNext;
-      BACnetNestType	m_nestType;
-      int				m_tagValue;
-//		const char		*m_pTitle;
-      bool			m_foundChoice;
-      int             m_firstLineIndex;
+      Nester         *m_pNext;
+      BACnetNestType m_nestType;
+      int            m_tagValue;
+//    const char     *m_pTitle;
+      bool           m_foundChoice;
+      int            m_firstLineIndex;
    };
 
    // Validate the next item against tag, do choice logic
@@ -450,7 +416,7 @@ protected:
    // else application tag theAppTag
    // theTagType is 0 for primitive tag, 6 for open tag, 7 for close tag
    bool Vet( int theTag, int theAppTag, 
-           BacParser::TagType theTagType, BACnetSequenceParm theType = BSQ_REQUIRED );
+             BacParser::TagType theTagType, BACnetSequenceParm theType = BSQ_REQUIRED );
 
    // Allocate and push a block on the stack
    void Push( BACnetNestType theNestType, int theTagValue, const char *pTheTitle );
@@ -459,17 +425,17 @@ protected:
    // Caller must delete the return item.
    Nester* Pop( BACnetNestType theNestType );
 
-   bool		m_ok;
-   bool		m_parsed;
-   BacParser	m_parser;
-   Nester		*m_pStack;
+   bool         m_ok;
+   bool         m_parsed;
+   BacParser    m_parser;
+   Nester       *m_pStack;
 
    // Saved values for use in property value decoding
    unsigned int m_objectIdentifier;
-   int			m_objectType;
-   int			m_propertyID;
-   int			m_propertyIndex;
-   bool		m_lastBoolean;
+   int          m_objectType;
+   int          m_propertyID;
+   int          m_propertyIndex;
+   bool         m_lastBoolean;
    unsigned int m_lastUnsigned;
    unsigned int m_lastEnumerated;
 };
@@ -486,7 +452,7 @@ BACnetSequence::BACnetSequence()
 , m_lastUnsigned((unsigned int)(~0))
 , m_lastEnumerated((unsigned int)(~0))
 {
-   m_parsed = m_parser.IsValid();	// because BacParser constructor parses
+   m_parsed = m_parser.IsValid();   // because BacParser constructor parses
 }
 
 BACnetSequence::~BACnetSequence()
@@ -498,7 +464,7 @@ BACnetSequence::~BACnetSequence()
       {
          // Unparsed stuff at the end of the APDU
          sprintf( get_int_line(pi_data_current, pif_offset, leftOver, NT_ERROR), 
-                "%d unexpected bytes at end of APDU", leftOver );
+                  "%d unexpected bytes at end of APDU", leftOver );
       }
    }
 
@@ -518,7 +484,7 @@ bool BACnetSequence::Fail( const char *pFormat, ... )
    if (pFormat != NULL)
    {
       vsprintf( get_int_line(pi_data_current,pif_offset,1,NT_ERROR), 
-              pFormat, args );
+                pFormat, args );
    }
    va_end(args);
    
@@ -564,7 +530,7 @@ void BACnetSequence::Push( BACnetNestType theNestType, int theTagValue, const ch
    pNest->m_pNext    = m_pStack;
    pNest->m_nestType = theNestType;
    pNest->m_tagValue = theTagValue;
-//	pNest->m_pTitle   = pTheTitle;
+// pNest->m_pTitle   = pTheTitle;
    pNest->m_foundChoice = false;
    pNest->m_firstLineIndex = get_next_detail_index();
 
@@ -581,7 +547,7 @@ BACnetSequence::Nester* BACnetSequence::Pop( BACnetNestType theNestType )
       if (pNest->m_nestType != theNestType)
       {
          Fail( "Probable bug in VTS: decoder nesting wants %u, got %u", 
-              pNest->m_nestType, theNestType );
+               pNest->m_nestType, theNestType );
       }
 
       m_pStack = pNest->m_pNext;
@@ -606,9 +572,9 @@ static const char* WhatWeGot( const BacParser &theParser )
    else if (theParser.ContextTag())
    {
       sprintf( pGot, "%s [%u]",
-             (theParser.GetTagType() == BacParser::TAG_OPEN) ? "opening" :
-             (theParser.GetTagType() == BacParser::TAG_CLOSE) ? "closing" :
-             "primitive", tag );
+              (theParser.GetTagType() == BacParser::TAG_OPEN) ? "opening" :
+              (theParser.GetTagType() == BacParser::TAG_CLOSE) ? "closing" :
+              "primitive", tag );
    }
    else
    {
@@ -634,13 +600,13 @@ bool BACnetSequence::VetPrimitive( int theTag, int theAppTag, BACnetSequenceParm
 
 // Verify the tag and do choice logic
 bool BACnetSequence::Vet( int theTag, int theAppTag, 
-                    BacParser::TagType theTagType, BACnetSequenceParm theType )
+                          BacParser::TagType theTagType, BACnetSequenceParm theType )
 {
    bool retval = IsOK();
    if (retval)
    {
       if ((m_pStack != NULL) && (m_pStack->m_nestType == BNT_CHOICE) && 
-         (theType == BSQ_CHOICE) && (m_pStack->m_foundChoice))
+          (theType == BSQ_CHOICE) && (m_pStack->m_foundChoice))
       {
          // Already found our choice.  Don't process this item
          retval = false;
@@ -651,7 +617,7 @@ bool BACnetSequence::Vet( int theTag, int theAppTag,
          if (((theTag >= 0) && m_parser.ContextTag() && (theTag == (int)m_parser.TagValue()) && 
              (theTagType == m_parser.GetTagType()))
                ||
-            ((theTag < 0) && !m_parser.ContextTag() && (theAppTag == (int)m_parser.TagValue())))
+             ((theTag < 0) && !m_parser.ContextTag() && (theAppTag == (int)m_parser.TagValue())))
          {
             // Matches next tag
             if ((m_pStack != NULL) && (m_pStack->m_nestType == BNT_CHOICE) && (theType == BSQ_CHOICE))
@@ -667,9 +633,9 @@ bool BACnetSequence::Vet( int theTag, int theAppTag,
             if (theTag >= 0)
             {
                sprintf( pExpected, "%s [%u]",
-                      (theTagType == BacParser::TAG_OPEN) ? "(opening)" :
-                      (theTagType == BacParser::TAG_CLOSE) ? "(closing)" :
-                      "primitive", theTag );
+                        (theTagType == BacParser::TAG_OPEN) ? "(opening)" :
+                        (theTagType == BacParser::TAG_CLOSE) ? "(closing)" :
+                        "primitive", theTag );
             }
             else 
             {
@@ -768,7 +734,7 @@ void BACnetSequence::ClosingTag()
             // if (m_ok)
             {
                // Deconstruct the closing tag and advance cursor
-                    show_tag();
+               show_tag();
             }
             Synch();
          }
@@ -875,7 +841,7 @@ bool BACnetSequence::HasListElement()
       if (pNest != NULL)
       {
          // Parse this byte and look for closing tag or end of PDU
-         bool more = Parse();		// see if we reached the end 
+         bool more = Parse();    // see if we reached the end 
          if ( !more || m_parser.ClosingTag() )
          {
             // End of the list, expected or otherwise
@@ -886,7 +852,7 @@ bool BACnetSequence::HasListElement()
                if (!more || (tag != (int)m_parser.TagValue()))
                {
                   Fail( "Missing or incorrect closing tag: expected [%u], got %s",
-                       tag, WhatWeGot( m_parser ) );
+                        tag, WhatWeGot( m_parser ) );
                }
                else
                {
@@ -896,7 +862,7 @@ bool BACnetSequence::HasListElement()
                   // if (m_ok)
                   {
                      // Deconstruct the closing tag and advance cursor
-                        show_tag();
+                     show_tag();
                   }
                }
             }
@@ -973,13 +939,13 @@ bool BACnetSequence::Null( int theTag, const char *pTitle, BACnetSequenceParm th
       {
          // Application-tag
          sprintf( get_int_line(pi_data_current, pif_offset, 1, NT_ITEM_HEAD), 
-                "%s:  Null", pTitle );
+                  "%s:  Null", pTitle );
       }
       else
       {
          // Context-tag
          sprintf( get_int_line(pi_data_current, pif_offset, 1, NT_ITEM_HEAD), 
-                "[%u] Null", theTag, pTitle );
+                  "[%u] Null", theTag, pTitle );
       }
 
       show_tagged_data();
@@ -1009,14 +975,14 @@ bool BACnetSequence::Boolean( int theTag, const char *pTitle, BACnetSequenceParm
          // (NOT available from parser.DataLength(), which says length is 0)
          boolVal = pif_get_byte(0) & 0x01;
          sprintf( get_int_line(pi_data_current, pif_offset, 1, NT_ITEM_HEAD), 
-                "%s:  %s", pTitle, (boolVal) ? "TRUE" : "FALSE" );
+                  "%s:  %s", pTitle, (boolVal) ? "TRUE" : "FALSE" );
       }
       else
       {
          // Context-tag: value octet follows
          boolVal = get_bac_unsigned(1, m_parser.DataLength());
          sprintf( get_int_line(pi_data_current, pif_offset, 2, NT_ITEM_HEAD), 
-                "[%u] %s:  %s", theTag, pTitle, (boolVal) ? "TRUE" : "FALSE" );
+                  "[%u] %s:  %s", theTag, pTitle, (boolVal) ? "TRUE" : "FALSE" );
       }
 
       // Save the value for use in special decoders
@@ -1315,13 +1281,13 @@ bool BACnetSequence::BitString( int theTag, const char *pTitle,
             {
                if (ix < pTheTable->m_nStrings)
                {
-                  sprintf(get_int_line(pi_data_current,pif_offset, byteLength), 
-                        "%u: %s = TRUE", ix, pTheTable->m_pStrings[ix] );
+                  sprintf( get_int_line(pi_data_current,pif_offset, byteLength), 
+                           "%u: %s = TRUE", ix, pTheTable->m_pStrings[ix] );
                }
                else
                {
-                  sprintf(get_int_line(pi_data_current,pif_offset, byteLength), 
-                        "%u = TRUE", ix );
+                  sprintf( get_int_line(pi_data_current,pif_offset, byteLength), 
+                          "%u = TRUE", ix );
                }
             }
             mask = mask >> 1;
@@ -1350,7 +1316,7 @@ bool BACnetSequence::TextString( int theTag, const char *pTitle, BACnetSequenceP
       show_head_char_string(0, pTitle, theTag);
       unsigned int len = show_tag();
 
-        show_bac_charstring(len);
+      show_bac_charstring(len);
       Synch();
    }
 
@@ -1439,13 +1405,13 @@ void bac_show_enetaddr( const char *label )
 
    sprintf(outstr,"%"FW"s = %%02X-%%02X-%%02X-%%02X-%%02X-%%02X",label); /* Set up alignment of output */
    sprintf(get_int_line(pi_data_current,pif_offset,6), outstr
-      , pif_get_byte(0)
-      , pif_get_byte(1)
-      , pif_get_byte(2)
-      , pif_get_byte(3)
-      , pif_get_byte(4)
-      , pif_get_byte(5)
-      );
+           , pif_get_byte(0)
+           , pif_get_byte(1)
+           , pif_get_byte(2)
+           , pif_get_byte(3)
+           , pif_get_byte(4)
+           , pif_get_byte(5)
+          );
    pif_offset += 6;
 
    if (name) pif_append_ascii( ", %s", name );
@@ -1455,17 +1421,16 @@ void bac_show_enetaddr( const char *label )
 void bac_show_bipaddr( const char *label )
 /*************************************************************************/
 {
-   const char  *name = LookupName( 0, (const unsigned char *)msg_origin + pif_offset, 6 )
-   ;
+   const char  *name = LookupName( 0, (const unsigned char *)msg_origin + pif_offset, 6 );
 
    sprintf(outstr,"%"FW"s = %%u.%%u.%%u.%%u:0x%%04X",label); /* Set up alignment of output */
    sprintf(get_int_line(pi_data_current,pif_offset,6), outstr
-      , pif_get_byte(0)
-      , pif_get_byte(1)
-      , pif_get_byte(2)
-      , pif_get_byte(3)
-      , (unsigned short)pif_get_word_hl(4)
-      );
+           , pif_get_byte(0)
+           , pif_get_byte(1)
+           , pif_get_byte(2)
+           , pif_get_byte(3)
+           , (unsigned short)pif_get_word_hl(4)
+          );
    pif_offset += 6;
 
    if (name) pif_append_ascii( ", %s", name );
@@ -1484,7 +1449,7 @@ void bac_show_flag( const char *pStr, unsigned char mask )
    sprintf(get_int_line(pi_data_current,pif_offset,1),pStr,x);
 
    pif_flagbit_indent = strcspn(pStr,"=") - 10;
-   if (pif_flagbit_indent < 0) 
+   if (pif_flagbit_indent < 0)
       pif_flagbit_indent = 0;
    pif_offset += 1;
 }
@@ -1703,13 +1668,13 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case ALL:
       seq.Fail( "Illegal data claims to be ALL" );
       break;
-   case ALL_WRITES_SUCCESSFUL:		/* Boolean  */
+   case ALL_WRITES_SUCCESSFUL:      /* Boolean  */
       seq.Boolean( -1, "" );
       break;
-   case APDU_SEGMENT_TIMEOUT:		/* Unsigned */
+   case APDU_SEGMENT_TIMEOUT:    /* Unsigned */
       seq.Unsigned( -1, "" );
       break;
-   case APDU_TIMEOUT:				/* Unsigned */
+   case APDU_TIMEOUT:            /* Unsigned */
       seq.Unsigned( -1, "" );
       break;
    case APPLICATION_SOFTWARE_VERSION:  /* Character String  */
@@ -1721,10 +1686,10 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case BIAS:   /*  Real  */
       seq.Real( -1, "" );
       break;
-   case CHANGE_OF_STATE_COUNT:		/* 15 Unsigned  */
+   case CHANGE_OF_STATE_COUNT:      /* 15 Unsigned  */
       seq.Unsigned( -1, "" );
       break;
-   case CHANGE_OF_STATE_TIME:		/* 16 BACnet DateTime  */
+   case CHANGE_OF_STATE_TIME:    /* 16 BACnet DateTime  */
       seq.Date( -1, "" );
       seq.Time( -1, "" );
       break;
@@ -1737,7 +1702,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case CONTROLLED_VARIABLE_VALUE:  /*  Real  */
       seq.Real( -1, "" );
       break;
-   case COV_INCREMENT:			// 22
+   case COV_INCREMENT:        // 22
       seq.Real( -1, "" );
       break;
    case DATE_LIST:  /* List of BACnetCalendarEntry  */
@@ -1751,7 +1716,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case DAYLIGHT_SAVINGS_STATUS:  /* Boolean  */
       seq.Boolean( -1, "" );
       break;
-   case DEADBAND:					// 25
+   case DEADBAND:             // 25
       seq.Real( -1, "" );
       break;
    case DERIVATIVE_CONSTANT: /* Real  */
@@ -1760,7 +1725,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case DERIVATIVE_CONSTANT_UNITS: /* Enumeration  */
       seq.Enumerated( -1, "", &BAC_STRTAB_BACnetEngineeringUnits );
       break;
-   case DESCRIPTION:		/* 28 Character String  */
+   case DESCRIPTION:    /* 28 Character String  */
       seq.TextString( -1, "" );
       break;
    case DESCRIPTION_OF_HALT: /* Character String */
@@ -1808,7 +1773,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
          show_bac_special_event(seq);
       }
       break;
-//	case FAULT_VALUES:  see "ALARM_VALUES" case above
+// case FAULT_VALUES:  see "ALARM_VALUES" case above
    case FEEDBACK_VALUE:
       // BinaryPV for binary output, Unsigned for multistate output
       if (obj_type == 4)
@@ -1861,7 +1826,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case LIMIT_ENABLE:
       seq.BitString( -1, "", &BAC_STRTAB_BACnetLimitEnable );
       break;
-   case LIST_OF_GROUP_MEMBERS:	/* list of ReadAccessSpecification */
+   case LIST_OF_GROUP_MEMBERS:   /* list of ReadAccessSpecification */
       if (seq.ListOf())
       {
          while (seq.HasListElement())
@@ -1956,7 +1921,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
       seq.ObjectIdentifier( -1, "" );
       break;
    case OBJECT_LIST:
-   case STRUCTURED_OBJECT_LIST:		/* Array of Structured View object IDs */
+   case STRUCTURED_OBJECT_LIST:     /* Array of Structured View object IDs */
       while (seq.ArrayOf( prop_idx )) 
       {
          seq.ObjectIdentifier( -1, "" );
@@ -2032,14 +1997,14 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
       case 40: // characterstringValue - BACnetCharacterString
          seq.TextString( -1, "" );
          break;
-      case 44:	// datetimeValue BACnetDateTime  
+      case 44: // datetimeValue BACnetDateTime  
          seq.Date( -1, "" );
          seq.Time( -1, "" );
          break;
-      case 45:	// integerValue:
+      case 45: // integerValue:
          seq.Integer( -1, "" );
          break;
-      case 48:	// positiveIntegerValue:
+      case 48: // positiveIntegerValue:
          seq.Unsigned( -1, "" );
          break;
 
@@ -2109,7 +2074,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case REASON_FOR_HALT: /*  BACnetProgramError  */
       seq.Enumerated( -1, "", &BAC_STRTAB_BACnetProgramError );
       break;
-   case RECIPIENT_LIST:	// SEQEUNCE OF BACnetDestination
+   case RECIPIENT_LIST: // SEQEUNCE OF BACnetDestination
       if (seq.ListOf())
       {
          while (seq.HasListElement())
@@ -2217,7 +2182,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case ATTEMPTED_SAMPLES:             // Unsigned 32     
       seq.Unsigned( -1, "" );
       break;
-   case AVERAGE_VALUE:					// Real         
+   case AVERAGE_VALUE:              // Real         
       seq.Real( -1, "" );
       break;
    case BUFFER_SIZE:                   // Unsigned 32   
@@ -2229,7 +2194,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
       seq.Null( -1, "default-increment", BSQ_CHOICE );
       seq.EndChoice();
       break;
-   case COV_RESUBSCRIPTION_INTERVAL:	// Unsigned 32
+   case COV_RESUBSCRIPTION_INTERVAL:   // Unsigned 32
       seq.Unsigned( -1, "" );
       break;
    case EVENT_TIME_STAMPS:               // Array of BACnetTimeStamp
@@ -2242,13 +2207,13 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
       switch (obj_type)
       {
       case 20:
-         show_log_buffer( seq );				// TrendLog
+         show_log_buffer( seq );          // TrendLog
          break;
       case 25:
-         show_event_log_buffer( seq );		// EventLog
+         show_event_log_buffer( seq );    // EventLog
          break;
       case 27:
-         show_log_multiple_buffer( seq );	// TrendLogMultiple
+         show_log_multiple_buffer( seq ); // TrendLogMultiple
          break;
       default:
          // Object we don't know.
@@ -2277,7 +2242,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
          }
       }
       break;
-   case ENABLE:						// Boolean    
+   case ENABLE:                  // Boolean    
       seq.Boolean( -1, "" );
       break;
    case LOG_INTERVAL:                  // Unsigned    
@@ -2286,26 +2251,26 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case MAXIMUM_VALUE:                 // Real       
       seq.Real( -1, "" );
       break;
-   case MINIMUM_VALUE:					// Real
+   case MINIMUM_VALUE:              // Real
       seq.Real( -1, "" );
       break;
    case NOTIFICATION_THRESHOLD:        // Unsigned 32
       seq.Unsigned( -1, "" );
       break;
-   case PROTOCOL_REVISION:				// Unsigned 32
+   case PROTOCOL_REVISION:          // Unsigned 32
       seq.Unsigned( -1, "" );
       break;
-   case RECORDS_SINCE_NOTIFICATION:	// Unsigned 32
+   case RECORDS_SINCE_NOTIFICATION: // Unsigned 32
       seq.Unsigned( -1, "" );
       break;
-   case RECORD_COUNT:					// Unsigned 32       
+   case RECORD_COUNT:               // Unsigned 32       
       seq.Unsigned( -1, "" );
       break;
-   case START_TIME:					// BACnetDateTime     
+   case START_TIME:              // BACnetDateTime     
       seq.Date( -1, "" );
       seq.Time( -1, "" );
       break;
-   case STOP_TIME:						// BACnetDateTime   
+   case STOP_TIME:                  // BACnetDateTime   
       seq.Date( -1, "" );
       seq.Time( -1, "" );
       break;
@@ -2344,7 +2309,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
       seq.TextString( -1, "" );
       break;
    case MEMBER_OF:
-      show_bac_dev_obj_prop_ref(seq);		 
+      show_bac_dev_obj_prop_ref(seq);      
       break;
    case LAST_RESTORE_TIME:
       show_time_stamp( seq, -1, "" );
@@ -2359,7 +2324,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case DATABASE_REVISION:
       seq.Unsigned( -1, "" );
       break;
-   case SCALE:					// BACnetScale
+   case SCALE:             // BACnetScale
       show_bac_scale( seq );
       break;
    case DOOR_STATUS:
@@ -2383,26 +2348,26 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case LOGGING_TYPE:
       seq.Enumerated( -1, "", &BAC_STRTAB_BACnetLoggingType );
       break;
-   case ACTUAL_SHED_LEVEL:			// BACnetShedLevel
-   case EXPECTED_SHED_LEVEL:		// BACnetShedLevel
-   case REQUESTED_SHED_LEVEL:		// BACnetShedLevel
+   case ACTUAL_SHED_LEVEL:       // BACnetShedLevel
+   case EXPECTED_SHED_LEVEL:     // BACnetShedLevel
+   case REQUESTED_SHED_LEVEL:    // BACnetShedLevel
       show_bac_shed_level( seq );
       break;
-   case DOOR_MEMBERS:			// Array of BACnetDeviceObjectReference
-   case SUBORDINATE_LIST:		// Array of BACnetDeviceObjectReference
+   case DOOR_MEMBERS:         // Array of BACnetDeviceObjectReference
+   case SUBORDINATE_LIST:     // Array of BACnetDeviceObjectReference
       while (seq.ArrayOf(prop_idx)) 
       {
          show_bac_dev_obj_ref( seq );
       }
       break;
-   case SUBORDINATE_ANNOTATIONS:	 // Array of Character Strings
+   case SUBORDINATE_ANNOTATIONS:  // Array of Character Strings
    case SHED_LEVEL_DESCRIPTIONS:  // Array of Character Strings
       while (seq.ArrayOf(prop_idx)) 
       {
          seq.TextString( -1, "" );
       }
       break;
-   case SHED_LEVELS:				// Array of Unsigned
+   case SHED_LEVELS:          // Array of Unsigned
       while (seq.ArrayOf(prop_idx)) 
       {
          seq.Unsigned( -1, "" );
@@ -2414,7 +2379,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case BACKUP_PREPARATION_TIME:
    case RESTORE_COMPLETION_TIME:
    case RESTORE_PREPARATION_TIME:
-      seq.Unsigned( -1, "" );		// Unsigned seconds
+      seq.Unsigned( -1, "" );    // Unsigned seconds
       break;
    case BIT_MASK:                // Bitstring Object: BITSTRING
       seq.BitString( -1, "", &BAC_STRTAB_BACnetEventTransitionBits );
@@ -2451,7 +2416,7 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    // case COVU_RECIPIENTS: Global Group: List of BACnetRecipient handled above
 
    case EVENT_MESSAGE_TEXTS:        // Array[3] of character string
-   case EVENT_MESSAGE_TEXTS_CONFIG:	// Array[3] of character string
+   case EVENT_MESSAGE_TEXTS_CONFIG: // Array[3] of character string
       while (seq.ArrayOf(prop_idx))
       {
          seq.TextString( -1, "" );
@@ -2521,25 +2486,25 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
    case SERIAL_NUMBER:              // Device: character string
       seq.TextString( -1, "" );
       break;
-   case BLINK_WARN_ENABLE:	         // Lighting: BOOLEAN
+   case BLINK_WARN_ENABLE:          // Lighting: BOOLEAN
       seq.Boolean( -1, "" );
       break;
    case DEFAULT_FADE_TIME:          // Lighting: Unsigned
       seq.Unsigned( -1, "" );
       break;
-   case DEFAULT_RAMP_RATE:	         // Lighting: REAL
+   case DEFAULT_RAMP_RATE:          // Lighting: REAL
    case DEFAULT_STEP_INCREMENT:     // Lighting: REAL
       seq.Real( -1, "" );
       break;
-   case EGRESS_TIME:	               // Lighting: Unsigned
+   case EGRESS_TIME:                // Lighting: Unsigned
       seq.Unsigned( -1, "" );
       break;
-   case IN_PROGRESS:	               // Lighting: BACnetLIghtingInProgress
+   case IN_PROGRESS:                // Lighting: BACnetLIghtingInProgress
    case INSTANTANEOUS_POWER:        // Lighting: REAL
       seq.Real( -1, "" );
       break;
 
-   // case LIGHTING_COMMAND:	      // Lighting: BACnetLightingCommand
+   // case LIGHTING_COMMAND:        // Lighting: BACnetLightingCommand
    // TODO: SEQUENCE
 
    case LIGHTING_COMMAND_DEFAULT_PRIORITY: // Lighting: Unsigned
@@ -2547,10 +2512,10 @@ void show_bac_ANY( BACnetSequence &seq, int obj_type, unsigned int prop_id, int 
       break;
    case MAX_ACTUAL_VALUE:           // Lighting: REAL
    case MIN_ACTUAL_VALUE:           // Lighting: REAL
-   case POWER:	                     // Lighting: REAL
+   case POWER:                      // Lighting: REAL
       seq.Real( -1, "" );
       break;
-   case TRANSITION:	               // Lighting: BACnetLightingTransition
+   case TRANSITION:                 // Lighting: BACnetLightingTransition
       seq.Enumerated( -1, "", &BAC_STRTAB_BACnetLightingTransition );
       break;
    case EGRESS_ACTIVE:              // Lighting: BOOLEAN (Last in 135_2012)

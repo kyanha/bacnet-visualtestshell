@@ -22,487 +22,545 @@ typedef struct {
 //------------------------------------------------------
 //	Special Enumeration Tables
 static etable etObjectTypes={
-            128,1024, NUM_DEFINED_OBJECTS, 
-            "analog-input",       //0
-            "analog-output",       
-            "analog-value",     
-            "binary-input",     
-            "binary-output",   
-            "binary-value",
-            "calendar",
-            "command",
-            "device",
-            "event-enrollment",
-            "file",
-            "group",
-            "loop",
-            "multi-state-input",
-            "multi-state-output",
-            "notification-class",
-            "program",
-            "schedule",
-            "averaging",			// Sep 18 2001
-            "multi-state-value",
-            "trend-log",			//madanner 6/03: was "trendlog"
-			"life-safety-point",    //Shiyuan Xiao. 7/13/2005, added
-            "life-safety-zone",     //Shiyuan Xiao. 7/13/2005, added
-			"accumulator",          //Shiyuan Xiao. 7/13/2005, added
-			"pulse-converter",       //Shiyuan Xiao. 7/13/2005, added
-			"event-log",
-			"global-group",
-			"trend-log-multiple",
-			"load-control",			// Addendum e, 135-2004
-			"structured-view",
-			"access-door",
-			"Lighting-Output",
-			"Access-Credential",
-			"Access-Point",
-			"Access-Rights",
-			"Access-User",
-			"Access-Zone",
-			"Credential-Data-Input",
-			"Network-Security",
-			"BitString-Value",
-			"CharacterString-Value",
-			"Date-Pattern-Value",
-			"Date-Value",
-			"DateTime-Pattern-Value",
-			"DateTime-Value",
-			"Integer-Value",
-			"Large-Analog-Value",
-			"OctetString-Value",
-			"Positive-Integer-Value",
-			"Time-Pattern-Value",
-			"Time-Value"
-         };
+   128,1024, MAX_DEFINED_OBJ, 
+   "analog-input",       //0
+   "analog-output",       
+   "analog-value",     
+   "binary-input",     
+   "binary-output",   
+   "binary-value",
+   "calendar",
+   "command",
+   "device",
+   "event-enrollment",
+   "file",
+   "group",
+   "loop",
+   "multi-state-input",
+   "multi-state-output",
+   "notification-class",
+   "program",
+   "schedule",
+   "averaging",			   // Sep 18 2001
+   "multi-state-value",
+   "trend-log",			   //madanner 6/03: was "trendlog"
+   "life-safety-point",    //Shiyuan Xiao. 7/13/2005, added
+   "life-safety-zone",     //Shiyuan Xiao. 7/13/2005, added
+   "accumulator",          //Shiyuan Xiao. 7/13/2005, added
+   "pulse-converter",      //Shiyuan Xiao. 7/13/2005, added
+   "event-log",
+   "global-group",
+   "trend-log-multiple",
+   "load-control",			// Addendum e, 135-2004
+   "structured-view",
+   "access-door",
+   "lighting-output",
+   "access-credential",
+   "access-point",
+   "access-rights",
+   "access-user",
+   "access-zone",
+   "credential-data-input",
+   "network-security",
+   "bitstring-value",
+   "characterstring-value",
+   "date-pattern-value",
+   "date-value",
+   "datetime-pattern-value",
+   "datetime-value",
+   "integer-value",
+   "large-analog-value",
+   "octetstring-value",
+   "positive-integer-value",
+   "time-pattern-value",
+   "time-Value",
+   "notification-forwarder",// 51
+   "alert-enrollment",      // 52
+   "channel",               // 53,
+   "lighting-output"        // 54 Max in 135-2012 BACNET_PROTOCOL_REVISION = 14
+   // TODO: see comments at the end of StringTables.cpp BACnetObjectType regarding
+   // actions to be taken when an object type is added
+};
+
 static etable etTF={0,0,2,"False","True"};
 static etable etYN={0,0,2,"No","Yes"};
 static etable etReli={
-            64,65536,11,
-            "no-fault-detected",
-            "no-sensor",
-            "over-range",
-            "under-range",
-            "open-loop",
-            "shorted-loop",
-            "no-output",
-            "unreliable-other",
-            "process-error",
-			"multi-state-fault",
-			"configuration-error"
-            };
+   64,65536,11,
+   "no-fault-detected",
+   "no-sensor",
+   "over-range",
+   "under-range",
+   "open-loop",
+   "shorted-loop",
+   "no-output",
+   "unreliable-other",
+   "process-error",
+   "multi-state-fault",
+   "configuration-error"
+};
 static etable etEvState={
-            64,65536,6,
-            "normal",
-            "fault",
-            "offnormal",
-            "high-limit",
-            "low-limit",
-			"life-safety-alarm"
-            };
+   64,65536,6,
+   "normal",
+   "fault",
+   "offnormal",
+   "high-limit",
+   "low-limit",
+   "life-safety-alarm"
+};
 
 static etable etEU={
-            256,65536,193,
-        //Area   
-            "square-meters",                     //	 0
-            "square-feet",                       //	 1
-        //Electrical
-            "milliamperes",                      //	 2
-            "amperes",                           //	 3
-            "ohms",                              //	 4
-            "volts",                             //	 5
-            "kilovolts",                         //	 6
-            "megavolts",                         //	 7
-            "volt-amperes",                      //	 8
-            "kilovolt-amperes",                  //	 9
-            "megavolt-amperes",                  //	10
-            "volt-amperes-reactive",             //	11
-            "kilovolt-amperes-reactive",         //	12
-            "megavolt-amperes-reactive",         //	13
-            "degrees-phase",                     //	14
-            "power-factor",                      //	15
-        //Energy
-            "joules",                            //	16
-            "kilojoules",                        //	17
-            "watt-hours",                        //	18
-            "kilowatt-hours",                    //	19
-            "btus",                              //	20
-            "therms",                            //	21
-            "ton-hours",                         //	22
-        //Enthalpy
-            "joules-per-kilogram-dry-air",       //	23
-            "btus-per-pound-dry-air",            //	24
-        //Frecuency
-            "cycles-per-hour",                   //	25
-            "cycles-per-minute",                 //	26
-            "hertz",                             //	27
-        //Humidity
-            "grams-of-water-per-kilogram-dry-air",//28
-            "percent-relative-humidity",         //	29
-        //Length
-            "millimeter",                        //	30
-            "meters",                            //	31
-            "inches",                            //	32
-            "feet",                              //	33
-        //Light
-            "watts-per-square-foot",             //	34
-            "watts-per-square-meter",            //	35
-            "lumen",                             //	36
-            "lux",                               //	37
-            "foot-candles",                      //	38
-        //Mass
-            "kilograms",                         //	39
-            "pounds-mass",                       //	40
-            "tons",                              //	41
-        //Mass Flow
-            "kilograms-per-second",              //	42
-            "kilograms-per-minute",              //	43
-            "kilograms-per-hour",                //	44
-            "pounds-mass-per-minute",            //	45
-            "pounds-mass-per-hour",              //	46
-        //Power
-            "watts",                             //	47
-            "kilowatts",                         //	48
-            "megawatts",                         //	49
-            "btus-per-hour",                     //	50
-            "horsepower",                        //	51
-            "tons-refrigeration",                //	52
-        //Pressure
-            "pascals",                           //	53
-            "kilopascals",                       //	54
-            "bars",                              //	55
-            "pounds-force-per-square-inch",      //	56
-            "centimeters-of-water",              //	57
-            "inches-of-water",                   //	58
-            "millimeters-of-mercury",            //	59
-            "centimeters-of-mercury",            //	60
-            "inches-of-mercury",                 //	61
-        //Temperature
-            "degrees-celsius",                   //	62
-            "degrees-kelvin",                    //	63
-            "degrees-fahrenheit",                //	64
-            "degree-days-celsius",               //	65
-            "degree-days-fahrenheit",            //	66
-        //Time
-            "years",                             //	67
-            "months",                            //	68
-            "weeks",                             //	69
-            "days",                              //	70
-            "hours",                             //	71
-            "minutes",                           //	72
-            "seconds",                           //	73
-        //Velocity
-            "meters-per-second",                 //	74
-            "kilometers-per-hour",               //	75
-            "feet-per-second",                   //	76
-            "feet-per-minute",                   //	77
-            "miles-per-hour",                    //	78
-        //Volume
-            "cubic-feet",                        //	79
-            "cubic-meters",                      //	80
-            "imperial-gallons",                  //	81
-            "liters",                            //	82
-            "us-gallons",                        //	83
-        //Volumetric Flow
-            "cubic-feet-per-minute",             //	84
-            "cubic-meters-per-second",           //	85
-            "imperial-gallons-per-minute",       //	86
-            "liters-per-second",                 //	87
-            "liters-per-minute",                 //	88
-            "us-gallons-per-minute",             //	89
-        //Others
-            "degrees-angular",                   // 90
-            "degrees-celsius-per-hour",          // 91
-            "degrees-celsius-per-minute",        // 92
-            "degrees-fahrenheit-per-hour",       // 93
-            "degrees-fahrenheit-per-minute",     // 94
-            "no-units",                          // 95
-            "parts-per-million",                 // 96
-            "parts-per-billion",                 // 97
-            "percent",                           // 98
-            "percent-per-second",                // 99
-            "per-minute",                        //100
-            "per-second",                        //101
-            "psi-per-degree-fahrenheit",         //102
-            "radians",                           //103
-            "revolutions-per-minute",            //104
-        //Currency
-            "currency1",						 //105
-            "currency2",						 //106
-            "currency3",						 //107
-            "currency4",						 //108
-            "currency5",						 //109
-            "currency6",						 //110
-            "currency7",						 //111
-            "currency8",						 //112
-            "currency9",						 //113
-            "currency10",						 //114
-        //Free
-            "square-inches",					 //115
-            "square-centimeters",				 //116
-            "btus-per-pound",					 //117
-            "centimeters",						 //118
-            "pounds-mass-per-second",			 //119
-            "delta-degrees-fahrenheit",			 //120
-            "delta-degrees-kelvin",				 //121
-        //Added after second review:
-            "kilohms",                           //122
-            "megohms",							 //123
-            "millivolts",						 //124
-            "kilojoules-per-kilogram",			 //125
-            "megajoules",						 //126
-            "joules-per-degree-kelvin",			 //127
-            "joules-per-kilogram-degree-kelvin", //128
-            "kilohertz",						 //129
-            "megahertz",						 //130
-            "per-hour",							 //131
-            "milliwatts",						 //132
-            "hectopascals",						 //133
-            "millibars",						 //134
-            "cubic-meters-per-hour",			 //135
-            "liters-per-hour",					 //136
-            "kilowatt-hours-per-square-meter",	 //137
-            "kilowatt-hours-per-square-foot",	 //138
-            "megajoules-per-square-meter",		 //139
-            "megajoules-per-square-foot",		 //140
-            "watts-per-square-meter-degree-kelvin", //141
-		   // New units added 3/9/2008
-		   "cubic-feet-per-second",					/* 142 */
-		   "percent-obscuration-per-foot",			/* 143 */
-		   "percent-obscuration-per-meter", 		/* 144 */
-		   "miliohms", 								/* 145 */
-		   "megawatt-hours", 						/* 146 */
-		   "kilo-btus",								/* 147 */
-		   "mega-btus",								/* 148 */
-		   "kilojoules-per-kilogram-dry-air",		/* 149 */
-		   "megajoules-per-kilogram-dry-air",		/* 150 */
-		   "kilojoules-per-degree-Kelvin",			/* 151 */
-		   "megajoules-per-degree-Kelvin",			/* 152 */
-		   "newton",								/* 153 */
-		   "grams-per-second",						/* 154 */
-		   "grams-per-minute",						/* 155 */
-		   "tons-per-hour",							/* 156 */
-		   "kilo-btus-per-hour",					/* 157 */
-		   "hundredths-seconds",					/* 158 */
-		   "milliseconds",							/* 159 */
-		   "newton-meters",							/* 160 */
-		   "millimeters-per-second",				/* 161 */
-		   "millimeters-per-minute", 				/* 162 */
-		   "meters-per-minute",						/* 163 */
-		   "meters-per-hour",						/* 164 */
-		   "cubic-meters-per-minute",				/* 165 */
-		   "meters-per-second-per-second",			/* 166 */
-		   "amperes-per-meter",						/* 167 */
-		   "amperes-per-square-meter",				/* 168 */
-		   "ampere-square-meters",					/* 169 */
-		   "farads",								/* 170 */
-		   "henrys",								/* 171 */
-		   "ohm-meters",							/* 172 */
-		   "siemens",								/* 173 */
-		   "siemens-per-meter",						/* 174 */
-		   "teslas",								/* 175 */
-		   "volts-per-degree-Kelvin",				/* 176 */
-		   "volts-per-meter",						/* 177 */
-		   "webers",								/* 178 */
-		   "candelas",								/* 179 */
-		   "candelas-per-square-meter",				/* 180 */
-		   "degrees-Kelvin-per-hour",				/* 181 */
-		   "degrees-Kelvin-per-minute",				/* 182 */
-			"joule-seconds",						/* 183 */
-			"radians-per-second",					/* 184 */
-			"square-meters-per-Newton",				/* 185 */
-			"kilograms-per-cubic-meter",			/* 186 */
-			"newton-seconds",						/* 187 */
-			"newtons-per-meter",					/* 188 */
-			"watts-per-meter-per-degree-Kelvin",	/* 189 */
-			// Added by Addenda H (135-2004)
-			"micro-siemens",
-			"cubic-feet-per-hour",
-			"us-gallons-per-hour",  /* 192 */
-            };
+   256,65536,193,
+   //Area   
+   "square-meters",                     //	 0
+   "square-feet",                       //	 1
+   //Electrical
+   "milliamperes",                      //	 2
+   "amperes",                           //	 3
+   "ohms",                              //	 4
+   "volts",                             //	 5
+   "kilovolts",                         //	 6
+   "megavolts",                         //	 7
+   "volt-amperes",                      //	 8
+   "kilovolt-amperes",                  //	 9
+   "megavolt-amperes",                  //	10
+   "volt-amperes-reactive",             //	11
+   "kilovolt-amperes-reactive",         //	12
+   "megavolt-amperes-reactive",         //	13
+   "degrees-phase",                     //	14
+   "power-factor",                      //	15
+   //Energy
+   "joules",                            //	16
+   "kilojoules",                        //	17
+   "watt-hours",                        //	18
+   "kilowatt-hours",                    //	19
+   "btus",                              //	20
+   "therms",                            //	21
+   "ton-hours",                         //	22
+   //Enthalpy
+   "joules-per-kilogram-dry-air",       //	23
+   "btus-per-pound-dry-air",            //	24
+   //Frecuency
+   "cycles-per-hour",                   //	25
+   "cycles-per-minute",                 //	26
+   "hertz",                             //	27
+   //Humidity
+   "grams-of-water-per-kilogram-dry-air",//28
+   "percent-relative-humidity",         //	29
+   //Length
+   "millimeter",                        //	30
+   "meters",                            //	31
+   "inches",                            //	32
+   "feet",                              //	33
+   //Light
+   "watts-per-square-foot",             //	34
+   "watts-per-square-meter",            //	35
+   "lumen",                             //	36
+   "lux",                               //	37
+   "foot-candles",                      //	38
+   //Mass
+   "kilograms",                         //	39
+   "pounds-mass",                       //	40
+   "tons",                              //	41
+   //Mass Flow
+   "kilograms-per-second",              //	42
+   "kilograms-per-minute",              //	43
+   "kilograms-per-hour",                //	44
+   "pounds-mass-per-minute",            //	45
+   "pounds-mass-per-hour",              //	46
+   //Power
+   "watts",                             //	47
+   "kilowatts",                         //	48
+   "megawatts",                         //	49
+   "btus-per-hour",                     //	50
+   "horsepower",                        //	51
+   "tons-refrigeration",                //	52
+   //Pressure
+   "pascals",                           //	53
+   "kilopascals",                       //	54
+   "bars",                              //	55
+   "pounds-force-per-square-inch",      //	56
+   "centimeters-of-water",              //	57
+   "inches-of-water",                   //	58
+   "millimeters-of-mercury",            //	59
+   "centimeters-of-mercury",            //	60
+   "inches-of-mercury",                 //	61
+   //Temperature
+   "degrees-celsius",                   //	62
+   "degrees-kelvin",                    //	63
+   "degrees-fahrenheit",                //	64
+   "degree-days-celsius",               //	65
+   "degree-days-fahrenheit",            //	66
+   //Time
+   "years",                             //	67
+   "months",                            //	68
+   "weeks",                             //	69
+   "days",                              //	70
+   "hours",                             //	71
+   "minutes",                           //	72
+   "seconds",                           //	73
+   //Velocity
+   "meters-per-second",                 //	74
+   "kilometers-per-hour",               //	75
+   "feet-per-second",                   //	76
+   "feet-per-minute",                   //	77
+   "miles-per-hour",                    //	78
+   //Volume
+   "cubic-feet",                        //	79
+   "cubic-meters",                      //	80
+   "imperial-gallons",                  //	81
+   "liters",                            //	82
+   "us-gallons",                        //	83
+   //Volumetric Flow
+   "cubic-feet-per-minute",             //	84
+   "cubic-meters-per-second",           //	85
+   "imperial-gallons-per-minute",       //	86
+   "liters-per-second",                 //	87
+   "liters-per-minute",                 //	88
+   "us-gallons-per-minute",             //	89
+   //Others
+   "degrees-angular",                   // 90
+   "degrees-celsius-per-hour",          // 91
+   "degrees-celsius-per-minute",        // 92
+   "degrees-fahrenheit-per-hour",       // 93
+   "degrees-fahrenheit-per-minute",     // 94
+   "no-units",                          // 95
+   "parts-per-million",                 // 96
+   "parts-per-billion",                 // 97
+   "percent",                           // 98
+   "percent-per-second",                // 99
+   "per-minute",                        //100
+   "per-second",                        //101
+   "psi-per-degree-fahrenheit",         //102
+   "radians",                           //103
+   "revolutions-per-minute",            //104
+   //Currency
+   "currency1",						 //105
+   "currency2",						 //106
+   "currency3",						 //107
+   "currency4",						 //108
+   "currency5",						 //109
+   "currency6",						 //110
+   "currency7",						 //111
+   "currency8",						 //112
+   "currency9",						 //113
+   "currency10",						 //114
+   //Free
+   "square-inches",					 //115
+   "square-centimeters",				 //116
+   "btus-per-pound",					 //117
+   "centimeters",						 //118
+   "pounds-mass-per-second",			 //119
+   "delta-degrees-fahrenheit",			 //120
+   "delta-degrees-kelvin",				 //121
+   //Added after second review:
+   "kilohms",                           //122
+   "megohms",							 //123
+   "millivolts",						 //124
+   "kilojoules-per-kilogram",			 //125
+   "megajoules",						 //126
+   "joules-per-degree-kelvin",			 //127
+   "joules-per-kilogram-degree-kelvin", //128
+   "kilohertz",						 //129
+   "megahertz",						 //130
+   "per-hour",							 //131
+   "milliwatts",						 //132
+   "hectopascals",						 //133
+   "millibars",						 //134
+   "cubic-meters-per-hour",			 //135
+   "liters-per-hour",					 //136
+   "kilowatt-hours-per-square-meter",	 //137
+   "kilowatt-hours-per-square-foot",	 //138
+   "megajoules-per-square-meter",		 //139
+   "megajoules-per-square-foot",		 //140
+   "watts-per-square-meter-degree-kelvin", //141
+   // New units added 3/9/2008
+   "cubic-feet-per-second",					/* 142 */
+   "percent-obscuration-per-foot",			/* 143 */
+   "percent-obscuration-per-meter", 		/* 144 */
+   "miliohms", 								/* 145 */
+   "megawatt-hours", 						/* 146 */
+   "kilo-btus",								/* 147 */
+   "mega-btus",								/* 148 */
+   "kilojoules-per-kilogram-dry-air",		/* 149 */
+   "megajoules-per-kilogram-dry-air",		/* 150 */
+   "kilojoules-per-degree-Kelvin",			/* 151 */
+   "megajoules-per-degree-Kelvin",			/* 152 */
+   "newton",								/* 153 */
+   "grams-per-second",						/* 154 */
+   "grams-per-minute",						/* 155 */
+   "tons-per-hour",							/* 156 */
+   "kilo-btus-per-hour",					/* 157 */
+   "hundredths-seconds",					/* 158 */
+   "milliseconds",							/* 159 */
+   "newton-meters",							/* 160 */
+   "millimeters-per-second",				/* 161 */
+   "millimeters-per-minute", 				/* 162 */
+   "meters-per-minute",						/* 163 */
+   "meters-per-hour",						/* 164 */
+   "cubic-meters-per-minute",				/* 165 */
+   "meters-per-second-per-second",			/* 166 */
+   "amperes-per-meter",						/* 167 */
+   "amperes-per-square-meter",				/* 168 */
+   "ampere-square-meters",					/* 169 */
+   "farads",								/* 170 */
+   "henrys",								/* 171 */
+   "ohm-meters",							/* 172 */
+   "siemens",								/* 173 */
+   "siemens-per-meter",						/* 174 */
+   "teslas",								/* 175 */
+   "volts-per-degree-Kelvin",				/* 176 */
+   "volts-per-meter",						/* 177 */
+   "webers",								/* 178 */
+   "candelas",								/* 179 */
+   "candelas-per-square-meter",				/* 180 */
+   "degrees-Kelvin-per-hour",				/* 181 */
+   "degrees-Kelvin-per-minute",				/* 182 */
+   "joule-seconds",						/* 183 */
+   "radians-per-second",					/* 184 */
+   "square-meters-per-Newton",				/* 185 */
+   "kilograms-per-cubic-meter",			/* 186 */
+   "newton-seconds",						/* 187 */
+   "newtons-per-meter",					/* 188 */
+   "watts-per-meter-per-degree-Kelvin",	/* 189 */
+   // Added by Addenda H (135-2004)
+   "micro-siemens",
+   "cubic-feet-per-hour",
+   "us-gallons-per-hour",  /* 192 */
+
+   // Added in 135-2012
+   "kilometers",                       /* 193 */
+   "micrometers",                      /* 194 */
+   "grams",                            /* 195 */
+   "milligrams",                       /* 196 */
+   "milliliters",                      /* 197 */
+   "milliliters-per-second",           /* 198 */
+   "decibels",                         /* 199 */
+   "decibels-millivolt",               /* 200 */
+   "decibels-volt",                    /* 201 */
+   "millisiemens",                     /* 202 */
+   "watt-hours-reactive",              /* 203 */
+   "kilowatt-hours-reactive",          /* 204 */
+   "megawatt-hours-reactive",          /* 205 */
+   "millimeters-of-water",             /* 206 */
+   "per-mille",                        /* 207 */
+   "grams-per-gram",                   /* 208 */
+   "kilograms-per-kilogram",           /* 209 */
+   "grams-per-kilogram",               /* 210 */
+   "milligrams-per-gram",              /* 211 */
+   "milligrams-per-kilogram",          /* 212 */
+   "grams-per-milliliter",             /* 213 */
+   "grams-per-liter",                  /* 214 */
+   "milligrams-per-liter",             /* 215 */
+   "micrograms-per-liter",             /* 216 */
+   "grams-per-cubic-meter",            /* 217 */
+   "milligrams-per-cubic-meter",       /* 218 */
+   "micrograms-per-cubic-meter",       /* 219 */
+   "nanograms-per-cubic-meter",        /* 220 */
+   "grams-per-cubic-centimeter",       /* 221 */
+   "becquerels",                       /* 222 */
+   "kilobecquerels",                   /* 223 */
+   "megabecquerels",                   /* 224 */
+   "gray",                             /* 225 */
+   "milligray",                        /* 226 */
+   "microgray",                        /* 227 */
+   "sieverts",                         /* 228 */
+   "millisieverts",                    /* 229 */
+   "microsieverts",                    /* 230 */
+   "microsieverts-per-hour",           /* 231 */
+   "decibels-a",                       /* 232 */
+   "nephelometric-turbidity-unit",     /* 233 */
+   "pH",                               /* 234 */
+   "grams-per-square-meter",           /* 235 */
+   "minutes-per-degree-kelvin",        /* 236 last definition in 135-2012 */
+
+   // TODO: see comments at the end of StringTables.cpp BACnetEngineeringUnits regarding
+   // actions to be taken when an enumeration is added
+};
+
 static etable etNT={0,0,3,"alarm","event","ack-notification"};
 static etable etBPV={0,0,2,"inactive","active"};
 static etable etBPVn={0,0,3,"inactive","active","null"};
 static etable etPolar={0,0,2,"normal","reverse"};
 static etable etDS={
-            64,65536,6,
-            "operational",
-            "operational-read-only",
-            "download-required",
-            "download-in-progress",
-            "non-operational",
-			"backup-in-progress"
-            };
+   64,65536,6,
+   "operational",
+   "operational-read-only",
+   "download-required",
+   "download-in-progress",
+   "non-operational",
+   "backup-in-progress"
+};
 static etable etSegOpt={0,0,4,"segmented-both","segmented-transmit","segmented-receive","no-segmentation"};
 static etable etEvType={
-            64,65536,12,
-            "change-of-bitstring",
-            "change-of-state",
-            "change-of-value",
-            "command-failure",
-            "floating-limit",
-            "out-of-range",
-			"complex-event-type",
-			"deprecated",
-			"change-of-life-safety",
-			"extended",
-			"buffer-ready",
-			"unsigned-range"
-            };
+   64,65536,12,
+   "change-of-bitstring",
+   "change-of-state",
+   "change-of-value",
+   "command-failure",
+   "floating-limit",
+   "out-of-range",
+   "complex-event-type",
+   "deprecated",
+   "change-of-life-safety",
+   "extended",
+   "buffer-ready",
+   "unsigned-range"
+};
 static etable etFAM={0,0,3,"record-access","stream-access","record-and-stream-access"};
 static etable etLoopAct={0,0,2,"direct","reverse"};
 static etable etPrErr={
-            64,65536,5,
-            "normal",
-            "load-failed",
-            "internal",
-            "program",
-            "other"
-            };
+   64,65536,5,
+   "normal",
+   "load-failed",
+   "internal",
+   "program",
+   "other"
+};
 static etable etPrState={
-            0,0,6,
-            "idle",
-            "loading",
-            "running",
-            "waiting",
-            "halted",
-            "unloading"
-            };
+   0,0,6,
+   "idle",
+   "loading",
+   "running",
+   "waiting",
+   "halted",
+   "unloading"
+};
 static etable etPrChg={
-            0,0,6,
-            "ready",
-            "load",
-            "run",
-            "halt",
-            "restart",
-            "unload"
-            };
+   0,0,6,
+   "ready",
+   "load",
+   "run",
+   "halt",
+   "restart",
+   "unload"
+};
 static etable etStatusFlags={
-            0,0,4,
-            "in-alarm",
-            "fault",
-            "overridden",
-            "out-of-service"
-            };
+   0,0,4,
+   "in-alarm",
+   "fault",
+   "overridden",
+   "out-of-service"
+};
 static etable etEventTransitions={
-            0,0,3,
-            "to-offnormal",
-            "to-fault",
-            "to-normal"
-            };
+   0,0,3,
+   "to-offnormal",
+   "to-fault",
+   "to-normal"
+};
 static etable etLimitEnable={
-            0,0,2,
-            "lowLimitEnable",
-            "highLimitEnable"
-            };
+   0,0,2,
+   "lowLimitEnable",
+   "highLimitEnable"
+};
 static etable etVTClasses={
-            0,0,7,
-            "default-terminal",
-            "ansi-x3-64",
-            "dec-vt52",
-            "dec-vt100",
-            "dec-vt220",
-            "hp-700-94",
-            "ibm-3130"
-            };
-            
+   0,0,7,
+   "default-terminal",
+   "ansi-x3-64",
+   "dec-vt52",
+   "dec-vt100",
+   "dec-vt220",
+   "hp-700-94",
+   "ibm-3130"
+};
+
 static etable etDaysofWeek={
-            0,0,7,
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
-            "sunday"
-            };
-            
+   0,0,7,
+   "monday",
+   "tuesday",
+   "wednesday",
+   "thursday",
+   "friday",
+   "saturday",
+   "sunday"
+};
+
 static etable etCalType={
-            0,0,3,
-            "Date",
-            "DateRange",
-            "WeekNDay"
-            };
-            
+   0,0,3,
+   "Date",
+   "DateRange",
+   "WeekNDay"
+};
+
 static etable etMonths={
-            0,0,15,
-            "Any",
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-			"Odd",
-			"Even"
-            };
-            
+   0,0,15,
+   "Any",
+   "January",
+   "February",
+   "March",
+   "April",
+   "May",
+   "June",
+   "July",
+   "August",
+   "September",
+   "October",
+   "November",
+   "December",
+   "Odd",
+   "Even"
+};
+
 static etable etWeekofMonth={
-            0,0,7,
-            "any",
-            "1st-7th",
-            "8th-14th",
-            "15th-21st",
-            "22nd-28th",
-            "29th-31st",
-            "Last 7 Days"
-            };
+   0,0,7,
+   "any",
+   "1st-7th",
+   "8th-14th",
+   "15th-21st",
+   "22nd-28th",
+   "29th-31st",
+   "Last 7 Days"
+};
 
 static etable etAppDataTypes={
-            0,0,16,
-            "NULL",
-            "Boolean",
-            "Unsigned",
-            "Unsigned8",
-            "Unsigned16",
-            "Unsigned32",
-            "INTEGER",
-            "REAL",
-            "Double",
-            "OCTET STRING",
-            "CharacterString",
-            "BIT STRING",
-            "ENUMERATED",
-            "Date",
-            "Time",
-            "BACnetObjectIdentifier"
-            };
+   0,0,16,
+   "NULL",
+   "Boolean",
+   "Unsigned",
+   "Unsigned8",
+   "Unsigned16",
+   "Unsigned32",
+   "INTEGER",
+   "REAL",
+   "Double",
+   "OCTET STRING",
+   "CharacterString",
+   "BIT STRING",
+   "ENUMERATED",
+   "Date",
+   "Time",
+   "BACnetObjectIdentifier"
+};
 
 //There must be a one-to-one correspondence between this list and the application datatypes
+// TODO: redundant with #defines in Bacproto.h
 #define	apdtNULL					0
-#define	apdtBoolean					1
-#define	apdtUnsigned				2
-#define	apdtUnsigned8				3
-#define	apdtUnsigned16				4
-#define	apdtUnsigned32				5
-#define	apdtINTEGER					6
+#define	apdtBoolean				1
+#define	apdtUnsigned			2
+#define	apdtUnsigned8			3
+#define	apdtUnsigned16			4
+#define	apdtUnsigned32			5
+#define	apdtINTEGER				6
 #define	apdtREAL					7
-#define	apdtDouble					8
-#define	apdtOCTET STRING			9
-#define	apdtCharacterString			10
-#define	apdtBIT STRING				11
-#define	apdtENUMERATED				12
+#define	apdtDouble				8
+#define	apdtOCTET STRING		9
+#define	apdtCharacterString	10
+#define	apdtBIT STRING			11
+#define	apdtENUMERATED			12
 #define	apdtDate					13
 #define	apdtTime					14
 #define	apdtBACnetObjectIdentifier	15
 
 static etable etAnyDayofWeek={
-            0,0,8,
-            "Any",
-            "Mon",
-            "Tue",
-            "Wed",
-            "Thu",
-            "Fri",
-            "Sat",
-            "Sun"
-            };
+   0,0,8,
+   "Any",
+   "Mon",
+   "Tue",
+   "Wed",
+   "Thu",
+   "Fri",
+   "Sat",
+   "Sun"
+};
 
 //Shiyuan Xiao 7/20/2005
 static etable etLifeSafetyState = {
@@ -531,7 +589,7 @@ static etable etLifeSafetyState = {
    "general-alarm",
    "supervisory",
    "test-supervisory"
-   };
+};
 
 //Shiyuan Xiao 7/21/2005
 static etable etSilencedState = {
@@ -596,160 +654,160 @@ static etable etAccumulatorStatus = {
 };
 
 static etable etLogType = {
-	0, 0, 3,
-		"polled",
-		"cov",
-		"triggered"
+   0, 0, 3,
+   "polled",
+   "cov",
+   "triggered"
 };
 
 static etable etShedState = {
-	0, 0, 4,
-		"shed-inactive",
-		"shed-request-pending",
-		"shed-compliant",
-		"shed-non-compliant"
+   0, 0, 4,
+   "shed-inactive",
+   "shed-request-pending",
+   "shed-compliant",
+   "shed-non-compliant"
 };
 
 static etable etNodeType = {
-	0, 0, 12,
-		"unknown",
-		"system",
-		"network",
-		"device",
-		"organizational",
-		"area",
-		"equipment",
-		"point",
-		"collection",
-		"property",
-		"functional",
-		"other"
+   0, 0, 12,
+   "unknown",
+   "system",
+   "network",
+   "device",
+   "organizational",
+   "area",
+   "equipment",
+   "point",
+   "collection",
+   "property",
+   "functional",
+   "other"
 };
 
 static etable etDoorValue = {
-	0,	0,	4,
-		"lock",
-		"unlock",
-		"pulse-unlock",
-		"extended-pulse-unlock",
+   0,	0,	4,
+   "lock",
+   "unlock",
+   "pulse-unlock",
+   "extended-pulse-unlock",
 };
 static etable etDoorValuen = {
-	0,	0,	5,
-		"lock",
-		"unlock",
-		"pulse-unlock",
-		"extended-pulse-unlock",
-		"null",
+   0,	0,	5,
+   "lock",
+   "unlock",
+   "pulse-unlock",
+   "extended-pulse-unlock",
+   "null",
 };
 static etable etDoorStatus = {
-	0,	0,	3,
-	"closed",
-	"opened",
-	"unknown",
+   0,	0,	3,
+   "closed",
+   "opened",
+   "unknown",
 };
 static etable etLockStatus = {
-	0, 0, 4,
-		"locked",
-		"unlocked",
-		"fault",
-		"unknown",
+   0, 0, 4,
+   "locked",
+   "unlocked",
+   "fault",
+   "unknown",
 };
 static etable etDoorSecuredStatus = {
-	0,	0,	3,
-		"secured",
-		"unsecured",
-		"unknown",
+   0,	0,	3,
+   "secured",
+   "unsecured",
+   "unknown",
 };
 static etable etDoorAlarmState = {
-	0,	0,	9,
-		"normal",
-		"alarm",
-		"door-open-too-long",
-		"forced-open",
-		"tamper",
-		"door-fault",
-		"lock-down",
-		"free-access",
-		"egress-open",
+   0,	0,	9,
+   "normal",
+   "alarm",
+   "door-open-too-long",
+   "forced-open",
+   "tamper",
+   "door-fault",
+   "lock-down",
+   "free-access",
+   "egress-open",
 };
 
 // must match defines in props.h
 static etable *AllETs[]={
-            &etTF,
-            &etReli,
-            &etEvState,
-            &etEU,
-            &etNT,
-            &etBPV,
-            &etPolar,
-            &etDS,
-            &etSegOpt,
-            &etEvType,
-            &etFAM,
-            &etLoopAct,
-            &etPrErr,
-            &etPrState,
-            &etPrChg,
-            &etObjectTypes,
-            &etStatusFlags,
-            &etEventTransitions,
-            &etLimitEnable,
-            &etVTClasses,
-            &etDaysofWeek,
-            &etYN,
-            &etCalType,
-            &etMonths,
-            &etWeekofMonth,
-            &etAnyDayofWeek,
-            &etBPVn,
-            &etAppDataTypes,
-			&etLifeSafetyState,
-			&etSilencedState,
-			&etLifeSafetyOperation,
-			&etMaintenance,
-			&etLifeSafetyMode,
-			&etAccumulatorStatus,
-			&etLogType,
-			&etShedState,
-			&etNodeType,
-			&etDoorValue,
-			&etDoorStatus,
-			&etLockStatus,
-			&etDoorSecuredStatus,
-			&etDoorAlarmState,
-			&etDoorValuen,
-            };
+   &etTF,
+   &etReli,
+   &etEvState,
+   &etEU,
+   &etNT,
+   &etBPV,
+   &etPolar,
+   &etDS,
+   &etSegOpt,
+   &etEvType,
+   &etFAM,
+   &etLoopAct,
+   &etPrErr,
+   &etPrState,
+   &etPrChg,
+   &etObjectTypes,
+   &etStatusFlags,
+   &etEventTransitions,
+   &etLimitEnable,
+   &etVTClasses,
+   &etDaysofWeek,
+   &etYN,
+   &etCalType,
+   &etMonths,
+   &etWeekofMonth,
+   &etAnyDayofWeek,
+   &etBPVn,
+   &etAppDataTypes,
+   &etLifeSafetyState,
+   &etSilencedState,
+   &etLifeSafetyOperation,
+   &etMaintenance,
+   &etLifeSafetyMode,
+   &etAccumulatorStatus,
+   &etLogType,
+   &etShedState,
+   &etNodeType,
+   &etDoorValue,
+   &etDoorStatus,
+   &etLockStatus,
+   &etDoorSecuredStatus,
+   &etDoorAlarmState,
+   &etDoorValuen,
+};
 //NOTE: the ei defs have been moved to PROPS.H
 
 //Note:	The following table tracks the BACnetPropertyStates choices
 static etable *PropertyStates[]={
-            &etTF,
-            &etBPV,
-            &etEvType,
-            &etPolar,  
-            &etPrChg,
-            &etPrState,
-            &etPrErr,
-            &etReli,
-            &etEvState,
-            &etDS,
-            &etEU
-            };
+   &etTF,
+   &etBPV,
+   &etEvType,
+   &etPolar,  
+   &etPrChg,
+   &etPrState,
+   &etPrErr,
+   &etReli,
+   &etEvState,
+   &etDS,
+   &etEU
+};
                         
 typedef struct {
-    char	*PropertyName;
-    dword	PropID;
-    word	StrucOffset;
-    octet	ParseType;
-    octet	PropGroup;
-    word	PropET;		// One of the property table defines (eg, eiEvState) or else (fixed max) array size for select properties
-    word	PropFlags;
-    } propdescriptor;
+   char	*PropertyName;
+   dword	PropID;
+   word	StrucOffset;
+   octet	ParseType;
+   octet	PropGroup;
+   word	PropET;		// One of the property table defines (eg, eiEvState) or else (fixed max) array size for select properties
+   word	PropFlags;
+} propdescriptor;
 
 typedef struct {
-    word			sotSize;					//size of one of these objects in bytes
-    propdescriptor	*sotProps;					//pointer to table of property descriptors
-    } stdobjtype;
+   word			   sotSize;					//size of one of these objects in bytes
+   propdescriptor	*sotProps;				//pointer to table of property descriptors
+} stdobjtype;
 
 #if _DoStaticPropDescriptors
 
@@ -758,38 +816,38 @@ typedef struct {
 //-------------------------------------------------------------------------------------------------
 //table of standard object's properties
 propdescriptor	AIprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(ai,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(ai,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(ai,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(ai,pv),				flt,	0,		   0,	R|Woutofservice,
-    "description",			DESCRIPTION,		oo(ai,go.description),	s132,	0,	       0,	O,
-    "device-type",			DEVICE_TYPE,		oo(ai,device_type),		s64,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(ai,status_flags),	bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(ai,state),			et,		0,eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(ai,reliability),		et,		0,	 eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(ai,out_of_service),	ebool,  0,	   eiTF,	R,
-    "update-interval",		UPDATE_INTERVAL,	oo(ai,update_interval),	uw,		0,	       0,	O,
-    "units",				UNITS,				oo(ai,units),			et,		0,	   eiEU,	R,
-    "min-pres-value",		MIN_PRES_VALUE,		oo(ai,min_pres_value),	flt,	0,	 	   0,	O,				
-    "max-pres-value",		MAX_PRES_VALUE,		oo(ai,max_pres_value),	flt,	0,	       0,	O,
-    "resolution",			RESOLUTION,			oo(ai,resolution),		flt,	0,	       0,	O,
-    "cov-increment",		COV_INCREMENT,		oo(ai,cov_increment),	flt,	COV,	   0,	O|WithService,
-    "time-delay",			TIME_DELAY,			oo(ai,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(ai,notification_class),uw,	Intr,	   0,	O|WithService,
-    "high-limit",			HIGH_LIMIT,			oo(ai,high_limit),		flt,	Intr,	   0,	O|WithService,
-    "low-limit",			LOW_LIMIT,			oo(ai,low_limit),		flt,	Intr,	   0,	O|WithService,
-    "deadband",				DEADBAND,			oo(ai,deadband),		flt,	Intr,	   0,	O|WithService,
-    "limit-enable",			LIMIT_ENABLE,		oo(ai,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(ai,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(ai,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(ai,notify_type),		et,     Intr,  eiNT,	O|WithService,
+//	"property name",		property id,	   struc offset,		      parse,	group,	table,	qualifiers
+   "object-identifier",	OBJECT_IDENTIFIER,oo(ai,go.object_id),	   ob_id,	0,	      0,	      R,
+   "object-name",			OBJECT_NAME,		oo(ai,go.object_name),	s64,	   0,	      0,	      R,
+   "object-type",			OBJECT_TYPE,		oo(ai,go.object_type),	et,		0,       eiObjectTypes,R,
+   "present-value",		PRESENT_VALUE,		oo(ai,pv),				   flt,	   0,		   0,	      R|Woutofservice,
+   "description",			DESCRIPTION,		oo(ai,go.description),	s132,	   0,	      0,	      O,
+   "device-type",			DEVICE_TYPE,		oo(ai,device_type),		s64,	   0,	      0,	      O,
+   "status-flags",		STATUS_FLAGS,		oo(ai,status_flags),	   bits,	   0,	      eiStF,	R,
+   "event-state",			EVENT_STATE,		oo(ai,state),			   et,		0,       eiEvState,R,
+   "reliability",			RELIABILITY,		oo(ai,reliability),		et,		0,	      eiReli,	O,
+   "out-of-service",		OUT_OF_SERVICE,	oo(ai,out_of_service),	ebool,   0,	      eiTF,	   R,
+   "update-interval",	UPDATE_INTERVAL,	oo(ai,update_interval),	uw,		0,	      0,	      O,
+   "units",				   UNITS,				oo(ai,units),			   et,		0,	      eiEU,	   R,
+   "min-pres-value",		MIN_PRES_VALUE,	oo(ai,min_pres_value),	flt,	   0,	 	   0,	      O,		
+   "max-pres-value",		MAX_PRES_VALUE,	oo(ai,max_pres_value),	flt,	   0,	      0,	O,
+   "resolution",			RESOLUTION,			oo(ai,resolution),		flt,	   0,	      0,	O,
+   "cov-increment",		COV_INCREMENT,		oo(ai,cov_increment),	flt,	   COV,	   0,	O|WithService,
+   "time-delay",			TIME_DELAY,			oo(ai,time_delay),		uw,		Intr,	   0,	O|WithService,
+   "notification-class",NOTIFICATION_CLASS,oo(ai,notification_class),uw,	Intr,	   0,	O|WithService,
+   "high-limit",			HIGH_LIMIT,			oo(ai,high_limit),		flt,	   Intr,	   0,	O|WithService,
+   "low-limit",			LOW_LIMIT,			oo(ai,low_limit),		   flt,	   Intr,	   0,	O|WithService,
+   "deadband",				DEADBAND,			oo(ai,deadband),		   flt,	   Intr,	   0,	O|WithService,
+   "limit-enable",		LIMIT_ENABLE,		oo(ai,limit_enable),	   bits,	   Intr,eiLimEn,	O|WithService,
+   "event-enable",		EVENT_ENABLE,		oo(ai,event_enable),	   bits,	   Intr,eiEvTr,	O|WithService,
+   "acked-transitions",	ACKED_TRANSITIONS,oo(ai,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
+   "notify-type",			NOTIFY_TYPE,		oo(ai,notify_type),		et,      Intr,  eiNT,	O|WithService,
 //madanner 6/03: Added for supporting event-time-stamps
 //	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
 //modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
+   "event-time-stamps",	EVENT_TIME_STAMPS,oo(ai,event_time_stamps),TSTMParr,Intr,   0, O|IsArray|WithService,
 //Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(ai,go.profile_name),  s132,	Last,	    	0,	 O     
+   "profile-name",		PROFILE_NAME,     oo(ai,go.profile_name), s132,	   Last,   	0,	 O     
 };
 
 propdescriptor	AOprops[]={
@@ -1836,7 +1894,7 @@ propdescriptor	DateTimeValueProps[]={
 	"profile-name",			PROFILE_NAME,       oo(datetimevalue,go.profile_name),	s132,	Last,     0,	 O  
 };
 
-stdobjtype	StdObjects[NUM_DEFINED_OBJECTS]={
+stdobjtype	StdObjects[MAX_DEFINED_OBJ]={
     sizeof(ai_obj_type),					AIprops,
     sizeof(ao_obj_type),					AOprops,
     sizeof(av_obj_type),					AVprops,

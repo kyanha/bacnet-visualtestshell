@@ -103,9 +103,13 @@
 static const char nullstring[5]={"null"};	//"null\0";			//	***001
 static const char anystring[4]={"any"};		//"any\0";			//	***001
 
-// TODO: Why is this table in an h file?  Used by Bacprim32.cpp and Vtsapi32.cpp
+// TODO: Why is this table in an h file?  
+// Used by Bacprim32.cpp PARSING READ-CONDITIONAL to convert string to parsetype.
+//   This service is now deprecated
+// Used by Vtsapi32.cpp VTSAPIgetdefaultparsetype using an unchecked index to get a string.
+// As noted below, there are parsetypes #defined above past the end of this table...
 static const char *stParseTypes[]={
-				"object ID",
+				"object ID",      // 0
 				"enumeration",
 				"float",
 				"bit flags",
@@ -115,7 +119,7 @@ static const char *stParseTypes[]={
 				"1..127",
 				"char10",
 				"char32",
-				"char64",
+				"char64",         // 10
 				"char132",
 				"prop ref",
 				"date time",
@@ -125,7 +129,7 @@ static const char *stParseTypes[]={
 				"prot services",
 				"prot objects",
 				"vt classes",
-				"event parm",
+				"event parm",     // 20
 				"session keys",
 				"time recip",
 				"devaddr binding",
@@ -135,7 +139,7 @@ static const char *stParseTypes[]={
 				"bpv:pri array",
 				"uw:pri array",
 				"dest list",
-				"excep sched",
+				"excep sched",    // 30
 				"weekly sched",
 				"1..16",
 				"setpt ref",
@@ -145,9 +149,10 @@ static const char *stParseTypes[]={
 				"obj list",
 				"boolean",
 				"date",
-				"time",
+				"time",           // 40
 				"obj ref list",
 				"short signed int",  //MAG added 13 FEB 2001
+            // TODO: values are #defined above up to 64, and then again from 200 to 212.  Should we worry?
 				NULL /*always last*/
 				};
 
@@ -190,7 +195,7 @@ static const char *stParseTypes[]={
 #define		eiPrErr        12
 #define		eiPrState      13
 #define		eiPrChg        14
-#define 	eiObjectTypes  15
+#define 	   eiObjectTypes  15
 #define		eiStF          16
 #define		eiEvTr         17
 #define		eiLimEn        18

@@ -833,10 +833,10 @@ void VTSDevicesTreeDlg::OnExport()
 			// TODO: now write the object information
 			fprintf(mfile, "\t{\n");
 			fprintf(mfile, "\tobject-identifier: (%s, %d)\n", 
-					NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[(*pobjects)[j]->GetID()>>22], 
+					NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString( (*pobjects)[j]->GetID()>>22 ),
 					(*pobjects)[j]->GetInstance());
 			fprintf(mfile, "\tobject-type: %s\n", 
-					NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[(*pobjects)[j]->GetID()>>22]);
+					NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString( (*pobjects)[j]->GetID()>>22 ));
 
 			for ( k = 0, pproperties = (*pobjects)[j]->GetProperties(); pproperties != NULL && k < pproperties->GetSize(); k++ )
 			{

@@ -18,6 +18,7 @@
 #include <sys/types.h>     // jjb
 #include <sys/timeb.h>     // jjb
 
+#include "VTS.h"
 #include "BACnet.hpp"
 #include "propid.h" 
 namespace NetworkSniffer {
@@ -2328,59 +2329,59 @@ double CvtStrFlt(char far* Buffer)
 
 extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue )
 {
-   switch(pObj->object_type)  
+   switch(pObj->object_type)
     { 
-      case ANALOG_INPUT:         AI_CreateProperty( (ai_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case ANALOG_OUTPUT:        AO_CreateProperty( (ao_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case ANALOG_VALUE:         AV_CreateProperty( (av_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case BINARY_INPUT:         BI_CreateProperty( (bi_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case BINARY_OUTPUT:        BO_CreateProperty( (bo_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case BINARY_VALUE:         BV_CreateProperty( (bv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case CALENDAR:          CA_CreateProperty( (calendar_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-      case COMMAND:              CO_CreateProperty( (command_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case DEVICE:               DE_CreateProperty( (device_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-      case EVENT_ENROLLMENT:     EV_CreateProperty( (ee_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case FILE_O:               FI_CreateProperty( (file_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case GROUP:             GR_CreateProperty( (group_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-      case LOOP:              LO_CreateProperty( (loop_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case MULTI_STATE_INPUT:    MSI_CreateProperty( (mi_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-      case MULTI_STATE_OUTPUT:      MSO_CreateProperty( (mo_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-      case MULTI_STATE_VALUE:    MSV_CreateProperty( (msv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case NOTIFICATIONCLASS:    NC_CreateProperty( (nc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case PROGRAM:              PR_CreateProperty( (program_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case SCHEDULE:          SC_CreateProperty( (schedule_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-      case AVERAGING:            AVG_CreateProperty( (avg_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case TREND_LOG:            TR_CreateProperty( (trend_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; // msdanner 9/04, was "TRENDLOG"
-     case LIFE_SAFETY_POINT:       LFSP_CreateProperty((lifesafetypoint_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/21/2005
-      case LIFE_SAFETY_ZONE:        LFSZ_CreateProperty((lifesafetyzone_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/21/2005 
-      case ACCUMULATOR:             AC_CreateProperty( (accumulator_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/15/2005
-     case PULSE_CONVERTER:         PC_CreateProperty( (pulseconverter_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break; //Shiyuan Xiao 7/15/2005
-     case EVENT_LOG:          EL_CreateProperty( (el_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case TREND_LOG_MULTIPLE:    TLM_CreateProperty( (tlm_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-     case LOAD_CONTROL:       LC_CreateProperty( (lc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case STRUCTURED_VIEW:       SV_CreateProperty( (sv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case ACCESS_DOOR:           AD_CreateProperty( (ad_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+      case OBJ_ANALOG_INPUT:         AI_CreateProperty( (ai_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+      case OBJ_ANALOG_OUTPUT:        AO_CreateProperty( (ao_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+      case OBJ_ANALOG_VALUE:         AV_CreateProperty( (av_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+      case OBJ_BINARY_INPUT:         BI_CreateProperty( (bi_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+      case OBJ_BINARY_OUTPUT:        BO_CreateProperty( (bo_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+      case OBJ_BINARY_VALUE:         BV_CreateProperty( (bv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+      case OBJ_CALENDAR:          CA_CreateProperty( (calendar_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+      case OBJ_COMMAND:              CO_CreateProperty( (command_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+      case OBJ_DEVICE:               DE_CreateProperty( (device_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+      case OBJ_EVENT_ENROLLMENT:     EV_CreateProperty( (ee_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+      case OBJ_FILE:             FI_CreateProperty( (file_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+      case OBJ_GROUP:            GR_CreateProperty( (group_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+      case OBJ_LOOP:				 LO_CreateProperty( (loop_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+      case OBJ_MULTI_STATE_INPUT:    MSI_CreateProperty( (mi_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+      case OBJ_MULTI_STATE_OUTPUT:      MSO_CreateProperty( (mo_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+      case OBJ_MULTI_STATE_VALUE:    MSV_CreateProperty( (msv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+      case OBJ_NOTIFICATIONCLASS:    NC_CreateProperty( (nc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+      case OBJ_PROGRAM:              PR_CreateProperty( (program_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+      case OBJ_SCHEDULE:			SC_CreateProperty( (schedule_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+      case OBJ_AVERAGING:            AVG_CreateProperty( (avg_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+      case OBJ_TREND_LOG:            TR_CreateProperty( (trend_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; // msdanner 9/04, was "TRENDLOG"
+     case OBJ_LIFE_SAFETY_POINT:       LFSP_CreateProperty((lifesafetypoint_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/21/2005
+      case OBJ_LIFE_SAFETY_ZONE:        LFSZ_CreateProperty((lifesafetyzone_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/21/2005 
+      case OBJ_ACCUMULATOR:             AC_CreateProperty( (accumulator_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/15/2005
+     case OBJ_PULSE_CONVERTER:         PC_CreateProperty( (pulseconverter_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break; //Shiyuan Xiao 7/15/2005
+     case OBJ_EVENT_LOG:          EL_CreateProperty( (el_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_TREND_LOG_MULTIPLE:    TLM_CreateProperty( (tlm_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+     case OBJ_LOAD_CONTROL:       LC_CreateProperty( (lc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_STRUCTURED_VIEW:       SV_CreateProperty( (sv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_ACCESS_DOOR:           AD_CreateProperty( (ad_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
         // Until real object property handling is implemented, just do the generic here
-     case LIGHTING_OUTPUT:       CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case ACCESS_CREDENTIAL:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case ACCESS_POINT:       CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case ACCESS_RIGHTS:         CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case ACCESS_USER:           CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case ACCESS_ZONE:           CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case CREDENTIAL_DATA_INPUT: CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case NETWORK_SECURITY:      CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;   
-     case BITSTRING_VALUE:       CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;      
-     case CHARACTERSTRING_VALUE: CharStr_CreateProperty( (charstring_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-     case DATE_PATTERN_VALUE:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case DATE_VALUE:            CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case DATETIME_PATTERN_VALUE:   CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case DATETIME_VALUE:        DateTime_CreateProperty( (datetimevalue_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case INTEGER_VALUE:         Integer_CreateProperty( (integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-     case LARGE_ANALOG_VALUE:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OCTETSTRING_VALUE:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case POSITIVE_INTEGER_VALUE:   Pos_Int_CreateProperty( (positive_integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-     case TIME_PATTERN_VALUE:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case TIME_VALUE:            CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;      
+     case OBJ_LIGHTING_OUTPUT:       CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_ACCESS_CREDENTIAL:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_ACCESS_POINT:			 CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_ACCESS_RIGHTS:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_ACCESS_USER:           CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_ACCESS_ZONE:           CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_CREDENTIAL_DATA_INPUT: CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_NETWORK_SECURITY:      CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;   
+     case OBJ_BITSTRING_VALUE:       CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;      
+     case OBJ_CHARACTERSTRING_VALUE: CharStr_CreateProperty( (charstring_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+     case OBJ_DATE_PATTERN_VALUE:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_DATE_VALUE:            CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_DATETIME_PATTERN_VALUE:   CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_DATETIME_VALUE:        DateTime_CreateProperty( (datetimevalue_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_INTEGER_VALUE:         Integer_CreateProperty( (integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+     case OBJ_LARGE_ANALOG_VALUE:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_OCTETSTRING_VALUE:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_POSITIVE_INTEGER_VALUE:   Pos_Int_CreateProperty( (positive_integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+     case OBJ_TIME_PATTERN_VALUE:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+     case OBJ_TIME_VALUE:            CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;      
      default:
         //TRACE("CreatePropertyFromDB called for unknown object type");
         //ASSERT(0);
@@ -5424,7 +5425,7 @@ bool CreateCommonProperty( generic_object far * pObj, BACnetPropertyIdentifier p
    unsigned char *pProp;
    word propsSize, i;
    word objType = pObj->object_type;
-   if( ( objType >= NUM_DEFINED_OBJECTS ) || ( objType < 0 ) )
+   if( ( objType >= MAX_DEFINED_OBJ ) || ( objType < 0 ) )
    {
       ASSERT( false );
       return bHandled;
@@ -5496,7 +5497,7 @@ bool CreateCommonProperty( generic_object far * pObj, BACnetPropertyIdentifier p
          break;
       case UNITS:
             petable = (etable *)PICS::GetEnumTable(eiEU);  
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(enum BACnetEngineeringUnits *) pProp,
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(enum BACnetEngineeringUnits*) pProp,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
          break;
@@ -7410,7 +7411,7 @@ BACnetPropertyIdentifier lightingOutput_PL[] =
 bool CheckPropertyList(BACnetPropertyIdentifier propertyID, 
                        BACnetPropertyIdentifier *propList, size_t length )
 {
-   for ( uint i = 0; i < length; i++ )
+   for (UINT i = 0; i < length; i++)
    {
       if ( propList[i] == propertyID )
          return true;
@@ -7420,6 +7421,11 @@ bool CheckPropertyList(BACnetPropertyIdentifier propertyID,
 
 } // end of PICS namespace
 
+// TODO: This function, and the support functions above have nothing to do with
+// DUDTOOL or its namespace.  They COULD be moved someplace more central.
+// Check_Obj_Prop is currently used only by the property combo.
+// Note that the combo-filling could more efficiently use the arrays of supported properties
+// directly...
 
 // Pretty up the code with this macro (also more fool proof)
 // eg, expands to "PICS::structuredView_PL, sizeof( PICS::structuredView_PL )"
@@ -7432,110 +7438,110 @@ bool Check_Obj_Prop(int ObjType, unsigned int propertyID)
    BACnetPropertyIdentifier propID = (BACnetPropertyIdentifier) propertyID;
    switch(ObjType)
    {
-   case analogInput:
+   case OBJ_ANALOG_INPUT:
       return PICS::AI_CheckProperty(propID);
-   case analogOutput:
+   case OBJ_ANALOG_OUTPUT:
       return PICS::AO_CheckProperty(propID);
-   case analogValue:
+   case OBJ_ANALOG_VALUE:
       return PICS::AV_CheckProperty(propID);
-   case binaryInput:
+   case OBJ_BINARY_INPUT:
       return PICS::BI_CheckProperty(propID);
-   case binaryOutput:
+   case OBJ_BINARY_OUTPUT:
       return PICS::BO_CheckProperty(propID);
-   case binaryValue:
+   case OBJ_BINARY_VALUE:
       return PICS::BV_CheckProperty(propID);
-   case calendar:
+   case OBJ_CALENDAR:
       return PICS::CA_CheckProperty(propID);
-   case command:
+   case OBJ_COMMAND:
       return PICS::CO_CheckProperty(propID);
-   case device:
+   case OBJ_DEVICE:
       return PICS::DE_CheckProperty(propID);
-   case eventEnrollment:
+   case OBJ_EVENT_ENROLLMENT:
       return PICS::EV_CheckProperty(propID);
-   case file:
+   case OBJ_FILE:
       return PICS::FI_CheckProperty(propID);
-   case group:
+   case OBJ_GROUP:
       return PICS::GR_CheckProperty(propID);
-   case loop:
+   case OBJ_LOOP:
       return PICS::LO_CheckProperty(propID);
-   case multistateInput:
+   case OBJ_MULTI_STATE_INPUT:
       return PICS::MSI_CheckProperty(propID);
-   case multistateOutput:
+   case OBJ_MULTI_STATE_OUTPUT:
       return PICS::MSO_CheckProperty(propID);
-   case notificationClass:
+   case OBJ_NOTIFICATIONCLASS:
       return PICS::NC_CheckProperty(propID);
-   case program:
+   case OBJ_PROGRAM:
       return PICS::PR_CheckProperty(propID);
-   case schedule:
+   case OBJ_SCHEDULE:
       return PICS::SC_CheckProperty(propID);
-   case averaging:
+   case OBJ_AVERAGING:
       return PICS::AVG_CheckProperty(propID);
-   case multistateValue:
+   case OBJ_MULTI_STATE_VALUE:
       return PICS::MSV_CheckProperty(propID);
-   case trendlog:       // 20
+   case OBJ_TREND_LOG:       // 20
       return PICS::TR_CheckProperty(propID);
-   case lifesafetypoint:
+   case OBJ_LIFE_SAFETY_POINT:
       return PICS::LSP_CheckProperty(propID);
-   case lifesafetyzone:
+   case OBJ_LIFE_SAFETY_ZONE:
       return PICS::LSZ_CheckProperty(propID);
-   case accumulator:
+   case OBJ_ACCUMULATOR:
       return PICS::ACC_CheckProperty(propID);
-   case pulseconverter:
+   case OBJ_PULSE_CONVERTER:
       return PICS::PC_CheckProperty(propID);
-   case eventlog:
+   case OBJ_EVENT_LOG:
       return PICS::EL_CheckProperty(propID);
-   case globalgroup:
+   case OBJ_GLOBAL_GROUP:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( globalgroup_PL ) );
-   case trendlogmultiple:
+   case OBJ_TREND_LOG_MULTIPLE:
       return PICS::TLM_CheckProperty(propID);
-   case loadcontrol:
+   case OBJ_LOAD_CONTROL:
       return PICS::LC_CheckProperty(propID);
-   case structuredView:
+   case OBJ_STRUCTURED_VIEW:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( structuredView_PL ) );
-   case accessdoor:     // 30
+   case OBJ_ACCESS_DOOR:     // 30
       return PICS::AD_CheckProperty(propID);
-   case accessCredential:
+   case OBJ_ACCESS_CREDENTIAL:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( accessCredential_PL ) );
-   case accessPoint:
+   case OBJ_ACCESS_POINT:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( accessPoint_PL ) );
-   case accessRights:
+   case OBJ_ACCESS_RIGHTS:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( accessRights_PL ) );
-   case accessUser:
+   case OBJ_ACCESS_USER:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( accessUser_PL ) );
-   case accessZone:
+   case OBJ_ACCESS_ZONE:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( accessZone_PL ) );
-   case credentialDataInput:
+   case OBJ_CREDENTIAL_DATA_INPUT:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( credentialDataInput_PL ) );
-   case networkSecurity:
+   case OBJ_NETWORK_SECURITY:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( networkSecurity_PL ) );
-   case bitstringValue:
+   case OBJ_BITSTRING_VALUE:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( bitstringValue_PL ) );
-   case characterstringValue:
+   case OBJ_CHARACTERSTRING_VALUE:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( characterstringValue_PL ) );
 
-   case datePatternValue:
-   case dateValue:            // All have the same Property List
-   case octetstringValue:
-   case timePatternValue:
-   case timeValue:
+   case OBJ_DATE_PATTERN_VALUE:
+   case OBJ_DATE_VALUE:            // All have the same Property List
+   case OBJ_OCTETSTRING_VALUE:
+   case OBJ_TIME_PATTERN_VALUE:
+   case OBJ_TIME_VALUE:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( dateValue_PL ) );
 
-   case datetimePatternValue: // Both have the same Property List
-   case datetimeValue:
+   case OBJ_DATETIME_PATTERN_VALUE: // Both have the same Property List
+   case OBJ_DATETIME_VALUE:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( dateTimeValue_PL ) );
 
-   case integerValue:         // All have the same Property List
-   case largeAnalogValue:
-   case positiveIntegerValue:
+   case OBJ_INTEGER_VALUE:         // All have the same Property List
+   case OBJ_LARGE_ANALOG_VALUE:
+   case OBJ_POSITIVE_INTEGER_VALUE:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( integerValue_PL ) );
 
-   case notificationForwarder:
+   case OBJ_NOTIFICATION_FORWARDER:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( notificationForwarder_PL ) );
-   case alertEnrollment:
+   case OBJ_ALERT_ENROLLMENT:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( alertEnrollment_PL ) );
-   case channel:
+   case OBJ_CHANNEL:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( channel_PL ) );
-   case lightingOutput:
+   case OBJ_LIGHTING_OUTPUT:
       return PICS::CheckPropertyList(propID, PROPLIST_ARGS( lightingOutput_PL ) );
 
    default:

@@ -10,6 +10,7 @@
 #endif
 
 #include "StringTables.h"
+#include "VTS.h"
 
 //
 //	General Typedefs
@@ -612,64 +613,6 @@ class BACnetDateRange : public BACnetEncodeable
 
 		DECLARE_DYNAMIC(BACnetDateRange)
 };
-
-
-enum BACnetObjectType {
-		analogInput						= 0,
-		analogOutput					= 1,
-		analogValue						= 2,
-		binaryInput						= 3,
-		binaryOutput					= 4,
-		binaryValue						= 5,
-		calendar						= 6,
-		command							= 7,
-		device							= 8,
-		eventEnrollment					= 9,
-		file							= 10,
-		group							= 11,
-		loop							= 12,
-		multistateInput					= 13,
-		multistateOutput				= 14,
-		notificationClass				= 15,
-		program							= 16,
-		schedule						= 17,
-		averaging						= 18,	/* Zhu Zhenhua 2003-7-22*/
-		multistateValue					= 19,   /* Zhu Zhenhua 2003-7-22*/
-		trendlog						= 20,   /* Zhu Zhenhua 2003-7-22*/
-		lifesafetypoint					= 21,   /* Zhu Zhenhua 2003-7-22*/
-		lifesafetyzone					= 22,   /* Zhu Zhenhua 2003-7-22*/
-		accumulator                     = 23,   //Shiyuan Xiao. 7/13/2005
-		pulseconverter                  = 24,   //Shiyuan Xiao. 7/13/2005
-		eventlog						= 25,
-		globalgroup						= 26,
-		trendlogmultiple				= 27,
-		loadcontrol						= 28,
-		structuredView					= 29,
-		accessdoor						= 30,	// Last object type in 135-2008
-		accessCredential				= 32,	/* addendum 2008-j */
-		accessPoint						= 33,
-		accessRights					= 34,
-		accessUser						= 35,
-		accessZone						= 36,
-		credentialDataInput				= 37,	/* authentication-factor-input */
-		networkSecurity					= 38,	/* addendum 2008-g */
-		bitstringValue					= 39,	/* addendum 2008-w */
-		characterstringValue			= 40,
-		datePatternValue				= 41,
-		dateValue						= 42,
-		datetimePatternValue			= 43,
-		datetimeValue					= 44,
-		integerValue					= 45,
-		largeAnalogValue				= 46,
-		octetstringValue				= 47,
-		positiveIntegerValue			= 48,
-		timePatternValue				= 49,
-		timeValue						= 50, // last in addendum 2008-w
-		notificationForwarder		= 51,
-		alertEnrollment				= 52,
-		channel                    = 53,
-      lightingOutput					= 54  // last in 135-2012
-		};
 
 class BACnetObjectIdentifier : public BACnetEncodeable {
 	public:

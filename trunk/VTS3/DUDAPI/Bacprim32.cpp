@@ -240,7 +240,7 @@ word  APIENTRY eEventNotificationService(octet *op,word conf,dword procid,dword 
 	}
 	objecttype=(word)(evobjid>>22);					//remember the object type			***236
 	op=eDWORD(op,procid,0x08,FALSE);				//process identifier
-	op=etagOBJECTID(op,0x18,vbOBJECTID(DEVICE,devinst));
+	op=etagOBJECTID(op,0x18,vbOBJECTID(OBJ_DEVICE,devinst));
 	op=etagOBJECTID(op,0x28,evobjid);
 	op=eTIMESTAMP(op,ts,3);
 	op=eDWORD(op,(dword)nclass,0x48,FALSE);
@@ -279,9 +279,9 @@ word  APIENTRY eEventNotificationService(octet *op,word conf,dword procid,dword 
 			op=eBITSTRING(op,(byte *)(&nv->nvFlags),0x18,4);
 			break;
 		case 3:										//command-failure			***236 Begin
-			if(objecttype==ANALOG_INPUT||
-			   objecttype==ANALOG_OUTPUT||
-			   objecttype==ANALOG_VALUE)			//analog types have real values
+			if(objecttype==OBJ_ANALOG_INPUT||
+			   objecttype==OBJ_ANALOG_OUTPUT||
+			   objecttype==OBJ_ANALOG_VALUE)			//analog types have real values
 			{
 				op=etagREAL(op,0x0C,nv->nvReal[0]);
 				op=eBITSTRING(op,(byte *)(&nv->nvFlags),0x18,4);
@@ -345,7 +345,7 @@ word  APIENTRY eGetEnrollmentSummaryService(octet *op,word wack,dword dvi,dword 
 				*op++=0x1F;							//close context tag 1
 			}
 			else									//device object
-				op=etagOBJECTID(op,0x08,vbOBJECTID(DEVICE,dvi));
+				op=etagOBJECTID(op,0x08,vbOBJECTID(OBJ_DEVICE,dvi));
 			*op++=0x0F;								//close context tag 0
 			op=eDWORD(op,procid,0x18,FALSE);
 		*op++=0x1F;									//close context tag 1
@@ -530,7 +530,7 @@ word  APIENTRY eAtomicReadFileService(octet *op,dword fins,word recacc,long fsta
 
 	iop=op;											//remember starting point
 	op=eCONFREQ(op,atomicFileRead);
-	op=eOBJECTID(op,FILE_O,fins);					//file object
+	op=eOBJECTID(op,OBJ_FILE,fins);					//file object
 	if (recacc)										//record access
 		tag=0x1E;									//open tag 1
 	else
@@ -562,7 +562,7 @@ word  APIENTRY eAtomicWriteFileService(octet *op,word opmax,dword fins,word reca
 
 	iop=op;											//remember starting point
 	op=eCONFREQ(op,atomicFileWrite);
-	op=eOBJECTID(op,FILE_O,fins);					//file object
+	op=eOBJECTID(op,OBJ_FILE,fins);					//file object
 	if (recacc)										//record access
 		tag=0x1E;									//open tag 1
 	else
@@ -615,7 +615,7 @@ word  APIENTRY eCOVNotificationService(octet *op,word opmax,word conf,dword proc
 		*op++=unconfirmedCOVNotification;
 	}
 	op=eDWORD(op,procid,0x08,FALSE);
-	op=etagOBJECTID(op,0x18,vbOBJECTID(DEVICE,devinst));
+	op=etagOBJECTID(op,0x18,vbOBJECTID(OBJ_DEVICE,devinst));
 	op=etagOBJECTID(op,0x28,objid);
 	op=eDWORD(op,(dword)timeleft,0x38,FALSE);
 	if ((word)(op-iop)>opmax) return 0;
@@ -2375,7 +2375,7 @@ word  APIENTRY eTextMessageService(octet *op,word opmax,word confirmed,dword dev
 	{	*op++=UNCONF_REQ_PDU<<4;
 		*op++=unconfirmedTextMessage;
 	}
-	op=etagOBJECTID(op,0x08,vbOBJECTID(DEVICE,devinst));
+	op=etagOBJECTID(op,0x08,vbOBJECTID(OBJ_DEVICE,devinst));
 	if ((msgclass)&&(*msgclass))					//we've got something for a message class***235
 	{	*op++=0x1E;									//PD open tag 1
 		cp=msgclass;								//first see if we have only digits
@@ -2703,7 +2703,7 @@ word  APIENTRY eIAmService(octet *op,dword inst,word mplen,word segsup,word vid)
 	iop=op;											//remember starting point
 	*op++=UNCONF_REQ_PDU<<4;
 	*op++=I_Am;
-	op=eOBJECTID(op,DEVICE,inst);
+	op=eOBJECTID(op,OBJ_DEVICE,inst);
 	op=eUINT(op,(dword)mplen);
 	op=eENUM(op,(dword)segsup);	
 	op=eUINT(op,(dword)vid);	
@@ -2745,7 +2745,7 @@ word  APIENTRY eIHaveService(octet *op,dword devinst,dword obid,char *obname)
 	iop=op;											//remember starting point
 	*op++=UNCONF_REQ_PDU<<4;
 	*op++=I_Have;
-	op=eOBJECTID(op,DEVICE,devinst);
+	op=eOBJECTID(op,OBJ_DEVICE,devinst);
 	op=etagOBJECTID(op,0xC0,obid);					//								***010
 	op=eCHARSTRING(op,obname,0x70,safestrlen(obname),ANSI,0);	//encode a regular string ***236
 	return (op-iop);

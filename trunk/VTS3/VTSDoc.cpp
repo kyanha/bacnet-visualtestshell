@@ -3793,8 +3793,8 @@ void VTSServer::GetAlarmSummary( const BACnetAPDU &apdu )
 
 		for ( int i = 0; i < serverDev->m_nEvents; i++ )
 		{
-		// encode the properties from the request
-			objId.SetValue( (BACnetObjectType) 1, i );
+		   // encode the properties from the request
+			objId.SetValue( OBJ_ANALOG_OUTPUT, i );
 			objId.Encode( ack );
 			alarmState.Encode( ack );
 			acknowledgedTransitions.Encode( ack );
@@ -4515,7 +4515,7 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 		case OBJECT_IDENTIFIER:
 			{
 				BACnetObjectIdentifier me;
-				me.SetValue( (BACnetObjectType)8, m_nInstance );
+				me.SetValue( OBJ_DEVICE, m_nInstance );
 				me.Encode(*pAPDUEncoder);
 			}
 			break;
@@ -4605,7 +4605,7 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 					else if ((index-1) == m_devobjects.GetSize())  // special case: return device
 					{
 						BACnetObjectIdentifier me;
-						me.SetValue( (BACnetObjectType)8, m_nInstance );
+						me.SetValue( OBJ_DEVICE, m_nInstance );
 						objList.AddElement(&me);  // add device object
 
 						objList.Encode(*pAPDUEncoder);
@@ -4634,7 +4634,7 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 						objList.AddElement(&objID);
 					}
 					BACnetObjectIdentifier me;
-					me.SetValue( (BACnetObjectType)8, m_nInstance );
+					me.SetValue( OBJ_DEVICE, m_nInstance );
 					objList.AddElement(&me);  // add device object
 
 					objList.Encode(*pAPDUEncoder);

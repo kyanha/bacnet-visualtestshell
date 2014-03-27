@@ -459,22 +459,8 @@ void EventSummaryList::OnChangeObjectID( void )
 			int		objType = (eslCurElem->m_ObjectID.objID >> 22)
 			,		instanceNum = (eslCurElem->m_ObjectID.objID & 0x003FFFFF)
 			;
-			const char *s;
-			char	buff[32], typeBuff[32];
-
-			if (objType < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings)
-				s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[objType];
-			else
-			{
-				s = typeBuff;
-				if (objType < 128)
-					sprintf( typeBuff, "RESERVED %d", objType );
-				else
-					sprintf( typeBuff, "VENDOR %d", objType );
-			}
-
-			// format the result
-			sprintf( buff, "%s, %d", s, instanceNum );
+			char	buff[100];
+			sprintf( buff, "%s, %d", NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString(objType), instanceNum );
 			eslPagePtr->m_EventSumListCtrl.SetItemText( eslCurElemIndx, 0, buff );
 		}
 	}

@@ -18,26 +18,29 @@ char* TempTextBuffer();
 // containing a pointer to the table, and a count of elements
 struct BACnetStringTable
 {
-	const char* const *m_pStrings;
-	const int		  m_nStrings;	// number of strings in the table
-	const int		  m_nReserved;	// max+1 value reserved for ASHRAE
-	const int		  m_nMax;		// max+1 value allowed for proprietary extension
+   const char* const *m_pStrings;
+   const int         m_nStrings;  // number of strings in the table
+   const int         m_nReserved; // max+1 value reserved for ASHRAE
+   const int         m_nMax;      // max+1 value allowed for proprietary extension
 
-	// Constructors
-	BACnetStringTable( const char* const *pStrings,
-					   const int		  nStrings );
-	
-	BACnetStringTable( const char* const *pStrings,
-					   const int		  nStrings,
-					   const int		  nReserved,
-					   const int		  nMax );
+   // Constructors
+   BACnetStringTable( const char* const *pStrings,
+                      const int         nStrings );
 
-	// Return a string containing text for the specified enumerated value.
-	// If the value is undefined, the string will show the pUndefined title and the numeric value
-	const char* EnumString( int theIndex, const char *pUndefined = NULL ) const;
+   BACnetStringTable( const char* const *pStrings,
+                      const int         nStrings,
+                      const int         nReserved,
+                      const int         nMax );
 
-	// Fill a CComboBox with the contents of the string table
-	void FillCombo( CComboBox &theCombo ) const;
+   // Return a string containing text for the specified enumerated value.
+   // If the value is undefined, the string will show the pUndefined title and the numeric value
+   const char* EnumString( int theIndex, const char *pUndefined = NULL ) const;
+
+   // Fill a CComboBox with the contents of the string table
+   // If doSort is true, sort the strings alphabetically, else use string table order.
+   // Sets ItemData to the index of the string in the string table (since the index
+   // in the combo won't be the string index for a sorted list)
+   void FillCombo( CComboBox &theCombo, bool doSort = false ) const;
 };
 
 #define STRING_TABLE const char* const
@@ -51,7 +54,7 @@ struct BACnetStringTable
 
 // Export a BACnetStringTable, and the table itself
 #define EXPORT_STRINGTABLE(name) \
-	extern BACnetStringTable BAC_STRTAB_##name
+   extern BACnetStringTable BAC_STRTAB_##name
 
 EXPORT_STRINGTABLE(FalseTrue);
 EXPORT_STRINGTABLE(ApplicationTypes);
