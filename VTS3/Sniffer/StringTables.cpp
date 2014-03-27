@@ -10,30 +10,30 @@ namespace NetworkSniffer {
 // long-term usage will result in the buffer being re-used.
 char* TempTextBuffer()
 {
-#define TEMP_TEST_N_BUFFERS 10
-#define TEMP_TEST_BUFFERLENGTH 100
-	static char buffers[TEMP_TEST_N_BUFFERS ][ TEMP_TEST_BUFFERLENGTH ];
-	static int ix;
+#define TEMP_TEST_N_BUFFERS 20
+#define TEMP_TEST_BUFFERLENGTH 200
+   static char buffers[TEMP_TEST_N_BUFFERS ][ TEMP_TEST_BUFFERLENGTH ];
+   static int ix;
 
-	ix = (ix + 1) % TEMP_TEST_N_BUFFERS;
-	return buffers[ix];
+   ix = (ix + 1) % TEMP_TEST_N_BUFFERS;
+   return buffers[ix];
 }
 
 // Constructor for non-extensible enumerations
 BACnetStringTable::BACnetStringTable( const char* const *pStrings,
-									  const int			nStrings )
+                                      const int         nStrings )
 : m_pStrings(pStrings)
 , m_nStrings(nStrings)
 , m_nReserved(nStrings)
 , m_nMax(nStrings)
 {
 }
-	
+
 // Constructor for enumerations defined by BACnet as extensible
 BACnetStringTable::BACnetStringTable( const char* const *pStrings,
-									  const int		    nStrings,
-									  const int		    nReserved,
-									  const int		    nMax )
+                                      const int         nStrings,
+                                      const int         nReserved,
+                                      const int         nMax )
 : m_pStrings(pStrings)
 , m_nStrings(nStrings)
 , m_nReserved(nReserved)
@@ -42,67 +42,110 @@ BACnetStringTable::BACnetStringTable( const char* const *pStrings,
 }
 
 // Return a string containing text for the specified enumerated value.
-// If the value is undefined, the string will show the pUndefined title and the numeric value
+// If the value is undefined, the string will show the pUndefined title and the numeric value.
+// If pUndefined is NULL, show "Reserved-XXX" or "Vendor-XXX" depending on the value
 const char* BACnetStringTable::EnumString( int theIndex, const char *pUndefined /* = NULL */ ) const
 {
-	const char *pRet;	
-	if (theIndex < m_nStrings)
-	{
-		pRet = m_pStrings[ theIndex ];
-	}
-	else
-	{
-		if (pUndefined == NULL)
-		{
-			pUndefined = "";
-		}
+   const char *pRet;
+   if (theIndex < m_nStrings)
+   {
+      pRet = m_pStrings[ theIndex ];
+   }
+   else
+   {
+      if (pUndefined == NULL)
+      {
+         pUndefined = (theIndex < m_nReserved) ? "Reserved-" : "Vendor-";
+      }
 
-		char *pTxt = TempTextBuffer();
-		sprintf( pTxt, "%s%d", pUndefined, theIndex );
-		pRet = pTxt;
-	}
+      char *pTxt = TempTextBuffer();
+      sprintf( pTxt, "%s%d", pUndefined, theIndex );
+      pRet = pTxt;
+   }
 
-	return pRet;
+   return pRet;
+}
+
+// Helpers to make a sorted list of strings
+struct OurSorter
+{
+   UINT         m_ID;
+   const char  *m_pString;
+};
+
+static int SortOurStuff( const void *pFirst, const void *pSecond )
+{
+   const OurSorter *pPS1 = (const OurSorter*)pFirst;
+   const OurSorter *pPS2 = (const OurSorter*)pSecond;
+   return strcmp( pPS1->m_pString, pPS2->m_pString );
 }
 
 // Fill a CComboBox with the contents of the string table
-void BACnetStringTable::FillCombo( CComboBox &theCombo ) const
+// If doSort is true, sort the strings alphabetically, else use string table order.
+// Sets ItemData to the index of the string in the string table (since the index
+// in the combo won't be the string index for a sorted list)
+void BACnetStringTable::FillCombo( CComboBox &theCombo, bool doSort ) const
 {
-	for (int ix = 0; ix < m_nStrings; ix++)
-	{
-		theCombo.AddString( m_pStrings[ ix ] );
-	}
+   int ix;
+   if (!doSort)
+   {
+      for (ix = 0; ix < m_nStrings; ix++)
+      {
+         int pos = theCombo.AddString( m_pStrings[ ix ] );
+         theCombo.SetItemData( pos, ix );
+      }
+   }
+   else
+   {
+      // Sort the strings
+      OurSorter *pStuff = new OurSorter[m_nStrings];
+      for (ix = 0; ix < m_nStrings; ix++)
+      {
+         pStuff[ix].m_ID = ix;
+         pStuff[ix].m_pString = m_pStrings[ix];
+      }
+      qsort( pStuff, m_nStrings, sizeof(OurSorter), &SortOurStuff );
+
+      // Populate the combo, saving the original index as item data
+      for (ix = 0; ix < m_nStrings; ix++)
+      {
+         int pos = theCombo.AddString( pStuff[ix].m_pString );
+         theCombo.SetItemData( pos, pStuff[ix].m_ID );
+      }
+
+      delete[] pStuff;
+   }
 }
 
 STRING_TABLE FalseTrue[] = {
-	"False",
-	"True"
+   "False",
+   "True"
 };
 BAC_STRINGTABLE(FalseTrue);
 
 STRING_TABLE ApplicationTypes[] = {
-   "Null",				// 0
+   "Null",           // 0
    "Boolean",
    "Unsigned Integer",
    "Signed Integer",
-   "Real",				// 4
+   "Real",           // 4
    "Double",
    "Octet String",
    "Character String",
-   "Bit String",		// 8
+   "Bit String",     // 8
    "Enumerated",
    "Date",
    "Time",
    "BACnetObjectIdentifier" // 12
-   };
+};
 BAC_STRINGTABLE(ApplicationTypes);
 
 // Not an explicit datatype: defined inline in BACnetAccumulatorRecord
 STRING_TABLE BACnetAccumulatorStatus[] = {
-	"normal",
-	"starting",
-	"recovered",
-	"abnormal",
+   "normal",
+   "starting",
+   "recovered",
+   "abnormal",
    "failed"
 };
 BAC_STRINGTABLE(BACnetAccumulatorStatus);
@@ -110,13 +153,13 @@ BAC_STRINGTABLE(BACnetAccumulatorStatus);
 STRING_TABLE BACnetAction[] = {
    "direct",
    "reverse"
-   };
+};
 BAC_STRINGTABLE(BACnetAction);
 
 STRING_TABLE BACnetBinaryPV[] = {
    "inactive",
    "active"
-   };
+};
 BAC_STRINGTABLE(BACnetBinaryPV);
 
 STRING_TABLE BACnetDeviceStatus[] = {
@@ -125,42 +168,42 @@ STRING_TABLE BACnetDeviceStatus[] = {
    "download-required",
    "download-in-progress",
    "non-operational",
-   "backup-in-progress"		// added by Jingbo Gao, Sep 20 2004
+   "backup-in-progress"    // added by Jingbo Gao, Sep 20 2004
 };
 BAC_STRINGTABLE_EX(BACnetDeviceStatus, 64, 65536);
 
 STRING_TABLE BACnetDoorAlarmState[] = {
-	"normal",
-	"alarm",
-	"door-open-too-long",
-	"forced-open",
-	"tamper",
-	"door-fault",
-	"lock-down",
-	"free-access",
-	"egress-open"
+   "normal",
+   "alarm",
+   "door-open-too-long",
+   "forced-open",
+   "tamper",
+   "door-fault",
+   "lock-down",
+   "free-access",
+   "egress-open"
 };
 BAC_STRINGTABLE_EX(BACnetDoorAlarmState, 256, 65536);
 
 STRING_TABLE BACnetDoorSecuredStatus[] = {
-	"secured",
-	"unsecured",
-	"unknown",
+   "secured",
+   "unsecured",
+   "unknown",
 };
 BAC_STRINGTABLE(BACnetDoorSecuredStatus);
 
 STRING_TABLE BACnetDoorStatus[] = {
-	"closed",
-	"open",
-	"unknown",
+   "closed",
+   "open",
+   "unknown",
 };
 BAC_STRINGTABLE(BACnetDoorStatus);
 
 STRING_TABLE BACnetDoorValue[] = {
-	"lock",
-	"unlock",
-	"pulse-unlock",
-	"extended-pulse-unlock",
+   "lock",
+   "unlock",
+   "pulse-unlock",
+   "extended-pulse-unlock",
 };
 BAC_STRINGTABLE(BACnetDoorValue);
 
@@ -208,7 +251,7 @@ STRING_TABLE BACnetEngineeringUnits[] = {
    "Percent-relative-humidity",           /* 29 */
 
 /* Length */
-   "Millimeter",                /* 30 */
+   "Millimeters",               /* 30 */
    "Meters",                    /* 31 */
    "Inches",                    /* 32 */
    "Feet",                      /* 33 */
@@ -247,9 +290,9 @@ STRING_TABLE BACnetEngineeringUnits[] = {
    "Pounds-force-per-square-inch", /* 56 */
    "Centimeters-of-water",         /* 57 */
    "Inches-of-water",              /* 58 */
-   "Millimeters-of-mecury",        /* 59 */
-   "Centimeters-of-mecury",        /* 60 */
-   "Inches-of-mecury",             /* 61 */
+   "Millimeters-of-mercury",       /* 59 */
+   "Centimeters-of-mercury",       /* 60 */
+   "Inches-of-mercury",            /* 61 */
 
 /* Temperature */
    "Degrees-Celsius",           /* 62 */
@@ -291,8 +334,8 @@ STRING_TABLE BACnetEngineeringUnits[] = {
 
 /* Other */
    "Degrees-angular",               /* 90 */
-   "Degrees-Celcius-per-hour",      /* 91 */
-   "Degrees-Celcius-per-minute",    /* 92 */
+   "Degrees-Celsius-per-hour",      /* 91 */
+   "Degrees-Celsius-per-minute",    /* 92 */
    "Degrees-Fahrenheit-per-hour",   /* 93 */
    "Degrees-Fahrenheit-per-minute", /* 94 */
    "No-units",                      /* 95 */
@@ -318,13 +361,13 @@ STRING_TABLE BACnetEngineeringUnits[] = {
    "Currency 9",        /* 113 */
    "Currency 10",       /* 114 */
 
-   "square-inches",							/* 115 */
-   "square-centimeters",					/* 116 */
-   "btus-per-pound",						   /* 117 */
-   "centimeters",							   /* 118 */
-   "pounds-mass-per-second",				/* 119 */
-   "delta-degrees-Fahrenheit",			/* 120 */
-   "delta-degrees-Kelvin",					/* 121 */
+   "square-inches",                    /* 115 */
+   "square-centimeters",               /* 116 */
+   "btus-per-pound",                   /* 117 */
+   "centimeters",                      /* 118 */
+   "pounds-mass-per-second",           /* 119 */
+   "delta-degrees-Fahrenheit",         /* 120 */
+   "delta-degrees-Kelvin",             /* 121 */
 
    "Kilohms",                              /* 122 */
    "Megohms",                              /* 123 */
@@ -348,53 +391,53 @@ STRING_TABLE BACnetEngineeringUnits[] = {
    "Watts-per-square-meter-degree-Kelvin", /* 141 */
 
    // New units added 3/9/2008
-   "Cubic-feet-per-second",				/* 142 */
-   "Percent-obscuration-per-foot",		/* 143 */
-   "Percent-obscuration-per-meter", 	/* 144 */
-   "miliohms", 								/* 145 */
-   "megawatt-hours", 						/* 146 */
-   "kilo-btus",								/* 147 */
-   "mega-btus",								/* 148 */
-   "kilojoules-per-kilogram-dry-air",	/* 149 */
-   "megajoules-per-kilogram-dry-air",	/* 150 */
-   "kilojoules-per-degree-Kelvin",		/* 151 */
-   "megajoules-per-degree-Kelvin",		/* 152 */
-   "newton",								   /* 153 */
-   "grams-per-second",						/* 154 */
-   "grams-per-minute",						/* 155 */
-   "tons-per-hour",							/* 156 */
-   "kilo-btus-per-hour",					/* 157 */
-   "Hundredths-seconds",					/* 158 */
-   "milliseconds",							/* 159 */
-   "newton-meters",							/* 160 */
-   "millimeters-per-second",				/* 161 */
-   "millimeters-per-minute", 				/* 162 */
-   "meters-per-minute",						/* 163 */
-   "meters-per-hour",						/* 164 */
-   "cubic-meters-per-minute",				/* 165 */
-   "meters-per-second-per-second",		/* 166 */
-   "amperes-per-meter",						/* 167 */
-   "amperes-per-square-meter",			/* 168 */
-   "ampere-square-meters",					/* 169 */
-   "farads",								   /* 170 */
-   "henrys",								   /* 171 */
-   "ohm-meters",							   /* 172 */
-   "siemens",								   /* 173 */
-   "siemens-per-meter",						/* 174 */
-   "teslas",								   /* 175 */
-   "volts-per-degree-Kelvin",				/* 176 */
-   "volts-per-meter",						/* 177 */
-   "webers",								   /* 178 */
-   "candelas",								   /* 179 */
-   "candelas-per-square-meter",			/* 180 */
-   "degrees-Kelvin-per-hour",				/* 181 */
-   "degrees-Kelvin-per-minute",			/* 182 */
-   "joule-seconds",						   /* 183 */
-   "radians-per-second",					/* 184 */
-   "square-meters-per-Newton",			/* 185 */
-   "kilograms-per-cubic-meter",			/* 186 */
-   "newton-seconds",						   /* 187 */
-   "newtons-per-meter",					   /* 188 */
+   "Cubic-feet-per-second",            /* 142 */
+   "Percent-obscuration-per-foot",     /* 143 */
+   "Percent-obscuration-per-meter",    /* 144 */
+   "milliohms",                         /* 145 */
+   "megawatt-hours",                   /* 146 */
+   "kilo-btus",                        /* 147 */
+   "mega-btus",                        /* 148 */
+   "kilojoules-per-kilogram-dry-air",  /* 149 */
+   "megajoules-per-kilogram-dry-air",  /* 150 */
+   "kilojoules-per-degree-Kelvin",     /* 151 */
+   "megajoules-per-degree-Kelvin",     /* 152 */
+   "newton",                           /* 153 */
+   "grams-per-second",                 /* 154 */
+   "grams-per-minute",                 /* 155 */
+   "tons-per-hour",                    /* 156 */
+   "kilo-btus-per-hour",               /* 157 */
+   "Hundredths-seconds",               /* 158 */
+   "milliseconds",                     /* 159 */
+   "newton-meters",                    /* 160 */
+   "millimeters-per-second",           /* 161 */
+   "millimeters-per-minute",           /* 162 */
+   "meters-per-minute",                /* 163 */
+   "meters-per-hour",                  /* 164 */
+   "cubic-meters-per-minute",          /* 165 */
+   "meters-per-second-per-second",     /* 166 */
+   "amperes-per-meter",                /* 167 */
+   "amperes-per-square-meter",         /* 168 */
+   "ampere-square-meters",             /* 169 */
+   "farads",                           /* 170 */
+   "henrys",                           /* 171 */
+   "ohm-meters",                       /* 172 */
+   "siemens",                          /* 173 */
+   "siemens-per-meter",                /* 174 */
+   "teslas",                           /* 175 */
+   "volts-per-degree-Kelvin",          /* 176 */
+   "volts-per-meter",                  /* 177 */
+   "webers",                           /* 178 */
+   "candelas",                         /* 179 */
+   "candelas-per-square-meter",        /* 180 */
+   "degrees-Kelvin-per-hour",          /* 181 */
+   "degrees-Kelvin-per-minute",        /* 182 */
+   "joule-seconds",                    /* 183 */
+   "radians-per-second",               /* 184 */
+   "square-meters-per-Newton",         /* 185 */
+   "kilograms-per-cubic-meter",        /* 186 */
+   "newton-seconds",                   /* 187 */
+   "newtons-per-meter",                /* 188 */
    "watts-per-meter-per-degree-Kelvin",/* 189 last definition in 135-2008 */
    // Added by Addenda H (135-2004)
    "micro-siemens",                    /* 190 */
@@ -446,6 +489,9 @@ STRING_TABLE BACnetEngineeringUnits[] = {
    "pH",                               /* 234 */
    "grams-per-square-meter",           /* 235 */
    "minutes-per-degree-kelvin",        /* 236 last definition in 135-2012 */
+
+   // TODO: If you add strings here, also update etEU in Stdobjpr.cpp 
+   // DUDAPI\Db.h has a BACnetEngineeringUnits enum, but it has no values
 };
 BAC_STRINGTABLE_EX(BACnetEngineeringUnits, 256, 65536);
 
@@ -489,10 +535,10 @@ STRING_TABLE BACnetError[] = {
    "RequestKey Error Choice",
 
 /* services added after 1995 */
-	"ReadRange Error Choice",
-	"Life Safety Operation Error Choice",
-	"SubscribeCOVProperty Error Choice",
-	"GetEventInformation Error Choice",
+   "ReadRange Error Choice",
+   "Life Safety Operation Error Choice",
+   "SubscribeCOVProperty Error Choice",
+   "GetEventInformation Error Choice",
 };
 BAC_STRINGTABLE(BACnetError);
 
@@ -592,65 +638,65 @@ STRING_TABLE BACnetErrorCode[] = {
    "no-property-specified",              // 77
    "not-configured-for-triggered-logging", // 78
    // added by Addenda H (135-2004)
-   "unknown-subscription",	             // 79
+   "unknown-subscription",              // 79
 
-   "parameter-out-of-range",	         // 80
-   "list-element-not-found",	         // 81
-   "busy",	                           // 82
-   "communication-disabled",	         // 83
-   "success",	                        // 84
-   "access-denied",	                  // 85
-   "bad-destination-address",	         // 86
-   "bad-destination-device-id",	      // 87
-   "bad-signature",	                  // 88
-   "bad-source-address",	            // 89
-   "bad-timestamp",	                  // 90
-   "cannot-use-key",	                  // 91
-   "cannot-verify-message-id",	      // 92
-   "correct-key-revision",	            // 93
-   "destination-device-id-required",	// 94
-   "duplicate-message",	               // 95
-   "encryption-not-configured",	      // 96
-   "encryption-required",	            // 97
-   "incorrect-key",	                  // 98
-   "invalid-key-data",	               // 99
-   "key-update-in-progress",	         // 100
-   "malformed-message",	               // 101
-   "not-key-server",	                  // 102
-   "security-not-configured",	         // 103
-   "source-security-required",	      // 104
-   "too-many-keys",	                  // 105
-   "unknown-authentication-type",	   // 106
-   "unknown-key",	                     // 107
-   "unknown-key-revision",	            // 108
-   "unknown-source-message",	         // 109
-   "not-router-to-dnet",	            // 110
-   "router-busy",	                     // 111
-   "unknown-network-message",	         // 112
-   "message-too-long",	               // 113
-   "security-error",	                  // 114
-   "addressing-error",	               // 115
-   "write-bdt-failed",	               // 116
-   "read-bdt-failed",	               // 117
-   "register-foreign-device-failed",	// 118
-   "read-fdt-failed",	               // 119
-   "delete-fdt-entry-failed",	         // 120
-   "distribute-broadcast-failed",	   // 121
-   "unknown-file-size",	               // 122
-   "abort-apdu-too-long",	            // 123
+   "parameter-out-of-range",           // 80
+   "list-element-not-found",           // 81
+   "busy",                             // 82
+   "communication-disabled",           // 83
+   "success",                          // 84
+   "access-denied",                    // 85
+   "bad-destination-address",          // 86
+   "bad-destination-device-id",        // 87
+   "bad-signature",                    // 88
+   "bad-source-address",               // 89
+   "bad-timestamp",                    // 90
+   "cannot-use-key",                   // 91
+   "cannot-verify-message-id",         // 92
+   "correct-key-revision",             // 93
+   "destination-device-id-required",   // 94
+   "duplicate-message",                // 95
+   "encryption-not-configured",        // 96
+   "encryption-required",              // 97
+   "incorrect-key",                    // 98
+   "invalid-key-data",                 // 99
+   "key-update-in-progress",           // 100
+   "malformed-message",                // 101
+   "not-key-server",                   // 102
+   "security-not-configured",          // 103
+   "source-security-required",         // 104
+   "too-many-keys",                    // 105
+   "unknown-authentication-type",      // 106
+   "unknown-key",                      // 107
+   "unknown-key-revision",             // 108
+   "unknown-source-message",           // 109
+   "not-router-to-dnet",               // 110
+   "router-busy",                      // 111
+   "unknown-network-message",          // 112
+   "message-too-long",                 // 113
+   "security-error",                   // 114
+   "addressing-error",                 // 115
+   "write-bdt-failed",                 // 116
+   "read-bdt-failed",                  // 117
+   "register-foreign-device-failed",   // 118
+   "read-fdt-failed",                  // 119
+   "delete-fdt-entry-failed",          // 120
+   "distribute-broadcast-failed",      // 121
+   "unknown-file-size",                // 122
+   "abort-apdu-too-long",              // 123
    "abort-application-exceeded-reply-time", // 124
-   "abort-out-of-resources",	         // 125
-   "abort-tsm-timeout",	               // 126
-   "abort-window-size-out-of-range",	// 127
-   "file-full",	                     // 128
-   "inconsistent-configuration",	      // 129
-   "inconsistent-object-type",	      // 130
-   "internal-error",	                  // 131
-   "not-configured",	                  // 132
-   "out-of-memory",	                  // 133
-   "value-too-long",	                  // 134
-   "abort-insufficient-security",	   // 135
-   "abort-security-error",	            // 136 Last in 135-2012
+   "abort-out-of-resources",           // 125
+   "abort-tsm-timeout",                // 126
+   "abort-window-size-out-of-range",   // 127
+   "file-full",                        // 128
+   "inconsistent-configuration",       // 129
+   "inconsistent-object-type",         // 130
+   "internal-error",                   // 131
+   "not-configured",                   // 132
+   "out-of-memory",                    // 133
+   "value-too-long",                   // 134
+   "abort-insufficient-security",      // 135
+   "abort-security-error",             // 136 Last in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetErrorCode, 256, 65536);
 
@@ -661,39 +707,39 @@ STRING_TABLE BACnetEventState[] = {
    "high-limit",
    "low-limit",
    "life-safety-alarm",
-   };
+};
 BAC_STRINGTABLE_EX(BACnetEventState, 64, 65536);
 
 STRING_TABLE BACnetEventTransitionBits[] = {
    "to-offnormal",
    "to-fault",
    "to-normal",
-   };
+};
 BAC_STRINGTABLE(BACnetEventTransitionBits);
 
 //Modified by Zhu Zhenhua, 2004-5-17
 STRING_TABLE BACnetEventType[] = {
-   "change-of-bitstring",		// 0
+   "change-of-bitstring",     // 0
    "change-of-state",
    "change-of-value",
    "command-failure",
    "floating-limit",
-   "out-of-range",				// 5
+   "out-of-range",            // 5
    "complex-event-type",
    "deprecated",
    "change-of-life-safety",
    "extended",
-   "buffer-ready",				// 10
-   "unsigned-range",			   // 11 last in 135-2008
-   "reserved",	               // 12
-   "access-event",	         // 13
-   "double-out-of-range",	   // 14
-   "signed-out-of-range",	   // 15
-   "unsigned-out-of-range",	// 16
+   "buffer-ready",            // 10
+   "unsigned-range",          // 11 last in 135-2008
+   "reserved",                // 12
+   "access-event",            // 13
+   "double-out-of-range",     // 14
+   "signed-out-of-range",     // 15
+   "unsigned-out-of-range",   // 16
    "change-of-characterstring",// 17
-   "change-of-status-flags",	// 18
-   "change-of-reliability",	// 19
-   "none",	                  // 20 last in 135-2012
+   "change-of-status-flags",  // 18
+   "change-of-reliability",   // 19
+   "none",                    // 20 last in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetEventType, 64, 65536);
 
@@ -732,40 +778,40 @@ BAC_STRINGTABLE(BACnetFileAccessMethod);
 ///////////////////////////////////////////////////////////////////////////
 //Added by Zhu Zhenhua, 2004-6-14
 STRING_TABLE BACnetLifeSafetyMode[] = {
-   "off",					// 0
+   "off",               // 0
    "on",
    "test",
    "manned",
    "unmanned",
-   "armed",					// 5
+   "armed",             // 5
    "disarmed",
    "prearmed",
    "slow",
    "fast",
-   "disconnected",			// 10
+   "disconnected",         // 10
    "enabled",
    "disabled",
    "automatic-release-disabled",
-   "default"				// 14 last in 135-2008
+   "default"            // 14 last in 135-2008
 };
 BAC_STRINGTABLE_EX(BACnetLifeSafetyMode, 256, 65536);
 
 STRING_TABLE BACnetLifeSafetyOperation[] = {
-   "none",					// 0
+   "none",              // 0
    "silence",
    "silence-audible",
    "silence-visual",
    "reset",
-   "reset-alarm",			// 5
+   "reset-alarm",       // 5
    "reset-fault",
    "unsilence",
    "unsilence-audible",
-   "unsilence-visual",		// 9 last in 135-2008
+   "unsilence-visual",     // 9 last in 135-2008
 };
 BAC_STRINGTABLE_EX(BACnetLifeSafetyOperation, 64, 65536);
 
 STRING_TABLE BACnetLifeSafetyState[] = {
-   "quiet",					// 0
+   "quiet",             // 0
    "pre-alarm",
    "alarm",
    "fault",
@@ -775,7 +821,7 @@ STRING_TABLE BACnetLifeSafetyState[] = {
    "active",
    "tamper",
    "test-alarm",
-   "test-active",			// 10
+   "test-active",       // 10
    "test-fault",
    "test-fault-alarm",
    "holdup",
@@ -785,10 +831,10 @@ STRING_TABLE BACnetLifeSafetyState[] = {
    "emergency-power",
    "delayed",
    "blocked",
-   "local-alarm",			// 20
+   "local-alarm",       // 20
    "general-alarm",
    "supervisory",
-   "test-supervisory"		// 23 last in 135-2008
+   "test-supervisory"      // 23 last in 135-2008
 };
 BAC_STRINGTABLE_EX(BACnetLifeSafetyState, 256, 65536);
 
@@ -796,42 +842,42 @@ STRING_TABLE BACnetLightingTransition[] = {
    "none",
    "fade",
    "ramp"
-   };
+};
 BAC_STRINGTABLE_EX(BACnetLightingTransition, 64, 256);
 
 STRING_TABLE BACnetLimitEnable[] = {
    "lowLimitEnable",
    "highLimitEnable"
-   };
+};
 BAC_STRINGTABLE(BACnetLimitEnable);
 
 STRING_TABLE BACnetLockStatus[] = {
-	"locked",
-	"unlocked",
-	"fault",
-	"unknown",
+   "locked",
+   "unlocked",
+   "fault",
+   "unknown",
 };
 BAC_STRINGTABLE(BACnetLockStatus);
 
 STRING_TABLE BACnetLoggingType[] = {
-	"polled",
-	"cov",
-	"triggered",
+   "polled",
+   "cov",
+   "triggered",
 };
 BAC_STRINGTABLE(BACnetLoggingType);
 
 STRING_TABLE BACnetLogStatus[] = {
-	"log-disabled",
-	"buffer-purged",
-	"log-interrupted",
+   "log-disabled",
+   "buffer-purged",
+   "log-interrupted",
 };
 BAC_STRINGTABLE_EX(BACnetLogStatus, 64, 256);
 
 STRING_TABLE  BACnetMaintenance[] = {
-	"none",
-	"periodic-test",
-	"need-service-operational",
-	"need-service-inoperative"
+   "none",
+   "periodic-test",
+   "need-service-operational",
+   "need-service-inoperative"
 };
 BAC_STRINGTABLE_EX(BACnetMaintenance, 256, 65536);
 
@@ -855,7 +901,7 @@ STRING_TABLE BACnetNotifyType[] = {
    "alarm",
    "event",
    "ack-notification"
-   };
+};
 BAC_STRINGTABLE(BACnetNotifyType);
 
 // This list is also used to create the hash table for scripting.
@@ -880,51 +926,51 @@ STRING_TABLE BACnetObjectType[] = {
    "schedule",              /* 17 */
    "averaging",             /* 18 */
    "multi-state-value",     /* 19 */
-   "trend-log" ,            /* 20 */		// msdanner 9/04, was "trendlog"
-   "life-safety-point",	    /* 21 Zhu Zhenhua 2003-7-24 */	 // msdanner 9/04, was "LIFESAFETYPOINT"
-   "life-safety-zone",	    /* 22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
+   "trend-log" ,            /* 20 */      // msdanner 9/04, was "trendlog"
+   "life-safety-point",     /* 21 Zhu Zhenhua 2003-7-24 */   // msdanner 9/04, was "LIFESAFETYPOINT"
+   "life-safety-zone",      /* 22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
    "accumulator",           // 23 Shiyuan Xiao 7/15/2005
    "pulse-converter",       // 24 Shiyuan Xiao 7/15/2005
-   "event-log",				// 25 - Addendum B
-   "global-group",			// 26 - Addendum B
-   "trend-log-multiple",	// 27 - Addendum B
-   "load-control",			// 28 - Addendum E 135-2004
-   "structured-view",		// 29 - Addendum D
-   "access-door",			   // 30 Last in 135-2008
-   "lighting-output",		// 31
-   "access-credential",		// 32
-   "access-point",			// 33
-   "access-rights",			// 34
-   "access-user",			// 35
-   "access-zone",			// 36
-   "credential-data-input",	// 37
-   "network-security",		// 38 Addendum 2008-g
-   "bitstring-value",		// 39 Addendum 2008-w
+   "event-log",             // 25 - Addendum B
+   "global-group",          // 26 - Addendum B
+   "trend-log-multiple",    // 27 - Addendum B
+   "load-control",          // 28 - Addendum E 135-2004
+   "structured-view",       // 29 - Addendum D
+   "access-door",           // 30 Last in 135-2008
+   "objtype-31",            // 31 This was lighting-out during an early review, but unused in 135-2012
+   "access-credential",     // 32
+   "access-point",          // 33
+   "access-rights",         // 34
+   "access-user",           // 35
+   "access-zone",           // 36
+   "credential-data-input", // 37
+   "network-security",      // 38 Addendum 2008-g
+   "bitstring-value",       // 39 Addendum 2008-w
    "characterstring-value", // 40
-   "date-pattern-value",	// 41
-   "date-value",			// 42
+   "date-pattern-value",    // 41
+   "date-value",            // 42
    "datetime-pattern-value",// 43
-   "datetime-value",		// 44
-   "integer-value",			// 45
-   "large-analog-value",	// 46
-   "octetstring-value",		// 47
+   "datetime-value",        // 44
+   "integer-value",         // 45
+   "large-analog-value",    // 46
+   "octetstring-value",     // 47
    "positive-integer-value",// 48
-   "time-pattern-value",	// 49
-   "time-value"				// 50 Last in 2008-w
+   "time-pattern-value",    // 49
+   "time-value",            // 50 Last in 2008-w
+   "notification-forwarder",// 51
+   "alert-enrollment",      // 52
+   "channel",               // 53,
+   "lighting-output"        // 54 Max in 135-2012 BACNET_PROTOCOL_REVISION = 14
 
-	// CAUTION: if you add a type here, you must also change MAX_DEFINED_OBJ 
-	// and NUM_DEFINED_OBJECTS
-	// (which are actually max-plus-one: the NUMBER of defined object types)
-	//
-	// And add to StandardObjects in Vtsapi32.cpp
-	// And other code, sprinkled throughout the universe...
-	//
-	// For each type, there is also an icon for use in the EpicsTree view,
-	// IDB_EPICSTREE  BITMAP "res\\epicstree.bmp"
-	// So if you add or implement new Objects, you need to do some artwork there.
-   //
-   // TODO: Missing type 51 through 54 from 135-2012
-
+   // TODO: if you add a type here, you must also
+   // - Add the string to etObjectTypes in Stdobjpr.h
+   // - Add the string to StandardObjects in Vtsapi32.cpp (which is capitalized and uses spaces instead of hyphens)
+   // - Add a value to the enumeration BACnetObjectType in VTS.h (which will change MAX_DEFINED_OBJ)
+   // - Add a case to Check_Obj_Prop in DUDTOOL.CPP, and a table of supported properties for the object
+   // - For each type, there is also an icon for use in the EpicsTree view,
+   //   IDB_EPICSTREE  BITMAP "res\\epicstree.bmp"
+   //   So you may need to do some artwork there. (Some extra blank bitmaps have been added, but you can decorate them)
+   // - Update other code, sprinkled throughout the universe, especially in DUDTOOL
 };
 BAC_STRINGTABLE_EX(BACnetObjectType, 128, 1024);
 
@@ -1117,28 +1163,28 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "maximum-value-timestamp",          /* 149 */
    "minimum-value-timestamp",          /* 150 */
    "variance-value",                   /* 151 */
-   "active-cov-subscriptions",          /* 152 xiao shiyuan 2002-7-18 */
-   "backup-failure-timeout",            /* 153 xiao shiyuan 2002-7-18 */
-   "configuration-files",               /* 154 xiao shiyuan 2002-7-18 */
-   "database-revision",                 /* 155 xiao shiyuan 2002-7-18 */
-   "direct-reading",                    /* 156 xiao shiyuan 2002-7-18 */
-   "last-restore-time",					/* 157 xiao shiyuan 2002-7-18 */
-   "maintenance-required",				/* 158 xiao shiyuan 2002-7-18 */
-   "member-of",							/* 159 xiao shiyuan 2002-7-18 */
-   "mode",								/* 160 xiao shiyuan 2002-7-18 */
-   "operation-expected",				/* 161 xiao shiyuan 2002-7-18 */
-   "setting",							/* 162 xiao shiyuan 2002-7-18 */
-   "silenced",							/* 163 xiao shiyuan 2002-7-18 */
-   "tracking-value",					/* 164 xiao shiyuan 2002-7-18 */
-   "zone-members",						/* 165 xiao shiyuan 2002-7-18 */
-   "life-safety-alarm-values",			/* 166 xiao shiyuan 2002-7-18 */
-   "max-segments-accepted",				/* 167 xiao shiyuan 2002-7-18 */
-   "profile-name",                      /* 168 xiao shiyuan 2002-7-18 */
-   "auto-slave-discovery",				/* 169 ljt 2005-10-12   */
-   "manual-slave-address-binding",		/* 170 ljt 2005-10-12   */
-   "slave-address-binding",				/* 171 ljt 2005-10-12   */
-   "slave-proxy-enable",				/* 172 ljt 2005-10-12   */
-   "last-notify-record",				/* 173 zhu zhenhua  2004-5-11 */
+   "active-cov-subscriptions",         /* 152 xiao shiyuan 2002-7-18 */
+   "backup-failure-timeout",           /* 153 xiao shiyuan 2002-7-18 */
+   "configuration-files",              /* 154 xiao shiyuan 2002-7-18 */
+   "database-revision",                /* 155 xiao shiyuan 2002-7-18 */
+   "direct-reading",                   /* 156 xiao shiyuan 2002-7-18 */
+   "last-restore-time",                /* 157 xiao shiyuan 2002-7-18 */
+   "maintenance-required",             /* 158 xiao shiyuan 2002-7-18 */
+   "member-of",                        /* 159 xiao shiyuan 2002-7-18 */
+   "mode",                             /* 160 xiao shiyuan 2002-7-18 */
+   "operation-expected",               /* 161 xiao shiyuan 2002-7-18 */
+   "setting",                          /* 162 xiao shiyuan 2002-7-18 */
+   "silenced",                         /* 163 xiao shiyuan 2002-7-18 */
+   "tracking-value",                   /* 164 xiao shiyuan 2002-7-18 */
+   "zone-members",                     /* 165 xiao shiyuan 2002-7-18 */
+   "life-safety-alarm-values",         /* 166 xiao shiyuan 2002-7-18 */
+   "max-segments-accepted",            /* 167 xiao shiyuan 2002-7-18 */
+   "profile-name",                     /* 168 xiao shiyuan 2002-7-18 */
+   "auto-slave-discovery",             /* 169 ljt 2005-10-12   */
+   "manual-slave-address-binding",     /* 170 ljt 2005-10-12   */
+   "slave-address-binding",            /* 171 ljt 2005-10-12   */
+   "slave-proxy-enable",               /* 172 ljt 2005-10-12   */
+   "last-notify-record",               /* 173 zhu zhenhua  2004-5-11 */
    "schedule-default",                 // 174 shiyuan xiao 7/15/2005
    "accepted-modes",                   // 175 shiyuan xiao 7/15/2005
    "adjust-value",                     // 176 shiyuan xiao 7/15/2005
@@ -1159,217 +1205,217 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "value-set",                        // 191 shiyuan xiao 7/15/2005
    "value-change-time",                // 192 shiyuan xiao 7/15/2005
    // added addendum b (135-2004)
-	"align-intervals",					// 193
-	"prop-id-194",				         // 194 undefined in 135-2012
-	"interval-offset",					// 195
-	"last-restart-reason",				// 196
-	"logging-type",						// 197
-	"prop-id-198",				         // 198 undefined in 135-2012
-	"prop-id-199",				         // 199 undefined in 135-2012
-	"prop-id-200",				         // 200 undefined in 135-2012
-	"prop-id-201",				         // 201 undefined in 135-2012
-   "restart-notification-recipients",	// 202
-	"time-of-device-restart",			// 203
-	"time-synchronization-interval",	// 204
-	"trigger",							// 205
-	"utc-time-syncrhonization-recipients",  // 206
-	// added by addenda d
-	"node-subtype",						// 207
-	"node-type",						// 208
-	"structured-object-list",			// 209
-	"subordinate-annotations",			// 210
-	"subordinate-list",					// 211
-	// added by addendum e 135-2004
-	"actual-shed-level",				// 212
-	"duty-window",						// 213
-	"expected-shed-level",				// 214
-	"full-duty-baseline",				// 215
-   "prop-id-216",				         // 216 undefined in 135-2012
-	"prop-id-217",				         // 217 undefined in 135-2012
-   "requested-shed-level",				// 218
-	"shed-duration",					// 219
-	"shed-level-descriptions",			// 220
-	"shed-levels",						// 221
-	"state-description",				// 222
- 	"prop-id-223",				         // 223 undefined in 135-2012
-	"prop-id-224",				         // 224 undefined in 135-2012
-	"prop-id-225",				         // 225 undefined in 135-2012
+   "align-intervals",                  // 193
+   "prop-id-194",                      // 194 undefined in 135-2012
+   "interval-offset",                  // 195
+   "last-restart-reason",              // 196
+   "logging-type",                     // 197
+   "prop-id-198",                      // 198 undefined in 135-2012
+   "prop-id-199",                      // 199 undefined in 135-2012
+   "prop-id-200",                      // 200 undefined in 135-2012
+   "prop-id-201",                      // 201 undefined in 135-2012
+   "restart-notification-recipients",  // 202
+   "time-of-device-restart",           // 203
+   "time-synchronization-interval",    // 204
+   "trigger",                          // 205
+   "utc-time-syncrhonization-recipients",  // 206
+   // added by addenda d
+   "node-subtype",                     // 207
+   "node-type",                        // 208
+   "structured-object-list",           // 209
+   "subordinate-annotations",          // 210
+   "subordinate-list",                 // 211
+   // added by addendum e 135-2004
+   "actual-shed-level",                // 212
+   "duty-window",                      // 213
+   "expected-shed-level",              // 214
+   "full-duty-baseline",               // 215
+   "prop-id-216",                      // 216 undefined in 135-2012
+   "prop-id-217",                      // 217 undefined in 135-2012
+   "requested-shed-level",             // 218
+   "shed-duration",                    // 219
+   "shed-level-descriptions",          // 220
+   "shed-levels",                      // 221
+   "state-description",                // 222
+   "prop-id-223",                      // 223 undefined in 135-2012
+   "prop-id-224",                      // 224 undefined in 135-2012
+   "prop-id-225",                      // 225 undefined in 135-2012
 
    /* enumerations 226-235 are used in Addendum f to ANSI/ASHRAE 135-2004 */
-	"door-alarm-state",					// 226
-	"door-extended-pulse-time",
-	"door-members",
-	"door-open-too-long-time",
-	"door-pulse-time",					// 230
-	"door-status",
-	"door-unlock-delay-time",
-	"lock-status",
-	"masked-alarm-values",
-	"secured-status",					// 235 last in 135-2008
-	// Contributions from the bacnet-stack project http://sourceforge.net/projects/bacnet/develop :
+   "door-alarm-state",                 // 226
+   "door-extended-pulse-time",
+   "door-members",
+   "door-open-too-long-time",
+   "door-pulse-time",                  // 230
+   "door-status",
+   "door-unlock-delay-time",
+   "lock-status",
+   "masked-alarm-values",
+   "secured-status",                   // 235 last in 135-2008
+   // Contributions from the bacnet-stack project http://sourceforge.net/projects/bacnet/develop
 
-	"prop-id-236",				         // 236 undefined in 135-2012
-	"prop-id-237",				         // 237 undefined in 135-2012
-	"prop-id-238",				         // 238 undefined in 135-2012
-	"prop-id-239",				         // 239 undefined in 135-2012
-	"prop-id-240",				         // 240 undefined in 135-2012
-	"prop-id-241",				         // 241 undefined in 135-2012
-	"prop-id-242",				         // 242 undefined in 135-2012
-	"prop-id-243",				         // 243 undefined in 135-2012
+   "prop-id-236",                      // 236 undefined in 135-2012
+   "prop-id-237",                      // 237 undefined in 135-2012
+   "prop-id-238",                      // 238 undefined in 135-2012
+   "prop-id-239",                      // 239 undefined in 135-2012
+   "prop-id-240",                      // 240 undefined in 135-2012
+   "prop-id-241",                      // 241 undefined in 135-2012
+   "prop-id-242",                      // 242 undefined in 135-2012
+   "prop-id-243",                      // 243 undefined in 135-2012
    
-   /* enumerations 244-311 are used in Addendum j to ANSI/ASHRAE 135-2004 */
-	"absentee-limit",             // 244
-	"access-alarm-events",
-	"access-doors",
-	"access-event",
-	"access-event-authentication-factor",
-	"access-event-credential",
-	"access-event-time",
-	"access-transaction-events",
-	"accompaniment",
-	"accompaniment-time",
-	"activation-time",
-	"active-authentication-policy",
-	"assigned-access-rights",
-	"authentication-factors",
-	"authentication-policy-list",
-	"authentication-policy-names",
-	"authentication-status",
-	"authorization-mode",
-	"belongs-to",
-	"credential-disable",
-	"credential-status",
-	"credentials",
-	"credentials-in-zone",
-	"days-remaining",
-	"entry-points",
-	"exit-points",
-	"expiry-time",
-	"extended-time-enable",
-	"failed-attempt-events",
-	"failed-attempts",
-	"failed-attempts-time",
-	"last-access-event",
-	"last-access-point",
-	"last-credential-added",
-	"last-credential-added-time",
-	"last-credential-removed",
-	"last-credential-removed-time",
-	"last-use-time",
-	"lockout",
-	"lockout-relinquish-time",       // 283
-	"prop-id-283",				         // 284 undefined in 135-2012
-	"max-failed-attempts",           // 285
-	"members",
-	"muster-point",
-	"negative-access-rules",
-	"number-of-authentication-policies",
-	"occupancy-count",
-	"occupancy-count-adjust",
-	"occupancy-count-enable",
-	"occupancy-exemption",
-	"occupancy-lower-limit",
-	"occupancy-lower-limit-enforced",
-	"occupancy-state",
-	"occupancy-upper-limit",
-	"occupancy-upper-limit-enforced",
-	"passback-exemption",
-	"passback-mode",
-	"passback-timeout",
-	"positive-access-rules",
-	"reason-for-disable",
-	"supported-formats",
-	"supported-format-classes",
-	"threat-authority",
-	"threat-level",
-	"trace-flag",
-	"transaction-notification-class",
-	"user-external-identifier",
-	"user-information-reference", // 311
-	/* enumerations 312-316 are unassigned in 135-2012 */
+   /* enumerations 244-311 are defined in Addendum j to ANSI/ASHRAE 135-2004 */
+   "absentee-limit",                   // 244
+   "access-alarm-events",
+   "access-doors",
+   "access-event",
+   "access-event-authentication-factor",
+   "access-event-credential",
+   "access-event-time",
+   "access-transaction-events",
+   "accompaniment",
+   "accompaniment-time",
+   "activation-time",
+   "active-authentication-policy",
+   "assigned-access-rights",
+   "authentication-factors",
+   "authentication-policy-list",
+   "authentication-policy-names",
+   "authentication-status",
+   "authorization-mode",
+   "belongs-to",
+   "credential-disable",
+   "credential-status",
+   "credentials",
+   "credentials-in-zone",
+   "days-remaining",
+   "entry-points",
+   "exit-points",
+   "expiry-time",
+   "extended-time-enable",
+   "failed-attempt-events",
+   "failed-attempts",
+   "failed-attempts-time",
+   "last-access-event",
+   "last-access-point",
+   "last-credential-added",
+   "last-credential-added-time",
+   "last-credential-removed",
+   "last-credential-removed-time",
+   "last-use-time",
+   "lockout",
+   "lockout-relinquish-time",          // 283
+   "prop-id-283",                      // 284 undefined in 135-2012
+   "max-failed-attempts",              // 285
+   "members",
+   "muster-point",
+   "negative-access-rules",
+   "number-of-authentication-policies",
+   "occupancy-count",
+   "occupancy-count-adjust",
+   "occupancy-count-enable",
+   "occupancy-exemption",
+   "occupancy-lower-limit",
+   "occupancy-lower-limit-enforced",
+   "occupancy-state",
+   "occupancy-upper-limit",
+   "occupancy-upper-limit-enforced",
+   "passback-exemption",
+   "passback-mode",
+   "passback-timeout",
+   "positive-access-rules",
+   "reason-for-disable",
+   "supported-formats",
+   "supported-format-classes",
+   "threat-authority",
+   "threat-level",
+   "trace-flag",
+   "transaction-notification-class",
+   "user-external-identifier",
+   "user-information-reference",       // 311
+   /* enumerations 312-316 are unassigned in 135-2012 */
    "prop-id-312",
    "prop-id-313",
    "prop-id-314",
-	"prop-id-315",
-	"prop-id-316",
+   "prop-id-315",
+   "prop-id-316",
 
    /* enumerations 317-323 are used in Addendum j to ANSI/ASHRAE 135-2004 */
-	"user-name",         // 317
-	"user-type",
-	"uses-remaining",
-	"zone-from",
-	"zone-to",
-	"access-event-tag",
-	"global-identifier", // 323
+   "user-name",                        // 317
+   "user-type",
+   "uses-remaining",
+   "zone-from",
+   "zone-to",
+   "access-event-tag",
+   "global-identifier",                // 323
 
    /* enumerations 324-325 are unassigned in 135-2012 */
-	"prop-id-324",
-	"prop-id-325",
+   "prop-id-324",
+   "prop-id-325",
     /* enumeration 326 is used in Addendum j to ANSI/ASHRAE 135-2004 */
-	"verification-time", // 326
+   "verification-time", // 326
 
-   "base-device-security-policy",	// 327
-   "distribution-key-revision",	   // 328
-   "do-not-hide",	                  // 329
-   "key-sets",	                     // 330
-   "last-key-server",	            // 331
-   "network-access-security-policies",// 332
-   "packet-reorder-time",	         // 333
-   "security-pdu-timeout",	         // 334
-   "security-time-window",	         // 335
-   "supported-security-algorithms",	// 336
-   "update-key-set-timeout",	      // 337
-   "backup-and-restore-state",	   // 338
-   "backup-preparation-time",	      // 339
-   "restore-completion-time",	      // 340
-   "restore-preparation-time",	   // 341
-   "bit-mask",	                     // 342
-   "bit-text",	                     // 343
-   "is-utc",	                     // 344
-   "group-members",	               // 345
-   "group-member-names",	         // 346
-   "member-status-flags",	         // 347
-   "requested-update-interval",	   // 348
-   "covu-period",	                  // 349
-   "covu-recipients",	            // 350
-   "event-message-texts",	         // 351
-   "event-message-texts-config",	   // 352
-   "event-detection-enable",	      // 353
-   "event-algorithm-inhibit",	      // 354
-   "event-algorithm-inhibit-ref",	// 355
-   "time-delay-normal",	            // 356
-   "reliability-evaluation-inhibit",// 357
-   "fault-parameters",	            // 358
-   "fault-type",	                  // 359
-   "local-forwarding-only",	      // 360
-   "process-identifier-filter",	   // 361
-   "subscribed-recipients",	      // 362
-   "port-filter",	                  // 363
-   "authorization-exemptions",	   // 364
-   "allow-group-delay-inhibit",	   // 365
-   "channel-number",	               // 366
-   "control-groups",	               // 367
-   "execution-delay",	            // 368
-   "last-priority",	               // 369
-   "write-status",	               // 370
-   "property-list",	               // 371
-   "serial-number",	               // 372
-   "blink-warn-enable",	            // 373
-   "default-fade-time",	            // 374
-   "default-ramp-rate",	            // 375
-   "default-step-increment",	      // 376
-   "egress-time",	                  // 377
-   "in-progress",	                  // 378
-   "instantaneous-power",	         // 379
-   "lighting-command",	            // 380
+   "base-device-security-policy",      // 327
+   "distribution-key-revision",        // 328
+   "do-not-hide",                      // 329
+   "key-sets",                         // 330
+   "last-key-server",                  // 331
+   "network-access-security-policies", // 332
+   "packet-reorder-time",              // 333
+   "security-pdu-timeout",             // 334
+   "security-time-window",             // 335
+   "supported-security-algorithms",    // 336
+   "update-key-set-timeout",           // 337
+   "backup-and-restore-state",         // 338
+   "backup-preparation-time",          // 339
+   "restore-completion-time",          // 340
+   "restore-preparation-time",         // 341
+   "bit-mask",                         // 342
+   "bit-text",                         // 343
+   "is-utc",                           // 344
+   "group-members",                    // 345
+   "group-member-names",               // 346
+   "member-status-flags",              // 347
+   "requested-update-interval",        // 348
+   "covu-period",                      // 349
+   "covu-recipients",                  // 350
+   "event-message-texts",              // 351
+   "event-message-texts-config",       // 352
+   "event-detection-enable",           // 353
+   "event-algorithm-inhibit",          // 354
+   "event-algorithm-inhibit-ref",      // 355
+   "time-delay-normal",                // 356
+   "reliability-evaluation-inhibit",   // 357
+   "fault-parameters",                 // 358
+   "fault-type",                       // 359
+   "local-forwarding-only",            // 360
+   "process-identifier-filter",        // 361
+   "subscribed-recipients",            // 362
+   "port-filter",                      // 363
+   "authorization-exemptions",         // 364
+   "allow-group-delay-inhibit",        // 365
+   "channel-number",                   // 366
+   "control-groups",                   // 367
+   "execution-delay",                  // 368
+   "last-priority",                    // 369
+   "write-status",                     // 370
+   "property-list",                    // 371
+   "serial-number",                    // 372
+   "blink-warn-enable",                // 373
+   "default-fade-time",                // 374
+   "default-ramp-rate",                // 375
+   "default-step-increment",           // 376
+   "egress-time",                      // 377
+   "in-progress",                      // 378
+   "instantaneous-power",              // 379
+   "lighting-command",                 // 380
    "lighting-command-default-priority",// 381
-   "max-actual-value",	            // 382
-   "min-actual-value",	            // 383
-   "power",	                        // 384
-   "transition",	                  // 385
-   "egress-active",	               // 386 last in 135-2012
+   "max-actual-value",                 // 382
+   "min-actual-value",                 // 383
+   "power",                            // 384
+   "transition",                       // 385
+   "egress-active",                    // 386 last in 135-2012
 
-	// If you add a property here, you should also add it to Propid.h and
+   // If you add a property here, you should also add it to Propid.h and
    // the other locations indicated there.
 };
 BAC_STRINGTABLE_EX(BACnetPropertyIdentifier, 512, 0x7FFFFFFF);
@@ -1408,19 +1454,19 @@ STRING_TABLE BACnetReliability[] = {
    "configuration-error", // 10
    // added addendum B (135-2004)
    "member-fault",
-   "communication-failure",	// 12 last in 135-2008
+   "communication-failure",   // 12 last in 135-2008
 };
 BAC_STRINGTABLE_EX(BACnetReliability, 64, 65536);
 
 STRING_TABLE BACnetRestartReason[] = {
-	"unknown",
-	"coldstart",
-	"warmstart",
-	"detected-power-lost",
-	"detected-power-off",
-	"hardware-watchdog",
-	"software-watchdog",
-	"suspended",			// 7 last in 135-2008
+   "unknown",
+   "coldstart",
+   "warmstart",
+   "detected-power-lost",
+   "detected-power-off",
+   "hardware-watchdog",
+   "software-watchdog",
+   "suspended",         // 7 last in 135-2008
 };
 BAC_STRINGTABLE_EX(BACnetRestartReason, 64, 256);
 
@@ -1432,10 +1478,10 @@ STRING_TABLE BACnetResultFlags[] = {
 BAC_STRINGTABLE(BACnetResultFlags);
 
 STRING_TABLE BACnetShedState[] = {
-	"shed-inactive",
-	"shed-request-pending",
-	"shed-compliant",
-	"shed-non-compliant",
+   "shed-inactive",
+   "shed-request-pending",
+   "shed-compliant",
+   "shed-non-compliant",
 };
 BAC_STRINGTABLE(BACnetShedState);
 
@@ -1504,14 +1550,16 @@ STRING_TABLE BACnetServicesSupported[] = {
    "LifeSafetyOperation",           /* 37 */
    "SubscribeCOVProperty",          /* 38 */ 
    "GetEventInformation"            /* 39 last in 135-2008 */
+   // TODO: 135-2012?
+   // Also update Vtsapi32.cpp StandardServices
 };                       
 BAC_STRINGTABLE(BACnetServicesSupported);
 
 STRING_TABLE  BACnetSilencedState[] = {
-	"unsilenced",
-	"audible-silenced",
-	"visible-silenced",
-	"all-silenced"
+   "unsilenced",
+   "audible-silenced",
+   "visible-silenced",
+   "all-silenced"
 };
 BAC_STRINGTABLE_EX(BACnetSilencedState, 64, 65536);
 
@@ -2320,8 +2368,8 @@ STRING_TABLE month[] = {
    "October",       /* 10 */
    "November",      /* 11 */
    "December",      /* 12 */
-   "Odd",			  /* 13 */
-   "Even"			  /* 14 */
+   "Odd",           /* 13 */
+   "Even"           /* 14 */
 };
 BAC_STRINGTABLE(month);
 
@@ -2491,33 +2539,33 @@ STRING_TABLE BACnetUnconfirmedServiceChoice[] = {
    // CAUTION: if you add a service here, you must also change max_unconfirmed_services
    // (which is actually max-plus-one: the NUMBER of defined services)
    // TODO: needs writeGroup 10
-};                       
+};
 BAC_STRINGTABLE(BACnetUnconfirmedServiceChoice);
 
 // Not an explicit datatype: defined inline in ReinitializeDevice-Request
 STRING_TABLE BACnetReinitializedStateOfDevice[] = {
-	"coldstart",	/* 0 */
-	"warmstart",
-	"startbackup",
-	"endbackup",
-	"startrestore",
-	"endrestore",
-	"abortrestore"	/* 6 */
+   "coldstart",   /* 0 */
+   "warmstart",
+   "startbackup",
+   "endbackup",
+   "startrestore",
+   "endrestore",
+   "abortrestore" /* 6 */
 };
 BAC_STRINGTABLE(BACnetReinitializedStateOfDevice);
 
 // Not an explicit datatype: defined inline in DeviceCommunicationsControl-Request
 STRING_TABLE DeviceCommControl_Command[] = {
-	"enable",	/* 0 */
-	"disable",
-	"disable-initiation"
+   "enable",   /* 0 */
+   "disable",
+   "disable-initiation"
 };
 BAC_STRINGTABLE(DeviceCommControl_Command);
 
 // Not an explicit datatype: defined inline in ConfirmedTextMessage-Request
 STRING_TABLE TextMessage_Priority[] = {
-	"normal",	/* 0 */
-	"urgent"
+   "normal",   /* 0 */
+   "urgent"
 };
 BAC_STRINGTABLE(TextMessage_Priority);
 

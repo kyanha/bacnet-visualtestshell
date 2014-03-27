@@ -417,24 +417,8 @@ void EnrollmentSummaryList::OnChangeObjectID( void )
 			int		objType = (eslCurElem->eseObjectID.objID >> 22)
 			,		instanceNum = (eslCurElem->eseObjectID.objID & 0x003FFFFF)
 			;
-			char	buff[32], typeBuff[32];
-			const char *s;
-			
-			if (objType < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings)
-			{
-				s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[objType];
-			}
-			else
-			{
-				s = typeBuff;
-				if (objType < 128)
-					sprintf( typeBuff, "RESERVED %d", objType );
-				else
-					sprintf( typeBuff, "VENDOR %d", objType );
-			}
-
-			// format the result
-			sprintf( buff, "%s, %d", s, instanceNum );
+			char	buff[100];
+			sprintf( buff, "%s, %d", NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString(objType), instanceNum );
 			eslPagePtr->m_EnrollmentSumListCtrl.SetItemText( eslCurElemIndx, 0, buff );
 		}
 	}

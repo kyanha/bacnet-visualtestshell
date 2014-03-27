@@ -323,7 +323,7 @@ void BakRestoreExecutor::DoBackupTest()
 	{
 		m_pOutputDlg->OutMessage("Use ReadProperty to set M2 = Max_APDU_Length...", FALSE);
 		// Use ReadProperty to set M2 = Max_APDU_Length
-		devObjID.SetValue(device, m_nDeviceObjInst);
+		devObjID.SetValue(OBJ_DEVICE, m_nDeviceObjInst);
 		propID.enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
 		propValue.SetObject(&maxAPDULenAccepted);
 		if (!SendExpectReadProperty(devObjID, propID, propValue))
@@ -344,7 +344,7 @@ void BakRestoreExecutor::DoBackupTest()
 			// Transmit a ReadProperty request to the IUT, using the wildcard Device ID to read
 			// the real Device Object ID. Store the returned Device Object ID into the variable
 			// DEVICE_ID, then use ReadProperty to set M2 = Max_APDU_Length_Accepted
-			BACnetObjectIdentifier objID(device, 4194303);
+			BACnetObjectIdentifier objID(OBJ_DEVICE, 4194303);
 			BACnetEnumerated propID(PICS::OBJECT_IDENTIFIER);
 			propValue.SetObject(&devObjID);
 			if (!SendExpectReadProperty(objID, propID, propValue))
@@ -434,7 +434,7 @@ void BakRestoreExecutor::DoBackupTest()
 			throw("Failed to read CONFIGURATION_FILES");
 		}
 		// to check if it is a file object
-		if (fileID.GetObjectType() != file)
+		if (fileID.GetObjectType() != OBJ_FILE)
 		{
 			throw("File object expected here!");
 		}
@@ -625,7 +625,7 @@ void BakRestoreExecutor::DoRestoreTest()
 	{
 		// Use ReadProperty to set M2 = Max_APDU_Length
 		m_pOutputDlg->OutMessage("Use ReadProperty to set M2 = Max_APDU_Length...", FALSE);
-		devObjID.SetValue(device, m_nDeviceObjInst);
+		devObjID.SetValue(OBJ_DEVICE, m_nDeviceObjInst);
 		propID.enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
 		propValue.SetObject(&maxAPDULenAccepted);
 		if (!SendExpectReadProperty(devObjID, propID, propValue))
@@ -643,7 +643,7 @@ void BakRestoreExecutor::DoRestoreTest()
 		{
 			m_pOutputDlg->OutMessage("Failed");
 			m_pOutputDlg->OutMessage("Transmit a ReadProperty to read the real Device objID...", FALSE);
-			BACnetObjectIdentifier objID(device, 4194303);
+			BACnetObjectIdentifier objID(OBJ_DEVICE, 4194303);
 			BACnetEnumerated propID(PICS::OBJECT_IDENTIFIER);
 			propValue.SetObject(&devObjID);
 			if (!SendExpectReadProperty(objID, propID, propValue))
@@ -786,7 +786,7 @@ void BakRestoreExecutor::DoRestoreTest()
 			}
 		}
 
-		BACnetObjectIdentifier	fileID(file, nFileInstance);
+		BACnetObjectIdentifier	fileID(OBJ_FILE, nFileInstance);
 		bFind = true;
 		if (bFind)
 		{
@@ -985,7 +985,7 @@ void BakRestoreExecutor::DoAuxiliaryTest()
 	m_pOutputDlg->OutMessage("Begin auxiliary backup and restore procedure");
 	if (m_nDeviceObjInst != DEVICE_OBJ_INST_NUM_UNSET)
 	{
-		devObjID.SetValue(device, m_nDeviceObjInst);
+		devObjID.SetValue(OBJ_DEVICE, m_nDeviceObjInst);
 	}
 	else
 	{
@@ -994,7 +994,7 @@ void BakRestoreExecutor::DoAuxiliaryTest()
 		{
 			m_pOutputDlg->OutMessage("Failed");
 			m_pOutputDlg->OutMessage("Transmit a ReadProperty to read the real Device objID...", FALSE);
-			BACnetObjectIdentifier objID(device, 4194303);
+			BACnetObjectIdentifier objID(OBJ_DEVICE, 4194303);
 			BACnetEnumerated propID(PICS::OBJECT_IDENTIFIER);
 			propValue.SetObject(&devObjID);
 			if (!SendExpectReadProperty(objID, propID, propValue))

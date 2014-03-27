@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
+#include "VTS.h"
 #include "StringTables.h"
 
 

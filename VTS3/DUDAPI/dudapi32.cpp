@@ -175,7 +175,7 @@ generic_object far* APIENTRY GetpDeviceObj(generic_object far* root)
 { 
   while (root!=NULL)
     { 
-      if (root->object_type == DEVICE) 
+      if (root->object_type == OBJ_DEVICE) 
         break;
       root= (generic_object far*) root->next;
     }
@@ -513,7 +513,7 @@ short APIENTRY DevApplServCheck(char far ApplServ[MAX_SERVS_SUPP], generic_objec
 { device_obj_type far* pdev= NULL; 
   while (root!=NULL)
     { 
-      if (root->object_type==DEVICE)
+      if (root->object_type==OBJ_DEVICE)
         { pdev= (device_obj_type far*)root;
           break;
         } 
@@ -558,7 +558,7 @@ BACnetObjectIdentifier far* APIENTRY GetObjIdRoot(generic_object far* pdbRoot)
 { // find the device object
   device_obj_type far* pdev= NULL; 
   while (pdbRoot!=NULL)
-    { if (pdbRoot->object_type==DEVICE)
+    { if (pdbRoot->object_type==OBJ_DEVICE)
         { pdev= (device_obj_type far*)pdbRoot;
           break;
         } 
@@ -639,7 +639,7 @@ short APIENTRY CheckObjTypeDevPics(char far* StdObj, generic_object far* pdbRoot
 { // find the device object
   device_obj_type far* pdev= NULL; 
   while (pdbRoot!=NULL)
-    { if (pdbRoot->object_type==DEVICE)
+    { if (pdbRoot->object_type==OBJ_DEVICE)
         { pdev= (device_obj_type far*)pdbRoot;
           break;
         } 

@@ -30,10 +30,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-namespace NetworkSniffer {
-	extern char *BACnetObjectType[];
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // VTSDevicesTreeObjPage property page
 

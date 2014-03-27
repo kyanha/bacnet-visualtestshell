@@ -8,6 +8,7 @@
 #include <string.h>
 #include <time.h>
 
+#include"VTS.h"
 #include "VTSCtrl.h"
 #include "VTSDoc.h"
 
@@ -15,7 +16,6 @@
 #include "ScriptKeywords.h"
 
 #include "SendPage.h"
-#include"VTS.h"
 #include "VTSVendorPropIDDlg.h"
 
 #ifdef _MSC_VER

@@ -311,6 +311,7 @@ static octet aCorrectLengthProtocolServicesSupportedBitstring[] =
    40,  /* Protocol_Revision = 5 */
    40,  /* Protocol_Revision = 6 */
    40,  /* Protocol_Revision = 7 */
+   // TODO: 135-2012 is protocol revision 14...
 };
 
 // Array of expected bitstring lengths for ProtocolObjectTypesSupported
@@ -328,7 +329,7 @@ static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
    31,  /* protocol_revision = 8 */ // 135-2008 added objects?
    38,  /* protocol_revision = 9 */  // 135-2008j added objects 32-37
    51,  /* protocol_revision = 10 */ // 135-2008w added 39-50
-
+   // TODO: 135-2012 is protocol revision 14...
 };
 
 //---------------------------------------------------------------------
@@ -793,7 +794,7 @@ static bibbdef BIBBs[]={
              },								
 			};  
 
-// TODO: Duplicate of NetworkSniffer::BACnetServicesSupported
+// TODO: Duplicate of StringTables.cpp BACnetServicesSupported
 // The order and position of elements in this array is important!
 // It must correspond with the bit positions defined by BACnetServicesSupported
 // in section 21 of the BACnet standard.  
@@ -833,16 +834,15 @@ static char *StandardServices[]={
 			"TimeSynchronization",                    //32
 			"Who-Has",                                //33
 			"Who-Is",                                 //34
-			"ReadRange",							  //35   madanner 6/03: "Read-Range"
-			"UTCTimeSynchronization",				  //36   madanner 6/03: "UTC-Time-Synchronization"
-			"LifeSafetyOperation",		              //37
-			"SubscribeCOVProperty",		              //38
+			"ReadRange",							         //35   madanner 6/03: "Read-Range"
+			"UTCTimeSynchronization",				      //36   madanner 6/03: "UTC-Time-Synchronization"
+			"LifeSafetyOperation",		               //37
+			"SubscribeCOVProperty",		               //38
 			"GetEventInformation"                     //39
+   // TODO: 135-2012 adds ?
+   // Also update StringTables.cpp BACnetServicesSupported
 			};
 
-// TODO: Near duplicate of NetworkSniffer::BACnetObjectType, except that table
-// is upper case with hyphens instead of spaces.
-//
 // The order and position of elements in this array is important!
 // It must correspond with the definition of BACnetObjectType in section 21 
 // of the BACnet standard.  
@@ -897,8 +897,14 @@ static char *StandardObjects[]={
 			"OctetString Value",
 			"Positive Integer Value",
 			"Time Pattern Value",
-			"Time Value"					// 50
-		};
+			"Time Value",					// 50
+         "Notification Forwarder",  // 51
+         "Alert Enrollment",        // 52
+         "Channel",                 // 53,
+         "Lighting Output"          // 54 Max in 135-2012 BACNET_PROTOCOL_REVISION = 14
+   // TODO: see comments at the end of StringTables.cpp BACnetObjectType regarding
+   // actions to be taken when an object type is added
+};
 
 
 // The order of these is important.  New ones should be added to the end, or
@@ -983,7 +989,7 @@ static char *DOWNames[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Sat
 #define nCC1 1
 TApplServ gCC1_Table[nCC1]= // Conformance Class 1
         { 
-             { asReadProperty, ssExecute, DEVICE, -1 }, 
+             { asReadProperty, ssExecute, OBJ_DEVICE, -1 }, 
         };  
 
 #define nCC2 1
@@ -1030,10 +1036,10 @@ TApplServ gCC5_Table[nCC5]= // Conformance Class 5
 #define nFgClock 4
 TApplServ gFgClock[nFgClock]=
    {
-      { asTimeSynchronization, ssExecute, DEVICE, LOCAL_TIME },
-      { asTimeSynchronization, ssExecute, DEVICE, LOCAL_DATE },
-      { asTimeSynchronization, ssExecute, DEVICE, UTC_OFFSET },
-      { asTimeSynchronization, ssExecute, DEVICE, DAYLIGHT_SAVINGS_STATUS }
+      { asTimeSynchronization, ssExecute, OBJ_DEVICE, LOCAL_TIME },
+      { asTimeSynchronization, ssExecute, OBJ_DEVICE, LOCAL_DATE },
+      { asTimeSynchronization, ssExecute, OBJ_DEVICE, UTC_OFFSET },
+      { asTimeSynchronization, ssExecute, OBJ_DEVICE, DAYLIGHT_SAVINGS_STATUS }
    };
 
 #define nFgHHWS 6
@@ -1141,11 +1147,11 @@ TApplServ gFgDevCom[nFgDevCom]=
 #define nFgTimeMaster 5
 TApplServ gFgTimeMaster[nFgTimeMaster]=
   { 
-      { asTimeSynchronization, ssExecute, DEVICE, LOCAL_TIME },
-      { asTimeSynchronization, ssExecute, DEVICE, LOCAL_DATE },
-      { asTimeSynchronization, ssExecute, DEVICE, UTC_OFFSET },
-      { asTimeSynchronization, ssExecute, DEVICE, DAYLIGHT_SAVINGS_STATUS },
-      { asTimeSynchronization, ssExecute, DEVICE, TIME_SYNCHRONIZATION_RECIPIENTS } 
+      { asTimeSynchronization, ssExecute, OBJ_DEVICE, LOCAL_TIME },
+      { asTimeSynchronization, ssExecute, OBJ_DEVICE, LOCAL_DATE },
+      { asTimeSynchronization, ssExecute, OBJ_DEVICE, UTC_OFFSET },
+      { asTimeSynchronization, ssExecute, OBJ_DEVICE, DAYLIGHT_SAVINGS_STATUS },
+      { asTimeSynchronization, ssExecute, OBJ_DEVICE, TIME_SYNCHRONIZATION_RECIPIENTS } 
   };        
 
 //#define MDEBUG
@@ -1405,7 +1411,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 
 	switch(p->object_type)						//release this object's special fields
 	{
-	case CALENDAR:
+	case OBJ_CALENDAR:
 		vp=((calendar_obj_type *)p)->date_list;
 		while(vp!=NULL)
 		{	vq=vp;
@@ -1413,7 +1419,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			free(vq);
 		}
 		break; 
-	case COMMAND:
+	case OBJ_COMMAND:
 		for (i=0;i<MAX_ACTION_TEXTS;i++)
 		{	vp=((command_obj_type *)p)->action[i];
 			while(vp!=NULL)
@@ -1425,7 +1431,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 				free(((command_obj_type *)p)->action_text[i]);
 		}
 		break; 
-	case DEVICE: 
+	case OBJ_DEVICE: 
 		vp=((device_obj_type *)p)->object_list;
 		while(vp!=NULL)
 		{	vq=vp;
@@ -1510,7 +1516,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 		break; 
 
-	case EVENT_ENROLLMENT: 
+	case OBJ_EVENT_ENROLLMENT: 
 		vp=((ee_obj_type *)p)->parameter_list.list_bitstring_value;
 		while(vp!=NULL)
 		{	vq=vp;
@@ -1531,10 +1537,10 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 
 		break; 
-	case FILE_O:
+	case OBJ_FILE:
         break;   
 
-	case GROUP:
+	case OBJ_GROUP:
 		vr=((group_obj_type *)p)->list_of_group_members;
 		while(vr!=NULL)
 		{	vp=((BACnetReadAccessSpecification *)vr)->list_of_prop_ref;
@@ -1548,7 +1554,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			free(vq);
 		}
 		break; 
-	case LOOP: 
+	case OBJ_LOOP: 
 		vp=((loop_obj_type *)p)->setpoint_ref;
 		if (vp!=NULL) free(vp);
 		vp=((loop_obj_type *)p)->event_time_stamps;
@@ -1559,7 +1565,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 
 		break; 
-	case MULTI_STATE_INPUT: 
+	case OBJ_MULTI_STATE_INPUT: 
 		for (i=0;i<MAX_STATE_TEXTS;i++)
 		{	if (((mi_obj_type *)p)->state_text[i]!=NULL)
 				free(((mi_obj_type *)p)->state_text[i]);
@@ -1585,7 +1591,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			free(vq);
 		}
 		break; 
-	case MULTI_STATE_OUTPUT: 
+	case OBJ_MULTI_STATE_OUTPUT: 
 		for (i=0;i<MAX_STATE_TEXTS;i++)
 		{	if (((mo_obj_type *)p)->state_text[i]!=NULL)
 				free(((mo_obj_type *)p)->state_text[i]);
@@ -1598,9 +1604,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 
 		break; 
-	case PROGRAM:
+	case OBJ_PROGRAM:
 		break;
-	case NOTIFICATIONCLASS: 
+	case OBJ_NOTIFICATIONCLASS: 
 		vp=((nc_obj_type *)p)->recipient_list;
 		while(vp!=NULL)
 		{	vq=vp;
@@ -1608,7 +1614,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			free(vq);
 		}
 		break; 
-	case SCHEDULE:
+	case OBJ_SCHEDULE:
 		for (i=0;i<7;i++)
 		{	vp=((schedule_obj_type *)p)->weekly_schedule[i];
 			while(vp!=NULL)
@@ -1636,9 +1642,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			free(vq);
 		}
 		break; 
-      case AVERAGING:
+      case OBJ_AVERAGING:
         break;   
-	  case ANALOG_INPUT:
+	  case OBJ_ANALOG_INPUT:
 		vp=((ai_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1646,7 +1652,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 				free(((ai_obj_type *)p)->event_time_stamps[i]);
 		}
 		break;
-	  case ANALOG_OUTPUT:
+	  case OBJ_ANALOG_OUTPUT:
 		vp=((ao_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1654,7 +1660,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 				free(((ao_obj_type *)p)->event_time_stamps[i]);
 		}
 		break;
-	  case ANALOG_VALUE:
+	  case OBJ_ANALOG_VALUE:
 		vp=((av_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1662,7 +1668,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 				free(((av_obj_type *)p)->event_time_stamps[i]);
 		}
 		break;
-	  case BINARY_INPUT:
+	  case OBJ_BINARY_INPUT:
 		vp=((bi_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1670,7 +1676,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 				free(((bi_obj_type *)p)->event_time_stamps[i]);
 		}
 		break;
-	  case BINARY_OUTPUT:
+	  case OBJ_BINARY_OUTPUT:
 		vp=((bo_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1678,7 +1684,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 				free(((bo_obj_type *)p)->event_time_stamps[i]);
 		}
 		break;
-	  case BINARY_VALUE:
+	  case OBJ_BINARY_VALUE:
 		vp=((bv_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1686,7 +1692,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 				free(((bv_obj_type *)p)->event_time_stamps[i]);
 		}
 		break;
-	  case ACCUMULATOR:
+	  case OBJ_ACCUMULATOR:
 		vp=((accumulator_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1694,7 +1700,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 				free(((accumulator_obj_type *)p)->event_time_stamps[i]);
 		}
 		break;
-	  case MULTI_STATE_VALUE: // msdanner 9/2004
+	  case OBJ_MULTI_STATE_VALUE: // msdanner 9/2004
 		for (i=0;i<MAX_STATE_TEXTS;i++)
 		{	if (((msv_obj_type *)p)->state_text[i]!=NULL)
 				free(((msv_obj_type *)p)->state_text[i]);
@@ -1720,7 +1726,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			free(vq);
 		}
 		break; 
-      case TREND_LOG:
+      case OBJ_TREND_LOG:
   		vp=((trend_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1728,7 +1734,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 				free(((trend_obj_type *)p)->event_time_stamps[i]);
 		}
         break;
-	  case LIFE_SAFETY_POINT:
+	  case OBJ_LIFE_SAFETY_POINT:
 		vp=((lifesafetypoint_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1771,7 +1777,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 			free(vq);
 		}
 		  break;
-	  case LIFE_SAFETY_ZONE:
+	  case OBJ_LIFE_SAFETY_ZONE:
 		vp=((lifesafetyzone_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1822,7 +1828,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 
 		  break;
-	  case PULSE_CONVERTER:
+	  case OBJ_PULSE_CONVERTER:
 		vp=((pulseconverter_obj_type *)p)->event_time_stamps;
 		for(i=0; i<3; i++)
 		{
@@ -1831,7 +1837,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 		break;
 
-	  case STRUCTURED_VIEW:
+	  case OBJ_STRUCTURED_VIEW:
 		vp=((sv_obj_type *)p)->subordinate_list;
 		while(vp!=NULL)
 		{
@@ -1847,7 +1853,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 		break;
 
-      case TREND_LOG_MULTIPLE:
+      case OBJ_TREND_LOG_MULTIPLE:
 		for(i=0; i<3; i++)
 		{
 			if (((tlm_obj_type *)p)->event_time_stamps[i]!=NULL)
@@ -1855,7 +1861,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
         break;
 
-      case EVENT_LOG:
+      case OBJ_EVENT_LOG:
 		for(i=0; i<3; i++)
 		{
 			if (((el_obj_type *)p)->event_time_stamps[i]!=NULL)
@@ -1863,7 +1869,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
         break;
 
-      case LOAD_CONTROL:
+      case OBJ_LOAD_CONTROL:
 		for(i=0; i<MAX_SHED_LEVELS; i++)
 		{
 			if (((lc_obj_type *)p)->shed_level_descriptions[i]!=NULL)
@@ -1885,7 +1891,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
         break;
 
-	  case ACCESS_DOOR:
+	  case OBJ_ACCESS_DOOR:
 		vp = ((ad_obj_type *)p)->alarm_values;
 		while (vp != NULL)
 		{
@@ -1925,7 +1931,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		}
 		break;
 
-	  case CHARACTERSTRING_VALUE:
+	  case OBJ_CHARACTERSTRING_VALUE:
 		 for(i=0; i<MAX_FAULT_STRINGS; i++)
 		 {
 			if ( ((charstring_obj_type *)p)->alarm_values[i]!=NULL)
@@ -1943,7 +1949,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		 }
 		 break; 
 
-	  case INTEGER_VALUE:
+	  case OBJ_INTEGER_VALUE:
 		 for(i=0; i<3; i++)
 		 {
 			if ( ((integer_obj_type *)p)->event_time_stamps[i]!=NULL)
@@ -1951,7 +1957,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		 }
 		 break;
 
-	  case POSITIVE_INTEGER_VALUE:
+	  case OBJ_POSITIVE_INTEGER_VALUE:
 		 for(i=0; i<3; i++)
 		 {
 			if ( ((positive_integer_obj_type *)p)->event_time_stamps[i]!=NULL)
@@ -1959,7 +1965,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 		 }
 		 break;
 
-	  case DATETIME_VALUE:
+	  case OBJ_DATETIME_VALUE:
 		  // No allocations to clean up
 		  break;
 
@@ -2367,7 +2373,7 @@ BOOL ReadStandardObjects(PICSdb *pd)
 				return true;
 		}
 	}
-	if (pd->BACnetStandardObjects[DEVICE]==soNotSupported)
+	if (pd->BACnetStandardObjects[OBJ_DEVICE]==soNotSupported)
 		return tperror("The Device Object was not present in the list of Standard Objects!",true);
 	return false;		
 }
@@ -2802,7 +2808,7 @@ nextobject:										//										***012
 								pobj->propflags[nameProp]|=fName;	//found name	***014 End
 
 							    // msdanner 9/2004: remember pointer to Device Object for consistency checks
-								if (objtype == DEVICE)
+								if (objtype == OBJ_DEVICE)
 									pd->pDeviceObject = (device_obj_type *)pobj;
 							}
 						}
@@ -2892,7 +2898,7 @@ void CheckPICSPropCons(PICSdb *pd)
         case COMMAND:
 			CheckObjRequiredProp(0,0x000000ef,obj,8);
 			break;
-        case DEVICE:
+        case OBJ_DEVICE:
 			CheckObjRequiredProp(0,0x8603e9ff,obj,32);  // Flags changed by W Fowlie Aug 2003:protocol-conformance-class no longer required
 			DV_CheckOptionalProperty(pd->BACnetStandardServices,obj->propflags);
 			break;
@@ -3794,7 +3800,7 @@ void CheckObjConsA(PICSdb *pd)
   case 6: 
       //check obj type for clock FG supported by Cons Class 6 
     if (nFG&fgClock) {
-      if (pd->BACnetStandardObjects[DEVICE]==soNotSupported) {
+      if (pd->BACnetStandardObjects[OBJ_DEVICE]==soNotSupported) {
         sprintf(opj,"EPICS Object Consistency check error: "
           "The Device Object type should be included to support the Clock Functional Group!\n");
         //PrintToFile(opj);
@@ -3878,7 +3884,7 @@ void CheckObjConsA(PICSdb *pd)
   case 3: 
   case 2: 
   default:                 //Conformance Class 1 must be supported;
-    if(pd->BACnetStandardObjects[DEVICE]==soNotSupported){
+    if(pd->BACnetStandardObjects[OBJ_DEVICE]==soNotSupported){
       sprintf(opj,"EPICS Object Consistency check error: "
         "The Device Object type must be included to meet the requirement by Conformance Class 1!\n");
       //PrintToFile(opj);
@@ -3900,7 +3906,7 @@ void CheckObjConsF(PICSdb *pd)
   nFG=pd->BACnetFunctionalGroups;
 
   if((nFG&fgClock)||(nFG&fgTimeMaster))   
-    if (pd->BACnetStandardObjects[DEVICE]==soNotSupported){  
+    if (pd->BACnetStandardObjects[OBJ_DEVICE]==soNotSupported){  
       sprintf(opj,"EPICS Object Consistency check error: "
         "The Device Object type should be included to support the Clock|TimeMaster Functional Group!\n");
       //PrintToFile(opj);
@@ -6464,7 +6470,7 @@ BACnetActionCommand *ReadActionCommands()
 		q->device_id=badobjid;
 		if (*lp!=',')							//									***008 Begin
 		{	dw=ReadObjID();
-			if ((word)(dw>>22)!=DEVICE)
+			if ((word)(dw>>22)!=OBJ_DEVICE)
 			{	
 				if (tperror("Must use a Device Object Identifier here!",true))
 					break;
@@ -6896,7 +6902,7 @@ BOOL ParseAddressList(BACnetAddressBinding **dalp)
 		print_debug("LJT: AddressBinding=%x\n",q);
 
 		dw=ReadObjID();
-		if ((word)(dw>>22)!=DEVICE)
+		if ((word)(dw>>22)!=OBJ_DEVICE)
 		{	if (tperror("Must use a Device Object Identifier here!",true))
 				break;
 		}
@@ -7211,7 +7217,7 @@ BACnetRecipient *ParseRecipient(BACnetRecipient *inq)
 	else									//must be (device,instance)
 	{	
 		dw=ReadObjID();
-		if ((word)(dw>>22)!=DEVICE)
+		if ((word)(dw>>22)!=OBJ_DEVICE)
 		{	if (tperror("Must use a Device Object Identifier here!",true))
 				goto brfail;
 		}
@@ -7951,7 +7957,9 @@ int GetStandardServicesSize()
 // Returns a string representing the standard service indexed by i 
 char *GetStandardServicesName(int i)
 {
-	return StandardServices[i];
+   return (i < sizeof(StandardServices)/sizeof(StandardServices[0]))
+          ? StandardServices[i]
+          : "unknown-service";
 }
 
 // msdanner 9/04 added:  
@@ -8273,8 +8281,8 @@ void CheckPICSCons2003A(PICSdb *pd)
          switch (i)
          {
             case bibbAE_N_I_B:  // requires support for either NC or EE Objects
-               if ( (pd->BACnetStandardObjects[NOTIFICATIONCLASS]==soNotSupported) &&
-                    (pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported) )
+               if ( (pd->BACnetStandardObjects[OBJ_NOTIFICATIONCLASS]==soNotSupported) &&
+                    (pd->BACnetStandardObjects[OBJ_EVENT_ENROLLMENT]==soNotSupported) )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB AE-N-I-B requires support for Intrinsic or Algorithmic reporting, "
@@ -8287,7 +8295,7 @@ void CheckPICSCons2003A(PICSdb *pd)
             case bibbAE_N_E_B: // requires support for AE-N-I-B & DS-RP-A & EE Object
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbAE_N_I_B); 
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A); 
-               if ( pd->BACnetStandardObjects[EVENT_ENROLLMENT]==soNotSupported )
+               if ( pd->BACnetStandardObjects[OBJ_EVENT_ENROLLMENT]==soNotSupported )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB AE-N-E-B requires support for the Event Enrollment object "
@@ -8297,8 +8305,8 @@ void CheckPICSCons2003A(PICSdb *pd)
                break;
 
             case bibbAE_LS_B: // requires support for Life Safety Point or Life Safety Zone object
-               if ( (pd->BACnetStandardObjects[LIFE_SAFETY_POINT]==soNotSupported) &&
-                    (pd->BACnetStandardObjects[LIFE_SAFETY_ZONE]==soNotSupported) )
+               if ( (pd->BACnetStandardObjects[OBJ_LIFE_SAFETY_POINT]==soNotSupported) &&
+                    (pd->BACnetStandardObjects[OBJ_LIFE_SAFETY_ZONE]==soNotSupported) )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB AE-LS-B requires support for the Life Safety Point or Life Safety Zone object "
@@ -8316,14 +8324,14 @@ void CheckPICSCons2003A(PICSdb *pd)
                                  // and either DM-TS-B or DM-UTC-B
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_B); 
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_B);
-               if ( pd->BACnetStandardObjects[CALENDAR]==soNotSupported )
+               if ( pd->BACnetStandardObjects[OBJ_CALENDAR]==soNotSupported )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB SCHED-I-B requires support for the Calendar object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
                }  
-               if ( pd->BACnetStandardObjects[SCHEDULE]==soNotSupported )
+               if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB SCHED-I-B requires support for the Schedule object "
@@ -8349,7 +8357,7 @@ void CheckPICSCons2003A(PICSdb *pd)
                break;
             case bibbT_VMT_I_B:  // both require support for TREND_LOG object
             case bibbT_ATR_B:
-               if ( pd->BACnetStandardObjects[TREND_LOG]==soNotSupported )
+               if ( pd->BACnetStandardObjects[OBJ_TREND_LOG]==soNotSupported )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB %s requires support for the Trend Log object "
@@ -8432,7 +8440,7 @@ void CheckPICSCons2003A(PICSdb *pd)
                    sprintf(opj,"BIBB SCHED-WS-I-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
                    tperror(opj,false);
                 }
-               if ( pd->BACnetStandardObjects[SCHEDULE]==soNotSupported )
+               if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB SCHED-WS-I-B requires support for the Schedule object "
@@ -8450,7 +8458,7 @@ void CheckPICSCons2003A(PICSdb *pd)
                    sprintf(opj,"BIBB SCHED-R-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
                    tperror(opj,false);
                 }
-                if ( pd->BACnetStandardObjects[SCHEDULE]==soNotSupported )
+                if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
                 {
                   sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB SCHED-R-B requires support for the Schedule object "
@@ -8522,7 +8530,7 @@ void CheckPICSCons2003D(PICSdb *pd)
                  "\"BACnet Standard Application Services Supported\" section.\n",
                  BIBBs[i].name,
                  errmsg,
-                 StandardServices[pBibb_rule->ApplServ] );
+                 GetStandardServicesName( pBibb_rule->ApplServ ) );
                tperror(opj,false);
                
             }
@@ -8572,11 +8580,10 @@ void CheckPICSCons2003E(PICSdb *pd)
            "Support for execution of the %s application service is not consistent "
            "between the \"BACnet Standard Application Services Supported\" "
            "section and the Application_Services_Supported Property of the Device Object.\n", 
-           StandardServices[i]);
+           GetStandardServicesName( i ));
          tperror(opj,false);
        }
     }
-
 }
 
 
@@ -8868,7 +8875,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
    // Make a second pass through the standard properties, looking for
    // missing "footnoted" properties that belong to groups that
    // were detected during the first pass.
-   if (objtype != DEVICE)  // don't do these checks on the Device Object (see else below)
+   if (objtype != OBJ_DEVICE)  // don't do these checks on the Device Object (see else below)
    {
 	   while (1) 
 	   {
@@ -8890,7 +8897,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
          i++;  // next index into propflags
 	   } 
    }
-   else // objtype == DEVICE
+   else // objtype == OBJ_DEVICE
    {
       // These are special tests run on the Device Object to check for properties that
       // are conditionally required based on support for certain *services* or

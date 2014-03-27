@@ -222,7 +222,7 @@ void InconsistentParsExecutor::DoInvalidTagTest()
 	m_pOutputDlg->OutMessage("Send ReadProperty...",	FALSE);
 	// TODO: get prop and obj from DLG and then send special packet
 	//propID.enumValue = PICS::OBJECT_IDENTIFIER;
-	//objObjID.SetValue( (BACnetObjectType)8, m_nDeviceObjInst);
+	//objObjID.SetValue( OBJ_DEVICE, m_nDeviceObjInst);
 	objObjID = m_ObjID;
 	propID = m_propID;
 
@@ -251,7 +251,7 @@ void InconsistentParsExecutor::DoMissingRequiredTest()
 
 	m_pOutputDlg->OutMessage("Send ReadProperty...",	FALSE);
 	// TODO: get obj from DLG and then send special packet
-	//objObjID.SetValue( (BACnetObjectType)8, m_nDeviceObjInst);
+	//objObjID.SetValue( OBJ_DEVICE, m_nDeviceObjInst);
 	objObjID = m_ObjID;
 
 	BACnetAPDUEncoder	enc;
@@ -278,7 +278,7 @@ void InconsistentParsExecutor::DoTooManyArgsTest()
 	m_pOutputDlg->OutMessage("Send ReadProperty...",	FALSE);
 	// TODO: get prop and obj from DLG and then send special packet
 	//propID.enumValue = PICS::OBJECT_IDENTIFIER;
-	//objObjID.SetValue( (BACnetObjectType)8, m_nDeviceObjInst);
+	//objObjID.SetValue( OBJ_DEVICE, m_nDeviceObjInst);
 	objObjID = m_ObjID;
 	propID = m_propID;
 

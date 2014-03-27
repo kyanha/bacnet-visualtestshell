@@ -405,22 +405,8 @@ void AlarmSummaryList::OnChangeObjectID( void )
 			int		objType = (aslCurElem->aseObjectID.objID >> 22)
 			,		instanceNum = (aslCurElem->aseObjectID.objID & 0x003FFFFF)
 			;
-			const char *s;
-			char	buff[32], typeBuff[32];
-
-			if (objType < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings)
-				s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[objType];
-			else
-			{
-				s = typeBuff;
-				if (objType < 128)
-					sprintf( typeBuff, "RESERVED %d", objType );
-				else
-					sprintf( typeBuff, "VENDOR %d", objType );
-			}
-
-			// format the result
-			sprintf( buff, "%s, %d", s, instanceNum );
+			char	buff[100];
+			sprintf( buff, "%s, %d", NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString(objType), instanceNum );
 			aslPagePtr->m_AlarmSumListCtrl.SetItemText( aslCurElemIndx, 0, buff );
 		}
 	}
