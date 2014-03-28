@@ -1485,7 +1485,7 @@ void ScriptExecutor::GetEPICSProperty( int prop, BACnetAnyValue * pbacnetAny, in
 	{
 		if ( nIndex == 0 )				// return number of elements only
 		{
-			pbacnetAny->SetObject(uw, new BACnetUnsigned(pbacnetarray->GetSize()) );
+			pbacnetAny->SetObject(ud, new BACnetUnsigned(pbacnetarray->GetSize()) );
 		}
 		else
 		{
@@ -8941,9 +8941,12 @@ void ScriptExecutor::ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu 
 //	This function is called when a complete APDU is received from the device
 //	object.
 //
+//  Return true if the script ate the APDU, else false
+//
 
-void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
+bool ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 {
+	bool retval = false;
 	CSingleLock		lock( &execCS );
 
 	// lock to prevent multiple thread access
@@ -8951,63 +8954,72 @@ void ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
 
 	// if were not running, just toss the message
 	if (execState != execRunning)
-		return;
+		return retval;
 
 	TRACE( "ScriptExecutor::ReceiveAPDU %p: Got an APDU at %u\n", this, GetTickCount() );
 
 	// if we're not expecting something, toss it
-	if (!execPending) {
+	if (!execPending) 
+	{
 		TRACE( "(not expecting a packet)\n" );
 		Msg( 3, 0, "Executor not expecting a packet" );
-		return;
 	}
 
 	// TODO: We get null here when running a sequence of tests.
 	// Is this enough protection, or is there other stuff to clean up?
-	if (execPacket == NULL) {
+	else if (execPacket == NULL) 
+	{
 		TRACE( "ScriptExecutor::ReceiveAPDU: execPacket is NULL. \n" );
-		return;
 	}
 	
-	if (execPacket->packetType != ScriptPacket::expectPacket) {
+	else if (execPacket->packetType != ScriptPacket::expectPacket) 
+	{
 		TRACE( "(not pointing to an expect packet)\n" );
 		Msg( 3, 0, "Executor not pointing to an EXPECT packet" );
-		return;
 	}
 
 	// match against the pending tests
-	for (ScriptPacketPtr pp = execPacket; pp; pp = (ScriptPacketPtr) pp->m_pcmdFail)
+	else
 	{
-		if ((pp->baseStatus == 2) && (pp->baseType == ScriptBase::scriptPacket))
+		for (ScriptPacketPtr pp = execPacket; pp; pp = (ScriptPacketPtr) pp->m_pcmdFail)
 		{
-			// this test is still pending, stash the execPacket
-			ScriptPacketPtr savePacket = execPacket;
-			execPacket = pp;
-			execCommand = pp;
-			if (ExpectDevPacket(apdu)) 
+			if ((pp->baseStatus == 2) && (pp->baseType == ScriptBase::scriptPacket))
 			{
-				// test was successful, reset all pending packets to unprocessed
-				for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
+				// this test is still pending, stash the execPacket
+				ScriptPacketPtr savePacket = execPacket;
+				execPacket = pp;
+				execCommand = pp;
+				if (ExpectDevPacket(apdu)) 
 				{
-					if ((pp1->baseStatus == 2) && 
-						(pp1->baseType == ScriptBase::scriptPacket) && 
-						(pp1 != pp))
+					// test was successful, reset all pending packets to unprocessed
+					for (ScriptPacketPtr pp1 = savePacket; pp1; pp1 = (ScriptPacketPtr) pp1->m_pcmdFail)
 					{
-						SetPacketStatus( pp1, SCRIPT_STATUS_NONE );
+						if ((pp1->baseStatus == 2) && 
+							(pp1->baseType == ScriptBase::scriptPacket) && 
+							(pp1 != pp))
+						{
+							SetPacketStatus( pp1, SCRIPT_STATUS_NONE );
+						}
 					}
-				}
 
-				// move on to next statement
-				NextPacket( true );
-				break;
+					// Don't let the Device see the packet
+					// TODO: Base this on a keyword-controlled flag?
+					retval = true;
+
+					// move on to next statement
+					NextPacket( true );
+					break;
+				}
+				execPacket = savePacket;
+				execCommand = savePacket;
 			}
-			execPacket = savePacket;
-			execCommand = savePacket;
 		}
 	}
 
 	// unlock
 	lock.Unlock();
+
+	return retval;
 }
 
 //

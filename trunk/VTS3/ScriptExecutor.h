@@ -422,7 +422,7 @@ class ScriptExecutor : public BACnetTask {
 
 		void SendNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu );
 		void ReceiveNPDU( ScriptNetFilterPtr fp, const BACnetNPDU &npdu );
-		void ReceiveAPDU( const BACnetAPDU &apdu );
+		bool ReceiveAPDU( const BACnetAPDU &apdu );
 	};
 
 typedef ScriptExecutor *ScriptExecutorPtr;
