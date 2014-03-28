@@ -4214,9 +4214,10 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 					
 					if (ParseRefList((BACnetDeviceObjectPropertyReference **)pstruc)) return true;
 		
-					//Adde for resetting value of present-value, **********017
+					//Add for resetting value of present-value, **********017
 					if(objtype == 0x11)  //object type is schedule
 					{
+						// Schedule object: reset value_type to referenced property's type
 						BACnetDeviceObjectPropertyReference *temp;
 						temp = *(BACnetDeviceObjectPropertyReference **)pstruc;
 						if (temp==NULL) break;
