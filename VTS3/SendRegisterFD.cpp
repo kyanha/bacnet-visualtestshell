@@ -33,7 +33,7 @@ void CSendRegisterFD::DoDataExchange(CDataExchange* pDX)
 	TRACE1( "CSendRegisterFD::DoDataExchange(%d)\n", pDX->m_bSaveAndValidate );
 
 	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CSendWhoIsRTN)
+	//{{AFX_DATA_MAP(CSendRegisterFD)
 		// NOTE: the ClassWizard will add DDX and DDV calls here
 	//}}AFX_DATA_MAP
 

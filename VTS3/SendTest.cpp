@@ -46,7 +46,7 @@ void CSendTest::DoDataExchange(CDataExchange* pDX)
 	TRACE1( "CSendTest::DoDataExchange(%d)\n", pDX->m_bSaveAndValidate );
 
 	CPropertyPage::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CSendRaw)
+	//{{AFX_DATA_MAP(CSendTest)
 	//}}AFX_DATA_MAP
 
 	m_Boolean.UpdateData( pDX->m_bSaveAndValidate );
