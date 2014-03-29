@@ -171,6 +171,8 @@
     <ClCompile Include="BACnetLibrary\BACnetVIPLAN.cpp" />
     <ClCompile Include="BACnetLibrary\BACnetVLAN.cpp" />
     <ClCompile Include="DUDAPI\Bacprim32.cpp" />
+    <ClCompile Include="SendNetworkNumberIs.cpp" />
+    <ClCompile Include="SendWhatIsNetworkNumber.cpp" />
     <ClCompile Include="Sniffer\BACSN015.cpp" />
     <ClCompile Include="BakRestoreExecutor.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
@@ -464,6 +466,8 @@
     <ResourceCompile Include="VTS.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="SendNetworkNumberIs.h" />
+    <ClInclude Include="SendWhatIsNetworkNumber.h" />
     <ClInclude Include="Sniffer\Bacfuncs.h" />
     <ClInclude Include="BACnetLibrary\BACnet.hpp" />
     <ClInclude Include="BACnetLibrary\BACnetBBMD.hpp" />

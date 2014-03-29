@@ -123,6 +123,7 @@ EXPORT_STRINGTABLE(BACnetReinitializedStateOfDevice);
 EXPORT_STRINGTABLE(DeviceCommControl_Command);
 EXPORT_STRINGTABLE(TextMessage_Priority);
 EXPORT_STRINGTABLE(BACnetBackupState);
+EXPORT_STRINGTABLE(NetworkNumberType);
 } // end namespace NetworkSniffer
 
 #endif

@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by VTS.rc
 //
 #define ID_NEWNAME                      3
@@ -269,6 +269,8 @@
 #define IDD_INCONSISTENT_PARS_PROGRESS  380
 #define IDD_SELECT_TEMPLATE             381
 #define IDR_SCRIPT_CONTEXT              382
+#define IDD_SENDWHATISNET               382
+#define IDD_SENDNETNUMBERIS             383
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001

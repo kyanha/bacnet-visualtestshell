@@ -2581,4 +2581,10 @@ STRING_TABLE BACnetBackupState[] = {
 };
 BAC_STRINGTABLE(BACnetBackupState);
 
+STRING_TABLE NetworkNumberType[] = {
+   "learned",
+   "configured"
+};
+BAC_STRINGTABLE(NetworkNumberType);
+
 } // end namespace NetworkSniffer
