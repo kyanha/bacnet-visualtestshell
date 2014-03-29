@@ -42,62 +42,62 @@ int cvt$convert_float( const void *, int, void *, int, int );
 // ISO 8859-1 since char is signed)
 int IsSpace( int theChar )
 {
-	return isspace( theChar & 0xFF );
+   return isspace( theChar & 0xFF );
 }
 
 int IsAlpha( int theChar )
 {
-	return (((theChar >= 'A') && (theChar <= 'Z')) ||
-		    ((theChar >= 'a') && (theChar <= 'z')));
+   return (((theChar >= 'A') && (theChar <= 'Z')) ||
+          ((theChar >= 'a') && (theChar <= 'z')));
 }
 
 int IsDigit( int theChar )
 {
-	return ((theChar >= '0') && (theChar <= '9'));
+   return ((theChar >= '0') && (theChar <= '9'));
 }
 
 int IsXDigit( int theChar )
 {
-	return (((theChar >= 'A') && (theChar <= 'F')) ||
-		    ((theChar >= 'a') && (theChar <= 'f')) ||
-			((theChar >= '0') && (theChar <= '9')));
+   return (((theChar >= 'A') && (theChar <= 'F')) ||
+          ((theChar >= 'a') && (theChar <= 'f')) ||
+          ((theChar >= '0') && (theChar <= '9')));
 }
 
 int IsAlnum( int theChar )
 {
-	return (((theChar >= 'A') && (theChar <= 'Z')) ||
-		    ((theChar >= 'a') && (theChar <= 'z')) ||
-			((theChar >= '0') && (theChar <= '9')));
+   return (((theChar >= 'A') && (theChar <= 'Z')) ||
+          ((theChar >= 'a') && (theChar <= 'z')) ||
+          ((theChar >= '0') && (theChar <= '9')));
 }
 
 int IsUpper( int theChar )
 {
-	return ((theChar >= 'A') && (theChar <= 'Z'));
+   return ((theChar >= 'A') && (theChar <= 'Z'));
 }
 
 int IsLower( int theChar )
 {
-	return ((theChar >= 'a') && (theChar <= 'z'));
+   return ((theChar >= 'a') && (theChar <= 'z'));
 }
 
 int ToUpper( int theChar )
 {
-	if (IsLower(theChar))
-	{
-		theChar -= ('a' - 'A');
-	}
+   if (IsLower(theChar))
+   {
+      theChar -= ('a' - 'A');
+   }
 
-	return theChar;
+   return theChar;
 }
 
 int ToLower( int theChar )
 {
-	if (IsUpper(theChar))
-	{
-		theChar += ('a' - 'A');
-	}
+   if (IsUpper(theChar))
+   {
+      theChar += ('a' - 'A');
+   }
 
-	return theChar;
+   return theChar;
 }
 
 
@@ -123,23 +123,23 @@ int stricmp( const char *, const char * );
 
 int stricmp( const char *a, const char *b )
 {
-	while (*a && *b) {
-		int cmp = (ToLower(*b++) - ToLower(*a++));
-		if (cmp != 0)
-			return (cmp < 0 ? -1 : 1);
-	}
-	if (*a)
-		return 1;
-	else
-	if (*b)
-		return -1;
-	else
-		return 0;
+   while (*a && *b) {
+      int cmp = (ToLower(*b++) - ToLower(*a++));
+      if (cmp != 0)
+         return (cmp < 0 ? -1 : 1);
+   }
+   if (*a)
+      return 1;
+   else
+   if (*b)
+      return -1;
+   else
+      return 0;
 }
 
 #endif
 
-#define	VTSScanner		1
+#define  VTSScanner     1
 
 #if VTSScanner
 
@@ -174,269 +174,269 @@ bool ValuesLess( int v1, int v2 );
 // Thus, December or Dec, etc.
 static bool MatchAndEat( const char* &theCursor, const char* theMatchString, int theAbbrevLen = -1 )
 {
-	int len = strlen( theMatchString );
-	bool retval = _strnicmp( theCursor, theMatchString, len ) == 0;
-	if (retval)
-	{
-		// Matches full string
-		theCursor += len;
-	}
-	else if ((theAbbrevLen > 0) && (theAbbrevLen < len))
-	{
-		retval = _strnicmp( theCursor, theMatchString, theAbbrevLen ) == 0;
-		if (retval)
-		{
-			// Matches abbreviated string
-			theCursor += theAbbrevLen;
-		}
-	}
+   int len = strlen( theMatchString );
+   bool retval = _strnicmp( theCursor, theMatchString, len ) == 0;
+   if (retval)
+   {
+      // Matches full string
+      theCursor += len;
+   }
+   else if ((theAbbrevLen > 0) && (theAbbrevLen < len))
+   {
+      retval = _strnicmp( theCursor, theMatchString, theAbbrevLen ) == 0;
+      if (retval)
+      {
+         // Matches abbreviated string
+         theCursor += theAbbrevLen;
+      }
+   }
 
-	return retval;
+   return retval;
 }
 
 // Append bytes to X'1234' hex
 void AppendXhex( CString &theResult, const unsigned char *pTheData, int theLength )
 {
-	theResult += "X\'";
+   theResult += "X\'";
 
-	// encode the content
-	for (int i = 0; i < theLength; i++) 
-	{
-		char buf[3];
-		sprintf( buf, "%02X", pTheData[i] );
-		theResult += buf;
-	}
+   // encode the content
+   for (int i = 0; i < theLength; i++) 
+   {
+      char buf[3];
+      sprintf( buf, "%02X", pTheData[i] );
+      theResult += buf;
+   }
 
-	theResult += '\'';
+   theResult += '\'';
 }
 
 //
-//	BACnetAddress
+// BACnetAddress
 //
 
 BACnetAddress::BACnetAddress( const unsigned char *addr, const unsigned short len )
-	: addrType(localStationAddr), addrNet(0), addrLen(len)
+   : addrType(localStationAddr), addrNet(0), addrLen(len)
 {
-	if (len && addr)
-		memcpy( addrAddr, addr, addrLen );
+   if (len && addr)
+      memcpy( addrAddr, addr, addrLen );
 }
 
 BACnetAddress::BACnetAddress( const unsigned short net, const unsigned char *addr, const unsigned short len )
-	: addrType(remoteStationAddr), addrNet(net), addrLen(len)
+   : addrType(remoteStationAddr), addrNet(net), addrLen(len)
 {
-	if (len && addr)
-		memcpy( addrAddr, addr, addrLen );
+   if (len && addr)
+      memcpy( addrAddr, addr, addrLen );
 }
 
 BACnetAddress::BACnetAddress( const BACnetAddressType typ, const unsigned short net, const unsigned char *addr, const unsigned short len )
-	: addrType(typ), addrNet(net), addrLen(len)
+   : addrType(typ), addrNet(net), addrLen(len)
 {
-	if (len && addr)
-		memcpy( addrAddr, addr, addrLen );
+   if (len && addr)
+      memcpy( addrAddr, addr, addrLen );
 }
 void BACnetAddress::LocalStation( const unsigned char *addr, const unsigned short len )
 {
-	addrType = localStationAddr;
-	addrNet = 0;
-	addrLen = len;
-	memcpy( addrAddr, addr, addrLen );
+   addrType = localStationAddr;
+   addrNet = 0;
+   addrLen = len;
+   memcpy( addrAddr, addr, addrLen );
 }
 
 void BACnetAddress::RemoteStation( const unsigned short net, const unsigned char *addr, const unsigned short len )
 {
-	addrType = remoteStationAddr;
-	addrNet = net;
-	addrLen = len;
-	memcpy( addrAddr, addr, addrLen );
+   addrType = remoteStationAddr;
+   addrNet = net;
+   addrLen = len;
+   memcpy( addrAddr, addr, addrLen );
 }
 
 void BACnetAddress::LocalBroadcast( void )
 {
-	addrType = localBroadcastAddr;
-	addrNet = 0;
-	addrLen = 0;
+   addrType = localBroadcastAddr;
+   addrNet = 0;
+   addrLen = 0;
 }
 
 void BACnetAddress::RemoteBroadcast( const short net )
 {
-	addrType = remoteBroadcastAddr;
-	addrNet = net;
-	addrLen = 0;
+   addrType = remoteBroadcastAddr;
+   addrNet = net;
+   addrLen = 0;
 }
 
 void BACnetAddress::GlobalBroadcast( void )
 {
-	addrType = globalBroadcastAddr;
-	addrNet = 0;
-	addrLen = 0;
+   addrType = globalBroadcastAddr;
+   addrNet = 0;
+   addrLen = 0;
 }
 
 BACnetAddress & BACnetAddress::operator =( const BACnetAddress &arg )
 {
-	addrType = arg.addrType;
-	addrNet = arg.addrNet;
-	addrLen = arg.addrLen;
-	memcpy( addrAddr, arg.addrAddr, addrLen );
-	return *this;
+   addrType = arg.addrType;
+   addrNet = arg.addrNet;
+   addrLen = arg.addrLen;
+   memcpy( addrAddr, arg.addrAddr, addrLen );
+   return *this;
 }
 
 // Show just a hex MAC address, without network
 CString BACnetAddress::MacAddress() const
 {
-	CString str;
-	if (addrLen == 0)
-	{
-		str = "broadcast";
-	}
-	else
-	{
-		// 12-34-56-78
-		char buf[4];
-		for (UINT ix = 0; ix < addrLen; ix++)
-		{
-			if (ix > 0)
-				str += '-';
-			
-			sprintf( buf, "%02X", addrAddr[ix] );
-			str += buf;
-		}
-	}
+   CString str;
+   if (addrLen == 0)
+   {
+      str = "broadcast";
+   }
+   else
+   {
+      // 12-34-56-78
+      char buf[4];
+      for (UINT ix = 0; ix < addrLen; ix++)
+      {
+         if (ix > 0)
+            str += '-';
+         
+         sprintf( buf, "%02X", addrAddr[ix] );
+         str += buf;
+      }
+   }
 
-	return str;
+   return str;
 }
 
 // Convert string with or without dashes, to MAC address
 // DOES NOT change addrType
 bool BACnetAddress::SetMacAddress( const char *addrString )
 {
-	bool retval = true;
-	if ((strcmp( addrString, "*" ) == 0) || (_stricmp( addrString, "broadcast" ) == 0))
-	{
-		addrLen = 0;
-	}
-	else
-	{
-		// Optionally, as X'123456'
-		bool quoted = (addrString[0] == 'X') && (addrString[1] == '\'');
-		if (quoted)
-			addrString += 2;
+   bool retval = true;
+   if ((strcmp( addrString, "*" ) == 0) || (_stricmp( addrString, "broadcast" ) == 0))
+   {
+      addrLen = 0;
+   }
+   else
+   {
+      // Optionally, as X'123456'
+      bool quoted = (addrString[0] == 'X') && (addrString[1] == '\'');
+      if (quoted)
+         addrString += 2;
 
-		unsigned int len = 0;
-		while (*addrString && (len < 8))
-		{
-			unsigned int val, nchar = 0;
-			retval = (sscanf( addrString, "%02X%n", &val, &nchar ) >= 1) && (nchar == 2);
-			if (!retval)
-				break;
+      unsigned int len = 0;
+      while (*addrString && (len < 8))
+      {
+         unsigned int val, nchar = 0;
+         retval = (sscanf( addrString, "%02X%n", &val, &nchar ) >= 1) && (nchar == 2);
+         if (!retval)
+            break;
 
-			addrAddr[len++] = val;
-			addrString += 2;
+         addrAddr[len++] = val;
+         addrString += 2;
 
-			// Optional - or colon
-			if (!quoted && ((*addrString == '-') || (*addrString == ':')))
-				addrString += 1;
+         // Optional - or colon
+         if (!quoted && ((*addrString == '-') || (*addrString == ':')))
+            addrString += 1;
 
-			if (quoted && (*addrString == '\''))
-				break;
-		}
+         if (quoted && (*addrString == '\''))
+            break;
+      }
 
-		if (retval)
-		{
-			retval = (quoted) ? ((addrString[0] == '\'') && (addrString[1] == 0))
-							  : (addrString[0] == 0);
-		}
-		
-		if (retval)
-		{
-			addrLen = len;
-		}
-	}
+      if (retval)
+      {
+         retval = (quoted) ? ((addrString[0] == '\'') && (addrString[1] == 0))
+                       : (addrString[0] == 0);
+      }
+      
+      if (retval)
+      {
+         addrLen = len;
+      }
+   }
 
-	return retval;
+   return retval;
 }
 
 int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 {
-	int			i
-	;
-	
-	// address types must match
-	if (addr1.addrType != addr2.addrType)
-		return 0;
-	
-	// remote broadcast and remote station have a network, localStation and remote
-	// station have an address.
-	switch (addr1.addrType) {
-		case nullAddr:
-		case localBroadcastAddr:
-		case globalBroadcastAddr:
-			break;
-			
-		case remoteBroadcastAddr:
-			if (addr1.addrNet != addr1.addrNet) return 0;
-			break;
-			
-		case remoteStationAddr:
-			if (addr1.addrNet != addr1.addrNet) return 0;
-		case localStationAddr:
-			if (addr1.addrLen != addr2.addrLen) return 0;
-			for (i = 0; i < addr1.addrLen; i++)
-				if (addr1.addrAddr[i] != addr2.addrAddr[i])
-					return 0;
-			break;
-			
-		default:
-			throw_(1); // no other address types allowed
-	}
-	
-	// must be equal
-	return 1;
+   int         i
+   ;
+   
+   // address types must match
+   if (addr1.addrType != addr2.addrType)
+      return 0;
+   
+   // remote broadcast and remote station have a network, localStation and remote
+   // station have an address.
+   switch (addr1.addrType) {
+      case nullAddr:
+      case localBroadcastAddr:
+      case globalBroadcastAddr:
+         break;
+         
+      case remoteBroadcastAddr:
+         if (addr1.addrNet != addr1.addrNet) return 0;
+         break;
+         
+      case remoteStationAddr:
+         if (addr1.addrNet != addr1.addrNet) return 0;
+      case localStationAddr:
+         if (addr1.addrLen != addr2.addrLen) return 0;
+         for (i = 0; i < addr1.addrLen; i++)
+            if (addr1.addrAddr[i] != addr2.addrAddr[i])
+               return 0;
+         break;
+         
+      default:
+         throw_(1); // no other address types allowed
+   }
+   
+   // must be equal
+   return 1;
 }
 
 #if _TSMDebug
 //
-//	operator <<(ostream &strm,const BACnetAddress &addr)
+// operator <<(ostream &strm,const BACnetAddress &addr)
 //
 
 ostream &operator <<(ostream &strm,const BACnetAddress &addr)
 {
-	const static char hex[] = "0123456789ABCDEF"
-	;
-	int		i
-	;
-	
-	strm << '[';
-	
-	switch (addr.addrType) {
-		case nullAddr:
-			break;
-			
-		case remoteStationAddr:
-			strm << addr.addrNet << ':';
-		case localStationAddr:
-			strm << "0x";
-			for (i = 0; i < addr.addrLen; i++) {
-				strm << hex[ addr.addrAddr[i] >> 4 ];
-				strm << hex[ addr.addrAddr[i] & 0x0F ];
-			}
-			break;
-			
-		case localBroadcastAddr:
-			strm << '*';
-			break;
-			
-		case remoteBroadcastAddr:
-			strm << addr.addrNet << ":*";
-			break;
-			
-		case globalBroadcastAddr:
-			strm << "*:*";
-			break;
-	}
-	
-	strm << ']';
-	
-	return strm;
+   const static char hex[] = "0123456789ABCDEF"
+   ;
+   int      i
+   ;
+   
+   strm << '[';
+   
+   switch (addr.addrType) {
+      case nullAddr:
+         break;
+         
+      case remoteStationAddr:
+         strm << addr.addrNet << ':';
+      case localStationAddr:
+         strm << "0x";
+         for (i = 0; i < addr.addrLen; i++) {
+            strm << hex[ addr.addrAddr[i] >> 4 ];
+            strm << hex[ addr.addrAddr[i] & 0x0F ];
+         }
+         break;
+         
+      case localBroadcastAddr:
+         strm << '*';
+         break;
+         
+      case remoteBroadcastAddr:
+         strm << addr.addrNet << ":*";
+         break;
+         
+      case globalBroadcastAddr:
+         strm << "*:*";
+         break;
+   }
+   
+   strm << ']';
+   
+   return strm;
 }
 #endif
 
@@ -444,85 +444,85 @@ ostream &operator <<(ostream &strm,const BACnetAddress &addr)
 IMPLEMENT_DYNAMIC(BACnetEncodeable, CObject)
 
 //
-//	BACnetEncodeable
+// BACnetEncodeable
 //
 
 BACnetEncodeable::BACnetEncodeable()
 {
-	m_fDataInvalid = false;
+   m_fDataInvalid = false;
 }
 
 
 void BACnetEncodeable::Encode( CString &enc ) const
 {
-	enc = this->GetRuntimeClass()->m_lpszClassName;
+   enc = this->GetRuntimeClass()->m_lpszClassName;
 }
 
 
 void BACnetEncodeable::Decode( const char * )
 {
-	m_fDataInvalid = true;
-	TRACE1("%s.Decode(char*) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
+   m_fDataInvalid = true;
+   TRACE1("%s.Decode(char*) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
 }
 
 
 void BACnetEncodeable::Encode( BACnetAPDUEncoder& enc, int context /* = kAppContext */)
 {
-	TRACE1("%s.Encode(BACnetAPDUEncode& enc) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
+   TRACE1("%s.Encode(BACnetAPDUEncode& enc) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
 }
 
 
 void BACnetEncodeable::Decode( BACnetAPDUDecoder& dec )
 {
-	m_fDataInvalid = true;
-	TRACE1("%s.Decode(BACnetAPDUDecoder& enc) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
+   m_fDataInvalid = true;
+   TRACE1("%s.Decode(BACnetAPDUDecoder& enc) Unsupported", this->GetRuntimeClass()->m_lpszClassName);
 }
 
 
 
 void BACnetEncodeable::Peek( BACnetAPDUDecoder& dec )
 {
-	int					saveLen = dec.pktLength
-	;
-	const BACnetOctet	*saveBuff = dec.pktBuffer
-	;
-	
-	// use regular decoder
-	Decode( dec );
+   int               saveLen = dec.pktLength
+   ;
+   const BACnetOctet *saveBuff = dec.pktBuffer
+   ;
+   
+   // use regular decoder
+   Decode( dec );
 
-	// restore pointer and length
-	dec.pktLength = saveLen;
-	dec.pktBuffer = saveBuff;
+   // restore pointer and length
+   dec.pktLength = saveLen;
+   dec.pktBuffer = saveBuff;
 }
 
 
 const char * BACnetEncodeable::ToString() const
 {
-	// Use internal buffer and return to caller.
-	//
-	// The original version had only one static CString, so caller had to
-	// copy data out before calling us again.
-	// We now use a rota of 8 strings, easing life for our callers
-	static int ix = 0;
-	static CString str[8];
-	ix = (ix + 1) % 8;		// next string
-	
-	Encode(str[ix]);
-	return (const char*)(LPCTSTR)str[ix];
+   // Use internal buffer and return to caller.
+   //
+   // The original version had only one static CString, so caller had to
+   // copy data out before calling us again.
+   // We now use a rota of 8 strings, easing life for our callers
+   static int ix = 0;
+   static CString str[8];
+   ix = (ix + 1) % 8;      // next string
+   
+   Encode(str[ix]);
+   return (const char*)(LPCTSTR)str[ix];
 }
 
 
 
 BACnetEncodeable * BACnetEncodeable::clone()
 {
-	ASSERT(0);		// shouldn't be called here...
-	return NULL;
+   ASSERT(0);     // shouldn't be called here...
+   return NULL;
 }
 
 // ?= and >> are ALWAYS true
 bool BACnetEncodeable::PreMatch(int iOperator )
 {
-	return (iOperator == '?=') || (iOperator == '>>');
+   return (iOperator == '?=') || (iOperator == '>>');
 }
 
 
@@ -530,18 +530,18 @@ bool BACnetEncodeable::PreMatch(int iOperator )
 // Base class Match is called by default from most all of the classes.  It really just fails and formats the error
 bool BACnetEncodeable::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( pstrError != NULL )
-	{
-		CString str1(ToString());	// have to do this because ToString uses a static buff... call it twice and you're hosed
+   if ( pstrError != NULL )
+   {
+      CString str1(ToString());  // have to do this because ToString uses a static buff... call it twice and you're hosed
 
-		CString strError;
-		strError.Format(IDS_SCREX_COMPFAILTYPE, str1, OperatorToString(iOperator), rbacnet.ToString() );
+      CString strError;
+      strError.Format(IDS_SCREX_COMPFAILTYPE, str1, OperatorToString(iOperator), rbacnet.ToString() );
 
-		// TODO: do we really want to APPEND the error message?
-		*pstrError += strError;
-	}
+      // TODO: do we really want to APPEND the error message?
+      *pstrError += strError;
+   }
 
-	return false;
+   return false;
 }
 
 
@@ -550,15 +550,15 @@ bool BACnetEncodeable::Match( BACnetEncodeable &rbacnet, int iOperator, CString 
 
 bool BACnetEncodeable::EqualityRequiredFailure( BACnetEncodeable & rbacnet, int iOperator, CString * pstrError )
 {
-	if ( (iOperator != '!=') && (iOperator != '=') )
-	{
-		CString strError, str1(ToString());
-		strError.Format(IDS_SCREX_COMPEQREQ, rbacnet.ToString(), OperatorToString(iOperator), str1);
-		*pstrError = strError;
-		return true;
-	}
+   if ( (iOperator != '!=') && (iOperator != '=') )
+   {
+      CString strError, str1(ToString());
+      strError.Format(IDS_SCREX_COMPEQREQ, rbacnet.ToString(), OperatorToString(iOperator), str1);
+      *pstrError = strError;
+      return true;
+   }
 
-	return false;
+   return false;
 }
 
 
@@ -569,220 +569,220 @@ bool BACnetEncodeable::EqualityRequiredFailure( BACnetEncodeable & rbacnet, int 
 
 BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder & dec, int nPropID /* = -1 */ )
 {
-	switch ( nParseType )
-	{
-		case u127:		// 1..127 ---------------------------------
-		case u16:		// 1..16 ----------------------------------
-		case ud:		// unsigned dword -------------------------
-		case uw:		// unsigned word --------------------------
+   switch ( nParseType )
+   {
+      case u127:     // 1..127 ---------------------------------
+      case u16:      // 1..16 ----------------------------------
+      case ud:    // unsigned dword -------------------------
+      case uw:    // unsigned word --------------------------
 
-			return new BACnetUnsigned(dec);
-			break;
+         return new BACnetUnsigned(dec);
+         break;
 
-		case ssint:		// short signed int -----------------------		// actually the same type
-		case sw:		// signed word ----------------------------
-		case ptInt32:
+      case ssint:    // short signed int -----------------------     // actually the same type
+      case sw:    // signed word ----------------------------
+      case ptInt32:
 
-			return new BACnetInteger(dec);
-			break;
+         return new BACnetInteger(dec);
+         break;
 
-		case flt:		// float ----------------------------------------
+      case flt:      // float ----------------------------------------
 
-			return new BACnetReal(dec);
-			break;
+         return new BACnetReal(dec);
+         break;
 
-		case pab:		// priority array bpv ---------------------		deal with index cases (-1=all, 0=element count, base 1=index
-		case paf:		// priority array flt ---------------------
-		case pau:		// priority array unsigned ----------------
-		case ptPai:		// signed long
+      case pab:      // priority array bpv ---------------------     deal with index cases (-1=all, 0=element count, base 1=index
+      case paf:      // priority array flt ---------------------
+      case pau:      // priority array unsigned ----------------
+      case ptPai:    // signed long
 
-			return new BACnetPriorityArray(dec);
-			break;
+         return new BACnetPriorityArray(dec);
+         break;
 
-		case ebool:		// boolean enumeration ---------------------------------
+      case ebool:    // boolean enumeration ---------------------------------
 
-			return new BACnetBoolean(dec);
-			break;
+         return new BACnetBoolean(dec);
+         break;
 
-		case bits:		// octet of 1 or 0 flags
+      case bits:     // octet of 1 or 0 flags
         case pss:       // protocol_services_supported
-		case pos:       // protocol_objects_supported
+      case pos:       // protocol_objects_supported
 
-			return new BACnetBitString(dec);
-			break;
+         return new BACnetBitString(dec);
+         break;
 
-		case ob_id:		// object identifier
+      case ob_id:    // object identifier
 
-			return new BACnetObjectIdentifier(dec);
-			break;
+         return new BACnetObjectIdentifier(dec);
+         break;
 
-		case s10:		// char [10] --------------------------------------------
-		case s32:		// char [32]
-		case s64:		// char [64]
-		case s132:		// char [132]
+      case s10:      // char [10] --------------------------------------------
+      case s32:      // char [32]
+      case s64:      // char [64]
+      case s132:     // char [132]
 
-			return new BACnetCharacterString(dec);
+         return new BACnetCharacterString(dec);
        
-		case enull:		// null enumeration ------------------------------------
+      case enull:    // null enumeration ------------------------------------
 
-			return new BACnetNull(dec);
+         return new BACnetNull(dec);
 
-		case et:		// generic enumation ----------------------------------
+      case et:    // generic enumation ----------------------------------
 
-			{
-			BACnetEnumerated * penum = BACnetEnumerated::Factory(nPropID);
-			penum->Decode(dec);
-			return penum;
-			}
+         {
+         BACnetEnumerated * penum = BACnetEnumerated::Factory(nPropID);
+         penum->Decode(dec);
+         return penum;
+         }
 
-		case ptDate:	// date ------------------------------------------------
+      case ptDate:   // date ------------------------------------------------
         case ddate:
 
-			return new BACnetDate(dec);
+         return new BACnetDate(dec);
 
-		case ptTime:	// time -------------------------------------------------
+      case ptTime:   // time -------------------------------------------------
         case ttime:
 
-			return new BACnetTime(dec);
+         return new BACnetTime(dec);
 
-		case dt:		// date/time stamp -------------------------------------
+      case dt:    // date/time stamp -------------------------------------
 
-			return new BACnetDateTime(dec);
+         return new BACnetDateTime(dec);
 
-		case dtrange:	// range of dates ---------------------------------------
+      case dtrange:  // range of dates ---------------------------------------
 
-			return new BACnetDateRange(dec);
+         return new BACnetDateRange(dec);
 
-		case calist:	// array of calendar entries -----------------------------
+      case calist:   // array of calendar entries -----------------------------
 
-			return new BACnetListOfCalendarEntry(dec);
+         return new BACnetListOfCalendarEntry(dec);
 
-		case dabind:	// device address binding list--------------------------------
+      case dabind:   // device address binding list--------------------------------
 
-			{
-			BACnetGenericArray * parray = new BACnetGenericArray(dabindelem);
-			parray->Decode(dec);
-			return parray;
-			}
+         {
+         BACnetGenericArray * parray = new BACnetGenericArray(dabindelem);
+         parray->Decode(dec);
+         return parray;
+         }
 
-		case dabindelem:	// device address binding --------------------------------
+      case dabindelem:  // device address binding --------------------------------
 
-			return new BACnetAddressBinding(dec);
+         return new BACnetAddressBinding(dec);
 
-		case lobj:		// array of object identifiers ----------------------------
+      case lobj:     // array of object identifiers ----------------------------
 
-			return new BACnetObjectIDList(dec);
+         return new BACnetObjectIDList(dec);
 
-		case uwarr:		// unsigned array ------------------------------------------
-		case stavals:	// list of unsigned ----------------------------------------
+      case uwarr:    // unsigned array ------------------------------------------
+      case stavals:  // list of unsigned ----------------------------------------
 
-			return new BACnetUnsignedArray(dec);
+         return new BACnetUnsignedArray(dec);
 
-		case statext:
-		case actext:	// character string array ----------------------------------
+      case statext:
+      case actext:   // character string array ----------------------------------
 
-			return new BACnetTextArray(dec);
+         return new BACnetTextArray(dec);
 
-		case prival:	// single priority value----------------------------------
+      case prival:   // single priority value----------------------------------
 
-			return new BACnetPriorityValue(dec);
+         return new BACnetPriorityValue(dec);
 
-		case calent:	// single calendar entry ----------------------------------
+      case calent:   // single calendar entry ----------------------------------
 
-			return new BACnetCalendarEntry(dec);
+         return new BACnetCalendarEntry(dec);
 
-		case TSTMP:		// time stamp, could be multiple type---------------------
+      case TSTMP:    // time stamp, could be multiple type---------------------
 
-			return new BACnetTimeStamp(dec);
+         return new BACnetTimeStamp(dec);
 
-		case TSTMParr:	// array of time stamp, could be multiple type---------------------
+      case TSTMParr: // array of time stamp, could be multiple type---------------------
 
-			return new BACnetTimeStampArray(dec);
+         return new BACnetTimeStampArray(dec);
 
-		case setref:
-		case propref:	// object prop refs
+      case setref:
+      case propref:  // object prop refs
 
-			return new BACnetObjectPropertyReference(dec);
+         return new BACnetObjectPropertyReference(dec);
 
-		case lopref:	// list of object property references
+      case lopref:   // list of object property references
 
-			return new BACnetListOfDeviceObjectPropertyReference(dec);
+         return new BACnetListOfDeviceObjectPropertyReference(dec);
 
         case devobjref:
-			return new BACnetDeviceObjectReference(dec);
-		case lodoref:  // LJT  List Of Device Object References
-			
-			return new BACnetListOfDeviceObjectReference(dec);
+         return new BACnetDeviceObjectReference(dec);
+      case lodoref:  // LJT  List Of Device Object References
+         
+         return new BACnetListOfDeviceObjectReference(dec);
 
-		case devobjpropref:	// deviceobject prop refs
+      case devobjpropref:  // deviceobject prop refs
 
-			return new BACnetDeviceObjectPropertyReference(dec);
+         return new BACnetDeviceObjectPropertyReference(dec);
 
-		case recip:		// bacnet recipient
+      case recip:    // bacnet recipient
 
-			return new BACnetRecipient(dec);
+         return new BACnetRecipient(dec);
 
-		case tsrecip:	// list of time synch recipients
+      case tsrecip:  // list of time synch recipients
 
-			return new BACnetListOfRecipient(dec);
+         return new BACnetListOfRecipient(dec);
 
-		case vtcl:		// vt classes
+      case vtcl:     // vt classes
 
-			return new BACnetListOfVTClass(dec);
+         return new BACnetListOfVTClass(dec);
 
-		case destination:		//
+      case destination:    //
 
-			return new BACnetDestination(dec);
+         return new BACnetDestination(dec);
 
-		case reciplist:	// list of BACnetDestination
+      case reciplist:   // list of BACnetDestination
 
-			return new BACnetListOfDestination(dec);
+         return new BACnetListOfDestination(dec);
 
-		case COVSub:
+      case COVSub:
 
-			return new BACnetCOVSubscription(dec);
+         return new BACnetCOVSubscription(dec);
 
-		case lCOVSub:
+      case lCOVSub:
 
-			return new BACnetListOfCOVSubscription(dec);
+         return new BACnetListOfCOVSubscription(dec);
 
-		case raslist:	// list of readaccessspecs
+      case raslist:  // list of readaccessspecs
              
-			//p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
-			return new BACnetReadAccessSpecification(dec);
+         //p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
+         return new BACnetReadAccessSpecification(dec);
 
-		case act:		// action array
+      case act:      // action array
             
-			//p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
-			return new BACnetActionCommand(dec);
+         //p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
+         return new BACnetActionCommand(dec);
 
-		case evparm:	// event parameter
-			
-			//p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
-			return new BACnetEventParameter(dec);
+      case evparm:   // event parameter
+         
+         //p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
+         return new BACnetEventParameter(dec);
 
-		case skeys:		// session keys
-			
-			//p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
-			return new BACnetSessionKey(dec);
+      case skeys:    // session keys
+         
+         //p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
+         return new BACnetSessionKey(dec);
 
-		case xsched:    // exception schedule: array[] of specialevent
+      case xsched:    // exception schedule: array[] of specialevent
 
-			//p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
-			return new BACnetExceptionSchedule(dec);
+         //p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
+         return new BACnetExceptionSchedule(dec);
 
-		case wsched:	// weekly schedule: array[7] of list of timevalue
+      case wsched:   // weekly schedule: array[7] of list of timevalue
 
-			//p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
-			return new BACnetTimeValue(dec);
+         //p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
+         return new BACnetTimeValue(dec);
 
-		case vtse:		// list of active  vt sessions (parse type) 
+      case vtse:     // list of active  vt sessions (parse type) 
 
-			//p= eVTSE(p,(BACnetVTSession far*)msg->pv);
-			return new BACnetVTSession(dec);
-	}
+         //p= eVTSE(p,(BACnetVTSession far*)msg->pv);
+         return new BACnetVTSession(dec);
+   }
 
-	return NULL;
+   return NULL;
 }
 
 
@@ -792,12 +792,12 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 IMPLEMENT_DYNAMIC(BACnetNull, BACnetEncodeable)
 
 //
-//	BACnetNull
+// BACnetNull
 //
 
 BACnetNull::BACnetNull( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
@@ -808,74 +808,74 @@ BACnetNull::BACnetNull( )
 
 void BACnetNull::Encode( BACnetAPDUEncoder &enc, int context )
 {
-	// check for space
-	enc.CheckSpace( 1 );
-	
-	// encode it
-	if (context != kAppContext)
-		enc.pktBuffer[enc.pktLength++] = ((BACnetOctet)context << 4) + 0x08;
-	else
-		enc.pktBuffer[enc.pktLength++] = 0x00;
+   // check for space
+   enc.CheckSpace( 1 );
+   
+   // encode it
+   if (context != kAppContext)
+      enc.pktBuffer[enc.pktLength++] = ((BACnetOctet)context << 4) + 0x08;
+   else
+      enc.pktBuffer[enc.pktLength++] = 0x00;
 }
 
 void BACnetNull::Decode( BACnetAPDUDecoder &dec )
 {
-	// enough for the tag byte?
-	if (dec.pktLength < 1)
-		throw_(4) /* not enough data */;
-	
-	// suck out the tag
-	BACnetOctet	tag = (dec.pktLength--,*dec.pktBuffer++);
-	
-	// verify its a null
-	if (((tag & 0x08) == 0) && ((tag & 0xF0) != 0x00))
-		throw_(5) /* mismatched data type */;
+   // enough for the tag byte?
+   if (dec.pktLength < 1)
+      throw_(4) /* not enough data */;
+   
+   // suck out the tag
+   BACnetOctet tag = (dec.pktLength--,*dec.pktBuffer++);
+   
+   // verify its a null
+   if (((tag & 0x08) == 0) && ((tag & 0xF0) != 0x00))
+      throw_(5) /* mismatched data type */;
 }
 
 void BACnetNull::Encode( CString &enc ) const
 {
-	enc = ToString();
+   enc = ToString();
 }
 
 void BACnetNull::Decode( const char *dec )
 {
-	if (_stricmp( dec, ToString()) != 0)
-		throw_(6) /* null must be 'null' */;
+   if (_stricmp( dec, ToString()) != 0)
+      throw_(6) /* null must be 'null' */;
 }
 
 const char * BACnetNull::ToString() const
 {
-	return "Null";    // true 135.1 : NULL
+   return "Null";    // true 135.1 : NULL
 }
 
 
 int BACnetNull::DataType()
 {
-	return enull;
+   return enull;
 }
 
 BACnetEncodeable * BACnetNull::clone()
 {
-	return new BACnetNull();
+   return new BACnetNull();
 }
 
 
 bool BACnetNull::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetNull)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetNull)));
 
-	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-		return false;
+   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+      return false;
 
-	bool fMatch = ((BACnetInteger &) rbacnet).IsKindOf(RUNTIME_CLASS(BACnetNull)) == TRUE;
+   bool fMatch = ((BACnetInteger &) rbacnet).IsKindOf(RUNTIME_CLASS(BACnetNull)) == TRUE;
 
-	if ( fMatch && iOperator == '='  ||  !fMatch &&  iOperator == '!=' )
-		return true;
+   if ( fMatch && iOperator == '='  ||  !fMatch &&  iOperator == '!=' )
+      return true;
 
-	return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 }
 
 
@@ -891,113 +891,113 @@ BACnetAddr::BACnetAddr()
 
 BACnetAddr::BACnetAddr( BACnetAddress * paddr )
 {
-	m_bacnetAddress = *paddr;
+   m_bacnetAddress = *paddr;
 }
 
 
 BACnetAddr::BACnetAddr( BACnetOctet * paMAC, unsigned int nMACLen )
 {
-	AssignAddress(0, paMAC, nMACLen);
+   AssignAddress(0, paMAC, nMACLen);
 }
 
 
 BACnetAddr::BACnetAddr( unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen )
 {
-	AssignAddress(nNet, paMAC, nMACLen);
+   AssignAddress(nNet, paMAC, nMACLen);
 }
 
 
 BACnetAddr::BACnetAddr( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 void BACnetAddr::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	BACnetUnsigned bacnetNet(m_bacnetAddress.addrNet);
-	BACnetOctetString bacnetMAC(m_bacnetAddress.addrAddr, m_bacnetAddress.addrLen);
+   BACnetUnsigned bacnetNet(m_bacnetAddress.addrNet);
+   BACnetOctetString bacnetMAC(m_bacnetAddress.addrAddr, m_bacnetAddress.addrLen);
 
-	bacnetNet.Encode(enc, context);
-	bacnetMAC.Encode(enc, context);
+   bacnetNet.Encode(enc, context);
+   bacnetMAC.Encode(enc, context);
 }
 
 
 void BACnetAddr::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetUnsigned bacnetNet(dec);
-	BACnetOctetString bacnetMAC(dec);
+   BACnetUnsigned bacnetNet(dec);
+   BACnetOctetString bacnetMAC(dec);
 
-	AssignAddress(bacnetNet.uintValue, bacnetMAC.strBuff, bacnetMAC.strBuffLen);
+   AssignAddress(bacnetNet.uintValue, bacnetMAC.strBuff, bacnetMAC.strBuffLen);
 }
 
 
 void BACnetAddr::Encode( CString &enc ) const
 {
-	enc.Format( "{%d,", m_bacnetAddress.addrNet );
-	if (m_bacnetAddress.addrLen > 0)
-	{
-		AppendXhex( enc, m_bacnetAddress.addrAddr, m_bacnetAddress.addrLen );
-	}
-	else
-	{
-		// Broadcast
-		enc += '*';
-	}
-	enc += '}';
+   enc.Format( "{%d,", m_bacnetAddress.addrNet );
+   if (m_bacnetAddress.addrLen > 0)
+   {
+      AppendXhex( enc, m_bacnetAddress.addrAddr, m_bacnetAddress.addrLen );
+   }
+   else
+   {
+      // Broadcast
+      enc += '*';
+   }
+   enc += '}';
 }
 
 
 void BACnetAddr::AssignAddress(unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen )
 {
-	if ( nMACLen == 0 )
-	{
-		// broadcast
-		if ( nNet == 0 )
-			m_bacnetAddress.LocalBroadcast();
-		else
-			m_bacnetAddress.RemoteBroadcast(nNet);
-	}
-	else
-	{
-		// specific address
-		if ( nNet == 0 )
-			m_bacnetAddress.LocalStation(paMAC, nMACLen);
-		else
-			m_bacnetAddress.RemoteStation(nNet, paMAC, nMACLen);
-	}
+   if ( nMACLen == 0 )
+   {
+      // broadcast
+      if ( nNet == 0 )
+         m_bacnetAddress.LocalBroadcast();
+      else
+         m_bacnetAddress.RemoteBroadcast(nNet);
+   }
+   else
+   {
+      // specific address
+      if ( nNet == 0 )
+         m_bacnetAddress.LocalStation(paMAC, nMACLen);
+      else
+         m_bacnetAddress.RemoteStation(nNet, paMAC, nMACLen);
+   }
 }
 
 
 BACnetEncodeable * BACnetAddr::clone()
 {
-	return new BACnetAddr(m_bacnetAddress.addrNet, m_bacnetAddress.addrAddr, m_bacnetAddress.addrLen);
+   return new BACnetAddr(m_bacnetAddress.addrNet, m_bacnetAddress.addrAddr, m_bacnetAddress.addrLen);
 }
 
 
 BACnetAddr & BACnetAddr::operator =( const BACnetAddr & arg )
 {
-	m_bacnetAddress = arg.m_bacnetAddress;
-	return *this;
+   m_bacnetAddress = arg.m_bacnetAddress;
+   return *this;
 }
 
 
 //const char * BACnetAddr::ToString() const
 //{
-//	TRACE0("ToString() for BACnetAddr not implemented");
-//	ASSERT(0);
-//	return NULL;
+// TRACE0("ToString() for BACnetAddr not implemented");
+// ASSERT(0);
+// return NULL;
 //}
 
 
 IMPLEMENT_DYNAMIC(BACnetBoolean, BACnetEncodeable)
 
 //
-//	BACnetBoolean
+// BACnetBoolean
 //
 
 BACnetBoolean::BACnetBoolean( int bvalu )
-	: boolValue(bvalu ? bTrue : bFalse)
+   : boolValue(bvalu ? bTrue : bFalse)
 {
 }
 
@@ -1005,137 +1005,137 @@ BACnetBoolean::BACnetBoolean( int bvalu )
 
 BACnetBoolean::BACnetBoolean( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetBoolean::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	//
-	//	Note: A context tagged boolean is not encoded the same as an
-	//	application tagged boolean.  See clause 20.2.3.
-	//
-	if (context == kAppContext) {
-		enc.CheckSpace( 1 );
-		
-		enc.pktBuffer[enc.pktLength++] = 0x10 + (boolValue == bFalse ? 0x00 : 0x01);
-	} else {
-		enc.CheckSpace( 2 );
-		
-		enc.pktBuffer[enc.pktLength++] = ((BACnetOctet)context << 4) + 0x09;
-		enc.pktBuffer[enc.pktLength++] = (boolValue == bFalse ? 0x00 : 0x01);
-	}
+   //
+   // Note: A context tagged boolean is not encoded the same as an
+   // application tagged boolean.  See clause 20.2.3.
+   //
+   if (context == kAppContext) {
+      enc.CheckSpace( 1 );
+      
+      enc.pktBuffer[enc.pktLength++] = 0x10 + (boolValue == bFalse ? 0x00 : 0x01);
+   } else {
+      enc.CheckSpace( 2 );
+      
+      enc.pktBuffer[enc.pktLength++] = ((BACnetOctet)context << 4) + 0x09;
+      enc.pktBuffer[enc.pktLength++] = (boolValue == bFalse ? 0x00 : 0x01);
+   }
 }
 
 
 void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
 {
-	BACnetOctet	tag
-	;
-	
-	// enough for the tag byte?
-	if (dec.pktLength < 1)
-		throw(7) /* not enough data */;
-	
-	tag = (dec.pktLength--,*dec.pktBuffer++);
-	
-	// it could be application tagged
-	if (tag == 0x10)
-	{
-		boolValue = bFalse;
-	} else if (tag == 0x11)
-	{
-		boolValue = bTrue;
-	}
-	else
-	{
-		// verify context tagged and length
-		if ((tag & 0x0F) != 0x09)
-			throw_(8) /* bad length */;
-		
-		// check for more data
-		if (dec.pktLength < 1)
-			throw_(9);
-		
-		boolValue = (eBACnetBoolean)(dec.pktLength--,*dec.pktBuffer++);
-	}
+   BACnetOctet tag
+   ;
+   
+   // enough for the tag byte?
+   if (dec.pktLength < 1)
+      throw(7) /* not enough data */;
+   
+   tag = (dec.pktLength--,*dec.pktBuffer++);
+   
+   // it could be application tagged
+   if (tag == 0x10)
+   {
+      boolValue = bFalse;
+   } else if (tag == 0x11)
+   {
+      boolValue = bTrue;
+   }
+   else
+   {
+      // verify context tagged and length
+      if ((tag & 0x0F) != 0x09)
+         throw_(8) /* bad length */;
+      
+      // check for more data
+      if (dec.pktLength < 1)
+         throw_(9);
+      
+      boolValue = (eBACnetBoolean)(dec.pktLength--,*dec.pktBuffer++);
+   }
 }
 
 
 void BACnetBoolean::Encode( CString &enc ) const
 {
-	enc = ToString();
+   enc = ToString();
 }
 
 
 void BACnetBoolean::Decode( const char *dec )
 {
-	// check for a keyword
-	switch (*dec++) {
-		case '1':
-		case 'S': case 's':				// Set
-		case 'T': case 't':				// True
-		case 'E': case 'e':				// Enable
-			boolValue = bTrue;
-			break;
+   // check for a keyword
+   switch (*dec++) {
+      case '1':
+      case 'S': case 's':           // Set
+      case 'T': case 't':           // True
+      case 'E': case 'e':           // Enable
+         boolValue = bTrue;
+         break;
 
-		case '0':
-		case 'R': case 'r':				// Reset
-		case 'F': case 'f':				// False
-		case 'D': case 'd':				// Disable
-			boolValue = bFalse;
-			break;
+      case '0':
+      case 'R': case 'r':           // Reset
+      case 'F': case 'f':           // False
+      case 'D': case 'd':           // Disable
+         boolValue = bFalse;
+         break;
 
-		case 'O': case 'o':
-			boolValue = (eBACnetBoolean)((*dec == 'N') || (*dec == 'n'));	// On (all others are Off)
-			break;
+      case 'O': case 'o':
+         boolValue = (eBACnetBoolean)((*dec == 'N') || (*dec == 'n'));  // On (all others are Off)
+         break;
 
-		default:
-			throw_(10) /* unknown keyword */;
-	}
+      default:
+         throw_(10) /* unknown keyword */;
+   }
 }
 
 
 const char * BACnetBoolean::ToString() const
 {
-	return (boolValue ? "True" : "False");  // true 135.1  T or TRUE, F or FALSE
+   return (boolValue ? "True" : "False");  // true 135.1  T or TRUE, F or FALSE
 }
 
 
 int BACnetBoolean::DataType()
 {
-	return ebool;
+   return ebool;
 }
 
 BACnetEncodeable * BACnetBoolean::clone()
 {
-	return new BACnetBoolean(boolValue);
+   return new BACnetBoolean(boolValue);
 }
 
 
 BACnetBoolean & BACnetBoolean::operator =( const BACnetBoolean & arg )
 {
-	boolValue = arg.boolValue;
-	return *this;
+   boolValue = arg.boolValue;
+   return *this;
 }
 
 
 bool BACnetBoolean::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean)));
 
-	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-		return false;
+   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+      return false;
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean))  || 
-		 !::Match(iOperator, boolValue, ((BACnetBoolean &) rbacnet).boolValue ) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean))  || 
+       !::Match(iOperator, boolValue, ((BACnetBoolean &) rbacnet).boolValue ) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
@@ -1143,7 +1143,7 @@ bool BACnetBoolean::Match( BACnetEncodeable &rbacnet, int iOperator, CString * p
 IMPLEMENT_DYNAMIC(BACnetEnumerated, BACnetEncodeable)
 
 //
-//	BACnetEnumerated
+// BACnetEnumerated
 //
 
 BACnetEnumerated::BACnetEnumerated( int evalu, NetworkSniffer::BACnetStringTable &nameList )
@@ -1164,240 +1164,240 @@ BACnetEnumerated::BACnetEnumerated( BACnetAPDUDecoder & dec )
 : m_papNameList(NULL)
 , m_nListSize(0)
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetEnumerated::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	int				len
-	;
-	unsigned long	valuCopy
-	;
-	
-	// reduce the value to the smallest number of octets
-	len = 4;
-	valuCopy = (unsigned long)enumValue;
-	while ((len > 1) && ((valuCopy & 0xFF000000) == 0)) {
-		len -= 1;
-		valuCopy = (valuCopy << 8);
-	}
-	
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, len ).Encode( enc );
-	else
-		BACnetAPDUTag( enumeratedAppTag, len ).Encode( enc );
-	
-	// fill in the data
-	while (len--) {
-		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(valuCopy >> 24);
-		valuCopy = (valuCopy << 8);
-	}
+   int            len
+   ;
+   unsigned long  valuCopy
+   ;
+   
+   // reduce the value to the smallest number of octets
+   len = 4;
+   valuCopy = (unsigned long)enumValue;
+   while ((len > 1) && ((valuCopy & 0xFF000000) == 0)) {
+      len -= 1;
+      valuCopy = (valuCopy << 8);
+   }
+   
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, len ).Encode( enc );
+   else
+      BACnetAPDUTag( enumeratedAppTag, len ).Encode( enc );
+   
+   // fill in the data
+   while (len--) {
+      enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(valuCopy >> 24);
+      valuCopy = (valuCopy << 8);
+   }
 }
 
 void BACnetEnumerated::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
-	int				rslt
-	;
-	
-	// extract the tag
-	tag.Decode( dec );
-	
-	// check the type
-	if (!tag.tagClass && (tag.tagNumber != enumeratedAppTag))
-		throw_(11) /* mismatched data type */;
-	
-	// copy out the data
-	rslt = 0;
-	while (tag.tagLVT) {
-		rslt = (rslt << 8) + (dec.pktLength--,*dec.pktBuffer++);
-		tag.tagLVT -= 1;
-	}
-	
-	// save the result
-	enumValue = rslt;
+   BACnetAPDUTag  tag
+   ;
+   int            rslt
+   ;
+   
+   // extract the tag
+   tag.Decode( dec );
+   
+   // check the type
+   if (!tag.tagClass && (tag.tagNumber != enumeratedAppTag))
+      throw_(11) /* mismatched data type */;
+   
+   // copy out the data
+   rslt = 0;
+   while (tag.tagLVT) {
+      rslt = (rslt << 8) + (dec.pktLength--,*dec.pktBuffer++);
+      tag.tagLVT -= 1;
+   }
+   
+   // save the result
+   enumValue = rslt;
 }
 
 void BACnetEnumerated::Encode( CString &enc ) const
 {
-	Encode( enc, m_papNameList, m_nListSize );
+   Encode( enc, m_papNameList, m_nListSize );
 }
 
 // TODO: use the string tables to avoid explicit size?
 void BACnetEnumerated::Encode( CString &enc, const char * const *table, int tsize ) const
 {
-	int	valu = enumValue;
+   int   valu = enumValue;
 
-	if ((enumValue < 0) || !table || (enumValue >= tsize))
-		enc.Format( "%d", valu );
-	else
-		enc = table[enumValue];
+   if ((enumValue < 0) || !table || (enumValue >= tsize))
+      enc.Format( "%d", valu );
+   else
+      enc = table[enumValue];
 }
 
 void BACnetEnumerated::Decode( const char *dec )
 {
-	Decode( dec, m_papNameList, m_nListSize );
+   Decode( dec, m_papNameList, m_nListSize );
 }
 
 void BACnetEnumerated::Decode( const char *dec, const char * const *table, int tsize )
 {
-	if (IsDigit(*dec)) {										// explicit number
-		// integer encoding
-		for (enumValue = 0; *dec; dec++)
-			if (!IsDigit(*dec))
-				throw_(12) /* invalid character */;
-			else
-				enumValue = (enumValue * 10) + (*dec - '0');
-	} else
-	if (!table)
-		throw_(13) /* no translation available */;
-	else {
-		enumValue = 0;
-		while (enumValue < tsize) {
-			if (strncmp(dec,*table,strlen(dec)) == 0)
-				break;
-			if (_stricmp(dec,*table) == 0)
-				break;
-			table += 1;
-			enumValue += 1;
-		}
-		if (enumValue >= tsize)
-			throw_(14) /* no matching translation */;
-	}
+   if (IsDigit(*dec)) {                            // explicit number
+      // integer encoding
+      for (enumValue = 0; *dec; dec++)
+         if (!IsDigit(*dec))
+            throw_(12) /* invalid character */;
+         else
+            enumValue = (enumValue * 10) + (*dec - '0');
+   } else
+   if (!table)
+      throw_(13) /* no translation available */;
+   else {
+      enumValue = 0;
+      while (enumValue < tsize) {
+         if (strncmp(dec,*table,strlen(dec)) == 0)
+            break;
+         if (_stricmp(dec,*table) == 0)
+            break;
+         table += 1;
+         enumValue += 1;
+      }
+      if (enumValue >= tsize)
+         throw_(14) /* no matching translation */;
+   }
 }
 
 
 int BACnetEnumerated::DataType()
 {
-	return et;
+   return et;
 }
 
 BACnetEncodeable * BACnetEnumerated::clone()
 {
-	return new BACnetEnumerated(enumValue, m_papNameList, m_nListSize);
+   return new BACnetEnumerated(enumValue, m_papNameList, m_nListSize);
 }
 
 
 BACnetEnumerated & BACnetEnumerated::operator =( const BACnetEnumerated & arg )
 {
-	enumValue = arg.enumValue;
-	m_nListSize = arg.m_nListSize;
-	m_papNameList = arg.m_papNameList;
-	return *this;
+   enumValue = arg.enumValue;
+   m_nListSize = arg.m_nListSize;
+   m_papNameList = arg.m_papNameList;
+   return *this;
 }
 
 
 bool BACnetEnumerated::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-//	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated)));
+// ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated))  || 
-		 !::Match(iOperator, enumValue, ((BACnetEnumerated &) rbacnet).enumValue) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated))  || 
+       !::Match(iOperator, enumValue, ((BACnetEnumerated &) rbacnet).enumValue) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
 //madanner 9/04
 BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
 {
-	PICS::etable *petable;
+   PICS::etable *petable;
 
-	switch ( nPropID )
-	{
-		case OBJECT_TYPE:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiObjectTypes);
-			break;
+   switch ( nPropID )
+   {
+      case OBJECT_TYPE:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiObjectTypes);
+         break;
 
-		case EVENT_STATE:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiEvState);  
-			break;
+      case EVENT_STATE:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEvState);  
+         break;
 
-		case RELIABILITY:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiReli);  
-			break;
+      case RELIABILITY:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiReli);  
+         break;
 
-		case UNITS:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
-			break;
+      case UNITS:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         break;
 
-		case NOTIFY_TYPE:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiNT);  
-			break;
+      case NOTIFY_TYPE:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiNT);  
+         break;
 
-		case PRESENT_VALUE:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);  
-			break;
+      case PRESENT_VALUE:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);  
+         break;
 
-		case POLARITY:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiPolar);  
-			break;
+      case POLARITY:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiPolar);  
+         break;
 
-		case ALARM_VALUE:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);  
-			break;
+      case ALARM_VALUE:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);  
+         break;
 
-		case SYSTEM_STATUS:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiDS);  
-			break;
+      case SYSTEM_STATUS:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiDS);  
+         break;
 
-		case SEGMENTATION_SUPPORTED:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiDS);  
-			break;
+      case SEGMENTATION_SUPPORTED:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiDS);  
+         break;
 
-		case FILE_ACCESS_METHOD: 
-			petable = (PICS::etable *)PICS::GetEnumTable(eiFAM);  
-			break;
+      case FILE_ACCESS_METHOD: 
+         petable = (PICS::etable *)PICS::GetEnumTable(eiFAM);  
+         break;
 
-		case OUTPUT_UNITS: 
-			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
-			break;
+      case OUTPUT_UNITS: 
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         break;
 
-		case CONTROLLED_VARIABLE_UNITS:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
-			break;
+      case CONTROLLED_VARIABLE_UNITS:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         break;
 
-		case ACTION:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiLoopAct);  
-			break;
+      case ACTION:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiLoopAct);  
+         break;
 
-		case PROPORTIONAL_CONSTANT_UNITS:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
-			break;
+      case PROPORTIONAL_CONSTANT_UNITS:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         break;
 
-		case INTEGRAL_CONSTANT_UNITS:  
-			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
-			break;
+      case INTEGRAL_CONSTANT_UNITS:  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         break;
 
-		case DERIVATIVE_CONSTANT_UNITS:  
-			petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
-			break;
+      case DERIVATIVE_CONSTANT_UNITS:  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         break;
 
-		case PROGRAM_STATE:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiPrState);  
-			break;
+      case PROGRAM_STATE:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiPrState);  
+         break;
 
-		case REASON_FOR_HALT:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiPrErr);  
-			break;
+      case REASON_FOR_HALT:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiPrErr);  
+         break;
 
-		case VT_CLASSES_SUPPORTED:
-			petable = (PICS::etable *)PICS::GetEnumTable(eiVTCls);
-			break;
+      case VT_CLASSES_SUPPORTED:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiVTCls);
+         break;
 
-		default:
-			return new BACnetEnumerated(0);
-	}
+      default:
+         return new BACnetEnumerated(0);
+   }
 
-	return new BACnetEnumerated( 0, (const char **) petable->estrings, petable->nes );
+   return new BACnetEnumerated( 0, (const char **) petable->estrings, petable->nes );
 }
 
 
@@ -1405,7 +1405,7 @@ BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
 
 
 //
-//	BACnetUnsigned
+// BACnetUnsigned
 //
 
 IMPLEMENT_DYNAMIC(BACnetUnsigned, BACnetEncodeable)
@@ -1414,199 +1414,199 @@ IMPLEMENT_DYNAMIC(BACnetUnsigned, BACnetEncodeable)
 //BACnetUnsigned::BACnetUnsigned( unsigned int uivalu )
 
 BACnetUnsigned::BACnetUnsigned( unsigned long uivalu )
-	: uintValue( uivalu )
+   : uintValue( uivalu )
 {
 }
 
 
 BACnetUnsigned::BACnetUnsigned( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetUnsigned::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	int				len
-	;
-	unsigned long	valuCopy
-	;
-	
-	// reduce the value to the smallest number of bytes
-	len = 4;
-	valuCopy = uintValue;
-	while ((len > 1) && ((valuCopy & 0xFF000000) == 0)) {
-		len -= 1;
-		valuCopy = (valuCopy << 8);
-	}
-	
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, len ).Encode( enc );
-	else
-		BACnetAPDUTag( unsignedIntAppTag, len ).Encode( enc );
-	
-	// fill in the data
-	while (len--) {
-		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(valuCopy >> 24);
-		valuCopy = (valuCopy << 8);
-	}
+   int            len
+   ;
+   unsigned long  valuCopy
+   ;
+   
+   // reduce the value to the smallest number of bytes
+   len = 4;
+   valuCopy = uintValue;
+   while ((len > 1) && ((valuCopy & 0xFF000000) == 0)) {
+      len -= 1;
+      valuCopy = (valuCopy << 8);
+   }
+   
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, len ).Encode( enc );
+   else
+      BACnetAPDUTag( unsignedIntAppTag, len ).Encode( enc );
+   
+   // fill in the data
+   while (len--) {
+      enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(valuCopy >> 24);
+      valuCopy = (valuCopy << 8);
+   }
 }
 
 void BACnetUnsigned::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
-	unsigned long	rslt
-	;
-	
-	// extract the tag
-	tag.Decode( dec );
-	
-	// check the type
-	if (!tag.tagClass && (tag.tagNumber != unsignedIntAppTag))
-		throw_(15) /* mismatched data type */;
-	
-	// copy out the data
-	rslt = 0;
-	while (tag.tagLVT) {
-		rslt = (rslt << 8) + (dec.pktLength--,*dec.pktBuffer++);
-		tag.tagLVT -= 1;
-	}
-	
-	// save the result
-	uintValue = rslt;
+   BACnetAPDUTag  tag
+   ;
+   unsigned long  rslt
+   ;
+   
+   // extract the tag
+   tag.Decode( dec );
+   
+   // check the type
+   if (!tag.tagClass && (tag.tagNumber != unsignedIntAppTag))
+      throw_(15) /* mismatched data type */;
+   
+   // copy out the data
+   rslt = 0;
+   while (tag.tagLVT) {
+      rslt = (rslt << 8) + (dec.pktLength--,*dec.pktBuffer++);
+      tag.tagLVT -= 1;
+   }
+   
+   // save the result
+   uintValue = rslt;
 }
 
 void BACnetUnsigned::Encode( CString &enc ) const
 {
-	enc.Format( "%lu", uintValue );
+   enc.Format( "%lu", uintValue );
 }
 
 
 void BACnetUnsigned::Decode( const char *dec )
 {
-	unsigned int	t
-	;
+   unsigned int   t
+   ;
 
-	// figure out what encoding to use
-	//Moved by Yajun Zhou, 2002-8-16
-	//Moved to line 647
-	//	if (IsDigit(*dec)) {										// nnn
-	//		// integer encoding
-	//		for (uintValue = 0; *dec; dec++)
-	//			if (!IsDigit(*dec))
-	//				throw_(16) /* invalid character */;
-	//			else
-	//				uintValue = (uintValue * 10) + (*dec - '0');
-	//	} else
-	////////////////////////////////////////
-	if ( ((dec[0] == 'D') && (dec[1] == '\''))					// D'nnn'
-		|| ((dec[0] == 'd') && (dec[1] == '\''))
-		) {
-		// decimal encoding
-		dec += 2;
-		if (((strlen(dec) - 1) % 3) != 0)			// must be triplet
-			throw_(17) /* must be triplet */;
-		for (uintValue = 0; *dec != '\''; ) {
-			if (!IsDigit(*dec))
-				throw_(18) /* invalid character */;
-			t = (*dec++ - '0');
+   // figure out what encoding to use
+   //Moved by Yajun Zhou, 2002-8-16
+   //Moved to line 647
+   // if (IsDigit(*dec)) {                            // nnn
+   //    // integer encoding
+   //    for (uintValue = 0; *dec; dec++)
+   //       if (!IsDigit(*dec))
+   //          throw_(16) /* invalid character */;
+   //       else
+   //          uintValue = (uintValue * 10) + (*dec - '0');
+   // } else
+   ////////////////////////////////////////
+   if ( ((dec[0] == 'D') && (dec[1] == '\''))               // D'nnn'
+      || ((dec[0] == 'd') && (dec[1] == '\''))
+      ) {
+      // decimal encoding
+      dec += 2;
+      if (((strlen(dec) - 1) % 3) != 0)         // must be triplet
+         throw_(17) /* must be triplet */;
+      for (uintValue = 0; *dec != '\''; ) {
+         if (!IsDigit(*dec))
+            throw_(18) /* invalid character */;
+         t = (*dec++ - '0');
 
-			if (!IsDigit(*dec))
-				throw_(19) /* invalid character */;
-			t = (t * 10) + (*dec++ - '0');
+         if (!IsDigit(*dec))
+            throw_(19) /* invalid character */;
+         t = (t * 10) + (*dec++ - '0');
 
-			if (!IsDigit(*dec))
-				throw_(20) /* invalid character */;
-			t = (t * 10) + (*dec++ - '0');
+         if (!IsDigit(*dec))
+            throw_(20) /* invalid character */;
+         t = (t * 10) + (*dec++ - '0');
 
-			uintValue = (uintValue * 256) + t;
-		}
-	} else
-	if ( ((dec[0] == '0') && (dec[1] == 'x'))
-		|| ((dec[0] == 'X') && (dec[1] == '\''))
-		|| ((dec[0] == 'x') && (dec[1] == '\''))
-		|| ((dec[0] == '&') && (dec[1] == 'x'))
-		|| ((dec[0] == '&') && (dec[1] == 'X'))
-		) {
-		// hex encoding
-		dec += 2;
-		for (uintValue = 0; *dec && (*dec != '\''); dec++) {
-			if (!IsXDigit(*dec))
-				throw_(21) /* invalid character */;
-			uintValue = (uintValue * 16) + (IsDigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
-		}
-	} else
-	if ( ((dec[0] == '0') && (dec[1] == 'o'))
-		|| ((dec[0] == 'O') && (dec[1] == '\''))
-		|| ((dec[0] == 'o') && (dec[1] == '\''))
-		|| ((dec[0] == '&') && (dec[1] == 'O'))
-		|| ((dec[0] == '&') && (dec[1] == 'o'))
-		) {
-		// octal encoding
-		dec += 2;
-		for (uintValue = 0; *dec && (*dec != '\''); dec++) {
-			if ((*dec < '0') || (*dec > '7'))
-				throw_(21) /* invalid character */;
-			//Modified by Yajun Zhou, 2002-8-16
-			//uintValue = (uintValue * 16) + (*dec - '0');
-			uintValue = (uintValue * 8) + (*dec - '0');
-			///////////////////////////////////
-		}
-	} else
-	if ( ((dec[0] == '0') && (dec[1] == 'b'))
-		|| ((dec[0] == 'B') && (dec[1] == '\''))
-		|| ((dec[0] == 'b') && (dec[1] == '\''))
-		|| ((dec[0] == '&') && (dec[1] == 'B'))
-		|| ((dec[0] == '&') && (dec[1] == 'b'))
-		) {
-		// binary encoding
-		dec += 2;
-		for (uintValue = 0; *dec && (*dec != '\''); dec++) {
-			if ((*dec < '0') || (*dec > '1'))
-				throw_(22) /* invalid character */;
-			uintValue = (uintValue * 2) + (*dec - '0');
-		}
-	} else
-	//Moved by Yajun Zhou, 2002-8-16
-	if (IsDigit(*dec)) {										// nnn
-		// integer encoding
-		for (uintValue = 0; *dec; dec++)
-			if (!IsDigit(*dec))
-				throw_(16) /* invalid character */;
-			else
-				uintValue = (uintValue * 10) + (*dec - '0');
-	} else
-	//////////////////////////////////
-		throw_(23) /* unknown or invalid encoding */;
+         uintValue = (uintValue * 256) + t;
+      }
+   } else
+   if ( ((dec[0] == '0') && (dec[1] == 'x'))
+      || ((dec[0] == 'X') && (dec[1] == '\''))
+      || ((dec[0] == 'x') && (dec[1] == '\''))
+      || ((dec[0] == '&') && (dec[1] == 'x'))
+      || ((dec[0] == '&') && (dec[1] == 'X'))
+      ) {
+      // hex encoding
+      dec += 2;
+      for (uintValue = 0; *dec && (*dec != '\''); dec++) {
+         if (!IsXDigit(*dec))
+            throw_(21) /* invalid character */;
+         uintValue = (uintValue * 16) + (IsDigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
+      }
+   } else
+   if ( ((dec[0] == '0') && (dec[1] == 'o'))
+      || ((dec[0] == 'O') && (dec[1] == '\''))
+      || ((dec[0] == 'o') && (dec[1] == '\''))
+      || ((dec[0] == '&') && (dec[1] == 'O'))
+      || ((dec[0] == '&') && (dec[1] == 'o'))
+      ) {
+      // octal encoding
+      dec += 2;
+      for (uintValue = 0; *dec && (*dec != '\''); dec++) {
+         if ((*dec < '0') || (*dec > '7'))
+            throw_(21) /* invalid character */;
+         //Modified by Yajun Zhou, 2002-8-16
+         //uintValue = (uintValue * 16) + (*dec - '0');
+         uintValue = (uintValue * 8) + (*dec - '0');
+         ///////////////////////////////////
+      }
+   } else
+   if ( ((dec[0] == '0') && (dec[1] == 'b'))
+      || ((dec[0] == 'B') && (dec[1] == '\''))
+      || ((dec[0] == 'b') && (dec[1] == '\''))
+      || ((dec[0] == '&') && (dec[1] == 'B'))
+      || ((dec[0] == '&') && (dec[1] == 'b'))
+      ) {
+      // binary encoding
+      dec += 2;
+      for (uintValue = 0; *dec && (*dec != '\''); dec++) {
+         if ((*dec < '0') || (*dec > '1'))
+            throw_(22) /* invalid character */;
+         uintValue = (uintValue * 2) + (*dec - '0');
+      }
+   } else
+   //Moved by Yajun Zhou, 2002-8-16
+   if (IsDigit(*dec)) {                            // nnn
+      // integer encoding
+      for (uintValue = 0; *dec; dec++)
+         if (!IsDigit(*dec))
+            throw_(16) /* invalid character */;
+         else
+            uintValue = (uintValue * 10) + (*dec - '0');
+   } else
+   //////////////////////////////////
+      throw_(23) /* unknown or invalid encoding */;
 }
 
 
 int BACnetUnsigned::DataType()
 {
-	return ud;
+   return ud;
 }
 
 BACnetEncodeable * BACnetUnsigned::clone()
 {
-	return new BACnetUnsigned(uintValue);
+   return new BACnetUnsigned(uintValue);
 }
 
 
 bool BACnetUnsigned::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned))  ||  
-		 !::Match(iOperator, uintValue, ((BACnetUnsigned &) rbacnet).uintValue) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned))  ||  
+       !::Match(iOperator, uintValue, ((BACnetUnsigned &) rbacnet).uintValue) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
@@ -1614,226 +1614,226 @@ bool BACnetUnsigned::Match( BACnetEncodeable &rbacnet, int iOperator, CString * 
 IMPLEMENT_DYNAMIC(BACnetInteger, BACnetEncodeable)
 
 //
-//	BACnetInteger
+// BACnetInteger
 //
 
 BACnetInteger::BACnetInteger( int ivalu )
-	: intValue( ivalu )
+   : intValue( ivalu )
 {
 }
 
 
 BACnetInteger::BACnetInteger( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetInteger::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	int		len
-	,		valuCopy
-	;
-	
-	// reduce the value to the smallest number of bytes, be careful about 
-	// the next upper bit down being sign extended
-	len = 4;
-	valuCopy = intValue;
-	while (len > 1) {
-		if ((intValue >= 0) && ((valuCopy & 0xFF800000) != 0x00000000))
-			break;
-		if ((intValue < 0) && ((valuCopy & 0xFF800000) != 0xFF800000))
-			break;
-		
-		len -= 1;
-		valuCopy = (valuCopy << 8);
-	}
-	
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, len ).Encode( enc );
-	else
-		BACnetAPDUTag( integerAppTag, len ).Encode( enc );
-	
-	// fill in the data
-	while (len--) {
-		enc.pktBuffer[enc.pktLength++] = (valuCopy >> 24) & 0x0FF;
-		valuCopy = (valuCopy << 8);
-	}
+   int      len
+   ,     valuCopy
+   ;
+   
+   // reduce the value to the smallest number of bytes, be careful about 
+   // the next upper bit down being sign extended
+   len = 4;
+   valuCopy = intValue;
+   while (len > 1) {
+      if ((intValue >= 0) && ((valuCopy & 0xFF800000) != 0x00000000))
+         break;
+      if ((intValue < 0) && ((valuCopy & 0xFF800000) != 0xFF800000))
+         break;
+      
+      len -= 1;
+      valuCopy = (valuCopy << 8);
+   }
+   
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, len ).Encode( enc );
+   else
+      BACnetAPDUTag( integerAppTag, len ).Encode( enc );
+   
+   // fill in the data
+   while (len--) {
+      enc.pktBuffer[enc.pktLength++] = (valuCopy >> 24) & 0x0FF;
+      valuCopy = (valuCopy << 8);
+   }
 }
 
 void BACnetInteger::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
-	int				rslt
-	;
-	
-	// extract the tag
-	tag.Decode( dec );
-	
-	// check the type
-	if (!tag.tagClass && (tag.tagNumber != integerAppTag))
-		throw_(24) /* mismatched data type */;
-	
-	// check for sign extension
-	if ((*dec.pktBuffer & 0x80) != 0)
-		rslt = -1;
-	else
-		rslt = 0;
-	
-	// copy out the data
-	while (tag.tagLVT) {
-		rslt = (rslt << 8) + (dec.pktLength--,*dec.pktBuffer++);
-		tag.tagLVT -= 1;
-	}
-	
-	// save the result
-	intValue = rslt;
+   BACnetAPDUTag  tag
+   ;
+   int            rslt
+   ;
+   
+   // extract the tag
+   tag.Decode( dec );
+   
+   // check the type
+   if (!tag.tagClass && (tag.tagNumber != integerAppTag))
+      throw_(24) /* mismatched data type */;
+   
+   // check for sign extension
+   if ((*dec.pktBuffer & 0x80) != 0)
+      rslt = -1;
+   else
+      rslt = 0;
+   
+   // copy out the data
+   while (tag.tagLVT) {
+      rslt = (rslt << 8) + (dec.pktLength--,*dec.pktBuffer++);
+      tag.tagLVT -= 1;
+   }
+   
+   // save the result
+   intValue = rslt;
 }
 
 void BACnetInteger::Encode( CString &enc ) const
 {
-	enc.Format( "%d", intValue );
+   enc.Format( "%d", intValue );
 }
 
 void BACnetInteger::Decode( const char *dec )
 {
-	bool				negValue = false
-	;
-	int					t
-	;
+   bool           negValue = false
+   ;
+   int               t
+   ;
 
-	// look for a sign
-	if (*dec == '-') {
-		negValue = true;
-		dec += 1;
-	} else
-	if (*dec == '+')
-		dec += 1;
+   // look for a sign
+   if (*dec == '-') {
+      negValue = true;
+      dec += 1;
+   } else
+   if (*dec == '+')
+      dec += 1;
 
-	// figure out what encoding to use
-	//Moved by Yajun Zhou, 2002-8-17
-	//Moved to line 834
-	//	if (IsDigit(*dec)) {										// nnn
-	//		// integer encoding
-	//		for (intValue = 0; *dec; dec++)
-	//			if (!IsDigit(*dec))
-	//				throw_(25) /* invalid character */;
-	//			else
-	//				intValue = (intValue * 10) + (*dec - '0');
-	//	} else
-	////////////////////////////////////////////
-	if ( ((dec[0] == 'D') && (dec[1] == '\''))					// D'nnn'
-		|| ((dec[0] == 'd') && (dec[1] == '\''))
-		) {
-		// decimal encoding
-		dec += 2;
-		if (((strlen(dec) - 1) % 3) != 0)			// must be triplet
-			throw_(26) /* must be triplet */;
-		for (intValue = 0; *dec != '\''; ) {
-			if (!IsDigit(*dec))
-				throw_(27) /* invalid character */;
-			t = (*dec++ - '0');
+   // figure out what encoding to use
+   //Moved by Yajun Zhou, 2002-8-17
+   //Moved to line 834
+   // if (IsDigit(*dec)) {                            // nnn
+   //    // integer encoding
+   //    for (intValue = 0; *dec; dec++)
+   //       if (!IsDigit(*dec))
+   //          throw_(25) /* invalid character */;
+   //       else
+   //          intValue = (intValue * 10) + (*dec - '0');
+   // } else
+   ////////////////////////////////////////////
+   if ( ((dec[0] == 'D') && (dec[1] == '\''))               // D'nnn'
+      || ((dec[0] == 'd') && (dec[1] == '\''))
+      ) {
+      // decimal encoding
+      dec += 2;
+      if (((strlen(dec) - 1) % 3) != 0)         // must be triplet
+         throw_(26) /* must be triplet */;
+      for (intValue = 0; *dec != '\''; ) {
+         if (!IsDigit(*dec))
+            throw_(27) /* invalid character */;
+         t = (*dec++ - '0');
 
-			if (!IsDigit(*dec))
-				throw_(28) /* invalid character */;
-			t = (t * 10) + (*dec++ - '0');
+         if (!IsDigit(*dec))
+            throw_(28) /* invalid character */;
+         t = (t * 10) + (*dec++ - '0');
 
-			if (!IsDigit(*dec))
-				throw_(29) /* invalid character */;
-			t = (t * 10) + (*dec++ - '0');
+         if (!IsDigit(*dec))
+            throw_(29) /* invalid character */;
+         t = (t * 10) + (*dec++ - '0');
 
-			intValue = (intValue * 256) + t;
-		}
-	} else
-	if ( ((dec[0] == '0') && (dec[1] == 'x'))					// 0xFF, X'FF', &xFF
-		|| ((dec[0] == 'X') && (dec[1] == '\''))
-		|| ((dec[0] == 'x') && (dec[1] == '\''))
-		|| ((dec[0] == '&') && (dec[1] == 'x'))
-		|| ((dec[0] == '&') && (dec[1] == 'X'))
-		) {
-		// hex encoding
-		dec += 2;
-		for (intValue = 0; *dec && (*dec != '\''); dec++) {
-			if (!IsXDigit(*dec))
-				throw_(30) /* invalid character */;
-			intValue = (intValue * 16) + (IsDigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
-		}
-	} else
-	if ( ((dec[0] == '0') && (dec[1] == 'o'))					// 0o377, O'377', &O377
-		|| ((dec[0] == 'O') && (dec[1] == '\''))
-		|| ((dec[0] == 'o') && (dec[1] == '\''))
-		|| ((dec[0] == '&') && (dec[1] == 'O'))
-		|| ((dec[0] == '&') && (dec[1] == 'o'))
-		) {
-		// octal encoding
-		dec += 2;
-		for (intValue = 0; *dec && (*dec != '\''); dec++) {
-			if ((*dec < '0') || (*dec > '7'))
-				throw_(31) /* invalid character */;
-			//Modified by Yajun Zhou, 2002-8-17
-			//intValue = (intValue * 16) + (*dec - '0');
-			intValue = (intValue * 8) + (*dec - '0');
-			/////////////////////////////////////////
-		}
-	} else
-	if ( ((dec[0] == '0') && (dec[1] == 'b'))					// 0b11111111, B'11111111', &B11111111
-		|| ((dec[0] == 'B') && (dec[1] == '\''))
-		|| ((dec[0] == 'b') && (dec[1] == '\''))
-		|| ((dec[0] == '&') && (dec[1] == 'B'))
-		|| ((dec[0] == '&') && (dec[1] == 'b'))
-		) {
-		// binary encoding
-		dec += 2;
-		for (intValue = 0; *dec && (*dec != '\''); dec++) {
-			if ((*dec < '0') || (*dec > '1'))
-				throw_(32) /* invalid character */;
-			intValue = (intValue * 2) + (*dec - '0');
-		}
-	} else
-	//Moved by Yajun Zhou, 2002-8-17
-	if (IsDigit(*dec)) {										// nnn
-		// integer encoding
-		for (intValue = 0; *dec; dec++)
-			if (!IsDigit(*dec))
-				throw_(25) /* invalid character */;
-			else
-				intValue = (intValue * 10) + (*dec - '0');
-	} else
-	//////////////////////////////////////////////////
-		throw_(33) /* unknown or invalid encoding */;
+         intValue = (intValue * 256) + t;
+      }
+   } else
+   if ( ((dec[0] == '0') && (dec[1] == 'x'))             // 0xFF, X'FF', &xFF
+      || ((dec[0] == 'X') && (dec[1] == '\''))
+      || ((dec[0] == 'x') && (dec[1] == '\''))
+      || ((dec[0] == '&') && (dec[1] == 'x'))
+      || ((dec[0] == '&') && (dec[1] == 'X'))
+      ) {
+      // hex encoding
+      dec += 2;
+      for (intValue = 0; *dec && (*dec != '\''); dec++) {
+         if (!IsXDigit(*dec))
+            throw_(30) /* invalid character */;
+         intValue = (intValue * 16) + (IsDigit(*dec) ? (*dec - '0') : (*dec - 'A' + 10));
+      }
+   } else
+   if ( ((dec[0] == '0') && (dec[1] == 'o'))             // 0o377, O'377', &O377
+      || ((dec[0] == 'O') && (dec[1] == '\''))
+      || ((dec[0] == 'o') && (dec[1] == '\''))
+      || ((dec[0] == '&') && (dec[1] == 'O'))
+      || ((dec[0] == '&') && (dec[1] == 'o'))
+      ) {
+      // octal encoding
+      dec += 2;
+      for (intValue = 0; *dec && (*dec != '\''); dec++) {
+         if ((*dec < '0') || (*dec > '7'))
+            throw_(31) /* invalid character */;
+         //Modified by Yajun Zhou, 2002-8-17
+         //intValue = (intValue * 16) + (*dec - '0');
+         intValue = (intValue * 8) + (*dec - '0');
+         /////////////////////////////////////////
+      }
+   } else
+   if ( ((dec[0] == '0') && (dec[1] == 'b'))             // 0b11111111, B'11111111', &B11111111
+      || ((dec[0] == 'B') && (dec[1] == '\''))
+      || ((dec[0] == 'b') && (dec[1] == '\''))
+      || ((dec[0] == '&') && (dec[1] == 'B'))
+      || ((dec[0] == '&') && (dec[1] == 'b'))
+      ) {
+      // binary encoding
+      dec += 2;
+      for (intValue = 0; *dec && (*dec != '\''); dec++) {
+         if ((*dec < '0') || (*dec > '1'))
+            throw_(32) /* invalid character */;
+         intValue = (intValue * 2) + (*dec - '0');
+      }
+   } else
+   //Moved by Yajun Zhou, 2002-8-17
+   if (IsDigit(*dec)) {                            // nnn
+      // integer encoding
+      for (intValue = 0; *dec; dec++)
+         if (!IsDigit(*dec))
+            throw_(25) /* invalid character */;
+         else
+            intValue = (intValue * 10) + (*dec - '0');
+   } else
+   //////////////////////////////////////////////////
+      throw_(33) /* unknown or invalid encoding */;
 
-	// update for sign
-	if (negValue)
-		intValue = (intValue * -1);
+   // update for sign
+   if (negValue)
+      intValue = (intValue * -1);
 }
 
 
 int BACnetInteger::DataType()
 {
-	return sw;
+   return sw;
 }
 
 BACnetEncodeable * BACnetInteger::clone()
 {
-	return new BACnetInteger(intValue);
+   return new BACnetInteger(intValue);
 }
 
 
 bool BACnetInteger::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)) ||
-		 !::Match(iOperator, intValue, ((BACnetInteger &) rbacnet).intValue) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)) ||
+       !::Match(iOperator, intValue, ((BACnetInteger &) rbacnet).intValue) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
@@ -1841,11 +1841,11 @@ bool BACnetInteger::Match( BACnetEncodeable &rbacnet, int iOperator, CString * p
 IMPLEMENT_DYNAMIC(BACnetReal, BACnetEncodeable)
 
 //
-//	BACnetReal
+// BACnetReal
 //
 
 BACnetReal::BACnetReal( float rvalu )
-	: realValue( rvalu )
+   : realValue( rvalu )
 {
 }
 
@@ -1853,137 +1853,137 @@ BACnetReal::BACnetReal( float rvalu )
 
 BACnetReal::BACnetReal( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetReal::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, 4 ).Encode( enc );
-	else
-		BACnetAPDUTag( realAppTag, 4 ).Encode( enc );
-	
-	// fill in the data
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, 4 ).Encode( enc );
+   else
+      BACnetAPDUTag( realAppTag, 4 ).Encode( enc );
+   
+   // fill in the data
 #if (__DECCXX)
-	cvt$convert_float( &realValue, CVT$K_VAX_F
-		, enc.pktBuffer+enc.pktLength, CVT$K_IEEE_S
-		, CVT$M_ROUND_TO_NEAREST + CVT$M_BIG_ENDIAN
-		);
-	enc.pktLength += 4;
+   cvt$convert_float( &realValue, CVT$K_VAX_F
+      , enc.pktBuffer+enc.pktLength, CVT$K_IEEE_S
+      , CVT$M_ROUND_TO_NEAREST + CVT$M_BIG_ENDIAN
+      );
+   enc.pktLength += 4;
 #else
 #ifdef ENDIAN_SWAP
-	unsigned long cpy = *(unsigned long *)&realValue;
-	for (int j = 3; j >= 0; j--)
-		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(cpy >> (j * 8));
+   unsigned long cpy = *(unsigned long *)&realValue;
+   for (int j = 3; j >= 0; j--)
+      enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(cpy >> (j * 8));
 #else
-	memcpy( enc.pktBuffer+enc.pktLength, &realValue, (size_t)4 );
-	enc.pktLength += 4;
+   memcpy( enc.pktBuffer+enc.pktLength, &realValue, (size_t)4 );
+   enc.pktLength += 4;
 #endif
 #endif
 }
 
 void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
-		
-	// verify the tag can be extracted
-	tag.Decode( dec );
-	
-	// check the type and length
-	if (!tag.tagClass && (tag.tagNumber != realAppTag))
-		throw_(34) /* mismatched data type */;
-	if (tag.tagLVT != 4)
-		throw_(35) /* four bytes of data expected */;
-	
-	// copy out the data
+   BACnetAPDUTag  tag
+   ;
+      
+   // verify the tag can be extracted
+   tag.Decode( dec );
+   
+   // check the type and length
+   if (!tag.tagClass && (tag.tagNumber != realAppTag))
+      throw_(34) /* mismatched data type */;
+   if (tag.tagLVT != 4)
+      throw_(35) /* four bytes of data expected */;
+   
+   // copy out the data
 #if (__DECCXX)
-	cvt$convert_float( dec.pktBuffer, CVT$K_IEEE_S
-		, &realValue, CVT$K_VAX_F
-		, CVT$M_ROUND_TO_NEAREST + CVT$M_BIG_ENDIAN
-		);
-	dec.pktBuffer += 4;
-	dec.pktLength -= 4;
+   cvt$convert_float( dec.pktBuffer, CVT$K_IEEE_S
+      , &realValue, CVT$K_VAX_F
+      , CVT$M_ROUND_TO_NEAREST + CVT$M_BIG_ENDIAN
+      );
+   dec.pktBuffer += 4;
+   dec.pktLength -= 4;
 #else
 #ifdef ENDIAN_SWAP
-	unsigned long cpy = 0;
-	for (int j = 3; dec.pktLength && j >= 0; j--)
-		cpy = (cpy << 8) + (dec.pktLength--,*dec.pktBuffer++);
-	realValue = *(float *)&cpy;
+   unsigned long cpy = 0;
+   for (int j = 3; dec.pktLength && j >= 0; j--)
+      cpy = (cpy << 8) + (dec.pktLength--,*dec.pktBuffer++);
+   realValue = *(float *)&cpy;
 #else
-	memcpy( &realValue, dec.pktBuffer, (size_t)4 );
-	dec.pktBuffer += 4;
-	dec.pktLength -= 4;
+   memcpy( &realValue, dec.pktBuffer, (size_t)4 );
+   dec.pktBuffer += 4;
+   dec.pktLength -= 4;
 #endif
 #endif
 }
 
 void BACnetReal::Encode( CString &enc ) const
 {
-	// Use %g to avoid buffer overrun with very large and very small numbers.
-	// This shows +INF as "1.#INF0", -INF as "-1.#INF0", and our NAN as "1.#QNAN"
-	enc.Format( "%#g", realValue );
+   // Use %g to avoid buffer overrun with very large and very small numbers.
+   // This shows +INF as "1.#INF0", -INF as "-1.#INF0", and our NAN as "1.#QNAN"
+   enc.Format( "%#g", realValue );
 }
 
 void BACnetReal::Decode( const char *dec )
 {
-	// Check for special values
-	// The "1.#INF0" styles are what Visual Studio shows for %g
-	UINT special;
-	if ((_stricmp( dec, "INF" ) == 0) || (_stricmp( dec, "1.#INF0" ) == 0))
-	{
-		// Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
-		special = 0x7F800000;
-		realValue = *(float*)&special;
-	}
-	else if ((_stricmp( dec, "-INF" ) == 0) || (_stricmp( dec, "-1.#INF0" ) == 0))
-	{
-		// Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
-		special = 0xFF800000;
-		realValue = *(float*)&special;
-	}
-	else if ((_stricmp( dec, "NAN" ) == 0) || (_stricmp( dec, "1.#QNAN" ) == 0) || (_stricmp( dec, "1.#SNAN" ) == 0))
-	{
-		// Not a number: sign bit, 8 exponent bits, all set, 23 mantissa bits, not all 0
-		special = 0x7F800001;
-		realValue = *(float*)&special;
-	}
+   // Check for special values
+   // The "1.#INF0" styles are what Visual Studio shows for %g
+   UINT special;
+   if ((_stricmp( dec, "INF" ) == 0) || (_stricmp( dec, "1.#INF0" ) == 0))
+   {
+      // Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
+      special = 0x7F800000;
+      realValue = *(float*)&special;
+   }
+   else if ((_stricmp( dec, "-INF" ) == 0) || (_stricmp( dec, "-1.#INF0" ) == 0))
+   {
+      // Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
+      special = 0xFF800000;
+      realValue = *(float*)&special;
+   }
+   else if ((_stricmp( dec, "NAN" ) == 0) || (_stricmp( dec, "1.#QNAN" ) == 0) || (_stricmp( dec, "1.#SNAN" ) == 0))
+   {
+      // Not a number: sign bit, 8 exponent bits, all set, 23 mantissa bits, not all 0
+      special = 0x7F800001;
+      realValue = *(float*)&special;
+   }
 
-	// check for valid format (also accepts 1e10 format)
-	else if (sscanf( dec, "%f", &realValue ) != 1)
-		throw_(36) /* format error */;
+   // check for valid format (also accepts 1e10 format)
+   else if (sscanf( dec, "%f", &realValue ) != 1)
+      throw_(36) /* format error */;
 }
 
 
 int BACnetReal::DataType()
 {
-	return flt;
+   return flt;
 }
 
 BACnetEncodeable * BACnetReal::clone()
 {
-	return new BACnetReal(realValue);
+   return new BACnetReal(realValue);
 }
 
 
 bool BACnetReal::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	// Don't assert here because we might be comparing Real value with Null value from priority array
-	// This is normal and assert is getting in the way.
+   // Don't assert here because we might be comparing Real value with Null value from priority array
+   // This is normal and assert is getting in the way.
 
-//	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)));
+// ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)) || 
-		 !::Match(iOperator, realValue, ((BACnetReal &) rbacnet).realValue ) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)) || 
+       !::Match(iOperator, realValue, ((BACnetReal &) rbacnet).realValue ) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
@@ -1992,144 +1992,144 @@ bool BACnetReal::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 IMPLEMENT_DYNAMIC(BACnetDouble, BACnetEncodeable)
 
 //
-//	BACnetDouble
+// BACnetDouble
 //
 
 BACnetDouble::BACnetDouble( double dvalu )
-	: doubleValue( dvalu )
+   : doubleValue( dvalu )
 {
 }
 
 BACnetDouble::BACnetDouble( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 void BACnetDouble::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, 8 ).Encode( enc );
-	else
-		BACnetAPDUTag( doubleAppTag, 8 ).Encode( enc );
-	
-	// fill in the data
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, 8 ).Encode( enc );
+   else
+      BACnetAPDUTag( doubleAppTag, 8 ).Encode( enc );
+   
+   // fill in the data
 #if (__DECCXX)
-	// VAX anyone?
-	cvt$convert_float( &doubleValue, CVT$K_VAX_G
-		, enc.pktBuffer+enc.pktLength, CVT$K_IEEE_T
-		, CVT$M_ROUND_TO_NEAREST + CVT$M_BIG_ENDIAN
-		);
-	enc.pktLength += 8;
+   // VAX anyone?
+   cvt$convert_float( &doubleValue, CVT$K_VAX_G
+      , enc.pktBuffer+enc.pktLength, CVT$K_IEEE_T
+      , CVT$M_ROUND_TO_NEAREST + CVT$M_BIG_ENDIAN
+      );
+   enc.pktLength += 8;
 #else
 #ifdef ENDIAN_SWAP
-	union {
-		double	src;
-		struct {
-			unsigned long	t1, t2;
-		}	s;
-	}		x;
+   union {
+      double   src;
+      struct {
+         unsigned long  t1, t2;
+      }  s;
+   }     x;
 
-	x.src = doubleValue;
-	// High half first, high byte first
-	for (int j = 3; j >= 0; j--)
-		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(x.s.t2 >> (j * 8));
-	for (int k = 3; k >= 0; k--)
-		enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(x.s.t1 >> (k * 8));
+   x.src = doubleValue;
+   // High half first, high byte first
+   for (int j = 3; j >= 0; j--)
+      enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(x.s.t2 >> (j * 8));
+   for (int k = 3; k >= 0; k--)
+      enc.pktBuffer[enc.pktLength++] = (BACnetOctet)(x.s.t1 >> (k * 8));
 #else
-	memcpy( enc.pktBuffer+enc.pktLength, &doubleValue, (size_t)8 );
-	enc.pktLength += 8;
+   memcpy( enc.pktBuffer+enc.pktLength, &doubleValue, (size_t)8 );
+   enc.pktLength += 8;
 #endif
 #endif
 }
 
 void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
-		
-	// verify the tag can be extracted
-	tag.Decode( dec );
-	
-	// check the type and length
-	if (!tag.tagClass && (tag.tagNumber != doubleAppTag))
-		throw_(37) /* mismatched data type */;
-	if (tag.tagLVT != 8)
-		throw_(38) /* eight bytes of data expected */;
-	
-	// copy out the data
+   BACnetAPDUTag  tag
+   ;
+      
+   // verify the tag can be extracted
+   tag.Decode( dec );
+   
+   // check the type and length
+   if (!tag.tagClass && (tag.tagNumber != doubleAppTag))
+      throw_(37) /* mismatched data type */;
+   if (tag.tagLVT != 8)
+      throw_(38) /* eight bytes of data expected */;
+   
+   // copy out the data
 #if (__DECCXX)
-	cvt$convert_float( dec.pktBuffer, CVT$K_IEEE_T
-		, &doubleValue, CVT$K_VAX_G
-		, CVT$M_ROUND_TO_NEAREST + CVT$M_BIG_ENDIAN
-		);
-	dec.pktBuffer += 8;
-	dec.pktLength -= 8;
+   cvt$convert_float( dec.pktBuffer, CVT$K_IEEE_T
+      , &doubleValue, CVT$K_VAX_G
+      , CVT$M_ROUND_TO_NEAREST + CVT$M_BIG_ENDIAN
+      );
+   dec.pktBuffer += 8;
+   dec.pktLength -= 8;
 #else
 #ifdef ENDIAN_SWAP
-	union {
-		double	src;
-		struct {
-			unsigned long	t1, t2;
-		}	s;
-	}		x;
+   union {
+      double   src;
+      struct {
+         unsigned long  t1, t2;
+      }  s;
+   }     x;
 
-	x.src = doubleValue;
-	// High half first, high byte first
-	for (int j = 3; dec.pktLength && j >= 0; j--)
-		x.s.t1 = (x.s.t2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
-	for (int k = 3; dec.pktLength && k >= 0; k--)
-		x.s.t2 = (x.s.t1 << 8) + (dec.pktLength--,*dec.pktBuffer++);
-	doubleValue = x.src;
+   x.src = doubleValue;
+   // High half first, high byte first
+   for (int j = 3; dec.pktLength && j >= 0; j--)
+      x.s.t1 = (x.s.t2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
+   for (int k = 3; dec.pktLength && k >= 0; k--)
+      x.s.t2 = (x.s.t1 << 8) + (dec.pktLength--,*dec.pktBuffer++);
+   doubleValue = x.src;
 #else
-	memcpy( &doubleValue, dec.pktBuffer, (size_t)8 );
-	dec.pktBuffer += 8;
-	dec.pktLength -= 8;
+   memcpy( &doubleValue, dec.pktBuffer, (size_t)8 );
+   dec.pktBuffer += 8;
+   dec.pktLength -= 8;
 #endif
 #endif
 }
 
 void BACnetDouble::Encode( CString &enc ) const
 {
-	// simple, effective
-//	sprintf( enc, "%lf", doubleValue );
+   // simple, effective
+// sprintf( enc, "%lf", doubleValue );
     // JLH .... and wr000000000000000000000000000000ng for 
     // very large and very small numbers. Use %g to avoid buffer overrun
-	enc.Format( "%#lg", doubleValue );
+   enc.Format( "%#lg", doubleValue );
 }
 
 void BACnetDouble::Decode( const char *dec )
 {
-	// check for valid format (also accepts 1e10 format)
-	if (sscanf( dec, "%lf", &doubleValue ) != 1)
-		throw_(39) /* format error */;
+   // check for valid format (also accepts 1e10 format)
+   if (sscanf( dec, "%lf", &doubleValue ) != 1)
+      throw_(39) /* format error */;
 }
 
 
 int BACnetDouble::DataType()
 {
-	return flt;
+   return flt;
 }
 
 BACnetEncodeable * BACnetDouble::clone()
 {
-	return new BACnetDouble(doubleValue);
+   return new BACnetDouble(doubleValue);
 }
 
 
 bool BACnetDouble::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)) ||
-		 !::Match(iOperator, doubleValue, ((BACnetDouble &) rbacnet).doubleValue ) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)) ||
+       !::Match(iOperator, doubleValue, ((BACnetDouble &) rbacnet).doubleValue ) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
@@ -2137,15 +2137,15 @@ bool BACnetDouble::Match( BACnetEncodeable &rbacnet, int iOperator, CString * ps
 IMPLEMENT_DYNAMIC(BACnetCharacterString, BACnetEncodeable)
 
 //
-//	BACnetCharacterString
+// BACnetCharacterString
 //
 
 //BACnetCharacterString::BACnetCharacterString( char *svalu )
 BACnetCharacterString::BACnetCharacterString( LPCSTR svalu )
-	: strEncoding(0)
+   : strEncoding(0)
 {
-	strBuff = NULL;
-	Initialize(svalu);
+   strBuff = NULL;
+   Initialize(svalu);
 }
 
 
@@ -2153,479 +2153,479 @@ BACnetCharacterString::BACnetCharacterString( LPCSTR svalu )
 //void BACnetCharacterString::Initialize( char * svalu )
 void BACnetCharacterString::Initialize( LPCSTR svalu )
 {
-	strLen = (svalu ? strlen(svalu) : 0);
-	if ( strLen )
-	{   delete[] strBuff;
-		strBuff = new BACnetOctet[strLen];
-	}
-	else
-	{
-		strBuff = NULL;
-	}
+   strLen = (svalu ? strlen(svalu) : 0);
+   if ( strLen )
+   {   delete[] strBuff;
+      strBuff = new BACnetOctet[strLen];
+   }
+   else
+   {
+      strBuff = NULL;
+   }
 
-	if (svalu && strBuff)
-		memcpy( strBuff, svalu, (size_t)strLen );
+   if (svalu && strBuff)
+      memcpy( strBuff, svalu, (size_t)strLen );
 }
 
 
 BACnetCharacterString::BACnetCharacterString( BACnetAPDUDecoder & dec )
-					  :strEncoding(0)
+                 :strEncoding(0)
 {
-	strBuff = NULL;
-	Initialize(NULL);
-	Decode(dec);
+   strBuff = NULL;
+   Initialize(NULL);
+   Decode(dec);
 }
 
 
 BACnetCharacterString::BACnetCharacterString( BACnetCharacterString & cpy )
-					  :strEncoding(cpy.strEncoding)
+                 :strEncoding(cpy.strEncoding)
 {
-	strBuff = NULL;
-	Initialize((char *) cpy.strBuff);
+   strBuff = NULL;
+   Initialize((char *) cpy.strBuff);
 }
 
 
 BACnetCharacterString::BACnetCharacterString( CString & rstr )
-					  :strEncoding(0)
+                 :strEncoding(0)
 {
-	strBuff = NULL;
-	Initialize(rstr.GetBuffer(1));
+   strBuff = NULL;
+   Initialize(rstr.GetBuffer(1));
 }
 
 
 
 BACnetCharacterString::~BACnetCharacterString( void )
 {
-	KillBuffer();
+   KillBuffer();
 }
 
 
 void BACnetCharacterString::KillBuffer(void)
 {
-	if ( strBuff != NULL )
-		delete[] strBuff;
-	strBuff = NULL;
+   if ( strBuff != NULL )
+      delete[] strBuff;
+   strBuff = NULL;
 }
 
 
 void BACnetCharacterString::SetValue( const char *svalu, int enc )
 {
-	// toss the old stuff
-	KillBuffer();
+   // toss the old stuff
+   KillBuffer();
 
-	// copy in the new
-	strEncoding = enc;
-	Initialize(svalu);
+   // copy in the new
+   strEncoding = enc;
+   Initialize(svalu);
 
-//	strLen = (svalu ? strlen(svalu) : 0);
-//	strBuff = new BACnetOctet[strLen];
-//	if (svalu)
-//		memcpy( strBuff, svalu, (size_t)strLen );
+// strLen = (svalu ? strlen(svalu) : 0);
+// strBuff = new BACnetOctet[strLen];
+// if (svalu)
+//    memcpy( strBuff, svalu, (size_t)strLen );
 }
 
 bool BACnetCharacterString::Equals( const char *valu )
 {
-	// can't compare against non-ASCII strings
-	if (strEncoding != 0)
-		return false;
+   // can't compare against non-ASCII strings
+   if (strEncoding != 0)
+      return false;
 
-	// not the same if different lengths
-	if (strlen(valu) != strLen)
-		return false;
+   // not the same if different lengths
+   if (strlen(valu) != strLen)
+      return false;
 
-	// case insensitive, strBuff is not null-terminated
-	for (unsigned i = 0; i < strLen; i++)
-		if (strBuff == NULL || ToLower(strBuff[i]) != ToLower(valu[i]))
-			return false;
+   // case insensitive, strBuff is not null-terminated
+   for (unsigned i = 0; i < strLen; i++)
+      if (strBuff == NULL || ToLower(strBuff[i]) != ToLower(valu[i]))
+         return false;
 
-	// success
-	return true;
+   // success
+   return true;
 }
 
 void BACnetCharacterString::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	int				len = strLen + 1
-	;
-	
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, len ).Encode( enc );
-	else
-		BACnetAPDUTag( characterStringAppTag, len ).Encode( enc );
-	
-	// fill in the data
-	enc.pktBuffer[enc.pktLength++] = strEncoding;
-	len -= 1;
+   int            len = strLen + 1
+   ;
+   
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, len ).Encode( enc );
+   else
+      BACnetAPDUTag( characterStringAppTag, len ).Encode( enc );
+   
+   // fill in the data
+   enc.pktBuffer[enc.pktLength++] = strEncoding;
+   len -= 1;
 
-	if ( strBuff != NULL )
-		memcpy( enc.pktBuffer+enc.pktLength, strBuff, (size_t)len );
+   if ( strBuff != NULL )
+      memcpy( enc.pktBuffer+enc.pktLength, strBuff, (size_t)len );
 
-	enc.pktLength += len;
+   enc.pktLength += len;
 }
 
 void BACnetCharacterString::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
-		
-	// verify the tag can be extracted
-	tag.Decode( dec );
-	
-	// check the type and length
-	if (!tag.tagClass && (tag.tagNumber != characterStringAppTag))
-		throw_(40) /* mismatched data type */;
+   BACnetAPDUTag  tag
+   ;
+      
+   // verify the tag can be extracted
+   tag.Decode( dec );
+   
+   // check the type and length
+   if (!tag.tagClass && (tag.tagNumber != characterStringAppTag))
+      throw_(40) /* mismatched data type */;
 
-	// extract the encoding
-	strEncoding = (dec.pktLength--,*dec.pktBuffer++);
-	
-	// skip the encoding and set the length
-	tag.tagLVT -= 1;
-	strLen = tag.tagLVT;
+   // extract the encoding
+   strEncoding = (dec.pktLength--,*dec.pktBuffer++);
+   
+   // skip the encoding and set the length
+   tag.tagLVT -= 1;
+   strLen = tag.tagLVT;
 
-	// allocate a new buffer
-	KillBuffer();
-	if ( strLen )
-		strBuff = new BACnetOctet[strLen];
+   // allocate a new buffer
+   KillBuffer();
+   if ( strLen )
+      strBuff = new BACnetOctet[strLen];
 
-	// copy out the data, null terminated
-	if ( strBuff != NULL )
-		memcpy( strBuff, dec.pktBuffer, (size_t)strLen );
+   // copy out the data, null terminated
+   if ( strBuff != NULL )
+      memcpy( strBuff, dec.pktBuffer, (size_t)strLen );
 
-	dec.pktBuffer += strLen;
-	dec.pktLength -= strLen;
+   dec.pktBuffer += strLen;
+   dec.pktLength -= strLen;
 }
 
 void BACnetCharacterString::Encode( CString &enc ) const
 {
-	char buff[10];
+   char buff[10];
 
-	// check for the simple case
-	if (strEncoding == 0) 
-	{
-		// ANSI (or UTF-8 in latter years...), shown in double quotes
-		// TODO: if there are characters above 127, show the string as hex, or
-		// at least show the UTF-8 groups in hex
-		enc = '"';
+   // check for the simple case
+   if (strEncoding == 0) 
+   {
+      // ANSI (or UTF-8 in latter years...), shown in double quotes
+      // TODO: if there are characters above 127, show the string as hex, or
+      // at least show the UTF-8 groups in hex
+      enc = '"';
 
-		const char *src = (char *)strBuff;
-		for (unsigned i = 0; i < strLen; i++)
-		{
-			TCHAR ch = (TCHAR)strBuff[i];
-			if (ch == 0) 
-			{
-				break;
-			}
-			else if (ch < ' ') 
-			{
-				// TODO: should we use \r \n \t for the common ones?
-				// Does 135.1 say?
-				sprintf( buff, "\\x%02X", ch );
-				enc += buff;
-			} 
-			else if (ch == '\"') 
-			{
-				enc += "\\\"";
-			} 
-			else
-			{
-				enc += ch;
-			}
-		}
+      const char *src = (char *)strBuff;
+      for (unsigned i = 0; i < strLen; i++)
+      {
+         TCHAR ch = (TCHAR)strBuff[i];
+         if (ch == 0) 
+         {
+            break;
+         }
+         else if (ch < ' ') 
+         {
+            // TODO: should we use \r \n \t for the common ones?
+            // Does 135.1 say?
+            sprintf( buff, "\\x%02X", ch );
+            enc += buff;
+         } 
+         else if (ch == '\"') 
+         {
+            enc += "\\\"";
+         } 
+         else
+         {
+            enc += ch;
+         }
+      }
 
-		enc += '"';
-	}
-	else 
-	{
-		// Some other character set
-		switch (strEncoding) 
-		{
-		case 1:
-			enc = "IBM-MICROSOFT-DBCS, X'";
-			break;
-		case 2:
-			enc = "JIS-C-6226, X'";
-			break;
-		case 3:
-			enc = "UCS-4, X'";
-			break;
-		case 4:
-			enc = "UCS-2, X'";
-			break;
-		case 5:
-			enc = "ISO-8859-1, X'";
-			break;
-		default:
-			enc.Format( "%d, X'", strEncoding );
-			break;
-		}
+      enc += '"';
+   }
+   else 
+   {
+      // Some other character set
+      switch (strEncoding) 
+      {
+      case 1:
+         enc = "IBM-MICROSOFT-DBCS, X'";
+         break;
+      case 2:
+         enc = "JIS-C-6226, X'";
+         break;
+      case 3:
+         enc = "UCS-4, X'";
+         break;
+      case 4:
+         enc = "UCS-2, X'";
+         break;
+      case 5:
+         enc = "ISO-8859-1, X'";
+         break;
+      default:
+         enc.Format( "%d, X'", strEncoding );
+         break;
+      }
 
-		// encode the content
-		for (unsigned i = 0; i < strLen && strBuff != NULL; i++) 
-		{
-			sprintf( buff, "\\x%02X", strBuff[i] );
-			enc += buff;
-		}
+      // encode the content
+      for (unsigned i = 0; i < strLen && strBuff != NULL; i++) 
+      {
+         sprintf( buff, "\\x%02X", strBuff[i] );
+         enc += buff;
+      }
 
-		enc += '\'';
-	}
+      enc += '\'';
+   }
 }
 
 void BACnetCharacterString::Decode( const char *dec )
 {
-	char		c = 0,	*dst;
-	const char	*src;
+   char     c = 0,   *dst;
+   const char  *src;
 
-	if ( dec == NULL )
-		return;
+   if ( dec == NULL )
+      return;
 
-	// check for explicit ASCII string
-	if ((*dec == 'A') && (*(dec+1) == '\''))
-		dec += 1;
+   // check for explicit ASCII string
+   if ((*dec == 'A') && (*(dec+1) == '\''))
+      dec += 1;
 
-	// if the first character is a quote, process as a normal string
-	if ((*dec == '\"') || (*dec == '\'')) {
-		strEncoding = 0;
-		c = *dec++;
+   // if the first character is a quote, process as a normal string
+   if ((*dec == '\"') || (*dec == '\'')) {
+      strEncoding = 0;
+      c = *dec++;
 
-		// look for the close and count
-		strLen = 0;
-		src = dec;
-		while (*src && (*src != c)) {
-			if (*src == '\\') {
-				if (ToLower(*(src+1)) == 'x')
-					src += 4;
-				else
-					src += 2;
-			} else
-				src += 1;
-			strLen++;
-		}
+      // look for the close and count
+      strLen = 0;
+      src = dec;
+      while (*src && (*src != c)) {
+         if (*src == '\\') {
+            if (ToLower(*(src+1)) == 'x')
+               src += 4;
+            else
+               src += 2;
+         } else
+            src += 1;
+         strLen++;
+      }
 
-		// allocate a new buffer
-		KillBuffer();
-		if ( strLen )
-			strBuff = new BACnetOctet[ strLen ];
+      // allocate a new buffer
+      KillBuffer();
+      if ( strLen )
+         strBuff = new BACnetOctet[ strLen ];
 
-		// copy the data
-		src = dec;
-		dst = (char *)strBuff;
-		while (*src && (*src != c) && dst != NULL)
-			if (*src == '\\') {
-				if (ToLower(*(src+1)) == 'x') {
-					src += 2;
-					*dst = (IsDigit(*src) ? *src - '0' : (ToUpper(*src) - 'A') + 10) << 4;
-					src += 1;
-					*dst++ += (IsDigit(*src) ? *src - '0' : (ToUpper(*src) - 'A') + 10);
-					src += 1;
-				} else {
-					src += 1;
-					*dst++ = *src++;
-				}
-			} else
-				*dst++ = *src++;
-	} else {
+      // copy the data
+      src = dec;
+      dst = (char *)strBuff;
+      while (*src && (*src != c) && dst != NULL)
+         if (*src == '\\') {
+            if (ToLower(*(src+1)) == 'x') {
+               src += 2;
+               *dst = (IsDigit(*src) ? *src - '0' : (ToUpper(*src) - 'A') + 10) << 4;
+               src += 1;
+               *dst++ += (IsDigit(*src) ? *src - '0' : (ToUpper(*src) - 'A') + 10);
+               src += 1;
+            } else {
+               src += 1;
+               *dst++ = *src++;
+            }
+         } else
+            *dst++ = *src++;
+   } else {
 #if VTSScanner
-		int		encType
-		;
+      int      encType
+      ;
 
-		// create a scanner bound to the text
-		ScriptScanner	scan( dec );
-		ScriptToken		tok;
+      // create a scanner bound to the text
+      ScriptScanner  scan( dec );
+      ScriptToken    tok;
 
-		// get something
-		scan.Next( tok );
+      // get something
+      scan.Next( tok );
 
-		// if a hex string was given, allow default to ASCII
-		if ((tok.tokenType == scriptValue) && (tok.tokenEnc == scriptHexEnc))
-			strEncoding = 0;
-		else {
-			if (!tok.IsInteger( encType, ScriptCharacterTypeMap ))
-				throw_(41) /* encoding type keyword expected */;
-			else
-			if ((encType < 0) || (encType > 255))
-				throw_(42) /* out of range */;
-			strEncoding = encType;
+      // if a hex string was given, allow default to ASCII
+      if ((tok.tokenType == scriptValue) && (tok.tokenEnc == scriptHexEnc))
+         strEncoding = 0;
+      else {
+         if (!tok.IsInteger( encType, ScriptCharacterTypeMap ))
+            throw_(41) /* encoding type keyword expected */;
+         else
+         if ((encType < 0) || (encType > 255))
+            throw_(42) /* out of range */;
+         strEncoding = encType;
 
-			// get the next token
-			scan.Next( tok );
+         // get the next token
+         scan.Next( tok );
 
-			// skip the comma if it was entered
-			if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ','))
-				scan.Next( tok );
-		}
+         // skip the comma if it was entered
+         if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ','))
+            scan.Next( tok );
+      }
 
-		// if the next beast is an ASCII or hex string
-		if ((tok.tokenType == scriptValue) && (tok.tokenEnc == scriptASCIIEnc)) {
-			int saveEncoding = strEncoding;
-			Decode( tok.tokenValue );
-			strEncoding = saveEncoding;
-		} else
-		if ((tok.tokenType == scriptValue) && (tok.tokenEnc == scriptHexEnc)) {
-			BACnetOctetString	ostr;
-			ostr.Decode( tok.tokenValue );
+      // if the next beast is an ASCII or hex string
+      if ((tok.tokenType == scriptValue) && (tok.tokenEnc == scriptASCIIEnc)) {
+         int saveEncoding = strEncoding;
+         Decode( tok.tokenValue );
+         strEncoding = saveEncoding;
+      } else
+      if ((tok.tokenType == scriptValue) && (tok.tokenEnc == scriptHexEnc)) {
+         BACnetOctetString ostr;
+         ostr.Decode( tok.tokenValue );
 
-			// build a new buffer
-			KillBuffer();
-			strLen = ostr.strLen;
-			if ( strLen )
-				strBuff = new BACnetOctet[ strLen ];
+         // build a new buffer
+         KillBuffer();
+         strLen = ostr.strLen;
+         if ( strLen )
+            strBuff = new BACnetOctet[ strLen ];
 
-			if ( strBuff != NULL )
-				memcpy( strBuff, ostr.strBuff, strLen );
-		} else
-			throw_(43) /* ASCII or hex string expected */;
+         if ( strBuff != NULL )
+            memcpy( strBuff, ostr.strBuff, strLen );
+      } else
+         throw_(43) /* ASCII or hex string expected */;
 #else
-		throw_(44) /* not implemented */;
+      throw_(44) /* not implemented */;
 #endif
-	}
+   }
 }
 
 
 int BACnetCharacterString::DataType()
 {
-	return s132;
+   return s132;
 }
 
 BACnetEncodeable * BACnetCharacterString::clone()
 {
-	return new BACnetCharacterString(*this);
+   return new BACnetCharacterString(*this);
 }
 
 
 bool BACnetCharacterString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	// check encoding
-	if ( strEncoding != ((BACnetCharacterString &) rbacnet).strEncoding )
-	{
-		pstrError->Format(IDS_SCREX_COMPFAILSTRENCODING, ((BACnetCharacterString &) rbacnet).strEncoding, strEncoding );
-		return false;
-	}
+   // check encoding
+   if ( strEncoding != ((BACnetCharacterString &) rbacnet).strEncoding )
+   {
+      pstrError->Format(IDS_SCREX_COMPFAILSTRENCODING, ((BACnetCharacterString &) rbacnet).strEncoding, strEncoding );
+      return false;
+   }
 
-	// This may present a problem where the encoding is non ASCII or whatever the heck CString uses...
-	// So let's just keep the old stuff around for the sake of it, eh?
+   // This may present a problem where the encoding is non ASCII or whatever the heck CString uses...
+   // So let's just keep the old stuff around for the sake of it, eh?
 
-	if ( !Match((BACnetCharacterString &) rbacnet, iOperator) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !Match((BACnetCharacterString &) rbacnet, iOperator) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
 bool BACnetCharacterString::Match( BACnetCharacterString & rstring, int iOperator )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	switch(iOperator)
-	{
-		case '=':	return *this == rstring;
-		case '<':	return *this < rstring;
-		case '>':	return *this > rstring;
-		case '<=':	return *this <= rstring;
-		case '>=':	return *this >= rstring;
-		case '!=':	return *this != rstring;
-		default:
-			ASSERT(0);
-	}
-	return false;
+   switch(iOperator)
+   {
+      case '=':   return *this == rstring;
+      case '<':   return *this < rstring;
+      case '>':   return *this > rstring;
+      case '<=':  return *this <= rstring;
+      case '>=':  return *this >= rstring;
+      case '!=':  return *this != rstring;
+      default:
+         ASSERT(0);
+   }
+   return false;
 }
 
 
 
 bool BACnetCharacterString::operator ==( const BACnetCharacterString & arg )
 {
-	return (CString((LPCTSTR)strBuff, strLen) == CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
+   return (CString((LPCTSTR)strBuff, strLen) == CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;      // account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator !=( const BACnetCharacterString & arg )
 {
-	return (CString((LPCTSTR)strBuff, strLen) != CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
+   return (CString((LPCTSTR)strBuff, strLen) != CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;      // account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator <=( const BACnetCharacterString & arg )
 {
-	return (CString((LPCTSTR)strBuff, strLen) <= CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
+   return (CString((LPCTSTR)strBuff, strLen) <= CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;      // account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator <( const BACnetCharacterString & arg )
 {
-	return (CString((LPCTSTR)strBuff, strLen) < CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
+   return (CString((LPCTSTR)strBuff, strLen) < CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;    // account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator >=( const BACnetCharacterString & arg )
 {
-	return (CString((LPCTSTR)strBuff, strLen) >= CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
+   return (CString((LPCTSTR)strBuff, strLen) >= CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;      // account for nasty Microsoft BOOL stuff
 }
 
 
 bool BACnetCharacterString::operator >( const BACnetCharacterString & arg )
 {
-	return (CString((LPCTSTR)strBuff, strLen) > CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;		// account for nasty Microsoft BOOL stuff
+   return (CString((LPCTSTR)strBuff, strLen) > CString((LPCTSTR)arg.strBuff, arg.strLen)) != 0;    // account for nasty Microsoft BOOL stuff
 }
 
 
 /*  Moved from ExpectCharacterString, madanner 10/02
-	// verify the encoding
-	if (cstrData.strEncoding != scriptData.strEncoding)
-		throw "Character string encoding mismatch";
+   // verify the encoding
+   if (cstrData.strEncoding != scriptData.strEncoding)
+      throw "Character string encoding mismatch";
 
-	// verify the value
-	minLen = (cstrData.strLen < scriptData.strLen ? cstrData.strLen : scriptData.strLen);
+   // verify the value
+   minLen = (cstrData.strLen < scriptData.strLen ? cstrData.strLen : scriptData.strLen);
 
-	switch (spep->exprOp) {
-		case '<':
-			for (i = 0; i < minLen; i++)
-				if (cstrData.strBuff[i] >= scriptData.strBuff[i])
-					throw "Character string mismatch";
-			// ### what about the rest?
-			break;
-		case '>':
-			for (i = 0; i < minLen; i++)
-				if (cstrData.strBuff[i] <= scriptData.strBuff[i])
-					throw "Character string mismatch";
-			// ### what about the rest?
-			break;
-		case '<=':
-			for (i = 0; i < minLen; i++)
-				if (cstrData.strBuff[i] < scriptData.strBuff[i])
-					throw "Character string mismatch";
-			// ### what about the rest?
-			break;
-		case '>=':
-			for (i = 0; i < minLen; i++)
-				if (cstrData.strBuff[i] > scriptData.strBuff[i])
-					throw "Character string mismatch";
-			// ### what about the rest?
-			break;
-		case '=':
-			if (cstrData.strLen != scriptData.strLen)
-				throw "Character string mismatch";
-			for (i = 0; i < cstrData.strLen; i++)
-				if (cstrData.strBuff[i] != scriptData.strBuff[i])
-					throw "Character string mismatch";
-			break;
-		case '!=':
-			if (cstrData.strLen != scriptData.strLen)
-				break;
-			for (i = 0; i < cstrData.strLen; i++)
-				if (cstrData.strBuff[i] != scriptData.strBuff[i])
-					break;
-			if (i >= cstrData.strLen)
-				throw "Character string mismatch";
-			break;
-	}
+   switch (spep->exprOp) {
+      case '<':
+         for (i = 0; i < minLen; i++)
+            if (cstrData.strBuff[i] >= scriptData.strBuff[i])
+               throw "Character string mismatch";
+         // ### what about the rest?
+         break;
+      case '>':
+         for (i = 0; i < minLen; i++)
+            if (cstrData.strBuff[i] <= scriptData.strBuff[i])
+               throw "Character string mismatch";
+         // ### what about the rest?
+         break;
+      case '<=':
+         for (i = 0; i < minLen; i++)
+            if (cstrData.strBuff[i] < scriptData.strBuff[i])
+               throw "Character string mismatch";
+         // ### what about the rest?
+         break;
+      case '>=':
+         for (i = 0; i < minLen; i++)
+            if (cstrData.strBuff[i] > scriptData.strBuff[i])
+               throw "Character string mismatch";
+         // ### what about the rest?
+         break;
+      case '=':
+         if (cstrData.strLen != scriptData.strLen)
+            throw "Character string mismatch";
+         for (i = 0; i < cstrData.strLen; i++)
+            if (cstrData.strBuff[i] != scriptData.strBuff[i])
+               throw "Character string mismatch";
+         break;
+      case '!=':
+         if (cstrData.strLen != scriptData.strLen)
+            break;
+         for (i = 0; i < cstrData.strLen; i++)
+            if (cstrData.strBuff[i] != scriptData.strBuff[i])
+               break;
+         if (i >= cstrData.strLen)
+            throw "Character string mismatch";
+         break;
+   }
 */
 
 
@@ -2633,65 +2633,65 @@ bool BACnetCharacterString::operator >( const BACnetCharacterString & arg )
 IMPLEMENT_DYNAMIC(BACnetOctetString, BACnetEncodeable)
 
 //
-//	BACnetOctetString::BACnetOctetString
+// BACnetOctetString::BACnetOctetString
 //
 
 BACnetOctetString::BACnetOctetString( void )
-	: strLen(0), strBuffLen(0), strBuff(0)
+   : strLen(0), strBuffLen(0), strBuff(0)
 {
 }
 
 
 BACnetOctetString::BACnetOctetString( BACnetAPDUDecoder & dec )
 {
-	strBuff = NULL;
-	Decode(dec);
+   strBuff = NULL;
+   Decode(dec);
 }
 
 
 
 //
-//	BACnetOctetString::BACnetOctetString
+// BACnetOctetString::BACnetOctetString
 //
 
 BACnetOctetString::BACnetOctetString( int len )
 {
-	if (len > 0) {
-		strLen = 0;
-		strBuff = new BACnetOctet[ len ];
-		strBuffLen = len;
-	} else {
-		strLen = strBuffLen = 0;
-		strBuff = 0;
-	}
+   if (len > 0) {
+      strLen = 0;
+      strBuff = new BACnetOctet[ len ];
+      strBuffLen = len;
+   } else {
+      strLen = strBuffLen = 0;
+      strBuff = 0;
+   }
 }
 
 //
-//	BACnetOctetString::BACnetOctetString
+// BACnetOctetString::BACnetOctetString
 //
 
 BACnetOctetString::BACnetOctetString( const BACnetOctetString &cpy )
 {
-	strLen = strBuffLen = cpy.strLen;
+   strLen = strBuffLen = cpy.strLen;
 
-	if ( strLen )
-		strBuff = new BACnetOctet[ cpy.strLen ];
-	else
-		strBuff = NULL;
+   if ( strLen )
+      strBuff = new BACnetOctet[ cpy.strLen ];
+   else
+      strBuff = NULL;
 
-	if (strBuff)
-		memcpy( strBuff, cpy.strBuff, (size_t)cpy.strLen );
+   if (strBuff)
+      memcpy( strBuff, cpy.strBuff, (size_t)cpy.strLen );
 }
 
 //
-//	BACnetOctetString::BACnetOctetString
+// BACnetOctetString::BACnetOctetString
 //
 
 BACnetOctetString::BACnetOctetString( BACnetOctet *bytes, int len )
 {
-	strLen = len;
-	strBuff = bytes;
-	strBuffLen = 0;
+   strLen = len;
+   strBuff = bytes;
+   strBuffLen = 0;
 }
 
 
@@ -2699,272 +2699,327 @@ BACnetOctetString::BACnetOctetString( BACnetOctet *bytes, int len )
 
 BACnetOctetString::BACnetOctetString( const BACnetOctet *bytes, int len)
 {
-	strLen = strBuffLen = len;
+   strLen = strBuffLen = len;
 
-	if ( strLen )
-		strBuff = new BACnetOctet[len];
-	else
-		strBuff = NULL;
+   if ( strLen )
+      strBuff = new BACnetOctet[len];
+   else
+      strBuff = NULL;
 
-	if (strBuff)
-		memcpy( strBuff, bytes, len );
+   if (strBuff)
+      memcpy( strBuff, bytes, len );
 }
 
 
 //
-//	BACnetOctetString::~BACnetOctetString
+// BACnetOctetString::~BACnetOctetString
 //
 
 BACnetOctetString::~BACnetOctetString( void )
 {
-	Flush();
+   Flush();
 }
 
 //
-//	BACnetOctetString::PrepBuffer
+// BACnetOctetString::PrepBuffer
 //
 
 void BACnetOctetString::PrepBuffer( int size )
 {
-	BACnetOctet	*newBuff
-	;
-	const int	blockFactor = 512
-	;
-	int			newSize = size + (blockFactor - (size % blockFactor))
-	;
+   BACnetOctet *newBuff;
+   const int   blockFactor = 512;
+   int         newSize = size + (blockFactor - (size % blockFactor));
 
-	// allocate a new buffer big enough
-	newBuff = new BACnetOctet[ newSize ];
+   // allocate a new buffer big enough
+   newBuff = new BACnetOctet[ newSize ];
 
-	// if there is existing data, copy it
-	if (strBuff && strLen)
-		memcpy( newBuff, strBuff, strLen );
+   // if there is existing data, copy it
+   if (strBuff && strLen)
+      memcpy( newBuff, strBuff, strLen );
 
-	// if current buffer owned, delete it
-//	if (strBuff && strBuffLen)
-	if (strBuff)
-		delete[] strBuff;
+   // if current buffer owned, delete it
+// if (strBuff && strBuffLen)
+   if (strBuff)
+      delete[] strBuff;
 
-	// point to the new buffer
-	strBuff = newBuff;
-	strBuffLen = newSize;
+   // point to the new buffer
+   strBuff = newBuff;
+   strBuffLen = newSize;
 }
 
 //
-//	BACnetOctetString::Flush
+// BACnetOctetString::Flush
 //
 
 void BACnetOctetString::Flush( void )
 {
-	// strBuffLen is also used to determine ownership of this buffer...
-	// So even if strBuff is allocated, if strBuffLen = 0 we shouldn't delete it (trust me).
+   // strBuffLen is also used to determine ownership of this buffer...
+   // So even if strBuff is allocated, if strBuffLen = 0 we shouldn't delete it (trust me).
 
-	if (strBuff && strBuffLen)
-		delete[] strBuff;
+   if (strBuff && strBuffLen)
+      delete[] strBuff;
 
-	strBuff = 0;
-	strLen = strBuffLen = 0;
+   strBuff = 0;
+   strLen = strBuffLen = 0;
 }
 
 //
-//	BACnetOctetString::Append
+// BACnetOctetString::Append
 //
 
 void BACnetOctetString::Append( BACnetOctet byte )
 {
-	// make sure the buffer can handle it
-	if (strLen + 1 > strBuffLen)
-		PrepBuffer( strLen + 1 );
+   // make sure the buffer can handle it
+   if (strLen + 1 > strBuffLen)
+      PrepBuffer( strLen + 1 );
 
-	// append the data
-	strBuff[strLen++] = byte;
+   // append the data
+   strBuff[strLen++] = byte;
 }
 
 //
-//	BACnetOctetString::Insert
+// BACnetOctetString::Insert
 //
 
 void BACnetOctetString::Insert( BACnetOctet *bytes, int len, int position )
 {
-	// make sure the buffer can handle it
-	if (strLen + len > strBuffLen)
-		PrepBuffer( strLen + len );
+   // make sure the buffer can handle it
+   if (strLen + len > strBuffLen)
+      PrepBuffer( strLen + len );
 
-	// move existing data out of the way
-	if (pos < strLen)
-		memmove( strBuff+position+len, strBuff+position, len );
+   // move existing data out of the way
+   if (pos < strLen)
+      memmove( strBuff+position+len, strBuff+position, len );
 
-	// copy in new data
-	memcpy( strBuff+position, bytes, len );
-	strLen += len;
+   // copy in new data
+   memcpy( strBuff+position, bytes, len );
+   strLen += len;
 }
 
 //
-//	BACnetOctetString::Insert
+// BACnetOctetString::Insert
 //
 
 void BACnetOctetString::Insert( const BACnetOctetString &cpy, int position )
 {
-	Insert( cpy.strBuff, cpy.strLen, position );
+   Insert( cpy.strBuff, cpy.strLen, position );
 }
 
 //
-//	BACnetOctetString::operator []
+// BACnetOctetString::operator []
 //
 
 BACnetOctet &BACnetOctetString::operator [](const int indx)
 {
-	return strBuff[indx];
+   return strBuff[indx];
 }
 
 //
-//	BACnetOctetString::Reference
+// BACnetOctetString::Reference
 //
 
 void BACnetOctetString::Reference( BACnetOctet *bytes, int len )
 {
-//	if (strBuff && strBuffLen)
-	if (strBuff)
-		delete[] strBuff;
+// if (strBuff && strBuffLen)
+   if (strBuff)
+      delete[] strBuff;
 
-	strBuff = bytes;
-	strLen = len;
-	strBuffLen = 0;
+   strBuff = bytes;
+   strLen = len;
+   strBuffLen = 0;
 }
 
 int BACnetOctetString::Length( void )
 {
-	return strLen;
+   return strLen;
 }
 
 void BACnetOctetString::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, strLen ).Encode( enc );
-	else
-		BACnetAPDUTag( octetStringAppTag, strLen ).Encode( enc );
-	
-	// fill in the data
-	if ( strBuff )
-		memcpy( enc.pktBuffer+enc.pktLength, strBuff, (size_t)strLen );
-	enc.pktLength += strLen;
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, strLen ).Encode( enc );
+   else
+      BACnetAPDUTag( octetStringAppTag, strLen ).Encode( enc );
+
+   // fill in the data
+   if ( strBuff )
+      memcpy( enc.pktBuffer+enc.pktLength, strBuff, (size_t)strLen );
+   enc.pktLength += strLen;
 }
 
 void BACnetOctetString::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
-		
-	// verify the tag can be extracted
-	tag.Decode( dec );
-	
-	// check the type and length
-	if (!tag.tagClass && (tag.tagNumber != octetStringAppTag))
-		throw_(45) /* mismatched data type */;
-	
-	// check for space
-	if ((strBuffLen != 0) && (strBuffLen != tag.tagLVT)) {
-		if ( strBuff )
-			delete[] strBuff;
-		strLen = strBuffLen = tag.tagLVT;
-		if ( strLen )
-			strBuff = new BACnetOctet[ tag.tagLVT ];
-		else
-			strBuff = NULL;
-	} else
-	if (!strBuff) {
-		strLen = strBuffLen = tag.tagLVT;
-		if ( strLen )
-			strBuff = new BACnetOctet[ tag.tagLVT ];
-	}
-	
-	// copy the data
-	strLen = tag.tagLVT;
+   BACnetAPDUTag  tag;
 
-	if ( strBuff )
-		memcpy( strBuff, dec.pktBuffer, (size_t)strLen );
+   // verify the tag can be extracted
+   tag.Decode( dec );
 
-	dec.pktBuffer += tag.tagLVT;
-	dec.pktLength -= tag.tagLVT;
+   // check the type and length
+   if (!tag.tagClass && (tag.tagNumber != octetStringAppTag))
+      throw_(45) /* mismatched data type */;
+
+   // check for space
+   if ((strBuffLen != 0) && (strBuffLen != tag.tagLVT)) {
+      if ( strBuff )
+         delete[] strBuff;
+      strLen = strBuffLen = tag.tagLVT;
+      if ( strLen )
+         strBuff = new BACnetOctet[ tag.tagLVT ];
+      else
+         strBuff = NULL;
+   } 
+   else if (!strBuff) {
+      strLen = strBuffLen = tag.tagLVT;
+      if ( strLen )
+         strBuff = new BACnetOctet[ tag.tagLVT ];
+   }
+   
+   // copy the data
+   strLen = tag.tagLVT;
+
+   if ( strBuff )
+      memcpy( strBuff, dec.pktBuffer, (size_t)strLen );
+
+   dec.pktBuffer += tag.tagLVT;
+   dec.pktLength -= tag.tagLVT;
 }
 
 void BACnetOctetString::Encode( CString &enc ) const
 {
-	if (!strBuff)
-	{
-		// TODO: original had this, but should we show X'' instead?
-		enc.Empty();
-		return;
-	}
+   if (!strBuff)
+   {
+      // TODO: original had this, but should we show X'' instead?
+      enc.Empty();
+      return;
+   }
 
-	enc.Empty();
-	AppendXhex( enc, strBuff, strLen ); 
+   enc.Empty();
+   AppendXhex( enc, strBuff, strLen ); 
 }
 
 void BACnetOctetString::Decode( const char *dec )
 {
-	int		upperNibble, lowerNibble
-	;
-	char	c
-	;
+   int   value;
+   char  c;
 
-	// toss existing content
-	Flush();
+   // toss existing content
+   Flush();
 
-	// skip preamble
-	if ( ((dec[0] == '0') && (dec[1] == 'x'))					// 0xFF, X'FF', &xFF
-		|| ((dec[0] == 'X') && (dec[1] == '\''))
-		|| ((dec[0] == 'x') && (dec[1] == '\''))
-		|| ((dec[0] == '&') && (dec[1] == 'x'))
-		|| ((dec[0] == '&') && (dec[1] == 'X'))
-		)
-		dec += 2;
+   // According to 135.1-2011, octet strings are encoded as
+   // "pairs of hex digits enclosed in either single quotes (X'2D') or accent
+   // graves (X'60'), and preceded by the letter "X": X'001122'"
+   //
+   // Our Encode( CString &enc ) produces this format.
+   // But for convenience during data entry we also accept
+   // - x' and x`
+   // - pairs of unwrapped hex characters with or without spaces
+   // - bytes as 0xNN separated by space
+   // - bytes as &xNN or &XNN separated by space because the code we started from did...
+   c = ToUpper( dec[0] );
+   if ( (c == 'X') && ((dec[1] == '\'') || (dec[1] == '`')) )
+   {
+      // Canonical format: pairs of hex digits until the closing quote or end of the string
+      dec += 2;
+      while (*dec && (*dec != '\'') && (*dec != '`'))
+      {
+         c = ToUpper( *dec++ );
+         if (!IsXDigit(c))
+            throw_(46) /* invalid character  (including NULL) */;
+         value = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
-	while (*dec && (*dec != '\'')) {
-		c = ToUpper( *dec++ );
-		if (!IsXDigit(c))
-			throw_(46) /* invalid character */;
-		upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
+         c = ToUpper( *dec++ );
+         if (!IsXDigit(c))
+            throw_(47) /* invalid character  (including NULL) */;
+         value = (value << 4) + (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
-		c = ToUpper( *dec++ );
-		if (!IsXDigit(c))
-			throw_(47) /* invalid character */;
-		lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
+         Append( value );
+      }
+   }
+   else
+   {
+      // Alternate format: unwrapped pairs, or bytes
+      // 0x5 0x66 0X7 0X88
+      // &x5 &x66 &X7 &X88
+      // 5 66 7 88
+      // 05660788
+      while (*dec)
+      {
+         // Remove any leading whitespace
+         while (IsSpace(*dec)) 
+            dec += 1;
 
-		// stick this on the end
-		Append( (upperNibble << 4) + lowerNibble );
-	}
+         if (*dec == 0)
+            break;
+
+         bool isByte = ( ((dec[0] == '0') && (dec[1] == 'x')) ||
+                         ((dec[0] == '0') && (dec[1] == 'X')) ||
+                         ((dec[0] == '&') && (dec[1] == 'x')) ||
+                         ((dec[0] == '&') && (dec[1] == 'X')) );
+         if (isByte)
+         {
+            dec += 2;
+         }
+
+         c = ToUpper( *dec++ );
+         if (!IsXDigit(c))
+            throw_(46) /* invalid character (including NULL) */;
+         value = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
+
+         c = ToUpper( *dec );
+         if (IsXDigit(c))
+         {
+            // Two-digit value
+            dec += 1;
+            value = (value << 4) + (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
+         }
+         else if ((c == 0) || IsSpace(c))
+         {
+            // One digit followed by space or NULL is OK.
+         }
+         else
+         {
+            throw_(47) /* invalid character (including NULL) */;
+         }
+
+         // Byte with lead-in MUST be followed by a space or end of string
+         if (isByte && (*dec != 0) && !IsSpace(*dec))
+         {
+            throw_(47) /* invalid terminator */;
+         }
+
+         Append( value );
+      }
+   }
 }
 
 
 BACnetEncodeable * BACnetOctetString::clone()
 {
-	return new BACnetOctetString(*this);
+   return new BACnetOctetString(*this);
 }
-
 
 
 bool BACnetOctetString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetOctetString)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetOctetString)));
 
-	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-		return false;
+   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+      return false;
 
-	bool fMatch = memcmp(strBuff, ((BACnetOctetString &) rbacnet).strBuff, min(((BACnetOctetString &) rbacnet).strBuffLen, strBuffLen)) == 0;
+   bool fMatch = memcmp(strBuff, ((BACnetOctetString &) rbacnet).strBuff, min(((BACnetOctetString &) rbacnet).strBuffLen, strBuffLen)) == 0;
 
-	//madanner 6/03, check length too if testing for equality.  Use strlen not bufflen.  Above bufflen test performed
-	//to avoid gpf, but not here.
+   //madanner 6/03, check length too if testing for equality.  Use strlen not bufflen.  Above bufflen test performed
+   //to avoid gpf, but not here.
 
-	if (   (fMatch && iOperator == '=' &&  ((BACnetOctetString &) rbacnet).strLen == strLen)
-	    || (!fMatch && iOperator == '!=') )
-		return true;
+   if (   (fMatch && iOperator == '=' &&  ((BACnetOctetString &) rbacnet).strLen == strLen)
+       || (!fMatch && iOperator == '!=') )
+      return true;
 
-	return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 }
 
 
@@ -2973,106 +3028,106 @@ IMPLEMENT_DYNAMIC(BACnetWeekNDay, BACnetOctetString)
 
 
 BACnetWeekNDay::BACnetWeekNDay()
-			   :BACnetOctetString(3)
+            :BACnetOctetString(3)
 {
-	Initialize(0xFF, 0xFF, 0xFF);
+   Initialize(0xFF, 0xFF, 0xFF);
 }
 
 
 BACnetWeekNDay::BACnetWeekNDay( int nMonth, int nWeekOfMonth, int nDayOfWeek )
-			   :BACnetOctetString(3)
+            :BACnetOctetString(3)
 {
-	Initialize(nMonth, nWeekOfMonth, nDayOfWeek);
+   Initialize(nMonth, nWeekOfMonth, nDayOfWeek);
 }
 
 
 BACnetWeekNDay::BACnetWeekNDay( BACnetAPDUDecoder& dec )
-			   :BACnetOctetString(3)
+            :BACnetOctetString(3)
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 void BACnetWeekNDay::Initialize( int nMonth, int nWeekOfMonth, int nDayOfWeek )
 {
-	m_nMonth = nMonth;
-	m_nWeekOfMonth = nWeekOfMonth;
-	m_nDayOfWeek = nDayOfWeek;
+   m_nMonth = nMonth;
+   m_nWeekOfMonth = nWeekOfMonth;
+   m_nDayOfWeek = nDayOfWeek;
 
-	// Allow even/odd months
-	ASSERT( (nMonth >= 1 && nMonth <= 14) || (nMonth == 0xFF) );
-	ASSERT( (nWeekOfMonth >= 1 && nWeekOfMonth <= 6) || (nWeekOfMonth == 0xFF) );
-	ASSERT( (nDayOfWeek >= 1 && nDayOfWeek <= 7) || (nDayOfWeek == 0xFF) );
-	LoadBuffer();
+   // Allow even/odd months
+   ASSERT( (nMonth >= 1 && nMonth <= 14) || (nMonth == 0xFF) );
+   ASSERT( (nWeekOfMonth >= 1 && nWeekOfMonth <= 6) || (nWeekOfMonth == 0xFF) );
+   ASSERT( (nDayOfWeek >= 1 && nDayOfWeek <= 7) || (nDayOfWeek == 0xFF) );
+   LoadBuffer();
 }
 
 
 void BACnetWeekNDay::LoadBuffer()
 {
-	strBuff[0] = (BACnetOctet) m_nMonth;
-	strBuff[1] = (BACnetOctet) m_nWeekOfMonth;
-	strBuff[2] = (BACnetOctet) m_nDayOfWeek;
-	strLen = 3;
+   strBuff[0] = (BACnetOctet) m_nMonth;
+   strBuff[1] = (BACnetOctet) m_nWeekOfMonth;
+   strBuff[2] = (BACnetOctet) m_nDayOfWeek;
+   strLen = 3;
 }
 
 
 void BACnetWeekNDay::UnloadBuffer()
 {
-	m_nMonth = strBuff[0];
-	m_nWeekOfMonth = strBuff[1];
-	m_nDayOfWeek = strBuff[2];
+   m_nMonth = strBuff[0];
+   m_nWeekOfMonth = strBuff[1];
+   m_nDayOfWeek = strBuff[2];
 }
 
 
 void BACnetWeekNDay::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	// just in case the values have changed...
-	LoadBuffer();
-	BACnetOctetString::Encode(enc,context);
+   // just in case the values have changed...
+   LoadBuffer();
+   BACnetOctetString::Encode(enc,context);
 }
 
 
 
 void BACnetWeekNDay::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetOctetString::Decode(dec);
-	UnloadBuffer();
+   BACnetOctetString::Decode(dec);
+   UnloadBuffer();
 }
 
 
 void BACnetWeekNDay::Encode( CString &enc ) const
 {
-//	sprintf(enc, "%d, %d, %d", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);   // changed for 135.1 compliance
-	enc.Format( "X\'%02X%02X%02X\'", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek );
+// sprintf(enc, "%d, %d, %d", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);   // changed for 135.1 compliance
+   enc.Format( "X\'%02X%02X%02X\'", m_nMonth, m_nWeekOfMonth, m_nDayOfWeek );
 }
 
 
 
 BACnetEncodeable * BACnetWeekNDay::clone()
 {
-	return new BACnetWeekNDay(m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);
+   return new BACnetWeekNDay(m_nMonth, m_nWeekOfMonth, m_nDayOfWeek);
 }
 
 
 bool BACnetWeekNDay::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetWeekNDay)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetWeekNDay)));
 
-	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-		return false;
+   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+      return false;
 
-	bool fMatch = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetWeekNDay)) && 
-		          m_nDayOfWeek == ((BACnetWeekNDay &) rbacnet).m_nDayOfWeek &&
-		          m_nMonth == ((BACnetWeekNDay &) rbacnet).m_nMonth &&
-		          m_nWeekOfMonth == ((BACnetWeekNDay &) rbacnet).m_nWeekOfMonth;
+   bool fMatch = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetWeekNDay)) && 
+                m_nDayOfWeek == ((BACnetWeekNDay &) rbacnet).m_nDayOfWeek &&
+                m_nMonth == ((BACnetWeekNDay &) rbacnet).m_nMonth &&
+                m_nWeekOfMonth == ((BACnetWeekNDay &) rbacnet).m_nWeekOfMonth;
 
-	if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
@@ -3080,404 +3135,404 @@ bool BACnetWeekNDay::Match( BACnetEncodeable &rbacnet, int iOperator, CString * 
 IMPLEMENT_DYNAMIC(BACnetBitString, BACnetEncodeable)
 
 //
-//	BACnetBitString::BACnetBitString
+// BACnetBitString::BACnetBitString
 //
 
 BACnetBitString::BACnetBitString( void )
-	: bitLen(0), bitBuffLen(0), bitBuff(0)
+   : bitLen(0), bitBuffLen(0), bitBuff(0)
 {
 }
 
 
 BACnetBitString::BACnetBitString( BACnetAPDUDecoder & dec )
-	: bitLen(0), bitBuffLen(0), bitBuff(0)
+   : bitLen(0), bitBuffLen(0), bitBuff(0)
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 //
-//	BACnetBitString::BACnetBitString
+// BACnetBitString::BACnetBitString
 //
 
 BACnetBitString::BACnetBitString( int siz )
-	: bitLen(siz), bitBuffLen((siz + 31) / 32), bitBuff(0)
+   : bitLen(siz), bitBuffLen((siz + 31) / 32), bitBuff(0)
 {
-	if ( bitBuffLen )
-		bitBuff = new unsigned long[ bitBuffLen ];
+   if ( bitBuffLen )
+      bitBuff = new unsigned long[ bitBuffLen ];
 
-	if (bitBuff)
-		for (int i = 0; i < bitBuffLen; i++)
-			bitBuff[i] = 0;
+   if (bitBuff)
+      for (int i = 0; i < bitBuffLen; i++)
+         bitBuff[i] = 0;
 }
 
 
 BACnetBitString::BACnetBitString( int siz, unsigned char * pbits )
-	: bitLen(siz), bitBuffLen((siz + 31) / 32), bitBuff(0)
+   : bitLen(siz), bitBuffLen((siz + 31) / 32), bitBuff(0)
 {
-	if ( bitBuffLen )
-		bitBuff = new unsigned long[ bitBuffLen ];
+   if ( bitBuffLen )
+      bitBuff = new unsigned long[ bitBuffLen ];
 
-	if (bitBuff)
-		LoadBitsFromByteArray(pbits);
+   if (bitBuff)
+      LoadBitsFromByteArray(pbits);
 }
 
 //
-//	BACnetBitString::BACnetBitString
+// BACnetBitString::BACnetBitString
 //
 
 BACnetBitString::BACnetBitString( const BACnetBitString &cpy )
-	: bitLen( cpy.bitLen ), bitBuffLen( cpy.bitBuffLen )
+   : bitLen( cpy.bitLen ), bitBuffLen( cpy.bitBuffLen )
 {
-	unsigned long	*src, *dst = NULL;
-	
-	src = cpy.bitBuff;
-	if ( bitBuffLen )
-		dst = bitBuff = new unsigned long[ bitBuffLen ];
+   unsigned long  *src, *dst = NULL;
+   
+   src = cpy.bitBuff;
+   if ( bitBuffLen )
+      dst = bitBuff = new unsigned long[ bitBuffLen ];
 
-	for (int i = 0; i < bitBuffLen && dst != NULL; i++)
-	//	*src++ = *dst++;
-	    *dst++ = *src++;  // reversed this so that it is copied correctly LJT 10/27/2005
+   for (int i = 0; i < bitBuffLen && dst != NULL; i++)
+   // *src++ = *dst++;
+       *dst++ = *src++;  // reversed this so that it is copied correctly LJT 10/27/2005
 }
 
 //
-//	BACnetBitString::~BACnetBitString
+// BACnetBitString::~BACnetBitString
 //
 
 BACnetBitString::~BACnetBitString( void )
 {
-	KillBuffer();
+   KillBuffer();
 }
 
 
 void BACnetBitString::KillBuffer(void)
 {
-	if ( bitBuff )
-		delete[] bitBuff;
-	bitBuff = NULL;
+   if ( bitBuff )
+      delete[] bitBuff;
+   bitBuff = NULL;
 }
 
 //
-//	BACnetBitString::SetSize
+// BACnetBitString::SetSize
 //
 
 
 void BACnetBitString::LoadBitsFromByteArray( unsigned char * pabBits )
 {
-	ASSERT(pabBits != NULL);
+   ASSERT(pabBits != NULL);
 
-	// bits stored in char array are already in BACnet order, that is, left to right where
-	// msb is first flag, etc.
+   // bits stored in char array are already in BACnet order, that is, left to right where
+   // msb is first flag, etc.
 
-	for ( int i = 0; pabBits != NULL && i < bitLen; i++ )
-		SetBit(i, pabBits[i/8] & (unsigned char)(1<<(7-(i%8))) );
+   for ( int i = 0; pabBits != NULL && i < bitLen; i++ )
+      SetBit(i, pabBits[i/8] & (unsigned char)(1<<(7-(i%8))) );
 }
 
 
 void BACnetBitString::SetSize( int siz )
 {
-	int		newBuffLen = (siz + 31) / 32
-	;
-	
-	if (newBuffLen != bitBuffLen) {
-		int				i;
-		unsigned long	*src = bitBuff,	*dst, *rslt = NULL;
-		
-		if ( newBuffLen )
-			rslt = new unsigned long[newBuffLen];
-		
-		dst = rslt;
-		for (i = 0; (i < bitBuffLen) && (i++ < newBuffLen) && dst != NULL; i++)
-			*dst++ = *src++;
-		while (i++ < newBuffLen)
-			*dst++ = 0;
+   int      newBuffLen = (siz + 31) / 32
+   ;
+   
+   if (newBuffLen != bitBuffLen) {
+      int            i;
+      unsigned long  *src = bitBuff,   *dst, *rslt = NULL;
+      
+      if ( newBuffLen )
+         rslt = new unsigned long[newBuffLen];
+      
+      dst = rslt;
+      for (i = 0; (i < bitBuffLen) && (i++ < newBuffLen) && dst != NULL; i++)
+         *dst++ = *src++;
+      while (i++ < newBuffLen)
+         *dst++ = 0;
 
-		if ( bitBuff )
-			delete[] bitBuff;
+      if ( bitBuff )
+         delete[] bitBuff;
 
-		bitBuff = rslt;
-		bitBuffLen = newBuffLen;
-	}
-	bitLen = siz;
+      bitBuff = rslt;
+      bitBuffLen = newBuffLen;
+   }
+   bitLen = siz;
 }
 
 //
-//	BACnetBitString::SetBit
+// BACnetBitString::SetBit
 //
 
 void BACnetBitString::SetBit( int bit, int valu )
 {
-	int		intOffset = (bit / 32)
-	,		bitOffset = 31 - (bit % 32)
-	;
-	
-	if (bit >= bitLen)
-		SetSize( bit+1 );
-	if (bitBuff)
-		if (valu)
-			bitBuff[intOffset] |= (1 << bitOffset);
-		else
-			bitBuff[intOffset] &= 0xFFFFFFFF - (1 << bitOffset);
+   int      intOffset = (bit / 32)
+   ,     bitOffset = 31 - (bit % 32)
+   ;
+   
+   if (bit >= bitLen)
+      SetSize( bit+1 );
+   if (bitBuff)
+      if (valu)
+         bitBuff[intOffset] |= (1 << bitOffset);
+      else
+         bitBuff[intOffset] &= 0xFFFFFFFF - (1 << bitOffset);
 }
 
 //
-//	BACnetBitString::ResetBit
+// BACnetBitString::ResetBit
 //
 
 void BACnetBitString::ResetBit( int bit )
 {
-	int		intOffset = (bit / 32)
-	,		bitOffset = 31 - (bit % 32)
-	;
-	
-	if ((bit < bitLen) && bitBuff)
-		bitBuff[intOffset] &= 0xFFFFFFFF - (1 << bitOffset);
+   int      intOffset = (bit / 32)
+   ,     bitOffset = 31 - (bit % 32)
+   ;
+   
+   if ((bit < bitLen) && bitBuff)
+      bitBuff[intOffset] &= 0xFFFFFFFF - (1 << bitOffset);
 }
 
 //
-//	BACnetBitString::GetBit
+// BACnetBitString::GetBit
 //
 
 int BACnetBitString::GetBit( int bit ) const
 {
-	int		intOffset = (bit / 32)
-	,		bitOffset = 31 - (bit % 32)
-	;
-	
-	if ((bit >= bitLen) || (!bitBuff))
-		return 0;
-	
-	return ((bitBuff[intOffset] >> bitOffset) & 0x01);
+   int      intOffset = (bit / 32)
+   ,     bitOffset = 31 - (bit % 32)
+   ;
+   
+   if ((bit >= bitLen) || (!bitBuff))
+      return 0;
+   
+   return ((bitBuff[intOffset] >> bitOffset) & 0x01);
 }
 
 //
-//	BACnetBitString::operator []
+// BACnetBitString::operator []
 //
 
 const int BACnetBitString::operator [](int bit)
 {
-	int		intOffset = (bit / 32)
-	,		bitOffset = 31 - (bit % 32)
-	;
-	
-	if ((bit >= bitLen) || (!bitBuff))
-		return 0;
-	
-	return ((bitBuff[intOffset] >> bitOffset) & 0x01);
+   int      intOffset = (bit / 32)
+   ,     bitOffset = 31 - (bit % 32)
+   ;
+   
+   if ((bit >= bitLen) || (!bitBuff))
+      return 0;
+   
+   return ((bitBuff[intOffset] >> bitOffset) & 0x01);
 }
 
 //
-//	BACnetBitString::operator +=
+// BACnetBitString::operator +=
 //
 
 BACnetBitString &BACnetBitString::operator +=( const int bit )
 {
-	int		intOffset = (bit / 32)
-	,		bitOffset = 31 - (bit % 32)
-	;
-	
-	if (bit >= bitLen)
-		SetSize( bit+1 );
-	if (bitBuff)
-		bitBuff[intOffset] |= (1 << bitOffset);
-	return *this;
+   int      intOffset = (bit / 32)
+   ,     bitOffset = 31 - (bit % 32)
+   ;
+   
+   if (bit >= bitLen)
+      SetSize( bit+1 );
+   if (bitBuff)
+      bitBuff[intOffset] |= (1 << bitOffset);
+   return *this;
 }
 
 //
-//	BACnetBitString::operator -=
+// BACnetBitString::operator -=
 //
 
 BACnetBitString &BACnetBitString::operator -=( const int bit )
 {
-	int		intOffset = (bit / 32)
-	,		bitOffset = 31 - (bit % 32)
-	;
-	
-	if ((bit < bitLen) && bitBuff)
-		bitBuff[intOffset] &= 0xFFFFFFFF - (1 << bitOffset);
-	return *this;
+   int      intOffset = (bit / 32)
+   ,     bitOffset = 31 - (bit % 32)
+   ;
+   
+   if ((bit < bitLen) && bitBuff)
+      bitBuff[intOffset] &= 0xFFFFFFFF - (1 << bitOffset);
+   return *this;
 }
 
 //
-//	BACnetBitString::operator =
+// BACnetBitString::operator =
 //
 
 BACnetBitString &BACnetBitString::operator =( const BACnetBitString &arg )
 {
-	int		i
-	;
-	
-	if (bitLen < arg.bitLen)
-		SetSize( arg.bitLen );
-	
-	unsigned long	*src = arg.bitBuff,	*dst = bitBuff;
-	
-	for (i = 0; i < arg.bitBuffLen && dst != NULL; i++)
-		*dst++ = *src++;
+   int      i
+   ;
+   
+   if (bitLen < arg.bitLen)
+      SetSize( arg.bitLen );
+   
+   unsigned long  *src = arg.bitBuff,  *dst = bitBuff;
+   
+   for (i = 0; i < arg.bitBuffLen && dst != NULL; i++)
+      *dst++ = *src++;
 
-	while (i++ < bitBuffLen && dst != NULL )
-		*dst++ = 0;
+   while (i++ < bitBuffLen && dst != NULL )
+      *dst++ = 0;
 
-	bitLen = arg.bitLen;
-	
-	return *this;
+   bitLen = arg.bitLen;
+   
+   return *this;
 }
 
 //
-//	BACnetBitString::operator |=
+// BACnetBitString::operator |=
 //
 
 BACnetBitString &BACnetBitString::operator |=( const BACnetBitString &arg )
 {
-	if (bitLen < arg.bitLen)
-		SetSize( arg.bitLen );
-	
-	unsigned long	*src = arg.bitBuff,	*dst = bitBuff;
-	
-	for (int i = 0; i < arg.bitBuffLen && dst != NULL; i++)
-		*dst++ |= *src++;
-	
-	return *this;
+   if (bitLen < arg.bitLen)
+      SetSize( arg.bitLen );
+   
+   unsigned long  *src = arg.bitBuff,  *dst = bitBuff;
+   
+   for (int i = 0; i < arg.bitBuffLen && dst != NULL; i++)
+      *dst++ |= *src++;
+   
+   return *this;
 }
 
 //
-//	BACnetBitString::operator &=
+// BACnetBitString::operator &=
 //
 
 BACnetBitString &BACnetBitString::operator &=( const BACnetBitString &arg )
 {
-	int				i
-	,				siz = (bitBuffLen < arg.bitBuffLen ? bitBuffLen : arg.bitBuffLen)
-	;
-	unsigned long	*src = arg.bitBuff,	*dst = bitBuff;
-		
-	for (i = 0; i < siz && dst != NULL; i++)
-		*dst++ &= *src++;
+   int            i
+   ,           siz = (bitBuffLen < arg.bitBuffLen ? bitBuffLen : arg.bitBuffLen)
+   ;
+   unsigned long  *src = arg.bitBuff,  *dst = bitBuff;
+      
+   for (i = 0; i < siz && dst != NULL; i++)
+      *dst++ &= *src++;
 
-	while (i++ < bitBuffLen && dst != NULL)
-		*dst++ = 0;
-	
-	return *this;
+   while (i++ < bitBuffLen && dst != NULL)
+      *dst++ = 0;
+   
+   return *this;
 }
 
 //
-//	BACnetBitString::operator ==
+// BACnetBitString::operator ==
 //
 
 bool BACnetBitString::operator ==( BACnetBitString &arg )
 {
-//	int				i,	siz = (bitBuffLen < arg.bitBuffLen ? bitBuffLen : arg.bitBuffLen);
-//	unsigned long	*src = arg.bitBuff,	*dst = bitBuff;
-	int i;  // MAG 31JAN06  i was used out of scope below
-		
-	if (bitLen != arg.bitLen)
-		return false;
+// int            i, siz = (bitBuffLen < arg.bitBuffLen ? bitBuffLen : arg.bitBuffLen);
+// unsigned long  *src = arg.bitBuff,  *dst = bitBuff;
+   int i;  // MAG 31JAN06  i was used out of scope below
+      
+   if (bitLen != arg.bitLen)
+      return false;
 
-//	for (i = 0; i < siz; i++)
-//		if (*dst++ != *src++)
-//			return false;
+// for (i = 0; i < siz; i++)
+//    if (*dst++ != *src++)
+//       return false;
 
-	// ### perhaps last bitBuff element shouldn't always have all bits compared
-	// Right!  So let's compare one bit at a time.
+   // ### perhaps last bitBuff element shouldn't always have all bits compared
+   // Right!  So let's compare one bit at a time.
 
-	for (i = 0; i < bitLen  && GetBit(i) == arg.GetBit(i);  i++ );			// [] doesn't work for some reason
+   for (i = 0; i < bitLen  && GetBit(i) == arg.GetBit(i);  i++ );       // [] doesn't work for some reason
 
-	return i >= bitLen;		// made it through, must be OK
+   return i >= bitLen;     // made it through, must be OK
 }
 
 
 void BACnetBitString::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	int				len = (bitLen + 7) / 8 + 1
-	;
-	
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, len ).Encode( enc );
-	else
-		BACnetAPDUTag( bitStringAppTag, len ).Encode( enc );
-	
-	// fill in the data
-	enc.pktBuffer[enc.pktLength++] = 8 - (((bitLen + 7) % 8) + 1);
-	len -= 1;
+   int            len = (bitLen + 7) / 8 + 1
+   ;
+   
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, len ).Encode( enc );
+   else
+      BACnetAPDUTag( bitStringAppTag, len ).Encode( enc );
+   
+   // fill in the data
+   enc.pktBuffer[enc.pktLength++] = 8 - (((bitLen + 7) % 8) + 1);
+   len -= 1;
 
 #ifdef ENDIAN_SWAP
-	int i = 0;
-	while (len && bitBuff) {
-		int cpy = bitBuff[i++];
-		for (int j = 3; len && j >= 0; j--, len--)
-			enc.pktBuffer[enc.pktLength++] = (cpy >> (j * 8)) & 0xFF;
-	}
+   int i = 0;
+   while (len && bitBuff) {
+      int cpy = bitBuff[i++];
+      for (int j = 3; len && j >= 0; j--, len--)
+         enc.pktBuffer[enc.pktLength++] = (cpy >> (j * 8)) & 0xFF;
+   }
 #else
-	if ( bitBuff )
-		memcpy( enc.pktBuffer+enc.pktLength, bitBuff, (size_t)len );
+   if ( bitBuff )
+      memcpy( enc.pktBuffer+enc.pktLength, bitBuff, (size_t)len );
 
-	enc.pktLength += len;
+   enc.pktLength += len;
 #endif
 }
 
 void BACnetBitString::Decode( BACnetAPDUDecoder& dec )
 {
-	int				bLen
-	;
-	BACnetAPDUTag	tag
-	;
-		
-	// verify the tag can be extracted
-	tag.Decode( dec );
-	
-	// check the type and length
-	if (!tag.tagClass && (tag.tagNumber != bitStringAppTag))
-		throw_(48) /* mismatched data type */;
-	
-	// make sure the destination has enough space
-	bLen = ((tag.tagLVT - 1) * 8 - (dec.pktLength--,*dec.pktBuffer++));
- 	if (bLen > bitLen)
-		SetSize( bLen );
-	tag.tagLVT -= 1;
-	
-	// Don't throw here: SetSize sets the buffer size, but if the size is
-	// zero, and the buffer has not yet been allocated, null is OK here:
-	// the copy loop below won't do anything
-//	if (!bitBuff)
-//		throw_(49) /* destination too small */;
-	
-	// copy out the data
+   int            bLen
+   ;
+   BACnetAPDUTag  tag
+   ;
+      
+   // verify the tag can be extracted
+   tag.Decode( dec );
+   
+   // check the type and length
+   if (!tag.tagClass && (tag.tagNumber != bitStringAppTag))
+      throw_(48) /* mismatched data type */;
+   
+   // make sure the destination has enough space
+   bLen = ((tag.tagLVT - 1) * 8 - (dec.pktLength--,*dec.pktBuffer++));
+   if (bLen > bitLen)
+      SetSize( bLen );
+   tag.tagLVT -= 1;
+   
+   // Don't throw here: SetSize sets the buffer size, but if the size is
+   // zero, and the buffer has not yet been allocated, null is OK here:
+   // the copy loop below won't do anything
+// if (!bitBuff)
+//    throw_(49) /* destination too small */;
+   
+   // copy out the data
 #ifdef ENDIAN_SWAP
-	int i = 0, copyLen = tag.tagLVT;
+   int i = 0, copyLen = tag.tagLVT;
 
-	// don't copy more than copyLen octets
-	while (dec.pktLength && copyLen) {
-		bitBuff[i] = 0;
-//		for (int j = 3; (dec.pktLength - 1) > 0 && j >= 0; j--) {			// madanner 5/03, added equality... infinite loop
-		for (int j = 3; (dec.pktLength - 1) >= 0 && j >= 0; j--) {
-			bitBuff[i] |= (dec.pktLength--,*dec.pktBuffer++) << (j * 8);
-			if (!--copyLen)
-				break;
-		}
-		i += 1;
-	}
+   // don't copy more than copyLen octets
+   while (dec.pktLength && copyLen) {
+      bitBuff[i] = 0;
+//    for (int j = 3; (dec.pktLength - 1) > 0 && j >= 0; j--) {         // madanner 5/03, added equality... infinite loop
+      for (int j = 3; (dec.pktLength - 1) >= 0 && j >= 0; j--) {
+         bitBuff[i] |= (dec.pktLength--,*dec.pktBuffer++) << (j * 8);
+         if (!--copyLen)
+            break;
+      }
+      i += 1;
+   }
 #else
-	if ( bitBuff )
-		memcpy( bitBuff, dec.pktBuffer, (size_t)tag.tagLVT );
+   if ( bitBuff )
+      memcpy( bitBuff, dec.pktBuffer, (size_t)tag.tagLVT );
 
-	bitLen = bLen;
-	dec.pktBuffer += tag.tagLVT;
-	dec.pktLength -= tag.tagLVT;
+   bitLen = bLen;
+   dec.pktBuffer += tag.tagLVT;
+   dec.pktLength -= tag.tagLVT;
 #endif
 }
 
 void BACnetBitString::Encode( CString &enc ) const
 {
-	enc = '{';
-	for (int i = 0; i < bitLen; i++)		
-	{
-		if (i > 0)
-			enc += ',';
-		enc += (GetBit(i) ? 'T' : 'F');
-	}
-	enc += '}';
+   enc = '{';
+   for (int i = 0; i < bitLen; i++)    
+   {
+      if (i > 0)
+         enc += ',';
+      enc += (GetBit(i) ? 'T' : 'F');
+   }
+   enc += '}';
 }
 
 // 135.1 wants bitstring as {T,F,F} in the EPICS
@@ -3494,83 +3549,83 @@ void BACnetBitString::Encode( CString &enc ) const
 
 void BACnetBitString::Decode( const char *dec )
 {
-	int		bit = 0;
-	char	c;
+   int      bit = 0;
+   char  c;
 
-	// toss existing content
-	SetSize( 0 );
+   // toss existing content
+   SetSize( 0 );
 
-	// Allow [ at beginning (as when passed from a script)
-	if ( dec[0] == '[' )
-		dec++;
+   // Allow [ at beginning (as when passed from a script)
+   if ( dec[0] == '[' )
+      dec++;
 
-	// expect { at beginning
-	if ( dec[0] == '{' )
-	{
-		dec++;
-		while (*dec && (*dec != '}'))
-		{
-			c = *dec++;
-			if ( c == 'T' || c == '1' )
-				SetBit( bit++, 1 );
-			else if ( c== 'F' || c == '0' )
-				SetBit( bit++, 0 );
-			else if ( c == ' ' || c == ',' )
-				continue;   // skip ahead
-			else
-				throw_(50);  // invalid character found
-		}
-	}
-	else if ((dec[0] == 'B') && (dec[1] == '\''))
-	{
-		// Old format
-		dec += 2;
-		while (*dec && (*dec != '\'')) 
-		{
-			c = *dec++;
-			if (c == '0')
-				SetBit( bit++, 0 );
-			else if (c == '1')
-				SetBit( bit++, 1 );
-			else
-				throw_(50); // invalid character 
-		}
-	}
-	else
-	{
-		throw_(50);  // invalid character found
-	}
+   // expect { at beginning
+   if ( dec[0] == '{' )
+   {
+      dec++;
+      while (*dec && (*dec != '}'))
+      {
+         c = *dec++;
+         if ( c == 'T' || c == '1' )
+            SetBit( bit++, 1 );
+         else if ( c== 'F' || c == '0' )
+            SetBit( bit++, 0 );
+         else if ( c == ' ' || c == ',' )
+            continue;   // skip ahead
+         else
+            throw_(50);  // invalid character found
+      }
+   }
+   else if ((dec[0] == 'B') && (dec[1] == '\''))
+   {
+      // Old format
+      dec += 2;
+      while (*dec && (*dec != '\'')) 
+      {
+         c = *dec++;
+         if (c == '0')
+            SetBit( bit++, 0 );
+         else if (c == '1')
+            SetBit( bit++, 1 );
+         else
+            throw_(50); // invalid character 
+      }
+   }
+   else
+   {
+      throw_(50);  // invalid character found
+   }
 }
 
 int BACnetBitString::DataType()
 {
-	return bits;
+   return bits;
 }
 
 BACnetEncodeable * BACnetBitString::clone()
 {
-	BACnetBitString * pbits = new BACnetBitString();
-	*pbits = *this;
-	return pbits;
+   BACnetBitString * pbits = new BACnetBitString();
+   *pbits = *this;
+   return pbits;
 }
 
 
 bool BACnetBitString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBitString)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBitString)));
 
-	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-		return false;
+   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+      return false;
 
-	bool fMatch = *this == ((BACnetBitString &) rbacnet);
+   bool fMatch = *this == ((BACnetBitString &) rbacnet);
 
-	if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
@@ -3579,527 +3634,527 @@ bool BACnetBitString::Match( BACnetEncodeable &rbacnet, int iOperator, CString *
 IMPLEMENT_DYNAMIC(BACnetDate, BACnetEncodeable)
 
 // Declare these here to avoid confusion and danger of general usage
-#define DATE_DONT_CARE	     0xFF		// BACnet don't-care value for Time and Date: appears on the wire
-#define DATE_IGNORE_ON_INPUT 0xFE		// "Don't care" value for receive to IGNORE an incoming value
+#define DATE_DONT_CARE       0xFF      // BACnet don't-care value for Time and Date: appears on the wire
+#define DATE_IGNORE_ON_INPUT 0xFE      // "Don't care" value for receive to IGNORE an incoming value
 
 //
-//	BACnetDate::BACnetDate
+// BACnetDate::BACnetDate
 //
 
 BACnetDate::BACnetDate( void )
 {
-	time_t		now
-	;
-	struct tm	*currtime
-	;
-	
-	time( &now );
-	currtime = localtime( &now );
-	
-	year = currtime->tm_year;
-	month = currtime->tm_mon + 1;
-	day = currtime->tm_mday;
-	
-	CalcDayOfWeek();
+   time_t      now
+   ;
+   struct tm   *currtime
+   ;
+   
+   time( &now );
+   currtime = localtime( &now );
+   
+   year = currtime->tm_year;
+   month = currtime->tm_mon + 1;
+   day = currtime->tm_mday;
+   
+   CalcDayOfWeek();
 }
 
 //
-//	BACnetDate::BACnetDate
+// BACnetDate::BACnetDate
 //
 
 BACnetDate::BACnetDate( int y, int m, int d )
-	: year(y), month(m), day(d)
+   : year(y), month(m), day(d)
 {
-	if ( y == 0 && m == 0 && d == 0 )
-		year = month = day = DATE_IGNORE_ON_INPUT;
+   if ( y == 0 && m == 0 && d == 0 )
+      year = month = day = DATE_IGNORE_ON_INPUT;
 
-	CalcDayOfWeek();
+   CalcDayOfWeek();
 }
 
 
 BACnetDate::BACnetDate( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 bool BACnetDate::IsValid()
 {
-	if ( (dayOfWeek != DATE_DONT_CARE) && (dayOfWeek != DATE_IGNORE_ON_INPUT) && (dayOfWeek < 1 || dayOfWeek > 7) )
-		return false;
+   if ( (dayOfWeek != DATE_DONT_CARE) && (dayOfWeek != DATE_IGNORE_ON_INPUT) && (dayOfWeek < 1 || dayOfWeek > 7) )
+      return false;
 
-	// Accept LAST, ODD, and EVEN
-	if ( (day != DATE_DONT_CARE) && (day != DATE_IGNORE_ON_INPUT) && (day < 1 || day > 34) )
-		return false;
+   // Accept LAST, ODD, and EVEN
+   if ( (day != DATE_DONT_CARE) && (day != DATE_IGNORE_ON_INPUT) && (day < 1 || day > 34) )
+      return false;
 
-	// Accept ODD and EVEN
-	if ( (month != DATE_DONT_CARE) && (month != DATE_IGNORE_ON_INPUT) && (month < 1 || month > 14 ))
-		return false;
+   // Accept ODD and EVEN
+   if ( (month != DATE_DONT_CARE) && (month != DATE_IGNORE_ON_INPUT) && (month < 1 || month > 14 ))
+      return false;
 
-	if ( (year != DATE_DONT_CARE) && (year != DATE_IGNORE_ON_INPUT) && (year < 0 || year > 255))
-		return false;
+   if ( (year != DATE_DONT_CARE) && (year != DATE_IGNORE_ON_INPUT) && (year < 0 || year > 255))
+      return false;
 
-	return true;
+   return true;
 }
 
 //
-//	BACnetDate::CalcDayOfWeek
+// BACnetDate::CalcDayOfWeek
 //
 
 void BACnetDate::CalcDayOfWeek( void )
 {
-	// Don't try with "don't care", "ignore", or other special values (last, even, odd)
-	if ((year == DATE_DONT_CARE)  || (year == DATE_IGNORE_ON_INPUT)  || 
-		(month == DATE_DONT_CARE) || (month == DATE_IGNORE_ON_INPUT) || (month > 12) || 
-		(day == DATE_DONT_CARE)   || (day == DATE_IGNORE_ON_INPUT)   || (day > 31)) 
-	{
-		dayOfWeek = DATE_DONT_CARE;
-		return;
-	}
+   // Don't try with "don't care", "ignore", or other special values (last, even, odd)
+   if ((year == DATE_DONT_CARE)  || (year == DATE_IGNORE_ON_INPUT)  || 
+      (month == DATE_DONT_CARE) || (month == DATE_IGNORE_ON_INPUT) || (month > 12) || 
+      (day == DATE_DONT_CARE)   || (day == DATE_IGNORE_ON_INPUT)   || (day > 31)) 
+   {
+      dayOfWeek = DATE_DONT_CARE;
+      return;
+   }
 
-	// This originally used CTime.
-	// But CTime, mktime et al can't handle dates before 1 Jan 1970, while
-	// BACnet goes back to 1900.  Such dates have seen in the wild
-	// in ReadRange requests from certain BACnet workstations: they say 
-	// "give me your first 100 log entries on or after 1 Jan 1900".
-	// Thus, we use SYSTEMTIME, which is good back to 1600, instead of CTime.
-	SYSTEMTIME systime;
-	memset( &systime, 0, sizeof(systime) );
-	systime.wYear = year + 1900;
-	systime.wMonth = month;
-	systime.wDay = day;
+   // This originally used CTime.
+   // But CTime, mktime et al can't handle dates before 1 Jan 1970, while
+   // BACnet goes back to 1900.  Such dates have seen in the wild
+   // in ReadRange requests from certain BACnet workstations: they say 
+   // "give me your first 100 log entries on or after 1 Jan 1900".
+   // Thus, we use SYSTEMTIME, which is good back to 1600, instead of CTime.
+   SYSTEMTIME systime;
+   memset( &systime, 0, sizeof(systime) );
+   systime.wYear = year + 1900;
+   systime.wMonth = month;
+   systime.wDay = day;
 
-	// Convert to FILETIME, then back to SYSTIME to set day of week
-	FILETIME filetime;
-	::SystemTimeToFileTime( &systime, &filetime );
-	::FileTimeToSystemTime( &filetime, &systime );
+   // Convert to FILETIME, then back to SYSTIME to set day of week
+   FILETIME filetime;
+   ::SystemTimeToFileTime( &systime, &filetime );
+   ::FileTimeToSystemTime( &filetime, &systime );
 
-	// SYSTIME says 0 = Sunday, 1 = Monday.
-	// We need 1=Monday, ... 7 = Sunday
-	dayOfWeek = (systime.wDayOfWeek + 6) % 7 + 1;
+   // SYSTIME says 0 = Sunday, 1 = Monday.
+   // We need 1=Monday, ... 7 = Sunday
+   dayOfWeek = (systime.wDayOfWeek + 6) % 7 + 1;
 }
 
 void BACnetDate::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, 4 ).Encode( enc );
-	else
-		BACnetAPDUTag( dateAppTag, 4 ).Encode( enc );
-	
-	// fill in the data, turning special values into 0xFF = "don't care" on the wire
-	enc.pktBuffer[enc.pktLength++] = (year < DATE_IGNORE_ON_INPUT) ? year : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (month < DATE_IGNORE_ON_INPUT) ? month : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (day < DATE_IGNORE_ON_INPUT) ? day : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (dayOfWeek < DATE_IGNORE_ON_INPUT) ? dayOfWeek: 0xFF;
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, 4 ).Encode( enc );
+   else
+      BACnetAPDUTag( dateAppTag, 4 ).Encode( enc );
+   
+   // fill in the data, turning special values into 0xFF = "don't care" on the wire
+   enc.pktBuffer[enc.pktLength++] = (year < DATE_IGNORE_ON_INPUT) ? year : 0xFF;
+   enc.pktBuffer[enc.pktLength++] = (month < DATE_IGNORE_ON_INPUT) ? month : 0xFF;
+   enc.pktBuffer[enc.pktLength++] = (day < DATE_IGNORE_ON_INPUT) ? day : 0xFF;
+   enc.pktBuffer[enc.pktLength++] = (dayOfWeek < DATE_IGNORE_ON_INPUT) ? dayOfWeek: 0xFF;
 }
 
 void BACnetDate::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag;
-		
-	// verify the tag can be extracted
-	tag.Decode( dec );
-	
-	// check the type and length
-	if (!tag.tagClass && (tag.tagNumber != dateAppTag))
-		throw_(51) /* mismatched data type */;
-	if (tag.tagLVT != 4)
-		throw_(52) /* four bytes of data expected */;
-	
-	// copy out the data
-	year		= *dec.pktBuffer++;
-	month		= *dec.pktBuffer++;
-	day			= *dec.pktBuffer++;
-	dayOfWeek	= *dec.pktBuffer++;
-	dec.pktLength -= 4;
+   BACnetAPDUTag  tag;
+      
+   // verify the tag can be extracted
+   tag.Decode( dec );
+   
+   // check the type and length
+   if (!tag.tagClass && (tag.tagNumber != dateAppTag))
+      throw_(51) /* mismatched data type */;
+   if (tag.tagLVT != 4)
+      throw_(52) /* four bytes of data expected */;
+   
+   // copy out the data
+   year     = *dec.pktBuffer++;
+   month    = *dec.pktBuffer++;
+   day         = *dec.pktBuffer++;
+   dayOfWeek   = *dec.pktBuffer++;
+   dec.pktLength -= 4;
 
-	if ( !IsValid() )
-		throw_(90);		// invalid values in date
+   if ( !IsValid() )
+      throw_(90);    // invalid values in date
 }
 
 void BACnetDate::Encode( CString &enc ) const
 {
-	char buff[10];
-	
-	// 135.1 clause 4.4 says:
-	// "Dates are represented enclosed in parenthesis: (Monday, 24-January-1998). 
-	// Any "wild card" or unspecified field is shown by an asterisk (X'2A'): 
-	// (Monday, *-January-1998). The omission of day of week implies that the day is
-	// unspecified: (24-January-1998)"
-	enc = "[(";
+   char buff[10];
+   
+   // 135.1 clause 4.4 says:
+   // "Dates are represented enclosed in parenthesis: (Monday, 24-January-1998). 
+   // Any "wild card" or unspecified field is shown by an asterisk (X'2A'): 
+   // (Monday, *-January-1998). The omission of day of week implies that the day is
+   // unspecified: (24-January-1998)"
+   enc = "[(";
 
-	// day of week
-	if (dayOfWeek == DATE_DONT_CARE)
-	{
-		// This doesn't match 135.1, but it is how the previous version worked
-		enc += '*';
-	}
-	else if (dayOfWeek == DATE_IGNORE_ON_INPUT)
-	{
-		enc += '?';
-	}
-	else 
-	{
-		// Shows full day of week, illegal values numerically as "DOWnn"
-		enc += NetworkSniffer::BAC_STRTAB_day_of_week.EnumString( dayOfWeek, "DOW" );
-	}
+   // day of week
+   if (dayOfWeek == DATE_DONT_CARE)
+   {
+      // This doesn't match 135.1, but it is how the previous version worked
+      enc += '*';
+   }
+   else if (dayOfWeek == DATE_IGNORE_ON_INPUT)
+   {
+      enc += '?';
+   }
+   else 
+   {
+      // Shows full day of week, illegal values numerically as "DOWnn"
+      enc += NetworkSniffer::BAC_STRTAB_day_of_week.EnumString( dayOfWeek, "DOW" );
+   }
 
-	enc += ',';
+   enc += ',';
 
-	// 135.1 says day-month-year, but we have historically used m/d/y
+   // 135.1 says day-month-year, but we have historically used m/d/y
 
-	// month
-	if (month == DATE_DONT_CARE)
-	{
-		enc += '*';
-	}
-	else if (month == DATE_IGNORE_ON_INPUT)
-	{
-		enc += '?';
-	}
-	else 
-	{
-		// Handles normal months, EVEN, ODD.  Shows numeric for anything else
-		enc += NetworkSniffer::BAC_STRTAB_month.EnumString( month );
-	}
+   // month
+   if (month == DATE_DONT_CARE)
+   {
+      enc += '*';
+   }
+   else if (month == DATE_IGNORE_ON_INPUT)
+   {
+      enc += '?';
+   }
+   else 
+   {
+      // Handles normal months, EVEN, ODD.  Shows numeric for anything else
+      enc += NetworkSniffer::BAC_STRTAB_month.EnumString( month );
+   }
 
-	enc += '/';
+   enc += '/';
 
-	// day of month
-	if (day == DATE_DONT_CARE)
-		enc += '*';
-	else if (day == DATE_IGNORE_ON_INPUT)
-		enc += '?';
-	else if (day == 32)
-		enc += "LAST";
-	else if (day == 33)
-		enc += "ODD";
-	else if (day == 34)
-		enc += "EVEN";
-	else
-	{
-		sprintf( buff, "%d", day );
-		enc += buff;
-	}
+   // day of month
+   if (day == DATE_DONT_CARE)
+      enc += '*';
+   else if (day == DATE_IGNORE_ON_INPUT)
+      enc += '?';
+   else if (day == 32)
+      enc += "LAST";
+   else if (day == 33)
+      enc += "ODD";
+   else if (day == 34)
+      enc += "EVEN";
+   else
+   {
+      sprintf( buff, "%d", day );
+      enc += buff;
+   }
 
-	enc += '/';
+   enc += '/';
 
-	// year
-	if (year == DATE_DONT_CARE)
-	{
-		enc += '*';
-	}
-	else if (year == DATE_IGNORE_ON_INPUT)
-	{
-		enc += '?';
-	}
-	else
-	{
-		sprintf( buff, "%d", year + 1900 );
-		enc += buff;
-	}
+   // year
+   if (year == DATE_DONT_CARE)
+   {
+      enc += '*';
+   }
+   else if (year == DATE_IGNORE_ON_INPUT)
+   {
+      enc += '?';
+   }
+   else
+   {
+      sprintf( buff, "%d", year + 1900 );
+      enc += buff;
+   }
 
-	// Date is complex data type so must enclose in brackets for proper parsing
-	enc += ")]";
+   // Date is complex data type so must enclose in brackets for proper parsing
+   enc += ")]";
 }
 
 void BACnetDate::Decode( const char *dec )
 {
-	// initialize everything to don't care
-	dayOfWeek = month = day = year = DATE_DONT_CARE;
+   // initialize everything to don't care
+   dayOfWeek = month = day = year = DATE_DONT_CARE;
 
-	// skip blank on front
-	while (*dec && IsSpace(*dec)) dec++;
+   // skip blank on front
+   while (*dec && IsSpace(*dec)) dec++;
 
-	// script calls will have the square brackets as well
-	if ( *dec == '[' ) dec++;
+   // script calls will have the square brackets as well
+   if ( *dec == '[' ) dec++;
 
-	// Date is complex data type so must enclose in parenthesis
-	if ( *dec == '(' ) dec++;
+   // Date is complex data type so must enclose in parenthesis
+   if ( *dec == '(' ) dec++;
 
-	// The EPICS format is (Wednesday, 31-January-2010)
-	// - allows the DOW to be omitted entirely.
-	// - allows any field to be wildcarded as *
-	// - doesn't talk about even, odd, last
-	//
-	// The format here up to 3.5.3 was (Wednesday, 1-31-2010) or (Wednesday, 1/31/2010),
-	// allowing * or ? in any position, but not allowing even, odd, or last
-	//
-	// Current format (deviating from EPICS for backward compatibility)
-	// - Require DOW (or *, or ?, or even just a comma)
-	// - order is month/day/year
-	// - also accept month=13 or "odd", 14 or "even"; and day=32 or "last", 33 or "odd", or 34 or "even"
+   // The EPICS format is (Wednesday, 31-January-2010)
+   // - allows the DOW to be omitted entirely.
+   // - allows any field to be wildcarded as *
+   // - doesn't talk about even, odd, last
+   //
+   // The format here up to 3.5.3 was (Wednesday, 1-31-2010) or (Wednesday, 1/31/2010),
+   // allowing * or ? in any position, but not allowing even, odd, or last
+   //
+   // Current format (deviating from EPICS for backward compatibility)
+   // - Require DOW (or *, or ?, or even just a comma)
+   // - order is month/day/year
+   // - also accept month=13 or "odd", 14 or "even"; and day=32 or "last", 33 or "odd", or 34 or "even"
 
-	// check for dow
-	if ( *dec == '*' )
-	{
-		dayOfWeek = DATE_DONT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-	{
-		dayOfWeek = DATE_IGNORE_ON_INPUT;
-		dec += 1;
-	}
-	else if (IsAlpha(*dec)) 
-	{
-		// They've provided a day...  read it and test for validity
-		for (int i = 1; (i < NetworkSniffer::BAC_STRTAB_day_of_week.m_nStrings); i++)
-		{
-			if (MatchAndEat(dec, NetworkSniffer::BAC_STRTAB_day_of_week.m_pStrings[i], 3)) {
-				dayOfWeek = i;
-				break;
-			}
-		}
+   // check for dow
+   if ( *dec == '*' )
+   {
+      dayOfWeek = DATE_DONT_CARE;
+      dec += 1;
+   }
+   else if ( *dec == '?' )
+   {
+      dayOfWeek = DATE_IGNORE_ON_INPUT;
+      dec += 1;
+   }
+   else if (IsAlpha(*dec)) 
+   {
+      // They've provided a day...  read it and test for validity
+      for (int i = 1; (i < NetworkSniffer::BAC_STRTAB_day_of_week.m_nStrings); i++)
+      {
+         if (MatchAndEat(dec, NetworkSniffer::BAC_STRTAB_day_of_week.m_pStrings[i], 3)) {
+            dayOfWeek = i;
+            break;
+         }
+      }
 
-		// scanned through... test for validity
-		if ( dayOfWeek == DATE_DONT_CARE )
-			throw_(91);									// code for bad supplied day (interpreted in caller's context)
-	}
-	
-	// skip over comma and more space
-	while (*dec && IsSpace(*dec)) dec++;
-	if (*dec == ',') {
-		dec += 1;
-		while (*dec && IsSpace(*dec)) dec++;
-	}
+      // scanned through... test for validity
+      if ( dayOfWeek == DATE_DONT_CARE )
+         throw_(91);                         // code for bad supplied day (interpreted in caller's context)
+   }
+   
+   // skip over comma and more space
+   while (*dec && IsSpace(*dec)) dec++;
+   if (*dec == ',') {
+      dec += 1;
+      while (*dec && IsSpace(*dec)) dec++;
+   }
 
-	// check for month
-	if ( *dec == '*' )
-	{
-		month = DATE_DONT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-	{
-		month = DATE_IGNORE_ON_INPUT;
-		dec += 1;
-	}
-	else 
-	{
-		if (IsDigit(*dec))
-		{
-			// Numeric month
-			for (month = 0; IsDigit(*dec); dec++)
-				month = (month * 10) + (*dec - '0');
-		}
-		else
-		{
-			// Month names, abbreviations, ODD and EVEN
-			for (int ix = 1; ix < NetworkSniffer::BAC_STRTAB_month.m_nStrings; ix++)
-			{
-				if (MatchAndEat( dec, NetworkSniffer::BAC_STRTAB_month.m_pStrings[ix], 3 ))
-				{
-					month = ix;
-				}
-			}
-		}
-		
-		// Allow ODD=13 and EVEN=14
-		if ( month < 1 || month > 14)
-			throw_(92);								// code for bad month, interpreted in caller's context
-	}
-	
-	// skip over slash and more space
-	// make sure slash is there... or (-)
-	while (*dec && IsSpace(*dec)) dec++;
-	if (*dec == '/' || *dec == '-') 
-	{
-		dec += 1;
-		while (*dec && IsSpace(*dec)) dec++;
-	}
-	else
-	{
-		throw_(93);									// code for bad date separator, interpreted in caller's context
-	}
+   // check for month
+   if ( *dec == '*' )
+   {
+      month = DATE_DONT_CARE;
+      dec += 1;
+   }
+   else if ( *dec == '?' )
+   {
+      month = DATE_IGNORE_ON_INPUT;
+      dec += 1;
+   }
+   else 
+   {
+      if (IsDigit(*dec))
+      {
+         // Numeric month
+         for (month = 0; IsDigit(*dec); dec++)
+            month = (month * 10) + (*dec - '0');
+      }
+      else
+      {
+         // Month names, abbreviations, ODD and EVEN
+         for (int ix = 1; ix < NetworkSniffer::BAC_STRTAB_month.m_nStrings; ix++)
+         {
+            if (MatchAndEat( dec, NetworkSniffer::BAC_STRTAB_month.m_pStrings[ix], 3 ))
+            {
+               month = ix;
+            }
+         }
+      }
+      
+      // Allow ODD=13 and EVEN=14
+      if ( month < 1 || month > 14)
+         throw_(92);                      // code for bad month, interpreted in caller's context
+   }
+   
+   // skip over slash and more space
+   // make sure slash is there... or (-)
+   while (*dec && IsSpace(*dec)) dec++;
+   if (*dec == '/' || *dec == '-') 
+   {
+      dec += 1;
+      while (*dec && IsSpace(*dec)) dec++;
+   }
+   else
+   {
+      throw_(93);                         // code for bad date separator, interpreted in caller's context
+   }
 
-	// check for day of month
-	if ( *dec == '*' )
-	{
-		day = DATE_DONT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-	{
-		day = DATE_IGNORE_ON_INPUT;
-		dec += 1;
-	}
-	else 
-	{
-		if (IsDigit(*dec))
-		{
-			// Numeric month
-			for (day = 0; IsDigit(*dec); dec++)
-				day = (day * 10) + (*dec - '0');
-		}
-		else
-		{
-			// Allow LAST, EVEN or ODD
-			if (MatchAndEat( dec, "LAST" ))
-			{
-				day = 32;
-			}
-			else if (MatchAndEat( dec, "ODD" ))
-			{
-				day = 33;
-			}
-			else if (MatchAndEat( dec, "EVEN" ))
-			{
-				day = 34;
-			}
-		}
+   // check for day of month
+   if ( *dec == '*' )
+   {
+      day = DATE_DONT_CARE;
+      dec += 1;
+   }
+   else if ( *dec == '?' )
+   {
+      day = DATE_IGNORE_ON_INPUT;
+      dec += 1;
+   }
+   else 
+   {
+      if (IsDigit(*dec))
+      {
+         // Numeric month
+         for (day = 0; IsDigit(*dec); dec++)
+            day = (day * 10) + (*dec - '0');
+      }
+      else
+      {
+         // Allow LAST, EVEN or ODD
+         if (MatchAndEat( dec, "LAST" ))
+         {
+            day = 32;
+         }
+         else if (MatchAndEat( dec, "ODD" ))
+         {
+            day = 33;
+         }
+         else if (MatchAndEat( dec, "EVEN" ))
+         {
+            day = 34;
+         }
+      }
 
-		// they've supplied a day (I think)
-		// Allow LAST=32 ODD=33 and EVEN=34
-		if ( day < 1 || day > 34)					// doesn't account for month/day invalids (feb 30)
-			throw_(94);								// code for bad day, interpreted in caller's context
-	}
-	
-	// skip over slash and more space
-	while (*dec && IsSpace(*dec)) dec++;
-	if (*dec == '/' || *dec == '-') 
-	{
-		dec += 1;
-		while (*dec && IsSpace(*dec)) dec++;
-	}
-	else
-	{
-		throw_(93);									// code for bad date separator, interpreted in caller's context
-	}
+      // they've supplied a day (I think)
+      // Allow LAST=32 ODD=33 and EVEN=34
+      if ( day < 1 || day > 34)              // doesn't account for month/day invalids (feb 30)
+         throw_(94);                      // code for bad day, interpreted in caller's context
+   }
+   
+   // skip over slash and more space
+   while (*dec && IsSpace(*dec)) dec++;
+   if (*dec == '/' || *dec == '-') 
+   {
+      dec += 1;
+      while (*dec && IsSpace(*dec)) dec++;
+   }
+   else
+   {
+      throw_(93);                         // code for bad date separator, interpreted in caller's context
+   }
 
-	// check for year
-	if ( *dec == '*' )
-	{
-		year = DATE_DONT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-	{
-		year = DATE_IGNORE_ON_INPUT;
-		dec += 1;
-	}
-	else 
-	{
-		int	yr = -1;			// start with no supplied year
+   // check for year
+   if ( *dec == '*' )
+   {
+      year = DATE_DONT_CARE;
+      dec += 1;
+   }
+   else if ( *dec == '?' )
+   {
+      year = DATE_IGNORE_ON_INPUT;
+      dec += 1;
+   }
+   else 
+   {
+      int   yr = -1;       // start with no supplied year
 
-		// if they've supplied any number we'll go through this once at least...
-		if ( IsDigit(*dec) )
-			for (yr = 0; IsDigit(*dec); dec++)
-				yr = (yr * 10) + (*dec - '0');
+      // if they've supplied any number we'll go through this once at least...
+      if ( IsDigit(*dec) )
+         for (yr = 0; IsDigit(*dec); dec++)
+            yr = (yr * 10) + (*dec - '0');
 
-		// 0..40 -> 2000..2040, 41.. -> 1941..
-		// negative = error
+      // 0..40 -> 2000..2040, 41.. -> 1941..
+      // negative = error
 
-		if ( yr < 0 )
-			throw_(94);									// code for no supplied year, interpreted in caller's context
-		if (yr < 40)
-			year = yr + 100;
-		else if (yr < 100)
-			year = yr;
-		else if ((yr >= 1900) && (yr <= (1900 + 254)))
-			year = (yr - 1900);
-		else
-			throw_(95);									// code for bad year, interpreted in caller's context
-	}
+      if ( yr < 0 )
+         throw_(94);                         // code for no supplied year, interpreted in caller's context
+      if (yr < 40)
+         year = yr + 100;
+      else if (yr < 100)
+         year = yr;
+      else if ((yr >= 1900) && (yr <= (1900 + 254)))
+         year = (yr - 1900);
+      else
+         throw_(95);                         // code for bad year, interpreted in caller's context
+   }
 
-	// clear white space and look for close bracket
-	while (*dec && IsSpace(*dec)) dec++;
+   // clear white space and look for close bracket
+   while (*dec && IsSpace(*dec)) dec++;
 
-	if ( *dec++ == ')' ) dec++;
-	// script calls will have the square brackets as well
-	if ( *dec == ']' ) dec++;
+   if ( *dec++ == ')' ) dec++;
+   // script calls will have the square brackets as well
+   if ( *dec == ']' ) dec++;
 
-	// if we've gotten this far, all values have been read in and are correct
+   // if we've gotten this far, all values have been read in and are correct
 }
 
 // Convert to integer time in 100 nsec ticks since 1 Jan 1600 (FILETIME)
 LONGLONG BACnetDate::AsInt(void) const
 {
-	ASSERT( year != DATE_DONT_CARE  && month != DATE_DONT_CARE && day != DATE_DONT_CARE);
-	ASSERT( year != DATE_IGNORE_ON_INPUT  && month != DATE_IGNORE_ON_INPUT && day != DATE_IGNORE_ON_INPUT);
-	ASSERT( (month >= 1) && (month <= 12) && (day >= 1) && (day <= 31));
+   ASSERT( year != DATE_DONT_CARE  && month != DATE_DONT_CARE && day != DATE_DONT_CARE);
+   ASSERT( year != DATE_IGNORE_ON_INPUT  && month != DATE_IGNORE_ON_INPUT && day != DATE_IGNORE_ON_INPUT);
+   ASSERT( (month >= 1) && (month <= 12) && (day >= 1) && (day <= 31));
 
-	// This originally used and returned CTime.
-	// But CTime, mktime et al can't handle dates before 1 Jan 1970, while
-	// BACnet goes back to 1900.  Such dates have seen in the wild
-	// in ReadRange requests from certain BACnet workstations: they say 
-	// "give me your first 100 log entries on or after 1 Jan 1900".
-	// Thus, we use SYSTEMTIME, which is good back to 1600, instead of CTime.
-	SYSTEMTIME systime;
-	memset( &systime, 0, sizeof(systime) );
-	systime.wYear = year + 1900;
-	systime.wMonth = month;
-	systime.wDay = day;
+   // This originally used and returned CTime.
+   // But CTime, mktime et al can't handle dates before 1 Jan 1970, while
+   // BACnet goes back to 1900.  Such dates have seen in the wild
+   // in ReadRange requests from certain BACnet workstations: they say 
+   // "give me your first 100 log entries on or after 1 Jan 1900".
+   // Thus, we use SYSTEMTIME, which is good back to 1600, instead of CTime.
+   SYSTEMTIME systime;
+   memset( &systime, 0, sizeof(systime) );
+   systime.wYear = year + 1900;
+   systime.wMonth = month;
+   systime.wDay = day;
 
-	// Convert to FILETIME (nsec since 1 Jan 1600)
-	FILETIME filetime;
-	::SystemTimeToFileTime( &systime, &filetime );
+   // Convert to FILETIME (nsec since 1 Jan 1600)
+   FILETIME filetime;
+   ::SystemTimeToFileTime( &systime, &filetime );
 
-	LARGE_INTEGER largeINT;
-	largeINT.HighPart = filetime.dwHighDateTime;
-	largeINT.LowPart  = filetime.dwLowDateTime;
+   LARGE_INTEGER largeINT;
+   largeINT.HighPart = filetime.dwHighDateTime;
+   largeINT.LowPart  = filetime.dwLowDateTime;
 
-	return (LONGLONG)largeINT.QuadPart;
+   return (LONGLONG)largeINT.QuadPart;
 }
 
 
 BACnetDate & BACnetDate::operator =( const BACnetDate & arg )
 {
-	day = arg.day;
-	dayOfWeek = arg.dayOfWeek;
-	month = arg.month;
-	year = arg.year;
+   day = arg.day;
+   dayOfWeek = arg.dayOfWeek;
+   month = arg.month;
+   year = arg.year;
 
-	return *this;
+   return *this;
 }
 
 
 int BACnetDate::DataType()
 {
-	return ptDate;
+   return ptDate;
 }
 
 
 BACnetEncodeable * BACnetDate::clone()
 {
-	return new BACnetDate(year, month, day);
+   return new BACnetDate(year, month, day);
 }
 
 
 bool BACnetDate::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)) ||
-		 !Match((BACnetDate &) rbacnet, iOperator) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)) ||
+       !Match((BACnetDate &) rbacnet, iOperator) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
 
 bool BACnetDate::Match( BACnetDate & rdate, int iOperator )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	switch(iOperator)
-	{
-		case '=':	return *this == rdate;
-		case '<':	return *this < rdate;
-		case '>':	return *this > rdate;
-		case '<=':	return *this <= rdate;
-		case '>=':	return *this >= rdate;
-		case '!=':	return *this != rdate;
-		default:
-			ASSERT(0);
-	}
-	return false;
+   switch(iOperator)
+   {
+      case '=':   return *this == rdate;
+      case '<':   return *this < rdate;
+      case '>':   return *this > rdate;
+      case '<=':  return *this <= rdate;
+      case '>=':  return *this >= rdate;
+      case '!=':  return *this != rdate;
+      default:
+         ASSERT(0);
+   }
+   return false;
 }
 
 
@@ -4107,78 +4162,78 @@ bool BACnetDate::Match( BACnetDate & rdate, int iOperator )
 
 bool ValuesEqual( int v1, int v2 )
 {
-	// True if either value is "ignore", or if the values are equal
-	return (v1 == DATE_IGNORE_ON_INPUT) || (v2 == DATE_IGNORE_ON_INPUT) || (v1 == v2);
+   // True if either value is "ignore", or if the values are equal
+   return (v1 == DATE_IGNORE_ON_INPUT) || (v2 == DATE_IGNORE_ON_INPUT) || (v1 == v2);
 /*
-	// if neither of them are ignore-on-input, then we should check their value... even if one of them
-	// is don't care. 
-	if ((v1 != DATE_IGNORE_ON_INPUT) && (v2 != DATE_IGNORE_ON_INPUT) && (v1 != v2))
-		return false;
+   // if neither of them are ignore-on-input, then we should check their value... even if one of them
+   // is don't care. 
+   if ((v1 != DATE_IGNORE_ON_INPUT) && (v2 != DATE_IGNORE_ON_INPUT) && (v1 != v2))
+      return false;
 
-	// OK... Now test for equality when one is don't care and other is shouldn't care
+   // OK... Now test for equality when one is don't care and other is shouldn't care
 
-	if ( ((v1 == DATE_SHOULDNT_CARE) && (v2 != DATE_DONT_CARE) && (v2 != DATE_SHOULDNT_CARE)) || 
-		 ((v2 == DATE_SHOULDNT_CARE) && (v1 != DATE_DONT_CARE) && (v1 != DATE_SHOULDNT_CARE)) )
-		return false;
+   if ( ((v1 == DATE_SHOULDNT_CARE) && (v2 != DATE_DONT_CARE) && (v2 != DATE_SHOULDNT_CARE)) || 
+       ((v2 == DATE_SHOULDNT_CARE) && (v1 != DATE_DONT_CARE) && (v1 != DATE_SHOULDNT_CARE)) )
+      return false;
 
-	return true;
+   return true;
 */
 }
 
 
 bool ValuesGreater( int v1, int v2 )
 {
-	// True if either value is "ignore", or if v1 > v2
-	return (v1 == DATE_IGNORE_ON_INPUT) || (v2 == DATE_IGNORE_ON_INPUT) || (v1 > v2);
+   // True if either value is "ignore", or if v1 > v2
+   return (v1 == DATE_IGNORE_ON_INPUT) || (v2 == DATE_IGNORE_ON_INPUT) || (v1 > v2);
 /*
-	if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&
-		 v1 != DATE_SHOULDNT_CARE  &&  v2 != DATE_SHOULDNT_CARE  &&  v1 > v2 )
-		return true;
+   if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&
+       v1 != DATE_SHOULDNT_CARE  &&  v2 != DATE_SHOULDNT_CARE  &&  v1 > v2 )
+      return true;
 
-	// we've weeded out the don't care case and already tested for greather than...  if it failed...
-	// the next best we can do is equal or less than... in either case, the greater than test failed
-	// so we should just return false
+   // we've weeded out the don't care case and already tested for greather than...  if it failed...
+   // the next best we can do is equal or less than... in either case, the greater than test failed
+   // so we should just return false
 
-	return false;
+   return false;
 */
 }
 
 
 bool ValuesLess( int v1, int v2 )
 {
-	// True if either value is "ignore", or if v1 < v2
-	return (v1 == DATE_IGNORE_ON_INPUT) || (v2 == DATE_IGNORE_ON_INPUT) || (v1 < v2);
+   // True if either value is "ignore", or if v1 < v2
+   return (v1 == DATE_IGNORE_ON_INPUT) || (v2 == DATE_IGNORE_ON_INPUT) || (v1 < v2);
 /*
-	if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&
-		 v1 != DATE_SHOULDNT_CARE  &&  v2 != DATE_SHOULDNT_CARE  &&  v1 < v2 )
-		return true;
+   if ( v1 != DATE_DONT_CARE  &&  v2 != DATE_DONT_CARE  &&
+       v1 != DATE_SHOULDNT_CARE  &&  v2 != DATE_SHOULDNT_CARE  &&  v1 < v2 )
+      return true;
 
-	// we've weeded out the don't care case and already tested for less than...  if it failed...
-	// the next best we can do is equal or greater... in either case, the less than test failed
-	// so we should just return false
+   // we've weeded out the don't care case and already tested for less than...  if it failed...
+   // the next best we can do is equal or greater... in either case, the less than test failed
+   // so we should just return false
 
-	return false;
+   return false;
 */
 }
 
 
 bool BACnetDate::operator ==( const BACnetDate & arg )
 {
-	// test all of the values... if one is out of sorts... then the whole thing isn't equal
+   // test all of the values... if one is out of sorts... then the whole thing isn't equal
 
-	if ( !ValuesEqual(year, arg.year) )
-		return false;
+   if ( !ValuesEqual(year, arg.year) )
+      return false;
 
-	if ( !ValuesEqual(month, arg.month) )
-		return false;
+   if ( !ValuesEqual(month, arg.month) )
+      return false;
 
-	if ( !ValuesEqual(day, arg.day) )
-		return false;
+   if ( !ValuesEqual(day, arg.day) )
+      return false;
 
-	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
-		return false;
+   if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+      return false;
 
-	return true;
+   return true;
 }
 
 
@@ -4186,191 +4241,191 @@ bool BACnetDate::operator ==( const BACnetDate & arg )
 
 bool BACnetDate::operator !=( const BACnetDate & arg )
 {
-	// test all values for equality... if one is not equal... then the whole thing is not equal
-	// and we don't have to keep testing...
-	// We could probably just invert the == operator, but my brain is hurting
+   // test all values for equality... if one is not equal... then the whole thing is not equal
+   // and we don't have to keep testing...
+   // We could probably just invert the == operator, but my brain is hurting
 
-	if ( !ValuesEqual(year, arg.year) )
-		return true;
+   if ( !ValuesEqual(year, arg.year) )
+      return true;
 
-	if ( !ValuesEqual(month, arg.month) )
-		return true;
+   if ( !ValuesEqual(month, arg.month) )
+      return true;
 
-	if ( !ValuesEqual(day, arg.day) )
-		return true;
+   if ( !ValuesEqual(day, arg.day) )
+      return true;
 
-	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
-		return true;
+   if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+      return true;
 
-	return false;
+   return false;
 }
 
 
 
 bool BACnetDate::operator <=( const BACnetDate & arg )
 {
-	if ( !ValuesEqual(year, arg.year) )
-		return ValuesLess(year, arg.year);
+   if ( !ValuesEqual(year, arg.year) )
+      return ValuesLess(year, arg.year);
 
-	// years are now equal or we don't care...
-	if ( !ValuesEqual(month, arg.month) )
-		return ValuesLess(month, arg.month);
+   // years are now equal or we don't care...
+   if ( !ValuesEqual(month, arg.month) )
+      return ValuesLess(month, arg.month);
 
-	// years and months are equal or don't care... check day
-	if ( !ValuesEqual(day, arg.day) )
-		return ValuesLess(day, arg.day);
+   // years and months are equal or don't care... check day
+   if ( !ValuesEqual(day, arg.day) )
+      return ValuesLess(day, arg.day);
 
-	// all important values are either equal or don't care... check final day of week
-	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
-		return ValuesLess(dayOfWeek, arg.dayOfWeek);
+   // all important values are either equal or don't care... check final day of week
+   if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+      return ValuesLess(dayOfWeek, arg.dayOfWeek);
 
-	// values must be equal
-	return true;
+   // values must be equal
+   return true;
 }
 
 
 bool BACnetDate::operator <( const BACnetDate & arg )
 {
-	if ( !ValuesEqual(year, arg.year) )
-		return ValuesLess(year, arg.year);
+   if ( !ValuesEqual(year, arg.year) )
+      return ValuesLess(year, arg.year);
 
-	// years are now equal or we don't care...
-	if ( !ValuesEqual(month, arg.month) )
-		return ValuesLess(month, arg.month);
+   // years are now equal or we don't care...
+   if ( !ValuesEqual(month, arg.month) )
+      return ValuesLess(month, arg.month);
 
-	// years and months are equal or don't care... check day
-	if ( !ValuesEqual(day, arg.day) )
-		return ValuesLess(day, arg.day);
+   // years and months are equal or don't care... check day
+   if ( !ValuesEqual(day, arg.day) )
+      return ValuesLess(day, arg.day);
 
-	// all important values are either equal or don't care... check final day of week
-	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
-		return ValuesLess(dayOfWeek, arg.dayOfWeek);
+   // all important values are either equal or don't care... check final day of week
+   if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+      return ValuesLess(dayOfWeek, arg.dayOfWeek);
 
-	// values must be equal so return false
-	return false;
+   // values must be equal so return false
+   return false;
 }
 
 
 bool BACnetDate::operator >=( const BACnetDate & arg )
 {
-	if ( !ValuesEqual(year, arg.year) )
-		return ValuesGreater(year, arg.year);
+   if ( !ValuesEqual(year, arg.year) )
+      return ValuesGreater(year, arg.year);
 
-	// years are now equal or we don't care...
-	if ( !ValuesEqual(month, arg.month) )
-		return ValuesGreater(month, arg.month);
+   // years are now equal or we don't care...
+   if ( !ValuesEqual(month, arg.month) )
+      return ValuesGreater(month, arg.month);
 
-	// years and months are equal or don't care... check day
-	if ( !ValuesEqual(day, arg.day) )
-		return ValuesGreater(day, arg.day);
+   // years and months are equal or don't care... check day
+   if ( !ValuesEqual(day, arg.day) )
+      return ValuesGreater(day, arg.day);
 
-	// all important values are either equal or don't care... check final day of week
-	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
-		return ValuesGreater(dayOfWeek, arg.dayOfWeek);
+   // all important values are either equal or don't care... check final day of week
+   if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+      return ValuesGreater(dayOfWeek, arg.dayOfWeek);
 
-	// values must be equal now
-	return true;
+   // values must be equal now
+   return true;
 }
 
 
 bool BACnetDate::operator >( const BACnetDate & arg )
 {
-	if ( !ValuesEqual(year, arg.year) )
-		return ValuesGreater(year, arg.year);
+   if ( !ValuesEqual(year, arg.year) )
+      return ValuesGreater(year, arg.year);
 
-	// years are now equal or we don't care...
-	if ( !ValuesEqual(month, arg.month) )
-		return ValuesGreater(month, arg.month);
+   // years are now equal or we don't care...
+   if ( !ValuesEqual(month, arg.month) )
+      return ValuesGreater(month, arg.month);
 
-	// years and months are equal or don't care... check day
-	if ( !ValuesEqual(day, arg.day) )
-		return ValuesGreater(day, arg.day);
+   // years and months are equal or don't care... check day
+   if ( !ValuesEqual(day, arg.day) )
+      return ValuesGreater(day, arg.day);
 
-	// all important values are either equal or don't care... check final day of week
-	if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
-		return ValuesGreater(dayOfWeek, arg.dayOfWeek);
+   // all important values are either equal or don't care... check final day of week
+   if ( !ValuesEqual(dayOfWeek, arg.dayOfWeek) )
+      return ValuesGreater(dayOfWeek, arg.dayOfWeek);
 
-	// values must be equal so return false
-	return false;
+   // values must be equal so return false
+   return false;
 }
 
 
 
 void BACnetDate::TestDateComps()
 {
-	bool f;
-	int max = 22;
-	BACnetDate date1, date2;
-	char * t[] = {  "[WED, 11/20/02]", "[WED, 11/20/02]",			// test years
-					"[WED, 11/20/02]", "[WED, 11/20/03]",
-					"[WED, 11/20/03]", "[WED, 11/20/00]",
-					"[WED, 11/20/?]", "[WED, 11/20/?]",
-					"[WED, 11/20/03]", "[WED, 11/20/?]",
-					"[WED, 11/20/*]", "[WED, 11/20/*]",
-					"[WED, 11/20/03]", "[WED, 11/20/*]",
-					"[WED, 11/20/*]", "[WED, 11/20/?]",
+   bool f;
+   int max = 22;
+   BACnetDate date1, date2;
+   char * t[] = {  "[WED, 11/20/02]", "[WED, 11/20/02]",       // test years
+               "[WED, 11/20/02]", "[WED, 11/20/03]",
+               "[WED, 11/20/03]", "[WED, 11/20/00]",
+               "[WED, 11/20/?]", "[WED, 11/20/?]",
+               "[WED, 11/20/03]", "[WED, 11/20/?]",
+               "[WED, 11/20/*]", "[WED, 11/20/*]",
+               "[WED, 11/20/03]", "[WED, 11/20/*]",
+               "[WED, 11/20/*]", "[WED, 11/20/?]",
 
-					"[WED, 11/20/02]", "[WED, 11/21/02]",			// test months
-					"[WED, 11/21/02]", "[WED, 11/20/02]",
-					"[WED, 11/?/02]", "[WED, 11/?/02]",
-					"[WED, 11/?/02]", "[WED, 11/20/02]",
-					"[WED, 11/?/02]", "[WED, 11/*/02]",
-					"[WED, 11/*/02]", "[WED, 11/20/02]",
-					"[WED, 11/*/02]", "[WED, 11/*/02]",
+               "[WED, 11/20/02]", "[WED, 11/21/02]",        // test months
+               "[WED, 11/21/02]", "[WED, 11/20/02]",
+               "[WED, 11/?/02]", "[WED, 11/?/02]",
+               "[WED, 11/?/02]", "[WED, 11/20/02]",
+               "[WED, 11/?/02]", "[WED, 11/*/02]",
+               "[WED, 11/*/02]", "[WED, 11/20/02]",
+               "[WED, 11/*/02]", "[WED, 11/*/02]",
 
-					"[WED, 11/20/02]", "[WED, 12/21/02]",			// test days
-					"[WED, 12/20/02]", "[WED, 11/20/02]",
-					"[WED, ?/20/02]", "[WED, ?/20/02]",
-					"[WED, ?/20/02]", "[WED, 11/20/02]",
-					"[WED, ?/20/02]", "[WED, */20/02]",
-					"[WED, */20/02]", "[WED, 11/20/02]",
-					"[WED, */20/02]", "[WED, */20/02]"
-				};
+               "[WED, 11/20/02]", "[WED, 12/21/02]",        // test days
+               "[WED, 12/20/02]", "[WED, 11/20/02]",
+               "[WED, ?/20/02]", "[WED, ?/20/02]",
+               "[WED, ?/20/02]", "[WED, 11/20/02]",
+               "[WED, ?/20/02]", "[WED, */20/02]",
+               "[WED, */20/02]", "[WED, 11/20/02]",
+               "[WED, */20/02]", "[WED, */20/02]"
+            };
 
 
-	for ( int i = 0; i < max; i++ )
-	{
-		date1.Decode( (const char *) t[i*2] );
-		date2.Decode( (const char *) t[(i*2)+1] );
+   for ( int i = 0; i < max; i++ )
+   {
+      date1.Decode( (const char *) t[i*2] );
+      date2.Decode( (const char *) t[(i*2)+1] );
 
-		f = date1 == date2;
-		f = date1 != date2;
-		f = date1 <  date2;
-		f = date1 <= date2;
-		f = date1 >  date2;
-		f = date1 >= date2;
-	}
+      f = date1 == date2;
+      f = date1 != date2;
+      f = date1 <  date2;
+      f = date1 <= date2;
+      f = date1 >  date2;
+      f = date1 >= date2;
+   }
 }
 
 
 IMPLEMENT_DYNAMIC(BACnetTime, BACnetEncodeable)
 
 //
-//	BACnetTime::BACnetTime
+// BACnetTime::BACnetTime
 //
 
 BACnetTime::BACnetTime( void )
 {
-	time_t		now
-	;
-	struct tm	*currtime
-	;
-	
-	time( &now );
-	currtime = localtime( &now );
-	
-	hour = currtime->tm_hour;
-	minute = currtime->tm_min;
-	second = currtime->tm_sec;
-	hundredths = 0;
+   time_t      now
+   ;
+   struct tm   *currtime
+   ;
+   
+   time( &now );
+   currtime = localtime( &now );
+   
+   hour = currtime->tm_hour;
+   minute = currtime->tm_min;
+   second = currtime->tm_sec;
+   hundredths = 0;
 }
 
 //
-//	BACnetTime::BACnetTime
+// BACnetTime::BACnetTime
 //
 
 BACnetTime::BACnetTime( int hr, int mn, int sc, int hun )
-	: hour(hr), minute(mn), second(sc), hundredths(hun)
+   : hour(hr), minute(mn), second(sc), hundredths(hun)
 {
 }
 
@@ -4378,268 +4433,268 @@ BACnetTime::BACnetTime( int hr, int mn, int sc, int hun )
 
 BACnetTime::BACnetTime( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 bool BACnetTime::IsValid()
 {
-	if ( hour != DATE_DONT_CARE && hour != DATE_IGNORE_ON_INPUT && (hour < 0 || hour > 23) )
-		return false;
+   if ( hour != DATE_DONT_CARE && hour != DATE_IGNORE_ON_INPUT && (hour < 0 || hour > 23) )
+      return false;
 
-	if ( minute != DATE_DONT_CARE &&  minute != DATE_IGNORE_ON_INPUT  &&  (minute < 0 || minute > 59) )
-		return false;
+   if ( minute != DATE_DONT_CARE &&  minute != DATE_IGNORE_ON_INPUT  &&  (minute < 0 || minute > 59) )
+      return false;
 
-	if ( second != DATE_DONT_CARE &&  second != DATE_IGNORE_ON_INPUT &&  (second < 0 || second > 59 ))
-		return false;
+   if ( second != DATE_DONT_CARE &&  second != DATE_IGNORE_ON_INPUT &&  (second < 0 || second > 59 ))
+      return false;
 
-	if ( hundredths != DATE_DONT_CARE &&  hundredths != DATE_IGNORE_ON_INPUT &&  (hundredths < 0 ||  hundredths > 99))
-		return false;
+   if ( hundredths != DATE_DONT_CARE &&  hundredths != DATE_IGNORE_ON_INPUT &&  (hundredths < 0 ||  hundredths > 99))
+      return false;
 
-	return true;
+   return true;
 }
 
 
 void BACnetTime::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, 4 ).Encode( enc );
-	else
-		BACnetAPDUTag( timeAppTag, 4 ).Encode( enc );
-	
-	// fill in the data
-	// JLH: ended up encoding * (DATE_IGNORE_ON_INPUT) as 0xFE
-	enc.pktBuffer[enc.pktLength++] = (hour < DATE_IGNORE_ON_INPUT) ? hour : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (minute < DATE_IGNORE_ON_INPUT) ? minute : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (second < DATE_IGNORE_ON_INPUT) ? second : 0xFF;
-	enc.pktBuffer[enc.pktLength++] = (hundredths < DATE_IGNORE_ON_INPUT) ? hundredths : 0xFF;
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, 4 ).Encode( enc );
+   else
+      BACnetAPDUTag( timeAppTag, 4 ).Encode( enc );
+   
+   // fill in the data
+   // JLH: ended up encoding * (DATE_IGNORE_ON_INPUT) as 0xFE
+   enc.pktBuffer[enc.pktLength++] = (hour < DATE_IGNORE_ON_INPUT) ? hour : 0xFF;
+   enc.pktBuffer[enc.pktLength++] = (minute < DATE_IGNORE_ON_INPUT) ? minute : 0xFF;
+   enc.pktBuffer[enc.pktLength++] = (second < DATE_IGNORE_ON_INPUT) ? second : 0xFF;
+   enc.pktBuffer[enc.pktLength++] = (hundredths < DATE_IGNORE_ON_INPUT) ? hundredths : 0xFF;
 }
 
 void BACnetTime::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
-		
-	// verify the tag can be extracted
-	tag.Decode( dec );
-	
-	// check the type and length
-	if (!tag.tagClass && (tag.tagNumber != timeAppTag))
-		throw_(53) /* mismatched data type */;
-	if (tag.tagLVT != 4)
-		throw_(54) /* four bytes of data expected */;
-	
-	// copy out the data
-	hour		= *dec.pktBuffer++;
-	minute		= *dec.pktBuffer++;
-	second		= *dec.pktBuffer++;
-	hundredths	= *dec.pktBuffer++;
-	dec.pktLength -= 4;
+   BACnetAPDUTag  tag
+   ;
+      
+   // verify the tag can be extracted
+   tag.Decode( dec );
+   
+   // check the type and length
+   if (!tag.tagClass && (tag.tagNumber != timeAppTag))
+      throw_(53) /* mismatched data type */;
+   if (tag.tagLVT != 4)
+      throw_(54) /* four bytes of data expected */;
+   
+   // copy out the data
+   hour     = *dec.pktBuffer++;
+   minute      = *dec.pktBuffer++;
+   second      = *dec.pktBuffer++;
+   hundredths  = *dec.pktBuffer++;
+   dec.pktLength -= 4;
 
-	if ( !IsValid() )
-		throw_(100);					// code meaning invalid time values, interpreted by caller's context
+   if ( !IsValid() )
+      throw_(100);               // code meaning invalid time values, interpreted by caller's context
 }
 
 void BACnetTime::Encode( CString &enc ) const
 {
-	char buff[10];
+   char buff[10];
 
-	// Begin wrapping
-	enc = "[(";
+   // Begin wrapping
+   enc = "[(";
 
-	// hour
-	if (hour == DATE_DONT_CARE)
-		enc += '*';
-	else if (hour == DATE_IGNORE_ON_INPUT)
-		enc += '?';
-	else {
-		sprintf( buff, "%02d", hour );
-		enc += buff;
-	}
-	enc += ':';
+   // hour
+   if (hour == DATE_DONT_CARE)
+      enc += '*';
+   else if (hour == DATE_IGNORE_ON_INPUT)
+      enc += '?';
+   else {
+      sprintf( buff, "%02d", hour );
+      enc += buff;
+   }
+   enc += ':';
 
-	// minute
-	if (minute == DATE_DONT_CARE)
-		enc += '*';
-	else if (minute == DATE_IGNORE_ON_INPUT)
-		enc += '?';
-	else {
-		sprintf( buff, "%02d", minute );
-		enc += buff;
-	}
-	enc += ':';
+   // minute
+   if (minute == DATE_DONT_CARE)
+      enc += '*';
+   else if (minute == DATE_IGNORE_ON_INPUT)
+      enc += '?';
+   else {
+      sprintf( buff, "%02d", minute );
+      enc += buff;
+   }
+   enc += ':';
 
-	// second
-	if (second == DATE_DONT_CARE)
-		enc += '*';
-	else if (second == DATE_IGNORE_ON_INPUT)
-		enc += '?';
-	else {
-		sprintf( buff, "%02d", second );
-		enc += buff;
-	}
-	enc += '.';
+   // second
+   if (second == DATE_DONT_CARE)
+      enc += '*';
+   else if (second == DATE_IGNORE_ON_INPUT)
+      enc += '?';
+   else {
+      sprintf( buff, "%02d", second );
+      enc += buff;
+   }
+   enc += '.';
 
-	// hundredths
-	if (hundredths == DATE_DONT_CARE)
-		enc += '*';
-	else if (hundredths == DATE_IGNORE_ON_INPUT)
-		enc += '?';
-	else {
-		sprintf( buff, "%02d", hundredths );
-		enc += buff;
-	}
+   // hundredths
+   if (hundredths == DATE_DONT_CARE)
+      enc += '*';
+   else if (hundredths == DATE_IGNORE_ON_INPUT)
+      enc += '?';
+   else {
+      sprintf( buff, "%02d", hundredths );
+      enc += buff;
+   }
 
-	// End wrapping
-	enc += ")]";
+   // End wrapping
+   enc += ")]";
 }
 
 
 void BACnetTime::Decode( const char *dec )
 {
-	// defaults
-	hour = minute = second = hundredths = DATE_DONT_CARE;
+   // defaults
+   hour = minute = second = hundredths = DATE_DONT_CARE;
 
-	// skip blank on front
-	while (*dec && IsSpace(*dec)) dec++;   //add by xlp
+   // skip blank on front
+   while (*dec && IsSpace(*dec)) dec++;   //add by xlp
 
-	// Script may enclose in brackets
-	// Time is complex data type so must enclose in parenthesis
-	if ( *dec == '[' ) dec++;
-	if ( *dec == '(' ) dec++;
+   // Script may enclose in brackets
+   // Time is complex data type so must enclose in parenthesis
+   if ( *dec == '[' ) dec++;
+   if ( *dec == '(' ) dec++;
 
-	// check for hour
-	if ( *dec == '*' )
-	{
-		hour = DATE_DONT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-	{
-		hour = DATE_IGNORE_ON_INPUT;
-		dec += 1;
-	}
-	else {
-		// dont' care not specified, they MUST specify hours...
-		hour = -1;
-		
-		if ( IsDigit(*dec) )
-			for (hour = 0; IsDigit(*dec); dec++)
-				hour = (hour * 10) + (*dec - '0');
+   // check for hour
+   if ( *dec == '*' )
+   {
+      hour = DATE_DONT_CARE;
+      dec += 1;
+   }
+   else if ( *dec == '?' )
+   {
+      hour = DATE_IGNORE_ON_INPUT;
+      dec += 1;
+   }
+   else {
+      // dont' care not specified, they MUST specify hours...
+      hour = -1;
+      
+      if ( IsDigit(*dec) )
+         for (hour = 0; IsDigit(*dec); dec++)
+            hour = (hour * 10) + (*dec - '0');
 
-		// test validity and report
-		if ( hour < 0 || hour > 23 )
-			throw_(101);									// invalid hour specification, interpreted by caller's context
-	}
-	// add by xlp
-	while (*dec && IsSpace(*dec)) dec++;
+      // test validity and report
+      if ( hour < 0 || hour > 23 )
+         throw_(101);                           // invalid hour specification, interpreted by caller's context
+   }
+   // add by xlp
+   while (*dec && IsSpace(*dec)) dec++;
 
-	if (*dec == ':')
-		dec += 1;
-	else
-		throw_(102);										// bad time separator, (used to be 55 invalid character)
+   if (*dec == ':')
+      dec += 1;
+   else
+      throw_(102);                              // bad time separator, (used to be 55 invalid character)
 
-	// add by xlp
-	while (*dec && IsSpace(*dec)) dec++;
+   // add by xlp
+   while (*dec && IsSpace(*dec)) dec++;
 
-	// check for minute
-	if ( *dec == '*' ) 
-	{
-		minute = DATE_DONT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-	{
-		minute = DATE_IGNORE_ON_INPUT;
-		dec += 1;
-	}
-	else {
-		// MUST now supply minute value
-		minute = -1;
-		
-		if ( IsDigit(*dec) )
-			for (minute = 0; IsDigit(*dec); dec++)
-				minute = (minute * 10) + (*dec - '0');
+   // check for minute
+   if ( *dec == '*' ) 
+   {
+      minute = DATE_DONT_CARE;
+      dec += 1;
+   }
+   else if ( *dec == '?' )
+   {
+      minute = DATE_IGNORE_ON_INPUT;
+      dec += 1;
+   }
+   else {
+      // MUST now supply minute value
+      minute = -1;
+      
+      if ( IsDigit(*dec) )
+         for (minute = 0; IsDigit(*dec); dec++)
+            minute = (minute * 10) + (*dec - '0');
 
-		// test validity and report
-		if ( minute < 0 || minute > 59 )
-			throw_(103);									// invalid minute specification, interpreted by caller's context
-	}
-	// add by xlp
-	while (*dec && IsSpace(*dec)) dec++;
+      // test validity and report
+      if ( minute < 0 || minute > 59 )
+         throw_(103);                           // invalid minute specification, interpreted by caller's context
+   }
+   // add by xlp
+   while (*dec && IsSpace(*dec)) dec++;
 
-	if (*dec == ':')
-		dec += 1;
-	else
-		throw_(102);										// bad time separator, (used to be 56 invalid character)
+   if (*dec == ':')
+      dec += 1;
+   else
+      throw_(102);                              // bad time separator, (used to be 56 invalid character)
 
-	// add by xlp
-	while (*dec && IsSpace(*dec)) dec++;
+   // add by xlp
+   while (*dec && IsSpace(*dec)) dec++;
 
-	// check for second
-	if ( *dec == '*' )
-	{
-		second = DATE_DONT_CARE;
-		dec += 1;
-	}
-	else if ( *dec == '?' )
-	{
-		second = DATE_IGNORE_ON_INPUT;
-		dec += 1;
-	}
-	else {
-		// MUST now supply the second value
-		second = -1;
-		
-		if ( IsDigit(*dec) )
-			for (second = 0; IsDigit(*dec); dec++)
-				second = (second * 10) + (*dec - '0');
+   // check for second
+   if ( *dec == '*' )
+   {
+      second = DATE_DONT_CARE;
+      dec += 1;
+   }
+   else if ( *dec == '?' )
+   {
+      second = DATE_IGNORE_ON_INPUT;
+      dec += 1;
+   }
+   else {
+      // MUST now supply the second value
+      second = -1;
+      
+      if ( IsDigit(*dec) )
+         for (second = 0; IsDigit(*dec); dec++)
+            second = (second * 10) + (*dec - '0');
 
-		// test validity and report
-		if ( second < 0 || second > 59 )
-			throw_(104);									// invalid second specification, interpreted by caller's context
-	}
-	// add by xlp
-	while (*dec && IsSpace(*dec)) dec++;
+      // test validity and report
+      if ( second < 0 || second > 59 )
+         throw_(104);                           // invalid second specification, interpreted by caller's context
+   }
+   // add by xlp
+   while (*dec && IsSpace(*dec)) dec++;
 
-	// hundredths specification is optional...
-	if (*dec == '.')
-	{
-		dec += 1;
+   // hundredths specification is optional...
+   if (*dec == '.')
+   {
+      dec += 1;
 
-		// so we're now scanning for a valid hundredth number
-		while (*dec && IsSpace(*dec)) dec++;
+      // so we're now scanning for a valid hundredth number
+      while (*dec && IsSpace(*dec)) dec++;
 
-		if ( *dec == '*' )
-		{
-			hundredths = DATE_DONT_CARE;
-			dec += 1;
-		}
-		else if ( *dec == '?' )
-		{
-			hundredths = DATE_IGNORE_ON_INPUT;
-			dec += 1;
-		}
-		else {
-			// MUST now supply the hundredth value
-			hundredths = -1;
-		
-			if ( IsDigit(*dec) )
-				for (hundredths = 0; IsDigit(*dec); dec++)
-					hundredths = (hundredths * 10) + (*dec - '0');
+      if ( *dec == '*' )
+      {
+         hundredths = DATE_DONT_CARE;
+         dec += 1;
+      }
+      else if ( *dec == '?' )
+      {
+         hundredths = DATE_IGNORE_ON_INPUT;
+         dec += 1;
+      }
+      else {
+         // MUST now supply the hundredth value
+         hundredths = -1;
+      
+         if ( IsDigit(*dec) )
+            for (hundredths = 0; IsDigit(*dec); dec++)
+               hundredths = (hundredths * 10) + (*dec - '0');
 
-			// test validity and report
-			if ( hundredths < 0 || hundredths > 99 )
-				throw_(105);									// invalid hundredth specification, interpreted by caller's context
-		}
-	}
+         // test validity and report
+         if ( hundredths < 0 || hundredths > 99 )
+            throw_(105);                           // invalid hundredth specification, interpreted by caller's context
+      }
+   }
 
-	// clear white space and look for close bracket
-	while (*dec && IsSpace(*dec)) dec++;
+   // clear white space and look for close bracket
+   while (*dec && IsSpace(*dec)) dec++;
 
-	if ( *dec == ')' ) dec++;
-	if ( *dec == ']' ) dec++;
+   if ( *dec == ')' ) dec++;
+   if ( *dec == ']' ) dec++;
 }
 
 
@@ -4647,422 +4702,422 @@ void BACnetTime::Decode( const char *dec )
 
 BACnetTime & BACnetTime::operator =( const BACnetTime & arg )
 {
-	hour = arg.hour;
-	hundredths = arg.hundredths;
-	minute = arg.minute;
-	second = arg.second;
+   hour = arg.hour;
+   hundredths = arg.hundredths;
+   minute = arg.minute;
+   second = arg.second;
 
-	return *this;
+   return *this;
 }
 
 
 int BACnetTime::DataType()
 {
-	return ptTime;
+   return ptTime;
 }
 
 BACnetEncodeable * BACnetTime::clone()
 {
-	return new BACnetTime(hour, minute, second, hundredths);
+   return new BACnetTime(hour, minute, second, hundredths);
 }
 
 
 bool BACnetTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)) ||
-	     !Match((BACnetTime &) rbacnet, iOperator) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)) ||
+        !Match((BACnetTime &) rbacnet, iOperator) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
 bool BACnetTime::Match( BACnetTime & rtime, int iOperator )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	switch(iOperator)
-	{
-		case '=':	return *this == rtime;
-		case '<':	return *this < rtime;
-		case '>':	return *this > rtime;
-		case '<=':	return *this <= rtime;
-		case '>=':	return *this >= rtime;
-		case '!=':	return *this != rtime;
-		default:
-			ASSERT(0);
-	}
-	return false;
+   switch(iOperator)
+   {
+      case '=':   return *this == rtime;
+      case '<':   return *this < rtime;
+      case '>':   return *this > rtime;
+      case '<=':  return *this <= rtime;
+      case '>=':  return *this >= rtime;
+      case '!=':  return *this != rtime;
+      default:
+         ASSERT(0);
+   }
+   return false;
 }
 
 
 
 bool BACnetTime::operator ==( const BACnetTime & arg )
 {
-	// test all of the values... if one is out of sorts... then the whole thing isn't equal
+   // test all of the values... if one is out of sorts... then the whole thing isn't equal
 
-	if ( !ValuesEqual(hour, arg.hour) )
-		return false;
+   if ( !ValuesEqual(hour, arg.hour) )
+      return false;
 
-	if ( !ValuesEqual(minute, arg.minute) )
-		return false;
+   if ( !ValuesEqual(minute, arg.minute) )
+      return false;
 
-	if ( !ValuesEqual(second, arg.second) )
-		return false;
+   if ( !ValuesEqual(second, arg.second) )
+      return false;
 
-	if ( !ValuesEqual(hundredths, arg.hundredths) )
-		return false;
+   if ( !ValuesEqual(hundredths, arg.hundredths) )
+      return false;
 
-	return true;
+   return true;
 }
 
 
 bool BACnetTime::operator !=( const BACnetTime & arg )
 {
-	// test all values for equality... if one is not equal... then the whole thing is not equal
-	// and we don't have to keep testing...
+   // test all values for equality... if one is not equal... then the whole thing is not equal
+   // and we don't have to keep testing...
 
-	if ( !ValuesEqual(hour, arg.hour) )
-		return true;
+   if ( !ValuesEqual(hour, arg.hour) )
+      return true;
 
-	if ( !ValuesEqual(minute, arg.minute) )
-		return true;
+   if ( !ValuesEqual(minute, arg.minute) )
+      return true;
 
-	if ( !ValuesEqual(second, arg.second) )
-		return true;
+   if ( !ValuesEqual(second, arg.second) )
+      return true;
 
-	if ( !ValuesEqual(hundredths, arg.hundredths) )
-		return true;
+   if ( !ValuesEqual(hundredths, arg.hundredths) )
+      return true;
 
-	return false;
+   return false;
 }
 
 
 bool BACnetTime::operator <=( const BACnetTime & arg )
 {
-	if ( !ValuesEqual(hour, arg.hour) )
-		return ValuesLess(hour, arg.hour);
+   if ( !ValuesEqual(hour, arg.hour) )
+      return ValuesLess(hour, arg.hour);
 
-	// years are now equal or we don't care...
-	if ( !ValuesEqual(minute, arg.minute) )
-		return ValuesLess(minute, arg.minute);
+   // years are now equal or we don't care...
+   if ( !ValuesEqual(minute, arg.minute) )
+      return ValuesLess(minute, arg.minute);
 
-	// years and months are equal or don't care... check day
-	if ( !ValuesEqual(second, arg.second) )
-		return ValuesLess(second, arg.second);
+   // years and months are equal or don't care... check day
+   if ( !ValuesEqual(second, arg.second) )
+      return ValuesLess(second, arg.second);
 
-	// all important values are either equal or don't care... check final day of week
-	if ( !ValuesEqual(hundredths, arg.hundredths) )
-		return ValuesLess(hundredths, arg.hundredths);
+   // all important values are either equal or don't care... check final day of week
+   if ( !ValuesEqual(hundredths, arg.hundredths) )
+      return ValuesLess(hundredths, arg.hundredths);
 
-	// values must be equal
-	return true;
+   // values must be equal
+   return true;
 }
 
 
 bool BACnetTime::operator <( const BACnetTime & arg )
 {
-	if ( !ValuesEqual(hour, arg.hour) )
-		return ValuesLess(hour, arg.hour);
+   if ( !ValuesEqual(hour, arg.hour) )
+      return ValuesLess(hour, arg.hour);
 
-	// hours are now equal or we don't care...
-	if ( !ValuesEqual(minute, arg.minute) )
-		return ValuesLess(minute, arg.minute);
+   // hours are now equal or we don't care...
+   if ( !ValuesEqual(minute, arg.minute) )
+      return ValuesLess(minute, arg.minute);
 
-	// hours and minutes are equal or don't care... check second
-	if ( !ValuesEqual(second, arg.second) )
-		return ValuesLess(second, arg.second);
+   // hours and minutes are equal or don't care... check second
+   if ( !ValuesEqual(second, arg.second) )
+      return ValuesLess(second, arg.second);
 
-	// all important values are either equal or don't care... check final second of week
-	if ( !ValuesEqual(hundredths, arg.hundredths) )
-		return ValuesLess(hundredths, arg.hundredths);
+   // all important values are either equal or don't care... check final second of week
+   if ( !ValuesEqual(hundredths, arg.hundredths) )
+      return ValuesLess(hundredths, arg.hundredths);
 
-	// values must be equal so return false
-	return false;
+   // values must be equal so return false
+   return false;
 }
 
 
 bool BACnetTime::operator >=( const BACnetTime & arg )
 {
-	if ( !ValuesEqual(hour, arg.hour) )
-		return ValuesGreater(hour, arg.hour);
+   if ( !ValuesEqual(hour, arg.hour) )
+      return ValuesGreater(hour, arg.hour);
 
-	// hours are now equal or we don't care...
-	if ( !ValuesEqual(minute, arg.minute) )
-		return ValuesGreater(minute, arg.minute);
+   // hours are now equal or we don't care...
+   if ( !ValuesEqual(minute, arg.minute) )
+      return ValuesGreater(minute, arg.minute);
 
-	// hours and minutes are equal or don't care... check second
-	if ( !ValuesEqual(second, arg.second) )
-		return ValuesGreater(second, arg.second);
+   // hours and minutes are equal or don't care... check second
+   if ( !ValuesEqual(second, arg.second) )
+      return ValuesGreater(second, arg.second);
 
-	// all important values are either equal or don't care... check final second of week
-	if ( !ValuesEqual(hundredths, arg.hundredths) )
-		return ValuesGreater(hundredths, arg.hundredths);
+   // all important values are either equal or don't care... check final second of week
+   if ( !ValuesEqual(hundredths, arg.hundredths) )
+      return ValuesGreater(hundredths, arg.hundredths);
 
-	// values must be equal now
-	return true;
+   // values must be equal now
+   return true;
 }
 
 
 bool BACnetTime::operator >( const BACnetTime & arg )
 {
-	if ( !ValuesEqual(hour, arg.hour) )
-		return ValuesGreater(hour, arg.hour);
+   if ( !ValuesEqual(hour, arg.hour) )
+      return ValuesGreater(hour, arg.hour);
 
-	// hours are now equal or we don't care...
-	if ( !ValuesEqual(minute, arg.minute) )
-		return ValuesGreater(minute, arg.minute);
+   // hours are now equal or we don't care...
+   if ( !ValuesEqual(minute, arg.minute) )
+      return ValuesGreater(minute, arg.minute);
 
-	// hours and minutes are equal or don't care... check second
-	if ( !ValuesEqual(second, arg.second) )
-		return ValuesGreater(second, arg.second);
+   // hours and minutes are equal or don't care... check second
+   if ( !ValuesEqual(second, arg.second) )
+      return ValuesGreater(second, arg.second);
 
-	// all important values are either equal or don't care... check final second of week
-	if ( !ValuesEqual(hundredths, arg.hundredths) )
-		return ValuesGreater(hundredths, arg.hundredths);
+   // all important values are either equal or don't care... check final second of week
+   if ( !ValuesEqual(hundredths, arg.hundredths) )
+      return ValuesGreater(hundredths, arg.hundredths);
 
-	// values must be equal so return false
-	return false;
+   // values must be equal so return false
+   return false;
 }
 
 
 void BACnetTime::TestTimeComps()
 {
-	bool f;
-	int max = 7;
-	BACnetTime t1, t2;
-	char * t[] = {  "10:11:12.99", "10:11:12.99",
-					"10:11:12.99", "10:11:12.50",
-					"10:11:12.99", "10:11:12.*",
-					"10:11:12.99", "10:*:12.50",
-					"10:?:12.99", "10:11:12.50",
-					"10:*:12.99", "10:?:12.50",
-					"?:11:12.99", "12:?:15.50"
-				};
+   bool f;
+   int max = 7;
+   BACnetTime t1, t2;
+   char * t[] = {  "10:11:12.99", "10:11:12.99",
+               "10:11:12.99", "10:11:12.50",
+               "10:11:12.99", "10:11:12.*",
+               "10:11:12.99", "10:*:12.50",
+               "10:?:12.99", "10:11:12.50",
+               "10:*:12.99", "10:?:12.50",
+               "?:11:12.99", "12:?:15.50"
+            };
 
 
-	for ( int i = 0; i < max; i++ )
-	{
-		t1.Decode( (const char *) t[i*2] );
-		t2.Decode( (const char *) t[(i*2)+1] );
+   for ( int i = 0; i < max; i++ )
+   {
+      t1.Decode( (const char *) t[i*2] );
+      t2.Decode( (const char *) t[(i*2)+1] );
 
-		f = t1 == t2;
-		f = t1 != t2;
-		f = t1 <  t2;
-		f = t1 <= t2;
-		f = t1 >  t2;
-		f = t1 >= t2;
-	}
+      f = t1 == t2;
+      f = t1 != t2;
+      f = t1 <  t2;
+      f = t1 <= t2;
+      f = t1 >  t2;
+      f = t1 >= t2;
+   }
 }
 
 
 //
-//	BACnetDateTime ===============================================
+// BACnetDateTime ===============================================
 //
 
 IMPLEMENT_DYNAMIC(BACnetDateTime, BACnetEncodeable)
 
 BACnetDateTime::BACnetDateTime( void )
 {
-	// Current time, so CTime is just fine
-	CTime ctime = CTime::GetCurrentTime();
+   // Current time, so CTime is just fine
+   CTime ctime = CTime::GetCurrentTime();
 
-	struct tm	*currtime = ctime.GetLocalTm(NULL);
-	
-	bacnetTime.hour   = currtime->tm_hour;
-	bacnetTime.minute = currtime->tm_min;
-	bacnetTime.second = currtime->tm_sec;
-	bacnetTime.hundredths = 0;
-	bacnetDate.year  = currtime->tm_year;
-	bacnetDate.month = currtime->tm_mon + 1;
-	bacnetDate.day   = currtime->tm_mday;
-	bacnetDate.CalcDayOfWeek();
+   struct tm   *currtime = ctime.GetLocalTm(NULL);
+   
+   bacnetTime.hour   = currtime->tm_hour;
+   bacnetTime.minute = currtime->tm_min;
+   bacnetTime.second = currtime->tm_sec;
+   bacnetTime.hundredths = 0;
+   bacnetDate.year  = currtime->tm_year;
+   bacnetDate.month = currtime->tm_mon + 1;
+   bacnetDate.day   = currtime->tm_mday;
+   bacnetDate.CalcDayOfWeek();
 }
 
 
 
 BACnetDateTime::BACnetDateTime( int y, int m, int d, int hr, int mn, int sc, int hun )
-			   :bacnetDate(y,m,d), bacnetTime(hr,mn,sc,hun)
+            :bacnetDate(y,m,d), bacnetTime(hr,mn,sc,hun)
 {
 }
 
 BACnetDateTime::BACnetDateTime( const BACnetDateTime &orig )
-	:bacnetDate(orig.bacnetDate.year, orig.bacnetDate.month, orig.bacnetDate.day), 
-	 bacnetTime(orig.bacnetTime.hour, orig.bacnetTime.minute, orig.bacnetTime.second, orig.bacnetTime.hundredths )
+   :bacnetDate(orig.bacnetDate.year, orig.bacnetDate.month, orig.bacnetDate.day), 
+    bacnetTime(orig.bacnetTime.hour, orig.bacnetTime.minute, orig.bacnetTime.second, orig.bacnetTime.hundredths )
 {
 }
 
 BACnetDateTime::BACnetDateTime( const PICS::BACnetDateTime &orig )
-	:bacnetDate(orig.date.year, orig.date.month, orig.date.day_of_month), 
-	 bacnetTime(orig.time.hour, orig.time.minute, orig.time.second, orig.time.hundredths  )
+   :bacnetDate(orig.date.year, orig.date.month, orig.date.day_of_month), 
+    bacnetTime(orig.time.hour, orig.time.minute, orig.time.second, orig.time.hundredths  )
 {
 }
 
 BACnetDateTime::BACnetDateTime( BACnetAPDUDecoder & dec )
-			   :bacnetDate(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE), 
-			    bacnetTime(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE)
+            :bacnetDate(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE), 
+             bacnetTime(DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE,DATE_DONT_CARE)
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetDateTime::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	bacnetDate.Encode(enc, context);
-	bacnetTime.Encode(enc, context);
+   bacnetDate.Encode(enc, context);
+   bacnetTime.Encode(enc, context);
 }
 
 
 void BACnetDateTime::Decode( BACnetAPDUDecoder& dec )
 {
-	bacnetDate.Decode(dec);
-	bacnetTime.Decode(dec);
+   bacnetDate.Decode(dec);
+   bacnetTime.Decode(dec);
 }
 
 
 void BACnetDateTime::Encode( CString &enc ) const
 {
-	CString str;
-	// DateTime is complex data structure... must use brackets to enclose data
-	enc = '{';
-	bacnetDate.Encode(str);
-	enc += str;
-	enc += ", ";
-	bacnetTime.Encode(str);
-	enc += str;
-	enc += '}';
+   CString str;
+   // DateTime is complex data structure... must use brackets to enclose data
+   enc = '{';
+   bacnetDate.Encode(str);
+   enc += str;
+   enc += ", ";
+   bacnetTime.Encode(str);
+   enc += str;
+   enc += '}';
 }
 
 
 void BACnetDateTime::Decode( const char *dec )
 {
-	// skip blank on front
-	while (*dec && IsSpace(*dec)) dec++;
+   // skip blank on front
+   while (*dec && IsSpace(*dec)) dec++;
 
-	// Whole thing  is complex data type so must enclose in brackets
-	if ( *dec++ != '{' )	// LJT changed from [ to {
-		throw_(110);			// missing start bracket for complex data structures
+   // Whole thing  is complex data type so must enclose in brackets
+   if ( *dec++ != '{' ) // LJT changed from [ to {
+      throw_(110);         // missing start bracket for complex data structures
 
-	bacnetDate.Decode(dec);
+   bacnetDate.Decode(dec);
 
-	// skip blank on front
-	while (*dec && IsSpace(*dec)) dec++;
+   // skip blank on front
+   while (*dec && IsSpace(*dec)) dec++;
 
-	// skip over comma and more space
-	if (*dec++ != ',')
-		throw_(120);			// missing comma
+   // skip over comma and more space
+   if (*dec++ != ',')
+      throw_(120);         // missing comma
 
-	bacnetTime.Decode(dec);
+   bacnetTime.Decode(dec);
 
-	// clear white space and look for close bracket
-	while (*dec && IsSpace(*dec)) dec++;
-	if ( *dec++ != '}' )	// LJT changed from ] to }
-		throw_(111);									// missing close bracket code
+   // clear white space and look for close bracket
+   while (*dec && IsSpace(*dec)) dec++;
+   if ( *dec++ != '}' ) // LJT changed from ] to }
+      throw_(111);                           // missing close bracket code
 }
 
 
 BACnetDateTime & BACnetDateTime::operator =( const BACnetDateTime & arg )
 {
-	bacnetDate = arg.bacnetDate;
-	bacnetTime = arg.bacnetTime;
-	return *this;
+   bacnetDate = arg.bacnetDate;
+   bacnetTime = arg.bacnetTime;
+   return *this;
 }
 
 
 int BACnetDateTime::DataType()
 {
-	return dt;
+   return dt;
 }
 
 BACnetEncodeable * BACnetDateTime::clone()
 {
-	BACnetDateTime * pdatetime = new BACnetDateTime();
-	*pdatetime = *this;
-	return pdatetime;
+   BACnetDateTime * pdatetime = new BACnetDateTime();
+   *pdatetime = *this;
+   return pdatetime;
 }
 
 
 
 bool BACnetDateTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)) ||
-		 !Match((BACnetDateTime &) rbacnet, iOperator) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)) ||
+       !Match((BACnetDateTime &) rbacnet, iOperator) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 bool BACnetDateTime::Match( BACnetDateTime & rdatetime, int iOperator )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	switch(iOperator)
-	{
-		case '=':	return *this == rdatetime;
-		case '<':	return *this < rdatetime;
-		case '>':	return *this > rdatetime;
-		case '<=':	return *this <= rdatetime;
-		case '>=':	return *this >= rdatetime;
-		case '!=':	return *this != rdatetime;
-		default:
-			ASSERT(0);
-	}
-	return false;
+   switch(iOperator)
+   {
+      case '=':   return *this == rdatetime;
+      case '<':   return *this < rdatetime;
+      case '>':   return *this > rdatetime;
+      case '<=':  return *this <= rdatetime;
+      case '>=':  return *this >= rdatetime;
+      case '!=':  return *this != rdatetime;
+      default:
+         ASSERT(0);
+   }
+   return false;
 }
 
 
 
 bool BACnetDateTime::operator ==( const BACnetDateTime & arg )
 {
-	return bacnetDate == arg.bacnetDate  &&  bacnetTime == arg.bacnetTime;
+   return bacnetDate == arg.bacnetDate  &&  bacnetTime == arg.bacnetTime;
 }
 
 // changed comparison to use || from && per AWood@nz.schneider-electric.com for #1244867 8/31/2005
 bool BACnetDateTime::operator !=( const BACnetDateTime & arg )
 {
-	return bacnetDate != arg.bacnetDate  ||  bacnetTime != arg.bacnetTime;
+   return bacnetDate != arg.bacnetDate  ||  bacnetTime != arg.bacnetTime;
 }
 
 
 bool BACnetDateTime::operator <=( const BACnetDateTime & arg )
 {
-	return bacnetDate < arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime <= arg.bacnetTime);
+   return bacnetDate < arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime <= arg.bacnetTime);
 }
 
 
 bool BACnetDateTime::operator <( const BACnetDateTime & arg )
 {
-	return bacnetDate < arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime < arg.bacnetTime);
+   return bacnetDate < arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime < arg.bacnetTime);
 }
 
 
 bool BACnetDateTime::operator >=( const BACnetDateTime & arg )
 {
-	return bacnetDate > arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime >= arg.bacnetTime);
+   return bacnetDate > arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime >= arg.bacnetTime);
 }
 
 
 bool BACnetDateTime::operator >( const BACnetDateTime & arg )
 {
-	return bacnetDate > arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime > arg.bacnetTime);
+   return bacnetDate > arg.bacnetDate  || (bacnetDate == arg.bacnetDate && bacnetTime > arg.bacnetTime);
 }
 
 
 //
-//	BACnetDateTime ===============================================
+// BACnetDateTime ===============================================
 //
 
 IMPLEMENT_DYNAMIC(BACnetDateRange, BACnetEncodeable)
@@ -5074,7 +5129,7 @@ BACnetDateRange::BACnetDateRange( void )
 
 
 BACnetDateRange::BACnetDateRange( int y, int m, int d, int y2, int m2, int d2 )
-			   :bacnetDateStart(y,m,d), bacnetDateEnd(y2, m2, d2)
+            :bacnetDateStart(y,m,d), bacnetDateEnd(y2, m2, d2)
 {
 }
 
@@ -5082,104 +5137,104 @@ BACnetDateRange::BACnetDateRange( int y, int m, int d, int y2, int m2, int d2 )
 
 
 BACnetDateRange::BACnetDateRange( BACnetAPDUDecoder& dec )
-//				:bacnetDateStart(dec), bacnetDateEnd(dec)		// can't guarantee calling order, but we need it :)
+//          :bacnetDateStart(dec), bacnetDateEnd(dec)    // can't guarantee calling order, but we need it :)
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetDateRange::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	bacnetDateStart.Encode(enc, context);
-	bacnetDateEnd.Encode(enc, context);
+   bacnetDateStart.Encode(enc, context);
+   bacnetDateEnd.Encode(enc, context);
 }
 
 
 void BACnetDateRange::Decode( BACnetAPDUDecoder& dec )
 {
-	bacnetDateStart.Decode(dec);
-	bacnetDateEnd.Decode(dec);
+   bacnetDateStart.Decode(dec);
+   bacnetDateEnd.Decode(dec);
 }
 
 
 void BACnetDateRange::Encode( CString &enc ) const
 {
-	CString str;
-	// DateRange is complex data structure... must use brackets to enclose data
-	enc = '{';
+   CString str;
+   // DateRange is complex data structure... must use brackets to enclose data
+   enc = '{';
 
-	bacnetDateStart.Encode(str);
-	enc += str;
-	enc += ", ";
-	bacnetDateEnd.Encode(str);
-	enc += str;
+   bacnetDateStart.Encode(str);
+   enc += str;
+   enc += ", ";
+   bacnetDateEnd.Encode(str);
+   enc += str;
 
-	enc += '}';
+   enc += '}';
 }
 
 
 void BACnetDateRange::Decode( const char *dec )
 {
-	// skip blank on front
-	while (*dec && IsSpace(*dec)) dec++;
+   // skip blank on front
+   while (*dec && IsSpace(*dec)) dec++;
 
-	// Whole thing  is complex data type so must enclose in brackets
-	if ( *dec++ != '{' )	// LJT changed from [ to {
-		throw_(110);			// missing start bracket for complex data structures
+   // Whole thing  is complex data type so must enclose in brackets
+   if ( *dec++ != '{' ) // LJT changed from [ to {
+      throw_(110);         // missing start bracket for complex data structures
 
-	bacnetDateStart.Decode(dec);
+   bacnetDateStart.Decode(dec);
 
-	// skip blank on front
-	while (*dec && IsSpace(*dec)) dec++;
+   // skip blank on front
+   while (*dec && IsSpace(*dec)) dec++;
 
-	// skip over comma and more space
-	if (*dec++ != ',')
-		throw_(120);			// missing comma
+   // skip over comma and more space
+   if (*dec++ != ',')
+      throw_(120);         // missing comma
 
-	bacnetDateEnd.Decode(dec);
+   bacnetDateEnd.Decode(dec);
 
-	// clear white space and look for close bracket
-	while (*dec && IsSpace(*dec)) dec++;
-	if ( *dec++ != '}' )	// LJT changed from ] to }
-		throw_(111);									// missing close bracket code
+   // clear white space and look for close bracket
+   while (*dec && IsSpace(*dec)) dec++;
+   if ( *dec++ != '}' ) // LJT changed from ] to }
+      throw_(111);                           // missing close bracket code
 }
 
 
 int BACnetDateRange::DataType()
 {
-	return dtrange;
+   return dtrange;
 }
 
 BACnetEncodeable * BACnetDateRange::clone()
 {
-	BACnetDateRange * pdaterange = new BACnetDateRange();
-	*pdaterange = *this;
-	return pdaterange;
+   BACnetDateRange * pdaterange = new BACnetDateRange();
+   *pdaterange = *this;
+   return pdaterange;
 }
 
 
 bool BACnetDateRange::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)) ||
-		 !Match((BACnetDateRange &) rbacnet, iOperator) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)) ||
+       !Match((BACnetDateRange &) rbacnet, iOperator) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
 
 BACnetDateRange & BACnetDateRange::operator =( const BACnetDateRange & arg )
 {
-	bacnetDateEnd = arg.bacnetDateEnd;
-	bacnetDateStart = arg.bacnetDateStart;
-	return *this;
+   bacnetDateEnd = arg.bacnetDateEnd;
+   bacnetDateStart = arg.bacnetDateStart;
+   return *this;
 }
 
 
@@ -5188,40 +5243,40 @@ BACnetDateRange & BACnetDateRange::operator =( const BACnetDateRange & arg )
 // is silly.
 LONGLONG BACnetDateRange::GetSpan() const
 {
-	return (bacnetDateEnd.AsInt() - bacnetDateStart.AsInt());
+   return (bacnetDateEnd.AsInt() - bacnetDateStart.AsInt());
 }
 
 
 bool BACnetDateRange::Match( BACnetDateRange & rdaterange, int iOperator )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	switch(iOperator)
-	{
-		case '=':	return *this == rdaterange;
-		case '<':	return *this < rdaterange;
-		case '>':	return *this > rdaterange;
-		case '<=':	return *this <= rdaterange;
-		case '>=':	return *this >= rdaterange;
-		case '!=':	return *this != rdaterange;
-		default:
-			ASSERT(0);
-	}
-	return false;
+   switch(iOperator)
+   {
+      case '=':   return *this == rdaterange;
+      case '<':   return *this < rdaterange;
+      case '>':   return *this > rdaterange;
+      case '<=':  return *this <= rdaterange;
+      case '>=':  return *this >= rdaterange;
+      case '!=':  return *this != rdaterange;
+      default:
+         ASSERT(0);
+   }
+   return false;
 }
 
 
 
 bool BACnetDateRange::operator ==( const BACnetDateRange & arg )
 {
-	return (bacnetDateStart == arg.bacnetDateStart) && (bacnetDateEnd == arg.bacnetDateEnd);
+   return (bacnetDateStart == arg.bacnetDateStart) && (bacnetDateEnd == arg.bacnetDateEnd);
 }
 
 
 bool BACnetDateRange::operator !=( const BACnetDateRange & arg )
 {
-	return (bacnetDateStart != arg.bacnetDateStart) || (bacnetDateEnd != arg.bacnetDateEnd);
+   return (bacnetDateStart != arg.bacnetDateStart) || (bacnetDateEnd != arg.bacnetDateEnd);
 }
 
 // TODO: these comparisons are silly:
@@ -5231,25 +5286,25 @@ bool BACnetDateRange::operator !=( const BACnetDateRange & arg )
 // Updated to work with non-CTime implementation.
 bool BACnetDateRange::operator <=( const BACnetDateRange & arg )
 {
-	return (GetSpan() <= arg.GetSpan());
+   return (GetSpan() <= arg.GetSpan());
 }
 
 
 bool BACnetDateRange::operator <( const BACnetDateRange & arg )
 {
-	return GetSpan() < arg.GetSpan();
+   return GetSpan() < arg.GetSpan();
 }
 
 
 bool BACnetDateRange::operator >=( const BACnetDateRange & arg )
 {
-	return GetSpan() >= arg.GetSpan();
+   return GetSpan() >= arg.GetSpan();
 }
 
 
 bool BACnetDateRange::operator >( const BACnetDateRange & arg )
 {
-	return GetSpan() > arg.GetSpan();
+   return GetSpan() > arg.GetSpan();
 }
 
 
@@ -5258,201 +5313,201 @@ bool BACnetDateRange::operator >( const BACnetDateRange & arg )
 IMPLEMENT_DYNAMIC(BACnetObjectIdentifier, BACnetEncodeable)
 
 //
-//	BACnetObjectIdentifier::BACnetObjectIdentifier
+// BACnetObjectIdentifier::BACnetObjectIdentifier
 //
 
 BACnetObjectIdentifier::BACnetObjectIdentifier( int objType, int instanceNum )
-	: objID( (objType << 22) + instanceNum )
+   : objID( (objType << 22) + instanceNum )
 {
 }
 
 
 BACnetObjectIdentifier::BACnetObjectIdentifier( unsigned int nobjID )
-					   :objID(nobjID)
+                  :objID(nobjID)
 {
 }
 
 
 BACnetObjectIdentifier::BACnetObjectIdentifier( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
-BACnetObjectIdentifier::BACnetObjectIdentifier( const BACnetObjectIdentifier& objectId )	// Jingbo Gao, Sep 11, 2004
+BACnetObjectIdentifier::BACnetObjectIdentifier( const BACnetObjectIdentifier& objectId )  // Jingbo Gao, Sep 11, 2004
 :objID(objectId.objID)
 {
 }
 
 //
-//	BACnetObjectIdentifier::SetValue
+// BACnetObjectIdentifier::SetValue
 //
 
 void BACnetObjectIdentifier::SetValue( BACnetObjectType objType, int instanceNum )
 {
-	objID = ((int)objType << 22) + instanceNum;
+   objID = ((int)objType << 22) + instanceNum;
 }
 
 void BACnetObjectIdentifier::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	// encode the tag
-	if (context != kAppContext)
-		BACnetAPDUTag( context, 4 ).Encode( enc );
-	else
-		BACnetAPDUTag( objectIdentifierAppTag, 4 ).Encode( enc );
-	
-	// fill in the data
+   // encode the tag
+   if (context != kAppContext)
+      BACnetAPDUTag( context, 4 ).Encode( enc );
+   else
+      BACnetAPDUTag( objectIdentifierAppTag, 4 ).Encode( enc );
+   
+   // fill in the data
 #ifdef ENDIAN_SWAP
-	for (int j = 3; j >= 0; j--)
-		enc.pktBuffer[enc.pktLength++] = (objID >> (j * 8)) & 0xFF;
+   for (int j = 3; j >= 0; j--)
+      enc.pktBuffer[enc.pktLength++] = (objID >> (j * 8)) & 0xFF;
 #else
-	memcpy( enc.pktBuffer+enc.pktLength, &objID, (size_t)4 );
-	enc.pktLength += 4;
+   memcpy( enc.pktBuffer+enc.pktLength, &objID, (size_t)4 );
+   enc.pktLength += 4;
 #endif
 }
 
 void BACnetObjectIdentifier::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag	tag
-	;
-		
-	// verify the tag can be extracted
-	tag.Decode( dec );
-	
-	// check the type and length
-	if (!tag.tagClass && (tag.tagNumber != objectIdentifierAppTag))
-		throw_(60) /* mismatched data type */;
-	if (tag.tagLVT != 4)
-		throw_(61) /* four bytes of data expected */;
-	
-	// copy out the data
+   BACnetAPDUTag  tag
+   ;
+      
+   // verify the tag can be extracted
+   tag.Decode( dec );
+   
+   // check the type and length
+   if (!tag.tagClass && (tag.tagNumber != objectIdentifierAppTag))
+      throw_(60) /* mismatched data type */;
+   if (tag.tagLVT != 4)
+      throw_(61) /* four bytes of data expected */;
+   
+   // copy out the data
 #ifdef ENDIAN_SWAP
-	for (int j = 3; dec.pktLength && j >= 0; j--)
-		objID = (objID << 8) + (dec.pktLength--,*dec.pktBuffer++);
+   for (int j = 3; dec.pktLength && j >= 0; j--)
+      objID = (objID << 8) + (dec.pktLength--,*dec.pktBuffer++);
 #else
-	memcpy( &objID, dec.pktBuffer, (size_t)4 );
-	dec.pktBuffer += 4;
-	dec.pktLength -= 4;
+   memcpy( &objID, dec.pktBuffer, (size_t)4 );
+   dec.pktBuffer += 4;
+   dec.pktLength -= 4;
 #endif
 }
 
 void BACnetObjectIdentifier::Encode( CString &enc ) const
 {
-	int	objType = (objID >> 22);
-	int instanceNum = (objID & 0x003FFFFF);
-	const char *s;
+   int   objType = (objID >> 22);
+   int instanceNum = (objID & 0x003FFFFF);
+   const char *s;
 
 #if VTSScanner
-	s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString( objType );
+   s = NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString( objType );
 #else
-	Hey! Do we really need to do this without strings?
+   Hey! Do we really need to do this without strings?
 #endif
 
-	// This is a mess:
-	// - EPICS format says to wrap objectID in parenthesis.
-	// - But the script parser takes the parenthesis as tokens, and won't accept and objectID in parenthesis.
-	// - This also means a script can't use >> to set a variable with an objectID read from a target device.
-	// - The code here has changed back and forth: with and without:
-	//   "changed this back (with parenthesis) because it broke the Send Dialog VTSANY entry of ObjId 3/10/2006"
-	// But, as of Sept 29, 2010, VTSANY and other send dialogs DON'T seem to require the parenthesis,
-	// so I have removed them again so that scripting will work.  
-	// If you find something that NEEDS the parenthesis, please let me know.  johnhartman.
-	enc.Format( "%s, %d", s, instanceNum );
-//	enc.Format( "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
+   // This is a mess:
+   // - EPICS format says to wrap objectID in parenthesis.
+   // - But the script parser takes the parenthesis as tokens, and won't accept and objectID in parenthesis.
+   // - This also means a script can't use >> to set a variable with an objectID read from a target device.
+   // - The code here has changed back and forth: with and without:
+   //   "changed this back (with parenthesis) because it broke the Send Dialog VTSANY entry of ObjId 3/10/2006"
+   // But, as of Sept 29, 2010, VTSANY and other send dialogs DON'T seem to require the parenthesis,
+   // so I have removed them again so that scripting will work.  
+   // If you find something that NEEDS the parenthesis, please let me know.  johnhartman.
+   enc.Format( "%s, %d", s, instanceNum );
+// enc.Format( "(%s, %d)", s, instanceNum );  // changed this to make it more readable but probably breaks script scan stuff
 }
 
 #if VTSScanner
 void BACnetObjectIdentifier::Decode( const char *dec )
 {
-	int		objType, instanceNum
-	;
+   int      objType, instanceNum
+   ;
 
-	// create a scanner bound to the text
-	ScriptScanner	scan( dec );
-	ScriptToken		tok;
+   // create a scanner bound to the text
+   ScriptScanner  scan( dec );
+   ScriptToken    tok;
 
-	// get something
-	scan.Next( tok );
-	// LJT need to account for new ( and ) that surrounds the object identifier
-	if ((tok.tokenType == scriptSymbol) && (tok.tokenValue == '('))
-	{
-		scan.Next(tok);
-	}
-	if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwRESERVED)) {
-		// next must be a number in the reserved range
-		scan.Next( tok );
-		if (!tok.IsInteger( objType ))
-			throw_(62) /* integer expected */;
-		if ((objType < 0) || (objType >= 128))
-			throw_(63) /* out of range */;
-	} else
-	if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwVENDOR)) {
-		// next must be a number in the vendor range
-		scan.Next( tok );
-		if (!tok.IsInteger( objType ))
-			throw_(64) /* integer expected */;
-		if ((objType < 128) || (objType >= (1 << 10)))
-			throw_(65) /* out of range */;
-	} else
-	if (!tok.IsInteger( objType, ScriptObjectTypeMap ))
-		throw_(66) /* object type keyword expected */;
-	else
-	if ((objType < 0) || (objType >= (1 << 10)))
-		throw_(67) /* out of range */;
+   // get something
+   scan.Next( tok );
+   // LJT need to account for new ( and ) that surrounds the object identifier
+   if ((tok.tokenType == scriptSymbol) && (tok.tokenValue == '('))
+   {
+      scan.Next(tok);
+   }
+   if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwRESERVED)) {
+      // next must be a number in the reserved range
+      scan.Next( tok );
+      if (!tok.IsInteger( objType ))
+         throw_(62) /* integer expected */;
+      if ((objType < 0) || (objType >= 128))
+         throw_(63) /* out of range */;
+   } else
+   if ((tok.tokenType == scriptKeyword) && (tok.tokenSymbol == kwVENDOR)) {
+      // next must be a number in the vendor range
+      scan.Next( tok );
+      if (!tok.IsInteger( objType ))
+         throw_(64) /* integer expected */;
+      if ((objType < 128) || (objType >= (1 << 10)))
+         throw_(65) /* out of range */;
+   } else
+   if (!tok.IsInteger( objType, ScriptObjectTypeMap ))
+      throw_(66) /* object type keyword expected */;
+   else
+   if ((objType < 0) || (objType >= (1 << 10)))
+      throw_(67) /* out of range */;
 
-	// get the next token
-	scan.Next( tok );
+   // get the next token
+   scan.Next( tok );
 
-	// skip the ',' if it was entered
-	if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ','))
-		scan.Next( tok );
+   // skip the ',' if it was entered
+   if ((tok.tokenType == scriptSymbol) && (tok.tokenSymbol == ','))
+      scan.Next( tok );
 
-	// make sure it's an integer
-	if (!tok.IsInteger( instanceNum ))
-		throw_(68) /* instance expected */;
-	if ((instanceNum < 0) || (instanceNum >= (1 << 22)))
-		throw_(69) /* out of range */;
+   // make sure it's an integer
+   if (!tok.IsInteger( instanceNum ))
+      throw_(68) /* instance expected */;
+   if ((instanceNum < 0) || (instanceNum >= (1 << 22)))
+      throw_(69) /* out of range */;
 
-	// everything checks out
-	objID = (objType << 22) + instanceNum;
+   // everything checks out
+   objID = (objType << 22) + instanceNum;
 }
 #else
 void BACnetObjectIdentifier::Decode( const char * )
 {
-	// TODO: LJT implement this ...
-	throw_(70) /* not implemented */;
+   // TODO: LJT implement this ...
+   throw_(70) /* not implemented */;
 }
 #endif
 
 
 int BACnetObjectIdentifier::DataType()
 {
-	return ob_id;
+   return ob_id;
 }
 
 BACnetEncodeable * BACnetObjectIdentifier::clone()
 {
-	return new BACnetObjectIdentifier(objID);
+   return new BACnetObjectIdentifier(objID);
 }
 
 
 bool BACnetObjectIdentifier::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier))  ||  !::Match(iOperator, (unsigned long) objID, (unsigned long) ((BACnetObjectIdentifier &) rbacnet).objID ) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier))  ||  !::Match(iOperator, (unsigned long) objID, (unsigned long) ((BACnetObjectIdentifier &) rbacnet).objID ) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
 BACnetObjectIdentifier & BACnetObjectIdentifier::operator =( const BACnetObjectIdentifier &arg )
 {
-	objID = arg.objID;
-	return *this;
+   objID = arg.objID;
+   return *this;
 }
 
 
@@ -5465,7 +5520,7 @@ BACnetObjectPropertyReference::BACnetObjectPropertyReference( unsigned int obj_i
 : m_objID(obj_id)
 , m_bacnetenumPropID(prop_id, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier)
 {
-	m_nIndex = index;
+   m_nIndex = index;
 }
 
 
@@ -5473,95 +5528,95 @@ BACnetObjectPropertyReference::BACnetObjectPropertyReference( unsigned int obj_i
 BACnetObjectPropertyReference::BACnetObjectPropertyReference( BACnetAPDUDecoder & dec )
 : m_bacnetenumPropID(0, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier)
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetObjectPropertyReference::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	if ( context != kAppContext )
-		BACnetOpeningTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetOpeningTag().Encode(enc, context);
 
-	m_objID.Encode(enc, 0);
-	m_bacnetenumPropID.Encode(enc, 1);
+   m_objID.Encode(enc, 0);
+   m_bacnetenumPropID.Encode(enc, 1);
 
-	if ( m_nIndex != -1 && m_nIndex != NotAnArray)
-		BACnetUnsigned(m_nIndex).Encode(enc, 2);
+   if ( m_nIndex != -1 && m_nIndex != NotAnArray)
+      BACnetUnsigned(m_nIndex).Encode(enc, 2);
 
-	if ( context != kAppContext )
-		BACnetClosingTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetClosingTag().Encode(enc, context);
 }
 
 
 
 void BACnetObjectPropertyReference::Decode(BACnetAPDUDecoder& dec)
 {
-	m_objID.Decode(dec);
-	m_bacnetenumPropID.Decode(dec);
+   m_objID.Decode(dec);
+   m_bacnetenumPropID.Decode(dec);
 
-	BACnetAPDUTag		tagTestType;	
-	dec.ExamineTag(tagTestType);
-	
-	if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 2 )
-		m_nIndex = BACnetUnsigned(dec).uintValue;
+   BACnetAPDUTag     tagTestType;   
+   dec.ExamineTag(tagTestType);
+   
+   if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 2 )
+      m_nIndex = BACnetUnsigned(dec).uintValue;
 }
 
 
 void BACnetObjectPropertyReference::Encode( CString &enc ) const
 {
-	CString obj;
-	CString prop;
+   CString obj;
+   CString prop;
 
-	m_objID.Encode(obj);
-	m_bacnetenumPropID.Encode(prop);
+   m_objID.Encode(obj);
+   m_bacnetenumPropID.Encode(prop);
 
-	if ((m_nIndex >= 0) && (m_nIndex != NotAnArray))
-	{
-		enc.Format( "{%s, %s, %u}", (LPCTSTR)obj, (LPCTSTR)prop, m_nIndex );
-	}
-	else
-	{
-		enc.Format( "{%s, %s}", (LPCTSTR)obj, (LPCTSTR)prop );
-	}
+   if ((m_nIndex >= 0) && (m_nIndex != NotAnArray))
+   {
+      enc.Format( "{%s, %s, %u}", (LPCTSTR)obj, (LPCTSTR)prop, m_nIndex );
+   }
+   else
+   {
+      enc.Format( "{%s, %s}", (LPCTSTR)obj, (LPCTSTR)prop );
+   }
 }
 
 
 
 int BACnetObjectPropertyReference::DataType()
 {
-	return propref;
+   return propref;
 }
 
 
 BACnetEncodeable * BACnetObjectPropertyReference::clone()
 {
-	return new BACnetObjectPropertyReference(m_objID.objID, (unsigned int) m_bacnetenumPropID.enumValue, m_nIndex);
+   return new BACnetObjectPropertyReference(m_objID.objID, (unsigned int) m_bacnetenumPropID.enumValue, m_nIndex);
 }
 
 
 
 bool BACnetObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference)));
 
-	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetObjectPropertyReference &) rbacnet).m_objID.objID) ||
-		 !::Match(iOperator, (int) m_bacnetenumPropID.enumValue, (int) ((BACnetObjectPropertyReference &) rbacnet).m_bacnetenumPropID.enumValue) )
-		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetObjectPropertyReference &) rbacnet).m_objID.objID) ||
+       !::Match(iOperator, (int) m_bacnetenumPropID.enumValue, (int) ((BACnetObjectPropertyReference &) rbacnet).m_bacnetenumPropID.enumValue) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
 BACnetObjectPropertyReference & BACnetObjectPropertyReference::operator =( const BACnetObjectPropertyReference &arg )
 {
-	m_objID = arg.m_objID;
-	m_bacnetenumPropID = arg.m_bacnetenumPropID;
-	m_nIndex = arg.m_nIndex;
-	return *this;
+   m_objID = arg.m_objID;
+   m_bacnetenumPropID = arg.m_bacnetenumPropID;
+   m_nIndex = arg.m_nIndex;
+   return *this;
 }
 
 
@@ -5571,108 +5626,108 @@ BACnetObjectPropertyReference & BACnetObjectPropertyReference::operator =( const
 IMPLEMENT_DYNAMIC(BACnetDeviceObjectPropertyReference, BACnetEncodeable)
 
 BACnetDeviceObjectPropertyReference::BACnetDeviceObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index /* = -1 */, unsigned int devobj_id /* = 0xFFFFFFFF */ )
-								: m_objpropref(obj_id, prop_id, index)
+                        : m_objpropref(obj_id, prop_id, index)
 {
-	m_unObjectID = devobj_id;
+   m_unObjectID = devobj_id;
 }
 
 
 
 BACnetDeviceObjectPropertyReference::BACnetDeviceObjectPropertyReference( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetDeviceObjectPropertyReference::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	if ( context != kAppContext )
-		BACnetOpeningTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetOpeningTag().Encode(enc, context);
 
-	m_objpropref.Encode(enc);
+   m_objpropref.Encode(enc);
 
-	if ( m_unObjectID != 0xFFFFFFFF )
-		::BACnetObjectIdentifier((unsigned int) m_unObjectID).Encode(enc, 3);
+   if ( m_unObjectID != 0xFFFFFFFF )
+      ::BACnetObjectIdentifier((unsigned int) m_unObjectID).Encode(enc, 3);
 
-	if ( context != kAppContext )
-		BACnetClosingTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetClosingTag().Encode(enc, context);
 }
 
 
 
 void BACnetDeviceObjectPropertyReference::Decode(BACnetAPDUDecoder& dec)
 {
-	m_objpropref.Decode(dec);
+   m_objpropref.Decode(dec);
 
-	BACnetAPDUTag		tagTestType;	
-	dec.ExamineTag(tagTestType);
-	
-	if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 3 )
-		m_unObjectID = BACnetObjectIdentifier(dec).objID;
+   BACnetAPDUTag     tagTestType;   
+   dec.ExamineTag(tagTestType);
+   
+   if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 3 )
+      m_unObjectID = BACnetObjectIdentifier(dec).objID;
 }
 
 
 void BACnetDeviceObjectPropertyReference::Encode( CString &enc ) const
 {
-	CString obj;
-	CString prop;
+   CString obj;
+   CString prop;
 
-	m_objpropref.m_objID.Encode(obj);
-	m_objpropref.m_bacnetenumPropID.Encode(prop);
+   m_objpropref.m_objID.Encode(obj);
+   m_objpropref.m_bacnetenumPropID.Encode(prop);
 
-	if ((m_objpropref.m_nIndex != -1) && (m_objpropref.m_nIndex != NotAnArray))
-	{
-		enc.Format( "{%s, %s, %u", (LPCTSTR)obj, (LPCTSTR)prop, m_objpropref.m_nIndex );
-	}
-	else
-	{
-		enc.Format( "{%s, %s", (LPCTSTR)obj, (LPCTSTR)prop );
-	}
+   if ((m_objpropref.m_nIndex != -1) && (m_objpropref.m_nIndex != NotAnArray))
+   {
+      enc.Format( "{%s, %s, %u", (LPCTSTR)obj, (LPCTSTR)prop, m_objpropref.m_nIndex );
+   }
+   else
+   {
+      enc.Format( "{%s, %s", (LPCTSTR)obj, (LPCTSTR)prop );
+   }
 
-	if (m_unObjectID != 0xFFFFFFFF)
-	{
-		CString device;
-		BACnetObjectIdentifier((unsigned int) m_unObjectID).Encode(device);
-		enc += ", ";
-		enc += device;
-	}
+   if (m_unObjectID != 0xFFFFFFFF)
+   {
+      CString device;
+      BACnetObjectIdentifier((unsigned int) m_unObjectID).Encode(device);
+      enc += ", ";
+      enc += device;
+   }
 
-	enc += '}';
+   enc += '}';
 }
 
 int BACnetDeviceObjectPropertyReference::DataType()
 {
-	return devobjpropref;
+   return devobjpropref;
 }
 
 
 BACnetEncodeable * BACnetDeviceObjectPropertyReference::clone()
 {
-	return new BACnetDeviceObjectPropertyReference(m_objpropref.m_objID.objID, (unsigned int) m_objpropref.m_bacnetenumPropID.enumValue, m_objpropref.m_nIndex, m_unObjectID);
+   return new BACnetDeviceObjectPropertyReference(m_objpropref.m_objID.objID, (unsigned int) m_objpropref.m_bacnetenumPropID.enumValue, m_objpropref.m_nIndex, m_unObjectID);
 }
 
 
 bool BACnetDeviceObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectPropertyReference)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectPropertyReference)));
 
-//	if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetDeviceObjectPropertyReference &) rbacnet).m_objID.objID) ||
-//		 !::Match(iOperator, (int) m_buPropID.uintValue, (int) ((BACnetDeviceObjectPropertyReference &) rbacnet).m_buPropID.uintValue) )
-//		return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+// if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetDeviceObjectPropertyReference &) rbacnet).m_objID.objID) ||
+//     !::Match(iOperator, (int) m_buPropID.uintValue, (int) ((BACnetDeviceObjectPropertyReference &) rbacnet).m_buPropID.uintValue) )
+//    return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
-	return true;
+   return true;
 }
 
 
 BACnetDeviceObjectPropertyReference & BACnetDeviceObjectPropertyReference::operator =( const BACnetDeviceObjectPropertyReference &arg )
 {
-	m_objpropref = arg.m_objpropref;
-	m_unObjectID = arg.m_unObjectID;
-	return *this;
+   m_objpropref = arg.m_objpropref;
+   m_unObjectID = arg.m_unObjectID;
+   return *this;
 }
 
 //==============================================================================
@@ -5681,95 +5736,95 @@ BACnetDeviceObjectPropertyReference & BACnetDeviceObjectPropertyReference::opera
 IMPLEMENT_DYNAMIC(BACnetDeviceObjectReference, BACnetEncodeable)
 
 BACnetDeviceObjectReference::BACnetDeviceObjectReference( unsigned int obj_id, unsigned int devobj_id /* = 0xFFFFFFFF */ )
-								: m_objID(obj_id)
+                        : m_objID(obj_id)
 {
-	m_undevID = devobj_id;
+   m_undevID = devobj_id;
 }
 
 
 
 BACnetDeviceObjectReference::BACnetDeviceObjectReference( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 void BACnetDeviceObjectReference::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	if ( context != kAppContext )
-		BACnetOpeningTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetOpeningTag().Encode(enc, context);
 
-	if ( m_undevID != 0xFFFFFFFF )
-		::BACnetObjectIdentifier((unsigned int) m_undevID).Encode(enc, 0);
+   if ( m_undevID != 0xFFFFFFFF )
+      ::BACnetObjectIdentifier((unsigned int) m_undevID).Encode(enc, 0);
 
-	m_objID.Encode(enc, 1);
+   m_objID.Encode(enc, 1);
 
-	if ( context != kAppContext )
-		BACnetClosingTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetClosingTag().Encode(enc, context);
 }
 
 
 
 void BACnetDeviceObjectReference::Decode(BACnetAPDUDecoder& dec)
 {
-	BACnetAPDUTag		tagTestType;	
-	dec.ExamineTag(tagTestType);
-	
-	if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 0 )
-		m_undevID = BACnetObjectIdentifier(dec).objID;
+   BACnetAPDUTag     tagTestType;   
+   dec.ExamineTag(tagTestType);
+   
+   if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 0 )
+      m_undevID = BACnetObjectIdentifier(dec).objID;
 
-	m_objID.Decode(dec);
+   m_objID.Decode(dec);
 
 }
 
 
 void BACnetDeviceObjectReference::Encode( CString &enc ) const
 {
-	CString obj;
-	CString device;
+   CString obj;
+   CString device;
 
-	enc = '{';
-	if (m_undevID != 0xFFFFFFFF)
-	{
-		BACnetObjectIdentifier((unsigned int) m_undevID).Encode(device);
-		enc += device;
-		enc += ", ";
-	}
-	m_objID.Encode(obj);
-	enc += obj;
-	enc += '}';
+   enc = '{';
+   if (m_undevID != 0xFFFFFFFF)
+   {
+      BACnetObjectIdentifier((unsigned int) m_undevID).Encode(device);
+      enc += device;
+      enc += ", ";
+   }
+   m_objID.Encode(obj);
+   enc += obj;
+   enc += '}';
 }
 
 
 int BACnetDeviceObjectReference::DataType()
 {
-	return devobjref;
+   return devobjref;
 }
 
 
 BACnetEncodeable * BACnetDeviceObjectReference::clone()
 {
-	return new BACnetDeviceObjectReference(m_objID.objID, m_undevID);
+   return new BACnetDeviceObjectReference(m_objID.objID, m_undevID);
 }
 
 
 bool BACnetDeviceObjectReference::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectReference)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectReference)));
 
-	return true;
+   return true;
 }
 
 
 BACnetDeviceObjectReference & BACnetDeviceObjectReference::operator =( const BACnetDeviceObjectReference &arg )
 {
-	m_objID = arg.m_objID;
-	m_undevID = arg.m_undevID;
-	return *this;
+   m_objID = arg.m_objID;
+   m_undevID = arg.m_undevID;
+   return *this;
 }
 
 //==============================================================================
@@ -5780,17 +5835,17 @@ IMPLEMENT_DYNAMIC(BACnetReadAccessSpecification, BACnetEncodeable)
 
 BACnetReadAccessSpecification::BACnetReadAccessSpecification()
 {
-	m_fDataInvalid = true;
+   m_fDataInvalid = true;
 }
 
 BACnetReadAccessSpecification::BACnetReadAccessSpecification( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 int BACnetReadAccessSpecification::DataType(void)
 {
-	return raslist;
+   return raslist;
 }
 
 //==============================================================================
@@ -5801,17 +5856,17 @@ IMPLEMENT_DYNAMIC(BACnetActionCommand, BACnetEncodeable)
 
 BACnetActionCommand::BACnetActionCommand()
 {
-	m_fDataInvalid = true;
+   m_fDataInvalid = true;
 }
 
 BACnetActionCommand::BACnetActionCommand( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 int BACnetActionCommand::DataType(void)
 {
-	return act;
+   return act;
 }
 
 //==============================================================================
@@ -5822,17 +5877,17 @@ IMPLEMENT_DYNAMIC(BACnetEventParameter, BACnetEncodeable)
 
 BACnetEventParameter::BACnetEventParameter()
 {
-	m_fDataInvalid = true;
+   m_fDataInvalid = true;
 }
 
 BACnetEventParameter::BACnetEventParameter( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 int BACnetEventParameter::DataType(void)
 {
-	return evparm;
+   return evparm;
 }
 
 //==============================================================================
@@ -5843,17 +5898,17 @@ IMPLEMENT_DYNAMIC(BACnetSessionKey, BACnetEncodeable)
 
 BACnetSessionKey::BACnetSessionKey()
 {
-	m_fDataInvalid = true;
+   m_fDataInvalid = true;
 }
 
 BACnetSessionKey::BACnetSessionKey( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 int BACnetSessionKey::DataType(void)
 {
-	return skeys;
+   return skeys;
 }
 
 //==============================================================================
@@ -5864,17 +5919,17 @@ IMPLEMENT_DYNAMIC(BACnetExceptionSchedule, BACnetEncodeable)
 
 BACnetExceptionSchedule::BACnetExceptionSchedule()
 {
-	m_fDataInvalid = true;
+   m_fDataInvalid = true;
 }
 
 BACnetExceptionSchedule::BACnetExceptionSchedule( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 int BACnetExceptionSchedule::DataType(void)
 {
-	return xsched;
+   return xsched;
 }
 
 //==============================================================================
@@ -5885,17 +5940,17 @@ IMPLEMENT_DYNAMIC(BACnetTimeValue, BACnetEncodeable)
 
 BACnetTimeValue::BACnetTimeValue()
 {
-	m_fDataInvalid = true;
+   m_fDataInvalid = true;
 }
 
 BACnetTimeValue::BACnetTimeValue( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 int BACnetTimeValue::DataType(void)
 {
-	return wsched;
+   return wsched;
 }
 
 //==============================================================================
@@ -5906,17 +5961,17 @@ IMPLEMENT_DYNAMIC(BACnetVTSession, BACnetEncodeable)
 
 BACnetVTSession::BACnetVTSession()
 {
-	m_fDataInvalid = true;
+   m_fDataInvalid = true;
 }
 
 BACnetVTSession::BACnetVTSession( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 int BACnetVTSession::DataType(void)
 {
-	return vtse;
+   return vtse;
 }
 
 
@@ -5930,129 +5985,129 @@ BACnetAddressBinding::BACnetAddressBinding()
 }
 
 //BACnetAddressBinding::BACnetAddressBinding( BACnetEncodeable * pbacnetEncodeable ) 
-//						: BACnetObjectContainer(pbacnetEncodeable)
+//                : BACnetObjectContainer(pbacnetEncodeable)
 BACnetAddressBinding::BACnetAddressBinding( unsigned int nobjID, unsigned short nNet, BACnetOctet * paMAC, unsigned short nMACLen )
-				     :m_bacnetObjectID(nobjID), m_bacnetAddr(nNet, paMAC, nMACLen)
+                 :m_bacnetObjectID(nobjID), m_bacnetAddr(nNet, paMAC, nMACLen)
 {
 }
 
 
 BACnetAddressBinding::BACnetAddressBinding( BACnetAPDUDecoder& dec )
-//					 :m_bacnetObjectID(dec), m_bacnetAddr(dec)				// can't guarantee calling order this way
+//              :m_bacnetObjectID(dec), m_bacnetAddr(dec)            // can't guarantee calling order this way
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 void BACnetAddressBinding::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	m_bacnetObjectID.Encode(enc, context);
-	m_bacnetAddr.Encode(enc, context);
+   m_bacnetObjectID.Encode(enc, context);
+   m_bacnetAddr.Encode(enc, context);
 }
 
 void BACnetAddressBinding::Encode( CString &enc ) const
 {
-	CString str;
-	enc = '{';
-	m_bacnetObjectID.Encode( str );
-	enc += str;
-	enc += ", ";
-	m_bacnetAddr.Encode( str );
-	enc += str;
-	enc += '}';
+   CString str;
+   enc = '{';
+   m_bacnetObjectID.Encode( str );
+   enc += str;
+   enc += ", ";
+   m_bacnetAddr.Encode( str );
+   enc += str;
+   enc += '}';
 }
 
 void BACnetAddressBinding::Decode( BACnetAPDUDecoder& dec )
 {
-	m_bacnetObjectID.Decode(dec);
-	m_bacnetAddr.Decode(dec);
+   m_bacnetObjectID.Decode(dec);
+   m_bacnetAddr.Decode(dec);
 }
 
 BACnetAddressBinding & BACnetAddressBinding::operator =( const BACnetAddressBinding & arg )
 {
-	m_bacnetObjectID = arg.m_bacnetObjectID;
-	m_bacnetAddr = arg.m_bacnetAddr;
-	return *this;
+   m_bacnetObjectID = arg.m_bacnetObjectID;
+   m_bacnetAddr = arg.m_bacnetAddr;
+   return *this;
 }
 
 
 int BACnetAddressBinding::DataType()
 {
-	return dabind;
+   return dabind;
 }
 
 BACnetEncodeable * BACnetAddressBinding::clone()
 {
-	BACnetAddressBinding * paddrbind = new BACnetAddressBinding();
-	*paddrbind = *this;
-	return paddrbind;
+   BACnetAddressBinding * paddrbind = new BACnetAddressBinding();
+   *paddrbind = *this;
+   return paddrbind;
 }
 
 
 bool BACnetAddressBinding::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)));
 
-	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-		return false;
+   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+      return false;
 
-	bool fMatch = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)) &&
-				  m_bacnetAddr.Match(((BACnetAddressBinding &) rbacnet).m_bacnetAddr, iOperator, pstrError )  &&
-				  m_bacnetObjectID.Match(((BACnetAddressBinding &) rbacnet).m_bacnetObjectID, iOperator, pstrError);
+   bool fMatch = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)) &&
+              m_bacnetAddr.Match(((BACnetAddressBinding &) rbacnet).m_bacnetAddr, iOperator, pstrError )  &&
+              m_bacnetObjectID.Match(((BACnetAddressBinding &) rbacnet).m_bacnetObjectID, iOperator, pstrError);
 
-	if ( (fMatch  && iOperator == '=')  ||  (!fMatch && iOperator == '!=') )
-		return true;
+   if ( (fMatch  && iOperator == '=')  ||  (!fMatch && iOperator == '!=') )
+      return true;
 
-	return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 }
 
 
 
 //
-//	BACnetOpeningTag
+// BACnetOpeningTag
 //
 
 void BACnetOpeningTag::Encode( CString &enc ) const
 {
-	enc += '{';
+   enc += '{';
 }
 
 void BACnetOpeningTag::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	if (context < 15) {
-		enc.CheckSpace( 1 );
-		enc.pktBuffer[enc.pktLength++] = ((context & 0x0F) << 4) + 0x0E;
-	} else {
-		enc.CheckSpace( 2 );
-		enc.pktBuffer[enc.pktLength++] = 0xFE;
-		enc.pktBuffer[enc.pktLength++] = (context & 0xFF);
-	}
+   if (context < 15) {
+      enc.CheckSpace( 1 );
+      enc.pktBuffer[enc.pktLength++] = ((context & 0x0F) << 4) + 0x0E;
+   } else {
+      enc.CheckSpace( 2 );
+      enc.pktBuffer[enc.pktLength++] = 0xFE;
+      enc.pktBuffer[enc.pktLength++] = (context & 0xFF);
+   }
 }
 
 void BACnetOpeningTag::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetOctet	tag
-	;
-	
-	// enough for the tag byte?
-	if (dec.pktLength < 1)
-		throw_(71) /* not enough data */;
-	
-	tag = (dec.pktLength--,*dec.pktBuffer++);
-	
-	// check the type
-	if ((tag & 0x0F) != 0x0E)
-		throw_(72) /* mismatched tag class */;
-	
-	// check for a big context
-	if ((tag & 0xF0) == 0xF0) {
-		if (dec.pktLength < 1)
-			throw_(73) /* not enough data */;
-		dec.pktLength -= 1;
-	}
+   BACnetOctet tag
+   ;
+   
+   // enough for the tag byte?
+   if (dec.pktLength < 1)
+      throw_(71) /* not enough data */;
+   
+   tag = (dec.pktLength--,*dec.pktBuffer++);
+   
+   // check the type
+   if ((tag & 0x0F) != 0x0E)
+      throw_(72) /* mismatched tag class */;
+   
+   // check for a big context
+   if ((tag & 0xF0) == 0xF0) {
+      if (dec.pktLength < 1)
+         throw_(73) /* not enough data */;
+      dec.pktLength -= 1;
+   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -6065,65 +6120,65 @@ IMPLEMENT_DYNAMIC(BACnetDaysOfWeek, BACnetBitString)
 BACnetDaysOfWeek::BACnetDaysOfWeek(void)
 : BACnetBitString(7)
 {
-	
+   
 }
 
 BACnetDaysOfWeek::BACnetDaysOfWeek(
-		bool bMon, bool bTue, bool bWed,
-		bool bThu, bool bFri, bool bSat, 
-		bool bSun
-		)
+      bool bMon, bool bTue, bool bWed,
+      bool bThu, bool bFri, bool bSat, 
+      bool bSun
+      )
 : BACnetBitString(7)
 {
-	SetBit(0, bMon);
-	SetBit(1, bTue);
-	SetBit(2, bWed);
-	SetBit(3, bThu);
-	SetBit(4, bFri);
-	SetBit(5, bSat);
-	SetBit(6, bSun);
+   SetBit(0, bMon);
+   SetBit(1, bTue);
+   SetBit(2, bWed);
+   SetBit(3, bThu);
+   SetBit(4, bFri);
+   SetBit(5, bSat);
+   SetBit(6, bSun);
 }
 
 void BACnetDaysOfWeek::StringToValue( const char *dec )
 {
-	static char *DaysNames[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
-	//	char* dec = "Monday, Tuesday, Wednesday, Thursday, Friday, Sunday";
-	int i = 0;
-	int count = 1;
-	for( i = 0; i < 7; i++ )
-	{
-		SetBit( i, 0 );
-	}
-	bool bFound = false;
-	while ( *dec != '\0' )
-	{
-		if ( count > 7 ) {
-			break;
-		}
-		count++;
-		while ( *dec == ' ' || *dec == ',' )	{
-			dec++;
-		}
-		for( i = 0; i < 7; i++ )
-		{
-			if ( _strnicmp( dec, DaysNames[ i ], 3 ) == 0 )
-			{
-				SetBit( i, 1 );
-				bFound = true;
-				while ( *dec != '\0' && *dec != ' ' && *dec != ',' ) {
-					dec++;
-				}
-				break;
-			}
-		}
-		if ( bFound == false ) {
-			throw "There's a invalid character for BACnetDaysOfWeek's decoding.";
-		}
-	}
+   static char *DaysNames[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
+   // char* dec = "Monday, Tuesday, Wednesday, Thursday, Friday, Sunday";
+   int i = 0;
+   int count = 1;
+   for( i = 0; i < 7; i++ )
+   {
+      SetBit( i, 0 );
+   }
+   bool bFound = false;
+   while ( *dec != '\0' )
+   {
+      if ( count > 7 ) {
+         break;
+      }
+      count++;
+      while ( *dec == ' ' || *dec == ',' )   {
+         dec++;
+      }
+      for( i = 0; i < 7; i++ )
+      {
+         if ( _strnicmp( dec, DaysNames[ i ], 3 ) == 0 )
+         {
+            SetBit( i, 1 );
+            bFound = true;
+            while ( *dec != '\0' && *dec != ' ' && *dec != ',' ) {
+               dec++;
+            }
+            break;
+         }
+      }
+      if ( bFound == false ) {
+         throw "There's a invalid character for BACnetDaysOfWeek's decoding.";
+      }
+   }
 }
 int BACnetDaysOfWeek::DataType()
 {
-	return dsofweek;
+   return dsofweek;
 }
 //end of class BACnetDaysOfWeek
 
@@ -6142,13 +6197,13 @@ BACnetEventTransitionBits::BACnetEventTransitionBits(void)
 BACnetEventTransitionBits::BACnetEventTransitionBits(bool bOffnormal, bool bFault, bool bNormal)
 : BACnetBitString(3)
 {
-	SetBit(0, bOffnormal);
-	SetBit(1, bFault);
-	SetBit(2, bNormal);
+   SetBit(0, bOffnormal);
+   SetBit(1, bFault);
+   SetBit(2, bNormal);
 }
 int BACnetEventTransitionBits::DataType()
 {
-	return eventransbits;
+   return eventransbits;
 }
 //end of class BACnetEventTransitionBits
 
@@ -6164,124 +6219,124 @@ BACnetRecipient::BACnetRecipient(void)
 
 }
 BACnetRecipient::BACnetRecipient(const BACnetRecipient &src)
-{	
-	*this = src;
+{  
+   *this = src;
 }
 BACnetRecipient::BACnetRecipient( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 BACnetRecipient::BACnetRecipient( BACnetEncodeable * pbacnetEncodeable )
-					:BACnetObjectContainer(pbacnetEncodeable)
+               :BACnetObjectContainer(pbacnetEncodeable)
 {
-	
+   
 }
 
 int BACnetRecipient::GetChoice()
 {
-	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
-		return 0;
-	else return 1;
+   if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
+      return 0;
+   else return 1;
 }
 
 BACnetRecipient & BACnetRecipient::operator =( const BACnetRecipient & arg )
 {
-	this->SetObject(arg.pbacnetTypedValue->clone());
-	return *this;
+   this->SetObject(arg.pbacnetTypedValue->clone());
+   return *this;
 }
 
 void BACnetRecipient::Encode( CString &enc ) const
 {
-	int tagval;
-	CString str;
+   int tagval;
+   CString str;
 
-	// TODO: LJT add context tag in square brackets for 135.1 compliance ...
-	if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
-	{
-		tagval = 0;
-		pbacnetTypedValue->Encode( str );
-	}
-	else
-	{
-		tagval = 1;
-		pbacnetTypedValue->Encode( str );
-	}
+   // TODO: LJT add context tag in square brackets for 135.1 compliance ...
+   if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
+   {
+      tagval = 0;
+      pbacnetTypedValue->Encode( str );
+   }
+   else
+   {
+      tagval = 1;
+      pbacnetTypedValue->Encode( str );
+   }
 
-	enc.Format( "[%d] %s", tagval, (LPCTSTR)str );
+   enc.Format( "[%d] %s", tagval, (LPCTSTR)str );
 }
 
 void BACnetRecipient::Encode(BACnetAPDUEncoder& enc, int context)
 {
-	if(pbacnetTypedValue == NULL)
-		return;	
+   if(pbacnetTypedValue == NULL)
+      return;  
 
-	//madanner 9/04
+   //madanner 9/04
 
-	if ( context != kAppContext )
-		BACnetOpeningTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetOpeningTag().Encode(enc, context);
 
-	if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
-		pbacnetTypedValue->Encode(enc, 0);
-	else
-	{
-		BACnetOpeningTag().Encode(enc,1);
-		pbacnetTypedValue->Encode(enc);
-		BACnetClosingTag().Encode(enc,1);
-	}
+   if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)))
+      pbacnetTypedValue->Encode(enc, 0);
+   else
+   {
+      BACnetOpeningTag().Encode(enc,1);
+      pbacnetTypedValue->Encode(enc);
+      BACnetClosingTag().Encode(enc,1);
+   }
 
-	if ( context != kAppContext )
-		BACnetClosingTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetClosingTag().Encode(enc, context);
 }
 
 
 void BACnetRecipient::Decode(BACnetAPDUDecoder& dec)
 {
-	BACnetAPDUTag		tagTestType;	
-	dec.ExamineTag(tagTestType);
-	
-		if (tagTestType.tagClass == openingTagClass)
-				{
-					BACnetOpeningTag().Decode(dec);
-					SetObject( new BACnetAddr(dec) ); 
-					BACnetClosingTag().Decode(dec);
-				}	
-	else
-	{
-	//	if(tagTestType.tagNumber == 0)
-			SetObject( new BACnetObjectIdentifier(dec) );	
+   BACnetAPDUTag     tagTestType;   
+   dec.ExamineTag(tagTestType);
+   
+      if (tagTestType.tagClass == openingTagClass)
+            {
+               BACnetOpeningTag().Decode(dec);
+               SetObject( new BACnetAddr(dec) ); 
+               BACnetClosingTag().Decode(dec);
+            }  
+   else
+   {
+   // if(tagTestType.tagNumber == 0)
+         SetObject( new BACnetObjectIdentifier(dec) );   
 /*
-		else
-		{	TRACE0("INVALID type in encoded stream for BACnetRecipient");
-		ASSERT(0);
-		}*/
+      else
+      {  TRACE0("INVALID type in encoded stream for BACnetRecipient");
+      ASSERT(0);
+      }*/
 
-	}
+   }
 
 }
 
 
 int BACnetRecipient::DataType()
 {
-	return recip;
+   return recip;
 }
 
 BACnetEncodeable * BACnetRecipient::clone()
 {
-	return new BACnetRecipient( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
+   return new BACnetRecipient( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
 }
 
 
 bool BACnetRecipient::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipient)));
-	ASSERT(pbacnetTypedValue != NULL);
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipient)));
+   ASSERT(pbacnetTypedValue != NULL);
 
-	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipient))  &&
-		    pbacnetTypedValue->Match(*((BACnetRecipient &)rbacnet).GetObject(), iOperator, pstrError);
+   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipient))  &&
+          pbacnetTypedValue->Match(*((BACnetRecipient &)rbacnet).GetObject(), iOperator, pstrError);
 }
 //end of class BacnetRecipient
 
@@ -6296,96 +6351,96 @@ BACnetRecipientProcess::BACnetRecipientProcess(void)
 
 
 BACnetRecipientProcess::BACnetRecipientProcess( ::BACnetRecipient & rc, unsigned int nID )
-						:m_bacnetunsignedID(nID)
+                  :m_bacnetunsignedID(nID)
 {
-	m_bacnetrecipient = rc;
+   m_bacnetrecipient = rc;
 }
 
 
 BACnetRecipientProcess::BACnetRecipientProcess( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 BACnetRecipientProcess & BACnetRecipientProcess::operator =( const BACnetRecipientProcess & arg )
 {
-//	BACnetRecipientProcess* newrecip = new BACnetRecipientProcess();
+// BACnetRecipientProcess* newrecip = new BACnetRecipientProcess();
 
-//	newrecip->m_bacnetrecipient = arg.m_bacnetrecipient;
-//	newrecip->m_bacnetunsignedID = arg.m_bacnetunsignedID;
-//	return *newrecip;
+// newrecip->m_bacnetrecipient = arg.m_bacnetrecipient;
+// newrecip->m_bacnetunsignedID = arg.m_bacnetunsignedID;
+// return *newrecip;
 
-	m_bacnetrecipient = arg.m_bacnetrecipient;
-	m_bacnetunsignedID = arg.m_bacnetunsignedID;
-	return *this;
+   m_bacnetrecipient = arg.m_bacnetrecipient;
+   m_bacnetunsignedID = arg.m_bacnetunsignedID;
+   return *this;
 }
 
 void BACnetRecipientProcess::Encode( CString &enc ) const
 {
-	CString str;
-	enc = '{';
-	m_bacnetrecipient.Encode( str );
-	enc += str;
-	enc += ", ";
-	m_bacnetunsignedID.Encode( str );
-	enc += str;
-	enc += '}';
+   CString str;
+   enc = '{';
+   m_bacnetrecipient.Encode( str );
+   enc += str;
+   enc += ", ";
+   m_bacnetunsignedID.Encode( str );
+   enc += str;
+   enc += '}';
 }
 
 void BACnetRecipientProcess::Encode(BACnetAPDUEncoder& enc, int context)
 {
-	if ( context != kAppContext )
-		BACnetOpeningTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetOpeningTag().Encode(enc, context);
 
-	m_bacnetrecipient.Encode(enc, 0);
-	m_bacnetunsignedID.Encode(enc, 1);
+   m_bacnetrecipient.Encode(enc, 0);
+   m_bacnetunsignedID.Encode(enc, 1);
 
-	if ( context != kAppContext )
-		BACnetClosingTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetClosingTag().Encode(enc, context);
 }
 
 
 void BACnetRecipientProcess::Decode(BACnetAPDUDecoder& dec)
 {
-	BACnetAPDUTag		tagTestType;	
-	dec.ExamineTag(tagTestType);
+   BACnetAPDUTag     tagTestType;   
+   dec.ExamineTag(tagTestType);
 
-//	if (tagTestType.tagClass == openingTagClass)
-//		BACnetOpeningTag().Decode(dec);
+// if (tagTestType.tagClass == openingTagClass)
+//    BACnetOpeningTag().Decode(dec);
 
-	m_bacnetrecipient.Decode(dec);
-	m_bacnetunsignedID.Decode(dec);
+   m_bacnetrecipient.Decode(dec);
+   m_bacnetunsignedID.Decode(dec);
 
-//	if (tagTestType.tagClass == openingTagClass)
-//		BACnetClosingTag().Decode(dec);
+// if (tagTestType.tagClass == openingTagClass)
+//    BACnetClosingTag().Decode(dec);
 }
 
 
 int BACnetRecipientProcess::DataType()
 {
-	return recipproc;
+   return recipproc;
 }
 
 
 BACnetEncodeable * BACnetRecipientProcess::clone()
 {
-	BACnetRecipientProcess * p = new BACnetRecipientProcess();
-	*p = *this;
-	return p;
+   BACnetRecipientProcess * p = new BACnetRecipientProcess();
+   *p = *this;
+   return p;
 }
 
 
 bool BACnetRecipientProcess::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipientProcess)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipientProcess)));
 
-	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipientProcess))  &&
-		    m_bacnetrecipient.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetrecipient, iOperator, pstrError) &&
-		    m_bacnetunsignedID.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetunsignedID, iOperator, pstrError);
+   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipientProcess))  &&
+          m_bacnetrecipient.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetrecipient, iOperator, pstrError) &&
+          m_bacnetunsignedID.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetunsignedID, iOperator, pstrError);
 }
 
 
@@ -6396,134 +6451,134 @@ IMPLEMENT_DYNAMIC(BACnetCOVSubscription, BACnetEncodeable)
 
 
 BACnetCOVSubscription::BACnetCOVSubscription( ::BACnetRecipientProcess & rcp, ::BACnetObjectPropertyReference & objpr,
-								bool fNotify, unsigned int nTimeRemaining, float flCOVIncrement )
-								:m_bacnetunsignedTimeRemaining(nTimeRemaining), m_bacnetrealCOVIncrement(flCOVIncrement),
-								m_bacnetboolNotification(fNotify)
+                        bool fNotify, unsigned int nTimeRemaining, float flCOVIncrement )
+                        :m_bacnetunsignedTimeRemaining(nTimeRemaining), m_bacnetrealCOVIncrement(flCOVIncrement),
+                        m_bacnetboolNotification(fNotify)
 {
-	m_bacnetrecipprocess = rcp;
-	m_bacnetobjpropref = objpr;
+   m_bacnetrecipprocess = rcp;
+   m_bacnetobjpropref = objpr;
 }
 
 
 BACnetCOVSubscription::BACnetCOVSubscription( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 BACnetCOVSubscription & BACnetCOVSubscription::operator =( const BACnetCOVSubscription & arg )
 {
-	m_bacnetrecipprocess = arg.m_bacnetrecipprocess;
-	m_bacnetobjpropref = arg.m_bacnetobjpropref;
-	m_bacnetboolNotification = arg.m_bacnetboolNotification;
-	m_bacnetunsignedTimeRemaining = arg.m_bacnetunsignedTimeRemaining;
-	m_bacnetrealCOVIncrement.realValue = arg.m_bacnetrealCOVIncrement.realValue;
+   m_bacnetrecipprocess = arg.m_bacnetrecipprocess;
+   m_bacnetobjpropref = arg.m_bacnetobjpropref;
+   m_bacnetboolNotification = arg.m_bacnetboolNotification;
+   m_bacnetunsignedTimeRemaining = arg.m_bacnetunsignedTimeRemaining;
+   m_bacnetrealCOVIncrement.realValue = arg.m_bacnetrealCOVIncrement.realValue;
     return *this;
 
-//	BACnetCOVSubscription* newsub = new BACnetCOVSubscription();
-//	newsub->m_bacnetrecipprocess = arg.m_bacnetrecipprocess;
-//	newsub->m_bacnetobjpropref = arg.m_bacnetobjpropref;
-//	newsub->m_bacnetboolNotification = arg.m_bacnetboolNotification;
-//	newsub->m_bacnetunsignedTimeRemaining = arg.m_bacnetunsignedTimeRemaining;
-//	newsub->m_bacnetrealCOVIncrement.realValue = arg.m_bacnetrealCOVIncrement.realValue;
-//	return *newsub;
+// BACnetCOVSubscription* newsub = new BACnetCOVSubscription();
+// newsub->m_bacnetrecipprocess = arg.m_bacnetrecipprocess;
+// newsub->m_bacnetobjpropref = arg.m_bacnetobjpropref;
+// newsub->m_bacnetboolNotification = arg.m_bacnetboolNotification;
+// newsub->m_bacnetunsignedTimeRemaining = arg.m_bacnetunsignedTimeRemaining;
+// newsub->m_bacnetrealCOVIncrement.realValue = arg.m_bacnetrealCOVIncrement.realValue;
+// return *newsub;
 }
 
 void BACnetCOVSubscription::Encode( CString &enc ) const
 {
-	CString str;
-	enc  = '{';
-	m_bacnetrecipprocess.Encode( str );
-	enc += str;
-	enc += ", ";
-	m_bacnetobjpropref.Encode( str );
-	enc += str;
-	enc += ", ";
-	m_bacnetboolNotification.Encode( str );
-	enc += str;
-	enc += ", ";
-	m_bacnetunsignedTimeRemaining.Encode( str );
-	enc += str;
-	enc += ", ";
+   CString str;
+   enc  = '{';
+   m_bacnetrecipprocess.Encode( str );
+   enc += str;
+   enc += ", ";
+   m_bacnetobjpropref.Encode( str );
+   enc += str;
+   enc += ", ";
+   m_bacnetboolNotification.Encode( str );
+   enc += str;
+   enc += ", ";
+   m_bacnetunsignedTimeRemaining.Encode( str );
+   enc += str;
+   enc += ", ";
 
-	if (m_bacnetrealCOVIncrement.realValue > 0)
-		m_bacnetrealCOVIncrement.Encode( str );
-	else
-		str = "0";
-	
-	enc += str;
-	enc += '}';
+   if (m_bacnetrealCOVIncrement.realValue > 0)
+      m_bacnetrealCOVIncrement.Encode( str );
+   else
+      str = "0";
+   
+   enc += str;
+   enc += '}';
 }
 
 void BACnetCOVSubscription::Decode( const char *dec )
 {
-	// todo: write decoder if it is ever used...
+   // todo: write decoder if it is ever used...
 }
 
 
 void BACnetCOVSubscription::Encode(BACnetAPDUEncoder& enc, int context)
 {
-	if ( context != kAppContext )
-		BACnetOpeningTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetOpeningTag().Encode(enc, context);
 
-	m_bacnetrecipprocess.Encode(enc, 0);
-	m_bacnetobjpropref.Encode(enc, 1);
-	m_bacnetboolNotification.Encode(enc, 2);
-	m_bacnetunsignedTimeRemaining.Encode(enc, 3);
-	if ( m_bacnetrealCOVIncrement.realValue > 0 )
-		m_bacnetrealCOVIncrement.Encode(enc,4);
+   m_bacnetrecipprocess.Encode(enc, 0);
+   m_bacnetobjpropref.Encode(enc, 1);
+   m_bacnetboolNotification.Encode(enc, 2);
+   m_bacnetunsignedTimeRemaining.Encode(enc, 3);
+   if ( m_bacnetrealCOVIncrement.realValue > 0 )
+      m_bacnetrealCOVIncrement.Encode(enc,4);
 
-	if ( context != kAppContext )
-		BACnetClosingTag().Encode(enc, context);
+   if ( context != kAppContext )
+      BACnetClosingTag().Encode(enc, context);
 }
 
 
 void BACnetCOVSubscription::Decode(BACnetAPDUDecoder& dec)
 {
-	BACnetAPDUTag		tagTestType;	
-	dec.ExamineTag(tagTestType);
+   BACnetAPDUTag     tagTestType;   
+   dec.ExamineTag(tagTestType);
 
-//	if (tagTestType.tagClass == openingTagClass)
-//		BACnetOpeningTag().Decode(dec);
+// if (tagTestType.tagClass == openingTagClass)
+//    BACnetOpeningTag().Decode(dec);
 
-	m_bacnetrecipprocess.Decode(dec);
-	m_bacnetobjpropref.Decode(dec);
-	m_bacnetboolNotification.Decode(dec);
-	m_bacnetunsignedTimeRemaining.Decode(dec);
-	m_bacnetrealCOVIncrement.Decode(dec);
+   m_bacnetrecipprocess.Decode(dec);
+   m_bacnetobjpropref.Decode(dec);
+   m_bacnetboolNotification.Decode(dec);
+   m_bacnetunsignedTimeRemaining.Decode(dec);
+   m_bacnetrealCOVIncrement.Decode(dec);
 
-//	if (tagTestType.tagClass == openingTagClass)
-//		BACnetClosingTag().Decode(dec);
+// if (tagTestType.tagClass == openingTagClass)
+//    BACnetClosingTag().Decode(dec);
 }
 
 
 int BACnetCOVSubscription::DataType()
 {
-	return COVSub;
+   return COVSub;
 }
 
 
 BACnetEncodeable * BACnetCOVSubscription::clone()
 {
-	BACnetCOVSubscription * p = new BACnetCOVSubscription();
-	*p = *this;
-	return p;
+   BACnetCOVSubscription * p = new BACnetCOVSubscription();
+   *p = *this;
+   return p;
 }
 
 
 bool BACnetCOVSubscription::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCOVSubscription)));
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCOVSubscription)));
 
-	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCOVSubscription))  &&
-		   m_bacnetrecipprocess.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrecipprocess, iOperator, pstrError) &&
-		   m_bacnetobjpropref.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetobjpropref, iOperator, pstrError) &&
-		   m_bacnetboolNotification.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetboolNotification, iOperator, pstrError) &&
-		   m_bacnetunsignedTimeRemaining.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetunsignedTimeRemaining, iOperator, pstrError) &&
-		   m_bacnetrealCOVIncrement.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrealCOVIncrement, iOperator, pstrError) ;
+   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCOVSubscription))  &&
+         m_bacnetrecipprocess.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrecipprocess, iOperator, pstrError) &&
+         m_bacnetobjpropref.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetobjpropref, iOperator, pstrError) &&
+         m_bacnetboolNotification.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetboolNotification, iOperator, pstrError) &&
+         m_bacnetunsignedTimeRemaining.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetunsignedTimeRemaining, iOperator, pstrError) &&
+         m_bacnetrealCOVIncrement.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrealCOVIncrement, iOperator, pstrError) ;
 }
 
 
@@ -6531,132 +6586,132 @@ bool BACnetCOVSubscription::Match( BACnetEncodeable &rbacnet, int iOperator, CSt
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 //
-//	BACnetDestination
+// BACnetDestination
 //Added by Zhu Zhenhua, 2003-9-4
 IMPLEMENT_DYNAMIC(BACnetDestination, BACnetEncodeable)
 
 BACnetDestination::BACnetDestination(
-	BACnetDaysOfWeek &validDays,
-	BACnetTime &fromTime,
-	BACnetTime &toTime,
-	BACnetRecipient &recipient,
-	BACnetUnsigned &processID,
-	BACnetBoolean &issueConfirmedNotifications,
-	BACnetEventTransitionBits &transitions
-	)
+   BACnetDaysOfWeek &validDays,
+   BACnetTime &fromTime,
+   BACnetTime &toTime,
+   BACnetRecipient &recipient,
+   BACnetUnsigned &processID,
+   BACnetBoolean &issueConfirmedNotifications,
+   BACnetEventTransitionBits &transitions
+   )
 : m_validDays(validDays), m_recipient(recipient),
 m_transitions(transitions)
 {
-	m_fromTime = fromTime;
-	m_toTime = toTime;
-	m_processID = processID;
-	m_issueConfirmedNotifications = issueConfirmedNotifications;
+   m_fromTime = fromTime;
+   m_toTime = toTime;
+   m_processID = processID;
+   m_issueConfirmedNotifications = issueConfirmedNotifications;
 }
 
 
 BACnetDestination::BACnetDestination( BACnetAPDUDecoder& dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 BACnetDestination::BACnetDestination(const BACnetDestination  &src)
 {
-	*this = src;
+   *this = src;
 }
 
 
 BACnetDestination::BACnetDestination(void)
-{	
+{  
 }
 
 
 BACnetDestination & BACnetDestination::operator =( const BACnetDestination & arg )
 {
-	m_validDays = arg.m_validDays;
-	m_recipient = arg.m_recipient;
-	m_transitions = arg.m_transitions;
-	m_fromTime = arg.m_fromTime;
-	m_toTime = arg.m_toTime;
-	m_processID = arg.m_processID;
-	m_issueConfirmedNotifications = arg.m_issueConfirmedNotifications;
-	return *this;
+   m_validDays = arg.m_validDays;
+   m_recipient = arg.m_recipient;
+   m_transitions = arg.m_transitions;
+   m_fromTime = arg.m_fromTime;
+   m_toTime = arg.m_toTime;
+   m_processID = arg.m_processID;
+   m_issueConfirmedNotifications = arg.m_issueConfirmedNotifications;
+   return *this;
 }
 
 
 void BACnetDestination::Encode(BACnetAPDUEncoder &enc, int nContext)
 {
-	m_validDays.Encode(enc);
-	m_fromTime.Encode(enc);
-	m_toTime.Encode(enc);
-	m_recipient.Encode(enc);
-	m_processID.Encode(enc);
-	m_issueConfirmedNotifications.Encode(enc);
-	m_transitions.Encode(enc);
+   m_validDays.Encode(enc);
+   m_fromTime.Encode(enc);
+   m_toTime.Encode(enc);
+   m_recipient.Encode(enc);
+   m_processID.Encode(enc);
+   m_issueConfirmedNotifications.Encode(enc);
+   m_transitions.Encode(enc);
 }
 
 
 void BACnetDestination::Decode(BACnetAPDUDecoder &dec)
 {
-	m_validDays.Decode(dec);
-	m_fromTime.Decode(dec);
-	m_toTime.Decode(dec);
-	m_recipient.Decode(dec);
-	m_processID.Decode(dec);
-	m_issueConfirmedNotifications.Decode(dec);
-	m_transitions.Decode(dec);
+   m_validDays.Decode(dec);
+   m_fromTime.Decode(dec);
+   m_toTime.Decode(dec);
+   m_recipient.Decode(dec);
+   m_processID.Decode(dec);
+   m_issueConfirmedNotifications.Decode(dec);
+   m_transitions.Decode(dec);
 }
 
 
 int BACnetDestination::DataType()
 {
-	return destination;
+   return destination;
 }
 
 
 //
-//	BACnetClosingTag
+// BACnetClosingTag
 //
 void BACnetClosingTag::Encode( CString &enc ) const
 {
-	enc = '}';
+   enc = '}';
 }
 
 void BACnetClosingTag::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	if (context < 15) {
-		enc.CheckSpace( 1 );
-		enc.pktBuffer[enc.pktLength++] = ((context & 0x0F) << 4) + 0x0F;
-	} else {
-		enc.CheckSpace( 2 );
-		enc.pktBuffer[enc.pktLength++] = 0xFF;
-		enc.pktBuffer[enc.pktLength++] = (context & 0xFF);
-	}
+   if (context < 15) {
+      enc.CheckSpace( 1 );
+      enc.pktBuffer[enc.pktLength++] = ((context & 0x0F) << 4) + 0x0F;
+   } else {
+      enc.CheckSpace( 2 );
+      enc.pktBuffer[enc.pktLength++] = 0xFF;
+      enc.pktBuffer[enc.pktLength++] = (context & 0xFF);
+   }
 }
 
 void BACnetClosingTag::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetOctet	tag
-	;
-	
-	// enough for the tag byte?
-	if (dec.pktLength < 1)
-		throw_(74) /* not enough data */;
-	
-	tag = (dec.pktLength--,*dec.pktBuffer++);
-	
-	// check the type
-	if ((tag & 0x0F) != 0x0F)
-		throw_(75) /* mismatched tag class */;
-	
-	// check for a big context
-	if ((tag & 0xF0) == 0xF0) {
-		if (dec.pktLength < 1)
-			throw_(76) /* not enough data */;
-		dec.pktLength -= 1;
-	}
+   BACnetOctet tag
+   ;
+   
+   // enough for the tag byte?
+   if (dec.pktLength < 1)
+      throw_(74) /* not enough data */;
+   
+   tag = (dec.pktLength--,*dec.pktBuffer++);
+   
+   // check the type
+   if ((tag & 0x0F) != 0x0F)
+      throw_(75) /* mismatched tag class */;
+   
+   // check for a big context
+   if ((tag & 0xF0) == 0xF0) {
+      if (dec.pktLength < 1)
+         throw_(76) /* not enough data */;
+      dec.pktLength -= 1;
+   }
 
-	// TODO: shouldn't we check the tag value?
+   // TODO: shouldn't we check the tag value?
 }
 
 // Handle decoding of arbitrary tagged items in an APDU
@@ -6671,168 +6726,168 @@ BACnetANY::BACnetANY()
 
 BACnetANY::~BACnetANY()
 {
-	delete[] dataBuff;
+   delete[] dataBuff;
 }
 
 // Set value from any other BACnetEncodeable
 void BACnetANY::SetValue( BACnetEncodeable &theEnc )
 {
-	// Encode the input as a BACnet stream
-	BACnetAPDUEncoder enc(100);
-	theEnc.Encode( enc );
+   // Encode the input as a BACnet stream
+   BACnetAPDUEncoder enc(100);
+   theEnc.Encode( enc );
 
-	// Copy the data into ourself
-	int len = enc.pktLength;
-	if (len > spaceLen)
-	{
-		delete[] dataBuff;
-		dataBuff = new BACnetOctet[ len ];
+   // Copy the data into ourself
+   int len = enc.pktLength;
+   if (len > spaceLen)
+   {
+      delete[] dataBuff;
+      dataBuff = new BACnetOctet[ len ];
         spaceLen = len;
-	}
+   }
 
-	dataLen = len;
-	if (len > 0)
-	{
-		memcpy( dataBuff, enc.pktBuffer, len );
-	}
+   dataLen = len;
+   if (len > 0)
+   {
+      memcpy( dataBuff, enc.pktBuffer, len );
+   }
 }
 
 void BACnetANY::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	// Copy raw bytes into the APDU
-	if (dataBuff)
-	{
-		enc.Append( dataBuff, dataLen );
-	}
+   // Copy raw bytes into the APDU
+   if (dataBuff)
+   {
+      enc.Append( dataBuff, dataLen );
+   }
 }
 
 void BACnetANY::Decode( BACnetAPDUDecoder& dec )
 {
-	int nesting = 0;
-	BACnetAPDUTag taggy( 0 );
+   int nesting = 0;
+   BACnetAPDUTag taggy( 0 );
 
-	const BACnetOctet *pStart = dec.pktBuffer;
-	while (dec.pktLength > 0)
-	{
-		int saveLen = dec.pktLength;
-		const BACnetOctet *saveBuff = dec.pktBuffer;
-		
-		taggy.Decode( dec );
-		if (taggy.tagClass == openingTagClass)
-		{
-			// Opening tag
-			nesting += 1;
-		}
-		else if (taggy.tagClass == closingTagClass)
-		{
-			// Closing tag
-			nesting -= 1;
-			if (nesting < 0)
-			{
-				// Back up to the closing tag so they token after us can parse it
-				dec.pktLength = saveLen;
-				dec.pktBuffer = saveBuff;
-				break;
-			}
-		}
-		else if ((taggy.tagClass != applicationTagClass) || (taggy.tagNumber != booleanAppTag))
-		{
-			// Bypass tag data
-			dec.pktLength -= taggy.tagLVT;
-			dec.pktBuffer += taggy.tagLVT;
-		}
-	}
+   const BACnetOctet *pStart = dec.pktBuffer;
+   while (dec.pktLength > 0)
+   {
+      int saveLen = dec.pktLength;
+      const BACnetOctet *saveBuff = dec.pktBuffer;
+      
+      taggy.Decode( dec );
+      if (taggy.tagClass == openingTagClass)
+      {
+         // Opening tag
+         nesting += 1;
+      }
+      else if (taggy.tagClass == closingTagClass)
+      {
+         // Closing tag
+         nesting -= 1;
+         if (nesting < 0)
+         {
+            // Back up to the closing tag so they token after us can parse it
+            dec.pktLength = saveLen;
+            dec.pktBuffer = saveBuff;
+            break;
+         }
+      }
+      else if ((taggy.tagClass != applicationTagClass) || (taggy.tagNumber != booleanAppTag))
+      {
+         // Bypass tag data
+         dec.pktLength -= taggy.tagLVT;
+         dec.pktBuffer += taggy.tagLVT;
+      }
+   }
 
-	// Copy the data bytes
-	int len = dec.pktBuffer - pStart;
-	if (len > spaceLen)
-	{
-		delete[] dataBuff;
-		dataBuff = new BACnetOctet[ len ];
+   // Copy the data bytes
+   int len = dec.pktBuffer - pStart;
+   if (len > spaceLen)
+   {
+      delete[] dataBuff;
+      dataBuff = new BACnetOctet[ len ];
         spaceLen = len;
-	}
+   }
 
-	dataLen = len;
-	if (len > 0)
-	{
-		memcpy( dataBuff, pStart, len );
-	}
+   dataLen = len;
+   if (len > 0)
+   {
+      memcpy( dataBuff, pStart, len );
+   }
 }
 
 // Encode as ASCII text X'123456'
 void BACnetANY::Encode( CString &enc ) const
 {
-	enc.Empty();
-	AppendXhex( enc, dataBuff, dataLen );
+   enc.Empty();
+   AppendXhex( enc, dataBuff, dataLen );
 }
 
 // Decode from ASCII text X'123456'
 void BACnetANY::Decode( const char *dec )
 {
-	int		upperNibble, lowerNibble, c;
+   int      upperNibble, lowerNibble, c;
 
-	// verify preamble
-	if ((dec[0] != 'X') || (dec[1] != '\''))
-		throw_(12) /* invalid character */;
+   // verify preamble
+   if ((dec[0] != 'X') || (dec[1] != '\''))
+      throw_(12) /* invalid character */;
 
-	dec += 2;
+   dec += 2;
 
-	// Length in bytes, two characters each
-	int len = strlen( dec ) / 2;
-	if (len > spaceLen)
-	{
-		delete[] dataBuff;
-		dataBuff = new BACnetOctet[ len ];
+   // Length in bytes, two characters each
+   int len = strlen( dec ) / 2;
+   if (len > spaceLen)
+   {
+      delete[] dataBuff;
+      dataBuff = new BACnetOctet[ len ];
         spaceLen = len;
-	}
+   }
 
-	dataLen = len;
+   dataLen = len;
 
-	int ix = 0;
-	while (*dec && (*dec != '\'')) 
-	{
-		c = ToUpper( *dec++ );
-		if (!IsXDigit(c))
-			throw_(46) /* invalid character */;
-		upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
+   int ix = 0;
+   while (*dec && (*dec != '\'')) 
+   {
+      c = ToUpper( *dec++ );
+      if (!IsXDigit(c))
+         throw_(46) /* invalid character */;
+      upperNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
-		c = ToUpper( *dec++ );
-		if (!IsXDigit(c))
-			throw_(47) /* invalid character */;
-		lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
+      c = ToUpper( *dec++ );
+      if (!IsXDigit(c))
+         throw_(47) /* invalid character */;
+      lowerNibble = (IsDigit(c) ? (c - '0') : (c - 'A' + 10));
 
-		// stick this on the end
-		dataBuff[ix++] = (upperNibble << 4) + lowerNibble;
-	}
+      // stick this on the end
+      dataBuff[ix++] = (upperNibble << 4) + lowerNibble;
+   }
 }
 
 bool BACnetANY::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;		// ?= or ?
+   if ( PreMatch(iOperator) )
+      return true;      // ?= or ?
 
-	if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-		return false;		// not = or !=
+   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+      return false;     // not = or !=
 
-	// Convert the input into a BACnetANY so we can compare to ANYTHING
-	BACnetANY right;
-	right.SetValue( rbacnet );
+   // Convert the input into a BACnetANY so we can compare to ANYTHING
+   BACnetANY right;
+   right.SetValue( rbacnet );
 
-	bool match = (dataLen == right.dataLen) && (memcmp( dataBuff, right.dataBuff, dataLen ) == 0);
-	if (iOperator == '!=')
-		match = !match;
+   bool match = (dataLen == right.dataLen) && (memcmp( dataBuff, right.dataBuff, dataLen ) == 0);
+   if (iOperator == '!=')
+      match = !match;
 
-	if (match)
-		return true;
+   if (match)
+      return true;
 
-	return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 }
 
 
 IMPLEMENT_DYNAMIC(BACnetBinaryPriV, BACnetEnumerated)
 
 BACnetBinaryPriV::BACnetBinaryPriV( int nValue )
-			   :BACnetEnumerated(nValue)
+            :BACnetEnumerated(nValue)
 {
 }
 
@@ -6840,13 +6895,13 @@ BACnetBinaryPriV::BACnetBinaryPriV( int nValue )
 
 void BACnetBinaryPriV::Encode( CString &enc ) const
 {
-	BACnetEnumerated::Encode(enc, apszBinaryPVNames, 2);
+   BACnetEnumerated::Encode(enc, apszBinaryPVNames, 2);
 }
 
 
 void BACnetBinaryPriV::Decode( const char *dec )
 {
-	BACnetEnumerated::Decode(dec, apszBinaryPVNames, 2);
+   BACnetEnumerated::Decode(dec, apszBinaryPVNames, 2);
 }
 
 
@@ -6854,7 +6909,7 @@ IMPLEMENT_DYNAMIC(BACnetObjectContainer, BACnetEncodeable)
 
 BACnetObjectContainer::BACnetObjectContainer()
 {
-	pbacnetTypedValue = NULL;
+   pbacnetTypedValue = NULL;
 }
 
 
@@ -6862,89 +6917,89 @@ BACnetObjectContainer::BACnetObjectContainer()
 
 BACnetObjectContainer::BACnetObjectContainer( BACnetEncodeable * pbacnetEncodeable )
 {
-	pbacnetTypedValue = NULL;
-	SetObject(pbacnetEncodeable);
+   pbacnetTypedValue = NULL;
+   SetObject(pbacnetEncodeable);
 }
 
 
 void BACnetObjectContainer::Decode( BACnetAPDUDecoder& dec )
 {
-	ASSERT(pbacnetTypedValue != NULL);
+   ASSERT(pbacnetTypedValue != NULL);
 
-	if ( pbacnetTypedValue != NULL )
-		pbacnetTypedValue->Decode(dec);
+   if ( pbacnetTypedValue != NULL )
+      pbacnetTypedValue->Decode(dec);
 }
 
 
 void BACnetObjectContainer::Encode( BACnetAPDUEncoder& enc, int context )
 {
-	ASSERT(pbacnetTypedValue != NULL);
+   ASSERT(pbacnetTypedValue != NULL);
 
-	if ( pbacnetTypedValue != NULL )
-		pbacnetTypedValue->Encode(enc, context);
+   if ( pbacnetTypedValue != NULL )
+      pbacnetTypedValue->Encode(enc, context);
 }
 
 
 void BACnetObjectContainer::Encode( CString &enc ) const
 {
-	ASSERT(pbacnetTypedValue != NULL);
+   ASSERT(pbacnetTypedValue != NULL);
 
-	if (pbacnetTypedValue != NULL)
-		pbacnetTypedValue->Encode(enc);
-	else
-		enc.Empty();
+   if (pbacnetTypedValue != NULL)
+      pbacnetTypedValue->Encode(enc);
+   else
+      enc.Empty();
 }
 
 
 void BACnetObjectContainer::Decode( const char *dec )
 {
-	ASSERT(pbacnetTypedValue != NULL);
+   ASSERT(pbacnetTypedValue != NULL);
 
-	if ( pbacnetTypedValue != NULL )
-		pbacnetTypedValue->Decode(dec);
+   if ( pbacnetTypedValue != NULL )
+      pbacnetTypedValue->Decode(dec);
 }
 
 
 
 const char * BACnetObjectContainer::ToString() const
 {
-	return pbacnetTypedValue == NULL ? NULL : pbacnetTypedValue->ToString();
+   return pbacnetTypedValue == NULL ? NULL : pbacnetTypedValue->ToString();
 }
 
 
 void BACnetObjectContainer::SetObject( BACnetEncodeable * pBACnetEncodeable )
 {
-	if ( pbacnetTypedValue != NULL )
-		delete pbacnetTypedValue;
+   if ( pbacnetTypedValue != NULL )
+      delete pbacnetTypedValue;
 
-	pbacnetTypedValue = pBACnetEncodeable;
+   pbacnetTypedValue = pBACnetEncodeable;
 }
 
 
 
 bool BACnetObjectContainer::IsObjectType( CRuntimeClass * pruntimeclass )
 {
-	ASSERT(pruntimeclass != NULL);
+   ASSERT(pruntimeclass != NULL);
 
-	return pbacnetTypedValue == NULL ? false : (pbacnetTypedValue->IsKindOf(pruntimeclass) != 0);	// accounts for BOOL(int) cases to convert to bool.
+   return pbacnetTypedValue == NULL ? false : (pbacnetTypedValue->IsKindOf(pruntimeclass) != 0);   // accounts for BOOL(int) cases to convert to bool.
 }
 
 
 CRuntimeClass * BACnetObjectContainer::GetObjectType()
 {
-	return pbacnetTypedValue == NULL ? NULL : pbacnetTypedValue->GetRuntimeClass();
+   return pbacnetTypedValue == NULL ? NULL : pbacnetTypedValue->GetRuntimeClass();
 }
 
 
 BACnetEncodeable *  BACnetObjectContainer::GetObject()
 {
-	return pbacnetTypedValue;
+   return pbacnetTypedValue;
 }
 
 
 BACnetObjectContainer::~BACnetObjectContainer()
 {
-	SetObject(NULL);
+   SetObject(NULL);
 }
 
 
@@ -6960,103 +7015,103 @@ BACnetPriorityValue::BACnetPriorityValue()
 
 
 BACnetPriorityValue::BACnetPriorityValue( BACnetAPDUDecoder & dec )
-					:BACnetObjectContainer()
+               :BACnetObjectContainer()
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 BACnetPriorityValue::BACnetPriorityValue( BACnetEncodeable * pbacnetEncodeable )
-					:BACnetObjectContainer(pbacnetEncodeable)
+               :BACnetObjectContainer(pbacnetEncodeable)
 {
 }
 
 
 void BACnetPriorityValue::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag		tagNullTest;
+   BACnetAPDUTag     tagNullTest;
 
-	// Peek for received null value of zero, don't advance APDU pointer
-	tagNullTest.Peek(dec);
-	CreateTypedObject(tagNullTest.tagNumber);
+   // Peek for received null value of zero, don't advance APDU pointer
+   tagNullTest.Peek(dec);
+   CreateTypedObject(tagNullTest.tagNumber);
 
-	BACnetObjectContainer::Decode(dec);
+   BACnetObjectContainer::Decode(dec);
 }
 
 
 void BACnetPriorityValue::CreateTypedObject(BACnetApplicationTag tag)
 {
-	switch( tag )
-	{
-		case nullAppTag:			SetObject(new BACnetNull());			break;
-		case unsignedIntAppTag:		SetObject(new BACnetUnsigned());		break;
-		case realAppTag:			SetObject(new BACnetReal());			break;
-		case enumeratedAppTag:		SetObject(new BACnetBinaryPriV());		break;
-		default:
+   switch( tag )
+   {
+      case nullAppTag:        SetObject(new BACnetNull());        break;
+      case unsignedIntAppTag:    SetObject(new BACnetUnsigned());    break;
+      case realAppTag:        SetObject(new BACnetReal());        break;
+      case enumeratedAppTag:     SetObject(new BACnetBinaryPriV());     break;
+      default:
 
-			TRACE1("Attempt to create BACnetEncodeable type %d from Tag", tag );
-			ASSERT(0);
-			SetObject(NULL);
-	}
+         TRACE1("Attempt to create BACnetEncodeable type %d from Tag", tag );
+         ASSERT(0);
+         SetObject(NULL);
+   }
 }
 
 
 int BACnetPriorityValue::DataType()
 {
-	return prival;
+   return prival;
 }
 
 
 BACnetEncodeable * BACnetPriorityValue::clone()
 {
-	return new BACnetPriorityValue( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
+   return new BACnetPriorityValue( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
 }
 
 
 bool BACnetPriorityValue::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)));
-	ASSERT(pbacnetTypedValue != NULL);
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)));
+   ASSERT(pbacnetTypedValue != NULL);
 
-	// JLH 26 January 2010: 
-	// Compare for equality, greater, or less returns true only if
-	// - matching CHOICE (via GetRuntimeClass)
-	// - compare values
-	//
-	// Compare for inequality returns true if either
-	// - non-matching CHOICE (via GetRuntimeClass)
-	// - compare values
-	// Use OperatorToString to show operator
-	//
-	bool retval = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)) &&
-				  (pbacnetTypedValue != NULL) &&
-				  ( ((BACnetPriorityValue&)rbacnet).GetObject()->GetRuntimeClass() ==
-					 pbacnetTypedValue->GetRuntimeClass() );
-	if (!retval)
-	{
-		if (iOperator == '!=')
-		{
-			retval = true;
-		}
-		else
-		{
-			CString vBAC( ((BACnetPriorityValue&)rbacnet).GetObject()->ToString() );
-			CString vEPICS( pbacnetTypedValue->ToString() );
-			TRACE( "Got %s and %s\n", vBAC, vEPICS );
+   // JLH 26 January 2010: 
+   // Compare for equality, greater, or less returns true only if
+   // - matching CHOICE (via GetRuntimeClass)
+   // - compare values
+   //
+   // Compare for inequality returns true if either
+   // - non-matching CHOICE (via GetRuntimeClass)
+   // - compare values
+   // Use OperatorToString to show operator
+   //
+   bool retval = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)) &&
+              (pbacnetTypedValue != NULL) &&
+              ( ((BACnetPriorityValue&)rbacnet).GetObject()->GetRuntimeClass() ==
+                pbacnetTypedValue->GetRuntimeClass() );
+   if (!retval)
+   {
+      if (iOperator == '!=')
+      {
+         retval = true;
+      }
+      else
+      {
+         CString vBAC( ((BACnetPriorityValue&)rbacnet).GetObject()->ToString() );
+         CString vEPICS( pbacnetTypedValue->ToString() );
+         TRACE( "Got %s and %s\n", vBAC, vEPICS );
 
-			pstrError->Format( "(%s) different type from (%s)", vBAC, vEPICS );
-		}
-	}
-	else
-	{
-		retval = pbacnetTypedValue->Match(*((BACnetPriorityValue &)rbacnet).GetObject(), iOperator, pstrError);
-	}
+         pstrError->Format( "(%s) different type from (%s)", vBAC, vEPICS );
+      }
+   }
+   else
+   {
+      retval = pbacnetTypedValue->Match(*((BACnetPriorityValue &)rbacnet).GetObject(), iOperator, pstrError);
+   }
 
-	return retval;
+   return retval;
 }
 
 
@@ -7072,111 +7127,111 @@ BACnetCalendarEntry::BACnetCalendarEntry()
 
 
 BACnetCalendarEntry::BACnetCalendarEntry( BACnetAPDUDecoder & dec )
-					:BACnetObjectContainer()
+               :BACnetObjectContainer()
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 BACnetCalendarEntry::BACnetCalendarEntry( BACnetEncodeable * pbacnetEncodeable )
-					:BACnetObjectContainer(pbacnetEncodeable)
+               :BACnetObjectContainer(pbacnetEncodeable)
 {
-	if ( pbacnetEncodeable != NULL )
-	{
-		switch(pbacnetEncodeable->DataType())
-		{
-			case ptDate: m_nChoice = 0;
-				break;
-			case dtrange: m_nChoice = 1;
-				break;
-			case dsofweek: m_nChoice = 2;
-				break;
-		}
-	}
+   if ( pbacnetEncodeable != NULL )
+   {
+      switch(pbacnetEncodeable->DataType())
+      {
+         case ptDate: m_nChoice = 0;
+            break;
+         case dtrange: m_nChoice = 1;
+            break;
+         case dsofweek: m_nChoice = 2;
+            break;
+      }
+   }
 }
 
 void BACnetCalendarEntry::Encode( BACnetAPDUEncoder& enc, int context)
 {
-	if(pbacnetTypedValue == NULL)
-		return;
+   if(pbacnetTypedValue == NULL)
+      return;
 
-	if ( context != kAppContext )
-		m_nChoice = context;
-	else if ( pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDate)))
-		m_nChoice = 0;
-	else if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDateRange)))
-		m_nChoice = 1;
-	else
-		m_nChoice = 2;
+   if ( context != kAppContext )
+      m_nChoice = context;
+   else if ( pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDate)))
+      m_nChoice = 0;
+   else if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDateRange)))
+      m_nChoice = 1;
+   else
+      m_nChoice = 2;
 
-	switch (m_nChoice) 
-	{
-	case 0:
-		pbacnetTypedValue->Encode(enc, 0);
-		break;
-	case 1:
-		BACnetOpeningTag().Encode(enc, 1);
-		pbacnetTypedValue->Encode(enc);
-		BACnetClosingTag().Encode(enc, 1);
-		break;
-	case 2:
-		pbacnetTypedValue->Encode(enc, 2);
-		break;
-	default:
-		throw "Unknown choice.";
-		break;
-	}
+   switch (m_nChoice) 
+   {
+   case 0:
+      pbacnetTypedValue->Encode(enc, 0);
+      break;
+   case 1:
+      BACnetOpeningTag().Encode(enc, 1);
+      pbacnetTypedValue->Encode(enc);
+      BACnetClosingTag().Encode(enc, 1);
+      break;
+   case 2:
+      pbacnetTypedValue->Encode(enc, 2);
+      break;
+   default:
+      throw "Unknown choice.";
+      break;
+   }
 }
 
 
 void BACnetCalendarEntry::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag		tagTestType;
-	dec.ExamineTag(tagTestType);
-	m_nChoice = tagTestType.tagNumber;		
-	switch (m_nChoice) 
-	{
-	case 0:
-		SetObject( new BACnetDate(dec) );
-		break;
-	case 1:
-		BACnetOpeningTag().Decode(dec);
-		SetObject( new BACnetDateRange(dec) ); 
-		BACnetClosingTag().Decode(dec);
-		break;
-	case 2:
-		SetObject( new BACnetWeekNDay(dec) );
-		break;
-	default:
-		throw "Unknown choice.";
-		break;
-	}
+   BACnetAPDUTag     tagTestType;
+   dec.ExamineTag(tagTestType);
+   m_nChoice = tagTestType.tagNumber;     
+   switch (m_nChoice) 
+   {
+   case 0:
+      SetObject( new BACnetDate(dec) );
+      break;
+   case 1:
+      BACnetOpeningTag().Decode(dec);
+      SetObject( new BACnetDateRange(dec) ); 
+      BACnetClosingTag().Decode(dec);
+      break;
+   case 2:
+      SetObject( new BACnetWeekNDay(dec) );
+      break;
+   default:
+      throw "Unknown choice.";
+      break;
+   }
 }
 
 
 int BACnetCalendarEntry::DataType()
 {
-	return calent;
+   return calent;
 }
 
 
 BACnetEncodeable * BACnetCalendarEntry::clone()
 {
-	return new BACnetCalendarEntry( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
+   return new BACnetCalendarEntry( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
 }
 
 
 bool BACnetCalendarEntry::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCalendarEntry)));
-	ASSERT(pbacnetTypedValue != NULL);
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCalendarEntry)));
+   ASSERT(pbacnetTypedValue != NULL);
 
-	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCalendarEntry))  &&
-		    pbacnetTypedValue->Match(*((BACnetCalendarEntry &)rbacnet).GetObject(), iOperator, pstrError);
+   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCalendarEntry))  &&
+          pbacnetTypedValue->Match(*((BACnetCalendarEntry &)rbacnet).GetObject(), iOperator, pstrError);
 }
 
 
@@ -7191,95 +7246,95 @@ BACnetTimeStamp::BACnetTimeStamp()
 
 
 BACnetTimeStamp::BACnetTimeStamp( BACnetAPDUDecoder & dec )
-				:BACnetObjectContainer()
+            :BACnetObjectContainer()
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 
 BACnetTimeStamp::BACnetTimeStamp( BACnetEncodeable * pbacnetEncodeable )
-					:BACnetObjectContainer(pbacnetEncodeable)
+               :BACnetObjectContainer(pbacnetEncodeable)
 {
 }
 
 void BACnetTimeStamp::Encode( BACnetAPDUEncoder& enc, int context)
 {
-	if(pbacnetTypedValue == NULL)
-		return;
+   if(pbacnetTypedValue == NULL)
+      return;
 
-	if ( context == -1 )
-	{
-		if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDateTime)))
-			context = 2;
-		else if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetTime)))
-			context = 0;
-		else if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)))
-			context = 1;
-	}
+   if ( context == -1 )
+   {
+      if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetDateTime)))
+         context = 2;
+      else if (pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetTime)))
+         context = 0;
+      else if(pbacnetTypedValue->IsKindOf(RUNTIME_CLASS(BACnetUnsigned)))
+         context = 1;
+   }
 
-	if ( context > 1 )	// only do an explicit Application tag if DateTime type
-	{
-		BACnetOpeningTag().Encode(enc,context);
-		pbacnetTypedValue->Encode(enc);
-		BACnetClosingTag().Encode(enc,context);
-	}
-	else
-	{
-		pbacnetTypedValue->Encode(enc, context);
-	}
+   if ( context > 1 )   // only do an explicit Application tag if DateTime type
+   {
+      BACnetOpeningTag().Encode(enc,context);
+      pbacnetTypedValue->Encode(enc);
+      BACnetClosingTag().Encode(enc,context);
+   }
+   else
+   {
+      pbacnetTypedValue->Encode(enc, context);
+   }
 }
 
 void BACnetTimeStamp::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag		tagTestType;
+   BACnetAPDUTag     tagTestType;
 
-	//Modified by HUMENG
-	dec.ExamineTag(tagTestType);
+   //Modified by HUMENG
+   dec.ExamineTag(tagTestType);
 
-	// Tag has 0, 1, 2 for time, unsigned, datetime
+   // Tag has 0, 1, 2 for time, unsigned, datetime
 
-	if (tagTestType.tagClass == openingTagClass)
-	{
-		BACnetOpeningTag().Decode(dec);
-		SetObject( new BACnetDateTime(dec) ); 
-		BACnetClosingTag().Decode(dec);
-	}
-	else
+   if (tagTestType.tagClass == openingTagClass)
+   {
+      BACnetOpeningTag().Decode(dec);
+      SetObject( new BACnetDateTime(dec) ); 
+      BACnetClosingTag().Decode(dec);
+   }
+   else
     switch (tagTestType.tagNumber)
-	{
-		case 0:					SetObject( new BACnetTime(dec) );	break;
-		case 1:					SetObject( new BACnetUnsigned(dec) ); break;
-//		case 2:					SetObject( new BACnetDateTime(dec) ); break;
-		default:				TRACE0("INVALID type in encoded stream for TimeStamp");
-								ASSERT(0);
-	}
+   {
+      case 0:              SetObject( new BACnetTime(dec) );   break;
+      case 1:              SetObject( new BACnetUnsigned(dec) ); break;
+//    case 2:              SetObject( new BACnetDateTime(dec) ); break;
+      default:          TRACE0("INVALID type in encoded stream for TimeStamp");
+                        ASSERT(0);
+   }
 }
 
 
 int BACnetTimeStamp::DataType()
 {
-	return TSTMP;
+   return TSTMP;
 }
 
 
 
 BACnetEncodeable * BACnetTimeStamp::clone()
 {
-	return new BACnetTimeStamp( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
+   return new BACnetTimeStamp( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
 }
 
 
 bool BACnetTimeStamp::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp)));
-	ASSERT(pbacnetTypedValue != NULL);
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp)));
+   ASSERT(pbacnetTypedValue != NULL);
 
-	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp))  &&
-		    pbacnetTypedValue->Match(*((BACnetTimeStamp &)rbacnet).GetObject(), iOperator, pstrError);
+   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp))  &&
+          pbacnetTypedValue->Match(*((BACnetTimeStamp &)rbacnet).GetObject(), iOperator, pstrError);
 }
 
 //====================================================================
@@ -7292,68 +7347,68 @@ BACnetScale::BACnetScale()
 
 BACnetScale::BACnetScale(float value)
 {
-	SetObject( new BACnetReal(value) );
+   SetObject( new BACnetReal(value) );
 }
 
 BACnetScale::BACnetScale(int value)
 {
-	SetObject( new BACnetUnsigned(value) );
+   SetObject( new BACnetUnsigned(value) );
 }
 
 BACnetScale::BACnetScale( BACnetAPDUDecoder & dec )
-				:BACnetObjectContainer()
+            :BACnetObjectContainer()
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 BACnetScale::BACnetScale( BACnetEncodeable * pbacnetEncodeable )
-					:BACnetObjectContainer(pbacnetEncodeable)
+               :BACnetObjectContainer(pbacnetEncodeable)
 {
 }
 
 void BACnetScale::Encode( BACnetAPDUEncoder& enc, int context)
 {
-	if(pbacnetTypedValue == NULL)
-		return;
-	pbacnetTypedValue->Encode(enc, context);
+   if(pbacnetTypedValue == NULL)
+      return;
+   pbacnetTypedValue->Encode(enc, context);
 }
 
 void BACnetScale::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag		tagTestType;	
-	dec.ExamineTag(tagTestType);	
+   BACnetAPDUTag     tagTestType;   
+   dec.ExamineTag(tagTestType);  
     switch (tagTestType.tagNumber)
-	{
-		case 0:					SetObject( new BACnetReal(dec) );	break;
-		case 1:					SetObject( new BACnetUnsigned(dec) ); break;
-		default:				TRACE0("INVALID type in encoded stream for BACnetScale");
-								ASSERT(0);
-	}
+   {
+      case 0:              SetObject( new BACnetReal(dec) );   break;
+      case 1:              SetObject( new BACnetUnsigned(dec) ); break;
+      default:          TRACE0("INVALID type in encoded stream for BACnetScale");
+                        ASSERT(0);
+   }
 }
 
 int BACnetScale::DataType()
 {
-	return escale;
+   return escale;
 }
 
 
 BACnetEncodeable * BACnetScale::clone()
 {
-	return new BACnetScale( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
+   return new BACnetScale( pbacnetTypedValue == NULL ? (BACnetEncodeable *) NULL : pbacnetTypedValue->clone());
 }
 
 
 bool BACnetScale::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetScale)));
-	ASSERT(pbacnetTypedValue != NULL);
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetScale)));
+   ASSERT(pbacnetTypedValue != NULL);
 
-	return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetScale))  &&
-		    pbacnetTypedValue->Match(*((BACnetScale &)rbacnet).GetObject(), iOperator, pstrError);
+   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetScale))  &&
+          pbacnetTypedValue->Match(*((BACnetScale &)rbacnet).GetObject(), iOperator, pstrError);
 }
 
 //====================================================================
@@ -7366,73 +7421,73 @@ BACnetPrescale::BACnetPrescale()
 
 BACnetPrescale::BACnetPrescale(unsigned multiplier, unsigned moduloDivide)
 {
-	this->multiplier = multiplier;
-	this->moduloDivide = moduloDivide;
+   this->multiplier = multiplier;
+   this->moduloDivide = moduloDivide;
 }
 
 BACnetPrescale::BACnetPrescale( BACnetAPDUDecoder & dec )
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 void BACnetPrescale::Encode( BACnetAPDUEncoder& enc, int context)
 {
-	BACnetUnsigned value1(multiplier);
-	BACnetUnsigned value2(moduloDivide);
+   BACnetUnsigned value1(multiplier);
+   BACnetUnsigned value2(moduloDivide);
 
-	value1.Encode(enc, context);
-	value2.Encode(enc, context);
+   value1.Encode(enc, context);
+   value2.Encode(enc, context);
 }
 
 void BACnetPrescale::Decode( BACnetAPDUDecoder& dec )
-{	
-	BACnetUnsigned value1(dec);
-	BACnetUnsigned value2(dec);
-	// Tamp down the warnings with casts
-	multiplier = (unsigned short) value1.uintValue;
-	moduloDivide = (unsigned short) value2.uintValue;
+{  
+   BACnetUnsigned value1(dec);
+   BACnetUnsigned value2(dec);
+   // Tamp down the warnings with casts
+   multiplier = (unsigned short) value1.uintValue;
+   moduloDivide = (unsigned short) value2.uintValue;
 }
 
 void BACnetPrescale::Encode( CString &enc ) const
 {
-	enc.Format( "{%d, %d}", multiplier, moduloDivide );
+   enc.Format( "{%d, %d}", multiplier, moduloDivide );
 }
 
 void BACnetPrescale::Decode( const char *dec )
 {
-	// todo: write decoder if used...
+   // todo: write decoder if used...
 }
 
 int BACnetPrescale::DataType()
 {
-	return eprescl;
+   return eprescl;
 }
 
 
 BACnetEncodeable * BACnetPrescale::clone()
-{	
-	return new BACnetPrescale(multiplier, moduloDivide); 
+{  
+   return new BACnetPrescale(multiplier, moduloDivide); 
 }
 
 
 bool BACnetPrescale::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	return true;
+   return true;
 }
 
 //====================================================================
 IMPLEMENT_DYNAMIC(BACnetAccumulatorRecord, BACnetEncodeable)
-BACnetAccumulatorRecord::BACnetAccumulatorRecord()		
+BACnetAccumulatorRecord::BACnetAccumulatorRecord()    
 {
 }
 
 BACnetAccumulatorRecord::BACnetAccumulatorRecord(PICS::BACnetDateTime timestamp, 
-	unsigned presentValue, unsigned accumulatedValue, unsigned accumulatorStatus)
+   unsigned presentValue, unsigned accumulatedValue, unsigned accumulatorStatus)
 {
-	this->timestamp = timestamp;
-	this->presentValue = presentValue;
-	this->accumulatedValue = accumulatedValue;
-	this->accumulatorStatus = accumulatorStatus;
+   this->timestamp = timestamp;
+   this->presentValue = presentValue;
+   this->accumulatedValue = accumulatedValue;
+   this->accumulatorStatus = accumulatorStatus;
 }
 
 BACnetAccumulatorRecord::BACnetAccumulatorRecord( BACnetAPDUDecoder & dec )
@@ -7449,44 +7504,44 @@ void BACnetAccumulatorRecord::Encode( BACnetAPDUEncoder& enc, int context)
 
 void BACnetAccumulatorRecord::Encode( CString &enc ) const
 {
-	// If this was a BACnet timestamp instead of a PICS::BACnetTimeStamp we could just
-	// use timestamp.Encode( str )
-	enc.Format( "{{(%d-%s-%d), %d:%d:%d.%d},%d, %d, %s}", 
-		timestamp.date.day_of_month, 
-		timestamp.date.month == 0xFF ? "*" : 
-			NetworkSniffer::BAC_STRTAB_month.EnumString( timestamp.date.month ),
-		timestamp.date.year + 1900, 
-		timestamp.time.hour, timestamp.time.minute, timestamp.time.second, timestamp.time.hundredths, 
-		presentValue, accumulatedValue, 
-		NetworkSniffer::BAC_STRTAB_BACnetAccumulatorStatus.EnumString( accumulatorStatus, "BACnetAccumulatorStatus:" )
-		);
+   // If this was a BACnet timestamp instead of a PICS::BACnetTimeStamp we could just
+   // use timestamp.Encode( str )
+   enc.Format( "{{(%d-%s-%d), %d:%d:%d.%d},%d, %d, %s}", 
+      timestamp.date.day_of_month, 
+      timestamp.date.month == 0xFF ? "*" : 
+         NetworkSniffer::BAC_STRTAB_month.EnumString( timestamp.date.month ),
+      timestamp.date.year + 1900, 
+      timestamp.time.hour, timestamp.time.minute, timestamp.time.second, timestamp.time.hundredths, 
+      presentValue, accumulatedValue, 
+      NetworkSniffer::BAC_STRTAB_BACnetAccumulatorStatus.EnumString( accumulatorStatus, "BACnetAccumulatorStatus:" )
+      );
 }
 
 void BACnetAccumulatorRecord::Decode( const char *dec )
 {
-	// TODO: LJT write if needed
+   // TODO: LJT write if needed
 }
 
 int BACnetAccumulatorRecord::DataType(void)
 {
-	return eaclr;
+   return eaclr;
 }
 
 BACnetEncodeable * BACnetAccumulatorRecord::clone(void)
 {
-	return new BACnetAccumulatorRecord(timestamp, presentValue, accumulatedValue,
-		accumulatorStatus); 
+   return new BACnetAccumulatorRecord(timestamp, presentValue, accumulatedValue,
+      accumulatorStatus); 
 }
 
 bool BACnetAccumulatorRecord::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	return true;
+   return true;
 }
 
 
 //====================================================================
 IMPLEMENT_DYNAMIC(BACnetShedLevel, BACnetEncodeable)
-BACnetShedLevel::BACnetShedLevel()		
+BACnetShedLevel::BACnetShedLevel()     
 : context(0)
 , value(0.0f)
 {
@@ -7504,66 +7559,66 @@ BACnetShedLevel::BACnetShedLevel( BACnetAPDUDecoder & dec )
 
 void BACnetShedLevel::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetAPDUTag		tagTestType;	
-	dec.ExamineTag(tagTestType);	
-	context = tagTestType.tagNumber;
-	if ((context == 0) || (context == 1))
-	{
-		BACnetUnsigned u1(dec); 
-		value = (float)u1.uintValue;
-	}
-	else if (context == 2)
-	{
-		BACnetReal r1(dec);
-		value = r1.realValue;
-	}
-	else
-	{
-		TRACE0("INVALID type in encoded stream for BACnetShedLevel");
-		ASSERT(0);
-	}
+   BACnetAPDUTag     tagTestType;   
+   dec.ExamineTag(tagTestType);  
+   context = tagTestType.tagNumber;
+   if ((context == 0) || (context == 1))
+   {
+      BACnetUnsigned u1(dec); 
+      value = (float)u1.uintValue;
+   }
+   else if (context == 2)
+   {
+      BACnetReal r1(dec);
+      value = r1.realValue;
+   }
+   else
+   {
+      TRACE0("INVALID type in encoded stream for BACnetShedLevel");
+      ASSERT(0);
+   }
 }
 
 void BACnetShedLevel::Encode( BACnetAPDUEncoder& enc, int context)
 {
-	// TODO: needed?
+   // TODO: needed?
 }
 
 void BACnetShedLevel::Encode( CString &enc ) const
 {
-	switch (context)
-	{
-	case 0:
-	case 1:
-		enc.Format( "[%u] %u", context, (unsigned)value );
-		break;
-	case 2:
-		enc.Format( "[2] %lf", value );
-		break;
-	default:
-		enc.Format( "[%d] ?", context );
-	}
+   switch (context)
+   {
+   case 0:
+   case 1:
+      enc.Format( "[%u] %u", context, (unsigned)value );
+      break;
+   case 2:
+      enc.Format( "[2] %lf", value );
+      break;
+   default:
+      enc.Format( "[%d] ?", context );
+   }
 }
 
 void BACnetShedLevel::Decode( const char *dec )
 {
-	// TODO: LJT write if needed
+   // TODO: LJT write if needed
 }
 
 int BACnetShedLevel::DataType(void)
 {
-	return shedlevel;
+   return shedlevel;
 }
 
 BACnetEncodeable * BACnetShedLevel::clone(void)
 {
-	return new BACnetShedLevel(context, value); 
+   return new BACnetShedLevel(context, value); 
 }
 
 bool BACnetShedLevel::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	// TODO: this hardy seems correct
-	return true;
+   // TODO: this hardy seems correct
+   return true;
 }
 
 //====================================================================
@@ -7575,43 +7630,43 @@ IMPLEMENT_DYNAMIC(BACnetGenericArray, BACnetEncodeable)
 
 BACnetGenericArray::BACnetGenericArray( int nDataType, int nSize /* = -1 */)
 {
-	m_nElemType = nDataType;
-	if ( nSize != -1 )
-		m_apBACnetObjects.SetSize(nSize);
+   m_nElemType = nDataType;
+   if ( nSize != -1 )
+      m_apBACnetObjects.SetSize(nSize);
 }
 
 
 
 void BACnetGenericArray::Decode( BACnetAPDUDecoder& dec )
 {
-	ClearArray();
-	BACnetAPDUTag tag;
+   ClearArray();
+   BACnetAPDUTag tag;
 
-	while (true)
-	{
-		tag.Peek(dec);
-		if ( tag.tagClass == closingTagClass )
-			break;
+   while (true)
+   {
+      tag.Peek(dec);
+      if ( tag.tagClass == closingTagClass )
+         break;
 
-		Add(NewDecoderElement(dec));
-	}
+      Add(NewDecoderElement(dec));
+   }
 }
 
 
 void BACnetGenericArray::Encode( BACnetAPDUEncoder& enc, int context )
 {
-//	BACnetUnsigned bacnetSize(m_apBACnetObjects.GetSize());
-//	bacnetSize.Encode(enc, context);
+// BACnetUnsigned bacnetSize(m_apBACnetObjects.GetSize());
+// bacnetSize.Encode(enc, context);
 
-	if ( context != kAppContext )
-		BACnetOpeningTag().Encode(enc,context);
+   if ( context != kAppContext )
+      BACnetOpeningTag().Encode(enc,context);
 
-	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
-		if ( m_apBACnetObjects[i] != NULL )
-			m_apBACnetObjects[i]->Encode(enc);
+   for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
+      if ( m_apBACnetObjects[i] != NULL )
+         m_apBACnetObjects[i]->Encode(enc);
 
-	if ( context != kAppContext )
-		BACnetClosingTag().Encode(enc,context);
+   if ( context != kAppContext )
+      BACnetClosingTag().Encode(enc,context);
 }
 
 
@@ -7627,7 +7682,7 @@ void BACnetGenericArray::Decode( const char *dec )
 
 BACnetEncodeable * BACnetGenericArray::NewDecoderElement( BACnetAPDUDecoder& dec )
 {
-	return BACnetEncodeable::Factory(m_nElemType, dec);
+   return BACnetEncodeable::Factory(m_nElemType, dec);
 }
 
 
@@ -7636,100 +7691,100 @@ CString g_strToStringBuffer;
 
 const char * BACnetGenericArray::ToString() const
 {
-	// Allocate internal buffer to assemble element ToString()s...  
-	// Must keep this buffer past this call and destroy in destructor.
+   // Allocate internal buffer to assemble element ToString()s...  
+   // Must keep this buffer past this call and destroy in destructor.
 
-	g_strToStringBuffer.Empty();
+   g_strToStringBuffer.Empty();
 
-	g_strToStringBuffer = "{";
-	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++ )
-	{
-		if ( i > 0 )
-			g_strToStringBuffer += ", ";
+   g_strToStringBuffer = "{";
+   for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++ )
+   {
+      if ( i > 0 )
+         g_strToStringBuffer += ", ";
 
-		g_strToStringBuffer += m_apBACnetObjects[i]->ToString();
-	}
-	g_strToStringBuffer += "}";
+      g_strToStringBuffer += m_apBACnetObjects[i]->ToString();
+   }
+   g_strToStringBuffer += "}";
 
-	return (LPCSTR) g_strToStringBuffer;
+   return (LPCSTR) g_strToStringBuffer;
 }
 
 
 BACnetEncodeable * BACnetGenericArray::operator[](int nIndex) const
 {
-	ASSERT(nIndex < m_apBACnetObjects.GetSize());
-	return m_apBACnetObjects[nIndex];
+   ASSERT(nIndex < m_apBACnetObjects.GetSize());
+   return m_apBACnetObjects[nIndex];
 }
 
 
 int BACnetGenericArray::Add( BACnetEncodeable * pbacnetEncodeable )
 {
-	return m_apBACnetObjects.Add(pbacnetEncodeable);
+   return m_apBACnetObjects.Add(pbacnetEncodeable);
 }
 
 
 
 BACnetEncodeable & BACnetGenericArray::operator[](int nIndex)
 {
-	return *m_apBACnetObjects[nIndex];
+   return *m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetGenericArray::~BACnetGenericArray()
 {
-	ClearArray();
+   ClearArray();
 }
 
 
 int BACnetGenericArray::GetSize()
 {
-	return m_apBACnetObjects.GetSize();
+   return m_apBACnetObjects.GetSize();
 }
 
 
 void BACnetGenericArray::ClearArray()
 {
-	for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
-		if ( m_apBACnetObjects[i] != NULL )
-			delete m_apBACnetObjects[i];
+   for ( int i = 0; i < m_apBACnetObjects.GetSize(); i++)
+      if ( m_apBACnetObjects[i] != NULL )
+         delete m_apBACnetObjects[i];
 
-	m_apBACnetObjects.RemoveAll();
+   m_apBACnetObjects.RemoveAll();
 }
 
 
 bool BACnetGenericArray::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-	if ( PreMatch(iOperator) )
-		return true;
+   if ( PreMatch(iOperator) )
+      return true;
 
-//	ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetGenericArray)));
+// ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetGenericArray)));
 
-	CString strError;
+   CString strError;
 
-	// want to compare entire array...  Better make sure lengths are the same
-	if ( GetSize() != ((BACnetGenericArray &) rbacnet).GetSize() )
-	{
-		if ( pstrError != NULL )
-			pstrError->Format(IDS_SCREX_COMPARRAYSIZE, GetSize(), ((BACnetGenericArray &) rbacnet).GetSize() );
+   // want to compare entire array...  Better make sure lengths are the same
+   if ( GetSize() != ((BACnetGenericArray &) rbacnet).GetSize() )
+   {
+      if ( pstrError != NULL )
+         pstrError->Format(IDS_SCREX_COMPARRAYSIZE, GetSize(), ((BACnetGenericArray &) rbacnet).GetSize() );
 
-		return false;
-	}
+      return false;
+   }
 
-	int nIndex;
-	for ( nIndex = 0; nIndex < GetSize() && 
-			m_apBACnetObjects[nIndex]->Match(((BACnetGenericArray &)rbacnet)[nIndex], iOperator, &strError);
-			nIndex++ );
+   int nIndex;
+   for ( nIndex = 0; nIndex < GetSize() && 
+         m_apBACnetObjects[nIndex]->Match(((BACnetGenericArray &)rbacnet)[nIndex], iOperator, &strError);
+         nIndex++ );
 
-	if ( pstrError != NULL  &&  !strError.IsEmpty() )
-	{
-		char szBuff[20];
+   if ( pstrError != NULL  &&  !strError.IsEmpty() )
+   {
+      char szBuff[20];
 
-		sprintf(szBuff, "[%d] ", nIndex);
-		*pstrError += szBuff + strError;
-	}
+      sprintf(szBuff, "[%d] ", nIndex);
+      *pstrError += szBuff + strError;
+   }
 
-	return strError.IsEmpty() != 0;		// account for stupid Windows BOOL define
+   return strError.IsEmpty() != 0;     // account for stupid Windows BOOL define
 }
 
 
@@ -7743,60 +7798,60 @@ IMPLEMENT_DYNAMIC(BACnetPriorityArray, BACnetGenericArray)
 
 BACnetPriorityArray::BACnetPriorityArray()
 {
-	m_nElemType = prival;
+   m_nElemType = prival;
 }
 
 
 
 BACnetPriorityArray::BACnetPriorityArray( BACnetAPDUDecoder& dec )
-					:BACnetGenericArray(prival, nPRIO)
+               :BACnetGenericArray(prival, nPRIO)
 {
-	Decode(dec);
+   Decode(dec);
 }
 
 
 BACnetPriorityArray::BACnetPriorityArray( float * paPriority, int nMax, float fNull )
-					:BACnetGenericArray(prival)
+               :BACnetGenericArray(prival)
 {
-	m_nType = paf;
+   m_nType = paf;
 
-	for ( int i = 0; i < nMax; i++ )
-		if ( paPriority[i] == fNull )
-			Add(new BACnetPriorityValue(new BACnetNull()));
-		else
-			Add(new BACnetPriorityValue(new BACnetReal(paPriority[i])));
+   for ( int i = 0; i < nMax; i++ )
+      if ( paPriority[i] == fNull )
+         Add(new BACnetPriorityValue(new BACnetNull()));
+      else
+         Add(new BACnetPriorityValue(new BACnetReal(paPriority[i])));
 }
 
 
 /*
 BACnetPriorityArray::BACnetPriorityArray( int * paPriority, int nMax, int bNull )
-					:BACnetGenericArray(prival)
+               :BACnetGenericArray(prival)
 {
-	m_nType = pab;
+   m_nType = pab;
 
-	for ( int i = 0; i < nMax; i++ )
-		if ( paPriority[i] == bNull )
-			Add(new BACnetPriorityValue(new BACnetNull()));
-		else
-			Add(new BACnetPriorityValue(new BACnetBinaryPriV(paPriority[i])));
+   for ( int i = 0; i < nMax; i++ )
+      if ( paPriority[i] == bNull )
+         Add(new BACnetPriorityValue(new BACnetNull()));
+      else
+         Add(new BACnetPriorityValue(new BACnetBinaryPriV(paPriority[i])));
 }
 */
 
 BACnetPriorityArray::BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull, boolean binaryPV )
-					:BACnetGenericArray(prival)
+               :BACnetGenericArray(prival)
 {
-	m_nType = pau;
+   m_nType = pau;
 
-	for ( int i = 0; i < nMax; i++ )
-		if ( paPriority[i] == uNull )
-			Add(new BACnetPriorityValue(new BACnetNull()));
-		else
-			if ( binaryPV && uNull == bpaNULL)
-			    Add(new BACnetPriorityValue(new BACnetBinaryPriV(paPriority[i])));
-			else if (binaryPV)	// special case of any Enumerated
-				Add(new BACnetPriorityValue(new BACnetEnumerated(paPriority[i])));
-			else
-			    Add(new BACnetPriorityValue(new BACnetUnsigned(paPriority[i])));
+   for ( int i = 0; i < nMax; i++ )
+      if ( paPriority[i] == uNull )
+         Add(new BACnetPriorityValue(new BACnetNull()));
+      else
+         if ( binaryPV && uNull == bpaNULL)
+             Add(new BACnetPriorityValue(new BACnetBinaryPriV(paPriority[i])));
+         else if (binaryPV)   // special case of any Enumerated
+            Add(new BACnetPriorityValue(new BACnetEnumerated(paPriority[i])));
+         else
+             Add(new BACnetPriorityValue(new BACnetUnsigned(paPriority[i])));
 }
 
 
@@ -7804,14 +7859,14 @@ BACnetPriorityArray::BACnetPriorityArray( unsigned short * paPriority, int nMax,
 
 BACnetPriorityValue * BACnetPriorityArray::operator[](int nIndex) const
 {
-	return (BACnetPriorityValue *) m_apBACnetObjects[nIndex];
+   return (BACnetPriorityValue *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetPriorityValue & BACnetPriorityArray::operator[](int nIndex)
 {
-	return (BACnetPriorityValue &) *m_apBACnetObjects[nIndex];
+   return (BACnetPriorityValue &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -7825,29 +7880,29 @@ IMPLEMENT_DYNAMIC(BACnetListOfCalendarEntry, BACnetGenericArray)
 
 
 BACnetListOfCalendarEntry::BACnetListOfCalendarEntry()
-							:BACnetGenericArray(calent)
+                     :BACnetGenericArray(calent)
 {
-	m_nType = calist;
+   m_nType = calist;
 }
 
 
 BACnetListOfCalendarEntry::BACnetListOfCalendarEntry( BACnetAPDUDecoder& dec )
-							:BACnetGenericArray(calent)
+                     :BACnetGenericArray(calent)
 {
-	m_nType = calist;
-	Decode(dec);
+   m_nType = calist;
+   Decode(dec);
 }
 
 
 BACnetCalendarEntry * BACnetListOfCalendarEntry::operator[](int nIndex) const
 {
-	return (BACnetCalendarEntry *) m_apBACnetObjects[nIndex];
+   return (BACnetCalendarEntry *) m_apBACnetObjects[nIndex];
 }
 
 
 BACnetCalendarEntry & BACnetListOfCalendarEntry::operator[](int nIndex)
 {
-	return  (BACnetCalendarEntry &) *m_apBACnetObjects[nIndex];
+   return  (BACnetCalendarEntry &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -7860,64 +7915,64 @@ IMPLEMENT_DYNAMIC(BACnetTextArray, BACnetGenericArray)
 
 
 BACnetTextArray::BACnetTextArray( char * paText[], int nMax /* = -1 */ )
-				:BACnetGenericArray(s132)
+            :BACnetGenericArray(s132)
 {
-	m_nType = statext;
+   m_nType = statext;
 
-	int nSize = 0;
+   int nSize = 0;
 
-	while ( paText[nSize] != NULL  && (nMax == -1 || nSize < nMax) )
-		m_apBACnetObjects.Add(new BACnetCharacterString(paText[nSize++]));
+   while ( paText[nSize] != NULL  && (nMax == -1 || nSize < nMax) )
+      m_apBACnetObjects.Add(new BACnetCharacterString(paText[nSize++]));
 }
 
 
 // Constructor for only one array element
 
 BACnetTextArray::BACnetTextArray( char * pText )
-				:BACnetGenericArray(s132)
+            :BACnetGenericArray(s132)
 {
-	m_nType = statext;
-	m_apBACnetObjects.Add(new BACnetCharacterString(pText));
+   m_nType = statext;
+   m_apBACnetObjects.Add(new BACnetCharacterString(pText));
 }
 
 
 BACnetTextArray::BACnetTextArray( BACnetAPDUDecoder& dec )
-				:BACnetGenericArray(s132)
+            :BACnetGenericArray(s132)
 {
-	m_nType = statext;
-	Decode(dec);
+   m_nType = statext;
+   Decode(dec);
 }
 
 
 
 //void BACnetTextArray::Decode( BACnetAPDUDecoder& dec )
 //{
-	// Don't need unsigned at beginning of decode stream to tell us how many strings follow
-	// We'll figure that out by encountering a null in place of a string
+   // Don't need unsigned at beginning of decode stream to tell us how many strings follow
+   // We'll figure that out by encountering a null in place of a string
 
-//	BACnetAPDUTag	tag;
+// BACnetAPDUTag  tag;
 
-//	while ( true )
-//	{
-//		tag.Peek(dec);
-//		if ( tag.tagNumber != characterStringAppTag )
-//			break;
+// while ( true )
+// {
+//    tag.Peek(dec);
+//    if ( tag.tagNumber != characterStringAppTag )
+//       break;
 
-//		Add(new BACnetCharacterString(dec));
-//	}
+//    Add(new BACnetCharacterString(dec));
+// }
 //}
 
 
 BACnetCharacterString * BACnetTextArray::operator[](int nIndex) const
 {
-	return (BACnetCharacterString *) m_apBACnetObjects[nIndex];
+   return (BACnetCharacterString *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetCharacterString & BACnetTextArray::operator[](int nIndex)
 {
-	return  (BACnetCharacterString &) *m_apBACnetObjects[nIndex];
+   return  (BACnetCharacterString &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -7929,35 +7984,35 @@ IMPLEMENT_DYNAMIC(BACnetBooleanArray, BACnetGenericArray)
 
 BACnetBooleanArray::BACnetBooleanArray( PICS::BooleanList *paBoolean )
 {
-	m_nType = eboollist;
+   m_nType = eboollist;
 
-	int nSize = 0;
-	while ( paBoolean != NULL )
-	{
-		m_apBACnetObjects.Add(new ::BACnetBoolean((boolean) paBoolean->value));
-		paBoolean = paBoolean->next;
-	}
+   int nSize = 0;
+   while ( paBoolean != NULL )
+   {
+      m_apBACnetObjects.Add(new ::BACnetBoolean((boolean) paBoolean->value));
+      paBoolean = paBoolean->next;
+   }
 }
 
 BACnetBooleanArray::BACnetBooleanArray( BACnetAPDUDecoder& dec )
-					:BACnetGenericArray(ud)
+               :BACnetGenericArray(ud)
 {
-	m_nType = eboollist;
-	Decode(dec);
+   m_nType = eboollist;
+   Decode(dec);
 }
 
 
 
 BACnetBoolean * BACnetBooleanArray::operator[](int nIndex) const
 {
-	return (BACnetBoolean *) m_apBACnetObjects[nIndex];
+   return (BACnetBoolean *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetBoolean & BACnetBooleanArray::operator[](int nIndex)
 {
-	return  (BACnetBoolean &) *m_apBACnetObjects[nIndex];
+   return  (BACnetBoolean &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -7972,63 +8027,63 @@ IMPLEMENT_DYNAMIC(BACnetUnsignedArray, BACnetGenericArray)
 // nMax, if specified, says don't check for zero to stop...
 
 BACnetUnsignedArray::BACnetUnsignedArray( unsigned char paUnsigned[], int nMax /* = -1 */ )
-					:BACnetGenericArray(ud)
+               :BACnetGenericArray(ud)
 {
-	m_nType = stavals;
+   m_nType = stavals;
 
-	int nSize = 0;
+   int nSize = 0;
 
-	while ( (paUnsigned[nSize] != 0 || nMax != -1)  && (nMax == -1 || nSize < nMax) )
-		m_apBACnetObjects.Add(new BACnetUnsigned( (unsigned int) paUnsigned[nSize++]));
+   while ( (paUnsigned[nSize] != 0 || nMax != -1)  && (nMax == -1 || nSize < nMax) )
+      m_apBACnetObjects.Add(new BACnetUnsigned( (unsigned int) paUnsigned[nSize++]));
 }
 
 
 BACnetUnsignedArray::BACnetUnsignedArray( unsigned short paUnsigned[], int nMax /* = -1 */ )
-					:BACnetGenericArray(ud)
+               :BACnetGenericArray(ud)
 {
-	m_nType = stavals;
+   m_nType = stavals;
 
-	// Same as for chars but, well, different.
-	// This will probably go away if I change the EPICS internal store to have 'word' types
-	// for alarm_values and fault_values in the MSI and MSO object, like in the MSV object.
+   // Same as for chars but, well, different.
+   // This will probably go away if I change the EPICS internal store to have 'word' types
+   // for alarm_values and fault_values in the MSI and MSO object, like in the MSV object.
 
-	int nSize = 0;
+   int nSize = 0;
 
-	while ( (paUnsigned[nSize] != 0  || nMax != -1)  && (nMax == -1 || nSize < nMax) )
-		m_apBACnetObjects.Add(new BACnetUnsigned( (unsigned int) paUnsigned[nSize++]));
+   while ( (paUnsigned[nSize] != 0  || nMax != -1)  && (nMax == -1 || nSize < nMax) )
+      m_apBACnetObjects.Add(new BACnetUnsigned( (unsigned int) paUnsigned[nSize++]));
 }
 
 BACnetUnsignedArray::BACnetUnsignedArray( PICS::UnsignedList *paUnsigned )
 {
-	m_nType = stavals;
+   m_nType = stavals;
 
-	int nSize = 0;
-	while ( paUnsigned != NULL )
-	{
-		m_apBACnetObjects.Add(new ::BACnetUnsigned((unsigned int) paUnsigned->value));
-		paUnsigned = paUnsigned->next;
-	}
+   int nSize = 0;
+   while ( paUnsigned != NULL )
+   {
+      m_apBACnetObjects.Add(new ::BACnetUnsigned((unsigned int) paUnsigned->value));
+      paUnsigned = paUnsigned->next;
+   }
 }
 
 BACnetUnsignedArray::BACnetUnsignedArray( BACnetAPDUDecoder& dec )
-					:BACnetGenericArray(ud)
+               :BACnetGenericArray(ud)
 {
-	m_nType = stavals;
-	Decode(dec);
+   m_nType = stavals;
+   Decode(dec);
 }
 
 
 
 BACnetUnsigned * BACnetUnsignedArray::operator[](int nIndex) const
 {
-	return (BACnetUnsigned *) m_apBACnetObjects[nIndex];
+   return (BACnetUnsigned *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetUnsigned & BACnetUnsignedArray::operator[](int nIndex)
 {
-	return  (BACnetUnsigned &) *m_apBACnetObjects[nIndex];
+   return  (BACnetUnsigned &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8041,38 +8096,38 @@ IMPLEMENT_DYNAMIC(BACnetTimeStampArray, BACnetGenericArray)
 // nMax, if specified, says don't check for zero to stop...
 
 BACnetTimeStampArray::BACnetTimeStampArray()
-					:BACnetGenericArray(TSTMP)
+               :BACnetGenericArray(TSTMP)
 {
-	m_nType = TSTMParr;
+   m_nType = TSTMParr;
 }
 
 
 BACnetTimeStampArray::BACnetTimeStampArray( int nSize )
-					:BACnetGenericArray(TSTMP, nSize)
+               :BACnetGenericArray(TSTMP, nSize)
 {
-	m_nType = TSTMParr;
+   m_nType = TSTMParr;
 }
 
 
 BACnetTimeStampArray::BACnetTimeStampArray( BACnetAPDUDecoder& dec )
-					:BACnetGenericArray(TSTMP)
+               :BACnetGenericArray(TSTMP)
 {
-	m_nType = TSTMParr;
-	Decode(dec);
+   m_nType = TSTMParr;
+   Decode(dec);
 }
 
 
 
 BACnetTimeStamp * BACnetTimeStampArray::operator[](int nIndex) const
 {
-	return (BACnetTimeStamp *) m_apBACnetObjects[nIndex];
+   return (BACnetTimeStamp *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetTimeStamp & BACnetTimeStampArray::operator[](int nIndex)
 {
-	return  (BACnetTimeStamp &) *m_apBACnetObjects[nIndex];
+   return  (BACnetTimeStamp &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8085,56 +8140,56 @@ IMPLEMENT_DYNAMIC(BACnetObjectIDList, BACnetGenericArray)
 
 
 BACnetObjectIDList::BACnetObjectIDList()
-					:BACnetGenericArray(ob_id)
+               :BACnetGenericArray(ob_id)
 {
-	m_nType = lobj;
+   m_nType = lobj;
 }
 
 
 BACnetObjectIDList::BACnetObjectIDList( int nSize )
-					:BACnetGenericArray(ob_id, nSize)
+               :BACnetGenericArray(ob_id, nSize)
 {
-	m_nType = lobj;
+   m_nType = lobj;
 }
 
 
 BACnetObjectIDList::BACnetObjectIDList( BACnetAPDUDecoder& dec )
-					:BACnetGenericArray(ob_id)
+               :BACnetGenericArray(ob_id)
 {
-	m_nType = lobj;
-	Decode(dec);
+   m_nType = lobj;
+   Decode(dec);
 }
 
 
 
 //void BACnetObjectIDList::Decode( BACnetAPDUDecoder& dec )
 //{
-	// Object ID lists suck out of the stream until a non-object ID tag is found...
-//	BACnetAPDUTag tag;
+   // Object ID lists suck out of the stream until a non-object ID tag is found...
+// BACnetAPDUTag tag;
 
-//	BACnetGenericArray::Decode(dec);		// don't use unsigned int in front of list to determine size
+// BACnetGenericArray::Decode(dec);    // don't use unsigned int in front of list to determine size
 
-//	while (true)
-//	{
-//		tag.Peek(dec);
-//		if ( tag.tagNumber != objectIdentifierAppTag )
-//			break;
+// while (true)
+// {
+//    tag.Peek(dec);
+//    if ( tag.tagNumber != objectIdentifierAppTag )
+//       break;
 
-//		Add(new BACnetObjectIdentifier(dec));
-//	}
+//    Add(new BACnetObjectIdentifier(dec));
+// }
 //}
 
 
 BACnetObjectIdentifier * BACnetObjectIDList::operator[](int nIndex) const
 {
-	return (BACnetObjectIdentifier *) m_apBACnetObjects[nIndex];
+   return (BACnetObjectIdentifier *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetObjectIdentifier & BACnetObjectIDList::operator[](int nIndex)
 {
-	return  (BACnetObjectIdentifier &) *m_apBACnetObjects[nIndex];
+   return  (BACnetObjectIdentifier &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8148,44 +8203,44 @@ IMPLEMENT_DYNAMIC(BACnetListOfObjectPropertyReference, BACnetGenericArray)
 
 
 BACnetListOfObjectPropertyReference::BACnetListOfObjectPropertyReference()
-									:BACnetGenericArray(propref)
+                           :BACnetGenericArray(propref)
 {
-	m_nType = lopref;
+   m_nType = lopref;
 }
 
 
 BACnetListOfObjectPropertyReference::BACnetListOfObjectPropertyReference( BACnetAPDUDecoder& dec )
-									:BACnetGenericArray(propref)
+                           :BACnetGenericArray(propref)
 {
-	m_nType = lopref;
-	Decode(dec);
+   m_nType = lopref;
+   Decode(dec);
 }
 
 
 BACnetListOfObjectPropertyReference::BACnetListOfObjectPropertyReference( PICS::BACnetObjectPropertyReference * pobjprops )
-									:BACnetGenericArray(propref)
+                           :BACnetGenericArray(propref)
 {
-	m_nType = lopref;
-	ClearArray();
-	while ( pobjprops != NULL )
-	{
-		Add(new ::BACnetObjectPropertyReference(pobjprops->object_id, pobjprops->property_id, pobjprops->pa_index));
-		pobjprops = pobjprops->next;
-	}
+   m_nType = lopref;
+   ClearArray();
+   while ( pobjprops != NULL )
+   {
+      Add(new ::BACnetObjectPropertyReference(pobjprops->object_id, pobjprops->property_id, pobjprops->pa_index));
+      pobjprops = pobjprops->next;
+   }
 }
 
 
 
 BACnetObjectPropertyReference * BACnetListOfObjectPropertyReference::operator[](int nIndex) const
 {
-	return (BACnetObjectPropertyReference *) m_apBACnetObjects[nIndex];
+   return (BACnetObjectPropertyReference *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetObjectPropertyReference & BACnetListOfObjectPropertyReference::operator[](int nIndex)
 {
-	return  (BACnetObjectPropertyReference &) *m_apBACnetObjects[nIndex];
+   return  (BACnetObjectPropertyReference &) *m_apBACnetObjects[nIndex];
 }
 */
 
@@ -8198,44 +8253,44 @@ IMPLEMENT_DYNAMIC(BACnetListOfDeviceObjectPropertyReference, BACnetGenericArray)
 
 
 BACnetListOfDeviceObjectPropertyReference::BACnetListOfDeviceObjectPropertyReference()
-									:BACnetGenericArray(propref)
+                           :BACnetGenericArray(propref)
 {
-	m_nType = lopref;
+   m_nType = lopref;
 }
 
 
 BACnetListOfDeviceObjectPropertyReference::BACnetListOfDeviceObjectPropertyReference( BACnetAPDUDecoder& dec )
-									:BACnetGenericArray(propref)
+                           :BACnetGenericArray(propref)
 {
-	m_nType = lopref;
-	Decode(dec);
+   m_nType = lopref;
+   Decode(dec);
 }
 
 
 BACnetListOfDeviceObjectPropertyReference::BACnetListOfDeviceObjectPropertyReference( PICS::BACnetDeviceObjectPropertyReference * pobjprops )
-									:BACnetGenericArray(propref)
+                           :BACnetGenericArray(propref)
 {
-	m_nType = lopref;
-	ClearArray();
-	while ( pobjprops != NULL )
-	{
-		Add(new ::BACnetDeviceObjectPropertyReference(pobjprops->Objid, pobjprops->wPropertyid, pobjprops->ulIndex, pobjprops->DeviceObj));
-		pobjprops = pobjprops->next;
-	}
+   m_nType = lopref;
+   ClearArray();
+   while ( pobjprops != NULL )
+   {
+      Add(new ::BACnetDeviceObjectPropertyReference(pobjprops->Objid, pobjprops->wPropertyid, pobjprops->ulIndex, pobjprops->DeviceObj));
+      pobjprops = pobjprops->next;
+   }
 }
 
 
 
 BACnetDeviceObjectPropertyReference * BACnetListOfDeviceObjectPropertyReference::operator[](int nIndex) const
 {
-	return (BACnetDeviceObjectPropertyReference *) m_apBACnetObjects[nIndex];
+   return (BACnetDeviceObjectPropertyReference *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetDeviceObjectPropertyReference & BACnetListOfDeviceObjectPropertyReference::operator[](int nIndex)
 {
-	return  (BACnetDeviceObjectPropertyReference &) *m_apBACnetObjects[nIndex];
+   return  (BACnetDeviceObjectPropertyReference &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8247,44 +8302,44 @@ IMPLEMENT_DYNAMIC(BACnetListOfDeviceObjectReference, BACnetGenericArray)
 
 // These (lodoref) are arrays of devobjref: BACnetARRAY[N] of BACnetDeviceObjectReference
 BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference()
-									:BACnetGenericArray(devobjref)
+                           :BACnetGenericArray(devobjref)
 {
-	m_nType = lodoref;
+   m_nType = lodoref;
 }
 
 
 BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference( BACnetAPDUDecoder& dec )
-									:BACnetGenericArray(devobjref)
+                           :BACnetGenericArray(devobjref)
 {
-	m_nType = lodoref;
-	Decode(dec);
+   m_nType = lodoref;
+   Decode(dec);
 }
 
 
 BACnetListOfDeviceObjectReference::BACnetListOfDeviceObjectReference( PICS::BACnetDeviceObjectReference * pobjprops )
-									:BACnetGenericArray(devobjref)
+                           :BACnetGenericArray(devobjref)
 {
-	m_nType = lodoref;
-	ClearArray();
-	while ( pobjprops != NULL )
-	{
-		Add(new ::BACnetDeviceObjectReference(pobjprops->Objid, pobjprops->DeviceObj));
-		pobjprops = pobjprops->next;
-	}
+   m_nType = lodoref;
+   ClearArray();
+   while ( pobjprops != NULL )
+   {
+      Add(new ::BACnetDeviceObjectReference(pobjprops->Objid, pobjprops->DeviceObj));
+      pobjprops = pobjprops->next;
+   }
 }
 
 
 
 BACnetDeviceObjectReference * BACnetListOfDeviceObjectReference::operator[](int nIndex) const
 {
-	return (BACnetDeviceObjectReference *) m_apBACnetObjects[nIndex];
+   return (BACnetDeviceObjectReference *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetDeviceObjectReference & BACnetListOfDeviceObjectReference::operator[](int nIndex)
 {
-	return  (BACnetDeviceObjectReference &) *m_apBACnetObjects[nIndex];
+   return  (BACnetDeviceObjectReference &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8296,40 +8351,40 @@ IMPLEMENT_DYNAMIC(BACnetListOfEnum, BACnetGenericArray)
 
 
 BACnetListOfEnum::BACnetListOfEnum(int tableId)
-					:BACnetGenericArray(etl)
+               :BACnetGenericArray(etl)
 {
-	m_nType = etl;
-	m_nTableId = tableId;  // from AllETs list in stdobjpr.h
+   m_nType = etl;
+   m_nTableId = tableId;  // from AllETs list in stdobjpr.h
 }
 
 
 BACnetListOfEnum::BACnetListOfEnum( BACnetAPDUDecoder& dec, int tableId )
-					:BACnetGenericArray(etl)
+               :BACnetGenericArray(etl)
 {
-	m_nType = etl;
-	m_nTableId = tableId;
-	Decode(dec);
+   m_nType = etl;
+   m_nTableId = tableId;
+   Decode(dec);
 }
 
 
 BACnetEncodeable * BACnetListOfEnum::NewDecoderElement( BACnetAPDUDecoder& dec )
 {
-	BACnetEncodeable * penum = BACnetEncodeable::Factory(etl, dec, m_nTableId);
-	penum->Decode(dec);
-	return penum;
+   BACnetEncodeable * penum = BACnetEncodeable::Factory(etl, dec, m_nTableId);
+   penum->Decode(dec);
+   return penum;
 }
 
 
 BACnetEnumerated * BACnetListOfEnum::operator[](int nIndex) const
 {
-	return (BACnetEnumerated *) m_apBACnetObjects[nIndex];
+   return (BACnetEnumerated *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetEnumerated & BACnetListOfEnum::operator[](int nIndex)
 {
-	return  (BACnetEnumerated &) *m_apBACnetObjects[nIndex];
+   return  (BACnetEnumerated &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8343,38 +8398,38 @@ IMPLEMENT_DYNAMIC(BACnetListOfVTClass, BACnetGenericArray)
 
 
 BACnetListOfVTClass::BACnetListOfVTClass()
-					:BACnetGenericArray(et)
+               :BACnetGenericArray(et)
 {
-	m_nType = vtcl;
+   m_nType = vtcl;
 }
 
 
 BACnetListOfVTClass::BACnetListOfVTClass( BACnetAPDUDecoder& dec )
-					:BACnetGenericArray(et)
+               :BACnetGenericArray(et)
 {
-	m_nType = vtcl;
-	Decode(dec);
+   m_nType = vtcl;
+   Decode(dec);
 }
 
 
 BACnetEncodeable * BACnetListOfVTClass::NewDecoderElement( BACnetAPDUDecoder& dec )
 {
-	BACnetEncodeable * penum = BACnetEncodeable::Factory(et, dec, VT_CLASSES_SUPPORTED);
-	penum->Decode(dec);
-	return penum;
+   BACnetEncodeable * penum = BACnetEncodeable::Factory(et, dec, VT_CLASSES_SUPPORTED);
+   penum->Decode(dec);
+   return penum;
 }
 
 
 BACnetEnumerated * BACnetListOfVTClass::operator[](int nIndex) const
 {
-	return (BACnetEnumerated *) m_apBACnetObjects[nIndex];
+   return (BACnetEnumerated *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetEnumerated & BACnetListOfVTClass::operator[](int nIndex)
 {
-	return  (BACnetEnumerated &) *m_apBACnetObjects[nIndex];
+   return  (BACnetEnumerated &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8389,17 +8444,17 @@ IMPLEMENT_DYNAMIC(BACnetListOfDestination, BACnetGenericArray)
 
 
 BACnetListOfDestination::BACnetListOfDestination()
-						:BACnetGenericArray(destination)
+                  :BACnetGenericArray(destination)
 {
-	m_nType = reciplist;
+   m_nType = reciplist;
 }
 
 
 BACnetListOfDestination::BACnetListOfDestination( BACnetAPDUDecoder& dec )
-									:BACnetGenericArray(destination)
+                           :BACnetGenericArray(destination)
 {
-	m_nType = reciplist;
-	Decode(dec);
+   m_nType = reciplist;
+   Decode(dec);
 }
 
 
@@ -8407,14 +8462,14 @@ BACnetListOfDestination::BACnetListOfDestination( BACnetAPDUDecoder& dec )
 
 BACnetDestination * BACnetListOfDestination::operator[](int nIndex) const
 {
-	return (BACnetDestination *) m_apBACnetObjects[nIndex];
+   return (BACnetDestination *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetDestination & BACnetListOfDestination::operator[](int nIndex)
 {
-	return  (BACnetDestination &) *m_apBACnetObjects[nIndex];
+   return  (BACnetDestination &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8430,30 +8485,30 @@ IMPLEMENT_DYNAMIC(BACnetListOfRecipient, BACnetGenericArray)
 
 
 BACnetListOfRecipient::BACnetListOfRecipient()
-					  :BACnetGenericArray(recip)
+                 :BACnetGenericArray(recip)
 {
-	m_nType = tsrecip;
+   m_nType = tsrecip;
 }
 
 
 BACnetListOfRecipient::BACnetListOfRecipient( BACnetAPDUDecoder& dec )
-									:BACnetGenericArray(recip)
+                           :BACnetGenericArray(recip)
 {
-	m_nType = tsrecip;
-	Decode(dec);
+   m_nType = tsrecip;
+   Decode(dec);
 }
 
 
 BACnetRecipient * BACnetListOfRecipient::operator[](int nIndex) const
 {
-	return (BACnetRecipient *) m_apBACnetObjects[nIndex];
+   return (BACnetRecipient *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetRecipient & BACnetListOfRecipient::operator[](int nIndex)
 {
-	return  (BACnetRecipient &) *m_apBACnetObjects[nIndex];
+   return  (BACnetRecipient &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8468,30 +8523,30 @@ IMPLEMENT_DYNAMIC(BACnetListOfCOVSubscription, BACnetGenericArray)
 
 
 BACnetListOfCOVSubscription::BACnetListOfCOVSubscription()
-					  :BACnetGenericArray(COVSub)
+                 :BACnetGenericArray(COVSub)
 {
-	m_nType = lCOVSub;
+   m_nType = lCOVSub;
 }
 
 
 BACnetListOfCOVSubscription::BACnetListOfCOVSubscription( BACnetAPDUDecoder& dec )
-									:BACnetGenericArray(COVSub)
+                           :BACnetGenericArray(COVSub)
 {
-	m_nType = lCOVSub;
-	Decode(dec);
+   m_nType = lCOVSub;
+   Decode(dec);
 }
 
 
 BACnetCOVSubscription * BACnetListOfCOVSubscription::operator[](int nIndex) const
 {
-	return (BACnetCOVSubscription *) m_apBACnetObjects[nIndex];
+   return (BACnetCOVSubscription *) m_apBACnetObjects[nIndex];
 }
 
 
 
 BACnetCOVSubscription & BACnetListOfCOVSubscription::operator[](int nIndex)
 {
-	return  (BACnetCOVSubscription &) *m_apBACnetObjects[nIndex];
+   return  (BACnetCOVSubscription &) *m_apBACnetObjects[nIndex];
 }
 
 
@@ -8502,35 +8557,35 @@ IMPLEMENT_DYNAMIC(BACnetAnyValue, BACnetObjectContainer)
 
 BACnetAnyValue::BACnetAnyValue()
 {
-	SetType(0);
+   SetType(0);
 }
 
 
 
 
 BACnetAnyValue::BACnetAnyValue( BACnetEncodeable * pbacnetEncodeable )
-					:BACnetObjectContainer(pbacnetEncodeable)
+               :BACnetObjectContainer(pbacnetEncodeable)
 {
-	SetType(0);
+   SetType(0);
 }
 
 
 void BACnetAnyValue::SetType(int nNewType)
 {
-	m_nType = nNewType;
+   m_nType = nNewType;
 }
 
 
 int BACnetAnyValue::GetType()
 {
-	return m_nType;
+   return m_nType;
 }
 
 
 void BACnetAnyValue::SetObject( int nNewType, BACnetEncodeable * pbacnetEncodeable )
 {
-	SetType(nNewType);
-	BACnetObjectContainer::SetObject(pbacnetEncodeable);
+   SetType(nNewType);
+   BACnetObjectContainer::SetObject(pbacnetEncodeable);
 }
 
 
@@ -8538,11 +8593,11 @@ void BACnetAnyValue::SetObject( int nNewType, BACnetEncodeable * pbacnetEncodeab
 
 void BACnetAnyValue::SetObject( BACnetEncodeable * pbacnetEncodeable )
 {
-	if ( pbacnetEncodeable == NULL )
-		SetType(0);
-	else
-		SetType(pbacnetEncodeable->DataType());
-	BACnetObjectContainer::SetObject(pbacnetEncodeable);
+   if ( pbacnetEncodeable == NULL )
+      SetType(0);
+   else
+      SetType(pbacnetEncodeable->DataType());
+   BACnetObjectContainer::SetObject(pbacnetEncodeable);
 }
 
 
@@ -8550,364 +8605,364 @@ void BACnetAnyValue::SetObject( BACnetEncodeable * pbacnetEncodeable )
 
 bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOperator, LPCSTR lpstrValueName )
 {
-	CString strThrowMessage;
+   CString strThrowMessage;
 
-	if ( GetObject() == NULL )		// no data found
-		strThrowMessage.Format(IDS_SCREX_COMPEPICSNULL, lpstrValueName);
+   if ( GetObject() == NULL )    // no data found
+      strThrowMessage.Format(IDS_SCREX_COMPEPICSNULL, lpstrValueName);
 
-	else if ( dec.pktBuffer == NULL )
-		strThrowMessage.Format(IDS_SCREX_COMPDATANULL, lpstrValueName);
+   else if ( dec.pktBuffer == NULL )
+      strThrowMessage.Format(IDS_SCREX_COMPDATANULL, lpstrValueName);
 
-	else
-	{
-		// Have to use type value here because we don't know how to decode the stream...\
-		// The type tells us what kind of object to attempt to reconstitute
+   else
+   {
+      // Have to use type value here because we don't know how to decode the stream...\
+      // The type tells us what kind of object to attempt to reconstitute
 
-		switch (GetType())
-		{
-			case u127:		// 1..127 ---------------------------------
-			case u16:		// 1..16 ----------------------------------
-			case ud:		// unsigned dword -------------------------
-			case uw:		// unsigned word --------------------------
+      switch (GetType())
+      {
+         case u127:     // 1..127 ---------------------------------
+         case u16:      // 1..16 ----------------------------------
+         case ud:    // unsigned dword -------------------------
+         case uw:    // unsigned word --------------------------
 
-				BACnetUnsigned(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetUnsigned(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case ssint:		// short signed int -----------------------		// actually the same type
-			case sw:		// signed word ----------------------------
-			case ptInt32:
+         case ssint:    // short signed int -----------------------     // actually the same type
+         case sw:    // signed word ----------------------------
+         case ptInt32:
 
-				BACnetInteger(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetInteger(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case flt:		// float ----------------------------------------
+         case flt:      // float ----------------------------------------
 
-				BACnetReal(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetReal(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case pab:		// priority array bpv ---------------------		deal with index cases (-1=all, 0=element count, base 1=index
-			case paf:		// priority array flt ---------------------
-			case pau:		// priority array unsigned ----------------
-			case ptPai:		// priority array long
+         case pab:      // priority array bpv ---------------------     deal with index cases (-1=all, 0=element count, base 1=index
+         case paf:      // priority array flt ---------------------
+         case pau:      // priority array unsigned ----------------
+         case ptPai:    // priority array long
 
-				BACnetPriorityArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetPriorityArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case ebool:		// boolean enumeration ---------------------------------
+         case ebool:    // boolean enumeration ---------------------------------
 
-				BACnetBoolean(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetBoolean(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case bits:		// octet of 1 or 0 flags
+         case bits:     // octet of 1 or 0 flags
 
-				BACnetBitString(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetBitString(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case ob_id:		// object identifier
+         case ob_id:    // object identifier
 
-				BACnetObjectIdentifier(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetObjectIdentifier(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case s10:		// char [10] --------------------------------------------
-			case s32:		// char [32]
-			case s64:		// char [64]
-			case s132:		// char [132]
+         case s10:      // char [10] --------------------------------------------
+         case s32:      // char [32]
+         case s64:      // char [64]
+         case s132:     // char [132]
 
-				BACnetCharacterString(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetCharacterString(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
        
-			case enull:		// null enumeration ------------------------------------
+         case enull:    // null enumeration ------------------------------------
 
-				BACnetNull(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-				break;
+            BACnetNull(dec).Match(*GetObject(), iOperator, &strThrowMessage);
+            break;
 
-			case et:		// generic enumation ----------------------------------
+         case et:    // generic enumation ----------------------------------
 
-				BACnetEnumerated(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-				break;
+            BACnetEnumerated(dec).Match(*GetObject(), iOperator, &strThrowMessage);
+            break;
 
-			case ptDate:	// date ------------------------------------------------
+         case ptDate:   // date ------------------------------------------------
 
-				BACnetDate(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-				break;
+            BACnetDate(dec).Match(*GetObject(), iOperator, &strThrowMessage);
+            break;
 
-			case ptTime:	// time -------------------------------------------------
+         case ptTime:   // time -------------------------------------------------
 
-				BACnetTime(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-				break;
+            BACnetTime(dec).Match(*GetObject(), iOperator, &strThrowMessage);
+            break;
 
-			case dt:		// date/time stamp -------------------------------------
+         case dt:    // date/time stamp -------------------------------------
 
-				BACnetDateTime(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-				break;
+            BACnetDateTime(dec).Match(*GetObject(), iOperator, &strThrowMessage);
+            break;
 
-			case dtrange:	// range of dates ---------------------------------------
+         case dtrange:  // range of dates ---------------------------------------
 
-				BACnetDateRange(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-				break;
+            BACnetDateRange(dec).Match(*GetObject(), iOperator, &strThrowMessage);
+            break;
 
-			case calist:	// array of calendar entries -----------------------------
+         case calist:   // array of calendar entries -----------------------------
 
-				BACnetListOfCalendarEntry(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetListOfCalendarEntry(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case dabind:	// device address binding --------------------------------
+         case dabind:   // device address binding --------------------------------
 
-				BACnetAddressBinding(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetAddressBinding(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case lobj:		// array of object identifiers ----------------------------
+         case lobj:     // array of object identifiers ----------------------------
 
-				BACnetObjectIDList(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetObjectIDList(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case uwarr:		// unsigned array ------------------------------------------
-			case stavals:	// list of unsigned ----------------------------------------
+         case uwarr:    // unsigned array ------------------------------------------
+         case stavals:  // list of unsigned ----------------------------------------
 
-				BACnetUnsignedArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetUnsignedArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case statext:
-			case actext:	// character string array ----------------------------------
+         case statext:
+         case actext:   // character string array ----------------------------------
 
-				BACnetTextArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetTextArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case prival:	// single priority value----------------------------------
+         case prival:   // single priority value----------------------------------
 
-				BACnetPriorityValue(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetPriorityValue(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case calent:	// single calendar entry ----------------------------------
+         case calent:   // single calendar entry ----------------------------------
 
-				BACnetCalendarEntry(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetCalendarEntry(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case TSTMP:		// time stamp, could be multiple type---------------------
+         case TSTMP:    // time stamp, could be multiple type---------------------
 
-				BACnetTimeStamp(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetTimeStamp(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case TSTMParr:		// array of timestamps
+         case TSTMParr:    // array of timestamps
 
-				BACnetTimeStampArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetTimeStampArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case propref: // object prop refs
+         case propref: // object prop refs
 
-				BACnetObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+            BACnetObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			case lopref:  // list of object prop refs (device)
-				BACnetListOfDeviceObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+         case lopref:  // list of object prop refs (device)
+            BACnetListOfDeviceObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			//case tsrecip: // time synch recipients
-			case recip:		 // recipient
+         //case tsrecip: // time synch recipients
+         case recip:     // recipient
 
-				BACnetRecipient(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-				break;
+            BACnetRecipient(dec).Match(*GetObject(), iOperator, &strThrowMessage);
+            break;
 
-			case lodoref:	// BACnetARRAY[N] of BACnetDeviceObjectReference
-				BACnetListOfDeviceObjectReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-				break;
+         case lodoref:  // BACnetARRAY[N] of BACnetDeviceObjectReference
+            BACnetListOfDeviceObjectReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
+            break;
 
-			default:
+         default:
 
-				strThrowMessage.Format(IDS_SCREX_COMPUNSUPPORTED, GetType() );
-		}
+            strThrowMessage.Format(IDS_SCREX_COMPUNSUPPORTED, GetType() );
+      }
     }
 
 
-	if ( !strThrowMessage.IsEmpty() )
-	{
-		CString strFailString;
-		strFailString.Format(IDS_SCREX_COMPFAIL, lpstrValueName, (LPCSTR) strThrowMessage );
+   if ( !strThrowMessage.IsEmpty() )
+   {
+      CString strFailString;
+      strFailString.Format(IDS_SCREX_COMPFAIL, lpstrValueName, (LPCSTR) strThrowMessage );
 
-		throw CString(strFailString);
-	}
+      throw CString(strFailString);
+   }
 
-	return true;
+   return true;
 }
 
 
 //
-//	BACnetAPDUTag::BACnetAPDUTag
+// BACnetAPDUTag::BACnetAPDUTag
 //
 
 BACnetAPDUTag::BACnetAPDUTag( BACnetTagClass tclass, BACnetApplicationTag tnum, int tlen )
-	: tagClass(tclass), tagNumber(tnum), tagLVT(tlen)
+   : tagClass(tclass), tagNumber(tnum), tagLVT(tlen)
 {
 }
 
 BACnetAPDUTag::BACnetAPDUTag( BACnetApplicationTag tnum, int tlen )
-	: tagClass(applicationTagClass), tagNumber(tnum), tagLVT(tlen)
+   : tagClass(applicationTagClass), tagNumber(tnum), tagLVT(tlen)
 {
 }
 
 BACnetAPDUTag::BACnetAPDUTag( int context, int tlen )
-	: tagClass(contextTagClass), tagNumber((BACnetApplicationTag)context), tagLVT(tlen)
+   : tagClass(contextTagClass), tagNumber((BACnetApplicationTag)context), tagLVT(tlen)
 {
 }
 
 //
-//	BACnetAPDUTag::Encode
+// BACnetAPDUTag::Encode
 //
-//	Note that the context is unused, but required to override the pure virtual 
-//	member function of BACnetEncodeable.
+// Note that the context is unused, but required to override the pure virtual 
+// member function of BACnetEncodeable.
 //
 
 void BACnetAPDUTag::Encode( BACnetAPDUEncoder& enc, int )
 {
-	int			len = 0
-	;
-	BACnetOctet	tnum
-	;
-	
-	// compute the tag length, including the data
-	len = 1;
-	if ((tagClass == openingTagClass) || (tagClass == closingTagClass))
-		;
-	else
-	if ((tagClass == applicationTagClass) && (tagNumber == booleanAppTag))
-		;
-	else {
-		// if we are context specific, use the context tag number
-		tnum = (BACnetOctet)tagNumber;
-		
-		// extra big tag number?
-		if (tnum >= 15)
-			len += 1;
-		
-		// long lengths?
-		if (tagLVT < 5)
-			;
-		else
-		if (tagLVT <= 253)
-			len += 1;
-		else
-		if (tagLVT <= 65535)
-			len += 3;
-		else
-			len += 5;
-		
-		// add the rest of the data
-		len += tagLVT;
-	}
-	
-	// check to see if there's enough space
-	enc.CheckSpace( len );
-	
-	// check for special encoding of open and close tags
-	if (tagClass == openingTagClass) {
-		enc.pktBuffer[enc.pktLength++] = (((BACnetOctet)tagNumber & 0x0F) << 4) + 0x0E;
-		return;
-	}
-	if (tagClass == closingTagClass) {
-		enc.pktBuffer[enc.pktLength++] = (((BACnetOctet)tagNumber & 0x0F) << 4) + 0x0F;
-		return;
-	}
-	
-	// check for context encoding
-	tnum = (BACnetOctet)tagNumber;
-	if (tagClass == contextTagClass)
-		enc.pktBuffer[enc.pktLength] = 0x08;
-	else
-		enc.pktBuffer[enc.pktLength] = 0x00;
-	
-	// this first byte is a killer
-	enc.pktBuffer[enc.pktLength++] +=
-		(((tnum < 15) ? tnum : 0x0F) << 4)
-		+ ((tagLVT < 5) ? tagLVT : 0x05)
-		;
-	if (tnum >= 15)
-		enc.pktBuffer[enc.pktLength++] = tnum;
-	
-	// really short lengths already done
-	if (tagLVT < 5)
-		;
-	else {
-		if (tagLVT <= 253) {
-			// byte lengths
-			enc.pktBuffer[enc.pktLength++] = tagLVT;
-		} else
-		if (tagLVT <= 65535) {
-			// short lengths
-			enc.pktBuffer[enc.pktLength++] = 254;
-			enc.pktBuffer[enc.pktLength++] = (tagLVT >> 8) & 0x0FF;
-			enc.pktBuffer[enc.pktLength++] = tagLVT & 0x0FF;
-		} else {
-			// long lengths
-			enc.pktBuffer[enc.pktLength++] = 255;
-			enc.pktBuffer[enc.pktLength++] = (tagLVT >> 24) & 0x0FF;
-			enc.pktBuffer[enc.pktLength++] = (tagLVT >> 16) & 0x0FF;
-			enc.pktBuffer[enc.pktLength++] = (tagLVT >>  8) & 0x0FF;
-			enc.pktBuffer[enc.pktLength++] = tagLVT & 0x0FF;
-		}
-	}
+   int         len = 0
+   ;
+   BACnetOctet tnum
+   ;
+   
+   // compute the tag length, including the data
+   len = 1;
+   if ((tagClass == openingTagClass) || (tagClass == closingTagClass))
+      ;
+   else
+   if ((tagClass == applicationTagClass) && (tagNumber == booleanAppTag))
+      ;
+   else {
+      // if we are context specific, use the context tag number
+      tnum = (BACnetOctet)tagNumber;
+      
+      // extra big tag number?
+      if (tnum >= 15)
+         len += 1;
+      
+      // long lengths?
+      if (tagLVT < 5)
+         ;
+      else
+      if (tagLVT <= 253)
+         len += 1;
+      else
+      if (tagLVT <= 65535)
+         len += 3;
+      else
+         len += 5;
+      
+      // add the rest of the data
+      len += tagLVT;
+   }
+   
+   // check to see if there's enough space
+   enc.CheckSpace( len );
+   
+   // check for special encoding of open and close tags
+   if (tagClass == openingTagClass) {
+      enc.pktBuffer[enc.pktLength++] = (((BACnetOctet)tagNumber & 0x0F) << 4) + 0x0E;
+      return;
+   }
+   if (tagClass == closingTagClass) {
+      enc.pktBuffer[enc.pktLength++] = (((BACnetOctet)tagNumber & 0x0F) << 4) + 0x0F;
+      return;
+   }
+   
+   // check for context encoding
+   tnum = (BACnetOctet)tagNumber;
+   if (tagClass == contextTagClass)
+      enc.pktBuffer[enc.pktLength] = 0x08;
+   else
+      enc.pktBuffer[enc.pktLength] = 0x00;
+   
+   // this first byte is a killer
+   enc.pktBuffer[enc.pktLength++] +=
+      (((tnum < 15) ? tnum : 0x0F) << 4)
+      + ((tagLVT < 5) ? tagLVT : 0x05)
+      ;
+   if (tnum >= 15)
+      enc.pktBuffer[enc.pktLength++] = tnum;
+   
+   // really short lengths already done
+   if (tagLVT < 5)
+      ;
+   else {
+      if (tagLVT <= 253) {
+         // byte lengths
+         enc.pktBuffer[enc.pktLength++] = tagLVT;
+      } else
+      if (tagLVT <= 65535) {
+         // short lengths
+         enc.pktBuffer[enc.pktLength++] = 254;
+         enc.pktBuffer[enc.pktLength++] = (tagLVT >> 8) & 0x0FF;
+         enc.pktBuffer[enc.pktLength++] = tagLVT & 0x0FF;
+      } else {
+         // long lengths
+         enc.pktBuffer[enc.pktLength++] = 255;
+         enc.pktBuffer[enc.pktLength++] = (tagLVT >> 24) & 0x0FF;
+         enc.pktBuffer[enc.pktLength++] = (tagLVT >> 16) & 0x0FF;
+         enc.pktBuffer[enc.pktLength++] = (tagLVT >>  8) & 0x0FF;
+         enc.pktBuffer[enc.pktLength++] = tagLVT & 0x0FF;
+      }
+   }
 }
 
 void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
 {
-	BACnetOctet	tag
-	;
-	
-	// enough for the tag byte?
-	if (dec.pktLength < 1)
-		throw_(77) /* not enough data */;
-	
-	tag = (dec.pktLength--,*dec.pktBuffer++);
-	
-	// extract the type
-	tagClass = (BACnetTagClass)((tag >> 3) & 0x01);
-	
-	// extract the number
-	tagNumber = (BACnetApplicationTag)(tag >> 4);
-	if (tagNumber == 0x0F) {
-		if (dec.pktLength < 1)
-			throw_(78) /* not enough data */;
-		tagNumber = (BACnetApplicationTag)(dec.pktLength--,*dec.pktBuffer++);
-	}
-	
-	// extract the length
-	tagLVT = (tag & 0x07);
-	if (tagLVT < 5)
-		;
-	else
-	if (tagLVT == 5) {
-		if (dec.pktLength < 1)
-			throw_(79) /* not enough data */;
-		tagLVT = (dec.pktLength--,*dec.pktBuffer++);
-		if (tagLVT == 254) {
-			if (dec.pktLength < 2)
-				throw_(80) /* not enough data */;
-			tagLVT = (dec.pktLength--,*dec.pktBuffer++);
-			tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
-		} else
-		if (tagLVT == 255) {
-			if (dec.pktLength < 4)
-				throw_(81) /* not enough data */;
-			tagLVT = (dec.pktLength--,*dec.pktBuffer++);
-			tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
-			tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
-			tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
-		}
-	} else
-	if (tagLVT == 6) {
-		tagClass = openingTagClass;
-		tagLVT = 0;
-	} else
-	if (tagLVT == 7) {
-		tagClass = closingTagClass;
-		tagLVT = 0;
-	}
-	
-	// check for enough data (except for an application tagged boolean)
-	if (!tagClass && (tagNumber == booleanAppTag))
-		;
-	else
-	if (dec.pktLength < tagLVT)
-		throw_(82);
+   BACnetOctet tag
+   ;
+   
+   // enough for the tag byte?
+   if (dec.pktLength < 1)
+      throw_(77) /* not enough data */;
+   
+   tag = (dec.pktLength--,*dec.pktBuffer++);
+   
+   // extract the type
+   tagClass = (BACnetTagClass)((tag >> 3) & 0x01);
+   
+   // extract the number
+   tagNumber = (BACnetApplicationTag)(tag >> 4);
+   if (tagNumber == 0x0F) {
+      if (dec.pktLength < 1)
+         throw_(78) /* not enough data */;
+      tagNumber = (BACnetApplicationTag)(dec.pktLength--,*dec.pktBuffer++);
+   }
+   
+   // extract the length
+   tagLVT = (tag & 0x07);
+   if (tagLVT < 5)
+      ;
+   else
+   if (tagLVT == 5) {
+      if (dec.pktLength < 1)
+         throw_(79) /* not enough data */;
+      tagLVT = (dec.pktLength--,*dec.pktBuffer++);
+      if (tagLVT == 254) {
+         if (dec.pktLength < 2)
+            throw_(80) /* not enough data */;
+         tagLVT = (dec.pktLength--,*dec.pktBuffer++);
+         tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
+      } else
+      if (tagLVT == 255) {
+         if (dec.pktLength < 4)
+            throw_(81) /* not enough data */;
+         tagLVT = (dec.pktLength--,*dec.pktBuffer++);
+         tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
+         tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
+         tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
+      }
+   } else
+   if (tagLVT == 6) {
+      tagClass = openingTagClass;
+      tagLVT = 0;
+   } else
+   if (tagLVT == 7) {
+      tagClass = closingTagClass;
+      tagLVT = 0;
+   }
+   
+   // check for enough data (except for an application tagged boolean)
+   if (!tagClass && (tagNumber == booleanAppTag))
+      ;
+   else
+   if (dec.pktLength < tagLVT)
+      throw_(82);
 }
 
 
@@ -8915,181 +8970,181 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
 //----------
 
 //
-//	BACnetNPDU::BACnetNPDU
+// BACnetNPDU::BACnetNPDU
 //
 
 BACnetNPDU::BACnetNPDU( const BACnetAddress &addr, const BACnetOctet *data, const int len, const int reply, const int priority )
-	: pduAddr(addr), pduData(data), pduLen(len)
-	, pduExpectingReply(reply), pduNetworkPriority(priority)
+   : pduAddr(addr), pduData(data), pduLen(len)
+   , pduExpectingReply(reply), pduNetworkPriority(priority)
 {
 }
 
 //
-//	BACnetNetClient::BACnetNetClient
+// BACnetNetClient::BACnetNetClient
 //
 
 BACnetNetClient::BACnetNetClient( void )
-	: clientPeer(0)
+   : clientPeer(0)
 {
 }
 
 //
-//	BACnetNetClient::~BACnetNetClient
+// BACnetNetClient::~BACnetNetClient
 //
 
 BACnetNetClient::~BACnetNetClient( void )
 {
-	if (clientPeer)
-		Unbind( this, clientPeer );
+   if (clientPeer)
+      Unbind( this, clientPeer );
 }
 
 //
-//	BACnetNetClient::Request
+// BACnetNetClient::Request
 //
 
 void BACnetNetClient::Request( const BACnetNPDU &pdu )
 {
-	if (clientPeer)
-		clientPeer->Indication( pdu );
+   if (clientPeer)
+      clientPeer->Indication( pdu );
 }
 
 //
-//	BACnetNetServer::BACnetNetServer
+// BACnetNetServer::BACnetNetServer
 //
 
 BACnetNetServer::BACnetNetServer( void )
-	: serverPeer(0)
+   : serverPeer(0)
 {
 }
 
 //
-//	BACnetNetServer::~BACnetNetServer
+// BACnetNetServer::~BACnetNetServer
 //
 
 BACnetNetServer::~BACnetNetServer( void )
 {
-	if (serverPeer)
-		Unbind( serverPeer, this );
+   if (serverPeer)
+      Unbind( serverPeer, this );
 }
 
 //
-//	BACnetNetServer::Response
+// BACnetNetServer::Response
 //
 
 void BACnetNetServer::Response( const BACnetNPDU &pdu )
 {
-	if (serverPeer)
-		serverPeer->Confirmation( pdu );
+   if (serverPeer)
+      serverPeer->Confirmation( pdu );
 }
 
 //
-//	Bind
+// Bind
 //
 
 void Bind( BACnetNetClientPtr cp, BACnetNetServerPtr sp )
 {
-	cp->clientPeer = sp;
-	sp->serverPeer = cp;
+   cp->clientPeer = sp;
+   sp->serverPeer = cp;
 }
 
 //
-//	Unbind
+// Unbind
 //
 
 void Unbind( BACnetNetClientPtr cp, BACnetNetServerPtr sp )
 {
-	cp->clientPeer = 0;
-	sp->serverPeer = 0;
+   cp->clientPeer = 0;
+   sp->serverPeer = 0;
 }
 
 //
-//	IsBound
+// IsBound
 //
 
 bool IsBound( BACnetNetClientPtr cp, BACnetNetServerPtr sp )
 {
-	return ((cp->clientPeer == sp) && (sp->serverPeer == cp));
+   return ((cp->clientPeer == sp) && (sp->serverPeer == cp));
 }
 
 #if _TSMDebug
 
 //
-//	BACnetDebugNPDU::BACnetDebugNPDU
+// BACnetDebugNPDU::BACnetDebugNPDU
 //
 
 const char debugHex[] = "0123456789ABCDEF";
 
 BACnetDebugNPDU::BACnetDebugNPDU( const char *lbl )
-	: label(lbl)
+   : label(lbl)
 {
 }
 
 //
-//	BACnetDebugNPDU::BACnetDebugNPDU
+// BACnetDebugNPDU::BACnetDebugNPDU
 //
 
 BACnetDebugNPDU::BACnetDebugNPDU( BACnetNetServerPtr sp, const char *lbl )
-	: label(lbl)
+   : label(lbl)
 {
-	Bind( this, sp );
+   Bind( this, sp );
 }
 
 //
-//	BACnetDebugNPDU::Indication
+// BACnetDebugNPDU::Indication
 //
 
 void BACnetDebugNPDU::Indication( const BACnetNPDU &pdu )
 {
-	cout << '(' << label << " '";
-	for (int i = 0; i < pdu.pduLen; i++) {
-		cout << debugHex[ (pdu.pduData[i] >> 4) & 0x0F ];
-		cout << debugHex[ pdu.pduData[i] & 0x0F ];
-		cout << '.';
-	}
-	cout << "' to " << pdu.pduAddr << ')';
-	cout << endl;
-	
-	Request( pdu );
+   cout << '(' << label << " '";
+   for (int i = 0; i < pdu.pduLen; i++) {
+      cout << debugHex[ (pdu.pduData[i] >> 4) & 0x0F ];
+      cout << debugHex[ pdu.pduData[i] & 0x0F ];
+      cout << '.';
+   }
+   cout << "' to " << pdu.pduAddr << ')';
+   cout << endl;
+   
+   Request( pdu );
 }
 
 //
-//	BACnetDebugNPDU::Confirmation
+// BACnetDebugNPDU::Confirmation
 //
 
 void BACnetDebugNPDU::Confirmation( const BACnetNPDU &pdu )
 {
-	cout << '(' << label << " '";
-	for (int i = 0; i < pdu.pduLen; i++) {
-		cout << debugHex[ (pdu.pduData[i] >> 4) & 0x0F ];
-		cout << debugHex[ pdu.pduData[i] & 0x0F ];
-		cout << '.';
-	}
-	cout << "' from " << pdu.pduAddr << ')';
-	cout << endl;
-	
-	Response( pdu );
+   cout << '(' << label << " '";
+   for (int i = 0; i < pdu.pduLen; i++) {
+      cout << debugHex[ (pdu.pduData[i] >> 4) & 0x0F ];
+      cout << debugHex[ pdu.pduData[i] & 0x0F ];
+      cout << '.';
+   }
+   cout << "' from " << pdu.pduAddr << ')';
+   cout << endl;
+   
+   Response( pdu );
 }
 
 #endif
 
 //
-//	BACnetPort::BACnetPort
+// BACnetPort::BACnetPort
 //
-//	This ctor sets the port status to uninitialized.  It will be up to a derived 
-//	class to clear the status when the port is up and running.
+// This ctor sets the port status to uninitialized.  It will be up to a derived 
+// class to clear the status when the port is up and running.
 //
 
 BACnetPort::BACnetPort( void )
-	: portStatus(-1)
+   : portStatus(-1)
 {
 }
 
 //
-//	BACnetPort::~BACnetPort
+// BACnetPort::~BACnetPort
 //
-//	This dtor doesn't look like it does much, but it is virtual.  So when a pointer 
-//	to a BACnetPort is deleted, the real derived class dtor is called.  All classes 
-//	that have a virtual member function should have a virtual dtor.
+// This dtor doesn't look like it does much, but it is virtual.  So when a pointer 
+// to a BACnetPort is deleted, the real derived class dtor is called.  All classes 
+// that have a virtual member function should have a virtual dtor.
 //
 
 BACnetPort::~BACnetPort( void )
@@ -9097,12 +9152,12 @@ BACnetPort::~BACnetPort( void )
 }
 
 //
-//	BACnetPort::FilterData
+// BACnetPort::FilterData
 //
-//	The default for ports is to do no filtering.  This member function allows the 
-//	application to get a chance to see what is being sent and received.  It currently 
-//	does not allow the derived class to interfere with the processing of the packet,
-//	but that might be a nice feature to add.
+// The default for ports is to do no filtering.  This member function allows the 
+// application to get a chance to see what is being sent and received.  It currently 
+// does not allow the derived class to interfere with the processing of the packet,
+// but that might be a nice feature to add.
 //
 
 void BACnetPort::FilterData( BACnetOctet *, int, BACnetPortDirection )
@@ -9110,10 +9165,10 @@ void BACnetPort::FilterData( BACnetOctet *, int, BACnetPortDirection )
 }
 
 //
-//	BACnetPort::PortStatusChange
+// BACnetPort::PortStatusChange
 //
-//	This function is called when the port needs to change its status.  It can be overridden 
-//	by a derived class to do something with the new status.
+// This function is called when the port needs to change its status.  It can be overridden 
+// by a derived class to do something with the new status.
 //
 
 void BACnetPort::PortStatusChange( void )
@@ -9123,89 +9178,89 @@ void BACnetPort::PortStatusChange( void )
 //----------
 
 //
-//	BACnetAppClient::BACnetAppClient
+// BACnetAppClient::BACnetAppClient
 //
 
 BACnetAppClient::BACnetAppClient( void )
-	: clientPeer(0)
+   : clientPeer(0)
 {
 }
 
 //
-//	BACnetAppClient::~BACnetAppClient
+// BACnetAppClient::~BACnetAppClient
 //
 
 BACnetAppClient::~BACnetAppClient( void )
 {
-	if (clientPeer)
-		Unbind( this, clientPeer );
+   if (clientPeer)
+      Unbind( this, clientPeer );
 }
 
 //
-//	BACnetAppClient::Request
+// BACnetAppClient::Request
 //
 
 void BACnetAppClient::Request( const BACnetAPDU &pdu )
 {
-	if (!clientPeer) throw_(83);
-	clientPeer->Indication( pdu );
+   if (!clientPeer) throw_(83);
+   clientPeer->Indication( pdu );
 }
 
 //
-//	BACnetAppServer::BACnetAppServer
+// BACnetAppServer::BACnetAppServer
 //
 
 BACnetAppServer::BACnetAppServer( void )
-	: serverPeer(0)
+   : serverPeer(0)
 {
 }
 
 //
-//	BACnetAppServer::~BACnetAppServer
+// BACnetAppServer::~BACnetAppServer
 //
 
 BACnetAppServer::~BACnetAppServer( void )
 {
-	if (serverPeer)
-		Unbind( serverPeer, this );
+   if (serverPeer)
+      Unbind( serverPeer, this );
 }
 
 //
-//	BACnetAppServer::Response
+// BACnetAppServer::Response
 //
 
 void BACnetAppServer::Response( const BACnetAPDU &pdu )
 {
-	if (!serverPeer) throw_(84);
-	serverPeer->Confirmation( pdu );
+   if (!serverPeer) throw_(84);
+   serverPeer->Confirmation( pdu );
 }
 
 //
-//	Bind
+// Bind
 //
 
 void Bind( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
 {
-	cp->clientPeer = sp;
-	sp->serverPeer = cp;
+   cp->clientPeer = sp;
+   sp->serverPeer = cp;
 }
 
 //
-//	Unbind
+// Unbind
 //
 
 void Unbind( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
 {
-	cp->clientPeer = 0;
-	sp->serverPeer = 0;
+   cp->clientPeer = 0;
+   sp->serverPeer = 0;
 }
 
 //
-//	IsBound
+// IsBound
 //
 
 bool IsBound( BACnetAppClientPtr cp, BACnetAppServerPtr sp )
 {
-	return ((cp->clientPeer == sp) && (sp->serverPeer == cp));
+   return ((cp->clientPeer == sp) && (sp->serverPeer == cp));
 }
 
