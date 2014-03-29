@@ -25,7 +25,7 @@ CSendWhoIsRTN::CSendWhoIsRTN( void )
 	: CSendPage( CSendWhoIsRTN::IDD )
 	, m_DNET( this, IDC_DNET )
 {
-	//{{AFX_DATA_INIT(CSendRaw)
+	//{{AFX_DATA_INIT(CSendWhoIsRTN)
 	//}}AFX_DATA_INIT
 }
 #pragma warning( default : 4355 )
