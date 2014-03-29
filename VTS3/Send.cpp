@@ -15,7 +15,7 @@ static char THIS_FILE[] = __FILE__;
 
 // TODO: shouldn't these be defined in resource.h, to ensure that
 // the ID values aren't re-used by one of the pages?
-#define	IDC_PORT		0x1001
+#define IDC_PORT		0x1001
 #define IDC_PACKETTREE	0x1002
 #define IDC_PACKETDATA	0x1003
 #define IDC_SEND		0x1004
@@ -165,8 +165,8 @@ CSendGroupPtr gDeviceGroupList[] =
 /////////////////////////////////////////////////////////////////////////////
 
 CSendGroupItem gNetworkItemList[] =
-	{ { "Raw Data", (CSendPageMPtr)&CSend::RawPage, 0 }
-	, { "Vendor NPDU", (CSendPageMPtr)&CSend::VendorNPDUPage, 0 }
+	{ { "Raw APDU Data", (CSendPageMPtr)&CSend::RawPage, 0 }
+	, { "Raw Network Message", (CSendPageMPtr)&CSend::VendorNPDUPage, 0 }
 	, { "Who-Is-Router-To-Network", (CSendPageMPtr)&CSend::WhoIsRTNPage, 0 }
 	, { "I-Am-Router-To-Network", (CSendPageMPtr)&CSend::IAmRTNPage, 0 }
 	, { "I-Could-Be-Router-To-Network", (CSendPageMPtr)&CSend::ICouldBeRTNPage, 0 }
@@ -177,6 +177,9 @@ CSendGroupItem gNetworkItemList[] =
 	, { "Initialize-Routing-Table-ACK", (CSendPageMPtr)&CSend::InitRTAckPage, 0 }
 	, { "Establish-Connection-To-Network", (CSendPageMPtr)&CSend::EstablishCTNPage, 0 }
 	, { "Disconnect-Connection-To-Network", (CSendPageMPtr)&CSend::DisconnectCTNPage, 0 }
+	// Plenty of room for you to add the security network messages...
+	, { "What-Is-Network-Number", (CSendPageMPtr)&CSend::SendWhatIsNetworkNumberPage, 0 }
+	, { "Network-Number-Is", (CSendPageMPtr)&CSend::SendNetworkNumberIsPage, 0 }
 	, { 0, 0, 0 }
 	};
 
@@ -355,6 +358,8 @@ void CSend::InitPages( void )
 	InitRTAckPage.pageParent = this;
 	EstablishCTNPage.pageParent = this;
 	DisconnectCTNPage.pageParent = this;
+	SendNetworkNumberIsPage.pageParent = this;
+	SendWhatIsNetworkNumberPage.pageParent = this;
 
 	ConfirmedRequestPage.pageParent = this;
 	ComplexACKPage.pageParent = this;

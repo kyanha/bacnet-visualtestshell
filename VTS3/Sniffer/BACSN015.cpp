@@ -1194,13 +1194,13 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
                         pif_show_byte("Message Type                = %u  What-Is-Network-Number");
                         break;
             case 0x13:  /* Network-Number-Is*/
-                        pif_show_byte("Message Type                = %u  Network-Number-Is");
+                        pif_show_byte(   "Message Type                = %u  Network-Number-Is");
                         sprintf(outstr,"%"FW"s = %%u","Network Number");
                         pif_show_word_hl(outstr);
                         if(pif_get_byte(0) == 0)
-                           pif_show_byte("learned: %u");
+                           pif_show_byte("Learned:                      %u");
                         else
-                           pif_show_byte("configured: %u");
+                           pif_show_byte("Configured:                   %u");
                         break;
             default:    // Show type from table, or "Unknown..." for values not in the table
                         sprintf(outstr,"%"FW"s = %%u", 

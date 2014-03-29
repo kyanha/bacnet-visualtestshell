@@ -30,6 +30,8 @@
 #include "SendReadFDT.h"
 #include "SendReadFDTAck.h"
 #include "SendDeleteFDTEntry.h"
+#include "SendNetworkNumberIs.h"
+#include "SendWhatIsNetworkNumber.h"
 
 // Ethernet Pages
 #include "SendEnet.h"
@@ -184,6 +186,8 @@ public:
 	CSendInitRTAck			InitRTAckPage;			// Initialize-Routing-Table-Ack
 	CSendEstablishCTN		EstablishCTNPage;		// Establish-Connection-To-Network
 	CSendDisconnectCTN		DisconnectCTNPage;		// Disconnect-Connection-To-Network
+	CSendNetworkNumberIs	SendNetworkNumberIsPage;	// Network-Number-Is
+	CSendWhatIsNetworkNumber	SendWhatIsNetworkNumberPage;	// What-Is-Network-Number
 
 	CSendConfirmedRequest	ConfirmedRequestPage;	// Confirmed Request base page
 	CSendComplexACK			ComplexACKPage;			// Complex-ACK base page
@@ -260,7 +264,7 @@ public:
 	bool			m_isConfirmedRequest;		// true iff ConfirmedRequestPage loaded
 
 	CButton			m_send;						// send button
-    CButton		 	m_transmit_close;           // transmit and close window button  MAG 27 OCT 03
+	CButton		 	m_transmit_close;           // transmit and close window button  MAG 27 OCT 03
 	CButton			m_close;					// just close the window, without sending MAG 15AUG05
 	CComboBox       m_history;                  //choose history data. Xiao Shiyuan 2002-12-5  
 	CSendPagePtr    curPagePtr;                 //current shown page. Xiao Shiyuan 2002-12-5 
