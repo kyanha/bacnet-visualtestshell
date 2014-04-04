@@ -24,8 +24,9 @@ public:
 	enum { IDD = IDD_READALLPROPSETTING };
 	CComboBox	m_ctrlDnetDadr;                 //****001
 	CString	m_strIUTIP;
-	CString	m_strNetwork;						
+	CString	m_strNetwork;
 	BOOL	m_bDNET;							//****001
+	BOOL	m_bUseRPM;
 	CString	m_strDnetDadr;						//****001
 	//}}AFX_DATA
 
