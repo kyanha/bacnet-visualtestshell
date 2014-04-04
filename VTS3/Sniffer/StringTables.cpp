@@ -1549,10 +1549,10 @@ STRING_TABLE BACnetServicesSupported[] = {
    "UtcTimeSynchronization"  ,      /* 36 */
    "LifeSafetyOperation",           /* 37 */
    "SubscribeCOVProperty",          /* 38 */ 
-   "GetEventInformation"            /* 39 last in 135-2008 */
-   // TODO: 135-2012?
+   "GetEventInformation",           /* 39 last in 135-2008, 135-2010 */
+   "WriteGroup"                     /* 40 last in 135-2014 (rev 14) */
    // Also update Vtsapi32.cpp StandardServices
-};                       
+};
 BAC_STRINGTABLE(BACnetServicesSupported);
 
 STRING_TABLE  BACnetSilencedState[] = {
@@ -2519,7 +2519,7 @@ STRING_TABLE BACnetConfirmedServiceChoice[] = {
    "ReadRange",                     /* 26 */
    "LifeSafetyOperation",           /* 27 */
    "SubscribeCOVProperty",          /* 28 */
-   "GetEventInformation"            /* 29 */
+   "GetEventInformation"            /* 29 last in 135-2014 (rev 14) */
    // CAUTION: if you add a service here, you must also change max_confirmed_services
    // (which is actually max-plus-one: the NUMBER of defined services)
 };                       
@@ -2535,10 +2535,10 @@ STRING_TABLE BACnetUnconfirmedServiceChoice[] = {
    "TimeSynchronization",           /* 6 */
    "Who-Has",                       /* 7 */
    "Who-Is",                        /* 8 */
-   "UTCTimeSynchronization"         /* 9 */
+   "UTCTimeSynchronization",        /* 9 */
+   "WriteGroup"                     /* 10 last in 135-2014 (rev 14) */
    // CAUTION: if you add a service here, you must also change max_unconfirmed_services
    // (which is actually max-plus-one: the NUMBER of defined services)
-   // TODO: needs writeGroup 10
 };
 BAC_STRINGTABLE(BACnetUnconfirmedServiceChoice);
 

@@ -49,8 +49,8 @@ namespace NetworkSniffer {
 
 #include "bacproto.h"
 
-#define max_confirmed_services   30
-#define max_unconfirmed_services 10
+#define max_confirmed_services   30  // through GetEventInformation, 135-2012 (rev 14)
+#define max_unconfirmed_services 11  // through WriteGroup, 135-2012 (rev 14)
 
 #define FW "-27"
 #define ARC 0

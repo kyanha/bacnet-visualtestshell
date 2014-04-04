@@ -303,33 +303,42 @@ static unsigned int cConsistencyErrors;
 // based on the Protocol_Revision property as the index.
 static octet aCorrectLengthProtocolServicesSupportedBitstring[] = 
 {
-   35,  /* Protocol_Revision = 0 */
-   37,  /* Protocol_Revision = 1 */
-   40,  /* Protocol_Revision = 2 */
-   40,  /* Protocol_Revision = 3 */
-   40,  /* Protocol_Revision = 4 */
-   40,  /* Protocol_Revision = 5 */
-   40,  /* Protocol_Revision = 6 */
-   40,  /* Protocol_Revision = 7 */
-   // TODO: 135-2012 is protocol revision 14...
+   35,  // Protocol_Revision = 0
+   37,  // Protocol_Revision = 1  135-1995b (ReadRange, UTCTimeSynch)
+   40,  // Protocol_Revision = 2  135-1995c (LifeSafetey, SubscribeCOV, GetEventInfo)
+   40,  // Protocol_Revision = 3
+   40,  // Protocol_Revision = 4  135-2004
+   40,  // Protocol_Revision = 5
+   40,  // Protocol_Revision = 6
+   40,  // Protocol_Revision = 7  135-2008
+   40,  // Protocol_Revision = 8
+   40,  // Protocol_Revision = 9
+   40,  // Protocol_Revision = 10
+   40,  // Protocol_Revision = 11
+   40,  // Protocol_Revision = 12 135-2010
+   40,  // Protocol_Revision = 13
+   41,  // Protocol_Revision = 14 135-2010aa (WriteGroup) 135-1012
 };
 
 // Array of expected bitstring lengths for ProtocolObjectTypesSupported
 // based on the Protocol_Revision property as the index.
 static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] = 
 {
-   18,  /* Protocol_Revision = 0 */
-   21,  /* Protocol_Revision = 1 */
-   23,  /* Protocol_Revision = 2 */
-   23,  /* Protocol_Revision = 3 */
-   25,  /* Protocol_Revision = 4 */ // LJT updated 3/27/2007
-   30,  /* Protocol_Revision = 5 */
-   31,  /* Protocol_Revision = 6 */
-   31,  /* protocol_revision = 7 */ // 135-2008
-   31,  /* protocol_revision = 8 */ // 135-2008 added objects?
-   38,  /* protocol_revision = 9 */  // 135-2008j added objects 32-37
-   51,  /* protocol_revision = 10 */ // 135-2008w added 39-50
-   // TODO: 135-2012 is protocol revision 14...
+   18,  // Protocol_Revision = 0
+   21,  // Protocol_Revision = 1
+   23,  // Protocol_Revision = 2
+   23,  // Protocol_Revision = 3
+   25,  // Protocol_Revision = 4  135-2004 added objects 23 and 24
+   30,  // Protocol_Revision = 5
+   31,  // Protocol_Revision = 6
+   31,  // protocol_revision = 7  135-2008
+   31,  // protocol_revision = 8
+   38,  // protocol_revision = 9  135-2008j added objects 32-37
+   51,  // protocol_revision = 10 135-2008w added 39-50
+   52,  // protocol_revision = 11 135-2008p added 51
+   52,  // protocol_revision = 12 135-2010
+   53,  // protocol_revision = 13 135-2010af added 51 and 52
+   55,  // protocol_revision = 14 135-2012 added 53 and 54
 };
 
 //---------------------------------------------------------------------
@@ -783,20 +792,20 @@ static bibbdef BIBBs[]={
             { ssExecute, asWriteProperty },
             { ssExecute, asTimeSynchronization },
             { ssExecute, asUTCTimeSynchronization }
-             },                        
+             },
          "SCH-E-B", // no specific services required, other requirements are in the code                                               
              { { ssExecute, asReadProperty },
             { ssExecute, asWriteProperty },
             { ssInitiate, asWriteProperty },
             { ssExecute, asTimeSynchronization },
             { ssExecute, asUTCTimeSynchronization }
-             },                        
+             },
          };  
 
 // TODO: Duplicate of StringTables.cpp BACnetServicesSupported
 // The order and position of elements in this array is important!
 // It must correspond with the bit positions defined by BACnetServicesSupported
-// in section 21 of the BACnet standard.  
+// in section 21 of the BACnet standard.
 static char *StandardServices[]={
          "AcknowledgeAlarm",                       //0
          "ConfirmedCOVNotification",               //1
@@ -837,14 +846,14 @@ static char *StandardServices[]={
          "UTCTimeSynchronization",                 //36   madanner 6/03: "UTC-Time-Synchronization"
          "LifeSafetyOperation",                    //37
          "SubscribeCOVProperty",                   //38
-         "GetEventInformation"                     //39
-   // TODO: 135-2012 adds ?
-   // Also update StringTables.cpp BACnetServicesSupported
+         "GetEventInformation",                    //39
+         "WriteGroup"                              //40
+   // TODO: Also update StringTables.cpp BACnetServicesSupported
          };
 
 // The order and position of elements in this array is important!
-// It must correspond with the definition of BACnetObjectType in section 21 
-// of the BACnet standard.  
+// It must correspond with the definition of BACnetObjectType in section 21
+// of the BACnet standard.
 static char *StandardObjects[]={
          "Analog Input",                //0
          "Analog Output",               //1
@@ -870,7 +879,7 @@ static char *StandardObjects[]={
          "Life Safety Point",           //21  msdanner 9/04: added
          "Life Safety Zone",            //22  msdanner 9/04: added
          "Accumulator",                 //23  Shiyuan Xiao
-         "Pulse Converter",              //24  Shiyuan Xiao
+         "Pulse Converter",             //24  Shiyuan Xiao
          "Event Log",
          "Global Group",
          "Trend Log Multiple",
