@@ -711,6 +711,7 @@
 #define IDC_FILTERDOWN                  1301
 #define IDC_DNETPRESENT                 1302
 #define IDC_LIST_LISTOF                 1303
+#define IDC_USE_RPM                     1303
 #define IDC_LISTOF_ADD                  1304
 #define IDC_LISTOF_DELETE               1305
 #define IDC_LISTOF_MODIFY               1306

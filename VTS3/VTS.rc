@@ -2248,10 +2248,10 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,315,178,50,14,NOT WS_TABSTOP
 END
 
-IDD_READALLPROPSETTING DIALOG 0, 0, 250, 149
+IDD_READALLPROPSETTING DIALOGEX 0, 0, 250, 169
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Read All Property Settings"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     RTEXT           "&Port:",IDC_STATIC,13,10,53,8
     COMBOBOX        IDC_RPALL_NETWORK,70,7,125,90,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
@@ -2260,9 +2260,11 @@ BEGIN
     CONTROL         "D&NET/DLEN/DADR present",IDC_DNETPRESENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,70,47,104,10
     RTEXT           "DNET/DAD&R:",IDC_STATIC,13,68,53,8
     COMBOBOX        IDC_RPALL_DNET_DADR,70,65,125,90,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Notice: The script that will be generated requires the definition of a named port and defined BACnet address.  These values will be used in all of the ReadProperty tests.",IDC_STATIC,7,86,224,27
-    DEFPUSHBUTTON   "OK",IDOK,56,122,50,14,WS_GROUP
-    PUSHBUTTON      "Cancel",IDCANCEL,143,122,50,14,NOT WS_TABSTOP
+    LTEXT           "Notice: The script that will be generated requires the definition of a named port and defined BACnet address.  These values will be used in all of the ReadProperty tests.",IDC_STATIC,7,113,224,27
+    DEFPUSHBUTTON   "OK",IDOK,56,149,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,143,149,50,14,NOT WS_TABSTOP
+    CONTROL         "&Use ReadPropertyMultiple if available",IDC_USE_RPM,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,70,95,151,10
 END
 
 IDD_LOADEPICSCONSCHK DIALOG 0, 0, 300, 154
@@ -4901,7 +4903,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 243
         TOPMARGIN, 7
-        BOTTOMMARGIN, 142
+        BOTTOMMARGIN, 162
     END
 
     IDD_LOADEPICSCONSCHK, DIALOG
