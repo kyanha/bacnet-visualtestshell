@@ -113,7 +113,7 @@ void CListSummaryView::ContextChange( CFrameContext::Signal s )
 		case CFrameContext::eNewPacketCount:
 			{
 				CListCtrl& elemList=GetListCtrl();
-				
+
 				if ( m_FrameContext->m_PacketCount == 0 )
 				{
 					elemList.DeleteAllItems();
@@ -125,7 +125,7 @@ void CListSummaryView::ContextChange( CFrameContext::Signal s )
 					for(int i=curCount;i< m_FrameContext->m_PacketCount;i++)
 						AddLine(i);
 
-					//modified: 2004/12/07 author:Xiao Shiyuan	purpose:if auto scrolling is enabled					 
+					//modified: 2004/12/07 author:Xiao Shiyuan	purpose:if auto scrolling is enabled
 					//if last one selected,auto select the new coming one.
 					if(curCount!=0 && m_FrameContext->m_CurrentPacket == curCount - 1
 						&& gVTSPreferences.Setting_IsAutoScroll())
@@ -224,7 +224,7 @@ int CListSummaryView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void CListSummaryView::OnTimer(UINT nIDEvent) 
 {
-	// Timeout fired for inactivity (reset by selection)..
+	// Timeout fired for inactivity (reset by selection)
 	// put this puppy into auto-scroll mode by simply selecting the last line in the list
 	// The selection will restart the timer anyway.
 
@@ -338,18 +338,20 @@ void CListSummaryView::SetSelectedLine(int currentLineNo)
 	CListCtrl& elemList=GetListCtrl();
 	elemList.SetItemState(currentLineNo,LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
 
-	//scroll the content
+	// The original had 2*(area...
+	// This causes a PageDown or PageUp to scroll TWO pages.
+	// This isn't needed AT ALL for just scrolling, but IS needed for GOTO packet, etc.
+	//
+	// scroll the content
 	RECT area;
 	elemList.GetItemRect(0,&area,LVIR_BOUNDS );
 	int visible=elemList.GetCountPerPage();
 	int top=elemList.GetTopIndex();
-	if (currentLineNo>top+visible)
-		elemList.Scroll(CSize(0,2*(area.bottom-area.top)*(currentLineNo-top-visible)));
-    if (currentLineNo<top)
-		elemList.Scroll(CSize(0,2*(area.top-area.bottom)*(top-currentLineNo)));
+	if (currentLineNo > top+visible)
+		elemList.Scroll(CSize(0,(area.bottom-area.top)*(currentLineNo-top-visible)));
+	else if (currentLineNo < top)
+		elemList.Scroll(CSize(0,(area.top-area.bottom)*(top-currentLineNo)));
 }
-
-
 
 BOOL CListSummaryView::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pLResult) 
 {
