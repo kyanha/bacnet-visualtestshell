@@ -23,8 +23,9 @@ typedef ScriptExecutor *ScriptExecutorPtr;
 class ScriptDocument : public CDocument
 {
 protected: // create from serialization only
-	ScriptDocument();
-	DECLARE_DYNCREATE(ScriptDocument)
+   ScriptDocument();
+   DECLARE_DYNCREATE(ScriptDocument)
+   virtual ~ScriptDocument();
 
 // Attributes
 public:
@@ -33,59 +34,67 @@ public:
 public:
 
 // Overrides
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(ScriptDocument)
-	public:
-	virtual BOOL OnNewDocument();
-	virtual void OnCloseDocument();
-	virtual void Serialize(CArchive& ar);
-	//}}AFX_VIRTUAL
+   // ClassWizard generated virtual function overrides
+   //{{AFX_VIRTUAL(ScriptDocument)
+public:
+   virtual BOOL OnNewDocument();
+   virtual void OnCloseDocument();
+   virtual void Serialize(CArchive& ar);
+   //}}AFX_VIRTUAL
 
 // Implementation
 public:
-	CEdit*				m_editData;
-	ScriptParmList*		m_pParmList;
-	ScriptContentTree*	m_pContentTree;
-	ScriptTestPtr		m_pSelectedTest;
-	ScriptSectionPtr	m_pSelectedSection;  // Added by Zhu Zhenhua, 2003-12-18, to run select section
-	unsigned char		m_digest[16];			// checksum calculated during CheckSyntax
+   CEdit*               m_editData;
+   ScriptParmList*      m_pParmList;
+   ScriptContentTree*   m_pContentTree;
+   unsigned char        m_digest[16];        // checksum calculated during CheckSyntax
 
-	virtual ~ScriptDocument();
+protected:
+   // Made these protected to track down use of dead objects.
+   ScriptTestPtr        m_pSelectedTest;
+   ScriptSectionPtr     m_pSelectedSection;
+   bool                 m_bExecBound;
+public:
 
-	BOOL CheckSyntax( void );
-	void ParsePacket( ScriptIfdefHandler &ifdefHandler, ScriptScanner& scan, ScriptToken& tok, ScriptPacketPtr spp, bool isSend );
-	void SequenceTest( ScriptTestPtr stp );
-//	ScriptPacketPtr SequenceLevel( ScriptBasePtr sbp, ScriptPacketPtr pPass, ScriptPacketPtr &pChain );
-//	ScriptPacketPtr SequencePacket( ScriptPacketPtr spp, ScriptPacketPtr pPass );
-	ScriptCommandPtr SequenceLevel( ScriptBasePtr sbp, ScriptCommandPtr pPass, ScriptCommandPtr &pChain );
-	ScriptCommandPtr SequencePacket( ScriptCommandPtr spp, ScriptCommandPtr pPass );
-	void CalcDigest( void );
+   ScriptTestPtr SelectedTest();
+   void SetSelectedTest( ScriptTestPtr pTest );
 
-	bool				m_bExecBound;
-	void BindExecutor( void );
-	void UnbindExecutor( void );
+   ScriptSectionPtr SelectedSection();
+   void SetSelectedSection( ScriptSectionPtr pSection );
 
-	void Reset( void );
+   BOOL CheckSyntax( void );
+   void ParsePacket( ScriptIfdefHandler &ifdefHandler, ScriptScanner& scan, ScriptToken& tok, ScriptPacketPtr spp, bool isSend );
+   void SequenceTest( ScriptTestPtr stp );
+// ScriptPacketPtr SequenceLevel( ScriptBasePtr sbp, ScriptPacketPtr pPass, ScriptPacketPtr &pChain );
+// ScriptPacketPtr SequencePacket( ScriptPacketPtr spp, ScriptPacketPtr pPass );
+   ScriptCommandPtr SequenceLevel( ScriptBasePtr sbp, ScriptCommandPtr pPass, ScriptCommandPtr &pChain );
+   ScriptCommandPtr SequencePacket( ScriptCommandPtr spp, ScriptCommandPtr pPass );
+   void CalcDigest( void );
 
-	void SetImageStatus( ScriptBasePtr sbp, int stat );		// change the section/test/deps/packet status
+   void BindExecutor( void );
+   void UnbindExecutor( void );
+
+   void Reset( void );
+
+   void SetImageStatus( ScriptBasePtr sbp, int stat );      // change the section/test/deps/packet status
 
 #ifdef _DEBUG
-	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
+   virtual void AssertValid() const;
+   virtual void Dump(CDumpContext& dc) const;
 #endif
 
 protected:
 
-	bool EvaluateConditional( ScriptScanner & scan, ScriptToken & tok );
-	CStdioFile * OpenIncludeFile(LPCSTR lpszBasePath, CString * pstrFile);
+   bool EvaluateConditional( ScriptScanner & scan, ScriptToken & tok );
+   CStdioFile * OpenIncludeFile(LPCSTR lpszBasePath, CString * pstrFile);
 
 // Generated message map functions
 protected:
-	//{{AFX_MSG(ScriptDocument)
-		// NOTE - the ClassWizard will add and remove member functions here.
-		//    DO NOT EDIT what you see in these blocks of generated code !
-	//}}AFX_MSG
-	DECLARE_MESSAGE_MAP()
+   //{{AFX_MSG(ScriptDocument)
+      // NOTE - the ClassWizard will add and remove member functions here.
+      //    DO NOT EDIT what you see in these blocks of generated code !
+   //}}AFX_MSG
+   DECLARE_MESSAGE_MAP()
 };
 
 typedef ScriptDocument *ScriptDocumentPtr;

@@ -509,7 +509,7 @@ void ScriptExecutor::Cleanup( void )
 	SuspendTask();
 
 	// check to run the next test
-	if (execAllTests && execTest->testNext) 
+	if (execAllTests && execTest->testNext)
 	{
 		// move to the next test
 		execTest = execTest->testNext;
@@ -518,38 +518,38 @@ void ScriptExecutor::Cleanup( void )
 
 		// install the task
 		InstallTask( oneShotTask, 0 );
-	}  
-	else 
-	{	
+	}
+	else
+	{
 		// Added by Zhu Zhenhua, 2003-12-18, to run all sections
 		bool bOtherSectionTest = false;
-		if (execAllTests && (!execDoc->m_pSelectedSection))
+		if (execAllTests && (execDoc->SelectedSection() == NULL))
 		{
 			ScriptBasePtr sbp = execDoc->m_pContentTree->m_pScriptContent;
 			for (int i = 0; i < sbp->Length(); i++)
 			{
 				ScriptSectionPtr ssp = (ScriptSectionPtr)sbp->Child( i );
-				if(execTest == (ScriptTestPtr)( ssp->Child( ssp->Length() -1)) && (i < sbp->Length()-1))
+				if (execTest == (ScriptTestPtr)( ssp->Child( ssp->Length() -1)) && (i < sbp->Length()-1))
 				{
 					if (sbp->Child( i+1 )->Length() != 0)
-					{	
+					{
 						bOtherSectionTest = true;
 						execTest = (ScriptTestPtr)(sbp->Child( i+1 )->Child(0));
 						execPacket = 0;
-						execCommand = NULL;						
+						execCommand = NULL;
 						// install the task
 						InstallTask( oneShotTask, 0 );
-						break;					
+						break;
 					}
 				}
-			}	
+			}
 		}
-		
+
 		if (!bOtherSectionTest)
 		{
 			// release from the document
 			execDoc->UnbindExecutor();
-			
+
 			if (execCommand && (execCommand->baseType == ScriptBase::scriptPacket) && 
 				(((ScriptPacketPtr) execCommand)->packetType == ScriptPacket::expectPacket) &&
 				(((ScriptPacketPtr) execCommand)->m_pcmdMake != NULL) &&
@@ -559,7 +559,7 @@ void ScriptExecutor::Cleanup( void )
 				((ScriptPacketPtr) execCommand)->m_pcmdMake->Kill();
 				SetPacketStatus( ((ScriptPacketPtr) execCommand)->m_pcmdMake, SCRIPT_STATUS_OK );
 			}
-			
+
 			// clear all the rest of the execution vars
 			execState = execIdle;
 			execDB = 0;
@@ -940,13 +940,13 @@ void ScriptExecutor::ProcessTask( void )
 		ScriptBasePtr sbp = execDoc->m_pContentTree->m_pScriptContent;
 
 		// Added by Zhu Zhenhua, 2003-12-18, to run select section
-		if (execDoc->m_pSelectedSection)
-		{ 
-			ScriptSectionPtr ssp = execDoc->m_pSelectedSection;
+		ScriptSectionPtr ssp = execDoc->SelectedSection();
+		if (ssp != NULL)
+		{
 			if (ssp->Length() != 0)
 			{
 				execTest = (ScriptTestPtr)ssp->Child( 0 );
-			}     
+			}
 		}
 		else
 		{
