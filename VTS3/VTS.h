@@ -14,12 +14,12 @@
 
 #include "resource.h"       // main symbols
 
-#define MAX_SERVS_SUPP      50
-#define DEVICE_LOOPBACK		1		   // set to zero to disable "looped" messages
+#define MAX_SERVS_SUPP      50      // Must be at least as large as the number of elements in BACnetServicesSupported
+#define DEVICE_LOOPBACK     1       // set to zero to disable "looped" messages
 
-#define MAX_FAIL_TIMES      8        // Size of BACnetFailTimes array per 135.1-2009 4.5.9
-#define MAX_BIBBS           100      // msd 9/1/04 - added. Provides a little growing room.
-#define MAX_DATALINK_OPTIONS  30     // msd 9/1/04 - added. Provide a little growing room.
+#define MAX_FAIL_TIMES      8       // Size of BACnetFailTimes array per 135.1-2009 4.5.9
+#define MAX_BIBBS           100     // msd 9/1/04 - added. Provides a little growing room.
+#define MAX_DATALINK_OPTIONS  30    // msd 9/1/04 - added. Provide a little growing room.
 
 // Just the name.  Each usage must use GetTempPath for the path
 #define FILE_CHECK_EPICS_CONS "EPICSConsChk.txt"
