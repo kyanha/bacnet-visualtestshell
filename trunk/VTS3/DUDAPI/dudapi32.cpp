@@ -449,7 +449,8 @@ short APIENTRY CheckConfClass(word ConfClass, char far ApplServ[35], char far Re
 }*/
   
 
-/*extern "C"
+/* Not used anywhere
+extern "C"
 short APIENTRY CheckFunctionalGroup(dword FuncGroup, char far ApplServ[35], char far Result[35], 
                                           generic_object far* root, TObjProp far resObj[64], short far* eol)
 { 
@@ -505,54 +506,60 @@ short APIENTRY CheckFunctionalGroup(dword FuncGroup, char far ApplServ[35], char
   return (rval);  
 }*/
 
-
-
+/*
+// This function seems never to be called...
+// If is resurrected, replace the 35 with some more appropriate number of services supported.
+// Depending on use , this MIGHT depend on the protocol revision of the IUT
 extern "C"
 short APIENTRY DevApplServCheck(char far ApplServ[MAX_SERVS_SUPP], generic_object far* root, 
-              					char far resApplServ[35])					//***002
-{ device_obj_type far* pdev= NULL; 
-  while (root!=NULL)
-    { 
+                                char far resApplServ[35])         //***002
+{
+   device_obj_type far* pdev= NULL;
+   while (root!=NULL)
+   { 
       if (root->object_type==OBJ_DEVICE)
-        { pdev= (device_obj_type far*)root;
-          break;
-        } 
-      root= (generic_object far*)root->next;  
-    }
-  if (pdev==NULL) return(0);  
-  
-  int iAppl=  0x80;
-  int iOctet= 0;
-  short rval=   1;						//							***002
-  memset(resApplServ, 0, 35);			//							***001
+      {
+         pdev= (device_obj_type far*)root;
+         break;
+      }
+      root= (generic_object far*)root->next;
+   }
+   if (pdev==NULL) return(0);
 
-  for (int i= 0; i<35; i++)
-    { 
-      if (  ((ApplServ[i] & ssExecute) == ssExecute) &&
-            ( (pdev->protocol_services_supported[iOctet] & iAppl) != iAppl ) // not supported!
-         )   
-        {
-          resApplServ[i]= ssExecute | 0x04; // missing in protocol_services_supported
-          rval= 0;
-        }
-      
-      if (  ((pdev->protocol_services_supported[iOctet] & iAppl) == iAppl) &&
-            ( (ApplServ[i] & ssExecute) != ssExecute ) // not supported!
+   int iAppl=  0x80;
+   int iOctet= 0;
+   short rval=   1;                    //                   ***002
+   memset(resApplServ, 0, 35);         //                   ***001
+   for (int i= 0; i<35; i++)
+   { 
+      if ( ((ApplServ[i] & ssExecute) == ssExecute) &&
+           ((pdev->protocol_services_supported[iOctet] & iAppl) != iAppl) // not supported!
          )
-        {
-          resApplServ[i]= ssExecute | 0x08;  // missing in application services supported (PICS)
-          rval= 0;
-        }
-        
+      {
+         resApplServ[i]= ssExecute | 0x04; // missing in protocol_services_supported
+         rval= 0;
+      }
+
+      if ( ((pdev->protocol_services_supported[iOctet] & iAppl) == iAppl) &&
+           ((ApplServ[i] & ssExecute) != ssExecute ) // not supported!
+         )
+      {
+         resApplServ[i]= ssExecute | 0x08;  // missing in application services supported (PICS)
+         rval= 0;
+      }
+
       iAppl/= 2;
-      if (iAppl==0) { iAppl= 0x80; iOctet++; }
-    }         
-    
-  return rval;  
-  
-}              													 
+      if (iAppl==0)
+      {
+         iAppl= 0x80; iOctet++;
+      }
+   }
 
+   return rval;
+}
+*/
 
+/* Not used anywhere
 extern "C"
 BACnetObjectIdentifier far* APIENTRY GetObjIdRoot(generic_object far* pdbRoot)
 { // find the device object
@@ -567,8 +574,9 @@ BACnetObjectIdentifier far* APIENTRY GetObjIdRoot(generic_object far* pdbRoot)
   if (pdev==NULL) return(NULL);  
   return(pdev->object_list); // list of object IDs
  }
+*/
 
-
+/* Not used anywhere
 // This function is used to check, if an element of object_list 
 // (BACnetObjectIdentifier far*) is present in the PICS Database. Afterwards,
 // the pointer to the element of object_list will point to the next element in 
@@ -582,7 +590,7 @@ BACnetObjectIdentifier far* APIENTRY GetObjIdRoot(generic_object far* pdbRoot)
 // returns:	1 if element is in PICS Database, 0 else.
 extern "C"
 short APIENTRY pIDinList(generic_object far* pdbRoot, long far* pid, dword far* ObjId)	//***002
-{ 
+{
   BACnetObjectIdentifier far* p= (BACnetObjectIdentifier far*) *pid;
   if (p==NULL) { *ObjId= 0; return(0); }
   *ObjId= p->object_id;
@@ -597,8 +605,9 @@ short APIENTRY pIDinList(generic_object far* pdbRoot, long far* pid, dword far* 
  else 
    return(0);         // pid not in pdb list  
 }
+*/
 
-
+/* Not used anywhere
 // This function is used to check, if a particular object of the PICS Database is present 
 // in the list of property Object_List of the Device object.
 // in:			pidRoot		points to Object_List
@@ -623,8 +632,9 @@ short APIENTRY pDBinList(BACnetObjectIdentifier far* pidRoot, long far* pdb, dwo
   else 
     return(0);         // pid not in pdb list  
 }                                                                      
+*/
 
-
+/* Not used anywhere
 // This function is used to check the object types supported in:
 //   the PICS "object types supported"
 //   property Object_Types_Supported of the Device object
@@ -667,7 +677,7 @@ short APIENTRY CheckObjTypeDevPics(char far* StdObj, generic_object far* pdbRoot
     
   return(rval);  
 }                                          
-
+*/
 
 // This function is used to extract object type and object instance from an object identifier.
 // in: 		ObjId		object identifier
@@ -733,7 +743,7 @@ void APIENTRY MyDeletePICSObject(generic_object far* root)
 	}
 }
 
-
+/* Not used anywhere
 // Every client of dudapi32.dll has to call this function first, in order to create
 // test values (dynamic allocated memeory). The dynamic data will be created only
 // once (first client)
@@ -746,10 +756,10 @@ void APIENTRY InitDudapi(void)
     }  
 
   gInitServer++;
-
 }
+*/
 
-
+/* Not used anywhere
 // Every client of dudapi32.dll has to call this function, in order to release
 // dynamic data. The data will be released only once (last client).
 extern "C"
@@ -762,5 +772,5 @@ void APIENTRY CloseDudapi(void)
       DeleteTestValues();
     }  
 }
-								
+*/
 }

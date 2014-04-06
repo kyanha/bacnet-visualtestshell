@@ -502,7 +502,7 @@ STRING_TABLE BACnetError[] = {
    "ConfirmedEventNotification Error Choice",
    "GetAlarmSummary Error Choice",
    "GetEnrollmentSummary Error Choice",
-   "SubscribeCOV Error Choice",
+   "SubscribeCOV Error Choice",           // [5]
 
 /* File Access Services */
    "AtomicReadFile Error Choice",
@@ -511,19 +511,19 @@ STRING_TABLE BACnetError[] = {
 /* Object Access Services */
    "AddListElement Error Choice",
    "RemoveListElement Error Choice",
-   "CreateObject Error Choice",
+   "CreateObject Error Choice",           // [10]
    "DeleteObject Error Choice",
    "ReadProperty Error Choice",
    "ReadPropertyConditional Error Choice",
    "ReadPropertyMultiple Error Choice",
-   "WriteProperty Error Choice",
+   "WriteProperty Error Choice",          // [15]
    "WritePropertyMultiple Error Choice",
 
 /* Remote Device Management Services */
    "DeviceCommunicationControl Error Choice",
    "ConfirmedPrivateTransfer Error Choice",
    "ConfirmedTextMessage Error Choice",
-   "ReinitializeDevice Error Choice",
+   "ReinitializeDevice Error Choice",     // [20]
 
 /* Virtual Terminal Services */
    "VT-Open Error Choice",
@@ -532,13 +532,13 @@ STRING_TABLE BACnetError[] = {
 
 /* Security Services */
    "Authenticate Error Choice",
-   "RequestKey Error Choice",
+   "RequestKey Error Choice",             // [25]
 
 /* services added after 1995 */
    "ReadRange Error Choice",
    "Life Safety Operation Error Choice",
    "SubscribeCOVProperty Error Choice",
-   "GetEventInformation Error Choice",
+   "GetEventInformation Error Choice",    // [29] last definition in 135-2012
 };
 BAC_STRINGTABLE(BACnetError);
 
@@ -550,7 +550,7 @@ STRING_TABLE BACnetErrorClass[] = {
    "security",
    "services",
    "vt",
-   "communication",
+   "communication",    // 7 last definition in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetErrorClass, 64, 65536);
 
@@ -1549,7 +1549,7 @@ STRING_TABLE BACnetServicesSupported[] = {
    "UtcTimeSynchronization"  ,      /* 36 */
    "LifeSafetyOperation",           /* 37 */
    "SubscribeCOVProperty",          /* 38 */ 
-   "GetEventInformation",           /* 39 last in 135-2008, 135-2010 */
+   "GetEventInformation",           /* 39 last in 135-2008 (rev 7), 135-2010 (rev 12) */
    "WriteGroup"                     /* 40 last in 135-2014 (rev 14) */
    // Also update Vtsapi32.cpp StandardServices
 };
