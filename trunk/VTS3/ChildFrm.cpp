@@ -1375,16 +1375,21 @@ void CChildFrame::OnUpdateGlobalScriptStep(CCmdUI* pCmdUI)
       pCmdUI->Enable(FALSE);
       return;
    }
-   if (gExecutor.IsIdle() && pFrame->m_pDoc->m_pContentTree) 
-      if (pFrame->m_pDoc->m_pSelectedTest) 
+
+   if (gExecutor.IsIdle() && pFrame->m_pDoc->m_pContentTree)
+   {
+      if (pFrame->m_pDoc->SelectedTest() != NULL)
          pCmdUI->Enable( true );
-       else 
-         pCmdUI->Enable( false );      
+      else
+         pCmdUI->Enable( false );
+   }
    else
-      if (gExecutor.IsBound(pFrame->m_pDoc)) 
+   {
+      if (gExecutor.IsBound(pFrame->m_pDoc))
          pCmdUI->Enable( !gExecutor.IsRunning() );
-      else 
-         pCmdUI->Enable( false );   
+      else
+         pCmdUI->Enable( false );
+   }
 }
 
 void CChildFrame::OnUpdateGlobalScriptKill(CCmdUI* pCmdUI) 

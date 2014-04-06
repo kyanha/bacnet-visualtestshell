@@ -43,6 +43,7 @@ public:
 
 	void Bind( ScriptBasePtr sbp );
 	void Load( HTREEITEM parent, ScriptBasePtr sbp );
+	void UnLoad( HTREEITEM parent, ScriptBasePtr sbp );
 	void SetFrame( CFrameWnd * pframe ) { m_pframe = pframe; }  
 
 // Overrides
