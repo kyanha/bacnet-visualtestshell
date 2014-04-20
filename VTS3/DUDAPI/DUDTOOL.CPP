@@ -3214,25 +3214,27 @@ void DE_CreateProperty( device_obj_type far * pObj, BACnetPropertyIdentifier pro
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->segmentation_supported,
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
-
          break;
       case VT_CLASSES_SUPPORTED:
          // msdanner 9/2004 - added support for this
          pbacnetAnyValue->SetObject(vtcl, CreateVTClassesSupported(pObj->vt_classes_supported));
-         break;
          break;
       case ACTIVE_VT_SESSIONS:
          pbacnetAnyValue->SetObject(vtse, new ::BACnetVTSession());
          //msg->pv= Obj->active_vt_sessions;
          //msg->pt= vtse;
          break;
-      case LOCAL_TIME:      
+      case LOCAL_TIME:
+         // This ignores any value in the EPICS, assuming it is ?
+         // and uses the default constructor: current local time
          pbacnetAnyValue->SetObject(ptTime, new ::BACnetTime());
          break;
-      case LOCAL_DATE:      
+      case LOCAL_DATE:
+         // This ignores any value in the EPICS, assuming it is ?
+         // and uses the default constructor: current local time
          pbacnetAnyValue->SetObject(ptDate, new ::BACnetDate());
          break;
-      case UTC_OFFSET:              
+      case UTC_OFFSET:
          pbacnetAnyValue->SetObject(ssint, new BACnetInteger(pObj->utc_offset));
          break;
       case DAYLIGHT_SAVINGS_STATUS:

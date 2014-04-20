@@ -120,8 +120,8 @@ BOOL VTSListOfReadAccessSpecDlg::OnInitDialog()
 	{	
 		ReadAccessSpecPtr wpmrplistPtr = m_PropListList.GetAt(m_PropListList.FindIndex(m));		
 		CString str;
-		wpmrplistPtr->rplObjID.Encode( str );
-		m_strList.AddTail(str);	
+		wpmrplistPtr->rplObjID.Encode( str, BACnetEncodeable::FMT_EPICS );
+		m_strList.AddTail(str);
 		wpmrplistPtr->Bind();
 		for(int n = 0; n < wpmrplistPtr->GetCount(); n++)
 		{
@@ -130,8 +130,8 @@ BOOL VTSListOfReadAccessSpecDlg::OnInitDialog()
 			wpmrpmelemPtr->rpeArrayIndex.ObjToCtrl();
 		}
 	}
-	for(i = 0; i < m_strList.GetCount(); i++)    
-		m_ObjList.InsertItem(i, m_strList.GetAt(m_strList.FindIndex(i)));   
+	for(i = 0; i < m_strList.GetCount(); i++)
+		m_ObjList.InsertItem(i, m_strList.GetAt(m_strList.FindIndex(i)));
 
 	return TRUE;
 }

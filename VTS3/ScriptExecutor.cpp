@@ -442,8 +442,10 @@ ScriptExecutor::ScriptExecutor( void )
 	, execFailContinue(false)
 	, execDB(0), execDoc(0), execTest(0), execPacket(0), execCommand(0)
 {
-//	BACnetTime::TestTimeComps();
-//	BACnetDate::TestDateComps();
+   // Can't execute these here, since ScriptExecutor is statically constructed,
+   // and we may get run before all our dependencies do.
+//   BACnetTime::TestTimeComps();
+//   BACnetDate::TestDateComps();
 }
 
 //
@@ -4515,6 +4517,16 @@ void ScriptExecutor::SendALTime( ScriptPacketExprPtr spep, CByteArray &packet )
 	ScriptTokenList	tlist;
 	BACnetAPDUEncoder	enc;
 
+   // TODO: Tag is present only if there is a comma.
+   // Test for that, and I think we can avoid the need for [] around time.
+   // - If comma get tag number
+   // - If :, it's a time
+   // - If {, its a script reference
+   // ? How about variable reference?
+   //
+   // The problem may be that ResolveExpr parses the ENTIRE line.
+   // Much more flexible to parse tokens as needed
+
 	// translate the expression, resolve parameter names into values
 	ResolveExpr( spep->exprValue, spep->exprLine, tlist );
 
@@ -7535,7 +7547,7 @@ void ScriptExecutor::StuffScriptParameter(BACnetEncodeable &rbacnet, ScriptParmP
 	}
 
 	// assign extracted value to parm
-	rbacnet.Encode(pp->parmValue);
+	rbacnet.Encode(pp->parmValue, BACnetEncodeable::FMT_SCRIPT);
 
 	// Make the special call from the executor thread...  This posts the update, not sends.
 	execDoc->m_pParmList->UpdateParameterVisual(pp);
@@ -8566,7 +8578,7 @@ ScriptPacketExprPtr ScriptExecutor::GetKeywordValue( ScriptParmPtr * ppScriptPar
 			throw ExecError( "Invalid EPICS reference", pep->exprLine );
 		}
 		CString value;
-		(bacnetEPICSProperty.GetObject())->Encode(value);
+		(bacnetEPICSProperty.GetObject())->Encode(value, BACnetEncodeable::FMT_SCRIPT);
 		enc.Decode(value);
 	}else if ((t.tokenType == scriptKeyword) && tp) {		
 		// if it is a keyword, lookup the value

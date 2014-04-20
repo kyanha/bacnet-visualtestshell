@@ -71,7 +71,7 @@ REFERENCE None
 --         bitstring = 4, 0,1,0 -- verify comment here
 -- These get "value expected"
 --         bitstring = (T,F,T,F) -- verify comment here
---         bitstring = {T,F,T,F} -- verify comment here
+--         bitstring = {T,F,T,F} -- verify comment here (this is EPICS form)
 -- bit list expected
 --         bitstring = [T,F,T,F]
 -- This gets "missing reference"
@@ -80,9 +80,12 @@ REFERENCE None
          enumerated = 6 -- verify comment here
          enumerated = 10, 6 -- verify comment here
 
--- 135.1-2007 says it should be parenthesis
+-- 135.1-2007 says dates should be wrapped in parenthesis
+--         date = FRIDAY,1/29/2010
+--         date = FRIDAY,1/29/2010 -- verify comment here
 --         date = (FRIDAY,1/29/2010)
---         date = [FRIDAY,1/29/2010]
+--         date = (FRIDAY,1/29/2010) -- verify comment here
+         date = [FRIDAY,1/29/2010]
          date = [(FRIDAY,1/29/2010)] -- verify comment here
          date = 11, [(FRIDAY 1/29/2010)] -- verify comment here
          date = [(*,1/29/2010)] -- verify comment here
@@ -94,14 +97,18 @@ REFERENCE None
          date = [(*,Even/1/2010)] -- verify comment here
          date = [(*,Odd/1/2010)] -- verify comment here
 
--- 135.1-2007 does not enclose time in brackets of any kind
---         time = 8:36:12.*
+-- 135.1-2007 does not wrap times with anything
+--       time = 8:36:12.*
+--       time = 2, 8:36:12.* -- verify comment here
          time = [8:36:12.*] -- verify comment here
+         time = [8:36:12] -- verify comment here
          time = 12, [8:36:12.*] -- verify comment here
          time = [*:*:*.*] -- verify comment here
 
 -- 135.1-2007 enclosed object identifiers on parenthesis
 --         objectidentifier = (analog-output, 5)
+         objectidentifier = [(analog-output, 5)]
+         objectidentifier = 12, [(analog-output, 5)]
          objectidentifier = analog-output, 5 -- verify comment here
          objectidentifier = 13, analog-output, 5 -- verify comment here
 

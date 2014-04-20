@@ -2,7 +2,7 @@
 #define _BACnet
 
 #ifndef _TSMDebug
-#define _TSMDebug	0
+#define _TSMDebug 0
 #endif
 
 #if _TSMDebug
@@ -13,65 +13,65 @@
 #include "VTS.h"
 
 //
-//	General Typedefs
+// General Typedefs
 //
 
-typedef unsigned char	BACnetOctet, *BACnetOctetPtr;	// unsigned character
+typedef unsigned char   BACnetOctet, *BACnetOctetPtr; // unsigned character
 
 //
-//	General Constants
+// General Constants
 //
 
-const unsigned 	kVendorID = 260;	// BACnet Stack at SourceForge Vendor ID
-const int		kMaxAddressLen = 8;		// longest address supported
+const unsigned    kVendorID = 260;  // BACnet Stack at SourceForge Vendor ID
+const int      kMaxAddressLen = 8;     // longest address supported
 
 namespace PICS {
 #include "db.h"
 }
 //
-//	BACnet Address
+// BACnet Address
 //
-//	These address types are listed in increasing order of complexity
+// These address types are listed in increasing order of complexity
 //
-
 
 enum BACnetAddressType
-	{ nullAddr
-	, localBroadcastAddr
-	, localStationAddr
-	, remoteBroadcastAddr
-	, remoteStationAddr
-	, globalBroadcastAddr
-	};
+   { nullAddr
+   , localBroadcastAddr
+   , localStationAddr
+   , remoteBroadcastAddr
+   , remoteStationAddr
+   , globalBroadcastAddr
+   };
 
-struct BACnetAddress {
-	// TODO: aside from nullAddr, the type is redundant.
-	// Eliminating it (or replacing it with a method that derives the type)
-	// would simplify various code.
-	// - if addrLen == 0, then the address is a broadcast, else "station"
-	// - if addrNet is 0xFFFF, then global (must be broadcast)
-	// - if addrNet is "this network", then local, else remote
-	BACnetAddressType	addrType;
+struct BACnetAddress
+{
+   // TODO: aside from nullAddr, the type is redundant.
+   // Eliminating it (or replacing it with a method that derives the type)
+   // would simplify various code.
+   // - if addrLen == 0, then the address is a broadcast, else "station"
+   // - if addrNet is 0xFFFF, then global (must be broadcast)
+   // - if addrNet is "this network", then local, else remote
+   BACnetAddressType addrType;
 
-	unsigned short		addrNet;
-	unsigned short		addrLen;
-	unsigned char		addrAddr[kMaxAddressLen];
-	
-	BACnetAddress( const unsigned char *addr, const unsigned short len );
-	BACnetAddress( const unsigned short net, const unsigned char *addr, const unsigned short len );
-	BACnetAddress( const BACnetAddressType typ = nullAddr, const unsigned short net = 0, const unsigned char *addr = 0, const unsigned short len = 0 );
-	BACnetAddress &operator =( const BACnetAddress &arg );
+   unsigned short    addrNet;
+   unsigned short    addrLen;
+   unsigned char     addrAddr[kMaxAddressLen];
 
-	// initializers (when constructor can't be used)
-	void LocalStation( const unsigned char *addr, const unsigned short len );
-	void RemoteStation( const unsigned short net, const unsigned char *addr, const unsigned short len );
-	void LocalBroadcast( void );
-	void RemoteBroadcast( const short net );
-	void GlobalBroadcast( void );
+   BACnetAddress( const unsigned char *addr, const unsigned short len );
+   BACnetAddress( const unsigned short net, const unsigned char *addr, const unsigned short len );
+   BACnetAddress( const BACnetAddressType typ = nullAddr, const unsigned short net = 0, const unsigned char *addr = 0, const unsigned short len = 0 );
+   BACnetAddress &operator =( const BACnetAddress &arg );
 
-	CString MacAddress() const;
-	bool SetMacAddress( const char *addrString );
-	};
+   // initializers (when constructor can't be used)
+   void LocalStation( const unsigned char *addr, const unsigned short len );
+   void RemoteStation( const unsigned short net, const unsigned char *addr, const unsigned short len );
+   void LocalBroadcast( void );
+   void RemoteBroadcast( const short net );
+   void GlobalBroadcast( void );
+
+   CString MacAddress() const;
+   bool SetMacAddress( const char *addrString );
+};
 
 typedef BACnetAddress *BACnetAddressPtr;
 
@@ -81,12 +81,12 @@ ostream &operator <<(ostream &strm,const BACnetAddress &addr);
 #endif
 
 //
-//	BACnetContext
+// BACnetContext
 //
 
 const int kAppContext = -1;
 
-//	BACnetEncodeable
+// BACnetEncodeable
 
 class BACnetAPDUEncoder;
 class BACnetAPDUDecoder;
@@ -94,626 +94,652 @@ class BACnetAPDUDecoder;
 // madanner 9/26/02
 // Decends from MFC base object for dynamic type checking, serialization and other goodies
 
+
 class BACnetEncodeable : public CObject
 {
 protected:
-		bool m_fDataInvalid;		// set to true when unsupported decoder methods called, madanner 9/04
+   bool m_fDataInvalid;    // set to true when unsupported decoder methods called, madanner 9/04
 
-	public:
-		BACnetEncodeable();
-		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
-		virtual void Decode( BACnetAPDUDecoder& dec );
-		void Peek( BACnetAPDUDecoder& dec );
+public:
+   BACnetEncodeable();
 
-		virtual void Encode( CString &enc ) const;
-		virtual void Decode( const char *dec );
+   // Format when encoding as a string
+   enum Format
+   {
+      FMT_PLAIN,     // Unwrapped string for use in edit control etc.
+      FMT_EPICS,     // Wrapped per EPICS rules: (date) and (objectID)
+      FMT_SCRIPT     // Wrapped per script rules: [date] and [time]
+   };
 
-		virtual int DataType(void) {return 0;}
-		virtual BACnetEncodeable * clone(void);
-		virtual const char * ToString() const;
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		bool EqualityRequiredFailure( BACnetEncodeable & rbacnet, int iOperator, CString * pstrError );
-		bool PreMatch( int iOperator );
+   const char* ToString( Format theFormat = FMT_EPICS ) const;
+   void Peek( BACnetAPDUDecoder& dec );
+   bool EqualityRequiredFailure( BACnetEncodeable & rbacnet, int iOperator, CString * pstrError );
+   bool PreMatch( int iOperator );
 
-		//madanner 9/04, static factory
-		static BACnetEncodeable * Factory( int nParseType, BACnetAPDUDecoder & dec, int nPropID = -1 );
+   //madanner 9/04, static factory
+   static BACnetEncodeable * Factory( int nParseType, BACnetAPDUDecoder & dec, int nPropID = -1 );
 
-		DECLARE_DYNAMIC(BACnetEncodeable)
-	};
+   DECLARE_DYNAMIC(BACnetEncodeable)
+};
 
 typedef BACnetEncodeable *BACnetEncodeablePtr;
 
 
 class BACnetAddr : public BACnetEncodeable
 {
-	public://modified by HUMENG
-		BACnetAddress	m_bacnetAddress;
+public://modified by HUMENG
+   BACnetAddress  m_bacnetAddress;
 
-		void AssignAddress(unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen );
+   void AssignAddress(unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen );
 
-	public:
-		BACnetAddr();
-		BACnetAddr( BACnetAddress * paddr );
-		BACnetAddr( BACnetOctet * paMAC, unsigned int nMACLen );
-		BACnetAddr( unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen );
-		BACnetAddr( BACnetAPDUDecoder & dec );
+public:
+   BACnetAddr();
+   BACnetAddr( BACnetAddress * paddr );
+   BACnetAddr( BACnetOctet * paMAC, unsigned int nMACLen );
+   BACnetAddr( unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen );
+   BACnetAddr( BACnetAPDUDecoder & dec );
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
-		void Decode( BACnetAPDUDecoder& dec );
-		void Encode( CString &enc ) const;
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   // virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual BACnetEncodeable * clone(void);
+   BACnetAddr &operator =( const BACnetAddr & arg );
 
-		BACnetAddr &operator =( const BACnetAddr & arg );
-//		virtual const char * ToString() const;
-
-		DECLARE_DYNAMIC(BACnetAddr)
+   DECLARE_DYNAMIC(BACnetAddr)
 };
 
 //
-//	BACnetPDU Atomic Types
+// BACnetPDU Atomic Types
 //
 
-class BACnetNull : public BACnetEncodeable {
-	public:
-		BACnetNull();
-		BACnetNull( BACnetAPDUDecoder& dec );
+class BACnetNull : public BACnetEncodeable
+{
+public:
+   BACnetNull();
+   BACnetNull( BACnetAPDUDecoder& dec );
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual const char * ToString() const;
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetNull)
-	};
+   DECLARE_DYNAMIC(BACnetNull)
+};
 
 
-class BACnetBoolean : public BACnetEncodeable {
-	public:
-		enum eBACnetBoolean { bFalse = 0, bTrue = 1 };
-		eBACnetBoolean		boolValue;
-		
-		BACnetBoolean( int bvalu = 0 );
-		BACnetBoolean( BACnetAPDUDecoder& dec );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+class BACnetBoolean : public BACnetEncodeable
+{
+public:
+   enum eBACnetBoolean { bFalse = 0, bTrue = 1 };
+   eBACnetBoolean    boolValue;
 
-		BACnetBoolean & operator =( const BACnetBoolean & arg );
+   BACnetBoolean( int bvalu = 0 );
+   BACnetBoolean( BACnetAPDUDecoder& dec );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual const char * ToString() const;
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetBoolean)
-	};
+   BACnetBoolean & operator =( const BACnetBoolean & arg );
 
-class BACnetEnumerated : public BACnetEncodeable {
-	private:
-		const char* const*m_papNameList;
-		int				m_nListSize;
+   DECLARE_DYNAMIC(BACnetBoolean)
+};
 
-	public:
-		int		enumValue;
-		
-		BACnetEnumerated( int evalu, NetworkSniffer::BACnetStringTable &nameList );
+class BACnetEnumerated : public BACnetEncodeable
+{
+private:
+   const char* const *m_papNameList;
+   int                m_nListSize;
 
-		// Where possible, we suggest using the BACnetStringTable version when a 
-		// table of strings is required, to avoid maintenance hassles 
-		BACnetEnumerated( int evalu = 0, const char* const *papNameList = NULL, int nListSize = 0 );
+public:
+   int                enumValue;
 
-		BACnetEnumerated( BACnetAPDUDecoder& dec );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   BACnetEnumerated( int evalu, NetworkSniffer::BACnetStringTable &nameList );
 
-		void Encode( CString &enc, const char* const *table, int tsize ) const;
-		void Decode( const char *dec, const char* const *table, int tsize );
+   // Where possible, we suggest using the BACnetStringTable version when a 
+   // table of strings is required, to avoid maintenance hassles 
+   BACnetEnumerated( int evalu = 0, const char* const *papNameList = NULL, int nListSize = 0 );
 
-		BACnetEnumerated & operator =( const BACnetEnumerated & arg );
+   BACnetEnumerated( BACnetAPDUDecoder& dec );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		//madanner 9/04
-		static BACnetEnumerated * Factory(int nPropID);
+   void Encode( CString &enc, const char* const *table, int tsize ) const;
+   void Decode( const char *dec, const char* const *table, int tsize );
 
-		DECLARE_DYNAMIC(BACnetEnumerated)
-	};
+   BACnetEnumerated & operator =( const BACnetEnumerated & arg );
 
-class BACnetUnsigned : public BACnetEncodeable {
-	public:
-		// madanner 9/24/02
-//		unsigned int	uintValue;
-		unsigned long	uintValue;
-		
-		BACnetUnsigned( unsigned long uivalu = 0 );
-		BACnetUnsigned( BACnetAPDUDecoder& dec );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   //madanner 9/04
+   static BACnetEnumerated * Factory(int nPropID);
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-		BACnetUnsigned &operator = ( const BACnetUnsigned &arg )	//Added by Zhu Zhenhua, 2003-9-4
-		{
-			this->uintValue=arg.uintValue;
-			return *this;	
-		}
-		DECLARE_DYNAMIC(BACnetUnsigned)
-	};
+   DECLARE_DYNAMIC(BACnetEnumerated)
+};
 
-class BACnetInteger : public BACnetEncodeable {
-	public:
-		int				intValue;
-		
-		BACnetInteger( int ivalu = 0 );
-		BACnetInteger( BACnetAPDUDecoder& dec );
-		inline int getValue(void) { return intValue; }
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+class BACnetUnsigned : public BACnetEncodeable
+{
+public:
+   unsigned long  uintValue;
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   BACnetUnsigned( unsigned long uivalu = 0 );
+   BACnetUnsigned( BACnetAPDUDecoder& dec );
 
-		DECLARE_DYNAMIC(BACnetInteger)
-	};
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-class BACnetReal : public BACnetEncodeable {
-	public:
-		float			realValue;
-	
-		BACnetReal( float rvalu = 0.0 );
-		BACnetReal( BACnetAPDUDecoder& dec );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   BACnetUnsigned &operator = ( const BACnetUnsigned &arg ) //Added by Zhu Zhenhua, 2003-9-4
+   {
+      this->uintValue=arg.uintValue;
+      return *this;  
+   }
+   DECLARE_DYNAMIC(BACnetUnsigned)
+};
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+class BACnetInteger : public BACnetEncodeable
+{
+public:
+   int            intValue;
 
-		DECLARE_DYNAMIC(BACnetReal)
-	};
+   BACnetInteger( int ivalu = 0 );
+   BACnetInteger( BACnetAPDUDecoder& dec );
+   inline int getValue(void) { return intValue; }
 
-class BACnetDouble : public BACnetEncodeable {
-	public:
-		double			doubleValue;
-		
-		BACnetDouble( double dvalu = 0.0 );
-		BACnetDouble( BACnetAPDUDecoder & dec );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   DECLARE_DYNAMIC(BACnetInteger)
+};
 
-		DECLARE_DYNAMIC(BACnetDouble)
-	};
+class BACnetReal : public BACnetEncodeable
+{
+public:
+   float       realValue;
+
+   BACnetReal( float rvalu = 0.0 );
+   BACnetReal( BACnetAPDUDecoder& dec );
+
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+   DECLARE_DYNAMIC(BACnetReal)
+};
+
+class BACnetDouble : public BACnetEncodeable
+{
+public:
+   double         doubleValue;
+
+   BACnetDouble( double dvalu = 0.0 );
+   BACnetDouble( BACnetAPDUDecoder & dec );
+
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+   DECLARE_DYNAMIC(BACnetDouble)
+};
 
 class BACnetCharacterString : public BACnetEncodeable
 {
-	private:
-//		void Initialize( char * svalu );
-		void Initialize( LPCSTR svalu );
+private:
+   void Initialize( LPCSTR svalu );
 
-	public:
-		int				strEncoding;	// encoding
-		unsigned		strLen;			// number of octets
-		BACnetOctet		*strBuff;		// pointer to data
-				
-//		BACnetCharacterString( char *svalu = 0 );
-		BACnetCharacterString( LPCSTR svalu = NULL );
-		BACnetCharacterString( CString & rstr );
-		BACnetCharacterString( BACnetCharacterString & cpy);
-		BACnetCharacterString( BACnetAPDUDecoder& dec );
-		virtual ~BACnetCharacterString( void );
-		
-		void SetValue( const char *svalu, int enc = 0 );
+public:
+   int            strEncoding;   // encoding
+   unsigned    strLen;        // number of octets
+   BACnetOctet    *strBuff;      // pointer to data
 
-		bool Equals( const char *valu );	// true iff matches, must be ASCII encoding
+   BACnetCharacterString( LPCSTR svalu = NULL );
+   BACnetCharacterString( CString & rstr );
+   BACnetCharacterString( BACnetCharacterString & cpy);
+   BACnetCharacterString( BACnetAPDUDecoder& dec );
+   virtual ~BACnetCharacterString( void );
 
-		bool operator ==( const BACnetCharacterString &arg );
-		bool operator !=( const BACnetCharacterString &arg );
-		bool operator <=( const BACnetCharacterString &arg );
-		bool operator >=( const BACnetCharacterString &arg );
-		bool operator <( const BACnetCharacterString &arg );
-		bool operator >( const BACnetCharacterString &arg );
+   void SetValue( const char *svalu, int enc = 0 );
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
-		void KillBuffer(void);
+   bool Equals( const char *valu ); // true iff matches, must be ASCII encoding
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-		bool Match( BACnetCharacterString & rstring, int iOperator );
+   bool operator ==( const BACnetCharacterString &arg );
+   bool operator !=( const BACnetCharacterString &arg );
+   bool operator <=( const BACnetCharacterString &arg );
+   bool operator >=( const BACnetCharacterString &arg );
+   bool operator <( const BACnetCharacterString &arg );
+   bool operator >( const BACnetCharacterString &arg );
 
-		DECLARE_DYNAMIC(BACnetCharacterString)
-	};
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-class BACnetOctetString : public BACnetEncodeable {
-	public:
-		int				strLen;			// number of octets
-		int				strBuffLen;		// non-zero if owned
-		BACnetOctet		*strBuff;		// pointer to data
-		
-		void PrepBuffer( int size );	// make buffer owned and at least (size) octets
+   void KillBuffer(void);
 
-		BACnetOctetString( void );
-		BACnetOctetString( int len );
-		BACnetOctetString( BACnetOctet *bytes, int len );
-		BACnetOctetString( const BACnetOctet *bytes, int len );
-		BACnetOctetString( const BACnetOctetString &cpy );
-		BACnetOctetString( BACnetAPDUDecoder& dec );
-		virtual ~BACnetOctetString( void );
-		
-		void Flush( void );
-		void Append( BACnetOctet byte );
-		void Insert( BACnetOctet *bytes, int len, int position );
-		void Insert( const BACnetOctetString &cpy, int position );
-		BACnetOctet &operator [](const int indx);
-		void Reference( BACnetOctet *bytes, int len );
-		int Length( void );
+   bool Match( BACnetCharacterString & rstring, int iOperator );
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   DECLARE_DYNAMIC(BACnetCharacterString)
+};
 
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+class BACnetOctetString : public BACnetEncodeable
+{
+public:
+   int            strLen;        // number of octets
+   int            strBuffLen;    // non-zero if owned
+   BACnetOctet    *strBuff;      // pointer to data
 
-		DECLARE_DYNAMIC(BACnetOctetString)
-	};
+   void PrepBuffer( int size );  // make buffer owned and at least (size) octets
+
+   BACnetOctetString( void );
+   BACnetOctetString( int len );
+   BACnetOctetString( BACnetOctet *bytes, int len );
+   BACnetOctetString( const BACnetOctet *bytes, int len );
+   BACnetOctetString( const BACnetOctetString &cpy );
+   BACnetOctetString( BACnetAPDUDecoder& dec );
+   virtual ~BACnetOctetString( void );
+
+   void Flush( void );
+   void Append( BACnetOctet byte );
+   void Insert( BACnetOctet *bytes, int len, int position );
+   void Insert( const BACnetOctetString &cpy, int position );
+   BACnetOctet &operator [](const int indx);
+   void Reference( BACnetOctet *bytes, int len );
+   int Length( void );
+
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+   DECLARE_DYNAMIC(BACnetOctetString)
+};
 
 
 class BACnetWeekNDay : public BACnetOctetString
 {
-	private:
-		int m_nMonth, m_nWeekOfMonth, m_nDayOfWeek;
+private:
+   int m_nMonth, m_nWeekOfMonth, m_nDayOfWeek;
 
-		void LoadBuffer();
-		void UnloadBuffer();
+   void LoadBuffer();
+   void UnloadBuffer();
 
-	public:
-		BACnetWeekNDay( void );
-		BACnetWeekNDay( int nMonth, int nWeekOfMonth, int nDayOfWeek );
-		BACnetWeekNDay( BACnetAPDUDecoder& dec );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
+public:
+   BACnetWeekNDay( void );
+   BACnetWeekNDay( int nMonth, int nWeekOfMonth, int nDayOfWeek );
+   BACnetWeekNDay( BACnetAPDUDecoder& dec );
 
-		void Initialize( int nMonth, int nWeekOfMonth, int nDayOfWeek );
-		int GetMonth() { return m_nMonth; };
-		int GetWeekOfMonth() { return m_nWeekOfMonth; };
-		int GetDayOfWeek() { return m_nDayOfWeek; };
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   // virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   void Initialize( int nMonth, int nWeekOfMonth, int nDayOfWeek );
+   int GetMonth() { return m_nMonth; };
+   int GetWeekOfMonth() { return m_nWeekOfMonth; };
+   int GetDayOfWeek() { return m_nDayOfWeek; };
 
-		DECLARE_DYNAMIC(BACnetWeekNDay)
-	};
-
-
-class BACnetBitString : public BACnetEncodeable {
-	protected:
-		int				bitLen;
-		int				bitBuffLen;
-		unsigned long	*bitBuff;
-		
-		void	SetSize( int siz );
-		
-	public:
-		BACnetBitString( void );
-		BACnetBitString( int siz );
-		BACnetBitString( int siz, unsigned char * pabBits );
-		BACnetBitString( const BACnetBitString &cpy );
-		BACnetBitString( BACnetAPDUDecoder& dec );
-		virtual ~BACnetBitString( void );
-		
-		void	SetBit( int bit, int valu = 1 );
-		void	ResetBit( int bit );
-		int		GetBit( int bit ) const;
-		
-		const int operator [](int bit);
-		BACnetBitString &operator +=( const int bit );
-		BACnetBitString &operator -=( const int bit );
-		
-		BACnetBitString &operator =( const BACnetBitString &arg );
-		BACnetBitString &operator |=( const BACnetBitString &arg );
-		BACnetBitString &operator &=( const BACnetBitString &arg );
-
-		bool operator ==( BACnetBitString &arg );
-
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
-		void KillBuffer(void);
-
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		void LoadBitsFromByteArray( unsigned char * pabBits );
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetBitString)
-	};
+   DECLARE_DYNAMIC(BACnetWeekNDay)
+};
 
 
-class BACnetDate : public BACnetEncodeable {
-	public:
-		int			year;						// year - 1900, 255 = don't care
-		int			month;						// 1..12
-		int			day;						// 1..31
-		int			dayOfWeek;					// 1 = Monday
-		
-		BACnetDate( void );
-		BACnetDate( int y, int m, int d );
-		BACnetDate( BACnetAPDUDecoder& dec );
-		
-		BACnetDate &operator =( const BACnetDate & arg );
-		bool operator ==( const BACnetDate &arg );
-		bool operator !=( const BACnetDate &arg );
-		bool operator <=( const BACnetDate &arg );
-		bool operator >=( const BACnetDate &arg );
-		bool operator <( const BACnetDate &arg );
-		bool operator >( const BACnetDate &arg );
+class BACnetBitString : public BACnetEncodeable
+{
+protected:
+   int            bitLen;
+   int            bitBuffLen;
+   unsigned long  *bitBuff;
 
-		void	CalcDayOfWeek( void );					// compute dayOfWeek from date
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   void  SetSize( int siz );
 
-		// Convert to integer time in 100 nsec ticks since 1 Jan 1600 (FILETIME)
-		LONGLONG AsInt(void) const;
+public:
+   BACnetBitString( void );
+   BACnetBitString( int siz );
+   BACnetBitString( int siz, unsigned char * pabBits );
+   BACnetBitString( const BACnetBitString &cpy );
+   BACnetBitString( BACnetAPDUDecoder& dec );
+   virtual ~BACnetBitString( void );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-		bool Match( BACnetDate & rdate, int iOperator );
-		bool IsValid(void);
+   void  SetBit( int bit, int valu = 1 );
+   void  ResetBit( int bit );
+   int   GetBit( int bit ) const;
 
-		static void TestDateComps(void);
+   const int operator [](int bit);
+   BACnetBitString &operator +=( const int bit );
+   BACnetBitString &operator -=( const int bit );
 
-		DECLARE_DYNAMIC(BACnetDate)
-	};
+   BACnetBitString &operator =( const BACnetBitString &arg );
+   BACnetBitString &operator |=( const BACnetBitString &arg );
+   BACnetBitString &operator &=( const BACnetBitString &arg );
 
-class BACnetTime : public BACnetEncodeable {
-	public:
-		int			hour;						// 0..23, 255 = don't care
-		int			minute;						// 0..59
-		int			second;						// 0..59
-		int			hundredths;					// 0..99
-		
-		BACnetTime( void );
-		BACnetTime( int hr, int mn = 0, int sc = 0, int hun = 0 );
-		BACnetTime( BACnetAPDUDecoder& dec );
-		
-		BACnetTime &operator =( const BACnetTime & arg );
-		bool operator ==( const BACnetTime &arg );
-		bool operator !=( const BACnetTime &arg );
-		bool operator <=( const BACnetTime &arg );
-		bool operator >=( const BACnetTime &arg );
-		bool operator <( const BACnetTime &arg );
-		bool operator >( const BACnetTime &arg );
+   bool operator ==( BACnetBitString &arg );
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-		bool Match( BACnetTime & rtime, int iOperator );
-		bool IsValid(void);
+   void LoadBitsFromByteArray( unsigned char * pabBits );
+   void KillBuffer(void);
 
-		static void TestTimeComps(void);
+   DECLARE_DYNAMIC(BACnetBitString)
+};
 
-		DECLARE_DYNAMIC(BACnetTime)
-	};
+
+class BACnetDate : public BACnetEncodeable
+{
+public:
+   int         year;                // year - 1900, 255 = don't care
+   int         month;               // 1..12
+   int         day;                 // 1..31
+   int         dayOfWeek;           // 1 = Monday
+
+   BACnetDate( void );
+   BACnetDate( int y, int m, int d );
+   BACnetDate( BACnetAPDUDecoder& dec );
+
+   BACnetDate &operator =( const BACnetDate & arg );
+   bool operator ==( const BACnetDate &arg );
+   bool operator !=( const BACnetDate &arg );
+   bool operator <=( const BACnetDate &arg );
+   bool operator >=( const BACnetDate &arg );
+   bool operator <( const BACnetDate &arg );
+   bool operator >( const BACnetDate &arg );
+
+   void  CalcDayOfWeek( void );              // compute dayOfWeek from date
+
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+   // Convert to integer time in 100 nsec ticks since 1 Jan 1600 (FILETIME)
+   LONGLONG AsInt(void) const;
+
+   bool Match( BACnetDate & rdate, int iOperator );
+   bool IsValid(void);
+
+   static void TestDateComps(void);
+
+   DECLARE_DYNAMIC(BACnetDate)
+};
+
+class BACnetTime : public BACnetEncodeable
+{
+public:
+   int         hour;                // 0..23, 255 = don't care
+   int         minute;                 // 0..59
+   int         second;                 // 0..59
+   int         hundredths;             // 0..99
+
+   BACnetTime( void );
+   BACnetTime( int hr, int mn = 0, int sc = 0, int hun = 0 );
+   BACnetTime( BACnetAPDUDecoder& dec );
+
+   BACnetTime &operator =( const BACnetTime & arg );
+   bool operator ==( const BACnetTime &arg );
+   bool operator !=( const BACnetTime &arg );
+   bool operator <=( const BACnetTime &arg );
+   bool operator >=( const BACnetTime &arg );
+   bool operator <( const BACnetTime &arg );
+   bool operator >( const BACnetTime &arg );
+
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+   bool Match( BACnetTime & rtime, int iOperator );
+   bool IsValid(void);
+
+   static void TestTimeComps(void);
+
+   DECLARE_DYNAMIC(BACnetTime)
+};
 
 
 class BACnetDateTime : public BACnetEncodeable
 {
-	public:
-		BACnetDate	bacnetDate;
-		BACnetTime	bacnetTime;
+public:
+   BACnetDate  bacnetDate;
+   BACnetTime  bacnetTime;
 
-		BACnetDateTime(void);
-		BACnetDateTime( int y, int m, int d, int hr, int mn, int sc, int hun = 0);
-		BACnetDateTime( const BACnetDateTime &orig );
-		// Lets add to the enjoyment of having a structure with the same name as a class
-		// and give it its own copy constructor
-		BACnetDateTime( const PICS::BACnetDateTime &orig );
-		BACnetDateTime( BACnetAPDUDecoder& dec );
+   BACnetDateTime(void);
+   BACnetDateTime( int y, int m, int d, int hr, int mn, int sc, int hun = 0);
+   BACnetDateTime( const BACnetDateTime &orig );
+   // Lets add to the enjoyment of having a structure with the same name as a class
+   // and give it its own copy constructor
+   BACnetDateTime( const PICS::BACnetDateTime &orig );
+   BACnetDateTime( BACnetAPDUDecoder& dec );
 
-		BACnetDateTime &operator =( const BACnetDateTime & arg );
-		bool operator ==( const BACnetDateTime &arg );
-		bool operator !=( const BACnetDateTime &arg );
-		bool operator <=( const BACnetDateTime &arg );
-		bool operator >=( const BACnetDateTime &arg );
-		bool operator <( const BACnetDateTime &arg );
-		bool operator >( const BACnetDateTime &arg );
+   BACnetDateTime &operator =( const BACnetDateTime & arg );
+   bool operator ==( const BACnetDateTime &arg );
+   bool operator !=( const BACnetDateTime &arg );
+   bool operator <=( const BACnetDateTime &arg );
+   bool operator >=( const BACnetDateTime &arg );
+   bool operator <( const BACnetDateTime &arg );
+   bool operator >( const BACnetDateTime &arg );
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
-		void Decode( BACnetAPDUDecoder& dec );
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-		bool Match( BACnetDateTime & rdatetime, int iOperator );
+   bool Match( BACnetDateTime & rdatetime, int iOperator );
 
-		DECLARE_DYNAMIC(BACnetDateTime)
+   DECLARE_DYNAMIC(BACnetDateTime)
 };
-
-
 
 class BACnetDateRange : public BACnetEncodeable
 {
-	public:
-		BACnetDate	bacnetDateStart, bacnetDateEnd;
+public:
+   BACnetDate  bacnetDateStart, bacnetDateEnd;
 
-		BACnetDateRange(void);
-		BACnetDateRange( int y, int m, int d, int y2, int m2, int d2 );
-		BACnetDateRange( BACnetAPDUDecoder& dec );
+   BACnetDateRange(void);
+   BACnetDateRange( int y, int m, int d, int y2, int m2, int d2 );
+   BACnetDateRange( BACnetAPDUDecoder& dec );
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
-		void Decode( BACnetAPDUDecoder& dec );
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		BACnetDateRange &operator =( const BACnetDateRange & arg );
-		bool operator ==( const BACnetDateRange &arg );
-		bool operator !=( const BACnetDateRange &arg );
-		bool operator <=( const BACnetDateRange &arg );
-		bool operator >=( const BACnetDateRange &arg );
-		bool operator <( const BACnetDateRange &arg );
-		bool operator >( const BACnetDateRange &arg );
+   BACnetDateRange &operator =( const BACnetDateRange & arg );
+   bool operator ==( const BACnetDateRange &arg );
+   bool operator !=( const BACnetDateRange &arg );
+   bool operator <=( const BACnetDateRange &arg );
+   bool operator >=( const BACnetDateRange &arg );
+   bool operator <( const BACnetDateRange &arg );
+   bool operator >( const BACnetDateRange &arg );
 
-		LONGLONG GetSpan(void) const;
+   LONGLONG GetSpan(void) const;
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-		bool Match( BACnetDateRange & rdaterange, int iOperator );
+   bool Match( BACnetDateRange & rdaterange, int iOperator );
 
-		DECLARE_DYNAMIC(BACnetDateRange)
+   DECLARE_DYNAMIC(BACnetDateRange)
 };
 
-class BACnetObjectIdentifier : public BACnetEncodeable {
-	public:
-		unsigned int	objID;
-		
-		BACnetObjectIdentifier( BACnetAPDUDecoder& dec );
-		BACnetObjectIdentifier( int objType = 0, int instanceNum = 0 );
-		BACnetObjectIdentifier( unsigned int nobjID );
-		BACnetObjectIdentifier( const BACnetObjectIdentifier& objectId );	// Jingbo Gao, Sep 11, 2004
+class BACnetObjectIdentifier : public BACnetEncodeable 
+{
+public:
+   unsigned int   objID;
 
-		BACnetObjectIdentifier &operator =( const BACnetObjectIdentifier &arg );
+   BACnetObjectIdentifier( BACnetAPDUDecoder& dec );
+   BACnetObjectIdentifier( int objType = 0, int instanceNum = 0 );
+   BACnetObjectIdentifier( unsigned int nobjID );
+   BACnetObjectIdentifier( const BACnetObjectIdentifier& objectId ); // Jingbo Gao, Sep 11, 2004
 
-		void SetValue( BACnetObjectType objType, int instanceNum );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
-		unsigned int GetObjectType() const{ return (objID>> 22) & 0x000003ff;} //Added by Zhu Zhenhua 2003-7-22, to Get Object Type
-		unsigned int GetObjectInstance() const{ return objID & 0x003fffff;}
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   BACnetObjectIdentifier &operator =( const BACnetObjectIdentifier &arg );
 
-		DECLARE_DYNAMIC(BACnetObjectIdentifier)
-	};
+   void SetValue( BACnetObjectType objType, int instanceNum );
 
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
+   unsigned int GetObjectType() const{ return (objID>> 22) & 0x000003ff;} //Added by Zhu Zhenhua 2003-7-22, to Get Object Type
+   unsigned int GetObjectInstance() const{ return objID & 0x003fffff;}
+
+   DECLARE_DYNAMIC(BACnetObjectIdentifier)
+};
 
 //madanner 9/04
 class BACnetObjectPropertyReference : public BACnetEncodeable
 {
-	public:
-		BACnetObjectIdentifier m_objID;
-		BACnetEnumerated		m_bacnetenumPropID;
-		int						m_nIndex;
-		
-		BACnetObjectPropertyReference() {}
-		BACnetObjectPropertyReference( BACnetAPDUDecoder& dec );
-		BACnetObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index = -1 );
+public:
+   BACnetObjectIdentifier m_objID;
+   BACnetEnumerated     m_bacnetenumPropID;
+   int                  m_nIndex;
 
-		BACnetObjectPropertyReference &operator =( const BACnetObjectPropertyReference &arg );
+   BACnetObjectPropertyReference() {}
+   BACnetObjectPropertyReference( BACnetAPDUDecoder& dec );
+   BACnetObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index = -1 );
 
-		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		virtual void Encode( CString &enc ) const;
-		virtual void Decode(BACnetAPDUDecoder& dec);
+   BACnetObjectPropertyReference &operator =( const BACnetObjectPropertyReference &arg );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetObjectPropertyReference)
+   DECLARE_DYNAMIC(BACnetObjectPropertyReference)
 };
 
 
 //madanner 9/04
 class BACnetDeviceObjectPropertyReference : public BACnetEncodeable
 {
-	public:
-		BACnetObjectPropertyReference m_objpropref;
-		unsigned int				m_unObjectID;
-		
-		BACnetDeviceObjectPropertyReference() {}
-		BACnetDeviceObjectPropertyReference( BACnetAPDUDecoder& dec );
-		BACnetDeviceObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index = -1, unsigned int devobj_id = 0xFFFFFFFF );
+public:
+   BACnetObjectPropertyReference m_objpropref;
+   unsigned int            m_unObjectID;
 
-		BACnetDeviceObjectPropertyReference &operator =( const BACnetDeviceObjectPropertyReference &arg );
+   BACnetDeviceObjectPropertyReference() {}
+   BACnetDeviceObjectPropertyReference( BACnetAPDUDecoder& dec );
+   BACnetDeviceObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index = -1, unsigned int devobj_id = 0xFFFFFFFF );
 
-		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		virtual void Encode( CString &enc ) const;
-		virtual void Decode(BACnetAPDUDecoder& dec);
+   BACnetDeviceObjectPropertyReference &operator =( const BACnetDeviceObjectPropertyReference &arg );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetDeviceObjectPropertyReference)
+   DECLARE_DYNAMIC(BACnetDeviceObjectPropertyReference)
 };
 
 class BACnetDeviceObjectReference : public BACnetEncodeable
 {
-	public:
-		BACnetObjectIdentifier      m_objID;
-//		BACnetObjectIdentifier      m_devID;  // optional
-		unsigned int				m_undevID; // optional
-		
-		BACnetDeviceObjectReference() {}
-		BACnetDeviceObjectReference( BACnetAPDUDecoder& dec );
-		BACnetDeviceObjectReference( unsigned int obj_id, unsigned int devobj_id = 0xFFFFFFFF );
+public:
+   BACnetObjectIdentifier  m_objID;
+   unsigned int            m_undevID; // optional
 
-		BACnetDeviceObjectReference &operator =( const BACnetDeviceObjectReference &arg );
+   BACnetDeviceObjectReference() {}
+   BACnetDeviceObjectReference( BACnetAPDUDecoder& dec );
+   BACnetDeviceObjectReference( unsigned int obj_id, unsigned int devobj_id = 0xFFFFFFFF );
 
-		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		virtual void Encode( CString &enc ) const;
-		virtual void Decode(BACnetAPDUDecoder& dec);
+   BACnetDeviceObjectReference &operator =( const BACnetDeviceObjectReference &arg );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetDeviceObjectReference)
+   DECLARE_DYNAMIC(BACnetDeviceObjectReference)
 };
 
 
@@ -722,228 +748,257 @@ class BACnetDeviceObjectReference : public BACnetEncodeable
 
 class BACnetReadAccessSpecification : public BACnetEncodeable
 {
-	public:
-		
-		BACnetReadAccessSpecification();
-		BACnetReadAccessSpecification( BACnetAPDUDecoder& dec );
+public:
+   BACnetReadAccessSpecification();
+   BACnetReadAccessSpecification( BACnetAPDUDecoder& dec );
 
-//		BACnetReadAccessSpecification &operator =( const BACnetReadAccessSpecification &arg );
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-//		virtual BACnetEncodeable * clone(void);
-//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetReadAccessSpecification)
+   DECLARE_DYNAMIC(BACnetReadAccessSpecification)
 };
 
 class BACnetActionCommand : public BACnetEncodeable
 {
-	public:
-		
-		BACnetActionCommand();
-		BACnetActionCommand( BACnetAPDUDecoder& dec );
+public:
+   BACnetActionCommand();
+   BACnetActionCommand( BACnetAPDUDecoder& dec );
 
-//		BACnetActionCommand &operator =( const BACnetActionCommand &arg );
+// BACnetActionCommand &operator =( const BACnetActionCommand &arg );
 
-		virtual int DataType(void);
-//		virtual BACnetEncodeable * clone(void);
-//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetActionCommand)
+   DECLARE_DYNAMIC(BACnetActionCommand)
 };
 
 
 class BACnetEventParameter : public BACnetEncodeable
 {
-	public:
-		
-		BACnetEventParameter();
-		BACnetEventParameter( BACnetAPDUDecoder& dec );
+public:
+   BACnetEventParameter();
+   BACnetEventParameter( BACnetAPDUDecoder& dec );
 
-//		BACnetEventParameter &operator =( const BACnetEventParameter &arg );
+// BACnetEventParameter &operator =( const BACnetEventParameter &arg );
 
-		virtual int DataType(void);
-//		virtual BACnetEncodeable * clone(void);
-//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetEventParameter)
+   DECLARE_DYNAMIC(BACnetEventParameter)
 };
 
 class BACnetSessionKey : public BACnetEncodeable
 {
-	public:
-		
-		BACnetSessionKey();
-		BACnetSessionKey( BACnetAPDUDecoder& dec );
+public:
+   BACnetSessionKey();
+   BACnetSessionKey( BACnetAPDUDecoder& dec );
 
-//		BACnetSessionKey &operator =( const BACnetSessionKey &arg );
+// BACnetSessionKey &operator =( const BACnetSessionKey &arg );
 
-		virtual int DataType(void);
-//		virtual BACnetEncodeable * clone(void);
-//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetSessionKey)
+   DECLARE_DYNAMIC(BACnetSessionKey)
 };
 
 class BACnetExceptionSchedule : public BACnetEncodeable
 {
-	public:
-		
-		BACnetExceptionSchedule();
-		BACnetExceptionSchedule( BACnetAPDUDecoder& dec );
+public:
+   BACnetExceptionSchedule();
+   BACnetExceptionSchedule( BACnetAPDUDecoder& dec );
 
-//		BACnetExceptionSchedule &operator =( const BACnetExceptionSchedule &arg );
+// BACnetExceptionSchedule &operator =( const BACnetExceptionSchedule &arg );
 
-		virtual int DataType(void);
-//		virtual BACnetEncodeable * clone(void);
-//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetExceptionSchedule)
+   DECLARE_DYNAMIC(BACnetExceptionSchedule)
 };
 
 class BACnetAddressBinding : public BACnetEncodeable
 {
-//	private:
-	public: //modified by HUMENG
-		BACnetObjectIdentifier		m_bacnetObjectID;
-		BACnetAddr					m_bacnetAddr;
+public: //modified by HUMENG
+   BACnetObjectIdentifier  m_bacnetObjectID;
+   BACnetAddr              m_bacnetAddr;
 
-	public:
-		BACnetAddressBinding();
-		BACnetAddressBinding( unsigned int nobjID, unsigned short nNet, BACnetOctet * paMAC, unsigned short nMACLen );
-		BACnetAddressBinding( BACnetAPDUDecoder& dec );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
-		void Decode( BACnetAPDUDecoder& dec );
-		virtual void Encode( CString &enc ) const;
+public:
+   BACnetAddressBinding();
+   BACnetAddressBinding( unsigned int nobjID, unsigned short nNet, BACnetOctet * paMAC, unsigned short nMACLen );
+   BACnetAddressBinding( BACnetAPDUDecoder& dec );
 
-		BACnetAddressBinding &operator =( const BACnetAddressBinding & arg );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   BACnetAddressBinding &operator =( const BACnetAddressBinding & arg );
 
-		DECLARE_DYNAMIC(BACnetAddressBinding)
+   DECLARE_DYNAMIC(BACnetAddressBinding)
 };
 
 class BACnetTimeValue : public BACnetEncodeable
 {
-	public:
-		
-		BACnetTimeValue();
-		BACnetTimeValue( BACnetAPDUDecoder& dec );
+public:
+   BACnetTimeValue();
+   BACnetTimeValue( BACnetAPDUDecoder& dec );
 
-//		BACnetTimeValue &operator =( const BACnetTimeValue &arg );
+// BACnetTimeValue &operator =( const BACnetTimeValue &arg );
 
-		virtual int DataType(void);
-//		virtual BACnetEncodeable * clone(void);
-//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetTimeValue)
+   DECLARE_DYNAMIC(BACnetTimeValue)
 };
 
 class BACnetVTSession : public BACnetEncodeable
 {
-	public:
-		
-		BACnetVTSession();
-		BACnetVTSession( BACnetAPDUDecoder& dec );
+public:
+   BACnetVTSession();
+   BACnetVTSession( BACnetAPDUDecoder& dec );
 
-//		BACnetVTSession &operator =( const BACnetVTSession &arg );
+// BACnetVTSession &operator =( const BACnetVTSession &arg );
 
-		virtual int DataType(void);
-//		virtual BACnetEncodeable * clone(void);
-//		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetVTSession)
+   DECLARE_DYNAMIC(BACnetVTSession)
 };
 
-
-
-enum BACnetApplicationTag {
-		unusedAppTag					= -1,
-		nullAppTag						= 0,
-		booleanAppTag					= 1,
-		unsignedIntAppTag				= 2,
-		integerAppTag					= 3,
-		realAppTag						= 4,
-		doubleAppTag					= 5,
-		octetStringAppTag				= 6,
-		characterStringAppTag			= 7,
-		bitStringAppTag					= 8,
-		enumeratedAppTag				= 9,
-		dateAppTag						= 10,
-		timeAppTag						= 11,
-		objectIdentifierAppTag			= 12,
-		reservedAppTag13				= 13,
-		reservedAppTag14				= 14,
-		reservedAppTag15				= 15
-		};
-		
+enum BACnetApplicationTag
+{
+   unusedAppTag               = -1,
+   nullAppTag                 = 0,
+   booleanAppTag              = 1,
+   unsignedIntAppTag          = 2,
+   integerAppTag              = 3,
+   realAppTag                 = 4,
+   doubleAppTag               = 5,
+   octetStringAppTag          = 6,
+   characterStringAppTag      = 7,
+   bitStringAppTag            = 8,
+   enumeratedAppTag           = 9,
+   dateAppTag                 = 10,
+   timeAppTag                 = 11,
+   objectIdentifierAppTag     = 12,
+   reservedAppTag13           = 13,
+   reservedAppTag14           = 14,
+   reservedAppTag15           = 15
+};
 
 class BACnetBinaryPriV : public BACnetEnumerated
 {
-//	private:
-//		const char * m_pszValues[] = {"INACTIVE", "ACTIVE"};
+public:
+   BACnetBinaryPriV( BACnetAPDUDecoder& dec );
+   BACnetBinaryPriV( int nValue = 0 );
 
-	public:
-		BACnetBinaryPriV( BACnetAPDUDecoder& dec );
-		BACnetBinaryPriV( int nValue = 0 );
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   // virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
-
-		DECLARE_DYNAMIC(BACnetBinaryPriV)
+   DECLARE_DYNAMIC(BACnetBinaryPriV)
 };
 
 class BACnetObjectContainer : public BACnetEncodeable
 {
-	public:
-		BACnetEncodeable * pbacnetTypedValue; //Modified By Zhu Zhenhua 2003-9-10
+public:
+   BACnetEncodeable * pbacnetTypedValue; //Modified By Zhu Zhenhua 2003-9-10
 
+public:
+   //changed to public by HUMENG
+   virtual void SetObject( BACnetEncodeable * pbacnetEncodeable );
 
-	public:
-		//changed to public by HUMENG
-		virtual void SetObject( BACnetEncodeable * pbacnetEncodeable );
+   BACnetObjectContainer();
+   BACnetObjectContainer( BACnetEncodeable * pbacnetEncodeable );
+   virtual ~BACnetObjectContainer();
 
-		BACnetObjectContainer();
-		BACnetObjectContainer( BACnetEncodeable * pbacnetEncodeable );
-		virtual ~BACnetObjectContainer();
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   // virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		// override these guys so they operate on held BACnet type not this.
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   bool IsObjectType( CRuntimeClass * pruntimeclass );
+   CRuntimeClass * GetObjectType(void);
+   BACnetEncodeable *  GetObject();
 
-		bool IsObjectType( CRuntimeClass * pruntimeclass );
-		CRuntimeClass * GetObjectType(void);
-		BACnetEncodeable *  GetObject();
-
-		virtual const char * ToString() const;
-
-		DECLARE_DYNAMIC(BACnetObjectContainer)
+   DECLARE_DYNAMIC(BACnetObjectContainer)
 };
 
 
 class BACnetPriorityValue : public BACnetObjectContainer
 {
-	private:
-		void CreateTypedObject( BACnetApplicationTag tag );
+private:
+   void CreateTypedObject( BACnetApplicationTag tag );
 
-	public:
-		BACnetPriorityValue();
-		BACnetPriorityValue( BACnetAPDUDecoder & dec );
-		BACnetPriorityValue( BACnetEncodeable * pbacnetEncodeable );
+public:
+   BACnetPriorityValue();
+   BACnetPriorityValue( BACnetAPDUDecoder & dec );
+   BACnetPriorityValue( BACnetEncodeable * pbacnetEncodeable );
 
-		// override decode for special construction from stream
-		void Decode( BACnetAPDUDecoder& dec );								// decode
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   //virtual void Encode( CString &enc, Format theFormat ) const;
+   //virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetPriorityValue)
+   DECLARE_DYNAMIC(BACnetPriorityValue)
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -953,17 +1008,26 @@ class BACnetPriorityValue : public BACnetObjectContainer
 class BACnetDaysOfWeek : public BACnetBitString
 {
 public:
-	BACnetDaysOfWeek(
-		bool bMon, bool bTue, bool bWed,
-		bool bThu, bool bFri, bool bSat, 
-		bool bSun
-		);
+   BACnetDaysOfWeek(
+      bool bMon, bool bTue, bool bWed,
+      bool bThu, bool bFri, bool bSat, 
+      bool bSun
+      );
 
-	BACnetDaysOfWeek(void);
-	
-	void StringToValue( const char *dec );
-	virtual int DataType(void);
-		DECLARE_DYNAMIC(BACnetDaysOfWeek)
+   BACnetDaysOfWeek(void);
+
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+   void StringToValue( const char *dec );
+
+   DECLARE_DYNAMIC(BACnetDaysOfWeek)
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -973,35 +1037,45 @@ public:
 class BACnetEventTransitionBits : public BACnetBitString
 {
 public:
-	BACnetEventTransitionBits(
-		bool bOffnormal, 
-		bool bFault, 
-		bool bNormal
-		);
+   BACnetEventTransitionBits(
+      bool bOffnormal, 
+      bool bFault, 
+      bool bNormal
+      );
 
-	BACnetEventTransitionBits(void);
-	virtual int DataType(void);
-		DECLARE_DYNAMIC(BACnetEventTransitionBits)
+   BACnetEventTransitionBits(void);
+
+   // Overrides of base methods
+   // virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   // virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   // virtual BACnetEncodeable * clone(void);
+   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+   DECLARE_DYNAMIC(BACnetEventTransitionBits)
 };
 
 class BACnetCalendarEntry : public BACnetObjectContainer
 {
-	public:
+public:
 
-		BACnetCalendarEntry();
-		BACnetCalendarEntry( BACnetAPDUDecoder & dec );
-		BACnetCalendarEntry( BACnetEncodeable * pbacnetEncodeable );
-		int		m_nChoice;
-		// override decode for special construction from stream
-		void Decode( BACnetAPDUDecoder& dec );								// decode
+   BACnetCalendarEntry();
+   BACnetCalendarEntry( BACnetAPDUDecoder & dec );
+   BACnetCalendarEntry( BACnetEncodeable * pbacnetEncodeable );
+   int      m_nChoice;
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   // virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetCalendarEntry)
+   DECLARE_DYNAMIC(BACnetCalendarEntry)
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1011,20 +1085,23 @@ class BACnetCalendarEntry : public BACnetObjectContainer
 class BACnetRecipient : public BACnetObjectContainer
 {
 public:
-	int GetChoice();
-	BACnetRecipient(void);
-	BACnetRecipient(const BACnetRecipient &src);
-	BACnetRecipient( BACnetAPDUDecoder & dec );
-	BACnetRecipient( BACnetEncodeable * pbacnetEncodeable );	
-	void Encode(BACnetAPDUEncoder &enc, int Context = kAppContext);
-	void Decode(BACnetAPDUDecoder &dec);
-	void Encode( CString &enc ) const;
-	BACnetRecipient &operator = ( const BACnetRecipient &arg );
-	virtual int DataType(void);
-	virtual BACnetEncodeable * clone(void);
-	virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-	
-	DECLARE_DYNAMIC(BACnetRecipient)
+   int GetChoice();
+   BACnetRecipient(void);
+   BACnetRecipient(const BACnetRecipient &src);
+   BACnetRecipient( BACnetAPDUDecoder & dec );
+   BACnetRecipient( BACnetEncodeable * pbacnetEncodeable ); 
+
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+
+   BACnetRecipient &operator = ( const BACnetRecipient &arg );
+   DECLARE_DYNAMIC(BACnetRecipient)
 };
 
 
@@ -1032,914 +1109,921 @@ class BACnetRecipientProcess : public BACnetEncodeable
 {
 public:
 
-	::BACnetRecipient		m_bacnetrecipient;
-	::BACnetUnsigned		m_bacnetunsignedID;
+   ::BACnetRecipient    m_bacnetrecipient;
+   ::BACnetUnsigned     m_bacnetunsignedID;
 
-	BACnetRecipientProcess(void);
-	BACnetRecipientProcess( BACnetAPDUDecoder & dec );
-	BACnetRecipientProcess( ::BACnetRecipient & rcp, unsigned int nID );
+   BACnetRecipientProcess(void);
+   BACnetRecipientProcess( BACnetAPDUDecoder & dec );
+   BACnetRecipientProcess( ::BACnetRecipient & rcp, unsigned int nID );
 
-	void Encode(BACnetAPDUEncoder &enc, int Context = kAppContext);
-	void Decode(BACnetAPDUDecoder &dec);
-	void Encode( CString &enc ) const;
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   // virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-	BACnetRecipientProcess &operator = ( const ::BACnetRecipientProcess &arg );
+   BACnetRecipientProcess &operator = ( const ::BACnetRecipientProcess &arg );
 
-	virtual int DataType(void);
-	virtual BACnetEncodeable * clone(void);
-	virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-	
-	DECLARE_DYNAMIC(BACnetRecipientProcess)
+   DECLARE_DYNAMIC(BACnetRecipientProcess)
 };
 
 
 
 class BACnetCOVSubscription : public BACnetEncodeable
 {
-	public:
-		::BACnetRecipientProcess			m_bacnetrecipprocess;
-		::BACnetObjectPropertyReference	m_bacnetobjpropref;
-		::BACnetBoolean					m_bacnetboolNotification;
-		::BACnetUnsigned					m_bacnetunsignedTimeRemaining;
-		::BACnetReal						m_bacnetrealCOVIncrement;
+public:
+   ::BACnetRecipientProcess         m_bacnetrecipprocess;
+   ::BACnetObjectPropertyReference  m_bacnetobjpropref;
+   ::BACnetBoolean               m_bacnetboolNotification;
+   ::BACnetUnsigned              m_bacnetunsignedTimeRemaining;
+   ::BACnetReal                  m_bacnetrealCOVIncrement;
 
-	public:
-		BACnetCOVSubscription() {};
-		BACnetCOVSubscription( ::BACnetRecipientProcess & rcp, ::BACnetObjectPropertyReference & objpr,
-								bool fNotify, unsigned int nTimeRemaining, float flCOVIncrement );
-		BACnetCOVSubscription( BACnetAPDUDecoder& dec );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
-		void Decode( BACnetAPDUDecoder& dec );
+public:
+   BACnetCOVSubscription() {};
+   BACnetCOVSubscription( ::BACnetRecipientProcess & rcp, ::BACnetObjectPropertyReference & objpr,
+                          bool fNotify, unsigned int nTimeRemaining, float flCOVIncrement );
+   BACnetCOVSubscription( BACnetAPDUDecoder& dec );
 
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		BACnetCOVSubscription &operator =( const BACnetCOVSubscription & arg );
+   BACnetCOVSubscription &operator =( const BACnetCOVSubscription & arg );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetCOVSubscription)
+   DECLARE_DYNAMIC(BACnetCOVSubscription)
 };
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////
 //
-//	BACnetDestination
+// BACnetDestination
 //Added by Zhu Zhenhua, 2003-9-4
 class  BACnetDestination : public BACnetEncodeable
 {
 public:
-	BACnetDaysOfWeek			m_validDays;
-	BACnetTime					m_fromTime;
-	BACnetTime					m_toTime;
-	BACnetRecipient				m_recipient;
-	BACnetUnsigned 				m_processID;
-	BACnetBoolean				m_issueConfirmedNotifications;
-	BACnetEventTransitionBits	m_transitions;
-	
-	
-	BACnetDestination(
-		BACnetDaysOfWeek &validDays,
-		BACnetTime &fromTime,
-		BACnetTime &toTime,
-		BACnetRecipient &recipient,
-		BACnetUnsigned &processID,
-		BACnetBoolean &issueConfirmedNotifications,
-		BACnetEventTransitionBits &transitions
-		);
+   BACnetDaysOfWeek           m_validDays;
+   BACnetTime                 m_fromTime;
+   BACnetTime                 m_toTime;
+   BACnetRecipient            m_recipient;
+   BACnetUnsigned             m_processID;
+   BACnetBoolean              m_issueConfirmedNotifications;
+   BACnetEventTransitionBits  m_transitions;
 
-	BACnetDestination(void);
-	BACnetDestination(const BACnetDestination &src);
-	BACnetDestination( BACnetAPDUDecoder & dec );
-	BACnetDestination &operator = ( const BACnetDestination &arg );
+   BACnetDestination(
+      BACnetDaysOfWeek &validDays,
+      BACnetTime &fromTime,
+      BACnetTime &toTime,
+      BACnetRecipient &recipient,
+      BACnetUnsigned &processID,
+      BACnetBoolean &issueConfirmedNotifications,
+      BACnetEventTransitionBits &transitions
+      );
 
-	virtual void Decode(BACnetAPDUDecoder &dec);
-	virtual void Encode(BACnetAPDUEncoder &enc,int nContext = kAppContext);
+   BACnetDestination(void);
+   BACnetDestination(const BACnetDestination &src);
+   BACnetDestination( BACnetAPDUDecoder & dec );
+   BACnetDestination &operator = ( const BACnetDestination &arg );
 
-	virtual int DataType(void);
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   //virtual void Encode( CString &enc, Format theFormat ) const;
+   //virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   //virtual BACnetEncodeable * clone(void);
+   //virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-	DECLARE_DYNAMIC(BACnetDestination)
+   DECLARE_DYNAMIC(BACnetDestination)
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 //Added by Zhu Zhenhua  2003-8-27
-//	BACnetSequenceOf
-#define sequenceof			52			//BACnetSequenceOf
-#define listof				53			//BACnetListOf
-#define arrayof				54			//BACnetArrayOf
+// BACnetSequenceOf
+// TODO: WTF are these mystical fifties?
+#define sequenceof      52       //BACnetSequenceOf
+#define listof          53       //BACnetListOf
+#define arrayof         54       //BACnetArrayOf
 
 class BACnetUnsigned;
 
 template<class MyDataType> 
-class BACnetSequenceOf:  public BACnetEncodeable{
+class BACnetSequenceOf: public BACnetEncodeable 
+{
 protected:
-	CList<MyDataType*,MyDataType*> listSequenceOf;
-	int					m_typeID;
-	int					m_itemTypeID;	
+   CList<MyDataType*,MyDataType*> listSequenceOf;
+   int               m_typeID;
+   int               m_itemTypeID;
 public:
-	int					m_nObjID;	
+   int               m_nObjID;
 public:
-	BACnetSequenceOf(int typeID = sequenceof)
-		:m_typeID(typeID)
-	{
+   BACnetSequenceOf(int typeID = sequenceof)
+      :m_typeID(typeID)
+   {
+   }
 
-	}
+   BACnetSequenceOf(const BACnetSequenceOf<MyDataType> &src)
+      :m_typeID(src.m_typeID), 
+      m_itemTypeID(src.m_itemTypeID), m_nObjID(src.m_nObjID)
+   {
+      for(int i=0; i < src.listSequenceOf.GetCount(); i++)
+      {
+         POSITION pos = src.listSequenceOf.FindIndex(i);
+         MyDataType* pElem = new MyDataType(*(src.listSequenceOf.GetAt(pos)));
+         listSequenceOf.AddTail(pElem);
+      }
+   }
 
-	BACnetSequenceOf(const BACnetSequenceOf<MyDataType> &src)
-		:m_typeID(src.m_typeID), 
-		m_itemTypeID(src.m_itemTypeID), m_nObjID(src.m_nObjID)
-	{
-		for(int i=0; i < src.listSequenceOf.GetCount(); i++)
-		{	
-			POSITION pos = src.listSequenceOf.FindIndex(i);
-			MyDataType* pElem = new MyDataType(*(src.listSequenceOf.GetAt(pos)));
-			listSequenceOf.AddTail(pElem);
-		}
-	}
-	
-	~BACnetSequenceOf()
-	{
-		for(int i=0; i < listSequenceOf.GetCount(); i++)
-		{	
-			POSITION pos = listSequenceOf.FindIndex(i);
-			delete listSequenceOf.GetAt(pos);	
-		}
-	}
-	
-	void AddElement(MyDataType* pSrc)
-	{
-		MyDataType* pNewElem = new MyDataType(*pSrc);
-		if(pNewElem != NULL)
-		listSequenceOf.AddTail(pNewElem);
-	}
-	
-	void DeleteElement(unsigned int index)
-	{
-		if(index >=(unsigned int) listSequenceOf.GetCount())
-		{
-			throw "The specified index is beyond the scope of the sequenceof.";
-		}
-		POSITION pos = listSequenceOf.FindIndex(index);
-		MyDataType* pDeleteElem=listSequenceOf.GetAt(pos);
-		
-		if(pDeleteElem != NULL)
-		{
-			delete pDeleteElem;
-			pDeleteElem = NULL;
-		}
-		
-		listSequenceOf.RemoveAt(pos);
-	}
-	
-	void DeleteAllElements()
-	{
-		for(int i=0; i < listSequenceOf.GetCount(); i++)
-		{
-			POSITION pos = listSequenceOf.FindIndex(i);
-			delete listSequenceOf.GetAt(pos);
-		}
-		listSequenceOf.RemoveAll();
-	}
-	void SetElement(unsigned int index, MyDataType* src)
-	{
-		if((int)index >= listSequenceOf.GetCount())
-			throw "The specified index is beyond the scope of the sequenceof.";
-		POSITION pos = listSequenceOf.FindIndex(index);		
-		MyDataType* elem=listSequenceOf.GetAt(pos);
-		*elem = *src;
-	}
-	
-	MyDataType* GetElement(unsigned int index) const
-	{
-		if(index>=(unsigned int)listSequenceOf.GetCount())
-			throw "The specified index is beyond the scope of the sequenceof.";
-		POSITION pos = listSequenceOf.FindIndex(index);			
-		return listSequenceOf.GetAt(pos);
-	}
-	
-	int GetItemCount() const
-	{ 
-		return listSequenceOf.GetCount();
-	}
-	
-	const int GetItemType() const
-	{
-		MyDataType item;
-		return item.DataType();
-	}
-	
-	void SetItemType(int typeID)
-	{
-		m_itemTypeID = typeID;			
-	}
-	
-	void SetType(int typeID)
-	{
-		if(typeID == sequenceof || typeID == arrayof || typeID == listof)
-			m_typeID = typeID;	
-		else
-			throw "Bad typeID!";
-	}
-	
-	MyDataType* operator[](const unsigned int index)
-	{
-		if(m_typeID != arrayof)
-			throw "It's not an array.";
-		
-		if(index>=listSequenceOf.GetCount())
-			throw "The specified index is beyond the scope of the sequenceof.";		
-		POSITION pos = listSequenceOf.FindIndex(index);			
-		return listSequenceOf.GetAt(pos);
-	}
-	
-	BACnetSequenceOf<MyDataType>& operator=(const BACnetSequenceOf<MyDataType> &src)
-	{
-		if(this != &src)
-		{
-			this->DeleteAllElements();
-			for(int i = 0; i < src.listSequenceOf.GetCount(); i++)
-			{	
-				POSITION pos = src.listSequenceOf.FindIndex(i);	
-				MyDataType* pElem = new MyDataType(*(src.listSequenceOf.GetAt(pos)));
-				listSequenceOf.AddTail(pElem);
-			}
-			
-			m_typeID = src.m_typeID; 
-			m_itemTypeID = src.m_itemTypeID;
-			m_nObjID = src.m_nObjID;
-		}
-		return *this;
-	}
-	
-	bool operator == ( const BACnetSequenceOf<MyDataType> &arg )
-	{
-		if ( listSequenceOf.GetCount() != arg.GetItemCount() ) {
-			return false;
-		}
-		for( int index = 0; index < listSequenceOf.GetCount(); index++ )
-		{
-			POSITION pos = listSequenceOf.FindIndex(index);		
-			if ( !( *(listSequenceOf.GetAt(pos)) == *(arg.GetElement(index)) ) )  {
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext )
-	{
-		for(int i = 0; i < listSequenceOf.GetCount(); i++)
-		{
-			POSITION pos = listSequenceOf.FindIndex(i);	
-			listSequenceOf.GetAt(pos)->Encode(enc);
-		}
-	}
-	
-	virtual void Decode( BACnetAPDUDecoder& dec )
-	{
-		DeleteAllElements();
-		while(dec.pktLength != 0)
-		{
-			//if the code is closing tag then break
-			BACnetAPDUTag tag;
-			dec.ExamineTag(tag);
-			if(tag.tagClass == closingTagClass)
-				break;
-			
-			MyDataType* temp = new MyDataType();
-//			switch(temp->DataType()) 
-//			{
-//			case BACNET_READACCESSRESULT_LISTOFRESULT:
-//			//	((ReadAccessResult::ListOfResults*)temp)->SetObjectID(m_nObjID);
-//				break;
-//			case BACNET_WRITEACCESSSPECIFICATION:
-//			//	((BACnetPropertyValue*)temp)->SetObjectID(m_nObjID);
-//				break;
-//			default:
-//				break;
-//			}
-			
-			temp->Decode(dec);
-			listSequenceOf.AddTail(temp);
-		}
-	}	
-	
-	virtual const int DataType(void) const 
-	{
-		return m_typeID;
-	}			
-//	DECLARE_DYNAMIC(BACnetSequenceOf)
+   ~BACnetSequenceOf()
+   {
+      for(int i=0; i < listSequenceOf.GetCount(); i++)
+      {
+         POSITION pos = listSequenceOf.FindIndex(i);
+         delete listSequenceOf.GetAt(pos);   
+      }
+   }
+
+   void AddElement(MyDataType* pSrc)
+   {
+      MyDataType* pNewElem = new MyDataType(*pSrc);
+      if(pNewElem != NULL)
+      listSequenceOf.AddTail(pNewElem);
+   }
+
+   void DeleteElement(unsigned int index)
+   {
+      if(index >=(unsigned int) listSequenceOf.GetCount())
+      {
+         throw "The specified index is beyond the scope of the sequenceof.";
+      }
+      POSITION pos = listSequenceOf.FindIndex(index);
+      MyDataType* pDeleteElem=listSequenceOf.GetAt(pos);
+
+      if(pDeleteElem != NULL)
+      {
+         delete pDeleteElem;
+         pDeleteElem = NULL;
+      }
+
+      listSequenceOf.RemoveAt(pos);
+   }
+
+   void DeleteAllElements()
+   {
+      for(int i=0; i < listSequenceOf.GetCount(); i++)
+      {
+         POSITION pos = listSequenceOf.FindIndex(i);
+         delete listSequenceOf.GetAt(pos);
+      }
+      listSequenceOf.RemoveAll();
+   }
+
+   void SetElement(unsigned int index, MyDataType* src)
+   {
+      if((int)index >= listSequenceOf.GetCount())
+         throw "The specified index is beyond the scope of the sequenceof.";
+      POSITION pos = listSequenceOf.FindIndex(index);    
+      MyDataType* elem=listSequenceOf.GetAt(pos);
+      *elem = *src;
+   }
+
+   MyDataType* GetElement(unsigned int index) const
+   {
+      if(index>=(unsigned int)listSequenceOf.GetCount())
+         throw "The specified index is beyond the scope of the sequenceof.";
+      POSITION pos = listSequenceOf.FindIndex(index);       
+      return listSequenceOf.GetAt(pos);
+   }
+
+   int GetItemCount() const
+   {
+      return listSequenceOf.GetCount();
+   }
+
+   const int GetItemType() const
+   {
+      MyDataType item;
+      return item.DataType();
+   }
+
+   void SetItemType(int typeID)
+   {
+      m_itemTypeID = typeID;
+   }
+
+   void SetType(int typeID)
+   {
+      if(typeID == sequenceof || typeID == arrayof || typeID == listof)
+         m_typeID = typeID;
+      else
+         throw "Bad typeID!";
+   }
+
+   MyDataType* operator[](const unsigned int index)
+   {
+      if(m_typeID != arrayof)
+         throw "It's not an array.";
+      
+      if(index>=listSequenceOf.GetCount())
+         throw "The specified index is beyond the scope of the sequenceof.";
+      POSITION pos = listSequenceOf.FindIndex(index);
+      return listSequenceOf.GetAt(pos);
+   }
+
+   BACnetSequenceOf<MyDataType>& operator=(const BACnetSequenceOf<MyDataType> &src)
+   {
+      if(this != &src)
+      {
+         this->DeleteAllElements();
+         for(int i = 0; i < src.listSequenceOf.GetCount(); i++)
+         {
+            POSITION pos = src.listSequenceOf.FindIndex(i); 
+            MyDataType* pElem = new MyDataType(*(src.listSequenceOf.GetAt(pos)));
+            listSequenceOf.AddTail(pElem);
+         }
+
+         m_typeID = src.m_typeID; 
+         m_itemTypeID = src.m_itemTypeID;
+         m_nObjID = src.m_nObjID;
+      }
+      return *this;
+   }
+
+   bool operator == ( const BACnetSequenceOf<MyDataType> &arg )
+   {
+      if ( listSequenceOf.GetCount() != arg.GetItemCount() ) {
+         return false;
+      }
+      for( int index = 0; index < listSequenceOf.GetCount(); index++ )
+      {
+         POSITION pos = listSequenceOf.FindIndex(index);    
+         if ( !( *(listSequenceOf.GetAt(pos)) == *(arg.GetElement(index)) ) )  {
+            return false;
+         }
+      }
+      return true;
+   }
+
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext )
+   {
+      for(int i = 0; i < listSequenceOf.GetCount(); i++)
+      {
+         POSITION pos = listSequenceOf.FindIndex(i);  
+         listSequenceOf.GetAt(pos)->Encode(enc);
+      }
+   }
+
+   virtual void Decode( BACnetAPDUDecoder& dec )
+   {
+      DeleteAllElements();
+      while(dec.pktLength != 0)
+      {
+         //if the code is closing tag then break
+         BACnetAPDUTag tag;
+         dec.ExamineTag(tag);
+         if(tag.tagClass == closingTagClass)
+            break;
+
+         MyDataType* temp = new MyDataType();
+//       switch(temp->DataType()) 
+//       {
+//       case BACNET_READACCESSRESULT_LISTOFRESULT:
+//       // ((ReadAccessResult::ListOfResults*)temp)->SetObjectID(m_nObjID);
+//          break;
+//       case BACNET_WRITEACCESSSPECIFICATION:
+//       // ((BACnetPropertyValue*)temp)->SetObjectID(m_nObjID);
+//          break;
+//       default:
+//          break;
+//       }
+
+         temp->Decode(dec);
+         listSequenceOf.AddTail(temp);
+      }
+   }
+
+   virtual int DataType(void) const
+   {
+      return m_typeID;
+   }
+// DECLARE_DYNAMIC(BACnetSequenceOf)
 };
+
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 //
-//	BACnetListOf
+// BACnetListOf
 //
 template<class MyDataType >
 class BACnetListOf : public BACnetSequenceOf<MyDataType>
 {
 public:
-	BACnetListOf(void):BACnetSequenceOf<MyDataType>()
-	{
-		m_typeID = listof;		
-	}
-	
+   BACnetListOf(void):BACnetSequenceOf<MyDataType>()
+   {
+      m_typeID = listof;
+   }
 };
 template<class MyDataType >
 class BACnetArrayOf : public BACnetSequenceOf<MyDataType>
 {
 public:
-	BACnetArrayOf(void):BACnetSequenceOf<MyDataType>()
-	{
-		m_typeID = arrayof;	
-	}	
+   BACnetArrayOf(void):BACnetSequenceOf<MyDataType>()
+   {
+      m_typeID = arrayof;
+   }
 };
 class BACnetTimeStamp : public BACnetObjectContainer
 {
-	public:
-		BACnetTimeStamp();
-		BACnetTimeStamp( BACnetAPDUDecoder & dec );
-		BACnetTimeStamp( BACnetEncodeable * pbacnetEncodeable );
+public:
+   BACnetTimeStamp();
+   BACnetTimeStamp( BACnetAPDUDecoder & dec );
+   BACnetTimeStamp( BACnetEncodeable * pbacnetEncodeable );
 
-		// override decode for special construction from stream
-		void Decode( BACnetAPDUDecoder& dec );								// decode
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   //virtual void Encode( CString &enc, Format theFormat ) const;
+   //virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetTimeStamp)
+   DECLARE_DYNAMIC(BACnetTimeStamp)
 };
 
 //Shiyuan Xiao 
 class BACnetScale : public BACnetObjectContainer
 {
-	public:
-		BACnetScale();
-		BACnetScale(float value);
-		BACnetScale(int value);
-		BACnetScale( BACnetAPDUDecoder & dec );
-		BACnetScale( BACnetEncodeable * pbacnetEncodeable );
+public:
+   BACnetScale();
+   BACnetScale(float value);
+   BACnetScale(int value);
+   BACnetScale( BACnetAPDUDecoder & dec );
+   BACnetScale( BACnetEncodeable * pbacnetEncodeable );
 
-		// override decode for special construction from stream
-		void Decode( BACnetAPDUDecoder& dec );								// decode
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   //virtual void Encode( CString &enc, Format theFormat ) const;
+   //virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetScale)
+   DECLARE_DYNAMIC(BACnetScale)
 };
 
 //Shiyuan Xiao 
 class BACnetPrescale : public BACnetEncodeable
 {
-	public:
-		unsigned multiplier;
-		unsigned moduloDivide;
-		
-		BACnetPrescale();		
-		BACnetPrescale(unsigned multiplier, unsigned moduloDivide);
-		BACnetPrescale( BACnetAPDUDecoder & dec );	
+public:
+   unsigned multiplier;
+   unsigned moduloDivide;
 
-		// override decode for special construction from stream
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+   BACnetPrescale();    
+   BACnetPrescale(unsigned multiplier, unsigned moduloDivide);
+   BACnetPrescale( BACnetAPDUDecoder & dec );   
 
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetPrescale)
+   DECLARE_DYNAMIC(BACnetPrescale)
 };
 
 //Shiyuan Xiao 
 class BACnetAccumulatorRecord : public BACnetEncodeable
 {
-	public:
-		PICS::BACnetDateTime timestamp;
-		unsigned presentValue;
-		unsigned accumulatedValue;
-		unsigned accumulatorStatus;
-		
-		BACnetAccumulatorRecord();		
-		BACnetAccumulatorRecord(PICS::BACnetDateTime timestamp, unsigned presentValue, 
-			unsigned accumulatedValue, unsigned accumulatorStatus);
-		BACnetAccumulatorRecord( BACnetAPDUDecoder & dec );	
+public:
+   PICS::BACnetDateTime timestamp;
+   unsigned presentValue;
+   unsigned accumulatedValue;
+   unsigned accumulatorStatus;
 
-		// override decode for special construction from stream
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+   BACnetAccumulatorRecord();    
+   BACnetAccumulatorRecord(PICS::BACnetDateTime timestamp, unsigned presentValue, 
+                           unsigned accumulatedValue, unsigned accumulatorStatus);
+   BACnetAccumulatorRecord( BACnetAPDUDecoder & dec );   
 
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetAccumulatorRecord)
+   DECLARE_DYNAMIC(BACnetAccumulatorRecord)
 };
 
 class BACnetShedLevel : public BACnetEncodeable
 {
-	public:
-		unsigned context;
-		float value;
-		
-		BACnetShedLevel();		
-		BACnetShedLevel(unsigned context, float value);
-		BACnetShedLevel( BACnetAPDUDecoder & dec );	
+public:
+   unsigned context;
+   float value;
 
-		// override decode for special construction from stream
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
+   BACnetShedLevel();      
+   BACnetShedLevel(unsigned context, float value);
+   BACnetShedLevel( BACnetAPDUDecoder & dec );  
 
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual int DataType(void);
-		virtual BACnetEncodeable * clone(void);
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetShedLevel)
+   DECLARE_DYNAMIC(BACnetShedLevel)
 };
 
 class BACnetGenericArray : public BACnetEncodeable
 {
-	protected:
-		CTypedPtrArray<CObArray, BACnetEncodeable *> m_apBACnetObjects;
+protected:
+   CTypedPtrArray<CObArray, BACnetEncodeable *> m_apBACnetObjects;
 
-		void ClearArray();
+   void ClearArray();
 
-		int m_nElemType;
-		int m_nType;
+   int m_nElemType;
+   int m_nType;
 
-	public:
-		BACnetGenericArray() {};
-		BACnetGenericArray( int nDataType, int nSize = -1 );
-		virtual ~BACnetGenericArray();
+public:
+   BACnetGenericArray() {};
+   BACnetGenericArray( int nDataType, int nSize = -1 );
+   virtual ~BACnetGenericArray();
 
-		// override these guys so they operate on held BACnet type not this.
-		virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		virtual void Decode( BACnetAPDUDecoder& dec );								// decode
-		virtual void Encode( CString &enc ) const;
-		virtual void Decode( const char *dec );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   virtual int DataType(void) const;
+   //virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		virtual const char * ToString() const;
-		virtual int DataType(void) { return m_nType; }
-		virtual BACnetEncodeable * NewDecoderElement(BACnetAPDUDecoder& dec);
+   virtual BACnetEncodeable * NewDecoderElement(BACnetAPDUDecoder& dec);
 
-		BACnetEncodeable * operator[](int nIndex) const;
-		BACnetEncodeable & operator[](int nIndex);
-		int Add( BACnetEncodeable * pbacnetEncodeable );
-		int GetSize(void);
+   BACnetEncodeable * operator[](int nIndex) const;
+   BACnetEncodeable & operator[](int nIndex);
+   int Add( BACnetEncodeable * pbacnetEncodeable );
+   int GetSize(void);
 
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
-
-		DECLARE_DYNAMIC(BACnetGenericArray)
+   DECLARE_DYNAMIC(BACnetGenericArray)
 };
 
 
 class BACnetPriorityArray : public BACnetGenericArray
 {
-	public:
-		BACnetPriorityArray();
-		BACnetPriorityArray( BACnetAPDUDecoder& dec );
-		BACnetPriorityArray( float * paPriority, int nMax, float fNull );
-//		BACnetPriorityArray( int * paPriority, int nMax, int bNull );
-		BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull, boolean binaryPV );
+public:
+   BACnetPriorityArray();
+   BACnetPriorityArray( BACnetAPDUDecoder& dec );
+   BACnetPriorityArray( float * paPriority, int nMax, float fNull );
+   BACnetPriorityArray( unsigned short * paPriority, int nMax, unsigned short uNull, boolean binaryPV );
 
-		BACnetPriorityValue * operator[](int nIndex) const;
-		BACnetPriorityValue & operator[](int nIndex);
+   BACnetPriorityValue * operator[](int nIndex) const;
+   BACnetPriorityValue & operator[](int nIndex);
 
-		DECLARE_DYNAMIC(BACnetPriorityArray)
+   DECLARE_DYNAMIC(BACnetPriorityArray)
 };
 
 
 class BACnetTextArray : public BACnetGenericArray
 {
-	public:
-		BACnetTextArray( BACnetAPDUDecoder& dec );
-		BACnetTextArray( char * paText[], int nMax = -1 );
-		BACnetTextArray( char * pText );
+public:
+   BACnetTextArray( BACnetAPDUDecoder& dec );
+   BACnetTextArray( char * paText[], int nMax = -1 );
+   BACnetTextArray( char * pText );
 
-		//virtual void Decode( BACnetAPDUDecoder& dec );
+   BACnetCharacterString * operator[](int nIndex) const;
+   BACnetCharacterString & operator[](int nIndex);
 
-		BACnetCharacterString * operator[](int nIndex) const;
-		BACnetCharacterString & operator[](int nIndex);
-
-		DECLARE_DYNAMIC(BACnetTextArray)
+   DECLARE_DYNAMIC(BACnetTextArray)
 };
 
 
 class BACnetListOfCalendarEntry : public BACnetGenericArray
 {
-	public:
-		BACnetListOfCalendarEntry();
-		BACnetListOfCalendarEntry( BACnetAPDUDecoder& dec );
+public:
+   BACnetListOfCalendarEntry();
+   BACnetListOfCalendarEntry( BACnetAPDUDecoder& dec );
 
-//		void Decode( BACnetAPDUDecoder& dec );
+   BACnetCalendarEntry * operator[](int nIndex) const;
+   BACnetCalendarEntry & operator[](int nIndex);
 
-		BACnetCalendarEntry * operator[](int nIndex) const;
-		BACnetCalendarEntry & operator[](int nIndex);
-
-		DECLARE_DYNAMIC(BACnetListOfCalendarEntry)
+   DECLARE_DYNAMIC(BACnetListOfCalendarEntry)
 };
 
 class BACnetBooleanArray : public BACnetGenericArray
 {
-	public:
-		BACnetBooleanArray( BACnetAPDUDecoder& dec );
-		BACnetBooleanArray( PICS::BooleanList *ub );
+public:
+   BACnetBooleanArray( BACnetAPDUDecoder& dec );
+   BACnetBooleanArray( PICS::BooleanList *ub );
 
-//		virtual void Decode( BACnetAPDUDecoder& dec );
+   BACnetBoolean * operator[](int nIndex) const;
+   BACnetBoolean & operator[](int nIndex);
 
-		BACnetBoolean * operator[](int nIndex) const;
-		BACnetBoolean & operator[](int nIndex);
-
-		DECLARE_DYNAMIC(BACnetBooleanArray)
+   DECLARE_DYNAMIC(BACnetBooleanArray)
 };
 
 class BACnetUnsignedArray : public BACnetGenericArray
 {
-	public:
-		BACnetUnsignedArray( BACnetAPDUDecoder& dec );
-		BACnetUnsignedArray( unsigned char paUnsigned[], int nMax = -1 );
-		BACnetUnsignedArray( unsigned short paUnsigned[], int nMax = -1 );
-		BACnetUnsignedArray( PICS::UnsignedList *ul );
+public:
+   BACnetUnsignedArray( BACnetAPDUDecoder& dec );
+   BACnetUnsignedArray( unsigned char paUnsigned[], int nMax = -1 );
+   BACnetUnsignedArray( unsigned short paUnsigned[], int nMax = -1 );
+   BACnetUnsignedArray( PICS::UnsignedList *ul );
 
-//		virtual void Decode( BACnetAPDUDecoder& dec );
+   BACnetUnsigned * operator[](int nIndex) const;
+   BACnetUnsigned & operator[](int nIndex);
 
-		BACnetUnsigned * operator[](int nIndex) const;
-		BACnetUnsigned & operator[](int nIndex);
-
-		DECLARE_DYNAMIC(BACnetUnsignedArray)
+   DECLARE_DYNAMIC(BACnetUnsignedArray)
 };
 
 
 class BACnetObjectIDList : public BACnetGenericArray
 {
-	public:
-		BACnetObjectIDList();
-		BACnetObjectIDList( int nSize );
-		BACnetObjectIDList( BACnetAPDUDecoder& dec );
+public:
+   BACnetObjectIDList();
+   BACnetObjectIDList( int nSize );
+   BACnetObjectIDList( BACnetAPDUDecoder& dec );
 
-//		virtual void Decode( BACnetAPDUDecoder& dec );
+   BACnetObjectIdentifier * operator[](int nIndex) const;
+   BACnetObjectIdentifier & operator[](int nIndex);
 
-		BACnetObjectIdentifier * operator[](int nIndex) const;
-		BACnetObjectIdentifier & operator[](int nIndex);
-
-		DECLARE_DYNAMIC(BACnetObjectIDList)
+   DECLARE_DYNAMIC(BACnetObjectIDList)
 };
 
 
 class BACnetTimeStampArray : public BACnetGenericArray
 {
-	public:
-		BACnetTimeStampArray();
-		BACnetTimeStampArray( int nSize );
-		BACnetTimeStampArray( BACnetAPDUDecoder& dec );
+public:
+   BACnetTimeStampArray();
+   BACnetTimeStampArray( int nSize );
+   BACnetTimeStampArray( BACnetAPDUDecoder& dec );
 
-		BACnetTimeStamp * operator[](int nIndex) const;
-		BACnetTimeStamp & operator[](int nIndex);
+   BACnetTimeStamp * operator[](int nIndex) const;
+   BACnetTimeStamp & operator[](int nIndex);
 
-		DECLARE_DYNAMIC(BACnetTimeStampArray)
+   DECLARE_DYNAMIC(BACnetTimeStampArray)
 };
 
 /*
 class BACnetListOfObjectPropertyReference : public BACnetGenericArray
 {
-	public:
-		BACnetListOfObjectPropertyReference();
-		BACnetListOfObjectPropertyReference( BACnetAPDUDecoder& dec );
-		BACnetListOfObjectPropertyReference( PICS::BACnetObjectPropertyReference * pobjprops );
+public:
+   BACnetListOfObjectPropertyReference();
+   BACnetListOfObjectPropertyReference( BACnetAPDUDecoder& dec );
+   BACnetListOfObjectPropertyReference( PICS::BACnetObjectPropertyReference * pobjprops );
 
-		BACnetObjectPropertyReference * operator[](int nIndex) const;
-		BACnetObjectPropertyReference & operator[](int nIndex);
+   BACnetObjectPropertyReference * operator[](int nIndex) const;
+   BACnetObjectPropertyReference & operator[](int nIndex);
 
-		DECLARE_DYNAMIC(BACnetListOfObjectPropertyReference)
+   DECLARE_DYNAMIC(BACnetListOfObjectPropertyReference)
 };
 */
 
 class BACnetListOfDeviceObjectPropertyReference : public BACnetGenericArray
 {
-	public:
-		BACnetListOfDeviceObjectPropertyReference();
-		BACnetListOfDeviceObjectPropertyReference( BACnetAPDUDecoder& dec );
-		BACnetListOfDeviceObjectPropertyReference( PICS::BACnetDeviceObjectPropertyReference * pobjprops );
+public:
+   BACnetListOfDeviceObjectPropertyReference();
+   BACnetListOfDeviceObjectPropertyReference( BACnetAPDUDecoder& dec );
+   BACnetListOfDeviceObjectPropertyReference( PICS::BACnetDeviceObjectPropertyReference * pobjprops );
 
-		BACnetDeviceObjectPropertyReference * operator[](int nIndex) const;
-		BACnetDeviceObjectPropertyReference & operator[](int nIndex);
+   BACnetDeviceObjectPropertyReference * operator[](int nIndex) const;
+   BACnetDeviceObjectPropertyReference & operator[](int nIndex);
 
-		DECLARE_DYNAMIC(BACnetListOfDeviceObjectPropertyReference)
+   DECLARE_DYNAMIC(BACnetListOfDeviceObjectPropertyReference)
 };
 
 class BACnetListOfDeviceObjectReference : public BACnetGenericArray
 {
-	public:
-		BACnetObjectIdentifier m_devID;
-		BACnetObjectIdentifier m_objID;
+public:
+   BACnetObjectIdentifier m_devID;
+   BACnetObjectIdentifier m_objID;
 
-		BACnetListOfDeviceObjectReference();
-		BACnetListOfDeviceObjectReference( BACnetAPDUDecoder& dec );
-		BACnetListOfDeviceObjectReference(PICS::BACnetDeviceObjectReference * pobjs);
+   BACnetListOfDeviceObjectReference();
+   BACnetListOfDeviceObjectReference( BACnetAPDUDecoder& dec );
+   BACnetListOfDeviceObjectReference(PICS::BACnetDeviceObjectReference * pobjs);
 
-		BACnetDeviceObjectReference * operator[](int nIndex) const;
-		BACnetDeviceObjectReference & operator[](int nIndex);
+   BACnetDeviceObjectReference * operator[](int nIndex) const;
+   BACnetDeviceObjectReference & operator[](int nIndex);
 
-		DECLARE_DYNAMIC(BACnetListOfDeviceObjectReference)
+   DECLARE_DYNAMIC(BACnetListOfDeviceObjectReference)
 };
 
 
 class BACnetListOfEnum : public BACnetGenericArray
 {
-	int m_nTableId;
+   int m_nTableId;
 public:
-	BACnetListOfEnum(int tableId);
-	BACnetListOfEnum( BACnetAPDUDecoder& dec, int tableId );
+   BACnetListOfEnum(int tableId);
+   BACnetListOfEnum( BACnetAPDUDecoder& dec, int tableId );
 
-	virtual BACnetEncodeable * NewDecoderElement(BACnetAPDUDecoder& dec);
+   virtual BACnetEncodeable * NewDecoderElement(BACnetAPDUDecoder& dec);
 
-	BACnetEnumerated * operator[](int nIndex) const;
-	BACnetEnumerated & operator[](int nIndex);
+   BACnetEnumerated * operator[](int nIndex) const;
+   BACnetEnumerated & operator[](int nIndex);
 
-	DECLARE_DYNAMIC(BACnetListOfEnum)
+   DECLARE_DYNAMIC(BACnetListOfEnum)
 };
 
 class BACnetListOfVTClass : public BACnetGenericArray
 {
-	public:
-		BACnetListOfVTClass();
-		BACnetListOfVTClass( BACnetAPDUDecoder& dec );
+public:
+   BACnetListOfVTClass();
+   BACnetListOfVTClass( BACnetAPDUDecoder& dec );
 
-		virtual BACnetEncodeable * NewDecoderElement(BACnetAPDUDecoder& dec);
+   virtual BACnetEncodeable * NewDecoderElement(BACnetAPDUDecoder& dec);
 
-		BACnetEnumerated * operator[](int nIndex) const;
-		BACnetEnumerated & operator[](int nIndex);
+   BACnetEnumerated * operator[](int nIndex) const;
+   BACnetEnumerated & operator[](int nIndex);
 
-		DECLARE_DYNAMIC(BACnetListOfVTClass)
+   DECLARE_DYNAMIC(BACnetListOfVTClass)
 };
 
 
 class BACnetListOfDestination : public BACnetGenericArray
 {
-	public:
-		BACnetListOfDestination();
-		BACnetListOfDestination( BACnetAPDUDecoder& dec );
+public:
+   BACnetListOfDestination();
+   BACnetListOfDestination( BACnetAPDUDecoder& dec );
 
-		BACnetDestination * operator[](int nIndex) const;
-		BACnetDestination & operator[](int nIndex);
+   BACnetDestination * operator[](int nIndex) const;
+   BACnetDestination & operator[](int nIndex);
 
-		DECLARE_DYNAMIC(BACnetListOfDestination)
+   DECLARE_DYNAMIC(BACnetListOfDestination)
 };
-
-
 
 class BACnetListOfRecipient : public BACnetGenericArray
 {
-	public:
-		BACnetListOfRecipient();
-		BACnetListOfRecipient( BACnetAPDUDecoder& dec );
+public:
+   BACnetListOfRecipient();
+   BACnetListOfRecipient( BACnetAPDUDecoder& dec );
 
-		BACnetRecipient * operator[](int nIndex) const;
-		BACnetRecipient & operator[](int nIndex);
+   BACnetRecipient * operator[](int nIndex) const;
+   BACnetRecipient & operator[](int nIndex);
 
-		DECLARE_DYNAMIC(BACnetListOfRecipient)
+   DECLARE_DYNAMIC(BACnetListOfRecipient)
 };
 
 
 class BACnetListOfCOVSubscription : public BACnetGenericArray
 {
-	public:
-		BACnetListOfCOVSubscription();
-		BACnetListOfCOVSubscription( BACnetAPDUDecoder& dec );
+public:
+   BACnetListOfCOVSubscription();
+   BACnetListOfCOVSubscription( BACnetAPDUDecoder& dec );
 
-		BACnetCOVSubscription * operator[](int nIndex) const;
-		BACnetCOVSubscription & operator[](int nIndex);
+   BACnetCOVSubscription * operator[](int nIndex) const;
+   BACnetCOVSubscription & operator[](int nIndex);
 
-		DECLARE_DYNAMIC(BACnetListOfCOVSubscription)
+   DECLARE_DYNAMIC(BACnetListOfCOVSubscription)
 };
 
 
 
 class BACnetAnyValue : public BACnetObjectContainer
 {
-	private:
-		int m_nType;
+private:
+   int m_nType;
 
-	public:
+public:
 
-		BACnetAnyValue();
-		BACnetAnyValue( BACnetEncodeable * pbacnetEncodeable );
+   BACnetAnyValue();
+   BACnetAnyValue( BACnetEncodeable * pbacnetEncodeable );
 
-		int DataType(void) {return GetType();}
-		int GetType();
-		void SetType(int nNewType);
+   // Overrides of base methods
+   virtual int DataType(void) const;
 
-		// Specific type creations
-		bool CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOperator, LPCSTR lpstrValueName );
-		void SetObject( int nNewType, BACnetEncodeable * pbacnetEncodeable );
-		virtual void SetObject( BACnetEncodeable * pbacnetEncodeable );		// to derive type
+   int GetType() const;
+   void SetType(int nNewType);
 
-		DECLARE_DYNAMIC(BACnetAnyValue)
+   // Specific type creations
+   bool CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOperator, LPCSTR lpstrValueName );
+   void SetObject( int nNewType, BACnetEncodeable * pbacnetEncodeable );
+   virtual void SetObject( BACnetEncodeable * pbacnetEncodeable );      // to derive type
+
+   DECLARE_DYNAMIC(BACnetAnyValue)
 };
 
 
 
 
 //
-//	Opening and Closing Tags
+// Opening and Closing Tags
 //
-//	These are not native BACnet object types per se, they are just used to open and close 
-//	a known context.  There are no attributes to keep track of, so there's no constructor 
-//	and the object really doesn't take up any size.
+// These are not native BACnet object types per se, they are just used to open and close 
+// a known context.  There are no attributes to keep track of, so there's no constructor 
+// and the object really doesn't take up any size.
 //
-//	There is no application encoding for an opening tag, so the context parameter is 
-//	required.  During decoding the application can peek at the tag and see what kind of 
-//	thing the next piece is, along with the context if it's context encoded.
+// There is no application encoding for an opening tag, so the context parameter is 
+// required.  During decoding the application can peek at the tag and see what kind of 
+// thing the next piece is, along with the context if it's context encoded.
 //
 
-class BACnetOpeningTag : public BACnetEncodeable {
-	public:
-		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
-		void Decode( BACnetAPDUDecoder& dec );					// decode
+class BACnetOpeningTag : public BACnetEncodeable
+{
+public:
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   //virtual void Decode( const char *dec );
+   //virtual int DataType(void) const;
+   //virtual BACnetEncodeable * clone(void);
+   //virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+};
 
-		void Encode( CString &enc ) const;
-	};
-
-class BACnetClosingTag : public BACnetEncodeable {
-	public:
-		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
-		void Decode( BACnetAPDUDecoder& dec );					// decode
-
-		void Encode( CString &enc ) const;
-	};
+class BACnetClosingTag : public BACnetEncodeable
+{
+public:
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   //virtual void Decode( const char *dec );
+   //virtual int DataType(void) const;
+   //virtual BACnetEncodeable * clone(void);
+   //virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+};
 
 // Handle decoding of arbitrary tagged items in an APDU
-class BACnetANY: public BACnetEncodeable {
-	public:
-		int				spaceLen;		// size of buffer
-		int				dataLen;		// number of octets
-		BACnetOctet		*dataBuff;		// pointer to data
+class BACnetANY: public BACnetEncodeable
+{
+public:
+   int            spaceLen;      // size of buffer
+   int            dataLen;    // number of octets
+   BACnetOctet    *dataBuff;     // pointer to data
 
-		BACnetANY();
-		~BACnetANY();
+   BACnetANY();
+   ~BACnetANY();
 
-		// Set value from any other BACnetEncodeable
-		void SetValue( BACnetEncodeable &theEnc );
-		
-		// Overrides of base class methods
-		void Encode( BACnetAPDUEncoder& enc, int context );		// encode, context required
-		void Decode( BACnetAPDUDecoder& dec );					// decode
+   // Set value from any other BACnetEncodeable
+   void SetValue( BACnetEncodeable &theEnc );
 
-		void Encode( CString &enc ) const;
-		void Decode( const char *dec );
-		virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Decode( const char *dec );
+   //virtual int DataType(void) const;
+   //virtual BACnetEncodeable * clone(void);
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
-		DECLARE_DYNAMIC(BACnetANY)
-	};
-
-//
-//	BACnetAPDUTag
-//
-//	A BACnetAPDUTag is a description of content that sits in front of each object in 
-//	the stream of data.  According to the standard, the tag 'class' specifies that the 
-//	content should be interpreted as 'application' (which describes the type) and 
-//	'context' (which really means you have to look it up in the standard to figure 
-//	out the datatype, you can't tell just by looking at the tag).
-//
-//	To help various applications peek into the datastream before decoding it, the 
-//	BACnetTagClass defines opening and closing tag classes.  They are not described as 
-//	such in the standard, but it really helps simplify the decoding code.
-//
-
-enum BACnetTagClass {
-		applicationTagClass				= 0,
-		contextTagClass					= 1,
-		openingTagClass					= 2,
-		closingTagClass					= 3
-		};
-
-class BACnetAPDUTag : public BACnetEncodeable {
-	public:
-		BACnetTagClass			tagClass;			// class
-		BACnetApplicationTag	tagNumber;			// tag number
-		int						tagLVT;				// length/value/type
-		
-		BACnetAPDUTag( BACnetApplicationTag tnum = nullAppTag, int tlen = 0 );	// application
-		BACnetAPDUTag( int context, int tlen = 0 );								// context
-		BACnetAPDUTag( BACnetTagClass tclass, BACnetApplicationTag tnum, int tlen = 0 );
-		
-		void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );	// encode
-		void Decode( BACnetAPDUDecoder& dec );								// decode
-	};
+   DECLARE_DYNAMIC(BACnetANY)
+};
 
 //
-//	BACnetNPDU
+// BACnetAPDUTag
 //
-//	A BACnetNPDU is the object that gets passed between a client and an endpoint
-//	(a server).  It encapsulates the address (source or destination depending on
-//	the context) and a stream of octets.  It also has some extra information that 
-//	is also encoded in the NPCI (a reply is expected and the network priority) to 
-//	make it simpler to access (rather than sucking the same information out of the
-//	encoded NPCI).
+// A BACnetAPDUTag is a description of content that sits in front of each object in 
+// the stream of data.  According to the standard, the tag 'class' specifies that the 
+// content should be interpreted as 'application' (which describes the type) and 
+// 'context' (which really means you have to look it up in the standard to figure 
+// out the datatype, you can't tell just by looking at the tag).
+//
+// To help various applications peek into the datastream before decoding it, the 
+// BACnetTagClass defines opening and closing tag classes.  They are not described as 
+// such in the standard, but it really helps simplify the decoding code.
 //
 
-struct BACnetNPDU {
-	BACnetAddress		pduAddr;
-	const BACnetOctet	*pduData;
-	int					pduLen;
-	int					pduExpectingReply;		// see 6.2.2 (1 or 0)
-	int					pduNetworkPriority;		// see 6.2.2 (0, 1, 2, or 3)
-	
-	BACnetNPDU( const BACnetAddress &addr, const BACnetOctet *data, const int len
-		, const int reply = 0, const int priority = 0
-		);
-	};
+enum BACnetTagClass
+{
+   applicationTagClass           = 0,
+   contextTagClass               = 1,
+   openingTagClass               = 2,
+   closingTagClass               = 3
+};
+
+class BACnetAPDUTag : public BACnetEncodeable 
+{
+public:
+   BACnetTagClass       tagClass;         // class
+   BACnetApplicationTag tagNumber;        // tag number
+   int                  tagLVT;           // length/value/type
+
+   BACnetAPDUTag( BACnetApplicationTag tnum = nullAppTag, int tlen = 0 );  // application
+   BACnetAPDUTag( int context, int tlen = 0 );                       // context
+   BACnetAPDUTag( BACnetTagClass tclass, BACnetApplicationTag tnum, int tlen = 0 );
+
+   // Overrides of base methods
+   virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
+   virtual void Decode( BACnetAPDUDecoder& dec );
+   //virtual void Encode( CString &enc, Format theFormat ) const;
+   //virtual void Decode( const char *dec );
+   //virtual int DataType(void) const;
+   //virtual BACnetEncodeable * clone(void);
+   //virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+};
+
+//
+// BACnetNPDU
+//
+// A BACnetNPDU is the object that gets passed between a client and an endpoint
+// (a server).  It encapsulates the address (source or destination depending on
+// the context) and a stream of octets.  It also has some extra information that 
+// is also encoded in the NPCI (a reply is expected and the network priority) to 
+// make it simpler to access (rather than sucking the same information out of the
+// encoded NPCI).
+//
+
+struct BACnetNPDU
+{
+   BACnetAddress     pduAddr;
+   const BACnetOctet *pduData;
+   int               pduLen;
+   int               pduExpectingReply;      // see 6.2.2 (1 or 0)
+   int               pduNetworkPriority;     // see 6.2.2 (0, 1, 2, or 3)
+   
+   BACnetNPDU( const BACnetAddress &addr, const BACnetOctet *data, const int len,
+               const int reply = 0, const int priority = 0 );
+};
 
 typedef BACnetNPDU *BACnetNPDUPtr;
 
 //
-//	BACnetAPDUEncoder
+// BACnetAPDUEncoder
 //
-//	An encoder is an object passed to the various types to store the encoded version 
-//	of themselves.
+// An encoder is an object passed to the various types to store the encoded version 
+// of themselves.
 //
 
 const int kDefaultBufferSize = 1024;
 
-class BACnetAPDUEncoder {
-	protected:
-		int					pktBuffSize;			// allocated size
-		
-	public:
-		BACnetAPDUEncoder( int initBuffSize = kDefaultBufferSize );
-		BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
-		BACnetAPDUEncoder( const BACnetAPDUEncoder &theEncoder );
-		~BACnetAPDUEncoder( void );
-		
-		BACnetOctet			*pktBuffer;				// pointer to start of buffer
-		int					pktLength;				// number of encoded octets
-		
-		void SetBuffer( const BACnetOctet *buffer, int len );
-		void NewBuffer( int len );					// allocate a new buffer
+class BACnetAPDUEncoder
+{
+protected:
+   int               pktBuffSize;         // allocated size
 
-		void CheckSpace( int len );					// resize iff necessary
-		void Append( BACnetOctet ch );				// simple copy, should be inline!
-		void Append( BACnetOctet *buff, int len );	// raw copy into buffer
-		void Flush( void );							// remove all contents
+public:
+   BACnetAPDUEncoder( int initBuffSize = kDefaultBufferSize );
+   BACnetAPDUEncoder( BACnetOctet *buffPtr, int buffLen = 0 );    // already have a buffer
+   BACnetAPDUEncoder( const BACnetAPDUEncoder &theEncoder );
+   ~BACnetAPDUEncoder( void );
 
-	private:
-		// Private to prevent copy
-		BACnetAPDUEncoder& operator=( BACnetAPDUEncoder const & );
-	};
+   BACnetOctet       *pktBuffer;          // pointer to start of buffer
+   int               pktLength;           // number of encoded octets
+
+   void SetBuffer( const BACnetOctet *buffer, int len );
+   void NewBuffer( int len );             // allocate a new buffer
+
+   void CheckSpace( int len );               // resize iff necessary
+   void Append( BACnetOctet ch );            // simple copy, should be inline!
+   void Append( BACnetOctet *buff, int len );   // raw copy into buffer
+   void Flush( void );                    // remove all contents
+
+private:
+   // Private to prevent copy
+   BACnetAPDUEncoder& operator=( BACnetAPDUEncoder const & );
+};
 
 typedef BACnetAPDUEncoder *BACnetAPDUEncoderPtr;
 
 //
-//	BACnetAPDUDecoder
+// BACnetAPDUDecoder
 //
-//	A decoder sets up a context that is used to decode objects.  It is passed to the 
-//	objects to decode themselves.
+// A decoder sets up a context that is used to decode objects.  It is passed to the 
+// objects to decode themselves.
 //
 
-class BACnetAPDUDecoder {
-	public:
-		const BACnetOctet	*pktBuffer;				// pointer to buffer
-		int					pktLength;				// number of encoded octets
-		
-		BACnetAPDUDecoder( const BACnetOctet *buffer = 0, int len = 0 );
-		BACnetAPDUDecoder( const BACnetAPDUEncoder &enc );
-		BACnetAPDUDecoder( const BACnetNPDU &npdu );
-		
-		void SetBuffer( const BACnetOctet *buffer, int len );
+class BACnetAPDUDecoder
+{
+public:
+   const BACnetOctet *pktBuffer;          // pointer to buffer
+   int               pktLength;           // number of encoded octets
 
-		void ExamineTag( BACnetAPDUTag &t );			// just peek at the next tag
-		bool ExamineOption(int nContext);	//Added by Zhu Zhenhua, 2004-6-14
-		void Skip( void );				// skip the tag
-		
-		void CopyOctets( BACnetOctet *buff, int len );	// raw copy into buffer
+   BACnetAPDUDecoder( const BACnetOctet *buffer = 0, int len = 0 );
+   BACnetAPDUDecoder( const BACnetAPDUEncoder &enc );
+   BACnetAPDUDecoder( const BACnetNPDU &npdu );
 
-		int ExtractData( BACnetOctet *buffer );			// skip the tag and extract the data
-		int	ExtractTagData( BACnetOctet *buffer );		// copy the tag and the data
+   void SetBuffer( const BACnetOctet *buffer, int len );
 
-		bool FindContext( int context, BACnetAPDUDecoder &dec );	// return a decoder for a specific context
-	};
+   void ExamineTag( BACnetAPDUTag &t );         // just peek at the next tag
+   bool ExamineOption(int nContext);   //Added by Zhu Zhenhua, 2004-6-14
+   void Skip( void );            // skip the tag
+
+   void CopyOctets( BACnetOctet *buff, int len );  // raw copy into buffer
+
+   int ExtractData( BACnetOctet *buffer );         // skip the tag and extract the data
+   int ExtractTagData( BACnetOctet *buffer );    // copy the tag and the data
+
+   bool FindContext( int context, BACnetAPDUDecoder &dec ); // return a decoder for a specific context
+};
 
 typedef BACnetAPDUDecoder *BACnetAPDUDecoderPtr;
 
@@ -1948,33 +2032,33 @@ ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec );
 #endif
 
 //
-//	BACnetNetClient
-//	BACnetNetServer
+// BACnetNetClient
+// BACnetNetServer
 //
 
 enum BACnetNetworkMessageType
-      {	WhoIsRouterToNetwork			= 0x00
-      ,	IAmRouterToNetwork				= 0x01
-      ,	ICouldBeRouterToNetwork			= 0x02
-      ,	RejectMessageToNetwork			= 0x03
-      ,	RouterBusyToNetwork				= 0x04
-      ,	RouterAvailableToNetwork		= 0x05
-      ,	InitializeRoutingTable			= 0x06
-      ,	InitializeRoutingTableAck		= 0x07
-      ,	EstablishConnectionToNetwork	= 0x08
-      ,	DisconnectConnectionToNetwork	= 0x09
+      {  WhoIsRouterToNetwork       = 0x00
+      ,  IAmRouterToNetwork            = 0x01
+      ,  ICouldBeRouterToNetwork       = 0x02
+      ,  RejectMessageToNetwork        = 0x03
+      ,  RouterBusyToNetwork           = 0x04
+      ,  RouterAvailableToNetwork      = 0x05
+      ,  InitializeRoutingTable        = 0x06
+      ,  InitializeRoutingTableAck     = 0x07
+      ,  EstablishConnectionToNetwork  = 0x08
+      ,  DisconnectConnectionToNetwork = 0x09
 
-      ,	ChallengeRequest				= 0x0A
-      ,	SecurityPayload					= 0x0B
-      ,	SecurityResponse				= 0x0C
-      ,	RequestKeyUpdate				= 0x0D
-      ,	UpdateKeySet					= 0x0E
+      ,  ChallengeRequest           = 0x0A
+      ,  SecurityPayload               = 0x0B
+      ,  SecurityResponse           = 0x0C
+      ,  RequestKeyUpdate           = 0x0D
+      ,  UpdateKeySet               = 0x0E
 
-      ,	UpdateDistributionKey			= 0x0F
-      ,	RequestMasterKey				= 0x10
-      ,	SetMasterKey					= 0x11
-      ,	WhatIsNetworkNumber				= 0x12
-      ,	NetworkNumberIs					= 0x13
+      ,  UpdateDistributionKey         = 0x0F
+      ,  RequestMasterKey           = 0x10
+      ,  SetMasterKey               = 0x11
+      ,  WhatIsNetworkNumber           = 0x12
+      ,  NetworkNumberIs               = 0x13
       };
 
 class BACnetNetClient;
@@ -1984,355 +2068,355 @@ class BACnetNetServer;
 typedef BACnetNetServer *BACnetNetServerPtr;
 
 class BACnetNetClient {
-		friend void Bind( BACnetNetClientPtr, BACnetNetServerPtr );
-		friend void Unbind( BACnetNetClientPtr, BACnetNetServerPtr );
-		friend bool IsBound( BACnetNetClientPtr, BACnetNetServerPtr );
-		
-	protected:
-		BACnetNetServerPtr		clientPeer;
-		
-	public:
-		BACnetNetClient( void );
-		virtual ~BACnetNetClient( void );
-		
-		void Request( const BACnetNPDU &pdu );
-		virtual void Confirmation( const BACnetNPDU &pdu ) = 0;
-	};
+      friend void Bind( BACnetNetClientPtr, BACnetNetServerPtr );
+      friend void Unbind( BACnetNetClientPtr, BACnetNetServerPtr );
+      friend bool IsBound( BACnetNetClientPtr, BACnetNetServerPtr );
+      
+   protected:
+      BACnetNetServerPtr      clientPeer;
+      
+   public:
+      BACnetNetClient( void );
+      virtual ~BACnetNetClient( void );
+      
+      void Request( const BACnetNPDU &pdu );
+      virtual void Confirmation( const BACnetNPDU &pdu ) = 0;
+   };
 
 class BACnetNetServer {
-		friend void Bind( BACnetNetClientPtr, BACnetNetServerPtr );
-		friend void Unbind( BACnetNetClientPtr, BACnetNetServerPtr );
-		friend bool IsBound( BACnetNetClientPtr, BACnetNetServerPtr );
-		
-	protected:
-		BACnetNetClientPtr		serverPeer;
-		
-	public:
-		BACnetNetServer( void );
-		virtual ~BACnetNetServer( void );
-		
-		virtual void Indication( const BACnetNPDU &pdu ) = 0;
-		void Response( const BACnetNPDU &pdu );
-	};
+      friend void Bind( BACnetNetClientPtr, BACnetNetServerPtr );
+      friend void Unbind( BACnetNetClientPtr, BACnetNetServerPtr );
+      friend bool IsBound( BACnetNetClientPtr, BACnetNetServerPtr );
+      
+   protected:
+      BACnetNetClientPtr      serverPeer;
+      
+   public:
+      BACnetNetServer( void );
+      virtual ~BACnetNetServer( void );
+      
+      virtual void Indication( const BACnetNPDU &pdu ) = 0;
+      void Response( const BACnetNPDU &pdu );
+   };
 
 #if _TSMDebug
 class BACnetDebugNPDU : public BACnetNetClient, public BACnetNetServer {
-	protected:
-		const char			*label;
-		
-	public:
-		BACnetDebugNPDU( const char *lbl );
-		BACnetDebugNPDU( BACnetNetServerPtr sp, const char *lbl );
-		
-		virtual void Indication( const BACnetNPDU &pdu );
-		virtual void Confirmation( const BACnetNPDU &pdu );
-	};
+   protected:
+      const char        *label;
+      
+   public:
+      BACnetDebugNPDU( const char *lbl );
+      BACnetDebugNPDU( BACnetNetServerPtr sp, const char *lbl );
+      
+      virtual void Indication( const BACnetNPDU &pdu );
+      virtual void Confirmation( const BACnetNPDU &pdu );
+   };
 #endif
 
 //
-//	BACnetTask
+// BACnetTask
 //
-//	A task is something that needs to be done.  There is a global list of all
-//	of the tasks that need to be processed, the task manager takes care of making
-//	sure all of the tasks get processed.
+// A task is something that needs to be done.  There is a global list of all
+// of the tasks that need to be processed, the task manager takes care of making
+// sure all of the tasks get processed.
 //
-//	The taskTime is the time in clock ticks that the task should be processed.  If 
-//	it's less than the current time (including zero) the task will fire.  An active
-//	task is one that has been installed and will fire, NOT that a task is currently
-//	running.
+// The taskTime is the time in clock ticks that the task should be processed.  If 
+// it's less than the current time (including zero) the task will fire.  An active
+// task is one that has been installed and will fire, NOT that a task is currently
+// running.
 //
-//	The taskType describes one three types of tasks: one-shot, one-shot and deleted, 
-//	and recurring.  The taskInterval specifies how often a recurring task should 
-//	execute.  If the taskInterval is zero for these recurring tasks, the task will 
-//	be processed once each time the TaskManager function is called.
+// The taskType describes one three types of tasks: one-shot, one-shot and deleted, 
+// and recurring.  The taskInterval specifies how often a recurring task should 
+// execute.  If the taskInterval is zero for these recurring tasks, the task will 
+// be processed once each time the TaskManager function is called.
 //
-//	The suspend and resume methods are virtual so other functions can be tied to them
-//	(like activating/deactivating a text field).  The ProcessTask function is pure 
-//	virtual so useful objects must supply a method.
+// The suspend and resume methods are virtual so other functions can be tied to them
+// (like activating/deactivating a text field).  The ProcessTask function is pure 
+// virtual so useful objects must supply a method.
 //
-//	The TaskManager function is called by the main event loop.  It could be called 
-//	by anybody that might tie up the machine for a while, like inside a TrackControl
-//	loop.  The TaskControlProc is a glue routine that should be assigned to controls
-//	where no other function would normally be provided.
+// The TaskManager function is called by the main event loop.  It could be called 
+// by anybody that might tie up the machine for a while, like inside a TrackControl
+// loop.  The TaskControlProc is a glue routine that should be assigned to controls
+// where no other function would normally be provided.
 //
 
 class BACnetTask {
-	public:
-		enum BACnetTaskType
-				{ oneShotTask		= 0
-				, oneShotDeleteTask	= 1
-				, recurringTask		= 2
-				};
+   public:
+      enum BACnetTaskType
+            { oneShotTask     = 0
+            , oneShotDeleteTask  = 1
+            , recurringTask      = 2
+            };
 
-		BACnetTaskType	taskType;				// how to process
-		long			taskInterval;			// how often to reschedule (ms)
-		int				isActive;				// task is in queue to fire
-		
-		BACnetTask( BACnetTaskType typ = oneShotTask, long delay = 0 );
-		virtual ~BACnetTask(void);
-		
-		void InstallTask(void);			 		// install into queue
+      BACnetTaskType taskType;            // how to process
+      long        taskInterval;        // how often to reschedule (ms)
+      int            isActive;            // task is in queue to fire
+      
+      BACnetTask( BACnetTaskType typ = oneShotTask, long delay = 0 );
+      virtual ~BACnetTask(void);
+      
+      void InstallTask(void);             // install into queue
 
-		// Install, rescheduling if necessary
-		void InstallTask( BACnetTaskType theType, long theInterval );
+      // Install, rescheduling if necessary
+      void InstallTask( BACnetTaskType theType, long theInterval );
 
-		void SuspendTask(void);					// remove from execution queue
-		void ResumeTask(void);					// put back in
-		
-		virtual void ProcessTask(void) = 0;		// do something
-	};
+      void SuspendTask(void);             // remove from execution queue
+      void ResumeTask(void);              // put back in
+      
+      virtual void ProcessTask(void) = 0;    // do something
+   };
 
 typedef BACnetTask *BACnetTaskPtr;
 
 //
-//	BACnetTaskManager
+// BACnetTaskManager
 //
 
 class BACnetTaskManager {
-	public:
-		BACnetTaskManager( void ) {};
-		virtual ~BACnetTaskManager( void ) {};
+   public:
+      BACnetTaskManager( void ) {};
+      virtual ~BACnetTaskManager( void ) {};
 
-		virtual void InstallTask( BACnetTaskPtr tp ) = 0;
-		virtual void SuspendTask( BACnetTaskPtr tp ) = 0;
-		virtual void ResumeTask( BACnetTaskPtr tp ) = 0;
-		
-		virtual void ProcessTasks( void ) = 0;
-	};
+      virtual void InstallTask( BACnetTaskPtr tp ) = 0;
+      virtual void SuspendTask( BACnetTaskPtr tp ) = 0;
+      virtual void ResumeTask( BACnetTaskPtr tp ) = 0;
+      
+      virtual void ProcessTasks( void ) = 0;
+   };
 
 typedef BACnetTaskManager *BACnetTaskManagerPtr;
 
 extern BACnetTaskManagerPtr gTaskManager;
 
 //
-//	BACnetPort
+// BACnetPort
 //
-//	A port is a kind of server that is the lowest connecting point to 
-//	the operating system.  Normally the req/conf interface is used, but 
-//	if the application has a reason to send raw data out the port it 
-//	can use this interface.  If it needs to track the raw data that was 
-//	sent and received, it can override the FilterData member function.
+// A port is a kind of server that is the lowest connecting point to 
+// the operating system.  Normally the req/conf interface is used, but 
+// if the application has a reason to send raw data out the port it 
+// can use this interface.  If it needs to track the raw data that was 
+// sent and received, it can override the FilterData member function.
 //
 
 class BACnetPort : public BACnetNetServer {
     public:
-		enum BACnetPortDirection { portSending, portReceiving };
-	
-		BACnetPort( void );
-		virtual ~BACnetPort( void );
+      enum BACnetPortDirection { portSending, portReceiving };
+   
+      BACnetPort( void );
+      virtual ~BACnetPort( void );
 
-		BACnetAddress			portLocalAddr;		// port has this address
-		BACnetAddress			portBroadcastAddr;	// use this to broadcast (could be null)
+      BACnetAddress        portLocalAddr;    // port has this address
+      BACnetAddress        portBroadcastAddr;   // use this to broadcast (could be null)
 
-		int			portStatus;						// non-zero iff something is wrong
-		virtual void PortStatusChange( void );		// notification that something changed
+      int         portStatus;                // non-zero iff something is wrong
+      virtual void PortStatusChange( void );    // notification that something changed
 
-		virtual void SendData( BACnetOctet *, int len ) = 0;
-		virtual void FilterData( BACnetOctet *, int len, BACnetPortDirection dir );
-	};
+      virtual void SendData( BACnetOctet *, int len ) = 0;
+      virtual void FilterData( BACnetOctet *, int len, BACnetPortDirection dir );
+   };
 
 typedef BACnetPort *BACnetPortPtr;
 
 //
-//	BACnetAPDU
+// BACnetAPDU
 //
 
 enum BACnetAPDUType
-	{ confirmedRequestPDU		= 0x00
-	, unconfirmedRequestPDU		= 0x01
-	, simpleAckPDU				= 0x02
-	, complexAckPDU				= 0x03
-	, segmentAckPDU				= 0x04
-	, errorPDU					= 0x05
-	, rejectPDU					= 0x06
-	, abortPDU					= 0x07
-	};
+   { confirmedRequestPDU      = 0x00
+   , unconfirmedRequestPDU    = 0x01
+   , simpleAckPDU          = 0x02
+   , complexAckPDU            = 0x03
+   , segmentAckPDU            = 0x04
+   , errorPDU              = 0x05
+   , rejectPDU             = 0x06
+   , abortPDU              = 0x07
+   };
 
 class BACnetAPDU : public BACnetAPDUEncoder  {
-	public:
-		BACnetAddress		apduAddr;				// source/destination address
-		BACnetAPDUType		apduType;
-		bool				apduSeg;				// segmented
-		bool				apduMor;				// more follows
-		bool				apduSA;					// segmented response accepted
-		bool				apduSrv;				// sent by server
-		bool				apduNak;				// negative acknowledgement
-		int					apduSeq;				// sequence number
-		int					apduWin;				// actual/proposed window size
-		int					apduMaxResp;			// max response accepted (decoded)
-		int					apduService;
-		int					apduInvokeID;
-		int					apduAbortRejectReason;
-		int					apduExpectingReply;		// see 6.2.2 (1 or 0)
-		int					apduNetworkPriority;	// see 6.2.2 (0, 1, 2, or 3)
+   public:
+      BACnetAddress     apduAddr;            // source/destination address
+      BACnetAPDUType    apduType;
+      bool           apduSeg;          // segmented
+      bool           apduMor;          // more follows
+      bool           apduSA;              // segmented response accepted
+      bool           apduSrv;          // sent by server
+      bool           apduNak;          // negative acknowledgement
+      int               apduSeq;          // sequence number
+      int               apduWin;          // actual/proposed window size
+      int               apduMaxResp;         // max response accepted (decoded)
+      int               apduService;
+      int               apduInvokeID;
+      int               apduAbortRejectReason;
+      int               apduExpectingReply;     // see 6.2.2 (1 or 0)
+      int               apduNetworkPriority; // see 6.2.2 (0, 1, 2, or 3)
 
-		BACnetAPDU( int initBuffSize = kDefaultBufferSize );		// new buffer
-		BACnetAPDU( BACnetOctet *buffPtr, int buffLen = 0 );		// already have a buffer
-		BACnetAPDU( const BACnetAPDU &pdu );						// copy constructor
-		~BACnetAPDU();
+      BACnetAPDU( int initBuffSize = kDefaultBufferSize );     // new buffer
+      BACnetAPDU( BACnetOctet *buffPtr, int buffLen = 0 );     // already have a buffer
+      BACnetAPDU( const BACnetAPDU &pdu );                  // copy constructor
+      ~BACnetAPDU();
 
-		void Encode( BACnetAPDUEncoder& enc ) const;				// encode
-		void Decode( const BACnetAPDUDecoder& dec );				// decode
-	};
+      void Encode( BACnetAPDUEncoder& enc ) const;          // encode
+      void Decode( const BACnetAPDUDecoder& dec );          // decode
+   };
 
 typedef BACnetAPDU *BACnetAPDUPtr;
 
 //
-//	BACnetConfirmedServiceAPDU
+// BACnetConfirmedServiceAPDU
 //
 
 enum BACnetConfirmedServiceChoice {
 // Alarm and Event Services
-		acknowledgeAlarm				= 0,
-		confirmedCOVNotification		= 1,
-		confirmedEventNotification		= 2,
-		getAlarmSummary					= 3,
-		getEnrollmentSummary			= 4,
-		subscribeCOV					= 5,
+      acknowledgeAlarm           = 0,
+      confirmedCOVNotification   = 1,
+      confirmedEventNotification = 2,
+      getAlarmSummary            = 3,
+      getEnrollmentSummary       = 4,
+      subscribeCOV               = 5,
 
 // File Access Services
-		atomicReadFile					= 6,
-		atomicWriteFile					= 7,
+      atomicReadFile             = 6,
+      atomicWriteFile            = 7,
 
 // Object Access Services
-		addListElement					= 8,
-		removeListElement				= 9,
-		createObject					= 10,
-		deleteObject					= 11,
-		readProperty					= 12,
-		readPropertyConditional			= 13,
-		readPropertyMultiple			= 14,
-		writeProperty					= 15,
-		writePropertyMultiple			= 16,
+      addListElement             = 8,
+      removeListElement          = 9,
+      createObject               = 10,
+      deleteObject               = 11,
+      readProperty               = 12,
+      readPropertyConditional    = 13,
+      readPropertyMultiple       = 14,
+      writeProperty              = 15,
+      writePropertyMultiple      = 16,
 
 // Remote Device Management Services
-		deviceCommunicationControl		= 17,
-		confirmedPrivateTransfer		= 18,
-		confirmedTextMessage			= 19,
-		reinitializeDevice				= 20,
+      deviceCommunicationControl = 17,
+      confirmedPrivateTransfer   = 18,
+      confirmedTextMessage       = 19,
+      reinitializeDevice         = 20,
 
 // Virtual Terminal Services
-		vtOpen							= 21,
-		vtClose							= 22,
-		vtData							= 23,
+      vtOpen                     = 21,
+      vtClose                    = 22,
+      vtData                     = 23,
 
 // Security Services
-		authenticate					= 24,
-		requestKey						= 25,
+      authenticate               = 24,
+      requestKey                 = 25,
 
-//services after 1995			//Added by Zhu Zhenhua, 2004-5-25
-		getEventInformation				= 29
-		};
+//services after 1995         //Added by Zhu Zhenhua, 2004-5-25
+      getEventInformation        = 29
+      };
 
 class BACnetConfirmedServiceAPDU : public BACnetAPDU {
-	public:
-		BACnetConfirmedServiceAPDU( BACnetConfirmedServiceChoice ch );
-	};
+   public:
+      BACnetConfirmedServiceAPDU( BACnetConfirmedServiceChoice ch );
+   };
 
 //
-//	BACnetUnconfirmedServiceAPDU
+// BACnetUnconfirmedServiceAPDU
 //
 
 enum BACnetUnconfirmedServiceChoice {
-		iAm								= 0,
-		iHave							= 1,
-		unconfirmedCOVNotification		= 2,
-		unconfirmedEventNotification	= 3,
-		unconfirmedPrivateTransfer		= 4,
-		unconfirmedTextMessage			= 5,
-		timeSynchronization				= 6,
-		whoHas							= 7,
-		whoIs							= 8
-		};
+      iAm                        = 0,
+      iHave                   = 1,
+      unconfirmedCOVNotification    = 2,
+      unconfirmedEventNotification  = 3,
+      unconfirmedPrivateTransfer    = 4,
+      unconfirmedTextMessage        = 5,
+      timeSynchronization           = 6,
+      whoHas                     = 7,
+      whoIs                   = 8
+      };
 
 class BACnetUnconfirmedServiceAPDU : public BACnetAPDU {
-	public:
-		BACnetUnconfirmedServiceAPDU( BACnetUnconfirmedServiceChoice ch );
-	};
+   public:
+      BACnetUnconfirmedServiceAPDU( BACnetUnconfirmedServiceChoice ch );
+   };
 
 //
-//	BACnetSimpleAckAPDU
+// BACnetSimpleAckAPDU
 //
 
 class BACnetSimpleAckAPDU : public BACnetAPDU {
-	public:
-		BACnetSimpleAckAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID );
-	};
+   public:
+      BACnetSimpleAckAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID );
+   };
 
 //
-//	BACnetComplexAckAPDU
+// BACnetComplexAckAPDU
 //
 
 class BACnetComplexAckAPDU : public BACnetAPDU {
-	public:
-		BACnetComplexAckAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID = 0 );
-		
-		void SetInvokeID( BACnetOctet id );
-	};
+   public:
+      BACnetComplexAckAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID = 0 );
+      
+      void SetInvokeID( BACnetOctet id );
+   };
 
 //
-//	BACnetSegmentAckAPDU
+// BACnetSegmentAckAPDU
 //
 
 class BACnetSegmentAckAPDU : public BACnetAPDU {
-	public:
-		BACnetSegmentAckAPDU( const BACnetAddress &dest, BACnetOctet invID, int nak, int srv, BACnetOctet seg, BACnetOctet win );
-	};
+   public:
+      BACnetSegmentAckAPDU( const BACnetAddress &dest, BACnetOctet invID, int nak, int srv, BACnetOctet seg, BACnetOctet win );
+   };
 
 //
-//	BACnetErrorAPDU
+// BACnetErrorAPDU
 //
 
 class BACnetErrorAPDU : public BACnetAPDU {
-	public:
-		BACnetErrorAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID );
-	};
+   public:
+      BACnetErrorAPDU( BACnetConfirmedServiceChoice ch, BACnetOctet invID );
+   };
 
 //
-//	BACnetRejectAPDU
+// BACnetRejectAPDU
 //
 
 enum BACnetRejectReason {
-		otherReject						= 0,
-		bufferOverflowReject			= 1,
-		inconsistentParamtersReject		= 2,
-		invalidParameterDataTypeReject	= 3,
-		invalidTagReject				= 4,
-		missingRequiredParameterReject	= 5,
-		parameterOutOfRangeReject		= 6,
-		tooManyArgumentsReject			= 7,
-		undefinedEnumerationReject		= 8,
-		unrecognizedService				= 9
-		};
+      otherReject                = 0,
+      bufferOverflowReject       = 1,
+      inconsistentParamtersReject      = 2,
+      invalidParameterDataTypeReject   = 3,
+      invalidTagReject           = 4,
+      missingRequiredParameterReject   = 5,
+      parameterOutOfRangeReject     = 6,
+      tooManyArgumentsReject        = 7,
+      undefinedEnumerationReject    = 8,
+      unrecognizedService           = 9
+      };
 
 class BACnetRejectAPDU : public BACnetAPDU {
-	public:
-		BACnetRejectAPDU( BACnetOctet invID, BACnetRejectReason reason );
-	};
+   public:
+      BACnetRejectAPDU( BACnetOctet invID, BACnetRejectReason reason );
+   };
 
 //
-//	BACnetAbortAPDU
+// BACnetAbortAPDU
 //
 
 enum BACnetAbortReason {
-		otherAbort							= 0,
-		bufferOverflowAbort					= 1,
-		invalidAPDUInThisStateAbort			= 2,
-		preemptedByHigherPriorityTaskAbort	= 3,
-		segmentationNotSupportedAbort		= 4,
-		
-		// custom abort codes
-		apduTimeoutAbort					= 63
-		};
+      otherAbort                    = 0,
+      bufferOverflowAbort              = 1,
+      invalidAPDUInThisStateAbort         = 2,
+      preemptedByHigherPriorityTaskAbort  = 3,
+      segmentationNotSupportedAbort    = 4,
+      
+      // custom abort codes
+      apduTimeoutAbort              = 63
+      };
 
 class BACnetAbortAPDU : public BACnetAPDU {
-	public:
-		BACnetAbortAPDU( const BACnetAddress &dest, int srv, BACnetOctet invID, BACnetAbortReason reason );
-	};
+   public:
+      BACnetAbortAPDU( const BACnetAddress &dest, int srv, BACnetOctet invID, BACnetAbortReason reason );
+   };
 
 //
-//	BACnetAppClient
-//	BACnetAppServer
+// BACnetAppClient
+// BACnetAppServer
 //
 
 class BACnetAppClient;
@@ -2342,66 +2426,66 @@ class BACnetAppServer;
 typedef BACnetAppServer *BACnetAppServerPtr;
 
 class BACnetAppClient {
-		friend void Bind( BACnetAppClientPtr, BACnetAppServerPtr );
-		friend void Unbind( BACnetAppClientPtr, BACnetAppServerPtr );
-		friend bool IsBound( BACnetAppClientPtr, BACnetAppServerPtr );
-		
-	protected:
-		BACnetAppServerPtr		clientPeer;
-		
-	public:
-		BACnetAppClient( void );
-		virtual ~BACnetAppClient( void );
-		
-		void Request( const BACnetAPDU &pdu );
-		virtual void Confirmation( const BACnetAPDU &pdu ) = 0;
-	};
+      friend void Bind( BACnetAppClientPtr, BACnetAppServerPtr );
+      friend void Unbind( BACnetAppClientPtr, BACnetAppServerPtr );
+      friend bool IsBound( BACnetAppClientPtr, BACnetAppServerPtr );
+      
+   protected:
+      BACnetAppServerPtr      clientPeer;
+      
+   public:
+      BACnetAppClient( void );
+      virtual ~BACnetAppClient( void );
+      
+      void Request( const BACnetAPDU &pdu );
+      virtual void Confirmation( const BACnetAPDU &pdu ) = 0;
+   };
 
 class BACnetAppServer {
-		friend void Bind( BACnetAppClientPtr, BACnetAppServerPtr );
-		friend void Unbind( BACnetAppClientPtr, BACnetAppServerPtr );
-		friend bool IsBound( BACnetAppClientPtr, BACnetAppServerPtr );
-		
-	protected:
-		BACnetAppClientPtr		serverPeer;
-		
-	public:
-		BACnetAppServer( void );
-		virtual ~BACnetAppServer( void );
-		
-		virtual void Indication( const BACnetAPDU &pdu ) = 0;
-		void Response( const BACnetAPDU &pdu );
-	};
+      friend void Bind( BACnetAppClientPtr, BACnetAppServerPtr );
+      friend void Unbind( BACnetAppClientPtr, BACnetAppServerPtr );
+      friend bool IsBound( BACnetAppClientPtr, BACnetAppServerPtr );
+      
+   protected:
+      BACnetAppClientPtr      serverPeer;
+      
+   public:
+      BACnetAppServer( void );
+      virtual ~BACnetAppServer( void );
+      
+      virtual void Indication( const BACnetAPDU &pdu ) = 0;
+      void Response( const BACnetAPDU &pdu );
+   };
 
 //
-//	BACnetDeviceInfo
+// BACnetDeviceInfo
 //
 
 enum BACnetSegmentation {
-		segmentedBoth		= 0,
-		segmentedTransmit	= 1,
-		segmentedReceive	= 2,
-		noSegmentation		= 3
-		};
+      segmentedBoth     = 0,
+      segmentedTransmit = 1,
+      segmentedReceive  = 2,
+      noSegmentation    = 3
+      };
 
 class BACnetDeviceInfo {
-	public:
-		unsigned int			deviceInst;
-		BACnetAddress			deviceAddr;
-		BACnetSegmentation		deviceSegmentation;			// supports segments requests
-		int						deviceSegmentSize;			// how to divide up chunks
-		int						deviceWindowSize;			// how many to send
-		int						deviceMaxAPDUSize;			// maximum APDU size
-		int						deviceNextInvokeID;			// next invoke ID for client
-//		int						deviceVendorID;				// which vendor is this
-		
-		BACnetDeviceInfo		*deviceNext;				// list of information blocks
-	};
+   public:
+      unsigned int         deviceInst;
+      BACnetAddress        deviceAddr;
+      BACnetSegmentation      deviceSegmentation;        // supports segments requests
+      int                  deviceSegmentSize;         // how to divide up chunks
+      int                  deviceWindowSize;       // how many to send
+      int                  deviceMaxAPDUSize;         // maximum APDU size
+      int                  deviceNextInvokeID;        // next invoke ID for client
+//    int                  deviceVendorID;            // which vendor is this
+      
+      BACnetDeviceInfo     *deviceNext;            // list of information blocks
+   };
 
 typedef BACnetDeviceInfo *BACnetDeviceInfoPtr;
 
 //
-//	BACnetDevice
+// BACnetDevice
 //
 
 class BACnetClient;
@@ -2411,29 +2495,29 @@ class BACnetServer;
 typedef BACnetServer *BACnetServerPtr;
 
 class BACnetDevice : public BACnetNetClient, public BACnetDeviceInfo {
-	public:
-		int						deviceAPDUTimeout;			// how long to wait for ack
-		int						deviceAPDUSegmentTimeout;	// how long to wait between segments
-		int						deviceAPDURetries;			// how many retries are acceptable
-		
-		BACnetDevice( void );
-		
-		BACnetClientPtr			deviceClients;
-		BACnetServerPtr			deviceServers;
-		
-		void Bind( BACnetClientPtr cp );
-		void Unbind( BACnetClientPtr cp );
-		void Bind( BACnetServerPtr sp );
-		void Unbind( BACnetServerPtr sp );
-		
-		BACnetDeviceInfoPtr GetInfo( unsigned int inst );
-		BACnetDeviceInfoPtr GetInfo( const BACnetAddress &addr );
-		
-		void Indication( const BACnetAPDU &apdu );		// outgoing packet
-		void Confirmation( const BACnetNPDU &apdu );	// incoming packet
-		
-		int GetInvokeID( void );						// new invoke ID
-	};
+   public:
+      int                  deviceAPDUTimeout;         // how long to wait for ack
+      int                  deviceAPDUSegmentTimeout;  // how long to wait between segments
+      int                  deviceAPDURetries;         // how many retries are acceptable
+      
+      BACnetDevice( void );
+      
+      BACnetClientPtr         deviceClients;
+      BACnetServerPtr         deviceServers;
+      
+      void Bind( BACnetClientPtr cp );
+      void Unbind( BACnetClientPtr cp );
+      void Bind( BACnetServerPtr sp );
+      void Unbind( BACnetServerPtr sp );
+      
+      BACnetDeviceInfoPtr GetInfo( unsigned int inst );
+      BACnetDeviceInfoPtr GetInfo( const BACnetAddress &addr );
+      
+      void Indication( const BACnetAPDU &apdu );      // outgoing packet
+      void Confirmation( const BACnetNPDU &apdu ); // incoming packet
+      
+      int GetInvokeID( void );                  // new invoke ID
+   };
 
 typedef BACnetDevice *BACnetDevicePtr;
 
@@ -2441,261 +2525,261 @@ BACnetOctet MaxAPDUEncode( int siz );
 int MaxAPDUDecode( BACnetOctet siz );
 
 //
-//	BACnetAPDUSegment
+// BACnetAPDUSegment
 //
 
 class BACnetTSM;
 typedef BACnetTSM *BACnetTSMPtr;
 
 class BACnetAPDUSegment {
-	public:
-		BACnetAPDU				segAPDU;				// returned PDU
-	
-		BACnetAPDUSegment( const BACnetAPDU &apdu, BACnetTSMPtr tp );
-		BACnetAPDUSegment( int ssize, BACnetTSMPtr tp );
-		~BACnetAPDUSegment( void );
-		
-		const BACnetAPDU &operator[](const int indx);	// get a segment
-		int AddSegment( const BACnetAPDU &apdu );		// add on end
-		
-		const BACnetAPDU &ResultAPDU( void );			// return complete message
+   public:
+      BACnetAPDU           segAPDU;          // returned PDU
+   
+      BACnetAPDUSegment( const BACnetAPDU &apdu, BACnetTSMPtr tp );
+      BACnetAPDUSegment( int ssize, BACnetTSMPtr tp );
+      ~BACnetAPDUSegment( void );
+      
+      const BACnetAPDU &operator[](const int indx);   // get a segment
+      int AddSegment( const BACnetAPDU &apdu );    // add on end
+      
+      const BACnetAPDU &ResultAPDU( void );        // return complete message
 
-		int TotalLength() const { return segLen; }
+      int TotalLength() const { return segLen; }
 
-	protected:
-		BACnetTSMPtr			segTSMPtr;				// invoke ID, seg size, window stuff
-		BACnetOctet				*segBuff;				// pointer to buffer
-		int						segBuffSize;			// allocated size
-		int						segLen;					// current length
-	};
+   protected:
+      BACnetTSMPtr         segTSMPtr;           // invoke ID, seg size, window stuff
+      BACnetOctet          *segBuff;            // pointer to buffer
+      int                  segBuffSize;         // allocated size
+      int                  segLen;              // current length
+   };
 
 typedef BACnetAPDUSegment *BACnetAPDUSegmentPtr;
 
 //
-//	BACnetTSM
+// BACnetTSM
 //
 
 enum BACnetTSMState
-		{ tsmIdle
-		, tsmSegmentedRequest
-		, tsmAwaitConfirmation
-		, tsmSegmentedConfirmation
-		, tsmAwaitResponse
-		, tsmSegmentedResponse
-		, tsmBusy
-		};
+      { tsmIdle
+      , tsmSegmentedRequest
+      , tsmAwaitConfirmation
+      , tsmSegmentedConfirmation
+      , tsmAwaitResponse
+      , tsmSegmentedResponse
+      , tsmBusy
+      };
 
 class BACnetTSM : public BACnetTask {
-		friend class BACnetDevice;
-		friend class BACnetAPDUSegment;
-		
-	protected:
-		BACnetTSMState			tsmState;
-		BACnetAPDUSegmentPtr	tsmSeg;
-		
-		BACnetAddress			tsmAddr;
-		int						tsmInvokeID;
-		
-		int						tsmRetryCount;
-		
-		BACnetSegmentation		tsmSegmentation;
-		int						tsmSegmentSize;				// how big are chunks
-		int						tsmSegmentRetryCount;
-		int						tsmSegmentCount;
-		int						tsmSegmentsSent;
-		
-		int						tsmInitialSequenceNumber;	// first sequence number
-		int						tsmLastSequenceNumber;		// last valid seq number received
-		
-		int						tsmActualWindowSize;
-		int						tsmProposedWindowSize;
-		
-	public:
-		BACnetDevicePtr			tsmDevice;					// bound device
-		
-		BACnetTSM( BACnetDevicePtr dp );
-		virtual ~BACnetTSM( void );
-		
-		void StartTimer( int msecs );
-		void StopTimer( void );
-		void RestartTimer( int msecs );
-		
-		void FillWindow( int seqNum );
-		int InWindow( int seqNum, int initSeqNum );
-		
-	protected:
-		void SetState( BACnetTSMState newState );
-	};
+      friend class BACnetDevice;
+      friend class BACnetAPDUSegment;
+      
+   protected:
+      BACnetTSMState       tsmState;
+      BACnetAPDUSegmentPtr tsmSeg;
+      
+      BACnetAddress        tsmAddr;
+      int                  tsmInvokeID;
+      
+      int                  tsmRetryCount;
+      
+      BACnetSegmentation      tsmSegmentation;
+      int                  tsmSegmentSize;            // how big are chunks
+      int                  tsmSegmentRetryCount;
+      int                  tsmSegmentCount;
+      int                  tsmSegmentsSent;
+      
+      int                  tsmInitialSequenceNumber;  // first sequence number
+      int                  tsmLastSequenceNumber;     // last valid seq number received
+      
+      int                  tsmActualWindowSize;
+      int                  tsmProposedWindowSize;
+      
+   public:
+      BACnetDevicePtr         tsmDevice;              // bound device
+      
+      BACnetTSM( BACnetDevicePtr dp );
+      virtual ~BACnetTSM( void );
+      
+      void StartTimer( int msecs );
+      void StopTimer( void );
+      void RestartTimer( int msecs );
+      
+      void FillWindow( int seqNum );
+      int InWindow( int seqNum, int initSeqNum );
+      
+   protected:
+      void SetState( BACnetTSMState newState );
+   };
 
 //
-//	BACnetClientTSM
+// BACnetClientTSM
 //
 
 class BACnetClientTSM : public BACnetTSM, public BACnetAppServer {
-	public:
-		BACnetClientTSM( BACnetDevicePtr dp );
-		virtual ~BACnetClientTSM( void );
-		
-		void Request( const BACnetAPDU &pdu );			// msg to device
-		
-		void Indication( const BACnetAPDU &pdu );		// msg from client
-		void Confirmation( const BACnetAPDU &pdu );		// msg from device
-		
-		void ProcessTask( void );
-		
-		void SegmentedRequest( const BACnetAPDU &apdu );
-		void SegmentedRequestTimeout( void );
-		void AwaitConfirmation( const BACnetAPDU &apdu );
-		void AwaitConfirmationTimeout( void );
-		void SegmentedConfirmation( const BACnetAPDU &apdu );
-		void SegmentedConfirmationTimeout( void );
-	};
+   public:
+      BACnetClientTSM( BACnetDevicePtr dp );
+      virtual ~BACnetClientTSM( void );
+      
+      void Request( const BACnetAPDU &pdu );       // msg to device
+      
+      void Indication( const BACnetAPDU &pdu );    // msg from client
+      void Confirmation( const BACnetAPDU &pdu );     // msg from device
+      
+      void ProcessTask( void );
+      
+      void SegmentedRequest( const BACnetAPDU &apdu );
+      void SegmentedRequestTimeout( void );
+      void AwaitConfirmation( const BACnetAPDU &apdu );
+      void AwaitConfirmationTimeout( void );
+      void SegmentedConfirmation( const BACnetAPDU &apdu );
+      void SegmentedConfirmationTimeout( void );
+   };
 
 //
-//	BACnetServerTSM
+// BACnetServerTSM
 //
 
 class BACnetServerTSM : public BACnetTSM, public BACnetAppClient {
-	public:
-		BACnetServerTSM( BACnetDevicePtr dp );
-		virtual ~BACnetServerTSM( void );
-		
-		void Response( const BACnetAPDU &apdu );		// msg to device
-		
-		void Indication( const BACnetAPDU &apdu );		// msg from device
-		void Confirmation( const BACnetAPDU &apdu );	// msg from server
-		
-		void ProcessTask( void );
-		
-		void Idle( const BACnetAPDU &apdu );
-		void SegmentedRequest( const BACnetAPDU &apdu );
-		void SegmentedRequestTimeout( void );
-		void AwaitResponse( const BACnetAPDU &apdu );
-		void SegmentedResponse( const BACnetAPDU &apdu );
-		void SegmentedResponseTimeout( void );
-	};
+   public:
+      BACnetServerTSM( BACnetDevicePtr dp );
+      virtual ~BACnetServerTSM( void );
+      
+      void Response( const BACnetAPDU &apdu );     // msg to device
+      
+      void Indication( const BACnetAPDU &apdu );      // msg from device
+      void Confirmation( const BACnetAPDU &apdu ); // msg from server
+      
+      void ProcessTask( void );
+      
+      void Idle( const BACnetAPDU &apdu );
+      void SegmentedRequest( const BACnetAPDU &apdu );
+      void SegmentedRequestTimeout( void );
+      void AwaitResponse( const BACnetAPDU &apdu );
+      void SegmentedResponse( const BACnetAPDU &apdu );
+      void SegmentedResponseTimeout( void );
+   };
 
 //
-//	BACnetClient
+// BACnetClient
 //
 
 class BACnetClient : public BACnetAppClient {
-		friend class BACnetDevice;
-		
-	private:
-		BACnetClientTSM		clientTSM;
-		BACnetClientPtr		clientNext;
-		
-	public:
-		BACnetClient( BACnetDevicePtr dp );
-		virtual ~BACnetClient( void );
-	};
+      friend class BACnetDevice;
+      
+   private:
+      BACnetClientTSM      clientTSM;
+      BACnetClientPtr      clientNext;
+      
+   public:
+      BACnetClient( BACnetDevicePtr dp );
+      virtual ~BACnetClient( void );
+   };
 
 //
-//	BACnetServer
+// BACnetServer
 //
 
 class BACnetServer : public BACnetAppServer {
-		friend class BACnetDevice;
-		
-	private:
-		BACnetServerTSM		serverTSM;
-		BACnetServerPtr		serverNext;
-		
-	public:
-		BACnetServer( BACnetDevicePtr dp );
-		virtual ~BACnetServer( void );
-	};
+      friend class BACnetDevice;
+      
+   private:
+      BACnetServerTSM      serverTSM;
+      BACnetServerPtr      serverNext;
+      
+   public:
+      BACnetServer( BACnetDevicePtr dp );
+      virtual ~BACnetServer( void );
+   };
 
 //
-//	BACnetError
+// BACnetError
 //
 
 class BACnetError {
-	public:
-		const char	*errFile;
-		const int	errLine;
-		const int	errError;
+   public:
+      const char  *errFile;
+      const int   errLine;
+      const int   errError;
 
-		BACnetError( const char *file, const int line, const int err )
-			: errFile(file), errLine(line), errError(err)
-		{
-		}
-	};
+      BACnetError( const char *file, const int line, const int err )
+         : errFile(file), errLine(line), errError(err)
+      {
+      }
+   };
 
-// Define error-class and error-code as in Clause 18	Jingbo Gao, Sep 14, 2004
+// Define error-class and error-code as in Clause 18  Jingbo Gao, Sep 14, 2004
 class ErrorClass : public BACnetEnumerated
 {
 public:
-	static enum EnumValue
-	{
-		DEVICE		= 0,
-		OBJECT		= 1,
-		PROPERTY	= 2,
-		RESOURCES	= 3,
-		SECURITY	= 4,
-		SERVICES	= 5,
-		VT_ErrorCLass	= 6
-		//......
-	};
+   static enum EnumValue
+   {
+      DEVICE      = 0,
+      OBJECT      = 1,
+      PROPERTY = 2,
+      RESOURCES   = 3,
+      SECURITY = 4,
+      SERVICES = 5,
+      VT_ErrorCLass  = 6
+      //......
+   };
 };
 
 class ErrorCode : public BACnetEnumerated
 {
 public:
-	static enum EnumValue
-	{
-		OTHER								= 0,
-		AUTHENTICATION_FAILED				= 1,
-		CHARACTER_SET_NOT_SUPPORTED			= 41,
-		CONFIGURATION_IN_PROGRESS			= 2,
-		DEVICE_BUSY							= 3,
-		DYNAMIC_CREATION_NOT_SUPPORTED		= 4,
-		FILE_ACCESS_DYNIED					= 5,
-		INCOMPATIBLE_SECURITY_LEVELS		= 6,
-		INCONSISTENT_PARAMETERS				= 7,
-		INCONSISTERN_SELECTION_CRITERION	= 8,
-		INVALID_ARRAY_INDEX					= 42,
-		INVALID_CONFIGURATION_DATA			= 46,
-		INVALID_DATA_TYPE					= 9,
-		INVALID_FILE_ACCESS_METHOD			= 10,
-		INVALID_FLIE_START_POSITION			= 11,
-		INVALID_OPERATOR_NAME				= 12,
-		INVALID_PARAMETER_DATA_TYPE			= 13,
-		INVALID_TIME_STAMP					= 14,
-		KEY_GENERATION_ERROR				= 15,
-		MISSING_REQUIRED_PARAMETER			= 16,
-		NO_OBJECTS_OF_SPECIFIED_TYPE		= 17,
-		NO_SPACE_FOR_OBJECT					= 18,
-		NO_SPACE_TO_ADD_LIST_ELEMENT		= 19,
-		NO_SPACE_TO_WRITE_PROPERTY			= 20,
-		NO_VT_SESSIONS_AVAILABLE			= 21,
-		OBJECT_DELETION_NOT_PERMITTED		= 23,
-		OBJECT_IDENTIFIER_ALREADY_EXISTS	= 24,
-		OPERATIONAL_PROBLEM					= 25,
-		OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED= 45,
-		PASSWORD_FAILURE					= 26,
-		PROPERTY_IS_NOT_A_LIST				= 22,
-		READ_ACCESS_DENIED					= 27,
-		SECURITY_NOT_SUPPORTED				= 28,
-		SERVICE_REQUEST_DENIED				= 29,
-		TIMEOUT								= 30,
-		UNKNOWN_OBJECT						= 31,
-		UNKNOWN_PROPERTY					= 32,
-		UNKNOWN_VT_CLASS					= 34,
-		UNKNOWN_VT_SESSION					= 35,
-		UNSUPPORTED_OBJECT_TYPE				= 36,
-		VALUE_OUT_OF_RANGE					= 37,
-		VT_SESSION_ALREADY_CLOSED			= 38,
-		VT_SESSION_TERMINATION_FAILURE		= 39,
-		WRITE_ACCESS_DENIED					= 40,
-		COV_SUBSCRIPTION_FAILED				= 43,
-		NOT_COV_PROPERTY					= 44,
-		//......
-	};
+   static enum EnumValue
+   {
+      OTHER                      = 0,
+      AUTHENTICATION_FAILED            = 1,
+      CHARACTER_SET_NOT_SUPPORTED         = 41,
+      CONFIGURATION_IN_PROGRESS        = 2,
+      DEVICE_BUSY                   = 3,
+      DYNAMIC_CREATION_NOT_SUPPORTED      = 4,
+      FILE_ACCESS_DYNIED               = 5,
+      INCOMPATIBLE_SECURITY_LEVELS     = 6,
+      INCONSISTENT_PARAMETERS          = 7,
+      INCONSISTERN_SELECTION_CRITERION = 8,
+      INVALID_ARRAY_INDEX              = 42,
+      INVALID_CONFIGURATION_DATA       = 46,
+      INVALID_DATA_TYPE             = 9,
+      INVALID_FILE_ACCESS_METHOD       = 10,
+      INVALID_FLIE_START_POSITION         = 11,
+      INVALID_OPERATOR_NAME            = 12,
+      INVALID_PARAMETER_DATA_TYPE         = 13,
+      INVALID_TIME_STAMP               = 14,
+      KEY_GENERATION_ERROR          = 15,
+      MISSING_REQUIRED_PARAMETER       = 16,
+      NO_OBJECTS_OF_SPECIFIED_TYPE     = 17,
+      NO_SPACE_FOR_OBJECT              = 18,
+      NO_SPACE_TO_ADD_LIST_ELEMENT     = 19,
+      NO_SPACE_TO_WRITE_PROPERTY       = 20,
+      NO_VT_SESSIONS_AVAILABLE         = 21,
+      OBJECT_DELETION_NOT_PERMITTED    = 23,
+      OBJECT_IDENTIFIER_ALREADY_EXISTS = 24,
+      OPERATIONAL_PROBLEM              = 25,
+      OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED= 45,
+      PASSWORD_FAILURE              = 26,
+      PROPERTY_IS_NOT_A_LIST           = 22,
+      READ_ACCESS_DENIED               = 27,
+      SECURITY_NOT_SUPPORTED           = 28,
+      SERVICE_REQUEST_DENIED           = 29,
+      TIMEOUT                       = 30,
+      UNKNOWN_OBJECT                = 31,
+      UNKNOWN_PROPERTY              = 32,
+      UNKNOWN_VT_CLASS              = 34,
+      UNKNOWN_VT_SESSION               = 35,
+      UNSUPPORTED_OBJECT_TYPE          = 36,
+      VALUE_OUT_OF_RANGE               = 37,
+      VT_SESSION_ALREADY_CLOSED        = 38,
+      VT_SESSION_TERMINATION_FAILURE      = 39,
+      WRITE_ACCESS_DENIED              = 40,
+      COV_SUBSCRIPTION_FAILED          = 43,
+      NOT_COV_PROPERTY              = 44,
+      //
+   };
 };
 
-#define throw_(x)	throw BACnetError( __FILE__, __LINE__, x )
+#define throw_(x) throw BACnetError( __FILE__, __LINE__, x )
 
 
 #endif

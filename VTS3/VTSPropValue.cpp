@@ -128,7 +128,7 @@ CString VTSDevValue::GetDescription( void )
 		if (pbacnet != NULL)
 		{
 			try {
-				pbacnet->Encode(str);
+				pbacnet->Encode(str, BACnetEncodeable::FMT_SCRIPT);
 			} 
 			catch(...) {
 				str = _T("<Error during conversion to text>");
@@ -271,7 +271,7 @@ VTSDevObject::~VTSDevObject()
 CString VTSDevObject::GetDescription( void )
 {
 	CString buff;
-    BACnetObjectIdentifier(GetID()).Encode( buff );
+    BACnetObjectIdentifier(GetID()).Encode( buff, BACnetEncodeable::FMT_SCRIPT );
 
 	return buff;
 }

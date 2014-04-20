@@ -809,8 +809,8 @@ void ScriptScanner::Next( ScriptToken& tok )
    // special chars are the next easiest
    switch (c) {
       case '=':
-//    case '?':            // madanner 11/4/02, now used as don't care value (don't know what was previously)
-        case '*':              //add by Liangping Xu
+//    case '?':            // madanner 11/4/02, now used as don't care value (don't know what it was previously)
+      case '*':            //add by Liangping Xu
       case ',':
       case '/':
       case ':':

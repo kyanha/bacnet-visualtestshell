@@ -4,14 +4,6 @@
 #ifndef __DUDTOOL_H_INCLUDED
 #define __DUDTOOL_H_INCLUDED
 
-/*
-#define ptDate 200  // parsetype BACnetDate
-#define ptTime 201  // parsetype BACnetTime
-#define lobj   202  // array of objects, (parse type)
-#define vtse   203  // list of active  vt sessions (parse type)
-#define uwarr  204  // array of uw
-*/
-
 // property access functions 
 
 // encode simple properties:
