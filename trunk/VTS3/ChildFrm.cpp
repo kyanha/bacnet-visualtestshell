@@ -1021,7 +1021,7 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
       {
          BACnetObjectIdentifier  bacnetObjID((unsigned int) pDatabase->object_id);
          CString oid;
-         bacnetObjID.Encode(oid);
+         bacnetObjID.Encode(oid, BACnetEncodeable::FMT_SCRIPT);
          str.Format("  OBJECT%d = %s\n", nObjNum, (LPCTSTR)oid);
          pscript->WriteString(str);
       }
