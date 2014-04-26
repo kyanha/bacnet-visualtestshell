@@ -151,7 +151,7 @@ void CSendConfirmedRequest::SynchronizeControls()
 	GetDlgItem( IDC_WINDOWSIZE )->EnableWindow( m_Segmented );
 // Not sure if we should reset the value of m_Max_Segments_Accepted here
 	if ( !m_SegResponse )
-		m_Max_Segments_Accepted.enumValue = 0;
+		m_Max_Segments_Accepted.m_enumValue = 0;
 	GetDlgItem( IDC_MAX_SEGMENTS_ACCEPTED )->EnableWindow( m_SegResponse );
 }
 
@@ -168,10 +168,10 @@ void CSendConfirmedRequest::InitPage( void )
 	m_SeqNumber.ctrlNull = true;
 	m_WindowSize.ctrlNull = true;
 	m_MaxAPDULen.ctrlNull = false;
-	m_MaxAPDULen.enumValue = DEFAULT_MAX_APDU_LEN;
+	m_MaxAPDULen.m_enumValue = DEFAULT_MAX_APDU_LEN;
 	m_InvokeID.ctrlNull = false;
 	m_InvokeID.intValue = gVTSPreferences.Send_GetInvokeID();
-	m_Max_Segments_Accepted.enumValue = 0;
+	m_Max_Segments_Accepted.m_enumValue = 0;
 	// tell the NPCI this is expecting a reply
 	pageParent->NPCIPage.m_ExpectingReply = true;
 }
@@ -204,10 +204,10 @@ void CSendConfirmedRequest::EncodePage( CByteArray *contents )
 	// maximum response accepted
 	if (m_MaxAPDULen.ctrlNull)
 		throw "Max APDU length required";
-	if ((m_MaxAPDULen.enumValue < 0) || (m_MaxAPDULen.enumValue > 15))
+	if ((m_MaxAPDULen.m_enumValue < 0) || (m_MaxAPDULen.m_enumValue > 15))
 		throw "Max APDU length out of range 0..15";
 
-	int test = (m_Max_Segments_Accepted.enumValue <<4) + m_MaxAPDULen.enumValue;
+	int test = (m_Max_Segments_Accepted.m_enumValue <<4) + m_MaxAPDULen.m_enumValue;
 	header.Add( test );
 
 	// invoke ID

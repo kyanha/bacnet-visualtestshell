@@ -71,7 +71,7 @@ void VTSPropertyStatesDlg::OnOnvalue()
 	if(m_enumValue >= 0)
 	{	
 		BACnetEnumerated enumtemp;
-		enumtemp.enumValue = m_enumValue;
+		enumtemp.m_enumValue = m_enumValue;
 		enumtemp.Encode(enctemp);		
 	}
 	switch(m_nSelItem)
@@ -191,7 +191,7 @@ void VTSPropertyStatesDlg::OnOnvalue()
 	{
 		BACnetEnumerated enumsel;
 		enumsel.Decode((BACnetAPDUDecoder)enc);
-		m_enumValue = enumsel.enumValue;
+		m_enumValue = enumsel.m_enumValue;
 	}
 }
 
@@ -245,7 +245,7 @@ void VTSPropertyStatesDlg::Encode(BACnetAPDUEncoder& enc, int context /* = kAppC
 		break;
 	default:
 		BACnetEnumerated enumsel;
-		enumsel.enumValue = m_enumValue;
+		enumsel.m_enumValue = m_enumValue;
 		enumsel.Encode(enc, m_nSelItem);
 		break;
 	}
@@ -269,7 +269,7 @@ void VTSPropertyStatesDlg::Decode(BACnetAPDUDecoder& dec )
 	default:
 		BACnetEnumerated enumsel;
 		enumsel.Decode(dec);
-		m_enumValue = enumsel.enumValue;
+		m_enumValue = enumsel.m_enumValue;
 		break;
 	}
 	}

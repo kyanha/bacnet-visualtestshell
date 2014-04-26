@@ -202,7 +202,7 @@ void CSendGetEnrollmentSummary::RestorePage( int index )
 void CSendGetEnrollmentSummary::OnChangeAckFilterCombo()
 {
 	// any change resets the selected value to none selected
-	m_AckFilterCombo.enumValue = -1;
+	m_AckFilterCombo.m_enumValue = -1;
 	m_AckFilterCombo.UpdateData(false);
 	SavePage();
 	UpdateEncoded();
@@ -226,7 +226,7 @@ void CSendGetEnrollmentSummary::OnRecipientProcess()
 void CSendGetEnrollmentSummary::OnChangeEventStateCombo()
 {
 	// any change resets the selected value to none selected
-	m_EventStateCombo.enumValue = -1;
+	m_EventStateCombo.m_enumValue = -1;
 	m_EventStateCombo.UpdateData(false);
 	SavePage();
 	UpdateEncoded();
@@ -243,7 +243,7 @@ void CSendGetEnrollmentSummary::OnSelchangeEventStateCombo()
 void CSendGetEnrollmentSummary::OnChangeEventTypeCombo()
 {
 	// any change resets the selected value to none selected
-	m_EventTypeCombo.enumValue = -1;
+	m_EventTypeCombo.m_enumValue = -1;
 	m_EventTypeCombo.UpdateData(false);
 	SavePage();
 	UpdateEncoded();

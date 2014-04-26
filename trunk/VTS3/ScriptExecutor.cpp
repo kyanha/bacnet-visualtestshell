@@ -4702,7 +4702,7 @@ void ScriptExecutor::SendALPropertyIdentifier( ScriptPacketExprPtr spep, CByteAr
 		throw "Property identifier keyword requires 1 or 2 parameters";
 
 	// encode it
-	enumData.enumValue = valu;
+	enumData.m_enumValue = valu;
 	enumData.Encode( enc, context );
 
 	// copy the encoding into the byte array
@@ -6736,7 +6736,7 @@ bool ScriptExecutor::ExpectDevPacket( const BACnetAPDU &apdu )
 
 		// based on the number, check for other parameters
 		try {
-			switch (bacnetAPDUData.enumValue) {
+			switch (bacnetAPDUData.m_enumValue) {
 				case 0:						// CONFIRMED-REQUEST
 					ExpectDevConfirmedRequest( apdu );
 					break;
@@ -8113,7 +8113,7 @@ void ScriptExecutor::ExpectALEnumerated( ScriptPacketExprPtr spep, BACnetAPDUDec
 		if ( !bacnetEPICSProperty.GetObject()->IsKindOf(RUNTIME_CLASS(BACnetEnumerated)) )
 			throw "Enumerated property value expected in EPICS";
 
-		scriptData.enumValue = ((BACnetEnumerated *) bacnetEPICSProperty.GetObject())->enumValue;
+		scriptData.m_enumValue = ((BACnetEnumerated *) bacnetEPICSProperty.GetObject())->m_enumValue;
 	}
 	else
 	{

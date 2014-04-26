@@ -1127,14 +1127,14 @@ IMPLEMENT_DYNAMIC(BACnetEnumerated, BACnetEncodeable)
 //
 
 BACnetEnumerated::BACnetEnumerated( int evalu, NetworkSniffer::BACnetStringTable &nameList )
-: enumValue( evalu )
+: m_enumValue( evalu )
 , m_papNameList(nameList.m_pStrings)
 , m_nListSize(nameList.m_nStrings)
 {
 }
 
 BACnetEnumerated::BACnetEnumerated( int evalu /* = 0*/, const char* const *papNameList /* = NULL */, int nListSize /* = 0 */ )
-: enumValue( evalu )
+: m_enumValue( evalu )
 , m_papNameList(papNameList)
 , m_nListSize(nListSize)
 {
@@ -1155,7 +1155,7 @@ void BACnetEnumerated::Encode( BACnetAPDUEncoder& enc, int context )
 
    // reduce the value to the smallest number of octets
    len = 4;
-   valuCopy = (unsigned long)enumValue;
+   valuCopy = (unsigned long)m_enumValue;
    while ((len > 1) && ((valuCopy & 0xFF000000) == 0)) {
       len -= 1;
       valuCopy = (valuCopy << 8);
@@ -1194,7 +1194,7 @@ void BACnetEnumerated::Decode( BACnetAPDUDecoder& dec )
    }
 
    // save the result
-   enumValue = rslt;
+   m_enumValue = rslt;
 }
 
 void BACnetEnumerated::Encode( CString &enc, Format /*theFormat*/ ) const
@@ -1205,12 +1205,12 @@ void BACnetEnumerated::Encode( CString &enc, Format /*theFormat*/ ) const
 // TODO: use the string tables to avoid explicit size?
 void BACnetEnumerated::Encode( CString &enc, const char * const *table, int tsize ) const
 {
-   int   valu = enumValue;
+   int   valu = m_enumValue;
 
-   if ((enumValue < 0) || !table || (enumValue >= tsize))
+   if ((m_enumValue < 0) || !table || (m_enumValue >= tsize))
       enc.Format( "%d", valu );
    else
-      enc = table[enumValue];
+      enc = table[m_enumValue];
 }
 
 void BACnetEnumerated::Decode( const char *dec )
@@ -1222,27 +1222,27 @@ void BACnetEnumerated::Decode( const char *dec, const char * const *table, int t
 {
    if (IsDigit(*dec)) {                            // explicit number
       // integer encoding
-      for (enumValue = 0; *dec; dec++)
+      for (m_enumValue = 0; *dec; dec++)
       {
          if (!IsDigit(*dec))
             throw_(12) /* invalid character */;
          else
-            enumValue = (enumValue * 10) + (*dec - '0');
+            m_enumValue = (m_enumValue * 10) + (*dec - '0');
       }
    } else
    if (!table)
       throw_(13) /* no translation available */;
    else {
-      enumValue = 0;
-      while (enumValue < tsize) {
+      m_enumValue = 0;
+      while (m_enumValue < tsize) {
          if (strncmp(dec,*table,strlen(dec)) == 0)
             break;
          if (_stricmp(dec,*table) == 0)
             break;
          table += 1;
-         enumValue += 1;
+         m_enumValue += 1;
       }
-      if (enumValue >= tsize)
+      if (m_enumValue >= tsize)
          throw_(14) /* no matching translation */;
    }
 }
@@ -1255,13 +1255,13 @@ int BACnetEnumerated::DataType() const
 
 BACnetEncodeable * BACnetEnumerated::clone()
 {
-   return new BACnetEnumerated(enumValue, m_papNameList, m_nListSize);
+   return new BACnetEnumerated(m_enumValue, m_papNameList, m_nListSize);
 }
 
 
 BACnetEnumerated & BACnetEnumerated::operator =( const BACnetEnumerated & arg )
 {
-   enumValue = arg.enumValue;
+   m_enumValue = arg.m_enumValue;
    m_nListSize = arg.m_nListSize;
    m_papNameList = arg.m_papNameList;
    return *this;
@@ -1276,7 +1276,7 @@ bool BACnetEnumerated::Match( BACnetEncodeable &rbacnet, int iOperator, CString 
 // ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated)));
 
    if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated))  || 
-       !::Match(iOperator, enumValue, ((BACnetEnumerated &) rbacnet).enumValue) )
+       !::Match(iOperator, m_enumValue, ((BACnetEnumerated &) rbacnet).m_enumValue) )
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -2352,7 +2352,7 @@ void BACnetCharacterString::Decode( const char *dec )
 
       // String begun with accent grave (`) ends with single quote (')
       if (quoteChar == '`')
-         quoteChar == '\'';
+         quoteChar = '\'';
 
       // Count characters until closing quote.
       strLen = 0;
@@ -5634,7 +5634,7 @@ int BACnetObjectPropertyReference::DataType() const
 
 BACnetEncodeable * BACnetObjectPropertyReference::clone()
 {
-   return new BACnetObjectPropertyReference(m_objID.objID, (unsigned int) m_bacnetenumPropID.enumValue, m_nIndex);
+   return new BACnetObjectPropertyReference(m_objID.objID, (unsigned int) m_bacnetenumPropID.m_enumValue, m_nIndex);
 }
 
 
@@ -5646,7 +5646,7 @@ bool BACnetObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOpera
    ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference)));
 
    if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetObjectPropertyReference &) rbacnet).m_objID.objID) ||
-       !::Match(iOperator, (int) m_bacnetenumPropID.enumValue, (int) ((BACnetObjectPropertyReference &) rbacnet).m_bacnetenumPropID.enumValue) )
+       !::Match(iOperator, (int) m_bacnetenumPropID.m_enumValue, (int) ((BACnetObjectPropertyReference &) rbacnet).m_bacnetenumPropID.m_enumValue) )
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -5743,7 +5743,7 @@ int BACnetDeviceObjectPropertyReference::DataType() const
 
 BACnetEncodeable * BACnetDeviceObjectPropertyReference::clone()
 {
-   return new BACnetDeviceObjectPropertyReference(m_objpropref.m_objID.objID, (unsigned int) m_objpropref.m_bacnetenumPropID.enumValue, m_objpropref.m_nIndex, m_unObjectID);
+   return new BACnetDeviceObjectPropertyReference(m_objpropref.m_objID.objID, (unsigned int) m_objpropref.m_bacnetenumPropID.m_enumValue, m_objpropref.m_nIndex, m_unObjectID);
 }
 
 

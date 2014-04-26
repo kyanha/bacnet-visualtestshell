@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
+#include "propid.h"
 
 #include "Send.h"
 #include "SendWritePropMult.h"
@@ -143,7 +144,7 @@ void CSendWritePropMult::SavePage( void )
 			WritePropElemPtr elemPtr = wplistPtr->GetAt(wplistPtr->FindIndex(j));
             WPMRPMElemPtr wpmrpmelemPtr = new WPMRPMElem();
 			
-			wpmrpmelemPtr->m_prop.enumValue = elemPtr->wpePropCombo.enumValue;
+			wpmrpmelemPtr->m_prop.m_enumValue = elemPtr->wpePropCombo.m_enumValue;
 			wpmrpmelemPtr->m_array.uintValue = elemPtr->wpeArrayIndex.uintValue;
             wpmrpmelemPtr->m_value = elemPtr->wpeValue;	
 			wpmrpmelemPtr->m_priority.uintValue = elemPtr->wpePriority.uintValue;
@@ -203,7 +204,7 @@ void CSendWritePropMult::RestorePage( int index )
 			WritePropElemPtr elemPtr = new WritePropElem(this);
             WPMRPMElemPtr wpmrpmelemPtr = wpmrplistPtr->GetAt(wpmrplistPtr->FindIndex(j));
 			
-			elemPtr->wpePropCombo.enumValue = wpmrpmelemPtr->m_prop.enumValue;
+			elemPtr->wpePropCombo.m_enumValue = wpmrpmelemPtr->m_prop.m_enumValue;
 			elemPtr->wpeArrayIndex.uintValue = wpmrpmelemPtr->m_array.uintValue;
 
 			elemPtr->wpeArrayIndex.ctrlNull = FALSE; //value specified
@@ -390,7 +391,7 @@ void CSendWritePropMult::ForceValues(BACnetObjectIdentifier * pObjectID, int apP
 //
 
 WritePropElem::WritePropElem( CSendPagePtr wp )
-	: wpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	: wpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, wpeArrayIndex( wp, IDC_ARRAYINDEX )
 	, wpePriority( wp, IDC_PRIORITYX )
 	, wpeValue(wp)			// for proper parent control
@@ -522,7 +523,7 @@ void WritePropList::Bind( void )
 		;
 
 		wplPagePtr->m_PropList.InsertItem( i
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ wpep->wpePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( wpep->wpePropCombo.m_enumValue )
 			);
 		if (wpep->wpeArrayIndex.ctrlNull)
 			wplPagePtr->m_PropList.SetItemText( i, 1, "" );
@@ -592,15 +593,10 @@ void WritePropList::AddButtonClick( void )
 	wplCurElem = new WritePropElem( wplPagePtr );
 	wplCurElemIndx = listLen;
 
-	// madanner, 8/26/02.  Sourceforge bug #472392
-	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings
-	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
-	// if list is altered.
-
 	wplCurElem->wpePropCombo.m_nObjType = wplObjID.GetObjectType();
 	wplCurElem->wpePropCombo.LoadCombo();
 
-	wplCurElem->wpePropCombo.enumValue = 85;
+	wplCurElem->wpePropCombo.SetEnumValue( PRESENT_VALUE );
 	AddTail( wplCurElem );
 
 	// bind the element to the controls
@@ -766,16 +762,16 @@ void WritePropList::OnSelchangePropCombo( void )
 		wplCurElem->wpePropCombo.UpdateData();
 		wplPagePtr->UpdateEncoded();
 
-		if ( wplCurElem->wpePropCombo.enumValue < 512 )
+		if ( wplCurElem->wpePropCombo.m_enumValue < 512 )
 		{
 			wplPagePtr->m_PropList.SetItemText( wplCurElemIndx, 0
-				, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ wplCurElem->wpePropCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( wplCurElem->wpePropCombo.m_enumValue )
 				);
 		}
 		else
 		{
 			CString c;
-			c.Format("%d", wplCurElem->wpePropCombo.enumValue );
+			c.Format("%d", wplCurElem->wpePropCombo.m_enumValue );
 			wplPagePtr->m_PropList.SetItemText( wplCurElemIndx, 0, c );
 		}
 	}
@@ -986,7 +982,7 @@ void WritePropListList::ForceValues(BACnetObjectIdentifier * pObjectID, int apPr
 	{
 		WritePropElemPtr elemPtr = new WritePropElem(wpllPagePtr);
 			
-		elemPtr->wpePropCombo.enumValue = apPropID[j];
+		elemPtr->wpePropCombo.m_enumValue = apPropID[j];
 		elemPtr->wpePropCombo.ctrlNull = FALSE;
 		elemPtr->wpeArrayIndex.uintValue = 0;
 		elemPtr->wpeArrayIndex.ctrlNull = TRUE;

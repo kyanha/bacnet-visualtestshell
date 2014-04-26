@@ -460,7 +460,7 @@ void EnrollmentSummaryList::OnSelchangeEventTypeCombo( void )
 			eslPagePtr->m_EnrollmentSumListCtrl.SetItemText( eslCurElemIndx, 1, "" );
 		else
 			eslPagePtr->m_EnrollmentSumListCtrl.SetItemText( eslCurElemIndx, 1
-				, NetworkSniffer::BAC_STRTAB_BACnetEventType.m_pStrings[ eslCurElem->eseEventTypeCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetEventType.m_pStrings[ eslCurElem->eseEventTypeCombo.m_enumValue ]
 				);
 	}
 }
@@ -479,7 +479,7 @@ void EnrollmentSummaryList::OnSelchangeEventStateCombo( void )
 			eslPagePtr->m_EnrollmentSumListCtrl.SetItemText( eslCurElemIndx, 2, "" );
 		else
 			eslPagePtr->m_EnrollmentSumListCtrl.SetItemText( eslCurElemIndx, 2
-				, NetworkSniffer::BAC_STRTAB_BACnetEventState.m_pStrings[ eslCurElem->eseEventStateCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetEventState.m_pStrings[ eslCurElem->eseEventStateCombo.m_enumValue ]
 				);
 	}
 }

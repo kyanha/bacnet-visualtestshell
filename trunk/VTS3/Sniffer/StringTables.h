@@ -36,10 +36,18 @@ struct BACnetStringTable
    // If the value is undefined, the string will show the pUndefined title and the numeric value
    const char* EnumString( int theIndex, const char *pUndefined = NULL ) const;
 
+   // Return the enumeration value corresponding to pString.
+   // If the string is not a valid value, return -1.
+   // In addition to tabled strings, accepts
+   // "proprietary-anything-you-like-123" (per 135.1 clause 4.4i for enumerations)
+   // "proprietary 123" (per 135.1 clause 4.4l for object IDs)
+   // "vendor 123", "vendor-123", "reserved 123", reserved-123" matching older VTS usage
+   int EnumValue( const char *pString ) const;
+
    // Fill a CComboBox with the contents of the string table
    // If doSort is true, sort the strings alphabetically, else use string table order.
-   // Sets ItemData to the index of the string in the string table (since the index
-   // in the combo won't be the string index for a sorted list)
+   // CAUTION: if sorted, you must convert the selected string value to the enum,
+   // since the index in the combo won't be the string index for a sorted list.
    void FillCombo( CComboBox &theCombo, bool doSort = false ) const;
 };
 

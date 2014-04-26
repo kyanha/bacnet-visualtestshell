@@ -3498,7 +3498,7 @@ void VTSServer::ReadProperty( const BACnetAPDU &apdu )
 
 		TRACE( "ReadProperty %d-%d, %d, %d\n", 
 			   objId.GetObjectType(), objId.GetObjectInstance(), 
-			   propId.enumValue, arryIndx.uintValue );
+			   propId.m_enumValue, arryIndx.uintValue );
 
 		// build an ack
 		BACnetComplexAckAPDU	ack( readProperty, apdu.apduInvokeID );
@@ -3516,7 +3516,7 @@ void VTSServer::ReadProperty( const BACnetAPDU &apdu )
 	    BACnetOpeningTag().Encode( ack, 3 );
 
 		/* MAD_DB  Find proper object/property/value
-		serverDev->devObjPropValueList->Encode( objId.objID, propId.enumValue
+		serverDev->devObjPropValueList->Encode( objId.objID, propId.m_enumValue
 			, (gotIndex ? arryIndx.uintValue : -1)
 			, ack
 			);
@@ -3591,7 +3591,7 @@ void VTSServer::CovNotification( const BACnetAPDU &apdu )
 //			dec.ExamineTag( t );
 //		}
 
-//		TRACE3( "confirmedCOVNotification  %d, %d, %d\n", objId.objID, propId.enumValue, arryIndx.uintValue );
+//		TRACE3( "confirmedCOVNotification  %d, %d, %d\n", objId.objID, propId.m_enumValue, arryIndx.uintValue );
 
 		// build an ack
 		BACnetSimpleAckAPDU	ack( confirmedCOVNotification, apdu.apduInvokeID );
@@ -3695,7 +3695,7 @@ void VTSServer::WriteProperty( const BACnetAPDU &apdu )
 
 		TRACE( "WriteProperty %d-%d, %d, %d\n", 
 			   objId.GetObjectType(), objId.GetObjectInstance(), 
-			   propId.enumValue, arryIndx.uintValue );
+			   propId.m_enumValue, arryIndx.uintValue );
 
 		// build an ack
 		BACnetSimpleAckAPDU	ack( writeProperty, apdu.apduInvokeID );
@@ -3712,7 +3712,7 @@ void VTSServer::WriteProperty( const BACnetAPDU &apdu )
 
 		// decode the contents
 		/* MAD_DB 
-		serverDev->devObjPropValueList->Decode( objId.objID, propId.enumValue
+		serverDev->devObjPropValueList->Decode( objId.objID, propId.m_enumValue
 			, (gotIndex ? arryIndx.uintValue : -1)
 			, dec
 			);
@@ -3934,7 +3934,7 @@ void VTSServer::ReinitializeDevice( const BACnetAPDU &apdu)
 
 		// TODO: We should actually do something with this information.
 
-//		TRACE3( "reinitializeDevice  %d, %s\n", stateOfDevice.enumValue, password );
+//		TRACE3( "reinitializeDevice  %d, %s\n", stateOfDevice.m_enumValue, password );
 
 		// build an ack
 		BACnetSimpleAckAPDU	ack( reinitializeDevice, apdu.apduInvokeID );
@@ -3997,7 +3997,7 @@ void VTSServer::DeviceCommunicationControl( const BACnetAPDU &apdu )
 
 		// TODO: We should actually do something with this information.
 
-//		TRACE3( "deviceCommunicationControl  %d, %d, %d\n", timeDur.uintValue, enableDisable.enumValue, password );
+//		TRACE3( "deviceCommunicationControl  %d, %d, %d\n", timeDur.uintValue, enableDisable.m_enumValue, password );
 
 		// build an ack
 		BACnetSimpleAckAPDU	ack( deviceCommunicationControl, apdu.apduInvokeID );
@@ -4048,7 +4048,7 @@ void VTSServer::AcknowledgeAlarm( const BACnetAPDU &apdu )
 
 		// TODO: someday do something with this information
 
-//		TRACE3( "acknowledgeAlarm  %d, %d, %d\n", ack_pid.uintValue, eventObjId.objID, eventState.enumValue);
+//		TRACE3( "acknowledgeAlarm  %d, %d, %d\n", ack_pid.uintValue, eventObjId.objID, eventState.m_enumValue);
 
 		// build an ack
 		BACnetSimpleAckAPDU	ack( acknowledgeAlarm, apdu.apduInvokeID );
@@ -4106,7 +4106,7 @@ void VTSServer::EventNotification( const BACnetAPDU &apdu )
 //			dec.ExamineTag( t );
 //		}
 
-//		TRACE3( "EventNotification  %d, %d, %d\n", objId.objID, propId.enumValue, arryIndx.uintValue );
+//		TRACE3( "EventNotification  %d, %d, %d\n", objId.objID, propId.m_enumValue, arryIndx.uintValue );
 
 		// build an ack
 		BACnetSimpleAckAPDU	ack( confirmedEventNotification, apdu.apduInvokeID );
@@ -4510,7 +4510,7 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
 	if ( pbacnetobjectid->objID != bacnetobjidThis.objID )
 		return 31;												// object not found
 
-	switch( pbacnetpropid->enumValue )
+	switch( pbacnetpropid->m_enumValue )
 	{
 		case OBJECT_IDENTIFIER:
 			{
@@ -4718,7 +4718,7 @@ int VTSDevice :: InternalWriteProperty( BACnetObjectIdentifier * pbacnetobjectid
 	{
 		BACnetUnsigned	bacnetunsigned;
 
-		switch( pbacnetpropid->enumValue )
+		switch( pbacnetpropid->m_enumValue )
 		{
 			case OBJECT_NAME:
 							{
@@ -4804,7 +4804,7 @@ int VTSDevice :: ReadProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetE
 	if ( (pobject = FindObject(pbacnetobjectid->objID)) == NULL )
 		return InternalReadProperty(pbacnetobjectid, pbacnetpropid, pAPDUEncoder, nIndex);
 
-	if ( (pprop = FindProperty(pobject, pbacnetpropid->enumValue)) == NULL )
+	if ( (pprop = FindProperty(pobject, pbacnetpropid->m_enumValue)) == NULL )
 // LJT changed this because InternalReadProperty should only be used for Device Object and 
 //  we already figured out this is not for the device object
 //		return InternalReadProperty(pbacnetobjectid, pbacnetpropid, pAPDUEncoder);
@@ -4884,7 +4884,7 @@ int VTSDevice :: WriteProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnet
 	if ( (pobject = FindObject(pbacnetobjectid->objID)) == NULL )
 		return InternalWriteProperty(pbacnetobjectid, pbacnetpropid, pdec);
 
-	if ( (pprop = FindProperty(pobject, pbacnetpropid->enumValue)) == NULL )
+	if ( (pprop = FindProperty(pobject, pbacnetpropid->m_enumValue)) == NULL )
 		return InternalWriteProperty(pbacnetobjectid, pbacnetpropid, pdec);
 
 	// IF they've requested to change either the length of the array or a specific element and this isn't

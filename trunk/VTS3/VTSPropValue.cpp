@@ -235,17 +235,7 @@ CString VTSDevProperty::GetDescription( void )
 
 LPCSTR VTSDevProperty::GetDescription( unsigned int nPropID )
 {
-	LPCSTR pRet;
-	if (nPropID < (unsigned int)NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings)
-	{
-		pRet = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[nPropID];
-	}
-	else
-	{
-		pRet = "unknown-property";
-	}
-
-	return pRet;
+	return NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( nPropID );
 }
 
 

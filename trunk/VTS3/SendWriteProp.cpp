@@ -27,7 +27,7 @@ IMPLEMENT_DYNCREATE( CSendWriteProp, CPropertyPage )
 CSendWriteProp::CSendWriteProp( void )
 	: CSendPage( CSendWriteProp::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 	, m_Priority( this, IDC_PRIORITYX )
 	, m_Value(this)			// for proper parent control
@@ -297,7 +297,7 @@ void CSendWriteProp::ForceValues(BACnetObjectIdentifier * pObjectID, BACnetEnume
 {
 	m_ObjectID.objID = pObjectID->objID;
 	m_ObjectID.ctrlNull = FALSE;
-	m_PropCombo.enumValue = pPropID->enumValue;
+	m_PropCombo.m_enumValue = pPropID->m_enumValue;
 	m_PropCombo.ctrlNull = FALSE;
 	m_ArrayIndex.ctrlNull = true;
 	m_Priority.ctrlNull = true;

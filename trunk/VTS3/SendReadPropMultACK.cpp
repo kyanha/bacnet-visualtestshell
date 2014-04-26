@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
-
+#include "propid.h"
 
 #include "Send.h"
 #include "SendReadPropMultACK.h"
@@ -148,10 +148,10 @@ void CSendReadPropMultACK::SavePage( void )
 			ReadPropACKElemPtr elemPtr = rplistPtr->GetAt(rplistPtr->FindIndex(j));
             WPMRPMElemPtr wpmrpmelemPtr = new WPMRPMElem();
 			
-			wpmrpmelemPtr->m_prop.enumValue = elemPtr->rpaePropCombo.enumValue;
+			wpmrpmelemPtr->m_prop.m_enumValue = elemPtr->rpaePropCombo.m_enumValue;
 			wpmrpmelemPtr->m_array.uintValue = elemPtr->rpaeArrayIndex.uintValue;
-            wpmrpmelemPtr->m_class.enumValue = elemPtr->rpaeClassCombo.enumValue;
-			wpmrpmelemPtr->m_code.enumValue = elemPtr->rpaeCodeCombo.enumValue;
+            wpmrpmelemPtr->m_class.m_enumValue = elemPtr->rpaeClassCombo.m_enumValue;
+			wpmrpmelemPtr->m_code.m_enumValue = elemPtr->rpaeCodeCombo.m_enumValue;
 			wpmrpmelemPtr->m_value = elemPtr->rpaeValue;
 			wpmrplistPtr->AddTail(wpmrpmelemPtr);
 		}
@@ -211,10 +211,10 @@ void CSendReadPropMultACK::RestorePage( int index )
 			ReadPropACKElemPtr elemPtr = new ReadPropACKElem(this);
             WPMRPMElemPtr wpmrpmelemPtr = wpmrplistPtr->GetAt(wpmrplistPtr->FindIndex(j));
 			
-			elemPtr->rpaePropCombo.enumValue = wpmrpmelemPtr->m_prop.enumValue;
+			elemPtr->rpaePropCombo.m_enumValue = wpmrpmelemPtr->m_prop.m_enumValue;
 			elemPtr->rpaeArrayIndex.uintValue = wpmrpmelemPtr->m_array.uintValue;
-			elemPtr->rpaeClassCombo.enumValue = wpmrpmelemPtr->m_class.enumValue;
-			elemPtr->rpaeCodeCombo.enumValue = wpmrpmelemPtr->m_code.enumValue;
+			elemPtr->rpaeClassCombo.m_enumValue = wpmrpmelemPtr->m_class.m_enumValue;
+			elemPtr->rpaeCodeCombo.m_enumValue = wpmrpmelemPtr->m_code.m_enumValue;
 			elemPtr->rpaeValue = wpmrpmelemPtr->m_value;
 
 			elemPtr->rpaeArrayIndex.ctrlNull = FALSE; //value specified
@@ -239,8 +239,7 @@ void CSendReadPropMultACK::RestorePage( int index )
 BOOL CSendReadPropMultACK::OnInitDialog() 
 {
 	int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
-	CComboBox	*cbp
-	;
+	CComboBox	*cbp;
 
 	TRACE0( "CSendReadPropMultACK::OnInitDialog()\n" );
 
@@ -274,14 +273,6 @@ BOOL CSendReadPropMultACK::OnInitDialog()
 	GetDlgItem( IDC_VALUE )->EnableWindow( false );
 	GetDlgItem( IDC_ERRORCLASSCOMBO )->EnableWindow( false );
 	GetDlgItem( IDC_ERRORCODECOMBO )->EnableWindow( false );
-	
-	// load the property enumeration table
-	cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
-
-	// load the error class enumeration table
-	cbp = (CComboBox *)GetDlgItem( IDC_ERRORCLASSCOMBO );
-	NetworkSniffer::BAC_STRTAB_BACnetErrorClass.FillCombo( *cbp );
 
 	// load the error code enumeration table
 	cbp = (CComboBox *)GetDlgItem( IDC_ERRORCODECOMBO );
@@ -394,7 +385,7 @@ void CSendReadPropMultACK::OnSelchangeCodeCombo()
 //
 
 ReadPropACKElem::ReadPropACKElem( CSendPagePtr wp )
-	: rpaePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	: rpaePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, rpaeArrayIndex( wp, IDC_ARRAYINDEX )
 	, rpaeClassCombo( wp, IDC_ERRORCLASSCOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorClass, true )
 	, rpaeCodeCombo( wp, IDC_ERRORCODECOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorCode, true )
@@ -546,7 +537,7 @@ void ReadPropACKList::Bind( void )
 		;
 
 		rpalPagePtr->m_PropList.InsertItem( i
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rpaep->rpaePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( rpaep->rpaePropCombo.m_enumValue )
 			);
 		if (rpaep->rpaeArrayIndex.ctrlNull)
 			rpalPagePtr->m_PropList.SetItemText( i, 1, "" );
@@ -615,12 +606,7 @@ void ReadPropACKList::AddButtonClick( void )
 	rpalCurElem = new ReadPropACKElem( rpalPagePtr );
 	rpalCurElemIndx = listLen;
 
-	// madanner, 8/26/02.  Sourceforge bug #472392
-	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier
-	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
-	// if list is altered.
-
-	rpalCurElem->rpaePropCombo.enumValue = 85;
+	rpalCurElem->rpaePropCombo.SetEnumValue( PRESENT_VALUE );
 
 	AddTail( rpalCurElem );
 
@@ -790,7 +776,7 @@ void ReadPropACKList::OnSelchangePropCombo( void )
 		rpalPagePtr->UpdateEncoded();
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 0
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rpalCurElem->rpaePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( rpalCurElem->rpaePropCombo.m_enumValue )
 			);
 	}
 }
@@ -849,7 +835,7 @@ void ReadPropACKList::OnSelchangeClassCombo( void )
 		rpalPagePtr->UpdateEncoded();
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 3
-			, NetworkSniffer::BAC_STRTAB_BACnetErrorClass.m_pStrings[ rpalCurElem->rpaeClassCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetErrorClass.m_pStrings[ rpalCurElem->rpaeClassCombo.m_enumValue ]
 			);
 	}
 }
@@ -865,7 +851,7 @@ void ReadPropACKList::OnSelchangeCodeCombo( void )
 		rpalPagePtr->UpdateEncoded();
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 4
-			, NetworkSniffer::BAC_STRTAB_BACnetErrorCode.m_pStrings[ rpalCurElem->rpaeCodeCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetErrorCode.m_pStrings[ rpalCurElem->rpaeCodeCombo.m_enumValue ]
 			);
 	}
 }

@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
+#include "propid.h"
 
 #include "Send.h"
 #include "SendUnconfCOVNotification.h"
@@ -196,10 +197,6 @@ BOOL CSendUnconfCOVNotification::OnInitDialog()
 	m_PropListCtrl.InsertColumn( 2, "Value", LVCFMT_LEFT, 96 );
 	m_PropListCtrl.InsertColumn( 3, "Priority", LVCFMT_RIGHT, 48 );
 
-	// load the enumeration table
-	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
-
 	return TRUE;
 }
 
@@ -265,7 +262,7 @@ void CSendUnconfCOVNotification::OnChangeTimeRemaining()
 
 void CSendUnconfCOVNotification::OnAddProp() 
 {
-	m_PropList.AddButtonClick();
+	m_PropList.AddButtonClick( m_ObjectID.objID >> 22 );
 }
 
 void CSendUnconfCOVNotification::OnRemoveProp() 
@@ -303,7 +300,7 @@ void CSendUnconfCOVNotification::OnChangePriority()
 //
 
 UnconfCOVNotificationElem::UnconfCOVNotificationElem( CSendPagePtr wp )
-	: unePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	: unePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, uneArrayIndex( wp, IDC_ARRAYINDEX )
 	, unePriority( wp, IDC_PRIORITYX )
 	, uneValue(wp)				// added parent for proper send dlg function
@@ -405,10 +402,9 @@ UnconfCOVNotificationList::~UnconfCOVNotificationList( void )
 //	UnconfCOVNotificationList::AddButtonClick
 //
 
-void UnconfCOVNotificationList::AddButtonClick( void )
+void UnconfCOVNotificationList::AddButtonClick( int theObjectType )
 {
-	int		listLen = GetCount()
-	;
+	int		listLen = GetCount();
 
 	// deselect if something was selected
 	POSITION selPos = unlPagePtr->m_PropListCtrl.GetFirstSelectedItemPosition();
@@ -425,12 +421,10 @@ void UnconfCOVNotificationList::AddButtonClick( void )
 	unlCurElem = new UnconfCOVNotificationElem( unlPagePtr );
 	unlCurElemIndx = listLen;
 
-	// madanner, 9/3/02
-	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings
-	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
-	// if list is altered.
-
-	unlCurElem->unePropCombo.enumValue = 85;
+	// Make a property list of the appropriate type
+	unlCurElem->unePropCombo.m_nObjType = theObjectType;
+	unlCurElem->unePropCombo.LoadCombo();
+	unlCurElem->unePropCombo.SetEnumValue( PRESENT_VALUE );
 
 	AddTail( unlCurElem );
 
@@ -494,7 +488,7 @@ void UnconfCOVNotificationList::OnSelchangePropCombo( void )
 		unlPagePtr->UpdateEncoded();
 
 		unlPagePtr->m_PropListCtrl.SetItemText( unlCurElemIndx, 0
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ unlCurElem->unePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( unlCurElem->unePropCombo.m_enumValue )
 			);
 	}
 }

@@ -114,7 +114,7 @@ void CSendAbort::EncodePage( CByteArray* contents )
 	// encode the service choice
 	if (m_AbortCombo.ctrlNull)
 		throw "Abort reason required";
-	header.Add( m_AbortCombo.enumValue );
+	header.Add( m_AbortCombo.m_enumValue );
 
 	// stuff the header on the front
 	contents->InsertAt( 0, &header );

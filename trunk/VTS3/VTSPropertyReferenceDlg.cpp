@@ -17,7 +17,7 @@ static char THIS_FILE[] = __FILE__;
 #pragma warning( disable : 4355 )
 VTSPropertyReferenceDlg::VTSPropertyReferenceDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSPropertyReferenceDlg::IDD, pParent)
-	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 {
 	//{{AFX_DATA_INIT(VTSPropertyReferenceDlg)

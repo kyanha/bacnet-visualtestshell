@@ -87,7 +87,7 @@ void CSendIAm::InitPage( void )
 	m_MaxAPDULength.ctrlNull = true;
 
 	m_SegmentationCombo.ctrlNull = false;
-	m_SegmentationCombo.enumValue = 0;
+	m_SegmentationCombo.m_enumValue = 0;
 
 	m_VendorID.ctrlNull = true;
 

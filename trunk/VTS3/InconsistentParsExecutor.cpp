@@ -221,7 +221,7 @@ void InconsistentParsExecutor::DoInvalidTagTest()
 
 	m_pOutputDlg->OutMessage("Send ReadProperty...",	FALSE);
 	// TODO: get prop and obj from DLG and then send special packet
-	//propID.enumValue = PICS::OBJECT_IDENTIFIER;
+	//propID.m_enumValue = PICS::OBJECT_IDENTIFIER;
 	//objObjID.SetValue( OBJ_DEVICE, m_nDeviceObjInst);
 	objObjID = m_ObjID;
 	propID = m_propID;
@@ -277,7 +277,7 @@ void InconsistentParsExecutor::DoTooManyArgsTest()
 
 	m_pOutputDlg->OutMessage("Send ReadProperty...",	FALSE);
 	// TODO: get prop and obj from DLG and then send special packet
-	//propID.enumValue = PICS::OBJECT_IDENTIFIER;
+	//propID.m_enumValue = PICS::OBJECT_IDENTIFIER;
 	//objObjID.SetValue( OBJ_DEVICE, m_nDeviceObjInst);
 	objObjID = m_ObjID;
 	propID = m_propID;
@@ -447,12 +447,12 @@ BOOL InconsistentParsExecutor::SendReadPropertyExpectReject(BACnetAPDUEncoder *e
 
 	BACnetEnumerated rejectReason;
 
-	rejectReason.enumValue = m_pAPDU->apduAbortRejectReason;
+	rejectReason.m_enumValue = m_pAPDU->apduAbortRejectReason;
 
 	// see if we received one of the expected error codes
 	for (i = 0; i < len; i++ )
 	{
-		if ( rejectReason.enumValue == Allowed_Errors[i] )
+		if ( rejectReason.m_enumValue == Allowed_Errors[i] )
 			return TRUE;
 	}
 
