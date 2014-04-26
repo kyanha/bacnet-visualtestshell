@@ -83,13 +83,13 @@ void CSendError::InitPage( void )
 	m_InvokeID.ctrlNull = true;
 
 	m_ServiceCombo.ctrlNull = false;
-	m_ServiceCombo.enumValue = 0;
+	m_ServiceCombo.m_enumValue = 0;
 
 	m_ErrorClassCombo.ctrlNull = false;
-	m_ErrorClassCombo.enumValue = 0;
+	m_ErrorClassCombo.m_enumValue = 0;
 
 	m_ErrorCodeCombo.ctrlNull = false;
-	m_ErrorCodeCombo.enumValue = 0;
+	m_ErrorCodeCombo.m_enumValue = 0;
 }
 
 //
@@ -118,7 +118,7 @@ void CSendError::EncodePage( CByteArray* contents )
 	// encode the service choice
 	if (m_ServiceCombo.ctrlNull)
 		throw "Service ACK choice required";
-	header.Add( m_ServiceCombo.enumValue );
+	header.Add( m_ServiceCombo.m_enumValue );
 
 	// encode the error class
 	if (m_ErrorClassCombo.ctrlNull)

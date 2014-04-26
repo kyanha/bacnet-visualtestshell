@@ -68,7 +68,7 @@ void CSendNetworkNumberIs::InitPage( void )
    // flush the data
    m_networkNumber.ctrlNull = true;
    m_typeCombo.ctrlNull = false;
-   m_typeCombo.enumValue = 1;
+   m_typeCombo.m_enumValue = 1;
 
    // tell the NPCI this is a network layer message
    pageParent->NPCIPage.m_isNetMessage = true;

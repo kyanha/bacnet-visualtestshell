@@ -19,7 +19,7 @@ VTSDeviceObjectPropertyReferenceDlg::VTSDeviceObjectPropertyReferenceDlg(CWnd* p
 	: CDialog(VTSDeviceObjectPropertyReferenceDlg::IDD, pParent)
 	, m_DeviceID( this, IDC_DEVICEID )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 {
 	//{{AFX_DATA_INIT(VTSDeviceObjectPropertyReferenceDlg)

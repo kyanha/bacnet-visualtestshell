@@ -69,13 +69,13 @@ BakRestoreExecutor::PropertyValue::PropertyValue()
 
 BakRestoreExecutor::PropertyValue::PropertyValue(const BACnetEnumerated& propID, BACnetEncodeable& propValue)
 {
-   m_propID.enumValue = propID.enumValue;
+   m_propID.m_enumValue = propID.m_enumValue;
    m_propValue.SetObject(&propValue);
 }
 
 BakRestoreExecutor::PropertyValue::PropertyValue(const PropertyValue& value)
 {
-   m_propID.enumValue = value.m_propID.enumValue;
+   m_propID.m_enumValue = value.m_propID.m_enumValue;
    PropertyValue* p = const_cast<PropertyValue*>(&value);
    m_propValue.SetObject(p->m_propValue.GetObject());
 }
@@ -324,7 +324,7 @@ void BakRestoreExecutor::DoBackupTest()
       m_pOutputDlg->OutMessage("Use ReadProperty to set M2 = Max_APDU_Length...", FALSE);
       // Use ReadProperty to set M2 = Max_APDU_Length
       devObjID.SetValue(OBJ_DEVICE, m_nDeviceObjInst);
-      propID.enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
+      propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
       propValue.SetObject(&maxAPDULenAccepted);
       if (!SendExpectReadProperty(devObjID, propID, propValue))
       {
@@ -355,7 +355,7 @@ void BakRestoreExecutor::DoBackupTest()
          }
          m_pOutputDlg->OutMessage("OK");
          m_pOutputDlg->OutMessage("Use ReadProperty to set M2 = Max_APDU_Length...", FALSE);
-         propID.enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
+         propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
          propValue.SetObject(&maxAPDULenAccepted);
          if (!SendExpectReadProperty(devObjID, propID, propValue))
          {
@@ -388,7 +388,7 @@ void BakRestoreExecutor::DoBackupTest()
 
    m_pOutputDlg->OutMessage("Write to the Device/Backup_Failure_Timeout...", FALSE);
    // use WriteProperty to write to the Device/Backup_Failure_Timeout property
-   propID.enumValue = PICS::BACKUP_FAILURE_TIMEOUT;
+   propID.m_enumValue = PICS::BACKUP_FAILURE_TIMEOUT;
    BACnetUnsigned backupFailureTimeout(m_Backup_Timeout);
    propValue.SetObject(&backupFailureTimeout);
    if (!SendExpectWriteProperty(devObjID, propID, propValue))
@@ -411,7 +411,7 @@ void BakRestoreExecutor::DoBackupTest()
    // Read array index zero of the Configuration_File property of the Device Object,
    // and store it in a variable named NUM_FILES.
    m_pOutputDlg->OutMessage("Read array size of the ConfigureFile Property...", FALSE);
-   propID.enumValue = PICS::CONFIGURATION_FILES;
+   propID.m_enumValue = PICS::CONFIGURATION_FILES;
    BACnetUnsigned numFiles;
    propValue.SetObject(&numFiles);
    if (!SendExpectReadProperty(devObjID, propID, propValue, 0))
@@ -429,7 +429,7 @@ void BakRestoreExecutor::DoBackupTest()
    {
       // Read array index I of the Configuration_Files array.
       m_pOutputDlg->OutMessage("Read array index I of the Configure_Files array...", FALSE);
-      propID.enumValue = PICS::CONFIGURATION_FILES;
+      propID.m_enumValue = PICS::CONFIGURATION_FILES;
       BACnetObjectIdentifier  fileID;
       propValue.SetObject(&fileID);
       if (!SendExpectReadProperty(devObjID, propID, propValue, i+1))
@@ -445,7 +445,7 @@ void BakRestoreExecutor::DoBackupTest()
       m_pOutputDlg->OutMessage("OK");
 
       m_pOutputDlg->OutMessage("Use ReadProperty to get the File_Access_Method...", FALSE);
-      propID.enumValue = PICS::FILE_ACCESS_METHOD;
+      propID.m_enumValue = PICS::FILE_ACCESS_METHOD;
       BACnetEnumerated fileAccessMethod;
       propValue.SetObject(&fileAccessMethod);
       if (!SendExpectReadProperty(fileID, propID, propValue))
@@ -455,7 +455,7 @@ void BakRestoreExecutor::DoBackupTest()
       m_pOutputDlg->OutMessage("OK");
 
       m_pOutputDlg->OutMessage("Use ReadProperty to get the Object_Name...", FALSE);
-      propID.enumValue = PICS::OBJECT_NAME;
+      propID.m_enumValue = PICS::OBJECT_NAME;
       BACnetCharacterString   objName;
       propValue.SetObject(&objName);
       if (!SendExpectReadProperty(fileID, propID, propValue))
@@ -465,10 +465,10 @@ void BakRestoreExecutor::DoBackupTest()
       m_pOutputDlg->OutMessage("OK");
 
       BACnetUnsigned recordCount;
-      if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
+      if (fileAccessMethod.m_enumValue == PICS::RECORD_ACCESS)
       {
          m_pOutputDlg->OutMessage("Use ReadProperty to get the Record_Count...", FALSE);
-         propID.enumValue = PICS::RECORD_COUNT;
+         propID.m_enumValue = PICS::RECORD_COUNT;
          propValue.SetObject(&recordCount);
          if (!SendExpectReadProperty(fileID, propID, propValue))
          {
@@ -478,7 +478,7 @@ void BakRestoreExecutor::DoBackupTest()
       }
 
       m_pOutputDlg->OutMessage("Use ReadProperty to get the File_Size...", FALSE);
-      propID.enumValue = PICS::FILE_SIZE;
+      propID.m_enumValue = PICS::FILE_SIZE;
       BACnetUnsigned fileSize;
       propValue.SetObject(&fileSize);
       if (!SendExpectReadProperty(fileID, propID, propValue))
@@ -500,12 +500,12 @@ void BakRestoreExecutor::DoBackupTest()
       BACnetUnsigned(nFileInstance).Encode(chEnc, BACnetEncodeable::FMT_PLAIN);
 
       nStart = sprintf(buffer, "%s, ", (LPCTSTR)chEnc);
-      nStart +=  sprintf(buffer+nStart, "%s, ", NetworkSniffer::BAC_STRTAB_BACnetFileAccessMethod.m_pStrings[fileAccessMethod.enumValue]);
+      nStart +=  sprintf(buffer+nStart, "%s, ", NetworkSniffer::BAC_STRTAB_BACnetFileAccessMethod.m_pStrings[fileAccessMethod.m_enumValue]);
 
       fileSize.Encode(chEnc, BACnetEncodeable::FMT_PLAIN);
       nStart += sprintf(buffer+nStart, "%s, ", (LPCTSTR)chEnc);
       // add record count to index file if and only if RECORD_ACCESS type.
-      if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
+      if (fileAccessMethod.m_enumValue == PICS::RECORD_ACCESS)
       {
          recordCount.Encode(chEnc, BACnetEncodeable::FMT_PLAIN);
          nStart += sprintf(buffer+nStart, "%s, ", (LPCTSTR)chEnc);
@@ -517,7 +517,7 @@ void BakRestoreExecutor::DoBackupTest()
 
       m_pOutputDlg->OutMessage("OK");
 
-      if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
+      if (fileAccessMethod.m_enumValue == PICS::RECORD_ACCESS)
       {
          BACnetBoolean  endofFile(fileSize.uintValue == 0 ? TRUE : FALSE);
          UINT nX = 0;
@@ -630,7 +630,7 @@ void BakRestoreExecutor::DoRestoreTest()
       // Use ReadProperty to set M2 = Max_APDU_Length
       m_pOutputDlg->OutMessage("Use ReadProperty to set M2 = Max_APDU_Length...", FALSE);
       devObjID.SetValue(OBJ_DEVICE, m_nDeviceObjInst);
-      propID.enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
+      propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
       propValue.SetObject(&maxAPDULenAccepted);
       if (!SendExpectReadProperty(devObjID, propID, propValue))
       {
@@ -656,7 +656,7 @@ void BakRestoreExecutor::DoRestoreTest()
             throw("Dynamic discovery of the Device ID has failed!\n"
                  "The user must specify a Device Instance number in the Backup/Restore dialog");
          }
-         propID.enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
+         propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
          propValue.SetObject(&maxAPDULenAccepted);
          if (!SendExpectReadProperty(devObjID, propID, propValue))
          {
@@ -695,7 +695,7 @@ void BakRestoreExecutor::DoRestoreTest()
    m_pOutputDlg->OutMessage("Use ReadProperty to read the Device/Object_List...", FALSE);
    BACnetArrayOf<BACnetObjectIdentifier>  objList;
 // int nType = objList.DataType();
-   propID.enumValue = PICS::OBJECT_LIST;
+   propID.m_enumValue = PICS::OBJECT_LIST;
    // suppose both devices do not support segmentation
    // First to determine how many elements are in the list
    BACnetUnsigned numOfObjects;
@@ -735,11 +735,11 @@ void BakRestoreExecutor::DoRestoreTest()
       BACnetEnumerated fileAccessMethod;
       if (strToken == "RECORD-ACCESS")
       {
-         fileAccessMethod.enumValue = PICS::RECORD_ACCESS;
+         fileAccessMethod.m_enumValue = PICS::RECORD_ACCESS;
       }
       else if (strToken == "STREAM-ACCESS")
       {
-         fileAccessMethod.enumValue = PICS::STREAM_ACCESS;
+         fileAccessMethod.m_enumValue = PICS::STREAM_ACCESS;
       }
       else
       {
@@ -755,7 +755,7 @@ void BakRestoreExecutor::DoRestoreTest()
         nPos1 = nPos2 + 1;
 
       BACnetUnsigned recordCount;
-      if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
+      if (fileAccessMethod.m_enumValue == PICS::RECORD_ACCESS)
       {
          nPos2 = strText.Find(',', nPos1);       //After record_count
          strToken = strText.Mid(nPos1, nPos2 - nPos1);
@@ -794,10 +794,10 @@ void BakRestoreExecutor::DoRestoreTest()
       bFind = true;
       if (bFind)
       {
-         if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
+         if (fileAccessMethod.m_enumValue == PICS::RECORD_ACCESS)
          {
             m_pOutputDlg->OutMessage("Use ReadProperty to read the Record_Count property...", FALSE);
-            propID.enumValue = PICS::RECORD_COUNT;
+            propID.m_enumValue = PICS::RECORD_COUNT;
             BACnetUnsigned recordCountIUT;
             propValue.SetObject(&recordCountIUT);
             if (!SendExpectReadProperty(fileID, propID, propValue))
@@ -809,7 +809,7 @@ void BakRestoreExecutor::DoRestoreTest()
             {
                // use write_property to set the Record_Count to zero
                m_pOutputDlg->OutMessage("Use WriteProperty to set the Record_Count to zero...", FALSE);
-               propID.enumValue = PICS::RECORD_COUNT;
+               propID.m_enumValue = PICS::RECORD_COUNT;
                BACnetUnsigned temp(0);
                propValue.SetObject(&temp);
                if (!SendExpectWriteProperty(fileID, propID, propValue))
@@ -822,7 +822,7 @@ void BakRestoreExecutor::DoRestoreTest()
          else
          {
             m_pOutputDlg->OutMessage("Use ReadProperty to read the File_Size property...", FALSE);
-            propID.enumValue = PICS::FILE_SIZE;
+            propID.m_enumValue = PICS::FILE_SIZE;
             BACnetUnsigned fileSizeIUT;
             propValue.SetObject(&fileSizeIUT);
             if (!SendExpectReadProperty(fileID, propID, propValue))
@@ -834,7 +834,7 @@ void BakRestoreExecutor::DoRestoreTest()
             {
                // use write_property to set the File_Size to zero
                m_pOutputDlg->OutMessage("Use WriteProperty to set the File_Size to zero...", FALSE);
-               propID.enumValue = PICS::FILE_SIZE;
+               propID.m_enumValue = PICS::FILE_SIZE;
                BACnetUnsigned temp(0);
                propValue.SetObject(&temp);
                if (!SendExpectWriteProperty(fileID, propID, propValue))
@@ -873,7 +873,7 @@ void BakRestoreExecutor::DoRestoreTest()
 
       m_pOutputDlg->OutMessage("Open the backup data file...", FALSE);
 
-      if (fileAccessMethod.enumValue == PICS::RECORD_ACCESS)
+      if (fileAccessMethod.m_enumValue == PICS::RECORD_ACCESS)
       {
          CStdioFile backupDataFile_record;
 
@@ -1007,7 +1007,7 @@ void BakRestoreExecutor::DoAuxiliaryTest()
             throw("Dynamic discovery of the Device ID has failed!\n"
                  "The user must specify a Device Instance number in the Backup/Restore dialog");
          }
-         propID.enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
+         propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
          propValue.SetObject(&maxAPDULenAccepted);
          if (!SendExpectReadProperty(devObjID, propID, propValue))
          {
@@ -1088,12 +1088,12 @@ void BakRestoreExecutor::DoAuxiliaryTest_1()
       throw("Expected BACnetErrorAPDU");
    }
 
-   if (errorClass.enumValue != ErrorClass::DEVICE)
+   if (errorClass.m_enumValue != ErrorClass::DEVICE)
    {
       throw("Wrong Error Class");
    }
 
-   if (errorCode.enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
+   if (errorCode.m_enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
    {
       throw("Wrong Error Code");
    }
@@ -1126,11 +1126,11 @@ void BakRestoreExecutor::DoAuxiliaryTest_2()
    {
       throw("Expected BACnetErrorAPDU");
    }
-   if (errorClass.enumValue != ErrorClass::DEVICE)
+   if (errorClass.m_enumValue != ErrorClass::DEVICE)
    {
       throw("Wrong Error Class");
    }
-   if (errorCode.enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
+   if (errorCode.m_enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
    {
       throw("Wrong Error Code");
    }
@@ -1201,12 +1201,12 @@ void BakRestoreExecutor::DoAuxiliaryTest_3()
       throw("Expected BACnetErrorAPDU");
    }
 
-   if (errorClass.enumValue != ErrorClass::DEVICE)
+   if (errorClass.m_enumValue != ErrorClass::DEVICE)
    {
       throw("Wrong Error Class");
    }
 
-   if (errorCode.enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
+   if (errorCode.m_enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
    {
       throw("Wrong Error Code");
    }
@@ -1240,11 +1240,11 @@ void BakRestoreExecutor::DoAuxiliaryTest_4()
    {
       throw("Expected BACnetErrorAPDU");
    }
-   if (errorClass.enumValue != ErrorClass::DEVICE)
+   if (errorClass.m_enumValue != ErrorClass::DEVICE)
    {
       throw("Wrong Error Class");
    }
-   if (errorCode.enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
+   if (errorCode.m_enumValue != ErrorCode::CONFIGURATION_IN_PROGRESS)
    {
       throw("Wrong Error Code");
    }
@@ -1301,13 +1301,13 @@ void BakRestoreExecutor::DoAuxiliaryTest_5(BACnetObjectIdentifier& devObjID)
 
    m_pOutputDlg->OutMessage("Verify System_Status != BACKUP_IN_PROGRESS...", FALSE);
    BACnetEnumerated  systemStatus;
-   propID.enumValue = PICS::SYSTEM_STATUS;
+   propID.m_enumValue = PICS::SYSTEM_STATUS;
    propValue.SetObject(&systemStatus);
    if (!SendExpectReadProperty(devObjID, propID, propValue))
    {
       throw("Cannot read System_Status from the IUT");
    }
-   if (systemStatus.enumValue == PICS::BACKUP_IN_PROGRESS)
+   if (systemStatus.m_enumValue == PICS::BACKUP_IN_PROGRESS)
    {
       throw("The System_Status in the IUT's Device Object is still BACKUP_IN_PROGRESS");
    }
@@ -1330,7 +1330,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_5(BACnetObjectIdentifier& devObjID)
    {
       throw("Cannot read System_Status from the IUT");
    }
-   if (systemStatus.enumValue == PICS::DOWNLOAD_IN_PROGRESS)
+   if (systemStatus.m_enumValue == PICS::DOWNLOAD_IN_PROGRESS)
    {
       throw("The System_Status in the IUT's Device Object is still DOWNLOAD_IN_PROGRESS");
    }
@@ -1388,7 +1388,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
    {
       throw("Cannot read System_Status from the IUT");
    }
-   if (systemStatus.enumValue == PICS::BACKUP_IN_PROGRESS)
+   if (systemStatus.m_enumValue == PICS::BACKUP_IN_PROGRESS)
    {
       throw("The System_Status in the IUT's Device Object is still BACKUP_IN_PROGRESS");
    }
@@ -1419,7 +1419,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
    {
       throw("Cannot read System_Status from the IUT");
    }
-   if (systemStatus.enumValue == PICS::DOWNLOAD_IN_PROGRESS)
+   if (systemStatus.m_enumValue == PICS::DOWNLOAD_IN_PROGRESS)
    {
       throw("The System_Status in the IUT's Device Object is still DOWNLOAD_IN_PROGRESS");
    }
@@ -1450,8 +1450,8 @@ void BakRestoreExecutor::DoAuxiliaryTest_7()
    m_pOutputDlg->OutMessage("OK");
 
    m_pOutputDlg->OutMessage("Verify received Error PDU...", FALSE);
-   if ((errorClass.enumValue != ErrorClass::SECURITY) ||
-      (errorCode.enumValue != ErrorCode::PASSWORD_FAILURE))
+   if ((errorClass.m_enumValue != ErrorClass::SECURITY) ||
+      (errorCode.m_enumValue != ErrorCode::PASSWORD_FAILURE))
    {
       m_strPassword = strPasswordTemp;
       throw("Wrong Error Class");
@@ -1485,8 +1485,8 @@ void BakRestoreExecutor::DoAuxiliaryTest_8()
    m_pOutputDlg->OutMessage("OK");
 
    m_pOutputDlg->OutMessage("Verify received Error PDU...", FALSE);
-   if ((errorClass.enumValue != ErrorClass::SECURITY) ||
-      (errorCode.enumValue != ErrorCode::PASSWORD_FAILURE))
+   if ((errorClass.m_enumValue != ErrorClass::SECURITY) ||
+      (errorCode.m_enumValue != ErrorCode::PASSWORD_FAILURE))
    {
       m_strPassword = strPasswordTemp;
       throw("Wrong Error Class");
@@ -1542,7 +1542,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_9(BACnetObjectIdentifier& devObjID)
       return;
    }
 
-   if (systemStatus.enumValue == PICS::BACKUP_IN_PROGRESS)
+   if (systemStatus.m_enumValue == PICS::BACKUP_IN_PROGRESS)
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("After the backup procedure, the system_statue should not still be BACKUP_IN_PROGRESS");
@@ -1606,7 +1606,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_10(BACnetObjectIdentifier& devObjID)
       return;
    }
 
-   if (systemStatus.enumValue == PICS::DOWNLOAD_IN_PROGRESS)
+   if (systemStatus.m_enumValue == PICS::DOWNLOAD_IN_PROGRESS)
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("After the restore procedure, the system_statue should not still be DOWNLOAD_IN_PROGRESS");
@@ -1644,7 +1644,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_11(BACnetObjectIdentifier& devObjID)
       return;
    }
 
-   if (systemStatus.enumValue != PICS::BACKUP_IN_PROGRESS)
+   if (systemStatus.m_enumValue != PICS::BACKUP_IN_PROGRESS)
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("The system_statue should be BACKUP_IN_PROGRESS during the backup procedure");
@@ -1689,7 +1689,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_12(BACnetObjectIdentifier& devObjID)
       return;
    }
 
-   if (systemStatus.enumValue != PICS::DOWNLOAD_IN_PROGRESS)
+   if (systemStatus.m_enumValue != PICS::DOWNLOAD_IN_PROGRESS)
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("The system_statue should be DOWNLOAD_IN_PROGRESS during the download procedure");
@@ -2656,7 +2656,7 @@ void BakRestoreExecutor::ReadDatabaseRevAndRestoreTime(  BACnetObjectIdentifier 
 
    // Use ReadProperty request to read the Device/Database_Revision and the
    // Device/Last_Restore_Time and record these in the first line of the
-   propID.enumValue = PICS::DATABASE_REVISION;
+   propID.m_enumValue = PICS::DATABASE_REVISION;
    AnyValue propValue;
    propValue.SetObject(&databaseRevision);
    if (!SendExpectReadProperty(devObjID, propID, propValue))
@@ -2664,7 +2664,7 @@ void BakRestoreExecutor::ReadDatabaseRevAndRestoreTime(  BACnetObjectIdentifier 
       throw("Cannot read DATABASE_REVISION from IUT");
    }
 
-   propID.enumValue = PICS::LAST_RESTORE_TIME;
+   propID.m_enumValue = PICS::LAST_RESTORE_TIME;
    propValue.SetObject(&lastRestoreTime);
    if (!SendExpectReadProperty(devObjID, propID, propValue))
    {

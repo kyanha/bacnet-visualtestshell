@@ -368,7 +368,7 @@ void CEPICSViewNodeObject::LoadInfoPanel()
 		{
 			if ( PICS::GetPropNameSupported(szPropName, i, pObj->object_type, pObj->propflags, &dwPropID, NULL) > 0 )
 			{
-				listCtrl.InsertItem(x, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[dwPropID] );
+				listCtrl.InsertItem(x, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString(dwPropID) );
 
 				if ( (pObj->propflags[i] & PropIsWritable) != 0 )
 					listCtrl.SetItemText(x, 1, "True");

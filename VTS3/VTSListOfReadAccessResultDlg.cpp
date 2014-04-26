@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "vts.h"
+#include "propid.h"
 #include "VTSListOfReadAccessResultDlg.h"
 #include "VTSObjectIdentifierDialog.h"
 #ifdef _DEBUG
@@ -133,10 +134,6 @@ BOOL VTSListOfReadAccessResultDlg::OnInitDialog()
 	GetDlgItem( IDC_VALUE )->EnableWindow( false );
 	GetDlgItem( IDC_ERRORCLASSCOMBO )->EnableWindow( false );
 	GetDlgItem( IDC_ERRORCODECOMBO )->EnableWindow( false );
-	
-	// load the property enumeration table
-	cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
 
 	// load the error class enumeration table
 	cbp = (CComboBox *)GetDlgItem( IDC_ERRORCLASSCOMBO );
@@ -275,7 +272,7 @@ void VTSListOfReadAccessResultDlg::OnDropdownPropcombo()
 //
 
 ListOfResults::ListOfResults( VTSListOfReadAccessResultDlgPtr wp )
-	: rpaePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	: rpaePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, rpaeArrayIndex( wp, IDC_ARRAYINDEX )
 	, rpaeClassCombo( wp, IDC_ERRORCLASSCOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorClass, true )
 	, rpaeCodeCombo( wp, IDC_ERRORCODECOMBO, NetworkSniffer::BAC_STRTAB_BACnetErrorCode, true )
@@ -467,7 +464,7 @@ void ReadAccessResult::Bind( void )
 		;
 
 		rpalPagePtr->m_PropList.InsertItem( i
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rpaep->rpaePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( rpaep->rpaePropCombo.m_enumValue )
 			);
 		if (rpaep->rpaeArrayIndex.ctrlNull)
 			rpalPagePtr->m_PropList.SetItemText( i, 1, "" );
@@ -536,12 +533,7 @@ void ReadAccessResult::AddButtonClick( void )
 	rpalCurElem = new ListOfResults( rpalPagePtr );
 	rpalCurElemIndx = listLen;
 
-	// madanner, 8/26/02.  Sourceforge bug #472392
-	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings
-	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
-	// if list is altered.
-
-	rpalCurElem->rpaePropCombo.enumValue = 85;
+	rpalCurElem->rpaePropCombo.SetEnumValue( PRESENT_VALUE );
 
 	AddTail( rpalCurElem );
 
@@ -711,7 +703,7 @@ void ReadAccessResult::OnSelchangePropCombo( void )
 	
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 0
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rpalCurElem->rpaePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( rpalCurElem->rpaePropCombo.m_enumValue )
 			);
 	}
 }
@@ -770,7 +762,7 @@ void ReadAccessResult::OnSelchangeClassCombo( void )
 	
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 3
-			, NetworkSniffer::BAC_STRTAB_BACnetErrorClass.m_pStrings[ rpalCurElem->rpaeClassCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetErrorClass.m_pStrings[ rpalCurElem->rpaeClassCombo.m_enumValue ]
 			);
 	}
 }
@@ -786,7 +778,7 @@ void ReadAccessResult::OnSelchangeCodeCombo( void )
 	
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 4
-			, NetworkSniffer::BAC_STRTAB_BACnetErrorCode.m_pStrings[ rpalCurElem->rpaeCodeCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetErrorCode.m_pStrings[ rpalCurElem->rpaeCodeCombo.m_enumValue ]
 			);
 	}
 }

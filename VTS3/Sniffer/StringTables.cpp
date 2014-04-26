@@ -5,7 +5,7 @@
 
 namespace NetworkSniffer {
 
-// Return a test buffer for short term use, such as as an argument
+// Return a text buffer for short term use, such as as an argument
 // for sprintf.  Buffers are allocated from a small rotary set, so
 // long-term usage will result in the buffer being re-used.
 char* TempTextBuffer()
@@ -55,7 +55,13 @@ const char* BACnetStringTable::EnumString( int theIndex, const char *pUndefined 
    {
       if (pUndefined == NULL)
       {
-         pUndefined = (theIndex < m_nReserved) ? "Reserved-" : "Vendor-";
+         // TODO: Vendor versus proprietary
+         // 135.1 clause 4.4i says "proprietary" + anything_but_space + integer enumerations
+         // 135.1 clause 4.4l says "proprietary" + space + integer for object IDs
+
+         // "Vendor" only if in an extensible range, else "Reserved"
+         pUndefined = ((theIndex >= m_nReserved) && (theIndex < m_nMax))
+                      ? "Vendor-" : "Reserved-";
       }
 
       char *pTxt = TempTextBuffer();
@@ -64,6 +70,49 @@ const char* BACnetStringTable::EnumString( int theIndex, const char *pUndefined 
    }
 
    return pRet;
+}
+
+// Return the enumeration value corresponding to pString.
+// If the string is not a valid value, return -1.
+// In addition to tabled strings, accepts
+// "proprietary-anything-you-like-123" (per 135.1 clause 4.4i for enumerations)
+// "proprietary 123" (per 135.1 clause 4.4l for object IDs)
+// "vendor 123", "vendor-123", "reserved 123", reserved-123" matching older VTS usage
+int BACnetStringTable::EnumValue( const char *pString ) const
+{
+   int retval = -1;
+
+   // Convert any underbars to dashes, matching our tables
+   CString str(pString);
+   str.Replace( '_', '-' );
+
+   // Case-insensitive comparison
+   for (int ix = 0; ix < m_nStrings; ix++)
+   {
+      if (str.CompareNoCase( m_pStrings[ ix ] ) == 0)
+      {
+         retval = ix;
+         break;
+      }
+   }
+
+   if (retval < 0)
+   {
+      // Not in the table.  Try for proprietary, vendor, or reserved
+      if ((_strnicmp(str, "proprietary", 11) == 0) ||
+          (_strnicmp(str, "vendor", 6) == 0) ||
+          (_strnicmp(str, "reserved", 8) == 0))
+      {
+         // Ignore any spaces or additional text and look for a final integer
+         int firstDigit = str.FindOneOf( "0123456789" );
+         if (firstDigit >= 0)
+         {
+            retval = atoi( (LPCTSTR)str + firstDigit );
+         }
+      }
+   }
+
+   return retval;
 }
 
 // Helpers to make a sorted list of strings
@@ -82,8 +131,8 @@ static int SortOurStuff( const void *pFirst, const void *pSecond )
 
 // Fill a CComboBox with the contents of the string table
 // If doSort is true, sort the strings alphabetically, else use string table order.
-// Sets ItemData to the index of the string in the string table (since the index
-// in the combo won't be the string index for a sorted list)
+// CAUTION: if sorted, you must convert the selected string value to the enum,
+// since the index in the combo won't be the string index for a sorted list.
 void BACnetStringTable::FillCombo( CComboBox &theCombo, bool doSort ) const
 {
    int ix;
@@ -91,8 +140,7 @@ void BACnetStringTable::FillCombo( CComboBox &theCombo, bool doSort ) const
    {
       for (ix = 0; ix < m_nStrings; ix++)
       {
-         int pos = theCombo.AddString( m_pStrings[ ix ] );
-         theCombo.SetItemData( pos, ix );
+         theCombo.AddString( m_pStrings[ ix ] );
       }
    }
    else
@@ -106,11 +154,10 @@ void BACnetStringTable::FillCombo( CComboBox &theCombo, bool doSort ) const
       }
       qsort( pStuff, m_nStrings, sizeof(OurSorter), &SortOurStuff );
 
-      // Populate the combo, saving the original index as item data
+      // Populate the combo
       for (ix = 0; ix < m_nStrings; ix++)
       {
-         int pos = theCombo.AddString( pStuff[ix].m_pString );
-         theCombo.SetItemData( pos, pStuff[ix].m_ID );
+         theCombo.AddString( pStuff[ix].m_pString );
       }
 
       delete[] pStuff;

@@ -75,7 +75,7 @@ void CSendVTOpen::InitPage( void )
 
 	// flush the data
 	m_VTClassCombo.ctrlNull = false;
-	m_VTClassCombo.enumValue = 0;
+	m_VTClassCombo.m_enumValue = 0;
 
 	m_SessionID.ctrlNull = true;
 }

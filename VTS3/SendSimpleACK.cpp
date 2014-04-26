@@ -75,7 +75,7 @@ void CSendSimpleACK::InitPage( void )
 	m_InvokeID.ctrlNull = true;
 
 	m_ServiceCombo.ctrlNull = false;
-	m_ServiceCombo.enumValue = 0;
+	m_ServiceCombo.m_enumValue = 0;
 }
 
 //
@@ -102,7 +102,7 @@ void CSendSimpleACK::EncodePage( CByteArray* contents )
 	// encode the service choice
 	if (m_ServiceCombo.ctrlNull)
 		throw "Service ACK choice required";
-	header.Add( m_ServiceCombo.enumValue );
+	header.Add( m_ServiceCombo.m_enumValue );
 
 	// stuff the header on the front
 	contents->InsertAt( 0, &header );

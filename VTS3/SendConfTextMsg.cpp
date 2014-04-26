@@ -180,7 +180,7 @@ void CSendConfTextMsg::RestorePage(  int index )
 	m_Msg.RestoreCtrl( dec );
 
 	enumValue.Decode( dec );
-	m_Priority = enumValue.enumValue;
+	m_Priority = enumValue.m_enumValue;
 }
 
 //

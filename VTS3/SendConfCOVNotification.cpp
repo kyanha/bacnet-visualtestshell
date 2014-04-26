@@ -196,10 +196,6 @@ BOOL CSendConfCOVNotification::OnInitDialog()
 	m_PropListCtrl.InsertColumn( 2, "Value", LVCFMT_LEFT, 96 );
 	m_PropListCtrl.InsertColumn( 3, "Priority", LVCFMT_RIGHT, 48 );
 
-	// load the enumeration table
-	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
-
 	return TRUE;
 }
 
@@ -265,7 +261,7 @@ void CSendConfCOVNotification::OnChangeTimeRemaining()
 
 void CSendConfCOVNotification::OnAddProp() 
 {
-	m_PropList.AddButtonClick();
+	m_PropList.AddButtonClick( m_ObjectID.objID >> 22 );
 	SavePage();
 }
 
@@ -310,7 +306,7 @@ void CSendConfCOVNotification::OnChangePriority()
 //
 
 COVNotificationElem::COVNotificationElem( CSendPagePtr wp )
-	: cnePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	: cnePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, cneArrayIndex( wp, IDC_ARRAYINDEX )
 	, cnePriority( wp, IDC_PRIORITYX )
 	, cneValue(wp)		// added parent for send page
@@ -412,10 +408,9 @@ COVNotificationList::~COVNotificationList( void )
 //	COVNotificationList::AddButtonClick
 //
 
-void COVNotificationList::AddButtonClick( void )
+void COVNotificationList::AddButtonClick( int theObjectType )
 {
-	int		listLen = GetCount()
-	;
+	int		listLen = GetCount();
 
 	// deselect if something was selected
 	POSITION selPos = cnlPagePtr->m_PropListCtrl.GetFirstSelectedItemPosition();
@@ -432,7 +427,10 @@ void COVNotificationList::AddButtonClick( void )
 	cnlCurElem = new COVNotificationElem( cnlPagePtr );
 	cnlCurElemIndx = listLen;
 
-	cnlCurElem->cnePropCombo.enumValue = PRESENT_VALUE;
+	// Make a property list of the appropriate type
+	cnlCurElem->cnePropCombo.m_nObjType = theObjectType;
+	cnlCurElem->cnePropCombo.LoadCombo();
+	cnlCurElem->cnePropCombo.SetEnumValue( PRESENT_VALUE );
 
 	AddTail( cnlCurElem );
 
@@ -442,7 +440,7 @@ void COVNotificationList::AddButtonClick( void )
 	// update the encoding
 	cnlAddInProgress = false;
 
-	// madanner, 9/3/02.
+	// Enable the property control
 	OnSelchangePropCombo();				// Insert new list text for Present_Value
 	cnlPagePtr->m_PropListCtrl.SetItemState( listLen, LVIS_SELECTED, LVIS_SELECTED);
 //	cnlPagePtr->UpdateEncoded();
@@ -495,7 +493,7 @@ void COVNotificationList::OnSelchangePropCombo( void )
 		cnlPagePtr->UpdateEncoded();
 
 		cnlPagePtr->m_PropListCtrl.SetItemText( cnlCurElemIndx, 0
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ cnlCurElem->cnePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( cnlCurElem->cnePropCombo.m_enumValue )
 			);
 	}
 }

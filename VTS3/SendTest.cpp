@@ -127,13 +127,13 @@ void CSendTest::EncodePage( CByteArray* contents )
 	if (!m_BooleanCheck.ctrlNull)
 		m_BooleanCheck.Encode( enc );
 	if (!m_Enumerated.ctrlNull) {
-		if (m_Enumerated.enumValue < 0)
+		if (m_Enumerated.m_enumValue < 0)
 			throw "Enumeration error";
 		else
 			m_Enumerated.Encode( enc );
 	}
 	if (!m_EnumeratedCombo.ctrlNull) {
-		if (m_EnumeratedCombo.enumValue < 0)
+		if (m_EnumeratedCombo.m_enumValue < 0)
 			throw "Enumeration Combo error";
 		else
 			m_EnumeratedCombo.Encode( enc );

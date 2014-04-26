@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "vts.h"
+#include "propid.h"
 #include "VTSListOfReadAccessSpecDlg.h"
 #include "VTSObjectIdentifierDialog.h"
 #ifdef _DEBUG
@@ -111,10 +112,6 @@ BOOL VTSListOfReadAccessSpecDlg::OnInitDialog()
 	GetDlgItem( IDC_REMOVEPROP )->EnableWindow( false );
 	GetDlgItem( IDC_PROPCOMBO )->EnableWindow( false );
 	GetDlgItem( IDC_ARRAYINDEX )->EnableWindow( false );
-	
-	// load the enumeration table
-	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
 
 	for(int m = 0; m < m_PropListList.GetCount(); m++)
 	{	
@@ -225,7 +222,7 @@ void VTSListOfReadAccessSpecDlg::OnDropdownPropcombo()
 //
 
 PropRefElem::PropRefElem( VTSListOfReadAccessSpecDlgPtr wp )
-	: rpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	: rpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, rpeArrayIndex( wp, IDC_ARRAYINDEX )
 {
 	// controls start out disabled
@@ -342,7 +339,7 @@ void ReadAccessSpec::Bind( void )
 		;
 
 		rplPagePtr->m_PropList.InsertItem( i
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rpep->rpePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( rpep->rpePropCombo.m_enumValue )
 			);
 		if (rpep->rpeArrayIndex.ctrlNull)
 			rplPagePtr->m_PropList.SetItemText( i, 1, "" );
@@ -404,12 +401,7 @@ void ReadAccessSpec::AddButtonClick( void )
 	rplCurElem = new PropRefElem( rplPagePtr );
 	rplCurElemIndx = listLen;
 
-	// madanner, 8/26/02.  Sourceforge bug #472392
-	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings
-	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
-	// if list is altered.
-
-	rplCurElem->rpePropCombo.enumValue = 85;
+	rplCurElem->rpePropCombo.SetEnumValue( PRESENT_VALUE );
 
 	AddTail( rplCurElem );
 
@@ -557,7 +549,7 @@ void ReadAccessSpec::OnSelchangePropCombo( void )
 		
 
 		rplPagePtr->m_PropList.SetItemText( rplCurElemIndx, 0
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rplCurElem->rpePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( rplCurElem->rpePropCombo.m_enumValue )
 			);
 	}
 }

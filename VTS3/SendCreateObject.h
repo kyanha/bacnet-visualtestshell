@@ -49,7 +49,7 @@ class CreateObjectList : public CList<CreateObjectElemPtr,CreateObjectElemPtr> {
 		CreateObjectList( CSendCreateObjectPtr pp );
 		~CreateObjectList( void );
 
-		void AddButtonClick( void );			// add a new property
+		void AddButtonClick( int theObjectType );			// add a new property
 		void RemoveButtonClick( void );			// remove the selected property
 
 		void OnSelchangePropCombo( void );		// property combo has changed

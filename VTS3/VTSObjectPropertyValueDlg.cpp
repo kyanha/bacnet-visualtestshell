@@ -18,7 +18,7 @@ static char THIS_FILE[] = __FILE__;
 VTSObjectPropertyValueDlg::VTSObjectPropertyValueDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(VTSObjectPropertyValueDlg::IDD, pParent)
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 	, m_priority( this, IDC_PROPVALUE_PRIORITY )
 {

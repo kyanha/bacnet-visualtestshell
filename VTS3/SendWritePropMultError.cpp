@@ -102,13 +102,13 @@ void CSendWritePropMultError::InitPage( void )
 	m_InvokeID.ctrlNull = true;
 
 	m_ServiceCombo.ctrlNull = false;
-	m_ServiceCombo.enumValue = 0;
+	m_ServiceCombo.m_enumValue = 0;
 
 	m_ErrorClassCombo.ctrlNull = false;
-	m_ErrorClassCombo.enumValue = 0;
+	m_ErrorClassCombo.m_enumValue = 0;
 
 	m_ErrorCodeCombo.ctrlNull = false;
-	m_ErrorCodeCombo.enumValue = 0;
+	m_ErrorCodeCombo.m_enumValue = 0;
 }
 
 //
@@ -137,9 +137,9 @@ void CSendWritePropMultError::EncodePage( CByteArray* contents )
 	// encode the service choice
 	if (m_ServiceCombo.ctrlNull)
 		throw "Service ACK choice required";
-	if (m_ServiceCombo.enumValue != 16)
+	if (m_ServiceCombo.m_enumValue != 16)
 		throw "Service must be writePropertyMultiple";
-	header.Add( m_ServiceCombo.enumValue );
+	header.Add( m_ServiceCombo.m_enumValue );
 
 	// opening tag
 	BACnetOpeningTag().Encode( enc, 0 );

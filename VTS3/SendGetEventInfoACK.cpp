@@ -501,7 +501,7 @@ void EventSummaryList::OnSelchangeEventStateCombo( void )
 			eslPagePtr->m_EventSumListCtrl.SetItemText( eslCurElemIndx, 1, "" );
 		else
 			eslPagePtr->m_EventSumListCtrl.SetItemText( eslCurElemIndx, 1
-				, NetworkSniffer::BAC_STRTAB_BACnetEventState.m_pStrings[ eslCurElem->eseEventStateCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetEventState.m_pStrings[ eslCurElem->eseEventStateCombo.m_enumValue ]
 				);
 	}
 }
@@ -520,7 +520,7 @@ void EventSummaryList::OnSelchangeNotifyTypeCombo( void )
 			eslPagePtr->m_EventSumListCtrl.SetItemText( eslCurElemIndx, 2, "" );
 		else
 			eslPagePtr->m_EventSumListCtrl.SetItemText( eslCurElemIndx, 2
-				, NetworkSniffer::BAC_STRTAB_BACnetNotifyType.m_pStrings[ eslCurElem->eseNotifyTypeCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetNotifyType.m_pStrings[ eslCurElem->eseNotifyTypeCombo.m_enumValue ]
 				);
 	}
 }

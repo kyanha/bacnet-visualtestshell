@@ -89,7 +89,7 @@ BOOL VTSListOfLifeSafetyStateDlg::OnInitDialog()
 		else
 		{
 			CString str;
-			str.Format("%d", item->m_enumvalue.enumValue);
+			str.Format("%d", item->m_enumvalue.m_enumValue);
 		m_EnumListCtrl.SetItemText( listLen, 1, str.GetBuffer(0) );
 		}
 	}
@@ -266,7 +266,7 @@ void EnumList::OnSelchangeEnumvalue()
 		else
 		{
 			CString str;	
-			str.Format("%d", tscurElem->m_enumvalue.enumValue);
+			str.Format("%d", tscurElem->m_enumvalue.m_enumValue);
 			tsParentPtr->m_EnumListCtrl.SetItemText( tscurElemIndx, 1, str.GetBuffer(0) );
 		}
 	}

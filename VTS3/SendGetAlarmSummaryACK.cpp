@@ -448,7 +448,7 @@ void AlarmSummaryList::OnSelchangeEventStateCombo( void )
 			aslPagePtr->m_AlarmSumListCtrl.SetItemText( aslCurElemIndx, 1, "" );
 		else
 			aslPagePtr->m_AlarmSumListCtrl.SetItemText( aslCurElemIndx, 1
-				, NetworkSniffer::BAC_STRTAB_BACnetEventState.m_pStrings[ aslCurElem->aseEventStateCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetEventState.m_pStrings[ aslCurElem->aseEventStateCombo.m_enumValue ]
 				);
 	}
 }

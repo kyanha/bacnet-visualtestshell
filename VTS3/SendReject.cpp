@@ -75,7 +75,7 @@ void CSendReject::InitPage( void )
 	m_InvokeID.ctrlNull = true;
 
 	m_RejectCombo.ctrlNull = false;
-	m_RejectCombo.enumValue = 0;
+	m_RejectCombo.m_enumValue = 0;
 }
 
 //
@@ -102,7 +102,7 @@ void CSendReject::EncodePage( CByteArray* contents )
 	// encode the service choice
 	if (m_RejectCombo.ctrlNull)
 		throw "Reject reason required";
-	header.Add( m_RejectCombo.enumValue );
+	header.Add( m_RejectCombo.m_enumValue );
 
 	// stuff the header on the front
 	contents->InsertAt( 0, &header );

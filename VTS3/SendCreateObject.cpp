@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
+#include "propid.h"
 
 #include "Send.h"
 #include "SendCreateObject.h"
@@ -27,7 +28,7 @@ IMPLEMENT_DYNCREATE( CSendCreateObject, CPropertyPage )
 #pragma warning( disable : 4355 )
 CSendCreateObject::CSendCreateObject( void )
 	: CSendPage( CSendCreateObject::IDD )
-	, m_ObjectTypeCombo( this, IDC_OBJECTTYPECOMBO, NetworkSniffer::BAC_STRTAB_BACnetObjectType, true )
+	, m_ObjectTypeCombo( this, IDC_OBJECTTYPECOMBO, NetworkSniffer::BAC_STRTAB_BACnetObjectType, true, true )
 	, m_ObjectID( this, IDC_OBJECTID )
 	, m_PropList( this )
 {
@@ -89,7 +90,6 @@ void CSendCreateObject::InitPage( void )
 
 	// LJT: added to control when controls should be active, ctrlNull can't be used because a filled combo box sets to false
 	m_bObjectTypeActive = true;
-
 }
 
 //
@@ -191,10 +191,6 @@ BOOL CSendCreateObject::OnInitDialog()
 	m_PropListCtrl.InsertColumn( 2, "Value", LVCFMT_LEFT, 96 );
 	m_PropListCtrl.InsertColumn( 3, "Priority", LVCFMT_RIGHT, 48 );
 
-	// load the enumeration table
-	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
-
 	return TRUE;
 }
 
@@ -204,8 +200,6 @@ void CSendCreateObject::OnSelchangeObjectTypeCombo()
 
 	SavePage();
 	UpdateEncoded();
-
-
 }
 
 void CSendCreateObject::OnChangeObjectID()
@@ -218,8 +212,7 @@ void CSendCreateObject::OnChangeObjectID()
 
 void CSendCreateObject::OnObjectIDButton() 
 {
-	VTSObjectIdentifierDialog	dlg(this)			// for proper parent control
-	;
+	VTSObjectIdentifierDialog	dlg(this);			// for proper parent control
 
 	dlg.objID = m_ObjectID.objID;
 	if (dlg.DoModal() && dlg.validObjID) {
@@ -232,13 +225,14 @@ void CSendCreateObject::OnObjectIDButton()
 	}
 }
 
-void CSendCreateObject::OnAddProp() 
+void CSendCreateObject::OnAddProp()
 {
-	m_PropList.AddButtonClick();
+	int type = (m_bObjectTypeActive) ? m_ObjectTypeCombo.m_enumValue : (m_ObjectID.objID >> 22);
+	m_PropList.AddButtonClick(type);
 	SavePage();
 }
 
-void CSendCreateObject::OnRemoveProp() 
+void CSendCreateObject::OnRemoveProp()
 {
 	m_PropList.RemoveButtonClick();
 	SavePage();
@@ -279,7 +273,7 @@ void CSendCreateObject::OnChangePriority()
 //
 
 CreateObjectElem::CreateObjectElem( CSendPagePtr wp )
-	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	: coePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, coeArrayIndex( wp, IDC_ARRAYINDEX )
 	, coePriority( wp, IDC_PRIORITYX )
 	, coeValue(wp)			// for proper parent control
@@ -382,10 +376,9 @@ CreateObjectList::~CreateObjectList( void )
 //	CreateObjectList::AddButtonClick
 //
 
-void CreateObjectList::AddButtonClick( void )
+void CreateObjectList::AddButtonClick( int theObjectType )
 {
-	int		listLen = GetCount()
-	;
+	int		listLen = GetCount();
 
 	// deselect if something was selected
 	POSITION selPos = colPagePtr->m_PropListCtrl.GetFirstSelectedItemPosition();
@@ -402,12 +395,10 @@ void CreateObjectList::AddButtonClick( void )
 	colCurElem = new CreateObjectElem( colPagePtr );
 	colCurElemIndx = listLen;
 
-	// madanner, 9/3/02
-	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier
-	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
-	// if list is altered.
-
-	colCurElem->coePropCombo.enumValue = 85;
+	// Make a property list of the appropriate type
+	colCurElem->coePropCombo.m_nObjType = theObjectType;
+	colCurElem->coePropCombo.LoadCombo();
+	colCurElem->coePropCombo.SetEnumValue( PRESENT_VALUE );
 
 	AddTail( colCurElem );
 
@@ -470,7 +461,7 @@ void CreateObjectList::OnSelchangePropCombo( void )
 		colPagePtr->UpdateEncoded();
 
 		colPagePtr->m_PropListCtrl.SetItemText( colCurElemIndx, 0
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ colCurElem->coePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( colCurElem->coePropCombo.m_enumValue )
 			);
 	}
 }

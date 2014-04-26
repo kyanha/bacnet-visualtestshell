@@ -25,7 +25,7 @@ VTSInconsistentParsDlg::VTSInconsistentParsDlg(const VTSNames& names, const VTSP
 	  m_names(names),
 	  m_ports(ports)
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	, m_propCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 {
 	//{{AFX_DATA_INIT(VTSInconsistentParsDlg)
 	m_nFunction = -1;

@@ -240,7 +240,7 @@ void CreateTestValues(void)
   pAct->next= NULL;
   pAct->device_id= 0;
   pAct->object_id= 4711;
-  pAct->property_id= 85;
+  pAct->property_id= PRESENT_VALUE;
   pAct->pa_index= NotAnArray;
   pAct->value_type= FLT;
   pAct->av.fproperty_value= 1.1F;                                    //       ***001
@@ -254,7 +254,7 @@ void CreateTestValues(void)
   pAct->next= NULL;
   pAct->device_id= 0;
   pAct->object_id= 4712;
-  pAct->property_id= 85;
+  pAct->property_id= PRESENT_VALUE;
   pAct->pa_index= NotAnArray;
   pAct->value_type= FLT;
   pAct->av.fproperty_value= 1.2F;                              //                ***001
@@ -268,7 +268,7 @@ void CreateTestValues(void)
   pAct->next= NULL;
   pAct->device_id= 0;
   pAct->object_id= 4713;
-  pAct->property_id= 85;
+  pAct->property_id= PRESENT_VALUE;
   pAct->pa_index= NotAnArray;
   pAct->value_type= FLT;
   pAct->av.fproperty_value= 1.3F;                              //                ***001

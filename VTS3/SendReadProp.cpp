@@ -27,7 +27,7 @@ IMPLEMENT_DYNCREATE( CSendReadProp, CPropertyPage )
 CSendReadProp::CSendReadProp( void )
 	: CSendPage( CSendReadProp::IDD )
 	, m_ObjectID( this, IDC_OBJECTID )
-	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	, m_PropCombo( this, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, m_ArrayIndex( this, IDC_ARRAYINDEX )
 {
 	//{{AFX_DATA_INIT(CSendReadProp)
@@ -224,7 +224,7 @@ void CSendReadProp::ForceValues(BACnetObjectIdentifier * pObjectID, BACnetEnumer
 {
 	m_ObjectID.objID = pObjectID->objID;
 	m_ObjectID.ctrlNull = FALSE;
-	m_PropCombo.enumValue = pPropID->enumValue;
+	m_PropCombo.m_enumValue = pPropID->m_enumValue;
 	m_PropCombo.ctrlNull = FALSE;
 	m_ArrayIndex.ctrlNull = true;
 

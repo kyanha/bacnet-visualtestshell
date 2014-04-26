@@ -84,9 +84,9 @@ void VTSWeekNDayDlg::OnSelchangeDayofweek()
 
 void VTSWeekNDayDlg::Encode(BACnetAPDUEncoder& enc, int context)
 {	
-	int month = (m_month.enumValue< 12) ? (m_month.enumValue+1) : 255;
-	int weekofmonth = (m_weekofmonth.enumValue< 6) ? (m_weekofmonth.enumValue+1) : 255;
-	int dayofweek = (m_dayofweek.enumValue< 7) ? (m_dayofweek.enumValue+1) : 255;
+	int month = (m_month.m_enumValue< 12) ? (m_month.m_enumValue+1) : 255;
+	int weekofmonth = (m_weekofmonth.m_enumValue< 6) ? (m_weekofmonth.m_enumValue+1) : 255;
+	int dayofweek = (m_dayofweek.m_enumValue< 7) ? (m_dayofweek.m_enumValue+1) : 255;
 	BACnetOctetString ocstr(3);
 	BACnetOctet temp[3];
 	temp[0] = (BACnetOctet)month;
@@ -105,9 +105,9 @@ void VTSWeekNDayDlg::Decode(BACnetAPDUDecoder& dec )
 		int Month = (int) ocstr.strBuff[0];
 	    int WeekOfMonth = (int) ocstr.strBuff[1];
 	    int DayOfWeek = (int) ocstr.strBuff[2];
-		m_month.enumValue = (Month < 13)?(Month- 1):12;
-		m_weekofmonth.enumValue = (WeekOfMonth < 7)? (WeekOfMonth- 1):6;
-		m_dayofweek.enumValue = (DayOfWeek < 8)? (DayOfWeek- 1):7;
+		m_month.m_enumValue = (Month < 13)?(Month- 1):12;
+		m_weekofmonth.m_enumValue = (WeekOfMonth < 7)? (WeekOfMonth- 1):6;
+		m_dayofweek.m_enumValue = (DayOfWeek < 8)? (DayOfWeek- 1):7;
 	}
 }
 BOOL VTSWeekNDayDlg::OnInitDialog() 

@@ -371,7 +371,7 @@ ostream &operator <<(ostream &strm, const BACnetAPDUDecoder &dec )
 							;
 							
 							enumValue.Decode( decCopy );
-							strm << "Enumerated : " << enumValue.enumValue << endl;
+							strm << "Enumerated : " << enumValue.m_enumValue << endl;
 							break;
 							}
 							

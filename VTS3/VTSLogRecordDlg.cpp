@@ -236,7 +236,7 @@ void VTSLogRecordDlg::Encode(BACnetAPDUEncoder& enc, int context /* = kAppContex
 		m_realValue.Encode(enc, 2);
 		break;
 	case 3:
-		enumsel.enumValue = m_enumValue.uintValue;
+		enumsel.m_enumValue = m_enumValue.uintValue;
 		enumsel.Encode(enc, 3);
 		break;
 	case 4:
@@ -307,7 +307,7 @@ void VTSLogRecordDlg::Decode(BACnetAPDUDecoder& dec )
 		break;
 	case 3:
 		enumsel.Decode(dec);
-		m_enumValue.uintValue = enumsel.enumValue;
+		m_enumValue.uintValue = enumsel.m_enumValue;
 		m_enumValue.ctrlNull = false;
 		break;
 	case 4:

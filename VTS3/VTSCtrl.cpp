@@ -73,42 +73,6 @@ void VTSCtrl::Disable( void )
 }
 
 //
-// VTSCtrl::CtrlToObj
-//
-
-void VTSCtrl::CtrlToObj( void )
-{
-   ASSERT( 0 );
-}
-
-//
-// VTSCtrl::ObjToCtrl
-//
-
-void VTSCtrl::ObjToCtrl( void )
-{
-   ASSERT( 0 );
-}
-
-//
-// VTSCtrl::SaveCtrl
-//
-
-void VTSCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
-{
-   ASSERT( 0 );
-}
-
-//
-// VTSCtrl::RestoreCtrl
-//
-
-void VTSCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
-{
-   ASSERT( 0 );
-}
-
-//
 // VTSCtrl::UpdateData
 //
 
@@ -138,10 +102,8 @@ VTSAddrCtrl::VTSAddrCtrl( const CWnd* wp, int id )
 
 void VTSAddrCtrl::CtrlToObj( void )
 {
-   CString     str
-   ;
-   LPCTSTR     s
-   ;
+   CString     str;
+   LPCTSTR     s;
 
    // get the text from the control
    ((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
@@ -151,12 +113,9 @@ void VTSAddrCtrl::CtrlToObj( void )
    ctrlNull = (!*s && emptyIsNull);
 
    try {
-      int            valu
-      ;
-      ScriptScanner  scan( s )
-      ;
-      ScriptToken    tok
-      ;
+      int            valu;
+      ScriptScanner  scan( s );
+      ScriptToken    tok;
 
       // get the content
       scan.Next( tok );
@@ -169,14 +128,13 @@ void VTSAddrCtrl::CtrlToObj( void )
          Flush();
          if ((valu >= 0) && (valu < 256))
             Append( valu );
-      } else
-      if (tok.tokenEnc == scriptHexEnc) {
+      }
+      else if (tok.tokenEnc == scriptHexEnc) {
          // use the built-in decoder
          Decode( s );
-      } else
-      if (tok.tokenEnc == scriptIPEnc) {
-         BACnetIPAddr   addr( s )
-         ;
+      }
+      else if (tok.tokenEnc == scriptIPEnc) {
+         BACnetIPAddr   addr( s );
 
          // flush the current contents
          Flush();
@@ -225,8 +183,7 @@ void VTSAddrCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSAddrCtrl::RestoreCtrl\n" );
 
@@ -1170,8 +1127,7 @@ bool VTSRemoteAddrCtrl::IsAddressMatch( BACnetAddress * pbacnetaddr )
 
 void VTSRemoteAddrCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSRemoteAddrCtrl::RestoreCtrl\n" );
 
@@ -1470,10 +1426,8 @@ VTSBooleanCtrl::VTSBooleanCtrl( const CWnd* wp, int id, bool isCheckBox )
 
 void VTSBooleanCtrl::CtrlToObj( void )
 {
-   CString     str
-   ;
-   LPCTSTR     s
-   ;
+   CString     str;
+   LPCTSTR     s;
 
    if (m_bCheckBox) {
       ctrlNull = false;
@@ -1548,8 +1502,7 @@ void VTSBooleanCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSBooleanCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSBooleanCtrl::RestoreCtrl\n" );
 
@@ -1565,106 +1518,147 @@ void VTSBooleanCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 
 /////////////////////////////////////////////////////////////////////////////
 
+// Separator between properties of an object and all properties
+static const char s_dashes[] = "------------------------------";
+
 //
 // VTSEnumeratedCtrl
 //
 
-VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, NetworkSniffer::BACnetStringTable &table, bool isCombo )
+VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, NetworkSniffer::BACnetStringTable &table,
+                                      bool isCombo, bool sortStrings )
 : VTSCtrl( wp, id )
 , m_Table(table.m_pStrings)
 , m_TableSize(table.m_nStrings)
 , m_bCombo(isCombo)
+, m_sortStrings(sortStrings)
+, m_nObjType(-1)
+, m_prevObjType(-1)
+, m_SelectValue(-1)
+, m_VendorPropID(-1)
 {
-   // TODO: in a sane universe, the propertyID control would be a subclass and these
-   // two members would belong to the subclass.  See related TODOs throughout.
-   m_nObjType = -1;
-   m_VendorPropID = -1;
-
-   m_bHaveDropDown = false;
 }
 
 // Old-style constructor, deprecated in favor of the constructor taking NetworkSniffer::BACnetStringTable
-VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, char **table, int tableSize, bool isCombo )
-   : VTSCtrl( wp, id )
-   , m_Table(table), m_TableSize(tableSize), m_bCombo(isCombo)
+VTSEnumeratedCtrl::VTSEnumeratedCtrl( const CWnd* wp, int id, char **table, int tableSize,
+                                      bool isCombo, bool sortStrings )
+: VTSCtrl( wp, id )
+, m_Table(table)
+, m_TableSize(tableSize)
+, m_bCombo(isCombo)
+, m_sortStrings(sortStrings)
+, m_nObjType(-1)
+, m_prevObjType(-1)
+, m_SelectValue(-1)
+, m_VendorPropID(-1)
 {
-   m_nObjType = -1;
-   m_VendorPropID = -1;
-   m_bHaveDropDown = false;
 }
 
 // Check whether propertyID is one of the Object's standard properties 
 extern bool Check_Obj_Prop(int ObjType, unsigned int propertyID);
+
+// Helpers to make a sorted list of strings
+struct OurSorter
+{
+   UINT         m_ID;
+   const char  *m_pString;
+};
+
+int SortOurStuff( const void *pFirst, const void *pSecond )
+{
+   const OurSorter *pPS1 = (const OurSorter*)pFirst;
+   const OurSorter *pPS2 = (const OurSorter*)pSecond;
+   return strcmp( pPS1->m_pString, pPS2->m_pString );
+}
 
 //
 // VTSEnumeratedCtrl::LoadCombo
 //
 void VTSEnumeratedCtrl::LoadCombo( void )
 {
-   //Modifyed by Zhu Zhenhua 2003-7-22
-   //Load Standard Property List for propCombo(when m_nObjectType != -1 )
-   //And add Other select after standard properties for propCombo,which can set Vendor Property
    if (!m_bCombo)
       return;
-   CComboBox   *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
 
-   // TODO: propertyID selection code
-   if ((cbp->GetCount() != 0) && (m_nObjType != -1) && (m_nObjType < MAX_DEFINED_OBJ))
+   CComboBox *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
+   if ((m_nObjType != m_prevObjType) && (cbp->GetCount() != 0))
    {
-      // We may have changed object type, so delete the old content
+      // We have changed object type, so delete the old content
       cbp->Clear();
       cbp->ResetContent();
-      m_bHaveDropDown = true;
    }
 
    if (cbp->GetCount() == 0)
    {
+      // Fill the combo
+
+      // Copy the strings into a buffer in case we need to sort them
       int i;
+      OurSorter *pStuff = new OurSorter[m_TableSize];
       for (i = 0; i < m_TableSize; i++)
       {
-         // Add enum values from table
-         // TODO: propertyID selection code
-         if(m_nObjType != -1 && m_nObjType < MAX_DEFINED_OBJ)
-         {
-            // First pass: add the properties supported by this object type
-            if(Check_Obj_Prop(m_nObjType, (unsigned int) i))
-               cbp->AddString( m_Table[i] );
-         }
-         else
-         {
-            cbp->AddString( m_Table[i] );
-         }
+         pStuff[i].m_ID = i;
+         pStuff[i].m_pString = m_Table[i];
       }
 
-      // TODO: propertyID selection code
-      if(m_nObjType != -1 && m_nObjType < MAX_DEFINED_OBJ)
+      if (m_sortStrings)
       {
-         // If this is a property control for a standard object type, add a dashed line
-         // and ALL the defined BACnet properties
-         CString str = "------------------------------";
-         cbp->AddString(str);
+         qsort( pStuff, m_TableSize, sizeof(OurSorter), &SortOurStuff );
+      }
+
+      if (m_nObjType == -1)
+      {
+         // General enumeration
          for (i = 0; i < m_TableSize; i++)
          {
-            CString str;
-            str = m_Table[i];
-            if(cbp->FindString(-1, str) < 0)
-               cbp->AddString( m_Table[i] );;
+            cbp->AddString( pStuff[i].m_pString );
          }
       }
-
-      // TODO: propertyID selection code
-      if(m_nObjType != -1)
+      else
       {
-         // If this is a property control, add item to allow arbitrary value.
-         CString str = "<enter numeric value>";
-         cbp->AddString(str);
+         // PropertyID selection combo.
+         m_prevObjType = m_nObjType;
+         if (m_nObjType < MAX_DEFINED_OBJ)
+         {
+            // Standard object type: add the properties supported by this object type
+            for (i = 0; i < m_TableSize; i++)
+            {
+               if (Check_Obj_Prop(m_nObjType, pStuff[i].m_ID))
+               {
+                  cbp->AddString( pStuff[i].m_pString );
+               }
+            }
+
+            // Add a dashed line and all the other defined BACnet properties
+            cbp->AddString(s_dashes);
+         }
+
+         // Add all properties not already in the list
+         for (i = 0; i < m_TableSize; i++)
+         {
+            if (cbp->FindString(-1, pStuff[i].m_pString) < 0)
+            {
+               cbp->AddString( pStuff[i].m_pString );
+            }
+         }
+
+         // TODO: should we make this available to ALL enum combos that want it?
+         // If we always had a BACnetStringTable, we would even know the
+         // limits on reserved versus proprietary.
+         //
+         // This would change and simplify the object-type combo, eliminating a couple fields
+         // We MIGHT make the drop-lists into REAL combos, and allow direct editing.
+         //
+         // Add item to allow arbitrary value.
+         cbp->AddString("< Enter numeric value >");
       }
 
-      // make sure at least eight lines are visible
+      delete[] pStuff;
+
+      // Make sure at least eight lines are visible
       SetDropDownSize( 16 );
    }
 
-   // set up the first value
+   // Select current value
    if (!ctrlNull)
    {
       EnumToSelect();
@@ -1681,12 +1675,9 @@ void VTSEnumeratedCtrl::LoadCombo( void )
 //
 // Thank you Katy!
 //
-
 void VTSEnumeratedCtrl::SetDropDownSize( UINT lines )
 {
-   CComboBox   *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID )
-   ;
-
+   CComboBox *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
    ::SetDropDownSize( *cbp, lines );
 }
 
@@ -1695,7 +1686,7 @@ void SetDropDownSize( CComboBox& box, UINT lines )
    ASSERT( IsWindow(box) );
 
    CRect    cbSize;
-   int         height;
+   int      height;
 
    box.GetClientRect( cbSize );
 
@@ -1712,11 +1703,11 @@ void SetDropDownSize( CComboBox& box, UINT lines )
    height += GetSystemMetrics(SM_CYEDGE) * 2; // top & bottom edges
 
    // set the size of the window
-   box.SetWindowPos( NULL,       // not relative to any other windows
-      0, 0,                   // TopLeft corner doesn't change
-      cbSize.right, height,         // existing width, new height
-      SWP_NOMOVE | SWP_NOZORDER
-      );
+   box.SetWindowPos( NULL,                   // not relative to any other windows
+                     0, 0,                   // TopLeft corner doesn't change
+                     cbSize.right, height,   // existing width, new height
+                     SWP_NOMOVE | SWP_NOZORDER
+                   );
 }
 
 //
@@ -1724,41 +1715,38 @@ void SetDropDownSize( CComboBox& box, UINT lines )
 //
 void VTSEnumeratedCtrl::CtrlToObj( void )
 {
-   if (m_bCombo) {
+   if (m_bCombo)
+   {
       CComboBox   *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
-
       ctrlNull = false;
 
-      //Modifyed by Zhu Zhenhua 2003-7-22
-      //do some special works for propCommbo(when m_nObjectType != -1 )
-      int OldSelectValue = m_SelectValue;
       m_SelectValue = cbp->GetCurSel();
-      // LJT: added
       if (m_SelectValue < 0)
-         ctrlNull = true;
-
-      if(m_nObjType == -1)
       {
-         // Not a propertyID selector
-         enumValue = m_SelectValue;
+         ctrlNull = true;
          return;
       }
 
-      // TODO: propertyID selection code
+      // PropertyID selection code
       CString str;
-      CString strtemp = "------------------------------";
       cbp->GetLBText(m_SelectValue,str);
-      if(!str.Compare(strtemp))
+      if (!str.Compare(s_dashes))
+      {
+         // They selected the dashes.  Don't change anything
          return;
-      
-      if((OldSelectValue != m_SelectValue) || m_bHaveDropDown)
-         SelectToEnum();
+      }
+
+      // Convert the combo selection into an enumeration value
+      SelectToEnum();
       return;
    }
 
+   // TODO: ARE there any like this: Edit control instead of combo?
+   // CSendWritePropMultError m_PropertyID for one
+   // (and it SHOULD BE a combo)
    CEdit    *ctrl = (CEdit *)ctrlWindow->GetDlgItem( ctrlID );
-   CString     str;
-   LPCTSTR     s;
+   CString  str;
+   LPCTSTR  s;
 
    // get the text from the control
    ctrl->GetWindowText( str );
@@ -1778,11 +1766,11 @@ void VTSEnumeratedCtrl::CtrlToObj( void )
 
 #if 0
    // assume it hasn't been found
-   enumValue = -1;
+   m_enumValue = -1;
 
    // try and find it
    if (!m_Table)
-      enumValue = atoi( s );
+      m_enumValue = atoi( s );
    else
       for (int i = 0; i < m_TableSize; i++)
          if (strncmp(s,m_Table[i],strlen(s)) == 0) {
@@ -1796,9 +1784,9 @@ void VTSEnumeratedCtrl::CtrlToObj( void )
    // by the user.  Would be better if the rest of the text was gray
    // but that would take time I don't have right now.
    // NOTE: the control is disabled to prevent message loops.
-   if (enumValue >= 0) {
+   if (m_enumValue >= 0) {
       int len = strlen(s);
-      str = m_Table[enumValue];
+      str = m_Table[m_enumValue];
 
       // set the text
       ctrlEnabled = false;
@@ -1815,21 +1803,21 @@ void VTSEnumeratedCtrl::CtrlToObj( void )
 
 void VTSEnumeratedCtrl::ObjToCtrl( void )
 {
-   if (m_bCombo) {
-      CComboBox   *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID )
-      ;
+   if (m_bCombo)
+   {
+      CComboBox *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
 
-//Modified by Zhu Zhenhua 2003-7-22
-//To get the slectItem Index from enumValue(when m_nObjectType == -1)
-// if not PropComb, it will do as before
+      // Convert the enumeration value to a selection index and select it.
       EnumToSelect();
       cbp->SetCurSel( m_SelectValue );
 
       if (m_SelectValue < 0)
          ctrlNull = true;
+
       return;
    }
 
+   // TODO: are there any of these?
    CString  str;
 
    // values are normalized to decimal
@@ -1842,12 +1830,12 @@ void VTSEnumeratedCtrl::ObjToCtrl( void )
    // values are from the table
    if (!ctrlNull)
       if (!m_Table)
-         str.Format( "%d", enumValue );
+         str.Format( "%d", m_enumValue );
       else
-      if ((enumValue < 0) || (enumValue >= m_TableSize))
+      if ((m_enumValue < 0) || (m_enumValue >= m_TableSize))
          str = "(out of bounds)";
       else
-         str = m_Table[enumValue];
+         str = m_Table[m_enumValue];
 #endif
 
    // set the text
@@ -1874,8 +1862,7 @@ void VTSEnumeratedCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSEnumeratedCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSEnumeratedCtrl::RestoreCtrl\n" );
 
@@ -1886,6 +1873,112 @@ void VTSEnumeratedCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
    } else {
       ctrlNull = false;
       Decode( dec );
+   }
+}
+
+// Select an enumerated value, populating and showing the control if necessary
+void VTSEnumeratedCtrl::SetEnumValue( int theValue )
+{
+   m_enumValue = theValue;    // set the value
+   ctrlNull = false;          // enable showing the control
+   ObjToCtrl();               // make it so!
+}
+
+// Set m_enumValue (enum value) from m_SelectValue (combo index)
+// CAUTION: if the control is sorted, these are NOT the same number!
+//
+// If the selection is a "proprietary" item at the end of the list,
+// show a numeric entry Dialog, and the selection may change based on 
+// the value entered.
+//
+void VTSEnumeratedCtrl::SelectToEnum()
+{
+   CComboBox   *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
+   int nStrings = cbp->GetCount();
+   if ((m_nObjType != -1) && (nStrings > 0) && (m_SelectValue == (nStrings - 1)))
+   {
+      // Selected last item in the list.  Show dialog to enter the property numerically.
+      VTSVendorPropIDDlg dlg;
+      if (m_VendorPropID != -1)
+         dlg.m_PropID = m_VendorPropID;
+
+      int res = dlg.DoModal();
+      if (res == IDOK)
+      {
+         m_VendorPropID = dlg.m_PropID;
+         m_enumValue = m_VendorPropID;
+      }
+
+      if (m_enumValue >= m_TableSize)
+      {
+         // Show reserved or proprietary value numerically
+         CString text;
+         cbp->DeleteString(cbp->GetCount() - 1);
+         text.Format("%d", m_enumValue);
+         m_SelectValue = cbp->AddString(text);
+      }
+      else
+      {
+         // Show standard value entered as an integer as the corresponding string
+         EnumToSelect();
+      }
+      cbp->SetCurSel( m_SelectValue );
+      return;
+   }
+
+   if (cbp->GetCount() != 0)
+   {
+      // Since the control may be sorted, the selection index may not be
+      // equal to the enumeration value.  Conver the TEXT to the enumeration
+      CString str;
+      // According to Microsoft you can't use getWindowText when using CBN_SELCHANGE
+      cbp->GetLBText(m_SelectValue, str);
+      for (int i = 0; i < m_TableSize; i++)
+      {
+         if (str.Compare(m_Table[i]) == 0)
+         {
+            m_enumValue = i;
+            break;
+         }
+      }
+   }
+}
+
+// Set m_SelectValue (combo index) from m_enumValue (enum value)
+// CAUTION: if the control is sorted, these are NOT the same number!
+void VTSEnumeratedCtrl::EnumToSelect()
+{
+   CComboBox *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
+
+   if (ctrlNull)
+   {
+      // Leave the control empty until someone drops it
+      return;
+   }
+
+   if (cbp->GetCount() == 0)
+   {
+      // Fill the control or FindString below will fail
+      LoadCombo();
+   }
+
+   if ((m_nObjType != -1) && (m_enumValue >= m_TableSize))
+   {
+      // Numeric propertyID: select the last item in the list
+      m_SelectValue = cbp->GetCount() - 1;
+      m_VendorPropID = m_enumValue;
+   }
+   else if ((m_enumValue >= 0) && (m_enumValue < m_TableSize))
+   {
+      // Get the string value and find it in the control
+      m_SelectValue = cbp->FindString(-1, m_Table[m_enumValue]);
+   }
+   else
+   {
+      // There is no selection corresponding to this enum.
+      // If we extend the vendor proprietary to ALL enumerations,
+      // we could merge this case with the propertyID case above
+      m_SelectValue = -1;
    }
 }
 
@@ -1906,10 +1999,8 @@ VTSUnsignedCtrl::VTSUnsignedCtrl( const CWnd* wp, int id )
 
 void VTSUnsignedCtrl::CtrlToObj( void )
 {
-   CString     str
-   ;
-   LPCTSTR     s
-   ;
+   CString     str;
+   LPCTSTR     s;
 
    // get the text from the control
    ((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
@@ -1966,8 +2057,7 @@ void VTSUnsignedCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSUnsignedCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSUnsignedCtrl::RestoreCtrl\n" );
 
@@ -1998,12 +2088,9 @@ VTSIntegerCtrl::VTSIntegerCtrl( const CWnd* wp, int id )
 
 void VTSIntegerCtrl::CtrlToObj( void )
 {
-   bool     negative = false
-   ;
-   CString     str
-   ;
-   LPCTSTR     s
-   ;
+   bool     negative = false;
+   CString  str;
+   LPCTSTR  s;
 
    // get the text from the control
    ((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
@@ -2060,8 +2147,7 @@ void VTSIntegerCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSIntegerCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSIntegerCtrl::RestoreCtrl\n" );
 
@@ -2092,10 +2178,8 @@ VTSRealCtrl::VTSRealCtrl( const CWnd* wp, int id )
 
 void VTSRealCtrl::CtrlToObj( void )
 {
-   CString     str
-   ;
-   LPCTSTR     s
-   ;
+   CString     str;
+   LPCTSTR     s;
 
    // get the text from the control
    ((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
@@ -2152,8 +2236,7 @@ void VTSRealCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSRealCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSRealCtrl::RestoreCtrl\n" );
 
@@ -2184,10 +2267,8 @@ VTSDoubleCtrl::VTSDoubleCtrl( const CWnd* wp, int id )
 
 void VTSDoubleCtrl::CtrlToObj( void )
 {
-   CString     str
-   ;
-   LPCTSTR     s
-   ;
+   CString     str;
+   LPCTSTR     s;
 
    // get the text from the control
    ((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
@@ -2244,8 +2325,7 @@ void VTSDoubleCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSDoubleCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSDoubleCtrl::RestoreCtrl\n" );
 
@@ -2287,10 +2367,8 @@ VTSCharacterStringCtrl::~VTSCharacterStringCtrl()
 
 void VTSCharacterStringCtrl::CtrlToObj( void )
 {
-   CString     str
-   ;
-   LPCTSTR     s
-   ;
+   CString     str;
+   LPCTSTR     s;
 
    // get the text from the control
    ((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
@@ -2362,8 +2440,7 @@ void VTSCharacterStringCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSCharacterStringCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSCharacterStringCtrl::RestoreCtrl\n" );
 
@@ -2404,10 +2481,8 @@ VTSOctetStringCtrl::~VTSOctetStringCtrl()
 
 void VTSOctetStringCtrl::CtrlToObj( void )
 {
-   CString     str
-   ;
-   LPCTSTR     s
-   ;
+   CString     str;
+   LPCTSTR     s;
 
    // get the text from the control
    ((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
@@ -2461,8 +2536,7 @@ void VTSOctetStringCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSOctetStringCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSOctetStringCtrl::RestoreCtrl\n" );
 
@@ -2501,10 +2575,8 @@ VTSBitStringCtrl::~VTSBitStringCtrl()
 
 void VTSBitStringCtrl::CtrlToObj( void )
 {
-   CString     str
-   ;
-   LPCTSTR     s
-   ;
+   CString     str;
+   LPCTSTR     s;
 
    // get the text from the control
    ((CEdit *)ctrlWindow->GetDlgItem( ctrlID ))->GetWindowText( str );
@@ -2561,8 +2633,7 @@ void VTSBitStringCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSBitStringCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSBitStringCtrl::RestoreCtrl\n" );
 
@@ -2736,8 +2807,7 @@ void VTSTimeCtrl::SaveCtrl( BACnetAPDUEncoder& enc )
 
 void VTSTimeCtrl::RestoreCtrl( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag  tag
-   ;
+   BACnetAPDUTag  tag;
 
 // TRACE0( "VTSTimeCtrl::RestoreCtrl\n" );
 
@@ -2930,10 +3000,8 @@ void VTSListCtrl::EnableCtrl( int ctrlID, int enable )
 
 const char *VTSListCtrl::GetItemText( int row, int col )
 {
-   static char    buff[512]
-   ;
-   LVITEM         itm
-   ;
+   static char    buff[512];
+   LVITEM         itm;
 
    itm.mask = LVIF_TEXT;
    itm.iItem = row;
@@ -2962,8 +3030,7 @@ void VTSListCtrl::SetCtrlText( int ctrlID, const char *text )
 
 const char *VTSListCtrl::GetCtrlText( int ctrlID )
 {
-   static CString    rString
-   ;
+   static CString    rString;
 
    listWindow->GetDlgItem( ctrlID )->GetWindowText( rString );
    TRACE2( "GetCtrlText( %d ) = '%s'\n", ctrlID, rString );
@@ -2977,8 +3044,7 @@ const char *VTSListCtrl::GetCtrlText( int ctrlID )
 
 void VTSListCtrl::AddButtonClick( void )
 {
-   int      listLen = listCtrl->GetItemCount()
-   ;
+   int      listLen = listCtrl->GetItemCount();
 
    // deselect if something was selected
    POSITION selPos = listCtrl->GetFirstSelectedItemPosition();
@@ -3026,9 +3092,8 @@ void VTSListCtrl::AddButtonClick( void )
 
 void VTSListCtrl::RemoveButtonClick( void )
 {
-   int      listLen = listCtrl->GetItemCount()
-   ,     curRow = listSelectedRow
-   ;
+   int      listLen = listCtrl->GetItemCount();
+   int      curRow = listSelectedRow;
 
    // must have a selected row
    if (curRow < 0)
@@ -3065,8 +3130,7 @@ void VTSListCtrl::RemoveButtonClick( void )
 
 void VTSListCtrl::OnItemChanging( NMHDR *pNMHDR, LRESULT *pResult )
 {
-   NM_LISTVIEW*   pNMListView = (NM_LISTVIEW*)pNMHDR
-   ;
+   NM_LISTVIEW*   pNMListView = (NM_LISTVIEW*)pNMHDR;
 
    // forget messages that don't change the state
    if (pNMListView->uOldState == pNMListView->uNewState)
@@ -3104,10 +3168,8 @@ void VTSListCtrl::OnItemChanging( NMHDR *pNMHDR, LRESULT *pResult )
 
 void VTSListCtrl::OnChangeItem( int ctrlID )
 {
-   int         col
-   ;
-   const char  *txt
-   ;
+   int         col;
+   const char  *txt;
 
    // must have a selected row
    if (listSelectedRow < 0)
@@ -3216,8 +3278,7 @@ void VTSStatusFlags::Disable( void )
 
 void VTSStatusFlags::InAlarmClick( void )
 {
-   CButton  *inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_INALARM )
-   ;
+   CButton  *inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_INALARM );
 
    SetBit( 0, (inAlarmButton->GetState() & 0x0001) );
 }
@@ -3228,8 +3289,7 @@ void VTSStatusFlags::InAlarmClick( void )
 
 void VTSStatusFlags::FaultClick( void )
 {
-   CButton  *faultButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_FAULT )
-   ;
+   CButton  *faultButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_FAULT );
 
    SetBit( 1, (faultButton->GetState() & 0x0001) );
 }
@@ -3240,8 +3300,7 @@ void VTSStatusFlags::FaultClick( void )
 
 void VTSStatusFlags::OverriddenClick( void )
 {
-   CButton  *overriddenButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OVERRIDDEN )
-   ;
+   CButton  *overriddenButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OVERRIDDEN );
 
    SetBit( 2, (overriddenButton->GetState() & 0x0001) );
 }
@@ -3252,8 +3311,7 @@ void VTSStatusFlags::OverriddenClick( void )
 
 void VTSStatusFlags::OutOfServiceClick( void )
 {
-   CButton  *outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OUTOFSERVICE )
-   ;
+   CButton  *outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OUTOFSERVICE );
 
    SetBit( 3, (outOfServiceButton->GetState() & 0x0001) );
 }
@@ -3305,90 +3363,3 @@ void VTSStatusFlags::UpdateData( BOOL bCtrlToObj )
       ObjToCtrl();
 }
 
-//Added by Zhu Zhenhua 2003-7-22
-//To get the enumValue for the SelectItem Index
-void VTSEnumeratedCtrl::SelectToEnum()
-{
-   CComboBox   *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
-   m_bHaveDropDown = false;
-   if (m_SelectValue == (cbp->GetCount() - 1))
-   {
-      // TODO: this is propertyID-specific code
-      // Selected last item in the list.  Show dialog to enter the property numerically.
-      VTSVendorPropIDDlg dlg;
-      if(m_VendorPropID != -1)
-         dlg.m_PropID = m_VendorPropID;
-      int res = dlg.DoModal();
-      if (res == IDOK)
-      {
-         m_VendorPropID = dlg.m_PropID;
-         enumValue = m_VendorPropID;
-      }
-
-      if (enumValue >= m_TableSize)
-      {
-         // Show reserved or proprietary value numerically
-         CString text;
-         cbp->DeleteString(cbp->GetCount() - 1);
-         text.Format("%d", enumValue);
-         cbp->AddString(text);
-         cbp->SetCurSel(cbp->GetCount() - 1 );
-         return;
-      }
-      else
-      {
-         // Show standard value as a string
-         EnumToSelect();
-         cbp->SetCurSel(m_SelectValue);
-      }
-   }
-   
-   if (m_nObjType > MAX_DEFINED_OBJ)
-   {
-      enumValue = m_SelectValue;
-      return;
-   }
-
-   if (cbp->GetCount() != 0)
-   {
-      CString str;
-      // According to Microsoft you can't use getWindowText when using CBN_SELCHANGE
-      //  I found that it worked on some dialogs but on others it did not work.
-      //cbp->GetWindowText(str);
-      cbp->GetLBText(m_SelectValue, str);
-      for (int i = 0; i < m_TableSize; i++)
-      {
-         if (str.Compare(m_Table[i]) == 0)
-         {
-            enumValue = i;
-            break;
-         }
-      }
-   }
-}
-
-//Added by Zhu Zhenhua 2003-7-22
-//To get the slectItem Index from enumValue
-void VTSEnumeratedCtrl::EnumToSelect()
-{
-   CComboBox   *cbp = (CComboBox *)ctrlWindow->GetDlgItem( ctrlID );
-   if(enumValue >= m_TableSize && m_nObjType != -1)
-   {
-      // Numeric propertyID
-      m_SelectValue = cbp->GetCount() - 1;
-      m_VendorPropID = enumValue;
-      return;
-   }
-   
-   if(m_nObjType == -1 || m_nObjType > MAX_DEFINED_OBJ)
-   {
-      // Proprietary value
-      m_SelectValue = enumValue;
-      return;
-   }
-   if (cbp->GetCount() != 0)
-   {
-      CString str = m_Table[enumValue];
-      m_SelectValue = cbp->FindString(-1, str);
-   }
-}

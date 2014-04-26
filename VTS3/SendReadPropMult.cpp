@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "VTS.h"
+#include "propid.h"
 
 #include "Send.h"
 #include "SendReadPropMult.h"
@@ -131,11 +132,11 @@ void CSendReadPropMult::SavePage( void )
 	TRACE0( "CSendReadPropMult::SavePage\n" );
 
 	glWPMRPMListList[glCurWPMRPMHistory].KillAll(); //clear all data first... madanner 9/04, fixed memory leaks
-	
+
 	for( int i = 0; i < m_PropListList.GetCount(); i++)
 	{	
 		WPMRPMListPtr wpmrplistPtr = new WPMRPMList();
-        ReadPropListPtr rplistPtr = m_PropListList.GetAt( m_PropListList.FindIndex(i) );
+      ReadPropListPtr rplistPtr = m_PropListList.GetAt( m_PropListList.FindIndex(i) );
 
 		wpmrplistPtr->m_ObjID = rplistPtr->rplObjID;        
 		wpmrplistPtr->m_ObjIDStr = m_ObjList.GetItemText(i, 0);
@@ -143,9 +144,9 @@ void CSendReadPropMult::SavePage( void )
 		for(int j = 0; j < rplistPtr->GetCount(); j++)
 		{
 			ReadPropElemPtr elemPtr = rplistPtr->GetAt(rplistPtr->FindIndex(j));
-            WPMRPMElemPtr wpmrpmelemPtr = new WPMRPMElem();
+         WPMRPMElemPtr wpmrpmelemPtr = new WPMRPMElem();
 			
-			wpmrpmelemPtr->m_prop.enumValue = elemPtr->rpePropCombo.enumValue;
+			wpmrpmelemPtr->m_prop.m_enumValue = elemPtr->rpePropCombo.m_enumValue;
 			wpmrpmelemPtr->m_array.uintValue = elemPtr->rpeArrayIndex.uintValue;
 
 			wpmrplistPtr->AddTail(wpmrpmelemPtr);
@@ -203,7 +204,7 @@ void CSendReadPropMult::RestorePage( int index )
 			ReadPropElemPtr elemPtr = new ReadPropElem(this);
             WPMRPMElemPtr wpmrpmelemPtr = wpmrplistPtr->GetAt(wpmrplistPtr->FindIndex(j));
 			
-			elemPtr->rpePropCombo.enumValue = wpmrpmelemPtr->m_prop.enumValue;
+			elemPtr->rpePropCombo.m_enumValue = wpmrpmelemPtr->m_prop.m_enumValue;
 			elemPtr->rpeArrayIndex.uintValue = wpmrpmelemPtr->m_array.uintValue;
 
 			elemPtr->rpeArrayIndex.ctrlNull = FALSE; //value specified
@@ -265,10 +266,6 @@ BOOL CSendReadPropMult::OnInitDialog()
 	GetDlgItem( IDC_REMOVEPROP )->EnableWindow( false );
 	GetDlgItem( IDC_PROPCOMBO )->EnableWindow( false );
 	GetDlgItem( IDC_ARRAYINDEX )->EnableWindow( false );
-	
-	// load the enumeration table
-//	CComboBox	*cbp = (CComboBox *)GetDlgItem( IDC_PROPCOMBO );
-//	NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.FillCombo( *cbp );
 
 	//Xiao Shiyuan 2002-12-5
 	//madanner 9/04 - converted to StringArray
@@ -385,7 +382,7 @@ void CSendReadPropMult::ForceValues(BACnetObjectIdentifier * pObjectID, int apPr
 //
 
 ReadPropElem::ReadPropElem( CSendPagePtr wp )
-	: rpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true )
+	: rpePropCombo( wp, IDC_PROPCOMBO, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, true, true )
 	, rpeArrayIndex( wp, IDC_ARRAYINDEX )
 {
 	// controls start out disabled
@@ -492,7 +489,7 @@ void ReadPropList::Bind( void )
 		;
 
 		rplPagePtr->m_PropList.InsertItem( i
-			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rpep->rpePropCombo.enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( rpep->rpePropCombo.m_enumValue )
 			);
 		if (rpep->rpeArrayIndex.ctrlNull)
 			rplPagePtr->m_PropList.SetItemText( i, 1, "" );
@@ -554,15 +551,10 @@ void ReadPropList::AddButtonClick( void )
 	rplCurElem = new ReadPropElem( rplPagePtr );
 	rplCurElemIndx = listLen;
 
-	// madanner, 8/26/02.  Sourceforge bug #472392
-	// Init property with 'Present_Value' from NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings
-	// Can't find mnemonic for Present Value... something like:  PRESENT_VALUE ??   So hard coding 85 will blow
-	// if list is altered.
-
 	rplCurElem->rpePropCombo.m_nObjType = rplObjID.GetObjectType();
 	rplCurElem->rpePropCombo.LoadCombo();
 
-	rplCurElem->rpePropCombo.enumValue = 85;
+	rplCurElem->rpePropCombo.SetEnumValue( PRESENT_VALUE );
 
 	AddTail( rplCurElem );
 
@@ -709,16 +701,16 @@ void ReadPropList::OnSelchangePropCombo( void )
 		rplCurElem->rpePropCombo.UpdateData();
 		rplPagePtr->UpdateEncoded();
 
-		if (rplCurElem->rpePropCombo.enumValue < 512 )
+		if (rplCurElem->rpePropCombo.m_enumValue < 512 )
 		{
 			rplPagePtr->m_PropList.SetItemText( rplCurElemIndx, 0
-				, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings[ rplCurElem->rpePropCombo.enumValue ]
+				, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( rplCurElem->rpePropCombo.m_enumValue )
 				);
 		}
 		else
 		{
 			CString c;
-			c.Format("%d", rplCurElem->rpePropCombo.enumValue);
+			c.Format("%d", rplCurElem->rpePropCombo.m_enumValue);
 			rplPagePtr->m_PropList.SetItemText(rplCurElemIndx, 0, c);
 		}
 	}
@@ -893,7 +885,7 @@ void ReadPropListList::ForceValues(BACnetObjectIdentifier * pObjectID, int apPro
 	{
 		ReadPropElemPtr elemPtr = new ReadPropElem(rpllPagePtr);
 			
-		elemPtr->rpePropCombo.enumValue = apPropID[j];
+		elemPtr->rpePropCombo.m_enumValue = apPropID[j];
 		elemPtr->rpePropCombo.ctrlNull = FALSE;
 		elemPtr->rpeArrayIndex.uintValue = 0;
 		elemPtr->rpeArrayIndex.ctrlNull = TRUE;
