@@ -186,7 +186,7 @@ void CSendReadPropMultACK::RestorePage( int index )
 		  delete m_PropListList.GetNext( pos );		
 
 		m_PropListList.RemoveAll();
-	}	  
+	}
 
 	//restore data. Xiao Shiyuan 2002-12-3	
 	for(int i = 0; i < glWPMRPMListList[index].GetCount(); i++)
@@ -204,7 +204,6 @@ void CSendReadPropMultACK::RestorePage( int index )
 		  m_ObjList.InsertItem(i, wpmrplistPtr->m_ObjIDStr); 
 		else
           m_strList.AddTail(wpmrplistPtr->m_ObjIDStr);
-        
 
 		for(int j = 0; j < wpmrplistPtr->GetCount(); j++)
 		{
@@ -223,12 +222,12 @@ void CSendReadPropMultACK::RestorePage( int index )
 			{
 				elemPtr->rpaePropCombo.ObjToCtrl();
 				elemPtr->rpaeArrayIndex.ObjToCtrl();
-			}			
-			
+			}
+
 			rplistPtr->AddTail(elemPtr);
 		}
 
-        m_PropListList.AddTail(rplistPtr);
+		m_PropListList.AddTail(rplistPtr);
 	}
 }
 
@@ -244,7 +243,7 @@ BOOL CSendReadPropMultACK::OnInitDialog()
 	TRACE0( "CSendReadPropMultACK::OnInitDialog()\n" );
 
 	CDialog::OnInitDialog();
-	
+
 	// only allow one selection at a time, no sorting
 	m_ObjList.m_nFlags |= LVS_SINGLESEL;
 	m_ObjList.m_nFlags &= ~LBS_SORT;
@@ -274,14 +273,18 @@ BOOL CSendReadPropMultACK::OnInitDialog()
 	GetDlgItem( IDC_ERRORCLASSCOMBO )->EnableWindow( false );
 	GetDlgItem( IDC_ERRORCODECOMBO )->EnableWindow( false );
 
+	// load the error class enumeration table
+	cbp = (CComboBox *)GetDlgItem( IDC_ERRORCLASSCOMBO );
+	NetworkSniffer::BAC_STRTAB_BACnetErrorClass.FillCombo( *cbp );
+
 	// load the error code enumeration table
 	cbp = (CComboBox *)GetDlgItem( IDC_ERRORCODECOMBO );
 	NetworkSniffer::BAC_STRTAB_BACnetErrorCode.FillCombo( *cbp );
 
 	//Xiao Shiyuan 2002-12-5
-	for(i = 0; i < m_strList.GetCount(); i++)    
+	for(i = 0; i < m_strList.GetCount(); i++)
 		m_ObjList.InsertItem(i, m_strList.GetAt(m_strList.FindIndex(i))); 
-	
+
 	return TRUE;
 }
 
@@ -835,7 +838,7 @@ void ReadPropACKList::OnSelchangeClassCombo( void )
 		rpalPagePtr->UpdateEncoded();
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 3
-			, NetworkSniffer::BAC_STRTAB_BACnetErrorClass.m_pStrings[ rpalCurElem->rpaeClassCombo.m_enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetErrorClass.EnumString( rpalCurElem->rpaeClassCombo.m_enumValue )
 			);
 	}
 }
@@ -851,7 +854,7 @@ void ReadPropACKList::OnSelchangeCodeCombo( void )
 		rpalPagePtr->UpdateEncoded();
 
 		rpalPagePtr->m_PropList.SetItemText( rpalCurElemIndx, 4
-			, NetworkSniffer::BAC_STRTAB_BACnetErrorCode.m_pStrings[ rpalCurElem->rpaeCodeCombo.m_enumValue ]
+			, NetworkSniffer::BAC_STRTAB_BACnetErrorCode.EnumString( rpalCurElem->rpaeCodeCombo.m_enumValue )
 			);
 	}
 }
