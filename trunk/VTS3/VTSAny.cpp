@@ -157,10 +157,8 @@ void VTSAnyList::Add( void )
 
 void VTSAnyList::Remove( int i )
 {
-	POSITION	ppos = FindIndex( i )
-	;
-
-	ASSERT( pos != NULL );
+	POSITION	ppos = FindIndex( i );
+	ASSERT( ppos != NULL );
 	delete (VTSAnyElementPtr)GetAt( ppos );
 	RemoveAt( ppos );
 }

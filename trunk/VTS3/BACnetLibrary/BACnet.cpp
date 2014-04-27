@@ -2760,13 +2760,23 @@ void BACnetOctetString::Append( BACnetOctet byte )
 
 void BACnetOctetString::Insert( BACnetOctet *bytes, int len, int position )
 {
-   // make sure the buffer can handle it
-   if (strLen + len > strBuffLen)
-      PrepBuffer( strLen + len );
+   if (position < strLen)
+   {
+      // Insert within the buffer.
+      // make sure the buffer can handle it.
+      if (strLen + len > strBuffLen)
+         PrepBuffer( strLen + len );
 
-   // move existing data out of the way
-   if (pos < strLen)
+      // move existing data out of the way
       memmove( strBuff+position+len, strBuff+position, len );
+   }
+   else
+   {
+      // Insert at or past the end of the buffer.
+      // make sure the buffer can handle it.
+      if (position + len > strBuffLen)
+         PrepBuffer( position + len );
+   }
 
    // copy in new data
    memcpy( strBuff+position, bytes, len );
