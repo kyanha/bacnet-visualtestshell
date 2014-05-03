@@ -29,7 +29,7 @@ public:
 // Dialog Data
 	//{{AFX_DATA(VTSDevicesTreePropPage)
 	enum { IDD = IDD_DEVTREEPROP };
-	int		m_nPropIndex;
+	CComboBox	m_propCombo;
 	int		m_nPropID;
 	BOOL	m_fIsArray;
 	//}}AFX_DATA

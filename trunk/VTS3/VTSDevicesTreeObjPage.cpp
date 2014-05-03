@@ -1,5 +1,6 @@
 // VTSDevicesTreeObjPage.cpp : implementation file
 //
+// Object ID selection page for Device Configuration tree
 
 #include "stdafx.h"
 #include "vts.h"
@@ -10,25 +11,13 @@
 #include "bacnet.hpp"
 #include "StringTables.h"
 
-//namespace PICS {
-//#include "db.h" 
-//#include "service.h"
-//#include "vtsapi.h"
-//#include "stdobj.h"
-//#include "props.h"
-//#include "bacprim.h"
-//#include "dudapi.h"
-//#include "propid.h"
-
-//extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue );
-
-//}
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+static const char s_numeric[] = "<Numeric>";
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSDevicesTreeObjPage property page
@@ -47,7 +36,6 @@ VTSDevicesTreeObjPage::VTSDevicesTreeObjPage( VTSPageCallbackInterface * pparent
 }
 
 
-
 VTSDevicesTreeObjPage::VTSDevicesTreeObjPage() : VTSPropertyPage()
 {
    ASSERT(0);
@@ -61,10 +49,8 @@ VTSDevicesTreeObjPage::~VTSDevicesTreeObjPage()
 
 void VTSDevicesTreeObjPage::ClearData(void)
 {
-   m_nVendor = 0;
-   m_nReserved = 0;
-   m_nInstance = 0;
    m_nObjType = 0;
+   m_nInstance = 0;
    ValidateTypeCode();
 }
 
@@ -73,36 +59,31 @@ void VTSDevicesTreeObjPage::DoDataExchange(CDataExchange* pDX)
 {
    CPropertyPage::DoDataExchange(pDX);
    //{{AFX_DATA_MAP(VTSDevicesTreeObjPage)
-      // NOTE: the ClassWizard will add DDX and DDV calls here
-   DDX_Text(pDX, IDC_VENDOR, m_nVendor);
-   DDX_Text(pDX, IDC_RESERVED, m_nReserved);
-   DDX_Text(pDX, IDC_INSTANCE, m_nInstance);
    DDX_Control(pDX, IDC_OBJTYPECOMBO, m_ObjTypeCombo);
-// DDX_CBIndex(pDX, IDC_OBJTYPECOMBO, m_nObjType);
+   DDX_Text(pDX, IDC_NUMERIC_TYPE, m_nObjType);
+   DDV_MinMaxInt(pDX, m_nObjType, 0, 1023);
+   DDX_Text(pDX, IDC_INSTANCE, m_nInstance);
+   DDV_MinMaxInt(pDX, m_nInstance, 0, 4194303);
    //}}AFX_DATA_MAP
 }
 
 
 BEGIN_MESSAGE_MAP(VTSDevicesTreeObjPage, VTSPropertyPage)
    //{{AFX_MSG_MAP(VTSDevicesTreeObjPage)
-      // NOTE: the ClassWizard will add message map macros here
-   ON_CBN_SELCHANGE(IDC_OBJTYPECOMBO, OnSaveChange)
-   ON_EN_CHANGE(IDC_RESERVED, OnSaveChange)
-   ON_EN_CHANGE(IDC_VENDOR, OnSaveChange)
-   ON_EN_CHANGE(IDC_INSTANCE, OnSaveChange)
+   ON_CBN_SELCHANGE(IDC_OBJTYPECOMBO, OnSelChangeObjCombo)
+   ON_EN_CHANGE(IDC_NUMERIC_TYPE, OnChangeObjType)
+   ON_EN_CHANGE(IDC_INSTANCE, OnChangeInstance)
    //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 
-
-BOOL VTSDevicesTreeObjPage::OnSetActive() 
+BOOL VTSDevicesTreeObjPage::OnSetActive()
 {
+   // Alphabetical list of types, plus a handle for numeric entry
    m_ObjTypeCombo.ResetContent();
-   NetworkSniffer::BAC_STRTAB_BACnetObjectType.FillCombo( m_ObjTypeCombo );
-// TODO: Vendor versus proprietary
-   m_ObjTypeCombo.AddString("Reserved");
-   m_ObjTypeCombo.AddString("Vendor");
-   
+   NetworkSniffer::BAC_STRTAB_BACnetObjectType.FillCombo( m_ObjTypeCombo, true );
+   m_ObjTypeCombo.AddString( s_numeric );
+
    m_pdevobject = (VTSDevObject *) RetrieveCurrentData();
    if ( m_pdevobject != NULL &&  !m_pdevobject->IsKindOf(RUNTIME_CLASS(VTSDevObject)) )
       m_pdevobject = NULL;
@@ -111,19 +92,19 @@ BOOL VTSDevicesTreeObjPage::OnSetActive()
 
    // calls DDX
    VTSPropertyPage::OnSetActive();
-   EnableControls( m_pdevobject != NULL );   
+   EnableControls( m_pdevobject != NULL );
 
    NotifyOfDataChange();
    return m_pdevobject != NULL;
 }
 
 
-BOOL VTSDevicesTreeObjPage::OnKillActive() 
+BOOL VTSDevicesTreeObjPage::OnKillActive()
 {
    // calls DDX
    VTSPropertyPage::OnKillActive();
    CtrlToObj(m_pdevobject);
-   EnableControls(false);  
+   EnableControls(false);
 
    return TRUE;
 }
@@ -131,36 +112,25 @@ BOOL VTSDevicesTreeObjPage::OnKillActive()
 
 void VTSDevicesTreeObjPage::ObjToCtrl( VTSDevObject * pdevobject )
 {
-   if ( pdevobject == NULL )
+   if (pdevobject == NULL)
    {
       ClearData();
       return;
    }
 
-   m_nReserved = m_nVendor = 0;
    m_nObjType = pdevobject->GetType();
    m_nInstance = pdevobject->GetInstance();
 
-   // TODO: Vendor versus proprietary
    // The combo was populated with NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings
-   // plus "Reserved" and "Vendor"
    const char *pString;
    int nStrings = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings;
    if (m_nObjType < nStrings)
    {
       pString = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_pStrings[m_nObjType];
    }
-   else if (m_nObjType < 128)
-   {
-      m_nReserved = m_nObjType;
-      m_nObjType = nStrings;
-      pString = "Reserved";
-   }
    else
    {
-      m_nVendor = m_nObjType;
-      m_nObjType = nStrings + 1;
-      pString = "Vendor";
+      pString = s_numeric;
    }
 
    m_ObjTypeCombo.SelectString( 0, pString );
@@ -169,7 +139,7 @@ void VTSDevicesTreeObjPage::ObjToCtrl( VTSDevObject * pdevobject )
 
 void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
 {
-   if ( pdevobject == NULL )
+   if (pdevobject == NULL)
       return;
 
    // put member data back into device object
@@ -177,24 +147,28 @@ void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
 
    ValidateTypeCode();
 
-   m_nObjType = m_ObjTypeCombo.GetCurSel();
+   // Control is sorted, so selection index is NOT the object type.
+   // Use the string to look up the type
+   int sel = m_ObjTypeCombo.GetCurSel();
+   if (sel < 0)
+      return;
 
-   int nObjID = m_nObjType;
-   switch(m_nObjType)
+   int nStrings = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings;
+   if (sel < nStrings)
    {
-      // TODO: previous method uses 128 and 129
-      case MAX_DEFINED_OBJ:
-         nObjID = m_nReserved;
-         break;
-      case MAX_DEFINED_OBJ + 1:
-         nObjID = m_nVendor;
-         break;
+      CString str;
+      m_ObjTypeCombo.GetLBText( sel, str );
+      m_nObjType = NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumValue( str );
+   }
+   else
+   {
+      // Numeric entry: edit control has set m_nObjType
    }
 
    unsigned oldID = pdevobject->GetID();
-   pdevobject->SetID(nObjID, m_nInstance);
+   pdevobject->SetID(m_nObjType, m_nInstance);
 
-   // 1) if no current properties, 
+   // 1) if no current properties,
    CObArray * pobarray = (CObArray *)pdevobject->GetProperties();
    if ( pobarray != NULL && pobarray->GetSize() == 0 )
    {
@@ -231,7 +205,7 @@ void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
    // Load Default values for all objects
    PICS::PICSdb * pd = new PICS::PICSdb;
 
-  // need to open file and load objects into db
+   // need to open file and load objects into db
    File ifile = fopen( "myfile", "r" );
    char data[500];
 
@@ -276,7 +250,7 @@ void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
             VTSDevValue * pdevvalue = new VTSDevValue();
             pobvalarray->Add(pdevvalue);
             pdevvalue->m_nContext = -1;
-            
+
             pdevvalue->m_nType = bacnetAnyValue.DataType();
 
             BACnetAPDUEncoder compEncoder;
@@ -286,42 +260,69 @@ void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
       }
    }
 */
-
 }
 
 
 void VTSDevicesTreeObjPage::ValidateTypeCode(void)
 {
-   if ( m_nInstance < 0 )
+   if (m_nInstance < 0)
       m_nInstance = 0;
-   else if ( m_nInstance >= (1 << 22) )
-      m_nInstance = 1 << 22;
+   else if (m_nInstance >= (1 << 22))
+      m_nInstance = (1 << 22)-1;
 
-   if ( m_nReserved <= MAX_DEFINED_OBJ )
-      m_nReserved = MAX_DEFINED_OBJ + 1;
-   else if ( m_nReserved >= 128 )
-      m_nReserved = 127;
-
-   if ( m_nVendor < 128 )
-      m_nVendor = 128;
-   else if ( m_nVendor >= 1024 )
-      m_nVendor = 1023;
+   if (m_nObjType < 0)
+      m_nObjType = 0;
+   else if (m_nObjType >= 1024)
+      m_nObjType = 1023;
 }
 
 
 void VTSDevicesTreeObjPage::EnableControls( bool fEnable )
 {
-   GetDlgItem(IDC_INSTANCE)->EnableWindow( fEnable );
    GetDlgItem(IDC_OBJTYPECOMBO)->EnableWindow( fEnable );
-   GetDlgItem(IDC_RESERVED)->EnableWindow(fEnable && m_nObjType == MAX_DEFINED_OBJ);
-   GetDlgItem(IDC_VENDOR)->EnableWindow(fEnable && m_nObjType == MAX_DEFINED_OBJ + 1);
+   GetDlgItem(IDC_NUMERIC_TYPE)->EnableWindow( fEnable );
+   GetDlgItem(IDC_INSTANCE)->EnableWindow( fEnable );
 }
 
-
-void VTSDevicesTreeObjPage::OnSaveChange( void )
+void VTSDevicesTreeObjPage::OnSelChangeObjCombo()
 {
    UpdateData(TRUE);
    CtrlToObj(m_pdevobject);
-   EnableControls(true);
+
+   CDataExchange dx(this, FALSE);
+   DDX_Text(&dx, IDC_NUMERIC_TYPE, m_nObjType);
+
+   NotifyOfDataChange();
+}
+
+// User changed the object type edit field
+void VTSDevicesTreeObjPage::OnChangeObjType()
+{
+   CDataExchange dx(this, TRUE);
+   DDX_Text(&dx, IDC_NUMERIC_TYPE, m_nObjType);
+
+   if ( m_nObjType < 0 )
+      m_nObjType = 0;
+
+   int nTypes = NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nStrings;
+   if (m_nObjType < nTypes)
+   {
+      // Standard object type: select by name
+      m_ObjTypeCombo.SelectString( 0, NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString(m_nObjType) );
+   }
+   else
+   {
+      // Numeric entry: select final combo entry
+      m_ObjTypeCombo.SetCurSel( nTypes );
+   }
+
+   // Update the combo
+   OnSelChangeObjCombo();
+}
+
+void VTSDevicesTreeObjPage::OnChangeInstance( void )
+{
+   UpdateData(TRUE);
+   CtrlToObj(m_pdevobject);
    NotifyOfDataChange();
 }
