@@ -16,53 +16,51 @@ class VTSDevObject;
 
 class VTSDevicesTreeObjPage : public VTSPropertyPage
 {
-	DECLARE_DYNCREATE(VTSDevicesTreeObjPage)
+   DECLARE_DYNCREATE(VTSDevicesTreeObjPage)
 
-	VTSDevObject *			m_pdevobject;
+   VTSDevObject *       m_pdevobject;
 
 // Construction
 public:
-	VTSDevicesTreeObjPage( VTSPageCallbackInterface * pparent );
-	VTSDevicesTreeObjPage();	// not used
-	~VTSDevicesTreeObjPage();
+   VTSDevicesTreeObjPage( VTSPageCallbackInterface * pparent );
+   VTSDevicesTreeObjPage();   // not used
+   ~VTSDevicesTreeObjPage();
 
 // Dialog Data
-	//{{AFX_DATA(VTSDevicesTreeObjPage)
-	enum { IDD = IDD_DEVTREEOBJ };
-		// NOTE - ClassWizard will add data members here.
-		//    DO NOT EDIT what you see in these blocks of generated code !
-	int			m_nVendor;
-	int			m_nReserved;
-	int			m_nInstance;
-	CComboBox	m_ObjTypeCombo;
-	//}}AFX_DATA
-	int         m_nObjType;
+   //{{AFX_DATA(VTSDevicesTreeObjPage)
+   enum { IDD = IDD_DEVTREEOBJ };
+   CComboBox   m_ObjTypeCombo;
+   int         m_nObjType;
+   int         m_nInstance;
+   //}}AFX_DATA
 
 // Overrides
-	// ClassWizard generate virtual function overrides
-	//{{AFX_VIRTUAL(VTSDevicesTreeObjPage)
-	public:
-	virtual BOOL OnSetActive();
-	virtual BOOL OnKillActive();
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
+   // ClassWizard generate virtual function overrides
+   //{{AFX_VIRTUAL(VTSDevicesTreeObjPage)
+   public:
+   virtual BOOL OnSetActive();
+   virtual BOOL OnKillActive();
+   protected:
+   virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+   //}}AFX_VIRTUAL
 
 // Implementation
 protected:
-	// Generated message map functions
-	//{{AFX_MSG(VTSDevicesTreeObjPage)
-		// NOTE: the ClassWizard will add member functions here
-	afx_msg void OnSaveChange( void );
-	//}}AFX_MSG
+   // Generated message map functions
+   //{{AFX_MSG(VTSDevicesTreeObjPage)
+      // NOTE: the ClassWizard will add member functions here
+   afx_msg void OnSelChangeObjCombo();
+   afx_msg void OnChangeObjType();
+   afx_msg void OnChangeInstance();
+   //}}AFX_MSG
 
-	void ObjToCtrl( VTSDevObject * pdevobject );
-	void CtrlToObj( VTSDevObject * pdevobject );
-	void ClearData(void);
-	void EnableControls( bool fEnable );
-	void ValidateTypeCode(void);
+   void ObjToCtrl( VTSDevObject * pdevobject );
+   void CtrlToObj( VTSDevObject * pdevobject );
+   void ClearData(void);
+   void EnableControls( bool fEnable );
+   void ValidateTypeCode(void);
 
-	DECLARE_MESSAGE_MAP()
+   DECLARE_MESSAGE_MAP()
 };
 
 //{{AFX_INSERT_LOCATION}}
