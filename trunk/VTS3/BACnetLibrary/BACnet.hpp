@@ -1795,6 +1795,17 @@ public:
    DECLARE_DYNAMIC(BACnetListOfCOVSubscription)
 };
 
+class BACnetListOfAddressBinding : public BACnetGenericArray
+{
+public:
+   BACnetListOfAddressBinding();
+   BACnetListOfAddressBinding( BACnetAPDUDecoder& dec );
+
+   BACnetAddressBinding * operator[](int nIndex) const;
+   BACnetAddressBinding & operator[](int nIndex);
+
+   DECLARE_DYNAMIC(BACnetListOfAddressBinding)
+};
 
 
 class BACnetAnyValue : public BACnetObjectContainer

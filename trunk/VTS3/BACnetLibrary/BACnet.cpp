@@ -605,190 +605,184 @@ bool BACnetEncodeable::EqualityRequiredFailure( BACnetEncodeable & rbacnet, int 
 
 BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder & dec, int nPropID /* = -1 */ )
 {
+   BACnetEncodeable *pRetval;
    switch ( nParseType )
    {
       case u127:     // 1..127 ---------------------------------
       case u16:      // 1..16 ----------------------------------
       case ud:       // unsigned dword -------------------------
       case uw:       // unsigned word --------------------------
-         return new BACnetUnsigned(dec);
+         pRetval = new BACnetUnsigned(dec);
          break;
 
       case ssint:    // short signed int -----------------------     // actually the same type
       case sw:       // signed word ----------------------------
       case ptInt32:
-         return new BACnetInteger(dec);
+         pRetval = new BACnetInteger(dec);
          break;
 
       case flt:      // float ----------------------------------------
-         return new BACnetReal(dec);
+         pRetval = new BACnetReal(dec);
          break;
 
       case pab:      // priority array bpv ---------------------     deal with index cases (-1=all, 0=element count, base 1=index
       case paf:      // priority array flt ---------------------
       case pau:      // priority array unsigned ----------------
       case ptPai:    // signed long
-         return new BACnetPriorityArray(dec);
+         pRetval = new BACnetPriorityArray(dec);
          break;
 
       case ebool:    // boolean enumeration ---------------------------------
-         return new BACnetBoolean(dec);
+         pRetval = new BACnetBoolean(dec);
          break;
 
       case bits:     // octet of 1 or 0 flags
       case pss:      // protocol_services_supported
       case pos:      // protocol_objects_supported
-         return new BACnetBitString(dec);
+         pRetval = new BACnetBitString(dec);
          break;
 
       case ob_id:    // object identifier
-         return new BACnetObjectIdentifier(dec);
+         pRetval = new BACnetObjectIdentifier(dec);
          break;
 
       case s10:      // char [10] --------------------------------------------
       case s32:      // char [32]
       case s64:      // char [64]
       case s132:     // char [132]
-         return new BACnetCharacterString(dec);
+         pRetval = new BACnetCharacterString(dec);
          break;
 
       case enull:    // null enumeration ------------------------------------
-         return new BACnetNull(dec);
+         pRetval = new BACnetNull(dec);
 
-      case et:       // generic enumation ----------------------------------
-         {
-         BACnetEnumerated * penum = BACnetEnumerated::Factory(nPropID);
-         penum->Decode(dec);
-         return penum;
-         }
+      case et:       // enumation, type determined by property  -------------
+         pRetval = BACnetEnumerated::Factory(nPropID);
+         pRetval ->Decode(dec);
+         break;
 
       case ptDate:   // date ------------------------------------------------
       case ddate:
-         return new BACnetDate(dec);
+         pRetval = new BACnetDate(dec);
 
       case ptTime:   // time -------------------------------------------------
       case ttime:
-         return new BACnetTime(dec);
+         pRetval = new BACnetTime(dec);
 
       case dt:       // date/time stamp -------------------------------------
-         return new BACnetDateTime(dec);
+         pRetval = new BACnetDateTime(dec);
 
       case dtrange:  // range of dates ---------------------------------------
-         return new BACnetDateRange(dec);
+         pRetval = new BACnetDateRange(dec);
 
       case calist:   // array of calendar entries -----------------------------
-         return new BACnetListOfCalendarEntry(dec);
+         pRetval = new BACnetListOfCalendarEntry(dec);
 
       case dabind:   // device address binding list--------------------------------
-         {
-         BACnetGenericArray * parray = new BACnetGenericArray(dabindelem);
-         parray->Decode(dec);
-         return parray;
-         }
+         pRetval = new BACnetListOfAddressBinding(dec);
 
       case dabindelem:  // device address binding --------------------------------
-         return new BACnetAddressBinding(dec);
+         pRetval = new BACnetAddressBinding(dec);
 
       case lobj:     // array of object identifiers ----------------------------
-         return new BACnetObjectIDList(dec);
+         pRetval = new BACnetObjectIDList(dec);
 
       case uwarr:    // unsigned array ------------------------------------------
       case stavals:  // list of unsigned ----------------------------------------
-         return new BACnetUnsignedArray(dec);
+         pRetval = new BACnetUnsignedArray(dec);
 
       case statext:
       case actext:   // character string array ----------------------------------
-         return new BACnetTextArray(dec);
+         pRetval = new BACnetTextArray(dec);
 
       case prival:   // single priority value----------------------------------
-         return new BACnetPriorityValue(dec);
+         pRetval = new BACnetPriorityValue(dec);
 
       case calent:   // single calendar entry ----------------------------------
-         return new BACnetCalendarEntry(dec);
+         pRetval = new BACnetCalendarEntry(dec);
 
       case TSTMP:    // time stamp, could be multiple type---------------------
-         return new BACnetTimeStamp(dec);
+         pRetval = new BACnetTimeStamp(dec);
 
       case TSTMParr: // array of time stamp, could be multiple type---------------------
-         return new BACnetTimeStampArray(dec);
+         pRetval = new BACnetTimeStampArray(dec);
 
       case setref:
       case propref:  // object prop refs
-         return new BACnetObjectPropertyReference(dec);
+         pRetval = new BACnetObjectPropertyReference(dec);
 
       case lopref:   // list of object property references
-         return new BACnetListOfDeviceObjectPropertyReference(dec);
+         pRetval = new BACnetListOfDeviceObjectPropertyReference(dec);
 
       case devobjref:
-         return new BACnetDeviceObjectReference(dec);
+         pRetval = new BACnetDeviceObjectReference(dec);
 
       case lodoref:  // LJT  List Of Device Object References
-         return new BACnetListOfDeviceObjectReference(dec);
+         pRetval = new BACnetListOfDeviceObjectReference(dec);
 
       case devobjpropref:  // deviceobject prop refs
-         return new BACnetDeviceObjectPropertyReference(dec);
+         pRetval = new BACnetDeviceObjectPropertyReference(dec);
 
       case recip:    // bacnet recipient
-         return new BACnetRecipient(dec);
+         pRetval = new BACnetRecipient(dec);
 
       case tsrecip:  // list of time synch recipients
-         return new BACnetListOfRecipient(dec);
+         pRetval = new BACnetListOfRecipient(dec);
 
       case vtcl:     // vt classes
-         return new BACnetListOfVTClass(dec);
+         pRetval = new BACnetListOfVTClass(dec);
 
       case destination:    //
-         return new BACnetDestination(dec);
+         pRetval = new BACnetDestination(dec);
 
       case reciplist:   // list of BACnetDestination
-         return new BACnetListOfDestination(dec);
+         pRetval = new BACnetListOfDestination(dec);
 
       case COVSub:
-         return new BACnetCOVSubscription(dec);
+         pRetval = new BACnetCOVSubscription(dec);
 
       case lCOVSub:
-         return new BACnetListOfCOVSubscription(dec);
+         pRetval = new BACnetListOfCOVSubscription(dec);
 
       case raslist:  // list of readaccessspecs
          //p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
-         return new BACnetReadAccessSpecification(dec);
+         pRetval = new BACnetReadAccessSpecification(dec);
 
       case act:      // action array
          //p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
-         return new BACnetActionCommand(dec);
+         pRetval = new BACnetActionCommand(dec);
 
       case evparm:   // event parameter
          //p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
-         return new BACnetEventParameter(dec);
+         pRetval = new BACnetEventParameter(dec);
 
       case skeys:    // session keys
          //p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
-         return new BACnetSessionKey(dec);
+         pRetval = new BACnetSessionKey(dec);
 
       case xsched:    // exception schedule: array[] of specialevent
          //p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
-         return new BACnetExceptionSchedule(dec);
+         pRetval = new BACnetExceptionSchedule(dec);
 
       case wsched:   // weekly schedule: array[7] of list of timevalue
          //p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
-         return new BACnetTimeValue(dec);
+         pRetval = new BACnetTimeValue(dec);
 
       case vtse:     // list of active  vt sessions (parse type) 
          //p= eVTSE(p,(BACnetVTSession far*)msg->pv);
-         return new BACnetVTSession(dec);
+         pRetval = new BACnetVTSession(dec);
 
       case looref:   // list (or array) of object IDs
-         {
-         BACnetGenericArray * parray = new BACnetGenericArray(ob_id);
-         parray->Decode(dec);
-         return parray;
-         }
+         pRetval = new BACnetGenericArray(ob_id);
+         pRetval ->Decode(dec);
+         break;
 
       default:
-         return NULL;
+         pRetval = NULL;
+         break;
    }
 
-   return NULL;
+   return pRetval;
 }
 
 
@@ -813,7 +807,7 @@ void BACnetNull::Encode( BACnetAPDUEncoder &enc, int context )
 {
    // check for space
    enc.CheckSpace( 1 );
-   
+
    // encode it
    if (context != kAppContext)
       enc.pktBuffer[enc.pktLength++] = ((BACnetOctet)context << 4) + 0x08;
@@ -1006,11 +1000,11 @@ void BACnetBoolean::Encode( BACnetAPDUEncoder& enc, int context )
    //
    if (context == kAppContext) {
       enc.CheckSpace( 1 );
-      
+
       enc.pktBuffer[enc.pktLength++] = 0x10 + (boolValue == bFalse ? 0x00 : 0x01);
    } else {
       enc.CheckSpace( 2 );
-      
+
       enc.pktBuffer[enc.pktLength++] = ((BACnetOctet)context << 4) + 0x09;
       enc.pktBuffer[enc.pktLength++] = (boolValue == bFalse ? 0x00 : 0x01);
    }
@@ -1020,13 +1014,13 @@ void BACnetBoolean::Encode( BACnetAPDUEncoder& enc, int context )
 void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
 {
    BACnetOctet tag;
-   
+
    // enough for the tag byte?
    if (dec.pktLength < 1)
       throw(7) /* not enough data */;
-   
+
    tag = (dec.pktLength--,*dec.pktBuffer++);
-   
+
    // it could be application tagged
    if (tag == 0x10)
    {
@@ -1040,11 +1034,11 @@ void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
       // verify context tagged and length
       if ((tag & 0x0F) != 0x09)
          throw_(8) /* bad length */;
-      
+
       // check for more data
       if (dec.pktLength < 1)
          throw_(9);
-      
+
       boolValue = (eBACnetBoolean)(dec.pktLength--,*dec.pktBuffer++);
    }
 }
@@ -1112,7 +1106,7 @@ bool BACnetBoolean::Match( BACnetEncodeable &rbacnet, int iOperator, CString * p
    if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
       return false;
 
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean))  || 
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean))  ||
        !::Match(iOperator, boolValue, ((BACnetBoolean &) rbacnet).boolValue ) )
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
@@ -1295,75 +1289,75 @@ BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
          break;
 
       case EVENT_STATE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEvState);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEvState);
          break;
 
       case RELIABILITY:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiReli);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiReli);
          break;
 
       case UNITS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
          break;
 
       case NOTIFY_TYPE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiNT);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiNT);
          break;
 
       case PRESENT_VALUE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);
          break;
 
       case POLARITY:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiPolar);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiPolar);
          break;
 
       case ALARM_VALUE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);
          break;
 
       case SYSTEM_STATUS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiDS);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiDS);
          break;
 
       case SEGMENTATION_SUPPORTED:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiDS);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiDS);
          break;
 
       case FILE_ACCESS_METHOD: 
-         petable = (PICS::etable *)PICS::GetEnumTable(eiFAM);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiFAM);
          break;
 
       case OUTPUT_UNITS: 
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
          break;
 
       case CONTROLLED_VARIABLE_UNITS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
          break;
 
       case ACTION:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiLoopAct);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiLoopAct);
          break;
 
       case PROPORTIONAL_CONSTANT_UNITS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
          break;
 
-      case INTEGRAL_CONSTANT_UNITS:  
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+      case INTEGRAL_CONSTANT_UNITS:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
          break;
 
-      case DERIVATIVE_CONSTANT_UNITS:  
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);  
+      case DERIVATIVE_CONSTANT_UNITS:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
          break;
 
       case PROGRAM_STATE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiPrState);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiPrState);
          break;
 
       case REASON_FOR_HALT:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiPrErr);  
+         petable = (PICS::etable *)PICS::GetEnumTable(eiPrErr);
          break;
 
       case VT_CLASSES_SUPPORTED:
@@ -1570,7 +1564,7 @@ bool BACnetUnsigned::Match( BACnetEncodeable &rbacnet, int iOperator, CString * 
 
    ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned)));
 
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned))  ||  
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned))  ||
        !::Match(iOperator, uintValue, ((BACnetUnsigned &) rbacnet).uintValue) )
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
@@ -1599,7 +1593,7 @@ BACnetInteger::BACnetInteger( BACnetAPDUDecoder & dec )
 void BACnetInteger::Encode( BACnetAPDUEncoder& enc, int context )
 {
    int      len, valuCopy;
-   
+
    // reduce the value to the smallest number of bytes, be careful about 
    // the next upper bit down being sign extended
    len = 4;
@@ -1609,17 +1603,17 @@ void BACnetInteger::Encode( BACnetAPDUEncoder& enc, int context )
          break;
       if ((intValue < 0) && ((valuCopy & 0xFF800000) != 0xFF800000))
          break;
-      
+
       len -= 1;
       valuCopy = (valuCopy << 8);
    }
-   
+
    // encode the tag
    if (context != kAppContext)
       BACnetAPDUTag( context, len ).Encode( enc );
    else
       BACnetAPDUTag( integerAppTag, len ).Encode( enc );
-   
+
    // fill in the data
    while (len--) {
       enc.pktBuffer[enc.pktLength++] = (valuCopy >> 24) & 0x0FF;
@@ -1935,7 +1929,7 @@ bool BACnetReal::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 
 // ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)));
 
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)) || 
+   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)) ||
        !::Match(iOperator, realValue, ((BACnetReal &) rbacnet).realValue ) )
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
@@ -2106,7 +2100,8 @@ void BACnetCharacterString::Initialize( LPCSTR svalu )
 {
    strLen = (svalu ? strlen(svalu) : 0);
    if ( strLen )
-   {   delete[] strBuff;
+   {
+      delete[] strBuff;
       strBuff = new BACnetOctet[strLen];
    }
    else
@@ -5655,7 +5650,8 @@ bool BACnetObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOpera
 
    ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference)));
 
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetObjectPropertyReference &) rbacnet).m_objID.objID) ||
+   if (!rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference))  ||
+       !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetObjectPropertyReference &) rbacnet).m_objID.objID) ||
        !::Match(iOperator, (int) m_bacnetenumPropID.m_enumValue, (int) ((BACnetObjectPropertyReference &) rbacnet).m_bacnetenumPropID.m_enumValue) )
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
@@ -6061,7 +6057,7 @@ BACnetAddressBinding & BACnetAddressBinding::operator =( const BACnetAddressBind
 
 int BACnetAddressBinding::DataType() const
 {
-   return dabind;
+   return dabindelem;
 }
 
 BACnetEncodeable * BACnetAddressBinding::clone()
@@ -6918,7 +6914,6 @@ BACnetBinaryPriV::BACnetBinaryPriV( int nValue )
 }
 
 
-
 void BACnetBinaryPriV::Encode( CString &enc, Format /*theFormat*/ ) const
 {
    BACnetEnumerated::Encode(enc, apszBinaryPVNames, 2);
@@ -7349,7 +7344,9 @@ bool BACnetTimeStamp::Match( BACnetEncodeable &rbacnet, int iOperator, CString *
    ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp)));
    ASSERT(pbacnetTypedValue != NULL);
 
-   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp))  &&
+   // This is a CHOICE, so only call Match if we are using the same choice
+   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp)) &&
+          (pbacnetTypedValue->DataType() == ((BACnetTimeStamp &)rbacnet).GetObject()->DataType()) &&
           pbacnetTypedValue->Match(*((BACnetTimeStamp &)rbacnet).GetObject(), iOperator, pstrError);
 }
 
@@ -7701,11 +7698,13 @@ void BACnetGenericArray::Encode( CString &enc, Format theFormat ) const
 
 void BACnetGenericArray::Decode( const char *dec )
 {
+   // TODO: Either DON'T OVERRIDE this method, or implement it:
+   // Just the reverse of Encode(CString)
 }
 
 int BACnetGenericArray::DataType(void) const
 {
-   return m_nType; 
+   return m_nType;
 }
 
 BACnetEncodeable * BACnetGenericArray::NewDecoderElement( BACnetAPDUDecoder& dec )
@@ -8322,6 +8321,7 @@ BACnetListOfEnum::BACnetListOfEnum( BACnetAPDUDecoder& dec, int tableId )
 BACnetEncodeable * BACnetListOfEnum::NewDecoderElement( BACnetAPDUDecoder& dec )
 {
    BACnetEncodeable * penum = BACnetEncodeable::Factory(etl, dec, m_nTableId);
+   // TODO: Didn't the Factory's constructor call Decode?
    penum->Decode(dec);
    return penum;
 }
@@ -8331,7 +8331,6 @@ BACnetEnumerated * BACnetListOfEnum::operator[](int nIndex) const
 {
    return (BACnetEnumerated *) m_apBACnetObjects[nIndex];
 }
-
 
 
 BACnetEnumerated & BACnetListOfEnum::operator[](int nIndex)
@@ -8362,6 +8361,7 @@ BACnetListOfVTClass::BACnetListOfVTClass( BACnetAPDUDecoder& dec )
 BACnetEncodeable * BACnetListOfVTClass::NewDecoderElement( BACnetAPDUDecoder& dec )
 {
    BACnetEncodeable * penum = BACnetEncodeable::Factory(et, dec, VT_CLASSES_SUPPORTED);
+   // TODO: Didn't the Factory's constructor call Decode?
    penum->Decode(dec);
    return penum;
 }
@@ -8473,6 +8473,36 @@ BACnetCOVSubscription & BACnetListOfCOVSubscription::operator[](int nIndex)
    return  (BACnetCOVSubscription &) *m_apBACnetObjects[nIndex];
 }
 
+//====================================================================
+
+IMPLEMENT_DYNAMIC(BACnetListOfAddressBinding, BACnetGenericArray)
+
+BACnetListOfAddressBinding::BACnetListOfAddressBinding()
+                     :BACnetGenericArray(dabindelem)
+{
+   m_nType = dabind;
+}
+
+
+BACnetListOfAddressBinding::BACnetListOfAddressBinding( BACnetAPDUDecoder& dec )
+                     :BACnetGenericArray(dabindelem)
+{
+   m_nType = dabind;
+   Decode(dec);
+}
+
+
+BACnetAddressBinding * BACnetListOfAddressBinding::operator[](int nIndex) const
+{
+   return (BACnetAddressBinding *) m_apBACnetObjects[nIndex];
+}
+
+
+BACnetAddressBinding & BACnetListOfAddressBinding::operator[](int nIndex)
+{
+   return (BACnetAddressBinding &) *m_apBACnetObjects[nIndex];
+}
+
 
 //====================================================================
 
@@ -8487,7 +8517,7 @@ BACnetAnyValue::BACnetAnyValue()
 BACnetAnyValue::BACnetAnyValue( BACnetEncodeable * pbacnetEncodeable )
                :BACnetObjectContainer(pbacnetEncodeable)
 {
-   SetType(0);
+   SetType( (pbacnetEncodeable != NULL) ? pbacnetEncodeable->DataType() : 0 );
 }
 
 
@@ -8526,151 +8556,36 @@ void BACnetAnyValue::SetObject( BACnetEncodeable * pbacnetEncodeable )
    BACnetObjectContainer::SetObject(pbacnetEncodeable);
 }
 
-
+// This method is called only from ScriptExecutor::ExpectALData with this == EPICS property
 bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOperator, LPCSTR lpstrValueName )
 {
+   bool retval = false;
    CString strThrowMessage;
 
-   if ( GetObject() == NULL )    // no data found
+   if ( GetObject() == NULL )
+   {
+      // no data found
       strThrowMessage.Format(IDS_SCREX_COMPEPICSNULL, lpstrValueName);
-
+   }
    else if ( dec.pktBuffer == NULL )
+   {
       strThrowMessage.Format(IDS_SCREX_COMPDATANULL, lpstrValueName);
-
+   }
    else
    {
-      // Have to use type value here because we don't know how to decode the stream...\
-      // The type tells us what kind of object to attempt to reconstitute
-
-      switch (GetType())
+      // Make an object according to this's type, then try to populate it
+      // from the Decoder.
+      BACnetEncodeable *pLeft = Factory( GetType(), dec );
+      if (pLeft != NULL)
       {
-         case u127:     // 1..127 ---------------------------------
-         case u16:      // 1..16 ----------------------------------
-         case ud:       // unsigned dword -------------------------
-         case uw:       // unsigned word --------------------------
-            BACnetUnsigned(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case ssint:    // short signed int -----------------------     // actually the same type
-         case sw:       // signed word ----------------------------
-         case ptInt32:
-            BACnetInteger(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case flt:      // float ----------------------------------------
-            BACnetReal(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case pab:      // priority array bpv ---------------------     deal with index cases (-1=all, 0=element count, base 1=index
-         case paf:      // priority array flt ---------------------
-         case pau:      // priority array unsigned ----------------
-         case ptPai:    // priority array long
-            BACnetPriorityArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case ebool:    // boolean enumeration ---------------------------------
-            BACnetBoolean(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case bits:     // octet of 1 or 0 flags
-            BACnetBitString(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case ob_id:    // object identifier
-            BACnetObjectIdentifier(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case s10:      // char [10] --------------------------------------------
-         case s32:      // char [32]
-         case s64:      // char [64]
-         case s132:     // char [132]
-            BACnetCharacterString(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case enull:    // null enumeration ------------------------------------
-            BACnetNull(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-            break;
-
-         case et:    // generic enumation ----------------------------------
-            BACnetEnumerated(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-            break;
-
-         case ptDate:   // date ------------------------------------------------
-            BACnetDate(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-            break;
-
-         case ptTime:   // time -------------------------------------------------
-            BACnetTime(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-            break;
-
-         case dt:    // date/time stamp -------------------------------------
-            BACnetDateTime(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-            break;
-
-         case dtrange:  // range of dates ---------------------------------------
-            BACnetDateRange(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-            break;
-
-         case calist:   // array of calendar entries -----------------------------
-            BACnetListOfCalendarEntry(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case dabind:   // device address binding --------------------------------
-            BACnetAddressBinding(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case lobj:     // array of object identifiers ----------------------------
-            BACnetObjectIDList(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case uwarr:    // unsigned array ------------------------------------------
-         case stavals:  // list of unsigned ----------------------------------------
-            BACnetUnsignedArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case statext:
-         case actext:   // character string array ----------------------------------
-            BACnetTextArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case prival:   // single priority value----------------------------------
-            BACnetPriorityValue(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case calent:   // single calendar entry ----------------------------------
-            BACnetCalendarEntry(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case TSTMP:    // time stamp, could be multiple type---------------------
-            BACnetTimeStamp(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case TSTMParr:    // array of timestamps
-            BACnetTimeStampArray(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case propref: // object prop refs
-            BACnetObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         case lopref:  // list of object prop refs (device)
-            BACnetListOfDeviceObjectPropertyReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         //case tsrecip: // time synch recipients
-         case recip:     // recipient
-            BACnetRecipient(dec).Match(*GetObject(), iOperator, &strThrowMessage);
-            break;
-
-         case lodoref:  // BACnetARRAY[N] of BACnetDeviceObjectReference
-            BACnetListOfDeviceObjectReference(dec).Match(*GetObject(), iOperator, &strThrowMessage );
-            break;
-
-         default:
-            strThrowMessage.Format(IDS_SCREX_COMPUNSUPPORTED, GetType() );
-            break;
+         // We made an object: compare it
+         retval = pLeft->Match(*GetObject(), iOperator, &strThrowMessage );
       }
-    }
+      else
+      {
+         strThrowMessage.Format(IDS_SCREX_COMPUNSUPPORTED, GetType() );
+      }
+   }
 
    if ( !strThrowMessage.IsEmpty() )
    {
@@ -8680,7 +8595,7 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
       throw CString(strFailString);
    }
 
-   return true;
+   return retval;
 }
 
 
@@ -8712,17 +8627,14 @@ BACnetAPDUTag::BACnetAPDUTag( int context, int tlen )
 
 void BACnetAPDUTag::Encode( BACnetAPDUEncoder& enc, int )
 {
-   int         len = 0
-   ;
-   BACnetOctet tnum
-   ;
-   
+   int         len = 0;
+   BACnetOctet tnum;
+
    // compute the tag length, including the data
    len = 1;
    if ((tagClass == openingTagClass) || (tagClass == closingTagClass))
       ;
-   else
-   if ((tagClass == applicationTagClass) && (tagNumber == booleanAppTag))
+   else if ((tagClass == applicationTagClass) && (tagNumber == booleanAppTag))
       ;
    else {
       // if we are context specific, use the context tag number
@@ -8735,15 +8647,13 @@ void BACnetAPDUTag::Encode( BACnetAPDUEncoder& enc, int )
       // long lengths?
       if (tagLVT < 5)
          ;
-      else
-      if (tagLVT <= 253)
+      else if (tagLVT <= 253)
          len += 1;
-      else
-      if (tagLVT <= 65535)
+      else if (tagLVT <= 65535)
          len += 3;
       else
          len += 5;
-      
+
       // add the rest of the data
       len += tagLVT;
    }
@@ -8760,22 +8670,21 @@ void BACnetAPDUTag::Encode( BACnetAPDUEncoder& enc, int )
       enc.pktBuffer[enc.pktLength++] = (((BACnetOctet)tagNumber & 0x0F) << 4) + 0x0F;
       return;
    }
-   
+
    // check for context encoding
    tnum = (BACnetOctet)tagNumber;
    if (tagClass == contextTagClass)
       enc.pktBuffer[enc.pktLength] = 0x08;
    else
       enc.pktBuffer[enc.pktLength] = 0x00;
-   
+
    // this first byte is a killer
    enc.pktBuffer[enc.pktLength++] +=
       (((tnum < 15) ? tnum : 0x0F) << 4)
-      + ((tagLVT < 5) ? tagLVT : 0x05)
-      ;
+      + ((tagLVT < 5) ? tagLVT : 0x05);
    if (tnum >= 15)
       enc.pktBuffer[enc.pktLength++] = tnum;
-   
+
    // really short lengths already done
    if (tagLVT < 5)
       ;
@@ -8802,18 +8711,17 @@ void BACnetAPDUTag::Encode( BACnetAPDUEncoder& enc, int )
 
 void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
 {
-   BACnetOctet tag
-   ;
-   
+   BACnetOctet tag;
+
    // enough for the tag byte?
    if (dec.pktLength < 1)
       throw_(77) /* not enough data */;
-   
+
    tag = (dec.pktLength--,*dec.pktBuffer++);
-   
+
    // extract the type
    tagClass = (BACnetTagClass)((tag >> 3) & 0x01);
-   
+
    // extract the number
    tagNumber = (BACnetApplicationTag)(tag >> 4);
    if (tagNumber == 0x0F) {
@@ -8821,13 +8729,12 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
          throw_(78) /* not enough data */;
       tagNumber = (BACnetApplicationTag)(dec.pktLength--,*dec.pktBuffer++);
    }
-   
+
    // extract the length
    tagLVT = (tag & 0x07);
    if (tagLVT < 5)
       ;
-   else
-   if (tagLVT == 5) {
+   else if (tagLVT == 5) {
       if (dec.pktLength < 1)
          throw_(79) /* not enough data */;
       tagLVT = (dec.pktLength--,*dec.pktBuffer++);
@@ -8836,8 +8743,7 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
             throw_(80) /* not enough data */;
          tagLVT = (dec.pktLength--,*dec.pktBuffer++);
          tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
-      } else
-      if (tagLVT == 255) {
+      } else if (tagLVT == 255) {
          if (dec.pktLength < 4)
             throw_(81) /* not enough data */;
          tagLVT = (dec.pktLength--,*dec.pktBuffer++);
@@ -8845,12 +8751,10 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
          tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
          tagLVT = (tagLVT << 8) + (dec.pktLength--,*dec.pktBuffer++);
       }
-   } else
-   if (tagLVT == 6) {
+   } else if (tagLVT == 6) {
       tagClass = openingTagClass;
       tagLVT = 0;
-   } else
-   if (tagLVT == 7) {
+   } else if (tagLVT == 7) {
       tagClass = closingTagClass;
       tagLVT = 0;
    }
@@ -8858,15 +8762,12 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
    // check for enough data (except for an application tagged boolean)
    if (!tagClass && (tagNumber == booleanAppTag))
       ;
-   else
-   if (dec.pktLength < tagLVT)
+   else if (dec.pktLength < tagLVT)
       throw_(82);
 }
 
 
-
 //----------
-
 //
 // BACnetNPDU::BACnetNPDU
 //
