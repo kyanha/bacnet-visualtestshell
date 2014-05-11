@@ -1998,7 +1998,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 // Open and Read a TPI file (i.e. EPICS text file)
 ///////////////////////////////////////////////////////////////////////
 bool APIENTRY ReadTextPICS(
-        char *tp, // filename string
+        const char *tp, // filename string
         PICSdb *pd, // EPICS database
         int *errc, // error counter
         int *errPICS) // returns the error
@@ -4632,10 +4632,8 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                if (ParseTimeStamp((BACnetTimeStamp *)pstruc)) return true;
                break;
             case TSTMParr:    // madanner 9/04
-               {                 
-                  if( ParseTimeStampArray((BACnetTimeStamp **)pstruc, 3) ) 
-                     return true;
-               }
+               if( ParseTimeStampArray((BACnetTimeStamp **)pstruc, 3) )
+                  return true;
                break;
             // *****018  begin
             case lCOVSub:     //List of BACnetCOVSubcription
