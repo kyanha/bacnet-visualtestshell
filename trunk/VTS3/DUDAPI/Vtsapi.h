@@ -155,7 +155,7 @@ word  APIENTRY VTSAPIgetdefaultparsetype(dword,HWND);
 BOOL  APIENTRY VTSAPIgetdefaultpropinfo(word,dword,word *,word *);
 word  APIENTRY VTSAPIgetpropertystates(word,HWND);
 word  APIENTRY VTSAPIgetpropertystate(word,word,char *);
-bool  APIENTRY ReadTextPICS(char *,PICSdb *,int *,int *);
+bool  APIENTRY ReadTextPICS(const char *,PICSdb *,int *,int *);
 void  APIENTRY DeletePICSObject(generic_object *);
 int   GetStandardServicesSize(void);
 char *GetStandardServicesName(int i);
