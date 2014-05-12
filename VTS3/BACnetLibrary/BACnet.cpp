@@ -612,6 +612,10 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
       case u16:      // 1..16 ----------------------------------
       case ud:       // unsigned dword -------------------------
       case uw:       // unsigned word --------------------------
+         // TODO: But the BACnetUnsigned will report only ONE OF THESE as its DataType.
+         // That could cause problems for code that compares parseTypes to determine
+         // "is this BACnetEncodeable the same type as me".
+         // This issue applies to all cases below which share the same code
          pRetval = new BACnetUnsigned(dec);
          break;
 
@@ -655,6 +659,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 
       case enull:    // null enumeration ------------------------------------
          pRetval = new BACnetNull(dec);
+         break;
 
       case et:       // enumation, type determined by property  -------------
          pRetval = BACnetEnumerated::Factory(nPropID);
@@ -664,117 +669,149 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
       case ptDate:   // date ------------------------------------------------
       case ddate:
          pRetval = new BACnetDate(dec);
+         break;
 
       case ptTime:   // time -------------------------------------------------
       case ttime:
          pRetval = new BACnetTime(dec);
+         break;
 
       case dt:       // date/time stamp -------------------------------------
          pRetval = new BACnetDateTime(dec);
+         break;
 
       case dtrange:  // range of dates ---------------------------------------
          pRetval = new BACnetDateRange(dec);
+         break;
 
       case calist:   // array of calendar entries -----------------------------
          pRetval = new BACnetListOfCalendarEntry(dec);
+         break;
 
       case dabind:   // device address binding list--------------------------------
          pRetval = new BACnetListOfAddressBinding(dec);
+         break;
 
       case dabindelem:  // device address binding --------------------------------
          pRetval = new BACnetAddressBinding(dec);
+         break;
 
       case lobj:     // array of object identifiers ----------------------------
+      case looref:   // list (or array) of object IDs
+         // TODO: I think these should be the SAME:
+         // - DUDTOOL turns OBJECT_LIST and CONFIGURATION_FILES into lobj
+         // - stdobjpr defines OBJECT_LIST and CONFIGURATION_FILES as looref
          pRetval = new BACnetObjectIDList(dec);
+         break;
 
       case uwarr:    // unsigned array ------------------------------------------
       case stavals:  // list of unsigned ----------------------------------------
          pRetval = new BACnetUnsignedArray(dec);
+         break;
 
       case statext:
       case actext:   // character string array ----------------------------------
          pRetval = new BACnetTextArray(dec);
+         break;
 
       case prival:   // single priority value----------------------------------
          pRetval = new BACnetPriorityValue(dec);
+         break;
 
       case calent:   // single calendar entry ----------------------------------
          pRetval = new BACnetCalendarEntry(dec);
+         break;
 
       case TSTMP:    // time stamp, could be multiple type---------------------
          pRetval = new BACnetTimeStamp(dec);
+         break;
 
       case TSTMParr: // array of time stamp, could be multiple type---------------------
          pRetval = new BACnetTimeStampArray(dec);
+         break;
 
       case setref:
       case propref:  // object prop refs
          pRetval = new BACnetObjectPropertyReference(dec);
+         break;
 
       case lopref:   // list of object property references
          pRetval = new BACnetListOfDeviceObjectPropertyReference(dec);
+         break;
 
       case devobjref:
          pRetval = new BACnetDeviceObjectReference(dec);
+         break;
 
       case lodoref:  // LJT  List Of Device Object References
          pRetval = new BACnetListOfDeviceObjectReference(dec);
+         break;
 
       case devobjpropref:  // deviceobject prop refs
          pRetval = new BACnetDeviceObjectPropertyReference(dec);
+         break;
 
       case recip:    // bacnet recipient
          pRetval = new BACnetRecipient(dec);
+         break;
 
       case tsrecip:  // list of time synch recipients
          pRetval = new BACnetListOfRecipient(dec);
+         break;
 
       case vtcl:     // vt classes
          pRetval = new BACnetListOfVTClass(dec);
+         break;
 
       case destination:    //
          pRetval = new BACnetDestination(dec);
+         break;
 
       case reciplist:   // list of BACnetDestination
          pRetval = new BACnetListOfDestination(dec);
+         break;
 
       case COVSub:
          pRetval = new BACnetCOVSubscription(dec);
+         break;
 
       case lCOVSub:
          pRetval = new BACnetListOfCOVSubscription(dec);
+         break;
 
       case raslist:  // list of readaccessspecs
          //p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
          pRetval = new BACnetReadAccessSpecification(dec);
+         break;
 
       case act:      // action array
          //p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
          pRetval = new BACnetActionCommand(dec);
+         break;
 
       case evparm:   // event parameter
          //p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
          pRetval = new BACnetEventParameter(dec);
+         break;
 
       case skeys:    // session keys
          //p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
          pRetval = new BACnetSessionKey(dec);
+         break;
 
       case xsched:    // exception schedule: array[] of specialevent
          //p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
          pRetval = new BACnetExceptionSchedule(dec);
+         break;
 
       case wsched:   // weekly schedule: array[7] of list of timevalue
          //p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
          pRetval = new BACnetTimeValue(dec);
+         break;
 
       case vtse:     // list of active  vt sessions (parse type) 
          //p= eVTSE(p,(BACnetVTSession far*)msg->pv);
          pRetval = new BACnetVTSession(dec);
-
-      case looref:   // list (or array) of object IDs
-         pRetval = new BACnetGenericArray(ob_id);
-         pRetval ->Decode(dec);
          break;
 
       default:
@@ -7639,6 +7676,8 @@ bool BACnetShedLevel::Match( BACnetEncodeable &rbacnet, int iOperator, CString *
 
 IMPLEMENT_DYNAMIC(BACnetGenericArray, BACnetEncodeable)
 
+// TODO: Shouldn't we have TWO types: the array's AND the element's?
+// nDataType is only the element's type.
 BACnetGenericArray::BACnetGenericArray( int nDataType, int nSize /* = -1 */)
 {
    m_nElemType = nDataType;
@@ -7796,8 +7835,8 @@ bool BACnetGenericArray::Match( BACnetEncodeable &rbacnet, int iOperator, CStrin
 IMPLEMENT_DYNAMIC(BACnetPriorityArray, BACnetGenericArray)
 
 BACnetPriorityArray::BACnetPriorityArray()
+               :BACnetGenericArray(prival)
 {
-   m_nElemType = prival;
 }
 
 
@@ -7970,6 +8009,7 @@ BACnetCharacterString & BACnetTextArray::operator[](int nIndex)
 
 IMPLEMENT_DYNAMIC(BACnetBooleanArray, BACnetGenericArray)
 
+// TODO: set m_nElemType?
 BACnetBooleanArray::BACnetBooleanArray( PICS::BooleanList *paBoolean )
 {
    m_nType = eboollist;
@@ -7982,6 +8022,7 @@ BACnetBooleanArray::BACnetBooleanArray( PICS::BooleanList *paBoolean )
    }
 }
 
+// TODO: ud as the element type?  Should it be ebool?  Or is that BACnetBinaryPV?
 BACnetBooleanArray::BACnetBooleanArray( BACnetAPDUDecoder& dec )
                :BACnetGenericArray(ud)
 {
@@ -8035,6 +8076,7 @@ BACnetUnsignedArray::BACnetUnsignedArray( unsigned short paUnsigned[], int nMax 
 }
 
 BACnetUnsignedArray::BACnetUnsignedArray( PICS::UnsignedList *paUnsigned )
+               :BACnetGenericArray(ud)
 {
    m_nType = stavals;
 
@@ -8392,7 +8434,7 @@ BACnetListOfDestination::BACnetListOfDestination()
 
 
 BACnetListOfDestination::BACnetListOfDestination( BACnetAPDUDecoder& dec )
-                           :BACnetGenericArray(destination)
+                  :BACnetGenericArray(destination)
 {
    m_nType = reciplist;
    Decode(dec);
@@ -8423,7 +8465,7 @@ BACnetListOfRecipient::BACnetListOfRecipient()
 
 
 BACnetListOfRecipient::BACnetListOfRecipient( BACnetAPDUDecoder& dec )
-                           :BACnetGenericArray(recip)
+                 :BACnetGenericArray(recip)
 {
    m_nType = tsrecip;
    Decode(dec);
@@ -8454,7 +8496,7 @@ BACnetListOfCOVSubscription::BACnetListOfCOVSubscription()
 
 
 BACnetListOfCOVSubscription::BACnetListOfCOVSubscription( BACnetAPDUDecoder& dec )
-                           :BACnetGenericArray(COVSub)
+                 :BACnetGenericArray(COVSub)
 {
    m_nType = lCOVSub;
    Decode(dec);
@@ -8562,32 +8604,43 @@ bool BACnetAnyValue::CompareToEncodedStream( BACnetAPDUDecoder & dec, int iOpera
    bool retval = false;
    CString strThrowMessage;
 
-   if ( GetObject() == NULL )
+   if (GetObject() == NULL)
    {
       // no data found
       strThrowMessage.Format(IDS_SCREX_COMPEPICSNULL, lpstrValueName);
    }
-   else if ( dec.pktBuffer == NULL )
+   else if (dec.pktBuffer == NULL)
    {
+      // no data to decode
       strThrowMessage.Format(IDS_SCREX_COMPDATANULL, lpstrValueName);
    }
    else
    {
-      // Make an object according to this's type, then try to populate it
-      // from the Decoder.
-      BACnetEncodeable *pLeft = Factory( GetType(), dec );
-      if (pLeft != NULL)
+      // Make an object according to this's type and compare it
+      // Factory, Decode, or Match may throw...
+      BACnetEncodeable *pLeft = NULL;
+      try
       {
-         // We made an object: compare it
-         retval = pLeft->Match(*GetObject(), iOperator, &strThrowMessage );
+         pLeft = Factory( GetType(), dec );
+         if (pLeft != NULL)
+         {
+            retval = pLeft->Match(*GetObject(), iOperator, &strThrowMessage );
+            delete pLeft;
+         }
+         else
+         {
+            strThrowMessage.Format(IDS_SCREX_COMPUNSUPPORTED, GetType() );
+         }
       }
-      else
+      catch (...)
       {
-         strThrowMessage.Format(IDS_SCREX_COMPUNSUPPORTED, GetType() );
+         // Don't leak, the re-throw the error
+         delete pLeft;
+         throw;
       }
    }
 
-   if ( !strThrowMessage.IsEmpty() )
+   if (!strThrowMessage.IsEmpty())
    {
       CString strFailString;
       strFailString.Format(IDS_SCREX_COMPFAIL, lpstrValueName, (LPCSTR) strThrowMessage );
