@@ -452,7 +452,7 @@ char * CListSummaryView::FillColumnData( int nColumn, char * pszFill, VTSPacket 
 	unsigned short net = 0;
 	switch (nColumn)
 	{
-		case 0:		
+		case 0:
 			// Packet Number:  cheating... just fill in the number
 			// (Our caller gives us an integer cast to pointer for this column)
 			sprintf(pszFill, "%d", (UINT) ppkt);
@@ -480,32 +480,32 @@ char * CListSummaryView::FillColumnData( int nColumn, char * pszFill, VTSPacket 
 				// else look for network layer and show ORIGINAL source
 				lstrcpy(pszFill, ppkt->GetAddressString(m_FrameContext->m_pDoc, true, !m_bColumn[6]));
 			}
-			break;					
+			break;
 		
-		case 4:		
+		case 4:
 			// Destination
 			if ((ppkt->packetHdr.packetType == txData) || (ppkt->packetHdr.packetType == rxData))
 			{
 				// if m_bColumn[8], then DADDR is visible.  Show only MAC address here.
 				// else look for network layer and show FINAL destination
-				lstrcpy(pszFill, ppkt->GetAddressString(m_FrameContext->m_pDoc, false, !m_bColumn[8]));					
+				lstrcpy(pszFill, ppkt->GetAddressString(m_FrameContext->m_pDoc, false, !m_bColumn[8]));
 			}
-			break;	
+			break;
 
-		case 5:		
+		case 5:
 			// SNET
 			if (ppkt->GetSNET(net))
 			{
 				sprintf(pszFill, "%d", net);
-			}						
-			break;
-					
-		case 6:					
-			// SADDR
-			lstrcpy(pszFill, (LPCTSTR)ppkt->GetSADRString(m_FrameContext->m_pDoc) );						
+			}
 			break;
 
-		case 7:		
+		case 6:
+			// SADDR
+			lstrcpy(pszFill, (LPCTSTR)ppkt->GetSADRString(m_FrameContext->m_pDoc) );
+			break;
+
+		case 7:
 			// DNET
 			if (ppkt->GetDNET(net))
 			{
@@ -518,7 +518,7 @@ char * CListSummaryView::FillColumnData( int nColumn, char * pszFill, VTSPacket 
 
 		case 8:
 			// DADDR
-			lstrcpy(pszFill, (LPCTSTR)ppkt->GetDADRString(m_FrameContext->m_pDoc) );						
+			lstrcpy(pszFill, (LPCTSTR)ppkt->GetDADRString(m_FrameContext->m_pDoc) );
 			break;
 
 		case 9:
@@ -1036,10 +1036,10 @@ BOOL CListSummaryView::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 
 	if ((pHDN->hdr.code == HDN_ENDTRACKW) || (pHDN->hdr.code == HDN_ENDTRACKA))
 	{
-		// If the width is zero, hide the column.  If non-zero, show it.
+		// If the new width (cxy) is zero, hide the column.  If non-zero, show it.
 		// (Actually, Windows takes care of hide/show, but m_bColumn is used
 		// to control the display logic)
-		bool show = (GetListCtrl().GetColumnWidth(pHDN->iItem) != 0);
+		bool show = (pHDN->pitem->cxy != 0);
 		if (show != m_bColumn[pHDN->iItem])
 		{
 			m_bColumn[pHDN->iItem] = show;
