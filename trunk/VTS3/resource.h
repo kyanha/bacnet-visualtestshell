@@ -256,7 +256,7 @@
 #define IDR_COLUMNS                     369
 #define IDR_SUMMARYWIN                  369
 #define IDI_RECVPKT                     370
-#define IDD_BACKUP_RESTORE_PROGRESS     371
+#define IDD_SEND_RECEIVE_PROGRESS       371
 #define IDI_SENDPKT                     371
 #define IDD_EDITRESENTPKT               372
 #define IDD_SENDSUBSCRIBECOVPROPERTY    373
@@ -266,7 +266,6 @@
 #define IDD_NOTIFY_UNS_RANGE            377
 #define IDD_DEVTREEOPT                  378
 #define IDD_INCONSISTENT_PARS           379
-#define IDD_INCONSISTENT_PARS_PROGRESS  380
 #define IDD_SELECT_TEMPLATE             381
 #define IDR_SCRIPT_CONTEXT              382
 #define IDD_SENDWHATISNET               382
@@ -687,7 +686,6 @@
 #define IDC_INCLUDEPLACE                1290
 #define IDC_INCLUDEERROR                1291
 #define IDC_INCLUDEICON                 1292
-#define IDC_EDIT1                       1293
 #define IDC_DESTINATION_NETWORK         1293
 #define IDC_MSTPMAC                     1293
 #define IDC_EPICSV_FILENAME             1293

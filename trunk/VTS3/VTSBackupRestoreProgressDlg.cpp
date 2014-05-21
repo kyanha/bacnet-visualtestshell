@@ -1,10 +1,10 @@
-// VTSBackupRestoreProgressDlg.cpp : implementation file
+// SendReceiveExecutorProgressDlg.cpp : implementation file
 //
+// Simple status and control dialog for use by SendReceiveExecutor and subclasses
 
 #include "stdafx.h"
 #include "vts.h"
-#include "VTSBackupRestoreProgressDlg.h"
-#include "BakRestoreExecutor.h"
+#include "SendReceiveExecutor.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -13,145 +13,146 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
-// VTSBackupRestoreProgressDlg dialog
+// SendReceiveExecutorProgressDlg dialog
 
-
-VTSBackupRestoreProgressDlg::VTSBackupRestoreProgressDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(VTSBackupRestoreProgressDlg::IDD, pParent)
+SendReceiveExecutorProgressDlg::SendReceiveExecutorProgressDlg( SendReceiveExecutor *pExecutor,
+                                                                const char          *pTitle,
+                                                                CWnd                *pParent /*=NULL*/)
+: CDialog(SendReceiveExecutorProgressDlg::IDD, pParent)
+, m_pExecutor(pExecutor)
+, m_title(pTitle)
 {
-	//{{AFX_DATA_INIT(VTSBackupRestoreProgressDlg)
-		// NOTE: the ClassWizard will add member initialization here
-	//}}AFX_DATA_INIT
+   //{{AFX_DATA_INIT(SendReceiveExecutorProgressDlg)
+      // NOTE: the ClassWizard will add member initialization here
+   //}}AFX_DATA_INIT
 }
 
 
-void VTSBackupRestoreProgressDlg::DoDataExchange(CDataExchange* pDX)
+void SendReceiveExecutorProgressDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(VTSBackupRestoreProgressDlg)
-	DDX_Control(pDX, IDOK, m_okCtrl);
-	DDX_Control(pDX, IDC_BACKUP_RESTORE_KILL, m_killCtrl);
-	DDX_Control(pDX, IDC_BACKUP_RESTORE_OUTPUT, m_editOutput);
-	//}}AFX_DATA_MAP
+   CDialog::DoDataExchange(pDX);
+   //{{AFX_DATA_MAP(SendReceiveExecutorProgressDlg)
+   DDX_Control(pDX, IDOK, m_okCtrl);
+   DDX_Control(pDX, IDC_BACKUP_RESTORE_KILL, m_killCtrl);
+   DDX_Control(pDX, IDC_BACKUP_RESTORE_OUTPUT, m_editOutput);
+   //}}AFX_DATA_MAP
 }
 
 
-BEGIN_MESSAGE_MAP(VTSBackupRestoreProgressDlg, CDialog)
-	//{{AFX_MSG_MAP(VTSBackupRestoreProgressDlg)
-	ON_BN_CLICKED(IDC_BACKUP_RESTORE_KILL, OnBackupRestoreKill)
-	ON_WM_SIZE()
-	//}}AFX_MSG_MAP
+BEGIN_MESSAGE_MAP(SendReceiveExecutorProgressDlg, CDialog)
+   //{{AFX_MSG_MAP(SendReceiveExecutorProgressDlg)
+   ON_BN_CLICKED(IDC_BACKUP_RESTORE_KILL, OnKill)
+   ON_WM_SIZE()
+   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
-// VTSBackupRestoreProgressDlg message handlers
+// SendReceiveExecutorProgressDlg message handlers
 
-
-void VTSBackupRestoreProgressDlg::OutMessage(const CString& msg, BOOL bnewLine /*= TRUE*/)
+void SendReceiveExecutorProgressDlg::OutMessage(const CString& msg, BOOL bnewLine /*= TRUE*/)
 {
-	m_editOutput.SetSel(-1, -1);
-	m_editOutput.ReplaceSel(msg);
-	m_editOutput.SetSel(-1, -1);
-	if (bnewLine)
-	{
-		m_editOutput.ReplaceSel("\r\n");
-	}
-	else
-	{
- 		m_editOutput.ReplaceSel("\t");
-	}
+   m_editOutput.SetSel(-1, -1);
+   m_editOutput.ReplaceSel(msg);
+   m_editOutput.SetSel(-1, -1);
+   if (bnewLine)
+   {
+      m_editOutput.ReplaceSel("\r\n");
+   }
+   else
+   {
+      m_editOutput.ReplaceSel("\t");
+   }
 }
 
-void VTSBackupRestoreProgressDlg::OnOK()
+void SendReceiveExecutorProgressDlg::OnOK()
 {
-	DestroyWindow ();
+   DestroyWindow ();
 }
 
-void VTSBackupRestoreProgressDlg::OnCancel()
+void SendReceiveExecutorProgressDlg::OnCancel()
 {
-	DestroyWindow ();
+   DestroyWindow ();
 }
 
-extern BakRestoreExecutor gBakRestoreExecutor;
-
-void VTSBackupRestoreProgressDlg::PostNcDestroy() 
+void SendReceiveExecutorProgressDlg::PostNcDestroy()
 {
-	CDialog::PostNcDestroy();
-	gBakRestoreExecutor.DestoryOutputDlg();
-    delete this;
+   CDialog::PostNcDestroy();
+   m_pExecutor->DestroyOutputDlg();
+   delete this;
 }
 
-
-void VTSBackupRestoreProgressDlg::OnBackupRestoreKill() 
+void SendReceiveExecutorProgressDlg::OnKill() 
 {
-	// TODO: Add your control notification handler code here
-	gBakRestoreExecutor.Kill();
-	m_killCtrl.EnableWindow(FALSE);
-	m_okCtrl.EnableWindow(TRUE);
-	CMenu* pMenu = GetSystemMenu(FALSE);	
-	pMenu->EnableMenuItem(SC_CLOSE, MF_BYCOMMAND|MF_ENABLED);
+   m_pExecutor->Kill();
+   m_killCtrl.EnableWindow(FALSE);
+   m_okCtrl.EnableWindow(TRUE);
+   CMenu* pMenu = GetSystemMenu(FALSE);
+   pMenu->EnableMenuItem(SC_CLOSE, MF_BYCOMMAND|MF_ENABLED);
 }
 
 
-void VTSBackupRestoreProgressDlg::BeginTestProcess()
+void SendReceiveExecutorProgressDlg::BeginTestProcess()
 {
-	OutMessage("Beginning test process...");
-	m_killCtrl.EnableWindow(TRUE);
-	m_okCtrl.EnableWindow(FALSE);
-	CMenu* pMenu = GetSystemMenu(FALSE);	
-	pMenu->EnableMenuItem(SC_CLOSE, MF_BYCOMMAND|MF_GRAYED);
+   CString str;
+   str.Format( "Beginning %s...", (LPCTSTR)m_title );
+   OutMessage(str);
+   m_killCtrl.EnableWindow(TRUE);
+   m_okCtrl.EnableWindow(FALSE);
+   CMenu* pMenu = GetSystemMenu(FALSE);
+   pMenu->EnableMenuItem(SC_CLOSE, MF_BYCOMMAND|MF_GRAYED);
 }
 
 
-void VTSBackupRestoreProgressDlg::EndTestProcess()
+void SendReceiveExecutorProgressDlg::EndTestProcess()
 {
-	m_killCtrl.EnableWindow(FALSE);
-	m_okCtrl.EnableWindow(TRUE);
-	CMenu* pMenu = GetSystemMenu(FALSE);	
-	pMenu->EnableMenuItem(SC_CLOSE, MF_BYCOMMAND|MF_ENABLED);
+   m_killCtrl.EnableWindow(FALSE);
+   m_okCtrl.EnableWindow(TRUE);
+   CMenu* pMenu = GetSystemMenu(FALSE);   
+   pMenu->EnableMenuItem(SC_CLOSE, MF_BYCOMMAND|MF_ENABLED);
 }
 
-BOOL VTSBackupRestoreProgressDlg::OnInitDialog() 
+BOOL SendReceiveExecutorProgressDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+   CDialog::OnInitDialog();
 
-	// Make sure our output window has lots of room
-	m_editOutput.SetLimitText( ~0 );
-	
-	// TODO: Add extra initialization here
-	m_killCtrl.EnableWindow(FALSE);
-	
-	return TRUE;  // return TRUE unless you set the focus to a control
-	              // EXCEPTION: OCX Property Pages should return FALSE
+   // Set our title
+   SetWindowText( m_title );
+
+   // Make sure our output window has lots of room
+   m_editOutput.SetLimitText( ~0 );
+   
+   m_killCtrl.EnableWindow(FALSE);
+   
+   return TRUE;  // return TRUE unless you set the focus to a control
+                 // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void VTSBackupRestoreProgressDlg::OnSize(UINT nType, int cx, int cy) 
+void SendReceiveExecutorProgressDlg::OnSize(UINT nType, int cx, int cy) 
 {
-	CDialog::OnSize(nType, cx, cy);
-	
-	// TODO: Add your message handler code here
-	if (m_killCtrl || m_okCtrl || m_editOutput)
-	{ 
-		// Get size of the dialog
-		void* p = &m_killCtrl;
-		CRect rect;
-		GetClientRect(&rect);
-		// get size of the kill button
-		CRect rectKill;
-		m_killCtrl.GetClientRect(&rectKill);
-		// get size of the ok button
-		CRect rectOk;
-		m_okCtrl.GetClientRect(&rectOk);
-		// get size of the output window
-		CRect rectOutput;
-		m_editOutput.GetClientRect(&rectOutput);
-		// move the position and resize output
-		m_editOutput.MoveWindow(15, 15, rect.Width()-30, rect.Height()-15-(rectOk.Height())-30);
-		// move and resize kill button
-		m_killCtrl.MoveWindow((int)(0.339*rect.Width()-0.5*rectKill.Width()), rect.Height()-15-(rectKill.Height()), 
-			rectKill.Width(), rectKill.Height());
-		// move and resize ok button
-		m_okCtrl.MoveWindow((int)(0.661*rect.Width()-0.5*rectOk.Width()), rect.Height()-15-(rectOk.Height()), 
-			rectOk.Width(), rectOk.Height());
-	}
+   CDialog::OnSize(nType, cx, cy);
+   
+   if (m_killCtrl || m_okCtrl || m_editOutput)
+   { 
+      // Get size of the dialog
+      void* p = &m_killCtrl;
+      CRect rect;
+      GetClientRect(&rect);
+      // get size of the kill button
+      CRect rectKill;
+      m_killCtrl.GetClientRect(&rectKill);
+      // get size of the ok button
+      CRect rectOk;
+      m_okCtrl.GetClientRect(&rectOk);
+      // get size of the output window
+      CRect rectOutput;
+      m_editOutput.GetClientRect(&rectOutput);
+      // move the position and resize output
+      m_editOutput.MoveWindow(15, 15, rect.Width()-30, rect.Height()-15-(rectOk.Height())-30);
+      // move and resize kill button
+      m_killCtrl.MoveWindow((int)(0.339*rect.Width()-0.5*rectKill.Width()), rect.Height()-15-(rectKill.Height()), 
+         rectKill.Width(), rectKill.Height());
+      // move and resize ok button
+      m_okCtrl.MoveWindow((int)(0.661*rect.Width()-0.5*rectOk.Width()), rect.Height()-15-(rectOk.Height()), 
+         rectOk.Width(), rectOk.Height());
+   }
 }
