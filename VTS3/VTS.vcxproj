@@ -172,6 +172,7 @@
     <ClCompile Include="BACnetLibrary\BACnetVLAN.cpp" />
     <ClCompile Include="DUDAPI\Bacprim32.cpp" />
     <ClCompile Include="SendNetworkNumberIs.cpp" />
+    <ClCompile Include="SendReceiveExecutor.cpp" />
     <ClCompile Include="SendWhatIsNetworkNumber.cpp" />
     <ClCompile Include="Sniffer\BACSN015.cpp" />
     <ClCompile Include="BakRestoreExecutor.cpp" />
@@ -373,7 +374,6 @@
     <ClCompile Include="VTSFileAccessMethodDlg.cpp" />
     <ClCompile Include="VTSFiltersDlg.cpp" />
     <ClCompile Include="VTSInconsistentParsDlg.cpp" />
-    <ClCompile Include="VTSInconsistentProgressDlg.cpp" />
     <ClCompile Include="VTSLifeSafetyModeDlg.cpp" />
     <ClCompile Include="VTSLifeSafetyOperationDlg.cpp" />
     <ClCompile Include="VTSLifeSafetyStateDlg.cpp" />
@@ -467,6 +467,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SendNetworkNumberIs.h" />
+    <ClInclude Include="SendReceiveExecutor.h" />
     <ClInclude Include="SendWhatIsNetworkNumber.h" />
     <ClInclude Include="Sniffer\Bacfuncs.h" />
     <ClInclude Include="BACnetLibrary\BACnet.hpp" />
@@ -683,7 +684,6 @@
     <ClInclude Include="VTSFileAccessMethodDlg.h" />
     <ClInclude Include="VTSFiltersDlg.h" />
     <ClInclude Include="VTSInconsistentParsDlg.h" />
-    <ClInclude Include="VTSInconsistentProgressDlg.h" />
     <ClInclude Include="VTSLifeSafetyModeDlg.h" />
     <ClInclude Include="VTSLifeSafetyOperationDlg.h" />
     <ClInclude Include="VTSLifeSafetyStateDlg.h" />

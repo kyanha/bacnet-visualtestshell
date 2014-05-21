@@ -9,7 +9,6 @@
 #include "VTSDoc.h"
 #include "BACnet.hpp"
 #include "VTSBackupRestoreDlg.h"
-#include "VTSBackupRestoreProgressDlg.h"
 #include "ScriptExecutor.h"
 #include "BakRestoreExecutor.h"
 #include "PI.h"
@@ -40,90 +39,20 @@ static char THIS_FILE[]=__FILE__;
 // global defines
 BakRestoreExecutor      gBakRestoreExecutor;
 
-// This function returns a new invokeID for each call.
-// VTS originally used invokeID = 1 for all messages.
-// If you want that behavior, simply remove the increment.
-BYTE InvokeID()
-{
-   static UINT invokeID;
-   return (BYTE)invokeID++;
-}
-
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-BakRestoreExecutor::AnyValue::AnyValue()
-{
-}
-
-BakRestoreExecutor::AnyValue::~AnyValue()
-{
-   pbacnetTypedValue = NULL;
-}
-
-BakRestoreExecutor::PropertyValue::PropertyValue()
-{
-}
-
-BakRestoreExecutor::PropertyValue::PropertyValue(const BACnetEnumerated& propID, BACnetEncodeable& propValue)
-{
-   m_propID.m_enumValue = propID.m_enumValue;
-   m_propValue.SetObject(&propValue);
-}
-
-BakRestoreExecutor::PropertyValue::PropertyValue(const PropertyValue& value)
-{
-   m_propID.m_enumValue = value.m_propID.m_enumValue;
-   PropertyValue* p = const_cast<PropertyValue*>(&value);
-   m_propValue.SetObject(p->m_propValue.GetObject());
-}
-
-BakRestoreExecutor::PropertyValue::~PropertyValue()
-{
-}
-
 BakRestoreExecutor::BakRestoreExecutor()
-: m_pPort(NULL), m_pName(NULL), m_nDeviceObjInst(0), m_strBackupFileName(""),
-  m_strPassword(""), m_funToExe(ALL_BACKUP_RESTORE), m_execState(execIdle),
-  m_pAPDU(NULL), m_bAbort(FALSE), m_bExpectPacket(FALSE),m_packetData(NULL),
-  m_bExpectAPDU(TRUE), m_bUserCancelled(FALSE), m_pOutputDlg(NULL)
+: SendReceiveExecutor("Backup and Restore Tests"),
+  m_strBackupFileName(""),
+  m_strPassword(""), 
+  m_funToExe(ALL_BACKUP_RESTORE)
 {
 }
 
 BakRestoreExecutor::~BakRestoreExecutor()
 {
-   if (m_pAPDU)
-   {
-      delete m_pAPDU;
-   }
-
-   if (m_packetData)
-   {
-      delete []m_packetData;
-   }
-
-}
-
-void BakRestoreExecutor::AnyValue::SetObject(BACnetEncodeable * pbacnetEncodeable)
-{
-   pbacnetTypedValue = NULL;
-   BACnetAnyValue::SetObject(pbacnetEncodeable);
-}
-
-void BakRestoreExecutor::PropertyValue::Encode(BACnetAPDUEncoder& enc)
-{
-   m_propID.Encode(enc, 0);
-   BACnetOpeningTag().Encode(enc, 2);
-   m_propValue.Encode(enc);
-   BACnetClosingTag().Encode(enc, 2);
-}
-
-void BakRestoreExecutor::PropertyValue::Decode(BACnetAPDUDecoder &dec)
-{
-   // can not decode.
-   ASSERT(FALSE);
 }
 
 void BakRestoreExecutor::ExecuteTest()
@@ -136,7 +65,7 @@ void BakRestoreExecutor::ExecuteTest()
       return;
    }
 
-   VTSDocPtr   pVTSDoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
+   VTSDocPtr pVTSDoc = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
    VTSPorts* pPorts = pVTSDoc->GetPorts();
    VTSNames* pNames = pVTSDoc->GetNames();
 
@@ -171,37 +100,9 @@ void BakRestoreExecutor::ExecuteTest()
       return;
    }
 
-   if (m_pOutputDlg != NULL)
-   {
-      m_pOutputDlg->SetFocus();
-   }
-   else
-   {
-      m_pOutputDlg = new VTSBackupRestoreProgressDlg(NULL);
-      m_pOutputDlg->Create(IDD_BACKUP_RESTORE_PROGRESS);
-      m_pOutputDlg->ShowWindow(SW_SHOW);
-   }
-
-   // install the task
-   InstallTask( oneShotTask, 0 );
-
+   StartTest();
    lock.Unlock();
-
 }
-
-void BakRestoreExecutor::Kill()
-{
-   // verify the executor state
-   if (m_execState != execRunning)
-   {
-      TRACE0( "Error: invalid executor state\n" );
-      return;
-   }
-
-   m_bUserCancelled = TRUE;
-   m_event.SetEvent();
-}
-
 
 void BakRestoreExecutor::ProcessTask()
 {
@@ -209,7 +110,7 @@ void BakRestoreExecutor::ProcessTask()
    lock.Lock();
 
    BOOL bSuccess = TRUE;
-   try   {
+   try {
       if ( !m_pPort || !m_pName || m_strBackupFileName.IsEmpty() )
       {
          throw("VTSPort, IUT or backfile not specified");
@@ -256,7 +157,7 @@ void BakRestoreExecutor::ProcessTask()
          Msg("Auxiliary backup and restore tests have been sucessfully completed!");
          break;
       default:
-         ;
+         break;
       }
    }
    catch (const char *errMsg) {
@@ -312,62 +213,14 @@ void BakRestoreExecutor::DoBackupTest()
    CFile backupIndexFile(strIndexFileName, CFile::modeWrite|CFile::modeCreate);
    m_pOutputDlg->OutMessage("OK");
 
-   BACnetObjectIdentifier devObjID;
-   BACnetUnsigned maxAPDULenAccepted;
-
    BACnetEnumerated propID;
    AnyValue propValue;
    char buffer[300];
 
-   if (m_nDeviceObjInst != DEVICE_OBJ_INST_NUM_UNSET)
-   {
-      m_pOutputDlg->OutMessage("Use ReadProperty to set M2 = Max_APDU_Length...", FALSE);
-      // Use ReadProperty to set M2 = Max_APDU_Length
-      devObjID.SetValue(OBJ_DEVICE, m_nDeviceObjInst);
-      propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
-      propValue.SetObject(&maxAPDULenAccepted);
-      if (!SendExpectReadProperty(devObjID, propID, propValue))
-      {
-         throw("Cannot read MAX_APDU_LENGTH_ACCEPTED value from IUT device object");
-      }
-      m_pOutputDlg->OutMessage("OK");
-   }
-   else
-   {
-      // Transmit a unicast Who-Is message to the IUT's address,
-      // and get deviceID, Max APDU Length Accepted
-      m_pOutputDlg->OutMessage("Transmit a unicast Who-Is message to the IUT's address...", FALSE);
-      if (!SendExpectWhoIs(devObjID, maxAPDULenAccepted))
-      {
-         m_pOutputDlg->OutMessage("Failed");
-         m_pOutputDlg->OutMessage("Transmit a ReadProperty to read the real Device objID...", FALSE);
-         // Transmit a ReadProperty request to the IUT, using the wildcard Device ID to read
-         // the real Device Object ID. Store the returned Device Object ID into the variable
-         // DEVICE_ID, then use ReadProperty to set M2 = Max_APDU_Length_Accepted
-         BACnetObjectIdentifier objID(OBJ_DEVICE, 4194303);
-         BACnetEnumerated propID(PICS::OBJECT_IDENTIFIER);
-         propValue.SetObject(&devObjID);
-         if (!SendExpectReadProperty(objID, propID, propValue))
-         {
-            // if failed received packet, the test failed
-            throw("Dynamic discovery of the Device ID has failed!\n"
-                 "The user must specify a Device Instance number in the Backup/Restore dialog");
-         }
-         m_pOutputDlg->OutMessage("OK");
-         m_pOutputDlg->OutMessage("Use ReadProperty to set M2 = Max_APDU_Length...", FALSE);
-         propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
-         propValue.SetObject(&maxAPDULenAccepted);
-         if (!SendExpectReadProperty(devObjID, propID, propValue))
-         {
-            throw("Cannot read MAX_APDU_LENGTH_ACCEPTED");
-         }
-         m_pOutputDlg->OutMessage("OK");
-      }
-      else
-      {
-         m_pOutputDlg->OutMessage("OK");
-      }
-   }
+   // Throws failure
+   GetDeviceMaxAPDU();
+   BACnetObjectIdentifier devObjID(OBJ_DEVICE, m_nDeviceObjInst);
+   BACnetUnsigned maxAPDULenAccepted(m_maxAPDULen);
 
    BACnetUnsigned databaseRevision;
    BACnetTimeStamp   lastRestoreTime;
@@ -399,7 +252,7 @@ void BakRestoreExecutor::DoBackupTest()
 
    // Transmit a ReinitialzeDevice service
    m_pOutputDlg->OutMessage("Transmit a ReinitializeDevice service to start backup...", FALSE);
-   if (!SendExpectReinitialize(STARTBACKUP))
+   if (!SendExpectReinitialize(STARTBACKUP, m_strPassword))
    {
       throw("Result(+) not received in response to the ReinitializeDevice");
    }
@@ -595,7 +448,7 @@ void BakRestoreExecutor::DoBackupTest()
    // close the .backupindex file
    // Transmit a ReinitializeDevice service
    m_pOutputDlg->OutMessage("Transmit a ReinitalizeDevice service...", FALSE);
-   if (!SendExpectReinitialize(ENDBACKUP))
+   if (!SendExpectReinitialize(ENDBACKUP, m_strPassword))
    {
       throw("Cannot end backup process");
    }
@@ -618,57 +471,14 @@ void BakRestoreExecutor::DoRestoreTest()
    }
    m_pOutputDlg->OutMessage("OK");
 
-   BACnetObjectIdentifier devObjID;
-   BACnetUnsigned maxAPDULenAccepted;
-
    BACnetEnumerated propID;
    AnyValue propValue;
    CString strText="";
 
-   if (m_nDeviceObjInst != DEVICE_OBJ_INST_NUM_UNSET)
-   {
-      // Use ReadProperty to set M2 = Max_APDU_Length
-      m_pOutputDlg->OutMessage("Use ReadProperty to set M2 = Max_APDU_Length...", FALSE);
-      devObjID.SetValue(OBJ_DEVICE, m_nDeviceObjInst);
-      propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
-      propValue.SetObject(&maxAPDULenAccepted);
-      if (!SendExpectReadProperty(devObjID, propID, propValue))
-      {
-         throw("Cannot read MAX_APDU_LENGTH_ACCEPTED value from IUT device object");
-      }
-
-      m_maxAPDULen = maxAPDULenAccepted.uintValue;
-      m_pOutputDlg->OutMessage("OK");
-   }
-   else
-   {
-      m_pOutputDlg->OutMessage("Transmit a unicast Who-Is message to the IUT's address...", FALSE);
-      if (!SendExpectWhoIs(devObjID, maxAPDULenAccepted))
-      {
-         m_pOutputDlg->OutMessage("Failed");
-         m_pOutputDlg->OutMessage("Transmit a ReadProperty to read the real Device objID...", FALSE);
-         BACnetObjectIdentifier objID(OBJ_DEVICE, 4194303);
-         BACnetEnumerated propID(PICS::OBJECT_IDENTIFIER);
-         propValue.SetObject(&devObjID);
-         if (!SendExpectReadProperty(objID, propID, propValue))
-         {
-            // if failed received packet, the test failed
-            throw("Dynamic discovery of the Device ID has failed!\n"
-                 "The user must specify a Device Instance number in the Backup/Restore dialog");
-         }
-         propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
-         propValue.SetObject(&maxAPDULenAccepted);
-         if (!SendExpectReadProperty(devObjID, propID, propValue))
-         {
-            throw("Cannot read MAX_APDU_LENGTH_ACCEPTED");
-         }
-         m_pOutputDlg->OutMessage("OK");
-      }
-      else
-      {
-         m_pOutputDlg->OutMessage("OK");
-      }
-   }
+   // Throws failure
+   GetDeviceMaxAPDU();
+   BACnetObjectIdentifier devObjID(OBJ_DEVICE, m_nDeviceObjInst);
+   BACnetUnsigned maxAPDULenAccepted(m_maxAPDULen);
 
    // Get database revision and last restore time before the restore
    BACnetUnsigned databaseRevision;
@@ -683,7 +493,7 @@ void BakRestoreExecutor::DoRestoreTest()
 
    // Transmit a ReinitialzeDevice service
    m_pOutputDlg->OutMessage("Transmit a ReinitializeDevice service to start restore...", FALSE);
-   if (!SendExpectReinitialize(STARTRESTORE))
+   if (!SendExpectReinitialize(STARTRESTORE, m_strPassword))
    {
       throw("Result(+) was not received in response to the ReinitializeDevice");
    }
@@ -692,29 +502,10 @@ void BakRestoreExecutor::DoRestoreTest()
    // Wait for restore preparation
    Delay( m_Delay );
 
-   m_pOutputDlg->OutMessage("Use ReadProperty to read the Device/Object_List...", FALSE);
+   // Get the Device's list of objects
+   // Throws failure
    BACnetArrayOf<BACnetObjectIdentifier>  objList;
-// int nType = objList.DataType();
-   propID.m_enumValue = PICS::OBJECT_LIST;
-   // suppose both devices do not support segmentation
-   // First to determine how many elements are in the list
-   BACnetUnsigned numOfObjects;
-   propValue.SetObject(&numOfObjects);
-   if (!SendExpectReadProperty(devObjID, propID, propValue, 0))
-   {
-      throw("Cannot determine the number of objects in Device/Object_List");
-   }
-   for(UINT i = 0; i < numOfObjects.uintValue; i++)
-   {
-      BACnetObjectIdentifier objID;
-      propValue.SetObject(&objID);
-      if (!SendExpectReadProperty(devObjID, propID, propValue, i+1))
-      {
-         throw("Cannot read in Device/Object_List");
-      }
-      objList.AddElement(&objID);
-   }
-   m_pOutputDlg->OutMessage("OK");
+   GetObjectList( objList );
 
    // 1, STREAM-ACCESS, 1843263, "config_file1", C:\Documents and Settings\laeol\My Documents\BACnetTesting\backup1.file1.backupdata
    while (backupIndexFile.ReadString(strText))
@@ -962,7 +753,7 @@ void BakRestoreExecutor::DoRestoreTest()
 
    // close the .backupindex file
    m_pOutputDlg->OutMessage("Transmit a ReinitializeDevice service to complete the restore...", FALSE);
-   if (!SendExpectReinitialize(ENDRESTORE))
+   if (!SendExpectReinitialize(ENDRESTORE, m_strPassword))
    {
       throw("Cannot end restore process");
    }
@@ -980,46 +771,10 @@ void BakRestoreExecutor::DoRestoreTest()
 
 void BakRestoreExecutor::DoAuxiliaryTest()
 {
-   BACnetObjectIdentifier devObjID;
-   BACnetUnsigned maxAPDULenAccepted;
-
-   BACnetEnumerated propID;
-   AnyValue propValue;
-
-   m_pOutputDlg->OutMessage("Begin auxiliary backup and restore procedure");
-   if (m_nDeviceObjInst != DEVICE_OBJ_INST_NUM_UNSET)
-   {
-      devObjID.SetValue(OBJ_DEVICE, m_nDeviceObjInst);
-   }
-   else
-   {
-      m_pOutputDlg->OutMessage("Transmit a unicast Who-Is message to the IUT's address...", FALSE);
-      if (!SendExpectWhoIs(devObjID, maxAPDULenAccepted))
-      {
-         m_pOutputDlg->OutMessage("Failed");
-         m_pOutputDlg->OutMessage("Transmit a ReadProperty to read the real Device objID...", FALSE);
-         BACnetObjectIdentifier objID(OBJ_DEVICE, 4194303);
-         BACnetEnumerated propID(PICS::OBJECT_IDENTIFIER);
-         propValue.SetObject(&devObjID);
-         if (!SendExpectReadProperty(objID, propID, propValue))
-         {
-            // if failed received packet, the test failed
-            throw("Dynamic discovery of the Device ID has failed!\n"
-                 "The user must specify a Device Instance number in the Backup/Restore dialog");
-         }
-         propID.m_enumValue = PICS::MAX_APDU_LENGTH_ACCEPTED;
-         propValue.SetObject(&maxAPDULenAccepted);
-         if (!SendExpectReadProperty(devObjID, propID, propValue))
-         {
-            throw("Cannot read MAX_APDU_LENGTH_ACCEPTED");
-         }
-         m_pOutputDlg->OutMessage("OK");
-      }
-      else
-      {
-         m_pOutputDlg->OutMessage("OK");
-      }
-   }
+   // Throws failure
+   GetDeviceMaxAPDU();
+   BACnetObjectIdentifier devObjID(OBJ_DEVICE, m_nDeviceObjInst);
+   BACnetUnsigned maxAPDULenAccepted(m_maxAPDULen);
 
 // DoAuxiliaryTest_1();
    DoAuxiliaryTest_2();
@@ -1040,7 +795,7 @@ void BakRestoreExecutor::DoAuxiliaryTest()
 void BakRestoreExecutor::DoAuxiliaryTest_1()
 {
    m_pOutputDlg->OutMessage("Auxiliary Test 1");
-   if (!SendExpectReinitialize(STARTBACKUP))
+   if (!SendExpectReinitialize(STARTBACKUP, m_strPassword))
    {
       throw("Cannot start Backup procedure in the IUT");
    }
@@ -1110,7 +865,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_2()
 {
    m_pOutputDlg->OutMessage("Auxiliary Test 2");
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start restore...", FALSE);
-   if (!SendExpectReinitialize(STARTRESTORE))
+   if (!SendExpectReinitialize(STARTRESTORE, m_strPassword))
    {
       throw("Unable to initialize a restore procedure");
    }
@@ -1137,7 +892,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_2()
    m_pOutputDlg->OutMessage("OK: got expected error");
 
    m_pOutputDlg->OutMessage("Transmit ABORTRESTORE...", FALSE);
-   if (!SendExpectReinitialize(ABORTRESTORE))
+   if (!SendExpectReinitialize(ABORTRESTORE, m_strPassword))
    {
       throw("Unable to abort a restore procedure");
    }
@@ -1153,7 +908,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_2()
 void BakRestoreExecutor::DoAuxiliaryTest_3()
 {
    m_pOutputDlg->OutMessage("Auxiliary Test 3");
-   if (!SendExpectReinitialize(STARTBACKUP))
+   if (!SendExpectReinitialize(STARTBACKUP, m_strPassword))
    {
       throw("Cannot start Backup procedure in the IUT");
    }
@@ -1223,7 +978,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_4()
 {
    m_pOutputDlg->OutMessage("Auxiliary Test 4");
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start restore...", FALSE);
-   if (!SendExpectReinitialize(STARTRESTORE))
+   if (!SendExpectReinitialize(STARTRESTORE, m_strPassword))
    {
       throw("Unable to initialize a restore procedure");
    }
@@ -1251,7 +1006,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_4()
    m_pOutputDlg->OutMessage("OK: got expected error");
 
    m_pOutputDlg->OutMessage("Transmit ABORTRESTORE...", FALSE);
-   if (!SendExpectReinitialize(ABORTRESTORE))
+   if (!SendExpectReinitialize(ABORTRESTORE, m_strPassword))
    {
       throw("Unable to abort a restore procedure");
    }
@@ -1289,7 +1044,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_5(BACnetObjectIdentifier& devObjID)
    m_pOutputDlg->OutMessage("OK");
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start backup...", FALSE);
-   if (!SendExpectReinitialize(STARTBACKUP))
+   if (!SendExpectReinitialize(STARTBACKUP, m_strPassword))
    {
       throw("Unable to initialize a backup procedure");
    }
@@ -1314,7 +1069,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_5(BACnetObjectIdentifier& devObjID)
    m_pOutputDlg->OutMessage("OK");
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start restore...", FALSE);
-   if (!SendExpectReinitialize(STARTRESTORE))
+   if (!SendExpectReinitialize(STARTRESTORE, m_strPassword))
    {
       throw("Unable to initialize a backup procedure");
    }
@@ -1367,14 +1122,14 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
    m_pOutputDlg->OutMessage("OK");
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start backup...", FALSE);
-   if (!SendExpectReinitialize(STARTBACKUP))
+   if (!SendExpectReinitialize(STARTBACKUP, m_strPassword))
    {
       throw("Unable to initialize a backup procedure");
    }
    m_pOutputDlg->OutMessage("OK");
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to end backup...", FALSE);
-   if (!SendExpectReinitialize(ENDBACKUP))
+   if (!SendExpectReinitialize(ENDBACKUP, m_strPassword))
    {
       throw("Unable to end a backup procedure");
    }
@@ -1395,7 +1150,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
    m_pOutputDlg->OutMessage("OK");
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start restore...", FALSE);
-   if (!SendExpectReinitialize(STARTRESTORE))
+   if (!SendExpectReinitialize(STARTRESTORE, m_strPassword))
    {
       throw("Unable to initialiate a backup procedure");
    }
@@ -1405,7 +1160,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_6(BACnetObjectIdentifier& devObjID)
    Delay( m_Delay );
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to abort restore...", FALSE);
-   if (!SendExpectReinitialize(ABORTRESTORE))
+   if (!SendExpectReinitialize(ABORTRESTORE, m_strPassword))
    {
       throw("Unable to abort a restore procedure");
    }
@@ -1510,7 +1265,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_9(BACnetObjectIdentifier& devObjID)
    m_strPassword = "123";     // any non-zero length password
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start backup with any password...", FALSE);
-   if (!SendExpectReinitialize(STARTBACKUP))
+   if (!SendExpectReinitialize(STARTBACKUP, m_strPassword))
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("Cannot start Backup procedure");
@@ -1520,7 +1275,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_9(BACnetObjectIdentifier& devObjID)
    m_pOutputDlg->OutMessage("OK");
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to end backup with any password...", FALSE);
-   if (!SendExpectReinitialize(ENDBACKUP))
+   if (!SendExpectReinitialize(ENDBACKUP, m_strPassword))
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("Cannot end Backup procedure");
@@ -1568,7 +1323,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_10(BACnetObjectIdentifier& devObjID)
    m_strPassword = "123";
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to start restore with any password...", FALSE);
-   if (!SendExpectReinitialize(STARTRESTORE))
+   if (!SendExpectReinitialize(STARTRESTORE, m_strPassword))
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("Cannot start Backup procedure");
@@ -1581,7 +1336,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_10(BACnetObjectIdentifier& devObjID)
    Delay( m_Delay );
 
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice-Request to end restore...", FALSE);
-   if (!SendExpectReinitialize(ENDRESTORE))
+   if (!SendExpectReinitialize(ENDRESTORE, m_strPassword))
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("Cannot end Backup procedure");
@@ -1624,7 +1379,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_11(BACnetObjectIdentifier& devObjID)
 {
    m_pOutputDlg->OutMessage("Auxiliary Test 11");
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice request to start backup...", FALSE);
-   if (!SendExpectReinitialize(STARTBACKUP))
+   if (!SendExpectReinitialize(STARTBACKUP, m_strPassword))
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("Cannot start Backup procedure");
@@ -1653,7 +1408,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_11(BACnetObjectIdentifier& devObjID)
    m_pOutputDlg->OutMessage("OK");
 
    m_pOutputDlg->OutMessage("Transmit a ReinitalizeDevice service to End Backup...", FALSE);
-   if (!SendExpectReinitialize(ENDBACKUP))
+   if (!SendExpectReinitialize(ENDBACKUP, m_strPassword))
    {
       throw("Cannot end backup process");
    }
@@ -1666,7 +1421,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_12(BACnetObjectIdentifier& devObjID)
 {
    m_pOutputDlg->OutMessage("Auxiliary Test 12");
    m_pOutputDlg->OutMessage("Transmit ReinitializeDevice request to start backup...", FALSE);
-   if (!SendExpectReinitialize(STARTRESTORE))
+   if (!SendExpectReinitialize(STARTRESTORE, m_strPassword))
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("Cannot start Restore procedure");
@@ -1697,7 +1452,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_12(BACnetObjectIdentifier& devObjID)
    }
    m_pOutputDlg->OutMessage("OK, Sending an Abort Restore ...", FALSE);
 
-   if (!SendExpectReinitialize(ABORTRESTORE))
+   if (!SendExpectReinitialize(ABORTRESTORE, m_strPassword))
    {
       m_pOutputDlg->OutMessage("Failed");
       Msg("Cannot start Backup procedure");
@@ -1710,295 +1465,9 @@ void BakRestoreExecutor::DoAuxiliaryTest_12(BACnetObjectIdentifier& devObjID)
    Delay( m_Delay );
 }
 
-void BakRestoreExecutor::ReceiveNPDU(const BACnetNPDU& npdu)
-{
-   // if were not running, just toss the message
-   if (m_execState != execRunning || !m_bExpectPacket)
-      return;
-
-   // make a copy of the data
-   BACnetOctet packetData[MAX_NPDU_LENGTH];
-   memcpy( packetData, npdu.pduData, npdu.pduLen );
-   // filter the packet
-
-   // the rest of this code will need a decoder
-   BACnetAPDUDecoder dec( packetData, npdu.pduLen );
-   // Decode the packet
-   if (0x81 == *dec.pktBuffer)
-   {
-      (dec.pktLength--,*dec.pktBuffer++); // fix by Trevor from Delta 1/30/2008
-      // decode BVLCI
-      int nBVLCfunc = (dec.pktLength--,*dec.pktBuffer++);
-      if ((nBVLCfunc != 4) && (nBVLCfunc != 9)
-         && (nBVLCfunc != 10) && (nBVLCfunc != 11))
-         return;     // do not contain NPDU, it is obvious that it isn't the packet which we want
-      // verify the length
-      int len;
-      len = (dec.pktLength--,*dec.pktBuffer++);
-      len = (len << 8) + (dec.pktLength--,*dec.pktBuffer++);
-      if (len != npdu.pduLen)
-         return;     // "BVLCI length incorrect";
-      if (nBVLCfunc == 4)
-      {
-         dec.pktLength -= 6;
-         dec.pktBuffer += 6;
-      }
-   }
-
-   (dec.pktLength--, dec.pktBuffer++);    // version
-   BACnetOctet ctrl =  (dec.pktLength--, *dec.pktBuffer++);
-   if (m_bExpectAPDU && (ctrl & 0x80))
-   {
-      return;     // Not an application message and APDU is expect
-   }
-   if ((ctrl & 0x40) || (ctrl & 0x10))
-      return;     // 6th and 4th bit should be 0
-
-
-   if (ctrl & 0x20)  // has DNET
-   {
-      dec.pktLength -= 2;     // DNET
-      dec.pktBuffer += 2;
-      int len = (dec.pktLength--, *dec.pktBuffer++);  // DLEN
-      if (len == 0)
-         return;     // No DADR in packet
-      dec.pktLength -= len;      // DADR
-      dec.pktBuffer += len;
-   }
-
-   if (ctrl & 0x08)
-   {
-      dec.pktLength -= 2;     // SNET
-      dec.pktBuffer += 2;
-      int len = (dec.pktLength--, *dec.pktBuffer++);  // SNET
-      if (len == 0)
-         return;     // No SADR in packet
-      dec.pktLength -= len;      // SADR
-      dec.pktBuffer += len;
-   }
-
-   if (ctrl & 0x20)
-   {
-      (dec.pktLength--, dec.pktBuffer++);    // hop count
-   }
-
-   if (!m_bExpectAPDU && (ctrl & 0x80))      // Expect NPDU
-   {
-      // During the backup and restore test, only two kinds of network messages are possible
-      // received: I-Am-Router-To-Network and I-Could-Be-Router-To-Network
-      if (0x01 == *dec.pktBuffer || 0x02 == *dec.pktBuffer)
-         // receive I-AM / I-Could-be-Router-To-Network
-      {
-         m_routerAddr = npdu.pduAddr;
-         m_event.SetEvent();
-      }
-      return;     // It's OK
-   }
-
-   BACnetAPDU apdu;
-   apdu.Decode(dec);
-
-   //Is this a segmentAck?
-   if(apdu.apduType == segmentAckPDU)
-   {
-      //Check for a NAK
-      if(apdu.apduNak)
-      {
-         m_bAbort = TRUE;
-      }
-
-      //Only set the event if this the packet we were waiting for 
-      // (Wait for a complexAck instead of a segmentAck for the last segment)
-      if(m_nExpectAPDUType == segmentAckPDU)
-      {
-         m_event.SetEvent();
-      }
-
-      return;
-   }
-
-   if (apdu.apduType == errorPDU && m_nExpectAPDUType != errorPDU)
-   {
-      m_bAbort = TRUE;     // received a Result(-) response from the IUT, terminate the test
-      m_event.SetEvent();
-      return;
-   }
-
-   if (apdu.apduType != m_nExpectAPDUType || apdu.apduService != m_nExpectAPDUServiceChoice)
-   {
-      return;     // according to the pdu type and service choice, this is not the packet which we expect
-   }
-
-   if (apdu.apduType == simpleAckPDU)
-   {
-      m_event.SetEvent();
-      return;        // it's OK.
-   }
-
-   if (m_pAPDU != NULL)
-   {
-      delete m_pAPDU;
-   }
-
-   m_pAPDU = new BACnetAPDU(apdu);
-   if (apdu.pktLength > 0)
-   {
-      if (m_packetData != NULL)
-      {
-         delete []m_packetData;
-      }
-      m_packetData = new BACnetOctet[apdu.pktLength];
-      memcpy(m_packetData, apdu.pktBuffer, apdu.pktLength);
-      m_pAPDU->pktBuffer = m_packetData;
-   }
-
-   // trigger the event
-   m_event.SetEvent();
-}
-
-
-
-BOOL BakRestoreExecutor::SendExpectReadProperty(BACnetObjectIdentifier& objID, BACnetEnumerated& propID,
-                                    AnyValue& propValue, int propIndex /*= -1*/)
-{
-   m_bExpectAPDU = TRUE;
-   m_nExpectAPDUType = complexAckPDU;
-   m_nExpectAPDUServiceChoice = readProperty;
-   // encode the packet
-   CByteArray contents;
-   BACnetAPDUEncoder enc;
-   objID.Encode(enc,0);
-   propID.Encode(enc,1);
-   if (propIndex != -1)
-   {
-      BACnetUnsigned propertyArrayIndex(propIndex);
-      propertyArrayIndex.Encode(enc,2);
-   }
-   // copy the encoding into the byte array
-   for (int i = 0; i < enc.pktLength; i++)
-   {
-      contents.Add( enc.pktBuffer[i] );
-   }
-   contents.InsertAt(0, (BYTE)0x0C);      // Service Choice = 12(ReadProperty-Request)
-   contents.InsertAt(0, InvokeID());      // Invoke ID
-   InsertMaxAPDULenAccepted(contents);    // Maximum APDU Size Accepted
-   contents.InsertAt(0, (BYTE)0x00);      // PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
-
-   if (!SendExpectPacket(contents))
-   {
-      return FALSE;
-   }
-
-   BACnetAPDUDecoder dec(m_pAPDU->pktBuffer, m_pAPDU->pktLength);
-   objID.Decode(dec);
-   propID.Decode(dec);
-   if (propIndex != -1)
-   {
-      BACnetUnsigned index;
-      index.Decode(dec);
-   }
-   BACnetOpeningTag().Decode(dec);
-   propValue.Decode(dec);
-   BACnetClosingTag().Decode(dec);
-
-   if(dec.pktLength != 0)
-   {
-      Msg("Decoding hasn't finished!");
-   }
-
-   return TRUE;
-}
-
-BOOL BakRestoreExecutor::SendExpectWriteProperty(BACnetObjectIdentifier& objID, BACnetEnumerated& propID,
-                                     AnyValue& propValue)
-{
-   m_bExpectAPDU = TRUE;
-   m_nExpectAPDUType = simpleAckPDU;
-   m_nExpectAPDUServiceChoice = writeProperty;
-   CByteArray contents;
-   BACnetAPDUEncoder enc;
-   objID.Encode(enc, 0);
-   propID.Encode(enc, 1);
-   BACnetOpeningTag().Encode(enc,3);
-   propValue.Encode(enc);
-   BACnetClosingTag().Encode(enc,3);
-
-   // copy the encoding into the byte array
-   for (int i = 0; i < enc.pktLength; i++)
-   {
-      contents.Add( enc.pktBuffer[i] );
-   }
-   contents.InsertAt(0, (BYTE)0x0F);      // Service Choice = 15(WriteProperty-Request)
-   contents.InsertAt(0, InvokeID());      // Invoke ID = 1;
-   InsertMaxAPDULenAccepted(contents);    // Maximum APDU Size Accepted
-   contents.InsertAt(0, (BYTE)0x00);      // PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
-
-   return SendExpectPacket(contents);
-
-}
-
-BOOL BakRestoreExecutor::SendExpectWhoIs(BACnetObjectIdentifier& iAmDeviceID, BACnetUnsigned& maxAPDULenAccepted)
-{
-   m_bExpectAPDU = TRUE;
-   m_nExpectAPDUType = unconfirmedRequestPDU;
-   m_nExpectAPDUServiceChoice = iAm;
-   // encode the packet
-   CByteArray contents;
-   contents.InsertAt(0, (BYTE)0x08);
-   contents.InsertAt(0, (BYTE)0x10);
-
-   if (!SendExpectPacket(contents))
-   {
-      return FALSE;
-   }
-   // set the contents of the following variables from the parameters contained
-   // in the I-Am message
-   BACnetAPDUDecoder dec(m_pAPDU->pktBuffer, m_pAPDU->pktLength);
-   iAmDeviceID.Decode(dec);
-   maxAPDULenAccepted.Decode(dec);
-   BACnetEnumerated().Decode(dec);     // segSupported
-   BACnetUnsigned().Decode(dec);    // vendorID
-
-   if(dec.pktLength != 0)
-   {
-      Msg("Decoding hasn't finished!");
-   }
-
-   return TRUE;
-}
-
-
-BOOL BakRestoreExecutor::SendExpectReinitialize(ReinitializedStateOfDevice nRreinitState)
-{
-   m_bExpectAPDU = TRUE;
-   m_nExpectAPDUType = simpleAckPDU;
-   m_nExpectAPDUServiceChoice = reinitializeDevice;
-   CByteArray contents;
-   BACnetAPDUEncoder enc;
-   BACnetEnumerated  reinitState(nRreinitState);
-   reinitState.Encode(enc, 0);
-   if (!m_strPassword.IsEmpty())
-   {
-      BACnetCharacterString  password(m_strPassword);
-      password.Encode(enc, 1);
-   }
-   // copy the encoding into the byte array
-   for (int i = 0; i < enc.pktLength; i++)
-   {
-      contents.Add( enc.pktBuffer[i] );
-   }
-   contents.InsertAt(0, (BYTE)0x14);      // Service Choice = 20(ReinitializeDevice-Request)
-   contents.InsertAt(0, InvokeID());      // Invoke ID
-   InsertMaxAPDULenAccepted(contents);    // Maximum APDU Size Accepted
-   contents.InsertAt(0, (BYTE)0x00);      // PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
-
-   return SendExpectPacket(contents);
-}
-
 BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Stream(BACnetObjectIdentifier& fileID, BACnetInteger& fileStartPosition,
-                                           BACnetUnsigned& ROC, BACnetOctetString& fileData)
+                                                         BACnetUnsigned& ROC, BACnetOctetString& fileData)
 {
-
    m_bExpectAPDU = TRUE;
    m_nExpectAPDUType = complexAckPDU;
    m_nExpectAPDUServiceChoice = atomicReadFile;
@@ -2046,7 +1515,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Stream(BACnetObjectIdentifier&
 // only read one record back each time
 // Requested Record Count = 1;
 BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Record(BACnetObjectIdentifier& fileID, BACnetInteger& fileStartRecord,
-                   BACnetOctetString& fileRecordData, BACnetBoolean& endofFile)
+                                                         BACnetOctetString& fileRecordData, BACnetBoolean& endofFile)
 {
    m_bExpectAPDU = TRUE;
    m_nExpectAPDUType = complexAckPDU;
@@ -2167,7 +1636,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicReadFile_Record(BACnetObjectIdentifier&
 // only use BACnetObjectIdentifier as object specifier
 // do not consider PropertyArrayIndex and Priority
 BOOL BakRestoreExecutor::SendExpectCreatObject(BACnetObjectIdentifier& objID,
-                                    BACnetSequenceOf<PropertyValue>& listOfInitialValues)
+                                               BACnetSequenceOf<PropertyValue>& listOfInitialValues)
 {
    m_bExpectAPDU = TRUE;
    m_nExpectAPDUType = complexAckPDU;
@@ -2216,7 +1685,7 @@ BOOL BakRestoreExecutor::SendExpectCreatObject(BACnetObjectIdentifier& objID,
 
 
 BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Stream(BACnetObjectIdentifier& fileID, BACnetInteger& fileStartPosition,
-                                             BACnetOctetString& fileData)
+                                                          BACnetOctetString& fileData)
 {
    m_bExpectAPDU = TRUE;
    m_nExpectAPDUType = complexAckPDU;
@@ -2257,7 +1726,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Stream(BACnetObjectIdentifier
 }
 
 BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Record(BACnetObjectIdentifier& fileID, BACnetInteger& fileStartRecord,
-                                            BACnetOctetString& fileRecordData)
+                                                          BACnetOctetString& fileRecordData)
 {
    CByteArray contents;
    BACnetAPDUEncoder enc;
@@ -2380,7 +1849,7 @@ BOOL BakRestoreExecutor::SendExpectAtomicWriteFile_Record(BACnetObjectIdentifier
 
 
 BOOL BakRestoreExecutor::SendExpectReinitializeNeg(ReinitializedStateOfDevice nReinitState,
-                                       BACnetEnumerated& errorClass, BACnetEnumerated& errorCode)
+                                                   BACnetEnumerated& errorClass, BACnetEnumerated& errorCode)
 {
    m_bExpectAPDU = TRUE;
    m_nExpectAPDUType = errorPDU;
@@ -2416,243 +1885,13 @@ BOOL BakRestoreExecutor::SendExpectReinitializeNeg(ReinitializedStateOfDevice nR
    return TRUE;
 }
 
-
-BOOL BakRestoreExecutor::SendExpectPacket(CByteArray& contents, BOOL resp/* = TRUE*/)
-{
-   // network layer
-   CByteArray buf;
-   buf.Add((BYTE)0x01);      // version
-   if (m_IUTAddr.addrType == remoteStationAddr)
-   {  // if the IUT is on the remote network
-      BYTE control = 0;
-      control |= 0x24;                    // Set control to include DNET, DLEN, DADR, Hop and DER 
-      buf.Add(control);
-      buf.Add((m_IUTAddr.addrNet & 0xFF00) >> 8);  // DNET
-      buf.Add(m_IUTAddr.addrNet & 0x00FF);
-      buf.Add((BYTE)m_IUTAddr.addrLen);         // DLEN
-
-      for(int index = 0; index < m_IUTAddr.addrLen; index++)
-      {
-         buf.Add(m_IUTAddr.addrAddr[index]);    // DADR
-      }
-
-      buf.Add((BYTE)0xFF);    // hop count
-   }
-   else
-   {
-      if(resp)
-         buf.Add((BYTE)0x04);    // control expect resp
-      else 
-         buf.Add((BYTE)0x00);    //control no resp
-   }
-   contents.InsertAt(0, &buf);
-   if (m_pPort->m_nPortType == ipPort)
-   {
-      int len = contents.GetSize() + 4;       // the size of npdu plus BVLC
-      contents.InsertAt(0, (BYTE)(len & 0xFF));
-      contents.InsertAt(0, (BYTE)(len >> 8));
-      contents.InsertAt(0, (BYTE)0x0A);
-      contents.InsertAt(0, (BYTE)0x81);
-   }
-
-   VTSDevicePtr pdevice = m_pPort->m_pdevice;
-   int nNumOfAPDURetries;
-   int nAPDUTimeOut;
-   if (pdevice != NULL)
-   {
-      nNumOfAPDURetries = pdevice->m_nAPDURetries;
-      nAPDUTimeOut = pdevice->m_nAPDUTimeout;
-   }
-   else
-   {
-      nNumOfAPDURetries = 3;
-      nAPDUTimeOut = 10000;   // millisecond
-   }
-
-   BACnetAddress  addr;
-   if (m_IUTAddr.addrType == remoteStationAddr)
-   {
-      addr = m_routerAddr;
-   }
-   else
-   {
-      addr = m_IUTAddr;
-   }
-   // Before sending a packet, modify the signal bit to notify the main thread to
-   // prepare accept packet
-   m_bExpectAPDU = TRUE;
-   m_bExpectPacket = TRUE;
-   BOOL bReceived = FALSE;
-   for (int i = 0; i < nNumOfAPDURetries; i++)
-   {
-      // send packet
-      m_pPort->portFilter->Indication(
-         BACnetNPDU(addr, contents.GetData(), contents.GetSize())
-         );
-
-      if(!resp)
-      {
-         //Not expecting a response. Leave
-         bReceived = true;
-         break;
-      }
-
-      if (m_bUserCancelled)
-      {
-         m_bUserCancelled = FALSE;  // reset
-         throw("The backup restore process has been cancelled by the user");
-      }
-      if (m_event.Lock(nAPDUTimeOut))
-      {
-         if (m_bUserCancelled)
-         {
-            throw("The backup restore process has been cancelled by the user");
-         }
-
-         bReceived = TRUE;
-         if (m_bAbort == TRUE)
-         {
-            m_bAbort = FALSE;    // reset
-            throw("Received a Result(-) response from IUT");
-         }
-         break;
-      }
-   }
-
-   m_bExpectPacket = FALSE;   // OK, we have gotten the packet
-   return bReceived;
-}
-
-
-void BakRestoreExecutor::InsertMaxAPDULenAccepted(CByteArray& contents)
-{
-   VTSDevicePtr   pdevice = m_pPort->m_pdevice;
-   int nMaxAPDUSize;
-   if (pdevice)
-   {
-      nMaxAPDUSize = pdevice->m_nMaxAPDUSize;
-   }
-   else
-   {
-      nMaxAPDUSize = 1024;
-   }
-
-   if (nMaxAPDUSize <= 50)
-   {
-      contents.InsertAt(0, (BYTE)0x00);
-   }else if (nMaxAPDUSize <= 128)
-   {
-      contents.InsertAt(0, (BYTE)0x01);
-   }else if (nMaxAPDUSize <= 206)
-   {
-      contents.InsertAt(0, (BYTE)0x02);
-   }else if (nMaxAPDUSize <= 480)
-   {
-      contents.InsertAt(0, (BYTE)0x03);
-   }else if (nMaxAPDUSize <= 1024)
-   {
-      contents.InsertAt(0, (BYTE)0x04);
-   }else
-   {
-      contents.InsertAt(0, (BYTE)0x05);
-   }
-
-}
-
-// To determine if the IUT on a remote network
-//void BakRestoreExecutor::SetIUTAddress(VTSPort* pPort, VTSName* pName)
-//{
-// // get IUT's network number and address
-// unsigned short    nIUTNet;
-// if (pName->m_bacnetaddr.addrType == localStationAddr)
-// {  //
-//    nIUTNet = m_pName->m_pportLink->m_nNet;
-// }
-// else
-// {
-//    nIUTNet = m_pName->m_bacnetaddr.addrNet;
-// }
-//
-// if (m_pPort->m_nNet == nIUTNet)
-// {
-//    m_IUTAddr.LocalStation(pName->m_bacnetaddr.addrAddr, pName->m_bacnetaddr.addrLen);
-// }
-// m_IUTAddr.RemoteStation(nIUTNet, pName->m_bacnetaddr.addrAddr,
-//                   pName->m_bacnetaddr.addrLen);
-//}
-
-
-
-void BakRestoreExecutor::FindRouterAddress()
-{
-   // Send Who-Is-Router-To-Network message
-   unsigned short addrNet = m_IUTAddr.addrNet;
-   CByteArray contents;
-   contents.InsertAt( 0, (BYTE)(0x00FF & addrNet) );      // DNET, 2 octets
-   contents.InsertAt( 0, (BYTE)(addrNet >> 8) );
-   contents.InsertAt( 0, (BYTE)0x00 );      // Message Type = X'00' Who-Is-Router-To-Network
-   contents.InsertAt( 0, (BYTE)0x80 );      // control
-   contents.InsertAt( 0, (BYTE)0x01 );     // version
-   if (m_pPort->m_nPortType == ipPort)
-   {
-      int len = contents.GetSize() + 4;       // the size of npdu plus BVLC
-      contents.InsertAt( 0, (BYTE)(len & 0x00FF) );
-      contents.InsertAt( 0, (BYTE)(len >> 8) );
-//    contents.InsertAt( 0, (BYTE)0x0A );  // This is Original Unicast message specifier
-      contents.InsertAt( 0, (BYTE)0x0B );  // This is Original Broadcast message specifier
-      contents.InsertAt( 0, (BYTE)0x81 );
-   }
-
-   BACnetAddress  addr(localBroadcastAddr);
-   m_bExpectAPDU = FALSE;     // expect NPDU
-   m_bExpectPacket = TRUE;
-   m_pPort->portFilter->Indication(
-      BACnetNPDU(addr, contents.GetData(), contents.GetSize())
-      );
-   if (!m_event.Lock(30000))  // timeout setting: 30 seconds
-// if (!m_event.Lock())
-   {
-      throw("Cannot find a router to the IUT");
-   }
-   m_bExpectPacket = FALSE;
-   m_bExpectAPDU = TRUE;      // reset
-}
-
-void BakRestoreExecutor::Msg(const char* errMsg)
-{
-   VTSPacket pkt;
-   pkt.packetHdr.packetProtocolID = (int)BACnetPIInfo::textMsgProtocol;
-   pkt.packetHdr.packetFlags = 0;
-   pkt.packetHdr.packetType = msgData;
-   BACnetOctet* buff = new BACnetOctet[strlen(errMsg)+1];
-   memcpy(buff, errMsg, strlen(errMsg)+1);
-   pkt.NewDataRef(buff, strlen(errMsg)+1);
-
-   VTSDocPtr   vdp = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
-   vdp->WritePacket( pkt );
-
-   delete []buff;
-}
-
-void BakRestoreExecutor::Delay( UINT delaySec )
-{
-   if (delaySec != 0)
-   {
-      CString str;
-      str.Format("Waiting %d seconds", delaySec);
-      m_pOutputDlg->OutMessage((LPCTSTR)str);
-
-      Sleep(delaySec * 1000);
-   }
-}
-
-void BakRestoreExecutor::ReadDatabaseRevAndRestoreTime(  BACnetObjectIdentifier &devObjID,
-                                           BACnetUnsigned         &databaseRevision,
+void BakRestoreExecutor::ReadDatabaseRevAndRestoreTime( BACnetObjectIdentifier &devObjID,
+                                                        BACnetUnsigned         &databaseRevision,
                                                         BACnetTimeStamp        &lastRestoreTime )
 {
    BACnetEnumerated propID;
    m_pOutputDlg->OutMessage("Use ReadProperty requests to read Device/Database_Revision"
-                      "and Device/Last_Restore_Time...", FALSE);
+                            "and Device/Last_Restore_Time...", FALSE);
 
    // Use ReadProperty request to read the Device/Database_Revision and the
    // Device/Last_Restore_Time and record these in the first line of the
