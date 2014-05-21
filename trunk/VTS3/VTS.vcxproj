@@ -336,7 +336,7 @@
     <ClCompile Include="VTSAny.cpp" />
     <ClCompile Include="DUDAPI\Vtsapi32.cpp" />
     <ClCompile Include="VTSBackupRestoreDlg.cpp" />
-    <ClCompile Include="VTSBackupRestoreProgressDlg.cpp" />
+    <ClCompile Include="SendReceiveExecutorProgressDlg.cpp" />
     <ClCompile Include="VTSBACnetTypeGenericPage.cpp" />
     <ClCompile Include="VTSBinaryPVDlg.cpp" />
     <ClCompile Include="VTSCalendarEntryDlg.cpp" />
@@ -646,7 +646,7 @@
     <ClInclude Include="VTSAny.h" />
     <ClInclude Include="DUDAPI\Vtsapi.h" />
     <ClInclude Include="VTSBackupRestoreDlg.h" />
-    <ClInclude Include="VTSBackupRestoreProgressDlg.h" />
+    <ClInclude Include="SendReceiveExecutorProgressDlg.h" />
     <ClInclude Include="VTSBACnetTypeGenericPage.h" />
     <ClInclude Include="VTSBinaryPVDlg.h" />
     <ClInclude Include="VTSCalendarEntryDlg.h" />
