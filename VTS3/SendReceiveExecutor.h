@@ -14,12 +14,11 @@
 #include <afxmt.h>
 #include "bacnet.hpp"
 #include "vtsdoc.h"
-#include "VTSBackupRestoreProgressDlg.h"
+#include "SendReceiveExecutorProgressDlg.h"
 
 class VTSDoc;
 typedef VTSDoc * VTSDocPtr;
 struct BACnetNPDU;
-class VTSBackupRestoreProgressDlg;
 
 // This class is a fairly crude refactoring of BakRestoreExecutor and InconsistentParsExecutor,
 // to share the common portions.  C++ offers better options than clipboard inheritance...
