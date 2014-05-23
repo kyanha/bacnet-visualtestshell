@@ -215,14 +215,7 @@ LPCSTR VTSPacket::GetAddressString( VTSDoc *pdoc, bool bSource, bool bIncludeNet
 		switch(packetHdr.packetProtocolID)
 		{
 			case BACnetPIInfo::ipProtocol:
-				if (paddr->addrLen == 0)
-				{
-					str = "broadcast";
-				}
-				else
-				{
-					str = BACnetIPAddr::AddressToString(paddr->addrAddr);
-				}
+				str = BACnetIPAddr::AddressToString(paddr);
 				break;
 
 			case BACnetPIInfo::ethernetProtocol:
