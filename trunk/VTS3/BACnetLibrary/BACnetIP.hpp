@@ -46,8 +46,9 @@ class BACnetIPAddr : public BACnetAddress {
 		
 		static void StringToHostPort( const char *str, unsigned long *hostp, unsigned long *maskp, unsigned short *portp );
 		
-		char* AddressToString( void );
+		char* AddressToString( void ) const;
 		static char * AddressToString( const unsigned char * paddr );
+		static char * AddressToString( const BACnetAddress * paddr );
 	};
 
 typedef BACnetIPAddr *BACnetIPAddrPtr;

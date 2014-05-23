@@ -203,14 +203,24 @@ void BACnetIPAddr::StringToHostPort( const char *str, unsigned long *hostp, unsi
 }
 
 //
-//	BACnetIPAddr::operator char *
+// BACnetIPAddr::operator char *
 //
 
-char * BACnetIPAddr::AddressToString( void )
+char * BACnetIPAddr::AddressToString( void ) const
 {
-	return AddressToString(addrAddr);
+	return AddressToString(this);
 }
 
+
+// Static version
+char * BACnetIPAddr::AddressToString( const BACnetAddress * paddr )
+{
+	if (paddr->addrLen == 0)
+	{
+		return "broadcast";
+	}
+	return BACnetIPAddr::AddressToString(paddr->addrAddr);
+}
 
 // Static version
 char * BACnetIPAddr::AddressToString( const unsigned char * paddr )
