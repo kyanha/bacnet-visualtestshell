@@ -567,6 +567,10 @@ SOURCE=.\SendMSTP.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SendNetworkNumberIs.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SendNPCI.cpp
 # End Source File
 # Begin Source File
@@ -624,6 +628,14 @@ SOURCE=.\SendReadPropMultACK.cpp
 # Begin Source File
 
 SOURCE=.\SendReadRange.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReceiveExecutor.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SendReceiveExecutorProgressDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -723,6 +735,10 @@ SOURCE=.\SendVTOpenACK.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SendWhatIsNetworkNumber.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SendWhoHas.cpp
 # End Source File
 # Begin Source File
@@ -817,10 +833,6 @@ SOURCE=.\DUDAPI\Vtsapi32.cpp
 # Begin Source File
 
 SOURCE=.\VTSBackupRestoreDlg.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\VTSBackupRestoreProgressDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -969,10 +981,6 @@ SOURCE=.\VTSFiltersDlg.cpp
 # Begin Source File
 
 SOURCE=.\VTSInconsistentParsDlg.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\VTSInconsistentProgressDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -2678,7 +2686,7 @@ OutDir=.\Release
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                          $(InputPath)                                                          $(OutDir)\ 
+	copy                                                           $(InputPath)                                                           $(OutDir)\ 
 
 # End Custom Build
 
@@ -2689,7 +2697,7 @@ OutDir=.\Debug
 InputPath=.\NBLink\nb_link_settings.dll
 
 "$(OutDir)\nb_link_settings.dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy                                                          $(InputPath)                                                          $(OutDir)\ 
+	copy                                                           $(InputPath)                                                           $(OutDir)\ 
 
 # End Custom Build
 
