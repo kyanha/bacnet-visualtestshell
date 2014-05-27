@@ -1,13 +1,12 @@
 /*--------------------------------------------------------------------------------
    (c)1995-97, PolarSoft(r) Inc. and National Institute for Standards and Technology
-   
+
 module:     VTSAPI32.C
 desc:    BACnet Standard Objects DLL v2.15
 authors: David M. Fisher, Jack R. Neyer
 
-  
--- NOTE: 135.1 doesn't say how to encode missing OPTIONAL items in a SEQUENCE: 
--- should there be an emtpy pair of commas, or should the item and any comma be
+-- NOTE: 135.1 doesn't say how to encode missing OPTIONAL items in a SEQUENCE:
+-- should there be an empty pair of commas, or should the item and any comma be
 -- omitted?  I believe that the comma MUST be maintained - else there is no
 -- way to tell whether the item is present or not, unless it may be discerned
 -- from the following item (if any), which isn't always possible.
@@ -21,50 +20,20 @@ authors: David M. Fisher, Jack R. Neyer
 - SEQUENCE-OF (list) are enclosed in parenthesis, with items separated by commas
 - Array values are enclosed in curly brackets, with items separated by commas
 
-last edit:
-         31-MAR-2014 JLH Clean up enumeration parsing
-         16-Apr-2010 JLH Allow for longer strings in various sections
-         07-SEP-2004 MSD implemented BIBBs section,
-               135.1-2003 consistency tests.
-         01-MAR-04 [020] GJB
-            1. add a function: preprocstr
-            2. modify the string array SectionNames
-            3. modify a function: whatischoice
-            
-         29-DEC-03 [019] GJB parse the section: Fails Times
-         08-SEP-03 [018] GJB modified propFlags's index number in DV_CheckOptionalProperty function
-         01-SEP-03 [018] GJB enable parser to parse several new properties
-         10-Nov-02 [017] xyp added for parsing the value of property whose parse type is none.
-         13-Aug-01 [016] JJB added namespace
-         09-Dec-97 [015] DMF revise for 32 bit from v0.14
-         27-Aug-96 [014] DMF fix 0.13 item 3.
-         20-Aug-96 [013] DMF 
-            1. add support for propflags in generic_object handling
-            2. fix Exception Schedule parse for WeekNDay numeric form of days
-            3. fix MSO, and AO parse after NULL in priority array
-            4. fix whitespace tolerance in recipient lists
-            5. fix parse of days of week
-            6. fix daterange when (date .. date) i.e. space after date but not a day of week
-            7. fix parse of timevalues
-         05-Jul-96 [012] DMF
-            1. fix parse of recipients, setpoint references
-            2. objectpropertyrefs
-            3. string items (setstring)
-            4. unknown object-types
-            5. parse of booleans
-         30-Jun-96 [011] DMF fix parse of priority arrays
-         13-Jun-96 [010] DMF really fix 0.09
-         12-Jun-96 [009] DMF fix problem with marking std props as present
-         28-May-96 [008] DMF support T/F in ParseBitstring
-                        fix parsing for ActionCommands
-         25-May-96 [007] DMF add VTSAPIgetpropertystate
-         23-May-96 [006] DMF add rtrim
-         16-May-96 [005] DMF add VTSAPIgetdefaultpropinfo
-         14-May-96 [004] DMF add VTSAPIgetpropertystates
-         04-Dec-95 [003] JN  add VTSgetdefaultparsetype
-         22-Sep-95 [002] DMF add array flag, change enum tables
-         18-Aug-95 [001] DMF First Cut
------------------------------------------------------------------------------*/ 
+TODO: various places write into the line buffer, usually temporary nulls to
+ease parsing.  This is REALLY lame: if you do this, and then call some
+parser function like skipwhitespace(), MustBe(), ReadDW, etc., and they
+run into the null, they will READ THE NEXT LINE FROM THE FILE, bollixing up
+parsing thereafter.
+This is widespread enough to be a pain to fix all at once, but do you part
+when you encounter it.
+
+TODO: look at using ReadFloat to replace atof, avoiding strdelim etc.
+TODO: look at using NiceReadDW and NiceReadW to replace ReadDW and ReadW, to avoid lp[-1]
+
+TODO: strdelim is a bad idea, as explained in its header comment.
+
+-----------------------------------------------------------------------------*/
 
 #include "stdafx.h"
 
@@ -92,19 +61,21 @@ namespace PICS {                          // ***016
 #include "VTS.h"
 #include "EPICSConsCheck.h"
 #include "dudapi.h"
-   
+
 ///////////////////////////////////////////////////////////////////////
 // function prototypes
+static bool ReadStandardServices(PICSdb *);
+static bool ReadStandardObjects(PICSdb *);
+static bool ReadDataLinkOptions(PICSdb *);
+static bool ReadSpecialFunctionality(PICSdb *);
+static bool ReadObjects(PICSdb *);
+static bool ReadCharsets(PICSdb *);
+static bool ReadFailTimes(PICSdb *);
+static bool ReadBIBBSupported(PICSdb *);
+
 static BOOL ParseLogRec(BACnetLogRecord *);
 static BOOL ParseTimeStamp(BACnetTimeStamp *);
 static BOOL ParseTimeStampArray(BACnetTimeStamp **parray, int arraycount);
-static BOOL ReadFunctionalGroups(PICSdb *);   //                            ***008 Begin
-static BOOL ReadStandardServices(PICSdb *);
-static BOOL ReadStandardObjects(PICSdb *);
-static BOOL ReadDataLinkOptions(PICSdb *);
-static BOOL ReadSpecialFunctionality(PICSdb *);
-static BOOL ReadObjects(PICSdb *);
-static BOOL ReadCharsets(PICSdb *);        //                            ***008 End
 static BOOL ParseObjectList(BACnetObjectIdentifier **,word *);
 static BOOL ParseRASlist(BACnetReadAccessSpecification **);
 static BOOL ParseCalist(BACnetCalendarEntry **);
@@ -115,12 +86,12 @@ static BOOL ParseProperty(char *,generic_object *,word);
 static BOOL ParseDateTime(BACnetDateTime *);
 static BOOL ParseDate(BACnetDate *);
 static BOOL ParseTime(BACnetTime *);
-static BOOL ParseBitstring(octet *,word,octet *);
+static bool ParseBitstring(octet *,word,octet *);
 static BOOL ParseOctetstring(octet *,word,word *);
 static BOOL ParseVTClassList(BACnetVTClassList **);
 static BOOL ParseAddressList(BACnetAddressBinding **);
-static BOOL ParseDestinationList(BACnetDestination **);
-static BOOL ParseRecipientList(BACnetRecipient **);
+static bool ParseDestinationList(BACnetDestination **);
+static bool ParseRecipientList(BACnetRecipient **);
 static BOOL ParseEventParameter(BACnetEventParameter *);
 static BOOL ParseSessionKeyList(BACnetSessionKey **);
 static BOOL ParseRefList(BACnetDeviceObjectPropertyReference **);
@@ -129,10 +100,8 @@ static BOOL ParsePrescale(BACnetPrescale* pt);
 static BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt);
 static BACnetRecipient *ParseRecipient(BACnetRecipient *);
 static BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference   *);
-static BOOL ParseCOVSubList(BACnetCOVSubscription **);                                  //*****018
-static BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *);                  //*****018
-static BOOL ReadFailTimes(PICSdb *);                                              //*****019                    
-static BOOL ReadBIBBSupported(PICSdb *);
+static BOOL ParseCOVSubList(BACnetCOVSubscription **);
+static BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *);
 static BOOL ParseEnumList(BACnetEnumList **, etable *);
 static BOOL ParseUnsignedList( UnsignedList **elp );
 static BOOL ParseBooleanList( BooleanList **elp );
@@ -179,7 +148,7 @@ static BACnetDeviceObjectReference *ParseDevObjReference(BACnetDeviceObjectRefer
 //void AVG_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 //void TR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 
-// msdanner 9/04:  135.1-2003 EPICS consistency checks added 
+// msdanner 9/04:  135.1-2003 EPICS consistency checks added
 static void ExpandBitstring(octet *pExpandedResult, octet *pBitstring, int nBits);
 static void CheckPICSConsistency2003(PICSdb *); // runs all checks
 static void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDependentBIBB);
@@ -197,16 +166,17 @@ static void CheckPICSCons2003L(PICSdb *pd);
 
 static void GetSequence(dword *,dword *,octet);
 //void BitToArray(octet ObjServ[],DevProtocolSup *);
-static void PrintToFile(char *);
+//static void PrintToFile(char *);
 //
 /////////////////////////////////////////////////////////////
 
 static BACnetActionCommand *ReadActionCommands(void);
-static BOOL setstring(char *,word,char *);
-static char *ReadNext(void);                  // ***008
-static void skipwhitespace(void);             // ***008
+static bool setstring(char *,word,char *);
+static char *ReadNext(void);
+static void skipwhitespace(void);
 static char *openarray(char *);
-static char *strdelim(char *);                // ***008
+static char SkipValue();
+static char* strdelim(const char *);
 static dword ReadDW(void);
 static octet ReadB(octet,octet);
 static word  ReadW(void);
@@ -215,16 +185,20 @@ static octet whatIsChoice(char str[]);
 static word ReadEnum(etable *);
 static dword ReadObjID(void);
 static int CreateTextPICS(char *);
-static void readline(char *,int);             // ***008
+static void readline(char *,int);
 static char *Nxt(char *);
 char *cvhex(char *,octet *);                  // used by Bacprim32
-static BOOL MustBe(char);
-static BOOL tperror(char *,BOOL);
-static int ClearCBList(HWND);                 // ***003 Begin
+static bool MustBe(char);
+static bool tperror(char *, bool);
+static int ClearCBList(HWND);
 static int AddCBListText(HWND,char *);
-static int SelectCBListItem(HWND,int);        // ***003 End
-static void rtrim(char *);                    // ***006
-static void preprocstr(char *str);            // ***020
+static int SelectCBListItem(HWND,int);
+static void rtrim(char *);
+static void preprocstr(char *str);
+
+static bool ReadFloat(float *pVal, char mustBe = 0);
+static bool NiceReadDW(dword *pVal, char mustBe = 0);
+static bool NiceReadW(word *pVal, char mustBe = 0);
 
 ///////////////////////////////////////////////////////////////////////
 // Module Constants
@@ -301,7 +275,7 @@ static unsigned int cConsistencyErrors;
 
 // Array of expected bitstring lengths for ProtocolServicesSupported
 // based on the Protocol_Revision property as the index.
-static octet aCorrectLengthProtocolServicesSupportedBitstring[] = 
+static octet aCorrectLengthProtocolServicesSupportedBitstring[] =
 {
    35,  // Protocol_Revision = 0
    37,  // Protocol_Revision = 1  135-1995b (ReadRange, UTCTimeSynch)
@@ -317,12 +291,12 @@ static octet aCorrectLengthProtocolServicesSupportedBitstring[] =
    40,  // Protocol_Revision = 11
    40,  // Protocol_Revision = 12 135-2010
    40,  // Protocol_Revision = 13
-   41,  // Protocol_Revision = 14 135-2010aa (WriteGroup) 135-1012
+   41,  // Protocol_Revision = 14 135-2010aa (WriteGroup) 135-1012 (rev 14)
 };
 
 // Array of expected bitstring lengths for ProtocolObjectTypesSupported
 // based on the Protocol_Revision property as the index.
-static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] = 
+static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
 {
    18,  // Protocol_Revision = 0
    21,  // Protocol_Revision = 1
@@ -345,39 +319,6 @@ static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
 //  Large Static Tables
 static char picshdr[]="PICS 0\x0D\x0A";
 static char EndPics[]="End of BACnet Protocol Implementation Conformance Statement";
-static char *SectionNames[]={
-         "Vendor Name",                                        //0
-         "Product Name",                                       //1
-         "Product Model Number",                               //2
-         "Product Description",                                //3
-         "BACnet Conformance Class Supported",                 //4
-         "BACnet Functional Groups Supported",                 //5
-         "BACnet Standard Application Services Supported",     //6
-         "Standard Object Types Supported",                    //7
-         "Data Link Layer Option",                             //8
-         "Special Functionality",                              //9
-         "List of Objects in test device",                     //10
-         "Character Sets Supported",                           //11           ***006
-         "Fail Times",                                         //12           ***019
-         "BIBBs Supported",                                    //13  msdanner 8/31/04: added
-         "Default Property Value Restrictions"                 //14  msdanner 8/31/04: added
-         };
-static namedw FunctionalGroups[]={
-         "HHWS",                       fgHHWS,
-         "PCWS",                       fgPCWS,
-         "COV Event Initiation",       fgCOVEventInitiation,
-         "COV Event Response",         fgCOVEventResponse,
-         "Event Initiation",           fgEventInitiation,
-         "Event Response",             fgEventResponse,
-         "Clock",                      fgClock,
-         "Device Communications",      fgDeviceCommunications,
-         "Files",                      fgFiles,
-         "Time Master",                fgTimeMaster,
-         "Virtual Operator Interface", fgVirtualOPI,
-         "Reinitialize",               fgReinitialize,
-         "Virtual Terminal",           fgVirtualTerminal
-         };
-
 
 // msdanner 09/2004 - added BIBBs
 typedef struct {
@@ -385,7 +326,7 @@ typedef struct {
     enum                  BACnetApplServ ApplServ;       // number of application service
 } bibb_service;
 
-#define MAX_SERVICES_PER_BIBB 8  // maximum number of services required per BIBB    
+#define MAX_SERVICES_PER_BIBB 8  // maximum number of services required per BIBB
 
 // Structure to define each BIBB - msdanner 9/5/04
 typedef struct {
@@ -399,408 +340,408 @@ typedef struct {
 // The structure of these is similar to the old Functional Group definitions
 static bibbdef BIBBs[]={
          "DS-RP-A",
-             { { ssInitiate, asReadProperty,  } 
+             { { ssInitiate, asReadProperty,  }
              },  // (An InitExec value of zero marks the end of each list)
-         "DS-RP-B",                 
-             { { ssExecute, asReadProperty    } 
-             }, 
-         "DS-RPM-A",                
-             { { ssInitiate, asReadPropertyMultiple } 
-             }, 
-         "DS-RPM-B",                
-             { { ssExecute, asReadPropertyMultiple  } 
-             }, 
-         "DS-RPC-A",                
-             { { ssInitiate, asReadPropertyConditional  } 
-             }, 
-         "DS-RPC-B",                
-             { { ssExecute, asReadPropertyConditional  } 
-             }, 
-         "DS-WP-A",                 
-             { { ssInitiate, asWriteProperty  } 
-             }, 
-         "DS-WP-B",                 
-             { { ssExecute, asWriteProperty  } 
-             }, 
-         "DS-WPM-A",                
-             { { ssInitiate, asWritePropertyMultiple } 
-             }, 
-         "DS-WPM-B",                
-             { { ssExecute, asWritePropertyMultiple  } 
-             }, 
-         "DS-COV-A",                
-             { { ssInitiate, asSubscribeCOV                }, 
-               { ssExecute,  asConfirmedCOVNotification    }, 
-               { ssExecute,  asUnconfirmedCOVNotification  } 
-             }, 
-         "DS-COV-B",                
-             { { ssExecute,  asSubscribeCOV               }, 
-               { ssInitiate, asConfirmedCOVNotification   }, 
-               { ssInitiate, asUnconfirmedCOVNotification } 
-             }, 
-         "DS-COVP-A",               
+         "DS-RP-B",
+             { { ssExecute, asReadProperty    }
+             },
+         "DS-RPM-A",
+             { { ssInitiate, asReadPropertyMultiple }
+             },
+         "DS-RPM-B",
+             { { ssExecute, asReadPropertyMultiple  }
+             },
+         "DS-RPC-A",
+             { { ssInitiate, asReadPropertyConditional  }
+             },
+         "DS-RPC-B",
+             { { ssExecute, asReadPropertyConditional  }
+             },
+         "DS-WP-A",
+             { { ssInitiate, asWriteProperty  }
+             },
+         "DS-WP-B",
+             { { ssExecute, asWriteProperty  }
+             },
+         "DS-WPM-A",
+             { { ssInitiate, asWritePropertyMultiple }
+             },
+         "DS-WPM-B",
+             { { ssExecute, asWritePropertyMultiple  }
+             },
+         "DS-COV-A",
+             { { ssInitiate, asSubscribeCOV                },
+               { ssExecute,  asConfirmedCOVNotification    },
+               { ssExecute,  asUnconfirmedCOVNotification  }
+             },
+         "DS-COV-B",
+             { { ssExecute,  asSubscribeCOV               },
+               { ssInitiate, asConfirmedCOVNotification   },
+               { ssInitiate, asUnconfirmedCOVNotification }
+             },
+         "DS-COVP-A",
              { { ssInitiate, asSubscribeCOVProperty       }, 
                { ssExecute,  asConfirmedCOVNotification   }, 
                { ssExecute,  asUnconfirmedCOVNotification } 
-             }, 
-         "DS-COVP-B",               
-             { { ssExecute,  asSubscribeCOVProperty       }, 
-               { ssInitiate, asConfirmedCOVNotification   }, 
-               { ssInitiate, asUnconfirmedCOVNotification } 
-             }, 
-         "DS-COVU-A",               
-             { { ssExecute,  asUnconfirmedCOVNotification } 
-             }, 
-         "DS-COVU-B",               
-             { { ssInitiate, asUnconfirmedCOVNotification } 
-             }, 
-         "AE-N-A",                  
-             { { ssExecute,  asConfirmedEventNotification   }, 
-               { ssExecute,  asUnconfirmedEventNotification } 
-             }, 
-         "AE-N-I-B",                
-             { { ssInitiate, asConfirmedEventNotification    }, 
-               { ssInitiate, asUnconfirmedEventNotification  } 
-             }, 
+             },
+         "DS-COVP-B",
+             { { ssExecute,  asSubscribeCOVProperty       },
+               { ssInitiate, asConfirmedCOVNotification   },
+               { ssInitiate, asUnconfirmedCOVNotification }
+             },
+         "DS-COVU-A",
+             { { ssExecute,  asUnconfirmedCOVNotification }
+             },
+         "DS-COVU-B",
+             { { ssInitiate, asUnconfirmedCOVNotification }
+             },
+         "AE-N-A",
+             { { ssExecute,  asConfirmedEventNotification   },
+               { ssExecute,  asUnconfirmedEventNotification }
+             },
+         "AE-N-I-B",
+             { { ssInitiate, asConfirmedEventNotification    },
+               { ssInitiate, asUnconfirmedEventNotification  }
+             },
          "AE-N-E-B",                
-             { { ssInitiate, asConfirmedEventNotification    }, 
-               { ssInitiate, asUnconfirmedEventNotification  } 
-             }, 
-         "AE-EL-I-B",                  
-             { { ssExecute,  asReadRange } 
-             }, 
-         "AE-EL-E-B",                  
-             { { ssExecute, asConfirmedEventNotification    }, 
-               { ssExecute, asUnconfirmedEventNotification  }, 
-               { ssExecute,  asReadRange } 
-             }, 
-         "AE-ELV-A",                
-             { { ssInitiate,  asReadRange } 
-             }, 
-         "AE-ELVM-A",                  
+             { { ssInitiate, asConfirmedEventNotification    },
+               { ssInitiate, asUnconfirmedEventNotification  }
+             },
+         "AE-EL-I-B",
+             { { ssExecute,  asReadRange }
+             },
+         "AE-EL-E-B",
+             { { ssExecute, asConfirmedEventNotification    },
+               { ssExecute, asUnconfirmedEventNotification  },
+               { ssExecute,  asReadRange }
+             },
+         "AE-ELV-A",
+             { { ssInitiate,  asReadRange }
+             },
+         "AE-ELVM-A",
              { { ssInitiate, asReadProperty },
                { ssInitiate, asWriteProperty },
-               { ssInitiate, asReadRange } 
-             }, 
-         "AE-ACK-A",                
-             { { ssInitiate, asAcknowledgeAlarm } 
-             }, 
-         "AE-ACK-B",                
-             { { ssExecute,  asAcknowledgeAlarm } 
-             }, 
-         "AE-ASUM-A",               
-             { { ssInitiate, asGetAlarmSummary  } 
-             }, 
-         "AE-ASUM-B",               
-             { { ssExecute,  asGetAlarmSummary  } 
-             }, 
-         "AE-ESUM-A",               
-             { { ssInitiate, asGetEnrollmentSummary } 
-             }, 
-         "AE-ESUM-B",               
-             { { ssExecute,  asGetEnrollmentSummary } 
-             }, 
-         "AE-INFO-A",               
-             { { ssInitiate, asGetEventInformation } 
-             }, 
-         "AE-INFO-B",               
-             { { ssExecute,  asGetEventInformation } 
-             }, 
-         "AE-LS-A",                 
-             { { ssInitiate, asLifeSafetyOperation } 
-             }, 
-         "AE-LS-B",                 
-             { { ssExecute,  asLifeSafetyOperation } 
-             }, 
-         "SCHED-A",   /* no specific services required, other requirements are in the code */   
+               { ssInitiate, asReadRange }
+             },
+         "AE-ACK-A",
+             { { ssInitiate, asAcknowledgeAlarm }
+             },
+         "AE-ACK-B",
+             { { ssExecute,  asAcknowledgeAlarm }
+             },
+         "AE-ASUM-A",
+             { { ssInitiate, asGetAlarmSummary  }
+             },
+         "AE-ASUM-B",
+             { { ssExecute,  asGetAlarmSummary  }
+             },
+         "AE-ESUM-A",
+             { { ssInitiate, asGetEnrollmentSummary }
+             },
+         "AE-ESUM-B",
+             { { ssExecute,  asGetEnrollmentSummary }
+             },
+         "AE-INFO-A",
+             { { ssInitiate, asGetEventInformation }
+             },
+         "AE-INFO-B",
+             { { ssExecute,  asGetEventInformation }
+             },
+         "AE-LS-A",
+             { { ssInitiate, asLifeSafetyOperation }
+             },
+         "AE-LS-B",
+             { { ssExecute,  asLifeSafetyOperation }
+             },
+         "SCHED-A",   /* no specific services required, other requirements are in the code */
              { { 0 }
-             }, 
-         "SCHED-I-B", // no specific services required, other requirements are in the code                                 
+             },
+         "SCHED-I-B", // no specific services required, other requirements are in the code
              { { ssExecute, asReadProperty },
-            { ssExecute, asWriteProperty },
-            // these are an OR requirement and handled later
-            //{ ssExecute, asTimeSynchronization },
-            //{ ssExecute, asUTCTimeSynchronization }
-             },                        
-         "SCHED-E-B", // no specific services required, other requirements are in the code                                                
+               { ssExecute, asWriteProperty },
+             // these are an OR requirement and handled later
+             //{ ssExecute, asTimeSynchronization },
+             //{ ssExecute, asUTCTimeSynchronization }
+             },
+         "SCHED-E-B", // no specific services required, other requirements are in the code
              { { ssExecute, asReadProperty },
-            { ssExecute, asWriteProperty },
-            { ssInitiate, asWriteProperty },
-            // these are an OR requirement and handled later
-            //{ ssExecute, asTimeSynchronization },
-            //{ ssExecute, asUTCTimeSynchronization }
-             },                        
-         "T-VMT-A",                 
-             { { ssInitiate, asReadRange } 
-             }, 
-         "T-VMT-I-B",               
-             { { ssExecute,  asReadRange } 
-             }, 
+               { ssExecute, asWriteProperty },
+               { ssInitiate, asWriteProperty },
+             // these are an OR requirement and handled later
+             //{ ssExecute, asTimeSynchronization },
+             //{ ssExecute, asUTCTimeSynchronization }
+             },
+         "T-VMT-A",
+             { { ssInitiate, asReadRange }
+             },
+         "T-VMT-I-B",
+             { { ssExecute,  asReadRange }
+             },
          "T-VMT-E-B",  // no specific services required, other requirements are in the code
              { { ssExecute, asReadRange },
-            { ssInitiate, asReadProperty }
-             }, 
-         "T-ATR-A",  
+               { ssInitiate, asReadProperty }
+             },
+         "T-ATR-A",
              { { ssExecute,  asConfirmedEventNotification },
                { ssInitiate, asReadRange                  }
-             },               
-         "T-ATR-B",                 
+             },
+         "T-ATR-B",
              { { ssInitiate, asConfirmedEventNotification },
                { ssExecute,  asReadRange                  }
-             },               
-         "DM-DDB-A",                
+             },
+         "DM-DDB-A",
              { { ssInitiate, asWho_Is },
                { ssExecute,  asI_Am   }
-             },               
-         "DM-DDB-B",                
+             },
+         "DM-DDB-B", 
              { { ssExecute,  asWho_Is },
                { ssInitiate, asI_Am   }
-             },               
-         "DM-DOB-A",                
+             },
+         "DM-DOB-A", 
              { { ssInitiate, asWho_Has  },
                { ssExecute,  asI_Have   }
-             },               
-         "DM-DOB-B",                
+             },
+         "DM-DOB-B", 
              { { ssExecute,  asWho_Has },
                { ssInitiate, asI_Have  }
-             },               
-         "DM-DCC-A",                
-             { { ssInitiate, asDeviceCommunicationControl } 
-             }, 
-         "DM-DCC-B",                
+             },
+         "DM-DCC-A",
+             { { ssInitiate, asDeviceCommunicationControl }
+             },
+         "DM-DCC-B",
              { { ssExecute,  asDeviceCommunicationControl } 
-             }, 
-         "DM-PT-A",              
+             },
+         "DM-PT-A",
              { { ssInitiate, asConfirmedPrivateTransfer     },
                { ssInitiate, asUnconfirmedPrivateTransfer   }
-             },               
-         "DM-PT-B",                 
+             },
+         "DM-PT-B",
              { { ssExecute, asConfirmedPrivateTransfer     },
                { ssExecute, asUnconfirmedPrivateTransfer   }
-             },               
-         "DM-TM-A",                 
+             },
+         "DM-TM-A",
              { { ssInitiate, asConfirmedTextMessage      },
                { ssInitiate, asUnconfirmedTextMessage    }
-             },               
-         "DM-TM-B",                 
+             },
+         "DM-TM-B",
              { { ssExecute, asConfirmedTextMessage       },
                { ssExecute, asUnconfirmedTextMessage     }
-             },               
-         "DM-TS-A",                 
-             { { ssInitiate, asTimeSynchronization } 
-             }, 
-         "DM-TS-B",                 
-             { { ssExecute,  asTimeSynchronization } 
-             }, 
-         "DM-UTC-A",                
-             { { ssInitiate, asUTCTimeSynchronization } 
-             }, 
-         "DM-UTC-B",                
-             { { ssExecute,  asUTCTimeSynchronization } 
-             }, 
-         "DM-RD-A",                 
-             { { ssInitiate, asReinitializeDevice } 
-             }, 
-         "DM-RD-B",                 
-             { { ssExecute,  asReinitializeDevice } 
-             }, 
-         "DM-BR-A",                 
+             },
+         "DM-TS-A",
+             { { ssInitiate, asTimeSynchronization }
+             },
+         "DM-TS-B",
+             { { ssExecute,  asTimeSynchronization }
+             },
+         "DM-UTC-A",
+             { { ssInitiate, asUTCTimeSynchronization }
+             },
+         "DM-UTC-B",
+             { { ssExecute,  asUTCTimeSynchronization }
+             },
+         "DM-RD-A",
+             { { ssInitiate, asReinitializeDevice }
+             },
+         "DM-RD-B",
+             { { ssExecute,  asReinitializeDevice }
+             },
+         "DM-BR-A",
              { { ssInitiate, asAtomicReadFile      },
                { ssInitiate, asAtomicWriteFile     },
                { ssInitiate, asCreateObject        },
                { ssInitiate, asReinitializeDevice  }
-             },               
-         "DM-BR-B",                 
+             },
+         "DM-BR-B",
              { { ssExecute,  asAtomicReadFile      },
                { ssExecute,  asAtomicWriteFile     },
                { ssExecute,  asReinitializeDevice  }
-             },               
-         "DM-R-A",                  
-             { { ssExecute,  asUnconfirmedCOVNotification } 
-             }, 
-         "DM-R-B",                  
-             { { ssInitiate, asUnconfirmedCOVNotification } 
-             }, 
-         "DM-LM-A",                 
+             },
+         "DM-R-A",
+             { { ssExecute,  asUnconfirmedCOVNotification }
+             },
+         "DM-R-B",
+             { { ssInitiate, asUnconfirmedCOVNotification }
+             },
+         "DM-LM-A",
              { { ssInitiate, asAddListElement       },
                { ssInitiate, asRemoveListElement    }
-             },               
-         "DM-LM-B",                 
+             },
+         "DM-LM-B",
              { { ssExecute,  asAddListElement       },
                { ssExecute,  asRemoveListElement    }
-             },               
-         "DM-OCD-A",                
+             },
+         "DM-OCD-A",
              { { ssInitiate, asCreateObject       },
                { ssInitiate, asDeleteObject       }
-             },               
-         "DM-OCD-B",                
+             },
+         "DM-OCD-B",
              { { ssExecute,  asCreateObject       },
                { ssExecute,  asDeleteObject       }
-             },               
-         "DM-VT-A",                 
+             },
+         "DM-VT-A",
              { { ssInitiate, asVT_Open             },
                { ssInitiate, asVT_Close            },
                { ssInitiate, asVT_Data             },
                { ssExecute,  asVT_Close            },
                { ssExecute,  asVT_Data             }
-             },               
-         "DM-VT-B",                 
+             },
+         "DM-VT-B",
              { { ssExecute,  asVT_Open             },
                { ssInitiate, asVT_Close            },
                { ssInitiate, asVT_Data             },
                { ssExecute,  asVT_Close            },
                { ssExecute,  asVT_Data             }
-             },               
+             },
          "NM-CE-A",  // network services are not specified in EPICS
              { { 0 }
-             },                  
+             },
          "NM-CE-B",  // network services are not specified in EPICS
              { { 0 }
-             },                     
+             },
          "NM-RC-A",  // network services are not specified in EPICS
              { { 0 }
-             },                        
+             },
          "NM-RC-B",  // network services are not specified in EPICS
              { { 0 }
-             },                        
+             },
          // Added Workstation BIBBs 12/5/2007 LJT
-         "DS-V-A",  
+         "DS-V-A",
              { { ssInitiate, asReadProperty }
-             },                        
-         "DS-AV-A",  
+             },
+         "DS-AV-A",
              { { ssInitiate, asReadProperty }
-             },                        
-         "DS-M-A",  
+             },
+         "DS-M-A",
              { { ssInitiate, asWriteProperty }
-             },                        
-         "DS-AM-A",  
+             },
+         "DS-AM-A",
              { { ssInitiate, asWriteProperty }
-             },                        
-         "AE-VN-A",  
+             },
+         "AE-VN-A",
              { { ssExecute, asConfirmedEventNotification },
-            { ssExecute, asUnconfirmedEventNotification }
-             },                        
-         "AE-AVN-A",  
+               { ssExecute, asUnconfirmedEventNotification }
+             },
+         "AE-AVN-A",
              { { ssExecute, asConfirmedEventNotification },
-            { ssExecute, asUnconfirmedEventNotification }
-             },                        
-         "AE-VM-A",  
+               { ssExecute, asUnconfirmedEventNotification }
+             },
+         "AE-VM-A",
              { { ssInitiate, asReadProperty },
-            { ssInitiate, asWriteProperty }
-             },                        
-         "AE-AVM-A",  
+               { ssInitiate, asWriteProperty }
+             },
+         "AE-AVM-A",
              { { ssInitiate, asReadProperty },
-            { ssInitiate, asWriteProperty },
-            { ssInitiate, asCreateObject },
-            { ssInitiate, asDeleteObject }
-             },                        
-         "AE-AS-A",  
+               { ssInitiate, asWriteProperty },
+               { ssInitiate, asCreateObject },
+               { ssInitiate, asDeleteObject }
+             },
+         "AE-AS-A",
              { { ssInitiate, asGetEventInformation },
-            { ssInitiate, asGetAlarmSummary }
-             },                        
-         "SCHED-AVM-A",  
+               { ssInitiate, asGetAlarmSummary }
+             },
+         "SCHED-AVM-A",
              { { ssInitiate, asReadProperty },
-            { ssInitiate, asWriteProperty },
-            { ssInitiate, asCreateObject },
-            { ssInitiate, asDeleteObject }
-             },                        
-         "SCHED-VM-A",  
+               { ssInitiate, asWriteProperty },
+               { ssInitiate, asCreateObject },
+               { ssInitiate, asDeleteObject }
+             },
+         "SCHED-VM-A",
              { { ssInitiate, asReadProperty },
-            { ssInitiate, asWriteProperty }
-             },                        
-         "SCHED-WS-A",  
+               { ssInitiate, asWriteProperty }
+             },
+         "SCHED-WS-A",
              { { ssInitiate, asReadProperty },
-            { ssInitiate, asWriteProperty }
-             },                        
-         "SCHED-WS-I-B",  
+               { ssInitiate, asWriteProperty }
+             },
+         "SCHED-WS-I-B",
              { { ssExecute, asReadProperty },
-            { ssExecute, asWriteProperty },
-            { ssExecute, asTimeSynchronization },
-            { ssExecute, asUTCTimeSynchronization }
-             },      
+               { ssExecute, asWriteProperty },
+               { ssExecute, asTimeSynchronization },
+               { ssExecute, asUTCTimeSynchronization }
+             },
          "SCHED-R-B",
-          { { ssExecute, asReadProperty },
-            { ssExecute, asTimeSynchronization },
-            { ssExecute, asUTCTimeSynchronization }
-          },
-         "T-AVM-A",  
+            { { ssExecute, asReadProperty },
+              { ssExecute, asTimeSynchronization },
+              { ssExecute, asUTCTimeSynchronization }
+            },
+         "T-AVM-A",
              { { ssInitiate, asReadProperty },
-            { ssInitiate, asWriteProperty },
-            { ssInitiate, asCreateObject },
-            { ssInitiate, asDeleteObject },
-            { ssInitiate, asReadRange }
-             },                        
-         "T-VM-I-B",             
+               { ssInitiate, asWriteProperty },
+               { ssInitiate, asCreateObject },
+               { ssInitiate, asDeleteObject },
+               { ssInitiate, asReadRange }
+             },
+         "T-VM-I-B",
              { { ssExecute,  asReadRange } 
-             }, 
-         "T-VM-E-B",  
+             },
+         "T-VM-E-B",
              { { ssExecute, asReadRange },
-            { ssInitiate, asReadProperty }
-             }, 
-         "T-V-A",  
+               { ssInitiate, asReadProperty }
+             },
+         "T-V-A",
              { { ssInitiate, asReadRange }
-             }, 
-         "T-A-A",  
+             },
+         "T-A-A",
              { { ssInitiate, asReadRange },
-            { ssExecute, asConfirmedEventNotification }
-             }, 
-         "DM-ANM-A",  
-          { { ssInitiate, asWho_Is },
-            { ssExecute,  asI_Am   },
-            { ssExecute,  asWho_Is },
-            { ssInitiate, asI_Am   }
-          },               
-         "DM-ADM-A",  
+               { ssExecute, asConfirmedEventNotification }
+             },
+         "DM-ANM-A",
+            { { ssInitiate, asWho_Is },
+              { ssExecute,  asI_Am   },
+              { ssExecute,  asWho_Is },
+              { ssInitiate, asI_Am   }
+            },
+         "DM-ADM-A",
              { { ssInitiate, asReadProperty }
-             }, 
-         "DM-ATS-A",  
+             },
+         "DM-ATS-A",
              { { ssInitiate, asTimeSynchronization },
-            { ssInitiate, asUTCTimeSynchronization }
-             }, 
-         "DM-MTS-A",  
+               { ssInitiate, asUTCTimeSynchronization }
+             },
+         "DM-MTS-A",
              { { ssInitiate, asTimeSynchronization },
-            { ssInitiate, asUTCTimeSynchronization }
-             }, 
+               { ssInitiate, asUTCTimeSynchronization }
+             },
          // These names have been deprecated and could be removed
-         "SCH-AVM-A",  
+         "SCH-AVM-A",
              { { ssInitiate, asReadProperty },
-            { ssInitiate, asWriteProperty },
-            { ssInitiate, asCreateObject },
-            { ssInitiate, asDeleteObject }
-             },                        
-         "SCH-VM-A",  
+               { ssInitiate, asWriteProperty },
+               { ssInitiate, asCreateObject },
+               { ssInitiate, asDeleteObject }
+             },
+         "SCH-VM-A",
              { { ssInitiate, asReadProperty },
-            { ssInitiate, asWriteProperty }
-             },                        
-         "SCH-WS-A",  
+               { ssInitiate, asWriteProperty }
+             },
+         "SCH-WS-A",
              { { ssInitiate, asReadProperty },
-            { ssInitiate, asWriteProperty }
-             },                        
-         "SCH-WS-I-B",  
+               { ssInitiate, asWriteProperty }
+             },
+         "SCH-WS-I-B",
              { { ssExecute, asReadProperty },
-            { ssExecute, asWriteProperty },
-            { ssExecute, asTimeSynchronization },
-            { ssExecute, asUTCTimeSynchronization }
-             },      
+               { ssExecute, asWriteProperty },
+               { ssExecute, asTimeSynchronization },
+               { ssExecute, asUTCTimeSynchronization }
+             },
          "SCH-R-B",
-          { { ssExecute, asReadProperty },
-            { ssExecute, asTimeSynchronization },
-            { ssExecute, asUTCTimeSynchronization }
-          },
-         "SCH-I-B", // no specific services required, other requirements are in the code                                
+            { { ssExecute, asReadProperty },
+              { ssExecute, asTimeSynchronization },
+              { ssExecute, asUTCTimeSynchronization }
+            },
+         "SCH-I-B", // no specific services required, other requirements are in the code
              { { ssExecute, asReadProperty },
-            { ssExecute, asWriteProperty },
-            { ssExecute, asTimeSynchronization },
-            { ssExecute, asUTCTimeSynchronization }
+               { ssExecute, asWriteProperty },
+               { ssExecute, asTimeSynchronization },
+               { ssExecute, asUTCTimeSynchronization }
              },
-         "SCH-E-B", // no specific services required, other requirements are in the code                                               
+         "SCH-E-B", // no specific services required, other requirements are in the code
              { { ssExecute, asReadProperty },
-            { ssExecute, asWriteProperty },
-            { ssInitiate, asWriteProperty },
-            { ssExecute, asTimeSynchronization },
-            { ssExecute, asUTCTimeSynchronization }
+               { ssExecute, asWriteProperty },
+               { ssInitiate, asWriteProperty },
+               { ssExecute, asTimeSynchronization },
+               { ssExecute, asUTCTimeSynchronization }
              },
-         };  
+         };
 
 // TODO: Duplicate of StringTables.cpp BACnetServicesSupported
 // The order and position of elements in this array is important!
@@ -846,8 +787,8 @@ static char *StandardServices[]={
          "UTCTimeSynchronization",                 //36   madanner 6/03: "UTC-Time-Synchronization"
          "LifeSafetyOperation",                    //37
          "SubscribeCOVProperty",                   //38
-         "GetEventInformation",                    //39
-         "WriteGroup"                              //40
+         "GetEventInformation",                    //39   last in 135-2008 (rev 7) through 135-2010 (rev 12)
+         "WriteGroup"                              //40   last in 135-2012 (rev 14)
    // TODO: Also update StringTables.cpp BACnetServicesSupported
          };
 
@@ -936,30 +877,30 @@ static char *StandardDataLinks[]={
          "LonTalk",                                      //14
          "BACnet/IP, 'DIX' Ethernet",                    //15
          "BACnet/IP, PPP",                               //16
-         "Other",                                        //17
+         "Other"                                         //17
          };
 
 // Position is important.  Must preserve index numbers.
 static char *SpecialFunctionality[]={
-         "Maximum APDU size in octets",                       //0
-         "Segmented Requests Supported, window size",         //1
-         "Segmented Responses Supported, window size",        //2
-         "Router",                                            //3
-         "BACnet/IP BBMD"                                     //4
+         "Maximum APDU size in octets",                  //0
+         "Segmented Requests Supported, window size",    //1
+         "Segmented Responses Supported, window size",   //2
+         "Router",                                       //3
+         "BACnet/IP BBMD"                                //4
          };
 
-static nameoctet Charsets[]={                //                      ***006 Begin
-         "ANSI X3.4",                     csANSI,
+static nameoctet Charsets[]={
+         "ANSI X3.4",                     csANSI,  // As specified in 135.1-2013, which hasn't learned about UTF-8
          "ANSI X3.4/UTF-8",               csANSI,
          "ANSI X3.4 / UTF-8",             csANSI,
-         "IBM/Microsoft DBCS",            csDBCS,
-         "JIS C 6226",                    csJIS,
-         "ISO 10646 (UCS-4)",             csUCS4,
-         "ISO 10646 (UCS-2)",             csUCS2,
-         "ISO 8859-1",                    cs8859 
-         };                            //                      ***006 End
+         "IBM/Microsoft DBCS",            csDBCS,  // As specified in 135.1-2013
+         "JIS C 6226",                    csJIS,   // As specified in 135.1-2013
+         "ISO 10646 (UCS-4)",             csUCS4,  // As specified in 135.1-2013
+         "ISO 10646 (UCS-2)",             csUCS2,  // As specified in 135.1-2013
+         "ISO 8859-1",                    cs8859   // As specified in 135.1-2013
+         };
 
-static char *FailTimes[MAX_FAIL_TIMES]={     // as defined by 135.1-2009 4.5.9
+static char *FailTimes[MAX_FAIL_TIMES]={     // as defined by 135.1-2013 4.5.9
          "Notification Fail Time",           // 0
          "Internal Processing Fail Time",    // 1
          "Minimum ON/OFF Time",              // 2
@@ -968,7 +909,7 @@ static char *FailTimes[MAX_FAIL_TIMES]={     // as defined by 135.1-2009 4.5.9
          "Program Object State Change Fail Time",// 5
          "Acknowledgement Fail Time",        // 6
          "Slave Proxy Confirm Interval",     // 7
-//       "Unconfirmed Response Fail Time",   // TODO: This isn't in 135.1-2009.  What is it?
+         "Unconfirmed Response Fail Time"    // 8
          };
 
 // 5/9/05 Shiyuan Xiao. Support 135.1-2003
@@ -990,177 +931,6 @@ static char *MonthNames[] = {
 };
 
 static char *DOWNames[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
-
-// conformance classes: -------------------------------------------------------------------------------------
-
-
-#define nCC1 1
-TApplServ gCC1_Table[nCC1]= // Conformance Class 1
-        { 
-             { asReadProperty, ssExecute, OBJ_DEVICE, -1 }, 
-        };  
-
-#define nCC2 1
-TApplServ gCC2_Table[nCC2]= // Conformance Class 2
-        {
-             { asWriteProperty, ssExecute, -1, -1 }
-        };
-
-#define nCC3 6
-TApplServ gCC3_Table[nCC3]= // Conformance Class 3
-        { 
-             { asI_Am,                  ssInitiate, -1, -1 },
-             { asI_Have,                ssInitiate, -1, -1 },
-             { asReadPropertyMultiple,  ssExecute,  -1, -1 },
-             { asWritePropertyMultiple, ssExecute,  -1, -1 },
-             { asWho_Has,               ssExecute,  -1, -1 },
-             { asWho_Is,                ssExecute,  -1, -1 }
-        };
-
-#define nCC4 6
-TApplServ gCC4_Table[nCC4]= // Conformance Class 4
-        { 
-             { asAddListElement,        ssInitiate|ssExecute, -1, -1 },
-             { asRemoveListElement,     ssInitiate|ssExecute, -1, -1 },
-             { asReadProperty,          ssInitiate,           -1, -1 },
-             { asReadPropertyMultiple,  ssInitiate,           -1, -1 },
-             { asWriteProperty,         ssInitiate,           -1, -1 },
-             { asWritePropertyMultiple, ssInitiate,           -1, -1 }
-        };
-
-#define nCC5 5
-TApplServ gCC5_Table[nCC5]= // Conformance Class 5
-        { 
-             { asCreateObject,            ssExecute,  -1, -1 },
-             { asDeleteObject,            ssExecute,  -1, -1 },
-             { asReadPropertyConditional, ssExecute,  -1, -1 },
-             { asWho_Has,                 ssInitiate, -1, -1 },
-             { asWho_Is,                  ssInitiate, -1, -1 }
-        };
-
-
-// functional groups: ----------------------------------------------------------------------------------------
-
-#define nFgClock 4
-TApplServ gFgClock[nFgClock]=
-   {
-      { asTimeSynchronization, ssExecute, OBJ_DEVICE, LOCAL_TIME },
-      { asTimeSynchronization, ssExecute, OBJ_DEVICE, LOCAL_DATE },
-      { asTimeSynchronization, ssExecute, OBJ_DEVICE, UTC_OFFSET },
-      { asTimeSynchronization, ssExecute, OBJ_DEVICE, DAYLIGHT_SAVINGS_STATUS }
-   };
-
-#define nFgHHWS 6
-TApplServ gFgHHWS[nFgHHWS]=
-        { 
-             { asWho_Is,              ssInitiate|ssExecute, -1, -1 },
-             { asI_Am,                ssInitiate,           -1, -1 },
-             { asReadProperty,        ssInitiate,           -1, -1 },
-             { asWriteProperty,       ssInitiate,           -1, -1 },
-             { asReinitializeDevice,  ssInitiate,           -1, -1 },
-             { asTimeSynchronization, ssInitiate,           -1, -1 }
-        };
-        
-#define nFgPCWS 15
-TApplServ gFgPCWS[nFgPCWS]=
-        {
-             { asWho_Is,                  ssInitiate|ssExecute, -1, -1 },
-             { asI_Am,                    ssInitiate,           -1, -1 },
-             { asReadProperty,            ssInitiate,           -1, -1 },
-             { asReadPropertyConditional, ssInitiate,           -1, -1 },
-             { asReadPropertyMultiple,    ssInitiate,           -1, -1 },
-             { asWriteProperty,           ssInitiate,           -1, -1 },
-             { asWritePropertyMultiple,   ssInitiate,           -1, -1 },
-             { asReinitializeDevice,      ssInitiate,           -1, -1 },
-             { asTimeSynchronization,     ssInitiate,           -1, -1 },
-             { asCreateObject,            ssInitiate,           -1, -1 },
-             { asDeleteObject,            ssInitiate,           -1, -1 },   
-             { asAddListElement,          ssInitiate,           -1, -1 },
-             { asRemoveListElement,       ssInitiate,           -1, -1 },
-             { asAtomicReadFile,          ssInitiate,           -1, -1 },
-             { asAtomicWriteFile,         ssInitiate,           -1, -1 }
-        };
-
-#define nFgEventInit 4
-TApplServ gFgEventInit[nFgEventInit]=
-        { 
-             { asAcknowledgeAlarm,              ssExecute,  -1, -1 },
-             { asConfirmedEventNotification,    ssInitiate, -1, -1 },
-             { asGetAlarmSummary,               ssExecute,  -1, -1 },
-             { asUnconfirmedEventNotification,  ssInitiate, -1, -1 }
-        };
-
-#define nFgEventResponse 2
-TApplServ gFgEventResponse[nFgEventResponse]=
-        { 
-             { asAcknowledgeAlarm,              ssInitiate, -1, -1 },
-             { asConfirmedEventNotification,    ssExecute,  -1, -1 },
-        };        
-
-
-#define nFgCOVInit 2
-TApplServ gFgCOVInit[nFgCOVInit]=        
-        {
-             { asSubscribeCOV,             ssExecute,  -1, -1 },
-             { asConfirmedCOVNotification, ssInitiate, -1, -1 } 
-        };
-
-        
-#define nFgCOVResponse 2
-TApplServ gFgCOVResponse[nFgCOVResponse]=        
-        {
-             { asSubscribeCOV,             ssInitiate, -1, -1 },
-             { asConfirmedCOVNotification, ssExecute,  -1, -1 } 
-        };
-        
-
-#define nFgFiles 3
-TApplServ gFgFiles[nFgFiles]=
-        { 
-             { asAtomicReadFile,  ssExecute, -1, -1 },
-             { asAtomicWriteFile, ssExecute, -1, -1 }// ,
-//             { asNN, -1, FILE_O, -1 }
-        };
-
-
-#define nFgReinitialize 1
-TApplServ gFgReinitialize[nFgReinitialize]=
-        {
-             { asReinitializeDevice,      ssExecute,        -1, -1 },
-        };
-
-#define nFgVO 3
-TApplServ gFgVO[nFgVO]=
-        { 
-             { asVT_Open,  ssInitiate,            -1, -1 },
-             { asVT_Close, ssInitiate|ssExecute,  -1, -1 },
-             { asVT_Data,  ssInitiate|ssExecute,  -1, -1 }
-             
-        };        
-
-#define nFgVT 3
-TApplServ gFgVT[nFgVT]=
-        { 
-             { asVT_Open,             ssExecute,  -1, -1 },
-             { asVT_Close, ssInitiate|ssExecute,  -1, -1 },
-             { asVT_Data,  ssInitiate|ssExecute,  -1, -1 }
-        };        
-
-#define nFgDevCom 1
-TApplServ gFgDevCom[nFgDevCom]=
-        { 
-             { asDeviceCommunicationControl, ssExecute, -1, -1 }
-        };        
-        
-#define nFgTimeMaster 5
-TApplServ gFgTimeMaster[nFgTimeMaster]=
-  { 
-      { asTimeSynchronization, ssExecute, OBJ_DEVICE, LOCAL_TIME },
-      { asTimeSynchronization, ssExecute, OBJ_DEVICE, LOCAL_DATE },
-      { asTimeSynchronization, ssExecute, OBJ_DEVICE, UTC_OFFSET },
-      { asTimeSynchronization, ssExecute, OBJ_DEVICE, DAYLIGHT_SAVINGS_STATUS },
-      { asTimeSynchronization, ssExecute, OBJ_DEVICE, TIME_SYNCHRONIZATION_RECIPIENTS } 
-  };        
 
 //#define MDEBUG
 static void print_debug(char *fmt, ...)
@@ -1190,7 +960,7 @@ static void print_debug(char *fmt, ...)
 static FILE * pfileError = NULL;
 
 
-///////////////////////////////////////////////////////////////////////          ***007 Begin
+///////////////////////////////////////////////////////////////////////
 // Get Enumeration string for a given choice of BACnetPropertyStates
 // in: pschoice the choice of which BACnetPropertyStates enumeration
 //     psenum    the enumeration value
@@ -1198,22 +968,24 @@ static FILE * pfileError = NULL;
 // out: >0       the number of standard enumerations
 //      =0       the choice or enumeration are invalid
 
-word  APIENTRY VTSAPIgetpropertystate(word pschoice,word psenum, char *pbuf)
-{  etable *pet;
-
+word APIENTRY VTSAPIgetpropertystate(word pschoice, word psenum, char *pbuf)
+{
+   etable *pet;
    if (pschoice>=(sizeof(PropertyStates)/sizeof(PropertyStates[0])))
       return 0;
 
-   pet=PropertyStates[pschoice];
-   if (psenum>=pet->nes) return 0;                 //enumeration is too big
+   pet = PropertyStates[pschoice];
+   if (psenum >= pet->nes)
+      return 0;                 //enumeration is too big
+
    if (pet->estrings[psenum])
       strcpy(pbuf,pet->estrings[psenum]);
    else
       *pbuf=0;                            //just return empty string
    return pet->nes;
-}                                         //                   ***007 End
+}
 
-///////////////////////////////////////////////////////////////////////          ***004 Begin
+///////////////////////////////////////////////////////////////////////
 // Get Enumeration Table for a given choice of BACnetPropertyStates
 // in: pschoice the choice of which BACnetPropertyStates enumeration
 //     plist    the window handle for a combo box to be filled with enumerations
@@ -1221,11 +993,11 @@ word  APIENTRY VTSAPIgetpropertystate(word pschoice,word psenum, char *pbuf)
 //      =0      the choice is invalid
 
 word  APIENTRY VTSAPIgetpropertystates(word pschoice,HWND plist)
-{  etable *pet;
+{
+   etable *pet;
    word i;
-
    print_debug("GPS: Enter gps pschoice = %d hwnd = %d\n",pschoice,plist);
-   if (pschoice>=(sizeof(PropertyStates)/sizeof(PropertyStates[0])))
+   if (pschoice >= (sizeof(PropertyStates)/sizeof(PropertyStates[0])))
       return 0;
 
    pet=PropertyStates[pschoice];
@@ -1239,7 +1011,7 @@ word  APIENTRY VTSAPIgetpropertystates(word pschoice,HWND plist)
    print_debug("GPS: return value %d\n",pet->nes);
 
    return pet->nes;
-}                                         //                   ***004 End
+}
 
 ///////////////////////////////////////////////////////////////////////
 // Get Property Table information based on standard object type
@@ -1255,19 +1027,20 @@ dword APIENTRY VTSAPIgetpropinfo(word objtype,word propindex,
                                  char *pname,word *ptype,
                                  word *pgroup,word *pflags,
                                  word *pet)
-{  propdescriptor *pt;
+{
+   propdescriptor *pt;
    word        np;
 
    //if (objtype>=etObjectTypes.nes) return 0xFFFFFFFF;  //not a valid object type
    //pt=StdObjects[objtype].sotProps;              //point to table of properties for this guy
 
-   if (objtype <= etObjectTypes.nes)  //not a standard object type
+   if (objtype <= etObjectTypes.nes)   //not a standard object type
       pt = StdObjects[objtype].sotProps;
    else
-      pt = ProprietaryObjProps;     //point to table of properties for this guy
+      pt = ProprietaryObjProps;        //point to table of properties for this guy
 
-   np=1;                                  //always at least one property
-   while((pt->PropGroup&Last)==0) {np++;pt++;}        //count num props
+   np=1;                                           //always at least one property
+   while((pt->PropGroup&Last)==0) {np++;pt++;}     //count num props
    if (propindex==0xFFFF) return (dword)np;        //just say how many properties there are
    if (propindex>=np) return 0xFFFFFFFF;           //invalid property index
 
@@ -1297,7 +1070,8 @@ dword APIENTRY VTSAPIgetpropinfo(word objtype,word propindex,
 //    =0       the index is invalid
 
 word APIENTRY VTSAPIgetenumtable(word etindex,word index,word *propstart,dword *propmax,char *ptext)
-{  etable *pet;
+{
+   etable *pet;
 
    if (etindex==0||etindex>(sizeof(AllETs)/sizeof(AllETs[0])))
       return 0;
@@ -1307,13 +1081,14 @@ word APIENTRY VTSAPIgetenumtable(word etindex,word index,word *propstart,dword *
    if (propstart) *propstart=pet->propes;          //return start of proprietary enumerations
    if (propmax) *propmax=pet->propmaxes;           //return max proprietary enumerations
    if (pet->estrings[index])
-      strcpy(ptext,pet->estrings[index]);       //return the name
+      strcpy(ptext,pet->estrings[index]);          //return the name
    else
       *ptext=0;
+
    return pet->nes;
 }
 
-///////////////////////////////////////////////////////////////////////          ***005 Begin
+///////////////////////////////////////////////////////////////////////
 // Get Default Property information based on property id
 //
 //note:  Only Matches the FIRST propid found!
@@ -1325,33 +1100,44 @@ word APIENTRY VTSAPIgetenumtable(word etindex,word index,word *propstart,dword *
 //    true     if default info was available, parameters filled in accordingly
 
 BOOL APIENTRY VTSAPIgetdefaultpropinfo(word objtype,dword propid,word *ptype,word *pet)
-{  word        i;
+{
+   word        i;
    propdescriptor *pt;
 
    if (objtype<etObjectTypes.nes)                  //known object type
-   {  pt=StdObjects[objtype].sotProps;          //point to table of properties for this guy
+   {
+      pt=StdObjects[objtype].sotProps;          //point to table of properties for this guy
       do
-      {  if (pt->PropID==propid)                //found our man
-         {   if (ptype) *ptype=(word)pt->ParseType;
-            if (pet) *pet=pt->PropET;
+      {
+         if (pt->PropID==propid)                //found our man
+         {
+            if (ptype)
+               *ptype=(word)pt->ParseType;
+            if (pet)
+               *pet=pt->PropET;
             return true;
          }
          if (pt->PropGroup&Last) break;
          pt++;                            //advance to next one 
       } while(true);
    }
-//unknown object type
+
+   //unknown object type
    for (i=0;i<dParseTypes.npt;i++)
-   {  if (propid==dParseTypes.dpt[i].dptpropid)
-      {   if (ptype) *ptype=dParseTypes.dpt[i].dptparsetype;
-         if (pet) *pet=dParseTypes.dpt[i].dptpet;
+   {
+      if (propid==dParseTypes.dpt[i].dptpropid)
+      {
+         if (ptype)
+            *ptype=dParseTypes.dpt[i].dptparsetype;
+         if (pet)
+            *pet=dParseTypes.dpt[i].dptpet;
          return true;
       }
-   }                                                      
+   }
    return false;
-}                                         //                   ***005 End
+}
 
-///////////////////////////////////////////////////////////////////////          ***003 Begin
+///////////////////////////////////////////////////////////////////////
 // Get Default Parse Type based on property id
 //in: propid      the property id 
 //    hWnd     the handle to a list control into which parse type(s) are built
@@ -1361,13 +1147,16 @@ BOOL APIENTRY VTSAPIgetdefaultpropinfo(word objtype,dword propid,word *ptype,wor
 //                   "bits/t03/t18/t00"
 
 word APIENTRY VTSAPIgetdefaultparsetype(dword propid,HWND hWnd)
-{  word  i,n=0,pt;
+{
+   word  i,n=0,pt;
    char  pstr[128],t[32];
 
    ClearCBList(hWnd);
    for (i=0;i<dParseTypes.npt;i++)
-   {  if (propid==dParseTypes.dpt[i].dptpropid)
-      {   pt=dParseTypes.dpt[i].dptparsetype;
+   {
+      if (propid==dParseTypes.dpt[i].dptpropid)
+      {
+         pt=dParseTypes.dpt[i].dptparsetype;
          if (pt==none) strcpy(pstr,"none");
          else strcpy(pstr,stParseTypes[pt]); //"parse type"
          strcat(pstr,"\t");                     //tab
@@ -1382,7 +1171,7 @@ word APIENTRY VTSAPIgetdefaultparsetype(dword propid,HWND hWnd)
             AddCBListText(hWnd,pstr);
          n++;
          if ((i==dParseTypes.npt-1)||(propid!=dParseTypes.dpt[i+1].dptpropid)) break;
-      }                                                      
+      }
    }
    if (n!=0) SelectCBListItem(hWnd,0);             //select first item
    return n;
@@ -1392,49 +1181,54 @@ word APIENTRY VTSAPIgetdefaultparsetype(dword propid,HWND hWnd)
 // Clear all items from a List Box
 
 int ClearCBList(HWND hWnd)
-{ return (int) SendMessage(hWnd,CB_RESETCONTENT,0, 0L);
+{
+   return (int) SendMessage(hWnd,CB_RESETCONTENT,0, 0L);
 }
 
 ///////////////////////////////////////////////////////////////////////
 // Add text to a list item in a Combo Box
 
 int AddCBListText(HWND hWnd,char *p)
-{ return (int) SendMessage(hWnd,CB_ADDSTRING,0,(LPARAM) ((LPSTR) p));
+{
+   return (int) SendMessage(hWnd,CB_ADDSTRING,0,(LPARAM) ((LPSTR) p));
 }
 
 ///////////////////////////////////////////////////////////////////////
 // Select an item in a List Box
 
 int SelectCBListItem(HWND hWnd,int index)
-{ return (int) SendMessage(hWnd,CB_SETCURSEL,(WPARAM) index, 0L);
+{
+   return (int) SendMessage(hWnd,CB_SETCURSEL,(WPARAM) index, 0L);
 }
-//                                                          ***003 End
 
-
-///////////////////////////////////////////////////////////////////////       ***008 Begin
+///////////////////////////////////////////////////////////////////////
 // Delete an object created by ReadTextPICS
 //in: p     points to the object
 void  APIENTRY DeletePICSObject(generic_object *p)
-{  word  i;
+{
+   word  i;
    void *vp,*vq,*vr;
    char errMsg[300];
-    // TCHAR szMessage[300];
 
-   switch(p->object_type)                 //release this object's special fields
+   switch (p->object_type)                 //release this object's special fields
    {
    case OBJ_CALENDAR:
       vp=((calendar_obj_type *)p)->date_list;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetCalendarEntry *)vp)->next;
          free(vq);
       }
-      break; 
+      break;
+
    case OBJ_COMMAND:
       for (i=0;i<MAX_ACTION_TEXTS;i++)
-      {  vp=((command_obj_type *)p)->action[i];
+      {
+         vp=((command_obj_type *)p)->action[i];
          while(vp!=NULL)
-         {  vq=vp;
+         {
+            vq=vp;
             vp=((BACnetActionCommand *)vp)->next;
             free(vq);
          }
@@ -1442,52 +1236,61 @@ void  APIENTRY DeletePICSObject(generic_object *p)
             free(((command_obj_type *)p)->action_text[i]);
       }
       break; 
-   case OBJ_DEVICE: 
+
+   case OBJ_DEVICE:
       vp=((device_obj_type *)p)->object_list;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetObjectIdentifier *)vp)->next;
          free(vq);
       }
       vp=((device_obj_type *)p)->vt_classes_supported;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetVTClassList *)vp)->next;
          free(vq);
       }
       vp=((device_obj_type *)p)->active_vt_sessions;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetVTSession *)vp)->next;
          free(vq);
       }
       vp=((device_obj_type *)p)->list_session_keys;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetSessionKey *)vp)->next;
          free(vq);
       }
       vp=((device_obj_type *)p)->time_synch_recipients;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetRecipient *)vp)->next;
          free(vq);
       }
       vp=((device_obj_type *)p)->device_add_binding;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetAddressBinding *)vp)->next;
          free(vq);
       }
       vp=((device_obj_type *)p)->manual_slave_add_bind;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetAddressBinding *)vp)->next;
          free(vq);
       }
       vp=((device_obj_type *)p)->slave_add_bind;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetAddressBinding *)vp)->next;
          free(vq);
       }
@@ -1521,22 +1324,25 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       }
       vp=((device_obj_type *)p)->structured_object_list;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetObjectIdentifier *)vp)->next;
          free(vq);
       }
-      break; 
+      break;
 
    case OBJ_EVENT_ENROLLMENT: 
       vp=((ee_obj_type *)p)->parameter_list.list_bitstring_value;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetListBitstringValue *)vp)->next;
          free(vq);
       }
       vp=((ee_obj_type *)p)->parameter_list.list_of_value;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetPropertyStates *)vp)->next;
          free(vq);
       }
@@ -1546,17 +1352,19 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          if ( ((ee_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((ee_obj_type *)p)->event_time_stamps[i]);
       }
+      break;
 
-      break; 
    case OBJ_FILE:
-        break;   
+      break;
 
    case OBJ_GROUP:
       vr=((group_obj_type *)p)->list_of_group_members;
       while(vr!=NULL)
-      {  vp=((BACnetReadAccessSpecification *)vr)->list_of_prop_ref;
+      {
+         vp=((BACnetReadAccessSpecification *)vr)->list_of_prop_ref;
          while(vp!=NULL)
-         {  vq=vp;
+         {
+            vq=vp;
             vp=((BACnetPropertyReference *)vp)->next;
             free(vq);
          }
@@ -1564,8 +1372,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vr=((BACnetReadAccessSpecification *)vr)->next;
          free(vq);
       }
-      break; 
-   case OBJ_LOOP: 
+      break;
+
+   case OBJ_LOOP:
       vp=((loop_obj_type *)p)->setpoint_ref;
       if (vp!=NULL) free(vp);
       vp=((loop_obj_type *)p)->event_time_stamps;
@@ -1574,11 +1383,12 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          if ( ((loop_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((loop_obj_type *)p)->event_time_stamps[i]);
       }
+      break;
 
-      break; 
    case OBJ_MULTI_STATE_INPUT: 
       for (i=0;i<MAX_STATE_TEXTS;i++)
-      {  if (((mi_obj_type *)p)->state_text[i]!=NULL)
+      {
+         if (((mi_obj_type *)p)->state_text[i]!=NULL)
             free(((mi_obj_type *)p)->state_text[i]);
       }
       vp=((mi_obj_type *)p)->event_time_stamps;
@@ -1602,9 +1412,11 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          free(vq);
       }
       break; 
-   case OBJ_MULTI_STATE_OUTPUT: 
+
+   case OBJ_MULTI_STATE_OUTPUT:
       for (i=0;i<MAX_STATE_TEXTS;i++)
-      {  if (((mo_obj_type *)p)->state_text[i]!=NULL)
+      {
+         if (((mo_obj_type *)p)->state_text[i]!=NULL)
             free(((mo_obj_type *)p)->state_text[i]);
       }
       vp=((mo_obj_type *)p)->event_time_stamps;
@@ -1613,32 +1425,39 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          if ( ((mo_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((mo_obj_type *)p)->event_time_stamps[i]);
       }
+      break;
 
-      break; 
    case OBJ_PROGRAM:
       break;
-   case OBJ_NOTIFICATIONCLASS: 
+
+   case OBJ_NOTIFICATIONCLASS:
       vp=((nc_obj_type *)p)->recipient_list;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetDestination *)vp)->next;
          free(vq);
       }
       break; 
+
    case OBJ_SCHEDULE:
       for (i=0;i<7;i++)
-      {  vp=((schedule_obj_type *)p)->weekly_schedule[i];
+      {
+         vp=((schedule_obj_type *)p)->weekly_schedule[i];
          while(vp!=NULL)
-         {  vq=vp;
+         {
+            vq=vp;
             vp=((BACnetTimeValue *)vp)->next;
             free(vq);
          }
       }
       vr=((schedule_obj_type *)p)->exception_schedule.special_event;
       while(vr!=NULL)
-      {  vp=((BACnetSpecialEvent *)vr)->list_of_time_values;
+      {
+         vp=((BACnetSpecialEvent *)vr)->list_of_time_values;
          while(vp!=NULL)
-         {  vq=vp;
+         {
+            vq=vp;
             vp=((BACnetTimeValue *)vp)->next;
             free(vq);
          }
@@ -1648,14 +1467,17 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       }
       vp=((schedule_obj_type *)p)->list_obj_prop_ref;
       while(vp!=NULL)
-      {  vq=vp;
+      {
+         vq=vp;
          vp=((BACnetObjectPropertyReference *)vp)->next;
          free(vq);
       }
-      break; 
-      case OBJ_AVERAGING:
-        break;   
-     case OBJ_ANALOG_INPUT:
+      break;
+
+   case OBJ_AVERAGING:
+        break;
+
+   case OBJ_ANALOG_INPUT:
       vp=((ai_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1663,7 +1485,8 @@ void  APIENTRY DeletePICSObject(generic_object *p)
             free(((ai_obj_type *)p)->event_time_stamps[i]);
       }
       break;
-     case OBJ_ANALOG_OUTPUT:
+
+   case OBJ_ANALOG_OUTPUT:
       vp=((ao_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1671,7 +1494,8 @@ void  APIENTRY DeletePICSObject(generic_object *p)
             free(((ao_obj_type *)p)->event_time_stamps[i]);
       }
       break;
-     case OBJ_ANALOG_VALUE:
+
+   case OBJ_ANALOG_VALUE:
       vp=((av_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1679,7 +1503,8 @@ void  APIENTRY DeletePICSObject(generic_object *p)
             free(((av_obj_type *)p)->event_time_stamps[i]);
       }
       break;
-     case OBJ_BINARY_INPUT:
+
+   case OBJ_BINARY_INPUT:
       vp=((bi_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1687,7 +1512,8 @@ void  APIENTRY DeletePICSObject(generic_object *p)
             free(((bi_obj_type *)p)->event_time_stamps[i]);
       }
       break;
-     case OBJ_BINARY_OUTPUT:
+
+   case OBJ_BINARY_OUTPUT:
       vp=((bo_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1695,7 +1521,8 @@ void  APIENTRY DeletePICSObject(generic_object *p)
             free(((bo_obj_type *)p)->event_time_stamps[i]);
       }
       break;
-     case OBJ_BINARY_VALUE:
+
+   case OBJ_BINARY_VALUE:
       vp=((bv_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1703,7 +1530,8 @@ void  APIENTRY DeletePICSObject(generic_object *p)
             free(((bv_obj_type *)p)->event_time_stamps[i]);
       }
       break;
-     case OBJ_ACCUMULATOR:
+
+   case OBJ_ACCUMULATOR:
       vp=((accumulator_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1711,9 +1539,11 @@ void  APIENTRY DeletePICSObject(generic_object *p)
             free(((accumulator_obj_type *)p)->event_time_stamps[i]);
       }
       break;
-     case OBJ_MULTI_STATE_VALUE: // msdanner 9/2004
+
+   case OBJ_MULTI_STATE_VALUE: // msdanner 9/2004
       for (i=0;i<MAX_STATE_TEXTS;i++)
-      {  if (((msv_obj_type *)p)->state_text[i]!=NULL)
+      {
+         if (((msv_obj_type *)p)->state_text[i]!=NULL)
             free(((msv_obj_type *)p)->state_text[i]);
       }
       vp=((msv_obj_type *)p)->event_time_stamps;
@@ -1736,16 +1566,18 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vp=((UnsignedList *)vp)->next;
          free(vq);
       }
-      break; 
-      case OBJ_TREND_LOG:
+      break;
+
+   case OBJ_TREND_LOG:
       vp=((trend_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
          if ( ((trend_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((trend_obj_type *)p)->event_time_stamps[i]);
       }
-        break;
-     case OBJ_LIFE_SAFETY_POINT:
+      break;
+
+      case OBJ_LIFE_SAFETY_POINT:
       vp=((lifesafetypoint_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1787,8 +1619,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vp=((BACnetEnumList *)vp)->next;
          free(vq);
       }
-        break;
-     case OBJ_LIFE_SAFETY_ZONE:
+      break;
+
+   case OBJ_LIFE_SAFETY_ZONE:
       vp=((lifesafetyzone_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1837,9 +1670,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vp=((BACnetEnumList *)vp)->next;
          free(vq);
       }
-
         break;
-     case OBJ_PULSE_CONVERTER:
+
+   case OBJ_PULSE_CONVERTER:
       vp=((pulseconverter_obj_type *)p)->event_time_stamps;
       for(i=0; i<3; i++)
       {
@@ -1848,7 +1681,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       }
       break;
 
-     case OBJ_STRUCTURED_VIEW:
+   case OBJ_STRUCTURED_VIEW:
       vp=((sv_obj_type *)p)->subordinate_list;
       while(vp!=NULL)
       {
@@ -1858,27 +1691,27 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       }
 
       for (i=0; i < MAX_SV_ANNOTATIONS; i++)
-      {  
+      {
          if (((sv_obj_type *)p)->subordinate_annotations[i]!=NULL)
             free(((sv_obj_type *)p)->subordinate_annotations[i]);
       }
       break;
 
-      case OBJ_TREND_LOG_MULTIPLE:
+    case OBJ_TREND_LOG_MULTIPLE:
       for(i=0; i<3; i++)
       {
          if (((tlm_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((tlm_obj_type *)p)->event_time_stamps[i]);
       }
-        break;
+      break;
 
-      case OBJ_EVENT_LOG:
+    case OBJ_EVENT_LOG:
       for(i=0; i<3; i++)
       {
          if (((el_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((el_obj_type *)p)->event_time_stamps[i]);
       }
-        break;
+      break;
 
       case OBJ_LOAD_CONTROL:
       for(i=0; i<MAX_SHED_LEVELS; i++)
@@ -1900,9 +1733,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          if (((lc_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((lc_obj_type *)p)->event_time_stamps[i]);
       }
-        break;
+      break;
 
-     case OBJ_ACCESS_DOOR:
+   case OBJ_ACCESS_DOOR:
       vp = ((ad_obj_type *)p)->alarm_values;
       while (vp != NULL)
       {
@@ -1942,54 +1775,54 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       }
       break;
 
-     case OBJ_CHARACTERSTRING_VALUE:
-       for(i=0; i<MAX_FAULT_STRINGS; i++)
-       {
+   case OBJ_CHARACTERSTRING_VALUE:
+      for(i=0; i<MAX_FAULT_STRINGS; i++)
+      {
          if ( ((charstring_obj_type *)p)->alarm_values[i]!=NULL)
             free(((charstring_obj_type *)p)->alarm_values[i]);
-       }
-       for(i=0; i<MAX_FAULT_STRINGS; i++)
-       {
+      }
+      for(i=0; i<MAX_FAULT_STRINGS; i++)
+      {
          if ( ((charstring_obj_type *)p)->fault_values[i]!=NULL)
             free(((charstring_obj_type *)p)->fault_values[i]);
-       }
-       for(i=0; i<3; i++)
-       {
+      }
+      for(i=0; i<3; i++)
+      {
          if ( ((charstring_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((charstring_obj_type *)p)->event_time_stamps[i]);
-       }
-       break; 
+      }
+      break; 
 
-     case OBJ_INTEGER_VALUE:
-       for(i=0; i<3; i++)
-       {
+   case OBJ_INTEGER_VALUE:
+      for(i=0; i<3; i++)
+      {
          if ( ((integer_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((integer_obj_type *)p)->event_time_stamps[i]);
-       }
-       break;
+      }
+      break;
 
-     case OBJ_POSITIVE_INTEGER_VALUE:
-       for(i=0; i<3; i++)
-       {
+   case OBJ_POSITIVE_INTEGER_VALUE:
+      for(i=0; i<3; i++)
+      {
          if ( ((positive_integer_obj_type *)p)->event_time_stamps[i]!=NULL)
             free(((positive_integer_obj_type *)p)->event_time_stamps[i]);
-       }
-       break;
+      }
+      break;
 
-     case OBJ_DATETIME_VALUE:
-        // No allocations to clean up
-        break;
+   case OBJ_DATETIME_VALUE:
+      // No allocations to clean up
+      break;
 
-     default:
-        // Someone forgot to implement delete code for this object type
-        sprintf( errMsg, "**WARNING**: No delete code for this object %s (type = %d), will probably leak \n", 
+   default:
+      // Someone forgot to implement delete code for this object type
+      sprintf( errMsg, "**WARNING**: No delete code for this object %s (type = %d), will probably leak \n", 
                p->object_name, p->object_type ); 
-        // tperror( errMsg, true);
-        // PrintToFile( errMsg );
-        OutputDebugString( _T( errMsg ) );
-        // assert(false);     // upside the head for developers
-        // Attempt the deletion anyway
-        break;
+      // tperror( errMsg, true);
+      // PrintToFile( errMsg );
+      OutputDebugString( _T( errMsg ) );
+      // assert(false);     // upside the head for developers
+      // Attempt the deletion anyway
+      break;
    }
    free(p);                         //and the object itself             ***008 End
 }
@@ -2002,11 +1835,10 @@ bool APIENTRY ReadTextPICS(
         PICSdb *pd, // EPICS database
         int *errc, // error counter
         int *errPICS) // returns the error
-{  
-   int         i,j;
+{
    generic_object *pd2;  // line added by MAG for debug only
    lPICSErr=-1;
-   
+
    //madanner 6/03: wasn't initializing cancel
    cancel = false;
 
@@ -2014,12 +1846,9 @@ bool APIENTRY ReadTextPICS(
    GetTempPath( MAX_PATH, fileName.GetBuffer( MAX_PATH ) );
    fileName.ReleaseBuffer();
    fileName += FILE_CHECK_EPICS_CONS;
-   
+
    pfileError = fopen( fileName, "w");
    TRACE( "Errors logged to %s \n", fileName );
-
-// looks to be a duplicate of the below therefore did not enable this line.  LJT 8/31/2005   
-// memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes)); //default is not supported // added by Kare Sars
 
    pd->Database=NULL;
    memset(pd->BACnetStandardObjects,soNotSupported,sizeof(pd->BACnetStandardObjects));      //added by xlp,2002-11
@@ -2035,139 +1864,140 @@ bool APIENTRY ReadTextPICS(
    pd->RouterFunctions=rfNotSupported;       //default is none
    pd->SegmentedRequestWindow=pd->SegmentedResponseWindow=0;
    pd->MaxAPDUSize=50;
-    pd->BBMD=0;  // default is no BBMD support
+   pd->BBMD=0;  // default is no BBMD support
 
    print_debug("RTP: open file '%.275s'\n",tp);
    lerrc=0;                         //no errors yet
-   if ((ifile=fopen(tp,"r"))==NULL)       //open input file                ***008
-   {  tperror(_strerror(tp),false);
+   if ((ifile=fopen(tp,"r"))==NULL) //open input file
+   {
+      tperror(_strerror(tp),false);
       goto rtpexit;
    }
-   
+
    lc=0;
-   readline(lb,8);                        //read header line from the file    ***008
+   readline(lb,8);                        //read header line from the file
    if (_strnicmp(lb,picshdr,6))           //invalid signature
-   {  tperror("This file does not contain a supported form of Text PICS!",false);
-      goto rtpclose;
+   {
+      tperror("This file does not contain a supported form of EPICS!",false);
+      cancel = true;
    }
-   print_debug("RTP: Read line '%s'\n",lb);     // MAG
+   else
+   {
+      print_debug("RTP: Read line '%s'\n",lb);
 
-   readline(lb,sizeof(lb));               //read a line from the file            ***008
-   lp=&lb[0];
-   print_debug("RTP: rl1: Read line '%s'\n",lb);      // MAG
+      readline(lb,sizeof(lb));               //read a line from the file
+      lp = &lb[0];
+      print_debug("RTP: rl1: Read line '%s'\n",lb);
 
-   if (_stricmp(lb,BeginPics))            //invalid signature
-   {  tperror("Invalid Text PICS signature.",false);
-      goto rtpclose;
+      if (_stricmp(lb,BeginPics))            //invalid signature
+      {
+         tperror("Invalid Text PICS signature.",false);
+         cancel = true;
+      }
    }
 
-   while (feof(ifile)==0&&!cancel)           //                            ***008
-   {  readline(lb,sizeof(lb));            //read a line from the file         ***008
-      print_debug("RTP: rl2: Read line '%s'\n",lb);      // MAG
+   while (!cancel && feof(ifile)==0)
+   {
+      readline(lb,sizeof(lb));            //read a line from the file
+      print_debug("RTP: rl2: Read line '%s'\n",lb);
 
-      if (lb[0])                       //not a blank line
-      {  if (_stricmp(lb,EndPics)==0)     //found the end
-            break;                     //we're done
-         if ((lp=strchr(lb,':'))==NULL)      //must have a section name
-         {  lp=&lb[0];
-               if (tperror("Expected section name here...",true))
-               goto rtpclose;
+      if (lb[0])                          //not a blank line
+      {
+         if (_stricmp(lb,EndPics)==0)     //found the end
+            break;                        //we're done
+
+         if ((lp=strchr(lb,':'))==NULL)   //must have a section name
+         {
+            lp = &lb[0];
+            cancel = tperror("Expected section name here...",true);
          }
          else
-         {  *lp++=0;                //make asciz section name and lp points to args
-            for (i=0;i<(sizeof(SectionNames)/sizeof(SectionNames[0]));i++) {
-              // preprocessing, replace score and underscore with whitespace
-              preprocstr(lb);          // remove score and underscore      ***020
-              if (_stricmp(lb,SectionNames[i])==0) //we found a matching section name
-              {   
-               switch(i)
-               {
-               int nameLen;
-               case 0:
-                  // Allocate as much space as we need (actually, more than enough due to quoting)
-                  nameLen = strlen(lp) + 1;
-                  pd->VendorName = new char[nameLen];
-                  if (setstring(pd->VendorName,nameLen,lp)) goto rtpclose;
-                  break;
-               case 1:
-                  nameLen = strlen(lp) + 1;
-                  pd->ProductName = new char[nameLen];
-                  if (setstring(pd->ProductName,nameLen,lp)) goto rtpclose;
-                  break;
-               case 2:
-                  nameLen = strlen(lp) + 1;
-                  pd->ProductModelNumber = new char[nameLen];
-                  if(setstring(pd->ProductModelNumber,nameLen,lp)) goto rtpclose;
-                  break;
-               case 3:
-                  nameLen = strlen(lp) + 1;
-                  pd->ProductDescription = new char[nameLen];
-                  if (setstring(pd->ProductDescription,nameLen,lp)) goto rtpclose;
-                  break;
-               case 4:
-                  skipwhitespace();                   //       ***008
-                  j=atoi(lp);          //get BACnet Conformance Class Supported
-                  if (j<1||j>6)
-                  {  if(tperror("Invalid conformance class",true)) goto rtpclose;}
-                  else
-                     pd->BACnetConformanceClass=j;
-                  break;
-               case 5:
-                  if (ReadFunctionalGroups(pd)) goto rtpclose; //       ***008
-                  break;
-               case 6:
-                  if (ReadStandardServices(pd)) goto rtpclose; //       ***008
-                  break;
-               case 7:
-                  if (ReadStandardObjects(pd)) goto rtpclose;     //       ***008
-                  break;
-               case 8:
-                  if (ReadDataLinkOptions(pd)) goto rtpclose;     //       ***008
-                  break;
-               case 9:
-                  if (ReadSpecialFunctionality(pd)) goto rtpclose;   //    ***008
-                  break;
-               case 10:
-                  if (ReadObjects(pd)) goto rtpclose; //                ***008
-                  break;               //                         ***006 Begin
-               case 11:
-                  if (ReadCharsets(pd)) goto rtpclose;   //             ***006 End
-                  break;
-               case 12:
-                  if (ReadFailTimes(pd)) goto rtpclose;  //             ***019
-                  break;
-               case 13: // BIBBs supported
-                  if (ReadBIBBSupported(pd)) goto rtpclose;
-                  break;
-               //case 14: // TODO:  Default Property Value Restrictions
-                  //if (ReadDefaultPropertyValueRestrictions(pd)) goto rtpclose;
-               // break;
-               }
-               i=0;                 //remember that we found one
-               break;
-              };
-         }                                                     
-         if (i)                     //couldn't find this one
-         {  lp[-1]=':';
-            if (tperror("Unknown section name",true))
-               goto rtpclose;
-         }
+         {
+            int nameLen;
+            *lp++ = 0;               // make asciz section name and lp points to args
+            preprocstr(lb);          // remove score and underscore
+            if (_stricmp(lb,"Vendor Name")==0)
+            {
+               // Allocate as much space as we need (actually, more than enough due to quoting)
+               nameLen = strlen(lp) + 1;
+               pd->VendorName = new char[nameLen];
+               cancel = setstring(pd->VendorName,nameLen,lp);
+            }
+            else if (_stricmp(lb,"Product Name")==0)
+            {
+               nameLen = strlen(lp) + 1;
+               pd->ProductName = new char[nameLen];
+               cancel = setstring(pd->ProductName,nameLen,lp);
+            }
+            else if (_stricmp(lb,"Product Model Number")==0)
+            {
+               nameLen = strlen(lp) + 1;
+               pd->ProductModelNumber = new char[nameLen];
+               cancel = setstring(pd->ProductModelNumber,nameLen,lp);
+            }
+            else if (_stricmp(lb,"Product Description")==0)
+            {
+               nameLen = strlen(lp) + 1;
+               pd->ProductDescription = new char[nameLen];
+               cancel = setstring(pd->ProductDescription,nameLen,lp);
+            }
+            else if (_stricmp(lb,"BIBBs Supported")==0)
+            {
+               cancel = ReadBIBBSupported(pd);
+            }
+            else if (_stricmp(lb,"BACnet Standard Application Services Supported")==0)
+            {
+               cancel = ReadStandardServices(pd);
+            }
+            else if (_stricmp(lb,"Standard Object Types Supported")==0)
+            {
+               cancel = ReadStandardObjects(pd);
+            }
+            else if (_stricmp(lb,"Data Link Layer Option")==0)
+            {
+               cancel = ReadDataLinkOptions(pd);
+            }
+            else if (_stricmp(lb,"Character Sets Supported")==0)
+            {
+               cancel = ReadCharsets(pd);
+            }
+            else if (_stricmp(lb,"Special Functionality")==0)
+            {
+               cancel = ReadSpecialFunctionality(pd);
+            }
+//          else if (_stricmp(lb,"Default Property Value Restrictions")==0)
+//          {
+//             // TODO:
+//          }
+            else if (_stricmp(lb,"Fail Times")==0)
+            {
+               cancel = ReadFailTimes(pd);
+            }
+            else if (_stricmp(lb,"List of Objects in Test Device")==0)
+            {
+               cancel = ReadObjects(pd);
+            }
+            else
+            {
+               lp[-1]=':';
+               cancel = tperror("Unknown section name",true);
+            }
          }
       }
-   };
-rtpclose:
-   fclose(ifile);                    //                           ***008
-//////////////////////////////////////////////////////////////
-// add EPICS consistency Check ,xlp,2002-11
+   }
+   fclose(ifile);
+
+   //////////////////////////////////////////////////////////////
+   // add EPICS consistency Check ,xlp,2002-11
 
    // madanner 6/03:  skip consistency tests if user canceled parse due to problems
-   if ( !cancel )
+   if (!cancel)
    {
 //    ::DeleteFile("c:\\EPICSConsChk.txt");
       // msdanner 9/04: Old consistency checks based on conformance class are no longer applicable
-      //CheckPICSObjCons(pd);                  
-      //CheckPICSServCons(pd);               
-      //CheckPICSPropCons(pd);      
+      //CheckPICSObjCons(pd);
+      //CheckPICSServCons(pd);
+      //CheckPICSPropCons(pd);
       // New 135.1-2003 checks
       if (lerrc == 0)  // if no syntax errors, proceed with EPICS consistency tests
       {
@@ -2207,99 +2037,83 @@ rtpexit:
 }
 
 ///////////////////////////////////////////////////////////////////////
-// Read Functional Groups section of a TPI file
-//in: ifile    file stream
-//    pd       database structure to be filled in from PICS
-//out:   true     if cancel selected
-
-BOOL ReadFunctionalGroups(PICSdb *pd)
-{  int         i;
-
-   ReadNext();                         //point to next token            ***008
-   if (lp==NULL||*lp++!='{')              //no open token
-      return tperror("Expected { here",true);
-      
-   while (lp!=NULL)
-   {  ReadNext();                      //point to next token            ***008
-      if (*lp=='}'||lp==NULL) break;         //return, we're done with these
-      for (i=0;i<(sizeof(FunctionalGroups)/sizeof(FunctionalGroups[0]));i++)
-        if (_stricmp(lp,FunctionalGroups[i].name)==0) //found it
-        {   pd->BACnetFunctionalGroups|=FunctionalGroups[i].dwcons;
-         i=0;
-         break;
-        }
-      if (i)
-      {  if (tperror("Unknown Functional Group",true))
-            return true;
-      }
-   }
-   return false;     
-}
-
-///////////////////////////////////////////////////////////////////////          ***006 Begin
 // Read Charactersets section of a TPI file
 //in: ifile    file stream
 //    pd       database structure to be filled in from PICS
 //out:   true     if cancel selected
 
-BOOL ReadCharsets(PICSdb *pd)
-{  int         i;
-
-   ReadNext();                         //point to next token            ***008
-   if (lp==NULL||*lp++!='{')              //no open token
+bool ReadCharsets(PICSdb *pd)
+{
+   int         i;
+   ReadNext();                            //point to next token
+   if (lp==NULL || *lp++!='{')            //no open token
       return tperror("Expected { here",true);
-      
+
    pd->BACnetCharsets=0;                  //default is none
    while (lp!=NULL)
-   {  ReadNext();                      //point to next token            ***008
+   {
+      ReadNext();                         //point to next token
       rtrim(lp);
-      if (*lp=='}'||lp==NULL) break;         //return, we're done with these
+      if (*lp=='}' || lp==NULL) break;    //return, we're done with these
+
       for (i=0;i<(sizeof(Charsets)/sizeof(Charsets[0]));i++)
-        if (_stricmp(lp,Charsets[i].name)==0) //found it
-        {   pd->BACnetCharsets|=Charsets[i].octetcons;
-         i=0;
-         break;
-        }
+      {
+         if (_stricmp(lp,Charsets[i].name)==0) //found it
+         {
+            pd->BACnetCharsets|=Charsets[i].octetcons;
+            i=0;
+            break;
+         }
+      }
+
       if (i)
-      {  if (tperror("Unknown Character Set",true))
+      {
+         if (tperror("Unknown Character Set",true))
             return true;
       }
    }
-   return false;     
-}                                   //                         ***006 End
+   return false;
+}
 
-///////////////////////////////////////////////////////////////////////          ***006 Begin
+///////////////////////////////////////////////////////////////////////
 // Read BIBBs Supported section of a TPI file
 //in: ifile    file stream
 //    pd       database structure to be filled in from PICS
 //out:   true     if cancel selected
 
-BOOL ReadBIBBSupported(PICSdb *pd)
-{  int         i;
-
-   ReadNext();                         //point to next token            ***008
-   if (lp==NULL||*lp++!='{')              //no open token
+bool ReadBIBBSupported(PICSdb *pd)
+{
+   int         i;
+   ReadNext();                         //point to next token
+   if (lp==NULL || *lp++!='{')              //no open token
       return tperror("Expected { here",true);
 
    // initialize to no BIBBs supported
    memset(pd->BIBBSupported,0,sizeof(pd->BIBBSupported));   //default is not supported
    while (lp!=NULL)
-   {  ReadNext();                      //point to next token            ***008
+   {
+      ReadNext();                      //point to next token
       rtrim(lp);
-      if (*lp=='}'||lp==NULL) break;         //return, we're done with these
+      if (*lp=='}' || lp==NULL) break;         //return, we're done with these
+
       for (i=0;i<(sizeof(BIBBs)/sizeof(BIBBs[0]));i++)
-        if (_stricmp(lp,BIBBs[i].name)==0) //found it
-        {   pd->BIBBSupported[i] = 1;     // Mark this BIBB supported
-         i=0;
-         break;
-        }
+      {
+         if (_stricmp(lp,BIBBs[i].name)==0) //found it
+         {
+            pd->BIBBSupported[i] = 1;     // Mark this BIBB supported
+            i=0;
+            break;
+         }
+      }
+
       if (i)
-      {  if (tperror("Unknown BIBB",true))
+      {
+         if (tperror("Unknown BIBB",true))
             return true;
       }
    }
-   return false;     
-}                                   //                         ***006 End
+   return false;
+}
 
 ///////////////////////////////////////////////////////////////////////
 // Read Standard Services section of a TPI file
@@ -2307,20 +2121,20 @@ BOOL ReadBIBBSupported(PICSdb *pd)
 //    pd       database structure to be filled in from PICS
 //out:   true     if cancel selected
 
-BOOL ReadStandardServices(PICSdb *pd)
+bool ReadStandardServices(PICSdb *pd)
 {
    int      i;
    char     *p;
 
-   ReadNext();                         //point to next token            ***008
-   if (lp==NULL||*lp++!='{')           //no open token
+   ReadNext();                         //point to next token
+   if (lp==NULL || *lp++!='{')         //no open token
       return tperror("Expected { here",true);
 
    memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));  //default is not supported
    while (lp!=NULL)
    {
-      ReadNext();                      //point to next token            ***008
-      if (*lp=='}'||lp==NULL) break;   //return, we're done with these
+      ReadNext();                      //point to next token
+      if (*lp=='}' || lp==NULL) break; //return, we're done with these
       i=-1;                            //assume there is a problem
       if ((p=strchr(lp,space))!=NULL)  //find the delimiter for supported stuff
       {
@@ -2340,8 +2154,8 @@ BOOL ReadStandardServices(PICSdb *pd)
       }
 
       if (i<0)
-      //no delimiter after the service, or couldn't find initiate or execute
       {
+         //no delimiter after the service, or couldn't find initiate or execute
          p=strchr(lp,0);
          if (tperror("Expected 'Initiate' or 'Execute' here",true))
             return true;
@@ -2361,21 +2175,21 @@ BOOL ReadStandardServices(PICSdb *pd)
 //    pd       database structure to be filled in from PICS
 //out:   true     if cancel selected
 
-BOOL ReadStandardObjects(PICSdb *pd)
+bool ReadStandardObjects(PICSdb *pd)
 {
    int      i;
    char     *pcre,*pdel;
    octet    sup;
 
-   ReadNext();                         //point to next token            ***008
-   if (lp==NULL||*lp++!='{')           //no open token
+   ReadNext();                         //point to next token
+   if (lp==NULL || *lp++!='{')         //no open token
       return tperror("Expected { here",true);
 
    memset(pd->BACnetStandardObjects,soNotSupported,sizeof(pd->BACnetStandardObjects)); //default is not supported
    while (lp!=NULL)
    {
-      ReadNext();                      //point to next token            ***008
-      if (*lp=='}'||lp==NULL) break;   //return, we're done with these
+      ReadNext();                      //point to next token
+      if (*lp=='}' || lp==NULL) break; //return, we're done with these
       sup=soSupported;
       if ((pcre=strstr(lp,"Createable"))!=NULL) //supports create
          sup|=soCreateable;
@@ -2387,11 +2201,13 @@ BOOL ReadStandardObjects(PICSdb *pd)
       for (i=0;i<(sizeof(StandardObjects)/sizeof(StandardObjects[0]));i++)
       {
          if (_stricmp(lp,StandardObjects[i])==0) //found it
-         {  pd->BACnetStandardObjects[i]=sup;
+         {
+            pd->BACnetStandardObjects[i]=sup;
             i=0;
             break;
          }
       }
+
       if (i>0)
       {
          if (tperror("Unknown Standard Object",true))
@@ -2410,7 +2226,7 @@ BOOL ReadStandardObjects(PICSdb *pd)
 //    pd       database structure to be filled in from PICS
 //out:   true     if cancel selected
 
-BOOL ReadDataLinkOptions(PICSdb *pd)
+bool ReadDataLinkOptions(PICSdb *pd)
 {
    int      i,j;
    BOOL     got9600;
@@ -2418,7 +2234,7 @@ BOOL ReadDataLinkOptions(PICSdb *pd)
    dword    *dp;
 
    ReadNext();                         //point to next token            ***008
-   if (lp==NULL||*lp++!='{')              //no open token
+   if (lp==NULL || *lp++!='{')         //no open token
       return tperror("Expected { here",true);
 
    memset(pd->DataLinkLayerOptions, 0, sizeof(pd->DataLinkLayerOptions)); //default is none
@@ -2430,69 +2246,82 @@ BOOL ReadDataLinkOptions(PICSdb *pd)
       pd->PTP232BaudRates[i]=0;
       pd->PTPmodemBaudRates[i]=0;
    }
+
    while (lp!=NULL)
-   {  ReadNext();                      //point to next token            ***008
-      if (*lp=='}'||lp==NULL) break;         //return, we're done with these
-      if ((p=strchr(lp,':'))!=NULL)       //colon in this one
-         *p++=0;                       //make it asciz there
-      rtrim(lp);                       //trim trailing blanks           ***006
+   {
+      ReadNext();                         //Read a line
+      if (*lp=='}' || lp==NULL) break;    //return, we're done with these
+      if ((p=strchr(lp,':')) != NULL)     //colon in this one
+         *p++ = 0;                        //make it asciz there  TODO: writing into buffer.  fixme
+      rtrim(lp);                          //trim trailing blanks
       for (i=0;i<(sizeof(StandardDataLinks)/sizeof(StandardDataLinks[0]));i++)
-        if (_stricmp(lp,StandardDataLinks[i])==0) //found it
-        {   pd->DataLinkLayerOptions[i] = 1;    //mark this data link supported
-         switch(i)                     //some of these need extra handling
+      {
+         if (_stricmp(lp,StandardDataLinks[i])==0) //found it
          {
-         case 9:                       //MS/TP master
-            dp=&pd->MSTPmasterBaudRates[0];
-            goto rdlorates;
-         case 10:                   //MS/TP slave
-            dp=&pd->MSTPslaveBaudRates[0];
-            goto rdlorates;
-         case 11:                   //PTP 232
-            dp=&pd->PTP232BaudRates[0];
-            goto rdlorates;
-         case 12:                   //PTP modem, fixed baud rates
-            dp=&pd->PTPmodemBaudRates[0];
+            pd->DataLinkLayerOptions[i] = 1;    //mark this data link supported
+            switch(i)                     //some of these need extra handling
+            {
+            case 9:                       //MS/TP master
+               dp=&pd->MSTPmasterBaudRates[0];
+               goto rdlorates;
+            case 10:                      //MS/TP slave
+               dp=&pd->MSTPslaveBaudRates[0];
+               goto rdlorates;
+            case 11:                      //PTP 232
+               dp=&pd->PTP232BaudRates[0];
+               goto rdlorates;
+            case 12:                      //PTP modem, fixed baud rates
+               dp=&pd->PTPmodemBaudRates[0];
 rdlorates:     got9600=false;
-            lp=p;                   //point to argument(s)
-            p[-1]=':';
-            for (j=0;j<16;j++)            //read up to 16 baudrates
-               if ( (*lp==0) || ((dp[j]=ReadDW())==0) )
-                  break;               //stop as soon as we fail to find another one
-               else if (dp[j]==9600)
-                  got9600=true;        //remember if we find 9600 baud
-                  
-            if ((i==9||i==10)&&got9600==false)  //MS/TP must include 9600 baud
-            {  if (tperror("MS/TP devices must support 9600 baud!",true))
-                  return true;
-            }
-            break;
-         case 13:                   //PTP autobaud
-            lp=p;                   //point to argument(s)
-            p[-1]=':';
-            if ((pd->PTPAutoBaud[0]=ReadDW())==0)
-            {  if (tperror("Expected Autobaud range 'from baudrate' here!",true))
-                  return true;
-            }
-            else
-            {  skipwhitespace();
-               if (_strnicmp(lp,"to",2)==0)
-               {  lp+=2;               //skip over the 'to'
-                  if ((pd->PTPAutoBaud[1]=ReadDW())==0)
-                  {  if (tperror("Expected Autobaud range 'to baudrate' here!",true))
+               lp=p;                      //point to argument(s)
+               p[-1]=':';
+               for (j=0;j<16;j++)         //read up to 16 baudrates
+                  if ( (*lp==0) || ((dp[j]=ReadDW())==0) )
+                     break;               //stop as soon as we fail to find another one
+                  else if (dp[j]==9600)
+                     got9600=true;        //remember if we find 9600 baud
+
+               if ((i==9 || i==10) && got9600==false)  //MS/TP must include 9600 baud
+               {
+                  if (tperror("MS/TP devices must support 9600 baud!",true))
                      return true;
-                  }
+               }
+               break;
+            case 13:                   //PTP autobaud
+               lp=p;                   //point to argument(s)
+               p[-1]=':';
+               if ((pd->PTPAutoBaud[0]=ReadDW())==0)
+               {
+                  if (tperror("Expected Autobaud range 'from baudrate' here!",true))
+                     return true;
                }
                else
-               {  if (tperror("Expected 'to' here!",true))
-                     return true;
+               {
+                  skipwhitespace();
+                  if (_strnicmp(lp,"to",2)==0)
+                  {
+                     lp+=2;               //skip over the 'to'
+                     if ((pd->PTPAutoBaud[1]=ReadDW())==0)
+                     {
+                        if (tperror("Expected Autobaud range 'to baudrate' here!",true))
+                        return true;
+                     }
+                  }
+                  else
+                  {
+                     if (tperror("Expected 'to' here!",true))
+                        return true;
+                  }
                }
-            };
+            }
+            i=0;
+            break;
          }
-         i=0;
-         break;
-        }
+      }
+
       if (i)
-      {  if (tperror("Unknown Data Link Layer Option",true))
+      {
+         if (tperror("Unknown Data Link Layer Option",true))
             return true;
       }
    }
@@ -2505,15 +2334,15 @@ rdlorates:     got9600=false;
 //    pd       database structure to be filled in from PICS
 //out:   true     if cancel selected
 
-BOOL ReadSpecialFunctionality(PICSdb *pd)
+bool ReadSpecialFunctionality(PICSdb *pd)
 {
    int      i;
    char     *p;
    octet    *wp;
    dword    d;
 
-   ReadNext();                         //point to next token            ***008
-   if (lp==NULL||*lp++!='{')              //no open token
+   ReadNext();                         //point to next token
+   if (lp==NULL || *lp++!='{')         //no open token
       return tperror("Expected { here",true);
 
    // Initialize Special Functionality items
@@ -2523,55 +2352,61 @@ BOOL ReadSpecialFunctionality(PICSdb *pd)
    pd->BBMD=0;  // default is no BBMD support
    while (lp!=NULL)
    {
-      ReadNext();                      //point to next token            ***008
-      if (*lp=='}'||lp==NULL) break;         //return, we're done with these
+      ReadNext();                         //point to next token
+      if (*lp=='}'||lp==NULL) break;      //return, we're done with these
       if ((p=strchr(lp,':'))!=NULL)       //colon in this one
-         *p++=0;                       //make it asciz there
+         *p++=0;                          //make it asciz there  TODO: writing into buffer.  fixme
       for (i=0;i<(sizeof(SpecialFunctionality)/sizeof(SpecialFunctionality[0]));i++)
-        if (_stricmp(lp,SpecialFunctionality[i])==0) //found it
-        {
-         switch(i)
+      {
+         if (_stricmp(lp,SpecialFunctionality[i])==0) //found it
          {
-         case 0:                       //max apdu size
-            lp=p;                   //point to argument(s)
-            p[-1]=':';
-            d=ReadDW();                //parse a window argument
-            if (d<50||d>1476)          //APDU size must be 50-1476
-            {  if (tperror("APDU sizes must be 50..1476!",true))
-                  return true;
-            }
-            pd->MaxAPDUSize=LOWORD(d);
-            break;
-         case 1:                       //request window
-            wp=&pd->SegmentedRequestWindow;
-            goto rsfwin;
-         case 2:                       //response window
-            wp=&pd->SegmentedResponseWindow;
-rsfwin:        lp=p;                   //point to argument(s)
-            p[-1]=':';
-            d=ReadDW();                //parse a window argument
-            if (d<1||d>127)               //window size must be 1-127
-            {  if (tperror("Window sizes must be 1..127!",true))
-                  return true;
-            }
-            *wp=LOBYTE(d);
-            break;
-         case 3:                       //Router
-            pd->RouterFunctions=rfSupported;
-            break;
+            switch(i)
+            {
+            case 0:                       //max apdu size
+               lp=p;                      //point to argument(s)
+               p[-1]=':';
+               d=ReadDW();                //parse a window argument
+               if (d<50 || d>1476)        //APDU size must be 50-1476
+               {
+                  if (tperror("APDU sizes must be 50..1476!",true))
+                     return true;
+               }
+               pd->MaxAPDUSize=LOWORD(d);
+               break;
+            case 1:                       //request window
+               wp=&pd->SegmentedRequestWindow;
+               goto rsfwin;
+            case 2:                       //response window
+               wp=&pd->SegmentedResponseWindow;
+rsfwin:        lp=p;                      //point to argument(s)
+               p[-1]=':';
+               d=ReadDW();                //parse a window argument
+               if (d<1||d>127)            //window size must be 1-127
+               {
+                  if (tperror("Window sizes must be 1..127!",true))
+                     return true;
+               }
+               *wp=LOBYTE(d);
+               break;
+            case 3:                       //Router
+               pd->RouterFunctions=rfSupported;
+               break;
             case 4:
-            pd->BBMD=1;                     //BBMD functionality is supported
+               pd->BBMD=1;                //BBMD functionality is supported
+               break;
+            }
+            i=0;
             break;
          }
-         i=0;
-         break;
-        }
+      }
+
       if (i)
-      {  if (tperror("Unknown Special Functionality Option",true))
+      {
+         if (tperror("Unknown Special Functionality Option",true))
             return true;
       }
    }
-   return false;     
+   return false;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -2580,15 +2415,15 @@ rsfwin:        lp=p;                   //point to argument(s)
 //    pd       database structure to be filled in from PICS
 //out:   true     if cancel selected
 
-BOOL ReadFailTimes(PICSdb *pd)
-{  
+bool ReadFailTimes(PICSdb *pd)
+{
    int      i;
    char     *p;
    dword    d;
-   BOOL     flag;
+   bool     flag;
 
-   ReadNext();                         //point to next token      
-   if (lp==NULL||*lp++!='{')              //no open token
+   ReadNext();                         //point to next token
+   if (lp==NULL||*lp++!='{')           //no open token
       return tperror("Expected { here",true);
 
    memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes)); //default is not supported
@@ -2599,8 +2434,8 @@ BOOL ReadFailTimes(PICSdb *pd)
       if ((p=strchr(lp,':'))==NULL){         //colon in this one
          return tperror("Expected { here",true);
       }
-      *p++=0;  
-      flag = FALSE;
+      *p++ = 0;                              // TODO: writing into buffer.  fixme
+      flag = false;
       for (i=0;i<(sizeof(FailTimes)/sizeof(FailTimes[0]));i++)
       {
          if (_stricmp(lp,FailTimes[i])==0)   //found Fail Time
@@ -2609,85 +2444,82 @@ BOOL ReadFailTimes(PICSdb *pd)
             p[-1]=':';
             d=ReadDW();                //parse a argument
             pd->BACnetFailTimes[i] = d;
-            flag = TRUE;
+            flag = true;
             break;
          }
       }
-      if (flag == FALSE) {
+      if (flag == false) {
          if (tperror("Unknown Fail Time Option",true))
             return true;
       }
    }
 
-   return FALSE;
+   return false;
 }
 
-
-   
 ///////////////////////////////////////////////////////////////////////
 // Read Object Database section of a TPI file
 //in: ifile    file stream
 //    pd       database structure to be filled in from PICS
 //out:   true     if cancel selected
 
-BOOL ReadObjects(PICSdb *pd)
+bool ReadObjects(PICSdb *pd)
 {
-   char  *pn;                    //property name pointer
+   char  *pn;                       //property name pointer
    char  objname[512];
    BOOL  WeKnowObjectType;
-   word  objtype;                //enumeration value for object type
+   word  objtype;                   //enumeration value for object type
    dword objid;                     //object identifier
-   octet fType,fID,fName;           //                            ***014
+   octet fType,fID,fName;
    generic_object *pobj,*po,*polast;      //pointers to objects
-   BOOL    i;                            
-   ReadNext();                      //point to next token               ***008
-   if (lp==NULL||*lp++!='{')           //no open token
+   BOOL    i;
+   ReadNext();                      //point to next token
+   if (lp==NULL||*lp++!='{')        //no open token
       return tperror("Expected { here",true);
 
-   while (lp!=NULL&&!cancel)
+   while (lp!=NULL && !cancel)
    {
-nextobject:                            //                            ***012
+nextobject:
 
-      //added for reset all flag, ***********017
       bNeedReset = false;
       bHasNoneType = false;
       bHasReset = false;
 
-      lp = ReadNext();                 //point to next token               ***008
+      lp = ReadNext();                 //point to next token
       if (lp == NULL || *lp=='}') break;        //return, we're done with these
-      if (*lp)                      //not a blank line
+      if (*lp)                         //not a blank line
       {
          if (*lp=='{')                 //begin a new object
          {
-            WeKnowObjectType=false;       //don't know what kind yet
+            WeKnowObjectType=false;    //don't know what kind yet
             objtype=0;                 //no object found yet
             objname[0]=0;
-            fType=fID=fName=0;            //                            ***014
+            fType=fID=fName=0;
             pobj=NULL;
-            while (true)               //(lp!=NULL)                     ***006
+            while (true)               //(lp!=NULL)
             {
-               lp = ReadNext();              //point to next token               ***008
+               lp = ReadNext();              //point to next token
                if ((lp==NULL) || (*lp=='}')) break;   //done with this object
-               if (objtype==0xFFFF)    //                            ***012
+               if (objtype==0xFFFF)
                   goto nextobject;     //once we find a bogus object type, we skip the rest of the object def
-               if (*lp)             //ignore blank lines
+               if (*lp)                //ignore blank lines
                {
                   skipwhitespace();    //point to first char of name
-                  pn=lp;
-                  if ((lp=strchr(pn,':'))==NULL)      //find its end
-                  {  
+                  pn = lp;
+                  if ((lp = strchr(pn,':'))==NULL)      //find its end
+                  {
                      lp=strchr(pn,0);  //point to the end
                      if (tperror("Expected : after property name here!",true))
                         return true;
                   }
-                  *lp++=0;          //make property name asciz
+                  *lp++=0;          //make property name asciz  TODO: writing into buffer.  fixme
                   if (WeKnowObjectType)
-                  {  
+                  {
                      if (_stricmp(pn,"object-type")==0)
-                     {  
+                     {
                         lp[-1]=':';
                         if ((objtype < etObjectTypes.propes) && (objtype != ReadEnum(&etObjectTypes)))
-                        {  
+                        {
                            if (tperror("The object-type does not agree with the object-identifier!",true))
                               return true;
                            objtype=0xFFFF;      //pretend objid was bad
@@ -2704,24 +2536,24 @@ nextobject:                            //                            ***012
                         }
                         //ended by xlp,2002-11
 
-                        pobj->propflags[typeProp]|=PropIsPresent; //remember we saw object type    ***014 Begin
-                        while (*lp==space||*lp==',') lp++;  //skip any more whitespace or commas
-                        if (*lp=='W'||*lp=='w')          //prop is writeable
-                           pobj->propflags[typeProp]|=PropIsWritable; //                     ***014 End
+                        pobj->propflags[typeProp]|=PropIsPresent; //remember we saw object type
+                        while (*lp==space || *lp==',') lp++;  //skip any more whitespace or commas
+                        if (*lp=='W' || *lp=='w')             //prop is writeable
+                           pobj->propflags[typeProp]|=PropIsWritable;
                         continue;
                      }
                      else if (_stricmp(pn,"object-identifier")==0)
-                     {  
+                     {
                         lp[-1]=':';
                         objid=ReadObjID();
                         if (objtype!=(word)(objid>>22))
-                        {  
+                        {
                            if (tperror("The object-type does not agree with the object-identifier!",true))
                               return true;
                            objtype=0xFFFF;      //pretend objid was bad
                         }
                         //added by xlp,2002-11
-//                       if (objtype != 0xFFFF) // msdaner 9/2004
+//                      if (objtype != 0xFFFF) // msdaner 9/2004
                         if (objtype < MAX_DEFINED_OBJ)
                          {
                           ObjInTestDB[objtype].object_type=objtype;       
@@ -2739,62 +2571,64 @@ nextobject:                            //                            ***012
                      }
                      print_debug("RO: About to PP\n");
                      if (ParseProperty(pn,pobj,objtype)) return true;
-                     
-                     //Added for resetting the value, *********017
+
+                     //Added for resetting the value
                      if(bNeedReset & bHasNoneType)
-                        if(ParseProperty(NoneTypePropName,pobj,objtype)) return true;     
-                     
+                        if(ParseProperty(NoneTypePropName,pobj,objtype)) return true;
+
                      print_debug("RO: Done PP'ing\n");
                   }
                   else                    //don't know what kind of object this is yet
-                  {  
+                  {
                      if (_stricmp(pn,"object-type")==0)
-                     {  
+                     {
                         lp[-1]=':';
                         if ((objtype=ReadEnum(&etObjectTypes))!=0xFFFF)
-                        {  
+                        {
                            WeKnowObjectType=true;
-                            objid=((dword)objtype)<<22;
-                           fType|=PropIsPresent; //remember we have the type                 ***014 Begin
+                           objid=((dword)objtype)<<22;
+                           fType|=PropIsPresent; //remember we have the type
                            while (*lp==space||*lp==',') lp++;  //skip any more whitespace or commas
                            if (*lp=='W'||*lp=='w')          //prop is writeable
-                              fType|=PropIsWritable;        //                         ***014 End
+                              fType|=PropIsWritable;
                         }
                      }
                      else if (_stricmp(pn,"object-identifier")==0)
-                     {  
+                     {
                         lp[-1]=':';
                         if ((objid=ReadObjID())!=badobjid)
-                        {  WeKnowObjectType=true;
+                        {
+                           WeKnowObjectType=true;
                            objtype=(word)(objid>>22);
-                           fID|=PropIsPresent;  //remember we had the id                     ***014 Begin
-                           while (*lp==space||*lp==',') lp++;  //skip any more whitespace or commas
+                           fID|=PropIsPresent;  //remember we had the id
+                           while (*lp==space||*lp==',')
+                              lp++;  //skip any more whitespace or commas
                            if (*lp=='W'||*lp=='w')          //prop is writeable
-                              fID|=PropIsWritable;       //                         ***014 End
+                              fID|=PropIsWritable;
                         }
                         else
                            objtype=0xFFFF;      //object identifier was bogus
                      }
                      else if (_stricmp(pn,"object-name")==0)
-                     {  
+                     {
                         lp[-1]=':';
                         if (setstring(objname,sizeof(objname),lp)) return true;
-                        fName|=PropIsPresent;   //remember we have the name                     ***014 Begin
+                        fName|=PropIsPresent;   //remember we have the name
                         while (*lp==space||*lp==',') lp++;  //skip any more whitespace or commas
                         if (*lp=='W'||*lp=='w')          //prop is writeable
-                           fType|=PropIsWritable;        //                            ***014 End
+                           fType|=PropIsWritable;
                      }
                      else
-                     {  
+                     {
                         lp[-1]=':';
                         if (tperror("Must identify the object-identifier or object-type before defining this property!",true))
                            return true;
                      }
                      if (WeKnowObjectType)      //just found out what type it is
-                     {  
+                     {
                         // 5-23-05 Shiyuan Xiao.
 //                      if (objtype >= etObjectTypes.propes)   //this is a proprietary object type
-//                      {  
+//                      {
 //                         tperror("Sorry, this version does not support Proprietary Objects in TextPICS!",true);
 //                         objtype=0xFFFF;      //pretend objid was bad
 //                         continue;
@@ -2803,7 +2637,7 @@ nextobject:                            //                            ***012
                         if (objtype >= etObjectTypes.propes)
                         {
                            if ((pobj=(generic_object *)malloc(sizeof(proprietary_obj_type)))==NULL)      //can't allocate space for it
-                           {  
+                           {
                               tperror("Can't allocate space for this object...",true);
                               objtype=0xFFFF;      //pretend objid was bad
                               continue;
@@ -2821,9 +2655,10 @@ nextobject:                            //                            ***012
 
                            continue;
                         }
-                        
+
                         if ((pobj=(generic_object *)malloc(StdObjects[objtype].sotSize))==NULL)    //can't allocate space for it
-                        {  tperror("Can't allocate space for this object...",true);
+                        {
+                           tperror("Can't allocate space for this object...",true);
                            objtype=0xFFFF;      //pretend objid was bad
                            continue;
                         }
@@ -2846,21 +2681,25 @@ nextobject:                            //                            ***012
                }
             }
             //here we've found the end of the object definition
-            if (pobj)                  //                         ***012 Begin
-            {  if (pobj->object_name[0]==0) //make sure object is named
-               {  tperror("Object must have a name...",true);
+            if (pobj)
+            {
+               if (pobj->object_name[0]==0) //make sure object is named
+               {
+                  tperror("Object must have a name...",true);
                   objtype=0xFFFF;         //pretend objid was bad
                }
                if (objtype==0xFFFF)    //something was wrong with it
-               {  free(pobj);       //toss allocated object
+               {
+                  free(pobj);          //toss allocated object
                   return true;         //fail
                }
                po=pd->Database;        //check for uniqueness of objid
-               polast = NULL;          
+               polast = NULL;
                while (po!=NULL)
-               {  
+               {
                   if (objid==po->object_id)  //oops, we already have this one!
-                  {  tperror("Object Identifier is not unique!",true);
+                  {
+                     tperror("Object Identifier is not unique!",true);
                      free(pobj);    //toss allocated object
                      return true;      //fail
                   }
@@ -2874,15 +2713,16 @@ nextobject:                            //                            ***012
                   polast->next = pobj;  // add new object after the last one
                else
                   pd->Database = pobj;  // This is the first object, so set head pointer.
-            }                       //                         ***012 End
+            }
          }
          else                       //anything else is junk
-         {  if (tperror("Expected '{' to begin an object definition here!",true))
+         {
+            if (tperror("Expected '{' to begin an object definition here!",true))
                return true;
          }
       }
    }
-   return false;     
+   return false;
 }
 
 /*
@@ -2891,9 +2731,10 @@ nextobject:                            //                            ***012
 //in:
 //out:
 void CheckPICSPropCons(PICSdb *pd)
-{   word objtype; 
-    BOOL stdObjflag=false;
-    generic_object *obj;
+{
+   word objtype; 
+   BOOL stdObjflag=false;
+   generic_object *obj;
    obj=pd->Database;
    while(obj){
        objtype=obj->object_type;
@@ -3031,7 +2872,8 @@ void AI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 //Check properties of AO from EPICS ,added by xlp,2002-11
 //=====================================================================//
 void AO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
-{    char checkMsg[150]; 
+{
+   char checkMsg[150]; 
    //Check if properties of AO objects support cov reporting.
    if((servs[asSubscribeCOV])||(servs[asConfirmedCOVNotification])
        ||(servs[asUnconfirmedCOVNotification])){
@@ -3065,7 +2907,8 @@ void AO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 //Check properties of AV from EPICS ,added by xlp,2002-11
 //=====================================================================//
 void AV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
-{     char checkMsg[150];
+{
+   char checkMsg[150];
      //PropGroup 1 Cons check for priority_array and relinquish_default
      if(((propFlags[11])|(propFlags[10]))&&!((propFlags[11])&(propFlags[10]))){
          sprintf(checkMsg,"priority_array and relinquish_default must exist simultaneously for AV objects!\n");
@@ -3329,7 +3172,7 @@ void LO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by Loop objects!\n");
       //PrintToFile(checkMsg);
       tperror(checkMsg,false);    
-    }  
+    }
   }
 
   return;
@@ -3467,7 +3310,7 @@ void TR_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
     {
       sprintf(checkMsg,"PropGroup(notification_threshold,notify_type...) are required because of intrinsic reporting supported by Trend Log objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);    
+      tperror(checkMsg,false);
     }
   }
 
@@ -3562,27 +3405,20 @@ void CheckPICSServCons(PICSdb *pd)
    return;
 }
 */
+
 ////////////////////////////////////////////////////////////////////////
 //EPICS consistency Application Services check  added by xlp,2002-11
 //in:
 //out:
 void PrintToFile(char *outBuf)
 {
-// FILE *op;  
-    word strLength;
-   if ( lPICSErr != -1 )
+   if (lPICSErr != -1)
       lPICSErr++;
-   if(outBuf == NULL) return;
-   strLength=strlen(outBuf);
-// op = fopen("c:\\EPICSConsChk.txt","a+");
-// if(op == NULL) return;
-   if ( pfileError == NULL )
-      return;
-// fprintf(op,"%s",outBuf);
-   fprintf(pfileError,"%s",outBuf);
-// fclose(op);
 
-   return;
+   if ((outBuf != NULL) && (pfileError != NULL))
+   {
+      fprintf(pfileError,"%s",outBuf);
+   }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -4122,7 +3958,7 @@ void GetSequence(dword *p1,dword *p2,octet num)
 //
 //out:   true  if cancel selected
 
-BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
+BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
 {
    propdescriptor *pd,*newpd;
    word        pindex,ub,i;
@@ -4137,6 +3973,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
    octet       oParseType;
    BACnetActionCommand **acp;
    BACnetDateRange      *dtp;
+   bool     wrapped;
 
    void     *pvalue_type;
 
@@ -4158,34 +3995,30 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
       {
          pstruc=(octet *)pobj+pd->StrucOffset;  //make pointer to where the value is stored
 
-         //Save the property name which parse type is none. *************017
-         if(pd->ParseType==none) 
+         //Save the property name which parse type is none.
+         if (pd->ParseType==none) 
             strcpy(NoneTypePropName,pn);
 
-         if(bNeedReset && bHasNoneType)
+         if (bNeedReset && bHasNoneType)
          {
             lp = &NoneTypeValue[0];
          }
          else
          {
             pn=strchr(pn,0);              //restore the ':' after the property name
-            *pn=':';
+            *pn=':';          // TODO: writing into buffer.  Fixme
          }
 
-         skipwhitespace();             //point to where the value should be               ***013 Begin
+         skipwhitespace();             //point to where the value should be
          print_debug("PP: pd->ParseType == %d\n",pd->ParseType); //MAG
-         //Modified by Liangping Xu,2002-9
-            //p=lp;
-         //if(strchr(p,42)||strchr(p,63))
-         if (*lp=='?'||*lp=='*')                //property value is unspecified
-////////////////////////////////////////////////
-         {  
+         if (*lp=='?' || *lp=='*')                //property value is unspecified
+         {
             pobj->propflags[pindex]|=ValueUnknown; //we don't know what the value is
-            if(pd->ParseType == none) 
-               NoneTypeValue[0] = *lp;   //added for storeing the value of property,********017
-            lp++;                   //skip ?                                  ***014
+            if (pd->ParseType == none)
+               NoneTypeValue[0] = *lp;   //added for storeing the value of property
+            lp++;                   //skip ?
          }
-         else                       //has a property value                          ***013 End
+         else                       //has a property value
          {
             oParseType= pd->ParseType;
             if(bNeedReset & bHasNoneType)
@@ -4204,22 +4037,20 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                //note: we can't tell the difference between a ParseReference which had an error
                //    and returned NULL, vs. an intentional *no reference* which also returns
                //    NULL.
-               *(BACnetObjectPropertyReference **)pstruc=ParseReference(NULL);   //          ***012
+               *(BACnetObjectPropertyReference **)pstruc=ParseReference(NULL);
 //             ParseRefList((BACnetObjectPropertyReference **)pstruc);
                break;
             case propref:              //obj property reference
                ParseReference((BACnetObjectPropertyReference *)pstruc);
                break;
-
-            //////Modified by Liangping Xu,2002-9////
-            case devobjpropref:              //obj property reference
-                    ParseDevObjPropReference((BACnetDeviceObjectPropertyReference *)pstruc);
+            case devobjpropref:        //obj property reference
+               ParseDevObjPropReference((BACnetDeviceObjectPropertyReference *)pstruc);
                break;
             case lodoref:
                ParseDevObjList((BACnetDeviceObjectReference **)pstruc, (word) pd->PropID );
                break;
             case recip:                //recipient
-               ParseRecipient((BACnetRecipient *)pstruc);                  //          ***012
+               ParseRecipient((BACnetRecipient *)pstruc);
                break;
             case skeys:                //session keys
                if (ParseSessionKeyList((BACnetSessionKey **)pstruc)) return true;
@@ -4230,7 +4061,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
             case xsched:               //exception schedule: array[] of specialevent
                if (ParseExceptionSchedule((BACnetExceptionSchedule *)pstruc)) return true;
                break;
-            case reciplist:               //list of BACnetDestination
+            case reciplist:            //list of BACnetDestination
                if (ParseDestinationList((BACnetDestination **)pstruc)) return true;
                break;
             case tsrecip:              //time synch recipients
@@ -4249,11 +4080,10 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                if (ParseObjectList(((BACnetObjectIdentifier **)pstruc),&((device_obj_type *)pobj)->num_objects)) return true;
                break;
             case lopref:               //list of objectpropertyreferences
-               
                if (ParseRefList((BACnetDeviceObjectPropertyReference **)pstruc)) return true;
-      
-               //Add for resetting value of present-value, **********017
-               if(objtype == 0x11)  //object type is schedule
+ 
+               //Add for resetting value of present-value,
+               if(objtype == OBJ_SCHEDULE)
                {
                   // Schedule object: reset value_type to referenced property's type
                   BACnetDeviceObjectPropertyReference *temp;
@@ -4263,7 +4093,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                   dword refpropid = temp->wPropertyid;
                   newpd=StdObjects[refobjid>>22].sotProps;        //point to property descriptor table for this object type
                   do
-                  {  
+                  {
                      if (refpropid == newpd->PropID)
                      {
                         newPropET = newpd->PropET;
@@ -4278,7 +4108,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                      if (newpd->PropGroup&Last)
                         return tperror("Invalid Property Name- Check Spelling",true); 
                      newpd++;                         //advance to next table entry
-                  }while(true);
+                  } while(true);
                }
                break;
             case vtcl:                 //vt classes
@@ -4288,11 +4118,11 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                // msdanner 9/2004 - now handles bitstrings up to MAX_BITSTRING,
                // regardless of the number of defined protocol services
                if (ParseBitstring((octet *)pstruc,
-                   MAX_BITSTRING,                                  /* max bits to parse */
-                   &EPICSLengthProtocolServicesSupportedBitstring)) /* how many bits were parsed? */
+                                  MAX_BITSTRING,                                   /* max bits to parse */
+                                  &EPICSLengthProtocolServicesSupportedBitstring)) /* how many bits were parsed? */
                    return true;
                EPICSLengthProtocolServicesSupportedBitstring++;  // zero-based correction
-//             ProtocolServSup.ObjServNum=sizeof(StandardServices)/sizeof(StandardServices[0]);   
+//             ProtocolServSup.ObjServNum=sizeof(StandardServices)/sizeof(StandardServices[0]);
 //             ProtocolServSup.PropSupValue=(octet *)pstruc; 
                
                break;
@@ -4300,11 +4130,11 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                // msdanner 9/2004 - now handles bitstrings up to MAX_BITSTRING,
                // regardless of the number of defined protocol object types
                if (ParseBitstring((octet *)pstruc,
-                   MAX_BITSTRING,                                  /* max bits to parse */
-                   &EPICSLengthProtocolObjectTypesSupportedBitstring)) /* how many bits were parsed? */
+                                  MAX_BITSTRING,                                      /* max bits to parse */
+                                  &EPICSLengthProtocolObjectTypesSupportedBitstring)) /* how many bits were parsed? */
                    return true;
                EPICSLengthProtocolObjectTypesSupportedBitstring++;  // zero-based correction
-//             ProtocolObjSup.PropSupValue=(octet *)pstruc;       
+//             ProtocolObjSup.PropSupValue=(octet *)pstruc;
 //             ProtocolObjSup.ObjServNum=sizeof(StandardObjects)/sizeof(StandardObjects[0]);   
                break;
             case dt:                //date/time
@@ -4313,26 +4143,36 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                 //** Modified by Liangping Xu,2002-9
             case dtrange:              //daterange
                skipwhitespace();
-               if ( *lp == '(' && *(lp+1) == '(' )
-                  lp++;  // if surrounded by opening brackets skip
-                    print_debug("PD:  ParseDateRange starts now\n"); 
+               wrapped = ((*lp == '(') && (*(lp+1) == '(' ));
+               if (wrapped)
+               {
+                  lp++;  // if daterange is wrapped, skip wrapper
+               }
+               print_debug("PD:  ParseDateRange starts now\n"); 
                dtp=(BACnetDateRange *)pstruc;
                if (ParseDate(&dtp->start_date)) return true;
-                    if(*lp=='.'&&*(lp+1)=='.')     
-                   lp=strstr(lp,"..")+2;
-                    else
-               {  
-                  skipwhitespace();
-                  if ( *lp=='-' )
-                     lp=strstr(lp,"-")+1;
-                  else
-                     if (MustBe(',')) return true;
+               skipwhitespace();
+               // Allow dates separated by dot-dot, dash, or comma
+               if (*lp=='.'&&*(lp+1)=='.')
+               {
+                   lp += 2;
                }
-                skipwhitespace();
-                    print_debug("PD: about to second first date\n");                        
+               else if (*lp == '-')
+               {
+                  lp += 1;
+               }
+               else
+               {
+                  if (MustBe(',')) return true;
+               }
+               skipwhitespace();
+
+               print_debug("PD: about to second first date\n");
                if (ParseDate(&dtp->end_date)) return true;
-               if ( *lp == ')' )
-                  lp++;   // skip last close if its there
+               if (wrapped)
+               {
+                  if (MustBe(')')) return true;
+               }
                break;
             case ddate:
                skipwhitespace();
@@ -4347,22 +4187,22 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                // Here, the PropET table property gives the number of array entries
                assert( pd->PropET > 0 );
                for (i=0; i<pd->PropET; i++) 
-                  acp[i]=NULL;   //init all slots to NULL values ***011
-               
+                  acp[i]=NULL;   //init all slots to NULL values
+
                i=0;
                if ((lp=openarray(lp))==NULL) return true;
-               
-               while (i < pd->PropET)  //                         ***008 Begin
-               {  
+
+               while (i < pd->PropET)
+               {
                   if ((acp[i]=ReadActionCommands())==NULL) return true; //failed for some reason   
-                  i++;              //                         ***011 Begin
+                  i++;
                   while (*lp==space||*lp==',') lp++;  //skip separation between list elements
-                  if (*lp==0) 
+                  if (*lp==0)
                      if (ReadNext()==NULL) break;
-                  if (*lp=='}') 
+                  if (*lp=='}')
                   {  lp++;
                      break;            //close this array out
-                  }                 //                         ***011 End
+                  }
                }
                ((command_obj_type *)pobj)->num_actions=i;
                break;
@@ -4371,64 +4211,45 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                break;
             case stavals:        // list of unsigned
                if (ParseUnsignedList( (UnsignedList **)pstruc )) return true;
-/*
-               //list of states              ***006 Begin
-               op=(octet *)pstruc;
-               for (i=0;i<32;i++) op[i]=0;   //                         ***011
-               i=0;
-               skipwhitespace();
-               if (MustBe('(')) return true;
-               
-               while (*lp&&i<32)
-               {  if ((db=ReadB(1,32))!=dontcare) op[i]=db;
-                  i++;              //                         ***011 Begin
-                  if(*(lp-1) == ')') lp--;  // MAG
-                  while (*lp==space||*lp==',') lp++;  //skip separation between list elements
-                  if (*lp==0) 
-                     if (ReadNext()==NULL) break;
-                  if (*lp==')') 
-                  {  lp++;
-                     break;            //close this array out
-                  }                 //                         ***011 End
-               }
-*/
                break;
             case statext:              //state text array
             case actext:               //action_text array
                cp=(char **)pstruc;
                // Here, the PropET table property gives the number of array entries
                assert( pd->PropET > 0 );
-               for (i=0; i < pd->PropET; i++) 
+               for (i=0; i < pd->PropET; i++)
                   cp[i]=NULL; //init all slots to NULL values  ***011
                i=0;
                if ((lp=openarray(lp))==NULL) return true;
                // Allow empty first line, after the bracket
-               if (*lp==0) 
+               if (*lp==0)
                   if (ReadNext()==NULL) break;
-               
+
                while (*lp && (i < pd->PropET) )
-               {  
+               {
                   // Allow up to 80 chars (was 32) since b[] is 512 bytes, and
                   // we'll malloc the string storage below to fit the actual size.
                   if (setstring(b,80,lp)) return true;   //put string in buffer b
                   if (b[0])            //if string isn't null
-                  {  ub=strlen(b)+1;   //reqd length
+                  {
+                     ub=strlen(b)+1;   //reqd length
                      if ((cp[i]=(char *)malloc(ub))==NULL)
-                     {  tperror("Can't Get String Space!",true);
+                     {
+                        tperror("Can't Get String Space!",true);
                         return true;
                      }
                      strcpy(cp[i],b);  //copy it
                      print_debug("LJT: action_text=%x",cp[i]);
-
                   }
-                  i++;              //                         ***011 Begin
-                  while (*lp==space||*lp==',') lp++;  //skip separation between list elements
-                  if (*lp==0) 
+                  i++;
+                  while (*lp==space || *lp==',') lp++;  //skip separation between list elements
+                  if (*lp==0)
                      if (ReadNext()==NULL) break;
                   if (*lp=='}') 
-                  {  lp++;
+                  {
+                     lp++;
                      break;            //close this array out
-                  }                 //                         ***011 End
+                  }
                }
                break;
             case pae:                  // priority array enums
@@ -4437,107 +4258,120 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                for (i=0;i<16;i++) wp[i]=bpaNULL; //init all slots to NULL values ***011
                i=0;
                if ((lp=openarray(lp))==NULL) return true;
-               
+
                while (*lp&&i<16)
-               {  ep=AllETs[pd->PropET]; //point to enumeration table for this guy
+               {
+                  ep=AllETs[pd->PropET]; //point to enumeration table for this guy
                   if ((ub=ReadEnum(ep))==0xFFFF)
-                  {  tperror("Invalid Enumeration",true);
+                  {
+                     tperror("Invalid Enumeration",true);
                      return true;
                   }
                   *wp++=ub;
                   i++;
-                  lp--;             //need to point to delimiter     ***011 Begin
+                  lp--;             //need to point to delimiter
                   while (*lp==space||*lp==',') lp++; //skip separation between list elements
-                  if (*lp==0) 
+                  if (*lp==0)
                      if (ReadNext()==NULL) break;
-                  if (*lp=='}') 
-                  {  lp++;
+                  if (*lp=='}')
+                  {
+                     lp++;
                      break;            //close this array out
-                  }                 //                         ***011 End
+                  }
                }
                break;
             case pau:                  //priority array uw
                wp=(word *)pstruc;
-               for (i=0;i<16;i++) wp[i]=upaNULL; //init all slots to NULL values ***011
+               for (i=0;i<16;i++) wp[i]=upaNULL; //init all slots to NULL values
                i=0;
                if ((lp=openarray(lp))==NULL) return true;
-               
-               while (*lp&&i<16)
-               {  if (*lp=='n'||*lp=='N') //we'll assume he means 'NULL'
-                  {  *wp++=upaNULL;    //                         ***013 Begin
-                     while (*lp&&*lp!=space&&*lp!=','&&*lp!='}') lp++; //skip rest of NULL ***014
-                  }                 //                         ***013 End
+
+               while (*lp && i<16)
+               {
+                  if (*lp=='n'||*lp=='N') //we'll assume he means 'NULL'
+                  {
+                     *wp++=upaNULL;
+                     while (*lp&&*lp!=space&&*lp!=','&&*lp!='}') lp++; //skip rest of NULL
+                  }
                   else              //we'll assume there's a number here
                   {
                      *wp++=ReadW();
                      if ( *(lp-1)=='}' ) lp--;  // put back last read char.
                   }
-                  i++;              //                         ***011 Begin
+                  i++;
                   while (*lp==space||*lp==',') lp++; //skip separation between list elements
                   if (*lp==0) 
                      if (ReadNext()==NULL) break;
                   if (*lp=='}') 
-                  {  lp++;
+                  {
+                     lp++;
                      break;            //close this array out
-                  }                 //                         ***011 End
+                  }
                }
                break;
 
             case ptPai:                //priority array int32
                dwp=(dword *)pstruc;
-               for (i=0;i<16;i++) dwp[i]=upaNULL; //init all slots to NULL values   ***011
+               for (i=0;i<16;i++) dwp[i]=upaNULL; //init all slots to NULL values
                i=0;
                if ((lp=openarray(lp))==NULL) return true;
-               
+
                while (*lp&&i<16)
-               {  if (*lp=='n'||*lp=='N') //we'll assume he means 'NULL'
-                  {  *dwp++=upaNULL;      //                         ***013 Begin
-                     while (*lp&&*lp!=space&&*lp!=','&&*lp!='}') lp++; //skip rest of NULL ***014
-                  }                 //                         ***013 End
+               {
+                  if (*lp=='n'||*lp=='N') //we'll assume he means 'NULL'
+                  {
+                     *dwp++=upaNULL;
+                     while (*lp&&*lp!=space&&*lp!=','&&*lp!='}') lp++; //skip rest of NULL
+                  }
                   else              //we'll assume there's a number here
                   {
                      *dwp++=ReadDW();
                      if ( *(lp-1)=='}' ) lp--;  // put back last read char.
                   }
-                  i++;              //                         ***011 Begin
+                  i++;
                   while (*lp==space||*lp==',') lp++; //skip separation between list elements
                   if (*lp==0) 
                      if (ReadNext()==NULL) break;
                   if (*lp=='}') 
-                  {  lp++;
+                  {
+                     lp++;
                      break;            //close this array out
-                  }                 //                         ***011 End
+                  }
                }
                break;
 
             case paf:                  //priority array flt
                fp=(float *)pstruc;
-               for (i=0;i<16;i++) fp[i]=fpaNULL; //init all slots to NULL values ***011
-               i=0;                 //                         ***011
-               if ((lp=openarray(lp))==NULL) return true;
-               
+               for (i=0;i<16;i++)
+                  fp[i]=fpaNULL; //init all slots to NULL values
+               i=0;
+               if ((lp=openarray(lp))==NULL) 
+                  return true;
                while (*lp&&i<16)
                {
-                  while(*lp==space){lp++;       // skip the space **add by xlp**
-                  }                         
-                  if (*lp=='n'||*lp=='N') //we'll assume he means 'NULL'
-                  {  *fp++=fpaNULL;    //                         ***013 Begin
-                     while (*lp&&*lp!=space&&*lp!=','&&*lp!='}') lp++; //skip rest of NULL ***014
-                  }                 //                         ***013 End
-                  else              //we'll assume there's a number here
+                  skipwhitespace();
+                  if (*lp=='n' || *lp=='N') //we'll assume he means 'NULL'
+                  {
+                     *fp++=fpaNULL;
+                     while (*lp && *lp!=space && *lp!=',' && *lp!='}') lp++; //skip rest of NULL
+                  }
+                  else
+                  {
+                     //we'll assume there's a number here
                      *fp++=(float)atof(lp);
-                  i++;              //                         ***011 Begin
+                  }
+                  i++;
                   if ((strdelim(",}"))==NULL) break;
-                  if (lp[-1]=='}') break; //                         ***011 End
+                  if (lp[-1]=='}') break;
                }
                break;
             case ob_id:                //an object identifier
                if ((dw=ReadObjID())==badobjid) return true;
                *(dword *)pstruc=dw;
                break;
-            case ebool:                //boolean value               ***006 Begin
-               *(octet *)pstruc=ReadBool();  //                   ***012
-               break;                  //                         ***006 End
+            case ebool:                //boolean value
+               *(octet *)pstruc=ReadBool();
+               break;
             case etl:
                ep=AllETs[pd->PropET];
                if (ParseEnumList((BACnetEnumList **)pstruc, ep )) return true;
@@ -4545,22 +4379,26 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
             case et:                //an enumeration table
                ep=AllETs[pd->PropET];  //point to enumeration table for this guy
                if ((ub=ReadEnum(ep))==0xFFFF)
-               {  tperror("Invalid Enumeration",true);
+               {
+                  tperror("Invalid Enumeration",true);
                   return true;
                }
                *(word *)pstruc=ub;
                break;
             case bits:                 //octet of T or F flags
+               // 135.1 says these SHOULD BE enclosed in {}, not ()
+               // We accept either for historical reasons
                db=0;
                dm=0x80;
                while (q=*lp++)
-               {  if (q==')') break;
+               {
+                  if (q==')' || q=='}') break;
                   if (q==',') dm>>=1;
-                  if (q=='t'||q=='T') db|=dm;
+                  if (q=='t' || q=='T') db |= dm;
                }
                *(octet *)pstruc=db;
                break;
-            case sw:                //signed word
+            case sw:                   //signed word
                *(int *)pstruc=atoi(lp);
                break;
             case ssint:                // case added  by Liangping Xu, 2002-8-5
@@ -4568,34 +4406,37 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                break;
             case flt:                  //float
                *(float *)pstruc=(float)atof(lp);
-               while(*lp!=0&&*lp!=space&&*lp!=',') 
+               while(*lp!=0 && *lp!=space && *lp!=',')
                   lp++;  // now move past word we just read;
                break;
             case uwarr:
             case uw:                //unsigned word
-            //Note: this is a hack to handle the case of NotificationClass Priority array (3 unsigned words)
-               if (pd->PropFlags&IsArray) //this is an array of words         ***012 Begin
-               {  wp=(word *)pstruc;
+               //Note: this is a hack to handle the case of NotificationClass Priority array (3 unsigned words)
+               if (pd->PropFlags&IsArray) //this is an array of words
+               {
+                  wp=(word *)pstruc;
                   i=0;
                   if ((lp=openarray(lp))==NULL) return true;
-                  
+
                   while (*lp&&i<3)     //no more than 3
-                  {  *wp++=ReadW();
+                  {
+                     *wp++=ReadW();
                      i++;
                      if(*(lp-1) == '}') lp--;  // MAG  error fix for priority object
-                     while (*lp==space||*lp==',') lp++;  //skip separation between list elements
+                     while (*lp==space || *lp==',') lp++;  //skip separation between list elements
                      if (*lp==0) 
                         if (ReadNext()==NULL) break;
                      if (*lp=='}') 
-                     {  lp++;
+                     {
+                        lp++;
                         break;         //close this array out
                      }
                   }
                }
-               else                 //just a word                 ***012 End
+               else                 //just a word
                   *(word *)pstruc=ReadW();
                break;
-            case ud:                //unsigned dword
+            case ud:                   //unsigned dword
             case ptInt32:              // signed long
                *(dword *)pstruc=ReadDW();
                break;
@@ -4606,7 +4447,8 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                ub=127;
    ppub:       dw=ReadDW();
                if (dw==0||dw>ub)       //it's out of range
-               {  sprintf(b,"Must use an Unsigned Integer 1..%u here!",ub);
+               {
+                  sprintf(b,"Must use an Unsigned Integer 1..%u here!",ub);
                   if (tperror(b,true)) return true;
                   dw=(dword) ub;       //stick at upper bound
                }
@@ -4623,24 +4465,22 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                goto ppstub;
             case s132:                 //char [132]
                ub=132;
-   ppstub:         if (setstring((char *)pstruc,ub,lp)) return true;
-                    break;
-                case LOGREC:
-                    //if (ParseLogRec((BACnetLogRecord *)pstruc)) return true;
-                  break;
-                case TSTMP:
+   ppstub:     if (setstring((char *)pstruc,ub,lp)) return true;
+               break;
+            case LOGREC:
+               //if (ParseLogRec((BACnetLogRecord *)pstruc)) return true;
+               break;
+            case TSTMP:
                if (ParseTimeStamp((BACnetTimeStamp *)pstruc)) return true;
                break;
             case TSTMParr:    // madanner 9/04
                if( ParseTimeStampArray((BACnetTimeStamp **)pstruc, 3) )
                   return true;
                break;
-            // *****018  begin
             case lCOVSub:     //List of BACnetCOVSubcription
                if (ParseCOVSubList((BACnetCOVSubscription **)pstruc)) return true;
                break;
-            //*****018  end
-            case escale: //BACnetScale Shiyuan Xiao
+            case escale:
                {
                   BACnetScale* pscale = (BACnetScale *)pstruc;
                   float val =(float)atof(lp);
@@ -4654,8 +4494,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                      pscale->choice = 1;
                      pscale->u.integerScale = (int)val;
                   }
-                     
-               }              
+               }
                break;
             case eprescl: //BACnetPrescale Shiyuan Xiao
                if (ParsePrescale((BACnetPrescale *)pstruc))
@@ -4667,13 +4506,13 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                break;
             case none:
                // reset the datatype of present value according to EPICS,  by Yiping XU, 2002/11/2
-                  bHasNoneType = true;
-                  for(i =0; ;i++)
-                  {
-                     if(*lp==0) break;
-                     NoneTypeValue[i] = *lp;
-                     lp++;
-                  }
+               bHasNoneType = true;
+               for(i =0; ;i++)
+               {
+                  if(*lp==0) break;
+                  NoneTypeValue[i] = *lp;
+                  lp++;
+               }
                break;
             case shedlevel:
                {
@@ -4700,7 +4539,7 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                         pshedlevel->choice = 2;
                         pshedlevel->sl.fproperty_value = val;
                      }
-                  }  
+                  }
                   else
                   {
                      if (pshedlevel->choice == 2)
@@ -4708,18 +4547,18 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                      else
                         pshedlevel->sl.uproperty_value = (int)val;
                   }
-               }              
+               }
                break;
             default:
-            //Note:  If we get here it is always an error because the default case means that
-            //    this is not a supported parsetype and therefore must always be ?,i.e. an
-            //    unknown value. As of ***013, ? values are handled before we get here, so
-            //    if we got here then something other than ? was specified as the value.
+               //Note:  If we get here it is always an error because the default case means that
+               //    this is not a supported parsetype and therefore must always be ?,i.e. an
+               //    unknown value. As of ***013, ? values are handled before we get here, so
+               //    if we got here then something other than ? was specified as the value.
                if (MustBe('?')) return true;
+               break;
             }
 
-            //****************017
-            if(bHasReset)
+            if (bHasReset)
             {
                pd->ParseType = none;
                pd->PropET = 0;
@@ -4727,16 +4566,26 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
                bNeedReset = false;
                bHasNoneType =false;
             }
-
          }
-         pobj->propflags[pindex]|=PropIsPresent;   //set the bit for this property  ***013 Begin
-         while (*lp==space||*lp==',') lp++;     //skip any more whitespace or commas ***014
-         if (*lp=='W'||*lp=='w')          //prop is writeable
-            pobj->propflags[pindex]|=PropIsWritable;  //                ***013 End
+         pobj->propflags[pindex] |= PropIsPresent;   //set the bit for this property
+
+         // TODO: comma seems bogus AFTER the property value
+         while (*lp==space||*lp==',') lp++;        //skip any more whitespace or commas
+         // TODO: should we also eat "R" if present?
+         // and what about <restrictions>, which might even be multi-line
+         // These can be in any order
+         if (*lp=='W' || *lp=='w')
+         {
+            //prop is writeable
+            lp += 1;
+            pobj->propflags[pindex] |= PropIsWritable;
+         }
+
          print_debug("PP: RETURN\n");
          return false;                 //we're done parsing
       }
-      if (pd->PropGroup&Last)
+
+      if (pd->PropGroup & Last)
       {
          if (objtype < etObjectTypes.propes)
          {
@@ -4772,137 +4621,153 @@ BOOL ParseProperty(char *pn,generic_object *pobj,word objtype)
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseEventParameter(BACnetEventParameter *evp)
-{  BACnetListBitstringValue   *pbv=NULL, *qbv=NULL;
+{
+   BACnetListBitstringValue   *pbv=NULL, *qbv=NULL;
    BACnetPropertyStates       *pv=NULL, *qv=NULL;
 
-   skipwhitespace();
-   if (MustBe('(')) return true;
-   skipwhitespace();
+   if (MustBe('{')) return true;
    switch(evp->event_type)
    {
-   case CHANGE_OF_BITSTRING:              //0
-      evp->time_delay=ReadW();
-      skipwhitespace();
+   case CHANGE_OF_BITSTRING:                 //0
+      if (NiceReadW( &evp->time_delay, ',' )) return true;
       if (ParseBitstring(&evp->bitmask.bitstring_value[0],
-                     sizeof(evp->bitmask.bitstring_value)*8,
-                     &evp->bitmask.bitstring_length)) return true;
+                         sizeof(evp->bitmask.bitstring_value)*8,
+                         &evp->bitmask.bitstring_length)) return true;
       if (MustBe(',')) return true;
+
+      if (MustBe('(')) return true;          // list-of-bitstring-values
       evp->list_bitstring_value=NULL;        //no bitstrings initially
       while(feof(ifile)==0)
-      {   while (*lp==space||*lp==',') lp++; //skip separation between list elements
+      {
+         while (*lp==space||*lp==',') lp++;  //skip separation between list elements
          if (*lp==0)
-            if (ReadNext()==NULL) break;  //                         ***008
-         if (*lp==')') break;          //close this list out
+            if (ReadNext()==NULL) break;
+         if (*lp==')') 
+         {
+            lp += 1;                         // end of list-of-bitstring-values
+            break;
+         }
          //here we have (bitstring)...
          if ((qbv=(tagListBitstringValue *)malloc(sizeof(BACnetListBitstringValue)))==NULL)
-         {  tperror("Can't Get Object Space!",true);
+         {
+            tperror("Can't Get Object Space!",true);
             break;
          }
          print_debug("LJT: ListBitstringValue=%x",qbv);
 
          if (ParseBitstring(&qbv->bitstring_value[0],
-                     sizeof(qbv->bitstring_value)*8,
-                     &qbv->bitstring_length)) break;
+                            sizeof(qbv->bitstring_value)*8,
+                            &qbv->bitstring_length)) break;
          qbv->next=NULL;                     //link onto the list
          if (evp->list_bitstring_value==NULL)
             evp->list_bitstring_value=qbv;      //remember first guy we made
          else
             pbv->next=qbv;             //link new guy on the end of the list
-         pbv=qbv;                   //remember new guy is now the last guy
+         pbv=qbv;                      //remember new guy is now the last guy
          qbv=NULL;
       }
       if (qbv!=NULL) free(qbv);
       break;
+
    case CHANGE_OF_STATE:                  //1
-      evp->time_delay=ReadW();
+      if (NiceReadW( &evp->time_delay, ',' )) return true;
       evp->list_of_value=NULL;            //no values initially
+      //here we have list-of-values as (state,state...)
+      if (MustBe('(')) return true;
       while(feof(ifile)==0)
-      {   while (*lp==space||*lp==',') lp++; //skip separation between list elements
+      {
+         while (*lp==space||*lp==',') lp++; //skip separation between list elements
          if (*lp==0)
-            if (ReadNext()==NULL) break;  //                         ***008
-         if (*lp==')') break;          //close this list out
-         //here we have state,state...
+            if (ReadNext()==NULL) break;
+         if (*lp==')')
+         {
+            lp += 1;                      // end of list-of-values
+            break;
+         }
          if ((qv=(tagPropertyStates *)malloc(sizeof(BACnetPropertyStates)))==NULL)
-         {  tperror("Can't Get Object Space!",true);
+         {
+            tperror("Can't Get Object Space!",true);
             break;
          }
          print_debug("LJT: PropertyStates=%x",qv);
 
+         // TODO: coupla problems here
+         // - 135.1 says enums should be STRINGS, not integers
+         // - BACnetPropertyStates is a massive CHOICE, so we would need to use [tag] to tell WHICH enumeration table
          qv->enum_value=ReadW();
          qv->next=NULL;                //link onto the list
          if (evp->list_of_value==NULL)
-            evp->list_of_value=qv;        //remember first guy we made
+            evp->list_of_value=qv;     //remember first guy we made
          else
             pv->next=qv;               //link new guy on the end of the list
          pv=qv;                        //remember new guy is now the last guy
          qv=NULL;
-         if (lp[-1]==')') lp--;
+         if (lp[-1]==')') break;
       }
       if (qv!=NULL) free(qv);
       break;
+
    case CHANGE_OF_VALUE:                  //2
-      evp->time_delay=ReadW();
-      skipwhitespace();
-      if (*lp=='('||*lp=='B'||*lp=='b')      //cov-criteria is a bitmask
-      {  evp->use_property_increment=false;
+      if (NiceReadW( &evp->time_delay, ',' )) return true;
+      // 135.1 says bitstrings are in {}, not ().  We accept both for historical reasons
+      if (*lp=='(' || *lp=='{' || *lp=='B' || *lp=='b')      //cov-criteria is a bitmask
+      {
+         // [0] bitstring
+         evp->use_property_increment=false;
          if (ParseBitstring(&evp->bitmask.bitstring_value[0],
-                        sizeof(evp->bitmask.bitstring_value)*8,
-                        &evp->bitmask.bitstring_length)) return true;
+                            sizeof(evp->bitmask.bitstring_value)*8,
+                            &evp->bitmask.bitstring_length)) return true;
       }
       else                          //cov-criteria is a property-increment
-      {  evp->use_property_increment=true;
-         evp->ref_property_increment=(float)atof(lp);
-         if ((strdelim(")"))==NULL) return true;
-         lp--;
+      {
+         // [1] REAL
+         evp->use_property_increment=true;
+         if (ReadFloat( &evp->ref_property_increment )) return true;
       }
       break;
+
    case COMMAND_FAILURE:                  //3
-      evp->time_delay=ReadW();
-      ParseReference(&evp->feed_prop_ref);
+      if (NiceReadW( &evp->time_delay, ',' )) return true;
+      ParseDevObjPropReference(&evp->device_prop_ref);
       break;
-   case FLOATING_LIMIT:                //4
-      evp->time_delay=ReadW();   
-      ParseReference(&evp->setpoint_ref);
+
+   case FLOATING_LIMIT:                   //4
+      if (NiceReadW( &evp->time_delay, ',' )) return true;
+      ParseDevObjPropReference(&evp->device_prop_ref);
       if (MustBe(',')) return true;
-      evp->low_diff_limit=(float)atof(lp);
-      if ((strdelim(","))==NULL) return true;
-      evp->high_diff_limit=(float)atof(lp);
-      if ((strdelim(","))==NULL) return true;
-      evp->deadband=(float)atof(lp);
-      if ((strdelim(")"))==NULL) return true;
-      lp--;
+      if (ReadFloat( &evp->low_diff_limit, ',' )) return true;
+      if (ReadFloat( &evp->high_diff_limit, ',')) return true;
+      if (ReadFloat( &evp->deadband )) return true;
       break;
+
    case OUT_OF_RANGE:                     //5
-      evp->time_delay=ReadW();
-      evp->low_limit=(float)atof(lp);
-      if ((strdelim(","))==NULL) return true;
-      evp->high_limit=(float)atof(lp);
-      if ((strdelim(","))==NULL) return true;
-      evp->deadband=(float)atof(lp);
-      if ((strdelim(")"))==NULL) return true;
-      lp--;
+      if (NiceReadW( &evp->time_delay, ',' )) return true;
+      if (ReadFloat( &evp->low_limit, ',')) return true;
+      if (ReadFloat( &evp->high_limit, ',')) return true;
+      if (ReadFloat( &evp->deadband )) return true;
       break;
-//Modified by Zhu Zhenhua, 2004-5-20
+
    case BUFFER_READY:                  //10
-      evp->notification_threshold=ReadW();
-      if (*(lp-1) == ',')
-         lp--;  // backup one we went too far // todo: really need to fix ReadW
-      if ((strdelim(","))==NULL) return true;
-      evp->previous_notification_count=ReadDW();
-      if (*(lp-1) == ')')
-         lp--;  // backup one we went too far // todo: really need to fix ReadW
-      if ((strdelim(")"))==NULL) return true;
-      lp--;
+      if (NiceReadW( &evp->notification_threshold, ',' )) return true;
+      if (NiceReadDW( &evp->previous_notification_count )) return true;
       break;
+
+   case CHANGE_OF_LIFE_SAFETY:
+   case EXTENDED:
+   default:
+      // TODO: implement me (and various other event types)
+      tperror("Event parameter choice has not been implemented!",true);
+      return true;
    }
-   return MustBe(')');
+   return MustBe('}');
 }
 
 // LJT 10/10/2005 -- added to reduce code redundancy
 // Return a pointer to the propdescriptor for the property, or NULL if none found
 // Assumes either
+// - "property-identifier" if no index is specifed (i.e., not an array, or "all elements)
 // - "property-identifier,index" if an index is specified, or
-// - "property-identifier," if no index is specifed (i.e., not an array, or "all elements)
+// - "property-identifier,delim" if no index is specifed (skipped) in a larger sequence
 // See the NOTE at the top of this file for a discussion of this encoding, with
 // the comma REQUIRED to encode the presence or absence of the optional index
 //
@@ -4914,38 +4779,42 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
 //
 propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId, unsigned short *index)
 {
-   char           pn[40];
-   propdescriptor    *pd;
+   char           pn[64];
+   propdescriptor *pd;
 
-   // isolate property name
+   // TODO: really, should parse Alnum + _ or -
+   // This would make a nice utility function, and could replace many of the write-null-to-buffer
+   // abominations in this file.
+   //
+   // Isolate property name
    int i=0;
-   while(*lp&&*lp!=','&&*lp!=space&&*lp!=')'&&*lp!='}'&&*lp!='['&&i<39)
-   {  
+   while(*lp && *lp!=',' && *lp!=space && *lp!=')' && *lp!='}' && *lp!='[' && i<sizeof(pn))
+   {
       if (*lp=='_') *lp='-';           //change _ to -
       pn[i++]=*lp++;
    }
-   pn[i]=0;                      //force it to be asciz
+   pn[i]=0;                            //force it to be asciz
 
-   pd=StdObjects[(word)(dw>>22)].sotProps;   //point to property descriptor table for this object type
+   // TODO: shouldn't this allow proprietary and numeric propery IDs as well?
+   pd = StdObjects[(word)(dw>>22)].sotProps;   //point to property descriptor table for this object type
    do
-   {  
+   {
       if (_stricmp(pn,pd->PropertyName)==0)  //found this property name
-      {  
+      {
          *propId=pd->PropID;
-          break;
+         break;
       }
       if (pd->PropGroup&Last)
-      {  
+      {
          tperror("Unknown Property Name",true);
-         return NULL;  // return NOT FOUND
+         return NULL;            // return NOT FOUND
       }
       pd++;                      //advance to next table entry
    }
    while(true);
 
    *index = NotAnArray;
-
-      skipwhitespace();
+   skipwhitespace();
    if (*lp == ',')
    {
       // Comma must be followed by an index, or by another separator
@@ -4958,7 +4827,7 @@ propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId
          *index = ReadW();
          if (*(lp-1) == ')' || *(lp-1) == '}' || *(lp-1) == ',')
             lp--;  // backup one we went too far // todo: really need to fix ReadW
-      
+
          // It is (at least in some cases) OK to specify an array without an index
          // to denote the entire array.
          // It is NOT OK to specify an index for a non-array
@@ -4969,7 +4838,7 @@ propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId
          }
       }
    }
-   
+
    return pd;
 }
 
@@ -4985,29 +4854,30 @@ propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
-{  
+{
    BACnetReadAccessSpecification *fp=NULL,*p=NULL,*q=NULL;
    BACnetPropertyReference       *pp=NULL, *pq=NULL;
    dword          dw;
-   BOOL           rasfail=true;           
-            
+   BOOL           rasfail=true;
+
    *rasp=NULL;                         //initially there is no list
-   skipwhitespace();
 // if (MustBe('{')) return true;  //MAG change from '('
-   if (MustBe('(')) return true;  
+   if (MustBe('(')) return true;
    while(true)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
       //2. (   i.e. the beginning of a new BACnetReadAccessSpecification in the list
       //3. )            i.e. the closing part of the list
-      while (*lp==space||*lp==',') lp++;     //skip separation between list elements
+      while (*lp==space || *lp==',') lp++;     //skip separation between list elements
       if (*lp==0) 
          if (ReadNext()==NULL) break;
       //if (*lp=='}') // MAG was )
       if ( *lp==')' && *(lp+1)== 0 )
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
       //if (MustBe('(')) goto rasx;
@@ -5015,14 +4885,16 @@ BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
 
       //here we have (objtype,instance),propid,propid...)...
       if ((q=(tagReadAccessSpecification *)malloc(sizeof(BACnetReadAccessSpecification)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          goto rasx;
       }
       print_debug("LJT: readAccessSpecification=%x",q);
 
       dw=ReadObjID();
       if (dw==badobjid)
-      {  if (tperror("Must use an Object Identifier here!",true))
+      {
+         if (tperror("Must use an Object Identifier here!",true))
             goto rasx;
       }
       q->object_id=dw;
@@ -5036,8 +4908,8 @@ BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
          if (*lp==0) 
             if (ReadNext()==NULL) break;
          if (*lp==')') 
-         {  //lp++;  //MAG
-            lp +=2;  // MAG
+         {
+            lp +=2;
             break;                        //close this list out
          }
          if ((pq=(tagPropertyReference *)malloc(sizeof(BACnetPropertyReference)))==NULL)
@@ -5091,19 +4963,21 @@ rasx:
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
-{  BACnetSpecialEvent   *fp=NULL,*p=NULL,*q=NULL;
+{
+   BACnetSpecialEvent   *fp=NULL,*p=NULL,*q=NULL;
    BOOL           xfail=true;
    char           *ep;
    word           i;
 
    xp->special_event=NULL;                //initially there are no lists
    xp->size=0;
-   
+
    skipwhitespace();
    if (*lp=='?') return false;               //? means no list
    if (MustBe('{')) return true;
    while(feof(ifile)==0)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
@@ -5113,22 +4987,25 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
       if (*lp==0)
          if (ReadNext()==NULL) return true;
       if (*lp=='}') 
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
         
       if (MustBe('(')) goto xx;
       //here we have (dateoption),(timevaluelist),eventpriority),...)
       if ((q=(tagSpecialEvent *)malloc(sizeof(BACnetSpecialEvent)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          goto xx;
       }
       print_debug("LJT: SpecialEvent=%x\n",q);
 
-      skipwhitespace();
       if (MustBe('(')) goto xx;
+      // TODO: strchr assumes the ) is on the current line
       if ((ep=strchr(lp,')'))==NULL)
-      {  lp=strchr(lp,0);
+      {
+         lp=strchr(lp,0);
          tperror("Expected ) here!",true);
          goto xx;
       }
@@ -5143,60 +5020,83 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
       // day-mon-year dow        i.e. month is text like Jan
       //in either case dow must be separated from year by a space, or not be there at all
       //The .. between dates in a daterange is significant and must be literally 2 dots in a row
+      // TODO: 135.1 has no such thing as .. between dates
       
       if (_strnicmp(lp,"Calendar",8)==0)     //it's a calendar reference
-      {  q->choice=3;
+      {
+         q->choice=3;
          lp--;                      //ReadObjID needs to point to the (
          q->u.calendar_ref.object_id=ReadObjID();
          q->u.calendar_ref.next=NULL;
       }
       else
-      {  *ep=0;                        //remember this end pointer
-         if (strchr(lp,',')!=NULL)        //must be WeekNDay
-         {  q->choice=2;               //WeekNDay
+      {
+         *ep=0;                        //remember this end pointer  TODO: writing to text buffer.  fixme
+         if (strchr(lp,',')!=NULL)     //must be WeekNDay
+         {
+            q->choice=2;               //WeekNDay
             skipwhitespace();
             q->u.weekNday.month=dontcare;
             q->u.weekNday.day=dontcare;
             q->u.weekNday.week=dontcare;
             if (IsDigit(*lp))          //use numeric form of month
-                q->u.weekNday.month=ReadB(1,12);
+            {
+               q->u.weekNday.month=ReadB(1,12);
+            }
             else                    //use monthname
-             { for (i=0;i<14;i++)
+            {
+               for (i=0;i<14;i++)
+               {
                   if (_strnicmp(lp,MonthNames[i],3)==0)
-                  {  q->u.weekNday.month=(octet)i+1;  //months are 1-12
+                  {
+                     q->u.weekNday.month=(octet)i+1;  //months are 1-12
                      break;
                   }
+               }
                strdelim(",");          //skip past comma
             }
             if (*lp=='l'||*lp=='L')       //Last week
-            {  q->u.weekNday.week=6;
+            {
+               q->u.weekNday.week=6;
                strdelim(",");
             }
             else
+            {
                q->u.weekNday.week=ReadB(1,6);
-            if (IsDigit(*lp))          //use numeric form of dayofweek     ***013 Begin
+            }
+
+            if (IsDigit(*lp))          //use numeric form of dayofweek
+            {
                q->u.weekNday.day=ReadB(1,7);
+            }
             else
-             { for(i=0;i<7;i++)
+            {
+               for(i=0;i<7;i++)
+               {
                   if (_strnicmp(lp,DOWNames[i],3)==0)
-                  {  q->u.weekNday.day=(octet)i+1;    //days are 1-7
+                  {
+                     q->u.weekNday.day=(octet)i+1;    //days are 1-7
                      break;
                   }
+               }
                lp+=3;
-             }                      //                         ***013 End
+            }
          }
          else if (strstr(lp,"..")!=NULL)  //must be daterange
-         {  q->choice=1;               //DateRange
+         {
+            q->choice=1;               //DateRange
             if (ParseDate(&q->u.date_range.start_date)) goto xx;
             lp=strstr(lp,"..")+2;         //skip delimiter
             if (ParseDate(&q->u.date_range.end_date)) goto xx;
          }
          else                       //must be date
-         {  q->choice=0;               //Date
+         {
+            q->choice=0;               //Date
             if (ParseDate(&q->u.date)) goto xx;
          }
          lp=ep;
-         *lp++=')';
+         // TODO: writing to text buffer.  fixme
+         *lp++ =')';
       }
       print_debug("PES: About to strdelim lp = '%s'\n",lp);
       if (strdelim(",")==NULL) goto xx;
@@ -5210,7 +5110,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
       print_debug("PES: about to ReadW lp = '%s'\n",lp);
       q->event_priority=ReadW();
 
-        xp->size++;
+      xp->size++;
       print_debug("PES: ReadW returns %d\n",q->event_priority);
 
       q->next=NULL;                    //link onto the list
@@ -5227,10 +5127,10 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 xx:
    xp->special_event=fp;
    if (q!=NULL) free(q);                  //don't lose this block!
-   return xfail;                       //                         ***008 End
-}                                   //                         ***008 End
+   return xfail;
+}
 
-///////////////////////////////////////////////////////////////////////          ***008 Begin
+///////////////////////////////////////////////////////////////////////
 // read an array of (list of BACnetTimeValue) from the buffer lp points to
 // {((t,v),(t,v)),((t,v),(t,v)),...}
 //in: lp    points to current position in buffer lb
@@ -5240,16 +5140,17 @@ xx:
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseWeekdaySchedule(BACnetTimeValue *wp[])
-{  word  i;
-            
+{
+   word  i;
    for (i=0;i<7;i++) wp[i]=NULL;          //initially there are no lists
-   
+
    skipwhitespace();
    if (*lp=='?') return false;               //? means no list
    if (MustBe('{')) return true;
    i=0;
    while(feof(ifile)==0)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
@@ -5259,23 +5160,25 @@ BOOL ParseWeekdaySchedule(BACnetTimeValue *wp[])
       if (*lp==0)
          if (ReadNext()==NULL) return true;
       if (*lp=='}') 
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
-        
-        if (i>6)
-        {   tperror("Weekly Schedule cannot contain more than 7 days!",true);
+
+      if (i>6)
+      {
+         tperror("Weekly Schedule cannot contain more than 7 days!",true);
          return true;
-        }
+      }
         
       //here we have (list of timevalues),...
-        if (ParseTVList(&wp[i])) return true;
-        i++;
+      if (ParseTVList(&wp[i])) return true;
+      i++;
    }
    return false;
-}                                   //                         ***008 End
+}
 
-///////////////////////////////////////////////////////////////////////          ***008 Begin
+///////////////////////////////////////////////////////////////////////
 // read a list BACnetTimeValues from the buffer lp points to
 // ({time,value},{time,value}...)
 //in: lp    points to current position in buffer lb
@@ -5285,25 +5188,27 @@ BOOL ParseWeekdaySchedule(BACnetTimeValue *wp[])
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseTVList(BACnetTimeValue **tvp)
-{  BACnetTimeValue   *fp=NULL,*p=NULL,*q=NULL;
+{
+   BACnetTimeValue   *fp=NULL,*p=NULL,*q=NULL;
    BOOL           tvfail=true;
-   char        *ep;           
-            
+   char        *ep;
+
    *tvp=NULL;                          //initially there is no list
-   skipwhitespace();
    if (MustBe('(')) return true;
    while(true)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
       //2. (   i.e. the beginning of a new BACnetTimeValue in the list
       //3. )            i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
-      if (*lp==0) 
+      if (*lp==0)
          if (ReadNext()==NULL) break;
-      if (*lp==')') 
-      {  lp++;
+      if (*lp==')')
+      {
+         lp++;
          break;                        //close this list out
       }
 
@@ -5311,26 +5216,30 @@ BOOL ParseTVList(BACnetTimeValue **tvp)
 
       //here we have time,value),...)
       if ((q=(tagTimeValue *)malloc(sizeof(BACnetTimeValue)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          goto tvx;
       }
       print_debug("LJT: TimeValue=%x\n",q);
 
       if ((ep=strchr(lp,'}'))==NULL)
-      {  lp=strchr(lp,0);
+      {
+         lp=strchr(lp,0);
          tperror("Expected ) at end of (time,value...",true);
          goto tvx;
       }
-      *ep=0;                           //make it "time,value" asciz
+      *ep=0;                           //make it "time,value" asciz  TODO: writing to text buffer.  fixme
       if (ParseTime(&q->time)) goto tvx;
       if (strdelim(",")==NULL) goto tvx;
       skipwhitespace();
       if (*lp=='a'||*lp=='A')             //BPV Active
-      {  q->value_type=BPV;
+      {
+         q->value_type=BPV;
          q->av.bproperty_value=ACTIVE;
       }
-      else if (*lp=='i'||*lp=='I')        //                         ***013
-      {  q->value_type=BPV;
+      else if (*lp=='i'||*lp=='I')
+      {
+         q->value_type=BPV;
          q->av.bproperty_value=INACTIVE;
       }
       else if ( strstr( lp, "unknown" ) != NULL )
@@ -5340,22 +5249,23 @@ BOOL ParseTVList(BACnetTimeValue **tvp)
          q->value_type=BPV;
          q->av.uproperty_value=ReadW();
       }
-      else if (strchr(lp,'.')==NULL)      //doesn't have a dot, must be unsigned
-      {  
+      else if (strchr(lp,'.')==NULL)   //doesn't have a dot, must be unsigned
+      {
          q->value_type=UNS;
          q->av.uproperty_value=ReadW();
       }
-      else                          //must be float
-      {  q->value_type=FLT;
+      else                             //must be float
+      {
+         q->value_type=FLT;
          q->av.fproperty_value=(float)atof(lp);
       }
 
       q->next=NULL;                    //link onto the list
       if (fp==NULL)
-         fp=q;                      //remember first guy we made
+         fp=q;                         //remember first guy we made
       else
          p->next=q;                    //link new guy on the end of the list
-      p=q;                          //remember new guy is now the last guy
+      p=q;                             //remember new guy is now the last guy
       q=NULL;
       *ep++='}';
       lp=ep;
@@ -5366,7 +5276,7 @@ BOOL ParseTVList(BACnetTimeValue **tvp)
 tvx:
    *tvp=fp;
    if (q!=NULL) free(q);                  //don't lose this block!
-   return tvfail;                      //                         ***008 End
+   return tvfail;
 }
 
 // Added the propID argument to distinguish between Lists and Arrays when parsing
@@ -5390,24 +5300,26 @@ BOOL ParseDevObjList(BACnetDeviceObjectReference **refp, word propID)
       closeChar = '}';
    }
 
-   if ( MustBe( openChar ) ) return true; 
+   if ( MustBe( openChar ) ) return true;
    while(true)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
       //2. (   i.e. the beginning of a new BACnetObjectPropertyReference in the list
       //3. )            i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
-      if (*lp==0) 
+      if (*lp==0)
          if (ReadNext()==NULL) break;
       if (*lp== closeChar) // found empty list
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
 
       if ((q=ParseDevObjReference(NULL))==NULL) goto refx;
-      if((*lp == 0) && (*(lp-1) == '}')) lp--;  // MAG fix for parser error in schedule object 14 FEB 2001
+      if ((*lp == 0) && (*(lp-1) == '}')) lp--;  // MAG fix for parser error in schedule object 14 FEB 2001
 
       q->next=NULL;                    //link onto the list
       if (fp==NULL)
@@ -5434,25 +5346,26 @@ refx:
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseRefList(BACnetDeviceObjectPropertyReference **refp)
-{  BACnetDeviceObjectPropertyReference *fp=NULL,*p=NULL,*q=NULL;
+{
+   BACnetDeviceObjectPropertyReference *fp=NULL,*p=NULL,*q=NULL;
    BOOL           reffail=true;           
             
    *refp=NULL;                         //initially there is no list
-   skipwhitespace();
-
    if (MustBe('(')) return true; // starts with '('  SEQ OF lists are enclosed by ()
    while(true)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
       //2. (   i.e. the beginning of a new BACnetObjectPropertyReference in the list
       //3. )            i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
-      if (*lp==0) 
+      if (*lp==0)
          if (ReadNext()==NULL) break;
       if (*lp==')') // found empty list
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
 
@@ -5478,9 +5391,11 @@ refx:
 }
 
 ///////////////////////////////////////////////////////////////////////
-// read a BACnetObjectPropertyReference from the buffer lp points to
-//   ((objtype,instance),propertyname,arrayindex) or
-//   ((objtype,instance),propertyname,) or ?
+// Read a BACnetObjectPropertyReference from the buffer lp points to
+//   {(objtype,instance),propertyname,arrayindex} or
+//   {(objtype,instance),propertyname} or
+//   {(objtype,instance),propertyname,} or
+//   ?
 //  See the NOTE at the top of this file for a discussion of this encoding, with
 //  the comma REQUIRED to encode the presence or absence of the optional index
 //in: lp    points to current position in buffer lb
@@ -5489,64 +5404,74 @@ refx:
 //    else  pointer to newly created BACnetObjectPropertyReference
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference   *inq)
-{  BACnetObjectPropertyReference *q=NULL;
+BACnetObjectPropertyReference* ParseReference(BACnetObjectPropertyReference   *inq)
+{
+   BACnetObjectPropertyReference *q = NULL;
    dword dw;
-   char    openChar = ' ';
-   
-   bool    isSetpointRef = false;
-   if ( inq == NULL )
+   char  openChar = ' ';
+
+   bool  isSetpointRef = false;
+   if (inq == NULL)
       isSetpointRef = true;
 
-   //here we have {(objtype,instance),propertyname[arrayindex],2}
-   //here we have {{(objtype,instance),propertyname[arrayindex],2}}
-   //           or (objtype, instance), propertyname[arrayindex]
    skipwhitespace();
-   
+
+   // TODO: but shouldn't a NULL return set inq to something safe (NULL next pointer etc) if it was passed?
    // allow empty valule
    if (*lp=='?') return NULL;
-   if (*lp == '}' && *(lp+1) == '}' ) return NULL;
 
+   // TODO: 135.1 doesn't seem to allow empty {}
+   if (*lp == '{' && *(lp+1) == '}' ) 
+      return NULL;
+
+   // TODO: I don't know what "setpoint reference type" means
    if (isSetpointRef)
       if (MustBe('{')) return NULL;   // this is the setpoint-reference type therefore must start with {{
 
-   if ((*lp == '(' && *(lp+1) == '(') || *lp == '{') 
+   // TODO: I don't get the (( format.  135.1 says { for sequence, then ( for the object ID.
+   // And there may be whitespace between the delimiters.
+   // ReadObjID skips whitespace and verifies the ( ) around the objectID
+   if ((*lp == '(' && *(lp+1) == '(') || *lp == '{')
    {
       openChar = *lp;
       lp++;  // advance to next location  -- the starting { is not required here
    }
 
    if (inq==NULL)
-   {  if ((q=(tagObjectPropertyReference *)malloc(sizeof(BACnetObjectPropertyReference)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+   {
+      if ((q=(tagObjectPropertyReference *)malloc(sizeof(BACnetObjectPropertyReference)))==NULL)
+      {
+         tperror("Can't Get Object Space!",true);
          return NULL;
       }
       print_debug("LJT: ObjectPropertyReference=%x\n",q);
-
    }
    else
+   {
       q=inq;
+   }
 
-   skipwhitespace();
-   // if((*lp != '(') && (*(lp-1) == '(')) lp--;  // MAG
-   dw=ReadObjID();
-   if (dw==badobjid)
-   {  
-      tperror("Must use an Object Identifier here!",true);  //             ***006
+   // initial values
+   q->object_id = badobjid;
+   q->property_id = 0xffffffff;
+   q->pa_index = NotAnArray;
+   q->next = NULL;
+
+   dw = ReadObjID();
+   if (dw == badobjid)
+   {
+      tperror("Must use an Object Identifier here!",true);
       goto oprfail;
    }
-   q->object_id=dw;
+   q->object_id = dw;
 
-   // madanner 6/03: Can't just skip to next delimeter... we must barf on non-white space
-   skipwhitespace();
-   if ( MustBe(',')) goto oprfail;
-   skipwhitespace();                //                            ***006
+   if (MustBe(',')) goto oprfail;
 
-   // validate property name and index code here
+   // validate property name and optional index
    if (validatePropertyNameAndIndexCode(dw, &q->property_id, &q->pa_index ) == NULL)
       goto oprfail;
-   
-   if ( openChar != ' ' )  // meaning we opened with this character
+
+   if (openChar != ' ')  // meaning we opened with this character
    {
       skipwhitespace();
       char closeChar = ')';
@@ -5554,13 +5479,12 @@ BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference   *i
          closeChar = '}';
       if ( MustBe( closeChar ) ) goto oprfail;
    }
-   q->next=NULL;                    //                            ***012 End
 
    if (isSetpointRef)
       if (MustBe('}')) goto oprfail;   // note it must end in extra }
 
    return q;
-   
+
 oprfail:
    if (inq==NULL) free(q);
    return NULL;
@@ -5569,9 +5493,12 @@ oprfail:
 //*********added by Liangping Xu,2002-9*************************//
 
 ///////////////////////////////////////////////////////////////////////
-// read a BACnetDeviceObjectPropertyReference from the buffer lp points to
-//   ((objtype,instance),propertyname,arrayindex) or
-//   ((objtype,instance),propertyname,) or ?
+// Read a BACnetDeviceObjectPropertyReference from the buffer lp points to
+//   {(objtype,instance),propertyname,arrayindex,(device,instance)} or
+//   {(objtype,instance),propertyname,arrayindex}
+//   {(objtype,instance),propertyname,,(device,instance)} or
+//   {(objtype,instance),propertyname} or
+//   ?
 //  See the NOTE at the top of this file for a discussion of this encoding, with
 //  the comma REQUIRED to encode the presence or absence of the optional index
 //in: lp    points to current position in buffer lb
@@ -5580,22 +5507,22 @@ oprfail:
 //    else  pointer to newly created BACnetObjectPropertyReference
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference  *inq)
-{  BACnetDeviceObjectPropertyReference *q=NULL;
-   dword dw,objId_Ref;
-   
-   //here we have ((objtype,instance),propertyname,arrayindex)...
+BACnetDeviceObjectPropertyReference* ParseDevObjPropReference(BACnetDeviceObjectPropertyReference  *inq)
+{
+   BACnetDeviceObjectPropertyReference *q = NULL;
+   dword dw;
+
+   // TODO: but shouldn't a NULL return set inq to something safe (NULL next pointer etc) if it was passed?
+   // TODO: allow empty as BACnetObjectPropertyReference does?
+
    skipwhitespace();
-   if (*lp=='?') return NULL;
-   if ( *lp=='{' || (*lp=='(' && *(lp+1)!='(') )
-      *lp++;
-   else
-      return NULL;
+   if (*lp == '?') return NULL;
+   if (MustBe('{')) return NULL;
 
    if (inq==NULL)
-   {  
-      if ((q=(BACnetDeviceObjectPropertyReference *)malloc(sizeof(BACnetDeviceObjectPropertyReference)))==NULL)
-      {  
+   {
+      if ((q=(BACnetDeviceObjectPropertyReference*)malloc(sizeof(BACnetDeviceObjectPropertyReference)))==NULL)
+      {
          tperror("Can't Get Object Space!",true);
          return NULL;
       }
@@ -5606,143 +5533,111 @@ BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObject
       q=inq;
    }
 
-    //initial the Values
-    q->DeviceObj =0xffffffff;
-    q->Objid =0xffffffff;
-   q->wPropertyid=0xffffffff;
-   q->ulIndex=NotAnArray;
+   // initial values
+   q->DeviceObj = badobjid;
+   q->Objid = badobjid;
+   q->wPropertyid = 0xffffffff;
+   q->ulIndex = NotAnArray;
+   q->next = NULL;
 
    skipwhitespace();
-   dw=ReadObjID();
-   if (dw==badobjid)
-   {  tperror("Must use an Object Identifier here!",true);  //             ***006
+   dw = ReadObjID();
+   if (dw == badobjid)
+   {
+      tperror("Must use an Object Identifier here!",true);
       goto oprfail;
    }
+   q->Objid = dw;
 
-   q->Objid=dw; 
-   objId_Ref=dw;
-   goto propcheck;
+   if (MustBe(',')) goto oprfail;
 
-   // madanner 6/03: Can't just skip to next delimeter... we must barf on non-white space
-   skipwhitespace();
-   if ( MustBe(',')) goto oprfail;
-   skipwhitespace();                //                            ***006
-
-    //Read Obj_id that's referred
-   objId_Ref=ReadObjID();
-   if (objId_Ref==badobjid)
-   {  tperror("Must use an Object Identifier here!",true);  //             ***006
-      goto oprfail;
-   }
-    q->Objid=objId_Ref;
-
-propcheck:
-   // madanner 6/03: Can't just skip to next delimeter... we must barf on non-white space
-   skipwhitespace();
-   if ( MustBe(',')) goto oprfail;
-
-   skipwhitespace();
-
-   // validate property name and index here
+   // validate property name and optional index
    if (validatePropertyNameAndIndexCode(dw, &q->wPropertyid, &q->ulIndex ) == NULL)
       goto oprfail;
 
-   // need to read device ObjId here OPTIONAL
-    skipwhitespace();
-   if ( *lp==',' ) 
+   // Read optional device ObjId
+   // If not present, accept either ,} or just }
+   skipwhitespace();
+   if (*lp == ',')
    {
       *lp++;
-      dw=ReadObjID();
-      q->DeviceObj = dw;
+      if (*lp != '}')
+      {
+         dw = ReadObjID();
+         q->DeviceObj = dw;
+      }
    }
 
-
-   if ( *lp=='}' || *lp==')' )
-      *lp++;
-   else
-      goto oprfail;
-
+   if (MustBe('}')) goto oprfail;
    return q;
-   
+
 oprfail:
    if (inq==NULL) free(q);
    return NULL;
 }
-//
+
 ////////////////////////////////////////////////////////////////////
-BACnetDeviceObjectReference *ParseDevObjReference(BACnetDeviceObjectReference *inq)
-{  
+BACnetDeviceObjectReference* ParseDevObjReference(BACnetDeviceObjectReference *inq)
+{
    BACnetDeviceObjectReference   *q=NULL;
-   dword dw,objId_Ref;
-   word  objtype_Ref;
-   
-   //here we have ((objtype,instance),propertyname[arrayindex])...
+   dword dw;
+
    skipwhitespace();
    if (*lp=='?') return NULL;
-   if ( *lp=='{' || (*lp=='(' && *(lp+1)!='(') )
-      *lp++;
-   else
-      return NULL;
+   if (MustBe('{')) return NULL;
 
    if (inq==NULL)
-   {  if ((q=(BACnetDeviceObjectReference *)malloc(sizeof(BACnetDeviceObjectReference)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+   {
+      if ((q=(BACnetDeviceObjectReference *)malloc(sizeof(BACnetDeviceObjectReference)))==NULL)
+      {
+         tperror("Can't Get Object Space!",true);
          return NULL;
       }
       print_debug("LJT: DeviceObjectReference=%x\n",q);
-
    }
    else
+   {
       q=inq;
+   }
 
-    //initial the Values
-    q->DeviceObj =0xffffffff;
-    q->Objid =0xffffffff;
+   //initial the Values
+   q->DeviceObj = badobjid;
+   q->Objid = badobjid;
 
    skipwhitespace();
-   dw=ReadObjID();
-   if (dw==badobjid)
-   {  tperror("Must use an Object Identifier here!",true);  //             ***006
-      goto oprfail;
-   }
-    if((objtype_Ref=(word)(dw>>22))==0x0008) 
+   if (*lp != ',')
    {
-       q->DeviceObj=dw;
-       // now require reading of the objectId
-      skipwhitespace();
-      if ( MustBe(',')) goto oprfail;
-      skipwhitespace();                //                            ***006
-
-      //Read Obj_id that's referred
-      objId_Ref=ReadObjID();
-      if (objId_Ref==badobjid)
-      {  tperror("Must use an Object Identifier here!",true);  //             ***006
+      // Get DeviceIdentifier (comma would signify its absence)
+      dw = ReadObjID();
+      if ((dw == badobjid) || (dw>>22 != OBJ_DEVICE))
+      {
+         tperror("Must use a Device Object Identifier here!",true);
          goto oprfail;
       }
-      q->Objid=objId_Ref;
-    
-   }
-   else
-   { 
-      q->Objid=dw; 
-      objId_Ref=dw;
+      q->DeviceObj = dw;
+      skipwhitespace();
    }
 
-   // need to read device ObjId here OPTIONAL
-    skipwhitespace();
-   if ( *lp=='}' || *lp==')' )
-      *lp++;
-   else
+   // Get objectID
+   if ( MustBe(',')) goto oprfail;
+
+   dw = ReadObjID();
+   if (dw == badobjid)
+   {
+      tperror("Must use an Object Identifier here!",true);
       goto oprfail;
+   }
+   q->Objid = dw;
 
+   if (MustBe('}')) goto oprfail;
    return q;
-   
+
 oprfail:
-   if (inq==NULL) free(q);
+   if (inq == NULL) free(q);
    return NULL;
 }
 
-///////////////////////////////////////////////////////////////////////          ***008 Begin
+///////////////////////////////////////////////////////////////////////
 // read a list BACnetCalendarEntrys from the buffer lp points to
 // ((m/d/y dow),(d-m-y dow),(m,wom,dow),(date..date)...)
 //  ((dow, d-m-y), (date..date)...) Shiyuan Xiao. According to standard 135.1-2003.
@@ -5754,37 +5649,30 @@ oprfail:
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseCalist(BACnetCalendarEntry **calp)
-{  BACnetCalendarEntry  *fp=NULL,*p=NULL,*q=NULL;
-   //word            i;  MAG 31JAN06 variable i not used
-   char        *ep;
-   BOOL           calfail=true;           
-            
+{
+   BACnetCalendarEntry  *fp=NULL,*p=NULL,*q=NULL;
+   BOOL   calfail=true;
+
    *calp=NULL;                         //initially there is no list
-   skipwhitespace();
-   if (MustBe('(')) return true;     //Modified by xlp
-   while(true)
-   {   //here lp must point to:
+   if (MustBe('(')) return true;
+   while (true)
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
       //2. {   i.e. the beginning of a new BACnetCalendarEntry in the list
       //3. }            i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
-      if (*lp==0) 
+      if (*lp==0)
          if (ReadNext()==NULL) break;
       if (*lp==')')    //Modified by xlp
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
       if (MustBe('{')) goto calx;
 
-      //here we have calentry)...     
-      if ((ep=strchr(lp,'}'))==NULL)
-      {  lp=strchr(lp,0);
-         tperror("Expected } here!",true);
-         goto calx;
-      }
-      *ep++=0;                      //remember this end pointer
       //here, lp points to one of 3 formats:
       // month,weekofmonth,dayofweek
       // date..date
@@ -5792,127 +5680,127 @@ BOOL ParseCalist(BACnetCalendarEntry **calp)
       //
       //where date is in one of two formats:
       // month/day/year dow         - month is numeric, is optional (if present, separated by a space)
-        //  dow, day-month-year     - month is full name (e.g. January)
-      
+      // dow, day-month-year        - month is full name (e.g. January)
       if ((q=(tagCalendarEntry *)malloc(sizeof(BACnetCalendarEntry)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          goto calx;
       }
       print_debug("LJT: CalendarEntry=%x\n",q);
 
-      if (strchr(lp,'X')!=NULL)           //must be WeekNDay
-      {  
-         q->choice=2;                  //WeekNDay
+      // MustBe ate any whitespace after {
+      if (*lp =='X')
+      {
+         //Octet string: assume WeekNDay
+         q->choice=2;
          skipwhitespace();
          q->u.weekNday.month=dontcare;
          q->u.weekNday.day=dontcare;
          q->u.weekNday.week=dontcare;
-         
+
          lp+=2;  // skip the X'
 
          cvhex(lp,&q->u.weekNday.month);
          cvhex(lp+2,&q->u.weekNday.week);
          cvhex(lp+4,&q->u.weekNday.day);
          lp+=6;
+         if (MustBe('\'')) goto calx;
       }
-//***Modified by Liangping Xu,2002-9
-      // Modified by LJT 10/27/2005
-      else if (strstr(lp,"(")!=NULL)  // either date or daterange LJT
-      {  
+      else if (*lp = '(')
+      {
+         // Either date or daterange
          q->choice=0;                  // assume date for now
          if (ParseDate(&q->u.date)) goto calx;
-//        if (ParseDate(&q->u.date_range.start_date)) goto calx;
-
-         while (*lp==space) lp++;      //skip spaces but leave ',' list elements
-//       skipwhitespace();
-         // skip the , if that is the delimeter between date range
-         if ( *lp==',' )
+         skipwhitespace();
+         if (*lp==',')
          {
+            // Comma means this is a DateRange (two dates)
+            lp++;
             q->choice=1;                  //DateRange
             q->u.date_range.start_date = q->u.date;
-            lp++;
             if (ParseDate(&q->u.date_range.end_date)) goto calx;
          }
       }
-//////////////////////////////////////////////////////////////
-
       else
-      {  
+      {
          // invalid entry
          goto calx;
       }
-      lp=ep;
-      ep[-1]='}';  // put end of item back
-      q->next=NULL;                    //link onto the list
+      if (MustBe('}')) goto calx;
+
+      q->next=NULL;        //link onto the list
       if (fp==NULL)
-         fp=q;                      //remember first guy we made
+         fp=q;             //remember first guy we made
       else
-         p->next=q;                    //link new guy on the end of the list
-      p=q;                          //remember new guy is now the last guy
+         p->next=q;        //link new guy on the end of the list
+      p=q;                 //remember new guy is now the last guy
       q=NULL;
    }
    calfail=false;
 calx:
-   *calp=fp;
+   *calp = fp;
    if (q!=NULL) free(q);                  //don't lose this block!
-   return calfail;                        //                      ***008 End
+   return calfail;
 }
+
 ////////////////////////////////////////////////////////////////////
 // This function is called to determine the type of the values in the
 // event-time-stamp.
 ////////////////////////////////////////////////////////////////////
 octet whatIsChoice(char str[])
 {
-  unsigned char ucindex = 0;
-  octet status = 33; /* return value - set to be invalid */
-   
-  skipwhitespace();
-    
-  // Start checking 
-//   while(*lp != '/' && *lp != ':' && *lp != ')' && ucindex < 7)
-// while(*lp != '/' && *lp != '-' && *lp != ':' && *lp != ')' && ucindex < 7)     // ***020
- while(*lp != '/' && *lp != '-' && *lp != ':' && *lp != '}' && ucindex < 7)     // ***020
- {
-    lp++;
-    ucindex++;
-  }
+   unsigned char ucindex = 0;
+   octet status = 33; /* return value - set to be invalid */
 
-  if (ucindex <= 5)
-  {
-    switch (*lp)
+   skipwhitespace();
+
+   // Start checking 
+   //   while(*lp != '/' && *lp != ':' && *lp != ')' && ucindex < 7)
+   // while(*lp != '/' && *lp != '-' && *lp != ':' && *lp != ')' && ucindex < 7)     // ***020
+   while(*lp != '/' && *lp != '-' && *lp != ':' && *lp != '}' && ucindex < 7)     // ***020
    {
-     // Found the time delimiter.
-      case ':':         
-      // move the line pointer to the first char in the field
-        lp -= ucindex;  
-        status = 0;   
-        break;
-     // Found the date-time delimiter.
-      case '/':   
-     case '-':                         // ***020
-        lp -= ucindex;
-        status = 20;   
-        break;
-     // Found the sequence number.
-      case '}':
-        str[ucindex] = *lp;
-      // do we have an int in front of the delimiter?
-        while(*lp >= '0' && *lp <= '9' && ucindex > 0 || *lp == '}') 
-          str[--ucindex] = *--lp;
-      // wildcard is ok.
-        if (*lp == '?') 
-        status = 10; 
-      // we have a well formed int. life is good.
-        else if (ucindex == 0)
-          status = 11;        
-        break;
+      lp++;
+      ucindex++;
    }
-  }
-  //error: The Sequence Number is > 65535.
-  else
-    status = 12;
 
-  return (status);
+   if (ucindex <= 5)
+   {
+      switch (*lp)
+      {
+      // Found the time delimiter.
+      case ':':
+         // move the line pointer to the first char in the field
+         lp -= ucindex;
+         status = 0;
+         break;
+      // Found the date-time delimiter.
+      case '/':
+      case '-':
+         lp -= ucindex;
+         status = 20;
+         break;
+      // Found the sequence number.
+      case '}':
+         str[ucindex] = *lp;
+         // do we have an int in front of the delimiter?
+         while(*lp >= '0' && *lp <= '9' && ucindex > 0 || *lp == '}') 
+            str[--ucindex] = *--lp;
+         // wildcard is ok.
+         if (*lp == '?') 
+            status = 10; 
+         // we have a well formed int. life is good.
+         else if (ucindex == 0)
+            status = 11;
+         break;
+      }
+   }
+   else
+   {
+      //error: The Sequence Number is > 65535.
+      status = 12;
+   }
+
+   return (status);
 } // end whatIsChoice
 
 // LJT 10/7/2005 rewrote
@@ -5976,35 +5864,29 @@ numch:     ptstamp->choice = 1;  //
 BOOL ParseTimeStampArray(BACnetTimeStamp *parray[], int arraycount)
 {
    BACnetTimeStamp *q=NULL;
-
-   skipwhitespace();
-
-    if (MustBe('{'))
-        return true; 
+   if (MustBe('{'))
+      return true; 
 
    for(int i=0; i < arraycount; i++)
    {
-      skipwhitespace();
       if ( MustBe('{')) return true;  // each element surrounded by '{'
-            
+
       if ((q=(tagTimeStamp *)malloc(sizeof(BACnetTimeStamp)))==NULL)
-      {  
+      {
          tperror("Can't Get Object Space!",true);
          return true;
       }
       print_debug("LJT: TimeStamp=%x\n",q);
-       if ( ParseTimeStamp(q) )
+      if ( ParseTimeStamp(q) )
       {
          char tmp[50];
          sprintf(tmp,"Parse error in event-time-stamps, index=%d",i+1);
          tperror(tmp,true);
          return true;  // error occurred
       }
-      skipwhitespace();
       if ( MustBe('}'))
          return true;   // must close each array item
       // each array item is separated by a comma
-        skipwhitespace();
       if ( (i+1) < arraycount )
          if ( MustBe(',')) return true;
 
@@ -6037,11 +5919,11 @@ Any of the following should be valid ...
 
 */
 BOOL ParseDateTime(BACnetDateTime *dtp)
-{  
+{
    skipwhitespace();
-    if (ParseDate(&dtp->date)) return true;
+   if (ParseDate(&dtp->date)) return true;
    if (MustBe(',')) return true;  // ',' separates the date and time text
-    if (ParseTime(&dtp->time)) return true;
+   if (ParseTime(&dtp->time)) return true;
    return false;
 }
 
@@ -6090,13 +5972,13 @@ BOOL ParseJustDatePart(BACnetDate *dtp, char* tok)
    octet db;
    int i = 0;
    lp = tok;
-    if ((db=ReadB(1,31))!=dontcare)          //not wild
-    {
+   if ((db=ReadB(1,31))!=dontcare)          //not wild
+   {
       if (lp[-1]=='/')                 //was it month/day/year?
-      {  
+      {
          print_debug("PD: find month first\n");
          if (db>12)                    //yes
-         {  
+         {
             tperror("Month must be 1-12!",true);
             return true;
          }
@@ -6104,7 +5986,7 @@ BOOL ParseJustDatePart(BACnetDate *dtp, char* tok)
          dtp->month=db;
       }
       else                          //must be day-month-year
-      {  
+      {
          print_debug("PD: find day of month first\n");
          if (db>31)
          {
@@ -6113,66 +5995,71 @@ BOOL ParseJustDatePart(BACnetDate *dtp, char* tok)
          }
          dtp->day_of_month=db;
       }
-    } 
-   else 
+   }
+   else
+   {
       print_debug("PD: first value not specified\n");
-   
+   }
+
    print_debug("PD: About to read second set, db = %d lp = '%s' lp[-1] = '%c' \n",db,lp,&lp[-1]);
 
-    if (lp[-1]=='/')      //was it month/day/year?
-    { 
+   if (lp[-1]=='/')      //was it month/day/year?
+   {
       print_debug("PD: second set slash case\n");
 
       if ((db=ReadB(1,31))!=dontcare)        //we'll check for valid days later
       dtp->day_of_month=db;
-    }
-    else if (lp[-1]=='-')                 //day-month-year
-    { 
+   }
+   else if (lp[-1]=='-')                 //day-month-year
+   {
       print_debug("PD: second set dash case\n");
 
       for (i=0;i<12;i++)
+      {
          if (_strnicmp(lp,MonthNames[i],3)==0)  // only look at first 3 chars
-         {  
+         {
             dtp->month=(octet)i+1;        //months are 1-12
             char* tmp = strchr(lp,'-');
             int extralength = tmp==NULL ? 0 : strlen(tmp);
-             lp += strlen(lp) - extralength;     //added by Liangping Xu
-             break;
+            lp += strlen(lp) - extralength;     //added by Liangping Xu
+            break;
          }
-         if ((strdelim("-"))==NULL)
-         {  
-            tperror("Must use monthname-year here!",true);
-             return true;
-         }
-    }
-    else if (lp[-1]!=',')
-   {  tperror("Must use month/day/year or day-monthname-year here!",true);
-   return true;
+      }
+      if ((strdelim("-"))==NULL)
+      {
+         tperror("Must use monthname-year here!",true);
+         return true;
+      }
    }
-    
+   else if (lp[-1]!=',')
+   {
+      tperror("Must use month/day/year or day-monthname-year here!",true);
+      return true;
+   }
+
    print_debug("PD: About to read third set\n");
    BOOL flag = TRUE;
    if( strchr(lp, ')') == NULL )
       flag = FALSE;
-    if (i=ReadW())                        //not wild
-    { 
+   if (i=ReadW())                        //not wild
+   {
       //Shiyuan Xiao 7/25/2005
       if(flag && strchr(lp, ')') == NULL)
          lp--;
-      
+
       if (i>2154)                      //can't represent this date
-      {  
+      {
          tperror("Can't represent dates beyond 2154!",true);
          return true;
       }
 
-      if (i>254&&i<1900)
-      {  
+      if (i>254 && i<1900)
+      {
          tperror("Can't represent this year!",true);
          return true;
       }
 
-      if (i>=1900) 
+      if (i>=1900)
          i-=1900;// MAG fix bug here when date==1900 by change > to >= 08 FEB 2001
 
       // LJT adjusted so that a reference to '01' would mean 2001 not 1901
@@ -6209,14 +6096,13 @@ BOOL ParseDate(BACnetDate *dtp)
    dtp->month=dontcare;
    dtp->day_of_month=dontcare;
    dtp->day_of_week=dontcare;
-   skipwhitespace();
    print_debug("PD: about to read first set\n");
 
    // look for ',' before first ')'
    char cpylp[500];  // will lp every be any longer? 
    strcpy( cpylp, lp );
-    char* tok1 = strtok(cpylp, ",)");
-    if ( tok1 == NULL )
+   char* tok1 = strtok(cpylp, ",)");
+   if ( tok1 == NULL )
       return true;   // did not find either a , or a )
    char* tok2 = strtok(NULL, ")");
    if ( tok2 == NULL )
@@ -6256,22 +6142,24 @@ BOOL ParseDate(BACnetDate *dtp)
 //out:   true  if cancel selected
 
 BOOL ParseTime(BACnetTime *tp)
-{  
+{
    tp->hour=dontcare;
    tp->minute=dontcare;
    tp->second=dontcare;
    tp->hundredths=dontcare;
    skipwhitespace();
-    tp->hour=ReadB(0,23);
-    if (lp[-1]==':')
-    { tp->minute=ReadB(0,59);
+   tp->hour=ReadB(0,23);
+   if (lp[-1]==':')
+   {
+      tp->minute=ReadB(0,59);
       if (lp[-1]==':')
-      {  tp->second=ReadB(0,59);
+      {
+         tp->second=ReadB(0,59);
          if (lp[-1]=='.')
             tp->hundredths=ReadB(0,99);
       }
-    }
-    lp--;                              //point back to delimiter
+   }
+   lp--;                              //point back to delimiter
    return false;
 }
 
@@ -6279,7 +6167,7 @@ BOOL ParseTime(BACnetTime *tp)
 // parse a bitstring value as either of two forms:
 //    B'11011...1011'
 //  or
-//    ( T,F,T,F,...)    i.e. T or True or F or False in a list             ***008
+//    ( T,F,T,F,...)    i.e. T or True or F or False in a list
 //note:  after the initial B' or ( the list may span multiple lines
 //
 //in: lp    points to B'11011...1011' or (...)
@@ -6288,80 +6176,100 @@ BOOL ParseTime(BACnetTime *tp)
 //    nbf      points to octet to update with number of bits found (or NULL)
 //out:   true  if cancel selected
 
-BOOL ParseBitstring(octet *bsp,word nbits,octet *nbf)
-{  octet db;
-   char  term[3];
-   BOOL  isbits;                       //                         ***008
-    //modified by xlp,2002-11
-   memset(bsp,0,nbits/8+1);               //initialize to 0
+bool ParseBitstring(octet *bsp, word nbits, octet *nbf)
+{
+   octet db;
+   char  term;
+   bool  isbits;
+   char openWrap = 0;
+
+   memset(bsp,0,nbits/8+1);            //initialize to 0
    if (nbf) *nbf=0;                    //no bits found yet
 
    skipwhitespace();
-   if ((*lp=='b'||*lp=='B')&&(lp[1]=='\''||lp[1]=='`'))  //                ***008 Begin
-   {//it's a bitstring
+   if ((*lp=='b' || *lp=='B') && (lp[1]=='\'' || lp[1]=='`'))
+   {
+      // it's a bitstring in old-school format
       isbits=true;
-      term[0]='\'';                    //terminator
+      term='\'';                       //terminator
       lp+=2;                           //skip over B'
    }
-   else if (*lp=='(')
-   {//it's a flag list
+   // 135.1 say this should be {}, but () seems to be traditional in sample tpi files.
+   else if ((*lp=='(') || (*lp=='{'))
+   {
+      // it's a bitstring in 135.1 format
       isbits=false;
-      term[0]=')';                     //terminator
-      lp++;                         //skip over (
+      term= (*lp++=='(') ? ')' : '}';  //closing wrapper
    }
    else
-   {  tperror("Expected B'bitstring' or (T,F...) bitflag list here!",true);
+   {
+      tperror("Expected B'bitstring' or {T,F...} bitflag list here!",true);
       return true;
    }
-   term[1]=',';
-   term[2]=0;                          //i.e. term is asciz string
-   db=0x80;
-   while(feof(ifile)==0)
-   {  if (*lp==0) 
-         if (ReadNext()==NULL) break;
-      if (*lp==term[0])
-      {  lp++;
+
+   db = 0x80;
+   while (feof(ifile)==0)
+   {
+      if ((*lp==0) && (ReadNext()==NULL))
+         break;
+
+      if (*lp == term)
+      {
+         lp++;
          break;                        //found terminator
       }
+
       if (nbits)
-      {  if (isbits)
-         {  if (*lp=='1')
-               *bsp|=db;
-            else
-               if (*lp!='0')
-               {  tperror("Bitstring must contain 0s or 1s!",true);
-                  return true;
-               }
+      {
+         if (isbits)
+         {
+            if (*lp=='1')
+            {
+               *bsp |= db;
+            }
+            else if (*lp!='0')
+            {
+               tperror("Bitstring must contain 0s or 1s!",true);
+               return true;
+            }
             lp++;                   //skip 0 or 1
          }
          else
-         {  skipwhitespace();
-            if (*lp=='t'||*lp=='T')
-               *bsp|=db;
-//madanner 6/03
-//Bug in delimeter search... order of delim chars is significant in strdelim function
-//Used here as ",)" so we'll find comma first...   Was: ")," which found paren first and skipped
-//reading entire bitstring
-//          if (strdelim(&term[0])==NULL) break;
-            if (strdelim(",)")==NULL) break;
-
-            if (lp[-1]==term[0])  // )
-               break;
-            if (lp[-1]==term[1]&&lp[-2]==term[0])  // ), 
+         {
+            skipwhitespace();
+            if (*lp=='t' || *lp=='T')
             {
-               lp--;  // backup one to leave the comma
-               break;
+               *bsp |= db;
             }
-         }                             //                      ***008 End
+            else if (*lp!='f' && *lp!='F')
+            {
+               tperror("Expected true, false, T, or F",true);
+               return true;
+            }
+
+            // Skip the rest of the true/false value
+            char next = SkipValue();
+            if (next == term)
+               break;            // end of list
+
+            if (next != ',')
+            {
+               tperror("Expected comma or closing delimiter",true);
+               return true;
+            }
+         }
+
          if ((db>>=1)==0)
-         {  db=0x80;
+         {
+            db=0x80;
             bsp++;
          }
-         if (nbf) *nbf+=1;             //update num bits found
+         if (nbf) *nbf += 1;             //update num bits found
          nbits--;
       }
       else
-      {  tperror("Expected end of bitstring here!",true);
+      {
+         tperror("Expected end of bitstring here!",true);
          return true;
       }
    }
@@ -6377,23 +6285,28 @@ BOOL ParseBitstring(octet *bsp,word nbits,octet *nbf)
 //out:   true  if cancel selected
 
 BOOL ParseOctetstring(octet *osp,word nmax,word *ncount)
-{  memset(osp,0,nmax);                 //initialize to 0
+{
+   memset(osp,0,nmax);                 //initialize to 0
    if (ncount!=NULL) *ncount=0;
    skipwhitespace();
    if ((*lp!='x'&&*lp!='X')||lp[1]!='\'')
-   {  tperror("Expected X'octetstring' here!",true);
+   {
+      tperror("Expected X'octetstring' here!",true);
       return true;
    }
    lp+=2;                              //skip over X'
    while(*lp&&*lp!='\'')
-   {  if (nmax)
-      {   lp=cvhex(lp,osp);               //convert some chars
-          osp++;
-          if (ncount!=NULL) (*ncount)++;
+   {
+      if (nmax)
+      {
+         lp=cvhex(lp,osp);               //convert some chars
+         osp++;
+         if (ncount!=NULL) (*ncount)++;
          nmax--;
       }
       else
-      {  tperror("Expected ' for end of octetstring here!",true);
+      {
+         tperror("Expected ' for end of octetstring here!",true);
          return true;
       }
    }
@@ -6404,40 +6317,37 @@ BOOL ParseOctetstring(octet *osp,word nmax,word *ncount)
 BOOL ParsePrescale(BACnetPrescale* pt)
 {
    skipwhitespace();
-   if (*lp=='?') 
-      return false;              
+   if (*lp=='?')
+      return false;
 
    if (MustBe('{')) 
       return true;
    pt->multiplier = ReadW();
    lp--;
-   
-   if (MustBe(',')) 
-      return true;
 
-   skipwhitespace(); 
-    pt->moduloDivide = ReadW();
-   lp--;
+   if (MustBe(','))
+      return true;
 
    skipwhitespace();
+   pt->moduloDivide = ReadW();
+   lp--;
+
    if (MustBe('}')) 
       return true;
-   
+
    return false;
 }
 
 BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
 {
    skipwhitespace();
-   if (*lp=='?') 
-      return false;              
+   if (*lp=='?')
+      return false;
 
-   if (MustBe('{')) 
+   if (MustBe('{'))
       return true;
-   
-   ParseDateTime(&pt->timestamp);
 
-   skipwhitespace();
+   ParseDateTime(&pt->timestamp);
    if (MustBe(',')) 
       return true;
 
@@ -6448,9 +6358,10 @@ BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
    pt->accumulatedValue = ReadW();
 
     pt->accumulatorStatus = ReadEnum(&etAccumulatorStatus);
-   
+
    return false;
 }
+
 ///////////////////////////////////////////////////////////////////////
 // read an array of BACnetActionCommands from the buffer lp points to
 //  ({actioncommand},{actioncommand},{actioncommand}...)
@@ -6466,146 +6377,165 @@ BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
 // - 135.1 4.4 says that SEQUENCE are enclosed curly brackets
 //
 BACnetActionCommand *ReadActionCommands()
-{  BACnetActionCommand  *firstp=NULL,*p=NULL,*q=NULL;
-   propdescriptor    *pd;
+{
+   BACnetActionCommand  *firstp=NULL,*p=NULL,*q=NULL;
+   propdescriptor *pd;
    dword          dw;
 
    // List is enclosed by parenthesis
-   skipwhitespace();                   //                         ***008
+   skipwhitespace();
    if (MustBe('('))
       return NULL;
-   
+
    while (true)
-   {   
+   {
       // here lp must point to:
       // 1. a comma or whitespace which we ignore as a separator between list elements.
       //    Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //    but (...),,(...) is treated the same as (...),(...)
       // 2. (  i.e. the beginning of a new BACnetActionCommand in the list
       // 3. )           i.e. the closing part of the list
-      while (*lp==space||*lp==',') lp++;     //skip separation between list elements
-      
+      while (*lp==space || *lp==',') lp++;     //skip separation between list elements
+
       if (*lp==0) 
-         if (ReadNext()==NULL) break;     //                         ***008
-      
-      if (*lp==')') 
-      {  
+         if (ReadNext()==NULL) break;
+
+      if (*lp==')')
+      {
          lp++;
          break;                        //close this list out
       }
-      
+
       if (MustBe('{')) break;
 
       // here we have (BACnetActionCommand)...
       if ((q=(tagActionCommand *)malloc(sizeof(BACnetActionCommand)))==NULL)
-      {  
+      {
          tperror("Can't Get Object Space!",true);
          break;
       }
       print_debug("LJT: ActionCommand=%x\n",q);
 
-      q->device_id=badobjid;
-      if (*lp!=',')                    //                         ***008 Begin
-      {  dw=ReadObjID();
-         if ((word)(dw>>22)!=OBJ_DEVICE)
-         {  
+      // DeviceID is optional.  If not present there should be a comma
+      if (*lp==',')
+      {
+         // Use badobjid as to mean "no deviceID specified"
+         lp++;
+         q->device_id = badobjid;
+      }
+      else
+      {
+         dw=ReadObjID();
+         if ((word)(dw>>22) != OBJ_DEVICE)
+         {
             if (tperror("Must use a Device Object Identifier here!",true))
                break;
          }
          q->device_id=dw;
          if ((strdelim(","))==NULL) goto acprem;
       }
-      else
-      {
-         lp++;                      //skip comma                  ***008 End
-      }
-      
+
       dw=ReadObjID();
       if (dw==badobjid)
-      {  
+      {
          if (tperror("Must use an Object Identifier here!",true))
             break;
       }
       q->object_id=dw;
       if ((strdelim(","))==NULL) goto acprem;
-      skipwhitespace();             //                         ***008
-      
-      // validate property name and index here
+      skipwhitespace();
+
+      // validate property name and optional index here
       pd = validatePropertyNameAndIndexCode(dw, &q->property_id, &q->pa_index);
       if (pd == NULL)
          break;  // Error already output
 
-      if ((strdelim(","))==NULL) goto acprem;   //                      ***012 End
-      if (pd->ParseType==flt)             //it's a floating value
-      {  
+      if ((strdelim(","))==NULL) goto acprem;
+
+      // ASN.1 says propertyValue is an ANY, but we decode based on
+      // the specified object type and property
+      if (pd->ParseType==flt)                //it's a floating value
+      {
          q->value_type=FLT;
-         q->av.fproperty_value=(float)atof(lp);
-         if ((strdelim(","))==NULL) goto acprem;
+         if (ReadFloat( &q->av.fproperty_value) || MustBe(',')) goto acprem;
       }
       else if (pd->PropET==eiBPV)            //it's a BPV
-      {  
+      {
          q->value_type=BPV;
          q->av.bproperty_value=INACTIVE;     //assume inactive
          if (*lp=='a'||*lp=='A')
             q->av.bproperty_value=ACTIVE;
          if ((strdelim(","))==NULL) goto acprem;
       }
-      else                          //must be unsigned
-      {  
+      else                                   //must be unsigned
+      {
          q->value_type=UNS;
          q->av.uproperty_value=ReadW();
       }
-      
-      // TODO: should we require the comma even
-      // for non-commandable properties?
-      if (pd->PropFlags&IsCommandable)    //only need priority for commandables  ***008 Begin
+
+      // Priority is required for commandable properties.
+      // We assume comma if it is omitted
+      if (pd->PropFlags & IsCommandable)    //only need priority for commandables
          q->priority=ReadB(0,16);
       else
-         if ((strdelim(","))==NULL) goto acprem;   //                   ***008 End
-      
-      q->post_delay=ReadW();        // OPTIONAL
+         if ((strdelim(","))==NULL) goto acprem;
+
+      // postDelay is optional
+      q->post_delay=ReadW();
+
       q->quit_on_failure=ReadBool();
       q->write_successful=ReadBool();
-      if (lp[-1]!='}')
-acprem:  {  tperror("Expected ) here!",true);
+
+      if (lp[-1] != '}')
+      {
+         tperror("Expected } here!",true);
          break;
       }
-      q->next=NULL;                    //link onto the list       ***008 Begin
+
+      q->next=NULL;                    //link onto the list
       if (firstp==NULL)
          firstp=q;                     //remember first guy we made
       else
          p->next=q;                    //link new guy on the end of the list
-      p=q;                          //remember new guy is now the last guy
+
+      p=q;                             //remember new guy is now the last guy
       q=NULL;
    }
-   if (q!=NULL) free(q);                  //don't lose this block!
-   return firstp;                      //                      ***008 End
+   if (q!=NULL) free(q);               //don't lose this block!
+   return firstp;
+
+acprem:
+   tperror("Missing a required element or a comma to denote an optional element",true);
+   if (q!=NULL) free(q);               //don't lose this block!
+   return firstp;
 }
 
 BOOL ParseBooleanList( BooleanList **elp )
 {
    BooleanList *p=NULL,*q=NULL;
    word        value;
-            
+
    *elp=NULL;                          //initially there is no list
-   
-   skipwhitespace();
+
    if (MustBe('(')) return true;
    while(feof(ifile)==0)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //2. {              the beginning of a new unsigned in the list
       //3. }            i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
-      if (*lp==')') 
-      {  lp++;
+         if (ReadNext()==NULL) break;
+      if (*lp==')')
+      {
+         lp++;
          break;                        //close this list out
       }
 
       if ((q=(tagBooleanList *)malloc(sizeof(BooleanList)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          break;
       }
       print_debug("LJT: BooleanList=%x\n",q);
@@ -6617,7 +6547,7 @@ BOOL ParseBooleanList( BooleanList **elp )
          lp++;
 
       if ((value=ReadBool())!=0xFFFF)
-      {  
+      {
          q->value = (unsigned char)value;
          //msdanner 9/2004 - new items now added to the end, not beginning
          if (p)
@@ -6634,14 +6564,16 @@ BOOL ParseBooleanList( BooleanList **elp )
          p=q;
       }
       else
+      {
          free(q);                   //give this one up
+      }
 
       lp--;  // don't eat last character
       if (*lp=='}') 
          lp++;
 
       q=NULL;
-      if (lp[-1]==')') break;             //list is done                ***008
+      if (lp[-1]==')') break;             //list is done
    }
    if (q!=NULL) free(q);                  //don't lose this block!
    return false;
@@ -6651,33 +6583,93 @@ BOOL ParseUnsignedList( UnsignedList **elp )
 {
    UnsignedList   *p=NULL,*q=NULL;
    word        value;
-            
+
    *elp=NULL;                          //initially there is no list
-   
-   skipwhitespace();
    if (MustBe('(')) return true;
-   while(feof(ifile)==0)
-   {   //here lp must point to:
+   while (feof(ifile)==0)
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //2. {              the beginning of a new unsigned in the list
       //3. }            i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
-      if (*lp==')') 
-      {  lp++;
+         if (ReadNext()==NULL) break;
+      if (*lp==')')
+      {
+         lp++;
          break;                        //close this list out
       }
 
       if ((q=(tagUnsignedList *)malloc(sizeof(UnsignedList)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          break;
       }
       print_debug("LJT: UnsignedList=%x\n",q);
 
-        q->next = NULL;
+      q->next = NULL;
       if ((value=ReadW())!=0xFFFF)
-      {  
+      {
+         q->value=value;
+         //msdanner 9/2004 - new items now added to the end, not beginning
+         if (p)
+         {
+            // if aready one item in the list
+            p->next = q;
+            p = q;  // new end of list
+         }
+         else
+         {
+            // first item found ...
+            *elp = q;
+         }
+         p=q;
+      }
+      else
+      {
+         free(q);                   //give this one up
+      }
+
+      q=NULL;
+      if (lp[-1]==')') break;             //list is done
+   }
+   if (q!=NULL) free(q);                  //don't lose this block!
+   return false;
+}
+
+BOOL ParseEnumList(BACnetEnumList **elp, etable *etbl)
+{
+   BACnetEnumList *p=NULL,*q=NULL;
+   word                 value;
+
+   *elp=NULL;                          //initially there is no list
+   if (MustBe('(')) return true;
+   while(feof(ifile)==0)
+   {
+      //here lp must point to:
+      //1. a comma or whitespace which we ignore as a separator between list elements.
+      //2. the beginning of a new BACnetVTClass enumeration in the list
+      //3. )            i.e. the closing part of the list
+      while (*lp==space||*lp==',') lp++;     //skip separation between list elements
+      if (*lp==0)
+         if (ReadNext()==NULL) break;     //                         ***008
+      if (*lp==')') 
+      {
+         lp++;
+         break;                        //close this list out
+      }
+
+      if ((q=(tagEnumList *)malloc(sizeof(BACnetEnumList)))==NULL)
+      {
+         tperror("Can't Get Object Space!",true);
+         break;
+      }
+      print_debug("LJT: EnumList=%x\n",q);
+
+      q->next = NULL;
+      if ((value=ReadEnum(etbl))!=0xFFFF)
+      {
          q->value=value;
          //msdanner 9/2004 - new items now added to the end, not beginning
          if (p)
@@ -6697,62 +6689,7 @@ BOOL ParseUnsignedList( UnsignedList **elp )
          free(q);                   //give this one up
 
       q=NULL;
-      if (lp[-1]==')') break;             //list is done                ***008
-   }
-   if (q!=NULL) free(q);                  //don't lose this block!
-   return false;
-}
-
-BOOL ParseEnumList(BACnetEnumList **elp, etable *etbl)
-{
-   BACnetEnumList *p=NULL,*q=NULL;
-   word                 value;
-            
-   *elp=NULL;                          //initially there is no list
-   
-   skipwhitespace();
-   if (MustBe('(')) return true;
-   while(feof(ifile)==0)
-   {   //here lp must point to:
-      //1. a comma or whitespace which we ignore as a separator between list elements.
-      //2. the beginning of a new BACnetVTClass enumeration in the list
-      //3. )            i.e. the closing part of the list
-      while (*lp==space||*lp==',') lp++;     //skip separation between list elements
-      if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
-      if (*lp==')') 
-      {  lp++;
-         break;                        //close this list out
-      }
-
-      if ((q=(tagEnumList *)malloc(sizeof(BACnetEnumList)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
-         break;
-      }
-      print_debug("LJT: EnumList=%x\n",q);
-
-        q->next = NULL;
-      if ((value=ReadEnum(etbl))!=0xFFFF)
-      {  q->value=value;
-         //msdanner 9/2004 - new items now added to the end, not beginning
-         if (p)
-         {
-            // if aready one item in the list
-            p->next = q;
-            p = q;  // new end of list
-         }
-         else
-         {
-            // first item found ...
-            *elp = q;
-         }
-         p=q;
-      }
-      else
-         free(q);                   //give this one up
-
-      q=NULL;
-      if (lp[-1]==')') break;             //list is done                ***008
+      if (lp[-1]==')') break;             //list is done
    }
    if (q!=NULL) free(q);                  //don't lose this block!
    return false;
@@ -6771,33 +6708,36 @@ BOOL ParseVTClassList(BACnetVTClassList **vtclp)
 {
    BACnetVTClassList *p=NULL,*q=NULL;
    word           vtc;
-            
+
    *vtclp=NULL;                           //initially there is no list
-   
-   skipwhitespace();
+
    if (MustBe('(')) return true;
    while(feof(ifile)==0)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //2. the beginning of a new BACnetVTClass enumeration in the list
       //3. )            i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
-      if (*lp==')') 
-      {  lp++;
+         if (ReadNext()==NULL) break;
+      if (*lp==')')
+      {
+         lp++;
          break;                        //close this list out
       }
 
       if ((q=(tagVTClassList *)malloc(sizeof(BACnetVTClassList)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          break;
       }
       print_debug("LJT: VTClassList=%x\n",q);
 
       q->next = NULL;
       if ((vtc=ReadEnum(&etVTClasses))!=0xFFFF)
-      {  q->vtclass=(BACnetVTClass)vtc;
+      {
+         q->vtclass=(BACnetVTClass)vtc;
          //msdanner 9/2004 - new items now added to the end, not beginning
          if (p)
          {
@@ -6813,10 +6753,12 @@ BOOL ParseVTClassList(BACnetVTClassList **vtclp)
          p=q;
       }
       else
+      {
          free(q);                   //give this one up
+      }
 
       q=NULL;
-      if (lp[-1]==')') break;             //list is done                ***008
+      if (lp[-1]==')') break;             //list is done
    }
    if (q!=NULL) free(q);                  //don't lose this block!
    // *vtclp=p;  msdanner 9/2004 - now assigned above to preserve list order
@@ -6834,19 +6776,21 @@ BOOL ParseVTClassList(BACnetVTClassList **vtclp)
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
-{  BACnetObjectIdentifier  *firstp=NULL,*p=NULL,*q=NULL;
+{
+   BACnetObjectIdentifier  *firstp=NULL,*p=NULL,*q=NULL;
    word  objtype;
    dword objectInstance; 
    int i;
 
    *dalp=NULL;                         //initially there is no list
    *nump=0;
-   
+
    skipwhitespace();
    if (*lp=='?') return false;               //? means no list
    if (MustBe('{')) return true;
    while(feof(ifile)==0)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
@@ -6854,25 +6798,28 @@ BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
       //3. )         i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
+         if (ReadNext()==NULL) break;
       if (*lp=='}') 
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
 
       //here we have (objtype,instance),...
 
       if ((q=(tagObjectIdentifier *)malloc(sizeof(BACnetObjectIdentifier)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          break;
       }
       print_debug("LJT: ObjectIdentifier=%x\n",q);
 
       //Modified by xlp,2002-11
-        objectInstance=ReadObjID(); 
-        objtype=(word)(objectInstance>>22);
+      objectInstance=ReadObjID(); 
+      objtype=(word)(objectInstance>>22);
       if ( objtype < MAX_DEFINED_OBJ )
-      {  // don't add proprietary objects here
+      {
+         // don't add proprietary objects here
          DevObjList[objtype].object_type=objtype;       
          DevObjList[objtype].ObjIDSupported|=soSupported;
          i=DevObjList[objtype].ObjInstanceNum;
@@ -6880,7 +6827,7 @@ BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
          DevObjList[objtype].ObjInstance[i]=objectInstance&0x003fffff;     
       }
       //ended by xlp,2002-11
-      
+
       q->object_id=objectInstance;
       q->next=NULL;                    //link onto the list
       if (firstp==NULL)
@@ -6894,7 +6841,7 @@ BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
    if (q!=NULL) free(q);                  //don't lose this block!
    *dalp=firstp;
    return false;
-}                                   //                         ***008 End
+}
 
 ///////////////////////////////////////////////////////////////////////
 // read a list of BACnetAddressBindings from the buffer lp points to
@@ -6906,16 +6853,17 @@ BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseAddressList(BACnetAddressBinding **dalp)
-{  BACnetAddressBinding *p=NULL,*q=NULL;
+{
+   BACnetAddressBinding *p=NULL,*q=NULL;
    dword                dw;
-            
+
    *dalp=NULL;                         //initially there is no list
-   
    skipwhitespace();
-   if (*lp=='?') return false;               //? means no list             ***008
+   if (*lp=='?') return false;               //? means no list
    if (MustBe('(')) return true;
    while(feof(ifile)==0)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
@@ -6923,9 +6871,10 @@ BOOL ParseAddressList(BACnetAddressBinding **dalp)
       //3. }         i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
+         if (ReadNext()==NULL) break;
       if (*lp==')') 
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
       if (MustBe('{')) break;  // each item surrounded by '{'
@@ -6933,24 +6882,27 @@ BOOL ParseAddressList(BACnetAddressBinding **dalp)
       //here we have (device,instance),network,macaddr)...
 
       if ((q=(tagAddressBinding *)malloc(sizeof(BACnetAddressBinding)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          break;
       }
       print_debug("LJT: AddressBinding=%x\n",q);
 
       dw=ReadObjID();
       if ((word)(dw>>22)!=OBJ_DEVICE)
-      {  if (tperror("Must use a Device Object Identifier here!",true))
+      {
+         if (tperror("Must use a Device Object Identifier here!",true))
             break;
       }
       q->device_object_id=dw;
       skipwhitespace();
       if ((strdelim(","))==NULL) goto alprem;
       skipwhitespace();
-        q->device_address.network_number=ReadW();
-        if (ParseOctetstring(&q->device_address.mac_address[0],
-                      sizeof(q->device_address.mac_address),
-                      &q->device_address.address_size)) break;
+      q->device_address.network_number=ReadW();
+      if (ParseOctetstring(&q->device_address.mac_address[0],
+                           sizeof(q->device_address.mac_address),
+                           &q->device_address.address_size)) 
+         break;
       skipwhitespace();
       if (*lp++!='}')   // close individual item
 alprem:  {  lp--;
@@ -6976,15 +6928,14 @@ alprem:  {  lp--;
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BOOL ParseSessionKeyList(BACnetSessionKey **dalp)
-{  
+{
    BACnetSessionKey  *p=NULL,*q=NULL;
-            
+
    *dalp=NULL;                         //initially there is no list
-   
-   skipwhitespace();
    if (MustBe('(')) return true;
    while(feof(ifile)==0)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
@@ -6992,9 +6943,10 @@ BOOL ParseSessionKeyList(BACnetSessionKey **dalp)
       //3. }         i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
-      if (*lp==')') 
-      {  lp++;
+         if (ReadNext()==NULL) break;
+      if (*lp==')')
+      {
+         lp++;
          break;                        //close this list out
       }
       if (MustBe('{')) break; // each list item is surrounded by {}
@@ -7002,18 +6954,19 @@ BOOL ParseSessionKeyList(BACnetSessionKey **dalp)
       //here we have key,network,macaddr}...
 
       if ((q=(tagSessionKey *)malloc(sizeof(BACnetSessionKey)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          break;
       }
       print_debug("LJT: SessionKey=%x\n",q);
 
-        if (ParseOctetstring(&q->session_key[0],
-                      sizeof(q->session_key),NULL)) break;
+      if (ParseOctetstring(&q->session_key[0],
+                           sizeof(q->session_key),NULL)) break;
       if ((strdelim(","))==NULL) goto skprem;
-        q->peer_address.network_number=ReadW();
-        if (ParseOctetstring(&q->peer_address.mac_address[0],
-                      sizeof(q->peer_address.mac_address),
-                      &q->peer_address.address_size)) break;
+      q->peer_address.network_number=ReadW();
+      if (ParseOctetstring(&q->peer_address.mac_address[0],
+                           sizeof(q->peer_address.mac_address),
+                           &q->peer_address.address_size)) break;
       if (*lp++!='}')
 skprem:  {  lp--;
          tperror("Expected } here!",true);
@@ -7028,113 +6981,117 @@ skprem:  {  lp--;
    return false;
 }
 
-BOOL normalBitstring(char *src)
+// Return true if the string contains a day of week name
+bool hasDOW(char *src)
 {
-   char *ep = src;
-   BOOL found = false;
-   if ((ep=strchr(src,','))==NULL)
-   {  
-      ep=strchr(src,0);
-   }
-   else
-      *ep++=0;                      //remember this end pointer
-
-   for(int i=0; i<7; i++)
+   bool found = false;
+   for (int i=0; i<7; i++)
    {
-      if (_strnicmp(ep,DOWNames[i],3)==0)
+      // Just look for a case-insensitive match on the first three characters
+      // Ugly hack: skip over the presumed delimiter.
+      // If it's there, later decode will eat it.
+      // If not, we'll try to decode as a bitstring and that will fail.
+      if (_strnicmp(src+1,DOWNames[i],3)==0)
       {
          found=true;
          break;
       }
    }
-   ep[-1]=',';  // put it back like we found it
-   return !found;  // if we found a day of week text it is NOT normal bitstring
+   return found;
 }
 
 ///////////////////////////////////////////////////////////////////////
-// read a list of BACnetDEstination from the buffer lp points to
-// ((days,from,to,(recipient),procid,conf,transitions),(days,from,to,(recipient),procid,conf,transitions)...)
+// read a list of BACnetDestination from the buffer lp points to
+//  ((days,from,to,(recipient),procid,conf,transitions),(days,from,to,(recipient),procid,conf,transitions)...)
 //in: lp    points to current position in buffer lb
 //    dalp  points to a BACnetDestination pointer variable to be
 //          initialized to point to the created list of BACnetDestinations
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseDestinationList(BACnetDestination **dalp)
-{  
+bool ParseDestinationList(BACnetDestination **dalp)
+{
    BACnetDestination *p=NULL,*q=NULL;
    char  c;
    octet dm;
    word  i;
-   char found_day;  // MAG
+   char found_day;
 
    *dalp=NULL;                         //initially there is no list
-   
+
    print_debug("PDL: Enter ParseDestinationList\n");
-   skipwhitespace();
    if (MustBe('(')) return true;
-   while(feof(ifile)==0)
-   {   //here lp must point to:
+
+   while (feof(ifile)==0)
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
       //2. {         i.e. the beginning of a new BACnetDestination in the list
       //3. }         i.e. the closing part of the list
       print_debug("PDL: start loop lp = '%s'\n",lp);
-      while (*lp==space||*lp==',') lp++;     //skip separation between list elements
-      if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
-      if (*lp==')') 
-      {  lp++;
+      while (*lp==space || *lp==',') lp++;     //skip separation between list elements
+      if ((*lp==0) && (ReadNext()==NULL)) break;
+
+      if (*lp==')')
+      {
+         lp++;
          break;                        //close this list out
       }
 
+      // Element of the list: BACnetDestination
       if (MustBe('{')) break;
 
       //here we have days,from,to,(recipient),procid,conf,transitions),...
-
       if ((q=(tagDestination *)malloc(sizeof(BACnetDestination)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+      {
+         tperror("Can't Get Object Space!",true);
          break;
       }
       print_debug("LJT: Destination=%x\n",q);
 
-      //look for (days of week),
-      skipwhitespace();                //                         ***013
+      //look for (days of week)
+      skipwhitespace();
       print_debug("PDL: About to check weekdays\n");
       q->valid_days=0;
+
+      // TODO: 135.1 says bitstring in {}, and there is no mention of the DOW version
+      // For now, accept both.
       // test if days of week are entered as (T,F,T,F,F,T,T) or (MON,WED,SAT,SUN)
-      if (normalBitstring(lp))
+      if (!hasDOW(lp))
       {
          unsigned char d = 0;
          ParseBitstring(&q->valid_days, 7, &d);
       }
       else
       {
-         // special bitstring handling for days of week
+         // Special bitstring handling for days of week
          if (MustBe('(')) break;
          print_debug("PDL: pre while 1\n");
-         while(*lp&&*lp!=')')
-         {   
-            while (*lp==space||*lp==',') lp++;  //skip separation between list elements
+         while(*lp && *lp!=')')
+         {
+            while (*lp==space || *lp==',') lp++;  //skip separation between list elements
             print_debug("PDL: post while 2 lp = '%s'\n",lp);
-            if (*lp==')') break;          //done                        ***013
-            found_day = 0;  // MAG
+            if (*lp==')') break;          //done
+            found_day = 0;
             for(i=0;i<7;i++)
+            {
                if (_strnicmp(lp,DOWNames[i],3)==0)
-               {  q->valid_days|=(octet)(0x80>>i); //Monday is 80, Sunday is 2
-                  while (*lp&&*lp!=' '&&*lp!=','&&*lp!=')') lp++; //find delim   ***014
+               {
+                  q->valid_days |= (octet)(0x80>>i); //Monday is 80, Sunday is 2
+                  while (*lp && *lp!=' ' && *lp!=',' && *lp!=')') lp++; //find delim
                   found_day = 1;
                   break;
                }
+            }
             print_debug("PDL: post while 3 lp = '%s'\n",lp);
             if(!found_day)
                return tperror("Expected Day of Week Here",true);
-
          }
          print_debug("PDL: Past check weekdays\n");
          if (MustBe(')')) break;
-      }  
+      }
       if (strdelim(",")==NULL) break;
       ParseTime(&q->from_time);
       print_debug("PDL: Past min-sec-hsec\n");
@@ -7142,29 +7099,29 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
       if (strdelim(",")==NULL) break;
       ParseTime(&q->to_time);
       print_debug("PDL: Past min-sec-hsec 2\n");
-      
+
       if (strdelim(",")==NULL) break;
       if (ParseRecipient(&q->recipient)==NULL) break;
-      
+
       if (strdelim(",")==NULL) break;
       q->process_id=ReadW();
       q->notification=ReadBool();
-      skipwhitespace();
       if (MustBe('(')) break;
       q->transitions=0;
       dm=0x80;
       while (c=*lp++)
-      {  if (c==')') break;
+      {
+         if (c==')') break;
          if (c==',') dm>>=1;
          if (c=='t'||c=='T') q->transitions|=dm;
       }
-      skipwhitespace();
       if (MustBe('}')) break;
       q->next=p;                       //link onto the list
       p=q;
       q=NULL;
       print_debug("PDL: End of loop\n");
    }
+
    if (q!=NULL) free(q);                  //don't lose this block!
    *dalp=p;
    print_debug("PDL: Return\n");
@@ -7180,15 +7137,14 @@ BOOL ParseDestinationList(BACnetDestination **dalp)
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseRecipientList(BACnetRecipient **dalp)
-{  BACnetRecipient   *p=NULL,*q=NULL;
-            
+bool ParseRecipientList(BACnetRecipient **dalp)
+{
+   BACnetRecipient   *p=NULL,*q=NULL;
    *dalp=NULL;                         //initially there is no list
-   
-   skipwhitespace();
    if (MustBe('(')) return true;
    while(feof(ifile)==0)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
@@ -7196,22 +7152,23 @@ BOOL ParseRecipientList(BACnetRecipient **dalp)
       //3. )         i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
+         if (ReadNext()==NULL) break;
       if (*lp==')') 
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
-        skipwhitespace();
       if (MustBe('{')) break;
       if ((q=ParseRecipient(NULL))!=NULL)
-      {  q->next=p;                    //link onto the list
+      {
+         q->next=p;                    //link onto the list
          p=q;
          q=NULL;
       }
-        skipwhitespace();
       if (MustBe('}')) break;
    }
-   if (q!=NULL) free(q);                  //don't lose this block!
+
+   if (q!=NULL) free(q);               //don't lose this block!
    *dalp=p;
    return false;
 }
@@ -7225,37 +7182,41 @@ BOOL ParseRecipientList(BACnetRecipient **dalp)
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
 BACnetRecipient *ParseRecipient(BACnetRecipient *inq)
-{  BACnetRecipient   *q=NULL;
-   dword          dw;
-   
+{
+   BACnetRecipient   *q=NULL;
+   dword             dw;
+
    skipwhitespace();
-    
    if (inq==NULL)
-   {   if ((q=(tagRecipient *)malloc(sizeof(BACnetRecipient)))==NULL)
-      {  tperror("Can't Get Object Space!",true);
+   {
+      if ((q=(tagRecipient *)malloc(sizeof(BACnetRecipient)))==NULL)
+      {
+         tperror("Can't Get Object Space!",true);
          return NULL;
       }
       print_debug("LJT: Recipient=%x\n",q);
-
    }
    else
+   {
       q=inq;
+   }
    q->next=NULL;
 
    //here we have (device,instance) or network,macaddr ...
    if (IsDigit(*lp))                //must be network,macaddress
-   {  
+   {
       q->choice=1;                  //address
-        q->u.address.network_number=ReadW();
-        if (ParseOctetstring(&q->u.address.mac_address[0],
-                      sizeof(q->u.address.mac_address),
-                      &q->u.address.address_size)) goto brfail;
+      q->u.address.network_number=ReadW();
+      if (ParseOctetstring(&q->u.address.mac_address[0],
+                           sizeof(q->u.address.mac_address),
+                           &q->u.address.address_size)) goto brfail;
    }
    else                          //must be (device,instance)
-   {  
+   {
       dw=ReadObjID();
       if ((word)(dw>>22)!=OBJ_DEVICE)
-      {  if (tperror("Must use a Device Object Identifier here!",true))
+      {
+         if (tperror("Must use a Device Object Identifier here!",true))
             goto brfail;
       }
       q->choice=0;                  //device
@@ -7269,7 +7230,6 @@ brfail:
 }
 
 
-//*****018 begin
 ///////////////////////////////////////////////////////////////////////
 // read a list of BACnetCOVSubscription from the buffer lp 
 //in: lp    points to current position in buffer lb
@@ -7280,13 +7240,12 @@ brfail:
 BOOL ParseCOVSubList(BACnetCOVSubscription **covsub)
 {
    BACnetCOVSubscription   *p=NULL,*q=NULL;
-            
    *covsub=NULL;                          //initially there is no list
-   
-   skipwhitespace();
+
    if (MustBe('(')) return true;
    while(feof(ifile)==0)
-   {   //here lp must point to:
+   {
+      //here lp must point to:
       //1. a comma or whitespace which we ignore as a separator between list elements.
       //   Note that we require "empty" list elements to use proper syntax (...),(),(...)
       //   but (...),,(...) is treated the same as (...),(...)
@@ -7294,15 +7253,17 @@ BOOL ParseCOVSubList(BACnetCOVSubscription **covsub)
       //3. )         i.e. the closing part of the list
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
-         if (ReadNext()==NULL) break;     //                         ***008
+         if (ReadNext()==NULL) break;
 
       if (*lp==')') 
-      {  lp++;
+      {
+         lp++;
          break;                        //close this list out
       }
          
       if ((q=ParseCOVSubscription(NULL))!=NULL)
-      {  q->next=p;                    //link onto the list
+      {
+         q->next=p;                    //link onto the list
          p=q;
          q=NULL;
       }
@@ -7322,41 +7283,40 @@ BOOL ParseCOVSubList(BACnetCOVSubscription **covsub)
 BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *inq)
 {
    BACnetCOVSubscription   *q=NULL;
-// (((0, (Device, Instance 12)), 300), ((Analog Input, 1), Present-Value), TRUE, 100, 1.0)
-   skipwhitespace();
+   // (((0, (Device, Instance 12)), 300), ((Analog Input, 1), Present-Value), TRUE, 100, 1.0)
    //here we have (RecipientProcess, ObjectPropertyReference, Boolean, Unsigned) ...
    if (MustBe('{')) return NULL;
-   
+
    if (inq==NULL)
-   {   
+   {
       if ((q=(tagCOVSubscription *)malloc(sizeof(BACnetCOVSubscription)))==NULL)
-      {  
+      {
          tperror("Can't Get Object Space!",true);
          return NULL;
       }
       print_debug("LJT: COVSubscription=%x\n",q);
-
    }
-   else{
+   else
+   {
       q=inq;
    }
-      
+
    q->next=NULL;
-   skipwhitespace();
 
    //parse RecipientProcess
    //here we have (Recipient, Unsigned) ...
    // (((0, (Device, Instance 12)), 300)
    if (MustBe('{')) goto brfail;
    skipwhitespace();
-   if ( ParseRecipient(&(q->recipient.recipient)) == NULL ) {
+   if (ParseRecipient(&(q->recipient.recipient)) == NULL)
+   {
       goto brfail;
    }
-    
+
    if ((strdelim(","))==NULL) goto brfail;
    skipwhitespace();
    q->recipient.process_id = ReadW();
-    lp--;
+   lp--;
    if (MustBe('}')) goto brfail;
 
    if ((strdelim(","))==NULL) goto brfail;
@@ -7364,7 +7324,7 @@ BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *inq)
    // parse ObjectPropertyReference
    // ((Analog Input, 1), Present-Value)
    if ((ParseReference(&(q->monitoredPropertyReference)))==NULL)  goto brfail;
-      
+
    // parse boolean
    if ((strdelim(","))==NULL) goto brfail;
    skipwhitespace();
@@ -7387,35 +7347,32 @@ BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *inq)
    }
    if ((strdelim("}"))==NULL) goto brfail;
    return q;
-   
+
 brfail:
    if (inq==NULL) free(q);          //don't release unless we malloc'd it
    return NULL;
 }
-//*****018 end
 
 
 ///////////////////////////////////////////////////////////////////////
 //  5/13/05 Shiyuan xiao. Support ASHRAE Standard 135.1-2003
 // parse a string parameter
-//in: p     points to string variable to contain the result
-//    ps    max size of p
-//    param points to parameter to be parsed
+// in: p     points to string variable to contain the result
+//     ps    max size of p
+//     param points to parameter to be parsed
 //
-//The param pointer should point to a string like:
-//    "some string"
-//or  'some string'
-//or  `somestring'
-//out:   true     if cancel selected
+// The param pointer should point to a string like:
+//     "some string"
+// or  'some string'
+// or  `somestring'
+// out:   true     if no string, and cancel selected
 
-BOOL setstring(char *p,word ps, char *param)
+bool setstring(char *p,word ps, char *param)
 {
    char  q;
    word  i;
 
-   // TODO: a GLOBAL pointer???  Is its value used after we return?
-   // Search shows that ALL calls to setstring pass lp as param...
-   lp = param;                         //                         ***008
+   lp = param;
    skipwhitespace();
    q = *lp++;
    if ((q == doublequote) || (q == singlequote) || (q == accentgrave))
@@ -7427,17 +7384,17 @@ BOOL setstring(char *p,word ps, char *param)
       // - ends at the end of the line, regardless of quoting
       if (q == accentgrave)
          q = singlequote;
-      
-      for (i = 0; i < (ps-1); i++)        //copy until end of line, end of string or ps chars copied
+
+      for (i = 0; i < (ps-1); i++)           //copy until end of line, end of string or ps chars copied
       {
          if (*lp == q)
-         {  
-            lp++;                   //skip trailing quote
+         {
+            lp++;                            //skip trailing quote
             break;
          }
          else if (*lp == 0 || *lp == 0x0a)   //0x0a, the end of the line
          {
-            break;                     //found end of line
+            break;                           //found end of line
          }
          else
          {
@@ -7446,10 +7403,10 @@ BOOL setstring(char *p,word ps, char *param)
       }
 
       *p=0;                         //mark end with asciz
-      
+
       return false;
    }
-   
+
    return tperror("Expected string parameter here",true);
 }
 
@@ -7461,20 +7418,22 @@ BOOL setstring(char *p,word ps, char *param)
 //    lp    points past the delimiter unless it was the end of the buffer
 
 dword ReadDW()
-{  dword d=0;
+{
+   dword d=0;
    char  c;
 
    skipwhitespace();
-   while( IsDigit( c = *(lp++) ) )  
+   while( IsDigit( c = *(lp++) ) )
    {
-      d = (d*10L)+(c-'0'); 
+      d = (d*10L)+(c-'0');
    }
-   
-   if (c=='?') c=*lp++;                //pretend ? is a valid digit
-   if (c==0) lp--;                        //stick at end of buffer
 
-// ideally we want this to leave any closing or delimeters but too many places 
+   if (c=='?') c=*lp++;                //pretend ? is a valid digit
+   if (c==0) lp--;                     //stick at end of buffer
+
+// ideally we want this to leave any closing or delimeters but too many places
 // using this function are taking pains to work around this bug  LJT
+//   OK, don't retrofit ALL OF THEM, but use NiceReadDW and NiceReadW where you CAN.
 // if (c==','||c==')'||c=='}')
 //    lp--;   // don't eat the last character  LJT
    return d;
@@ -7489,16 +7448,16 @@ dword ReadDW()
 //    lp    points past the delimiter unless it was the end of the buffer
 
 word ReadW()
-{  dword d;
-
-   d=ReadDW();
-   if (d>65535)
-   {  lp--;
+{
+   dword d=ReadDW();
+   if (d > 65535)
+   {
+      lp--;
       tperror("Must use an Unsigned Integer 0..65535 here!",true);
       d=0;
    }
    return (word)d;
-}                
+}
 
 ///////////////////////////////////////////////////////////////////////
 // read a byte from the buffer lp points to
@@ -7509,7 +7468,8 @@ word ReadW()
 //    lp    points past the delimiter unless it was the end of the buffer
 
 octet ReadB(octet lb,octet ub)
-{  octet d=0;
+{
+   octet d=0;
    char b[64],c;
 
    print_debug("RB: Enter ReadB lp = '%s'\n",lp);
@@ -7517,25 +7477,28 @@ octet ReadB(octet lb,octet ub)
    while (IsDigit(c=*lp++))
       d=(d*10)+(c-'0');
    if (c=='?') 
-   {  c=*lp++;                      //pretend ? is a valid digit
+   {
+      c=*lp++;                      //pretend ? is a valid digit
       d=dontcare;
    }
-   //Added by xuyiping 2002-8-29
    if (c=='*') 
-   {  c=*lp++;                      //pretend * is a valid digit
+   {
+      c=*lp++;                      //pretend * is a valid digit
       d=dontcare;
    }
-   if (c==0) lp--;                        //stick at end of buffer
+   if (c==0) lp--;                  //stick at end of buffer
    if (d!=dontcare)
-   {  if(d<lb||d>ub)
-      {  lp--;
+   {
+      if(d<lb||d>ub)
+      {
+         lp--;
          sprintf(b,"Must use an Unsigned Integer %u..%u here!",lb,ub);
          tperror(b,true);
          d=dontcare;
       }
    }
    return d;
-}                
+}
 
 ///////////////////////////////////////////////////////////////////////
 // read a boolean (true/false) from the buffer lp points to
@@ -7544,12 +7507,15 @@ octet ReadB(octet lb,octet ub)
 //    lp    points past the delimiter unless it was the end of the buffer
 
 octet ReadBool()
-{  char  q;
+{
+   char  q;
    octet v=0;
-   
+
+   // This will accept Turandot and Fidelio as valid values...
    while (q=*lp++)
-   {  if (q==')'||q=='}'||q==','||q==' ') break;    // msdanner 9/2004, added space delimeter
-      if (q=='t'||q=='T') v=1;
+   {
+      if (q==')' || q=='}' || q==',' || q==' ') break;
+      if (q=='t' || q=='T') v=1;
    }
    return v;
 }
@@ -7650,26 +7616,16 @@ word ReadEnum(etable *etp)
       }
 
       // "unknown" isn't allowed by the 135.1-2013 EPICS definition, but
-      // it is part of the inherited code, so we retain it.
-      if (_strnicmp(e,"unknown",7)==0)
+      // it is part of the inherited code and used in Docs/allTestEpics.tpi,
+      // so we retain it.  Syntax is unknown:123
+      //
+      // Something like this seems NECESSARY for things like Schedule, which
+      // can reference an enumerated value of unknown type.
+      // Not crazy about the colon (versus unknown_123, like proprietary), but
+      // we want to be backward compatible, at least for now
+      if ((_stricmp(e,"unknown")==0) && (lp[-1] == ':'))
       {
-         // Back up the cursor looking for digits
-         bool hasDigits = false;
-         while (IsDigit(lp[-1]))
-         {
-            hasDigits = true;
-            lp -= 1;
-         }
-
-         if (hasDigits)
-         {
-            ix=(word)ReadDW();
-            return ix;
-         }
-         else
-         {
-            tperror("Unknown enumeration must specify a numeric value",true);
-         }
+         return (word)ReadDW();
       }
    }
 
@@ -7687,37 +7643,39 @@ word ReadEnum(etable *etp)
 //    lp       points past the delimiter unless it was the end of the buffer
 
 dword ReadObjID()
-{  word  objtype;
+{
+   word  objtype;
    dword id;
 
    print_debug("ROI: Enter ReadObjID\n");
    skipwhitespace();
    if (*lp++!='(')
-   {  tperror("Expected ( before (objecttype,instance) here!",true);
+   {
+      tperror("Expected ( before (objecttype,instance) here!",true);
       goto roidx;
    }
 
    // 5/19/2005 Shiyuan Xiao. Support proprietary object
-   if( _strnicmp(lp, "proprietary", strlen("proprietary")) == 0 )
+   if (_strnicmp(lp, "proprietary", strlen("proprietary")) == 0)
    {
       lp += strlen("proprietary");
       skipwhitespace();
-      objtype = ReadW();      
+      objtype = ReadW();
    }
-   else 
-   if ((objtype=ReadEnum(&etObjectTypes))==0xFFFF)
+   else if ((objtype=ReadEnum(&etObjectTypes))==0xFFFF)
    {
       goto roidx;
    }
 
    print_debug("ROI: object type %s %d\n",etObjectTypes.estrings[objtype], objtype);
-   skipwhitespace();                //                         ***006 Begin
-   if (_strnicmp(lp,"instance ",9)==0)    //ignore instance here
-      lp+=9;                           //                         ***006 End
+   skipwhitespace();
+   if (_strnicmp(lp,"instance ",9)==0) //ignore instance here
+      lp+=9;
    id=ReadDW();
    print_debug("ROI: object instance %d\n",id);
    if (lp[-1]==')')                    //it ended with a closing paren, it's ok
-   {  if (id<(1L<<22))                 //valid instance number
+   {
+      if (id<(1L<<22))                 //valid instance number
          return (((dword)objtype)<<22)+id;   //save the object identifier as a dword
       tperror("Object Instance must be 0..4194303!",true);
       goto roidx;
@@ -7729,25 +7687,26 @@ roidx:
 }
 
 ///////////////////////////////////////////////////////////////////////
-// find the next non-whitespace in a file
+// find the next non-whitespace line from the file
 //in: lp    points to current position in buffer lb
 //    ifile file stream 
 //out:   NULL  if eof,
 //    else  pointer to next non-whitespace
 //          (in this case lp also points to it)
 
-char *ReadNext()                       //                            ***008
+char *ReadNext()
 {
    do
-   {  if (feof(ifile)) return NULL;       //end of file                    ***008
-      readline(lb,sizeof(lb));            //read a line from the file         ***008
-      lp=&lb[0];
+   {
+      if (feof(ifile)) return NULL;       //end of file
+      readline(lb,sizeof(lb));            //read a line from the file
+      lp = &lb[0];
       skipwhitespace();
    } while (*lp==0);                   //this was a blank line
    return lp;
 }
 
-///////////////////////////////////////////////////////////////////////          ***008 Begin
+///////////////////////////////////////////////////////////////////////
 // find the end of whitespace in a string
 //in: lp    points to string 
 //out:   lp    points to first non-whitespace char
@@ -7755,7 +7714,7 @@ char *ReadNext()                       //                            ***008
 void skipwhitespace()
 {
    while (*lp==space) lp++;
-   if (*lp==0) ReadNext();                //                         ***008 End
+   if (*lp==0) ReadNext();
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -7766,9 +7725,9 @@ void skipwhitespace()
 char *openarray(char *p)
 {
    BOOL  foundlb=false;
-
    while (*p==space||*p=='{')
-   {  if (*p=='{')
+   {
+      if (*p=='{')
          if (foundlb)
             break;                     //treat second { as "first element"
          else
@@ -7778,7 +7737,8 @@ char *openarray(char *p)
    if (foundlb)
       return p;
    else
-   {  tperror("Expected { here...",true);
+   {
+      tperror("Expected { here...",true);
       return NULL;                     //didn't find {
    }
 }
@@ -7790,8 +7750,8 @@ char *openarray(char *p)
 //    else  error code
 
 int CreateTextPICS(char *tp)
-{  FILE  *f;
-   
+{
+   FILE  *f;
    if ((f=fopen(tp,"w"))==NULL) return errno;   //return system error code for it
     return 0;
 }
@@ -7805,28 +7765,32 @@ int CreateTextPICS(char *tp)
 //    lc    updated
 
 static void readline(char *lp,int lps)
-{  char  *dp,*sp,c;
+{
+   char  *dp,*sp,c;
    BOOL  HaveNonWS=FALSE;
 
    fgets(lp,lps,ifile);                //get a line from the file       ***008
    dp=sp=lp;
    while (*sp)
-   {  switch(c=*sp++)
+   {
+      switch(c=*sp++)
       {
       case space:
       case tab:
       case cr:
       case lf:
          while (c=*sp)
-           if (c==space||c==tab||c==cr||c==lf) 
-            sp++;                      //skip white space
-           else
-            break;
+         {
+            if (c==space||c==tab||c==cr||c==lf) 
+               sp++;                      //skip white space
+            else
+               break;
+         }
          if (*sp==0) goto rlexit;         //we're done
          if (HaveNonWS)
-            *dp++=space;               //convert a white space sequence to just a single space
+            *dp++=space;                  //convert a white space sequence to just a single space
          break;
-      case '-':                        //comment?
+      case '-':                           //comment?
          if (*sp=='-') goto rlexit;       //yes, ignore to the end
          *dp++=c;
          HaveNonWS=TRUE;
@@ -7867,74 +7831,119 @@ rlexit:
 //    returns pointer past asciz if comma was found or NULL if EOS
 
 char *Nxt(char *p)
-{  char *q;                         //temp pointer
-   if ((q=strchr(p,','))!=NULL)           //got a comma
-      *q++=0x00;                       //make it asciz and point past it   
-   return q;                           //return pointer to next string
+{
+   char *q;                         //temp pointer
+   if ((q=strchr(p,','))!=NULL)     //got a comma
+      *q++=0x00;                    //make it asciz and point past it
+   return q;                        //return pointer to next string
 }
 
-///////////////////////////////////////////////////////////////////////       ***008 Begin 
+///////////////////////////////////////////////////////////////////////
 // Find the next delimiter
 //in: lp points to the beginning of the string to look in
 //    d  points to the set of delimiter characters
 //out:   returns pointer past delimiter if one was found or NULL if EOF
 //    lp is also that pointer
-
-char *strdelim(char *d)
-{  char *q,*dq;                        //temp pointers
-
-   while(feof(ifile)==0)
-   {  dq=d;                         //point to list of delimiters
-      while (*dq&&*lp)                 //for each delimiter character   ***006
-      {  if ((q=strchr(lp,*dq++))!=NULL)     //got a delimiter
-         {  lp=q+1;
+//
+// TODO: This function is almost totally useless.  Ask for a delimiter,
+// and by gum it will FIND ONE, even if it has to read the next 400 lines
+// of characters that don't belong to this property...
+// I think what we REALLY want is mostly "bypass alphanumerics".
+//
+// if "d" points to more than one character, the second will almost never be
+// found, since it will search to EOF for the first one
+//
+char* strdelim(const char *d)
+{
+   char *q;                            //temp pointers
+   const char *dq;
+   while (feof(ifile)==0)
+   {
+      dq = d;                          //point to list of delimiters
+      while (*dq && *lp)               //for each delimiter character
+      {
+         if ((q = strchr(lp,*dq++)) != NULL) //got a delimiter
+         {
+            lp = q+1;
             return lp;                 //return pointer past delimiter
          }
       }
       ReadNext();
    }
-   return NULL;                        //not found                ***008 End
+   return NULL;   //not found
 }
 
-///////////////////////////////////////////////////////////////////////       ***006 Begin 
+// Skip over a value (letters, digits, dash, underbar), any trailing space,
+// and the next character
+//in: lp points to the beginning of the string to look in
+//out: returns the character past the value and any trailing spaces
+//    lp points past the returned character (or to it if null at EOF)
+char SkipValue()
+{
+   char retval = 0;
+   while (true)
+   {
+      if (*lp==0)
+      {
+         if (ReadNext()==NULL) break;
+      }
+
+      int ch = *lp;
+      if (IsAlnum(ch) || (ch == '-') || (ch == '_'))
+      {
+         lp += 1;
+      }
+      else
+      {
+         // Found a non-symbol character.
+         // Eat any trailing spaces
+         skipwhitespace();
+         // Return the next character
+         retval = *lp;
+         if (retval != 0)
+         {
+            lp += 1;
+         }
+         break;
+      }
+   }
+
+   return retval;
+}
+
+
+///////////////////////////////////////////////////////////////////////
 // Trim whitespace off the end of a string
 //in: p  points to the beginning of the string to look in
 
 void rtrim(char *p)
-{  
+{
    //madanner 6/03: This function never actually worked... 
    //so, let's do it again.
 
    for ( char * q = p + strlen(p) - 1; q >= p && (*q == ' ' || *q == 0x09); q-- )
       *q = 0;
+}
 
-// char *q;                         //temp pointer
-// q=strchr(p,0);                      //find the asciz
-// while (p!=q)
-// {  if(*q==' '||*q==0x09)
-//       *q--=0;
-//    else
-//      return;
-// }
-}                                   //                      ***006 End
-
-///////////////////////////////////////////////////////////////////////       ***020 Begin
-// Preprocess a string before parsing, 
-//  for example: replace score or underscore with space.
+///////////////////////////////////////////////////////////////////////
+// Preprocess a string before parsing,
+//  Currently replaces score or underscore with space, as for object types
+//  in early sections of the EPICS
+//
 //  other processes can be added if necessary
 //in: str      points to the beginning of the string to be modified
-
 void preprocstr(char *str)
-{  
+{
    char* p;
-   while (p = strchr(str, '-')) {
+   while (p = strchr(str, '-'))
+   {
       *p = ' ';
    }
-   while (p = strchr(str, '_')) {
+   while (p = strchr(str, '_'))
+   {
       *p = ' ';
    }
-   
-}                                                        // ***020 End
+}
 
 /////////////////////////////////////////////////////////////////////// 
 // Convert HEX chars to binary octet
@@ -7942,8 +7951,10 @@ void preprocstr(char *str)
 //    dst      points to octet to receive the value
 //out:   ptr to 1st non-hex char, or 2 past src
 char *cvhex(char *src,octet *dst)
-{  if (!IsXDigit(*src))
-   {  *dst=0;                          //assume none
+{
+   if (!IsXDigit(*src))
+   {
+      *dst=0;                          //assume none
       return src;
    }
    if (IsDigit(*src))
@@ -7960,18 +7971,31 @@ char *cvhex(char *src,octet *dst)
    return src;
 }
 
-/////////////////////////////////////////////////////////////////////// 
-// check for a character during parsing and complain if not found
+///////////////////////////////////////////////////////////////////////
+// check for a character during parsing and complain if not found.
+// For convenience, strips blanks before and after.
 //in: c        the expected character
 //    lp       points to where it should be
 //out:   true     if error and cancel selected (also sets cancel=true)
-BOOL MustBe(char c)
-{  char  b[20];
-
-   if (*lp++!=c)
-   {  lp--;
+bool MustBe(char c)
+{
+   skipwhitespace();
+   if (*lp++ != c)
+   {
+      char  b[20];
+      lp--;
       sprintf(b,"Expected %c here!",c);
       return tperror(b,true);
+   }
+
+   // Calling skipwhitespace here saves a lot of explicit calls.
+   // BUT: if we are at the end of a property-value line, the call
+   // will read the next line, confusing the parser.
+   // Thus, this terrible hack: don't call it at end of line.
+   // Better would be to fix the parser.
+   if (*lp)
+   {
+      skipwhitespace();
    }
    return false;
 }
@@ -7988,7 +8012,7 @@ BOOL MustBe(char c)
 // string.  We dream of a parser object to eat whitespace, and have
 // pointers to start of token as well as cursor...
 
-BOOL tperror(char *mp,BOOL showline)
+bool tperror(char *mp, bool showline)
 {
    static char m[512];
    char     *p,c;
@@ -8042,18 +8066,17 @@ BOOL tperror(char *mp,BOOL showline)
    else
       PrintToFile(m);
 
-   // deal with silly MS BOOL vs. bool
-   return cancel ? TRUE : FALSE;
+   return (cancel != 0);
 }
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns the maximum number of standard services
 int GetStandardServicesSize()
 {
    return sizeof(StandardServices)/sizeof(StandardServices[0]);
 }
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns a string representing the standard service indexed by i 
 char *GetStandardServicesName(int i)
 {
@@ -8062,43 +8085,43 @@ char *GetStandardServicesName(int i)
           : "unknown-service";
 }
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns the maximum number of potential BIBBs
 int GetBIBBSize()
 {
    return MAX_BIBBS;
 }
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns a string representing the BIBB corresponding to index i 
 char *GetBIBBName(int i)
 {
    return BIBBs[i].name;
 }
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns the maximum number of potential Object Types
 int GetObjectTypeSize()
 {
    return sizeof(StandardObjects)/sizeof(StandardObjects[0]);
 }
 
-// msdanner 9/04 added:  
-// Returns a string representing the Object Type indexed by i 
+// msdanner 9/04 added:
+// Returns a string representing the Object Type indexed by i
 char *GetObjectTypeName(int i)
 {
    return StandardObjects[i];
 }
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns the maximum number of potential Data Link Options
 int GetDataLinkSize()
 {
    return  sizeof(StandardDataLinks)/sizeof(StandardDataLinks[0]);
 }
 
-// msdanner 9/04 added:  
-// Returns a string representing the Data Link Option indexed by i 
+// msdanner 9/04 added:
+// Returns a string representing the Data Link Option indexed by i
 // and any baud rate options.
 // Caller must allocate the memory to hold the resulting string
 // and pass in a pointer to the allocation in pstrResult.
@@ -8123,7 +8146,7 @@ void GetDataLinkString(int i, PICSdb *pd, char *pstrResult)
       dp=&pd->MSTPmasterBaudRates[0];
       break;
    case 10:                            //MS/TP slave
-      dp=&pd->MSTPslaveBaudRates[0];  
+      dp=&pd->MSTPslaveBaudRates[0];
       break;
    case 11:                   //PTP 232
       dp=&pd->PTP232BaudRates[0];
@@ -8154,14 +8177,14 @@ void GetDataLinkString(int i, PICSdb *pd, char *pstrResult)
    return;
 }
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns the maximum number of potential Character Sets
 int GetCharsetSize()
 {
    return  sizeof(Charsets)/sizeof(Charsets[0]);
 }
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns a string representing the Charset matching csTag 
 char *GetCharsetName(octet csTag)
 {
@@ -8190,14 +8213,14 @@ void ExpandBitstring(octet *pExpandedResult, octet *pBitstring, int nBits)
 }
 
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns the maximum number of Special Functionality choices
 int GetSpecialFunctionalitySize()
 {
    return  sizeof(SpecialFunctionality)/sizeof(SpecialFunctionality[0]);
 }
 
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Returns a Special Functionality string at index i 
 char *GetSpecialFunctionalityName(int i)
 {
@@ -8205,7 +8228,7 @@ char *GetSpecialFunctionalityName(int i)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// msdanner 9/04 added:  
+// msdanner 9/04 added:
 // Run all EPICS Consistency checls specified by standard 135.1-2003.
 //
 // The older EPICS consistency checks based on conformance class
@@ -9123,7 +9146,7 @@ void CheckPICSCons2003I(PICSdb *pd)
      // 5-24-2005 Shiyuan Xiao. Ignore unstandard object
      if(obj->object_type < etObjectTypes.propes)
         CheckPICSConsProperties(pd, obj); 
-     
+
      obj=(generic_object *)obj->next;
    }
    return;
@@ -9206,5 +9229,88 @@ void *GetEnumTable(int iTableIndex)
    return AllETs[iTableIndex];
 }
 
+// Read a floating point number from the stream.
+// Advance lp to the character after the number.
+// is mustBe is non-zero, call MustBe.
+// Return true on error with cancel.
+bool ReadFloat(float *pVal, char mustBe)
+{
+   bool retval = false;
+
+   // Get a float with optional leading whitespace, count characters
+   int nChar;
+   if (sscanf( lp, " %f%n", pVal, &nChar ) != 1)
+   {
+      retval = tperror("Expected floating point number here...",true);
+   }
+   else
+   {
+      lp += nChar;
+      if (mustBe != 0)
+      {
+         retval = MustBe( mustBe );
+      }
+   }
+
+   return retval;
+}
+
+// Read an unsigned integer from the stream.
+// Non-idiotic version of ReadDW that doesn't eat the terminator.
+// Advance lp to the character after the number.
+// is mustBe is non-zero, call MustBe.
+// Return true on error with cancel.
+bool NiceReadDW(dword *pVal, char mustBe)
+{
+   bool retval = false;
+   dword d = 0;
+
+   skipwhitespace();
+   if (*lp == '?')
+   {
+      lp += 1;             // pretend ? is a valid digit
+   }
+   else if (IsDigit(*lp))
+   {
+      while (IsDigit(*lp))
+      {
+         d = 10*d + (*lp++ - '0');
+      }
+   }
+   else
+   {
+      retval = tperror("Expected Unsigned Integer here...",true);
+   }
+
+   if (!retval && (mustBe != 0))
+   {
+      retval = MustBe( mustBe );
+   }
+
+   *pVal = d;
+   return retval;
+}
+
+// Non-idiotic version of ReadW that doesn't eat the terminator
+bool NiceReadW(word *pVal, char mustBe)
+{
+   dword d;
+   bool retval = NiceReadDW( &d, 0 );
+   if (!retval)
+   {
+      if (d > 65535)
+      {
+         retval = tperror("Must use an Unsigned Integer 0..65535 here!",true);
+         d = 0;
+      }
+      else if (mustBe != 0)
+      {
+         retval = MustBe( mustBe );
+      }
+   }
+
+   *pVal = (word)d;
+   return retval;
+}
 
 }

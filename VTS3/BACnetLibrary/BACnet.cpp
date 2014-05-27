@@ -6660,7 +6660,7 @@ BACnetDestination::BACnetDestination(
    BACnetEventTransitionBits &transitions
    )
 : m_validDays(validDays), m_recipient(recipient),
-m_transitions(transitions)
+  m_transitions(transitions)
 {
    m_fromTime = fromTime;
    m_toTime = toTime;
@@ -6726,6 +6726,27 @@ void BACnetDestination::Decode(BACnetAPDUDecoder &dec)
 int BACnetDestination::DataType() const
 {
    return destination;
+}
+
+
+void BACnetDestination::Encode( CString &enc, Format theFormat ) const
+{
+   CString str;
+   enc = "{";
+   m_validDays.Encode(str, theFormat);
+   enc += str + ",";
+   m_fromTime.Encode(str, theFormat);
+   enc += str + ",";
+   m_toTime.Encode(str, theFormat);
+   enc += str + ",";
+   m_recipient.Encode(str, theFormat);
+   enc += str + ",";
+   m_processID.Encode(str, theFormat);
+   enc += str + ",";
+   m_issueConfirmedNotifications.Encode(str, theFormat);
+   enc += str + ",";
+   m_transitions.Encode(str, theFormat);
+   enc += str + "}";
 }
 
 
@@ -7721,6 +7742,9 @@ void BACnetGenericArray::Encode( BACnetAPDUEncoder& enc, int context )
 
 void BACnetGenericArray::Encode( CString &enc, Format theFormat ) const
 {
+   // TODO: 135.1 says that ARRAYS are enclosed in {}, while LISTS are
+   // enclosed in ().  Probably should make another class to
+   // handle the wrapping (or else a parm to BACnetGenericArray's constructor)
    enc = "{";
    for (int i = 0; i < m_apBACnetObjects.GetSize(); i++ )
    {

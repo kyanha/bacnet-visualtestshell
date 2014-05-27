@@ -172,7 +172,8 @@ struct tagDeviceList *next;
    } BACnetDeviceList;
 
 enum BACnetDeviceStatus
-   {  OPERATIONAL,              //0
+   {
+      OPERATIONAL,              //0
       OPERATIONAL_READ_ONLY,    //1
       DOWNLOAD_REQUIRED,        //2
       DOWNLOAD_IN_PROGRESS,     //3
@@ -190,15 +191,17 @@ enum BACnetEngineeringUnits
    };
 
 enum BACnetEventType
-   {  CHANGE_OF_BITSTRING,          //0
+   {
+      CHANGE_OF_BITSTRING,          //0
       CHANGE_OF_STATE,              //1
       CHANGE_OF_VALUE,              //2
       COMMAND_FAILURE,              //3
       FLOATING_LIMIT,               //4
-      OUT_OF_RANGE,                 //5      
-      COMPLEX_EVENT_TYPE,           //6    
-      CHANGE_OF_LIFE_SAFETY = 8,    //8   
-      BUFFER_READY  = 10           //10  Added by Zhu Zhenhua, 2004-5-17    
+      OUT_OF_RANGE,                 //5
+      COMPLEX_EVENT_TYPE,           //6
+      CHANGE_OF_LIFE_SAFETY = 8,    //8 (7 is deprecated)
+      EXTENDED,                     //9
+      BUFFER_READY                  //10
    };
 
 enum BACnetPolarity {NORM, REV};
@@ -265,57 +268,71 @@ struct BACnetPropertyStates {
 */
 
 typedef struct tagPropertyStates {
-struct tagPropertyStates   *next;
+   struct tagPropertyStates   *next;
    int                  enum_value;
-   } BACnetPropertyStates;
+} BACnetPropertyStates;
 
 typedef struct tagObjectPropertyReference {
-struct tagObjectPropertyReference   *next;
+   struct tagObjectPropertyReference   *next;
    dword                   object_id;
-   dword                   property_id;    
+   dword                   property_id;
    word                    pa_index;
-   } BACnetObjectPropertyReference;
+} BACnetObjectPropertyReference;
+
+typedef struct tagDeviceObjectPropertyReference {
+   struct tagDeviceObjectPropertyReference   *next;
+   dword    Objid;
+   dword    wPropertyid;
+   word     ulIndex;
+   dword    DeviceObj;
+} BACnetDeviceObjectPropertyReference;
+
+typedef struct tagDeviceObjectReference {
+   struct tagDeviceObjectReference *next;
+   dword DeviceObj;
+   dword Objid;
+} BACnetDeviceObjectReference;
 
 typedef struct tagListBitstringValue {
-struct tagListBitstringValue  far   *next;
+   struct tagListBitstringValue  far   *next;
    octet                   bitstring_length;
    octet                   bitstring_value[4];
-   } BACnetListBitstringValue;
+} BACnetListBitstringValue;
 
 typedef struct tagLogRecord
- {
+{
    struct tagLogRecord *next;
    BACnetDateTime     timestamp;
    octet              oLenBitString;
    octet              choice;
    dword              logDatum;
    BACnetStatusFlags  statusFlags;
- }BACnetLogRecord;
-
+} BACnetLogRecord;
 
 typedef struct {
-enum BACnetEventType          event_type;
-   BACnetListBitstringValue      bitmask;
+   enum BACnetEventType       event_type;
+   BACnetListBitstringValue   bitmask;
    BACnetListBitstringValue   *list_bitstring_value;
-   BACnetPropertyStates    *list_of_value;
-   BOOL                    use_property_increment;
-   float                   ref_property_increment;
-   word                    time_delay;
-   BACnetObjectPropertyReference feed_prop_ref;
-   BACnetObjectPropertyReference setpoint_ref;
-   float                   deadband;
-   float                   high_diff_limit;
-   float                   low_diff_limit;
-   float                   high_limit;
-   float                   low_limit;
-   word                    notification_threshold;          //Added By Zhu Zhenhua, 2004-5-20
-   dword                   previous_notification_count;      //Added By Zhu Zhenhua, 2004-5-20
-   } BACnetEventParameter;
+   BACnetPropertyStates       *list_of_value;
+   BOOL                       use_property_increment;
+   float                      ref_property_increment;
+   word                       time_delay;
+   BACnetObjectPropertyReference       feed_prop_ref;
+   BACnetObjectPropertyReference       setpoint_ref;
+   BACnetDeviceObjectPropertyReference device_prop_ref;
+   float                      deadband;
+   float                      high_diff_limit;
+   float                      low_diff_limit;
+   float                      high_limit;
+   float                      low_limit;
+   word                       notification_threshold;          //Added By Zhu Zhenhua, 2004-5-20
+   dword                      previous_notification_count;      //Added By Zhu Zhenhua, 2004-5-20
+} BACnetEventParameter;
 
 typedef struct tagObjectIdentifier {
-struct tagObjectIdentifier *next;
+   struct tagObjectIdentifier *next;
    dword             object_id;
-   } BACnetObjectIdentifier;
+} BACnetObjectIdentifier;
 
 typedef struct tagTimeValue {
 struct tagTimeValue     *next;
@@ -656,23 +673,6 @@ enum BACnetAbortReason
       ABORT_PreemptedByHigherPriorityTask,//3
       ABORT_SegmentationNotSupported      //4
    };
-typedef struct tagDeviceObjectPropertyReference
-{
-   struct tagDeviceObjectPropertyReference   *next;
-
-   dword    Objid;
-   dword    wPropertyid;
-   word     ulIndex;
-   dword    DeviceObj;
-} BACnetDeviceObjectPropertyReference;      // Added Sep 18 2001
-
-typedef struct tagDeviceObjectReference
-{
-   struct tagDeviceObjectReference *next;
-   dword DeviceObj;
-   dword Objid;
-} BACnetDeviceObjectReference;  // LJT 10/11/2005
-
 //Xiao Shiyuan 2002-7-23
 typedef struct tagCOVSubscription {
 struct tagCOVSubscription     *next;
