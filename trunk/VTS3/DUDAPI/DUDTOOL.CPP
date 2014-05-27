@@ -3,9 +3,7 @@
                    eg. far pascal __export --> APIENTRY
 */
 
-#include "stdafx.h"                          //       ***001 Begin
-//#include <afx.h>         
-//#include <afxwin.h>                        //       ***001 End
+#include "stdafx.h"
 
 #include <windows.h>
 #include <memory.h>
@@ -14,9 +12,9 @@
 #include <stdlib.h>
 #include <float.h>
 
-#include <time.h>       // jjb
-#include <sys/types.h>     // jjb
-#include <sys/timeb.h>     // jjb
+#include <time.h>
+#include <sys/types.h>
+#include <sys/timeb.h>
 
 #include "VTS.h"
 #include "BACnet.hpp"
@@ -24,15 +22,13 @@
 namespace NetworkSniffer {
    extern char *BACnetPropertyIdentifier[];
 }
-namespace PICS {                                            // ***002
+namespace PICS {
 
 #include "db.h"       // contains BACnet datatypes
 #include "stdobjpr.h"
 #include "vtsapi.h" 
 #include "bacprim.h"  // contains basic encoding functions
 
-// - jjb #include "resource.h"   // resource identifiers
-// - jjb #include "dudclass.h" // derived classes 
 #include "dudapi.h"   // export interface
 #include "dudtool.h"  // tool functions
 
@@ -162,13 +158,12 @@ BACnetDateRange gTestDTRange[nTEST]= {
                               { {95,4,19,0xFF}, {97,6,24,0xFF} },
                               { {95,6,21,0xFF}, {95,6,23,0xFF} }
                             };
-                            
-//                                                                ***001 Begin
+
 BACnetEventParameter gTestEvparm[nTEST]= {
-    {OUT_OF_RANGE, {NULL,8,{0,0,0,0}}, NULL, NULL, 0, 0.0, 17, {NULL}, {NULL}, 1.5F, 1.6F, 1.7F, 1.8F, 1.9F },
-    {OUT_OF_RANGE, {NULL,8,{0,0,0,0}}, NULL, NULL, 0, 0.0, 17, {NULL}, {NULL}, 1.1F, 1.2F, 1.3F, 1.4F, 1.5F },
-    {OUT_OF_RANGE, {NULL,8,{0,0,0,0}}, NULL, NULL, 0, 0.0, 17, {NULL}, {NULL}, 1.3F, 4.2F, 7.3F, 11.4F, 51.5F }
-  };                       //                                     ***001 End
+    {OUT_OF_RANGE, {NULL,8,{0,0,0,0}}, NULL, NULL, 0, 0.0, 17, {NULL}, {NULL}, {NULL}, 1.5F, 1.6F, 1.7F, 1.8F, 1.9F },
+    {OUT_OF_RANGE, {NULL,8,{0,0,0,0}}, NULL, NULL, 0, 0.0, 17, {NULL}, {NULL}, {NULL}, 1.1F, 1.2F, 1.3F, 1.4F, 1.5F },
+    {OUT_OF_RANGE, {NULL,8,{0,0,0,0}}, NULL, NULL, 0, 0.0, 17, {NULL}, {NULL}, {NULL}, 1.3F, 4.2F, 7.3F, 11.4F, 51.5F }
+  };
 
 BACnetObjectIdentifier gTestLObj[nTEST]= { {NULL,4711}, {NULL,4712}, {NULL,4713} };
 
@@ -586,9 +581,9 @@ void CreateTestValues(void)
 
 
   // Recipient_List (notification class) List of BACnetDestination
-  
-  BACnetDestination far* pReciplist= gTestReciplist[0]= new  BACnetDestination; // 3 elements***001
-  
+
+  BACnetDestination far* pReciplist= gTestReciplist[0] = new BACnetDestination; // 3 elements***001
+
   pReciplist->valid_days= 0x44;
   pReciplist->from_time.hour= 16;
   pReciplist->from_time.minute= 17;
@@ -856,88 +851,109 @@ octet far* ePROPREF(octet far* p, const BACnetPropertyReference far* pv, int Tag
   return p;
 }
 
-// encode list of BACnetDeviceObjectPropertyReference             
+// Encode list of BACnetDeviceObjectPropertyReference
 octet far* eLOPREF(octet far* p, const BACnetDeviceObjectPropertyReference far* pv, int TagNr)
-{ while (pv!=NULL)
-    { p= etagOBJECTID(p,0x08,pv->Objid);
+{
+   while (pv!=NULL)
+   {
+      p= etagOBJECTID(p,0x08,pv->Objid);
       p= ecUINT(p,0x18,pv->wPropertyid);
-      if (pv->ulIndex!=NotAnArray) // optional: array index
-        { p= ecUINT(p,0x28,pv->ulIndex); }
+      if (pv->ulIndex != NotAnArray)
+      {
+         // optional: array index
+         p= ecUINT(p,0x28,pv->ulIndex);
+      }
+      if (pv->DeviceObj != 0xffffffff)
+      {
+         // Optional: deviceID
+         p= etagOBJECTID(p,0x38,pv->DeviceObj);
+      }
+
       pv= pv->next;
-    }      
-  return p;
+   }
+   return p;
 }
 
-// encode list of BACnetObjectPropertyReference             
+// Encode list of BACnetObjectPropertyReference
 octet far* eOPROPREF(octet far* p, const BACnetObjectPropertyReference far* pv, int TagNr)
-{ while (pv!=NULL)
-    { p= etagOBJECTID(p,0x08,pv->object_id);
+{
+   while (pv!=NULL)
+   {
+      p= etagOBJECTID(p,0x08,pv->object_id);
       p= ecUINT(p,0x18,pv->property_id);
-      if (pv->pa_index!=NotAnArray) // optional: array index
-        { p= ecUINT(p,0x28,pv->pa_index); }
+      if (pv->pa_index!=NotAnArray)
+      {
+         // optional: array index
+         p= ecUINT(p,0x28,pv->pa_index);
+      }
       pv= pv->next;
-    }      
-  return p;
+   }
+   return p;
 }
 
-// encode BACnetReadAccessSpecification             
+// Encode BACnetReadAccessSpecification
 octet far* eRASLIST(octet far* p, const BACnetReadAccessSpecification far* pv, int TagNr)
-{ 
-  while (pv!=NULL)
-    { // encode object identifier      
+{
+   while (pv!=NULL)
+   {
+      // encode object identifier 
       p= etagOBJECTID(p,0x08,pv->object_id);
       // encode property reference list
       *(p++)= 0x1E; // opening tag
       p= ePROPREF(p,pv->list_of_prop_ref);
       *(p++) = 0x1F; // closing tag
       pv= pv->next;
-    }
-  return p;  
+   }
+   return p;
 }
 
-// encode BACnetDateTime             
+// Encode BACnetDateTime
 octet far* eDT(octet far* p, const BACnetDateTime far* pv, int TagNr)
-{ 
-  if (pv==NULL) return p;
-  *p++= 0xA4; // application tag
-  memcpy(p,&pv->date,4); p+=4;                           //             ***001
-  *p++= 0xB4; // application tag
-  memcpy(p,&pv->time,4); p+=4;                           //             ***001
-  return p;
+{
+   if (pv==NULL) return p;
+   *p++= 0xA4; // application tag
+   memcpy(p,&pv->date,4); p+=4;                           //             ***001
+   *p++= 0xB4; // application tag
+   memcpy(p,&pv->time,4); p+=4;                           //             ***001
+   return p;
 }
 
-// encode array of object identifier
+// Encode array of object identifier
 octet far* eLOBJ(octet far* p, const BACnetObjectIdentifier far* pv, int ArrayIndex, int TagNr)
-{ int i;
-        
-  switch (ArrayIndex)
-    {
-      case -1: // all elements 
-        while (pv!=NULL)
-          { // encode object identifier
-            p= etagOBJECTID(p,0xC0,pv->object_id);
-            pv= pv->next;
-          }   
-        break;  
-        
-      case 0: // number of elements
-        i= 0;
-        while (pv!=NULL)
-          { i++;
-            pv= pv->next;
-          } 
-        p= eUINT(p,i);    
-        break;  
-        
-      default: // ArrayIndex element   
-        i= ArrayIndex-1;
-        while ((pv!=NULL) && (i>0))
-          { i--; pv= pv->next; }
-        if ((pv==NULL) || (ArrayIndex<0)) return p; // invalid array index  
-        p= etagOBJECTID(p,0xC0,pv->object_id);
-        break;
-    }    
-  return p;  
+{
+   int i;
+   switch (ArrayIndex)
+   {
+   case -1: // all elements 
+      while (pv!=NULL)
+      { // encode object identifier
+         p= etagOBJECTID(p,0xC0,pv->object_id);
+         pv= pv->next;
+      }
+      break;
+
+   case 0: // number of elements
+      i= 0;
+      while (pv!=NULL)
+      {
+         i++;
+         pv= pv->next;
+      }
+      p= eUINT(p,i);
+      break;
+
+   default: // ArrayIndex element   
+      i= ArrayIndex-1;
+      while ((pv!=NULL) && (i>0))
+      {
+         i--;
+         pv= pv->next;
+      }
+      if ((pv==NULL) || (ArrayIndex<0)) return p; // invalid array index  
+      p= etagOBJECTID(p,0xC0,pv->object_id);
+      break;
+   }
+   return p;
 }
 
 // encode float priority array
@@ -978,87 +994,91 @@ octet far* ePAF(octet far* p, const float far* pv, int ArrayIndex, int TagNr)
 //Modified by Liangping Xu, 2002-8-5
 //octet far* ePAB(octet far* p, const enum BACnetBinaryPV far* pv, int ArrayIndex, int TagNr)
 octet far* ePAB(octet far* p, const word far* pv, int ArrayIndex, int TagNr)
-{ int i;
-  if (pv==NULL) return p;
-  
-  switch(ArrayIndex)                                                           
-    { 
-      case -1: // all elements
-        for (i=0; i<nPRIO; i++)
-          { 
-            if (pv[i]!=bpaNULL) p= eENUM(p,pv[i]);
-            else p= eNULL(p);
-          }
-        break;  
+{
+   int i;
+   if (pv==NULL) return p;
 
-      case 0:  // number of elements
-        p= eUINT(p,nPRIO);
-        break;
-        
-      default: // ArrayIndex element     
-        if ((ArrayIndex>0)&&(ArrayIndex<=nPRIO))
-         
-      //p= eENUM(p,pv[ArrayIndex-1]);  -- Marked by Liangping Xu, 2002-8-5
-        if(pv[ArrayIndex-1]!=bpaNULL) p= eENUM(p,pv[ArrayIndex-1]);       
-            else p= eNULL(p);
+   switch(ArrayIndex)
+   {
+   case -1: // all elements
+      for (i=0; i<nPRIO; i++)
+      {
+         if (pv[i]!=bpaNULL) p= eENUM(p,pv[i]);
+         else p= eNULL(p);
+      }
+      break;
 
-        break;
-    }
-  return p;
+   case 0:  // number of elements
+      p= eUINT(p,nPRIO);
+      break;
+
+   default: // ArrayIndex element
+      if ((ArrayIndex>0)&&(ArrayIndex<=nPRIO))
+      {
+         //p= eENUM(p,pv[ArrayIndex-1]);  -- Marked by Liangping Xu, 2002-8-5
+         if (pv[ArrayIndex-1]!=bpaNULL)
+            p= eENUM(p,pv[ArrayIndex-1]);
+         else p= eNULL(p);
+      }
+      break;
+   }
+   return p;
 }
 
 // encode uw priority array
 octet far* ePAU(octet far* p, const word far* pv, int ArrayIndex, int TagNr)
-{ int i;
-  if (pv==NULL) return p;
+{
+   int i;
+   if (pv==NULL) return p;
 
-  switch(ArrayIndex)
-    { 
-      case -1: // all elements
-        for (i=0; i<nPRIO; i++)
-          { 
-            if (pv[i]!=upaNULL) p= eUINT(p,pv[i]);
-            else p= eNULL(p);
-          }
-        break;  
-          
-      case 0:  // number of elements
-        p= eUINT(p,nPRIO);
-        break;
-        
-      default: // ArrayIndex element     
-        if ((ArrayIndex>0)&&(ArrayIndex<=nPRIO))
-          p= eUINT(p,pv[ArrayIndex-1]);
-        break;
-    }
-  return p;
+   switch(ArrayIndex)
+   {
+   case -1: // all elements
+      for (i=0; i<nPRIO; i++)
+      { 
+         if (pv[i]!=upaNULL) p= eUINT(p,pv[i]);
+         else p= eNULL(p);
+      }
+      break;
+
+   case 0:  // number of elements
+      p= eUINT(p,nPRIO);
+      break;
+
+   default: // ArrayIndex element     
+      if ((ArrayIndex>0)&&(ArrayIndex<=nPRIO))
+         p= eUINT(p,pv[ArrayIndex-1]);
+      break;
+   }
+   return p;
 }
 
 // encode dw priority array
 octet far* ePADW(octet far* p, const dword far* pv, int ArrayIndex, int TagNr)
-{ int i;
-  if (pv==NULL) return p;
+{
+   int i;
+   if (pv==NULL) return p;
 
-  switch(ArrayIndex)
-    { 
-      case -1: // all elements
-        for (i=0; i<nPRIO; i++)
-          { 
-            if (pv[i]!=upaNULL) p= eINT(p,pv[i]);
-            else p= eNULL(p);
-          }
-        break;  
-          
-      case 0:  // number of elements
-        p= eUINT(p,nPRIO);
-        break;
-        
-      default: // ArrayIndex element     
-        if ((ArrayIndex>0)&&(ArrayIndex<=nPRIO))
-          p= eINT(p,pv[ArrayIndex-1]);
-        break;
-    }
-  return p;
+   switch(ArrayIndex)
+   {
+   case -1: // all elements
+      for (i=0; i<nPRIO; i++)
+      { 
+         if (pv[i]!=upaNULL) p= eINT(p,pv[i]);
+         else p= eNULL(p);
+      }
+      break;
+
+   case 0:  // number of elements
+      p= eUINT(p,nPRIO);
+      break;
+
+   default: // ArrayIndex element     
+      if ((ArrayIndex>0)&&(ArrayIndex<=nPRIO))
+         p= eINT(p,pv[ArrayIndex-1]);
+      break;
+   }
+   return p;
 }
 
 // encode uw array  
@@ -1376,123 +1396,135 @@ octet far* ecUINT(octet far* p, octet tag, dword property_id)
   
 }
 
-// encode BACnetVTClassList
+// Encode BACnetVTClassList
 octet far* eVTCL(octet far* p, const BACnetVTClassList far* pv, int TagNr)
-{ 
-  while (pv!=NULL)
-   { p= eENUM(p,pv->vtclass);
-     pv= pv->next;
+{
+   while (pv!=NULL)
+   {
+      p= eENUM(p,pv->vtclass);
+      pv= pv->next;
    }
-  return p;
+   return p;
 }
 
-// encode BACnetEventParam
+// Encode BACnetEventParam
+// TODO: this seems to be only about half complete...
 octet far* eEVPARM(octet far* p, const BACnetEventParameter far* pv, int TagNr)
-{ octet far* s;
-  //BACnetListBitstringValue far* pbit;
-  BACnetPropertyStates far* ps;
-  if (pv==NULL) return p;
-  switch (pv->event_type)
-    {
-      case CHANGE_OF_BITSTRING: // [0]
-        *p++= 0x0E;
-         s= p;
-         p= eUINT(p,pv->time_delay);
-         *s= 0x08 | (*s & 0x07); // [0]
-         //p= eBITSTRING(p,(byte far*)&pv->bitmask,0x10,8); // [1]
-         *p++= 0x2E; // [2]
-         //pbit= pv->list_bitstring_value;
-         //    while (pbit!=NULL)
-         //      { p= eBITSTRING(p,&pbit->list_bitstring_value,0x80,8);
-         //        pbit= pbit->next;
-         //      }
-         *p++= 0x2F;
-        *p++= 0x0F;
-        break;
-      case CHANGE_OF_STATE: // [1]
-        *p++= 0x1E;
-         s= p;
-         p= eUINT(p,pv->time_delay);
-         *s= 0x08 | (*s & 0x07); // [0]
-         *p++= 0x1E; // [1]
-           ps= pv->list_of_value;
-           while (ps!=NULL)
-             { // enum or bool?
-               ps= ps->next;
-             }
-         *p++= 0x1F;
-        *p++= 0x1F;
-        break;
-      case CHANGE_OF_VALUE: // [2]
-        *p++= 0x2E;
-         s= p;
-         p= eUINT(p,pv->time_delay);
-         *s= 0x08 | (*s & 0x07); // [0]
-             *p++= 0x1E; // [1]
-                 s=p;
-                    p= eREAL(p,pv->low_diff_limit); // ??? where is the variable in the structure?
-                    *s= 0x18 | (*s & 0x07); // [1] REAL 
-             *p++= 0x1F; 
-        *p++= 0x2F;
-        break;
-      case COMMAND_FAILURE: // [3]
-        *p++= 0x3E;
-         s= p;
-         p= eUINT(p,pv->time_delay);
-         *s= 0x08 | (*s & 0x07); // [0]
-            *p++= 0x1E; 
-                p= eOPROPREF(p,&pv->setpoint_ref); // [1] 
-            *p++= 0x1F; 
-        *p++= 0x3F;
-        break;
-      case FLOATING_LIMIT: // [4]
-        *p++= 0x4E;
-            s= p;
-            p= eUINT(p,pv->time_delay);
-            *s= 0x08 | (*s & 0x07); // [0]
-            *p++= 0x1E; 
-                p= eOPROPREF(p,&pv->setpoint_ref); // [1] 
-            *p++= 0x1F; 
-            s= p;
-            p= eREAL(p,pv->low_diff_limit);
-            *s= 0x28 | (*s & 0x07); // [2]
-            s= p;
-            p= eREAL(p,pv->high_diff_limit);
-            *s= 0x38 | (*s & 0x07); // [3]
-            s= p;
-            p= eREAL(p,pv->deadband);
-            *s= 0x48 | (*s & 0x07); // [4]
-        *p++= 0x4F;
-        break;
-      case OUT_OF_RANGE: // [5]
-        *p++= 0x5E;
-         s= p;
-         p= eUINT(p,pv->time_delay);
-         *s= 0x08 | (*s & 0x07); // [0]
-         s= p;
-         p= eREAL(p,pv->low_limit);
-         *s= 0x18 | (*s & 0x07); // [1]
-         s= p;
-         p= eREAL(p,pv->high_limit);
-         *s= 0x28 | (*s & 0x07); // [2]
-         s= p;
-         p= eREAL(p,pv->deadband);
-         *s= 0x38 | (*s & 0x07); // [3]
-        *p++= 0x5F;
-        break;
-     //Added by Zhu Zhenhua, 2004-5-20
-      case BUFFER_READY: // [10]
-        *p++= 0xAE;
-         s= p;
-         p= eUINT(p,pv->notification_threshold);
-         *s= 0x08 | (*s & 0x07); // [0]
-         s= p;
-         p= eDWORD(p,pv->previous_notification_count,0x20,FALSE);
-         *s= 0x18 | (*s & 0x07); // [1]       
-        *p++= 0xAF;
-        break;
-    }
-  return p;
+{
+   octet far* s;
+   BACnetPropertyStates far* ps;
+   if (pv==NULL) return p;
+
+   switch (pv->event_type)
+   {
+   case CHANGE_OF_BITSTRING: // [0]
+      *p++= 0x0E;
+      s= p;
+      p= eUINT(p,pv->time_delay);
+      *s= 0x08 | (*s & 0x07); // [0]
+      //p= eBITSTRING(p,(byte far*)&pv->bitmask,0x10,8); // [1]
+      *p++= 0x2E; // [2]
+      //pbit= pv->list_bitstring_value;
+      //    while (pbit!=NULL)
+      //      { p= eBITSTRING(p,&pbit->list_bitstring_value,0x80,8);
+      //        pbit= pbit->next;
+      //      }
+      *p++= 0x2F;
+      *p++= 0x0F;
+      break;
+
+   case CHANGE_OF_STATE: // [1]
+      *p++= 0x1E;
+      s= p;
+      p= eUINT(p,pv->time_delay);
+      *s= 0x08 | (*s & 0x07); // [0]
+      *p++= 0x1E; // [1]
+      ps= pv->list_of_value;
+      while (ps!=NULL)
+      {  // enum or bool?
+         ps= ps->next;
+      }
+      *p++= 0x1F;
+      *p++= 0x1F;
+      break;
+
+   case CHANGE_OF_VALUE: // [2]
+      *p++= 0x2E;
+      s= p;
+      p= eUINT(p,pv->time_delay);
+      *s= 0x08 | (*s & 0x07); // [0]
+      *p++= 0x1E;             // [1]
+      s=p;
+      // SHOULD BE a CHOICE of bitmask [0] or real [1]
+      p= eREAL(p,pv->low_diff_limit); // ??? where is the variable in the structure?
+      *s= 0x18 | (*s & 0x07); // [1] REAL 
+      *p++= 0x1F; 
+      *p++= 0x2F;
+      break;
+
+   case COMMAND_FAILURE: // [3]
+      *p++= 0x3E;
+      s= p;
+      p= eUINT(p,pv->time_delay);
+      *s= 0x08 | (*s & 0x07);    // [0]
+      *p++= 0x1E;
+      p= eLOPREF(p,&pv->device_prop_ref); // [1] 
+      *p++= 0x1F;
+      *p++= 0x3F;
+      break;
+
+   case FLOATING_LIMIT: // [4]
+      *p++= 0x4E;
+      s= p;
+      p= eUINT(p,pv->time_delay);
+      *s= 0x08 | (*s & 0x07); // [0]
+      *p++= 0x1E; 
+      p= eLOPREF(p,&pv->device_prop_ref); // [1]
+      *p++= 0x1F;
+      s= p;
+      p= eREAL(p,pv->low_diff_limit);
+      *s= 0x28 | (*s & 0x07); // [2]
+      s= p;
+      p= eREAL(p,pv->high_diff_limit);
+      *s= 0x38 | (*s & 0x07); // [3]
+      s= p;
+      p= eREAL(p,pv->deadband);
+      *s= 0x48 | (*s & 0x07); // [4]
+      *p++= 0x4F;
+      break;
+
+   case OUT_OF_RANGE: // [5]
+      *p++= 0x5E;
+      s= p;
+      p= eUINT(p,pv->time_delay);
+      *s= 0x08 | (*s & 0x07); // [0]
+      s= p;
+      p= eREAL(p,pv->low_limit);
+      *s= 0x18 | (*s & 0x07); // [1]
+      s= p;
+      p= eREAL(p,pv->high_limit);
+      *s= 0x28 | (*s & 0x07); // [2]
+      s= p;
+      p= eREAL(p,pv->deadband);
+      *s= 0x38 | (*s & 0x07); // [3]
+      *p++= 0x5F;
+      break;
+
+   case BUFFER_READY: // [10]
+      *p++= 0xAE;
+      s= p;
+      p= eUINT(p,pv->notification_threshold);
+      *s= 0x08 | (*s & 0x07); // [0]
+      s= p;
+      p= eDWORD(p,pv->previous_notification_count,0x20,FALSE);
+      *s= 0x18 | (*s & 0x07); // [1]
+      *p++= 0xAF;
+      break;
+
+   default:
+      break;
+   }
+   return p;
 }
 
 // encode BACnetSessionKey
@@ -1523,42 +1555,43 @@ octet far* eDABIND(octet far* p, const BACnetAddressBinding far* pv, int TagNr)
 }
           
 // encode BACnetRecipient
-octet far* eRECIP(octet far* p, const BACnetRecipient far* pv, int TagNr)     
+octet far* eRECIP(octet far* p, const BACnetRecipient far* pv, int TagNr)
 {
-  while (pv!=NULL)
-    { 
+   while (pv!=NULL)
+   {
       if (pv->choice==0) // BACnetObjectIdentifier
-        {
-          p= etagOBJECTID(p,0x08,pv->u.device);
-        }
+      {
+         p= etagOBJECTID(p,0x08,pv->u.device);
+      }
       else // BACnetAddress
-        { *p++= 0x1E;
-          p= eUINT(p,pv->u.address.network_number);
-          p= eOCTETSTRING(p,(octet *)(pv->u.address.mac_address),pv->u.address.address_size);   // ***001
-          *p++= 0x1F;
-        }  
+      {
+         *p++= 0x1E;
+         p= eUINT(p,pv->u.address.network_number);
+         p= eOCTETSTRING(p,(octet *)(pv->u.address.mac_address),pv->u.address.address_size);   // ***001
+         *p++= 0x1F;
+      }
       pv= pv->next;
-    }
-  return p;
+   }
+   return p;
 }
 
 // encode BACnetDestination list
-octet far* eRECIPLIST(octet far* p, const BACnetDestination far* pv, int TagNr) 
-{ 
-  while (pv!=NULL)
-   {              
-     p= eBITSTRING(p,(byte far*)&pv->valid_days,0x80,7);
-     *p++= 0xB4;
-     memcpy(p,&pv->from_time,4); p+= 4;                  //             ***001
-     *p++= 0xB4;
-     memcpy(p,&pv->to_time,4); p+= 4;                 //             ***001
-     p= eRECIP(p,&pv->recipient);
-     p= eUINT(p,pv->process_id);
-     p= eBOOL(p,pv->notification);
-     p= eBITSTRING(p,(byte far*)&pv->transitions,0x80,3);
-     pv= pv->next;
+octet far* eRECIPLIST(octet far* p, const BACnetDestination far* pv, int TagNr)
+{
+   while (pv!=NULL)
+   {
+      p= eBITSTRING(p,(byte far*)&pv->valid_days,0x80,7);
+      *p++= 0xB4;
+      memcpy(p,&pv->from_time,4); p+= 4;
+      *p++= 0xB4;
+      memcpy(p,&pv->to_time,4); p+= 4;
+      p= eRECIP(p,&pv->recipient);
+      p= eUINT(p,pv->process_id);
+      p= eBOOL(p,pv->notification);
+      p= eBITSTRING(p,(byte far*)&pv->transitions,0x80,3);
+      pv= pv->next;
    }
-  return p;
+   return p;
 }
 
 
@@ -1630,571 +1663,569 @@ octet far* eVTSE(octet far* p, const BACnetVTSession far* pv, int TagNr)
 // returns: buffer_address + number_of_encoded_octets
 octet far* eASN_1_AnyType(octet far* p, PVMessage far* msg)
 {
-  int i= msg->TestNr;
+   int i= msg->TestNr;
 
-  if ( (msg->Action==RND_ENCODEPROP) && ((msg->TestNr<0)||(msg->TestNr>1)) )
-    msg->TestNr= 0;
+   if ( (msg->Action==RND_ENCODEPROP) && ((msg->TestNr<0)||(msg->TestNr>1)) )
+      msg->TestNr= 0;
 
-  switch (msg->pt) //parse type
-    {
-     case ob_id: // an object identifier -----------------------
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP:     // encode from database
-           case RND_ENCODEPROP: // encode a test value (never)
-             p= etagOBJECTID(p, 0xC0, *((dword far*)msg->pv) );
-             break;  
-         }  
-       break;
-       
-     case et: // an enumeration table --------------------------
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eENUM(p, *((word far*)(msg->pv)) ); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eENUM(p, gTestEnum[i]);   
-             break;
-         }    
-       break;                                                   
-    //***Added by LiangPing Xu, 2002-8-5
-      case ssint://short signed int
+   switch (msg->pt) //parse type
+   {
+   case ob_id: // an object identifier -----------------------
       switch(msg->Action)
-         {
-         case SETPROP:
-             break;
-            case ENCODEPROP: // encode from database
-             p= eINT(p, *((short far*)(msg->pv)) ); 
-             break;
-            case RND_ENCODEPROP: // encode a test value 
-             p= eINT(p, gTestInt[i]); 
-             break;
-         }
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP:     // encode from database
+      case RND_ENCODEPROP: // encode a test value (never)
+         p= etagOBJECTID(p, 0xC0, *((dword far*)msg->pv) );
+         break;
+      }
       break;
-      
-    //***Ended by LiangPing Xu, 2002-8-5
-     case flt: // float ----------------------------------------
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eREAL(p, *((float far*)(msg->pv)) ); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eREAL(p, gTestReal[i]);   
-             break;
-         }    
-       break;
-       
-     case bits: // octet of 1 or 0 flags
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eBITSTRING(p, (byte far*)msg->pv,0x80,msg->UsedBits); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eBITSTRING(p,&gTestBits[i],0x80,gTestUsedBits);
-             break;
-         }    
-       break;          
 
-     case u127: // 1..127 -----------------------------------------------
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eUINT(p, *((octet far*)(msg->pv)) ); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eUINT(p, gTestInt[i]);   
-             break;
-         }    
-       break;
+   case et: // an enumeration table --------------------------
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eENUM(p, *((word far*)(msg->pv)) ); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eENUM(p, gTestEnum[i]);   
+         break;
+      }
+      break;
 
-     case u16:  // 1..16
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eUINT(p, *((octet far*)(msg->pv)) ); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eUINT(p, gTestInt[i]);   
-             break;
-         }    
-       break;
+   //***Added by LiangPing Xu, 2002-8-5
+   case ssint://short signed int
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eINT(p, *((short far*)(msg->pv)) ); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eINT(p, gTestInt[i]); 
+         break;
+      }
+      break;
 
-     case ud:   // unsigned dword
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eUINT(p, *((dword far*)(msg->pv)) ); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eUINT(p, gTestInt[i]);   
-             break;
-         }    
-       break;                     
+   //***Ended by LiangPing Xu, 2002-8-5
+   case flt: // float ----------------------------------------
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eREAL(p, *((float far*)(msg->pv)) ); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eREAL(p, gTestReal[i]);   
+         break;
+      }
+      break;
 
-     case uw:   // unsigned word
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eUINT(p, *((word far*)(msg->pv)) ); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eUINT(p, gTestInt[i]);   
-             break;
-         }    
-       break;
-       
-     case sw:   // signed word ------------------------------------------
-    case ptInt32:    // signed long, too
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eINT(p, *((short far*)(msg->pv)) ); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eINT(p, gTestInt[i]); 
-             break;
-         }    
-       break;
-       
-     case s10:  // char [10] --------------------------------------------
-     case s32:  // char [32]
-     case s64:  // char [64]
-     case s132: // char [132]
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eCHARSTRING(p,(char far*)msg->pv,0x70,strlen((char far*)msg->pv),ANSI,0); //***001
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eCHARSTRING(p,gTestString[i],0x70,strlen(gTestString[i]),ANSI,0);      // ***001
-             break;
-         }    
-       break;
-                                                             
-     case ebool: // boolean enumeration ---------------------------------
-     
-       switch(msg->Action)
-         {
-           case SET_TRUE:
-             p= eBOOL(p, 1); // encode true  value  
-             break;
-           case SET_FALSE:
-             p= eBOOL(p, 0); // encode false value  
-             break;  
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eBOOL(p, *((boolean far*)(msg->pv)) ); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eBOOL(p, gTestBool[i]); // random value  
-             break;
-         }    
-       break;
-       
-     case enull: // null enumeration ------------------------------------
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eNULL(p); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eNULL(p);  
-             break;
-         }    
-       break;
+   case bits: // octet of 1 or 0 flags
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eBITSTRING(p, (byte far*)msg->pv,0x80,msg->UsedBits); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eBITSTRING(p,&gTestBits[i],0x80,gTestUsedBits);
+         break;
+      }
+      break;
 
-     case ptDate: // date
-       p= eBACnetDate(p,(BACnetDate far*)msg->pv);
-       break;
-     
-     case ptTime: // time
-       p= eBACnetTime(p,(BACnetTime far*)msg->pv);
-       break;
-     
-     case dt: // date + time
-       switch(msg->Action)
-         {
-           case SETPROP: 
+   case u127: // 1..127 -----------------------------------------------
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eUINT(p, *((octet far*)(msg->pv)) ); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eUINT(p, gTestInt[i]);
+         break;
+      }
+      break;
+
+   case u16:  // 1..16
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eUINT(p, *((octet far*)(msg->pv)) ); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eUINT(p, gTestInt[i]);
+         break;
+      }
+      break;
+
+   case ud:   // unsigned dword
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eUINT(p, *((dword far*)(msg->pv)) ); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eUINT(p, gTestInt[i]);
+         break;
+      }
+      break;
+
+   case uw:   // unsigned word
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eUINT(p, *((word far*)(msg->pv)) ); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eUINT(p, gTestInt[i]);
+         break;
+      }
+      break;
+
+   case sw:   // signed word ------------------------------------------
+   case ptInt32:    // signed long, too
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eINT(p, *((short far*)(msg->pv)) );
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eINT(p, gTestInt[i]);
+         break;
+      }
+      break;
+
+   case s10:  // char [10] --------------------------------------------
+   case s32:  // char [32]
+   case s64:  // char [64]
+   case s132: // char [132]
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eCHARSTRING(p,(char far*)msg->pv,0x70,strlen((char far*)msg->pv),ANSI,0); //***001
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eCHARSTRING(p,gTestString[i],0x70,strlen(gTestString[i]),ANSI,0);      // ***001
+         break;
+      }
+      break;
+
+   case ebool: // boolean enumeration ---------------------------------
+      switch(msg->Action)
+      {
+      case SET_TRUE:
+         p= eBOOL(p, 1); // encode true  value
+         break;
+      case SET_FALSE:
+         p= eBOOL(p, 0); // encode false value
+         break;
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eBOOL(p, *((boolean far*)(msg->pv)) );
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eBOOL(p, gTestBool[i]); // random value  
+         break;
+      }
+      break;
+
+   case enull: // null enumeration ------------------------------------
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eNULL(p); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eNULL(p);
+         break;
+      }
+      break;
+
+   case ptDate: // date
+      p= eBACnetDate(p,(BACnetDate far*)msg->pv);
+      break;
+
+   case ptTime: // time
+      p= eBACnetTime(p,(BACnetTime far*)msg->pv);
+      break;
+
+   case dt: // date + time
+      switch(msg->Action)
+      {
+      case SETPROP: 
 // jjb             new CBACnetDateTimeDlg((BACnetDateTime far*)msg->pv,CWnd::FromHandle(msg->hw));
-             break;
-           case ENCODEPROP: // encode from database
-             p= eDT(p,(BACnetDateTime far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eDT(p,&gTestDT[i]);
-             break;
-         }    
+         break;
+      case ENCODEPROP: // encode from database
+         p= eDT(p,(BACnetDateTime far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eDT(p,&gTestDT[i]);
+         break;
+      }
+      break;
+
+   case calist: // list of calendarentry
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eCALIST(p,(BACnetCalendarEntry far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eCALIST(p,gTestCalist[i]);
+         break;
+      }
+      break;
+
+   case paf: // priority array flt
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= ePAF(p,(float far*)msg->pv,msg->ArrayIndex);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= ePAF(p,gTestPAF[i]);
+         break;
+      }
+      break;
+
+   case pab: // priority array bpv
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+      // p= ePAB(p,(enum BACnetBinaryPV far*)msg->pv,msg->ArrayIndex);--Marked by Liangping Xu,2002-8-5
+         p= ePAB(p,(word far*)msg->pv,msg->ArrayIndex);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         //p= ePAB(p,gTestPAB[i]);    --Marked by Liangping Xu,2002-8-5
+         p= ePAB(p,(const word *)gTestPAB[i]);
+         break;
+       }
        break;
 
-     case calist: // list of calendarentry
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eCALIST(p,(BACnetCalendarEntry far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eCALIST(p,gTestCalist[i]);
-             break;
-         }    
-       break;
+   case pau: // priority array uw
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= ePAU(p,(word far*)msg->pv,msg->ArrayIndex);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= ePAU(p,gTestPAU[i]);
+         break;
+      }
+      break;
 
-     case paf: // priority array flt
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= ePAF(p,(float far*)msg->pv,msg->ArrayIndex);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= ePAF(p,gTestPAF[i]);
-             break;
-         }    
-       break;
+   case ptPai: // priority array dw (int32)
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= ePADW(p,(dword far*)msg->pv,msg->ArrayIndex);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= ePADW(p,gTestPADW[i]);
+         break;
+      }
+      break;
 
-     case pab: // priority array bpv
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-          //   p= ePAB(p,(enum BACnetBinaryPV far*)msg->pv,msg->ArrayIndex);--Marked by Liangping Xu,2002-8-5
-            p= ePAB(p,(word far*)msg->pv,msg->ArrayIndex);
-            break;
-           case RND_ENCODEPROP: // encode a test value 
-             //p= ePAB(p,gTestPAB[i]);    --Marked by Liangping Xu,2002-8-5
-          p= ePAB(p,(const word *)gTestPAB[i]);
+   case dtrange: // range of dates
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eDTRANGE(p,(BACnetDateRange far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eDTRANGE(p,&gTestDTRange[i]);
+         break;
+      }
+      break;
 
-             break;
-         }    
-       break;
+   case raslist: // list of readaccessspecs
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eRASLIST(p,gTestRaslist[i]);
+         break;
+      }
+      break;
 
-     case pau: // priority array uw
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= ePAU(p,(word far*)msg->pv,msg->ArrayIndex);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= ePAU(p,gTestPAU[i]);
-             break;
-         }    
-       break;
-
-    case ptPai: // priority array dw (int32)
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= ePADW(p,(dword far*)msg->pv,msg->ArrayIndex);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= ePADW(p,gTestPADW[i]);
-             break;
-         }    
-       break;
-
-     case dtrange: // range of dates
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eDTRANGE(p,(BACnetDateRange far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eDTRANGE(p,&gTestDTRange[i]);
-             break;
-         }    
-       break;
-
-     case raslist: // list of readaccessspecs
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eRASLIST(p,gTestRaslist[i]);
-             break;
-         }    
-       break;
-
-     case lobj: // list of objects
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eLOBJ(p,(BACnetObjectIdentifier far*)msg->pv,msg->ArrayIndex);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eLOBJ(p,&gTestLObj[i]);
-             break;
-         }    
-       break;
+   case lobj: // list of objects
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eLOBJ(p,(BACnetObjectIdentifier far*)msg->pv,msg->ArrayIndex);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eLOBJ(p,&gTestLObj[i]);
+         break;
+      }
+      break;
        
-     case act: // action array
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eACT(p,gTestAct[i],1);
-             break;
-         }    
-       break;
+   case act: // action array
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eACT(p,gTestAct[i],1);
+         break;
+      }
+      break;
 
-     case statext: // state text array
-     case actext:  // action_text array
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eACTEXT(p,(char far**)msg->pv,msg->Num,msg->ArrayIndex);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eACTEXT(p,gTestActext[i],1);
-             break;
-         }    
-       break;
+   case statext: // state text array
+   case actext:  // action_text array
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eACTEXT(p,(char far**)msg->pv,msg->Num,msg->ArrayIndex);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eACTEXT(p,gTestActext[i],1);
+         break;
+      }
+      break;
 
-     case vtcl: // vt classes
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eVTCL(p,(BACnetVTClassList far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eVTCL(p,gTestVtcl[i]);
-             break;
-         }    
-       break;
+   case vtcl: // vt classes
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eVTCL(p,(BACnetVTClassList far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eVTCL(p,gTestVtcl[i]);
+         break;
+      }
+      break;
 
-     case evparm: // event parameter
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eEVPARM(p,&gTestEvparm[i]);
-             break;
-         }    
-       break;
+   case evparm: // event parameter
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eEVPARM(p,&gTestEvparm[i]);
+         break;
+      }
+      break;
 
-     case skeys: // session keys
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eSKEYS(p,gTestSkeys[i]);
-             break;
-         }    
-       break;
+   case skeys: // session keys
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eSKEYS(p,gTestSkeys[i]);
+         break;
+      }    
+      break;
 
-     case dabind: // device address bindings
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eDABIND(p,(BACnetAddressBinding far*)msg->pv); 
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eDABIND(p,gTestDabind[i]); 
-             break;
-         }    
-       break;
+   case dabind: // device address bindings
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eDABIND(p,(BACnetAddressBinding far*)msg->pv); 
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eDABIND(p,gTestDabind[i]); 
+         break;
+      }
+      break;
 
-     case tsrecip: // time synch recipients
-     case recip: // recipient
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eRECIP(p,(BACnetRecipient far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eRECIP(p,gTestRecip[i]);
-             break;
-         }    
-       break;
+   case tsrecip: // time synch recipients
+   case recip: // recipient
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eRECIP(p,(BACnetRecipient far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eRECIP(p,gTestRecip[i]);
+         break;
+      }
+      break;
 
-     case reciplist: // list of BACnetDestination
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eRECIPLIST(p,(BACnetDestination far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eRECIPLIST(p,gTestReciplist[i]);
-             break;
-         }    
-       break;
+   case reciplist: // list of BACnetDestination
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eRECIPLIST(p,(BACnetDestination far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value
+         p= eRECIPLIST(p,gTestReciplist[i]);
+         break;
+      }
+      break;
 
-     case xsched:    // exception schedule: array[] of specialevent
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eXSCHED(p,gTestXSched[i]);
-             break;
-         }    
-       break;
+   case xsched:    // exception schedule: array[] of specialevent
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eXSCHED(p,gTestXSched[i]);
+         break;
+      }    
+      break;
 
-     case wsched: // weekly schedule: array[7] of list of timevalue
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
-             break;
-           case RND_ENCODEPROP: // encode a test value
-             p= eWSCHED(p,gTestWsched[i],7); 
-             break;
-         }    
-       break;
+   case wsched: // weekly schedule: array[7] of list of timevalue
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
+         break;
+      case RND_ENCODEPROP: // encode a test value
+         p= eWSCHED(p,gTestWsched[i],7); 
+         break;
+      }    
+      break;
 
-     case stavals: // list of unsigned
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eSTAVALS(p,(octet far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eSTAVALS(p,gTestStavals[i]);
-             break;
-         }    
-       break;
-     
-     case propref: // object prop refs
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eOPROPREF(p,(BACnetObjectPropertyReference far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eOPROPREF(p,gTestLopref[i]);
-             break;
-         }    
-       break;
+   case stavals: // list of unsigned
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eSTAVALS(p,(octet far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eSTAVALS(p,gTestStavals[i]);
+         break;
+      }    
+      break;
 
-    case lopref:  // list of object prop refs device
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eLOPREF(p,(BACnetDeviceObjectPropertyReference far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eLOPREF(p,gTestLodpref[i]);
-             break;
-         }    
-       break;
+   case propref: // object prop refs
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eOPROPREF(p,(BACnetObjectPropertyReference far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eOPROPREF(p,gTestLopref[i]);
+         break;
+      }    
+      break;
 
-     case setref: // setpoint reference
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eSETREF(p,(BACnetObjectPropertyReference far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eSETREF(p,gTestLopref[i]);
-             break;
-         }    
-       break;
+   case lopref:  // list of object prop refs device
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eLOPREF(p,(BACnetDeviceObjectPropertyReference far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eLOPREF(p,gTestLodpref[i]);
+         break;
+      }    
+      break;
 
-     case vtse: // list of active  vt sessions (parse type) 
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eVTSE(p,(BACnetVTSession far*)msg->pv);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eVTSE(p,gTestVtse[i]);
-             break;
-         }
-       break;      
+   case setref: // setpoint reference
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eSETREF(p,(BACnetObjectPropertyReference far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eSETREF(p,gTestLopref[i]);
+         break;
+      }    
+      break;
 
-     case uwarr: // array of uw
-       switch(msg->Action)
-         {
-           case SETPROP:
-             break;
-           case ENCODEPROP: // encode from database
-             p= eUWARR(p,(word far*)msg->pv,msg->Num);
-             break;
-           case RND_ENCODEPROP: // encode a test value 
-             p= eUWARR(p,gTestUWArr[i],nTESTUWNUM);
-             break;
-         }    
-       break;
+   case vtse: // list of active  vt sessions (parse type) 
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eVTSE(p,(BACnetVTSession far*)msg->pv);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eVTSE(p,gTestVtse[i]);
+         break;
+      }
+      break;
 
-    } // switch    
-  return p;   
+   case uwarr: // array of uw
+      switch(msg->Action)
+      {
+      case SETPROP:
+         break;
+      case ENCODEPROP: // encode from database
+         p= eUWARR(p,(word far*)msg->pv,msg->Num);
+         break;
+      case RND_ENCODEPROP: // encode a test value 
+         p= eUWARR(p,gTestUWArr[i],nTESTUWNUM);
+         break;
+      }
+      break;
+   } // switch
+   return p;
 }
 
 
@@ -2214,11 +2245,12 @@ octet far* eASN_1_AnyType(octet far* p, PVMessage far* msg)
 //    msg         PVMessage, (see struct declaration)
 // returns: 0 if ok, else !=0
 int EncodeFromDatabase(char far* Buffer, PVMessage far* msg)
-{ word object_type; dword object_inst;
-  octet far* p; // end of encoded data
-  octet far* s; // start of encoded data
-  generic_object far* Obj= (generic_object far*) msg->Obj;
-  
+{
+   word object_type; dword object_inst;
+   octet far* p; // end of encoded data
+   octet far* s; // start of encoded data
+   generic_object far* Obj= (generic_object far*) msg->Obj;
+
   p= (octet far*) Buffer;
   msg->BufferLen= 0;
   
@@ -2330,65 +2362,65 @@ double CvtStrFlt(char far* Buffer)
 extern "C" void CreatePropertyFromEPICS( PICS::generic_object * pObj, int PropId, BACnetAnyValue * pbacnetAnyValue )
 {
    switch(pObj->object_type)
-    { 
-      case OBJ_ANALOG_INPUT:         AI_CreateProperty( (ai_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case OBJ_ANALOG_OUTPUT:        AO_CreateProperty( (ao_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case OBJ_ANALOG_VALUE:         AV_CreateProperty( (av_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case OBJ_BINARY_INPUT:         BI_CreateProperty( (bi_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case OBJ_BINARY_OUTPUT:        BO_CreateProperty( (bo_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case OBJ_BINARY_VALUE:         BV_CreateProperty( (bv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case OBJ_CALENDAR:          CA_CreateProperty( (calendar_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-      case OBJ_COMMAND:              CO_CreateProperty( (command_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case OBJ_DEVICE:               DE_CreateProperty( (device_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-      case OBJ_EVENT_ENROLLMENT:     EV_CreateProperty( (ee_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case OBJ_FILE:             FI_CreateProperty( (file_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case OBJ_GROUP:            GR_CreateProperty( (group_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-      case OBJ_LOOP:				 LO_CreateProperty( (loop_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case OBJ_MULTI_STATE_INPUT:    MSI_CreateProperty( (mi_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-      case OBJ_MULTI_STATE_OUTPUT:      MSO_CreateProperty( (mo_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-      case OBJ_MULTI_STATE_VALUE:    MSV_CreateProperty( (msv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case OBJ_NOTIFICATIONCLASS:    NC_CreateProperty( (nc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
-      case OBJ_PROGRAM:              PR_CreateProperty( (program_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case OBJ_SCHEDULE:			SC_CreateProperty( (schedule_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-      case OBJ_AVERAGING:            AVG_CreateProperty( (avg_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-      case OBJ_TREND_LOG:            TR_CreateProperty( (trend_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; // msdanner 9/04, was "TRENDLOG"
-     case OBJ_LIFE_SAFETY_POINT:       LFSP_CreateProperty((lifesafetypoint_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/21/2005
-      case OBJ_LIFE_SAFETY_ZONE:        LFSZ_CreateProperty((lifesafetyzone_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/21/2005 
-      case OBJ_ACCUMULATOR:             AC_CreateProperty( (accumulator_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/15/2005
-     case OBJ_PULSE_CONVERTER:         PC_CreateProperty( (pulseconverter_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break; //Shiyuan Xiao 7/15/2005
-     case OBJ_EVENT_LOG:          EL_CreateProperty( (el_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_TREND_LOG_MULTIPLE:    TLM_CreateProperty( (tlm_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-     case OBJ_LOAD_CONTROL:       LC_CreateProperty( (lc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_STRUCTURED_VIEW:       SV_CreateProperty( (sv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_ACCESS_DOOR:           AD_CreateProperty( (ad_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-        // Until real object property handling is implemented, just do the generic here
-     case OBJ_LIGHTING_OUTPUT:       CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_ACCESS_CREDENTIAL:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_ACCESS_POINT:			 CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_ACCESS_RIGHTS:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_ACCESS_USER:           CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_ACCESS_ZONE:           CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_CREDENTIAL_DATA_INPUT: CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_NETWORK_SECURITY:      CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;   
-     case OBJ_BITSTRING_VALUE:       CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;      
-     case OBJ_CHARACTERSTRING_VALUE: CharStr_CreateProperty( (charstring_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-     case OBJ_DATE_PATTERN_VALUE:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_DATE_VALUE:            CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_DATETIME_PATTERN_VALUE:   CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_DATETIME_VALUE:        DateTime_CreateProperty( (datetimevalue_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_INTEGER_VALUE:         Integer_CreateProperty( (integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
-     case OBJ_LARGE_ANALOG_VALUE:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_OCTETSTRING_VALUE:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_POSITIVE_INTEGER_VALUE:   Pos_Int_CreateProperty( (positive_integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
-     case OBJ_TIME_PATTERN_VALUE:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
-     case OBJ_TIME_VALUE:            CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;      
-     default:
-        //TRACE("CreatePropertyFromDB called for unknown object type");
-        //ASSERT(0);
-        //Proprietary objects
-        ProprietaryObj_CreateProperty((proprietary_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue);
-        break;
-    }   
+   {
+   case OBJ_ANALOG_INPUT:        AI_CreateProperty( (ai_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+   case OBJ_ANALOG_OUTPUT:       AO_CreateProperty( (ao_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+   case OBJ_ANALOG_VALUE:        AV_CreateProperty( (av_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+   case OBJ_BINARY_INPUT:        BI_CreateProperty( (bi_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+   case OBJ_BINARY_OUTPUT:       BO_CreateProperty( (bo_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+   case OBJ_BINARY_VALUE:        BV_CreateProperty( (bv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+   case OBJ_CALENDAR:            CA_CreateProperty( (calendar_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_COMMAND:             CO_CreateProperty( (command_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+   case OBJ_DEVICE:              DE_CreateProperty( (device_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+   case OBJ_EVENT_ENROLLMENT:    EV_CreateProperty( (ee_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+   case OBJ_FILE:                FI_CreateProperty( (file_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+   case OBJ_GROUP:               GR_CreateProperty( (group_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_LOOP:                LO_CreateProperty( (loop_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+   case OBJ_MULTI_STATE_INPUT:   MSI_CreateProperty( (mi_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+   case OBJ_MULTI_STATE_OUTPUT:  MSO_CreateProperty( (mo_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+   case OBJ_MULTI_STATE_VALUE:   MSV_CreateProperty( (msv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+   case OBJ_NOTIFICATIONCLASS:   NC_CreateProperty( (nc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );     break;
+   case OBJ_PROGRAM:             PR_CreateProperty( (program_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+   case OBJ_SCHEDULE:            SC_CreateProperty( (schedule_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_AVERAGING:           AVG_CreateProperty( (avg_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+   case OBJ_TREND_LOG:           TR_CreateProperty( (trend_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; // msdanner 9/04, was "TRENDLOG"
+   case OBJ_LIFE_SAFETY_POINT:   LFSP_CreateProperty((lifesafetypoint_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/21/2005
+   case OBJ_LIFE_SAFETY_ZONE:    LFSZ_CreateProperty((lifesafetyzone_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/21/2005 
+   case OBJ_ACCUMULATOR:         AC_CreateProperty( (accumulator_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break; //Shiyuan Xiao 7/15/2005
+   case OBJ_PULSE_CONVERTER:     PC_CreateProperty( (pulseconverter_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break; //Shiyuan Xiao 7/15/2005
+   case OBJ_EVENT_LOG:           EL_CreateProperty( (el_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_TREND_LOG_MULTIPLE:  TLM_CreateProperty( (tlm_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );   break;
+   case OBJ_LOAD_CONTROL:        LC_CreateProperty( (lc_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_STRUCTURED_VIEW:     SV_CreateProperty( (sv_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_ACCESS_DOOR:         AD_CreateProperty( (ad_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+      // Until real object property handling is implemented, just do the generic here
+   case OBJ_LIGHTING_OUTPUT:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_ACCESS_CREDENTIAL:   CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_ACCESS_POINT:        CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_ACCESS_RIGHTS:       CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_ACCESS_USER:         CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_ACCESS_ZONE:         CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_CREDENTIAL_DATA_INPUT: CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_NETWORK_SECURITY:    CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_BITSTRING_VALUE:     CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_CHARACTERSTRING_VALUE:  CharStr_CreateProperty( (charstring_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+   case OBJ_DATE_PATTERN_VALUE:  CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_DATE_VALUE:          CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_DATETIME_PATTERN_VALUE: CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_DATETIME_VALUE:      DateTime_CreateProperty( (datetimevalue_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+   case OBJ_INTEGER_VALUE:       Integer_CreateProperty( (integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+   case OBJ_LARGE_ANALOG_VALUE:  CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_OCTETSTRING_VALUE:   CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_POSITIVE_INTEGER_VALUE: Pos_Int_CreateProperty( (positive_integer_obj_type far *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue ); break;
+   case OBJ_TIME_PATTERN_VALUE:  CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   case OBJ_TIME_VALUE:          CreateGenericProperty( pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue );  break;
+   default:
+      //TRACE("CreatePropertyFromDB called for unknown object type");
+      //ASSERT(0);
+      //Proprietary objects
+      ProprietaryObj_CreateProperty((proprietary_obj_type *) pObj, (BACnetPropertyIdentifier) PropId, pbacnetAnyValue);
+      break;
+   }
 }
 
 // 5-23-2005 Shiyuan Xiao. //To support proprietary objects
@@ -2396,7 +2428,7 @@ void ProprietaryObj_CreateProperty( proprietary_obj_type far * pObj, BACnetPrope
 {
    etable *petable;
    ASSERT(pbacnetAnyValue != NULL);
-   
+
    switch ( propertyID )
    {
    case OBJECT_IDENTIFIER:
@@ -2407,10 +2439,9 @@ void ProprietaryObj_CreateProperty( proprietary_obj_type far * pObj, BACnetPrope
       break;
    case OBJECT_TYPE:
       petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-      
       pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-         (const char **)petable->estrings,
-         petable->nes) );
+                                 (const char **)petable->estrings,
+                                 petable->nes) );
       break;
    }
 }
@@ -2419,7 +2450,6 @@ void AI_CreateProperty( ai_obj_type far * pObj, BACnetPropertyIdentifier propert
 {
    etable *petable;
    ASSERT(pbacnetAnyValue != NULL);
-
 
    switch ( propertyID )
    {
@@ -2430,11 +2460,11 @@ void AI_CreateProperty( ai_obj_type far * pObj, BACnetPropertyIdentifier propert
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
 
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int) pObj->go.object_type, 
+                                                              (const char **)petable->estrings,
+                                                              petable->nes) );
          break;
       case PRESENT_VALUE:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->pv));
@@ -2451,14 +2481,14 @@ void AI_CreateProperty( ai_obj_type far * pObj, BACnetPropertyIdentifier propert
       case EVENT_STATE:
          petable = (etable *)PICS::GetEnumTable(eiEvState);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case RELIABILITY:
          petable = (etable *)PICS::GetEnumTable(eiReli);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case OUT_OF_SERVICE:
          pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
@@ -2469,8 +2499,8 @@ void AI_CreateProperty( ai_obj_type far * pObj, BACnetPropertyIdentifier propert
       case UNITS:
          petable = (etable *)PICS::GetEnumTable(eiEU);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->units,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case MIN_PRES_VALUE:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->min_pres_value));
@@ -2511,8 +2541,8 @@ void AI_CreateProperty( ai_obj_type far * pObj, BACnetPropertyIdentifier propert
       case NOTIFY_TYPE:
          petable = (etable *)PICS::GetEnumTable(eiNT);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case EVENT_TIME_STAMPS:    
          pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
@@ -2541,11 +2571,11 @@ void AO_CreateProperty( ao_obj_type far * pObj, BACnetPropertyIdentifier propert
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
 
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int) pObj->go.object_type, 
+                                                              (const char **)petable->estrings,
+                                                              petable->nes) );
          break;
       case PRESENT_VALUE:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->pv));
@@ -2562,14 +2592,14 @@ void AO_CreateProperty( ao_obj_type far * pObj, BACnetPropertyIdentifier propert
       case EVENT_STATE:
          petable = (etable *)PICS::GetEnumTable(eiEvState);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case RELIABILITY:
          petable = (etable *)PICS::GetEnumTable(eiReli);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case OUT_OF_SERVICE:
          pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
@@ -2577,8 +2607,8 @@ void AO_CreateProperty( ao_obj_type far * pObj, BACnetPropertyIdentifier propert
       case UNITS:
          petable = (etable *)PICS::GetEnumTable(eiEU);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->units,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case MIN_PRES_VALUE:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->min_pres_value));
@@ -2625,8 +2655,8 @@ void AO_CreateProperty( ao_obj_type far * pObj, BACnetPropertyIdentifier propert
       case NOTIFY_TYPE:
          petable = (etable *)PICS::GetEnumTable(eiNT);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case EVENT_TIME_STAMPS:    
          pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
@@ -2707,11 +2737,11 @@ void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propert
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
 
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int) pObj->go.object_type, 
+                                                              (const char **)petable->estrings,
+                                                              petable->nes) );
          break;
       case PRESENT_VALUE:
          petable = (etable *)PICS::GetEnumTable(eiBPV);  
@@ -2730,16 +2760,16 @@ void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propert
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
          break;
       case EVENT_STATE:
-         petable = (etable *)PICS::GetEnumTable(eiEvState);  
+         petable = (etable *)PICS::GetEnumTable(eiEvState);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case RELIABILITY:
          petable = (etable *)PICS::GetEnumTable(eiReli);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case OUT_OF_SERVICE:
          pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
@@ -2747,8 +2777,8 @@ void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propert
       case POLARITY:
          petable = (etable *)PICS::GetEnumTable(eiPolar);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->polarity,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case INACTIVE_TEXT:
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->inactive_text));
@@ -2783,8 +2813,8 @@ void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propert
       case ALARM_VALUE:
          petable = (etable *)PICS::GetEnumTable(eiBPV);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->alarm_value,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case NOTIFICATION_CLASS:
          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->notification_class));
@@ -2798,8 +2828,8 @@ void BI_CreateProperty( bi_obj_type far * pObj, BACnetPropertyIdentifier propert
       case NOTIFY_TYPE:
          petable = (etable *)PICS::GetEnumTable(eiNT);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case EVENT_TIME_STAMPS:    
          pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
@@ -2827,11 +2857,11 @@ void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
 
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int) pObj->go.object_type, 
+                                                              (const char **)petable->estrings,
+                                                              petable->nes) );
          break;
       case PRESENT_VALUE:
          pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV((int) pObj->pv));
@@ -2846,25 +2876,25 @@ void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
          break;
       case EVENT_STATE:
-         petable = (etable *)PICS::GetEnumTable(eiEvState);  
+         petable = (etable *)PICS::GetEnumTable(eiEvState);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case RELIABILITY:
-         petable = (etable *)PICS::GetEnumTable(eiReli);  
+         petable = (etable *)PICS::GetEnumTable(eiReli);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case OUT_OF_SERVICE:
          pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
          break;
       case POLARITY:
-         petable = (etable *)PICS::GetEnumTable(eiPolar);  
+         petable = (etable *)PICS::GetEnumTable(eiPolar);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->polarity,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case INACTIVE_TEXT:
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->inactive_text));
@@ -2926,7 +2956,7 @@ void BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
                                                                (const char **)petable->estrings,
                                                                petable->nes) );
          break;
-      case EVENT_TIME_STAMPS:    
+      case EVENT_TIME_STAMPS:
          pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
          break;
       case PROFILE_NAME:
@@ -3341,26 +3371,25 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->go.object_type, 
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DESCRIPTION:
          pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
          break;
       case EVENT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiEvType);  
+         petable = (etable *)PICS::GetEnumTable(eiEvType);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->parameter_list.event_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case NOTIFY_TYPE:
          petable = (etable *)PICS::GetEnumTable(eiNT);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case EVENT_PARAMETERS:
          pbacnetAnyValue->SetObject(evparm, new ::BACnetEventParameter());
@@ -3381,10 +3410,10 @@ void EV_CreateProperty( ee_obj_type far * pObj, BACnetPropertyIdentifier propert
       case EVENT_STATE:
          petable = (etable *)PICS::GetEnumTable(eiEvState);  
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
-      case EVENT_ENABLE:   
+      case EVENT_ENABLE:
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->event_enable));
          break;
       case ACKED_TRANSITIONS:
@@ -3437,10 +3466,10 @@ void FI_CreateProperty( file_obj_type far * pObj, BACnetPropertyIdentifier prope
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->go.object_type, 
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DESCRIPTION:
          pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
@@ -3463,10 +3492,10 @@ void FI_CreateProperty( file_obj_type far * pObj, BACnetPropertyIdentifier prope
          pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->read_only));
          break;
       case FILE_ACCESS_METHOD: 
-         petable = (etable *)PICS::GetEnumTable(eiFAM);  
+         petable = (etable *)PICS::GetEnumTable(eiFAM);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->access_method,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case RECORD_COUNT:
          pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->record_count));
@@ -3494,15 +3523,15 @@ void GR_CreateProperty( group_obj_type far * pObj, BACnetPropertyIdentifier prop
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->go.object_type, 
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DESCRIPTION:
          pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
          break;
-      case LIST_OF_GROUP_MEMBERS: 
+      case LIST_OF_GROUP_MEMBERS:
          pbacnetAnyValue->SetObject(raslist, new ::BACnetReadAccessSpecification());
          //msg->pv= Obj->list_of_group_members;
          //msg->pt= raslist;
@@ -3531,10 +3560,10 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->go.object_type, 
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DESCRIPTION:
          pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
@@ -3546,16 +3575,16 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
          break;
       case EVENT_STATE:
-         petable = (etable *)PICS::GetEnumTable(eiEvState);  
+         petable = (etable *)PICS::GetEnumTable(eiEvState);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case RELIABILITY:
-         petable = (etable *)PICS::GetEnumTable(eiReli);  
+         petable = (etable *)PICS::GetEnumTable(eiReli);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case OUT_OF_SERVICE:
          pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
@@ -3564,10 +3593,10 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->update_interval));
          break;
       case OUTPUT_UNITS: 
-         petable = (etable *)PICS::GetEnumTable(eiEU);  
+         petable = (etable *)PICS::GetEnumTable(eiEU);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->output_units,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case MANIPULATED_VARIABLE_REFERENCE:
          pbacnetAnyValue->SetObject(propref, new ::BACnetObjectPropertyReference(pObj->man_var_ref.object_id,
@@ -3583,10 +3612,10 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->cont_var_value));
          break;
       case CONTROLLED_VARIABLE_UNITS:
-         petable = (etable *)PICS::GetEnumTable(eiEU);  
+         petable = (etable *)PICS::GetEnumTable(eiEU);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->cont_var_units,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case SETPOINT_REFERENCE:
          // pbacnetAnyValue->SetObject(lopref, new ::BACnetListOfObjectPropertyReference(pObj->setpoint_ref));
@@ -3601,37 +3630,37 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->setpoint));
          break;
       case ACTION:
-         petable = (etable *)PICS::GetEnumTable(eiLoopAct);  
+         petable = (etable *)PICS::GetEnumTable(eiLoopAct);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->action,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case PROPORTIONAL_CONSTANT:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->proportional_const));
          break;
       case PROPORTIONAL_CONSTANT_UNITS:
-         petable = (etable *)PICS::GetEnumTable(eiEU);  
+         petable = (etable *)PICS::GetEnumTable(eiEU);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->proportional_const_units,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case INTEGRAL_CONSTANT:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->integral_const));
          break;
       case INTEGRAL_CONSTANT_UNITS:  
-         petable = (etable *)PICS::GetEnumTable(eiEU);  
+         petable = (etable *)PICS::GetEnumTable(eiEU);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->integral_const_units,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DERIVATIVE_CONSTANT:  
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->derivative_const));
          break;
       case DERIVATIVE_CONSTANT_UNITS:  
-         petable = (etable *)PICS::GetEnumTable(eiEU);  
+         petable = (etable *)PICS::GetEnumTable(eiEU);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->derivative_const_units,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case BIAS:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->bias));
@@ -3664,12 +3693,12 @@ void LO_CreateProperty( loop_obj_type far * pObj, BACnetPropertyIdentifier prope
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
          break;
       case NOTIFY_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiNT);  
+         petable = (etable *)PICS::GetEnumTable(eiNT);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
-      case EVENT_TIME_STAMPS:    
+      case EVENT_TIME_STAMPS:
          pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
          break;
       case PROFILE_NAME:
@@ -3696,10 +3725,10 @@ void MSI_CreateProperty( mi_obj_type far * pObj, BACnetPropertyIdentifier proper
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->go.object_type, 
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DESCRIPTION:
          pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
@@ -3753,10 +3782,10 @@ void MSI_CreateProperty( mi_obj_type far * pObj, BACnetPropertyIdentifier proper
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
          break;
       case NOTIFY_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiNT);  
+         petable = (etable *)PICS::GetEnumTable(eiNT);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case EVENT_TIME_STAMPS:    
          pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
@@ -3785,10 +3814,10 @@ void MSO_CreateProperty( mo_obj_type far * pObj, BACnetPropertyIdentifier proper
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->go.object_type, 
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DESCRIPTION:
          pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
@@ -3803,16 +3832,16 @@ void MSO_CreateProperty( mo_obj_type far * pObj, BACnetPropertyIdentifier proper
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
          break;
       case EVENT_STATE:
-         petable = (etable *)PICS::GetEnumTable(eiEvState);  
+         petable = (etable *)PICS::GetEnumTable(eiEvState);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case RELIABILITY:
-         petable = (etable *)PICS::GetEnumTable(eiReli);  
+         petable = (etable *)PICS::GetEnumTable(eiReli);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case OUT_OF_SERVICE:
          pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
@@ -3845,10 +3874,10 @@ void MSO_CreateProperty( mo_obj_type far * pObj, BACnetPropertyIdentifier proper
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(3, &pObj->acked_transitions));
          break;
       case NOTIFY_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiNT);  
+         petable = (etable *)PICS::GetEnumTable(eiNT);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->notify_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case EVENT_TIME_STAMPS:    
          pbacnetAnyValue->SetObject(TSTMParr, CreateTimeStampArray(pObj->event_time_stamps, 3));
@@ -3929,10 +3958,10 @@ void NC_CreateProperty( nc_obj_type far * pObj, BACnetPropertyIdentifier propert
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->go.object_type, 
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DESCRIPTION:
          pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
@@ -3959,7 +3988,6 @@ void NC_CreateProperty( nc_obj_type far * pObj, BACnetPropertyIdentifier propert
 }
 
 
-
 void PR_CreateProperty( program_obj_type far * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
    etable *petable;
@@ -3974,31 +4002,31 @@ void PR_CreateProperty( program_obj_type far * pObj, BACnetPropertyIdentifier pr
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->go.object_name));
          break;
       case OBJECT_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);  
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->go.object_type, 
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         petable = (etable *)PICS::GetEnumTable(eiObjectTypes);
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->go.object_type, 
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DESCRIPTION:
          pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->go.description));
          break;
       case PROGRAM_STATE:
-         petable = (etable *)PICS::GetEnumTable(eiPrState);  
+         petable = (etable *)PICS::GetEnumTable(eiPrState);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->prog_state,
-                                                                (const char **)petable->estrings,
-                                                                petable->nes) );
+                                                              (const char **)petable->estrings,
+                                                              petable->nes) );
          break;
       case PROGRAM_CHANGE:
-         petable = (etable *)PICS::GetEnumTable(eiPrChg);  
+         petable = (etable *)PICS::GetEnumTable(eiPrChg);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->prog_change,
-                                                                (const char **)petable->estrings,
-                                                                petable->nes) );
+                                                              (const char **)petable->estrings,
+                                                              petable->nes) );
          break;
       case REASON_FOR_HALT:
-         petable = (etable *)PICS::GetEnumTable(eiPrErr);  
+         petable = (etable *)PICS::GetEnumTable(eiPrErr);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reason_for_halt,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case DESCRIPTION_OF_HALT:
          pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->description_of_halt));
@@ -4013,10 +4041,10 @@ void PR_CreateProperty( program_obj_type far * pObj, BACnetPropertyIdentifier pr
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
          break;
       case RELIABILITY:
-         petable = (etable *)PICS::GetEnumTable(eiReli);  
+         petable = (etable *)PICS::GetEnumTable(eiReli);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case OUT_OF_SERVICE:
          pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
@@ -4063,11 +4091,11 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
          // but et=1, uw=4, ftl=2.  WTF?
          switch(pObj->value_type)
          {
-            case et:    pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV(pObj->pv.bproperty_value));
+            case et: pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV(pObj->pv.bproperty_value));
                      break;
-            case uw:    pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->pv.uproperty_value));
+            case uw: pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->pv.uproperty_value));
                      break;
-            case flt:      pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->pv.fproperty_value));
+            case flt: pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->pv.fproperty_value));
                      break;
             default: TRACE0("INVALID TYPE in SC_CreateProperty for PV");  ASSERT(0);
          }
@@ -4105,7 +4133,7 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
                      break;
             case uw: pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->schedule_default.uproperty_value));
                      break;
-            case flt:   pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->schedule_default.fproperty_value));
+            case flt: pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->schedule_default.fproperty_value));
                      break;
             default: TRACE0("INVALID TYPE in SC_CreateProperty for SCHEDULE_DEFAULT");  ASSERT(0);
          }
@@ -4114,10 +4142,10 @@ void SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
          pbacnetAnyValue->SetObject(bits, new BACnetBitString(4, &pObj->status_flags));
          break;
       case RELIABILITY:
-         petable = (etable *)PICS::GetEnumTable(eiReli);  
+         petable = (etable *)PICS::GetEnumTable(eiReli);
          pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->reliability,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+                                                             (const char **)petable->estrings,
+                                                             petable->nes) );
          break;
       case OUT_OF_SERVICE:
          pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->out_of_service));
@@ -4162,33 +4190,33 @@ void AVG_CreateProperty( avg_obj_type far * pObj, BACnetPropertyIdentifier prope
          pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->minimum_value_timestamp.date.year, pObj->minimum_value_timestamp.date.month, 
                                        pObj->minimum_value_timestamp.date.day_of_month, pObj->minimum_value_timestamp.time.hour, 
                                        pObj->minimum_value_timestamp.time.minute, pObj->minimum_value_timestamp.time.second));
-         break;                   
-      case AVERAGE_VALUE:            
+         break;
+      case AVERAGE_VALUE:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->average_value));
          break;
-      case VARIANCE_VALUE:        
+      case VARIANCE_VALUE:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->variance_value));
          break;
-      case MAXIMUM_VALUE:            
+      case MAXIMUM_VALUE:
          pbacnetAnyValue->SetObject(flt, new BACnetReal((float) pObj->maximum_value));
          break;
       case MAXIMUM_VALUE_TIMESTAMP:  
          pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->maximum_value_timestamp.date.year, pObj->maximum_value_timestamp.date.month, 
                                        pObj->maximum_value_timestamp.date.day_of_month, pObj->maximum_value_timestamp.time.hour, 
                                        pObj->maximum_value_timestamp.time.minute, pObj->maximum_value_timestamp.time.second));
-         break;                   
-      case ATTEMPTED_SAMPLES:       
+         break;
+      case ATTEMPTED_SAMPLES:
          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->attempted_samples));
          break;
-      case VALID_SAMPLES:             
+      case VALID_SAMPLES:
          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->valid_samples));
          break;
       case OBJECT_PROPERTY_REFERENCE:
          pbacnetAnyValue->SetObject(devobjpropref, new ::BACnetDeviceObjectPropertyReference(pObj->obj_prop_ref.Objid,
                                                                pObj->obj_prop_ref.wPropertyid, 
                                                                pObj->obj_prop_ref.ulIndex, pObj->obj_prop_ref.DeviceObj));
-         break;                   
-      case WINDOW_INTERVAL:         
+         break;
+      case WINDOW_INTERVAL:
          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->window_interval));
          break;
       case WINDOW_SAMPLES:       
@@ -5865,10 +5893,10 @@ BACnetListOfDestination * CreateListOfDestination( PICS::BACnetDestination * pde
       ::BACnetTime         fromTime(pdest->from_time.hour, pdest->from_time.minute, pdest->from_time.second, pdest->from_time.hundredths );
       ::BACnetTime         toTime(pdest->to_time.hour, pdest->to_time.minute, pdest->to_time.second, pdest->to_time.hundredths );
       ::BACnetUnsigned     processID(pdest->process_id);
-      ::BACnetBoolean         issueConfirmedNotifications(pdest->notification);
+      ::BACnetBoolean      issueConfirmedNotifications(pdest->notification);
 
       ::BACnetRecipient    rc;
-      
+
       if ( pdest->recipient.choice == 0 )
          rc.SetObject( new ::BACnetObjectIdentifier((unsigned int) pdest->recipient.u.device));
       else

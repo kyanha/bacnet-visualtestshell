@@ -1195,7 +1195,7 @@ public:
    // Overrides of base methods
    virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
    virtual void Decode( BACnetAPDUDecoder& dec );
-   //virtual void Encode( CString &enc, Format theFormat ) const;
+   virtual void Encode( CString &enc, Format theFormat ) const;
    //virtual void Decode( const char *dec );
    virtual int DataType(void) const;
    //virtual BACnetEncodeable * clone(void);
