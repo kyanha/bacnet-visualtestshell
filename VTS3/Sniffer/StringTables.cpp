@@ -1,4 +1,9 @@
-/*  ------ BACnet string table s--------------- */
+//  ------ BACnet string tables---------------
+//
+// This file implements BACnetStringTable, a class that represents
+// a mapping between an enumeration and a set of strings.
+// Someday, it would be nice if this class could replace the
+// similar etable struct defined and used in Stdobjpr.h
 
 #include "stdafx.h"
 #include "StringTables.h"
@@ -58,6 +63,7 @@ const char* BACnetStringTable::EnumString( int theIndex, const char *pUndefined 
          // TODO: Vendor versus proprietary
          // 135.1 clause 4.4i says "proprietary" + anything_but_space + integer enumerations
          // 135.1 clause 4.4l says "proprietary" + space + integer for object IDs
+         // But VTS has customarily used "Vendor"
 
          // "Vendor" only if in an extensible range, else "Reserved"
          pUndefined = ((theIndex >= m_nReserved) && (theIndex < m_nMax))
@@ -78,6 +84,7 @@ const char* BACnetStringTable::EnumString( int theIndex, const char *pUndefined 
 // "proprietary-anything-you-like-123" (per 135.1 clause 4.4i for enumerations)
 // "proprietary 123" (per 135.1 clause 4.4l for object IDs)
 // "vendor 123", "vendor-123", "reserved 123", reserved-123" matching older VTS usage
+// "123" because is makes more sense than any of the above
 int BACnetStringTable::EnumValue( const char *pString ) const
 {
    int retval = -1;
@@ -98,10 +105,11 @@ int BACnetStringTable::EnumValue( const char *pString ) const
 
    if (retval < 0)
    {
-      // Not in the table.  Try for proprietary, vendor, or reserved
+      // Not in the table.  Try for proprietary, vendor, reserved, of naked integer
       if ((_strnicmp(str, "proprietary", 11) == 0) ||
           (_strnicmp(str, "vendor", 6) == 0) ||
-          (_strnicmp(str, "reserved", 8) == 0))
+          (_strnicmp(str, "reserved", 8) == 0) ||
+          (IsDigit(str[0])))
       {
          // Ignore any spaces or additional text and look for a final integer
          int firstDigit = str.FindOneOf( "0123456789" );
@@ -973,17 +981,17 @@ STRING_TABLE BACnetObjectType[] = {
    "schedule",              /* 17 */
    "averaging",             /* 18 */
    "multi-state-value",     /* 19 */
-   "trend-log" ,            /* 20 */      // msdanner 9/04, was "trendlog"
-   "life-safety-point",     /* 21 Zhu Zhenhua 2003-7-24 */   // msdanner 9/04, was "LIFESAFETYPOINT"
-   "life-safety-zone",      /* 22 Zhu Zhenhua 2003-7-24 */  // msdanner 9/04, was "LIFESAFETYZONE"
-   "accumulator",           // 23 Shiyuan Xiao 7/15/2005
-   "pulse-converter",       // 24 Shiyuan Xiao 7/15/2005
+   "trend-log" ,            /* 20 */
+   "life-safety-point",     /* 21 */
+   "life-safety-zone",      /* 22 */
+   "accumulator",           // 23
+   "pulse-converter",       // 24
    "event-log",             // 25 - Addendum B
    "global-group",          // 26 - Addendum B
    "trend-log-multiple",    // 27 - Addendum B
    "load-control",          // 28 - Addendum E 135-2004
    "structured-view",       // 29 - Addendum D
-   "access-door",           // 30 Last in 135-2008
+   "access-door",           // 30 Last in 135-2008.  Protocol revision 7
    "objtype-31",            // 31 This was lighting-out during an early review, but unused in 135-2012
    "access-credential",     // 32
    "access-point",          // 33
@@ -1004,12 +1012,12 @@ STRING_TABLE BACnetObjectType[] = {
    "positive-integer-value",// 48
    "time-pattern-value",    // 49
    "time-value",            // 50 Last in 2008-w
-   "notification-forwarder",// 51
-   "alert-enrollment",      // 52
-   "channel",               // 53,
-   "lighting-output"        // 54 Max in 135-2012 BACNET_PROTOCOL_REVISION = 14
+   "notification-forwarder",// 51 135-2010-af.  Protocol revision 13
+   "alert-enrollment",      // 52 135-2010-af.  Protocol revision 13
+   "channel",               // 53 135-2010-aa.  Protocol revision 14
+   "lighting-output"        // 54 Last  in 135-2012.  Protocol revision 14
 
-   // TODO: if you add a type here, you must also
+   // TODO: if you add an object type here, you must also
    // - Add the string to etObjectTypes in Stdobjpr.h
    // - Add the string to StandardObjects in Vtsapi32.cpp (which is capitalized and uses spaces instead of hyphens)
    // - Add a value to the enumeration BACnetObjectType in VTS.h (which will change MAX_DEFINED_OBJ)
@@ -1136,7 +1144,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "object-identifier",                /* 75 */
    "object-list",                      /* 76 */
    "object-name",                      /* 77 */
-   "object-property-reference",        /* 78 zhu zhenhua 2003-7-24 */
+   "object-property-reference",        /* 78 */
    "object-type",                      /* 79 */
    "optional",                         /* 80 */
    "out-of-service",                   /* 81 */
@@ -1187,16 +1195,16 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "buffer-size",                      /* 126 */
    "client-cov-increment",             /* 127 */
    "cov-resubscription-interval",      /* 128 */
-   "was-current-notify-time",          /* 129 added by zhu zhenhua, 2004-5-11 deleded in version 1 rev 3 */
+   "was-current-notify-time",          /* 129 deleded in version 1 rev 3 */
    "event-time-stamps",                /* 130 */
    "log-buffer",                       /* 131 */
-   "log-device-object-property",       /* 132 zhu zhenhua 2003-7-24 */
+   "log-device-object-property",       /* 132 */
    "enable",                           /* 133 changed from log-enable in 135-2004b-5 */
    "log-interval",                     /* 134 */
    "maximum-value",                    /* 135 */
    "minimum-value",                    /* 136 */
    "notification-threshold",           /* 137 */
-   "was-previous-notify-time",         /* 138  added by zhu zhenhua, 2004-5-11 deleted in version 1 rev 3 */
+   "was-previous-notify-time",         /* 138 deleted in version 1 rev 3 */
    "protocol-revision",                /* 139 */
    "records-since-notification",       /* 140 */
    "record-count",                     /* 141 */
@@ -1244,13 +1252,13 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "logging-device",                   // 183 shiyuan xiao 7/15/2005
    "logging-record",                   // 184 shiyuan xiao 7/15/2005
    "prescale",                         // 185 shiyuan xiao 7/15/2005
-   "pulse-rate",                       // 186 shiyuan xiao 7/15/2005
-   "scale",                            // 187 shiyuan xiao 7/15/2005
-   "scale-factor",                     // 188 shiyuan xiao 7/15/2005
-   "update-time",                      // 189 shiyuan xiao 7/15/2005
-   "value-before-change",              // 190 shiyuan xiao 7/15/2005
-   "value-set",                        // 191 shiyuan xiao 7/15/2005
-   "value-change-time",                // 192 shiyuan xiao 7/15/2005
+   "pulse-rate",                       // 186
+   "scale",                            // 187
+   "scale-factor",                     // 188
+   "update-time",                      // 189
+   "value-before-change",              // 190
+   "value-set",                        // 191
+   "value-change-time",                // 192 last in 135-2004 (protocol revision 4)
    // added addendum b (135-2004)
    "align-intervals",                  // 193
    "prop-id-194",                      // 194 undefined in 135-2012
@@ -1265,7 +1273,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "time-of-device-restart",           // 203
    "time-synchronization-interval",    // 204
    "trigger",                          // 205
-   "utc-time-syncrhonization-recipients",  // 206
+   "utc-time-syncrhonization-recipients",// 206
    // added by addenda d
    "node-subtype",                     // 207
    "node-type",                        // 208
@@ -1298,7 +1306,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "door-unlock-delay-time",
    "lock-status",
    "masked-alarm-values",
-   "secured-status",                   // 235 last in 135-2008
+   "secured-status",                   // 235 last in 135-2008 (protocol revision 7)
    // Contributions from the bacnet-stack project http://sourceforge.net/projects/bacnet/develop
 
    "prop-id-236",                      // 236 undefined in 135-2012
@@ -1351,22 +1359,22 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "last-use-time",
    "lockout",
    "lockout-relinquish-time",          // 283
-   "prop-id-283",                      // 284 undefined in 135-2012
+   "master-exemption",                 // deleted by 135-2010ae Protocol revision 13
    "max-failed-attempts",              // 285
    "members",
    "muster-point",
    "negative-access-rules",
    "number-of-authentication-policies",
-   "occupancy-count",
+   "occupancy-count",                  // 290
    "occupancy-count-adjust",
    "occupancy-count-enable",
-   "occupancy-exemption",
+   "occupancy-exemption",              // 293 deleted by 135-2010ae Protocol revision 13
    "occupancy-lower-limit",
    "occupancy-lower-limit-enforced",
    "occupancy-state",
    "occupancy-upper-limit",
    "occupancy-upper-limit-enforced",
-   "passback-exemption",
+   "passback-exemption",               // 299 deleted by 135-2010ae Protocol revision 13
    "passback-mode",
    "passback-timeout",
    "positive-access-rules",
@@ -1399,7 +1407,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "prop-id-324",
    "prop-id-325",
     /* enumeration 326 is used in Addendum j to ANSI/ASHRAE 135-2004 */
-   "verification-time", // 326
+   "verification-time",                // 326
 
    "base-device-security-policy",      // 327
    "distribution-key-revision",        // 328
@@ -1425,21 +1433,21 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "requested-update-interval",        // 348
    "covu-period",                      // 349
    "covu-recipients",                  // 350
-   "event-message-texts",              // 351
-   "event-message-texts-config",       // 352
-   "event-detection-enable",           // 353
-   "event-algorithm-inhibit",          // 354
-   "event-algorithm-inhibit-ref",      // 355
-   "time-delay-normal",                // 356
-   "reliability-evaluation-inhibit",   // 357
+   "event-message-texts",              // 351 last in 135-2010 (protocol revision 12)
+   "event-message-texts-config",       // 352 135-2010-af.  Protocol revision 13
+   "event-detection-enable",           // 353 135-2010-af.  Protocol revision 13
+   "event-algorithm-inhibit",          // 354 135-2010-af.  Protocol revision 13
+   "event-algorithm-inhibit-ref",      // 355 135-2010-af.  Protocol revision 13
+   "time-delay-normal",                // 356 135-2010-af.  Protocol revision 13
+   "reliability-evaluation-inhibit",   // 357 135-2010-af.  Protocol revision 13
    "fault-parameters",                 // 358
    "fault-type",                       // 359
-   "local-forwarding-only",            // 360
-   "process-identifier-filter",        // 361
-   "subscribed-recipients",            // 362
+   "local-forwarding-only",            // 360 135-2010-af.  Protocol revision 13
+   "process-identifier-filter",        // 361 135-2010-af.  Protocol revision 13
+   "subscribed-recipients",            // 362 135-2010-af.  Protocol revision 13
    "port-filter",                      // 363
-   "authorization-exemptions",         // 364
-   "allow-group-delay-inhibit",        // 365
+   "authorization-exemptions",         // 364 135-2010-ae.  Last in Protocol revision 13
+   "allow-group-delay-inhibit",        // 365 135-2010-aa.  Protocol revision 14
    "channel-number",                   // 366
    "control-groups",                   // 367
    "execution-delay",                  // 368
@@ -1460,7 +1468,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "min-actual-value",                 // 383
    "power",                            // 384
    "transition",                       // 385
-   "egress-active",                    // 386 last in 135-2012
+   "egress-active",                    // 386 last in 135-2012 (protocol revision 14)
 
    // If you add a property here, you should also add it to Propid.h and
    // the other locations indicated there.
@@ -1502,6 +1510,9 @@ STRING_TABLE BACnetReliability[] = {
    // added addendum B (135-2004)
    "member-fault",
    "communication-failure",   // 12 last in 135-2008
+   "member-fault",      // 13
+   "monitored-object-fault",
+   "tripped",           // 15 last in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetReliability, 64, 65536);
 
@@ -1513,7 +1524,7 @@ STRING_TABLE BACnetRestartReason[] = {
    "detected-power-off",
    "hardware-watchdog",
    "software-watchdog",
-   "suspended",         // 7 last in 135-2008
+   "suspended",         // 7 last in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetRestartReason, 64, 256);
 
@@ -1597,7 +1608,7 @@ STRING_TABLE BACnetServicesSupported[] = {
    "LifeSafetyOperation",           /* 37 */
    "SubscribeCOVProperty",          /* 38 */ 
    "GetEventInformation",           /* 39 last in 135-2008 (rev 7), 135-2010 (rev 12) */
-   "WriteGroup"                     /* 40 last in 135-2014 (rev 14) */
+   "WriteGroup"                     /* 40 last in 135-2012 (rev 14) */
    // Also update Vtsapi32.cpp StandardServices
 };
 BAC_STRINGTABLE(BACnetServicesSupported);
@@ -2566,7 +2577,7 @@ STRING_TABLE BACnetConfirmedServiceChoice[] = {
    "ReadRange",                     /* 26 */
    "LifeSafetyOperation",           /* 27 */
    "SubscribeCOVProperty",          /* 28 */
-   "GetEventInformation"            /* 29 last in 135-2014 (rev 14) */
+   "GetEventInformation"            /* 29 last in 135-2012 (rev 14) */
    // CAUTION: if you add a service here, you must also change max_confirmed_services
    // (which is actually max-plus-one: the NUMBER of defined services)
 };                       
@@ -2583,7 +2594,7 @@ STRING_TABLE BACnetUnconfirmedServiceChoice[] = {
    "Who-Has",                       /* 7 */
    "Who-Is",                        /* 8 */
    "UTCTimeSynchronization",        /* 9 */
-   "WriteGroup"                     /* 10 last in 135-2014 (rev 14) */
+   "WriteGroup"                     /* 10 last in 135-2012 (rev 14) */
    // CAUTION: if you add a service here, you must also change max_unconfirmed_services
    // (which is actually max-plus-one: the NUMBER of defined services)
 };
