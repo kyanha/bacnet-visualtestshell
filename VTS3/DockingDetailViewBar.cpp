@@ -10,18 +10,17 @@
 //////////////////////////////////////////////////////////////////////
 
 CDockingDetailViewBar::CDockingDetailViewBar(CCreateContext* pContext)
+: m_pList(NULL)
 {
-	m_pContext = pContext;
-	CRuntimeClass* pFactory = RUNTIME_CLASS(CDetailView);
-    m_pDetailView = (CDetailView *)(pFactory->CreateObject() );
+   m_pContext = pContext;
+   CRuntimeClass* pFactory = RUNTIME_CLASS(CDetailView);
+   m_pDetailView = (CDetailView *)(pFactory->CreateObject() );
 }
 
 CDockingDetailViewBar::~CDockingDetailViewBar()
 {
-	if ( m_pDetailView )
-	{
-		delete m_pDetailView;
-	}
+   delete m_pList;
+   delete m_pDetailView;
 }
 
 
@@ -38,7 +37,7 @@ int CDockingDetailViewBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	m_pList=new CDetailTreeCtrl();
 	m_pList->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP 
-		|TVS_HASLINES |TVS_HASBUTTONS |TVS_LINESATROOT , CRect(0,0,0,0),this,0x1001);	
+		|TVS_HASLINES |TVS_HASBUTTONS |TVS_LINESATROOT , CRect(0,0,0,0),this,0x1001);
 
 	CRect rc;
 	ScreenToClient(rc);
