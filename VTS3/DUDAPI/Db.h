@@ -21,7 +21,7 @@ enum BACnetBinaryPV {INACTIVE, ACTIVE};
 
 enum ActionValueType {BPV,UNS,FLT};          //binaryPV, unsigned word or float 
 
-typedef struct tagActionCommand {         
+typedef struct tagActionCommand {
 struct tagActionCommand *next;
    dword          device_id;
    dword          object_id;
@@ -325,8 +325,8 @@ typedef struct {
    float                      low_diff_limit;
    float                      high_limit;
    float                      low_limit;
-   word                       notification_threshold;          //Added By Zhu Zhenhua, 2004-5-20
-   dword                      previous_notification_count;      //Added By Zhu Zhenhua, 2004-5-20
+   dword                      notification_threshold;
+   dword                      previous_notification_count;
 } BACnetEventParameter;
 
 typedef struct tagObjectIdentifier {

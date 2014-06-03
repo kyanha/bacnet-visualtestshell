@@ -191,6 +191,7 @@ public:
    eBACnetBoolean    boolValue;
 
    BACnetBoolean( int bvalu = 0 );
+   BACnetBoolean( bool bvalu );
    BACnetBoolean( BACnetAPDUDecoder& dec );
 
    // Overrides of base methods
@@ -218,7 +219,7 @@ public:
 
    BACnetEnumerated( int evalu, NetworkSniffer::BACnetStringTable &nameList );
 
-   // Where possible, we suggest using the BACnetStringTable version when a 
+   // Where possible, we suggest using the BACnetStringTable version when a
    // table of strings is required, to avoid maintenance hassles 
    BACnetEnumerated( int evalu = 0, const char* const *papNameList = NULL, int nListSize = 0 );
 

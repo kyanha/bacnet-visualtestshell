@@ -12,22 +12,24 @@
 #include "props.h"
 
 typedef struct {
-    word	propes;								//proprietary enumeration begin at this value
-    dword	propmaxes;							//max value for proprietary+1
-    word	nes;								//number of string pointers which follow
-    char	*estrings[500];						//table of pointers to strings
+    word propes;              //proprietary enumeration begin at this value
+    dword   propmaxes;        //max value for proprietary+1
+    word nes;                 //number of string pointers which follow
+    char *estrings[500];      //table of pointers to strings
     } etable;
 #define _etable 0
-    
+
 //------------------------------------------------------
-//	Special Enumeration Tables
+// Special Enumeration Tables
+
+// TODO: equivalent to stringtable BACnetObjectType
 static etable etObjectTypes={
-   128,1024, MAX_DEFINED_OBJ, 
+   128,1024, MAX_DEFINED_OBJ,
    "analog-input",       //0
-   "analog-output",       
-   "analog-value",     
-   "binary-input",     
-   "binary-output",   
+   "analog-output",
+   "analog-value",
+   "binary-input",
+   "binary-output",
    "binary-value",
    "calendar",
    "command",
@@ -41,9 +43,9 @@ static etable etObjectTypes={
    "notification-class",
    "program",
    "schedule",
-   "averaging",			   // Sep 18 2001
+   "averaging",            // Sep 18 2001
    "multi-state-value",
-   "trend-log",			   //madanner 6/03: was "trendlog"
+   "trend-log",            //madanner 6/03: was "trendlog"
    "life-safety-point",    //Shiyuan Xiao. 7/13/2005, added
    "life-safety-zone",     //Shiyuan Xiao. 7/13/2005, added
    "accumulator",          //Shiyuan Xiao. 7/13/2005, added
@@ -51,7 +53,7 @@ static etable etObjectTypes={
    "event-log",
    "global-group",
    "trend-log-multiple",
-   "load-control",			// Addendum e, 135-2004
+   "load-control",         // Addendum e, 135-2004
    "structured-view",
    "access-door",
    "lighting-output",
@@ -82,8 +84,12 @@ static etable etObjectTypes={
    // actions to be taken when an object type is added
 };
 
+// TODO: equivalent to FalseTrue
 static etable etTF={0,0,2,"False","True"};
+
 static etable etYN={0,0,2,"No","Yes"};
+
+// TODO: equivalent to BACnetReliability
 static etable etReli={
    64,65536,11,
    "no-fault-detected",
@@ -110,113 +116,113 @@ static etable etEvState={
 
 static etable etEU={
    256,65536,193,
-   //Area   
-   "square-meters",                     //	 0
-   "square-feet",                       //	 1
+   //Area
+   "square-meters",                     //    0
+   "square-feet",                       //    1
    //Electrical
-   "milliamperes",                      //	 2
-   "amperes",                           //	 3
-   "ohms",                              //	 4
-   "volts",                             //	 5
-   "kilovolts",                         //	 6
-   "megavolts",                         //	 7
-   "volt-amperes",                      //	 8
-   "kilovolt-amperes",                  //	 9
-   "megavolt-amperes",                  //	10
-   "volt-amperes-reactive",             //	11
-   "kilovolt-amperes-reactive",         //	12
-   "megavolt-amperes-reactive",         //	13
-   "degrees-phase",                     //	14
-   "power-factor",                      //	15
+   "milliamperes",                      //    2
+   "amperes",                           //    3
+   "ohms",                              //    4
+   "volts",                             //    5
+   "kilovolts",                         //    6
+   "megavolts",                         //    7
+   "volt-amperes",                      //    8
+   "kilovolt-amperes",                  //    9
+   "megavolt-amperes",                  //   10
+   "volt-amperes-reactive",             //   11
+   "kilovolt-amperes-reactive",         //   12
+   "megavolt-amperes-reactive",         //   13
+   "degrees-phase",                     //   14
+   "power-factor",                      //   15
    //Energy
-   "joules",                            //	16
-   "kilojoules",                        //	17
-   "watt-hours",                        //	18
-   "kilowatt-hours",                    //	19
-   "btus",                              //	20
-   "therms",                            //	21
-   "ton-hours",                         //	22
+   "joules",                            //   16
+   "kilojoules",                        //   17
+   "watt-hours",                        //   18
+   "kilowatt-hours",                    //   19
+   "btus",                              //   20
+   "therms",                            //   21
+   "ton-hours",                         //   22
    //Enthalpy
-   "joules-per-kilogram-dry-air",       //	23
-   "btus-per-pound-dry-air",            //	24
+   "joules-per-kilogram-dry-air",       //   23
+   "btus-per-pound-dry-air",            //   24
    //Frecuency
-   "cycles-per-hour",                   //	25
-   "cycles-per-minute",                 //	26
-   "hertz",                             //	27
+   "cycles-per-hour",                   //   25
+   "cycles-per-minute",                 //   26
+   "hertz",                             //   27
    //Humidity
    "grams-of-water-per-kilogram-dry-air",//28
-   "percent-relative-humidity",         //	29
+   "percent-relative-humidity",         //   29
    //Length
-   "millimeter",                        //	30
-   "meters",                            //	31
-   "inches",                            //	32
-   "feet",                              //	33
+   "millimeter",                        //   30
+   "meters",                            //   31
+   "inches",                            //   32
+   "feet",                              //   33
    //Light
-   "watts-per-square-foot",             //	34
-   "watts-per-square-meter",            //	35
-   "lumen",                             //	36
-   "lux",                               //	37
-   "foot-candles",                      //	38
+   "watts-per-square-foot",             //   34
+   "watts-per-square-meter",            //   35
+   "lumen",                             //   36
+   "lux",                               //   37
+   "foot-candles",                      //   38
    //Mass
-   "kilograms",                         //	39
-   "pounds-mass",                       //	40
-   "tons",                              //	41
+   "kilograms",                         //   39
+   "pounds-mass",                       //   40
+   "tons",                              //   41
    //Mass Flow
-   "kilograms-per-second",              //	42
-   "kilograms-per-minute",              //	43
-   "kilograms-per-hour",                //	44
-   "pounds-mass-per-minute",            //	45
-   "pounds-mass-per-hour",              //	46
+   "kilograms-per-second",              //   42
+   "kilograms-per-minute",              //   43
+   "kilograms-per-hour",                //   44
+   "pounds-mass-per-minute",            //   45
+   "pounds-mass-per-hour",              //   46
    //Power
-   "watts",                             //	47
-   "kilowatts",                         //	48
-   "megawatts",                         //	49
-   "btus-per-hour",                     //	50
-   "horsepower",                        //	51
-   "tons-refrigeration",                //	52
+   "watts",                             //   47
+   "kilowatts",                         //   48
+   "megawatts",                         //   49
+   "btus-per-hour",                     //   50
+   "horsepower",                        //   51
+   "tons-refrigeration",                //   52
    //Pressure
-   "pascals",                           //	53
-   "kilopascals",                       //	54
-   "bars",                              //	55
-   "pounds-force-per-square-inch",      //	56
-   "centimeters-of-water",              //	57
-   "inches-of-water",                   //	58
-   "millimeters-of-mercury",            //	59
-   "centimeters-of-mercury",            //	60
-   "inches-of-mercury",                 //	61
+   "pascals",                           //   53
+   "kilopascals",                       //   54
+   "bars",                              //   55
+   "pounds-force-per-square-inch",      //   56
+   "centimeters-of-water",              //   57
+   "inches-of-water",                   //   58
+   "millimeters-of-mercury",            //   59
+   "centimeters-of-mercury",            //   60
+   "inches-of-mercury",                 //   61
    //Temperature
-   "degrees-celsius",                   //	62
-   "degrees-kelvin",                    //	63
-   "degrees-fahrenheit",                //	64
-   "degree-days-celsius",               //	65
-   "degree-days-fahrenheit",            //	66
+   "degrees-celsius",                   //   62
+   "degrees-kelvin",                    //   63
+   "degrees-fahrenheit",                //   64
+   "degree-days-celsius",               //   65
+   "degree-days-fahrenheit",            //   66
    //Time
-   "years",                             //	67
-   "months",                            //	68
-   "weeks",                             //	69
-   "days",                              //	70
-   "hours",                             //	71
-   "minutes",                           //	72
-   "seconds",                           //	73
+   "years",                             //   67
+   "months",                            //   68
+   "weeks",                             //   69
+   "days",                              //   70
+   "hours",                             //   71
+   "minutes",                           //   72
+   "seconds",                           //   73
    //Velocity
-   "meters-per-second",                 //	74
-   "kilometers-per-hour",               //	75
-   "feet-per-second",                   //	76
-   "feet-per-minute",                   //	77
-   "miles-per-hour",                    //	78
+   "meters-per-second",                 //   74
+   "kilometers-per-hour",               //   75
+   "feet-per-second",                   //   76
+   "feet-per-minute",                   //   77
+   "miles-per-hour",                    //   78
    //Volume
-   "cubic-feet",                        //	79
-   "cubic-meters",                      //	80
-   "imperial-gallons",                  //	81
-   "liters",                            //	82
-   "us-gallons",                        //	83
+   "cubic-feet",                        //   79
+   "cubic-meters",                      //   80
+   "imperial-gallons",                  //   81
+   "liters",                            //   82
+   "us-gallons",                        //   83
    //Volumetric Flow
-   "cubic-feet-per-minute",             //	84
-   "cubic-meters-per-second",           //	85
-   "imperial-gallons-per-minute",       //	86
-   "liters-per-second",                 //	87
-   "liters-per-minute",                 //	88
-   "us-gallons-per-minute",             //	89
+   "cubic-feet-per-minute",             //   84
+   "cubic-meters-per-second",           //   85
+   "imperial-gallons-per-minute",       //   86
+   "liters-per-second",                 //   87
+   "liters-per-minute",                 //   88
+   "us-gallons-per-minute",             //   89
    //Others
    "degrees-angular",                   // 90
    "degrees-celsius-per-hour",          // 91
@@ -234,94 +240,94 @@ static etable etEU={
    "radians",                           //103
    "revolutions-per-minute",            //104
    //Currency
-   "currency1",						 //105
-   "currency2",						 //106
-   "currency3",						 //107
-   "currency4",						 //108
-   "currency5",						 //109
-   "currency6",						 //110
-   "currency7",						 //111
-   "currency8",						 //112
-   "currency9",						 //113
-   "currency10",						 //114
+   "currency1",                   //105
+   "currency2",                   //106
+   "currency3",                   //107
+   "currency4",                   //108
+   "currency5",                   //109
+   "currency6",                   //110
+   "currency7",                   //111
+   "currency8",                   //112
+   "currency9",                   //113
+   "currency10",                  //114
    //Free
-   "square-inches",					 //115
-   "square-centimeters",				 //116
-   "btus-per-pound",					 //117
-   "centimeters",						 //118
-   "pounds-mass-per-second",			 //119
-   "delta-degrees-fahrenheit",			 //120
-   "delta-degrees-kelvin",				 //121
+   "square-inches",               //115
+   "square-centimeters",             //116
+   "btus-per-pound",              //117
+   "centimeters",                 //118
+   "pounds-mass-per-second",         //119
+   "delta-degrees-fahrenheit",          //120
+   "delta-degrees-kelvin",           //121
    //Added after second review:
    "kilohms",                           //122
-   "megohms",							 //123
-   "millivolts",						 //124
-   "kilojoules-per-kilogram",			 //125
-   "megajoules",						 //126
-   "joules-per-degree-kelvin",			 //127
+   "megohms",                     //123
+   "millivolts",                  //124
+   "kilojoules-per-kilogram",        //125
+   "megajoules",                  //126
+   "joules-per-degree-kelvin",          //127
    "joules-per-kilogram-degree-kelvin", //128
-   "kilohertz",						 //129
-   "megahertz",						 //130
-   "per-hour",							 //131
-   "milliwatts",						 //132
-   "hectopascals",						 //133
-   "millibars",						 //134
-   "cubic-meters-per-hour",			 //135
-   "liters-per-hour",					 //136
-   "kilowatt-hours-per-square-meter",	 //137
-   "kilowatt-hours-per-square-foot",	 //138
-   "megajoules-per-square-meter",		 //139
-   "megajoules-per-square-foot",		 //140
+   "kilohertz",                   //129
+   "megahertz",                   //130
+   "per-hour",                    //131
+   "milliwatts",                  //132
+   "hectopascals",                   //133
+   "millibars",                   //134
+   "cubic-meters-per-hour",          //135
+   "liters-per-hour",                //136
+   "kilowatt-hours-per-square-meter",   //137
+   "kilowatt-hours-per-square-foot",    //138
+   "megajoules-per-square-meter",       //139
+   "megajoules-per-square-foot",     //140
    "watts-per-square-meter-degree-kelvin", //141
    // New units added 3/9/2008
-   "cubic-feet-per-second",					/* 142 */
-   "percent-obscuration-per-foot",			/* 143 */
-   "percent-obscuration-per-meter", 		/* 144 */
-   "miliohms", 								/* 145 */
-   "megawatt-hours", 						/* 146 */
-   "kilo-btus",								/* 147 */
-   "mega-btus",								/* 148 */
-   "kilojoules-per-kilogram-dry-air",		/* 149 */
-   "megajoules-per-kilogram-dry-air",		/* 150 */
-   "kilojoules-per-degree-Kelvin",			/* 151 */
-   "megajoules-per-degree-Kelvin",			/* 152 */
-   "newton",								/* 153 */
-   "grams-per-second",						/* 154 */
-   "grams-per-minute",						/* 155 */
-   "tons-per-hour",							/* 156 */
-   "kilo-btus-per-hour",					/* 157 */
-   "hundredths-seconds",					/* 158 */
-   "milliseconds",							/* 159 */
-   "newton-meters",							/* 160 */
-   "millimeters-per-second",				/* 161 */
-   "millimeters-per-minute", 				/* 162 */
-   "meters-per-minute",						/* 163 */
-   "meters-per-hour",						/* 164 */
-   "cubic-meters-per-minute",				/* 165 */
-   "meters-per-second-per-second",			/* 166 */
-   "amperes-per-meter",						/* 167 */
-   "amperes-per-square-meter",				/* 168 */
-   "ampere-square-meters",					/* 169 */
-   "farads",								/* 170 */
-   "henrys",								/* 171 */
-   "ohm-meters",							/* 172 */
-   "siemens",								/* 173 */
-   "siemens-per-meter",						/* 174 */
-   "teslas",								/* 175 */
-   "volts-per-degree-Kelvin",				/* 176 */
-   "volts-per-meter",						/* 177 */
-   "webers",								/* 178 */
-   "candelas",								/* 179 */
-   "candelas-per-square-meter",				/* 180 */
-   "degrees-Kelvin-per-hour",				/* 181 */
-   "degrees-Kelvin-per-minute",				/* 182 */
-   "joule-seconds",						/* 183 */
-   "radians-per-second",					/* 184 */
-   "square-meters-per-Newton",				/* 185 */
-   "kilograms-per-cubic-meter",			/* 186 */
-   "newton-seconds",						/* 187 */
-   "newtons-per-meter",					/* 188 */
-   "watts-per-meter-per-degree-Kelvin",	/* 189 */
+   "cubic-feet-per-second",               /* 142 */
+   "percent-obscuration-per-foot",        /* 143 */
+   "percent-obscuration-per-meter",       /* 144 */
+   "miliohms",                         /* 145 */
+   "megawatt-hours",                   /* 146 */
+   "kilo-btus",                        /* 147 */
+   "mega-btus",                        /* 148 */
+   "kilojoules-per-kilogram-dry-air",     /* 149 */
+   "megajoules-per-kilogram-dry-air",     /* 150 */
+   "kilojoules-per-degree-Kelvin",        /* 151 */
+   "megajoules-per-degree-Kelvin",        /* 152 */
+   "newton",                        /* 153 */
+   "grams-per-second",                 /* 154 */
+   "grams-per-minute",                 /* 155 */
+   "tons-per-hour",                    /* 156 */
+   "kilo-btus-per-hour",               /* 157 */
+   "hundredths-seconds",               /* 158 */
+   "milliseconds",                     /* 159 */
+   "newton-meters",                    /* 160 */
+   "millimeters-per-second",           /* 161 */
+   "millimeters-per-minute",           /* 162 */
+   "meters-per-minute",                /* 163 */
+   "meters-per-hour",                  /* 164 */
+   "cubic-meters-per-minute",          /* 165 */
+   "meters-per-second-per-second",        /* 166 */
+   "amperes-per-meter",                /* 167 */
+   "amperes-per-square-meter",            /* 168 */
+   "ampere-square-meters",             /* 169 */
+   "farads",                        /* 170 */
+   "henrys",                        /* 171 */
+   "ohm-meters",                    /* 172 */
+   "siemens",                       /* 173 */
+   "siemens-per-meter",                /* 174 */
+   "teslas",                        /* 175 */
+   "volts-per-degree-Kelvin",          /* 176 */
+   "volts-per-meter",                  /* 177 */
+   "webers",                        /* 178 */
+   "candelas",                      /* 179 */
+   "candelas-per-square-meter",           /* 180 */
+   "degrees-Kelvin-per-hour",          /* 181 */
+   "degrees-Kelvin-per-minute",           /* 182 */
+   "joule-seconds",                 /* 183 */
+   "radians-per-second",               /* 184 */
+   "square-meters-per-Newton",            /* 185 */
+   "kilograms-per-cubic-meter",        /* 186 */
+   "newton-seconds",                /* 187 */
+   "newtons-per-meter",             /* 188 */
+   "watts-per-meter-per-degree-Kelvin",   /* 189 */
    // Added by Addenda H (135-2004)
    "micro-siemens",
    "cubic-feet-per-hour",
@@ -533,22 +539,22 @@ static etable etAppDataTypes={
 
 //There must be a one-to-one correspondence between this list and the application datatypes
 // TODO: redundant with #defines in Bacproto.h
-#define	apdtNULL					0
-#define	apdtBoolean				1
-#define	apdtUnsigned			2
-#define	apdtUnsigned8			3
-#define	apdtUnsigned16			4
-#define	apdtUnsigned32			5
-#define	apdtINTEGER				6
-#define	apdtREAL					7
-#define	apdtDouble				8
-#define	apdtOCTET STRING		9
-#define	apdtCharacterString	10
-#define	apdtBIT STRING			11
-#define	apdtENUMERATED			12
-#define	apdtDate					13
-#define	apdtTime					14
-#define	apdtBACnetObjectIdentifier	15
+#define  apdtNULL             0
+#define  apdtBoolean          1
+#define  apdtUnsigned         2
+#define  apdtUnsigned8        3
+#define  apdtUnsigned16       4
+#define  apdtUnsigned32       5
+#define  apdtINTEGER          6
+#define  apdtREAL             7
+#define  apdtDouble           8
+#define  apdtOCTET STRING     9
+#define  apdtCharacterString  10
+#define  apdtBIT STRING       11
+#define  apdtENUMERATED       12
+#define  apdtDate             13
+#define  apdtTime             14
+#define  apdtBACnetObjectIdentifier 15
 
 static etable etAnyDayofWeek={
    0,0,8,
@@ -593,20 +599,20 @@ static etable etLifeSafetyState = {
 
 //Shiyuan Xiao 7/21/2005
 static etable etSilencedState = {
-	0, 0, 4,
-	"Unsilenced",
-	"Audible-Silenced",
-	"Visible-Silenced",
-	"All-Silenced"
+   0, 0, 4,
+   "Unsilenced",
+   "Audible-Silenced",
+   "Visible-Silenced",
+   "All-Silenced"
 };
 
 //Shiyuan Xiao 7/21/2005
 static etable etMaintenance = {
-	0, 0, 4,
-	"None",
-	"Periodic-test",
-	"Need-Service-Operational",
-	"Need-Service-Inoperative"
+   0, 0, 4,
+   "None",
+   "Periodic-test",
+   "Need-Service-Operational",
+   "Need-Service-Inoperative"
 };
 
 //Shiyuan Xiao 7/21/2005
@@ -626,7 +632,7 @@ static etable etLifeSafetyOperation = {
 
 //Shiyuan Xiao 7/21/2005
 static etable etLifeSafetyMode = {
-	0, 0, 15,
+   0, 0, 15,
    "off",
    "on",
    "test",
@@ -645,11 +651,11 @@ static etable etLifeSafetyMode = {
 };
 
 static etable etAccumulatorStatus = {
-	0, 0, 5,
-	"normal",
-	"starting",
-	"recovered",
-	"abnormal",
+   0, 0, 5,
+   "normal",
+   "starting",
+   "recovered",
+   "abnormal",
     "failed"
 };
 
@@ -685,14 +691,14 @@ static etable etNodeType = {
 };
 
 static etable etDoorValue = {
-   0,	0,	4,
+   0, 0, 4,
    "lock",
    "unlock",
    "pulse-unlock",
    "extended-pulse-unlock",
 };
 static etable etDoorValuen = {
-   0,	0,	5,
+   0, 0, 5,
    "lock",
    "unlock",
    "pulse-unlock",
@@ -700,7 +706,7 @@ static etable etDoorValuen = {
    "null",
 };
 static etable etDoorStatus = {
-   0,	0,	3,
+   0, 0, 3,
    "closed",
    "opened",
    "unknown",
@@ -713,13 +719,13 @@ static etable etLockStatus = {
    "unknown",
 };
 static etable etDoorSecuredStatus = {
-   0,	0,	3,
+   0, 0, 3,
    "secured",
    "unsecured",
    "unknown",
 };
 static etable etDoorAlarmState = {
-   0,	0,	9,
+   0, 0, 9,
    "normal",
    "alarm",
    "door-open-too-long",
@@ -729,6 +735,29 @@ static etable etDoorAlarmState = {
    "lock-down",
    "free-access",
    "egress-open",
+};
+
+static etable etBackupState = {
+   0, 0, 7,
+   "idle",
+   "preparing-for-backup",
+   "preparing-for-restore",
+   "performing-a-backup",
+   "performing-a-restore",
+   "backup-failure",
+   "restore-failure"
+};
+
+static etable erRestartReason = {
+   0, 0, 8,
+   "unknown",
+   "coldstart",
+   "warmstart",
+   "detected-power-lost",
+   "detected-power-off",
+   "hardware-watchdog",
+   "software-watchdog",
+   "suspended",
 };
 
 // must match defines in props.h
@@ -776,15 +805,17 @@ static etable *AllETs[]={
    &etDoorSecuredStatus,
    &etDoorAlarmState,
    &etDoorValuen,
+   &etBackupState,
+   &erRestartReason,
 };
 //NOTE: the ei defs have been moved to PROPS.H
 
-//Note:	The following table tracks the BACnetPropertyStates choices
+//Note:  The following table tracks the BACnetPropertyStates choices
 static etable *PropertyStates[]={
    &etTF,
    &etBPV,
    &etEvType,
-   &etPolar,  
+   &etPolar,
    &etPrChg,
    &etPrState,
    &etPrErr,
@@ -793,1183 +824,1418 @@ static etable *PropertyStates[]={
    &etDS,
    &etEU
 };
-                        
-typedef struct {
-   char	*PropertyName;
-   dword	PropID;
-   word	StrucOffset;
-   octet	ParseType;
-   octet	PropGroup;
-   word	PropET;		// One of the property table defines (eg, eiEvState) or else (fixed max) array size for select properties
-   word	PropFlags;
+
+// Property definition table entries
+typedef struct
+{
+   dword PropID;
+   word  StrucOffset;
+   octet ParseType;
+   octet PropGroup;
+   word  PropET;     // One of the property table defines (eg, eiEvState) or else (fixed max) array size for select properties
+   word  PropFlags;
+   word  firstRevision;   // First protocol revision in which the property appeared
+// word  lastRevision;    // Last protocol revision in which the property appeared (deprecated properties)
 } propdescriptor;
 
-typedef struct {
-   word			   sotSize;					//size of one of these objects in bytes
-   propdescriptor	*sotProps;				//pointer to table of property descriptors
+typedef struct
+{
+   word           sotSize;             //size of one of these objects in bytes
+   propdescriptor *sotProps;           //pointer to table of property descriptors
 } stdobjtype;
 
 #if _DoStaticPropDescriptors
 
-//handy macro for clarity in propdescriptor tables:
-#define oo(s,m)   (size_t)( (char *)&(((s##_obj_type *)0)->m) - (char *)0 )
-//-------------------------------------------------------------------------------------------------
-//table of standard object's properties
-propdescriptor	AIprops[]={
-//	"property name",		property id,	   struc offset,		      parse,	group,	table,	qualifiers
-   "object-identifier",	OBJECT_IDENTIFIER,oo(ai,go.object_id),	   ob_id,	0,	      0,	      R,
-   "object-name",			OBJECT_NAME,		oo(ai,go.object_name),	s64,	   0,	      0,	      R,
-   "object-type",			OBJECT_TYPE,		oo(ai,go.object_type),	et,		0,       eiObjectTypes,R,
-   "present-value",		PRESENT_VALUE,		oo(ai,pv),				   flt,	   0,		   0,	      R|Woutofservice,
-   "description",			DESCRIPTION,		oo(ai,go.description),	s132,	   0,	      0,	      O,
-   "device-type",			DEVICE_TYPE,		oo(ai,device_type),		s64,	   0,	      0,	      O,
-   "status-flags",		STATUS_FLAGS,		oo(ai,status_flags),	   bits,	   0,	      eiStF,	R,
-   "event-state",			EVENT_STATE,		oo(ai,state),			   et,		0,       eiEvState,R,
-   "reliability",			RELIABILITY,		oo(ai,reliability),		et,		0,	      eiReli,	O,
-   "out-of-service",		OUT_OF_SERVICE,	oo(ai,out_of_service),	ebool,   0,	      eiTF,	   R,
-   "update-interval",	UPDATE_INTERVAL,	oo(ai,update_interval),	uw,		0,	      0,	      O,
-   "units",				   UNITS,				oo(ai,units),			   et,		0,	      eiEU,	   R,
-   "min-pres-value",		MIN_PRES_VALUE,	oo(ai,min_pres_value),	flt,	   0,	 	   0,	      O,		
-   "max-pres-value",		MAX_PRES_VALUE,	oo(ai,max_pres_value),	flt,	   0,	      0,	O,
-   "resolution",			RESOLUTION,			oo(ai,resolution),		flt,	   0,	      0,	O,
-   "cov-increment",		COV_INCREMENT,		oo(ai,cov_increment),	flt,	   COV,	   0,	O|WithService,
-   "time-delay",			TIME_DELAY,			oo(ai,time_delay),		uw,		Intr,	   0,	O|WithService,
-   "notification-class",NOTIFICATION_CLASS,oo(ai,notification_class),uw,	Intr,	   0,	O|WithService,
-   "high-limit",			HIGH_LIMIT,			oo(ai,high_limit),		flt,	   Intr,	   0,	O|WithService,
-   "low-limit",			LOW_LIMIT,			oo(ai,low_limit),		   flt,	   Intr,	   0,	O|WithService,
-   "deadband",				DEADBAND,			oo(ai,deadband),		   flt,	   Intr,	   0,	O|WithService,
-   "limit-enable",		LIMIT_ENABLE,		oo(ai,limit_enable),	   bits,	   Intr,eiLimEn,	O|WithService,
-   "event-enable",		EVENT_ENABLE,		oo(ai,event_enable),	   bits,	   Intr,eiEvTr,	O|WithService,
-   "acked-transitions",	ACKED_TRANSITIONS,oo(ai,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-   "notify-type",			NOTIFY_TYPE,		oo(ai,notify_type),		et,      Intr,  eiNT,	O|WithService,
-//madanner 6/03: Added for supporting event-time-stamps
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ai,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-//modified by Jingbo Gao, 2003-9-1
-   "event-time-stamps",	EVENT_TIME_STAMPS,oo(ai,event_time_stamps),TSTMParr,Intr,   0, O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-   "profile-name",		PROFILE_NAME,     oo(ai,go.profile_name), s132,	   Last,   	0,	 O     
-};
+// Macro for clarity in propdescriptor tables.
+#define xxoo(typ,m)   (size_t)( (char *)&(((typ*)0)->m) - (char *)0 )
+// The macro oo is redefined for each object type, to permit us to omit the struct name
+// from each usage. That makes it much easier to copy and paste new properties into
+// multiple tables without needing to edit them for each table.
 
-propdescriptor	AOprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(ao,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(ao,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(ao,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(ao,pv),				flt,	0,	       0,	W|IsCommandable,
-    "description",			DESCRIPTION,		oo(ao,go.description),	s132,	0,	       0,	O,
-    "device-type",			DEVICE_TYPE,		oo(ao,device_type),		s64,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(ao,status_flags),	bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(ao,state),			et,		0,eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(ao,reliability),		et,		0,	 eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(ao,out_of_service),	ebool,  0,		eiTF,	R,
-    "units",				UNITS,				oo(ao,units),			et,		0,	    eiEU,	R,
-    "min-pres-value",		MIN_PRES_VALUE,		oo(ao,min_pres_value),	flt,	0,	 	   0,	O,				
-    "max-pres-value",		MAX_PRES_VALUE,		oo(ao,max_pres_value),	flt,	0,	       0,	O,
-    "resolution",			RESOLUTION,			oo(ao,resolution),		flt,	0,	       0,	O,
-    "priority-array",		PRIORITY_ARRAY,		oo(ao,priority_array),	paf,	0,	       0,	R|IsArray,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(ao,relinquish_default), flt,	0,	       0,	R,
-    "cov-increment",		COV_INCREMENT,		oo(ao,cov_increment),	flt,	COV,	   0,	O|WithService,
-    "time-delay",			TIME_DELAY,			oo(ao,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(ao,notification_class),uw,	Intr,	   0,	O|WithService,
-    "high-limit",			HIGH_LIMIT,			oo(ao,high_limit),		flt,	Intr,	   0,	O|WithService,
-    "low-limit",			LOW_LIMIT,			oo(ao,low_limit),		flt,	Intr,	   0,	O|WithService,
-    "deadband",				DEADBAND,			oo(ao,deadband),		flt,	Intr,	   0,	O|WithService,
-    "limit-enable",			LIMIT_ENABLE,		oo(ao,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(ao,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(ao,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(ao,notify_type),		et,     Intr,	eiNT,	O|WithService,
-//madanner 6/03: Added for supporting event-time-stamps
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ao,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-//modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ao,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(ao,go.profile_name), s132,	Last,	  0,	 O      
-};
-
-propdescriptor	AVprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(av,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(av,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(av,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(av,pv),				flt,	0,	       0,	W|IsCommandable,
-    "description",			DESCRIPTION,		oo(av,go.description),	s132,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(av,status_flags),	bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(av,state),			et,		0,eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(av,reliability),		et,		0,	 eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(av,out_of_service),	ebool,  0,		eiTF,	R,
-    "units",				UNITS,				oo(av,units),			et,		0,	    eiEU,	R,
-    "priority-array",		PRIORITY_ARRAY,		oo(av,priority_array),	paf,	1,		   0,	O|WithGroup|IsArray,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(av,relinquish_default), flt,	1,		   0,	O|WithGroup,
-    "cov-increment",		COV_INCREMENT,		oo(av,cov_increment),	flt,	COV,	   0,	O|WithService,
-    "time-delay",			TIME_DELAY,			oo(av,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(av,notification_class),uw,	Intr,	   0,	O|WithService,
-    "high-limit",			HIGH_LIMIT,			oo(av,high_limit),		flt,	Intr,	   0,	O|WithService,
-    "low-limit",			LOW_LIMIT,			oo(av,low_limit),		flt,	Intr,	   0,	O|WithService,
-    "deadband",				DEADBAND,			oo(av,deadband),		flt,	Intr,	   0,	O|WithService,
-    "limit-enable",			LIMIT_ENABLE,		oo(av,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(av,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(av,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(av,notify_type),		et,		Intr,	eiNT,	O|WithService,
-//Added for supporting event-time-stamps, by xuyiping 2002-8-29
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(av,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-//modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(av,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(av,go.profile_name), s132,	Last,     0,	 O  
-};
-
-propdescriptor	BIprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(bi,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(bi,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(bi,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(bi,pv),				et,		0,	   eiBPV,	R|Woutofservice,
-    "description",			DESCRIPTION,		oo(bi,go.description),	s132,	0,	       0,	O,
-    "device-type",			DEVICE_TYPE,		oo(bi,device_type),		s64,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(bi,status_flags),	bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(bi,state),			et,		0,eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(bi,reliability),		et,		0,	 eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(bi,out_of_service),	ebool,  0,		eiTF,	R,
-    "polarity",				POLARITY,			oo(bi,polarity),		et,		0,	  eiPolar,	R,
-    "inactive-text",		INACTIVE_TEXT,		oo(bi,inactive_text),	s64,	1,		   0,	O|WithGroup,
-    "active-text",			ACTIVE_TEXT,		oo(bi,active_text),		s64,	1,		   0,	O|WithGroup,
-    "change-of-state-time",	CHANGE_OF_STATE_TIME,oo(bi,cos_time),		dt,		2,		   0,	O|WithGroup,
-    "change-of-state-count",CHANGE_OF_STATE_COUNT,oo(bi,cos_count),		uw,		2,		   0,	O|WithGroup,
-"time-of-state-count-reset",TIME_OF_STATE_COUNT_RESET, oo(bi,
-                                                time_of_state_count_reset),dt,	2,		   0,	O|WithGroup,
-    "elapsed-active-time",	ELAPSED_ACTIVE_TIME,oo(bi,elapsed_active_time), ud,	3,		   0,	O|WithGroup,
-"time-of-active-time-reset",TIME_OF_ACTIVE_TIME_RESET, oo(bi,
-                                                time_of_active_time_reset),	dt,	3,		   0,	O|WithGroup,
-    "time-delay",			TIME_DELAY,			oo(bi,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(bi,notification_class),uw,	Intr,	   0,	O|WithService,
-    "alarm-value",			ALARM_VALUE,		oo(bi,alarm_value),		et,		Intr,  eiBPV,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(bi,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(bi,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(bi,notify_type),		et,     Intr,	eiNT,	O|WithService,
-//madanner 6/03: Added for supporting event-time-stamps
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bi,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-//modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bi,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(bi,go.profile_name), s132,	Last,	  0,	 O     
-};
-
-propdescriptor	BOprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(bo,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(bo,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(bo,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(bo,pv),				et,		0,	   eiBPV,	W|IsCommandable,
-    "description",			DESCRIPTION,		oo(bo,go.description),	s132,	0,	       0,	O,
-    "device-type",			DEVICE_TYPE,		oo(bo,device_type),		s64,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(bo,status_flags),	bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(bo,state),			et,		0, eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(bo,reliability),		et,		0,	  eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(bo,out_of_service),	ebool,  0,		eiTF,	R,
-    "polarity",				POLARITY,			oo(bo,polarity),		et,		0,	  eiPolar,	R,
-    "inactive-text",		INACTIVE_TEXT,		oo(bo,inactive_text),	s64,	1,		   0,	O|WithGroup,
-    "active-text",			ACTIVE_TEXT,		oo(bo,active_text),		s64,	1,		   0,	O|WithGroup,
-    "change-of-state-time",	CHANGE_OF_STATE_TIME,oo(bo,cos_time),		dt,		2,		   0,	O|WithGroup,
-    "change-of-state-count",CHANGE_OF_STATE_COUNT,oo(bo,cos_count),		uw,		2,		   0,	O|WithGroup,
-"time-of-state-count-reset",TIME_OF_STATE_COUNT_RESET, oo(bo,
-                                                time_of_state_count_reset),dt,	2,		   0,	O|WithGroup,
-    "elapsed-active-time",	ELAPSED_ACTIVE_TIME,oo(bo,elapsed_active_time), ud,	3,		   0,	O|WithGroup,
-"time-of-active-time-reset",TIME_OF_ACTIVE_TIME_RESET, oo(bo,
-                                                time_of_active_time_reset),dt,	3,		   0,	O|WithGroup,
-    "minimum-off-time",		MINIMUM_OFF_TIME,	oo(bo,min_off_time), 	ud,		0,	       0,	O,
-    "minimum-on-time",		MINIMUM_ON_TIME,	oo(bo,min_on_time),		ud,		0,	       0,	O,
-    "priority-array",		PRIORITY_ARRAY,		oo(bo,priority_array),	pab,	0,	   eiBPVn,	R|IsArray,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(bo,relinquish_default), et,	0,	   eiBPV,	R,
-    "time-delay",			TIME_DELAY,			oo(bo,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(bo,notification_class),uw,	Intr,	   0,	O|WithService,
-    "feedback-value",		FEEDBACK_VALUE,		oo(bo,feedback_value),	et,		Intr,  eiBPV,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(bo,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(bo,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(bo,notify_type),		et,     Intr,	eiNT,	O|WithService,
-//madanner 6/03: Added for supporting event-time-stamps
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-//modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bo,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(bo,go.profile_name), s132,	Last,	  0,	 O  
-};
-
-propdescriptor	BVprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(bv,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(bv,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(bv,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(bv,pv),				et,		0,	   eiBPV,	R|Woutofservice|IsCommandable,
-    "description",			DESCRIPTION,		oo(bv,go.description),	s132,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(bv,status_flags),	bits,	0,	  eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(bv,state),			et,		0, eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(bv,reliability),		et,		0,	  eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(bv,out_of_service),	ebool,  0,		eiTF,	R,
-    "inactive-text",		INACTIVE_TEXT,		oo(bv,inactive_text),	s64,	1,		   0,	O|WithGroup,
-    "active-text",			ACTIVE_TEXT,		oo(bv,active_text),		s64,	1,		   0,	O|WithGroup,
-    "change-of-state-time",	CHANGE_OF_STATE_TIME,oo(bv,cos_time),		dt,		2,		   0,	O|WithGroup,
-    "change-of-state-count",CHANGE_OF_STATE_COUNT,oo(bv,cos_count),		uw,		2,		   0,	O|WithGroup,
-"time-of-state-count-reset",TIME_OF_STATE_COUNT_RESET, oo(bv,
-                                                time_of_state_count_reset),dt,	2,		   0,	O|WithGroup,
-    "elapsed-active-time",	ELAPSED_ACTIVE_TIME,oo(bv,elapsed_active_time), ud,	3,		   0,	O|WithGroup,
-"time-of-active-time-reset",TIME_OF_ACTIVE_TIME_RESET, oo(bv,
-                                                time_of_active_time_reset),dt,	3,		   0,	O|WithGroup,
-    "minimum-off-time",		MINIMUM_OFF_TIME,	oo(bv,min_off_time), 	ud,		0,	       0,	O,
-    "minimum-on-time",		MINIMUM_ON_TIME,	oo(bv,min_on_time),		ud,		0,	       0,	O,
-    "priority-array",		PRIORITY_ARRAY,		oo(bv,priority_array),	pab,	4,	   eiBPVn,	O|WithGroup|IsArray,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(bv,relinquish_default), et,	4,	   eiBPV,	O|WithGroup,
-    "time-delay",			TIME_DELAY,			oo(bv,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(bv,notification_class),uw,	Intr,	   0,	O|WithService,
-    "alarm-value",			ALARM_VALUE,		oo(bv,alarm_value),		et,		Intr,  eiBPV,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(bv,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(bv,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(bv,notify_type),		et,		Intr,	eiNT,	O|WithService,
-//Added for supporting event-time-stamps, by xuyiping 2002-8-29
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bv,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-//modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(bv,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(bv,go.profile_name), s132,	Last,		0,	 O      
-};
-
-propdescriptor	CLprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(calendar,go.object_id),ob_id,0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(calendar,go.object_name),s64,0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(calendar,go.object_type),et,	0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(calendar,pv),		ebool,  0,    	eiTF,	R,
-    "description",			DESCRIPTION,		oo(calendar,go.description),s132,0,	       0,	O,
-//    "date-list",			DATE_LIST,			oo(calendar,date_list),	calist,	Last,	   0,	R
-//modified by Jingbo Gao, 2003-9-1
-    "date-list",			DATE_LIST,			oo(calendar,date_list),	calist,	0,	   0,	R,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(calendar,go.profile_name), s132,	Last,	0,	 O  
-};
-
-propdescriptor	CMprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(command,go.object_id),ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(command,go.object_name),s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(command,go.object_type),et,	0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(command,pv),			uw,		0,	       0,	W,
-    "description",			DESCRIPTION,		oo(command,go.description),s132,0,	       0,	O,
-    "in-process",			IN_PROCESS,			oo(command,in_process),	ebool,  0,    	eiTF,	R,
-    "all-writes-successful",ALL_WRITES_SUCCESSFUL,oo(command,
-    											all_writes_successful),	ebool,  0,    	eiTF,	R,
-    "action",				ACTION,				oo(command,action),		act,	0, MAX_ACTION_TEXTS, R|IsArray,
-//    "action-text",			ACTION_TEXT,		oo(command,action_text),actext,	Last,	   0,	O|IsArray
-//modified by Jingbo Gao, 2003-9-1
-    "action-text",			ACTION_TEXT,		oo(command,action_text),actext,	0, MAX_ACTION_TEXTS, O|IsArray,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(command,go.profile_name), s132,	Last,	0,	 O  
-};
-
-propdescriptor	DVprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(device,go.object_id),ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(device,go.object_name),s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(device,go.object_type),et,	0,eiObjectTypes,R,
-    "system-status",		SYSTEM_STATUS,		oo(device,system_status),et,	0,	    eiDS,	R,
-    "vendor-name",			VENDOR_NAME,		oo(device,vendor_name),	s64,	0,	       0,	R,
-    "vendor-identifier",	VENDOR_IDENTIFIER,	oo(device,vendor_id),	uw,		0,	       0,	R,
-    "model-name",			MODEL_NAME,			oo(device,model_name),	s32,	0,	       0,	R,
-    "firmware-revision",	FIRMWARE_REVISION,	oo(device,firmware_rev),s32,	0,	       0,	R,
-    "application-software-version", APPLICATION_SOFTWARE_VERSION,oo(device,
-                                                application_software_ver),s32,	0,	       0,	R,
-    "location",				LOCATION,			oo(device,location),	s64,	0,	       0,	O,
-    "description",			DESCRIPTION,		oo(device,go.description),s132,	0,	       0,	O,
-    "protocol-version",		PROTOCOL_VERSION,	oo(device,protocol_ver),uw,		0,	       0,	R,
-    "protocol-revision",		PROTOCOL_REVISION,	oo(device,protocol_rev),uw,		0,	       0,	O,
-    "protocol-conformance-class",PROTOCOL_CONFORMANCE_CLASS,oo(device,
-                                                protocol_conf_class),	uw,		0,	       0,	O,  // changed by Wilson Fowlie Aug 2003:protocol-conformance-class no longer required
-    "protocol-services-supported",PROTOCOL_SERVICES_SUPPORTED,oo(device,
-                                                protocol_services_supported),pss,0,	       0,	R,
-    "protocol-object-types-supported",PROTOCOL_OBJECT_TYPES_SUPPORTED,oo(device,
-                                                object_types_supported),pos,	0,	       0,	R,
-    "object-list",			OBJECT_LIST,		oo(device,object_list),	looref,	0,	       0,	R|IsArray,
-    "max-APDU-length-accepted", MAX_APDU_LENGTH_ACCEPTED,oo(device,
-    											max_apdu_length_accepted),uw,	0,	       0,	R,
-    "segmentation-supported", SEGMENTATION_SUPPORTED,oo(device,
-    											segmentation_supported),et,		0,	eiSegOpt,	R,
-//Added by Jingbo Gao, 2003-9-1
-	"max-segments-accepted",  MAX_SEGMENTS_ACCEPTED,  oo(device,
-												max_segments_accepted), uw,	    0,			0,	 O,  
-	"vt-classes-supported",	VT_CLASSES_SUPPORTED,oo(device,
-    											vt_classes_supported),	vtcl,	VT,		   0,	O|WithService|WithGroup,
-    "active-vt-sessions",	ACTIVE_VT_SESSIONS,	0,						none,	VT,		   0,	O|WithService|WithGroup,
-    "local-time",			LOCAL_TIME,			oo(device,local_time),	ttime,	0,	       0,	O,
-    "local-date",			LOCAL_DATE,			oo(device,local_date),	ddate,	0,	       0,	O,
-    "utc-offset",			UTC_OFFSET,			oo(device,utc_offset),	ssint,	0,	       0,	O,  //MAG 13 FEB 2001 change parse from flt to ssint
-    "daylight-savings-status",	DAYLIGHT_SAVINGS_STATUS,oo(device,
-                                                day_savings_status),	ebool,  0,		eiTF,	O,
-    "apdu-segment-timeout",	APDU_SEGMENT_TIMEOUT,oo(device,
-    											apdu_segment_timeout),	uw,		SEGSVC,	   0,	O|WithService,
-    "apdu-timeout",			APDU_TIMEOUT,		oo(device,apdu_timeout),uw,		0,	       0,	R,
-    "number-of-APDU-retries",	NUMBER_OF_APDU_RETRIES,oo(device,
-                                                number_apdu_retries),	uw,		0,	       0,	R,
-    "list-of-session-keys",	LIST_OF_SESSION_KEYS,oo(device,
-    											list_session_keys),		skeys,	0,	       0,	O,
-    "time-synchronization-recipients",TIME_SYNCHRONIZATION_RECIPIENTS,oo(device,
-    											time_synch_recipients),	tsrecip,TMASTER,   0,	O|WithService,
-    "max-master",			MAX_MASTER,			oo(device,max_master),	u127,MSTPMASTER,   0,	O|WithService,
-    "max-info-frames",		MAX_INFO_FRAMES,	oo(device,max_info_frames),uw,MSTPMASTER,  0,	O|WithService,
-//    "device-address-binding",	DEVICE_ADDRESS_BINDING,oo(device,
-//                                                device_add_binding),	dabind,	Last,	   0,	R
-// modofied by Jingbo Gao, 2003-9-1
-	"device-address-binding",	DEVICE_ADDRESS_BINDING,oo(device,
-													device_add_binding),	dabind,	0,	   0,	R,
-//Added by Jingbo Gao, 2003-9-1
-	"database-revision",	DATABASE_REVISION,  oo(device, 
-													database_revision),     uw,     0,			0,   R,
-    "configuration-files",	CONFIGURATION_FILES, oo(device,	
-													configuration_files),   looref, 0,	       0,   O|IsArray,
-	"last-restore-time",		LAST_RESTORE_TIME,   oo(device,
-													last_restore_time),		TSTMP,		0,		   0,	O,	
-	"backup-failure-timeout",	BACKUP_FAILURE_TIMEOUT,		oo(device,
-													backup_failure_timeout), uw, 0,     0,   O,
-	"active-cov-subscriptions", ACTIVE_COV_SUBSCRIPTIONS,  oo(device, 
-													active_cov_subscriptions), lCOVSub, 0,		0,    O|IsArray,
-
-    "slave-proxy-enable", SLAVE_PROXY_ENABLE, oo(device, slave_proxy_enable), eboollist, 0, 0, O,
-	"auto-slave-discovery", AUTO_SLAVE_DISCOVERY,  oo(device, auto_slave_disc), eboollist, 0, 0, O,
-
-	"slave-address-binding", SLAVE_ADDRESS_BINDING, oo(device, slave_add_bind), dabind, 0, 0, O,
-	"manual-slave-address-binding", MANUAL_SLAVE_ADDRESS_BINDING, oo(device, manual_slave_add_bind), dabind, 0, 0, O,
-
-// Added by Tom Brennan, 1-Apr-2010
-    "structured-object-list",	STRUCTURED_OBJECT_LIST,	oo(device,structured_object_list),	looref,	0,	0,	O|IsArray,
-
-	"profile-name",			PROFILE_NAME,       oo(device,go.profile_name), s132,	Last,		0,	 O 
-};
-
-propdescriptor	EEprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(ee,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(ee,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(ee,go.object_type),	et,		0,eiObjectTypes,R,
-    "description",			DESCRIPTION,		oo(ee,go.description),	s132,	0,	       0,	O,
-    "event-type",			EVENT_TYPE,			oo(ee,
-    											parameter_list.event_type),	et,	0,	eiEvType,	R,
-    "notify-type",			NOTIFY_TYPE,		oo(ee,notify_type),		et,		0,	    eiNT,	R,
-    "event-parameters",		EVENT_PARAMETERS,	oo(ee,parameter_list),	evparm,	0,	       0,	R,
-"object-property-reference",OBJECT_PROPERTY_REFERENCE,oo(ee,obj_prop_ref),devobjpropref,0,       0,	R,
-    "event-state",			EVENT_STATE,		oo(ee,state),			et,		0, eiEvState,	R,
-    "event-enable",			EVENT_ENABLE,		oo(ee,event_enable),	bits,	0,	 eiEvTr,	R,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(ee,acked_transitions),bits,	0,	 eiEvTr,	R,
-    "notification-class",	NOTIFICATION_CLASS,	oo(ee,notification_class),uw,	1,		   0,	O|NotWithGroup2,
-// Note these properties were removed for revision 4
-    "recipient",			RECIPIENT,			oo(ee,recipient),		recip,	2,		   0,	O|NotWithGroup1,
-    "process-identifier",	PROCESS_IDENTIFIER,	oo(ee,process_id),		uw,		2,		   0,	O|NotWithGroup1,
-    "priority",				PRIORITY,			oo(ee,priority),		uw,		2,		   0,	O|NotWithGroup1,
-    "issue-confirmed-notifications",ISSUE_CONFIRMED_NOTIFICATIONS,oo(ee,
-                                                issue_conf_notifications),ebool,2,	eiTF,	O|NotWithGroup1,
-// Note the above properties were removed for revision 4
-//madanner 6/03: Added for supporting event-time-stamps
-//Modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(ee,event_time_stamps),  TSTMParr, 0,   0, O|IsArray,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(ee,go.profile_name), s132,	Last,	  0,	 O  
-};
-
-propdescriptor	FLprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(file,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(file,go.object_name),s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(file,go.object_type),et,		0,eiObjectTypes,R,
-    "description",			DESCRIPTION,		oo(file,go.description),s132,	0,	       0,	O,
-    "file-type",			FILE_TYPE,			oo(file,file_type),		s32,	0,	       0,	R,
-    "file-size",			FILE_SIZE,			oo(file,file_size),		ud,		0,	       0,	R,
-    "modification-date",	MODIFICATION_DATE,	oo(file,mod_date),		dt,		0,	       0,	R,
-    "archive",				ARCHIVE,			oo(file,archive),		ebool,  0,		eiTF,	W,
-    "read-only",			READ_ONLY,			oo(file,read_only),		ebool,  0,		eiTF,	R,
-//    "file-access-method",	FILE_ACCESS_METHOD,	oo(file,access_method),	et,		Last,   eiFAM,	R
-//modified by Jingbo Gao
-    "file-access-method",	FILE_ACCESS_METHOD,	oo(file,access_method),	et,		0,   eiFAM,	R,
-	"record-count",         RECORD_COUNT,       oo(file,record_count),  ud,     0,         0,    O,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(file,go.profile_name), s132,	Last,		0,	 O  
-};
-
-propdescriptor	GRprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(group,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(group,go.object_name),s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(group,go.object_type),et,	0,eiObjectTypes,R,
-    "description",			DESCRIPTION,		oo(group,go.description),s132,	0,	       0,	O,
-    "list-of-group-members",LIST_OF_GROUP_MEMBERS,oo(group,
-    											list_of_group_members),	raslist,0,	       0,	R,
-//    "present-value",		PRESENT_VALUE,		0,						none,	Last,	   0,	R
-// modified by Jingbo Gao
-	"present-value",		PRESENT_VALUE,		0,						none,	0,	       0,	R,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(group,go.profile_name), s132, Last,	   0,	 O  
-};
-
-propdescriptor	LPprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(loop,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(loop,go.object_name),s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(loop,go.object_type),et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(loop,pv),			flt,	0,	       0,	R,
-    "description",			DESCRIPTION,		oo(loop,go.description),s132,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(loop,status_flags),	bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(loop,state),			et,		0, eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(loop,reliability),	et,		0,	  eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(loop,out_of_service),ebool,  0,		eiTF,	R,
-    "update-interval",		UPDATE_INTERVAL,	oo(loop,update_interval),uw,	0,	       0,	O,
-    "output-units",			OUTPUT_UNITS,		oo(loop,output_units),	et,		0,	    eiEU,	R,
-"manipulated-variable-reference",MANIPULATED_VARIABLE_REFERENCE,oo(loop,
-                                                man_var_ref),			propref,0,	       0,	R,
-"controlled-variable-reference",CONTROLLED_VARIABLE_REFERENCE,oo(loop,
-                                                cont_var_ref),			propref,0,	       0,	R,
-"controlled-variable-value",CONTROLLED_VARIABLE_VALUE,oo(loop,
-                                                cont_var_value),		flt,	0,	       0,	R,
-"controlled-variable-units",CONTROLLED_VARIABLE_UNITS,oo(loop,
-                                                cont_var_units),		et,		0,	    eiEU,	R,
-    "setpoint-reference",	SETPOINT_REFERENCE,	oo(loop,setpoint_ref),	setref,	0,	       0,	R,
-    "setpoint",				SETPOINT,			oo(loop,setpoint),		flt,	0,	       0,	R,
-    "action",				ACTION,				oo(loop,action),		et,		0,	eiLoopAct,	R,
-"proportional-constant",	PROPORTIONAL_CONSTANT,oo(loop,
-                                                proportional_const),	flt,	1,		   0,	O|WithGroup,
-"proportional-constant-units",PROPORTIONAL_CONSTANT_UNITS,oo(loop,
-                                                proportional_const_units),et,	1,		eiEU,	O|WithGroup,
-"integral-constant",		INTEGRAL_CONSTANT,oo(loop,
-                                                integral_const),		flt,	2,		   0,	O|WithGroup,
-"integral-constant-units",	INTEGRAL_CONSTANT_UNITS,oo(loop,
-                                                integral_const_units),	et,		2,		eiEU,	O|WithGroup,
-"derivative-constant",		DERIVATIVE_CONSTANT,oo(loop,
-                                                derivative_const),		flt,	3,		   0,	O|WithGroup,
-"derivative-constant-units",DERIVATIVE_CONSTANT_UNITS,oo(loop,
-                                                derivative_const_units),et,		3,		eiEU,	O|WithGroup,
-    "bias",					BIAS,				oo(loop,bias),			flt,	0,	       0,	O,
-    "maximum-output",		MAXIMUM_OUTPUT,		oo(loop,max_output),	flt,	0,	       0,	O,
-    "minimum-output",		MINIMUM_OUTPUT,		oo(loop,min_output),	flt,	0,	       0,	O,
-    "priority-for-writing",	PRIORITY_FOR_WRITING,oo(loop,
-    											priority_for_writing),	uw,		0,	 	   0,	R,	
-    "cov-increment",		COV_INCREMENT,		oo(loop,cov_increment),	flt,	COV,	   0,	O|WithService,
-    "time-delay",			TIME_DELAY,			oo(loop,time_delay),	uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(loop,notification_class),uw,	Intr,	   0,	O|WithService,
-    "error-limit",			ERROR_LIMIT,		oo(loop,error_limit),	flt,	Intr,	   0,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(loop,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(loop,acked_transitions),bits,Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(loop,notify_type),	et,     Intr,	eiNT,	O|WithService,
-//madanner 6/03: Added for supporting event-time-stamps
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(loop,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-// modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(loop,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(loop,go.profile_name), s132,	Last,		0,	 O  
-};
-
-propdescriptor	MIprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(mi,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(mi,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(mi,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(mi,pv),				uw,		0,		   0,	R|Woutofservice,
-    "description",			DESCRIPTION,		oo(mi,go.description),	s132,	0,	       0,	O,
-    "device-type",			DEVICE_TYPE,		oo(mi,device_type),		s64,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(mi,status_flags),	bits,	0,	  eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(mi,state),			et,		0, eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(mi,reliability),		et,		0,	  eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(mi,out_of_service),	ebool,  0,		eiTF,	R,
-    "number-of-states",		NUMBER_OF_STATES,	oo(mi,num_of_states),	uw,		0,	       0,	R,
-    "state-text",			STATE_TEXT,			oo(mi,state_text),		statext,0, MAX_STATE_TEXTS,	O|IsArray,
-    "time-delay",			TIME_DELAY,			oo(mi,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(mi,notification_class),uw,	Intr,	   0,	O|WithService,
-    "alarm-values",			ALARM_VALUES,		oo(mi,alarm_values),	stavals,Intr,	   0,	O|WithService,
-    "fault-values",			FAULT_VALUES,		oo(mi,fault_values),	stavals,Intr,	   0,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(mi,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(mi,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(mi,notify_type),		et,     Intr,	eiNT,	O|WithService,
-//madanner 6/03: Added for supporting event-time-stamps
-// modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mi,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(mi,go.profile_name), s132,	Last,		0,	 O 
-};
-
-  
-propdescriptor	MOprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(mo,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(mo,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(mo,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(mo,pv),				uw,		0,	       0,	W|IsCommandable,
-    "description",			DESCRIPTION,		oo(mo,go.description),	s132,	0,	       0,	O,
-    "device-type",			DEVICE_TYPE,		oo(mo,device_type),		s64,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(mo,status_flags),	bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(mo,state),			et,		0, eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(mo,reliability),		et,		0,	  eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(mo,out_of_service),	ebool,  0,		eiTF,	R,
-    "number-of-states",		NUMBER_OF_STATES,	oo(mo,num_of_states),	uw,		0,	       0,	R,
-    "state-text",			STATE_TEXT,			oo(mo,state_text),		statext,0, MAX_STATE_TEXTS,	O|IsArray,
-    "priority-array",		PRIORITY_ARRAY,		oo(mo,priority_array),	pau,	0,	       0,	R|IsArray,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(mo,relinquish_default), uw,	0,	       0,	R,
-    "time-delay",			TIME_DELAY,			oo(mo,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(mo,notification_class),uw,	Intr,	   0,	O|WithService,
-    "feedback-value",		FEEDBACK_VALUE,		oo(mo,feedback_value),	uw,		Intr,	   0,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(mo,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(mo,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(mo,notify_type),		et,     Intr,	eiNT,	O|WithService,
-//madanner 6/03: Added for supporting event-time-stamps
-//	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mo,event_time_stamps),  TSTMP, Last|Intr,   0, O|IsArray|WithService
-// modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(mo,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(mo,go.profile_name), s132,	Last,		0,	 O
-};
-
-propdescriptor	NCprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(nc,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(nc,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(nc,go.object_type),	et,		0,eiObjectTypes,R,
-    "description",			DESCRIPTION,		oo(nc,go.description),	s132,	0,	       0,	O,
-    "notification-class",	NOTIFICATION_CLASS,	oo(nc,notification_class), uw,	0,	       0,	R,
-    "priority",				PRIORITY,			oo(nc,priority),		uwarr,	0,	       0,	R|IsArray,
-    "ack-required",			ACK_REQUIRED,		oo(nc,ack_required),	bits,	0,	  eiEvTr,	R,
-//    "recipient-list",		RECIPIENT_LIST,		oo(nc,recipient_list),reciplist,Last,	   0,	R	
-// modified by Jingbo Gao, 2003-9-1
-	"recipient-list",		RECIPIENT_LIST,		oo(nc,recipient_list),reciplist,0,	   0,	R,	
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(nc,go.profile_name), s132,	Last,		0,	 O  
-};
-
-propdescriptor	PRprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(program,go.object_id),ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(program,go.object_name),s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(program,go.object_type),et,	0,eiObjectTypes,R,
-    "program-state",		PROGRAM_STATE,		oo(program,prog_state),	et,		0, eiPrState,	R,
-    "program-change",		PROGRAM_CHANGE,		oo(program,prog_change),et,		0,	 eiPrChg,	W,
-    "reason-for-halt",		REASON_FOR_HALT,	oo(program,
-    											reason_for_halt),		et,		1,	 eiPrErr,	O|WithGroup,
-    "description-of-halt",	DESCRIPTION_OF_HALT,oo(program,
-    											description_of_halt),	s64,	1,		   0,	O|WithGroup,
-    "program-location",		PROGRAM_LOCATION,	oo(program,prog_location),s64,	0,	       0,	O,
-    "description",			DESCRIPTION,		oo(program,go.description),s132,0,	       0,	O,
-    "instance-of",			INSTANCE_OF,		oo(program,instance_of),s64,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(program,status_flags),bits,	0,	   eiStF,	R,
-    "reliability",			RELIABILITY,		oo(program,reliability),et,		0,	  eiReli,	O,
-//    "out-of-service",		OUT_OF_SERVICE,		oo(program,out_of_service),ebool,Last,	eiTF,	R
-// modified by Jingbo Gao, 2003-9-1
-	"out-of-service",		OUT_OF_SERVICE,		oo(program,out_of_service),ebool,0,	eiTF,	R,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(program,go.profile_name), s132,	Last,  	0,	 O  
-};
-
-propdescriptor	SCprops[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(schedule,go.object_id),ob_id,0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(schedule,go.object_name),s64,0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(schedule,go.object_type),et,	0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(schedule,pv),		none,	0,	  	   0,	R,
-    "description",			DESCRIPTION,		oo(schedule,go.description),s132,0,	       0,	O,
-    "effective-period",		EFFECTIVE_PERIOD,	oo(schedule,
-    											effective_period),		dtrange,0,		   0,	R,
-    "weekly-schedule",		WEEKLY_SCHEDULE,	oo(schedule,
-    											weekly_schedule),		wsched,	1,		   0,	O|AtLeast1|IsArray,
-    "exception-schedule",	EXCEPTION_SCHEDULE,	oo(schedule,
-    											exception_schedule),	xsched,	1,		   0,	O|AtLeast1|IsArray,
-"list-of-object-property-references",
-            LIST_OF_OBJECT_PROPERTY_REFERENCES,	oo(schedule,
-                                                list_obj_prop_ref),		lopref,	0,		   0,	R,
-//    "priority-for-writing",	PRIORITY_FOR_WRITING,oo(schedule,
-//    											priority_for_writing),	u16,	Last,	   0,	R
-// modified by Jingbo Gao, 2003-9-1
-	"priority-for-writing",	PRIORITY_FOR_WRITING,oo(schedule,
-												priority_for_writing),	u16,	0,	   0,	R,
-// added by ltribble, 10/27/2005
-	"status-flags",         STATUS_FLAGS,       oo(schedule, status_flags), bits, 0, eiStF, O,
-    "reliability",			RELIABILITY,		oo(schedule, reliability),	    et,		 0,	  eiReli,	    O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(schedule, out_of_service),	ebool,   0,	  eiTF,	        O,
-	"schedule-default",		SCHEDULE_DEFAULT,	oo(schedule, schedule_default), none,	0,	0,	R,			
-	//Added by Jingbo Gao, 2003-9-1
-	"profile-name",			PROFILE_NAME,       oo(schedule,go.profile_name), s132,	Last,  0,	 O  
-};
-
-propdescriptor	AVGprops[]={
-//	"property name",		     property identifier,    	struc offset,		              parse,	group,	table,	qualifiers
-    "object-identifier",	     OBJECT_IDENTIFIER,	        oo(avg,go.object_id),	           ob_id,	0,	       0,	R,
-    "object-name",			     OBJECT_NAME,		        oo(avg,go.object_name),	           s64,	    0,	       0,	R,
-    "object-type",			     OBJECT_TYPE,		        oo(avg,go.object_type),	           et,		0,eiObjectTypes,R,
-// msdanner 9/2004, minimum-value was marked 'W' + commandable
-    "minimum-value",		     MINIMUM_VALUE,		        oo(avg,minimum_value),			   flt,		0,	       0,	R,
-    "minimum-value-timestamp",   MINIMUM_VALUE_TIMESTAMP,   oo(avg,minimum_value_timestamp),   dt,      0,	       0,	O,
-    "average-value",		     AVERAGE_VALUE,		        oo(avg,average_value),	           flt,	    0,	       0,	R,
-    "variance-value",	         VARIANCE_VALUE,	        oo(avg,variance_value),            flt,	    0,	       0,	O,
-    "maximum-value",		     MAXIMUM_VALUE,		        oo(avg,maximum_value),		       flt,     0,	       0,	O,
-    "maximum-value-timestamp",   MAXIMUM_VALUE_TIMESTAMP,   oo(avg,maximum_value_timestamp),   dt,     0,	       0,	O,
-    "description",			     DESCRIPTION,		        oo(avg,go.description),	           s132,	0,	       0,	O,
-    "attempted-samples",	     ATTEMPTED_SAMPLES,		    oo(avg,attempted_samples),		   uw,		0,	       0,	W,
-    "valid-samples",	         VALID_SAMPLES,	            oo(avg,valid_samples),             uw,	    0,	       0,	R,
-    "object-property-reference", OBJECT_PROPERTY_REFERENCE, oo(avg,obj_prop_ref),              devobjpropref,	0,         0,	R,
-// msdanner 9/2004 - window-interval & window-samples changed to 'must be writable'
-    "window-interval",		     WINDOW_INTERVAL,		    oo(avg,window_interval),	       uw,	    0,	   0,	W,
-//madanner 6/03: Added 'Last' code for prop search
-//  "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Intr,      0,    O|WithService,
-//    "window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    Last|Intr,      0,    O|WithService,
-//modified by Jingbo Gao, 2003-9-1
-	"window-samples",			 WINDOW_SAMPLES,		    oo(avg,window_samples),	           uw,	    0,      0,    W,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",				 PROFILE_NAME,				oo(avg,go.profile_name),		   s132,	Last,	   0,	 O  
-};
-
-propdescriptor	MVprops[]={
-//	"property name",		property identifier,	struc offset,		    parse,	group,	table,	    qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(msv,go.object_id),	    ob_id,	 0,	       0,	    R,
-    "object-name",			OBJECT_NAME,		oo(msv,go.object_name),	    s64,	 0,	       0,	    R,
-    "object-type",			OBJECT_TYPE,		oo(msv,go.object_type),	    et,		 0,  eiObjectTypes,  R,
-    "present-value",		PRESENT_VALUE,		oo(msv,present_value),	    uw,		 0,	       0,	    W|IsCommandable,
-    "description",			DESCRIPTION,		oo(msv,go.description),	    s132,	 0,	       0,	    O,
-    "status-flags",			STATUS_FLAGS,		oo(msv,status_flags),	    bits,	 0,	       0,	    R,
-    "event-state",			EVENT_STATE,		oo(msv,event_state),	    et,		 0,  eiEvState,	    R,
-    "reliability",			RELIABILITY,		oo(msv,reliability),	    et,		 0,	  eiReli,	    O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(msv,out_of_service),	    ebool,   0,		eiTF,	    R,
-    "number-of-states",		NUMBER_OF_STATES,	oo(msv,number_of_states),   uw,		 0,	       0,	    R,
-    "state-text",			STATE_TEXT,			oo(msv,state_text),		    statext, 0, MAX_STATE_TEXTS, O|IsArray,
-// msdanner 9/2004 - these properties are not required for multi-state values.
-//    "priority-array",		PRIORITY_ARRAY,		oo(msv,priority_array),	    pau,	 0,	       0,	    R|IsArray,
-//    "relinquish-default",	RELINQUISH_DEFAULT,	oo(msv,relinquish_default),  uw,	 0,	       0,	    R,
-    "priority-array",		PRIORITY_ARRAY,		oo(msv,priority_array),	    pau,	 3,	       0,	    O|IsArray|WithGroup,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(msv,relinquish_default),  uw,	 3,	       0,	    O|WithGroup,
-    "time-delay",			TIME_DELAY,			oo(msv,time_delay),		    uw,		 Intr,	   0,	    O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(msv,notification_class), uw,	     Intr,	   0,	    O|WithService,
-    "alarm-values",			ALARM_VALUES,		oo(msv,alarm_values),	    stavals, Intr,	   0,	    O|WithService,
-    "fault-values",			FAULT_VALUES,		oo(msv,fault_values),	    stavals, Intr,	   0,	    O|WithService,
-     "event-enable",  		EVENT_ENABLE,  		oo(msv,event_enable),  	    bits,      Intr,      0,       O|WithService,
-     "acked-transitions",  	ACKED_TRANSITIONS,  oo(msv,acked_transitions),  bits,      Intr,      eiEvTr,  O|WithService,
-     "notify-type",  		NOTIFY_TYPE,  		oo(msv,notify_type),  	    et,        Intr,      eiNT,    O|WithService,
-//madanner 6/03: Added 'Last' code for prop search
-//     "event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMP,     Last|Intr,      0,       O|IsArray|WithService
-//modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(msv,event_time_stamps),  TSTMParr,     Intr,    0,       O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",		    PROFILE_NAME,       oo(msv,go.profile_name),		s132,	Last,	0,		O  
-};
-
-
-propdescriptor	TRprops[]={
-     //	"property name",		property identifier,	         struc offset,						  parse,	group,	table,	qualifiers
-     "object-identifier",  			OBJECT_IDENTIFIER,  		  oo(trend,go.object_id),  			  ob_id,    0,      0,       R,
-     "object-name",  				OBJECT_NAME, 			      oo(trend,go.object_name),  		      s64,      0,      0,       R,
-     "object-type",  				OBJECT_TYPE, 			      oo(trend,go.object_type), 		      et,       0,      0,       R,
-     "description",  				DESCRIPTION,  			      oo(trend,go.description),  		      s132,     0,      0,       O,
-     "enable",  					ENABLE,  					  oo(trend,log_enable),  			      ebool,    0,      eiTF,    W,
-     "start-time",  	 			START_TIME,  	 		      oo(trend,start_time),  	 		      dt,       0,      0,       O,
-     "stop-time",  					STOP_TIME,  				  oo(trend,stop_time),  				  dt,       0,      0,       O, 
-     "log-device-object-property",  LOG_DEVICE_OBJECT_PROPERTY,   oo(trend,log_device_object_property),  devobjpropref,   0,      0,       O, 
-     "log-interval",  				LOG_INTERVAL,  			      oo(trend,log_interval),  			      uw,       0,      0,       O, 
-     "cov-resubscription-interval", COV_RESUBSCRIPTION_INTERVAL,  oo(trend,cov_resubscription_interval),  uw,       0,      0,       O,
-     "client-cov-increment",  		CLIENT_COV_INCREMENT,  	      oo(trend,client_cov_increment),  	      flt,      0,      0,       O,
-     "stop-when-full",  			STOP_WHEN_FULL,  		      oo(trend,stop_when_full),  		      ebool,    0,      eiTF,    R,
-     "buffer-size",  				BUFFER_SIZE,  			      oo(trend,buffer_size),  			      uw,       0,      0,       R,
-     "log-buffer",  				LOG_BUFFER,  			      oo(trend,log_buffer),  			      LOGREC,   0,      0,       R,
-     "record-count",  				RECORD_COUNT,  			      oo(trend,record_count),  			      uw,       0,      0,       W,
-//     "total-record-count",  		TOTAL_RECORD_COUNT,  	      oo(trend,total_record_count),  	      uw,       0,      0,       R,
-	 "total-record-count",  		TOTAL_RECORD_COUNT,  	      oo(trend,total_record_count),  	      ud,       0,      0,       R,
-    "notification-threshold",  	NOTIFICATION_THRESHOLD,       oo(trend,notification_threshold),      uw,       0,      0,       O|WithService,
-     "records-since-notification",  RECORDS_SINCE_NOTIFICATION,   oo(trend,records_since_notification),  uw,       0,      0,       O|WithService,
-  //   "previous-notify-time",  		PREVIOUS_NOTIFY_TIME,  	      oo(trend,previous_notify_time),  	      dt,       0,      0,       O|WithService,
-//     "current-notify-time",  		CURRENT_NOTIFY_TIME,  	      oo(trend,current_notify_time),  	      dt,       0,      0,       O|WithService,
-//Added by Zhu Zhenhua, 2004-5-11
-// msdanner 9/2004 - fixed spelling error
-//	"last_notify_record",			LAST_NOTIFY_RECORD,	          oo(trend, last_notify_record),			uw,		0,		0,		O|WithService,
-	  "last-notify-record",			LAST_NOTIFY_RECORD,	          oo(trend, last_notify_record),			uw,		0,		0,		O|WithService,
-     "event-state",  				EVENT_STATE,  			      oo(trend,event_state),  			      et,       0,  eiEvState,   R,
-     "notification-class",  		NOTIFICATION_CLASS,  	      oo(trend,notification_class),  	      uw,       0,      0,       O|WithService,
-     "event-enable",  				EVENT_ENABLE,  			      oo(trend,event_enable),  			      bits,     0,      0,       O|WithService,
-     "acked-transitions",  			ACKED_TRANSITIONS,  		  oo(trend,acked_transitions),  		  bits,     0,      eiEvTr,  O|WithService,
-     "notify-type",  				NOTIFY_TYPE,  			      oo(trend,notify_type),  			      et,       0,      eiNT,    O|WithService,
-//madanner 6/03: Added 'Last' code for prop search
-//     "event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMP,    Last,      0,       O|IsArray|WithService
-//modified by Jingbo Gao, 2003-9-1
-	"event-time-stamps",  			EVENT_TIME_STAMPS,  		  oo(trend,event_time_stamps),  		  TSTMParr,    0,      0,       O|IsArray|WithService,
-//Added by Jingbo Gao, 2003-9-1
-	"profile-name",				    PROFILE_NAME,				  oo(trend,go.profile_name),			   s132,	Last,			0,	 O
-};
-
-propdescriptor ProprietaryObjProps[] = 
-{
-	 //	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
-     "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(proprietary,  go.object_id),   	ob_id,    0,      0,       R,
-     "object-name",  			OBJECT_NAME, 			      oo(proprietary,  go.object_name),  	s64,      0,      0,       R,
-     "object-type",  			OBJECT_TYPE, 			      oo(proprietary,  go.object_type), 	et,       Last,   0,       R,
-};
-
-propdescriptor LFSPProps[] = 
-{
-	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lifesafetypoint,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(lifesafetypoint,  go.object_name),  	s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(lifesafetypoint,  go.object_type), 	et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(lifesafetypoint,  go.description),     s132,     0,      0,       O,
-	"present-value",		    PRESENT_VALUE,		          oo(lifesafetypoint,  present_value),	    et,		  0,      eiLifeSafetyState,	   R,
-	"tracking-value",           TRACKING_VALUE,               oo(lifesafetypoint,  tracking_value),     et,       0,      eiLifeSafetyState,	   O,
-	"device-type",			    DEVICE_TYPE,		          oo(lifesafetypoint,  device_type),		s64,	  0,	  0,	   O,
-    "status-flags",			    STATUS_FLAGS,		          oo(lifesafetypoint,  status_flags),	    bits,	  0,	  0,	   R,
-	"event-state",			    EVENT_STATE,		          oo(lifesafetypoint,  event_state),	    et,		  0,      eiEvState, R,
-    "reliability",			    RELIABILITY,		          oo(lifesafetypoint,  reliability),	    et,		  0,	  eiReli,  R,
-    "out-of-service",		    OUT_OF_SERVICE,		          oo(lifesafetypoint,  out_of_service),	    ebool,    0,	  eiTF,	   R,
-	"mode",                     MODE,                         oo(lifesafetypoint,  mode),               et,       0,      eiLifeSafetyMode, W,
-	"accepted-modes",           ACCEPTED_MODES,               oo(lifesafetypoint,  accepted_modes),     etl,       0,      eiLifeSafetyMode, O,    
-	"time-delay",               TIME_DELAY,                   oo(lifesafetypoint,  time_delay),         uw,	      0,	  0,  	   O|WithService,
-	"notification-class",	    NOTIFICATION_CLASS,	          oo(lifesafetypoint,  notification_class), uw,	      0,	  0,  	   O|WithService,
-	"life-safety-alarm-values",  LIFE_SAFETY_ALARM_VALUES,     oo(lifesafetypoint,  life_safety_alarm_values),   etl, 0,	eiLifeSafetyState,      O|WithService,		
-	"alarm-values",             ALARM_VALUES,                 oo(lifesafetypoint,  alarm_values),       etl,       0,      eiLifeSafetyState,       O|WithService, 
-	"fault-values",             FAULT_VALUES,                 oo(lifesafetypoint,  fault_values),       etl,       0,      eiLifeSafetyState,       O|WithService, 
-	"event-enable",  			EVENT_ENABLE,  			      oo(lifesafetypoint,  event_enable),  		bits,     0,      0,       O|WithService,
-	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(lifesafetypoint,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
-	"notify-type",  			NOTIFY_TYPE,  			      oo(lifesafetypoint,  notify_type),  		et,       0,      eiNT,    O|WithService,
-	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(lifesafetypoint,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
-	"silenced",                 SILENCED,                     oo(lifesafetypoint,  silenced),           et,       0,      eiSilencedState,       R,
-    "operation-expected",       OPERATION_EXPECTED,           oo(lifesafetypoint,  operation_expected), et,       0,      eiLifeSafetyOperation, R,
-	"maintenance-required",     MAINTENANCE_REQUIRED,         oo(lifesafetypoint,  maintenance_required),et,      0,      eiMaintenance, O, 
-    "setting",                  SETTING,                      oo(lifesafetypoint,  setting),            uw,       0,      0,       O,
-    "direct-reading",           DIRECT_READING,               oo(lifesafetypoint,  direct_reading),     flt,      0,      0,       O,
-    "units",                    UNITS,                        oo(lifesafetypoint,  units),              et,       0,      eiEU,    O,
-	"member-of",                MEMBER_OF,                    oo(lifesafetypoint,  member_of),          lodoref,0,  0,       O|IsArray,    
-	"profile-name",				PROFILE_NAME,				  oo(lifesafetypoint,  go.profile_name),	s132,	  Last,	  0,       O
-};
-
-propdescriptor LFSZProps[] = 
-{
-	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lifesafetyzone,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(lifesafetyzone,  go.object_name),  s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(lifesafetyzone,  go.object_type), 	et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(lifesafetyzone,  go.description),  s132,     0,      0,       O,
-	"present-value",		    PRESENT_VALUE,		          oo(lifesafetyzone,  present_value),	et,		  0,      eiLifeSafetyState,	   R,
-	"tracking-value",           TRACKING_VALUE,               oo(lifesafetyzone,  tracking_value),  et,       0,      eiLifeSafetyState,	   O,
-	"device-type",			    DEVICE_TYPE,		          oo(lifesafetyzone,  device_type),		s64,	  0,	  0,	   O,
-	"status-flags",			    STATUS_FLAGS,		          oo(lifesafetyzone,  status_flags),	bits,	  0,	  0,	   R,
-	"event-state",			    EVENT_STATE,		          oo(lifesafetyzone,  event_state),	    et,		  0,      eiEvState, R,
-    "reliability",			    RELIABILITY,		          oo(lifesafetyzone,  reliability),	    et,		  0,	  eiReli,  R,
-    "out-of-service",		    OUT_OF_SERVICE,		          oo(lifesafetyzone,  out_of_service),	ebool,    0,	  eiTF,	   R,
-	"mode",                     MODE,                         oo(lifesafetyzone,  mode),            et,       0,      eiLifeSafetyMode, W,
-	"accepted-modes",           ACCEPTED_MODES,               oo(lifesafetyzone,  accepted_modes),  etl,       0,     eiLifeSafetyMode, O,    
-	"time-delay",               TIME_DELAY,                   oo(lifesafetyzone,  time_delay),         uw,	      0,	  0,  	   O|WithService,
-	"notification-class",	    NOTIFICATION_CLASS,	          oo(lifesafetyzone,  notification_class), uw,	      0,	  0,  	   O|WithService,
-	"life-safety-alarm-values",  LIFE_SAFETY_ALARM_VALUES,     oo(lifesafetyzone,  life_safety_alarm_values), etl, 0,	  eiLifeSafetyState,  	   O|WithService,		
-	"alarm-values",             ALARM_VALUES,                 oo(lifesafetyzone,  alarm_values),       etl,       0,      eiLifeSafetyState,       O|WithService, 
-	"fault-values",             FAULT_VALUES,                 oo(lifesafetyzone,  fault_values),       etl,       0,      eiLifeSafetyState,       O|WithService, 
-	"event-enable",  			EVENT_ENABLE,  			      oo(lifesafetyzone,  event_enable),  		bits,     0,      0,       O|WithService,
-	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(lifesafetyzone,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
-	"notify-type",  			NOTIFY_TYPE,  			      oo(lifesafetyzone,  notify_type),  		et,       0,      eiNT,    O|WithService,
-	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(lifesafetyzone,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
-	"silenced",                 SILENCED,                     oo(lifesafetyzone,  silenced),           et,       0,      eiSilencedState,       R,
-    "operation-expected",       OPERATION_EXPECTED,           oo(lifesafetyzone,  operation_expected), et,       0,      eiLifeSafetyOperation, R,
-	"maintenance-required",     MAINTENANCE_REQUIRED,         oo(lifesafetyzone,  maintenance_required),ebool,   0,      0, O, 
-	"zone-members",             ZONE_MEMBERS,                 oo(lifesafetyzone,  zone_members),     lodoref,  0,  0,       R,   
-	"member-of",                MEMBER_OF,                    oo(lifesafetyzone,  member_of),        lodoref,  0,  0,       O,    
-	"profile-name",				PROFILE_NAME,				  oo(lifesafetyzone,  go.profile_name),	 s132,	  Last,	  0,        O
-};
-
-propdescriptor ACProps[] = 
-{
-	//	"property name",		property identifier,	      struc offset,					        parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(accumulator,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(accumulator,  go.object_name),  	s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(accumulator,  go.object_type), 	et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(accumulator,  go.description),  	s132,     0,      0,       O,
-	"present-value",		    PRESENT_VALUE,		          oo(accumulator,  present_value),	    uw,		  0,      0,	   R,
-	"device-type",			    DEVICE_TYPE,		          oo(accumulator,  device_type),		s64,	  0,	  0,	   O,
-	"status-flags",			    STATUS_FLAGS,		          oo(accumulator,  status_flags),	    bits,	  0,	  0,	   R,
-	"event-state",			    EVENT_STATE,		          oo(accumulator,  event_state),	    et,		  0,      eiEvState, R,
-    "reliability",			    RELIABILITY,		          oo(accumulator,  reliability),	    et,		  0,	  eiReli,  O,
-    "out-of-service",		    OUT_OF_SERVICE,		          oo(accumulator,  out_of_service),	    ebool,    0,	  eiTF,	   R,
-	"scale",                    SCALE,                        oo(accumulator,  scale),              escale,      0,      0,       R,   
-	"units",                    UNITS,                        oo(accumulator,  units),              et,       0,      eiEU,    R,
-	"prescale",                 PRESCALE,                     oo(accumulator,  prescale),           eprescl,   0,      0,       O,
-	"max-pres-value",           MAX_PRES_VALUE,               oo(accumulator,  max_pres_value),     uw,       0,      0,       R,   
-	"value-change-time",        VALUE_CHANGE_TIME,            oo(accumulator,  value_change_time),  dt,       0,      0,       O|WithService,    
-	"value-before-change",      VALUE_BEFORE_CHANGE,          oo(accumulator,  value_before_change),uw,       0,      0,       O|WithService,       
-	"value-set",                VALUE_SET,                    oo(accumulator,  value_set),          uw,       0,      0,       O|WithService,  
-	"logging-record",           LOGGING_RECORD,               oo(accumulator,  logging_record),     eaclr,     0,      0,       O,    
-	"logging-device",           LOGGING_DEVICE,               oo(accumulator,  logging_device.object_id),     ob_id,    0,      0,       O, 
-	"pulse-rate",               PULSE_RATE,                   oo(accumulator,  pulse_rate),         uw,       0,      0,       O|WithService,  	
-	"high-limit",			    HIGH_LIMIT,			          oo(accumulator,  high_limit),		    uw,	      Intr,	  0,	   O|WithService,
-    "low-limit",			    LOW_LIMIT,			          oo(accumulator,  low_limit),		    uw,	      Intr,	  0,	   O|WithService,	
-	"limit-monitoring-interval",LIMIT_MONITORING_INTERVAL,    oo(accumulator,  limit_monitoring_interval), uw,0,      0,       O|WithService, 
-	"notification-class",	    NOTIFICATION_CLASS,	          oo(accumulator,  notification_class), uw,	      0,	  0,  	   O|WithService,
-	"time-delay",               TIME_DELAY,                   oo(accumulator,  time_delay),         uw,	      0,	  0,  	   O|WithService,		
-	"limit-enable",             LIMIT_ENABLE,                 oo(accumulator,  limit_enable),       bits,     0,      0,       O|WithService, 
-	"event-enable",  			EVENT_ENABLE,  			      oo(accumulator,  event_enable),  		bits,     0,      0,       O|WithService,
-	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(accumulator,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
-	"notify-type",  			NOTIFY_TYPE,  			      oo(accumulator,  notify_type),  		et,       0,      eiNT,    O|WithService,
-	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(accumulator,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
-	"profile-name",				PROFILE_NAME,				  oo(accumulator,  go.profile_name),	s132,	  Last,	  0,       O
-};
-
-propdescriptor PCProps[] = 
-{
-	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(pulseconverter,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(pulseconverter,  go.object_name),     s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(pulseconverter,  go.object_type), 	   et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(pulseconverter,  go.description),     s132,     0,      0,       O,
-	"present-value",		    PRESENT_VALUE,		          oo(pulseconverter,  present_value),      flt,	     0,      0,	      R,
-	"input-reference",          INPUT_REFERENCE,              oo(pulseconverter,  input_reference),    propref,  0,      0,       O,  
-	"status-flags",			    STATUS_FLAGS,		          oo(pulseconverter,  status_flags),	   bits,	 0,	     0,	      R,
-	"event-state",			    EVENT_STATE,		          oo(pulseconverter,  event_state),	       et,		 0,      eiEvState, R,
-	"reliability",			    RELIABILITY,		          oo(pulseconverter,  reliability),	       et,		 0,	     eiReli,  O,
-    "out-of-service",		    OUT_OF_SERVICE,		          oo(pulseconverter,  out_of_service),	   ebool,    0,	     eiTF,	   R,
-	"units",                    UNITS,                        oo(pulseconverter,  units),              et,       0,      eiEU,    R,
-	"scale-factor",             SCALE_FACTOR,                 oo(pulseconverter,  scale_factor),       flt,      0,      0,       R,
-	"adjust-value",             ADJUST_VALUE,                 oo(pulseconverter,  adjust_value),       flt,      0,      0,       W,
-	"count",                    COUNT,                        oo(pulseconverter,  count),              uw,       0,      0,       R,    
-	"update-time",              UPDATE_TIME,                  oo(pulseconverter,  update_time),        dt,       0,      0,       R,
-	"count-change-time",        COUNT_CHANGE_TIME,            oo(pulseconverter,  count_change_time),  dt,       0,      0,       R|WithService,         
-	"count-before-change",      COUNT_BEFORE_CHANGE,          oo(pulseconverter,  count_before_change),uw,       0,      0,       R,
-	"cov-increment",            COV_INCREMENT,                oo(pulseconverter,  cov_increment),      flt,      0,      0,       O|WithService,    
-	"cov-period",               COV_PERIOD,                   oo(pulseconverter,  cov_period),         uw,       0,      0,       O|WithService,      
-	"notification-class",	    NOTIFICATION_CLASS,	          oo(pulseconverter,  notification_class), uw,	     0,	     0,  	  O|WithService,
-	"time-delay",               TIME_DELAY,                   oo(pulseconverter,  time_delay),         uw,	     0,	     0,  	  O|WithService,		
-	"high-limit",			    HIGH_LIMIT,			          oo(pulseconverter,  high_limit),		   flt,	     0,	     0,	      O|WithService,
-    "low-limit",			    LOW_LIMIT,			          oo(pulseconverter,  low_limit),		   flt,	     0,	     0,	      O|WithService,	
-	"deadband",                 DEADBAND,                     oo(pulseconverter,  deadband),           flt,      0,      0,       O|WithService,	
-	"limit-enable",             LIMIT_ENABLE,                 oo(pulseconverter,  limit_enable),       bits,     0,      0,       O|WithService, 
-	"event-enable",  			EVENT_ENABLE,  			      oo(pulseconverter,  event_enable),  	   bits,     0,      0,       O|WithService,
-	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(pulseconverter,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
-	"notify-type",  			NOTIFY_TYPE,  			      oo(pulseconverter,  notify_type),  	   et,       0,      eiNT,    O|WithService,
-	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(pulseconverter,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
-	"profile-name",				PROFILE_NAME,				  oo(pulseconverter,  go.profile_name),	   s132,	 Last,	 0,       O
-};
-
-propdescriptor LCProps[] = 
-{
-	//	"property name",		property identifier,	      struc offset,				 parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(lc,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(lc,  go.object_name),     s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(lc,  go.object_type), 	   et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(lc,  go.description),     s132,     0,      0,       O,
-	"present-value" ,           PRESENT_VALUE,                oo(lc,  present_value),	     et, 	 0,	eiShedState,  R,
-	"state-description",		STATE_DESCRIPTION,           oo(lc,  state_description), s132,	 0,		 0,			O,
-	"status-flags",			    STATUS_FLAGS,		          oo(lc,  status_flags),		bits,	 0,		0,			R,
-	"event-state",			    EVENT_STATE,		          oo(lc,  event_state),			et,		 0,      eiEvState, R,
-    "reliability",				RELIABILITY,				  oo(lc,reliability),			et,		 0,	  eiReli,	    O,
-    "requested-shed-level",     REQUESTED_SHED_LEVEL,         oo(lc, requested_shed_level), shedlevel,  0,   0,			W,
-    "start-time",  	 			START_TIME,  	 		      oo(lc,start_time),  	 		dt,       0,      0,       W,
-    "shed-duration",            SHED_DURATION,				  oo(lc, shed_duration),		ud,       0,      0,       W,
-    "duty-window",              DUTY_WINDOW,				  oo(lc, duty_window),			ud,		0,		0,			W,
-    "enable",  					ENABLE,  			          oo(lc,log_enable),  			ebool,    0,      eiTF,    W,
-    "full-duty-baseline",       FULL_DUTY_BASELINE,			  oo(lc,full_duty_baseline),	flt,	0,		0,			O,
-    "expected-shed-level",      EXPECTED_SHED_LEVEL,		oo(lc, expected_shed_level),	shedlevel,  0,   0,			R,	
-    "actual-shed-level",        ACTUAL_SHED_LEVEL,			oo(lc, actual_shed_level),		shedlevel,  0,   0,			R,
-    "shed-levels",              SHED_LEVELS,				oo(lc, shed_levels),			stavals,	0,		0,		W|IsArray,	
-    "shed-level-descriptions",   SHED_LEVEL_DESCRIPTIONS,	oo(lc, shed_level_descriptions), statext,	0, MAX_SHED_LEVELS,	R|IsArray,
-	"notification-class",	    NOTIFICATION_CLASS,	          oo(lc,  notification_class),	uw,	     Intr,	     0,  	  O|WithService,
-	"time-delay",               TIME_DELAY,                   oo(lc,  time_delay),			uw,	     Intr,	     0,  	  O|WithService,		
-	"event-enable",  			EVENT_ENABLE,  			      oo(lc,  event_enable),  		bits,     Intr,      0,       O|WithService,
-	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(lc,  acked_transitions),	bits,     Intr,      eiEvTr,  O|WithService,
-	"notify-type",  			NOTIFY_TYPE,  			      oo(lc,  notify_type),  		et,       Intr,      eiNT,    O|WithService,
-	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(lc,  event_time_stamps),	TSTMParr, Intr,      0,       O|IsArray|WithService,
-	"profile-name",				PROFILE_NAME,				  oo(lc,  go.profile_name),		s132,	 Last,	 0,       O
-};
-
-propdescriptor ADProps[] = 
-{
-	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(ad,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(ad,  go.object_name),     s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(ad,  go.object_type), 	   et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(ad,  go.description),     s132,     0,      0,       O,
-	"status-flags",			    STATUS_FLAGS,		          oo(ad,  status_flags),	bits,	  0,	  0,	   R,
-	"event-state",			    EVENT_STATE,		          oo(ad,  event_state),	    et,		  0,      eiEvState, R,
-    "reliability",				RELIABILITY,				  oo(ad,	reliability),	    et,		 0,	  eiReli,	    O,
-    "out-of-service",			OUT_OF_SERVICE,				  oo(ad,out_of_service),	    ebool,   0,		eiTF,	    R,
-    "present-value",            PRESENT_VALUE,				  oo(ad, present_value),	et,			0,	eiDoorValue,	W,
-    "relinquish-default",       RELINQUISH_DEFAULT,			  oo(ad, relinquish_default),	et,		0,	eiDoorValue,	R,
-    "priority-array",           PRIORITY_ARRAY,				  oo(ad, priority_array),	pae,		0,	eiDoorValuen,	R|IsArray,
-    "door-status",				DOOR_STATUS,				  oo(ad, door_status),		et,			0,	eiDoorStatus,	O|WithGroup|Woutofservice,
-    "lock-status",				LOCK_STATUS,				  oo(ad, lock_status),		et,			0,	eiLockStatus,	O|Woutofservice,
-    "secured-status",			SECURED_STATUS,				  oo(ad, secured_status),	et,			0,	eiDoorSecuredStatus,	O,
-    "door-members",				DOOR_MEMBERS,				  oo(ad, door_members),		lodoref,	0,		0,			O|IsArray,
-    "door-pulse-time",			DOOR_PULSE_TIME,			  oo(ad, door_pulse_time),	uw,			0,		0,			R,
-    "door-extended-pulse-time", DOOR_EXTENDED_PULSE_TIME,	  oo(ad, door_extended_pulse_time),	uw,	0,		0,			R,
-    "door-unlock-delay-time",   DOOR_UNLOCK_DELAY_TIME,		  oo(ad, door_unlock_delay_time),	uw,	0,		0,			O,
-    "door-open-too-long-time",  DOOR_OPEN_TOO_LONG_TIME,	  oo(ad, door_open_too_long_time),	uw,	0,		0,			R,
-    "door-alarm-state",         DOOR_ALARM_STATE,			  oo(ad, door_alarm_state),		et,	Intr, eiDoorAlarmState,	O|Woutofservice|WithService,
-    "masked-alarm-values",      MASKED_ALARM_VALUES,		  oo(ad, masked_alarm_values),  etl,	0,	eiDoorAlarmState,	O,
-    "maintenance-required",     MAINTENANCE_REQUIRED,		  oo(ad, maintenance_required),	et,		0,	eiMaintenance,	O,
-    "alarm-values",             ALARM_VALUES,				  oo(ad, alarm_values),		etl,	Intr,		eiDoorAlarmState,		O|WithService,
-    "fault-values",             FAULT_VALUES,				  oo(ad, fault_values),		etl,	Intr,		eiDoorAlarmState,		O|WithService,
-	"notification-class",	    NOTIFICATION_CLASS,	          oo(ad,  notification_class), uw,	     Intr,	     0,  	  O|WithService,
-	"time-delay",               TIME_DELAY,                   oo(ad,  time_delay),         uw,	     Intr,	     0,  	  O|WithService,		
-	"event-enable",  			EVENT_ENABLE,  			      oo(ad,  event_enable),  	   bits,     Intr,      0,       O|WithService,
-	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(ad,  acked_transitions),  bits,     Intr,      eiEvTr,  O|WithService,
-	"notify-type",  			NOTIFY_TYPE,  			      oo(ad,  notify_type),  	   et,       Intr,      eiNT,    O|WithService,
-	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(ad,  event_time_stamps),  TSTMParr, Intr,      0,       O|IsArray|WithService,
-
-	"profile-name",				PROFILE_NAME,				  oo(ad,  go.profile_name),	   s132,	 Last,	 0,       O
-};
-
-propdescriptor SVProps[] = 
-{
-	//	"property name",		property identifier,	      struc offset,				parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(sv,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(sv,  go.object_name),     s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(sv,  go.object_type), 	   et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(sv,  go.description),     s132,     0,      0,       O,
-	"node-type",				NODE_TYPE,					  oo(sv,  node_type),			et,		 0,	eiNodeType,	  R,
-	"node-subtype",				NODE_SUBTYPE,				  oo(sv,  node_subtype),        s132,	 0,      0,       O,
-	// Even though subordinate-list is an array, re-use the "list of device object reference" type here; we'll catch the difference when parsing.
-	"subordinate-list",         SUBORDINATE_LIST,             oo(sv,  subordinate_list),   lodoref,	 0,		 0,		  R|IsArray,  
-	"subordinate-annotations",  SUBORDINATE_ANNOTATIONS,	  oo(sv,  subordinate_annotations), statext, 0,	MAX_SV_ANNOTATIONS,	O|IsArray,
-	"profile-name",				PROFILE_NAME,				  oo(sv,  go.profile_name),	   s132,	 Last,	 0,       O
-};
-
-propdescriptor ELProps[] = 
-{
-	//	"property name",		property identifier,	      struc offset,					           parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(el,  go.object_id),   					ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(el,  go.object_name),					s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(el,  go.object_type), 					et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(el,  go.description),					s132,     0,      0,       O,
-	"status-flags",			    STATUS_FLAGS,		          oo(el,  status_flags),					bits,	  0,	  0,	   R,
-	"event-state",			    EVENT_STATE,		          oo(el,  event_state),						et,		  0,      eiEvState, R,
-    "reliability",				RELIABILITY,				  oo(el,  reliability),						et,		  0,	  eiReli,  O,
-    "enable",  					ENABLE,  			          oo(el,log_enable),  						ebool,    0,      eiTF,    W,
-    "start-time",  	 			START_TIME,  	 		      oo(el,start_time),  	 					dt,       0,      0,       O|WithGroup,
-    "stop-time",  				STOP_TIME,  				  oo(el,stop_time),  						dt,       0,      0,       O|WithGroup, 
-    "buffer-size",  			BUFFER_SIZE,  			      oo(el,buffer_size),  						uw,       0,      0,       R,
-    "log-buffer",  				LOG_BUFFER,  			      oo(el,log_buffer),  						LOGREC,   0,      0,       R,
-    "record-count",  			RECORD_COUNT,  			      oo(el,record_count),  					uw,       0,      0,       W,
-    "total-record-count",  		TOTAL_RECORD_COUNT,  	      oo(el,total_record_count),  				ud,       0,      0,       R,
-    "notification-threshold",  	NOTIFICATION_THRESHOLD,       oo(el,notification_threshold),			uw,       0,      0,       O|WithService,
-    "records-since-notification",  RECORDS_SINCE_NOTIFICATION,   oo(el,records_since_notification),		uw,       0,      0,       O|WithService,
-    "last-notify-record",			LAST_NOTIFY_RECORD,	          oo(el, last_notify_record),			uw,		  0,	  0,	   O|WithService,
-	"notification-class",	    NOTIFICATION_CLASS,	          oo(el,  notification_class),				uw,	      0,	  0,  	   O|WithService,
-	"event-enable",  			EVENT_ENABLE,  			      oo(el,  event_enable),  					bits,     0,      0,       O|WithService,
-	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(el,  acked_transitions),				bits,     0,      eiEvTr,  O|WithService,
-	"notify-type",  			NOTIFY_TYPE,  			      oo(el,  notify_type),  					et,       0,      eiNT,    O|WithService,
-	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(el,  event_time_stamps),				TSTMParr, 0,      0,       O|IsArray|WithService,
-	"profile-name",				PROFILE_NAME,				  oo(el,  go.profile_name),					s132,	 Last,	 0,        O
-};
-
-propdescriptor TLMProps[] = 
-{
-	//	"property name",		property identifier,	      struc offset,					 parse,	  group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  		  oo(tlm,  go.object_id),   	   ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			      oo(tlm,  go.object_name),     s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			      oo(tlm,  go.object_type), 	   et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			      oo(tlm,  go.description),     s132,     0,      0,       O,
-	"status-flags",			    STATUS_FLAGS,		          oo(tlm,  status_flags),	bits,	  0,	  0,	   R,
-	"event-state",			    EVENT_STATE,		          oo(tlm,  event_state),	    et,		  0,      eiEvState, R,
-    "reliability",				RELIABILITY,				  oo(tlm,  reliability),	    et,		 0,	  eiReli,	    O,
-    "enable",  					ENABLE,  			          oo(tlm,log_enable), 	      ebool,    0,      eiTF,    W,
-    "start-time",  	 			START_TIME,  	 		      oo(tlm,start_time),  	 		      dt,       0,      0,       O,
-    "stop-time",  				STOP_TIME,  				  oo(tlm,stop_time),  				  dt,       0,      0,       O, 
-    "log-device-object-property",  LOG_DEVICE_OBJECT_PROPERTY,   oo(tlm,log_device_object_property),  devobjpropref,   0,      0,       R, 
-    "log-interval",  			LOG_INTERVAL,  			      oo(tlm,log_interval),  			      uw,       0,      0,       R, 
-    "logging-type",             LOGGING_TYPE,				  oo(tlm, logging_type),  et, 0, eiLogType, R,
-	"align-intervals",			ALIGN_INTERVALS,			  oo(tlm, align_intervals), ebool, 0, eiTF, O,
-	"interval-offset",          INTERVAL_OFFSET,			  oo(tlm, interval_offset), uw, 0, 0, O,
-	"trigger",					TRIGGER,					  oo(tlm, trigger), ebool, 0, eiTF, O,
-    "stop-when-full",  			STOP_WHEN_FULL,  		      oo(tlm,stop_when_full),  		      ebool,    0,      eiTF,    R,
-    "buffer-size",  			BUFFER_SIZE,  			      oo(tlm,buffer_size),  	     uw,       0,      0,       R,
-    "log-buffer",  				LOG_BUFFER,  			      oo(tlm,log_buffer),  			      LOGREC,   0,      0,       R,
-    "record-count",  			RECORD_COUNT,  			      oo(tlm,record_count),  			      uw,       0,      0,       W,
-	"total-record-count",  		TOTAL_RECORD_COUNT,  	      oo(tlm,total_record_count),  	      ud,       0,      0,       R,
-    "notification-threshold",  	NOTIFICATION_THRESHOLD,       oo(tlm,notification_threshold),      uw,       0,      0,       O|WithService,
-    "records-since-notification",  RECORDS_SINCE_NOTIFICATION,   oo(tlm,records_since_notification),  uw,       0,      0,       O|WithService,
-	"last-notify-record",		LAST_NOTIFY_RECORD,	          oo(tlm, last_notify_record),			uw,		0,		0,		O|WithService,
-	"notification-class",	    NOTIFICATION_CLASS,	          oo(tlm,  notification_class), uw,	     0,	     0,  	  O|WithService,
-	"event-enable",  			EVENT_ENABLE,  			      oo(tlm,  event_enable),  	   bits,     0,      0,       O|WithService,
-	"acked-transitions",  		ACKED_TRANSITIONS,  		  oo(tlm,  acked_transitions),  bits,     0,      eiEvTr,  O|WithService,
-	"notify-type",  			NOTIFY_TYPE,  			      oo(tlm,  notify_type),  	   et,       0,      eiNT,    O|WithService,
-	"event-time-stamps",  		EVENT_TIME_STAMPS,  		  oo(tlm,  event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService,
-	"profile-name",				PROFILE_NAME,				  oo(tlm,  go.profile_name),	   s132,	 Last,	 0,       O
-};
-
-// Until *someone* fleshs out the real properties for a new object type
+// Use this until someone fleshes out the real properties for a new object type
 // The generic object properties - always supported
-propdescriptor PlaceholderProps[] = 
+#undef oo
+#define oo(m)  xxoo(placeholder_obj_type,m)
+propdescriptor PlaceholderProps[] =
 {
-	//	"property name",		property identifier,	struc offset,						parse,	group,  table,   qualifiers
-    "object-identifier",  		OBJECT_IDENTIFIER,  	oo(placeholder,  go.object_id),   	ob_id,    0,      0,       R,
-    "object-name",  			OBJECT_NAME, 			oo(placeholder,  go.object_name),   s64,      0,      0,       R,
-    "object-type",  			OBJECT_TYPE, 			oo(placeholder,  go.object_type), 	et,       0,      0,       R,
-	"description",  			DESCRIPTION,  			oo(placeholder,  go.description),   s132,     0,      0,       O,
-	// <Your properties here>
-	"profile-name",				PROFILE_NAME,			oo(placeholder,  go.profile_name),	s132,	 Last,	 0,       O
+// property identifier, struc offset,         parse,   group,  table,  qualifiers, firstRevision
+   { OBJECT_IDENTIFIER,   oo(go.object_id),     ob_id,    0,      0,     R },
+   { OBJECT_NAME,         oo(go.object_name),   s64,      0,      0,     R },
+   { OBJECT_TYPE,         oo(go.object_type),   et,       0,      eiObjectTypes,     R },
+   { DESCRIPTION,         oo(go.description),   s132,     0,      0,     O },
+   // <More properties here>
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,        oo(go.profile_name),  s132,    Last,    0,     O }
 };
 
-propdescriptor	CharstringProps[]={
-//	"property name",		property identifier,	struc offset,					parse,	group,	table,	    qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(charstring,go.object_id),	    ob_id,	 0,	       0,	    R,
-    "object-name",			OBJECT_NAME,		oo(charstring,go.object_name),	    s64,	 0,	       0,	    R,
-    "object-type",			OBJECT_TYPE,		oo(charstring,go.object_type),	    et,		 0,  eiObjectTypes,  R,
-    "present-value",		PRESENT_VALUE,		oo(charstring,present_value),	    s132,	 0,	       0,	    W|IsCommandable,
-    "description",			DESCRIPTION,		oo(charstring,go.description),	    s132,	 0,	       0,	    O,
-    "status-flags",			STATUS_FLAGS,		oo(charstring,status_flags),	    bits,	 0,	       0,	    R,
-    "event-state",			EVENT_STATE,		oo(charstring,event_state),			et,		 0,  eiEvState,	    R,
-    "reliability",			RELIABILITY,		oo(charstring,reliability),			et,		 0,	  eiReli,	    O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(charstring,out_of_service),	    ebool,   0,		eiTF,	    R,
-//  "priority-array",		PRIORITY_ARRAY,		oo(charstring,priority_array),	    pa??,	 3,	       0,	    O|IsArray|WithGroup,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(charstring,relinquish_default),  s132,	 3,	       0,	    O|WithGroup,
-    "time-delay",			TIME_DELAY,			oo(charstring,time_delay),		    uw,		 Intr,	   0,	    O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(charstring,notification_class),	uw,	     Intr,	   0,	    O|WithService,
-    "alarm-values",			ALARM_VALUES,		oo(charstring,alarm_values),	    actext,  Intr,	MAX_FAULT_STRINGS, O|IsArray|WithService,
-    "fault-values",			FAULT_VALUES,		oo(charstring,fault_values),	    actext,  Intr,	MAX_FAULT_STRINGS, O|IsArray|WithService,
-     "event-enable",  		EVENT_ENABLE,  		oo(charstring,event_enable),  	    bits,    Intr,     0,       O|WithService,
-     "acked-transitions",  	ACKED_TRANSITIONS,  oo(charstring,acked_transitions),	bits,    Intr,     eiEvTr,  O|WithService,
-     "notify-type",  		NOTIFY_TYPE,  		oo(charstring,notify_type),  	    et,      Intr,     eiNT,    O|WithService,
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(charstring,event_time_stamps),	TSTMParr, Intr,    0,       O|IsArray|WithService,
-	"profile-name",		    PROFILE_NAME,       oo(charstring,go.profile_name),		s132,	Last,	   0,		O  
+#undef oo
+#define oo(m)  xxoo(proprietary_obj_type,m)
+propdescriptor ProprietaryObjProps[] =
+{
+// property identifier, struc offset,         parse,   group,  table,  qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),     ob_id,    0,     0,     R },
+   { OBJECT_NAME,         oo(go.object_name),   s64,      0,     0,     R },
+   { OBJECT_TYPE,         oo(go.object_type),   et,       0,     eiObjectTypes,     R },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,  0,     R,  14 },
+   { PROFILE_NAME,        oo(go.profile_name),  s132,    Last,   0,     O }
 };
 
-propdescriptor	IntegerProps[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(integer,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(integer,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(integer,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(integer,present_value),	ptInt32,0,	       0,	W|IsCommandable,
-    "description",			DESCRIPTION,		oo(integer,go.description),	s132,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(integer,status_flags),	bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(integer,state),			et,		0,eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(integer,reliability),	et,		0,	 eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(integer,out_of_service),	ebool,  0,		eiTF,	R,
-    "units",				UNITS,				oo(integer,units),			et,		0,	    eiEU,	R,
-    "priority-array",		PRIORITY_ARRAY,		oo(integer,priority_array),	ptPai,	1,		   0,	O|WithGroup|IsArray,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(integer,relinquish_default), ptInt32,	1,		   0,	O|WithGroup,
-    "cov-increment",		COV_INCREMENT,		oo(integer,cov_increment),	ptInt32,	COV,	   0,	O|WithService,
-    "time-delay",			TIME_DELAY,			oo(integer,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(integer,notification_class),uw,	Intr,	   0,	O|WithService,
-    "high-limit",			HIGH_LIMIT,			oo(integer,high_limit),		ptInt32,	Intr,	   0,	O|WithService,
-    "low-limit",			LOW_LIMIT,			oo(integer,low_limit),		ptInt32,	Intr,	   0,	O|WithService,
-    "deadband",				DEADBAND,			oo(integer,deadband),		ud,	Intr,	   0,	O|WithService,
-    "limit-enable",			LIMIT_ENABLE,		oo(integer,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(integer,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(integer,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(integer,notify_type),		et,		Intr,	eiNT,	O|WithService,
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(integer,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-	"profile-name",			PROFILE_NAME,       oo(integer,go.profile_name), s132,	Last,     0,	 O  
+#undef oo
+#define oo(m)  xxoo(ai_obj_type,m)
+propdescriptor AIprops[]=
+{
+// property id,      struc offset,        parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,oo(go.object_id),    ob_id,   0,       0,       R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,     0,       0,       R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,       eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),              flt,     0,       0,       R|Woutofservice },
+   { DESCRIPTION,      oo(go.description),  s132,    0,       0,       O },
+   { DEVICE_TYPE,      oo(device_type),     s64,     0,       0,       O },
+   { STATUS_FLAGS,     oo(go.status_flags),    bits,    0,       eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),     et,      0,       eiEvState,R },
+   { RELIABILITY,      oo(go.reliability),     et,      0,       eiReli,  O },
+   { OUT_OF_SERVICE,   oo(go.out_of_service),  ebool,   0,       eiTF,    R },
+   { UPDATE_INTERVAL,  oo(update_interval), uw,      0,       0,       O },
+   { UNITS,            oo(units),           et,      0,       eiEU,    R },
+   { MIN_PRES_VALUE,   oo(min_pres_value),  flt,     0,       0,       O },
+   { MAX_PRES_VALUE,   oo(max_pres_value),  flt,     0,       0, O },
+   { RESOLUTION,       oo(resolution),      flt,     0,       0, O },
+   { COV_INCREMENT,    oo(cov_increment),   flt,     COV,     0, O|WithService },
+   { TIME_DELAY,       oo(go.time_delay),      uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,oo(go.notification_class),uw,   Intr,    0, O|WithService },
+   { HIGH_LIMIT,       oo(high_limit),      flt,     Intr,    0, O|WithService },
+   { LOW_LIMIT,        oo(low_limit),       flt,     Intr,    0, O|WithService },
+   { DEADBAND,         oo(deadband),        flt,     Intr,    0, O|WithService },
+   { LIMIT_ENABLE,     oo(go.limit_enable),    bits,    Intr,eiLimEn,  O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable),    bits,    Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,      Intr,  eiNT,   O|WithService },
+   { EVENT_TIME_STAMPS,oo(go.event_time_stamps),TSTMParr,Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,              oo(go.profile_name),              s132,    Last,   0, O }
+};
+
+#undef oo
+#define oo(m)  xxoo(ao_obj_type,m)
+propdescriptor AOprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),           flt,  0,        0,   W|IsCommandable },
+   { DESCRIPTION,      oo(go.description),  s132, 0,        0,   O },
+   { DEVICE_TYPE,      oo(device_type),     s64,  0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags), bits, 0,    eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),        et,      0,eiEvState,   R },
+   { RELIABILITY,      oo(go.reliability),     et,      0,  eiReli, O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),  ebool,  0,     eiTF, R },
+   { UNITS,            oo(units),        et,      0,     eiEU,   R },
+   { MIN_PRES_VALUE,      oo(min_pres_value),  flt,  0,       0, O },
+   { MAX_PRES_VALUE,      oo(max_pres_value),  flt,  0,        0,   O },
+   { RESOLUTION,       oo(resolution),      flt,  0,        0,   O },
+   { PRIORITY_ARRAY,      oo(priority_array),  paf,  0,        0,   R|IsArray },
+   { RELINQUISH_DEFAULT,  oo(relinquish_default), flt,  0,        0,   R },
+   { COV_INCREMENT,    oo(cov_increment),   flt,  COV,     0, O|WithService },
+   { TIME_DELAY,       oo(go.time_delay),      uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw, Intr,    0, O|WithService },
+   { HIGH_LIMIT,       oo(high_limit),      flt,  Intr,    0, O|WithService },
+   { LOW_LIMIT,        oo(low_limit),    flt,  Intr,    0, O|WithService },
+   { DEADBAND,         oo(deadband),     flt,  Intr,    0, O|WithService },
+   { LIMIT_ENABLE,     oo(go.limit_enable), bits, Intr,eiLimEn,  O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable), bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,     Intr,  eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(av_obj_type,m)
+propdescriptor AVprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),           flt,  0,        0,   W|IsCommandable },
+   { DESCRIPTION,      oo(go.description),  s132, 0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags), bits, 0,    eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),        et,      0,eiEvState,   R },
+   { RELIABILITY,      oo(go.reliability),     et,      0,  eiReli, O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),  ebool,  0,     eiTF, R },
+   { UNITS,            oo(units),        et,      0,     eiEU,   R },
+   { PRIORITY_ARRAY,      oo(priority_array),  paf,  1,       0, O|WithGroup|IsArray },
+   { RELINQUISH_DEFAULT,  oo(relinquish_default), flt,  1,       0, O|WithGroup },
+   { COV_INCREMENT,    oo(cov_increment),   flt,  COV,     0, O|WithService },
+   { TIME_DELAY,       oo(go.time_delay),      uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw, Intr,    0, O|WithService },
+   { HIGH_LIMIT,       oo(high_limit),      flt,  Intr,    0, O|WithService },
+   { LOW_LIMIT,        oo(low_limit),    flt,  Intr,    0, O|WithService },
+   { DEADBAND,         oo(deadband),     flt,  Intr,    0, O|WithService },
+   { LIMIT_ENABLE,     oo(go.limit_enable), bits, Intr,eiLimEn,  O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable), bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,      Intr, eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { MIN_PRES_VALUE,   oo(min_pres_value),  flt,     0,       0,       O },
+   { MAX_PRES_VALUE,   oo(max_pres_value),  flt,     0,       0, O },
+   { RESOLUTION,       oo(resolution),      flt,     0,       0, O },
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(bi_obj_type,m)
+propdescriptor BIprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),           et,      0,    eiBPV,   R|Woutofservice },
+   { DESCRIPTION,      oo(go.description),  s132, 0,        0,   O },
+   { DEVICE_TYPE,      oo(device_type),     s64,  0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags), bits, 0,    eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),        et,      0,eiEvState,   R },
+   { RELIABILITY,      oo(go.reliability),     et,      0,  eiReli, O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),  ebool,  0,     eiTF, R },
+   { POLARITY,         oo(polarity),     et,      0,   eiPolar,  R },
+   { INACTIVE_TEXT,    oo(inactive_text),   s64,  1,       0, O|WithGroup },
+   { ACTIVE_TEXT,      oo(active_text),     s64,  1,       0, O|WithGroup },
+   { CHANGE_OF_STATE_TIME,oo(cos_time),     dt,      2,       0, O|WithGroup },
+   { CHANGE_OF_STATE_COUNT,oo(cos_count),     uw,      2,       0, O|WithGroup },
+   { TIME_OF_STATE_COUNT_RESET, oo(time_of_state_count_reset),dt,   2,       0, O|WithGroup },
+   { ELAPSED_ACTIVE_TIME,oo(elapsed_active_time), ud,   3,       0, O|WithGroup },
+   { TIME_OF_ACTIVE_TIME_RESET, oo(time_of_active_time_reset),   dt,   3,       0, O|WithGroup },
+   { TIME_DELAY,       oo(go.time_delay),      uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw, Intr,    0, O|WithService },
+   { ALARM_VALUE,      oo(alarm_value),     et,      Intr,  eiBPV,  O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable), bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,     Intr,  eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(bo_obj_type,m)
+propdescriptor BOprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),           et,      0,    eiBPV,   W|IsCommandable },
+   { DESCRIPTION,      oo(go.description),  s132, 0,        0,   O },
+   { DEVICE_TYPE,      oo(device_type),     s64,  0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags), bits, 0,    eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),        et,      0, eiEvState,  R },
+   { RELIABILITY,      oo(go.reliability),     et,      0,   eiReli,   O },
+   { OUT_OF_SERVICE,   oo(go.out_of_service),  ebool,  0,     eiTF, R },
+   { POLARITY,         oo(polarity),     et,      0,   eiPolar,  R },
+   { INACTIVE_TEXT,    oo(inactive_text),   s64,  1,       0, O|WithGroup },
+   { ACTIVE_TEXT,      oo(active_text),     s64,  1,       0, O|WithGroup },
+   { CHANGE_OF_STATE_TIME,oo(cos_time),     dt,      2,       0, O|WithGroup },
+   { CHANGE_OF_STATE_COUNT,oo(cos_count),     uw,      2,       0, O|WithGroup },
+   { TIME_OF_STATE_COUNT_RESET, oo(time_of_state_count_reset),dt,   2,       0, O|WithGroup },
+   { ELAPSED_ACTIVE_TIME,oo(elapsed_active_time), ud,   3,       0, O|WithGroup },
+   { TIME_OF_ACTIVE_TIME_RESET, oo(time_of_active_time_reset),dt,   3,       0, O|WithGroup },
+   { MINIMUM_OFF_TIME, oo(min_off_time),    ud,      0,        0,   O },
+   { MINIMUM_ON_TIME,  oo(min_on_time),     ud,      0,        0,   O },
+   { PRIORITY_ARRAY,      oo(priority_array),  pab,  0,    eiBPVn,  R|IsArray },
+   { RELINQUISH_DEFAULT,  oo(relinquish_default), et,   0,    eiBPV,   R },
+   { TIME_DELAY,       oo(go.time_delay),      uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw, Intr,    0, O|WithService },
+   { FEEDBACK_VALUE,      oo(feedback_value),  et,      Intr,  eiBPV,  O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable), bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,     Intr,  eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(bv_obj_type,m)
+propdescriptor BVprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),           et,      0,    eiBPV,   R|Woutofservice|IsCommandable },
+   { DESCRIPTION,      oo(go.description),  s132, 0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags), bits, 0,   eiStF, R },
+   { EVENT_STATE,      oo(go.event_state),        et,      0, eiEvState,  R },
+   { RELIABILITY,      oo(go.reliability),     et,      0,   eiReli,   O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),  ebool,  0,     eiTF, R },
+   { INACTIVE_TEXT,    oo(inactive_text),   s64,  1,       0, O|WithGroup },
+   { ACTIVE_TEXT,      oo(active_text),     s64,  1,       0, O|WithGroup },
+   { CHANGE_OF_STATE_TIME,oo(cos_time),     dt,      2,       0, O|WithGroup },
+   { CHANGE_OF_STATE_COUNT,oo(cos_count),     uw,      2,       0, O|WithGroup },
+   { TIME_OF_STATE_COUNT_RESET, oo(time_of_state_count_reset),dt,   2,       0, O|WithGroup },
+   { ELAPSED_ACTIVE_TIME,oo(elapsed_active_time), ud,   3,       0, O|WithGroup },
+   { TIME_OF_ACTIVE_TIME_RESET, oo(time_of_active_time_reset),dt,   3,       0, O|WithGroup },
+   { MINIMUM_OFF_TIME, oo(min_off_time),    ud,      0,        0,   O },
+   { MINIMUM_ON_TIME,  oo(min_on_time),     ud,      0,        0,   O },
+   { PRIORITY_ARRAY,      oo(priority_array),  pab,  4,    eiBPVn,  O|WithGroup|IsArray },
+   { RELINQUISH_DEFAULT,  oo(relinquish_default), et,   4,    eiBPV,   O|WithGroup },
+   { TIME_DELAY,       oo(go.time_delay),      uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw, Intr,    0, O|WithService },
+   { ALARM_VALUE,      oo(alarm_value),     et,      Intr,  eiBPV,  O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable), bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,      Intr, eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(calendar_obj_type,m)
+propdescriptor CLprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),ob_id,0,         0,   R },
+   { OBJECT_NAME,      oo(go.object_name),s64,0,         0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),et,  0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),     ebool,  0,     eiTF, R },
+   { DESCRIPTION,      oo(go.description),s132,0,        0,   O },
+   { DATE_LIST,        oo(date_list), calist,  0,    0, R },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(command_obj_type,m)
+propdescriptor CMprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),ob_id,  0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),et,   0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),         uw,      0,        0,   W },
+   { DESCRIPTION,      oo(go.description),s132,0,         0,   O },
+   { IN_PROCESS,       oo(in_process), ebool,  0,     eiTF, R },
+   { ALL_WRITES_SUCCESSFUL,oo(all_writes_successful), ebool,  0,     eiTF, R },
+   { ACTION,           oo(action),     act,  0, MAX_ACTION_TEXTS, R|IsArray },
+   { ACTION_TEXT,      oo(action_text),actext,  0, MAX_ACTION_TEXTS, O|IsArray },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(device_obj_type,m)
+propdescriptor DVprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),s64,   0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),et, 0,eiObjectTypes,R },
+   { SYSTEM_STATUS,    oo(system_status),et,  0,     eiDS,   R },
+   { VENDOR_NAME,      oo(vendor_name), s64,  0,        0,   R },
+   { VENDOR_IDENTIFIER,oo(vendor_id),   uw,      0,        0,   R },
+   { MODEL_NAME,       oo(model_name),  s32,  0,        0,   R },
+   { FIRMWARE_REVISION,   oo(firmware_rev),s32,  0,        0,   R },
+   { APPLICATION_SOFTWARE_VERSION,oo(application_software_ver),s32,   0,        0,   R },
+   { LOCATION,         oo(location), s64,  0,        0,   O },
+   { DESCRIPTION,      oo(go.description),s132,  0,        0,   O },
+   { PROTOCOL_VERSION, oo(protocol_ver),uw,      0,        0,   R },
+   { PROTOCOL_REVISION,   oo(protocol_rev),uw,      0,        0,   R },
+   { PROTOCOL_CONFORMANCE_CLASS,oo(protocol_conf_class),   uw,      0,        0,   O },  // was required, now deprecated...
+   { PROTOCOL_SERVICES_SUPPORTED,oo(protocol_services_supported),pss,0,        0,   R },
+   { PROTOCOL_OBJECT_TYPES_SUPPORTED,oo(object_types_supported),pos,  0,        0,   R },
+   { OBJECT_LIST,      oo(object_list), looref,  0,        0,   R|IsArray },
+   { STRUCTURED_OBJECT_LIST, oo(structured_object_list),  looref,  0, 0, O|IsArray,     7 },
+   { MAX_APDU_LENGTH_ACCEPTED,oo(max_apdu_length_accepted),uw, 0,        0,   R },
+   { SEGMENTATION_SUPPORTED,oo(segmentation_supported),et,      0, eiSegOpt,   R },
+   { MAX_SEGMENTS_ACCEPTED,  oo(max_segments_accepted), ud,       0,         0,  O },
+   { VT_CLASSES_SUPPORTED,oo(vt_classes_supported),  vtcl, VT,         0, O|WithService|WithGroup },
+   { ACTIVE_VT_SESSIONS,  0,                none, VT,         0, O|WithService|WithGroup },
+   { LOCAL_TIME,       oo(local_time),  ttime,   0,        0,   O },
+   { LOCAL_DATE,       oo(local_date),  ddate,   0,        0,   O },
+   { UTC_OFFSET,       oo(utc_offset),  ssint,   0,        0,   O },
+   { DAYLIGHT_SAVINGS_STATUS,oo(day_savings_status), ebool,  0,     eiTF, O },
+   { APDU_SEGMENT_TIMEOUT,oo(apdu_segment_timeout),  ud,      SEGSVC,     0, O|WithService },
+   { APDU_TIMEOUT,     oo(apdu_timeout),ud,      0,        0,   R },
+   { NUMBER_OF_APDU_RETRIES,oo(number_apdu_retries),   uw,      0,        0,   R },
+   { LIST_OF_SESSION_KEYS,oo(list_session_keys),     skeys,   0,        0,   O },
+   { TIME_SYNCHRONIZATION_RECIPIENTS,oo(time_synch_recipients), tsrecip,TMASTER,   0,   O|WithService },
+   { MAX_MASTER,       oo(max_master),  u127,MSTPMASTER,   0,   O|WithService },
+   { MAX_INFO_FRAMES,  oo(max_info_frames),uw,MSTPMASTER,  0,   O|WithService },
+   { DEVICE_ADDRESS_BINDING,oo(device_add_binding), dabind,  0,    0, R },
+   { DATABASE_REVISION,   oo(database_revision),     ud,     0,        0,   R },
+   { CONFIGURATION_FILES, oo(configuration_files),   looref, 0,         0,   O|IsArray },
+   { LAST_RESTORE_TIME,   oo(last_restore_time),     TSTMP,      0,       0, O },
+   { BACKUP_FAILURE_TIMEOUT,oo(backup_failure_timeout), uw, 0,     0,   O },
+   { BACKUP_PREPARATION_TIME,  oo(backup_preparation_time),  uw, 0,   0,             O, 10 },
+   { RESTORE_PREPARATION_TIME, oo(restore_preparation_time), uw, 0,   0,             O, 10 },
+   { RESTORE_COMPLETION_TIME,  oo(restore_completion_time),  uw, 0,   0,             O, 10 },
+   { BACKUP_AND_RESTORE_STATE, oo(backup_and_restore_state), et, 0,   eiBackupState, O, 10 },
+   { ACTIVE_COV_SUBSCRIPTIONS, oo(active_cov_subscriptions), lCOVSub, 0,    0,    O|IsArray },
+   { SLAVE_PROXY_ENABLE, oo(slave_proxy_enable), eboollist, 0, 0, O },
+   { MANUAL_SLAVE_ADDRESS_BINDING, oo(manual_slave_add_bind), dabind, 0, 0, O },
+   { AUTO_SLAVE_DISCOVERY,  oo(auto_slave_disc), eboollist, 0, 0, O },
+   { SLAVE_ADDRESS_BINDING, oo(slave_add_bind), dabind, 0, 0, O },
+   { LAST_RESTART_REASON, oo(last_restart_reason),       et,    0, eiRestartReason,       O, 7 },
+   { TIME_OF_DEVICE_RESTART, oo(time_of_device_restart), TSTMP, 0, 0,                     O, 7 },
+   { RESTART_NOTIFICATION_RECIPIENTS, oo(restart_notification_recipients), tsrecip, 0, 0, O, 7 },
+   { UTC_TIME_SYNCHRONIZATION_RECIPIENTS, oo(utc_time_synchronization_recipients), tsrecip,TMASTER, 0, O|WithService, 7 },
+   { TIME_SYNCHRONIZATION_INTERVAL, oo(time_synchronization_interval), uw,  0,     0,     O, 7 },
+   { ALIGN_INTERVALS, oo(align_intervals),               ebool, 0, eiTF,                  O, 7 },
+   { INTERVAL_OFFSET, oo(interval_offset),               uw,    0, 0,                     O, 7 },
+   { SERIAL_NUMBER,   oo(serial_number),   s132,  0, 0,                                   O, 14 },
+   { PROPERTY_LIST,   oo(go.property_list), PT_PROPLIST, 0,   0,                          R, 14 },
+   { PROFILE_NAME,    oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(ee_obj_type,m)
+propdescriptor EEprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,eiObjectTypes,R },
+   { DESCRIPTION,      oo(go.description),  s132, 0,        0,   O },
+   { EVENT_TYPE,       oo(parameter_list.event_type),   et,   0, eiEvType,   R },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,      0,     eiNT,   R },
+   { EVENT_PARAMETERS, oo(parameter_list),  evparm,  0,        0,   R },
+   { OBJECT_PROPERTY_REFERENCE,oo(obj_prop_ref),devobjpropref,0,       0,   R },
+   { EVENT_STATE,      oo(go.event_state),        et,      0, eiEvState,  R },
+   { EVENT_ENABLE,     oo(go.event_enable), bits, 0,  eiEvTr, R },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits,   0,  eiEvTr, R },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw, 1,       0, R|NotWithGroup2 },
+   // Note these properties were removed for revision 4
+   { RECIPIENT,        oo(recipient),    recip,   2,       0, O|NotWithGroup1 },
+   { PROCESS_IDENTIFIER,  oo(process_id),      uw,      2,       0, O|NotWithGroup1 },
+   { PRIORITY,         oo(priority),     uw,      2,       0, O|NotWithGroup1 },
+   { ISSUE_CONFIRMED_NOTIFICATIONS, oo(issue_conf_notifications),ebool,2,  eiTF, O|NotWithGroup1 },
+   // Note the above properties were removed for revision 4
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, 0,   0, R|IsArray },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   0,    0, R,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+
+   { STATUS_FLAGS,     oo(go.status_flags), bits, 0,    eiStF,   R,                                13 },
+   { RELIABILITY,      oo(go.reliability),     et,      0,  eiReli, R,                             13 },
+   // TODO: need to implement these
+// { FAULT_TYPE,     oo(fault_type),     et,      0,  eiFaultType, O,                              13 },
+// { FAULT_PARAMETERS, oo(fault_parameters),  PT_FAULT_PARMS, 0,  0, O,                            13 },
+
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(file_obj_type,m)
+propdescriptor FLprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),  ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),et,      0,eiObjectTypes,R },
+   { DESCRIPTION,      oo(go.description),s132, 0,        0,   O },
+   { FILE_TYPE,        oo(file_type),     s32,  0,        0,   R },
+   { FILE_SIZE,        oo(file_size),     ud,      0,        0,   R },
+   { MODIFICATION_DATE,   oo(mod_date),      dt,      0,        0,   R },
+   { ARCHIVE,       oo(archive),    ebool,  0,     eiTF, W },
+   { READ_ONLY,        oo(read_only),     ebool,  0,     eiTF, R },
+   { FILE_ACCESS_METHOD,  oo(access_method), et,      0,   eiFAM, R },
+   { RECORD_COUNT,       oo(record_count),  ud,     0,         0,    O },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(group_obj_type,m)
+propdescriptor GRprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),s64, 0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),et,  0,eiObjectTypes,R },
+   { DESCRIPTION,      oo(go.description),s132,   0,        0,   O },
+   { LIST_OF_GROUP_MEMBERS,oo(list_of_group_members), raslist,0,         0,   R },
+   { PRESENT_VALUE,    0,                    none,        0,   0,     R },
+   { PROPERTY_LIST,    oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(loop_obj_type,m)
+propdescriptor LPprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),  ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),         flt,  0,        0,   R },
+   { DESCRIPTION,      oo(go.description),s132, 0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags),  bits, 0,    eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),         et,      0, eiEvState,  R },
+   { RELIABILITY,      oo(go.reliability),   et,      0,   eiReli,   O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),ebool,  0,     eiTF, R },
+   { UPDATE_INTERVAL,  oo(update_interval),uw,  0,        0,   O },
+   { OUTPUT_UNITS,     oo(output_units),  et,      0,     eiEU,   R },
+   { MANIPULATED_VARIABLE_REFERENCE,oo(man_var_ref),        propref,0,         0,   R },
+   { CONTROLLED_VARIABLE_REFERENCE,oo(cont_var_ref),       propref,0,         0,   R },
+   { CONTROLLED_VARIABLE_VALUE,oo(cont_var_value),     flt,  0,        0,   R },
+   { CONTROLLED_VARIABLE_UNITS,oo(cont_var_units),     et,      0,     eiEU,   R },
+   { SETPOINT_REFERENCE,  oo(setpoint_ref),  setref,  0,        0,   R },
+   { SETPOINT,         oo(setpoint),      flt,  0,        0,   R },
+   { ACTION,           oo(action),     et,      0, eiLoopAct,  R },
+   { PROPORTIONAL_CONSTANT,oo(proportional_const), flt,  1,       0, O|WithGroup },
+   { PROPORTIONAL_CONSTANT_UNITS,oo(proportional_const_units),et, 1,    eiEU, O|WithGroup },
+   { INTEGRAL_CONSTANT,oo(integral_const),     flt,  2,       0, O|WithGroup },
+   { INTEGRAL_CONSTANT_UNITS,oo(integral_const_units),  et,      2,    eiEU, O|WithGroup },
+   { DERIVATIVE_CONSTANT,oo(derivative_const),      flt,  3,       0, O|WithGroup },
+   { DERIVATIVE_CONSTANT_UNITS,oo(derivative_const_units),et,      3,    eiEU, O|WithGroup },
+   { BIAS,          oo(bias),       flt,  0,        0,   O },
+   { MAXIMUM_OUTPUT,      oo(max_output), flt,  0,        0,   O },
+   { MINIMUM_OUTPUT,      oo(min_output), flt,  0,        0,   O },
+   { PRIORITY_FOR_WRITING,oo(priority_for_writing),  uw,      0,       0, R },
+   { COV_INCREMENT,    oo(cov_increment), flt,  COV,     0, O|WithService },
+   { TIME_DELAY,       oo(go.time_delay), uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw,  Intr,    0, O|WithService },
+   { ERROR_LIMIT,      oo(error_limit),   flt,  Intr,    0, O|WithService },
+   { DEADBAND,         oo(deadband),     flt,  Intr,    0, O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable),  bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits,Intr,eiEvTr, O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),   et,     Intr,  eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(mi_obj_type,m)
+propdescriptor MIprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),           uw,      0,       0, R|Woutofservice },
+   { DESCRIPTION,      oo(go.description),  s132, 0,        0,   O },
+   { DEVICE_TYPE,      oo(device_type),     s64,  0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags), bits, 0,   eiStF, R },
+   { EVENT_STATE,      oo(go.event_state),        et,      0, eiEvState,  R },
+   { RELIABILITY,      oo(go.reliability),     et,      0,   eiReli,   O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),  ebool,  0,     eiTF, R },
+   { NUMBER_OF_STATES, oo(num_of_states),   uw,      0,        0,   R },
+   { STATE_TEXT,       oo(state_text),      statext,0, MAX_STATE_TEXTS,   O|IsArray },
+   { TIME_DELAY,       oo(go.time_delay),      uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw, Intr,    0, O|WithService },
+   { ALARM_VALUES,     oo(alarm_values), stavals,Intr,     0, O|WithService },
+   { FAULT_VALUES,     oo(fault_values), stavals,Intr,     0, O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable), bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,     Intr,  eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(mo_obj_type,m)
+propdescriptor MOprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),           uw,      0,        0,   W|IsCommandable },
+   { DESCRIPTION,      oo(go.description),  s132, 0,        0,   O },
+   { DEVICE_TYPE,      oo(device_type),     s64,  0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags), bits, 0,    eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),        et,      0, eiEvState,  R },
+   { RELIABILITY,      oo(go.reliability),     et,      0,   eiReli,   O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),  ebool,  0,     eiTF, R },
+   { NUMBER_OF_STATES, oo(num_of_states),   uw,      0,        0,   R },
+   { STATE_TEXT,       oo(state_text),      statext,0, MAX_STATE_TEXTS,   O|IsArray },
+   { PRIORITY_ARRAY,      oo(priority_array),  pau,  0,        0,   R|IsArray },
+   { RELINQUISH_DEFAULT,  oo(relinquish_default), uw,   0,        0,   R },
+   { TIME_DELAY,       oo(go.time_delay),      uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw, Intr,    0, O|WithService },
+   { FEEDBACK_VALUE,      oo(feedback_value),  uw,      Intr,    0, O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable), bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,     Intr,  eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(nc_obj_type,m)
+propdescriptor NCprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id), ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),  s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),  et,      0,eiObjectTypes,R },
+   { DESCRIPTION,      oo(go.description),  s132, 0,        0,   O },
+   { NOTIFICATION_CLASS,  oo(go.notification_class), uw,   0,        0,   R },
+   { PRIORITY,         oo(priority),     uwarr,   0,        0,   R|IsArray },
+   { ACK_REQUIRED,     oo(ack_required), bits, 0,   eiEvTr,   R },
+   { RECIPIENT_LIST,      oo(recipient_list),reciplist,0,     0, R },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(program_obj_type,m)
+propdescriptor PRprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,oo(go.object_id),ob_id,  0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),et,   0,eiObjectTypes,R },
+   { PROGRAM_STATE,    oo(prog_state), et,      0, eiPrState,  R },
+   { PROGRAM_CHANGE,   oo(prog_change),et,      0,  eiPrChg,   W },
+   { REASON_FOR_HALT,  oo(reason_for_halt),    et,      1,  eiPrErr,   O|WithGroup },
+   { DESCRIPTION_OF_HALT,oo(description_of_halt),   s64,  1,       0, O|WithGroup },
+   { PROGRAM_LOCATION, oo(prog_location),s64,   0,        0,   O },
+   { DESCRIPTION,      oo(go.description),s132,0,         0,   O },
+   { INSTANCE_OF,      oo(instance_of),s64,  0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags),bits,   0,    eiStF,   R },
+   { RELIABILITY,      oo(go.reliability),et,      0,   eiReli,   O },
+   { OUT_OF_SERVICE,   oo(go.out_of_service),ebool,0, eiTF, R },
+
+   { EVENT_DETECTION_ENABLE,oo(go.event_detection_enable), ebool,   Intr, 0, O|WithService, 13 },
+   { NOTIFICATION_CLASS,oo(go.notification_class),uw,   Intr,0,        O|WithService, 13 },
+   { EVENT_ENABLE,     oo(go.event_enable),    bits,    Intr,eiEvTr,   O|WithService, 13 },
+   { EVENT_STATE,      oo(go.event_state),     et,      Intr,eiEvState,O|WithService, 13 },
+   { ACKED_TRANSITIONS,oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService, 13 },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,      Intr,eiNT,     O|WithService, 13 },
+   { EVENT_TIME_STAMPS,oo(go.event_time_stamps),TSTMParr,Intr,0,       O|IsArray|WithService, 13 },
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   13 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(schedule_obj_type,m)
+propdescriptor SCprops[]={
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),ob_id,0,         0,   R },
+   { OBJECT_NAME,      oo(go.object_name),s64,0,         0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),et,  0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(pv),     none, 0,       0, R },
+   { DESCRIPTION,      oo(go.description),s132,0,        0,   O },
+   { EFFECTIVE_PERIOD, oo(effective_period),      dtrange,0,        0, R },
+   { WEEKLY_SCHEDULE,  oo(weekly_schedule),    wsched,  1,       0, O|AtLeast1|IsArray },
+   { EXCEPTION_SCHEDULE,  oo(exception_schedule), xsched,  1,       0, O|AtLeast1|IsArray },
+   { SCHEDULE_DEFAULT,    oo(schedule_default), none,  0, 0, R },
+   { LIST_OF_OBJECT_PROPERTY_REFERENCES, oo(list_obj_prop_ref),     lopref,  0,       0, R },
+   { PRIORITY_FOR_WRITING,oo(priority_for_writing),  u16,  0,    0, R },
+   { STATUS_FLAGS,        oo(go.status_flags), bits, 0, eiStF, O },
+   { RELIABILITY,         oo(go.reliability),     et,      0,     eiReli,       O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service), ebool,   0,   eiTF,          O },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { NOTIFICATION_CLASS,oo(go.notification_class),uw,   Intr,    0, O|WithService, 13 },
+   { EVENT_ENABLE,     oo(go.event_enable),    bits,    Intr,eiEvTr,   O|WithService, 13 },
+   { EVENT_STATE,      oo(go.event_state),     et,      Intr,eiEvState,O|WithService, 13 },
+   { ACKED_TRANSITIONS,oo(go.acked_transitions),bits,   Intr,eiEvTr,   O|WithService, 13 },
+   { NOTIFY_TYPE,      oo(go.notify_type),     et,      Intr,  eiNT,   O|WithService, 13 },
+   { EVENT_TIME_STAMPS,oo(go.event_time_stamps),TSTMParr,Intr,   0, O|IsArray|WithService, 13 },
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   13 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(avg_obj_type,m)
+propdescriptor AVGprops[]={
+// property identifier,     struc offset,                   parse, group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,         oo(go.object_id),            ob_id, 0,        0,   R },
+   { OBJECT_NAME,            oo(go.object_name),             s64,       0,          0,   R },
+   { OBJECT_TYPE,            oo(go.object_type),             et,    0,eiObjectTypes,R },
+   { MINIMUM_VALUE,             oo(minimum_value),            flt,     0,        0,   R },
+   { MINIMUM_VALUE_TIMESTAMP,   oo(minimum_value_timestamp),   dt,      0,         0,   O },
+   { AVERAGE_VALUE,             oo(average_value),              flt,       0,          0,   R },
+   { VARIANCE_VALUE,           oo(variance_value),            flt,     0,          0,   O },
+   { MAXIMUM_VALUE,             oo(maximum_value),             flt,     0,          0,   O },
+   { MAXIMUM_VALUE_TIMESTAMP,   oo(maximum_value_timestamp),   dt,     0,          0,   O },
+   { DESCRIPTION,            oo(go.description),             s132,  0,        0,   O },
+   { ATTEMPTED_SAMPLES,        oo(attempted_samples),         uw,      0,        0,   W },
+   { VALID_SAMPLES,             oo(valid_samples),             uw,     0,          0,   R },
+   { OBJECT_PROPERTY_REFERENCE, oo(obj_prop_ref),              devobjpropref,  0,         0,  R },
+   { WINDOW_INTERVAL,          oo(window_interval),         uw,      0,      0, W },
+   { WINDOW_SAMPLES,         oo(window_samples),              uw,     0,      0,    W },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(msv_obj_type,m)
+propdescriptor MVprops[]={
+// property identifier, struc offset,         parse,  group,   table,       qualifiers
+   { OBJECT_IDENTIFIER,oo(go.object_id),       ob_id,   0,          0,       R },
+   { OBJECT_NAME,      oo(go.object_name),     s64,  0,          0,       R },
+   { OBJECT_TYPE,      oo(go.object_type),     et,      0,  eiObjectTypes,  R },
+   { PRESENT_VALUE,    oo(present_value),      uw,      0,          0,       W|IsCommandable },
+   { DESCRIPTION,      oo(go.description),     s132,    0,          0,       O },
+   { STATUS_FLAGS,     oo(go.status_flags),       bits,    0,    eiStF,       R },
+   { EVENT_STATE,      oo(go.event_state),        et,      0,  eiEvState,       R },
+   { RELIABILITY,      oo(go.reliability),        et,      0,     eiReli,       O },
+   { OUT_OF_SERVICE,   oo(go.out_of_service),     ebool,   0,      eiTF,     R },
+   { NUMBER_OF_STATES, oo(number_of_states),   uw,      0,          0,       R },
+   { STATE_TEXT,       oo(state_text),         statext, 0, MAX_STATE_TEXTS, O|IsArray },
+   { PRIORITY_ARRAY,      oo(priority_array),     pau,  3,          0,       O|IsArray|WithGroup },
+   { RELINQUISH_DEFAULT,  oo(relinquish_default),  uw,  3,          0,       O|WithGroup },
+   { TIME_DELAY,       oo(go.time_delay),         uw,      Intr,      0,     O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class), uw,       Intr,     0,     O|WithService },
+   { ALARM_VALUES,     oo(alarm_values),       stavals, Intr,      0,     O|WithService },
+   { FAULT_VALUES,     oo(fault_values),       stavals, Intr,      0,     O|WithService },
+   { EVENT_ENABLE,        oo(go.event_enable),       bits,      Intr,     eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,  oo(go.acked_transitions),  bits,      Intr,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),        et,        Intr,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr,     Intr,    0,       O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(trend_obj_type,m)
+propdescriptor TRprops[]={
+//  property identifier,          struc offset,                   parse, group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),             ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),              s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),           et,       0,      eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),              s132,     0,      0,       O },
+   { ENABLE,                   oo(log_enable),                ebool,    0,      eiTF,    W },
+   { START_TIME,                oo(start_time),               dt,       0,      0,       O },
+   { STOP_TIME,                oo(stop_time),                dt,       0,      0,       O },
+   { LOG_DEVICE_OBJECT_PROPERTY,   oo(log_device_object_property),  devobjpropref,   0,      0,       O },
+   { LOG_INTERVAL,                 oo(log_interval),                ud,       0,      0,       O },
+   { COV_RESUBSCRIPTION_INTERVAL,  oo(cov_resubscription_interval),  uw,       0,      0,       O },
+   { CLIENT_COV_INCREMENT,         oo(client_cov_increment),           flt,      0,      0,       O },
+   { STOP_WHEN_FULL,            oo(stop_when_full),              ebool,    0,      eiTF,    R },
+   { BUFFER_SIZE,               oo(buffer_size),                 ud,       0,      0,       R },
+   { LOG_BUFFER,                oo(log_buffer),               LOGREC,   0,      0,       R },
+   { RECORD_COUNT,                 oo(record_count),                ud,       0,      0,       W },
+   { TOTAL_RECORD_COUNT,           oo(total_record_count),          ud,       0,      0,       R },
+   { NOTIFICATION_THRESHOLD,       oo(notification_threshold),      ud,       0,      0,       O|WithService },
+   { RECORDS_SINCE_NOTIFICATION,   oo(records_since_notification),  ud,       0,      0,       O|WithService },
+   { LAST_NOTIFY_RECORD,            oo(last_notify_record),        ud,      0,    0,    O|WithService },
+   { EVENT_STATE,               oo(go.event_state),                 et,       0,  eiEvState,   R },
+   { NOTIFICATION_CLASS,           oo(go.notification_class),          uw,       0,      0,       O|WithService },
+   { EVENT_ENABLE,             oo(go.event_enable),             bits,     0,      eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,        oo(go.acked_transitions),        bits,     0,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,               oo(go.notify_type),                 et,       0,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,        oo(go.event_time_stamps),        TSTMParr,    0,      0,       O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(lifesafetypoint_obj_type,m)
+propdescriptor LFSPProps[] =
+{
+// property identifier,       struc offset,                      parse,   group,  table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),     ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),     s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),  et,       0,      eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),     s132,     0,      0,       O },
+   { PRESENT_VALUE,                oo(present_value),      et,       0,      eiLifeSafetyState, R },
+   { TRACKING_VALUE,               oo(tracking_value),     et,       0,      eiLifeSafetyState, O },
+   { DEVICE_TYPE,               oo(device_type),    s64,    0,    0,     O },
+   { STATUS_FLAGS,              oo(go.status_flags),       bits,     0,  eiStF,     R },
+   { EVENT_STATE,               oo(go.event_state),     et,       0,      eiEvState, R },
+   { RELIABILITY,               oo(go.reliability),     et,       0,    eiReli,  R },
+   { OUT_OF_SERVICE,               oo(go.out_of_service),     ebool,    0,    eiTF,     R },
+   { MODE,                         oo(mode),               et,       0,      eiLifeSafetyMode, W },
+   { ACCEPTED_MODES,               oo(accepted_modes),     etl,       0,      eiLifeSafetyMode, O },
+   { TIME_DELAY,                   oo(go.time_delay),         uw,        0,   0,        O|WithService },
+   { NOTIFICATION_CLASS,           oo(go.notification_class), uw,        0,   0,        O|WithService },
+   { LIFE_SAFETY_ALARM_VALUES,     oo(life_safety_alarm_values),   etl, 0, eiLifeSafetyState,      O|WithService },
+   { ALARM_VALUES,                 oo(alarm_values),       etl,       0,      eiLifeSafetyState,       O|WithService },
+   { FAULT_VALUES,                 oo(fault_values),       etl,       0,      eiLifeSafetyState,       O|WithService },
+   { EVENT_ENABLE,             oo(go.event_enable),       bits,     0,      eiEvTr,  O|WithService },
+   { ACKED_TRANSITIONS,        oo(go.acked_transitions),  bits,     0,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,               oo(go.notify_type),        et,       0,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,        oo(go.event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService },
+   { SILENCED,                     oo(silenced),           et,       0,      eiSilencedState,       R },
+   { OPERATION_EXPECTED,           oo(operation_expected), et,       0,      eiLifeSafetyOperation, R },
+   { MAINTENANCE_REQUIRED,         oo(maintenance_required),et,      0,      eiMaintenance, O },
+   { SETTING,                      oo(setting),            uw,       0,      0,       O },
+   { DIRECT_READING,               oo(direct_reading),     flt,      0,      0,       O },
+   { UNITS,                        oo(units),              et,       0,      eiEU,    O },
+   { MEMBER_OF,                    oo(member_of),          lodoref,0,  0,       O|IsArray },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(lifesafetyzone_obj_type,m)
+propdescriptor LFSZProps[] =
+{
+// property identifier,       struc offset,                      parse,   group,  table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),      ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),  s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),   et,       0,      eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),  s132,     0,      0,       O },
+   { PRESENT_VALUE,                oo(present_value),   et,        0,      eiLifeSafetyState,     R },
+   { TRACKING_VALUE,               oo(tracking_value),  et,       0,      eiLifeSafetyState,      O },
+   { DEVICE_TYPE,               oo(device_type),     s64,    0,    0,     O },
+   { STATUS_FLAGS,              oo(go.status_flags), bits,   0,  eiStF,     R },
+   { EVENT_STATE,               oo(go.event_state),      et,       0,      eiEvState, R },
+   { RELIABILITY,               oo(go.reliability),      et,       0,    eiReli,  R },
+   { OUT_OF_SERVICE,               oo(go.out_of_service),  ebool,    0,     eiTF,     R },
+   { MODE,                         oo(mode),            et,       0,      eiLifeSafetyMode, W },
+   { ACCEPTED_MODES,               oo(accepted_modes),  etl,       0,     eiLifeSafetyMode, O },
+   { TIME_DELAY,                   oo(go.time_delay),         uw,         0,   0,        O|WithService },
+   { NOTIFICATION_CLASS,           oo(go.notification_class), uw,         0,   0,        O|WithService },
+   { LIFE_SAFETY_ALARM_VALUES,     oo(life_safety_alarm_values), etl, 0,   eiLifeSafetyState,       O|WithService },
+   { ALARM_VALUES,                 oo(alarm_values),       etl,       0,      eiLifeSafetyState,       O|WithService },
+   { FAULT_VALUES,                 oo(fault_values),       etl,       0,      eiLifeSafetyState,       O|WithService },
+   { EVENT_ENABLE,                 oo(go.event_enable),        bits,     0,      eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,        oo(go.acked_transitions),  bits,     0,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,               oo(go.notify_type),      et,       0,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,        oo(go.event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService },
+   { SILENCED,                     oo(silenced),           et,       0,      eiSilencedState,       R },
+   { OPERATION_EXPECTED,           oo(operation_expected), et,       0,      eiLifeSafetyOperation, R },
+   { MAINTENANCE_REQUIRED,         oo(maintenance_required),ebool,   0,      0, O },
+   { ZONE_MEMBERS,                 oo(zone_members),     lodoref,  0,  0,       R },
+   { MEMBER_OF,                    oo(member_of),        lodoref,  0,  0,       O },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(accumulator_obj_type,m)
+propdescriptor ACProps[] =
+{
+// property identifier,       struc offset,                      parse,   group,  table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),      ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),   s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),   et,       0,      eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),   s132,     0,      0,       O },
+   { PRESENT_VALUE,                oo(present_value),       uw,       0,      0,      R },
+   { DEVICE_TYPE,               oo(device_type),     s64,    0,    0,     O },
+   { STATUS_FLAGS,              oo(go.status_flags),     bits,     0,    eiStF,     R },
+   { EVENT_STATE,               oo(go.event_state),      et,       0,      eiEvState, R },
+   { RELIABILITY,               oo(go.reliability),      et,       0,    eiReli,  O },
+   { OUT_OF_SERVICE,               oo(go.out_of_service),      ebool,    0,    eiTF,     R },
+   { SCALE,                        oo(scale),              escale,      0,      0,       R },
+   { UNITS,                        oo(units),              et,       0,      eiEU,    R },
+   { PRESCALE,                     oo(prescale),           eprescl,   0,      0,       O },
+   { MAX_PRES_VALUE,               oo(max_pres_value),     uw,       0,      0,       R },
+   { VALUE_CHANGE_TIME,            oo(value_change_time),  dt,       0,      0,       O|WithService },
+   { VALUE_BEFORE_CHANGE,          oo(value_before_change),uw,       0,      0,       O|WithService },
+   { VALUE_SET,                    oo(value_set),          uw,       0,      0,       O|WithService },
+   { LOGGING_RECORD,               oo(logging_record),     eaclr,     0,      0,       O },
+   { LOGGING_DEVICE,               oo(logging_device.object_id),     ob_id,    0,      0,       O },
+   { PULSE_RATE,                   oo(pulse_rate),         uw,       0,      0,       O|WithService },
+   { HIGH_LIMIT,                   oo(high_limit),          uw,        Intr,   0,     O|WithService },
+   { LOW_LIMIT,                 oo(low_limit),        uw,        Intr,   0,     O|WithService },
+   { LIMIT_MONITORING_INTERVAL,    oo(limit_monitoring_interval), uw,0,      0,       O|WithService },
+   { NOTIFICATION_CLASS,           oo(go.notification_class), uw,         0,   0,        O|WithService },
+   { TIME_DELAY,                   oo(go.time_delay),         uw,         0,   0,        O|WithService },
+   { LIMIT_ENABLE,                 oo(go.limit_enable),       bits,     0,      0,       O|WithService },
+   { EVENT_ENABLE,                 oo(go.event_enable),        bits,     0,      eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,        oo(go.acked_transitions),  bits,     0,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,               oo(go.notify_type),      et,       0,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,        oo(go.event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(pulseconverter_obj_type,m)
+propdescriptor PCProps[] =
+{
+// property identifier,       struc offset,                         parse,   group,  table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),         ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),     s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),      et,       0,      eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),     s132,     0,      0,       O },
+   { PRESENT_VALUE,                oo(present_value),      flt,       0,      0,         R },
+   { INPUT_REFERENCE,              oo(input_reference),    propref,  0,      0,       O },
+   { STATUS_FLAGS,              oo(go.status_flags),    bits,  0,        eiStF,        R },
+   { EVENT_STATE,               oo(go.event_state),         et,      0,      eiEvState, R },
+   { RELIABILITY,               oo(go.reliability),         et,      0,        eiReli,  O },
+   { OUT_OF_SERVICE,               oo(go.out_of_service),     ebool,    0,        eiTF,     R },
+   { UNITS,                        oo(units),              et,       0,      eiEU,    R },
+   { SCALE_FACTOR,                 oo(scale_factor),       flt,      0,      0,       R },
+   { ADJUST_VALUE,                 oo(adjust_value),       flt,      0,      0,       W },
+   { COUNT,                        oo(count),              uw,       0,      0,       R },
+   { UPDATE_TIME,                  oo(update_time),        dt,       0,      0,       R },
+   { COUNT_CHANGE_TIME,            oo(count_change_time),  dt,       0,      0,       R|WithService },
+   { COUNT_BEFORE_CHANGE,          oo(count_before_change),uw,       0,      0,       R },
+   { COV_INCREMENT,                oo(cov_increment),      flt,      0,      0,       O|WithService },
+   { COV_PERIOD,                   oo(cov_period),         uw,       0,      0,       O|WithService },
+   { NOTIFICATION_CLASS,           oo(go.notification_class), uw,        0,       0,       O|WithService },
+   { TIME_DELAY,                   oo(go.time_delay),         uw,        0,       0,       O|WithService },
+   { HIGH_LIMIT,                   oo(high_limit),         flt,       0,       0,        O|WithService },
+   { LOW_LIMIT,                 oo(low_limit),       flt,       0,       0,        O|WithService },
+   { DEADBAND,                     oo(deadband),           flt,      0,      0,       O|WithService },
+   { LIMIT_ENABLE,                 oo(go.limit_enable),       bits,     0,      0,       O|WithService },
+   { EVENT_ENABLE,                 oo(go.event_enable),        bits,     0,      eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,        oo(go.acked_transitions),  bits,     0,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,               oo(go.notify_type),      et,       0,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,        oo(go.event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(lc_obj_type,m)
+propdescriptor LCProps[] =
+{
+// property identifier,       struc offset,            parse,    group,  table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),         ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),     s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),      et,       0,      eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),     s132,     0,      0,       O },
+   { PRESENT_VALUE,                oo(present_value),        et,     0,   eiShedState,  R },
+   { STATE_DESCRIPTION,           oo(state_description), s132,  0,       0,         O },
+   { STATUS_FLAGS,              oo(go.status_flags),    bits,  0,      eiStF,       R },
+   { EVENT_STATE,               oo(go.event_state),        et,       0,      eiEvState, R },
+   { RELIABILITY,              oo(go.reliability),         et,       0,     eiReli,       O },
+   { REQUESTED_SHED_LEVEL,         oo(requested_shed_level), shedlevel,  0,   0,         W },
+   { START_TIME,                oo(start_time),         dt,       0,      0,       W },
+   { SHED_DURATION,             oo(shed_duration),      ud,       0,      0,       W },
+   { DUTY_WINDOW,            oo(duty_window),        ud,      0,    0,       W },
+   { ENABLE,                     oo(log_enable),           ebool,    0,      eiTF,    W },
+   { FULL_DUTY_BASELINE,           oo(full_duty_baseline),  flt,  0,    0,       O },
+   { EXPECTED_SHED_LEVEL,     oo(expected_shed_level),  shedlevel,  0,   0,        R },
+   { ACTUAL_SHED_LEVEL,       oo(actual_shed_level),    shedlevel,  0,   0,        R },
+   { SHED_LEVELS,          oo(shed_levels),       stavals, 0,    0,    W|IsArray },
+   { SHED_LEVEL_DESCRIPTIONS,   oo(shed_level_descriptions), statext, 0, MAX_SHED_LEVELS,  R|IsArray },
+   { NOTIFICATION_CLASS,           oo(go.notification_class), uw,        Intr,       0,       O|WithService },
+   { TIME_DELAY,                   oo(go.time_delay),         uw,        Intr,       0,       O|WithService },
+   { EVENT_ENABLE,                 oo(go.event_enable),        bits,     Intr,      eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,        oo(go.acked_transitions), bits,     Intr,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,               oo(go.notify_type),      et,       Intr,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,        oo(go.event_time_stamps), TSTMParr, Intr,      0,       O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(ad_obj_type,m)
+propdescriptor ADProps[] =
+{
+// property identifier,       struc offset,                         parse,   group,  table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),         ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),     s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),      et,       0,     eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),     s132,     0,      0,       O },
+   { STATUS_FLAGS,              oo(go.status_flags), bits,   0,    eiStF,     R },
+   { EVENT_STATE,               oo(go.event_state),      et,       0,      eiEvState, R },
+   { RELIABILITY,              oo(go.reliability),      et,      0,     eiReli,       O },
+   { OUT_OF_SERVICE,              oo(go.out_of_service),       ebool,   0,      eiTF,     R },
+   { PRESENT_VALUE,             oo(present_value),   et,         0, eiDoorValue,   W },
+   { RELINQUISH_DEFAULT,           oo(relinquish_default), et,      0, eiDoorValue,   R },
+   { PRIORITY_ARRAY,            oo(priority_array),  pae,     0, eiDoorValuen,  R|IsArray },
+   { DOOR_STATUS,              oo(door_status),     et,         0, eiDoorStatus,  O|WithGroup|Woutofservice },
+   { LOCK_STATUS,              oo(lock_status),     et,         0, eiLockStatus,  O|Woutofservice },
+   { SECURED_STATUS,              oo(secured_status),  et,         0, eiDoorSecuredStatus, O },
+   { DOOR_MEMBERS,             oo(door_members),    lodoref, 0,    0,       O|IsArray },
+   { DOOR_PULSE_TIME,          oo(door_pulse_time), uw,         0,    0,       R },
+   { DOOR_EXTENDED_PULSE_TIME,     oo(door_extended_pulse_time), uw,   0,    0,       R },
+   { DOOR_UNLOCK_DELAY_TIME,       oo(door_unlock_delay_time),   uw,   0,    0,       O },
+   { DOOR_OPEN_TOO_LONG_TIME,   oo(door_open_too_long_time),  uw,   0,    0,       R },
+   { DOOR_ALARM_STATE,          oo(door_alarm_state),      et,   Intr, eiDoorAlarmState, O|Woutofservice|WithService },
+   { MASKED_ALARM_VALUES,       oo(masked_alarm_values),  etl,   0, eiDoorAlarmState, O },
+   { MAINTENANCE_REQUIRED,      oo(maintenance_required),  et,      0, eiMaintenance, O },
+   { ALARM_VALUES,              oo(alarm_values),    etl,  Intr,    eiDoorAlarmState,    O|WithService },
+   { FAULT_VALUES,              oo(fault_values),    etl,  Intr,    eiDoorAlarmState,    O|WithService },
+   { NOTIFICATION_CLASS,           oo(go.notification_class), uw,        Intr,       0,       O|WithService },
+   { TIME_DELAY,                   oo(go.time_delay),         uw,        Intr,       0,       O|WithService },
+   { EVENT_ENABLE,                 oo(go.event_enable),        bits,     Intr,      eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,        oo(go.acked_transitions),  bits,     Intr,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,               oo(go.notify_type),      et,       Intr,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,        oo(go.event_time_stamps),  TSTMParr, Intr,      0,       O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(sv_obj_type,m)
+propdescriptor SVProps[] =
+{
+// property identifier,       struc offset,           parse,     group,  table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),         ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),     s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),      et,       0,      eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),     s132,     0,      0,       O },
+   { NODE_TYPE,                oo(node_type),         et,       0,   eiNodeType,   R },
+   { NODE_SUBTYPE,             oo(node_subtype),        s132,   0,      0,       O },
+   // Even though subordinate-list is an array, re-use the "list of device object reference" type here; we'll catch the difference when parsing.
+   { SUBORDINATE_LIST,             oo(subordinate_list),   lodoref,  0,       0,        R|IsArray },
+   { SUBORDINATE_ANNOTATIONS,    oo(subordinate_annotations), statext, 0, MAX_SV_ANNOTATIONS,  O|IsArray },
+   { PROPERTY_LIST,       oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(el_obj_type,m)
+propdescriptor ELProps[] =
+{
+// property identifier,       struc offset,                         parse,   group,  table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),                  ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),               s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),               et,       0,      eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),               s132,     0,      0,       O },
+   { STATUS_FLAGS,              oo(go.status_flags),             bits,   0,    eiStF,     R },
+   { EVENT_STATE,               oo(go.event_state),                 et,        0,      eiEvState, R },
+   { RELIABILITY,              oo(go.reliability),                et,        0,    eiReli,  O },
+   { ENABLE,                     oo(log_enable),                    ebool,    0,      eiTF,    W },
+   { START_TIME,                oo(start_time),                  dt,       0,      0,       O|WithGroup },
+   { STOP_TIME,                oo(stop_time),                    dt,       0,      0,       O|WithGroup },
+   { BUFFER_SIZE,               oo(buffer_size),                 ud,       0,      0,       R },
+   { LOG_BUFFER,                oo(log_buffer),                  LOGREC,   0,      0,       R },
+   { RECORD_COUNT,                 oo(record_count),                ud,       0,      0,       W },
+   { TOTAL_RECORD_COUNT,           oo(total_record_count),          ud,       0,      0,       R },
+   { NOTIFICATION_THRESHOLD,       oo(notification_threshold),      ud,       0,      0,       O|WithService },
+   { RECORDS_SINCE_NOTIFICATION,   oo(records_since_notification),  ud,       0,      0,       O|WithService },
+   { LAST_NOTIFY_RECORD,            oo(last_notify_record),         ud,        0,    0,     O|WithService },
+   { NOTIFICATION_CLASS,           oo(go.notification_class),          uw,         0,   0,        O|WithService },
+   { EVENT_ENABLE,                 oo(go.event_enable),                 bits,     0,      eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,        oo(go.acked_transitions),          bits,     0,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,               oo(go.notify_type),               et,       0,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,        oo(go.event_time_stamps),          TSTMParr, 0,      0,       O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(tlm_obj_type,m)
+propdescriptor TLMProps[] =
+{
+// property identifier,       struc offset,               parse,    group,  table,   qualifiers
+   { OBJECT_IDENTIFIER,        oo(go.object_id),        ob_id,    0,      0,       R },
+   { OBJECT_NAME,               oo(go.object_name),     s64,      0,      0,       R },
+   { OBJECT_TYPE,               oo(go.object_type),     et,       0,      eiObjectTypes,       R },
+   { DESCRIPTION,               oo(go.description),     s132,     0,      0,       O },
+   { STATUS_FLAGS,              oo(go.status_flags),   bits,   0,    eiStF,     R },
+   { EVENT_STATE,               oo(go.event_state),     et,       0,      eiEvState, R },
+   { RELIABILITY,              oo(go.reliability),       et,      0,     eiReli,       O },
+   { ENABLE,                     oo(log_enable),          ebool,    0,      eiTF,    W },
+   { START_TIME,                oo(start_time),                 dt,       0,      0,       O },
+   { STOP_TIME,                oo(stop_time),               dt,       0,      0,       O },
+   { LOG_DEVICE_OBJECT_PROPERTY,   oo(log_device_object_property),  devobjpropref,   0,      0,       R },
+   { LOG_INTERVAL,                 oo(log_interval),               ud,       0,      0,       R },
+   { LOGGING_TYPE,              oo(logging_type),  et, 0, eiLogType, R },
+   { ALIGN_INTERVALS,          oo(align_intervals), ebool, 0, eiTF, O },
+   { INTERVAL_OFFSET,         oo(interval_offset), uw, 0, 0, O },
+   { TRIGGER,               oo(trigger), ebool, 0, eiTF, O },
+   { STOP_WHEN_FULL,            oo(stop_when_full),      ebool,    0,      eiTF,    R },
+   { BUFFER_SIZE,               oo(buffer_size),         ud,       0,      0,       R },
+   { LOG_BUFFER,                oo(log_buffer),          LOGREC,   0,      0,       R },
+   { RECORD_COUNT,                 oo(record_count),     ud,       0,      0,       W },
+   { TOTAL_RECORD_COUNT,           oo(total_record_count),         ud,       0,      0,       R },
+   { NOTIFICATION_THRESHOLD,       oo(notification_threshold),     ud,       0,      0,       O|WithService },
+   { RECORDS_SINCE_NOTIFICATION,   oo(records_since_notification), ud,       0,      0,       O|WithService },
+   { LAST_NOTIFY_RECORD,            oo(last_notify_record),       ud,      0,    0,    O|WithService },
+   { NOTIFICATION_CLASS,           oo(go.notification_class), uw,       0,       0,       O|WithService },
+   { EVENT_ENABLE,                 oo(go.event_enable),       bits,     0,      eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,        oo(go.acked_transitions),  bits,     0,      eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,               oo(go.notify_type),        et,       0,      eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,        oo(go.event_time_stamps),  TSTMParr, 0,      0,       O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(charstring_obj_type,m)
+propdescriptor CharstringProps[]=
+{
+// property identifier, struc offset,              parse,   group,   table,       qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),      ob_id,   0,          0,       R },
+   { OBJECT_NAME,      oo(go.object_name),       s64,  0,          0,       R },
+   { OBJECT_TYPE,      oo(go.object_type),       et,      0,  eiObjectTypes,  R },
+   { PRESENT_VALUE,    oo(present_value),     s132,    0,          0,       W|IsCommandable },
+   { DESCRIPTION,      oo(go.description),       s132,    0,          0,       O },
+   { STATUS_FLAGS,     oo(go.status_flags),      bits,    0,          eiStF,       R },
+   { EVENT_STATE,      oo(go.event_state),         et,       0,  eiEvState,       R },
+   { RELIABILITY,      oo(go.reliability),         et,       0,     eiReli,       O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),       ebool,   0,      eiTF,     R },
+// { PRIORITY_ARRAY,      oo(priority_array),       pa??,    3,          0,       O|IsArray|WithGroup },
+   { RELINQUISH_DEFAULT,  oo(relinquish_default),  s132,  3,          0,       O|WithGroup },
+   { TIME_DELAY,       oo(go.time_delay),        uw,      Intr,      0,     O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),  uw,        Intr,     0,     O|WithService },
+   { ALARM_VALUES,     oo(alarm_values),      actext,  Intr,   MAX_FAULT_STRINGS, O|IsArray|WithService },
+   { FAULT_VALUES,     oo(fault_values),      actext,  Intr,   MAX_FAULT_STRINGS, O|IsArray|WithService },
+   { EVENT_ENABLE,        oo(go.event_enable),         bits,    Intr,     eiEvTr,       O|WithService },
+   { ACKED_TRANSITIONS,  oo(go.acked_transitions), bits,    Intr,     eiEvTr,  O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),       et,      Intr,     eiNT,    O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps), TSTMParr, Intr,    0,       O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
+};
+
+#undef oo
+#define oo(m)  xxoo(integer_obj_type,m)
+propdescriptor IntegerProps[]=
+{
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),  ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),   s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),   et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(present_value), ptInt32,0,         0,   W|IsCommandable },
+   { DESCRIPTION,      oo(go.description),   s132, 0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags),  bits, 0,    eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),         et,      0,eiEvState,   R },
+   { RELIABILITY,      oo(go.reliability),   et,      0,  eiReli, O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),   ebool,  0,     eiTF, R },
+   { UNITS,            oo(units),         et,      0,     eiEU,   R },
+   { PRIORITY_ARRAY,      oo(priority_array),   ptPai,   1,       0, O|WithGroup|IsArray },
+   { RELINQUISH_DEFAULT,  oo(relinquish_default), ptInt32,  1,       0, O|WithGroup },
+   { COV_INCREMENT,    oo(cov_increment), ptInt32, COV,     0, O|WithService },
+   { TIME_DELAY,       oo(go.time_delay),    uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw,  Intr,    0, O|WithService },
+   { HIGH_LIMIT,       oo(high_limit),    ptInt32, Intr,    0, O|WithService },
+   { LOW_LIMIT,        oo(low_limit),     ptInt32, Intr,    0, O|WithService },
+   { DEADBAND,         oo(deadband),      ud,   Intr,    0, O|WithService },
+   { LIMIT_ENABLE,     oo(go.limit_enable),  bits, Intr,eiLimEn,  O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable),  bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits, Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),      et,      Intr, eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
 };
 
 // parse type "ud" is unsigned double word, eg what would be Uint32
-propdescriptor	PositiveIntegerProps[]={
-//	"property name",		property identifier,	struc offset,		parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(integer,go.object_id),	ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(integer,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(integer,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(integer,present_value),	ud,		0,	       0,	W|IsCommandable,
-    "description",			DESCRIPTION,		oo(integer,go.description),	s132,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(integer,status_flags),	bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(integer,state),			et,		0,eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(integer,reliability),	et,		0,	 eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(integer,out_of_service),	ebool,  0,		eiTF,	R,
-    "units",				UNITS,				oo(integer,units),			et,		0,	    eiEU,	R,
-    "priority-array",		PRIORITY_ARRAY,		oo(integer,priority_array),	ptPai,	1,		   0,	O|WithGroup|IsArray,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(integer,relinquish_default), ud,	1,		   0,	O|WithGroup,
-    "cov-increment",		COV_INCREMENT,		oo(integer,cov_increment),	ud,		COV,	   0,	O|WithService,
-    "time-delay",			TIME_DELAY,			oo(integer,time_delay),		uw,		Intr,	   0,	O|WithService,
-    "notification-class",	NOTIFICATION_CLASS,	oo(integer,notification_class),uw,	Intr,	   0,	O|WithService,
-    "high-limit",			HIGH_LIMIT,			oo(integer,high_limit),		ud,		Intr,	   0,	O|WithService,
-    "low-limit",			LOW_LIMIT,			oo(integer,low_limit),		ud,		Intr,	   0,	O|WithService,
-    "deadband",				DEADBAND,			oo(integer,deadband),		ud,		Intr,	   0,	O|WithService,
-    "limit-enable",			LIMIT_ENABLE,		oo(integer,limit_enable),	bits,	Intr,eiLimEn,	O|WithService,
-    "event-enable",			EVENT_ENABLE,		oo(integer,event_enable),	bits,	Intr,eiEvTr,	O|WithService,
-    "acked-transitions",	ACKED_TRANSITIONS,	oo(integer,acked_transitions),bits,	Intr,eiEvTr,	O|WithService,
-    "notify-type",			NOTIFY_TYPE,		oo(integer,notify_type),	et,		Intr,	eiNT,	O|WithService,
-	"event-time-stamps",  	EVENT_TIME_STAMPS,  oo(integer,event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService,
-	"profile-name",			PROFILE_NAME,       oo(integer,go.profile_name), s132,	Last,     0,	 O  
+#undef oo
+#define oo(m)  xxoo(positive_integer_obj_type,m)
+propdescriptor PositiveIntegerProps[]=
+{
+// property identifier, struc offset,     parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,   oo(go.object_id),  ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),   s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),   et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(present_value), ud,      0,        0,   W|IsCommandable },
+   { DESCRIPTION,      oo(go.description),   s132, 0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags),  bits, 0,    eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),         et,      0,eiEvState,   R },
+   { RELIABILITY,      oo(go.reliability),   et,      0,  eiReli, O },
+   { OUT_OF_SERVICE,      oo(go.out_of_service),   ebool,  0,     eiTF, R },
+   { UNITS,            oo(units),         et,      0,     eiEU,   R },
+   { PRIORITY_ARRAY,      oo(priority_array),   ptPai,   1,       0, O|WithGroup|IsArray },
+   { RELINQUISH_DEFAULT,  oo(relinquish_default), ud, 1,       0, O|WithGroup },
+   { COV_INCREMENT,    oo(cov_increment), ud,      COV,     0, O|WithService },
+   { TIME_DELAY,       oo(go.time_delay),    uw,      Intr,    0, O|WithService },
+   { NOTIFICATION_CLASS,  oo(go.notification_class),uw,  Intr,    0, O|WithService },
+   { HIGH_LIMIT,       oo(high_limit),    ud,      Intr,    0, O|WithService },
+   { LOW_LIMIT,        oo(low_limit),     ud,      Intr,    0, O|WithService },
+   { DEADBAND,         oo(deadband),      ud,      Intr,    0, O|WithService },
+   { LIMIT_ENABLE,     oo(go.limit_enable),  bits, Intr,eiLimEn,  O|WithService },
+   { EVENT_ENABLE,     oo(go.event_enable),  bits, Intr,eiEvTr,   O|WithService },
+   { ACKED_TRANSITIONS,   oo(go.acked_transitions),bits, Intr,eiEvTr,   O|WithService },
+   { NOTIFY_TYPE,      oo(go.notify_type),   et,      Intr, eiNT, O|WithService },
+   { EVENT_TIME_STAMPS,  oo(go.event_time_stamps),  TSTMParr, Intr,   0, O|IsArray|WithService },
+
+   // Alarm bundle
+   { EVENT_MESSAGE_TEXTS,       oo(go.event_message_texts),         statext, 0,    3, O|IsArray,   12 },
+   { EVENT_MESSAGE_TEXTS_CONFIG,oo(go.event_message_texts_config),  statext, 0,    3, O|IsArray,   13 },
+   { EVENT_DETECTION_ENABLE,    oo(go.event_detection_enable),      ebool,   Intr, 0, O|WithService, 13 },
+   { EVENT_ALGORITHM_INHIBIT,   oo(go.event_algorithm_inhibit),     ebool,   0,    0, O,           13 },
+   { EVENT_ALGORITHM_INHIBIT_REF, oo(go.event_algorithm_inhibit_ref),propref,0,    0, O,           13 },
+   { TIME_DELAY_NORMAL,         oo(go.time_delay_normal),           ud,      0,    0, O,           13 },
+   { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,0,0,O,           13 },
+
+   { PROPERTY_LIST,             oo(go.property_list),             PT_PROPLIST, 0,  0, R,           14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
 };
 
-propdescriptor	DateTimeValueProps[]={
-//	"property name",		property identifier,	struc offset,					parse,	group,	table,	qualifiers
-    "object-identifier",	OBJECT_IDENTIFIER,	oo(datetimevalue,go.object_id),		ob_id,	0,	       0,	R,
-    "object-name",			OBJECT_NAME,		oo(datetimevalue,go.object_name),	s64,	0,	       0,	R,
-    "object-type",			OBJECT_TYPE,		oo(datetimevalue,go.object_type),	et,		0,eiObjectTypes,R,
-    "present-value",		PRESENT_VALUE,		oo(datetimevalue,present_value),	dt,		0,	       0,	W|IsCommandable,
-    "description",			DESCRIPTION,		oo(datetimevalue,go.description),	s132,	0,	       0,	O,
-    "status-flags",			STATUS_FLAGS,		oo(datetimevalue,status_flags),		bits,	0,	   eiStF,	R,
-    "event-state",			EVENT_STATE,		oo(datetimevalue,state),			et,		0,eiEvState,	R,
-    "reliability",			RELIABILITY,		oo(datetimevalue,reliability),		et,		0,	 eiReli,	O,
-    "out-of-service",		OUT_OF_SERVICE,		oo(datetimevalue,out_of_service),	ebool,  0,		eiTF,	R,
-//  "priority-array",		PRIORITY_ARRAY,		oo(datetimevalue,priority_array),	ptPa??,	1,		   0,	O|WithGroup|IsArray,
-    "relinquish-default",	RELINQUISH_DEFAULT,	oo(datetimevalue,relinquish_default), dt,	1,		   0,	O|WithGroup,
-    "is-utc",				IS_UTC,				oo(datetimevalue,is_utc),			ebool,  0,		eiTF,	R,
-	"profile-name",			PROFILE_NAME,       oo(datetimevalue,go.profile_name),	s132,	Last,     0,	 O  
+#undef oo
+#define oo(m)  xxoo(datetimevalue_obj_type,m)
+propdescriptor DateTimeValueProps[]=
+{
+// property identifier, struc offset,              parse,   group,   table,   qualifiers
+   { OBJECT_IDENTIFIER,oo(go.object_id),     ob_id,   0,        0,   R },
+   { OBJECT_NAME,      oo(go.object_name),   s64,  0,        0,   R },
+   { OBJECT_TYPE,      oo(go.object_type),   et,      0,eiObjectTypes,R },
+   { PRESENT_VALUE,    oo(present_value), dt,      0,        0,   W|IsCommandable },
+   { DESCRIPTION,      oo(go.description),   s132, 0,        0,   O },
+   { STATUS_FLAGS,     oo(go.status_flags),     bits, 0,    eiStF,   R },
+   { EVENT_STATE,      oo(go.event_state),         et,      0,eiEvState,   R },
+   { RELIABILITY,      oo(go.reliability),      et,      0,  eiReli, O },
+   { OUT_OF_SERVICE,   oo(go.out_of_service),   ebool,  0,     eiTF, R },
+// { PRIORITY_ARRAY,   oo(priority_array),   ptPa??,  1,       0, O|WithGroup|IsArray },
+   { RELINQUISH_DEFAULT,oo(relinquish_default), dt, 1,       0, O|WithGroup },
+   { IS_UTC,           oo(is_utc),        ebool,  0,     eiTF, R },
+   { PROPERTY_LIST,    oo(go.property_list), PT_PROPLIST, 0,   0,     R,  14 },
+   { PROFILE_NAME,     oo(go.profile_name), s132,    Last,    0,  O }
 };
 
-stdobjtype	StdObjects[MAX_DEFINED_OBJ]={
-    sizeof(ai_obj_type),					AIprops,
-    sizeof(ao_obj_type),					AOprops,
-    sizeof(av_obj_type),					AVprops,
-    sizeof(bi_obj_type),					BIprops,
-    sizeof(bo_obj_type),					BOprops,
-    sizeof(bv_obj_type),					BVprops,
-    sizeof(calendar_obj_type),				CLprops,
-    sizeof(command_obj_type),				CMprops,
-    sizeof(device_obj_type),				DVprops,
-    sizeof(ee_obj_type),					EEprops,
-    sizeof(file_obj_type),					FLprops,
-    sizeof(group_obj_type),					GRprops,
-    sizeof(loop_obj_type),					LPprops,
-    sizeof(mi_obj_type),					MIprops,
-    sizeof(mo_obj_type),					MOprops,
-    sizeof(nc_obj_type),					NCprops,
-    sizeof(program_obj_type),				PRprops,
-    sizeof(schedule_obj_type),				SCprops,
-    sizeof(avg_obj_type),					AVGprops,
-    sizeof(msv_obj_type),					MVprops,
-    sizeof(trend_obj_type),					TRprops,
-	sizeof(lifesafetypoint_obj_type),       LFSPProps, //Shiyuan Xiao 7/13/2005
-	sizeof(lifesafetyzone_obj_type),        LFSZProps, //Shiyuan Xiao 7/13/2005
-	sizeof(accumulator_obj_type),           ACProps,   //Shiyuan Xiao 7/13/2005
-	sizeof(pulseconverter_obj_type),        PCProps,   //Shiyuan Xiao 7/13/2005
-	sizeof(el_obj_type),					ELProps,
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // place holder for global group
-	sizeof(tlm_obj_type),					TLMProps,
-	sizeof(lc_obj_type),					LCProps,
-	sizeof(sv_obj_type),					SVProps,
-	sizeof(ad_obj_type),					ADProps,
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Lighting-Output",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Credential",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Point",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Rights",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-User",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Access-Zone",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Credential-Data-Input",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Network-Security",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "BitString-Value",
-	sizeof(charstring_obj_type),			CharstringProps,    // "CharacterString-Value",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Date-Pattern-Value",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Date-Value",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "DateTime-Pattern-Value",
-	sizeof(datetimevalue_obj_type),			DateTimeValueProps,   // "DateTime-Value",
-	sizeof(integer_obj_type),				IntegerProps,	    // "Integer-Value",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Large-Analog-Value",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "OctetString-Value",
-	sizeof(positive_integer_obj_type),		PositiveIntegerProps,   // "Positive-Integer-Value",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Time-Pattern-Value",
-	sizeof(placeholder_obj_type),			PlaceholderProps,   // "Time-Value"
-    };
+stdobjtype  StdObjects[MAX_DEFINED_OBJ]={
+   sizeof(ai_obj_type),               AIprops,
+   sizeof(ao_obj_type),               AOprops,
+   sizeof(av_obj_type),               AVprops,
+   sizeof(bi_obj_type),               BIprops,
+   sizeof(bo_obj_type),               BOprops,
+   sizeof(bv_obj_type),               BVprops,
+   sizeof(calendar_obj_type),         CLprops,
+   sizeof(command_obj_type),          CMprops,
+   sizeof(device_obj_type),           DVprops,
+   sizeof(ee_obj_type),               EEprops,
+   sizeof(file_obj_type),             FLprops,
+   sizeof(group_obj_type),            GRprops,
+   sizeof(loop_obj_type),             LPprops,
+   sizeof(mi_obj_type),               MIprops,
+   sizeof(mo_obj_type),               MOprops,
+   sizeof(nc_obj_type),               NCprops,
+   sizeof(program_obj_type),          PRprops,
+   sizeof(schedule_obj_type),         SCprops,
+   sizeof(avg_obj_type),              AVGprops,
+   sizeof(msv_obj_type),              MVprops,
+   sizeof(trend_obj_type),            TRprops,
+   sizeof(lifesafetypoint_obj_type),  LFSPProps, //Shiyuan Xiao 7/13/2005
+   sizeof(lifesafetyzone_obj_type),   LFSZProps, //Shiyuan Xiao 7/13/2005
+   sizeof(accumulator_obj_type),      ACProps,   //Shiyuan Xiao 7/13/2005
+   sizeof(pulseconverter_obj_type),   PCProps,   //Shiyuan Xiao 7/13/2005
+   sizeof(el_obj_type),               ELProps,
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: place holder for global group
+   sizeof(tlm_obj_type),              TLMProps,
+   sizeof(lc_obj_type),               LCProps,
+   sizeof(sv_obj_type),               SVProps,
+   sizeof(ad_obj_type),               ADProps,
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Lighting-Output",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Access-Credential",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Access-Point",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Access-Rights",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Access-User",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Access-Zone",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Credential-Data-Input",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Network-Security",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "BitString-Value",
+   sizeof(charstring_obj_type),       CharstringProps,    // "CharacterString-Value",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Date-Pattern-Value",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Date-Value",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "DateTime-Pattern-Value",
+   sizeof(datetimevalue_obj_type),    DateTimeValueProps, // "DateTime-Value",
+   sizeof(integer_obj_type),          IntegerProps,       // "Integer-Value",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Large-Analog-Value",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "OctetString-Value",
+   sizeof(positive_integer_obj_type), PositiveIntegerProps,// "Positive-Integer-Value",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Time-Pattern-Value",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Time-Value"
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Notification-Forwarder"
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Alert-Enrollment"
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Channel"
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Lighting-Output"
+};
 
 #else
 
-extern stdobjtype	StdObjects[];
+extern stdobjtype StdObjects[];
 extern propdescriptor ProprietaryObjProps[];
+
+// TODO: debug only
+extern propdescriptor PlaceholderProps[];
 
 #endif
 
 typedef struct {
-    dword	dptpropid;							//property id
-    octet	dptparsetype;						//parse type
-    word	dptpet;								//parse type et if applicable
-    word	dptflags;							//only IsArray used 
-    } defparsetypes; 
+    dword   dptpropid;           //property id
+    octet   dptparsetype;        //parse type
+    word    dptpet;              //parse type et if applicable
+    word    dptflags;            //only IsArray used
+} defparsetypes;
 
 typedef struct {
-    word	npt;								//number of string pointers which follow
-    defparsetypes dpt[147];						//the default parse types
-    } dpttable;
+    word          npt;           //number of string pointers which follow
+    defparsetypes dpt[147];      //the default parse types
+} dpttable;
 
 //Special table for default parse types
 static dpttable dParseTypes={
-                147,							//147 parse types						
+                147,                   //147 parse types
                 {
                 {ACKED_TRANSITIONS,bits,eiEvTr,0},
                 {ACK_REQUIRED,bits,eiEvTr,0},
@@ -2049,7 +2315,7 @@ static dpttable dParseTypes={
                 {MINIMUM_OUTPUT,flt,0,0},
                 {MINIMUM_VALUE,flt,0,0},
                 {MINIMUM_VALUE_TIMESTAMP,dt,0,0},
-                {MIN_PRES_VALUE,flt,0,0},				
+                {MIN_PRES_VALUE,flt,0,0},
                 {MODEL_NAME,s32,0,0},
                 {MODIFICATION_DATE,dt,0,0},
                 {NOTIFY_TYPE,et,eiNT,0},
@@ -2059,7 +2325,7 @@ static dpttable dParseTypes={
                 {OBJECT_LIST,none,0,IsArray},
                 {OBJECT_NAME,s32,0,0},
                 {OBJECT_PROPERTY_REFERENCE,devobjpropref,0},
-                {OBJECT_TYPE,et,eiObjectTypes,0}, 
+                {OBJECT_TYPE,et,eiObjectTypes,0},
                 {PROP_OPTIONAL,none,0,0},
                 {OUT_OF_SERVICE,ebool,eiTF,0},
                 {OUTPUT_UNITS,et,eiEU,0},
@@ -2100,7 +2366,7 @@ static dpttable dParseTypes={
                 {SETPOINT,flt,0,0},
                 {SETPOINT_REFERENCE,setref,0,0},
                 {STATE_TEXT,statext,0,IsArray},
-                {STATUS_FLAGS,bits,0,0},
+                {STATUS_FLAGS,bits,eiStF,0},
                 {SYSTEM_STATUS,et,eiDS,0},
                 {TIME_DELAY,uw,0,0},
                 {TIME_OF_ACTIVE_TIME_RESET,dt,0,0},
@@ -2117,15 +2383,7 @@ static dpttable dParseTypes={
                 {WEEKLY_SCHEDULE,wsched,0,IsArray},
                 {WINDOW_INTERVAL,uw,0,0},
                 {WINDOW_SAMPLES,uw,0,0},
-				{STRUCTURED_OBJECT_LIST,none,0,IsArray} }
-                };
+                {STRUCTURED_OBJECT_LIST,none,0,IsArray} }
+};
 
 #endif //__STDOBJPR_H_INCLUDED
-
-
-
-
-
-
-
-
