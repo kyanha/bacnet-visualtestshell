@@ -12,8 +12,8 @@ BIBBs Supported:
   DS-RP-B
   DS-RPM-A
   DS-RPM-B
-  DS-RPC-A
-  DS-RPC-B
+--  DS-RPC-A
+--  DS-RPC-B
   DS-WP-A
   DS-WP-B
   DS-WPM-A
@@ -112,15 +112,14 @@ BACnet Standard Application Services Supported:
   GetEnrollmentSummary            Initiate Execute
   SubscribeCOV                    Initiate Execute
   SubscribeCOVProperty            Initiate Execute
-  lifeSafetyOperation             Initiate Execute
+  LifeSafetyOperation             Initiate Execute
   AtomicReadFile                  Initiate Execute
   AtomicWriteFile                 Initiate Execute
   AddListElement                  Initiate Execute
   RemoveListElement               Initiate Execute
   CreateObject                    Initiate Execute
-  deleteObject                    Initiate Execute
+  DeleteObject                    Initiate Execute
   ReadProperty                    Initiate Execute
-  ReadPropertyConditional         Initiate Execute
   ReadPropertyMultiple            Initiate Execute
   ReadRange                       Initiate Execute
   WriteProperty                   Initiate Execute
@@ -128,7 +127,7 @@ BACnet Standard Application Services Supported:
   DeviceCommunicationControl      Initiate Execute
   ConfirmedPrivateTransfer        Initiate Execute
   UnconfirmedPrivateTransfer      Initiate Execute
-  confirmedTextMessage            Initiate Execute
+  ConfirmedTextMessage            Initiate Execute
   UnconfirmedTextMessage          Initiate Execute
   ReinitializeDevice              Initiate Execute
   TimeSynchronization             Initiate Execute
@@ -140,9 +139,10 @@ BACnet Standard Application Services Supported:
   VT-Open                         Initiate Execute
   VT-Close                        Initiate Execute
   VT-Data                         Initiate Execute
-  authenticate                    Initiate Execute
-  requestKey                      Initiate Execute
+  Authenticate                    Initiate Execute
+  RequestKey                      Initiate Execute
   UnconfirmedCOVNotification      Initiate Execute
+  WriteGroup                      Initiate Execute
 }
 
 Standard Object-Types Supported:
@@ -263,8 +263,52 @@ List of Objects in Test Device:
     location: "Device Location"
     description: "Device Description"
     protocol-version: 1
-    protocol-revision: 10
-    protocol-services-supported: (T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T)
+    protocol-revision: 14
+    protocol-services-supported:
+    (
+       T, -- acknowledgeAlarm
+       T, -- confirmedCOVNotification
+       T, -- confirmedEventNotification
+       T, -- getAlarmSummary
+       T, -- getEnrollmentSummary
+       T, -- subscribeCOV
+       T, -- atomicReadFile
+       T, -- atomicWriteFile
+       T, -- addListElement
+       T, -- removeListElement
+       T, -- createObject
+       T, -- deleteObject
+       T, -- readProperty
+       F, -- readPropertyConditional (deprecated)
+       T, -- readPropertyMultiple
+       T, -- writeProperty
+       T, -- writePropertyMultiple
+       T, -- deviceCommunicationControl
+       T, -- confirmedPrivateTransfer
+       T, -- confirmedTextMessage
+       T, -- reinitializeDevice
+       T, -- vtOpen
+       T, -- vtClose
+       T, -- vtData
+       T, -- authenticate
+       T, -- requestKey
+       T, -- i-Am
+       T, -- i-Have
+       T, -- unconfirmedCOVNotification
+       T, -- unconfirmedEventNotification
+       T, -- unconfirmedPrivateTransfer
+       T, -- unconfirmedTextMessage
+       T, -- timeSynchronization
+       T, -- who-Has
+       T, -- who-Is
+       T, -- readRange
+       T, -- utcTimeSynchronization
+       T, -- lifeSafetyOperation
+       T, -- subscribeCOVProperty
+       T, -- getEventInformation
+       T  -- writeGroup 
+    )
+
     protocol-object-types-supported: ( 
         T,T,T,T,   --  Analog Input, Analog Output, Analog Value, Binary Input,
         T,T,T,T,   --  Binary Output, Binary Value, Calendar, Command,
@@ -278,7 +322,8 @@ List of Objects in Test Device:
         F,F,F,F,   --  Access Zone, Credential Data Input, Network Security, Bitstring Value,
         T,F,F,F,   --  Characterstring Value, Date Pattern Value, Date Value, Datetime Pattern Value,
         T,T,F,F,   --  Datetime Value, Integer Value, Large Analog Value, Octetstring Value
-        F,F,F      --  Positive Integer Value, Time Pattern, Time Value
+        F,F,F,F,   --  Positive Integer Value, Time Pattern, Time Value, Notification Forwarder
+        F,F,F      --  Alert Enrollment, Channel, Lighting Output
         ) 
     object-list: {
      (device,481641),
@@ -356,13 +401,17 @@ List of Objects in Test Device:
     auto-slave-discovery: ({F}, {F}, {F})
 
     slave-address-binding: (
-        {(device,481699),888,X'ac1006f6bac0'},
-        {(device,481699),888,X'ac1006f6bac0'}
+        {(device,481699),888,X'10'},
+        {(device,481699),888,X'11'}
       )
     manual-slave-address-binding:       (
-        {(device,481699),888,X'ac1006f6bac0'},
-        {(device,481699),888,X'ac1006f6bac0'}
+        {(device,481699),888,X'22'},
+        {(device,481699),888,X'3F'}
       )
+
+    -- TODO: this is only a partial list for testing...
+    property-list: {max-master, max-info-frames, local-time, local-date}
+
     profile-name: "Test Device"
   }
   {
@@ -401,6 +450,17 @@ List of Objects in Test Device:
 --  Event-Time-Stamps: {{18:50:21.2}, {*:*:*.*}, {19:01:34.0}}
 --  Event-Time-Stamps: {{13},{222},{1}}
     Event-Time-Stamps: {{13},{(12-JUL-01,2),18:50:21.2},{19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     Profile-Name: "Accumulator"
   }
   {
@@ -430,6 +490,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "analog"
   }
   {
@@ -460,6 +531,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "analog"
   }
   {
@@ -473,7 +555,7 @@ List of Objects in Test Device:
     reliability: no-fault-detected
     out-of-service: false
     units: no-units
-    priority-array: {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
+    priority-array: {1.0, NULL, 3.0, NULL, 5.0, NULL, 7.0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
     relinquish-default: 0.0
     cov-increment: 0.5
     time-delay: 5
@@ -486,6 +568,20 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    min-pres-value: 0.0
+    max-pres-value: 5.0
+    resolution: 0.1
+    Property-List: ?
     profile-name: "analog"
   }
   {
@@ -504,6 +600,7 @@ List of Objects in Test Device:
     object-property-reference: {(analog-input,1),event-time-stamps,1,(device,99)}
     window-interval: 900 w
     window-samples: 15 w
+    Property-List: ?
     profile-name: "average"
   }
   {
@@ -532,6 +629,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "binary"
   }
   {
@@ -564,6 +672,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "binary"
   }
   {
@@ -594,6 +713,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "binary"
   }
   {
@@ -603,6 +733,7 @@ List of Objects in Test Device:
     description: "calendar object"
     present-value: false
     date-list: ({(SAT,23-DEC-1995),(WED,3-JAN-1996)},{(MON,19-FEB-1996)},{X'010401'})
+    Property-List: ?
     profile-name: "calendar"
   }
   {
@@ -632,6 +763,7 @@ List of Objects in Test Device:
             ({,(analog-value,5),Present-Value,,72.0,,,TRUE,TRUE}, 
              {,(binary-output,3),Present-Value,,ACTIVE,8,2,TRUE,TRUE})}
     Action-Text: {"Unoccupied", "Occupied"}
+    Property-List: ?
     profile-name: "command"
   }
   {
@@ -691,11 +823,24 @@ List of Objects in Test Device:
 --    TODO: missing new types 13 through 20
 
     object-property-reference: {(binary-input,2),present-value,,(Device,12)}
+    Status-Flags: (FALSE, FALSE, FALSE, FALSE)
     event-state: offnormal
+    Reliability: OPEN_LOOP
     event-enable: (t, t, t)
     acked-transitions: (t, t, t)
     notification-class: 1
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "test"
   }
   {
@@ -710,6 +855,7 @@ List of Objects in Test Device:
     read-only: false
     file-access-method: stream-access
     record-count: 0
+    Property-List: ?
     profile-name: "file1"
   }
   {
@@ -724,6 +870,7 @@ List of Objects in Test Device:
     read-only: false
     file-access-method: record_access
     record-count: 5
+    Property-List: ?
     profile-name: "file2"
   }
   {
@@ -736,6 +883,7 @@ List of Objects in Test Device:
 --                             {(analog-input,2),({present-value,},{recipient-list,3})})
 --     present-value: ({(analog-input,1),({present-value,,[5]{device,other}})})
      present-value: ?
+     Property-List: ?
      profile-name: "group 1"
   }
   {
@@ -767,6 +915,7 @@ List of Objects in Test Device:
     direct-reading: 1.5
     units: volts
     member-of: ({(device,99),(analog-input,2)},{,(analog-value,1)})
+    Property-List: ?
     profile-name: "life safety"
   }   
   {
@@ -797,6 +946,7 @@ List of Objects in Test Device:
     maintenance-required: FALSE
     zone-members: ({(device,99),(analog-input,2)},{,(analog-value,1)})
     member-of: ({(device,99),(analog-input,2)})
+    Property-List: ?
     profile-name: "life safety"
   }
   {
@@ -832,10 +982,22 @@ List of Objects in Test Device:
     time-delay: 30
     notification-class: 1
     error-limit: 65.8
+    deadband: 1.0
     event-enable: (true, false, false)
     acked-transitions: (true, false, false)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "loop"
   }
   {
@@ -859,6 +1021,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "multi state"
   }   
   {
@@ -883,6 +1056,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "multi state"
   }
   {
@@ -907,6 +1091,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     Profile-Name: "multi state"
   }
   {
@@ -920,6 +1115,7 @@ List of Objects in Test Device:
 -- NOTE: Either of the following forms of valid-days is accepted
 --    recipient-list: ({(T, F, T, F, F, T,T),0:0:0.0,23:59:59.99,(device,481699),1,true,(T, T, T)})
     recipient-list: ({(MON,WED,SAT,SUN),0:0:0.0,23:59:59.99,(device,481699),1,true,(T, T, T)})
+    Property-List: ?
     profile-name: "notification class"
   }
   {
@@ -936,6 +1132,7 @@ List of Objects in Test Device:
     status-flags: (F, F, F, F)
     reliability: no-fault-detected
     out-of-service: false
+    Property-List: ?
     profile-name: "program"
   }
   {
@@ -968,6 +1165,17 @@ List of Objects in Test Device:
     acked-transitions: {FALSE, TRUE, TRUE}
     notify-type: event
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "pulse converter"
   }
   {
@@ -993,6 +1201,7 @@ List of Objects in Test Device:
     status-flags: (F, F, T, F)
     reliability: no-fault-detected
     out-of-service: false
+    Property-List: ?
     profile-name: "schedule"
   }
   {
@@ -1020,6 +1229,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "trend"
   }
   {
@@ -1045,6 +1265,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "event log"
   }
   {
@@ -1076,6 +1307,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "trendlogmultiple"
   }
   {
@@ -1104,6 +1346,17 @@ List of Objects in Test Device:
     acked-transitions: {FALSE, TRUE, TRUE}
     notify-type: event
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "load control"
   }
   {
@@ -1115,6 +1368,7 @@ List of Objects in Test Device:
     node-subtype: ""
     subordinate-list: ?
     subordinate-annotations: ?
+    Property-List: ?
     profile-name: "structured view"
   }
   {
@@ -1148,6 +1402,17 @@ List of Objects in Test Device:
     acked-transitions: (F,F,F)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     profile-name: "access door"
   }
   { 
@@ -1170,6 +1435,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     Profile-Name: "Characterstring Value"
   }
   { 
@@ -1185,6 +1461,7 @@ List of Objects in Test Device:
 --  priority-array: {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
     relinquish-default: (23-MAY-2010,1),12:32:33.0
     is-utc: T
+    Property-List: ?
     Profile-Name: "DateTime Value"
   }
   { 
@@ -1211,6 +1488,17 @@ List of Objects in Test Device:
     acked-transitions: (T, T, T)
     notify-type: alarm
     Event-Time-Stamps: {{(12-JUL-01,2),18:50:21.2},{(*-*-*,*),*:*:*.*},{(12-JUL-01,2),19:01:34.0}}
+
+   -- Alarm bundle
+   event-message-texts: {"one", "two", "three"}
+   event-message-texts-config: {"four", "five", "six"}
+   event-detection-enable: TRUE
+   event-algorithm-inhibit: FALSE
+   event-algorithm-inhibit-ref: {(binary-value,1),present-value}
+   time-delay-normal: 60
+   reliability-evaluation-inhibit: FALSE
+
+    Property-List: ?
     Profile-Name: "Integer Value"
   }
 

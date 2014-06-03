@@ -1,5 +1,6 @@
 /*--------------------------------------------------------------------------------
-   (c)1995-97, PolarSoft(r) Inc. and National Institute for Standards and Technology
+   Original code (c)1995-97, PolarSoft(r) Inc. and National Institute for Standards and Technology
+   Many later changes made by the VTS community and released into the public domain.
 
 module:     VTSAPI32.C
 desc:    BACnet Standard Objects DLL v2.15
@@ -13,12 +14,14 @@ authors: David M. Fisher, Jack R. Neyer
 -- If this interpretation is wrong, this decoder and the samepl EPICS
 -- may need to be changed.
 
-135.1 clause 4.4 says
+135.1-2013 clause 4.4 says
 - constructed items are enclosed by curly brackets { } with elements separated by commas
 - CHOICE of application-tagged items are represented as such
 - CHOICE of context-tagged items are represented by [n] followed by the item
 - SEQUENCE-OF (list) are enclosed in parenthesis, with items separated by commas
 - Array values are enclosed in curly brackets, with items separated by commas
+
+The code below SOMETIMES follows those rules.  So does 135.1-2013 Annex A.  Sometimes.
 
 TODO: various places write into the line buffer, usually temporary nulls to
 ease parsing.  This is REALLY lame: if you do this, and then call some
@@ -50,7 +53,15 @@ TODO: strdelim is a bad idea, as explained in its header comment.
 #include <sys\types.h>
 #include <assert.h>
 
-namespace PICS {                          // ***016
+#include "StringTables.h"
+
+// TODO: Function currently in DUDTOOL.CPP, but soon (we hope) to be moved
+#include "Propid.h"
+#include "VTS.h"
+const BACnetPropertyIdentifier* GetObjectTable( BACnetObjectType objType, int &nProps);
+
+
+namespace PICS {
 
 #define _DoStaticPropDescriptors 0
 
@@ -73,38 +84,39 @@ static bool ReadCharsets(PICSdb *);
 static bool ReadFailTimes(PICSdb *);
 static bool ReadBIBBSupported(PICSdb *);
 
-static BOOL ParseLogRec(BACnetLogRecord *);
-static BOOL ParseTimeStamp(BACnetTimeStamp *);
-static BOOL ParseTimeStampArray(BACnetTimeStamp **parray, int arraycount);
-static BOOL ParseObjectList(BACnetObjectIdentifier **,word *);
-static BOOL ParseRASlist(BACnetReadAccessSpecification **);
-static BOOL ParseCalist(BACnetCalendarEntry **);
-static BOOL ParseTVList(BACnetTimeValue **);
-static BOOL ParseWeekdaySchedule(BACnetTimeValue *wp[]);
-static BOOL ParseExceptionSchedule(BACnetExceptionSchedule *);
-static BOOL ParseProperty(char *,generic_object *,word);
-static BOOL ParseDateTime(BACnetDateTime *);
-static BOOL ParseDate(BACnetDate *);
-static BOOL ParseTime(BACnetTime *);
+//static bool ParseLogRec(BACnetLogRecord *);
+static bool ParseTimeStamp(BACnetTimeStamp *);
+static bool ParseTimeStampArray(BACnetTimeStamp **parray, int arraycount);
+static bool ParseObjectList(BACnetObjectIdentifier **,word *);
+static bool ParseRASlist(BACnetReadAccessSpecification **);
+static bool ParseCalist(BACnetCalendarEntry **);
+static bool ParseTVList(BACnetTimeValue **);
+static bool ParseWeekdaySchedule(BACnetTimeValue *wp[]);
+static bool ParseExceptionSchedule(BACnetExceptionSchedule *);
+static bool ParseProperty(char *,generic_object *,word);
+static bool ParseDateTime(BACnetDateTime *);
+static bool ParseDate(BACnetDate *);
+static bool ParseTime(BACnetTime *);
 static bool ParseBitstring(octet *,word,octet *);
-static BOOL ParseOctetstring(octet *,word,word *);
-static BOOL ParseVTClassList(BACnetVTClassList **);
-static BOOL ParseAddressList(BACnetAddressBinding **);
+static bool ParseOctetstring(octet *,word,word *);
+static bool ParseVTClassList(BACnetVTClassList **);
+static bool ParseAddressList(BACnetAddressBinding **);
 static bool ParseDestinationList(BACnetDestination **);
 static bool ParseRecipientList(BACnetRecipient **);
-static BOOL ParseEventParameter(BACnetEventParameter *);
-static BOOL ParseSessionKeyList(BACnetSessionKey **);
-static BOOL ParseRefList(BACnetDeviceObjectPropertyReference **);
-static BOOL ParseDevObjList(BACnetDeviceObjectReference **,word );
-static BOOL ParsePrescale(BACnetPrescale* pt);
-static BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt);
+static bool ParseEventParameter(BACnetEventParameter *);
+static bool ParseSessionKeyList(BACnetSessionKey **);
+static bool ParseRefList(BACnetDeviceObjectPropertyReference **);
+static bool ParseDevObjList(BACnetDeviceObjectReference **,word );
+static bool ParsePrescale(BACnetPrescale* pt);
+static bool ParseAccumulatorRecord(BACnetAccumulatorRecord* pt);
 static BACnetRecipient *ParseRecipient(BACnetRecipient *);
 static BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference   *);
-static BOOL ParseCOVSubList(BACnetCOVSubscription **);
+static bool ParseCOVSubList(BACnetCOVSubscription **);
 static BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *);
-static BOOL ParseEnumList(BACnetEnumList **, etable *);
-static BOOL ParseUnsignedList( UnsignedList **elp );
-static BOOL ParseBooleanList( BooleanList **elp );
+static bool ParseEnumList(BACnetEnumList **, etable *);
+static bool ParsePropertyList(BACnetEnumList **);
+static bool ParseUnsignedList( UnsignedList **elp );
+static bool ParseBooleanList( BooleanList **elp );
 
 //************added by Liangping Xu,2002*****************//
 static BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDeviceObjectPropertyReference *);
@@ -148,7 +160,7 @@ static BACnetDeviceObjectReference *ParseDevObjReference(BACnetDeviceObjectRefer
 //void AVG_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 //void TR_CheckOptionalProperty(octet servFromPICS[],octet propFlags[]);
 
-// msdanner 9/04:  135.1-2003 EPICS consistency checks added
+// 135.1-2003 EPICS consistency checks added
 static void ExpandBitstring(octet *pExpandedResult, octet *pBitstring, int nBits);
 static void CheckPICSConsistency2003(PICSdb *); // runs all checks
 static void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDependentBIBB);
@@ -189,16 +201,18 @@ static void readline(char *,int);
 static char *Nxt(char *);
 char *cvhex(char *,octet *);                  // used by Bacprim32
 static bool MustBe(char);
-static bool tperror(char *, bool);
+static bool tperror(const char *, bool);
 static int ClearCBList(HWND);
 static int AddCBListText(HWND,char *);
 static int SelectCBListItem(HWND,int);
 static void rtrim(char *);
 static void preprocstr(char *str);
 
+static bool IsNextNumber();
 static bool ReadFloat(float *pVal, char mustBe = 0);
 static bool NiceReadDW(dword *pVal, char mustBe = 0);
 static bool NiceReadW(word *pVal, char mustBe = 0);
+static propdescriptor* GetPropDescriptorTable( word objtype );
 
 ///////////////////////////////////////////////////////////////////////
 // Module Constants
@@ -262,15 +276,12 @@ static int     lerrc;                     //count of errors
 static FILE    *ifile;                    //current input file          ***008
 static int     lPICSErr;                  //added by xlp - but what do I do, and why?
 
-//*****017 begin
 static octet   newParseType;
 static word    newPropET;
 
 static boolean bNeedReset=false, bHasReset = false,bHasNoneType=false;
 static char    NoneTypeValue[256],NoneTypePropName[20];   // for store temp address of lp
-//******017 end
 
-// msdanner 9/2004: added global consistency error counter
 static unsigned int cConsistencyErrors;
 
 // Array of expected bitstring lengths for ProtocolServicesSupported
@@ -320,7 +331,6 @@ static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
 static char picshdr[]="PICS 0\x0D\x0A";
 static char EndPics[]="End of BACnet Protocol Implementation Conformance Statement";
 
-// msdanner 09/2004 - added BIBBs
 typedef struct {
     char                  InitExec;                      // flag.  If zero, marks end of list.
     enum                  BACnetApplServ ApplServ;       // number of application service
@@ -328,7 +338,7 @@ typedef struct {
 
 #define MAX_SERVICES_PER_BIBB 8  // maximum number of services required per BIBB
 
-// Structure to define each BIBB - msdanner 9/5/04
+// Structure to define each BIBB
 typedef struct {
    char  *name;    // BIBB name
    bibb_service  aBIBB_Service[MAX_SERVICES_PER_BIBB];  // array of services required for each BIBB
@@ -380,9 +390,9 @@ static bibbdef BIBBs[]={
                { ssInitiate, asUnconfirmedCOVNotification }
              },
          "DS-COVP-A",
-             { { ssInitiate, asSubscribeCOVProperty       }, 
-               { ssExecute,  asConfirmedCOVNotification   }, 
-               { ssExecute,  asUnconfirmedCOVNotification } 
+             { { ssInitiate, asSubscribeCOVProperty       },
+               { ssExecute,  asConfirmedCOVNotification   },
+               { ssExecute,  asUnconfirmedCOVNotification }
              },
          "DS-COVP-B",
              { { ssExecute,  asSubscribeCOVProperty       },
@@ -403,7 +413,7 @@ static bibbdef BIBBs[]={
              { { ssInitiate, asConfirmedEventNotification    },
                { ssInitiate, asUnconfirmedEventNotification  }
              },
-         "AE-N-E-B",                
+         "AE-N-E-B",
              { { ssInitiate, asConfirmedEventNotification    },
                { ssInitiate, asUnconfirmedEventNotification  }
              },
@@ -493,15 +503,15 @@ static bibbdef BIBBs[]={
              { { ssInitiate, asWho_Is },
                { ssExecute,  asI_Am   }
              },
-         "DM-DDB-B", 
+         "DM-DDB-B",
              { { ssExecute,  asWho_Is },
                { ssInitiate, asI_Am   }
              },
-         "DM-DOB-A", 
+         "DM-DOB-A",
              { { ssInitiate, asWho_Has  },
                { ssExecute,  asI_Have   }
              },
-         "DM-DOB-B", 
+         "DM-DOB-B",
              { { ssExecute,  asWho_Has },
                { ssInitiate, asI_Have  }
              },
@@ -509,7 +519,7 @@ static bibbdef BIBBs[]={
              { { ssInitiate, asDeviceCommunicationControl }
              },
          "DM-DCC-B",
-             { { ssExecute,  asDeviceCommunicationControl } 
+             { { ssExecute,  asDeviceCommunicationControl }
              },
          "DM-PT-A",
              { { ssInitiate, asConfirmedPrivateTransfer     },
@@ -672,7 +682,7 @@ static bibbdef BIBBs[]={
                { ssInitiate, asReadRange }
              },
          "T-VM-I-B",
-             { { ssExecute,  asReadRange } 
+             { { ssExecute,  asReadRange }
              },
          "T-VM-E-B",
              { { ssExecute, asReadRange },
@@ -833,7 +843,7 @@ static char *StandardObjects[]={
          "Access Rights",
          "Access User",
          "Access Zone",
-         "Credential Data Input",      
+         "Credential Data Input",
          "Network Security",           /* addendum 2008-g */
          "BitString Value",            /* addendum 2008-w */
          "CharacterString Value",
@@ -1023,39 +1033,27 @@ word  APIENTRY VTSAPIgetpropertystates(word pschoice,HWND plist)
 //    else     return the property ID for that slot
 //             in this case, also return the property name in the buffer pname
 
-dword APIENTRY VTSAPIgetpropinfo(word objtype,word propindex,
-                                 char *pname,word *ptype,
-                                 word *pgroup,word *pflags,
+dword APIENTRY VTSAPIgetpropinfo(word objtype, word propindex,
+                                 char *pname, word *ptype,
+                                 word *pgroup, word *pflags,
                                  word *pet)
 {
-   propdescriptor *pt;
-   word        np;
+   const propdescriptor *pt, *ptx;
+   pt = ptx = GetPropDescriptorTable( objtype );
+   word np = 1;
+   while((ptx->PropGroup & Last) == 0)
+   {
+      np++;
+      ptx++;
+   }
+   if (propindex == 0xFFFF) return (dword)np;      //just say how many properties there are
+   if (propindex >= np) return 0xFFFFFFFF;         //invalid property index
 
-   //if (objtype>=etObjectTypes.nes) return 0xFFFFFFFF;  //not a valid object type
-   //pt=StdObjects[objtype].sotProps;              //point to table of properties for this guy
-
-   if (objtype <= etObjectTypes.nes)   //not a standard object type
-      pt = StdObjects[objtype].sotProps;
-   else
-      pt = ProprietaryObjProps;        //point to table of properties for this guy
-
-   np=1;                                           //always at least one property
-   while((pt->PropGroup&Last)==0) {np++;pt++;}     //count num props
-   if (propindex==0xFFFF) return (dword)np;        //just say how many properties there are
-   if (propindex>=np) return 0xFFFFFFFF;           //invalid property index
-
-   //pt=StdObjects[objtype].sotProps;              //point to table of properties for this guy
-   
-   if (objtype <= etObjectTypes.nes)  //not a standard object type
-      pt = StdObjects[objtype].sotProps;
-   else
-      pt = ProprietaryObjProps;     //point to table of properties for this guy
-
-   strcpy(pname,pt[propindex].PropertyName);       //return the name
-   if (ptype) *ptype=(word)pt[propindex].ParseType;
-   if (pgroup) *pgroup=(word)pt[propindex].PropGroup;
-   if (pflags) *pflags=pt[propindex].PropFlags;
-   if (pet) *pet=pt[propindex].PropET;
+   strcpy( pname, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( pt[propindex].PropID ) );
+   if (ptype) *ptype = (word)pt[propindex].ParseType;
+   if (pgroup) *pgroup = (word)pt[propindex].PropGroup;
+   if (pflags) *pflags = pt[propindex].PropFlags;
+   if (pet) *pet = pt[propindex].PropET;
    return pt[propindex].PropID;                 //and property ID
 }
 
@@ -1073,7 +1071,7 @@ word APIENTRY VTSAPIgetenumtable(word etindex,word index,word *propstart,dword *
 {
    etable *pet;
 
-   if (etindex==0||etindex>(sizeof(AllETs)/sizeof(AllETs[0])))
+   if (etindex==0  || etindex>(sizeof(AllETs)/sizeof(AllETs[0])))
       return 0;
 
    pet=AllETs[etindex];
@@ -1093,20 +1091,20 @@ word APIENTRY VTSAPIgetenumtable(word etindex,word index,word *propstart,dword *
 //
 //note:  Only Matches the FIRST propid found!
 //in: objtype     the object type (0xFFFF if unknown)
-//    propid      the property id 
+//    propid      the property id
 //    ptype    pointer to a word to be filled with parsetype, or NULL
 //    pet         pointer to word to be filled with enum table index, or NULL
-//out:   false    if no default info available for property id, 
+//out:   false    if no default info available for property id,
 //    true     if default info was available, parameters filled in accordingly
 
 BOOL APIENTRY VTSAPIgetdefaultpropinfo(word objtype,dword propid,word *ptype,word *pet)
 {
    word        i;
-   propdescriptor *pt;
+   const propdescriptor *pt;
 
-   if (objtype<etObjectTypes.nes)                  //known object type
+   if (objtype < etObjectTypes.nes)                  //known object type
    {
-      pt=StdObjects[objtype].sotProps;          //point to table of properties for this guy
+      pt = StdObjects[objtype].sotProps;          //point to table of properties for this guy
       do
       {
          if (pt->PropID==propid)                //found our man
@@ -1118,7 +1116,7 @@ BOOL APIENTRY VTSAPIgetdefaultpropinfo(word objtype,dword propid,word *ptype,wor
             return true;
          }
          if (pt->PropGroup&Last) break;
-         pt++;                            //advance to next one 
+         pt++;                            //advance to next one
       } while(true);
    }
 
@@ -1139,9 +1137,9 @@ BOOL APIENTRY VTSAPIgetdefaultpropinfo(word objtype,dword propid,word *ptype,wor
 
 ///////////////////////////////////////////////////////////////////////
 // Get Default Parse Type based on property id
-//in: propid      the property id 
+//in: propid      the property id
 //    hWnd     the handle to a list control into which parse type(s) are built
-//out:   0        if invalid property id, 
+//out:   0        if invalid property id,
 //             else number added to list
 //                    parse type text /t parsetype /t eb index /t pflags eg.
 //                   "bits/t03/t18/t00"
@@ -1235,7 +1233,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          if (((command_obj_type *)p)->action_text[i]!=NULL)
             free(((command_obj_type *)p)->action_text[i]);
       }
-      break; 
+      break;
 
    case OBJ_DEVICE:
       vp=((device_obj_type *)p)->object_list;
@@ -1280,6 +1278,20 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vp=((BACnetAddressBinding *)vp)->next;
          free(vq);
       }
+      vp=((device_obj_type *)p)->configuration_files;
+      while(vp!=NULL)
+      {
+         vq=vp;
+         vp=((BACnetObjectIdentifier *)vp)->next;
+         free(vq);
+      }
+      vp=((device_obj_type *)p)->active_cov_subscriptions;
+      while(vp!=NULL)
+      {
+         vq=vp;
+         vp=((BACnetCOVSubscription *)vp)->next;
+         free(vq);
+      }
       vp=((device_obj_type *)p)->manual_slave_add_bind;
       while(vp!=NULL)
       {
@@ -1294,28 +1306,14 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vp=((BACnetAddressBinding *)vp)->next;
          free(vq);
       }
-      vp=((device_obj_type *)p)->active_cov_subscriptions;
-      while(vp!=NULL)
-      {
-         vq=vp;
-         vp=((BACnetCOVSubscription *)vp)->next;
-         free(vq);
-      }
-      vp=((device_obj_type *)p)->configuration_files;
-      while(vp!=NULL)
-      {
-         vq=vp;
-         vp=((BACnetObjectIdentifier *)vp)->next;
-         free(vq);
-      }
-      vp=((device_obj_type *)p)->slave_proxy_enable;
+      vp=((device_obj_type *)p)->auto_slave_disc;
       while(vp!=NULL)
       {
          vq=vp;
          vp=((BooleanList *)vp)->next;
          free(vq);
       }
-      vp=((device_obj_type *)p)->auto_slave_disc;
+      vp=((device_obj_type *)p)->slave_proxy_enable;
       while(vp!=NULL)
       {
          vq=vp;
@@ -1329,9 +1327,23 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vp=((BACnetObjectIdentifier *)vp)->next;
          free(vq);
       }
+      vp=((device_obj_type *)p)->restart_notification_recipients;
+      while(vp!=NULL)
+      {
+         vq=vp;
+         vp=((BACnetRecipient *)vp)->next;
+         free(vq);
+      }
+      vp=((device_obj_type *)p)->utc_time_synchronization_recipients;
+      while(vp!=NULL)
+      {
+         vq=vp;
+         vp=((BACnetRecipient *)vp)->next;
+         free(vq);
+      }
       break;
 
-   case OBJ_EVENT_ENROLLMENT: 
+   case OBJ_EVENT_ENROLLMENT:
       vp=((ee_obj_type *)p)->parameter_list.list_bitstring_value;
       while(vp!=NULL)
       {
@@ -1345,12 +1357,6 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vq=vp;
          vp=((BACnetPropertyStates *)vp)->next;
          free(vq);
-      }
-      vp=((ee_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((ee_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((ee_obj_type *)p)->event_time_stamps[i]);
       }
       break;
 
@@ -1377,25 +1383,13 @@ void  APIENTRY DeletePICSObject(generic_object *p)
    case OBJ_LOOP:
       vp=((loop_obj_type *)p)->setpoint_ref;
       if (vp!=NULL) free(vp);
-      vp=((loop_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((loop_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((loop_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
-   case OBJ_MULTI_STATE_INPUT: 
+   case OBJ_MULTI_STATE_INPUT:
       for (i=0;i<MAX_STATE_TEXTS;i++)
       {
          if (((mi_obj_type *)p)->state_text[i]!=NULL)
             free(((mi_obj_type *)p)->state_text[i]);
-      }
-      vp=((mi_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((mi_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((mi_obj_type *)p)->event_time_stamps[i]);
       }
       vp=((mi_obj_type *)p)->alarm_values;
       while(vp!=NULL)
@@ -1411,19 +1405,13 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vp=((UnsignedList *)vp)->next;
          free(vq);
       }
-      break; 
+      break;
 
    case OBJ_MULTI_STATE_OUTPUT:
       for (i=0;i<MAX_STATE_TEXTS;i++)
       {
          if (((mo_obj_type *)p)->state_text[i]!=NULL)
             free(((mo_obj_type *)p)->state_text[i]);
-      }
-      vp=((mo_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((mo_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((mo_obj_type *)p)->event_time_stamps[i]);
       }
       break;
 
@@ -1438,7 +1426,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vp=((BACnetDestination *)vp)->next;
          free(vq);
       }
-      break; 
+      break;
 
    case OBJ_SCHEDULE:
       for (i=0;i<7;i++)
@@ -1478,66 +1466,24 @@ void  APIENTRY DeletePICSObject(generic_object *p)
         break;
 
    case OBJ_ANALOG_INPUT:
-      vp=((ai_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((ai_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((ai_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_ANALOG_OUTPUT:
-      vp=((ao_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((ao_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((ao_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_ANALOG_VALUE:
-      vp=((av_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((av_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((av_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_BINARY_INPUT:
-      vp=((bi_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((bi_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((bi_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_BINARY_OUTPUT:
-      vp=((bo_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((bo_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((bo_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_BINARY_VALUE:
-      vp=((bv_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((bv_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((bv_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_ACCUMULATOR:
-      vp=((accumulator_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((accumulator_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((accumulator_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_MULTI_STATE_VALUE: // msdanner 9/2004
@@ -1545,12 +1491,6 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       {
          if (((msv_obj_type *)p)->state_text[i]!=NULL)
             free(((msv_obj_type *)p)->state_text[i]);
-      }
-      vp=((msv_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((msv_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((msv_obj_type *)p)->event_time_stamps[i]);
       }
       vp=((msv_obj_type *)p)->alarm_values;
       while(vp!=NULL)
@@ -1569,21 +1509,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       break;
 
    case OBJ_TREND_LOG:
-      vp=((trend_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((trend_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((trend_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
       case OBJ_LIFE_SAFETY_POINT:
-      vp=((lifesafetypoint_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((lifesafetypoint_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((lifesafetypoint_obj_type *)p)->event_time_stamps[i]);
-      }
       vp=((lifesafetypoint_obj_type *)p)->member_of;
       while(vp!=NULL)
       {
@@ -1622,12 +1550,6 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       break;
 
    case OBJ_LIFE_SAFETY_ZONE:
-      vp=((lifesafetyzone_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((lifesafetyzone_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((lifesafetypoint_obj_type *)p)->event_time_stamps[i]);
-      }
       vp=((lifesafetyzone_obj_type *)p)->member_of;
       while(vp!=NULL)
       {
@@ -1673,12 +1595,6 @@ void  APIENTRY DeletePICSObject(generic_object *p)
         break;
 
    case OBJ_PULSE_CONVERTER:
-      vp=((pulseconverter_obj_type *)p)->event_time_stamps;
-      for(i=0; i<3; i++)
-      {
-         if ( ((pulseconverter_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((pulseconverter_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_STRUCTURED_VIEW:
@@ -1698,19 +1614,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       break;
 
     case OBJ_TREND_LOG_MULTIPLE:
-      for(i=0; i<3; i++)
-      {
-         if (((tlm_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((tlm_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
     case OBJ_EVENT_LOG:
-      for(i=0; i<3; i++)
-      {
-         if (((el_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((el_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
       case OBJ_LOAD_CONTROL:
@@ -1726,12 +1632,6 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vq = vp;
          vp = ((UnsignedList *)vp)->next;
          free(vq);
-      }
-      
-      for(i=0; i<3; i++)
-      {
-         if (((lc_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((lc_obj_type *)p)->event_time_stamps[i]);
       }
       break;
 
@@ -1767,12 +1667,6 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          vp = ((BACnetEnumList*)vp)->next;
          free(vq);
       }
-      
-      for(i=0; i<3; i++)
-      {
-         if (((ad_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((ad_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_CHARACTERSTRING_VALUE:
@@ -1786,27 +1680,12 @@ void  APIENTRY DeletePICSObject(generic_object *p)
          if ( ((charstring_obj_type *)p)->fault_values[i]!=NULL)
             free(((charstring_obj_type *)p)->fault_values[i]);
       }
-      for(i=0; i<3; i++)
-      {
-         if ( ((charstring_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((charstring_obj_type *)p)->event_time_stamps[i]);
-      }
-      break; 
+      break;
 
    case OBJ_INTEGER_VALUE:
-      for(i=0; i<3; i++)
-      {
-         if ( ((integer_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((integer_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_POSITIVE_INTEGER_VALUE:
-      for(i=0; i<3; i++)
-      {
-         if ( ((positive_integer_obj_type *)p)->event_time_stamps[i]!=NULL)
-            free(((positive_integer_obj_type *)p)->event_time_stamps[i]);
-      }
       break;
 
    case OBJ_DATETIME_VALUE:
@@ -1815,8 +1694,8 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 
    default:
       // Someone forgot to implement delete code for this object type
-      sprintf( errMsg, "**WARNING**: No delete code for this object %s (type = %d), will probably leak \n", 
-               p->object_name, p->object_type ); 
+      sprintf( errMsg, "**WARNING**: No delete code for this object %s (type = %d), will probably leak \n",
+               p->object_name, p->object_type );
       // tperror( errMsg, true);
       // PrintToFile( errMsg );
       OutputDebugString( _T( errMsg ) );
@@ -1824,7 +1703,31 @@ void  APIENTRY DeletePICSObject(generic_object *p)
       // Attempt the deletion anyway
       break;
    }
-   free(p);                         //and the object itself             ***008 End
+
+   // Clean up the base object
+   for (i=0; i<3; i++)
+   {
+      if (p->event_time_stamps[i]!=NULL)
+        free(p->event_time_stamps[i]);
+   }
+
+   for(i=0; i<3; i++)
+   {
+      if ( p->event_message_texts[i] != NULL)
+         free( p->event_message_texts[i] );
+      if ( p->event_message_texts_config[i] != NULL)
+         free( p->event_message_texts_config[i] );
+   }
+
+   vp = p->property_list;
+   while (vp != NULL)
+   {
+      vq = vp;
+      vp = ((BACnetEnumList*)vp)->next;
+      free(vq);
+   }
+
+   free(p);                         //and the object itself
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -1987,17 +1890,9 @@ bool APIENTRY ReadTextPICS(
    }
    fclose(ifile);
 
-   //////////////////////////////////////////////////////////////
-   // add EPICS consistency Check ,xlp,2002-11
-
-   // madanner 6/03:  skip consistency tests if user canceled parse due to problems
+   // EPICS consistency Check
    if (!cancel)
    {
-//    ::DeleteFile("c:\\EPICSConsChk.txt");
-      // msdanner 9/04: Old consistency checks based on conformance class are no longer applicable
-      //CheckPICSObjCons(pd);
-      //CheckPICSServCons(pd);
-      //CheckPICSPropCons(pd);
       // New 135.1-2003 checks
       if (lerrc == 0)  // if no syntax errors, proceed with EPICS consistency tests
       {
@@ -2008,13 +1903,9 @@ bool APIENTRY ReadTextPICS(
    }
 
     //clear the global variables
-// ProtocolServSup.PropSupValue=NULL;
-// ProtocolServSup.ObjServNum=0;
-// ProtocolObjSup.PropSupValue=NULL;
-// ProtocolObjSup.ObjServNum=0;
    memset(ObjInTestDB,0,sizeof(ObjInTestDB));
    memset(DevObjList,0,sizeof(DevObjList));
-//////////////////////////////////////////////////////////////
+
 rtpexit:
    *errc=lerrc;
 
@@ -2229,7 +2120,7 @@ bool ReadStandardObjects(PICSdb *pd)
 bool ReadDataLinkOptions(PICSdb *pd)
 {
    int      i,j;
-   BOOL     got9600;
+   bool     got9600;
    char     *p;
    dword    *dp;
 
@@ -2467,12 +2358,12 @@ bool ReadObjects(PICSdb *pd)
 {
    char  *pn;                       //property name pointer
    char  objname[512];
-   BOOL  WeKnowObjectType;
+   bool  WeKnowObjectType;
    word  objtype;                   //enumeration value for object type
    dword objid;                     //object identifier
    octet fType,fID,fName;
    generic_object *pobj,*po,*polast;      //pointers to objects
-   BOOL    i;
+   int    i;
    ReadNext();                      //point to next token
    if (lp==NULL||*lp++!='{')        //no open token
       return tperror("Expected { here",true);
@@ -2528,11 +2419,11 @@ nextobject:
 //                      if (objtype != 0xFFFF)  // msdanner 9/2004
                         if (objtype < MAX_DEFINED_OBJ)
                         {
-                           ObjInTestDB[objtype].object_type=objtype;       
+                           ObjInTestDB[objtype].object_type=objtype;
                            ObjInTestDB[objtype].ObjIDSupported|=soSupported;
                            i=ObjInTestDB[objtype].ObjInstanceNum;
                            ObjInTestDB[objtype].ObjInstanceNum++;
-                           ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;     
+                           ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;
                         }
                         //ended by xlp,2002-11
 
@@ -2556,11 +2447,11 @@ nextobject:
 //                      if (objtype != 0xFFFF) // msdaner 9/2004
                         if (objtype < MAX_DEFINED_OBJ)
                          {
-                          ObjInTestDB[objtype].object_type=objtype;       
+                          ObjInTestDB[objtype].object_type=objtype;
                           ObjInTestDB[objtype].ObjIDSupported|=soSupported;
                           i=ObjInTestDB[objtype].ObjInstanceNum;
                           ObjInTestDB[objtype].ObjInstanceNum++;
-                          ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;     
+                          ObjInTestDB[objtype].ObjInstance[i]=objid&0x003fffff;
                         }
                         //ended by xlp,2002-11
                         pobj->propflags[idProp]|=PropIsPresent;   //remember we saw ID          ***014 Begin
@@ -2573,8 +2464,8 @@ nextobject:
                      if (ParseProperty(pn,pobj,objtype)) return true;
 
                      //Added for resetting the value
-                     if(bNeedReset & bHasNoneType)
-                        if(ParseProperty(NoneTypePropName,pobj,objtype)) return true;
+                     if (bNeedReset & bHasNoneType)
+                        if (ParseProperty(NoneTypePropName,pobj,objtype)) return true;
 
                      print_debug("RO: Done PP'ing\n");
                   }
@@ -2732,7 +2623,7 @@ nextobject:
 //out:
 void CheckPICSPropCons(PICSdb *pd)
 {
-   word objtype; 
+   word objtype;
    BOOL stdObjflag=false;
    generic_object *obj;
    obj=pd->Database;
@@ -2746,7 +2637,7 @@ void CheckPICSPropCons(PICSdb *pd)
           break;
         case ANALOG_OUTPUT:
          CheckObjRequiredProp(0,0x0000c6cf,obj,16);
-            AO_CheckOptionalProperty(pd->BACnetStandardServices,obj->propflags); 
+            AO_CheckOptionalProperty(pd->BACnetStandardServices,obj->propflags);
          break;
         case ANALOG_VALUE:
          CheckObjRequiredProp(0,0x0000036f,obj,10);
@@ -2841,18 +2732,18 @@ void AI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
   char checkMsg[150];
 
   // Check if any AI properties for intrinsic reporting exist
-  if (propFlags[16] || propFlags[17] || propFlags[18] || propFlags[19] || 
-      propFlags[20] || propFlags[21] || propFlags[22] || propFlags[23] || 
+  if (propFlags[16] || propFlags[17] || propFlags[18] || propFlags[19] ||
+      propFlags[20] || propFlags[21] || propFlags[22] || propFlags[23] ||
       propFlags[24])
   {
     // If any do, they all must
-    if (!(propFlags[16] && propFlags[17] && propFlags[18] && propFlags[19] && 
-          propFlags[20] && propFlags[21] && propFlags[22] && propFlags[23] && 
+    if (!(propFlags[16] && propFlags[17] && propFlags[18] && propFlags[19] &&
+          propFlags[20] && propFlags[21] && propFlags[22] && propFlags[23] &&
           propFlags[24]))
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by AI objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);    
+      tperror(checkMsg,false);
     }
   }
 
@@ -2862,7 +2753,7 @@ void AI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
               if(!(propFlags[15])){
                     sprintf(checkMsg,"Cov_Increment Property is  required because of cov reporting supported by AI objects!\n");
                //PrintToFile(checkMsg);
-               tperror(checkMsg,false);      
+               tperror(checkMsg,false);
             }
          }
    return;
@@ -2873,30 +2764,30 @@ void AI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 //=====================================================================//
 void AO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 {
-   char checkMsg[150]; 
+   char checkMsg[150];
    //Check if properties of AO objects support cov reporting.
    if((servs[asSubscribeCOV])||(servs[asConfirmedCOVNotification])
        ||(servs[asUnconfirmedCOVNotification])){
          if(!(propFlags[16])){
                  sprintf(checkMsg,"Cov_Increment Property is  required because of cov reporting supported by AO objects!\n");
              //PrintToFile(checkMsg);
-             tperror(checkMsg,false);     
+             tperror(checkMsg,false);
             }
       }
 
   // Check if any AO properties for intrinsic reporting exist
-  if (propFlags[17] || propFlags[18] || propFlags[19] || propFlags[20] || 
-      propFlags[21] || propFlags[22] || propFlags[25] || propFlags[23] || 
+  if (propFlags[17] || propFlags[18] || propFlags[19] || propFlags[20] ||
+      propFlags[21] || propFlags[22] || propFlags[25] || propFlags[23] ||
       propFlags[24])
     {
     // If any do, they all must
-      if (!(propFlags[17] && propFlags[18] && propFlags[19] && propFlags[20] && 
-            propFlags[21] && propFlags[22] && propFlags[25] && propFlags[23] && 
+      if (!(propFlags[17] && propFlags[18] && propFlags[19] && propFlags[20] &&
+            propFlags[21] && propFlags[22] && propFlags[25] && propFlags[23] &&
             propFlags[24]))
       {
           sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by AO objects!\n");
           //PrintToFile(checkMsg);
-          tperror(checkMsg,false);    
+          tperror(checkMsg,false);
       }
     }
 
@@ -2913,7 +2804,7 @@ void AV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
      if(((propFlags[11])|(propFlags[10]))&&!((propFlags[11])&(propFlags[10]))){
          sprintf(checkMsg,"priority_array and relinquish_default must exist simultaneously for AV objects!\n");
         //PrintToFile(checkMsg);
-        tperror(checkMsg,false);    
+        tperror(checkMsg,false);
       }
      //Check if properties of Av objects support cov reporting.
      if((servs[asSubscribeCOV])||(servs[asConfirmedCOVNotification])
@@ -2921,23 +2812,23 @@ void AV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
           if(!(propFlags[12])){
                   sprintf(checkMsg,"Cov_Increment Property is  required because of cov reporting supported by AV objects!\n");
                //PrintToFile(checkMsg);
-               tperror(checkMsg,false);      
+               tperror(checkMsg,false);
             }
          }
 
   // Check if any AV properties for intrinsic reporting exist
-  if (propFlags[13] || propFlags[14] || propFlags[15] || propFlags[16] || 
-      propFlags[17] || propFlags[18] || propFlags[19] || propFlags[20] || 
+  if (propFlags[13] || propFlags[14] || propFlags[15] || propFlags[16] ||
+      propFlags[17] || propFlags[18] || propFlags[19] || propFlags[20] ||
       propFlags[21])
   {
     // If any do, they all must
-    if (!(propFlags[13] && propFlags[14] && propFlags[15] && propFlags[16] && 
-          propFlags[17] && propFlags[18] && propFlags[19] && propFlags[20] && 
+    if (!(propFlags[13] && propFlags[14] && propFlags[15] && propFlags[16] &&
+          propFlags[17] && propFlags[18] && propFlags[19] && propFlags[20] &&
           propFlags[21]))
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by AV objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);    
+      tperror(checkMsg,false);
     }
   }
 
@@ -2952,33 +2843,33 @@ void BI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
    if(((propFlags[11])|(propFlags[12]))&&!((propFlags[11])&(propFlags[12]))){
       sprintf(checkMsg,"inactive_text and active_text must exist simultaneously for BI objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);      
+      tperror(checkMsg,false);
    }
    //PropGroup 2 Cons check for 3 properties,including change_of_state_time
    if(((propFlags[13])|(propFlags[14])|(propFlags[15]))
          &&!((propFlags[13])&(propFlags[14])&(propFlags[15]))){
             sprintf(checkMsg,"PropGroup,including change_of_state_time must exist simultaneously for BI objects!\n");
             //PrintToFile(checkMsg);
-            tperror(checkMsg,false);      
+            tperror(checkMsg,false);
    }
    //PropGroup 3 Cons check for Elapsed_Active_Time and Time_of_Active_Time_Reset
    if(((propFlags[16])|(propFlags[17]))&&!((propFlags[16])&(propFlags[17]))){
       sprintf(checkMsg,"Elapsed_Active_Time and Time_of_Active_Time_Reset must exist simultaneously for BI objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);      
+      tperror(checkMsg,false);
    }
 
   // Check if any BI properties for intrinsic reporting exist
-  if (propFlags[18] || propFlags[19] || propFlags[20] || 
+  if (propFlags[18] || propFlags[19] || propFlags[20] ||
       propFlags[21] || propFlags[22] || propFlags[23])
   {
     // If any do, they all must
-    if (!(propFlags[18] && propFlags[19] && propFlags[20] && 
+    if (!(propFlags[18] && propFlags[19] && propFlags[20] &&
           propFlags[21] && propFlags[22] && propFlags[23]))
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by BI objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);    
+      tperror(checkMsg,false);
     }
   }
 
@@ -2994,32 +2885,32 @@ void BO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
    if(((propFlags[11])|(propFlags[12]))&&!((propFlags[11])&(propFlags[12]))){
       sprintf(checkMsg,"inactive_text and active_text must exist simultaneously for BO objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);      
+      tperror(checkMsg,false);
    }
    //PropGroup 2 Cons check for 3 properties,including change_of_state_time
    if(((propFlags[13])|(propFlags[14])|(propFlags[15]))
          &&!((propFlags[13])&(propFlags[14])&(propFlags[15]))){
             sprintf(checkMsg,"PropGroup,including change_of_state_time must exist simultaneously for BO objects!\n");
             //PrintToFile(checkMsg);
-            tperror(checkMsg,false);      
+            tperror(checkMsg,false);
    }
    //PropGroup 3 Cons check for Elapsed_Active_Time and Time_of_Active_Time_Reset
    if(((propFlags[16])|(propFlags[17]))&&!((propFlags[16])&(propFlags[17]))){
       sprintf(checkMsg,"Elapsed_Active_Time and Time_of_Active_Time_Reset must exist simultaneously for BO objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);      
+      tperror(checkMsg,false);
    }
 
   // Check if any BO properties for intrinsic reporting exist
-  if (propFlags[22] || propFlags[23] || propFlags[24] || 
+  if (propFlags[22] || propFlags[23] || propFlags[24] ||
       propFlags[25] || propFlags[26] || propFlags[27])
   {
-    if(!(propFlags[22] && propFlags[23] && propFlags[24] && 
+    if(!(propFlags[22] && propFlags[23] && propFlags[24] &&
          propFlags[25] && propFlags[26] && propFlags[27]))
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by BO objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);    
+      tperror(checkMsg,false);
     }
   }
 
@@ -3034,39 +2925,39 @@ void BV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
     if(((propFlags[9])|(propFlags[10]))&&!((propFlags[9])&(propFlags[10]))){
          sprintf(checkMsg,"inactive_text and active_text must exist simultaneously for BV objects!\n");
          //PrintToFile(checkMsg);
-         tperror(checkMsg,false);      
+         tperror(checkMsg,false);
    }
    //PropGroup 2 Cons check for 3 properties,including change_of_state_time
    if(((propFlags[11])|(propFlags[12])|(propFlags[13]))
          &&!((propFlags[11])&(propFlags[12])&(propFlags[13]))){
             sprintf(checkMsg,"PropGroup,including change_of_state_time must exist simultaneously for BV objects!\n");
             //PrintToFile(checkMsg);
-            tperror(checkMsg,false);      
+            tperror(checkMsg,false);
    }
    //PropGroup 3 Cons check for Elapsed_Active_Time and Time_of_Active_Time_Reset
    if(((propFlags[14])|(propFlags[15]))&&!((propFlags[14])&(propFlags[15]))){
          sprintf(checkMsg,"Elapsed_Active_Time and Time_of_Active_Time_Reset must exist simultaneously for BV objects!\n");
          //PrintToFile(checkMsg);
-         tperror(checkMsg,false);      
+         tperror(checkMsg,false);
    }
    //PropGroup 4 Cons check for priority_array and relinquish_default
    if(((propFlags[18])|(propFlags[19]))&&!((propFlags[18])&(propFlags[19]))){
           sprintf(checkMsg,"priority_array and relinquish_default must exist simultaneously for BV objects!\n");
          //PrintToFile(checkMsg);
-         tperror(checkMsg,false);      
+         tperror(checkMsg,false);
    }
 
   // Check if any BV properties for intrinsic reporting exist
-  if (propFlags[20] || propFlags[21] || propFlags[22] || 
+  if (propFlags[20] || propFlags[21] || propFlags[22] ||
       propFlags[23] || propFlags[24] || propFlags[25])
   {
     // If any do, they all must
-    if (!(propFlags[20] && propFlags[21] && propFlags[22] && 
+    if (!(propFlags[20] && propFlags[21] && propFlags[22] &&
           propFlags[23] && propFlags[24] && propFlags[25]))
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by BV objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);    
+      tperror(checkMsg,false);
     }
   }
 
@@ -3081,20 +2972,20 @@ void DV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
    if((servs[asVT_Open])&(servs[asVT_Data])&(servs[asVT_Close])){
 //         if(!((propFlags[18])&(propFlags[19]))){
          // since new property -Max_segmentation_accepted has been added,
-         // the index number corresponding to the property VT_Classes_Supported is 19 
-         // the index number corresponding to the property Active_VT_Sessions is 20 
-         if(!((propFlags[19])&(propFlags[20]))){                        // *****018 
+         // the index number corresponding to the property VT_Classes_Supported is 19
+         // the index number corresponding to the property Active_VT_Sessions is 20
+         if(!((propFlags[19])&(propFlags[20]))){                        // *****018
            sprintf(checkMsg,"VT_Classes_Supported and Active_VT_Sessions should be required when Device object support VT services!\n");
           //PrintToFile(checkMsg);
-           tperror(checkMsg,false);    
+           tperror(checkMsg,false);
       }
    }
    else{
 //    if(((propFlags[18])|(propFlags[19]))&&!((propFlags[18])&(propFlags[19]))){
-      if(((propFlags[19])|(propFlags[20]))&&!((propFlags[19])&(propFlags[20]))){    // *****018 
+      if(((propFlags[19])|(propFlags[20]))&&!((propFlags[19])&(propFlags[20]))){    // *****018
          sprintf(checkMsg,"VT_Classes_Supported and Active_VT_Sessions must exist simultaneously for Device object!\n");
          //PrintToFile(checkMsg);
-         tperror(checkMsg,false);      
+         tperror(checkMsg,false);
       }
    }
          //if Segment is supported the property APDU_Segment_Timeout is required for Device Object
@@ -3137,19 +3028,19 @@ void LO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
    if(((propFlags[18])|(propFlags[19]))&&!((propFlags[18])&(propFlags[19]))){
        sprintf(checkMsg,"Proportional_Constant and Proportional_Constant_Units must exist simultaneously for Loop objects!\n");
        //PrintToFile(checkMsg);
-       tperror(checkMsg,false);     
+       tperror(checkMsg,false);
    }
    //PropGroup 2 Cons check for Integral_Constant and Integral_Constant_Units
    if(((propFlags[20])|(propFlags[21]))&&!((propFlags[20])&(propFlags[21]))){
       sprintf(checkMsg,"Integral_Constant and Integral_Constant_Units must exist simultaneously for Loop objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);      
+      tperror(checkMsg,false);
    }
    //PropGroup 3 Cons check for Derivative_Constant and Derivative_Constant_Units
    if(((propFlags[22])|(propFlags[23]))&&!((propFlags[22])&(propFlags[23]))){
       sprintf(checkMsg,"Derivative_Constant and Derivative_Constant_Units must exist simultaneously for Loop objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);      
+      tperror(checkMsg,false);
    }
    //Check if properties of Loop objects support cov reporting.
    if((servs[asSubscribeCOV])||(servs[asConfirmedCOVNotification])
@@ -3157,21 +3048,21 @@ void LO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
          if(!(propFlags[28])){
                 sprintf(checkMsg,"Cov_Increment Property is  required because of cov reporting supported by Loop objects!\n");
             //PrintToFile(checkMsg);
-            tperror(checkMsg,false);      
+            tperror(checkMsg,false);
          }
    }
 
   // Check if any Loop properties for intrinsic reporting exist
-  if (propFlags[29] || propFlags[30] || propFlags[31] || 
+  if (propFlags[29] || propFlags[30] || propFlags[31] ||
       propFlags[32] || propFlags[33] || propFlags[34])
   {
     // If any do, they all must
-    if (!(propFlags[29] && propFlags[30] && propFlags[31] && 
+    if (!(propFlags[29] && propFlags[30] && propFlags[31] &&
           propFlags[32] && propFlags[33] && propFlags[34]))
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by Loop objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);    
+      tperror(checkMsg,false);
     }
   }
 
@@ -3184,18 +3075,18 @@ void LO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 void MI_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
 {    char checkMsg[150];
   // Check if any MI properties for intrinsic reporting exist
-  if (propFlags[12] || propFlags[13] || propFlags[14] || propFlags[15] || 
+  if (propFlags[12] || propFlags[13] || propFlags[14] || propFlags[15] ||
 //      propFlags[16] || propFlags[17] || propFlags[18])
       propFlags[16] || propFlags[17] || propFlags[18] || propFlags[19]) //modified by Jingbo Gao, the Event_Time_stamps is required if intrinsic reporting is supportedby this oject
   {
     // If any do, they all must
-    if (!(propFlags[12] && propFlags[13] && propFlags[14] && propFlags[15] && 
+    if (!(propFlags[12] && propFlags[13] && propFlags[14] && propFlags[15] &&
 //          propFlags[16] && propFlags[17] && propFlags[18]))
           propFlags[16] && propFlags[17] && propFlags[18] && propFlags[19])) //modified by Jingbo Gao
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MI objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);    
+      tperror(checkMsg,false);
     }
   }
 
@@ -3210,15 +3101,15 @@ void MO_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
   char checkMsg[150];
 
   // Check if any MO properties for intrinsic reporting exist
-  if (propFlags[14] || propFlags[15] || propFlags[16] || 
+  if (propFlags[14] || propFlags[15] || propFlags[16] ||
       propFlags[17] || propFlags[18] || propFlags[19])
   {
-    if (!(propFlags[14] && propFlags[15] && propFlags[16] && 
+    if (!(propFlags[14] && propFlags[15] && propFlags[16] &&
           propFlags[17] && propFlags[18] && propFlags[19]))
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MO objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);      
+      tperror(checkMsg,false);
     }
   }
 
@@ -3235,22 +3126,22 @@ void MV_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
   if((propFlags[16])&&!(propFlags[7])){
     sprintf(checkMsg,"Mv object type:Reliability shall be required if Fault_Values is present!\n");
     //PrintToFile(checkMsg);
-    tperror(checkMsg,false);     
+    tperror(checkMsg,false);
   }
 
    //PropGroup 1 Cons check for Priority_Array and Relinquish_Default
    if(((propFlags[11])|(propFlags[12]))&&!((propFlags[11])&(propFlags[12]))){
       sprintf(checkMsg,"Priority_Array and Relinquish_Default must exist simultaneously for MV objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);      
+      tperror(checkMsg,false);
    }
 
   // Check if any MV properties for intrinsic reporting exist
-  if (propFlags[13] || propFlags[14] || propFlags[15] || propFlags[16] || 
+  if (propFlags[13] || propFlags[14] || propFlags[15] || propFlags[16] ||
       propFlags[17] || propFlags[18] || propFlags[19] || propFlags[20])
   {
     // If any do, they all must
-    if (!(propFlags[13] && propFlags[14] && propFlags[15] && propFlags[16] && 
+    if (!(propFlags[13] && propFlags[14] && propFlags[15] && propFlags[16] &&
           propFlags[17] && propFlags[18] && propFlags[19] && propFlags[20]))
     {
       sprintf(checkMsg,"PropGroup(time_delay,notify_type...) are required because of intrinsic reporting supported by MV objects!\n");
@@ -3271,7 +3162,7 @@ void PR_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
    if(((propFlags[5])|(propFlags[6]))&&!((propFlags[5])&(propFlags[6]))){
       sprintf(checkMsg,"Reason_For_Halt and Description_Of_Halt must exist simultaneously for Program objects!\n");
       //PrintToFile(checkMsg);
-      tperror(checkMsg,false);      
+      tperror(checkMsg,false);
    }
 
     return;
@@ -3286,7 +3177,7 @@ void SC_CheckOptionalProperty(octet propFlags[64])
    if(!((propFlags[6])|(propFlags[7]))){
          sprintf(checkMsg,"at least one of the two properties(Weekly_Schedule and Exception_Schedule) must exist for Schedule objects!\n");
          //PrintToFile(checkMsg);
-         tperror(checkMsg,false);      
+         tperror(checkMsg,false);
    }
     return;
 }
@@ -3299,13 +3190,13 @@ void TR_CheckOptionalProperty(octet servs[MAX_SERVS_SUPP],octet propFlags[64])
   char checkMsg[150];
 
   // Check if any TL properties for intrinsic reporting exist
-  if (propFlags[16] || propFlags[17] || propFlags[18] || propFlags[19] || 
-      propFlags[21] || propFlags[22] || propFlags[23] || propFlags[24] || 
+  if (propFlags[16] || propFlags[17] || propFlags[18] || propFlags[19] ||
+      propFlags[21] || propFlags[22] || propFlags[23] || propFlags[24] ||
       propFlags[25])
   {
     // If any do, they all must
-    if (!(propFlags[16] && propFlags[17] && propFlags[18] && propFlags[19] && 
-          propFlags[21] && propFlags[22] && propFlags[23] && propFlags[24] && 
+    if (!(propFlags[16] && propFlags[17] && propFlags[18] && propFlags[19] &&
+          propFlags[21] && propFlags[22] && propFlags[23] && propFlags[24] &&
           propFlags[25]))
     {
       sprintf(checkMsg,"PropGroup(notification_threshold,notify_type...) are required because of intrinsic reporting supported by Trend Log objects!\n");
@@ -3328,7 +3219,7 @@ void CheckObjRequiredProp(dword hi_propFlag,dword lo_propFlag,generic_object *ob
    octet  pIndex=0;
    char   *objName;
    char   *propName;
-   char   errMsg[200]; 
+   char   errMsg[200];
    word   objtype;
    dword  objInstance;
    propdescriptor *pd;
@@ -3340,8 +3231,8 @@ void CheckObjRequiredProp(dword hi_propFlag,dword lo_propFlag,generic_object *ob
    objInstance&=0x003fffff;
     objName=StandardObjects[objtype];
    for(i=0;i<Num;i++){
-      propName=pd->PropertyName;
-      if(i<32){ 
+      propName = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( pd->PropID ));
+      if(i<32){
         if(lo_propFlag&flag1){
             if(!((obj->propflags[pIndex])&1)){
                sprintf(errMsg,"135.1-2003 5.(i): "
@@ -3377,12 +3268,12 @@ void CheckObjRequiredProp(dword hi_propFlag,dword lo_propFlag,generic_object *ob
 //out:
 /*
 void CheckPICSObjCons(PICSdb *pd)
-{ 
+{
 //PICS Cons Check a:
   CheckObjConsA(pd);
 //PICS Cons Check K:
   CheckObjConsK(pd);
-//PICS Cons Check L: 
+//PICS Cons Check L:
   CheckObjConsL(pd);
 //PICS Cons Check m:
   CheckObjConsM();
@@ -3397,7 +3288,7 @@ void CheckPICSObjCons(PICSdb *pd)
 //out:
 /*
 void CheckPICSServCons(PICSdb *pd)
-{  
+{
    CheckServConsD(pd);
    CheckServConsE(pd);
    CheckServConsI(pd);
@@ -3427,7 +3318,7 @@ void PrintToFile(char *outBuf)
 //out:
 /*
 void CheckClass(word n, TApplServ * pApplServ, octet  ApplServSup[],char *errorMsg,BOOL IniExeFlag)
-{   int i; 
+{   int i;
     BOOL ServNum;
    char opj[200];
     char *ServName;
@@ -3443,7 +3334,7 @@ void CheckClass(word n, TApplServ * pApplServ, octet  ApplServSup[],char *errorM
               if(pApplServ[i].InitExec == ssExecute)
                sprintf(opj,"%s%s standard service should be supported with Execute !\n",errorMsg,ServName);
               else
-               sprintf(opj,"%s%s standard service should be supported with Initiate and Execute !\n",errorMsg,ServName);   
+               sprintf(opj,"%s%s standard service should be supported with Initiate and Execute !\n",errorMsg,ServName);
            //PrintToFile(opj);
            tperror(opj,false);
        }
@@ -3517,9 +3408,9 @@ void CheckServConsD(PICSdb *pd)
 //out:
 /*
 void CheckServFGCons(dword nFG,octet Applserv[],char *errMsg,BOOL IniExeFlag)
-{   dword nFGFlag=0x00000001; 
+{   dword nFGFlag=0x00000001;
    dword nFGNum;
-    int i; 
+    int i;
    if(!nFG) return;
    for(i=0;i<13;i++){
       nFGNum=nFG&nFGFlag;
@@ -3579,8 +3470,8 @@ void CheckServFGCons(dword nFG,octet Applserv[],char *errMsg,BOOL IniExeFlag)
 /*
 void CheckServConsI(PICSdb *pd)
 {   dword nFG;
-    char errorMsg[50]="EPICS Services Cons Check Error:"; 
-    nFG=pd->BACnetFunctionalGroups;  
+    char errorMsg[50]="EPICS Services Cons Check Error:";
+    nFG=pd->BACnetFunctionalGroups;
     CheckServFGCons(nFG,pd->BACnetStandardServices,errorMsg,0);
    return;
 }
@@ -3591,7 +3482,7 @@ void CheckServConsI(PICSdb *pd)
 //out:
 /*
 void BitToArray(octet ObjServ[],DevProtocolSup *DevProp)
-{   octet  bitflag; 
+{   octet  bitflag;
     octet  byteNum;
    octet *p;
    BOOL  result;
@@ -3599,17 +3490,17 @@ void BitToArray(octet ObjServ[],DevProtocolSup *DevProp)
    int count=0;
    bitflag=0x80;
     memset(ObjServ,0,Max_ObjServ_Num);
-   temp=DevProp->ObjServNum;  
+   temp=DevProp->ObjServNum;
    if(temp%8) byteNum=temp/8;
    else byteNum=temp/8-1;
    temp--;
-   p=DevProp->PropSupValue;  
+   p=DevProp->PropSupValue;
    for(i=0;i<=byteNum;i++){
       for(j=0;j<8;j++){
             if(count>temp) break;
             result=*p&bitflag;
             bitflag>>=1;
-                if(result) 
+                if(result)
                ObjServ[count]=Protocol_Serv_Sup;
             count++;
       }
@@ -3646,7 +3537,7 @@ void CheckServConsJ(PICSdb *pd)
 {   char errorMsg[50]="EPICS Services Cons Check Error:";
    octet ObjServ[MAX_SERVS_SUPP];
     dword nFG;
-    nFG=pd->BACnetFunctionalGroups;  
+    nFG=pd->BACnetFunctionalGroups;
     BitToArray(ObjServ,&ProtocolServSup);
     CheckServFGCons(nFG,ObjServ,errorMsg,ssExecute);
    return;
@@ -3658,14 +3549,14 @@ void CheckServConsJ(PICSdb *pd)
 /*
 void CheckObjConsA(PICSdb *pd)
 { word nClassNum;
-  dword nFG; 
+  dword nFG;
   BOOL flag=false;
   char opj[200];
   nClassNum=pd->BACnetConformanceClass;
   nFG=pd->BACnetFunctionalGroups;
   switch(nClassNum){
-  case 6: 
-      //check obj type for clock FG supported by Cons Class 6 
+  case 6:
+      //check obj type for clock FG supported by Cons Class 6
     if (nFG&fgClock) {
       if (pd->BACnetStandardObjects[OBJ_DEVICE]==soNotSupported) {
         sprintf(opj,"EPICS Object Consistency check error: "
@@ -3730,7 +3621,7 @@ void CheckObjConsA(PICSdb *pd)
         sprintf(opj,"EPICS Object Consistency check error: "
           "File Object type should be included to support the File Functional Group! \n");
         //PrintToFile(opj);
-          tperror(opj,false);       
+          tperror(opj,false);
       }
     }
     else{
@@ -3745,11 +3636,11 @@ void CheckObjConsA(PICSdb *pd)
       //PrintToFile(opj);
       tperror(opj,false);
     }
-    
-  case 5: 
-  case 4: 
-  case 3: 
-  case 2: 
+
+  case 5:
+  case 4:
+  case 3:
+  case 2:
   default:                 //Conformance Class 1 must be supported;
     if(pd->BACnetStandardObjects[OBJ_DEVICE]==soNotSupported){
       sprintf(opj,"EPICS Object Consistency check error: "
@@ -3765,15 +3656,15 @@ void CheckObjConsA(PICSdb *pd)
 /*
 ////////////////////////////////////////////////////////////////////////
 //EPICS Object Types consistency check  added by xlp,2002-11
-//Test F: for Object types supported by Functional Group 
+//Test F: for Object types supported by Functional Group
 void CheckObjConsF(PICSdb *pd)
 { dword nFG;
-  BOOL flag=false; 
+  BOOL flag=false;
   char opj[200];
   nFG=pd->BACnetFunctionalGroups;
 
-  if((nFG&fgClock)||(nFG&fgTimeMaster))   
-    if (pd->BACnetStandardObjects[OBJ_DEVICE]==soNotSupported){  
+  if((nFG&fgClock)||(nFG&fgTimeMaster))
+    if (pd->BACnetStandardObjects[OBJ_DEVICE]==soNotSupported){
       sprintf(opj,"EPICS Object Consistency check error: "
         "The Device Object type should be included to support the Clock|TimeMaster Functional Group!\n");
       //PrintToFile(opj);
@@ -3813,7 +3704,7 @@ void CheckObjConsF(PICSdb *pd)
         sprintf(opj,"EPICS Object Consistency check error: "
           "Notification Class Object type should be included "
           "to support the Event Initiation|Response Functional Group! \n");
-        //PrintToFile(opj); 
+        //PrintToFile(opj);
         tperror(opj,false);
       }
   }
@@ -3870,7 +3761,7 @@ void CheckObjConsL(PICSdb *pd)
   char *objName;
   octet BACnetStandardObjChk[MAX_DEFINED_OBJ];
   for(int i=0;i<MAX_DEFINED_OBJ;i++) {
-    BACnetStandardObjChk[i]= pd->BACnetStandardObjects[i]; 
+    BACnetStandardObjChk[i]= pd->BACnetStandardObjects[i];
     if((BACnetStandardObjChk[i])&&!(ObjInTestDB[i].ObjIDSupported)) {
       objName=StandardObjects[i];
       sprintf(errMsg,"EPICS Object Consistency check error: "
@@ -3889,7 +3780,7 @@ void CheckObjConsL(PICSdb *pd)
 /*
 void CheckObjConsM()
 { octet num1,num2;
-  int i,j; 
+  int i,j;
   char errMsg[200];
   char *objName;
   dword *p1,*p2;
@@ -3958,7 +3849,7 @@ void GetSequence(dword *p1,dword *p2,octet num)
 //
 //out:   true  if cancel selected
 
-BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
+bool ParseProperty(char *pn, generic_object *pobj, word objtype)
 {
    propdescriptor *pd,*newpd;
    word        pindex,ub,i;
@@ -3979,24 +3870,23 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
 
    print_debug("PP: Enter ParseProperty, search for '%s' objtype %d\n",pn,objtype); //MAG
 
-   if (objtype < etObjectTypes.propes)
+   // Get the property ID for the specified name
+   int propID = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumValue( pn );
+   if (propID < 0)
    {
-      pd = StdObjects[objtype].sotProps;  //point to property descriptor table for this object type
-   }
-   else
-   {
-      pd = ProprietaryObjProps;
+      if (tperror("Unknown property identifier",true)) return true;
    }
 
-   pindex=0;
-   do
+   pd = GetPropDescriptorTable( objtype );
+   pindex = 0;
+   while (true)
    {
-      if (_stricmp(pn,pd->PropertyName)==0)  //found this property name
+      if (pd->PropID == propID)  //found this property
       {
          pstruc=(octet *)pobj+pd->StrucOffset;  //make pointer to where the value is stored
 
          //Save the property name which parse type is none.
-         if (pd->ParseType==none) 
+         if (pd->ParseType==none)
             strcpy(NoneTypePropName,pn);
 
          if (bNeedReset && bHasNoneType)
@@ -4005,7 +3895,8 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
          }
          else
          {
-            pn=strchr(pn,0);              //restore the ':' after the property name
+            // TODO: OMG! Let's hope there WAS a colon to restore...
+            pn = strchr(pn,0);              //restore the ':' after the property name
             *pn=':';          // TODO: writing into buffer.  Fixme
          }
 
@@ -4021,7 +3912,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
          else                       //has a property value
          {
             oParseType= pd->ParseType;
-            if(bNeedReset & bHasNoneType)
+            if (bNeedReset & bHasNoneType)
             {
                oParseType = newParseType;
                pd->PropET = newPropET;
@@ -4081,9 +3972,9 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                break;
             case lopref:               //list of objectpropertyreferences
                if (ParseRefList((BACnetDeviceObjectPropertyReference **)pstruc)) return true;
- 
+
                //Add for resetting value of present-value,
-               if(objtype == OBJ_SCHEDULE)
+               if (objtype == OBJ_SCHEDULE)
                {
                   // Schedule object: reset value_type to referenced property's type
                   BACnetDeviceObjectPropertyReference *temp;
@@ -4091,14 +3982,14 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                   if (temp==NULL) break;
                   dword refobjid = temp->Objid;
                   dword refpropid = temp->wPropertyid;
-                  newpd=StdObjects[refobjid>>22].sotProps;        //point to property descriptor table for this object type
+                  newpd = GetPropDescriptorTable(refobjid>>22); //point to property descriptor table for this object type
                   do
                   {
                      if (refpropid == newpd->PropID)
                      {
                         newPropET = newpd->PropET;
                         newParseType = newpd->ParseType;
-                        
+
                         pvalue_type= (octet*)pobj+ (size_t)((char *)&(((schedule_obj_type *)0)->value_type) - (char *)0 );
                         *(dword *)pvalue_type = newParseType;
 
@@ -4106,7 +3997,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                         break;
                      }
                      if (newpd->PropGroup&Last)
-                        return tperror("Invalid Property Name- Check Spelling",true); 
+                        return tperror("Invalid Property Name- Check Spelling",true);
                      newpd++;                         //advance to next table entry
                   } while(true);
                }
@@ -4123,8 +4014,8 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                    return true;
                EPICSLengthProtocolServicesSupportedBitstring++;  // zero-based correction
 //             ProtocolServSup.ObjServNum=sizeof(StandardServices)/sizeof(StandardServices[0]);
-//             ProtocolServSup.PropSupValue=(octet *)pstruc; 
-               
+//             ProtocolServSup.PropSupValue=(octet *)pstruc;
+
                break;
             case pos:                  //protocol objects supported bitstring
                // msdanner 9/2004 - now handles bitstrings up to MAX_BITSTRING,
@@ -4135,7 +4026,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                    return true;
                EPICSLengthProtocolObjectTypesSupportedBitstring++;  // zero-based correction
 //             ProtocolObjSup.PropSupValue=(octet *)pstruc;
-//             ProtocolObjSup.ObjServNum=sizeof(StandardObjects)/sizeof(StandardObjects[0]);   
+//             ProtocolObjSup.ObjServNum=sizeof(StandardObjects)/sizeof(StandardObjects[0]);
                break;
             case dt:                //date/time
                if (ParseDateTime((BACnetDateTime *)pstruc)) return true;
@@ -4148,7 +4039,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                {
                   lp++;  // if daterange is wrapped, skip wrapper
                }
-               print_debug("PD:  ParseDateRange starts now\n"); 
+               print_debug("PD:  ParseDateRange starts now\n");
                dtp=(BACnetDateRange *)pstruc;
                if (ParseDate(&dtp->start_date)) return true;
                skipwhitespace();
@@ -4186,7 +4077,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                acp=(BACnetActionCommand **)pstruc;
                // Here, the PropET table property gives the number of array entries
                assert( pd->PropET > 0 );
-               for (i=0; i<pd->PropET; i++) 
+               for (i=0; i<pd->PropET; i++)
                   acp[i]=NULL;   //init all slots to NULL values
 
                i=0;
@@ -4194,7 +4085,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
 
                while (i < pd->PropET)
                {
-                  if ((acp[i]=ReadActionCommands())==NULL) return true; //failed for some reason   
+                  if ((acp[i]=ReadActionCommands())==NULL) return true; //failed for some reason
                   i++;
                   while (*lp==space||*lp==',') lp++;  //skip separation between list elements
                   if (*lp==0)
@@ -4245,7 +4136,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                   while (*lp==space || *lp==',') lp++;  //skip separation between list elements
                   if (*lp==0)
                      if (ReadNext()==NULL) break;
-                  if (*lp=='}') 
+                  if (*lp=='}')
                   {
                      lp++;
                      break;            //close this array out
@@ -4255,11 +4146,11 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
             case pae:                  // priority array enums
             case pab:                  //priority array bpv
                wp=(word *)pstruc;
-               for (i=0;i<16;i++) wp[i]=bpaNULL; //init all slots to NULL values ***011
+               for (i=0;i<16;i++) wp[i]=bpaNULL; //init all slots to NULL values
                i=0;
                if ((lp=openarray(lp))==NULL) return true;
 
-               while (*lp&&i<16)
+               while (*lp && i<16)
                {
                   ep=AllETs[pd->PropET]; //point to enumeration table for this guy
                   if ((ub=ReadEnum(ep))==0xFFFF)
@@ -4300,9 +4191,9 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                   }
                   i++;
                   while (*lp==space||*lp==',') lp++; //skip separation between list elements
-                  if (*lp==0) 
+                  if (*lp==0)
                      if (ReadNext()==NULL) break;
-                  if (*lp=='}') 
+                  if (*lp=='}')
                   {
                      lp++;
                      break;            //close this array out
@@ -4330,9 +4221,9 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                   }
                   i++;
                   while (*lp==space||*lp==',') lp++; //skip separation between list elements
-                  if (*lp==0) 
+                  if (*lp==0)
                      if (ReadNext()==NULL) break;
-                  if (*lp=='}') 
+                  if (*lp=='}')
                   {
                      lp++;
                      break;            //close this array out
@@ -4345,7 +4236,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                for (i=0;i<16;i++)
                   fp[i]=fpaNULL; //init all slots to NULL values
                i=0;
-               if ((lp=openarray(lp))==NULL) 
+               if ((lp=openarray(lp))==NULL)
                   return true;
                while (*lp&&i<16)
                {
@@ -4376,7 +4267,17 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                ep=AllETs[pd->PropET];
                if (ParseEnumList((BACnetEnumList **)pstruc, ep )) return true;
                break;
+            case PT_PROPLIST:
+               // Almost "etl", except we don't have an appropriate AllETs-format property table
+               if (ParsePropertyList((BACnetEnumList **)pstruc)) return true;
+               break;
             case et:                //an enumeration table
+               // TODO: Note that some enumeration members are defined in Stdobj.j as word,
+               // but some are defined AS enums, such as BACnetEventState, BACnetReliability etc.
+               // and these will have size FOUR BYTES on modern x86.
+               // This code works, so long as our processor is little-endian and the struct
+               // is cleared to zero.  But the tables should be changed to "word", or
+               // this code and others that deals with these should be changed.
                ep=AllETs[pd->PropET];  //point to enumeration table for this guy
                if ((ub=ReadEnum(ep))==0xFFFF)
                {
@@ -4402,7 +4303,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                *(int *)pstruc=atoi(lp);
                break;
             case ssint:                // case added  by Liangping Xu, 2002-8-5
-               *(int*)pstruc =(int)atoi(lp); 
+               *(int*)pstruc =(int)atoi(lp);
                break;
             case flt:                  //float
                *(float *)pstruc=(float)atof(lp);
@@ -4412,7 +4313,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
             case uwarr:
             case uw:                //unsigned word
                //Note: this is a hack to handle the case of NotificationClass Priority array (3 unsigned words)
-               if (pd->PropFlags&IsArray) //this is an array of words
+               if (pd->PropFlags & IsArray) //this is an array of words
                {
                   wp=(word *)pstruc;
                   i=0;
@@ -4424,9 +4325,9 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                      i++;
                      if(*(lp-1) == '}') lp--;  // MAG  error fix for priority object
                      while (*lp==space || *lp==',') lp++;  //skip separation between list elements
-                     if (*lp==0) 
+                     if (*lp==0)
                         if (ReadNext()==NULL) break;
-                     if (*lp=='}') 
+                     if (*lp=='}')
                      {
                         lp++;
                         break;         //close this array out
@@ -4525,7 +4426,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
                      // lp++;  // skip over ']'
                   }
                   float val =(float)atof(lp);
-                  while(*lp!=0&&*lp!=space&&*lp!=',') 
+                  while(*lp!=0&&*lp!=space&&*lp!=',')
                      lp++;  // now move past word we just read;
                   if (pshedlevel->choice == -1)
                   {
@@ -4589,7 +4490,15 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
       {
          if (objtype < etObjectTypes.propes)
          {
-            return tperror("Invalid Property Name- Check Spelling",true); 
+            if ((_strnicmp(pn, "vendor", 6) == 0) || (_strnicmp(pn, "proprietary", 11) == 0 ))
+            {
+               // Proprietary property: just skip it
+               return tperror( "Skipping proprietary property", true );
+            }
+            else
+            {
+               return tperror( "Invalid or unknown Property Name - check spelling", true );
+            }
          }
          else
          {
@@ -4600,7 +4509,6 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
       pd++;                         //advance to next table entry
       pindex++;
    }
-   while(true);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -4620,7 +4528,7 @@ BOOL ParseProperty(char *pn, generic_object *pobj, word objtype)
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseEventParameter(BACnetEventParameter *evp)
+bool ParseEventParameter(BACnetEventParameter *evp)
 {
    BACnetListBitstringValue   *pbv=NULL, *qbv=NULL;
    BACnetPropertyStates       *pv=NULL, *qv=NULL;
@@ -4642,7 +4550,7 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
          while (*lp==space||*lp==',') lp++;  //skip separation between list elements
          if (*lp==0)
             if (ReadNext()==NULL) break;
-         if (*lp==')') 
+         if (*lp==')')
          {
             lp += 1;                         // end of list-of-bitstring-values
             break;
@@ -4748,7 +4656,7 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
       break;
 
    case BUFFER_READY:                  //10
-      if (NiceReadW( &evp->notification_threshold, ',' )) return true;
+      if (NiceReadDW( &evp->notification_threshold, ',' )) return true;
       if (NiceReadDW( &evp->previous_notification_count )) return true;
       break;
 
@@ -4777,10 +4685,11 @@ BOOL ParseEventParameter(BACnetEventParameter *evp)
 // - ParseDevObjPropReference (BACnetDeviceObjectPropertyReference) - all-elements is unlikely
 // - ReadActionCommands (BACnetActionCommand) - all-elements is unlikely
 //
-propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId, unsigned short *index)
+const propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId, unsigned short *index)
 {
    char           pn[64];
-   propdescriptor *pd;
+   const propdescriptor *pd;
+   char           *pSaveLP = lp;
 
    // TODO: really, should parse Alnum + _ or -
    // This would make a nice utility function, and could replace many of the write-null-to-buffer
@@ -4791,27 +4700,38 @@ propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId
    while(*lp && *lp!=',' && *lp!=space && *lp!=')' && *lp!='}' && *lp!='[' && i<sizeof(pn))
    {
       if (*lp=='_') *lp='-';           //change _ to -
-      pn[i++]=*lp++;
+      pn[i++] = *lp++;
    }
    pn[i]=0;                            //force it to be asciz
 
-   // TODO: shouldn't this allow proprietary and numeric propery IDs as well?
-   pd = StdObjects[(word)(dw>>22)].sotProps;   //point to property descriptor table for this object type
-   do
+   // Get the property ID for the specified name
+   int propID = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumValue( pn );
+   if (propID < 0)
    {
-      if (_stricmp(pn,pd->PropertyName)==0)  //found this property name
+      if (tperror("Unknown property identifier",true)) return NULL;
+   }
+
+   // TODO: should we always DO a table search?
+   // If the property is proprietary, or just newer than our table, we will return
+   // NULL and all callers abort.
+   // The only caller that really CARES about the return value is
+   // Action Command, which uses it to decode the VALUE that follows.
+   // Maybe a bool parameter to request it?
+   pd = GetPropDescriptorTable((word)(dw>>22));  //point to property descriptor table for this object type
+   while (true)
+   {
+      if (pd->PropID == propID)  //found this property
       {
-         *propId=pd->PropID;
+         *propId = pd->PropID;
          break;
       }
-      if (pd->PropGroup&Last)
+      if (pd->PropGroup & Last)
       {
          tperror("Unknown Property Name",true);
          return NULL;            // return NOT FOUND
       }
       pd++;                      //advance to next table entry
    }
-   while(true);
 
    *index = NotAnArray;
    skipwhitespace();
@@ -4853,12 +4773,12 @@ propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *propId
 //    else  *rasp points to a list of BACnetReadAccessSpecifications
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
+bool ParseRASlist(BACnetReadAccessSpecification **rasp)
 {
    BACnetReadAccessSpecification *fp=NULL,*p=NULL,*q=NULL;
    BACnetPropertyReference       *pp=NULL, *pq=NULL;
    dword          dw;
-   BOOL           rasfail=true;
+   bool           rasfail=true;
 
    *rasp=NULL;                         //initially there is no list
 // if (MustBe('{')) return true;  //MAG change from '('
@@ -4872,7 +4792,7 @@ BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
       //2. (   i.e. the beginning of a new BACnetReadAccessSpecification in the list
       //3. )            i.e. the closing part of the list
       while (*lp==space || *lp==',') lp++;     //skip separation between list elements
-      if (*lp==0) 
+      if (*lp==0)
          if (ReadNext()==NULL) break;
       //if (*lp=='}') // MAG was )
       if ( *lp==')' && *(lp+1)== 0 )
@@ -4905,9 +4825,9 @@ BOOL ParseRASlist(BACnetReadAccessSpecification **rasp)
       while(feof(ifile)==0)
       {
          while (*lp==space||*lp==',') lp++;     //skip separation between list elements
-         if (*lp==0) 
+         if (*lp==0)
             if (ReadNext()==NULL) break;
-         if (*lp==')') 
+         if (*lp==')')
          {
             lp +=2;
             break;                        //close this list out
@@ -4962,10 +4882,10 @@ rasx:
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
+bool ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 {
    BACnetSpecialEvent   *fp=NULL,*p=NULL,*q=NULL;
-   BOOL           xfail=true;
+   bool           xfail=true;
    char           *ep;
    word           i;
 
@@ -4986,12 +4906,12 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
          if (ReadNext()==NULL) return true;
-      if (*lp=='}') 
+      if (*lp=='}')
       {
          lp++;
          break;                        //close this list out
       }
-        
+
       if (MustBe('(')) goto xx;
       //here we have (dateoption),(timevaluelist),eventpriority),...)
       if ((q=(tagSpecialEvent *)malloc(sizeof(BACnetSpecialEvent)))==NULL)
@@ -5021,7 +4941,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
       //in either case dow must be separated from year by a space, or not be there at all
       //The .. between dates in a daterange is significant and must be literally 2 dots in a row
       // TODO: 135.1 has no such thing as .. between dates
-      
+
       if (_strnicmp(lp,"Calendar",8)==0)     //it's a calendar reference
       {
          q->choice=3;
@@ -5103,7 +5023,7 @@ BOOL ParseExceptionSchedule(BACnetExceptionSchedule *xp)
 
       print_debug("PES: About to PTVL lp = '%s'\n",lp);
       if (ParseTVList(&q->list_of_time_values)) goto xx;
-      
+
       print_debug("PES: About to strdelim2 lp = '%s'\n",lp);
       if (strdelim(",")==NULL) goto xx;
 
@@ -5139,7 +5059,7 @@ xx:
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseWeekdaySchedule(BACnetTimeValue *wp[])
+bool ParseWeekdaySchedule(BACnetTimeValue *wp[])
 {
    word  i;
    for (i=0;i<7;i++) wp[i]=NULL;          //initially there are no lists
@@ -5159,7 +5079,7 @@ BOOL ParseWeekdaySchedule(BACnetTimeValue *wp[])
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
          if (ReadNext()==NULL) return true;
-      if (*lp=='}') 
+      if (*lp=='}')
       {
          lp++;
          break;                        //close this list out
@@ -5170,7 +5090,7 @@ BOOL ParseWeekdaySchedule(BACnetTimeValue *wp[])
          tperror("Weekly Schedule cannot contain more than 7 days!",true);
          return true;
       }
-        
+
       //here we have (list of timevalues),...
       if (ParseTVList(&wp[i])) return true;
       i++;
@@ -5187,10 +5107,10 @@ BOOL ParseWeekdaySchedule(BACnetTimeValue *wp[])
 //    else  *tvp points to a list of BACnetTimeValues
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseTVList(BACnetTimeValue **tvp)
+bool ParseTVList(BACnetTimeValue **tvp)
 {
    BACnetTimeValue   *fp=NULL,*p=NULL,*q=NULL;
-   BOOL           tvfail=true;
+   bool        tvfail=true;
    char        *ep;
 
    *tvp=NULL;                          //initially there is no list
@@ -5283,13 +5203,13 @@ tvx:
 // The handling of BACnetListOfDeviceObjectReference[] is implemented the same
 // here whether a list or array, so we can get away with this as long as we cover it
 // in parsing.
-BOOL ParseDevObjList(BACnetDeviceObjectReference **refp, word propID)
+bool ParseDevObjList(BACnetDeviceObjectReference **refp, word propID)
 {
    BACnetDeviceObjectReference   *fp=NULL,*p=NULL,*q=NULL;
-   BOOL           reffail=true;
+   bool           reffail=true;
    char openChar  = '(';  // starts with '('  SEQ OF lists are enclosed by ()
    char closeChar = ')';
-            
+
    *refp=NULL;                         //initially there is no list
    skipwhitespace();
 
@@ -5345,11 +5265,11 @@ refx:
 //    else  *refp points to a list of BACnetObjectPropertyReferences
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseRefList(BACnetDeviceObjectPropertyReference **refp)
+bool ParseRefList(BACnetDeviceObjectPropertyReference **refp)
 {
    BACnetDeviceObjectPropertyReference *fp=NULL,*p=NULL,*q=NULL;
-   BOOL           reffail=true;           
-            
+   bool           reffail=true;
+
    *refp=NULL;                         //initially there is no list
    if (MustBe('(')) return true; // starts with '('  SEQ OF lists are enclosed by ()
    while(true)
@@ -5383,7 +5303,7 @@ BOOL ParseRefList(BACnetDeviceObjectPropertyReference **refp)
    reffail=false;
 refx:
    *refp=fp;
-   if (TRUE == reffail) {
+   if (reffail) {
       tperror("Invalid List of DevObjPropReferences",true);
    }
    if (q!=NULL) free(q);                  //don't lose this block!
@@ -5421,7 +5341,7 @@ BACnetObjectPropertyReference* ParseReference(BACnetObjectPropertyReference   *i
    if (*lp=='?') return NULL;
 
    // TODO: 135.1 doesn't seem to allow empty {}
-   if (*lp == '{' && *(lp+1) == '}' ) 
+   if (*lp == '{' && *(lp+1) == '}' )
       return NULL;
 
    // TODO: I don't know what "setpoint reference type" means
@@ -5648,10 +5568,10 @@ oprfail:
 //    else  *calp points to a list of BACnetCalendarEntrys
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseCalist(BACnetCalendarEntry **calp)
+bool ParseCalist(BACnetCalendarEntry **calp)
 {
    BACnetCalendarEntry  *fp=NULL,*p=NULL,*q=NULL;
-   BOOL   calfail=true;
+   bool   calfail=true;
 
    *calp=NULL;                         //initially there is no list
    if (MustBe('(')) return true;
@@ -5754,7 +5674,7 @@ octet whatIsChoice(char str[])
 
    skipwhitespace();
 
-   // Start checking 
+   // Start checking
    //   while(*lp != '/' && *lp != ':' && *lp != ')' && ucindex < 7)
    // while(*lp != '/' && *lp != '-' && *lp != ':' && *lp != ')' && ucindex < 7)     // ***020
    while(*lp != '/' && *lp != '-' && *lp != ':' && *lp != '}' && ucindex < 7)     // ***020
@@ -5783,11 +5703,11 @@ octet whatIsChoice(char str[])
       case '}':
          str[ucindex] = *lp;
          // do we have an int in front of the delimiter?
-         while(*lp >= '0' && *lp <= '9' && ucindex > 0 || *lp == '}') 
+         while(*lp >= '0' && *lp <= '9' && ucindex > 0 || *lp == '}')
             str[--ucindex] = *--lp;
          // wildcard is ok.
-         if (*lp == '?') 
-            status = 10; 
+         if (*lp == '?')
+            status = 10;
          // we have a well formed int. life is good.
          else if (ucindex == 0)
             status = 11;
@@ -5806,16 +5726,16 @@ octet whatIsChoice(char str[])
 // LJT 10/7/2005 rewrote
 ///////////////////////////////////////////////////////////////////
 //  This function parses the Time Stamp data presented in the PICS
-//  Format: DateTime ,Time & Sequence number -> {(6/21/2001,11:32:43.0),(12:14:01.05),(65535)}  
-//  DatetTime can also be writed out in such way: (23-MAR-95, 18:50:21.2)              
-//  The sequence number may be assigned any value from 0 - 65535 or the default "?".  
+//  Format: DateTime ,Time & Sequence number -> {(6/21/2001,11:32:43.0),(12:14:01.05),(65535)}
+//  DatetTime can also be writed out in such way: (23-MAR-95, 18:50:21.2)
+//  The sequence number may be assigned any value from 0 - 65535 or the default "?".
 // in:   lp    points to current position in buffer lb
 //       inq      points to a BACnetObjectPropertyReference to be filled in (or NULL)
 // out:  NULL  if an error occurred
 //       else  pointer to newly created BACnetObjectPropertyReference
 //       lp    points past the delimiter ) unless it was the end of the buffer
 ///////////////////////////////////////////////////////////////
-BOOL ParseTimeStamp(BACnetTimeStamp *ptstamp)
+bool ParseTimeStamp(BACnetTimeStamp *ptstamp)
 {
    octet           oSwval;
     char       amyLine[20];
@@ -5860,12 +5780,11 @@ numch:     ptstamp->choice = 1;  //
          return false;
 }  // end ParseTimeStamp
 
-// LJT 10/7/2005 
-BOOL ParseTimeStampArray(BACnetTimeStamp *parray[], int arraycount)
+bool ParseTimeStampArray(BACnetTimeStamp *parray[], int arraycount)
 {
    BACnetTimeStamp *q=NULL;
    if (MustBe('{'))
-      return true; 
+      return true;
 
    for(int i=0; i < arraycount; i++)
    {
@@ -5911,14 +5830,14 @@ BOOL ParseTimeStampArray(BACnetTimeStamp *parray[], int arraycount)
 
 /*
 Any of the following should be valid ...
-   (5,29-SEP-1989), 01:00:00.0 
-   (Friday,29-SEP-1989), 01:00:00.0 
-   (29-SEP-1989, 5), 01:00:00.0 
-   (29-SEP-1989, Friday), 01:00:00.0 
-   (9/29/1989, Friday), 01:00:00.0 
+   (5,29-SEP-1989), 01:00:00.0
+   (Friday,29-SEP-1989), 01:00:00.0
+   (29-SEP-1989, 5), 01:00:00.0
+   (29-SEP-1989, Friday), 01:00:00.0
+   (9/29/1989, Friday), 01:00:00.0
 
 */
-BOOL ParseDateTime(BACnetDateTime *dtp)
+bool ParseDateTime(BACnetDateTime *dtp)
 {
    skipwhitespace();
    if (ParseDate(&dtp->date)) return true;
@@ -5938,15 +5857,15 @@ int getDayOfWeek(char* tok)  // returns 0 if not day of week, -1 if any
       for(i=0;i<7;i++)
       {
       if (_strnicmp(DOWNames[i], tok, strlen(DOWNames[i])) == 0)
-      {  
+      {
          return i+1;  // day of week is 1 - 7
       }
       }
       return 0;
-   }           
+   }
    else
    {
-      if (tok[0] == '*') 
+      if (tok[0] == '*')
          return -1;
       else
       {
@@ -5956,8 +5875,7 @@ int getDayOfWeek(char* tok)  // returns 0 if not day of week, -1 if any
    }
 }
 
-// LJT 10/7/2005
-BOOL hasDateSeparators(char* tok)
+bool hasDateSeparators(char* tok)
 {
    if ( strchr(tok, '-') != NULL || strchr(tok, '/') != NULL )
    {
@@ -5966,8 +5884,7 @@ BOOL hasDateSeparators(char* tok)
    return false;
 }
 
-// LJT 10/7/2005
-BOOL ParseJustDatePart(BACnetDate *dtp, char* tok)
+bool ParseJustDatePart(BACnetDate *dtp, char* tok)
 {
    octet db;
    int i = 0;
@@ -6038,9 +5955,9 @@ BOOL ParseJustDatePart(BACnetDate *dtp, char* tok)
    }
 
    print_debug("PD: About to read third set\n");
-   BOOL flag = TRUE;
+   bool flag = true;
    if( strchr(lp, ')') == NULL )
-      flag = FALSE;
+      flag = false;
    if (i=ReadW())                        //not wild
    {
       //Shiyuan Xiao 7/25/2005
@@ -6079,16 +5996,15 @@ BOOL ParseJustDatePart(BACnetDate *dtp, char* tok)
 /*
 Any of the following should be valid ...
    (5,29-SEP-1989)
-   (Friday,29-SEP-1989) 
+   (Friday,29-SEP-1989)
    (29-SEP-1989, 5)
    (29-SEP-1989, Friday)
    (9/29/1989, Friday)
 
 */
-// LJT 10/7/2005 rewrote
-BOOL ParseDate(BACnetDate *dtp)
+bool ParseDate(BACnetDate *dtp)
 {
-   print_debug("PD: Enter ParseDate, lp = '%s'\n",lp);   //MAG
+   print_debug("PD: Enter ParseDate, lp = '%s'\n",lp);
    if (MustBe('(')) return true;  // date is surrounded by ()
 
    // fill initially with ANY values
@@ -6099,7 +6015,7 @@ BOOL ParseDate(BACnetDate *dtp)
    print_debug("PD: about to read first set\n");
 
    // look for ',' before first ')'
-   char cpylp[500];  // will lp every be any longer? 
+   char cpylp[500];  // will lp every be any longer?
    strcpy( cpylp, lp );
    char* tok1 = strtok(cpylp, ",)");
    if ( tok1 == NULL )
@@ -6141,7 +6057,7 @@ BOOL ParseDate(BACnetDate *dtp)
 //    tp    points to structure to initialize
 //out:   true  if cancel selected
 
-BOOL ParseTime(BACnetTime *tp)
+bool ParseTime(BACnetTime *tp)
 {
    tp->hour=dontcare;
    tp->minute=dontcare;
@@ -6284,12 +6200,12 @@ bool ParseBitstring(octet *bsp, word nbits, octet *nbf)
 //    ncount   points to word to receive string size in octets (may be NULL)
 //out:   true  if cancel selected
 
-BOOL ParseOctetstring(octet *osp,word nmax,word *ncount)
+bool ParseOctetstring(octet *osp,word nmax,word *ncount)
 {
    memset(osp,0,nmax);                 //initialize to 0
    if (ncount!=NULL) *ncount=0;
    skipwhitespace();
-   if ((*lp!='x'&&*lp!='X')||lp[1]!='\'')
+   if ((*lp!='x' && *lp!='X') || (lp[1]!='\'' && lp[1]!='`'))
    {
       tperror("Expected X'octetstring' here!",true);
       return true;
@@ -6314,13 +6230,13 @@ BOOL ParseOctetstring(octet *osp,word nmax,word *ncount)
    return false;
 }
 
-BOOL ParsePrescale(BACnetPrescale* pt)
+bool ParsePrescale(BACnetPrescale* pt)
 {
    skipwhitespace();
    if (*lp=='?')
       return false;
 
-   if (MustBe('{')) 
+   if (MustBe('{'))
       return true;
    pt->multiplier = ReadW();
    lp--;
@@ -6332,13 +6248,13 @@ BOOL ParsePrescale(BACnetPrescale* pt)
    pt->moduloDivide = ReadW();
    lp--;
 
-   if (MustBe('}')) 
+   if (MustBe('}'))
       return true;
 
    return false;
 }
 
-BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
+bool ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
 {
    skipwhitespace();
    if (*lp=='?')
@@ -6348,7 +6264,7 @@ BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
       return true;
 
    ParseDateTime(&pt->timestamp);
-   if (MustBe(',')) 
+   if (MustBe(','))
       return true;
 
    skipwhitespace();
@@ -6379,7 +6295,7 @@ BOOL ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
 BACnetActionCommand *ReadActionCommands()
 {
    BACnetActionCommand  *firstp=NULL,*p=NULL,*q=NULL;
-   propdescriptor *pd;
+   const propdescriptor *pd;
    dword          dw;
 
    // List is enclosed by parenthesis
@@ -6397,7 +6313,7 @@ BACnetActionCommand *ReadActionCommands()
       // 3. )           i.e. the closing part of the list
       while (*lp==space || *lp==',') lp++;     //skip separation between list elements
 
-      if (*lp==0) 
+      if (*lp==0)
          if (ReadNext()==NULL) break;
 
       if (*lp==')')
@@ -6510,7 +6426,7 @@ acprem:
    return firstp;
 }
 
-BOOL ParseBooleanList( BooleanList **elp )
+bool ParseBooleanList( BooleanList **elp )
 {
    BooleanList *p=NULL,*q=NULL;
    word        value;
@@ -6543,7 +6459,7 @@ BOOL ParseBooleanList( BooleanList **elp )
         q->next = NULL;
 
       skipwhitespace();
-      if (*lp=='{') 
+      if (*lp=='{')
          lp++;
 
       if ((value=ReadBool())!=0xFFFF)
@@ -6569,7 +6485,7 @@ BOOL ParseBooleanList( BooleanList **elp )
       }
 
       lp--;  // don't eat last character
-      if (*lp=='}') 
+      if (*lp=='}')
          lp++;
 
       q=NULL;
@@ -6579,7 +6495,7 @@ BOOL ParseBooleanList( BooleanList **elp )
    return false;
 }
 
-BOOL ParseUnsignedList( UnsignedList **elp )
+bool ParseUnsignedList( UnsignedList **elp )
 {
    UnsignedList   *p=NULL,*q=NULL;
    word        value;
@@ -6638,7 +6554,7 @@ BOOL ParseUnsignedList( UnsignedList **elp )
    return false;
 }
 
-BOOL ParseEnumList(BACnetEnumList **elp, etable *etbl)
+bool ParseEnumList(BACnetEnumList **elp, etable *etbl)
 {
    BACnetEnumList *p=NULL,*q=NULL;
    word                 value;
@@ -6654,7 +6570,7 @@ BOOL ParseEnumList(BACnetEnumList **elp, etable *etbl)
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
          if (ReadNext()==NULL) break;     //                         ***008
-      if (*lp==')') 
+      if (*lp==')')
       {
          lp++;
          break;                        //close this list out
@@ -6695,6 +6611,68 @@ BOOL ParseEnumList(BACnetEnumList **elp, etable *etbl)
    return false;
 }
 
+bool ParsePropertyList(BACnetEnumList **elp)
+{
+   BACnetEnumList *p=NULL,*q=NULL;
+
+   *elp = NULL;                          //initially there is no list
+   // This is actually and ARRAY, so wrapped in {}
+   if (MustBe('{')) return true;
+   while (feof(ifile)==0)
+   {
+      //here lp must point to:
+      //1. a comma or whitespace which we ignore as a separator between array elements.
+      //2. the beginning of a new BACnetPropertyIdentifier in the array
+      //3. }            i.e. the closing part of the array
+      while (*lp==space||*lp==',') lp++;     //skip separation between array elements
+      if (*lp==0)
+         if (ReadNext()==NULL) break;
+      if ((*lp=='}') || (*lp==')'))
+      {
+         lp++;
+         break;                        //close this list out
+      }
+
+      // Harvest characters until space, command, end of list, or end of line (null)
+      int len = strcspn( lp, " ,)}" );
+      if (len == 0)
+         continue;
+      CString propName( lp, len );
+      lp += len;
+      int value = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumValue( propName );
+      if (value < 0)
+      {
+         if (tperror("Unknown property identifier",true)) return true;
+      }
+
+      if ((q=(tagEnumList *)malloc(sizeof(BACnetEnumList)))==NULL)
+      {
+         tperror("Can't Get Object Space!",true);
+         break;
+      }
+      print_debug("LJT: EnumList=%x\n",q);
+
+      q->next = NULL;
+      q->value = value;
+      if (p)
+      {
+         // if aready one item in the list
+         p->next = q;
+         p = q;  // new end of list
+      }
+      else
+      {
+         // first item found ...
+         *elp = q;
+      }
+      p=q;
+      q=NULL;
+      if (lp[-1]==')') break;             //list is done
+   }
+   if (q!=NULL) free(q);                  //don't lose this block!
+   return false;
+}
+
 ///////////////////////////////////////////////////////////////////////
 // read a list of BACnetVTClasses from the buffer lp points to
 // (class,class,class...)
@@ -6704,7 +6682,7 @@ BOOL ParseEnumList(BACnetEnumList **elp, etable *etbl)
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseVTClassList(BACnetVTClassList **vtclp)
+bool ParseVTClassList(BACnetVTClassList **vtclp)
 {
    BACnetVTClassList *p=NULL,*q=NULL;
    word           vtc;
@@ -6775,11 +6753,11 @@ BOOL ParseVTClassList(BACnetVTClassList **vtclp)
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
+bool ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
 {
    BACnetObjectIdentifier  *firstp=NULL,*p=NULL,*q=NULL;
    word  objtype;
-   dword objectInstance; 
+   dword objectInstance;
    int i;
 
    *dalp=NULL;                         //initially there is no list
@@ -6799,7 +6777,7 @@ BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
          if (ReadNext()==NULL) break;
-      if (*lp=='}') 
+      if (*lp=='}')
       {
          lp++;
          break;                        //close this list out
@@ -6815,16 +6793,16 @@ BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
       print_debug("LJT: ObjectIdentifier=%x\n",q);
 
       //Modified by xlp,2002-11
-      objectInstance=ReadObjID(); 
+      objectInstance=ReadObjID();
       objtype=(word)(objectInstance>>22);
       if ( objtype < MAX_DEFINED_OBJ )
       {
          // don't add proprietary objects here
-         DevObjList[objtype].object_type=objtype;       
+         DevObjList[objtype].object_type=objtype;
          DevObjList[objtype].ObjIDSupported|=soSupported;
          i=DevObjList[objtype].ObjInstanceNum;
          DevObjList[objtype].ObjInstanceNum++;
-         DevObjList[objtype].ObjInstance[i]=objectInstance&0x003fffff;     
+         DevObjList[objtype].ObjInstance[i]=objectInstance&0x003fffff;
       }
       //ended by xlp,2002-11
 
@@ -6852,7 +6830,7 @@ BOOL ParseObjectList(BACnetObjectIdentifier **dalp,word *nump)
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseAddressList(BACnetAddressBinding **dalp)
+bool ParseAddressList(BACnetAddressBinding **dalp)
 {
    BACnetAddressBinding *p=NULL,*q=NULL;
    dword                dw;
@@ -6872,7 +6850,7 @@ BOOL ParseAddressList(BACnetAddressBinding **dalp)
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
          if (ReadNext()==NULL) break;
-      if (*lp==')') 
+      if (*lp==')')
       {
          lp++;
          break;                        //close this list out
@@ -6901,7 +6879,7 @@ BOOL ParseAddressList(BACnetAddressBinding **dalp)
       q->device_address.network_number=ReadW();
       if (ParseOctetstring(&q->device_address.mac_address[0],
                            sizeof(q->device_address.mac_address),
-                           &q->device_address.address_size)) 
+                           &q->device_address.address_size))
          break;
       skipwhitespace();
       if (*lp++!='}')   // close individual item
@@ -6927,7 +6905,7 @@ alprem:  {  lp--;
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
 
-BOOL ParseSessionKeyList(BACnetSessionKey **dalp)
+bool ParseSessionKeyList(BACnetSessionKey **dalp)
 {
    BACnetSessionKey  *p=NULL,*q=NULL;
 
@@ -7153,7 +7131,7 @@ bool ParseRecipientList(BACnetRecipient **dalp)
       while (*lp==space||*lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
          if (ReadNext()==NULL) break;
-      if (*lp==')') 
+      if (*lp==')')
       {
          lp++;
          break;                        //close this list out
@@ -7231,13 +7209,13 @@ brfail:
 
 
 ///////////////////////////////////////////////////////////////////////
-// read a list of BACnetCOVSubscription from the buffer lp 
+// read a list of BACnetCOVSubscription from the buffer lp
 //in: lp    points to current position in buffer lb
 //    dalp  points to a BACnetCOVSubscription pointer variable to be
 //          initialized to point to the created list of BACnetCOVSubscription
 //out:   true  if an error occurred
 //    lp    points past the delimiter ) unless it was the end of the buffer
-BOOL ParseCOVSubList(BACnetCOVSubscription **covsub)
+bool ParseCOVSubList(BACnetCOVSubscription **covsub)
 {
    BACnetCOVSubscription   *p=NULL,*q=NULL;
    *covsub=NULL;                          //initially there is no list
@@ -7255,12 +7233,12 @@ BOOL ParseCOVSubList(BACnetCOVSubscription **covsub)
       if (*lp==0)
          if (ReadNext()==NULL) break;
 
-      if (*lp==')') 
+      if (*lp==')')
       {
          lp++;
          break;                        //close this list out
       }
-         
+
       if ((q=ParseCOVSubscription(NULL))!=NULL)
       {
          q->next=p;                    //link onto the list
@@ -7275,7 +7253,7 @@ BOOL ParseCOVSubList(BACnetCOVSubscription **covsub)
 
 ///////////////////////////////////////////////////////////////////////
 // read a BACnetCOVSubscription from the buffer lp points to
-// (RecipientProcess, ObjectPropertyReference, Boolean, Unsigned) 
+// (RecipientProcess, ObjectPropertyReference, Boolean, Unsigned)
 //in: lp    points to current position in buffer lb
 //out:   NULL  if an error occurred
 //    else  pointer to newly created BACnetCOVSubscription
@@ -7334,7 +7312,7 @@ BACnetCOVSubscription *ParseCOVSubscription(BACnetCOVSubscription *inq)
    // parse unsigned
    if ((strdelim(","))==NULL) goto brfail;
    skipwhitespace();
-   q->timeRemaining = ReadW();   
+   q->timeRemaining = ReadW();
    lp--;
 
    // parse real
@@ -7476,12 +7454,12 @@ octet ReadB(octet lb,octet ub)
    skipwhitespace();
    while (IsDigit(c=*lp++))
       d=(d*10)+(c-'0');
-   if (c=='?') 
+   if (c=='?')
    {
       c=*lp++;                      //pretend ? is a valid digit
       d=dontcare;
    }
-   if (c=='*') 
+   if (c=='*')
    {
       c=*lp++;                      //pretend * is a valid digit
       d=dontcare;
@@ -7647,7 +7625,6 @@ dword ReadObjID()
    word  objtype;
    dword id;
 
-   print_debug("ROI: Enter ReadObjID\n");
    skipwhitespace();
    if (*lp++!='(')
    {
@@ -7655,27 +7632,38 @@ dword ReadObjID()
       goto roidx;
    }
 
-   // 5/19/2005 Shiyuan Xiao. Support proprietary object
-   if (_strnicmp(lp, "proprietary", strlen("proprietary")) == 0)
+   if (IsNextNumber())
    {
-      lp += strlen("proprietary");
-      skipwhitespace();
-      objtype = ReadW();
+      // Integer
+      if (NiceReadW(&objtype, ',')) goto roidx;
    }
-   else if ((objtype=ReadEnum(&etObjectTypes))==0xFFFF)
+   else if (_strnicmp(lp, "proprietary", 11) == 0)
+   {
+      lp += 11;
+      if (*lp == '-')
+      {
+         // 135.1 "proprietary-NNNN"
+         lp += 1;
+      }
+      else
+      {
+         // Legacy VTS "proprietary NNN"
+         skipwhitespace();
+      }
+      if (NiceReadW(&objtype, ',')) goto roidx;
+   }
+   else if ((objtype = ReadEnum(&etObjectTypes)) ==0xFFFF)
    {
       goto roidx;
    }
 
-   print_debug("ROI: object type %s %d\n",etObjectTypes.estrings[objtype], objtype);
    skipwhitespace();
    if (_strnicmp(lp,"instance ",9)==0) //ignore instance here
       lp+=9;
    id=ReadDW();
-   print_debug("ROI: object instance %d\n",id);
-   if (lp[-1]==')')                    //it ended with a closing paren, it's ok
+   if (lp[-1]==')')                          //it ended with a closing paren, it's ok
    {
-      if (id<(1L<<22))                 //valid instance number
+      if (id < (1L<<22))                     //valid instance number
          return (((dword)objtype)<<22)+id;   //save the object identifier as a dword
       tperror("Object Instance must be 0..4194303!",true);
       goto roidx;
@@ -7689,7 +7677,7 @@ roidx:
 ///////////////////////////////////////////////////////////////////////
 // find the next non-whitespace line from the file
 //in: lp    points to current position in buffer lb
-//    ifile file stream 
+//    ifile file stream
 //out:   NULL  if eof,
 //    else  pointer to next non-whitespace
 //          (in this case lp also points to it)
@@ -7708,7 +7696,7 @@ char *ReadNext()
 
 ///////////////////////////////////////////////////////////////////////
 // find the end of whitespace in a string
-//in: lp    points to string 
+//in: lp    points to string
 //out:   lp    points to first non-whitespace char
 
 void skipwhitespace()
@@ -7719,12 +7707,12 @@ void skipwhitespace()
 
 ///////////////////////////////////////////////////////////////////////
 // find the first element of an array or list after whitespace{whitespace
-//in: p     points to string 
+//in: p     points to string
 //out:   points to first non-whitespace char or NULL if no { was found
 
 char *openarray(char *p)
 {
-   BOOL  foundlb=false;
+   bool foundlb=false;
    while (*p==space||*p=='{')
    {
       if (*p=='{')
@@ -7767,7 +7755,7 @@ int CreateTextPICS(char *tp)
 static void readline(char *lp,int lps)
 {
    char  *dp,*sp,c;
-   BOOL  HaveNonWS=FALSE;
+   bool  HaveNonWS=false;
 
    fgets(lp,lps,ifile);                //get a line from the file       ***008
    dp=sp=lp;
@@ -7781,7 +7769,7 @@ static void readline(char *lp,int lps)
       case lf:
          while (c=*sp)
          {
-            if (c==space||c==tab||c==cr||c==lf) 
+            if (c==space||c==tab||c==cr||c==lf)
                sp++;                      //skip white space
             else
                break;
@@ -7793,8 +7781,8 @@ static void readline(char *lp,int lps)
       case '-':                           //comment?
          if (*sp=='-') goto rlexit;       //yes, ignore to the end
          *dp++=c;
-         HaveNonWS=TRUE;
-         break; 
+         HaveNonWS=true;
+         break;
       case accentgrave:
          //c=singlequote;                 //matching quote is singlequote
          //goto rlquote;
@@ -7806,17 +7794,17 @@ static void readline(char *lp,int lps)
             *dp++=*sp++;
          *dp++=c;
          if (*sp) sp++;                //consume closing quote unless it's the end of the line
-         HaveNonWS=TRUE;
+         HaveNonWS=true;
          break;
       default:
          *dp++=c;
-         HaveNonWS=TRUE;
+         HaveNonWS=true;
       }
    }
 rlexit:
    *dp=0;                              //mark the end with asciz
 
-   // madanner 6/03:  Problem leaving an extra space on the valid line if 
+   // madanner 6/03:  Problem leaving an extra space on the valid line if
    // a comment exists further down the line... so just trim it off
    rtrim(lp);
 
@@ -7824,7 +7812,7 @@ rlexit:
 // printf("%.3u:%s\n",lc,lp);             //*** DEBUG ***
 }
 
-/////////////////////////////////////////////////////////////////////// 
+///////////////////////////////////////////////////////////////////////
 // Find the next comma or EOS
 //in: p  points to the beginning of the string to look in
 //out:   p  unchanged, but the comma (if found) is changed to asciz
@@ -7918,7 +7906,7 @@ char SkipValue()
 
 void rtrim(char *p)
 {
-   //madanner 6/03: This function never actually worked... 
+   //madanner 6/03: This function never actually worked...
    //so, let's do it again.
 
    for ( char * q = p + strlen(p) - 1; q >= p && (*q == ' ' || *q == 0x09); q-- )
@@ -7945,7 +7933,7 @@ void preprocstr(char *str)
    }
 }
 
-/////////////////////////////////////////////////////////////////////// 
+///////////////////////////////////////////////////////////////////////
 // Convert HEX chars to binary octet
 //in: src      points to 2 hex chars
 //    dst      points to octet to receive the value
@@ -7960,13 +7948,13 @@ char *cvhex(char *src,octet *dst)
    if (IsDigit(*src))
       *dst=*src-'0';
    else
-      *dst=(*src&0xDF)-55;
+      *dst=(*src & 0xDF)-55;
    src++;
    if (!IsXDigit(*src)) return src;
    if (IsDigit(*src))
       *dst=(*dst<<4)+(*src-'0');
    else
-      *dst=(*dst<<4)+((*src&0xDF)-55);
+      *dst=(*dst<<4)+((*src & 0xDF)-55);
    src++;
    return src;
 }
@@ -8000,7 +7988,7 @@ bool MustBe(char c)
    return false;
 }
 
-/////////////////////////////////////////////////////////////////////// 
+///////////////////////////////////////////////////////////////////////
 // display an error message dialog and update the error count
 //in: mp       points to specific message
 //    showline true if need to show source line and position
@@ -8012,7 +8000,7 @@ bool MustBe(char c)
 // string.  We dream of a parser object to eat whitespace, and have
 // pointers to start of token as well as cursor...
 
-bool tperror(char *mp, bool showline)
+bool tperror(const char *mp, bool showline)
 {
    static char m[512];
    char     *p,c;
@@ -8076,8 +8064,7 @@ int GetStandardServicesSize()
    return sizeof(StandardServices)/sizeof(StandardServices[0]);
 }
 
-// msdanner 9/04 added:
-// Returns a string representing the standard service indexed by i 
+// Returns a string representing the standard service indexed by i
 char *GetStandardServicesName(int i)
 {
    return (i < sizeof(StandardServices)/sizeof(StandardServices[0]))
@@ -8085,42 +8072,36 @@ char *GetStandardServicesName(int i)
           : "unknown-service";
 }
 
-// msdanner 9/04 added:
 // Returns the maximum number of potential BIBBs
 int GetBIBBSize()
 {
    return MAX_BIBBS;
 }
 
-// msdanner 9/04 added:
-// Returns a string representing the BIBB corresponding to index i 
+// Returns a string representing the BIBB corresponding to index i
 char *GetBIBBName(int i)
 {
    return BIBBs[i].name;
 }
 
-// msdanner 9/04 added:
 // Returns the maximum number of potential Object Types
 int GetObjectTypeSize()
 {
    return sizeof(StandardObjects)/sizeof(StandardObjects[0]);
 }
 
-// msdanner 9/04 added:
 // Returns a string representing the Object Type indexed by i
 char *GetObjectTypeName(int i)
 {
    return StandardObjects[i];
 }
 
-// msdanner 9/04 added:
 // Returns the maximum number of potential Data Link Options
 int GetDataLinkSize()
 {
    return  sizeof(StandardDataLinks)/sizeof(StandardDataLinks[0]);
 }
 
-// msdanner 9/04 added:
 // Returns a string representing the Data Link Option indexed by i
 // and any baud rate options.
 // Caller must allocate the memory to hold the resulting string
@@ -8137,9 +8118,9 @@ void GetDataLinkString(int i, PICSdb *pd, char *pstrResult)
 
    // Construct the first part of the string, the data link name
    pz = pstrResult;
-   pz += sprintf(pz, "%s", StandardDataLinks[i]);   // get Data Link name 
+   pz += sprintf(pz, "%s", StandardDataLinks[i]);   // get Data Link name
 
-   // append optional baud rates 
+   // append optional baud rates
    switch (i)
    {
    case 9:                       //MS/TP master
@@ -8177,15 +8158,13 @@ void GetDataLinkString(int i, PICSdb *pd, char *pstrResult)
    return;
 }
 
-// msdanner 9/04 added:
 // Returns the maximum number of potential Character Sets
 int GetCharsetSize()
 {
    return  sizeof(Charsets)/sizeof(Charsets[0]);
 }
 
-// msdanner 9/04 added:
-// Returns a string representing the Charset matching csTag 
+// Returns a string representing the Charset matching csTag
 char *GetCharsetName(octet csTag)
 {
    int j;
@@ -8197,7 +8176,7 @@ char *GetCharsetName(octet csTag)
    return NULL;
 }
 
-// msdanner 9/2004 - function to expand a packed bitstring into an array
+// function to expand a packed bitstring into an array
 // of ocetes, with each octet being a 0 or 1 depending on the bitstring
 void ExpandBitstring(octet *pExpandedResult, octet *pBitstring, int nBits)
 {
@@ -8213,99 +8192,96 @@ void ExpandBitstring(octet *pExpandedResult, octet *pBitstring, int nBits)
 }
 
 
-// msdanner 9/04 added:
 // Returns the maximum number of Special Functionality choices
 int GetSpecialFunctionalitySize()
 {
    return  sizeof(SpecialFunctionality)/sizeof(SpecialFunctionality[0]);
 }
 
-// msdanner 9/04 added:
-// Returns a Special Functionality string at index i 
+// Returns a Special Functionality string at index i
 char *GetSpecialFunctionalityName(int i)
 {
    return SpecialFunctionality[i];
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// msdanner 9/04 added:
 // Run all EPICS Consistency checls specified by standard 135.1-2003.
 //
 // The older EPICS consistency checks based on conformance class
 // and functional groups have been replaced by checks that are based on BIBBs.
-// Some of the older tests are still relevant and are launched from this 
+// Some of the older tests are still relevant and are launched from this
 // new function.
 //
 // 5.  EPICS CONSISTENCY TESTS
-// 
+//
 // Each implementation shall be tested to ensure consistency among
 // interrelated data elements. These tests shall include:
-// 
-// (a)   All object types required by the specified BIBBs shall be indicated
+//
+// (a) All object types required by the specified BIBBs shall be indicated
 // as supported in the Standard Object Types Supported section of the
 // EPICS. (Similar to the old test "A", but using BIBBs instead of
 // conformance class.)
-// 
-// (b)   A minimum of one instance of each object type required by the
+//
+// (b) A minimum of one instance of each object type required by the
 // specified BIBBs shall be included in the test database. (Similar to the
 // old test "B", but using BIBBs instead of conformance class.)
-// 
+//
 // (c) The Object_Types_Supported property of the Device object in the test
 // database shall indicate support for each object type required by the
 // supported BIBBs.  (Similar to the old test "C", but using BIBBs instead
 // of conformance class.)
-// 
+//
 // (d) All application services required by the supported BIBBs shall be
 // indicated as supported in the BACnet Standard Application Services
 // Supported section of the EPICS with Initiate and Execute indicated as
 // required by the supported BIBBs. (Similar to the old test "D", but using
 // BIBBs instead of conformance class.)
-// 
+//
 // (e) The Application_Services_Supported property of the Device object in
 // the test database shall indicate support for each application service
 // for which the supported BIBBs requires support for execution of the
 // service. (Similar to the old test "E", but using BIBBs instead of
 // conformance class.)
-// 
+//
 // (f) The object types listed in the Standard Object Types Supported
 // section of the EPICS shall have a one-to-one correspondence with object
 // types listed in the Object_Types_Supported property of the Device object
 // contained in the test database.  (Identical to the old test "K".)
-// 
+//
 // (g) For each object type listed in the Standard Object Types Supported
 // section of the EPICS there shall be at least one object of that type in
 // the test database. (Identical to the old test "L".)
-// 
+//
 // (h) There shall be a one-to-one correspondence between the objects
 // listed in the Object_List property of the Device object and the objects
 // included in the test database. The Object_List property and the test
 // database shall both include all proprietary objects. Properties of
 // proprietary objects that are not required by BACnet Clause 23.4.3 need
 // not be included in the test database. (Identical to the old test "M".)
-// 
+//
 // (i) For each object included in the test database, all required
 // properties for that object as defined in Clause 12 of BACnet shall be
 // present. In addition, if any of the properties supported for an object
 // require the conditional presence of other properties, their presence
 // shall be verified. (Identical to the old test "N".)
-// 
+//
 // (j) For each property that is required to be writable, that property
 // shall be marked as writable in the EPICS. (New test.)
-// 
+//
 // (k) The length of the Protocol_Services_Supported bitstring shall have
 // the number of bits defined for BACnetProtocolServicesSupported for the
 // IUT's declared protocol revision.  (New test.)
-// 
+//
 // (l) The length of the Protocol_Object_Types_Supported bitstring shall
 // have the number of bits defined for BACnetObjectTypesSupported for the
 // IUT's declared protocol revision. (New test.)
-// 
+//
 void CheckPICSConsistency2003(PICSdb *pd)
 {
-   cConsistencyErrors=0;  // Reset global PICS error count. 
+   cConsistencyErrors=0;  // Reset global PICS error count.
 
    // Make sure that each Object Type required by a BIBB
-   // exists in the Standard Object Types Supported section, 
+   // exists in the Standard Object Types Supported section,
    // as well as cross dependencies between BIBBs.
    // 135.1-2003, section 5.(a)
    CheckPICSCons2003A(pd);
@@ -8316,39 +8292,101 @@ void CheckPICSConsistency2003(PICSdb *pd)
 
    // 135.1-2003, section 5.(d) test
    // Make sure application services required by each BIBB are
-   // listed in the Standard Application Services Supported section. 
+   // listed in the Standard Application Services Supported section.
    CheckPICSCons2003D(pd);
 
    // 135.1-2003, section 5.(e) test
-   // Make sure the services marked "Execute" in the 
+   // Make sure the services marked "Execute" in the
    // 'BACnet Standard Application Services Supported' section match
    // the services marked supported in the Application_Services_Supported
-   // Property of the Device Object. 
+   // Property of the Device Object.
    // This is a two-way check.
    CheckPICSCons2003E(pd);
 
-   // 135.1-2003, section 5.(f) 
+   // 135.1-2003, section 5.(f)
    // Make sure the Objects listed in the Standard Object Types section
    // match the bits in the Objects_Types_Supported property of the Device.
    CheckPICSCons2003F(pd);
 
    // Make sure each Object type in the Standard Object Types Supported section
    // is represented in the test database.
-   // 135.1-2003, section 5.(b) & 5.(g) 
+   // 135.1-2003, section 5.(b) & 5.(g)
    CheckPICSCons2003G(pd);
 
-   // 135.1-2003, section 5.(h) 
+   // 135.1-2003, section 5.(h)
    CheckPICSCons2003H(pd);
 
-   // 135.1-2003, section 5.(i) 
-   // 135.1-2003, section 5.(j) 
+   // 135.1-2003, section 5.(i)
+   // 135.1-2003, section 5.(j)
    CheckPICSCons2003I(pd);
 
-   // 135.1-2003, section 5.(k) 
+   // 135.1-2003, section 5.(k)
    CheckPICSCons2003K(pd);
 
-   // 135.1-2003, section 5.(l) 
+   // 135.1-2003, section 5.(l)
    CheckPICSCons2003L(pd);
+
+#if _DEBUG
+   // TODO: Regression test: compare strdobjpr tables to DUDTOOL tables
+   // to find unimplemented properties and object types.
+   CString str;
+   for (int objType = 0; objType < MAX_DEFINED_OBJ; objType++)
+   {
+      const char *pTypeName = NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString( objType );
+      int nProps;
+      const BACnetPropertyIdentifier *pPropList = GetObjectTable( (BACnetObjectType)objType, nProps );
+      if (pPropList == NULL)
+      {
+         str.Format( "TODO: Missing BACnetPropertyIdentifier list for type %s", pTypeName );
+         tperror(str, false);
+      }
+      else
+      {
+         const propdescriptor *pDesc = GetPropDescriptorTable( objType );
+         if (pDesc == NULL)
+         {
+            str.Format( "TODO: Missing propdescriptor table for type %s", pTypeName );
+            tperror(str, false);
+         }
+         else if (pDesc == PlaceholderProps)
+         {
+            str.Format( "TODO: Has only placeholder propdescriptor for type %s", pTypeName );
+            tperror(str, false);
+         }
+         else
+         {
+            for (int ix = 0; ix < nProps; ix++)
+            {
+               BACnetPropertyIdentifier propID = pPropList[ix];
+               const char *pPropName = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propID );
+
+               // Is this property in the mapping table?
+               bool found = false;
+               const propdescriptor *pD = pDesc;
+               while (true)
+               {
+                  if (pD->PropID == propID)
+                  {
+                     found = true;
+                     break;
+                  }
+
+                  if (pD->PropGroup & Last)
+                     break;
+
+                  pD++;
+               }
+
+               if (!found)
+               {
+                  str.Format( "TODO: %s propdescriptor is missing %s", pTypeName, pPropName );
+                  tperror(str, false);
+               }
+            }
+         }
+      }
+   }
+#endif
 }
 
 
@@ -8363,26 +8401,26 @@ void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDepend
    char opj[200];
    if ( !pd->BIBBSupported[iDependentBIBB] )
    {
-     sprintf(opj,"BIBB %s requires support for BIBB %s.\n", 
-          BIBBs[iSupportedBIBB].name, 
-          BIBBs[iDependentBIBB].name );
+     sprintf(opj,"BIBB %s requires support for BIBB %s.\n",
+             BIBBs[iSupportedBIBB].name,
+             BIBBs[iDependentBIBB].name );
      tperror(opj,false);
    }
    return;
-} 
+}
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // EPICS Consistency test specified by 135.1-2003, section 5(a)
 //
-// (a)   All object types required by the specified BIBBs shall be indicated
+// (a) All object types required by the specified BIBBs shall be indicated
 // as supported in the Standard Object Types Supported section of the
 // EPICS. (Similar to the old test "A", but using BIBBs instead of
 // conformance class.)
 //
 // This function also runs checks for cross-BIBB dependencies,
-// which is not a test that is specified in 135.1-2003 section 5, 
+// which is not a test that is specified in 135.1-2003 section 5,
 // but is clearly stated in the BIBB definition section of the BACnet standard.
 //
 // In addition, this function also checks for specific properties
@@ -8408,19 +8446,19 @@ void CheckPICSCons2003A(PICSdb *pd)
                    "which implies support for the Event Enrollment or Notification Class object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
-               }  
+               }
                break;
 
             case bibbAE_N_E_B: // requires support for AE-N-I-B & DS-RP-A & EE Object
-               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbAE_N_I_B); 
-               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbAE_N_I_B);
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A);
                if ( pd->BACnetStandardObjects[OBJ_EVENT_ENROLLMENT]==soNotSupported )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB AE-N-E-B requires support for the Event Enrollment object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
-               }  
+               }
                break;
 
             case bibbAE_LS_B: // requires support for Life Safety Point or Life Safety Zone object
@@ -8431,17 +8469,17 @@ void CheckPICSCons2003A(PICSdb *pd)
                    "BIBB AE-LS-B requires support for the Life Safety Point or Life Safety Zone object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
-               }  
+               }
                break;
 
             case bibbSCHED_A:  // requires support for DS-RP-A and DS-WP-A
-               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A);
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A);
-               break; 
+               break;
 
             case bibbSCHED_I_B:  // requires DS-RP-B, DS-WP-B, Calendar & Schedule objects
                                  // and either DM-TS-B or DM-UTC-B
-               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_B); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_B);
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_B);
                if ( pd->BACnetStandardObjects[OBJ_CALENDAR]==soNotSupported )
                {
@@ -8449,31 +8487,32 @@ void CheckPICSCons2003A(PICSdb *pd)
                    "BIBB SCHED-I-B requires support for the Calendar object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
-               }  
+               }
                if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
                {
                  sprintf(opj,"135.1-2003 5.(a): "
                    "BIBB SCHED-I-B requires support for the Schedule object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
-               }  
+               }
                if ( !pd->BIBBSupported[bibbDM_TS_B] &&
                     !pd->BIBBSupported[bibbDM_UTC_B] )
                {
-                 sprintf(opj,"BIBB SCHED-I-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
+                 sprintf(opj,"BIBB SCHED-I-B requires support for either DM-TS-B or DM-UTC-B.\n");
                  tperror(opj,false);
                }
                break;
 
             case bibbSCHED_E_B:  // requires support for SCHED-I-B and DS-WP-A
-            CheckPICS_BIBB_Cross_Dependency(pd,i,bibbSCHED_I_B); 
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbSCHED_I_B);
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A);
                break;
 
-         case bibbSCH_E_B:
-            CheckPICS_BIBB_Cross_Dependency(pd,i,bibbSCH_I_B); 
+            case bibbSCH_E_B:
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbSCH_I_B);
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_A);
                break;
+
             case bibbT_VMT_I_B:  // both require support for TREND_LOG object
             case bibbT_ATR_B:
                if ( pd->BACnetStandardObjects[OBJ_TREND_LOG]==soNotSupported )
@@ -8483,24 +8522,23 @@ void CheckPICSCons2003A(PICSdb *pd)
                    "in the \"Standard Object Types Supported\" section.\n",
                    BIBBs[i].name );
                  tperror(opj,false);
-               }  
+               }
                break;
 
-            case bibbT_VMT_E_B:  // requires support for T-VMT-I-B and DS-RP-A 
-               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbT_VMT_I_B); 
+            case bibbT_VMT_E_B:  // requires support for T-VMT-I-B and DS-RP-A
+               CheckPICS_BIBB_Cross_Dependency(pd,i,bibbT_VMT_I_B);
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A);
                break;
 
-
             case bibbDM_TS_A:
             case bibbDM_UTC_A:
-                               // requires presence of Time_Synchronization_Recipients 
-                               // property in the Device Object.
-                               // TODO
+               // requires presence of Time_Synchronization_Recipients
+               // property in the Device Object.
+               // TODO: implement me
                break;
 
             case bibbDM_UTC_B: // Same requirements as DM_TS_B, but adds
-                               // the requirement for the presence of UTC_Offset 
+                               // the requirement for the presence of UTC_Offset
                                // and Daylight_Saving_Status in the Device Object.
                                // (deliberate fall-through to next case)
             case bibbDM_TS_B:  // requires the presence of the Local_Time and Local_Date
@@ -8508,14 +8546,13 @@ void CheckPICSCons2003A(PICSdb *pd)
                                // TODO
                break;
 
-
             case bibbDM_R_B:   // requires the presence of the Time_Of_Device_Restart
-                               // and Last_Restart_Reason properties 
+                               // and Last_Restart_Reason properties
                                // in the Device Object.
                                // TODO
                break;
 
-// LJT Updated this list with the new Workstation Bibbs and their dependencies
+         // LJT Updated this list with the new Workstation Bibbs and their dependencies
          case bibbDS_V_A:
             CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
             break;
@@ -8553,37 +8590,36 @@ void CheckPICSCons2003A(PICSdb *pd)
          case bibbSCHED_WS_I_B:
             CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_B);
             CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_WP_B);
-                if ( !pd->BIBBSupported[bibbDM_TS_B] &&
-                    !pd->BIBBSupported[bibbDM_UTC_B] )
-                {
-                   sprintf(opj,"BIBB SCHED-WS-I-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
-                   tperror(opj,false);
-                }
-               if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
-               {
-                 sprintf(opj,"135.1-2003 5.(a): "
-                   "BIBB SCHED-WS-I-B requires support for the Schedule object "
-                   "in the \"Standard Object Types Supported\" section.\n");
-                 tperror(opj,false);
-               }  
-
+            if ( !pd->BIBBSupported[bibbDM_TS_B] &&
+                !pd->BIBBSupported[bibbDM_UTC_B] )
+            {
+               sprintf(opj,"BIBB SCHED-WS-I-B requires support for either DM-TS-B or DM-UTC-B.\n");
+               tperror(opj,false);
+            }
+            if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
+            {
+               sprintf(opj,"135.1-2003 5.(a): "
+                       "BIBB SCHED-WS-I-B requires support for the Schedule object "
+                       "in the \"Standard Object Types Supported\" section.\n");
+                tperror(opj,false);
+            }
             break;
          case bibbSCH_R_B:
          case bibbSCHED_R_B:
             CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_B);
-                if ( !pd->BIBBSupported[bibbDM_TS_B] &&
-                    !pd->BIBBSupported[bibbDM_UTC_B] )
-                {
-                   sprintf(opj,"BIBB SCHED-R-B requires support for either DM-TS-B or DM-UTC-B.\n"); 
-                   tperror(opj,false);
-                }
-                if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
-                {
-                  sprintf(opj,"135.1-2003 5.(a): "
-                   "BIBB SCHED-R-B requires support for the Schedule object "
-                   "in the \"Standard Object Types Supported\" section.\n");
-                  tperror(opj,false);
-                }  
+            if ( !pd->BIBBSupported[bibbDM_TS_B] &&
+                 !pd->BIBBSupported[bibbDM_UTC_B] )
+            {
+               sprintf(opj,"BIBB SCHED-R-B requires support for either DM-TS-B or DM-UTC-B.\n");
+               tperror(opj,false);
+            }
+            if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
+            {
+               sprintf(opj,"135.1-2003 5.(a): "
+                       "BIBB SCHED-R-B requires support for the Schedule object "
+                      "in the \"Standard Object Types Supported\" section.\n");
+                tperror(opj,false);
+            }
             break;
          case bibbT_AVM_A:
             CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
@@ -8602,7 +8638,7 @@ void CheckPICSCons2003A(PICSdb *pd)
             // replacing it with correct Dependency upon DS_RP_A
             CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
             break;
-       }
+         }
       }
    }
 
@@ -8638,18 +8674,18 @@ void CheckPICSCons2003D(PICSdb *pd)
             // defined in the StandardServices section, this is an error.
             if ((pd->BACnetStandardServices[pBibb_rule->ApplServ] & pBibb_rule->InitExec)==0)
             {
-               if (pBibb_rule->InitExec == ssInitiate) 
+               if (pBibb_rule->InitExec == ssInitiate)
                   errmsg = "Initiate";
                else
                   errmsg = "Execute";
 
                sprintf(opj,"135.1-2003 5.(d): "
-                 "BIBB %s requires the Device to %s the %s application service,"
-                 " and support for this service has not been included in the "
-                 "\"BACnet Standard Application Services Supported\" section.\n",
-                 BIBBs[i].name,
-                 errmsg,
-                 GetStandardServicesName( pBibb_rule->ApplServ ) );
+                       "BIBB %s requires the Device to %s the %s application service,"
+                       " and support for this service has not been included in the "
+                       "\"BACnet Standard Application Services Supported\" section.\n",
+                       BIBBs[i].name,
+                       errmsg,
+                       GetStandardServicesName( pBibb_rule->ApplServ ));
                tperror(opj,false);
             }
             pBibb_rule++;  // next rule please
@@ -8666,55 +8702,55 @@ void CheckPICSCons2003D(PICSdb *pd)
 // for which the supported BIBBs requires support for execution of the
 // service. (Similar to the old test "E", but using BIBBs instead of
 // conformance class.)
-// 
+//
 // This function does not actually use the BIBBs for reference since
 // the consistency check between the BIBBS and the Application Services Supported
-// section has already been done. It runs a consistency check between the 
+// section has already been done. It runs a consistency check between the
 // Application Services Supported section and the Application_Services_Supported
 // property of the Device Object, but only for the "Execute" services.
-// 
+//
 void CheckPICSCons2003E(PICSdb *pd)
 {
-    int i;
-    char opj[300];
-    octet Application_Services_Supported[MAX_BITSTRING]; // one byte per bit
-    octet InStandardAppSection;
-    int  iNumStandardServices;
-    memset(Application_Services_Supported,0,MAX_BITSTRING);
+   int i;
+   char opj[300];
+   octet Application_Services_Supported[MAX_BITSTRING]; // one byte per bit
+   octet InStandardAppSection;
+   int  iNumStandardServices;
+   memset(Application_Services_Supported,0,MAX_BITSTRING);
 
-    iNumStandardServices = GetStandardServicesSize(); 
-    if (!pd->pDeviceObject)
-       return;
-    ExpandBitstring(Application_Services_Supported,pd->pDeviceObject->protocol_services_supported, iNumStandardServices);
+   iNumStandardServices = GetStandardServicesSize();
+   if (!pd->pDeviceObject)
+      return;
+   ExpandBitstring(Application_Services_Supported,pd->pDeviceObject->protocol_services_supported, iNumStandardServices);
 
-    for (i=0; i<iNumStandardServices; i++)
-    {
-       InStandardAppSection = ((pd->BACnetStandardServices[i] & ssExecute) != 0);
-       // Exclusive OR test between the property and the EPICS section.
-       // If either is set and not the other, this is an error.
-       if( (InStandardAppSection ^ Application_Services_Supported[i]) )  // XOR
-       {
+   for (i=0; i<iNumStandardServices; i++)
+   {
+      InStandardAppSection = ((pd->BACnetStandardServices[i] & ssExecute) != 0);
+      // Exclusive OR test between the property and the EPICS section.
+      // If either is set and not the other, this is an error.
+      if( (InStandardAppSection ^ Application_Services_Supported[i]) )  // XOR
+      {
          sprintf(opj,"135.1-2003 5.(e): "
-           "Support for execution of the %s application service is not consistent "
-           "between the \"BACnet Standard Application Services Supported\" "
-           "section and the Application_Services_Supported Property of the Device Object.\n", 
-           GetStandardServicesName( i ));
+                 "Support for execution of the %s application service is not consistent "
+                 "between the \"BACnet Standard Application Services Supported\" "
+                 "section and the Application_Services_Supported Property of the Device Object.\n",
+                 GetStandardServicesName( i ));
          tperror(opj,false);
-       }
-    }
+      }
+   }
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // EPICS Consistency test specified by 135.1-2003, section 5(c) & 5(f)
 //
-// Since the 2003A test covers which Objects should be in the 
+// Since the 2003A test covers which Objects should be in the
 // Standard Object Types Supported section for each BIBB,
 // this function just needs to check that each object listed in that
 // section is indeed defined in the Object_Types_Supported property
 // of the Device Object in the database.  This covers both of the
 // following consistency checks in 135.1-2003:
-//         
+//
 // (c) The Object_Types_Supported property of the Device object in the test
 // database shall indicate support for each object type required by the
 // supported BIBBs.  (Similar to the old test "C", but using BIBBs instead
@@ -8738,7 +8774,8 @@ void CheckPICSCons2003F(PICSdb *pd)
       return;
    ExpandBitstring(ProtocolObjectSup,pd->pDeviceObject->object_types_supported, iNumStandardObjects);
 
-   for(i=0;i<MAX_DEFINED_OBJ;i++) {
+   for(i=0;i<MAX_DEFINED_OBJ;i++)
+   {
       InStandardObjectSection = (pd->BACnetStandardObjects[i] != 0); // convert to boolean
       // Exclusive OR test between the property and the EPICS section.
       // If either is set and not the other, this is an error.
@@ -8756,25 +8793,27 @@ void CheckPICSCons2003F(PICSdb *pd)
 ///////////////////////////////////////////////////////////////////////////////
 // EPICS Consistency test specified by 135.1-2003, section 5(b) & 5(g)
 //
-// Since the 2003A test covers which Objects should be in the 
+// Since the 2003A test covers which Objects should be in the
 // Standard Object Types Supported section for each BIBB,
 // this function just needs to check that each object listed in that
 // section is indeed in the database.  This covers both of the
 // following consistency checks in 135.1-2003:
-//         
+//
 // (b)   A minimum of one instance of each object type required by the
 // specified BIBBs shall be included in the test database. (Similar to the
 // old test "B", but using BIBBs instead of conformance class.)
-// 
+//
 // (g) For each object type listed in the Standard Object Types Supported
 // section of the EPICS there shall be at least one object of that type in
 // the test database. (Identical to the old test "L".)
-// 
+//
 void CheckPICSCons2003G(PICSdb *pd)
 {
    char errMsg[300];
-   for(int i=0;i<MAX_DEFINED_OBJ;i++) {
-      if( (pd->BACnetStandardObjects[i]) && !(ObjInTestDB[i].ObjIDSupported)) {
+   for(int i=0;i<MAX_DEFINED_OBJ;i++)
+   {
+      if( (pd->BACnetStandardObjects[i]) && !(ObjInTestDB[i].ObjIDSupported))
+      {
          sprintf(errMsg,"135.1-2003 5.(g): "
             "Object type %s is listed in the \"Standard Object Types Supported\" section "
             "but no Objects of that type are defined in the test database.\n",StandardObjects[i]);
@@ -8802,37 +8841,37 @@ generic_object *FindObjectInDatabase(PICSdb *pd, dword ObjectID)
 
 // Finds an Object matching the ObjectID in the Object_List
 // propery of the Device Object defined in the test database.
-// If found, returns TRUE.
-// If not found, returns FALSE.
+// If found, returns true.
+// If not found, returns false.
 bool FindObjectInObjectList(PICSdb *pd, dword ObjectID)
 {
-   BACnetObjectIdentifier *pObjectID; 
+   BACnetObjectIdentifier *pObjectID;
    if (pd->pDeviceObject == NULL)
-      return FALSE; // Device Object not parsed yet
+      return false; // Device Object not parsed yet
 
    // Pointer to the parsed Object_List property of the Device Object
    pObjectID = pd->pDeviceObject->object_list;
 
-   while (pObjectID) 
+   while (pObjectID)
    {
       if (pObjectID->object_id == ObjectID)
-         return TRUE;
+         return true;
       pObjectID = pObjectID->next;
    }
    // TODO: Add check of structured_object_list here?
-   return FALSE;
+   return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // EPICS Consistency test specified by 135.1-2003, section 5(h)
-// 
+//
 // (h) There shall be a one-to-one correspondence between the objects
 // listed in the Object_List property of the Device object and the objects
 // included in the test database. The Object_List property and the test
 // database shall both include all proprietary objects. Properties of
 // proprietary objects that are not required by BACnet Clause 23.4.3 need
 // not be included in the test database. (Identical to the old test "M".)
-// 
+//
 // This test first steps through the Object_List and verifies that
 // every Object found in the Object_List has been defined in the test database.
 // Then it does a reverse lookup by stepping through the test database
@@ -8843,12 +8882,11 @@ void CheckPICSCons2003H(PICSdb *pd)
 {
    char errMsg[300];
    generic_object *po;
-   BACnetObjectIdentifier *pObjectID; 
+   BACnetObjectIdentifier *pObjectID;
    dword id, objinstance; // temps
    word  objtype;
 
    dword dwMaxStdObj = sizeof(StandardObjects)/sizeof(StandardObjects[0]);
-
 
    // pointer to the start of objects in the test database
    po = pd->Database;
@@ -8856,7 +8894,7 @@ void CheckPICSCons2003H(PICSdb *pd)
       return;
    // Pointer to the parsed Object_List property of the Device Object
    if (pd->pDeviceObject == NULL)
-      return; 
+      return;
    pObjectID = pd->pDeviceObject->object_list;
 
    // If Object_List has not been parsed, we cannot do this test.
@@ -8876,7 +8914,7 @@ void CheckPICSCons2003H(PICSdb *pd)
               "(%s,%u) is defined in the Object_List but does not appear in the test database.\n",
               StandardObjects[objtype], objinstance );
          }
-         else 
+         else
          {
             sprintf(errMsg,"135.1-2003 5.(h): "
               "(proprietary %u,%u) is defined in the Object_List but does not appear in the test database.\n",
@@ -8901,7 +8939,7 @@ void CheckPICSCons2003H(PICSdb *pd)
               "(%s,%u) is defined in the test database but does not appear in the Object_List.\n",
               StandardObjects[objtype], objinstance );
          }
-         else 
+         else
          {
             sprintf(errMsg,"135.1-2003 5.(h): "
               "(proprietary %u,%u) is defined in the test database but does not appear in the Object_List.\n",
@@ -8918,94 +8956,109 @@ void CheckPICSCons2003H(PICSdb *pd)
 // This function is called for each object in the test database
 // to check if required (and writable) properties are present.
 // This function also handles the special case of the Device Object,
-// which applies conditions that are outside the scope of 
+// which applies conditions that are outside the scope of
 // the Device Object itself.
 void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
 {
-   char   errMsg[300]; 
+   char   errMsg[300];
    word   objtype;
    dword  objInstance;
-   propdescriptor *propdesc;
-   octet  GroupRequired[128]; // flags corresponding to PropGroup
+   const  propdescriptor *propdesc;
+   octet  groupRequired[128]; // flags corresponding to PropGroup
    int    i = 0;
    octet  group = 0;
 
+   // We need to know DUT's revision.  If known, use 0
+   word dutRevision = 0;
+   if (pd->pDeviceObject != NULL)
+   {
+      dutRevision = pd->pDeviceObject->protocol_rev;
+   }
+
    // Clear group detection flags
-   memset(GroupRequired, 0, sizeof(GroupRequired));
+   memset(groupRequired, 0, sizeof(groupRequired));
 
    // derive object type and object instance number from object ID
    SplitObjectId(obj->object_id, &objtype, &objInstance);
 
    // set property descriptor to point to property descriptors for this object type
-   propdesc=StdObjects[objtype].sotProps;
+   propdesc = GetPropDescriptorTable( objtype );
 
    // loop through the standard properties for this object type
-   while (1) 
+   while (1)
    {
       // If property is required, and it was not parsed in EPICS, log an error.
-      if ( (propdesc->PropFlags & R) && !(obj->propflags[i] & PropIsPresent) )
+      if ( (propdesc->PropFlags & R) && !(obj->propflags[i] & PropIsPresent) &&
+           (dutRevision >= propdesc->firstRevision) )
       {
-         sprintf(errMsg,"135.1-2003 5.(i): "
-            "(%s,%u) must contain required property \"%s\".\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+         sprintf(errMsg,
+                 "135.1-2003 5.(i): (%s,%u) must contain required property \"%s\".\n",
+                 StandardObjects[objtype], objInstance,
+                 NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
          tperror(errMsg,false);
       }
-      // If the property is present, and the property is required to be writable, 
+      // If the property is present, and the property is required to be writable,
       // but is not marked with a 'W' in EPICS, log an error.
       // We exclude Commandable properties from this check and properties that
       // are only writable when Out_Of_Service is set.
-      else if (  (propdesc->PropFlags & W) && 
+      else if ( (propdesc->PropFlags & W) &&
                 !(propdesc->PropFlags & (IsCommandable | Woutofservice)) &&
-                !(obj->propflags[i] & PropIsWritable) )
+                !(obj->propflags[i] & PropIsWritable) &&
+                (dutRevision >= propdesc->firstRevision) )
       {
-         sprintf(errMsg,"135.1-2003 5.(j): "
-            "(%s,%u) must have property \"%s\" marked writable.\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+         sprintf(errMsg,
+                 "135.1-2003 5.(j): (%s,%u) must have property \"%s\" marked writable.\n",
+                 StandardObjects[objtype], objInstance,
+                 NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
          tperror(errMsg,false);
       }
-     else if ( propdesc->PropFlags & AtLeast1 )
-     {
-        // special property here -- need to find at least 1 of these when we do we can stop looking.
-     }
-     
-      // Test for the presence of properties that are marked with 'footnotes' 
+      else if ( propdesc->PropFlags & AtLeast1 )
+      {
+         // TODO: special property here -- need to find at least 1 of these when we do we can stop looking.
+      }
+
+      // Test for the presence of properties that are marked with 'footnotes'
       // that cause other properties to be present if this property is present.
       // These are remembered for a second pass through the properties to
       // check for missing properties.
       group = propdesc->PropGroup & ~Last; // mask off the "Last" indicator bit
-      // If this property is in a "group" (footnote), and it is present in the database, 
+      // If this property is in a "group" (footnote), and it is present in the database,
       // mark this whole group as required.
-      if (group && (obj->propflags[i] & PropIsPresent) ) //&& !(propdesc->PropFlags&&AtLeast1 == AtLeast1))  // LJT 4/17/2008 added AtLeast1Check 
-         GroupRequired[group] = 1;
-
+      if (group && (obj->propflags[i] & PropIsPresent) ) //&& !(propdesc->PropFlags&&AtLeast1 == AtLeast1))  // LJT 4/17/2008 added AtLeast1Check
+         groupRequired[group] = 1;
 
       if (propdesc->PropGroup & Last)
          break;  // if this is the last property definition, exit loop
       propdesc++; // next propertydefinition for this object
       i++;  // next index into propflags
-   } 
+   }
 
    ///////////////////
    // !! 2nd pass !!
    //////////////////
 
    // reset property descriptor to point to property descriptors for this object type
-   propdesc=StdObjects[objtype].sotProps;
-   i = 0; 
+   propdesc = StdObjects[objtype].sotProps;
+   i = 0;
 
    // Make a second pass through the standard properties, looking for
    // missing "footnoted" properties that belong to groups that
    // were detected during the first pass.
    if (objtype != OBJ_DEVICE)  // don't do these checks on the Device Object (see else below)
    {
-      while (1) 
+      while (1)
       {
          group = propdesc->PropGroup & ~Last;
          // If property belongs to a group, and another property was detected
          // in this same group in the first pass, and this property
          // is not present in the database,log an error.
-         if ( group && GroupRequired[group] && !(obj->propflags[i] & PropIsPresent) )
+         if ( group && groupRequired[group] && !(obj->propflags[i] & PropIsPresent) &&
+              (dutRevision >= propdesc->firstRevision) )
          {
-            sprintf(errMsg,"135.1-2003 5.(i): "
-               "(%s,%u) must contain conditionally required property \"%s\".\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+            sprintf(errMsg,
+                    "135.1-2003 5.(i): (%s,%u) must contain conditionally required property \"%s\".\n",
+                    StandardObjects[objtype], objInstance,
+                    NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
             tperror(errMsg,false);
          }
 
@@ -9014,14 +9067,14 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
             break;  // if this is the last property definition, exit loop
          propdesc++; // next propertydefinition for this object
          i++;  // next index into propflags
-      } 
+      }
    }
    else // objtype == OBJ_DEVICE
    {
       // These are special tests run on the Device Object to check for properties that
       // are conditionally required based on support for certain *services* or
       // data link options.
-      while (1) 
+      while (1)
       {
          int required;
          required = 0;
@@ -9037,9 +9090,9 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
             case VT_CLASSES_SUPPORTED:
             case ACTIVE_VT_SESSIONS:
                // If VT services are supported, these are required.
-               if  ( (pd->BACnetStandardServices[asVT_Open] & ssExecute) ||
-                     (pd->BACnetStandardServices[asVT_Close] & ssExecute) ||
-                     (pd->BACnetStandardServices[asVT_Data] & ssExecute) )
+               if ( (pd->BACnetStandardServices[asVT_Open] & ssExecute) ||
+                    (pd->BACnetStandardServices[asVT_Close] & ssExecute) ||
+                    (pd->BACnetStandardServices[asVT_Data] & ssExecute) )
                    required = R;
                break;
 
@@ -9047,13 +9100,13 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
             case LOCAL_DATE:
                // If the device supports the execution of TimeSynchronization
                // or UTCTimeSynchronization, these are required.
-               if  ( pd->BACnetStandardServices[asTimeSynchronization] & ssExecute )
+               if ( pd->BACnetStandardServices[asTimeSynchronization] & ssExecute )
                    required = R;
                // !!! WARNING !!! - deliberate fall-through to the next case - no break!
             case UTC_OFFSET:
             case DAYLIGHT_SAVINGS_STATUS:
                 // If the device supports the execution of UTCTimeSynchronization, these are required.
-               if  ( pd->BACnetStandardServices[asUTCTimeSynchronization] & ssExecute )
+               if ( pd->BACnetStandardServices[asUTCTimeSynchronization] & ssExecute )
                    required = R;
                break;
 
@@ -9061,7 +9114,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
                // If supports DM-TS-A or DM-UTC-A, this must be present & WRITABLE!
                // If supports DM-ATS-A (but not for DM-MTS-A), also requires this present & WRITABLE!
                if ( pd->BIBBSupported[bibbDM_TS_A] || pd->BIBBSupported[bibbDM_UTC_A]
-             || pd->BIBBSupported[bibbDM_ATS_A] )
+                    || pd->BIBBSupported[bibbDM_ATS_A] )
                   required = W;
                break;
 
@@ -9094,19 +9147,26 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
                break;
          }
 
-
          // If property is required, and it was not parsed in EPICS, log an error.
-         if (required && !(obj->propflags[i] & PropIsPresent) )
+         if (required && !(obj->propflags[i] & PropIsPresent) &&
+             (dutRevision >= propdesc->firstRevision))
          {
-            sprintf(errMsg,"135.1-2003 5.(i): "
-               "(%s,%u) must contain conditionally required property \"%s\".\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+            sprintf(errMsg,
+                    "135.1-2003 5.(i): (%s,%u) must contain conditionally required property \"%s\".\n",
+                    StandardObjects[objtype],
+                    objInstance,
+                    NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
             tperror(errMsg,false);
          }
          // If property must be writable and is not, log an error.
-         else if ( (required & W) && !(obj->propflags[i] & PropIsWritable) )
+         else if ( (required & W) && !(obj->propflags[i] & PropIsWritable) &&
+                   (dutRevision >= propdesc->firstRevision) )
          {
-            sprintf(errMsg,"135.1-2003 5.(i): "
-               "(%s,%u) must have property \"%s\" marked writable.\n",StandardObjects[objtype],objInstance,propdesc->PropertyName);
+            sprintf(errMsg,
+                    "135.1-2003 5.(i): (%s,%u) must have property \"%s\" marked writable.\n",
+                    StandardObjects[objtype],
+                    objInstance,
+                    NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
             tperror(errMsg,false);
          }
 
@@ -9115,7 +9175,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
             break;  // if this is the last property definition, exit loop
          propdesc++; // next propertydefinition for this object
          i++;  // next index into propflags
-      } 
+      }
    }
 
    return;
@@ -9124,16 +9184,16 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
 
 ///////////////////////////////////////////////////////////////////////////////
 // EPICS Consistency test specified by 135.1-2003, section 5(i) & (j)
-// 
+//
 // (i) For each object included in the test database, all required
 // properties for that object as defined in Clause 12 of BACnet shall be
 // present. In addition, if any of the properties supported for an object
 // require the conditional presence of other properties, their presence
 // shall be verified. (Identical to the old test "N".)
-// 
+//
 // (j) For each property that is required to be writable, that property
 // shall be marked as writable in the EPICS. (New test.)
-// 
+//
 void CheckPICSCons2003I(PICSdb *pd)
 {
    generic_object *obj;
@@ -9141,11 +9201,11 @@ void CheckPICSCons2003I(PICSdb *pd)
    // Loop through the entire database ...
    while(obj)
    {
-      // check for required, conditionally required, and mandatory writable properties
+      // TODO: check for required, conditionally required, and mandatory writable properties
 
      // 5-24-2005 Shiyuan Xiao. Ignore unstandard object
      if(obj->object_type < etObjectTypes.propes)
-        CheckPICSConsProperties(pd, obj); 
+        CheckPICSConsProperties(pd, obj);
 
      obj=(generic_object *)obj->next;
    }
@@ -9154,14 +9214,14 @@ void CheckPICSCons2003I(PICSdb *pd)
 
 ///////////////////////////////////////////////////////////////////////////////
 // EPICS Consistency test specified by 135.1-2003, section 5(k)
-// 
+//
 // (k) The length of the Protocol_Services_Supported bitstring shall have
 // the number of bits defined for BACnetProtocolServicesSupported for the
 // IUT's declared protocol revision.  (New test.)
-// 
+//
 void CheckPICSCons2003K(PICSdb *pd)
 {
-   char   errMsg[300]; 
+   char   errMsg[300];
    octet ExpectedLength;
    device_obj_type *pDevice = pd->pDeviceObject;
    // Make sure we have a pointer to the Device Object.
@@ -9178,7 +9238,7 @@ void CheckPICSCons2003K(PICSdb *pd)
    if (EPICSLengthProtocolServicesSupportedBitstring != ExpectedLength)
    {
       sprintf(errMsg,"135.1-2003 5.(k): "
-         "For Protocol_Revision of %d, the length of Protocol_Services_Supported "
+         "For Protocol_Revision %d, the length of Protocol_Services_Supported "
          "must be %d bits, but it is %d bits.\n",
          pDevice->protocol_rev,
          ExpectedLength,
@@ -9190,14 +9250,14 @@ void CheckPICSCons2003K(PICSdb *pd)
 
 ///////////////////////////////////////////////////////////////////////////////
 // EPICS Consistency test specified by 135.1-2003, section 5(l)
-// 
+//
 // (l) The length of the Protocol_Object_Types_Supported bitstring shall
 // have the number of bits defined for BACnetObjectTypesSupported for the
 // IUT's declared protocol revision. (New test.)
-// 
+//
 void CheckPICSCons2003L(PICSdb *pd)
 {
-   char   errMsg[300]; 
+   char   errMsg[300];
    octet ExpectedLength;
    device_obj_type *pDevice = pd->pDeviceObject;
    // Make sure we have a pointer to the Device Object.
@@ -9214,7 +9274,7 @@ void CheckPICSCons2003L(PICSdb *pd)
    if (EPICSLengthProtocolObjectTypesSupportedBitstring != ExpectedLength)
    {
       sprintf(errMsg,"135.1-2003 5.(l): "
-         "For Protocol_Revision of %d, the length of Protocol_Object_Types_Supported "
+         "For Protocol_Revision %d, the length of Protocol_Object_Types_Supported "
          "must be %d bits, but it is %d bits.\n",
          pDevice->protocol_rev,
          ExpectedLength,
@@ -9255,6 +9315,14 @@ bool ReadFloat(float *pVal, char mustBe)
    return retval;
 }
 
+// Return true if the next character is a digit.
+// Skip any leading space, but does not otherwise affect lp.
+bool IsNextNumber()
+{
+   skipwhitespace();
+   return (IsDigit(lp[0]) != 0);
+}
+
 // Read an unsigned integer from the stream.
 // Non-idiotic version of ReadDW that doesn't eat the terminator.
 // Advance lp to the character after the number.
@@ -9272,6 +9340,7 @@ bool NiceReadDW(dword *pVal, char mustBe)
    }
    else if (IsDigit(*lp))
    {
+      // Decimal integer
       while (IsDigit(*lp))
       {
          d = 10*d + (*lp++ - '0');
@@ -9291,7 +9360,11 @@ bool NiceReadDW(dword *pVal, char mustBe)
    return retval;
 }
 
+// Read an unsigned integer word from the stream.
 // Non-idiotic version of ReadW that doesn't eat the terminator
+// Advance lp to the character after the number.
+// is mustBe is non-zero, call MustBe.
+// Return true on error with cancel.
 bool NiceReadW(word *pVal, char mustBe)
 {
    dword d;
@@ -9313,4 +9386,16 @@ bool NiceReadW(word *pVal, char mustBe)
    return retval;
 }
 
+// Return a propdescriptor appropriate to the specified object type.
+// If the type is unknown, returns the default table
+// This SHOULD return const, except for one immoral usage in ParseProperty,
+// which writes into the table under the control of global flags...
+// For now we satisfy ourselves with const variables when possible.
+//
+propdescriptor* GetPropDescriptorTable( word objtype )
+{
+   return (objtype < etObjectTypes.nes)
+          ? StdObjects[objtype].sotProps : ProprietaryObjProps;
 }
+
+}  // end namespace PICS

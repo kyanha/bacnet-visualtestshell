@@ -1018,10 +1018,14 @@ IMPLEMENT_DYNAMIC(BACnetBoolean, BACnetEncodeable)
 //
 
 BACnetBoolean::BACnetBoolean( int bvalu )
-   : boolValue(bvalu ? bTrue : bFalse)
+: boolValue(bvalu ? bTrue : bFalse)
 {
 }
 
+BACnetBoolean::BACnetBoolean( bool bvalu )
+: boolValue(bvalu ? bTrue : bFalse)
+{
+}
 
 BACnetBoolean::BACnetBoolean( BACnetAPDUDecoder & dec )
 {
@@ -1144,7 +1148,7 @@ bool BACnetBoolean::Match( BACnetEncodeable &rbacnet, int iOperator, CString * p
       return false;
 
    if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean))  ||
-       !::Match(iOperator, boolValue, ((BACnetBoolean &) rbacnet).boolValue ) )
+      !::Match(iOperator, boolValue, ((BACnetBoolean &) rbacnet).boolValue ) )
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -8033,22 +8037,21 @@ BACnetCharacterString & BACnetTextArray::operator[](int nIndex)
 
 IMPLEMENT_DYNAMIC(BACnetBooleanArray, BACnetGenericArray)
 
-// TODO: set m_nElemType?
 BACnetBooleanArray::BACnetBooleanArray( PICS::BooleanList *paBoolean )
+               :BACnetGenericArray(ebool)
 {
    m_nType = eboollist;
 
    int nSize = 0;
    while ( paBoolean != NULL )
    {
-      m_apBACnetObjects.Add(new ::BACnetBoolean((boolean) paBoolean->value));
+      m_apBACnetObjects.Add(new ::BACnetBoolean(paBoolean->value));
       paBoolean = paBoolean->next;
    }
 }
 
-// TODO: ud as the element type?  Should it be ebool?  Or is that BACnetBinaryPV?
 BACnetBooleanArray::BACnetBooleanArray( BACnetAPDUDecoder& dec )
-               :BACnetGenericArray(ud)
+               :BACnetGenericArray(ebool)
 {
    m_nType = eboollist;
    Decode(dec);

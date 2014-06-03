@@ -92,6 +92,7 @@
 #define etl					210         // enumeration table in a list ljt 9/05
 #define shedlevel			211  // BACnetShedLevel parse type  LJT 3/3/2009
 #define	pae					212		// priority-array of enum
+#define	PT_PROPLIST			213		// list of propertyIDs
 
 ////
 //////////////////////////////////////////////
@@ -156,7 +157,7 @@ static const char *stParseTypes[]={
 				NULL /*always last*/
 				};
 
-//qualifiers in PropFlags
+//qualifiers in propdescriptor member PropFlags
 #define	O					0x0000				//optional
 #define	R					0x0001				//required
 #define	W					0x0002				//required writable
@@ -168,7 +169,7 @@ static const char *stParseTypes[]={
 #define	AtLeast1			0x0080				//at least one from PropGroup must be present
 #define	IsArray				0x0100				//property is an array
 #define IsCommandable		0x0200				//property is commandable
-//services supported in PropGroup
+//services supported in propdescriptor member PropGroup
 #define	COV					127					//COV reporting
 #define	Intr				126					//Instrinsic reporting
 #define	VT					125					//VT services
@@ -223,5 +224,7 @@ static const char *stParseTypes[]={
 #define		eiDoorSecuredStatus	40
 #define		eiDoorAlarmState	41
 #define		eiDoorValuen		42
+#define		eiBackupState		43
+#define		eiRestartReason	44
 
 #endif //__PROPS_H_INCLUDED
