@@ -64,7 +64,7 @@ protected:
 
 	int GetSelectedNodeLevel(void);
 	int FindDataInsertionIndex( CObArray * pobjarray, LPARAM lparam );
-	void InsertNode(  int nAddLevel, CObject * pobjectNew );
+	HTREEITEM InsertNode(  int nAddLevel, CObject * pobjectNew );
 
 	void InitTree(void);
 	void LoadDevices( VTSDevices * pdevices, HTREEITEM htreeitemParent );
