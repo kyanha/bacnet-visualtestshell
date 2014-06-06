@@ -69,11 +69,9 @@ END_MESSAGE_MAP()
 BOOL VTSInconsistentParsDlg::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
-	
-	// TODO: Add extra initialization here
-	int i = 0;
 
-	for ( ; i < m_names.GetSize(); i++ )
+	int i;
+	for ( i = 0; i < m_names.GetSize(); i++ )
 	{
 		m_deviceCtrl.AddString( ((VTSName *) m_names.GetAt(i))->m_strName );
 	}
@@ -88,7 +86,8 @@ BOOL VTSInconsistentParsDlg::OnInitDialog()
 			m_portCtrl.AddString( pPort->m_strName );
 		}
 	}
-		
+	m_portCtrl.SetCurSel(0);
+
 	m_propCombo.LoadCombo();
 	m_propCombo.ObjToCtrl();
 
