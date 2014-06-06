@@ -17,13 +17,11 @@ static char THIS_FILE[]=__FILE__;
 
 //=================================================================================
 
-
 IMPLEMENT_VTSPTRARRAY(VTSDevObjects, VTSDevObject);
 
 IMPLEMENT_VTSPTRARRAY(VTSDevProperties, VTSDevProperty);
 
 IMPLEMENT_VTSPTRARRAY(VTSDevValues, VTSDevValue);
-
 
 //=================================================================================
 
@@ -33,7 +31,7 @@ IMPLEMENT_SERIAL(VTSDevValue, CObject, 1);
 
 VTSDevValue::VTSDevValue()
 {
-	m_nType = 0;
+	m_nType = PRIM_NULL;
 	m_nContext = -1;
 	m_nLength = kVTSValueElemContentLength;
 	memset(m_abContent, 0, m_nLength);
@@ -79,7 +77,6 @@ void VTSDevValue::Serialize(CArchive& ar)
 }
 
 
-
 void VTSDevValue::KillValueList( void )
 {
 	if ( m_pdevvalues != NULL )
@@ -88,13 +85,11 @@ void VTSDevValue::KillValueList( void )
 }
 
 
-
 VTSDevValues * VTSDevValue::AllocateNewValueList( void )
 {
 	KillValueList();
 	return (m_pdevvalues = new VTSDevValues());
 }
-
 
 
 const VTSDevValue& VTSDevValue::operator=(const VTSDevValue& rdevvalueSrc)
@@ -143,7 +138,6 @@ CString VTSDevValue::GetDescription( void )
 }
 
 
-
 BACnetEncodeable * VTSDevValue::CreateBACnetObject( void )
 {
 	BACnetAPDUDecoder	dec( m_abContent, m_nLength );
@@ -153,19 +147,19 @@ BACnetEncodeable * VTSDevValue::CreateBACnetObject( void )
 	try {
 	switch ( m_nType )
 	{
-		case 0:		pbacnet = new BACnetNull(dec);	break;
-		case 1:		pbacnet = new BACnetBoolean(dec);	break;
-		case 2:		pbacnet = new BACnetUnsigned(dec);	break;
-		case 3:		pbacnet = new BACnetInteger(dec);	break;
-		case 4:		pbacnet = new BACnetReal(dec);	break;
-		case 5:		pbacnet = new BACnetDouble(dec);	break;
-		case 6:		pbacnet = new BACnetOctetString(dec);	break;
-		case 7:		pbacnet = new BACnetCharacterString(dec);	break;
-		case 8:		pbacnet = new BACnetBitString(dec);	break;
-		case 9:		pbacnet = new BACnetEnumerated(dec);	break;
-		case 10:	pbacnet = new BACnetDate(dec); break;
-		case 11:	pbacnet = new BACnetTime(dec); break;
-		case 12:	pbacnet = new BACnetObjectIdentifier(dec); break;
+		case PRIM_NULL:		pbacnet = new BACnetNull(dec);	break;
+		case PRIM_BOOLEAN:	pbacnet = new BACnetBoolean(dec);	break;
+		case PRIM_UNSIGNED:	pbacnet = new BACnetUnsigned(dec);	break;
+		case PRIM_SIGNED:		pbacnet = new BACnetInteger(dec);	break;
+		case PRIM_REAL:		pbacnet = new BACnetReal(dec);	break;
+		case PRIM_DOUBLE:		pbacnet = new BACnetDouble(dec);	break;
+		case PRIM_OCTET_STRING:	pbacnet = new BACnetOctetString(dec);	break;
+		case PRIM_CHARACTER_STRING:	pbacnet = new BACnetCharacterString(dec);	break;
+		case PRIM_BIT_STRING:	pbacnet = new BACnetBitString(dec);	break;
+		case PRIM_ENUMERATED:	pbacnet = new BACnetEnumerated(dec);	break;
+		case PRIM_DATE:		pbacnet = new BACnetDate(dec); break;
+		case PRIM_TIME:		pbacnet = new BACnetTime(dec); break;
+		case PRIM_OBJECT_IDENTIFIER:	pbacnet = new BACnetObjectIdentifier(dec); break;
 		case 13:	pbacnet = new BACnetOpeningTag();	break;
 		case 14:	pbacnet = new BACnetClosingTag();	break;
 
@@ -239,9 +233,6 @@ LPCSTR VTSDevProperty::GetDescription( unsigned int nPropID )
 }
 
 
-
-
-
 /////////////////////////////////////////////////////////////////////////////
 
 IMPLEMENT_SERIAL(VTSDevObject, CObject, 1);
@@ -255,7 +246,6 @@ VTSDevObject::VTSDevObject()
 VTSDevObject::~VTSDevObject()
 {
 }
-
 
 
 CString VTSDevObject::GetDescription( void )
@@ -293,14 +283,9 @@ const VTSDevObject& VTSDevObject::operator=(const VTSDevObject& rdevobjectSrc)
 }
 
 
-
-
-
 //=================================================================================
 //=================================================================================
 #if 0
-
-
 //
 //	VTSObjPropValueList::VTSObjPropValueList
 //
@@ -995,11 +980,11 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 
 	// depending on the type, decode the value
 	switch (desc.descValue.valueType) {
-		case 0: {
+		case PRIM_NULL: {
 					rslt = _T( "null" );
 					break;
 				}
-		case 1: {
+		case PRIM_BOOLEAN: {
 					BACnetBoolean	m_Boolean
 					;
 
@@ -1007,7 +992,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_Boolean.Encode( rslt.GetBuffer(16) );
 					break;
 				}
-		case 2: {
+		case PRIM_UNSIGNED: {
 					BACnetUnsigned	m_Unsigned
 					;
 
@@ -1015,7 +1000,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_Unsigned.Encode( rslt.GetBuffer(16) );
 					break;
 				}
-		case 3: {
+		case PRIM_SIGNED: {
 					BACnetInteger	m_Integer
 					;
 
@@ -1023,7 +1008,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_Integer.Encode( rslt.GetBuffer(16) );
 					break;
 				}
-		case 4: {
+		case PRIM_REAL: {
 					BACnetReal		m_Real
 					;
 
@@ -1031,7 +1016,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_Real.Encode( rslt.GetBuffer(16) );
 					break;
 				}
-		case 5: {
+		case PRIM_DOUBLE: {
 					BACnetDouble	m_Double
 					;
 
@@ -1039,7 +1024,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_Double.Encode( rslt.GetBuffer(16) );
 					break;
 				}
-		case 6: {
+		case PRIM_OCTET_STRING: {
 					BACnetOctetString	m_OctetStr
 					;
 
@@ -1047,7 +1032,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_OctetStr.Encode( rslt.GetBuffer(1024) );
 					break;
 				}
-		case 7: {
+		case PRIM_CHARACTER_STRING: {
 					BACnetCharacterString	m_CharStr
 					;
 
@@ -1055,7 +1040,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_CharStr.Encode( rslt.GetBuffer(1024) );
 					break;
 				}
-		case 8: {
+		case PRIM_BIT_STRING: {
 					BACnetBitString	m_BitStr
 					;
 
@@ -1063,7 +1048,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_BitStr.Encode( rslt.GetBuffer(16) );
 					break;
 				}
-		case 9: {
+		case PRIM_ENUMERATED: {
 					BACnetEnumerated	m_Enumerated
 					;
 
@@ -1071,7 +1056,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_Enumerated.Encode( rslt.GetBuffer(16) );
 					break;
 				}
-		case 10: {
+		case PRIM_DATE: {
 					BACnetDate	m_Date
 					;
 
@@ -1079,7 +1064,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_Date.Encode( rslt.GetBuffer(16) );
 					break;
 				}
-		case 11: {
+		case PRIM_TIME: {
 					BACnetTime	m_Time
 					;
 
@@ -1087,7 +1072,7 @@ CString VTSObjPropValueList::DescribeComponent( const VTSObjPropValueElemDesc& d
 					m_Time.Encode( rslt.GetBuffer(16) );
 					break;
 				}
-		case 12: {
+		case PRIM_OBJECT_IDENTIFIER: {
 					BACnetObjectIdentifier	m_ObjID
 					;
 
@@ -1208,7 +1193,7 @@ void VTSObjectList::Add( void )
 	}
 
 	// initialize the rest of the fields
-	val.valueProperty = 75;			// object-identifier
+	val.valueProperty = OBJECT_IDENTIFIER;			// object-identifier
 	val.valueIndx = -1;				// not an array, just a value
 	val.valueComponent = 0;			// only one component
 	val.valueType = 0;				// null

@@ -3,23 +3,6 @@
 
 class BACnetSequence;
 
-// ---- primitive data type constants ----
-// To avoid collisions with C++ NULL, BACnetPropertyIdentifier OBJECT_IDENTIFIER
-// and suchlike, we have prepended PRIM_ to these
-#define PRIM_NULL               0
-#define PRIM_BOOLEAN            1   
-#define PRIM_UNSIGNED           2
-#define PRIM_SIGNED             3
-#define PRIM_REAL               4
-#define PRIM_DOUBLE             5
-#define PRIM_OCTET_STRING       6
-#define PRIM_CHARACTER_STRING   7
-#define PRIM_BIT_STRING         8
-#define PRIM_ENUMERATED         9
-#define PRIM_DATE              10
-#define PRIM_TIME              11
-#define PRIM_OBJECT_IDENTIFIER 12
-
 
 /* ----  property identifiers ---*/
 // 1 March 2013: use this enum rather than (DOH!) defining AGAIN here
