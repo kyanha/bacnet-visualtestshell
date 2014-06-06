@@ -2052,37 +2052,37 @@ octet  *atoprim (octet *op,word opmax,char *pstr)
 	tp=(char *)op;
 	switch (tag)
 	{
-	case 0:									//null
+	case PRIM_NULL:									//null
 		op=eNULL(op);
 		break;				
-	case 1:									//bool
+	case PRIM_BOOLEAN:									//bool
 		op=eBOOL(op,(BOOL)atoi(np));
 		break;
-	case 2:									//uint
+	case PRIM_UNSIGNED:									//uint
 		dval=strtoul(np,NULL,10);
 		op=eDWORD(op,dval,(octet)(tag<<4),FALSE);
 		break;
-	case 3:									//sint									
+	case PRIM_SIGNED:									//sint									
 		dval=strtoul(np,NULL,10);
 		op=eDWORD(op,dval,(octet)(tag<<4),TRUE);
 		break;
-	case 4:									//real
-	case 5:									//dbl
+	case PRIM_REAL:									//real
+	case PRIM_DOUBLE:									//dbl
 		op=eREAL(op,(float)atof(np));
 		break;
-	case 6:									//octet string
-		n=safestrlen(np);					//											***236
+	case PRIM_OCTET_STRING:									//octet string
+		n=safestrlen(np);
 		if (n>256) return 0;
 		op=atooct(op,np);
 		opmax-=(n/2)+1;
 		break;
-	case 7:									//char string
+	case PRIM_CHARACTER_STRING:									//char string
 		if (opmax<129) return 0;
-		n=safestrlen(np);					//											***236
+		n=safestrlen(np);
 		if (n>128) n=128;
-		op=eCHARSTRING(op,np,0x70,n,ANSI,0);	//										***232
+		op=eCHARSTRING(op,np,0x70,n,ANSI,0);
 		break;
-	case 8:									//bit string value=significant bits/0bvalue...
+	case PRIM_BIT_STRING:									//bit string value=significant bits/0bvalue...
 	    cp=strchr(np,'/');
 		*cp++=0;
 		n=atoi(np);							//significant bits
@@ -2103,17 +2103,17 @@ octet  *atoprim (octet *op,word opmax,char *pstr)
 		}
 		op=eBITSTRING(op,b,0x80,n);	
 		break;
-	case 9:									//enum
+	case PRIM_ENUMERATED:						//enum
 		dval=strtoul(np,NULL,10);
 		op=eENUM(op, dval);
 		break;
-	case 10:								//date
+	case PRIM_DATE:								//date
 		op=atoeDATESTRING(op,np);
 		break;
-	case 11:								//time
+	case PRIM_TIME:								//time
 		op=atoeTIMESTRING(op,np);
 		break;
-	case 12:								//objid
+	case PRIM_OBJECT_IDENTIFIER:				//objid
 		op=eObjId(op,np,&objtype);
 		break;
 	default:

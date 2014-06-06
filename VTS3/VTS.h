@@ -24,8 +24,25 @@
 // Just the name.  Each usage must use GetTempPath for the path
 #define FILE_CHECK_EPICS_CONS "EPICSConsChk.txt"
 
-// TODO: This COULD go into its a file of various BACnet enumerations.
+// TODO: These fundamental equates COULD go into its a file of various BACnet enumerations.
 // Or they could all live HERE
+
+// To avoid collisions with C++ NULL, BACnetPropertyIdentifier OBJECT_IDENTIFIER
+// and suchlike, we have prepended PRIM_ to these
+#define PRIM_NULL               0
+#define PRIM_BOOLEAN            1
+#define PRIM_UNSIGNED           2
+#define PRIM_SIGNED             3
+#define PRIM_REAL               4
+#define PRIM_DOUBLE             5
+#define PRIM_OCTET_STRING       6
+#define PRIM_CHARACTER_STRING   7
+#define PRIM_BIT_STRING         8
+#define PRIM_ENUMERATED         9
+#define PRIM_DATE              10
+#define PRIM_TIME              11
+#define PRIM_OBJECT_IDENTIFIER 12
+
 enum  BACnetObjectType
 {
    OBJ_ANALOG_INPUT            = 0,
@@ -62,12 +79,12 @@ enum  BACnetObjectType
    OBJ_UNUSED_OBJ_31           = 31, // Was lighting-output during early review
    OBJ_ACCESS_CREDENTIAL       = 32, // Addendum 2008-j
    OBJ_ACCESS_POINT            = 33,
-   OBJ_ACCESS_RIGHTS		       = 34, // avoid conflict with Windows typedef ACCESS_RIGHTS
+   OBJ_ACCESS_RIGHTS           = 34,
    OBJ_ACCESS_USER             = 35,
    OBJ_ACCESS_ZONE             = 36,
-   OBJ_CREDENTIAL_DATA_INPUT   = 37,
+   OBJ_CREDENTIAL_DATA_INPUT   = 37, // Last in protocol revision 9
    OBJ_NETWORK_SECURITY        = 38, // 38 Addendum 2008-g
-   OBJ_BITSTRING_VALUE         = 39, // Addendum 2008_w
+   OBJ_BITSTRING_VALUE         = 39, // protocol revision 10
    OBJ_CHARACTERSTRING_VALUE   = 40,
    OBJ_DATE_PATTERN_VALUE      = 41,
    OBJ_DATE_VALUE              = 42,
@@ -78,14 +95,14 @@ enum  BACnetObjectType
    OBJ_OCTETSTRING_VALUE       = 47,
    OBJ_POSITIVE_INTEGER_VALUE  = 48,
    OBJ_TIME_PATTERN_VALUE      = 49,
-   OBJ_TIME_VALUE              = 50, // 50 Last in 2008-w
-   OBJ_NOTIFICATION_FORWARDER  = 51,
+   OBJ_TIME_VALUE              = 50, // 50 Last in 2008-w, protocol revision 10
+   OBJ_NOTIFICATION_FORWARDER  = 51, // protocol revision 13
    OBJ_ALERT_ENROLLMENT        = 52,
-   OBJ_CHANNEL                 = 53,
-   OBJ_LIGHTING_OUTPUT         = 54, // last in 135-2012
+   OBJ_CHANNEL                 = 53, // protocol revision 14
+   OBJ_LIGHTING_OUTPUT         = 54, // last in 135-2012 protocol revision 14
 
    // After the last object, determine size of the above
-   MAX_DEFINED_OBJ				// This is one more than the highest defined object type
+   MAX_DEFINED_OBJ                   // This is one more than the highest defined object type
 };
 
 //
