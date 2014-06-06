@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "vts.h"
+#include "Propid.h"
 
 #include "VTSPropValue.h"
 #include "VTSDevicesTreeObjPage.h"
@@ -168,37 +169,49 @@ void VTSDevicesTreeObjPage::CtrlToObj( VTSDevObject * pdevobject )
    unsigned oldID = pdevobject->GetID();
    pdevobject->SetID(m_nObjType, m_nInstance);
 
-   // 1) if no current properties,
+   // If no current properties,
    CObArray * pobarray = (CObArray *)pdevobject->GetProperties();
    if ( pobarray != NULL && pobarray->GetSize() == 0 )
    {
-   // 3) Create all required properties with default values
+      // TODO: LJT add all required properties for selected object type
+      //       Create file format to read defaults from?? Suggest use same format as
+      //       chosen for the import/export functionality
+      //
+      // NOTE: This code is largely hidden by similar code in VTSDevicesTreeDlg::OnNewObject,
+      // although it will still be invoked if all properties of an object are deleted.
+      // The problem with creating properties HERE is that we have no access to the
+      // tree control, so we can't SHOW the new properties until the dialog is closed
+      // and re-opened, while OnNewObject can refresh the tree.
+      //
+      // Note also that the initial value doesn't quite work:
+      // - Create object
+      // - Change object-type: this code generates name as "type 0"
+      // - Change instance, but name already exists, and isn't touched.
       if ( m_nObjType < MAX_DEFINED_OBJ )
       {
-         // TODO: LJT add all required properties for selected object type
-         //       Create file format to read defaults from?? Suggest use same format as
-         //       chosen for the import/export functionality
-         // standard object type
-         VTSDevProperty * devprop = new VTSDevProperty();
-         pobarray->Add(devprop);
-         devprop->SetID(77);   // Object_Name
-         // now create value for this property
-         CObArray * pobvalarray = (CObArray *)devprop->GetValues();
+         // For now, at least ONE property...
          VTSDevValue * pdevvalue = new VTSDevValue();
-         pobvalarray->Add(pdevvalue);
-         pdevvalue->m_nType = 7;
+         pdevvalue->m_nType = PRIM_CHARACTER_STRING;
          pdevvalue->m_nContext = -1;
 
          BACnetAPDUEncoder compEncoder;
          BACnetCharacterString xx;
          CString str;
-         str.Format( "object %u-%u", m_nObjType, m_nInstance );
-         xx.SetValue( str, 0);
-         xx.Encode( compEncoder, pdevvalue->m_nContext);
+         str.Format( "%s %u", NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumString( m_nObjType ), m_nInstance );
+         xx.SetValue( str, 0 );
+         xx.Encode( compEncoder, pdevvalue->m_nContext );
 //       VTSCharacterStringCtrl m_CharStr(this, 0);
 //       m_CharStr.SetValue( "ObjectName", 0 );
 //       m_CharStr.Encode( compEncoder, pdevvalue->m_nContext );
          memcpy( pdevvalue->m_abContent, compEncoder.pktBuffer, compEncoder.pktLength );
+         pdevvalue->m_nLength = compEncoder.pktLength;
+
+         VTSDevProperty * devprop = new VTSDevProperty();
+         devprop->SetID(OBJECT_NAME);
+         CObArray * pobvalarray = (CObArray *)devprop->GetValues();
+         pobvalarray->Add(pdevvalue);
+
+         pobarray->Add(devprop);
       }
    }
 /*
