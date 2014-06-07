@@ -468,6 +468,10 @@ typedef struct
     word                            cov_resubscription_interval;
     float                           client_cov_increment;
     bool                            stop_when_full;
+    bool                            align_intervals;
+    bool                            trigger;
+    word                            logging_type;
+    dword                           interval_offset;
     dword                           buffer_size;
     BACnetLogRecord                 log_buffer;
     dword                           record_count;
@@ -487,7 +491,6 @@ typedef struct
    generic_object go;
 } proprietary_obj_type;
 
-//Shiyuan Xiao. 7/14/2005.
 typedef struct
 {
     generic_object            go;
@@ -620,6 +623,7 @@ typedef struct
 {
     generic_object                    go;
      bool                            log_enable;
+     bool                            stop_when_full;
      BACnetDateTime                  start_time;
      BACnetDateTime                  stop_time;
      dword                           buffer_size;
@@ -630,6 +634,16 @@ typedef struct
      dword                           records_since_notification;
      dword                           last_notify_record;
 } el_obj_type;
+
+typedef struct
+{
+   generic_object          go;
+   dword                   update_interval;
+   dword                   requested_update_interval;
+   dword                   cov_resubscription_interval;
+   dword                   covu_period;
+   BACnetRecipient         *covu_recipients;
+} global_group_obj_type;
 
 typedef struct
 {
@@ -688,6 +702,9 @@ typedef struct {
     int                 high_limit;
     int                 low_limit;
     unsigned int        deadband;
+    int                 min_pres_value;
+    int                 max_pres_value;
+    int                 resolution;
 } integer_obj_type;
 
 //-------------------------------------------------------
@@ -695,14 +712,17 @@ typedef struct {
 //-------------------------------------------------------
 typedef struct {
     generic_object      go;
-    int                 present_value;
+    unsigned int        present_value;
     word                units;   // WAS enum BACnetEngineeringUnits.  See NOTE above
     int                 priority_array[16];
     int                 relinquish_default;
     int                 cov_increment;
-    int                 high_limit;
-    int                 low_limit;
+    unsigned int        high_limit;
+    unsigned int        low_limit;
     unsigned int        deadband;
+    unsigned int        min_pres_value;
+    unsigned int        max_pres_value;
+    unsigned int        resolution;
 } positive_integer_obj_type;
 
 //-------------------------------------------------------
