@@ -177,7 +177,7 @@ static const char *stParseTypes[]={
 #define	TMASTER				123					//time master, must also be writable
 #define	MSTPMASTER			122					//MS/TP master node
 //last definition in an object is marked in PropGroup with:
-#define	Last		0x80
+#define	LAST		0x80
 
 //NOTE: the following equates MUST represent the order in the AllETs table in STDOBJPR.H!
 //msdanner 9/2004 - all reduced by one to eliminate need for "-1" all the time.
@@ -226,5 +226,6 @@ static const char *stParseTypes[]={
 #define		eiDoorValuen		42
 #define		eiBackupState		43
 #define		eiRestartReason	44
+#define		eiLoggingType		45
 
 #endif //__PROPS_H_INCLUDED

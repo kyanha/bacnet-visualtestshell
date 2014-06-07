@@ -1273,7 +1273,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "time-of-device-restart",           // 203
    "time-synchronization-interval",    // 204
    "trigger",                          // 205
-   "utc-time-syncrhonization-recipients",// 206
+   "utc-time-synchronization-recipients",// 206
    // added by addenda d
    "node-subtype",                     // 207
    "node-type",                        // 208

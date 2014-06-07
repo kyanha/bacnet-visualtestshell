@@ -1041,7 +1041,7 @@ dword APIENTRY VTSAPIgetpropinfo(word objtype, word propindex,
    const propdescriptor *pt, *ptx;
    pt = ptx = GetPropDescriptorTable( objtype );
    word np = 1;
-   while((ptx->PropGroup & Last) == 0)
+   while((ptx->PropGroup & LAST) == 0)
    {
       np++;
       ptx++;
@@ -1115,7 +1115,7 @@ BOOL APIENTRY VTSAPIgetdefaultpropinfo(word objtype,dword propid,word *ptype,wor
                *pet=pt->PropET;
             return true;
          }
-         if (pt->PropGroup&Last) break;
+         if (pt->PropGroup & LAST) break;
          pt++;                            //advance to next one
       } while(true);
    }
@@ -1619,7 +1619,17 @@ void  APIENTRY DeletePICSObject(generic_object *p)
     case OBJ_EVENT_LOG:
       break;
 
-      case OBJ_LOAD_CONTROL:
+    case OBJ_GLOBAL_GROUP:
+      vp=((global_group_obj_type *)p)->covu_recipients;
+      while(vp!=NULL)
+      {
+         vq=vp;
+         vp=((BACnetRecipient *)vp)->next;
+         free(vq);
+      }
+      break;
+
+    case OBJ_LOAD_CONTROL:
       for(i=0; i<MAX_SHED_LEVELS; i++)
       {
          if (((lc_obj_type *)p)->shed_level_descriptions[i]!=NULL)
@@ -3996,7 +4006,7 @@ bool ParseProperty(char *pn, generic_object *pobj, word objtype)
                         bNeedReset = true;
                         break;
                      }
-                     if (newpd->PropGroup&Last)
+                     if (newpd->PropGroup & LAST)
                         return tperror("Invalid Property Name- Check Spelling",true);
                      newpd++;                         //advance to next table entry
                   } while(true);
@@ -4486,7 +4496,7 @@ bool ParseProperty(char *pn, generic_object *pobj, word objtype)
          return false;                 //we're done parsing
       }
 
-      if (pd->PropGroup & Last)
+      if (pd->PropGroup & LAST)
       {
          if (objtype < etObjectTypes.propes)
          {
@@ -4725,7 +4735,7 @@ const propdescriptor* validatePropertyNameAndIndexCode(dword dw, unsigned long *
          *propId = pd->PropID;
          break;
       }
-      if (pd->PropGroup & Last)
+      if (pd->PropGroup & LAST)
       {
          tperror("Unknown Property Name",true);
          return NULL;            // return NOT FOUND
@@ -7117,8 +7127,8 @@ bool ParseDestinationList(BACnetDestination **dalp)
 
 bool ParseRecipientList(BACnetRecipient **dalp)
 {
-   BACnetRecipient   *p=NULL,*q=NULL;
-   *dalp=NULL;                         //initially there is no list
+   BACnetRecipient *p = NULL, *q = NULL;
+   *dalp = NULL;                         //initially there is no list
    if (MustBe('(')) return true;
    while(feof(ifile)==0)
    {
@@ -7128,7 +7138,7 @@ bool ParseRecipientList(BACnetRecipient **dalp)
       //   but (...),,(...) is treated the same as (...),(...)
       //2. (         i.e. the beginning of a new BACnetRecipient in the list
       //3. )         i.e. the closing part of the list
-      while (*lp==space||*lp==',') lp++;     //skip separation between list elements
+      while (*lp==space || *lp==',') lp++;     //skip separation between list elements
       if (*lp==0)
          if (ReadNext()==NULL) break;
       if (*lp==')')
@@ -7137,17 +7147,24 @@ bool ParseRecipientList(BACnetRecipient **dalp)
          break;                        //close this list out
       }
       if (MustBe('{')) break;
-      if ((q=ParseRecipient(NULL))!=NULL)
+      if ((q = ParseRecipient(NULL))!=NULL)
       {
-         q->next=p;                    //link onto the list
-         p=q;
-         q=NULL;
+         if (*dalp == NULL)
+         {
+            *dalp = q;     // First element of the list
+         }
+         else
+         {
+            p->next = q;   // link onto the list
+         }
+
+         p = q;
+         q = NULL;
       }
       if (MustBe('}')) break;
    }
 
    if (q!=NULL) free(q);               //don't lose this block!
-   *dalp=p;
    return false;
 }
 
@@ -8371,7 +8388,7 @@ void CheckPICSConsistency2003(PICSdb *pd)
                      break;
                   }
 
-                  if (pD->PropGroup & Last)
+                  if (pD->PropGroup & LAST)
                      break;
 
                   pD++;
@@ -9021,13 +9038,13 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
       // that cause other properties to be present if this property is present.
       // These are remembered for a second pass through the properties to
       // check for missing properties.
-      group = propdesc->PropGroup & ~Last; // mask off the "Last" indicator bit
+      group = propdesc->PropGroup & ~LAST; // mask off the "Last" indicator bit
       // If this property is in a "group" (footnote), and it is present in the database,
       // mark this whole group as required.
       if (group && (obj->propflags[i] & PropIsPresent) ) //&& !(propdesc->PropFlags&&AtLeast1 == AtLeast1))  // LJT 4/17/2008 added AtLeast1Check
          groupRequired[group] = 1;
 
-      if (propdesc->PropGroup & Last)
+      if (propdesc->PropGroup & LAST)
          break;  // if this is the last property definition, exit loop
       propdesc++; // next propertydefinition for this object
       i++;  // next index into propflags
@@ -9048,7 +9065,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
    {
       while (1)
       {
-         group = propdesc->PropGroup & ~Last;
+         group = propdesc->PropGroup & ~LAST;
          // If property belongs to a group, and another property was detected
          // in this same group in the first pass, and this property
          // is not present in the database,log an error.
@@ -9063,7 +9080,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
          }
 
          // Are we done?
-         if (propdesc->PropGroup & Last)
+         if (propdesc->PropGroup & LAST)
             break;  // if this is the last property definition, exit loop
          propdesc++; // next propertydefinition for this object
          i++;  // next index into propflags
@@ -9171,7 +9188,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
          }
 
          // Are we done?
-         if (propdesc->PropGroup & Last)
+         if (propdesc->PropGroup & LAST)
             break;  // if this is the last property definition, exit loop
          propdesc++; // next propertydefinition for this object
          i++;  // next index into propflags
