@@ -1443,7 +1443,7 @@ table.MsoTableGrid
 <div class=WordSection1>
 
 <h1><a name=start><span style='mso-fareast-font-family:"Times New Roman"'>VTS
-3.6.1 </span></a><i><span style='mso-fareast-font-family:"Times New Roman"'>Quick
+3.6.2 </span></a><i><span style='mso-fareast-font-family:"Times New Roman"'>Quick
 Start Guide</span></i><span style='mso-fareast-font-family:"Times New Roman"'></span></h1>
 
 <p><span style='color:black'>Visual Test Shell (VTS) is an application for
@@ -1462,7 +1462,7 @@ href="http://sourceforge.net/projects/vts/">http://sourceforge.net/projects/vts/
 </span></p>
 
 <h4><span style='font-family:"Verdana","sans-serif";mso-fareast-font-family:
-"Times New Roman";color:black'>Go <a href="#_3.6.1">here</a> to find out what
+"Times New Roman";color:black'>Go <a href="#_3.6.2">here</a> to find out what
 is new in this release.</span></h4>
 
 <h2><span style='mso-fareast-font-family:"Times New Roman"'>Platform
@@ -8183,7 +8183,7 @@ release:</span></p>
 name="_3.5.5"></a><span style='mso-fareast-font-family:"Times New Roman"'>3.5.5</span></h2>
 
 <p style='tab-stops:45.8pt 91.6pt 137.4pt 183.2pt 229.0pt 274.8pt 320.6pt 366.4pt 412.2pt 458.0pt 503.8pt 549.6pt 595.4pt 641.2pt 687.0pt 732.8pt'><span
-style='color:black'><a href="#_3.6.1"><span class=GramE>[&nbsp;Next</span>&nbsp;]</a>&nbsp;&nbsp;<a
+style='color:black'><a href="#_3.6.2"><span class=GramE>[&nbsp;Next</span>&nbsp;]</a>&nbsp;&nbsp;<a
 href="#start"><span class=GramE>[&nbsp;Home</span>&nbsp;]</a></span></p>
 
 <p style='tab-stops:45.8pt 91.6pt 137.4pt 183.2pt 229.0pt 274.8pt 320.6pt 366.4pt 412.2pt 458.0pt 503.8pt 549.6pt 595.4pt 641.2pt 687.0pt 732.8pt'><span
@@ -8696,14 +8696,14 @@ release:</span></p>
 </table>
 
 <h2 style='tab-stops:45.8pt 91.6pt 137.4pt 183.2pt 229.0pt 274.8pt 320.6pt 366.4pt 412.2pt 458.0pt 503.8pt 549.6pt 595.4pt 641.2pt 687.0pt 732.8pt'><a
-name="_3.6.1"></a><span style='mso-fareast-font-family:"Times New Roman"'>3.6.1</span></h2>
+name="_3.6.2"></a><span style='mso-fareast-font-family:"Times New Roman"'>3.6.2</span></h2>
 
 <p style='tab-stops:45.8pt 91.6pt 137.4pt 183.2pt 229.0pt 274.8pt 320.6pt 366.4pt 412.2pt 458.0pt 503.8pt 549.6pt 595.4pt 641.2pt 687.0pt 732.8pt'><span
 style='color:black'><a href="#Links"><span class=GramE>[&nbsp;Next</span>&nbsp;]</a>&nbsp;&nbsp;<a
 href="#start"><span class=GramE>[&nbsp;Home</span>&nbsp;]</a></span></p>
 
 <p style='tab-stops:45.8pt 91.6pt 137.4pt 183.2pt 229.0pt 274.8pt 320.6pt 366.4pt 412.2pt 458.0pt 503.8pt 549.6pt 595.4pt 641.2pt 687.0pt 732.8pt'><span
-style='color:black'>Beta 1, May 27 2014</span></p>
+style='color:black'>Release July 9 2014</span></p>
 
 <p style='tab-stops:45.8pt 91.6pt 137.4pt 183.2pt 229.0pt 274.8pt 320.6pt 366.4pt 412.2pt 458.0pt 503.8pt 549.6pt 595.4pt 641.2pt 687.0pt 732.8pt'><span
 style='color:black'>Changes in this release</span></p>
@@ -8734,9 +8734,56 @@ style='color:black'>Summary of changes with svn commit numbers:</span></p>
 
 <table border=1>
 
+<tr><td>960</td><td>
+Version 3.6.2 (release)<br>
+- Add vendor name string up to 763<br>
+- Specify correct enum table for LIMIT_ENABLE property in property tables (EPICS)<br>
+- Update release instructions<br>
+- Add a negative integer test case (UTC offset) to allTestEpics.tpi<br>
+</td></tr>
+<tr><td>959</td><td>
+Add missing .vcsproj, .vcproj, and .dsp files for ProperTable
+</td></tr>
+<tr><td>958</td><td>
+Continue work on property tables and EPICS parsing<br>
+- arrange propdescriptor and allTestEpics.tpi into same property order as 135-2012<br>
+- add global-group (most properties)<br>
+- continue moving DUDTOOL conversion code from property-based to ParseType-based, eliminating much object-specific code<br>
+</td></tr>
+<tr><td>957</td><td>
+Add ProperTable utility: source reformatter for propdescriptor and similar tables
+</td></tr>
+<tr><td>956</td><td>
+Select a default Port for InconsistentParsExecutor dialog
+</td></tr>
+<tr><td>955</td><td>
+VTS server objects: Fix encoding problem for default name property (had 500 bytes of junk after it).<br>
+Gussy up server object/property UI a bit.
+</td></tr>
+<tr><td>954</td><td>
+Move primitive tag #defines to VTS.h and USE THEM
+</td></tr>
+<tr><td>953</td><td>
+Work on EPICS parsing and display<br>
+- move common data to generic_object, eliminating a lot of object-type-specific code<br>
+- add (some) new properties to the property tables<br>
+- add firstVersion to property tables to account for new properties (such as alarm stuff)<br>
+- correct errors in the property tables<br>
+- clean up EPICS parsing, add utility functions for ease of use<br>
+</td></tr>
+<tr><td>952</td><td>
+Fix leak of detail tree
+</td></tr>
+<tr><td>951</td><td>
+Update BACnetStringTable::EnumValue to accept raw integer as well as enum string, proprietary-xxx-NNN etc.<br>
+Update comments on BACnetPropertyIdentifier showing at least some protocol-revision of introduction.
+</td></tr>
+<tr><td>950</td><td>
+Update history for 3.6.1, and remove Microsoft Word tags (Word 2010 seems to generate extra files, and HTML just isn't that hard)
+</td></tr>
 <tr><td>949</td><td>
 Update resource file for version 3.6.1 build.
-</td><td>
+</td></tr>
 <tr><td>948</td><td>
 Small documentation updates for 3.6 changes
 </td></tr>
