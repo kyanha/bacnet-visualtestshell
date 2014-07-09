@@ -174,10 +174,10 @@ BACnet Standard Application Services Supported:
 Standard Object-Types Supported:
 {
   Accumulator
-  Analog Input
-  Analog Output
-  Analog Value
-  Averaging
+  Analog Input   Createable
+  Analog Output  Deleteable
+  Analog Value   Createable Deleteable
+  Averaging         Deleteable Createable 
   Binary Input
   Binary Output
   Binary Value
@@ -256,6 +256,7 @@ Data Link Layer Option:
   BACnet/IP, PPP
 
   LonTalk
+--  BACnet/ZigBee
 }
 
 Character Sets Supported:
@@ -404,7 +405,7 @@ List of Objects in Test Device:
     active-vt-sessions: ({29,5,1, X'0000C0B3EF13'},{23,8,2, X'05'}) 
     local-time: 10:31:13.95
     local-date: (FRIDAY, 6/10/2005)
-    utc-offset: 300
+    utc-offset: -300
     daylight-savings-status: true
     apdu-segment-timeout: 2000
     apdu-timeout: 3000
@@ -423,7 +424,7 @@ List of Objects in Test Device:
     backup-and-restore-state: idle
     active-cov-subscriptions: (
         {{(Device, 12), 30}, {(Analog-Input, 2),Present-Value},TRUE,100,1.0},
-        {{55, X'01', 30}, {(Analog-Input, 1),Present-Value},TRUE,100}
+        {{55, X'01', 30}, {(Analog-Input, 1) , Present_Value},TRUE,100}
       )
     slave-proxy-enable: (T, T, T)
     manual-slave-address-binding: (
@@ -782,10 +783,10 @@ List of Objects in Test Device:
 --   elements separated by commas
 -- - 135.1 4.4.1 c says that lists are enclosed in parenthesis, with
 --   elements separated by commas
-    Action: {({,(analog-value,1),present-value,,65.0,,,TRUE,TRUE},
-             {,(binary-output,1),Present-Value,,INACTIVE,8,1,TRUE,TRUE}),
-            ({,(analog-value,5),Present-Value,,72.0,,,TRUE,TRUE}, 
-             {,(binary-output,3),Present-Value,,ACTIVE,8,2,TRUE,TRUE})}
+    Action: {({(device,666),(analog-value,1),present-value,,65.0,,,TRUE,TRUE},
+              {,(binary-output,1),Present-Value,,INACTIVE,8,1,TRUE,TRUE}),
+             ({,(analog-value,5),Present-Value,,72.0,,,TRUE,TRUE},
+              {,(binary-output,3),Present-Value,,ACTIVE,8,2,TRUE,TRUE})}
     Action-Text: {"Unoccupied", "Occupied"}
     Property-List: ?
     profile-name: "command"
