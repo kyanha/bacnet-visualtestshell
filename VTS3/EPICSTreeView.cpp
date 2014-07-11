@@ -260,7 +260,7 @@ bool CEPICSTreeView::GetEpicsFilename( CString &theFilePath )
    return retval;
 }
 
-void CEPICSTreeView::OnEpicsLoad() 
+void CEPICSTreeView::OnEpicsLoad()
 {
    CString filePath;
    if (GetEpicsFilename( filePath ))
@@ -269,22 +269,21 @@ void CEPICSTreeView::OnEpicsLoad()
    }
 }
 
-void CEPICSTreeView::OnEpicsEdit() 
+void CEPICSTreeView::OnEpicsEdit()
 {
    CString str;
    GetDlgItem(IDC_EPICSV_FILENAME)->GetWindowText(str);
 
-   if ( str.GetLength() != 0 )
+   if (!str.IsEmpty())
    {
-      // TODO: change this to use whatever program is bound to .txt, since they 
-      // likely WON'T have a binding for .tpi?
-      CString str2;
-      str2.Format("notepad.exe \"%s\"", str);
-      _spawnlp(_P_NOWAIT, "notepad.exe", str2, NULL);
+      const char *pEditor = gVTSPreferences.Setting_GetTextEditor();
+      str.Insert(0, '"' );
+      str += '"';
+      _spawnlp(_P_NOWAIT, pEditor, pEditor, (LPCTSTR)str, NULL);
    }
 }
 
-void CEPICSTreeView::OnEpicsReadSingleProps() 
+void CEPICSTreeView::OnEpicsReadSingleProps()
 {
    CChildFrame * p = (CChildFrame *) GetParentFrame();
 
@@ -297,7 +296,7 @@ void CEPICSTreeView::OnEpicsReadSingleProps()
       p->DoReadSingleProperties("ReadObjectProperties.vts", pnode->GetObjectID());
 }
 
-void CEPICSTreeView::OnEpicsReadAllProps() 
+void CEPICSTreeView::OnEpicsReadAllProps()
 {
    CChildFrame * p = (CChildFrame *) GetParentFrame();
    p->DoReadAllProperties();
@@ -373,13 +372,15 @@ BOOL CEPICSTreeView::EPICSLoad( LPCSTR lpszFileName )
    m_pbar->m_nConE = 0;
 
    // read in the EPICS
-   // madanner 6/03: ReadTextPICS now returns false if canceled by user
+   // ReadTextPICS returns false if canceled by user
 
    if ( PICS::ReadTextPICS( (char *) (LPCSTR) lpszFileName, gPICSdb, &m_pbar->m_nSyntaxE, &m_pbar->m_nConE ) )
    {
-      if ( m_pbar->m_nSyntaxE == 0 )
-         gVTSPreferences.Setting_SetLastEPICS(lpszFileName);
-      else
+      // Formerly saved the name only if read without error.
+      // But then you can't use the Edit button to FIX the errors.
+      gVTSPreferences.Setting_SetLastEPICS(lpszFileName);
+
+      if ( m_pbar->m_nSyntaxE != 0 )
          DeleteDB();
    }
    else

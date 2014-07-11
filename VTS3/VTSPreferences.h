@@ -36,6 +36,7 @@ class VTSPreferences : public CObject
 		int     m_resendInterval;               // 3/9/05 Shiyuan Xiao 
 
 		CString m_strLastEPICS;					// filename of last EPICS file loaded
+		CString m_textEditor;				// Text editor to use for .tpi etc.
 
 	public:
 		VTSPreferences();
@@ -69,6 +70,9 @@ class VTSPreferences : public CObject
 		void Setting_SetSaveSentPkt(bool bSaveSentPkt) { m_bSaveSentPkt = bSaveSentPkt; };
 		int  Setting_GetResendInterval() { return m_resendInterval; }
 		void Setting_SetResendInterval(int interval) { m_resendInterval = interval; }
+		LPCSTR Setting_GetTextEditor() const;
+		void Setting_SetTextEditor(LPCSTR lpszTextEditor);
+
 		void Load( void );
 		void Save( void );
 		void DoPrefsDlg(void);

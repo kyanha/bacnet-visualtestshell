@@ -1135,11 +1135,9 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
             // Use ReadProperty
 
             // Now create a TEST section for each of the defined properties
-            for ( int nPropIndex = 0; nPropIndex < 64; nPropIndex++ )
+            for ( int nPropIndex = 0; nPropIndex < sizeof(pDatabase->propflags)/sizeof(pDatabase->propflags[0]); nPropIndex++ )
             {
                dword dwbogus;
-               if( (pDatabase->propflags[nPropIndex] & ValueUnknown) == ValueUnknown ) // PropertyValue is unspecified
-                  continue;                                    // skip
 
                if ( PICS::GetPropNameSupported(szTemp, nPropIndex, pDatabase->object_type, pDatabase->propflags, &dwbogus, NULL) > 0 )
                {
@@ -1217,14 +1215,30 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
                      }
                   }
 
-                  str.Format( "\tPDU = ComplexAck\n"
-                              "\tService = ReadProperty\n"
-                              "\tObject = 0, OBJECT%d\n"
-                              "\tProperty = 1, %s\n"
-                              "\tOpenTag 3\n"
-                              "\t\tAL = {%s}\n"
-                              "\tCloseTag 3\n"
-                              "    )\n\n", nObjNum, szTemp, szTemp );
+                  if (pDatabase->propflags[nPropIndex] & ValueUnknown)
+                  {
+                     // EPICS says "unknown": accept any value
+                     str.Format( "\tPDU = ComplexAck\n"
+                                 "\tService = ReadProperty\n"
+                                 "\tObject = 0, OBJECT%d\n"
+                                 "\tProperty = 1, %s\n"
+                                 "\tOpenTag 3\n"
+                                 "\t\tANY\n"
+                                 "\tCloseTag 3\n"
+                                 "    )\n\n", nObjNum, szTemp );
+                  }
+                  else
+                  {
+                     // Compare to value from EPICS
+                     str.Format( "\tPDU = ComplexAck\n"
+                                 "\tService = ReadProperty\n"
+                                 "\tObject = 0, OBJECT%d\n"
+                                 "\tProperty = 1, %s\n"
+                                 "\tOpenTag 3\n"
+                                 "\t\tAL = {%s}\n"
+                                 "\tCloseTag 3\n"
+                                 "    )\n\n", nObjNum, szTemp, szTemp );
+                  }
                   pscript->WriteString(str);
                }
             }     // end loop on properties

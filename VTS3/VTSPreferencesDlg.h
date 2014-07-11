@@ -28,6 +28,7 @@ public:
 	BOOL	m_bRecvPkt;
 	BOOL	m_bSaveSentPkt;
 	UINT	m_resendInterval;
+	CString	m_textEditor;
 	//}}AFX_DATA
 
 

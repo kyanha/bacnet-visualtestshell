@@ -2466,30 +2466,32 @@ BEGIN
     PUSHBUTTON      "Configure Implementation...",ID_MSTPCONFIGIMP,65,91,105,12
 END
 
-IDD_PREFERENCES DIALOG 0, 0, 280, 162
+IDD_PREFERENCES DIALOGEX 0, 0, 280, 174
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "VTS Preferences"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "Available cache slots in packet summary view:",IDC_STATIC,22,10,147,8
+    RTEXT           "Available cache slots in packet summary view:",IDC_STATIC,9,10,158,8
     EDITTEXT        IDC_PREF_PACKETCOUNT,172,7,40,12,ES_AUTOHSCROLL | WS_GROUP
-    LTEXT           "Timeout (in seconds) before returning to auto-scroll:",IDC_STATIC,7,25,162,8
+    RTEXT           "Timeout (in seconds) before returning to auto-scroll:",IDC_STATIC,9,25,158,8
     EDITTEXT        IDC_PREF_ASTIMEOUT,172,23,40,12,ES_AUTOHSCROLL
-    LTEXT           "Store packet path relative to workspace file:",IDC_STATIC,29,40,140,8
+    RTEXT           "Store packet path relative to workspace file:",IDC_STATIC,9,40,158,8
     CONTROL         "Relative",IDC_PREF_RELATIVE,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,172,40,42,10
     CONTROL         "Absolute",IDC_PREF_ABSOLUTE,"Button",BS_AUTORADIOBUTTON,172,51,43,10
     CONTROL         "Ask for verification on packet file delete?",IDC_PREF_DELETEVERIFY,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_GROUP | WS_TABSTOP,37,66,144,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | BS_RIGHT | WS_GROUP | WS_TABSTOP,37,65,144,10
     CONTROL         "Automatically load last EPICS file on startup?",IDC_PREF_LOADEPICS,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_GROUP | WS_TABSTOP,25,80,156,10
-    CONTROL         "Summary window auto scroll?",IDC_AUTOSCROLL,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,74,95,107,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | BS_RIGHT | WS_GROUP | WS_TABSTOP,25,80,156,10
+    CONTROL         "Summary window auto scroll?",IDC_AUTOSCROLL,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | BS_RIGHT | WS_TABSTOP,69,95,112,10
     CONTROL         "Receive packets?",IDC_RECVPKT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | BS_RIGHT | WS_TABSTOP,74,110,107,10
-    CONTROL         "Save sent packets?",IDC_SAVESENTPKT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,102,125,79,10
-    RTEXT           "Resending interval:",IDC_STATIC,75,141,94,8
-    EDITTEXT        IDC_RESENDINTERVAL,172,141,40,12,ES_AUTOHSCROLL
-    LTEXT           "ms",IDC_STATIC,215,142,10,8
+    CONTROL         "Save sent packets?",IDC_SAVESENTPKT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | BS_RIGHT | WS_TABSTOP,102,125,79,10
+    RTEXT           "Resending interval:",IDC_STATIC,9,140,158,8
+    EDITTEXT        IDC_RESENDINTERVAL,172,139,40,12,ES_AUTOHSCROLL
+    LTEXT           "ms",IDC_STATIC,215,140,10,8
     DEFPUSHBUTTON   "OK",IDOK,223,7,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,223,24,50,14
+    RTEXT           "Text Editor EPICS:",IDC_STATIC,9,155,158,8
+    EDITTEXT        IDC_TEXT_EDITOR,172,155,101,12,ES_AUTOHSCROLL
 END
 
 IDD_DATETIME DIALOGEX 0, 0, 186, 73
@@ -5000,7 +5002,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 273
         TOPMARGIN, 7
-        BOTTOMMARGIN, 155
+        BOTTOMMARGIN, 167
     END
 
     IDD_DATETIME, DIALOG
