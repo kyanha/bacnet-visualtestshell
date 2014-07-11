@@ -22,7 +22,7 @@ static char THIS_FILE[]=__FILE__;
 VTSPreferences::VTSPreferences()
 {
 	// Initialize all fields on
-	// TODO: Since Source and Destination now show network portion is SADDR/DADDR are disabled,
+	// TODO: Since Source and Destination now show network portion if SADDR/DADDR are disabled,
 	// we might change this to 0x21F, turning off SNET/SADDR/DNET/DADDR
 	m_nSummaryFields = 0x3FF;				// bit mask of display options, LJT 5/22/2006 changed from 0xff to 0x3ff to include all fields
 
@@ -87,6 +87,20 @@ void VTSPreferences::Setting_SetLastEPICS(LPCSTR lpszEPICSFile)
 		m_strLastEPICS = lpszEPICSFile;
 }
 
+void VTSPreferences::Setting_SetTextEditor(LPCSTR lpszTextEditor)
+{
+	if (lpszTextEditor == NULL )
+		m_textEditor.Empty();
+	else
+		m_textEditor = lpszTextEditor;
+}
+
+LPCSTR VTSPreferences::Setting_GetTextEditor() const
+{
+	// Return a default editor if none has been set
+	return (m_textEditor.IsEmpty()) ? "Notepad.exe" : m_textEditor;
+}
+
 //
 //	VTSPreferences::Load
 //
@@ -130,6 +144,8 @@ void VTSPreferences::Load( void )
 	m_bSaveSentPkt = nRelative != 0;
 
 	m_resendInterval = pApp->GetProfileInt( "Settings", "ResendInterval", m_resendInterval);
+
+	m_textEditor = pApp->GetProfileString("Settings", "TextEditor", NULL);
 }
 
 //
@@ -163,6 +179,7 @@ void VTSPreferences::Save( void )
 	pApp->WriteProfileInt( "Settings", "RecvPkt", m_bRecvPkt ? 1 : 0);
 	pApp->WriteProfileInt( "Settings", "SaveSentPkt", m_bSaveSentPkt ? 1 : 0);
 	pApp->WriteProfileInt( "Settings", "ResendInterval", m_resendInterval);
+	pApp->WriteProfileString( "Settings", "TextEditor", m_textEditor);
 }
 
 
@@ -179,6 +196,7 @@ void VTSPreferences::DoPrefsDlg()
 	dlg.m_bRecvPkt = Setting_IsRecvPkt() ? TRUE : FALSE;
 	dlg.m_bSaveSentPkt = Setting_IsSaveSentPkt() ? TRUE : FALSE;
 	dlg.m_resendInterval = Setting_GetResendInterval();
+	dlg.m_textEditor = Setting_GetTextEditor();
 
 	if ( dlg.DoModal() == IDOK )
 	{
@@ -191,13 +209,14 @@ void VTSPreferences::DoPrefsDlg()
 			((VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace())->SetNewCacheSize();
 		}
 
-		Setting_SetVerifyDelete(dlg.m_fVerify ? true : false);		// account for MS BOOL junk
-		Setting_SetLoadEPICS(dlg.m_fLoadEPICS ? true : false);		// account for MS BOOL junk
+		Setting_SetVerifyDelete(dlg.m_fVerify != 0);
+		Setting_SetLoadEPICS(dlg.m_fLoadEPICS != 0);
 
 		Setting_SetAutoScroll(dlg.m_bAutoScroll ? true : false);
 		Setting_SetRecvPkt(dlg.m_bRecvPkt ? true : false);
 		Setting_SetSaveSentPkt(dlg.m_bSaveSentPkt ? true : false);
 		Setting_SetResendInterval(dlg.m_resendInterval);
+		Setting_SetTextEditor(dlg.m_textEditor);
 	}
 }
 

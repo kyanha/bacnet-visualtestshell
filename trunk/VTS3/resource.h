@@ -967,6 +967,7 @@
 #define IDC_CHECK25                     1575
 #define IDC_STATIC1                     1576
 #define IDC_NUMERIC_TYPE                1577
+#define IDC_TEXT_EDITOR                 1578
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -1164,7 +1165,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        383
 #define _APS_NEXT_COMMAND_VALUE         32912
-#define _APS_NEXT_CONTROL_VALUE         1578
+#define _APS_NEXT_CONTROL_VALUE         1579
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

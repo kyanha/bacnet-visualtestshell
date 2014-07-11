@@ -29,6 +29,7 @@ VTSPreferencesDlg::VTSPreferencesDlg(CWnd* pParent /*=NULL*/)
 	m_bRecvPkt = FALSE;
 	m_bSaveSentPkt = FALSE;
 	m_resendInterval = 0;
+	m_textEditor = "Notepad.exe";
 	//}}AFX_DATA_INIT
 }
 
@@ -48,6 +49,7 @@ void VTSPreferencesDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Check(pDX, IDC_RECVPKT, m_bRecvPkt);
 	DDX_Check(pDX, IDC_SAVESENTPKT, m_bSaveSentPkt);
 	DDX_Text(pDX, IDC_RESENDINTERVAL, m_resendInterval);
+	DDX_Text(pDX, IDC_TEXT_EDITOR, m_textEditor);
 	//}}AFX_DATA_MAP
 }
 
