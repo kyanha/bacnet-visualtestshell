@@ -2091,28 +2091,38 @@ bool ReadStandardObjects(PICSdb *pd)
    {
       ReadNext();                      //point to next token
       if (*lp=='}' || lp==NULL) break; //return, we're done with these
-      sup=soSupported;
-      if ((pcre=strstr(lp,"Createable"))!=NULL) //supports create
-         sup|=soCreateable;
-      if ((pdel=strstr(lp,"Deleteable"))!=NULL) //supports delete
-         sup|=soDeleteable;
-      if (pcre!=NULL)   pcre[-1]=0;    //cheesy way to "remove" this from the string
-      if (pdel!=NULL)   pdel[-1]=0;    //cheesy way to "remove" this from the string
+      sup = soSupported;
+      if ((pcre = strstr(lp,"Createable")) != NULL) //supports create
+         sup |= soCreateable;
+      if ((pdel = strstr(lp,"Deleteable")) != NULL) //supports delete
+         sup |= soDeleteable;
+      if (pcre != NULL)   pcre[-1] = 0;   //cheesy way to "remove" this from the string
+      if (pdel != NULL)   pdel[-1] = 0;   //cheesy way to "remove" this from the string
 
-      for (i=0;i<(sizeof(StandardObjects)/sizeof(StandardObjects[0]));i++)
+      // Search "Traditional" object type names with spaces
+      for (i=0; i<(sizeof(StandardObjects)/sizeof(StandardObjects[0])); i++)
       {
          if (_stricmp(lp,StandardObjects[i])==0) //found it
          {
-            pd->BACnetStandardObjects[i]=sup;
-            i=0;
+            pd->BACnetStandardObjects[i] = sup;
+            i = 0;
             break;
          }
       }
 
       if (i>0)
       {
-         if (tperror("Unknown Standard Object",true))
-            return true;
+         // Check for "enum-style" object type name with dashes or underbars
+         i = NetworkSniffer::BAC_STRTAB_BACnetObjectType.EnumValue( lp );
+         if ((i >= 0) && (i < sizeof(pd->BACnetStandardObjects)))
+         {
+            pd->BACnetStandardObjects[i] = sup;
+         }
+         else
+         {
+            if (tperror("Unknown Standard Object",true))
+               return true;
+         }
       }
    }
 
