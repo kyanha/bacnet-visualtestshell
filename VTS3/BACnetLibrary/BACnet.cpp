@@ -1914,8 +1914,9 @@ void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetReal::Encode( CString &enc, Format /*theFormat*/ ) const
 {
-   // Use %g to avoid buffer overrun with very large and very small numbers.
-   // This shows +INF as "1.#INF0", -INF as "-1.#INF0", and our NAN as "1.#QNAN"
+   // Use %g to avoid silly decimal point position with very large and small numbers.
+   // # ensures that a decimal point is always shown.
+   // Shows +INF as "1.#INF0", -INF as "-1.#INF0", and our NAN as "1.#QNAN"
    enc.Format( "%#g", realValue );
 }
 
@@ -2063,12 +2064,12 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
       }  s;
    }     x;
 
-   x.src = doubleValue;
+   x.s.t2 = x.s.t1 = 0;
    // High half first, high byte first
    for (int j = 3; dec.pktLength && j >= 0; j--)
-      x.s.t1 = (x.s.t2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
+      x.s.t2 = (x.s.t2 << 8) + (dec.pktLength--,*dec.pktBuffer++);
    for (int k = 3; dec.pktLength && k >= 0; k--)
-      x.s.t2 = (x.s.t1 << 8) + (dec.pktLength--,*dec.pktBuffer++);
+      x.s.t1 = (x.s.t1 << 8) + (dec.pktLength--,*dec.pktBuffer++);
    doubleValue = x.src;
 #else
    memcpy( &doubleValue, dec.pktBuffer, (size_t)8 );
@@ -2080,10 +2081,8 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetDouble::Encode( CString &enc, Format /*theFormat*/ ) const
 {
-   // simple, effective
-// sprintf( enc, "%lf", doubleValue );
-    // JLH .... and wr000000000000000000000000000000ng for 
-    // very large and very small numbers. Use %g to avoid buffer overrun
+   // Use %g to avoid silly decimal point position with very large and small numbers.
+   // # ensures that a decimal point is always shown.
    enc.Format( "%#lg", doubleValue );
 }
 
