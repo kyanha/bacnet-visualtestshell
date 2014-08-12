@@ -445,10 +445,10 @@ void VTSNamesDlg::OnOK()
 	{
 		VTSName * pname = (VTSName *) m_names[n];
 
-		if ( ((pname->m_bacnetaddr.addrType == localStationAddr) || 
+		if ( ((pname->m_bacnetaddr.addrType == localStationAddr) ||
 			  (pname->m_bacnetaddr.addrType == remoteStationAddr))
-			 &&  
-			 (pname->m_bacnetaddr.addrLen != 1) && (pname->m_bacnetaddr.addrLen != 6) )
+			 &&
+			  ((pname->m_bacnetaddr.addrLen < 1) || (pname->m_bacnetaddr.addrLen > 6)) )
 		{
 			// select the item in the list...  then change focus to address edit control
 
@@ -628,7 +628,7 @@ void VTSNamesDlg::SaveChanges()
 	NameToList( (VTSName *) m_names[m_iSelectedName], m_iSelectedName );
 }
 
-void VTSNamesDlg::OnKillfocusAddress() 
+void VTSNamesDlg::OnKillfocusAddress()
 {
 	if ( m_iSelectedName == -1 || m_iSelectedName > m_names.GetSize() - 1)
 		return;
@@ -642,18 +642,17 @@ void VTSNamesDlg::OnKillfocusAddress()
 	if(cwt != NULL)
 		nFocusID = cwt->GetDlgCtrlID();  // GetFocus() sometimes returns NULL, i.e. when new focus is not VTS
 
-	// Check for validity and warn if we haven't already warned and they didn't 
+	// Check for validity and warn if we haven't already warned and they didn't
 	// press the cancel or delete key...
 
-	if ((pname->m_bacnetaddr.addrLen != 1) && (pname->m_bacnetaddr.addrLen != 6) && 
-		(nFocusID != GetDlgItem(IDCANCEL)->GetDlgCtrlID()) &&  
+	if (((pname->m_bacnetaddr.addrLen < 1) || (pname->m_bacnetaddr.addrLen > 6)) &&
+		(nFocusID != GetDlgItem(IDCANCEL)->GetDlgCtrlID()) &&
 		(nFocusID != GetDlgItem(ID_DELETENAME)->GetDlgCtrlID()))
 	{
 		if ( !m_fWarnedAlready )
 		{
 			AfxMessageBox(IDS_NAME_ADDRERROR, MB_ICONEXCLAMATION | MB_OK);
 
-//		this->MessageBox("Address length should be 1 or 6 bytes!\nMSTP Address length is 1 byte, B/IP and Ethernet MAC Address length are both 6 bytes.", "Error", MB_ICONERROR);
 			m_AddressCtrl.SetFocus();
 			m_fWarnedAlready = true;
 		}

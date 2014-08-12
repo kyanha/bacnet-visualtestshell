@@ -6341,8 +6341,8 @@ STRINGTABLE
 BEGIN
     ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
     ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
-    IDS_NAME_ADDRERROR      "Address length should be 1 or 6 bytes!\nMSTP Address length is 1 byte, B/IP and Ethernet MAC Address length are both 6 bytes."
-    IDS_FILTER_ADDRERROR    "Address length should be 1 or 6 bytes!\nMSTP Address length is 1 byte, B/IP and Ethernet MAC Address length are both 6 bytes."
+    IDS_NAME_ADDRERROR      "Address length must be 1 to 6 bytes.\n1 byte for MSTP,\n6 for B/IP and Ethernet,\n3 for ZigBee or B/IPv6 VMAC."
+    IDS_FILTER_ADDRERROR    "Address length must be 1 to 6 bytes.\n1 byte for MSTP,\n6 for B/IP and Ethernet,\n3 for ZigBee or B/IPv6 VMAC."
 END
 
 STRINGTABLE
