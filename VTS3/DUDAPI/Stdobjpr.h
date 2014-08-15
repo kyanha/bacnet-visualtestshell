@@ -1219,7 +1219,7 @@ propdescriptor DVprops[]={
    { SEGMENTATION_SUPPORTED,         oo(segmentation_supported),        et,          0,        eiSegOpt,           R },
    { MAX_SEGMENTS_ACCEPTED,          oo(max_segments_accepted),         ud,          0,        0,                  O },
    { VT_CLASSES_SUPPORTED,           oo(vt_classes_supported),          vtcl,        VT,       0,                  O|WithService|WithGroup },
-   { ACTIVE_VT_SESSIONS,             0,                                 none,        VT,       0,                  O|WithService|WithGroup },
+   { ACTIVE_VT_SESSIONS,             oo(active_vt_sessions),            vtse,        VT,       0,                  O|WithService|WithGroup },
    { LOCAL_TIME,                     oo(local_time),                    ttime,       0,        0,                  O },
    { LOCAL_DATE,                     oo(local_date),                    ddate,       0,        0,                  O },
    { UTC_OFFSET,                     oo(utc_offset),                    ssint,       0,        0,                  O },
@@ -2254,6 +2254,8 @@ extern propdescriptor PlaceholderProps[];
 
 #endif
 
+propdescriptor* GetPropDescriptorTable( word objtype );
+
 typedef struct {
     dword   dptpropid;           //property id
     octet   dptparsetype;        //parse type
@@ -2276,7 +2278,7 @@ static dpttable dParseTypes={
                 {ACTION,et,eiLoopAct,0},
                 {ACTION_TEXT,actext,0,IsArray},
                 {ACTIVE_TEXT,s64,0},
-                {ACTIVE_VT_SESSIONS,none,0,0},
+                {ACTIVE_VT_SESSIONS,vtse,0,0},
                 {ALARM_VALUE,et,eiBPV,0},
                 {ALARM_VALUES,stavals,0,0},
                 {ALL,none,0,0},

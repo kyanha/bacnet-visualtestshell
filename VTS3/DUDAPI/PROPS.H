@@ -109,6 +109,7 @@ static const char anystring[4]={"any"};		//"any\0";			//	***001
 //   This service is now deprecated
 // Used by Vtsapi32.cpp VTSAPIgetdefaultparsetype using an unchecked index to get a string.
 // As noted below, there are parsetypes #defined above past the end of this table...
+// (VTSAPIgetdefaultparsetype may be obsolete)
 static const char *stParseTypes[]={
 				"object ID",      // 0
 				"enumeration",

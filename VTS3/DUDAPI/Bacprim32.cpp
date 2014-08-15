@@ -84,7 +84,6 @@ octet * atoeTIMESTRING(octet *,char *);					//								***021
 octet * atooct (octet *,char *);
 octet * atoprim (octet *,word,char *);					//								***028
 octet * atotimeval (octet *,word,char *);				//								***028
-char *  cvhex(char *,byte *);
 void    cvhexn(char *,byte *,int);						//								***019 Begin
 dword   dDWORD (octet **,BOOL);							//								***006
 octet * eAny (octet *,word,word,word,word,char *); 		//								***012 Begin
@@ -1911,7 +1910,7 @@ sstring:
     case TSTMP:
         break;
 	case ptInt32:		//signed long
-	case ptPai:		// priority array long
+	case ptPai:		// priority array signed long
 		max=0x7FFFFFFF;
 		min=-max -1;
 		msize=5;
@@ -3527,37 +3526,6 @@ dword APIENTRY vbOBJECTID(word otype,dword oinst)
 	return (u.dw);
 }													//								***010 End
 
-/////////////////////////////////////////////////////////////////////// 			***014 Begin
-//	Convert HEX chars to binary byte
-//in:	src		points to 2 hex chars
-//		dst		points to byte to receive the value
-//out:	ptr to 1st non-hex char, or 2 past src
-#if 0
-//
-//	This function is also defined in Vtsapi32, and the two are almost 
-//	identical, and only one can be defined when the two files are part 
-//	of the same project, so I picked this one to go.    - JJB
-//
-char *cvhex(char *src,byte *dst)		//									***019
-{	if (!IsXDigit(*src))
-	{	*dst=0;									//assume none
-		return src;
-	}
-	if (IsDigit(*src))
-		*dst=*src-'0';
-	else
-		*dst=(*src&0xDF)-55;
-	src++;
-	if (!IsXDigit(*src)) return src;
-	if (IsDigit(*src))
-		*dst=(*dst<<4)+(*src-'0');
-	else
-		*dst=(*dst<<4)+((*src&0xDF)-55);
-	src++;
-	return src;
-}
-#endif
-
 /////////////////////////////////////////////////////////////////////// 
 //	Convert n*2 HEX chars to binary byte [n] array (little endian)
 //in:	src		points to n*2 hex chars
@@ -3565,7 +3533,10 @@ char *cvhex(char *src,byte *dst)		//									***019
 void cvhexn(char *src,byte *dst,int n)		//								***019
 {	int	i;
 	for (i=0;i<n;i++)
-		src=cvhex(src,&dst[i]);
+	{
+		if (cvhex(src,&dst[i])) break;
+		src += 2;
+	}
 	return;										//									***014 End
 }
 

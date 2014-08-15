@@ -73,13 +73,12 @@ void CEPICSViewNodeRoot::LoadInfoPanel()
 	CEPICSViewInfoPanel * ppanel;
 	CString str;
 
-	if (  m_ptreeview->GetInfoPanel() == NULL || !m_ptreeview->GetInfoPanel()->IsKindOf(RUNTIME_CLASS(CEPICSViewInfoPanel)) )
+	if ( m_ptreeview->GetInfoPanel() == NULL || !m_ptreeview->GetInfoPanel()->IsKindOf(RUNTIME_CLASS(CEPICSViewInfoPanel)) )
 		ppanel = (CEPICSViewInfoPanel *) m_ptreeview->CreateInfoView(RUNTIME_CLASS(CEPICSViewInfoPanel), TRUE);
 	else
 		ppanel = (CEPICSViewInfoPanel *) m_ptreeview->GetInfoPanel();
 
 	ppanel->ResetPanel();
-
 
 	if ( gPICSdb )
 	{
@@ -142,7 +141,7 @@ void CEPICSViewNodeRoot::LoadErrorFile( CEPICSViewInfoPanel * ppanel )
 			{
 				if ( n++ > 0 )
 					ppanel->AddLine("");
-				ppanel->AddText(str);	
+				ppanel->AddText(str);
 			}
 		}
 	}
@@ -150,4 +149,9 @@ void CEPICSViewNodeRoot::LoadErrorFile( CEPICSViewInfoPanel * ppanel )
 	{}
 
 	fileErr.Close();
+
+	// Scroll the window to the top
+	ppanel->GetRichEditCtrl().SetSel(0,0);
+	// TODO: scroll bar is visible, but isn't enabled until you switch to another view
+	// and back again.  No idea WHY
 }

@@ -632,7 +632,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
       case pab:      // priority array bpv ---------------------     deal with index cases (-1=all, 0=element count, base 1=index
       case paf:      // priority array flt ---------------------
       case pau:      // priority array unsigned ----------------
-      case ptPai:    // signed long
+      case ptPai:    // priority array signed
          pRetval = new BACnetPriorityArray(dec);
          break;
 
@@ -663,7 +663,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 
       case et:       // enumation, type determined by property  -------------
          pRetval = BACnetEnumerated::Factory(nPropID);
-         pRetval ->Decode(dec);
+         pRetval->Decode(dec);
          break;
 
       case ptDate:   // date ------------------------------------------------
@@ -812,6 +812,17 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
       case vtse:     // list of active  vt sessions (parse type) 
          //p= eVTSE(p,(BACnetVTSession far*)msg->pv);
          pRetval = new BACnetVTSession(dec);
+         break;
+
+      case PT_PROPLIST: // List of BACnetPropertyIdentifiers
+         // Make a prototype enumerated value
+         pRetval = new BACnetEnumerated( 0,
+                                         NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings,
+                                         NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings );
+         // Create an array of them
+         pRetval = new BACnetGenericArray(pRetval);
+         // Decode the array
+         pRetval->Decode(dec);
          break;
 
       default:
@@ -1318,7 +1329,8 @@ bool BACnetEnumerated::Match( BACnetEncodeable &rbacnet, int iOperator, CString 
 }
 
 
-//madanner 9/04
+// TODO: if the BACnetEncodeable::Factory took an enumtype instead of a propertyID,
+// this method could be replaced by a few lines using the enum-type from the table entry
 BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
 {
    PICS::etable *petable;
@@ -1331,6 +1343,10 @@ BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
 
       case EVENT_STATE:
          petable = (PICS::etable *)PICS::GetEnumTable(eiEvState);
+         break;
+
+      case EVENT_TYPE:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiEvType);
          break;
 
       case RELIABILITY:
@@ -1346,6 +1362,8 @@ BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
          break;
 
       case PRESENT_VALUE:
+      case RELINQUISH_DEFAULT:
+         // TODO: eiBPV isn't correct for AccessDoor.
          petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);
          break;
 
@@ -1362,14 +1380,14 @@ BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
          break;
 
       case SEGMENTATION_SUPPORTED:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiDS);
+         petable = (PICS::etable *)PICS::GetEnumTable(eiSegOpt);
          break;
 
-      case FILE_ACCESS_METHOD: 
+      case FILE_ACCESS_METHOD:
          petable = (PICS::etable *)PICS::GetEnumTable(eiFAM);
          break;
 
-      case OUTPUT_UNITS: 
+      case OUTPUT_UNITS:
          petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
          break;
 
@@ -1403,6 +1421,14 @@ BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
 
       case VT_CLASSES_SUPPORTED:
          petable = (PICS::etable *)PICS::GetEnumTable(eiVTCls);
+         break;
+
+      case BACKUP_AND_RESTORE_STATE:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiBackupState);
+         break;
+
+      case LOGGING_TYPE:
+         petable = (PICS::etable *)PICS::GetEnumTable(eiLoggingType);
          break;
 
       default:
@@ -2287,39 +2313,47 @@ void BACnetCharacterString::Encode( CString &enc, Format /*theFormat*/ ) const
    {
       // ANSI (or UTF-8 in latter years...), shown in double quotes
       // TODO: if there are characters above 127, show the string as hex, or
-      // at least show the UTF-8 groups in hex
-      //
-      // TODO: we COULD use alternate quote symbol if the string CONTAINS "
-      enc = '"';
+      // at least show the UTF-8 groups in hex, at least for some formats
+
+      // 135.1 clause 4.3 says to use ' or ` quoting if the string contains ",
+      // and " quoting if it contains ' or `.
+      // DOES NOT say what to do about a string that contains BOTH.
+      // We at least handle the easy cases.
+      char wrap = '"';
+      enc = wrap;
 
       const char *src = (char *)strBuff;
       for (unsigned i = 0; i < strLen; i++)
       {
          TCHAR ch = (TCHAR)strBuff[i];
-         if (ch == 0) 
+         if (ch == 0)
          {
             // This indicates a NULL within the counted bytes.
             // This is a bug in some implementations seen in the wild.
+            // They seem to hope we stop at null, so we will...
             break;
          }
          else if (ch < ' ')
          {
-            // TODO: should we use \r \n \t for the common ones?
-            // Does 135.1 say?
+            // TODO: should we use \r \n \t for the common control characters?
+            // 135.1 4.3 specifies no method.
             sprintf( buff, "\\x%02X", ch );
             enc += buff;
-         } 
-         else if (ch == '\"') 
-         {
-            enc += "\\\"";
-         } 
+         }
          else
          {
+            // We COULD \-escape the double quote here, but we follow 135.1 4.3
+            if (ch == '"')
+            {
+               // String contains double-quotes.  Change the wrapper to single-quote
+               wrap = '\'';
+               enc.SetAt( 0, wrap );
+            }
             enc += ch;
          }
       }
 
-      enc += '"';
+      enc += wrap;
    }
    else 
    {
@@ -2430,6 +2464,7 @@ void BACnetCharacterString::Decode( const char *dec )
             }
             else
             {
+               // TODO: this is bogus: \" will insert double-quote, but \n will insert "n".
                src += 1;
                *dst++ = *src++;
             }
@@ -3807,7 +3842,7 @@ void BACnetDate::Encode( CString &enc, Format theFormat ) const
 {
    char buff[10];
 
-   // 135.1 clause 4.4 says:
+   // 135.1 clause 4.4(j) says:
    // "Dates are represented enclosed in parenthesis: (Monday, 24-January-1998).
    // Any "wild card" or unspecified field is shown by an asterisk (X'2A'): 
    // (Monday, *-January-1998). The omission of day of week implies that the day is
@@ -3847,24 +3882,9 @@ void BACnetDate::Encode( CString &enc, Format theFormat ) const
 
    enc += ',';
 
-   // 135.1 says day-month-year, but we have historically used m/d/y
-
-   // month
-   if (month == DATE_DONT_CARE)
-   {
-      enc += '*';
-   }
-   else if (month == DATE_IGNORE_ON_INPUT)
-   {
-      enc += '?';
-   }
-   else 
-   {
-      // Handles normal months, EVEN, ODD.  Shows numeric for anything else
-      enc += NetworkSniffer::BAC_STRTAB_month.EnumString( month );
-   }
-
-   enc += '/';
+   // We historically generated July/4/2014.
+   // But that format can't be READ by our EPICS parser,
+   // and 135.1 4.4(j) says day-month-year
 
    // day of month
    if (day == DATE_DONT_CARE)
@@ -3883,7 +3903,24 @@ void BACnetDate::Encode( CString &enc, Format theFormat ) const
       enc += buff;
    }
 
-   enc += '/';
+   enc += '-';
+
+   // month
+   if (month == DATE_DONT_CARE)
+   {
+      enc += '*';
+   }
+   else if (month == DATE_IGNORE_ON_INPUT)
+   {
+      enc += '?';
+   }
+   else 
+   {
+      // Handles normal months, EVEN, ODD.  Shows numeric for anything else
+      enc += NetworkSniffer::BAC_STRTAB_month.EnumString( month );
+   }
+
+   enc += '-';
 
    // year
    if (year == DATE_DONT_CARE)
@@ -3910,66 +3947,13 @@ void BACnetDate::Encode( CString &enc, Format theFormat ) const
    }
 }
 
-void BACnetDate::Decode( const char *dec )
+// Decode Month: wildcard, integer, or text
+void BACnetDate::DecodeMonth( const char **ppDec )
 {
-   // Initialize everything to don't care
-   dayOfWeek = month = day = year = DATE_DONT_CARE;
-
-   // Allow [ wrapping, as when passed from a script
-   bool isBracketed = IsChar( dec, '[' );
-
-   // Date is complex data type so must enclose in parenthesis for EPICS format.
-   // We make it optional, for convenient use in dialogs etc.
-   bool isParenned = IsChar( dec, '(' );
-
-   // The EPICS format is (Wednesday, 31-January-2010)
-   // - allows the DOW to be omitted entirely.
-   // - allows any field to be wildcarded as *
-   // - doesn't talk about even, odd, last
-   //
-   // The format here up to 3.5.3 was (Wednesday, 1-31-2010) or (Wednesday, 1/31/2010),
-   // allowing * or ? in any position, but not allowing even, odd, or last
-   //
-   // Current format (deviating from EPICS for backward compatibility)
-   // - Require DOW (or *, or ?, or even just a comma)
-   // - order is month/day/year
-   // - also accept month=13 or "odd", 14 or "even"; and day=32 or "last", 33 or "odd", or 34 or "even"
-
-   // Check for dow
-   if ( *dec == '*' )
-   {
-      dayOfWeek = DATE_DONT_CARE;
-      dec += 1;
-   }
-   else if ( *dec == '?' )
-   {
-      dayOfWeek = DATE_IGNORE_ON_INPUT;
-      dec += 1;
-   }
-   else if (IsAlpha(*dec)) 
-   {
-      // They've provided a day...  read it and test for validity
-      for (int i = 1; (i < NetworkSniffer::BAC_STRTAB_day_of_week.m_nStrings); i++)
-      {
-         if (MatchAndEat(dec, NetworkSniffer::BAC_STRTAB_day_of_week.m_pStrings[i], 3)) {
-            dayOfWeek = i;
-            break;
-         }
-      }
-
-      // scanned through... test for validity
-      if ( dayOfWeek == DATE_DONT_CARE )
-         throw_(91);                         // code for bad supplied day (interpreted in caller's context)
-   }
-   
-   // Skip over comma and more space
-   while (*dec && IsSpace(*dec)) dec++;
-   if (*dec == ',') {
-      dec += 1;
-      while (*dec && IsSpace(*dec)) dec++;
-   }
+   const char *dec = *ppDec;
 
    // Check for month
+   while (*dec && IsSpace(*dec)) dec++;
    if ( *dec == '*' )
    {
       month = DATE_DONT_CARE;
@@ -3980,7 +3964,7 @@ void BACnetDate::Decode( const char *dec )
       month = DATE_IGNORE_ON_INPUT;
       dec += 1;
    }
-   else 
+   else
    {
       if (IsDigit(*dec))
       {
@@ -4006,21 +3990,18 @@ void BACnetDate::Decode( const char *dec )
       if ( month < 1 || month > 14)
          throw_(92);                      // code for bad month, interpreted in caller's context
    }
-   
-   // Skip over slash and more space
-   // make sure slash is there... or (-)
+
    while (*dec && IsSpace(*dec)) dec++;
-   if (*dec == '/' || *dec == '-') 
-   {
-      dec += 1;
-      while (*dec && IsSpace(*dec)) dec++;
-   }
-   else
-   {
-      throw_(93);                         // code for bad date separator, interpreted in caller's context
-   }
+   *ppDec = dec;
+}
+
+// Decode Day of Month: wildcard or integer
+void BACnetDate::DecodeDayOfMonth( const char **ppDec )
+{
+   const char *dec = *ppDec;
 
    // Check for day of month
+   while (*dec && IsSpace(*dec)) dec++;
    if ( *dec == '*' )
    {
       day = DATE_DONT_CARE;
@@ -4061,17 +4042,106 @@ void BACnetDate::Decode( const char *dec )
       if ( day < 1 || day > 34)           // doesn't account for month/day invalids (feb 30)
          throw_(94);                      // code for bad day, interpreted in caller's context
    }
-   
-   // skip over slash and more space
+
    while (*dec && IsSpace(*dec)) dec++;
-   if (*dec == '/' || *dec == '-') 
+   *ppDec = dec;
+}
+
+void BACnetDate::Decode( const char *dec )
+{
+   // Initialize everything to don't care
+   dayOfWeek = month = day = year = DATE_DONT_CARE;
+
+   // The EPICS format is (Wednesday, 31-January-2010)
+   // - allows the DOW to be omitted entirely.
+   // - allows any field to be wildcarded as *
+   // - doesn't talk about even, odd, last
+   //
+   // The format here up to 3.5.3 was (Wednesday, 1-31-2010) or (Wednesday, 1/31/2010),
+   // allowing * or ? in any position, but not allowing even, odd, or last
+   //
+   // Current format (deviating from EPICS for backward compatibility)
+   // - Require DOW (or *, or ?, or even just a comma)
+   // - order is month/day/year or day-month-year, using slash  or dash to distinguish.
+   // - also accept month=13 or "odd", 14 or "even"; and day=32 or "last", 33 or "odd", or 34 or "even"
+
+   // Allow [ wrapping, as when passed from a script
+   bool isBracketed = IsChar( dec, '[' );
+
+   // Date is complex data type so must enclose in parenthesis for EPICS format.
+   // We make it optional, for convenient use in dialogs etc.
+   bool isParenned = IsChar( dec, '(' );
+
+   // If the date has slashes, then month first, else day first
+   bool monthFirst = strchr( dec, '/' ) != NULL;
+
+   // Check for dow
+   if ( *dec == '*' )
+   {
+      dayOfWeek = DATE_DONT_CARE;
+      dec += 1;
+   }
+   else if ( *dec == '?' )
+   {
+      dayOfWeek = DATE_IGNORE_ON_INPUT;
+      dec += 1;
+   }
+   else if (IsAlpha(*dec)) 
+   {
+      // They've provided a day...  read it and test for validity
+      for (int i = 1; (i < NetworkSniffer::BAC_STRTAB_day_of_week.m_nStrings); i++)
+      {
+         if (MatchAndEat(dec, NetworkSniffer::BAC_STRTAB_day_of_week.m_pStrings[i], 3)) {
+            dayOfWeek = i;
+            break;
+         }
+      }
+
+      // scanned through... test for validity
+      if ( dayOfWeek == DATE_DONT_CARE )
+         throw_(91);                         // code for bad supplied day (interpreted in caller's context)
+   }
+   
+   // Skip over space and comma
+   while (*dec && IsSpace(*dec)) dec++;
+   if (*dec == ',')
    {
       dec += 1;
-      while (*dec && IsSpace(*dec)) dec++;
+   }
+
+   if (monthFirst)
+   {
+      // month/day/year
+      DecodeMonth( &dec );
+      if (*dec != '/')
+      {
+         throw_(93);                         // code for bad date separator, interpreted in caller's context
+      }
+      dec += 1;
+
+      DecodeDayOfMonth( &dec );
+      if (*dec != '/')
+      {
+         throw_(93);                         // code for bad date separator, interpreted in caller's context
+      }
+      dec += 1;
    }
    else
    {
-      throw_(93);                         // code for bad date separator, interpreted in caller's context
+      // day-month-year
+      DecodeDayOfMonth( &dec );
+      if (*dec != '-')
+      {
+         throw_(93);                         // code for bad date separator, interpreted in caller's context
+      }
+      dec += 1;
+
+      DecodeMonth( &dec );
+      if (*dec != '-')
+      {
+         throw_(93);                         // code for bad date separator, interpreted in caller's context
+      }
+      dec += 1;
    }
 
    // Check for year
@@ -5610,18 +5680,15 @@ IMPLEMENT_DYNAMIC(BACnetObjectPropertyReference, BACnetEncodeable)
 BACnetObjectPropertyReference::BACnetObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index /* = -1 */)
 : m_objID(obj_id)
 , m_bacnetenumPropID(prop_id, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier)
+, m_nIndex(index)
 {
-   m_nIndex = index;
 }
-
 
 BACnetObjectPropertyReference::BACnetObjectPropertyReference( BACnetAPDUDecoder & dec )
 : m_bacnetenumPropID(0, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier)
 {
    Decode(dec);
 }
-
-
 
 void BACnetObjectPropertyReference::Encode( BACnetAPDUEncoder& enc, int context )
 {
@@ -5644,9 +5711,9 @@ void BACnetObjectPropertyReference::Decode(BACnetAPDUDecoder& dec)
    m_objID.Decode(dec);
    m_bacnetenumPropID.Decode(dec);
 
-   BACnetAPDUTag     tagTestType;   
+   m_nIndex = -1;
+   BACnetAPDUTag     tagTestType;
    dec.ExamineTag(tagTestType);
-   
    if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 2 )
       m_nIndex = BACnetUnsigned(dec).uintValue;
 }
@@ -5713,9 +5780,9 @@ BACnetObjectPropertyReference & BACnetObjectPropertyReference::operator =( const
 IMPLEMENT_DYNAMIC(BACnetDeviceObjectPropertyReference, BACnetEncodeable)
 
 BACnetDeviceObjectPropertyReference::BACnetDeviceObjectPropertyReference( unsigned int obj_id, unsigned int prop_id, int index /* = -1 */, unsigned int devobj_id /* = 0xFFFFFFFF */ )
-                        : m_objpropref(obj_id, prop_id, index)
+: m_objpropref(obj_id, prop_id, index)
+, m_unObjectID(devobj_id)
 {
-   m_unObjectID = devobj_id;
 }
 
 
@@ -5740,14 +5807,14 @@ void BACnetDeviceObjectPropertyReference::Encode( BACnetAPDUEncoder& enc, int co
 }
 
 
-
 void BACnetDeviceObjectPropertyReference::Decode(BACnetAPDUDecoder& dec)
 {
    m_objpropref.Decode(dec);
 
-   BACnetAPDUTag     tagTestType;   
+   BACnetAPDUTag     tagTestType;
    dec.ExamineTag(tagTestType);
-   
+
+   m_unObjectID = 0xFFFFFFFF;
    if ( tagTestType.tagClass == contextTagClass  &&  tagTestType.tagNumber == 3 )
       m_unObjectID = BACnetObjectIdentifier(dec).objID;
 }
@@ -6118,9 +6185,10 @@ bool BACnetAddressBinding::Match( BACnetEncodeable &rbacnet, int iOperator, CStr
    if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
       return false;
 
+   // Compare for equality, do not log mismatch (since we may be checking INEQUALITY)
    bool fMatch = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)) &&
-              m_bacnetAddr.Match(((BACnetAddressBinding &) rbacnet).m_bacnetAddr, iOperator, pstrError )  &&
-              m_bacnetObjectID.Match(((BACnetAddressBinding &) rbacnet).m_bacnetObjectID, iOperator, pstrError);
+              m_bacnetAddr.Match(((BACnetAddressBinding &) rbacnet).m_bacnetAddr, '=', NULL )  &&
+              m_bacnetObjectID.Match(((BACnetAddressBinding &) rbacnet).m_bacnetObjectID, '=', NULL );
 
    if ( (fMatch  && iOperator == '=')  ||  (!fMatch && iOperator == '!=') )
       return true;
@@ -6750,6 +6818,36 @@ void BACnetDestination::Encode( CString &enc, Format theFormat ) const
    enc += str + ",";
    m_transitions.Encode(str, theFormat);
    enc += str + "}";
+}
+
+
+bool BACnetDestination::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+   if ( PreMatch(iOperator) )
+      return true;
+
+   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDestination)));
+
+   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
+      return false;
+
+   BACnetDestination *pRight = DYNAMIC_DOWNCAST( BACnetDestination, &rbacnet );
+   if (pRight == NULL)
+      return false;
+
+   // Compare for equality, do not log mismatch (since we may be checking INEQUALITY)
+   bool fMatch = m_validDays.Match( pRight->m_validDays, '=', NULL ) &&
+                 m_recipient.Match( pRight->m_recipient, '=', NULL ) &&
+                 m_transitions.Match( pRight->m_transitions, '=', NULL ) &&
+                 m_fromTime.Match( pRight->m_fromTime, '=', NULL ) &&
+                 m_toTime.Match( pRight->m_toTime, '=', NULL ) &&
+                 m_processID.Match( pRight->m_processID, '=', NULL ) &&
+                 m_issueConfirmedNotifications.Match( pRight->m_issueConfirmedNotifications, '=', NULL );
+
+   if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
+      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+
+   return true;
 }
 
 
@@ -7700,15 +7798,34 @@ bool BACnetShedLevel::Match( BACnetEncodeable &rbacnet, int iOperator, CString *
 
 IMPLEMENT_DYNAMIC(BACnetGenericArray, BACnetEncodeable)
 
+BACnetGenericArray::BACnetGenericArray()
+: m_apBACnetObjects()
+, m_nElemType(-1)
+, m_nType(0)
+, m_pPrototype(NULL)
+{
+}
+
 // TODO: Shouldn't we have TWO types: the array's AND the element's?
 // nDataType is only the element's type.
 BACnetGenericArray::BACnetGenericArray( int nDataType, int nSize /* = -1 */)
+: m_apBACnetObjects()
+, m_nElemType(nDataType)
+, m_nType(0)
+, m_pPrototype(NULL)
 {
-   m_nElemType = nDataType;
    if ( nSize != -1 )
       m_apBACnetObjects.SetSize(nSize);
 }
 
+// Create by prototype
+BACnetGenericArray::BACnetGenericArray( BACnetEncodeable *pPrototype )
+: m_apBACnetObjects()
+, m_nElemType(-1)
+, m_nType(0)
+, m_pPrototype(pPrototype)
+{
+}
 
 void BACnetGenericArray::Decode( BACnetAPDUDecoder& dec )
 {
@@ -7775,7 +7892,21 @@ int BACnetGenericArray::DataType(void) const
 
 BACnetEncodeable * BACnetGenericArray::NewDecoderElement( BACnetAPDUDecoder& dec )
 {
-   return BACnetEncodeable::Factory(m_nElemType, dec);
+   BACnetEncodeable *pRetval;
+   if (m_pPrototype != NULL)
+   {
+      // Create element as a copy of the prototype
+      pRetval = m_pPrototype->clone();
+      // Decode into the copy
+      pRetval->Decode(dec);
+   }
+   else
+   {
+      // Create element via the factory
+      pRetval = BACnetEncodeable::Factory(m_nElemType, dec);
+   }
+
+   return pRetval;
 }
 
 
@@ -7801,6 +7932,7 @@ BACnetEncodeable & BACnetGenericArray::operator[](int nIndex)
 BACnetGenericArray::~BACnetGenericArray()
 {
    ClearArray();
+   delete m_pPrototype;
 }
 
 
@@ -8388,6 +8520,7 @@ BACnetListOfEnum::BACnetListOfEnum( BACnetAPDUDecoder& dec, int tableId )
 
 BACnetEncodeable * BACnetListOfEnum::NewDecoderElement( BACnetAPDUDecoder& dec )
 {
+   // TODO: But Factory wants PROPERTY ID, not ENUMTABLE ID
    BACnetEncodeable * penum = BACnetEncodeable::Factory(etl, dec, m_nTableId);
    // TODO: Didn't the Factory's constructor call Decode?
    penum->Decode(dec);

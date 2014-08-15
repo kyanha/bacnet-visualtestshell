@@ -667,9 +667,9 @@ int GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
    case u127:                          //1..127
    case ud:       return PRIM_UNSIGNED; //unsigned dword, BACnetUnsigned
 
-   case ssint:                         //short (2-byte) signed integer  MAG 13 FEB 2001
+   case ssint:                         //short (2-byte) signed integer
    case sw:                            //signed word, BACnetInteger
-   case ptInt32:  return PRIM_UNSIGNED;
+   case ptInt32:  return PRIM_SIGNED;
 
    case flt:      return PRIM_REAL;    //float / real, BACnetReal (changed 2005 by kare.sars@wapice.com)
 // case flt:      return PRIM_DOUBLE;  //float / double, BACnetDouble

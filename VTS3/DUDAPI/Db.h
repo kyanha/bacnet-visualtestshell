@@ -6,7 +6,7 @@
 #define  true           1
 #define  false          0
 
-typedef unsigned char boolean;
+typedef bool boolean;
 typedef unsigned char octet;
 typedef unsigned long dword;
 typedef unsigned short word;
@@ -35,8 +35,8 @@ enum ActionValueType value_type;
    }              av;
    octet          priority;
    word           post_delay;
-   boolean        quit_on_failure;
-   boolean        write_successful;
+   bool        quit_on_failure;
+   bool        write_successful;
    } BACnetActionCommand;
 
 typedef struct tagTextList {
@@ -62,11 +62,12 @@ struct tagAlarmValues   *next;
    } BACnetAlarmValues;
 
 #define dontcare        0xFF           //for date and time fields
+#define DONT_CARE       0xFF           //for date and time fields
 
 typedef struct {
 //each field is one octet to match encoding, 0xFF means unknown or don't care
-   octet year;                      //year - 1900
-   octet month;                           //January = 1
+   octet year;                         //year - 1900
+   octet month;                        //January = 1
    octet day_of_month;  
    octet day_of_week;                  //Sunday = 1
    } BACnetDate;
@@ -114,12 +115,11 @@ typedef struct tagTimeStamp
    union
    {
     BACnetTime       time;
-    dword            sequence_number;
+    word             sequence_number; // BACnetTimestamp defines this as 0-65535
     BACnetDateTime   date_time;
    }u;
- } BACnetTimeStamp;             // added Sep 18 2001
+ } BACnetTimeStamp;
 
-//Shiyuan Xiao. 7/14/2005
 typedef struct 
  {
    octet            choice;
@@ -162,7 +162,7 @@ struct tagDestination   *next;
    BACnetTime        to_time;
    BACnetRecipient   recipient;
    word              process_id;
-   boolean           notification;
+   bool              notification;
    octet             transitions;
    } BACnetDestination;
 
@@ -253,7 +253,7 @@ enum BACnetEventState {
 
 /* version before Joe changed it 
 struct BACnetPropertyStates {
-   boolean boolean_value;
+   bool boolean_value;
    enum BACnetBinaryPV binary_value;
    enum BACnetEventType event_type;
    enum BACnetPolarity polarity;
@@ -294,8 +294,8 @@ typedef struct tagDeviceObjectReference {
 } BACnetDeviceObjectReference;
 
 typedef struct tagListBitstringValue {
-   struct tagListBitstringValue  far   *next;
-   octet                   bitstring_length;
+   struct tagListBitstringValue  *next;
+   UINT                    bitstring_length;
    octet                   bitstring_value[4];
 } BACnetListBitstringValue;
 
@@ -678,14 +678,14 @@ typedef struct tagCOVSubscription {
 struct tagCOVSubscription     *next;
    BACnetRecipientProcess     recipient;
    BACnetObjectPropertyReference    monitoredPropertyReference;
-   boolean     notification;
+   bool        notification;
    word        timeRemaining;
    float       covIncrement;
    } BACnetCOVSubscription;
 
 typedef struct tagBooleanList {
    struct tagBooleanList *next;
-   boolean value;
+   bool    value;
 } BooleanList;
 
 typedef struct tagUnsignedList {
