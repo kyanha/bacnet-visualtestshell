@@ -28,19 +28,55 @@
 #define bpaNULL            2              //binary present values are 0 and 1
 #define dvaNULL            4              // DoorValue Enum NULL value
 #define upaNULL            0xFFFF         //can't use more than 65534 enumerations, too bad
+#define ipaNULL            0x80000000     //most negative 32-bit signed int, as a dword (sorry, wasn't MY idea)
 
 //equates for standard properties
 //these are always in this order for every object type:
 #define  idProp            0              //object_id property
 #define  nameProp          1              //object_name property
 #define  typeProp          2              //object_type property
+#define  NUM_PROP_FLAGS  100              // maximum number of properties in a propdescriptor[] table (check DVprops)
 
 //equates for propflags bits
 #define  PropIsPresent     1              //0=not present, 1=present in this instance
 #define  PropIsWritable    2              //0=R, 1=W
 #define  ValueUnknown      4              //0=have a value, 1=value is ?
 
-//Shiyuan Xiao 8/1/2005
+// Any (well, MOST) primitive value
+struct AnyPrimitive
+{
+   int            choice;           // Primitive tag type (PRIM_xxx as defined in VTS.h)
+   int            helper;           // choice-dependent data: enumtable index, string length etc.
+   union
+   {
+      bool           booleanValue;
+      UINT           unsignedValue;
+      int            signedValue;
+      float          realValue;
+      unsigned char  *pOctetStringValue;
+      char           *pCharStringValue;
+      unsigned char  *pBitStringValue;
+      word           enumValue;
+      BACnetDate     dateValue;
+      BACnetTime     timeValue;
+      dword          objectIdValue;
+   };
+
+   // Delete any allocated data, set choice to NULL
+   void Flush();
+};
+
+#define PRIM_DOUBLE             5
+#define PRIM_OCTET_STRING       6
+#define PRIM_CHARACTER_STRING   7
+#define PRIM_BIT_STRING         8
+#define PRIM_ENUMERATED         9
+#define PRIM_DATE              10
+#define PRIM_TIME              11
+#define PRIM_OBJECT_IDENTIFIER 12
+
+
+
 typedef struct
 {
 // BACnetAnyValue minValue;
@@ -62,7 +98,7 @@ typedef struct {
    char             object_name[64];
    word             object_type;
    char             description[132];
-   octet            propflags[64];    //up to 64 properties of parser flags
+   octet            propflags[NUM_PROP_FLAGS];    //flags, indexed by position in property table
    char             profile_name[132];
    BACnetEnumList   *property_list;   // List of BACnetPropertyIdentifier
 
@@ -403,7 +439,14 @@ typedef struct {
    generic_object      go;
    dword               value_type;
    // TODO: what about the NULL, Boolean, enum, and perhaps other choices?
-   // Also, why not make this a typedef, shared with schedule_default
+   // Also, why not make this a typedef, shared with schedule_default.
+   // And also WeeklySchedule, ExceptionSchedule, and Command's ActionList
+   // and anywhere else we need a primitive ANY.
+   //
+   // TODO: WeeklySchedule and ExceptionSchedule use ActionValueType to specify type,
+   // but code in Vtsapi32 and DUDTOOL use ParseType to value_type, tangled up
+   // with the "none" hack in Vtsapi32 to tweak value_type based on the referenced property.
+   // This is pretty much guaranteed to be broken.
    union {
         enum BACnetBinaryPV   bproperty_value;  //binary value
         word            uproperty_value;  //unsigned word
@@ -714,8 +757,8 @@ typedef struct {
     generic_object      go;
     unsigned int        present_value;
     word                units;   // WAS enum BACnetEngineeringUnits.  See NOTE above
-    int                 priority_array[16];
-    int                 relinquish_default;
+    unsigned int        priority_array[16];
+    unsigned int        relinquish_default;
     int                 cov_increment;
     unsigned int        high_limit;
     unsigned int        low_limit;
@@ -729,11 +772,11 @@ typedef struct {
 //DateTime Value Object
 //-------------------------------------------------------
 typedef struct {
-    generic_object         go;
-    BACnetDateTime         present_value;
-    BACnetDateTime         priority_array[16];
-    BACnetDateTime         relinquish_default;
-    bool             is_utc;
+    generic_object      go;
+    BACnetDateTime      present_value;
+    BACnetDateTime      priority_array[16];
+    BACnetDateTime      relinquish_default;
+    bool                is_utc;
    } datetimevalue_obj_type;
 
 #endif //__STDOBJ_H_INCLUDED

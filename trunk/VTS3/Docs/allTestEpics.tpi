@@ -6,6 +6,9 @@ Product Name: "Control Module"
 Product Model Number: "CM_01"
 Product Description: "Test Corporation Control Module"
 
+-- NOTE: This EPICS is not intended as an example for a real EPICS.
+-- Its primary purpose is to contain all or most of the options for VTS parser testing.
+
 BIBBs Supported:
 {
   DS-RP-A
@@ -402,17 +405,42 @@ List of Objects in Test Device:
         DEC-VT220,
         HP-700-94,
         IBM-3130)
+    -- TODO: seems to me that the BACnetAddress should be in brackets
     active-vt-sessions: ({29,5,1, X'0000C0B3EF13'},{23,8,2, X'05'}) 
+    local-time: *
+    local-time: *:*:*.*
     local-time: 10:31:13.95
+    local-time: 10:30:12
+    local-time: 10:29
+    local-time: 10:31:13.*
+    local-time: 10:*:13.*
+
+    local-date: (*)
+    local-date: (*-*-*, *)
     local-date: (FRIDAY, 6/10/2005)
+    local-date: (6/11/2005, SATURDAY)
+    local-date: (6/9/2005)
+    local-date: (6/8/2005, 3)
+    local-date: (Sunday, 12-June-2005)
+    local-date: (13-June-2005, Monday)
+    local-date: (14-June-2005)
+    local-date: (15-June-2005, *)
+    local-date: (*-June-2005, Monday)
+    local-date: (15-*-2005, *)
+    local-date: (4-July-*, *)
+
     utc-offset: -300
     daylight-savings-status: true
     apdu-segment-timeout: 2000
     apdu-timeout: 3000
     number-of-APDU-retries: 3
-    time-synchronization-recipients: ({(Device,18)},{(Device,20)},{4,X'04'}) w
+    -- With and without tags specified by 135.1 clause 4
+    -- With and without wrapping on the DeviceID
+    time-synchronization-recipients: ({(Device,18)},{4,X'04'},(Device,19),[0](Device,20),[1]{4,X'04'},[0]{(Device,21)}) w
     max-master: 127
     max-info-frames: 10
+    -- TODO: seems to me that the BACnetAddress should be in brackets.
+    -- 135.1 Annex A shows them that way, as do our time-synchronization-recipients above
     device-address-binding: ({(device,481699),888,X'ac1006f6bac0'})
     database-revision: 195
     configuration-files: {(File, 1), (File, 2)}
@@ -423,8 +451,11 @@ List of Objects in Test Device:
     restore-completion-time: 120
     backup-and-restore-state: idle
     active-cov-subscriptions: (
+    -- With and without tags specified by 135.1 clause 4
+        {{[0](Device, 12), 30}, {(Analog-Input, 2),Present-Value},TRUE,100,1.0},
+        {{[1]{55, X'01'}, 30}, {(Analog-Input, 1) , Present_Value},TRUE,100},
         {{(Device, 12), 30}, {(Analog-Input, 2),Present-Value},TRUE,100,1.0},
-        {{55, X'01', 30}, {(Analog-Input, 1) , Present_Value},TRUE,100}
+        {{{55, X'01'}, 30}, {(Analog-Input, 1) , Present_Value},TRUE,100}
       )
     slave-proxy-enable: (T, T, T)
     manual-slave-address-binding: (
@@ -464,7 +495,7 @@ List of Objects in Test Device:
     Units: KILOWATT_HOURS
     Prescale: {1,10000}
     Max-Pres-Value: 9999
-    value-Change-Time: (Wednesday, 23-MAR-01),18:50:21.2
+    Value-Change-Time: (Wednesday, 23-MAR-01),18:50:21.2
     Value-Before-Change: 0
     Value-Set: 67
     Logging-Record: {(13-JUL-01,2),13:00:00.2,120,1,NORMAL}
@@ -802,35 +833,38 @@ List of Objects in Test Device:
     -- by [tag], as shown commented out below.  But by long-standing history,
     -- VTS has used event-type to specify the choice, and omitted the [tag]
     --
-    -- We show various formats below.  Uncomment the one you want
---    event-type: change-of-bitstring
---    event-parameters: [0]{3, (T,T,F,T), ((T,T,F,T),(F,F,F,F))} -- change-of-bitstring
---    event-parameters: {3, (T,T,F,T), ((T,T,F,T),(F,F,F,F))}    -- change-of-bitstring
+    -- We show various formats below.
+    -- In a real EPICS, only one set would be present.  Note that having multiple
+    -- forms present will cause a memory leak in VTS
+    event-type: change-of-bitstring
+    event-parameters: [0]{3, (T,T,F,T), ((T,T,F,T),(F,F,F,F))} -- change-of-bitstring
+    event-parameters:    {3, (T,T,F,T), ((T,T,F,T),(F,F,F,F))} -- change-of-bitstring
 
---    event-type: change-of-state
---    event-parameters: [1]{3, ([0]T, [0]T, [1]inactive)}        -- change-of-state
---    event-parameters: {3, (1, 5,0)}                            -- change-of-state without choice tags or enum strings
+    event-type: change-of-state
+--  event-parameters: [1]{3, ([0]T, [0]T, [1]inactive)}          -- change-of-state (BACnetPropertyStates CHOICE tags not yet implemented)
+    event-parameters: [1]{3, (1, 5, 0)}                          -- change-of-state
+    event-parameters:    {3, (1, 5, 0)}                          -- change-of-state without choice tags or enum strings
 
---    event-type: change-of-value
---    event-parameters: [2]{3, [0](T,F,T)}                       -- change-of-value (bitstring)
---    event-parameters: {3, (T,F,T)}                             -- change-of-value (bitstring) without choice tag
---    event-parameters: [2]{3, [1]38.5}                          -- change-of-value (real)
---    event-parameters: {3, 38.5}                                -- change-of-value (real) without choice tag
+    event-type: change-of-value
+--  event-parameters: [2]{3, [0](T,F,T)}                         -- change-of-value (bitstring)
+    event-parameters:    {3, (T,F,T)}                            -- change-of-value (bitstring) without choice tag
+--  event-parameters: [2]{3, [1]38.5}                            -- change-of-value (real)
+    event-parameters:    {3, 38.5}                               -- change-of-value (real) without choice tag
 
---    event-type: command-failure
---    event-parameters: [3]{3, {(analog-input,1),present-value,,}} -- command-failure
---    event-parameters: {3, {(analog-input,1),present-value,,(device,100)}} -- command-failure without choice tag
---    event-parameters: {3, {(analog-input,1),present-value,,}}  -- command-failure without choice tag
---    event-parameters: {3, {(analog-input,1),present-value}}    -- command-failure without choice tag
+    event-type: command-failure
+    event-parameters: [3]{3, {(analog-input,1),present-value,,}} -- command-failure
+    event-parameters:    {3, {(analog-input,1),present-value,,(device,100)}} -- command-failure without choice tag
+    event-parameters:    {3, {(analog-input,1),present-value,,}}  -- command-failure without choice tag
+    event-parameters:    {3, {(analog-input,1),present-value}}    -- command-failure without choice tag
 
---    event-type: floating-limit
---    event-parameters: [4]{3, {(analog-input,1),present-value,,}, 4.4, 5.5, 6.6} -- floating-limit
---    event-parameters: {3, {(analog-input,1),present-value,,}, 4.4, 5.5, 6.6} -- floating-limit without choice tag
---    event-parameters: {3, {(analog-input,1),present-value}, 4.4, 5.5, 6.6} -- floating-limit without choice tag
+    event-type: floating-limit
+    event-parameters: [4]{3, {(analog-input,1),present-value,,}, 4.4, 5.5, 6.6} -- floating-limit
+    event-parameters:    {3, {(analog-input,1),present-value,,}, 4.4, 5.5, 6.6} -- floating-limit without choice tag
+    event-parameters:    {3, {(analog-input,1),present-value},   4.4, 5.5, 6.6} -- floating-limit without choice tag
 
     event-type: out-of-range
---    event-parameters: [5]{3, 44.3, 22.2, 45.1}                 -- out-of-range
-    event-parameters: {30,65.0,85.0,0.25}                      -- out-of-range without choice tag
+    event-parameters: [5]{3, 44.3, 22.2, 45.1}                 -- out-of-range
+    event-parameters:    {30,65.0,85.0,0.25}                   -- out-of-range without choice tag
 
 -- Not yet implemented
 --    event-type: change-of-life-safety
@@ -841,7 +875,7 @@ List of Objects in Test Device:
 
 --    event-type: buffer-ready
 --    event-parameters: [10]{3, 4}                               -- buffer-ready
---    event-parameters: {3, 4}                                   -- buffer-ready without choice tag
+--    event-parameters:     {3, 4}                               -- buffer-ready without choice tag
 
 -- Not yet implemented
 --    event-parameters: [11]{3, 4, 5}                            -- unsigned-range
@@ -903,9 +937,11 @@ List of Objects in Test Device:
      object-name: "group_1"
      object-type: group
      description: "group object 1"
-     list-of-group-members: ?
---     list-of-group-members: ({(analog-input,1),({present-value,},{recipient-list,3})},
---                             {(analog-input,2),({present-value,},{recipient-list,3})})
+--     list-of-group-members: ?
+     list-of-group-members: ({(analog-output,1),({present-value},{priority-array,3})},
+                             {(analog-input,2),({present-value,},{status-flags})})
+-- Since 135 clause 12.14.6 says that present-value is read live from the list-of-group-members,
+-- there is no reason to support a non-?.  As of 4 July 2014, VTS can't parse it.
 --     present-value: ({(analog-input,1),({present-value,,[5]{device,other}})})
      present-value: ?
      Property-List: ?
@@ -990,6 +1026,8 @@ List of Objects in Test Device:
     controlled-variable-reference: {(analog-value,1),event-time-stamps,1}
     controlled-variable-value: 65.4
     controlled-variable-units: degrees-Fahrenheit
+    -- TODO: why is setpoint-reference DOUBLE wrapped, compared to manipulated-variable-reference etc.?
+    -- The example in 135.1 Annex A is only single-wrapped
     setpoint-reference: {{(analog-value,1),present-value}}
     setpoint: 72.0
     action: direct
@@ -1207,6 +1245,9 @@ List of Objects in Test Device:
     object-identifier: (schedule,1)
     object-name: "schedule_1"
     object-type: schedule
+
+    -- TODO: In a real EPICS, it makes no sense to provide anything but ? for present-value,
+    -- since it will vary with time
     present-value: unknown:1
     description: "Binary Schedule"
     effective-period: (1/2/2005,1),(2/1/2005,5)
@@ -1217,11 +1258,24 @@ List of Objects in Test Device:
                       ({5:0:0.0,unknown:1}),
                       ({6:0:0.0,unknown:0}),
                       ({7:0:0.0,unknown:1})}
---    exception-schedule: {[0]{(MON,23-DEC-1995),(FRI,3-JAN-1996)},({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4}
---    exception-schedule: {[1](calendar,1),({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4}
-    exception-schedule: ?
+-- TODO: 135.1 Clause 4 would encode like this
+    exception-schedule: { {[0][0](MON,23-DEC-1995),({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4},
+                          {[0][1]{(MON,23-DEC-1995),(FRI,3-JAN-1996)},({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4},
+                          {[0][2]X'0602FF',({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4},
+                          {[1](calendar,1),({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4},
+-- VTS will also accept this
+                          {(MON,23-DEC-1996),({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4},
+                          {{(MON,23-DEC-1996),(FRI,3-JAN-1996)},({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4},
+                          {X'0702FF',({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4},
+                          {(calendar,2),({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}),4} }
+--    exception-schedule: ?
+
     schedule-default: unknown:1
-    list-of-object-property-references: ({(binary-value,1),present-value})) 
+
+    -- The datatype of the first reference is used to interpret present-value and schedule-default
+    -- and weekly-schedule and exception-schedule
+    list-of-object-property-references: ({(binary-value,1),present-value})
+
     priority-for-writing: 15
     status-flags: (F, F, T, F)
     reliability: no-fault-detected
@@ -1533,14 +1587,14 @@ List of Objects in Test Device:
     object-name: "/01/iNominalFrequency"
     object-type: integer-value
     description: "Nominal Frequency"
-    present-value: 60
+    present-value: -60
     status-flags: {false,false,false,false}
     event-state: normal
     out-of-service: FALSE
     units: hertz
     reliability: no-fault-detected
-    priority-array: {NULL, NULL, NULL, NULL, 32300, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1}
-    relinquish-default: 0
+    priority-array: {NULL, NULL, NULL, NULL, 32300, -32767, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1}
+    relinquish-default: -666
     cov-increment: 1
     time-delay: 5
     notification-class: 1

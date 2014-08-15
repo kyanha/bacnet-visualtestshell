@@ -1063,7 +1063,7 @@ octet far* ePADW(octet far* p, const dword far* pv, int ArrayIndex, int TagNr)
    case -1: // all elements
       for (i=0; i<nPRIO; i++)
       {
-         if (pv[i]!=upaNULL) p= eINT(p,pv[i]);
+         if (pv[i] != ipaNULL) p = eINT(p,pv[i]);
          else p= eNULL(p);
       }
       break;
@@ -2692,9 +2692,7 @@ bool BO_CreateProperty( bo_obj_type far * pObj, BACnetPropertyIdentifier propert
    switch ( propertyID )
    {
       case PRIORITY_ARRAY:
-         // TODO: but pObj->priority_array is an array of BACnetBinaryPV - FOUR BYTE enums.
-         // So the case to TWO BYTE short seems problematic
-         pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray((unsigned short *) pObj->priority_array, nPRIO, bpaNULL, true));  // changed by Kare Sars
+         pbacnetAnyValue->SetObject(pab, new BACnetPriorityArray(pObj->priority_array, nPRIO, bpaNULL, true));  // changed by Kare Sars
          break;
       case FEEDBACK_VALUE:
          pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV((int) pObj->feedback_value));
@@ -3078,8 +3076,10 @@ bool SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
          // value_type is the type of the REFERENCE - WON'T ever be null,
          // but PresentValue MAY be null.
          //
-         // TODO: value_type is a ActionValueType: BPV=0, UNS=1, FLT=2
-         // but et=1, uw=4, ftl=2.  WTF?
+         // TODO: WeeklySchedule and ExceptionSchedule use ActionValueType to specify type,
+         // but code here and in Vtsapi32 use ParseType to value_type, tangled up
+         // with the "none" hack in Vtsapi32 to tweak value_type based on the referenced property.
+         // This is pretty much guaranteed to be broken.
          switch(pObj->value_type)
          {
             case et: pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV(pObj->pv.bproperty_value));
@@ -3088,7 +3088,9 @@ bool SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
                      break;
             case flt: pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->pv.fproperty_value));
                      break;
-            default: TRACE0("INVALID TYPE in SC_CreateProperty for PV");  ASSERT(0);
+            case ebool: pbacnetAnyValue->SetObject(ebool, new BACnetBoolean(pObj->pv.bproperty_value));
+                     break;
+            default: TRACE0("INVALID TYPE in SC_CreateProperty for PRESENT_VALUE"); ASSERT(0);
          }
          break;
       case EFFECTIVE_PERIOD:
@@ -3113,8 +3115,10 @@ bool SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
          // value_type is the type of the REFERENCE - WON'T ever be null,
          // but schedule-default MAY be null.
          //
-         // TODO: value_type is a ActionValueType: BPV=0, UNS=1, FLT=2
-         // but et=1, uw=4, ftl=2.  WTF?
+         // TODO: WeeklySchedule and ExceptionSchedule use ActionValueType to specify type,
+         // but code here and in Vtsapi32 use ParseType to value_type, tangled up
+         // with the "none" hack in Vtsapi32 to tweak value_type based on the referenced property.
+         // This is pretty much guaranteed to be broken.
          switch(pObj->value_type)
          {
             case et: pbacnetAnyValue->SetObject(et, new BACnetBinaryPriV(pObj->schedule_default.bproperty_value));
@@ -3123,7 +3127,9 @@ bool SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
                      break;
             case flt: pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->schedule_default.fproperty_value));
                      break;
-            default: TRACE0("INVALID TYPE in SC_CreateProperty for SCHEDULE_DEFAULT");  ASSERT(0);
+            case ebool: pbacnetAnyValue->SetObject(ebool, new BACnetBoolean(pObj->pv.bproperty_value));
+                     break;
+            default: TRACE0("INVALID TYPE in SC_CreateProperty for SCHEDULE_DEFAULT"); ASSERT(0);
          }
          break;
       default:
@@ -3804,10 +3810,10 @@ bool CharStr_CreateProperty( charstring_obj_type far * pObj, BACnetPropertyIdent
       case RELINQUISH_DEFAULT:
          pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->relinquish_default));
          break;
-      case PRIORITY_ARRAY:
-         // TODO: make me an array of strings, please
+//    case PRIORITY_ARRAY:
+//       // TODO: make me an array of strings, please
 //       pbacnetAnyValue->SetObject(pa??, new BACnetPriorityArray(pObj->priority_array, nPRIO, upaNULL, false));
-         break;
+//       break;
       case ALARM_VALUES:               // array of words...  was 'uw' type (I think by mistake)
          pbacnetAnyValue->SetObject(actext, new BACnetTextArray(pObj->alarm_values, MAX_FAULT_STRINGS));
          break;
@@ -3831,9 +3837,9 @@ bool Integer_CreateProperty( integer_obj_type far * pObj, BACnetPropertyIdentifi
       case PRESENT_VALUE:
          pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->present_value ));
          break;
-      case PRIORITY_ARRAY:
+//    case PRIORITY_ARRAY:
 //       pbacnetAnyValue->SetObject(ptPai, new BACnetPriorityArray(pObj->priority_array, nPRIO, fpaNULL));
-         break;
+//       break;
       case RELINQUISH_DEFAULT:
          pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->relinquish_default));
          break;
@@ -3867,9 +3873,9 @@ bool Pos_Int_CreateProperty( positive_integer_obj_type far * pObj, BACnetPropert
       case PRESENT_VALUE:
          pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->present_value ));
          break;
-      case PRIORITY_ARRAY:
+//    case PRIORITY_ARRAY:
 //       pbacnetAnyValue->SetObject(ptPai, new BACnetPriorityArray(pObj->priority_array, nPRIO, fpaNULL));
-         break;
+//       break;
       case RELINQUISH_DEFAULT:
          pbacnetAnyValue->SetObject(ptInt32, new BACnetInteger( (int) pObj->relinquish_default));
          break;
@@ -3903,9 +3909,9 @@ bool DateTime_CreateProperty( datetimevalue_obj_type far * pObj, BACnetPropertyI
       case PRESENT_VALUE:
          pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime( pObj->present_value ) );
          break;
-      case PRIORITY_ARRAY:
+//    case PRIORITY_ARRAY:
 //       pbacnetAnyValue->SetObject(ptPai, new BACnetPriorityArray(pObj->priority_array, nPRIO, fpaNULL));
-         break;
+//       break;
       case RELINQUISH_DEFAULT:
          pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime( pObj->relinquish_default ) );
          break;
@@ -3941,6 +3947,8 @@ BACnetListOfCalendarEntry * CreateCalendarList( PICS::BACnetCalendarEntry * pcal
                                                                   pcalentry->u.date_range.end_date.year, pcalentry->u.date_range.end_date.month, pcalentry->u.date_range.end_date.day_of_month));
                   break;
       case 2:     pcalentryObj = new ::BACnetCalendarEntry(new ::BACnetWeekNDay(pcalentry->u.weekNday.month, pcalentry->u.weekNday.week, pcalentry->u.weekNday.day));
+                  break;
+      default:    ASSERT(0);
                   break;
       }
       pbacnetCalList->Add(pcalentryObj);

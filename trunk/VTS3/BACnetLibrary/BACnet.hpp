@@ -529,6 +529,10 @@ public:
    static void TestDateComps(void);
 
    DECLARE_DYNAMIC(BACnetDate)
+
+protected:
+   void DecodeMonth( const char **ppDec );
+   void DecodeDayOfMonth( const char **ppDec );
 };
 
 class BACnetTime : public BACnetEncodeable
@@ -745,7 +749,7 @@ public:
 
 
 
-// msdanner 9/2004 - These are not implemented yet.
+// TODO: msdanner 9/2004 - These are not implemented yet.
 
 class BACnetReadAccessSpecification : public BACnetEncodeable
 {
@@ -1200,7 +1204,7 @@ public:
    //virtual void Decode( const char *dec );
    virtual int DataType(void) const;
    //virtual BACnetEncodeable * clone(void);
-   //virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
    DECLARE_DYNAMIC(BACnetDestination)
 };
@@ -1210,7 +1214,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////
 //Added by Zhu Zhenhua  2003-8-27
 // BACnetSequenceOf
-// TODO: WTF are these mystical fifties?
+// TODO: WTF are these mystical fifties?  Alas, duplicates of equates in PROPS.H
 #define sequenceof      52       //BACnetSequenceOf
 #define listof          53       //BACnetListOf
 #define arrayof         54       //BACnetArrayOf
@@ -1563,10 +1567,12 @@ protected:
 
    int m_nElemType;
    int m_nType;
+   BACnetEncodeable *m_pPrototype;
 
 public:
-   BACnetGenericArray() {};
+   BACnetGenericArray();
    BACnetGenericArray( int nDataType, int nSize = -1 );
+   BACnetGenericArray( BACnetEncodeable *pPrototype );
    virtual ~BACnetGenericArray();
 
    // Overrides of base methods

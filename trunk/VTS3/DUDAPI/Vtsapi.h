@@ -151,29 +151,29 @@ extern "C" {
 #endif
 dword APIENTRY VTSAPIgetpropinfo(word,word,char *,word *,word *,word *,word *);
 word  APIENTRY VTSAPIgetenumtable(word,word,word *,dword *,char *);
-word  APIENTRY VTSAPIgetdefaultparsetype(dword,HWND);
-BOOL  APIENTRY VTSAPIgetdefaultpropinfo(word,dword,word *,word *);
-word  APIENTRY VTSAPIgetpropertystates(word,HWND);
+//BOOL  APIENTRY VTSAPIgetdefaultpropinfo(word,dword,word *,word *);
+//word  APIENTRY VTSAPIgetpropertystates(word,HWND);
 word  APIENTRY VTSAPIgetpropertystate(word,word,char *);
 bool  APIENTRY ReadTextPICS(const char *,PICSdb *,int *,int *);
 void  APIENTRY DeletePICSObject(generic_object *);
 int   GetStandardServicesSize(void);
-char *GetStandardServicesName(int i);
+const char *GetStandardServicesName(int i);
 int   GetBIBBSize(void);
-char *GetBIBBName(int i);
+const char *GetBIBBName(int i);
 int   GetObjectTypeSize(void);
-char *GetObjectTypeName(int i);
+const char *GetObjectTypeName(int i);
 int   GetDataLinkSize(void);
 void  GetDataLinkString(int i, PICSdb *pd, char *pstrResult);
 int   GetCharsetSize(void);
-char *GetCharsetName(octet csTag);
+const char *GetCharsetName(octet csTag);
 int   GetSpecialFunctionalitySize(void);
-char *GetSpecialFunctionalityName(int i);
+const char *GetSpecialFunctionalityName(int i);
 void *GetEnumTable(int iTableIndex);
+bool cvhex(char *buf,octet *result);
 
 // Global variables
-extern octet EPICSLengthProtocolServicesSupportedBitstring;    //msdanner 9/2004 - used by test 135.1-2003 (k)
-extern octet EPICSLengthProtocolObjectTypesSupportedBitstring; //msdanner 9/2004 - used by test 135.1-2003 (l)
+extern UINT EPICSLengthProtocolServicesSupportedBitstring;    // used by test 135.1-2003 (k)
+extern UINT EPICSLengthProtocolObjectTypesSupportedBitstring; // used by test 135.1-2003 (l)
 
 
 #ifdef __cplusplus					//end of extern "C" declarations
