@@ -395,8 +395,8 @@ static octet aCorrectLengthProtocolObjectTypesSupportedBitstring[] =
    31,  // protocol_revision = 8
    38,  // protocol_revision = 9  135-2008j added objects 32-37
    51,  // protocol_revision = 10 135-2008w added 39-50
-   52,  // protocol_revision = 11 135-2008p added 51
-   52,  // protocol_revision = 12 135-2010
+   51,  // protocol_revision = 11
+   51,  // protocol_revision = 12 135-2010
    53,  // protocol_revision = 13 135-2010af added 51 and 52
    55,  // protocol_revision = 14 135-2012 added 53 and 54
 };
