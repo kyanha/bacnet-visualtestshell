@@ -8,6 +8,7 @@
 #include <string.h>
 #include <time.h>
 #include "VTS.h"
+#include "VTSDoc.h"
 #include "StringTables.h"
 
 
@@ -253,14 +254,14 @@ void AppendXhex( CString &theResult, const unsigned char *pTheData, int theLengt
 //
 
 BACnetAddress::BACnetAddress( const unsigned char *addr, const unsigned short len )
-   : addrType(localStationAddr), addrNet(0), addrLen(len)
+   : addrType((len != 0) ? localStationAddr : localBroadcastAddr), addrNet(0), addrLen(len)
 {
    if (len && addr)
       memcpy( addrAddr, addr, addrLen );
 }
 
 BACnetAddress::BACnetAddress( const unsigned short net, const unsigned char *addr, const unsigned short len )
-   : addrType(remoteStationAddr), addrNet(net), addrLen(len)
+   : addrType((len != 0) ? remoteStationAddr : remoteBroadcastAddr), addrNet(net), addrLen(len)
 {
    if (len && addr)
       memcpy( addrAddr, addr, addrLen );
@@ -272,9 +273,10 @@ BACnetAddress::BACnetAddress( const BACnetAddressType typ, const unsigned short 
    if (len && addr)
       memcpy( addrAddr, addr, addrLen );
 }
+
 void BACnetAddress::LocalStation( const unsigned char *addr, const unsigned short len )
 {
-   addrType = localStationAddr;
+   addrType = (len != 0) ? localStationAddr : localBroadcastAddr;
    addrNet = 0;
    addrLen = len;
    memcpy( addrAddr, addr, addrLen );
@@ -282,7 +284,7 @@ void BACnetAddress::LocalStation( const unsigned char *addr, const unsigned shor
 
 void BACnetAddress::RemoteStation( const unsigned short net, const unsigned char *addr, const unsigned short len )
 {
-   addrType = remoteStationAddr;
+   addrType = (len != 0) ? remoteStationAddr : remoteBroadcastAddr;
    addrNet = net;
    addrLen = len;
    memcpy( addrAddr, addr, addrLen );
@@ -305,7 +307,7 @@ void BACnetAddress::RemoteBroadcast( const short net )
 void BACnetAddress::GlobalBroadcast( void )
 {
    addrType = globalBroadcastAddr;
-   addrNet = 0;
+   addrNet = 65535;
    addrLen = 0;
 }
 
@@ -391,6 +393,48 @@ bool BACnetAddress::SetMacAddress( const char *addrString )
    }
 
    return retval;
+}
+
+// MAC address as text.  If port is provided, address format may be nicer (dotted decimal IP address, etc.)
+CString BACnetAddress::PrettyMacAddress( VTSPort *pThePort ) const
+{
+   CString str;
+   if ((addrType == remoteBroadcastAddr) || (addrType == globalBroadcastAddr) ||
+       (pThePort == NULL) || (pThePort->m_nPortType != ipPort))
+   {
+      // Basic address
+      str = MacAddress();
+   }
+   else
+   {
+      // We COULD show other addresses in specific formats:
+      // - MS/TP might be decimal byte
+      // - ZigBee or IPv6 VMAC might be decimal version of the three-bytes value
+      // - Ethernet might use colons instead of dashes
+      // But the single-value versions are easily confused: is 10 ten or sixteen?
+      // So we just do IP, which is the biggest pain to head-convert.
+      str.Format( "%u.%u.%u.%u:%u",
+                  addrAddr[0], addrAddr[1], addrAddr[2], addrAddr[3],
+                  (addrAddr[4] << 8) + addrAddr[5] );
+   }
+
+   return str;
+}
+
+// Network and MAC address as text.  If port is provided, address format may be nicer (dotted decimal IP address, etc.)
+CString BACnetAddress::PrettyAddress( VTSPort *pThePort ) const
+{
+   CString str( PrettyMacAddress( pThePort ) );
+
+   if ((addrType == remoteStationAddr) || (addrType == remoteBroadcastAddr))
+   {
+      // Remote network.
+      CString net;
+      net.Format( " on network %u", addrNet );
+      str += net;
+   }
+
+   return str;
 }
 
 int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )

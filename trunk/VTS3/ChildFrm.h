@@ -166,11 +166,13 @@ protected:
 	afx_msg void OnUpdateViewMaintoolbar(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewGlobalToolbar(CCmdUI* pCmdUI);
 	//}}AFX_MSG
-	// Added by Jingbo Gao, 2004-9-20
 	void OnBackupRestore();
 	void OnUpdateBackupRestore(CCmdUI* pCmdUI);
 	void OnInconsistentPars();
 	void OnUpdateInconsistentPars(CCmdUI* pCmdUI);
+	void OnDiscoverDevices();
+	void OnGenerateEPICS();
+	void OnUpdateDiscovery(CCmdUI* pCmdUI);
 	DECLARE_MESSAGE_MAP()
 };
 

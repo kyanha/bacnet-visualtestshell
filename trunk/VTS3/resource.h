@@ -266,10 +266,11 @@
 #define IDD_NOTIFY_UNS_RANGE            377
 #define IDD_DEVTREEOPT                  378
 #define IDD_INCONSISTENT_PARS           379
-#define IDD_SELECT_TEMPLATE             381
-#define IDR_SCRIPT_CONTEXT              382
+#define IDD_SELECT_TEMPLATE             380
+#define IDR_SCRIPT_CONTEXT              381
 #define IDD_SENDWHATISNET               382
 #define IDD_SENDNETNUMBERIS             383
+#define IDD_DISCOVER_EPICS              384
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1000
 #define IDC_NEWPORT                     1001
@@ -968,6 +969,12 @@
 #define IDC_STATIC1                     1576
 #define IDC_NUMERIC_TYPE                1577
 #define IDC_TEXT_EDITOR                 1578
+#define IDC_FILENAME                    1579
+#define IDC_CHECK1                      1580
+#define IDC_STATIC2                     1581
+#define IDC_STATIC3                     1582
+#define IDC_STATIC4                     1583
+#define IDC_STATIC5                     1584
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -1071,6 +1078,8 @@
 #define ID_EDIT_LOGFILE                 32908
 #define ID_EDIT_AUTO_OBJECT             32909
 #define ID_EDIT_AUTO_PROPERTY           32910
+#define ID_TOOLS_GENERATE_EPICS         32911
+#define ID_TOOLS_DISCOVER_DEVICES       32912
 #define IDS_BTYPE0                      32950
 #define IDS_BTYPE1                      32951
 #define IDS_BTYPE2                      32952
@@ -1163,9 +1172,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        383
-#define _APS_NEXT_COMMAND_VALUE         32912
-#define _APS_NEXT_CONTROL_VALUE         1579
+#define _APS_NEXT_RESOURCE_VALUE        385
+#define _APS_NEXT_COMMAND_VALUE         32913
+#define _APS_NEXT_CONTROL_VALUE         1585
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif
