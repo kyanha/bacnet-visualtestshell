@@ -147,14 +147,14 @@ void CSendConfEventNotification::EncodePage( CByteArray* contents )
 
 	if (m_NotifyClass.ctrlNull)
 		throw "Notification class required";
-	if ((m_NotifyClass.uintValue < 1) || (m_NotifyClass.uintValue > 255))
-		throw "Notification class out of range (1..255)";
+	if (m_NotifyClass.uintValue > 4194303)
+		throw "Notification class out of range (0..4194303)";
 	m_NotifyClass.Encode( enc, 4 );
 
 	if (m_Priority.ctrlNull)
 		throw "Priority required";
-	if ((m_Priority.uintValue < 1) || (m_Priority.uintValue > 255))
-		throw "Priority out of range (1..255)";
+	if (m_Priority.uintValue > 255)
+		throw "Priority out of range (0..255)";
 	m_Priority.Encode( enc, 5 );
 
 	// the event type and values are specified together
