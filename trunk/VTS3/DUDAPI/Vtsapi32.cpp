@@ -6992,6 +6992,7 @@ BACnetRecipient *ParseRecipient(BACnetRecipient *inq)
 {
    BACnetRecipient   *q = NULL;
    dword             dw;
+   bool wrapped = false;   // Declared here to preserve VC++ 6.0 compatibility
 
    // 135.1 clause 4 says there should be a CHOICE tag, followed by BACnetAddress in {} or ObjectID in ()
    // 135.1 Annex A has
@@ -7013,7 +7014,7 @@ BACnetRecipient *ParseRecipient(BACnetRecipient *inq)
 
    // For 135.1 strict, move the wrapper as an EpicsSequence into the Address choice.
    // We allow OPTIONAL {} wrapping, so as not to eat the () on a naked ObjectID
-   bool wrapped = NextIs( '{' );
+   wrapped = NextIs( '{' );
    if (inq==NULL)
    {
       if ((q=(tagRecipient *)malloc(sizeof(BACnetRecipient)))==NULL)
@@ -8949,7 +8950,7 @@ bool ReadAlphaString( CString *pVal, char mustBe )
       {
          break;
       }
-      pVal->AppendChar( ch );
+      *pVal += (char)ch;
       lp += 1;
    }
 
@@ -9020,7 +9021,7 @@ bool ReadEnumString( CString *pVal, char mustBe )
       {
          break;
       }
-      pVal->AppendChar( ch );
+      *pVal += (char)ch;
       lp += 1;
    }
 
